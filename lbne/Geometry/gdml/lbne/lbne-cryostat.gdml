@@ -1,0 +1,201 @@
+<solids>
+ <box name="Pit"
+  lunit="cm"
+  x="kPitWidth"
+  y="kPitDepth"
+  z="kPitLength"/>
+ <box name="Cryostat"
+  lunit="cm"
+  x="kPitWidth-2*kConcreteThickness"
+  y="kPitDepth-kConcreteThickness"
+  z="kPitLength-2*kConcreteThickness"/>
+ <box name="InnerCryostat"
+  lunit="cm"
+  x="kPitWidth-2*kConcreteThickness-2*kInsulationThickness"
+  y="kPitDepth-kConcreteThickness-kInsulationThickness"
+  z="kPitLength-2*kConcreteThickness-2*kInsulationThickness"/>
+</solids>
+
+<structure>
+ <volume name="volInnerCryostat">
+  <materialref ref="LAr"/>
+  <solidref ref="InnerCryostat"/>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC111" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC112" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC113" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC114" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC115" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC121" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC122" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC123" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC124" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC125" unit="cm" x="-1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC211" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC212" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC213" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC214" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC215" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC221" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC222" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC223" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC224" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC225" unit="cm" x="-0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC311" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC312" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC313" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC314" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC315" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC321" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC322" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC323" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC324" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC325" unit="cm" x="0.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC411" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC412" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC413" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC414" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC415" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="-0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC421" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC422" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="-1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC423" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC424" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="1*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volTPC"/>
+   <position name="posTPC425" unit="cm" x="1.5*(kTPCDepth+6*kTPCWirePlaneThickness+kHorizClearance)" y="0.5*(kTPCWidth+2*kTPCWallThickness+kVertClearance)-0.5*kUllage" z="2*(kTPCLength+2*kTPCWallThickness+kHorizClearance)"/>
+  </physvol>
+ </volume>
+ <volume name="volCryostat">
+  <materialref ref="fibrous_glass"/>
+  <solidref ref="Cryostat"/>
+  <physvol>
+   <volumeref ref="volInnerCryostat"/>
+   <position name="posInnerCryostat" unit="cm" x="0" y="0.5*kInsulationThickness" z="0"/>
+  </physvol>
+ </volume>
+ <volume name="volPit">
+  <materialref ref="Concrete"/>
+  <solidref ref="Pit"/>
+  <physvol>
+   <volumeref ref="volCryostat"/>
+   <position name="posCryostat" unit="cm" x="0" y="0.5*kConcreteThickness" z="0"/>
+  </physvol>
+ </volume>
+</structure>

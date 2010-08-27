@@ -1,0 +1,35 @@
+<constant name="kWorldWidth"              value="15000"/>
+<constant name="kWorldDepth"              value="15000"/>
+<constant name="kWorldLength"             value="15000"/>
+
+<constant name="kDetEnclosureWidth"        value="10000"/>
+<constant name="kDetEnclosureDepth"        value="10000"/>
+<constant name="kDetEnclosureLength"       value="10000"/>
+
+<constant name="kTPCOuterDepth"		  value="500" />
+<constant name="kTPCOuterWidth"		  value="700" />
+<constant name="kTPCOuterLength"	  value="1150" />
+<constant name="kTPCWallThickness"	  value="0.5*kInch" />
+
+<constant name="kTPCWirePlaneThickness"   value="0.15*kInch" />
+<constant name="kTPCWireThickness"	  value="0.015" />
+
+<constant name="kTPCDepth"                value="kTPCOuterDepth-6*kTPCWirePlaneThickness" />
+<constant name="kTPCWidth"                value="kTPCOuterWidth-2*kTPCWallThickness" />
+<constant name="kTPCLength"               value="kTPCOuterLength-2*kTPCWallThickness" />
+
+<constant name="kTPCWirePlaneWidth"       value="kTPCWidth" />
+<constant name="kTPCWirePlaneLength"	  value="kTPCLength" />
+<constant name="kTPCWirePitch"            value="0.3"/>
+<constant name="kCos30"                   value="0.8660254038"/>
+<constant name="kCos60"                   value="0.5"/>
+<constant name="kTPCWireXPitch"           value="kTPCWirePitch/kCos60"/>
+
+<constant name="kPitWidth"                value="2400"/>
+<constant name="kPitDepth"                value="1700"/>
+<constant name="kPitLength"               value="6170"/>
+<constant name="kConcreteThickness"       value="50"/>
+<constant name="kInsulationThickness"     value="100"/>
+<constant name="kUllage"                  value="50"/>
+<constant name="kVertClearance"           value="50"/>
+<constant name="kHorizClearance"          value="20"/>

@@ -1,0 +1,18 @@
+<solids>
+ <box name="DetEnclosure"
+  lunit="cm"
+  x="kDetEnclosureWidth"
+  y="kDetEnclosureDepth"
+  z="kDetEnclosureLength"/>
+</solids>
+
+<structure>
+ <volume name="volDetEnclosure">
+  <materialref ref="Granite"/>
+  <solidref ref="DetEnclosure"/>
+  <physvol>
+   <volumeref ref="volPit"/>
+   <position name="posPit" unit="cm" x="0" y="0" z="0"/>
+  </physvol>
+ </volume>
+</structure>
