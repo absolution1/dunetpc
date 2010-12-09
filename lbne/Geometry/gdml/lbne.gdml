@@ -188,7 +188,7 @@
    <fraction n="1." ref="titanium"/>
   </material>
 
-  <material name="Concrete" formula="Concret">
+  <material name="TPB" formula="TPB">
    <D value="1.40" unit="g/cm3"/>
    <fraction n="1.0000" ref="argon"/>
   </material>
@@ -273,19 +273,19 @@
     <solidref ref="CryostatSteelShell" />
   </volume>
   <volume name="volConcreteWithCavern">
-    <materialref ref="TPB" />
+    <materialref ref="Concrete" />
     <solidref ref="ConcreteWithCavern" />
   </volume>
   <volume name="volConcreteBottom">
-    <materialref ref="TPB" />
+    <materialref ref="Concrete" />
     <solidref ref="ConcreteBottom" />
   </volume>
   <volume name="volRockWithCavern">
-    <materialref ref="Granite" />
+    <materialref ref="ShotRock" />
     <solidref ref="RockWithCavern" />
   </volume>
   <volume name="volRockBottom">
-    <materialref ref="Granite" />
+    <materialref ref="ShotRock" />
     <solidref ref="RockBottom" />
   </volume>
   <volume name="volWorld" >
