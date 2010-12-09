@@ -1,44 +1,49 @@
-typedef struct _drawopt {
+typedef struct _drawopt 
+{
   const char* volume;
   int         color;
 } drawopt;
 
-void lbne_geo(TString volName="volWorld"){
+lbne_geo(TString volName="")
+{
+  gSystem->Load("libGeom");
+  gSystem->Load("libGdml");
 
-gSystem->Load("libGeom");
-gSystem->Load("libGdml");
+  TGeoManager::Import("lbne.gdml");
 
-TGeoManager::Import("lbne.gdml");
+  drawopt optuboone[] = {
+    {"volWorld",        0},
+    {"volDetEnclosure", kWhite},
+    {"volCryostat",     kOrange},
+    {"volTPC",          kOrange-5},
+    {"volTPCBackWall",  kRed},
+    {"volTPCVertWall",  kCyan-5},
+    {"volTPCHorizWall", kOrange},
+    {0, 0}
+  };
 
-drawopt optLBNE[] = {
-  {"volWorld",                 kWhite},
-  {"volDetEnclosure",          kMagenta},
-  {"volPit",                   kAzure},
-  {"volCryostat",              kOrange},
-  {"volInnerCryostat",         kYellow},
-  {"volTPC",                   kOrange-5},
-  {"volTPCCathode",            kRed},
-  {"volTPCVertWall",           kCyan-5},
-  {"volTPCHorizWall",          kOrange},
-  {0, 0}
-};
+  // for (int i=0;; ++i) {
+  //   if (optuboone[i].volume==0) break;
+  //     gGeoManager->FindVolumeFast(optuboone[i].volume)->SetLineColor(optuboone[i].color);
+  // }
+  TList* mat = gGeoManager->GetListOfMaterials();
+  TIter next(mat);
+  TObject *obj;
+  while (obj = next()) {
+    obj->Print();
+  }
 
-for (int i=0;; ++i) {
-  if (optLBNE[i].volume==0) break;
-    gGeoManager->FindVolumeFast(optLBNE[i].volume)->SetLineColor(optLBNE[i].color);
-}
+  gGeoManager->GetTopNode();
+  gGeoManager->CheckOverlaps(0.01);
+  gGeoManager->PrintOverlaps();
+  gGeoManager->SetMaxVisNodes(70000);
 
-TList* mat = gGeoManager->GetListOfMaterials();
-TIter next(mat);
-TObject *obj;
-while (obj = next()) {
- obj->Print();
-}
+  //gGeoManager->GetTopVolume()->Draw();
+  if ( ! volName.IsNull() ) gGeoManager->FindVolumeFast(volName)->Draw("ogl");
 
- gGeoManager->CheckOverlaps(0.01);
- gGeoManager->PrintOverlaps();
- gGeoManager->SetMaxVisNodes(70000);
+  TFile *tf = new TFile("lbne.root", "RECREATE");
+ 
+  gGeoManager->Write();
 
- //gGeoManager->GetTopVolume()->Draw();
- gGeoManager->FindVolumeFast(volName)->Draw();
+  tf->Close();
 }

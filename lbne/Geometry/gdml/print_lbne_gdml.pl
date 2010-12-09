@@ -1,3 +1,24 @@
+#!/usr/bin/perl
+
+    $RockMaterial="ShotRock";	# current options: "Granite", "Dirt", "ShotRock" 
+
+    $DetectorWidth=1900;
+    $DetectorHeight=1700;
+    $DetectorLength=8900;
+    $CavernWidth=$DetectorWidth+2*$TotalPadding;
+    $CavernHeight=$DetectorHeight+$TotalPadding;
+    $CavernLength=$DetectorLength+2*$TotalPadding;
+    $RockThickness=2000;
+    $ConcretePadding=50;
+    $GlassFoamPadding=100;
+    $TotalPadding=$ConcretePadding+$GlassFoamPadding;
+
+
+$GDML = "lbne.gdml";
+$GDML = ">" . $GDML; 
+open(GDML) or die("Could not open file $GDML for writing");
+
+print GDML <<EOF;
 <?xml version="1.0" encoding="UTF-8" ?>
 <gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -188,7 +209,7 @@
    <fraction n="1." ref="titanium"/>
   </material>
 
-  <material name="Concrete" formula="Concret">
+  <material name="TPB" formula="TPB">
    <D value="1.40" unit="g/cm3"/>
    <fraction n="1.0000" ref="argon"/>
   </material>
@@ -214,21 +235,21 @@
 
 <solids>
    <box name="World" lunit="cm" 
-     x="1900+2000" 
-     y="1700+2000" 
-     z="8900+2000"/>
+     x="$CavernWidth+$RockThickness" 
+     y="$CavernHeight+$RockThickness" 
+     z="$CavernLength+$RockThickness"/>
    <box name="Rock" lunit="cm" 
-     x="1900+2000" 
-     y="1700+2000" 
-     z="8900+2000"/>
+     x="$CavernWidth+$RockThickness" 
+     y="$CavernHeight+$RockThickness" 
+     z="$CavernLength+$RockThickness"/>
    <box name="RockBottom" lunit="cm" 
-     x="1900" 
-     y="2000" 
-     z="8900"/>
+     x="$CavernWidth" 
+     y="$RockThickness" 
+     z="$CavernLength"/>
    <box name="Cavern" lunit="cm" 
-     x="1900"
-     y="1700+2*2000+100"
-     z="8900"/>
+     x="$CavernWidth"
+     y="$CavernHeight+2*$RockThickness+100"
+     z="$CavernLength"/>
    <subtraction name="RockWithCavern">
      <first ref="Rock"/>
      <second ref="Cavern"/>
@@ -273,19 +294,19 @@
     <solidref ref="CryostatSteelShell" />
   </volume>
   <volume name="volConcreteWithCavern">
-    <materialref ref="TPB" />
+    <materialref ref="Concrete" />
     <solidref ref="ConcreteWithCavern" />
   </volume>
   <volume name="volConcreteBottom">
-    <materialref ref="TPB" />
+    <materialref ref="Concrete" />
     <solidref ref="ConcreteBottom" />
   </volume>
   <volume name="volRockWithCavern">
-    <materialref ref="Granite" />
+    <materialref ref="$RockMaterial" />
     <solidref ref="RockWithCavern" />
   </volume>
   <volume name="volRockBottom">
-    <materialref ref="Granite" />
+    <materialref ref="$RockMaterial" />
     <solidref ref="RockBottom" />
   </volume>
   <volume name="volWorld" >
@@ -332,3 +353,4 @@
 
 </gdml>
 
+EOF

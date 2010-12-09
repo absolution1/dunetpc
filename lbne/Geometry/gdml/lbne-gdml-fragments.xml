@@ -1,21 +1,19 @@
 <?xml version='1.0'?>
 
-<!-- Input to Geometry/gdml/make_gdml,pl; define the GDML fragments
+<!-- Input to Geometry/gdml/make_gdml.pl; define the GDML fragments
      that will be zipped together to create a detector description. 
      -->
 
-<config detector="lbne">
+<config>
 
    <constantfiles>
 
       <!-- These files contain GDML <constant></constant>
-           blocks. They're read in separately, so they can be
+           blocks. They are read in separately, so they can be
            interpreted into the remaining GDML. See make_gdml.pl for
            more information. 
 	   -->
 	   
-      <filename> global-defs.gdml            </filename>
-      <filename> lbne/lbne-defs.gdml         </filename>
 
    </constantfiles>
 
@@ -23,13 +21,10 @@
 
       <!-- The GDML file fragments to be zipped together. -->
 
-      <filename> lbne/lbne-rotations.gdml       </filename>
-      <filename> materials.gdml                 </filename>
-      <filename> lbne/lbne-plane.gdml           </filename>
-      <filename> lbne/lbne-tpc.gdml             </filename>
-      <filename> lbne/lbne-cryostat.gdml        </filename>
-      <filename> lbne/lbne-enclosure.gdml       </filename>
-      <filename> lbne/lbne-world.gdml           </filename>
+      <filename> microboone/micro-defs.gdml </filename>
+      <filename> microboone/micro-rotations.gdml </filename>
+      <filename> materials.gdml </filename>
+      <filename> micro-world.gdml </filename>
 
    </gdmlfiles>
 
