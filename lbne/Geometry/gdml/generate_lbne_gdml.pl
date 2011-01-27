@@ -50,7 +50,7 @@ sub gen_lbne()
       x="$CryostatWidth+2*($RockThickness+$TotalPadding)+$TPCWidth" 
       y="$CryostatHeight+2*($RockThickness+$TotalPadding)" 
       z="$CryostatLength+2*($RockThickness+$TotalPadding)+$TPCLength"/>
-    <box name="Rock" lunit="cm" 
+    <box name="LowerRock" lunit="cm" 
       x="$CryostatWidth+2*($RockThickness+$TotalPadding)" 
       y="$CryostatHeight+$RockThickness+$TotalPadding" 
       z="$CryostatLength+2*($RockThickness+$TotalPadding)"/>
@@ -58,13 +58,29 @@ sub gen_lbne()
       x="$CryostatWidth+2*$TotalPadding" 
       y="$RockThickness" 
       z="$CryostatLength+2*$TotalPadding"/>
-    <box name="Cavern" lunit="cm" 
+    <box name="LowerCavern" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+$RockThickness+$TotalPadding+2"
       z="$CryostatLength+2*$TotalPadding"/>
-    <subtraction name="RockWithCavern">
-      <first ref="Rock"/>
-      <second ref="Cavern"/>
+    <subtraction name="LowerRockWithCavern">
+      <first ref="LowerRock"/>
+      <second ref="LowerCavern"/>
+    </subtraction>
+    <box name="UpperRock" lunit="cm" 
+      x="$CryostatWidth+2*($RockThickness+$TotalPadding)" 
+      y="$RockThickness" 
+      z="$CryostatLength+2*($RockThickness+$TotalPadding)"/>
+    <box name="UpperCavern" lunit="cm" 
+      x="$CryostatWidth+2*$TotalPadding+1000"
+      y="$RockThickness+20"
+      z="$CryostatLength+2*$TotalPadding+1000"/>
+    <box name="RockTop" lunit="cm" 
+      x="$CryostatWidth+2*$TotalPadding+1000" 
+      y="$RockThickness-500" 
+      z="$CryostatLength+2*$TotalPadding+1000"/>
+    <subtraction name="UpperRockWithCavern">
+      <first ref="UpperRock"/>
+      <second ref="UpperCavern"/>
     </subtraction>
     <box name="DetEnclosure" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding"
@@ -190,12 +206,20 @@ EOF
         <position name="posConcreteBottom" unit="cm" x="0" y="-0.5*($CryostatHeight+$TotalPadding)" z="0"/>
       </physvol>
     </volume>
-    <volume name="volRockWithCavern">
-      <materialref ref="ShotRock"/>
-      <solidref ref="RockWithCavern"/>
+    <volume name="volLowerRockWithCavern">
+      <materialref ref="DUSEL_Rock"/>
+      <solidref ref="LowerRockWithCavern"/>
+    </volume>
+    <volume name="volRockTop">
+      <materialref ref="DUSEL_Rock"/>
+      <solidref ref="RockTop"/>
+    </volume>
+    <volume name="volUpperRockWithCavern">
+      <materialref ref="DUSEL_Rock"/>
+      <solidref ref="UpperRockWithCavern"/>
     </volume>
     <volume name="volRockBottom">
-      <materialref ref="ShotRock"/>
+      <materialref ref="DUSEL_Rock"/>
       <solidref ref="RockBottom"/>
     </volume>
     <volume name="volWorld" >
@@ -206,12 +230,20 @@ EOF
         <position name="posDetEnclosure" unit="cm" x="0.5*$TPCWidth" y="0" z="0.5*$TPCLength"/>
       </physvol>
       <physvol>
-        <volumeref ref="volRockWithCavern"/>
-        <position name="posRockWithCavern" unit="cm" x="0.5*$TPCWidth" y="-0.5*$RockThickness" z="0.5*$TPCLength"/>
+        <volumeref ref="volLowerRockWithCavern"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="0.5*$TPCWidth" y="-0.5*$RockThickness" z="0.5*$TPCLength"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockBottom"/>
         <position name="posRockBottom" unit="cm" x="0.5*$TPCWidth" y="-0.5*($RockThickness+$CryostatHeight+$TotalPadding)" z="0.5*$TPCLength"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volUpperRockWithCavern"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="0.5*$TPCWidth" y="0.5*($RockThickness+$CryostatHeight)" z="0.5*$TPCLength"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volRockTop"/>
+        <position name="posRockTop" unit="cm" x="0.5*$TPCWidth" y="0.5*($RockThickness-500+$CryostatHeight)+500" z="0.5*$TPCLength"/>
       </physvol>
     </volume>
   </structure>
@@ -298,6 +330,16 @@ sub gen_materials()
       <fraction n="0.019" ref="iron"/>
       <fraction n="0.015" ref="potassium"/>
     </material>
+
+    <material formula=" " name="DUSEL_Rock">
+      <D value="2.82" unit="g/cc"/>
+      <fraction n="0.438" ref="oxygen"/>
+      <fraction n="0.257" ref="silicon"/>
+      <fraction n="0.222" ref="sodium"/>
+      <fraction n="0.049" ref="aluminum"/>
+      <fraction n="0.019" ref="iron"/>
+      <fraction n="0.015" ref="potassium"/>
+    </material> 
  
     <material formula=" " name="Dirt">
       <D value="1.7" unit="g/cc"/>

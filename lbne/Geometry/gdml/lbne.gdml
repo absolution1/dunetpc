@@ -52,6 +52,16 @@
       <fraction n="0.019" ref="iron"/>
       <fraction n="0.015" ref="potassium"/>
     </material>
+
+    <material formula=" " name="DUSEL_Rock">
+      <D value="2.82" unit="g/cc"/>
+      <fraction n="0.438" ref="oxygen"/>
+      <fraction n="0.257" ref="silicon"/>
+      <fraction n="0.222" ref="sodium"/>
+      <fraction n="0.049" ref="aluminum"/>
+      <fraction n="0.019" ref="iron"/>
+      <fraction n="0.015" ref="potassium"/>
+    </material> 
  
     <material formula=" " name="Dirt">
       <D value="1.7" unit="g/cc"/>
@@ -90,7 +100,7 @@
       x="1900+2*(2000+151.27)+1800" 
       y="1700+2*(2000+151.27)" 
       z="8900+2*(2000+151.27)+6675"/>
-    <box name="Rock" lunit="cm" 
+    <box name="LowerRock" lunit="cm" 
       x="1900+2*(2000+151.27)" 
       y="1700+2000+151.27" 
       z="8900+2*(2000+151.27)"/>
@@ -98,13 +108,29 @@
       x="1900+2*151.27" 
       y="2000" 
       z="8900+2*151.27"/>
-    <box name="Cavern" lunit="cm" 
+    <box name="LowerCavern" lunit="cm" 
       x="1900+2*151.27"
       y="1700+2000+151.27+2"
       z="8900+2*151.27"/>
-    <subtraction name="RockWithCavern">
-      <first ref="Rock"/>
-      <second ref="Cavern"/>
+    <subtraction name="LowerRockWithCavern">
+      <first ref="LowerRock"/>
+      <second ref="LowerCavern"/>
+    </subtraction>
+    <box name="UpperRock" lunit="cm" 
+      x="1900+2*(2000+151.27)" 
+      y="2000" 
+      z="8900+2*(2000+151.27)"/>
+    <box name="UpperCavern" lunit="cm" 
+      x="1900+2*151.27+1000"
+      y="2000+20"
+      z="8900+2*151.27+1000"/>
+    <box name="RockTop" lunit="cm" 
+      x="1900+2*151.27+1000" 
+      y="2000-500" 
+      z="8900+2*151.27+1000"/>
+    <subtraction name="UpperRockWithCavern">
+      <first ref="UpperRock"/>
+      <second ref="UpperCavern"/>
     </subtraction>
     <box name="DetEnclosure" lunit="cm" 
       x="1900+2*151.27"
@@ -260,12 +286,20 @@
         <position name="posConcreteBottom" unit="cm" x="0" y="-0.5*(1700+151.27)" z="0"/>
       </physvol>
     </volume>
-    <volume name="volRockWithCavern">
-      <materialref ref="ShotRock"/>
-      <solidref ref="RockWithCavern"/>
+    <volume name="volLowerRockWithCavern">
+      <materialref ref="DUSEL_Rock"/>
+      <solidref ref="LowerRockWithCavern"/>
+    </volume>
+    <volume name="volRockTop">
+      <materialref ref="DUSEL_Rock"/>
+      <solidref ref="RockTop"/>
+    </volume>
+    <volume name="volUpperRockWithCavern">
+      <materialref ref="DUSEL_Rock"/>
+      <solidref ref="UpperRockWithCavern"/>
     </volume>
     <volume name="volRockBottom">
-      <materialref ref="ShotRock"/>
+      <materialref ref="DUSEL_Rock"/>
       <solidref ref="RockBottom"/>
     </volume>
     <volume name="volWorld" >
@@ -276,12 +310,20 @@
         <position name="posDetEnclosure" unit="cm" x="0.5*1800" y="0" z="0.5*6675"/>
       </physvol>
       <physvol>
-        <volumeref ref="volRockWithCavern"/>
-        <position name="posRockWithCavern" unit="cm" x="0.5*1800" y="-0.5*2000" z="0.5*6675"/>
+        <volumeref ref="volLowerRockWithCavern"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="0.5*1800" y="-0.5*2000" z="0.5*6675"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockBottom"/>
         <position name="posRockBottom" unit="cm" x="0.5*1800" y="-0.5*(2000+1700+151.27)" z="0.5*6675"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volUpperRockWithCavern"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="0.5*1800" y="0.5*(2000+1700)" z="0.5*6675"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volRockTop"/>
+        <position name="posRockTop" unit="cm" x="0.5*1800" y="0.5*(2000-500+1700)+500" z="0.5*6675"/>
       </physvol>
     </volume>
   </structure>
