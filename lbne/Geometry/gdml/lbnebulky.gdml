@@ -243,36 +243,36 @@
 </materials>
  <solids>
     <box name="World" lunit="cm" 
-      x="1900+2*(1000+151.27)+1800" 
-      y="1700+2*(1000+151.27)" 
-      z="8900+2*(1000+151.27)+6675"/>
+      x="1900+2*(15000+151.27)+1800" 
+      y="1700+2*(15000+151.27)" 
+      z="8900+2*(15000+151.27)+6675"/>
     <box name="LowerRock" lunit="cm" 
-      x="1900+2*(1000+151.27)" 
-      y="1700+1000+151.27" 
-      z="8900+2*(1000+151.27)"/>
+      x="1900+2*(15000+151.27)" 
+      y="1700+15000+151.27" 
+      z="8900+2*(15000+151.27)"/>
     <box name="RockBottom" lunit="cm" 
       x="1900+2*151.27" 
-      y="1000" 
+      y="15000" 
       z="8900+2*151.27"/>
     <box name="LowerCavern" lunit="cm" 
       x="1900+2*151.27"
-      y="1700+1000+151.27+2"
+      y="1700+15000+151.27+2"
       z="8900+2*151.27"/>
     <subtraction name="LowerRockWithCavern">
       <first ref="LowerRock"/>
       <second ref="LowerCavern"/>
     </subtraction>
     <box name="UpperRock" lunit="cm" 
-      x="1900+2*(1000+151.27)" 
-      y="1000" 
-      z="8900+2*(1000+151.27)"/>
+      x="1900+2*(15000+151.27)" 
+      y="15000" 
+      z="8900+2*(15000+151.27)"/>
     <box name="UpperCavern" lunit="cm" 
       x="1900+2*151.27+1000"
-      y="1000+20"
+      y="15000+20"
       z="8900+2*151.27+1000"/>
     <box name="RockTop" lunit="cm" 
       x="1900+2*151.27+1000" 
-      y="1000-500" 
+      y="15000-500" 
       z="8900+2*151.27+1000"/>
     <subtraction name="UpperRockWithCavern">
       <first ref="UpperRock"/>
@@ -457,19 +457,19 @@
       </physvol>
       <physvol>
         <volumeref ref="volLowerRockWithCavern"/>
-        <position name="posLowerRockWithCavern" unit="cm" x="0.5*1800" y="-0.5*1000" z="0.5*6675"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="0.5*1800" y="-0.5*15000" z="0.5*6675"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockBottom"/>
-        <position name="posRockBottom" unit="cm" x="0.5*1800" y="-0.5*(1000+1700+151.27)" z="0.5*6675"/>
+        <position name="posRockBottom" unit="cm" x="0.5*1800" y="-0.5*(15000+1700+151.27)" z="0.5*6675"/>
       </physvol>
       <physvol>
         <volumeref ref="volUpperRockWithCavern"/>
-        <position name="posLowerRockWithCavern" unit="cm" x="0.5*1800" y="0.5*(1000+1700)" z="0.5*6675"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="0.5*1800" y="0.5*(15000+1700)" z="0.5*6675"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockTop"/>
-        <position name="posRockTop" unit="cm" x="0.5*1800" y="0.5*(1000-500+1700)+500" z="0.5*6675"/>
+        <position name="posRockTop" unit="cm" x="0.5*1800" y="0.5*(15000-500+1700)+500" z="0.5*6675"/>
       </physvol>
     </volume>
   </structure>
