@@ -31,7 +31,7 @@ lbnebulky_geo(TString volName="")
   }
 
   gGeoManager->GetTopNode();
-  gGeoManager->CheckOverlaps(0.01);
+  gGeoManager->CheckOverlaps(1e-16);
   gGeoManager->PrintOverlaps();
   gGeoManager->SetMaxVisNodes(70000);
 
