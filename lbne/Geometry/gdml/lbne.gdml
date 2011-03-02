@@ -282,7 +282,7 @@
       x="1900+2*151.27"
       y="1700+2*151.27"
       z="8900+2*151.27"/>
-    <box name="Concrete" lunit="cm" 
+    <box name="ConcreteCylinder" lunit="cm" 
       x="1900+2*151.27"
       y="1700+151.27"
       z="8900+2*151.27"/>
@@ -295,7 +295,7 @@
       y="1700+151.27+2"
       z="8900+2*(151.27-50)"/>
     <subtraction name="ConcreteWithCavern">
-      <first ref="Concrete"/>
+      <first ref="ConcreteCylinder"/>
       <second ref="ConcreteCavern"/>
     </subtraction>
     <box name="Cryostat" lunit="cm" 
@@ -465,7 +465,7 @@
       </physvol>
       <physvol>
         <volumeref ref="volUpperRockWithCavern"/>
-        <position name="posLowerRockWithCavern" unit="cm" x="0.5*1800" y="0.5*(1000+1700)" z="0.5*6675"/>
+        <position name="posUpperRockWithCavern" unit="cm" x="0.5*1800" y="0.5*(1000+1700)" z="0.5*6675"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockTop"/>

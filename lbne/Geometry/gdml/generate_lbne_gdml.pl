@@ -86,7 +86,7 @@ sub gen_lbne()
       x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+2*$TotalPadding"
       z="$CryostatLength+2*$TotalPadding"/>
-    <box name="Concrete" lunit="cm" 
+    <box name="ConcreteCylinder" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+$TotalPadding"
       z="$CryostatLength+2*$TotalPadding"/>
@@ -99,7 +99,7 @@ sub gen_lbne()
       y="$CryostatHeight+$TotalPadding+2"
       z="$CryostatLength+2*($TotalPadding-$ConcretePadding)"/>
     <subtraction name="ConcreteWithCavern">
-      <first ref="Concrete"/>
+      <first ref="ConcreteCylinder"/>
       <second ref="ConcreteCavern"/>
     </subtraction>
     <box name="Cryostat" lunit="cm" 
@@ -239,7 +239,7 @@ EOF
       </physvol>
       <physvol>
         <volumeref ref="volUpperRockWithCavern"/>
-        <position name="posLowerRockWithCavern" unit="cm" x="0.5*$TPCWidth" y="0.5*($RockThickness+$CryostatHeight)" z="0.5*$TPCLength"/>
+        <position name="posUpperRockWithCavern" unit="cm" x="0.5*$TPCWidth" y="0.5*($RockThickness+$CryostatHeight)" z="0.5*$TPCLength"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockTop"/>
