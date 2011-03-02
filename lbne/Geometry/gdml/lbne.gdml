@@ -90,20 +90,20 @@
 
   <material name="FeO" formula="FeO">
    <D value="5.745" unit="g/cm3"/>
-   <fraction n="1" ref="iron"/>
-   <fraction n="1" ref="oxygen"/>
+   <composite n="1" ref="iron"/>
+   <composite n="1" ref="oxygen"/>
   </material>
 
   <material name="CO2" formula="CO2">
    <D value="1.562" unit="g/cm3"/>
-   <fraction n="1" ref="iron"/>
-   <fraction n="2" ref="oxygen"/>
+   <composite n="1" ref="iron"/>
+   <composite n="2" ref="oxygen"/>
   </material>
 
   <material name="P2O5" formula="P2O5">
    <D value="1.562" unit="g/cm3"/>
-   <fraction n="2" ref="phosphorus"/>
-   <fraction n="5" ref="oxygen"/>
+   <composite n="2" ref="phosphorus"/>
+   <composite n="5" ref="oxygen"/>
   </material>
 
   <material formula=" " name="DUSEL_Rock">
