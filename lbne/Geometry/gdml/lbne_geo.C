@@ -37,7 +37,7 @@ lbne_geo(TString volName="")
 
   //gGeoManager->GetTopVolume()->Draw();
   //if ( ! volName.IsNull() ) gGeoManager->FindVolumeFast(volName)->Draw("ogl");
-  gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
+  //gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
 
 
   TFile *tf = new TFile("lbne.root", "RECREATE");
