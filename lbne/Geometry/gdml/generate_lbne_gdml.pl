@@ -4,33 +4,42 @@ use Math::Trig;
 use XML::LibXML;
 use Getopt::Long;
 
+$outfile					=	"lbne.gdml";
+$nCryos						= 2;		# can get rid of this later, 1 corresponds to 1st gdml iteration
+
 #Specific H,W,L of LBNE
-$CryostatWidth=1900;
-$CryostatHeight=1700;
-$CryostatLength=8900;
+$CryostatWidth		=	2400;
+$CryostatHeight		=	1500;
+$CryostatLength		=	4500;
 
 #detector variables
-$SteelThickness=0.5*2.54;
-$ArgonWidth=$CryostatWidth-2*$SteelThickness;
-$ArgonHeight=$CryostatHeight-2*$SteelThickness;
-$ArgonLength=$CryostatLength-2*$SteelThickness;
-$RockThickness=1000;
-$ConcretePadding=50;
-$GlassFoamPadding=100;
-$TotalPadding=$ConcretePadding+$GlassFoamPadding+$SteelThickness;
-$CavernWidth=$ArgonWidth+2*$TotalPadding;
-$CavernHeight=$ArgonHeight+$TotalPadding;
-$CavernLength=$ArgonLength+2*$TotalPadding;
+$SteelThickness		=	0.5*2.54;
+$ArgonWidth				=	$CryostatWidth-2*$SteelThickness;
+$ArgonHeight			=	$CryostatHeight-2*$SteelThickness;
+$ArgonLength			=	$CryostatLength-2*$SteelThickness;
 
-$FiducialWidth=$CryostatWidth-100;
-$FiducialHeight=$CryostatHeight-100;
-$FiducialLength=$CryostatLength-100;
+#set rock thickness
+#  1000 for normal 10m thickness
+#  10000 for lbnebulky
+$RockThickness		=	1000;
 
-$TPCWidth=$FiducialWidth/2;
-$TPCHeight=$FiducialHeight/2;
-$TPCLength=$FiducialLength;
+$ConcretePadding	=	50;
+$GlassFoamPadding	=	100;
+$TotalPadding			=	$ConcretePadding+$GlassFoamPadding+$SteelThickness;
+$CavernWidth			=	$ArgonWidth+2*$TotalPadding;
+$CavernHeight			=	$ArgonHeight+$TotalPadding;
+$CavernLength			=	$nCryos*$CryostatLength+($nCryos+1)*$TotalPadding;
+
+$FiducialWidth		=	$CryostatWidth-100;
+$FiducialHeight		=	$CryostatHeight-100;
+$FiducialLength		=	$CryostatLength-100;
+
+$TPCWidth					=	$FiducialWidth/2;
+$TPCHeight				=	$FiducialHeight/2;
+$TPCLength				=	$FiducialLength;
 
 $TPCWireThickness=0.015;
+$TPC_WireSpacing=0.3;
 
 $Pi=3.14159;
 
@@ -47,8 +56,7 @@ exit;
 sub gen_lbne()
 {
   # Set up the output file.
-  $LBNE = "lbne.gdml";
-  $LBNE = ">>" . $LBNE;
+  $LBNE = ">>" . $outfile;
   open(LBNE) or die("Could not open file $LBNE for writing");
 
   print LBNE <<EOF;
@@ -56,19 +64,19 @@ sub gen_lbne()
     <box name="World" lunit="cm" 
       x="$CryostatWidth+2*($RockThickness+$TotalPadding)+$TPCWidth" 
       y="$CryostatHeight+2*($RockThickness+$TotalPadding)" 
-      z="$CryostatLength+2*($RockThickness+$TotalPadding)+$TPCLength"/>
+      z="$CavernLength+2*$RockThickness+$TPCLength"/>
     <box name="LowerRock" lunit="cm" 
       x="$CryostatWidth+2*($RockThickness+$TotalPadding)" 
       y="$CryostatHeight+$RockThickness+$TotalPadding" 
-      z="$CryostatLength+2*($RockThickness+$TotalPadding)"/>
+      z="$CavernLength+2*$RockThickness"/>
     <box name="RockBottom" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding" 
       y="$RockThickness" 
-      z="$CryostatLength+2*$TotalPadding"/>
+      z="$CavernLength"/>
     <box name="LowerCavern" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+$RockThickness+$TotalPadding+2"
-      z="$CryostatLength+2*$TotalPadding"/>
+      z="$CavernLength"/>
     <subtraction name="LowerRockWithCavern">
       <first ref="LowerRock"/>
       <second ref="LowerCavern"/>
@@ -76,15 +84,15 @@ sub gen_lbne()
     <box name="UpperRock" lunit="cm" 
       x="$CryostatWidth+2*($RockThickness+$TotalPadding)" 
       y="$RockThickness" 
-      z="$CryostatLength+2*($RockThickness+$TotalPadding)"/>
+      z="$CavernLength+2*$RockThickness"/>
     <box name="UpperCavern" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding+1000"
       y="$RockThickness+20"
-      z="$CryostatLength+2*$TotalPadding+1000"/>
+      z="$CavernLength+1000"/>
     <box name="RockTop" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding+1000" 
       y="$RockThickness-500" 
-      z="$CryostatLength+2*$TotalPadding+1000"/>
+      z="$CavernLength+1000"/>
     <subtraction name="UpperRockWithCavern">
       <first ref="UpperRock"/>
       <second ref="UpperCavern"/>
@@ -92,19 +100,19 @@ sub gen_lbne()
     <box name="DetEnclosure" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+2*$TotalPadding"
-      z="$CryostatLength+2*$TotalPadding"/>
+      z="$CavernLength"/>
     <box name="ConcreteCylinder" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+$TotalPadding"
-      z="$CryostatLength+2*$TotalPadding"/>
+      z="$CavernLength"/>
     <box name="ConcreteBottom" lunit="cm" 
       x="$CryostatWidth+2*($TotalPadding-$ConcretePadding)"
       y="$ConcretePadding"
-      z="$CryostatLength+2*($TotalPadding-$ConcretePadding)"/>
+      z="$CavernLength-2*$ConcretePadding"/>
     <box name="ConcreteCavern" lunit="cm" 
       x="$CryostatWidth+2*($TotalPadding-$ConcretePadding)"
       y="$CryostatHeight+$TotalPadding+2"
-      z="$CryostatLength+2*($TotalPadding-$ConcretePadding)"/>
+      z="$CavernLength-2*$ConcretePadding"/>
     <subtraction name="ConcreteWithCavern">
       <first ref="ConcreteCylinder"/>
       <second ref="ConcreteCavern"/>
@@ -154,7 +162,6 @@ sub gen_lbne()
       <solidref ref="TPCPlane"/>
 EOF
 
-    $TPC_WireSpacing=0.3;
     $count=1;
     for ( $i=-0.3*$TPCLength ; $i < 0.3*$TPCLength ; $i+=$TPC_WireSpacing ) {
       $wire_zpos=$i;
@@ -234,10 +241,30 @@ EOF
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
+EOF
+
+		if($nCryos==1){
+		    print LBNE <<EOF;
       <physvol>
         <volumeref ref="volCryostat"/>
         <position name="posCryostat" unit="cm" x="0" y="0" z="0"/>
       </physvol>
+EOF
+		}elsif($nCryos==2){
+				    print LBNE <<EOF;
+      <physvol>
+        <volumeref ref="volCryostat"/>
+        <position name="posCryostat1" unit="cm" x="0" y="0" z="0.25*$CavernLength"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volCryostat"/>
+        <position name="posCryostat2" unit="cm" x="0" y="0" z="-0.25*$CavernLength"/>
+      </physvol>
+EOF
+		}
+
+    print LBNE <<EOF;
+
       <physvol>
         <volumeref ref="volConcreteWithCavern"/>
         <position name="posConcreteWithCavern" unit="cm" x="0" y="-0.5*($TotalPadding-$ConcretePadding)" z="0"/>
@@ -301,8 +328,7 @@ EOF
 sub gen_header() 
 {
 
-  $LBNE = "lbne.gdml";
-  $LBNE = ">" . $LBNE;
+  $LBNE = ">" . $outfile;
   open(LBNE) or die("Could not open file $LBNE for writing");
   print LBNE <<EOF;
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -316,9 +342,7 @@ EOF
 sub gen_materials() 
 {
 
-
-  $LBNE = "lbne.gdml";
-  $LBNE = ">>" . $LBNE;
+  $LBNE = ">>" . $outfile;
   open(LBNE) or die("Could not open file $LBNE for writing");
   print LBNE <<EOF;
 <materials>
