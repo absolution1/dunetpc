@@ -4,7 +4,7 @@ use Math::Trig;
 use XML::LibXML;
 use Getopt::Long;
 
-$outfile					=	"lbnebulky.gdml";
+$outfile					=	"lbne.gdml";
 $nCryos						= 2;		# can get rid of this later, 1 corresponds to 1st gdml iteration
 $nAPAWide					= 3; 
 $nAPAHigh					=	2;
@@ -24,7 +24,7 @@ $ArgonLength			=	$CryostatLength-2*$SteelThickness;
 #set rock thickness
 #  1000 for normal 10m thickness
 #  10000 for lbnebulky
-$RockThickness		=	10000;
+$RockThickness		=	1000;
 
 $ConcretePadding	=	50;
 $GlassFoamPadding	=	100;
