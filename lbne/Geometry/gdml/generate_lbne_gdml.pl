@@ -4,8 +4,11 @@ use Math::Trig;
 use XML::LibXML;
 use Getopt::Long;
 
-$outfile					=	"lbne.gdml";
+$outfile					=	"lbnebulky.gdml";
 $nCryos						= 2;		# can get rid of this later, 1 corresponds to 1st gdml iteration
+$nAPAWide					= 3; 
+$nAPAHigh					=	2;
+$nAPALong					= 18;
 
 #Specific H,W,L of LBNE
 $CryostatWidth		=	2400;
@@ -21,7 +24,7 @@ $ArgonLength			=	$CryostatLength-2*$SteelThickness;
 #set rock thickness
 #  1000 for normal 10m thickness
 #  10000 for lbnebulky
-$RockThickness		=	1000;
+$RockThickness		=	10000;
 
 $ConcretePadding	=	50;
 $GlassFoamPadding	=	100;
@@ -34,9 +37,13 @@ $FiducialWidth		=	$CryostatWidth-100;
 $FiducialHeight		=	$CryostatHeight-100;
 $FiducialLength		=	$CryostatLength-100;
 
-$TPCWidth					=	$FiducialWidth/2;
-$TPCHeight				=	$FiducialHeight/2;
-$TPCLength				=	$FiducialLength;
+$APAWidth					=	$FiducialWidth/$nAPAWide;
+$APAHeight				=	$FiducialHeight/$nAPAHigh;
+$APALength				=	$FiducialLength/$nAPALong;
+
+$TPCWidth					=	$APAWidth/2 - 10.001;
+$TPCHeight				=	$APAHeight - 0.001;
+$TPCLength				=	$APALength - 0.001 ;
 
 $TPCWireThickness=0.015;
 $TPC_WireSpacing=0.5;
@@ -129,6 +136,10 @@ sub gen_lbne()
       <first ref="Cryostat"/>
       <second ref="ArgonInterior"/>
     </subtraction>
+    <box name="APA" lunit="cm" 
+      x="$APAWidth" 
+      y="$APAHeight" 
+      z="$APALength"/>
     <box name="TPC" lunit="cm" 
       x="$TPCWidth" 
       y="$TPCHeight" 
@@ -139,7 +150,7 @@ sub gen_lbne()
       z="0.9*$TPCLength"/>
     <tube name="TPCWire"
       rmax="0.5*$TPCWireThickness"
-      z="0.89*$TPCHeight"               
+      z="0.89*0.9*$TPCLength"               
       deltaphi="2*$Pi"
       aunit="rad"
       lunit="cm"/>
@@ -162,14 +173,15 @@ sub gen_lbne()
       <solidref ref="TPCPlane"/>
 EOF
 
+		$rt2=1.414213562373095;
     $count=1;
-    for ( $i=-0.3*$TPCLength ; $i < 0.3*$TPCLength ; $i+=$TPC_WireSpacing ) {
-      $wire_zpos=$i;
+    for ( $i=-0.3*$TPCLength ; $i < 0.3*$TPCLength ; $i+=$rt2*$TPC_WireSpacing ) {
+      $wire_ypos=$i;
       print LBNE <<EOF;
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire$count" unit="cm" x="0" y="0" z="$wire_zpos"/>
-        <rotation name="rTPCWire$count" unit="deg" x="60" y="0" z="0"/>
+        <position name="posTPCWire$count" unit="cm" x="0" y="$wire_ypos" z="0"/>
+        <rotation name="rTPCWire$count" unit="deg" x="45" y="0" z="0"/>
       </physvol>
 EOF
       $count++;
@@ -197,6 +209,19 @@ EOF
         <position name="posCathode" unit="cm" x="($TPCWidth/2)-0.5" y="0" z="0"/>
       </physvol>
     </volume>
+    <volume name="volAPA">
+    	<materialref ref="LAr"/>
+    	<solidref ref="APA"/>
+    		<physvol>
+          <volumeref ref="volTPC"/>
+          <position name="posTPC1" unit="cm" x="-($TPCWidth/2 + 5)" y="0" z="0"/>
+          <rotation name="rTPC" unit="deg" x="0" y="180" z="0"/>
+        </physvol>
+    		<physvol>
+          <volumeref ref="volTPC"/>
+          <position name="posTPC2" unit="cm" x="($TPCWidth/2 + 5)" y="0" z="0"/>
+        </physvol>
+    </volume>
     <volume name="volCryostat">
       <materialref ref="LAr" />
       <solidref ref="Cryostat" />
@@ -206,28 +231,29 @@ EOF
       </physvol>
 EOF
 
-    $TPC_X=$TPCWidth/2  + 5;  # +5 is for padding
-    $TPC_Y=$TPCHeight/2 + 5;  # +5 is for padding
-    print LBNE <<EOF;
+    for($k=0 ; $k<$nAPALong ; $k++)
+    {
+
+			$TPC_Z = ( $k - ( ( $nAPALong - 1 ) / 2 ) ) * $FiducialLength/$nAPALong; 
+			for($i=0 ; $i<$nAPAWide ; $i++)
+			{
+
+				$TPC_X = ( $i - ( ( $nAPAWide - 1 ) / 2 )  ) * $FiducialWidth/$nAPAWide;
+				for($j=0 ; $j<$nAPAHigh ; $j++)
+				{			
+
+					$TPC_Y = ( $j - ( ( $nAPAHigh - 1 ) / 2 ) ) * $FiducialHeight/$nAPAHigh;
+	    		print LBNE <<EOF;
       <physvol>
-        <volumeref ref="volTPC"/>
-        <position name="posTPC1" unit="cm" x="$TPC_X" y="$TPC_Y" z="0"/>
+        <volumeref ref="volAPA"/>
+        <position name="posAPA$i\-$j\-$k" unit="cm" x="$TPC_X" y="$TPC_Y" z="$TPC_Z"/>
       </physvol>
-      <physvol>
-        <volumeref ref="volTPC"/>
-        <position name="posTPC2" unit="cm" x="$TPC_X" y="-$TPC_Y" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPC"/>
-        <position name="posTPC3" unit="cm" x="-$TPC_X" y="-$TPC_Y" z="0"/>
-        <rotation name="rTPC3" unit="deg" x="0" y="180" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPC"/>
-        <position name="posTPC4" unit="cm" x="-$TPC_X" y="$TPC_Y" z="0"/>
-        <rotation name="rTPC4" unit="deg" x="0" y="180" z="0"/>
-      </physvol>
+
 EOF
+				}
+			}
+		}
+
     print LBNE <<EOF;
     </volume>
     <volume name="volConcreteWithCavern">
