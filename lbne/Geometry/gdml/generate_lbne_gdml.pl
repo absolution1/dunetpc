@@ -39,7 +39,7 @@ $TPCHeight				=	$FiducialHeight/2;
 $TPCLength				=	$FiducialLength;
 
 $TPCWireThickness=0.015;
-$TPC_WireSpacing=0.3;
+$TPC_WireSpacing=0.5;
 
 $Pi=3.14159;
 
