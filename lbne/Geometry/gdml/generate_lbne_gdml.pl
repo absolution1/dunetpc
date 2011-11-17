@@ -25,17 +25,25 @@ $ArgonLength			=	$CryostatLength-2*$SteelThickness;
 #  1000 for normal 10m thickness
 #  10000 for lbnebulky
 $RockThickness		=	1000;
+$MiddleRockThickness = 1500;
 
 $ConcretePadding	=	50;
 $GlassFoamPadding	=	100;
 $TotalPadding			=	$ConcretePadding+$GlassFoamPadding+$SteelThickness;
 $CavernWidth			=	$ArgonWidth+2*$TotalPadding;
 $CavernHeight			=	$ArgonHeight+$TotalPadding;
-$CavernLength			=	$nCryos*$CryostatLength+($nCryos+1)*$TotalPadding;
+$CavernLength			=	$nCryos*($CryostatLength+2*$TotalPadding)+$MiddleRockThickness;
 
-$FiducialWidth		=	$CryostatWidth-100;
-$FiducialHeight		=	$CryostatHeight-100;
-$FiducialLength		=	$CryostatLength-100;
+$CryoZ						= 0.5*($MiddleRockThickness+2*$TotalPadding+$CryostatLength);
+
+$SideLArPadding       = 85;
+$UpstreamLArPadding   = 50;
+$DownstreamLArPadding = 250;
+$VerticalLArPadding   = 50;
+
+$FiducialWidth		=	$CryostatWidth-2*$SideLArPadding;
+$FiducialHeight		=	$CryostatHeight-2*$VerticalLArPadding;
+$FiducialLength		=	$CryostatLength-$UpstreamLArPadding-$DownstreamLArPadding;
 
 $APAWidth					=	$FiducialWidth/$nAPAWide;
 $APAHeight				=	$FiducialHeight/$nAPAHigh;
@@ -69,9 +77,9 @@ sub gen_lbne()
   print LBNE <<EOF;
  <solids>
     <box name="World" lunit="cm" 
-      x="$CryostatWidth+2*($RockThickness+$TotalPadding)+$TPCWidth" 
+      x="2*$CryostatWidth+2*($RockThickness+$TotalPadding)+$TPCWidth" 
       y="$CryostatHeight+2*($RockThickness+$TotalPadding)" 
-      z="$CavernLength+2*$RockThickness+$TPCLength"/>
+      z="2*$CavernLength+2*$RockThickness+$TPCLength"/>
     <box name="LowerRock" lunit="cm" 
       x="$CryostatWidth+2*($RockThickness+$TotalPadding)" 
       y="$CryostatHeight+$RockThickness+$TotalPadding" 
@@ -104,24 +112,28 @@ sub gen_lbne()
       <first ref="UpperRock"/>
       <second ref="UpperCavern"/>
     </subtraction>
+		<box name="MiddleRock" lunit="cm" 
+			x="$CryostatWidth+2*$TotalPadding"
+			y="$CryostatHeight+$TotalPadding+2"
+			z="$MiddleRockThickness"/>
     <box name="DetEnclosure" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+2*$TotalPadding"
       z="$CavernLength"/>
-    <box name="ConcreteCylinder" lunit="cm" 
+    <box name="ConcreteBlock" lunit="cm" 
       x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+$TotalPadding"
-      z="$CavernLength"/>
+      z="$CryostatLength+2*$TotalPadding"/>
     <box name="ConcreteBottom" lunit="cm" 
       x="$CryostatWidth+2*($TotalPadding-$ConcretePadding)"
       y="$ConcretePadding"
-      z="$CavernLength-2*$ConcretePadding"/>
+      z="$CryostatLength-2*$ConcretePadding"/>
     <box name="ConcreteCavern" lunit="cm" 
       x="$CryostatWidth+2*($TotalPadding-$ConcretePadding)"
       y="$CryostatHeight+$TotalPadding+2"
-      z="$CavernLength-2*$ConcretePadding"/>
+      z="$CryostatLength+2*($TotalPadding-$ConcretePadding)"/>
     <subtraction name="ConcreteWithCavern">
-      <first ref="ConcreteCylinder"/>
+      <first ref="ConcreteBlock"/>
       <second ref="ConcreteCavern"/>
     </subtraction>
     <box name="Cryostat" lunit="cm" 
@@ -234,7 +246,7 @@ EOF
     for($k=0 ; $k<$nAPALong ; $k++)
     {
 
-			$TPC_Z = ( $k - ( ( $nAPALong - 1 ) / 2 ) ) * $FiducialLength/$nAPALong; 
+			$TPC_Z = ( $k - ( ( $nAPALong - 1 ) / 2 ) ) * $FiducialLength/$nAPALong + ( $UpstreamLArPadding - $DownstreamLArPadding ) / 2; 
 			for($i=0 ; $i<$nAPAWide ; $i++)
 			{
 
@@ -264,6 +276,10 @@ EOF
       <materialref ref="Concrete"/>
       <solidref ref="ConcreteBottom"/>
     </volume>
+    <volume name="volMiddleRock">
+      <materialref ref="DUSEL_Rock"/>
+      <solidref ref="MiddleRock"/>
+    </volume>
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
@@ -280,11 +296,11 @@ EOF
 				    print LBNE <<EOF;
       <physvol>
         <volumeref ref="volCryostat"/>
-        <position name="posCryostat1" unit="cm" x="0" y="0" z="0.25*$CavernLength"/>
+        <position name="posCryostatDownstream" unit="cm" x="0" y="0" z="$CryoZ"/>
       </physvol>
       <physvol>
         <volumeref ref="volCryostat"/>
-        <position name="posCryostat2" unit="cm" x="0" y="0" z="-0.25*$CavernLength"/>
+        <position name="posCryostatUpstream" unit="cm" x="0" y="0" z="-$CryoZ"/>
       </physvol>
 EOF
 		}
@@ -293,11 +309,23 @@ EOF
 
       <physvol>
         <volumeref ref="volConcreteWithCavern"/>
-        <position name="posConcreteWithCavern" unit="cm" x="0" y="-0.5*($TotalPadding-$ConcretePadding)" z="0"/>
+        <position name="posConcreteWithCavernUpstream" unit="cm" x="0" y="-0.5*($TotalPadding-$ConcretePadding)" z="-$CryoZ"/>
       </physvol>
       <physvol>
         <volumeref ref="volConcreteBottom"/>
-        <position name="posConcreteBottom" unit="cm" x="0" y="-0.5*($CryostatHeight+$TotalPadding)" z="0"/>
+        <position name="posConcreteBottomUpstream" unit="cm" x="0" y="-0.5*($CryostatHeight+$TotalPadding)" z="-$CryoZ"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volConcreteWithCavern"/>
+        <position name="posConcreteWithCavernDownstream" unit="cm" x="0" y="-0.5*($TotalPadding-$ConcretePadding)" z="$CryoZ"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volConcreteBottom"/>
+        <position name="posConcreteBottomDownstream" unit="cm" x="0" y="-0.5*($CryostatHeight+$TotalPadding)" z="$CryoZ"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMiddleRock"/>
+        <position name="posMiddleRock" unit="cm" x="0" y="0" z="0" />
       </physvol>
     </volume>
     <volume name="volLowerRockWithCavern">
@@ -321,23 +349,23 @@ EOF
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="0.5*$TPCWidth" y="0" z="0.5*$TPCLength"/>
+        <position name="posDetEnclosure" unit="cm" x="0.5*$CryostatWidth" y="0" z="0.5*$CavernLength-$TotalPadding"/>
       </physvol>
       <physvol>
         <volumeref ref="volLowerRockWithCavern"/>
-        <position name="posLowerRockWithCavern" unit="cm" x="0.5*$TPCWidth" y="-0.5*$RockThickness" z="0.5*$TPCLength"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="0.5*$CryostatWidth" y="-0.5*$RockThickness" z="0.5*$CavernLength-$TotalPadding"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockBottom"/>
-        <position name="posRockBottom" unit="cm" x="0.5*$TPCWidth" y="-0.5*($RockThickness+$CryostatHeight+$TotalPadding)" z="0.5*$TPCLength"/>
+        <position name="posRockBottom" unit="cm" x="0.5*$CryostatWidth" y="-0.5*($RockThickness+$CryostatHeight+$TotalPadding)" z="0.5*$CavernLength-$TotalPadding"/>
       </physvol>
       <physvol>
         <volumeref ref="volUpperRockWithCavern"/>
-        <position name="posUpperRockWithCavern" unit="cm" x="0.5*$TPCWidth" y="0.5*($RockThickness+$CryostatHeight)" z="0.5*$TPCLength"/>
+        <position name="posUpperRockWithCavern" unit="cm" x="0.5*$CryostatWidth" y="0.5*($RockThickness+$CryostatHeight)" z="0.5*$CavernLength-$TotalPadding"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockTop"/>
-        <position name="posRockTop" unit="cm" x="0.5*$TPCWidth" y="0.5*($RockThickness-500+$CryostatHeight)+500" z="0.5*$TPCLength"/>
+        <position name="posRockTop" unit="cm" x="0.5*$CryostatWidth" y="0.5*($RockThickness-500+$CryostatHeight)+500" z="0.5*$CavernLength-$TotalPadding"/>
       </physvol>
     </volume>
   </structure>

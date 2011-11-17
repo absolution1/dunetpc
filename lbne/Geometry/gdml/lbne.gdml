@@ -243,21 +243,21 @@
 </materials>
  <solids>
     <box name="World" lunit="cm" 
-      x="2400+2*(1000+151.27)+373.332333333333" 
+      x="2*2400+2*(1000+151.27)+361.665666666667" 
       y="1500+2*(1000+151.27)" 
-      z="9453.81+2*1000+244.443444444444"/>
+      z="2*11105.08+2*1000+233.332333333333"/>
     <box name="LowerRock" lunit="cm" 
       x="2400+2*(1000+151.27)" 
       y="1500+1000+151.27" 
-      z="9453.81+2*1000"/>
+      z="11105.08+2*1000"/>
     <box name="RockBottom" lunit="cm" 
       x="2400+2*151.27" 
       y="1000" 
-      z="9453.81"/>
+      z="11105.08"/>
     <box name="LowerCavern" lunit="cm" 
       x="2400+2*151.27"
       y="1500+1000+151.27+2"
-      z="9453.81"/>
+      z="11105.08"/>
     <subtraction name="LowerRockWithCavern">
       <first ref="LowerRock"/>
       <second ref="LowerCavern"/>
@@ -265,37 +265,41 @@
     <box name="UpperRock" lunit="cm" 
       x="2400+2*(1000+151.27)" 
       y="1000" 
-      z="9453.81+2*1000"/>
+      z="11105.08+2*1000"/>
     <box name="UpperCavern" lunit="cm" 
       x="2400+2*151.27+1000"
       y="1000+20"
-      z="9453.81+1000"/>
+      z="11105.08+1000"/>
     <box name="RockTop" lunit="cm" 
       x="2400+2*151.27+1000" 
       y="1000-500" 
-      z="9453.81+1000"/>
+      z="11105.08+1000"/>
     <subtraction name="UpperRockWithCavern">
       <first ref="UpperRock"/>
       <second ref="UpperCavern"/>
     </subtraction>
+		<box name="MiddleRock" lunit="cm" 
+			x="2400+2*151.27"
+			y="1500+151.27+2"
+			z="1500"/>
     <box name="DetEnclosure" lunit="cm" 
       x="2400+2*151.27"
       y="1500+2*151.27"
-      z="9453.81"/>
-    <box name="ConcreteCylinder" lunit="cm" 
+      z="11105.08"/>
+    <box name="ConcreteBlock" lunit="cm" 
       x="2400+2*151.27"
       y="1500+151.27"
-      z="9453.81"/>
+      z="4500+2*151.27"/>
     <box name="ConcreteBottom" lunit="cm" 
       x="2400+2*(151.27-50)"
       y="50"
-      z="9453.81-2*50"/>
+      z="4500-2*50"/>
     <box name="ConcreteCavern" lunit="cm" 
       x="2400+2*(151.27-50)"
       y="1500+151.27+2"
-      z="9453.81-2*50"/>
+      z="4500+2*(151.27-50)"/>
     <subtraction name="ConcreteWithCavern">
-      <first ref="ConcreteCylinder"/>
+      <first ref="ConcreteBlock"/>
       <second ref="ConcreteCavern"/>
     </subtraction>
     <box name="Cryostat" lunit="cm" 
@@ -311,27 +315,27 @@
       <second ref="ArgonInterior"/>
     </subtraction>
     <box name="APA" lunit="cm" 
-      x="766.666666666667" 
+      x="743.333333333333" 
       y="700" 
-      z="244.444444444444"/>
+      z="233.333333333333"/>
     <box name="TPC" lunit="cm" 
-      x="373.332333333333" 
+      x="361.665666666667" 
       y="699.999" 
-      z="244.443444444444"/>
+      z="233.332333333333"/>
     <box name="TPCPlane" lunit="cm" 
       x="0.1" 
       y="0.9*699.999" 
-      z="0.9*244.443444444444"/>
+      z="0.9*233.332333333333"/>
     <tube name="TPCWire"
       rmax="0.5*0.015"
-      z="0.89*0.9*244.443444444444"               
+      z="0.89*0.9*233.332333333333"               
       deltaphi="2*3.14159"
       aunit="rad"
       lunit="cm"/>
     <box name="Cathode" lunit="cm"
       x="1"
       y="699.999"
-      z="244.443444444444"/>
+      z="233.332333333333"/>
   </solids>
   <structure>
     <volume name="volSteelShell">
@@ -347,1043 +351,993 @@
       <solidref ref="TPCPlane"/>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire1" unit="cm" x="0" y="-73.3330333333333" z="0"/>
+        <position name="posTPCWire1" unit="cm" x="0" y="-69.9997" z="0"/>
         <rotation name="rTPCWire1" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire2" unit="cm" x="0" y="-72.6259265521468" z="0"/>
+        <position name="posTPCWire2" unit="cm" x="0" y="-69.2925932188135" z="0"/>
         <rotation name="rTPCWire2" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire3" unit="cm" x="0" y="-71.9188197709602" z="0"/>
+        <position name="posTPCWire3" unit="cm" x="0" y="-68.5854864376269" z="0"/>
         <rotation name="rTPCWire3" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire4" unit="cm" x="0" y="-71.2117129897737" z="0"/>
+        <position name="posTPCWire4" unit="cm" x="0" y="-67.8783796564403" z="0"/>
         <rotation name="rTPCWire4" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire5" unit="cm" x="0" y="-70.5046062085871" z="0"/>
+        <position name="posTPCWire5" unit="cm" x="0" y="-67.1712728752538" z="0"/>
         <rotation name="rTPCWire5" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire6" unit="cm" x="0" y="-69.7974994274006" z="0"/>
+        <position name="posTPCWire6" unit="cm" x="0" y="-66.4641660940672" z="0"/>
         <rotation name="rTPCWire6" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire7" unit="cm" x="0" y="-69.090392646214" z="0"/>
+        <position name="posTPCWire7" unit="cm" x="0" y="-65.7570593128807" z="0"/>
         <rotation name="rTPCWire7" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire8" unit="cm" x="0" y="-68.3832858650275" z="0"/>
+        <position name="posTPCWire8" unit="cm" x="0" y="-65.0499525316941" z="0"/>
         <rotation name="rTPCWire8" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire9" unit="cm" x="0" y="-67.6761790838409" z="0"/>
+        <position name="posTPCWire9" unit="cm" x="0" y="-64.3428457505076" z="0"/>
         <rotation name="rTPCWire9" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire10" unit="cm" x="0" y="-66.9690723026544" z="0"/>
+        <position name="posTPCWire10" unit="cm" x="0" y="-63.635738969321" z="0"/>
         <rotation name="rTPCWire10" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire11" unit="cm" x="0" y="-66.2619655214678" z="0"/>
+        <position name="posTPCWire11" unit="cm" x="0" y="-62.9286321881345" z="0"/>
         <rotation name="rTPCWire11" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire12" unit="cm" x="0" y="-65.5548587402812" z="0"/>
+        <position name="posTPCWire12" unit="cm" x="0" y="-62.2215254069479" z="0"/>
         <rotation name="rTPCWire12" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire13" unit="cm" x="0" y="-64.8477519590947" z="0"/>
+        <position name="posTPCWire13" unit="cm" x="0" y="-61.5144186257614" z="0"/>
         <rotation name="rTPCWire13" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire14" unit="cm" x="0" y="-64.1406451779081" z="0"/>
+        <position name="posTPCWire14" unit="cm" x="0" y="-60.8073118445748" z="0"/>
         <rotation name="rTPCWire14" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire15" unit="cm" x="0" y="-63.4335383967216" z="0"/>
+        <position name="posTPCWire15" unit="cm" x="0" y="-60.1002050633883" z="0"/>
         <rotation name="rTPCWire15" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire16" unit="cm" x="0" y="-62.726431615535" z="0"/>
+        <position name="posTPCWire16" unit="cm" x="0" y="-59.3930982822018" z="0"/>
         <rotation name="rTPCWire16" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire17" unit="cm" x="0" y="-62.0193248343485" z="0"/>
+        <position name="posTPCWire17" unit="cm" x="0" y="-58.6859915010152" z="0"/>
         <rotation name="rTPCWire17" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire18" unit="cm" x="0" y="-61.312218053162" z="0"/>
+        <position name="posTPCWire18" unit="cm" x="0" y="-57.9788847198287" z="0"/>
         <rotation name="rTPCWire18" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire19" unit="cm" x="0" y="-60.6051112719754" z="0"/>
+        <position name="posTPCWire19" unit="cm" x="0" y="-57.2717779386421" z="0"/>
         <rotation name="rTPCWire19" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire20" unit="cm" x="0" y="-59.8980044907889" z="0"/>
+        <position name="posTPCWire20" unit="cm" x="0" y="-56.5646711574556" z="0"/>
         <rotation name="rTPCWire20" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire21" unit="cm" x="0" y="-59.1908977096023" z="0"/>
+        <position name="posTPCWire21" unit="cm" x="0" y="-55.857564376269" z="0"/>
         <rotation name="rTPCWire21" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire22" unit="cm" x="0" y="-58.4837909284158" z="0"/>
+        <position name="posTPCWire22" unit="cm" x="0" y="-55.1504575950825" z="0"/>
         <rotation name="rTPCWire22" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire23" unit="cm" x="0" y="-57.7766841472292" z="0"/>
+        <position name="posTPCWire23" unit="cm" x="0" y="-54.4433508138959" z="0"/>
         <rotation name="rTPCWire23" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire24" unit="cm" x="0" y="-57.0695773660427" z="0"/>
+        <position name="posTPCWire24" unit="cm" x="0" y="-53.7362440327094" z="0"/>
         <rotation name="rTPCWire24" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire25" unit="cm" x="0" y="-56.3624705848561" z="0"/>
+        <position name="posTPCWire25" unit="cm" x="0" y="-53.0291372515228" z="0"/>
         <rotation name="rTPCWire25" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire26" unit="cm" x="0" y="-55.6553638036696" z="0"/>
+        <position name="posTPCWire26" unit="cm" x="0" y="-52.3220304703363" z="0"/>
         <rotation name="rTPCWire26" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire27" unit="cm" x="0" y="-54.948257022483" z="0"/>
+        <position name="posTPCWire27" unit="cm" x="0" y="-51.6149236891497" z="0"/>
         <rotation name="rTPCWire27" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire28" unit="cm" x="0" y="-54.2411502412965" z="0"/>
+        <position name="posTPCWire28" unit="cm" x="0" y="-50.9078169079632" z="0"/>
         <rotation name="rTPCWire28" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire29" unit="cm" x="0" y="-53.5340434601099" z="0"/>
+        <position name="posTPCWire29" unit="cm" x="0" y="-50.2007101267767" z="0"/>
         <rotation name="rTPCWire29" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire30" unit="cm" x="0" y="-52.8269366789234" z="0"/>
+        <position name="posTPCWire30" unit="cm" x="0" y="-49.4936033455901" z="0"/>
         <rotation name="rTPCWire30" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire31" unit="cm" x="0" y="-52.1198298977369" z="0"/>
+        <position name="posTPCWire31" unit="cm" x="0" y="-48.7864965644036" z="0"/>
         <rotation name="rTPCWire31" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire32" unit="cm" x="0" y="-51.4127231165503" z="0"/>
+        <position name="posTPCWire32" unit="cm" x="0" y="-48.079389783217" z="0"/>
         <rotation name="rTPCWire32" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire33" unit="cm" x="0" y="-50.7056163353638" z="0"/>
+        <position name="posTPCWire33" unit="cm" x="0" y="-47.3722830020305" z="0"/>
         <rotation name="rTPCWire33" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire34" unit="cm" x="0" y="-49.9985095541772" z="0"/>
+        <position name="posTPCWire34" unit="cm" x="0" y="-46.6651762208439" z="0"/>
         <rotation name="rTPCWire34" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire35" unit="cm" x="0" y="-49.2914027729907" z="0"/>
+        <position name="posTPCWire35" unit="cm" x="0" y="-45.9580694396574" z="0"/>
         <rotation name="rTPCWire35" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire36" unit="cm" x="0" y="-48.5842959918041" z="0"/>
+        <position name="posTPCWire36" unit="cm" x="0" y="-45.2509626584708" z="0"/>
         <rotation name="rTPCWire36" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire37" unit="cm" x="0" y="-47.8771892106176" z="0"/>
+        <position name="posTPCWire37" unit="cm" x="0" y="-44.5438558772843" z="0"/>
         <rotation name="rTPCWire37" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire38" unit="cm" x="0" y="-47.170082429431" z="0"/>
+        <position name="posTPCWire38" unit="cm" x="0" y="-43.8367490960977" z="0"/>
         <rotation name="rTPCWire38" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire39" unit="cm" x="0" y="-46.4629756482445" z="0"/>
+        <position name="posTPCWire39" unit="cm" x="0" y="-43.1296423149112" z="0"/>
         <rotation name="rTPCWire39" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire40" unit="cm" x="0" y="-45.7558688670579" z="0"/>
+        <position name="posTPCWire40" unit="cm" x="0" y="-42.4225355337246" z="0"/>
         <rotation name="rTPCWire40" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire41" unit="cm" x="0" y="-45.0487620858714" z="0"/>
+        <position name="posTPCWire41" unit="cm" x="0" y="-41.7154287525381" z="0"/>
         <rotation name="rTPCWire41" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire42" unit="cm" x="0" y="-44.3416553046848" z="0"/>
+        <position name="posTPCWire42" unit="cm" x="0" y="-41.0083219713516" z="0"/>
         <rotation name="rTPCWire42" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire43" unit="cm" x="0" y="-43.6345485234983" z="0"/>
+        <position name="posTPCWire43" unit="cm" x="0" y="-40.301215190165" z="0"/>
         <rotation name="rTPCWire43" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire44" unit="cm" x="0" y="-42.9274417423118" z="0"/>
+        <position name="posTPCWire44" unit="cm" x="0" y="-39.5941084089785" z="0"/>
         <rotation name="rTPCWire44" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire45" unit="cm" x="0" y="-42.2203349611252" z="0"/>
+        <position name="posTPCWire45" unit="cm" x="0" y="-38.8870016277919" z="0"/>
         <rotation name="rTPCWire45" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire46" unit="cm" x="0" y="-41.5132281799387" z="0"/>
+        <position name="posTPCWire46" unit="cm" x="0" y="-38.1798948466054" z="0"/>
         <rotation name="rTPCWire46" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire47" unit="cm" x="0" y="-40.8061213987521" z="0"/>
+        <position name="posTPCWire47" unit="cm" x="0" y="-37.4727880654188" z="0"/>
         <rotation name="rTPCWire47" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire48" unit="cm" x="0" y="-40.0990146175656" z="0"/>
+        <position name="posTPCWire48" unit="cm" x="0" y="-36.7656812842323" z="0"/>
         <rotation name="rTPCWire48" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire49" unit="cm" x="0" y="-39.391907836379" z="0"/>
+        <position name="posTPCWire49" unit="cm" x="0" y="-36.0585745030457" z="0"/>
         <rotation name="rTPCWire49" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire50" unit="cm" x="0" y="-38.6848010551925" z="0"/>
+        <position name="posTPCWire50" unit="cm" x="0" y="-35.3514677218592" z="0"/>
         <rotation name="rTPCWire50" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire51" unit="cm" x="0" y="-37.9776942740059" z="0"/>
+        <position name="posTPCWire51" unit="cm" x="0" y="-34.6443609406726" z="0"/>
         <rotation name="rTPCWire51" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire52" unit="cm" x="0" y="-37.2705874928194" z="0"/>
+        <position name="posTPCWire52" unit="cm" x="0" y="-33.9372541594861" z="0"/>
         <rotation name="rTPCWire52" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire53" unit="cm" x="0" y="-36.5634807116328" z="0"/>
+        <position name="posTPCWire53" unit="cm" x="0" y="-33.2301473782995" z="0"/>
         <rotation name="rTPCWire53" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire54" unit="cm" x="0" y="-35.8563739304463" z="0"/>
+        <position name="posTPCWire54" unit="cm" x="0" y="-32.523040597113" z="0"/>
         <rotation name="rTPCWire54" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire55" unit="cm" x="0" y="-35.1492671492597" z="0"/>
+        <position name="posTPCWire55" unit="cm" x="0" y="-31.8159338159265" z="0"/>
         <rotation name="rTPCWire55" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire56" unit="cm" x="0" y="-34.4421603680732" z="0"/>
+        <position name="posTPCWire56" unit="cm" x="0" y="-31.1088270347399" z="0"/>
         <rotation name="rTPCWire56" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire57" unit="cm" x="0" y="-33.7350535868867" z="0"/>
+        <position name="posTPCWire57" unit="cm" x="0" y="-30.4017202535534" z="0"/>
         <rotation name="rTPCWire57" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire58" unit="cm" x="0" y="-33.0279468057001" z="0"/>
+        <position name="posTPCWire58" unit="cm" x="0" y="-29.6946134723668" z="0"/>
         <rotation name="rTPCWire58" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire59" unit="cm" x="0" y="-32.3208400245136" z="0"/>
+        <position name="posTPCWire59" unit="cm" x="0" y="-28.9875066911803" z="0"/>
         <rotation name="rTPCWire59" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire60" unit="cm" x="0" y="-31.613733243327" z="0"/>
+        <position name="posTPCWire60" unit="cm" x="0" y="-28.2803999099937" z="0"/>
         <rotation name="rTPCWire60" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire61" unit="cm" x="0" y="-30.9066264621405" z="0"/>
+        <position name="posTPCWire61" unit="cm" x="0" y="-27.5732931288072" z="0"/>
         <rotation name="rTPCWire61" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire62" unit="cm" x="0" y="-30.1995196809539" z="0"/>
+        <position name="posTPCWire62" unit="cm" x="0" y="-26.8661863476206" z="0"/>
         <rotation name="rTPCWire62" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire63" unit="cm" x="0" y="-29.4924128997674" z="0"/>
+        <position name="posTPCWire63" unit="cm" x="0" y="-26.1590795664341" z="0"/>
         <rotation name="rTPCWire63" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire64" unit="cm" x="0" y="-28.7853061185808" z="0"/>
+        <position name="posTPCWire64" unit="cm" x="0" y="-25.4519727852475" z="0"/>
         <rotation name="rTPCWire64" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire65" unit="cm" x="0" y="-28.0781993373943" z="0"/>
+        <position name="posTPCWire65" unit="cm" x="0" y="-24.744866004061" z="0"/>
         <rotation name="rTPCWire65" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire66" unit="cm" x="0" y="-27.3710925562077" z="0"/>
+        <position name="posTPCWire66" unit="cm" x="0" y="-24.0377592228744" z="0"/>
         <rotation name="rTPCWire66" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire67" unit="cm" x="0" y="-26.6639857750212" z="0"/>
+        <position name="posTPCWire67" unit="cm" x="0" y="-23.3306524416879" z="0"/>
         <rotation name="rTPCWire67" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire68" unit="cm" x="0" y="-25.9568789938346" z="0"/>
+        <position name="posTPCWire68" unit="cm" x="0" y="-22.6235456605014" z="0"/>
         <rotation name="rTPCWire68" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire69" unit="cm" x="0" y="-25.2497722126481" z="0"/>
+        <position name="posTPCWire69" unit="cm" x="0" y="-21.9164388793148" z="0"/>
         <rotation name="rTPCWire69" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire70" unit="cm" x="0" y="-24.5426654314616" z="0"/>
+        <position name="posTPCWire70" unit="cm" x="0" y="-21.2093320981283" z="0"/>
         <rotation name="rTPCWire70" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire71" unit="cm" x="0" y="-23.835558650275" z="0"/>
+        <position name="posTPCWire71" unit="cm" x="0" y="-20.5022253169417" z="0"/>
         <rotation name="rTPCWire71" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire72" unit="cm" x="0" y="-23.1284518690885" z="0"/>
+        <position name="posTPCWire72" unit="cm" x="0" y="-19.7951185357552" z="0"/>
         <rotation name="rTPCWire72" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire73" unit="cm" x="0" y="-22.4213450879019" z="0"/>
+        <position name="posTPCWire73" unit="cm" x="0" y="-19.0880117545686" z="0"/>
         <rotation name="rTPCWire73" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire74" unit="cm" x="0" y="-21.7142383067154" z="0"/>
+        <position name="posTPCWire74" unit="cm" x="0" y="-18.3809049733821" z="0"/>
         <rotation name="rTPCWire74" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire75" unit="cm" x="0" y="-21.0071315255288" z="0"/>
+        <position name="posTPCWire75" unit="cm" x="0" y="-17.6737981921955" z="0"/>
         <rotation name="rTPCWire75" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire76" unit="cm" x="0" y="-20.3000247443423" z="0"/>
+        <position name="posTPCWire76" unit="cm" x="0" y="-16.966691411009" z="0"/>
         <rotation name="rTPCWire76" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire77" unit="cm" x="0" y="-19.5929179631557" z="0"/>
+        <position name="posTPCWire77" unit="cm" x="0" y="-16.2595846298224" z="0"/>
         <rotation name="rTPCWire77" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire78" unit="cm" x="0" y="-18.8858111819692" z="0"/>
+        <position name="posTPCWire78" unit="cm" x="0" y="-15.5524778486359" z="0"/>
         <rotation name="rTPCWire78" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire79" unit="cm" x="0" y="-18.1787044007826" z="0"/>
+        <position name="posTPCWire79" unit="cm" x="0" y="-14.8453710674493" z="0"/>
         <rotation name="rTPCWire79" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire80" unit="cm" x="0" y="-17.4715976195961" z="0"/>
+        <position name="posTPCWire80" unit="cm" x="0" y="-14.1382642862628" z="0"/>
         <rotation name="rTPCWire80" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire81" unit="cm" x="0" y="-16.7644908384096" z="0"/>
+        <position name="posTPCWire81" unit="cm" x="0" y="-13.4311575050762" z="0"/>
         <rotation name="rTPCWire81" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire82" unit="cm" x="0" y="-16.057384057223" z="0"/>
+        <position name="posTPCWire82" unit="cm" x="0" y="-12.7240507238897" z="0"/>
         <rotation name="rTPCWire82" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire83" unit="cm" x="0" y="-15.3502772760365" z="0"/>
+        <position name="posTPCWire83" unit="cm" x="0" y="-12.0169439427032" z="0"/>
         <rotation name="rTPCWire83" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire84" unit="cm" x="0" y="-14.6431704948499" z="0"/>
+        <position name="posTPCWire84" unit="cm" x="0" y="-11.3098371615166" z="0"/>
         <rotation name="rTPCWire84" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire85" unit="cm" x="0" y="-13.9360637136634" z="0"/>
+        <position name="posTPCWire85" unit="cm" x="0" y="-10.6027303803301" z="0"/>
         <rotation name="rTPCWire85" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire86" unit="cm" x="0" y="-13.2289569324768" z="0"/>
+        <position name="posTPCWire86" unit="cm" x="0" y="-9.89562359914351" z="0"/>
         <rotation name="rTPCWire86" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire87" unit="cm" x="0" y="-12.5218501512903" z="0"/>
+        <position name="posTPCWire87" unit="cm" x="0" y="-9.18851681795696" z="0"/>
         <rotation name="rTPCWire87" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire88" unit="cm" x="0" y="-11.8147433701037" z="0"/>
+        <position name="posTPCWire88" unit="cm" x="0" y="-8.48141003677041" z="0"/>
         <rotation name="rTPCWire88" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire89" unit="cm" x="0" y="-11.1076365889172" z="0"/>
+        <position name="posTPCWire89" unit="cm" x="0" y="-7.77430325558387" z="0"/>
         <rotation name="rTPCWire89" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire90" unit="cm" x="0" y="-10.4005298077306" z="0"/>
+        <position name="posTPCWire90" unit="cm" x="0" y="-7.06719647439732" z="0"/>
         <rotation name="rTPCWire90" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire91" unit="cm" x="0" y="-9.69342302654407" z="0"/>
+        <position name="posTPCWire91" unit="cm" x="0" y="-6.36008969321077" z="0"/>
         <rotation name="rTPCWire91" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire92" unit="cm" x="0" y="-8.98631624535752" z="0"/>
+        <position name="posTPCWire92" unit="cm" x="0" y="-5.65298291202422" z="0"/>
         <rotation name="rTPCWire92" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire93" unit="cm" x="0" y="-8.27920946417098" z="0"/>
+        <position name="posTPCWire93" unit="cm" x="0" y="-4.94587613083768" z="0"/>
         <rotation name="rTPCWire93" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire94" unit="cm" x="0" y="-7.57210268298443" z="0"/>
+        <position name="posTPCWire94" unit="cm" x="0" y="-4.23876934965113" z="0"/>
         <rotation name="rTPCWire94" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire95" unit="cm" x="0" y="-6.86499590179788" z="0"/>
+        <position name="posTPCWire95" unit="cm" x="0" y="-3.53166256846458" z="0"/>
         <rotation name="rTPCWire95" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire96" unit="cm" x="0" y="-6.15788912061133" z="0"/>
+        <position name="posTPCWire96" unit="cm" x="0" y="-2.82455578727803" z="0"/>
         <rotation name="rTPCWire96" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire97" unit="cm" x="0" y="-5.45078233942479" z="0"/>
+        <position name="posTPCWire97" unit="cm" x="0" y="-2.11744900609148" z="0"/>
         <rotation name="rTPCWire97" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire98" unit="cm" x="0" y="-4.74367555823824" z="0"/>
+        <position name="posTPCWire98" unit="cm" x="0" y="-1.41034222490494" z="0"/>
         <rotation name="rTPCWire98" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire99" unit="cm" x="0" y="-4.03656877705169" z="0"/>
+        <position name="posTPCWire99" unit="cm" x="0" y="-0.70323544371839" z="0"/>
         <rotation name="rTPCWire99" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire100" unit="cm" x="0" y="-3.32946199586514" z="0"/>
+        <position name="posTPCWire100" unit="cm" x="0" y="0.0038713374681576" z="0"/>
         <rotation name="rTPCWire100" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire101" unit="cm" x="0" y="-2.62235521467859" z="0"/>
+        <position name="posTPCWire101" unit="cm" x="0" y="0.710978118654705" z="0"/>
         <rotation name="rTPCWire101" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire102" unit="cm" x="0" y="-1.91524843349205" z="0"/>
+        <position name="posTPCWire102" unit="cm" x="0" y="1.41808489984125" z="0"/>
         <rotation name="rTPCWire102" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire103" unit="cm" x="0" y="-1.2081416523055" z="0"/>
+        <position name="posTPCWire103" unit="cm" x="0" y="2.1251916810278" z="0"/>
         <rotation name="rTPCWire103" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire104" unit="cm" x="0" y="-0.501034871118952" z="0"/>
+        <position name="posTPCWire104" unit="cm" x="0" y="2.83229846221435" z="0"/>
         <rotation name="rTPCWire104" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire105" unit="cm" x="0" y="0.206071910067595" z="0"/>
+        <position name="posTPCWire105" unit="cm" x="0" y="3.53940524340089" z="0"/>
         <rotation name="rTPCWire105" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire106" unit="cm" x="0" y="0.913178691254143" z="0"/>
+        <position name="posTPCWire106" unit="cm" x="0" y="4.24651202458744" z="0"/>
         <rotation name="rTPCWire106" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire107" unit="cm" x="0" y="1.62028547244069" z="0"/>
+        <position name="posTPCWire107" unit="cm" x="0" y="4.95361880577399" z="0"/>
         <rotation name="rTPCWire107" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire108" unit="cm" x="0" y="2.32739225362724" z="0"/>
+        <position name="posTPCWire108" unit="cm" x="0" y="5.66072558696054" z="0"/>
         <rotation name="rTPCWire108" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire109" unit="cm" x="0" y="3.03449903481379" z="0"/>
+        <position name="posTPCWire109" unit="cm" x="0" y="6.36783236814709" z="0"/>
         <rotation name="rTPCWire109" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire110" unit="cm" x="0" y="3.74160581600033" z="0"/>
+        <position name="posTPCWire110" unit="cm" x="0" y="7.07493914933363" z="0"/>
         <rotation name="rTPCWire110" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire111" unit="cm" x="0" y="4.44871259718688" z="0"/>
+        <position name="posTPCWire111" unit="cm" x="0" y="7.78204593052018" z="0"/>
         <rotation name="rTPCWire111" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire112" unit="cm" x="0" y="5.15581937837343" z="0"/>
+        <position name="posTPCWire112" unit="cm" x="0" y="8.48915271170673" z="0"/>
         <rotation name="rTPCWire112" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire113" unit="cm" x="0" y="5.86292615955998" z="0"/>
+        <position name="posTPCWire113" unit="cm" x="0" y="9.19625949289328" z="0"/>
         <rotation name="rTPCWire113" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire114" unit="cm" x="0" y="6.57003294074652" z="0"/>
+        <position name="posTPCWire114" unit="cm" x="0" y="9.90336627407983" z="0"/>
         <rotation name="rTPCWire114" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire115" unit="cm" x="0" y="7.27713972193307" z="0"/>
+        <position name="posTPCWire115" unit="cm" x="0" y="10.6104730552664" z="0"/>
         <rotation name="rTPCWire115" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire116" unit="cm" x="0" y="7.98424650311962" z="0"/>
+        <position name="posTPCWire116" unit="cm" x="0" y="11.3175798364529" z="0"/>
         <rotation name="rTPCWire116" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire117" unit="cm" x="0" y="8.69135328430617" z="0"/>
+        <position name="posTPCWire117" unit="cm" x="0" y="12.0246866176395" z="0"/>
         <rotation name="rTPCWire117" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire118" unit="cm" x="0" y="9.39846006549272" z="0"/>
+        <position name="posTPCWire118" unit="cm" x="0" y="12.731793398826" z="0"/>
         <rotation name="rTPCWire118" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire119" unit="cm" x="0" y="10.1055668466793" z="0"/>
+        <position name="posTPCWire119" unit="cm" x="0" y="13.4389001800126" z="0"/>
         <rotation name="rTPCWire119" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire120" unit="cm" x="0" y="10.8126736278658" z="0"/>
+        <position name="posTPCWire120" unit="cm" x="0" y="14.1460069611991" z="0"/>
         <rotation name="rTPCWire120" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire121" unit="cm" x="0" y="11.5197804090524" z="0"/>
+        <position name="posTPCWire121" unit="cm" x="0" y="14.8531137423857" z="0"/>
         <rotation name="rTPCWire121" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire122" unit="cm" x="0" y="12.2268871902389" z="0"/>
+        <position name="posTPCWire122" unit="cm" x="0" y="15.5602205235722" z="0"/>
         <rotation name="rTPCWire122" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire123" unit="cm" x="0" y="12.9339939714255" z="0"/>
+        <position name="posTPCWire123" unit="cm" x="0" y="16.2673273047588" z="0"/>
         <rotation name="rTPCWire123" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire124" unit="cm" x="0" y="13.641100752612" z="0"/>
+        <position name="posTPCWire124" unit="cm" x="0" y="16.9744340859453" z="0"/>
         <rotation name="rTPCWire124" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire125" unit="cm" x="0" y="14.3482075337986" z="0"/>
+        <position name="posTPCWire125" unit="cm" x="0" y="17.6815408671318" z="0"/>
         <rotation name="rTPCWire125" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire126" unit="cm" x="0" y="15.0553143149851" z="0"/>
+        <position name="posTPCWire126" unit="cm" x="0" y="18.3886476483184" z="0"/>
         <rotation name="rTPCWire126" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire127" unit="cm" x="0" y="15.7624210961716" z="0"/>
+        <position name="posTPCWire127" unit="cm" x="0" y="19.0957544295049" z="0"/>
         <rotation name="rTPCWire127" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire128" unit="cm" x="0" y="16.4695278773582" z="0"/>
+        <position name="posTPCWire128" unit="cm" x="0" y="19.8028612106915" z="0"/>
         <rotation name="rTPCWire128" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire129" unit="cm" x="0" y="17.1766346585447" z="0"/>
+        <position name="posTPCWire129" unit="cm" x="0" y="20.509967991878" z="0"/>
         <rotation name="rTPCWire129" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire130" unit="cm" x="0" y="17.8837414397313" z="0"/>
+        <position name="posTPCWire130" unit="cm" x="0" y="21.2170747730646" z="0"/>
         <rotation name="rTPCWire130" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire131" unit="cm" x="0" y="18.5908482209178" z="0"/>
+        <position name="posTPCWire131" unit="cm" x="0" y="21.9241815542511" z="0"/>
         <rotation name="rTPCWire131" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire132" unit="cm" x="0" y="19.2979550021044" z="0"/>
+        <position name="posTPCWire132" unit="cm" x="0" y="22.6312883354377" z="0"/>
         <rotation name="rTPCWire132" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire133" unit="cm" x="0" y="20.0050617832909" z="0"/>
+        <position name="posTPCWire133" unit="cm" x="0" y="23.3383951166242" z="0"/>
         <rotation name="rTPCWire133" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire134" unit="cm" x="0" y="20.7121685644775" z="0"/>
+        <position name="posTPCWire134" unit="cm" x="0" y="24.0455018978108" z="0"/>
         <rotation name="rTPCWire134" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire135" unit="cm" x="0" y="21.419275345664" z="0"/>
+        <position name="posTPCWire135" unit="cm" x="0" y="24.7526086789973" z="0"/>
         <rotation name="rTPCWire135" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire136" unit="cm" x="0" y="22.1263821268506" z="0"/>
+        <position name="posTPCWire136" unit="cm" x="0" y="25.4597154601839" z="0"/>
         <rotation name="rTPCWire136" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire137" unit="cm" x="0" y="22.8334889080371" z="0"/>
+        <position name="posTPCWire137" unit="cm" x="0" y="26.1668222413704" z="0"/>
         <rotation name="rTPCWire137" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire138" unit="cm" x="0" y="23.5405956892237" z="0"/>
+        <position name="posTPCWire138" unit="cm" x="0" y="26.8739290225569" z="0"/>
         <rotation name="rTPCWire138" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire139" unit="cm" x="0" y="24.2477024704102" z="0"/>
+        <position name="posTPCWire139" unit="cm" x="0" y="27.5810358037435" z="0"/>
         <rotation name="rTPCWire139" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire140" unit="cm" x="0" y="24.9548092515967" z="0"/>
+        <position name="posTPCWire140" unit="cm" x="0" y="28.28814258493" z="0"/>
         <rotation name="rTPCWire140" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire141" unit="cm" x="0" y="25.6619160327833" z="0"/>
+        <position name="posTPCWire141" unit="cm" x="0" y="28.9952493661166" z="0"/>
         <rotation name="rTPCWire141" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire142" unit="cm" x="0" y="26.3690228139698" z="0"/>
+        <position name="posTPCWire142" unit="cm" x="0" y="29.7023561473031" z="0"/>
         <rotation name="rTPCWire142" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire143" unit="cm" x="0" y="27.0761295951564" z="0"/>
+        <position name="posTPCWire143" unit="cm" x="0" y="30.4094629284897" z="0"/>
         <rotation name="rTPCWire143" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire144" unit="cm" x="0" y="27.7832363763429" z="0"/>
+        <position name="posTPCWire144" unit="cm" x="0" y="31.1165697096762" z="0"/>
         <rotation name="rTPCWire144" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire145" unit="cm" x="0" y="28.4903431575295" z="0"/>
+        <position name="posTPCWire145" unit="cm" x="0" y="31.8236764908628" z="0"/>
         <rotation name="rTPCWire145" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire146" unit="cm" x="0" y="29.197449938716" z="0"/>
+        <position name="posTPCWire146" unit="cm" x="0" y="32.5307832720493" z="0"/>
         <rotation name="rTPCWire146" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire147" unit="cm" x="0" y="29.9045567199026" z="0"/>
+        <position name="posTPCWire147" unit="cm" x="0" y="33.2378900532359" z="0"/>
         <rotation name="rTPCWire147" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire148" unit="cm" x="0" y="30.6116635010891" z="0"/>
+        <position name="posTPCWire148" unit="cm" x="0" y="33.9449968344224" z="0"/>
         <rotation name="rTPCWire148" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire149" unit="cm" x="0" y="31.3187702822757" z="0"/>
+        <position name="posTPCWire149" unit="cm" x="0" y="34.652103615609" z="0"/>
         <rotation name="rTPCWire149" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire150" unit="cm" x="0" y="32.0258770634622" z="0"/>
+        <position name="posTPCWire150" unit="cm" x="0" y="35.3592103967955" z="0"/>
         <rotation name="rTPCWire150" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire151" unit="cm" x="0" y="32.7329838446488" z="0"/>
+        <position name="posTPCWire151" unit="cm" x="0" y="36.0663171779821" z="0"/>
         <rotation name="rTPCWire151" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire152" unit="cm" x="0" y="33.4400906258353" z="0"/>
+        <position name="posTPCWire152" unit="cm" x="0" y="36.7734239591686" z="0"/>
         <rotation name="rTPCWire152" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire153" unit="cm" x="0" y="34.1471974070218" z="0"/>
+        <position name="posTPCWire153" unit="cm" x="0" y="37.4805307403551" z="0"/>
         <rotation name="rTPCWire153" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire154" unit="cm" x="0" y="34.8543041882084" z="0"/>
+        <position name="posTPCWire154" unit="cm" x="0" y="38.1876375215417" z="0"/>
         <rotation name="rTPCWire154" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire155" unit="cm" x="0" y="35.5614109693949" z="0"/>
+        <position name="posTPCWire155" unit="cm" x="0" y="38.8947443027282" z="0"/>
         <rotation name="rTPCWire155" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire156" unit="cm" x="0" y="36.2685177505815" z="0"/>
+        <position name="posTPCWire156" unit="cm" x="0" y="39.6018510839148" z="0"/>
         <rotation name="rTPCWire156" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire157" unit="cm" x="0" y="36.975624531768" z="0"/>
+        <position name="posTPCWire157" unit="cm" x="0" y="40.3089578651013" z="0"/>
         <rotation name="rTPCWire157" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire158" unit="cm" x="0" y="37.6827313129546" z="0"/>
+        <position name="posTPCWire158" unit="cm" x="0" y="41.0160646462879" z="0"/>
         <rotation name="rTPCWire158" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire159" unit="cm" x="0" y="38.3898380941411" z="0"/>
+        <position name="posTPCWire159" unit="cm" x="0" y="41.7231714274744" z="0"/>
         <rotation name="rTPCWire159" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire160" unit="cm" x="0" y="39.0969448753277" z="0"/>
+        <position name="posTPCWire160" unit="cm" x="0" y="42.430278208661" z="0"/>
         <rotation name="rTPCWire160" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire161" unit="cm" x="0" y="39.8040516565142" z="0"/>
+        <position name="posTPCWire161" unit="cm" x="0" y="43.1373849898475" z="0"/>
         <rotation name="rTPCWire161" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire162" unit="cm" x="0" y="40.5111584377008" z="0"/>
+        <position name="posTPCWire162" unit="cm" x="0" y="43.8444917710341" z="0"/>
         <rotation name="rTPCWire162" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire163" unit="cm" x="0" y="41.2182652188873" z="0"/>
+        <position name="posTPCWire163" unit="cm" x="0" y="44.5515985522206" z="0"/>
         <rotation name="rTPCWire163" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire164" unit="cm" x="0" y="41.9253720000739" z="0"/>
+        <position name="posTPCWire164" unit="cm" x="0" y="45.2587053334071" z="0"/>
         <rotation name="rTPCWire164" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire165" unit="cm" x="0" y="42.6324787812604" z="0"/>
+        <position name="posTPCWire165" unit="cm" x="0" y="45.9658121145937" z="0"/>
         <rotation name="rTPCWire165" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire166" unit="cm" x="0" y="43.3395855624469" z="0"/>
+        <position name="posTPCWire166" unit="cm" x="0" y="46.6729188957802" z="0"/>
         <rotation name="rTPCWire166" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire167" unit="cm" x="0" y="44.0466923436335" z="0"/>
+        <position name="posTPCWire167" unit="cm" x="0" y="47.3800256769668" z="0"/>
         <rotation name="rTPCWire167" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire168" unit="cm" x="0" y="44.75379912482" z="0"/>
+        <position name="posTPCWire168" unit="cm" x="0" y="48.0871324581533" z="0"/>
         <rotation name="rTPCWire168" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire169" unit="cm" x="0" y="45.4609059060066" z="0"/>
+        <position name="posTPCWire169" unit="cm" x="0" y="48.7942392393399" z="0"/>
         <rotation name="rTPCWire169" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire170" unit="cm" x="0" y="46.1680126871931" z="0"/>
+        <position name="posTPCWire170" unit="cm" x="0" y="49.5013460205264" z="0"/>
         <rotation name="rTPCWire170" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire171" unit="cm" x="0" y="46.8751194683797" z="0"/>
+        <position name="posTPCWire171" unit="cm" x="0" y="50.208452801713" z="0"/>
         <rotation name="rTPCWire171" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire172" unit="cm" x="0" y="47.5822262495662" z="0"/>
+        <position name="posTPCWire172" unit="cm" x="0" y="50.9155595828995" z="0"/>
         <rotation name="rTPCWire172" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire173" unit="cm" x="0" y="48.2893330307528" z="0"/>
+        <position name="posTPCWire173" unit="cm" x="0" y="51.6226663640861" z="0"/>
         <rotation name="rTPCWire173" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire174" unit="cm" x="0" y="48.9964398119393" z="0"/>
+        <position name="posTPCWire174" unit="cm" x="0" y="52.3297731452726" z="0"/>
         <rotation name="rTPCWire174" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire175" unit="cm" x="0" y="49.7035465931259" z="0"/>
+        <position name="posTPCWire175" unit="cm" x="0" y="53.0368799264592" z="0"/>
         <rotation name="rTPCWire175" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire176" unit="cm" x="0" y="50.4106533743124" z="0"/>
+        <position name="posTPCWire176" unit="cm" x="0" y="53.7439867076457" z="0"/>
         <rotation name="rTPCWire176" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire177" unit="cm" x="0" y="51.117760155499" z="0"/>
+        <position name="posTPCWire177" unit="cm" x="0" y="54.4510934888322" z="0"/>
         <rotation name="rTPCWire177" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire178" unit="cm" x="0" y="51.8248669366855" z="0"/>
+        <position name="posTPCWire178" unit="cm" x="0" y="55.1582002700188" z="0"/>
         <rotation name="rTPCWire178" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire179" unit="cm" x="0" y="52.531973717872" z="0"/>
+        <position name="posTPCWire179" unit="cm" x="0" y="55.8653070512053" z="0"/>
         <rotation name="rTPCWire179" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire180" unit="cm" x="0" y="53.2390804990586" z="0"/>
+        <position name="posTPCWire180" unit="cm" x="0" y="56.5724138323919" z="0"/>
         <rotation name="rTPCWire180" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire181" unit="cm" x="0" y="53.9461872802451" z="0"/>
+        <position name="posTPCWire181" unit="cm" x="0" y="57.2795206135784" z="0"/>
         <rotation name="rTPCWire181" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire182" unit="cm" x="0" y="54.6532940614317" z="0"/>
+        <position name="posTPCWire182" unit="cm" x="0" y="57.986627394765" z="0"/>
         <rotation name="rTPCWire182" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire183" unit="cm" x="0" y="55.3604008426182" z="0"/>
+        <position name="posTPCWire183" unit="cm" x="0" y="58.6937341759515" z="0"/>
         <rotation name="rTPCWire183" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire184" unit="cm" x="0" y="56.0675076238048" z="0"/>
+        <position name="posTPCWire184" unit="cm" x="0" y="59.4008409571381" z="0"/>
         <rotation name="rTPCWire184" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire185" unit="cm" x="0" y="56.7746144049913" z="0"/>
+        <position name="posTPCWire185" unit="cm" x="0" y="60.1079477383246" z="0"/>
         <rotation name="rTPCWire185" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire186" unit="cm" x="0" y="57.4817211861779" z="0"/>
+        <position name="posTPCWire186" unit="cm" x="0" y="60.8150545195112" z="0"/>
         <rotation name="rTPCWire186" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire187" unit="cm" x="0" y="58.1888279673644" z="0"/>
+        <position name="posTPCWire187" unit="cm" x="0" y="61.5221613006977" z="0"/>
         <rotation name="rTPCWire187" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire188" unit="cm" x="0" y="58.895934748551" z="0"/>
+        <position name="posTPCWire188" unit="cm" x="0" y="62.2292680818843" z="0"/>
         <rotation name="rTPCWire188" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire189" unit="cm" x="0" y="59.6030415297375" z="0"/>
+        <position name="posTPCWire189" unit="cm" x="0" y="62.9363748630708" z="0"/>
         <rotation name="rTPCWire189" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire190" unit="cm" x="0" y="60.3101483109241" z="0"/>
+        <position name="posTPCWire190" unit="cm" x="0" y="63.6434816442573" z="0"/>
         <rotation name="rTPCWire190" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire191" unit="cm" x="0" y="61.0172550921106" z="0"/>
+        <position name="posTPCWire191" unit="cm" x="0" y="64.3505884254439" z="0"/>
         <rotation name="rTPCWire191" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire192" unit="cm" x="0" y="61.7243618732971" z="0"/>
+        <position name="posTPCWire192" unit="cm" x="0" y="65.0576952066305" z="0"/>
         <rotation name="rTPCWire192" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire193" unit="cm" x="0" y="62.4314686544837" z="0"/>
+        <position name="posTPCWire193" unit="cm" x="0" y="65.764801987817" z="0"/>
         <rotation name="rTPCWire193" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire194" unit="cm" x="0" y="63.1385754356702" z="0"/>
+        <position name="posTPCWire194" unit="cm" x="0" y="66.4719087690036" z="0"/>
         <rotation name="rTPCWire194" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire195" unit="cm" x="0" y="63.8456822168568" z="0"/>
+        <position name="posTPCWire195" unit="cm" x="0" y="67.1790155501901" z="0"/>
         <rotation name="rTPCWire195" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire196" unit="cm" x="0" y="64.5527889980433" z="0"/>
+        <position name="posTPCWire196" unit="cm" x="0" y="67.8861223313767" z="0"/>
         <rotation name="rTPCWire196" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire197" unit="cm" x="0" y="65.2598957792299" z="0"/>
+        <position name="posTPCWire197" unit="cm" x="0" y="68.5932291125632" z="0"/>
         <rotation name="rTPCWire197" unit="deg" x="45" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire198" unit="cm" x="0" y="65.9670025604164" z="0"/>
+        <position name="posTPCWire198" unit="cm" x="0" y="69.3003358937498" z="0"/>
         <rotation name="rTPCWire198" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire199" unit="cm" x="0" y="66.674109341603" z="0"/>
-        <rotation name="rTPCWire199" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire200" unit="cm" x="0" y="67.3812161227896" z="0"/>
-        <rotation name="rTPCWire200" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire201" unit="cm" x="0" y="68.0883229039761" z="0"/>
-        <rotation name="rTPCWire201" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire202" unit="cm" x="0" y="68.7954296851627" z="0"/>
-        <rotation name="rTPCWire202" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire203" unit="cm" x="0" y="69.5025364663492" z="0"/>
-        <rotation name="rTPCWire203" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire204" unit="cm" x="0" y="70.2096432475358" z="0"/>
-        <rotation name="rTPCWire204" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire205" unit="cm" x="0" y="70.9167500287223" z="0"/>
-        <rotation name="rTPCWire205" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire206" unit="cm" x="0" y="71.6238568099089" z="0"/>
-        <rotation name="rTPCWire206" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire207" unit="cm" x="0" y="72.3309635910954" z="0"/>
-        <rotation name="rTPCWire207" unit="deg" x="45" y="0" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPCWire"/>
-        <position name="posTPCWire208" unit="cm" x="0" y="73.038070372282" z="0"/>
-        <rotation name="rTPCWire208" unit="deg" x="45" y="0" z="0"/>
       </physvol>
     </volume>
     <volume name="volCathode">
@@ -1395,16 +1349,16 @@
       <solidref ref="TPC" />
       <physvol>
         <volumeref ref="volTPCPlane"/>
-        <position name="posTPCPlane1" unit="cm" x="(-373.332333333333/2)+0.051+0.3" y="0" z="0"/>
+        <position name="posTPCPlane1" unit="cm" x="(-361.665666666667/2)+0.051+0.3" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCPlane"/>
-        <position name="posTPCPlane2" unit="cm" x="(-373.332333333333/2)+0.051" y="0" z="0"/>
+        <position name="posTPCPlane2" unit="cm" x="(-361.665666666667/2)+0.051" y="0" z="0"/>
         <rotation name="rTPCPlane2" unit="deg" x="0" y="180" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode" unit="cm" x="(373.332333333333/2)-0.5" y="0" z="0"/>
+        <position name="posCathode" unit="cm" x="(361.665666666667/2)-0.5" y="0" z="0"/>
       </physvol>
     </volume>
     <volume name="volAPA">
@@ -1412,12 +1366,12 @@
     	<solidref ref="APA"/>
     		<physvol>
           <volumeref ref="volTPC"/>
-          <position name="posTPC1" unit="cm" x="-(373.332333333333/2 + 5)" y="0" z="0"/>
+          <position name="posTPC1" unit="cm" x="-(361.665666666667/2 + 5)" y="0" z="0"/>
           <rotation name="rTPC" unit="deg" x="0" y="180" z="0"/>
         </physvol>
     		<physvol>
           <volumeref ref="volTPC"/>
-          <position name="posTPC2" unit="cm" x="(373.332333333333/2 + 5)" y="0" z="0"/>
+          <position name="posTPC2" unit="cm" x="(361.665666666667/2 + 5)" y="0" z="0"/>
         </physvol>
     </volume>
     <volume name="volCryostat">
@@ -1429,542 +1383,542 @@
       </physvol>
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-0" unit="cm" x="-766.666666666667" y="-350" z="-2077.77777777778"/>
+        <position name="posAPA0-0-0" unit="cm" x="-743.333333333333" y="-350" z="-2083.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-0" unit="cm" x="-766.666666666667" y="350" z="-2077.77777777778"/>
+        <position name="posAPA0-1-0" unit="cm" x="-743.333333333333" y="350" z="-2083.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-0" unit="cm" x="0" y="-350" z="-2077.77777777778"/>
+        <position name="posAPA1-0-0" unit="cm" x="0" y="-350" z="-2083.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-0" unit="cm" x="0" y="350" z="-2077.77777777778"/>
+        <position name="posAPA1-1-0" unit="cm" x="0" y="350" z="-2083.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-0" unit="cm" x="766.666666666667" y="-350" z="-2077.77777777778"/>
+        <position name="posAPA2-0-0" unit="cm" x="743.333333333333" y="-350" z="-2083.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-0" unit="cm" x="766.666666666667" y="350" z="-2077.77777777778"/>
+        <position name="posAPA2-1-0" unit="cm" x="743.333333333333" y="350" z="-2083.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-1" unit="cm" x="-766.666666666667" y="-350" z="-1833.33333333333"/>
+        <position name="posAPA0-0-1" unit="cm" x="-743.333333333333" y="-350" z="-1850"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-1" unit="cm" x="-766.666666666667" y="350" z="-1833.33333333333"/>
+        <position name="posAPA0-1-1" unit="cm" x="-743.333333333333" y="350" z="-1850"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-1" unit="cm" x="0" y="-350" z="-1833.33333333333"/>
+        <position name="posAPA1-0-1" unit="cm" x="0" y="-350" z="-1850"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-1" unit="cm" x="0" y="350" z="-1833.33333333333"/>
+        <position name="posAPA1-1-1" unit="cm" x="0" y="350" z="-1850"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-1" unit="cm" x="766.666666666667" y="-350" z="-1833.33333333333"/>
+        <position name="posAPA2-0-1" unit="cm" x="743.333333333333" y="-350" z="-1850"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-1" unit="cm" x="766.666666666667" y="350" z="-1833.33333333333"/>
+        <position name="posAPA2-1-1" unit="cm" x="743.333333333333" y="350" z="-1850"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-2" unit="cm" x="-766.666666666667" y="-350" z="-1588.88888888889"/>
+        <position name="posAPA0-0-2" unit="cm" x="-743.333333333333" y="-350" z="-1616.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-2" unit="cm" x="-766.666666666667" y="350" z="-1588.88888888889"/>
+        <position name="posAPA0-1-2" unit="cm" x="-743.333333333333" y="350" z="-1616.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-2" unit="cm" x="0" y="-350" z="-1588.88888888889"/>
+        <position name="posAPA1-0-2" unit="cm" x="0" y="-350" z="-1616.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-2" unit="cm" x="0" y="350" z="-1588.88888888889"/>
+        <position name="posAPA1-1-2" unit="cm" x="0" y="350" z="-1616.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-2" unit="cm" x="766.666666666667" y="-350" z="-1588.88888888889"/>
+        <position name="posAPA2-0-2" unit="cm" x="743.333333333333" y="-350" z="-1616.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-2" unit="cm" x="766.666666666667" y="350" z="-1588.88888888889"/>
+        <position name="posAPA2-1-2" unit="cm" x="743.333333333333" y="350" z="-1616.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-3" unit="cm" x="-766.666666666667" y="-350" z="-1344.44444444444"/>
+        <position name="posAPA0-0-3" unit="cm" x="-743.333333333333" y="-350" z="-1383.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-3" unit="cm" x="-766.666666666667" y="350" z="-1344.44444444444"/>
+        <position name="posAPA0-1-3" unit="cm" x="-743.333333333333" y="350" z="-1383.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-3" unit="cm" x="0" y="-350" z="-1344.44444444444"/>
+        <position name="posAPA1-0-3" unit="cm" x="0" y="-350" z="-1383.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-3" unit="cm" x="0" y="350" z="-1344.44444444444"/>
+        <position name="posAPA1-1-3" unit="cm" x="0" y="350" z="-1383.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-3" unit="cm" x="766.666666666667" y="-350" z="-1344.44444444444"/>
+        <position name="posAPA2-0-3" unit="cm" x="743.333333333333" y="-350" z="-1383.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-3" unit="cm" x="766.666666666667" y="350" z="-1344.44444444444"/>
+        <position name="posAPA2-1-3" unit="cm" x="743.333333333333" y="350" z="-1383.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-4" unit="cm" x="-766.666666666667" y="-350" z="-1100"/>
+        <position name="posAPA0-0-4" unit="cm" x="-743.333333333333" y="-350" z="-1150"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-4" unit="cm" x="-766.666666666667" y="350" z="-1100"/>
+        <position name="posAPA0-1-4" unit="cm" x="-743.333333333333" y="350" z="-1150"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-4" unit="cm" x="0" y="-350" z="-1100"/>
+        <position name="posAPA1-0-4" unit="cm" x="0" y="-350" z="-1150"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-4" unit="cm" x="0" y="350" z="-1100"/>
+        <position name="posAPA1-1-4" unit="cm" x="0" y="350" z="-1150"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-4" unit="cm" x="766.666666666667" y="-350" z="-1100"/>
+        <position name="posAPA2-0-4" unit="cm" x="743.333333333333" y="-350" z="-1150"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-4" unit="cm" x="766.666666666667" y="350" z="-1100"/>
+        <position name="posAPA2-1-4" unit="cm" x="743.333333333333" y="350" z="-1150"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-5" unit="cm" x="-766.666666666667" y="-350" z="-855.555555555556"/>
+        <position name="posAPA0-0-5" unit="cm" x="-743.333333333333" y="-350" z="-916.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-5" unit="cm" x="-766.666666666667" y="350" z="-855.555555555556"/>
+        <position name="posAPA0-1-5" unit="cm" x="-743.333333333333" y="350" z="-916.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-5" unit="cm" x="0" y="-350" z="-855.555555555556"/>
+        <position name="posAPA1-0-5" unit="cm" x="0" y="-350" z="-916.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-5" unit="cm" x="0" y="350" z="-855.555555555556"/>
+        <position name="posAPA1-1-5" unit="cm" x="0" y="350" z="-916.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-5" unit="cm" x="766.666666666667" y="-350" z="-855.555555555556"/>
+        <position name="posAPA2-0-5" unit="cm" x="743.333333333333" y="-350" z="-916.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-5" unit="cm" x="766.666666666667" y="350" z="-855.555555555556"/>
+        <position name="posAPA2-1-5" unit="cm" x="743.333333333333" y="350" z="-916.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-6" unit="cm" x="-766.666666666667" y="-350" z="-611.111111111111"/>
+        <position name="posAPA0-0-6" unit="cm" x="-743.333333333333" y="-350" z="-683.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-6" unit="cm" x="-766.666666666667" y="350" z="-611.111111111111"/>
+        <position name="posAPA0-1-6" unit="cm" x="-743.333333333333" y="350" z="-683.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-6" unit="cm" x="0" y="-350" z="-611.111111111111"/>
+        <position name="posAPA1-0-6" unit="cm" x="0" y="-350" z="-683.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-6" unit="cm" x="0" y="350" z="-611.111111111111"/>
+        <position name="posAPA1-1-6" unit="cm" x="0" y="350" z="-683.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-6" unit="cm" x="766.666666666667" y="-350" z="-611.111111111111"/>
+        <position name="posAPA2-0-6" unit="cm" x="743.333333333333" y="-350" z="-683.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-6" unit="cm" x="766.666666666667" y="350" z="-611.111111111111"/>
+        <position name="posAPA2-1-6" unit="cm" x="743.333333333333" y="350" z="-683.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-7" unit="cm" x="-766.666666666667" y="-350" z="-366.666666666667"/>
+        <position name="posAPA0-0-7" unit="cm" x="-743.333333333333" y="-350" z="-450"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-7" unit="cm" x="-766.666666666667" y="350" z="-366.666666666667"/>
+        <position name="posAPA0-1-7" unit="cm" x="-743.333333333333" y="350" z="-450"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-7" unit="cm" x="0" y="-350" z="-366.666666666667"/>
+        <position name="posAPA1-0-7" unit="cm" x="0" y="-350" z="-450"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-7" unit="cm" x="0" y="350" z="-366.666666666667"/>
+        <position name="posAPA1-1-7" unit="cm" x="0" y="350" z="-450"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-7" unit="cm" x="766.666666666667" y="-350" z="-366.666666666667"/>
+        <position name="posAPA2-0-7" unit="cm" x="743.333333333333" y="-350" z="-450"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-7" unit="cm" x="766.666666666667" y="350" z="-366.666666666667"/>
+        <position name="posAPA2-1-7" unit="cm" x="743.333333333333" y="350" z="-450"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-8" unit="cm" x="-766.666666666667" y="-350" z="-122.222222222222"/>
+        <position name="posAPA0-0-8" unit="cm" x="-743.333333333333" y="-350" z="-216.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-8" unit="cm" x="-766.666666666667" y="350" z="-122.222222222222"/>
+        <position name="posAPA0-1-8" unit="cm" x="-743.333333333333" y="350" z="-216.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-8" unit="cm" x="0" y="-350" z="-122.222222222222"/>
+        <position name="posAPA1-0-8" unit="cm" x="0" y="-350" z="-216.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-8" unit="cm" x="0" y="350" z="-122.222222222222"/>
+        <position name="posAPA1-1-8" unit="cm" x="0" y="350" z="-216.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-8" unit="cm" x="766.666666666667" y="-350" z="-122.222222222222"/>
+        <position name="posAPA2-0-8" unit="cm" x="743.333333333333" y="-350" z="-216.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-8" unit="cm" x="766.666666666667" y="350" z="-122.222222222222"/>
+        <position name="posAPA2-1-8" unit="cm" x="743.333333333333" y="350" z="-216.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-9" unit="cm" x="-766.666666666667" y="-350" z="122.222222222222"/>
+        <position name="posAPA0-0-9" unit="cm" x="-743.333333333333" y="-350" z="16.6666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-9" unit="cm" x="-766.666666666667" y="350" z="122.222222222222"/>
+        <position name="posAPA0-1-9" unit="cm" x="-743.333333333333" y="350" z="16.6666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-9" unit="cm" x="0" y="-350" z="122.222222222222"/>
+        <position name="posAPA1-0-9" unit="cm" x="0" y="-350" z="16.6666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-9" unit="cm" x="0" y="350" z="122.222222222222"/>
+        <position name="posAPA1-1-9" unit="cm" x="0" y="350" z="16.6666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-9" unit="cm" x="766.666666666667" y="-350" z="122.222222222222"/>
+        <position name="posAPA2-0-9" unit="cm" x="743.333333333333" y="-350" z="16.6666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-9" unit="cm" x="766.666666666667" y="350" z="122.222222222222"/>
+        <position name="posAPA2-1-9" unit="cm" x="743.333333333333" y="350" z="16.6666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-10" unit="cm" x="-766.666666666667" y="-350" z="366.666666666667"/>
+        <position name="posAPA0-0-10" unit="cm" x="-743.333333333333" y="-350" z="250"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-10" unit="cm" x="-766.666666666667" y="350" z="366.666666666667"/>
+        <position name="posAPA0-1-10" unit="cm" x="-743.333333333333" y="350" z="250"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-10" unit="cm" x="0" y="-350" z="366.666666666667"/>
+        <position name="posAPA1-0-10" unit="cm" x="0" y="-350" z="250"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-10" unit="cm" x="0" y="350" z="366.666666666667"/>
+        <position name="posAPA1-1-10" unit="cm" x="0" y="350" z="250"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-10" unit="cm" x="766.666666666667" y="-350" z="366.666666666667"/>
+        <position name="posAPA2-0-10" unit="cm" x="743.333333333333" y="-350" z="250"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-10" unit="cm" x="766.666666666667" y="350" z="366.666666666667"/>
+        <position name="posAPA2-1-10" unit="cm" x="743.333333333333" y="350" z="250"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-11" unit="cm" x="-766.666666666667" y="-350" z="611.111111111111"/>
+        <position name="posAPA0-0-11" unit="cm" x="-743.333333333333" y="-350" z="483.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-11" unit="cm" x="-766.666666666667" y="350" z="611.111111111111"/>
+        <position name="posAPA0-1-11" unit="cm" x="-743.333333333333" y="350" z="483.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-11" unit="cm" x="0" y="-350" z="611.111111111111"/>
+        <position name="posAPA1-0-11" unit="cm" x="0" y="-350" z="483.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-11" unit="cm" x="0" y="350" z="611.111111111111"/>
+        <position name="posAPA1-1-11" unit="cm" x="0" y="350" z="483.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-11" unit="cm" x="766.666666666667" y="-350" z="611.111111111111"/>
+        <position name="posAPA2-0-11" unit="cm" x="743.333333333333" y="-350" z="483.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-11" unit="cm" x="766.666666666667" y="350" z="611.111111111111"/>
+        <position name="posAPA2-1-11" unit="cm" x="743.333333333333" y="350" z="483.333333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-12" unit="cm" x="-766.666666666667" y="-350" z="855.555555555556"/>
+        <position name="posAPA0-0-12" unit="cm" x="-743.333333333333" y="-350" z="716.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-12" unit="cm" x="-766.666666666667" y="350" z="855.555555555556"/>
+        <position name="posAPA0-1-12" unit="cm" x="-743.333333333333" y="350" z="716.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-12" unit="cm" x="0" y="-350" z="855.555555555556"/>
+        <position name="posAPA1-0-12" unit="cm" x="0" y="-350" z="716.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-12" unit="cm" x="0" y="350" z="855.555555555556"/>
+        <position name="posAPA1-1-12" unit="cm" x="0" y="350" z="716.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-12" unit="cm" x="766.666666666667" y="-350" z="855.555555555556"/>
+        <position name="posAPA2-0-12" unit="cm" x="743.333333333333" y="-350" z="716.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-12" unit="cm" x="766.666666666667" y="350" z="855.555555555556"/>
+        <position name="posAPA2-1-12" unit="cm" x="743.333333333333" y="350" z="716.666666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-13" unit="cm" x="-766.666666666667" y="-350" z="1100"/>
+        <position name="posAPA0-0-13" unit="cm" x="-743.333333333333" y="-350" z="950"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-13" unit="cm" x="-766.666666666667" y="350" z="1100"/>
+        <position name="posAPA0-1-13" unit="cm" x="-743.333333333333" y="350" z="950"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-13" unit="cm" x="0" y="-350" z="1100"/>
+        <position name="posAPA1-0-13" unit="cm" x="0" y="-350" z="950"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-13" unit="cm" x="0" y="350" z="1100"/>
+        <position name="posAPA1-1-13" unit="cm" x="0" y="350" z="950"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-13" unit="cm" x="766.666666666667" y="-350" z="1100"/>
+        <position name="posAPA2-0-13" unit="cm" x="743.333333333333" y="-350" z="950"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-13" unit="cm" x="766.666666666667" y="350" z="1100"/>
+        <position name="posAPA2-1-13" unit="cm" x="743.333333333333" y="350" z="950"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-14" unit="cm" x="-766.666666666667" y="-350" z="1344.44444444444"/>
+        <position name="posAPA0-0-14" unit="cm" x="-743.333333333333" y="-350" z="1183.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-14" unit="cm" x="-766.666666666667" y="350" z="1344.44444444444"/>
+        <position name="posAPA0-1-14" unit="cm" x="-743.333333333333" y="350" z="1183.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-14" unit="cm" x="0" y="-350" z="1344.44444444444"/>
+        <position name="posAPA1-0-14" unit="cm" x="0" y="-350" z="1183.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-14" unit="cm" x="0" y="350" z="1344.44444444444"/>
+        <position name="posAPA1-1-14" unit="cm" x="0" y="350" z="1183.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-14" unit="cm" x="766.666666666667" y="-350" z="1344.44444444444"/>
+        <position name="posAPA2-0-14" unit="cm" x="743.333333333333" y="-350" z="1183.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-14" unit="cm" x="766.666666666667" y="350" z="1344.44444444444"/>
+        <position name="posAPA2-1-14" unit="cm" x="743.333333333333" y="350" z="1183.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-15" unit="cm" x="-766.666666666667" y="-350" z="1588.88888888889"/>
+        <position name="posAPA0-0-15" unit="cm" x="-743.333333333333" y="-350" z="1416.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-15" unit="cm" x="-766.666666666667" y="350" z="1588.88888888889"/>
+        <position name="posAPA0-1-15" unit="cm" x="-743.333333333333" y="350" z="1416.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-15" unit="cm" x="0" y="-350" z="1588.88888888889"/>
+        <position name="posAPA1-0-15" unit="cm" x="0" y="-350" z="1416.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-15" unit="cm" x="0" y="350" z="1588.88888888889"/>
+        <position name="posAPA1-1-15" unit="cm" x="0" y="350" z="1416.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-15" unit="cm" x="766.666666666667" y="-350" z="1588.88888888889"/>
+        <position name="posAPA2-0-15" unit="cm" x="743.333333333333" y="-350" z="1416.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-15" unit="cm" x="766.666666666667" y="350" z="1588.88888888889"/>
+        <position name="posAPA2-1-15" unit="cm" x="743.333333333333" y="350" z="1416.66666666667"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-16" unit="cm" x="-766.666666666667" y="-350" z="1833.33333333333"/>
+        <position name="posAPA0-0-16" unit="cm" x="-743.333333333333" y="-350" z="1650"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-16" unit="cm" x="-766.666666666667" y="350" z="1833.33333333333"/>
+        <position name="posAPA0-1-16" unit="cm" x="-743.333333333333" y="350" z="1650"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-16" unit="cm" x="0" y="-350" z="1833.33333333333"/>
+        <position name="posAPA1-0-16" unit="cm" x="0" y="-350" z="1650"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-16" unit="cm" x="0" y="350" z="1833.33333333333"/>
+        <position name="posAPA1-1-16" unit="cm" x="0" y="350" z="1650"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-16" unit="cm" x="766.666666666667" y="-350" z="1833.33333333333"/>
+        <position name="posAPA2-0-16" unit="cm" x="743.333333333333" y="-350" z="1650"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-16" unit="cm" x="766.666666666667" y="350" z="1833.33333333333"/>
+        <position name="posAPA2-1-16" unit="cm" x="743.333333333333" y="350" z="1650"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-0-17" unit="cm" x="-766.666666666667" y="-350" z="2077.77777777778"/>
+        <position name="posAPA0-0-17" unit="cm" x="-743.333333333333" y="-350" z="1883.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA0-1-17" unit="cm" x="-766.666666666667" y="350" z="2077.77777777778"/>
+        <position name="posAPA0-1-17" unit="cm" x="-743.333333333333" y="350" z="1883.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-0-17" unit="cm" x="0" y="-350" z="2077.77777777778"/>
+        <position name="posAPA1-0-17" unit="cm" x="0" y="-350" z="1883.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA1-1-17" unit="cm" x="0" y="350" z="2077.77777777778"/>
+        <position name="posAPA1-1-17" unit="cm" x="0" y="350" z="1883.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-0-17" unit="cm" x="766.666666666667" y="-350" z="2077.77777777778"/>
+        <position name="posAPA2-0-17" unit="cm" x="743.333333333333" y="-350" z="1883.33333333333"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPA"/>
-        <position name="posAPA2-1-17" unit="cm" x="766.666666666667" y="350" z="2077.77777777778"/>
+        <position name="posAPA2-1-17" unit="cm" x="743.333333333333" y="350" z="1883.33333333333"/>
       </physvol>
 
     </volume>
@@ -1976,25 +1930,41 @@
       <materialref ref="Concrete"/>
       <solidref ref="ConcreteBottom"/>
     </volume>
+    <volume name="volMiddleRock">
+      <materialref ref="DUSEL_Rock"/>
+      <solidref ref="MiddleRock"/>
+    </volume>
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
       <physvol>
         <volumeref ref="volCryostat"/>
-        <position name="posCryostat1" unit="cm" x="0" y="0" z="0.25*9453.81"/>
+        <position name="posCryostatDownstream" unit="cm" x="0" y="0" z="3151.27"/>
       </physvol>
       <physvol>
         <volumeref ref="volCryostat"/>
-        <position name="posCryostat2" unit="cm" x="0" y="0" z="-0.25*9453.81"/>
+        <position name="posCryostatUpstream" unit="cm" x="0" y="0" z="-3151.27"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volConcreteWithCavern"/>
-        <position name="posConcreteWithCavern" unit="cm" x="0" y="-0.5*(151.27-50)" z="0"/>
+        <position name="posConcreteWithCavernUpstream" unit="cm" x="0" y="-0.5*(151.27-50)" z="-3151.27"/>
       </physvol>
       <physvol>
         <volumeref ref="volConcreteBottom"/>
-        <position name="posConcreteBottom" unit="cm" x="0" y="-0.5*(1500+151.27)" z="0"/>
+        <position name="posConcreteBottomUpstream" unit="cm" x="0" y="-0.5*(1500+151.27)" z="-3151.27"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volConcreteWithCavern"/>
+        <position name="posConcreteWithCavernDownstream" unit="cm" x="0" y="-0.5*(151.27-50)" z="3151.27"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volConcreteBottom"/>
+        <position name="posConcreteBottomDownstream" unit="cm" x="0" y="-0.5*(1500+151.27)" z="3151.27"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMiddleRock"/>
+        <position name="posMiddleRock" unit="cm" x="0" y="0" z="0" />
       </physvol>
     </volume>
     <volume name="volLowerRockWithCavern">
@@ -2018,23 +1988,23 @@
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="0.5*373.332333333333" y="0" z="0.5*244.443444444444"/>
+        <position name="posDetEnclosure" unit="cm" x="0.5*2400" y="0" z="0.5*11105.08-151.27"/>
       </physvol>
       <physvol>
         <volumeref ref="volLowerRockWithCavern"/>
-        <position name="posLowerRockWithCavern" unit="cm" x="0.5*373.332333333333" y="-0.5*1000" z="0.5*244.443444444444"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="0.5*2400" y="-0.5*1000" z="0.5*11105.08-151.27"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockBottom"/>
-        <position name="posRockBottom" unit="cm" x="0.5*373.332333333333" y="-0.5*(1000+1500+151.27)" z="0.5*244.443444444444"/>
+        <position name="posRockBottom" unit="cm" x="0.5*2400" y="-0.5*(1000+1500+151.27)" z="0.5*11105.08-151.27"/>
       </physvol>
       <physvol>
         <volumeref ref="volUpperRockWithCavern"/>
-        <position name="posUpperRockWithCavern" unit="cm" x="0.5*373.332333333333" y="0.5*(1000+1500)" z="0.5*244.443444444444"/>
+        <position name="posUpperRockWithCavern" unit="cm" x="0.5*2400" y="0.5*(1000+1500)" z="0.5*11105.08-151.27"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockTop"/>
-        <position name="posRockTop" unit="cm" x="0.5*373.332333333333" y="0.5*(1000-500+1500)+500" z="0.5*244.443444444444"/>
+        <position name="posRockTop" unit="cm" x="0.5*2400" y="0.5*(1000-500+1500)+500" z="0.5*11105.08-151.27"/>
       </physvol>
     </volume>
   </structure>
