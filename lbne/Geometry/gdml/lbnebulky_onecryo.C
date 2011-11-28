@@ -4,7 +4,7 @@ typedef struct _drawopt
   int         color;
 } drawopt;
 
-lbnebulky_geo(TString volName="")
+lbnebulky_onecryo(TString volName="")
 {
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
