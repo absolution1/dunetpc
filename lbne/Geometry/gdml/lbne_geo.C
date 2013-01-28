@@ -9,7 +9,7 @@ lbne_geo(TString volName="")
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
 
-  TGeoManager::Import("lbne.gdml");
+  TGeoManager::Import("lbne10kT.gdml");
 
   drawopt optuboone[] = {
     {"volRockTop",        kOrange-7},
