@@ -79,14 +79,14 @@ namespace geo{
       }// end sizing loop over APAs
     }// end sizing loop over cryostats
 
-	
+
     // Find the number of wires anchored to the frame
     for(unsigned int p=0; p!=fPlanesPerAPA; ++p){
 
       fWiresInPlane[p] = cgeo[0]->TPC(0).Plane(p).Nwires();
       double xyz[3] = {0.};
       double xyz_next[3] = {0.};
-      
+
       for(unsigned int w=0; w!=fWiresInPlane[p]; ++w){
 
 	// for vertical planes
@@ -102,7 +102,6 @@ namespace geo{
 	  nAnchoredWires[p] = w-1;      
 	  break;
 	}
-
       }// end wire loop
 
     }// end plane loop
@@ -118,7 +117,7 @@ namespace geo{
 
     }// end build loop over planes
 
-
+    // Save the number of channels
     fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerAPA-1];
 
     fNchannels = 0;
