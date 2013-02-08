@@ -260,7 +260,7 @@ std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
 
        if(ChannelGroup%2==1)
 	{
-       tpc = tpc + 1;
+       tpc += 1;
        WrapDirection  = -1;	 
 	}
 
@@ -268,12 +268,9 @@ std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
 
       for(unsigned int WireSegmentCount = 0; WireSegmentCount != 50; ++WireSegmentCount){
 
-        tpc = tpc + WrapDirection*(WireSegmentCount%2);
+        tpc += WrapDirection*(WireSegmentCount%2);
 
-              CodeWire.Cryostat=cstat;
-              CodeWire.TPC=tpc;
-              CodeWire.Plane=plane;
-              CodeWire.Wire=bottomwire + WireSegmentCount*nAnchoredWires[plane];
+        geo::WireID CodeWire(cstat, tpc, plane, bottomwire + WireSegmentCount*nAnchoredWires[plane]);
 
 // std::cout  <<  CodeWire.Cryostat    << "," <<
 //                CodeWire.TPC    << "," <<
