@@ -30,13 +30,12 @@ namespace geo{
   void ChannelMapAPAAlg::Initialize(std::vector<geo::CryostatGeo*> const& cgeo)
   {
 
-           if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
-                   {
-                           this->Uninitialize();
-             std::cout << "FirstChannel vectors are not empty." << std::endl;
-             std::cout << "FirstChannel vectors have been emptied." <<     std::endl;
-                   }
-
+    if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty()){
+      this->Uninitialize();
+      std::cout << "FirstChannel vectors are not empty." << std::endl;
+      std::cout << "FirstChannel vectors have been emptied." <<     std::endl;
+    }
+    
 
     fNcryostat = cgeo.size();
     
@@ -50,10 +49,10 @@ namespace geo{
     fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
     nAnchoredWires.resize(fPlanesPerAPA);
     fWiresInPlane.resize(fPlanesPerAPA);
-     fFirstChannelInThisPlane[0].resize(1);  // remember FirstChannel vectors
-     fFirstChannelInNextPlane[0].resize(1);  // for first APA only.
-     fFirstChannelInThisPlane[0][0].resize(fPlanesPerAPA);  // Make room for info
-     fFirstChannelInNextPlane[0][0].resize(fPlanesPerAPA);  // on each plane.
+    fFirstChannelInThisPlane[0].resize(1);  // remember FirstChannel vectors
+    fFirstChannelInNextPlane[0].resize(1);  // for first APA only.
+    fFirstChannelInThisPlane[0][0].resize(fPlanesPerAPA);  // Make room for info
+    fFirstChannelInNextPlane[0][0].resize(fPlanesPerAPA);  // on each plane.
 
     fTopChannel = 0;
 
@@ -91,39 +90,39 @@ namespace geo{
 
 	// for vertical planes
 	if(cgeo[0]->TPC(0).Plane(p).View()==kW)   { 
-				  	nAnchoredWires[p] = fWiresInPlane[p];      
-					break;
-				    }
+	  nAnchoredWires[p] = fWiresInPlane[p];      
+	  break;
+	}
 
 	cgeo[0]->TPC(0).Plane(p).Wire(w).GetCenter(xyz);
 	cgeo[0]->TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
 	if(xyz[2]==xyz_next[2]){
-				  	nAnchoredWires[p] = w-1;      
-					break;
-		    }
+	  nAnchoredWires[p] = w-1;      
+	  break;
+	}
 
       }// end wire loop
 
     }// end plane loop
 
 
-	static unsigned int CurrentChannel = 0;
+    static unsigned int CurrentChannel = 0;
    
-	for(unsigned int PCount = 0; PCount != fPlanesPerAPA; ++PCount){
+    for(unsigned int PCount = 0; PCount != fPlanesPerAPA; ++PCount){
 
-	  fFirstChannelInThisPlane[0][0][PCount] = CurrentChannel;
-	  CurrentChannel = CurrentChannel + 2*nAnchoredWires[PCount];
-	  fFirstChannelInNextPlane[0][0][PCount] = CurrentChannel;
+      fFirstChannelInThisPlane[0][0][PCount] = CurrentChannel;
+      CurrentChannel = CurrentChannel + 2*nAnchoredWires[PCount];
+      fFirstChannelInNextPlane[0][0][PCount] = CurrentChannel;
 
-        }// end build loop over planes
+    }// end build loop over planes
 
 
-   fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerAPA-1];
+    fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerAPA-1];
 
-   fNchannels = 0;
+    fNchannels = 0;
     for(size_t cs = 0; cs < fNcryostat; ++cs){
-   fNchannels = fNchannels + fChannelsPerAPA*fNTPC[cs]/2;
+      fNchannels = fNchannels + fChannelsPerAPA*fNTPC[cs]/2;
     }
 
 
@@ -163,22 +162,22 @@ namespace geo{
 
 
 
-std::cout << "fNchannels = " << fNchannels << std::endl; 
+    std::cout << "fNchannels = " << fNchannels << std::endl; 
 
-std::cout << "For all identical APA:" << std::endl; 
-std::cout << "fChannelsPerAPA = " << fChannelsPerAPA << std::endl; 
+    std::cout << "For all identical APA:" << std::endl; 
+    std::cout << "fChannelsPerAPA = " << fChannelsPerAPA << std::endl; 
 
-std::cout << "Wires in Plane 0 = " << fWiresInPlane[0] << std::endl;
-std::cout << "Wires in Plane 1 = " << fWiresInPlane[1] << std::endl;
-std::cout << "Wires in Plane 2 = " << fWiresInPlane[2] << std::endl;
+    std::cout << "Wires in Plane 0 = " << fWiresInPlane[0] << std::endl;
+    std::cout << "Wires in Plane 1 = " << fWiresInPlane[1] << std::endl;
+    std::cout << "Wires in Plane 2 = " << fWiresInPlane[2] << std::endl;
 
-std::cout << "Anchored Wires in Plane 0 = " << nAnchoredWires[0] << std::endl;
-std::cout << "Anchored Wires in Plane 1 = " << nAnchoredWires[1] << std::endl;
-std::cout << "Anchored Wires in Plane 2 = " << nAnchoredWires[2] << std::endl;
+    std::cout << "Anchored Wires in Plane 0 = " << nAnchoredWires[0] << std::endl;
+    std::cout << "Anchored Wires in Plane 1 = " << nAnchoredWires[1] << std::endl;
+    std::cout << "Anchored Wires in Plane 2 = " << nAnchoredWires[2] << std::endl;
 
-std::cout << "Pitch in Plane 0 = " << fWirePitch[0] << std::endl;
-std::cout << "Pitch in Plane 1 = " << fWirePitch[1] << std::endl;
-std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
+    std::cout << "Pitch in Plane 0 = " << fWirePitch[0] << std::endl;
+    std::cout << "Pitch in Plane 1 = " << fWirePitch[1] << std::endl;
+    std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
 
     return;
 
@@ -188,8 +187,8 @@ std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
   void ChannelMapAPAAlg::Uninitialize()
   {
 
-      std::vector< std::vector<std::vector<unsigned int> > >().swap(fFirstChannelInThisPlane);
-      std::vector< std::vector<std::vector<unsigned int> > >().swap(fFirstChannelInNextPlane);
+    std::vector< std::vector<std::vector<unsigned int> > >().swap(fFirstChannelInThisPlane);
+    std::vector< std::vector<std::vector<unsigned int> > >().swap(fFirstChannelInNextPlane);
 
   }
 
@@ -199,103 +198,97 @@ std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
 
     // first check if this channel ID is legal
     if(channel >= fNchannels )
-       throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel;
+      throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel;
 
-       WireID CodeWire;
-       std::vector< WireID > AllSegments;
+    std::vector< WireID > AllSegments;
 
-
-       static unsigned int cstat;
-       static unsigned int tpc;
-       static unsigned int plane;
-       static unsigned int wireThisPlane;
-       static unsigned int NextPlane;
-       static unsigned int ThisPlane;
+    static unsigned int cstat;
+    static unsigned int tpc;
+    static unsigned int plane;
+    static unsigned int wireThisPlane;
+    static unsigned int NextPlane;
+    static unsigned int ThisPlane;
 
 
-       for(unsigned int csloop = 0; csloop != fNcryostat; ++csloop){
+    for(unsigned int csloop = 0; csloop != fNcryostat; ++csloop){
 				
-		bool breakVariable = false;
+      bool breakVariable = false;
 
-         for(unsigned int apaloop = 0; apaloop != fAPAs[csloop].size(); ++apaloop){
-           for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
+      for(unsigned int apaloop = 0; apaloop != fAPAs[csloop].size(); ++apaloop){
+	for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
 					
-             NextPlane = fFirstChannelInNextPlane[0][0][planeloop] 
-			+ apaloop*fChannelsPerAPA
-			+ csloop*(fAPAs[csloop].size())*fChannelsPerAPA;
+	  NextPlane = fFirstChannelInNextPlane[0][0][planeloop] 
+	    + apaloop*fChannelsPerAPA
+	    + csloop*(fAPAs[csloop].size())*fChannelsPerAPA;
 
-             ThisPlane = fFirstChannelInThisPlane[0][0][planeloop]
-                        + apaloop*fChannelsPerAPA
-                        + csloop*(fAPAs[csloop].size())*fChannelsPerAPA;
+	  ThisPlane = fFirstChannelInThisPlane[0][0][planeloop]
+	    + apaloop*fChannelsPerAPA
+	    + csloop*(fAPAs[csloop].size())*fChannelsPerAPA;
 
-             if(channel < NextPlane){
+	  if(channel < NextPlane){
                                        
-		      cstat = csloop;
-                      tpc   = 2*apaloop;
-                      plane = planeloop;
-                      wireThisPlane  = channel - ThisPlane;
+	    cstat = csloop;
+	    tpc   = 2*apaloop;
+	    plane = planeloop;
+	    wireThisPlane  = channel - ThisPlane;
 
-		      breakVariable = true;
-		      break;
-                                      }// end if break
+	    breakVariable = true;
+	    break;
+	  }// end if break
 
-		if(breakVariable) break;
+	  if(breakVariable) break;
 
-                }// end plane loop
+	}// end plane loop
 			
-	      if(breakVariable) break;
+	if(breakVariable) break;
 
-              }// end apa loop
+      }// end apa loop
 
-	    if(breakVariable) break;
+      if(breakVariable) break;
 
-            }// end cryostat loop
-
-
-      int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
-
-      // find the lowest wire
-      unsigned int ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
-      unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[plane];
-
-       if(ChannelGroup%2==1)
-	{
-       tpc += 1;
-       WrapDirection  = -1;	 
-	}
-
-// std::cout << "Add WireIDs:  ";
-
-      for(unsigned int WireSegmentCount = 0; WireSegmentCount != 50; ++WireSegmentCount){
-
-        tpc += WrapDirection*(WireSegmentCount%2);
-
-        geo::WireID CodeWire(cstat, tpc, plane, bottomwire + WireSegmentCount*nAnchoredWires[plane]);
-
-// std::cout  <<  CodeWire.Cryostat    << "," <<
-//                CodeWire.TPC    << "," <<
-//                CodeWire.Plane  << "," <<
-//                CodeWire.Wire   << "  /  ";
+    }// end cryostat loop
 
 
-        AllSegments.push_back(CodeWire);
+    int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
+
+    // find the lowest wire
+    unsigned int ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
+    unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[plane];
+
+    if(ChannelGroup%2==1){
+      tpc += 1;
+      WrapDirection  = -1;	 
+    }
+
+    // std::cout << "Add WireIDs:  ";
+
+    for(unsigned int WireSegmentCount = 0; WireSegmentCount != 50; ++WireSegmentCount){
+
+      tpc += WrapDirection*(WireSegmentCount%2);
+
+      geo::WireID CodeWire(cstat, tpc, plane, bottomwire + WireSegmentCount*nAnchoredWires[plane]);
+
+      // std::cout  <<  CodeWire.Cryostat    << "," <<
+      //                CodeWire.TPC    << "," <<
+      //                CodeWire.Plane  << "," <<
+      //                CodeWire.Wire   << "  /  ";
 
 
-        // reset the tcp variable so it doesnt "accumulate value"
-        tpc = tpc - WrapDirection*(WireSegmentCount%2);
+      AllSegments.push_back(CodeWire);
 
 
-        if( bottomwire + (WireSegmentCount+1)*nAnchoredWires[plane] > fWiresInPlane[plane]-1) 
-		{
-			break;
-		}
+      // reset the tcp variable so it doesnt "accumulate value"
+      tpc = tpc - WrapDirection*(WireSegmentCount%2);
 
-      } //end WireSegmentCount loop
 
-// std::cout << "...done." << std::endl;
+      if( bottomwire + (WireSegmentCount+1)*nAnchoredWires[plane] > fWiresInPlane[plane]-1) break;
 
-         return AllSegments;
-   }
+    } //end WireSegmentCount loop
+
+    // std::cout << "...done." << std::endl;
+
+    return AllSegments;
+  }
 
 
   //----------------------------------------------------------------------------
@@ -307,9 +300,9 @@ std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
 
   //----------------------------------------------------------------------------
   unsigned int    ChannelMapAPAAlg::NearestWire(const TVector3& xyz,
-                                         unsigned int    plane,
-                                         unsigned int    tpc,
-                                         unsigned int    cryostat)     const
+						unsigned int    plane,
+						unsigned int    tpc,
+						unsigned int    cryostat)     const
   {
 
     //get the position of first wire in a given cryostat, tpc and plane
@@ -319,11 +312,11 @@ std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
 
     //get the orientation angle of a given plane and calculate the distance between first wire
     //and a point projected in the plane
-	int rotate=1;
-    	if (tpc%2==1) rotate=-1;
-    double distance=fabs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]+
-                         rotate*tan(fOrientation[plane])*firstxyz[2])/
-      			 sqrt(tan(fOrientation[plane])*tan(fOrientation[plane])+1);
+    int rotate=1;
+    if (tpc%2==1) rotate=-1;
+    double distance=std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]+
+			     rotate*tan(fOrientation[plane])*firstxyz[2])/
+                             sqrt(tan(fOrientation[plane])*tan(fOrientation[plane])+1);
 
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
@@ -342,28 +335,25 @@ std::cout << "Pitch in Plane 2 = " << fWirePitch[2] << std::endl;
   //----------------------------------------------------------------------------
 
   unsigned int ChannelMapAPAAlg::PlaneWireToChannel(unsigned int plane,
-							 unsigned int wire,
-							 unsigned int tpc,
-							 unsigned int cstat) const
+						    unsigned int wire,
+						    unsigned int tpc,
+						    unsigned int cstat) const
   {
-
-    unsigned int Channel;
     unsigned int OtherSideWires = 0;
 
+    unsigned int Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
+    Channel += cstat*(fAPAs[cstat].size())*fChannelsPerAPA;       // move channel to proper cstat.
+    Channel += std::floor( tpc/2 )*fChannelsPerAPA;		  // move channel to proper APA.
+    OtherSideWires += (tpc%2)*nAnchoredWires[plane];	          // get number of wires on the first
+    // side of the APA if starting
+    // on the other side TPC.
 
-	Channel = fFirstChannelInThisPlane[0][0][plane]; 	// start in very first APA.
-	Channel += cstat*(fAPAs[cstat].size())*fChannelsPerAPA; // move channel to proper cstat.
-	Channel += std::floor( tpc/2 )*fChannelsPerAPA;		// move channel to proper APA.
-	OtherSideWires += (tpc%2)*nAnchoredWires[plane];	// get number of wires on the first
-								// side of the APA if starting
-								// on the other side TPC.
 
-
-	  // Lastly, account for the fact that channel number while moving up wire number in one
-	  // plane resets after 2 times the number of wires anchored -- one for each APA side.
-	  // At the same time, OtherSideWires accounts for the fact that if a channel starts on 
-	  // the other side, it is offset but the number of wires on the first side.
-	Channel += (OtherSideWires + wire)%(2*nAnchoredWires[plane]);
+    // Lastly, account for the fact that channel number while moving up wire number in one
+    // plane resets after 2 times the number of wires anchored -- one for each APA side.
+    // At the same time, OtherSideWires accounts for the fact that if a channel starts on 
+    // the other side, it is offset but the number of wires on the first side.
+    Channel += (OtherSideWires + wire)%(2*nAnchoredWires[plane]);
 
     return Channel;
 
