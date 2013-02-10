@@ -12,10 +12,7 @@ lbne_geo(TString volName="")
   TGeoManager::Import("lbne10kT.gdml");
 
   drawopt optuboone[] = {
-    {"volRockTop",        kOrange-7},
-    {"volRockBottom",        kOrange-7},
-    {"volUpperRockWithCavern",        kOrange-7},
-    {"volLowerRockWithCavern",        kOrange-7},
+// color in volumes later
     {0, 0}
   };
 
@@ -37,7 +34,7 @@ lbne_geo(TString volName="")
 
   //gGeoManager->GetTopVolume()->Draw();
   //if ( ! volName.IsNull() ) gGeoManager->FindVolumeFast(volName)->Draw("ogl");
-  gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
+  gGeoManager->FindVolumeFast("volCryostat")->Draw("X3D");
 
 
   TFile *tf = new TFile("lbne.root", "RECREATE");

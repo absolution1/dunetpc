@@ -56,6 +56,7 @@ $wires_on = $wires
 }
 
 $tpc_on=1;
+$inch = 2.54;
 
 # wire plane parameters
 $UWirePitch = .49;
@@ -87,14 +88,14 @@ $nAPALong		= 10;
 
 #$APAFrameWidth = 8.9; #this includes the width of all of the wire planes (g, u,v, and x)
 $CPAThickness = 0.002; #for now the CPA is basically infinitely thin
-$APAFrameWidth = 5.08; #this does not include the wire spacing
+$APAFrame_x = 2*$inch; #this does not include the wire spacing
 $APAWirePlaneSpacing = 0.476; #spacing between all of the wire planes (g, u, v, and x)
 $MaxDrift = 233.555; #this is the distance form the CPA to the gage wire plane and designed to have APA-CPA spacing at 2.38m
 
 $APALongGap = 1.5; #this is the separation between APAs along the incident beam axis
 $APAVerticalGap = 2.5; #this is the separation between APAs along the vertical axis 
 
-$APAWidth   =   $CPAThickness + 2*$MaxDrift + 8*$APAWirePlaneSpacing + $APAFrameWidth ; # this is the distance center-line CPA to center-line CPA
+$APAWidth   =   $CPAThickness + 2*$MaxDrift + 8*$APAWirePlaneSpacing + $APAFrame_x ; # this is the distance center-line CPA to center-line CPA
 $APAHeight  =   700; #does not include front-end boards or hanger posts
 $APALength  =   252; #does not include the dead space on the sides of APA frame for wrapping wires
 
@@ -110,7 +111,7 @@ $HeightGaseousAr = 50; #$Height of Gaseous Ar region
 $UpstreamLArPadding=50;
 $DownstreamLArPadding=250;
 
-$SteelThickness		=	0.5*2.54; #half inch
+$SteelThickness		=	0.5*$inch; #half inch
 $ArgonWidth		=	$FiducialWidth+2*$SpaceCPAToCryoWall;
 $ArgonHeight		=	$FiducialHeight+$SpaceAPAToFloor+$SpaceAPAToTopLAr;
 $ArgonLength		=	$FiducialLength+$UpstreamLArPadding+$DownstreamLArPadding;
@@ -119,7 +120,7 @@ $CryostatWidth		=	$ArgonWidth+2*$SteelThickness;
 $CryostatHeight		=	$ArgonHeight+2*$SteelThickness + $HeightGaseousAr;
 $CryostatLength		=	$ArgonLength+2*$SteelThickness; #this should also have twice the steel thickness, yes?
 
-$TPCWidth		 =	($APAWidth-$APAFrameWidth - $CPAThicknes/2)/2 - 0.001; # leaving space for frame, this distance is the distance from edge of the APA frame to the center of the CPA
+$TPCWidth		 =	($APAWidth-$APAFrame_x - $CPAThicknes/2)/2 - 0.001; # leaving space for frame, this distance is the distance from edge of the APA frame to the center of the CPA
 $TPCHeight		 =	$APAHeight - 0.001 ; #active volume only and doesn't include front-end boards or dead space between two vertically stacked APAs
 $TPCLength		 =	$APALength - 0.001 ; # active volume only and doesn't include dead space between adjacent APAs
 
@@ -213,18 +214,52 @@ $HillSideMiddleWidth = $HillSideBoxWidth;
 
 
 
+################# APA Frame and Paddle Dimensions ##################
+
+
+$APAFrameZSide_x = $APAFrame_x;
+$APAFrameZSide_y = 4*$inch;
+$APAFrameZSide_z = $APALength;
+
+
 $LightPaddleWidth = 0.476;
-$LightPaddleHeight = 2.54*4;
+$LightPaddleHeight = 4*$inch;
 $LightPaddleLength = 225-0.001;
-$nLightPaddlesPerAPA = 10; #10, or 20 for double coverage (for now)
-$PaddleYInterval=(2*$APAHeight+$APAVerticalGap-$LightPaddleHeight)/(2*$nLightPaddlesPerAPA-1);
+$nLightPaddlesPerAPA = 20; #10, or 20 for double coverage (for now)
+$PaddleYInterval = (2*$APAHeight+$APAVerticalGap-$LightPaddleHeight-2*$APAFrameZSide_y)/(2*$nLightPaddlesPerAPA-1);
 $FrameToPaddleSpace = ($PaddleYInterval-$APAVerticalGap)/2;
+
 
 # $PaddleYInterval is defined so that the center-to-center distance in the 
 # y direction between paddles is uniform between vertically stacked APAs.
 # $FrameToPaddleSpace is from the BOTTOM of the APA frame (4" in y direction)
 # to the CENTER of a paddle, including the 4" part of the frame. This variable's
 # primary purpose is to position the lowest paddle in each APA.
+
+
+$APAFrameZSide_x = $APAFrame_x;
+$APAFrameZSide_y = 4*$inch;
+$APAFrameZSide_z = $APALength;
+
+$APAFrameYSide_x = $APAFrame_x;
+$APAFrameYSide_y = $APAHeight-2*$APAFrameZSide_y;
+$APAFrameYSide_z = 4*$inch;
+
+# Two outer Y supports will sandwich the inner Y supports and light paddles
+$APAFrameYOuterSupport_x = ($APAFrame_x-$LightPaddleWidth)/2;
+$APAFrameYOuterSupport_y = $APAHeight-2*$APAFrameZSide_y;
+$APAFrameYOuterSupport_z = 4*$inch;
+
+$APAFrameYInnerSupport_x = $LightPaddleWidth;
+$APAFrameYInnerSupport_y = $PaddleYInterval-$LightPaddleHeight;
+$APAFrameYInnerSupport_z = 4*$inch;
+
+$APAFrameZHalfSupport_x = $APAFrame_x;
+$APAFrameZHalfSupport_y = 2*$inch;
+$APAFrameZHalfSupport_z = $APAFrameZSide_z 
+			  - 2*$APAFrameYSide_z 
+		          - $APAFrameYSupport_z;
+
 
 
 ####################
@@ -614,10 +649,6 @@ print TPC <<EOF;
       x="$TPCWidth" 
       y="$TPCHeight" 
       z="$TPCLength"/>
-    <box name="Cathode" lunit="cm"
-      x="1"
-      y="$TPCHeight"
-      z="$TPCLength"/>
     <box name="TPCPlane" lunit="cm" 
       x="$TPCWirePlaneThickness" 
       y="$TPCWirePlaneHeight" 
@@ -794,10 +825,6 @@ EOF
 print TPC <<EOF;
 </solids>
 <structure>
-    <volume name="volCathode">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="Cathode" />
-    </volume>
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="TPCActive"/>
@@ -1184,10 +1211,6 @@ print TPC <<EOF;
       <materialref ref="LAr" />
       <solidref ref="TPC" />
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode" unit="cm" x="$TPCWidth/2-$CPAThickness/2" y="0" z="0" />
-     </physvol>
-     <physvol>
        <volumeref ref="volTPCPlaneU" />
        <position name="posTPCPlaneU" unit="cm" x="(-$TPCWidth/2)+3*$APAWirePlaneSpacing" y="0" z="0" />
      </physvol>
@@ -1258,10 +1281,41 @@ print CRYO <<EOF;
       <first ref="Cryostat"/>
       <second ref="ArgonInterior"/>
     </subtraction>
+
+    <box name="Cathode" lunit="cm"
+      x="1"
+      y="$TPCHeight"
+      z="$TPCLength"/>
+
     <box name="LightPaddle" lunit="cm"
       x="$LightPaddleWidth"
       y="$LightPaddleHeight"
       z="$LightPaddleLength"/>
+
+     <box name="APAFrameYSide" lunit="cm"
+      x="$APAFrameYSide_x"
+      y="$APAFrameYSide_y"
+      z="$APAFrameYSide_z" />
+
+     <box name="APAFrameZSide" lunit="cm"
+      x="$APAFrameZSide_x"
+      y="$APAFrameZSide_y"
+      z="$APAFrameZSide_z" />
+
+     <box name="APAFrameYOuterSupport" lunit="cm"
+      x="$APAFrameYOuterSupport_x"
+      y="$APAFrameYOuterSupport_y"
+      z="$APAFrameYOuterSupport_z" />
+
+     <box name="APAFrameYInnerSupport" lunit="cm"
+      x="$APAFrameYInnerSupport_x"
+      y="$APAFrameYInnerSupport_y"
+      z="$APAFrameYInnerSupport_z" />
+
+     <box name="APAFrameZHalfSupport" lunit="cm"
+      x="$APAFrameZHalfSupport_x"
+      y="$APAFrameZHalfSupport_y"
+      z="$APAFrameZHalfSupport_z" />
 </solids>
 EOF
 
@@ -1276,17 +1330,49 @@ print CRYO <<EOF;
       <materialref ref="LAr"/>
       <solidref ref="LiquidArgon"/>
     </volume>
+
+    <volume name="volCathode">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
+      <solidref ref="Cathode" />
+    </volume>
+
     <volume name="volLightPaddle">
       <materialref ref="Acrylic"/>
       <solidref ref="LightPaddle"/>
     </volume>
+
+    <volume name="volAPAFrameYSide">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
+      <solidref ref="APAFrameYSide" />
+    </volume>
+
+    <volume name="volAPAFrameZSide">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
+      <solidref ref="APAFrameZSide" />
+    </volume>
+
+    <volume name="volAPAFrameYOuterSupport">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
+      <solidref ref="APAFrameYOuterSupport" />
+    </volume>
+
+    <volume name="volAPAFrameYInnerSupport">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
+      <solidref ref="APAFrameYInnerSupport" />
+    </volume>
+
+    <volume name="volAPAFrameZHalfSupport">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
+      <solidref ref="APAFrameZHalfSupport" />
+    </volume>
+
     <volume name="volCryostat">
-      <materialref ref="ArGas" />
+      <materialref ref="LAr" />
       <solidref ref="Cryostat" />
-      <physvol>
+<!--      <physvol>
         <volumeref ref="volLiquidArgon"/>
         <position name="posLiquidArgon" unit="cm" x="0" y="-$HeightGaseousAr/2" z="0"/>
-      </physvol>
+      </physvol> -->
       <physvol>
         <volumeref ref="volSteelShell"/>
         <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
@@ -1305,78 +1391,63 @@ if ($tpc_on==1) {
   for($k=0 ; $k<$nAPALong ; $k++)
   {
 
-	$TPC_Z = -$ArgonLength/2 + $UpstreamLArPadding + $APALength/2 + $k*($APALength+$APALongGap); 
-		
-		for($i=0 ; $i<$nAPAWide+1 ; $i++)
-		{
+    for($i=0 ; $i<$nAPAWide+1 ; $i++)
+    {
 
-		       $CAT_X       = -$FiducialWidth/2 + $CPAThickness/2 + $i*($APAWidth);
-                       $APACenter   = -$FiducialWidth/2 + $CPAThickness/2 + ($i+0.5)*($APAWidth);
-                       $TPC_X_rot   = $APACenter-($TPCWidth+$APAFrameThickness)/2;
-                       $TPC_X       = $APACenter+($TPCWidth+$APAFrameThickness)/2;
-                       #for the rotation, remember the wires are on the negative side of volTPC
+      for($j=0 ; $j<$nAPAHigh ; $j++)
+      {
 
+        $CAT_X       = -$FiducialWidth/2 + $CPAThickness/2 + $i*($APAWidth);
+                     
+        $APACenter_x = -$FiducialWidth/2 + $CPAThickness/2 + ($i+0.5)*($APAWidth);
+        $APACenter_y = -$FiducialHeight/2 + $APAHeight/2 + $j*($APAHeight+$APAVerticalGap);
+        $APACenter_z = -$ArgonLength/2 + $UpstreamLArPadding + $APALength/2 + $k*($APALength+$APALongGap);
 
-				for($j=0 ; $j<$nAPAHigh ; $j++)
-				{    # Make sure this is done in a way that the coordinate system is RH 		
-
-				    $TPC_Y = $FiducialHeight/2 -$HeightGaseousAr/2 - $APAHeight/2 - $j*($APAHeight+$APAVerticalGap); 
-print CRYO <<EOF;
+        print CRYO <<EOF;
 
      <physvol>
        <volumeref ref="volCathode" />
-       <position name="posCathode\-$i\-$j\-$k" unit="cm" x="$CAT_X" y="$TPC_Y" z="$TPC_Z" />
+       <position name="posCathode\-$i\-$j\-$k" unit="cm" x="$CAT_X" y="$APACenter_y" z="$APACenter_z" />
      </physvol>
 
 EOF
 
-# This if statement is to stop placement of this last set of TPCs/LightPaddles when placing
-# the last set of CPAs that do not have any drift volume beyond them in +x
+        # This if statement is to stop placement of this last set of TPCs/LightPaddles when placing
+        # the last set of CPAs that do not have any drift volume beyond them in +x
 
- if ($i<$nAPAWide){
-print CRYO <<EOF;
+        if ($i<$nAPAWide){
 
-      <physvol>
-        <volumeref ref="volTPC"/>
-        <position name="posTPCrot\-$i\-$j\-$k" unit="cm" x="$TPC_X_rot" y="$TPC_Y" z="$TPC_Z"/>
-	<rotationref ref="rPlus180AboutY"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPC"/>
-        <position name="posTPC\-$i\-$j\-$k" unit="cm" x="$TPC_X" y="$TPC_Y" z="$TPC_Z"/>
-	<rotationref ref="rIdentity"/>
-      </physvol>
+          # place APA volumes around this center: Frame, TPCs, paddles (ovelaps?)
+          make_APA($APACenter_x, $APACenter_y, $APACenter_z);
 
-EOF
+          for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
+           {
 
-#if($i=0 and $j<2 and $k=0){
- for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++){
+             # All Light Paddle centers will have the same
+             #	X coordinate as the center of the current APA
+             #	Z coordinate as the current TPC pair
+             # The Y coordinate must be looped over:
 
-# All Light Paddle centers will have the same
-#	X coordinate as the center of the current APA
-#	Z coordinate as the current TPC pair
-# The Y coordinate must be looped over:
+             #the multiplication by j here is a temporary dirty trick to get around some strange behavior
 
-#the multiplication by j here is a temporary dirty trick to get around some strange behavior
+             $Paddle_Y = $APACenter_y - $APAHeight/2 + $j*$FrameToPaddleSpace + (1-$j)*($LightPaddleHeight/2 + $APAFrameZSide_y) + $PaddleYInterval*$paddle; 
 
-   $Paddle_Y = $TPC_Y - $APAHeight/2 + (1-$j)*$FrameToPaddleSpace + $j*$LightPaddleHeight + $PaddleYInterval*$paddle; 
-
-print CRYO <<EOF;
+             print CRYO <<EOF;
 
      <physvol>
        <volumeref ref="volLightPaddle"/>
-       <position name="posPaddle\-$paddle\-TPC\-$i\-$j\-$k" unit="cm" x="$APACenter" y="$Paddle_Y" z="$TPC_Z"/>
+       <position name="posPaddle\-$paddle\-TPC\-$i\-$j\-$k" unit="cm" x="$APACenter_x" y="$Paddle_Y" z="$APACenter_z"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 EOF
 
-				}#end Paddle for-loop
-#}
-		    }#end if
+	   }#end Paddle for-loop
 
-				} #high
-		} #wide
+        }#end if
+
+      } #high
+    } #wide
   } #long
 
 }# end if tpc
@@ -1388,6 +1459,85 @@ print CRYO <<EOF;
 EOF
 
 close(CRYO);
+}
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++ make_APA ++++++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+# Must be called only within gen_Cryostat(), 
+# with APA center x, y, and z as three arguments
+
+sub make_APA()
+{
+
+  $TPC_X_rot   = $_[0] - ($TPCWidth+$APAFrame_x)/2;
+  $TPC_X       = $_[0] + ($TPCWidth+$APAFrame_x)/2;
+  #for the rotation, remember the wires are on the negative side of volTPC
+
+  print CRYO <<EOF;
+      <physvol>
+        <volumeref ref="volAPAFrameYOuterSupport"/>
+        <position name="" unit="cm" 
+	x="$_[0] - ($APAFrameYOuterSupport_x + $APAFrameYInnerSupport_x)/2" 
+	y="$_[1]" 
+	z="$_[2]"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYOuterSupport"/>
+        <position name="" unit="cm" 
+	x="$_[0] + ($APAFrameYOuterSupport_x + $APAFrameYInnerSupport_x)/2" 
+	y="$_[1]" 
+	z="$_[2]"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYSide"/>
+        <position name="" unit="cm" 
+	x="$_[0]" 
+	y="$_[1]" 
+	z="$_[2] - $APALength/2 + $APAFrameYSide_z/2"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYSide"/>
+        <position name="" unit="cm" 
+	x="$_[0]" 
+	y="$_[1]" 
+	z="$_[2] + $APALength/2 - $APAFrameYSide_z/2"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameZSide"/>
+        <position name="" unit="cm" 
+	x="$_[0]" 
+	y="$_[1] + $APAHeight/2 - $APAFrameZSide_y/2" 
+	z="$_[2]"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameZSide"/>
+        <position name="" unit="cm" 
+	x="$_[0]" 
+	y="$_[1]  - $APAHeight/2 + $APAFrameZSide_y/2" 
+	z="$_[2]"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+
+      <physvol>
+        <volumeref ref="volTPC"/>
+        <position name="posTPCrot" unit="cm" x="$TPC_X_rot" y="$_[1]" z="$_[2]"/>
+	<rotationref ref="rPlus180AboutY"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volTPC"/>
+        <position name="posTPC" unit="cm" x="$TPC_X" y="$_[1]" z="$_[2]"/>
+	<rotationref ref="rIdentity"/>
+      </physvol>
+EOF
+
 }
 
 
@@ -1443,10 +1593,7 @@ print ENCL <<EOF;
 </solids>
 EOF
 
-#remember...
-#$DetEncWidth	      =	2*$CryostatWidth+2*$TotalPadding+$ArToAr;
-#$DetEncHeight	      =	$CryostatHeight+$ConcretePadding;
-#$DetEncLength        = $CryostatLength+2*$TotalPadding;
+
 
 # Detector enclosure structure
     print ENCL <<EOF;
