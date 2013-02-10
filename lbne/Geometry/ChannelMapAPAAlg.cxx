@@ -140,6 +140,7 @@ namespace geo{
 
     fWirePitch.resize(cgeo[0]->TPC(0).Nplanes());
     fOrientation.resize(cgeo[0]->TPC(0).Nplanes());
+    fTanOrientation.resize(cgeo[0]->TPC(0).Nplanes());
 
 
     //save data into fFirstWireCenterY and fFirstWireCenterZ
@@ -158,7 +159,8 @@ namespace geo{
     for (unsigned int plane=0; plane<cgeo[0]->TPC(0).Nplanes(); plane++){
       fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
       fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
-    }
+      fTanOrientation[plane] = tan(fOrientation[plane]);
+   }
 
 
 
@@ -302,9 +304,9 @@ namespace geo{
     //and a point projected in the plane
     int rotate = 1;
     if (tpc%2 == 1) rotate = -1;
-    double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]+
-			       rotate*tan(fOrientation[plane])*firstxyz[2])/
-      sqrt(tan(fOrientation[plane])*tan(fOrientation[plane])+1);
+    double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]
+			   +   rotate*fTanOrientation[plane]*firstxyz[2])/
+                               sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
     
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
