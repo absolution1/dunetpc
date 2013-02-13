@@ -225,7 +225,7 @@ $APAFrameZSide_z = $APALength;
 $LightPaddleWidth = 0.476;
 $LightPaddleHeight = 4*$inch;
 $LightPaddleLength = 225-0.001;
-$nLightPaddlesPerAPA = 20; #10, or 20 for double coverage (for now)
+$nLightPaddlesPerAPA = 10; #10, or 20 for double coverage (for now)
 $PaddleYInterval = (2*$APAHeight+$APAVerticalGap-$LightPaddleHeight-2*$APAFrameZSide_y)/(2*$nLightPaddlesPerAPA-1);
 $FrameToPaddleSpace = ($PaddleYInterval-$APAVerticalGap)/2;
 
@@ -1418,7 +1418,7 @@ EOF
         if ($i<$nAPAWide){
 
           # place APA volumes around this center: Frame, TPCs, paddles (ovelaps?)
-          make_APA($APACenter_x, $APACenter_y, $APACenter_z);
+          make_APA($APACenter_x, $APACenter_y, $APACenter_z, $i, $j, $k);
 
           for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
            {
@@ -1479,7 +1479,7 @@ sub make_APA()
   print CRYO <<EOF;
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport"/>
-        <position name="" unit="cm" 
+        <position name="posAPAFrameYOuterSupportNeg\-$_[3]\-$_[4]\-$_[5]" unit="cm" 
 	x="$_[0] - ($APAFrameYOuterSupport_x + $APAFrameYInnerSupport_x)/2" 
 	y="$_[1]" 
 	z="$_[2]"/> 
@@ -1487,7 +1487,7 @@ sub make_APA()
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport"/>
-        <position name="" unit="cm" 
+        <position name="posAPAFrameYOuterSupportPos\-$_[3]\-$_[4]\-$_[5]" unit="cm" 
 	x="$_[0] + ($APAFrameYOuterSupport_x + $APAFrameYInnerSupport_x)/2" 
 	y="$_[1]" 
 	z="$_[2]"/> 
@@ -1495,7 +1495,7 @@ sub make_APA()
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="" unit="cm" 
+        <position name="posAPAFrameYSideNeg\-$_[3]\-$_[4]\-$_[5]" unit="cm" 
 	x="$_[0]" 
 	y="$_[1]" 
 	z="$_[2] - $APALength/2 + $APAFrameYSide_z/2"/> 
@@ -1503,7 +1503,7 @@ sub make_APA()
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="" unit="cm" 
+        <position name="posAPAFrameYSidePos\-$_[3]\-$_[4]\-$_[5]" unit="cm" 
 	x="$_[0]" 
 	y="$_[1]" 
 	z="$_[2] + $APALength/2 - $APAFrameYSide_z/2"/> 
@@ -1511,7 +1511,7 @@ sub make_APA()
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="" unit="cm" 
+        <position name="posAPAFrameZSidePos\-$_[3]\-$_[4]\-$_[5]" unit="cm" 
 	x="$_[0]" 
 	y="$_[1] + $APAHeight/2 - $APAFrameZSide_y/2" 
 	z="$_[2]"/> 
@@ -1519,7 +1519,7 @@ sub make_APA()
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="" unit="cm" 
+        <position name="posAPAFrameZSideNeg\-$_[3]\-$_[4]\-$_[5]" unit="cm" 
 	x="$_[0]" 
 	y="$_[1]  - $APAHeight/2 + $APAFrameZSide_y/2" 
 	z="$_[2]"/> 
@@ -1528,12 +1528,12 @@ sub make_APA()
 
       <physvol>
         <volumeref ref="volTPC"/>
-        <position name="posTPCrot" unit="cm" x="$TPC_X_rot" y="$_[1]" z="$_[2]"/>
+        <position name="posTPCrot\-$_[3]\-$_[4]\-$_[5]" unit="cm" x="$TPC_X_rot" y="$_[1]" z="$_[2]"/>
 	<rotationref ref="rPlus180AboutY"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
-        <position name="posTPC" unit="cm" x="$TPC_X" y="$_[1]" z="$_[2]"/>
+        <position name="posTPC\-$_[3]\-$_[4]\-$_[5]" unit="cm" x="$TPC_X" y="$_[1]" z="$_[2]"/>
 	<rotationref ref="rIdentity"/>
       </physvol>
 EOF
