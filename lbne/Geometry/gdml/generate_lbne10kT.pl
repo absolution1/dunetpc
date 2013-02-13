@@ -228,7 +228,7 @@ $LightPaddleLength = 225-0.001;
 $nLightPaddlesPerAPA = 10; #10, or 20 for double coverage (for now)
 $PaddleYInterval = (2*$APAHeight+$APAVerticalGap-$LightPaddleHeight-2*$APAFrameZSide_y)/(2*$nLightPaddlesPerAPA-1);
 $FrameToPaddleSpace = ($PaddleYInterval-$APAVerticalGap)/2;
-
+$SiPM_z = 0;
 
 # $PaddleYInterval is defined so that the center-to-center distance in the 
 # y direction between paddles is uniform between vertically stacked APAs.
@@ -260,6 +260,9 @@ $APAFrameZHalfSupport_z = $APAFrameZSide_z
 			  - 2*$APAFrameYSide_z 
 		          - $APAFrameYSupport_z;
 
+
+$YFrameThickness = 0.12*$inch;
+$ZFrameThickness = 0.062*$inch;
 
 
 ####################
@@ -325,8 +328,9 @@ print DEF <<EOF;
 <gdml>
 <define>
    <position name="posTPCActive"        unit="cm" x="$posTPCActive_X" y="$posTPCActive_Y" z="$posTPCActive_Z"/>
+   <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
-   <rotation name="rMinus90AboutY"       unit="deg" x="0" y="270" z="0"/>
+   <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
    <rotation name="rPlusUAngleAboutX"	unit="deg" x="90-$UAngle" y="0"   z="0"/>
    <rotation name="rPlusVAngleAboutX"	unit="deg" x="90+$VAngle" y="0"   z="0"/>
@@ -1290,17 +1294,37 @@ print CRYO <<EOF;
     <box name="LightPaddle" lunit="cm"
       x="$LightPaddleWidth"
       y="$LightPaddleHeight"
-      z="$LightPaddleLength"/>
+      z="$LightPaddleLength + $SiPM_z"/>
 
-     <box name="APAFrameYSide" lunit="cm"
+     <box name="APAFrameYSideHollow" lunit="cm"
+      x="$APAFrameYSide_x-2*$YFrameThickness"
+      y="$APAFrameYSide_y-2*$YFrameThickness"
+      z="$APAFrameYSide_z" />
+     <box name="APAFrameYSideShell" lunit="cm"
       x="$APAFrameYSide_x"
       y="$APAFrameYSide_y"
       z="$APAFrameYSide_z" />
+     <subtraction name="APAFrameYSide">
+      <first  ref="APAFrameYSideShell" />
+      <second ref="APAFrameYSideHollow"/>
+      <positionref ref="posCenter" />
+      <rotationref ref="rIdentity" />
+      </subtraction>
 
-     <box name="APAFrameZSide" lunit="cm"
+     <box name="APAFrameZSideHollow" lunit="cm"
+      x="$APAFrameZSide_x-2*$ZFrameThickness"
+      y="$APAFrameZSide_y-2*$ZFrameThickness"
+      z="$APAFrameZSide_z" />
+     <box name="APAFrameZSideShell" lunit="cm"
       x="$APAFrameZSide_x"
       y="$APAFrameZSide_y"
       z="$APAFrameZSide_z" />
+     <subtraction name="APAFrameZSide">
+      <first  ref="APAFrameZSideShell" />
+      <second ref="APAFrameZSideHollow"/>
+      <positionref ref="posCenter" />
+      <rotationref ref="rIdentity" />
+      </subtraction>
 
      <box name="APAFrameYOuterSupport" lunit="cm"
       x="$APAFrameYOuterSupport_x"
@@ -1436,7 +1460,7 @@ EOF
 
      <physvol>
        <volumeref ref="volLightPaddle"/>
-       <position name="posPaddle\-$paddle\-TPC\-$i\-$j\-$k" unit="cm" x="$APACenter_x" y="$Paddle_Y" z="$APACenter_z"/>
+       <position name="posPaddle\-$paddle\-TPC\-$i\-$j\-$k" unit="cm" x="$APACenter_x" y="$Paddle_Y" z="$APACenter_z + $SiPM_z/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
