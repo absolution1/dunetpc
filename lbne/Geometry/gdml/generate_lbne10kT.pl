@@ -80,6 +80,7 @@ $UWire_zint = $UWirePitch/$CosUAngle;
 $VWire_yint = $VWirePitch/$SinVAngle;
 $VWire_zint = $VWirePitch/$CosVAngle;
 
+
 # APA Parameters
 $nCryos	         = 2;
 $nAPAWide		= 3; 
@@ -95,11 +96,11 @@ $MaxDrift = 233.555; #this is the distance form the CPA to the gage wire plane a
 $APALongGap = 1.5; #this is the separation between APAs along the incident beam axis
 $APAVerticalGap = 2.5; #this is the separation between APAs along the vertical axis 
 
-$APAWidth   =   $CPAThickness + 2*$MaxDrift + 8*$APAWirePlaneSpacing + $APAFrame_x ; # this is the distance center-line CPA to center-line CPA
+$APAWidth   =   2*$MaxDrift + 8*$APAWirePlaneSpacing + $APAFrame_x ; # this is the distance center-line CPA to center-line CPA
 $APAHeight  =   700; #does not include front-end boards or hanger posts
 $APALength  =   252; #does not include the dead space on the sides of APA frame for wrapping wires
 
-$FiducialWidth	       	=	$APAWidth*$nAPAWide; #includes the APA frame (gage wire to gage wire)
+$FiducialWidth	       	=	$APAWidth*$nAPAWide + $CPAThickness*($nAPAWide+1); #includes the APA frame (gage wire to gage wire)
 $FiducialHeight		=	$APAHeight*$nAPAHigh + ($nAPAHigh - 1)*$APAVerticalGap; #includes dead space between APA frames
 $FiducialLength		=	$APALength*$nAPALong + ($nAPALong - 1)*$APALongGap; #includes dead space between APA frames
 
@@ -124,11 +125,12 @@ $TPCWidth		 =	($APAWidth-$APAFrame_x - $CPAThicknes/2)/2 - 0.001; # leaving spac
 $TPCHeight		 =	$APAHeight - 0.001 ; #active volume only and doesn't include front-end boards or dead space between two vertically stacked APAs
 $TPCLength		 =	$APALength - 0.001 ; # active volume only and doesn't include dead space between adjacent APAs
 
-$TPCWirePlaneThickness   =   .01;
-$TPCWirePlaneHeight   =   $TPCHeight; #the wire plane region is the full height of the APA since the previous number doesn't have the front-end boards, etc.
-$TPCWirePlaneLength   =   $TPCLength; #the APA Length doesn't have the spacing on between the two APAs so the Wire Plane Length is the full length
 
 $TPCWireThickness=0.015;
+
+$TPCWirePlaneThickness   =   $TPCWireThickness;
+$TPCWirePlaneHeight   =   $TPCHeight; #the wire plane region is the full height of the APA since the previous number doesn't have the front-end boards, etc.
+$TPCWirePlaneLength   =   $TPCLength; #the APA Length doesn't have the spacing on between the two APAs so the Wire Plane Length is the full length
 
 
 $ArToAr=300;  # x distance between the LAr in each side by side detector
@@ -261,8 +263,8 @@ $APAFrameZHalfSupport_z = $APAFrameZSide_z
 		          - $APAFrameYSupport_z;
 
 
-$YFrameThickness = 0.12*$inch;
-$ZFrameThickness = 0.062*$inch;
+$EdgeFrameSteelThickness = 0.12*$inch;
+$InnerFrameSteelThickness = 0.062*$inch;
 
 
 ####################
@@ -624,7 +626,6 @@ sub gen_TPC()
 
 #constructs everything inside volTPC, namely
 # (moving from left to right, or from +x to -x)
-#  -volCathode
 #  -volTPCPlaneU: with wires angled from vertical slightly different than in V
 #  -volTPCPlaneV: with wires angled from vertical slightly differently than in U
 #  -volTPCPlaneX: with vertical wires
@@ -825,7 +826,7 @@ EOF
 
 
 
-# Begin structure and create the cathode and vertical wire logical volume
+# Begin structure and create the vertical wire logical volume
 print TPC <<EOF;
 </solids>
 <structure>
@@ -1287,7 +1288,7 @@ print CRYO <<EOF;
     </subtraction>
 
     <box name="Cathode" lunit="cm"
-      x="1"
+      x="$CPAThickness"
       y="$TPCHeight"
       z="$TPCLength"/>
 
@@ -1297,8 +1298,8 @@ print CRYO <<EOF;
       z="$LightPaddleLength + $SiPM_z"/>
 
      <box name="APAFrameYSideHollow" lunit="cm"
-      x="$APAFrameYSide_x-2*$YFrameThickness"
-      y="$APAFrameYSide_y-2*$YFrameThickness"
+      x="$APAFrameYSide_x-2*$EdgeFrameSteelThickness"
+      y="$APAFrameYSide_y-2*$EdgeFrameSteelThickness"
       z="$APAFrameYSide_z" />
      <box name="APAFrameYSideShell" lunit="cm"
       x="$APAFrameYSide_x"
@@ -1312,8 +1313,8 @@ print CRYO <<EOF;
       </subtraction>
 
      <box name="APAFrameZSideHollow" lunit="cm"
-      x="$APAFrameZSide_x-2*$ZFrameThickness"
-      y="$APAFrameZSide_y-2*$ZFrameThickness"
+      x="$APAFrameZSide_x-2*$EdgeFrameSteelThickness"
+      y="$APAFrameZSide_y-2*$EdgeFrameSteelThickness"
       z="$APAFrameZSide_z" />
      <box name="APAFrameZSideShell" lunit="cm"
       x="$APAFrameZSide_x"
@@ -1327,7 +1328,7 @@ print CRYO <<EOF;
       </subtraction>
 
      <box name="APAFrameYOuterSupport" lunit="cm"
-      x="$APAFrameYOuterSupport_x"
+      x="$EdgeFrameSteelThickness"
       y="$APAFrameYOuterSupport_y"
       z="$APAFrameYOuterSupport_z" />
 
@@ -1504,7 +1505,7 @@ sub make_APA()
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport"/>
         <position name="posAPAFrameYOuterSupportNeg\-$_[3]\-$_[4]\-$_[5]" unit="cm" 
-	x="$_[0] - ($APAFrameYOuterSupport_x + $APAFrameYInnerSupport_x)/2" 
+	x="$_[0] - ($APAFrameYOuterSupport_x + $APAFrameYInnerSupport_x/2 - $EdgeFrameSteelThickness/2)" 
 	y="$_[1]" 
 	z="$_[2]"/> 
         <rotationref ref="rIdentity"/>
@@ -1512,7 +1513,7 @@ sub make_APA()
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport"/>
         <position name="posAPAFrameYOuterSupportPos\-$_[3]\-$_[4]\-$_[5]" unit="cm" 
-	x="$_[0] + ($APAFrameYOuterSupport_x + $APAFrameYInnerSupport_x)/2" 
+	x="$_[0] + ($APAFrameYOuterSupport_x + $APAFrameYInnerSupport_x/2 - $EdgeFrameSteelThickness/2)" 
 	y="$_[1]" 
 	z="$_[2]"/> 
         <rotationref ref="rIdentity"/>
