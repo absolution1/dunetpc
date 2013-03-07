@@ -144,10 +144,7 @@ namespace geo{
       for (unsigned int tpc=0; tpc<cgeo[cs]->NTPC(); tpc++){
         for (unsigned int plane=0; plane<cgeo[cs]->TPC(tpc).Nplanes(); plane++){
           double xyz[3]={0.0, 0.0, 0.0};
-	  // don't call if there are no wires
-          if ( !fWiresInPlane[plane] == 0 ){
-            cgeo[cs]->TPC(tpc).Plane(plane).Wire(0).GetCenter(xyz);
-          }
+          cgeo[cs]->TPC(tpc).Plane(plane).Wire(0).GetCenter(xyz);
           fFirstWireCenterY[cs][tpc][plane]=xyz[1];
           fFirstWireCenterZ[cs][tpc][plane]=xyz[2];
         }
@@ -156,16 +153,9 @@ namespace geo{
 
     //initialize fWirePitch and fOrientation
     for (unsigned int plane=0; plane<cgeo[0]->TPC(0).Nplanes(); plane++){
-      // don't call if there are no wires
-      if ( !fWiresInPlane[plane] == 0 ){
         fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
         fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
         fTanOrientation[plane] = tan(fOrientation[plane]);
-      }else{
-        fWirePitch[plane] = 0;
-        fOrientation[plane] = 0;
-        fTanOrientation[plane] = 0;
-      }
     }
 
 
