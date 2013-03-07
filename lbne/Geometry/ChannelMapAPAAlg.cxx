@@ -79,7 +79,6 @@ namespace geo{
       }// end sizing loop over APAs
     }// end sizing loop over cryostats
 
-
     // Find the number of wires anchored to the frame
     for(unsigned int p=0; p!=fPlanesPerAPA; ++p){
 
@@ -106,7 +105,6 @@ namespace geo{
 
     }// end plane loop
 
-
     static unsigned int CurrentChannel = 0;
    
     for(unsigned int PCount = 0; PCount != fPlanesPerAPA; ++PCount){
@@ -125,7 +123,6 @@ namespace geo{
       fNchannels = fNchannels + fChannelsPerAPA*fNTPC[cs]/2;
     }
 
-
     //resize vectors
     fFirstWireCenterY.resize(fNcryostat);
     fFirstWireCenterZ.resize(fNcryostat);
@@ -142,13 +139,15 @@ namespace geo{
     fOrientation.resize(cgeo[0]->TPC(0).Nplanes());
     fTanOrientation.resize(cgeo[0]->TPC(0).Nplanes());
 
-
     //save data into fFirstWireCenterY and fFirstWireCenterZ
     for (unsigned int cs=0; cs<fNcryostat; cs++){
       for (unsigned int tpc=0; tpc<cgeo[cs]->NTPC(); tpc++){
         for (unsigned int plane=0; plane<cgeo[cs]->TPC(tpc).Nplanes(); plane++){
           double xyz[3]={0.0, 0.0, 0.0};
-          cgeo[cs]->TPC(tpc).Plane(plane).Wire(0).GetCenter(xyz);
+	  // don't call if there are no wires
+          if ( !fWiresInPlane[plane] == 0 ){
+            cgeo[cs]->TPC(tpc).Plane(plane).Wire(0).GetCenter(xyz);
+          }
           fFirstWireCenterY[cs][tpc][plane]=xyz[1];
           fFirstWireCenterZ[cs][tpc][plane]=xyz[2];
         }
@@ -157,11 +156,17 @@ namespace geo{
 
     //initialize fWirePitch and fOrientation
     for (unsigned int plane=0; plane<cgeo[0]->TPC(0).Nplanes(); plane++){
-      fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
-      fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
-      fTanOrientation[plane] = tan(fOrientation[plane]);
-   }
-
+      // don't call if there are no wires
+      if ( !fWiresInPlane[plane] == 0 ){
+        fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
+        fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
+        fTanOrientation[plane] = tan(fOrientation[plane]);
+      }else{
+        fWirePitch[plane] = 0;
+        fOrientation[plane] = 0;
+        fTanOrientation[plane] = 0;
+      }
+    }
 
 
     mf::LogVerbatim("GeometryTest") << "fNchannels = " << fNchannels ; 
