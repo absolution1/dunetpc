@@ -13,6 +13,7 @@ lbne_geo(TString volName="")
 
   drawopt optuboone[] = {
 // color in volumes later
+    {"volCathode",	kOrange-6},
     {0, 0}
   };
 
@@ -28,13 +29,13 @@ lbne_geo(TString volName="")
   }
 
   gGeoManager->GetTopNode();
-  gGeoManager->CheckOverlaps(1e-16);
+  gGeoManager->CheckOverlaps(1e-5);
   gGeoManager->PrintOverlaps();
   gGeoManager->SetMaxVisNodes(70000);
 
   //gGeoManager->GetTopVolume()->Draw();
   //if ( ! volName.IsNull() ) gGeoManager->FindVolumeFast(volName)->Draw("ogl");
-  gGeoManager->FindVolumeFast("volCryostat")->Draw("X3D");
+//  gGeoManager->FindVolumeFast("volCryostat")->Draw("X3D");
 
 
   TFile *tf = new TFile("lbne.root", "RECREATE");
