@@ -9,7 +9,7 @@ lbne_geo(TString volName="")
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
 
-  TGeoManager::Import("lbne10kT.gdml");
+  TGeoManager::Import("lbne10kt.gdml");
 
   drawopt optuboone[] = {
 // color in volumes later
