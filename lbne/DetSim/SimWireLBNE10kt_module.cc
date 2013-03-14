@@ -331,15 +331,17 @@ namespace detsim {
       // pick a new "noise channel" for every channel  - this makes sure    
       // the noise has the right coherent characteristics to be on one channel
 
+      //geo::WireID wireID = geo::ChannelToWire(chan);
+      //unsigned int plane = wireID.Plane;
+      //geo::Geometry this;
+      const geo::View_t plane = geo->View(chan);
+      //int plane = 0;
+      
       //int noisechan = TMath::Nint(flat.fire()*(1.*(geo->Nchannels()-1)+0.1));
       int noisechan = TMath::Nint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
       for(unsigned int i = 0; i < signalSize; ++i){
 	
-	//geo::WireID wireID = geo::ChannelToWire(chan);
-	//unsigned int plane = wireID.Plane;
-	//geo::Geometry this;
-	const geo::View_t plane = geo->View(chan);
-	//int plane = 0;
+
 	if(plane==0){
 	  adcvec[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWork[i]);
 	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPreSpill[i]);
