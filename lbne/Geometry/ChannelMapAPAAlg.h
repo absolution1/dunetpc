@@ -23,16 +23,18 @@ namespace geo{
     
     void                     Initialize(std::vector<geo::CryostatGeo*> const& cgeo);
     void                     Uninitialize();
-    std::vector<WireID>      ChannelToWire(unsigned int channel)    const;
-    unsigned int             Nchannels()                            const;
+    std::vector<WireID>      ChannelToWire(unsigned int channel)       const;
+    unsigned int             Nchannels()                               const;
     unsigned int             NearestWire(const TVector3& worldPos,
                                          unsigned int    PlaneNo,
                                          unsigned int    TPCNo,
-                                         unsigned int    cstat)     const;
+                                         unsigned int    cstat)        const;
     unsigned int             PlaneWireToChannel(unsigned int plane,
 						unsigned int wire,
 						unsigned int tpc,
-						unsigned int cstat) const;
+						unsigned int cstat)    const;
+   const View_t              View( unsigned int const channel )        const;
+   const SigType_t           SignalType( unsigned int const channel )  const;
     
   private:
     

@@ -33,6 +33,8 @@ namespace geo{
 						unsigned int wire,
 						unsigned int tpc,
 						unsigned int cstat) const;
+    const View_t                   View( unsigned int const channel )     const;
+    const SigType_t                SignalType( unsigned int const channel)const;
     
   private:
     
@@ -41,11 +43,11 @@ namespace geo{
     unsigned int                                         fTopChannel;     ///< book keeping highest channel #
     std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
 
-	// Assuming all APA's are identical
+
     std::vector< unsigned int >				 fWiresInPlane;
     unsigned int					 fPlanesPerAPA;   
     unsigned int					 fChannelsPerAPA;
-    std::vector<std::vector<std::vector<unsigned int>>>	 	 nAnchoredWires;
+    std::vector<std::vector<std::vector<unsigned int>>>	 nAnchoredWires;
 
     std::vector<std::vector<std::vector<unsigned int>>>  fWiresPerPlane;  ///< The number of wires in this plane 
                                                                           ///< in the heirachy

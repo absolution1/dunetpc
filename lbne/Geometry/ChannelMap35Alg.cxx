@@ -119,6 +119,9 @@ namespace geo{
     // Save the number of channels
     fNchannels = CurrentChannel;
 
+    // Save the number of channels
+    fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerAPA-1];
+
     //resize vectors
     fFirstWireCenterY.resize(fNcryostat);
     fFirstWireCenterZ.resize(fNcryostat);
@@ -319,6 +322,40 @@ namespace geo{
     return Channel;
 
   }
+
+
+  //----------------------------------------------------------------------------
+  const SigType_t ChannelMap35Alg::SignalType( unsigned int const channel )  const
+  {
+    unsigned int chan = channel % fChannelsPerAPA;
+    SigType_t sigt;
+
+    if(       chan <  fFirstChannelInThisPlane[0][0][2]     ){ sigt = kInduction;  }
+    else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
+             (chan <  fFirstChannelInNextPlane[0][0][2])    ){ sigt = kCollection; }
+    else{    mf::LogWarning("BadChannelSignalType") << "Channel " << channel 
+	     << " (" << chan << ") not given signal type." << std::endl;         }
   
+    return sigt;
+  }
+
+  //----------------------------------------------------------------------------
+  const View_t ChannelMap35Alg::View( unsigned int const channel )  const
+  {
+    unsigned int chan = channel % fChannelsPerAPA;
+    View_t view;
+
+    if(       chan <  fFirstChannelInNextPlane[0][0][0]     ){ view = kU; }
+    else if( (chan >= fFirstChannelInThisPlane[0][0][1]) &&
+             (chan <  fFirstChannelInNextPlane[0][0][1])    ){ view = kV; }
+    else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
+             (chan <  fFirstChannelInNextPlane[0][0][2])    ){ view = kW; }
+    else{    mf::LogWarning("BadChannelViewType") << "Channel " << channel 
+             << " (" << chan << ") not given view type." << std::endl;  }
+    
+    return view;
+  }  
+ 
+
 
 } // namespace

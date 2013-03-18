@@ -172,6 +172,20 @@ namespace geo{
     mf::LogVerbatim("GeometryTest") << "Anchored Wires in Plane 1 = " << nAnchoredWires[1] ;
     mf::LogVerbatim("GeometryTest") << "Anchored Wires in Plane 2 = " << nAnchoredWires[2] ;
 
+    mf::LogVerbatim("GeometryTest") << "FirstChannelInThisPlane[0][0][0] = " 
+				    << fFirstChannelInThisPlane[0][0][0] ;
+    mf::LogVerbatim("GeometryTest") << "FirstChannelInThisPlane[0][0][1] = " 
+				    << fFirstChannelInThisPlane[0][0][1] ;
+    mf::LogVerbatim("GeometryTest") << "FirstChannelInThisPlane[0][0][2] = " 
+				    << fFirstChannelInThisPlane[0][0][2] ;
+
+    mf::LogVerbatim("GeometryTest") << "FirstChannelInNextPlane[0][0][0] = " 
+                                    << fFirstChannelInNextPlane[0][0][0] ;
+    mf::LogVerbatim("GeometryTest") << "FirstChannelInNextPlane[0][0][1] = "   
+  	                            << fFirstChannelInNextPlane[0][0][1] ;
+    mf::LogVerbatim("GeometryTest") << "FirstChannelInNextPlane[0][0][2] = "   
+                                    << fFirstChannelInNextPlane[0][0][2] ;
+
     mf::LogVerbatim("GeometryTest") << "Pitch in Plane 0 = " << fWirePitch[0] ;
     mf::LogVerbatim("GeometryTest") << "Pitch in Plane 1 = " << fWirePitch[1] ;
     mf::LogVerbatim("GeometryTest") << "Pitch in Plane 2 = " << fWirePitch[2] ;
@@ -341,6 +355,38 @@ namespace geo{
     return Channel;
 
   }
+
+  //----------------------------------------------------------------------------
+  const SigType_t ChannelMapAPAAlg::SignalType( unsigned int const channel )  const
+  {
+    unsigned int chan = channel % fChannelsPerAPA;
+    SigType_t sigt;
+
+    if(       chan <  fFirstChannelInThisPlane[0][0][2]     ){ sigt = kInduction;  }
+    else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
+             (chan <  fFirstChannelInNextPlane[0][0][2])    ){ sigt = kCollection; }
+    else{    mf::LogWarning("BadChannelSignalType") << "Channel " << channel 
+	     << " (" << chan << ") not given signal type." << std::endl;         }
   
+    return sigt;
+  }
+
+  //----------------------------------------------------------------------------
+  const View_t ChannelMapAPAAlg::View( unsigned int const channel )  const
+  {
+    unsigned int chan = channel % fChannelsPerAPA;
+    View_t view;
+
+    if(       chan <  fFirstChannelInNextPlane[0][0][0]     ){ view = kU; }
+    else if( (chan >= fFirstChannelInThisPlane[0][0][1]) &&
+             (chan <  fFirstChannelInNextPlane[0][0][1])    ){ view = kV; }
+    else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
+             (chan <  fFirstChannelInNextPlane[0][0][2])    ){ view = kW; }
+    else{    mf::LogWarning("BadChannelViewType") << "Channel " << channel 
+             << " (" << chan << ") not given view type." << std::endl;  }
+    
+    return view;
+  }  
+
 
 } // namespace
