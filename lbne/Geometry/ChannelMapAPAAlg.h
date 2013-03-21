@@ -21,7 +21,7 @@ namespace geo{
     ChannelMapAPAAlg();
     ~ChannelMapAPAAlg();
     
-    void                     Initialize(std::vector<geo::CryostatGeo*> const& cgeo);
+    void                     Initialize(std::vector<geo::CryostatGeo*> & cgeo);
     void                     Uninitialize();
     std::vector<WireID>      ChannelToWire(unsigned int channel)       const;
     unsigned int             Nchannels()                               const;
