@@ -37,7 +37,6 @@ extern "C" {
 #include "Utilities/LArProperties.h"
 #include "Utilities/SignalShapingServiceLBNE10kt.h"
 #include "Geometry/Geometry.h"
-//#include "Geometry/ChannelMapAlg.h"
 
 #include "Simulation/sim.h"
 #include "Simulation/SimChannel.h"
@@ -80,9 +79,9 @@ namespace detsim {
     float                  fNoiseFact;        ///< noise scale factor
     float                  fNoiseWidth;       ///< exponential noise width (kHz)
     float                  fLowCutoff;        ///< low frequency filter cutoff (kHz)
-    float                  fNoiseFactX;        ///< noise scale factor for X plane
-    float                  fNoiseWidthX;       ///< exponential noise width (kHz)  for X plane
-    float                  fLowCutoffX;        ///< low frequency filter cutoff (kHz) for X plane
+    float                  fNoiseFactW;        ///< noise scale factor for W (collection) plane
+    float                  fNoiseWidthW;       ///< exponential noise width (kHz)  for W (collection) plane
+    float                  fLowCutoffW;        ///< low frequency filter cutoff (kHz) for W (collection) plane
     float                  fNoiseFactU;        ///< noise scale factor  for U plane
     float                  fNoiseWidthU;       ///< exponential noise width (kHz)   for U plane
     float                  fLowCutoffU;        ///< low frequency filter cutoff (kHz)  for U plane
@@ -98,7 +97,7 @@ namespace detsim {
   
     std::vector<double>    fChargeWork;
     //std::vector< std::vector<float> > fNoise;///< noise on each channel for each time
-    std::vector< std::vector<float> > fNoiseX;///< noise on each channel for each time for X plane
+    std::vector< std::vector<float> > fNoiseW;///< noise on each channel for each time for W (collection) plane
     std::vector< std::vector<float> > fNoiseU;///< noise on each channel for each time for U plane
     std::vector< std::vector<float> > fNoiseV;///< noise on each channel for each time for V plane
     
@@ -137,8 +136,8 @@ namespace detsim {
 
     fChargeWork.clear();
  
-    for(unsigned int i = 0; i < fNoiseX.size(); ++i) fNoiseX[i].clear();
-    fNoiseX.clear();
+    for(unsigned int i = 0; i < fNoiseW.size(); ++i) fNoiseW[i].clear();
+    fNoiseW.clear();
    
     for(unsigned int i = 0; i < fNoiseU.size(); ++i) fNoiseU[i].clear();
     fNoiseU.clear();
@@ -154,9 +153,9 @@ namespace detsim {
     fDriftEModuleLabel= p.get< std::string         >("DriftEModuleLabel");
 
 
-    fNoiseFactX        = p.get< double              >("NoiseFactX");
-    fNoiseWidthX       = p.get< double              >("NoiseWidthX");
-    fLowCutoffX        = p.get< double              >("LowCutoffX");
+    fNoiseFactW        = p.get< double              >("NoiseFactW");
+    fNoiseWidthW       = p.get< double              >("NoiseWidthW");
+    fLowCutoffW        = p.get< double              >("LowCutoffW");
     fNoiseFactU        = p.get< double              >("NoiseFactU");
     fNoiseWidthU       = p.get< double              >("NoiseWidthU");
     fLowCutoffU        = p.get< double              >("LowCutoffU");
@@ -198,7 +197,7 @@ namespace detsim {
     art::ServiceHandle<geo::Geometry> geo;
     
     //fNoise.resize(geo->Nchannels());
-    fNoiseX.resize(fNoiseArrayPoints);
+    fNoiseW.resize(fNoiseArrayPoints);
     fNoiseU.resize(fNoiseArrayPoints);
     fNoiseV.resize(fNoiseArrayPoints);
 
@@ -208,10 +207,10 @@ namespace detsim {
     //for(unsigned int p = 0; p < geo->Nchannels(); ++p){
     for(unsigned int p = 0; p < fNoiseArrayPoints; ++p){
 
-      fNoiseFact = fNoiseFactX;
-      fNoiseWidth = fNoiseWidthX;
-      fLowCutoff = fLowCutoffX;
-      GenNoise(fNoiseX[p]);
+      fNoiseFact = fNoiseFactW;
+      fNoiseWidth = fNoiseWidthW;
+      fLowCutoff = fLowCutoffW;
+      GenNoise(fNoiseW[p]);
 
       fNoiseFact = fNoiseFactU;
       fNoiseWidth = fNoiseWidthU;
@@ -224,7 +223,7 @@ namespace detsim {
       GenNoise(fNoiseV[p]);
 
       for(int i = 0; i < fNTicks; ++i){
-	fNoiseDist->Fill(fNoiseX[p][i]);
+	fNoiseDist->Fill(fNoiseW[p][i]);
 	fNoiseDist->Fill(fNoiseU[p][i]);
 	fNoiseDist->Fill(fNoiseV[p][i]);
       }
@@ -349,9 +348,9 @@ namespace detsim {
 	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPostSpill[i]);
 	}
 	else if(plane==geo::kW){
-	  adcvec[i] = (short)TMath::Nint(fNoiseX[noisechan][i] + fChargeWork[i]);
-	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseX[noisechan][i] + fChargeWorkPreSpill[i]);
-	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseX[noisechan][i] + fChargeWorkPostSpill[i]);
+	  adcvec[i] = (short)TMath::Nint(fNoiseW[noisechan][i] + fChargeWork[i]);
+	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseW[noisechan][i] + fChargeWorkPreSpill[i]);
+	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseW[noisechan][i] + fChargeWorkPostSpill[i]);
 	}
 	else 
 	  std::cout << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE" << std::endl;
