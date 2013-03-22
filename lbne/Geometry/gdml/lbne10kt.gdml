@@ -33109,8 +33109,7 @@
       </physvol> -->
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-
-	<position name="posDetEnclosure" unit="cm" x="0" y="-50/2" z="3096.04/2"/>
+	<position name="posDetEnclosure" unit="cm" x="0" y="-50/2" z="1166.75"/>
       </physvol>
     </volume>
 </structure>

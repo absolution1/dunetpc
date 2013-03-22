@@ -144,6 +144,14 @@ $DetEncWidth	      =	2*$CryostatWidth+2*$TotalPadding+2*$FoamPadding + $ArToAr;
 $DetEncHeight	      =	$CryostatHeight+$ConcretePadding; #no foam on bottom or top, no concrete on top
 $DetEncLength         = $CryostatLength+2*$TotalPadding;
 
+# We want the world origin to be at the very front of the fiducial volume.
+# move it to the front of the enclosure, then back it up through the concrete/foam, 
+# then through the Cryostat shell, then through the upstream dead LAr.
+# This is to be added to the z position of every volume in volWorld
+$OriginZSet = $DetEncLength/2 - $TotalPadding - $SteelThickness - $UpstreamLArPadding; 
+
+# similar X and Y set variables may be set if needed later
+
 $PosDirCubeSide = 0;
 if (defined $helpcube)
 {
@@ -1737,7 +1745,7 @@ print SRVBUILD <<EOF;
     <subtraction name="LowBayWalls">
       <first ref="LowBaySolid"/>
       <second ref="LowBayInsideSpace"/>
-      <position name="posLowBayInsideSpace" unit="cm" x="0" y="-$ConcretePadding/2-$LowBayCeilingThickness/2-0.001" z="$DetEncLength/2+$LowBayBackWallThickness/2+0.01"/>
+      <position name="posLowBayInsideSpace" unit="cm" x="0" y="-$ConcretePadding/2-$LowBayCeilingThickness/2-0.001" z="$LowBayBackWallThickness/2+0.01"/>
     </subtraction>
 
     <box name="HighBaySolid" lunit="cm"
@@ -1756,13 +1764,13 @@ print SRVBUILD <<EOF;
     <subtraction name="HighBayTemp">
       <first ref="HighBaySolid"/>
       <second ref="HighBayInsideSpace"/>
-      <position name="posHighBayInsideSpace" unit="cm" x="0" y="-$ConcretePadding/2-$HighBayCeilingThickness/2-0.001" z="$DetEncLength/2+$HighBayBackWallThickness/4"/>
+      <position name="posHighBayInsideSpace" unit="cm" x="0" y="-$ConcretePadding/2-$HighBayCeilingThickness/2-0.001" z="$HighBayBackWallThickness/4"/>
     </subtraction>
 
     <subtraction name="HighBayWalls">
       <first ref="HighBayTemp"/>
       <second ref="HighBayRearOpening"/>
-      <position name="posHighBayRearOpening" unit="cm" x="0" y="-$ConcretePadding/2-(($HighBayInsideHeight+$HighBayCeilingThickness)/2 - $LowBayInsideHeight/2)" z="$DetEncLength/2-($HighBayBackWallThickness/4+$HighBayInsideLength/2)"/>
+      <position name="posHighBayRearOpening" unit="cm" x="0" y="-$ConcretePadding/2-(($HighBayInsideHeight+$HighBayCeilingThickness)/2 - $LowBayInsideHeight/2)" z="-($HighBayBackWallThickness/4+$HighBayInsideLength/2)"/>
     </subtraction>
 
     <box name="FrontGabion" lunit="cm"
@@ -1931,7 +1939,7 @@ print HILLSIDE <<EOF;
     <subtraction name="GroundRockTemp">
       <first ref="GroundRock"/>
       <second ref="HighBayFloorSpace"/>
-      <position name="posCavernInGround" unit="cm" x="0" y="-$ConcretePadding/2$RockThickness/2" z="$DetEncLength/2"/>
+      <position name="posCavernInGround" unit="cm" x="0" y="-$ConcretePadding/2$RockThickness/2" z="0"/>
     </subtraction>
 
     <subtraction name="GroundRockWithCavern">
@@ -1957,60 +1965,60 @@ print HILLSIDE <<EOF;
       <solidref ref="Ground"/>
       <physvol>
         <volumeref ref="volGroundRockWithCavern"/>
-        <position name="posGroundRockWithCavern" unit="cm" x="0" y="-$ConcretePadding/2-($RockThickness+$DetEncHeight)/2 + $DetEncHeight/2" z="$DetEncLength/2"/>
+        <position name="posGroundRockWithCavern" unit="cm" x="0" y="-$ConcretePadding/2-($RockThickness+$DetEncHeight)/2 + $DetEncHeight/2" z="$OriginZSet"/>
       </physvol>
       <physvol>
         <volumeref ref="volFrontGabion"/>
-        <position name="posFrontGabion" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$DetEncLength/2+($DetEncLength/2+($HighBayInsideLength+$HighBayFrontWallThickness) -$HighBayOverlap) +$GabionThickness/2"/>
+        <position name="posFrontGabion" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayFrontWallThickness) -$HighBayOverlap) +$GabionThickness/2"/>
       </physvol>
       <physvol>
         <volumeref ref="volSideGabion1"/>
-        <position name="posSideGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$DetEncLength/2+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
+        <position name="posSideGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
       </physvol>
       <physvol>
         <volumeref ref="volSideGabion2"/>
-        <position name="posSideGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$DetEncLength/2+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
+        <position name="posSideGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
       </physvol>
       <physvol>
         <volumeref ref="volRearGabion1"/>
-        <position name="posRearGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="$DetEncLength/2-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+        <position name="posRearGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="$OriginZSet-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
       </physvol>
       <physvol>
         <volumeref ref="volRearGabion2"/>
-        <position name="posRearGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="$DetEncLength/2-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+        <position name="posRearGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="$OriginZSet-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
       </physvol>
       <physvol>
         <volumeref ref="volHighBayTopRock"/>
-        <position name="posHighBayTopRock" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HighBayInsideHeight + $HighBayCeilingThickness + $HighBayTopRockThickness/2" z="$DetEncLength/2+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
+        <position name="posHighBayTopRock" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HighBayInsideHeight + $HighBayCeilingThickness + $HighBayTopRockThickness/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
       </physvol>
       <physvol>
         <volumeref ref="volLowBayTopRock"/>
-        <position name="posLowBayTopRock" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $LowBayInsideHeight + $LowBayCeilingThickness + $LowBayTopRockThickness/2" z="$DetEncLength/2-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+        <position name="posLowBayTopRock" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $LowBayInsideHeight + $LowBayCeilingThickness + $LowBayTopRockThickness/2" z="$OriginZSet-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
       </physvol>
       <physvol>
         <volumeref ref="volSlopeRockFill"/>
-        <position name="posSlopeRockFill" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2+($LowBayInsideHeight+$LowBayCeilingThickness) +$SlopeRockFillHeight/3" z="$DetEncLength/2-( $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+        <position name="posSlopeRockFill" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2+($LowBayInsideHeight+$LowBayCeilingThickness) +$SlopeRockFillHeight/3" z="$OriginZSet-( $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
 	<rotationref ref="rMinus90AboutY"/>
       </physvol>
       <physvol>
         <volumeref ref="volHillSideBox"/>
-        <position name="posHillSideBox" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HillSideBoxHeight/2" z="$DetEncLength/2-($DetEncLength/2 +$HillSideBoxLength/2 + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
+        <position name="posHillSideBox" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HillSideBoxHeight/2" z="$OriginZSet-($DetEncLength/2 +$HillSideBoxLength/2 + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volHillSideMiddle"/>
-        <position name="posHillSideMiddle" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HillSideBoxHeight" z="$DetEncLength/2-($DetEncLength/2 +$HillSideBoxLength + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
+        <position name="posHillSideMiddle" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HillSideBoxHeight" z="$OriginZSet-($DetEncLength/2 +$HillSideBoxLength + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
 	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volHillSide1"/>
-        <position name="posHillSide" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="-$ConcretePadding/2+$DetEncHeight/2" z="$DetEncLength/2-$RockThickness-$DetEncLength/2"/>
+        <position name="posHillSide" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="-$ConcretePadding/2+$DetEncHeight/2" z="$OriginZSet-$RockThickness-$DetEncLength/2"/>
 	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
       </physvol>
       <physvol>
         <volumeref ref="volHillSide2"/>
-        <position name="posHillSide" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="$-$ConcretePadding/2+DetEncHeight/2" z="$DetEncLength/2-$RockThickness-$DetEncLength/2"/>
+        <position name="posHillSide" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="$-$ConcretePadding/2+DetEncHeight/2" z="$OriginZSet-$RockThickness-$DetEncLength/2"/>
 	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
       </physvol>
     </volume>
@@ -2077,8 +2085,7 @@ print WORLD <<EOF;
       </physvol> -->
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-
-	<position name="posDetEnclosure" unit="cm" x="0" y="-$ConcretePadding/2" z="$DetEncLength/2"/>
+	<position name="posDetEnclosure" unit="cm" x="0" y="-$ConcretePadding/2" z="$OriginZSet"/>
       </physvol>
     </volume>
 </structure>
