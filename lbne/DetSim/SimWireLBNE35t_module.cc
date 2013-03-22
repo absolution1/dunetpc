@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 //
-// SimWireLBNE35t class designed to simulate signal on a wire in the TPC
+// SimWireLBNE10kt class designed to simulate signal on a wire in the TPC
 //
 // katori@fnal.gov
 //
@@ -35,7 +35,7 @@ extern "C" {
 #include "Utilities/LArFFT.h"
 #include "RawData/raw.h"
 #include "Utilities/LArProperties.h"
-#include "Utilities/SignalShapingServiceLBNE.h"
+#include "Utilities/SignalShapingServiceLBNE10kt.h"
 #include "Geometry/Geometry.h"
 //#include "Geometry/ChannelMapAlg.h"
 
@@ -254,7 +254,7 @@ namespace detsim {
     evt.getView(fDriftEModuleLabel,chanHandle);
 
     //Get fIndShape and fColShape from SignalShapingService, on the fly
-    art::ServiceHandle<util::SignalShapingServiceLBNE> sss;
+    art::ServiceHandle<util::SignalShapingServiceLBNE10kt> sss;
 
     // make a vector of const sim::SimChannel* that has same number
     // of entries as the number of channels in the detector
@@ -331,28 +331,24 @@ namespace detsim {
       // pick a new "noise channel" for every channel  - this makes sure    
       // the noise has the right coherent characteristics to be on one channel
 
-      //geo::WireID wireID = geo::ChannelToWire(chan);
-      //unsigned int plane = wireID.Plane;
-      //geo::Geometry this;
       const geo::View_t plane = geo->View(chan);
-
 
       //int noisechan = TMath::Nint(flat.fire()*(1.*(geo->Nchannels()-1)+0.1));
       int noisechan = TMath::Nint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
       for(unsigned int i = 0; i < signalSize; ++i){
 	
 
-	if(plane==0){
+	if(plane==geo::kU){
 	  adcvec[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWork[i]);
 	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPreSpill[i]);
 	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPostSpill[i]);
 	}
-	else if(plane==1){
+	else if(plane==geo::kV){
 	  adcvec[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWork[i]);
 	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPreSpill[i]);
 	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPostSpill[i]);
 	}
-	else if(plane==2){
+	else if(plane==geo::kW){
 	  adcvec[i] = (short)TMath::Nint(fNoiseX[noisechan][i] + fChargeWork[i]);
 	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseX[noisechan][i] + fChargeWorkPreSpill[i]);
 	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseX[noisechan][i] + fChargeWorkPostSpill[i]);
