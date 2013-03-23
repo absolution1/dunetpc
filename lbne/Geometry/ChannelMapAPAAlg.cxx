@@ -401,7 +401,7 @@ namespace geo{
     if (tpc%2 == 1) rotate = -1;
     double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]
 			   +   rotate*fTanOrientation[plane]*firstxyz[2])/
-                               sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
+                               std::sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
     
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
