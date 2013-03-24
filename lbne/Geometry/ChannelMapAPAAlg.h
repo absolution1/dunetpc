@@ -48,8 +48,6 @@ namespace geo{
     unsigned int					 fPlanesPerAPA;   
     unsigned int					 fChannelsPerAPA;
     std::vector< unsigned int >				 nAnchoredWires;
-    std::vector<std::vector<std::vector<unsigned int>>>	 fAPAs;		  ///< list of TPC pairs that make APAs
-
 
     std::vector<std::vector<std::vector<unsigned int>>>  fWiresPerPlane;  ///< The number of wires in this plane 
                                                                           ///< in the heirachy

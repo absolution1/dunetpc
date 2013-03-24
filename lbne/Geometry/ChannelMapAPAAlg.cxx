@@ -115,21 +115,19 @@ namespace geo{
     if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
       {
 	this->Uninitialize();
-	std::cout << "FirstChannel vectors are not empty." << std::endl;
-	std::cout << "FirstChannel vectors have been emptied." <<     std::endl;
       }
-
 
     fNcryostat = cgeo.size();
     
-    mf::LogInfo("ChannelMapAPAAlg") << "Initializing...";
+    mf::LogInfo("ChannelMapAPAAlg") << "Sorting volumes...";
 
     std::sort(cgeo.begin(), cgeo.end(), sortCryoAPA);
     for(size_t c = 0; c < cgeo.size(); ++c) 
       cgeo[c]->SortSubVolumes(sortTPCAPA, sortPlaneAPA, sortWireAPA);
+
+    mf::LogInfo("ChannelMapAPAAlg") << "Initializing channel map...";
       
     fNTPC.resize(fNcryostat);
-    fAPAs.resize(fNcryostat);
     fFirstChannelInNextPlane.resize(1);  // Change 1 to Ncryostat if you want
     fFirstChannelInThisPlane.resize(1);  // to treat each APA uniquely,and do
 					 // the same with the other resizes.
@@ -150,19 +148,6 @@ namespace geo{
       
       fNTPC[cs] = cgeo[cs]->NTPC();
 
-      fAPAs[cs].resize(fNTPC[cs]/2);
-
-
-      for(unsigned int APACount = 0; APACount != fNTPC[cs]/2; ++APACount){
-	
-	fAPAs[cs][APACount].resize(2); 		  // Two TPCs per APA always.
-	fAPAs[cs][APACount][0] = 2*APACount;	  // This is related to how
-	fAPAs[cs][APACount][1] = 2*APACount + 1;  // tpc_sort is defined.
-
-	// Note: see tpc_sort and you will see that
-	// TPCs 2x and 2x+1 form APA x.
-
-      }// end sizing loop over APAs
     }// end sizing loop over cryostats
 
     // Find the number of wires anchored to the frame
@@ -248,7 +233,7 @@ namespace geo{
     mf::LogVerbatim("GeometryTest") << "fNchannels = " << fNchannels ; 
 
     mf::LogVerbatim("GeometryTest") << "For all identical APA:" ; 
-    mf::LogVerbatim("GeometryTest") << "fChannelsPerAPA = " << fChannelsPerAPA ; 
+    mf::LogVerbatim("GeometryTest") << "Nomber of channels per APA = " << fChannelsPerAPA ; 
 
     mf::LogVerbatim("GeometryTest") << "Wires in Plane 0 = " << fWiresInPlane[0] ;
     mf::LogVerbatim("GeometryTest") << "Wires in Plane 1 = " << fWiresInPlane[1] ;
@@ -306,43 +291,29 @@ namespace geo{
     static unsigned int NextPlane;
     static unsigned int ThisPlane;
     
-    for(unsigned int csloop = 0; csloop != fNcryostat; ++csloop){
-      
+    unsigned int chan       = channel%fChannelsPerAPA;
+    unsigned int pureAPAnum = std::floor( channel/fChannelsPerAPA );
+
       bool breakVariable = false;
-      
-      for(unsigned int apaloop = 0; apaloop != fAPAs[csloop].size(); ++apaloop){
-	for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
+      for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
 	  
-	  NextPlane = (fFirstChannelInNextPlane[0][0][planeloop] 
-		       + apaloop*fChannelsPerAPA
-		       + csloop*(fAPAs[csloop].size())*fChannelsPerAPA);
+	NextPlane = fFirstChannelInNextPlane[0][0][planeloop];
+        ThisPlane = fFirstChannelInThisPlane[0][0][planeloop];
 	  
-	  ThisPlane = (fFirstChannelInThisPlane[0][0][planeloop]
-		       + apaloop*fChannelsPerAPA
-		       + csloop*(fAPAs[csloop].size())*fChannelsPerAPA);
-	  
-	  if(channel < NextPlane){
+	if(chan < NextPlane){
+
+	  // fNTPC[0] works for now since there are the same number of TPCs per crostat
+	  cstat = std::floor( channel / ((fNTPC[0]/2)*fChannelsPerAPA) );
+	  tpc   = (2*pureAPAnum) % fNTPC[0];
+	  plane = planeloop;
+	  wireThisPlane  = chan - ThisPlane;
 	    
-	    cstat = csloop;
-	    tpc   = 2*apaloop;
-	    plane = planeloop;
-	    wireThisPlane  = channel - ThisPlane;
-	    
-	    breakVariable = true;
-	    break;
-	  }// end if break
-	  
-	  if(breakVariable) break;
-	  
-	}// end plane loop
-	
-	if(breakVariable) break;
-	
-      }// end apa loop
-      
-      if(breakVariable) break;
-      
-    }// end cryostat loop
+	  breakVariable = true;
+	  break;
+        }
+        if(breakVariable) break;	  
+      }// end plane loop
+
     
 
     int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
@@ -356,21 +327,17 @@ namespace geo{
       WrapDirection  = -1;	 
     }
     
-    for(unsigned int WireSegmentCount = 0; WireSegmentCount != 50; ++WireSegmentCount){
+    for(unsigned int SegCount = 0; SegCount != 50; ++SegCount){
       
-      tpc += WrapDirection*(WireSegmentCount%2);
-      
-      geo::WireID CodeWire(cstat, tpc, plane, bottomwire + WireSegmentCount*nAnchoredWires[plane]);
-      
+      tpc += WrapDirection*(SegCount%2);
+      geo::WireID CodeWire(cstat, tpc, plane, bottomwire + SegCount*nAnchoredWires[plane]);
       AllSegments.push_back(CodeWire);
       
       // reset the tcp variable so it doesnt "accumulate value"
-      tpc -= WrapDirection*(WireSegmentCount%2);
+      tpc -= WrapDirection*(SegCount%2);
       
-      if( bottomwire + (WireSegmentCount+1)*nAnchoredWires[plane] > fWiresInPlane[plane]-1) break;
-      
-    } //end WireSegmentCount loop
-    
+      if( bottomwire + (SegCount+1)*nAnchoredWires[plane] > fWiresInPlane[plane]-1) break;
+    }
     
     return AllSegments;
   }
@@ -425,7 +392,7 @@ namespace geo{
     unsigned int OtherSideWires = 0;
 
     unsigned int Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
-    Channel += cstat*(fAPAs[cstat].size())*fChannelsPerAPA;       // move channel to proper cstat.
+    Channel += cstat*(fNTPC[cstat]/2)*fChannelsPerAPA;       // move channel to proper cstat.
     Channel += std::floor( tpc/2 )*fChannelsPerAPA;		  // move channel to proper APA.
     OtherSideWires += (tpc%2)*nAnchoredWires[plane];	          // get number of wires on the first
 								  // side of the APA if starting
@@ -448,6 +415,9 @@ namespace geo{
     unsigned int chan = channel % fChannelsPerAPA;
     SigType_t sigt;
 
+    // instead of calling channel to wire, we can make use of the way we 
+    // up channels among APAs;
+    // the first two planes are induction, and the last one is collection
     if(       chan <  fFirstChannelInThisPlane[0][0][2]     ){ sigt = kInduction;  }
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ sigt = kCollection; }
@@ -463,6 +433,9 @@ namespace geo{
     unsigned int chan = channel % fChannelsPerAPA;
     View_t view;
 
+    // instead of calling channel to wire, we can make use of the way we 
+    // up channels among APAs;
+    // Plane 0: U, Plane 1: V, Plane 2: W
     if(       chan <  fFirstChannelInNextPlane[0][0][0]     ){ view = kU; }
     else if( (chan >= fFirstChannelInThisPlane[0][0][1]) &&
              (chan <  fFirstChannelInNextPlane[0][0][1])    ){ view = kV; }
