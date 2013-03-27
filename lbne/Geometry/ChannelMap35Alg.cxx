@@ -167,7 +167,7 @@ namespace geo{
           for(unsigned int w=0; w!=fWiresPerPlane[c][a][p]; ++w){
 
 	    // for vertical planes
-	    if(cgeo[c]->TPC(t).Plane(p).View()==kW)   { 
+	    if(cgeo[c]->TPC(t).Plane(p).View() == geo::kZ)   { 
 	      nAnchoredWires[c][a][p] = fWiresPerPlane[c][a][p];      
 	      break;
 	    }
@@ -429,13 +429,13 @@ namespace geo{
     unsigned int chan = channel % fChannelsPerAPA;
     View_t view;
 
-    if(       chan <  fFirstChannelInNextPlane[0][0][0]     ){ view = kU; }
+    if(       chan <  fFirstChannelInNextPlane[0][0][0]     ){ view = geo::kU; }
     else if( (chan >= fFirstChannelInThisPlane[0][0][1]) &&
-             (chan <  fFirstChannelInNextPlane[0][0][1])    ){ view = kV; }
+             (chan <  fFirstChannelInNextPlane[0][0][1])    ){ view = geo::kV; }
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
-             (chan <  fFirstChannelInNextPlane[0][0][2])    ){ view = kW; }
+             (chan <  fFirstChannelInNextPlane[0][0][2])    ){ view = geo::kZ; }
     else{    mf::LogWarning("BadChannelViewType") << "Channel " << channel 
-             << " (" << chan << ") not given view type." << std::endl;  }
+						  << " (" << chan << ") not given view type.";}
     
     return view;
   }  
