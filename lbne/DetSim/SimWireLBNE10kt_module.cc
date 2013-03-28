@@ -76,12 +76,13 @@ namespace detsim {
 
     std::string            fDriftEModuleLabel;///< module making the ionization electrons
     raw::Compress_t        fCompression;      ///< compression type to use
+    unsigned int           fNoiseOn;          ///< noise turned on or off for debugging; default is on
     float                  fNoiseFact;        ///< noise scale factor
     float                  fNoiseWidth;       ///< exponential noise width (kHz)
     float                  fLowCutoff;        ///< low frequency filter cutoff (kHz)
-    float                  fNoiseFactW;        ///< noise scale factor for W (collection) plane
-    float                  fNoiseWidthW;       ///< exponential noise width (kHz)  for W (collection) plane
-    float                  fLowCutoffW;        ///< low frequency filter cutoff (kHz) for W (collection) plane
+    float                  fNoiseFactZ;        ///< noise scale factor for Z (collection) plane
+    float                  fNoiseWidthZ;       ///< exponential noise width (kHz)  for Z (collection) plane
+    float                  fLowCutoffZ;        ///< low frequency filter cutoff (kHz) for Z (collection) plane
     float                  fNoiseFactU;        ///< noise scale factor  for U plane
     float                  fNoiseWidthU;       ///< exponential noise width (kHz)   for U plane
     float                  fLowCutoffU;        ///< low frequency filter cutoff (kHz)  for U plane
@@ -97,7 +98,7 @@ namespace detsim {
   
     std::vector<double>    fChargeWork;
     //std::vector< std::vector<float> > fNoise;///< noise on each channel for each time
-    std::vector< std::vector<float> > fNoiseW;///< noise on each channel for each time for W (collection) plane
+    std::vector< std::vector<float> > fNoiseZ;///< noise on each channel for each time for Z (collection) plane
     std::vector< std::vector<float> > fNoiseU;///< noise on each channel for each time for U plane
     std::vector< std::vector<float> > fNoiseV;///< noise on each channel for each time for V plane
     
@@ -110,6 +111,7 @@ namespace detsim {
   //-------------------------------------------------
   SimWireLBNE10kt::SimWireLBNE10kt(fhicl::ParameterSet const& pset)
   {
+
     this->reconfigure(pset);
 
     produces< std::vector<raw::RawDigit>   >();
@@ -136,8 +138,8 @@ namespace detsim {
 
     fChargeWork.clear();
  
-    for(unsigned int i = 0; i < fNoiseW.size(); ++i) fNoiseW[i].clear();
-    fNoiseW.clear();
+    for(unsigned int i = 0; i < fNoiseZ.size(); ++i) fNoiseZ[i].clear();
+    fNoiseZ.clear();
    
     for(unsigned int i = 0; i < fNoiseU.size(); ++i) fNoiseU[i].clear();
     fNoiseU.clear();
@@ -153,9 +155,9 @@ namespace detsim {
     fDriftEModuleLabel= p.get< std::string         >("DriftEModuleLabel");
 
 
-    fNoiseFactW        = p.get< double              >("NoiseFactW");
-    fNoiseWidthW       = p.get< double              >("NoiseWidthW");
-    fLowCutoffW        = p.get< double              >("LowCutoffW");
+    fNoiseFactZ        = p.get< double              >("NoiseFactZ");
+    fNoiseWidthZ       = p.get< double              >("NoiseWidthZ");
+    fLowCutoffZ        = p.get< double              >("LowCutoffZ");
     fNoiseFactU        = p.get< double              >("NoiseFactU");
     fNoiseWidthU       = p.get< double              >("NoiseWidthU");
     fLowCutoffU        = p.get< double              >("LowCutoffU");
@@ -164,7 +166,7 @@ namespace detsim {
     fLowCutoffV        = p.get< double              >("LowCutoffV");
     fZeroThreshold    = p.get< unsigned int        >("ZeroThreshold");
     fNoiseArrayPoints = p.get< unsigned int        >("NoiseArrayPoints");
-
+    fNoiseOn           = p.get< unsigned int       >("NoiseOn");
     art::ServiceHandle<util::DetectorProperties> detprop;
     fSampleRate       = detprop->SamplingRate();
     fNSamplesReadout  = detprop->ReadOutWindowSize();
@@ -196,39 +198,43 @@ namespace detsim {
     fChargeWork.resize(fNTicks, 0.);
     art::ServiceHandle<geo::Geometry> geo;
     
-    //fNoise.resize(geo->Nchannels());
-    fNoiseW.resize(fNoiseArrayPoints);
-    fNoiseU.resize(fNoiseArrayPoints);
-    fNoiseV.resize(fNoiseArrayPoints);
+    //Generate noise if selected to be on
+    if(fNoiseOn){
 
+      //fNoise.resize(geo->Nchannels());
+      fNoiseZ.resize(fNoiseArrayPoints);
+      fNoiseU.resize(fNoiseArrayPoints);
+      fNoiseV.resize(fNoiseArrayPoints);
+      
     // GenNoise() will further resize each channel's 
     // fNoise vector to fNoiseArrayPoints long.
+      
+      for(unsigned int p = 0; p < fNoiseArrayPoints; ++p){
+	
+	fNoiseFact = fNoiseFactZ;
+	fNoiseWidth = fNoiseWidthZ;
+	fLowCutoff = fLowCutoffZ;
+	
+	fNoiseFact = fNoiseFactU;
+	fNoiseWidth = fNoiseWidthU;
+	fLowCutoff = fLowCutoffU;
+	
+	fNoiseFact = fNoiseFactV;
+	fNoiseWidth = fNoiseWidthV;
+	fLowCutoff = fLowCutoffV;
+ 
+    
+	GenNoise(fNoiseZ[p]);
+	GenNoise(fNoiseU[p]);
+	GenNoise(fNoiseV[p]);
 
-    //for(unsigned int p = 0; p < geo->Nchannels(); ++p){
-    for(unsigned int p = 0; p < fNoiseArrayPoints; ++p){
-
-      fNoiseFact = fNoiseFactW;
-      fNoiseWidth = fNoiseWidthW;
-      fLowCutoff = fLowCutoffW;
-      GenNoise(fNoiseW[p]);
-
-      fNoiseFact = fNoiseFactU;
-      fNoiseWidth = fNoiseWidthU;
-      fLowCutoff = fLowCutoffU;
-      GenNoise(fNoiseU[p]);
-
-      fNoiseFact = fNoiseFactV;
-      fNoiseWidth = fNoiseWidthV;
-      fLowCutoff = fLowCutoffV;
-      GenNoise(fNoiseV[p]);
-
-      for(int i = 0; i < fNTicks; ++i){
-	fNoiseDist->Fill(fNoiseW[p][i]);
-	fNoiseDist->Fill(fNoiseU[p][i]);
-	fNoiseDist->Fill(fNoiseV[p][i]);
-      }
-    }// end loop over wires
-
+	for(int i = 0; i < fNTicks; ++i){
+	  fNoiseDist->Fill(fNoiseZ[p][i]);
+	  fNoiseDist->Fill(fNoiseU[p][i]);
+	  fNoiseDist->Fill(fNoiseV[p][i]);
+	}
+      }// end loop over wires
+    } 
     return;
 
   }
@@ -332,29 +338,50 @@ namespace detsim {
 
       const geo::View_t view = geo->View(chan);
     
-      //int noisechan = TMath::Nint(flat.fire()*(1.*(geo->Nchannels()-1)+0.1));
       int noisechan = TMath::Nint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
-      for(unsigned int i = 0; i < signalSize; ++i){
-	
-
-	if(view==geo::kU){
-	//if(geo::SigType_t==geo::kInduction)
-	  adcvec[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWork[i]);
-	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPreSpill[i]);
-	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPostSpill[i]);
-	}
-	else if(view==geo::kV){
-	  adcvec[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWork[i]);
-	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPreSpill[i]);
-	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPostSpill[i]);
-	}
-	else if(view==geo::kZ){
-	  adcvec[i] = (short)TMath::Nint(fNoiseW[noisechan][i] + fChargeWork[i]);
-	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseW[noisechan][i] + fChargeWorkPreSpill[i]);
-	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseW[noisechan][i] + fChargeWorkPostSpill[i]);
-	}
-	else 
-	  std::cout << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE" << std::endl;
+    
+	for(unsigned int i = 0; i < signalSize; ++i){
+	 
+	  if(fNoiseOn)
+	    {	      
+	      if(view==geo::kU){
+		//if(geo::SigType_t==geo::kInduction)
+		adcvec[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWork[i]);
+		adcvecPreSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPreSpill[i]);
+		adcvecPostSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPostSpill[i]);
+	      }
+	      else if(view==geo::kV){
+		adcvec[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWork[i]);
+		adcvecPreSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPreSpill[i]);
+		adcvecPostSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPostSpill[i]);
+	      }
+	      else if(view==geo::kZ){
+		adcvec[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWork[i]);
+		adcvecPreSpill[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWorkPreSpill[i]);
+		adcvecPostSpill[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWorkPostSpill[i]);
+	      }
+	      else 
+		mf::LogError("SimWireLBNE10kt") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
+	    }
+	  else
+	    {
+	      if(view==geo::kU){
+		//if(geo::SigType_t==geo::kInduction)
+		adcvec[i] = (short)TMath::Nint(fChargeWork[i]);
+		adcvecPreSpill[i] = (short)TMath::Nint(fChargeWorkPreSpill[i]);
+		adcvecPostSpill[i] = (short)TMath::Nint(fChargeWorkPostSpill[i]);
+	      }
+	      else if(view==geo::kV){
+		adcvec[i] = (short)TMath::Nint(fChargeWork[i]);
+		adcvecPreSpill[i] = (short)TMath::Nint(fChargeWorkPreSpill[i]);
+		adcvecPostSpill[i] = (short)TMath::Nint(fChargeWorkPostSpill[i]);
+	      }
+	      else if(view==geo::kZ){
+		adcvec[i] = (short)TMath::Nint(fChargeWork[i]);
+		adcvecPreSpill[i] = (short)TMath::Nint(fChargeWorkPreSpill[i]);
+		adcvecPostSpill[i] = (short)TMath::Nint(fChargeWorkPostSpill[i]);
+	      }
+	    }
       }// end loop over signal size
 
       // resize the adcvec to be the correct number of time samples, 
