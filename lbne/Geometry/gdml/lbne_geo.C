@@ -33,7 +33,7 @@ lbne_geo(TString volName="")
   gGeoManager->PrintOverlaps();
   gGeoManager->SetMaxVisNodes(70000);
 
-  //gGeoManager->GetTopVolume()->Draw();
+  gGeoManager->GetTopVolume()->Draw();
   //if ( ! volName.IsNull() ) gGeoManager->FindVolumeFast(volName)->Draw("ogl");
 //  gGeoManager->FindVolumeFast("volCryostat")->Draw("X3D");
 
