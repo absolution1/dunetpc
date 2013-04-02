@@ -57,6 +57,7 @@ namespace geo{
     std::vector< double > fWirePitch;
     std::vector< double > fOrientation;
     std::vector< double > fTanOrientation; // to explore improving speed
+    std::vector< double > fCosOrientation; // to explore improving speed
 
 
 
