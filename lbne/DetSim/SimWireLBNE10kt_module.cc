@@ -124,6 +124,7 @@ namespace detsim {
     TString compression(pset.get< std::string >("CompressionType"));
     if(compression.Contains("Huffman",TString::kIgnoreCase)) fCompression = raw::kHuffman;    
     if(compression.Contains("ZeroSuppression",TString::kIgnoreCase)) fCompression = raw::kZeroSuppression;    
+    if(compression.Contains("ZeroSuppressionNew",TString::kIgnoreCase)) fCompression = raw::kZeroSuppressionNew;    
 
     // get the random number seed, use a random default if not specified    
     // in the configuration file.  
@@ -394,11 +395,13 @@ namespace detsim {
       // if raw::kNone is selected nothing happens to adcvec
       // This shrinks adcvec, if fCompression is not kNone.
 
-      
+
+
       raw::Compress(adcvec, fCompression, fZeroThreshold); 
       raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold); 
       raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold); 
-      
+
+
 
       raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
       raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
