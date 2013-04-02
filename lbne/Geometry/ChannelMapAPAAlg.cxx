@@ -209,6 +209,7 @@ namespace geo{
     fWirePitch.resize(cgeo[0]->TPC(0).Nplanes());
     fOrientation.resize(cgeo[0]->TPC(0).Nplanes());
     fTanOrientation.resize(cgeo[0]->TPC(0).Nplanes());
+    fCosOrientation.resize(cgeo[0]->TPC(0).Nplanes());
 
     //save data into fFirstWireCenterY and fFirstWireCenterZ
     for (unsigned int cs=0; cs<fNcryostat; cs++){
@@ -227,6 +228,7 @@ namespace geo{
         fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
         fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
         fTanOrientation[plane] = tan(fOrientation[plane]);
+        fCosOrientation[plane] = cos(fOrientation[plane]);
     }
 
 
@@ -366,9 +368,16 @@ namespace geo{
     //and a point projected in the plane
     int rotate = 1;
     if (tpc%2 == 1) rotate = -1;
-    double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]
-			   +   rotate*fTanOrientation[plane]*firstxyz[2])/
-                               std::sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
+
+    // old distance formula
+    //double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]
+    //		   +   rotate*fTanOrientation[plane]*firstxyz[2])/
+    //                         std::sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
+
+    // simplify and make faster
+
+    double distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
+                                * fCosOrientation[plane]);
     
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
