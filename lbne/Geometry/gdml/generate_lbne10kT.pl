@@ -58,7 +58,12 @@ $wires_on = $wires
 $tpc_on=1;
 $inch = 2.54;
 
-# wire plane parameters
+
+
+
+
+##################################################################
+##################### wire plane parameters ######################
 $UWirePitch = .49;
 $VWirePitch = .5;
 $XWirePitch = .45;
@@ -81,154 +86,45 @@ $VWire_yint = $VWirePitch/$SinVAngle;
 $VWire_zint = $VWirePitch/$CosVAngle;
 
 
-# APA Parameters
+
+
+
+###########################################################################
+############## modular APA dimension and spacing parameters ###############
+
 $nCryos	         = 2;
-$nAPAWide		= 3; 
-$nAPAHigh		= 2;
-$nAPALong		= 10;
+$nAPAWide	 = 3; 
+$nAPAHigh	 = 2;
+$nAPALong	 = 10;
 
-#$APAFrameWidth = 8.9; #this includes the width of all of the wire planes (g, u,v, and x)
-#$CPAThickness = 0.002; #for now the CPA is basically infinitely thin
-$CPAThickness = 5.1; #for now the CPA is basically infinitely thin
-$APAFrame_x = 2*$inch; #this does not include the wire spacing
+$CPAThickness        = 5.1; 
+$APAFrame_x          = 2*$inch; #this does not include the wire spacing
 $APAWirePlaneSpacing = 0.476; #spacing between all of the wire planes (g, u, v, and x)
-$MaxDrift = 233.555; #this is the distance form the CPA to the gage wire plane and designed to have APA-CPA spacing at 2.38m
+$MaxDrift            = 233.555; 
+ #MaxDrift is the distance form the CPA to the gage wire plane and designed to have APA-CPA spacing at 2.38m
 
-$APALongGap = 1.5; #this is the separation between APAs along the incident beam axis
-$APAVerticalGap = 2.5; #this is the separation between APAs along the vertical axis 
-
-$APAWidth   =   2*$MaxDrift + 8*$APAWirePlaneSpacing + $APAFrame_x ; # this is the distance center-line CPA to center-line CPA
-$APAHeight  =   700; #does not include front-end boards or hanger posts
-$APALength  =   252; #does not include the dead space on the sides of APA frame for wrapping wires
-
-$FiducialWidth	       	=	$APAWidth*$nAPAWide + $CPAThickness*($nAPAWide+1); #includes the APA frame (gage wire to gage wire)
-$FiducialHeight		=	$APAHeight*$nAPAHigh + ($nAPAHigh - 1)*$APAVerticalGap; #includes dead space between APA frames
-$FiducialLength		=	$APALength*$nAPALong + ($nAPALong - 1)*$APALongGap; #includes dead space between APA frames
+$APALongGap          = 1.5; #this is the separation between APAs along the incident beam axis
+$APAVerticalGap      = 2.5; #this is the separation between APAs along the vertical axis 
 
 #Cryostat space with LAr outside of entire TPCdetector
 $SpaceCPAtoCryoWall=85; #$SideLArPadding
 $SpaceAPAToFloor=50; #$BottomLArPadding
 $SpaceAPAToTopLAr=50; #$TopLArPadding
 $HeightGaseousAr = 50; #$Height of Gaseous Ar region
-#$UpstreamLArPadding=50;
-#$DownstreamLArPadding=250;
 $UpstreamLArPadding=250;
 $DownstreamLArPadding=50;
 
-$SteelThickness		=	0.5*$inch; #half inch
-$ArgonWidth		=	$FiducialWidth+2*$SpaceCPAToCryoWall;
-$ArgonHeight		=	$FiducialHeight+$SpaceAPAToFloor+$SpaceAPAToTopLAr;
-$ArgonLength		=	$FiducialLength+$UpstreamLArPadding+$DownstreamLArPadding;
-
-$CryostatWidth		=	$ArgonWidth+2*$SteelThickness;
-$CryostatHeight		=	$ArgonHeight+2*$SteelThickness + $HeightGaseousAr;
-$CryostatLength		=	$ArgonLength+2*$SteelThickness; #this should also have twice the steel thickness, yes?
-
-$TPCWidth		 =	($APAWidth-$APAFrame_x - $CPAThicknes/2)/2 - 0.001; # leaving space for frame, this distance is the distance from edge of the APA frame to the center of the CPA
-$TPCHeight		 =	$APAHeight - 0.001 ; #active volume only and doesn't include front-end boards or dead space between two vertically stacked APAs
-$TPCLength		 =	$APALength - 0.001 ; # active volume only and doesn't include dead space between adjacent APAs
-
-
-$TPCWireThickness=0.015;
-
-$TPCWirePlaneThickness   =   $TPCWireThickness;
-$TPCWirePlaneHeight   =   $TPCHeight; #the wire plane region is the full height of the APA since the previous number doesn't have the front-end boards, etc.
-$TPCWirePlaneLength   =   $TPCLength; #the APA Length doesn't have the spacing on between the two APAs so the Wire Plane Length is the full length
-
-
-$ArToAr=300;  # x distance between the LAr in each side by side detector
-$ConcretePadding      =	50;
-$FoamPadding          = 80;
-$TotalPadding	      =	$ConcretePadding+$FoamPadding;
-$DetEncWidth	      =	2*$CryostatWidth+2*$TotalPadding+2*$FoamPadding + $ArToAr;
-$DetEncHeight	      =	$CryostatHeight+$ConcretePadding; #no foam on bottom or top, no concrete on top
-$DetEncLength         = $CryostatLength+2*$TotalPadding;
-
-# We want the world origin to be at the very front of the fiducial volume.
-# move it to the front of the enclosure, then back it up through the concrete/foam, 
-# then through the Cryostat shell, then through the upstream dead LAr.
-# This is to be added to the z position of every volume in volWorld
-$OriginZSet = $DetEncLength/2 - $TotalPadding - $SteelThickness - $UpstreamLArPadding; 
-
-# similar X and Y set variables may be set if needed later
-
-$PosDirCubeSide = 0;
-if (defined $helpcube)
-{
-$PosDirCubeSide = $ArToAr; #seems to be a good proportion
-}
-
-#TPC Active Variables
-#these numbers are wrong, the APAFrameWidth of 8.9 cm already includes the wire planes
-$TPCActiveWidth   =  $TPCWidth-(4*$APAWirePlaneSpacing);#last -1.5 is to temporarily fix overlap.
-$TPCActiveHeight  =  $TPCWirePlaneHeight; #any cuts?
-$TPCActiveLength  =  $TPCWirePlaneLength; #any cuts?
-
-#don't understand this calculation at all
-$posTPCActive_X   =  $TPCWidth/2-$TPCActiveWidth/2;     #(.5+$TPCWirePlaneThickness/2+0.3*3)/2;
-$posTPCActive_Y   =  0;
-$posTPCActive_Z   =  0;
-
-####################
-#Flashback to old parameters, for now so that lbne_geo.C works
-
-$RockThickness	     =	3000;
-$HighBayTopRockThickness    = 320;
-$LowBayTopRockThickness    = 250;
-
-$WorldWidth  = 3*$RockThickness;
-$WorldHeight = 3*$RockThickness;
-$WorldLength = 3*$RockThickness;
-
-#$WorldWidth  = 3*$DetEncWidth;
-#$WorldHeight = 3*$DetEncHeight;
-#$WorldLength = 3*$DetEncLength;
-
-$ServiceBuildingExtraWidth =    890; #for now 890 is the difference between 4244 and 3354 which are the spec'd service building width and detector enclosure width 11/1/2012
-
-#LowBayDefinitions
-$LowBayInsideWidth     =       $DetEncWidth + $ServiceBuildingExtraWidth;
-$LowBayInsideHeight    =       350;
-$LowBayInsideLength    =       2666;
-
-$LowBayCeilingThickness=       2*$ConcretePadding;
-$LowBaySideWallThickness =     $ConcretePadding;
-$LowBayBackWallThickness =     $ConcretePadding;
-
-#HighBayDefinitions
-$HighBayInsideWidth     =       $DetEncWidth + $ServiceBuildingExtraWidth;
-$HighBayInsideHeight    =       1048;
-$HighBayInsideLength    =       1719;
-
-$HighBayCeilingThickness=       2*$ConcretePadding;
-$HighBayFrontWallThickness =    $ConcretePadding;
-$HighBaySideWallThickness =     $ConcretePadding;
-$HighBayBackWallThickness =     2*$ConcretePadding;
-
-$HighBayOverlap         =       500; #the opening for access to the DetEncl and position of the HighBay
-
-$GabionThickness        =       400;
-
-$SlopeRockFillHeight    =       ($HighBayInsideHeight + $HighBayCeilingThickness +$HighBayTopRockThickness - $LowBayInsideHeight - $LowBayCeilingThickness - $LowBayTopRockThickness);
-$SlopeRockFillLength    =       $SlopeRockFillHeight*2;
-
-$HillSideAngle = 20; #in degrees
-$HillSideLength = $RockThickness + $DetEncLength;
-$HillSideHeight = $HillSideLength * tan( deg2rad($HillSideAngle));
-$HillSideWidth = $RockThickness - ($ServiceBuildingExtraWidth/2 + $LowBaySideWallThickness + $GabionThickness);
-
-$HillSideBoxLength = $RockThickness - ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayOverlap +$HighBayBackWallThickness - $DetEncLength );
-$HillSideBoxWidth = $LowBayInsideWidth + 2*$LowBaySideWallThickness + 2*$GabionThickness;
-$HillSideBoxHeight = $LowBayInsideHeight +$LowBayCeilingThickness +$LowBayTopRockThickness;
-
-$HillSideMiddleLength = $RockThickness + $DetEncLength - $HighBayOverlap - $HighBayBackWallThickness - $SlopeRockFillLength;
-$HillSideMiddleHeight = $HillSideMiddleLength * tan( deg2rad($HillSideAngle));
-$HillSideMiddleWidth = $HillSideBoxWidth;
+$APAWidth   =   2*$MaxDrift + 8*$APAWirePlaneSpacing + $APAFrame_x ; # this is the distance center-line CPA to center-line CPA
+$APAHeight  =   700; #does not include front-end boards or hanger posts
+$APALength  =   252; #does not include the dead space on the sides of APA frame for wrapping wires
 
 
 
+
+
+
+####################################################################
 ################# APA Frame and Paddle Dimensions ##################
-
 
 $APAFrameZSide_x = $APAFrame_x;
 $APAFrameZSide_y = 4*$inch;
@@ -278,7 +174,160 @@ $EdgeFrameSteelThickness = 0.12*$inch;
 $InnerFrameSteelThickness = 0.062*$inch;
 
 
-####################
+
+
+
+
+
+##############################################################
+############## Cryo and TPC relevant dimensions  #############
+
+$FiducialWidth	       	=	$APAWidth*$nAPAWide + $CPAThickness*($nAPAWide+1); #includes the APA frame (gage wire to gage wire)
+$FiducialHeight		=	$APAHeight*$nAPAHigh + ($nAPAHigh - 1)*$APAVerticalGap; #includes dead space between APA frames
+$FiducialLength		=	$APALength*$nAPALong + ($nAPALong - 1)*$APALongGap; #includes dead space between APA frames
+
+$SteelThickness		=	0.5*$inch; #half inch
+$ArgonWidth		=	$FiducialWidth+2*$SpaceCPAToCryoWall;
+$ArgonHeight		=	$FiducialHeight+$SpaceAPAToFloor+$SpaceAPAToTopLAr;
+$ArgonLength		=	$FiducialLength+$UpstreamLArPadding+$DownstreamLArPadding;
+
+$CryostatWidth		=	$ArgonWidth+2*$SteelThickness;
+$CryostatHeight		=	$ArgonHeight+2*$SteelThickness + $HeightGaseousAr;
+$CryostatLength		=	$ArgonLength+2*$SteelThickness; #this should also have twice the steel thickness, yes?
+
+$TPCWidth		=	($APAWidth-$APAFrame_x - $CPAThicknes/2)/2; 
+ # leaving space for frame, this distance is the distance from edge of the APA frame to the center of the CPA
+$TPCHeight		=	$APAHeight + $APAVerticalGap; 
+$TPCLength		=	$APALength + $APALongGap; 
+
+$TPCWireThickness       =   0.015;
+
+$TPCWirePlaneThickness  =   $TPCWireThickness;
+$TPCWirePlaneHeight     =   $TPCHeight; #the wire plane region is the full height of the APA since the previous number doesn't have the front-end boards, etc.
+$TPCWirePlaneLength     =   $TPCLength; #the APA Length doesn't have the spacing on between the two APAs so the Wire Plane Length is the full length
+
+
+### MAY NEED ADJUSTMENT:
+#TPC Active Variables -- apply cuts here
+$TPCActiveWidth   =  $TPCWidth-(4*$APAWirePlaneSpacing);
+$TPCActiveHeight  =  $TPCWirePlaneHeight;
+$TPCActiveLength  =  $TPCWirePlaneLength;
+
+$posTPCActive_X   =  $TPCWidth/2-$TPCActiveWidth/2;
+$posTPCActive_Y   =  0;
+$posTPCActive_Z   =  0;
+
+
+
+
+
+
+
+
+##################################################################
+############## DetEnc and World relevant parameters  #############
+
+$ArToAr=300;  # x distance between the LAr in each side by side detector
+$ConcretePadding      =	50;
+$FoamPadding          = 80;
+$TotalPadding	      =	$ConcretePadding+$FoamPadding;
+$DetEncWidth	      =	2*$CryostatWidth+2*$TotalPadding+2*$FoamPadding + $ArToAr;
+$DetEncHeight	      =	$CryostatHeight+$ConcretePadding; #no foam on bottom or top, no concrete on top
+$DetEncLength         = $CryostatLength+2*$TotalPadding;
+
+
+  # We want the world origin to be at the very front of the fiducial volume.
+  # move it to the front of the enclosure, then back it up through the concrete/foam, 
+  # then through the Cryostat shell, then through the upstream dead LAr.
+  # This is to be added to the z position of every volume in volWorld
+$OriginZSet = $DetEncLength/2 - $TotalPadding - $SteelThickness - $UpstreamLArPadding; 
+  # We want the world origin to be vertically centered between the stacked APAs.
+  # the cryostat sits on top of concrete padding, move the detector enclosure back
+  # This is to be added to the y position of every volume in volWorld
+$OriginYSet = -$ConcretePadding/2;
+  # similar X set variable may be set if needed later
+
+
+# Needs work from here on... wait until design stabilizes
+
+
+$RockThickness	            = 3000;
+
+$WorldWidth  = 3*$RockThickness;
+$WorldHeight = 3*$RockThickness;
+$WorldLength = 3*$RockThickness;
+
+
+
+
+
+
+
+
+#############################################################
+############## Service Building and Hillside  ###############
+
+$HighBayTopRockThickness    = 320;
+$LowBayTopRockThickness     = 250;
+
+$ServiceBuildingExtraWidth =    890; 
+   # for now 890 is the difference between 4244 and 3354, which are 
+   # the spec'd service building width and detector enclosure width 11/1/2012
+
+#LowBayDefinitions
+$LowBayInsideWidth     =       $DetEncWidth + $ServiceBuildingExtraWidth;
+$LowBayInsideHeight    =       350;
+$LowBayInsideLength    =       2666;
+
+$LowBayCeilingThickness  =     2*$ConcretePadding;
+$LowBaySideWallThickness =     $ConcretePadding;
+$LowBayBackWallThickness =     $ConcretePadding;
+
+#HighBayDefinitions
+$HighBayInsideWidth     =       $DetEncWidth + $ServiceBuildingExtraWidth;
+$HighBayInsideHeight    =       1048;
+$HighBayInsideLength    =       1719;
+
+$HighBayCeilingThickness   =    2*$ConcretePadding;
+$HighBayFrontWallThickness =    $ConcretePadding;
+$HighBaySideWallThickness  =    $ConcretePadding;
+$HighBayBackWallThickness  =    2*$ConcretePadding;
+
+$HighBayOverlap         =       500; #the opening for access to the DetEncl and position of the HighBay
+
+$GabionThickness        =       400;
+
+$SlopeRockFillHeight    =       ($HighBayInsideHeight + $HighBayCeilingThickness +$HighBayTopRockThickness - $LowBayInsideHeight - $LowBayCeilingThickness - $LowBayTopRockThickness);
+$SlopeRockFillLength    =       $SlopeRockFillHeight*2;
+
+$HillSideAngle = 20; #in degrees
+$HillSideLength = $RockThickness + $DetEncLength;
+$HillSideHeight = $HillSideLength * tan( deg2rad($HillSideAngle));
+$HillSideWidth = $RockThickness - ($ServiceBuildingExtraWidth/2 + $LowBaySideWallThickness + $GabionThickness);
+
+$HillSideBoxLength = $RockThickness - ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayOverlap +$HighBayBackWallThickness - $DetEncLength );
+$HillSideBoxWidth = $LowBayInsideWidth + 2*$LowBaySideWallThickness + 2*$GabionThickness;
+$HillSideBoxHeight = $LowBayInsideHeight +$LowBayCeilingThickness +$LowBayTopRockThickness;
+
+$HillSideMiddleLength = $RockThickness + $DetEncLength - $HighBayOverlap - $HighBayBackWallThickness - $SlopeRockFillLength;
+$HillSideMiddleHeight = $HillSideMiddleLength * tan( deg2rad($HillSideAngle));
+$HillSideMiddleWidth = $HillSideBoxWidth;
+
+
+
+
+
+#################### Help get your bearings when drawing a symmetric detector. only in world.
+
+$PosDirCubeSide = 0;
+if (defined $helpcube)
+{
+$PosDirCubeSide = $ArToAr; #seems to be a good proportion
+}
+
+
+
+
 
 #+++++++++++++++++++++++++ End defining variables ++++++++++++++++++++++++++
 
@@ -1700,8 +1749,6 @@ close(ENCL);
 }
 
 
-#<position name="posNegCryo" unit="cm" x="-$CryostatWidth/2-$ArToAr/2" y="$ConcretePadding/2" z="0" />
-#<position name="posPosCryo" unit="cm" x="$CryostatWidth/2+$ArToAr/2" y="$ConcretePadding/2" z="0" />
 
 
 
@@ -1745,7 +1792,7 @@ print SRVBUILD <<EOF;
     <subtraction name="LowBayWalls">
       <first ref="LowBaySolid"/>
       <second ref="LowBayInsideSpace"/>
-      <position name="posLowBayInsideSpace" unit="cm" x="0" y="-$ConcretePadding/2-$LowBayCeilingThickness/2-0.001" z="$LowBayBackWallThickness/2+0.01"/>
+      <position name="posLowBayInsideSpace" unit="cm" x="0" y="-$LowBayCeilingThickness/2-0.001" z="$LowBayBackWallThickness/2+0.01"/>
     </subtraction>
 
     <box name="HighBaySolid" lunit="cm"
@@ -1764,13 +1811,13 @@ print SRVBUILD <<EOF;
     <subtraction name="HighBayTemp">
       <first ref="HighBaySolid"/>
       <second ref="HighBayInsideSpace"/>
-      <position name="posHighBayInsideSpace" unit="cm" x="0" y="-$ConcretePadding/2-$HighBayCeilingThickness/2-0.001" z="$HighBayBackWallThickness/4"/>
+      <position name="posHighBayInsideSpace" unit="cm" x="0" y="-$HighBayCeilingThickness/2-0.001" z="$HighBayBackWallThickness/4"/>
     </subtraction>
 
     <subtraction name="HighBayWalls">
       <first ref="HighBayTemp"/>
       <second ref="HighBayRearOpening"/>
-      <position name="posHighBayRearOpening" unit="cm" x="0" y="-$ConcretePadding/2-(($HighBayInsideHeight+$HighBayCeilingThickness)/2 - $LowBayInsideHeight/2)" z="-($HighBayBackWallThickness/4+$HighBayInsideLength/2)"/>
+      <position name="posHighBayRearOpening" unit="cm" x="0" y="-(($HighBayInsideHeight+$HighBayCeilingThickness)/2 - $LowBayInsideHeight/2)" z="-($HighBayBackWallThickness/4+$HighBayInsideLength/2)"/>
     </subtraction>
 
     <box name="FrontGabion" lunit="cm"
@@ -1939,7 +1986,7 @@ print HILLSIDE <<EOF;
     <subtraction name="GroundRockTemp">
       <first ref="GroundRock"/>
       <second ref="HighBayFloorSpace"/>
-      <position name="posCavernInGround" unit="cm" x="0" y="-$ConcretePadding/2$RockThickness/2" z="0"/>
+      <position name="posCavernInGround" unit="cm" x="0" y="$RockThickness/2" z="0"/>
     </subtraction>
 
     <subtraction name="GroundRockWithCavern">
@@ -1965,60 +2012,60 @@ print HILLSIDE <<EOF;
       <solidref ref="Ground"/>
       <physvol>
         <volumeref ref="volGroundRockWithCavern"/>
-        <position name="posGroundRockWithCavern" unit="cm" x="0" y="-$ConcretePadding/2-($RockThickness+$DetEncHeight)/2 + $DetEncHeight/2" z="$OriginZSet"/>
+        <position name="posGroundRockWithCavern" unit="cm" x="0" y="-($RockThickness+$DetEncHeight)/2 + $DetEncHeight/2" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volFrontGabion"/>
-        <position name="posFrontGabion" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayFrontWallThickness) -$HighBayOverlap) +$GabionThickness/2"/>
+        <position name="posFrontGabion" unit="cm" x="0" y="$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="($DetEncLength/2+($HighBayInsideLength+$HighBayFrontWallThickness) -$HighBayOverlap) +$GabionThickness/2"/>
       </physvol>
       <physvol>
         <volumeref ref="volSideGabion1"/>
-        <position name="posSideGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
+        <position name="posSideGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
       </physvol>
       <physvol>
         <volumeref ref="volSideGabion2"/>
-        <position name="posSideGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
+        <position name="posSideGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
       </physvol>
       <physvol>
         <volumeref ref="volRearGabion1"/>
-        <position name="posRearGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="$OriginZSet-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+        <position name="posRearGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
       </physvol>
       <physvol>
         <volumeref ref="volRearGabion2"/>
-        <position name="posRearGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="-$ConcretePadding/2+$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="$OriginZSet-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+        <position name="posRearGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
       </physvol>
       <physvol>
         <volumeref ref="volHighBayTopRock"/>
-        <position name="posHighBayTopRock" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HighBayInsideHeight + $HighBayCeilingThickness + $HighBayTopRockThickness/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
+        <position name="posHighBayTopRock" unit="cm" x="0" y="$DetEncHeight/2 + $HighBayInsideHeight + $HighBayCeilingThickness + $HighBayTopRockThickness/2" z="($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
       </physvol>
       <physvol>
         <volumeref ref="volLowBayTopRock"/>
-        <position name="posLowBayTopRock" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $LowBayInsideHeight + $LowBayCeilingThickness + $LowBayTopRockThickness/2" z="$OriginZSet-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+        <position name="posLowBayTopRock" unit="cm" x="0" y="$DetEncHeight/2 + $LowBayInsideHeight + $LowBayCeilingThickness + $LowBayTopRockThickness/2" z="-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
       </physvol>
       <physvol>
         <volumeref ref="volSlopeRockFill"/>
-        <position name="posSlopeRockFill" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2+($LowBayInsideHeight+$LowBayCeilingThickness) +$SlopeRockFillHeight/3" z="$OriginZSet-( $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+        <position name="posSlopeRockFill" unit="cm" x="0" y="$DetEncHeight/2+($LowBayInsideHeight+$LowBayCeilingThickness) +$SlopeRockFillHeight/3" z="-($HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
 	<rotationref ref="rMinus90AboutY"/>
       </physvol>
       <physvol>
         <volumeref ref="volHillSideBox"/>
-        <position name="posHillSideBox" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HillSideBoxHeight/2" z="$OriginZSet-($DetEncLength/2 +$HillSideBoxLength/2 + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
+        <position name="posHillSideBox" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HillSideBoxHeight/2" z="$DetEncLength/2-($DetEncLength/2 +$HillSideBoxLength/2 + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volHillSideMiddle"/>
-        <position name="posHillSideMiddle" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HillSideBoxHeight" z="$OriginZSet-($DetEncLength/2 +$HillSideBoxLength + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
+        <position name="posHillSideMiddle" unit="cm" x="0" y="$DetEncHeight/2 + $HillSideBoxHeight" z="-($DetEncLength/2 +$HillSideBoxLength + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
 	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volHillSide1"/>
-        <position name="posHillSide" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="-$ConcretePadding/2+$DetEncHeight/2" z="$OriginZSet-$RockThickness-$DetEncLength/2"/>
+        <position name="posHillSide" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="$DetEncHeight/2" z="$RockThickness-$DetEncLength/2"/>
 	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
       </physvol>
       <physvol>
         <volumeref ref="volHillSide2"/>
-        <position name="posHillSide" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="$-$ConcretePadding/2+DetEncHeight/2" z="$OriginZSet-$RockThickness-$DetEncLength/2"/>
+        <position name="posHillSide" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="$DetEncHeight/2" z="$RockThickness-$DetEncLength/2"/>
 	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
       </physvol>
     </volume>
@@ -2073,11 +2120,11 @@ print WORLD <<EOF;
       <solidref ref="World"/>
 <!--   <physvol>
      <volumeref ref="volHighBay"/>
-     <position name="posHighBay" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2+($HighBayInsideHeight+$HighBayCeilingThickness)/2" z="$DetEncLength/2+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
+     <position name="posHighBay" unit="cm" x="0" y="$OriginYSet+$DetEncHeight/2+($HighBayInsideHeight+$HighBayCeilingThickness)/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
    </physvol>
    <physvol>
      <volumeref ref="volLowBay"/>
-     <position name="posLowBay" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2+($LowBayInsideHeight+$LowBayCeilingThickness)/2" z="$DetEncLength/2-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
+     <position name="posLowBay" unit="cm" x="0" y="$OriginYSet+$DetEncHeight/2+($LowBayInsideHeight+$LowBayCeilingThickness)/2" z="$OriginZSet-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
    </physvol>
       <physvol>
         <volumeref ref="volGround"/>
@@ -2085,7 +2132,8 @@ print WORLD <<EOF;
       </physvol> -->
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="0" y="-$ConcretePadding/2" z="$OriginZSet"/>
+
+	<position name="posDetEnclosure" unit="cm" x="0" y="$OriginYSet" z="$OriginZSet"/>
       </physvol>
     </volume>
 </structure>
@@ -2098,8 +2146,6 @@ close(WORLD);
 }
 
 
-#        <position name="posDetEnclosure" unit="cm" x="0" y="0" z="0"/>
-#        <position name="posDetEnclosure" unit="cm" x="0" y="-$ConcretePadding/2" z="$DetEncLength/2"/>
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++ write_fragments ++++++++++++++++++++++++++++++++++++
