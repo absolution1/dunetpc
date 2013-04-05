@@ -368,11 +368,13 @@ namespace detsim {
 
       if (signalSize>0)	{
 	fChargeWork_a = fChargeWork.data();
-	fChargeWorkPreSpill_a = fChargeWorkPreSpill.data();
-	fChargeWorkPostSpill_a = fChargeWorkPostSpill.data();
 	adcvec_a = adcvec.data();
-	adcvecPreSpill_a = adcvecPreSpill.data();
-	adcvecPostSpill_a = adcvecPostSpill.data();
+	if (prepost) {
+	  fChargeWorkPreSpill_a = fChargeWorkPreSpill.data();
+	  fChargeWorkPostSpill_a = fChargeWorkPostSpill.data();
+	  adcvecPreSpill_a = adcvecPreSpill.data();
+	  adcvecPostSpill_a = adcvecPostSpill.data();
+	}
 	if (fNoiseOn) {
           noise_a_U=(fNoiseU[noisechan]).data();
 	  noise_a_V=(fNoiseV[noisechan]).data();
