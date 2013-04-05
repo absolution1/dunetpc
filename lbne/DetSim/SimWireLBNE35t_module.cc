@@ -35,7 +35,7 @@ extern "C" {
 #include "Utilities/LArFFT.h"
 #include "RawData/raw.h"
 #include "Utilities/LArProperties.h"
-#include "Utilities/SignalShapingServiceLBNE10kt.h"
+#include "Utilities/SignalShapingServiceLBNE35t.h"
 #include "Geometry/Geometry.h"
 
 #include "Simulation/sim.h"
@@ -76,6 +76,7 @@ namespace detsim {
 
     std::string            fDriftEModuleLabel;///< module making the ionization electrons
     raw::Compress_t        fCompression;      ///< compression type to use
+    unsigned int           fNoiseOn;          ///< noise turned on or off for debugging; default is on
     float                  fNoiseFact;        ///< noise scale factor
     float                  fNoiseWidth;       ///< exponential noise width (kHz)
     float                  fLowCutoff;        ///< low frequency filter cutoff (kHz)
@@ -110,6 +111,7 @@ namespace detsim {
   //-------------------------------------------------
   SimWireLBNE35t::SimWireLBNE35t(fhicl::ParameterSet const& pset)
   {
+
     this->reconfigure(pset);
 
     produces< std::vector<raw::RawDigit>   >();
@@ -122,6 +124,7 @@ namespace detsim {
     TString compression(pset.get< std::string >("CompressionType"));
     if(compression.Contains("Huffman",TString::kIgnoreCase)) fCompression = raw::kHuffman;    
     if(compression.Contains("ZeroSuppression",TString::kIgnoreCase)) fCompression = raw::kZeroSuppression;    
+    if(compression.Contains("ZeroSuppressionNew",TString::kIgnoreCase)) fCompression = raw::kZeroSuppressionNew;    
 
     // get the random number seed, use a random default if not specified    
     // in the configuration file.  
@@ -164,7 +167,7 @@ namespace detsim {
     fLowCutoffV        = p.get< double              >("LowCutoffV");
     fZeroThreshold    = p.get< unsigned int        >("ZeroThreshold");
     fNoiseArrayPoints = p.get< unsigned int        >("NoiseArrayPoints");
-
+    fNoiseOn           = p.get< unsigned int       >("NoiseOn");
     art::ServiceHandle<util::DetectorProperties> detprop;
     fSampleRate       = detprop->SamplingRate();
     fNSamplesReadout  = detprop->ReadOutWindowSize();
@@ -187,48 +190,52 @@ namespace detsim {
 
     if ( fNTicks%2 != 0 ) 
       LOG_DEBUG("SimWireLBNE35t") << "Warning: FFTSize not a power of 2. "
-				     << "May cause issues in (de)convolution.\n";
+				   << "May cause issues in (de)convolution.\n";
 
     if ( (int)fNSamplesReadout > fNTicks ) 
       mf::LogError("SimWireLBNE35t") << "Cannot have number of readout samples "
-					<< "greater than FFTSize!";
+				      << "greater than FFTSize!";
 
     fChargeWork.resize(fNTicks, 0.);
     art::ServiceHandle<geo::Geometry> geo;
     
-    //fNoise.resize(geo->Nchannels());
-    fNoiseZ.resize(fNoiseArrayPoints);
-    fNoiseU.resize(fNoiseArrayPoints);
-    fNoiseV.resize(fNoiseArrayPoints);
+    //Generate noise if selected to be on
+    if(fNoiseOn){
 
-    // GenNoise() will further resize each channel's 
-    // fNoise vector to fNoiseArrayPoints long.
+      //fNoise.resize(geo->Nchannels());
+      fNoiseZ.resize(fNoiseArrayPoints);
+      fNoiseU.resize(fNoiseArrayPoints);
+      fNoiseV.resize(fNoiseArrayPoints);
+      
+      // GenNoise() will further resize each channel's 
+      // fNoise vector to fNoiseArrayPoints long.
+      
+      for(unsigned int p = 0; p < fNoiseArrayPoints; ++p){
+	
+	fNoiseFact = fNoiseFactZ;
+	fNoiseWidth = fNoiseWidthZ;
+	fLowCutoff = fLowCutoffZ;
+	
+	fNoiseFact = fNoiseFactU;
+	fNoiseWidth = fNoiseWidthU;
+	fLowCutoff = fLowCutoffU;
+	
+	fNoiseFact = fNoiseFactV;
+	fNoiseWidth = fNoiseWidthV;
+	fLowCutoff = fLowCutoffV;
+ 
+    
+	GenNoise(fNoiseZ[p]);
+	GenNoise(fNoiseU[p]);
+	GenNoise(fNoiseV[p]);
 
-    //for(unsigned int p = 0; p < geo->Nchannels(); ++p){
-    for(unsigned int p = 0; p < fNoiseArrayPoints; ++p){
-
-      fNoiseFact = fNoiseFactZ;
-      fNoiseWidth = fNoiseWidthZ;
-      fLowCutoff = fLowCutoffZ;
-      GenNoise(fNoiseZ[p]);
-
-      fNoiseFact = fNoiseFactU;
-      fNoiseWidth = fNoiseWidthU;
-      fLowCutoff = fLowCutoffU;
-      GenNoise(fNoiseU[p]);
-
-      fNoiseFact = fNoiseFactV;
-      fNoiseWidth = fNoiseWidthV;
-      fLowCutoff = fLowCutoffV;
-      GenNoise(fNoiseV[p]);
-
-      for(int i = 0; i < fNTicks; ++i){
-	fNoiseDist->Fill(fNoiseZ[p][i]);
-	fNoiseDist->Fill(fNoiseU[p][i]);
-	fNoiseDist->Fill(fNoiseV[p][i]);
-      }
-    }// end loop over wires
-
+	for(int i = 0; i < fNTicks; ++i){
+	  fNoiseDist->Fill(fNoiseZ[p][i]);
+	  fNoiseDist->Fill(fNoiseU[p][i]);
+	  fNoiseDist->Fill(fNoiseV[p][i]);
+	}
+      }// end loop over wires
+    } 
     return;
 
   }
@@ -253,7 +260,7 @@ namespace detsim {
     evt.getView(fDriftEModuleLabel,chanHandle);
 
     //Get fIndShape and fColShape from SignalShapingService, on the fly
-    art::ServiceHandle<util::SignalShapingServiceLBNE10kt> sss;
+    art::ServiceHandle<util::SignalShapingServiceLBNE35t> sss;
 
     // make a vector of const sim::SimChannel* that has same number
     // of entries as the number of channels in the detector
@@ -285,6 +292,10 @@ namespace detsim {
     CLHEP::RandFlat flat(engine);
 
     std::map<int,double>::iterator mapIter;      
+
+    bool prepost = false;  // whether or not to do the prespill and postspill digitization
+    if(fNSamplesReadout != fNTimeSamples ) { prepost = true; }  
+
     for(chan = 0; chan < geo->Nchannels(); chan++) {    
       
       fChargeWork.clear();    
@@ -292,11 +303,12 @@ namespace detsim {
       fChargeWork.resize(fNTimeSamples, 0.);    
 
 
-      fChargeWorkPreSpill.clear();
-      fChargeWorkPostSpill.clear();
-      fChargeWorkPreSpill.resize(fNTicks,0);
-      fChargeWorkPostSpill.resize(fNTicks,0);
-
+      if (prepost) {
+        fChargeWorkPreSpill.clear();
+        fChargeWorkPostSpill.clear();
+        fChargeWorkPreSpill.resize(fNTicks,0);
+        fChargeWorkPostSpill.resize(fNTicks,0);
+      }
 
       // get the sim::SimChannel for this channel
       const sim::SimChannel* sc = channels[chan];
@@ -308,7 +320,7 @@ namespace detsim {
 	  fChargeWork[t] = sc->Charge(t);      
 
         // Convolve charge with appropriate response function 
-	if(fNSamplesReadout != fNTimeSamples ) {
+	if(prepost) {
 	  fChargeWorkPreSpill.assign(fChargeWork.begin(), fChargeWork.begin()+fNSamplesReadout);
 	  fChargeWorkPostSpill.assign(fChargeWork.begin()+2*fNSamplesReadout, fChargeWork.end());
 
@@ -331,68 +343,128 @@ namespace detsim {
       // the noise has the right coherent characteristics to be on one channel
 
       const geo::View_t view = geo->View(chan);
+    
+      int noisechan = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
+      int noisechanpre = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
+      int noisechanpost = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
+    
+      // optimize for speed -- access vectors as arrays 
 
-      //int noisechan = TMath::Nint(flat.fire()*(1.*(geo->Nchannels()-1)+0.1));
-      int noisechan = TMath::Nint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
-      for(unsigned int i = 0; i < signalSize; ++i){
-	
+      double *fChargeWork_a=0;
+      double *fChargeWorkPreSpill_a=0;
+      double *fChargeWorkPostSpill_a=0;
+      short *adcvec_a=0;
+      short *adcvecPreSpill_a=0;
+      short *adcvecPostSpill_a=0;
+      float *noise_a_U=0;
+      float *noise_a_V=0;
+      float *noise_a_Z=0;
+      float *noise_a_Upre=0;
+      float *noise_a_Vpre=0;
+      float *noise_a_Zpre=0;
+      float *noise_a_Upost=0;
+      float *noise_a_Vpost=0;
+      float *noise_a_Zpost=0;
 
-	if(view==geo::kU){
-	  adcvec[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWork[i]);
-	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPreSpill[i]);
-	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPostSpill[i]);
+      if (signalSize>0)	{
+	fChargeWork_a = fChargeWork.data();
+	fChargeWorkPreSpill_a = fChargeWorkPreSpill.data();
+	fChargeWorkPostSpill_a = fChargeWorkPostSpill.data();
+	adcvec_a = adcvec.data();
+	adcvecPreSpill_a = adcvecPreSpill.data();
+	adcvecPostSpill_a = adcvecPostSpill.data();
+	if (fNoiseOn) {
+          noise_a_U=(fNoiseU[noisechan]).data();
+	  noise_a_V=(fNoiseV[noisechan]).data();
+	  noise_a_Z=(fNoiseZ[noisechan]).data();
+	  if (prepost) {
+	    noise_a_Upre=(fNoiseU[noisechanpre]).data();
+	    noise_a_Vpre=(fNoiseV[noisechanpre]).data();
+	    noise_a_Zpre=(fNoiseZ[noisechanpre]).data();
+	    noise_a_Upost=(fNoiseU[noisechanpost]).data();
+	    noise_a_Vpost=(fNoiseV[noisechanpost]).data();
+	    noise_a_Zpost=(fNoiseZ[noisechanpost]).data();
+	  }
 	}
-	else if(view==geo::kV){
-	  adcvec[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWork[i]);
-	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPreSpill[i]);
-	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPostSpill[i]);
+      }
+
+      float tmpfv=0;  // this is here so we do our own rounding from floats to short ints (saves CPU time)
+      float tnoise=0;
+      float tnoisepre=0;
+      float tnoisepost=0;
+
+      if (view != geo::kU && view != geo::kV && view != geo::kZ) {
+	mf::LogError("SimWireLBNE35t") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
+      }
+
+      if(fNoiseOn) {	      
+	for(unsigned int i = 0; i < signalSize; ++i){
+	  if(view==geo::kU)       { tnoise = noise_a_U[i]; }
+	  else if (view==geo::kV) { tnoise = noise_a_V[i]; }
+	  else                    { tnoise = noise_a_Z[i]; }
+	  tmpfv = tnoise + fChargeWork_a[i];
+	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
-	else if(view==geo::kZ){
-	  adcvec[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWork[i]);
-	  adcvecPreSpill[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWorkPreSpill[i]);
-	  adcvecPostSpill[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWorkPostSpill[i]);
+	if (prepost) {
+	  for(unsigned int i = 0; i < signalSize; ++i){
+	    if(view==geo::kU)      { tnoisepre = noise_a_Upre[i]; tnoisepost = noise_a_Upost[i];  }
+	    else if(view==geo::kV) { tnoisepre = noise_a_Vpre[i]; tnoisepost = noise_a_Vpost[i]; }
+	    else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
+
+	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
+	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
+	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	  }
 	}
-	else 
-	  mf::LogError("SimWireLBNE10kt") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
-      }// end loop over signal size
+      }
+      else {   // no noise, so just round the values to nearest short ints and store them
+	for(unsigned int i = 0; i < signalSize; ++i){
+	  tmpfv = fChargeWork_a[i];
+	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	}
+	if (prepost) {
+	  for(unsigned int i = 0; i < signalSize; ++i){
+	    tmpfv = fChargeWorkPreSpill_a[i];
+	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	    tmpfv = fChargeWorkPostSpill_a[i];
+	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	  }
+	}
+      }
 
       // resize the adcvec to be the correct number of time samples, 
       // just drop the extra samples
-      adcvec.resize(fNSamplesReadout);
-      adcvecPreSpill.resize(fNSamplesReadout);
-      adcvecPostSpill.resize(fNSamplesReadout);
 
       // compress the adc vector using the desired compression scheme,
       // if raw::kNone is selected nothing happens to adcvec
       // This shrinks adcvec, if fCompression is not kNone.
 
-      
+
+      adcvec.resize(fNSamplesReadout);
       raw::Compress(adcvec, fCompression, fZeroThreshold); 
-      raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold); 
-      raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold); 
-      
-
       raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
-      raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
-      raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
+      adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
+      digcol->push_back(rd);            // add this digit to the collection
 
-      // Then, resize adcvec back to full length!
-      adcvec.clear();
-      adcvec.resize(signalSize,0.0);
-
-      adcvecPreSpill.clear();
-      adcvecPreSpill.resize(signalSize,0.0);
-      adcvecPostSpill.clear();
-      adcvecPostSpill.resize(signalSize,0.0);
-      // add this digit to the collection
-      digcol->push_back(rd);
-      digcolPreSpill->push_back(rdPreSpill);
-      digcolPostSpill->push_back(rdPostSpill);
+      // do all this for the prespill and postspill samples if need be
+      if (prepost) {
+        adcvecPreSpill.resize(fNSamplesReadout);
+        adcvecPostSpill.resize(fNSamplesReadout);
+        raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold); 
+        raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold); 
+        raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
+        raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
+        adcvecPreSpill.resize(signalSize);
+        adcvecPostSpill.resize(signalSize);
+        digcolPreSpill->push_back(rdPreSpill);
+        digcolPostSpill->push_back(rdPostSpill);
+      }
 
     }// end loop over channels      
 
     evt.put(std::move(digcol));
-    if(fNSamplesReadout != fNTimeSamples ) {
+    if(prepost) {
       evt.put(std::move(digcolPreSpill), "preSpill");
       evt.put(std::move(digcolPostSpill), "postSpill");
     }
@@ -408,7 +480,7 @@ namespace detsim {
     CLHEP::RandFlat flat(engine);
 
     noise.clear();
-    noise.resize(fNTicks, 0.);
+    noise.resize(fNTicks,0.0);
     // noise in frequency space
     std::vector<TComplex> noiseFrequency(fNTicks/2+1, 0.);
 
