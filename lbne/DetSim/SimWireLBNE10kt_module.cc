@@ -339,27 +339,62 @@ namespace detsim {
 
       const geo::View_t view = geo->View(chan);
     
-      int noisechan = TMath::Nint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
+      int noisechan = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
     
+      // optimize for speed -- access vectors as arrays 
+
+      double *fChargeWork_a=0;
+      double *fChargeWorkPreSpill_a=0;
+      double *fChargeWorkPostSpill_a=0;
+      short *adcvec_a=0;
+      short *adcvecPreSpill_a=0;
+      short *adcvecPostSpill_a=0;
+      float *noise_a_U=0;
+      float *noise_a_V=0;
+      float *noise_a_Z=0;
+
+      if (signalSize>0)	{
+	fChargeWork_a = fChargeWork.data();
+	fChargeWorkPreSpill_a = fChargeWorkPreSpill.data();
+	fChargeWorkPostSpill_a = fChargeWorkPostSpill.data();
+	adcvec_a = adcvec.data();
+	adcvecPreSpill_a = adcvecPreSpill.data();
+	adcvecPostSpill_a = adcvecPostSpill.data();
+	if (fNoiseOn) {
+          noise_a_U=(fNoiseU[noisechan]).data();
+	  noise_a_V=(fNoiseV[noisechan]).data();
+	  noise_a_Z=(fNoiseZ[noisechan]).data();
+	}
+      }
+
 	for(unsigned int i = 0; i < signalSize; ++i){
-	 
+	  float tmpfv;  // this is here so we do our own rounding from floats to short ints (saves CPU time)
+
 	  if(fNoiseOn)
 	    {	      
 	      if(view==geo::kU){
-		//if(geo::SigType_t==geo::kInduction)
-		adcvec[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWork[i]);
-		adcvecPreSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPreSpill[i]);
-		adcvecPostSpill[i] = (short)TMath::Nint(fNoiseU[noisechan][i] + fChargeWorkPostSpill[i]);
+		tmpfv = noise_a_U[i] + fChargeWork_a[i];
+		adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = noise_a_U[i] + fChargeWorkPreSpill_a[i];
+		adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = noise_a_U[i] + fChargeWorkPostSpill_a[i];
+		adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	      }
 	      else if(view==geo::kV){
-		adcvec[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWork[i]);
-		adcvecPreSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPreSpill[i]);
-		adcvecPostSpill[i] = (short)TMath::Nint(fNoiseV[noisechan][i] + fChargeWorkPostSpill[i]);
+		tmpfv = noise_a_V[i] + fChargeWork_a[i];
+		adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = noise_a_V[i] + fChargeWorkPreSpill_a[i];
+		adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	        tmpfv = noise_a_V[i] + fChargeWorkPostSpill_a[i];
+		adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	      }
 	      else if(view==geo::kZ){
-		adcvec[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWork[i]);
-		adcvecPreSpill[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWorkPreSpill[i]);
-		adcvecPostSpill[i] = (short)TMath::Nint(fNoiseZ[noisechan][i] + fChargeWorkPostSpill[i]);
+		tmpfv = noise_a_Z[i] + fChargeWork_a[i];
+		adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = noise_a_Z[i] + fChargeWorkPreSpill_a[i];
+		adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = noise_a_Z[i] + fChargeWorkPostSpill_a[i];
+		adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	      }
 	      else 
 		mf::LogError("SimWireLBNE10kt") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
@@ -367,20 +402,28 @@ namespace detsim {
 	  else
 	    {
 	      if(view==geo::kU){
-		//if(geo::SigType_t==geo::kInduction)
-		adcvec[i] = (short)TMath::Nint(fChargeWork[i]);
-		adcvecPreSpill[i] = (short)TMath::Nint(fChargeWorkPreSpill[i]);
-		adcvecPostSpill[i] = (short)TMath::Nint(fChargeWorkPostSpill[i]);
+		tmpfv = fChargeWork_a[i];
+		adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = fChargeWorkPreSpill_a[i];
+		adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = fChargeWorkPostSpill_a[i];
+		adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	      }
 	      else if(view==geo::kV){
-		adcvec[i] = (short)TMath::Nint(fChargeWork[i]);
-		adcvecPreSpill[i] = (short)TMath::Nint(fChargeWorkPreSpill[i]);
-		adcvecPostSpill[i] = (short)TMath::Nint(fChargeWorkPostSpill[i]);
+		tmpfv = fChargeWork_a[i];
+		adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = fChargeWorkPreSpill_a[i];
+		adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = fChargeWorkPostSpill_a[i];
+		adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	      }
 	      else if(view==geo::kZ){
-		adcvec[i] = (short)TMath::Nint(fChargeWork[i]);
-		adcvecPreSpill[i] = (short)TMath::Nint(fChargeWorkPreSpill[i]);
-		adcvecPostSpill[i] = (short)TMath::Nint(fChargeWorkPostSpill[i]);
+		tmpfv = fChargeWork_a[i];
+		adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = fChargeWorkPreSpill_a[i];
+		adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+		tmpfv = fChargeWorkPostSpill_a[i];
+		adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	      }
 	    }
       }// end loop over signal size
@@ -407,14 +450,14 @@ namespace detsim {
       raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
       raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
 
-      // Then, resize adcvec back to full length!
+      // Then, resize adcvec back to full length!  Do not initialize to zero (slow)
       adcvec.clear();
-      adcvec.resize(signalSize,0.0);
+      adcvec.resize(signalSize);
 
       adcvecPreSpill.clear();
-      adcvecPreSpill.resize(signalSize,0.0);
+      adcvecPreSpill.resize(signalSize);
       adcvecPostSpill.clear();
-      adcvecPostSpill.resize(signalSize,0.0);
+      adcvecPostSpill.resize(signalSize);
       // add this digit to the collection
       digcol->push_back(rd);
       digcolPreSpill->push_back(rdPreSpill);
@@ -439,7 +482,7 @@ namespace detsim {
     CLHEP::RandFlat flat(engine);
 
     noise.clear();
-    noise.resize(fNTicks, 0.);
+    noise.resize(fNTicks,0.0);
     // noise in frequency space
     std::vector<TComplex> noiseFrequency(fNTicks/2+1, 0.);
 
