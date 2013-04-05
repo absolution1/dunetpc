@@ -59,31 +59,37 @@ $tpc_on=1;
 $inch = 2.54;
 
 
-
+###### ALL PARAMETERS FROM DocDb-3383 #######
 
 
 ##################################################################
 ##################### wire plane parameters ######################
-$UWirePitch = .49;
-$VWirePitch = .5;
-$XWirePitch = .45;
 
-$UAngle = 45.7;
-$VAngle = 44.3;
+$UWirePitch             =   0.49;
+$VWirePitch             =   0.5;
+$XWirePitch             =   0.45;
 
-$SinUAngle = sin( deg2rad($UAngle) );
-$CosUAngle = cos( deg2rad($UAngle) );
-$TanUAngle = tan( deg2rad($UAngle) );
+$UAngle                 =   45.7;
+$VAngle                 =   44.3;
 
-$SinVAngle = sin( deg2rad($VAngle) );
-$CosVAngle = cos( deg2rad($VAngle) );
-$TanVAngle = tan( deg2rad($VAngle) );
+$SinUAngle              =   sin( deg2rad($UAngle) );
+$CosUAngle              =   cos( deg2rad($UAngle) );
+$TanUAngle              =   tan( deg2rad($UAngle) );
 
-$UWire_yint = $UWirePitch/$SinUAngle;
-$UWire_zint = $UWirePitch/$CosUAngle;
+$SinVAngle              =   sin( deg2rad($VAngle) );
+$CosVAngle              =   cos( deg2rad($VAngle) );
+$TanVAngle              =   tan( deg2rad($VAngle) );
 
-$VWire_yint = $VWirePitch/$SinVAngle;
-$VWire_zint = $VWirePitch/$CosVAngle;
+$UWire_yint             =   $UWirePitch/$SinUAngle;
+$UWire_zint             =   $UWirePitch/$CosUAngle;
+
+$VWire_yint             =   $VWirePitch/$SinVAngle;
+$VWire_zint             =   $VWirePitch/$CosVAngle;
+
+$TPCWireThickness       =   0.015;
+
+$TPCWirePlaneThickness  =   $TPCWireThickness;
+#height and length defined lower
 
 
 
@@ -92,31 +98,45 @@ $VWire_zint = $VWirePitch/$CosVAngle;
 ###########################################################################
 ############## modular APA dimension and spacing parameters ###############
 
-$nCryos	         = 2;
-$nAPAWide	 = 3; 
-$nAPAHigh	 = 2;
-$nAPALong	 = 10;
+$nCryos	               =     2;
+$nAPAWide	       =     3; 
+$nAPAHigh	       =     2;
+$nAPALong	       =     10;
 
-$CPAThickness        = 5.1; 
-$APAFrame_x          = 2*$inch; #this does not include the wire spacing
-$APAWirePlaneSpacing = 0.476; #spacing between all of the wire planes (g, u, v, and x)
-$MaxDrift            = 233.555; 
- #MaxDrift is the distance form the CPA to the gage wire plane and designed to have APA-CPA spacing at 2.38m
+$CPAThickness          =     5.1; 
+$APAFrame_x            =     2*$inch; # this does not include the wire spacing
+$APAWirePlaneSpacing   =     0.476;   # spacing between all of the wire planes (g, u, v, and x)
+$CenterlineAPAToCPA    =     232;
 
-$APALongGap          = 1.5; #this is the separation between APAs along the incident beam axis
-$APAVerticalGap      = 2.5; #this is the separation between APAs along the vertical axis 
+$MaxDrift              =     $CenterlineAPAToCPA 
+                           - $CPAThickness/2 
+                           - 2*$APAWirePlaneSpacing
+                           - $TPCWirePlaneThickness 
+                           - $APAFrame_x; #TODO: DocDb-3383 says this is 228 maybe? 
+ #MaxDrift is the distance form the edge of the CPA to the edge of the first wire plane
+ #TODO: the implementation and value of MaxDrift will have to be re-evaluated when adding the grid plane. 
 
-#Cryostat space with LAr outside of entire TPCdetector
-$SpaceCPAtoCryoWall=85; #$SideLArPadding
-$SpaceAPAToFloor=50; #$BottomLArPadding
-$SpaceAPAToTopLAr=50; #$TopLArPadding
-$HeightGaseousAr = 50; #$Height of Gaseous Ar region
-$UpstreamLArPadding=250;
-$DownstreamLArPadding=50;
+$APALongGap            =     1.5; # separation between APAs along the incident beam axis
+$APAVerticalGap        =     2.5; # separation between APAs along the vertical axis 
 
-$APAWidth   =   2*$MaxDrift + 8*$APAWirePlaneSpacing + $APAFrame_x ; # this is the distance center-line CPA to center-line CPA
-$APAHeight  =   700; #does not include front-end boards or hanger posts
-$APALength  =   252; #does not include the dead space on the sides of APA frame for wrapping wires
+#Cryostat space with LAr outside of entire fiducial volume
+$SpaceCPAtoCryoWall    =     85; 
+$SpaceAPAToFloor       =     50; 
+$SpaceAPAToTopLAr      =     50;  
+$UpstreamLArPadding    =     250;
+$DownstreamLArPadding  =     50;
+
+#TODO: probably deprecate this width definition
+#$APAWidth              =     2*$MaxDrift 
+#                           + 6*$APAWirePlaneSpacing 
+#                           + 2*$TPCWirePlaneThickness
+#                           + $APAFrame_x; 
+
+$APAWidth              =     2*$CenterlineAPAToCPA - $CPAThickness;
+                                 # this is the distance edge of CPA to edge of CPA
+
+$APAHeight             =     700; # doesn't include front-end boards or hanger posts
+$APALength             =     252; # doesn't include the dead space on the sides of APA frame for wrapping wires
 
 
 
@@ -126,18 +146,20 @@ $APALength  =   252; #does not include the dead space on the sides of APA frame 
 ####################################################################
 ################# APA Frame and Paddle Dimensions ##################
 
-$APAFrameZSide_x = $APAFrame_x;
-$APAFrameZSide_y = 4*$inch;
-$APAFrameZSide_z = $APALength;
+$APAFrameZSide_x          =    $APAFrame_x;
+$APAFrameZSide_y          =    4*$inch;
+$APAFrameZSide_z          =    $APALength;
 
 
-$LightPaddleWidth = 0.476;
-$LightPaddleHeight = 4*$inch;
-$LightPaddleLength = 225-0.001;
-$nLightPaddlesPerAPA = 10; #10, or 20 for double coverage (for now)
-$PaddleYInterval = (2*$APAHeight+$APAVerticalGap-$LightPaddleHeight-2*$APAFrameZSide_y)/(2*$nLightPaddlesPerAPA-1);
-$FrameToPaddleSpace = ($PaddleYInterval-$APAVerticalGap)/2;
-$SiPM_z = 0;
+$LightPaddleWidth         =    0.476;
+$LightPaddleHeight        =    4*$inch;
+$LightPaddleLength        =    225-0.001;
+$nLightPaddlesPerAPA      =    10;   # 10, or 20 for double coverage (for now)
+$PaddleYInterval          =    (2*$APAHeight+$APAVerticalGap-$LightPaddleHeight-2*$APAFrameZSide_y)
+                              /(2*$nLightPaddlesPerAPA-1);
+$FrameToPaddleSpace       =    ($PaddleYInterval-$APAVerticalGap)/2;
+
+$SiPM_z                   =    0;
 
 # $PaddleYInterval is defined so that the center-to-center distance in the 
 # y direction between paddles is uniform between vertically stacked APAs.
@@ -146,32 +168,32 @@ $SiPM_z = 0;
 # primary purpose is to position the lowest paddle in each APA.
 
 
-$APAFrameZSide_x = $APAFrame_x;
-$APAFrameZSide_y = 4*$inch;
-$APAFrameZSide_z = $APALength;
+$APAFrameZSide_x          =    $APAFrame_x;
+$APAFrameZSide_y          =    4*$inch;
+$APAFrameZSide_z          =    $APALength;
 
-$APAFrameYSide_x = $APAFrame_x;
-$APAFrameYSide_y = $APAHeight-2*$APAFrameZSide_y;
-$APAFrameYSide_z = 4*$inch;
+$APAFrameYSide_x          =    $APAFrame_x;
+$APAFrameYSide_y          =    $APAHeight-2*$APAFrameZSide_y;
+$APAFrameYSide_z          =    4*$inch;
 
 # Two outer Y supports will sandwich the inner Y supports and light paddles
-$APAFrameYOuterSupport_x = ($APAFrame_x-$LightPaddleWidth)/2;
-$APAFrameYOuterSupport_y = $APAHeight-2*$APAFrameZSide_y;
-$APAFrameYOuterSupport_z = 4*$inch;
+$APAFrameYOuterSupport_x  =    ($APAFrame_x-$LightPaddleWidth)/2;
+$APAFrameYOuterSupport_y  =    $APAHeight-2*$APAFrameZSide_y;
+$APAFrameYOuterSupport_z  =    4*$inch;
 
-$APAFrameYInnerSupport_x = $LightPaddleWidth;
-$APAFrameYInnerSupport_y = $PaddleYInterval-$LightPaddleHeight;
-$APAFrameYInnerSupport_z = 4*$inch;
+$APAFrameYInnerSupport_x  =    $LightPaddleWidth;
+$APAFrameYInnerSupport_y  =    $PaddleYInterval-$LightPaddleHeight;
+$APAFrameYInnerSupport_z  =    4*$inch;
 
-$APAFrameZHalfSupport_x = $APAFrame_x;
-$APAFrameZHalfSupport_y = 2*$inch;
-$APAFrameZHalfSupport_z = $APAFrameZSide_z 
-			  - 2*$APAFrameYSide_z 
-		          - $APAFrameYSupport_z;
+$APAFrameZHalfSupport_x   =    $APAFrame_x;
+$APAFrameZHalfSupport_y   =    2*$inch;
+$APAFrameZHalfSupport_z   =    $APAFrameZSide_z 
+			     - 2*$APAFrameYSide_z 
+		             - $APAFrameYSupport_z;
 
 
-$EdgeFrameSteelThickness = 0.12*$inch;
-$InnerFrameSteelThickness = 0.062*$inch;
+$EdgeFrameSteelThickness  =    0.12*$inch;
+$InnerFrameSteelThickness =    0.062*$inch;
 
 
 
@@ -182,40 +204,58 @@ $InnerFrameSteelThickness = 0.062*$inch;
 ##############################################################
 ############## Cryo and TPC relevant dimensions  #############
 
-$FiducialWidth	       	=	$APAWidth*$nAPAWide + $CPAThickness*($nAPAWide+1); #includes the APA frame (gage wire to gage wire)
-$FiducialHeight		=	$APAHeight*$nAPAHigh + ($nAPAHigh - 1)*$APAVerticalGap; #includes dead space between APA frames
-$FiducialLength		=	$APALength*$nAPALong + ($nAPALong - 1)*$APALongGap; #includes dead space between APA frames
+  # TODO: These fiducial parameters were useful in placement within the Cryostat,
+  # but now that it is only symmetric in the x direction, the only placement where 
+  # these parameters are useful is in the x direction. possibly deprecate so as 
+  # not to be misleading or overly complicated here.
+$FiducialWidth	       	=	$APAWidth*$nAPAWide + $CPAThickness*($nAPAWide+1);
+$FiducialHeight		=	$APAHeight*$nAPAHigh + ($nAPAHigh - 1)*$APAVerticalGap; 
+$FiducialLength		=	$APALength*$nAPALong + ($nAPALong - 1)*$APALongGap;
 
 $SteelThickness		=	0.5*$inch; #half inch
-$ArgonWidth		=	$FiducialWidth+2*$SpaceCPAToCryoWall;
-$ArgonHeight		=	$FiducialHeight+$SpaceAPAToFloor+$SpaceAPAToTopLAr;
-$ArgonLength		=	$FiducialLength+$UpstreamLArPadding+$DownstreamLArPadding;
+$HeightGaseousAr        =       50;
 
-$CryostatWidth		=	$ArgonWidth+2*$SteelThickness;
-$CryostatHeight		=	$ArgonHeight+2*$SteelThickness + $HeightGaseousAr;
-$CryostatLength		=	$ArgonLength+2*$SteelThickness; #this should also have twice the steel thickness, yes?
 
-$TPCWidth		=	($APAWidth-$APAFrame_x - $CPAThicknes/2)/2; 
- # leaving space for frame, this distance is the distance from edge of the APA frame to the center of the CPA
+$ArgonWidth		=	$FiducialWidth 
+                              + 2*$SpaceCPAToCryoWall;
+$ArgonHeight		=	$FiducialHeight
+                              + $SpaceAPAToFloor + $SpaceAPAToTopLAr 
+                              + $HeightGaseousAr; 
+                                    # both liquid AND gaseous argon
+               
+$ArgonLength		=	$FiducialLength
+                              + $UpstreamLArPadding + $DownstreamLArPadding;
+
+$CryostatWidth		=	$ArgonWidth  + 2*$SteelThickness;
+$CryostatHeight		=	$ArgonHeight + 2*$SteelThickness;
+$CryostatLength		=	$ArgonLength + 2*$SteelThickness;
+
+$TPCWidth		=	($APAWidth-$APAFrame_x)/2; 
+                                    # this distance is the distance from edge of 
+                                    # the APA frame to the edge of the CPA
 $TPCHeight		=	$APAHeight + $APAVerticalGap; 
 $TPCLength		=	$APALength + $APALongGap; 
 
-$TPCWireThickness       =   0.015;
 
-$TPCWirePlaneThickness  =   $TPCWireThickness;
-$TPCWirePlaneHeight     =   $TPCHeight; #the wire plane region is the full height of the APA since the previous number doesn't have the front-end boards, etc.
-$TPCWirePlaneLength     =   $TPCLength; #the APA Length doesn't have the spacing on between the two APAs so the Wire Plane Length is the full length
+                                    # $TPCWirePlaneThickness now defined higher up
+$TPCWirePlaneHeight     =       $APAHeight; 
+                                    # the wire plane region is the full height of the APA since
+                                    # the previous number doesn't have the front-end boards, etc.
+$TPCWirePlaneLength     =       $APALength; 
+                                    # the APA Length doesn't have the spacing on between the two 
+                                    # APAs so the Wire Plane Length is the full length
 
 
-### MAY NEED ADJUSTMENT:
+### TODO: MAY NEED ADJUSTMENT:
 #TPC Active Variables -- apply cuts here
-$TPCActiveWidth   =  $TPCWidth-(4*$APAWirePlaneSpacing);
-$TPCActiveHeight  =  $TPCWirePlaneHeight;
-$TPCActiveLength  =  $TPCWirePlaneLength;
 
-$posTPCActive_X   =  $TPCWidth/2-$TPCActiveWidth/2;
-$posTPCActive_Y   =  0;
-$posTPCActive_Z   =  0;
+$TPCActiveWidth         =       $TPCWidth-(3*$APAWirePlaneSpacing);
+$TPCActiveHeight        =       $TPCWirePlaneHeight;
+$TPCActiveLength        =       $TPCWirePlaneLength;
+
+$posTPCActive_X         =       $TPCWidth/2-$TPCActiveWidth/2;
+$posTPCActive_Y         =       0;
+$posTPCActive_Z         =       0;
 
 
 
@@ -227,35 +267,46 @@ $posTPCActive_Z   =  0;
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
-$ArToAr=300;  # x distance between the LAr in each side by side detector
-$ConcretePadding      =	50;
-$FoamPadding          = 80;
-$TotalPadding	      =	$ConcretePadding+$FoamPadding;
-$DetEncWidth	      =	2*$CryostatWidth+2*$TotalPadding+2*$FoamPadding + $ArToAr;
-$DetEncHeight	      =	$CryostatHeight+$ConcretePadding; #no foam on bottom or top, no concrete on top
-$DetEncLength         = $CryostatLength+2*$TotalPadding;
+$ArToAr                 =       300;  
+                                 # x distance between the LAr in each side by side cryo
+$ConcretePadding        =	50;
+$FoamPadding            =       80;
+$TotalPadding	        =	$ConcretePadding+$FoamPadding;
+$DetEncWidth	        =	2*$CryostatWidth+2*$TotalPadding+2*$FoamPadding + $ArToAr;
+$DetEncHeight	        =	$CryostatHeight+$ConcretePadding; 
+                                    # no foam on bottom or top, no concrete on top
+$DetEncLength           =       $CryostatLength+2*$TotalPadding;
 
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
   # then through the Cryostat shell, then through the upstream dead LAr.
   # This is to be added to the z position of every volume in volWorld
-$OriginZSet = $DetEncLength/2 - $TotalPadding - $SteelThickness - $UpstreamLArPadding; 
+
+$OriginZSet             =       $DetEncLength/2 
+                              - $TotalPadding 
+                              - $SteelThickness 
+                              - $UpstreamLArPadding 
+                              - $APALongGap/2
+                              - $TPCWireThickness/2;
+
   # We want the world origin to be vertically centered between the stacked APAs.
   # the cryostat sits on top of concrete padding, move the detector enclosure back
   # This is to be added to the y position of every volume in volWorld
-$OriginYSet = -$ConcretePadding/2;
+
+$OriginYSet             =       $HeightGaseousAr/2
+                              - $ConcretePadding/2;
+
   # similar X set variable may be set if needed later
 
 
-# Needs work from here on... wait until design stabilizes
+# TODO: Needs work from here on... wait until design stabilizes
 
+$RockThickness	        =       3000;
 
-$RockThickness	            = 3000;
-
-$WorldWidth  = 3*$RockThickness;
-$WorldHeight = 3*$RockThickness;
-$WorldLength = 3*$RockThickness;
+$WorldWidth             =       3*$RockThickness;
+$WorldHeight            =       3*$RockThickness;
+$WorldLength            =       3*$RockThickness;
 
 
 
@@ -768,7 +819,7 @@ $NumberCommonUWires = $NumberSideUWires - $NumberCornerUWires;
 $NumberCommonVWires = $NumberSideVWires - $NumberCornerVWires;
 
    # number of wires on the vertical plane
-$NumberVerticalWires = int( $TPCWirePlaneLength/$XWirePitch );
+$NumberVerticalWires = int( ($TPCWirePlaneLength-$TPCWireThickness)/$XWirePitch );
 }
 
 # These XML comments throughout make the GDML file easier to navigate
@@ -1179,8 +1230,8 @@ EOF
 
 
 # Finally moving to the corner wires on the top right:
-   # x=0 to center the wires in the plane
-   # y positioning: plug wire number into same equation
+   # x=0 to center the wires in the y
+   # plane positioning: plug wire number into same equation
    # z positioning: start at z=0 and go positively at the same z increment
    # rotation: same as common wire in code above
 # note that the counter maintains wire number shown in the position name
@@ -1250,7 +1301,7 @@ EOF
 
 for ($i=0; $i<$NumberVerticalWires; ++$i)
 {
-my $zpos = (-0.5*$TPCWirePlaneLength)+$XWirePitch*($i+1);
+my $zpos = (-0.5*$TPCWirePlaneLength)+$TPCWireThickness/2+$XWirePitch*$i;
 
 print TPC <<EOF;
       <physvol>
@@ -1336,11 +1387,11 @@ print CRYO <<EOF;
       z="$CryostatLength"/>
     <box name="ArgonInterior" lunit="cm" 
       x="$ArgonWidth"
-      y="$ArgonHeight+$HeightGaseousAr"
-      z="$ArgonLength"/>
-    <box name="LiquidArgon" lunit="cm" 
-      x="$ArgonWidth"
       y="$ArgonHeight"
+      z="$ArgonLength"/>
+    <box name="GaseousArgon" lunit="cm" 
+      x="$ArgonWidth"
+      y="$HeightGaseousAr"
       z="$ArgonLength"/>
     <subtraction name="SteelShell">
       <first ref="Cryostat"/>
@@ -1411,9 +1462,9 @@ print CRYO <<EOF;
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
       <solidref ref="SteelShell" />
     </volume>
-    <volume name="volLiquidArgon">
-      <materialref ref="LAr"/>
-      <solidref ref="LiquidArgon"/>
+    <volume name="volGaseousArgon">
+      <materialref ref="ArGas"/>
+      <solidref ref="GaseousArgon"/>
     </volume>
 
     <volume name="volCathode">
@@ -1454,10 +1505,10 @@ print CRYO <<EOF;
     <volume name="volCryostat">
       <materialref ref="LAr" />
       <solidref ref="Cryostat" />
-<!--      <physvol>
-        <volumeref ref="volLiquidArgon"/>
-        <position name="posLiquidArgon" unit="cm" x="0" y="-$HeightGaseousAr/2" z="0"/>
-      </physvol> -->
+      <physvol>
+        <volumeref ref="volGaseousArgon"/>
+        <position name="posGaseousArgon" unit="cm" x="0" y="$ArgonHeight/2-$HeightGaseousAr/2" z="0"/>
+      </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
         <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
@@ -1482,11 +1533,24 @@ if ($tpc_on==1) {
       for($j=0 ; $j<$nAPAHigh ; $j++)
       {
 
-        $CAT_X       = -$FiducialWidth/2 + $CPAThickness/2 + $i*($APAWidth);
+
+        $CAT_X        =  - $FiducialWidth/2 
+	                 + $CPAThickness/2 
+			 + $i*($APAWidth);
                      
-        $APACenter_x = -$FiducialWidth/2 + $CPAThickness/2 + ($i+0.5)*($APAWidth);
-        $APACenter_y = -$FiducialHeight/2 + $APAHeight/2 + $j*($APAHeight+$APAVerticalGap);
-        $APACenter_z = -$ArgonLength/2 + $UpstreamLArPadding + $APALength/2 + $k*($APALength+$APALongGap);
+        $APACenter_x  =  - $FiducialWidth/2 
+	                 + $CPAThickness/2 
+			 + ($i+0.5)*($APAWidth);
+
+        $APACenter_y  =  - $ArgonHeight/2 + $SpaceAPAToFloor
+	                 + $APAHeight/2 
+	                 + $j*($APAHeight+$APAVerticalGap);
+
+        $APACenter_z  =  - $ArgonLength/2 
+	                 + $UpstreamLArPadding 
+			 + $APALength/2 
+			 + $k*($APALength+$APALongGap);
+
 
         print CRYO <<EOF;
 
@@ -1502,7 +1566,7 @@ EOF
 
         if ($i<$nAPAWide){
 
-          # place APA volumes around this center: Frame, TPCs, paddles (ovelaps?)
+          # place APA volumes around this center: Frame, TPCs, paddles
           make_APA($APACenter_x, $APACenter_y, $APACenter_z, $i, $j, $k);
 
           for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
@@ -1515,7 +1579,11 @@ EOF
 
              #the multiplication by j here is a temporary dirty trick to get around some strange behavior
 
-             $Paddle_Y = $APACenter_y - $APAHeight/2 + $j*$FrameToPaddleSpace + (1-$j)*($LightPaddleHeight/2 + $APAFrameZSide_y) + $PaddleYInterval*$paddle; 
+             $Paddle_Y   =    $APACenter_y 
+                            - $APAHeight/2 
+                            + $j*$FrameToPaddleSpace 
+                            + (1-$j)*($LightPaddleHeight/2 + $APAFrameZSide_y) 
+                            + $PaddleYInterval*$paddle; 
 
              print CRYO <<EOF;
 
