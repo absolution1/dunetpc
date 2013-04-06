@@ -123,8 +123,7 @@ namespace detsim {
     fCompression = raw::kNone;
     TString compression(pset.get< std::string >("CompressionType"));
     if(compression.Contains("Huffman",TString::kIgnoreCase)) fCompression = raw::kHuffman;    
-    if(compression.Contains("ZeroSuppression",TString::kIgnoreCase)) fCompression = raw::kZeroSuppression;    
-    if(compression.Contains("ZeroSuppressionNew",TString::kIgnoreCase)) fCompression = raw::kZeroSuppressionNew;    
+    if(compression.Contains("ZeroSuppression",TString::kIgnoreCase)) fCompression = raw::kZeroSuppression;
 
     // get the random number seed, use a random default if not specified    
     // in the configuration file.  
