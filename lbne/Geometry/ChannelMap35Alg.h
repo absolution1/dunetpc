@@ -9,6 +9,7 @@
 #define GEO_CHANNEL35MAPALG_H
 
 #include <vector>
+#include <stdint.h>
 
 #include "Geometry/ChannelMapAlg.h"
 
@@ -23,30 +24,30 @@ namespace geo{
     
     void                     Initialize(std::vector<geo::CryostatGeo*> & cgeo);
     void                     Uninitialize();
-    std::vector<WireID>      ChannelToWire(unsigned int channel)    const;
-    unsigned int             Nchannels()                            const;
-    unsigned int             NearestWire(const TVector3& worldPos,
+    std::vector<WireID>      ChannelToWire(uint32_t channel)        const;
+    uint32_t                 Nchannels()                            const;
+    uint32_t                 NearestWire(const TVector3& worldPos,
                                          unsigned int    PlaneNo,
                                          unsigned int    TPCNo,
                                          unsigned int    cstat)     const;
-    unsigned int             PlaneWireToChannel(unsigned int plane,
+    uint32_t                 PlaneWireToChannel(unsigned int plane,
 						unsigned int wire,
 						unsigned int tpc,
 						unsigned int cstat) const;
-    const View_t                   View( unsigned int const channel )     const;
-    const SigType_t                SignalType( unsigned int const channel)const;
+    const View_t             View( uint32_t const channel )         const;
+    const SigType_t          SignalType( uint32_t const channel)    const;
     
   private:
     
     unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
-    unsigned int                                         fNchannels;      ///< number of channels in the detector
-    unsigned int                                         fTopChannel;     ///< book keeping highest channel #
+    uint32_t                                             fNchannels;      ///< number of channels in the detector
+    uint32_t                                             fTopChannel;     ///< book keeping highest channel #
     std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
 
 
     std::vector< unsigned int >				 fWiresInPlane;
     unsigned int					 fPlanesPerAPA;   
-    unsigned int					 fChannelsPerAPA;
+    uint32_t					         fChannelsPerAPA;
     std::vector<std::vector<std::vector<unsigned int>>>	 nAnchoredWires;
 
     std::vector<std::vector<std::vector<unsigned int>>>  fWiresPerPlane;  ///< The number of wires in this plane 

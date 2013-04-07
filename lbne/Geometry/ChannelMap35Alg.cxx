@@ -55,7 +55,7 @@ namespace geo{
     // Within a same-z, same-y group, sort TPCs according to x
      if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;
  
-    // none of those are true, so return false
+     // none of those are true, so return false
      return false;
   }
 
@@ -185,7 +185,7 @@ namespace geo{
       }
     }
 
-    static unsigned int CurrentChannel = 0;
+    static uint32_t CurrentChannel = 0;
  
     for(unsigned int cs = 0; cs != fNcryostat; ++cs){
       for(unsigned int apa = 0; apa != fNTPC[cs]/2; ++apa){  
@@ -238,10 +238,10 @@ namespace geo{
 
     //initialize fWirePitch and fOrientation
     for (unsigned int plane=0; plane<fPlanesPerAPA; plane++){
-        fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
-        fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
-        fTanOrientation[plane] = tan(fOrientation[plane]);
-        fCosOrientation[plane] = cos(fOrientation[plane]);
+      fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
+      fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
+      fTanOrientation[plane] = tan(fOrientation[plane]);
+      fCosOrientation[plane] = cos(fOrientation[plane]);
     }
 
 
@@ -258,18 +258,18 @@ namespace geo{
   void ChannelMap35Alg::Uninitialize()
   {
 
-      std::vector< std::vector<std::vector<unsigned int> > >().swap(fFirstChannelInThisPlane);
-      std::vector< std::vector<std::vector<unsigned int> > >().swap(fFirstChannelInNextPlane);
+    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInThisPlane);
+    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInNextPlane);
 
   }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::WireID> ChannelMap35Alg::ChannelToWire(unsigned int channel)  const
+  std::vector<geo::WireID> ChannelMap35Alg::ChannelToWire(uint32_t channel)  const
   {
 
     // first check if this channel ID is legal
     if(channel >= fNchannels )
-       throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel;
+      throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel;
 
     std::vector< WireID > AllSegments;
     
@@ -314,7 +314,7 @@ namespace geo{
     int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
 
     // find the lowest wire
-    unsigned int ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[cstat][tpc/2][plane] );
+    uint32_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[cstat][tpc/2][plane] );
     unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[cstat][tpc/2][plane];
     
     if(ChannelGroup%2==1){
@@ -345,17 +345,17 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35Alg::Nchannels() const
+  uint32_t ChannelMap35Alg::Nchannels() const
   {
     return fNchannels;
   }
   
 
   //----------------------------------------------------------------------------
-  unsigned int    ChannelMap35Alg::NearestWire(const TVector3& xyz,
-                                         unsigned int    plane,
-                                         unsigned int    tpc,
-                                         unsigned int    cryostat)     const
+  uint32_t    ChannelMap35Alg::NearestWire(const TVector3& xyz,
+					   unsigned int    plane,
+					   unsigned int    tpc,
+					   unsigned int    cryostat)     const
   {
 
     //get the position of first wire in a given cryostat, tpc and plane
@@ -380,7 +380,7 @@ namespace geo{
 
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
-    unsigned int iwire=int(distance/fWirePitch[plane]);
+    uint32_t iwire=int(distance/fWirePitch[plane]);
 
     //if the distance between the wire and a given point is greater than the half of wirepitch,
     //then the point is closer to a i+1 wire thus add one
@@ -392,15 +392,15 @@ namespace geo{
   }
   
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35Alg::PlaneWireToChannel(unsigned int plane,
-							 unsigned int wire,
-							 unsigned int tpc,
-							 unsigned int cstat) const
+  uint32_t ChannelMap35Alg::PlaneWireToChannel(unsigned int plane,
+					       unsigned int wire,
+					       unsigned int tpc,
+					       unsigned int cstat) const
   {
 
     unsigned int OtherSideWires = 0;
 
-    unsigned int Channel = fFirstChannelInThisPlane[cstat][std::floor(tpc/2)][plane];
+    uint32_t Channel = fFirstChannelInThisPlane[cstat][std::floor(tpc/2)][plane];
 
     // get number of wires starting on the first side of the APA if starting
     // on the other side TPC.
@@ -418,24 +418,24 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  const SigType_t ChannelMap35Alg::SignalType( unsigned int const channel )  const
+  const SigType_t ChannelMap35Alg::SignalType( uint32_t const channel )  const
   {
-    unsigned int chan = channel % fChannelsPerAPA;
+    uint32_t chan = channel % fChannelsPerAPA;
     SigType_t sigt;
 
     if(       chan <  fFirstChannelInThisPlane[0][0][2]     ){ sigt = kInduction;  }
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ sigt = kCollection; }
     else{    mf::LogWarning("BadChannelSignalType") << "Channel " << channel 
-	     << " (" << chan << ") not given signal type." << std::endl;         }
+						    << " (" << chan << ") not given signal type." << std::endl;         }
   
     return sigt;
   }
 
   //----------------------------------------------------------------------------
-  const View_t ChannelMap35Alg::View( unsigned int const channel )  const
+  const View_t ChannelMap35Alg::View( uint32_t const channel )  const
   {
-    unsigned int chan = channel % fChannelsPerAPA;
+    uint32_t chan = channel % fChannelsPerAPA;
     View_t view;
 
     if(       chan <  fFirstChannelInNextPlane[0][0][0]     ){ view = geo::kU; }

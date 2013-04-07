@@ -46,16 +46,16 @@ namespace geo{
     // then numbering will go in y then in z direction.
 
     // First sort all TPCs into same-z groups
-     if(xyz1[2] < xyz2[2]) return true;
+    if(xyz1[2] < xyz2[2]) return true;
  
     // Within a same-z group, sort TPCs into same-y groups
-     if(xyz1[2] == xyz2[2] && xyz1[1] < xyz2[1]) return true;
+    if(xyz1[2] == xyz2[2] && xyz1[1] < xyz2[1]) return true;
  
     // Within a same-z, same-y group, sort TPCs according to x
-     if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;
+    if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;
  
     // none of those are true, so return false
-     return false;
+    return false;
   }
 
 
@@ -176,7 +176,7 @@ namespace geo{
 
     }// end plane loop
 
-    static unsigned int CurrentChannel = 0;
+    static uint32_t CurrentChannel = 0;
    
     for(unsigned int PCount = 0; PCount != fPlanesPerAPA; ++PCount){
 
@@ -225,10 +225,10 @@ namespace geo{
 
     //initialize fWirePitch and fOrientation
     for (unsigned int plane=0; plane<cgeo[0]->TPC(0).Nplanes(); plane++){
-        fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
-        fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
-        fTanOrientation[plane] = tan(fOrientation[plane]);
-        fCosOrientation[plane] = cos(fOrientation[plane]);
+      fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
+      fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
+      fTanOrientation[plane] = tan(fOrientation[plane]);
+      fCosOrientation[plane] = cos(fOrientation[plane]);
     }
 
 
@@ -271,18 +271,18 @@ namespace geo{
   void ChannelMapAPAAlg::Uninitialize()
   {
 
-      std::vector< std::vector<std::vector<unsigned int> > >().swap(fFirstChannelInThisPlane);
-      std::vector< std::vector<std::vector<unsigned int> > >().swap(fFirstChannelInNextPlane);
+    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInThisPlane);
+    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInNextPlane);
 
   }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::WireID> ChannelMapAPAAlg::ChannelToWire(unsigned int channel)  const
+  std::vector<geo::WireID> ChannelMapAPAAlg::ChannelToWire(uint32_t channel)  const
   {
 
     // first check if this channel ID is legal
     if(channel >= fNchannels )
-       throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel;
+      throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel;
 
     std::vector< WireID > AllSegments;
     
@@ -293,35 +293,35 @@ namespace geo{
     static unsigned int NextPlane;
     static unsigned int ThisPlane;
     
-    unsigned int chan       = channel%fChannelsPerAPA;
-    unsigned int pureAPAnum = std::floor( channel/fChannelsPerAPA );
+    uint32_t chan       = channel%fChannelsPerAPA;
+    uint32_t pureAPAnum = std::floor( channel/fChannelsPerAPA );
 
-      bool breakVariable = false;
-      for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
+    bool breakVariable = false;
+    for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
 	  
-	NextPlane = fFirstChannelInNextPlane[0][0][planeloop];
-        ThisPlane = fFirstChannelInThisPlane[0][0][planeloop];
+      NextPlane = fFirstChannelInNextPlane[0][0][planeloop];
+      ThisPlane = fFirstChannelInThisPlane[0][0][planeloop];
 	  
-	if(chan < NextPlane){
+      if(chan < NextPlane){
 
-	  // fNTPC[0] works for now since there are the same number of TPCs per crostat
-	  cstat = std::floor( channel / ((fNTPC[0]/2)*fChannelsPerAPA) );
-	  tpc   = (2*pureAPAnum) % fNTPC[0];
-	  plane = planeloop;
-	  wireThisPlane  = chan - ThisPlane;
+	// fNTPC[0] works for now since there are the same number of TPCs per crostat
+	cstat = std::floor( channel / ((fNTPC[0]/2)*fChannelsPerAPA) );
+	tpc   = (2*pureAPAnum) % fNTPC[0];
+	plane = planeloop;
+	wireThisPlane  = chan - ThisPlane;
 	    
-	  breakVariable = true;
-	  break;
-        }
-        if(breakVariable) break;	  
-      }// end plane loop
+	breakVariable = true;
+	break;
+      }
+      if(breakVariable) break;	  
+    }// end plane loop
 
     
 
     int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
 
     // find the lowest wire
-    unsigned int ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
+    uint32_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
     unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[plane];
     
     if(ChannelGroup%2==1){
@@ -346,17 +346,17 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::Nchannels() const
+  uint32_t ChannelMapAPAAlg::Nchannels() const
   {
     return fNchannels;
   }
   
 
   //----------------------------------------------------------------------------
-  unsigned int    ChannelMapAPAAlg::NearestWire(const TVector3& xyz,
-                                         unsigned int    plane,
-                                         unsigned int    tpc,
-                                         unsigned int    cryostat)     const
+  uint32_t    ChannelMapAPAAlg::NearestWire(const TVector3& xyz,
+					    unsigned int    plane,
+					    unsigned int    tpc,
+					    unsigned int    cryostat)     const
   {
 
     //get the position of first wire in a given cryostat, tpc and plane
@@ -381,7 +381,7 @@ namespace geo{
     
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
-    unsigned int iwire=int(distance/fWirePitch[plane]);
+    uint32_t iwire=int(distance/fWirePitch[plane]);
 
     //if the distance between the wire and a given point is greater than the half of wirepitch,
     //then the point is closer to a i+1 wire thus add one
@@ -393,14 +393,14 @@ namespace geo{
   }
   
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::PlaneWireToChannel(unsigned int plane,
-							 unsigned int wire,
-							 unsigned int tpc,
-							 unsigned int cstat) const
+  uint32_t ChannelMapAPAAlg::PlaneWireToChannel(unsigned int plane,
+						unsigned int wire,
+						unsigned int tpc,
+						unsigned int cstat) const
   {
     unsigned int OtherSideWires = 0;
 
-    unsigned int Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
+    uint32_t Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
     Channel += cstat*(fNTPC[cstat]/2)*fChannelsPerAPA;       // move channel to proper cstat.
     Channel += std::floor( tpc/2 )*fChannelsPerAPA;		  // move channel to proper APA.
     OtherSideWires += (tpc%2)*nAnchoredWires[plane];	          // get number of wires on the first
@@ -419,9 +419,9 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  const SigType_t ChannelMapAPAAlg::SignalType( unsigned int const channel )  const
+  const SigType_t ChannelMapAPAAlg::SignalType( uint32_t const channel )  const
   {
-    unsigned int chan = channel % fChannelsPerAPA;
+    uint32_t chan = channel % fChannelsPerAPA;
     SigType_t sigt;
 
     // instead of calling channel to wire, we can make use of the way we 
@@ -431,15 +431,15 @@ namespace geo{
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ sigt = kCollection; }
     else{    mf::LogWarning("BadChannelSignalType") << "Channel " << channel 
-	     << " (" << chan << ") not given signal type." << std::endl;         }
+						    << " (" << chan << ") not given signal type." << std::endl;         }
   
     return sigt;
   }
 
   //----------------------------------------------------------------------------
-  const View_t ChannelMapAPAAlg::View( unsigned int const channel )  const
+  const View_t ChannelMapAPAAlg::View( uint32_t const channel )  const
   {
-    unsigned int chan = channel % fChannelsPerAPA;
+    uint32_t chan = channel % fChannelsPerAPA;
     View_t view;
 
     // instead of calling channel to wire, we can make use of the way we 
