@@ -1336,7 +1336,7 @@
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="0" y="0" z="0"/>
+        <position name="posDetEnclosure" unit="cm" x="0" y="-10.5" z="-151.27"/>
       </physvol>
     </volume>
 </structure>

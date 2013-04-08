@@ -280,15 +280,14 @@ $DetEncLength           =       $CryostatLength+2*$TotalPadding;
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
-  # then through the Cryostat shell, then through the upstream dead LAr.
+  # then through the Cryostat shell, then through the upstream dead LAr (including the
+  # dead LAr on the edge of the TPC, but this is covered in $UpstreamLArPadding).
   # This is to be added to the z position of every volume in volWorld
 
 $OriginZSet             =       $DetEncLength/2 
                               - $TotalPadding 
                               - $SteelThickness 
-                              - $UpstreamLArPadding 
-                              - $APALongGap/2
-                              - $TPCWireThickness/2;
+                              - $UpstreamLArPadding;
 
   # We want the world origin to be vertically centered between the stacked APAs.
   # the cryostat sits on top of concrete padding, move the detector enclosure back
@@ -1301,7 +1300,9 @@ EOF
 
 for ($i=0; $i<$NumberVerticalWires; ++$i)
 {
-my $zpos = (-0.5*$TPCWirePlaneLength)+$TPCWireThickness/2+$XWirePitch*$i;
+
+  # DocDb-6464 pg. 7 says that the center of the first wire is half of the pitch from the edge
+my $zpos = (-0.5*$TPCWirePlaneLength)+$TPCWireThickness/2+$XWirePitch*($i+0.5);
 
 print TPC <<EOF;
       <physvol>

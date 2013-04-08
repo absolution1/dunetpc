@@ -75,25 +75,42 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
+    // we want the wires to be sorted such that the smallest corner wire
+    // on the readout end of a plane is wire zero, with wire number
+    // increasing away from that wire.
+
+    // Since 35t has an APA which is both above and below the world origin,
+    // we cannot use the APA trick. If we could ask where wire 0 was, we could
+    // still do this in a single implimentation, but we aren't sure what wire
+    // center we will be getting, so this reversed sorting must be handled
+    // at the plane level where there is one vertical center.
+    // If the plane center is above, count from top down (the top stacked and
+    // largest APAs) If the plane is below (bottom stacked APA) count bottom up
+
   bool sortWire35(WireGeo* w1, WireGeo* w2){
     double xyz1[3] = {0.};
     double xyz2[3] = {0.};
 
     w1->GetCenter(xyz1); w2->GetCenter(xyz2);
 
-    // we want the wires to be sorted such that the smallest corner wire
-    // on the readout end of a plane is wire zero, with wire number
-    // increasing away from that wire. 
-
-    // if a bottom TPC, count from bottom up
-    if( xyz1[1]<0 && xyz1[1] < xyz2[1] ) return true; 
-
     // if a top TPC, count from top down
-    if( xyz1[1]>0 && xyz1[1] > xyz2[1] ) return true;
+    if( xyz1[1] > xyz2[1] ) return true;
+
+    // if a bottom TPC, this will be reversed in PlaneGeo::SortWires
+
+    // this will have an undesired effect of reversing the collection wires,
+    // so in the case of vertical (same-y) wires, "re-reverse" here to make sure they
+    // always incresae in positive y. 
+
+    // sort the top vertical wires to increase in +z direction
+    if( xyz1[1] == xyz2[1] && xyz1[1]>0 && xyz1[2] < xyz2[2] ) return true;
+
+    // sort the bottom vertical wires to increase in -z direction
+    // so that when they are reversed in PlaneGeo, they end up in +z
+    if( xyz1[1] == xyz2[1] && xyz1[1]<0 && xyz1[2] > xyz2[2] ) return true;
 
     return false;
   }
-
 
 
   //----------------------------------------------------------------------------
@@ -118,11 +135,13 @@ namespace geo{
 
     fNcryostat = cgeo.size();
     
-    mf::LogInfo("ChannelMap35Alg") << "Initializing...";
+    mf::LogInfo("ChannelMap35Alg") << "Sorting...";
 
     std::sort(cgeo.begin(), cgeo.end(), sortCryo35);
     for(size_t c = 0; c < cgeo.size(); ++c) 
       cgeo[c]->SortSubVolumes(sortTPC35, sortPlane35, sortWire35);
+
+    mf::LogInfo("ChannelMap35Alg") << "Initializing...";
       
     fNTPC.resize(fNcryostat);
     fWiresPerPlane.resize(fNcryostat);

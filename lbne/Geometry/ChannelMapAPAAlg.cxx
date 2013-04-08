@@ -59,7 +59,7 @@ namespace geo{
   }
 
 
-  //----------------------------------------------------------------------------
+ //----------------------------------------------------------------------------
   // Define sort order for planes in APA configuration
   //   same as standard, but implemented differently
   static bool sortPlaneAPA(const PlaneGeo* p1, const PlaneGeo* p2) 
@@ -85,14 +85,23 @@ namespace geo{
     // on the readout end of a plane is wire zero, with wire number
     // increasing away from that wire. 
 
-    // if a bottom TPC, count from bottom up
-    if( xyz1[1]<0 && xyz1[1] < xyz2[1] ) return true; 
 
     // if a top TPC, count from top down
-    if( xyz1[1]>0 && xyz1[1] > xyz2[1] ) return true;
+    if( xyz1[1] > xyz2[1] ) return true;
 
-    // sort the vertical wires to always increase in z direction
-    if( xyz1[1] == xyz2[1] && xyz1[2] < xyz2[2] ) return true;
+    // because of 35t asymmetry, the det agnostic PlaneGeo::SortWires
+    // must reverse implimentation of this method for bottom TPC planes
+
+    // this will have an undesired effect of reversing the collection wires,
+    // so in the case of vertical (same-y) wires, "re-reverse" here to make sure they
+    // always incresae in positive y. 
+
+    // sort the top vertical wires to increase in +z direction
+    if( xyz1[1] == xyz2[1] && xyz1[1]>0 && xyz1[2] < xyz2[2] ) return true;
+
+    // sort the bottom vertical wires to increase in -z direction
+    // so that when they are reversed in PlaneGeo, they end up in +z
+    if( xyz1[1] == xyz2[1] && xyz1[1]<0 && xyz1[2] > xyz2[2] ) return true;
 
     return false;
   }
