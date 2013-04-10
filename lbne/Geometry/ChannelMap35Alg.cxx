@@ -47,16 +47,16 @@ namespace geo{
     // then numbering will go in y then in z direction.
 
     // First sort all TPCs into same-z groups
-     if(xyz1[2] < xyz2[2]) return true;
+    if(xyz1[2] < xyz2[2]) return true;
  
     // Within a same-z group, sort TPCs into same-y groups
-     if(xyz1[2] == xyz2[2] && xyz1[1] < xyz2[1]) return true;
+    if(xyz1[2] == xyz2[2] && xyz1[1] < xyz2[1]) return true;
  
     // Within a same-z, same-y group, sort TPCs according to x
-     if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;
- 
-     // none of those are true, so return false
-     return false;
+    if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;      
+
+    // none of those are true, so return false
+    return false;
   }
 
 
@@ -93,21 +93,38 @@ namespace geo{
 
     w1->GetCenter(xyz1); w2->GetCenter(xyz2);
 
-    // if a top TPC, count from top down
-    if( xyz1[1] > xyz2[1] ) return true;
+    // immedieately take care of vertical wires regardless of which TPC
+    // vertical wires should always have same y, and always increase in z direction
+    if( xyz1[1]==xyz2[1] && xyz1[2]<xyz2[2] ) return true;
 
-    // if a bottom TPC, this will be reversed in PlaneGeo::SortWires
 
-    // this will have an undesired effect of reversing the collection wires,
-    // so in the case of vertical (same-y) wires, "re-reverse" here to make sure they
-    // always incresae in positive y. 
+    // we want the wires to be sorted such that the smallest corner wire
+    // on the readout end of a plane is wire zero, with wire number
+    // increasing away from that wire. 
 
-    // sort the top vertical wires to increase in +z direction
-    if( xyz1[1] == xyz2[1] && xyz1[1]>0 && xyz1[2] < xyz2[2] ) return true;
+    // The number 76.35 is hard-coded as the z position of the vertical boundary 
+    // between adjacent APAs. This is necessary because the largest TPC in 
+    // 35t geometry would be considered "top" AND "bottom" by the APA 
+    // configuration sorting method. Reconciling this came down to complicating 
+    // the detector-agnostic framework of sorting volumes, or hard coding.
+    // Let's keep the 35t messiness inside this class as much as possible.
 
-    // sort the bottom vertical wires to increase in -z direction
-    // so that when they are reversed in PlaneGeo, they end up in +z
-    if( xyz1[1] == xyz2[1] && xyz1[1]<0 && xyz1[2] > xyz2[2] ) return true;
+    // the hard coded nuber should be equivalent to the zposition of 
+    // volDetEnclosure in generate_35.pl
+
+    if( xyz1[2]>76.35 ){
+
+      // if a bottom TPC, count from bottom up
+      if( xyz1[1]<0 && xyz1[1] < xyz2[1] ) return true; 
+     
+      // if a top TPC, count from top down
+      if( xyz1[1]>0 && xyz1[1] > xyz2[1] ) return true;
+      
+    } else if( xyz1[2]<76.35 ){
+
+      if( xyz1[1] > xyz2[1] ) return true;
+
+    }
 
     return false;
   }
@@ -140,6 +157,7 @@ namespace geo{
     std::sort(cgeo.begin(), cgeo.end(), sortCryo35);
     for(size_t c = 0; c < cgeo.size(); ++c) 
       cgeo[c]->SortSubVolumes(sortTPC35, sortPlane35, sortWire35);
+
 
     mf::LogInfo("ChannelMap35Alg") << "Initializing...";
       
@@ -382,24 +400,27 @@ namespace geo{
     firstxyz[1]=fFirstWireCenterY[cryostat][tpc][plane];
     firstxyz[2]=fFirstWireCenterZ[cryostat][tpc][plane];
 
-    //get the orientation angle of a given plane and calculate the distance between first wire
-    //and a point projected in the plane
-    int rotate = 1;
-    if (tpc%2 == 1) rotate = -1;
+    double distance = 0.;
+    uint32_t iwire = 0;
 
-    // old distance formula
-    //double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]
-    //			   +   rotate*fTanOrientation[plane]*firstxyz[2])/
-    //                         std::sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
-    
-    // simplify and make faster
+    if (plane==2){  
+      distance = xyz[2] - firstxyz[2];
+      iwire = int( (distance)/fWirePitch[plane] );
+    } else {
 
-    double distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
+      //get the orientation angle of a given plane and calculate the distance between first wire
+      //and a point projected in the plane
+      int rotate = 1;
+      if (tpc%2 == 1) rotate = -1;
+ 
+      distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
                                 * fCosOrientation[plane]);
 
-    //by dividing distance by wirepitch and given that wires are sorted in increasing order,
-    //then the wire that is closest to a given point can be calculated
-    uint32_t iwire=int(distance/fWirePitch[plane]);
+      //by dividing distance by wirepitch and given that wires are sorted in increasing order,
+      //then the wire that is closest to a given point can be calculated
+      iwire = int(distance/fWirePitch[plane]);
+
+    }
 
     //if the distance between the wire and a given point is greater than the half of wirepitch,
     //then the point is closer to a i+1 wire thus add one

@@ -3,6 +3,31 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
 <define>
+
+<!-- 
+
+
+-->
+
+   <position name="posOriginSet"        unit="cm" x="96.017" y="24" z="76.35"/>
+
+   <position name="posTPCLargestShortDrift"  unit="cm" x="-114.7615" y="-6.84999999999999" z="-38.55"/>
+   <position name="posTPCLargestLongDrift"   unit="cm" x="14.7615" y="-6.84999999999999" z="-38.55"/>
+   <position name="posTPCSmallestShortDrift" unit="cm" x="-114.7615" y="-69.15" z="38.55"/>
+   <position name="posTPCSmallestLongDrift"  unit="cm" x="14.7615" y="-69.15" z="38.55"/>
+   <position name="posTPCMidShortDrift"      unit="cm" x="-114.7615" y="35.15" z="38.55"/>
+   <position name="posTPCMidLongDrift"       unit="cm" x="14.7615" y="35.15" z="38.55"/>
+
+
+   <position name="posCathode0" unit="cm" x="-129.533" y="-58.05" z="-37.85"/>
+   <position name="posCathode1" unit="cm" x="129.533" y="-58.05" z="-37.85"/>
+   <position name="posCathode2" unit="cm" x="-129.533" y="38.05" z="-37.85"/>
+   <position name="posCathode3" unit="cm" x="129.533" y="38.05" z="-37.85"/>
+   <position name="posCathode4" unit="cm" x="-129.533" y="-58.05" z="37.85"/>
+   <position name="posCathode5" unit="cm" x="129.533" y="-58.05" z="37.85"/>
+   <position name="posCathode6" unit="cm" x="-129.533" y="38.05" z="37.85"/>
+   <position name="posCathode7" unit="cm" x="129.533" y="38.05" z="37.85"/>
+
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
@@ -277,31 +302,6 @@
       aunit="deg"
       lunit="cm"/>
 
-<!--+++++++++++++++++++ U Wire Solids ++++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++ V Wire Solids ++++++++++++++++++++++-->
-
-
-
-
-                   <!-- no wires in this GDML -->
-
-
     <box name="MidLongDrift" lunit="cm" 
       x="224.443" 
       y="115.8" 
@@ -321,31 +321,6 @@
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
-
-<!--+++++++++++++++++++ U Wire Solids ++++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++ V Wire Solids ++++++++++++++++++++++-->
-
-
-
-
-                   <!-- no wires in this GDML -->
-
 
     <box name="LargestLongDrift" lunit="cm" 
       x="224.443" 
@@ -367,31 +342,6 @@
       aunit="deg"
       lunit="cm"/>
 
-<!--+++++++++++++++++++ U Wire Solids ++++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++ V Wire Solids ++++++++++++++++++++++-->
-
-
-
-
-                   <!-- no wires in this GDML -->
-
-
     <box name="SmallestShortDrift" lunit="cm" 
       x="24.443" 
       y="87.8" 
@@ -411,31 +361,6 @@
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
-
-<!--+++++++++++++++++++ U Wire Solids ++++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++ V Wire Solids ++++++++++++++++++++++-->
-
-
-
-
-                   <!-- no wires in this GDML -->
-
 
     <box name="MidShortDrift" lunit="cm" 
       x="24.443" 
@@ -457,31 +382,6 @@
       aunit="deg"
       lunit="cm"/>
 
-<!--+++++++++++++++++++ U Wire Solids ++++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++ V Wire Solids ++++++++++++++++++++++-->
-
-
-
-
-                   <!-- no wires in this GDML -->
-
-
     <box name="LargestShortDrift" lunit="cm" 
       x="24.443" 
       y="199.8" 
@@ -502,39 +402,14 @@
       aunit="deg"
       lunit="cm"/>
 
-<!--+++++++++++++++++++ U Wire Solids ++++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++ V Wire Solids ++++++++++++++++++++++-->
-
-
-
-
-                   <!-- no wires in this GDML -->
-
-
     <box name="Cryostat" lunit="cm" 
-      x="296.51" 
-      y="248.64" 
+      x="306.706" 
+      y="268.64" 
       z="195.24"/>
 
     <box name="ArgonInterior" lunit="cm" 
-      x="293.97"
-      y="246.1"
+      x="304.166"
+      y="266.1"
       z="192.7"/>
 
     <subtraction name="SteelShell">
@@ -543,7 +418,7 @@
     </subtraction>
 
     <box name="Cathode" lunit="cm"
-      x="0.002"
+      x="5.1"
       y="110"
       z="77"/>
 
@@ -555,52 +430,52 @@
      <box name="APAFrameYSideHollow" lunit="cm"
       x="5.08-2*0.3048"
       y="-20.32-2*0.3048"
-      z="10.16" />
+      z="10.16"/>
      <box name="APAFrameYSideShell" lunit="cm"
       x="5.08"
       y="-20.32"
-      z="10.16" />
+      z="10.16"/>
      <subtraction name="APAFrameYSide">
-      <first  ref="APAFrameYSideShell" />
+      <first  ref="APAFrameYSideShell"/>
       <second ref="APAFrameYSideHollow"/>
-      <positionref ref="posCenter" />
-      <rotationref ref="rIdentity" />
+      <positionref ref="posCenter"/>
+      <rotationref ref="rIdentity"/>
       </subtraction>
 
      <box name="APAFrameZSideHollow" lunit="cm"
       x="5.08-2*0.3048"
       y="10.16-2*0.3048"
-      z="75.6" />
+      z="75.6"/>
      <box name="APAFrameZSideShell" lunit="cm"
       x="5.08"
       y="10.16"
-      z="75.6" />
+      z="75.6"/>
      <subtraction name="APAFrameZSide">
-      <first  ref="APAFrameZSideShell" />
+      <first  ref="APAFrameZSideShell"/>
       <second ref="APAFrameZSideHollow"/>
-      <positionref ref="posCenter" />
-      <rotationref ref="rIdentity" />
+      <positionref ref="posCenter"/>
+      <rotationref ref="rIdentity"/>
       </subtraction>
 
      <box name="APAFrameYOuterSupport" lunit="cm"
       x="0.3048"
       y="-20.32"
-      z="10.16" />
+      z="10.16"/>
 
      <box name="APAFrameYInnerSupport" lunit="cm"
       x="0.476"
       y="-10.5631578947368"
-      z="10.16" />
+      z="10.16"/>
 
      <box name="APAFrameZHalfSupport" lunit="cm"
       x="5.08"
       y="5.08"
-      z="55.28" />
+      z="55.28"/>
 
 
     <box name="DetEnclosure" lunit="cm" 
-      x="556.51"
-      y="508.64"
+      x="566.706"
+      y="528.64"
       z="455.24"/>
 
 
@@ -615,86 +490,34 @@
       <solidref ref="SmallestLongDriftActive"/>
     </volume>
 
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++ Wire Logical Volumes ++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ U Plane ++++++++++++++++++++++++-->
-
-
     <volume name="volTPCPlaneUSmallestLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="SmallestLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ V Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneVSmallestLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="SmallestLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-<!--+++++++++++++++++++++ X Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneXSmallestLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="SmallestLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
     <volume name="volTPCSmallestLongDrift">
-      <materialref ref="LAr" />
-      <solidref ref="SmallestLongDrift" />
+      <materialref ref="LAr"/>
+      <solidref ref="SmallestLongDrift"/>
      <physvol>
-       <volumeref ref="volTPCPlaneUSmallestLongDrift" />
-       <position name="posSmallestLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneUSmallestLongDrift"/>
+       <position name="posSmallestLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneVSmallestLongDrift" />
-       <position name="posSmallestLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneVSmallestLongDrift"/>
+       <position name="posSmallestLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneXSmallestLongDrift" />
-       <position name="posSmallestLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneXSmallestLongDrift"/>
+       <position name="posSmallestLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveSmallestLongDrift"/>
@@ -707,86 +530,34 @@
       <solidref ref="MidLongDriftActive"/>
     </volume>
 
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++ Wire Logical Volumes ++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ U Plane ++++++++++++++++++++++++-->
-
-
     <volume name="volTPCPlaneUMidLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="MidLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ V Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneVMidLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="MidLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-<!--+++++++++++++++++++++ X Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneXMidLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="MidLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
     <volume name="volTPCMidLongDrift">
-      <materialref ref="LAr" />
-      <solidref ref="MidLongDrift" />
+      <materialref ref="LAr"/>
+      <solidref ref="MidLongDrift"/>
      <physvol>
-       <volumeref ref="volTPCPlaneUMidLongDrift" />
-       <position name="posMidLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneUMidLongDrift"/>
+       <position name="posMidLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneVMidLongDrift" />
-       <position name="posMidLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneVMidLongDrift"/>
+       <position name="posMidLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneXMidLongDrift" />
-       <position name="posMidLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneXMidLongDrift"/>
+       <position name="posMidLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveMidLongDrift"/>
@@ -799,86 +570,34 @@
       <solidref ref="LargestLongDriftActive"/>
     </volume>
 
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++ Wire Logical Volumes ++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ U Plane ++++++++++++++++++++++++-->
-
-
     <volume name="volTPCPlaneULargestLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="LargestLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ V Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneVLargestLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="LargestLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-<!--+++++++++++++++++++++ X Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneXLargestLongDrift">
       <materialref ref="LAr"/>
       <solidref ref="LargestLongDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
     <volume name="volTPCLargestLongDrift">
-      <materialref ref="LAr" />
-      <solidref ref="LargestLongDrift" />
+      <materialref ref="LAr"/>
+      <solidref ref="LargestLongDrift"/>
      <physvol>
-       <volumeref ref="volTPCPlaneULargestLongDrift" />
-       <position name="posLargestLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneULargestLongDrift"/>
+       <position name="posLargestLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneVLargestLongDrift" />
-       <position name="posLargestLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneVLargestLongDrift"/>
+       <position name="posLargestLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneXLargestLongDrift" />
-       <position name="posLargestLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneXLargestLongDrift"/>
+       <position name="posLargestLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveLargestLongDrift"/>
@@ -891,86 +610,34 @@
       <solidref ref="SmallestShortDriftActive"/>
     </volume>
 
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++ Wire Logical Volumes ++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ U Plane ++++++++++++++++++++++++-->
-
-
     <volume name="volTPCPlaneUSmallestShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="SmallestShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ V Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneVSmallestShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="SmallestShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-<!--+++++++++++++++++++++ X Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneXSmallestShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="SmallestShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
     <volume name="volTPCSmallestShortDrift">
-      <materialref ref="LAr" />
-      <solidref ref="SmallestShortDrift" />
+      <materialref ref="LAr"/>
+      <solidref ref="SmallestShortDrift"/>
      <physvol>
-       <volumeref ref="volTPCPlaneUSmallestShortDrift" />
-       <position name="posSmallestShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneUSmallestShortDrift"/>
+       <position name="posSmallestShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneVSmallestShortDrift" />
-       <position name="posSmallestShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneVSmallestShortDrift"/>
+       <position name="posSmallestShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneXSmallestShortDrift" />
-       <position name="posSmallestShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneXSmallestShortDrift"/>
+       <position name="posSmallestShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveSmallestShortDrift"/>
@@ -983,86 +650,34 @@
       <solidref ref="MidShortDriftActive"/>
     </volume>
 
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++ Wire Logical Volumes ++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ U Plane ++++++++++++++++++++++++-->
-
-
     <volume name="volTPCPlaneUMidShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="MidShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ V Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneVMidShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="MidShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-<!--+++++++++++++++++++++ X Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneXMidShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="MidShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
     <volume name="volTPCMidShortDrift">
-      <materialref ref="LAr" />
-      <solidref ref="MidShortDrift" />
+      <materialref ref="LAr"/>
+      <solidref ref="MidShortDrift"/>
      <physvol>
-       <volumeref ref="volTPCPlaneUMidShortDrift" />
-       <position name="posMidShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneUMidShortDrift"/>
+       <position name="posMidShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneVMidShortDrift" />
-       <position name="posMidShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneVMidShortDrift"/>
+       <position name="posMidShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneXMidShortDrift" />
-       <position name="posMidShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneXMidShortDrift"/>
+       <position name="posMidShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveMidShortDrift"/>
@@ -1075,86 +690,34 @@
       <solidref ref="LargestShortDriftActive"/>
     </volume>
 
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++ Wire Logical Volumes ++++++++++++++++++++-->
-
-
-
-   <!-- The command -w=0 has been used when running generate_lbne_gdml-NEW.pl -->
-
-        <!-- This GDML version has no wires and uses much less memory -->
-
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ U Plane ++++++++++++++++++++++++-->
-
-
     <volume name="volTPCPlaneULargestShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="LargestShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-
-<!--+++++++++++++++++++++ V Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneVLargestShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="LargestShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
-
-
-
-
-
-
-<!--+++++++++++++++++++++ X Plane ++++++++++++++++++++++++-->
-
 
     <volume name="volTPCPlaneXLargestShortDrift">
       <materialref ref="LAr"/>
       <solidref ref="LargestShortDriftPlane"/>
-
-           <!-- no wires -->
-
     </volume>
     <volume name="volTPCLargestShortDrift">
-      <materialref ref="LAr" />
-      <solidref ref="LargestShortDrift" />
+      <materialref ref="LAr"/>
+      <solidref ref="LargestShortDrift"/>
      <physvol>
-       <volumeref ref="volTPCPlaneULargestShortDrift" />
-       <position name="posLargestShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneULargestShortDrift"/>
+       <position name="posLargestShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneVLargestShortDrift" />
-       <position name="posLargestShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneVLargestShortDrift"/>
+       <position name="posLargestShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneXLargestShortDrift" />
-       <position name="posLargestShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0" />
+       <volumeref ref="volTPCPlaneXLargestShortDrift"/>
+       <position name="posLargestShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveLargestShortDrift"/>
@@ -1163,43 +726,43 @@
     </volume>
 
     <volume name="volSteelShell">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="SteelShell" />
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="SteelShell"/>
     </volume>
 
     <volume name="volCathode">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="Cathode" />
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="Cathode"/>
     </volume>
 
     <volume name="volAPAFrameYSide">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="APAFrameYSide" />
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameYSide"/>
     </volume>
 
     <volume name="volAPAFrameZSide">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="APAFrameZSide" />
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameZSide"/>
     </volume>
 
     <volume name="volAPAFrameYOuterSupport">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="APAFrameYOuterSupport" />
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameYOuterSupport"/>
     </volume>
 
     <volume name="volAPAFrameYInnerSupport">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="APAFrameYInnerSupport" />
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameYInnerSupport"/>
     </volume>
 
     <volume name="volAPAFrameZHalfSupport">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="APAFrameZHalfSupport" />
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameZHalfSupport"/>
     </volume>
 
     <volume name="volCryostat">
-      <materialref ref="LAr" />
-      <solidref ref="Cryostat" />
+      <materialref ref="LAr"/>
+      <solidref ref="Cryostat"/>
 
       <physvol>
         <volumeref ref="volSteelShell"/>
@@ -1208,114 +771,72 @@
 
 
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode1" unit="cm" 
-         x="-253.97/2 + 0.002/2" 
-         y="-206.1/2 + 110/2" 
-         z="-152.7/2 + 77/2" />
+       <volumeref ref="volCathode"/>
+       <positionref ref="posCathode0"/>
      </physvol>
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode2" unit="cm" 
-         x="-253.97/2 + 0.002/2" 
-	 y="-206.1/2 + 110/2" 
-         z="152.7/2 - 77/2" />
+       <volumeref ref="volCathode"/>
+       <positionref ref="posCathode1"/>
      </physvol>
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode3" unit="cm" 
-         x="-253.97/2 + 0.002/2" 
-	 y="206.1/2 - 110/2" 
-         z="-152.7/2 + 77/2" />
+       <volumeref ref="volCathode"/>
+       <positionref ref="posCathode2"/>
      </physvol>
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode4" unit="cm" 
-         x="-253.97/2 + 0.002/2" 
-	 y="206.1/2 - 110/2" 
-         z="152.7/2 - 77/2" />
+       <volumeref ref="volCathode"/>
+       <positionref ref="posCathode3"/>
      </physvol>
 
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode5" unit="cm" 
-         x="253.97/2 - 0.002/2" 
-	 y="-206.1/2 + 110/2" 
-         z="-152.7/2 + 77/2" />
+       <volumeref ref="volCathode"/>
+       <positionref ref="posCathode4"/>
      </physvol>
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode6" unit="cm" 
-         x="253.97/2 - 0.002/2" 
-	 y="-206.1/2 + 110/2" 
-         z="152.7/2 - 77/2" />
+       <volumeref ref="volCathode"/>
+       <positionref ref="posCathode5"/>
      </physvol>
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode7" unit="cm" 
-         x="253.97/2 - 0.002/2" 
-         y="206.1/2 - 110/2" 
-         z="-152.7/2 + 77/2" />
+       <volumeref ref="volCathode"/>
+       <positionref ref="posCathode6"/>
      </physvol>
      <physvol>
-       <volumeref ref="volCathode" />
-       <position name="posCathode8" unit="cm" 
-         x="253.97/2 - 0.002/2" 
-	 y="206.1/2 - 110/2" 
-         z="152.7/2 - 77/2" />
+       <volumeref ref="volCathode"/>
+       <positionref ref="posCathode7"/>
      </physvol>
 
 
 
       <physvol>
         <volumeref ref="volTPCSmallestLongDrift"/>
-        <position name="posTPCSmallestLongDrift" unit="cm" 
-	 x="-253.97/2 + 0.002 + 224.443/2" 
-	 y="-206.1/2 + 87.8/2" 
-         z="-152.7/2 + 75.6/2"/>
-	<rotationref ref="rPlus180AboutY"/>
+        <positionref ref="posTPCSmallestLongDrift"/>
+	<rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCSmallestShortDrift"/>
-        <position name="posTPCSmallestShortDrift"
-	 x="253.97/2 - 0.002 - 24.443/2 + 0" 
-	 y="-206.1/2 + 87.8/2 + 0"
-         z="-152.7/2 + 75.6/2 + 0"/>
-	<rotationref ref="rIdentity"/>
+        <positionref ref="posTPCSmallestShortDrift"/>
+	<rotationref ref="rPlus180AboutY"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volTPCMidLongDrift"/>
-        <position name="posTPCMidLongDrift" unit="cm" 
-	 x="-253.97/2 + 0.002 + 224.443/2" 
-	 y="206.1/2 - 115.8/2" 
-         z="-152.7/2 + 75.6/2"/>
-	<rotationref ref="rPlus180AboutY"/>
+        <positionref ref="posTPCMidLongDrift"/>
+	<rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCMidShortDrift"/>
-        <position name="posTPCMidShortDrift"
-	 x="253.97/2 - 0.002 - 24.443/2 + 0" 
-	 y="206.1/2 - 115.8/2 + 0" 
-         z="-152.7/2 + 75.6/2 + 0"/>
-	<rotationref ref="rIdentity"/>
+        <positionref ref="posTPCMidShortDrift"/>
+	<rotationref ref="rPlus180AboutY"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volTPCLargestLongDrift"/>
-        <position name="posTPCLargestLongDrift" unit="cm" 
-	 x="-253.97/2+0.002+224.443/2" 
-	 y="206.1/2-199.8/2" 
-         z="152.7/2-75.6/2"/>
-	<rotationref ref="rPlus180AboutY"/>
+        <positionref ref="posTPCLargestLongDrift"/>
+	<rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCLargestShortDrift"/>
-        <position name="posTPCLargestShortDrift"
-	 x="253.97/2-24.443/2-0.002 + 0" 
-	 y="206.1/2-199.8/2 + 0" 
-         z="152.7/2-75.6/2 + 0"/>
-	<rotationref ref="rIdentity"/>
+        <positionref ref="posTPCLargestShortDrift"/>
+	<rotationref ref="rPlus180AboutY"/>
       </physvol>
 
 
@@ -1327,7 +848,7 @@
       <solidref ref="DetEnclosure"/>
       <physvol>
         <volumeref ref="volCryostat"/>
-        <position name="posCryo" unit="cm" x="0" y="0" z="0" />
+        <position name="posCryo" unit="cm" x="0" y="0" z="0"/>
       </physvol>
     </volume>
 
@@ -1336,7 +857,7 @@
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="0" y="-10.5" z="-151.27"/>
+        <position name="posDetEnclosure" unit="cm" x="96.017" y="24" z="76.35"/>
       </physvol>
     </volume>
 </structure>
