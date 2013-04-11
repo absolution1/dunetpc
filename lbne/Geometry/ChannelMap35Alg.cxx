@@ -91,10 +91,8 @@ namespace geo{
     double xyz1[3] = {0.};
     double xyz2[3] = {0.};
 
-    std::cout << "Sorting: " << w1 << " " << w2 << " | ";
     fflush(stdout);
     w1->GetCenter(xyz1); w2->GetCenter(xyz2);
-    std::cout << xyz1[0] << " " << xyz1[1] << " " <<  xyz1[2] << " | " << xyz2[0] << " " << xyz2[1] << " " <<  xyz2[2] << " " << std::endl;
 
     // immedieately take care of vertical wires regardless of which TPC
     // vertical wires should always have same y, and always increase in z direction
