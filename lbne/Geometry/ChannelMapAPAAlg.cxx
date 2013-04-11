@@ -381,12 +381,17 @@ namespace geo{
     
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
-    uint32_t iwire=int(distance/fWirePitch[plane]);
-
+    //uint32_t iwire=int(distance/fWirePitch[plane]);
     //if the distance between the wire and a given point is greater than the half of wirepitch,
     //then the point is closer to a i+1 wire thus add one
-    double res = distance/fWirePitch[plane] - int( distance/fWirePitch[plane] );
-    if (res > fWirePitch[plane]/2)	iwire+=1;
+    //double res = distance/fWirePitch[plane] - int( distance/fWirePitch[plane] );
+    //if (res > fWirePitch[plane]/2)	iwire+=1;
+
+    double dwire=distance/fWirePitch[plane];
+    uint32_t iwire=int(dwire);
+    if (dwire-iwire>fWirePitch[plane]*0.5) ++iwire;
+    uint32_t maxwireminus1=fWiresInPlane[plane]-1;
+    if(iwire>maxwireminus1) iwire=maxwireminus1;
 
     return iwire;
 

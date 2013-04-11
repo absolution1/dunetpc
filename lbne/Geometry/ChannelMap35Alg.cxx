@@ -91,7 +91,10 @@ namespace geo{
     double xyz1[3] = {0.};
     double xyz2[3] = {0.};
 
+    std::cout << "Sorting: " << w1 << " " << w2 << " | ";
+    fflush(stdout);
     w1->GetCenter(xyz1); w2->GetCenter(xyz2);
+    std::cout << xyz1[0] << " " << xyz1[1] << " " <<  xyz1[2] << " | " << xyz2[0] << " " << xyz2[1] << " " <<  xyz2[2] << " " << std::endl;
 
     // immedieately take care of vertical wires regardless of which TPC
     // vertical wires should always have same y, and always increase in z direction
@@ -401,11 +404,9 @@ namespace geo{
     firstxyz[2]=fFirstWireCenterZ[cryostat][tpc][plane];
 
     double distance = 0.;
-    uint32_t iwire = 0;
 
     if (plane==2){  
       distance = xyz[2] - firstxyz[2];
-      iwire = int( (distance)/fWirePitch[plane] );
     } else {
 
       //get the orientation angle of a given plane and calculate the distance between first wire
@@ -416,16 +417,20 @@ namespace geo{
       distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
                                 * fCosOrientation[plane]);
 
-      //by dividing distance by wirepitch and given that wires are sorted in increasing order,
-      //then the wire that is closest to a given point can be calculated
-      iwire = int(distance/fWirePitch[plane]);
-
     }
 
     //if the distance between the wire and a given point is greater than the half of wirepitch,
     //then the point is closer to a i+1 wire thus add one
-    double res = distance/fWirePitch[plane] - int( distance/fWirePitch[plane] );
-    if (res > fWirePitch[plane]/2)	iwire+=1;
+    //double res = distance/fWirePitch[plane] - int( distance/fWirePitch[plane] );
+    //if (res > fWirePitch[plane]/2)	iwire+=1;
+
+    // do it, but also check to see if we are on the edge
+
+    double dwire=distance/fWirePitch[plane];
+    uint32_t iwire=int(dwire);
+    if (dwire-iwire>fWirePitch[plane]*0.5) ++iwire;
+    uint32_t maxwireminus1=fWiresInPlane[plane]-1;
+    if(iwire>maxwireminus1) iwire=maxwireminus1;
 
     return iwire;
 
