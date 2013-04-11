@@ -427,7 +427,7 @@ namespace geo{
     double dwire=distance/fWirePitch[plane];
     uint32_t iwire=int(dwire);
     if (dwire-iwire>fWirePitch[plane]*0.5) ++iwire;
-    uint32_t maxwireminus1=fWiresInPlane[plane]-1;
+    uint32_t maxwireminus1=fWiresPerPlane[0][tpc/2][plane]-1;
     if(iwire>maxwireminus1) iwire=maxwireminus1;
 
     return iwire;
