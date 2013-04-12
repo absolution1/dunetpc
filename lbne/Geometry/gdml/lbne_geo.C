@@ -29,8 +29,8 @@ lbne_geo(TString volName="")
   }
 
   gGeoManager->GetTopNode();
-  gGeoManager->CheckOverlaps(1e-5);
-  gGeoManager->PrintOverlaps();
+//  gGeoManager->CheckOverlaps(1e-5);
+//  gGeoManager->PrintOverlaps();
   gGeoManager->SetMaxVisNodes(70000);
 
   gGeoManager->GetTopVolume()->Draw();
