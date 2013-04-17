@@ -13,6 +13,7 @@
 #include "Geometry/WireGeo.h"
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "messagefacility/MessageLogger/MessageLogger.h" 
 
 namespace geo{
 

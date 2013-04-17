@@ -13,10 +13,9 @@
 #include "Geometry/WireGeo.h"
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "messagefacility/MessageLogger/MessageLogger.h" 
 
 namespace geo{
-
-
 
   //----------------------------------------------------------------------------
   // Define sort order for cryostats in APA configuration
@@ -75,22 +74,22 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-    // we want the wires to be sorted such that the smallest corner wire
-    // on the readout end of a plane is wire zero, with wire number
-    // increasing away from that wire.
-
-    // Since 35t has an APA which is both above and below the world origin,
-    // we cannot use the APA trick. If we could ask where wire 0 was, we could
-    // still do this in a single implimentation, but we aren't sure what wire
-    // center we will be getting, so this reversed sorting must be handled
-    // at the plane level where there is one vertical center.
-    // If the plane center is above, count from top down (the top stacked and
-    // largest APAs) If the plane is below (bottom stacked APA) count bottom up
-
+  // we want the wires to be sorted such that the smallest corner wire
+  // on the readout end of a plane is wire zero, with wire number
+  // increasing away from that wire.
+  
+  // Since 35t has an APA which is both above and below the world origin,
+  // we cannot use the APA trick. If we could ask where wire 0 was, we could
+  // still do this in a single implimentation, but we aren't sure what wire
+  // center we will be getting, so this reversed sorting must be handled
+  // at the plane level where there is one vertical center.
+  // If the plane center is above, count from top down (the top stacked and
+  // largest APAs) If the plane is below (bottom stacked APA) count bottom up
+  
   bool sortWire35(WireGeo* w1, WireGeo* w2){
     double xyz1[3] = {0.};
     double xyz2[3] = {0.};
-
+    
     fflush(stdout);
     w1->GetCenter(xyz1); w2->GetCenter(xyz2);
 
