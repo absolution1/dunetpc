@@ -214,25 +214,29 @@ namespace detsim {
 	fNoiseFact = fNoiseFactZ;
 	fNoiseWidth = fNoiseWidthZ;
 	fLowCutoff = fLowCutoffZ;
+
+	GenNoise(fNoiseZ[p]);
+	for(int i = 0; i < fNTicks; ++i)
+	  fNoiseDist->Fill(fNoiseZ[p][i]);
 	
 	fNoiseFact = fNoiseFactU;
 	fNoiseWidth = fNoiseWidthU;
 	fLowCutoff = fLowCutoffU;
-	
+
+	GenNoise(fNoiseU[p]);
+	for(int i = 0; i < fNTicks; ++i)	 
+	  fNoiseDist->Fill(fNoiseU[p][i]);
+
+
 	fNoiseFact = fNoiseFactV;
 	fNoiseWidth = fNoiseWidthV;
 	fLowCutoff = fLowCutoffV;
  
     
-	GenNoise(fNoiseZ[p]);
-	GenNoise(fNoiseU[p]);
 	GenNoise(fNoiseV[p]);
-
-	for(int i = 0; i < fNTicks; ++i){
-	  fNoiseDist->Fill(fNoiseZ[p][i]);
-	  fNoiseDist->Fill(fNoiseU[p][i]);
+	for(int i = 0; i < fNTicks; ++i)
 	  fNoiseDist->Fill(fNoiseV[p][i]);
-	}
+	
       }// end loop over wires
     } 
     return;
