@@ -1,0 +1,57 @@
+#include "job/services_lbne35t.fcl"
+
+process_name: SignalShapingLBNE35tTest
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "ss_test_lbne35t.root" }
+  user: {}
+}
+
+services.user.Geometry:           @local::lbne35t_geo
+services.user.DetectorProperties: @local::lbne35t_detproperties
+services.user.LArProperties:      @local::lbne35t_properties
+services.user.LArFFT:             @local::lbne35t_larfft
+services.user.SignalShapingServiceLBNE35t: @local::lbne35t_signalshapingservice
+services.user.DatabaseUtil:       @local::lbne35t_database
+services.user.DatabaseUtil.ShouldConnect: false
+
+services.user.LArFFT.FFTOption: ""
+
+
+source:
+{
+  module_type: EmptyEvent
+  maxEvents:   0       # Number of events to create
+}
+
+outputs:
+{
+}
+
+physics:
+{
+
+ analyzers:
+ {
+  sstest: { module_type: "SignalShapingLBNE35tTest" }
+ }
+
+ #define the path for analyzer modules, order does not matter.
+ #see lines starting physics.analyzers below
+ ana:  [ sstest ]
+
+ #trigger_paths is a keyword and contains the paths that modify the art::event, 
+ #ie filters and producers
+ trigger_paths: [ ] 
+
+ #end_paths is a keyword and contains the paths that do not modify the art::Event, 
+ #ie analyzers and output streams.  these all run simultaneously
+ end_paths:     [ana]  
+}
+
+physics.analyzers.sstest:
+{
+  module_type: "SignalShapingLBNE35tTest"
+}
