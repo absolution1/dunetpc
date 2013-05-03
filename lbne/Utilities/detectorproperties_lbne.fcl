@@ -1,0 +1,34 @@
+#include "job/detectorproperties.fcl"
+
+BEGIN_PROLOG
+
+
+lbne10kt_detproperties:                   @local::standard_detproperties
+lbne10kt_detproperties.SamplingRate:      500.         #in ns
+lbne10kt_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for LBNE 10kt
+lbne10kt_detproperties.NumberTimeSamples: 3200
+lbne10kt_detproperties.TimeOffsetU:       0.
+lbne10kt_detproperties.TimeOffsetV:       0.
+lbne10kt_detproperties.TimeOffsetZ:       0.
+lbne10kt_detproperties.ReadOutWindowSize: 3200
+
+lbne34kt_detproperties:                   @local::standard_detproperties
+lbne34kt_detproperties.SamplingRate:      500.         #in ns
+lbne34kt_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for LBNE 10kt
+lbne34kt_detproperties.NumberTimeSamples: 3200
+lbne34kt_detproperties.TimeOffsetU:       0.
+lbne34kt_detproperties.TimeOffsetV:       0.
+lbne34kt_detproperties.TimeOffsetZ:       0.
+lbne34kt_detproperties.ReadOutWindowSize: 3200
+
+lbne35t_detproperties:                   @local::standard_detproperties
+lbne35t_detproperties.SamplingRate:      500.         #in ns
+lbne35t_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for LBNE 35t
+lbne35t_detproperties.NumberTimeSamples: 3200
+lbne35t_detproperties.TimeOffsetU:       0.
+lbne35t_detproperties.TimeOffsetV:       0.
+lbne35t_detproperties.TimeOffsetZ:       0.
+lbne35t_detproperties.ReadOutWindowSize: 3200
+
+
+END_PROLOG
