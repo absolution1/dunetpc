@@ -1,0 +1,17 @@
+#include "job/largeantmodules.fcl"
+
+BEGIN_PROLOG
+
+lbne10kt_largeant:                   @local::standard_largeant
+lbne10kt_largeantana:                @local::standard_largeantana
+lbne10kt_largeantana.SmartStacking:  1
+
+# For now, treat other lbne geometries like 10kt
+
+lbne34kt_largeant:                   @local::lbne10kt_largeant
+lbne34kt_largeantana:                @local::lbne10kt_largeantana
+lbne35t_largeant:                    @local::lbne10kt_largeant
+lbne35t_largeantana:                 @local::lbne10kt_largeantana
+
+
+END_PROLOG
