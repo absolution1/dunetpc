@@ -413,6 +413,10 @@ namespace geo{
  
       distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
                                 * fCosOrientation[plane]);
+    
+    //by dividing distance by wirepitch and given that wires are sorted in increasing order,
+    //then the wire that is closest to a given point can be calculated
+    uint32_t iwire=int(distance/fWirePitch[plane]);
 
     }
 

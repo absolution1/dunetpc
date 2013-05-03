@@ -3,7 +3,7 @@
 # contact tylerdalion@gmail.com for any GDML/generate questions
 # I would love to help!
 
-# This is essentially the same script as the one that generates 34kt,
+# This is essentially the same script as the one that generates 10kt,
 # just with a different set of parameters/dimensions. Eventually these
 # differing parameters will be handled by passing different xml inputs
 # to a single script, thereby setting the parameters.
@@ -115,12 +115,12 @@ $TPCWirePlaneThickness  =   $TPCWireThickness;
 $nCryos	               =     2;
 $nAPAWide	       =     3; 
 $nAPAHigh	       =     2;
-$nAPALong	       =     10;
+$nAPALong	       =     18;
 
 $CPAThickness          =     5.1; 
 $APAFrame_x            =     2*$inch; # this does not include the wire spacing
 $APAWirePlaneSpacing   =     0.476;   # spacing between all of the wire planes (u, v, and x)
-$MaxDrift              =     228;
+$MaxDrift              =     385;
  #MaxDrift is the distance form the edge of the CPA to the edge of the first wire plane
  #TODO: the implementation and value of MaxDrift will have to be re-evaluated if adding the grid plane. 
 
@@ -283,10 +283,14 @@ $ArToAr                 =       300;
 $ConcretePadding        =	50;
 $FoamPadding            =       80;
 $TotalPadding	        =	$ConcretePadding+$FoamPadding;
-$DetEncWidth	        =	2*$CryostatWidth+2*$TotalPadding+2*$FoamPadding + $ArToAr;
+
+# 34kt difference: Lengtho holds 2 cryostats instead of width
+# TODO: ArToAr same for now. not in 3833, need design diagrams or AutoCAD
+$DetEncLength	        =	2*$CryostatLength+2*$TotalPadding+2*$FoamPadding + $ArToAr;
+$DetEncWidth            =       $CryostatWidth+2*$TotalPadding;
 $DetEncHeight	        =	$CryostatHeight+$ConcretePadding; 
                                     # no foam on bottom or top, no concrete on top
-$DetEncLength           =       $CryostatLength+2*$TotalPadding;
+
 
 
   # We want the world origin to be at the very front of the fiducial volume.
@@ -312,68 +316,22 @@ $OriginYSet             =       $HeightGaseousAr/2
 
 # TODO: Needs work from here on... wait until design stabilizes
 
-$RockThickness	        =       3000;
+# Since we want the z center to be at the fron face of the first fiducial volume,
+# nearly all of the first cryostat, and comletely all of the second, ar on the 
+# positive z side of the world volume. In other words, most of the very long
+# volDetEnclosue is on the positive z side, so the world must be long enough to
+# contain that
 
-$WorldWidth             =       3*$RockThickness;
-$WorldHeight            =       3*$RockThickness;
-$WorldLength            =       3*$RockThickness;
+$RockThickness	        =       5000;
+
+$WorldWidth             =       $DetEncWidth+2*$RockThickness;
+$WorldHeight            =       $DetEncHeight+2*$RockThickness;
+$WorldLength            =       $DetEncLength+2*$RockThickness;
 
 
-
-
-
-
-
-
-#############################################################
-############## Service Building and Hillside  ###############
-
-$HighBayTopRockThickness    = 320;
-$LowBayTopRockThickness     = 250;
-
-$ServiceBuildingExtraWidth =    890; 
-   # for now 890 is the difference between 4244 and 3354, which are 
-   # the spec'd service building width and detector enclosure width 11/1/2012
-
-#LowBayDefinitions
-$LowBayInsideWidth     =       $DetEncWidth + $ServiceBuildingExtraWidth;
-$LowBayInsideHeight    =       350;
-$LowBayInsideLength    =       2666;
-
-$LowBayCeilingThickness  =     2*$ConcretePadding;
-$LowBaySideWallThickness =     $ConcretePadding;
-$LowBayBackWallThickness =     $ConcretePadding;
-
-#HighBayDefinitions
-$HighBayInsideWidth     =       $DetEncWidth + $ServiceBuildingExtraWidth;
-$HighBayInsideHeight    =       1048;
-$HighBayInsideLength    =       1719;
-
-$HighBayCeilingThickness   =    2*$ConcretePadding;
-$HighBayFrontWallThickness =    $ConcretePadding;
-$HighBaySideWallThickness  =    $ConcretePadding;
-$HighBayBackWallThickness  =    2*$ConcretePadding;
-
-$HighBayOverlap         =       500; #the opening for access to the DetEncl and position of the HighBay
-
-$GabionThickness        =       400;
-
-$SlopeRockFillHeight    =       ($HighBayInsideHeight + $HighBayCeilingThickness +$HighBayTopRockThickness - $LowBayInsideHeight - $LowBayCeilingThickness - $LowBayTopRockThickness);
-$SlopeRockFillLength    =       $SlopeRockFillHeight*2;
-
-$HillSideAngle = 20; #in degrees
-$HillSideLength = $RockThickness + $DetEncLength;
-$HillSideHeight = $HillSideLength * tan( deg2rad($HillSideAngle));
-$HillSideWidth = $RockThickness - ($ServiceBuildingExtraWidth/2 + $LowBaySideWallThickness + $GabionThickness);
-
-$HillSideBoxLength = $RockThickness - ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayOverlap +$HighBayBackWallThickness - $DetEncLength );
-$HillSideBoxWidth = $LowBayInsideWidth + 2*$LowBaySideWallThickness + 2*$GabionThickness;
-$HillSideBoxHeight = $LowBayInsideHeight +$LowBayCeilingThickness +$LowBayTopRockThickness;
-
-$HillSideMiddleLength = $RockThickness + $DetEncLength - $HighBayOverlap - $HighBayBackWallThickness - $SlopeRockFillLength;
-$HillSideMiddleHeight = $HillSideMiddleLength * tan( deg2rad($HillSideAngle));
-$HillSideMiddleWidth = $HillSideBoxWidth;
-
+# 34kt difference: The Highbay and service building portions of 
+# the code have been entirely removed, since 34kt underground
+# will be much different.
 
 
 
@@ -402,11 +360,6 @@ gen_TPC();	 # generates wires, wire planes, and puts them in volTPC
 gen_Cryostat();	 # places (2*nAPAWide x nAPAHigh x nAPALong) volTPC,
 		 # half rotated 180 about Y
 gen_Enclosure(); # places two cryostats and concrete volumes
-
-#gen_ServiceBuilding(); #puts the service building over top of the Enclosure, note that the floor of the service 
-                        #building is built here but carved out of the surrounding rock
-
-#gen_HillSide(); #puts the rock around the detector enclosure and rock fill and hillside around the service building
 
 gen_World();	 # places the enclosure among DUSEL Rock
 
@@ -1730,6 +1683,12 @@ sub gen_Enclosure()
 EOF
 
 
+# 34kt differences: The following dimensions and positioning allows
+# end to end cryostats, as opposed to side by side in 10kt.
+
+# The x and z dimensions for ConcreteWall are switched 
+
+
 # All the detector enclosure solids.
 print ENCL <<EOF;
 <solids>
@@ -1746,9 +1705,9 @@ print ENCL <<EOF;
     </subtraction>
 
     <box name="ConcreteWall" lunit="cm"
-      x="$ArToAr - 2*$FoamPadding"
+      x="$CryostatWidth+2*$TotalPadding"
       y="$CryostatHeight+$ConcretePadding"
-      z="$CryostatLength+2*$TotalPadding"/>
+      z="$ArToAr-2*$FoamPadding"/>
 
     <box name="DetEnclosure" lunit="cm" 
       x="$DetEncWidth"
@@ -1776,47 +1735,41 @@ EOF
     <volume name="volDetEnclosure">
       <materialref ref="Concrete"/>
       <solidref ref="DetEnclosure"/>
-EOF
-
-	# option for one cryostat
-if($nCryos==1){
-    print ENCL <<EOF;
-    <physvol>
-        <volumeref ref="volFoamPadding"/>
-        <position name="posNegFoamCryo" unit="cm" x="-$CryostatWidth/2-$ArToAr/2" y="$ConcretePadding/2" z="0"/>
-    </physvol>
-    <physvol>
-      <volumeref ref="volCryostat"/>
-      <position name="posNegCryo" unit="cm" x="-$CryostatWidth/2-$ArToAr/2" y="$ConcretePadding/2" z="0" />
-    </physvol>
-EOF
-		} elsif ($nCryos==2) {
-    print ENCL <<EOF;
     <physvol>
       <volumeref ref="volFoamPadding"/>
-      <position name="posNegFoamCryo" unit="cm" x="-$CryostatWidth/2-$ArToAr/2" y="$ConcretePadding/2" z="0"/>
+      <position name="posNegFoamCryo" unit="cm" 
+        x="0"
+	y="$ConcretePadding/2" 
+        z="-$CryostatLength/2-$ArToAr/2-$FoamPadding"/>
     </physvol>
     <physvol>
       <volumeref ref="volCryostat"/>
-      <position name="posNegCryo" unit="cm" x="-$CryostatWidth/2-$ArToAr/2" y="$ConcretePadding/2" z="0" />
+      <position name="posNegCryo" unit="cm" 
+        x="0" 
+	y="$ConcretePadding/2" 
+        z="-$CryostatLength/2-$ArToAr/2-$FoamPadding" />
     </physvol>
     <physvol>
       <volumeref ref="volConcreteWall"/>
-      <position name="posConcreteWall" unit="cm" x="0" y="0" z="0"/>
+      <position name="posConcreteWall" unit="cm" 
+        x="0" 
+	y="0" 
+        z="0"/>
     </physvol>
     <physvol>
       <volumeref ref="volFoamPadding"/>
-      <position name="posPosFoamCryo" unit="cm" x="$CryostatWidth/2+$ArToAr/2" y="$ConcretePadding/2" z="0"/>
+      <position name="posPosFoamCryo" unit="cm" 
+        x="0" 
+	y="$ConcretePadding/2" 
+        z="$CryostatLength/2+$ArToAr/2+$FoamPadding"/>
     </physvol>
     <physvol>
       <volumeref ref="volCryostat"/>
-      <position name="posPosCryo" unit="cm" x="$CryostatWidth/2+$ArToAr/2" y="$ConcretePadding/2" z="0" />
+      <position name="posPosCryo" unit="cm" 
+        x="0" 
+	y="$ConcretePadding/2" 
+        z="$CryostatLength/2+$ArToAr/2+$FoamPadding" />
     </physvol>
-EOF
-		}
-
-
-    print ENCL <<EOF;
     </volume>
 EOF
 
@@ -1828,335 +1781,16 @@ EOF
 close(ENCL);
 }
 
+# 34kt difference: world volumes such as hillside and service building were 
+# defined here in their own generate submethods, but 34kt won't have those,
+# ind if it does have something similar, we can start with these submethods 
+# saved in the 10kt script.
 
-
-
-
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#+++++++++++++++++++++++++++++++++++++ gen_ServiceBuilding +++++++++++++++++++++++++++++++++++++
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-sub gen_ServiceBuilding()
-{
-
-# Create the service building above the detector enclosure
-# add file to list of output GDML fragments,
-# and open it
-    $SRVBUILD = "lbne_10kT_DetServiceBuilding" . $suffix . ".gdml";
-    push (@gdmlFiles, $SRVBUILD);
-    $SRVBUILD = ">" . $SRVBUILD;
-    open(SRVBUILD) or die("Could not open file $SRVBUILD for writing");
-
-
-# The standard XML prefix and starting the gdml
-    print SRVBUILD <<EOF;
-<?xml version='1.0'?>
-<gdml>
-EOF
-
-
-# All the detector enclosure solids.
-print SRVBUILD <<EOF;
-<solids>
-
-    <box name="LowBaySolid" lunit="cm"
-      x="$LowBayInsideWidth + 2*$LowBaySideWallThickness"
-      y="$LowBayInsideHeight + $LowBayCeilingThickness"
-      z="$LowBayInsideLength + $LowBayBackWallThickness"/>
-
-    <box name="LowBayInsideSpace" lunit="cm"
-      x="$LowBayInsideWidth"
-      y="$LowBayInsideHeight"
-      z="$LowBayInsideLength" />
-
-    <subtraction name="LowBayWalls">
-      <first ref="LowBaySolid"/>
-      <second ref="LowBayInsideSpace"/>
-      <position name="posLowBayInsideSpace" unit="cm" x="0" y="-$LowBayCeilingThickness/2-0.001" z="$LowBayBackWallThickness/2+0.01"/>
-    </subtraction>
-
-    <box name="HighBaySolid" lunit="cm"
-      x="$HighBayInsideWidth + 2*$HighBaySideWallThickness"
-      y="$HighBayInsideHeight + $HighBayCeilingThickness"
-      z="$HighBayInsideLength + $HighBayBackWallThickness + $HighBayFrontWallThickness"/>
-
-    <box name="HighBayInsideSpace" lunit="cm"
-      x="$HighBayInsideWidth"
-      y="$HighBayInsideHeight"
-      z="$HighBayInsideLength" />
-
-    <box name="HighBayRearOpening" lunit="cm" x="$DetEncWidth"
-      y="$LowBayInsideHeight" z="$HighBayBackWallThickness+0.01"/>
-
-    <subtraction name="HighBayTemp">
-      <first ref="HighBaySolid"/>
-      <second ref="HighBayInsideSpace"/>
-      <position name="posHighBayInsideSpace" unit="cm" x="0" y="-$HighBayCeilingThickness/2-0.001" z="$HighBayBackWallThickness/4"/>
-    </subtraction>
-
-    <subtraction name="HighBayWalls">
-      <first ref="HighBayTemp"/>
-      <second ref="HighBayRearOpening"/>
-      <position name="posHighBayRearOpening" unit="cm" x="0" y="-(($HighBayInsideHeight+$HighBayCeilingThickness)/2 - $LowBayInsideHeight/2)" z="-($HighBayBackWallThickness/4+$HighBayInsideLength/2)"/>
-    </subtraction>
-
-    <box name="FrontGabion" lunit="cm"
-      x="$HighBayInsideWidth + 2*$HighBaySideWallThickness + 2*$GabionThickness"
-      y="$HighBayInsideHeight + $HighBayCeilingThickness +$HighBayTopRockThickness"
-      z="$GabionThickness"/>
-
-    <box name="SideGabion" lunit="cm"
-      x="$GabionThickness"
-      y="$HighBayInsideHeight + $HighBayCeilingThickness +$HighBayTopRockThickness"
-      z="$HighBayInsideLength + $HighBayFrontWallThickness +$HighBayBackWallThickness"/>
-
-    <box name="RearGabion" lunit="cm"
-      x="$GabionThickness"
-      y="$LowBayInsideHeight + $LowBayCeilingThickness +$LowBayTopRockThickness"
-      z="$LowBayInsideLength +$LowBayBackWallThickness"/>
-
-    <box name="HighBayTopRock" lunit="cm"
-      x="$HighBayInsideWidth+2*$HighBaySideWallThickness"
-      y="$HighBayTopRockThickness"
-      z="$HighBayInsideLength + $HighBayFrontWallThickness + $HighBayBackWallThickness"/>
-
-    <box name="LowBayTopRock" lunit="cm"
-      x="$LowBayInsideWidth+2*$LowBaySideWallThickness"
-      y="$LowBayTopRockThickness"
-      z="$LowBayInsideLength + $LowBayBackWallThickness"/>
-
-    <arb8 name="SlopeRockFill" v1x="0" v1y="0" v2x="$SlopeRockFillLength" v2y="0" v3x="0.01" v3y="$SlopeRockFillHeight" v4x="0" v4y="$SlopeRockFillHeight" v5x="0" v5y="0" v6x="$SlopeRockFillLength" v6y="0" v7x="0.01" v7y="$SlopeRockFillHeight" v8x="0" v8y="$SlopeRockFillHeight" dz="$LowBayInsideWidth/2+$LowBaySideWallThickness + $GabionThickness" lunit="cm"/>
-
-    <arb8 name="HillSide" v1x="0" v1y="0" v2x="$HillSideHeight" v2y="0" v3x="0.001" v3y="$HillSideLength" v4x="0" v4y="$HillSideLength" v5x="0" v5y="0" v6x="$HillSideHeight" v6y="0" v7x="0.001" v7y="$HillSideLength" v8x="0" v8y="$HillSideLength" dz="$HillSideWidth/2" lunit="cm"/>
-
-    <arb8 name="HillSideMiddle" v1x="0" v1y="0" v2x="$HillSideMiddleHeight" v2y="0" v3x="0.001" v3y="$HillSideMiddleLength" v4x="0" v4y="$HillSideMiddleLength" v5x="0" v5y="0" v6x="$HillSideMiddleHeight" v6y="0" v7x="0.001" v7y="$HillSideMiddleLength" v8x="0" v8y="$HillSideMiddleLength" dz="$HillSideMiddleWidth/2" lunit="cm"/>
-
-    <box name="HillSideBox" lunit="cm"
-      x="$HillSideBoxWidth"
-      y="$HillSideBoxHeight"
-      z="$HillSideBoxLength"/>
-
-</solids>
-EOF
-
-
-# ServiceBuilding structure
-    print SRVBUILD <<EOF;
-<structure>
-   <volume name="volHighBay">
-      <materialref ref="Concrete"/>
-      <solidref ref="HighBayWalls"/>
-   </volume>
-   <volume name="volLowBay">
-      <materialref ref="Concrete"/>
-      <solidref ref="LowBayWalls"/>
-   </volume>
-   <volume name="volFrontGabion">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="FrontGabion"/>
-   </volume>
-   <volume name="volSideGabion1">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="SideGabion"/>
-   </volume>
-   <volume name="volSideGabion2">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="SideGabion"/>
-   </volume>
-
-   <volume name="volRearGabion1">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="RearGabion"/>
-   </volume>
-   <volume name="volRearGabion2">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="RearGabion"/>
-   </volume>
-
-   <volume name="volHighBayTopRock">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="HighBayTopRock"/>
-   </volume>
-
-   <volume name="volLowBayTopRock">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="LowBayTopRock"/>
-   </volume>
-
-   <volume name="volSlopeRockFill">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="SlopeRockFill"/>
-   </volume>
-
-   <volume name="volHillSideBox">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="HillSideBox"/>
-   </volume>
-
-   <volume name="volHillSideMiddle">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="HillSideMiddle"/>
-   </volume>
-
-   <volume name="volHillSide1">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="HillSide"/>
-   </volume>
-
-   <volume name="volHillSide2">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="HillSide"/>
-   </volume>
-
-EOF
-
-print SRVBUILD <<EOF;
-</structure>
-</gdml>
-EOF
-
-close(SRVBUILD);
-}
-
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#+++++++++++++++++++++++++++++++++++++++ gen_HillSide +++++++++++++++++++++++++++++++++++++++
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-sub gen_HillSide()
-{
-# Create the WORLD fragment file name,
-# add file to list of output GDML fragments,
-# and open it
-    $HILLSIDE = "lbne_10kT_HillSide" . $suffix . ".gdml";
-    push (@gdmlFiles, $HILLSIDE);
-    $HILLSIDE = ">" . $HILLSIDE;
-    open(HILLSIDE) or die("Could not open file $HILLSIDE for writing");
-
-
-# The standard XML prefix and starting the gdml
-    print HILLSIDE <<EOF;
-<?xml version='1.0'?>
-<gdml>
-EOF
-
-
-# All the World solids.
-print HILLSIDE <<EOF;
-<solids>
-
-    <box name="Ground" lunit="cm"
-      x="$DetEncWidth+2*$RockThickness"
-      y="$DetEncHeight+$RockThickness"
-      z="$DetEncLength+2*$RockThickness"/>
-    <box name="GroundRock" lunit="cm"
-      x="$DetEncWidth+2*$RockThickness"
-      y="$DetEncHeight+$RockThickness"
-      z="$DetEncLength+2*$RockThickness"/>
-
-    <box name="DetectorCavern" lunit="cm"
-      x="$DetEncWidth"
-      y="$DetEncHeight+0.001" 
-      z="$DetEncLength"/>
-
-    <box name="HighBayFloorSpace" lunit="cm"
-      x="$HighBayInsideWidth + $HighBaySideWallThickness"
-      y="$ConcretePadding"
-      z="$HighBayInsideLength - $HighBayOverlap"/>
-
-    <subtraction name="GroundRockTemp">
-      <first ref="GroundRock"/>
-      <second ref="HighBayFloorSpace"/>
-      <position name="posCavernInGround" unit="cm" x="0" y="$RockThickness/2" z="0"/>
-    </subtraction>
-
-    <subtraction name="GroundRockWithCavern">
-      <first ref="GroundRockTemp"/>
-      <second ref="DetectorCavern"/>
-      <position name="posCavernInGround" unit="cm" x="0" y="$RockThickness/2" z="0"/>
-    </subtraction>
-
-</solids>
-EOF
-
-# World structure
-print HILLSIDE <<EOF;
-<structure>
-
-    <volume name="volGroundRockWithCavern">
-      <materialref ref="DUSEL_Rock"/>
-      <solidref ref="GroundRockWithCavern"/>
-    </volume>
-
-    <volume name="volGround">
-      <materialref ref="Air"/>
-      <solidref ref="Ground"/>
-      <physvol>
-        <volumeref ref="volGroundRockWithCavern"/>
-        <position name="posGroundRockWithCavern" unit="cm" x="0" y="-($RockThickness+$DetEncHeight)/2 + $DetEncHeight/2" z="0"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volFrontGabion"/>
-        <position name="posFrontGabion" unit="cm" x="0" y="$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="($DetEncLength/2+($HighBayInsideLength+$HighBayFrontWallThickness) -$HighBayOverlap) +$GabionThickness/2"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volSideGabion1"/>
-        <position name="posSideGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volSideGabion2"/>
-        <position name="posSideGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$HighBaySideWallThickness+$GabionThickness)/2" y="$DetEncHeight/2 +($HighBayInsideHeight+$HighBayCeilingThickness)/2 + $HighBayTopRockThickness/2" z="($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volRearGabion1"/>
-        <position name="posRearGabion" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volRearGabion2"/>
-        <position name="posRearGabion" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+$GabionThickness)/2" y="$DetEncHeight/2 +($LowBayInsideHeight+$LowBayCeilingThickness)/2 + $LowBayTopRockThickness/2" z="-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volHighBayTopRock"/>
-        <position name="posHighBayTopRock" unit="cm" x="0" y="$DetEncHeight/2 + $HighBayInsideHeight + $HighBayCeilingThickness + $HighBayTopRockThickness/2" z="($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volLowBayTopRock"/>
-        <position name="posLowBayTopRock" unit="cm" x="0" y="$DetEncHeight/2 + $LowBayInsideHeight + $LowBayCeilingThickness + $LowBayTopRockThickness/2" z="-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volSlopeRockFill"/>
-        <position name="posSlopeRockFill" unit="cm" x="0" y="$DetEncHeight/2+($LowBayInsideHeight+$LowBayCeilingThickness) +$SlopeRockFillHeight/3" z="-($HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
-	<rotationref ref="rMinus90AboutY"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volHillSideBox"/>
-        <position name="posHillSideBox" unit="cm" x="0" y="-$ConcretePadding/2+$DetEncHeight/2 + $HillSideBoxHeight/2" z="$DetEncLength/2-($DetEncLength/2 +$HillSideBoxLength/2 + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
-      </physvol>
-
-      <physvol>
-        <volumeref ref="volHillSideMiddle"/>
-        <position name="posHillSideMiddle" unit="cm" x="0" y="$DetEncHeight/2 + $HillSideBoxHeight" z="-($DetEncLength/2 +$HillSideBoxLength + ($LowBayInsideLength +$LowBayBackWallThickness + $HighBayBackWallThickness + $HighBayOverlap - $DetEncLength ) )"/>
-	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
-      </physvol>
-
-      <physvol>
-        <volumeref ref="volHillSide1"/>
-        <position name="posHillSide" unit="cm" x="-($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="$DetEncHeight/2" z="$RockThickness-$DetEncLength/2"/>
-	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volHillSide2"/>
-        <position name="posHillSide" unit="cm" x="($DetEncWidth+$ServiceBuildingExtraWidth+2*$LowBaySideWallThickness+2*$GabionThickness+$HillSideWidth)/2" y="$DetEncHeight/2" z="$RockThickness-$DetEncLength/2"/>
-	<rotationref ref="rMinus90AboutYMinus90AboutX"/>
-      </physvol>
-    </volume>
-</structure>
-</gdml>
-EOF
-
-# make_gdml.pl will take care of <setup/>
-
-close(HILLSIDE);
-}
+### TODO: World is just a large volume (> 900x900x900m) containing the detector
+### enclosre positioned such that the world origin is exactly in the place
+### we want it--see OriginYSet, and OrignZSet in the parameters at beginning.
+### The mother material is rock, and there is no air yet. Work on this will
+### come when the time deems it relevant/priority
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2186,9 +1820,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="$DetEncWidth+3*$RockThickness" 
-      y="$DetEncHeight+3*$RockThickness" 
-      z="$DetEncLength+3*$RockThickness"/>
+      x="$WorldWidth" 
+      y="$WorldHeight" 
+      z="$WorldLength"/>
 </solids>
 EOF
 
@@ -2196,23 +1830,10 @@ EOF
 print WORLD <<EOF;
 <structure>
     <volume name="volWorld" >
-      <materialref ref="Air"/>
+      <materialref ref="DUSEL_Rock"/>
       <solidref ref="World"/>
-<!--   <physvol>
-     <volumeref ref="volHighBay"/>
-     <position name="posHighBay" unit="cm" x="0" y="$OriginYSet+$DetEncHeight/2+($HighBayInsideHeight+$HighBayCeilingThickness)/2" z="$OriginZSet+($DetEncLength/2+($HighBayInsideLength+$HighBayBackWallThickness+$HighBayFrontWallThickness)/2 -$HighBayBackWallThickness - $HighBayOverlap)"/>
-   </physvol>
-   <physvol>
-     <volumeref ref="volLowBay"/>
-     <position name="posLowBay" unit="cm" x="0" y="$OriginYSet+$DetEncHeight/2+($LowBayInsideHeight+$LowBayCeilingThickness)/2" z="$OriginZSet-(($LowBayInsideLength+$LowBayBackWallThickness)/2 + $HighBayOverlap+$HighBayBackWallThickness - $DetEncLength/2)"/>
-   </physvol>
-      <physvol>
-        <volumeref ref="volGround"/>
-        <position name="posGround" unit="cm" x="0" y="0" z="0"/>
-      </physvol> -->
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-
 	<position name="posDetEnclosure" unit="cm" x="0" y="$OriginYSet" z="$OriginZSet"/>
       </physvol>
     </volume>
