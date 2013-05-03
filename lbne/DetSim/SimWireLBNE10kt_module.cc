@@ -235,7 +235,7 @@ namespace detsim {
 	GenNoise(fNoiseV[p]);
 	for(int i = 0; i < fNTicks; ++i)
 	  fNoiseDist->Fill(fNoiseV[p][i]);	
-
+	
       }// end loop over wires
     } 
     return;
@@ -315,11 +315,21 @@ namespace detsim {
       // get the sim::SimChannel for this channel
       const sim::SimChannel* sc = channels[chan];
 
+      const geo::View_t view = geo->View(chan);
+
       if( sc ){      
 
 	// loop over the tdcs and grab the number of electrons for each
 	for(size_t t = 0; t < fChargeWork.size(); ++t) 
 	  fChargeWork[t] = sc->Charge(t);      
+
+	// for (size_t t=0; t< fChargeWork.size(); ++t)
+	//   {
+	//     if (fChargeWork[t] != 0) {std::cout << "View: " << view << " time: " << t << " Charge preconvol: " <<
+	// 	fChargeWork[t] << std::endl;}
+	//   }
+
+	//     std::cout << "Prepost: " << prepost << std::endl;
 
         // Convolve charge with appropriate response function 
 	if(prepost) {
@@ -337,6 +347,12 @@ namespace detsim {
 	fChargeWork.resize(fNTicks,0);
 	sss->Convolute(chan,fChargeWork);
 
+	// for (size_t t=0; t< fChargeWork.size(); ++t)
+	//   {
+	//     if (fChargeWork[t] != 0) {std::cout << "View: " << view << " time: " << t << " Charge postconvol: " <<
+	// 	fChargeWork[t] << std::endl;}
+	//   }
+
       }
 
       // noise was already generated for each wire in the event
@@ -344,7 +360,6 @@ namespace detsim {
       // pick a new "noise channel" for every channel  - this makes sure    
       // the noise has the right coherent characteristics to be on one channel
 
-      const geo::View_t view = geo->View(chan);
     
       int noisechan = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
       int noisechanpre = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
@@ -444,6 +459,7 @@ namespace detsim {
       // if raw::kNone is selected nothing happens to adcvec
       // This shrinks adcvec, if fCompression is not kNone.
 
+      //std::cout << "Channel view: " << view << std::endl;
 
       adcvec.resize(fNSamplesReadout);
       raw::Compress(adcvec, fCompression, fZeroThreshold); 
