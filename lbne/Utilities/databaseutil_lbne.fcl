@@ -1,0 +1,28 @@
+#include "job/databaseutil.fcl"
+
+BEGIN_PROLOG
+
+
+lbne10kt_database:               @local::standard_database
+lbne10kt_database.DBName:	 "lbne_dev"
+lbne10kt_database.DBUser:	 "lbne_reader"
+lbne10kt_database.Port:	         5438
+lbne10kt_database.PassFileName:  ".lpswd"
+lbne10kt_database.ShouldConnect: true
+
+lbne34kt_database:               @local::standard_database
+lbne34kt_database.DBName:        "lbne_dev"
+lbne34kt_database.DBUser:        "lbne_reader"
+lbne34kt_database.Port:          5438
+lbne34kt_database.PassFileName:  ".lpswd"
+lbne34kt_database.ShouldConnect: true
+
+lbne35t_database:               @local::standard_database
+lbne35t_database.DBName:        "lbne_dev"
+lbne35t_database.DBUser:        "lbne_reader"
+lbne35t_database.Port:          5438
+lbne35t_database.PassFileName:  ".lpswd"
+lbne35t_database.ShouldConnect: true
+
+
+END_PROLOG

@@ -1,7 +1,7 @@
-#include "job/services_lbne35t.fcl"
-#include "job/caldata_lbne35t.fcl"
-#include "job/hitfindermodules.fcl"
-#include "job/clustermodules.fcl"
+#include "job/services_lbne.fcl"
+#include "job/caldata_lbne.fcl"
+#include "job/hitfindermodules_lbne.fcl"
+#include "job/cluster_lbne.fcl"
 #include "job/trackfindermodules.fcl"
 
 process_name: Reco
@@ -37,6 +37,7 @@ physics:
   dbcluster:  @local::lbne35t_dbcluster
   fuzzy:      @local::lbne35t_fuzzycluster
   hough:      @local::standard_houghlinefinder
+  apahit:     @local::lbne35t_apahitfinder
  }
 
  analyzers:
@@ -46,7 +47,7 @@ physics:
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
- reco: [ caldata, gaushit, dbcluster ] 
+ reco: [ caldata, apahit, dbcluster ] 
  ana:  [ dbclusterana ]
 
  #define the output stream, there could be more than one if using filters 

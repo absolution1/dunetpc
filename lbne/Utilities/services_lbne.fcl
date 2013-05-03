@@ -1,0 +1,101 @@
+#include "job/geometry_lbne.fcl"
+#include "job/detectorproperties_lbne.fcl"
+#include "job/larproperties.fcl"
+#include "job/larfft_lbne.fcl"
+#include "job/messageservice.fcl"
+#include "job/simulationservices_lbne.fcl"
+#include "job/signalservices_lbne.fcl"
+#include "job/magfield.fcl"
+#include "job/databaseutil_lbne.fcl"
+#include "job/backtracker.fcl"
+
+BEGIN_PROLOG
+
+
+# The above *_lbne.fcl include contain the parameter blocks 
+# for all lbne geometries. All PROLOG files for lbne should 
+# contain all of the parameters for each lbne geometry so
+# that they are in one place and there is only one type of 
+# file to include. This file is an example of that
+
+
+lbne10kt_services:
+{
+ Geometry:                     @local::lbne10kt_geo 	       
+ DetectorProperties:           @local::lbne10kt_detproperties 
+ LArProperties:                @local::lbne10kt_properties     
+ LArFFT:                       @local::lbne10kt_larfft        
+ DatabaseUtil:	               @local::lbne10kt_database      
+ BackTracker:                  @local::lbne10kt_backtracker   
+ SignalShapingServiceLBNE10kt: @local::lbne10kt_signalshapingservice
+}
+
+lbne10kt_simulation_services:
+{
+ LArFFT:                       @local::lbne10kt_larfft  	         
+ LArG4Parameters:              @local::lbne10kt_largeantparameters 
+ Geometry:                     @local::lbne10kt_geo 	       
+ DetectorProperties:           @local::lbne10kt_detproperties      
+ LArProperties:                @local::lbne10kt_properties	       
+ DatabaseUtil:	               @local::lbne10kt_database           
+ LArVoxelCalculator:           @local::lbne10kt_larvoxelcalculator 
+ MagneticField:                @local::no_mag 	               
+ BackTracker:                  @local::lbne10kt_backtracker        
+ SignalShapingServiceLBNE10kt: @local::lbne10kt_signalshapingservice
+}
+
+
+
+lbne34kt_services:
+{
+ Geometry:                     @local::lbne34kt_geo 	       
+ DetectorProperties:           @local::lbne34kt_detproperties 
+ LArProperties:                @local::lbne34kt_properties     
+ LArFFT:                       @local::lbne34kt_larfft        
+ DatabaseUtil:	               @local::lbne34kt_database      
+ BackTracker:                  @local::lbne34kt_backtracker   
+ SignalShapingServiceLBNE10kt: @local::lbne34kt_signalshapingservice
+}
+
+lbne34kt_simulation_services:
+{
+ LArFFT:                       @local::lbne34kt_larfft  	         
+ LArG4Parameters:              @local::lbne34kt_largeantparameters 
+ Geometry:                     @local::lbne34kt_geo 	       
+ DetectorProperties:           @local::lbne34kt_detproperties      
+ LArProperties:                @local::lbne34kt_properties	       
+ DatabaseUtil:	               @local::lbne34kt_database           
+ LArVoxelCalculator:           @local::lbne34kt_larvoxelcalculator 
+ MagneticField:                @local::no_mag 	               
+ BackTracker:                  @local::lbne34kt_backtracker        
+ SignalShapingServiceLBNE10kt: @local::lbne34kt_signalshapingservice
+}
+
+lbne35t_services:
+{
+ Geometry:                     @local::lbne35t_geo 	       
+ DetectorProperties:           @local::lbne35t_detproperties 
+ LArProperties:                @local::lbne35t_properties     
+ LArFFT:                       @local::lbne35t_larfft        
+ DatabaseUtil:	               @local::lbne35t_database      
+ BackTracker:                  @local::lbne35t_backtracker   
+ SignalShapingServiceLBNE10kt: @local::lbne35t_signalshapingservice
+}
+
+lbne35t_simulation_services:
+{
+ LArFFT:                       @local::lbne35t_larfft  	         
+ LArG4Parameters:              @local::lbne35t_largeantparameters 
+ Geometry:                     @local::lbne35t_geo 	       
+ DetectorProperties:           @local::lbne35t_detproperties      
+ LArProperties:                @local::lbne35t_properties	       
+ DatabaseUtil:	               @local::lbne35t_database           
+ LArVoxelCalculator:           @local::lbne35t_larvoxelcalculator 
+ MagneticField:                @local::no_mag 	               
+ BackTracker:                  @local::lbne35t_backtracker        
+ SignalShapingServiceLBNE10kt: @local::lbne35t_signalshapingservice
+}
+
+
+
+END_PROLOG

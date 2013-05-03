@@ -1,0 +1,20 @@
+#include "job/larfft.fcl"
+
+BEGIN_PROLOG
+
+
+lbne10kt_larfft:           @local::standard_larfft
+lbne10kt_larfft.FitBins:   5
+
+lbne34kt_larfft:           @local::standard_larfft
+lbne34kt_larfft.FitBins:   5
+
+lbne35t_larfft:            @local::standard_larfft
+lbne35t_larfft.FitBins:    5
+
+# Note: going much higher on the FitBins introduces an 
+# undesired time offset in lbne wires
+
+
+END_PROLOG
+
