@@ -1,0 +1,19 @@
+#include "job/simulationservices.fcl"
+
+BEGIN_PROLOG
+
+
+lbne10kt_largeantparameters:   @local::standard_largeantparameters
+lbne10kt_larvoxelcalculator:   @local::standard_larvoxelcalculator
+
+
+lbne34kt_largeantparameters:   @local::standard_largeantparameters
+lbne34kt_larvoxelcalculator:   @local::standard_larvoxelcalculator
+
+
+lbne35t_largeantparameters:   @local::standard_largeantparameters
+lbne35t_larvoxelcalculator:   @local::standard_larvoxelcalculator
+
+
+
+END_PROLOG
