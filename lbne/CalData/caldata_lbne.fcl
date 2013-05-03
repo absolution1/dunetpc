@@ -1,0 +1,32 @@
+#include "job/caldata.fcl"
+
+BEGIN_PROLOG
+
+
+
+lbne10kt_calwire:
+{
+ module_type:        "CalWireLBNE10kt"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+}
+lbne10kt_calwireana:   @local::standard_calwireana
+
+
+lbne35t_calwire:
+{
+ module_type:        "CalWireLBNE35t"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+}
+lbne35t_calwireana:    @local::standard_calwireana
+
+
+#Use the 10kt module
+lbne34kt_calwire:      @local::lbne10kt_calwire
+lbne34kt_calwireana:   @local::standard_calwireana
+
+
+
+END_PROLOG
+
