@@ -17,9 +17,6 @@ services.user.SignalShapingServiceLBNE35t: @local::lbne35t_signalshapingservice
 services.user.DatabaseUtil:       @local::lbne35t_database
 services.user.DatabaseUtil.ShouldConnect: false
 
-services.user.LArFFT.FFTOption: ""
-
-
 source:
 {
   module_type: EmptyEvent
