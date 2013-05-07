@@ -402,23 +402,13 @@ namespace geo{
 
     double distance = 0.;
 
-    if (plane==2){  
-      distance = xyz[2] - firstxyz[2];
-    } else {
-
-      //get the orientation angle of a given plane and calculate the distance between first wire
-      //and a point projected in the plane
-      int rotate = 1;
-      if (tpc%2 == 1) rotate = -1;
+    //get the orientation angle of a given plane and calculate the distance between first wire
+    //and a point projected in the plane
+    int rotate = 1;
+    if (tpc%2 == 1) rotate = -1;
  
-      distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
+    distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
                                 * fCosOrientation[plane]);
-    
-    //by dividing distance by wirepitch and given that wires are sorted in increasing order,
-    //then the wire that is closest to a given point can be calculated
-    uint32_t iwire=int(distance/fWirePitch[plane]);
-
-    }
 
     //if the distance between the wire and a given point is greater than the half of wirepitch,
     //then the point is closer to a i+1 wire thus add one
