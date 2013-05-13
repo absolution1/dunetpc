@@ -5,7 +5,7 @@
 #include "job/messageservice.fcl"
 #include "job/simulationservices_lbne.fcl"
 #include "job/signalservices_lbne.fcl"
-#include "job/magfield.fcl"
+#include "magfield.fcl"
 #include "job/databaseutil_lbne.fcl"
 #include "job/backtracker.fcl"
 
