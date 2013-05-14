@@ -54,7 +54,7 @@ lbne34kt_services:
  LArFFT:                       @local::lbne34kt_larfft        
  DatabaseUtil:	               @local::lbne34kt_database      
  BackTracker:                  @local::lbne34kt_backtracker   
- SignalShapingServiceLBNE10kt: @local::lbne34kt_signalshapingservice
+ SignalShapingServiceLBNE34kt: @local::lbne34kt_signalshapingservice
 }
 
 lbne34kt_simulation_services:
@@ -68,7 +68,7 @@ lbne34kt_simulation_services:
  LArVoxelCalculator:           @local::lbne34kt_larvoxelcalculator 
  MagneticField:                @local::no_mag 	               
  BackTracker:                  @local::lbne34kt_backtracker        
- SignalShapingServiceLBNE10kt: @local::lbne34kt_signalshapingservice
+ SignalShapingServiceLBNE34kt: @local::lbne34kt_signalshapingservice
 }
 
 lbne35t_services:
@@ -79,7 +79,7 @@ lbne35t_services:
  LArFFT:                       @local::lbne35t_larfft        
  DatabaseUtil:	               @local::lbne35t_database      
  BackTracker:                  @local::lbne35t_backtracker   
- SignalShapingServiceLBNE10kt: @local::lbne35t_signalshapingservice
+ SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
 }
 
 lbne35t_simulation_services:
@@ -93,7 +93,7 @@ lbne35t_simulation_services:
  LArVoxelCalculator:           @local::lbne35t_larvoxelcalculator 
  MagneticField:                @local::no_mag 	               
  BackTracker:                  @local::lbne35t_backtracker        
- SignalShapingServiceLBNE10kt: @local::lbne35t_signalshapingservice
+ SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
 }
 
 
