@@ -236,33 +236,19 @@ namespace geo{
     mf::LogVerbatim("GeometryTest") << "fNchannels = " << fNchannels ; 
 
     mf::LogVerbatim("GeometryTest") << "For all identical APA:" ; 
-    mf::LogVerbatim("GeometryTest") << "Nomber of channels per APA = " << fChannelsPerAPA ; 
+    mf::LogVerbatim("GeometryTest") << "Number of channels per APA = " << fChannelsPerAPA ; 
 
-    mf::LogVerbatim("GeometryTest") << "Wires in Plane 0 = " << fWiresInPlane[0] ;
-    mf::LogVerbatim("GeometryTest") << "Wires in Plane 1 = " << fWiresInPlane[1] ;
-    mf::LogVerbatim("GeometryTest") << "Wires in Plane 2 = " << fWiresInPlane[2] ;
+    mf::LogVerbatim("GeometryTest") << "Number of WireIDs in a U plane = " << fWiresInPlane[0] ;
+    mf::LogVerbatim("GeometryTest") << "Number of WireIDs in a V plane = " << fWiresInPlane[1] ;
+    mf::LogVerbatim("GeometryTest") << "Number of WireIDs in a Z Plane = " << fWiresInPlane[2] ;
 
-    mf::LogVerbatim("GeometryTest") << "Anchored Wires in Plane 0 = " << nAnchoredWires[0] ;
-    mf::LogVerbatim("GeometryTest") << "Anchored Wires in Plane 1 = " << nAnchoredWires[1] ;
-    mf::LogVerbatim("GeometryTest") << "Anchored Wires in Plane 2 = " << nAnchoredWires[2] ;
+    mf::LogVerbatim("GeometryTest") << "U channels per APA = " << 2*nAnchoredWires[0] ;
+    mf::LogVerbatim("GeometryTest") << "V channels per APA = " << 2*nAnchoredWires[1] ;
+    mf::LogVerbatim("GeometryTest") << "Z channels per APA side = " << nAnchoredWires[2] ;
 
-    mf::LogVerbatim("GeometryTest") << "FirstChannelInThisPlane[0][0][0] = " 
-				    << fFirstChannelInThisPlane[0][0][0] ;
-    mf::LogVerbatim("GeometryTest") << "FirstChannelInThisPlane[0][0][1] = " 
-				    << fFirstChannelInThisPlane[0][0][1] ;
-    mf::LogVerbatim("GeometryTest") << "FirstChannelInThisPlane[0][0][2] = " 
-				    << fFirstChannelInThisPlane[0][0][2] ;
-
-    mf::LogVerbatim("GeometryTest") << "FirstChannelInNextPlane[0][0][0] = " 
-                                    << fFirstChannelInNextPlane[0][0][0] ;
-    mf::LogVerbatim("GeometryTest") << "FirstChannelInNextPlane[0][0][1] = "   
-  	                            << fFirstChannelInNextPlane[0][0][1] ;
-    mf::LogVerbatim("GeometryTest") << "FirstChannelInNextPlane[0][0][2] = "   
-                                    << fFirstChannelInNextPlane[0][0][2] ;
-
-    mf::LogVerbatim("GeometryTest") << "Pitch in Plane 0 = " << fWirePitch[0] ;
-    mf::LogVerbatim("GeometryTest") << "Pitch in Plane 1 = " << fWirePitch[1] ;
-    mf::LogVerbatim("GeometryTest") << "Pitch in Plane 2 = " << fWirePitch[2] ;
+    mf::LogVerbatim("GeometryTest") << "Pitch in U Plane = " << fWirePitch[0] ;
+    mf::LogVerbatim("GeometryTest") << "Pitch in V Plane = " << fWirePitch[1] ;
+    mf::LogVerbatim("GeometryTest") << "Pitch in Z Plane = " << fWirePitch[2] ;
 
     return;
 

@@ -85,6 +85,8 @@ $XWirePitch             =   0.45;
 
 $UAngle                 =   45.7;
 $VAngle                 =   44.3;
+#$UAngle                 =   35;
+#$VAngle                 =   35;
 
 $SinUAngle              =   sin( deg2rad($UAngle) );
 $CosUAngle              =   cos( deg2rad($UAngle) );
@@ -1437,7 +1439,7 @@ print CRYO <<EOF;
       <solidref ref="Cathode" />
     </volume>
 
-    <volume name="volLightPaddle">
+    <volume name="volOpDetSensitive">
       <materialref ref="Acrylic"/>
       <solidref ref="LightPaddle"/>
     </volume>
@@ -1553,7 +1555,7 @@ EOF
              print CRYO <<EOF;
 
      <physvol>
-       <volumeref ref="volLightPaddle"/>
+       <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle\-$paddle\-TPC\-$i\-$j\-$k" unit="cm" x="$APACenter_x" y="$Paddle_Y" z="$APACenter_z + $SiPM_z/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>

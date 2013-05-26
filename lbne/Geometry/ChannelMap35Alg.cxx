@@ -283,9 +283,9 @@ namespace geo{
 
 
     mf::LogVerbatim("GeometryTest") << "fNchannels = " << fNchannels ; 
-    mf::LogVerbatim("GeometryTest") << "nAnchoredWires, plane 0 = " << nAnchoredWires[0][0][0] ;
-    mf::LogVerbatim("GeometryTest") << "nAnchoredWires, plane 1 = " << nAnchoredWires[0][0][1] ;
-    mf::LogVerbatim("GeometryTest") << "nAnchoredWires, plane 2 = " << nAnchoredWires[0][0][2] ;
+    mf::LogVerbatim("GeometryTest") << "U channels per APA = " << 2*nAnchoredWires[0][0][0] ;
+    mf::LogVerbatim("GeometryTest") << "V channels per APA = " << 2*nAnchoredWires[0][0][1] ;
+    mf::LogVerbatim("GeometryTest") << "Z channels per APA side = " << nAnchoredWires[0][0][2] ;
 
     return;
 
