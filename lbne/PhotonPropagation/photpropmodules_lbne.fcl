@@ -1,0 +1,13 @@
+#include "job/photpropmodules.fcl"
+
+BEGIN_PROLOG
+
+
+lbne10kt_photonlibraryanalyzer: @local::standard_photonlibraryanalyzer
+
+lbne34kt_photonlibraryanalyzer: @local::standard_photonlibraryanalyzer
+
+lbne35t_photonlibraryanalyzer: @local::standard_photonlibraryanalyzer
+
+
+END_PROLOG
