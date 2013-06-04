@@ -509,8 +509,7 @@ namespace detsim {
       noiseFrequency[i] += tc;
     }
   
-    // std::cout << "filled noise freq" << std::endl;
-
+   
     // inverse FFT MCSignal
     art::ServiceHandle<util::LArFFT> fFFT;
     fFFT->DoInvFFT(noiseFrequency, noise);
