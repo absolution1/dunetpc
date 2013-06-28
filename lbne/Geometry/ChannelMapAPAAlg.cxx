@@ -340,10 +340,10 @@ namespace geo{
   
 
   //----------------------------------------------------------------------------
-  uint32_t    ChannelMapAPAAlg::NearestWire(const TVector3& xyz,
-					    unsigned int    plane,
-					    unsigned int    tpc,
-					    unsigned int    cryostat)     const
+  WireID  ChannelMapAPAAlg::NearestWireID(const TVector3& xyz,
+					  unsigned int    plane,
+					  unsigned int    tpc,
+					  unsigned int    cryostat)     const
   {
 
     //get the position of first wire in a given cryostat, tpc and plane
@@ -380,7 +380,8 @@ namespace geo{
     uint32_t maxwireminus1=fWiresInPlane[plane]-1;
     if(iwire>maxwireminus1) iwire=maxwireminus1;
 
-    return iwire;
+    WireID wid(cryostat, tpc, plane, iwire);
+    return wid;
 
   }
   
