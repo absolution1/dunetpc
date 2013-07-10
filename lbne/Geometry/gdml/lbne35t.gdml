@@ -9533,52 +9533,116 @@
     <box name="LightPaddle" lunit="cm"
       x="0.476"
       y="10.16"
-      z="224.999 + 0"/>
+      z="52.74 + 0"/>
 
-     <box name="APAFrameYSideHollow" lunit="cm"
+     <box name="APAFrameYSideHollow-0" lunit="cm"
       x="5.08-2*0.3048"
-      y="-20.32-2*0.3048"
+      y="179.48-2*0.3048"
       z="10.16"/>
-     <box name="APAFrameYSideShell" lunit="cm"
+     <box name="APAFrameYSideShell-0" lunit="cm"
       x="5.08"
-      y="-20.32"
+      y="179.48"
       z="10.16"/>
-     <subtraction name="APAFrameYSide">
-      <first  ref="APAFrameYSideShell"/>
-      <second ref="APAFrameYSideHollow"/>
+     <subtraction name="APAFrameYSide-0">
+      <first  ref="APAFrameYSideShell-0"/>
+      <second ref="APAFrameYSideHollow-0"/>
       <positionref ref="posCenter"/>
       <rotationref ref="rIdentity"/>
       </subtraction>
 
-     <box name="APAFrameZSideHollow" lunit="cm"
+     <box name="APAFrameZSideHollow-0" lunit="cm"
       x="5.08-2*0.3048"
       y="10.16-2*0.3048"
       z="75.6"/>
-     <box name="APAFrameZSideShell" lunit="cm"
+     <box name="APAFrameZSideShell-0" lunit="cm"
       x="5.08"
       y="10.16"
       z="75.6"/>
-     <subtraction name="APAFrameZSide">
-      <first  ref="APAFrameZSideShell"/>
-      <second ref="APAFrameZSideHollow"/>
+     <subtraction name="APAFrameZSide-0">
+      <first  ref="APAFrameZSideShell-0"/>
+      <second ref="APAFrameZSideHollow-0"/>
       <positionref ref="posCenter"/>
       <rotationref ref="rIdentity"/>
       </subtraction>
 
-     <box name="APAFrameYOuterSupport" lunit="cm"
+     <box name="APAFrameYOuterSupport-0" lunit="cm"
       x="0.3048"
-      y="-20.32"
+      y="179.48"
       z="10.16"/>
 
-     <box name="APAFrameYInnerSupport" lunit="cm"
-      x="0.476"
-      y="-10.5631578947368"
-      z="10.16"/>
 
-     <box name="APAFrameZHalfSupport" lunit="cm"
+     <box name="APAFrameYSideHollow-1" lunit="cm"
+      x="5.08-2*0.3048"
+      y="95.48-2*0.3048"
+      z="10.16"/>
+     <box name="APAFrameYSideShell-1" lunit="cm"
       x="5.08"
-      y="5.08"
-      z="55.28"/>
+      y="95.48"
+      z="10.16"/>
+     <subtraction name="APAFrameYSide-1">
+      <first  ref="APAFrameYSideShell-1"/>
+      <second ref="APAFrameYSideHollow-1"/>
+      <positionref ref="posCenter"/>
+      <rotationref ref="rIdentity"/>
+      </subtraction>
+
+     <box name="APAFrameZSideHollow-1" lunit="cm"
+      x="5.08-2*0.3048"
+      y="10.16-2*0.3048"
+      z="75.6"/>
+     <box name="APAFrameZSideShell-1" lunit="cm"
+      x="5.08"
+      y="10.16"
+      z="75.6"/>
+     <subtraction name="APAFrameZSide-1">
+      <first  ref="APAFrameZSideShell-1"/>
+      <second ref="APAFrameZSideHollow-1"/>
+      <positionref ref="posCenter"/>
+      <rotationref ref="rIdentity"/>
+      </subtraction>
+
+     <box name="APAFrameYOuterSupport-1" lunit="cm"
+      x="0.3048"
+      y="95.48"
+      z="10.16"/>
+
+
+     <box name="APAFrameYSideHollow-2" lunit="cm"
+      x="5.08-2*0.3048"
+      y="67.48-2*0.3048"
+      z="10.16"/>
+     <box name="APAFrameYSideShell-2" lunit="cm"
+      x="5.08"
+      y="67.48"
+      z="10.16"/>
+     <subtraction name="APAFrameYSide-2">
+      <first  ref="APAFrameYSideShell-2"/>
+      <second ref="APAFrameYSideHollow-2"/>
+      <positionref ref="posCenter"/>
+      <rotationref ref="rIdentity"/>
+      </subtraction>
+
+     <box name="APAFrameZSideHollow-2" lunit="cm"
+      x="5.08-2*0.3048"
+      y="10.16-2*0.3048"
+      z="75.6"/>
+     <box name="APAFrameZSideShell-2" lunit="cm"
+      x="5.08"
+      y="10.16"
+      z="75.6"/>
+     <subtraction name="APAFrameZSide-2">
+      <first  ref="APAFrameZSideShell-2"/>
+      <second ref="APAFrameZSideHollow-2"/>
+      <positionref ref="posCenter"/>
+      <rotationref ref="rIdentity"/>
+      </subtraction>
+
+     <box name="APAFrameYOuterSupport-2" lunit="cm"
+      x="0.3048"
+      y="67.48"
+      z="10.16"/>
+
+
 
 
     <box name="DetEnclosure" lunit="cm" 
@@ -37975,30 +38039,59 @@
       <solidref ref="Cathode"/>
     </volume>
 
-    <volume name="volAPAFrameYSide">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-      <solidref ref="APAFrameYSide"/>
+    <volume name="volOpDetSensitive">
+      <materialref ref="Acrylic"/>
+      <solidref ref="LightPaddle"/>
     </volume>
 
-    <volume name="volAPAFrameZSide">
+
+    <volume name="volAPAFrameYSide-0">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-      <solidref ref="APAFrameZSide"/>
+      <solidref ref="APAFrameYSide-0"/>
     </volume>
 
-    <volume name="volAPAFrameYOuterSupport">
+    <volume name="volAPAFrameZSide-0">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-      <solidref ref="APAFrameYOuterSupport"/>
+      <solidref ref="APAFrameZSide-0"/>
     </volume>
 
-    <volume name="volAPAFrameYInnerSupport">
+    <volume name="volAPAFrameYOuterSupport-0">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-      <solidref ref="APAFrameYInnerSupport"/>
+      <solidref ref="APAFrameYOuterSupport-0"/>
     </volume>
 
-    <volume name="volAPAFrameZHalfSupport">
+
+    <volume name="volAPAFrameYSide-1">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-      <solidref ref="APAFrameZHalfSupport"/>
+      <solidref ref="APAFrameYSide-1"/>
     </volume>
+
+    <volume name="volAPAFrameZSide-1">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameZSide-1"/>
+    </volume>
+
+    <volume name="volAPAFrameYOuterSupport-1">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameYOuterSupport-1"/>
+    </volume>
+
+
+    <volume name="volAPAFrameYSide-2">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameYSide-2"/>
+    </volume>
+
+    <volume name="volAPAFrameZSide-2">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameZSide-2"/>
+    </volume>
+
+    <volume name="volAPAFrameYOuterSupport-2">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="APAFrameYOuterSupport-2"/>
+    </volume>
+
 
     <volume name="volCryostat">
       <materialref ref="LAr"/>
@@ -38045,8 +38138,8 @@
      </physvol>
 
 
-
-      <physvol>
+     <!-- The Smallest APA -->
+     <physvol>
         <volumeref ref="volTPCSmallestLongDrift"/>
         <positionref ref="posTPCSmallestLongDrift"/>
 	<rotationref ref="rIdentity"/>
@@ -38057,6 +38150,56 @@
 	<rotationref ref="rPlus180AboutY"/>
       </physvol>
 
+      <physvol>
+        <volumeref ref="volAPAFrameYOuterSupport-0"/>
+        <position name="posAPAFrameYOuterSupportNeg-0" unit="cm" 
+	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
+	y="-6.84999999999999" 
+	z="-38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYOuterSupport-0"/>
+        <position name="posAPAFrameYOuterSupportPos-0" unit="cm" 
+	x="-100 + (2.302 + 0.476/2 - 0.3048/2)" 
+	y="-6.84999999999999" 
+	z="-38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYSide-0"/>
+        <position name="posAPAFrameYSideNeg-0" unit="cm" 
+	x="-100" 
+	y="-6.84999999999999" 
+	z="-38.55 - 75.6/2 + 10.16/2"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYSide-0"/>
+        <position name="posAPAFrameYSidePos-0" unit="cm" 
+	x="-100" 
+	y="-6.84999999999999" 
+	z="-38.55 + 75.6/2 - 10.16/2"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameZSide-0"/>
+        <position name="posAPAFrameZSidePos-0" unit="cm" 
+	x="-100" 
+	y="-6.84999999999999 + 199.8/2 - 10.16/2" 
+	z="-38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameZSide-0"/>
+        <position name="posAPAFrameZSideNeg-0" unit="cm" 
+	x="-100" 
+	y="-6.84999999999999  - 199.8/2 + 10.16/2" 
+	z="-38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+
+      <!-- The Middle-sized APA -->
       <physvol>
         <volumeref ref="volTPCMidLongDrift"/>
         <positionref ref="posTPCMidLongDrift"/>
@@ -38069,6 +38212,56 @@
       </physvol>
 
       <physvol>
+        <volumeref ref="volAPAFrameYOuterSupport-1"/>
+        <position name="posAPAFrameYOuterSupportNeg-1" unit="cm" 
+	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
+	y="35.15" 
+	z="38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYOuterSupport-1"/>
+        <position name="posAPAFrameYOuterSupportPos-1" unit="cm" 
+	x="-100 + (2.302 + 0.476/2 - 0.3048/2)" 
+	y="35.15" 
+	z="38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYSide-1"/>
+        <position name="posAPAFrameYSideNeg-1" unit="cm" 
+	x="-100" 
+	y="35.15" 
+	z="38.55 - 75.6/2 + 10.16/2"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYSide-1"/>
+        <position name="posAPAFrameYSidePos-1" unit="cm" 
+	x="-100" 
+	y="35.15" 
+	z="38.55 + 75.6/2 - 10.16/2"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameZSide-1"/>
+        <position name="posAPAFrameZSidePos-1" unit="cm" 
+	x="-100" 
+	y="35.15 + 115.8/2 - 10.16/2" 
+	z="38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameZSide-1"/>
+        <position name="posAPAFrameZSideNeg-1" unit="cm" 
+	x="-100" 
+	y="35.15  - 115.8/2 + 10.16/2" 
+	z="38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+
+      <!-- The Largest APA -->
+      <physvol>
         <volumeref ref="volTPCLargestLongDrift"/>
         <positionref ref="posTPCLargestLongDrift"/>
 	<rotationref ref="rIdentity"/>
@@ -38079,6 +38272,54 @@
 	<rotationref ref="rPlus180AboutY"/>
       </physvol>
 
+      <physvol>
+        <volumeref ref="volAPAFrameYOuterSupport-2"/>
+        <position name="posAPAFrameYOuterSupportNeg-2" unit="cm" 
+	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
+	y="-69.15" 
+	z="38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYOuterSupport-2"/>
+        <position name="posAPAFrameYOuterSupportPos-2" unit="cm" 
+	x="-100 + (2.302 + 0.476/2 - 0.3048/2)" 
+	y="-69.15" 
+	z="38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYSide-2"/>
+        <position name="posAPAFrameYSideNeg-2" unit="cm" 
+	x="-100" 
+	y="-69.15" 
+	z="38.55 - 75.6/2 + 10.16/2"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameYSide-2"/>
+        <position name="posAPAFrameYSidePos-2" unit="cm" 
+	x="-100" 
+	y="-69.15" 
+	z="38.55 + 75.6/2 - 10.16/2"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameZSide-2"/>
+        <position name="posAPAFrameZSidePos-2" unit="cm" 
+	x="-100" 
+	y="-69.15 + 87.8/2 - 10.16/2" 
+	z="38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAPAFrameZSide-2"/>
+        <position name="posAPAFrameZSideNeg-2" unit="cm" 
+	x="-100" 
+	y="-69.15  - 87.8/2 + 10.16/2" 
+	z="38.55"/> 
+        <rotationref ref="rIdentity"/>
+      </physvol>
 
     </volume>
 
