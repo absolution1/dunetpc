@@ -1,4 +1,5 @@
 #include "job/caldata.fcl"
+#include "job/hitfindermodules_lbne.fcl"
 
 BEGIN_PROLOG
 
@@ -21,12 +22,73 @@ lbne35t_calwire:
 }
 lbne35t_calwireana:    @local::standard_calwireana
 
+lbne35t_calgaushf:
+{
+ module_type:        "CalGausHFLBNE35t"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       30               # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+lbne35t_calgaushfana:    @local::standard_calwireana
+
+
+lbne10kt_calgaushf:
+{
+ module_type:        "CalGausHFLBNE10kt"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       30               # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+lbne10kt_calgaushfana:    @local::standard_calwireana
+
 
 #Use the 10kt module
 lbne34kt_calwire:      @local::lbne10kt_calwire
 lbne34kt_calwireana:   @local::standard_calwireana
 
+lbne35t_calwirehitfinder:
+{
+ module_type:        "CalGausHitFinderLBNE35t"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+lbne35t_calwirehitfinderana:    @local::standard_calwireana
 
+lbne35t_calwirehitfinder.IndMinWidth: 1.0
+lbne35t_calwirehitfinder.ColMinWidth: 1.0
 
 END_PROLOG
 
