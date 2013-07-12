@@ -964,7 +964,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-0-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 15.07" 
+	 y="-6.84999999999999 - 199.8/2 + 20.15" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -974,7 +974,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-1-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 35.05" 
+	 y="-6.84999999999999 - 199.8/2 + 40.13" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -984,7 +984,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-2-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 55.03" 
+	 y="-6.84999999999999 - 199.8/2 + 60.11" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -994,7 +994,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-3-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 75.01" 
+	 y="-6.84999999999999 - 199.8/2 + 80.09" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1004,7 +1004,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-4-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 94.99" 
+	 y="-6.84999999999999 - 199.8/2 + 100.07" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1014,7 +1014,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-5-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 114.97" 
+	 y="-6.84999999999999 - 199.8/2 + 120.05" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1024,7 +1024,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-6-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 134.95" 
+	 y="-6.84999999999999 - 199.8/2 + 140.03" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1034,7 +1034,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-7-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 154.93" 
+	 y="-6.84999999999999 - 199.8/2 + 160.01" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1044,17 +1044,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-8-APA-0" unit="cm" 
          x="-100" 
-	 y="-6.84999999999999 - 199.8 + 174.91" 
-         z="-38.55 + 0/2"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-
-
-     <physvol>
-       <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-9-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8 + 194.89" 
+	 y="-6.84999999999999 - 199.8/2 + 179.99" 
          z="-38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1125,7 +1115,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-0-APA-1" unit="cm" 
          x="-100" 
-	 y="35.15 - 115.8 + 13.3514285714286" 
+	 y="35.15 - 115.8/2 + 19.81" 
          z="38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1135,7 +1125,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-1-APA-1" unit="cm" 
          x="-100" 
-	 y="35.15 - 115.8 + 29.8942857142857" 
+	 y="35.15 - 115.8/2 + 39.11" 
          z="38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1145,7 +1135,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-2-APA-1" unit="cm" 
          x="-100" 
-	 y="35.15 - 115.8 + 46.4371428571429" 
+	 y="35.15 - 115.8/2 + 58.41" 
          z="38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1155,7 +1145,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-3-APA-1" unit="cm" 
          x="-100" 
-	 y="35.15 - 115.8 + 62.98" 
+	 y="35.15 - 115.8/2 + 77.71" 
          z="38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1165,27 +1155,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-4-APA-1" unit="cm" 
          x="-100" 
-	 y="35.15 - 115.8 + 79.5228571428571" 
-         z="38.55 + 0/2"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-
-
-     <physvol>
-       <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-5-APA-1" unit="cm" 
-         x="-100" 
-	 y="35.15 - 115.8 + 96.0657142857143" 
-         z="38.55 + 0/2"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-
-
-     <physvol>
-       <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-6-APA-1" unit="cm" 
-         x="-100" 
-	 y="35.15 - 115.8 + 112.608571428571" 
+	 y="35.15 - 115.8/2 + 97.01" 
          z="38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1256,7 +1226,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-0-APA-2" unit="cm" 
          x="-100" 
-	 y="-69.15 - 87.8 + 19.7133333333333" 
+	 y="-69.15 - 87.8/2 + 24.7933333333333" 
          z="38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1266,17 +1236,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-1-APA-2" unit="cm" 
          x="-100" 
-	 y="-69.15 - 87.8 + 48.98" 
-         z="38.55 + 0/2"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-
-
-     <physvol>
-       <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-2-APA-2" unit="cm" 
-         x="-100" 
-	 y="-69.15 - 87.8 + 78.2466666666667" 
+	 y="-69.15 - 87.8/2 + 54.06" 
          z="38.55 + 0/2"/>
        <rotationref ref="rIdentity"/>
      </physvol>
