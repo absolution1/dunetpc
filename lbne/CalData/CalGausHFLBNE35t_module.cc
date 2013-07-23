@@ -1,9 +1,9 @@
-#ifndef CALGAUSHFLBNE10KT_H
-#define CALGAUSHFLBNE10KT_H
+#ifndef CALGAUSHFLBNE35T_H
+#define CALGAUSHFLBNE35T_H
 
 ////////////////////////////////////////////////////////////////////////
 //
-// CalGausHFLBNE10kt class
+// CalGausHFLBNE35t class
 //
 // jti3@fnal.gov
 //
@@ -38,7 +38,7 @@ extern "C" {
 #include "cetlib/exception.h"
 #include "cetlib/search_path.h"
 
-#include "Utilities/SignalShapingServiceLBNE10kt.h"
+#include "Utilities/SignalShapingServiceLBNE35t.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
@@ -87,14 +87,14 @@ namespace{
 ///creation of calibrated signals on wires
 namespace calgaushf {
 
-  class CalGausHFLBNE10kt : public art::EDProducer {
+  class CalGausHFLBNE35t : public art::EDProducer {
 
   public:
     
     // create calibrated signals on wires. this class runs 
     // an fft to remove the electronics shaping.     
-    explicit CalGausHFLBNE10kt(fhicl::ParameterSet const& pset); 
-    virtual ~CalGausHFLBNE10kt();
+    explicit CalGausHFLBNE35t(fhicl::ParameterSet const& pset); 
+    virtual ~CalGausHFLBNE35t();
     
     void produce(art::Event& evt); 
     void beginJob(); 
@@ -139,12 +139,12 @@ namespace calgaushf {
 
   protected: 
     
-  }; // class CalGausHFLBNE10kt
+  }; // class CalGausHFLBNE35t
 
-  DEFINE_ART_MODULE(CalGausHFLBNE10kt);
+  DEFINE_ART_MODULE(CalGausHFLBNE35t);
   
   //-------------------------------------------------
-  CalGausHFLBNE10kt::CalGausHFLBNE10kt(fhicl::ParameterSet const& pset)
+  CalGausHFLBNE35t::CalGausHFLBNE35t(fhicl::ParameterSet const& pset)
   {
     fSpillName="";
     this->reconfigure(pset);
@@ -156,12 +156,12 @@ namespace calgaushf {
   }
   
   //-------------------------------------------------
-  CalGausHFLBNE10kt::~CalGausHFLBNE10kt()
+  CalGausHFLBNE35t::~CalGausHFLBNE35t()
   {
   }
 
   //////////////////////////////////////////////////////
-  void CalGausHFLBNE10kt::reconfigure(fhicl::ParameterSet const& p)
+  void CalGausHFLBNE35t::reconfigure(fhicl::ParameterSet const& p)
   {
     fDigitModuleLabel = p.get< std::string >("DigitModuleLabel", "daq");
     fPostsample       = p.get< int >        ("PostsampleBins");
@@ -192,17 +192,17 @@ namespace calgaushf {
   }
 
   //-------------------------------------------------
-  void CalGausHFLBNE10kt::beginJob()
+  void CalGausHFLBNE35t::beginJob()
   {  
   }
 
   //////////////////////////////////////////////////////
-  void CalGausHFLBNE10kt::endJob()
+  void CalGausHFLBNE35t::endJob()
   {  
   }
   
   //////////////////////////////////////////////////////
-  void CalGausHFLBNE10kt::produce(art::Event& evt)
+  void CalGausHFLBNE35t::produce(art::Event& evt)
   {      
     // get the geometry
     art::ServiceHandle<geo::Geometry> geom;
@@ -212,7 +212,7 @@ namespace calgaushf {
     int transformSize = fFFT->FFTSize();
 
     // Get signal shaping service.
-    art::ServiceHandle<util::SignalShapingServiceLBNE10kt> sss;
+    art::ServiceHandle<util::SignalShapingServiceLBNE35t> sss;
 
     // Make file for induction and collection plane histograms.
     art::ServiceHandle<art::TFileService> tfs;
@@ -270,7 +270,7 @@ namespace calgaushf {
     else evt.getByLabel(fDigitModuleLabel, digitVecHandle);
 
     if (!digitVecHandle->size())  return;
-    mf::LogInfo("CalGausHFLBNE10kt") << "CalGausHFLBNE10kt:: digitVecHandle size is " << digitVecHandle->size();
+    mf::LogInfo("CalGausHFLBNE35t") << "CalGausHFLBNE35t:: digitVecHandle size is " << digitVecHandle->size();
 
     // Use the handle to get a particular (0th) element of collection.
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
@@ -835,4 +835,4 @@ namespace calgaushf {
 } // end namespace calgaushf
 
 
-#endif // CALGAUSHFLBNE10KT_H
+#endif // CALGAUSHFLBNE35T_H

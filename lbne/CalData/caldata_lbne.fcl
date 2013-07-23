@@ -27,7 +27,7 @@ lbne35t_calgaushf:
  module_type:        "CalGausHFLBNE35t"
  DigitModuleLabel:   "daq"
  PostsampleBins:     400
- DeconvKernSize:       30               # Length of truncated deconvolution kernel
+ DeconvKernSize:       5                # Length of truncated deconvolution kernel
  MinSigInd:            6.0              # Induction signal height threshold  
  MinSigCol:            11.0             # Collection signal height threshold
  IndWidth:             6.0              # Initial width for induction fit
