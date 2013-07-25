@@ -59,6 +59,8 @@ extern "C" {
 #include "TH2D.h"
 #include "TF1.h"
 #include "TTree.h"
+#include "TCanvas.h"
+#include "TStyle.h"
 #include <string>
 
 namespace{
@@ -204,6 +206,10 @@ namespace calgaushf {
   //////////////////////////////////////////////////////
   void CalGausHFLBNE35t::produce(art::Event& evt)
   {      
+
+    int collectioncount = 0;
+    int inductioncount = 0;
+
     // get the geometry
     art::ServiceHandle<geo::Geometry> geom;
 
@@ -215,8 +221,8 @@ namespace calgaushf {
     art::ServiceHandle<util::SignalShapingServiceLBNE35t> sss;
 
     // Make file for induction and collection plane histograms.
-    art::ServiceHandle<art::TFileService> tfs;
-    art::TFileDirectory dirc = tfs->mkdir("DeconvolutionKernels", "DeconvolutionKernels");
+    //art::ServiceHandle<art::TFileService> tfs;
+    //art::TFileDirectory dirc = tfs->mkdir("DeconvolutionKernels", "DeconvolutionKernels");
     
  
     // don't make a collection of Wires
@@ -275,7 +281,7 @@ namespace calgaushf {
     // Use the handle to get a particular (0th) element of collection.
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
         
-    unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
+    //unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     
     uint32_t     channel(0); // channel number
     unsigned int bin(0);     // time bin loop variable
@@ -749,8 +755,42 @@ namespace calgaushf {
 	    //DEBUG
 	    //std::cout << "Fit 2: startT = " << startT << ", endT = " << endT << std::endl;
 	    //DEBUG
-	    
-	    hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+
+
+	    char outputfilename[100];
+	    if(size>0){
+	      if(sigType == geo::kInduction && inductioncount < 100){
+		sprintf(outputfilename,"/lbne/data/users/jti3/fits/induction_fit_%d.eps",inductioncount);
+		TCanvas *c1 = new TCanvas("c1","plot");
+		c1->SetFillColor(0);
+		gStyle->SetOptFit(1);
+		hitSignal.Draw();
+		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
+		//hitSignal.Draw();
+		c1->Print(outputfilename);
+		c1->Close();
+		inductioncount++;
+		
+	      }
+	      else if(sigType == geo::kCollection && collectioncount < 100){
+		sprintf(outputfilename,"/lbne/data/users/jti3/fits/collection_fit_%d.eps",collectioncount);
+		TCanvas *c1 = new TCanvas("c1","plot");
+		c1->SetFillColor(0);
+		gStyle->SetOptFit(1);
+		hitSignal.Draw();
+		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
+		//hitSignal.Draw();
+		c1->Print(outputfilename);
+		c1->Close();
+		collectioncount++;
+	      }
+	      
+	      else
+		hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+	    }
+	    else hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+
+
 
 	    //DEBUG
 	    //std::cout << "Fit 2 done!" << std::endl;
