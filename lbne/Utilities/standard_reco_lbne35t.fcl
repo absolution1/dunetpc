@@ -1,6 +1,5 @@
 #include "job/services_lbne.fcl"
 #include "job/caldata_lbne.fcl"
-#include "job/hitfindermodules_lbne.fcl"
 #include "job/cluster_lbne.fcl"
 #include "job/trackfindermodules.fcl"
 
