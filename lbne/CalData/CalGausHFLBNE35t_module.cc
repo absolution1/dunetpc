@@ -207,27 +207,14 @@ namespace calgaushf {
   void CalGausHFLBNE35t::produce(art::Event& evt)
   {      
 
-    int collectioncount = 0;
-    int inductioncount = 0;
 
     // get the geometry
     art::ServiceHandle<geo::Geometry> geom;
 
-    // get the FFT service to have access to the FFT size
-    art::ServiceHandle<util::LArFFT> fFFT;
-    int transformSize = fFFT->FFTSize();
 
     // Get signal shaping service.
     art::ServiceHandle<util::SignalShapingServiceLBNE35t> sss;
 
-    // Make file for induction and collection plane histograms.
-    //art::ServiceHandle<art::TFileService> tfs;
-    //art::TFileDirectory dirc = tfs->mkdir("DeconvolutionKernels", "DeconvolutionKernels");
-    
- 
-    // don't make a collection of Wires
-    //std::unique_ptr<std::vector<recob::Wire> > wirecol(new std::vector<recob::Wire>);
-    
 
     //Gaussian hit finder initializations etc.
     TH1::AddDirectory(kFALSE);
@@ -280,8 +267,6 @@ namespace calgaushf {
 
     // Use the handle to get a particular (0th) element of collection.
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
-        
-    //unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     
     uint32_t     channel(0); // channel number
     unsigned int bin(0);     // time bin loop variable
@@ -290,12 +275,7 @@ namespace calgaushf {
 
     std::vector<float> holder;                // holds signal data
     std::vector<float> rawadc_conv;           // holds signal data before time domain deconvolution
-    std::vector<short> rawadc(transformSize);  // vector holding uncompressed adc values
-    //std::vector<TComplex> freqHolder(transformSize+1); // temporary frequency data
-    
-
-    //int collectioncount = 0;
-    //int inductioncount = 0;
+    std::vector<short> rawadc;  // vector holding uncompressed adc values
 
     // loop over all wires    
     for(size_t rdIter = 0; rdIter < digitVecHandle->size(); ++rdIter){ // ++ move
@@ -308,8 +288,6 @@ namespace calgaushf {
       // skip bad channels
       if(!chanFilt->BadChannel(channel)) {
 
-	holder.resize(rawadc.size());
-	rawadc_conv.resize(rawadc.size());
 
  	// unpack the zero-suppressed raw data without adding all zeros back
  	//raw::Uncompress(digitVec->fADC, rawadc, digitVec->Compression());
@@ -323,14 +301,16 @@ namespace calgaushf {
 
 	  const int lengthofblock = digitVec->fADC[2+numberofblocks+i];
 	  rawadc.resize(lengthofblock);
+	  holder.resize(lengthofblock);
+	  rawadc_conv.resize(lengthofblock);
+
 
 	  for (int j=0;j<lengthofblock;j++)
 	    {
 	      rawadc[j] = digitVec->fADC[zerosuppressedindex];
 	      zerosuppressedindex++;
 	    }
-    	  
-	  
+    	  	  
 	  
 	  // loop over all adc values and subtract the pedestal
 	  for(bin = 0; bin < rawadc.size(); ++bin) 
@@ -353,46 +333,6 @@ namespace calgaushf {
 	      holder[i] = (i>0) ? rawadc_conv[i] + holder[i-1] : rawadc_conv[i];
 	  }
 
-	  // Do time domain deconvolution.
-
-
-// 	  // Get collection deconvolution kernel and fill histogram.
-
-// 	  std::vector<TComplex>  kernc = sss->SignalShaping(channel).DeconvKernel();
-	 
-// 	  std::vector<double> kernrc(kernc.size());
-	  
-// 	  // Transform deconvolution kernel into time domain
-	  
-	  
-// 	  std::vector<TComplex>  timekernc(kernc.size(),0);
-// 	  fFFT->DoFFT(kernc,timekernc);
-// 	  //kernc.resize(30);
-// 	  std::vector<double> timekernrc(timekernc.size());
-	  
-// 	  // Perform time domain deconvolution
-	  
-// 	  std::vector<TComplex>  timekernc_truncated(timekernc);
-// 	  timekernc_truncated.resize(fDeconvKernSize);
-
-// 	  // Deconvolute pulse in frequency domain with deconvolution kernel
-	  
-// 	  std::vector<double> tdeconvc_time(holder.size(),0.);
-	  
-// 	  for(unsigned int i=0; i<kernrc.size(); ++i){
-// 	    for(unsigned int j=0; j<timekernc_truncated.size(); j++)
-// 	      holder[i] += rawadc_conv[i+j]*timekernc_truncated[j].Re();
-// 	  }
-
-	  //holder.resize(dataSize,1e-5);
-	  
-// 	  //This restores the DC component to signal removed by the deconvolution.
-// 	  if(fPostsample) {
-// 	    double average=0.0;
-// 	    for(bin=0; bin < (unsigned int)fPostsample; ++bin) 
-// 	      average+=holder[holder.size()-1-bin]/(double)fPostsample;
-// 	    for(bin = 0; bin < holder.size(); ++bin) holder[bin]-=average;
-// 	  } 
 
 	  
 	  //Beginning of Gaussian hit finder loop over signal blocks
@@ -667,17 +607,10 @@ namespace calgaushf {
 	    // ####################################################
 	    hitSignal.Sumw2();
 
-	    //DEBUG
-	    //std::cout << "Fit 1: startT = " << startT << ", endT = " << endT << std::endl;
-	    //DEBUG
 
 	    hitSignal.Fit(&Gaus,"QNRW","", startT, endT);
 	    //hitSignal.Fit(&Gaus,"QR0LLi","", startT, endT);
 
-
-	    //DEBUG
-	    //std::cout << "Fit 1 done!" << std::endl;
-	    //DEBUG
 
 	    
 	    for(int hitNumber = 0; hitNumber < numHits; ++hitNumber){
@@ -752,50 +685,9 @@ namespace calgaushf {
 	    float TempStartIime = MeanPosition - 4;
 	    float TempEndTime   = MeanPosition  + 4;
 
-	    //DEBUG
-	    //std::cout << "Fit 2: startT = " << startT << ", endT = " << endT << std::endl;
-	    //DEBUG
 
+	    hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
 
-	    char outputfilename[100];
-	    if(size>0){
-	      if(sigType == geo::kInduction && inductioncount < 100){
-		sprintf(outputfilename,"/lbne/data/users/jti3/fits/induction_fit_%d.eps",inductioncount);
-		TCanvas *c1 = new TCanvas("c1","plot");
-		c1->SetFillColor(0);
-		gStyle->SetOptFit(1);
-		hitSignal.Draw();
-		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
-		//hitSignal.Draw();
-		c1->Print(outputfilename);
-		c1->Close();
-		inductioncount++;
-		
-	      }
-	      else if(sigType == geo::kCollection && collectioncount < 100){
-		sprintf(outputfilename,"/lbne/data/users/jti3/fits/collection_fit_%d.eps",collectioncount);
-		TCanvas *c1 = new TCanvas("c1","plot");
-		c1->SetFillColor(0);
-		gStyle->SetOptFit(1);
-		hitSignal.Draw();
-		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
-		//hitSignal.Draw();
-		c1->Print(outputfilename);
-		c1->Close();
-		collectioncount++;
-	      }
-	      
-	      else
-		hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
-	    }
-	    else hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
-
-
-
-	    //DEBUG
-	    //std::cout << "Fit 2 done!" << std::endl;
-	    //DEBUG
-	    
 	    
 	    FitGoodnes			= hit->GetChisquare() / hit->GetNDF();
 	    
