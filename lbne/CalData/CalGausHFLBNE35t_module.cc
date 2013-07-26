@@ -138,6 +138,8 @@ namespace calgaushf {
     double	Charge;
     double	ChargeError;
     double	FitGoodnes;
+    int collectioncount;
+    int inductioncount;
 
   protected: 
     
@@ -195,7 +197,10 @@ namespace calgaushf {
 
   //-------------------------------------------------
   void CalGausHFLBNE35t::beginJob()
-  {  
+  { 
+    collectioncount = 0;
+    inductioncount = 0;
+ 
   }
 
   //////////////////////////////////////////////////////
@@ -206,6 +211,7 @@ namespace calgaushf {
   //////////////////////////////////////////////////////
   void CalGausHFLBNE35t::produce(art::Event& evt)
   {      
+
 
 
     // get the geometry
@@ -686,7 +692,40 @@ namespace calgaushf {
 	    float TempEndTime   = MeanPosition  + 4;
 
 
-	    hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+	    //hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+
+	    char outputfilename[100];
+	    if(size>0){
+	      if(sigType == geo::kInduction && inductioncount < 100){
+		sprintf(outputfilename,"/lbne/data/users/jti3/fits/induction_calgaus_fit_%d.eps",inductioncount);
+		TCanvas *c1 = new TCanvas("c1","plot");
+		c1->SetFillColor(0);
+		gStyle->SetOptFit(1);
+		hitSignal.Draw();
+		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
+		//hitSignal.Draw();
+		c1->Print(outputfilename);
+		c1->Close();
+		inductioncount++;
+		
+	      }
+	      else if(sigType == geo::kCollection && collectioncount < 100){
+		sprintf(outputfilename,"/lbne/data/users/jti3/fits/collection_calgaus_fit_%d.eps",collectioncount);
+		TCanvas *c1 = new TCanvas("c1","plot");
+		c1->SetFillColor(0);
+		gStyle->SetOptFit(1);
+		hitSignal.Draw();
+		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
+		//hitSignal.Draw();
+		c1->Print(outputfilename);
+		c1->Close();
+		collectioncount++;
+	      }
+	      
+	      else
+		hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+	    }
+	    else hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
 
 	    
 	    FitGoodnes			= hit->GetChisquare() / hit->GetNDF();
@@ -741,12 +780,7 @@ namespace calgaushf {
 	  }//<---End while hitIndex < startTimes.size()
 	  
 	  
-	  
-	  //}//<---End looping over wireIter
-	  
-	  
-	  //std::cout << "Test1" << std::endl;
-	 
+
 	  
 	} // end loop over nonzero blocks
 	
