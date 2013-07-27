@@ -17,6 +17,7 @@ lbne10kt_simwire:
  LowCutoffZ:          7.5          #Low frequency filter cutoff (kHz) for Z plane
  CompressionType:    "ZeroSuppression"       #could also be none
  ZeroThreshold:      "10"        #Threshold for zero suppression
+ NearestNeighbor:    "25"        #Maximum distance between hits above threshold before they are separated into different blocks
  NoiseArrayPoints:   "1000"     #number of points in noise array
  NoiseOn:            "0"        #1 for noise on, 0 for noise off
 }
@@ -36,7 +37,6 @@ lbne35t_simwire:		@local::lbne10kt_simwire
 lbne35t_simwireana:             @local::lbne10kt_simwireana
 lbne35t_wienerfilterana:        @local::lbne10kt_wienerfilterana
 lbne35t_simwire.module_type:    "SimWireLBNE35t"
-
 
 
 END_PROLOG

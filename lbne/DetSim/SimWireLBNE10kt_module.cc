@@ -90,6 +90,7 @@ namespace detsim {
     float                  fNoiseWidthV;       ///< exponential noise width (kHz)   for V plane
     float                  fLowCutoffV;        ///< low frequency filter cutoff (kHz)  for V plane
     unsigned int           fZeroThreshold;    ///< Zero suppression threshold
+    int                    fNearestNeighbor;         ///< Maximum distance between hits above threshold before they are separated into different blocks
     int                    fNTicks;           ///< number of ticks of the clock
     double                 fSampleRate;       ///< sampling rate in ns
     unsigned int           fNSamplesReadout;  ///< number of ADC readout samples in 1 readout frame
@@ -165,6 +166,7 @@ namespace detsim {
     fNoiseWidthV       = p.get< double              >("NoiseWidthV");
     fLowCutoffV        = p.get< double              >("LowCutoffV");
     fZeroThreshold    = p.get< unsigned int        >("ZeroThreshold");
+    fNearestNeighbor         = p.get< int                 >("NearestNeighbor");
     fNoiseArrayPoints = p.get< unsigned int        >("NoiseArrayPoints");
     fNoiseOn           = p.get< unsigned int       >("NoiseOn");
     art::ServiceHandle<util::DetectorProperties> detprop;
@@ -462,21 +464,21 @@ namespace detsim {
       //std::cout << "Channel view: " << view << std::endl;
 
       adcvec.resize(fNSamplesReadout);
-      raw::Compress(adcvec, fCompression, fZeroThreshold); 
+      raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
       raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
-      adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
+      //adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
       digcol->push_back(rd);            // add this digit to the collection
 
       // do all this for the prespill and postspill samples if need be
       if (prepost) {
         adcvecPreSpill.resize(fNSamplesReadout);
         adcvecPostSpill.resize(fNSamplesReadout);
-        raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold); 
-        raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold); 
+        raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
+        raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
         raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
         raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
-        adcvecPreSpill.resize(signalSize);
-        adcvecPostSpill.resize(signalSize);
+        //adcvecPreSpill.resize(signalSize);
+        //adcvecPostSpill.resize(signalSize);
         digcolPreSpill->push_back(rdPreSpill);
         digcolPostSpill->push_back(rdPostSpill);
       }
