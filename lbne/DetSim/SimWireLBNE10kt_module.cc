@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // SimWireLBNE10kt class designed to simulate signal on a wire in the TPC
 //
@@ -8,7 +8,7 @@
 // - Revised to use sim::RawDigit instead of rawdata::RawDigit, and to
 // - save the electron clusters associated with each digit.
 //
-////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
 #include <vector>
 #include <string>
@@ -325,13 +325,6 @@ namespace detsim {
 	for(size_t t = 0; t < fChargeWork.size(); ++t) 
 	  fChargeWork[t] = sc->Charge(t);      
 
-	// for (size_t t=0; t< fChargeWork.size(); ++t)
-	//   {
-	//     if (fChargeWork[t] != 0) {std::cout << "View: " << view << " time: " << t << " Charge preconvol: " <<
-	// 	fChargeWork[t] << std::endl;}
-	//   }
-
-	//     std::cout << "Prepost: " << prepost << std::endl;
 
         // Convolve charge with appropriate response function 
 	if(prepost) {
@@ -349,11 +342,6 @@ namespace detsim {
 	fChargeWork.resize(fNTicks,0);
 	sss->Convolute(chan,fChargeWork);
 
-	// for (size_t t=0; t< fChargeWork.size(); ++t)
-	//   {
-	//     if (fChargeWork[t] != 0) {std::cout << "View: " << view << " time: " << t << " Charge postconvol: " <<
-	// 	fChargeWork[t] << std::endl;}
-	//   }
 
       }
 
