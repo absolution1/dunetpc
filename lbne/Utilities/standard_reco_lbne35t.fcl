@@ -11,7 +11,7 @@ services:
   TFileService: { fileName: "reco35t_hist.root" }
   Timing:       {}
   RandomNumberGenerator: {} #ART native random number generator
-  message:      @local::standard_debug
+  # message:      @local::standard_debug
   user:         @local::lbne35t_services 	     
 }
 
@@ -21,7 +21,7 @@ services.message.destinations.warningmsg.type: "cout"
 source:
 {
   module_type: RootInput
-  maxEvents:  100        # Number of events to create
+  maxEvents:  -1        # Number of events to create
 }
 
 # Define and configure some modules to do work on each event.
@@ -32,8 +32,11 @@ physics:
 
  producers:
  {
+  calgaus:    @local::lbne35t_calgaushf
   caldata:    @local::lbne35t_calwire	    
   gaushit:    @local::lbne35t_gaushitfinder
+  apacheat:   @local::standard_disambigcheat
+  ffthit:     @local::lbne35t_hitfinder
   dbcluster:  @local::lbne35t_dbcluster
   fuzzy:      @local::lbne35t_fuzzycluster
   hough:      @local::standard_houghlinefinder
@@ -41,17 +44,18 @@ physics:
 
  analyzers:
  {
+  gausana:      @local::gaus_hitfinderana
   dbclusterana: @local::lbne35t_dbclusterana
  }
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
- reco: [ caldata, gaushit ] 
+ reco:   [ caldata, gaushit, apacheat ]
  ana:  [  ]
 
  stream1:  [ out1 ]
 
- trigger_paths: [ reco ] 
+ trigger_paths: [ reco ]
 
  end_paths:     [ ana, stream1]  
 }
