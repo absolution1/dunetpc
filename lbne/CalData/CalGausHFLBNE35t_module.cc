@@ -141,12 +141,15 @@ namespace calgaushf {
     int collectioncount;
     int inductioncount;
 
+    
   protected: 
+    //double      expfitf(double *x,double *par);
     
   }; // class CalGausHFLBNE35t
 
   DEFINE_ART_MODULE(CalGausHFLBNE35t);
   
+
   //-------------------------------------------------
   CalGausHFLBNE35t::CalGausHFLBNE35t(fhicl::ParameterSet const& pset)
   {
@@ -208,6 +211,18 @@ namespace calgaushf {
   {  
   }
   
+//   //////////////////////////////////////////////////////
+//   double CalGausHFLBNE35t::expfitf(double *x,double *par)
+//   {
+//     double arg1 = 0;
+//     double arg2 = 0;
+//     if (par[3] != 0) arg1 = (x-par[2])/par[3];
+//     if (par[4] != 0) arg2 = (x-par[2])/par[4];
+
+//     double fitval = par[0]*TMath::Exp(-0.5*arg*arg); par[0]+par[1]*exp(-arg1)/(1+exp(-arg2));
+//     return fitval;
+//   }
+
   //////////////////////////////////////////////////////
   void CalGausHFLBNE35t::produce(art::Event& evt)
   {      
@@ -336,7 +351,7 @@ namespace calgaushf {
 
 	    //Integrate over signal in induction planes
 	    for(bin = 0;  bin < rawadc_conv.size(); ++bin) 
-	      holder[i] = (i>0) ? rawadc_conv[i] + holder[i-1] : rawadc_conv[i];
+	      holder[bin] = (bin>0) ? rawadc_conv[bin] + holder[bin-1] : rawadc_conv[bin];
 	  }
 
 
@@ -692,40 +707,40 @@ namespace calgaushf {
 	    float TempEndTime   = MeanPosition  + 4;
 
 
-	    //hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+	    hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
 
-	    char outputfilename[100];
-	    if(size>0){
-	      if(sigType == geo::kInduction && inductioncount < 100){
-		sprintf(outputfilename,"/lbne/data/users/jti3/fits/induction_calgaus_fit_%d.eps",inductioncount);
-		TCanvas *c1 = new TCanvas("c1","plot");
-		c1->SetFillColor(0);
-		gStyle->SetOptFit(1);
-		hitSignal.Draw();
-		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
-		//hitSignal.Draw();
-		c1->Print(outputfilename);
-		c1->Close();
-		inductioncount++;
+// 	    char outputfilename[100];
+// 	    if(size>0){
+// 	      if(sigType == geo::kInduction && inductioncount < 100){
+// 		sprintf(outputfilename,"/lbne/data/users/jti3/fits/induction_calgaus_fit_%d.eps",inductioncount);
+// 		TCanvas *c1 = new TCanvas("c1","plot");
+// 		c1->SetFillColor(0);
+// 		gStyle->SetOptFit(1);
+// 		hitSignal.Draw();
+// 		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
+// 		//hitSignal.Draw();
+// 		c1->Print(outputfilename);
+// 		c1->Close();
+// 		inductioncount++;
 		
-	      }
-	      else if(sigType == geo::kCollection && collectioncount < 100){
-		sprintf(outputfilename,"/lbne/data/users/jti3/fits/collection_calgaus_fit_%d.eps",collectioncount);
-		TCanvas *c1 = new TCanvas("c1","plot");
-		c1->SetFillColor(0);
-		gStyle->SetOptFit(1);
-		hitSignal.Draw();
-		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
-		//hitSignal.Draw();
-		c1->Print(outputfilename);
-		c1->Close();
-		collectioncount++;
-	      }
+// 	      }
+// 	      else if(sigType == geo::kCollection && collectioncount < 100){
+// 		sprintf(outputfilename,"/lbne/data/users/jti3/fits/collection_calgaus_fit_%d.eps",collectioncount);
+// 		TCanvas *c1 = new TCanvas("c1","plot");
+// 		c1->SetFillColor(0);
+// 		gStyle->SetOptFit(1);
+// 		hitSignal.Draw();
+// 		hitSignal.Fit(hit,"QRLLi","", TempStartIime, TempEndTime);
+// 		//hitSignal.Draw();
+// 		c1->Print(outputfilename);
+// 		c1->Close();
+// 		collectioncount++;
+// 	      }
 	      
-	      else
-		hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
-	    }
-	    else hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+// 	      else
+// 		hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+// 	    }
+// 	    else hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
 
 	    
 	    FitGoodnes			= hit->GetChisquare() / hit->GetNDF();
