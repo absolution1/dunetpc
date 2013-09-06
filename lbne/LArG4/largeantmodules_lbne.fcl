@@ -3,7 +3,6 @@
 BEGIN_PROLOG
 
 lbne10kt_largeant:                   @local::standard_largeant
-lbne10kt_largeant.LBNE10ktOpFast: true
 lbne10kt_largeantana:                @local::standard_largeantana
 lbne10kt_largeantana.SmartStacking:  1
 
