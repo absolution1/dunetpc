@@ -5,7 +5,7 @@ BEGIN_PROLOG
 
 lbne10kt_largeantparameters:   @local::standard_largeantparameters
 lbne10kt_larvoxelcalculator:   @local::standard_larvoxelcalculator
-
+lbne10kt_largeantparameters.UseLitePhotons: true
 
 lbne34kt_largeantparameters:   @local::standard_largeantparameters
 lbne34kt_larvoxelcalculator:   @local::standard_larvoxelcalculator
