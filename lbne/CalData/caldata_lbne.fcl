@@ -22,6 +22,88 @@ lbne35t_calwire:
 }
 lbne35t_calwireana:    @local::standard_calwireana
 
+lbne35t_calffthf:
+{
+ module_type:        "CalFFTHFLBNE35t"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       5                # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+lbne35t_calffthfana:    @local::standard_calwireana
+
+lbne10kt_calffthf:
+{
+ module_type:        "CalFFTHFLBNE10kt"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       5                # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+lbne10kt_calffthfana:    @local::standard_calwireana
+
+lbne35t_calfasthf:
+{
+ module_type:        "CalFastHFLBNE35t"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       5                # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+lbne35t_calfasthfana:    @local::standard_calwireana
+
+
+lbne10kt_calfasthf:
+{
+ module_type:        "CalFastHFLBNE10kt"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       5                # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+lbne10kt_calfasthfana:    @local::standard_calwireana
+
+
 lbne35t_deconvgaushf:
 {
  module_type:        "DeconvGausHFLBNE35t"
@@ -83,6 +165,26 @@ lbne35t_calgaushf:
  Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
 }
 lbne35t_calgaushfana:    @local::standard_calwireana
+
+lbne35t_calexphf:
+{
+ module_type:        "CalExpHFLBNE35t"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       5                # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+lbne35t_calexphfana:    @local::standard_calwireana
 
 
 lbne10kt_calgaushf:
