@@ -4,40 +4,18 @@ BEGIN_PROLOG
 
 
 ################
-##### 10kt #####
+###### FD ######
 ################
 
-lbne10kt_singlep: @local::standard_singlep
-lbne10kt_singlep.Theta0YZ:               [ 0.0 ]     # beam is along the z axis
-lbne10kt_singlep.Theta0XZ:               [ 0.0 ]     # beam is along the z axis
-lbne10kt_singlep.P0:                     [ 6. ]
+lbnefd_singlep: @local::standard_singlep
+lbnefd_singlep.Theta0YZ:               [ 0.0 ]     # beam is along the z axis
+lbnefd_singlep.Theta0XZ:               [ 0.0 ]     # beam is along the z axis
+lbnefd_singlep.P0:                     [ 6. ]
 
 # Start it in the first TPC, first cryostat
-lbne10kt_singlep.X0:                     [ -1474. ]
-lbne10kt_singlep.Y0:                     [ -351. ]
-lbne10kt_singlep.Z0:                     [ 0. ]   
-
-
-
-################
-##### 34kt #####
-################
-
-
-lbne34kt_singlep: @local::standard_singlep
-lbne34kt_singlep.Theta0YZ:               [ 0.0 ]     # beam is along the z axis
-lbne34kt_singlep.Theta0XZ:               [ 0.0 ]     # beam is along the z axis
-lbne34kt_singlep.P0:                     [ 10. ]
-
-# Start it in the first TPC, first cryostat
- lbne34kt_singlep.X0:                    [ -870. ]
- lbne34kt_singlep.Y0:                    [ -351. ]
- lbne34kt_singlep.Z0:                    [ 0. ]
-
-# Start it in the last TPC, last cryostat
-# lbne34kt_singlep.X0:                    [ 871. ]
-# lbne34kt_singlep.Y0:                    [ 351. ]
-# lbne34kt_singlep.Z0:                    [ 9633. ]
+lbnefd_singlep.X0:                     [ -1474. ]
+lbnefd_singlep.Y0:                     [ -351. ]
+lbnefd_singlep.Z0:                     [ 0. ]   
 
 
 
