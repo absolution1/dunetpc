@@ -21,14 +21,14 @@
    <position name="posTPCMidLongDrift"           unit="cm" x="16.7615" y="39.735" z="-7.105427357601e-15"/>
 
 
-   <position name="posCathode0" unit="cm" x="-133.523" y="-47.765" z="-38.2625"/>
-   <position name="posCathode1" unit="cm" x="133.523" y="-47.765" z="-38.2625"/>
-   <position name="posCathode2" unit="cm" x="-133.523" y="40.735" z="-38.2625"/>
-   <position name="posCathode3" unit="cm" x="133.523" y="40.735" z="-38.2625"/>
-   <position name="posCathode4" unit="cm" x="-133.523" y="-47.765" z="38.2625"/>
-   <position name="posCathode5" unit="cm" x="133.523" y="-47.765" z="38.2625"/>
-   <position name="posCathode6" unit="cm" x="-133.523" y="40.735" z="38.2625"/>
-   <position name="posCathode7" unit="cm" x="133.523" y="40.735" z="38.2625"/>
+   <position name="posCathode0" unit="cm" x="-133.523" y="-53.14" z="-38.2625"/>
+   <position name="posCathode1" unit="cm" x="133.523" y="-53.14" z="-38.2625"/>
+   <position name="posCathode2" unit="cm" x="-133.523" y="46.11" z="-38.2625"/>
+   <position name="posCathode3" unit="cm" x="133.523" y="46.11" z="-38.2625"/>
+   <position name="posCathode4" unit="cm" x="-133.523" y="-53.14" z="38.2625"/>
+   <position name="posCathode5" unit="cm" x="133.523" y="-53.14" z="38.2625"/>
+   <position name="posCathode6" unit="cm" x="-133.523" y="46.11" z="38.2625"/>
+   <position name="posCathode7" unit="cm" x="133.523" y="46.11" z="38.2625"/>
 
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
@@ -6455,7 +6455,7 @@
 
     <box name="Cathode" lunit="cm"
       x="5.08"
-      y="110"
+      y="99.25"
       z="77"/>
 
     <box name="LightPaddle" lunit="cm"
@@ -6616,9 +6616,9 @@
 
 
     <box name="World" lunit="cm" 
-      x="654.666" 
-      y="508.07" 
-      z="536.065"/>
+      x="1109.332" 
+      y="816.14" 
+      z="872.13"/>
 </solids>
 <structure>
     <volume name="volTPCActiveSmallestLongDrift">
@@ -29208,7 +29208,7 @@
 	<rotationref ref="rPlus180AboutY"/>
       </physvol>
 
-      <physvol>
+      <!-- <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-2"/>
         <position name="posAPAFrameYOuterSupportNeg-2" unit="cm" 
 	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
@@ -29223,7 +29223,7 @@
 	y="-60.765" 
 	z="-7.105427357601e-15"/> 
         <rotationref ref="rIdentity"/>
-      </physvol>
+      </physvol>  -->
       <physvol>
         <volumeref ref="volAPAFrameYSide-2"/>
         <position name="posAPAFrameYSideNeg-2" unit="cm" 
@@ -29279,7 +29279,7 @@
 	<rotationref ref="rPlus180AboutY"/>
       </physvol>
 
-      <physvol>
+      <!-- <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-1"/>
         <position name="posAPAFrameYOuterSupportNeg-1" unit="cm" 
 	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
@@ -29294,7 +29294,7 @@
 	y="39.735" 
 	z="-7.105427357601e-15"/> 
         <rotationref ref="rIdentity"/>
-      </physvol>
+      </physvol>  -->
       <physvol>
         <volumeref ref="volAPAFrameYSide-1"/>
         <position name="posAPAFrameYSideNeg-1" unit="cm" 
@@ -29360,7 +29360,7 @@
 	<rotationref ref="rPlus180AboutY"/>
       </physvol>
 
-      <physvol>
+      <!-- <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-0"/>
         <position name="posAPAFrameYOuterSupportNeg-0" unit="cm" 
 	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
@@ -29375,7 +29375,7 @@
 	y="-2.265" 
 	z="-51.675"/> 
         <rotationref ref="rIdentity"/>
-      </physvol>
+      </physvol>  -->
       <physvol>
         <volumeref ref="volAPAFrameYSide-0"/>
         <position name="posAPAFrameYSideNeg-0" unit="cm" 
@@ -29439,7 +29439,7 @@
        <rotationref ref="rIdentity"/>
      </physvol>
 
-      <physvol>
+      <!-- <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-3"/>
         <position name="posAPAFrameYOuterSupportNeg-3" unit="cm" 
 	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
@@ -29454,7 +29454,7 @@
 	y="-2.265" 
 	z="51.675"/> 
         <rotationref ref="rIdentity"/>
-      </physvol>
+      </physvol>  -->
       <physvol>
         <volumeref ref="volAPAFrameYSide-3"/>
         <position name="posAPAFrameYSideNeg-3" unit="cm" 
