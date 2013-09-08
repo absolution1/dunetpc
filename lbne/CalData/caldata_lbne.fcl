@@ -5,13 +5,13 @@ BEGIN_PROLOG
 
 
 
-lbne10kt_calwire:
+lbnefd_calwire:
 {
  module_type:        "CalWireLBNE10kt"
  DigitModuleLabel:   "daq"
  PostsampleBins:     400
 }
-lbne10kt_calwireana:   @local::standard_calwireana
+lbnefd_calwireana:   @local::standard_calwireana
 
 
 lbne35t_calwire:
@@ -42,7 +42,7 @@ lbne35t_deconvgaushf:
 }
 lbne35t_deconvgaushfana:    @local::standard_calwireana
 
-lbne10kt_deconvgaushf:
+lbnefd_deconvgaushf:
 {
  module_type:        "DeconvGausHFLBNE10kt"
  DigitModuleLabel:   "daq"
@@ -60,7 +60,7 @@ lbne10kt_deconvgaushf:
                                         # same scale as peak height. 
  Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
 }
-lbne10kt_deconvgaushfana:    @local::standard_calwireana
+lbnefd_deconvgaushfana:    @local::standard_calwireana
 
 
 
@@ -85,7 +85,7 @@ lbne35t_calgaushf:
 lbne35t_calgaushfana:    @local::standard_calwireana
 
 
-lbne10kt_calgaushf:
+lbnefd_calgaushf:
 {
  module_type:        "CalGausHFLBNE10kt"
  DigitModuleLabel:   "daq"
@@ -103,13 +103,8 @@ lbne10kt_calgaushf:
                                         # same scale as peak height. 
  Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
 }
-lbne10kt_calgaushfana:    @local::standard_calwireana
+lbnefd_calgaushfana:    @local::standard_calwireana
 
-
-
-#Use the 10kt module
-lbne34kt_calwire:      @local::lbne10kt_calwire
-lbne34kt_calwireana:   @local::standard_calwireana
 
 
 END_PROLOG
