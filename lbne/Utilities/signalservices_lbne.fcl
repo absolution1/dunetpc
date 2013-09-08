@@ -2,7 +2,7 @@
 
 BEGIN_PROLOG
 
-lbne10kt_signalshapingservice:
+lbnefd_signalshapingservice:
 {
   FieldBins:        75
   Col3DCorrection:  2.5
@@ -35,10 +35,9 @@ lbne10kt_signalshapingservice:
   ColFieldParams: [ 8.0,16.0,.75 ]  
 }
 
-# 35t and 34kt are the same for now
+# 35t is the same for now
 
-lbne35t_signalshapingservice:   @local::lbne10kt_signalshapingservice
-lbne34kt_signalshapingservice:  @local::lbne10kt_signalshapingservice
+lbne35t_signalshapingservice:   @local::lbnefd_signalshapingservice
 
 
 END_PROLOG

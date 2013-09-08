@@ -3,11 +3,8 @@
 BEGIN_PROLOG
 
 
-lbne10kt_larfft:           @local::standard_larfft
-lbne10kt_larfft.FitBins:   5
-
-lbne34kt_larfft:           @local::standard_larfft
-lbne34kt_larfft.FitBins:   5
+lbnefd_larfft:           @local::standard_larfft
+lbnefd_larfft.FitBins:   5
 
 lbne35t_larfft:            @local::standard_larfft
 lbne35t_larfft.FitBins:    5
