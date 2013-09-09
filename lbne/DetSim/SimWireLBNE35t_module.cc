@@ -107,7 +107,7 @@ namespace detsim {
 
   }; // class SimWireLBNE35t
 
-  DEFINE_ART_MODULE(SimWireLBNE35t);
+  DEFINE_ART_MODULE(SimWireLBNE35t)
 
   //-------------------------------------------------
   SimWireLBNE35t::SimWireLBNE35t(fhicl::ParameterSet const& pset)
