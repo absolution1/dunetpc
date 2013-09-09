@@ -141,7 +141,7 @@ namespace deconvgaushf {
     
   }; // class DeconvGausHFLBNE10kt
 
-  DEFINE_ART_MODULE(DeconvGausHFLBNE10kt);
+  DEFINE_ART_MODULE(DeconvGausHFLBNE10kt)
   
   //-------------------------------------------------
   DeconvGausHFLBNE10kt::DeconvGausHFLBNE10kt(fhicl::ParameterSet const& pset)

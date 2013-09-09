@@ -147,7 +147,7 @@ namespace deconvgaushf {
     
   }; // class DeconvGausHFLBNE35t
 
-  DEFINE_ART_MODULE(DeconvGausHFLBNE35t);
+  DEFINE_ART_MODULE(DeconvGausHFLBNE35t)
   
   //-------------------------------------------------
   DeconvGausHFLBNE35t::DeconvGausHFLBNE35t(fhicl::ParameterSet const& pset)

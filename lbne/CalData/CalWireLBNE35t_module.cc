@@ -75,7 +75,7 @@ namespace caldata {
     
   }; // class CalWireLBNE35t
 
-  DEFINE_ART_MODULE(CalWireLBNE35t);
+  DEFINE_ART_MODULE(CalWireLBNE35t)
   
   //-------------------------------------------------
   CalWireLBNE35t::CalWireLBNE35t(fhicl::ParameterSet const& pset)

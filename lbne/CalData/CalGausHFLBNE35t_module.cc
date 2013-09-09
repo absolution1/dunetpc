@@ -147,7 +147,7 @@ namespace calgaushf {
     
   }; // class CalGausHFLBNE35t
 
-  DEFINE_ART_MODULE(CalGausHFLBNE35t);
+  DEFINE_ART_MODULE(CalGausHFLBNE35t)
   
 
   //-------------------------------------------------

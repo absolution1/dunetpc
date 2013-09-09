@@ -141,7 +141,7 @@ namespace calgaushf {
     
   }; // class CalGausHFLBNE10kt
 
-  DEFINE_ART_MODULE(CalGausHFLBNE10kt);
+  DEFINE_ART_MODULE(CalGausHFLBNE10kt)
   
   //-------------------------------------------------
   CalGausHFLBNE10kt::CalGausHFLBNE10kt(fhicl::ParameterSet const& pset)
