@@ -421,6 +421,6 @@ void util::SignalShapingServiceLBNE10kt::SetFilters()
 
 namespace util {
 
-  DEFINE_ART_SERVICE(SignalShapingServiceLBNE10kt);
+  DEFINE_ART_SERVICE(SignalShapingServiceLBNE10kt)
 
 }

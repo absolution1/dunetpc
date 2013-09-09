@@ -75,7 +75,7 @@ namespace util
 
   };
 
-  DEFINE_ART_MODULE(SignalShapingLBNE35tTest);
+  DEFINE_ART_MODULE(SignalShapingLBNE35tTest)
 
   SignalShapingLBNE35tTest::SignalShapingLBNE35tTest(const fhicl::ParameterSet& pset)
   {}
