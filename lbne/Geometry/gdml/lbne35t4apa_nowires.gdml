@@ -424,7 +424,7 @@
 
     <box name="LightPaddle" lunit="cm"
       x="0.476"
-      y="45.3333333333333 + 0"
+      y="56 + 0"
       z="10.16"/>
 
      <box name="APAFrameYSideHollow-0" lunit="cm"
@@ -1016,7 +1016,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-0-APA-2" unit="cm" 
          x="-100" 
-	 y="-60.765 - 84/2 + 42" 
+	 y="-60.765 - 84/2 + 45.84" 
          z="-7.105427357601e-15"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1087,7 +1087,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-0-APA-1" unit="cm" 
          x="-100" 
-	 y="39.735 - 112/2 + 56" 
+	 y="39.735 - 112/2 + 73.84" 
          z="-7.105427357601e-15"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1178,7 +1178,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-1-APA-0" unit="cm" 
          x="-100" 
-	 y="-2.265 - 196/2 + 39.0666666666667" 
+	 y="-2.265 - 196/2 + 157.84" 
          z="-51.675"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1188,7 +1188,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-2-APA-0" unit="cm" 
          x="-100" 
-	 y="-2.265 - 196/2 + 156.933333333333" 
+	 y="-2.265 - 196/2 + 38.16" 
          z="-51.675"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1257,7 +1257,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-1-APA-3" unit="cm" 
          x="-100" 
-	 y="-2.265 - 196/2 + 39.0666666666667" 
+	 y="-2.265 - 196/2 + 157.84" 
          z="51.675"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -1267,7 +1267,7 @@
        <volumeref ref="volOpDetSensitive"/>
        <position name="posPaddle-2-APA-3" unit="cm" 
          x="-100" 
-	 y="-2.265 - 196/2 + 156.933333333333" 
+	 y="-2.265 - 196/2 + 38.16" 
          z="51.675"/>
        <rotationref ref="rIdentity"/>
      </physvol>
