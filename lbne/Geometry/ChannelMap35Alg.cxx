@@ -18,120 +18,8 @@
 namespace geo{
 
   //----------------------------------------------------------------------------
-  // Define sort order for cryostats in APA configuration
-  //   same as standard
-  static bool sortCryo35(const CryostatGeo* c1, const CryostatGeo* c2)
-  {
-    double xyz1[3] = {0.}, xyz2[3] = {0.};
-    double local[3] = {0.}; 
-    c1->LocalToWorld(local, xyz1);
-    c2->LocalToWorld(local, xyz2);
-
-    return xyz1[0] < xyz2[0];   
-  }
-
-
-  //----------------------------------------------------------------------------
-  // Define sort order for tpcs in APA configuration.
-  static bool sortTPC35(const TPCGeo* t1, const TPCGeo* t2) 
-  {
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-    double local[3] = {0.};
-    t1->LocalToWorld(local, xyz1);
-    t2->LocalToWorld(local, xyz2);
-
-    // The goal is to number TPCs first in the x direction so that,
-    // in the case of APA configuration, TPCs 2c and 2c+1 make up APA c.
-    // then numbering will go in y then in z direction.
-
-    // First sort all TPCs into same-z groups
-    if(xyz1[2] < xyz2[2]) return true;
- 
-    // Within a same-z group, sort TPCs into same-y groups
-    if(xyz1[2] == xyz2[2] && xyz1[1] < xyz2[1]) return true;
- 
-    // Within a same-z, same-y group, sort TPCs according to x
-    if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;      
-
-    // none of those are true, so return false
-    return false;
-  }
-
-
-  //----------------------------------------------------------------------------
-  // Define sort order for planes in APA configuration
-  //   same as standard, but implemented differently
-  static bool sortPlane35(const PlaneGeo* p1, const PlaneGeo* p2) 
-  {
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-    double local[3] = {0.};
-    p1->LocalToWorld(local, xyz1);
-    p2->LocalToWorld(local, xyz2);
-
-    return xyz1[0] > xyz2[0];
-  }
-
-  //----------------------------------------------------------------------------
-  // we want the wires to be sorted such that the smallest corner wire
-  // on the readout end of a plane is wire zero, with wire number
-  // increasing away from that wire.
-  
-  // Since 35t has an APA which is both above and below the world origin,
-  // we cannot use the APA trick. If we could ask where wire 0 was, we could
-  // still do this in a single implimentation, but we aren't sure what wire
-  // center we will be getting, so this reversed sorting must be handled
-  // at the plane level where there is one vertical center.
-  // If the plane center is above, count from top down (the top stacked and
-  // largest APAs) If the plane is below (bottom stacked APA) count bottom up
-  
-  bool sortWire35(WireGeo* w1, WireGeo* w2){
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-    
-    fflush(stdout);
-    w1->GetCenter(xyz1); w2->GetCenter(xyz2);
-
-    // immedieately take care of vertical wires regardless of which TPC
-    // vertical wires should always have same y, and always increase in z direction
-    if( xyz1[1]==xyz2[1] && xyz1[2]<xyz2[2] ) return true;
-
-
-    // we want the wires to be sorted such that the smallest corner wire
-    // on the readout end of a plane is wire zero, with wire number
-    // increasing away from that wire. 
-
-    // The number 76.35 is hard-coded as the z position of the vertical boundary 
-    // between adjacent APAs. This is necessary because the largest TPC in 
-    // 35t geometry would be considered "top" AND "bottom" by the APA 
-    // configuration sorting method. Reconciling this came down to complicating 
-    // the detector-agnostic framework of sorting volumes, or hard coding.
-    // Let's keep the 35t messiness inside this class as much as possible.
-
-    // the hard coded nuber should be equivalent to the zposition of 
-    // volDetEnclosure in generate_35.pl
-
-    if( xyz1[2]>76.35 ){
-
-      // if a bottom TPC, count from bottom up
-      if( xyz1[1]<0 && xyz1[1] < xyz2[1] ) return true; 
-     
-      // if a top TPC, count from top down
-      if( xyz1[1]>0 && xyz1[1] > xyz2[1] ) return true;
-      
-    } else if( xyz1[2]<76.35 ){
-
-      if( xyz1[1] > xyz2[1] ) return true;
-
-    }
-
-    return false;
-  }
-
-
-  //----------------------------------------------------------------------------
-  ChannelMap35Alg::ChannelMap35Alg()
+  ChannelMap35Alg::ChannelMap35Alg(fhicl::ParameterSet const& p)
+    : fSorter(geo::GeoObjectSorter35(p))
   {
   }
 
@@ -154,9 +42,9 @@ namespace geo{
     
     mf::LogInfo("ChannelMap35Alg") << "Sorting...";
 
-    std::sort(cgeo.begin(), cgeo.end(), sortCryo35);
+    fSorter.SortCryostats(cgeo);
     for(size_t c = 0; c < cgeo.size(); ++c) 
-      cgeo[c]->SortSubVolumes(sortTPC35, sortPlane35, sortWire35);
+      cgeo[c]->SortSubVolumes(fSorter);
 
 
     mf::LogInfo("ChannelMap35Alg") << "Initializing...";

@@ -12,6 +12,9 @@
 #include <stdint.h>
 
 #include "Geometry/ChannelMapAlg.h"
+#include "Geometry/GeoObjectSorterAPA.h"
+
+#include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
 
@@ -19,7 +22,7 @@ namespace geo{
 
   public:
 
-    ChannelMapAPAAlg();
+    ChannelMapAPAAlg(fhicl::ParameterSet const& p);
     ~ChannelMapAPAAlg();
     
     void                     Initialize(std::vector<geo::CryostatGeo*> & cgeo);
@@ -53,14 +56,14 @@ namespace geo{
     std::vector<std::vector<std::vector<unsigned int>>>  fWiresPerPlane;  ///< The number of wires in this plane 
                                                                           ///< in the heirachy
 
+    geo::GeoObjectSorterAPA                              fSorter;         ///< sorts geo::XXXGeo objects
+
     std::vector<std::vector<std::vector<double>>> fFirstWireCenterY;
     std::vector<std::vector<std::vector<double>>> fFirstWireCenterZ;
     std::vector< double > fWirePitch;
     std::vector< double > fOrientation;
     std::vector< double > fTanOrientation; // to explore improving speed
     std::vector< double > fCosOrientation; // to explore improving speed
-
-
 
   };
 

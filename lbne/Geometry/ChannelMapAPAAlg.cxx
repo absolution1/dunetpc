@@ -17,90 +17,9 @@
 
 namespace geo{
 
-
   //----------------------------------------------------------------------------
-  // Define sort order for cryostats in APA configuration
-  //   same as standard
-  static bool sortCryoAPA(const CryostatGeo* c1, const CryostatGeo* c2)
-  {
-    double xyz1[3] = {0.}, xyz2[3] = {0.};
-    double local[3] = {0.}; 
-    c1->LocalToWorld(local, xyz1);
-    c2->LocalToWorld(local, xyz2);
-
-    return xyz1[0] < xyz2[0];   
-  }
-
-
-  //----------------------------------------------------------------------------
-  // Define sort order for tpcs in APA configuration.
-  static bool sortTPCAPA(const TPCGeo* t1, const TPCGeo* t2) 
-  {
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-    double local[3] = {0.};
-    t1->LocalToWorld(local, xyz1);
-    t2->LocalToWorld(local, xyz2);
-
-    // The goal is to number TPCs first in the x direction so that,
-    // in the case of APA configuration, TPCs 2c and 2c+1 make up APA c.
-    // then numbering will go in y then in z direction.
-
-    // First sort all TPCs into same-z groups
-    if(xyz1[2] < xyz2[2]) return true;
- 
-    // Within a same-z group, sort TPCs into same-y groups
-    if(xyz1[2] == xyz2[2] && xyz1[1] < xyz2[1]) return true;
- 
-    // Within a same-z, same-y group, sort TPCs according to x
-    if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;
- 
-    // none of those are true, so return false
-    return false;
-  }
-
-
- //----------------------------------------------------------------------------
-  // Define sort order for planes in APA configuration
-  //   same as standard, but implemented differently
-  static bool sortPlaneAPA(const PlaneGeo* p1, const PlaneGeo* p2) 
-  {
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-    double local[3] = {0.};
-    p1->LocalToWorld(local, xyz1);
-    p2->LocalToWorld(local, xyz2);
-
-    return xyz1[0] > xyz2[0];
-  }
-
-
-  //----------------------------------------------------------------------------
-  bool sortWireAPA(WireGeo* w1, WireGeo* w2){
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-
-    w1->GetCenter(xyz1); w2->GetCenter(xyz2);
-
-    // we want the wires to be sorted such that the smallest corner wire
-    // on the readout end of a plane is wire zero, with wire number
-    // increasing away from that wire. 
-
-    // if a top TPC, count from top down
-    if( xyz1[1]>0 && xyz1[1] > xyz2[1] ) return true;
-
-    // if a bottom TPC, count from bottom up
-    if( xyz1[1]<0 && xyz1[1] < xyz2[1] ) return true;
-
-    // sort the all vertical wires to increase in +z direction
-    if( xyz1[1] == xyz2[1] && xyz1[2] < xyz2[2] ) return true;
-
-    return false;
-  }
-
-
-  //----------------------------------------------------------------------------
-  ChannelMapAPAAlg::ChannelMapAPAAlg()
+  ChannelMapAPAAlg::ChannelMapAPAAlg(fhicl::ParameterSet const& p)
+    : fSorter(geo::GeoObjectSorterAPA(p))
   {
   }
 
@@ -122,9 +41,9 @@ namespace geo{
     
     mf::LogInfo("ChannelMapAPAAlg") << "Sorting volumes...";
 
-    std::sort(cgeo.begin(), cgeo.end(), sortCryoAPA);
+    fSorter.SortCryostats(cgeo);
     for(size_t c = 0; c < cgeo.size(); ++c) 
-      cgeo[c]->SortSubVolumes(sortTPCAPA, sortPlaneAPA, sortWireAPA);
+      cgeo[c]->SortSubVolumes(fSorter);
 
     mf::LogInfo("ChannelMapAPAAlg") << "Initializing channel map...";
       

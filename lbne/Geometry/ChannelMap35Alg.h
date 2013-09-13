@@ -12,6 +12,8 @@
 #include <stdint.h>
 
 #include "Geometry/ChannelMapAlg.h"
+#include "Geometry/GeoObjectSorter35.h"
+#include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
 
@@ -19,7 +21,7 @@ namespace geo{
 
   public:
 
-    ChannelMap35Alg();
+    ChannelMap35Alg(fhicl::ParameterSet const& p);
     ~ChannelMap35Alg();
     
     void                     Initialize(std::vector<geo::CryostatGeo*> & cgeo);
@@ -52,7 +54,8 @@ namespace geo{
 
     std::vector<std::vector<std::vector<unsigned int>>>  fWiresPerPlane;  ///< The number of wires in this plane 
                                                                           ///< in the heirachy
-
+    geo::GeoObjectSorter35                               fSorter;         ///< sorts geo::XXXGeo objects
+    
     std::vector<std::vector<std::vector<double>>> fFirstWireCenterY;
     std::vector<std::vector<std::vector<double>>> fFirstWireCenterZ;
     std::vector< double > fWirePitch;
