@@ -134,7 +134,7 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   GeoObjectSorter35::GeoObjectSorter35(fhicl::ParameterSet const& p)
-    : fDetVersion(p.get< std::string >("DetectorVersion", "lbne35t"))
+    : fDetVersion(p.get< std::string >("DetectorVersion", "lbne35t4apa"))
   {
   }
 
