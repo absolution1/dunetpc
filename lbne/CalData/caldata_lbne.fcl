@@ -1,5 +1,5 @@
-#include "job/caldata.fcl"
-#include "job/hitfindermodules_lbne.fcl"
+#include "caldata.fcl"
+#include "hitfindermodules_lbne.fcl"
 
 BEGIN_PROLOG
 
