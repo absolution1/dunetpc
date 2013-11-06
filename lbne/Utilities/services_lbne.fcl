@@ -1,13 +1,13 @@
-#include "job/geometry.fcl"
-#include "job/detectorproperties_lbne.fcl"
-#include "job/larproperties.fcl"
-#include "job/larfft_lbne.fcl"
-#include "job/messageservice.fcl"
-#include "job/simulationservices_lbne.fcl"
-#include "job/signalservices_lbne.fcl"
+#include "geometry.fcl"
+#include "detectorproperties_lbne.fcl"
+#include "larproperties.fcl"
+#include "larfft_lbne.fcl"
+#include "messageservice.fcl"
+#include "simulationservices_lbne.fcl"
+#include "signalservices_lbne.fcl"
 #include "magfield.fcl"
-#include "job/databaseutil_lbne.fcl"
-#include "job/backtracker.fcl"
+#include "databaseutil_lbne.fcl"
+#include "backtracker.fcl"
 
 BEGIN_PROLOG
 

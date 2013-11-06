@@ -1,7 +1,7 @@
-#include "job/services_lbne.fcl"
-#include "job/caldata_lbne.fcl"
-#include "job/cluster_lbne.fcl"
-#include "job/trackfindermodules.fcl"
+#include "services_lbne.fcl"
+#include "caldata_lbne.fcl"
+#include "cluster_lbne.fcl"
+#include "trackfindermodules.fcl"
 
 process_name: Reco
 

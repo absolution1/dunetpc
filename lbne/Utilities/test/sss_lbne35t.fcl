@@ -1,4 +1,4 @@
-#include "job/services_lbne35t.fcl"
+#include "services_lbne35t.fcl"
 
 process_name: SignalShapingLBNE35tTest
 
