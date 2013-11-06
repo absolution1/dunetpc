@@ -78,7 +78,7 @@ namespace util
   DEFINE_ART_MODULE(SignalShapingLBNE35tTest)
 
   SignalShapingLBNE35tTest::SignalShapingLBNE35tTest(const fhicl::ParameterSet& pset)
-  : EDAnalyzer(pset)
+  : EDAnalyzer(/*pset*/)
   {}
 
   void SignalShapingLBNE35tTest::beginJob()
