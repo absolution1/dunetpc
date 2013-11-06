@@ -1,7 +1,7 @@
-#include "job/services_lbne.fcl"
-#include "job/cry.fcl"
-#include "job/largeantmodules_lbne.fcl"
-#include "job/detsimmodules_lbne.fcl"
+#include "services_lbne.fcl"
+#include "cry.fcl"
+#include "largeantmodules_lbne.fcl"
+#include "detsimmodules_lbne.fcl"
 
 process_name: CosmicsGen
 

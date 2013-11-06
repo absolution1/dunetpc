@@ -1,10 +1,10 @@
-#include "job/services_lbne.fcl"
-#include "job/singles_lbne.fcl"
-#include "job/largeantmodules_lbne.fcl"
-#include "job/detsimmodules_lbne.fcl"
-#include "job/opticaldetectormodules_lbne.fcl"
-#include "job/photpropservices_lbne.fcl"
-#include "job/lightsource_lbne.fcl"
+#include "services_lbne.fcl"
+#include "singles_lbne.fcl"
+#include "largeantmodules_lbne.fcl"
+#include "detsimmodules_lbne.fcl"
+#include "opticaldetectormodules_lbne.fcl"
+#include "photpropservices_lbne.fcl"
+#include "lightsource_lbne.fcl"
 
 
 process_name: LibraryBuild
