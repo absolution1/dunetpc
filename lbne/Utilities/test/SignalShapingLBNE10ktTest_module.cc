@@ -78,6 +78,7 @@ namespace util
   DEFINE_ART_MODULE(SignalShapingLBNE10ktTest)
 
   SignalShapingLBNE10ktTest::SignalShapingLBNE10ktTest(const fhicl::ParameterSet& pset)
+  : EDAnalzyer(pset)
   {}
 
   void SignalShapingLBNE10ktTest::beginJob()
