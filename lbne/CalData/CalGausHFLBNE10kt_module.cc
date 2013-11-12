@@ -322,7 +322,7 @@ namespace calgaushf {
 
 	    //Integrate over signal in induction planes
 	    for(bin = 0;  bin < rawadc_conv.size(); ++bin) 
-	      holder[bin] = (bin>0) ? rawadc_conv[bin] + holder[bin-1] : rawadc_conv[i];
+	      holder[bin] = (bin>0) ? rawadc_conv[bin] + holder[bin-1] : rawadc_conv[bin];
 	  }
 
 
