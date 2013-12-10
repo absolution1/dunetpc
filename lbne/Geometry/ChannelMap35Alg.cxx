@@ -54,7 +54,7 @@ namespace geo{
     fFirstChannelInNextPlane.resize(fNcryostat);
     fFirstChannelInThisPlane.resize(fNcryostat);
     nAnchoredWires.resize(fNcryostat);
-
+    fViews.clear();
     fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
 
     fTopChannel = 0;
@@ -89,7 +89,9 @@ namespace geo{
           double xyz[3] = {0.};
           double xyz_next[3] = {0.};
 
-          for(unsigned int w=0; w!=fWiresPerPlane[c][a][p]; ++w){
+	  fViews.emplace(cgeo[c]->TPC(t).Plane(p).View());
+
+          for(unsigned int w = 0; w != fWiresPerPlane[c][a][p]; ++w){
 
 	    // for vertical planes
 	    if(cgeo[c]->TPC(t).Plane(p).View() == geo::kZ)   { 
@@ -374,6 +376,10 @@ namespace geo{
     return view;
   }  
  
-
+  //----------------------------------------------------------------------------
+  std::set<geo::View_t> ChannelMap35Alg::Views() const
+  {
+    return fViews;
+  }
 
 } // namespace

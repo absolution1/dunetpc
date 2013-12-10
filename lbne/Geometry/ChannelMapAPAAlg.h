@@ -9,6 +9,7 @@
 #define GEO_CHANNELAPAMAPALG_H
 
 #include <vector>
+#include <set>
 #include <stdint.h>
 
 #include "Geometry/ChannelMapAlg.h"
@@ -39,6 +40,7 @@ namespace geo{
 						unsigned int cstat)    const;
    const View_t              View( uint32_t const channel )            const;
    const SigType_t           SignalType( uint32_t const channel )      const;
+   std::set<geo::View_t>     Views()                                   const;
     
   private:
     
@@ -46,7 +48,7 @@ namespace geo{
     unsigned int                                         fNchannels;      ///< number of channels in the detector
     uint32_t                                             fTopChannel;     ///< book keeping highest channel #
     std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
-
+    std::set<geo::View_t>                                fViews;          ///< vector of the views present in the detector
     // Assuming all APA's are identical
     std::vector< unsigned int >				 fWiresInPlane;
     unsigned int					 fPlanesPerAPA;   

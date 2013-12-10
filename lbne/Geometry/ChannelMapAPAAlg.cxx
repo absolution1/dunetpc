@@ -58,6 +58,7 @@ namespace geo{
     fFirstChannelInNextPlane[0].resize(1);  // for first APA only.
     fFirstChannelInThisPlane[0][0].resize(fPlanesPerAPA);  // Make room for info
     fFirstChannelInNextPlane[0][0].resize(fPlanesPerAPA);  // on each plane.
+    fViews.clear();
 
     fTopChannel = 0;
 
@@ -77,7 +78,9 @@ namespace geo{
       double xyz[3] = {0.};
       double xyz_next[3] = {0.};
 
-      for(unsigned int w=0; w!=fWiresInPlane[p]; ++w){
+      fViews.emplace(cgeo[0]->TPC(0).Plane(p).View());
+
+      for(unsigned int w = 0; w != fWiresInPlane[p]; ++w){
 
 	// for vertical planes
 	if(cgeo[0]->TPC(0).Plane(p).View()==geo::kZ)   { 
@@ -368,5 +371,10 @@ namespace geo{
     return view;
   }  
 
+  //----------------------------------------------------------------------------
+  std::set<geo::View_t> ChannelMapAPAAlg::Views() const
+  {
+    return fViews;
+  }
 
 } // namespace
