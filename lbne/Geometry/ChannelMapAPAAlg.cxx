@@ -59,7 +59,7 @@ namespace geo{
     fFirstChannelInThisPlane[0][0].resize(fPlanesPerAPA);  // Make room for info
     fFirstChannelInNextPlane[0][0].resize(fPlanesPerAPA);  // on each plane.
     fViews.clear();
-
+    fPlaneIDs.clear();
     fTopChannel = 0;
 
     // Size some vectors and initialize the FirstChannel vectors.
@@ -79,7 +79,7 @@ namespace geo{
       double xyz_next[3] = {0.};
 
       fViews.emplace(cgeo[0]->TPC(0).Plane(p).View());
-
+      
       for(unsigned int w = 0; w != fWiresInPlane[p]; ++w){
 
 	// for vertical planes
@@ -135,10 +135,11 @@ namespace geo{
     fCosOrientation.resize(cgeo[0]->TPC(0).Nplanes());
 
     //save data into fFirstWireCenterY and fFirstWireCenterZ
-    for (unsigned int cs=0; cs<fNcryostat; cs++){
-      for (unsigned int tpc=0; tpc<cgeo[cs]->NTPC(); tpc++){
-        for (unsigned int plane=0; plane<cgeo[cs]->TPC(tpc).Nplanes(); plane++){
+    for (unsigned int cs=0; cs<fNcryostat; ++cs){
+      for (unsigned int tpc=0; tpc<cgeo[cs]->NTPC(); ++tpc){
+        for (unsigned int plane=0; plane<cgeo[cs]->TPC(tpc).Nplanes(); ++plane){
           double xyz[3]={0.0, 0.0, 0.0};
+	  fPlaneIDs.emplace(PlaneID(cs,tpc,plane));
           cgeo[cs]->TPC(tpc).Plane(plane).Wire(0).GetCenter(xyz);
           fFirstWireCenterY[cs][tpc][plane]=xyz[1];
           fFirstWireCenterZ[cs][tpc][plane]=xyz[2];
@@ -372,9 +373,15 @@ namespace geo{
   }  
 
   //----------------------------------------------------------------------------
-  std::set<geo::View_t> ChannelMapAPAAlg::Views() const
+  std::set<View_t> const& ChannelMapAPAAlg::Views() const
   {
     return fViews;
+  }
+
+  //----------------------------------------------------------------------------
+  std::set<PlaneID> const& ChannelMapAPAAlg::PlaneIDs() const
+  {
+    return fPlaneIDs;
   }
 
 } // namespace

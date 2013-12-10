@@ -55,6 +55,7 @@ namespace geo{
     fFirstChannelInThisPlane.resize(fNcryostat);
     nAnchoredWires.resize(fNcryostat);
     fViews.clear();
+    fPlaneIDs.clear();
     fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
 
     fTopChannel = 0;
@@ -155,6 +156,7 @@ namespace geo{
     for (unsigned int cs=0; cs<fNcryostat; cs++){
       for (unsigned int tpc=0; tpc<fNTPC[cs]; tpc++){
         for (unsigned int plane=0; plane<fPlanesPerAPA; plane++){
+	  fPlaneIDs.emplace(PlaneID(cs, tpc, plane));
           double xyz[3]={0.0, 0.0, 0.0};
           cgeo[cs]->TPC(tpc).Plane(plane).Wire(0).GetCenter(xyz);
           fFirstWireCenterY[cs][tpc][plane]=xyz[1];
@@ -377,9 +379,15 @@ namespace geo{
   }  
  
   //----------------------------------------------------------------------------
-  std::set<geo::View_t> ChannelMap35Alg::Views() const
+  std::set<View_t> const& ChannelMap35Alg::Views() const
   {
     return fViews;
+  }
+
+  //----------------------------------------------------------------------------
+  std::set<PlaneID> const& ChannelMap35Alg::PlaneIDs() const
+  {
+    return fPlaneIDs;
   }
 
 } // namespace
