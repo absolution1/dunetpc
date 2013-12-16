@@ -1,4 +1,4 @@
-#include "geometry.fcl"
+#include "geometry_lbne.fcl"
 #include "detectorproperties_lbne.fcl"
 #include "larproperties.fcl"
 #include "larfft_lbne.fcl"
