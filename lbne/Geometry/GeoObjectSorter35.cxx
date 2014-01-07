@@ -103,7 +103,7 @@ namespace geo{
       ///////////////////////////////////////////////////////////
       // Hard code a number to tell sorting when to look
       // for top/bottom APAs and when to look for only one
-      bool InVertSplitRegion;
+      bool InVertSplitRegion = false;
       if(detVersion=="lbne35t")     InVertSplitRegion = xyz1[2] > 76.35;   // the old
       if(detVersion=="lbne35t4apa") InVertSplitRegion = ((51 < xyz1[2])    // the new
 							 && (xyz1[2] < 102));

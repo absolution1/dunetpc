@@ -350,7 +350,7 @@ namespace geo{
   const SigType_t ChannelMap35Alg::SignalType( uint32_t const channel )  const
   {
     uint32_t chan = channel % fChannelsPerAPA;
-    SigType_t sigt;
+    SigType_t sigt = kInduction;
 
     if(       chan <  fFirstChannelInThisPlane[0][0][2]     ){ sigt = kInduction;  }
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
@@ -365,7 +365,7 @@ namespace geo{
   const View_t ChannelMap35Alg::View( uint32_t const channel )  const
   {
     uint32_t chan = channel % fChannelsPerAPA;
-    View_t view;
+    View_t view = geo::kU;
 
     if(       chan <  fFirstChannelInNextPlane[0][0][0]     ){ view = geo::kU; }
     else if( (chan >= fFirstChannelInThisPlane[0][0][1]) &&
