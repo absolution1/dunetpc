@@ -9,6 +9,7 @@ services:
   user: {}
 }
 
+services.user.ExptGeoHelperInterface: @local::lbne_geometry_helper
 services.user.Geometry:           @local::lbne10kt_geo
 services.user.DetectorProperties: @local::lbne10kt_detproperties
 services.user.LArProperties:      @local::lbne10kt_properties

@@ -21,6 +21,7 @@ BEGIN_PROLOG
 
 lbnefd_services:
 {
+ ExptGeoHelperInterface        @local::lbne_geometry_helper
  Geometry:                     @local::lbnefd_geo 	       
  DetectorProperties:           @local::lbnefd_detproperties 
  LArProperties:                @local::lbnefd_properties     
@@ -34,6 +35,7 @@ lbnefd_simulation_services:
 {
  LArFFT:                       @local::lbnefd_larfft  	         
  LArG4Parameters:              @local::lbnefd_largeantparameters 
+ ExptGeoHelperInterface:       @local::lbne_geometry_helper
  Geometry:                     @local::lbnefd_geo 	       
  DetectorProperties:           @local::lbnefd_detproperties      
  LArProperties:                @local::lbnefd_properties	       
@@ -48,16 +50,17 @@ lbnefd_simulation_services:
 # lbne10kt and lbne34kt consolidated into lbnefd,
 # but catch any leftover cases of 10kt...
 lbne10kt_services: @local::lbnefd_services
-lbne10kt_services.Geometry.GDML: "Geometry/gdml/lbne10kt.gdml"
-lbne10kt_services.Geometry.ROOT: "Geometry/gdml/lbne10kt.gdml"
+lbne10kt_services.Geometry.GDML: "lbne10kt.gdml"
+lbne10kt_services.Geometry.ROOT: "lbne10kt.gdml"
 lbne10kt_simulation_services: @local::lbnefd_services
-lbne10kt_simulation_services.Geometry.GDML: "Geometry/gdml/lbne10kt.gdml"
-lbne10kt_simulation_services.Geometry.ROOT: "Geometry/gdml/lbne10kt.gdml"
+lbne10kt_simulation_services.Geometry.GDML: "lbne10kt.gdml"
+lbne10kt_simulation_services.Geometry.ROOT: "lbne10kt.gdml"
 
 
 
 lbne35t_services:
 {
+ ExptGeoHelperInterface        @local::lbne_geometry_helper
  Geometry:                     @local::lbne35t_geo 	       
  DetectorProperties:           @local::lbne35t_detproperties 
  LArProperties:                @local::lbne35t_properties     
@@ -71,6 +74,7 @@ lbne35t_simulation_services:
 {
  LArFFT:                       @local::lbne35t_larfft  	         
  LArG4Parameters:              @local::lbne35t_largeantparameters 
+ ExptGeoHelperInterface        @local::lbne_geometry_helper
  Geometry:                     @local::lbne35t_geo 	       
  DetectorProperties:           @local::lbne35t_detproperties      
  LArProperties:                @local::lbne35t_properties	       
