@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 #include "Geometry/ChannelMapAlg.h"
-#include "Geometry/GeoObjectSorterAPA.h"
+#include "lbne/Geometry/GeoObjectSorterAPA.h"
 
 #include "fhiclcpp/ParameterSet.h"
 

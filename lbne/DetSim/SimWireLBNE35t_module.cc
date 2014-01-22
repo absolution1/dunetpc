@@ -35,7 +35,7 @@ extern "C" {
 #include "Utilities/LArFFT.h"
 #include "RawData/raw.h"
 #include "Utilities/LArProperties.h"
-#include "Utilities/SignalShapingServiceLBNE35t.h"
+#include "lbne/Utilities/SignalShapingServiceLBNE35t.h"
 #include "Geometry/Geometry.h"
 
 #include "Simulation/sim.h"

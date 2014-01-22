@@ -6,7 +6,7 @@
 /// \author  tylerdalion@gmail.com
 ////////////////////////////////////////////////////////////////////////
 
-#include "Geometry/ChannelMapAPAAlg.h"
+#include "lbne/Geometry/ChannelMapAPAAlg.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"

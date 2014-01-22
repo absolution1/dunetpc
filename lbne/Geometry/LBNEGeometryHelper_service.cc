@@ -7,14 +7,14 @@
 
 // Migration note:
 // Geometry --> lbne/Geometry
-#include "Geometry/LBNEGeometryHelper.h"
+#include "lbne/Geometry/LBNEGeometryHelper.h"
 
 #include "Geometry/ChannelMapAlg.h"
 
 // Migration note:
 // Geometry --> lbne/Geometry for the two below
-#include "Geometry/ChannelMap35Alg.h"
-#include "Geometry/ChannelMapAPAAlg.h"
+#include "lbne/Geometry/ChannelMap35Alg.h"
+#include "lbne/Geometry/ChannelMapAPAAlg.h"
 
 #include "TString.h"
 

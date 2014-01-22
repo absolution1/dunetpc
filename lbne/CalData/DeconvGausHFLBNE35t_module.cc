@@ -38,7 +38,7 @@ extern "C" {
 #include "cetlib/exception.h"
 #include "cetlib/search_path.h"
 
-#include "Utilities/SignalShapingServiceLBNE35t.h"
+#include "lbne/Utilities/SignalShapingServiceLBNE35t.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"

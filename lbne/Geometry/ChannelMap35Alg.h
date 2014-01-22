@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 #include "Geometry/ChannelMapAlg.h"
-#include "Geometry/GeoObjectSorter35.h"
+#include "lbne/Geometry/GeoObjectSorter35.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{

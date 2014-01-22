@@ -3,7 +3,7 @@
 /// \author H. Greenlee 
 ////////////////////////////////////////////////////////////////////////
 
-#include "Utilities/SignalShapingServiceLBNE35t.h"
+#include "lbne/Utilities/SignalShapingServiceLBNE35t.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib/exception.h"

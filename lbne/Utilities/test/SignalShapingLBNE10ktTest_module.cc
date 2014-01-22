@@ -13,7 +13,7 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 
-#include "Utilities/SignalShapingServiceLBNE10kt.h"
+#include "lbne/Utilities/SignalShapingServiceLBNE10kt.h"
 #include "Utilities/LArFFT.h"
 
 #include "TComplex.h"
