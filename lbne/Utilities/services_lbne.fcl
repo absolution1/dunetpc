@@ -21,7 +21,7 @@ BEGIN_PROLOG
 
 lbnefd_services:
 {
- ExptGeoHelperInterface        @local::lbne_geometry_helper
+ ExptGeoHelperInterface:       @local::lbne_geometry_helper
  Geometry:                     @local::lbnefd_geo 	       
  DetectorProperties:           @local::lbnefd_detproperties 
  LArProperties:                @local::lbnefd_properties     
@@ -60,7 +60,7 @@ lbne10kt_simulation_services.Geometry.ROOT: "lbne10kt.gdml"
 
 lbne35t_services:
 {
- ExptGeoHelperInterface        @local::lbne_geometry_helper
+ ExptGeoHelperInterface:       @local::lbne_geometry_helper
  Geometry:                     @local::lbne35t_geo 	       
  DetectorProperties:           @local::lbne35t_detproperties 
  LArProperties:                @local::lbne35t_properties     
@@ -74,7 +74,7 @@ lbne35t_simulation_services:
 {
  LArFFT:                       @local::lbne35t_larfft  	         
  LArG4Parameters:              @local::lbne35t_largeantparameters 
- ExptGeoHelperInterface        @local::lbne_geometry_helper
+ ExptGeoHelperInterface:       @local::lbne_geometry_helper
  Geometry:                     @local::lbne35t_geo 	       
  DetectorProperties:           @local::lbne35t_detproperties      
  LArProperties:                @local::lbne35t_properties	       
