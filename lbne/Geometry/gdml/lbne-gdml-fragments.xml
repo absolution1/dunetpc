@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+
+<!-- Input to Geometry/gdml/make_gdml.pl; define the GDML fragments
+     that will be zipped together to create a detector description. 
+     -->
+
+<config>
+
+   <constantfiles>
+
+      <!-- These files contain GDML <constant></constant>
+           blocks. They are read in separately, so they can be
+           interpreted into the remaining GDML. See make_gdml.pl for
+           more information. 
+	   -->
+	   
+
+   </constantfiles>
+
+   <gdmlfiles>
+
+      <!-- The GDML file fragments to be zipped together. -->
+
+      <filename> microboone/micro-defs.gdml </filename>
+      <filename> microboone/micro-rotations.gdml </filename>
+      <filename> materials.gdml </filename>
+      <filename> micro-world.gdml </filename>
+
+   </gdmlfiles>
+
+</config>

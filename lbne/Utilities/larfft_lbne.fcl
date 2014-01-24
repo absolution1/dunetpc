@@ -1,0 +1,17 @@
+#include "larfft.fcl"
+
+BEGIN_PROLOG
+
+
+lbnefd_larfft:           @local::standard_larfft
+lbnefd_larfft.FitBins:   5
+
+lbne35t_larfft:            @local::standard_larfft
+lbne35t_larfft.FitBins:    5
+
+# Note: going much higher on the FitBins introduces an 
+# undesired time offset in lbne wires
+
+
+END_PROLOG
+
