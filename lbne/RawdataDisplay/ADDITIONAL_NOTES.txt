@@ -1,0 +1,141 @@
+ADDITIONAL_NOTES.txt
+<seligman@nevis.columbia.edu>
+26-Sep-2012
+
+This is a detailed supplement to the brief notes in README.txt. These
+notes explain why things are done in a certain way in
+AnalysisExample_module.cc (if you followed directions, you've renamed
+it by now). Believe it or not, it's to teach you something useful.
+
+ (1) See
+     <https://cdcvs.fnal.gov/redmine/projects/larsoftsvn/wiki/Using_the_Framework>
+     for a description of the ART classes used in the.cc file. The
+     description of the artmod command is particularly interesting if
+     you're generating a module from scratch. Of course, since you're
+     starting from this code and editing it to do what you want, you
+     probably won't use the artmod command for this first analysis
+     project.
+
+ (2) Keep focused: You want to read in LArSoft events and create
+     histograms and n-tuples. Don't get bogged down in the detailed
+     code in the .cc file. You might be better off renaming or moving
+     that file and creating a new one from scratch or using artmod,
+     referring to the original as needed.
+
+ (3) Why the "_module" part of the name? So you'll remember to use the
+     DEFINE_ART_MODULE macro in the file; it's near the end. This lets
+     you use the name of this class in a "module_type" statement in a
+     .fcl file; there's an example in the sample .fcl file in this
+     directory.
+
+ (4) If you're familiar with C++, then the "_module.cc" file takes the
+     place of a 'main' routine in LArSoft. If you create any external
+     classes to be called by your module that are part of the same
+     package, you'll put the headers in a .h file and the
+     implementation in a .cxx file.
+
+ (5) Don't confuse the name "AnalysisExample" with the contents of
+     directory $SRT_PUBLIC_CONTEXT/AnalysisBase. The AnalysisBase
+     package contains classes that define the final physics objects
+     produced by the reconstruction process (particle ID, shower
+     energy, etc.). The AnalysisExample package provides an example of
+     how to analyze "stuff" that's been put in LArSoft event records.
+
+ (6) Once you have a ROOT file of histograms and n-tuples, what can
+     you do with it? There's a ROOT tutorial at
+     <http://www.nevis.columbia.edu/~seligman/root-class/> that will
+     teach you how to analyze n-tuples.
+
+ (7) I put in a couple of examples of how to use associations near the
+     end of the code:
+     <https://cdcvs.fnal.gov/redmine/projects/larsoftsvn/wiki/Use_Associations>.
+
+     These examples are intended to be sketches, not the full-blown
+     n-tuple creation examples earlier in the code. It should be
+     enough to get you started as you follow the LArSoft
+     reconstruction chain, either forwards or backwards.
+
+ (8) As written, the code in the .cc file is a bit obsolete: It
+     fetches simb::MCParticle and sim::SimChannel objects
+     directly. Since that code was written, a service was created that
+     reads those objects for you, along with simb::MCTruth
+     objects. This service is cheat::BackTracker.
+
+     To use this service, get a handle to cheat::BackTracker in the
+     same way you get a handle to art::TFileService in the .cc file,
+     then use that handle to invoke any of the methods in
+     $SRT_PUBLIC_CONTEXT/MCCheater/BackTracker.h.
+
+     So why not use that service in AnalysisExample? Because for the
+     work you'll be doing, you'll probably won't be just reading in
+     the simulated particles and channels; you'll probably be creating
+     n-tuples and histograms based on other LArSoft objects. You'll
+     still use the same methods to read in those objects that are
+     shown in the .cc file: create an art::Handle to a std::vector,
+     then use art::Event::GetByLabel to fill the vector.
+
+     Sound a bit complicated? It can be. That's why there are examples
+     in the code, plus comments in the .fcl file to help you
+     understand how the code connects to job control file.
+
+     Keep BackTracker in mind; it's a handy tool. But learn I/O from
+     this example and from the wiki page at
+     <https://cdcvs.fnal.gov/redmine/projects/larsoftsvn/wiki/Using_the_Framework>.
+
+ (9) If you want to do dE/dx studies using this code as a starting
+     point, then you're going to need to put the following line at the
+     end of the .fcl script (e.g., prodsingle.fcl) you use to generate
+     events:
+
+     services.user.LArG4Parameters.KeepEMShowerDaughters: true
+
+     Why? In LArG4, by default, if a particle is a typical product of
+     e-m processes (bremmstrahlung, pair production, etc.) the
+     particle ID stored in the channels and hits is that of the "eve"
+     particle; that is, the ultimate mother particle that interacted
+     in an "interesting" way before converting into an e-m
+     shower. That's a reasonable thing to do if you're working on
+     reconstructing showers.
+
+     But for dE/dx studies, it becomes confusing; the particle you're
+     tracking seems to have energy losses throughout the volume of the
+     detector. You want to distinguish the particle of interest from
+     any of its daughter particles. Setting the above flag will store
+     the original Geant4 track ID for each daughter's energy deposits,
+     so you can easily exclude them as shown in the code.
+
+(10) So what's all this stuff about vectors, maps, range-based for
+     loops, and iterators?
+
+     They're part of an important extension to C++ called STL, the
+     Standard Template Library. (Bonus geek credits if you first read
+     "STL" as "slower than light.") Vectors and maps are used
+     extensively in LArSoft; occasionally other STL containers are
+     used as well.
+
+     When you first come into contact with STL classes, there's a
+     tendency to treat them like FORTRAN arrays (if you learned
+     programming before 1995) or like Python dictionaries (if you
+     learned programming after 2005). If you use the same techniques
+     to handle vectors and maps as you did in those other languages,
+     you'll get slow, inefficient code that may waste large amounts of
+     memory.
+
+     Obviously, you can't learn all about STL in a single code
+     example. What I've tried to do is demonstrate some basics: use
+     iterators to step through STL containers (vectors, maps, lists,
+     etc.); don't copy an entire object when you can copy a pointer or
+     an address; use "auto" to save on typing; use "const" to protect
+     your data; take advantage of STL's built-in algorithms when you
+     can (like fast binary searches on sorted containers).
+
+     To make things a bit more complicated, in Sep-2012 we started
+     using a C++ compiler that enabled the additional language
+     features in C++11. The code examples attempt to illustrate what
+     you can now do with these new features, including the "auto"
+     keyword and range-based for loops.
+
+     When you start asking, "Why does this method return an entire map
+     instead of some kind of pointer to the map? Are they at least
+     considering move semantics?" then you know you've mastered STL,
+     memory management, and the new extensions to C++.
