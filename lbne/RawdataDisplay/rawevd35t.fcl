@@ -1,4 +1,4 @@
-#include "job/services_lbne.fcl"
+#include "services_lbne.fcl"
 
 
 process_name: RawEVD35t
