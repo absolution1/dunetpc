@@ -16,8 +16,8 @@
 // 5E4 is the max for Babu's sample
 
 //void anazstest(TString filebase="lbnezsanalysis_kevin30mev", double hmax=5E5)
-//void anazstest(TString filebase="lbnezsanalysis", double hmax=5E4)
-void anazstest(TString filebase="lbnezsanalysis_kevin30mev_2", double hmax=25E3)
+//void anazstest(TString filebase="lbnezsanalysis_kevin30mev_2", double hmax=25E3)
+void anazstest(TString filebase="lbnezsanalysis", double hmax=5E4)
 {
   TString filename;
   filename = filebase + ".root";
