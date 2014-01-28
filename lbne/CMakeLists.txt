@@ -7,6 +7,7 @@ add_subdirectory(DetSim)
 add_subdirectory(EventGenerator)
 add_subdirectory(CalData)
 add_subdirectory(RawdataDisplay)
+add_subdirectory(EnergyStudies)
 
 # Respect the order specified in lar_build, which is:
 #
