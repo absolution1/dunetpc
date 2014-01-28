@@ -381,7 +381,7 @@ outfile<<fChansPerAPA<<"  "<<fGeom->Ncryostats()<<"  "<<fNofAPA<<std::endl;
     return;
   }
 
-  DEFINE_ART_MODULE(RawEVD35t);
+  DEFINE_ART_MODULE(RawEVD35t)
 
 } // namespace AnalysisExample
 
