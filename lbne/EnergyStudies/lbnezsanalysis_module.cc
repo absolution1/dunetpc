@@ -211,9 +211,8 @@ namespace lbnezsanalysis {
 	    for(unsigned int tick=0;tick<uncompressed.size();tick++) 
 	      {
 		//std::cout << "trjadc: " << fEvent << " " << chan << " " << uncompressed.at(tick) << std::endl;
-		unsigned int tlow = tick - nNeighbors;
+		unsigned int tlow = (tick < nNeighbors)? 0: tick - nNeighbors;
 		unsigned int thigh = tick + nNeighbors;
-		if (tlow<0) tlow = 0;
 		if (thigh>=uncompressed.size()) thigh = uncompressed.size()-1;
 		for (short zscut=0;zscut<200;zscut++)
 		  {
