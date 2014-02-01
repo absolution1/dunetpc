@@ -347,7 +347,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  const SigType_t ChannelMap35Alg::SignalType( uint32_t const channel )  const
+  SigType_t ChannelMap35Alg::SignalType( uint32_t const channel )  const
   {
     uint32_t chan = channel % fChannelsPerAPA;
     SigType_t sigt = kInduction;
@@ -362,7 +362,7 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  const View_t ChannelMap35Alg::View( uint32_t const channel )  const
+  View_t ChannelMap35Alg::View( uint32_t const channel )  const
   {
     uint32_t chan = channel % fChannelsPerAPA;
     View_t view = geo::kU;

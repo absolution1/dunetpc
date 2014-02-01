@@ -159,7 +159,7 @@ namespace lbnezsanalysis {
   }
    
   //-----------------------------------------------------------------------
-  void lbnezsanalysis::beginRun(const art::Run& run)
+  void lbnezsanalysis::beginRun(const art::Run& /*run*/)
   {
     // How to convert from number of electrons to GeV.  The ultimate
     // source of this conversion factor is
@@ -169,7 +169,7 @@ namespace lbnezsanalysis {
   }
 
   //-----------------------------------------------------------------------
-  void lbnezsanalysis::reconfigure(fhicl::ParameterSet const& p)
+  void lbnezsanalysis::reconfigure(fhicl::ParameterSet const& /*p*/)
   {
     // no parameters for now.  Just read in raw data
     return;
@@ -211,9 +211,8 @@ namespace lbnezsanalysis {
 	    for(unsigned int tick=0;tick<uncompressed.size();tick++) 
 	      {
 		//std::cout << "trjadc: " << fEvent << " " << chan << " " << uncompressed.at(tick) << std::endl;
-		unsigned int tlow = tick - nNeighbors;
+		unsigned int tlow = (tick < nNeighbors)? 0: tick - nNeighbors;
 		unsigned int thigh = tick + nNeighbors;
-		if (tlow<0) tlow = 0;
 		if (thigh>=uncompressed.size()) thigh = uncompressed.size()-1;
 		for (short zscut=0;zscut<200;zscut++)
 		  {

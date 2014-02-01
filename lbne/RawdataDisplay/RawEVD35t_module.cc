@@ -305,7 +305,7 @@ outfile<<fChansPerAPA<<"  "<<fGeom->Ncryostats()<<"  "<<fNofAPA<<std::endl;
 
   //-----------------------------------------------------------------------
 
-  void RawEVD35t::beginRun(const art::Run& run){
+  void RawEVD35t::beginRun(const art::Run& /*run*/){
 
   }
 
