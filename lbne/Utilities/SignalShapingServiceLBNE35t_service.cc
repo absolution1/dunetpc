@@ -18,7 +18,7 @@
 //----------------------------------------------------------------------
 // Constructor.
 util::SignalShapingServiceLBNE35t::SignalShapingServiceLBNE35t(const fhicl::ParameterSet& pset,
-								    art::ActivityRegistry& reg) 
+								    art::ActivityRegistry& /* reg */) 
   : fInit(false)
 {
   reconfigure(pset);

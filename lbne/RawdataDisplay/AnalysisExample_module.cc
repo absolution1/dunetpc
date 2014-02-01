@@ -229,7 +229,7 @@ namespace AnalysisExample {
   }
    
   //-----------------------------------------------------------------------
-  void AnalysisExample::beginRun(const art::Run& run)
+  void AnalysisExample::beginRun(const art::Run& /*run*/)
   {
     // How to convert from number of electrons to GeV.  The ultimate
     // source of this conversion factor is

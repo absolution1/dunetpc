@@ -159,7 +159,7 @@ namespace lbnezsanalysis {
   }
    
   //-----------------------------------------------------------------------
-  void lbnezsanalysis::beginRun(const art::Run& run)
+  void lbnezsanalysis::beginRun(const art::Run& /*run*/)
   {
     // How to convert from number of electrons to GeV.  The ultimate
     // source of this conversion factor is
@@ -169,7 +169,7 @@ namespace lbnezsanalysis {
   }
 
   //-----------------------------------------------------------------------
-  void lbnezsanalysis::reconfigure(fhicl::ParameterSet const& p)
+  void lbnezsanalysis::reconfigure(fhicl::ParameterSet const& /*p*/)
   {
     // no parameters for now.  Just read in raw data
     return;
