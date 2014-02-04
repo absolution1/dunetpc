@@ -38,8 +38,8 @@ namespace geo{
 						unsigned int wire,
 						unsigned int tpc,
 						unsigned int cstat)    const;
-   const View_t              View( uint32_t const channel )            const;
-   const SigType_t           SignalType( uint32_t const channel )      const;
+   View_t                    View( uint32_t const channel )            const;
+   SigType_t                 SignalType( uint32_t const channel )      const;
    std::set<View_t>  const&  Views()                                   const;
    std::set<PlaneID> const&  PlaneIDs()                                const;
 
