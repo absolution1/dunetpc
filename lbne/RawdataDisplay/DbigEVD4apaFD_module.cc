@@ -134,6 +134,7 @@ namespace AnalysisExample{
   // read in the parameters from the .fcl file
   DbigEVD4apaFD::DbigEVD4apaFD(fhicl::ParameterSet const& parameterSet)
     : EDAnalyzer( parameterSet )
+    , fEvent(-1)
   {
     this->reconfigure(parameterSet);
   }
@@ -314,7 +315,10 @@ namespace AnalysisExample{
     // Get the index for Hist vectors - not 1 if reading a file that 
     // started at a custom firstEvent in the fcl file
     if(!fGotFirstEvtNum){ fFirstEvt = event.id().event(); fGotFirstEvtNum = true; }
-    unsigned int evtIndex = event.id().event() - fFirstEvt;
+    // This works if all evts are contiguously numbered, which if produced by a filter
+    // may not be the case. 
+    //     unsigned int evtIndex = event.id().event() - fFirstEvt;
+    unsigned int evtIndex = ++fEvent;
 
     art::Handle< std::vector<recob::Hit> > ChHits;
     event.getByLabel(fChanHitLabel, ChHits);
