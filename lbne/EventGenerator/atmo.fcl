@@ -1,5 +1,6 @@
 #include "services_lbne.fcl"
 #include "nuance.fcl"
+#include "filters.fcl"
 #include "largeantmodules_lbne.fcl"
 #include "detsimmodules_lbne.fcl"
 #include "mccheatermodules.fcl"
