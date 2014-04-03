@@ -12,6 +12,8 @@
 #include "Geometry/PlaneGeo.h"
 #include "Geometry/WireGeo.h"
 
+#include "messagefacility/MessageLogger/MessageLogger.h"
+
 namespace geo{
 
   //----------------------------------------------------------------------------
@@ -37,6 +39,12 @@ namespace geo{
     double local[3] = {0.};
     t1->LocalToWorld(local, xyz1);
     t2->LocalToWorld(local, xyz2);
+
+    // very useful for aligning volume sorting with GDML bounds
+    //  --> looking at this output is one way to find the z-borders between APAs,
+    //      which tells soreWire35 to sort depending on z position via "InVertSplitRegion" 
+    //mf::LogVerbatim("sortTPC35") << "tpx z range = " << xyz1[2] - t1->Length()/2 
+    //				 << " to " << xyz1[2] + t1->Length()/2;  
 
     // The goal is to number TPCs first in the x direction so that,
     // in the case of APA configuration, TPCs 2c and 2c+1 make up APA c.
@@ -67,6 +75,10 @@ namespace geo{
     p1->LocalToWorld(local, xyz1);
     p2->LocalToWorld(local, xyz2);
 
+    //mf::LogVerbatim("sortPlanes35") << "Sorting planes: (" 
+    //				    << xyz1[0] <<","<< xyz1[1] <<","<< xyz1[2] << ") and ("
+    //				    << xyz2[0] <<","<< xyz2[1] <<","<< xyz2[2] << ")";
+
     return xyz1[0] > xyz2[0];
   }
 
@@ -95,6 +107,12 @@ namespace geo{
       double xyz2[3] = {0.};
       
       w1->GetCenter(xyz1); w2->GetCenter(xyz2);
+
+
+      //mf::LogVerbatim("sortWire35") << "Sorting wires: (" 
+      //			      << xyz1[0] <<","<< xyz1[1] <<","<< xyz1[2] << ") and ("
+      //			      << xyz2[0] <<","<< xyz2[1] <<","<< xyz2[2] << ")";
+
       
       // immedieately take care of vertical wires regardless of which TPC
       // vertical wires should always have same y, and always increase in z direction
@@ -104,9 +122,12 @@ namespace geo{
       // Hard code a number to tell sorting when to look
       // for top/bottom APAs and when to look for only one
       bool InVertSplitRegion = false;
-      if(detVersion=="lbne35t")     InVertSplitRegion = xyz1[2] > 76.35;   // the old
-      if(detVersion=="lbne35t4apa") InVertSplitRegion = ((51 < xyz1[2])    // the new
-							 && (xyz1[2] < 102));
+      if(detVersion=="lbne35t")             InVertSplitRegion = xyz1[2] > 76.35;      // the old
+      else if(detVersion=="lbne35t4apa")    InVertSplitRegion = ((51 < xyz1[2])       // the new...
+								 && (xyz1[2] < 102)); //
+      else if(detVersion=="lbne35t4apa_v2") InVertSplitRegion = ((52.74 < xyz1[2])   // ...and improved
+      								 && (xyz1[2] < 106.23));
+
       ///////////////////////////////////////////////////////////
 
       // we want the wires to be sorted such that the smallest corner wire
@@ -171,7 +192,7 @@ namespace geo{
     else if(driftDir == geo::kNegX) std::sort(pgeo.begin(),  pgeo.end(),  sortPlane35);
     else if(driftDir == geo::kUnknownDrift)
       throw cet::exception("TPCGeo") << "Drift direction is unknown, can't sort the planes";
-
+    
     return;
   }
 
