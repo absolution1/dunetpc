@@ -458,9 +458,9 @@ namespace detsim {
 
       adcvec.resize(fNSamplesReadout);
       raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
-      raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
+      // add the digit to the collection (in-place constructon)
+      digcol->emplace_back(chan, fNSamplesReadout, adcvec, fCompression);
       adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
-      digcol->push_back(rd);            // add this digit to the collection
 
       // do all this for the prespill and postspill samples if need be
       if (prepost) {
@@ -468,12 +468,10 @@ namespace detsim {
         adcvecPostSpill.resize(fNSamplesReadout);
         raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
         raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
-        raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
-        raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
+        digcolPreSpill->emplace_back(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
+        digcolPostSpill->emplace_back(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
         adcvecPreSpill.resize(signalSize);
         adcvecPostSpill.resize(signalSize);
-        digcolPreSpill->push_back(rdPreSpill);
-        digcolPostSpill->push_back(rdPostSpill);
       }
 
     }// end loop over channels      
