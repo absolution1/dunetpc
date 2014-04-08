@@ -66,7 +66,7 @@ namespace{
 
   void vector_to_hist(const std::vector<double>& v, TH1D* h)
   {
-    assert(h != 0);
+    if (!h) throw cet::exception("vector_to_hist: no histogram specified");
     int nvec = v.size();
     int nbins = h->GetNbinsX();
     int nfill = std::min(nvec, nbins);
