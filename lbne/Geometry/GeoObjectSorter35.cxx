@@ -191,7 +191,7 @@ namespace geo{
     if     (driftDir == geo::kPosX) std::sort(pgeo.rbegin(), pgeo.rend(), sortPlane35);
     else if(driftDir == geo::kNegX) std::sort(pgeo.begin(),  pgeo.end(),  sortPlane35);
     else if(driftDir == geo::kUnknownDrift)
-      throw cet::exception("TPCGeo") << "Drift direction is unknown, can't sort the planes";
+      throw cet::exception("TPCGeo") << "Drift direction is unknown, can't sort the planes\n";
     
     return;
   }
