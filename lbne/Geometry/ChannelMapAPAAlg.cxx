@@ -192,7 +192,7 @@ namespace geo{
 
     // first check if this channel ID is legal
     if(channel >= fNchannels )
-      throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel;
+      throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel << "\n";
 
     std::vector< WireID > AllSegments;
     
