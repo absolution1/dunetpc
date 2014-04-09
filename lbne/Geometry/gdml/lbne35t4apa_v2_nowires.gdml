@@ -581,9 +581,9 @@
 
 
     <box name="World" lunit="cm" 
-      x="1109.332" 
-      y="816.14" 
-      z="883.02"/>
+      x="55466.6" 
+      y="40807" 
+      z="44151"/>
 </solids>
 <structure>
     <volume name="volTPCActiveSmallestLongDrift">

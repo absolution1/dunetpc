@@ -301,9 +301,14 @@ $PosDirCubeSide = $ArToAr; #seems to be a good proportion
 }
 
 
-$World_x = 2*$DetEnc_x;
-$World_y = 2*$DetEnc_y;
-$World_z = 2*$DetEnc_z;
+# The world dimensions are critical in the CRY cosmics generator
+#   following uboone's lead, make world much larger
+#   the cry helper needs a lot of room
+
+
+$World_x = 100*$DetEnc_x;
+$World_y = 100*$DetEnc_y;
+$World_z = 100*$DetEnc_z;
 
 
 
