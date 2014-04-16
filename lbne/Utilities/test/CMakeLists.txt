@@ -1,3 +1,4 @@
+cet_enable_asserts()
 
 art_make( NO_PLUGINS
           BASENAME_ONLY
