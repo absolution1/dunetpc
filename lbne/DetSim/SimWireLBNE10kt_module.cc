@@ -275,17 +275,19 @@ namespace detsim {
       channels[chanHandle[c]->Channel()] = chanHandle[c];
     }
     
+    // whether or not to do the prespill and postspill digitization:
+    const bool prepost = (fNSamplesReadout != fNTimeSamples);
+
     // make an unique_ptr of sim::SimDigits that allows ownership of the produced
     // digits to be transferred to the art::Event after the put statement below
     std::unique_ptr< std::vector<raw::RawDigit>   >  digcol(new std::vector<raw::RawDigit>);
-    std::unique_ptr< std::vector<raw::RawDigit>   >  digcolPreSpill(new std::vector<raw::RawDigit>);
-    std::unique_ptr< std::vector<raw::RawDigit>   >  digcolPostSpill(new std::vector<raw::RawDigit>);
-
-	  
+    std::unique_ptr< std::vector<raw::RawDigit>   >  digcolPreSpill(prepost? new std::vector<raw::RawDigit>: nullptr);
+    std::unique_ptr< std::vector<raw::RawDigit>   >  digcolPostSpill(prepost? new std::vector<raw::RawDigit>: nullptr);
+    
     unsigned int chan = 0; 
     fChargeWork.clear();
     fChargeWork.resize(fNTicks, 0.);
-	  
+    
     std::vector<double> fChargeWorkPreSpill, fChargeWorkPostSpill;
 
     art::ServiceHandle<util::LArFFT> fFFT;
@@ -295,16 +297,19 @@ namespace detsim {
     CLHEP::HepRandomEngine &engine = rng->getEngine();
     CLHEP::RandFlat flat(engine);
 
-    std::map<int,double>::iterator mapIter;      
+    std::map<int,double>::iterator mapIter;
 
-    bool prepost = false;  // whether or not to do the prespill and postspill digitization
-    if(fNSamplesReadout != fNTimeSamples ) { prepost = true; }  
-
-    for(chan = 0; chan < geo->Nchannels(); chan++) {    
+    digcol->reserve(geo->Nchannels());
+    if (prepost) {
+      digcolPreSpill->reserve(geo->Nchannels());
+      digcolPostSpill->reserve(geo->Nchannels());
+    }
+    
+    for(chan = 0; chan < geo->Nchannels(); chan++) {
       
-      fChargeWork.clear();    
-      //      fChargeWork.resize(fNTicks, 0.);    
-      fChargeWork.resize(fNTimeSamples, 0.);    
+      fChargeWork.clear();
+      // fChargeWork.resize(fNTicks, 0.);
+      fChargeWork.resize(fNTimeSamples, 0.);
 
 
       if (prepost) {
@@ -319,28 +324,28 @@ namespace detsim {
 
       const geo::View_t view = geo->View(chan);
 
-      if( sc ){      
+      if( sc ){
 
-	// loop over the tdcs and grab the number of electrons for each
-	for(size_t t = 0; t < fChargeWork.size(); ++t) 
-	  fChargeWork[t] = sc->Charge(t);      
+        // loop over the tdcs and grab the number of electrons for each
+        for(size_t t = 0; t < fChargeWork.size(); ++t) 
+          fChargeWork[t] = sc->Charge(t);
 
 
         // Convolve charge with appropriate response function 
-	if(prepost) {
-	  fChargeWorkPreSpill.assign(fChargeWork.begin(), fChargeWork.begin()+fNSamplesReadout);
-	  fChargeWorkPostSpill.assign(fChargeWork.begin()+2*fNSamplesReadout, fChargeWork.end());
+        if(prepost) {
+          fChargeWorkPreSpill.assign(fChargeWork.begin(), fChargeWork.begin()+fNSamplesReadout);
+          fChargeWorkPostSpill.assign(fChargeWork.begin()+2*fNSamplesReadout, fChargeWork.end());
 
-	  fChargeWork.erase( fChargeWork.begin()+2*fNSamplesReadout, fChargeWork.end() );
-	  fChargeWork.erase( fChargeWork.begin(), fChargeWork.begin()+fNSamplesReadout );
+          fChargeWork.erase( fChargeWork.begin()+2*fNSamplesReadout, fChargeWork.end() );
+          fChargeWork.erase( fChargeWork.begin(), fChargeWork.begin()+fNSamplesReadout );
 
-	  fChargeWorkPreSpill.resize(fNTicks,0);
-	  fChargeWorkPostSpill.resize(fNTicks,0);
-	  sss->Convolute(chan, fChargeWorkPreSpill);
-	  sss->Convolute(chan, fChargeWorkPostSpill);
-	}
-	fChargeWork.resize(fNTicks,0);
-	sss->Convolute(chan,fChargeWork);
+          fChargeWorkPreSpill.resize(fNTicks,0);
+          fChargeWorkPostSpill.resize(fNTicks,0);
+          sss->Convolute(chan, fChargeWorkPreSpill);
+          sss->Convolute(chan, fChargeWorkPostSpill);
+        }
+        fChargeWork.resize(fNTicks,0);
+        sss->Convolute(chan,fChargeWork);
 
 
       }
@@ -374,27 +379,27 @@ namespace detsim {
       float *noise_a_Zpost=0;
 
       if (signalSize>0)	{
-	fChargeWork_a = fChargeWork.data();
-	adcvec_a = adcvec.data();
-	if (prepost) {
-	  fChargeWorkPreSpill_a = fChargeWorkPreSpill.data();
-	  fChargeWorkPostSpill_a = fChargeWorkPostSpill.data();
-	  adcvecPreSpill_a = adcvecPreSpill.data();
-	  adcvecPostSpill_a = adcvecPostSpill.data();
-	}
-	if (fNoiseOn) {
+        fChargeWork_a = fChargeWork.data();
+        adcvec_a = adcvec.data();
+        if (prepost) {
+          fChargeWorkPreSpill_a = fChargeWorkPreSpill.data();
+          fChargeWorkPostSpill_a = fChargeWorkPostSpill.data();
+          adcvecPreSpill_a = adcvecPreSpill.data();
+          adcvecPostSpill_a = adcvecPostSpill.data();
+        }
+        if (fNoiseOn) {
           noise_a_U=(fNoiseU[noisechan]).data();
-	  noise_a_V=(fNoiseV[noisechan]).data();
-	  noise_a_Z=(fNoiseZ[noisechan]).data();
-	  if (prepost) {
-	    noise_a_Upre=(fNoiseU[noisechanpre]).data();
-	    noise_a_Vpre=(fNoiseV[noisechanpre]).data();
-	    noise_a_Zpre=(fNoiseZ[noisechanpre]).data();
-	    noise_a_Upost=(fNoiseU[noisechanpost]).data();
-	    noise_a_Vpost=(fNoiseV[noisechanpost]).data();
-	    noise_a_Zpost=(fNoiseZ[noisechanpost]).data();
-	  }
-	}
+          noise_a_V=(fNoiseV[noisechan]).data();
+          noise_a_Z=(fNoiseZ[noisechan]).data();
+          if (prepost) {
+            noise_a_Upre=(fNoiseU[noisechanpre]).data();
+            noise_a_Vpre=(fNoiseV[noisechanpre]).data();
+            noise_a_Zpre=(fNoiseZ[noisechanpre]).data();
+            noise_a_Upost=(fNoiseU[noisechanpost]).data();
+            noise_a_Vpost=(fNoiseV[noisechanpost]).data();
+            noise_a_Zpost=(fNoiseZ[noisechanpost]).data();
+          }
+        }
       }
 
       float tmpfv=0;  // this is here so we do our own rounding from floats to short ints (saves CPU time)
@@ -403,43 +408,43 @@ namespace detsim {
       float tnoisepost=0;
 
       if (view != geo::kU && view != geo::kV && view != geo::kZ) {
-	mf::LogError("SimWireLBNE10kt") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
+        mf::LogError("SimWireLBNE10kt") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
       }
 
-      if(fNoiseOn) {	      
-	for(unsigned int i = 0; i < signalSize; ++i){
-	  if(view==geo::kU)       { tnoise = noise_a_U[i]; }
-	  else if (view==geo::kV) { tnoise = noise_a_V[i]; }
-	  else                    { tnoise = noise_a_Z[i]; }
-	  tmpfv = tnoise + fChargeWork_a[i];
-	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	}
-	if (prepost) {
-	  for(unsigned int i = 0; i < signalSize; ++i){
-	    if(view==geo::kU)      { tnoisepre = noise_a_Upre[i]; tnoisepost = noise_a_Upost[i];  }
-	    else if(view==geo::kV) { tnoisepre = noise_a_Vpre[i]; tnoisepost = noise_a_Vpost[i]; }
-	    else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
+      if(fNoiseOn) {
+        for(unsigned int i = 0; i < signalSize; ++i){
+          if(view==geo::kU)       { tnoise = noise_a_U[i]; }
+          else if (view==geo::kV) { tnoise = noise_a_V[i]; }
+          else                    { tnoise = noise_a_Z[i]; }
+          tmpfv = tnoise + fChargeWork_a[i];
+          adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5);
+        }
+        if (prepost) {
+          for(unsigned int i = 0; i < signalSize; ++i){
+            if(view==geo::kU)      { tnoisepre = noise_a_Upre[i]; tnoisepost = noise_a_Upost[i];  }
+            else if(view==geo::kV) { tnoisepre = noise_a_Vpre[i]; tnoisepost = noise_a_Vpost[i]; }
+            else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
 
-	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
-	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
-	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	  }
-	}
+            tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
+            adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+            tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
+            adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+          }
+        }
       }
       else {   // no noise, so just round the values to nearest short ints and store them
-	for(unsigned int i = 0; i < signalSize; ++i){
-	  tmpfv = fChargeWork_a[i];
-	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	}
-	if (prepost) {
-	  for(unsigned int i = 0; i < signalSize; ++i){
-	    tmpfv = fChargeWorkPreSpill_a[i];
-	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = fChargeWorkPostSpill_a[i];
-	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	  }
-	}
+        for(unsigned int i = 0; i < signalSize; ++i){
+          tmpfv = fChargeWork_a[i];
+          adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5);
+        }
+        if (prepost) {
+          for(unsigned int i = 0; i < signalSize; ++i){
+            tmpfv = fChargeWorkPreSpill_a[i];
+            adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+            tmpfv = fChargeWorkPostSpill_a[i];
+            adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+          }
+        }
       }
 
       // resize the adcvec to be the correct number of time samples, 
@@ -453,9 +458,9 @@ namespace detsim {
 
       adcvec.resize(fNSamplesReadout);
       raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
-      raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
+      // add the digit to the collection (in-place constructon)
+      digcol->emplace_back(chan, fNSamplesReadout, adcvec, fCompression);
       adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
-      digcol->push_back(rd);            // add this digit to the collection
 
       // do all this for the prespill and postspill samples if need be
       if (prepost) {
@@ -463,12 +468,10 @@ namespace detsim {
         adcvecPostSpill.resize(fNSamplesReadout);
         raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
         raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
-        raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
-        raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
+        digcolPreSpill->emplace_back(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
+        digcolPostSpill->emplace_back(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
         adcvecPreSpill.resize(signalSize);
         adcvecPostSpill.resize(signalSize);
-        digcolPreSpill->push_back(rdPreSpill);
-        digcolPostSpill->push_back(rdPostSpill);
       }
 
     }// end loop over channels      

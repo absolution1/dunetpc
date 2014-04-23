@@ -144,7 +144,7 @@ util::SignalShapingServiceLBNE34kt::SignalShaping(unsigned int channel) const
     return fColSignalShaping;
   else
     throw cet::exception("SignalShapingServiceLBNE34kt")<< "can't determine"
-                                                          << " SignalType";
+                                                          << " SignalType\n";
 							  
 return fColSignalShaping;
 }

@@ -8,14 +8,16 @@ lbnefd_database.DBName:	       "lbne_dev"
 lbnefd_database.DBUser:	       "lbne_reader"
 lbnefd_database.Port:	       5438
 lbnefd_database.PassFileName:  ".lpswd"
-lbnefd_database.ShouldConnect: true
+lbnefd_database.ShouldConnect: false # enable it when DB is available
+lbnefd_database.ToughErrorTreatment: false # enable it when DB is available too
 
 lbne35t_database:               @local::standard_database
 lbne35t_database.DBName:        "lbne_dev"
 lbne35t_database.DBUser:        "lbne_reader"
 lbne35t_database.Port:          5438
 lbne35t_database.PassFileName:  ".lpswd"
-lbne35t_database.ShouldConnect: true
+lbne35t_database.ShouldConnect: false # enable it when DB is available
+lbne35t_database.ToughErrorTreatment: false # enable it when DB is available too
 
 
 END_PROLOG
