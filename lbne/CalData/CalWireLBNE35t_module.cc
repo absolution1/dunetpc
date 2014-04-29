@@ -191,9 +191,7 @@ namespace caldata {
         for(bin = 0; bin < holder.size(); ++bin) holder[bin]-=average;
       }  
       // Make a single ROI that spans the entire data size
-      recob::Wire::RegionsOfInterest_t hvec;
-      hvec.push_back(std::make_pair(0, holder));
-      wirecol->emplace_back(std::move(hvec),digitVec);
+      wirecol->emplace_back(holder,digitVec);
     }
     
     if(wirecol->size() == 0)

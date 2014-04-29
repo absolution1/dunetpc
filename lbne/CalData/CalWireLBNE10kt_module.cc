@@ -193,8 +193,7 @@ namespace caldata {
       }  
       
       // Make a single ROI that spans the entire data size
-      recob::Wire::RegionsOfInterest_t hvec(1, std::make_pair(0, holder));
-      wirecol->emplace_back(std::move(hvec),digitVec);
+      wirecol->emplace_back(holder,digitVec);
     }
     
     if(wirecol->size() == 0)
