@@ -4,7 +4,6 @@ set( lbne_util_lib_list LArFFT_service
 			Geometry
 			Geometry_service
 			Utilities
-                        SignalShapingServiceLBNE10kt_service
   			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}

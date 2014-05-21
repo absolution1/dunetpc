@@ -7,6 +7,7 @@ art_make( BASENAME_ONLY
 			Filters
 			RawData
 			RecoBase
+                        SignalShapingServiceLBNE10kt_service
 			SignalShapingServiceLBNE35t_service
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
