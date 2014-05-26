@@ -12,11 +12,11 @@
 # suffix command to help organize your work.
 
 use vars;
-
+use Switch;
 use Math::Trig;
 use Getopt::Long;
 use Math::BigFloat;
-Math::BigFloat->precision(-16);
+Math::BigFloat->precision(-15);
 
 GetOptions( "help|h" => \$help,
 	    "suffix|s:s" => \$suffix,
@@ -301,7 +301,6 @@ $PosDirCubeSide = $ArToAr; #seems to be a good proportion
 }
 
 
-<<<<<<< HEAD
 # The world dimensions are critical in the CRY cosmics generator
 #   following uboone's lead, make world much larger
 #   the cry helper needs a lot of room
@@ -310,11 +309,6 @@ $PosDirCubeSide = $ArToAr; #seems to be a good proportion
 $World_x = 100*$DetEnc_x;
 $World_y = 100*$DetEnc_y;
 $World_z = 100*$DetEnc_z;
-=======
-$World_x = 2*$DetEnc_x;
-$World_y = 2*$DetEnc_y;
-$World_z = 2*$DetEnc_z;
->>>>>>> Start lbne35t4apa_v2 by correcting the number of channels per APA to match DocDb 7550. Add a temporary test script, change to a more elegant solution soon. Tell the GeoObgectSorter35 about the second version, selected with the DetecterVersion parameter in the SortingParameters pset in geometry_lbne.fcl. Port in necessary gdml perl scripts into lbnecode.
 
 
 
@@ -488,6 +482,31 @@ $APACenter[3][1] = $APACenter[0][1];
 $APACenter[3][2] = $posTPCl_z_downstream;
 
 
+##################################################################
+#################### Bar Fiber Module numbers ####################
+$numberofbarlayers=4;
+$numberofbarsegments=20;
+$numberofplanklayers=4;
+$numberofplanksegments=20;
+$numberoffiberlayers=32;
+
+$numberofbars=4;
+$numberoffibers=3;
+$numberofplanks=1;
+
+$PaddleCenterX=$APA_Xcenter;
+$PaddleCenterY[0][0]=$APACenter[0][1]-$APAHeight[0]/2+ $PaddleYPositions[0][0];
+$PaddleCenterY[0][1]=$APACenter[0][1]-$APAHeight[0]/2+ $PaddleYPositions[0][1];
+$PaddleCenterY[0][2]=$APACenter[0][1]-$APAHeight[0]/2+ $PaddleYPositions[0][2];
+$PaddleCenterY[1][0]=$APACenter[1][1]-$APAHeight[1]/2+ $PaddleYPositions[1][0];
+$PaddleCenterY[2][0]=$APACenter[2][1]-$APAHeight[2]/2+ $PaddleYPositions[2][0];
+$PaddleCenterY[3][0]=$PaddleCenterY[0][0];
+$PaddleCenterY[3][1]=$PaddleCenterY[0][1];
+$PaddleCenterY[3][2]=$PaddleCenterY[0][2];
+$PaddleCenterZ[0]=$APACenter[0][2];
+$PaddleCenterZ[1]=$APACenter[1][2];
+$PaddleCenterZ[2]=$APACenter[2][2];
+$PaddleCenterZ[3]=$APACenter[3][2];
 ################
 
 #+++++++++++++++++++++++++ End defining variables ++++++++++++++++++++++++++
@@ -587,6 +606,159 @@ print DEF <<EOF;
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
+EOF
+
+##################################################################
+###################### Bar Module Position #######################
+for ($k=1; $k<$numberofbars+1; ++$k)
+{
+if($k==1) {$APA_i=1;$p=0;}
+elsif($k==2) {$APA_i=0;$p=1;}
+elsif($k==3) {$APA_i=0;$p=2;}
+elsif($k==4) {$APA_i=3;$p=1;}
+
+for ($j=1; $j<$numberofbarlayers+1; ++$j)
+{
+$bar_z=-4.11 + 2.74*($j-1)+$PaddleCenterZ[$APA_i];
+	for ($i=1; $i<$numberofbarsegments+1; ++$i)
+	{
+	$bar_y=9.5*$inch + $PaddleCenterY[$APA_i][$p] - 2.54*($i-1);
+	$bar_name="Bar" . $k . "Pos" . $j . "_" . $i;
+print DEF <<EOF;
+	<position name="$bar_name" x="$PaddleCenterX" y="$bar_y" z="$bar_z" unit="cm"/>
+EOF
+}
+}
+}
+
+##################################################################
+##################### Plank Module Position ######################
+for ($k=1; $k<$numberofplanks+1; ++$k)
+{
+if($k==1) {$APA_i=3;$p=2;}
+
+for ($j=1; $j<$numberofplanklayers+1; ++$j)
+{
+$plank_z=-4.125 + 2.75*($j-1)+$PaddleCenterZ[$APA_i];
+	for ($i=1; $i<$numberofplanksegments+1; ++$i)
+	{
+	$plank_y=9.5*$inch + $PaddleCenterY[$APA_i][$p] - 2.54*($i-1);
+	$plank_name="PlankPos" . $j . "_" . $i;
+print DEF <<EOF;
+	<position name="$plank_name" x="$PaddleCenterX" y="$plank_y" z="$plank_z" unit="cm"/>
+EOF
+}
+}
+}
+##################################################################
+##################### Fiber Module Position ######################
+
+for ($k=1; $k<$numberoffibers+1; ++$k)
+{
+if($k==1) {$APA_i=2;$p=0;}
+elsif($k==2) {$APA_i=0;$p=0;}
+elsif($k==3) {$APA_i=3;$p=0;}
+
+############################# Fiber ##############################
+$numberoffibersegments=20;
+
+for ($j=2; $j<$numberoffiberlayers+1; ++$j)
+{
+if($j%2==0) {$fiber_x=$PaddleCenterX-0.15;}
+else        {$fiber_x=$PaddleCenterX+0.15;}
+
+$fiber_z=-4.65+0.3*($j-1)+$PaddleCenterZ[$APA_i];
+	for ($i=1; $i<$numberoffibersegments+1; ++$i)
+	{
+	$fiber_y=$PaddleCenterY[$APA_i][$p]-9.5*$inch+ 2.54*($i-1);
+	$fiber_name="Fiber" . $k . "Pos" . $j . "_" . $i;
+print DEF <<EOF;
+	<position name="$fiber_name" x="$fiber_x" y="$fiber_y" z="$fiber_z" unit="cm"/>
+EOF
+}
+if($j%2!=0) {$j+=2;}
+}
+
+########################## FiberBottom ###########################
+
+$numberoffibersegments=17;
+
+for ($j=1; $j<$numberoffiberlayers+1; ++$j)
+{
+if($j%2==0) {$fiber_x=$PaddleCenterX-0.15;}
+else        {$fiber_x=$PaddleCenterX+0.15;}
+
+$fiber_z=-4.65+0.3*($j-1)+$PaddleCenterZ[$APA_i];
+	for ($i=1; $i<$numberoffibersegments+1; ++$i)
+	{
+	$fiber_y=$PaddleCenterY[$APA_i][$p]-9.5*$inch+ 2.54*($i-1);
+	$fiber_name="Fiber" . $k . "PosBottom" . $j . "_" . $i;
+print DEF <<EOF;
+	<position name="$fiber_name" x="$fiber_x" y="$fiber_y" z="$fiber_z" unit="cm"/>
+EOF
+}
+if($j%2!=0) {$j+=2;}
+}
+
+############################ FiberTop ############################
+
+for ($j=1; $j<$numberoffiberlayers+1; ++$j)
+{
+if($j%2==0) {$fiber_x=$PaddleCenterX-0.15;$fiber_z=-4.35+0.3*($j-3)+$PaddleCenterZ[$APA_i];}
+else        {$fiber_x=$PaddleCenterX+0.15;$fiber_z=-4.35+0.3*($j-1)+$PaddleCenterZ[$APA_i];}
+$fiber_y=$PaddleCenterY[$APA_i][$p]+24.289;
+$fiber_name="Fiber" . $k . "PosTop" . $j;
+
+print DEF <<EOF;
+	<position name="$fiber_name" x="$fiber_x" y="$fiber_y" z="$fiber_z" unit="cm"/>
+EOF
+if($j%2!=0) {$j+=2;}
+}
+
+########################### FiberRight ###########################
+
+$numberoffibersegments=2;
+
+for ($j=1; $j<$numberoffiberlayers+1; $j+=4)
+{
+$fiber_x=$PaddleCenterX+0.15;
+	for ($i=1; $i<$numberoffibersegments+1; ++$i)
+	{
+	if($i%2==0)     {$fiber_y=$PaddleCenterY[$APA_i][$p]+21.8281;}
+	else            {$fiber_y=$PaddleCenterY[$APA_i][$p]+19.1294;}
+	$fiber_z=-4.575+0.15*($i-1)+0.3*($j-1)+$PaddleCenterZ[$APA_i];
+	$fiber_name="Fiber" . $k . "PosRight" . $j . "_" . $i;
+print DEF <<EOF;
+	<position name="$fiber_name" x="$fiber_x" y="$fiber_y" z="$fiber_z" unit="cm"/>
+EOF
+}
+
+}
+
+########################### FiberLeft ############################
+
+$numberoffibersegments=2;
+
+for ($j=4; $j<$numberoffiberlayers+1; $j+=4)
+{
+$fiber_x=$PaddleCenterX-0.15;
+	for ($i=1; $i<$numberoffibersegments+1; ++$i)
+	{
+	if($i%2==0)     {$fiber_y=$PaddleCenterY[$APA_i][$p]+21.8281;}
+	else            {$fiber_y=$PaddleCenterY[$APA_i][$p]+19.1294;}
+	$fiber_z=-4.725-0.15*($i-1)+0.3*($j-1)+$PaddleCenterZ[$APA_i];
+	$fiber_name="Fiber" . $k . "PosLeft" . $j . "_" . $i;
+print DEF <<EOF;
+	<position name="$fiber_name" x="$fiber_x" y="$fiber_y" z="$fiber_z" unit="cm"/>
+EOF
+}
+
+}
+
+
+}
+
+print DEF <<EOF;
 </define>
 </gdml>
 EOF
@@ -854,6 +1026,12 @@ sub gen_Materials()
    <fraction n="0.600" ref="carbon"/>
    <fraction n="0.320" ref="oxygen"/>
    <fraction n="0.080" ref="hydrogen"/>
+  </material>
+
+  <material name="Plastic" formula="Plastic">
+   <D value="1.032" unit="g/cm3"/>
+   <fraction n=".474" ref="carbon"/>
+   <fraction n=".526" ref="hydrogen"/>
   </material>
 
 </materials>
@@ -1464,6 +1642,30 @@ print CRYO <<EOF;
       y="$LightPaddle_y + $SiPM_y"
       z="$LightPaddle_z"/>
 
+    <box name="Bar" lunit="cm"
+      x="0.3"
+      y="2.54"
+      z="2.54"/>
+
+    <box name="Plank" lunit="cm"
+      x="0.2905"
+      y="2.54"
+      z="2.75"/>
+
+    <box name="Fiber" lunit="cm"
+      x="0.3"
+      y="2.54"
+      z="0.3"/>
+
+    <box name="FiberTop" lunit="cm"
+      x="0.3"
+      y="2.222"
+      z="0.3"/>
+
+    <para name="FiberRight" x="0.3" y="0.3" z="5.3975/2" alpha="0" theta="3" phi="0" aunit="deg" lunit="cm"/>
+
+    <para name="FiberLeft" x="0.3" y="0.3" z="5.3975/2" alpha="0" theta="-3" phi="0" aunit="deg" lunit="cm"/>
+
 EOF
 
 
@@ -1488,9 +1690,39 @@ print CRYO <<EOF;
       <solidref ref="Cathode"/>
     </volume>
 
-    <volume name="volOpDetSensitive">
-      <materialref ref="Acrylic"/>
-      <solidref ref="LightPaddle"/>
+    <volume name="volOpDetSensitive_Bar">
+      <materialref ref="LAr"/>
+      <solidref ref="Bar"/>
+    </volume>
+
+    <volume name="volOpDetSensitive_Plank">
+      <materialref ref="LAr"/>
+      <solidref ref="Plank"/>
+    </volume>
+
+    <volume name="volOpDetSensitive_Fiber">
+      <materialref ref="LAr"/>
+      <solidref ref="Fiber"/>
+    </volume>
+
+    <volume name="volOpDetSensitive_Bottom">
+      <materialref ref="LAr"/>
+      <solidref ref="Fiber"/>
+    </volume>
+
+    <volume name="volOpDetSensitive_Top">
+      <materialref ref="LAr"/>
+      <solidref ref="FiberTop"/>
+    </volume>
+    
+    <volume name="volOpDetSensitive_Right">
+      <materialref ref="LAr"/>
+      <solidref ref="FiberRight"/>
+    </volume>
+
+    <volume name="volOpDetSensitive_Left">
+      <materialref ref="LAr"/>
+      <solidref ref="FiberLeft"/>
     </volume>
 
 EOF
@@ -1851,24 +2083,37 @@ EOF
 
 
    # Now loop through paddle y positions and place them
-  for( $p=0; $p<$nPaddlesInAPA[$APA_i]; $p++ ){
+  #for( $p=0; $p<$nPaddlesInAPA[$APA_i]; $p++ ){
 
-print CRYO <<EOF;
+#if($nPaddlesInAPA[$APA_i]!=1)
+#{
+#print CRYO <<EOF;
 
-     <physvol>
-       <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle\-$p\-APA\-$APA_i" unit="cm" 
-         x="$_[0]" 
-	 y="$_[1] - $APAHeight[$APA_i]/2 + $PaddleYPositions[$APA_i][$p]" 
-         z="$_[2]"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
+#     <physvol>
+#       <volumeref ref="volOpDetSensitive"/>
+#       <position name="posPaddle\-$p\-APA\-$APA_i" unit="cm" 
+#         x="$_[0]" 
+#	 y="$_[1] - $APAHeight[$APA_i]/2 + $PaddleYPositions[$APA_i][$p]" 
+#         z="$_[2]"/>
+#       <rotationref ref="rIdentity"/>
+#     </physvol>
 
-EOF
+#EOF
 
-  }
+switch($APA_i){
+case 0 {	place_bar(2);
+		place_fiber(2);
+		place_bar(3);	}
+case 1 {	place_bar(1);	}
+case 2 {	place_fiber(1);	}
+case 3 {	place_bar(4);
+		place_fiber(3);
+		place_plank();	}
+}
+
 
 }
+
 
 
 
@@ -2057,4 +2302,152 @@ EOF
 EOF
 
     close(OUTPUT);
+}
+
+
+sub place_bar()
+{
+print CRYO <<EOF;
+	<!-- Bar$_[0]-->
+EOF
+			for($j=1; $j<$numberofbarlayers+1; $j++)
+			{
+				for($i=1; $i<$numberofbarsegments+1; $i++)
+				{
+				$pos_ref_name="Bar" . $_[0] . "Pos" . $j . "_" . $i;
+print CRYO <<EOF;
+	<physvol>
+	<volumeref ref="volOpDetSensitive_Bar"/>
+	<positionref ref="$pos_ref_name"/>
+	</physvol>
+
+EOF
+				}
+			}
+
+}
+
+sub place_plank()
+{
+print CRYO <<EOF;
+	<!-- Plank-->
+EOF
+			for($j=1; $j<$numberofbarlayers+1; $j++)
+			{
+				for($i=1; $i<$numberofbarsegments+1; $i++)
+				{
+				$pos_ref_name="PlankPos" . $j . "_" . $i;
+print CRYO <<EOF;
+	<physvol>
+	<volumeref ref="volOpDetSensitive_Plank"/>
+	<positionref ref="$pos_ref_name"/>
+	</physvol>
+EOF
+				}
+			}
+}
+
+sub place_fiber()
+{
+print CRYO <<EOF;
+	<!-- 32 Fiber Module-->
+
+EOF
+
+############################# Fiber ##############################
+$numberoffibersegments=20;
+
+for ($j=2; $j<$numberoffiberlayers+1; ++$j)
+{
+
+	for ($i=1; $i<$numberoffibersegments+1; ++$i)
+	{
+	$pos_ref_name="Fiber" . $_[0] . "Pos" . $j . "_" . $i;
+print CRYO <<EOF;
+		<physvol>
+		<volumeref ref="volOpDetSensitive_Fiber"/>
+		<positionref ref="$pos_ref_name"/>
+		</physvol>
+
+EOF
+}
+if($j%2!=0) {$j+=2;}
+}
+
+########################## FiberBottom ###########################
+
+$numberoffibersegments=17;
+
+for ($j=1; $j<$numberoffiberlayers+1; ++$j)
+{
+	for ($i=1; $i<$numberoffibersegments+1; ++$i)
+	{
+	$pos_ref_name="Fiber" . $_[0] . "PosBottom" . $j . "_" . $i;
+print CRYO <<EOF;
+		<physvol>
+		<volumeref ref="volOpDetSensitive_Bottom"/>
+		<positionref ref="$pos_ref_name"/>
+		</physvol>
+
+EOF
+}
+if($j%2!=0) {$j+=2;}
+}
+
+############################ FiberTop ############################
+
+for ($j=1; $j<$numberoffiberlayers+1; ++$j)
+{
+$pos_ref_name="Fiber" . $_[0] . "PosTop" . $j;
+print CRYO <<EOF;
+		<physvol>
+		<volumeref ref="volOpDetSensitive_Top"/>
+		<positionref ref="$pos_ref_name"/>
+		</physvol>
+
+EOF
+if($j%2!=0) {$j+=2;}
+}
+
+########################### FiberRight ###########################
+
+$numberoffibersegments=2;
+
+for ($j=1; $j<$numberoffiberlayers+1; $j+=4)
+{
+	for ($i=1; $i<$numberoffibersegments+1; ++$i)
+	{
+	$pos_ref_name="Fiber" . $_[0] . "PosRight" . $j . "_" . $i;
+print CRYO <<EOF;
+		<physvol>
+		<volumeref ref="volOpDetSensitive_Right"/>
+		<positionref ref="$pos_ref_name"/>
+		<rotation name="FiberRotRight" x="90" z="90" unit="deg"/>
+		</physvol>
+
+EOF
+}
+
+}
+
+########################### FiberLeft ############################
+
+$numberoffibersegments=2;
+
+for ($j=4; $j<$numberoffiberlayers+1; $j+=4)
+{
+	for ($i=1; $i<$numberoffibersegments+1; ++$i)
+	{
+	$pos_ref_name="Fiber" . $_[0] . "PosLeft" . $j . "_" . $i;
+print CRYO <<EOF;
+		<physvol>
+		<volumeref ref="volOpDetSensitive_Left"/>
+		<positionref ref="$pos_ref_name"/>
+		<rotation name="FiberRotLeft" x="90" z="90" unit="deg"/>
+		</physvol>
+
+EOF
+}
+
+}
 }
