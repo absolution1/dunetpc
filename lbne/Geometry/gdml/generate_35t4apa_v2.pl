@@ -301,6 +301,7 @@ $PosDirCubeSide = $ArToAr; #seems to be a good proportion
 }
 
 
+<<<<<<< HEAD
 # The world dimensions are critical in the CRY cosmics generator
 #   following uboone's lead, make world much larger
 #   the cry helper needs a lot of room
@@ -309,6 +310,11 @@ $PosDirCubeSide = $ArToAr; #seems to be a good proportion
 $World_x = 100*$DetEnc_x;
 $World_y = 100*$DetEnc_y;
 $World_z = 100*$DetEnc_z;
+=======
+$World_x = 2*$DetEnc_x;
+$World_y = 2*$DetEnc_y;
+$World_z = 2*$DetEnc_z;
+>>>>>>> Start lbne35t4apa_v2 by correcting the number of channels per APA to match DocDb 7550. Add a temporary test script, change to a more elegant solution soon. Tell the GeoObgectSorter35 about the second version, selected with the DetecterVersion parameter in the SortingParameters pset in geometry_lbne.fcl. Port in necessary gdml perl scripts into lbnecode.
 
 
 
