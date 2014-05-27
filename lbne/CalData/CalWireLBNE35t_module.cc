@@ -157,6 +157,7 @@ namespace caldata {
     std::vector<TComplex> freqHolder(transformSize+1); // temporary frequency data
     
     // loop over all wires    
+    wirecol->reserve(digitVecHandle->size());
     for(size_t rdIter = 0; rdIter < digitVecHandle->size(); ++rdIter){ // ++ move
       holder.clear();
       
@@ -189,7 +190,8 @@ namespace caldata {
 	  average+=holder[holder.size()-1-bin]/(double)fPostsample;
         for(bin = 0; bin < holder.size(); ++bin) holder[bin]-=average;
       }  
-      wirecol->push_back(recob::Wire(holder,digitVec));
+      // Make a single ROI that spans the entire data size
+      wirecol->emplace_back(holder,digitVec);
     }
     
     if(wirecol->size() == 0)
