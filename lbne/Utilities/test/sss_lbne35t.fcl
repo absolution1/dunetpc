@@ -1,4 +1,4 @@
-#include "services_lbne35t.fcl"
+#include "services_lbne.fcl"
 
 process_name: SignalShapingLBNE35tTest
 
@@ -11,6 +11,7 @@ services:
 
 services.user.ExptGeoHelperInterface: @local::lbne_geometry_helper
 services.user.Geometry:           @local::lbne35t_geo
+services.user.TimeService:        @local::lbne35t_timeservice
 services.user.DetectorProperties: @local::lbne35t_detproperties
 services.user.LArProperties:      @local::lbne35t_properties
 services.user.LArFFT:             @local::lbne35t_larfft
