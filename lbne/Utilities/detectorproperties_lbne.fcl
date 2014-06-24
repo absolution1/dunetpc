@@ -4,7 +4,7 @@ BEGIN_PROLOG
 
 
 lbnefd_detproperties:                   @local::standard_detproperties
-lbnefd_detproperties.SamplingRate:      500.         #in ns
+# lbnefd_detproperties.SamplingRate:      500.         #in ns
 lbnefd_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for LBNE fd
 lbnefd_detproperties.NumberTimeSamples: 3200
 lbnefd_detproperties.ReadOutWindowSize: 3200
@@ -14,7 +14,7 @@ lbnefd_detproperties.TimeOffsetZ:       0.
 
 
 lbne35t_detproperties:                   @local::standard_detproperties
-lbne35t_detproperties.SamplingRate:      500.         #in ns
+# lbne35t_detproperties.SamplingRate:      500.         #in ns
 lbne35t_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for LBNE 35t
 lbne35t_detproperties.NumberTimeSamples: 3200
 lbne35t_detproperties.ReadOutWindowSize: 3200
