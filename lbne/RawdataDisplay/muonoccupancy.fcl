@@ -1,0 +1,50 @@
+#include "services_lbne.fcl"
+
+
+process_name: MuonOccupancy
+
+
+services:
+{
+  TFileService: { fileName: "muonoccupancy.root" }
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  user:         @local::lbne35t_simulation_services
+}
+
+
+source:
+{
+  module_type: RootInput
+  fileNames:  [ "/lbne/app/users/mworcest/lbnecode_v1_00_08/muon35t_trig1_test_gen.root" ]
+  #fileNames:  [ "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_01_gen.root", 
+  #              "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_02_gen.root", 
+  #              "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_03_gen.root",
+  #              "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_04_gen.root",
+  #              "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_05_gen.root", 
+  #              "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_06_gen.root" ]
+  firstEvent : 1
+  maxEvents:  -1
+}
+
+
+outputs:{}
+
+
+physics:
+{
+  analyzers:
+  {
+    MuonOccupancy: 
+    {
+      module_type:     "MuonOccupancy"
+      SimulationLabel: "largeant"
+      RawDigitLabel:   "daq"
+      PDGcode:         13
+    }
+  }
+  analysis: [ MuonOccupancy ] //Directory for histograms
+  end_paths: [ analysis ]
+}
+

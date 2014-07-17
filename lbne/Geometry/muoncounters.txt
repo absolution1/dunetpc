@@ -1,0 +1,7 @@
+# Text file to hold muon counter data. One counter per line with the format: 
+# Counter ID, condition flag (0=off, non-zero=on), list of coordinates (x,y,z) for each corner.
+0 1 41.17 190.86 -3.07 24.34 190.86 -3.07 24.34 190.86 161.40 41.17 190.86 161.40
+1 1 120. 190. 25. 140. 190. 25. 140. 190. 180. 120. 190. 180.
+2 1 10. 25. -42. 16. 25. -42. 16. 150. -42. 10. 150. -42.
+3 1 120. 220. 25. 140. 220. 25. 140. 220. 180. 120. 220. 180.
+# end file
