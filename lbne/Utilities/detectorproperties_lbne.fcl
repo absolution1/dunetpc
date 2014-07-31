@@ -18,8 +18,8 @@ lbne35t_detproperties:                   @local::standard_detproperties
 lbne35t_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for LBNE 35t
 lbne35t_detproperties.NumberTimeSamples: 3200
 lbne35t_detproperties.ReadOutWindowSize: 3200
-lbne35t_detproperties.TimeOffsetU:       -10.
-lbne35t_detproperties.TimeOffsetV:       -5.
+lbne35t_detproperties.TimeOffsetU:       0.
+lbne35t_detproperties.TimeOffsetV:       0.
 lbne35t_detproperties.TimeOffsetZ:       0.
 
 
