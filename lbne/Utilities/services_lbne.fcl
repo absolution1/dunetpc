@@ -1,6 +1,6 @@
 #include "geometry_lbne.fcl"
 #include "detectorproperties_lbne.fcl"
-#include "larproperties.fcl"
+#include "larproperties_lbne.fcl"
 #include "larfft_lbne.fcl"
 #include "messageservice.fcl"
 #include "simulationservices_lbne.fcl"
