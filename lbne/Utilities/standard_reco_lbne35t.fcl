@@ -3,6 +3,10 @@
 #include "cluster_lbne.fcl"
 #include "trackfindermodules.fcl"
 
+
+## uncomment below for the anatree module
+##include "srcs/lbnecode/lbne/AnaTree/anatreemodule.fcl"
+
 process_name: Reco
 
 services:
@@ -37,22 +41,33 @@ physics:
   gaushit:    @local::lbne35t_gaushitfinder
   hitcheat:   @local::lbne35t_hitcheater
   apahit:     @local::lbne35t_apahitfinder
+
+  cluster:    @local::standard_fuzzycluster
+  spacepts:   @local::standard_spacepts
+  ct:         @local::standard_cosmictracker
+
  }
 
  analyzers:
  {
+#      anatree:  @local::anatree_anatree
+#      trkana:   @local::standard_trackanact
  }
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
  reco:   [ caldata, gaushit, hitcheat ]
- ana:  [  ]
 
+#  reco: [caldata, hitcheat, cluster, spacepts, ct]
+ ana:  [  ]
+# ana:  [anatree]
+# ana2:  [trkana]
  stream1:  [ out1 ]
 
  trigger_paths: [ reco ]
 
  end_paths:     [ ana, stream1]  
+# end_paths:     [ ana,ana2, stream1]  
 }
 
 #block to define where the output goes.  if you defined a filter in the physics
