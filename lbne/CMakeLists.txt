@@ -8,6 +8,7 @@ add_subdirectory(EventGenerator)
 add_subdirectory(CalData)
 add_subdirectory(RawdataDisplay)
 add_subdirectory(EnergyStudies)
+add_subdirectory(AnaTree)
 
 # Respect the order specified in lar_build, which is:
 #
