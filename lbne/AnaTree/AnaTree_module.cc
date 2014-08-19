@@ -426,7 +426,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     }
     TMatrixD rot(3,3);
     int start_point =0;
-    const simb::MCParticle* particle;
+    const simb::MCParticle* particle=0;
     tracklist[i]->GlobalToLocalRotationAtPoint(start_point, rot);
     for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
       particle = ipar->second;
