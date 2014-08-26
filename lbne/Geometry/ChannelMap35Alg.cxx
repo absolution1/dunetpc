@@ -282,7 +282,7 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   float ChannelMap35Alg::WireCoordinate(
-    const float& /* YPos */, const float& /* ZPos */,
+    float /* YPos */, float /* ZPos */,
     unsigned int /* PlaneNo */, unsigned int /* TPCNo */,
     unsigned int /* cstat */)
     const
