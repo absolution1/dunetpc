@@ -263,6 +263,18 @@ namespace geo{
   
 
   //----------------------------------------------------------------------------
+  float ChannelMapAPAAlg::WireCoordinate(
+    const float& /* YPos */, const float& /* ZPos */,
+    unsigned int /* PlaneNo */, unsigned int /* TPCNo */,
+    unsigned int /* cstat */)
+    const
+  {
+    throw cet::exception("ChannelMapAPAAlg")
+      << "ChannelMapAPAAlg::WireCoordinate() not implemented!";
+  } // ChannelMapAPAAlg::WireCoordinate()
+  
+  
+  //----------------------------------------------------------------------------
   WireID  ChannelMapAPAAlg::NearestWireID(const TVector3& xyz,
 					  unsigned int    plane,
 					  unsigned int    tpc,
