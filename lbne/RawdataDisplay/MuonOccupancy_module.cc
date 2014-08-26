@@ -95,6 +95,8 @@ namespace AnalysisExample{
     TH1D* fPositionHist;
     TH1D* fMomentumHist;
     TH1D* fTrackLengthHist;
+    TH1D* hit_counter_occupancy;
+    TH1D* trigger_occupancy;
 
     TTree* fSimulationNtuple;
 
@@ -217,6 +219,8 @@ namespace AnalysisExample{
     fPositionHist    = tfs->make<TH1D>("position",";initial position (cm);", int(xrange), 0., xrange*2);
     fMomentumHist    = tfs->make<TH1D>("momentum",";initial momentum (GeV);", 100, 0., 500.);
     fTrackLengthHist = tfs->make<TH1D>("length",  ";particle track length (cm);", 100, 0., 1000.);
+    hit_counter_occupancy = tfs->make<TH1D>("Hit counter occupancy",";detector number;",104,0,104);
+    trigger_occupancy = tfs->make<TH1D>("Trigger occupancy",";trigger number;",4,1,5);
 
     // Define our n-tuples, which are limited forms of ROOT
     // TTrees. Start with the TTree itself.
@@ -352,7 +356,7 @@ namespace AnalysisExample{
 
     // load the muon counter positions from a text file
 
-    char counterfile[] = "/lbne/app/users/mworcest/lbnecode_v1_00_08/srcs/lbnecode/lbne/Geometry/muoncounters.txt";
+    char counterfile[] = "/data1/lbne/mworcest/lbnecode_v02_02_01/srcs/lbnecode/lbne/Geometry/muoncounters.txt";
 
     counters_loaded = muon_counter->loadMuonCounterGeometry(counterfile,countergeometry);
 
@@ -424,6 +428,15 @@ namespace AnalysisExample{
 	    const TLorentzVector& momentumStart = particle.Momentum(0);
 	    const TLorentzVector& momentumEnd   = particle.Momentum(last);
 
+	    // move the initial position (for muon counter studies)
+
+	    double x_increment = 0.; // 349.666
+	    double z_increment = 0.; // 231.065
+
+	    TVector3 trackStart(positionStart.X()+x_increment,positionStart.Y(),positionStart.Z()+z_increment);
+
+	    //std::cout << trackStart[0] << " " << trackStart[1] << " " << trackStart[2] << std::endl;
+
 	    // fill the histogram of the starting position.
 	    fPositionHist->Fill( positionStart.P() );
 
@@ -470,7 +483,7 @@ namespace AnalysisExample{
 	      std::vector< std::vector<double> > hitcounters;
     
 	      counters_hit = muon_counter->testTrackInAllCounters(fTrackID,
-								  positionStart.Vect(), momentumStart.Vect(), 
+								  trackStart, momentumStart.Vect(), 
 								  countergeometry, hitcounters);
 
 	      if(counters_hit != hitcounters.size()){
@@ -480,13 +493,27 @@ namespace AnalysisExample{
 
 	      }
 
+	      // condition flags for each layer
+	      bool Layer_1_2 = false;
+	      bool Layer_3_4_5 = false;
+	      bool Layer_E = false;
+	      bool Layer_W = false;
+	      bool Layer_N_U = false;
+	      bool Layer_N_L = false;
+	      bool Layer_S_U = false;
+	      bool Layer_S_L = false;
+
+	      int Trigger= 0;
+
 	      // loop over the hit counters
 	      for(unsigned int hc=0; hc<hitcounters.size(); hc++){
+
+		hit_counter_occupancy->Fill(hitcounters[hc][0]);
 
 		outfile << "Hit counter ID " << hitcounters[hc][0] << ", flag " 
 			<< hitcounters[hc][1] << ", track ID " << hitcounters[hc][2] 
 			<< ", intersection point: ";
- 
+
 		// loop over the rest of the data for each hit counter
 		for(unsigned int nd=3; nd<hitcounters[hc].size(); nd++){
 
@@ -496,7 +523,50 @@ namespace AnalysisExample{
 
 		outfile << std::endl;
 
+		// check which layer is hit
+		if( 40 <= hitcounters[hc][0] && hitcounters[hc][0] <= 61){
+		  Layer_1_2 = true;
+		}
+		if( hitcounters[hc][0] > 61){
+		  Layer_3_4_5 = true;
+		}
+		if (14 <= hitcounters[hc][0] && hitcounters[hc][0] <=19){
+		  Layer_N_U = true;
+		}
+		if ( 34 <= hitcounters[hc][0] && hitcounters[hc][0] <= 39){
+		  Layer_S_L = true;
+		}
+		if (8 <= hitcounters[hc][0] && hitcounters[hc][0] <= 13){
+		  Layer_N_L = true;
+		}
+		if (28 <= hitcounters[hc][0] && hitcounters[hc][0] <= 33){
+		  Layer_S_U = true;
+		}
+		if (hitcounters[hc][0] <= 7){
+		  Layer_E = true;
+		}
+		if (20 <= hitcounters[hc][0] && hitcounters[hc][0] <= 27){
+		  Layer_W = true;
+		}
 	      }
+      
+	      // check for a satisfied trigger condition
+	      if (Layer_1_2 && Layer_3_4_5){
+		Trigger = 1;
+	      }
+	      if (Layer_N_U && Layer_S_L){
+		Trigger = 2;
+	      }
+	      if (Layer_N_L && Layer_S_U){
+		Trigger = 3;
+	      }
+	      if (Layer_E && Layer_W){
+		Trigger = 4;
+	      }
+	      trigger_occupancy->Fill(Trigger);
+
+	      if(Trigger != 0)
+		outfile << "Muon trigger satisfied: " << Trigger << std::endl;
 
 	    } // check that the counter data is loaded
 
