@@ -29,5 +29,4 @@ lbne35t_timeservice.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
 lbne35t_timeservice.DefaultTrigTime:      0. # Default trigger time [us].
 lbne35t_timeservice.DefaultBeamTime:      0. # Default beam time [us].
 
-
 END_PROLOG

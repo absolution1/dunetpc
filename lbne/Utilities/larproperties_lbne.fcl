@@ -1,0 +1,15 @@
+#include "larproperties.fcl"
+
+BEGIN_PROLOG
+
+lbne35t_properties:                  @local::standard_properties
+lbne35t_properties.Temperature:      87
+lbne35t_properties.Electronlifetime: 3.0e3
+lbne35t_properties.Efield:           [0.5,0.666,0.8]  #(predicted for microBooNE)
+
+lbnefd_properties:                   @local::standard_properties
+lbnefd_properties.Temperature:       87
+lbnefd_properties.Electronlifetime:  3.0e3
+lbnefd_properties.Efield:            [0.5,0.666,0.8]  #(predicted for microBooNE)
+
+END_PROLOG
