@@ -287,8 +287,11 @@ namespace geo{
     unsigned int /* cstat */)
     const
   {
-    throw cet::exception("ChannelMap35Alg")
-      << "ChannelMap35Alg::WireCoordinate() not implemented!";
+    cet::exception e("NotImplemented",
+      "ChannelMap35Alg::WireCoordinate() not implemented!");
+    throw cet::exception("ChannelMap35Alg",
+      "ChannelMap35Alg::WireCoordinate() not implemented!",
+      e);
   } // ChannelMap35Alg::WireCoordinate()
   
   
