@@ -29,9 +29,6 @@ services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v2"
 
 ##### Parameter changes for simulation services #####
 
-# Use the build pset, with BuildLibraryFile set to true.
-# Use cryo boundary
-services.user.PhotonVisibilityService: @local::standard_photonvisibilityservice
 
 services.user.BackTracker: ""
 services.user.LArFFT: ""
@@ -99,8 +96,22 @@ physics:
 
 # Begin optical specific parts:
 
-services.user.PhotonVisibilityService.UseCryoBoundary: true
+# Use the build pset, with BuildLibraryFile set to true.
+# Use cryo boundary
+services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
 
+#
+# Examine your own library file - need to customize the visibility service
+#
+
+#services.user.PhotonVisibilityService.LibraryFile: "lib_LBNE35tv2.root"
+
+# Number of voxels
+#services.user.PhotonVisibilityService.NX: 30
+#services.user.PhotonVisibilityService.NY: 30
+#services.user.PhotonVisibilityService.NZ: 30
+
+#services.user.PhotonVisibilityService.UseCryoBoundary: true
 
 # IF UseCryoBoundary is set to false, so use the following parameters. 
 #services.user.PhotonVisibilityService.XMin:  -2.
@@ -110,22 +121,6 @@ services.user.PhotonVisibilityService.UseCryoBoundary: true
 #services.user.PhotonVisibilityService.ZMin:  10.
 #services.user.PhotonVisibilityService.ZMax:  12.
 
-# LBNE 35ton w/o wires and mesh
-#services.user.PhotonVisibilityService.LibraryFile: "lib_LBNE35tv2.root"
-services.user.PhotonVisibilityService.LibraryFile: "PhotonPropagation/LibraryData/lib11225235.root"
-
-# Number of voxels
-services.user.PhotonVisibilityService.NX: 30
-services.user.PhotonVisibilityService.NY: 30
-services.user.PhotonVisibilityService.NZ: 30
-
-
-
-# set quantum efficiency supressed scint yield to 0.03 * 24000 
-#services.user.LArProperties.ScintYield: 72
-
-# set perfect scintillation yield 24000 
-#services.user.LArProperties.ScintYield: 24000
 
 # enable optical physics in LArG4
 services.user.LArG4Parameters.EnabledPhysics: [ "Em", 

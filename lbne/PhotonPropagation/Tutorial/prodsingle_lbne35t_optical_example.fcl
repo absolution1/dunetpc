@@ -3,7 +3,7 @@
 #include "largeantmodules_lbne.fcl"
 #include "detsimmodules_lbne.fcl"
 #include "mccheatermodules.fcl"
-#include "photpropservices.fcl"
+#include "photpropservices_lbne.fcl"
 #include "opticaldetectormodules_lbne.fcl"
 
 
@@ -43,13 +43,11 @@ physics:
  {
    generator: @local::lbne35t_singlep
    largeant:  @local::lbne35t_largeant	  
-   #daq:       @local::lbne35t_simwire       
    rns:       { module_type: "RandomNumberSaver" }
  }
 
  analyzers:
  {
-   #largana:   @local::lbne35t_largeantana
    pmtresponse: @local::lbne35t_simphotoncounter
    # This name defines a job step below, and will appear as a directory 
    # in the output histogram file. 
@@ -92,7 +90,6 @@ physics:
       # dx used for the dE/dx calculation; units are cm. 
       BinSize:          0.3
    }
-   #opdigiana: @local::microboone_opdigiana
  }
 
 
@@ -100,7 +97,6 @@ physics:
  #filters reject all following items.  see lines starting physics.producers below
  # simulate: [ generator, largeant, daq, rns ] 
  simulate: [ generator, largeant, rns ] 
-#analyzeIt:  [ largana, AnalysisExample, pmtresponse]
  analyzeIt:  [ AnalysisExample, pmtresponse]
  
  #define the output stream, there could be more than one if using filters 
@@ -133,13 +129,8 @@ outputs:
 ## 
 
 # LBNE 35ton w/o wires and mesh
-services.user.PhotonVisibilityService: @local::standard_photonvisibilityservice
-services.user.PhotonVisibilityService.LibraryFile: "PhotonPropagation/LibraryData/lib11225235.root"
+services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
 
-# Number of voxels
-services.user.PhotonVisibilityService.NX: 100
-services.user.PhotonVisibilityService.NY: 100
-services.user.PhotonVisibilityService.NZ: 100
 
 # set quantum efficiency supressed scint yield to 0.03 * 24000
 services.user.LArProperties.ScintYield: 24000
