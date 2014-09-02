@@ -3,7 +3,7 @@
 #include "largeantmodules_lbne.fcl"
 #include "detsimmodules_lbne.fcl"
 #include "mccheatermodules.fcl"
-#include "photpropservices.fcl"
+#include "photpropservices_lbne.fcl"
 #include "opticaldetectormodules_lbne.fcl"
 
 
@@ -146,13 +146,7 @@ outputs:
 ## 
 
 # LBNE 35ton w/o wires and mesh
-services.user.PhotonVisibilityService: @local::standard_photonvisibilityservice
-services.user.PhotonVisibilityService.LibraryFile: "PhotonPropagation/LibraryData/lib11225235.root"
-
-# Number of voxels
-services.user.PhotonVisibilityService.NX: 100
-services.user.PhotonVisibilityService.NY: 100
-services.user.PhotonVisibilityService.NZ: 100
+services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
 
 # set quantum efficiency supressed scint yield to 0.03 * 24000
 services.user.LArProperties.ScintYield: 24000
@@ -173,19 +167,3 @@ services.user.LArG4Parameters.UseCustomPhysics: true
 
 # disable cerenkov light
 services.user.LArProperties.EnableCerenkovLight: false
-
-
-#physics.producers.generator.Theta0XZ: [ 0 ]
-#physics.producers.generator.Theta0YZ: [ 0 ]
-#physics.producers.generator.SigmaThetaXZ: [ 0 ]
-#physics.producers.generator.SigmaThetaYZ: [ 0 ]
-
-#physics.producers.generator.X0:     [ 50.0 ] # Middle in X
-#physics.producers.generator.SigmaX: [  1.0 ] # fraction with uniform
-#physics.producers.generator.Y0:     [  1.0 ] # slight offset in y
-#physics.producers.generator.SigmaY: [ 50.0 ] # fraction with uniform
-#physics.producers.generator.Z0:     [  0.0 ]
-#physics.producers.generator.SigmaZ: [  0.0 ]
-#physics.producers.generator.PDist:     0 # uniform
-#physics.producers.generator.PosDist:   0 # uniform
-#physics.producers.generator.ThetaDist: 0 # uniform

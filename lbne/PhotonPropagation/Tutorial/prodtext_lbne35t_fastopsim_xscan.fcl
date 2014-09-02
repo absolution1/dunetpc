@@ -3,7 +3,7 @@
 #include "largeantmodules_lbne.fcl"
 #include "detsimmodules_lbne.fcl"
 #include "mccheatermodules.fcl"
-#include "photpropservices.fcl"
+#include "photpropservices_lbne.fcl"
 #include "opticaldetectormodules_lbne.fcl"
 
 
@@ -146,13 +146,7 @@ outputs:
 ## 
 
 # LBNE 35ton w/o wires and mesh
-services.user.PhotonVisibilityService: @local::standard_photonvisibilityservice
-services.user.PhotonVisibilityService.LibraryFile: "PhotonPropagation/LibraryData/lib11225235.root"
-
-# Number of voxels
-services.user.PhotonVisibilityService.NX: 100
-services.user.PhotonVisibilityService.NY: 100
-services.user.PhotonVisibilityService.NZ: 100
+services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
 
 # set quantum efficiency supressed scint yield to 0.03 * 24000
 services.user.LArProperties.ScintYield: 24000
