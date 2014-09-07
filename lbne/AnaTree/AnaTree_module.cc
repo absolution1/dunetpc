@@ -96,6 +96,7 @@ private:
   double trklen_MC[kMaxTrack];
 
   double trkmom[kMaxTrack];
+  double trkd2[kMaxTrack];
   double trkcolin[kMaxTrack];
   double trklen[kMaxTrack];
   double trkid[kMaxTrack];
@@ -405,11 +406,28 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     trkenddcosz[i]    = larEnd[2];
     ntrkhits[i] = fmsp.at(i).size();
     std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
+    TVector3 V1(trackStart[0],trackStart[1],trackStart[2]);
+    TVector3 V2(trackEnd[0],trackEnd[1],trackEnd[2]);
+    TVector3 vOrth=(V2-V1).Orthogonal();
+
+    TVector3 pointVector=V1;
+    double distance_squared=0;
+    double distance=0;
+
     for (size_t j = 0; j<spts.size(); ++j){
+
+      TVector3 sptVector(spts[j]->XYZ()[0],spts[j]->XYZ()[1],spts[j]->XYZ()[2]);
+      TVector3 vToPoint=sptVector-pointVector;
+      distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
+      distance_squared+=distance *distance;
       trkx[i][j] = spts[j]->XYZ()[0];
       trky[i][j] = spts[j]->XYZ()[1];
       trkz[i][j] = spts[j]->XYZ()[2];
     }
+
+    distance_squared=distance_squared/spts.size();
+    trkd2[i]=distance_squared;
+
     for (int j = 0; j<3; ++j){
       try{
 	if (j==0)
@@ -529,6 +547,7 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trkendz_MC",trkendz_MC,"trkendz_MC[ntracks_reco]/D");
   fTree->Branch("trklen_MC",trklen_MC,"trklen_MC[ntracks_reco]/D");
   fTree->Branch("trkmom",trkmom,"trkmom[ntracks_reco]/D");
+  fTree->Branch("trkd2",trkd2,"trkd2[ntracks_reco]/D");
   fTree->Branch("trkcolin",trkcolin,"trkcolin[ntracks_reco]/D");
 
   fTree->Branch("trkstartdcosx",trkstartdcosx,"trkstartdcosx[ntracks_reco]/D");
@@ -610,6 +629,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkendz_MC[i] = -99999;
     trklen_MC[i] = -99999;
     trkmom[i] = -99999;
+    trkd2[i] = -99999;
     trkcolin[i] = -99999;
 
     trkstartdcosx[i] = -99999;
