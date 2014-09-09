@@ -213,7 +213,9 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   //  const simb::MCParticle *particle = bt->TrackIDToParticle(trkid);
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
     particle = ipar->second;
-  }
+    
+    int fPDG=13;
+    if(!(particle->Process()=="primary" && particle->PdgCode()== fPDG)) continue;
 
   //  size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
   //  int last = numberTrajectoryPoints - 1;
@@ -517,7 +519,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     }
   }
   fTree->Fill();
-
+  }
 }
 
 void AnaTree::AnaTree::beginJob()
