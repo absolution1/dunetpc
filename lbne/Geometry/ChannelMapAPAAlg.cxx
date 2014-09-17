@@ -284,10 +284,19 @@ namespace geo{
     //		   +   rotate*fTanOrientation[plane]*firstxyz[2])/
     //                         std::sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
 
+
     // simplify and make faster
 
-    double distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
-                                * fCosOrientation[plane]);
+    double distance = 0;
+    double cort = fCosOrientation[plane];
+    if (std::abs(cort)<1.0E-5)  // keep precision for angles near pi/2
+      {
+        distance = std::abs( xyz[2]-firstxyz[2] );
+      }
+    else
+      {
+        distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))*cort);
+      }
     
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
@@ -298,8 +307,7 @@ namespace geo{
     //if (res > fWirePitch[plane]/2)	iwire+=1;
 
     double dwire=distance/fWirePitch[plane];
-    uint32_t iwire=int(dwire);
-    if (dwire-iwire>fWirePitch[plane]*0.5) ++iwire;
+    uint32_t iwire=int(dwire+0.5);
     uint32_t maxwireminus1=fWiresInPlane[plane]-1;
     if(iwire>maxwireminus1) iwire=maxwireminus1;
 

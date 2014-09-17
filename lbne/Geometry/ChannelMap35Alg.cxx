@@ -298,9 +298,16 @@ namespace geo{
     //and a point projected in the plane
     int rotate = 1;
     if (tpc%2 == 1) rotate = -1;
- 
-    distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))
-                                * fCosOrientation[plane]);
+
+    double cort = fCosOrientation[plane];
+    if (std::abs(cort)<1.0E-5)  // keep precision for angles near pi/2
+      {
+        distance = std::abs( xyz[2]-firstxyz[2] );
+      }
+    else
+      {
+        distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))*cort);
+      }
 
     //if the distance between the wire and a given point is greater than the half of wirepitch,
     //then the point is closer to a i+1 wire thus add one
@@ -310,8 +317,7 @@ namespace geo{
     // do it, but also check to see if we are on the edge
 
     double dwire=distance/fWirePitch[plane];
-    uint32_t iwire=int(dwire);
-    if (dwire-iwire>fWirePitch[plane]*0.5) ++iwire;
+    uint32_t iwire=int(dwire+0.5);
     uint32_t maxwireminus1=fWiresPerPlane[0][tpc/2][plane]-1;
     if(iwire>maxwireminus1) iwire=maxwireminus1;
 
