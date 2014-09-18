@@ -155,8 +155,8 @@ namespace geo{
       fCosOrientation[plane] = cos(fOrientation[plane]);
       if (fCosOrientation[plane] < 0)
 	{
-	  fCosOrientation[plane] *= -fCosOrientation[plane];
-	  fSinOrientation[plane] *= -fSinOrientation[plane];
+	  fCosOrientation[plane] = -fCosOrientation[plane];
+	  fSinOrientation[plane] = -fSinOrientation[plane];
 	}
     }
 
