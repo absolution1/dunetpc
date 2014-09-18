@@ -171,11 +171,6 @@ namespace geo{
       fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
       fSinOrientation[plane] = sin(fOrientation[plane]);
       fCosOrientation[plane] = cos(fOrientation[plane]);
-      if (fCosOrientation[plane] < 0)
-	{
-	  fCosOrientation[plane] = -fCosOrientation[plane];
-	  fSinOrientation[plane] = -fSinOrientation[plane];
-	}
     }
 
 
@@ -306,8 +301,6 @@ namespace geo{
     //double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]
     //		   +   rotate*fTanOrientation[plane]*firstxyz[2])/
     //                         std::sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
-    // fCosOrientation is arranged so that it is positive and the relative sign of sin and cos is preserved to replicate the above
-    // formula
  
     double distance = std::abs( (xyz[1]-firstxyz[1])*fCosOrientation[plane] - rotate*(xyz[2]-firstxyz[2])*fSinOrientation[plane] );
 
