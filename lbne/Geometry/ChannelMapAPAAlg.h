@@ -67,11 +67,20 @@ namespace geo{
 
     geo::GeoObjectSorterAPA                              fSorter;         ///< sorts geo::XXXGeo objects
 
-    std::vector<std::vector<std::vector<double>>> fFirstWireCenterY;
-    std::vector<std::vector<std::vector<double>>> fFirstWireCenterZ;
+    /// all data we need for each APA
+    typedef struct {
+      double fFirstWireCenterY;
+      double fFirstWireCenterZ;
+      /// +1 if the wire ID order follow z (larger z, or smaller intercept => larger wire ID); -1 otherwise
+      float fWireSortingInZ;
+    } PlaneData_t;
+    
+    ///< collects all data we need for each plane (indices: c t p)
+    std::vector<std::vector<std::vector<PlaneData_t>>> fPlaneData;
+    
     std::vector< double > fWirePitch;
     std::vector< double > fOrientation;
-    std::vector< double > fTanOrientation; // to explore improving speed
+    std::vector< double > fSinOrientation; // to explore improving speed
     std::vector< double > fCosOrientation; // to explore improving speed
 
   };
