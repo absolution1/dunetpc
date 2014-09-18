@@ -131,7 +131,7 @@ namespace geo{
 
     fWirePitch.resize(cgeo[0]->TPC(0).Nplanes());
     fOrientation.resize(cgeo[0]->TPC(0).Nplanes());
-    fTanOrientation.resize(cgeo[0]->TPC(0).Nplanes());
+    fSinOrientation.resize(cgeo[0]->TPC(0).Nplanes());
     fCosOrientation.resize(cgeo[0]->TPC(0).Nplanes());
 
     //save data into fFirstWireCenterY and fFirstWireCenterZ
@@ -151,8 +151,13 @@ namespace geo{
     for (unsigned int plane=0; plane<cgeo[0]->TPC(0).Nplanes(); plane++){
       fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
       fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
-      fTanOrientation[plane] = tan(fOrientation[plane]);
+      fSinOrientation[plane] = sin(fOrientation[plane]);
       fCosOrientation[plane] = cos(fOrientation[plane]);
+      if (fCosOrientation[plane] < 0)
+	{
+	  fCosOrientation[plane] *= -fCosOrientation[plane];
+	  fSinOrientation[plane] *= -fSinOrientation[plane];
+	}
     }
 
 
@@ -279,24 +284,15 @@ namespace geo{
     int rotate = 1;
     if (tpc%2 == 1) rotate = -1;
 
-    // old distance formula
+    // old distance formula from Jae Kim
     //double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]
     //		   +   rotate*fTanOrientation[plane]*firstxyz[2])/
     //                         std::sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
 
+    // fCosOrientation is arranged so that it is positive and the relative sign of sin and cos is preserved to replicate the above
+    // formula
 
-    // simplify and make faster
-
-    double distance = 0;
-    double cort = fCosOrientation[plane];
-    if (std::abs(cort)<1.0E-5)  // keep precision for angles near pi/2
-      {
-        distance = std::abs( xyz[2]-firstxyz[2] );
-      }
-    else
-      {
-        distance = std::abs( (xyz[1]-firstxyz[1] -rotate*fTanOrientation[plane]*(xyz[2]-firstxyz[2]))*cort);
-      }
+    double distance = std::abs( (xyz[1]-firstxyz[1])*fCosOrientation[plane] - rotate*(xyz[2]-firstxyz[2])*fSinOrientation[plane] );
     
     //by dividing distance by wirepitch and given that wires are sorted in increasing order,
     //then the wire that is closest to a given point can be calculated
