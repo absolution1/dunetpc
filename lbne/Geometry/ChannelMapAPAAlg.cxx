@@ -314,17 +314,19 @@ namespace geo{
     {
       const int wireNumber = NearestWireNumber; // save for the output
       
-      if(NearestWireNumber < 0 ) NearestWireNumber = 0;
-      else                       NearestWireNumber = fWiresInPlane[plane] - 1;
-      
-      // comment out the following statement to get a capped wire number
-      throw cet::exception("Geometry")
-        << "Can't Find Nearest Wire for position (" 
+      if(wireNumber < 0 ) NearestWireNumber = 0;
+      else                NearestWireNumber = fWiresInPlane[plane] - 1;
+    
+    /*
+      // comment in the following statement to throw an exception instead
+      throw InvalidWireIDError("Geometry", wireNumber, NearestWireNumber)
+        << "ChannelMapAPAAlg::NearestWireID(): can't Find Nearest Wire for position (" 
         << xyz.X() << "," << xyz.Y() << "," << xyz.Z() << ")"
         << " approx wire number # " << wireNumber
         << " (capped from " << NearestWireNumber << ")\n";
+    */
     } // if invalid wire
-
+    
     return { cryostat, tpc, plane, (unsigned int) NearestWireNumber };
   } // ChannelMapAPAAlg::NearestWireID()
   

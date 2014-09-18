@@ -322,9 +322,9 @@ namespace geo{
   
   //----------------------------------------------------------------------------
   WireID ChannelMap35Alg::NearestWireID(const TVector3& xyz,
-                                         unsigned int    plane,
-                                         unsigned int    tpc,
-                                         unsigned int    cryostat)     const
+                                        unsigned int    plane,
+                                        unsigned int    tpc,
+                                        unsigned int    cryostat)     const
   {
     // add 0.5 to have the correct rounding
     int NearestWireNumber
@@ -338,17 +338,19 @@ namespace geo{
     {
       const int wireNumber = NearestWireNumber; // save for the output
       
-      if(NearestWireNumber < 0 ) NearestWireNumber = 0;
-      else                       NearestWireNumber = fWiresPerPlane[cryostat][tpc/2][plane] - 1;
-      
-      // comment out the following statement to get a capped wire number
-      throw cet::exception("Geometry")
-        << "Can't Find Nearest Wire for position (" 
+      if(wireNumber < 0 ) NearestWireNumber = 0;
+      else                NearestWireNumber = fWiresPerPlane[cryostat][tpc/2][plane] - 1;
+    
+    /*
+      // comment in the following statement to throw an exception instead
+      throw InvalidWireIDError("Geometry", wireNumber, NearestWireNumber)
+        << "ChannelMap35Alg::NearestWireID(): can't Find Nearest Wire for position (" 
         << xyz.X() << "," << xyz.Y() << "," << xyz.Z() << ")"
         << " approx wire number # " << wireNumber
         << " (capped from " << NearestWireNumber << ")\n";
+    */
     } // if invalid wire
-
+    
     return { cryostat, tpc, plane, (unsigned int) NearestWireNumber };
   } // ChannelMap35Alg::NearestWireID()
   
