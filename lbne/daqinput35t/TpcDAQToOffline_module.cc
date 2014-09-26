@@ -68,8 +68,7 @@ DAQToOffline::TpcDAQToOffline::TpcDAQToOffline(fhicl::ParameterSet const & pset)
 
   this->reconfigure(pset);
 
-  //  produces< std::vector<raw::RawDigit> > (fOutputDataLabel);  
-  produces< std::vector<raw::RawDigit> > ();  
+  produces< std::vector<raw::RawDigit> > (fOutputDataLabel);  
 
 }
 
@@ -130,7 +129,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
   }
   
 
-  //Create a map containing (fragmentID, fragIndex) for the event
+  //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
   unsigned int numFragments = rawFragments->size();
 
   std::map < unsigned int, unsigned int > mapFragID;
@@ -157,7 +156,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
   //JPD -- first go at unpacking the information
   //    -- seems to make sense to look through channel number, 
   //    -- then we'll create a rawDigit object for each channel
-  //    -- will need some helper functions to do this for us
+  //    -- will need some helper functions to do this for us, so I created a utilites directory
   
 
   art::ServiceHandle<geo::Geometry> geometry;
@@ -226,7 +225,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 
   }
 
-  evt.put(std::move(rawDigitVector));
+  evt.put(std::move(rawDigitVector), fOutputDataLabel);
 
 
 

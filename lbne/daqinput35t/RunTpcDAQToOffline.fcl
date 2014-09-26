@@ -18,18 +18,15 @@
 
 
   #Create path to run module
-  #produceA: [  tpcMilliSliceToOfflineJpd , tpcMilliSliceToOfflineJpdDebug]
-  produceB: [  tpcdaqtooffline ]
+  produce: [  tpcdaqtooffline ]
 
 
   output: [ out1 ]
-  trigger_paths : [ produceB ]
+  trigger_paths : [ produce ]
   end_paths: [ output ]
 }
 
 services : {
-#This is a service include
-#this will be in services.user.<something>
   user:         @local::lbne35t_simulation_services
   Timing:       {}
   RandomNumberGenerator: {} 
@@ -50,8 +47,11 @@ outputs:
 source:
 {
   module_type: RootInput
+  fileNames: [ "/afs/fnal.gov/files/home/room3/jpdavies/lbne_r000200_sr01_20140807T150347.root" ]
+  maxEvents : 1
 }
 
 
-process_name: DONOTHING
+
+process_name: RunTpcDaqToOffline
  

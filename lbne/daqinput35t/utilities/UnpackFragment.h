@@ -17,6 +17,10 @@
   A nano-slice is 1 time tick for 128 channels (i.e. has 128 ADC values, corresponding to ADC at that TDC)
   Nano-slices have their ADC values organised in groups = 4 groups that are 32 samples wide 4*32=128 samples
 
+
+  Future plans:
+  -Probably want to read in the geometry upon intialisation from a text file or database
+  
   
 
  */
