@@ -1,0 +1,57 @@
+#include "services_lbne.fcl"
+#include "singles_lbne.fcl"
+#include "largeantmodules_lbne.fcl"
+#include "detsimmodules_lbne.fcl"
+
+#This is the default configuration file
+#include "TpcDAQToOffline.fcl"
+
+ physics:
+{
+  producers:
+  {
+
+    tpcdaqtooffline: @local::tpc_daq_to_offline    
+
+  }
+
+
+
+  #Create path to run module
+  #produceA: [  tpcMilliSliceToOfflineJpd , tpcMilliSliceToOfflineJpdDebug]
+  produceB: [  tpcdaqtooffline ]
+
+
+  output: [ out1 ]
+  trigger_paths : [ produceB ]
+  end_paths: [ output ]
+}
+
+services : {
+#This is a service include
+#this will be in services.user.<something>
+  user:         @local::lbne35t_simulation_services
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "TpcRceEventToOffline.root"
+  }
+
+}
+
+source:
+{
+  module_type: RootInput
+}
+
+
+process_name: DONOTHING
+ 
