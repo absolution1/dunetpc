@@ -1,0 +1,42 @@
+ physics:
+{
+  analyzers:
+  {
+    SSPDump:
+    {
+      module_type: SSPDump
+      raw_data_label: daq
+      frag_type: PHOTON
+      verbose_metadata: true
+      verbose_adcs: 20
+    }
+  }
+
+  a1: [ SSPDump ]
+  e1: [ out1 ]
+  end_paths: [ a1, e1 ]
+}
+
+services : {
+  TFileService:
+  {
+      fileName: "SSPDumpOutput.root"
+  }
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: FileDumperOutput
+    wantProductFriendlyClassName: true
+  }
+}
+
+source:
+{
+  module_type: RootInput
+}
+
+process_name: EVTDUMP
+ 
