@@ -9,6 +9,7 @@ add_subdirectory(CalData)
 add_subdirectory(RawdataDisplay)
 add_subdirectory(EnergyStudies)
 add_subdirectory(AnaTree)
+add_subdirectory(daqinput35t)
 
 # Respect the order specified in lar_build, which is:
 #
