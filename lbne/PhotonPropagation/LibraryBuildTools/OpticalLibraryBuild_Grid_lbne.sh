@@ -25,7 +25,7 @@ njobs=$1
 NPhotonsPerVoxel=5000
 
 # Total number of voxels
-NTopVoxel=27000
+NTopVoxel=64000
 
 # In each grid job, do this many voxels:
 NVoxelsPerJob=`echo "$NTopVoxel/$njobs" | bc`
