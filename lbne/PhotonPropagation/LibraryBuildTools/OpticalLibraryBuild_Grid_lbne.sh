@@ -78,7 +78,7 @@ echo "PWD:        " $PWD     1>> ${LOG} 2>&1
 
 # Copy fcl file and configure for this PROCESS 
 echo "Creat this job's fhicl file" 1>> ${LOG} 2>&1
-$CPN /lbne/app/users/ahimmel/testRel_35t_opsim/workdir/srcs/larsim/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
+$CPN /lbne/app/users/ahimmel/testRel_35t_opsim/workdir/srcs/lbnecode/lbne/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
 
 echo "physics.producers.generator.FirstVoxel: $FirstVoxel" >> $FCL
 echo "physics.producers.generator.LastVoxel: $LastVoxel"   >> $FCL

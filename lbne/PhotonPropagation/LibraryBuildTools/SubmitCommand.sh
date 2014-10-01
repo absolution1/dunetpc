@@ -2,7 +2,7 @@
 
 script=OpticalLibraryBuild_Grid_lbne.sh
 outdir=/lbne/data/users/ahimmel/OpticalTest
-njobs=100
+njobs=200
 args=$njobs
 
 #Real job
