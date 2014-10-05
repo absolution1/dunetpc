@@ -100,7 +100,13 @@ source $WORK/localProducts_larsoft_*/setup             1>> ${LOG} 2>&1
 echo "> mrbslp"                                        1>> ${LOG} 2>&1
 source $MRB_DIR/bin/setup_local_products               1>> ${LOG} 2>&1
 
-env > $CONDOR_DIR_LOG/environment_${label}.log
+ENVLOG=$CONDOR_DIR_LOG/environment_${label}.log
+touch $ENVLOG
+uname -a 1>> $LOG     2>&1
+uname -a 1>> $ENVLOG  2>&1
+cat /etc/redhat-release 1>> $LOG     2>&1
+cat /etc/redhat-release 1>> $ENVLOG  2>&1
+env >> $ENVLOG
 
 
 # Run the job
