@@ -25,7 +25,7 @@ njobs=$1
 NPhotonsPerVoxel=5000
 
 # Total number of voxels
-NTopVoxel=27000
+NTopVoxel=64000
 
 # In each grid job, do this many voxels:
 NVoxelsPerJob=`echo "$NTopVoxel/$njobs" | bc`
@@ -78,7 +78,7 @@ echo "PWD:        " $PWD     1>> ${LOG} 2>&1
 
 # Copy fcl file and configure for this PROCESS 
 echo "Creat this job's fhicl file" 1>> ${LOG} 2>&1
-$CPN /lbne/app/users/ahimmel/testRel_35t_opsim/workdir/srcs/larsim/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
+$CPN /lbne/app/users/ahimmel/testRel_35t_opsim/workdir/srcs/lbnecode/lbne/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
 
 echo "physics.producers.generator.FirstVoxel: $FirstVoxel" >> $FCL
 echo "physics.producers.generator.LastVoxel: $LastVoxel"   >> $FCL
@@ -100,7 +100,13 @@ source $WORK/localProducts_larsoft_*/setup             1>> ${LOG} 2>&1
 echo "> mrbslp"                                        1>> ${LOG} 2>&1
 source $MRB_DIR/bin/setup_local_products               1>> ${LOG} 2>&1
 
-env > $CONDOR_DIR_LOG/environment_${label}.log
+ENVLOG=$CONDOR_DIR_LOG/environment_${label}.log
+touch $ENVLOG
+uname -a 1>> $LOG     2>&1
+uname -a 1>> $ENVLOG  2>&1
+cat /etc/redhat-release 1>> $LOG     2>&1
+cat /etc/redhat-release 1>> $ENVLOG  2>&1
+env >> $ENVLOG
 
 
 # Run the job
