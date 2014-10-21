@@ -806,6 +806,7 @@ sub gen_Materials()
   <element name="chromium" formula="Cr" Z="24"> <atom value="51.9961"/>  </element>
   <element name="iron" formula="Fe" Z="26"> <atom value="55.8450"/>  </element>
   <element name="nickel" formula="Ni" Z="28"> <atom value="58.6934"/>  </element>
+  <element name="copper" formula="Cu" Z="29">  <atom value="63.546"/>  </element>
   <element name="bromine" formula="Br" Z="35"> <atom value="79.904"/> </element>
 
   <material name="Vacuum" formula="Vacuum">
