@@ -9312,12 +9312,12 @@
 
   <union name="TwoBars">
    <first ref="Bar"/> <second ref="Bar"/>
-   <position name="2bs" z="-2.794" unit="cm"/>
+   <position name="bs2" z="-2.794" unit="cm"/>
   </union>
 
   <union name="FourBars">
    <first ref="TwoBars"/> <second ref="TwoBars"/>
-   <position name="4bs" z="-5.588" unit="cm"/>
+   <position name="bs4" z="-5.588" unit="cm"/>
   </union>
 
     <box name="Plank" lunit="cm"
@@ -9376,22 +9376,22 @@
 
   <union name="FourFibers">
    <first ref="FFBBTTL"/> <second ref="FiberRight"/>
-   <position name="4fs" x="-0.289" y="20.47875" z="0.1445" unit="cm"/> <rotation name="FiberRotRight" x="-90" y="90" unit="deg"/>
+   <position name="fs4" x="-0.289" y="20.47875" z="0.1445" unit="cm"/> <rotation name="FiberRotRight" x="-90" y="90" unit="deg"/>
   </union>
 
   <union name="EightFibers">
    <first ref="FourFibers"/> <second ref="FourFibers"/>
-   <position name="8fs" z="-1.2" unit="cm"/>
+   <position name="fs8" z="-1.2" unit="cm"/>
   </union>
 
   <union name="SixteenFibers">
    <first ref="EightFibers"/> <second ref="EightFibers"/>
-   <position name="16fs" z="-2.4" unit="cm"/>
+   <position name="fs16" z="-2.4" unit="cm"/>
   </union>
 
   <union name="ThirtyTwoFibers">
    <first ref="SixteenFibers"/> <second ref="SixteenFibers"/>
-   <position name="32fs" z="-4.8" unit="cm"/>
+   <position name="fs32" z="-4.8" unit="cm"/>
   </union>
 
      <box name="APAFrameYSideHollow-0" lunit="cm"
