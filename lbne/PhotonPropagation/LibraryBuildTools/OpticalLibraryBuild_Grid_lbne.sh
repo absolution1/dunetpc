@@ -22,10 +22,10 @@
 njobs=$1
 
 # In each voxel, run this many photons:
-NPhotonsPerVoxel=5000
+NPhotonsPerVoxel=25000
 
 # Total number of voxels
-NTopVoxel=64000
+NTopVoxel=216000
 
 # In each grid job, do this many voxels:
 NVoxelsPerJob=`echo "$NTopVoxel/$njobs" | bc`
@@ -43,7 +43,7 @@ umask 0002
 
 export GROUP=lbne
 export HOME=$CONDOR_DIR_ROOT
-export WORK=/lbne/app/users/ahimmel/testRel_35t_opsim/workdir
+export WORK=/lbne/app/users/ahimmel/testRel_gdmltest/workdir
 
 CPN=/grid/fermiapp/minos/scripts/cpn
 #CPN="ifdh cp"
