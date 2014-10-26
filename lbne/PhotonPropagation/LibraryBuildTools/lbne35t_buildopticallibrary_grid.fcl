@@ -111,7 +111,7 @@ services.user.LArG4Parameters.EnabledPhysics: [ "Em",
 services.user.LArG4Parameters.UseCustomPhysics: true
 
 # disable cerenkov light
-#services.user.LArProperties.EnableCerenkovLight: false
+services.user.LArProperties.EnableCerenkovLight: false
 
 
 ##### Parameter changes for the generator (lightsource) #####
