@@ -22,14 +22,12 @@ services:
   user:          @local::lbne35t_simulation_services  # defined in services.fcl
   message:       @local::standard_info
 }
-#services.message.type: "file"
-#services.message.filename: "buildlib.log"
 
 services.user.Geometry.GDML: "lbne35t4apa_v3.gdml"
 services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v3"
 
 
-services.user.PhotonVisibilityService: @local::standard_photonvisibilityservice_buildlib
+services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice_buildlib
 
 
 #Start each new event with an empty event.
@@ -87,7 +85,6 @@ outputs:
 }
 
 
-#physics.analyzers.pmtresponse.Verbosity: 4
 
 
 # Begin optical specific parts:
@@ -132,27 +129,6 @@ physics.analyzers.pmtresponse.MakeOpDetEventsTree: false
 
 # To disable wireplane absorption, uncomment this line
 #services.user.LArG4Parameters.OpticalParamModels: ["TransparentPlaneAction"]
-
-
-services.user.PhotonVisibilityService.UseCryoBoundary: true
-
-# Number of voxels
-# Use the default photpropservices_lbne.fcl
-#services.user.PhotonVisibilityService.NX: 60
-#services.user.PhotonVisibilityService.NY: 60
-#services.user.PhotonVisibilityService.NZ: 60
-
-#physics.producers.generator.N : 1000
-
-# If UseCryoBoundary is set to false, so use the following parameters. 
-#services.user.PhotonVisibilityService.XMin:  -2.
-#services.user.PhotonVisibilityService.XMax:  2.
-#services.user.PhotonVisibilityService.YMin:  -1.
-#services.user.PhotonVisibilityService.YMax:  1.
-#services.user.PhotonVisibilityService.ZMin:  10.
-#services.user.PhotonVisibilityService.ZMax:  12.
-
-
 
 
 

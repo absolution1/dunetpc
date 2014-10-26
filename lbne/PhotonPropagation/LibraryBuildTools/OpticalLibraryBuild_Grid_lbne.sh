@@ -43,7 +43,7 @@ umask 0002
 
 export GROUP=lbne
 export HOME=$CONDOR_DIR_ROOT
-export WORK=/lbne/app/users/ahimmel/testRel_gdmltest/workdir
+export WORK=/lbne/app/users/ahimmel/testRel_35t_opsim/workdir
 
 CPN=/grid/fermiapp/minos/scripts/cpn
 #CPN="ifdh cp"
@@ -66,6 +66,7 @@ g4Seed=$(( $PROCESS *41 + 37))
 # Prepare to run
 #
 cd $CONDOR_DIR_ROOT
+echo "Writing log to ${LOG}"
 touch ${LOG}
 date 1>> ${LOG} 2>&1
 
@@ -78,7 +79,7 @@ echo "PWD:        " $PWD     1>> ${LOG} 2>&1
 
 # Copy fcl file and configure for this PROCESS 
 echo "Creat this job's fhicl file" 1>> ${LOG} 2>&1
-$CPN /lbne/app/users/ahimmel/testRel_35t_opsim/workdir/srcs/lbnecode/lbne/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
+$CPN ${WORK}/srcs/lbnecode/lbne/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
 
 echo "physics.producers.generator.FirstVoxel: $FirstVoxel" >> $FCL
 echo "physics.producers.generator.LastVoxel: $LastVoxel"   >> $FCL
