@@ -5,9 +5,9 @@ BEGIN_PROLOG
 lbne35t_photonvisibilityservice:
 {
 
-  NX: 100
-  NY: 100
-  NZ: 100
+  NX: 60
+  NY: 60
+  NZ: 60
   UseCryoBoundary: true
 
   DoNotLoadLibrary: false

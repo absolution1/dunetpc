@@ -25,16 +25,12 @@ services:
 #services.message.type: "file"
 #services.message.filename: "buildlib.log"
 
-services.user.Geometry.GDML: "lbne35t4apa_v2_opunsegmods.gdml"
-services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v2"
-#services.user.Geometry.GDML: "lbne35t4apa_v3_beta.gdml"
-#services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v3"
+services.user.Geometry.GDML: "lbne35t4apa_v3.gdml"
+services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v3"
 
 
 services.user.PhotonVisibilityService: @local::standard_photonvisibilityservice_buildlib
-#services.user.BackTracker: ""
-#services.user.LArFFT: ""
-#services.user.SignalShapingServiceMicroBooNE: ""
+
 
 #Start each new event with an empty event.
 source:
@@ -141,9 +137,10 @@ physics.analyzers.pmtresponse.MakeOpDetEventsTree: false
 services.user.PhotonVisibilityService.UseCryoBoundary: true
 
 # Number of voxels
-services.user.PhotonVisibilityService.NX: 40
-services.user.PhotonVisibilityService.NY: 40
-services.user.PhotonVisibilityService.NZ: 40
+# Use the default photpropservices_lbne.fcl
+#services.user.PhotonVisibilityService.NX: 60
+#services.user.PhotonVisibilityService.NY: 60
+#services.user.PhotonVisibilityService.NZ: 60
 
 #physics.producers.generator.N : 1000
 
