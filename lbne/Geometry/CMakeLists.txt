@@ -2,6 +2,11 @@
 art_make( BASENAME_ONLY
 	  LIBRARY_NAME lbne_Geometry
 	  LIB_LIBRARIES Geometry
+			${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_IO_SOURCES}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_PERSISTENCY_PROVENANCE}
+                        ${ART_UTILITIES}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
                         ${FHICLCPP}
@@ -26,6 +31,7 @@ art_make( BASENAME_ONLY
         )							   
 
 add_subdirectory(gdml)
+add_subdirectory(test)
 
 install_headers()
 install_source()

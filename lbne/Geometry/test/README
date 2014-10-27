@@ -1,0 +1,13 @@
+This directory contains the unit tests for the Geometry service.  The tests are contained
+in the GeometryTest.h(cxx) EDAnalyzer module.
+
+To run the tests, simply execute the testgeo.csh script as follows
+
+$./testgeo.csh <geometry_base_name>
+
+where <geometry_base_name> is expected to be the part of the geometry file you wish
+to test before the .root or .gdml extension.  The geometry file is also expected to
+live in Geometry/gdml of either your private release or the publice release.
+
+The script will configure a lar job .fcl file to use the correct geometry file and
+then execute the tests.
