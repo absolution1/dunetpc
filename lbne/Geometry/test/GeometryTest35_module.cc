@@ -80,15 +80,14 @@ namespace geo{
   //......................................................................
   void GeometryTest35::beginJob()
   {
-    //art::ServiceHandle<geo::Geometry> geom;
+    art::ServiceHandle<geo::Geometry> geom;
 
-    std::cout << "35t specific testing...\n";
-    mf::LogVerbatim("GeometryTest35") << "35t specific testing...\n";
+    mf::LogVerbatim("GeometryTest35") << "\n35t specific testing...\n";
 
     try{
 
       LOG_DEBUG("GeometryTest35") << "test ...";
-
+      // run test function
       LOG_DEBUG("GeometryTest35") << "complete.";
 
     }
