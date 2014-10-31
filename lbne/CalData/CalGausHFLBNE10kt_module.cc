@@ -61,6 +61,7 @@ extern "C" {
 #include "TTree.h"
 #include <string>
 
+/* unused function
 namespace{
   // Fill histogram from vector (set underflow/overflow bins to zero).
 
@@ -83,6 +84,7 @@ namespace{
   }
 
 }
+*/
 
 ///creation of calibrated signals on wires
 namespace calgaushf {

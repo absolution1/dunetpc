@@ -1,0 +1,43 @@
+ physics:
+{
+  analyzers:
+  {
+    tpcMilliSliceDump:
+    {
+      module_type: TpcMilliSliceDump
+      raw_data_label: daq
+      frag_type: TPC
+      verbose_microslice_ids: [0,1,2,3] #make this an empty vector to turn off microslice & nanoslice printing
+      verbose_nanoslice_ids:  [1,31]    #only prints the nanoslices that lie within the verbose microslices
+      verbose_nanoslice_adcs: 6
+    }
+  }
+
+  a1: [ tpcMilliSliceDump ]
+  e1: [ out1 ]
+  end_paths: [ a1, e1 ]
+}
+
+services : {
+  TFileService:
+  {
+      fileName: "tpcMilliSliceDumpOutput.root"
+  }
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: FileDumperOutput
+    wantProductFriendlyClassName: true
+  }
+}
+
+source:
+{
+  module_type: RootInput
+}
+
+process_name: EVTDUMP
+ 

@@ -2,7 +2,7 @@
 #include "singles.fcl"
 #include "largeantmodules.fcl"
 #include "detsimmodules.fcl"
-#include "opticaldetectormodules.fcl"
+#include "opticaldetectormodules_lbne.fcl"
 #include "photpropservices_lbne.fcl"
 #include "lightsource.fcl"
 
@@ -25,14 +25,16 @@ services:
 #services.message.type: "file"
 #services.message.filename: "buildlib.log"
 
-services.user.Geometry.GDML: "lbne35t4apa_v2.gdml"
+services.user.Geometry.GDML: "lbne35t4apa_v2_opunsegmods.gdml"
 services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v2"
+#services.user.Geometry.GDML: "lbne35t4apa_v3_beta.gdml"
+#services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v3"
 
 
 services.user.PhotonVisibilityService: @local::standard_photonvisibilityservice_buildlib
-services.user.BackTracker: ""
-services.user.LArFFT: ""
-services.user.SignalShapingServiceLBNE35t: ""
+#services.user.BackTracker: ""
+#services.user.LArFFT: ""
+#services.user.SignalShapingServiceMicroBooNE: ""
 
 #Start each new event with an empty event.
 source:
@@ -57,7 +59,7 @@ physics:
 
  analyzers:
  {
-   pmtresponse: @local::standard_simphotoncounter    # defined in opticaldetectormodules.fcl
+   pmtresponse: @local::lbne35t_simphotoncounter    # defined in opticaldetectormodules.fcl
  }
 
  #define the producer and filter modules for this path, order matters, 
@@ -87,6 +89,10 @@ outputs:
    fileName:    "opticallibrary_lbne35t.root" #default file name, can override from command line with -o or --output
  }
 }
+
+
+#physics.analyzers.pmtresponse.Verbosity: 4
+
 
 # Begin optical specific parts:
 
@@ -135,9 +141,9 @@ physics.analyzers.pmtresponse.MakeOpDetEventsTree: false
 services.user.PhotonVisibilityService.UseCryoBoundary: true
 
 # Number of voxels
-services.user.PhotonVisibilityService.NX: 30
-services.user.PhotonVisibilityService.NY: 30
-services.user.PhotonVisibilityService.NZ: 30
+services.user.PhotonVisibilityService.NX: 40
+services.user.PhotonVisibilityService.NY: 40
+services.user.PhotonVisibilityService.NZ: 40
 
 #physics.producers.generator.N : 1000
 

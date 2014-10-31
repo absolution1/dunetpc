@@ -149,9 +149,9 @@ namespace geo{
     for (unsigned int plane=0; plane<cgeo[0]->TPC(0).Nplanes(); plane++){
       fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
       fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
-      fSinOrientation[plane] = std::sin(fOrientation[plane]);
-      fCosOrientation[plane] = std::cos(fOrientation[plane]);
-    } // for plane
+      fSinOrientation[plane] = sin(fOrientation[plane]);
+      fCosOrientation[plane] = cos(fOrientation[plane]);
+    }
 
 
     mf::LogVerbatim("GeometryTest") << "fNchannels = " << fNchannels ; 

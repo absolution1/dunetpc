@@ -30,9 +30,9 @@ services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v2"
 ##### Parameter changes for simulation services #####
 
 
-services.user.BackTracker: ""
-services.user.LArFFT: ""
-services.user.SignalShapingServiceLBNE35t: ""
+#services.user.BackTracker: ""
+#services.user.LArFFT: ""
+#services.user.SignalShapingServiceLBNE35t: ""
 
 
 
