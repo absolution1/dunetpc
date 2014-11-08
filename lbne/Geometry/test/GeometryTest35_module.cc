@@ -80,7 +80,7 @@ namespace geo{
   //......................................................................
   void GeometryTest35::beginJob()
   {
-    art::ServiceHandle<geo::Geometry> geom;
+    //art::ServiceHandle<geo::Geometry> geom;
 
     mf::LogVerbatim("GeometryTest35") << "\n35t specific testing...\n";
 

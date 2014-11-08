@@ -10,7 +10,7 @@
 
 -->
 
-   <position name="posOriginSet"        unit="cm" x="146.9598036" y="58.6945" z="100.2802"/>
+   <position name="posOriginSet"        unit="cm" x="145.6898036" y="77.34024" z="101.5502"/>
 
    <position name="posTPCLargestShortDrift_Pos"  unit="cm" x="-166.5546232" y="-1.45235"  z="27.74425"/>
    <position name="posTPCLargestLongDrift_Pos"   unit="cm" x="-35.1993768"  y="-1.45235"  z="27.74425"/>
@@ -9603,9 +9603,9 @@
 
 
     <box name="DetEnclosure" lunit="cm" 
-      x="667.5623928"
-      y="450.4571"
-      z="530.497"/>
+      x="549.6053528"
+      y="447.74858"
+      z="412.53996"/>
 
 
     <box name="BottomSteel" lunit="cm" 
@@ -9642,9 +9642,9 @@
 
 
     <box name="World" lunit="cm" 
-      x="66756.23928" 
-      y="45045.71" 
-      z="53049.7"/>
+      x="54960.53528" 
+      y="44774.858" 
+      z="41253.996"/>
 </solids>
 <structure>
     <volume name="volTPCActiveLargestLongDrift">
@@ -35042,7 +35042,7 @@
 
       <physvol>
         <volumeref ref="volCryostat"/>
-        <position name="posCryo" unit="cm" x="0" y="-40" z="0"/>
+        <position name="posCryo" unit="cm" x="0" y="-58.64574" z="0"/>
       </physvol>
 
 
@@ -35050,21 +35050,21 @@
         <volumeref ref="volNeck"/>
         <position name="posNeck" unit="cm" 
 	  x="0 + 407.5623928/2 - 100/2" 
-	  y="-40 + 270.4571/2 + (75 + 1.27)/2" 
+	  y="-58.64574 + 270.4571/2 + (75 + 1.27)/2" 
           z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTopSteelShell"/>
         <position name="posCryo" unit="cm" 
 	  x="0 - 407.5623928/2 - 1.27 + 307.5623928/2" 
-	  y="-40 + 270.4571/2 + 1.27/2" 
+	  y="-58.64574 + 270.4571/2 + 1.27/2" 
           z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volBotSteelShell"/>
         <position name="posBotSteelShell" unit="cm" 
 	  x="0"
-	  y="-40 - 1.27/2" 
+	  y="-58.64574 - 1.27/2" 
           z="0"/> 
       </physvol>
 
@@ -35076,7 +35076,7 @@
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="146.9598036" y="58.6945" z="100.2802"/>
+        <position name="posDetEnclosure" unit="cm" x="145.6898036" y="77.34024" z="101.5502"/>
       </physvol>
     </volume>
 </structure>

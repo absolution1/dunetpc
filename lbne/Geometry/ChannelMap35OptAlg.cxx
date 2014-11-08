@@ -281,6 +281,43 @@ namespace geo{
   
 
   //----------------------------------------------------------------------------
+  float ChannelMap35OptAlg::WireCoordinate(float YPos, float ZPos,
+                                        unsigned int PlaneNo,
+                                        unsigned int TPCNo,
+                                        unsigned int cstat) const
+  {
+    // Returns the wire number corresponding to a (Y,Z) position in PlaneNo
+    // with float precision.
+    // Core code ripped from original NearestWireID() implementation
+    
+    const PlaneData_t& PlaneData = fPlaneData[cstat][TPCNo][PlaneNo];
+    
+    //get the orientation angle of a given plane and calculate the distance between first wire
+    //and a point projected in the plane
+//    const double rotate = (TPCNo % 2 == 1)? -1.: +1.;
+    
+    // the formula used here is geometric:
+    // distance = delta_y cos(theta_z) + delta_z sin(theta_z)
+    // with a correction for the orientation of the TPC:
+    // odd TPCs have supplementary wire angle (pi-theta_z), changing cosine sign
+    
+    const bool bSuppl = (TPCNo % 2) == 1;
+    float distance =
+      -(YPos - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[PlaneNo]
+      +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[PlaneNo]
+      ;
+    
+    // The sign of this formula is correct if the wire with larger ID is on the
+    // "right" (intuitively, larger z; rigorously, smaller intercept)
+    // than this one.
+    // Of course, we are not always that lucky. fWireSortingInZ fixes our luck.
+
+    return PlaneData.fWireSortingInZ * distance/fWirePitch[PlaneNo];
+  } // ChannelMap35OptAlg::WireCoordinate()
+  
+
+
+  //----------------------------------------------------------------------------
   WireID  ChannelMap35OptAlg::NearestWireID(const TVector3& xyz,
 					 unsigned int    plane,
 					 unsigned int    tpc,

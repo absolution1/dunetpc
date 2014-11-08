@@ -294,12 +294,13 @@ $Cryostat_z	       =    $Argon_z;
 ##################################################################
 ################# Detector Enclosure parameters ##################
 
-$ConcretePadding       =    50;
-$FoamPadding           =    80;
-$TotalPadding	       =    $ConcretePadding+$FoamPadding;
-$DetEnc_x	       =    $Cryostat_x+2*$TotalPadding;
-$DetEnc_y	       =    $Cryostat_y+2*$TotalPadding-$FoamPadding; # no foam on bottom
-$DetEnc_z              =    $Cryostat_z+2*$TotalPadding;
+$ConcretePadding       =    30;
+$FoamPadding           =    39.75148;
+$TotalPadding	       =    $ConcretePadding + $FoamPadding;
+$DetEnc_x	       =    $Cryostat_x + 2*$TotalPadding + 2*$SteelShellThickness;
+$DetEnc_y	       =    $Cryostat_y + $NeckInside_y + 2*$SteelShellThickness 
+                              + 2*$ConcretePadding + $FoamPadding; # no foam on bottom
+$DetEnc_z              =    $Cryostat_z + 2*$TotalPadding + 2*$SteelShellThickness;
 
 
 $posCryoInDetEnc_x     =  0;
