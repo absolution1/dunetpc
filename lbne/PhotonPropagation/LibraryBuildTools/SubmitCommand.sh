@@ -2,20 +2,34 @@
 
 script=OpticalLibraryBuild_Grid_lbne.sh
 outdir=/lbne/data/users/ahimmel/OpticalLibv3
-njobs=200
-args=$njobs
 
-#Real job
-#jobsub --opportunistic --X509_USER_PROXY /scratch/bjpjones/grid/bjpjones.uboone.proxy -g -N 9375 -dOUT /uboone/data/users/bjpjones/OpticalProduction  -q OpticalLibraryBuild_Grid.sh `whoami` `pwd`
-
-#Partial job
-#jobsub --opportunistic --X509_USER_PROXY /scratch/bjpjones/grid/bjpjones.uboone.proxy -g -N 1500 -dOUT /uboone/data/users/bjpjones/OpticalProduction  -q OpticalLibraryBuild_Grid.sh `whoami` `pwd`
+clientargs="--resource-provides=usage_model=OPPORTUNISTIC --OS=SL5,SL6 --group=lbne "
+toolsargs="-q -g --opportunistic "
+fileargs="-dROOT $outdir/root -dFCL $outdir/fcl -dLOG $outdir/log "
 
 
-echo "jobsub --opportunistic -g -N $njobs -q -dROOT $outdir/root -dFCL $outdir/fcl -dLOG $outdir/log $script $args"
-jobsub --opportunistic -g -N $njobs -q -dROOT $outdir/root -dFCL $outdir/fcl -dLOG $outdir/log $script $args
 
-#Test job
-#echo "jobsub -T -q -dROOT $outdir/root -dFCL $outdir/fcl -dLOG $outdir/log $script $args"
-#jobsub -T -q -dROOT $outdir/root -dFCL $outdir/fcl -dLOG $outdir/log $script $args
+#Test job - jobsub_tools
+#njobs=216000
+#thisjob="-T $PWD/$script $njobs"
+#echo "jobsub $toolsargs $fileargs $thisjob"
+#jobsub $fileargs $thisjob
+
+#real job - jobsub_tools
+njobs=500
+thisjob="-N $njobs $PWD/$script $njobs"
+echo "jobsub $toolsargs $fileargs $thisjob"
+jobsub $fileargs $thisjob
+
+#Test job - jobsub_client
+#njobs=216000
+#thisjob="-T file://$PWD/$script $njobs"
+#echo "jobsub_submit $clientargs $fileargs $thisjob"
+#jobsub_submit $clientargs $fileargs $thisjob
+
+#Real job - jobsub_client
+#njobs=200
+#thisjob="-N $njobs file://$PWD/$script $njobs"
+#echo "jobsub_submit $clientargs $fileargs $thisjob"
+#jobsub_submit $clientargs $fileargs $thisjob
 
