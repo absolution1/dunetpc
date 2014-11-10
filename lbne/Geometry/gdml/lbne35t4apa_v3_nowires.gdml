@@ -10,7 +10,7 @@
 
 -->
 
-   <position name="posOriginSet"        unit="cm" x="145.6898036" y="77.34024" z="101.5502"/>
+   <position name="posOriginSet"        unit="cm" x="145.6898036" y="62.34024" z="101.5502"/>
 
    <position name="posTPCLargestShortDrift_Pos"  unit="cm" x="-166.5546232" y="-1.45235"  z="27.74425"/>
    <position name="posTPCLargestLongDrift_Pos"   unit="cm" x="-35.1993768"  y="-1.45235"  z="27.74425"/>
@@ -940,7 +940,7 @@
 
     <box name="DetEnclosure" lunit="cm" 
       x="549.6053528"
-      y="447.74858"
+      y="417.74858"
       z="412.53996"/>
 
 
@@ -976,10 +976,76 @@
       z="270.497 + 2*1.27"/>
 
 
+    <box name="FoamSouth" lunit="cm" 
+      x="39.75148"
+      y="347.9971"
+      z="270.497 + 2*1.27 + 2*39.75148"/>
+
+    <box name="FoamNorth" lunit="cm" 
+      x="39.75148"
+      y="270.4571 + 2*1.27"
+      z="270.497 + 2*1.27 + 2*39.75148"/>
+
+    <box name="FoamEastWest" lunit="cm" 
+      x="407.5623928 + 2*1.27"
+      y="270.4571 + 2*1.27"
+      z="39.75148"/>
+
+    <box name="FoamEastWestNeck" lunit="cm" 
+      x="100 + 2*1.27"
+      y="75 + 1.27"
+      z="39.75148"/>
+
+    <box name="FoamBottom" lunit="cm" 
+      x="407.5623928 + 2*1.27 + 2*39.75148"
+      y="39.75148"
+      z="270.497 + 2*1.27 + 2*39.75148"/>
+
+    <box name="FoamTop" lunit="cm" 
+      x="307.5623928"
+      y="39.75148"
+      z="270.497 + 2*1.27 + 2*39.75148"/>
+
+    <box name="FoamNorthNeck" lunit="cm" 
+      x="39.75148"
+      y="75"
+      z="270.497 + 2*1.27 + 2*39.75148"/>
+
+
+    <box name="BottomConcrete" lunit="cm" 
+      x="407.5623928 + 2*(1.27+39.75148) + 2*30"
+      y="270.4571 + 2*(1.27+39.75148) +   30"
+      z="270.497 + 2*(1.27+39.75148) + 2*30"/>
+    <box name="BottomConcreteSubtract" lunit="cm" 
+      x="407.5623928 + 2*(1.27+39.75148)"
+      y="270.4571 + 2*(1.27+39.75148)"
+      z="270.497 + 2*(1.27+39.75148)"/>
+    <subtraction name="BottomConcreteShell">
+      <first ref="BottomConcrete"/>
+      <second ref="BottomConcreteSubtract"/>
+      <position name="posHoleInConcrete" unit="cm" x="0" y="30/2" z="0"/> 
+    </subtraction>
+
+
+    <box name="NeckConcrete" lunit="cm" 
+      x="212.04296"
+      y="75 +    1.27 - 39.75148"
+      z="270.497   + 2*(1.27+39.75148) + 2*30"/>
+    <box name="NeckConcreteSubtract" lunit="cm" 
+      x="100 + 2*(1.27+39.75148)"
+      y="75 +    1.27 - 39.75148"
+      z="270.497   + 2*(1.27+39.75148)"/>
+    <subtraction name="NeckConcreteShell">
+      <first ref="NeckConcrete"/>
+      <second ref="NeckConcreteSubtract"/>
+      <position name="posHoleInNeckConcrete" unit="cm" x="-30/2" y="0" z="0"/> 
+    </subtraction>
+
+
 
     <box name="World" lunit="cm" 
       x="54960.53528" 
-      y="44774.858" 
+      y="41774.858" 
       z="41253.996"/>
 </solids>
 <structure>
@@ -2320,13 +2386,53 @@
       </physvol>
     </volume>
 
-    <volume name="volDetEnclosure">
+
+    <volume name="volFoamSouth">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamSouth"/>
+    </volume>
+    <volume name="volFoamNorth">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamNorth"/>
+    </volume>
+    <volume name="volFoamEastWest">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamEastWest"/>
+    </volume>
+    <volume name="volFoamEastWestNeck">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamEastWestNeck"/>
+    </volume>
+    <volume name="volFoamBottom">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamBottom"/>
+    </volume>
+    <volume name="volFoamTop">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamTop"/>
+    </volume>
+    <volume name="volFoamNorthNeck">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamNorthNeck"/>
+    </volume>
+
+    <volume name="volBottomConcreteShell">
       <materialref ref="Concrete"/>
+      <solidref ref="BottomConcreteShell"/>
+    </volume>
+    <volume name="volNeckConcreteShell">
+      <materialref ref="Concrete"/>
+      <solidref ref="NeckConcreteShell"/>
+    </volume>
+
+
+    <volume name="volDetEnclosure">
+      <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
 
       <physvol>
         <volumeref ref="volCryostat"/>
-        <position name="posCryo" unit="cm" x="0" y="-58.64574" z="0"/>
+        <position name="posCryo" unit="cm" x="0" y="-2.62425999999999" z="0"/>
       </physvol>
 
 
@@ -2334,24 +2440,104 @@
         <volumeref ref="volNeck"/>
         <position name="posNeck" unit="cm" 
 	  x="0 + 407.5623928/2 - 100/2" 
-	  y="-58.64574 + 270.4571/2 + (75 + 1.27)/2" 
+	  y="-2.62425999999999 + 270.4571/2 + (75 + 1.27)/2" 
           z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTopSteelShell"/>
         <position name="posCryo" unit="cm" 
 	  x="0 - 407.5623928/2 - 1.27 + 307.5623928/2" 
-	  y="-58.64574 + 270.4571/2 + 1.27/2" 
+	  y="-2.62425999999999 + 270.4571/2 + 1.27/2" 
           z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volBotSteelShell"/>
         <position name="posBotSteelShell" unit="cm" 
 	  x="0"
-	  y="-58.64574 - 1.27/2" 
+	  y="-2.62425999999999 - 1.27/2" 
           z="0"/> 
       </physvol>
 
+
+      <physvol>
+        <volumeref ref="volFoamSouth"/>
+        <position name="posFoamSouth" unit="cm" 
+	  x="0 + 407.5623928/2 + 1.27 + 39.75148/2"
+	  y="-2.62425999999999 - 270.4571/2 - 1.27 + 347.9971/2" 
+          z="0"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamNorth"/>
+        <position name="posFoamNorth" unit="cm" 
+	  x="0 - 407.5623928/2 - 1.27 - 39.75148/2"
+	  y="-2.62425999999999" 
+          z="0"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamEastWest"/>
+        <position name="posFoamEast" unit="cm" 
+	  x="0"
+	  y="-2.62425999999999" 
+          z="0 - 270.497/2 - 1.27 - 39.75148/2"/> 
+      </physvol> 
+      <physvol>
+        <volumeref ref="volFoamEastWest"/>
+        <position name="posFoamWest" unit="cm" 
+	  x="0"
+	  y="-2.62425999999999" 
+          z="0 + 270.497/2 + 1.27 + 39.75148/2"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamEastWestNeck"/>
+        <position name="posFoamEastNeck" unit="cm" 
+	  x="0 + 407.5623928/2 - 100/2"
+	  y="-2.62425999999999 + 270.4571/2 + (75 + 1.27)/2" 
+          z="0 - 270.497/2 - 1.27 - 39.75148/2"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamEastWestNeck"/>
+        <position name="posFoamWestNeck" unit="cm" 
+	  x="0 + 407.5623928/2 - 100/2"
+	  y="-2.62425999999999 + 270.4571/2 + (75 + 1.27)/2" 
+          z="0 + 270.497/2 + 1.27 + 39.75148/2"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamBottom"/>
+        <position name="posFoamBottom" unit="cm" 
+	  x="0"
+	  y="-2.62425999999999 - 270.4571/2 - 1.27 - 39.75148/2" 
+          z="0"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamTop"/>
+        <position name="posFoamTop" unit="cm" 
+	  x="0 - 407.5623928/2 - 1.27 - 39.75148 + 307.5623928/2"
+	  y="-2.62425999999999 + 270.4571/2 + 1.27 + 39.75148/2" 
+          z="0"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamNorthNeck"/>
+        <position name="posFoamNorthNeck" unit="cm" 
+	  x="0 + 407.5623928/2 - 100 - 1.27 - 39.75148/2" 
+	  y="-2.62425999999999 + 270.4571/2 + 1.27 + 75/2" 
+          z="0"/>
+      </physvol>
+
+
+      <physvol>
+        <volumeref ref="volBottomConcreteShell"/>
+        <position name="posBottomConcreteShell" unit="cm" 
+	  x="0"
+	  y="-2.62425999999999 - 30/2" 
+          z="0"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volNeckConcreteShell"/>
+        <position name="posNeckConcreteShell" unit="cm" 
+	  x="0 + 407.5623928/2 +1.27 + 69.75148 - 212.04296/2" 
+	  y="-2.62425999999999 + 270.4571/2 + 39.75148 + (75 + 1.27 - 39.75148)/2" 
+          z="0"/>
+      </physvol>
 
     </volume>
 
@@ -2360,7 +2546,7 @@
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="145.6898036" y="77.34024" z="101.5502"/>
+        <position name="posDetEnclosure" unit="cm" x="145.6898036" y="62.34024" z="101.5502"/>
       </physvol>
     </volume>
 </structure>

@@ -297,14 +297,13 @@ $Cryostat_z	       =    $Argon_z;
 $ConcretePadding       =    30;
 $FoamPadding           =    39.75148;
 $TotalPadding	       =    $ConcretePadding + $FoamPadding;
-$DetEnc_x	       =    $Cryostat_x + 2*$TotalPadding + 2*$SteelShellThickness;
-$DetEnc_y	       =    $Cryostat_y + $NeckInside_y + 2*$SteelShellThickness 
-                              + 2*$ConcretePadding + $FoamPadding; # no foam on bottom
-$DetEnc_z              =    $Cryostat_z + 2*$TotalPadding + 2*$SteelShellThickness;
+$DetEnc_x	       =    $Argon_x + 2*$SteelShellThickness + 2*$TotalPadding;
+$DetEnc_y	       =    ($Argon_y + $NeckInside_y) + 2*$SteelShellThickness + $TotalPadding; #No foam or concrete on top
+$DetEnc_z              =    $Argon_z + 2*$SteelShellThickness + 2*$TotalPadding;
 
 
 $posCryoInDetEnc_x     =  0;
-$posCryoInDetEnc_y     =  - $DetEnc_y/2 + $ConcretePadding + $Cryostat_y/2;
+$posCryoInDetEnc_y     =  - $DetEnc_y/2 + $TotalPadding + $SteelShellThickness + $Argon_y/2;
 $posCryoInDetEnc_z     =  0;
 
 
@@ -2804,6 +2803,9 @@ EOF
 
 $TopSteelShell_x = $Argon_x - $NeckInside_x;
 
+    $FoamSouth_y = $Argon_y + $NeckInside_y + 2*$SteelShellThickness;
+    $FoamTop_x   = $Argon_x - $NeckInside_x;
+    $NeckConcreteShell_x = $TotalPadding + 2*$SteelShellThickness + $NeckInside_x + $FoamPadding;
 
 # All the detector enclosure solids.
 print ENCL <<EOF;
@@ -2847,6 +2849,72 @@ print ENCL <<EOF;
       z="$Cryostat_z + 2*$SteelShellThickness"/>
 
 
+    <box name="FoamSouth" lunit="cm" 
+      x="$FoamPadding"
+      y="$FoamSouth_y"
+      z="$Argon_z + 2*$SteelShellThickness + 2*$FoamPadding"/>
+
+    <box name="FoamNorth" lunit="cm" 
+      x="$FoamPadding"
+      y="$Argon_y + 2*$SteelShellThickness"
+      z="$Argon_z + 2*$SteelShellThickness + 2*$FoamPadding"/>
+
+    <box name="FoamEastWest" lunit="cm" 
+      x="$Argon_x + 2*$SteelShellThickness"
+      y="$Argon_y + 2*$SteelShellThickness"
+      z="$FoamPadding"/>
+
+    <box name="FoamEastWestNeck" lunit="cm" 
+      x="$NeckInside_x + 2*$SteelShellThickness"
+      y="$NeckInside_y + $SteelShellThickness"
+      z="$FoamPadding"/>
+
+    <box name="FoamBottom" lunit="cm" 
+      x="$Argon_x + 2*$SteelShellThickness + 2*$FoamPadding"
+      y="$FoamPadding"
+      z="$Argon_z + 2*$SteelShellThickness + 2*$FoamPadding"/>
+
+    <box name="FoamTop" lunit="cm" 
+      x="$FoamTop_x"
+      y="$FoamPadding"
+      z="$Argon_z + 2*$SteelShellThickness + 2*$FoamPadding"/>
+
+    <box name="FoamNorthNeck" lunit="cm" 
+      x="$FoamPadding"
+      y="$NeckInside_y"
+      z="$Argon_z + 2*$SteelShellThickness + 2*$FoamPadding"/>
+
+
+    <box name="BottomConcrete" lunit="cm" 
+      x="$Argon_x + 2*($SteelShellThickness+$FoamPadding) + 2*$ConcretePadding"
+      y="$Argon_y + 2*($SteelShellThickness+$FoamPadding) +   $ConcretePadding"
+      z="$Argon_z + 2*($SteelShellThickness+$FoamPadding) + 2*$ConcretePadding"/>
+    <box name="BottomConcreteSubtract" lunit="cm" 
+      x="$Argon_x + 2*($SteelShellThickness+$FoamPadding)"
+      y="$Argon_y + 2*($SteelShellThickness+$FoamPadding)"
+      z="$Argon_z + 2*($SteelShellThickness+$FoamPadding)"/>
+    <subtraction name="BottomConcreteShell">
+      <first ref="BottomConcrete"/>
+      <second ref="BottomConcreteSubtract"/>
+      <position name="posHoleInConcrete" unit="cm" x="0" y="$ConcretePadding/2" z="0"/> 
+    </subtraction>
+
+
+    <box name="NeckConcrete" lunit="cm" 
+      x="$NeckConcreteShell_x"
+      y="$NeckInside_y +    $SteelShellThickness - $FoamPadding"
+      z="$Cryostat_z   + 2*($SteelShellThickness+$FoamPadding) + 2*$ConcretePadding"/>
+    <box name="NeckConcreteSubtract" lunit="cm" 
+      x="$NeckInside_x + 2*($SteelShellThickness+$FoamPadding)"
+      y="$NeckInside_y +    $SteelShellThickness - $FoamPadding"
+      z="$Cryostat_z   + 2*($SteelShellThickness+$FoamPadding)"/>
+    <subtraction name="NeckConcreteShell">
+      <first ref="NeckConcrete"/>
+      <second ref="NeckConcreteSubtract"/>
+      <position name="posHoleInNeckConcrete" unit="cm" x="-$ConcretePadding/2" y="0" z="0"/> 
+    </subtraction>
+
+
 </solids>
 EOF
 
@@ -2880,8 +2948,48 @@ EOF
       </physvol>
     </volume>
 
-    <volume name="volDetEnclosure">
+
+    <volume name="volFoamSouth">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamSouth"/>
+    </volume>
+    <volume name="volFoamNorth">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamNorth"/>
+    </volume>
+    <volume name="volFoamEastWest">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamEastWest"/>
+    </volume>
+    <volume name="volFoamEastWestNeck">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamEastWestNeck"/>
+    </volume>
+    <volume name="volFoamBottom">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamBottom"/>
+    </volume>
+    <volume name="volFoamTop">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamTop"/>
+    </volume>
+    <volume name="volFoamNorthNeck">
+      <materialref ref="fibrous_glass"/>
+      <solidref ref="FoamNorthNeck"/>
+    </volume>
+
+    <volume name="volBottomConcreteShell">
       <materialref ref="Concrete"/>
+      <solidref ref="BottomConcreteShell"/>
+    </volume>
+    <volume name="volNeckConcreteShell">
+      <materialref ref="Concrete"/>
+      <solidref ref="NeckConcreteShell"/>
+    </volume>
+
+
+    <volume name="volDetEnclosure">
+      <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
 
       <physvol>
@@ -2912,6 +3020,86 @@ EOF
           z="$posCryoInDetEnc_z"/> 
       </physvol>
 
+
+      <physvol>
+        <volumeref ref="volFoamSouth"/>
+        <position name="posFoamSouth" unit="cm" 
+	  x="$posCryoInDetEnc_x + $Argon_x/2 + $SteelShellThickness + $FoamPadding/2"
+	  y="$posCryoInDetEnc_y - $Argon_y/2 - $SteelShellThickness + $FoamSouth_y/2" 
+          z="$posCryoInDetEnc_z"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamNorth"/>
+        <position name="posFoamNorth" unit="cm" 
+	  x="$posCryoInDetEnc_x - $Argon_x/2 - $SteelShellThickness - $FoamPadding/2"
+	  y="$posCryoInDetEnc_y" 
+          z="$posCryoInDetEnc_z"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamEastWest"/>
+        <position name="posFoamEast" unit="cm" 
+	  x="$posCryoInDetEnc_x"
+	  y="$posCryoInDetEnc_y" 
+          z="$posCryoInDetEnc_z - $Argon_z/2 - $SteelShellThickness - $FoamPadding/2"/> 
+      </physvol> 
+      <physvol>
+        <volumeref ref="volFoamEastWest"/>
+        <position name="posFoamWest" unit="cm" 
+	  x="$posCryoInDetEnc_x"
+	  y="$posCryoInDetEnc_y" 
+          z="$posCryoInDetEnc_z + $Argon_z/2 + $SteelShellThickness + $FoamPadding/2"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamEastWestNeck"/>
+        <position name="posFoamEastNeck" unit="cm" 
+	  x="$posCryoInDetEnc_x + $Argon_x/2 - $NeckInside_x/2"
+	  y="$posCryoInDetEnc_y + $Argon_y/2 + ($NeckInside_y + $SteelShellThickness)/2" 
+          z="$posCryoInDetEnc_z - $Argon_z/2 - $SteelShellThickness - $FoamPadding/2"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamEastWestNeck"/>
+        <position name="posFoamWestNeck" unit="cm" 
+	  x="$posCryoInDetEnc_x + $Argon_x/2 - $NeckInside_x/2"
+	  y="$posCryoInDetEnc_y + $Argon_y/2 + ($NeckInside_y + $SteelShellThickness)/2" 
+          z="$posCryoInDetEnc_z + $Argon_z/2 + $SteelShellThickness + $FoamPadding/2"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamBottom"/>
+        <position name="posFoamBottom" unit="cm" 
+	  x="$posCryoInDetEnc_x"
+	  y="$posCryoInDetEnc_y - $Argon_y/2 - $SteelShellThickness - $FoamPadding/2" 
+          z="$posCryoInDetEnc_z"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamTop"/>
+        <position name="posFoamTop" unit="cm" 
+	  x="$posCryoInDetEnc_x - $Argon_x/2 - $SteelShellThickness - $FoamPadding + $FoamTop_x/2"
+	  y="$posCryoInDetEnc_y + $Argon_y/2 + $SteelShellThickness + $FoamPadding/2" 
+          z="$posCryoInDetEnc_z"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volFoamNorthNeck"/>
+        <position name="posFoamNorthNeck" unit="cm" 
+	  x="$posCryoInDetEnc_x + $Argon_x/2 - $NeckInside_x - $SteelShellThickness - $FoamPadding/2" 
+	  y="$posCryoInDetEnc_y + $Argon_y/2 + $SteelShellThickness + $NeckInside_y/2" 
+          z="$posCryoInDetEnc_z"/>
+      </physvol>
+
+
+      <physvol>
+        <volumeref ref="volBottomConcreteShell"/>
+        <position name="posBottomConcreteShell" unit="cm" 
+	  x="$posCryoInDetEnc_x"
+	  y="$posCryoInDetEnc_y - $ConcretePadding/2" 
+          z="$posCryoInDetEnc_z"/> 
+      </physvol>
+      <physvol>
+        <volumeref ref="volNeckConcreteShell"/>
+        <position name="posNeckConcreteShell" unit="cm" 
+	  x="$posCryoInDetEnc_x + $Argon_x/2 +$SteelShellThickness + $TotalPadding - $NeckConcreteShell_x/2" 
+	  y="$posCryoInDetEnc_y + $Argon_y/2 + $FoamPadding + ($NeckInside_y + $SteelShellThickness - $FoamPadding)/2" 
+          z="$posCryoInDetEnc_z"/>
+      </physvol>
 
     </volume>
 EOF
