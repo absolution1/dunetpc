@@ -14,7 +14,7 @@ lbne35t_photonvisibilityservice:
 
   LibraryBuildJob: false
 
-  LibraryFile: "PhotonPropagation/LibraryData/lib11225235.root"
+  LibraryFile: "PhotonPropagation/LibraryData/lib_lbne35tv3_20140829.root"
 
  #These are not used when usecryoboundary=true
   XMin: -120

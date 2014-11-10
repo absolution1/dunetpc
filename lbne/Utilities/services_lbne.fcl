@@ -9,6 +9,7 @@
 #include "databaseutil_lbne.fcl"
 #include "backtracker.fcl"
 #include "timeservice_lbne.fcl"
+#include "photpropservices_lbne.fcl"
 
 BEGIN_PROLOG
 
@@ -88,6 +89,7 @@ lbne35t_simulation_services:
  MagneticField:                @local::no_mag
  BackTracker:                  @local::lbne35t_backtracker
  SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
+ PhotonVisibilityService:      @local::lbne35t_photonvisibilityservice
 }
 
 
