@@ -2,10 +2,10 @@
 
 BEGIN_PROLOG
 
-
 lbnefd_photonlibraryanalyzer: @local::standard_photonlibraryanalyzer
+lbnefd_photonlibraryanalyzer.alt_x_axis: "Z"
 
-lbne35t_photonlibraryanalyzer: @local::standard_photonlibraryanalyzer
+lbne35t_photonlibraryanalyzer: @local::lbnefd_photonlibraryanalyzer
 
 
 END_PROLOG
