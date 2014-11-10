@@ -1069,8 +1069,8 @@ if ($wires_on == 1)
 #$NumberCornerUWires = int( $APAFrame_z/($UWirePitch/$CosUAngle) );
 $NumberCornerUWires = 72;
 
-$NumberCornerVWires = int( $APAFrame_z/($VWirePitch/$CosVAngle) );
-#$NumberCornerVWires = 72;
+#$NumberCornerVWires = int( $APAFrame_z/($VWirePitch/$CosVAngle) );
+$NumberCornerVWires = 72;
 
    # Total number of wires touching one vertical (longer) side
    # Note that the total number of wires per plane is this + another set of corner wires
@@ -1111,6 +1111,14 @@ my $FirstTopUWire_yspan =
         + $UWire_yint*($NumberSideUWires-1) # up to the top of the top common wire
         - $Uactive_z/$TanUAngle             # back to the bottom of the top common wire
 	+ $UWire_yint);                     # nudge up to bottom of the first top corner wire
+
+my $FirstTopVWire_yspan =
+    $Vactive_y[$apa]/2
+    - ( - $Vactive_y[$apa]/2
+        + $FirstVWireOffset/$TanVAngle      # walk us up to the first wire
+        + $VWire_yint*($NumberSideVWires-1) # up to the top of the top common wire
+        - $Vactive_z/$TanVAngle             # back to the bottom of the top common wire
+	+ $VWire_yint);                     # nudge up to bottom of the first top corner wire
 
 # The corner wires for the U plane
 if ($wires_on==1)
@@ -1167,14 +1175,13 @@ if ($wires_on==1)
 {
     for ($i = 0; $i < $NumberCornerVWires; ++$i)
     {
-    # Same subtraction to avoid corners of wires overlapping 
-    # the TPCPlane sides
+	$CornerVWireLength[$i] = ($FirstVWireOffset + $i*$UVReadoutBoardPitch)/$SinVAngle;
 
 	print TPC <<EOF;
 
     <tube name="${_[3]}WireV$i"
       rmax="0.5*$TPCWireThickness"
-      z="$VWirePitch*($TanVAngle+1/$TanVAngle)*($i+1)-0.01732"
+      z="$CornerVWireLength[$i]"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
@@ -1186,14 +1193,35 @@ EOF
     # The wire used many times in the middle of the V plane
     # Same subtraction as U common 
 
+    $CommonVWireLength = $Vactive_z/$SinVAngle;
+
    print TPC <<EOF;
     <tube name="${_[3]}WireVCommon"
       rmax="0.5*$TPCWireThickness"
-      z="$Vactive_z/$SinVAngle-0.02598"
+      z="$CommonVWireLength"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 EOF
+
+    for ($i = 0; $i < $NumberCornerVWires; $i++)
+    {
+
+	$TopCornerVWireLength[$i] = ($FirstTopVWire_yspan - $i*$VWire_yint)/$CosVAngle;
+
+	$j = $i + $NumberSideVWires;
+
+   print TPC <<EOF;
+    <tube name="${_[3]}WireV$j"
+      rmax="0.5*$TPCWireThickness"
+      z="$TopCornerVWireLength[$i]"
+      deltaphi="360"
+      aunit="deg"
+      lunit="cm"/>
+EOF
+
+    }
+
 
 }
 
@@ -1262,6 +1290,17 @@ EOF
     </volume>
 EOF
 
+  }
+
+  # Top Corner V wires logical volumes
+  for ($j = $NumberSideVWires; $j < $NumberSideVWires + $NumberCornerVWires; ++$j)
+  {
+  print TPC <<EOF;
+    <volume name="volTPCWireV$j${_[3]}">
+      <materialref ref="Copper_Beryllium_alloy25"/>
+      <solidref ref="${_[3]}WireV$j"/>
+    </volume>
+EOF
   }
 
   # Common V wire logical volume, referenced many times
@@ -1389,20 +1428,11 @@ $lastYpos = $ypos;
 
 }
 
-# defined in solids section now
-#my $FirstTopUWire_yspan = 
-#    $Uactive_y[$apa]/2
-#    - (   $lastYpos 
-#	- $Uactive_z/2/$TanUAngle 
-#	+ $UWire_yint   ); # hopefully this last interval imposes the pitch correctly
+
 
 my $FirstTopUWire_zspan = $FirstTopUWire_yspan*$TanUAngle;
-
- 
 my $StartTopUWires_ypos =  + $Uactive_y[$apa]/2 - $FirstTopUWire_yspan/2;
-
 my $StartTopUWires_zpos =  - $Uactive_z/2 + $FirstTopUWire_zspan/2;
-
  
 # Finally moving to the corner wires on the top right:
    # x=0 to center the wires in the plane
@@ -1451,6 +1481,10 @@ print TPC <<EOF;
       <solidref ref="${_[3]}VPlane"/>
 EOF
 
+print $wout "\n-     Wires for V plane  -\n\n";
+print $wout " Vplane_y: $Vactive_y[$apa]\n";
+print $wout " Vplane_z: $Vactive_z\n";
+
 if ($wires_on==1)
 {
 
@@ -1464,13 +1498,14 @@ if ($wires_on==1)
         # the lower right corner.
    # rotation: same as common wire in code below
 
+    $FirstV_ypos = - $Vactive_y[$apa]/2 + $FirstVWireOffset/$TanVAngle/2;
+    $FirstV_zpos = - $Vactive_z/2 + $FirstVWireOffset/2;
+
 for ($i = 0; $i < $NumberCornerVWires; ++$i)
 {
-my $ypos = (-0.5*$Vactive_y[$apa])+0.5*($i+1)*$VWire_yint;
-my $zpos = (-0.5*$Vactive_z)+0.5*($i+1)*$VWire_zint;
 
-my $diff=(-0.5*$Vactive_z)+0.5*($NumberCornerVWires)*$VWire_zint;
-my $zpos=$zpos-$diff;
+my $ypos = $FirstV_ypos + ($i)*0.5*$VWire_yint;
+my $zpos = $FirstV_zpos + ($i)*0.5*$UVReadoutBoardPitch;
 
 print TPC <<EOF;
       <physvol>
@@ -1479,6 +1514,16 @@ print TPC <<EOF;
         <rotation name="rVAngle$i"   unit="deg" x="90+$VAngle" y="0"   z="0"/>
       </physvol>
 EOF
+
+$topY = $ypos + ($CosVAngle*$CornerVWireLength[$i]/2);
+$bottomY = $ypos - ($CosVAngle*$CornerVWireLength[$i]/2);
+$edgeZ_p = $zpos + ($SinVAngle*$CornerVWireLength[$i]/2);
+$edgeZ_m = $zpos - ($SinVAngle*$CornerVWireLength[$i]/2);
+print $wout "V$i: ( $ypos , $zpos ) \n";
+print $wout "  -- Y: $bottomY to $topY -- Z: $edgeZ_m to $edgeZ_p \n";
+
+$lastYpos = $ypos;
+$lastZpos = $zpos;
 
 }
 
@@ -1490,9 +1535,13 @@ EOF
         # --VAngle counterclockwise to arrive at proper orientation
 # Note that the counter maintains wire number in the position name
 
+my $StartCommonVWires_ypos = $lastYpos + $VWire_yint - abs( $lastZpos )/$TanVAngle;
+
 for ($i = $NumberCornerVWires; $i < $NumberSideVWires; ++$i)
 {
-my $ypos = (-0.5*$Vactive_y[$apa])-0.5*($NumberCornerVWires)*$VWire_yint+($i+1)*$VWire_yint;
+
+    $j = $i - $NumberCornerVWires;
+    my $ypos = $StartCommonVWires_ypos + $VWire_yint*($j);
 
 print TPC <<EOF;
       <physvol>
@@ -1502,8 +1551,22 @@ print TPC <<EOF;
       </physvol>
 EOF
 
+$topY = $ypos + ($CosVAngle*$CommonVWireLength/2);
+$bottomY = $ypos - ($CosVAngle*$CommonVWireLength/2);
+$edgeZ_p = + ($SinVAngle*$CommonVWireLength/2);
+$edgeZ_m = - ($SinVAngle*$CommonVWireLength/2);
+print $wout "V$i: ( $ypos , 0 ) \n";
+print $wout "  -- Y: $bottomY to $topY -- Z: $edgeZ_m to $edgeZ_p \n";
+
+$lastYpos = $ypos;
+#$lastZpos = $zpos; always 0
+
 }
 
+
+my $FirstTopVWire_zspan = $FirstTopVWire_yspan*$TanVAngle;
+my $StartTopVWires_ypos =  + $Vactive_y[$apa]/2 - $FirstTopVWire_yspan/2;
+my $StartTopVWires_zpos =  + $Vactive_z/2 - $FirstTopVWire_zspan/2;
 
 # Finally moving to the corner wires on the top right:
    # x=0 to center the wires in the plane
@@ -1512,29 +1575,35 @@ EOF
    # rotation: same as common wire in code above
 # note that the counter maintains wire number shown in the position name
 
-for ($i = $NumberSideVWires; $i < $NumberSideVWires+$NumberCornerVWires-1; ++$i)
+for ($j = $NumberSideVWires; $j < $NumberSideVWires+$NumberCornerVWires; ++$j)
 {
-   # Make a counter to recall the right logical volume reference where the last
-   # wire in this loop is the smallest, first wire in the logical volume loop, just as in U
 
-$j = $NumberSideVWires+$NumberCornerVWires - $i - 2;
+$i = $j - $NumberSideVWires;
 
-   # Note that since we are referencing the same logical volumes/same solids for
-   # the top wires as well as the bottom, the pattern of "stacking" wire on top of wire
-   # with an incremental separation is likely to cause the top corner wires to be a 
-   # a little shorter than they can be, but never any longer. Just as in U
-
-my $ypos = (-0.5*$Vactive_y[$apa])+0.5*($NumberCornerVWires)*$VWire_yint+($NumberCommonVWires)*$VWire_yint+0.5*($i+1-$NumberSideVWires)*$VWire_yint;
-my $zpos = 0.5*($i+1-$NumberSideVWires)*$VWire_zint;
+my $ypos = $StartTopVWires_ypos + ($i)*0.5*$VWire_yint;
+my $zpos = $StartTopVWires_zpos + ($i)*0.5*$UVReadoutBoardPitch;
 
 print TPC <<EOF;
       <physvol>
         <volumeref ref="volTPCWireV$j${_[3]}"/>
-        <position name="pos${_[3]}WireV$i" unit="cm" x="0" y="$ypos " z="$zpos"/>
-        <rotation name="rVAngle$i"   unit="deg" x="90+$VAngle" y="0"   z="0"/>
+        <position name="pos${_[3]}WireV$j" unit="cm" x="0" y="$ypos " z="$zpos"/>
+        <rotation name="rVAngle$j"   unit="deg" x="90+$VAngle" y="0"   z="0"/>
       </physvol>
 EOF
+
+$topY = $ypos + ($CosVAngle*$TopCornerVWireLength[$i]/2);
+$bottomY = $ypos - ($CosVAngle*$TopCornerVWireLength[$i]/2);
+$edgeZ_p = $zpos + ($SinVAngle*$TopCornerVWireLength[$i]/2);
+$edgeZ_m = $zpos - ($SinVAngle*$TopCornerVWireLength[$i]/2);
+print $wout "V$i: ( $ypos , $zpos ) \n";
+print $wout "  -- Y: $bottomY to $topY -- Z: $edgeZ_m to $edgeZ_p \n";
+
 }
+
+
+
+
+
 
 } #ends if wires on
 
