@@ -9,6 +9,7 @@
 #include "databaseutil_lbne.fcl"
 #include "backtracker.fcl"
 #include "timeservice_lbne.fcl"
+#include "photpropservices_lbne.fcl"
 
 BEGIN_PROLOG
 
@@ -88,7 +89,30 @@ lbne35t_simulation_services:
  MagneticField:                @local::no_mag
  BackTracker:                  @local::lbne35t_backtracker
  SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
+ PhotonVisibilityService:      @local::lbne35t_photonvisibilityservice
 }
+
+##
+# Settings to turn on and configure photon simulation
+## 
+
+# set quantum efficiency supressed scint yield to 0.03 * 24000
+lbne35t_simulation_services.LArProperties.ScintYield: 720
+
+# disable cerenkov
+lbne35t_simulation_services.LArProperties.EnableCerenkovLight: false
+
+# enable "FastOptical" in geant4
+lbne35t_simulation_services.LArG4Parameters.UseCustomPhysics: true
+lbne35t_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                "FastOptical",
+                                                "SynchrotronAndGN",
+                                                "Ion",
+                                                "Hadron",
+                                                "Decay",
+                                                "HadronElastic",
+                                                "Stopping",
+                                                "NeutronTrackingCut" ]
 
 
 
