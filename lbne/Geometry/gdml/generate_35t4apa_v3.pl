@@ -120,7 +120,7 @@ $APAWirePlaneSpacing     = 0.4730488 + $TPCWirePlaneThickness; # center to cente
 
 # At creation of the plane volumes, the y and z boundaries will be increased
 # by this much at each of the 4 edges. this is so the corners of the wire 
-# tubes don't extrude.
+# tubes don't extrude. For all other purposes, the plane dimensions stay as originally defined
 $UVPlaneBoundNudge = $TPCWireThickness;
 
 # The following are all widths about the same z center,
@@ -294,17 +294,51 @@ $Cryostat_z	       =    $Argon_z;
 ##################################################################
 ################# Detector Enclosure parameters ##################
 
+
+# Around the cryostat
 $ConcretePadding       =    30;
 $FoamPadding           =    39.75148;
 $TotalPadding	       =    $ConcretePadding + $FoamPadding;
-$DetEnc_x	       =    $Argon_x + 2*$SteelShellThickness + 2*$TotalPadding;
-$DetEnc_y	       =    ($Argon_y + $NeckInside_y) + 2*$SteelShellThickness + $TotalPadding; #No foam or concrete on top
-$DetEnc_z              =    $Argon_z + 2*$SteelShellThickness + 2*$TotalPadding;
+$CryoWithPadding_x         =   $Argon_x + 2*$SteelShellThickness + 2*$TotalPadding;
+$CryoWithPadding_y_noneck  =   $Argon_y + 2*$SteelShellThickness + 2*$FoamPadding + $ConcretePadding;
+$CryoWithPadding_y_neck    =   ($Argon_y + $NeckInside_y) + 2*$SteelShellThickness + $TotalPadding;
+$CryoWithPadding_z         =    $Argon_z + 2*$SteelShellThickness + 2*$TotalPadding;
+
+
+# The actual enclosure
+$TrenchLength = 9*$CryoWithPadding_x; # make this a reasonable length, still guessing
+     # quick measurments by Michelle Stancari, definitely good enough for now
+$TrenchWallThickness = 14*$inch;
+$WalkwayWidth = 34.5*$inch;
+$PlateAToGroundLevel = 50*$inch;
+
+
+# Bird's eye view of trench, walkway is on the west side
+#    |          |
+#    |          |<-- trench wall
+#    |          |
+#    |   ___N__ |
+#    |  | ____ ||
+#    |  |      ||
+#    | W|______||E    +z <---|  (+y out of screen)
+#    |  |______||            |
+#    |      ^   |            v
+#    |     Neck |           +x
+#    |          |
+#    |          |
+#    |          |
+
+# the container volume dimensions
+$DetEnc_x	       =    $TrenchLength;
+$DetEnc_y	       =    $TrenchWallThickness  # use this for thickness of floor too
+                           + $CryoWithPadding_y_noneck 
+                           + $PlateAToGroundLevel; # Make ground level the top of the DetEnc
+$DetEnc_z              =    $CryoWithPadding_z + $WalkwayWidth + 2*$TrenchWallThickness;
 
 
 $posCryoInDetEnc_x     =  0;
-$posCryoInDetEnc_y     =  - $DetEnc_y/2 + $TotalPadding + $SteelShellThickness + $Argon_y/2;
-$posCryoInDetEnc_z     =  0;
+$posCryoInDetEnc_y     =  - $DetEnc_y/2 + $TrenchWallThickness + $TotalPadding + $SteelShellThickness + $Argon_y/2;
+$posCryoInDetEnc_z     =  - $DetEnc_z/2 + $TrenchWallThickness + $CryoWithPadding_z/2;
 
 
 
@@ -320,10 +354,11 @@ $PosDirCubeSide = $ArToAr; #seems to be a good proportion
 #   the cry helper needs a lot of room
 
 
-$World_x = 100*$DetEnc_x;
-$World_y = 100*$DetEnc_y;
-$World_z = 100*$DetEnc_z;
+$World_x = 5*$DetEnc_x;
+$World_y = 25*$DetEnc_y;
+$World_z = 25*$DetEnc_z;
 
+$BermRadius = 5*12*$inch;
 
 
 
@@ -393,10 +428,12 @@ $posTPCLongDrift_x   =    $APACenter[0][0]
   # This is to be added to the z position of every volume in volWorld
 
 $OriginZSet =       
-    + $DetEnc_z/2 
+    + $DetEnc_z/2
+    - $TrenchWallThickness
+    - $WalkwayWidth
     - $TotalPadding 
     - $SteelShellThickness
-    - $Cryostat_z/2    # at this point, we are at the center of the cryostat...
+    - $Argon_z/2    # at this point, we are at the center of the cryostat...
     - $APACenter[0][2] # ... and now at the center of the East-most APA
     + $Uactive_z/2;
 
@@ -410,7 +447,8 @@ $OriginZSet =
 
 $OriginYSet =       
       $DetEnc_y/2
-    - $ConcretePadding
+    - $TrenchWallThickness
+    - $TotalPadding
     - $SteelShellThickness
     - $Argon_y
     + $APAToTopCryo
@@ -428,10 +466,10 @@ $OriginYSet =
 #                              - $ShortDrift ... through APA frame
 
 $OriginXSet  =    
-    - $DetEnc_x/2 
+    - $CryoWithPadding_x/2 
     + $TotalPadding
     + $SteelShellThickness
-    + $Cryostat_x/2   # at this point, we are at the center of the cryostat...
+    + $Argon_x/2   # at this point, we are at the center of the cryostat...
     - $APA_Xcenter    # ... and now at the APA's center x coordinate
     - $APAFrame_x/2
     - 3*$APAWirePlaneSpacing
@@ -966,7 +1004,7 @@ sub gen_TPC()
 
     my $TPCActive_x   =  $_[0]-(3*$APAWirePlaneSpacing);
     my $TPCActive_y   =  $Uactive_y[$apa] + $G10thickness;
-    my $TPCActive_z   =  $Uactive_z + 2*$G10thickness; 
+    my $TPCActive_z   =  $TPC_z; 
 
     my $UAngle = $UAng[$apa];
     my $VAngle = $VAng[$apa];
@@ -2807,6 +2845,8 @@ $TopSteelShell_x = $Argon_x - $NeckInside_x;
     $FoamTop_x   = $Argon_x - $NeckInside_x;
     $NeckConcreteShell_x = $TotalPadding + 2*$SteelShellThickness + $NeckInside_x + $FoamPadding;
 
+    $TrenchTopConcrete_x = ($DetEnc_x - $CryoWithPadding_x)/2;
+
 # All the detector enclosure solids.
 print ENCL <<EOF;
 <solids>
@@ -2815,6 +2855,25 @@ print ENCL <<EOF;
       x="$DetEnc_x"
       y="$DetEnc_y"
       z="$DetEnc_z"/>
+
+    <box name="TrenchBottomConcrete" lunit="cm" 
+      x="$DetEnc_x"
+      y="$DetEnc_y"
+      z="$DetEnc_z"/>
+    <box name="TrenchBottomConcreteSubtract" lunit="cm" 
+      x="$DetEnc_x"
+      y="$DetEnc_y -   $TrenchWallThickness"
+      z="$DetEnc_z - 2*$TrenchWallThickness"/>
+    <subtraction name="TrenchBottomConcreteShell">
+      <first ref="TrenchBottomConcrete"/>
+      <second ref="TrenchBottomConcreteSubtract"/>
+      <position name="posHoleInTrench" unit="cm" x="0" y="$TrenchWallThickness/2" z="0"/> 
+    </subtraction>
+
+    <box name="TrenchTopConcrete" lunit="cm" 
+      x="$TrenchTopConcrete_x"
+      y="$TrenchWallThickness"
+      z="$DetEnc_z - 2*$TrenchWallThickness"/>
 
 
     <box name="BottomSteel" lunit="cm" 
@@ -2915,6 +2974,7 @@ print ENCL <<EOF;
     </subtraction>
 
 
+
 </solids>
 EOF
 
@@ -2987,6 +3047,14 @@ EOF
       <solidref ref="NeckConcreteShell"/>
     </volume>
 
+    <volume name="volTrenchBottomConcreteShell">
+      <materialref ref="Concrete"/>
+      <solidref ref="TrenchBottomConcreteShell"/>
+    </volume>
+    <volume name="volTrenchTopConcrete">
+      <materialref ref="Concrete"/>
+      <solidref ref="TrenchTopConcrete"/>
+    </volume>
 
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
@@ -2996,7 +3064,6 @@ EOF
         <volumeref ref="volCryostat"/>
         <position name="posCryo" unit="cm" x="$posCryoInDetEnc_x" y="$posCryoInDetEnc_y" z="$posCryoInDetEnc_z"/>
       </physvol>
-
 
       <physvol>
         <volumeref ref="volNeck"/>
@@ -3101,6 +3168,31 @@ EOF
           z="$posCryoInDetEnc_z"/>
       </physvol>
 
+
+
+      <physvol>
+        <volumeref ref="volTrenchBottomConcreteShell"/>
+        <position name="posTrenchConcrete" unit="cm" x="0" y="0" z="0"/>
+      </physvol>
+<!-- Concrete is too heavy for the roof
+      <physvol>
+        <volumeref ref="volTrenchTopConcrete"/>
+        <position name="posTrenchConcreteTop_Pos" unit="cm" 
+	  x=" + $DetEnc_x/2 - $TrenchTopConcrete_x/2" 
+	  y="$DetEnc_y/2 - $TrenchWallThickness/2" 
+          z="0"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volTrenchTopConcrete"/>
+        <position name="posTrenchConcreteTop_Neg" unit="cm" 
+	  x=" - $DetEnc_x/2 + $TrenchTopConcrete_x/2" 
+	  y="$DetEnc_y/2 - $TrenchWallThickness/2" 
+          z="0"/>
+      </physvol>
+-->
+
+
+
     </volume>
 EOF
 
@@ -3136,6 +3228,7 @@ sub gen_World()
 <gdml>
 EOF
 
+$Dirt_y = $OriginYSet + $World_y/2 + $DetEnc_y/2;
 
 # All the World solids.
 print WORLD <<EOF;
@@ -3144,18 +3237,68 @@ print WORLD <<EOF;
       x="$World_x" 
       y="$World_y" 
       z="$World_z"/>
+
+    <box name="DirtBlock" lunit="cm" 
+      x="$World_x" 
+      y="$Dirt_y" 
+      z="$World_z"/>
+    <subtraction name="DirtWithHole">
+      <first ref="DirtBlock"/>
+      <second ref="DetEnclosure"/>
+      <position name="posHoleInDirt" unit="cm" 
+        x="$OriginXSet" 
+        y="$Dirt_y/2 - $DetEnc_y/2" 
+        z="$OriginZSet"/> 
+    </subtraction>
+
+    <tube name="Berm"
+      rmax="$BermRadius"
+      z="$World_x"
+      deltaphi="180"
+      aunit="deg"
+      lunit="cm"/>
+
+
 </solids>
 EOF
 
 # World structure
 print WORLD <<EOF;
 <structure>
+
+    <volume name="volDirtWithHole" >
+      <materialref ref="Dirt"/>
+      <solidref ref="DirtWithHole"/>
+    </volume>
+    <volume name="volBerm" >
+      <materialref ref="Dirt"/>
+      <solidref ref="Berm"/>
+    </volume>
+
     <volume name="volWorld" >
       <materialref ref="Air"/>
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="$OriginXSet" y="$OriginYSet" z="$OriginZSet"/>
+        <position name="posDetEnclosure" unit="cm" 
+          x="$OriginXSet" 
+          y="$OriginYSet" 
+          z="$OriginZSet"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volDirtWithHole"/>
+        <position name="posDirtWithHole" unit="cm" 
+          x="0" 
+          y=" -$World_y/2 + $Dirt_y/2 " 
+          z="0"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volBerm"/>
+        <position name="posBerm" unit="cm" 
+          x="0"
+          y="$OriginYSet + $DetEnc_y/2 " 
+          z="$OriginZSet + $DetEnc_z/2 + $BermRadius"/>
+	<rotation name="rBerm"   unit="deg" x="0" y="90"   z="0"/>
       </physvol>
     </volume>
 </structure>

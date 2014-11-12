@@ -135,12 +135,26 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
  gGeoManager->GetVolume("volFoamTop")->SetVisibility(showCryoShell);
  gGeoManager->GetVolume("volFoamTop")->SetTransparency(85);
 
- gGeoManager->GetVolume("volBottomConcreteShell")->SetLineColor(19);
+ gGeoManager->GetVolume("volBottomConcreteShell")->SetLineColor(19); 
  gGeoManager->GetVolume("volBottomConcreteShell")->SetVisibility(showCryoShell);
- gGeoManager->GetVolume("volBottomConcreteShell")->SetTransparency(90);
+ gGeoManager->GetVolume("volBottomConcreteShell")->SetTransparency(25);
  gGeoManager->GetVolume("volNeckConcreteShell")->SetLineColor(19);
  gGeoManager->GetVolume("volNeckConcreteShell")->SetVisibility(showCryoShell);
- gGeoManager->GetVolume("volNeckConcreteShell")->SetTransparency(90);
+ gGeoManager->GetVolume("volNeckConcreteShell")->SetTransparency(25);
+
+ gGeoManager->GetVolume("volTrenchBottomConcreteShell")->SetLineColor(19); 
+ gGeoManager->GetVolume("volTrenchBottomConcreteShell")->SetVisibility(1);
+ gGeoManager->GetVolume("volTrenchBottomConcreteShell")->SetTransparency(30);
+ gGeoManager->GetVolume("volTrenchTopConcrete")->SetLineColor(19); 
+ gGeoManager->GetVolume("volTrenchTopConcrete")->SetVisibility(1);
+ gGeoManager->GetVolume("volTrenchTopConcrete")->SetTransparency(70);
+ gGeoManager->GetVolume("volDirtWithHole")->SetLineColor(kOrange+9); 
+ gGeoManager->GetVolume("volDirtWithHole")->SetVisibility(1);
+ gGeoManager->GetVolume("volDirtWithHole")->SetTransparency(70);
+ gGeoManager->GetVolume("volBerm")->SetLineColor(kOrange+9); 
+ gGeoManager->GetVolume("volBerm")->SetVisibility(1);
+ gGeoManager->GetVolume("volBerm")->SetTransparency(70);
+
 
 
 

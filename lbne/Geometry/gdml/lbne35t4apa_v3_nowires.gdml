@@ -10,7 +10,7 @@
 
 -->
 
-   <position name="posOriginSet"        unit="cm" x="145.6898036" y="62.34024" z="101.5502"/>
+   <position name="posOriginSet"        unit="cm" x="145.6898036" y="50.6845" z="57.7352"/>
 
    <position name="posTPCLargestShortDrift_Pos"  unit="cm" x="-166.5546232" y="-1.45235"  z="27.74425"/>
    <position name="posTPCLargestLongDrift_Pos"   unit="cm" x="-35.1993768"  y="-1.45235"  z="27.74425"/>
@@ -321,7 +321,7 @@
     <box name="LargestLongDriftActive" lunit="cm"
       x="222.475"
       y="196.3965"
-      z="51.5239"/>
+      z="51.924"/>
 
     <tube name="LargestLongDriftWireVert"
       rmax="0.5*0.015"
@@ -375,7 +375,7 @@
     <box name="LargestShortDriftActive" lunit="cm"
       x="27.175"
       y="196.3965"
-      z="51.5239"/>
+      z="51.924"/>
 
     <tube name="LargestShortDriftWireVert"
       rmax="0.5*0.015"
@@ -429,7 +429,7 @@
     <box name="SmallestLongDriftActive" lunit="cm"
       x="222.475"
       y="84.7065"
-      z="51.5239"/>
+      z="51.924"/>
 
     <tube name="SmallestLongDriftWireVert"
       rmax="0.5*0.015"
@@ -483,7 +483,7 @@
     <box name="SmallestShortDriftActive" lunit="cm"
       x="27.175"
       y="84.7065"
-      z="51.5239"/>
+      z="51.924"/>
 
     <tube name="SmallestShortDriftWireVert"
       rmax="0.5*0.015"
@@ -537,7 +537,7 @@
     <box name="MidLongDriftActive" lunit="cm"
       x="222.475"
       y="112.6265"
-      z="51.5239"/>
+      z="51.924"/>
 
     <tube name="MidLongDriftWireVert"
       rmax="0.5*0.015"
@@ -591,7 +591,7 @@
     <box name="MidShortDriftActive" lunit="cm"
       x="27.175"
       y="112.6265"
-      z="51.5239"/>
+      z="51.924"/>
 
     <tube name="MidShortDriftWireVert"
       rmax="0.5*0.015"
@@ -939,9 +939,28 @@
 
 
     <box name="DetEnclosure" lunit="cm" 
-      x="549.6053528"
-      y="417.74858"
-      z="412.53996"/>
+      x="4946.4481752"
+      y="545.06006"
+      z="571.28996"/>
+
+    <box name="TrenchBottomConcrete" lunit="cm" 
+      x="4946.4481752"
+      y="545.06006"
+      z="571.28996"/>
+    <box name="TrenchBottomConcreteSubtract" lunit="cm" 
+      x="4946.4481752"
+      y="545.06006 -   35.56"
+      z="571.28996 - 2*35.56"/>
+    <subtraction name="TrenchBottomConcreteShell">
+      <first ref="TrenchBottomConcrete"/>
+      <second ref="TrenchBottomConcreteSubtract"/>
+      <position name="posHoleInTrench" unit="cm" x="0" y="35.56/2" z="0"/> 
+    </subtraction>
+
+    <box name="TrenchTopConcrete" lunit="cm" 
+      x="2198.4214112"
+      y="35.56"
+      z="571.28996 - 2*35.56"/>
 
 
     <box name="BottomSteel" lunit="cm" 
@@ -1043,10 +1062,33 @@
 
 
 
+
     <box name="World" lunit="cm" 
-      x="54960.53528" 
-      y="41774.858" 
-      z="41253.996"/>
+      x="24732.240876" 
+      y="13626.5015" 
+      z="14282.249"/>
+
+    <box name="DirtBlock" lunit="cm" 
+      x="24732.240876" 
+      y="7136.46528" 
+      z="14282.249"/>
+    <subtraction name="DirtWithHole">
+      <first ref="DirtBlock"/>
+      <second ref="DetEnclosure"/>
+      <position name="posHoleInDirt" unit="cm" 
+        x="145.6898036" 
+        y="7136.46528/2 - 545.06006/2" 
+        z="57.7352"/> 
+    </subtraction>
+
+    <tube name="Berm"
+      rmax="152.4"
+      z="24732.240876"
+      deltaphi="180"
+      aunit="deg"
+      lunit="cm"/>
+
+
 </solids>
 <structure>
     <volume name="volTPCActiveLargestLongDrift">
@@ -2425,6 +2467,14 @@
       <solidref ref="NeckConcreteShell"/>
     </volume>
 
+    <volume name="volTrenchBottomConcreteShell">
+      <materialref ref="Concrete"/>
+      <solidref ref="TrenchBottomConcreteShell"/>
+    </volume>
+    <volume name="volTrenchTopConcrete">
+      <materialref ref="Concrete"/>
+      <solidref ref="TrenchTopConcrete"/>
+    </volume>
 
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
@@ -2432,95 +2482,94 @@
 
       <physvol>
         <volumeref ref="volCryostat"/>
-        <position name="posCryo" unit="cm" x="0" y="-2.62425999999999" z="0"/>
+        <position name="posCryo" unit="cm" x="0" y="-30.72" z="-43.815"/>
       </physvol>
-
 
       <physvol>
         <volumeref ref="volNeck"/>
         <position name="posNeck" unit="cm" 
-	  x="0 + 407.5623928/2 - 100/2" 
-	  y="-2.62425999999999 + 270.4571/2 + (75 + 1.27)/2" 
-          z="0"/>
+	  x="0 + 407.5623928/2 -  100/2" 
+	  y="-30.72 + 270.4571/2 + (75 +  1.27)/2" 
+          z="-43.815"/>
       </physvol>
       <physvol>
         <volumeref ref="volTopSteelShell"/>
         <position name="posCryo" unit="cm" 
 	  x="0 - 407.5623928/2 - 1.27 + 307.5623928/2" 
-	  y="-2.62425999999999 + 270.4571/2 + 1.27/2" 
-          z="0"/>
+	  y="-30.72 + 270.4571/2 + 1.27/2" 
+          z="-43.815"/>
       </physvol>
       <physvol>
         <volumeref ref="volBotSteelShell"/>
         <position name="posBotSteelShell" unit="cm" 
 	  x="0"
-	  y="-2.62425999999999 - 1.27/2" 
-          z="0"/> 
+	  y="-30.72 - 1.27/2" 
+          z="-43.815"/> 
       </physvol>
 
 
       <physvol>
         <volumeref ref="volFoamSouth"/>
         <position name="posFoamSouth" unit="cm" 
-	  x="0 + 407.5623928/2 + 1.27 + 39.75148/2"
-	  y="-2.62425999999999 - 270.4571/2 - 1.27 + 347.9971/2" 
-          z="0"/> 
+	  x="0 +  407.5623928/2 + 1.27 + 39.75148/2"
+	  y="-30.72 -  270.4571/2 - 1.27 + 347.9971/2" 
+          z="-43.815"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamNorth"/>
         <position name="posFoamNorth" unit="cm" 
-	  x="0 - 407.5623928/2 - 1.27 - 39.75148/2"
-	  y="-2.62425999999999" 
-          z="0"/> 
+	  x="0 -  407.5623928/2 - 1.27 - 39.75148/2"
+	  y="-30.72" 
+          z="-43.815"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamEastWest"/>
         <position name="posFoamEast" unit="cm" 
 	  x="0"
-	  y="-2.62425999999999" 
-          z="0 - 270.497/2 - 1.27 - 39.75148/2"/> 
+	  y="-30.72" 
+          z="-43.815 -  270.497/2 - 1.27 - 39.75148/2"/> 
       </physvol> 
       <physvol>
         <volumeref ref="volFoamEastWest"/>
         <position name="posFoamWest" unit="cm" 
 	  x="0"
-	  y="-2.62425999999999" 
-          z="0 + 270.497/2 + 1.27 + 39.75148/2"/> 
+	  y="-30.72" 
+          z="-43.815 +  270.497/2 + 1.27 + 39.75148/2"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamEastWestNeck"/>
         <position name="posFoamEastNeck" unit="cm" 
-	  x="0 + 407.5623928/2 - 100/2"
-	  y="-2.62425999999999 + 270.4571/2 + (75 + 1.27)/2" 
-          z="0 - 270.497/2 - 1.27 - 39.75148/2"/> 
+	  x="0 +  407.5623928/2 - 100/2"
+	  y="-30.72 +  270.4571/2 + (75 + 1.27)/2" 
+          z="-43.815 -  270.497/2 - 1.27 - 39.75148/2"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamEastWestNeck"/>
         <position name="posFoamWestNeck" unit="cm" 
-	  x="0 + 407.5623928/2 - 100/2"
-	  y="-2.62425999999999 + 270.4571/2 + (75 + 1.27)/2" 
-          z="0 + 270.497/2 + 1.27 + 39.75148/2"/> 
+	  x="0 +  407.5623928/2 - 100/2"
+	  y="-30.72 +  270.4571/2 + (75 + 1.27)/2" 
+          z="-43.815 +  270.497/2 + 1.27 + 39.75148/2"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamBottom"/>
         <position name="posFoamBottom" unit="cm" 
 	  x="0"
-	  y="-2.62425999999999 - 270.4571/2 - 1.27 - 39.75148/2" 
-          z="0"/> 
+	  y="-30.72 -  270.4571/2 - 1.27 - 39.75148/2" 
+          z="-43.815"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamTop"/>
         <position name="posFoamTop" unit="cm" 
-	  x="0 - 407.5623928/2 - 1.27 - 39.75148 + 307.5623928/2"
-	  y="-2.62425999999999 + 270.4571/2 + 1.27 + 39.75148/2" 
-          z="0"/> 
+	  x="0 -  407.5623928/2 - 1.27 - 39.75148 + 307.5623928/2"
+	  y="-30.72 +  270.4571/2 + 1.27 + 39.75148/2" 
+          z="-43.815"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamNorthNeck"/>
         <position name="posFoamNorthNeck" unit="cm" 
-	  x="0 + 407.5623928/2 - 100 - 1.27 - 39.75148/2" 
-	  y="-2.62425999999999 + 270.4571/2 + 1.27 + 75/2" 
-          z="0"/>
+	  x="0 +  407.5623928/2 - 100 - 1.27 - 39.75148/2" 
+	  y="-30.72 +  270.4571/2 + 1.27 + 75/2" 
+          z="-43.815"/>
       </physvol>
 
 
@@ -2528,17 +2577,52 @@
         <volumeref ref="volBottomConcreteShell"/>
         <position name="posBottomConcreteShell" unit="cm" 
 	  x="0"
-	  y="-2.62425999999999 - 30/2" 
-          z="0"/> 
+	  y="-30.72 -  30/2" 
+          z="-43.815"/> 
       </physvol>
       <physvol>
         <volumeref ref="volNeckConcreteShell"/>
         <position name="posNeckConcreteShell" unit="cm" 
 	  x="0 + 407.5623928/2 +1.27 + 69.75148 - 212.04296/2" 
-	  y="-2.62425999999999 + 270.4571/2 + 39.75148 + (75 + 1.27 - 39.75148)/2" 
-          z="0"/>
+	  y="-30.72 + 270.4571/2 + 39.75148 + (75 + 1.27 - 39.75148)/2" 
+          z="-43.815"/>
       </physvol>
 
+
+
+      <physvol>
+        <volumeref ref="volTrenchBottomConcreteShell"/>
+        <position name="posTrenchConcrete" unit="cm" x="0" y="0" z="0"/>
+      </physvol>
+<!-- Concrete is too heavy for the roof
+      <physvol>
+        <volumeref ref="volTrenchTopConcrete"/>
+        <position name="posTrenchConcreteTop_Pos" unit="cm" 
+	  x=" + 4946.4481752/2 - 2198.4214112/2" 
+	  y="545.06006/2 - 35.56/2" 
+          z="0"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volTrenchTopConcrete"/>
+        <position name="posTrenchConcreteTop_Neg" unit="cm" 
+	  x=" - 4946.4481752/2 +  2198.4214112/2" 
+	  y="545.06006/2 -  35.56/2" 
+          z="0"/>
+      </physvol>
+-->
+
+
+
+    </volume>
+
+
+    <volume name="volDirtWithHole" >
+      <materialref ref="Dirt"/>
+      <solidref ref="DirtWithHole"/>
+    </volume>
+    <volume name="volBerm" >
+      <materialref ref="Dirt"/>
+      <solidref ref="Berm"/>
     </volume>
 
     <volume name="volWorld" >
@@ -2546,7 +2630,25 @@
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="145.6898036" y="62.34024" z="101.5502"/>
+        <position name="posDetEnclosure" unit="cm" 
+          x="145.6898036" 
+          y="50.6845" 
+          z="57.7352"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volDirtWithHole"/>
+        <position name="posDirtWithHole" unit="cm" 
+          x="0" 
+          y=" -13626.5015/2 + 7136.46528/2 " 
+          z="0"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volBerm"/>
+        <position name="posBerm" unit="cm" 
+          x="0"
+          y="50.6845 + 545.06006/2 " 
+          z="57.7352 + 571.28996/2 + 152.4"/>
+	<rotation name="rBerm"   unit="deg" x="0" y="90"   z="0"/>
       </physvol>
     </volume>
 </structure>
