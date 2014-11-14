@@ -1,0 +1,65 @@
+////////////////////////////////////////////////////////////////////////
+//
+// DisambigAlg35t.cxx
+//
+// tjyang@fnal.gov
+//
+// description
+//
+//
+// Since we are letting the module make the final column of hits, a disambiguated 
+// hit in this algorithm is a pair< art::Ptr<recob::Hit>, geo::WireID >
+//
+//
+////////////////////////////////////////////////////////////////////////
+
+
+//Framework includes:
+#include "art/Framework/Principal/Event.h"
+#include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
+
+#include "Utilities/LArProperties.h"
+#include "Utilities/DetectorProperties.h"
+#include "Utilities/AssociationUtil.h"
+#include "RecoBase/Hit.h"
+#include "RecoBase/Wire.h"
+#include "Geometry/CryostatGeo.h"
+#include "Geometry/TPCGeo.h"
+#include "Geometry/PlaneGeo.h"
+#include "Geometry/WireGeo.h"
+#include "DisambigAlg35t.h"
+
+#include <map>
+#include <cmath>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+
+
+namespace lbne{
+
+DisambigAlg35t::DisambigAlg35t(fhicl::ParameterSet const& pset) 
+{
+  this->reconfigure(pset); 
+}
+
+//----------------------------------------------------------
+void DisambigAlg35t::reconfigure(fhicl::ParameterSet const& p)
+{
+
+}
+
+
+//----------------------------------------------------------
+//----------------------------------------------------------
+void DisambigAlg35t::RunDisambig(   art::Handle< std::vector<recob::Hit> > ChannelHits   )
+{
+
+
+}
+
+} //end namespace apa
