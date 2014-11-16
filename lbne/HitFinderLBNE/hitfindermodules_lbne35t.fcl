@@ -42,6 +42,8 @@ lbne35t_gaushitfinder.ColMinWidth: 1.0
 
 lbne35t_disambigalg:
 {
+    TimeCut:          2.   #tolerance for 3 view hits matching, in ticks
+    DistanceCut:      2.   #tolerance to determine whether wires cross, in cm
 }
 
 lbne35t_hitfinder35t:

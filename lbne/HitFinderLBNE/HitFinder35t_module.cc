@@ -143,7 +143,6 @@ namespace lbne{
       art::Ptr<recob::Hit>  hit = fDisambigAlg.fDisambigHits[t].first;
       geo::WireID           wid = fDisambigAlg.fDisambigHits[t].second;
       art::Ptr<recob::Wire> wire = hit->Wire();
-      std::cout<<t<<" ** "<<wire<<std::endl;
       recob::Hit WidHit( wire, 			     wid,
 			 hit->StartTime(),     	     hit->SigmaStartTime(),
 			 hit->EndTime(),       	     hit->SigmaEndTime(),

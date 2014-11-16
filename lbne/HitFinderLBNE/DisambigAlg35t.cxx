@@ -50,6 +50,9 @@ DisambigAlg35t::DisambigAlg35t(fhicl::ParameterSet const& pset)
 void DisambigAlg35t::reconfigure(fhicl::ParameterSet const& p)
 {
 
+  fTimeCut = p.get<double>("TimeCut");
+  fDistanceCut = p.get<double>("DistanceCut");
+
 }
 
 
@@ -62,17 +65,16 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
   art::ServiceHandle<util::DetectorProperties> detprop;
   art::ServiceHandle<geo::Geometry> geo;
 
-  std::vector<art::Ptr<recob::Hit> > hitsU;
-  std::vector<art::Ptr<recob::Hit> > hitsV;
+  std::vector<std::vector<art::Ptr<recob::Hit> > > hitsUV(2);
   std::vector<art::Ptr<recob::Hit> > hitsZ;
 
   for (size_t i = 0; i<OrigHits.size(); ++i){
     switch (OrigHits[i]->View()){
     case geo::kU:
-      hitsU.push_back(OrigHits[i]);
+      hitsUV[0].push_back(OrigHits[i]);
       break;
     case geo::kV:
-      hitsV.push_back(OrigHits[i]);
+      hitsUV[1].push_back(OrigHits[i]);
       break;
     case geo::kZ:
       hitsZ.push_back(OrigHits[i]);
@@ -82,8 +84,13 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	<<": hit view unkonw. \n";
     }
   }
-  std::map<unsigned int, unsigned int> fHasBeenDisambigedU;
-  std::map<unsigned int, unsigned int> fHasBeenDisambigedV;
+  std::vector<std::map<unsigned int, unsigned int> >fHasBeenDisambigedUV(2);
+
+//  for (int i = 0; i<8; ++i){
+//    std::cout<<detprop->GetXTicksOffset(0,i,0)<<" "
+//	     <<detprop->GetXTicksOffset(1,i,0)<<" "
+//	     <<detprop->GetXTicksOffset(2,i,0)<<std::endl;
+//  }
 
   //Look for triplets of U,V,Z hits that are common in time
   //Try all possible wire segments for U and V hits and 
@@ -96,152 +103,130 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
       - detprop->GetXTicksOffset(hitsZ[z]->WireID().Plane,
 				 hitsZ[z]->WireID().TPC,
 				 hitsZ[z]->WireID().Cryostat);
-    double mintvz = 1e10;
-    unsigned int tmatchv = 0;
-    for (size_t v = 0; v<hitsV.size(); ++v){
-      if (fHasBeenDisambigedV.find(v)!=fHasBeenDisambigedV.end()) continue;
-      unsigned int apav(0), cryov(0);
-      fAPAGeo.ChannelToAPA(hitsV[v]->Channel(), apav, cryov);
-      if (apav!=apaz) continue;
-      double tv = hitsV[v]->PeakTime()
-	- detprop->GetXTicksOffset(1,
-				   hitsZ[z]->WireID().TPC,
-				   hitsZ[z]->WireID().Cryostat);
-      if (std::abs(tv-tz)<mintvz){
-	mintvz = std::abs(tv-tz);
-	tmatchv = v;
-      }
-    }
-    if (mintvz>0.5) continue;
-    double mintuz = 1e10;
-    unsigned int tmatchu = 0;
-    for (size_t u = 0; u<hitsU.size(); ++u){
-      if (fHasBeenDisambigedU.find(u)!=fHasBeenDisambigedU.end()) continue;
+    //if (hitsZ[z]->WireID().TPC!=0) continue;
+    //if (geo->ChannelToWire(hitsZ[z]->Channel())[0].Wire!=60) continue;
+    //if (z!=0) continue;
+    //loop over u hits
+    bool findmatch = false;
+    for (size_t u = 0; u<hitsUV[0].size() && !findmatch; ++u){
+      if (fHasBeenDisambigedUV[0].find(u)!=fHasBeenDisambigedUV[0].end()) continue;
       unsigned int apau(0), cryou(0);
-      fAPAGeo.ChannelToAPA(hitsU[u]->Channel(), apau, cryou);
+      fAPAGeo.ChannelToAPA(hitsUV[0][u]->Channel(), apau, cryou);
       if (apau!=apaz) continue;
-      double tu = hitsU[u]->PeakTime()
+      double tu = hitsUV[0][u]->PeakTime()
 	- detprop->GetXTicksOffset(0,
 				   hitsZ[z]->WireID().TPC,
 				   hitsZ[z]->WireID().Cryostat);
-      if (std::abs(tu-tz)<mintuz){
-	mintuz = std::abs(tu-tz);
-	tmatchu = u;
-      }
-    }
-    if (mintuz>0.5) continue;
-    //found out which 3 wire segments cross
-    geo::WireID zwire = geo->ChannelToWire(hitsZ[z]->Channel())[0];
-    std::vector<geo::WireID> uwires = geo->ChannelToWire(hitsU[tmatchu]->Channel());
-    std::vector<geo::WireID> vwires = geo->ChannelToWire(hitsV[tmatchv]->Channel());
-
-    unsigned int totalintersections = 0;
-    unsigned int bestu = 0;
-    unsigned int bestv = 0;
-    for (size_t uw = 0; uw<uwires.size(); ++uw){
-      for (size_t vw = 0; vw<vwires.size(); ++vw){
-	geo::WireIDIntersection widiuv;
-	geo::WireIDIntersection widiuz;
-	geo::WireIDIntersection widivz;
-	if (!geo->WireIDsIntersect(zwire,uwires[uw],widiuz)) continue;
-	if (!geo->WireIDsIntersect(zwire,vwires[vw],widivz)) continue;
-	if (!geo->WireIDsIntersect(uwires[uw],vwires[vw],widiuv)) continue;
-	double dis1 = sqrt(pow(widiuz.y-widivz.y,2)+pow(widiuz.z-widivz.z,2));
-	double dis2 = sqrt(pow(widiuz.y-widiuv.y,2)+pow(widiuz.z-widiuv.z,2));
-	double dis3 = sqrt(pow(widiuv.y-widivz.y,2)+pow(widiuv.z-widivz.z,2));
-	double maxdis = std::max(dis1,dis2);
-	maxdis = std::max(maxdis,dis3);
-	if (maxdis<1){
-	  ++totalintersections;
-	  bestu = uw;
-	  bestv = vw;
+      //std::cout<<"u "<<tz<<" "<<tu<<" "<<geo->ChannelToWire(hitsUV[0][u]->Channel())[0].Wire<<" "<<geo->ChannelToWire(hitsUV[0][u]->Channel())[0].TPC<<std::endl;
+      //std::cout<<z<<" "<<u<<" "<<std::abs(tu-tz)<<std::endl;
+      if (std::abs(tu-tz)<fTimeCut){
+	//if (hitsZ[z]->WireID().TPC == 0) std::cout<<z<<" "<<u<<" "<<std::abs(tu-tz)<<std::endl;
+	//find a matched u hit, loop over v hits
+	//std::cout<<hitsUV[1].size()<<std::endl;
+	for (size_t v = 0; v<hitsUV[1].size(); ++v){
+	  if (fHasBeenDisambigedUV[1].find(v)!=fHasBeenDisambigedUV[1].end()) continue;
+	  unsigned int apav(0), cryov(0);
+	  fAPAGeo.ChannelToAPA(hitsUV[1][v]->Channel(), apav, cryov);
+	  if (apav!=apaz) continue;
+	  double tv = hitsUV[1][v]->PeakTime()
+	    - detprop->GetXTicksOffset(1,
+				       hitsZ[z]->WireID().TPC,
+				       hitsZ[z]->WireID().Cryostat);
+	  //std::cout<<std::abs(tv-tz)<<std::endl;
+	  //std::cout<<z<<" "<<u<<" "<<v<<" "<<std::abs(tu-tz)<<" "<<std::abs(tv-tz)<<std::endl;
+	  //std::cout<<"v "<<tz<<" "<<tv<<" "<<geo->ChannelToWire(hitsUV[1][v]->Channel())[0].Wire<<" "<<geo->ChannelToWire(hitsUV[1][v]->Channel())[0].TPC<<std::endl;
+	  if (std::abs(tv-tz)<fTimeCut){
+	    //std::cout<<"triplets "<<z<<" "<<u<<" "<<v<<std::endl;
+	    //find a matched v hit, see if the 3 wire segments cross
+	    geo::WireID zwire = geo->ChannelToWire(hitsZ[z]->Channel())[0];
+	    std::vector<geo::WireID>  uwires = geo->ChannelToWire(hitsUV[0][u]->Channel());
+	    std::vector<geo::WireID>  vwires = geo->ChannelToWire(hitsUV[1][v]->Channel());
+	    
+	    unsigned int totalintersections = 0;
+	    unsigned int bestu = 0;
+	    unsigned int bestv = 0;
+	    for (size_t uw = 0; uw<uwires.size(); ++uw){
+	      for (size_t vw = 0; vw<vwires.size(); ++vw){
+		geo::WireIDIntersection widiuv;
+		geo::WireIDIntersection widiuz;
+		geo::WireIDIntersection widivz;
+		if (uwires[uw].TPC!=vwires[vw].TPC) continue;
+		if (uwires[uw].TPC!=zwire.TPC) continue;
+		if (vwires[vw].TPC!=zwire.TPC) continue;
+		//std::cout<<"! "<<uwires[uw].Wire<<" "<<vwires[vw].Wire<<" "<<zwire.Wire<<" "<<tu<<" "<<tv<<" "<<tz<<" "<<uwires[uw].TPC<<" "<<vwires[vw].TPC<<" "<<zwire.TPC<<std::endl;
+		if (!geo->WireIDsIntersect(zwire,uwires[uw],widiuz)) continue;
+		if (!geo->WireIDsIntersect(zwire,vwires[vw],widivz)) continue;
+		if (!geo->WireIDsIntersect(uwires[uw],vwires[vw],widiuv)) continue;
+		double dis1 = sqrt(pow(widiuz.y-widivz.y,2)+pow(widiuz.z-widivz.z,2));
+		double dis2 = sqrt(pow(widiuz.y-widiuv.y,2)+pow(widiuz.z-widiuv.z,2));
+		double dis3 = sqrt(pow(widiuv.y-widivz.y,2)+pow(widiuv.z-widivz.z,2));
+		double maxdis = std::max(dis1,dis2);
+		maxdis = std::max(maxdis,dis3);
+		//std::cout<<z<<" "<<uw<<" "<<vw<<" "<<dis1<<" "<<dis2<<" "<<dis3<<" "<<zwire.Wire<<" "<<uwires[uw].Wire<<" "<<vwires[vw].Wire<<std::endl;
+		if (maxdis<fDistanceCut){
+		  //std::cout<<"*** "<<totalintersections<<std::endl;
+		  ++totalintersections;
+		  bestu = uw;
+		  bestv = vw;
+		}
+	      }
+	    }
+	    if (totalintersections==1){
+	      fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsUV[0][u],uwires[bestu]));
+	      fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsUV[1][v],vwires[bestv]));
+	      fHasBeenDisambigedUV[0][u] = 1+bestu;
+	      fHasBeenDisambigedUV[1][v] = 1+bestv;
+	      findmatch = true;
+	      break;
+	    }
+	  }
 	}
       }
-    }
-    if (totalintersections==1){
-      fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsU[tmatchu],uwires[bestu]));
-      fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsV[tmatchv],vwires[bestv]));
-      fHasBeenDisambigedU[tmatchu] = 1+bestu;
-
-      fHasBeenDisambigedV[tmatchv] = 1+bestv;
-      //std::cout<<"*** "<<hitsU[tmatchu]->Wire()<<" "<<hitsV[tmatchv]<<" "<<fDisambigHits.size()<<std::endl;
     }
   }
   //Done finding trivial disambiguated hits
+
+  
   //loop over undisambiguated hits, find the nearest channel of disambiguated hits and determine the correct wire segment.
-  for (size_t u1 = 0; u1<hitsU.size(); ++u1){
-    if (fHasBeenDisambigedU.find(u1)!=fHasBeenDisambigedU.end()) continue;
-    unsigned int apau1(0), cryou1(0);
-    fAPAGeo.ChannelToAPA(hitsU[u1]->Channel(), apau1, cryou1);
-    unsigned int channdiff = 100000;
-    geo::WireID nearestwire;
-    for (auto& u2 : fHasBeenDisambigedU){
-      unsigned int apau2(0), cryou2(0);
-      fAPAGeo.ChannelToAPA(hitsU[u2.first]->Channel(), apau2, cryou2);
-      if (apau1!=apau2) continue;
-      if (std::max(hitsU[u2.first]->Channel(),hitsU[u1]->Channel())
-	  -std::min(hitsU[u2.first]->Channel(),hitsU[u1]->Channel())<channdiff){
-	channdiff = std::max(hitsU[u2.first]->Channel(),hitsU[u1]->Channel())
-	  -std::min(hitsU[u2.first]->Channel(),hitsU[u1]->Channel());
-	nearestwire = geo->ChannelToWire(hitsU[u2.first]->Channel())[u2.second-1];
-      }
-    }
-    if (nearestwire.isValid){
-      unsigned wirediff = 1000000;
-      unsigned bestwire = 0;
-      std::vector<geo::WireID> wires = geo->ChannelToWire(hitsU[u1]->Channel());	
-      for (size_t w = 0; w<wires.size(); ++w){
-	if (wires[w].TPC!=nearestwire.TPC) continue;
-	if (std::max(nearestwire.Wire,wires[w].Wire)-
-	    std::min(nearestwire.Wire,wires[w].Wire)<wirediff){
-	  wirediff = std::max(nearestwire.Wire,wires[w].Wire)-
-	    std::min(nearestwire.Wire,wires[w].Wire);
-	  bestwire = w;
+  for (size_t i = 0; i<2; ++i){//loop over U and V hits
+    for (size_t hit = 0; hit<hitsUV[i].size(); ++hit){
+      if (fHasBeenDisambigedUV[i].find(hit)!=fHasBeenDisambigedUV[i].end()) continue;
+      unsigned int apa1(0), cryo1(0);
+      fAPAGeo.ChannelToAPA(hitsUV[i][hit]->Channel(), apa1, cryo1);
+      unsigned int channdiff = 100000;
+      geo::WireID nearestwire;
+      for (auto& u2 : fHasBeenDisambigedUV[i]){
+	unsigned int apa2(0), cryo2(0);
+	fAPAGeo.ChannelToAPA(hitsUV[i][u2.first]->Channel(), apa2, cryo2);
+	if (apa1!=apa2) continue;
+	if (std::max(hitsUV[i][u2.first]->Channel(),hitsUV[i][hit]->Channel())
+	    -std::min(hitsUV[i][u2.first]->Channel(),hitsUV[i][hit]->Channel())<channdiff){
+	  channdiff = std::max(hitsUV[i][u2.first]->Channel(),hitsUV[i][hit]->Channel())
+	    -std::min(hitsUV[i][u2.first]->Channel(),hitsUV[i][hit]->Channel());
+	  nearestwire = geo->ChannelToWire(hitsUV[i][u2.first]->Channel())[u2.second-1];
 	}
       }
-      if (wirediff<1000000){
-	fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsU[u1],wires[bestwire]));
-	fHasBeenDisambigedU[u1] = 1+bestwire;
+      if (nearestwire.isValid){
+	unsigned wirediff = 1000000;
+	unsigned bestwire = 0;
+	std::vector<geo::WireID> wires = geo->ChannelToWire(hitsUV[i][hit]->Channel());	
+	for (size_t w = 0; w<wires.size(); ++w){
+	  if (wires[w].TPC!=nearestwire.TPC) continue;
+	  if (std::max(nearestwire.Wire,wires[w].Wire)-
+	      std::min(nearestwire.Wire,wires[w].Wire)<wirediff){
+	    wirediff = std::max(nearestwire.Wire,wires[w].Wire)-
+	      std::min(nearestwire.Wire,wires[w].Wire);
+	    bestwire = w;
+	  }
+	}
+	if (wirediff<1000000){
+	  fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsUV[i][hit],wires[bestwire]));
+	  fHasBeenDisambigedUV[i][hit] = 1+bestwire;
+	}
       }
     }
   }
-
-  for (size_t v1 = 0; v1<hitsV.size(); ++v1){
-    if (fHasBeenDisambigedV.find(v1)!=fHasBeenDisambigedV.end()) continue;
-    unsigned int apav1(0), cryov1(0);
-    fAPAGeo.ChannelToAPA(hitsV[v1]->Channel(), apav1, cryov1);
-    unsigned int channdiff = 100000;
-    geo::WireID nearestwire;
-    for (auto& v2 : fHasBeenDisambigedV){
-      unsigned int apav2(0), cryov2(0);
-      fAPAGeo.ChannelToAPA(hitsV[v2.first]->Channel(), apav2, cryov2);
-      if (apav1!=apav2) continue;
-      if (std::max(hitsV[v2.first]->Channel(),hitsV[v1]->Channel())
-	  -std::min(hitsV[v2.first]->Channel(),hitsV[v1]->Channel())<channdiff){
-	channdiff = std::max(hitsV[v2.first]->Channel(),hitsV[v1]->Channel())
-	  -std::min(hitsV[v2.first]->Channel(),hitsV[v1]->Channel());
-	nearestwire = geo->ChannelToWire(hitsV[v2.first]->Channel())[v2.second-1];
-      }
-    }
-    if (nearestwire.isValid){
-      unsigned wirediff = 1000000;
-      unsigned bestwire = 0;
-      std::vector<geo::WireID> wires = geo->ChannelToWire(hitsV[v1]->Channel());	
-      for (size_t w = 0; w<wires.size(); ++w){
-	if (wires[w].TPC!=nearestwire.TPC) continue;
-	if (std::max(nearestwire.Wire,wires[w].Wire)-
-	    std::min(nearestwire.Wire,wires[w].Wire)<wirediff){
-	  wirediff = std::max(nearestwire.Wire,wires[w].Wire)-
-	    std::min(nearestwire.Wire,wires[w].Wire);
-	}
-      }
-      if (wirediff<1000000){
-	fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsV[v1],wires[bestwire]));
-	fHasBeenDisambigedV[v1] = 1+bestwire;
-      }
-    }
-  }
-
+ 
 }
 
 } //end namespace apa

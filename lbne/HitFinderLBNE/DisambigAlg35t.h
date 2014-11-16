@@ -55,7 +55,8 @@ namespace lbne{
 
     // other classes we will use
     apa::APAGeometryAlg                           fAPAGeo;
-
+    double fTimeCut;
+    double fDistanceCut;
   }; // class DisambigAlg35t
 
 } // namespace lbne
