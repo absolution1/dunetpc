@@ -184,6 +184,38 @@ for($apa = 0; $apa < 4; ++$apa){
 }
 
 
+############################################################
+#################### AuxDet parameters #####################
+
+$AuxDetHeight = 30*$inch;
+$AuxDetLongSide = 13*$inch;
+$AuxDetShortSide = 10*$inch;
+$AuxDetThickness = 3;
+
+# AuxDet configuration:
+#
+#  /  \ _______ /  \ _______     } $AuxDetVertExt
+# /    \\     //    \\     /
+#/______\\   //______\\   /
+#         \_/          \_/
+
+$AuxDetAboveGround = 100;
+$AuxDetVertExt_inch = 3;
+$AuxDetVertExt = $AuxDetVertExt_inch*$inch;
+$AuxDetCentToCent = $AuxDetLongSide - (($AuxDetHeight - $AuxDetVertExt)/2)*($AuxDetLongSide-$AuxDetShortSide)/($AuxDetHeight);
+
+print "$AuxDetCentToCent = $AuxDetLongSide - (($AuxDetHeight - $AuxDetVertExt)/2)*($AuxDetLongSide-$AuxDetShortSide)/($AuxDetHeight)\n";
+
+$AuxDetTelescope_x = 7*$inch;
+$AuxDetTelescope_y = $AuxDetThickness;
+$AuxDetTelescope_z = $Argon_z;
+
+$AuxDetWall_x = $AuxDetThickness;
+$AuxDetWall_y = 20;
+$AuxDetWall_z = 20;
+
+
+
 
 ############################################################
 ############### Optical Detector parameters ################
@@ -304,12 +336,16 @@ $CryoWithPadding_y_noneck  =   $Argon_y + 2*$SteelShellThickness + 2*$FoamPaddin
 $CryoWithPadding_y_neck    =   ($Argon_y + $NeckInside_y) + 2*$SteelShellThickness + $TotalPadding;
 $CryoWithPadding_z         =    $Argon_z + 2*$SteelShellThickness + 2*$TotalPadding;
 
+print "CryoWithPadding: x=$CryoWithPadding_x, y=$CryoWithPadding_y_noneck ($CryoWithPadding_y_neck), z=$CryoWithPadding_z\n";
+print "Cryo: x=$Argon_x,  y=$Argon_y (+$NeckInside_y),  z=$Argon_z\n";
+
 
 # The actual enclosure
 $TrenchLength = 9*$CryoWithPadding_x; # make this a reasonable length, still guessing
      # quick measurments by Michelle Stancari, definitely good enough for now
 $TrenchWallThickness = 14*$inch;
 $WalkwayWidth = 34.5*$inch;
+$EastWallToTrench = 10*$inch;
 $PlateAToGroundLevel = 50*$inch;
 
 
@@ -333,12 +369,14 @@ $DetEnc_x	       =    $TrenchLength;
 $DetEnc_y	       =    $TrenchWallThickness  # use this for thickness of floor too
                            + $CryoWithPadding_y_noneck 
                            + $PlateAToGroundLevel; # Make ground level the top of the DetEnc
-$DetEnc_z              =    $CryoWithPadding_z + $WalkwayWidth + 2*$TrenchWallThickness;
+$DetEnc_z              =    $CryoWithPadding_z 
+                           + $WalkwayWidth + $EastWallToTrench
+                           + 2*$TrenchWallThickness;
 
 
 $posCryoInDetEnc_x     =  0;
 $posCryoInDetEnc_y     =  - $DetEnc_y/2 + $TrenchWallThickness + $TotalPadding + $SteelShellThickness + $Argon_y/2;
-$posCryoInDetEnc_z     =  - $DetEnc_z/2 + $TrenchWallThickness + $CryoWithPadding_z/2;
+$posCryoInDetEnc_z     =  - $DetEnc_z/2 + $TrenchWallThickness + $EastWallToTrench + $CryoWithPadding_z/2;
 
 
 
@@ -627,9 +665,13 @@ print DEF <<EOF;
    <position name="posTPCMidLongDrift"           unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[1][1]"  z="$APACenter[1][2]"/>
 
 
-   <position name="posCathodeLongDrift" unit="cm" x="$posCPAShortDrift_x" y="$posCPAShortDrift_y" z="$posCPAShortDrift_z"/>
+   <position name="posCathodeLongDrift"  unit="cm" x="$posCPAShortDrift_x" y="$posCPAShortDrift_y" z="$posCPAShortDrift_z"/>
    <position name="posCathodeShortDrift" unit="cm" x="$posCPALongDrift_x" y="$posCPALongDrift_y" z="$posCPALongDrift_z"/>
 
+   <rotation name="rAuxDetNSWallUp"    unit="deg" x="90"  y="0"  z="90"/>
+   <rotation name="rAuxDetNSWallDown"  unit="deg" x="270" y="0"  z="90"/>
+   <rotation name="rAuxDetEWWallUp"    unit="deg" x="90"  y="0"  z="0"/>
+   <rotation name="rAuxDetEWWallDown"  unit="deg" x="270" y="0"  z="0"/>
 
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
@@ -2856,6 +2898,16 @@ print ENCL <<EOF;
       y="$DetEnc_y"
       z="$DetEnc_z"/>
 
+    <box name="AuxDetWall" lunit="cm" 
+      x="$AuxDetWall_x"
+      y="$AuxDetWall_y"
+      z="$AuxDetWall_z"/>
+
+    <trd name="AuxDet" lunit="cm"
+      x1="$AuxDetLongSide" x2="$AuxDetShortSide"
+      y1="$AuxDetThickness" y2="$AuxDetThickness"
+      z="$AuxDetHeight/2"/>
+
     <box name="TrenchBottomConcrete" lunit="cm" 
       x="$DetEnc_x"
       y="$DetEnc_y"
@@ -2983,6 +3035,16 @@ EOF
 # Detector enclosure structure
     print ENCL <<EOF;
 <structure>
+
+    <volume name="volAuxDetWall" >
+      <materialref ref="Dirt"/>
+      <solidref ref="AuxDetWall"/>
+    </volume>
+
+    <volume name="volAuxDet" >
+      <materialref ref="Dirt"/>
+      <solidref ref="AuxDet"/>
+    </volume>
 
     <volume name="volBotSteelShell">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
@@ -3191,12 +3253,118 @@ EOF
       </physvol>
 -->
 
-
-
-    </volume>
+<!-- comment out AuxDets until AuxDetGeo is generalized
 EOF
 
+
+# place the 12 North Wall AuxDets
+for ($i=1; $i<=12; ++$i)
+{
+    if($i>6){ $FromCryoCorner_y = (26 +(52-26)/2  )*$inch + $AuxDetVertExt/2; }
+    else    { $FromCryoCorner_y = (102+(128-102)/2)*$inch + $AuxDetVertExt/2; }
+    $FromCryoCorner_z = (35+(48-35)/2)*$inch + (($i-1) % 6)*$AuxDetCentToCent;
+    if($i%2==1){ $rotation = "rAuxDetNSWallUp";  
+                 $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
+    else       { $rotation = "rAuxDetNSWallDown";
+                 $FromCryoCorner_y = $FromCryoCorner_y - $AuxDetVertExt/2 }
+    #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
+
 print ENCL <<EOF;
+      <physvol>
+        <volumeref ref="volAuxDet"/>
+        <position name="posAuxDet-North-$i" unit="cm" 
+	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 - $AuxDetThickness/2" 
+	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
+          z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 + $FromCryoCorner_z"/>
+        <rotationref ref="$rotation"/>
+      </physvol>
+EOF
+
+}
+
+# place the 12 South Wall AuxDets
+for ($i=1; $i<=12; ++$i)
+{
+    if($i>6){ $FromCryoCorner_y = (12.4+(37-12.4)/2  )*$inch + $AuxDetVertExt/2; }
+    else    { $FromCryoCorner_y = (107.13+(132.13-107.13)/2)*$inch + $AuxDetVertExt/2; }
+    $FromCryoCorner_z = (96.5-(109.6-96.5)/2)*$inch - (($i-1) % 6)*$AuxDetCentToCent;
+    if($i%2==1){ $rotation = "rAuxDetNSWallUp";  
+                 $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
+    else       { $rotation = "rAuxDetNSWallDown";
+                 $FromCryoCorner_y = $FromCryoCorner_y - $AuxDetVertExt/2 }
+    #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
+
+print ENCL <<EOF;
+      <physvol>
+        <volumeref ref="volAuxDet"/>
+        <position name="posAuxDet-South-$i" unit="cm" 
+	  x=" $posCryoInDetEnc_x + $CryoWithPadding_x/2 + $AuxDetThickness/2" 
+	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
+          z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 + $FromCryoCorner_z"/>
+        <rotationref ref="$rotation"/>
+      </physvol>
+EOF
+
+}
+
+
+# place the 10 East Wall AuxDets
+for ($i=1; $i<=10; ++$i)
+{
+
+    $FromCryoCorner_y = (148-(104.11+(129.9-104.11)/2))*$inch;
+    $FromCryoCorner_x = (136.7+(149.9-136.7)/2)*$inch - ($i-1)*$AuxDetCentToCent;
+    if($i%2==0){ $rotation = "rAuxDetEWWallUp";  
+                 $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
+    else       { $rotation = "rAuxDetEWWallDown";
+                 $FromCryoCorner_y = $FromCryoCorner_y - $AuxDetVertExt/2 }
+    #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
+
+print ENCL <<EOF;
+      <physvol>
+        <volumeref ref="volAuxDet"/>
+        <position name="posAuxDet-East-$i" unit="cm" 
+	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 + $FromCryoCorner_x" 
+	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
+          z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 - $AuxDetThickness/2"/>
+        <rotationref ref="$rotation"/>
+      </physvol>
+EOF
+
+}
+
+
+# place the 10 West Wall AuxDets
+for ($i=1; $i<=10; ++$i)
+{
+
+    $FromCryoCorner_y = (104.11+(129.9-104.11)/2)*$inch;
+    $FromCryoCorner_x = (26.3+(39.3-26.3)/2)*$inch + ($i-1)*$AuxDetCentToCent;
+    if($i%2==0){ $rotation = "rAuxDetEWWallUp";  
+                 $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
+    else       { $rotation = "rAuxDetEWWallDown";
+                 $FromCryoCorner_y = $FromCryoCorner_y - $AuxDetVertExt/2 }
+    #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
+
+print ENCL <<EOF;
+      <physvol>
+        <volumeref ref="volAuxDet"/>
+        <position name="posAuxDet-West-$i" unit="cm" 
+	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 + $FromCryoCorner_x" 
+	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
+          z=" $posCryoInDetEnc_z + $CryoWithPadding_z/2 + $AuxDetThickness/2"/>
+        <rotationref ref="$rotation"/>
+      </physvol>
+EOF
+
+}
+
+
+print ENCL <<EOF;
+
+-->
+
+    </volume>
 </structure>
 </gdml>
 EOF
@@ -3238,6 +3406,11 @@ print WORLD <<EOF;
       y="$World_y" 
       z="$World_z"/>
 
+    <box name="AuxDetTelescope" lunit="cm" 
+      x="$AuxDetTelescope_x"
+      y="$AuxDetTelescope_y"
+      z="$AuxDetTelescope_z"/>
+
     <box name="DirtBlock" lunit="cm" 
       x="$World_x" 
       y="$Dirt_y" 
@@ -3253,7 +3426,7 @@ print WORLD <<EOF;
 
     <tube name="Berm"
       rmax="$BermRadius"
-      z="$World_x"
+      z="$DetEnc_x"
       deltaphi="180"
       aunit="deg"
       lunit="cm"/>
@@ -3265,6 +3438,11 @@ EOF
 # World structure
 print WORLD <<EOF;
 <structure>
+
+    <volume name="volAuxDetTelescope" >
+      <materialref ref="Dirt"/>
+      <solidref ref="AuxDetTelescope"/>
+    </volume>
 
     <volume name="volDirtWithHole" >
       <materialref ref="Dirt"/>
@@ -3300,6 +3478,17 @@ print WORLD <<EOF;
           z="$OriginZSet + $DetEnc_z/2 + $BermRadius"/>
 	<rotation name="rBerm"   unit="deg" x="0" y="90"   z="0"/>
       </physvol>
+
+<!--
+      <physvol>
+        <volumeref ref="volAuxDetTelescope"/>
+        <position name="posAuxDetTelescope-01" unit="cm" 
+          x="$OriginXSet + $posCryoInDetEnc_x"
+          y="$OriginYSet + $DetEnc_y/2 + $AuxDetAboveGround" 
+          z="$OriginZSet + $posCryoInDetEnc_z"/>
+      </physvol>
+-->
+
     </volume>
 </structure>
 </gdml>

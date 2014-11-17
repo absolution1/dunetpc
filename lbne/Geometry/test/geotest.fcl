@@ -64,4 +64,4 @@ physics:
 }
 
 
- physics.analyzers.geotest.CheckForOverlaps: true
+physics.analyzers.geotest.CheckForOverlaps: false

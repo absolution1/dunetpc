@@ -39,6 +39,8 @@ lbne35t_geo(TString volName="")
  int showCathode = 1;
  int showGasAr = 1;
  int showCryoShell = 1;
+ int showTrenchAndDirt = 1;
+
 
  bool OnlyDrawAPAs = false;
 
@@ -142,18 +144,23 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
  gGeoManager->GetVolume("volNeckConcreteShell")->SetVisibility(showCryoShell);
  gGeoManager->GetVolume("volNeckConcreteShell")->SetTransparency(25);
 
+
  gGeoManager->GetVolume("volTrenchBottomConcreteShell")->SetLineColor(19); 
- gGeoManager->GetVolume("volTrenchBottomConcreteShell")->SetVisibility(1);
+ gGeoManager->GetVolume("volTrenchBottomConcreteShell")->SetVisibility(showTrenchAndDirt);
  gGeoManager->GetVolume("volTrenchBottomConcreteShell")->SetTransparency(30);
  gGeoManager->GetVolume("volTrenchTopConcrete")->SetLineColor(19); 
- gGeoManager->GetVolume("volTrenchTopConcrete")->SetVisibility(1);
+ gGeoManager->GetVolume("volTrenchTopConcrete")->SetVisibility(showTrenchAndDirt);
  gGeoManager->GetVolume("volTrenchTopConcrete")->SetTransparency(70);
  gGeoManager->GetVolume("volDirtWithHole")->SetLineColor(kOrange+9); 
- gGeoManager->GetVolume("volDirtWithHole")->SetVisibility(1);
+ gGeoManager->GetVolume("volDirtWithHole")->SetVisibility(showTrenchAndDirt);
  gGeoManager->GetVolume("volDirtWithHole")->SetTransparency(70);
  gGeoManager->GetVolume("volBerm")->SetLineColor(kOrange+9); 
- gGeoManager->GetVolume("volBerm")->SetVisibility(1);
+ gGeoManager->GetVolume("volBerm")->SetVisibility(showTrenchAndDirt);
  gGeoManager->GetVolume("volBerm")->SetTransparency(70);
+
+ gGeoManager->GetVolume("volAuxDet")->SetLineColor(kRed-3); 
+ gGeoManager->GetVolume("volAuxDet")->SetVisibility(1);
+ gGeoManager->GetVolume("volAuxDet")->SetTransparency(30);
 
 
 
@@ -165,8 +172,8 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
 
 
   //gGeoManager->GetTopVolume()->Draw("ogl");
-  //gGeoManager->FindVolumeFast("volDetEnclosure")->Draw("ogl");
-  gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
+  gGeoManager->FindVolumeFast("volDetEnclosure")->Draw("ogl");
+  //gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
   //gGeoManager->FindVolumeFast("volWorld")->Draw("");
   //gGeoManager->FindVolumeFast("volTPCLargestShortDrift")->Draw("ogl");
 
