@@ -2,7 +2,7 @@
 #include "caldata_lbne.fcl"
 #include "cluster_lbne.fcl"
 #include "trackfindermodules.fcl"
-
+#include "calorimetry_lbne35t.fcl"
 
 ## uncomment below for the anatree module
 ##include "srcs/lbnecode/lbne/AnaTree/anatreemodule.fcl"
@@ -45,6 +45,7 @@ physics:
   cluster:    @local::standard_fuzzycluster
   spacepts:   @local::standard_spacepts
   ct:         @local::standard_cosmictracker
+      stitch: @local::standard_trackstitcher
 
  }
 
@@ -58,7 +59,7 @@ physics:
  #filters reject all following items.  see lines starting physics.producers below
  reco:   [ caldata, gaushit, hitcheat ]
 
-#  reco: [caldata, hitcheat, cluster, spacepts, ct]
+#  reco: [caldata, hitcheat, cluster, spacepts, ct,stitch,calo]
  ana:  [  ]
 # ana:  [anatree]
 # ana2:  [trkana]
