@@ -83,3 +83,8 @@ outputs:
  }
 }
 
+#physics.producers.calo:         @local::lbne35t_calomc
+#physics.producers.calo.TrackModuleLabel:                "stitch"
+#physics.producers.calo.HitsModuleLabel:                "hitcheat"
+#physics.producers.calo.SpacePointModuleLabel:                "spacepts"
+#physics.producers.calo.MakeTree:                "true"
