@@ -1,0 +1,82 @@
+#include "services_lbne.fcl"
+#include "caldata_lbne.fcl"
+#include "hitfindermodules_lbne.fcl"
+#include "pandoramodules_lbne.fcl"
+
+process_name: Reco
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "ntuple.root" }
+  Timing:       {}
+  SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
+  user:         @local::lbne35t_services
+}
+
+
+### Define input file format
+source:
+{
+  module_type: RootInput
+}
+
+### Define output file format
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "standard_reco.root" #default file name, can override from command line with -o or --output
+ }
+}
+
+### Define the modules and create chains
+physics:
+{
+  producers:{
+    caldata:           @local::lbne35t_calwire	
+    hitcheat:          @local::lbne35t_hitcheater
+    pandora:           @local::lbne35t_pandora
+    particlestitcher:  @local::lbne35t_particlestitcher
+    particletracks:    {module_type: PFParticleTrackMaker}
+  }
+
+  filters:{
+
+  } 
+
+  analyzers:{
+    pandorana:         {module_type: PFParticleAnalysis}
+    pandoramonitoring: {module_type: PFParticleMonitoring}
+  }
+
+  ### Set up a chain of Producer modules
+  reco: [ caldata, hitcheat, pandora, particlestitcher, particletracks ]
+
+  ### Set up a chain of Analyzer modules
+  ana: [ pandorana, pandoramonitoring ]
+ 
+  ### Set up the output stream
+  stream1: [ out1 ]
+
+  ### Set up the trigger paths (these are the modules that modify the event) 
+  trigger_paths: [ reco ] 
+
+  ### Set up the end paths (these are the modules that do not modify the event)
+  end_paths: [ ana, stream1 ]
+}
+
+### Configure the Producer modules
+physics.producers.pandora.HitFinderModuleLabel: "hitcheat"
+physics.producers.particlestitcher.PFParticleModuleLabel: "pandora"
+physics.producers.particlestitcher.UseXCoordinate: false
+physics.producers.particletracks.PFParticleModuleLabel: "particlestitcher"
+physics.producers.particletracks.SpacePointModuleLabel: "pandora"
+
+### Configure the Analyzer modules
+physics.analyzers.pandoramonitoring.UseDaughterPFParticles:  true
+physics.analyzers.pandoramonitoring.HitFinderModule: "hitcheat"
+physics.analyzers.pandoramonitoring.SpacePointModule: "pandora"
+physics.analyzers.pandoramonitoring.PFParticleModule: "particlestitcher"
+physics.analyzers.pandorana.PFParticleModule: "particlestitcher"
