@@ -1109,15 +1109,18 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     // *********************
     // *********************
 
-       art::Handle< std::vector<recob::Track> > trackh;
+    art::Handle< std::vector<recob::Track> > trackh;
     evt.getByLabel(fTrackModuleLabel, trackh);
      
 
    art::Handle< std::vector< art::PtrVector < recob::Track > > > trackvh;
-    evt.getByLabel(fTrackModuleLabel,trackvh);
-    //    int ntv(trackvh->size());
-    std::vector < art::PtrVector<recob::Track> >::const_iterator cti = trackvh->begin();
-  
+   evt.getByLabel(fTrackModuleLabel, trackvh);
+
+   // Protect against invalid art::Handle (both here and when trackvh is used below)
+   // TODO: How to do this for art::PtrVector without the uninitialised iterator?
+   std::vector< art::PtrVector<recob::Track> >::const_iterator cti; 
+   if (trackvh.isValid()) cti = trackvh->begin();                   
+   
 
 
     // **********************
@@ -1174,7 +1177,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     TVector3 vOrth=(V2-V1).Orthogonal();
     TVector3 pointVector=V1;
 
-    //for(int k=0;k<ntv; k++)
+    if(trackvh.isValid())
       {
 	int k=i;
 	int ntrackhits=0;
@@ -1206,7 +1209,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	distance_squared=distance_squared/ntrkhits[k];
 	if(!isnan(distance_squared))
 	  trkd2[k]=distance_squared;
-      }    
+      }
     
 
       // *********************
