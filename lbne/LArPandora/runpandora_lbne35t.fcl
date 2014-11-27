@@ -2,8 +2,9 @@
 #include "caldata_lbne.fcl"
 #include "hitfindermodules_lbne.fcl"
 #include "pandoramodules_lbne.fcl"
+#include "anatreemodule.fcl"
 
-process_name: Reco
+process_name: LBNE35tPandora
 
 services:
 {
@@ -49,13 +50,14 @@ physics:
   analyzers:{
     pandorana:         {module_type: PFParticleAnalysis}
     pandoramonitoring: {module_type: PFParticleMonitoring}
+    analysistree:      @local::anatree_anatree
   }
 
   ### Set up a chain of Producer modules
   reco: [ caldata, hitcheat, pandora, particlestitcher, particletracks ]
 
   ### Set up a chain of Analyzer modules
-  ana: [ pandorana, pandoramonitoring ]
+  ana: [ pandorana, pandoramonitoring, analysistree  ]
  
   ### Set up the output stream
   stream1: [ out1 ]
@@ -74,9 +76,15 @@ physics.producers.particlestitcher.UseXCoordinate: false
 physics.producers.particletracks.PFParticleModuleLabel: "particlestitcher"
 physics.producers.particletracks.SpacePointModuleLabel: "pandora"
 
-### Configure the Analyzer modules
+### Configure the Pandora Analyzer modules
 physics.analyzers.pandoramonitoring.UseDaughterPFParticles:  true
 physics.analyzers.pandoramonitoring.HitFinderModule: "hitcheat"
 physics.analyzers.pandoramonitoring.SpacePointModule: "pandora"
 physics.analyzers.pandoramonitoring.PFParticleModule: "particlestitcher"
 physics.analyzers.pandorana.PFParticleModule: "particlestitcher"
+
+### Configure the Analysis Tree module
+physics.analyzers.analysistree.TrackModuleLabel: "particletracks"
+physics.analyzers.analysistree.ClusterModuleLabel: "particlestitcher"
+physics.analyzers.analysistree.HitsModuleLabel: "hitcheat"
+physics.analyzers.analysistree.SimulationLabel: "largeant"
