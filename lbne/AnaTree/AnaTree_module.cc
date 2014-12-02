@@ -1137,6 +1137,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     trackEnd.clear();
     memset(larStart, 0, 3);
     memset(larEnd, 0, 3);
+    //careful : start and end flipped for stitching purposes
     tracklist[i]->Extent(trackEnd,trackStart); 
     tracklist[i]->Direction(larEnd,larStart);
     trkstartx[i]        = trackStart[0];
