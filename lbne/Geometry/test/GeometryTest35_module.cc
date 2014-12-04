@@ -31,6 +31,7 @@
 #include "Geometry/PlaneGeo.h"
 #include "Geometry/WireGeo.h"
 #include "Geometry/OpDetGeo.h"
+#include "Geometry/AuxDetGeo.h"
 #include "Geometry/geo.h"
 #include "SimpleTypesAndConstants/geo_types.h"
 
@@ -48,7 +49,6 @@
 
 namespace geo { class Geometry; }
 
-///tracking algorithms
 namespace geo {
   class GeometryTest35 : public art::EDAnalyzer {
   public:
@@ -60,6 +60,7 @@ namespace geo {
 
   private:
 
+    void testAuxDet();
 
   };
 }
@@ -80,14 +81,13 @@ namespace geo{
   //......................................................................
   void GeometryTest35::beginJob()
   {
-    //art::ServiceHandle<geo::Geometry> geom;
 
     mf::LogVerbatim("GeometryTest35") << "\n35t specific testing...\n";
 
     try{
 
       LOG_DEBUG("GeometryTest35") << "test AuxDets...";
-      //this->testAuxDets();
+      this->testAuxDet();
       LOG_DEBUG("GeometryTest35") << "complete.";
 
     }
@@ -97,6 +97,88 @@ namespace geo{
     
     return;
   }
+
+
+
+  //......................................................................
+  void GeometryTest35::testAuxDet()
+  {
+    art::ServiceHandle<geo::Geometry> geom;
+    
+    double origin[3] = {0.};
+    double AuxDetWorld[3] = {0.};
+    mf::LogVerbatim("35tAuxDetTest") << "Number of Aux Dets: " << geom->NAuxDets();
+    for(unsigned int a = 0; a < geom->NAuxDets(); ++a) {
+      geom->AuxDet(a).LocalToWorld(origin, AuxDetWorld);
+
+      //mf::LogVerbatim("35tAuxDetTest") << " Center: (" << AuxDetWorld[0] << ", " 
+      //			       << AuxDetWorld[1] << ", " 
+      //			       << AuxDetWorld[2] << ")";
+      //mf::LogVerbatim("35tAuxDetTest") << " width  = " << 2*geom->AuxDet(a).HalfWidth();
+      //mf::LogVerbatim("35tAuxDetTest") << " height = " << 2*geom->AuxDet(a).HalfHeight();
+      //mf::LogVerbatim("35tAuxDetTest") << " length = " << geom->AuxDet(a).Length();
+
+
+      double testPos1[3]   = {AuxDetWorld[0], AuxDetWorld[1], AuxDetWorld[2]};
+      double testPos2a[3]  = {AuxDetWorld[0], AuxDetWorld[1], AuxDetWorld[2]};
+      double testPos2b[3]  = {AuxDetWorld[0], AuxDetWorld[1], AuxDetWorld[2]};
+      std::string CounterType = "";
+
+      if( strncmp( geom->AuxDet(a).TotalVolume()->GetName(), "volAuxDetTrap", 13 ) == 0 ){
+
+      //       Small Width
+      //          ____          Height is the thickness
+      //         /    \     T     of the trapezoid
+      //        /      \    |
+      //       /        \   | Length
+      //      /__________\  _ 
+      //         Width 
+
+	CounterType = "trapezoid";
+	testPos1[1]   += geom->AuxDet(a).Length()/2 - 0.1;
+        testPos2a[2]  += geom->AuxDet(a).HalfSmallWidth();
+	testPos2b[0]  += geom->AuxDet(a).HalfSmallWidth();
+
+	double TrapCheckPtA[3] = { AuxDetWorld[0]+geom->AuxDet(a).HalfWidth(), 
+				   AuxDetWorld[1]+geom->AuxDet(a).Length()/2-0.1, 
+				   AuxDetWorld[2]};
+	double TrapCheckPtB[3] = { AuxDetWorld[0], 
+				   AuxDetWorld[1]+geom->AuxDet(a).Length()/2-0.1, 
+				   AuxDetWorld[2]+geom->AuxDet(a).HalfWidth()};
+
+	// these points are close to the small end and should not be found
+	if(    (geom->FindAuxDetAtPosition(TrapCheckPtA) == a) 
+	    || (geom->FindAuxDetAtPosition(TrapCheckPtB) == a)  )
+	  throw cet::exception("UnexpectedFindAuxDetTrap") 
+	    << "\t ...Found unexpected test point outside of trapezoidal AuxDet "
+	    << a << "\n";	  
+	
+
+      } else {
+	CounterType = "box";
+        testPos2a[2] += geom->AuxDet(a).HalfSmallWidth();
+        testPos2b[0] += geom->AuxDet(a).HalfSmallWidth();
+      }
+
+      mf::LogVerbatim("35tAuxDetTest") << "AuxDet " << a << ": " << CounterType 
+				       << ", Center: (" << AuxDetWorld[0] << ", " 
+				       << AuxDetWorld[1] << ", " << AuxDetWorld[2] << ")" << std::endl;
+      
+
+      // if either test point 1 or test point 2 aren't found, something is wrong
+      //    one of 2a or 2b should work
+      if(  !(geom->FindAuxDetAtPosition(testPos1) == a) ||
+	   !(    (geom->FindAuxDetAtPosition(testPos2a) == a) 
+	      || (geom->FindAuxDetAtPosition(testPos2b) == a) )  )
+	throw cet::exception("UnexpectedFindAuxDet") 
+	  << "\t ...Did not find expected test points around AuxDet "
+	  << a << "\n";
+
+    }// AuxDet loop
+
+  }
+
+
 
 
 }//end namespace
