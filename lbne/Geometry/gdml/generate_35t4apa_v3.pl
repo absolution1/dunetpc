@@ -3363,21 +3363,21 @@ EOF
 
 
 # place the 12 North Wall AuxDets
-$NorthWallInt_z = ((95+108)/2 - (35+48)/2)*$inch/5;
+#$NorthWallInt_z = ((95+108)/2 - (35+48)/2)*$inch/5;
+$NorthWallInt_z = ( 274.32-(274.32-213.36)/4 - (88.9+121.92)/2 )/5;
 for ($i=1; $i<=12; ++$i)
 {
-    if($i>6){ $FromCryoCorner_y = (26)*$inch; }
-    else    { $FromCryoCorner_y = (102+(128-102)/2)*$inch; }
-    $FromCryoCorner_z = (35+48)/2*$inch + (($i-1) % 6)*$NorthWallInt_z;
+    #$FromCryoCorner_z = (35+48)/2*$inch + (($i-1) % 6)*$NorthWallInt_z;
+    $FromCryoCorner_z = (88.9+121.92)/2 + (($i-1) % 6)*$NorthWallInt_z;
     if($i%2==1){
 	$rotation = "rAuxDetNSWallUp";
-	if($i>6) { $FromCryoCorner_y = (102 + 0.12)*$inch + $AuxDetScintillatorHeight/2; }
-        else     { $FromCryoCorner_y = (26  + 0.12)*$inch + $AuxDetScintillatorHeight/2; }
+	if($i>6) { $FromCryoCorner_y = (259.08 + 0.12*$inch) + $AuxDetScintillatorHeight/2; }
+        else     { $FromCryoCorner_y = (66.04  + 0.12*$inch) + $AuxDetScintillatorHeight/2; }
     }
     else {
 	$rotation = "rAuxDetNSWallDown";
-	if($i>6) { $FromCryoCorner_y = (128 - 0.12)*$inch - $AuxDetScintillatorHeight/2; }
-	else     { $FromCryoCorner_y = (52  - 0.12)*$inch - $AuxDetScintillatorHeight/2; }
+	if($i>6) { $FromCryoCorner_y = (325.12 - 0.12*$inch) - $AuxDetScintillatorHeight/2; }
+	else     { $FromCryoCorner_y = (132.08 - 0.12*$inch) - $AuxDetScintillatorHeight/2; }
     }
 
 print ENCL <<EOF;
@@ -3385,8 +3385,8 @@ print ENCL <<EOF;
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-$i" unit="cm" 
 	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 - $AuxDetHousingThickness/2" 
-	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
-          z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 + $FromCryoCorner_z"/>
+	  y=" $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y"
+          z=" $posCryoInDetEnc_z - 411.99/2 + $FromCryoCorner_z"/>
         <rotationref ref="$rotation"/>
       </physvol>
 EOF
@@ -3394,25 +3394,30 @@ EOF
 }
 
 # place the 12 South Wall AuxDets
-$SouthWallInt_z = ((96.5+109.6)/2 - (36.8+49.5)/2)*$inch/5;
+#$SouthWallInt_z = ((96.5+109.6)/2 - (36.8+49.5)/2)*$inch/5;
+$SouthWallInt_z = ( (245.11+278.38)/2 - (93.47+(153.67-93.47)/4) )/5;
 for ($i=1; $i<=12; ++$i)
 {
-    if($i>6){ $FromCryoCorner_y = (12.4+(37-12.4)/2  )*$inch + $AuxDetVertExt/2; }
-    else    { $FromCryoCorner_y = (107.13+(132.13-107.13)/2)*$inch + $AuxDetVertExt/2; }
-    $FromCryoCorner_z = (96.5+109.6)/2*$inch - (($i-1) % 6)*$SouthWallInt_z;
-    if($i%2==1){ $rotation = "rAuxDetNSWallUp";  
-                 $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
-    else       { $rotation = "rAuxDetNSWallDown";
-                 $FromCryoCorner_y = $FromCryoCorner_y - $AuxDetVertExt/2 }
-    #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
+    #$FromCryoCorner_z = (96.5+109.6)/2*$inch - (($i-1) % 6)*$SouthWallInt_z;
+    $FromCryoCorner_z = (245.11+278.38)/2 - (($i-1) % 6)*$SouthWallInt_z;
+    if($i%2==1){
+	$rotation = "rAuxDetNSWallUp";
+	if($i>6) { $FromCryoCorner_y = (272.11 + 0.12*$inch) + $AuxDetScintillatorHeight/2; }
+        else     { $FromCryoCorner_y = (31.5   + 0.12*$inch) + $AuxDetScintillatorHeight/2; }
+    }
+    else {
+	$rotation = "rAuxDetNSWallDown";
+	if($i>6) { $FromCryoCorner_y = (335.61 - 0.12*$inch) - $AuxDetScintillatorHeight/2; }
+	else     { $FromCryoCorner_y = (93.98  - 0.12*$inch) - $AuxDetScintillatorHeight/2; }
+    }
 
 print ENCL <<EOF;
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-$i" unit="cm" 
 	  x=" $posCryoInDetEnc_x + $CryoWithPadding_x/2 + $AuxDetHousingThickness/2" 
-	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
-          z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 + $FromCryoCorner_z"/>
+	  y=" $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y"
+          z=" $posCryoInDetEnc_z - 411.99/2 + $FromCryoCorner_z"/>
         <rotationref ref="$rotation"/>
       </physvol>
 EOF
@@ -3420,24 +3425,22 @@ EOF
 }
 
 # place the 10 East Wall AuxDets
-$EastWallInt_x = ((136.7+149.9)/2 - (28.4+41.4)/2)*$inch/9;
+#$EastWallInt_x = ((136.7+149.9)/2 - (28.4+41.4)/2)*$inch/9;
+$EastWallInt_x = ( (347.48+380.75)/2 - (72.14+(133.1-72.14)/4) )/9;
 for ($i=1; $i<=10; ++$i)
 {
-
-    $FromCryoCorner_y = (148-(104.11+(129.9-104.11)/2))*$inch;
-    $FromCryoCorner_x = (136.7+149.9)/2*$inch - ($i-1)*$EastWallInt_x;
-    if($i%2==0){ $rotation = "rAuxDetEWWallUp";  
-                 $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
-    else       { $rotation = "rAuxDetEWWallDown";
-                 $FromCryoCorner_y = $FromCryoCorner_y - $AuxDetVertExt/2 }
-    #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
+    $FromCryoCorner_x = (347.48+380.75)/2 - ($i-1)*$EastWallInt_x;
+    if($i%2==1){ $rotation = "rAuxDetEWWallUp"; 
+		 $FromCryoCorner_y = ( 47    + 0.12*$inch) + $AuxDetScintillatorHeight/2; }
+    else       { $rotation = "rAuxDetEWWallDown"; 
+		 $FromCryoCorner_y = (112.45 - 0.12*$inch) - $AuxDetScintillatorHeight/2; }
 
 print ENCL <<EOF;
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-$i" unit="cm" 
-	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 + $FromCryoCorner_x" 
-	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
+	  x=" $posCryoInDetEnc_x - 541.53/2 + $FromCryoCorner_x" 
+	  y=" $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y"
           z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 - $AuxDetHousingThickness/2"/>
         <rotationref ref="$rotation"/>
       </physvol>
@@ -3447,24 +3450,23 @@ EOF
 
 
 # place the 10 West Wall AuxDets
-$WestWallInt_x = ((134+147)/2 - (26.3+39.3)/2)*$inch/9;
+#$WestWallInt_x = ((134+147)/2 - (26.3+39.3)/2)*$inch/9;
+$WestWallInt_x = ( (373.38-(373.38-312.42)/2) - (66.11+99.82)/2 )/9;
 for ($i=1; $i<=10; ++$i)
 {
-
-    $FromCryoCorner_y = (104.11+(129.9-104.11)/2)*$inch;
-    $FromCryoCorner_x = (26.3+39.3)/2*$inch + ($i-1)*$WestWallInt_x;
-    if($i%2==0){ $rotation = "rAuxDetEWWallUp";  
-                 $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
+    $FromCryoCorner_x = (66.11+99.82)/2 + ($i-1)*$WestWallInt_x;
+    if($i%2==1){ $rotation = "rAuxDetEWWallUp";  
+                 $FromCryoCorner_y = (264.44 + 0.12*$inch) + $AuxDetScintillatorHeight/2 }
     else       { $rotation = "rAuxDetEWWallDown";
-                 $FromCryoCorner_y = $FromCryoCorner_y - $AuxDetVertExt/2 }
+                 $FromCryoCorner_y = (329.95 - 0.12*$inch) - $AuxDetScintillatorHeight/2 }
     #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
 
 print ENCL <<EOF;
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-$i" unit="cm" 
-	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 + $FromCryoCorner_x" 
-	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
+	  x=" $posCryoInDetEnc_x - 541.53/2 + $FromCryoCorner_x" 
+	  y=" $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y"
           z=" $posCryoInDetEnc_z + $CryoWithPadding_z/2 + $AuxDetHousingThickness/2"/>
         <rotationref ref="$rotation"/>
       </physvol>

@@ -2656,353 +2656,353 @@
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-1" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 97.8408"
-          z=" -31.115 - 412.53996/2 + 105.41"/>
+	  y=" -30.72 - 375.92/2 + 97.8408"
+          z=" -31.115 - 411.99/2 + 105.41"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-2" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 100.2792"
-          z=" -31.115 - 412.53996/2 + 135.89"/>
+	  y=" -30.72 - 375.92/2 + 100.2792"
+          z=" -31.115 - 411.99/2 + 136.144"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-3" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 97.8408"
-          z=" -31.115 - 412.53996/2 + 166.37"/>
+	  y=" -30.72 - 375.92/2 + 97.8408"
+          z=" -31.115 - 411.99/2 + 166.878"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-4" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 100.2792"
-          z=" -31.115 - 412.53996/2 + 196.85"/>
+	  y=" -30.72 - 375.92/2 + 100.2792"
+          z=" -31.115 - 411.99/2 + 197.612"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-5" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 97.8408"
-          z=" -31.115 - 412.53996/2 + 227.33"/>
+	  y=" -30.72 - 375.92/2 + 97.8408"
+          z=" -31.115 - 411.99/2 + 228.346"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-6" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 100.2792"
-          z=" -31.115 - 412.53996/2 + 257.81"/>
+	  y=" -30.72 - 375.92/2 + 100.2792"
+          z=" -31.115 - 411.99/2 + 259.08"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-7" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 290.8808"
-          z=" -31.115 - 412.53996/2 + 105.41"/>
+	  y=" -30.72 - 375.92/2 + 290.8808"
+          z=" -31.115 - 411.99/2 + 105.41"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-8" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 293.3192"
-          z=" -31.115 - 412.53996/2 + 135.89"/>
+	  y=" -30.72 - 375.92/2 + 293.3192"
+          z=" -31.115 - 411.99/2 + 136.144"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-9" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 290.8808"
-          z=" -31.115 - 412.53996/2 + 166.37"/>
+	  y=" -30.72 - 375.92/2 + 290.8808"
+          z=" -31.115 - 411.99/2 + 166.878"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-10" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 293.3192"
-          z=" -31.115 - 412.53996/2 + 196.85"/>
+	  y=" -30.72 - 375.92/2 + 293.3192"
+          z=" -31.115 - 411.99/2 + 197.612"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-11" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 290.8808"
-          z=" -31.115 - 412.53996/2 + 227.33"/>
+	  y=" -30.72 - 375.92/2 + 290.8808"
+          z=" -31.115 - 411.99/2 + 228.346"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-12" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 382.50006/2 + 293.3192"
-          z=" -31.115 - 412.53996/2 + 257.81"/>
+	  y=" -30.72 - 375.92/2 + 293.3192"
+          z=" -31.115 - 411.99/2 + 259.08"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-1" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 303.8602"
-          z=" -31.115 - 412.53996/2 + 261.747"/>
+	  y=" -30.72 - 375.92/2 + 63.3008"
+          z=" -31.115 - 411.99/2 + 261.745"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-2" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 303.8602"
-          z=" -31.115 - 412.53996/2 + 231.3178"/>
+	  y=" -30.72 - 375.92/2 + 62.1792"
+          z=" -31.115 - 411.99/2 + 231.1"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-3" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 303.8602"
-          z=" -31.115 - 412.53996/2 + 200.8886"/>
+	  y=" -30.72 - 375.92/2 + 63.3008"
+          z=" -31.115 - 411.99/2 + 200.455"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-4" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 303.8602"
-          z=" -31.115 - 412.53996/2 + 170.4594"/>
+	  y=" -30.72 - 375.92/2 + 62.1792"
+          z=" -31.115 - 411.99/2 + 169.81"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-5" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 303.8602"
-          z=" -31.115 - 412.53996/2 + 140.0302"/>
+	  y=" -30.72 - 375.92/2 + 63.3008"
+          z=" -31.115 - 411.99/2 + 139.165"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-6" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 303.8602"
-          z=" -31.115 - 412.53996/2 + 109.601"/>
+	  y=" -30.72 - 375.92/2 + 62.1792"
+          z=" -31.115 - 411.99/2 + 108.52"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-7" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 62.738"
-          z=" -31.115 - 412.53996/2 + 261.747"/>
+	  y=" -30.72 - 375.92/2 + 303.9108"
+          z=" -31.115 - 411.99/2 + 261.745"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-8" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 62.738"
-          z=" -31.115 - 412.53996/2 + 231.3178"/>
+	  y=" -30.72 - 375.92/2 + 303.8092"
+          z=" -31.115 - 411.99/2 + 231.1"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-9" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 62.738"
-          z=" -31.115 - 412.53996/2 + 200.8886"/>
+	  y=" -30.72 - 375.92/2 + 303.9108"
+          z=" -31.115 - 411.99/2 + 200.455"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-10" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 62.738"
-          z=" -31.115 - 412.53996/2 + 170.4594"/>
+	  y=" -30.72 - 375.92/2 + 303.8092"
+          z=" -31.115 - 411.99/2 + 169.81"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-11" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 62.738"
-          z=" -31.115 - 412.53996/2 + 140.0302"/>
+	  y=" -30.72 - 375.92/2 + 303.9108"
+          z=" -31.115 - 411.99/2 + 139.165"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-12" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 382.50006/2 + 62.738"
-          z=" -31.115 - 412.53996/2 + 109.601"/>
+	  y=" -30.72 - 375.92/2 + 303.8092"
+          z=" -31.115 - 411.99/2 + 108.52"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-1" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 363.982" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 364.115" 
+	  y=" -30.72 - 375.92/2 + 78.8008"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-2" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 333.389111111111" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 333.366666666667" 
+	  y=" -30.72 - 375.92/2 + 80.6492"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-3" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 302.796222222222" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 302.618333333333" 
+	  y=" -30.72 - 375.92/2 + 78.8008"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-4" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 272.203333333333" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 271.87" 
+	  y=" -30.72 - 375.92/2 + 80.6492"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-5" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 241.610444444444" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 241.121666666667" 
+	  y=" -30.72 - 375.92/2 + 78.8008"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-6" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 211.017555555556" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 210.373333333333" 
+	  y=" -30.72 - 375.92/2 + 80.6492"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-7" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 180.424666666667" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 179.625" 
+	  y=" -30.72 - 375.92/2 + 78.8008"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-8" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 149.831777777778" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 148.876666666667" 
+	  y=" -30.72 - 375.92/2 + 80.6492"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-9" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 119.238888888889" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 118.128333333333" 
+	  y=" -30.72 - 375.92/2 + 78.8008"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-10" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 88.646" 
-	  y=" -30.72 - 382.50006/2 + 78.7273"
+	  x=" 0 - 541.53/2 + 87.38" 
+	  y=" -30.72 - 375.92/2 + 80.6492"
           z=" -31.115 - 412.53996/2 - 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-1" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 83.312" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+	  x=" 0 - 541.53/2 + 82.965" 
+	  y=" -30.72 - 375.92/2 + 296.2408"
           z=" -31.115 + 412.53996/2 + 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-2" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 113.707333333333" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+	  x=" 0 - 541.53/2 + 111.846666666667" 
+	  y=" -30.72 - 375.92/2 + 298.1492"
           z=" -31.115 + 412.53996/2 + 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-3" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 144.102666666667" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+	  x=" 0 - 541.53/2 + 140.728333333333" 
+	  y=" -30.72 - 375.92/2 + 296.2408"
           z=" -31.115 + 412.53996/2 + 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-4" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 174.498" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+	  x=" 0 - 541.53/2 + 169.61" 
+	  y=" -30.72 - 375.92/2 + 298.1492"
           z=" -31.115 + 412.53996/2 + 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-5" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 204.893333333333" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+	  x=" 0 - 541.53/2 + 198.491666666667" 
+	  y=" -30.72 - 375.92/2 + 296.2408"
           z=" -31.115 + 412.53996/2 + 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-6" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 235.288666666667" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+	  x=" 0 - 541.53/2 + 227.373333333333" 
+	  y=" -30.72 - 375.92/2 + 298.1492"
           z=" -31.115 + 412.53996/2 + 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-7" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 265.684" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+	  x=" 0 - 541.53/2 + 256.255" 
+	  y=" -30.72 - 375.92/2 + 296.2408"
           z=" -31.115 + 412.53996/2 + 3/2"/>
-        <rotationref ref="rAuxDetEWWallDown"/>
+        <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-8" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 296.079333333333" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
-          z=" -31.115 + 412.53996/2 + 3/2"/>
-        <rotationref ref="rAuxDetEWWallUp"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volAuxDetTrap"/>
-        <position name="posAuxDet-West-9" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 326.474666666667" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+	  x=" 0 - 541.53/2 + 285.136666666667" 
+	  y=" -30.72 - 375.92/2 + 298.1492"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetTrap"/>
-        <position name="posAuxDet-West-10" unit="cm" 
-	  x=" 0 - 549.6053528/2 + 356.87" 
-	  y=" -30.72 - 382.50006/2 + 297.1927"
+        <position name="posAuxDet-West-9" unit="cm" 
+	  x=" 0 - 541.53/2 + 314.018333333333" 
+	  y=" -30.72 - 375.92/2 + 296.2408"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volAuxDetTrap"/>
+        <position name="posAuxDet-West-10" unit="cm" 
+	  x=" 0 - 541.53/2 + 342.9" 
+	  y=" -30.72 - 375.92/2 + 298.1492"
+          z=" -31.115 + 412.53996/2 + 3/2"/>
+        <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
         <volumeref ref="volAuxDetBoxBSU"/>
