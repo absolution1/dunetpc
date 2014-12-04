@@ -1,0 +1,16 @@
+#include "cry.fcl"
+
+BEGIN_PROLOG
+
+lbne35t_cry:              @local::standard_cry
+lbne35t_cry.TimeOffset:   -1.6e-3               #pre-readout window (s)
+lbne35t_cry.SampleTime:   3.2e-3                #pre-readout + readout (s)
+lbne35t_cry.Latitude:     "latitude 44.35 "
+lbne35t_cry.SubBoxLength: "subboxLength 75 "
+
+lbnefd_cry:               @local::standard_cry
+lbnefd_cry.SampleTime:    1.47e-3               #the maximum time it would take an electron to drift through the volume is 2.4 ms
+lbne1fdcry.Latitude:      "latitude 44.35 "
+lbnefd_cry.SubBoxLength:  "subboxLength 75 "
+
+END_PROLOG

@@ -34,4 +34,5 @@ add_subdirectory(gdml)
 add_subdirectory(test)
 
 install_headers()
+install_fhicl()
 install_source()

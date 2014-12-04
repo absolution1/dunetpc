@@ -17,6 +17,9 @@ lbnefd_recodrawingopt:                        @local::standard_recodrawingopt
   lbnefd_recodrawingopt.ClusterModuleLabels:     ["fuzzy"]
   lbnefd_recodrawingopt.DrawClusters:            0
 lbnefd_simdrawingopt:                         @local::standard_simdrawingopt 
+lbnefd_simdrawingopt.ShowMCTruthText:         false
+lbnefd_simdrawingopt.ShowMCTruthVectors:      false
+lbnefd_simdrawingopt.ShowMCTruthTrajectories: false
 lbnefd_evdlayoutopt:   	                      @local::standard_evdlayoutopt  
 lbnefd_scanopt:                               @local::standard_scanopt       
 lbnefd_evd:                                   @local::standard_evd           
@@ -35,6 +38,9 @@ lbnefd_disp:
  EvdLayoutOptions:	   @local::lbnefd_evdlayoutopt
  EventDisplay:             @local::lbnefd_evd            
  ScanOptions:              @local::lbnefd_scanopt
+ LArG4Parameters:          @local::lbnefd_largeantparameters
+ LArVoxelCalculator:       @local::lbnefd_larvoxelcalculator
+# InfoTransfer: 		   @local::lbnefd_infotransfer
  TimeService:              @local::lbnefd_timeservice # defined in timeservice_lbne.fcl
 }
 

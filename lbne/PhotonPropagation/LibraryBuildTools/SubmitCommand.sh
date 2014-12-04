@@ -4,7 +4,7 @@ script=OpticalLibraryBuild_Grid_lbne.sh
 outdir=/lbne/data/users/ahimmel/OpticalLibv3
 
 clientargs="--resource-provides=usage_model=OPPORTUNISTIC --OS=SL5,SL6 --group=lbne "
-toolsargs="-q -g --opportunistic "
+toolsargs="-q -g --opportunistic --OS=SL6 "
 fileargs="-dROOT $outdir/root -dFCL $outdir/fcl -dLOG $outdir/log "
 
 
