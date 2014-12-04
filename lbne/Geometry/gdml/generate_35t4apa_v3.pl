@@ -187,33 +187,100 @@ for($apa = 0; $apa < 4; ++$apa){
 ############################################################
 #################### AuxDet parameters #####################
 
-$AuxDetHeight = 30*$inch;
-$AuxDetLongSide = 13*$inch;
-$AuxDetShortSide = 10*$inch;
-$AuxDetThickness = 3;
+$AuxDetHousingHeight = 27.72*$inch;
+$AuxDetHousingLongSide = 13.07*$inch;
+$AuxDetHousingShortSide = 10.64*$inch;
+$AuxDetHousingThickness = 3;
+$AuxDetScintillatorHeight = 24.80*$inch;
+$AuxDetScintillatorLongSide = 12.82*$inch;
+$AuxDetScintillatorShortSide = 10.65*$inch;
+$AuxDetScintillatorThickness = 0.95;
+
+# email from Michelle:
+# the housing (AL box) is 13.07/10.64 x 27.72 (inches)
+# the actual scintillator is 12.82/10.65 x 24.80 (inches)
+
 
 # AuxDet configuration:
 #
-#  /  \ _______ /  \ _______     } $AuxDetVertExt
-# /    \\     //    \\     /
-#/______\\   //______\\   /
+#  /  \ _______ /  \ _______   } This spacing is only in the housing,
+# /    \\     //    \\     /      so it is not implimented in AuDet
+#/______\\   //______\\   /       which only represents the scintillator
 #         \_/          \_/
 
-$AuxDetAboveGround = 100;
-$AuxDetVertExt_inch = 3;
-$AuxDetVertExt = $AuxDetVertExt_inch*$inch;
-$AuxDetCentToCent = $AuxDetLongSide - (($AuxDetHeight - $AuxDetVertExt)/2)*($AuxDetLongSide-$AuxDetShortSide)/($AuxDetHeight);
 
-print "$AuxDetCentToCent = $AuxDetLongSide - (($AuxDetHeight - $AuxDetVertExt)/2)*($AuxDetLongSide-$AuxDetShortSide)/($AuxDetHeight)\n";
+# email from Michelle:
+# Assume that the telescope scintillator is a rectangle, 64 3/4" x 6 5/8" x 3/4".
 
-$AuxDetTelescope_x = 7*$inch;
-$AuxDetTelescope_y = $AuxDetThickness;
-$AuxDetTelescope_z = $Argon_z;
+$AuxDetBSUScintWidth = (6+5/8)*$inch;
+$AuxDetBSUScintHeight = 0.75*$inch;
+$AuxDetBSUScintLength = 64.75*$inch;
 
-$AuxDetWall_x = $AuxDetThickness;
-$AuxDetWall_y = 20;
-$AuxDetWall_z = 20;
 
+# these positions pulled from a coordinate system with positive x and z are reversed
+# positions are from a particular corner of the scintillators
+############################
+############################
+@BSULayer1_xpos = (  16.21,  9.46,   2.71,  -4.04,
+		    -17.33, -24.08, -30.83, -37.58,
+		    -44.33, -51.08, -57.83, -64.58, -71.33 );
+for($i = 0; $i < 13; ++$i){ 
+    $BSULayer1_xpos[$i] *= -$inch; # negative reverses coordinate system back
+    $BSULayer1_xpos[$i] -= $AuxDetBSUScintWidth/2; # move to center of volume
+}
+$BSULayer1_ypos = 75.14*$inch;
+$BSULayer1_zpos = -1.21*$inch;
+$BSULayer1_zpos = -1*$BSULayer1_zpos + $AuxDetBSUScintLength/2; # correct coordinates and move to center of scint
+############################
+############################
+$BSULayer2_xpos = -67.24*$inch;
+$BSULayer2_xpos = -1*$BSULayer2_xpos - $AuxDetBSUScintLength/2;
+$BSULayer2_ypos = 89.49*$inch;
+@BSULayer2_zpos = ( -0.56,  -7.31,  -18.84, -25.59,
+		    -32.34, -39.09, -45.84, -52.59, -59.34 );
+for($i = 0; $i < 9; ++$i){ 
+    $BSULayer2_zpos[$i] *= -$inch; 
+    $BSULayer2_zpos[$i] -= $AuxDetBSUScintWidth/2; 
+}
+############################
+############################
+@BSULayer3_xpos = (  16.21,  9.46,   2.71,  -4.04,
+		    -10.79, -17.54, -24.29, -31.04,
+		    -37.79, -44.54, -51.29, -58.04, 
+		    -64.79, -71.54, -78.29, -85.04  );
+for($i = 0; $i < 16; ++$i){ 
+    $BSULayer3_xpos[$i] *= -$inch; 
+    $BSULayer3_xpos[$i] -= $AuxDetBSUScintWidth/2; 
+}
+$BSULayer3_ypos = 306.55*$inch;
+$BSULayer3_zpos = -1.21*$inch;
+$BSULayer3_zpos = -1*$BSULayer3_zpos + $AuxDetBSUScintLength/2;
+############################
+############################
+$BSULayer4_xpos = -67.24*$inch;
+$BSULayer4_xpos = -1*$BSULayer4_xpos - $AuxDetBSUScintLength/2;
+$BSULayer4_ypos = 310.80*$inch;
+@BSULayer4_zpos = (  1.42,  -5.34,  -12.09, -18.84,
+		    -25.59, -32.34, -39.09, -45.84,
+		    -52.59, -59.34 );
+for($i = 0; $i < 10; ++$i){ 
+    $BSULayer4_zpos[$i] *= -$inch; 
+    $BSULayer4_zpos[$i] -= $AuxDetBSUScintWidth/2; 
+}
+############################
+## Layer 5 is not included in the final gdml
+############################
+@BSULayer5_xpos = (  16.21,  9.46,   2.71,  -4.04,
+		    -10.79, -17.54, -24.29, -31.04,
+		    -37.79, -44.54, -51.29, -58.04,
+		    -64.79, -71.54, -78.29, -85.04 );
+for($i = 0; $i < 16; ++$i){ 
+    $BSULayer5_xpos[$i] *= -$inch; 
+    $BSULayer5_xpos[$i] -= $AuxDetBSUScintWidth/2; 
+}
+$BSULayer5_ypos = 314.55*$inch;
+$BSULayer5_zpos = -1.21*$inch;
+$BSULayer5_zpos = -1*$BSULayer5_zpos + $AuxDetBSUScintLength/2;
 
 
 
@@ -380,6 +447,7 @@ $posCryoInDetEnc_z     =  - $DetEnc_z/2 + $TrenchWallThickness + $EastWallToTren
 
 
 
+
 $PosDirCubeSide = 0;
 if (defined $helpcube)
 {
@@ -466,12 +534,12 @@ $posTPCLongDrift_x   =    $APACenter[0][0]
   # This is to be added to the z position of every volume in volWorld
 
 $OriginZSet =       
-    + $DetEnc_z/2
-    - $TrenchWallThickness
-    - $WalkwayWidth
-    - $TotalPadding 
-    - $SteelShellThickness
-    - $Argon_z/2    # at this point, we are at the center of the cryostat...
+    - $DetEnc_z/2
+    + $TrenchWallThickness
+    + $WalkwayWidth
+    + $TotalPadding 
+    + $SteelShellThickness
+    + $Argon_z/2    # at this point, we are at the center of the cryostat...
     - $APACenter[0][2] # ... and now at the center of the East-most APA
     + $Uactive_z/2;
 
@@ -513,6 +581,33 @@ $OriginXSet  =
     - 3*$APAWirePlaneSpacing
     - $TPCWirePlaneThickness;
 
+
+
+##
+## Correct Telescope Aux Det vertical position if necessary
+##
+if(   $posCryoInDetEnc_y 
+    + $Argon_y/2 
+    + $SteelShellThickness 
+    + $FoamPadding 
+    + $AuxDetBSUScintHeight/2   >   $BSULayer1_ypos - $OriginYSet ){
+
+    $nudge_y = (  $posCryoInDetEnc_y 
+		+ $Argon_y/2  
+		+ $SteelShellThickness 
+		+ $FoamPadding 
+		+ $AuxDetBSUScintHeight/2 
+		+ $OriginYSet              ) - $BSULayer1_ypos;
+
+    print "--- NOTE: nudging telescope counters $nudge_y cm up to sit on top of GDML cryostat\n";
+
+    $BSULayer1_ypos += $nudge_y;
+    $BSULayer2_ypos += $nudge_y;
+    $BSULayer3_ypos += $nudge_y;
+    $BSULayer4_ypos += $nudge_y;
+    $BSULayer5_ypos += $nudge_y;
+
+}
 
 
 
@@ -820,6 +915,12 @@ sub gen_Materials()
    <composite n="3" ref="oxygen"/>
   </material>
 
+  <material name="Polystyrene" formula="C8H8">
+   <D value="1.05" unit="g/cm3"/>
+   <composite n="8" ref="carbon"/>
+   <composite n="8" ref="hydrogen"/>
+  </material>
+
   <material name="Fe2O3" formula="Fe2O3">
    <D value="5.24" unit="g/cm3"/>
    <composite n="2" ref="iron"/>
@@ -1047,6 +1148,10 @@ sub gen_TPC()
     my $TPCActive_x   =  $_[0]-(3*$APAWirePlaneSpacing);
     my $TPCActive_y   =  $Uactive_y[$apa] + $G10thickness;
     my $TPCActive_z   =  $TPC_z; 
+
+
+    print "  APA $apa TPCActive xyz = ($TPCActive_x, $TPCActive_y, $TPCActive_z)\n";
+
 
     my $UAngle = $UAng[$apa];
     my $VAngle = $VAng[$apa];
@@ -2813,6 +2918,11 @@ print CRYO <<EOF;
         <rotationref ref="rIdentity"/>
       </physvol>
 
+<!--
+  Curious... The CPATube_OD used here should be CPATube_OD/2,
+  but that causes a baffling overlap. look into later! 
+-->
+
       <physvol>
         <volumeref ref="volCPATubeYSide"/>
         <position name="posCPATubeYSideUp\-$cpa" unit="cm" 
@@ -2898,15 +3008,10 @@ print ENCL <<EOF;
       y="$DetEnc_y"
       z="$DetEnc_z"/>
 
-    <box name="AuxDetWall" lunit="cm" 
-      x="$AuxDetWall_x"
-      y="$AuxDetWall_y"
-      z="$AuxDetWall_z"/>
-
-    <trd name="AuxDet" lunit="cm"
-      x1="$AuxDetLongSide" x2="$AuxDetShortSide"
-      y1="$AuxDetThickness" y2="$AuxDetThickness"
-      z="$AuxDetHeight/2"/>
+    <trd name="AuxDetTrap" lunit="cm"
+      x1="$AuxDetScintillatorLongSide" x2="$AuxDetScintillatorShortSide"
+      y1="$AuxDetScintillatorThickness" y2="$AuxDetScintillatorThickness"
+      z="$AuxDetScintillatorHeight"/>
 
     <box name="TrenchBottomConcrete" lunit="cm" 
       x="$DetEnc_x"
@@ -3036,14 +3141,14 @@ EOF
     print ENCL <<EOF;
 <structure>
 
-    <volume name="volAuxDetWall" >
-      <materialref ref="Dirt"/>
-      <solidref ref="AuxDetWall"/>
+    <volume name="volAuxDetBoxBSU" >
+      <materialref ref="Polystyrene"/>
+      <solidref ref="AuxDetBoxBSU"/>
     </volume>
 
-    <volume name="volAuxDet" >
-      <materialref ref="Dirt"/>
-      <solidref ref="AuxDet"/>
+    <volume name="volAuxDetTrap" >
+      <materialref ref="Polystyrene"/>
+      <solidref ref="AuxDetTrap"/>
     </volume>
 
     <volume name="volBotSteelShell">
@@ -3253,27 +3358,33 @@ EOF
       </physvol>
 -->
 
-<!-- comment out AuxDets until AuxDetGeo is generalized
+
 EOF
 
 
 # place the 12 North Wall AuxDets
+$NorthWallInt_z = ((95+108)/2 - (35+48)/2)*$inch/5;
 for ($i=1; $i<=12; ++$i)
 {
-    if($i>6){ $FromCryoCorner_y = (26 +(52-26)/2  )*$inch + $AuxDetVertExt/2; }
-    else    { $FromCryoCorner_y = (102+(128-102)/2)*$inch + $AuxDetVertExt/2; }
-    $FromCryoCorner_z = (35+(48-35)/2)*$inch + (($i-1) % 6)*$AuxDetCentToCent;
-    if($i%2==1){ $rotation = "rAuxDetNSWallUp";  
-                 $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
-    else       { $rotation = "rAuxDetNSWallDown";
-                 $FromCryoCorner_y = $FromCryoCorner_y - $AuxDetVertExt/2 }
-    #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
+    if($i>6){ $FromCryoCorner_y = (26)*$inch; }
+    else    { $FromCryoCorner_y = (102+(128-102)/2)*$inch; }
+    $FromCryoCorner_z = (35+48)/2*$inch + (($i-1) % 6)*$NorthWallInt_z;
+    if($i%2==1){
+	$rotation = "rAuxDetNSWallUp";
+	if($i>6) { $FromCryoCorner_y = (102 + 0.12)*$inch + $AuxDetScintillatorHeight/2; }
+        else     { $FromCryoCorner_y = (26  + 0.12)*$inch + $AuxDetScintillatorHeight/2; }
+    }
+    else {
+	$rotation = "rAuxDetNSWallDown";
+	if($i>6) { $FromCryoCorner_y = (128 - 0.12)*$inch - $AuxDetScintillatorHeight/2; }
+	else     { $FromCryoCorner_y = (52  - 0.12)*$inch - $AuxDetScintillatorHeight/2; }
+    }
 
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDet"/>
+        <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-North-$i" unit="cm" 
-	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 - $AuxDetThickness/2" 
+	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 - $AuxDetHousingThickness/2" 
 	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
           z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 + $FromCryoCorner_z"/>
         <rotationref ref="$rotation"/>
@@ -3283,11 +3394,12 @@ EOF
 }
 
 # place the 12 South Wall AuxDets
+$SouthWallInt_z = ((96.5+109.6)/2 - (36.8+49.5)/2)*$inch/5;
 for ($i=1; $i<=12; ++$i)
 {
     if($i>6){ $FromCryoCorner_y = (12.4+(37-12.4)/2  )*$inch + $AuxDetVertExt/2; }
     else    { $FromCryoCorner_y = (107.13+(132.13-107.13)/2)*$inch + $AuxDetVertExt/2; }
-    $FromCryoCorner_z = (96.5-(109.6-96.5)/2)*$inch - (($i-1) % 6)*$AuxDetCentToCent;
+    $FromCryoCorner_z = (96.5+109.6)/2*$inch - (($i-1) % 6)*$SouthWallInt_z;
     if($i%2==1){ $rotation = "rAuxDetNSWallUp";  
                  $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
     else       { $rotation = "rAuxDetNSWallDown";
@@ -3296,9 +3408,9 @@ for ($i=1; $i<=12; ++$i)
 
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDet"/>
+        <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-South-$i" unit="cm" 
-	  x=" $posCryoInDetEnc_x + $CryoWithPadding_x/2 + $AuxDetThickness/2" 
+	  x=" $posCryoInDetEnc_x + $CryoWithPadding_x/2 + $AuxDetHousingThickness/2" 
 	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
           z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 + $FromCryoCorner_z"/>
         <rotationref ref="$rotation"/>
@@ -3307,13 +3419,13 @@ EOF
 
 }
 
-
 # place the 10 East Wall AuxDets
+$EastWallInt_x = ((136.7+149.9)/2 - (28.4+41.4)/2)*$inch/9;
 for ($i=1; $i<=10; ++$i)
 {
 
     $FromCryoCorner_y = (148-(104.11+(129.9-104.11)/2))*$inch;
-    $FromCryoCorner_x = (136.7+(149.9-136.7)/2)*$inch - ($i-1)*$AuxDetCentToCent;
+    $FromCryoCorner_x = (136.7+149.9)/2*$inch - ($i-1)*$EastWallInt_x;
     if($i%2==0){ $rotation = "rAuxDetEWWallUp";  
                  $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
     else       { $rotation = "rAuxDetEWWallDown";
@@ -3322,11 +3434,11 @@ for ($i=1; $i<=10; ++$i)
 
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDet"/>
+        <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-East-$i" unit="cm" 
 	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 + $FromCryoCorner_x" 
 	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
-          z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 - $AuxDetThickness/2"/>
+          z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 - $AuxDetHousingThickness/2"/>
         <rotationref ref="$rotation"/>
       </physvol>
 EOF
@@ -3335,11 +3447,12 @@ EOF
 
 
 # place the 10 West Wall AuxDets
+$WestWallInt_x = ((134+147)/2 - (26.3+39.3)/2)*$inch/9;
 for ($i=1; $i<=10; ++$i)
 {
 
     $FromCryoCorner_y = (104.11+(129.9-104.11)/2)*$inch;
-    $FromCryoCorner_x = (26.3+(39.3-26.3)/2)*$inch + ($i-1)*$AuxDetCentToCent;
+    $FromCryoCorner_x = (26.3+39.3)/2*$inch + ($i-1)*$WestWallInt_x;
     if($i%2==0){ $rotation = "rAuxDetEWWallUp";  
                  $FromCryoCorner_y = $FromCryoCorner_y + $AuxDetVertExt/2 }
     else       { $rotation = "rAuxDetEWWallDown";
@@ -3348,22 +3461,49 @@ for ($i=1; $i<=10; ++$i)
 
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDet"/>
+        <volumeref ref="volAuxDetTrap"/>
         <position name="posAuxDet-West-$i" unit="cm" 
 	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 + $FromCryoCorner_x" 
 	  y=" $posCryoInDetEnc_y - $CryoWithPadding_y_noneck/2 + $FromCryoCorner_y"
-          z=" $posCryoInDetEnc_z + $CryoWithPadding_z/2 + $AuxDetThickness/2"/>
+          z=" $posCryoInDetEnc_z + $CryoWithPadding_z/2 + $AuxDetHousingThickness/2"/>
         <rotationref ref="$rotation"/>
       </physvol>
 EOF
 
 }
 
+# place the 13 Layer 1 telescope counters
+for ($i=1; $i<=13; ++$i)
+{
+print ENCL <<EOF;
+      <physvol>
+        <volumeref ref="volAuxDetBoxBSU"/>
+        <position name="posAuxDet-BSU-L1-$i" unit="cm" 
+	  x="$BSULayer1_xpos[$i-1] - $OriginXSet" 
+	  y="$BSULayer1_ypos - $OriginYSet"
+          z="$BSULayer1_zpos - $OriginZSet"/>
+      </physvol>
+EOF
+}
+
+# place the 9 Layer 2 telescope counters
+for ($i=1; $i<=9; ++$i)
+{
+print ENCL <<EOF;
+      <physvol>
+        <volumeref ref="volAuxDetBoxBSU"/>
+        <position name="posAuxDet-BSU-L2-$i" unit="cm" 
+	  x="$BSULayer2_xpos - $OriginXSet" 
+	  y="$BSULayer2_ypos - $OriginYSet"
+          z="$BSULayer2_zpos[$i-1] - $OriginZSet"/>
+	<rotation name="rAuxDetBSU-L4-$i"   unit="deg" x="0" y="90"   z="0"/>
+      </physvol>
+EOF
+}
+
+
 
 print ENCL <<EOF;
-
--->
-
     </volume>
 </structure>
 </gdml>
@@ -3406,10 +3546,10 @@ print WORLD <<EOF;
       y="$World_y" 
       z="$World_z"/>
 
-    <box name="AuxDetTelescope" lunit="cm" 
-      x="$AuxDetTelescope_x"
-      y="$AuxDetTelescope_y"
-      z="$AuxDetTelescope_z"/>
+    <box name="AuxDetBoxBSU" lunit="cm" 
+      x="$AuxDetBSUScintWidth"
+      y="$AuxDetBSUScintHeight"
+      z="$AuxDetBSUScintLength"/>
 
     <box name="DirtBlock" lunit="cm" 
       x="$World_x" 
@@ -3438,11 +3578,6 @@ EOF
 # World structure
 print WORLD <<EOF;
 <structure>
-
-    <volume name="volAuxDetTelescope" >
-      <materialref ref="Dirt"/>
-      <solidref ref="AuxDetTelescope"/>
-    </volume>
 
     <volume name="volDirtWithHole" >
       <materialref ref="Dirt"/>
@@ -3479,15 +3614,55 @@ print WORLD <<EOF;
 	<rotation name="rBerm"   unit="deg" x="0" y="90"   z="0"/>
       </physvol>
 
-<!--
+EOF
+
+
+# place the 16 Layer 3 telescope counters
+for ($i=1; $i<=16; ++$i)
+{
+print WORLD <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetTelescope"/>
-        <position name="posAuxDetTelescope-01" unit="cm" 
-          x="$OriginXSet + $posCryoInDetEnc_x"
-          y="$OriginYSet + $DetEnc_y/2 + $AuxDetAboveGround" 
-          z="$OriginZSet + $posCryoInDetEnc_z"/>
+        <volumeref ref="volAuxDetBoxBSU"/>
+        <position name="posAuxDet-BSU-L3-$i" unit="cm" 
+	  x="$BSULayer3_xpos[$i-1]" 
+	  y="$BSULayer3_ypos"
+          z="$BSULayer3_zpos"/>
       </physvol>
--->
+EOF
+}
+
+# place the 10 Layer 4 telescope counters
+for ($i=1; $i<=10; ++$i)
+{
+print WORLD <<EOF;
+      <physvol>
+        <volumeref ref="volAuxDetBoxBSU"/>
+        <position name="posAuxDet-BSU-L4-$i" unit="cm" 
+	  x="$BSULayer4_xpos" 
+	  y="$BSULayer4_ypos"
+          z="$BSULayer4_zpos[$i-1]"/>
+	<rotation name="rAuxDetBSU-L4-$i"   unit="deg" x="0" y="90"   z="0"/>
+      </physvol>
+EOF
+}
+
+# place the 16 Layer 5 telescope counters
+#for ($i=1; $i<=16; ++$i)
+#{
+#print WORLD <<EOF;
+#<!--
+#      <physvol>
+#        <volumeref ref="volAuxDetBoxBSU"/>
+#        <position name="posAuxDet-BSU-L5-$i" unit="cm" 
+#	  x="$BSULayer5_xpos[$i-1]" 
+#	  y="$BSULayer5_ypos"
+#          z="$BSULayer5_zpos"/>
+#      </physvol>
+#-->
+#EOF
+#}
+
+print WORLD <<EOF;
 
     </volume>
 </structure>

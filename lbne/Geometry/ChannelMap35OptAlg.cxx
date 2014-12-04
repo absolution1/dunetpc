@@ -47,7 +47,7 @@ namespace geo{
       cgeo[c]->SortSubVolumes(fSorter);
 
 
-    mf::LogInfo("ChannelMap35OptAlg") << "Initializing Optimized Channel Map...";
+    mf::LogInfo("ChannelMap35OptAlg") << "Initializing the 35t optimized Alg...";
       
     fNTPC.resize(fNcryostat);
     fWiresPerPlane.resize(fNcryostat);
@@ -104,7 +104,7 @@ namespace geo{
 	    cgeo[c]->TPC(t).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
     	    if(xyz[2]==xyz_next[2]){
-	      nAnchoredWires[c][a][p] = w;      
+	      nAnchoredWires[c][a][p] = w; // w-1(for last)+1(for index) = w      
 	      break;
 	    }
 
@@ -134,36 +134,35 @@ namespace geo{
     // Save the number of channels
     fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerAPA-1];
 
-    //resize vectors
-    fFirstWireCenterY.resize(fNcryostat);
-    fFirstWireCenterZ.resize(fNcryostat);
-    for (unsigned int cs=0; cs<fNcryostat; cs++){
-      fFirstWireCenterY[cs].resize(fNTPC[cs]);
-      fFirstWireCenterZ[cs].resize(fNTPC[cs]);
-      for (unsigned int tpc=0; tpc<fNTPC[cs]; tpc++){
-        fFirstWireCenterY[cs][tpc].resize(fPlanesPerAPA);
-        fFirstWireCenterZ[cs][tpc].resize(fPlanesPerAPA);
-      }                                                                   
-    }
-
+    
     fWirePitch.resize(fPlanesPerAPA);
     fOrientation.resize(fPlanesPerAPA);
     fSinOrientation.resize(fPlanesPerAPA);
     fCosOrientation.resize(fPlanesPerAPA);
 
 
-    //save data into fFirstWireCenterY and fFirstWireCenterZ
+    //save data into fFirstWireCenterY, fFirstWireCenterZ and fWireSortingInZ
+    fPlaneData.resize(fNcryostat);
     for (unsigned int cs=0; cs<fNcryostat; cs++){
+      fPlaneData[cs].resize(fNTPC[cs]);
       for (unsigned int tpc=0; tpc<fNTPC[cs]; tpc++){
+        fPlaneData[cs][tpc].resize(fPlanesPerAPA);
         for (unsigned int plane=0; plane<fPlanesPerAPA; plane++){
-	  fPlaneIDs.emplace(PlaneID(cs, tpc, plane));
+          PlaneData_t& PlaneData = fPlaneData[cs][tpc][plane];
+          fPlaneIDs.emplace(cs, tpc, plane);
           double xyz[3]={0.0, 0.0, 0.0};
-          cgeo[cs]->TPC(tpc).Plane(plane).Wire(0).GetCenter(xyz);
-          fFirstWireCenterY[cs][tpc][plane]=xyz[1];
-          fFirstWireCenterZ[cs][tpc][plane]=xyz[2];
-        }
-      }
-    }
+          const geo::PlaneGeo& thePlane = cgeo[cs]->TPC(tpc).Plane(plane);
+          thePlane.Wire(0).GetCenter(xyz);
+          PlaneData.fFirstWireCenterY = xyz[1];
+          PlaneData.fFirstWireCenterZ = xyz[2];
+          // we are interested in the ordering of wire numbers: we find that a
+          // point is N wires left of a wire W: is that wire W + N or W - N?
+          // In fact, for TPC #0 it is W + N for V and Z planes, W - N for U
+          // plane; for TPC #0 it is W + N for V and Z planes, W - N for U
+          PlaneData.fWireSortingInZ = thePlane.WireIDincreasesWithZ()? +1.: -1.;
+        } // for plane
+      } // for TPC
+    } // for cryostat
 
     //initialize fWirePitch and fOrientation
     for (unsigned int plane=0; plane<fPlanesPerAPA; plane++){
@@ -171,13 +170,14 @@ namespace geo{
       fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
       fSinOrientation[plane] = sin(fOrientation[plane]);
       fCosOrientation[plane] = cos(fOrientation[plane]);
-    }
 
-
-    mf::LogVerbatim("GeometryTest") << "fNchannels = " << fNchannels ; 
-    mf::LogVerbatim("GeometryTest") << "U channels per APA = " << 2*nAnchoredWires[0][0][0] ;
-    mf::LogVerbatim("GeometryTest") << "V channels per APA = " << 2*nAnchoredWires[0][0][1] ;
-    mf::LogVerbatim("GeometryTest") << "Z channels per APA side = " << nAnchoredWires[0][0][2] ;
+    } // for
+    
+    
+    mf::LogVerbatim("ChannelMap35OptAlg") << "fNchannels = " << fNchannels ; 
+    mf::LogVerbatim("ChannelMap35OptAlg") << "U channels per APA = " << 2*nAnchoredWires[0][0][0] ;
+    mf::LogVerbatim("ChannelMap35OptAlg") << "V channels per APA = " << 2*nAnchoredWires[0][0][1] ;
+    mf::LogVerbatim("ChannelMap35OptAlg") << "Z channels per APA side = " << nAnchoredWires[0][0][2] ;
 
     return;
 
@@ -315,48 +315,40 @@ namespace geo{
     return PlaneData.fWireSortingInZ * distance/fWirePitch[PlaneNo];
   } // ChannelMap35OptAlg::WireCoordinate()
   
-
-
+  
   //----------------------------------------------------------------------------
-  WireID  ChannelMap35OptAlg::NearestWireID(const TVector3& xyz,
-					 unsigned int    plane,
-					 unsigned int    tpc,
-					 unsigned int    cryostat)     const
+  WireID ChannelMap35OptAlg::NearestWireID(const TVector3& xyz,
+                                        unsigned int    plane,
+                                        unsigned int    tpc,
+                                        unsigned int    cryostat)     const
   {
-
-    //get the position of first wire in a given cryostat, tpc and plane
-    double firstxyz[3]={0.0, 0.0, 0.0};
-    firstxyz[1]=fFirstWireCenterY[cryostat][tpc][plane];
-    firstxyz[2]=fFirstWireCenterZ[cryostat][tpc][plane];
-
-    //get the orientation angle of a given plane and calculate the distance between first wire
-    //and a point projected in the plane
-    int rotate = 1;
-    if (tpc%2 == 1) rotate = -1;
-
-    // old distance formula from Jae Kim
-    //double distance = std::abs(xyz[1]-firstxyz[1]-rotate*tan(fOrientation[plane])*xyz[2]
-    //		   +   rotate*fTanOrientation[plane]*firstxyz[2])/
-    //                         std::sqrt(fTanOrientation[plane]*fTanOrientation[plane]+1);
- 
-    double distance = std::abs( (xyz[1]-firstxyz[1])*fCosOrientation[plane] - rotate*(xyz[2]-firstxyz[2])*fSinOrientation[plane] );
-
-    //if the distance between the wire and a given point is greater than the half of wirepitch,
-    //then the point is closer to a i+1 wire thus add one
-    //double res = distance/fWirePitch[plane] - int( distance/fWirePitch[plane] );
-    //if (res > fWirePitch[plane]/2)	iwire+=1;
-
-    // do it, but also check to see if we are on the edge
-
-    double dwire=distance/fWirePitch[plane];
-    uint32_t iwire=int(dwire+0.5);
-    uint32_t maxwireminus1=fWiresPerPlane[0][tpc/2][plane]-1;
-    if(iwire>maxwireminus1) iwire=maxwireminus1;
-
-    WireID wid(cryostat, tpc, plane, iwire);
-    return wid;
-
-  }
+    // add 0.5 to have the correct rounding
+    int NearestWireNumber
+      = int (0.5 + WireCoordinate(xyz.Y(), xyz.Z(), plane, tpc, cryostat));
+    
+    // If we are outside of the wireplane range, throw an exception
+    // (this response maintains consistency with the previous
+    // implementation based on geometry lookup)
+    if(NearestWireNumber < 0 ||
+       NearestWireNumber >= (int) fWiresPerPlane[cryostat][tpc/2][plane])
+    {
+      const int wireNumber = NearestWireNumber; // save for the output
+      
+      if(wireNumber < 0 ) NearestWireNumber = 0;
+      else                NearestWireNumber = fWiresPerPlane[cryostat][tpc/2][plane] - 1;
+    
+    /*
+      // comment in the following statement to throw an exception instead
+      throw InvalidWireIDError("Geometry", wireNumber, NearestWireNumber)
+        << "ChannelMap35OptAlg::NearestWireID(): can't Find Nearest Wire for position (" 
+        << xyz.X() << "," << xyz.Y() << "," << xyz.Z() << ")"
+        << " approx wire number # " << wireNumber
+        << " (capped from " << NearestWireNumber << ")\n";
+    */
+    } // if invalid wire
+    
+    return { cryostat, tpc, plane, (unsigned int) NearestWireNumber };
+  } // ChannelMap35OptAlg::NearestWireID()
   
   //----------------------------------------------------------------------------
   uint32_t ChannelMap35OptAlg::PlaneWireToChannel(unsigned int plane,

@@ -86,8 +86,8 @@ namespace geo{
 
     try{
 
-      LOG_DEBUG("GeometryTest35") << "test ...";
-      // run test function
+      LOG_DEBUG("GeometryTest35") << "test AuxDets...";
+      //this->testAuxDets();
       LOG_DEBUG("GeometryTest35") << "complete.";
 
     }

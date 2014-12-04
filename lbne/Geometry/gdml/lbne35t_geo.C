@@ -39,9 +39,8 @@ lbne35t_geo(TString volName="")
  int showCathode = 1;
  int showGasAr = 1;
  int showCryoShell = 1;
- int showTrenchAndDirt = 1;
-
-
+ int showCryoPadding = 1;
+ int showTrenchAndDirt = 0;
  bool OnlyDrawAPAs = false;
 
 
@@ -116,32 +115,32 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
  gGeoManager->FindVolumeFast("volTPCActiveLargestShortDrift")->SetLineColor(3);
 
  gGeoManager->GetVolume("volFoamSouth")->SetLineColor(46);
- gGeoManager->GetVolume("volFoamSouth")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volFoamSouth")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volFoamSouth")->SetTransparency(85);
  gGeoManager->GetVolume("volFoamNorth")->SetLineColor(46);
- gGeoManager->GetVolume("volFoamNorth")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volFoamNorth")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volFoamNorth")->SetTransparency(85);
  gGeoManager->GetVolume("volFoamNorthNeck")->SetLineColor(46);
- gGeoManager->GetVolume("volFoamNorthNeck")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volFoamNorthNeck")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volFoamNorthNeck")->SetTransparency(85);
  gGeoManager->GetVolume("volFoamEastWest")->SetLineColor(46);
- gGeoManager->GetVolume("volFoamEastWest")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volFoamEastWest")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volFoamEastWest")->SetTransparency(85);
  gGeoManager->GetVolume("volFoamEastWestNeck")->SetLineColor(46);
- gGeoManager->GetVolume("volFoamEastWestNeck")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volFoamEastWestNeck")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volFoamEastWestNeck")->SetTransparency(85);
  gGeoManager->GetVolume("volFoamBottom")->SetLineColor(46);
- gGeoManager->GetVolume("volFoamBottom")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volFoamBottom")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volFoamBottom")->SetTransparency(85);
  gGeoManager->GetVolume("volFoamTop")->SetLineColor(46);
- gGeoManager->GetVolume("volFoamTop")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volFoamTop")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volFoamTop")->SetTransparency(85);
 
  gGeoManager->GetVolume("volBottomConcreteShell")->SetLineColor(19); 
- gGeoManager->GetVolume("volBottomConcreteShell")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volBottomConcreteShell")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volBottomConcreteShell")->SetTransparency(25);
  gGeoManager->GetVolume("volNeckConcreteShell")->SetLineColor(19);
- gGeoManager->GetVolume("volNeckConcreteShell")->SetVisibility(showCryoShell);
+ gGeoManager->GetVolume("volNeckConcreteShell")->SetVisibility(showCryoPadding);
  gGeoManager->GetVolume("volNeckConcreteShell")->SetTransparency(25);
 
 
@@ -158,9 +157,12 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
  gGeoManager->GetVolume("volBerm")->SetVisibility(showTrenchAndDirt);
  gGeoManager->GetVolume("volBerm")->SetTransparency(70);
 
- gGeoManager->GetVolume("volAuxDet")->SetLineColor(kRed-3); 
- gGeoManager->GetVolume("volAuxDet")->SetVisibility(1);
- gGeoManager->GetVolume("volAuxDet")->SetTransparency(30);
+ gGeoManager->GetVolume("volAuxDetTrap")->SetLineColor(kRed-3); 
+ gGeoManager->GetVolume("volAuxDetTrap")->SetVisibility(1);
+ gGeoManager->GetVolume("volAuxDetTrap")->SetTransparency(30);
+ gGeoManager->GetVolume("volAuxDetBoxBSU")->SetLineColor(kRed-3); 
+ gGeoManager->GetVolume("volAuxDetBoxBSU")->SetVisibility(1);
+ gGeoManager->GetVolume("volAuxDetBoxBSU")->SetTransparency(30);
 
 
 
@@ -172,8 +174,8 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
 
 
   //gGeoManager->GetTopVolume()->Draw("ogl");
-  gGeoManager->FindVolumeFast("volDetEnclosure")->Draw("ogl");
-  //gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
+  //gGeoManager->FindVolumeFast("volDetEnclosure")->Draw("ogl");
+  gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
   //gGeoManager->FindVolumeFast("volWorld")->Draw("");
   //gGeoManager->FindVolumeFast("volTPCLargestShortDrift")->Draw("ogl");
 
