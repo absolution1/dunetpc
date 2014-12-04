@@ -19,32 +19,4 @@ art_file_catalog_mc.fileType:  "mc"
 art_file_catalog_data:           @local::art_file_catalog
 art_file_catalog_data.fileType:  "data"
 
-# Standard configurations for FileCatalogMetadataExtras service.
-# Both fields and values are lbne-specific.
-
-lbne_file_catalog:
-{
-  Metadata: [ "group",          "lbne",   # This field should move to FileCatalogMetadata. 
-              "fileFormat",     "root",     # This field should move to FileCatalogMetadata.
-              "MCGenerators",        "",
-              "MCOscillationP",     "",
-              "MCTriggerListVersion",    "",
-              "MCBeamEnergy",   "",
-              "MCBeamFluxID",   "",
-              "MCName",   "",
-              "MCDetectorType",   "",
-              "MCNeutrinoFlavors",   "",
-              "MCMassHierarchy",   "",
-              "MCMiscellaneous",   "",
-              "MCGeometryVersion",   "",
-              "MCOverlay",   "",
-              "DataRunMode",   "",
-              "DataDetectorType",   "",
-              "DataName", "" ]
-  GeneratePerFileMetadata: true
-  CopyMetadataAttributes:  [ "fileType", "runType" ]
-  RenameTemplate:          ""
-  RenameOverwrite:         true
-}
-
 END_PROLOG
