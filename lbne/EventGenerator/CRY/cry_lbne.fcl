@@ -5,7 +5,7 @@ BEGIN_PROLOG
 lbne35t_cry:              @local::standard_cry
 lbne35t_cry.TimeOffset:   -1.6e-3               #pre-readout window (s)
 lbne35t_cry.SampleTime:   3.2e-3                #pre-readout + readout (s)
-lbne35t_cry.Latitude:     "latitude 44.35 "
+lbne35t_cry.Latitude:     "latitude 41.8 "
 lbne35t_cry.SubBoxLength: "subboxLength 75 "
 
 lbne35t_milliblock_cry:    @local::lbne35t_cry

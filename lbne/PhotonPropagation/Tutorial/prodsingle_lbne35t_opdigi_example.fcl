@@ -21,7 +21,7 @@ services:
 }
 
 # LBNE 35ton w/o wires and mesh
-#services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
+services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
 services.user.OpDigiProperties:        @local::lbne35t_opdigiproperties
 
 
