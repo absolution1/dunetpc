@@ -76,21 +76,21 @@ namespace util {
   {
     // Get parameters.
 
-    fMCGenerators = pset.get<std::string>("MCGenerators");
-    fMCOscillationP = pset.get<std::string>("MCOscillationP");
-    fMCTriggerListVersion = pset.get<std::string>("MCTriggerListVersion");
-    fMCBeamEnergy = pset.get<std::string>("MCBeamEnergy");
-    fMCBeamFluxID = pset.get<std::string>("MCBeamFluxID");
-    fMCName = pset.get<std::string>("MCName");
-    fMCDetectorType = pset.get<std::string>("MCDetectorType");
-    fMCNeutrinoFlavors = pset.get<std::string>("MCNeutrinoFlavors");
-    fMCMassHierarchy = pset.get<std::string>("MCMassHierarchy");
-    fMCMiscellaneous = pset.get<std::string>("MCMiscellaneous");
-    fMCGeometryVersion = pset.get<std::string>("MCGeometryVersion");
-    fMCOverlay = pset.get<std::string>("MCOverlay");
-    fDataRunMode = pset.get<std::string>("DataRunMode");
-    fDataDetectorType = pset.get<std::string>("DataDetectorType");
-    fDataName = pset.get<std::string>("DataName");
+    fMCGenerators = pset.get<std::string>("MCGenerators","");
+    fMCOscillationP = pset.get<std::string>("MCOscillationP","");
+    fMCTriggerListVersion = pset.get<std::string>("MCTriggerListVersion","");
+    fMCBeamEnergy = pset.get<std::string>("MCBeamEnergy","");
+    fMCBeamFluxID = pset.get<std::string>("MCBeamFluxID","");
+    fMCName = pset.get<std::string>("MCName","");
+    fMCDetectorType = pset.get<std::string>("MCDetectorType","");
+    fMCNeutrinoFlavors = pset.get<std::string>("MCNeutrinoFlavors","");
+    fMCMassHierarchy = pset.get<std::string>("MCMassHierarchy","");
+    fMCMiscellaneous = pset.get<std::string>("MCMiscellaneous","");
+    fMCGeometryVersion = pset.get<std::string>("MCGeometryVersion","");
+    fMCOverlay = pset.get<std::string>("MCOverlay","");
+    fDataRunMode = pset.get<std::string>("DataRunMode","");
+    fDataDetectorType = pset.get<std::string>("DataDetectorType","");
+    fDataName = pset.get<std::string>("DataName","");
 
     // Register for callbacks.
 
