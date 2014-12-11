@@ -1172,9 +1172,8 @@ sub gen_TPC()
     my $apa = $_[4];
 
     my $TPCActive_x   =  $_[0]-(3*$APAWirePlaneSpacing);
-    my $TPCActive_y   =  $Uactive_y[$apa] + $G10thickness;
-    #my $TPCActive_z   =  $TPC_z; 
-    print "  APA $apa TPCActive xyz = ($TPCActive_x, $TPCActive_y, $TPCActive_z[$apa])\n";
+    my $TPCActive_y   =  $_[1] - $APAGap_y/2 - $ReadoutBoardOverlap ; #TODO: make the Active height more accurate
+    print "  APA $apa TPCActive xyz dimensions = ($TPCActive_x, $TPCActive_y, $TPCActive_z[$apa])\n";
 
 
     my $UAngle = $UAng[$apa];
@@ -1889,7 +1888,7 @@ else                 { $xx = 1;  }
     $posUplane[2]   = $posZplane[2];
 
     $posTPCActive[0] = $posUplane[0] + $xx*($TPCWirePlaneThickness/2 + $TPCActive_x/2);
-    $posTPCActive[1] = $BottomOfAPA + $WrapCover + 1*$G10thickness + $Uactive_y[$apa]/2;
+    $posTPCActive[1] = -$_[1]/2 + $TPCActive_y/2;
     $posTPCActive[2] = 0;
 
 

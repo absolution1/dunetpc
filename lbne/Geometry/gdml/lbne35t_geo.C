@@ -28,14 +28,14 @@ lbne35t_geo(TString volName="")
     obj->Print();
   }
 
- int showAuxDets = 0;
+ int showAuxDets = 1;
  int showWirePlanes = 1;
  int showLongActive = 1;
  int showShortActive = 1;
  int showCathode = 1;
  int showGasAr = 1;
- int showCryoShell = 0;
- int showCryoPadding = 0;
+ int showCryoShell = 1;
+ int showCryoPadding = 1;
  int showTrenchAndDirt = 0;
  bool OnlyDrawAPAs = false;
 

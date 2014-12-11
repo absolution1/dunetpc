@@ -331,7 +331,7 @@
       z="50.30916"/>
     <box name="LargestLongDriftUpstreamActive" lunit="cm"
       x="222.475"
-      y="196.3965"
+      y="196.91205"
       z="53.44658"/>
 
     <tube name="LargestLongDriftUpstreamWireVert"
@@ -2269,7 +2269,7 @@
       z="50.30916"/>
     <box name="LargestShortDriftUpstreamActive" lunit="cm"
       x="27.175"
-      y="196.3965"
+      y="196.91205"
       z="53.44658"/>
 
     <tube name="LargestShortDriftUpstreamWireVert"
@@ -4181,7 +4181,7 @@
       z="50.30916"/>
     <box name="SmallestLongDriftActive" lunit="cm"
       x="222.475"
-      y="84.7065"
+      y="85.22205"
       z="51.924"/>
 
     <tube name="SmallestLongDriftWireVert"
@@ -6119,7 +6119,7 @@
       z="50.30916"/>
     <box name="SmallestShortDriftActive" lunit="cm"
       x="27.175"
-      y="84.7065"
+      y="85.22205"
       z="51.924"/>
 
     <tube name="SmallestShortDriftWireVert"
@@ -8031,7 +8031,7 @@
       z="50.30916"/>
     <box name="MidLongDriftActive" lunit="cm"
       x="222.475"
-      y="112.6265"
+      y="113.14205"
       z="51.924"/>
 
     <tube name="MidLongDriftWireVert"
@@ -9969,7 +9969,7 @@
       z="50.30916"/>
     <box name="MidShortDriftActive" lunit="cm"
       x="27.175"
-      y="112.6265"
+      y="113.14205"
       z="51.924"/>
 
     <tube name="MidShortDriftWireVert"
@@ -11881,7 +11881,7 @@
       z="50.30916"/>
     <box name="LargestLongDriftDownstreamActive" lunit="cm"
       x="222.475"
-      y="196.3965"
+      y="196.91205"
       z="53.44658"/>
 
     <tube name="LargestLongDriftDownstreamWireVert"
@@ -13819,7 +13819,7 @@
       z="50.30916"/>
     <box name="LargestShortDriftDownstreamActive" lunit="cm"
       x="27.175"
-      y="196.3965"
+      y="196.91205"
       z="53.44658"/>
 
     <tube name="LargestShortDriftDownstreamWireVert"
@@ -21495,7 +21495,7 @@
      <physvol>
        <volumeref ref="volTPCActiveLargestLongDriftUpstream"/>
        <position name="posLargestLongDriftUpstreamActive" unit="cm" 
-         x="0.732073200000002" y="-3.72610000000002" z="0"/>
+         x="0.732073200000002" y="-3.826125" z="0"/>
      </physvol>
     </volume>
 
@@ -26783,7 +26783,7 @@
      <physvol>
        <volumeref ref="volTPCActiveLargestShortDriftUpstream"/>
        <position name="posLargestShortDriftUpstreamActive" unit="cm" 
-         x="-0.732073199999999" y="-3.72610000000002" z="0"/>
+         x="-0.732073199999999" y="-3.826125" z="0"/>
      </physvol>
     </volume>
 
@@ -30494,7 +30494,7 @@
      <physvol>
        <volumeref ref="volTPCActiveSmallestLongDrift"/>
        <position name="posSmallestLongDriftActive" unit="cm" 
-         x="0.732073200000002" y="-3.7261" z="0"/>
+         x="0.732073200000002" y="-3.826125" z="0"/>
      </physvol>
     </volume>
 
@@ -34182,7 +34182,7 @@
      <physvol>
        <volumeref ref="volTPCActiveSmallestShortDrift"/>
        <position name="posSmallestShortDriftActive" unit="cm" 
-         x="-0.732073199999999" y="-3.7261" z="0"/>
+         x="-0.732073199999999" y="-3.826125" z="0"/>
      </physvol>
     </volume>
 
@@ -38293,7 +38293,7 @@
      <physvol>
        <volumeref ref="volTPCActiveMidLongDrift"/>
        <position name="posMidLongDriftActive" unit="cm" 
-         x="0.732073200000002" y="-3.7261" z="0"/>
+         x="0.732073200000002" y="-3.826125" z="0"/>
      </physvol>
     </volume>
 
@@ -42381,7 +42381,7 @@
      <physvol>
        <volumeref ref="volTPCActiveMidShortDrift"/>
        <position name="posMidShortDriftActive" unit="cm" 
-         x="-0.732073199999999" y="-3.7261" z="0"/>
+         x="-0.732073199999999" y="-3.826125" z="0"/>
      </physvol>
     </volume>
 
@@ -47692,7 +47692,7 @@
      <physvol>
        <volumeref ref="volTPCActiveLargestLongDriftDownstream"/>
        <position name="posLargestLongDriftDownstreamActive" unit="cm" 
-         x="0.732073200000002" y="-3.72610000000002" z="0"/>
+         x="0.732073200000002" y="-3.826125" z="0"/>
      </physvol>
     </volume>
 
@@ -52980,7 +52980,7 @@
      <physvol>
        <volumeref ref="volTPCActiveLargestShortDriftDownstream"/>
        <position name="posLargestShortDriftDownstreamActive" unit="cm" 
-         x="-0.732073199999999" y="-3.72610000000002" z="0"/>
+         x="-0.732073199999999" y="-3.826125" z="0"/>
      </physvol>
     </volume>
 
