@@ -47,7 +47,7 @@ namespace geo{
       cgeo[c]->SortSubVolumes(fSorter);
 
 
-    mf::LogInfo("ChannelMap35OptAlg") << "Initializing the 35t optimized Alg...";
+    mf::LogInfo("ChannelMap35OptAlg") << "Initializing...";
       
     fNTPC.resize(fNcryostat);
     fWiresPerPlane.resize(fNcryostat);
@@ -104,7 +104,7 @@ namespace geo{
 	    cgeo[c]->TPC(t).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
     	    if(xyz[2]==xyz_next[2]){
-	      nAnchoredWires[c][a][p] = w; // w-1(for last)+1(for index) = w      
+	      nAnchoredWires[c][a][p] = w; // w-1(for last)+1(for index) = w    
 	      break;
 	    }
 
@@ -174,10 +174,10 @@ namespace geo{
     } // for
     
     
-    mf::LogVerbatim("ChannelMap35OptAlg") << "fNchannels = " << fNchannels ; 
-    mf::LogVerbatim("ChannelMap35OptAlg") << "U channels per APA = " << 2*nAnchoredWires[0][0][0] ;
-    mf::LogVerbatim("ChannelMap35OptAlg") << "V channels per APA = " << 2*nAnchoredWires[0][0][1] ;
-    mf::LogVerbatim("ChannelMap35OptAlg") << "Z channels per APA side = " << nAnchoredWires[0][0][2] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "fNchannels = " << fNchannels ; 
+    mf::LogVerbatim("ChannelMap35Alg") << "U channels per APA = " << 2*nAnchoredWires[0][0][0] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "V channels per APA = " << 2*nAnchoredWires[0][0][1] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "Z channels per APA side = " << nAnchoredWires[0][0][2] ;
 
     return;
 
@@ -281,10 +281,10 @@ namespace geo{
   
 
   //----------------------------------------------------------------------------
-  float ChannelMap35OptAlg::WireCoordinate(float YPos, float ZPos,
-                                        unsigned int PlaneNo,
-                                        unsigned int TPCNo,
-                                        unsigned int cstat) const
+  double ChannelMap35OptAlg::WireCoordinate(double YPos, double ZPos,
+                                         unsigned int PlaneNo,
+                                         unsigned int TPCNo,
+                                         unsigned int cstat) const
   {
     // Returns the wire number corresponding to a (Y,Z) position in PlaneNo
     // with float precision.

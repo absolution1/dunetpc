@@ -16,12 +16,6 @@ lbne35t_geo(TString volName="")
   TGeoManager::Import("lbne35t4apa_v3_nowires.gdml");
   gGeoManager->DefaultColors();
 
-  drawopt optuboone[] = {
-// color in volumes later
-    {"volCathode",	kOrange-6},
-    {0, 0}
-  };
-
   //for (int i=0;; ++i) 
   //  {
   //    if (optuboone[i].volume==0) break;
@@ -34,22 +28,28 @@ lbne35t_geo(TString volName="")
     obj->Print();
   }
 
+ int showAuxDets = 0;
+ int showWirePlanes = 1;
  int showLongActive = 1;
  int showShortActive = 1;
  int showCathode = 1;
  int showGasAr = 1;
- int showCryoShell = 1;
- int showCryoPadding = 1;
+ int showCryoShell = 0;
+ int showCryoPadding = 0;
  int showTrenchAndDirt = 0;
  bool OnlyDrawAPAs = false;
 
 
  if(OnlyDrawAPAs){
-   int showLongActive = 0;
-   int showShortActive = 0;
-   int showCathode = 0;
-   int showGasAr = 0;
-   int showCryoShell = 0;
+   showWirePlanes = 1;
+   showAuxDets = 0;
+   showLongActive = 0;
+   showShortActive = 0;
+   showCathode = 0;
+   showGasAr = 0;
+   showCryoShell = 0;
+   showCryoPadding = 0;
+   showTrenchAndDirt = 0;
  }
  
 gGeoManager->FindVolumeFast("volAPAFrameYSide-0")->SetTransparency(0);
@@ -83,10 +83,8 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
  gGeoManager->GetVolume("volCathode")->SetLineColor(kOrange+2);
  gGeoManager->GetVolume("volCathode")->SetVisibility(showCathode);
  gGeoManager->GetVolume("volCathode")->SetTransparency(70);
- //gGeoManager->GetVolume("volCPATubeYSide")->SetLineColor(kOrange+2);
  gGeoManager->GetVolume("volCPATubeYSide")->SetVisibility(showCathode);
  gGeoManager->GetVolume("volCPATubeYSide")->SetTransparency(70);
- //gGeoManager->GetVolume("volCPATubeZSide")->SetLineColor(kOrange+2);
  gGeoManager->GetVolume("volCPATubeZSide")->SetVisibility(showCathode);
  gGeoManager->GetVolume("volCPATubeZSide")->SetTransparency(70);
 
@@ -96,23 +94,56 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
 
 
  gGeoManager->FindVolumeFast("volTPCActiveSmallestLongDrift")->SetVisibility(showLongActive);
- gGeoManager->FindVolumeFast("volTPCActiveSmallestLongDrift")->SetTransparency(80);
+ gGeoManager->FindVolumeFast("volTPCActiveSmallestLongDrift")->SetTransparency(31);
  gGeoManager->FindVolumeFast("volTPCActiveSmallestLongDrift")->SetLineColor(3);
  gGeoManager->FindVolumeFast("volTPCActiveMidLongDrift")->SetVisibility(showLongActive);
- gGeoManager->FindVolumeFast("volTPCActiveMidLongDrift")->SetTransparency(80);
+ gGeoManager->FindVolumeFast("volTPCActiveMidLongDrift")->SetTransparency(31);
  gGeoManager->FindVolumeFast("volTPCActiveMidLongDrift")->SetLineColor(3);
- gGeoManager->FindVolumeFast("volTPCActiveLargestLongDrift")->SetVisibility(showLongActive);
- gGeoManager->FindVolumeFast("volTPCActiveLargestLongDrift")->SetTransparency(80);
- gGeoManager->FindVolumeFast("volTPCActiveLargestLongDrift")->SetLineColor(3);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestLongDriftUpstream")->SetVisibility(showLongActive);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestLongDriftUpstream")->SetTransparency(31);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestLongDriftUpstream")->SetLineColor(3);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestLongDriftDownstream")->SetVisibility(showLongActive);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestLongDriftDownstream")->SetTransparency(31);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestLongDriftDownstream")->SetLineColor(3);
  gGeoManager->FindVolumeFast("volTPCActiveSmallestShortDrift")->SetVisibility(showShortActive);
- gGeoManager->FindVolumeFast("volTPCActiveSmallestShortDrift")->SetTransparency(80);
+ gGeoManager->FindVolumeFast("volTPCActiveSmallestShortDrift")->SetTransparency(31);
  gGeoManager->FindVolumeFast("volTPCActiveSmallestShortDrift")->SetLineColor(3);
  gGeoManager->FindVolumeFast("volTPCActiveMidShortDrift")->SetVisibility(showShortActive);
- gGeoManager->FindVolumeFast("volTPCActiveMidShortDrift")->SetTransparency(80);
+ gGeoManager->FindVolumeFast("volTPCActiveMidShortDrift")->SetTransparency(31);
  gGeoManager->FindVolumeFast("volTPCActiveMidShortDrift")->SetLineColor(3);
- gGeoManager->FindVolumeFast("volTPCActiveLargestShortDrift")->SetVisibility(showShortActive);
- gGeoManager->FindVolumeFast("volTPCActiveLargestShortDrift")->SetTransparency(80);
- gGeoManager->FindVolumeFast("volTPCActiveLargestShortDrift")->SetLineColor(3);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestShortDriftUpstream")->SetVisibility(showShortActive);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestShortDriftUpstream")->SetTransparency(31);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestShortDriftUpstream")->SetLineColor(3);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestShortDriftDownstream")->SetVisibility(showShortActive);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestShortDriftDownstream")->SetTransparency(31);
+ gGeoManager->FindVolumeFast("volTPCActiveLargestShortDriftDownstream")->SetLineColor(3);
+
+
+ gGeoManager->FindVolumeFast("volTPCPlaneUSmallestLongDrift")->SetVisibility(showWirePlanes);
+ gGeoManager->FindVolumeFast("volTPCPlaneUSmallestLongDrift")->SetTransparency(1);
+ gGeoManager->FindVolumeFast("volTPCPlaneUSmallestLongDrift")->SetLineColor(kMagenta);
+ gGeoManager->FindVolumeFast("volTPCPlaneUMidLongDrift")->SetVisibility(showWirePlanes);
+ gGeoManager->FindVolumeFast("volTPCPlaneUMidLongDrift")->SetTransparency(1);
+ gGeoManager->FindVolumeFast("volTPCPlaneUMidLongDrift")->SetLineColor(kMagenta);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestLongDriftUpstream")->SetVisibility(showWirePlanes);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestLongDriftUpstream")->SetTransparency(1);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestLongDriftUpstream")->SetLineColor(kMagenta);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestLongDriftDownstream")->SetVisibility(showWirePlanes);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestLongDriftDownstream")->SetTransparency(1);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestLongDriftDownstream")->SetLineColor(kMagenta);
+ gGeoManager->FindVolumeFast("volTPCPlaneUSmallestShortDrift")->SetVisibility(showWirePlanes);
+ gGeoManager->FindVolumeFast("volTPCPlaneUSmallestShortDrift")->SetTransparency(1);
+ gGeoManager->FindVolumeFast("volTPCPlaneUSmallestShortDrift")->SetLineColor(kMagenta);
+ gGeoManager->FindVolumeFast("volTPCPlaneUMidShortDrift")->SetVisibility(showWirePlanes);
+ gGeoManager->FindVolumeFast("volTPCPlaneUMidShortDrift")->SetTransparency(1);
+ gGeoManager->FindVolumeFast("volTPCPlaneUMidShortDrift")->SetLineColor(kMagenta);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestShortDriftUpstream")->SetVisibility(showWirePlanes);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestShortDriftUpstream")->SetTransparency(1);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestShortDriftUpstream")->SetLineColor(kMagenta);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestShortDriftDownstream")->SetVisibility(showWirePlanes);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestShortDriftDownstream")->SetTransparency(1);
+ gGeoManager->FindVolumeFast("volTPCPlaneULargestShortDriftDownstream")->SetLineColor(kMagenta);
+
 
  gGeoManager->GetVolume("volFoamSouth")->SetLineColor(46);
  gGeoManager->GetVolume("volFoamSouth")->SetVisibility(showCryoPadding);
@@ -158,10 +189,10 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
  gGeoManager->GetVolume("volBerm")->SetTransparency(70);
 
  gGeoManager->GetVolume("volAuxDetTrap")->SetLineColor(kRed-3); 
- gGeoManager->GetVolume("volAuxDetTrap")->SetVisibility(1);
+ gGeoManager->GetVolume("volAuxDetTrap")->SetVisibility(showAuxDets);
  gGeoManager->GetVolume("volAuxDetTrap")->SetTransparency(30);
  gGeoManager->GetVolume("volAuxDetBoxBSU")->SetLineColor(kRed-3); 
- gGeoManager->GetVolume("volAuxDetBoxBSU")->SetVisibility(1);
+ gGeoManager->GetVolume("volAuxDetBoxBSU")->SetVisibility(showAuxDets);
  gGeoManager->GetVolume("volAuxDetBoxBSU")->SetTransparency(30);
 
 
@@ -170,7 +201,7 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
  gGeoManager->GetTopNode();
  gGeoManager->CheckOverlaps(1e-5,"d");
  gGeoManager->PrintOverlaps();
- //gGeoManager->SetMaxVisNodes(70000);
+ gGeoManager->SetMaxVisNodes(70000);
 
 
   //gGeoManager->GetTopVolume()->Draw("ogl");

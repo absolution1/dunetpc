@@ -176,7 +176,7 @@ $APAGap_z     =    0.0845;  #separation between APAs along the vertical axis
 
 $TPCLongDrift_x  = $LongDrift  + 3*$APAWirePlaneSpacing + $TPCWirePlaneThickness;
 $TPCShortDrift_x = $ShortDrift + 3*$APAWirePlaneSpacing + $TPCWirePlaneThickness;
-$TPC_z           = $APAphys_z + $APAGap_z;        # same for all 6
+#$TPC_z           = $APAphys_z + $APAGap_z;
 
 # height is the same for each  
 for($apa = 0; $apa < 4; ++$apa){
@@ -336,7 +336,8 @@ $ClosestAPAToEastWall  =    33.225; # To G10 cover, places all of the APAs in z
 #
 #             East
 
-    $CPAToFloor     = 26.955;
+$CPAToFloor     = 26.955;
+$CPAToCeiling   = 36.010;
 $CPAToEastWall  = 27.994;
 $CPAToWestWall  = 76.234;
 $CPAToSouthWall = 121.945;
@@ -525,6 +526,28 @@ $posTPCLongDrift_x   =    $APACenter[0][0]
 # see the define section
 
 
+$OuterWireToCage = 2.33; # email from Russ
+
+$TPCActive_z[0] =   $APAphys_z
+                  - ($APAphys_z-$Zactive_z)/2
+                  + $APAGap_z/2
+                  + $OuterWireToCage;
+$TPCActive_z[1] =   $APAphys_z + $APAGap_z;
+$TPCActive_z[2] =   $APAphys_z + $APAGap_z;
+$TPCActive_z[3] =   $TPCActive_z[0];
+
+$TPCCenter[0][2] =   $APACenter[0][2] 
+                   - $Zactive_z/2
+                   - $OuterWireToCage
+                   + $TPCActive_z[0]/2;
+$TPCCenter[1][2] =   $APACenter[1][2]; 
+$TPCCenter[2][2] =   $APACenter[2][2]; 
+$TPCCenter[3][2] =   $APACenter[3][2] 
+                   + $Zactive_z/2
+                   + $OuterWireToCage
+                   - $TPCActive_z[0]/2;
+    
+
 
 
   # We want the world origin to be at the very front of the fiducial volume.
@@ -685,15 +708,17 @@ gen_Materials(); # generates materials to be used
 
 open(my $wout, '>', 'gdmlWireCenters.txt');
 
-    # APAs 0 and 3 are a copy of each other, generate only one solid
-    gen_TPC( $TPCLongDrift_x, $TPC_y[0], $TPC_z, 'LargestLongDrift', 0);
-    gen_TPC( $TPCShortDrift_x, $TPC_y[0], $TPC_z, 'LargestShortDrift', 0);
+    gen_TPC( $TPCLongDrift_x,  $TPC_y[0], $TPCActive_z[0], 'LargestLongDriftUpstream', 0);
+    gen_TPC( $TPCShortDrift_x, $TPC_y[0], $TPCActive_z[0], 'LargestShortDriftUpstream', 0);
 
-    gen_TPC( $TPCLongDrift_x, $TPC_y[2], $TPC_z, 'SmallestLongDrift', 2);
-    gen_TPC( $TPCShortDrift_x, $TPC_y[2], $TPC_z, 'SmallestShortDrift', 2);
+    gen_TPC( $TPCLongDrift_x,  $TPC_y[2], $TPCActive_z[2], 'SmallestLongDrift', 2);
+    gen_TPC( $TPCShortDrift_x, $TPC_y[2], $TPCActive_z[2], 'SmallestShortDrift', 2);
 
-    gen_TPC( $TPCLongDrift_x, $TPC_y[1], $TPC_z, 'MidLongDrift', 1);
-    gen_TPC( $TPCShortDrift_x, $TPC_y[1], $TPC_z, 'MidShortDrift', 1);
+    gen_TPC( $TPCLongDrift_x,  $TPC_y[1], $TPCActive_z[1], 'MidLongDrift', 1);
+    gen_TPC( $TPCShortDrift_x, $TPC_y[1], $TPCActive_z[1], 'MidShortDrift', 1);
+
+    gen_TPC( $TPCLongDrift_x,  $TPC_y[0], $TPCActive_z[3], 'LargestLongDriftDownstream', 3);
+    gen_TPC( $TPCShortDrift_x, $TPC_y[0], $TPCActive_z[3], 'LargestShortDriftDownstream', 3);
 
 close $wout;
 
@@ -750,14 +775,14 @@ print DEF <<EOF;
 
    <position name="posOriginSet"        unit="cm" x="$OriginXSet" y="$OriginYSet" z="$OriginZSet"/>
 
-   <position name="posTPCLargestShortDrift_Pos"  unit="cm" x="$posTPCShortDrift_x" y="$APACenter[3][1]"  z="$APACenter[3][2]"/>
-   <position name="posTPCLargestLongDrift_Pos"   unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[3][1]"  z="$APACenter[3][2]"/>
-   <position name="posTPCLargestShortDrift_Neg"  unit="cm" x="$posTPCShortDrift_x" y="$APACenter[0][1]"  z="$APACenter[0][2]"/>
-   <position name="posTPCLargestLongDrift_Neg"   unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[0][1]"  z="$APACenter[0][2]"/>
-   <position name="posTPCSmallestShortDrift"     unit="cm" x="$posTPCShortDrift_x" y="$APACenter[2][1]"  z="$APACenter[2][2]"/>
-   <position name="posTPCSmallestLongDrift"      unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[2][1]"  z="$APACenter[2][2]"/>
-   <position name="posTPCMidShortDrift"          unit="cm" x="$posTPCShortDrift_x" y="$APACenter[1][1]"  z="$APACenter[1][2]"/>
-   <position name="posTPCMidLongDrift"           unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[1][1]"  z="$APACenter[1][2]"/>
+   <position name="posTPCLargestShortDrift_Pos"  unit="cm" x="$posTPCShortDrift_x" y="$APACenter[3][1]"  z="$TPCCenter[3][2]"/>
+   <position name="posTPCLargestLongDrift_Pos"   unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[3][1]"  z="$TPCCenter[3][2]"/>
+   <position name="posTPCLargestShortDrift_Neg"  unit="cm" x="$posTPCShortDrift_x" y="$APACenter[0][1]"  z="$TPCCenter[0][2]"/>
+   <position name="posTPCLargestLongDrift_Neg"   unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[0][1]"  z="$TPCCenter[0][2]"/>
+   <position name="posTPCSmallestShortDrift"     unit="cm" x="$posTPCShortDrift_x" y="$APACenter[2][1]"  z="$TPCCenter[2][2]"/>
+   <position name="posTPCSmallestLongDrift"      unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[2][1]"  z="$TPCCenter[2][2]"/>
+   <position name="posTPCMidShortDrift"          unit="cm" x="$posTPCShortDrift_x" y="$APACenter[1][1]"  z="$TPCCenter[1][2]"/>
+   <position name="posTPCMidLongDrift"           unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[1][1]"  z="$TPCCenter[1][2]"/>
 
 
    <position name="posCathodeLongDrift"  unit="cm" x="$posCPAShortDrift_x" y="$posCPAShortDrift_y" z="$posCPAShortDrift_z"/>
@@ -769,7 +794,8 @@ print DEF <<EOF;
    <rotation name="rAuxDetEWWallDown"  unit="deg" x="270" y="0"  z="0"/>
 
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
-   <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
+   <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0"  z="0"/>
+   <rotation name="rPlus90AboutY"       unit="deg" x="0"  y="90" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
@@ -1147,10 +1173,8 @@ sub gen_TPC()
 
     my $TPCActive_x   =  $_[0]-(3*$APAWirePlaneSpacing);
     my $TPCActive_y   =  $Uactive_y[$apa] + $G10thickness;
-    my $TPCActive_z   =  $TPC_z; 
-
-
-    print "  APA $apa TPCActive xyz = ($TPCActive_x, $TPCActive_y, $TPCActive_z)\n";
+    #my $TPCActive_z   =  $TPC_z; 
+    print "  APA $apa TPCActive xyz = ($TPCActive_x, $TPCActive_y, $TPCActive_z[$apa])\n";
 
 
     my $UAngle = $UAng[$apa];
@@ -1219,7 +1243,7 @@ print TPC <<EOF;
     <box name="${_[3]}Active" lunit="cm"
       x="$TPCActive_x"
       y="$TPCActive_y"
-      z="$TPCActive_z"/>
+      z="$TPCActive_z[$apa]"/>
 EOF
 
 
@@ -1409,7 +1433,9 @@ EOF
 
 }
 
-solid_TPCG10( $_[4],  $_[0],  $_[1],  $_[2]);
+# make the solids only once per APA
+# (here only from the lang drift TPC)
+if($_[0]>100){ solid_TPCG10( $_[4],  $_[0],  $_[1],  $_[2]); }
 
 # Begin structure and create the vertical wire logical volume
 print TPC <<EOF;
@@ -1498,7 +1524,9 @@ EOF
 }
 
 # generate the G10 board solids and logical volumes
-vol_TPCG10( $_[4] );
+# make the volumes only once per APA
+# (here only from the lang drift TPC)
+if($_[0]>100){ vol_TPCG10( $_[4] ); }
 
 my $lastYpos = 0;
 my $lastZpos = 0;
@@ -1839,10 +1867,31 @@ EOF
 
     my $BottomOfAPA = - $TPC_y[$apa]/2 + $APAGap_y/2;
 
-    my $posTPCActive_y = $BottomOfAPA + $WrapCover + 1*$G10thickness + $Uactive_y[$apa]/2;
-    my $posUplane_y    = $BottomOfAPA + $WrapCover + 2*$G10thickness + $Uactive_y[$apa]/2;
-    my $posVplane_y    = $BottomOfAPA + $WrapCover + 3*$G10thickness + $Vactive_y[$apa]/2;
-    my $posZplane_y    = $BottomOfAPA + $WrapCover + 4*$G10thickness + $Zactive_y[$apa]/2;
+
+if   ($apa==0){ $zz = -1; }
+elsif($apa==1){ $zz = 0;  }
+elsif($apa==2){ $zz = 0;  }
+elsif($apa==3){ $zz = 1;  }
+
+if ($TPCActive_x<100){ $xx = -1; }
+else                 { $xx = 1;  }
+
+    $posZplane[0]   = $xx*(-$_[0]/2 + $APAWirePlaneSpacing - $TPCWirePlaneThickness/2);
+    $posZplane[1]   = $BottomOfAPA + $WrapCover + 4*$G10thickness + $Zactive_y[$apa]/2;
+    $posZplane[2]   = $zz*(-$_[2]/2 + $APAGap_z/2 + $APAphys_z/2);
+
+    $posVplane[0]   = $posZplane[0] + $xx*$APAWirePlaneSpacing;
+    $posVplane[1]   = $BottomOfAPA + $WrapCover + 3*$G10thickness + $Vactive_y[$apa]/2;
+    $posVplane[2]   = $posZplane[2];
+
+    $posUplane[0]   = $posVplane[0] + $xx*$APAWirePlaneSpacing;
+    $posUplane[1]   = $BottomOfAPA + $WrapCover + 2*$G10thickness + $Uactive_y[$apa]/2;
+    $posUplane[2]   = $posZplane[2];
+
+    $posTPCActive[0] = $posUplane[0] + $xx*($TPCWirePlaneThickness/2 + $TPCActive_x/2);
+    $posTPCActive[1] = $BottomOfAPA + $WrapCover + 1*$G10thickness + $Uactive_y[$apa]/2;
+    $posTPCActive[2] = 0;
+
 
 #wrap up the TPC file
 print TPC <<EOF;
@@ -1850,24 +1899,24 @@ print TPC <<EOF;
       <materialref ref="LAr"/>
       <solidref ref="${_[3]}"/>
      <physvol>
-       <volumeref ref="volTPCPlaneU${_[3]}"/>
-       <position name="pos${_[3]}PlaneU" unit="cm" 
-         x="-($_[0]/2) - $TPCWirePlaneThickness/2 + 3*$APAWirePlaneSpacing" y="$posUplane_y" z="0"/>
+       <volumeref ref="volTPCPlaneZ${_[3]}"/>
+       <position name="pos${_[3]}PlaneZ" unit="cm" 
+         x="$posZplane[0]" y="$posZplane[1]" z="$posZplane[2]"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneV${_[3]}"/>
        <position name="pos${_[3]}PlaneV" unit="cm" 
-         x="-($_[0]/2) - $TPCWirePlaneThickness/2 +2*$APAWirePlaneSpacing" y="$posVplane_y" z="0"/>
+         x="$posVplane[0]" y="$posVplane[1]" z="$posVplane[2]"/>
      </physvol>
      <physvol>
-       <volumeref ref="volTPCPlaneZ${_[3]}"/>
-       <position name="pos${_[3]}PlaneZ" unit="cm" 
-         x="-($_[0]/2) - $TPCWirePlaneThickness/2 + $APAWirePlaneSpacing" y="$posZplane_y" z="0"/>
+       <volumeref ref="volTPCPlaneU${_[3]}"/>
+       <position name="pos${_[3]}PlaneU" unit="cm" 
+         x="$posUplane[0]" y="$posUplane[1]" z="$posUplane[2]"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActive${_[3]}"/>
        <position name="pos${_[3]}Active" unit="cm" 
-         x="-($_[0]/2) + 3*$APAWirePlaneSpacing + $TPCActive_x/2" y="$posTPCActive_y" z="0"/>
+         x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
      </physvol>
 EOF
 
@@ -2337,7 +2386,7 @@ print CRYO <<EOF;
       <physvol>
         <volumeref ref="volTPCSmallestShortDrift"/>
         <positionref ref="posTPCSmallestShortDrift"/>
-	<rotationref ref="rPlus180AboutXandY"/>
+	<rotationref ref="rPlus180AboutX"/>
       </physvol>
 
 
@@ -2359,7 +2408,7 @@ print CRYO <<EOF;
       <physvol>
         <volumeref ref="volTPCMidShortDrift"/>
         <positionref ref="posTPCMidShortDrift"/>
-	<rotationref ref="rPlus180AboutY"/>
+	<rotationref ref="rIdentity"/>
       </physvol>
 
 
@@ -2373,28 +2422,26 @@ print CRYO <<EOF;
       <!-- The Largest APAs, Upstream and Downstream -->
 
       <physvol>
-        <volumeref ref="volTPCLargestLongDrift"/>
+        <volumeref ref="volTPCLargestLongDriftUpstream"/>
         <positionref ref="posTPCLargestLongDrift_Neg"/>
 	<rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
-        <volumeref ref="volTPCLargestShortDrift"/>
+        <volumeref ref="volTPCLargestShortDriftUpstream"/>
         <positionref ref="posTPCLargestShortDrift_Neg"/>
-	<rotationref ref="rPlus180AboutY"/>
+	<rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
-        <volumeref ref="volTPCLargestLongDrift"/>
+        <volumeref ref="volTPCLargestLongDriftDownstream"/>
         <positionref ref="posTPCLargestLongDrift_Pos"/>
 	<rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
-        <volumeref ref="volTPCLargestShortDrift"/>
+        <volumeref ref="volTPCLargestShortDriftDownstream"/>
         <positionref ref="posTPCLargestShortDrift_Pos"/>
-	<rotationref ref="rPlus180AboutY"/>
+	<rotationref ref="rIdentity"/>
       </physvol>
-
-
 
 EOF
 
@@ -3055,7 +3102,7 @@ print ENCL <<EOF;
     <subtraction name="NeckSteelShell">
       <first ref="Neck"/>
       <second ref="NeckArgon"/>
-      <position name="posLArInShell" unit="cm" x="0" y="-$SteelShellThickness/2" z="0"/> 
+      <position name="posLArInNeckShell" unit="cm" x="0" y="-$SteelShellThickness/2" z="0"/> 
     </subtraction>
 
 
@@ -3241,7 +3288,7 @@ EOF
       </physvol>
       <physvol>
         <volumeref ref="volTopSteelShell"/>
-        <position name="posCryo" unit="cm" 
+        <position name="posTopSteelShell" unit="cm" 
 	  x="$posCryoInDetEnc_x - $Argon_x/2 - $SteelShellThickness + $TopSteelShell_x/2" 
 	  y="$posCryoInDetEnc_y + $Argon_y/2 + $SteelShellThickness/2" 
           z="$posCryoInDetEnc_z"/>
@@ -3498,7 +3545,7 @@ print ENCL <<EOF;
 	  x="$BSULayer2_xpos - $OriginXSet" 
 	  y="$BSULayer2_ypos - $OriginYSet"
           z="$BSULayer2_zpos[$i-1] - $OriginZSet"/>
-	<rotation name="rAuxDetBSU-L4-$i"   unit="deg" x="0" y="90"   z="0"/>
+        <rotationref ref="rPlus90AboutY"/>
       </physvol>
 EOF
 }
@@ -3613,7 +3660,7 @@ print WORLD <<EOF;
           x="0"
           y="$OriginYSet + $DetEnc_y/2 " 
           z="$OriginZSet + $DetEnc_z/2 + $BermRadius"/>
-	<rotation name="rBerm"   unit="deg" x="0" y="90"   z="0"/>
+        <rotationref ref="rPlus90AboutY"/>
       </physvol>
 
 EOF
@@ -3625,7 +3672,7 @@ for ($i=1; $i<=16; ++$i)
 print WORLD <<EOF;
       <physvol>
         <volumeref ref="volAuxDetBoxBSU"/>
-        <position name="posAuxDet-BSU-L3-$i" unit="cm" 
+        <position name="posAuxDetBox-BSU-L3-$i" unit="cm" 
 	  x="$BSULayer3_xpos[$i-1]" 
 	  y="$BSULayer3_ypos"
           z="$BSULayer3_zpos"/>
@@ -3639,11 +3686,11 @@ for ($i=1; $i<=10; ++$i)
 print WORLD <<EOF;
       <physvol>
         <volumeref ref="volAuxDetBoxBSU"/>
-        <position name="posAuxDet-BSU-L4-$i" unit="cm" 
+        <position name="posAuxDetBox-BSU-L4-$i" unit="cm" 
 	  x="$BSULayer4_xpos" 
 	  y="$BSULayer4_ypos"
           z="$BSULayer4_zpos[$i-1]"/>
-	<rotation name="rAuxDetBSU-L4-$i"   unit="deg" x="0" y="90"   z="0"/>
+        <rotationref ref="rPlus90AboutY"/>
       </physvol>
 EOF
 }
