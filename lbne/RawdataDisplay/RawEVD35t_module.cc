@@ -337,7 +337,7 @@ outfile<<fChansPerAPA<<"  "<<fGeom->Ncryostats()<<"  "<<fNofAPA<<std::endl;
 	 cryoid=fGeom->ChannelToWire(chan)[0].Cryostat;
 
     std::vector<short> uncompressed(digit->Samples());
-    raw::Uncompress(digit->fADC, uncompressed, digit->Compression());
+    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
 
 	if( fGeom->View(chan) == geo::kU ){
 		for(unsigned int l=0;l<uncompressed.size();l++) {

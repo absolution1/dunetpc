@@ -294,21 +294,21 @@ namespace calgaushf {
       if(!chanFilt->BadChannel(channel)) {
 
 
- 	const int numberofblocks = digitVec->fADC[1];
+ 	const int numberofblocks = digitVec->ADC(1);
 
  	int zerosuppressedindex = numberofblocks*2 + 2;
 
  	//loop over all nonzero blocks
 	for(int i=0; i<numberofblocks; i++){
 
-	  const int lengthofblock = digitVec->fADC[2+numberofblocks+i];
+	  const int lengthofblock = digitVec->ADC(2+numberofblocks+i);
 	  rawadc.resize(lengthofblock);
 	  holder.resize(lengthofblock);
 	  rawadc_conv.resize(lengthofblock);
 
 	  for (int j=0;j<lengthofblock;j++)
 	    {
-	      rawadc[j] = digitVec->fADC[zerosuppressedindex];
+	      rawadc[j] = digitVec->ADC(zerosuppressedindex);
 	      zerosuppressedindex++;
 	    }
     	  

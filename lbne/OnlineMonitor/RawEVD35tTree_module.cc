@@ -237,7 +237,7 @@ namespace AnalysisExample{
 	 if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 1) Plane=3;
 
     std::vector<short> uncompressed(digit->Samples());
-    raw::Uncompress(digit->fADC, uncompressed, digit->Compression());
+    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
 
     std::vector<int> tmpADC;
     std::vector<int> tmpTDC;

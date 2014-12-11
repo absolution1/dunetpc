@@ -309,7 +309,7 @@ namespace deconvgaushf {
 	holder.resize(transformSize);
 	
 	// uncompress the data
-	raw::Uncompress(digitVec->fADC, rawadc, digitVec->Compression());
+	raw::Uncompress(digitVec->ADCs(), rawadc, digitVec->Compression());
 	
 	// loop over all adc values and subtract the pedestal
 	for(bin = 0; bin < dataSize; ++bin) 
