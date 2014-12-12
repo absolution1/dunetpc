@@ -31,7 +31,6 @@ art_make( BASENAME_ONLY
         )							   
 
 add_subdirectory(gdml)
-add_subdirectory(test)
 
 install_headers()
 install_fhicl()
