@@ -11,6 +11,8 @@ anatree_anatree:
    TrkSpptAssocModuleLabel:   "ct"
    HitSpptAssocModuleLabel:   "hitcheat"
    ClusterModuleLabel:        "cluster"
+   CalorimetryModuleLabel:  "calo"
+   SimulationLabel: "largeant"
 
    Dump: 10
    MinMCKE: 0.05

@@ -37,6 +37,9 @@
 #include "Utilities/AssociationUtil.h"
 #include "RawData/ExternalTrigger.h"
 #include "MCCheater/BackTracker.h"
+#include "AnalysisBase/Calorimetry.h"
+#include "AnalysisBase/ParticleID.h"
+
 
 
 #include "SimulationBase/MCParticle.h"
@@ -656,6 +659,12 @@ private:
   double trktheta_yz[kMaxTrack];
   double trktheta[kMaxTrack];
   double trkphi[kMaxTrack];
+  double trkdedx[kMaxTrack];
+  double trkdedx2[kMaxTrack][3][1000];
+  double trkplaneid[kMaxTrack][3][1000];
+  double trkresrg[kMaxTrack][3][1000];
+  double trkdedx_MC[kMaxTrack];
+  double trkdq_MC[kMaxTrack];
   double mcang_x;
   double mcang_y;
   double mcang_z;
@@ -687,7 +696,12 @@ private:
   std::string fClusterModuleLabel;
   std::string fTrkSpptAssocModuleLabel;
   std::string fHitSpptAssocModuleLabel;
-  
+  std::string fSimulationProducerLabel; 
+  std::string fCalorimetryModuleLabel; 
+
+
+
+
   int fDump;                 // Number of events to dump to debug message facility.
   double fMinMCKE;           // Minimum MC particle kinetic energy (GeV).
   double fMinMCLen;          // Minimum MC particle length in tpc (cm).
@@ -696,6 +710,9 @@ private:
   double fWMatchDisp;        // Maximum matching displacement in the w direction.
   bool fIgnoreSign;          // Ignore sign of mc particle if true.
   bool fStitchedAnalysis;    // if true, do the whole drill-down from stitched track to assd hits
+
+  double fElectronsToGeV; // conversion factor
+  art::ServiceHandle<geo::Geometry> fGeometry;       // pointer to Geometry service
 
   struct RecoHists
     {
@@ -816,6 +833,8 @@ AnaTree::AnaTree::AnaTree(fhicl::ParameterSet const & pset)
   , fClusterModuleLabel       (pset.get< std::string >("ClusterModuleLabel"))
   , fTrkSpptAssocModuleLabel    (pset.get< std::string >("TrkSpptAssocModuleLabel"))
   , fHitSpptAssocModuleLabel    (pset.get< std::string >("HitSpptAssocModuleLabel"))
+  ,  fSimulationProducerLabel ( pset.get< std::string >("SimulationLabel"))
+  ,  fCalorimetryModuleLabel ( pset.get< std::string >("CalorimetryModuleLabel"))
   , fDump              (pset.get<int>("Dump"))
   , fMinMCKE            (pset.get<double>("MinMCKE"))
   , fMinMCLen           (pset.get<double>("MinMCLen"))
@@ -875,6 +894,10 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   std::vector<art::Ptr<recob::Hit> > hitlist;
   if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
     art::fill_ptr_vector(hitlist, hitListHandle);
+
+
+  art::Handle< std::vector<sim::SimChannel> > simChannelHandle;
+  evt.getByLabel(fSimulationProducerLabel, simChannelHandle);
 
   //  Event.getByLabel(fSimulationProducerLabel, particleHandle);
   //  art::Handle< std::vector<simb::MCParticle> > particleHandle;
@@ -949,21 +972,18 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   /////////////  Extra Test
   /////////
   ////////////////////
-
   art::Handle< std::vector<simb::MCParticle> > particleHandle2;
-    evt.getByLabel("largeant", particleHandle2);
+    evt.getByLabel(fSimulationProducerLabel, particleHandle2);
 
     // put it in a more easily usable form
     std::vector< art::Ptr<simb::MCParticle> > particles2;
     art::fill_ptr_vector(particles2, particleHandle2);
 
-    art::Handle< std::vector<sim::SimChannel> > simChannelHandle2;
-    evt.getByLabel("largeant", simChannelHandle2);    
-
     //    int fMC_Ntrack = particles2.size();
-
     float fMC_startXYZT[1000][4];
     float fMC_endXYZT[1000][4];
+
+    double trkde=0;
 
     int i=0; // track index
     for (auto const& particle: particles2 ) {
@@ -977,6 +997,30 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       trkpdg[i]=particle->PdgCode();
       if(!(particle->Process()=="primary" && particle->PdgCode()==13))
 	continue;
+      int trackID=particle->TrackId();
+      for ( auto const& channel : (*simChannelHandle) )
+	{
+	  auto channelNumber = channel.Channel();
+	  if ( fGeometry->SignalType( channelNumber ) == geo::kCollection )
+	    {
+	      auto const& timeSlices = channel.TDCIDEMap();
+	      for ( auto const& timeSlice : timeSlices )
+		{
+		  auto const& energyDeposits = timeSlice.second;
+		  for ( auto const& energyDeposit : energyDeposits )
+		    {
+		      if ( energyDeposit.trackID == trackID )
+			{
+			  
+			  trkde+=energyDeposit.numElectrons*1./( 1e6/23.6);//MeV
+			}//TrackID
+		    }//energyDeposit
+		}//timeSlice
+	    }//CollectionPlane
+	}//simChannel
+
+      trkdq_MC[i]=trkde*1e6/23.6;//back to q
+      
       double origin[3] = {0.};
       double world[3] = {0.};
       double xyztArray[4];
@@ -1043,6 +1087,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       TVector3 mcendmom;
       double plen = length(*particle, mcdx, mcstart, mcend, mcstartmom, mcendmom);
       trklen_cut_MC[i]=plen;
+      trkdedx_MC[i]=trkde/trklen_cut_MC[i];
       //        momentumStart.GetXYZT(fMC_startMomentum[i]);
       //        momentumEnd.GetXYZT(fMC_endMomentum[i]);
       i++;
@@ -1057,24 +1102,47 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     // **********************
     // **********************
     //
-    //  Tracks:
+    //  Trackh:
+    //  Trackvh:
+    //
+    //
+    // *********************
+    // *********************
+
+    art::Handle< std::vector<recob::Track> > trackh;
+    evt.getByLabel(fTrackModuleLabel, trackh);
+     
+
+   art::Handle< std::vector< art::PtrVector < recob::Track > > > trackvh;
+   evt.getByLabel(fTrackModuleLabel, trackvh);
+
+   // Protect against invalid art::Handle (both here and when trackvh is used below)
+   // TODO: How to do this for art::PtrVector without the uninitialised iterator?
+   std::vector< art::PtrVector<recob::Track> >::const_iterator cti; 
+   if (trackvh.isValid()) cti = trackvh->begin();                   
+   
+
+
+    // **********************
+    // **********************
+    //
+    //  TrackList:
     //
     //
     //
     // *********************
     // *********************
 
-       art::Handle< std::vector<recob::Track> > trackh;
-    evt.getByLabel(fTrackModuleLabel, trackh);
-    
     for(size_t i=0; i<tracklist.size();++i){
+  
     trkid[i]=i;
     trackStart.clear();
     trackEnd.clear();
     memset(larStart, 0, 3);
     memset(larEnd, 0, 3);
-    tracklist[i]->Extent(trackStart,trackEnd); 
-    tracklist[i]->Direction(larStart,larEnd);
+    //careful : start and end flipped for stitching purposes
+    tracklist[i]->Extent(trackEnd,trackStart); 
+    tracklist[i]->Direction(larEnd,larStart);
     trkstartx[i]        = trackStart[0];
     trkstarty[i]        = trackStart[1];
     trkstartz[i]        = trackStart[2];
@@ -1087,38 +1155,112 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     TLorentzVector v1(trackStart[0],trackStart[1],trackStart[2],0);
     TLorentzVector v2(trackEnd[0],trackEnd[1],trackEnd[2],0);
     trklen[i]=(v2-v1).Rho();
-  
+    trkdedx[i]=trkde/trklen[i];
     //    trkang[i]=TMath::Cos((v2-v1).Angle(tmpVec.Vect()));
     trkang[i]=TMath::Cos((v2-v1).Angle(tmpVec.Vect()));
     //    trklen[i]=v.Mag();
     trkenddcosx[i]    = larEnd[0];
     trkenddcosy[i]    = larEnd[1];
     trkenddcosz[i]    = larEnd[2];
-    ntrkhits[i] = fmsp.at(i).size();
-    std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
+    //    ntrkhits[i] = fmsp.at(i).size();
+
+    //    std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
+    //   art::Ptr<recob::Track> pptrack(trackh, i);
+    //    auto pp { pptrack };
+    //    art::FindManyP<recob::SpacePoint> spptAssns(pp, evt, fTrackModuleLabel); 
+    //    ntrkhits[i] = spptAssns.at(0).size();   
+    //    int nnn = spptAssns.at(0).size();
+    //    std::cout << " Number of clumps ----> " << nnn<< std::endl;
+
+    double distance_squared=0;
     TVector3 V1(trackStart[0],trackStart[1],trackStart[2]);
     TVector3 V2(trackEnd[0],trackEnd[1],trackEnd[2]);
     TVector3 vOrth=(V2-V1).Orthogonal();
-
     TVector3 pointVector=V1;
-    double distance_squared=0;
-    double distance=0;
 
-    for (size_t j = 0; j<spts.size(); ++j){
+    if(trackvh.isValid())
+      {
+	int k=i;
+	int ntrackhits=0;
+	const art::PtrVector<recob::Track> pvtrack(*(cti++));
+	//        auto it = pvtrack.begin();
 
-      TVector3 sptVector(spts[j]->XYZ()[0],spts[j]->XYZ()[1],spts[j]->XYZ()[2]);
-      TVector3 vToPoint=sptVector-pointVector;
-      distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
-      distance_squared+=distance *distance;
-      trkx[i][j] = spts[j]->XYZ()[0];
-      trky[i][j] = spts[j]->XYZ()[1];
-      trkz[i][j] = spts[j]->XYZ()[2];
-    }
+	int ntrack = pvtrack.size();
+	art::FindManyP<recob::SpacePoint> fs( pvtrack, evt, fTrkSpptAssocModuleLabel);
+	double distance=0;
+	for(int ii=0;ii<ntrack;ii++){
+	  
+	  for (size_t j = 0; j<fs.at(ii).size(); ++j){
+	    
+	    ntrackhits++;
+	    TVector3 sptVector(fs.at(ii).at(j)->XYZ()[0],fs.at(ii).at(j)->XYZ()[1],fs.at(ii).at(j)->XYZ()[2]);
+	    TVector3 vToPoint=sptVector-pointVector;
+	    distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
+	    if(isnan(distance)){
+	      mf::LogVerbatim("output") <<"is nan" <<(vOrth.Dot(vToPoint));
+	      mf::LogVerbatim("output") <<"is nan" <<vOrth.Mag();
+	    }
+	    distance_squared+=distance *distance;
+	    trkx[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[0];
+	    trky[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[1];
+	    trkz[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[2];
+	  }
+	}
+	ntrkhits[k]=ntrackhits;
+	distance_squared=distance_squared/ntrkhits[k];
+	if(!isnan(distance_squared))
+	  trkd2[k]=distance_squared;
+      }
+    
+
+      // *********************
+      //  Calorimetric stuff:
+      //  
+      // *********************
+      //
+      //
+      //
+      //
+      //
+      //
+      
+      art::FindMany<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
+      if (fmcal.isValid()){
+        std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
+        //std::cout<<"calo size "<<calos.size()<<std::endl;
+        for (size_t jj = 0; jj<calos.size(); ++jj){
+	  //          trkke[it1][i][j]    = calos[j]->KineticEnergy();
+	  //	  trkrange[i][jj] = calos[jj]->Range();
+	  //          trkpitchc[it1][i][j]= calos[j] -> TrkPitchC();
+	  //   ntrkhitscal[i][jj] = calos[jj] -> dEdx().size();
+	  int tt= calos[jj] -> dEdx().size();
+	  for(int k = 0; k < tt; ++k) {
+            trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
+	    trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;
+	    //            trkdqdx[it1][i][j][k]  = (calos[jj] -> dQdx())[k];
+            trkresrg[i][jj][k] = (calos[jj] -> ResidualRange())[k];
+	    //            trkxyz[it1][i][j][k][0] = (calos[jj] -> XYZ())[k].X();
+	    //            trkxyz[it1][i][j][k][1] = (calos[jj] -> XYZ())[k].Y();
+	    //            trkxyz[it1][i][j][k][2] = (calos[jj] -> XYZ())[k].Z();
+          }
+        }
+      }
+
+
+      // *********************
+      //  End Calorimetric stuff
+      //  
+      // *********************
+      
+
+
 
     // *********************
     //   Cuts specific quantities
     //  
     // *********************
+    //
+    //
     //
     //
     TMatrixD rot(3,3);
@@ -1141,7 +1283,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   TVector3 mcendmom;
   double plen = length(*particle, mcdx, mcstart, mcend, mcstartmom, mcendmom);
   // Get the displacement of this mc particle in the global coordinate system.
-  TVector3 mcpos = mcstart - pos;
+  //  TVector3 mcpos = mcstart - pos;
+  TVector3 mcpos = pos -mcstart ;
   // Rotate the momentum and position to the
   // track-local coordinate system.
   TVector3 mcmoml = rot * mcstartmom;
@@ -1174,16 +1317,10 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // End Cut specific quantities
   //  
   //***********************
-  //
-  //
-  //
-  //
-  //
 
 
-  distance_squared=distance_squared/spts.size();
-  trkd2[i]=distance_squared;
-  
+
+ 
   for (int j = 0; j<3; ++j){
     try{
       if (j==0)
@@ -1296,8 +1433,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     }
   } // ...+minMCKE
 
-  //  art::Handle< std::vector<recob::Track> > trackh;
-  //  evt.getByLabel(fTrackModuleLabel, trackh);
+  //    art::Handle< std::vector<recob::Track> > trackh;
+  //    evt.getByLabel(fTrackModuleLabel, trackh);
   if(!trackh.isValid()) continue;
   unsigned int ntrack = trackh->size();
   for(unsigned int i = 0; i < ntrack; ++i) {
@@ -1388,7 +1525,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
           rhists.fHmom->Fill(mom);
           rhists.fHlen->Fill(tlen);
           // Id of matching mc particle.
-          int mcid = -1;
+	  //          int mcid = -1;
           // Loop over direction.  
           for(int swap=0; swap<2; ++swap) {
             // Analyze reversed tracks only if start momentum = end momentum.
@@ -1506,7 +1643,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
                   bool good = std::abs(w) <= fWMatchDisp &&
                     tlen > 0.5 * plen;
                   if(good) {
-                    mcid = part->TrackId();
+		    //                    mcid = part->TrackId();
                     mchists.fHgstartx->Fill(mcstart.X());
                     mchists.fHgstarty->Fill(mcstart.Y());
                     mchists.fHgstartz->Fill(mcstart.Z());
@@ -1526,7 +1663,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 
           }
           // Dump track information here.
-          if(pdump) {
+	  /*        if(pdump) {
             TVector3 pos = track.Vertex();
             TVector3 dir = track.VertexDirection();
             TVector3 end = track.End();
@@ -1577,7 +1714,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
             else 
               *pdump << std::setw(32)<< " ";
             *pdump << std::setw(12) << std::fixed << std::setprecision(3) << pend << "\n";
-          }
+          }*/
         }
       }
   }// ipar
@@ -1620,8 +1757,12 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trktheta_yz",trktheta_yz,"trktheta_yz[ntracks_reco]/D");
   fTree->Branch("trktheta",trktheta,"trktheta[ntracks_reco]/D");
   fTree->Branch("trkphi",trkphi,"trkphi[ntracks_reco]/D");
-
-
+  fTree->Branch("trkdedx",trkdedx,"trkdedx[ntracks_reco]/D");
+  fTree->Branch("trkdedx2",trkdedx2,"trkdedx2[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkresrg",trkresrg,"trkresrg[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkdedx_MC",trkdedx_MC,"trkdedx_MC[ntracks_reco]/D");
+  fTree->Branch("trkdq_MC",trkdq_MC,"trkdq_MC[ntracks_reco]/D");
   fTree->Branch("trkstartdcosx",trkstartdcosx,"trkstartdcosx[ntracks_reco]/D");
   fTree->Branch("trkstartdcosy",trkstartdcosy,"trkstartdcosy[ntracks_reco]/D");
   fTree->Branch("trkstartdcosz",trkstartdcosz,"trkstartdcosz[ntracks_reco]/D");
@@ -1650,6 +1791,11 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trkz",trkz,"trkz[ntracks_reco][1000]/D");
   fTree->Branch("trkpitch",trkpitch,"trkpitch[ntracks_reco][3]/D");
   fTree->Branch("nhits",&nhits,"nhits/I");
+
+  //  art::ServiceHandle<sim::LArG4Parameters> larParameters;
+  //  fElectronsToGeV = 1./larParameters->GeVToElectrons();
+
+
 }
 
 AnaTree::AnaTree::RecoHists::RecoHists():
@@ -1941,6 +2087,19 @@ void AnaTree::AnaTree::ResetVars(){
     trktheta_yz[i] = -99999;
     trktheta[i] = -99999;
     trkphi[i] = -99999;
+    trkdedx[i] = -99999;
+    for(int ii=0;ii<3;ii++)
+      {
+	for(int k=0;k<1000;k++)
+	  {
+	    trkdedx2[i][ii][k] = -99999;
+	    trkplaneid[i][ii][k] = -99999;
+	    trkresrg[i][ii][k] = -99999;
+	  }
+      }
+    trkdedx[i] = -99999;
+    trkdedx_MC[i] = -99999;
+    trkdq_MC[i] = -99999;
 
     trkstartdcosx[i] = -99999;
     trkstartdcosy[i] = -99999;
