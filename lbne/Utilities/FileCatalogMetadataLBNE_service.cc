@@ -108,21 +108,21 @@ namespace util {
 
     // Add metadata.
 
-    mds->addMetadata("lbneMCGenerators", fMCGenerators);
-    mds->addMetadata("lbneMCOscillationP", fMCOscillationP);
-    mds->addMetadata("lbneMCTriggerListVersion", fMCTriggerListVersion);
-    mds->addMetadata("lbneMCBeamEnergy", fMCBeamEnergy);
-    mds->addMetadata("lbneMCBeamFluxID", fMCBeamFluxID);
-    mds->addMetadata("lbneMCName", fMCName);
-    mds->addMetadata("lbneMCDetectorType", fMCDetectorType);
-    mds->addMetadata("lbneMCNeutrinoFlavors", fMCNeutrinoFlavors);
-    mds->addMetadata("lbneMCMassHierarchy", fMCMassHierarchy);
-    mds->addMetadata("lbneMCMiscellaneous", fMCMiscellaneous);
-    mds->addMetadata("lbneMCGeometryVersion", fMCGeometryVersion);
-    mds->addMetadata("lbneMCOverlay", fMCOverlay);
-    mds->addMetadata("lbneDataRunMode", fDataRunMode);
-    mds->addMetadata("lbneDataDetectorType", fDataDetectorType);
-    mds->addMetadata("lbneDataName", fDataName);
+    if (fMCGenerators!="") mds->addMetadata("lbneMCGenerators", fMCGenerators);
+    if (fMCOscillationP!="") mds->addMetadata("lbneMCOscillationP", fMCOscillationP);
+    if (fMCTriggerListVersion!="") mds->addMetadata("lbneMCTriggerListVersion", fMCTriggerListVersion);
+    if (fMCBeamEnergy!="") mds->addMetadata("lbneMCBeamEnergy", fMCBeamEnergy);
+    if (fMCBeamFluxID!="") mds->addMetadata("lbneMCBeamFluxID", fMCBeamFluxID);
+    if (fMCName!="") mds->addMetadata("lbneMCName", fMCName);
+    if (fMCDetectorType!="") mds->addMetadata("lbneMCDetectorType", fMCDetectorType);
+    if (fMCNeutrinoFlavors!="") mds->addMetadata("lbneMCNeutrinoFlavors", fMCNeutrinoFlavors);
+    if (fMCMassHierarchy!="") mds->addMetadata("lbneMCMassHierarchy", fMCMassHierarchy);
+    if (fMCMiscellaneous!="") mds->addMetadata("lbneMCMiscellaneous", fMCMiscellaneous);
+    if (fMCGeometryVersion!="") mds->addMetadata("lbneMCGeometryVersion", fMCGeometryVersion);
+    if (fMCOverlay!="") mds->addMetadata("lbneMCOverlay", fMCOverlay);
+    if (fDataRunMode!="") mds->addMetadata("lbneDataRunMode", fDataRunMode);
+    if (fDataDetectorType!="") mds->addMetadata("lbneDataDetectorType", fDataDetectorType);
+    if (fDataName!="") mds->addMetadata("lbneDataName", fDataName);
   }
 
 } // namespace util
