@@ -17,7 +17,7 @@ services:
 source:
 {
   module_type: RootInput
-  fileNames:  [ "/data1/lbne/mworcest/Simulation1.root" ]
+  fileNames:  [ "../EventGenerator/single35t_gen.root" ]
   #fileNames:  [ "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_01_gen.root", 
   #              "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_02_gen.root", 
   #              "/lbne/app/users/mworcest/lbnecode_v1_00_05/muon35t_trig1_03_gen.root",

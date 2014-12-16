@@ -356,7 +356,7 @@ namespace AnalysisExample{
 
     // load the muon counter positions from a text file
 
-    char counterfile[] = "/data1/lbne/mworcest/lbnecode_v02_02_01/srcs/lbnecode/lbne/Geometry/muoncounters.txt";
+    char counterfile[] = "../Geometry/muoncounters.txt";
 
     counters_loaded = muon_counter->loadMuonCounterGeometry(counterfile,countergeometry);
 
