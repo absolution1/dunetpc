@@ -28,4 +28,5 @@ art_make( BASENAME_ONLY
 add_subdirectory(gdml)
 
 install_headers()
+install_fhicl()
 install_source()

@@ -63,6 +63,7 @@ extern "C" {
 #include "TStyle.h"
 #include <string>
 
+/* unused function
 namespace{
   // Fill histogram from vector (set underflow/overflow bins to zero).
 
@@ -85,6 +86,7 @@ namespace{
   }
 
 }
+*/
 
 ///creation of calibrated signals on wires
 namespace deconvgaushf {
@@ -286,6 +288,13 @@ namespace deconvgaushf {
         
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     
+    if (digitVec0->Compression() != raw::kZeroSuppression) {
+      throw art::Exception(art::errors::UnimplementedFeature)
+	<< "CalGausHFLBNE only supports zero-suppressed raw digit input!";
+    } // if
+
+
+
     uint32_t     channel(0); // channel number
     unsigned int bin(0);     // time bin loop variable
     

@@ -12,6 +12,7 @@
 #include <set>
 #include <stdint.h>
 
+#include "cetlib/exception.h"
 #include "Geometry/ChannelMapAlg.h"
 #include "lbne/Geometry/GeoObjectSorterAPA.h"
 
@@ -30,6 +31,10 @@ namespace geo{
     void                     Uninitialize();
     std::vector<WireID>      ChannelToWire(uint32_t channel)           const;
     uint32_t                 Nchannels()                               const;
+    virtual double WireCoordinate(double YPos, double ZPos,
+                                  unsigned int PlaneNo,
+                                  unsigned int TPCNo,
+                                  unsigned int cstat) const override;
     WireID                   NearestWireID(const TVector3& worldPos,
 					   unsigned int    PlaneNo,
 					   unsigned int    TPCNo,
@@ -62,11 +67,20 @@ namespace geo{
 
     geo::GeoObjectSorterAPA                              fSorter;         ///< sorts geo::XXXGeo objects
 
-    std::vector<std::vector<std::vector<double>>> fFirstWireCenterY;
-    std::vector<std::vector<std::vector<double>>> fFirstWireCenterZ;
+    /// all data we need for each APA
+    typedef struct {
+      double fFirstWireCenterY;
+      double fFirstWireCenterZ;
+      /// +1 if the wire ID order follow z (larger z, or smaller intercept => larger wire ID); -1 otherwise
+      float fWireSortingInZ;
+    } PlaneData_t;
+    
+    ///< collects all data we need for each plane (indices: c t p)
+    std::vector<std::vector<std::vector<PlaneData_t>>> fPlaneData;
+    
     std::vector< double > fWirePitch;
     std::vector< double > fOrientation;
-    std::vector< double > fTanOrientation; // to explore improving speed
+    std::vector< double > fSinOrientation; // to explore improving speed
     std::vector< double > fCosOrientation; // to explore improving speed
 
   };

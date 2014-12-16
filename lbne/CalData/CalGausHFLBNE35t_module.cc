@@ -63,6 +63,7 @@ extern "C" {
 #include "TStyle.h"
 #include <string>
 
+/* unused function
 namespace{
   // Fill histogram from vector (set underflow/overflow bins to zero).
 
@@ -85,6 +86,7 @@ namespace{
   }
 
 }
+*/
 
 ///creation of calibrated signals on wires
 namespace calgaushf {
@@ -289,6 +291,12 @@ namespace calgaushf {
     // Use the handle to get a particular (0th) element of collection.
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
     
+    if (digitVec0->Compression() != raw::kZeroSuppression) {
+      throw art::Exception(art::errors::UnimplementedFeature)
+	<< "CalGausHFLBNE only supports zero-suppressed raw digit input!";
+    } // if
+
+
     uint32_t     channel(0); // channel number
     unsigned int bin(0);     // time bin loop variable
     
