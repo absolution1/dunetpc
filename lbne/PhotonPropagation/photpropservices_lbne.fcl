@@ -25,6 +25,13 @@ lbne35t_photonvisibilityservice:
   ZMax: 1200
 }
 
+lbne35t_photonvisibilityservice_buildlib: @local::lbne35t_photonvisibilityservice
+lbne35t_photonvisibilityservice_buildlib.DoNotLoadLibrary: true
+lbne35t_photonvisibilityservice_buildlib.LibraryBuildJob: true
+lbne35t_photonvisibilityservice_buildlib.LibraryFile: "PhotonPropagation/LibraryData/Not_A_Library.root"	 
+
+
 lbnefd_photonvisibilityservice: @local::standard_photonvisibilityservice
+lbnefd_photonvisibilityservice_buildlib: @local::standard_photonvisibilityservice_buildlib
 
 END_PROLOG
