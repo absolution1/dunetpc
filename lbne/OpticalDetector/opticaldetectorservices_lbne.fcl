@@ -8,11 +8,16 @@ lbnefd_opdigiproperties.WaveformFile: "OpticalDetector/sensl_1.dat"
 lbnefd_opdigiproperties.UseEmpiricalShape: true
 lbnefd_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
 
+lbnefd_opdetresponse: @local::standard_opdetresponse
+
 
 lbne35t_opdigiproperties:           @local::standard_opdigiproperties
 lbne35t_opdigiproperties.WaveformFile: "OpticalDetector/sensl_1.dat"
 lbne35t_opdigiproperties.UseEmpiricalShape: true
 lbne35t_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
+
+lbne35t_opdetresponse: @local::standard_opdetresponse
+lbne35t_opdetresponse.LightGuideAttenuation:   true
 
 
 END_PROLOG
