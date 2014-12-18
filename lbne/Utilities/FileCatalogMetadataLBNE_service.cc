@@ -3,17 +3,6 @@
 //
 // Purpose:  Art service adds microboone-specific per-job sam metadata.
 //
-//           FCL parameters:
-//
-//           FCLName        - FCL file name.
-//           FCLVersion     - FCL file version.
-//           ProjectName    - Project name.
-//           ProjectStage   - Project stage.
-//           ProjectVersion - Project version.
-//
-//           Above values are recorded in internal sam metadata generated
-//           by art program.
-//
 //           This service does not have user-callable methods.  Simply
 //           add to an art configuration in services.user block of job
 //           file.
@@ -66,6 +55,7 @@ namespace util {
     std::string fDataRunMode;
     std::string fDataDetectorType;
     std::string fDataName;
+    std::string fStageName;
   };
 
   //--------------------------------------------------------------------
@@ -91,7 +81,7 @@ namespace util {
     fDataRunMode = pset.get<std::string>("DataRunMode","");
     fDataDetectorType = pset.get<std::string>("DataDetectorType","");
     fDataName = pset.get<std::string>("DataName","");
-
+    fStageName = pset.get<std::string>("StageName","");
     // Register for callbacks.
 
     reg.sPostBeginJob.watch(this, &FileCatalogMetadataLBNE::postBeginJob);
@@ -123,6 +113,7 @@ namespace util {
     if (fDataRunMode!="") mds->addMetadata("lbneDataRunMode", fDataRunMode);
     if (fDataDetectorType!="") mds->addMetadata("lbneDataDetectorType", fDataDetectorType);
     if (fDataName!="") mds->addMetadata("lbneDataName", fDataName);
+    if (fStageName!="") mds->addMetadata("StageName",fStageName);
   }
 
 } // namespace util
