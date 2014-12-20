@@ -1891,6 +1891,9 @@ else                 { $xx = 1;  }
     $posTPCActive[1] = -$_[1]/2 + $TPCActive_y/2;
     $posTPCActive[2] = 0;
 
+if ($TPCActive_x<100){ $planeRot = "rIdentity"; }
+else                 { $planeRot = "rPlus180AboutY";  }
+
 
 #wrap up the TPC file
 print TPC <<EOF;
@@ -1901,16 +1904,19 @@ print TPC <<EOF;
        <volumeref ref="volTPCPlaneZ${_[3]}"/>
        <position name="pos${_[3]}PlaneZ" unit="cm" 
          x="$posZplane[0]" y="$posZplane[1]" z="$posZplane[2]"/>
+       <rotationref ref="$planeRot"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneV${_[3]}"/>
        <position name="pos${_[3]}PlaneV" unit="cm" 
          x="$posVplane[0]" y="$posVplane[1]" z="$posVplane[2]"/>
+       <rotationref ref="$planeRot"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneU${_[3]}"/>
        <position name="pos${_[3]}PlaneU" unit="cm" 
          x="$posUplane[0]" y="$posUplane[1]" z="$posUplane[2]"/>
+       <rotationref ref="$planeRot"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActive${_[3]}"/>
