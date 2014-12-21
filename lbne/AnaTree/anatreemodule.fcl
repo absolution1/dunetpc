@@ -14,6 +14,7 @@ anatree_anatree:
    CalorimetryModuleLabel:  "calo"
    SimulationLabel: "largeant"
 
+   pdg: 13
    Dump: 10
    MinMCKE: 0.05
    MinMCLen: 20. #20
