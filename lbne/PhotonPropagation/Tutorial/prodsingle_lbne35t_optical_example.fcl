@@ -7,6 +7,7 @@
 #include "opticaldetectormodules_lbne.fcl"
 
 
+
 process_name: SinglesGen
 
 services:
@@ -18,9 +19,6 @@ services:
   user:         @local::lbne35t_simulation_services
   message:      @local::standard_info
 }
-
-services.user.Geometry.GDML: "lbne35t4apa_v2.gdml"
-services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v2"
 
 
 
@@ -129,11 +127,11 @@ outputs:
 ## 
 
 # LBNE 35ton w/o wires and mesh
-services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
+#services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
 
 
 # set quantum efficiency supressed scint yield to 0.03 * 24000
-services.user.LArProperties.ScintYield: 24000
+#services.user.LArProperties.ScintYield: 720
 
 # enable optical physics in LArG4
 services.user.LArG4Parameters.EnabledPhysics: [ "Em",
