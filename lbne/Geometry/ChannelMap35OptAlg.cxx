@@ -1,11 +1,24 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  ChannelMap35OptAlg.cxx
-/// \brief Interface to algorithm class for a specific detector channel mapping
+/// \brief The class of 35t specific algorithms, optimized
 ///
 /// \version $Id:  $
 /// \author  tylerdalion@gmail.com
 ////////////////////////////////////////////////////////////////////////
-
+///
+/// This class is starting as a copy of ChannelMap35Alg, plus one bug fix
+/// in the loop that counts the number of anchored wires in an APA, or 
+/// rather the number of channels per APA.
+///
+/// NOTE: Actual optimization still needs to be done. Much more generality
+/// than actually needed is carried over from older ChannelMaps.
+///
+/// Any gdml before v3 should stay configured to use ChannelMap35Alg, and 
+/// any gdml v3 or later should be configured to use ChannelMap35OptAlg.
+/// This is done in LBNEGeometryHelper using the fcl parameter DetectorVersion
+/// in the SortingParameters pset.
+///
+///
 #include "lbne/Geometry/ChannelMap35OptAlg.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"

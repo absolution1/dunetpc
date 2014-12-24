@@ -1,11 +1,16 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  ChannelMap35Alg.cxx
-/// \brief Interface to algorithm class for a specific detector channel mapping
+/// \brief The class of 35t specific algorithms
 ///
 /// \version $Id:  $
 /// \author  tylerdalion@gmail.com
 ////////////////////////////////////////////////////////////////////////
-
+///
+/// Any gdml before v3 should stay configured to use ChannelMap35Alg, and 
+/// any gdml v3 or later should be configured to use ChannelMap35OptAlg.
+/// This is done in LBNEGeometryHelper using the fcl parameter DetectorVersion
+/// in the SortingParameters pset.
+///
 #include "lbne/Geometry/ChannelMap35Alg.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
@@ -104,7 +109,8 @@ namespace geo{
 	    cgeo[c]->TPC(t).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
     	    if(xyz[2]==xyz_next[2]){
-	      nAnchoredWires[c][a][p] = w-1;      
+	      nAnchoredWires[c][a][p] = w-1; // this is a known bug, should be w
+	                                     // fixed in ChannelMap35OptAlg
 	      break;
 	    }
 
@@ -174,14 +180,14 @@ namespace geo{
     } // for
     
     
-    mf::LogVerbatim("GeometryTest") << "fNchannels = " << fNchannels ; 
-    mf::LogVerbatim("GeometryTest") << "U channels per APA = " << 2*nAnchoredWires[0][0][0] ;
-    mf::LogVerbatim("GeometryTest") << "V channels per APA = " << 2*nAnchoredWires[0][0][1] ;
-    mf::LogVerbatim("GeometryTest") << "Z channels per APA side = " << nAnchoredWires[0][0][2] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "fNchannels = " << fNchannels ; 
+    mf::LogVerbatim("ChannelMap35Alg") << "U channels per APA = " << 2*nAnchoredWires[0][0][0] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "V channels per APA = " << 2*nAnchoredWires[0][0][1] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "Z channels per APA side = " << nAnchoredWires[0][0][2] ;
 
-    mf::LogVerbatim("GeometryTest") << "Pitch in U Plane = " << fWirePitch[0] ;
-    mf::LogVerbatim("GeometryTest") << "Pitch in V Plane = " << fWirePitch[1] ;
-    mf::LogVerbatim("GeometryTest") << "Pitch in Z Plane = " << fWirePitch[2] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "Pitch in U Plane = " << fWirePitch[0] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "Pitch in V Plane = " << fWirePitch[1] ;
+    mf::LogVerbatim("ChannelMap35Alg") << "Pitch in Z Plane = " << fWirePitch[2] ;
 
     return;
 
