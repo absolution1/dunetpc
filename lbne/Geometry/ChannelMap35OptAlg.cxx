@@ -1,17 +1,25 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  ChannelMap35Alg.cxx
-/// \brief The class of 35t specific algorithms
+/// \file  ChannelMap35OptAlg.cxx
+/// \brief The class of 35t specific algorithms, optimized
 ///
 /// \version $Id:  $
 /// \author  tylerdalion@gmail.com
 ////////////////////////////////////////////////////////////////////////
+///
+/// This class is starting as a copy of ChannelMap35Alg, plus one bug fix
+/// in the loop that counts the number of anchored wires in an APA, or 
+/// rather the number of channels per APA.
+///
+/// NOTE: Actual optimization still needs to be done. Much more generality
+/// than actually needed is carried over from older ChannelMaps.
 ///
 /// Any gdml before v3 should stay configured to use ChannelMap35Alg, and 
 /// any gdml v3 or later should be configured to use ChannelMap35OptAlg.
 /// This is done in LBNEGeometryHelper using the fcl parameter DetectorVersion
 /// in the SortingParameters pset.
 ///
-#include "lbne/Geometry/ChannelMap35Alg.h"
+///
+#include "lbne/Geometry/ChannelMap35OptAlg.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
@@ -23,18 +31,18 @@
 namespace geo{
 
   //----------------------------------------------------------------------------
-  ChannelMap35Alg::ChannelMap35Alg(fhicl::ParameterSet const& p)
+  ChannelMap35OptAlg::ChannelMap35OptAlg(fhicl::ParameterSet const& p)
     : fSorter(geo::GeoObjectSorter35(p))
   {
   }
 
   //----------------------------------------------------------------------------
-  ChannelMap35Alg::~ChannelMap35Alg()
+  ChannelMap35OptAlg::~ChannelMap35OptAlg()
   {
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMap35Alg::Initialize(std::vector<geo::CryostatGeo*> & cgeo)
+  void ChannelMap35OptAlg::Initialize(std::vector<geo::CryostatGeo*> & cgeo)
   {
 
     if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
@@ -45,14 +53,14 @@ namespace geo{
 
     fNcryostat = cgeo.size();
     
-    mf::LogInfo("ChannelMap35Alg") << "Sorting...";
+    mf::LogInfo("ChannelMap35OptAlg") << "Sorting...";
 
     fSorter.SortCryostats(cgeo);
     for(size_t c = 0; c < cgeo.size(); ++c) 
       cgeo[c]->SortSubVolumes(fSorter);
 
 
-    mf::LogInfo("ChannelMap35Alg") << "Initializing...";
+    mf::LogInfo("ChannelMap35OptAlg") << "Initializing...";
       
     fNTPC.resize(fNcryostat);
     fWiresPerPlane.resize(fNcryostat);
@@ -109,8 +117,7 @@ namespace geo{
 	    cgeo[c]->TPC(t).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
     	    if(xyz[2]==xyz_next[2]){
-	      nAnchoredWires[c][a][p] = w-1; // this is a known bug, should be w
-	                                     // fixed in ChannelMap35OptAlg
+	      nAnchoredWires[c][a][p] = w; // w-1(for last)+1(for index) = w    
 	      break;
 	    }
 
@@ -185,16 +192,12 @@ namespace geo{
     mf::LogVerbatim("ChannelMap35Alg") << "V channels per APA = " << 2*nAnchoredWires[0][0][1] ;
     mf::LogVerbatim("ChannelMap35Alg") << "Z channels per APA side = " << nAnchoredWires[0][0][2] ;
 
-    mf::LogVerbatim("ChannelMap35Alg") << "Pitch in U Plane = " << fWirePitch[0] ;
-    mf::LogVerbatim("ChannelMap35Alg") << "Pitch in V Plane = " << fWirePitch[1] ;
-    mf::LogVerbatim("ChannelMap35Alg") << "Pitch in Z Plane = " << fWirePitch[2] ;
-
     return;
 
   }
    
   //----------------------------------------------------------------------------
-  void ChannelMap35Alg::Uninitialize()
+  void ChannelMap35OptAlg::Uninitialize()
   {
 
     std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInThisPlane);
@@ -203,7 +206,7 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::WireID> ChannelMap35Alg::ChannelToWire(uint32_t channel)  const
+  std::vector<geo::WireID> ChannelMap35OptAlg::ChannelToWire(uint32_t channel)  const
   {
 
     // first check if this channel ID is legal
@@ -284,14 +287,14 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  uint32_t ChannelMap35Alg::Nchannels() const
+  uint32_t ChannelMap35OptAlg::Nchannels() const
   {
     return fNchannels;
   }
   
 
   //----------------------------------------------------------------------------
-  double ChannelMap35Alg::WireCoordinate(double YPos, double ZPos,
+  double ChannelMap35OptAlg::WireCoordinate(double YPos, double ZPos,
                                          unsigned int PlaneNo,
                                          unsigned int TPCNo,
                                          unsigned int cstat) const
@@ -323,11 +326,11 @@ namespace geo{
     // Of course, we are not always that lucky. fWireSortingInZ fixes our luck.
 
     return PlaneData.fWireSortingInZ * distance/fWirePitch[PlaneNo];
-  } // ChannelMap35Alg::WireCoordinate()
+  } // ChannelMap35OptAlg::WireCoordinate()
   
   
   //----------------------------------------------------------------------------
-  WireID ChannelMap35Alg::NearestWireID(const TVector3& xyz,
+  WireID ChannelMap35OptAlg::NearestWireID(const TVector3& xyz,
                                         unsigned int    plane,
                                         unsigned int    tpc,
                                         unsigned int    cryostat)     const
@@ -350,7 +353,7 @@ namespace geo{
     /*
       // comment in the following statement to throw an exception instead
       throw InvalidWireIDError("Geometry", wireNumber, NearestWireNumber)
-        << "ChannelMap35Alg::NearestWireID(): can't Find Nearest Wire for position (" 
+        << "ChannelMap35OptAlg::NearestWireID(): can't Find Nearest Wire for position (" 
         << xyz.X() << "," << xyz.Y() << "," << xyz.Z() << ")"
         << " approx wire number # " << wireNumber
         << " (capped from " << NearestWireNumber << ")\n";
@@ -358,10 +361,10 @@ namespace geo{
     } // if invalid wire
     
     return { cryostat, tpc, plane, (unsigned int) NearestWireNumber };
-  } // ChannelMap35Alg::NearestWireID()
+  } // ChannelMap35OptAlg::NearestWireID()
   
   //----------------------------------------------------------------------------
-  uint32_t ChannelMap35Alg::PlaneWireToChannel(unsigned int plane,
+  uint32_t ChannelMap35OptAlg::PlaneWireToChannel(unsigned int plane,
 					       unsigned int wire,
 					       unsigned int tpc,
 					       unsigned int cstat) const
@@ -387,7 +390,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  SigType_t ChannelMap35Alg::SignalType( uint32_t const channel )  const
+  SigType_t ChannelMap35OptAlg::SignalType( uint32_t const channel )  const
   {
     uint32_t chan = channel % fChannelsPerAPA;
     SigType_t sigt = kInduction;
@@ -402,7 +405,7 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  View_t ChannelMap35Alg::View( uint32_t const channel )  const
+  View_t ChannelMap35OptAlg::View( uint32_t const channel )  const
   {
     uint32_t chan = channel % fChannelsPerAPA;
     View_t view = geo::kU;
@@ -419,13 +422,13 @@ namespace geo{
   }  
  
   //----------------------------------------------------------------------------
-  std::set<View_t> const& ChannelMap35Alg::Views() const
+  std::set<View_t> const& ChannelMap35OptAlg::Views() const
   {
     return fViews;
   }
 
   //----------------------------------------------------------------------------
-  std::set<PlaneID> const& ChannelMap35Alg::PlaneIDs() const
+  std::set<PlaneID> const& ChannelMap35OptAlg::PlaneIDs() const
   {
     return fPlaneIDs;
   }

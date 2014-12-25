@@ -22,10 +22,10 @@
 njobs=$1
 
 # In each voxel, run this many photons:
-NPhotonsPerVoxel=5000
+NPhotonsPerVoxel=25000
 
 # Total number of voxels
-NTopVoxel=64000
+NTopVoxel=216000
 
 # In each grid job, do this many voxels:
 NVoxelsPerJob=`echo "$NTopVoxel/$njobs" | bc`
@@ -66,6 +66,7 @@ g4Seed=$(( $PROCESS *41 + 37))
 # Prepare to run
 #
 cd $CONDOR_DIR_ROOT
+echo "Writing log to ${LOG}"
 touch ${LOG}
 date 1>> ${LOG} 2>&1
 
@@ -78,7 +79,7 @@ echo "PWD:        " $PWD     1>> ${LOG} 2>&1
 
 # Copy fcl file and configure for this PROCESS 
 echo "Creat this job's fhicl file" 1>> ${LOG} 2>&1
-$CPN /lbne/app/users/ahimmel/testRel_35t_opsim/workdir/srcs/lbnecode/lbne/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
+$CPN ${WORK}/srcs/lbnecode/lbne/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
 
 echo "physics.producers.generator.FirstVoxel: $FirstVoxel" >> $FCL
 echo "physics.producers.generator.LastVoxel: $LastVoxel"   >> $FCL

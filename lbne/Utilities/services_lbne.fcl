@@ -9,6 +9,7 @@
 #include "databaseutil_lbne.fcl"
 #include "backtracker.fcl"
 #include "timeservice_lbne.fcl"
+#include "photpropservices_lbne.fcl"
 #include "sam_lbne.fcl"
 
 BEGIN_PROLOG
@@ -71,7 +72,6 @@ lbne35t_basic_services:
  DatabaseUtil:                 @local::lbne35t_database
 }
 
-
 lbne35t_services:              @local::lbne35t_basic_services
 lbne35t_services.LArFFT:       @local::lbne35t_larfft
 lbne35t_services.BackTracker:  @local::lbne35t_backtracker
@@ -83,6 +83,7 @@ lbne35t_gen_services.MagneticField: @local::no_mag
 lbne35t_g4_services:           @local::lbne35t_gen_services
 lbne35t_g4_services.LArG4Parameters:    @local::lbne35t_largeantparameters
 lbne35t_g4_services.LArVoxelCalculator: @local::lbne35t_larvoxelcalculator
+lbne35t_g4_services.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
 
 lbne35t_detsim_services:       @local::lbne35t_basic_services
 lbne35t_detsim_services.LArFFT: @local::lbne35t_larfft

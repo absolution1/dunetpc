@@ -9,7 +9,7 @@ lbne_geo(TString volName="")
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
 
-  TGeoManager::Import("lbne34kt_nowires.gdml");
+  TGeoManager::Import("lbne35t4apa_v3_nowires.gdml");
 
   drawopt optuboone[] = {
 // color in volumes later
@@ -29,8 +29,8 @@ lbne_geo(TString volName="")
   }
 
   gGeoManager->GetTopNode();
-//  gGeoManager->CheckOverlaps(1e-5);
-//  gGeoManager->PrintOverlaps();
+  gGeoManager->CheckOverlaps(1e-5);
+  gGeoManager->PrintOverlaps();
   gGeoManager->SetMaxVisNodes(70000);
 
   gGeoManager->GetTopVolume()->Draw();
