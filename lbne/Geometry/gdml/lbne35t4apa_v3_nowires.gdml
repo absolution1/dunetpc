@@ -176,7 +176,7 @@
   </material> 
 
   <material name="fibrous_glass">
-   <D value="2.74351" unit="g/cm3"/>
+   <D value="2.58" unit="g/cm3"/>
    <fraction n="0.600" ref="SiO2"/>
    <fraction n="0.118" ref="Al2O3"/>
    <fraction n="0.001" ref="Fe2O3"/>
@@ -184,6 +184,27 @@
    <fraction n="0.034" ref="MgO"/>
    <fraction n="0.010" ref="Na2O"/>
    <fraction n="0.013" ref="TiO2"/>
+  </material>
+
+<!-- The following fractional components are placeholders,
+     to be fixed (though they have very little effect,
+     as long as the density is correct) -->
+  <material name="polyurethane_foam">
+   <D value=".13" unit="g/cm3"/>
+   <fraction n="0.600" ref="SiO2"/>
+   <fraction n="0.118" ref="Al2O3"/>
+   <fraction n="0.001" ref="Fe2O3"/>
+   <fraction n="0.224" ref="CaO"/>
+   <fraction n="0.034" ref="MgO"/>
+   <fraction n="0.010" ref="Na2O"/>
+   <fraction n="0.013" ref="TiO2"/>
+  </material>
+
+<!-- for the cryostat foam insulation -->
+  <material name="R-PUF">
+   <D value=".2525" unit="g/cm3"/>
+   <fraction n="0.95" ref="polyurethane_foam"/>
+   <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
   <material name="FR4">

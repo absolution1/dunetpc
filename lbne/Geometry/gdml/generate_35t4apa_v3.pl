@@ -1011,7 +1011,7 @@ sub gen_Materials()
   </material> 
 
   <material name="fibrous_glass">
-   <D value="2.74351" unit="g/cm3"/>
+   <D value="2.58" unit="g/cm3"/>
    <fraction n="0.600" ref="SiO2"/>
    <fraction n="0.118" ref="Al2O3"/>
    <fraction n="0.001" ref="Fe2O3"/>
@@ -1019,6 +1019,27 @@ sub gen_Materials()
    <fraction n="0.034" ref="MgO"/>
    <fraction n="0.010" ref="Na2O"/>
    <fraction n="0.013" ref="TiO2"/>
+  </material>
+
+<!-- The following fractional components are placeholders,
+     to be fixed (though they have very little effect,
+     as long as the density is correct) -->
+  <material name="polyurethane_foam">
+   <D value=".13" unit="g/cm3"/>
+   <fraction n="0.600" ref="SiO2"/>
+   <fraction n="0.118" ref="Al2O3"/>
+   <fraction n="0.001" ref="Fe2O3"/>
+   <fraction n="0.224" ref="CaO"/>
+   <fraction n="0.034" ref="MgO"/>
+   <fraction n="0.010" ref="Na2O"/>
+   <fraction n="0.013" ref="TiO2"/>
+  </material>
+
+<!-- for the cryostat foam insulation -->
+  <material name="R-PUF">
+   <D value=".2525" unit="g/cm3"/>
+   <fraction n="0.95" ref="polyurethane_foam"/>
+   <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
   <material name="FR4">
@@ -1173,7 +1194,7 @@ sub gen_TPC()
 
     my $TPCActive_x   =  $_[0]-(3*$APAWirePlaneSpacing);
     my $TPCActive_y   =  $_[1] - $APAGap_y/2 - $ReadoutBoardOverlap ; #TODO: make the Active height more accurate
-    print "  APA $apa TPCActive xyz dimensions = ($TPCActive_x, $TPCActive_y, $TPCActive_z[$apa])\n";
+    #print "  APA $apa TPCActive xyz dimensions = ($TPCActive_x, $TPCActive_y, $TPCActive_z[$apa])\n";
 
 
     my $UAngle = $UAng[$apa];
@@ -3229,31 +3250,31 @@ EOF
 
 
     <volume name="volFoamSouth">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamSouth"/>
     </volume>
     <volume name="volFoamNorth">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamNorth"/>
     </volume>
     <volume name="volFoamEastWest">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamEastWest"/>
     </volume>
     <volume name="volFoamEastWestNeck">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamEastWestNeck"/>
     </volume>
     <volume name="volFoamBottom">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamBottom"/>
     </volume>
     <volume name="volFoamTop">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamTop"/>
     </volume>
     <volume name="volFoamNorthNeck">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamNorthNeck"/>
     </volume>
 
