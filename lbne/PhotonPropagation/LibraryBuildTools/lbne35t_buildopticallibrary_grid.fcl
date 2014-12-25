@@ -22,19 +22,13 @@ services:
   user:          @local::lbne35t_simulation_services  # defined in services.fcl
   message:       @local::standard_info
 }
-#services.message.type: "file"
-#services.message.filename: "buildlib.log"
 
-services.user.Geometry.GDML: "lbne35t4apa_v2_opunsegmods.gdml"
-services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v2"
-#services.user.Geometry.GDML: "lbne35t4apa_v3_beta.gdml"
-#services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v3"
+services.user.Geometry.GDML: "lbne35t4apa_v3.gdml"
+services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v3"
 
 
-services.user.PhotonVisibilityService: @local::standard_photonvisibilityservice_buildlib
-#services.user.BackTracker: ""
-#services.user.LArFFT: ""
-#services.user.SignalShapingServiceMicroBooNE: ""
+services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice_buildlib
+
 
 #Start each new event with an empty event.
 source:
@@ -91,7 +85,6 @@ outputs:
 }
 
 
-#physics.analyzers.pmtresponse.Verbosity: 4
 
 
 # Begin optical specific parts:
@@ -118,7 +111,7 @@ services.user.LArG4Parameters.EnabledPhysics: [ "Em",
 services.user.LArG4Parameters.UseCustomPhysics: true
 
 # disable cerenkov light
-#services.user.LArProperties.EnableCerenkovLight: false
+services.user.LArProperties.EnableCerenkovLight: false
 
 
 ##### Parameter changes for the generator (lightsource) #####
@@ -136,26 +129,6 @@ physics.analyzers.pmtresponse.MakeOpDetEventsTree: false
 
 # To disable wireplane absorption, uncomment this line
 #services.user.LArG4Parameters.OpticalParamModels: ["TransparentPlaneAction"]
-
-
-services.user.PhotonVisibilityService.UseCryoBoundary: true
-
-# Number of voxels
-services.user.PhotonVisibilityService.NX: 40
-services.user.PhotonVisibilityService.NY: 40
-services.user.PhotonVisibilityService.NZ: 40
-
-#physics.producers.generator.N : 1000
-
-# If UseCryoBoundary is set to false, so use the following parameters. 
-#services.user.PhotonVisibilityService.XMin:  -2.
-#services.user.PhotonVisibilityService.XMax:  2.
-#services.user.PhotonVisibilityService.YMin:  -1.
-#services.user.PhotonVisibilityService.YMax:  1.
-#services.user.PhotonVisibilityService.ZMin:  10.
-#services.user.PhotonVisibilityService.ZMax:  12.
-
-
 
 
 

@@ -13,6 +13,10 @@ services:
   RandomNumberGenerator: {} #ART native random number generator
   user:         @local::lbne35t_simulation_services
 }
+services.user.ExptGeoHelperInterface: @local::lbne_geometry_helper
+services.user.Geometry.GDML: "lbne35t4apa_v3.gdml"
+services.user.Geometry.ROOT: "lbne35t4apa_v3.gdml"
+services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v3"
 
 
 #Start each new event with an empty event.
