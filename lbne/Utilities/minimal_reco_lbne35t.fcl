@@ -20,7 +20,7 @@ services:
 }
 
 services.message.destinations.warningmsg.type: "cout"
-services.Timing.TriggerOffsetTPC: -1600 # The lbne35t Genie file at /pnfs/lbne/mc/lbne/simulated/002/singleparticle_antimu_20141105_Simulation009.root used this value (probably mistakenly), so for consistency we must do the same here. Else an exception is thrown.
+
 
 #source is now a root file
 source:
