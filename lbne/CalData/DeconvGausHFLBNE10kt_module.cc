@@ -17,37 +17,29 @@
 
 #include <string>
 #include <vector>
-#include <stdint.h>
-
-extern "C" {
-#include <sys/types.h>
-#include <sys/stat.h>
-}
+#include <algorithm> // std::accumulate
+#include <utility> // std::move
 
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Principal/Handle.h" 
 #include "art/Persistency/Common/Ptr.h" 
-#include "art/Persistency/Common/PtrVector.h" 
-#include "art/Framework/Services/Registry/ServiceHandle.h" 
-#include "art/Framework/Services/Optional/TFileService.h" 
-#include "art/Framework/Services/Optional/TFileDirectory.h" 
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Framework/Services/Optional/TFileDirectory.h"
 #include "fhiclcpp/ParameterSet.h" 
-#include "messagefacility/MessageLogger/MessageLogger.h" 
+#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib/exception.h"
-#include "cetlib/search_path.h"
 
 #include "lbne/Utilities/SignalShapingServiceLBNE10kt.h"
+#include "SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "Geometry/Geometry.h"
-#include "Geometry/CryostatGeo.h"
-#include "Geometry/TPCGeo.h"
-#include "Geometry/PlaneGeo.h"
 #include "Filters/ChannelFilter.h"
 #include "RawData/RawDigit.h"
 #include "RawData/raw.h"
-#include "RecoBase/Wire.h"
 #include "RecoBase/Hit.h"
+#include "RecoBaseArt/HitCreator.h"
 #include "Utilities/LArFFT.h"
 
 // ROOT Includes 
@@ -59,7 +51,8 @@ extern "C" {
 #include "TH2D.h"
 #include "TF1.h"
 #include "TTree.h"
-#include <string>
+#include "TCanvas.h"
+#include "TStyle.h"
 
 /* unused function
 namespace{
@@ -131,6 +124,7 @@ namespace deconvgaushf {
     double 	EndTime;
     double 	EndTimeError;
     int	NumOfHits;
+    double 	RMS;
     double	MeanPosition;
     double 	MeanPosError;
     double	Amp;
@@ -138,6 +132,7 @@ namespace deconvgaushf {
     double	Charge;
     double	ChargeError;
     double	FitGoodnes;
+    int   	FitNDF;
 
   protected: 
     
@@ -151,10 +146,11 @@ namespace deconvgaushf {
     fSpillName="";
     this->reconfigure(pset);
 
-    //if(fSpillName.size()<1) produces< std::vector<recob::Wire> >();
-    //else produces< std::vector<recob::Wire> >(fSpillName);
-
-    produces< std::vector<recob::Hit> >();
+    // let HitCollectionCreator declare that we are going to produce
+    // hits and associations with wires and raw digits
+    recob::HitCollectionCreator::declare_products
+      (*this, fSpillName, false /* doWireAssns */, true /* doRawDigitAssns */);
+    
   }
   
   //-------------------------------------------------
@@ -234,7 +230,15 @@ namespace deconvgaushf {
     // ---------------------------
     TF1 *hit	= new TF1("hit","gaus",0,3200);
     
-    std::unique_ptr<std::vector<recob::Hit> > hcol(new std::vector<recob::Hit>);
+    // ###############################################
+    // ### Making a ptr vector to put on the event ###
+    // ###############################################
+    // this contains the hit collection
+    // and its associations to raw digits (not to wires)
+    recob::HitCollectionCreator hcol(*this,
+      evt, fSpillName, false /* doWireAssns */, true /* doRawDigitAssns */
+      );
+    
     
     // ##########################################
     // ### Reading in the Wire List object(s) ###
@@ -470,12 +474,14 @@ namespace deconvgaushf {
 	  EndTimeError = 0;						// stores the error assoc. with the end time of the hit
 	  MeanPosition = 0;						// stores the peak time position of the hit
 	  MeanPosError = 0;						// stores the error assoc. with thte peak time of the hit
+	  RMS          = 0;						// stores the peak time position of the hit
 	  Charge = 0;      						// stores the total charge assoc. with the hit
 	  ChargeError = 0;              					// stores the error on the charge
 	  Amp = 0;							// stores the amplitude of the hit
 	  AmpError = 0;							// stores the error assoc. with the amplitude
 	  NumOfHits = 0;   						// stores the multiplicity of the hit
 	  FitGoodnes = 0;							// stores the Chi2/NDF of the hit
+	  FitNDF = -1;   							// stores the NDF of the hit
 	  
 	  
 	  
@@ -633,6 +639,7 @@ namespace deconvgaushf {
 		EndTime			= Gaus.GetParameter(3*hitNumber+1) + Gaus.GetParameter(3*hitNumber+2); // position + width
 		
 		MeanPosition		= Gaus.GetParameter(3*hitNumber+1);
+		RMS         		= Gaus.GetParameter(3*hitNumber+2);
 		
 		//StartTimeError			= TMath::Sqrt( (Gaus.GetParError(3*hitNumber+1)*Gaus.GetParError(3*hitNumber+1)) + 
 		//					       (Gaus.GetParError(3*hitNumber+2)*Gaus.GetParError(3*hitNumber+2)));
@@ -687,13 +694,14 @@ namespace deconvgaushf {
 	    // #############################
 	    
 	    
-	    float TempStartIime = MeanPosition - 4;
+	    float TempStartTime = MeanPosition - 4;
 	    float TempEndTime   = MeanPosition  + 4;
 	    
-	    hitSignal.Fit(hit,"QNRLLi","", TempStartIime, TempEndTime);
+	    hitSignal.Fit(hit,"QNRLLi","", TempStartTime, TempEndTime);
 	    
 	    
 	    FitGoodnes			= hit->GetChisquare() / hit->GetNDF();
+	    FitNDF    			= hit->GetNDF();
 	    
 	    StartTimeError			= TMath::Sqrt( (hit->GetParError(1)*hit->GetParError(1)) + 
 							       (hit->GetParError(2)*hit->GetParError(2)));
@@ -715,26 +723,30 @@ namespace deconvgaushf {
 	    // for now, just take the first option returned from ChannelToWire
 	    geo::WireID wid = wids[0];
 	    
-	    recob::Hit hit(digitVec,
-			   view,
-			   sigType,
-			   wid,
-			   StartIime, 
-			   StartTimeError,
-			   EndTime, 
-			   EndTimeError,
-			   MeanPosition,
-			   MeanPosError,
-			   Charge,         
-			   ChargeError,                
-			   Amp,
-			   AmpError,
-			   NumOfHits,     
-			   FitGoodnes
-			   );   
-	    
-	    
-	    hcol->push_back(hit);
+	    recob::Hit hit(
+	      channel,                 // channel
+	      (raw::TDCtick_t) startT, // start_tick
+	      (raw::TDCtick_t) endT,   // end_tick
+	      MeanPosition,            // peak_time
+	      MeanPosError,            // sigma_peak_time
+	      RMS,                     // rms,
+	      Amp,                     // peak_amplitude,
+	      AmpError,                // sigma_peak_amplitude
+	      std::accumulate          // summedADC
+	        (signal.begin() + TempStartTime, signal.begin() + TempEndTime, 0.),
+	      Charge,                  // hit_integral
+	      ChargeError,             // hit_sigma_integral
+	      NumOfHits,               // multiplicity
+	      hitNumber,               // local_index
+	      FitGoodnes,              // goodness_of_fit
+	      FitNDF,                  // dof
+	      view,                    // view
+	      sigType,                 // signal_type
+	      wid,                     // wireID
+	      std::vector<float>       // signal
+	        (signal.begin() + startT, signal.begin() + endT)
+	      );
+	    hcol.emplace_back(std::move(hit), digitVec);
 	    
 	      }//<---End looking at hits over threshold
 	      
@@ -756,7 +768,8 @@ namespace deconvgaushf {
       
     } // end loop over wires
     
-    evt.put(std::move(hcol));
+    // move the hit collection and the associations into the event
+    hcol.put_into(evt);
 
     delete chanFilt;	  
     

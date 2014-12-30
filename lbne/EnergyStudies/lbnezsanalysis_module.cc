@@ -20,6 +20,8 @@
 // LArSoft includes
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
+#include "RawData/raw.h"
+#include "RawData/RawDigit.h"
 #include "RecoBase/Hit.h"
 #include "RecoBase/Cluster.h"
 #include "Geometry/Geometry.h"
