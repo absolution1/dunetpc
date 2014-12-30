@@ -21,6 +21,7 @@ namespace geo{
     GeoObjectSorter35(fhicl::ParameterSet const& p);
     ~GeoObjectSorter35();
 
+    void SortAuxDets  (std::vector<geo::AuxDetGeo*>   & adgeo)    const;
     void SortCryostats(std::vector<geo::CryostatGeo*> & cgeo)     const;
     void SortTPCs     (std::vector<geo::TPCGeo*>      & tgeo)     const;
     void SortPlanes   (std::vector<geo::PlaneGeo*>    & pgeo,

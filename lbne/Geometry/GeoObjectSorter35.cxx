@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "lbne/Geometry/GeoObjectSorter35.h"
+#include "Geometry/AuxDetGeo.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
@@ -15,6 +16,35 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 namespace geo{
+
+  //----------------------------------------------------------------------------
+  static bool sortAuxDet35(const AuxDetGeo* ad1, const AuxDetGeo* ad2)
+  {
+  
+    //
+    // TODO: Choose a convention, use same TPC convention for now
+    //
+
+    double xyz1[3] = {0.};
+    double xyz2[3] = {0.};
+    double local[3] = {0.};
+    ad1->LocalToWorld(local, xyz1);
+    ad2->LocalToWorld(local, xyz2);
+
+    // First sort all TPCs into same-z groups
+    if(xyz1[2] < xyz2[2]) return true;
+ 
+    // Within a same-z group, sort TPCs into same-y groups
+    if(xyz1[2] == xyz2[2] && xyz1[1] < xyz2[1]) return true;
+ 
+    // Within a same-z, same-y group, sort TPCs according to x
+    if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;      
+
+    // none of those are true, so return false
+    return false;
+
+  }
+
 
   //----------------------------------------------------------------------------
   // Define sort order for cryostats in APA configuration
@@ -167,6 +197,14 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
+  void GeoObjectSorter35::SortAuxDets(std::vector<geo::AuxDetGeo*> & adgeo) const
+  {
+    std::sort(adgeo.begin(), adgeo.end(), sortAuxDet35);
+    
+    return;
+  }
+
+  //----------------------------------------------------------------------------
   void GeoObjectSorter35::SortCryostats(std::vector<geo::CryostatGeo*> & cgeo) const
   {
     std::sort(cgeo.begin(), cgeo.end(), sortCryo35);
@@ -177,7 +215,6 @@ namespace geo{
   //----------------------------------------------------------------------------
   void GeoObjectSorter35::SortTPCs(std::vector<geo::TPCGeo*>  & tgeo) const
   {
-    
     std::sort(tgeo.begin(), tgeo.end(), sortTPC35);
 
     return;
