@@ -21,6 +21,7 @@ services:
 
 services.message.destinations.warningmsg.type: "cout"
 
+
 #source is now a root file
 source:
 {
@@ -36,16 +37,16 @@ physics:
 
  producers:
  {
-  calgaus:    @local::lbne35t_calgaushf
+#  calgaus:    @local::lbne35t_calgaushf
   caldata:    @local::lbne35t_calwire	    
   gaushit:    @local::lbne35t_gaushitfinder
   hitcheat:   @local::lbne35t_hitcheater
-  apahit:     @local::lbne35t_apahitfinder
+#  apahit:     @local::lbne35t_apahitfinder
 
   cluster:    @local::standard_fuzzycluster
-  spacepts:   @local::standard_spacepts
-  ct:         @local::standard_cosmictracker
-      stitch: @local::standard_trackstitcher
+#  spacepts:   @local::standard_spacepts
+#  ct:         @local::standard_cosmictracker
+#      stitch: @local::standard_trackstitcher
 
  }
 
@@ -57,7 +58,7 @@ physics:
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
- reco:   [ caldata, gaushit, hitcheat ]
+ reco:   [ caldata, gaushit, hitcheat, cluster ]
 
 #  reco: [caldata, hitcheat, cluster, spacepts, ct,stitch,calo]
  ana:  [  ]
