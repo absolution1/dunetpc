@@ -31,7 +31,7 @@ lbnefd_gaushitfinder.IndMinWidth: 1.0
 lbnefd_gaushitfinder.ColMinWidth: 1.0
 
 
-
+lbne35t_disambigcheat:    @local::standard_disambigcheat
 
 lbne35t_gaushitfinder:    @local::gaus_hitfinder
 lbne35t_apahitfinder:     @local::apa_hitfinder
