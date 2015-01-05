@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+ssp_to_offline:
+{
+  module_type:     SSPToOffline
+  FragType:        PHOTON
+  RawDataLabel:    daq
+  OutputDataLabel: offlinePhoton
+#  Debug:           true
+}
+
+
+
+
+END_PROLOG

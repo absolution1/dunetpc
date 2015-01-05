@@ -1,18 +1,26 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  ChannelMap35Alg.h
-/// \brief The class of 35t specific algorithms
+/// \file  ChannelMap35OptAlg.h
+/// \brief The class of 35t specific algorithms, optimized
 ///
 /// \version $Id:  $
 /// \author  tylerdalion@gmail.com
 ////////////////////////////////////////////////////////////////////////
+///
+/// This class is starting as a copy of ChannelMap35Alg, plus one bug fix
+/// in the loop that counts the number of anchored wires in an APA, or 
+/// rather the number of channels per APA.
+///
+/// NOTE: Actual optimization still needs to be done. Much more generality
+/// than actually needed is carried over from older ChannelMaps.
 ///
 /// Any gdml before v3 should stay configured to use ChannelMap35Alg, and 
 /// any gdml v3 or later should be configured to use ChannelMap35OptAlg.
 /// This is done in LBNEGeometryHelper using the fcl parameter DetectorVersion
 /// in the SortingParameters pset.
 ///
-#ifndef GEO_CHANNEL35MAPALG_H
-#define GEO_CHANNEL35MAPALG_H
+///
+#ifndef GEO_CHANNEL35OPTMAPALG_H
+#define GEO_CHANNEL35OPTMAPALG_H
 
 #include <vector>
 #include <set>
@@ -24,12 +32,12 @@
 
 namespace geo{
 
-  class ChannelMap35Alg : public ChannelMapAlg{
+  class ChannelMap35OptAlg : public ChannelMapAlg{
 
   public:
 
-    ChannelMap35Alg(fhicl::ParameterSet const& p);
-    ~ChannelMap35Alg();
+    ChannelMap35OptAlg(fhicl::ParameterSet const& p);
+    ~ChannelMap35OptAlg();
     
     void                     Initialize(std::vector<geo::CryostatGeo*> & cgeo);
     void                     Uninitialize();
@@ -91,5 +99,5 @@ namespace geo{
   };
 
 }
-#endif // GEO_CHANNELMAP35ALG_H
+#endif // GEO_CHANNELMAP35OPTALG_H
 

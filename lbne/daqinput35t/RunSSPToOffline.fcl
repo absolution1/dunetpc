@@ -1,0 +1,48 @@
+#include "services_lbne.fcl"
+#include "SSPToOffline.fcl"
+
+
+process_name: RunSSPToOffline
+
+services : {
+  user:         @local::lbne35t_services
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_debug
+
+}
+
+physics:
+{
+  producers:
+  {
+    ssptooffline: @local::ssp_to_offline    
+  }
+
+  #Create path to run module
+  produce: [ ssptooffline ]
+  output: [ out1 ]
+
+  trigger_paths : [ produce ]
+  end_paths: [ output ]
+}
+
+
+source:
+{
+  module_type: RootInput
+  maxEvents : 1000
+}
+
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "SSPEventToOffline.root"
+  }
+
+}
+
+ 
