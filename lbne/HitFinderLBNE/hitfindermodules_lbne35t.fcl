@@ -1,4 +1,5 @@
 #include "hitfindermodules.fcl"
+#include "clusteralgorithms.fcl"
 #include "disambigalgorithms.fcl"
 
 BEGIN_PROLOG
@@ -31,7 +32,7 @@ lbnefd_gaushitfinder.IndMinWidth: 1.0
 lbnefd_gaushitfinder.ColMinWidth: 1.0
 
 
-
+lbne35t_disambigcheat:    @local::standard_disambigcheat
 
 lbne35t_gaushitfinder:    @local::gaus_hitfinder
 lbne35t_apahitfinder:     @local::apa_hitfinder
@@ -44,7 +45,11 @@ lbne35t_disambigalg:
 {
     TimeCut:          2.   #tolerance for 3 view hits matching, in ticks
     DistanceCut:      2.   #tolerance to determine whether wires cross, in cm
+    DistanceCutClu:   10.  #tolerance to get disambiguated hits around a given hit, in cm
+    DBScanAlg:        @local::standard_dbscanalg
 }
+lbne35t_disambigalg.DBScanAlg.eps:       10.
+lbne35t_disambigalg.DBScanAlg.epstwo:    10.
 
 lbne35t_hitfinder35t:
 {
