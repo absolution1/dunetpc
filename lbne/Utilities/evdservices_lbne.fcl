@@ -54,6 +54,9 @@ lbne35t_disp.ExptHelperInterface: @local::lbne_geometry_helper
 lbne35t_disp.Geometry:     @local::lbne35t_geo
 lbne35t_disp.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
 lbne35t_disp.TimeService:  @local::lbne35t_timeservice # defined in timeservice_lbne.fcl
+lbne35t_disp.RecoDrawingOptions.WireModuleLabels: ["caldata"]
+lbne35t_disp.RecoDrawingOptions.HitModuleLabels:  ["hit35t"]
+lbne35t_disp.RecoDrawingOptions.HitModuleLabels:  ["hit35t"]
 
 
 
