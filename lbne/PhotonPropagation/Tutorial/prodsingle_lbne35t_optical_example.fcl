@@ -122,33 +122,6 @@ outputs:
 }
 
 
-##
-# Set up photon library
-## 
-
-# LBNE 35ton w/o wires and mesh
-#services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
-
-
-# set quantum efficiency supressed scint yield to 0.03 * 24000
-#services.user.LArProperties.ScintYield: 720
-
-# enable optical physics in LArG4
-services.user.LArG4Parameters.EnabledPhysics: [ "Em",
-                                                "FastOptical",
-                                                "SynchrotronAndGN",
-                                                "Ion",
-                                                "Hadron",
-                                                "Decay",
-                                                "HadronElastic",
-                                                "Stopping",
-                                                "NeutronTrackingCut" ]
-
-# enable this custom physics list
-services.user.LArG4Parameters.UseCustomPhysics: true
-
-# disable cerenkov light
-services.user.LArProperties.EnableCerenkovLight: false
 
 
 #
