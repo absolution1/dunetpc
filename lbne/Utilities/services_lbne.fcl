@@ -85,11 +85,33 @@ lbne35t_g4_services.LArG4Parameters:    @local::lbne35t_largeantparameters
 lbne35t_g4_services.LArVoxelCalculator: @local::lbne35t_larvoxelcalculator
 lbne35t_g4_services.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
 
-lbne35t_detsim_services:       @local::lbne35t_basic_services
+##
+# Settings to turn on and configure photon simulation
+## 
+
+# set quantum efficiency supressed scint yield to 0.03 * 24000
+lbne35t_g4_services.LArProperties.ScintYield: 720
+
+# disable cerenkov
+lbne35t_g4_services.LArProperties.EnableCerenkovLight: false
+
+# enable "FastOptical" in geant4
+lbne35t_g4_services.LArG4Parameters.UseCustomPhysics: true
+lbne35t_g4_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                      "FastOptical",
+                                                      "SynchrotronAndGN",
+                                                      "Ion",
+                                                      "Hadron",
+                                                      "Decay",
+                                                      "HadronElastic",
+                                                      "Stopping",
+                                                      "NeutronTrackingCut" ]
+
+lbne35t_detsim_services:        @local::lbne35t_basic_services
 lbne35t_detsim_services.LArFFT: @local::lbne35t_larfft
 lbne35t_detsim_services.SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
 
-lbne35t_simulation_services:   @local::lbne35t_g4_services
+lbne35t_simulation_services:        @local::lbne35t_g4_services
 lbne35t_simulation_services.LArFFT: @local::lbne35t_larfft
 lbne35t_simulation_services.SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
 

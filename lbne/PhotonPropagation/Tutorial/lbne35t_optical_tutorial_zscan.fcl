@@ -31,9 +31,6 @@ services:
   message:      @local::standard_info
 }
 
-services.user.Geometry.GDML: "lbne35t4apa_v2.gdml"
-services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v2"
-
 
 
 #Start each new event with an empty event.
@@ -140,30 +137,3 @@ outputs:
  }
 }
 
-
-##
-# Set up photon library
-## 
-
-# LBNE 35ton w/o wires and mesh
-services.user.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
-
-# set quantum efficiency supressed scint yield to 0.03 * 24000
-services.user.LArProperties.ScintYield: 24000
-
-# enable optical physics in LArG4
-services.user.LArG4Parameters.EnabledPhysics: [ "Em",
-                                                "FastOptical",
-                                                "SynchrotronAndGN",
-                                                "Ion",
-                                                "Hadron",
-                                                "Decay",
-                                                "HadronElastic",
-                                                "Stopping",
-                                                "NeutronTrackingCut" ]
-
-# enable this custom physics list
-services.user.LArG4Parameters.UseCustomPhysics: true
-
-# disable cerenkov light
-services.user.LArProperties.EnableCerenkovLight: false
