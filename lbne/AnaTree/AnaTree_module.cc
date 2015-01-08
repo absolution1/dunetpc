@@ -225,11 +225,8 @@ namespace {
   {
 
     // Get services.
-
     art::ServiceHandle<geo::Geometry> geom;
-
     art::ServiceHandle<util::DetectorProperties> detprop;
-
     double xmin,xmax,ymin,ymax,zmin,zmax;
 
     /*  if(tpc==0 || tpc==2 || tpc==4 || tpc==6 ) //short tpcs
@@ -430,8 +427,13 @@ mf::LogVerbatim("output") << " xmin " << xmin;
 
       // predict the tpc number
 
-      int whichTPC=0;
+      //      int whichTPC=0;
+      int whichTPC2=-999;
 
+      double const tmpArray[]={pos.X(),pos.Y(),pos.Z()};
+      geo::TPCID tpcid=geom->FindTPCAtPosition(tmpArray);
+      whichTPC2=tpcid.TPC;
+      /*
       if(pos.Z() >=-1.0 && pos.Z()<=49.0 && pos.Y() >=-85.0 && pos.Y() <= 113.0)   
 
         {
@@ -481,7 +483,7 @@ mf::LogVerbatim("output") << " xmin " << xmin;
          }
 
       
-
+      */
       //      mf::LogVerbatim("output") << " x " << pos.X();
 
       //      mf::LogVerbatim("output") << " y " << pos.Y();
@@ -489,23 +491,26 @@ mf::LogVerbatim("output") << " xmin " << xmin;
       //      mf::LogVerbatim("output") << " z " << pos.Z();
 
       if(pos.X() >= xmin &&
-
          pos.X() <= xmax &&
-
          pos.Y() >= ymin &&
-
          pos.Y() <= ymax &&
-
          pos.Z() >= zmin &&
-
-         pos.Z() <= zmax) {
+         pos.Z() <= zmax); //do nothing
+	{
 
         pos[0] += dx;
 
         //        double ticks = detprop->ConvertXToTicks(pos[0], 0, 0, 0);
+	/*if(whichTPC2!=whichTPC)
+	  std::cout << " TPC" << whichTPC << " TPC2 " << whichTPC2 << std::endl;*/
+	/*	if(whichTPC2==-999)
+	   throw cet::exception("AnaTree") << "whichTPC2 is -9999 \n";
+	if(whichTPC==-999)
+	throw cet::exception("AnaTree") << "whichTPC is -9999 \n";*/
+	double ticks;
 
-        double ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC, 0);
-
+        if(whichTPC2>0)  ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC2, 0);
+	else continue;
         if(ticks >= 0. && ticks < detprop->ReadOutWindowSize()) {
 
           if(first) {
@@ -702,7 +707,9 @@ private:
 
 
 
+
   int fDump;                 // Number of events to dump to debug message facility.
+  int fPdg;
   double fMinMCKE;           // Minimum MC particle kinetic energy (GeV).
   double fMinMCLen;          // Minimum MC particle length in tpc (cm).
   double fMatchColinearity;  // Minimum matching colinearity.
@@ -764,6 +771,9 @@ private:
       TH1F* fHmcdvdw;      // Truth dv/dw.
       TH1F* fHdudwpull;    // du/dw pull.
       TH1F* fHdvdwpull;    // dv/dw pull.
+      TH1F* fHHitEff;      // Hit efficiency.
+      TH1F* fHHitPurity;   // Hit purity.
+
       // Histograms for matched tracks.
       TH1F* fHstartdx;     // Start dx.
       TH1F* fHstartdy;     // Start dy.
@@ -836,6 +846,7 @@ AnaTree::AnaTree::AnaTree(fhicl::ParameterSet const & pset)
   ,  fSimulationProducerLabel ( pset.get< std::string >("SimulationLabel"))
   ,  fCalorimetryModuleLabel ( pset.get< std::string >("CalorimetryModuleLabel"))
   , fDump              (pset.get<int>("Dump"))
+  , fPdg              (pset.get<int>("pdg"))
   , fMinMCKE            (pset.get<double>("MinMCKE"))
   , fMinMCLen           (pset.get<double>("MinMCLen"))
   , fMatchColinearity       (pset.get<double>("MatchColinearity"))
@@ -911,8 +922,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
     particle = ipar->second;
     
-    int fPDG=13;
-    if(!(particle->Process()=="primary" && particle->PdgCode()== fPDG)) continue;
+    if(!(particle->Process()=="primary" && particle->PdgCode()== fPdg)) continue;
 
   //  size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
   //  int last = numberTrajectoryPoints - 1;
@@ -995,7 +1005,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       //        fMC_daughters.push_back(daughters);
       size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
       trkpdg[i]=particle->PdgCode();
-      if(!(particle->Process()=="primary" && particle->PdgCode()==13))
+      if(!(particle->Process()=="primary" && particle->PdgCode()==fPdg))
 	continue;
       int trackID=particle->TrackId();
       for ( auto const& channel : (*simChannelHandle) )
@@ -1341,7 +1351,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     particle = ipar->second;
   }
   int pdg = particle->PdgCode();
-  if (pdg!=13) continue;
+  if (pdg!=fPdg) continue;
   TVector3 startmom;
   startmom=particle->Momentum(0).Vect();
   TVector3 mcmomltemp=rot * startmom;
@@ -1407,7 +1417,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	//do nothing
       }
       // Fill histograms.
-      int pdg=13;
+      int pdg=fPdg;
       if(fMCHistMap.count(pdg) == 0) {
 	std::ostringstream ostr;
 	ostr << "MC" << (fIgnoreSign ? "All" : (pdg > 0 ? "Pos" : "Neg")) << std::abs(pdg);
@@ -1443,6 +1453,14 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     art::FindMany<recob::Hit>       fmhit(trackListHandle, evt, fTrackModuleLabel);
     std::vector<const recob::Hit*> hits = fmhit.at(i);
 
+    //
+    // Trick learned from the newest TrackAna
+    // Extract hits associated with this track.
+    art::FindManyP<recob::Hit> tkhit_find(trackh, evt, fTrackModuleLabel);
+    std::vector<art::Ptr<recob::Hit> > trackhits;
+    tkhit_find.get(i, trackhits);
+    //
+    //
 
     const recob::Track& track = *ptrack;
     /*auto pcoll{ptrack};
@@ -1525,7 +1543,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
           rhists.fHmom->Fill(mom);
           rhists.fHlen->Fill(tlen);
           // Id of matching mc particle.
-	  //          int mcid = -1;
+	  int mcid = -1;
           // Loop over direction.  
           for(int swap=0; swap<2; ++swap) {
             // Analyze reversed tracks only if start momentum = end momentum.
@@ -1643,8 +1661,20 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
                   bool good = std::abs(w) <= fWMatchDisp &&
                     tlen > 0.5 * plen;
                   if(good) {
-		    //                    mcid = part->TrackId();
-                    mchists.fHgstartx->Fill(mcstart.X());
+		    mcid = part->TrackId();
+		    // Calculate and fill hit efficiency and purity.
+                    std::set<int> tkidset;
+                    tkidset.insert(mcid);
+		    /*		    double hiteff = 
+		      bt->HitCollectionEfficiency(tkidset, trackhits, hitlist, geo::k3D);
+		                        double hitpurity = bt->HitCollectionPurity(tkidset, trackhits);
+		                        mchists.fHHitEff->Fill(hiteff);
+		                        mchists.fHHitPurity->Fill(hitpurity);
+		    */
+
+		    // Fill efficiency numerator histograms.
+
+		    mchists.fHgstartx->Fill(mcstart.X());
                     mchists.fHgstarty->Fill(mcstart.Y());
                     mchists.fHgstartz->Fill(mcstart.Z());
                     mchists.fHgendx->Fill(mcend.X());
@@ -1889,6 +1919,8 @@ AnaTree::AnaTree::RecoHists::RecoHists(const std::string& subdir)
     fHmcdvdw(0),
     fHdudwpull(0),
     fHdvdwpull(0),
+    fHHitEff(0),
+    fHHitPurity(0),
     fHstartdx(0),
     fHstartdy(0),
     fHstartdz(0),
@@ -1966,6 +1998,8 @@ AnaTree::AnaTree::MCHists::MCHists(const std::string& subdir)
     fHmcdvdw = dir.make<TH1F>("mcdvdw", "MV Truth V Slope", 100, -0.2, 0.2);
     fHdudwpull = dir.make<TH1F>("dudwpull", "U Slope Pull", 100, -10., 10.);
     fHdvdwpull = dir.make<TH1F>("dvdwpull", "V Slope Pull", 100, -10., 10.);
+    fHHitEff = dir.make<TH1F>("hiteff", "MC Hit Efficiency", 100, 0., 1.0001);
+    fHHitPurity = dir.make<TH1F>("hitpurity", "MC Hit Purity", 100, 0., 1.0001);
     fHstartdx = dir.make<TH1F>("startdx", "Start Delta x", 100, -10., 10.);
     fHstartdy = dir.make<TH1F>("startdy", "Start Delta y", 100, -10., 10.);
     fHstartdz = dir.make<TH1F>("startdz", "Start Delta z", 100, -10., 10.);

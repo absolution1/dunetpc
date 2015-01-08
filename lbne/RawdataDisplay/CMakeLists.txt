@@ -39,11 +39,11 @@ simple_plugin(RawEVD35t "module"
               BASENAME_ONLY
 )
 
-simple_plugin(DbigEVD4apaFD "module"
+simple_plugin(MuonOccupancy "module"
 			Geometry_service
                         Geometry
 			RawData
-			RecoBase
+			lbne_Geometry
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

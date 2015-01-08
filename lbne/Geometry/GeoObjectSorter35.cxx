@@ -127,6 +127,8 @@ namespace geo{
 								 && (xyz1[2] < 102)); //
       else if(detVersion=="lbne35t4apa_v2") InVertSplitRegion = ((52.74 < xyz1[2])   // ...and improved
       								 && (xyz1[2] < 106.23));
+      else if(detVersion=="lbne35t4apa_v3") InVertSplitRegion = ((51.41045 < xyz1[2])   
+      								 && (xyz1[2] < 103.33445));
 
       ///////////////////////////////////////////////////////////
 

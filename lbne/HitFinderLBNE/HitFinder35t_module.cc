@@ -34,7 +34,6 @@
 #include "Utilities/DetectorProperties.h"
 #include "DisambigAlg35t.h"
 
-
 // ROOT Includes 
 #include "TH1D.h"
 #include "TDecompSVD.h"

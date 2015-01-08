@@ -27,6 +27,7 @@
 #include "RecoBase/Hit.h"
 #include "RecoBase/Cluster.h"
 #include "APAGeometryAlg.h"
+#include "RecoAlg/DBScanAlg.h"
 
 #include "TMatrixD.h"
 #include "TVectorD.h"
@@ -57,6 +58,8 @@ namespace lbne{
     apa::APAGeometryAlg                           fAPAGeo;
     double fTimeCut;
     double fDistanceCut;
+    double fDistanceCutClu;
+    cluster::DBScanAlg fDBScan; ///< object that implements the DB scan algorithm
   }; // class DisambigAlg35t
 
 } // namespace lbne
