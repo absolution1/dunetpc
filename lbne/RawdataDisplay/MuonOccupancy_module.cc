@@ -13,6 +13,7 @@
 #include "Utilities/DetectorProperties.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
+#include "RawData/RawDigit.h"
 #include "RecoBase/Hit.h"
 #include "RecoBase/Cluster.h"
 #include "Geometry/Geometry.h"
@@ -666,31 +667,28 @@ namespace AnalysisExample{
       unsigned int apa = std::floor( chan/fChansPerAPA );
       //outfile << "got apa " << apa << std::endl;
 
-      /*
-      // check that the ADC data is not corrupt
-      if(digit->fADC[0] < 0 || digit->fADC[1] < 0 || digit->fADC[2] < 0)
-	throw cet::exception("MuonOccupancy") << "Bad ADC header, channel " << chan << ", APA " << apa 
-					      << ", ADC[0] = " << digit->fADC[0] << 
-
-      outfile << d << " (of " << Digits.size() << " digits), channel " << chan 
-      	      << " from APA " << apa << std::endl;
-
-      */
-
       // get a vector to hold the uncompressed raw information
       std::vector<short> uncompressed(digit->Samples());
 
       /*
+      // check that the ADC data is not corrupt
+      if(uncompressed[0] < 0 || uncompressed[1] < 0 || uncompressed[2] < 0)
+	throw cet::exception("MuonOccupancy") << "Bad ADC header, channel " << chan << ", APA " << apa 
+					      << ", ADC[0] = " << uncompressed[0] << 
+
+      outfile << d << " (of " << Digits.size() << " digits), channel " << chan 
+      	      << " from APA " << apa << std::endl;
+
       outfile << "compressed length " << uncompressed.size() << ", first/last memory address " 
 	      << &uncompressed[0] << "/" << &uncompressed[uncompressed.size()-1] << std::endl;
 
-      outfile << "ADC length " << digit->fADC.size() << ", compression type " << digit->Compression() << std::endl;
+      outfile << "ADC length " << digit->ADCs().size() << ", compression type " << digit->Compression() << std::endl;
 
-      for(unsigned int i = 0; i < digit->fADC.size(); ++i)
-	outfile << "ADC vector at " << i << " = " << digit->fADC[i] << std::endl;
+      for(unsigned int i = 0; i < uncompressed.size(); ++i)
+	outfile << "ADC vector at " << i << " = " << uncompressed[i] << std::endl;
       */
 
-      raw::Uncompress(digit->fADC, uncompressed, digit->Compression());
+      raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
 
       //outfile << "uncompressed length " << uncompressed.size() << ", first/last memory address " 
       //	      << &uncompressed[0] << "/" << &uncompressed[uncompressed.size()-1] << std::endl;
