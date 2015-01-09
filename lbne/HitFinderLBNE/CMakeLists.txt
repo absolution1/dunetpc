@@ -3,7 +3,6 @@ art_make( BASENAME_ONLY
           LIBRARY_NAME     HitFinderLBNE
 	  LIB_LIBRARIES    RecoBase
 	  		   RecoAlg
-			   ClusterFinder
 			   Filters
                            Geometry
                            Geometry_service
