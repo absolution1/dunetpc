@@ -19,7 +19,7 @@ lbnefd_timeservice.DefaultBeamTime:      0. # Default beam time [us].
 lbne35t_timeservice: @local::standard_timeservice
 
 # lbne35t_timeservice.TrigModuleName:      ""
-lbne35t_timeservice.InheritClockConfig:   true
+lbne35t_timeservice.InheritClockConfig:   false
 lbne35t_timeservice.G4RefTime:            0. # G4 time [us] where electronics clock counting start
 lbne35t_timeservice.TriggerOffsetTPC:     0. # Time [us] for TPC readout start w.r.t. trigger time
 lbne35t_timeservice.FramePeriod:       1600. # Frame period [us]
