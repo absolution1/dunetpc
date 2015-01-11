@@ -19,6 +19,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "Simulation/AuxDetSimChannel.h"
 #include "TTree.h"
+#include <iostream>
 
 constexpr unsigned short kMaxAuxDets = 100;
 constexpr unsigned short kMaxTkIDs = 100;
@@ -140,8 +141,8 @@ void lbne::CheckAuxDet::beginJob()
   fTree->Branch("exity",exity,"exity[nauxdets][100]/F");
   fTree->Branch("exitz",exitz,"exitz[nauxdets][100]/F");
   fTree->Branch("exitt",exitt,"exitt[nauxdets][100]/F");
-  fTree->Branch("trackid",exitx,"trackid[nauxdets][100]/I");
-  fTree->Branch("energy",exitx,"energy[nauxdets][100]/F");
+  fTree->Branch("trackid",trackid,"trackid[nauxdets][100]/I");
+  fTree->Branch("energy",energy,"energy[nauxdets][100]/F");
   
 }
 
