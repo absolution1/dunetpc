@@ -9,6 +9,10 @@ set( lbne_util_lib_list LArFFT_service
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
 			${ART_PERSISTENCY_COMMON}
 			${ART_PERSISTENCY_PROVENANCE}
+			${ART_FRAMEWORK_SERVICES_BASIC}
+			${ART_FRAMEWORK_SERVICES_OPTIONAL}
+			${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
 			${ART_UTILITIES}
 			${MF_MESSAGELOGGER}
 			${MF_UTILITIES}
@@ -34,6 +38,10 @@ simple_plugin( SignalShapingServiceLBNE35t  "service"
 	       BASENAME_ONLY
         )
 
+simple_plugin( FileCatalogMetadataLBNE "service"
+               ${lbne_util_lib_list}
+	       BASENAME_ONLY
+	)
 
 install_headers()
 install_fhicl()

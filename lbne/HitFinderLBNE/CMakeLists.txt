@@ -2,6 +2,8 @@
 art_make( BASENAME_ONLY
           LIBRARY_NAME     HitFinderLBNE
 	  LIB_LIBRARIES    RecoBase
+	  		   RecoAlg
+			   Filters
                            Geometry
                            Geometry_service
                            RecoObjects
