@@ -31,7 +31,7 @@ namespace geo{
 
     // AuxDet groups in 35t may have a couple-cm difference in vertical pos
     // Adjusting for this messes up sorting between the top layers of AuxDets
-    float VertEps;
+    float VertEps(0);
     if     ( strncmp( (ad1->TotalVolume())->GetName(), "volAuxDetTrap", 13) == 0 ) VertEps = 13;
     else if( strncmp( (ad1->TotalVolume())->GetName(), "volAuxDetBox",  12) == 0 ) VertEps = 1;
 
