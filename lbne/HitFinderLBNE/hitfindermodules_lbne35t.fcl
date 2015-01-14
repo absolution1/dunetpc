@@ -43,13 +43,13 @@ lbne35t_gaushitfinder.ColMinWidth: 1.0
 
 lbne35t_disambigalg:
 {
-    TimeCut:          2.   #tolerance for 3 view hits matching, in ticks
-    DistanceCut:      2.   #tolerance to determine whether wires cross, in cm
-    DistanceCutClu:   3.   #tolerance to get disambiguated hits around a given hit, in cm
+    TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
+    DistanceCut:      1.   #tolerance to determine whether wires cross, in cm
+    DistanceCutClu:   4.   #tolerance to get disambiguated hits around a given hit, in cm
     DBScanAlg:        @local::standard_dbscanalg
 }
-lbne35t_disambigalg.DBScanAlg.eps:       10.
-lbne35t_disambigalg.DBScanAlg.epstwo:    10.
+lbne35t_disambigalg.DBScanAlg.eps:       13.
+lbne35t_disambigalg.DBScanAlg.epstwo:    15.
 
 lbne35t_hitfinder35t:
 {
