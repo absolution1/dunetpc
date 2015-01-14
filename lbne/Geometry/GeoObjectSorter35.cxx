@@ -29,15 +29,20 @@ namespace geo{
     ad1->LocalToWorld(local, xyz1);
     ad2->LocalToWorld(local, xyz2);
 
-    // First sort all AuxDets into same-y groups
     // AuxDet groups in 35t may have a couple-cm difference in vertical pos
-    if( xyz1[1] < xyz2[1] && xyz2[1]-xyz1[1] >= 13 ) return true;
+    // Adjusting for this messes up sorting between the top layers of AuxDets
+    float VertEps;
+    if     ( strncmp( (ad1->TotalVolume())->GetName(), "volAuxDetTrap", 13) == 0 ) VertEps = 13;
+    else if( strncmp( (ad1->TotalVolume())->GetName(), "volAuxDetBox",  12) == 0 ) VertEps = 1;
+
+    // First sort all AuxDets into same-y groups
+    if( xyz1[1] < xyz2[1] && xyz2[1]-xyz1[1] >= VertEps ) return true;
  
     // Within a same-y group, sort AuxDets into same-x groups
-    if( std::abs(xyz2[1]-xyz1[1]) < 13 && xyz1[0] < xyz2[0]) return true;
+    if( std::abs(xyz2[1]-xyz1[1]) < VertEps && xyz1[0] < xyz2[0]) return true;
  
     // Within a same-x, same-y group, sort AuxDets according to z
-    if(xyz1[0] == xyz2[0] && std::abs(xyz2[1]-xyz1[1]) < 13 && xyz1[2] < xyz2[2]) return true;      
+    if(xyz1[0] == xyz2[0] && std::abs(xyz2[1]-xyz1[1]) < VertEps && xyz1[2] < xyz2[2]) return true;      
 
     // none of those are true, so return false
     return false;
