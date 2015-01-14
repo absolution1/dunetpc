@@ -15,15 +15,13 @@
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include <cmath> // for std::abs
+
 namespace geo{
 
   //----------------------------------------------------------------------------
   static bool sortAuxDet35(const AuxDetGeo* ad1, const AuxDetGeo* ad2)
   {
-  
-    //
-    // TODO: Choose a convention, use same TPC convention for now
-    //
 
     double xyz1[3] = {0.};
     double xyz2[3] = {0.};
@@ -31,14 +29,15 @@ namespace geo{
     ad1->LocalToWorld(local, xyz1);
     ad2->LocalToWorld(local, xyz2);
 
-    // First sort all TPCs into same-z groups
-    if(xyz1[2] < xyz2[2]) return true;
+    // First sort all AuxDets into same-y groups
+    // AuxDet groups in 35t may have a couple-cm difference in vertical pos
+    if( xyz1[1] < xyz2[1] && xyz2[1]-xyz1[1] >= 13 ) return true;
  
-    // Within a same-z group, sort TPCs into same-y groups
-    if(xyz1[2] == xyz2[2] && xyz1[1] < xyz2[1]) return true;
+    // Within a same-y group, sort AuxDets into same-x groups
+    if( std::abs(xyz2[1]-xyz1[1]) < 13 && xyz1[0] < xyz2[0]) return true;
  
-    // Within a same-z, same-y group, sort TPCs according to x
-    if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;      
+    // Within a same-x, same-y group, sort AuxDets according to z
+    if(xyz1[0] == xyz2[0] && std::abs(xyz2[1]-xyz1[1]) < 13 && xyz1[2] < xyz2[2]) return true;      
 
     // none of those are true, so return false
     return false;

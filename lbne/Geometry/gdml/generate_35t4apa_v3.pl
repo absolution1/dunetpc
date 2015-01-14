@@ -3214,16 +3214,6 @@ EOF
     print ENCL <<EOF;
 <structure>
 
-    <volume name="volAuxDetBoxBSU" >
-      <materialref ref="Polystyrene"/>
-      <solidref ref="AuxDetBoxBSU"/>
-    </volume>
-
-    <volume name="volAuxDetTrap" >
-      <materialref ref="Polystyrene"/>
-      <solidref ref="AuxDetTrap"/>
-    </volume>
-
     <volume name="volBotSteelShell">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
       <solidref ref="BottomSteelShell"/>
@@ -3295,7 +3285,67 @@ EOF
       <materialref ref="Concrete"/>
       <solidref ref="TrenchTopConcrete"/>
     </volume>
+EOF
 
+for($i = 1; $i <= 13; ++$i){ 
+    print ENCL <<EOF;
+    <volume name="volAuxDetBoxBSU-L1-$i" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+EOF
+}
+for($i = 1; $i <= 9; ++$i){ 
+    print ENCL <<EOF;
+    <volume name="volAuxDetBoxBSU-L2-$i" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+EOF
+}
+for($i = 1; $i <= 16; ++$i){ 
+    print ENCL <<EOF;
+    <volume name="volAuxDetBoxBSU-L3-$i" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+EOF
+}
+for($i = 1; $i <= 10; ++$i){ 
+    print ENCL <<EOF;
+    <volume name="volAuxDetBoxBSU-L4-$i" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+EOF
+}
+
+for ($i=1; $i<=12; ++$i) {
+    print ENCL <<EOF;
+    <volume name="volAuxDetTrap-South-$i" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-$i" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+EOF
+}
+for ($i=1; $i<=10; ++$i) {
+    print ENCL <<EOF;
+    <volume name="volAuxDetTrap-East-$i" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-$i" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+EOF
+}
+
+    print ENCL <<EOF;
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
@@ -3453,12 +3503,14 @@ for ($i=1; $i<=12; ++$i)
 	else     { $FromCryoCorner_y = (132.08 - 0.12*$inch) - $AuxDetScintillatorHeight/2; }
     }
 
+    $posAuxDet_y = $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y;
+
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-$i"/>
         <position name="posAuxDet-North-$i" unit="cm" 
 	  x=" $posCryoInDetEnc_x - $CryoWithPadding_x/2 - $AuxDetHousingThickness/2" 
-	  y=" $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y"
+	  y=" $posAuxDet_y"
           z=" $posCryoInDetEnc_z - 411.99/2 + $FromCryoCorner_z"/>
         <rotationref ref="$rotation"/>
       </physvol>
@@ -3484,12 +3536,14 @@ for ($i=1; $i<=12; ++$i)
 	else     { $FromCryoCorner_y = (93.98  - 0.12*$inch) - $AuxDetScintillatorHeight/2; }
     }
 
+    $posAuxDet_y = $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y;
+
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-$i"/>
         <position name="posAuxDet-South-$i" unit="cm" 
 	  x=" $posCryoInDetEnc_x + $CryoWithPadding_x/2 + $AuxDetHousingThickness/2" 
-	  y=" $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y"
+	  y=" $posAuxDet_y"
           z=" $posCryoInDetEnc_z - 411.99/2 + $FromCryoCorner_z"/>
         <rotationref ref="$rotation"/>
       </physvol>
@@ -3508,12 +3562,14 @@ for ($i=1; $i<=10; ++$i)
     else       { $rotation = "rAuxDetEWWallDown"; 
 		 $FromCryoCorner_y = (112.45 - 0.12*$inch) - $AuxDetScintillatorHeight/2; }
 
+    $posAuxDet_y = $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y;
+
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-$i"/>
         <position name="posAuxDet-East-$i" unit="cm" 
 	  x=" $posCryoInDetEnc_x - 541.53/2 + $FromCryoCorner_x" 
-	  y=" $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y"
+	  y=" $posAuxDet_y"
           z=" $posCryoInDetEnc_z - $CryoWithPadding_z/2 - $AuxDetHousingThickness/2"/>
         <rotationref ref="$rotation"/>
       </physvol>
@@ -3532,14 +3588,15 @@ for ($i=1; $i<=10; ++$i)
                  $FromCryoCorner_y = (264.44 + 0.12*$inch) + $AuxDetScintillatorHeight/2 }
     else       { $rotation = "rAuxDetEWWallDown";
                  $FromCryoCorner_y = (329.95 - 0.12*$inch) - $AuxDetScintillatorHeight/2 }
-    #print "$FromCryoCorner_y, $FromCryoCorner_z\n";
+
+    $posAuxDet_y = $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y;
 
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-$i"/>
         <position name="posAuxDet-West-$i" unit="cm" 
 	  x=" $posCryoInDetEnc_x - 541.53/2 + $FromCryoCorner_x" 
-	  y=" $posCryoInDetEnc_y - 375.92/2 + $FromCryoCorner_y"
+	  y=" $posAuxDet_y"
           z=" $posCryoInDetEnc_z + $CryoWithPadding_z/2 + $AuxDetHousingThickness/2"/>
         <rotationref ref="$rotation"/>
       </physvol>
@@ -3552,7 +3609,7 @@ for ($i=1; $i<=13; ++$i)
 {
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-$i"/>
         <position name="posAuxDet-BSU-L1-$i" unit="cm" 
 	  x="$BSULayer1_xpos[$i-1] - $OriginXSet" 
 	  y="$BSULayer1_ypos - $OriginYSet"
@@ -3566,7 +3623,7 @@ for ($i=1; $i<=9; ++$i)
 {
 print ENCL <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-$i"/>
         <position name="posAuxDet-BSU-L2-$i" unit="cm" 
 	  x="$BSULayer2_xpos - $OriginXSet" 
 	  y="$BSULayer2_ypos - $OriginYSet"
@@ -3697,7 +3754,7 @@ for ($i=1; $i<=16; ++$i)
 {
 print WORLD <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-$i"/>
         <position name="posAuxDetBox-BSU-L3-$i" unit="cm" 
 	  x="$BSULayer3_xpos[$i-1]" 
 	  y="$BSULayer3_ypos"
@@ -3711,7 +3768,7 @@ for ($i=1; $i<=10; ++$i)
 {
 print WORLD <<EOF;
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-$i"/>
         <position name="posAuxDetBox-BSU-L4-$i" unit="cm" 
 	  x="$BSULayer4_xpos" 
 	  y="$BSULayer4_ypos"
@@ -3727,7 +3784,7 @@ EOF
 #print WORLD <<EOF;
 #<!--
 #      <physvol>
-#        <volumeref ref="volAuxDetBoxBSU"/>
+#        <volumeref ref="volAuxDetBoxBSU-L5-$i"/>
 #        <position name="posAuxDet-BSU-L5-$i" unit="cm" 
 #	  x="$BSULayer5_xpos[$i-1]" 
 #	  y="$BSULayer5_ypos"
