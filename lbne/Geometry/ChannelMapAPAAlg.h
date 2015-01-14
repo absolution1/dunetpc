@@ -27,7 +27,8 @@ namespace geo{
     ChannelMapAPAAlg(fhicl::ParameterSet const& p);
     ~ChannelMapAPAAlg();
     
-    void                     Initialize(std::vector<geo::CryostatGeo*> & cgeo);
+    void                     Initialize( std::vector<geo::CryostatGeo*> & cgeo,
+					 std::vector<geo::AuxDetGeo*>   & adgeo );
     void                     Uninitialize();
     std::vector<WireID>      ChannelToWire(uint32_t channel)           const;
     uint32_t                 Nchannels()                               const;

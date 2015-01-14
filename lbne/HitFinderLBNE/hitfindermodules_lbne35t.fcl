@@ -58,4 +58,8 @@ lbne35t_hitfinder35t:
     ChanHitLabel:     "gaushit"
 }
 
+lbne35t_fasthitfinder:    @local::standard_fasthitfinder
+lbne35t_fasthitfinder.MinSigInd: 5.0
+lbne35t_fasthitfinder.MinSigCol: 5.0
+
 END_PROLOG

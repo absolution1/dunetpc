@@ -7,12 +7,40 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "lbne/Geometry/GeoObjectSorterAPA.h"
+#include "Geometry/AuxDetGeo.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
 #include "Geometry/WireGeo.h"
 
 namespace geo{
+
+  //----------------------------------------------------------------------------
+  static bool sortAuxDetAPA(const AuxDetGeo* ad1, const AuxDetGeo* ad2)
+  {
+  
+    // NOTE: This initial sorting is arbitrary, there
+    //       are no APAAlg users using AuxDet yet
+
+    double xyz1[3] = {0.};
+    double xyz2[3] = {0.};
+    double local[3] = {0.};
+    ad1->LocalToWorld(local, xyz1);
+    ad2->LocalToWorld(local, xyz2);
+
+    // First sort all AuxDets into same-y groups
+    if(xyz1[1] < xyz2[1]) return true;
+ 
+    // Within a same-y group, sort TPCs into same-z groups
+    if(xyz1[1] == xyz2[1] && xyz1[2] < xyz2[2]) return true;
+ 
+    // Within a same-z, same-y group, sort TPCs according to x
+    if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;      
+
+    // none of those are true, so return false
+    return false;
+
+  }
 
   //----------------------------------------------------------------------------
   // Define sort order for cryostats in APA configuration
@@ -103,6 +131,14 @@ namespace geo{
   //----------------------------------------------------------------------------
   GeoObjectSorterAPA::~GeoObjectSorterAPA()
   {
+  }
+
+  //----------------------------------------------------------------------------
+  void GeoObjectSorterAPA::SortAuxDets(std::vector<geo::AuxDetGeo*> & adgeo) const
+  {
+    std::sort(adgeo.begin(), adgeo.end(), sortAuxDetAPA);
+    
+    return;
   }
 
   //----------------------------------------------------------------------------
