@@ -12,6 +12,7 @@
 /// in the SortingParameters pset.
 ///
 #include "lbne/Geometry/ChannelMap35Alg.h"
+#include "Geometry/AuxDetGeo.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
@@ -34,7 +35,8 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMap35Alg::Initialize(std::vector<geo::CryostatGeo*> & cgeo)
+  void ChannelMap35Alg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
+				    std::vector<geo::AuxDetGeo*>   & adgeo )
   {
 
     if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
@@ -47,6 +49,7 @@ namespace geo{
     
     mf::LogInfo("ChannelMap35Alg") << "Sorting...";
 
+    fSorter.SortAuxDets(adgeo);
     fSorter.SortCryostats(cgeo);
     for(size_t c = 0; c < cgeo.size(); ++c) 
       cgeo[c]->SortSubVolumes(fSorter);

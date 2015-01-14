@@ -34,7 +34,8 @@ namespace lbne
   
   void LBNEGeometryHelper::doConfigureChannelMapAlg( const TString & detectorName,
                                                      fhicl::ParameterSet const & sortingParam,
-                                                     std::vector<geo::CryostatGeo*> & c )
+                                                     std::vector<geo::CryostatGeo*> & c,
+						     std::vector<geo::AuxDetGeo*>   & ad )
   {
     fChannelMap = nullptr;
     
@@ -64,7 +65,7 @@ namespace lbne
     }
     if ( fChannelMap )
     {
-      fChannelMap->Initialize( c );
+      fChannelMap->Initialize( c, ad );
     }
   }
   

@@ -1,9 +1,22 @@
+
+#include <vector>
+
 typedef struct _drawopt 
 {
   const char* volume;
   int         color;
 } drawopt;
 
+ int showAuxDets = 1;
+ int showWirePlanes = 1;
+ int showLongActive = 1;
+ int showShortActive = 1;
+ int showCathode = 1;
+ int showGasAr = 1;
+ int showCryoShell = 1;
+ int showCryoPadding = 1;
+ int showTrenchAndDirt = 0;
+ bool OnlyDrawAPAs = false;
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -28,16 +41,7 @@ lbne35t_geo(TString volName="")
     obj->Print();
   }
 
- int showAuxDets = 1;
- int showWirePlanes = 1;
- int showLongActive = 1;
- int showShortActive = 1;
- int showCathode = 1;
- int showGasAr = 1;
- int showCryoShell = 1;
- int showCryoPadding = 1;
- int showTrenchAndDirt = 0;
- bool OnlyDrawAPAs = false;
+
 
 
  if(OnlyDrawAPAs){
@@ -188,17 +192,23 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
  gGeoManager->GetVolume("volBerm")->SetVisibility(showTrenchAndDirt);
  gGeoManager->GetVolume("volBerm")->SetTransparency(70);
 
- gGeoManager->GetVolume("volAuxDetTrap")->SetLineColor(kRed-3); 
- gGeoManager->GetVolume("volAuxDetTrap")->SetVisibility(showAuxDets);
- gGeoManager->GetVolume("volAuxDetTrap")->SetTransparency(30);
- gGeoManager->GetVolume("volAuxDetBoxBSU")->SetLineColor(kRed-3); 
- gGeoManager->GetVolume("volAuxDetBoxBSU")->SetVisibility(showAuxDets);
- gGeoManager->GetVolume("volAuxDetBoxBSU")->SetTransparency(30);
+ TGeoIterator next1(gGeoManager->GetTopVolume());
+ TGeoNode *node = 0;
+ 
+ while ( (node=(TGeoNode*)next1()) ){
+   const char* nm = node->GetName();
+   if( (strncmp(nm, "volAuxDet", 9) == 0) ){
+     node->GetVolume()->SetLineColor(kRed-3); 
+     node->GetVolume()->SetVisibility(showAuxDets);
+     node->GetVolume()->SetTransparency(30);
+   }
+ }
+//    std::vector<const TGeoNode*> path(8);
+//    path[0] = gGeoManager->GetTopNode();
+//    RunThroughVolumeTree(path, 0);
 
 
-
-
- gGeoManager->GetTopNode();
+ //gGeoManager->GetTopNode();
  gGeoManager->CheckOverlaps(1e-5,"d");
  gGeoManager->PrintOverlaps();
  gGeoManager->SetMaxVisNodes(70000);
@@ -218,3 +228,36 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
 
   tf->Close();
 }
+
+
+
+  //......................................................................
+  void RunThroughVolumeTree( std::vector<const TGeoNode*>& path,
+			     unsigned int depth)
+  {
+    const char* nm = path[depth]->GetName();
+    
+    std::cout << nm; // << std::endl;
+
+    if( (strncmp(nm, "volAuxDet", 9) == 0) ){
+      path[depth]->GetVolume()->SetLineColor(kRed-3); 
+      path[depth]->GetVolume()->SetVisibility(showAuxDets);
+      path[depth]->GetVolume()->SetTransparency(30);
+      return;
+    }
+    
+    //explore the next layer down
+    unsigned int deeper = depth+1;
+    if(deeper >= path.size()){
+      std::cout << "exceeded maximum TGeoNode depth" << std::endl;
+    }
+    
+    const TGeoVolume *v = path[depth]->GetVolume();
+    int nd = v->GetNdaughters();
+    std::cout << ": " << nd << " daughters " << std::endl;
+    for(int i = 0; i < nd; ++i){
+      path[deeper] = v->GetNode(i); // what is wrong with this line??
+      RunThroughVolumeTree(path, deeper);
+    }
+    
+  }

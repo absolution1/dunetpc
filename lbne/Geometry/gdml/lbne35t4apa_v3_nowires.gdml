@@ -2524,16 +2524,6 @@
     </volume>
 
 
-    <volume name="volAuxDetBoxBSU" >
-      <materialref ref="Polystyrene"/>
-      <solidref ref="AuxDetBoxBSU"/>
-    </volume>
-
-    <volume name="volAuxDetTrap" >
-      <materialref ref="Polystyrene"/>
-      <solidref ref="AuxDetTrap"/>
-    </volume>
-
     <volume name="volBotSteelShell">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
       <solidref ref="BottomSteelShell"/>
@@ -2560,31 +2550,31 @@
 
 
     <volume name="volFoamSouth">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamSouth"/>
     </volume>
     <volume name="volFoamNorth">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamNorth"/>
     </volume>
     <volume name="volFoamEastWest">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamEastWest"/>
     </volume>
     <volume name="volFoamEastWestNeck">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamEastWestNeck"/>
     </volume>
     <volume name="volFoamBottom">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamBottom"/>
     </volume>
     <volume name="volFoamTop">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamTop"/>
     </volume>
     <volume name="volFoamNorthNeck">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="polyurethane_foam"/>
       <solidref ref="FoamNorthNeck"/>
     </volume>
 
@@ -2605,7 +2595,374 @@
       <materialref ref="Concrete"/>
       <solidref ref="TrenchTopConcrete"/>
     </volume>
-
+    <volume name="volAuxDetBoxBSU-L1-1" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-2" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-3" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-4" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-5" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-6" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-7" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-8" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-9" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-10" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-11" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-12" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L1-13" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-1" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-2" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-3" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-4" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-5" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-6" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-7" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-8" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L2-9" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-1" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-2" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-3" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-4" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-5" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-6" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-7" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-8" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-9" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-10" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-11" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-12" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-13" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-14" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-15" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L3-16" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-1" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-2" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-3" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-4" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-5" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-6" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-7" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-8" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-9" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetBoxBSU-L4-10" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetBoxBSU"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-1" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-1" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-2" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-2" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-3" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-3" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-4" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-4" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-5" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-5" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-6" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-6" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-7" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-7" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-8" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-8" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-9" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-9" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-10" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-10" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-11" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-11" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-South-12" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-North-12" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-1" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-1" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-2" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-2" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-3" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-3" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-4" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-4" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-5" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-5" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-6" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-6" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-7" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-7" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-8" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-8" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-9" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-9" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-East-10" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
+    <volume name="volAuxDetTrap-West-10" >
+      <materialref ref="Acrylic"/>
+      <solidref ref="AuxDetTrap"/>
+    </volume>
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
@@ -2618,8 +2975,8 @@
       <physvol>
         <volumeref ref="volNeck"/>
         <position name="posNeck" unit="cm" 
-	  x="0 + 407.5623928/2 -  100/2" 
-	  y="-30.72 + 270.4571/2 + (75 +  1.27)/2" 
+	  x="0 + 407.5623928/2 - 100/2" 
+	  y="-30.72 + 270.4571/2 + (75 + 1.27)/2" 
           z="-31.115"/>
       </physvol>
       <physvol>
@@ -2641,14 +2998,14 @@
       <physvol>
         <volumeref ref="volFoamSouth"/>
         <position name="posFoamSouth" unit="cm" 
-	  x="0 +  407.5623928/2 + 1.27 + 39.75148/2"
-	  y="-30.72 -  270.4571/2 - 1.27 + 347.9971/2" 
+	  x="0 + 407.5623928/2 + 1.27 + 39.75148/2"
+	  y="-30.72 - 270.4571/2 - 1.27 + 347.9971/2" 
           z="-31.115"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamNorth"/>
         <position name="posFoamNorth" unit="cm" 
-	  x="0 -  407.5623928/2 - 1.27 - 39.75148/2"
+	  x="0 - 407.5623928/2 - 1.27 - 39.75148/2"
 	  y="-30.72" 
           z="-31.115"/> 
       </physvol>
@@ -2657,48 +3014,48 @@
         <position name="posFoamEast" unit="cm" 
 	  x="0"
 	  y="-30.72" 
-          z="-31.115 -  270.497/2 - 1.27 - 39.75148/2"/> 
+          z="-31.115 - 270.497/2 - 1.27 - 39.75148/2"/> 
       </physvol> 
       <physvol>
         <volumeref ref="volFoamEastWest"/>
         <position name="posFoamWest" unit="cm" 
 	  x="0"
 	  y="-30.72" 
-          z="-31.115 +  270.497/2 + 1.27 + 39.75148/2"/> 
+          z="-31.115 + 270.497/2 + 1.27 + 39.75148/2"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamEastWestNeck"/>
         <position name="posFoamEastNeck" unit="cm" 
-	  x="0 +  407.5623928/2 - 100/2"
-	  y="-30.72 +  270.4571/2 + (75 + 1.27)/2" 
-          z="-31.115 -  270.497/2 - 1.27 - 39.75148/2"/> 
+	  x="0 + 407.5623928/2 - 100/2"
+	  y="-30.72 + 270.4571/2 + (75 + 1.27)/2" 
+          z="-31.115 - 270.497/2 - 1.27 - 39.75148/2"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamEastWestNeck"/>
         <position name="posFoamWestNeck" unit="cm" 
-	  x="0 +  407.5623928/2 - 100/2"
-	  y="-30.72 +  270.4571/2 + (75 + 1.27)/2" 
-          z="-31.115 +  270.497/2 + 1.27 + 39.75148/2"/> 
+	  x="0 + 407.5623928/2 - 100/2"
+	  y="-30.72 + 270.4571/2 + (75 + 1.27)/2" 
+          z="-31.115 + 270.497/2 + 1.27 + 39.75148/2"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamBottom"/>
         <position name="posFoamBottom" unit="cm" 
 	  x="0"
-	  y="-30.72 -  270.4571/2 - 1.27 - 39.75148/2" 
+	  y="-30.72 - 270.4571/2 - 1.27 - 39.75148/2" 
           z="-31.115"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamTop"/>
         <position name="posFoamTop" unit="cm" 
-	  x="0 -  407.5623928/2 - 1.27 - 39.75148 + 307.5623928/2"
-	  y="-30.72 +  270.4571/2 + 1.27 + 39.75148/2" 
+	  x="0 - 407.5623928/2 - 1.27 - 39.75148 + 307.5623928/2"
+	  y="-30.72 + 270.4571/2 + 1.27 + 39.75148/2" 
           z="-31.115"/> 
       </physvol>
       <physvol>
         <volumeref ref="volFoamNorthNeck"/>
         <position name="posFoamNorthNeck" unit="cm" 
-	  x="0 +  407.5623928/2 - 100 - 1.27 - 39.75148/2" 
-	  y="-30.72 +  270.4571/2 + 1.27 + 75/2" 
+	  x="0 + 407.5623928/2 - 100 - 1.27 - 39.75148/2" 
+	  y="-30.72 + 270.4571/2 + 1.27 + 75/2" 
           z="-31.115"/>
       </physvol>
 
@@ -2707,7 +3064,7 @@
         <volumeref ref="volBottomConcreteShell"/>
         <position name="posBottomConcreteShell" unit="cm" 
 	  x="0"
-	  y="-30.72 -  30/2" 
+	  y="-30.72 - 30/2" 
           z="-31.115"/> 
       </physvol>
       <physvol>
@@ -2735,458 +3092,458 @@
       <physvol>
         <volumeref ref="volTrenchTopConcrete"/>
         <position name="posTrenchConcreteTop_Neg" unit="cm" 
-	  x=" - 4946.4481752/2 +  2198.4214112/2" 
-	  y="545.06006/2 -  35.56/2" 
+	  x=" - 4946.4481752/2 + 2198.4214112/2" 
+	  y="545.06006/2 - 35.56/2" 
           z="0"/>
       </physvol>
 -->
 
 
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-1"/>
         <position name="posAuxDet-North-1" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 97.8408"
+	  y=" -120.8392"
           z=" -31.115 - 411.99/2 + 105.41"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-2"/>
         <position name="posAuxDet-North-2" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 100.2792"
+	  y=" -118.4008"
           z=" -31.115 - 411.99/2 + 136.144"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-3"/>
         <position name="posAuxDet-North-3" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 97.8408"
+	  y=" -120.8392"
           z=" -31.115 - 411.99/2 + 166.878"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-4"/>
         <position name="posAuxDet-North-4" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 100.2792"
+	  y=" -118.4008"
           z=" -31.115 - 411.99/2 + 197.612"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-5"/>
         <position name="posAuxDet-North-5" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 97.8408"
+	  y=" -120.8392"
           z=" -31.115 - 411.99/2 + 228.346"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-6"/>
         <position name="posAuxDet-North-6" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 100.2792"
+	  y=" -118.4008"
           z=" -31.115 - 411.99/2 + 259.08"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-7"/>
         <position name="posAuxDet-North-7" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 290.8808"
+	  y=" 72.2008"
           z=" -31.115 - 411.99/2 + 105.41"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-8"/>
         <position name="posAuxDet-North-8" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 293.3192"
+	  y=" 74.6392"
           z=" -31.115 - 411.99/2 + 136.144"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-9"/>
         <position name="posAuxDet-North-9" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 290.8808"
+	  y=" 72.2008"
           z=" -31.115 - 411.99/2 + 166.878"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-10"/>
         <position name="posAuxDet-North-10" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 293.3192"
+	  y=" 74.6392"
           z=" -31.115 - 411.99/2 + 197.612"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-11"/>
         <position name="posAuxDet-North-11" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 290.8808"
+	  y=" 72.2008"
           z=" -31.115 - 411.99/2 + 228.346"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-North-12"/>
         <position name="posAuxDet-North-12" unit="cm" 
 	  x=" 0 - 549.6053528/2 - 3/2" 
-	  y=" -30.72 - 375.92/2 + 293.3192"
+	  y=" 74.6392"
           z=" -31.115 - 411.99/2 + 259.08"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-1"/>
         <position name="posAuxDet-South-1" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 63.3008"
+	  y=" -155.3792"
           z=" -31.115 - 411.99/2 + 261.745"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-2"/>
         <position name="posAuxDet-South-2" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 62.1792"
+	  y=" -156.5008"
           z=" -31.115 - 411.99/2 + 231.1"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-3"/>
         <position name="posAuxDet-South-3" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 63.3008"
+	  y=" -155.3792"
           z=" -31.115 - 411.99/2 + 200.455"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-4"/>
         <position name="posAuxDet-South-4" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 62.1792"
+	  y=" -156.5008"
           z=" -31.115 - 411.99/2 + 169.81"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-5"/>
         <position name="posAuxDet-South-5" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 63.3008"
+	  y=" -155.3792"
           z=" -31.115 - 411.99/2 + 139.165"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-6"/>
         <position name="posAuxDet-South-6" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 62.1792"
+	  y=" -156.5008"
           z=" -31.115 - 411.99/2 + 108.52"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-7"/>
         <position name="posAuxDet-South-7" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 303.9108"
+	  y=" 85.2308"
           z=" -31.115 - 411.99/2 + 261.745"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-8"/>
         <position name="posAuxDet-South-8" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 303.8092"
+	  y=" 85.1292000000001"
           z=" -31.115 - 411.99/2 + 231.1"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-9"/>
         <position name="posAuxDet-South-9" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 303.9108"
+	  y=" 85.2308"
           z=" -31.115 - 411.99/2 + 200.455"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-10"/>
         <position name="posAuxDet-South-10" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 303.8092"
+	  y=" 85.1292000000001"
           z=" -31.115 - 411.99/2 + 169.81"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-11"/>
         <position name="posAuxDet-South-11" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 303.9108"
+	  y=" 85.2308"
           z=" -31.115 - 411.99/2 + 139.165"/>
         <rotationref ref="rAuxDetNSWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-South-12"/>
         <position name="posAuxDet-South-12" unit="cm" 
 	  x=" 0 + 549.6053528/2 + 3/2" 
-	  y=" -30.72 - 375.92/2 + 303.8092"
+	  y=" 85.1292000000001"
           z=" -31.115 - 411.99/2 + 108.52"/>
         <rotationref ref="rAuxDetNSWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-1"/>
         <position name="posAuxDet-East-1" unit="cm" 
 	  x=" 0 - 541.53/2 + 364.115" 
-	  y=" -30.72 - 375.92/2 + 78.8008"
+	  y=" -139.8792"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-2"/>
         <position name="posAuxDet-East-2" unit="cm" 
 	  x=" 0 - 541.53/2 + 333.366666666667" 
-	  y=" -30.72 - 375.92/2 + 80.6492"
+	  y=" -138.0308"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-3"/>
         <position name="posAuxDet-East-3" unit="cm" 
 	  x=" 0 - 541.53/2 + 302.618333333333" 
-	  y=" -30.72 - 375.92/2 + 78.8008"
+	  y=" -139.8792"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-4"/>
         <position name="posAuxDet-East-4" unit="cm" 
 	  x=" 0 - 541.53/2 + 271.87" 
-	  y=" -30.72 - 375.92/2 + 80.6492"
+	  y=" -138.0308"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-5"/>
         <position name="posAuxDet-East-5" unit="cm" 
 	  x=" 0 - 541.53/2 + 241.121666666667" 
-	  y=" -30.72 - 375.92/2 + 78.8008"
+	  y=" -139.8792"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-6"/>
         <position name="posAuxDet-East-6" unit="cm" 
 	  x=" 0 - 541.53/2 + 210.373333333333" 
-	  y=" -30.72 - 375.92/2 + 80.6492"
+	  y=" -138.0308"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-7"/>
         <position name="posAuxDet-East-7" unit="cm" 
 	  x=" 0 - 541.53/2 + 179.625" 
-	  y=" -30.72 - 375.92/2 + 78.8008"
+	  y=" -139.8792"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-8"/>
         <position name="posAuxDet-East-8" unit="cm" 
 	  x=" 0 - 541.53/2 + 148.876666666667" 
-	  y=" -30.72 - 375.92/2 + 80.6492"
+	  y=" -138.0308"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-9"/>
         <position name="posAuxDet-East-9" unit="cm" 
 	  x=" 0 - 541.53/2 + 118.128333333333" 
-	  y=" -30.72 - 375.92/2 + 78.8008"
+	  y=" -139.8792"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-East-10"/>
         <position name="posAuxDet-East-10" unit="cm" 
 	  x=" 0 - 541.53/2 + 87.38" 
-	  y=" -30.72 - 375.92/2 + 80.6492"
+	  y=" -138.0308"
           z=" -31.115 - 412.53996/2 - 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-1"/>
         <position name="posAuxDet-West-1" unit="cm" 
 	  x=" 0 - 541.53/2 + 82.965" 
-	  y=" -30.72 - 375.92/2 + 296.2408"
+	  y=" 77.5608"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-2"/>
         <position name="posAuxDet-West-2" unit="cm" 
 	  x=" 0 - 541.53/2 + 111.846666666667" 
-	  y=" -30.72 - 375.92/2 + 298.1492"
+	  y=" 79.4692"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-3"/>
         <position name="posAuxDet-West-3" unit="cm" 
 	  x=" 0 - 541.53/2 + 140.728333333333" 
-	  y=" -30.72 - 375.92/2 + 296.2408"
+	  y=" 77.5608"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-4"/>
         <position name="posAuxDet-West-4" unit="cm" 
 	  x=" 0 - 541.53/2 + 169.61" 
-	  y=" -30.72 - 375.92/2 + 298.1492"
+	  y=" 79.4692"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-5"/>
         <position name="posAuxDet-West-5" unit="cm" 
 	  x=" 0 - 541.53/2 + 198.491666666667" 
-	  y=" -30.72 - 375.92/2 + 296.2408"
+	  y=" 77.5608"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-6"/>
         <position name="posAuxDet-West-6" unit="cm" 
 	  x=" 0 - 541.53/2 + 227.373333333333" 
-	  y=" -30.72 - 375.92/2 + 298.1492"
+	  y=" 79.4692"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-7"/>
         <position name="posAuxDet-West-7" unit="cm" 
 	  x=" 0 - 541.53/2 + 256.255" 
-	  y=" -30.72 - 375.92/2 + 296.2408"
+	  y=" 77.5608"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-8"/>
         <position name="posAuxDet-West-8" unit="cm" 
 	  x=" 0 - 541.53/2 + 285.136666666667" 
-	  y=" -30.72 - 375.92/2 + 298.1492"
+	  y=" 79.4692"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-9"/>
         <position name="posAuxDet-West-9" unit="cm" 
 	  x=" 0 - 541.53/2 + 314.018333333333" 
-	  y=" -30.72 - 375.92/2 + 296.2408"
+	  y=" 77.5608"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallUp"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetTrap"/>
+        <volumeref ref="volAuxDetTrap-West-10"/>
         <position name="posAuxDet-West-10" unit="cm" 
 	  x=" 0 - 541.53/2 + 342.9" 
-	  y=" -30.72 - 375.92/2 + 298.1492"
+	  y=" 79.4692"
           z=" -31.115 + 412.53996/2 + 3/2"/>
         <rotationref ref="rAuxDetEWWallDown"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-1"/>
         <position name="posAuxDet-BSU-L1-1" unit="cm" 
 	  x="-49.58715 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-2"/>
         <position name="posAuxDet-BSU-L1-2" unit="cm" 
 	  x="-32.44215 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-3"/>
         <position name="posAuxDet-BSU-L1-3" unit="cm" 
 	  x="-15.29715 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-4"/>
         <position name="posAuxDet-BSU-L1-4" unit="cm" 
 	  x="1.84785 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-5"/>
         <position name="posAuxDet-BSU-L1-5" unit="cm" 
 	  x="35.60445 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-6"/>
         <position name="posAuxDet-BSU-L1-6" unit="cm" 
 	  x="52.74945 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-7"/>
         <position name="posAuxDet-BSU-L1-7" unit="cm" 
 	  x="69.89445 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-8"/>
         <position name="posAuxDet-BSU-L1-8" unit="cm" 
 	  x="87.03945 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-9"/>
         <position name="posAuxDet-BSU-L1-9" unit="cm" 
 	  x="104.18445 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-10"/>
         <position name="posAuxDet-BSU-L1-10" unit="cm" 
 	  x="121.32945 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-11"/>
         <position name="posAuxDet-BSU-L1-11" unit="cm" 
 	  x="138.47445 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-12"/>
         <position name="posAuxDet-BSU-L1-12" unit="cm" 
 	  x="155.61945 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L1-13"/>
         <position name="posAuxDet-BSU-L1-13" unit="cm" 
 	  x="172.76445 - 145.6898036" 
 	  y="197.16703 - 50.6845"
           z="85.3059 - 132.6652"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-1"/>
         <position name="posAuxDet-BSU-L2-1" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3194,7 +3551,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-2"/>
         <position name="posAuxDet-BSU-L2-2" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3202,7 +3559,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-3"/>
         <position name="posAuxDet-BSU-L2-3" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3210,7 +3567,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-4"/>
         <position name="posAuxDet-BSU-L2-4" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3218,7 +3575,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-5"/>
         <position name="posAuxDet-BSU-L2-5" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3226,7 +3583,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-6"/>
         <position name="posAuxDet-BSU-L2-6" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3234,7 +3591,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-7"/>
         <position name="posAuxDet-BSU-L2-7" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3242,7 +3599,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-8"/>
         <position name="posAuxDet-BSU-L2-8" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3250,7 +3607,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L2-9"/>
         <position name="posAuxDet-BSU-L2-9" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
@@ -3296,119 +3653,119 @@
       </physvol>
 
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-1"/>
         <position name="posAuxDetBox-BSU-L3-1" unit="cm" 
 	  x="-49.58715" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-2"/>
         <position name="posAuxDetBox-BSU-L3-2" unit="cm" 
 	  x="-32.44215" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-3"/>
         <position name="posAuxDetBox-BSU-L3-3" unit="cm" 
 	  x="-15.29715" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-4"/>
         <position name="posAuxDetBox-BSU-L3-4" unit="cm" 
 	  x="1.84785" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-5"/>
         <position name="posAuxDetBox-BSU-L3-5" unit="cm" 
 	  x="18.99285" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-6"/>
         <position name="posAuxDetBox-BSU-L3-6" unit="cm" 
 	  x="36.13785" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-7"/>
         <position name="posAuxDetBox-BSU-L3-7" unit="cm" 
 	  x="53.28285" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-8"/>
         <position name="posAuxDetBox-BSU-L3-8" unit="cm" 
 	  x="70.42785" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-9"/>
         <position name="posAuxDetBox-BSU-L3-9" unit="cm" 
 	  x="87.57285" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-10"/>
         <position name="posAuxDetBox-BSU-L3-10" unit="cm" 
 	  x="104.71785" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-11"/>
         <position name="posAuxDetBox-BSU-L3-11" unit="cm" 
 	  x="121.86285" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-12"/>
         <position name="posAuxDetBox-BSU-L3-12" unit="cm" 
 	  x="139.00785" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-13"/>
         <position name="posAuxDetBox-BSU-L3-13" unit="cm" 
 	  x="156.15285" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-14"/>
         <position name="posAuxDetBox-BSU-L3-14" unit="cm" 
 	  x="173.29785" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-15"/>
         <position name="posAuxDetBox-BSU-L3-15" unit="cm" 
 	  x="190.44285" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L3-16"/>
         <position name="posAuxDetBox-BSU-L3-16" unit="cm" 
 	  x="207.58785" 
 	  y="784.94843"
           z="85.3059"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-1"/>
         <position name="posAuxDetBox-BSU-L4-1" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3416,7 +3773,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-2"/>
         <position name="posAuxDetBox-BSU-L4-2" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3424,7 +3781,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-3"/>
         <position name="posAuxDetBox-BSU-L4-3" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3432,7 +3789,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-4"/>
         <position name="posAuxDetBox-BSU-L4-4" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3440,7 +3797,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-5"/>
         <position name="posAuxDetBox-BSU-L4-5" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3448,7 +3805,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-6"/>
         <position name="posAuxDetBox-BSU-L4-6" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3456,7 +3813,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-7"/>
         <position name="posAuxDetBox-BSU-L4-7" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3464,7 +3821,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-8"/>
         <position name="posAuxDetBox-BSU-L4-8" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3472,7 +3829,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-9"/>
         <position name="posAuxDetBox-BSU-L4-9" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
@@ -3480,7 +3837,7 @@
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
-        <volumeref ref="volAuxDetBoxBSU"/>
+        <volumeref ref="volAuxDetBoxBSU-L4-10"/>
         <position name="posAuxDetBox-BSU-L4-10" unit="cm" 
 	  x="88.5571" 
 	  y="795.74343"
