@@ -114,6 +114,8 @@ lbne35t_detsim_services.SignalShapingServiceLBNE35t:  @local::lbne35t_signalshap
 lbne35t_simulation_services:        @local::lbne35t_g4_services
 lbne35t_simulation_services.LArFFT: @local::lbne35t_larfft
 lbne35t_simulation_services.SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
+lbne35t_simulation_services.PhotonVisibilityService:      @local::lbne35t_photonvisibilityservice
+lbne35t_simulation_services.BackTracker:  @local::lbne35t_backtracker
 
 lbne35t_milliblock_services:    @local::lbne35t_services
 lbne35t_milliblock_services.DetectorProperties: @local::lbne35t_milliblock_detproperties
