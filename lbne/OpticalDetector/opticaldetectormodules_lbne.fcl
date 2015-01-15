@@ -1,0 +1,50 @@
+#include "opticaldetectormodules.fcl"
+
+BEGIN_PROLOG
+
+lbnefd_opdigi:
+{
+  module_type:        "OpMCDigi"
+  InputModule:        "largeant"
+  QE:                      1
+  SaturationScale:         50000
+  DarkRate:                0 #10000
+}
+
+lbnefd_simphotoncounter:
+{
+  module_type:            "SimPhotonCounter"
+  Verbosity:               0
+  InputModule:            "largeant"
+  MakeAllPhotonsTree:      true
+  MakeDetectedPhotonsTree: true
+  MakeOpDetsTree:          true
+  MakeOpDetEventsTree:     true
+  QuantumEfficiency:       1
+  WavelengthCutLow:        0
+  WavelengthCutHigh:       10000
+}
+
+lbnefd_tracktimeassoc:   @local::standard_tracktimeassoc
+lbnefd_opflash:          @local::standard_opflash
+
+lbnefd_opdigiana:        @local::standard_opdigiana
+lbnefd_opflashana:       @local::standard_opflashana
+
+
+lbne35t_simphotoncounter: @local::standard_simphotoncounter
+
+lbne35t_opdigi:           @local::standard_opdigi
+lbne35t_tracktimeassoc:   @local::standard_tracktimeassoc
+lbne35t_opflash:          @local::standard_opflash
+
+lbne35t_opdigiana:        @local::standard_opdigiana
+lbne35t_opflashana:       @local::standard_opflashana
+lbne35t_opdigiana.MakeUnipolarHist: false
+
+lbne35t_opdigiana_data:   @local::lbne35t_opdigiana
+lbne35t_opdigiana_data.InputModule: ssptooffline
+lbne35t_opdigiana_data.InstanceName: offlinePhoton
+
+
+END_PROLOG
