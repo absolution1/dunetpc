@@ -34,7 +34,24 @@ lbnefd_opflashana:       @local::standard_opflashana
 
 lbne35t_simphotoncounter: @local::standard_simphotoncounter
 
-lbne35t_opdigi:           @local::standard_opdigi
+lbne35t_opdigi:
+{
+  module_type:        "OpMCDigi"
+  InputModule:        "largeant"
+  QE:                      0.16  # See below
+  SaturationScale:         16383 # 2^14 - 1, based on SSP Data
+  DarkRate:                20    # Hz, Ranges 2-50 depending on Vbias
+
+   # QE here assumes 3% already applied at generation time and
+   # attempts to correct for total collection efficiency, which
+   # includes:
+   #   SiPMQE: 35%
+   #   Microcell Fill: 64%
+   #   SiPM Coverage: 71%
+   #   Surface Conversion: 3% (generous estimate)
+   #   Attenuation in bars already in library response
+}
+
 lbne35t_tracktimeassoc:   @local::standard_tracktimeassoc
 lbne35t_opflash:          @local::standard_opflash
 
