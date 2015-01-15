@@ -1,5 +1,5 @@
 #include "services_lbne.fcl"
-#include "cry.fcl"
+#include "cry_lbne.fcl"
 #include "largeantmodules_lbne.fcl"
 #include "detsimmodules_lbne.fcl"
 
