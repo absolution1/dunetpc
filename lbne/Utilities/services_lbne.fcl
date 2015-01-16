@@ -126,4 +126,102 @@ lbne35t_milliblock_detsim_services.DetectorProperties: @local::lbne35t_millibloc
 lbne35t_milliblock_simulation_services: @local::lbne35t_simulation_services
 lbne35t_milliblock_simulation_services.DetectorProperties: @local::lbne35t_milliblock_detproperties
 
+lbne_message_services:
+{
+  debugModules: ["*"]
+
+  destinations: {
+    LogDebugFile: { 
+      type:       "file"
+      filename:   "debug.log"
+      append:     false
+      threshold:  "DEBUG"
+      categories:{
+        default:{ limit: 0 }
+      }
+    }
+    LogStandardOut: {
+      type:       "cout"
+      threshold:  "WARNING"
+      categories:{
+        default:{ }
+        RecoBaseDefaultCtor: { limit: 0 }
+        AnaBaseDefaultCtor:  { limit: 0 }
+        GeometryBadInputPoint: { limit: 5 timespan: 1000}
+      }
+    }
+    LogStandardError: {
+      type:       "cerr"
+      threshold:  "ERROR"
+      categories:{
+        default:{ }
+      }
+    }
+  }
+}
+
+lbne_message_services_prod_debug:
+{
+  debugModules: ["*"]
+
+  destinations: {
+
+  LogDebugFile:      @local::lbne_message_services.destinations.LogDebugFile
+  LogStandardOut:    @local::lbne_message_services.destinations.LogStandardOut
+  LogStandardError:  @local::lbne_message_services.destinations.LogStandardError
+  }
+}
+lbne_message_services_prod_debug.destinations.LogDebugFile.categories:{
+  default: { }
+  RecoBaseDefaultCtor: { limit: 0 }
+  AnaBaseDefaultCtor:  { limit: 0 }
+  Track3DKalmanSPS_GenFit: { limit: 0 }
+  GeometryBadInputPoint: { limit: 5 timespan: 1000}
+  SpacePointAlg: { limit: 0 }
+  KalmanFilterAlg: { limit: 0 }
+  Track3DKalmanHit: { limit: 0 }
+  fuzzyCluster: { limit: 0}
+  ChannelFilter: { limit: 0}
+  HoughBaseAlg: { limit: 0}
+  DBscan: {limit: 0}
+  CosmicTracker: {limit: 0}
+  HitCheater: {limit: 0}
+  DisambigAlg35t: {limit: 0}
+}
+
+
+lbne_message_services_prod:
+{
+  debugModules: ["*"]
+
+  destinations: {
+    LogStandardOut:    @local::lbne_message_services.destinations.LogStandardOut
+    LogStandardError:  @local::lbne_message_services.destinations.LogStandardError
+  }
+}
+
+lbne_message_services_interactive:
+{
+  debugModules: ["*"]
+
+  destinations: {
+
+    LogDebugFile:      @local::lbne_message_services.destinations.LogDebugFile
+    LogStandardOut:    @local::lbne_message_services.destinations.LogStandardOut
+    LogStandardError:  @local::lbne_message_services.destinations.LogStandardError
+  }
+}
+lbne_message_services_interactive.destinations.LogStandardOut.threshold:  "INFO"
+lbne_message_services_interactive.destinations.LogStandardOut.categories:{
+  default: { limit: 0 }
+}
+lbne_message_services_interactive.destinations.LogStandardError.threshold:  "WARNING"
+lbne_message_services_interactive.destinations.LogStandardError.categories:{
+  default: { }
+  RecoBaseDefaultCtor: { limit: 1 }
+  AnaBaseDefaultCtor:  { limit: 1 }
+  GeometryBadInputPoint: { limit: 5 timespan: 1000}
+}
+
+
 END_PROLOG
