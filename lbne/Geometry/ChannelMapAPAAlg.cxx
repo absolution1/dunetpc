@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "lbne/Geometry/ChannelMapAPAAlg.h"
+#include "Geometry/AuxDetGeo.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
@@ -29,7 +30,8 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMapAPAAlg::Initialize(std::vector<geo::CryostatGeo*> & cgeo)
+  void ChannelMapAPAAlg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
+				     std::vector<geo::AuxDetGeo*>   & adgeo )
   {
 
     if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
@@ -41,6 +43,7 @@ namespace geo{
     
     mf::LogInfo("ChannelMapAPAAlg") << "Sorting volumes...";
 
+    fSorter.SortAuxDets(adgeo);
     fSorter.SortCryostats(cgeo);
     for(size_t c = 0; c < cgeo.size(); ++c) 
       cgeo[c]->SortSubVolumes(fSorter);
@@ -154,22 +157,22 @@ namespace geo{
     }
 
 
-    mf::LogVerbatim("GeometryTest") << "fNchannels = " << fNchannels ; 
+    mf::LogVerbatim("ChannelMapAPAAlg") << "fNchannels = " << fNchannels ; 
 
-    mf::LogVerbatim("GeometryTest") << "For all identical APA:" ; 
-    mf::LogVerbatim("GeometryTest") << "Number of channels per APA = " << fChannelsPerAPA ; 
+    mf::LogVerbatim("ChannelMapAPAAlg") << "For all identical APA:" ; 
+    mf::LogVerbatim("ChannelMapAPAAlg") << "Number of channels per APA = " << fChannelsPerAPA ; 
 
-    mf::LogVerbatim("GeometryTest") << "Number of WireIDs in a U plane = " << fWiresInPlane[0] ;
-    mf::LogVerbatim("GeometryTest") << "Number of WireIDs in a V plane = " << fWiresInPlane[1] ;
-    mf::LogVerbatim("GeometryTest") << "Number of WireIDs in a Z Plane = " << fWiresInPlane[2] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "Number of WireIDs in a U plane = " << fWiresInPlane[0] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "Number of WireIDs in a V plane = " << fWiresInPlane[1] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "Number of WireIDs in a Z Plane = " << fWiresInPlane[2] ;
 
-    mf::LogVerbatim("GeometryTest") << "U channels per APA = " << 2*nAnchoredWires[0] ;
-    mf::LogVerbatim("GeometryTest") << "V channels per APA = " << 2*nAnchoredWires[1] ;
-    mf::LogVerbatim("GeometryTest") << "Z channels per APA side = " << nAnchoredWires[2] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "U channels per APA = " << 2*nAnchoredWires[0] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "V channels per APA = " << 2*nAnchoredWires[1] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "Z channels per APA side = " << nAnchoredWires[2] ;
 
-    mf::LogVerbatim("GeometryTest") << "Pitch in U Plane = " << fWirePitch[0] ;
-    mf::LogVerbatim("GeometryTest") << "Pitch in V Plane = " << fWirePitch[1] ;
-    mf::LogVerbatim("GeometryTest") << "Pitch in Z Plane = " << fWirePitch[2] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "Pitch in U Plane = " << fWirePitch[0] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "Pitch in V Plane = " << fWirePitch[1] ;
+    mf::LogVerbatim("ChannelMapAPAAlg") << "Pitch in Z Plane = " << fWirePitch[2] ;
 
     return;
 

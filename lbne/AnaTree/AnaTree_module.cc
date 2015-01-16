@@ -225,11 +225,8 @@ namespace {
   {
 
     // Get services.
-
     art::ServiceHandle<geo::Geometry> geom;
-
     art::ServiceHandle<util::DetectorProperties> detprop;
-
     double xmin,xmax,ymin,ymax,zmin,zmax;
 
     /*  if(tpc==0 || tpc==2 || tpc==4 || tpc==6 ) //short tpcs
@@ -430,8 +427,13 @@ mf::LogVerbatim("output") << " xmin " << xmin;
 
       // predict the tpc number
 
-      int whichTPC=0;
+      //      int whichTPC=0;
+      int whichTPC2=-999;
 
+      double const tmpArray[]={pos.X(),pos.Y(),pos.Z()};
+      geo::TPCID tpcid=geom->FindTPCAtPosition(tmpArray);
+      whichTPC2=tpcid.TPC;
+      /*
       if(pos.Z() >=-1.0 && pos.Z()<=49.0 && pos.Y() >=-85.0 && pos.Y() <= 113.0)   
 
         {
@@ -481,7 +483,7 @@ mf::LogVerbatim("output") << " xmin " << xmin;
          }
 
       
-
+      */
       //      mf::LogVerbatim("output") << " x " << pos.X();
 
       //      mf::LogVerbatim("output") << " y " << pos.Y();
@@ -489,23 +491,26 @@ mf::LogVerbatim("output") << " xmin " << xmin;
       //      mf::LogVerbatim("output") << " z " << pos.Z();
 
       if(pos.X() >= xmin &&
-
          pos.X() <= xmax &&
-
          pos.Y() >= ymin &&
-
          pos.Y() <= ymax &&
-
          pos.Z() >= zmin &&
-
-         pos.Z() <= zmax) {
+         pos.Z() <= zmax); //do nothing
+	{
 
         pos[0] += dx;
 
         //        double ticks = detprop->ConvertXToTicks(pos[0], 0, 0, 0);
+	/*if(whichTPC2!=whichTPC)
+	  std::cout << " TPC" << whichTPC << " TPC2 " << whichTPC2 << std::endl;*/
+	/*	if(whichTPC2==-999)
+	   throw cet::exception("AnaTree") << "whichTPC2 is -9999 \n";
+	if(whichTPC==-999)
+	throw cet::exception("AnaTree") << "whichTPC is -9999 \n";*/
+	double ticks;
 
-        double ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC, 0);
-
+        if(whichTPC2>0)  ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC2, 0);
+	else continue;
         if(ticks >= 0. && ticks < detprop->ReadOutWindowSize()) {
 
           if(first) {

@@ -14,6 +14,7 @@
 // Migration note:
 // Geometry --> lbne/Geometry for the two below
 #include "lbne/Geometry/ChannelMap35Alg.h"
+#include "lbne/Geometry/ChannelMap35OptAlg.h"
 #include "lbne/Geometry/ChannelMapAPAAlg.h"
 
 #include "TString.h"
@@ -33,7 +34,8 @@ namespace lbne
   
   void LBNEGeometryHelper::doConfigureChannelMapAlg( const TString & detectorName,
                                                      fhicl::ParameterSet const & sortingParam,
-                                                     std::vector<geo::CryostatGeo*> & c )
+                                                     std::vector<geo::CryostatGeo*> & c,
+						     std::vector<geo::AuxDetGeo*>   & ad )
   {
     fChannelMap = nullptr;
     
@@ -41,7 +43,13 @@ namespace lbne
     {
 // Migration note:
 // Change all geo::ChannelMap... to lbne::ChannelMap... throughout file
-      fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMap35Alg( sortingParam ) );
+
+      TString detectorVersion = sortingParam.get< std::string >("DetectorVersion");
+
+      if ( detectorVersion.Contains("v3") )
+	fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMap35OptAlg( sortingParam ) );
+      else
+	fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMap35Alg( sortingParam ) );
     }
     else if ( detectorName.Contains("lbne10kt") ) 
     {
@@ -57,7 +65,7 @@ namespace lbne
     }
     if ( fChannelMap )
     {
-      fChannelMap->Initialize( c );
+      fChannelMap->Initialize( c, ad );
     }
   }
   

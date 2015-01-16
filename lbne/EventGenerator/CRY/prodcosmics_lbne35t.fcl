@@ -1,5 +1,5 @@
 #include "services_lbne.fcl"
-#include "cry.fcl"
+#include "cry_lbne.fcl"
 #include "largeantmodules_lbne.fcl"
 #include "detsimmodules_lbne.fcl"
 
@@ -13,6 +13,7 @@ services:
   RandomNumberGenerator: {} #ART native random number generator
   user:         @local::lbne35t_simulation_services
 }
+
 
 #Start each new event with an empty event.
 source:

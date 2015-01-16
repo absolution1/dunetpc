@@ -1,10 +1,16 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  ChannelMapAPAAlg.h
-/// \brief Interface to algorithm class for a specific detector channel mapping
+/// \file  ChannelMap35Alg.h
+/// \brief The class of 35t specific algorithms
 ///
 /// \version $Id:  $
 /// \author  tylerdalion@gmail.com
 ////////////////////////////////////////////////////////////////////////
+///
+/// Any gdml before v3 should stay configured to use ChannelMap35Alg, and 
+/// any gdml v3 or later should be configured to use ChannelMap35OptAlg.
+/// This is done in LBNEGeometryHelper using the fcl parameter DetectorVersion
+/// in the SortingParameters pset.
+///
 #ifndef GEO_CHANNEL35MAPALG_H
 #define GEO_CHANNEL35MAPALG_H
 
@@ -25,7 +31,8 @@ namespace geo{
     ChannelMap35Alg(fhicl::ParameterSet const& p);
     ~ChannelMap35Alg();
     
-    void                     Initialize(std::vector<geo::CryostatGeo*> & cgeo);
+    void                     Initialize( std::vector<geo::CryostatGeo*> & cgeo,
+					 std::vector<geo::AuxDetGeo*>   & adgeo );
     void                     Uninitialize();
     std::vector<WireID>      ChannelToWire(uint32_t channel)        const;
     uint32_t                 Nchannels()                            const;

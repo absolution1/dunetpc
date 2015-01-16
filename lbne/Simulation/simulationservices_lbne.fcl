@@ -7,8 +7,8 @@ lbnefd_largeantparameters:   @local::standard_largeantparameters
 lbnefd_larvoxelcalculator:   @local::standard_larvoxelcalculator
 lbnefd_largeantparameters.UseLitePhotons: true
 
-lbne35t_largeantparameters:   @local::standard_largeantparameters
-lbne35t_larvoxelcalculator:   @local::standard_larvoxelcalculator
+lbne35t_largeantparameters:   @local::lbnefd_largeantparameters
+lbne35t_larvoxelcalculator:   @local::lbnefd_larvoxelcalculator
 
 
 

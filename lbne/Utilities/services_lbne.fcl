@@ -9,6 +9,8 @@
 #include "databaseutil_lbne.fcl"
 #include "backtracker.fcl"
 #include "timeservice_lbne.fcl"
+#include "photpropservices_lbne.fcl"
+#include "sam_lbne.fcl"
 
 BEGIN_PROLOG
 
@@ -60,36 +62,166 @@ lbne10kt_simulation_services.Geometry.GDML: "lbne10kt.gdml"
 lbne10kt_simulation_services.Geometry.ROOT: "lbne10kt.gdml"
 
 
-
-lbne35t_services:
+lbne35t_basic_services:
 {
  ExptGeoHelperInterface:       @local::lbne_geometry_helper
  Geometry:                     @local::lbne35t_geo
  TimeService:                  @local::lbne35t_timeservice
  DetectorProperties:           @local::lbne35t_detproperties
  LArProperties:                @local::lbne35t_properties
- LArFFT:                       @local::lbne35t_larfft
  DatabaseUtil:                 @local::lbne35t_database
- BackTracker:                  @local::lbne35t_backtracker
- SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
 }
 
-lbne35t_simulation_services:
+lbne35t_services:              @local::lbne35t_basic_services
+lbne35t_services.LArFFT:       @local::lbne35t_larfft
+lbne35t_services.BackTracker:  @local::lbne35t_backtracker
+lbne35t_services.SignalShapingServiceLBNE35t: @local::lbne35t_signalshapingservice
+
+lbne35t_gen_services:          @local::lbne35t_basic_services
+lbne35t_gen_services.MagneticField: @local::no_mag
+
+lbne35t_g4_services:           @local::lbne35t_gen_services
+lbne35t_g4_services.LArG4Parameters:    @local::lbne35t_largeantparameters
+lbne35t_g4_services.LArVoxelCalculator: @local::lbne35t_larvoxelcalculator
+lbne35t_g4_services.PhotonVisibilityService: @local::lbne35t_photonvisibilityservice
+
+##
+# Settings to turn on and configure photon simulation
+## 
+
+# set quantum efficiency supressed scint yield to 0.03 * 24000
+lbne35t_g4_services.LArProperties.ScintYield: 720
+
+# disable cerenkov
+lbne35t_g4_services.LArProperties.EnableCerenkovLight: false
+
+# enable "FastOptical" in geant4
+lbne35t_g4_services.LArG4Parameters.UseCustomPhysics: true
+lbne35t_g4_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                      "FastOptical",
+                                                      "SynchrotronAndGN",
+                                                      "Ion",
+                                                      "Hadron",
+                                                      "Decay",
+                                                      "HadronElastic",
+                                                      "Stopping",
+                                                      "NeutronTrackingCut" ]
+
+lbne35t_detsim_services:        @local::lbne35t_basic_services
+lbne35t_detsim_services.LArFFT: @local::lbne35t_larfft
+lbne35t_detsim_services.SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
+
+lbne35t_simulation_services:        @local::lbne35t_g4_services
+lbne35t_simulation_services.LArFFT: @local::lbne35t_larfft
+lbne35t_simulation_services.SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
+lbne35t_simulation_services.PhotonVisibilityService:      @local::lbne35t_photonvisibilityservice
+lbne35t_simulation_services.BackTracker:  @local::lbne35t_backtracker
+
+lbne35t_milliblock_services:    @local::lbne35t_services
+lbne35t_milliblock_services.DetectorProperties: @local::lbne35t_milliblock_detproperties
+
+lbne35t_milliblock_detsim_services: @local::lbne35t_simulation_services
+lbne35t_milliblock_detsim_services.DetectorProperties: @local::lbne35t_milliblock_detproperties
+
+lbne35t_milliblock_simulation_services: @local::lbne35t_simulation_services
+lbne35t_milliblock_simulation_services.DetectorProperties: @local::lbne35t_milliblock_detproperties
+
+lbne_message_services:
 {
- LArFFT:                       @local::lbne35t_larfft
- LArG4Parameters:              @local::lbne35t_largeantparameters
- ExptGeoHelperInterface:       @local::lbne_geometry_helper
- Geometry:                     @local::lbne35t_geo
- TimeService:                  @local::lbne35t_timeservice
- DetectorProperties:           @local::lbne35t_detproperties
- LArProperties:                @local::lbne35t_properties
- DatabaseUtil:                 @local::lbne35t_database
- LArVoxelCalculator:           @local::lbne35t_larvoxelcalculator
- MagneticField:                @local::no_mag
- BackTracker:                  @local::lbne35t_backtracker
- SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
+  debugModules: ["*"]
+
+  destinations: {
+    LogDebugFile: { 
+      type:       "file"
+      filename:   "debug.log"
+      append:     false
+      threshold:  "DEBUG"
+      categories:{
+        default:{ limit: 0 }
+      }
+    }
+    LogStandardOut: {
+      type:       "cout"
+      threshold:  "WARNING"
+      categories:{
+        default:{ }
+        RecoBaseDefaultCtor: { limit: 0 }
+        AnaBaseDefaultCtor:  { limit: 0 }
+        GeometryBadInputPoint: { limit: 5 timespan: 1000}
+      }
+    }
+    LogStandardError: {
+      type:       "cerr"
+      threshold:  "ERROR"
+      categories:{
+        default:{ }
+      }
+    }
+  }
 }
 
+lbne_message_services_prod_debug:
+{
+  debugModules: ["*"]
+
+  destinations: {
+
+  LogDebugFile:      @local::lbne_message_services.destinations.LogDebugFile
+  LogStandardOut:    @local::lbne_message_services.destinations.LogStandardOut
+  LogStandardError:  @local::lbne_message_services.destinations.LogStandardError
+  }
+}
+lbne_message_services_prod_debug.destinations.LogDebugFile.categories:{
+  default: { }
+  RecoBaseDefaultCtor: { limit: 0 }
+  AnaBaseDefaultCtor:  { limit: 0 }
+  Track3DKalmanSPS_GenFit: { limit: 0 }
+  GeometryBadInputPoint: { limit: 5 timespan: 1000}
+  SpacePointAlg: { limit: 0 }
+  KalmanFilterAlg: { limit: 0 }
+  Track3DKalmanHit: { limit: 0 }
+  fuzzyCluster: { limit: 0}
+  ChannelFilter: { limit: 0}
+  HoughBaseAlg: { limit: 0}
+  DBscan: {limit: 0}
+  CosmicTracker: {limit: 0}
+  HitCheater: {limit: 0}
+  DisambigAlg35t: {limit: 0}
+}
+
+
+lbne_message_services_prod:
+{
+  debugModules: ["*"]
+
+  destinations: {
+    LogStandardOut:    @local::lbne_message_services.destinations.LogStandardOut
+    LogStandardError:  @local::lbne_message_services.destinations.LogStandardError
+  }
+}
+
+lbne_message_services_interactive:
+{
+  debugModules: ["*"]
+
+  destinations: {
+
+    LogDebugFile:      @local::lbne_message_services.destinations.LogDebugFile
+    LogStandardOut:    @local::lbne_message_services.destinations.LogStandardOut
+    LogStandardError:  @local::lbne_message_services.destinations.LogStandardError
+  }
+}
+lbne_message_services_interactive.destinations.LogStandardOut.threshold:  "INFO"
+lbne_message_services_interactive.destinations.LogStandardOut.categories:{
+  default: { limit: 0 }
+}
+lbne_message_services_interactive.destinations.LogStandardError.threshold:  "WARNING"
+lbne_message_services_interactive.destinations.LogStandardError.categories:{
+  default: { }
+  RecoBaseDefaultCtor: { limit: 1 }
+  AnaBaseDefaultCtor:  { limit: 1 }
+  GeometryBadInputPoint: { limit: 5 timespan: 1000}
+}
 
 
 END_PROLOG
