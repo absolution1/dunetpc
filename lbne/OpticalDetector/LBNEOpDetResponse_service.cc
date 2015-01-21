@@ -39,8 +39,10 @@ namespace opdet{
 
 
     //--------------------------------------------------------------------
-    bool LBNEOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot) const
+    bool LBNEOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
     {
+        newOpChannel = OpChannel;
+        
         // Check QE
         if ( CLHEP::RandFlat::shoot(1.0) > fQE ) return false;
 
@@ -123,8 +125,10 @@ namespace opdet{
     }
 
     //--------------------------------------------------------------------
-    bool LBNEOpDetResponse::doDetectedLite(int OpChannel) const
+    bool LBNEOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
     {
+        newOpChannel = OpChannel;
+        
         // Check QE
         if ( CLHEP::RandFlat::shoot(1.0) > fQE ) return false;
 
