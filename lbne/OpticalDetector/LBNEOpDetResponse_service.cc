@@ -21,6 +21,33 @@ namespace opdet{
                                          art::ActivityRegistry &/*reg*/)
     {
         this->doReconfigure(pset);
+        
+        art::ServiceHandle<geo::Geometry> geom;
+        Nchannels = geom->NOpChannels();
+
+
+        if (fFullSimChannelConvert || fFastSimChannelConvert) {
+            int nReadout = 0;
+            
+            for (int gChannel = 0; gChannel < Nchannels; gChannel++) {
+                if (gChannel == 2) opChannelMap.push_back( {nReadout++, nReadout++} );  // Plank (channel 2) has only 2 SiPM's
+                else               opChannelMap.push_back( {nReadout++, nReadout++, nReadout++} );
+            }
+            Nchannels = nReadout;
+
+            // Print out the channel map.  Only once per job.
+            
+            mf::LogInfo("LBNEOpDetResponse") << "Converting optical channel numbers in " << fChannelConversion << " simulation" << std::endl;
+
+            mf::LogVerbatim("LBNEOpDetResponse") << "LBNE OpDetResponse channel map:" << std::endl;
+            for (unsigned int g = 0; opChannelMap.size(); g++) {
+                mf::LogVerbatim("LBNEOpDetResponse") << "  " <<  g << " -> ";
+                for (unsigned int d = 0; d < opChannelMap[g].size(); d++) {
+                    mf::LogVerbatim("LBNEOpDetResponse") <<  opChannelMap[g][d] << " ";
+                }
+                mf::LogVerbatim("LBNEOpDetResponse") << std::endl;
+            }
+        }
     }
     
     //--------------------------------------------------------------------
@@ -31,17 +58,35 @@ namespace opdet{
     //--------------------------------------------------------------------
     void LBNEOpDetResponse::doReconfigure(fhicl::ParameterSet const& pset)
     {
-        fQE=                       pset.get<double>("QuantumEfficiency");
-        fWavelengthCutLow=         pset.get<double>("WavelengthCutLow");
-        fWavelengthCutHigh=        pset.get<double>("WavelengthCutHigh");
-        fLightGuideAttenuation=    pset.get<bool>("LightGuideAttenuation");
+        fQE =                    pset.get<double>("QuantumEfficiency");
+        fWavelengthCutLow =      pset.get<double>("WavelengthCutLow");
+        fWavelengthCutHigh =     pset.get<double>("WavelengthCutHigh");
+        fLightGuideAttenuation = pset.get<bool>("LightGuideAttenuation");
+        fChannelConversion =     pset.get<std::string>("ChannelConversion");
+
+        // Only allow channel conversion once - so it must be set to happen
+        // either during full simulation (library generation) or during
+        // fast simulation (library use).
+        
+        boost::algorithm::to_lower(fChannelConversion);
+        
+        fFullSimChannelConvert = false;
+        fFastSimChannelConvert = false;
+        
+        if (fChannelConversion == "full") fFullSimChannelConvert = true;
+        if (fChannelConversion == "fast") fFastSimChannelConvert = true;
     }
 
 
     //--------------------------------------------------------------------
     bool LBNEOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
     {
-        newOpChannel = OpChannel;
+        if (fFullSimChannelConvert){
+            newOpChannel = (int) ( CLHEP::RandFlat::shoot(1.0)*(float)opChannelMap[OpChannel].size() );
+        }
+        else{
+            newOpChannel = OpChannel;
+        }
         
         // Check QE
         if ( CLHEP::RandFlat::shoot(1.0) > fQE ) return false;
@@ -127,7 +172,12 @@ namespace opdet{
     //--------------------------------------------------------------------
     bool LBNEOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
     {
-        newOpChannel = OpChannel;
+        if (fFastSimChannelConvert){
+            newOpChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * (float)opChannelMap[OpChannel].size() );
+        }
+        else{
+            newOpChannel = OpChannel;
+        }
         
         // Check QE
         if ( CLHEP::RandFlat::shoot(1.0) > fQE ) return false;

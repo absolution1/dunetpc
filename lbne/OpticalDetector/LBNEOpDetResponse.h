@@ -29,6 +29,7 @@ namespace opdet
     private:
 
         virtual void doReconfigure(fhicl::ParameterSet const& p);
+        virtual int  doNOpChannels() const;
         virtual bool doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const;
         virtual bool doDetectedLite(int OpChannel, int &newOpChannel) const;
 
@@ -39,10 +40,16 @@ namespace opdet
         
         bool fLightGuideAttenuation;   // Flag to turn on position-dependent sensitivity
 
+        std::string fChannelConversion;
+        bool fFullSimChannelConvert;   // Flag to conver detector->electronics channels in full optical sim
+        bool fFastSimChannelConvert;   // Flag to conver detector->electronics channels in fast optical sim
 
+        int Nchannels;
+        std::vector<std::vector<int> > opChannelMap; // Map which sets correspondence between detector and readout channels
 
     }; // class LBNEOpDetResponse
 
+    inline int LBNEOpDetResponse::doNOpChannels() const { return Nchannels; }
     
 } //namespace opdet
 

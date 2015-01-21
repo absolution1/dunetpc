@@ -15,6 +15,10 @@ lbnefd_opdetresponse:
    WavelengthCutLow:        0 
    WavelengthCutHigh:       10000
    LightGuideAttenuation:   true
+
+   # Convert geometry to readout channels
+   # when reading in fast simulation
+   ChannelConversion:       fast
 }
 
 
