@@ -57,17 +57,17 @@ physics:
 services.user.PhotonVisibilityService.LibraryFile: "PhotonLibraryFile_lbne35ton.root"
 
 # Number of voxels
-services.user.PhotonVisibilityService.NX: 4
+services.user.PhotonVisibilityService.NX: 1
 services.user.PhotonVisibilityService.NY: 20
-services.user.PhotonVisibilityService.NZ: 20
+services.user.PhotonVisibilityService.NZ: 5
 
-#services.user.PhotonVisibilityService.UseCryoBoundary: true
+services.user.PhotonVisibilityService.UseCryoBoundary: false
 
-# IF UseCryoBoundary is set to false, so use the following parameters. 
-#services.user.PhotonVisibilityService.XMin:  -2.
-#services.user.PhotonVisibilityService.XMax:  2.
-#services.user.PhotonVisibilityService.YMin:  -1.
-#services.user.PhotonVisibilityService.YMax:  1.
-#services.user.PhotonVisibilityService.ZMin:  10.
-#services.user.PhotonVisibilityService.ZMax:  12.
+# IF UseCryoBoundary is set to false, so use the following parameters in cm
+services.user.PhotonVisibilityService.XMin:  -8.
+services.user.PhotonVisibilityService.XMax:  -6.
+services.user.PhotonVisibilityService.YMin:  -100.
+services.user.PhotonVisibilityService.YMax:  0
+services.user.PhotonVisibilityService.ZMin:  60.
+services.user.PhotonVisibilityService.ZMax:  90.
 
