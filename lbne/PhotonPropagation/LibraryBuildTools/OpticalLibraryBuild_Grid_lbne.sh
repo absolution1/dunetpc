@@ -16,28 +16,13 @@
 #
 
 
-#
-# Library building parameters
-#
-njobs=$1
-
-# In each voxel, run this many photons:
-NPhotonsPerVoxel=25000
-
-# Total number of voxels
-NTopVoxel=216000
-
-# In each grid job, do this many voxels:
-NVoxelsPerJob=`echo "$NTopVoxel/$njobs" | bc`
-#NVoxelsPerJob=270
-
-label=${CLUSTER}_$(printf '%04d' $PROCESS)
-
-
 
 #
 # Set up our environment
 #
+
+njobs=$1
+label=${CLUSTER}_$(printf '%04d' $PROCESS)
 
 umask 0002
 
@@ -50,6 +35,35 @@ CPN=/grid/fermiapp/minos/scripts/cpn
 LOG=${CONDOR_DIR_LOG}/pd_library_gen_${label}.log
 FCL=${CONDOR_DIR_FCL}/pd_library_gen_${label}.fcl
 
+
+#
+# Library building parameters
+#
+
+
+# Copy fcl file and configure for this PROCESS 
+echo "Create this job's fhicl file" 1>> ${LOG} 2>&1
+mv -v ${CONDOR_DIR_INPUT}/*.fcl $FCL 1>> ${LOG} 2>&1
+
+NX=`awk '/NX/{ print $2 }' $FCL`
+NY=`awk '/NY/{ print $2 }' $FCL`
+NZ=`awk '/NZ/{ print $2 }' $FCL`
+
+# Total number of voxels
+#NTopVoxel=216000
+NTopVoxel=`echo "$NX*$NY*$NZ" | bc`
+
+echo "Voxels: $NTopVoxel = $NX * $NY * $NZ" 1>> ${LOG} 2>&1
+
+
+# In each voxel, run this many photons:
+NPhotonsPerVoxel=$2
+
+
+
+# In each grid job, do this many voxels:
+NVoxelsPerJob=`echo "$NTopVoxel/$njobs" | bc`
+
 # This works out which voxels this job should focus on: 
 FirstVoxel=`echo "($NVoxelsPerJob * $PROCESS ) % $NTopVoxel" | bc` 
 LastVoxel=`echo "(($NVoxelsPerJob * $PROCESS ) + $NVoxelsPerJob - 1 ) % $NTopVoxel" | bc`
@@ -58,6 +72,11 @@ LastVoxel=`echo "(($NVoxelsPerJob * $PROCESS ) + $NVoxelsPerJob - 1 ) % $NTopVox
 # Make the random number seeds a function of the PROCESS number.
 generatorSeed=$(( $PROCESS *23 + 31))
 g4Seed=$(( $PROCESS *41 + 37))
+
+
+echo "physics.producers.generator.FirstVoxel: $FirstVoxel" >> $FCL
+echo "physics.producers.generator.LastVoxel: $LastVoxel"   >> $FCL
+echo "physics.producers.generator.N: $NPhotonsPerVoxel"    >> $FCL
 
 
 
@@ -77,14 +96,6 @@ echo "PROCESS:    " $PROCESS 1>> ${LOG} 2>&1
 echo "PWD:        " $PWD     1>> ${LOG} 2>&1
 
 
-# Copy fcl file and configure for this PROCESS 
-echo "Creat this job's fhicl file" 1>> ${LOG} 2>&1
-$CPN ${WORK}/srcs/lbnecode/lbne/PhotonPropagation/LibraryBuildTools/lbne35t_buildopticallibrary_grid.fcl $FCL
-
-echo "physics.producers.generator.FirstVoxel: $FirstVoxel" >> $FCL
-echo "physics.producers.generator.LastVoxel: $LastVoxel"   >> $FCL
-echo "physics.producers.generator.N: $NPhotonsPerVoxel"    >> $FCL
-
 # No need to set random seeds - generated from machine state
 #echo "physics.producers.generator.RandomSeed: $generatorSeed">> $FCL
 #echo "physics.producers.largeant.RandomSeed: $g4Seed">> $FCL
@@ -98,8 +109,9 @@ echo "> Setup $GROUP environment"                      1>> ${LOG} 2>&1
 source /grid/fermiapp/$GROUP/software/setup_$GROUP.sh  1>> ${LOG} 2>&1
 echo "> mrbsetenv"                                     1>> ${LOG} 2>&1
 source $WORK/localProducts_larsoft_*/setup             1>> ${LOG} 2>&1
-echo "> mrbslp"                                        1>> ${LOG} 2>&1
-source $MRB_DIR/bin/setup_local_products               1>> ${LOG} 2>&1
+#echo "> mrbslp"                                        1>> ${LOG} 2>&1
+#source $MRB_DIR/bin/setup_local_products               1>> ${LOG} 2>&1
+setup lbnecode v03_06_00_01 -qe6:prof                  1>> ${LOG} 2>&1
 
 ENVLOG=$CONDOR_DIR_LOG/environment_${label}.log
 touch $ENVLOG

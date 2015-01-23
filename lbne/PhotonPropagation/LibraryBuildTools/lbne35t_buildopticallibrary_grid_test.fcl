@@ -101,3 +101,8 @@ physics.analyzers.pmtresponse.MakeOpDetEventsTree: false
 
 
 
+# Number of voxels
+services.user.PhotonVisibilityService.NX: 8
+services.user.PhotonVisibilityService.NY: 30
+services.user.PhotonVisibilityService.NZ: 30
+
