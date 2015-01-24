@@ -29,9 +29,14 @@ namespace opdet
     private:
 
         virtual void doReconfigure(fhicl::ParameterSet const& p);
+
         virtual int  doNOpChannels() const;
+        virtual int  doReadoutToGeoChannel(int readoutChannel) const;
+
         virtual bool doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const;
         virtual bool doDetectedLite(int OpChannel, int &newOpChannel) const;
+
+        virtual void PrintChannelMap() const;
 
         float fQE;                     // Quantum efficiency of tube
         

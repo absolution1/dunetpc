@@ -36,17 +36,7 @@ namespace opdet{
             Nchannels = nReadout;
 
             // Print out the channel map.  Only once per job.
-            
-            mf::LogInfo("LBNEOpDetResponse") << "Converting optical channel numbers in " << fChannelConversion << " simulation" << std::endl;
-
-            mf::LogVerbatim("LBNEOpDetResponse") << "LBNE OpDetResponse channel map:" << std::endl;
-            for (unsigned int g = 0; opChannelMap.size(); g++) {
-                mf::LogVerbatim("LBNEOpDetResponse") << "  " <<  g << " -> ";
-                for (unsigned int d = 0; d < opChannelMap[g].size(); d++) {
-                    mf::LogVerbatim("LBNEOpDetResponse") <<  opChannelMap[g][d] << " ";
-                }
-                mf::LogVerbatim("LBNEOpDetResponse") << std::endl;
-            }
+            PrintChannelMap();
         }
     }
     
@@ -75,6 +65,28 @@ namespace opdet{
         
         if (fChannelConversion == "full") fFullSimChannelConvert = true;
         if (fChannelConversion == "fast") fFastSimChannelConvert = true;
+    }
+
+
+    //--------------------------------------------------------------------
+    int  LBNEOpDetResponse::doReadoutToGeoChannel(int readoutChannel) const
+    {
+        if (!fFullSimChannelConvert && !fFastSimChannelConvert) {
+            mf::LogError("LBNEOpDetResponse") << "Trying to convert a readout channel to a geometry channel, but no conversion is turned on.";
+            exit(1);
+        }
+
+        for (unsigned int g = 0; g < opChannelMap.size(); g++) {
+            // Search for readoutChannel in this channel map vector
+            auto itr = std::find(opChannelMap[g].begin(), opChannelMap[g].end(), readoutChannel);
+            if (itr != opChannelMap[g].end())
+                return g;
+        }
+
+        PrintChannelMap();
+        mf::LogError("LBNEOpDetResponse") << "Readout channel " << readoutChannel << " was not found in the above channel map.";
+        exit(2);
+        return -1;
     }
 
 
@@ -183,6 +195,22 @@ namespace opdet{
         if ( CLHEP::RandFlat::shoot(1.0) > fQE ) return false;
 
         return true;
+    }
+
+
+    //--------------------------------------------------------------------
+    void LBNEOpDetResponse::PrintChannelMap() const
+    {
+        mf::LogInfo("LBNEOpDetResponse") << "Converting optical channel numbers in " << fChannelConversion << " simulation" << std::endl;
+
+        mf::LogVerbatim("LBNEOpDetResponse") << "LBNE OpDetResponse channel map:" << std::endl;
+        for (unsigned int g = 0; opChannelMap.size(); g++) {
+            mf::LogVerbatim("LBNEOpDetResponse") << "  " <<  g << " -> ";
+            for (unsigned int d = 0; d < opChannelMap[g].size(); d++) {
+                mf::LogVerbatim("LBNEOpDetResponse") <<  opChannelMap[g][d] << " ";
+            }
+            mf::LogVerbatim("LBNEOpDetResponse") << std::endl;
+        }
     }
 
 
