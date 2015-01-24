@@ -82,6 +82,7 @@ physics.analyzers.pandoramonitoring.HitFinderModule: "hitcheat"
 physics.analyzers.pandoramonitoring.SpacePointModule: "pandora"
 physics.analyzers.pandoramonitoring.PFParticleModule: "particlestitcher"
 physics.analyzers.pandorana.PFParticleModule: "particlestitcher"
+physics.analyzers.pandorana.TrackModule: "particletracks"
 
 ### Configure the Analysis Tree module
 physics.analyzers.analysistree.TrackModuleLabel: "particletracks"
