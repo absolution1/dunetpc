@@ -1,5 +1,5 @@
 #include "caldata.fcl"
-#include "hitfindermodules_lbne35t.fcl"
+#include "hitfindermodules_lbne.fcl"
 
 BEGIN_PROLOG
 
