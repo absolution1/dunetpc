@@ -227,7 +227,7 @@ namespace {
     // Get services.
     art::ServiceHandle<geo::Geometry> geom;
     art::ServiceHandle<util::DetectorProperties> detprop;
-    double xmin,xmax,ymin,ymax,zmin,zmax;
+    //    double xmin,xmax,ymin,ymax,zmin,zmax;
 
     /*  if(tpc==0 || tpc==2 || tpc==4 || tpc==6 ) //short tpcs
 
@@ -395,7 +395,7 @@ mf::LogVerbatim("output") << " xmin " << xmin;
 
  mf::LogVerbatim("output") << " zmax " << zmax;*/
 
-    xmin=-50;
+    /*    xmin=-50;
 
     xmax=230;
 
@@ -405,7 +405,7 @@ mf::LogVerbatim("output") << " xmin " << xmin;
 
     zmin=-10;
 
-    zmax=153;
+    zmax=153;*/
 
     double result = 0.;
 
@@ -414,7 +414,7 @@ mf::LogVerbatim("output") << " xmin " << xmin;
     int n = part.NumberTrajectoryPoints();
 
     bool first = true;
-
+    //    std::cout<< " n is " << n << std::endl;
     for(int i = 0; i < n; ++i) {
 
       TVector3 pos = part.Position(i).Vect();
@@ -490,16 +490,7 @@ mf::LogVerbatim("output") << " xmin " << xmin;
 
       //      mf::LogVerbatim("output") << " z " << pos.Z();
 
-      if(pos.X() >= xmin &&
-         pos.X() <= xmax &&
-         pos.Y() >= ymin &&
-         pos.Y() <= ymax &&
-         pos.Z() >= zmin &&
-         pos.Z() <= zmax); //do nothing
-	{
-
         pos[0] += dx;
-
         //        double ticks = detprop->ConvertXToTicks(pos[0], 0, 0, 0);
 	/*if(whichTPC2!=whichTPC)
 	  std::cout << " TPC" << whichTPC << " TPC2 " << whichTPC2 << std::endl;*/
@@ -508,39 +499,29 @@ mf::LogVerbatim("output") << " xmin " << xmin;
 	if(whichTPC==-999)
 	throw cet::exception("AnaTree") << "whichTPC is -9999 \n";*/
 	double ticks;
-
+	
+	//	std::cout << "ticks " << ticks << std::endl;
         if(whichTPC2>0)  ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC2, 0);
 	else continue;
+	//if(ticks >5e+12)
+	// continue;
         if(ticks >= 0. && ticks < detprop->ReadOutWindowSize()) {
-
           if(first) {
-
             start = pos;
-
             startmom = part.Momentum(i).Vect();
-
+	    //	    std::cout<< " Momentum x" << startmom.X() << "Momentum y " << startmom.Y() << "Momentum z " << startmom.Z() << std::endl; 
+	    //	    std::cout<< " pos x" << start.X() << "pos y " << start.Y() << "pos z " << start.Z() << std::endl; 
           }
-
           else {
-
             disp -= pos;
-
             result += disp.Mag();
-
           }
-
           first = false;
-
           disp = pos;
-
           end = pos;
-
           endmom = part.Momentum(i).Vect();
-
         }
-
-      }
-
+	
     }
 
     //    mf::LogVerbatim("output") << " length (MCParticle) " << result;
@@ -653,17 +634,17 @@ private:
   double trklen_MC[kMaxTrack];
   double trklen_cut_MC[kMaxTrack];
 
-  double trkmom[kMaxTrack];
-  double trkpdg[kMaxTrack];
+  double trkmom_MC[kMaxTrack];
+  double trkpdg_MC[kMaxTrack];
   double trkd2[kMaxTrack];
   double trkcolin[kMaxTrack];
   double trklen[kMaxTrack];
   double trklen_L[kMaxTrack];
   double trkid[kMaxTrack];
- double trktheta_xz[kMaxTrack];
-  double trktheta_yz[kMaxTrack];
-  double trktheta[kMaxTrack];
-  double trkphi[kMaxTrack];
+ double trktheta_xz_MC[kMaxTrack];
+  double trktheta_yz_MC[kMaxTrack];
+  double trktheta_MC[kMaxTrack];
+  double trkphi_MC[kMaxTrack];
   double trkdedx[kMaxTrack];
   double trkdedx2[kMaxTrack][3][1000];
   double trkplaneid[kMaxTrack][3][1000];
@@ -922,7 +903,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
     particle = ipar->second;
     
-    if(!(particle->Process()=="primary" && particle->PdgCode()== fPdg)) continue;
+    if(!(particle->Process()=="primary" && abs(particle->PdgCode())== abs(fPdg))) continue;
 
   //  size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
   //  int last = numberTrajectoryPoints - 1;
@@ -1004,8 +985,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       //        }
       //        fMC_daughters.push_back(daughters);
       size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
-      trkpdg[i]=particle->PdgCode();
-      if(!(particle->Process()=="primary" && particle->PdgCode()==fPdg))
+      trkpdg_MC[i]=particle->PdgCode();
+      if(!(particle->Process()=="primary" && abs(particle->PdgCode())==abs(fPdg)))
 	continue;
       int trackID=particle->TrackId();
       for ( auto const& channel : (*simChannelHandle) )
@@ -1076,7 +1057,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	//        const TLorentzVector& momentumStart = particle->Momentum(0);
 	//        const TLorentzVector& momentumEnd   = particle->Momentum(last);
       TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(0);
-      trkmom[i]=momentumStart.P();
+      trkmom_MC[i]=momentumStart.P();
       positionStart.GetXYZT(fMC_startXYZT[i]);
       positionEnd.GetXYZT(fMC_endXYZT[i]);
       trkstartx_MC[i]=fMC_startXYZT[i][0];
@@ -1150,9 +1131,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     trackEnd.clear();
     memset(larStart, 0, 3);
     memset(larEnd, 0, 3);
-    //careful : start and end flipped for stitching purposes
-    tracklist[i]->Extent(trackEnd,trackStart); 
-    tracklist[i]->Direction(larEnd,larStart);
+    tracklist[i]->Extent(trackStart,trackEnd); 
+    tracklist[i]->Direction(larStart,larEnd);
     trkstartx[i]        = trackStart[0];
     trkstarty[i]        = trackStart[1];
     trkstartz[i]        = trackStart[2];
@@ -1188,7 +1168,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     TVector3 vOrth=(V2-V1).Orthogonal();
     TVector3 pointVector=V1;
 
-    if(trackvh.isValid())
+    /* if(trackvh.isValid())
       {
 	int k=i;
 	int ntrackhits=0;
@@ -1220,8 +1200,28 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	distance_squared=distance_squared/ntrkhits[k];
 	if(!isnan(distance_squared))
 	  trkd2[k]=distance_squared;
+	  }*/
+    //    else
+      {
+	ntrkhits[i] = fmsp.at(i).size();
+	//	double distance_squared=0;
+	double distance=0;
+
+	std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
+	for (size_t j = 0; j<spts.size(); ++j){
+	  TVector3 sptVector(spts[j]->XYZ()[0],spts[j]->XYZ()[1],spts[j]->XYZ()[2]);
+	  TVector3 vToPoint=sptVector-pointVector;
+	  distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
+	  distance_squared+=distance *distance;
+	  trkx[i][j] = spts[j]->XYZ()[0];
+	  trky[i][j] = spts[j]->XYZ()[1];
+	  trkz[i][j] = spts[j]->XYZ()[2];
+      
+	}
+	distance_squared=distance_squared/spts.size();
+	trkd2[i]=distance_squared;
+
       }
-    
 
       // *********************
       //  Calorimetric stuff:
@@ -1299,21 +1299,34 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // track-local coordinate system.
   TVector3 mcmoml = rot * mcstartmom;
   TVector3 mcposl = rot * mcpos;
-  trktheta_xz[i] = std::atan2(mcstartmom.X(), mcstartmom.Z());
-  trktheta_yz[i] = std::atan2(mcstartmom.Y(), mcstartmom.Z());
-  trktheta[i]=mcstartmom.Theta();
-  trkphi[i]=mcstartmom.Phi();
+  trktheta_xz_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Z());
+  trktheta_yz_MC[i] = std::atan2(mcstartmom.Y(), mcstartmom.Z());
+  trktheta_MC[i]=mcstartmom.Theta();
+  trkphi_MC[i]=mcstartmom.Phi();
 
   trkcolinearity[i] = mcmoml.Z() / mcmoml.Mag();
   double u = mcposl.X();
   double v = mcposl.Y();
   double w = mcposl.Z();
   trkwmatchdisp[i]=w;
+  /*  std::cout << "++++++" << std::endl;
+  std::cout << "w " << w << std::endl;
+ std::cout << "trkcolinearity  " << trkcolinearity[i] << std::endl;
+ std::cout << "plen  " << plen << std::endl;
+ std::cout << "mcstartmom mag  " << mcstartmom.Mag() << std::endl;
+ 
+ std::cout << "++++++" << std::endl;*/
   double pu = mcmoml.X();
   double pv = mcmoml.Y();
   double pw = mcmoml.Z();
   double dudw = pu / pw;
   double dvdw = pv / pw;
+  /*  std::cout << "pu  "<<pu << "pv  " << pv << std::endl;
+  std::cout << "pw  "<<pw  << std::endl;
+
+  std::cout << "u  "<<u << "v  " << v << std::endl;*/
+
+
   double u0 = u - w * dudw;
   double v0 = v - w * dvdw;
   trkmatchdisp[i]=abs( std::sqrt(u0*u0 + v0*v0));
@@ -1351,7 +1364,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     particle = ipar->second;
   }
   int pdg = particle->PdgCode();
-  if (pdg!=fPdg) continue;
+  if (abs(pdg)!=abs(fPdg)) continue;
   TVector3 startmom;
   startmom=particle->Momentum(0).Vect();
   TVector3 mcmomltemp=rot * startmom;
@@ -1779,14 +1792,14 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trkendz_MC",trkendz_MC,"trkendz_MC[ntracks_reco]/D");
   fTree->Branch("trklen_MC",trklen_MC,"trklen_MC[ntracks_reco]/D");
   fTree->Branch("trklen_cut_MC",trklen_cut_MC,"trklen_cut_MC[ntracks_reco]/D");
-  fTree->Branch("trkmom",trkmom,"trkmom[ntracks_reco]/D");
-  fTree->Branch("trkpdg",trkpdg,"trkpdg[ntracks_reco]/D");
+  fTree->Branch("trkmom_MC",trkmom_MC,"trkmom_MC[ntracks_reco]/D");
+  fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[ntracks_reco]/D");
   fTree->Branch("trkd2",trkd2,"trkd2[ntracks_reco]/D");
   fTree->Branch("trkcolin",trkcolin,"trkcolin[ntracks_reco]/D");
- fTree->Branch("trktheta_xz",trktheta_xz,"trktheta_xz[ntracks_reco]/D");
-  fTree->Branch("trktheta_yz",trktheta_yz,"trktheta_yz[ntracks_reco]/D");
-  fTree->Branch("trktheta",trktheta,"trktheta[ntracks_reco]/D");
-  fTree->Branch("trkphi",trkphi,"trkphi[ntracks_reco]/D");
+ fTree->Branch("trktheta_xz_MC",trktheta_xz_MC,"trktheta_xz_MC[ntracks_reco]/D");
+  fTree->Branch("trktheta_yz_MC",trktheta_yz_MC,"trktheta_yz_MC[ntracks_reco]/D");
+  fTree->Branch("trktheta_MC",trktheta_MC,"trktheta_MC[ntracks_reco]/D");
+  fTree->Branch("trkphi_MC",trkphi_MC,"trkphi_MC[ntracks_reco]/D");
   fTree->Branch("trkdedx",trkdedx,"trkdedx[ntracks_reco]/D");
   fTree->Branch("trkdedx2",trkdedx2,"trkdedx2[ntracks_reco][3][1000]/D");
   fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
@@ -2113,14 +2126,14 @@ void AnaTree::AnaTree::ResetVars(){
     trkendz_MC[i] = -99999;
     trklen_MC[i] = -99999;
     trklen_cut_MC[i] = -99999;
-    trkmom[i] = -99999;
-    trkpdg[i] = -99999;
+    trkmom_MC[i] = -99999;
+    trkpdg_MC[i] = -99999;
     trkd2[i] = -99999;
     trkcolin[i] = -99999;
-    trktheta_xz[i] = -99999;
-    trktheta_yz[i] = -99999;
-    trktheta[i] = -99999;
-    trkphi[i] = -99999;
+    trktheta_xz_MC[i] = -99999;
+    trktheta_yz_MC[i] = -99999;
+    trktheta_MC[i] = -99999;
+    trkphi_MC[i] = -99999;
     trkdedx[i] = -99999;
     for(int ii=0;ii<3;ii++)
       {
