@@ -1202,7 +1202,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkd2[k]=distance_squared;
 	  }*/
     //    else
-      {
+    if (fmsp.isValid()){
 	ntrkhits[i] = fmsp.at(i).size();
 	//	double distance_squared=0;
 	double distance=0;
