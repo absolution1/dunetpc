@@ -675,6 +675,17 @@ private:
   double trkz[kMaxTrack][kMaxTrackHits];
   double trkpitch[kMaxTrack][3];
   int    nhits;
+  int nclust;
+
+  int  hit_tpc[kMaxHits];
+  int    hit_plane[kMaxHits];
+  int    hit_wire[kMaxHits];
+  int    hit_channel[kMaxHits];
+  double hit_peakT[kMaxHits];
+  double hit_charge[kMaxHits];
+  double hit_ph[kMaxHits];
+  int    hit_trkid[kMaxHits];
+
 
   std::string fTrigModuleLabel;
   std::string fHitsModuleLabel;
@@ -1376,7 +1387,24 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   std::vector<art::Ptr<recob::Cluster> > clusterlist;
   if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
     art::fill_ptr_vector(clusterlist, clusterListHandle);
-  
+
+  nhits = hitlist.size();
+  nclust=clusterlist.size();
+  for (size_t i = 0; i<hitlist.size(); ++i){
+    unsigned int channel = hitlist[i]->Channel();
+    geo::WireID wireid = hitlist[i]->WireID();
+    hit_tpc[i]     =wireid.TPC;
+    hit_plane[i]   = wireid.Plane;
+    hit_wire[i]    = wireid.Wire;
+    hit_channel[i] = channel;
+    hit_peakT[i]   = hitlist[i]->PeakTime();
+    hit_charge[i]  = hitlist[i]->Charge();
+    hit_ph[i]      = hitlist[i]->Charge(true);
+    if (fmtk.at(i).size()!=0){
+      hit_trkid[i] = fmtk.at(i)[0]->ID();
+    }
+  }
+
   // **********************
   // **********************
   //   Fill Tree:
@@ -1834,6 +1862,16 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trkz",trkz,"trkz[ntracks_reco][1000]/D");
   fTree->Branch("trkpitch",trkpitch,"trkpitch[ntracks_reco][3]/D");
   fTree->Branch("nhits",&nhits,"nhits/I");
+  fTree->Branch("nclust",&nclust,"nclust/I");
+
+  fTree->Branch("hit_plane",hit_plane,"hit_plane[nhits]/I");
+  fTree->Branch("hit_tpc",hit_tpc,"hit_tpc[nhits]/I");
+  fTree->Branch("hit_wire",hit_wire,"hit_wire[nhits]/I");
+  fTree->Branch("hit_channel",hit_channel,"hit_channel[nhits]/I");
+  fTree->Branch("hit_peakT",hit_peakT,"hit_peakT[nhits]/D");
+  fTree->Branch("hit_charge",hit_charge,"hit_charge[nhits]/D");
+  fTree->Branch("hit_ph",hit_ph,"hit_ph[nhits]/D");
+  fTree->Branch("hit_trkid",hit_trkid,"hit_trkid[nhits]/I");
 
   //  art::ServiceHandle<sim::LArG4Parameters> larParameters;
   //  fElectronsToGeV = 1./larParameters->GeVToElectrons();
@@ -2175,6 +2213,18 @@ void AnaTree::AnaTree::ResetVars(){
     }
   }
   nhits = -99999;
+
+  for (int i = 0; i<kMaxHits; ++i){
+    hit_plane[i] = -99999;
+    hit_tpc[i] = -99999;
+    hit_wire[i] = -99999;
+    hit_channel[i] = -99999;
+    hit_peakT[i] = -99999;
+    hit_charge[i] = -99999;
+    hit_ph[i] = -99999;
+    hit_trkid[i] = -99999;
+  }
+
 }
 
 void AnaTree::AnaTree::endJob()
