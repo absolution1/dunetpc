@@ -226,186 +226,7 @@ namespace {
 
     // Get services.
     art::ServiceHandle<geo::Geometry> geom;
-    art::ServiceHandle<util::DetectorProperties> detprop;
-    //    double xmin,xmax,ymin,ymax,zmin,zmax;
-
-    /*  if(tpc==0 || tpc==2 || tpc==4 || tpc==6 ) //short tpcs
-
-      {
-
-        
-
-        xmin=-0.9;
-
-        xmax=xmin-2.*geom->DetHalfWidth(tpc);
-
-      }
-
-    else  //long tpcs
-
-      {
-
-        xmin=-0.9;
-
-        xmax=2*geom->DetHalfWidth(tpc)+xmin;
-
-      }
-
-
-
-
-
-    if(tpc==2 || tpc==3 )
-
-      {
-
-        ymin = 1.25;  //35t
-
-        ymax = ymin+2*geom->DetHalfHeight(tpc);   //35t
-
-      }
-
-    else if( tpc==4 || tpc==5)
-
-      {
-
-        ymin=-1.25;
-
-        ymax=ymin-2*geom->DetHalfHeight(tpc);
-
-
-      }
-
-    else // tpcs 0 ,1 ,6 ,7 
-
-      {
-
-        ymin=geom->DetHalfHeight(tpc)-1.25;
-
-        ymax=2* geom->DetHalfHeight(tpc)+ymin;
-
-      }
-
-
-
-
-  if(tpc==0 || tpc==1)
-
-    {
-
-      zmin=-1.0;
-
-      zmax=geom->DetLength(tpc)+zmin;
-
-
-    }    
-
-  else if (tpc==2||tpc==3 || tpc==4 || tpc==5)
-
-    {
-
-      zmin=51;
-
-      zmax=zmin+geom->DetLength(tpc);
-
-      
-
-    }
-
-   else if (tpc==6 || tpc==7)
-
-     {
-
-       zmin=103;
-
-       zmax=zmin+geom->DetLength(tpc);
-
-     }
-
-
- mf::LogVerbatim("output") << " xmin " << xmin;
-
- mf::LogVerbatim("output") << " xmax " << xmax;
-
- mf::LogVerbatim("output") << " ymin " << ymin;
-
- mf::LogVerbatim("output") << " ymax " << ymax;
-
- mf::LogVerbatim("output") << " zmin " << zmin;
-
- mf::LogVerbatim("output") << " zmax " << zmax;
-
-    */
-
-    //
-
-    // The MC should be independent of the tpc
-
-    //
-
-    // It cares only about the Cryostat bounds.
-
-    //
-
-    //  However, to be able to use the ConvertXToTicks function
-
-    //  we need to know the tpc number, will predict it 
-
-    //  based on the coordinates of this specific point
-
-    //
-
-    /*
-
-    double origin[3] = {0.};
-
-    double world[3] = {0.};
-
-    const int cc=0;
-
-    geom->Cryostat(cc).LocalToWorld(origin, world);
-
-    xmin=world[0] - geom->Cryostat(cc).HalfWidth();
-
-    xmax=world[0] + geom->Cryostat(cc).HalfWidth();
-
-
-    ymin= world[1] - geom->Cryostat(cc).HalfHeight();
-
-    ymax=world[1] + geom->Cryostat(cc).HalfHeight();
-
-
-    zmin=world[2] - geom->Cryostat(cc).Length()/2;
-
-    zmax=world[2] + geom->Cryostat(cc).Length()/2;
-
-    //
-
-    //
-
-mf::LogVerbatim("output") << " xmin " << xmin;
-
- mf::LogVerbatim("output") << " xmax " << xmax;
-
- mf::LogVerbatim("output") << " ymin " << ymin;
-
- mf::LogVerbatim("output") << " ymax " << ymax;
-
- mf::LogVerbatim("output") << " zmin " << zmin;
-
- mf::LogVerbatim("output") << " zmax " << zmax;*/
-
-    /*    xmin=-50;
-
-    xmax=230;
-
-    ymin=-85;
-
-    ymax=113;
-
-    zmin=-10;
-
-    zmax=153;*/
+ 
 
     double result = 0.;
 
@@ -420,87 +241,19 @@ mf::LogVerbatim("output") << " xmin " << xmin;
       TVector3 pos = part.Position(i).Vect();
 
       // Make fiducial cuts.  Require the particle to be within the physical volume of
-
       // the tpc, and also require the apparent x position to be within the expanded
-
       // readout frame.
-
-      // predict the tpc number
-
-      //      int whichTPC=0;
       int whichTPC2=-999;
 
       double const tmpArray[]={pos.X(),pos.Y(),pos.Z()};
       geo::TPCID tpcid=geom->FindTPCAtPosition(tmpArray);
       whichTPC2=tpcid.TPC;
-      /*
-      if(pos.Z() >=-1.0 && pos.Z()<=49.0 && pos.Y() >=-85.0 && pos.Y() <= 113.0)   
-
-        {
-
-          if(pos.X() >=-1.0) whichTPC=1;
-
-          else if (pos.X() <-1.0) whichTPC=0; 
-
-          else whichTPC=-999;
-
-        }
-
-      if(pos.Z() >=103.0 && pos.Z()<=153.0 && pos.Y() >=-85.0 && pos.Y() <= 113.0)
-
-         {
-
-          if(pos.X() >=-1.0) whichTPC=7;
-
-          else if (pos.X() <-1.0) whichTPC=6; 
-
-          else whichTPC=-999;
-
-         }
-
-      if(pos.Z() >=51.0 && pos.Z()<=101.0 && pos.Y() >= 1.25 && pos.Y() <= 113.0)
-
-         {
-
-          if(pos.X() >=-1.0) whichTPC=3;
-
-          else if (pos.X() <-1.0) whichTPC=2; 
-
-          else whichTPC=-999;
-
-         }
-
-      if(pos.Z() >=51.0 && pos.Z()<=101.0 && pos.Y() >= - 85.0 && pos.Y() <= 1.25)
-
-         {
-
-          if(pos.X() >=-1.0) whichTPC=5;
-
-          else if (pos.X() <-1.0) whichTPC=4; 
-
-          else whichTPC=-999;
-
-         }
-
       
-      */
-      //      mf::LogVerbatim("output") << " x " << pos.X();
-
-      //      mf::LogVerbatim("output") << " y " << pos.Y();
-
-      //      mf::LogVerbatim("output") << " z " << pos.Z();
-
-        pos[0] += dx;
-        //        double ticks = detprop->ConvertXToTicks(pos[0], 0, 0, 0);
-	/*if(whichTPC2!=whichTPC)
-	  std::cout << " TPC" << whichTPC << " TPC2 " << whichTPC2 << std::endl;*/
-	/*	if(whichTPC2==-999)
-	   throw cet::exception("AnaTree") << "whichTPC2 is -9999 \n";
-	if(whichTPC==-999)
-	throw cet::exception("AnaTree") << "whichTPC is -9999 \n";*/
-	double ticks;
-	
-	//	std::cout << "ticks " << ticks << std::endl;
+      pos[0] += dx;
+      
+      double ticks;
+      
+      
         if(whichTPC2>0)  ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC2, 0);
 	else continue;
 	//if(ticks >5e+12)
@@ -509,8 +262,7 @@ mf::LogVerbatim("output") << " xmin " << xmin;
           if(first) {
             start = pos;
             startmom = part.Momentum(i).Vect();
-	    //	    std::cout<< " Momentum x" << startmom.X() << "Momentum y " << startmom.Y() << "Momentum z " << startmom.Z() << std::endl; 
-	    //	    std::cout<< " pos x" << start.X() << "pos y " << start.Y() << "pos z " << start.Z() << std::endl; 
+	   
           }
           else {
             disp -= pos;
@@ -1213,7 +965,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkd2[k]=distance_squared;
 	  }*/
     //    else
-    if (fmsp.isValid()){
+      {
 	ntrkhits[i] = fmsp.at(i).size();
 	//	double distance_squared=0;
 	double distance=0;
