@@ -226,7 +226,7 @@ namespace {
 
     // Get services.
     art::ServiceHandle<geo::Geometry> geom;
- 
+    art::ServiceHandle<util::DetectorProperties> detprop;
 
     double result = 0.;
 
