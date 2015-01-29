@@ -7,6 +7,9 @@ art_make( BASENAME_ONLY
                            LArProperties_service
                            DetectorProperties_service
                            Utilities
+			   Simulation
+			   BackTracker_service
+			   ${SIMULATIONBASE}
  			   ${ART_FRAMEWORK_CORE}
 			   ${ART_FRAMEWORK_PRINCIPAL}
 			   ${ART_FRAMEWORK_SERVICES_REGISTRY}
