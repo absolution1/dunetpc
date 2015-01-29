@@ -797,9 +797,7 @@ namespace calgaushf {
 	      FitNDF,                  // dof
 	      view,                    // view
 	      sigType,                 // signal_type
-	      wid,                     // wireID
-	      std::vector<float>       // signal
-	        (signal.begin() + startT, signal.begin() + endT)
+	      wid                      // wireID
 	      );
 	    hcol.emplace_back(std::move(hit), digitVec);
 	    
