@@ -203,13 +203,13 @@ namespace opdet{
     {
         mf::LogInfo("LBNEOpDetResponse") << "Converting optical channel numbers in " << fChannelConversion << " simulation" << std::endl;
 
-        mf::LogVerbatim("LBNEOpDetResponse") << "LBNE OpDetResponse channel map:" << std::endl;
-        for (unsigned int g = 0; opChannelMap.size(); g++) {
-            mf::LogVerbatim("LBNEOpDetResponse") << "  " <<  g << " -> ";
+        std::cout << "LBNE OpDetResponse channel map:" << std::endl;
+        for (unsigned int g = 0; g < opChannelMap.size(); g++) {
+            std::cout << "  " <<  g << " -> ";
             for (unsigned int d = 0; d < opChannelMap[g].size(); d++) {
-                mf::LogVerbatim("LBNEOpDetResponse") <<  opChannelMap[g][d] << " ";
+                std::cout <<  opChannelMap[g][d] << " ";
             }
-            mf::LogVerbatim("LBNEOpDetResponse") << std::endl;
+            std::cout << std::endl;
         }
     }
 
