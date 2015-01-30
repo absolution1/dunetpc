@@ -1,10 +1,10 @@
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
-ADD_SUBDIRECTORY(lbne-raw-data)
+
 ADD_SUBDIRECTORY(utilities)
 
 simple_plugin(TpcMilliSliceDump "module"
-lbne_daqinput35t_lbne-raw-data_Overlays
+lbne-raw-data_Overlays
 Geometry_service
 Geometry
 RawData
@@ -25,7 +25,7 @@ ${ROOT_BASIC_LIB_LIST}
 )
 
 simple_plugin(SSPDump "module"
-lbne_daqinput35t_lbne-raw-data_Overlays
+lbne-raw-data_Overlays
 Geometry_service
 Geometry
 RawData
@@ -46,7 +46,7 @@ ${ROOT_BASIC_LIB_LIST}
 )
 
 simple_plugin(SSPToOffline "module"
-lbne_daqinput35t_lbne-raw-data_Overlays
+lbne-raw-data_Overlays
 Geometry_service
 Geometry
 RawData
@@ -67,7 +67,7 @@ ${ROOT_BASIC_LIB_LIST}
 )
 
 simple_plugin(TpcDAQToOffline "module"
-lbne_daqinput35t_lbne-raw-data_Overlays
+lbne-raw-data_Overlays
 lbne_daqinput35t_utilities
 Geometry_service
 Geometry
