@@ -201,7 +201,7 @@ namespace opdet{
     //--------------------------------------------------------------------
     void LBNEOpDetResponse::PrintChannelMap() const
     {
-        mf::LogInfo("LBNEOpDetResponse") << "Converting optical channel numbers in " << fChannelConversion << " simulation" << std::endl;
+        //mf::LogInfo("LBNEOpDetResponse") << "Converting optical channel numbers in " << fChannelConversion << " simulation" << std::endl;
 
         std::cout << "LBNE OpDetResponse channel map:" << std::endl;
         for (unsigned int g = 0; g < opChannelMap.size(); g++) {
