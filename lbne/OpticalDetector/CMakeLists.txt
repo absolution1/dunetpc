@@ -56,6 +56,20 @@ art_make( BASENAME_ONLY
          )
 
 
+simple_plugin(OpDetDigitizerLBNE "module"
+              Simulation
+              Geometry
+              Geometry_service
+              RawData
+              ${ART_FRAMEWORK_CORE}
+              ${ART_FRAMEWORK_PRINCIPAL}
+              ${ART_FRAMEWORK_SERVICES_REGISTRY}
+              ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+              ${FHICLCPP}
+              ${CLHEP}
+              BASENAME_ONLY 
+)
+
 install_headers()
 install_fhicl()
 install_source()
