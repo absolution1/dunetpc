@@ -164,7 +164,7 @@ namespace {
       
       pos[0] += dx;
       
-      double ticks;
+      double ticks=0;
       if(whichTPC2>0)  ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC2, 0);
       else continue;
       if(ticks >= 0. && ticks < detprop->ReadOutWindowSize()) {
