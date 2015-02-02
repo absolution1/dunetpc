@@ -41,12 +41,13 @@ physics:
    {
       opdigi:    # simple digitizer with no noise and high saturation
       {
-        module_type: "OpDetDigitizerLBNE"
-        InputModule: "largeant"
-        QE:          0.16
-        SampleFreq:  0.15  
-        TimeBegin:   0.0
-        TimeEnd:     1600000.0
+        module_type:  "OpDetDigitizerLBNE"
+        InputModule:  "largeant" # Module that created OpDetPulses (OpticalRawDigits)
+        QE:           0.16       # Quantum efficiency of photon detectors
+        SampleFreq:   0.15       # Sampling frequency in GHz
+        TimeBegin:    0.0        # Readout window begin in ns
+        TimeEnd:      1600000.0  # Readout window end in ns
+        VoltageToADC: 10.0       # Converting mV to ADC counts (counts in 1 mV)
       } 
       rns:       { module_type: "RandomNumberSaver" }
    }
@@ -54,7 +55,15 @@ physics:
    analyzers:
    {
       pmtresponse: @local::lbne35t_simphotoncounter
-      opdigiana: @local::lbne35t_opdigiana
+#      opdigiana: @local::lbne35t_opdigiana
+      opdigiana: 
+      {
+        module_type:  "OpDetDigiAnaLBNE"
+        InputModule:  "opdigi"  # Module that created OpDetPulses (OpticalRawDigits)
+        SampleFreq:   0.15      # Sampling frequency in GHz
+        TimeBegin:    0.0       # Readout window begin in ns
+        TimeEnd:      1600000.0 # Readout window end in ns
+      } 
    }
    
    

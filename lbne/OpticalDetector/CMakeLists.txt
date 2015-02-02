@@ -70,6 +70,19 @@ simple_plugin(OpDetDigitizerLBNE "module"
               BASENAME_ONLY 
 )
 
+simple_plugin(OpDetDigiAnaLBNE "module"
+              RawData
+              ${ART_FRAMEWORK_CORE}
+              ${ART_FRAMEWORK_PRINCIPAL}
+              ${ART_FRAMEWORK_SERVICES_REGISTRY}
+              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_PERSISTENCY_COMMON}
+              ${FHICLCPP}
+              ${ROOT_BASIC_LIB_LIST}
+              BASENAME_ONLY
+)
+
 install_headers()
 install_fhicl()
 install_source()

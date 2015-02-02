@@ -1,4 +1,4 @@
-// 
+//=========================================================
 // OpDetDigitizerLBNE_module.cc
 // This module produces digitized output 
 // (OpDetPulses now, OpticalRawDigit in the near future)
@@ -6,7 +6,7 @@
 //
 // Gleb Sinev, Duke, 2015
 // Based on OpMCDigi_module.cc
-// 
+//=========================================================
 
 #ifndef OpDetDigitizerLBNE_h
 #define OpDetDigitizerLBNE_h 1
@@ -61,6 +61,7 @@ namespace opdet {
       double fSampleFreq;                  // Frequency in GHz (number of ticks in one ns)
       double fTimeBegin;                   // Beginning of sample in ns
       double fTimeEnd;                     // End of sample in ns
+      double fVoltageToADC;                // Conversion factor mV to ADC counts
 
       // Random number engines
       CLHEP::RandBinomial *fRandBinomial;
@@ -100,11 +101,12 @@ namespace opdet {
     produces< std::vector< raw::OpDetPulse > >();
 
     // Read the fcl-file
-    fInputModule = pset.get< std:: string >("InputModule");
-    fQE          = pset.get< double >("QE");
-    fSampleFreq  = pset.get< double >("SampleFreq");
-    fTimeBegin   = pset.get< double >("TimeBegin");
-    fTimeEnd     = pset.get< double >("TimeEnd");
+    fInputModule  = pset.get< std:: string >("InputModule");
+    fQE           = pset.get< double >("QE");
+    fSampleFreq   = pset.get< double >("SampleFreq");
+    fTimeBegin    = pset.get< double >("TimeBegin");
+    fTimeEnd      = pset.get< double >("TimeEnd");
+    fVoltageToADC = pset.get< double >("VoltageToADC");
 
     // Initializing random number engines
     unsigned int seed = pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
@@ -136,7 +138,7 @@ namespace opdet {
   {
     
     // A pointer that will store produced OpDetPulses
-    std::unique_ptr< std::vector< raw::OpDetPulse > > pulseVecPtr (new std::vector< raw::OpDetPulse >);
+    std::unique_ptr< std::vector< raw::OpDetPulse > > pulseVecPtr(new std::vector< raw::OpDetPulse >);
     
     art::ServiceHandle< sim::LArG4Parameters > lgp;
     bool fUseLitePhotons = lgp->UseLitePhotons();
@@ -221,7 +223,7 @@ namespace opdet {
   double OpDetDigitizerLBNE::Pulse1PE(double time)
   {
 
-    if (time > 250.0) return (0.203*std::exp(-0.00205*time));
+    if (time > 250.0) return (fVoltageToADC*0.203*std::exp(-0.00205*time));
     else return 0.0;
 
   }
