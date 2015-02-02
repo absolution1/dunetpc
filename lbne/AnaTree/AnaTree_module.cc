@@ -399,6 +399,8 @@ private:
   double trkphi_MC[kMaxTrack];
   double trkdedx[kMaxTrack];
   double trkdedx2[kMaxTrack][3][1000];
+  double trkdqdx[kMaxTrack][3][1000];
+  double trkkinE[kMaxTrack][3][1000];
   double trkplaneid[kMaxTrack][3][1000];
   double trkresrg[kMaxTrack][3][1000];
   double trkdedx_MC[kMaxTrack];
@@ -1009,9 +1011,13 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  int tt= calos[jj] -> dEdx().size();
 	  for(int k = 0; k < tt; ++k) {
             trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
+	    trkdqdx[i][jj][k]   = (calos[jj] -> dQdx())[k];
+	    trkkinE[i][jj][k]   = (calos[jj] -> KineticEnergy());
+	    
+            trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
+
 	    trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;
-	    //            trkdqdx[it1][i][j][k]  = (calos[jj] -> dQdx())[k];
-            trkresrg[i][jj][k] = (calos[jj] -> ResidualRange())[k];
+	    
 	    //            trkxyz[it1][i][j][k][0] = (calos[jj] -> XYZ())[k].X();
 	    //            trkxyz[it1][i][j][k][1] = (calos[jj] -> XYZ())[k].Y();
 	    //            trkxyz[it1][i][j][k][2] = (calos[jj] -> XYZ())[k].Z();
@@ -1582,6 +1588,8 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trkphi_MC",trkphi_MC,"trkphi_MC[ntracks_reco]/D");
   fTree->Branch("trkdedx",trkdedx,"trkdedx[ntracks_reco]/D");
   fTree->Branch("trkdedx2",trkdedx2,"trkdedx2[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkdqdx",trkdqdx,"trkdqdx[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkkinE",trkkinE,"trkkinE[ntracks_reco][3][1000]/D"); 
   fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
   fTree->Branch("trkresrg",trkresrg,"trkresrg[ntracks_reco][3][1000]/D");
   fTree->Branch("trkdedx_MC",trkdedx_MC,"trkdedx_MC[ntracks_reco]/D");
@@ -1930,6 +1938,8 @@ void AnaTree::AnaTree::ResetVars(){
 	for(int k=0;k<1000;k++)
 	  {
 	    trkdedx2[i][ii][k] = -99999;
+	    trkdqdx[i][ii][k] = -99999;
+	    trkkinE[i][ii][k] = -99999;
 	    trkplaneid[i][ii][k] = -99999;
 	    trkresrg[i][ii][k] = -99999;
 	  }
