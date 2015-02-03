@@ -395,8 +395,18 @@ private:
   double trkid[kMaxTrack];
   double trktheta_xz_MC[kMaxTrack];
   double trktheta_yz_MC[kMaxTrack];
+  double trketa_xy_MC[kMaxTrack];
+  double trketa_zy_MC[kMaxTrack];
   double trktheta_MC[kMaxTrack];
   double trkphi_MC[kMaxTrack];
+
+  double trktheta_xz[kMaxTrack];
+  double trketa_xy[kMaxTrack];
+  double trktheta_yz[kMaxTrack];
+  double trketa_zy[kMaxTrack];
+  double trktheta[kMaxTrack];
+  double trkphi[kMaxTrack];
+
   double trkdedx[kMaxTrack];
   double trkdedx2[kMaxTrack][3][1000];
   double trkdqdx[kMaxTrack][3][1000];
@@ -1072,6 +1082,11 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   TVector3 mcposl = rot * mcpos;
   trktheta_xz_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Z());
   trktheta_yz_MC[i] = std::atan2(mcstartmom.Y(), mcstartmom.Z());
+  trketa_xy_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Y());
+  trketa_zy_MC[i] = std::atan2(mcstartmom.Z(), mcstartmom.Y());
+
+
+
   trktheta_MC[i]=mcstartmom.Theta();
   trkphi_MC[i]=mcstartmom.Phi();
 
@@ -1323,6 +1338,12 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
           double tlen = length(track);
           double theta_xz = std::atan2(dir.X(), dir.Z());
           double theta_yz = std::atan2(dir.Y(), dir.Z());
+	  trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
+	  trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
+ 	  trketa_xy[i] = std::atan2(dir.X(), dir.Y());
+ 	  trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
+ 	  trktheta[i]=dir.Theta();
+ 	  trkphi[i]=dir.Phi();
           if(fRecoHistMap.count(0) == 0)
             fRecoHistMap[0] = RecoHists("Reco");
           const RecoHists& rhists = fRecoHistMap[0];
@@ -1588,6 +1609,15 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trktheta_yz_MC",trktheta_yz_MC,"trktheta_yz_MC[ntracks_reco]/D");
   fTree->Branch("trktheta_MC",trktheta_MC,"trktheta_MC[ntracks_reco]/D");
   fTree->Branch("trkphi_MC",trkphi_MC,"trkphi_MC[ntracks_reco]/D");
+  fTree->Branch("trketa_xy_MC",trketa_xy_MC,"trketa_xy_MC[ntracks_reco]/D");
+  fTree->Branch("trketa_zy_MC",trketa_zy_MC,"trketa_zy_MC[ntracks_reco]/D");
+  fTree->Branch("trktheta_xz",trktheta_xz,"trktheta_xz[ntracks_reco]/D");
+  fTree->Branch("trktheta_yz",trktheta_yz,"trktheta_yz[ntracks_reco]/D");
+  fTree->Branch("trketa_xy",trketa_xy,"trketa_xy[ntracks_reco]/D");
+  fTree->Branch("trketa_zy",trketa_zy,"trketa_zy[ntracks_reco]/D");
+  fTree->Branch("trktheta",trktheta,"trktheta[ntracks_reco]/D");
+  fTree->Branch("trkphi",trkphi,"trkphi[ntracks_reco]/D");
+
   fTree->Branch("trkdedx",trkdedx,"trkdedx[ntracks_reco]/D");
   fTree->Branch("trkdedx2",trkdedx2,"trkdedx2[ntracks_reco][3][1000]/D");
   fTree->Branch("trkdqdx",trkdqdx,"trkdqdx[ntracks_reco][3][1000]/D");
@@ -1918,7 +1948,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkendx[i] = -99999;
     trkendy[i] = -99999;
     trkendz[i] = -99999;
-  trkstartx_MC[i] = -99999;
+    trkstartx_MC[i] = -99999;
     trkstarty_MC[i] = -99999;
     trkstartz_MC[i] = -99999;
     trkendx_MC[i] = -99999;
@@ -1935,7 +1965,15 @@ void AnaTree::AnaTree::ResetVars(){
     trktheta_MC[i] = -99999;
     trkphi_MC[i] = -99999;
     trkdedx[i] = -99999;
-
+    trketa_xy_MC[i] = -99999;
+    trketa_zy_MC[i] = -99999;
+    trktheta_xz[i] = -99999;
+    trktheta_yz[i] = -99999;
+    trketa_xy[i] = -99999;
+    trketa_zy[i] = -99999;
+    trktheta[i] = -99999;
+    trkphi[i] = -99999;
+    
     for(int ii=0;ii<3;ii++)
       {
     trkkinE[i][ii] = -99999;
