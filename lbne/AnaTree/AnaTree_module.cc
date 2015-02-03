@@ -393,14 +393,14 @@ private:
   double trklen[kMaxTrack];
   double trklen_L[kMaxTrack];
   double trkid[kMaxTrack];
- double trktheta_xz_MC[kMaxTrack];
+  double trktheta_xz_MC[kMaxTrack];
   double trktheta_yz_MC[kMaxTrack];
   double trktheta_MC[kMaxTrack];
   double trkphi_MC[kMaxTrack];
   double trkdedx[kMaxTrack];
   double trkdedx2[kMaxTrack][3][1000];
   double trkdqdx[kMaxTrack][3][1000];
-  double trkkinE[kMaxTrack][3][1000];
+  double trkkinE[kMaxTrack][3];
   double trkplaneid[kMaxTrack][3][1000];
   double trkresrg[kMaxTrack][3][1000];
   double trkdedx_MC[kMaxTrack];
@@ -1008,11 +1008,13 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  //	  trkrange[i][jj] = calos[jj]->Range();
 	  //          trkpitchc[it1][i][j]= calos[j] -> TrkPitchC();
 	  //   ntrkhitscal[i][jj] = calos[jj] -> dEdx().size();
+	  trkkinE[i][jj]  = (calos[jj] -> KineticEnergy());
+	  std::cout << trkkinE[i][jj] << std::endl;
 	  int tt= calos[jj] -> dEdx().size();
 	  for(int k = 0; k < tt; ++k) {
             trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
 	    trkdqdx[i][jj][k]   = (calos[jj] -> dQdx())[k];
-	    trkkinE[i][jj][k]   = (calos[jj] -> KineticEnergy());
+
 	    
             trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
 
@@ -1589,7 +1591,7 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trkdedx",trkdedx,"trkdedx[ntracks_reco]/D");
   fTree->Branch("trkdedx2",trkdedx2,"trkdedx2[ntracks_reco][3][1000]/D");
   fTree->Branch("trkdqdx",trkdqdx,"trkdqdx[ntracks_reco][3][1000]/D");
-  fTree->Branch("trkkinE",trkkinE,"trkkinE[ntracks_reco][3][1000]/D"); 
+  fTree->Branch("trkkinE",trkkinE,"trkkinE[ntracks_reco][3]/D"); 
   fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
   fTree->Branch("trkresrg",trkresrg,"trkresrg[ntracks_reco][3][1000]/D");
   fTree->Branch("trkdedx_MC",trkdedx_MC,"trkdedx_MC[ntracks_reco]/D");
@@ -1933,13 +1935,15 @@ void AnaTree::AnaTree::ResetVars(){
     trktheta_MC[i] = -99999;
     trkphi_MC[i] = -99999;
     trkdedx[i] = -99999;
+
     for(int ii=0;ii<3;ii++)
       {
+    trkkinE[i][ii] = -99999;
 	for(int k=0;k<1000;k++)
 	  {
 	    trkdedx2[i][ii][k] = -99999;
 	    trkdqdx[i][ii][k] = -99999;
-	    trkkinE[i][ii][k] = -99999;
+	    
 	    trkplaneid[i][ii][k] = -99999;
 	    trkresrg[i][ii][k] = -99999;
 	  }
