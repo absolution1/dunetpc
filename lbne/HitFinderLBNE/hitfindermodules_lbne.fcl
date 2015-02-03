@@ -61,5 +61,6 @@ lbne35t_hitfinder35t:
 lbne35t_fasthitfinder:    @local::standard_fasthitfinder
 lbne35t_fasthitfinder.MinSigInd: 5.0
 lbne35t_fasthitfinder.MinSigCol: 5.0
+lbne35t_gaushitfinder.Chi2NDFRetry: 1000.
 
 END_PROLOG

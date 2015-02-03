@@ -1,0 +1,67 @@
+#include "opticaldetectormodules.fcl"
+
+BEGIN_PROLOG
+
+lbnefd_opdigi:
+{
+  module_type:        "OpMCDigi"
+  InputModule:        "largeant"
+  QE:                      1
+  SaturationScale:         50000
+  DarkRate:                0 #10000
+}
+
+lbnefd_simphotoncounter:
+{
+  module_type:            "SimPhotonCounter"
+  Verbosity:               0
+  InputModule:            "largeant"
+  MakeAllPhotonsTree:      true
+  MakeDetectedPhotonsTree: true
+  MakeOpDetsTree:          true
+  MakeOpDetEventsTree:     true
+  QuantumEfficiency:       1
+  WavelengthCutLow:        0
+  WavelengthCutHigh:       10000
+}
+
+lbnefd_tracktimeassoc:   @local::standard_tracktimeassoc
+lbnefd_opflash:          @local::standard_opflash
+
+lbnefd_opdigiana:        @local::standard_opdigiana
+lbnefd_opflashana:       @local::standard_opflashana
+
+
+lbne35t_simphotoncounter: @local::standard_simphotoncounter
+
+lbne35t_opdigi:
+{
+  module_type:        "OpMCDigi"
+  InputModule:        "largeant"
+  QE:                      0.16  # See below
+  SaturationScale:         16383 # 2^14 - 1, based on SSP Data
+  DarkRate:                20    # Hz, Ranges 2-50 depending on Vbias
+
+   # QE here assumes 3% already applied at generation time and
+   # attempts to correct for total collection efficiency, which
+   # includes:
+   #   SiPMQE: 35%
+   #   Microcell Fill: 64%
+   #   SiPM Coverage: 71%
+   #   Surface Conversion: 3% (generous estimate)
+   #   Attenuation in bars already in library response
+}
+
+lbne35t_tracktimeassoc:   @local::standard_tracktimeassoc
+lbne35t_opflash:          @local::standard_opflash
+
+lbne35t_opdigiana:        @local::standard_opdigiana
+lbne35t_opflashana:       @local::standard_opflashana
+lbne35t_opdigiana.MakeUnipolarHist: false
+
+lbne35t_opdigiana_data:   @local::lbne35t_opdigiana
+lbne35t_opdigiana_data.InputModule: ssptooffline
+lbne35t_opdigiana_data.InstanceName: offlinePhoton
+
+
+END_PROLOG

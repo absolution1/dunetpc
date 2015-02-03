@@ -30,7 +30,7 @@ services:
 source:
 {
   module_type: EmptyEvent
-  maxEvents:   2           # Number of events to create
+  maxEvents:   100        # Number of events to create
   firstRun:    1           # Run number to use for this file
   firstEvent:  1           # number of first event in the file
 }
@@ -101,3 +101,29 @@ physics.analyzers.pmtresponse.MakeOpDetEventsTree: false
 
 
 
+#services.user.PhotonVisibilityService.NX: 30
+#services.user.PhotonVisibilityService.NY: 30
+#services.user.PhotonVisibilityService.NZ: 30
+#physics.producers.generator.FirstVoxel: 1000
+#physics.producers.generator.LastVoxel: 1020
+#physics.producers.generator.N: 500
+
+#physics.analyzers.pmtresponse.Verbosity: 3
+
+physics.producers.generator.N: 10000
+
+
+# Number of voxels
+services.user.PhotonVisibilityService.NX: 1
+services.user.PhotonVisibilityService.NY: 20
+services.user.PhotonVisibilityService.NZ: 5
+
+services.user.PhotonVisibilityService.UseCryoBoundary: false
+
+# IF UseCryoBoundary is set to false, so use the following parameters in cm
+services.user.PhotonVisibilityService.XMin:  -8.
+services.user.PhotonVisibilityService.XMax:  -6.
+services.user.PhotonVisibilityService.YMin:  -100.
+services.user.PhotonVisibilityService.YMax:  0
+services.user.PhotonVisibilityService.ZMin:  60.
+services.user.PhotonVisibilityService.ZMax:  90.

@@ -12,6 +12,7 @@ services:
   TFileService: { fileName: "ntuple.root" }
   Timing:       {}
   SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
+  FileCatalogMetadata:  @local::art_file_catalog_mc
   user:         @local::lbne35t_services
 }
 
@@ -29,6 +30,7 @@ outputs:
  {
    module_type: RootOutput
    fileName:    "standard_reco.root" #default file name, can override from command line with -o or --output
+   dataTier:    "full-reconstructed"
  }
 }
 
@@ -82,6 +84,7 @@ physics.analyzers.pandoramonitoring.HitFinderModule: "hitcheat"
 physics.analyzers.pandoramonitoring.SpacePointModule: "pandora"
 physics.analyzers.pandoramonitoring.PFParticleModule: "particlestitcher"
 physics.analyzers.pandorana.PFParticleModule: "particlestitcher"
+physics.analyzers.pandorana.TrackModule: "particletracks"
 
 ### Configure the Analysis Tree module
 physics.analyzers.analysistree.TrackModuleLabel: "particletracks"
