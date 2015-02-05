@@ -11,6 +11,8 @@
 #include "Utilities/DetectorProperties.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
+#include "RawData/raw.h"
+#include "RawData/RawDigit.h"
 #include "RecoBase/Hit.h"
 #include "RecoBase/Cluster.h"
 #include "Geometry/Geometry.h"
@@ -379,7 +381,7 @@ outfile<<fChansPerAPA<<"  "<<fGeom->Ncryostats()<<"  "<<fNofAPA<<std::endl;
 	 cryoid=fGeom->ChannelToWire(chan)[0].Cryostat;
 
     std::vector<short> uncompressed(digit->Samples());
-    raw::Uncompress(digit->fADC, uncompressed, digit->Compression());
+    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
 
 	if( fGeom->View(chan) == geo::kU ){
 		for(unsigned int l=0;l<uncompressed.size();l++) {

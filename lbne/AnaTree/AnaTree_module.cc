@@ -1173,8 +1173,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     hit_wire[i]    = wireid.Wire;
     hit_channel[i] = channel;
     hit_peakT[i]   = hitlist[i]->PeakTime();
-    hit_charge[i]  = hitlist[i]->Charge();
-    hit_ph[i]      = hitlist[i]->Charge(true);
+    hit_charge[i]  = hitlist[i]->Integral();
+    hit_ph[i]      = hitlist[i]->PeakAmplitude();
     if (fmtk.at(i).size()!=0){
       hit_trkid[i] = fmtk.at(i)[0]->ID();
     }
