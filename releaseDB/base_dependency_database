@@ -873,6 +873,7 @@ larsim : larsim : Simulation/sim.h
 larsim : larsim : TriggerAlgo/TriggerAlgoBase.h
 larsim : larsim : TriggerAlgo/TriggerAlgoMicroBoone.h
 larsim : larsim : TriggerAlgo/TriggerTypes.hh
+lbnecode : larana : OpticalDetector/OpDetResponseInterface.h
 lbnecode : larcore : Geometry/AuxDetGeo.h
 lbnecode : larcore : Geometry/ChannelMapAlg.h
 lbnecode : larcore : Geometry/CryostatGeo.h
@@ -927,6 +928,7 @@ lbnecode : larsim : Simulation/LArVoxelID.h
 lbnecode : larsim : Simulation/LArVoxelList.h
 lbnecode : larsim : Simulation/ParticleList.h
 lbnecode : larsim : Simulation/SimChannel.h
+lbnecode : larsim : Simulation/SimPhotons.h
 lbnecode : larsim : Simulation/sim.h
 lbnecode : lbnecode : lbne/Geometry/ChannelMap35Alg.h
 lbnecode : lbnecode : lbne/Geometry/ChannelMap35OptAlg.h
@@ -937,6 +939,7 @@ lbnecode : lbnecode : lbne/Geometry/LBNEGeometryHelper.h
 lbnecode : lbnecode : lbne/Geometry/MuonCounter35Alg.h
 lbnecode : lbnecode : lbne/HitFinderLBNE/APAGeometryAlg.h
 lbnecode : lbnecode : lbne/HitFinderLBNE/DisambigAlg35t.h
+lbnecode : lbnecode : lbne/OpticalDetector/LBNEOpDetResponse.h
 lbnecode : lbnecode : lbne/Utilities/SignalShapingServiceLBNE10kt.h
 lbnecode : lbnecode : lbne/Utilities/SignalShapingServiceLBNE34kt.h
 lbnecode : lbnecode : lbne/Utilities/SignalShapingServiceLBNE35t.h
