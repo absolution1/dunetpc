@@ -9,6 +9,7 @@
 #include "TGeoNode.h"
 #include "TGeoBBox.h"
 #include "Geometry/OpDetGeo.h"
+#include "Utilities/LArProperties.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "CLHEP/Random/RandFlat.h"
 
@@ -48,7 +49,7 @@ namespace opdet{
     //--------------------------------------------------------------------
     void LBNEOpDetResponse::doReconfigure(fhicl::ParameterSet const& pset)
     {
-        fQE =                    pset.get<double>("QuantumEfficiency");
+        double tempfQE =         pset.get<double>("QuantumEfficiency");
         fWavelengthCutLow =      pset.get<double>("WavelengthCutLow");
         fWavelengthCutHigh =     pset.get<double>("WavelengthCutHigh");
         fLightGuideAttenuation = pset.get<bool>("LightGuideAttenuation");
@@ -72,6 +73,19 @@ namespace opdet{
         
         if (fChannelConversion == "full") fFullSimChannelConvert = true;
         if (fChannelConversion == "fast") fFastSimChannelConvert = true;
+
+        // Correct out the prescaling applied during simulation
+        art::ServiceHandle<util::LArProperties>   LarProp;
+        fQE = tempfQE / LarProp->ScintPreScale();
+        
+        if (fQE > 1.0001 ) {
+            mf::LogError("MicrobooneOpDetResponse_service") << "Quantum efficiency set in OpDetResponse_service, " << tempfQE
+                                                            << " is too large.  It is larger than the prescaling applied during simulation, "
+                                                            << LarProp->ScintPreScale()
+                                                            << ".  Final QE must be equalt to or smaller than the QE applied at simulation time.";
+            assert(false);
+        }
+
     }
 
 

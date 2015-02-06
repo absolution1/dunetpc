@@ -11,7 +11,7 @@ lbnefd_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
 lbnefd_opdetresponse:
 {
    service_provider:        LBNEOpDetResponse
-   QuantumEfficiency:       1
+   QuantumEfficiency:       0.03
    WavelengthCutLow:        0 
    WavelengthCutHigh:       10000
    LightGuideAttenuation:   true
