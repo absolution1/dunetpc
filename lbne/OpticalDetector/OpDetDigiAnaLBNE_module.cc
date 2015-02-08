@@ -24,7 +24,8 @@
 
 // LArSoft includes
 
-#include "RawData/OpDetPulse.h"
+//#include "RawData/OpDetPulse.h"
+#include "OpticalDetectorData/OpticalRawDigit.h"
 
 // ROOT includes
 
@@ -97,8 +98,9 @@ namespace opdet {
     // Create a string for histogram names
     char histName[50];
 
-    // Get OpDetPulses from the event
-    art::Handle< std::vector< raw::OpDetPulse > > waveformHandle;
+    // Get OpDetPulses (OpticalRawDigits) from the event
+    //art::Handle< std::vector< raw::OpDetPulse > > waveformHandle;
+    art::Handle< std::vector< optdata::OpticalRawDigit > > waveformHandle;
     evt.getByLabel(fInputModule, waveformHandle);
 
     // Access ART's TFileService, which will handle creating and writing
@@ -109,10 +111,13 @@ namespace opdet {
     {
       // This is probably required to overcome the "const" problem 
       // with OpDetPulse::Waveform()
-      art::Ptr< raw::OpDetPulse > waveformPtr(waveformHandle, i);
-      raw::OpDetPulse pulse = *waveformPtr;
+      //art::Ptr< raw::OpDetPulse > waveformPtr(waveformHandle, i);
+      art::Ptr< optdata::OpticalRawDigit > waveformPtr(waveformHandle, i);
+      //raw::OpDetPulse pulse = *waveformPtr;
+      optdata::OpticalRawDigit pulse = *waveformPtr;
       // Make a name for the histogram
-      sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.OpChannel());
+      //sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.OpChannel());
+      sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.ChannelNumber());
 
       TH1D * waveformHist = nullptr;
 
@@ -120,8 +125,10 @@ namespace opdet {
                                        int((fTimeEnd - fTimeBegin)*fSampleFreq),
                                                             fTimeBegin, fTimeEnd);
 
-      for (unsigned int tick = 0; tick < pulse.Waveform().size(); tick++)
-        waveformHist->SetBinContent(tick, (double) pulse.Waveform()[tick]);
+      //for (unsigned int tick = 0; tick < pulse.Waveform().size(); tick++)
+      for (unsigned int tick = 0; tick < pulse.size(); tick++)
+        //waveformHist->SetBinContent(tick, (double) pulse.Waveform()[tick]);
+        waveformHist->SetBinContent(tick, (double) pulse.at(tick));
 
     }
 

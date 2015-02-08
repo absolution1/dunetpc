@@ -27,7 +27,8 @@
 #include "Simulation/SimPhotons.h"
 #include "Simulation/LArG4Parameters.h"
 #include "Geometry/Geometry.h"
-#include "RawData/OpDetPulse.h"
+//#include "RawData/OpDetPulse.h"
+#include "OpticalDetectorData/OpticalRawDigit.h"
 
 // CLHEP includes
 
@@ -73,7 +74,11 @@ namespace opdet {
       double Pulse1PE(double time);
 
       // One photoelectron pulse parameters
-      double fPulseLength; // 1PE pulse length in ticks
+      double fPulseLength;  // 1PE pulse length in ticks
+      double fPeakTime;     // Time when the pulse reaches its maximum in ns
+      double fMaxAmplitude; // Maximum amplitude of the pulse in mV
+      double fFrontTime;    // Constant in the exponential function in ns
+      double fBackTime;     // Constant in the exponential function in ns
 
       std::vector< double > fSinglePEWaveform;
       void CreateSinglePEWaveform();
@@ -98,7 +103,8 @@ namespace opdet {
   {
 
     // This module produces (infrastructure piece)
-    produces< std::vector< raw::OpDetPulse > >();
+    //produces< std::vector< raw::OpDetPulse > >();
+    produces< std::vector< optdata::OpticalRawDigit > >();
 
     // Read the fcl-file
     fInputModule  = pset.get< std:: string >("InputModule");
@@ -118,6 +124,10 @@ namespace opdet {
 
     // Creating single photoelectron waveform
     fPulseLength = 4000.0;
+    fPeakTime = 260.0;
+    fMaxAmplitude = 0.12;
+    fFrontTime = 9.0;
+    fBackTime  = 476.0;
     CreateSinglePEWaveform();
 
   }
@@ -137,12 +147,15 @@ namespace opdet {
   void OpDetDigitizerLBNE::produce(art::Event& evt)
   {
     
-    // A pointer that will store produced OpDetPulses
-    std::unique_ptr< std::vector< raw::OpDetPulse > > pulseVecPtr(new std::vector< raw::OpDetPulse >);
+    // A pointer that will store produced OpDetPulses or OpticalRawDigits
+    //std::unique_ptr< std::vector< raw::OpDetPulse > > pulseVecPtr(new std::vector< raw::OpDetPulse >);
+    std::unique_ptr< std::vector< optdata::OpticalRawDigit > > 
+                                             pulseVecPtr(new std::vector< optdata::OpticalRawDigit >);
     
     art::ServiceHandle< sim::LArG4Parameters > lgp;
     bool fUseLitePhotons = lgp->UseLitePhotons();
 
+    // Total number of ticks in our readout
     int nSamples = (fTimeEnd - fTimeBegin)*fSampleFreq;
 
     art::ServiceHandle< geo::Geometry > geom;
@@ -186,7 +199,8 @@ namespace opdet {
     for (int channel = 0; channel != nOpChannels; channel++)
     {
       // Produce ADC pulse of integers rather than doubles
-      std::vector< short > adcVec;
+      //std::vector< short > adcVec;
+      optdata::OpticalRawDigit adcVec(0, channel, nSamples);
 
       for (auto& value : opDetWaveforms[channel])
       {
@@ -194,7 +208,8 @@ namespace opdet {
         adcVec.push_back(int(value + 0.5));
       }
 
-      pulseVecPtr->push_back(raw::OpDetPulse(channel, adcVec, 0, fTimeBegin));
+      //pulseVecPtr->push_back(raw::OpDetPulse(channel, adcVec, 0, fTimeBegin));
+      pulseVecPtr->push_back(adcVec);
 
     }
 
@@ -223,8 +238,8 @@ namespace opdet {
   double OpDetDigitizerLBNE::Pulse1PE(double time)
   {
 
-    if (time > 250.0) return (fVoltageToADC*0.203*std::exp(-0.00205*time));
-    else return 0.0;
+    if (time < fPeakTime) return (fVoltageToADC*fMaxAmplitude*std::exp((time - fPeakTime)/fFrontTime));
+    else return (fVoltageToADC*fMaxAmplitude*std::exp(-(time - fPeakTime)/fBackTime));
 
   }
 
