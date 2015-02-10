@@ -261,6 +261,7 @@ void CTree35t::initOutput()
     // fMC_trackMomentum->SetName("mc_trackMomentum");
     fMC_trackPosition->SetOwner(kTRUE);
     fMC_trackMomentum->SetOwner(kTRUE);
+    // this seems more cumbersome
     // TList *topBranch = new TList();
     // topBranch->Add(fMC_trackPosition);
     // topBranch->Add(fMC_trackMomentum);
