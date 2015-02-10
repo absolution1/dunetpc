@@ -387,18 +387,37 @@ private:
   double trklen_cut_MC[kMaxTrack];
 
   double trkmom_MC[kMaxTrack];
+  double trkmom_XMC[kMaxTrack];
+  double trkmom_YMC[kMaxTrack];
+  double trkmom_ZMC[kMaxTrack];
+  double trkstartdoc_XMC[kMaxTrack];
+  double trkstartdoc_YMC[kMaxTrack];
+  double trkstartdoc_ZMC[kMaxTrack];
   double trkpdg_MC[kMaxTrack];
   double trkd2[kMaxTrack];
   double trkcolin[kMaxTrack];
   double trklen[kMaxTrack];
   double trklen_L[kMaxTrack];
   double trkid[kMaxTrack];
- double trktheta_xz_MC[kMaxTrack];
+  double trktheta_xz_MC[kMaxTrack];
   double trktheta_yz_MC[kMaxTrack];
+  double trketa_xy_MC[kMaxTrack];
+  double trketa_zy_MC[kMaxTrack];
   double trktheta_MC[kMaxTrack];
   double trkphi_MC[kMaxTrack];
+
+  double trktheta_xz[kMaxTrack];
+  double trketa_xy[kMaxTrack];
+  double trktheta_yz[kMaxTrack];
+  double trketa_zy[kMaxTrack];
+  double trktheta[kMaxTrack];
+  double trkphi[kMaxTrack];
+
   double trkdedx[kMaxTrack];
   double trkdedx2[kMaxTrack][3][1000];
+  double trkdqdx[kMaxTrack][3][1000];
+  double trkpitchHit[kMaxTrack][3][1000];
+  double trkkinE[kMaxTrack][3];
   double trkplaneid[kMaxTrack][3][1000];
   double trkresrg[kMaxTrack][3][1000];
   double trkdedx_MC[kMaxTrack];
@@ -791,36 +810,46 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       cryoBound_pos[1]=world[1] + geom->Cryostat(c).HalfWidth();
       cryoBound_pos[2]=world[2] + geom->Cryostat(c).HalfWidth();
 
-
-      const TLorentzVector& positionStart = particle->Position(0);
-      int last = numberTrajectoryPoints - 1;
-      TLorentzVector& positionEnd  =( TLorentzVector&)particle->Position(last);
-
-      bool insideActiveVolume=true;
+      int zz =0;
+      int zz2 =0;
+      bool insideActiveVolume=false;
       for(size_t ii=0;ii<numberTrajectoryPoints;ii++)
 	  {
 	    const TLorentzVector& tmpPosition=particle->Position(ii);
-	    tmpPosition.GetXYZT(xyztArray);
-	    for(int p=0;p<3;p++)
-	      {
-		if((xyztArray[p]>cryoBound_pos[p]) || (xyztArray[p]<cryoBound_neg[p]))
-		  {
-		    insideActiveVolume=false;
-		    break;
-		  }
+	    //tmpPosition.GetXYZT(xyztArray);   
+	    if((tmpPosition[0]<cryoBound_pos[0]) && (tmpPosition[0]>cryoBound_neg[0])) {
+	      if((tmpPosition[1]<cryoBound_pos[1]) && (tmpPosition[1]>cryoBound_neg[1])) {
+		if((tmpPosition[2]<cryoBound_pos[2]) && (tmpPosition[2]>cryoBound_neg[2])) {
+		  if (!insideActiveVolume) {
+		    zz = ii;
+		    //std::cout << "Now particle is in cryostat " << std::endl;
+		    insideActiveVolume=true;
+		  }		  
+		  //std::cout << "Temp Pos " << tmpPosition[0] << ", " <<  tmpPosition[1] << ", " <<  tmpPosition[2] << std::endl;
+		  tmpPosition.GetXYZT(xyztArray);
+		  zz2 = ii;
+		}
 	      }
+	    }
 	    
-	    if(!insideActiveVolume) 
-	      {
-		positionEnd=(const TLorentzVector&)particle->Position(ii-1);
-		break;
-	      }
+	    if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
 	  }
-     
+
+      const TLorentzVector& positionStart = particle->Position(zz);
+      TLorentzVector& positionEnd  =( TLorentzVector&)particle->Position(zz2);     
 	//        const TLorentzVector& momentumStart = particle->Momentum(0);
 	//        const TLorentzVector& momentumEnd   = particle->Momentum(last);
       TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(0);
       trkmom_MC[i]=momentumStart.P();
+      trkmom_XMC[i]=momentumStart.Px();
+      trkmom_YMC[i]=momentumStart.Py();
+      trkmom_ZMC[i]=momentumStart.Pz();
+      trkstartdoc_XMC[i]= pow ( (momentumStart.Px()*momentumStart.Px()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
+      trkstartdoc_YMC[i]= pow ( (momentumStart.Py()*momentumStart.Py()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
+      trkstartdoc_ZMC[i]= pow ( (momentumStart.Pz()*momentumStart.Pz()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
+      if ( trkmom_XMC[i] < 0 ) trkstartdoc_XMC[i] = -trkstartdoc_XMC[i];
+      if ( trkmom_YMC[i] < 0 ) trkstartdoc_YMC[i] = -trkstartdoc_YMC[i];
+      if ( trkmom_ZMC[i] < 0 ) trkstartdoc_ZMC[i] = -trkstartdoc_ZMC[i];
       positionStart.GetXYZT(fMC_startXYZT[i]);
       positionEnd.GetXYZT(fMC_endXYZT[i]);
       trkstartx_MC[i]=fMC_startXYZT[i][0];
@@ -1006,12 +1035,15 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  //	  trkrange[i][jj] = calos[jj]->Range();
 	  //          trkpitchc[it1][i][j]= calos[j] -> TrkPitchC();
 	  //   ntrkhitscal[i][jj] = calos[jj] -> dEdx().size();
+	  trkkinE[i][jj]  = (calos[jj] -> KineticEnergy());
+	  //std::cout << trkkinE[i][jj] << std::endl;
 	  int tt= calos[jj] -> dEdx().size();
 	  for(int k = 0; k < tt; ++k) {
             trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
-	    trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;
-	    //            trkdqdx[it1][i][j][k]  = (calos[jj] -> dQdx())[k];
-            trkresrg[i][jj][k] = (calos[jj] -> ResidualRange())[k];
+	    trkdqdx[i][jj][k]   = (calos[jj] -> dQdx())[k];
+	    trkpitchHit[i][jj][k]  = (calos[jj] -> TrkPitchVec())[k];   	    
+            trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
+	    trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;	    
 	    //            trkxyz[it1][i][j][k][0] = (calos[jj] -> XYZ())[k].X();
 	    //            trkxyz[it1][i][j][k][1] = (calos[jj] -> XYZ())[k].Y();
 	    //            trkxyz[it1][i][j][k][2] = (calos[jj] -> XYZ())[k].Z();
@@ -1064,6 +1096,11 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   TVector3 mcposl = rot * mcpos;
   trktheta_xz_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Z());
   trktheta_yz_MC[i] = std::atan2(mcstartmom.Y(), mcstartmom.Z());
+  trketa_xy_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Y());
+  trketa_zy_MC[i] = std::atan2(mcstartmom.Z(), mcstartmom.Y());
+
+
+
   trktheta_MC[i]=mcstartmom.Theta();
   trkphi_MC[i]=mcstartmom.Phi();
 
@@ -1315,6 +1352,12 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
           double tlen = length(track);
           double theta_xz = std::atan2(dir.X(), dir.Z());
           double theta_yz = std::atan2(dir.Y(), dir.Z());
+	  trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
+	  trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
+ 	  trketa_xy[i] = std::atan2(dir.X(), dir.Y());
+ 	  trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
+ 	  trktheta[i]=dir.Theta();
+ 	  trkphi[i]=dir.Phi();
           if(fRecoHistMap.count(0) == 0)
             fRecoHistMap[0] = RecoHists("Reco");
           const RecoHists& rhists = fRecoHistMap[0];
@@ -1573,6 +1616,12 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trklen_MC",trklen_MC,"trklen_MC[ntracks_reco]/D");
   fTree->Branch("trklen_cut_MC",trklen_cut_MC,"trklen_cut_MC[ntracks_reco]/D");
   fTree->Branch("trkmom_MC",trkmom_MC,"trkmom_MC[ntracks_reco]/D");
+  fTree->Branch("trkmom_XMC",trkmom_XMC,"trkmom_XMC[ntracks_reco]/D");
+  fTree->Branch("trkmom_YMC",trkmom_YMC,"trkmom_YMC[ntracks_reco]/D");
+  fTree->Branch("trkmom_ZMC",trkmom_ZMC,"trkmom_ZMC[ntracks_reco]/D");
+  fTree->Branch("trkstartdoc_XMC",trkstartdoc_XMC,"trkstartdoc_XMC[ntracks_reco]/D");
+  fTree->Branch("trkstartdoc_YMC",trkstartdoc_YMC,"trkstartdoc_YMC[ntracks_reco]/D");
+  fTree->Branch("trkstartdoc_ZMC",trkstartdoc_ZMC,"trkstartdoc_ZMC[ntracks_reco]/D");
   fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[ntracks_reco]/D");
   fTree->Branch("trkd2",trkd2,"trkd2[ntracks_reco]/D");
   fTree->Branch("trkcolin",trkcolin,"trkcolin[ntracks_reco]/D");
@@ -1580,8 +1629,20 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trktheta_yz_MC",trktheta_yz_MC,"trktheta_yz_MC[ntracks_reco]/D");
   fTree->Branch("trktheta_MC",trktheta_MC,"trktheta_MC[ntracks_reco]/D");
   fTree->Branch("trkphi_MC",trkphi_MC,"trkphi_MC[ntracks_reco]/D");
+  fTree->Branch("trketa_xy_MC",trketa_xy_MC,"trketa_xy_MC[ntracks_reco]/D");
+  fTree->Branch("trketa_zy_MC",trketa_zy_MC,"trketa_zy_MC[ntracks_reco]/D");
+  fTree->Branch("trktheta_xz",trktheta_xz,"trktheta_xz[ntracks_reco]/D");
+  fTree->Branch("trktheta_yz",trktheta_yz,"trktheta_yz[ntracks_reco]/D");
+  fTree->Branch("trketa_xy",trketa_xy,"trketa_xy[ntracks_reco]/D");
+  fTree->Branch("trketa_zy",trketa_zy,"trketa_zy[ntracks_reco]/D");
+  fTree->Branch("trktheta",trktheta,"trktheta[ntracks_reco]/D");
+  fTree->Branch("trkphi",trkphi,"trkphi[ntracks_reco]/D");
+
   fTree->Branch("trkdedx",trkdedx,"trkdedx[ntracks_reco]/D");
   fTree->Branch("trkdedx2",trkdedx2,"trkdedx2[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkdqdx",trkdqdx,"trkdqdx[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkpitchHit",trkpitchHit,"trkpitchHit[ntracks_reco][3][1000]/D"); 
+  fTree->Branch("trkkinE",trkkinE,"trkkinE[ntracks_reco][3]/D"); 
   fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
   fTree->Branch("trkresrg",trkresrg,"trkresrg[ntracks_reco][3][1000]/D");
   fTree->Branch("trkdedx_MC",trkdedx_MC,"trkdedx_MC[ntracks_reco]/D");
@@ -1908,7 +1969,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkendx[i] = -99999;
     trkendy[i] = -99999;
     trkendz[i] = -99999;
-  trkstartx_MC[i] = -99999;
+    trkstartx_MC[i] = -99999;
     trkstarty_MC[i] = -99999;
     trkstartz_MC[i] = -99999;
     trkendx_MC[i] = -99999;
@@ -1917,6 +1978,12 @@ void AnaTree::AnaTree::ResetVars(){
     trklen_MC[i] = -99999;
     trklen_cut_MC[i] = -99999;
     trkmom_MC[i] = -99999;
+    trkmom_XMC[i] = -99999;
+    trkmom_YMC[i] = -99999;
+    trkmom_ZMC[i] = -99999;
+    trkstartdoc_XMC[i] = -99999;
+    trkstartdoc_YMC[i] = -99999;
+    trkstartdoc_ZMC[i] = -99999;
     trkpdg_MC[i] = -99999;
     trkd2[i] = -99999;
     trkcolin[i] = -99999;
@@ -1925,11 +1992,23 @@ void AnaTree::AnaTree::ResetVars(){
     trktheta_MC[i] = -99999;
     trkphi_MC[i] = -99999;
     trkdedx[i] = -99999;
+    trketa_xy_MC[i] = -99999;
+    trketa_zy_MC[i] = -99999;
+    trktheta_xz[i] = -99999;
+    trktheta_yz[i] = -99999;
+    trketa_xy[i] = -99999;
+    trketa_zy[i] = -99999;
+    trktheta[i] = -99999;
+    trkphi[i] = -99999;
+    
     for(int ii=0;ii<3;ii++)
       {
+    trkkinE[i][ii] = -99999;
 	for(int k=0;k<1000;k++)
 	  {
 	    trkdedx2[i][ii][k] = -99999;
+	    trkdqdx[i][ii][k] = -99999;
+	    trkpitchHit[i][ii][k] = -99999;
 	    trkplaneid[i][ii][k] = -99999;
 	    trkresrg[i][ii][k] = -99999;
 	  }
