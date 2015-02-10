@@ -127,11 +127,6 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
   std::vector<std::vector<unsigned int> > cluidv(ntpc);
   std::vector<std::vector<unsigned int> > bestwireidu(ntpc);
   std::vector<std::vector<unsigned int> > bestwireidv(ntpc);
-//  for (int i = 0; i<8; ++i){
-//    std::cout<<detprop->GetXTicksOffset(0,i,0)<<" "
-//	     <<detprop->GetXTicksOffset(1,i,0)<<" "
-//	     <<detprop->GetXTicksOffset(2,i,0)<<std::endl;
-//  }
 
   //Look for triplets of U,V,Z hits that are common in time
   //Try all possible wire segments for U and V hits and 
@@ -144,9 +139,6 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
       - detprop->GetXTicksOffset(hitsZ[z]->WireID().Plane,
 				 hitsZ[z]->WireID().TPC,
 				 hitsZ[z]->WireID().Cryostat);
-    //if (hitsZ[z]->WireID().TPC!=0) continue;
-    //if (geo->ChannelToWire(hitsZ[z]->Channel())[0].Wire!=60) continue;
-    //if (z!=0) continue;
     //loop over u hits
     bool findmatch = false;
     for (size_t u = 0; u<hitsUV[0].size() && !findmatch; ++u){
@@ -158,12 +150,8 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	- detprop->GetXTicksOffset(0,
 				   hitsZ[z]->WireID().TPC,
 				   hitsZ[z]->WireID().Cryostat);
-      //std::cout<<"u "<<tz<<" "<<tu<<" "<<geo->ChannelToWire(hitsUV[0][u]->Channel())[0].Wire<<" "<<geo->ChannelToWire(hitsUV[0][u]->Channel())[0].TPC<<std::endl;
-      //std::cout<<z<<" "<<u<<" "<<std::abs(tu-tz)<<std::endl;
       if (std::abs(tu-tz)<fTimeCut){
-	//if (hitsZ[z]->WireID().TPC == 0) std::cout<<z<<" "<<u<<" "<<std::abs(tu-tz)<<std::endl;
 	//find a matched u hit, loop over v hits
-	//std::cout<<hitsUV[1].size()<<std::endl;
 	for (size_t v = 0; v<hitsUV[1].size(); ++v){
 	  if (fHasBeenDisambigedUV[1].find(v)!=fHasBeenDisambigedUV[1].end()) continue;
 	  unsigned int apav(0), cryov(0);
@@ -173,11 +161,7 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	    - detprop->GetXTicksOffset(1,
 				       hitsZ[z]->WireID().TPC,
 				       hitsZ[z]->WireID().Cryostat);
-	  //std::cout<<std::abs(tv-tz)<<std::endl;
-	  //std::cout<<z<<" "<<u<<" "<<v<<" "<<std::abs(tu-tz)<<" "<<std::abs(tv-tz)<<std::endl;
-	  //std::cout<<"v "<<tz<<" "<<tv<<" "<<geo->ChannelToWire(hitsUV[1][v]->Channel())[0].Wire<<" "<<geo->ChannelToWire(hitsUV[1][v]->Channel())[0].TPC<<std::endl;
 	  if (std::abs(tv-tz)<fTimeCut){
-	    //std::cout<<"triplets "<<z<<" "<<u<<" "<<v<<std::endl;
 	    //find a matched v hit, see if the 3 wire segments cross
 	    geo::WireID zwire = geo->ChannelToWire(hitsZ[z]->Channel())[0];
 	    std::vector<geo::WireID>  uwires = geo->ChannelToWire(hitsUV[0][u]->Channel());
@@ -194,7 +178,6 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 		if (uwires[uw].TPC!=vwires[vw].TPC) continue;
 		if (uwires[uw].TPC!=zwire.TPC) continue;
 		if (vwires[vw].TPC!=zwire.TPC) continue;
-		//std::cout<<"! "<<uwires[uw].Wire<<" "<<vwires[vw].Wire<<" "<<zwire.Wire<<" "<<tu<<" "<<tv<<" "<<tz<<" "<<uwires[uw].TPC<<" "<<vwires[vw].TPC<<" "<<zwire.TPC<<std::endl;
 		if (!geo->WireIDsIntersect(zwire,uwires[uw],widiuz)) continue;
 		if (!geo->WireIDsIntersect(zwire,vwires[vw],widivz)) continue;
 		if (!geo->WireIDsIntersect(uwires[uw],vwires[vw],widiuv)) continue;
@@ -203,7 +186,6 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 		double dis3 = sqrt(pow(widiuv.y-widivz.y,2)+pow(widiuv.z-widivz.z,2));
 		double maxdis = std::max(dis1,dis2);
 		maxdis = std::max(maxdis,dis3);
-		//if (hitsZ[z]->WireID().TPC==1) std::cout<<z<<" "<<uw<<" "<<vw<<" "<<dis1<<" "<<dis2<<" "<<dis3<<" "<<zwire.Wire<<" "<<uwires[uw].Wire<<" "<<vwires[vw].Wire<<std::endl;
 		if (maxdis<fDistanceCut){
 		  ++totalintersections;
 		  bestu = uw;
@@ -212,10 +194,6 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	      }
 	    }
 	    if (totalintersections==1){
-//	      fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsUV[0][u],uwires[bestu]));
-//	      fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsUV[1][v],vwires[bestv]));
-//	      fHasBeenDisambigedUV[0][u] = 1+bestu;
-//	      fHasBeenDisambigedUV[1][v] = 1+bestv;
 	      allhitsu[uwires[bestu].TPC].push_back(hitsUV[0][u]);
 	      allhitsv[vwires[bestv].TPC].push_back(hitsUV[1][v]);
 	      wireidsu[uwires[bestu].TPC].push_back(uwires[bestu]);
@@ -239,8 +217,11 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
   filter::ChannelFilter chanFilt;
   for (size_t i = 0; i<ntpc; ++i){//loop over all TPCs
     if (!allhitsu[i].size()) continue;
+    //initialize dbscan with all hits in u view
     fDBScan.InitScan(allhitsu[i], chanFilt.SetOfBadChannels(), wireidsu[i]);
+    //run dbscan
     fDBScan.run_cluster();
+    //fpointId_to_clusterId maps a hit index to a cluster index (which can be negative if the hit is not associated with any clusters)
     if (allhitsu[i].size()!=fDBScan.fpointId_to_clusterId.size())
       throw cet::exception("DisambigAlg35t") <<"DBScan hits do not match input hits"<<allhitsu[i].size()<<" "<<fDBScan.fpointId_to_clusterId.size()<<"\n";
     //find hits associated with the biggest cluster
@@ -252,15 +233,18 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
       if (fDBScan.fpointId_to_clusterId[j]>=0&&fDBScan.fpointId_to_clusterId[j]<fDBScan.fclusters.size())
       ++dbcluhits[fDBScan.fpointId_to_clusterId[j]];
     }
+    //find the cluster that has the most hits
     for(size_t j = 0; j<dbcluhits.size(); ++j){
       if (dbcluhits[j]>maxhit){
 	dbclu = j;
 	maxhit = dbcluhits[j];
       }
     }
+    //hitstoaddu holds all u hits in the biggest cluster
     for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
       if (int(fDBScan.fpointId_to_clusterId[j]) == dbclu) hitstoaddu.push_back(j);
     }
+    //do the same for v hits
     fDBScan.InitScan(allhitsv[i], chanFilt.SetOfBadChannels(), wireidsv[i]);
     fDBScan.run_cluster();
     if (allhitsv[i].size()!=fDBScan.fpointId_to_clusterId.size())
@@ -280,9 +264,11 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	maxhit = dbcluhits[j];
       }
     }
+    //hitstoaddv holds all v hits in the biggest cluster
     for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
       if (int(fDBScan.fpointId_to_clusterId[j]) == dbclu) hitstoaddv.push_back(j);
     }
+    //size(allhitsu)=size(allhitsv)
     for (size_t j = 0; j < allhitsu[i].size(); ++j){
       bool foundu = false;
       bool foundv = false;
@@ -293,10 +279,16 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	if (j==hitstoaddv[k]) foundv = true;
       }
       if (foundu&&foundv){
-	fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(allhitsu[i][j],wireidsu[i][j]));
-	fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(allhitsv[i][j],wireidsv[i][j]));
-	fHasBeenDisambigedUV[0][cluidu[i][j]] = bestwireidu[i][j];
-	fHasBeenDisambigedUV[1][cluidv[i][j]] = bestwireidv[i][j];
+	//only add each hit once
+	if (fHasBeenDisambigedUV[0].find(cluidu[i][j])==fHasBeenDisambigedUV[0].end()){
+	  fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(allhitsu[i][j],wireidsu[i][j]));
+	  fHasBeenDisambigedUV[0][cluidu[i][j]] = bestwireidu[i][j];
+	}
+	if (fHasBeenDisambigedUV[1].find(cluidv[i][j])==fHasBeenDisambigedUV[1].end()){
+
+	  fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(allhitsv[i][j],wireidsv[i][j]));
+	  fHasBeenDisambigedUV[1][cluidv[i][j]] = bestwireidv[i][j];
+	}
       }
     }
   }
@@ -321,19 +313,9 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	for (size_t w = 0; w<wires.size(); ++w){
 	  if (wires[w].TPC!= hitwire.TPC) continue;
 	  if (nearbyhits[w]<0) nearbyhits[w] = 0;
-//	  if (disttoallhits[w]<0) disttoallhits[w] = 0;
-//	  //std::cout<<hitwire.Wire<<" "<<wires[w].Wire<<" "<<double(hitwire.Wire)-double(wires[w].Wire)<<std::endl;
 	  double distance = sqrt(pow((double(hitwire.Wire)-double(wires[w].Wire))*wire_pitch,2)+pow(detprop->ConvertTicksToX(hitsUV[i][u2.first]->PeakTime(),hitwire.Plane,hitwire.TPC,hitwire.Cryostat)-detprop->ConvertTicksToX(hitsUV[i][hit]->PeakTime(),hitwire.Plane,hitwire.TPC,hitwire.Cryostat),2));
-//	  std::cout<<distance<<std::endl;
-//	  disttoallhits[w] += distance;
 	  if (distance<fDistanceCutClu) ++nearbyhits[w];
 	}
-//	if (std::max(hitsUV[i][u2.first]->Channel(),hitsUV[i][hit]->Channel())
-//	    -std::min(hitsUV[i][u2.first]->Channel(),hitsUV[i][hit]->Channel())<channdiff){
-//	  channdiff = std::max(hitsUV[i][u2.first]->Channel(),hitsUV[i][hit]->Channel())
-//	    -std::min(hitsUV[i][u2.first]->Channel(),hitsUV[i][hit]->Channel());
-//	  nearestwire = geo->ChannelToWire(hitsUV[i][u2.first]->Channel())[u2.second-1];
-//	}
       }
       unsigned bestwire = 0;
       int maxnumhits = 0;
@@ -348,28 +330,9 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsUV[i][hit],wires[bestwire]));
 	fHasBeenDisambigedUV[i][hit] = 1+bestwire;
       }
-      else{
-	mf::LogWarning("DisambigAlg35t")<<"Could not find disambiguated hit for "<<hitsUV[i][hit]<<"/n";
-      }
-//      if (nearestwire.isValid){
-//	unsigned wirediff = 1000000;
-//	unsigned bestwire = 0;
-//	std::vector<geo::WireID> wires = geo->ChannelToWire(hitsUV[i][hit]->Channel());	
-//	for (size_t w = 0; w<wires.size(); ++w){
-//	  if (wires[w].TPC!=nearestwire.TPC) continue;
-//	  if (std::max(nearestwire.Wire,wires[w].Wire)-
-//	      std::min(nearestwire.Wire,wires[w].Wire)<wirediff){
-//	    wirediff = std::max(nearestwire.Wire,wires[w].Wire)-
-//	      std::min(nearestwire.Wire,wires[w].Wire);
-//	    bestwire = w;
-//	  }
-//	}
-//	if (wirediff<1000000){
-//	  fDisambigHits.push_back(std::pair<art::Ptr<recob::Hit>, geo::WireID>(hitsUV[i][hit],wires[bestwire]));
-//	  fHasBeenDisambigedUV[i][hit] = 1+bestwire;
-//	}
+//      else{
+//	mf::LogWarning("DisambigAlg35t")<<"Could not find disambiguated hit for  "<<*hitsUV[i][hit]<<"\n";
 //      }
-
     }
   }
   
