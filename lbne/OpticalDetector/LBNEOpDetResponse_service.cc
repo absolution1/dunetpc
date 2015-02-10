@@ -94,7 +94,8 @@ namespace opdet{
     bool LBNEOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
     {
         if (fFullSimChannelConvert){
-            newOpChannel = (int) ( CLHEP::RandFlat::shoot(1.0)*(float)opChannelMap[OpChannel].size() );
+            int i = (int) ( CLHEP::RandFlat::shoot(1.0) * (float)opChannelMap[OpChannel].size() );
+            newOpChannel = opChannelMap[OpChannel][i];
         }
         else{
             newOpChannel = OpChannel;
@@ -185,7 +186,8 @@ namespace opdet{
     bool LBNEOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
     {
         if (fFastSimChannelConvert){
-            newOpChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * (float)opChannelMap[OpChannel].size() );
+            int i = (int) ( CLHEP::RandFlat::shoot(1.0) * (float)opChannelMap[OpChannel].size() );
+            newOpChannel = opChannelMap[OpChannel][i];
         }
         else{
             newOpChannel = OpChannel;
