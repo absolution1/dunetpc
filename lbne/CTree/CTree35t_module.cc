@@ -41,6 +41,11 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TDirectory.h"
+#include "TObjArray.h"
+#include "TList.h"
+#include "TClonesArray.h"
+#include "TLorentzVector.h"
+
 
 // C++ Includes
 #include <map>
@@ -151,7 +156,8 @@ private:
     float fMC_startMomentum[MAX_TRACKS][4];  // start momentum of this track; size == mc_Ntrack
     float fMC_endMomentum[MAX_TRACKS][4];  // end momentum of this track; size == mc_Ntrack
     std::vector<std::vector<int> > fMC_daughters;  // daughters id of this track; vector
-
+    TObjArray *fMC_trackMomentum;
+    TObjArray *fMC_trackPosition;
 
     int    no_hits;                  //number of hits
     int    hit_channel[MAX_HITS];    //channel ID
@@ -249,6 +255,22 @@ void CTree35t::initOutput()
     fEventTree->Branch("mc_startMomentum", &fMC_startMomentum, "mc_startMomentum[mc_Ntrack][4]/F");  // start momentum of this track; size == mc_Ntrack
     fEventTree->Branch("mc_endMomentum", &fMC_endMomentum, "mc_endMomentum[mc_Ntrack][4]/F");  // start momentum of this track; size == mc_Ntrack
 
+    fMC_trackPosition = new TObjArray();
+    fMC_trackMomentum= new TObjArray();
+    // fMC_trackPosition->SetName("mc_trackPosition");
+    // fMC_trackMomentum->SetName("mc_trackMomentum");
+    fMC_trackPosition->SetOwner(kTRUE);
+    fMC_trackMomentum->SetOwner(kTRUE);
+    // TList *topBranch = new TList();
+    // topBranch->Add(fMC_trackPosition);
+    // topBranch->Add(fMC_trackMomentum);
+    // int bufsize = 128*1024*1024;
+    // fEventTree->Branch(topBranch, bufsize, 0);
+
+    fEventTree->Branch("mc_trackPosition", &fMC_trackPosition);
+    fEventTree->Branch("mc_trackMomentum", &fMC_trackMomentum);
+
+
 
     fEventTree->Branch("no_hits", &no_hits);  //number of hits
     fEventTree->Branch("hit_channel", &hit_channel, "hit_channel[no_hits]/I");  // channel ID
@@ -313,10 +335,10 @@ void CTree35t::beginJob()
     if (fSaveChannelWireMap) {
         saveChannelWireMap();
     }
-    saveWireGeometry(1, 1);
-    saveWireGeometry(1, 3);
-    saveWireGeometry(1, 5);
-    saveWireGeometry(1, 7);
+    // saveWireGeometry(1, 1);
+    // saveWireGeometry(1, 3);
+    // saveWireGeometry(1, 5);
+    // saveWireGeometry(1, 7);
 
 }
 
@@ -477,6 +499,9 @@ void CTree35t::reset()
         }
     }
     fMC_daughters.clear();
+
+    fMC_trackPosition->Clear();
+    fMC_trackMomentum->Clear();
 
     for (int i=0; i<MAX_HITS; i++) {
         hit_channel[i] = 0;
@@ -650,6 +675,22 @@ void CTree35t::processMC( const art::Event& event )
         positionEnd.GetXYZT(fMC_endXYZT[i]);
         momentumStart.GetXYZT(fMC_startMomentum[i]);
         momentumEnd.GetXYZT(fMC_endMomentum[i]);
+
+        TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints);
+        TClonesArray *Lmomentum = new TClonesArray("TLorentzVector", numberTrajectoryPoints);
+        // Read the position and momentum along this particle track
+        for(unsigned int j=0; j<numberTrajectoryPoints; j++) {
+          TLorentzVector *pos = new ((*Lposition)[j]) TLorentzVector(/*particle->Position(j)*/);
+          TLorentzVector *mom = new ((*Lmomentum)[j]) TLorentzVector(/*particle->Momentum(j)*/);
+          const TLorentzVector& tmp_pos = particle->Position(j);
+          const TLorentzVector& tmp_mom = particle->Momentum(j);
+          *pos = tmp_pos;
+          *mom = tmp_mom;
+        }
+        fMC_trackPosition->Add(Lposition);
+        fMC_trackMomentum->Add(Lmomentum);
+
+
         i++;
     } // particle loop done 
 }
