@@ -14,6 +14,7 @@
 #include "Simulation/LArG4Parameters.h"
 #include "RecoBase/Hit.h"
 #include "RecoBase/Cluster.h"
+#include "RecoBase/Track.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/PlaneGeo.h"
 #include "SimulationBase/MCParticle.h"
@@ -45,7 +46,6 @@
 #include "TList.h"
 #include "TClonesArray.h"
 #include "TLorentzVector.h"
-
 
 // C++ Includes
 #include <map>
@@ -93,6 +93,8 @@ public:
     void processCalib(const art::Event& evt);
     void processMC(const art::Event& evt);
     void processHits(const art::Event& evt);
+    void processRecoTracks(const art::Event& event);
+
     void printEvent();
     void reset();
 
@@ -103,6 +105,7 @@ private:
     std::string fCalibLabel;
     std::string fHitsModuleLabel;
     std::string fOutFileName;
+    std::string fTrackModuleLabel;
     bool fSaveChannelWireMap;
 
     art::ServiceHandle<geo::Geometry> fGeom;
@@ -164,6 +167,8 @@ private:
     float  hit_peakT[MAX_HITS];      //peak time
     float  hit_charge[MAX_HITS];     //charge (area)
 
+    int reco_nTrack;    // number of reco tracks
+    TObjArray *fReco_trackPosition;
 
 	 // unsigned int UVPlane[4]={3,2,1,0};
 	 // unsigned int ZPlane[8]={7,6,5,4,3,2,1,0};
@@ -191,6 +196,7 @@ void CTree35t::reconfigure(fhicl::ParameterSet const& p){
     fRawDigitLabel = p.get< std::string >("RawDigitLabel");
     fCalibLabel = p.get< std::string >("CalibLabel");
     fHitsModuleLabel = p.get< std::string >("HitsModuleLabel");
+    fTrackModuleLabel = p.get< std::string >("TrackModuleLabel");
     fOutFileName = p.get< std::string >("outFile");
     fSaveChannelWireMap = p.get< bool >("saveChannelWireMap");
 }
@@ -271,12 +277,15 @@ void CTree35t::initOutput()
     fEventTree->Branch("mc_trackPosition", &fMC_trackPosition);
     fEventTree->Branch("mc_trackMomentum", &fMC_trackMomentum);
 
-
-
     fEventTree->Branch("no_hits", &no_hits);  //number of hits
     fEventTree->Branch("hit_channel", &hit_channel, "hit_channel[no_hits]/I");  // channel ID
     fEventTree->Branch("hit_peakT", &hit_peakT, "hit_peakT[no_hits]/F");  // peak time
     fEventTree->Branch("hit_charge", &hit_charge, "hit_charge[no_hits]/F");  // charge (area)
+
+    fEventTree->Branch("reco_nTrack", &reco_nTrack); 
+    fReco_trackPosition = new TObjArray();
+    fReco_trackPosition->SetOwner(kTRUE);
+    fEventTree->Branch("reco_trackPosition", &fReco_trackPosition);
 
     gDirectory = tmpDir;
 
@@ -469,6 +478,7 @@ void CTree35t::analyze( const art::Event& event )
     processRaw(event);
     processCalib(event);
     processHits(event);
+    processRecoTracks(event);
     printEvent();
     fEventTree->Fill();
 }
@@ -510,6 +520,7 @@ void CTree35t::reset()
         hit_charge[i] = 0;
     }
 
+    fReco_trackPosition->Clear();
 }
 
 
@@ -677,16 +688,18 @@ void CTree35t::processMC( const art::Event& event )
         momentumStart.GetXYZT(fMC_startMomentum[i]);
         momentumEnd.GetXYZT(fMC_endMomentum[i]);
 
-        TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints);
+        TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints); 
         TClonesArray *Lmomentum = new TClonesArray("TLorentzVector", numberTrajectoryPoints);
         // Read the position and momentum along this particle track
         for(unsigned int j=0; j<numberTrajectoryPoints; j++) {
-          TLorentzVector *pos = new ((*Lposition)[j]) TLorentzVector(/*particle->Position(j)*/);
-          TLorentzVector *mom = new ((*Lmomentum)[j]) TLorentzVector(/*particle->Momentum(j)*/);
-          const TLorentzVector& tmp_pos = particle->Position(j);
-          const TLorentzVector& tmp_mom = particle->Momentum(j);
-          *pos = tmp_pos;
-          *mom = tmp_mom;
+            new ((*Lposition)[j]) TLorentzVector(particle->Position(j));
+            new ((*Lmomentum)[j]) TLorentzVector(particle->Momentum(j));
+          // TLorentzVector *pos = new ((*Lposition)[j]) TLorentzVector(/*particle->Position(j)*/);
+          // TLorentzVector *mom = new ((*Lmomentum)[j]) TLorentzVector(/*particle->Momentum(j)*/);
+          // const TLorentzVector& tmp_pos = particle->Position(j);
+          // const TLorentzVector& tmp_mom = particle->Momentum(j);
+          // *pos = tmp_pos;
+          // *mom = tmp_mom;
         }
         fMC_trackPosition->Add(Lposition);
         fMC_trackMomentum->Add(Lmomentum);
@@ -717,7 +730,32 @@ void CTree35t::processHits( const art::Event& event )
     }
 }
 
+void CTree35t::processRecoTracks( const art::Event& event )
+{
+    art::Handle< std::vector<recob::Track> > trackListHandle;
+    if (! event.getByLabel(fTrackModuleLabel, trackListHandle)) return;
+    std::vector<art::Ptr<recob::Track> > tracklist;
+    art::fill_ptr_vector(tracklist, trackListHandle);
 
+    reco_nTrack = tracklist.size();
+    for (int i=0; i<reco_nTrack; i++) {
+        art::Ptr<recob::Track> track = tracklist[i];
+        if (track->NumberFitMomentum() > 0) {
+            // cout << "track momentum: " << track->VertexMomentum() << endl;
+        }
+        size_t numberTrajectoryPoints = track->NumberTrajectoryPoints();
+        // cout << numberTrajectoryPoints << ", " << track->NumberFitMomentum() << endl;
+        
+        TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints); 
+        // Read the position and momentum along this particle track
+        for(unsigned int j=0; j<numberTrajectoryPoints; j++) {
+            new ((*Lposition)[j]) TLorentzVector(track->LocationAtPoint(j), 0);
+        }
+        fReco_trackPosition->Add(Lposition);
+    }
+}
+
+// -------------------------------------------------------------------
 void CTree35t::printEvent()
 {
     cout << " Event: " << fEvent << endl;
@@ -725,7 +763,7 @@ void CTree35t::printEvent()
     cout << "SubRun: " << fSubRun << endl;
 
     cout << " Hit Channels: " << fRaw_Nhit << endl;
-    cout << "      Ntracks:" << fMC_Ntrack;
+    cout << " MC  Ntracks:" << fMC_Ntrack;
     for (int i=0; i<fMC_Ntrack; i++) {
         cout << "\n              id: " << fMC_id[i];
         cout << "\n             pdg: " << fMC_pdg[i];
@@ -740,6 +778,8 @@ void CTree35t::printEvent()
     }
 
     cout << "Number of Hits Found: " << no_hits << endl;
+    cout << "number of reco tracks: " << reco_nTrack << endl;
+
     // for (int i=0; i<no_hits; i++) {
     //     cout << hit_channel[i] << ", ";
     //     cout << hit_charge[i] << ", ";

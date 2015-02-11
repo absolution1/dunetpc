@@ -31,11 +31,12 @@ physics:
   {
     chao: 
     {
-      module_type:     "CTree35t"
-      RawDigitLabel:   "daq"
-      CalibLabel:      "caldata"
-      HitsModuleLabel: "gaushit"
-      outFile:         "sample.root"
+      module_type:      "CTree35t"
+      RawDigitLabel:    "daq"
+      CalibLabel:       "caldata"
+      HitsModuleLabel:  "gaushit"
+      TrackModuleLabel: "particletracks"
+      outFile:          "sample.root"
       saveChannelWireMap: false
     }
   }
