@@ -417,6 +417,7 @@ private:
   double trkdqdx[kMaxTrack][3][1000];
   double trkpitchHit[kMaxTrack][3][1000];
   double trkkinE[kMaxTrack][3];
+  double trkTPC[kMaxTrack][3][1000];
   double trkplaneid[kMaxTrack][3][1000];
   double trkresrg[kMaxTrack][3][1000];
   double trkdedx_MC[kMaxTrack];
@@ -1042,7 +1043,9 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	    trkdqdx[i][jj][k]   = (calos[jj] -> dQdx())[k];
 	    trkpitchHit[i][jj][k]  = (calos[jj] -> TrkPitchVec())[k];   	    
             trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
-	    trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;	    
+	    trkTPC[i][jj][k]    =(calos[jj]->PlaneID()).TPC;
+	    trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;	   
+	    
 	    //            trkxyz[it1][i][j][k][0] = (calos[jj] -> XYZ())[k].X();
 	    //            trkxyz[it1][i][j][k][1] = (calos[jj] -> XYZ())[k].Y();
 	    //            trkxyz[it1][i][j][k][2] = (calos[jj] -> XYZ())[k].Z();
@@ -1072,7 +1075,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     tracklist[i]->GlobalToLocalRotationAtPoint(start_point, rot);
     //  int ntraj = tracklist[i]->NumberTrajectoryPoints();
   // if(ntraj > 0) {
-  TVector3 pos = tracklist[i]->Vertex();
+    TVector3 pos = tracklist[i]->Vertex();
   art::ServiceHandle<cheat::BackTracker> bktrk;
   const   sim::ParticleList& ppplist=bktrk->ParticleList();
   std::vector<const simb::MCParticle*> plist2;
@@ -1642,6 +1645,7 @@ fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
   fTree->Branch("trkdqdx",trkdqdx,"trkdqdx[ntracks_reco][3][1000]/D");
   fTree->Branch("trkpitchHit",trkpitchHit,"trkpitchHit[ntracks_reco][3][1000]/D"); 
   fTree->Branch("trkkinE",trkkinE,"trkkinE[ntracks_reco][3]/D"); 
+  fTree->Branch("trkTPC",trkTPC,"trkTPC[ntracks_reco][3][1000]/D");
   fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
   fTree->Branch("trkresrg",trkresrg,"trkresrg[ntracks_reco][3][1000]/D");
   fTree->Branch("trkdedx_MC",trkdedx_MC,"trkdedx_MC[ntracks_reco]/D");
@@ -2008,6 +2012,7 @@ void AnaTree::AnaTree::ResetVars(){
 	    trkdedx2[i][ii][k] = -99999;
 	    trkdqdx[i][ii][k] = -99999;
 	    trkpitchHit[i][ii][k] = -99999;
+	    trkTPC[i][ii][k] = -99999;
 	    trkplaneid[i][ii][k] = -99999;
 	    trkresrg[i][ii][k] = -99999;
 	  }
