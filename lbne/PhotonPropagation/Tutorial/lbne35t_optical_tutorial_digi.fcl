@@ -42,7 +42,20 @@ physics:
    
    producers:
    {
+<<<<<<< HEAD:lbne/PhotonPropagation/Tutorial/lbne35t_optical_tutorial_digi.fcl
       opdigi:    @local::lbne35t_opdigi    # simple digitizer with no noise and high saturation
+=======
+      opdigi:    # simple digitizer with no noise and high saturation
+      {
+        module_type:  "OpDetDigitizerLBNE"
+        InputModule:  "largeant" # Module that created OpDetPulses (OpticalRawDigits)
+#        QE:           0.16       # Quantum efficiency of photon detectors
+#        SampleFreq:   0.15       # Sampling frequency in GHz
+#        TimeBegin:    0.0        # Readout window begin in ns
+#        TimeEnd:      1600000.0  # Readout window end in ns
+        VoltageToADC: 10.0       # Converting mV to ADC counts (counts in 1 mV)
+      } 
+>>>>>>> Adding the time service and OpDetResponse support in the digitizer.:lbne/OpticalDetector/opticaldetectordigitizer_lbne35t_example.fcl
       rns:       { module_type: "RandomNumberSaver" }
    }
 
@@ -54,6 +67,7 @@ physics:
       
       AnalysisExample: 
       {
+<<<<<<< HEAD:lbne/PhotonPropagation/Tutorial/lbne35t_optical_tutorial_digi.fcl
          module_type:     "AnalysisExample"
          SimulationLabel: "largeant"
          HitLabel:        "gaushit"
@@ -61,6 +75,14 @@ physics:
          PDGcode:          13
          BinSize:          0.3
       }
+=======
+        module_type:  "OpDetDigiAnaLBNE"
+        InputModule:  "opdigi"  # Module that created OpDetPulses (OpticalRawDigits)
+#        SampleFreq:   0.15      # Sampling frequency in GHz
+#        TimeBegin:    0.0       # Readout window begin in ns
+#        TimeEnd:      1600000.0 # Readout window end in ns
+      } 
+>>>>>>> Adding the time service and OpDetResponse support in the digitizer.:lbne/OpticalDetector/opticaldetectordigitizer_lbne35t_example.fcl
    }
    
    
@@ -94,4 +116,5 @@ outputs:
    }
 }
 
-
+services.user.TimeService.FramePeriod: 1600.0      # Readout window end in us
+services.user.TimeService.ClockSpeedOptical: 150.0 # Sampling frequency in MHz

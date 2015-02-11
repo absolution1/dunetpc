@@ -25,6 +25,7 @@
 // LArSoft includes
 
 //#include "RawData/OpDetPulse.h"
+#include "Utilities/TimeService.h"
 #include "OpticalDetectorData/OpticalRawDigit.h"
 
 // ROOT includes
@@ -79,9 +80,15 @@ namespace opdet {
 
     // Read the fcl-file
     fInputModule = pset.get< std::string >("InputModule");
-    fSampleFreq  = pset.get< double >("SampleFreq");
-    fTimeBegin   = pset.get< double >("TimeBegin");
-    fTimeEnd     = pset.get< double >("TimeEnd");
+//    fSampleFreq  = pset.get< double >("SampleFreq");
+//    fTimeBegin   = pset.get< double >("TimeBegin");
+//    fTimeEnd     = pset.get< double >("TimeEnd");
+
+    art::ServiceHandle< util::TimeService > timeService;
+    // Converting MHz into GHz and us into ns
+    fSampleFreq = timeService->OpticalClock().Frequency()/1000.0;
+    fTimeBegin  = timeService->OpticalClock().Time()*1000.0;
+    fTimeEnd    = timeService->OpticalClock().FramePeriod()*1000.0;
 
   }
 

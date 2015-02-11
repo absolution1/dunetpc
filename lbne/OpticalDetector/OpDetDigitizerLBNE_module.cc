@@ -18,7 +18,7 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
+//#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // LArSoft includes
@@ -26,7 +26,9 @@
 #include "Simulation/sim.h"
 #include "Simulation/SimPhotons.h"
 #include "Simulation/LArG4Parameters.h"
-#include "Geometry/Geometry.h"
+//#include "Geometry/Geometry.h"
+#include "Utilities/TimeService.h"
+#include "OpticalDetector/OpDetResponseInterface.h"
 //#include "RawData/OpDetPulse.h"
 #include "OpticalDetectorData/OpticalRawDigit.h"
 
@@ -38,7 +40,7 @@
 
 #include <vector>
 #include <map>
-#include <iostream>
+//#include <iostream>
 #include <cmath>
 
 namespace opdet {
@@ -58,7 +60,7 @@ namespace opdet {
 
       // The parameters read from the .fcl file
       std::string fInputModule;            // Input tag for OpDet collection
-      double fQE;                          // Quantum efficiency
+      //double fQE;                          // Quantum efficiency
       double fSampleFreq;                  // Frequency in GHz (number of ticks in one ns)
       double fTimeBegin;                   // Beginning of sample in ns
       double fTimeEnd;                     // End of sample in ns
@@ -107,13 +109,19 @@ namespace opdet {
     produces< std::vector< optdata::OpticalRawDigit > >();
 
     // Read the fcl-file
-    fInputModule  = pset.get< std:: string >("InputModule");
-    fQE           = pset.get< double >("QE");
-    fSampleFreq   = pset.get< double >("SampleFreq");
-    fTimeBegin    = pset.get< double >("TimeBegin");
-    fTimeEnd      = pset.get< double >("TimeEnd");
-    fVoltageToADC = pset.get< double >("VoltageToADC");
+    fInputModule  = pset.get< std:: string >("InputModule" );
+    //fQE           = pset.get< double       >("QE"          );
+    fVoltageToADC = pset.get< double       >("VoltageToADC");
+    //fSampleFreq   = pset.get< double >("SampleFreq");
+    //fTimeBegin    = pset.get< double >("TimeBegin");
+    //fTimeEnd      = pset.get< double >("TimeEnd");
 
+    art::ServiceHandle< util::TimeService > timeService;
+    // Converting MHz into GHz and us into ns
+    fSampleFreq = timeService->OpticalClock().Frequency()  /1000.0;
+    fTimeBegin  = timeService->OpticalClock().Time()       *1000.0;
+    fTimeEnd    = timeService->OpticalClock().FramePeriod()*1000.0;
+/*
     // Initializing random number engines
     unsigned int seed = pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
     createEngine(seed);
@@ -121,7 +129,7 @@ namespace opdet {
     art::ServiceHandle< art::RandomNumberGenerator > rng;
     CLHEP::HepRandomEngine &engine = rng->getEngine();
     fRandBinomial = new CLHEP::RandBinomial(engine);
-
+*/
     // Creating single photoelectron waveform
     fPulseLength = 4000.0;
     fPeakTime = 260.0;
@@ -158,8 +166,12 @@ namespace opdet {
     // Total number of ticks in our readout
     int nSamples = (fTimeEnd - fTimeBegin)*fSampleFreq;
 
-    art::ServiceHandle< geo::Geometry > geom;
-    int nOpChannels = geom->NOpChannels();
+    //art::ServiceHandle< geo::Geometry > geom;
+    //int nOpChannels = geom->NOpChannels();
+
+    // Service for determining opdet responses
+    art::ServiceHandle< opdet::OpDetResponseInterface > odResponse;
+    int nOpChannels = odResponse->NOpChannels();
 
     // This vector stores waveforms we create for each optical detector
     std::vector< std::vector< double > > opDetWaveforms(nOpChannels, std::vector< double >(nSamples,0.0));
@@ -174,22 +186,29 @@ namespace opdet {
       for (auto const& opDet : (*litePhotonHandle))
       {
         int channel = opDet.OpChannel;
+        int readoutCh;
         std::map< int, int > photonsMap = opDet.DetectedPhotons;
 
         // For every pair of (arrival time, number of photons) in the map:
         for (auto const& pulse : photonsMap)
         {
-          if ((pulse.first > fTimeBegin) && (pulse.first < fTimeEnd))
+          for (int i = 0; i < pulse.second; i++)
           {
-            // Convert the time of the pulse to ticks
-            int timeBin = int((pulse.first - fTimeBegin)*fSampleFreq);
-
-            // Take into account the quantum efficiency
-            int detPhotons = pulse.second;
-            if (fQE < 1.0) detPhotons = fRandBinomial->fire(pulse.second,fQE);
-
-            // Add the pulse to the waveform
-            AddPulse(timeBin, detPhotons, opDetWaveforms[channel]);
+            // Sample a random subset according to QE
+            if (odResponse->detectedLite(channel, readoutCh) && 
+                (pulse.first > fTimeBegin) && (pulse.first < fTimeEnd))
+            {
+              // Convert the time of the pulse to ticks
+              int timeBin = int((pulse.first - fTimeBegin)*fSampleFreq);
+              /*
+              // Take into account the quantum efficiency
+              int detPhotons = pulse.second;
+              if (fQE < 1.0) detPhotons = fRandBinomial->fire(pulse.second,fQE);
+              */
+              // Add the pulse to the waveform
+              //AddPulse(timeBin, detPhotons, opDetWaveforms[channel]);
+              AddPulse(timeBin, 1, opDetWaveforms[readoutCh]);
+            }
           }
         }
       }
