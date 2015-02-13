@@ -20,6 +20,8 @@
 // LArSoft includes
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
+#include "RawData/raw.h"
+#include "RawData/RawDigit.h"
 #include "RecoBase/Hit.h"
 #include "RecoBase/Cluster.h"
 #include "Geometry/Geometry.h"
@@ -207,7 +209,7 @@ namespace lbnezsanalysis {
 	std::vector<short> uncompressed(digit->Samples());
 	if (fGeometry->View(chan) == geo::kZ)  // for now only do charge sums for collection hits
 	  {
-	    raw::Uncompress(digit->fADC, uncompressed, digit->Compression());
+	    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
 	    for(unsigned int tick=0;tick<uncompressed.size();tick++) 
 	      {
 		//std::cout << "trjadc: " << fEvent << " " << chan << " " << uncompressed.at(tick) << std::endl;
