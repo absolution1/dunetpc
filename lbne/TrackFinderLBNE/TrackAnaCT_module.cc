@@ -20,6 +20,7 @@
 #include <sstream>
 #include <cmath>
 #include <memory>
+#include <limits> // std::numeric_limits<>
 
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -156,17 +157,16 @@ namespace {
       // Make fiducial cuts.  Require the particle to be within the physical volume of
       // the tpc, and also require the apparent x position to be within the expanded
       // readout frame.
-      int whichTPC2=-999;
 
       double const tmpArray[]={pos.X(),pos.Y(),pos.Z()};
+      
       geo::TPCID tpcid=geom->FindTPCAtPosition(tmpArray);
-      whichTPC2=tpcid.TPC;
+      if (!tpcid.isValid) continue;
       
       pos[0] += dx;
       
       double ticks=0;
-      if(whichTPC2>0)  ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC2, 0);
-      else continue;
+      ticks = detprop->ConvertXToTicks(pos[0], 0, tpcid.TPC, tpcid.Cryostat);
       if(ticks >= 0. && ticks < detprop->ReadOutWindowSize()) {
 	if(first) {
 	  start = pos;
@@ -1344,8 +1344,8 @@ namespace trkf {
 	      for(int ih = 0; ih < nhits; ++ih) {
 		auto hit = fh.at(is).at(ih); // Our vector is after the .at(is) this time.
 		if (hit->SignalType()!=geo::kCollection) continue;
-		rhistsStitched.fHHitChg->Fill(hit->Charge(false));
-		rhistsStitched.fHHitWidth->Fill(hit->EndTime() - hit->StartTime());
+		rhistsStitched.fHHitChg->Fill(hit->Integral());
+		rhistsStitched.fHHitWidth->Fill(hit->RMS() * 2.);
 		if (mc)
 		  {
 		    std::vector<sim::TrackIDE> tids = bt->HitToTrackID(hit);

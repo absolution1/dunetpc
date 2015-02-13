@@ -333,9 +333,9 @@ namespace AnalysisExample{
     for( auto const& hit : (*ChHits) ){
       uint32_t     chan   = hit.Channel();
       unsigned int apa    = std::floor( chan/fChansPerAPA );
-      double       startT = hit.StartTime();
-      double       endT   = hit.EndTime();
-      double       charge = hit.Charge( true );
+      double       startT = hit.PeakTimeMinusRMS();
+      double       endT   = hit.PeakTimePlusRMS();
+      double       charge = hit.PeakAmplitude();
       std::vector< geo::WireID > wids = fGeom->ChannelToWire(chan);
 
       //if( fAPAToNumHits.count(apa) == 0 ) fAPAToNumHits[apa] = 0;
@@ -404,9 +404,9 @@ namespace AnalysisExample{
       uint32_t     chan   = hit.Channel();
       unsigned int apa    = std::floor( chan/fChansPerAPA );
       unsigned int wire   = hit.WireID().Wire;
-      double       startT = hit.StartTime();
-      double       endT   = hit.EndTime();
-      double       charge = hit.Charge( true );
+      double       startT = hit.PeakTimeMinusRMS();
+      double       endT   = hit.PeakTimePlusRMS();
+      double       charge = hit.PeakAmplitude();
  
       if(hit.WireID().TPC % 2 == 0){
 
@@ -444,9 +444,9 @@ namespace AnalysisExample{
       uint32_t     chan   = hit.Channel();
       unsigned int apa    = std::floor( chan/fChansPerAPA );
       unsigned int wire   = hit.WireID().Wire;
-      double       startT = hit.StartTime();
-      double       endT   = hit.EndTime();
-      double       charge = hit.Charge( true );
+      double       startT = hit.PeakTimeMinusRMS();
+      double       endT   = hit.PeakTimePlusRMS();
+      double       charge = hit.PeakAmplitude();
  
       if(hit.WireID().TPC % 2 == 0){
 

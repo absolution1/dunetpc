@@ -59,6 +59,7 @@
 #include <sstream>
 #include <cmath>
 #include <memory>
+#include <limits> // std::numeric_limits<>
 
 const int kMaxTrack      = 1000;  //maximum number of tracks
 const int kMaxHits       = 10000; //maximum number of hits
@@ -243,19 +244,17 @@ namespace {
       // Make fiducial cuts.  Require the particle to be within the physical volume of
       // the tpc, and also require the apparent x position to be within the expanded
       // readout frame.
-      int whichTPC2=-999;
 
       double const tmpArray[]={pos.X(),pos.Y(),pos.Z()};
-      geo::TPCID tpcid=geom->FindTPCAtPosition(tmpArray);
-      whichTPC2=tpcid.TPC;
+      geo::TPCID tpcid = geom->FindTPCAtPosition(tmpArray);
+      if (!tpcid.isValid) continue;
       
       pos[0] += dx;
       
       double ticks;
       
+      ticks = detprop->ConvertXToTicks(pos[0], 0, tpcid.TPC, tpcid.Cryostat);
       
-        if(whichTPC2>0)  ticks = detprop->ConvertXToTicks(pos[0], 0, whichTPC2, 0);
-	else continue;
 	//if(ticks >5e+12)
 	// continue;
         if(ticks >= 0. && ticks < detprop->ReadOutWindowSize()) {
@@ -1190,8 +1189,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     hit_wire[i]    = wireid.Wire;
     hit_channel[i] = channel;
     hit_peakT[i]   = hitlist[i]->PeakTime();
-    hit_charge[i]  = hitlist[i]->Charge();
-    hit_ph[i]      = hitlist[i]->Charge(true);
+    hit_charge[i]  = hitlist[i]->Integral();
+    hit_ph[i]      = hitlist[i]->PeakAmplitude();
     if (fmtk.at(i).size()!=0){
       hit_trkid[i] = fmtk.at(i)[0]->ID();
     }

@@ -8,41 +8,39 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+// C/C++ standard libraries
 #include <string>
 #include <vector>
-#include <stdint.h>
+#include <utility> // std::move()
+#include <memory> // std::unique_ptr<>
 
-extern "C" {
-#include <sys/types.h>
-#include <sys/stat.h>
-}
+// ROOT libraries
+#include "TComplex.h"
 
+// framework libraries
+#include "cetlib/exception.h"
+#include "cetlib/search_path.h"
+#include "fhiclcpp/ParameterSet.h" 
+#include "messagefacility/MessageLogger/MessageLogger.h" 
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Principal/Handle.h" 
 #include "art/Persistency/Common/Ptr.h" 
-#include "art/Persistency/Common/PtrVector.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
-#include "art/Framework/Services/Optional/TFileService.h" 
-#include "art/Framework/Services/Optional/TFileDirectory.h" 
-#include "fhiclcpp/ParameterSet.h" 
-#include "messagefacility/MessageLogger/MessageLogger.h" 
-#include "cetlib/exception.h"
-#include "cetlib/search_path.h"
 
-#include "lbne/Utilities/SignalShapingServiceLBNE35t.h"
+// LArSoft libraries
+#include "SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "Geometry/Geometry.h"
 #include "Filters/ChannelFilter.h"
 #include "RawData/RawDigit.h"
 #include "RawData/raw.h"
 #include "RecoBase/Wire.h"
+#include "RecoBaseArt/WireCreator.h"
 #include "Utilities/LArFFT.h"
+#include "Utilities/AssociationUtil.h"
+#include "lbne/Utilities/SignalShapingServiceLBNE35t.h"
 
-#include "TComplex.h"
-#include "TFile.h"
-#include "TH2D.h"
-#include "TF1.h"
 
 ///creation of calibrated signals on wires
 namespace caldata {
@@ -56,11 +54,11 @@ namespace caldata {
     explicit CalWireLBNE35t(fhicl::ParameterSet const& pset); 
     virtual ~CalWireLBNE35t();
     
-    void produce(art::Event& evt); 
-    void beginJob(); 
-    void endJob();                 
+    void produce(art::Event& evt);
+    void beginJob();
+    void endJob();
     void reconfigure(fhicl::ParameterSet const& p);
- 
+    
   private:
     
     int          fDataSize;          ///< size of raw data on one wire
@@ -80,11 +78,10 @@ namespace caldata {
   //-------------------------------------------------
   CalWireLBNE35t::CalWireLBNE35t(fhicl::ParameterSet const& pset)
   {
-    fSpillName="";
     this->reconfigure(pset);
 
-    if(fSpillName.size()<1) produces< std::vector<recob::Wire> >();
-    else produces< std::vector<recob::Wire> >(fSpillName);
+    produces< std::vector<recob::Wire> >(fSpillName);
+    produces<art::Assns<raw::RawDigit, recob::Wire>>(fSpillName);
   }
   
   //-------------------------------------------------
@@ -98,7 +95,7 @@ namespace caldata {
     fDigitModuleLabel = p.get< std::string >("DigitModuleLabel", "daq");
     fPostsample       = p.get< int >        ("PostsampleBins");
     
-    fSpillName="";
+    fSpillName.clear();
     
     size_t pos = fDigitModuleLabel.find(":");
     if( pos!=std::string::npos ) {
@@ -133,11 +130,13 @@ namespace caldata {
 
     // make a collection of Wires
     std::unique_ptr<std::vector<recob::Wire> > wirecol(new std::vector<recob::Wire>);
+    // ... and an association set
+    std::unique_ptr<art::Assns<raw::RawDigit,recob::Wire> > WireDigitAssn
+      (new art::Assns<raw::RawDigit,recob::Wire>);
     
     // Read in the digit List object(s). 
     art::Handle< std::vector<raw::RawDigit> > digitVecHandle;
-    if(fSpillName.size()>0) evt.getByLabel(fDigitModuleLabel, fSpillName, digitVecHandle);
-    else evt.getByLabel(fDigitModuleLabel, digitVecHandle);
+    evt.getByLabel(fDigitModuleLabel, fSpillName, digitVecHandle);
 
     if (!digitVecHandle->size())  return;
     mf::LogInfo("CalWireLBNE35t") << "CalWireLBNE35t:: digitVecHandle size is " << digitVecHandle->size();
@@ -154,7 +153,7 @@ namespace caldata {
 
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     
-    uint32_t     channel(0); // channel number
+    raw::ChannelID_t channel = raw::InvalidChannelID; // channel number
     unsigned int bin(0);     // time bin loop variable
     
     filter::ChannelFilter *chanFilt = new filter::ChannelFilter();  
@@ -177,7 +176,7 @@ namespace caldata {
 	holder.resize(transformSize);
 	
 	// uncompress the data
-	raw::Uncompress(digitVec->fADC, rawadc, digitVec->Compression());
+	raw::Uncompress(digitVec->ADCs(), rawadc, digitVec->Compression());
 	
 	// loop over all adc values and subtract the pedestal
 	for(bin = 0; bin < dataSize; ++bin) 
@@ -198,15 +197,21 @@ namespace caldata {
         for(bin = 0; bin < holder.size(); ++bin) holder[bin]-=average;
       }  
       // Make a single ROI that spans the entire data size
-      wirecol->emplace_back(holder,digitVec);
+      wirecol->push_back(recob::WireCreator(holder,*digitVec).move());
+      // add an association between the last object in wirecol
+      // (that we just inserted) and digitVec
+      if (!util::CreateAssn(*this, evt, *wirecol, digitVec, *WireDigitAssn, fSpillName)) {
+        throw art::Exception(art::errors::InsertFailure)
+          << "Can't associate wire #" << (wirecol->size() - 1)
+          << " with raw digit #" << digitVec.key();
+      } // if failed to add association
     }
     
     if(wirecol->size() == 0)
       mf::LogWarning("CalWireLBNE35t") << "No wires made for this event.";
 
-    if(fSpillName.size()>0)
-      evt.put(std::move(wirecol), fSpillName);
-    else evt.put(std::move(wirecol));
+    evt.put(std::move(wirecol), fSpillName);
+    evt.put(std::move(WireDigitAssn), fSpillName);
 
 
     delete chanFilt;
