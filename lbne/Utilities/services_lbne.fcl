@@ -8,6 +8,7 @@
 #include "magfield.fcl"
 #include "databaseutil_lbne.fcl"
 #include "backtracker.fcl"
+#include "seedservice_lbne.fcl"
 #include "timeservice_lbne.fcl"
 #include "photpropservices_lbne.fcl"
 #include "sam_lbne.fcl"
@@ -33,6 +34,7 @@ lbnefd_services:
  LArFFT:                       @local::lbnefd_larfft
  DatabaseUtil:                 @local::lbnefd_database
  BackTracker:                  @local::lbnefd_backtracker
+ SeedService:                  @local::lbne_seedservice
  SignalShapingServiceLBNE10kt: @local::lbnefd_signalshapingservice
 }
 
@@ -49,6 +51,7 @@ lbnefd_simulation_services:
  LArVoxelCalculator:           @local::lbnefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::lbnefd_backtracker
+ SeedService:                  @local::lbne_seedservice
  SignalShapingServiceLBNE10kt: @local::lbnefd_signalshapingservice
 }
 
@@ -71,6 +74,7 @@ lbne35t_basic_services:
  DetectorProperties:           @local::lbne35t_detproperties
  LArProperties:                @local::lbne35t_properties
  DatabaseUtil:                 @local::lbne35t_database
+ SeedService:                  @local::lbne_seedservice
 }
 
 lbne35t_services:              @local::lbne35t_basic_services
