@@ -42,6 +42,7 @@ extern "C" {
 #include "Simulation/SimChannel.h"
 #include "RawData/RawDigit.h"
 #include "Utilities/DetectorProperties.h"
+#include "Utilities/FetchRandomSeed.h"
 
 #include "TMath.h"
 #include "TComplex.h"
@@ -126,9 +127,9 @@ namespace detsim {
     if(compression.Contains("Huffman",TString::kIgnoreCase)) fCompression = raw::kHuffman;    
     if(compression.Contains("ZeroSuppression",TString::kIgnoreCase)) fCompression = raw::kZeroSuppression;
 
-    // get the random number seed, use a random default if not specified    
-    // in the configuration file.  
-    unsigned int seed = pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
+    // obtain the random seeds from a service,
+    // unless overridden in configuration with key "Seed"
+    const unsigned int seed = lar::util::FetchRandomSeed(&pset);
 
     createEngine(seed);
   }
