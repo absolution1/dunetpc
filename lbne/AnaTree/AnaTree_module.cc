@@ -195,6 +195,7 @@ private:
   double trkendy[kMaxTrack];
   double trkendz[kMaxTrack];
 
+  int nMCParticles;
  double trkstartx_MC[kMaxTrack];
   double trkstarty_MC[kMaxTrack];
   double trkstartz_MC[kMaxTrack];
@@ -212,6 +213,7 @@ private:
   double trkstartdoc_YMC[kMaxTrack];
   double trkstartdoc_ZMC[kMaxTrack];
   double trkpdg_MC[kMaxTrack];
+  int trkPrimary_MC[kMaxTrack];
   double trkd2[kMaxTrack];
   double trkcolin[kMaxTrack];
   double trklen[kMaxTrack];
@@ -241,12 +243,12 @@ private:
   double trkresrg[kMaxTrack][3][1000];
   double trkdedx_MC[kMaxTrack];
   double trkdq_MC[kMaxTrack];
-  double mcang_x;
-  double mcang_y;
-  double mcang_z;
-  double mcpos_x;
-  double mcpos_y;
-  double mcpos_z;
+  double mcang_x[kMaxTrack];
+  double mcang_y[kMaxTrack];
+  double mcang_z[kMaxTrack];
+  double mcpos_x[kMaxTrack];
+  double mcpos_y[kMaxTrack];
+  double mcpos_z[kMaxTrack];
 
   double trkang[kMaxTrack];
   double trkcolinearity[kMaxTrack];
@@ -358,119 +360,370 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   efield[0] = larprop->Efield(0);
   efield[1] = larprop->Efield(1);
   efield[2] = larprop->Efield(2);
-
+  
   t0 = detprop->TriggerOffset();
-
+  
   art::Handle< std::vector<raw::ExternalTrigger> > trigListHandle;
   std::vector<art::Ptr<raw::ExternalTrigger> > triglist;
   if (evt.getByLabel(fTrigModuleLabel,trigListHandle))
     art::fill_ptr_vector(triglist, trigListHandle);
-
+  
   for (size_t i = 0; i<triglist.size(); ++i){
     trigtime[i] = triglist[i]->GetTrigTime();
   }
-
+  
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
   if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
     art::fill_ptr_vector(tracklist, trackListHandle);    
-
+  
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
   if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
     art::fill_ptr_vector(hitlist, hitListHandle);
-
-
+  
+  
   art::Handle< std::vector<sim::SimChannel> > simChannelHandle;
   evt.getByLabel(fSimulationProducerLabel, simChannelHandle);
-
+  
   //  Event.getByLabel(fSimulationProducerLabel, particleHandle);
   //  art::Handle< std::vector<simb::MCParticle> > particleHandle;
 
-  art::ServiceHandle<cheat::BackTracker> bt;
-  //  int trkid=1;
-  const sim::ParticleList& plist = bt->ParticleList();
-
-  simb::MCParticle *particle=0;
-  //  const simb::MCParticle *particle = bt->TrackIDToParticle(trkid);
-  for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
-    particle = ipar->second;
-    
-    if(!(particle->Process()=="primary" && abs(particle->PdgCode())== abs(fPdg))) continue;
-
-  //  size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
-  //  int last = numberTrajectoryPoints - 1;
-  //  const TLorentzVector& momentumStart = particle->Momentum(0);
-  //  const TLorentzVector& momentumEnd   = particle->Momentum(last);
-  //    TLorentzVector tmpVec= momentumEnd-momentumStart;
-
-  //  TLorentzVector tmpVec= momentumStart;
-  
-    TLorentzVector tmpVec;
-    /*
-  for ( auto const& particle : (*particleHandle) )
-   {
-     // we know it is only one MC Particle for now
-     size_t numberTrajectoryPoints = particle.NumberTrajectoryPoints();
-     int last = numberTrajectoryPoints - 1;
-     const TLorentzVector& momentumStart = particle.Momentum(0);
-     const TLorentzVector& momentumEnd   = particle.Momentum(last);
-     tmpVec= momentumEnd-momentumStart;
-   }
-  */
   art::FindManyP<recob::SpacePoint> fmsp(trackListHandle, evt, fTrackModuleLabel);
   art::FindMany<recob::Track>       fmtk(hitListHandle, evt, fTrackModuleLabel);
-
- 
-
-
   //track information
   ntracks_reco=tracklist.size();
-
-  TLorentzVector vectx(1,0,0,0);
-  TLorentzVector vecty(0,1,0,0);
-  TLorentzVector vectz(0,0,1,0);
-  //mcang_x=(1./TMath::DegToRad())*tmpVec.Angle(vectx.Vect());
-  //mcang_x=(1./TMath::DegToRad())*(1.-tmpVec.Phi());
-  //  mcang_y=(1./TMath::DegToRad())*tmpVec.Phi();
-  //  mcang_z=(1./TMath::DegToRad())*tmpVec.Theta();
-  mcang_x=particle->Px();
-  mcang_y=particle->Py();
-  mcang_z=particle->Pz();
-
-
-  //  mcpos_x=particle->Vx();
-  //  mcpos_y=particle->Vy();
-  //  mcpos_z=particle->Vz();
-  tmpVec=particle->Position();
-  mcpos_x=(1./TMath::DegToRad())*tmpVec.Angle(vectx.Vect());
-  mcpos_y=(1./TMath::DegToRad())*tmpVec.Angle(vecty.Vect());
-  mcpos_z=(1./TMath::DegToRad())*tmpVec.Angle(vectz.Vect());
 
   double larStart[3];
   double larEnd[3];
   std::vector<double> trackStart;
   std::vector<double> trackEnd;
+  
 
-  /////////////////////
-  /////////////  Extra Test
-  /////////
-  ////////////////////
-  art::Handle< std::vector<simb::MCParticle> > particleHandle2;
-    evt.getByLabel(fSimulationProducerLabel, particleHandle2);
 
-    // put it in a more easily usable form
-    std::vector< art::Ptr<simb::MCParticle> > particles2;
-    art::fill_ptr_vector(particles2, particleHandle2);
+   
+  // **********************
+  // **********************
+  //
+  //  Trackh:
+  //  Trackvh:
+  //
+  //
+  // *********************
+  // *********************
+  
+  art::Handle< std::vector<recob::Track> > trackh;
+  evt.getByLabel(fTrackModuleLabel, trackh);
+  
+  
+  art::Handle< std::vector< art::PtrVector < recob::Track > > > trackvh;
+  evt.getByLabel(fTrackModuleLabel, trackvh);
+  
+  // Protect against invalid art::Handle (both here and when trackvh is used below)
+  // TODO: How to do this for art::PtrVector without the uninitialised iterator?
+  std::vector< art::PtrVector<recob::Track> >::const_iterator cti; 
+  if (trackvh.isValid()) cti = trackvh->begin();                   
+  
+  
+  
+  // **********************
+  // **********************
+  //
+  //  TrackList:
+  //
+  //
+  //
+  // *********************
+  // *********************
+  
+  for(size_t i=0; i<tracklist.size();++i){
+    
+    trkid[i]=i;
+    trackStart.clear();
+    trackEnd.clear();
+    memset(larStart, 0, 3);
+    memset(larEnd, 0, 3);
+    tracklist[i]->Extent(trackStart,trackEnd); 
+    tracklist[i]->Direction(larStart,larEnd);
+    trkstartx[i]        = trackStart[0];
+    trkstarty[i]        = trackStart[1];
+    trkstartz[i]        = trackStart[2];
+    trkendx[i]        = trackEnd[0];
+    trkendy[i]        = trackEnd[1];
+    trkendz[i]        = trackEnd[2];
+    trkstartdcosx[i]  = larStart[0];
+    trkstartdcosy[i]  = larStart[1];
+    trkstartdcosz[i]  = larStart[2];
+    TLorentzVector v1(trackStart[0],trackStart[1],trackStart[2],0);
+    TLorentzVector v2(trackEnd[0],trackEnd[1],trackEnd[2],0);
+    trklen[i]=(v2-v1).Rho();
+    //trkdedx[i]=trkde/trklen[i];
+    //    trkang[i]=TMath::Cos((v2-v1).Angle(tmpVec.Vect()));
+    //trkang[i]=TMath::Cos((v2-v1).Angle(tmpVec.Vect()));
+    //    trklen[i]=v.Mag();
+    trkenddcosx[i]    = larEnd[0];
+    trkenddcosy[i]    = larEnd[1];
+    trkenddcosz[i]    = larEnd[2];
+    //    ntrkhits[i] = fmsp.at(i).size();
+    
+    //    std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
+    //   art::Ptr<recob::Track> pptrack(trackh, i);
+    //    auto pp { pptrack };
+    //    art::FindManyP<recob::SpacePoint> spptAssns(pp, evt, fTrackModuleLabel); 
+    //    ntrkhits[i] = spptAssns.at(0).size();   
+    //    int nnn = spptAssns.at(0).size();
+    //    std::cout << " Number of clumps ----> " << nnn<< std::endl;
+    
+    double distance_squared=0;
+    TVector3 V1(trackStart[0],trackStart[1],trackStart[2]);
+    TVector3 V2(trackEnd[0],trackEnd[1],trackEnd[2]);
+    TVector3 vOrth=(V2-V1).Orthogonal();
+    TVector3 pointVector=V1;
+    
+    /* if(trackvh.isValid())
+      {
+      int k=i;
+      int ntrackhits=0;
+      const art::PtrVector<recob::Track> pvtrack(*(cti++));
+      //        auto it = pvtrack.begin();
+      
+      int ntrack = pvtrack.size();
+      art::FindManyP<recob::SpacePoint> fs( pvtrack, evt, fTrkSpptAssocModuleLabel);
+      double distance=0;
+      for(int ii=0;ii<ntrack;ii++){
+      
+      for (size_t j = 0; j<fs.at(ii).size(); ++j){
+      
+      ntrackhits++;
+      TVector3 sptVector(fs.at(ii).at(j)->XYZ()[0],fs.at(ii).at(j)->XYZ()[1],fs.at(ii).at(j)->XYZ()[2]);
+      TVector3 vToPoint=sptVector-pointVector;
+      distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
+      if(isnan(distance)){
+      mf::LogVerbatim("output") <<"is nan" <<(vOrth.Dot(vToPoint));
+      mf::LogVerbatim("output") <<"is nan" <<vOrth.Mag();
+      }
+      distance_squared+=distance *distance;
+      trkx[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[0];
+      trky[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[1];
+      trkz[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[2];
+      }
+      }
+      ntrkhits[k]=ntrackhits;
+      distance_squared=distance_squared/ntrkhits[k];
+      if(!isnan(distance_squared))
+      trkd2[k]=distance_squared;
+      }*/
+    //    else
+    if(fmsp.isValid() ){
+      ntrkhits[i] = fmsp.at(i).size();
+      //	double distance_squared=0;
+      double distance=0;
+      
+      std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
+      for (size_t j = 0; j<spts.size(); ++j){
+	TVector3 sptVector(spts[j]->XYZ()[0],spts[j]->XYZ()[1],spts[j]->XYZ()[2]);
+	TVector3 vToPoint=sptVector-pointVector;
+	distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
+	distance_squared+=distance *distance;
+	trkx[i][j] = spts[j]->XYZ()[0];
+	trky[i][j] = spts[j]->XYZ()[1];
+	trkz[i][j] = spts[j]->XYZ()[2];
+	
+      }
+      distance_squared=distance_squared/spts.size();
+	trkd2[i]=distance_squared;
+	
+    }
+    
+    // *********************
+    //  Calorimetric stuff:
+    //  
+    // *********************
+    //
+    //
+    //
+    //
+    //
+    //
+    
+    art::FindMany<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
+    if (fmcal.isValid()){
+      std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
+      //std::cout<<"calo size "<<calos.size()<<std::endl;
+      for (size_t jj = 0; jj<calos.size(); ++jj){
+	//          trkke[it1][i][j]    = calos[j]->KineticEnergy();
+	//	  trkrange[i][jj] = calos[jj]->Range();
+	//          trkpitchc[it1][i][j]= calos[j] -> TrkPitchC();
+	//   ntrkhitscal[i][jj] = calos[jj] -> dEdx().size();
+	trkkinE[i][jj]  = (calos[jj] -> KineticEnergy());
+	//std::cout << trkkinE[i][jj] << std::endl;
+	int tt= calos[jj] -> dEdx().size();
+	for(int k = 0; k < tt; ++k) {
+	  trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
+	  trkdqdx[i][jj][k]   = (calos[jj] -> dQdx())[k];
+	  trkpitchHit[i][jj][k]  = (calos[jj] -> TrkPitchVec())[k];   	    
+	  trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
+	  trkTPC[i][jj][k]    =(calos[jj]->PlaneID()).TPC;
+	  trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;	   
+	  
+	  //            trkxyz[it1][i][j][k][0] = (calos[jj] -> XYZ())[k].X();
+	  //            trkxyz[it1][i][j][k][1] = (calos[jj] -> XYZ())[k].Y();
+	  //            trkxyz[it1][i][j][k][2] = (calos[jj] -> XYZ())[k].Z();
+	}
+      }
+    }
+    
+    
+    // *********************
+    //  End Calorimetric stuff
+    //  
+    // *********************
+    
+    
+    
+    
+    // *********************
+    //   Cuts specific quantities
+    //  
+    // *********************
+    //
+    //
+    //
+    //
+    TMatrixD rot(3,3);
+    int start_point =0;
+    tracklist[i]->GlobalToLocalRotationAtPoint(start_point, rot);
+    //  int ntraj = tracklist[i]->NumberTrajectoryPoints();
+    // if(ntraj > 0) {
+    TVector3 pos = tracklist[i]->Vertex();
+    art::ServiceHandle<cheat::BackTracker> bktrk;
+    const   sim::ParticleList& ppplist=bktrk->ParticleList();
+    std::vector<const simb::MCParticle*> plist2;
+    plist2.reserve(ppplist.size());
 
+    art::Ptr<recob::Track> ptrack(trackh, i);
+    const recob::Track& track = *ptrack;
+    //trklenratio[i] = length(track)/plen;
+    trklen_L[i]=length(track);
+    //
+    //**********************
+    //
+    // End Cut specific quantities
+    //  
+    //***********************
+
+    
+    
+    
+    for (int j = 0; j<3; ++j){
+      try {
+	if (j==0)
+	  trkpitch[i][j] = tracklist[i]->PitchInView(geo::kU);
+	else if (j==1)
+	  trkpitch[i][j] = tracklist[i]->PitchInView(geo::kV);
+	else if (j==2)
+	  trkpitch[i][j] = tracklist[i]->PitchInView(geo::kZ);
+      }
+      catch( cet::exception &e) {
+	mf::LogWarning("AnaTree")<<"caught exeption "<<e<<"\n setting pitch to 0";
+	trkpitch[i][j] = 0;
+      }
+    }
+    
+    /*   simb::MCParticle* particle=0;
+    for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar) {
+      particle = ipar->second;
+    }
+    int pdg = particle->PdgCode();
+    if (abs(pdg)!=abs(fPdg)) continue;
+    TVector3 startmom;
+    startmom=particle->Momentum(0).Vect();
+    TVector3 mcmomltemp=rot * startmom;
+    trkcolin[i]=mcmomltemp.Z()/mcmomltemp.Mag();
+    */
+        double recotime = 0.;
+        double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
+        // Fill histograms involving reco tracks only.
+        int ntraj = track.NumberTrajectoryPoints();
+        if(ntraj > 0) {
+          TVector3 pos = track.Vertex();
+          TVector3 dir = track.VertexDirection();
+          TVector3 end = track.End();
+          pos[0] += trackdx;
+          end[0] += trackdx;
+	  trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
+	  trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
+ 	  trketa_xy[i] = std::atan2(dir.X(), dir.Y());
+ 	  trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
+ 	  trktheta[i]=dir.Theta();
+ 	  trkphi[i]=dir.Phi();
+	}
+  }
+  
+  // -----------------------------------------------
+  // NOW DO THE CLUSTER/HIT STUFF.......
+  // -----------------------------------------------
+  
+  art::Handle< std::vector<recob::Cluster> > clusterListHandle;
+  std::vector<art::Ptr<recob::Cluster> > clusterlist;
+  if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
+    art::fill_ptr_vector(clusterlist, clusterListHandle);
+
+  nhits = hitlist.size();
+  nclust=clusterlist.size();
+  for (size_t i = 0; i<hitlist.size(); ++i){
+    unsigned int channel = hitlist[i]->Channel();
+    geo::WireID wireid = hitlist[i]->WireID();
+    hit_tpc[i]     =wireid.TPC;
+    hit_plane[i]   = wireid.Plane;
+    hit_wire[i]    = wireid.Wire;
+    hit_channel[i] = channel;
+    hit_peakT[i]   = hitlist[i]->PeakTime();
+    hit_charge[i]  = hitlist[i]->Integral();
+    hit_ph[i]      = hitlist[i]->PeakAmplitude();
+    if (fmtk.at(i).size()!=0){
+      hit_trkid[i] = fmtk.at(i)[0]->ID();
+    }
+  }
+
+  // -----------------------------------------------
+  // NOW DO ALL THE MONTE CARLO TRUTH STUFF.......
+  // -----------------------------------------------
+  art::ServiceHandle<cheat::BackTracker> bt;
+  //  int trkid=1;
+  const sim::ParticleList& plist = bt->ParticleList();
+  simb::MCParticle *particle=0;
+  //  const simb::MCParticle *particle = bt->TrackIDToParticle(trkid);
+  int i=0; // particle index
+  for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
+    particle = ipar->second;
+    
+    // Line below selects only primaries, have removed so get all particles.
+    // So want to add if Process=="Primary" in macro, this way can see particles other than primaries too.
+    //if(!(particle->Process()=="primary" && abs(particle->PdgCode())== abs(fPdg))) continue;
+        
+    mcang_x[i]=particle->Px();
+    mcang_y[i]=particle->Py();
+    mcang_z[i]=particle->Pz();
+    
+    TLorentzVector tmpVec;
+    TLorentzVector vectx(1,0,0,0);
+    TLorentzVector vecty(0,1,0,0);
+    TLorentzVector vectz(0,0,1,0);
+    tmpVec=particle->Position();
+    mcpos_x[i]=(1./TMath::DegToRad())*tmpVec.Angle(vectx.Vect());
+    mcpos_y[i]=(1./TMath::DegToRad())*tmpVec.Angle(vecty.Vect());
+    mcpos_z[i]=(1./TMath::DegToRad())*tmpVec.Angle(vectz.Vect());
+    
+   
     //    int fMC_Ntrack = particles2.size();
     float fMC_startXYZT[1000][4];
     float fMC_endXYZT[1000][4];
-
-    double trkde=0;
-
-    int i=0; // track index
-    for (auto const& particle: particles2 ) {
+    
+    //double trkde=0;
+    
+    
+    //for (auto const& particle: particles2 ) {
       //        int Ndaughters = particle->NumberDaughters();
       //        vector<int> daughters;
       //        for (int i=0; i<Ndaughters; i++) {
@@ -479,32 +732,30 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       //        fMC_daughters.push_back(daughters);
       size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
       trkpdg_MC[i]=particle->PdgCode();
-      if(!(particle->Process()=="primary" && abs(particle->PdgCode())==abs(fPdg)))
-	continue;
-      int trackID=particle->TrackId();
-      for ( auto const& channel : (*simChannelHandle) )
-	{
-	  auto channelNumber = channel.Channel();
-	  if ( fGeometry->SignalType( channelNumber ) == geo::kCollection )
-	    {
-	      auto const& timeSlices = channel.TDCIDEMap();
-	      for ( auto const& timeSlice : timeSlices )
-		{
-		  auto const& energyDeposits = timeSlice.second;
-		  for ( auto const& energyDeposit : energyDeposits )
-		    {
-		      if ( energyDeposit.trackID == trackID )
-			{
-			  
-			  trkde+=energyDeposit.numElectrons*1./( 1e6/23.6);//MeV
-			}//TrackID
-		    }//energyDeposit
-		}//timeSlice
-	    }//CollectionPlane
-	}//simChannel
-
-      trkdq_MC[i]=trkde*1e6/23.6;//back to q
+      if (particle->Process() == "primary" ) trkPrimary_MC[i] = 1;
+      else trkPrimary_MC[i] = 0;
       
+      
+      //int trackID=particle->TrackId();
+      
+      /*
+      for ( auto const& channel : (*simChannelHandle) ) {
+	auto channelNumber = channel.Channel();
+	if ( fGeometry->SignalType( channelNumber ) == geo::kCollection ) {
+	  auto const& timeSlices = channel.TDCIDEMap();
+	  for ( auto const& timeSlice : timeSlices ) {
+	    auto const& energyDeposits = timeSlice.second;
+	    for ( auto const& energyDeposit : energyDeposits ) {
+	      if ( energyDeposit.trackID == trackID ) {
+			  
+		trkde+=energyDeposit.numElectrons*1./( 1e6/23.6);//MeV
+	      }//TrackID
+	    }//energyDeposit
+	  }//timeSlice
+	}//CollectionPlane
+      }//simChannel
+      trkdq_MC[i]=trkde*1e6/23.6;//back to q
+      */
       double origin[3] = {0.};
       double world[3] = {0.};
       double xyztArray[4];
@@ -516,41 +767,40 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       cryoBound_neg[0]=world[0] - geom->Cryostat(c).HalfWidth();
       cryoBound_neg[1]=world[1] - geom->Cryostat(c).HalfWidth();
       cryoBound_neg[2]=world[2] - geom->Cryostat(c).HalfWidth();
-
+      
       cryoBound_pos[0]=world[0] + geom->Cryostat(c).HalfWidth();
       cryoBound_pos[1]=world[1] + geom->Cryostat(c).HalfWidth();
       cryoBound_pos[2]=world[2] + geom->Cryostat(c).HalfWidth();
-
+      
       int zz =0;
       int zz2 =0;
       bool insideActiveVolume=false;
-      for(size_t ii=0;ii<numberTrajectoryPoints;ii++)
-	  {
-	    const TLorentzVector& tmpPosition=particle->Position(ii);
-	    //tmpPosition.GetXYZT(xyztArray);   
-	    if((tmpPosition[0]<cryoBound_pos[0]) && (tmpPosition[0]>cryoBound_neg[0])) {
-	      if((tmpPosition[1]<cryoBound_pos[1]) && (tmpPosition[1]>cryoBound_neg[1])) {
-		if((tmpPosition[2]<cryoBound_pos[2]) && (tmpPosition[2]>cryoBound_neg[2])) {
-		  if (!insideActiveVolume) {
-		    zz = ii;
-		    //std::cout << "Now particle is in cryostat " << std::endl;
-		    insideActiveVolume=true;
-		  }		  
-		  //std::cout << "Temp Pos " << tmpPosition[0] << ", " <<  tmpPosition[1] << ", " <<  tmpPosition[2] << std::endl;
-		  tmpPosition.GetXYZT(xyztArray);
-		  zz2 = ii;
-		}
-	      }
+      for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
+	const TLorentzVector& tmpPosition=particle->Position(ii);
+	//tmpPosition.GetXYZT(xyztArray);   
+	if((tmpPosition[0]<cryoBound_pos[0]) && (tmpPosition[0]>cryoBound_neg[0])) {
+	  if((tmpPosition[1]<cryoBound_pos[1]) && (tmpPosition[1]>cryoBound_neg[1])) {
+	    if((tmpPosition[2]<cryoBound_pos[2]) && (tmpPosition[2]>cryoBound_neg[2])) {
+	      if (!insideActiveVolume) {
+		zz = ii;
+		//std::cout << "Now particle is in cryostat " << std::endl;
+		insideActiveVolume=true;
+	      }		  
+	      //std::cout << "Temp Pos " << tmpPosition[0] << ", " <<  tmpPosition[1] << ", " <<  tmpPosition[2] << std::endl;
+	      tmpPosition.GetXYZT(xyztArray);
+	      zz2 = ii;
 	    }
-	    
-	    if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
 	  }
-
+	}
+	
+	if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
+      }
+      
       const TLorentzVector& positionStart = particle->Position(zz);
       TLorentzVector& positionEnd  =( TLorentzVector&)particle->Position(zz2);     
-	//        const TLorentzVector& momentumStart = particle->Momentum(0);
-	//        const TLorentzVector& momentumEnd   = particle->Momentum(last);
-      TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(0);
+      //        const TLorentzVector& momentumStart = particle->Momentum(0);
+      //        const TLorentzVector& momentumEnd   = particle->Momentum(last);
+      TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(zz);
       trkmom_MC[i]=momentumStart.P();
       trkmom_XMC[i]=momentumStart.Px();
       trkmom_YMC[i]=momentumStart.Py();
@@ -581,341 +831,72 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       TVector3 mcendmom;
       double plen = length(*particle, mcdx, mcstart, mcend, mcstartmom, mcendmom);
       trklen_cut_MC[i]=plen;
-      trkdedx_MC[i]=trkde/trklen_cut_MC[i];
+      //trkdedx_MC[i]=trkde/trklen_cut_MC[i];
       //        momentumStart.GetXYZT(fMC_startMomentum[i]);
       //        momentumEnd.GetXYZT(fMC_endMomentum[i]);
-      i++;
-    } // particle loop done 
+
+      // Calculate the points where this mc particle enters and leaves the
+      // fiducial volume, and the length in the fiducial volume.
+
+    // Get the displacement of this mc particle in the global coordinate system.
+    //  TVector3 mcpos = mcstart - pos;
+    //TVector3 mcpos = pos -mcstart ;
+    // Rotate the momentum and position to the
+    // track-local coordinate system.
+    //TVector3 mcmoml = rot * mcstartmom;
+    //TVector3 mcposl = rot * mcpos;
+    trktheta_xz_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Z());
+    trktheta_yz_MC[i] = std::atan2(mcstartmom.Y(), mcstartmom.Z());
+    trketa_xy_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Y());
+    trketa_zy_MC[i] = std::atan2(mcstartmom.Z(), mcstartmom.Y());
+    
+    
+    
+    trktheta_MC[i]=mcstartmom.Theta();
+    trkphi_MC[i]=mcstartmom.Phi();
+    
+    /*
+    trkcolinearity[i] = mcmoml.Z() / mcmoml.Mag();
+    double u = mcposl.X();
+    double v = mcposl.Y();
+    double w = mcposl.Z();
+    trkwmatchdisp[i]=w;
+    std::cout << "++++++" << std::endl;
+    std::cout << "w " << w << std::endl;
+    std::cout << "trkcolinearity  " << trkcolinearity[i] << std::endl;
+    std::cout << "plen  " << plen << std::endl;
+    std::cout << "mcstartmom mag  " << mcstartmom.Mag() << std::endl;
+    
+    std::cout << "++++++" << std::endl;
+    
+    double pu = mcmoml.X();
+    double pv = mcmoml.Y();
+    double pw = mcmoml.Z();
+    double dudw = pu / pw;
+    double dvdw = pv / pw;
+    std::cout << "pu  "<<pu << "pv  " << pv << std::endl;
+    std::cout << "pw  "<<pw  << std::endl;
+    
+    std::cout << "u  "<<u << "v  " << v << std::endl; 
+    
+    double u0 = u - w * dudw;
+    double v0 = v - w * dvdw;
+    trkmatchdisp[i]=abs( std::sqrt(u0*u0 + v0*v0));
+    */
+
+      ++i;
+      //} // particle loop done 
     //////////////////////
     /////////////  End of Extra Test
     //////
     ////////////////////
-
-
-
-    // **********************
-    // **********************
-    //
-    //  Trackh:
-    //  Trackvh:
-    //
-    //
-    // *********************
-    // *********************
-
-    art::Handle< std::vector<recob::Track> > trackh;
-    evt.getByLabel(fTrackModuleLabel, trackh);
-     
-
-   art::Handle< std::vector< art::PtrVector < recob::Track > > > trackvh;
-   evt.getByLabel(fTrackModuleLabel, trackvh);
-
-   // Protect against invalid art::Handle (both here and when trackvh is used below)
-   // TODO: How to do this for art::PtrVector without the uninitialised iterator?
-   std::vector< art::PtrVector<recob::Track> >::const_iterator cti; 
-   if (trackvh.isValid()) cti = trackvh->begin();                   
-   
-
-
-    // **********************
-    // **********************
-    //
-    //  TrackList:
-    //
-    //
-    //
-    // *********************
-    // *********************
-
-    for(size_t i=0; i<tracklist.size();++i){
-  
-    trkid[i]=i;
-    trackStart.clear();
-    trackEnd.clear();
-    memset(larStart, 0, 3);
-    memset(larEnd, 0, 3);
-    tracklist[i]->Extent(trackStart,trackEnd); 
-    tracklist[i]->Direction(larStart,larEnd);
-    trkstartx[i]        = trackStart[0];
-    trkstarty[i]        = trackStart[1];
-    trkstartz[i]        = trackStart[2];
-    trkendx[i]        = trackEnd[0];
-    trkendy[i]        = trackEnd[1];
-    trkendz[i]        = trackEnd[2];
-    trkstartdcosx[i]  = larStart[0];
-    trkstartdcosy[i]  = larStart[1];
-    trkstartdcosz[i]  = larStart[2];
-    TLorentzVector v1(trackStart[0],trackStart[1],trackStart[2],0);
-    TLorentzVector v2(trackEnd[0],trackEnd[1],trackEnd[2],0);
-    trklen[i]=(v2-v1).Rho();
-    trkdedx[i]=trkde/trklen[i];
-    //    trkang[i]=TMath::Cos((v2-v1).Angle(tmpVec.Vect()));
-    trkang[i]=TMath::Cos((v2-v1).Angle(tmpVec.Vect()));
-    //    trklen[i]=v.Mag();
-    trkenddcosx[i]    = larEnd[0];
-    trkenddcosy[i]    = larEnd[1];
-    trkenddcosz[i]    = larEnd[2];
-    //    ntrkhits[i] = fmsp.at(i).size();
-
-    //    std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
-    //   art::Ptr<recob::Track> pptrack(trackh, i);
-    //    auto pp { pptrack };
-    //    art::FindManyP<recob::SpacePoint> spptAssns(pp, evt, fTrackModuleLabel); 
-    //    ntrkhits[i] = spptAssns.at(0).size();   
-    //    int nnn = spptAssns.at(0).size();
-    //    std::cout << " Number of clumps ----> " << nnn<< std::endl;
-
-    double distance_squared=0;
-    TVector3 V1(trackStart[0],trackStart[1],trackStart[2]);
-    TVector3 V2(trackEnd[0],trackEnd[1],trackEnd[2]);
-    TVector3 vOrth=(V2-V1).Orthogonal();
-    TVector3 pointVector=V1;
-
-    /* if(trackvh.isValid())
-      {
-	int k=i;
-	int ntrackhits=0;
-	const art::PtrVector<recob::Track> pvtrack(*(cti++));
-	//        auto it = pvtrack.begin();
-
-	int ntrack = pvtrack.size();
-	art::FindManyP<recob::SpacePoint> fs( pvtrack, evt, fTrkSpptAssocModuleLabel);
-	double distance=0;
-	for(int ii=0;ii<ntrack;ii++){
-	  
-	  for (size_t j = 0; j<fs.at(ii).size(); ++j){
-	    
-	    ntrackhits++;
-	    TVector3 sptVector(fs.at(ii).at(j)->XYZ()[0],fs.at(ii).at(j)->XYZ()[1],fs.at(ii).at(j)->XYZ()[2]);
-	    TVector3 vToPoint=sptVector-pointVector;
-	    distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
-	    if(isnan(distance)){
-	      mf::LogVerbatim("output") <<"is nan" <<(vOrth.Dot(vToPoint));
-	      mf::LogVerbatim("output") <<"is nan" <<vOrth.Mag();
-	    }
-	    distance_squared+=distance *distance;
-	    trkx[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[0];
-	    trky[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[1];
-	    trkz[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[2];
-	  }
-	}
-	ntrkhits[k]=ntrackhits;
-	distance_squared=distance_squared/ntrkhits[k];
-	if(!isnan(distance_squared))
-	  trkd2[k]=distance_squared;
-	  }*/
-    //    else
-    if(fmsp.isValid() ){
-	ntrkhits[i] = fmsp.at(i).size();
-	//	double distance_squared=0;
-	double distance=0;
-
-	std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
-	for (size_t j = 0; j<spts.size(); ++j){
-	  TVector3 sptVector(spts[j]->XYZ()[0],spts[j]->XYZ()[1],spts[j]->XYZ()[2]);
-	  TVector3 vToPoint=sptVector-pointVector;
-	  distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
-	  distance_squared+=distance *distance;
-	  trkx[i][j] = spts[j]->XYZ()[0];
-	  trky[i][j] = spts[j]->XYZ()[1];
-	  trkz[i][j] = spts[j]->XYZ()[2];
-      
-	}
-	distance_squared=distance_squared/spts.size();
-	trkd2[i]=distance_squared;
-
-      }
-
-      // *********************
-      //  Calorimetric stuff:
-      //  
-      // *********************
-      //
-      //
-      //
-      //
-      //
-      //
-      
-      art::FindMany<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
-      if (fmcal.isValid()){
-        std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
-        //std::cout<<"calo size "<<calos.size()<<std::endl;
-        for (size_t jj = 0; jj<calos.size(); ++jj){
-	  //          trkke[it1][i][j]    = calos[j]->KineticEnergy();
-	  //	  trkrange[i][jj] = calos[jj]->Range();
-	  //          trkpitchc[it1][i][j]= calos[j] -> TrkPitchC();
-	  //   ntrkhitscal[i][jj] = calos[jj] -> dEdx().size();
-	  trkkinE[i][jj]  = (calos[jj] -> KineticEnergy());
-	  //std::cout << trkkinE[i][jj] << std::endl;
-	  int tt= calos[jj] -> dEdx().size();
-	  for(int k = 0; k < tt; ++k) {
-            trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
-	    trkdqdx[i][jj][k]   = (calos[jj] -> dQdx())[k];
-	    trkpitchHit[i][jj][k]  = (calos[jj] -> TrkPitchVec())[k];   	    
-            trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
-	    trkTPC[i][jj][k]    =(calos[jj]->PlaneID()).TPC;
-	    trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;	   
-	    
-	    //            trkxyz[it1][i][j][k][0] = (calos[jj] -> XYZ())[k].X();
-	    //            trkxyz[it1][i][j][k][1] = (calos[jj] -> XYZ())[k].Y();
-	    //            trkxyz[it1][i][j][k][2] = (calos[jj] -> XYZ())[k].Z();
-          }
-        }
-      }
-
-
-      // *********************
-      //  End Calorimetric stuff
-      //  
-      // *********************
-      
-
-
-
-    // *********************
-    //   Cuts specific quantities
-    //  
-    // *********************
-    //
-    //
-    //
-    //
-    TMatrixD rot(3,3);
-    int start_point =0;
-    tracklist[i]->GlobalToLocalRotationAtPoint(start_point, rot);
-    //  int ntraj = tracklist[i]->NumberTrajectoryPoints();
-  // if(ntraj > 0) {
-    TVector3 pos = tracklist[i]->Vertex();
-  art::ServiceHandle<cheat::BackTracker> bktrk;
-  const   sim::ParticleList& ppplist=bktrk->ParticleList();
-  std::vector<const simb::MCParticle*> plist2;
-  plist2.reserve(ppplist.size());
-  double mctime = particle->T();                                 // nsec
-  double mcdx = mctime * 1.e-3 * larprop->DriftVelocity();   // cm
-  // Calculate the points where this mc particle enters and leaves the
-  // fiducial volume, and the length in the fiducial volume.
-  TVector3 mcstart;
-  TVector3 mcend;
-  TVector3 mcstartmom;
-  TVector3 mcendmom;
-  double plen = length(*particle, mcdx, mcstart, mcend, mcstartmom, mcendmom);
-  // Get the displacement of this mc particle in the global coordinate system.
-  //  TVector3 mcpos = mcstart - pos;
-  TVector3 mcpos = pos -mcstart ;
-  // Rotate the momentum and position to the
-  // track-local coordinate system.
-  TVector3 mcmoml = rot * mcstartmom;
-  TVector3 mcposl = rot * mcpos;
-  trktheta_xz_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Z());
-  trktheta_yz_MC[i] = std::atan2(mcstartmom.Y(), mcstartmom.Z());
-  trketa_xy_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Y());
-  trketa_zy_MC[i] = std::atan2(mcstartmom.Z(), mcstartmom.Y());
-
-
-
-  trktheta_MC[i]=mcstartmom.Theta();
-  trkphi_MC[i]=mcstartmom.Phi();
-
-  trkcolinearity[i] = mcmoml.Z() / mcmoml.Mag();
-  double u = mcposl.X();
-  double v = mcposl.Y();
-  double w = mcposl.Z();
-  trkwmatchdisp[i]=w;
-  /*  std::cout << "++++++" << std::endl;
-  std::cout << "w " << w << std::endl;
- std::cout << "trkcolinearity  " << trkcolinearity[i] << std::endl;
- std::cout << "plen  " << plen << std::endl;
- std::cout << "mcstartmom mag  " << mcstartmom.Mag() << std::endl;
+    
+    
  
- std::cout << "++++++" << std::endl;*/
-  double pu = mcmoml.X();
-  double pv = mcmoml.Y();
-  double pw = mcmoml.Z();
-  double dudw = pu / pw;
-  double dvdw = pv / pw;
-  /*  std::cout << "pu  "<<pu << "pv  " << pv << std::endl;
-  std::cout << "pw  "<<pw  << std::endl;
-
-  std::cout << "u  "<<u << "v  " << v << std::endl;*/
 
 
-  double u0 = u - w * dudw;
-  double v0 = v - w * dvdw;
-  trkmatchdisp[i]=abs( std::sqrt(u0*u0 + v0*v0));
-  art::Ptr<recob::Track> ptrack(trackh, i);
-  const recob::Track& track = *ptrack;
-  trklenratio[i] = length(track)/plen;
-  trklen_L[i]=length(track);
-  //
-  //**********************
-  //
-  // End Cut specific quantities
-  //  
-  //***********************
+    
 
-
-
- 
-  for (int j = 0; j<3; ++j){
-    try{
-      if (j==0)
-	trkpitch[i][j] = tracklist[i]->PitchInView(geo::kU);
-      else if (j==1)
-	trkpitch[i][j] = tracklist[i]->PitchInView(geo::kV);
-      else if (j==2)
-	trkpitch[i][j] = tracklist[i]->PitchInView(geo::kZ);
-    }
-    catch( cet::exception &e){
-      mf::LogWarning("AnaTree")<<"caught exeption "<<e<<"\n setting pitch to 0";
-      trkpitch[i][j] = 0;
-    }
-  }
-
-  simb::MCParticle* particle=0;
-  for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
-    particle = ipar->second;
-  }
-  int pdg = particle->PdgCode();
-  if (abs(pdg)!=abs(fPdg)) continue;
-  TVector3 startmom;
-  startmom=particle->Momentum(0).Vect();
-  TVector3 mcmomltemp=rot * startmom;
-  trkcolin[i]=mcmomltemp.Z()/mcmomltemp.Mag();
-  }
-
-
-  art::Handle< std::vector<recob::Cluster> > clusterListHandle;
-  std::vector<art::Ptr<recob::Cluster> > clusterlist;
-  if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
-    art::fill_ptr_vector(clusterlist, clusterListHandle);
-
-  nhits = hitlist.size();
-  nclust=clusterlist.size();
-  for (size_t i = 0; i<hitlist.size(); ++i){
-    unsigned int channel = hitlist[i]->Channel();
-    geo::WireID wireid = hitlist[i]->WireID();
-    hit_tpc[i]     =wireid.TPC;
-    hit_plane[i]   = wireid.Plane;
-    hit_wire[i]    = wireid.Wire;
-    hit_channel[i] = channel;
-    hit_peakT[i]   = hitlist[i]->PeakTime();
-    hit_charge[i]  = hitlist[i]->Integral();
-    hit_ph[i]      = hitlist[i]->PeakAmplitude();
-    if (fmtk.at(i).size()!=0){
-      hit_trkid[i] = fmtk.at(i)[0]->ID();
-    }
-  }
-
-  // **********************
-  // **********************
-  //   Fill Tree:
-  // **********************
-  // **********************
-  
-  fTree->Fill();
-  // *********************
-  // *********************
 
 
 
@@ -940,10 +921,11 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 
   //    art::Handle< std::vector<recob::Track> > trackh;
   //    evt.getByLabel(fTrackModuleLabel, trackh);
-  if(!trackh.isValid()) continue;
-  unsigned int ntrack = trackh->size();
-  for(unsigned int i = 0; i < ntrack; ++i) {
-
+    /* 
+       if(!trackh.isValid()) continue;
+       unsigned int ntrack = trackh->size();
+       for(unsigned int i = 0; i < ntrack; ++i) {
+       
     art::Ptr<recob::Track> ptrack(trackh, i);
     art::FindMany<recob::Hit>       fmhit(trackListHandle, evt, fTrackModuleLabel);
     std::vector<const recob::Hit*> hits = fmhit.at(i);
@@ -958,6 +940,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     //
 
     const recob::Track& track = *ptrack;
+    */
     /*auto pcoll{ptrack};
 	art::FindManyP<recob::SpacePoint> fs(pcoll, evt, fTrkSpptAssocModuleLabel);
 	auto sppt = fs.at(0);
@@ -986,42 +969,21 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	    }
 	  else hit_ttpc=1; */
 
-
-         ///
-        ///
-        //
-        //
-        //
-        //
-        //
-        //
         /*        art::Handle< std::vector<recob::Hit> > hitListHandle;
         std::vector<art::Ptr<recob::Hit> > hitlist;
         if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
         art::fill_ptr_vector(hitlist, hitListHandle);*/
         // Calculate the x offset due to nonzero reconstructed time.
         //double recotime = track.Time() * detprop->SamplingRate();       // nsec
-        double recotime = 0.;
-        double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
-        // Fill histograms involving reco tracks only.
-        int ntraj = track.NumberTrajectoryPoints();
-        if(ntraj > 0) {
-          TVector3 pos = track.Vertex();
-          TVector3 dir = track.VertexDirection();
-          TVector3 end = track.End();
-          pos[0] += trackdx;
-          end[0] += trackdx;
-	  trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
-	  trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
- 	  trketa_xy[i] = std::atan2(dir.X(), dir.Y());
- 	  trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
- 	  trktheta[i]=dir.Theta();
- 	  trkphi[i]=dir.Phi();
 
-	}
-  }
+	  //}
+    //}
   }// ipar
-  
+  nMCParticles = i;
+  // -------------------------------------------
+  // FINALLLY Fill Tree:
+  // -------------------------------------------
+  fTree->Fill();
 }
 
 
@@ -1037,84 +999,85 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("efield",efield,"efield[3]/D");
   fTree->Branch("t0",&t0,"t0/I");
   fTree->Branch("trigtime",trigtime,"trigtime[16]/I");
+
   fTree->Branch("ntracks_reco",&ntracks_reco,"ntracks_reco/I");
+  fTree->Branch("ntrkhits",ntrkhits,"ntrkhits[ntracks_reco]/I");
+  fTree->Branch("trkid",trkid,"trkid[ntracks_reco]/D");  
   fTree->Branch("trkstartx",trkstartx,"trkstartx[ntracks_reco]/D");
   fTree->Branch("trkstarty",trkstarty,"trkstarty[ntracks_reco]/D");
   fTree->Branch("trkstartz",trkstartz,"trkstartz[ntracks_reco]/D");
   fTree->Branch("trkendx",trkendx,"trkendx[ntracks_reco]/D");
   fTree->Branch("trkendy",trkendy,"trkendy[ntracks_reco]/D");
   fTree->Branch("trkendz",trkendz,"trkendz[ntracks_reco]/D");
-fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[ntracks_reco]/D");
-  fTree->Branch("trkstarty_MC",trkstarty_MC,"trkstarty_MC[ntracks_reco]/D");
-  fTree->Branch("trkstartz_MC",trkstartz_MC,"trkstartz_MC[ntracks_reco]/D");
-  fTree->Branch("trkendx_MC",trkendx_MC,"trkendx_MC[ntracks_reco]/D");
-  fTree->Branch("trkendy_MC",trkendy_MC,"trkendy_MC[ntracks_reco]/D");
-  fTree->Branch("trkendz_MC",trkendz_MC,"trkendz_MC[ntracks_reco]/D");
-  fTree->Branch("trklen_MC",trklen_MC,"trklen_MC[ntracks_reco]/D");
-  fTree->Branch("trklen_cut_MC",trklen_cut_MC,"trklen_cut_MC[ntracks_reco]/D");
-  fTree->Branch("trkmom_MC",trkmom_MC,"trkmom_MC[ntracks_reco]/D");
-  fTree->Branch("trkmom_XMC",trkmom_XMC,"trkmom_XMC[ntracks_reco]/D");
-  fTree->Branch("trkmom_YMC",trkmom_YMC,"trkmom_YMC[ntracks_reco]/D");
-  fTree->Branch("trkmom_ZMC",trkmom_ZMC,"trkmom_ZMC[ntracks_reco]/D");
-  fTree->Branch("trkstartdoc_XMC",trkstartdoc_XMC,"trkstartdoc_XMC[ntracks_reco]/D");
-  fTree->Branch("trkstartdoc_YMC",trkstartdoc_YMC,"trkstartdoc_YMC[ntracks_reco]/D");
-  fTree->Branch("trkstartdoc_ZMC",trkstartdoc_ZMC,"trkstartdoc_ZMC[ntracks_reco]/D");
-  fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[ntracks_reco]/D");
-  fTree->Branch("trkd2",trkd2,"trkd2[ntracks_reco]/D");
-  fTree->Branch("trkcolin",trkcolin,"trkcolin[ntracks_reco]/D");
- fTree->Branch("trktheta_xz_MC",trktheta_xz_MC,"trktheta_xz_MC[ntracks_reco]/D");
-  fTree->Branch("trktheta_yz_MC",trktheta_yz_MC,"trktheta_yz_MC[ntracks_reco]/D");
-  fTree->Branch("trktheta_MC",trktheta_MC,"trktheta_MC[ntracks_reco]/D");
-  fTree->Branch("trkphi_MC",trkphi_MC,"trkphi_MC[ntracks_reco]/D");
-  fTree->Branch("trketa_xy_MC",trketa_xy_MC,"trketa_xy_MC[ntracks_reco]/D");
-  fTree->Branch("trketa_zy_MC",trketa_zy_MC,"trketa_zy_MC[ntracks_reco]/D");
+  fTree->Branch("trkstartdcosx",trkstartdcosx,"trkstartdcosx[ntracks_reco]/D");
+  fTree->Branch("trkstartdcosy",trkstartdcosy,"trkstartdcosy[ntracks_reco]/D");
+  fTree->Branch("trkstartdcosz",trkstartdcosz,"trkstartdcosz[ntracks_reco]/D");
+  fTree->Branch("trkenddcosx",trkenddcosx,"trkenddcosx[ntracks_reco]/D");
+  fTree->Branch("trkenddcosy",trkenddcosy,"trkenddcosy[ntracks_reco]/D");
+  fTree->Branch("trkenddcosz",trkenddcosz,"trkenddcosz[ntracks_reco]/D");
+  fTree->Branch("trkx",trkx,"trkx[ntracks_reco][1000]/D");
+  fTree->Branch("trky",trky,"trky[ntracks_reco][1000]/D");
+  fTree->Branch("trkz",trkz,"trkz[ntracks_reco][1000]/D");
   fTree->Branch("trktheta_xz",trktheta_xz,"trktheta_xz[ntracks_reco]/D");
   fTree->Branch("trktheta_yz",trktheta_yz,"trktheta_yz[ntracks_reco]/D");
   fTree->Branch("trketa_xy",trketa_xy,"trketa_xy[ntracks_reco]/D");
   fTree->Branch("trketa_zy",trketa_zy,"trketa_zy[ntracks_reco]/D");
   fTree->Branch("trktheta",trktheta,"trktheta[ntracks_reco]/D");
   fTree->Branch("trkphi",trkphi,"trkphi[ntracks_reco]/D");
-
+  fTree->Branch("trkang",trkang,"trkang[ntracks_reco]/D"); 
+  fTree->Branch("trkd2",trkd2,"trkd2[ntracks_reco]/D");
+  fTree->Branch("trkcolin",trkcolin,"trkcolin[ntracks_reco]/D");
   fTree->Branch("trkdedx",trkdedx,"trkdedx[ntracks_reco]/D");
   fTree->Branch("trkdedx2",trkdedx2,"trkdedx2[ntracks_reco][3][1000]/D");
   fTree->Branch("trkdqdx",trkdqdx,"trkdqdx[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkpitch",trkpitch,"trkpitch[ntracks_reco][3]/D");
   fTree->Branch("trkpitchHit",trkpitchHit,"trkpitchHit[ntracks_reco][3][1000]/D"); 
   fTree->Branch("trkkinE",trkkinE,"trkkinE[ntracks_reco][3]/D"); 
   fTree->Branch("trkTPC",trkTPC,"trkTPC[ntracks_reco][3][1000]/D");
   fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
   fTree->Branch("trkresrg",trkresrg,"trkresrg[ntracks_reco][3][1000]/D");
-  fTree->Branch("trkdedx_MC",trkdedx_MC,"trkdedx_MC[ntracks_reco]/D");
-  fTree->Branch("trkdq_MC",trkdq_MC,"trkdq_MC[ntracks_reco]/D");
-  fTree->Branch("trkstartdcosx",trkstartdcosx,"trkstartdcosx[ntracks_reco]/D");
-  fTree->Branch("trkstartdcosy",trkstartdcosy,"trkstartdcosy[ntracks_reco]/D");
-  fTree->Branch("trkstartdcosz",trkstartdcosz,"trkstartdcosz[ntracks_reco]/D");
   fTree->Branch("trklen",trklen,"trklen[ntracks_reco]/D");
   fTree->Branch("trklen_L",trklen_L,"trklen_L[ntracks_reco]/D");
-  fTree->Branch("trkid",trkid,"trkid[ntracks_reco]/D");
-  fTree->Branch("mcang_x",&mcang_x,"mcang_x/D");
-  fTree->Branch("mcang_y",&mcang_y,"mcang_y/D");
-  fTree->Branch("mcang_z",&mcang_z,"mcang_z/D");
-
-  fTree->Branch("mcpos_x",&mcpos_x,"mcpos_x/D");
-  fTree->Branch("mcpos_y",&mcpos_y,"mcpos_y/D");
-  fTree->Branch("mcpos_z",&mcpos_z,"mcpos_z/D");
-
-  fTree->Branch("trkang",trkang,"trkang[ntracks_reco]/D");
   fTree->Branch("trkcolinearity",trkcolinearity,"trkcolinearity[ntracks_reco]/D");
   fTree->Branch("trkmatchdisp",trkmatchdisp,"trkmatchdisp[ntracks_reco]/D");
   fTree->Branch("trkwmatchdisp",trkwmatchdisp,"trkwmatchdisp[ntracks_reco]/D");
   fTree->Branch("trklenratio",trklenratio,"trklenratio[ntracks_reco]/D");
-  fTree->Branch("trkenddcosx",trkenddcosx,"trkenddcosx[ntracks_reco]/D");
-  fTree->Branch("trkenddcosy",trkenddcosy,"trkenddcosy[ntracks_reco]/D");
-  fTree->Branch("trkenddcosz",trkenddcosz,"trkenddcosz[ntracks_reco]/D");
-  fTree->Branch("ntrkhits",ntrkhits,"ntrkhits[ntracks_reco]/I");
-  fTree->Branch("trkx",trkx,"trkx[ntracks_reco][1000]/D");
-  fTree->Branch("trky",trky,"trky[ntracks_reco][1000]/D");
-  fTree->Branch("trkz",trkz,"trkz[ntracks_reco][1000]/D");
-  fTree->Branch("trkpitch",trkpitch,"trkpitch[ntracks_reco][3]/D");
+  
+  fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
+  fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[nMCParticles]/D");
+  fTree->Branch("trkPrimary_MC",trkPrimary_MC,"trkPrimarys_MC[nMCParticles]/I");    
+  fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[nMCParticles]/D");
+  fTree->Branch("trkstarty_MC",trkstarty_MC,"trkstarty_MC[nMCParticles]/D");
+  fTree->Branch("trkstartz_MC",trkstartz_MC,"trkstartz_MC[nMCParticles]/D");
+  fTree->Branch("trkendx_MC",trkendx_MC,"trkendx_MC[nMCParticles]/D");
+  fTree->Branch("trkendy_MC",trkendy_MC,"trkendy_MC[nMCParticles]/D");
+  fTree->Branch("trkendz_MC",trkendz_MC,"trkendz_MC[nMCParticles]/D");
+  fTree->Branch("trkmom_MC",trkmom_MC,"trkmom_MC[nMCParticles]/D");
+  fTree->Branch("trkmom_XMC",trkmom_XMC,"trkmom_XMC[nMCParticles]/D");
+  fTree->Branch("trkmom_YMC",trkmom_YMC,"trkmom_YMC[nMCParticles]/D");
+  fTree->Branch("trkmom_ZMC",trkmom_ZMC,"trkmom_ZMC[nMCParticles]/D");
+  fTree->Branch("trkstartdoc_XMC",trkstartdoc_XMC,"trkstartdoc_XMC[nMCParticles]/D");
+  fTree->Branch("trkstartdoc_YMC",trkstartdoc_YMC,"trkstartdoc_YMC[nMCParticles]/D");
+  fTree->Branch("trkstartdoc_ZMC",trkstartdoc_ZMC,"trkstartdoc_ZMC[nMCParticles]/D");
+  fTree->Branch("mcpos_x",&mcpos_x,"mcpos_x[nMCParticles]/D");
+  fTree->Branch("mcpos_y",&mcpos_y,"mcpos_y[nMCParticles]/D");
+  fTree->Branch("mcpos_z",&mcpos_z,"mcpos_z[nMCParticles]/D"); 
+  fTree->Branch("mcang_x",&mcang_x,"mcang_x[nMCParticles]/D");
+  fTree->Branch("mcang_y",&mcang_y,"mcang_y[nMCParticles]/D");
+  fTree->Branch("mcang_z",&mcang_z,"mcang_z[nMCParticles]/D");
+  fTree->Branch("trktheta_xz_MC",trktheta_xz_MC,"trktheta_xz_MC[nMCParticles]/D");
+  fTree->Branch("trktheta_yz_MC",trktheta_yz_MC,"trktheta_yz_MC[nMCParticles]/D");
+  fTree->Branch("trktheta_MC",trktheta_MC,"trktheta_MC[nMCParticles]/D");
+  fTree->Branch("trkphi_MC",trkphi_MC,"trkphi_MC[nMCParticles]/D");
+  fTree->Branch("trketa_xy_MC",trketa_xy_MC,"trketa_xy_MC[nMCParticles]/D");
+  fTree->Branch("trketa_zy_MC",trketa_zy_MC,"trketa_zy_MC[nMCParticles]/D");
+  fTree->Branch("trkdedx_MC",trkdedx_MC,"trkdedx_MC[nMCParticles]/D");
+  fTree->Branch("trkdq_MC",trkdq_MC,"trkdq_MC[nMCParticles]/D");
+  fTree->Branch("trklen_MC",trklen_MC,"trklen_MC[nMCParticles]/D");
+  fTree->Branch("trklen_cut_MC",trklen_cut_MC,"trklen_cut_MC[nMCParticles]/D");
+ 
   fTree->Branch("nhits",&nhits,"nhits/I");
   fTree->Branch("nclust",&nclust,"nclust/I");
-
   fTree->Branch("hit_plane",hit_plane,"hit_plane[nhits]/I");
   fTree->Branch("hit_tpc",hit_tpc,"hit_tpc[nhits]/I");
   fTree->Branch("hit_wire",hit_wire,"hit_wire[nhits]/I");
@@ -1145,14 +1108,7 @@ void AnaTree::AnaTree::ResetVars(){
   }
   t0 = -99999;
   ntracks_reco = -99999;
-  mcang_x = -99999;
-  mcang_y = -99999;
-  mcang_z = -99999;
-
-  mcpos_x = -99999;
-  mcpos_y = -99999;
-  mcpos_z = -99999;
-
+  nMCParticles = -99999;
 
   for (int i = 0; i < kMaxTrack; ++i){
     trkstartx[i] = -99999;
@@ -1177,6 +1133,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkstartdoc_YMC[i] = -99999;
     trkstartdoc_ZMC[i] = -99999;
     trkpdg_MC[i] = -99999;
+    trkPrimary_MC[i] = 0;
     trkd2[i] = -99999;
     trkcolin[i] = -99999;
     trktheta_xz_MC[i] = -99999;
@@ -1192,7 +1149,13 @@ void AnaTree::AnaTree::ResetVars(){
     trketa_zy[i] = -99999;
     trktheta[i] = -99999;
     trkphi[i] = -99999;
-    
+    mcpos_x[i] = -99999;
+    mcpos_y[i] = -99999;
+    mcpos_z[i] = -99999;
+    mcang_x[i] = -99999;
+    mcang_y[i] = -99999;
+    mcang_z[i] = -99999;
+
     for(int ii=0;ii<3;ii++)
       {
     trkkinE[i][ii] = -99999;
@@ -1206,7 +1169,6 @@ void AnaTree::AnaTree::ResetVars(){
 	    trkresrg[i][ii][k] = -99999;
 	  }
       }
-    trkdedx[i] = -99999;
     trkdedx_MC[i] = -99999;
     trkdq_MC[i] = -99999;
 
