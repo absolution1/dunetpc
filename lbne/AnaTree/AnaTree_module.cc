@@ -63,7 +63,7 @@
 
 const int kMaxTrack      = 1000;  //maximum number of tracks
 const int kMaxHits       = 10000; //maximum number of hits
-const int kMaxClust       = 10000; //maximum number of clusters
+const int kMaxClust      = 10000; //maximum number of clusters
 const int kMaxTrackHits  = 1000;  //maximum number of space points
 
 namespace AnaTree {
@@ -196,7 +196,7 @@ private:
   double trkendz[kMaxTrack];
 
   int nMCParticles;
- double trkstartx_MC[kMaxTrack];
+  double trkstartx_MC[kMaxTrack];
   double trkstarty_MC[kMaxTrack];
   double trkstartz_MC[kMaxTrack];
   double trkendx_MC[kMaxTrack];
@@ -391,6 +391,9 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 
   art::FindManyP<recob::SpacePoint> fmsp(trackListHandle, evt, fTrackModuleLabel);
   art::FindMany<recob::Track>       fmtk(hitListHandle, evt, fTrackModuleLabel);
+
+  art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
+
   //track information
   ntracks_reco=tracklist.size();
 
@@ -436,7 +439,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // *********************
   // *********************
   
-  for(size_t i=0; i<tracklist.size();++i){
+  for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
     
     trkid[i]=i;
     trackStart.clear();
@@ -546,7 +549,6 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     //
     //
     
-    art::FindMany<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
     if (fmcal.isValid()){
       std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
       //std::cout<<"calo size "<<calos.size()<<std::endl;
@@ -600,7 +602,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     const   sim::ParticleList& ppplist=bktrk->ParticleList();
     std::vector<const simb::MCParticle*> plist2;
     plist2.reserve(ppplist.size());
-
+    
     art::Ptr<recob::Track> ptrack(trackh, i);
     const recob::Track& track = *ptrack;
     //trklenratio[i] = length(track)/plen;
@@ -641,23 +643,23 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     TVector3 mcmomltemp=rot * startmom;
     trkcolin[i]=mcmomltemp.Z()/mcmomltemp.Mag();
     */
-        double recotime = 0.;
-        double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
-        // Fill histograms involving reco tracks only.
-        int ntraj = track.NumberTrajectoryPoints();
-        if(ntraj > 0) {
-          TVector3 pos = track.Vertex();
-          TVector3 dir = track.VertexDirection();
-          TVector3 end = track.End();
-          pos[0] += trackdx;
-          end[0] += trackdx;
-	  trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
-	  trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
- 	  trketa_xy[i] = std::atan2(dir.X(), dir.Y());
- 	  trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
- 	  trktheta[i]=dir.Theta();
- 	  trkphi[i]=dir.Phi();
-	}
+    double recotime = 0.;
+    double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
+    // Fill histograms involving reco tracks only.
+    int ntraj = track.NumberTrajectoryPoints();
+    if(ntraj > 0) {
+      TVector3 pos = track.Vertex();
+      TVector3 dir = track.VertexDirection();
+      TVector3 end = track.End();
+      pos[0] += trackdx;
+      end[0] += trackdx;
+      trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
+      trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
+      trketa_xy[i] = std::atan2(dir.X(), dir.Y());
+      trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
+      trktheta[i]=dir.Theta();
+      trkphi[i]=dir.Phi();
+    }
   }
   
   // -----------------------------------------------
@@ -671,7 +673,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 
   nhits = hitlist.size();
   nclust=clusterlist.size();
-  for (size_t i = 0; i<hitlist.size(); ++i){
+  for (int i = 0; i<std::min(int(hitlist.size()),kMaxHits); ++i){
     unsigned int channel = hitlist[i]->Channel();
     geo::WireID wireid = hitlist[i]->WireID();
     hit_tpc[i]     =wireid.TPC;
@@ -685,7 +687,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       hit_trkid[i] = fmtk.at(i)[0]->ID();
     }
   }
-
+  
   // -----------------------------------------------
   // NOW DO ALL THE MONTE CARLO TRUTH STUFF.......
   // -----------------------------------------------
@@ -884,7 +886,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     trkmatchdisp[i]=abs( std::sqrt(u0*u0 + v0*v0));
     */
 
-      ++i;
+    ++i;
+    if (i == kMaxTrack) break;
       //} // particle loop done 
     //////////////////////
     /////////////  End of Extra Test
@@ -984,6 +987,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // FINALLLY Fill Tree:
   // -------------------------------------------
   fTree->Fill();
+
 }
 
 
