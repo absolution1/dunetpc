@@ -32,6 +32,9 @@ extern "C" {
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+// art extensions
+#include "artextensions/SeedService/SeedService.hh"
+
 #include "Utilities/LArFFT.h"
 #include "RawData/raw.h"
 #include "Utilities/LArProperties.h"
@@ -42,7 +45,6 @@ extern "C" {
 #include "Simulation/SimChannel.h"
 #include "RawData/RawDigit.h"
 #include "Utilities/DetectorProperties.h"
-#include "Utilities/FetchRandomSeed.h"
 
 #include "TMath.h"
 #include "TComplex.h"
@@ -127,11 +129,11 @@ namespace detsim {
     if(compression.Contains("Huffman",TString::kIgnoreCase)) fCompression = raw::kHuffman;    
     if(compression.Contains("ZeroSuppression",TString::kIgnoreCase)) fCompression = raw::kZeroSuppression;
 
-    // obtain the random seeds from a service,
+    // create a default random engine; obtain the random seed from SeedService,
     // unless overridden in configuration with key "Seed"
-    const unsigned int seed = lar::util::FetchRandomSeed(&pset);
-
-    createEngine(seed);
+    art::ServiceHandle<artext::SeedService>()
+      ->createEngine(*this, pset, "Seed");
+    
   }
 
   //-------------------------------------------------
