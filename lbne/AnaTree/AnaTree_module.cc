@@ -241,6 +241,9 @@ private:
   double trkTPC[kMaxTrack][3][1000];
   double trkplaneid[kMaxTrack][3][1000];
   double trkresrg[kMaxTrack][3][1000];
+  double trkPosx[kMaxTrack][3][1000];
+  double trkPosy[kMaxTrack][3][1000];
+  double trkPosz[kMaxTrack][3][1000]; 
   double trkdedx_MC[kMaxTrack];
   double trkdq_MC[kMaxTrack];
   double mcang_x[kMaxTrack];
@@ -265,6 +268,7 @@ private:
   double trkx[kMaxTrack][kMaxTrackHits];
   double trky[kMaxTrack][kMaxTrackHits];
   double trkz[kMaxTrack][kMaxTrackHits];
+  
   double trkpitch[kMaxTrack][3];
   int    nhits;
   int nclust;
@@ -566,7 +570,11 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkpitchHit[i][jj][k]  = (calos[jj] -> TrkPitchVec())[k];   	    
 	  trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
 	  trkTPC[i][jj][k]    =(calos[jj]->PlaneID()).TPC;
-	  trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;	   
+	  trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;	 
+
+	  trkPosx[i][jj][k]    = (calos[jj]->XYZ())[k].x();
+	  trkPosy[i][jj][k]    = (calos[jj]->XYZ())[k].y();
+	  trkPosz[i][jj][k]    = (calos[jj]->XYZ())[k].z();
 	  
 	  //            trkxyz[it1][i][j][k][0] = (calos[jj] -> XYZ())[k].X();
 	  //            trkxyz[it1][i][j][k][1] = (calos[jj] -> XYZ())[k].Y();
@@ -726,120 +734,120 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     
     
     //for (auto const& particle: particles2 ) {
-      //        int Ndaughters = particle->NumberDaughters();
-      //        vector<int> daughters;
-      //        for (int i=0; i<Ndaughters; i++) {
-      //            daughters.push_back(particle->Daughter(i));
-      //        }
-      //        fMC_daughters.push_back(daughters);
-      size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
-      trkpdg_MC[i]=particle->PdgCode();
-      if (particle->Process() == "primary" ) trkPrimary_MC[i] = 1;
-      else trkPrimary_MC[i] = 0;
-      
-      
-      //int trackID=particle->TrackId();
-      
-      /*
+    //        int Ndaughters = particle->NumberDaughters();
+    //        vector<int> daughters;
+    //        for (int i=0; i<Ndaughters; i++) {
+    //            daughters.push_back(particle->Daughter(i));
+    //        }
+    //        fMC_daughters.push_back(daughters);
+    size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
+    trkpdg_MC[i]=particle->PdgCode();
+    if (particle->Process() == "primary" ) trkPrimary_MC[i] = 1;
+    else trkPrimary_MC[i] = 0;
+    
+    
+    //int trackID=particle->TrackId();
+    
+    /*
       for ( auto const& channel : (*simChannelHandle) ) {
-	auto channelNumber = channel.Channel();
-	if ( fGeometry->SignalType( channelNumber ) == geo::kCollection ) {
-	  auto const& timeSlices = channel.TDCIDEMap();
-	  for ( auto const& timeSlice : timeSlices ) {
-	    auto const& energyDeposits = timeSlice.second;
-	    for ( auto const& energyDeposit : energyDeposits ) {
-	      if ( energyDeposit.trackID == trackID ) {
-			  
-		trkde+=energyDeposit.numElectrons*1./( 1e6/23.6);//MeV
-	      }//TrackID
-	    }//energyDeposit
-	  }//timeSlice
-	}//CollectionPlane
+      auto channelNumber = channel.Channel();
+      if ( fGeometry->SignalType( channelNumber ) == geo::kCollection ) {
+      auto const& timeSlices = channel.TDCIDEMap();
+      for ( auto const& timeSlice : timeSlices ) {
+      auto const& energyDeposits = timeSlice.second;
+      for ( auto const& energyDeposit : energyDeposits ) {
+      if ( energyDeposit.trackID == trackID ) {
+      
+      trkde+=energyDeposit.numElectrons*1./( 1e6/23.6);//MeV
+      }//TrackID
+      }//energyDeposit
+      }//timeSlice
+      }//CollectionPlane
       }//simChannel
       trkdq_MC[i]=trkde*1e6/23.6;//back to q
-      */
-      double origin[3] = {0.};
-      double world[3] = {0.};
-      double xyztArray[4];
-      double cryoBound_pos[3];
-      double cryoBound_neg[3];
-      int c=0;//only one cryo
-      
-      geom->Cryostat(c).LocalToWorld(origin, world);
-      cryoBound_neg[0]=world[0] - geom->Cryostat(c).HalfWidth();
-      cryoBound_neg[1]=world[1] - geom->Cryostat(c).HalfWidth();
-      cryoBound_neg[2]=world[2] - geom->Cryostat(c).HalfWidth();
-      
-      cryoBound_pos[0]=world[0] + geom->Cryostat(c).HalfWidth();
-      cryoBound_pos[1]=world[1] + geom->Cryostat(c).HalfWidth();
-      cryoBound_pos[2]=world[2] + geom->Cryostat(c).HalfWidth();
-      
-      int zz =0;
-      int zz2 =0;
-      bool insideActiveVolume=false;
-      for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
-	const TLorentzVector& tmpPosition=particle->Position(ii);
-	//tmpPosition.GetXYZT(xyztArray);   
-	if((tmpPosition[0]<cryoBound_pos[0]) && (tmpPosition[0]>cryoBound_neg[0])) {
-	  if((tmpPosition[1]<cryoBound_pos[1]) && (tmpPosition[1]>cryoBound_neg[1])) {
-	    if((tmpPosition[2]<cryoBound_pos[2]) && (tmpPosition[2]>cryoBound_neg[2])) {
-	      if (!insideActiveVolume) {
-		zz = ii;
-		//std::cout << "Now particle is in cryostat " << std::endl;
-		insideActiveVolume=true;
-	      }		  
-	      //std::cout << "Temp Pos " << tmpPosition[0] << ", " <<  tmpPosition[1] << ", " <<  tmpPosition[2] << std::endl;
-	      tmpPosition.GetXYZT(xyztArray);
-	      zz2 = ii;
-	    }
+    */
+    double origin[3] = {0.};
+    double world[3] = {0.};
+    double xyztArray[4];
+    double cryoBound_pos[3];
+    double cryoBound_neg[3];
+    int c=0;//only one cryo
+    
+    geom->Cryostat(c).LocalToWorld(origin, world);
+    cryoBound_neg[0]=world[0] - geom->Cryostat(c).HalfWidth();
+    cryoBound_neg[1]=world[1] - geom->Cryostat(c).HalfWidth();
+    cryoBound_neg[2]=world[2] - geom->Cryostat(c).HalfWidth();
+    
+    cryoBound_pos[0]=world[0] + geom->Cryostat(c).HalfWidth();
+    cryoBound_pos[1]=world[1] + geom->Cryostat(c).HalfWidth();
+    cryoBound_pos[2]=world[2] + geom->Cryostat(c).HalfWidth();
+    
+    int zz =0;
+    int zz2 =0;
+    bool insideActiveVolume=false;
+    for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
+      const TLorentzVector& tmpPosition=particle->Position(ii);
+      //tmpPosition.GetXYZT(xyztArray);   
+      if((tmpPosition[0]<cryoBound_pos[0]) && (tmpPosition[0]>cryoBound_neg[0])) {
+	if((tmpPosition[1]<cryoBound_pos[1]) && (tmpPosition[1]>cryoBound_neg[1])) {
+	  if((tmpPosition[2]<cryoBound_pos[2]) && (tmpPosition[2]>cryoBound_neg[2])) {
+	    if (!insideActiveVolume) {
+	      zz = ii;
+	      //std::cout << "Now particle is in cryostat " << std::endl;
+	      insideActiveVolume=true;
+	    }		  
+	    //std::cout << "Temp Pos " << tmpPosition[0] << ", " <<  tmpPosition[1] << ", " <<  tmpPosition[2] << std::endl;
+	    tmpPosition.GetXYZT(xyztArray);
+	    zz2 = ii;
 	  }
 	}
-	
-	if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
       }
       
-      const TLorentzVector& positionStart = particle->Position(zz);
-      TLorentzVector& positionEnd  =( TLorentzVector&)particle->Position(zz2);     
-      //        const TLorentzVector& momentumStart = particle->Momentum(0);
-      //        const TLorentzVector& momentumEnd   = particle->Momentum(last);
-      TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(zz);
-      trkmom_MC[i]=momentumStart.P();
-      trkmom_XMC[i]=momentumStart.Px();
-      trkmom_YMC[i]=momentumStart.Py();
-      trkmom_ZMC[i]=momentumStart.Pz();
-      trkstartdoc_XMC[i]= pow ( (momentumStart.Px()*momentumStart.Px()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
-      trkstartdoc_YMC[i]= pow ( (momentumStart.Py()*momentumStart.Py()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
-      trkstartdoc_ZMC[i]= pow ( (momentumStart.Pz()*momentumStart.Pz()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
-      if ( trkmom_XMC[i] < 0 ) trkstartdoc_XMC[i] = -trkstartdoc_XMC[i];
-      if ( trkmom_YMC[i] < 0 ) trkstartdoc_YMC[i] = -trkstartdoc_YMC[i];
-      if ( trkmom_ZMC[i] < 0 ) trkstartdoc_ZMC[i] = -trkstartdoc_ZMC[i];
-      positionStart.GetXYZT(fMC_startXYZT[i]);
-      positionEnd.GetXYZT(fMC_endXYZT[i]);
-      trkstartx_MC[i]=fMC_startXYZT[i][0];
-      trkstarty_MC[i]=fMC_startXYZT[i][1];
-      trkstartz_MC[i]=fMC_startXYZT[i][2];
-      trkendx_MC[i]=fMC_endXYZT[i][0];
-      trkendy_MC[i]=fMC_endXYZT[i][1];
-      trkendz_MC[i]=fMC_endXYZT[i][2];
-      tmpVec= positionEnd-positionStart;
-      trklen_MC[i]=(positionEnd-positionStart).Rho();
-      double mctime = particle->T();                                 // nsec
-      double mcdx = mctime * 1.e-3 * larprop->DriftVelocity();   // cm
-      // Calculate the points where this mc particle enters and leaves the
-      // fiducial volume, and the length in the fiducial volume.
-      TVector3 mcstart;
-      TVector3 mcend;
-      TVector3 mcstartmom;
-      TVector3 mcendmom;
-      double plen = length(*particle, mcdx, mcstart, mcend, mcstartmom, mcendmom);
-      trklen_cut_MC[i]=plen;
-      //trkdedx_MC[i]=trkde/trklen_cut_MC[i];
-      //        momentumStart.GetXYZT(fMC_startMomentum[i]);
-      //        momentumEnd.GetXYZT(fMC_endMomentum[i]);
-
-      // Calculate the points where this mc particle enters and leaves the
-      // fiducial volume, and the length in the fiducial volume.
-
+      if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
+    }
+    
+    const TLorentzVector& positionStart = particle->Position(zz);
+    TLorentzVector& positionEnd  =( TLorentzVector&)particle->Position(zz2);     
+    //        const TLorentzVector& momentumStart = particle->Momentum(0);
+    //        const TLorentzVector& momentumEnd   = particle->Momentum(last);
+    TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(zz);
+    trkmom_MC[i]=momentumStart.P();
+    trkmom_XMC[i]=momentumStart.Px();
+    trkmom_YMC[i]=momentumStart.Py();
+    trkmom_ZMC[i]=momentumStart.Pz();
+    trkstartdoc_XMC[i]= pow ( (momentumStart.Px()*momentumStart.Px()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
+    trkstartdoc_YMC[i]= pow ( (momentumStart.Py()*momentumStart.Py()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
+    trkstartdoc_ZMC[i]= pow ( (momentumStart.Pz()*momentumStart.Pz()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
+    if ( trkmom_XMC[i] < 0 ) trkstartdoc_XMC[i] = -trkstartdoc_XMC[i];
+    if ( trkmom_YMC[i] < 0 ) trkstartdoc_YMC[i] = -trkstartdoc_YMC[i];
+    if ( trkmom_ZMC[i] < 0 ) trkstartdoc_ZMC[i] = -trkstartdoc_ZMC[i];
+    positionStart.GetXYZT(fMC_startXYZT[i]);
+    positionEnd.GetXYZT(fMC_endXYZT[i]);
+    trkstartx_MC[i]=fMC_startXYZT[i][0];
+    trkstarty_MC[i]=fMC_startXYZT[i][1];
+    trkstartz_MC[i]=fMC_startXYZT[i][2];
+    trkendx_MC[i]=fMC_endXYZT[i][0];
+    trkendy_MC[i]=fMC_endXYZT[i][1];
+    trkendz_MC[i]=fMC_endXYZT[i][2];
+    tmpVec= positionEnd-positionStart;
+    trklen_MC[i]=(positionEnd-positionStart).Rho();
+    double mctime = particle->T();                                 // nsec
+    double mcdx = mctime * 1.e-3 * larprop->DriftVelocity();   // cm
+    // Calculate the points where this mc particle enters and leaves the
+    // fiducial volume, and the length in the fiducial volume.
+    TVector3 mcstart;
+    TVector3 mcend;
+    TVector3 mcstartmom;
+    TVector3 mcendmom;
+    double plen = length(*particle, mcdx, mcstart, mcend, mcstartmom, mcendmom);
+    trklen_cut_MC[i]=plen;
+    //trkdedx_MC[i]=trkde/trklen_cut_MC[i];
+    //        momentumStart.GetXYZT(fMC_startMomentum[i]);
+    //        momentumEnd.GetXYZT(fMC_endMomentum[i]);
+    
+    // Calculate the points where this mc particle enters and leaves the
+    // fiducial volume, and the length in the fiducial volume.
+    
     // Get the displacement of this mc particle in the global coordinate system.
     //  TVector3 mcpos = mcstart - pos;
     //TVector3 mcpos = pos -mcstart ;
@@ -858,128 +866,110 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     trkphi_MC[i]=mcstartmom.Phi();
     
     /*
-    trkcolinearity[i] = mcmoml.Z() / mcmoml.Mag();
-    double u = mcposl.X();
-    double v = mcposl.Y();
-    double w = mcposl.Z();
-    trkwmatchdisp[i]=w;
-    std::cout << "++++++" << std::endl;
-    std::cout << "w " << w << std::endl;
-    std::cout << "trkcolinearity  " << trkcolinearity[i] << std::endl;
-    std::cout << "plen  " << plen << std::endl;
-    std::cout << "mcstartmom mag  " << mcstartmom.Mag() << std::endl;
-    
-    std::cout << "++++++" << std::endl;
-    
-    double pu = mcmoml.X();
-    double pv = mcmoml.Y();
-    double pw = mcmoml.Z();
-    double dudw = pu / pw;
-    double dvdw = pv / pw;
-    std::cout << "pu  "<<pu << "pv  " << pv << std::endl;
-    std::cout << "pw  "<<pw  << std::endl;
-    
-    std::cout << "u  "<<u << "v  " << v << std::endl; 
-    
-    double u0 = u - w * dudw;
-    double v0 = v - w * dvdw;
-    trkmatchdisp[i]=abs( std::sqrt(u0*u0 + v0*v0));
+      trkcolinearity[i] = mcmoml.Z() / mcmoml.Mag();
+      double u = mcposl.X();
+      double v = mcposl.Y();
+      double w = mcposl.Z();
+      trkwmatchdisp[i]=w;
+      std::cout << "++++++" << std::endl;
+      std::cout << "w " << w << std::endl;
+      std::cout << "trkcolinearity  " << trkcolinearity[i] << std::endl;
+      std::cout << "plen  " << plen << std::endl;
+      std::cout << "mcstartmom mag  " << mcstartmom.Mag() << std::endl;
+      
+      std::cout << "++++++" << std::endl;
+      
+      double pu = mcmoml.X();
+      double pv = mcmoml.Y();
+      double pw = mcmoml.Z();
+      double dudw = pu / pw;
+      double dvdw = pv / pw;
+      std::cout << "pu  "<<pu << "pv  " << pv << std::endl;
+      std::cout << "pw  "<<pw  << std::endl;
+      
+      std::cout << "u  "<<u << "v  " << v << std::endl; 
+      
+      double u0 = u - w * dudw;
+      double v0 = v - w * dvdw;
+      trkmatchdisp[i]=abs( std::sqrt(u0*u0 + v0*v0));
     */
-
+    
     ++i;
     if (i == kMaxTrack) break;
-      //} // particle loop done 
-    //////////////////////
-    /////////////  End of Extra Test
-    //////
-    ////////////////////
+    //} // particle loop done 
+   
+    // **********************
+    //  Histograms:
+    // *********************
     
+    // 
+    //  Not any more
+    // *********************
     
- 
-
-
+    /*  art::ServiceHandle<cheat::BackTracker> bt2;
+	const   sim::ParticleList& pplist=bt2->ParticleList();
+	std::vector<const simb::MCParticle*> plist2;
+	plist2.reserve(pplist.size());*/
     
-
-
-
-
-  // **********************
-  // **********************
-  //
-  //  Histograms:
-  //
-  //
-  //
-  // *********************
-  // *********************
- 
-  // 
-  //  Not any more
-  // *********************
-
-  /*  art::ServiceHandle<cheat::BackTracker> bt2;
-  const   sim::ParticleList& pplist=bt2->ParticleList();
-  std::vector<const simb::MCParticle*> plist2;
-  plist2.reserve(pplist.size());*/
-
-  //    art::Handle< std::vector<recob::Track> > trackh;
-  //    evt.getByLabel(fTrackModuleLabel, trackh);
+    //    art::Handle< std::vector<recob::Track> > trackh;
+    //    evt.getByLabel(fTrackModuleLabel, trackh);
     /* 
        if(!trackh.isValid()) continue;
        unsigned int ntrack = trackh->size();
        for(unsigned int i = 0; i < ntrack; ++i) {
        
-    art::Ptr<recob::Track> ptrack(trackh, i);
-    art::FindMany<recob::Hit>       fmhit(trackListHandle, evt, fTrackModuleLabel);
-    std::vector<const recob::Hit*> hits = fmhit.at(i);
-
-    //
-    // Trick learned from the newest TrackAna
-    // Extract hits associated with this track.
-    art::FindManyP<recob::Hit> tkhit_find(trackh, evt, fTrackModuleLabel);
-    std::vector<art::Ptr<recob::Hit> > trackhits;
-    tkhit_find.get(i, trackhits);
-    //
-    //
-
-    const recob::Track& track = *ptrack;
+       art::Ptr<recob::Track> ptrack(trackh, i);
+       art::FindMany<recob::Hit>       fmhit(trackListHandle, evt, fTrackModuleLabel);
+       std::vector<const recob::Hit*> hits = fmhit.at(i);
+       
+       //
+       // Trick learned from the newest TrackAna
+       // Extract hits associated with this track.
+       art::FindManyP<recob::Hit> tkhit_find(trackh, evt, fTrackModuleLabel);
+       std::vector<art::Ptr<recob::Hit> > trackhits;
+       tkhit_find.get(i, trackhits);
+       //
+       //
+       
+       const recob::Track& track = *ptrack;
     */
     /*auto pcoll{ptrack};
-	art::FindManyP<recob::SpacePoint> fs(pcoll, evt, fTrkSpptAssocModuleLabel);
-	auto sppt = fs.at(0);
-	art::FindManyP<recob::Hit> fh(sppt, evt, fHitSpptAssocModuleLabel);*/
-        ////
-        ///              figuring out which TPC
-        ///
-        ///
-        //
-        //        auto pcoll { ptrack };
-        //art::FindManyP<recob::SpacePoint> fs( pcoll, evt, fTrkSpptAssocModuleLabel);
-        //        auto sppt = fs.at(0);//.at(is);
-        //        art::FindManyP<recob::Hit> fh( sppt, evt, fHitSpptAssocModuleLabel);
-	//	auto hit = fh.at(0).at(0);
-                                 	//auto hit = fmhit.at(0).at(0);
-	/*	for(int ii=0;ii<hitlist->size())
-	  {
-
-	  }
+      art::FindManyP<recob::SpacePoint> fs(pcoll, evt, fTrkSpptAssocModuleLabel);
+      auto sppt = fs.at(0);
+      art::FindManyP<recob::Hit> fh(sppt, evt, fHitSpptAssocModuleLabel);*/
+    ////
+    ///              figuring out which TPC
+    ///
+    ///
+    //
+    //        auto pcoll { ptrack };
+    //art::FindManyP<recob::SpacePoint> fs( pcoll, evt, fTrkSpptAssocModuleLabel);
+    //        auto sppt = fs.at(0);//.at(is);
+    //        art::FindManyP<recob::Hit> fh( sppt, evt, fHitSpptAssocModuleLabel);
+    //	auto hit = fh.at(0).at(0);
+    //auto hit = fmhit.at(0).at(0);
+    /*	for(int ii=0;ii<hitlist->size())
+	{
+	
+	}
 	hit_trkid[i] = fmtk.at(i)[0]->ID();
 	int hit_ttpc=-1;
 	if(hits.size()!=0)
-	  {
-	    geo::WireID tmpWireid=hits.at(0)->WireID();
-	    hit_ttpc=tmpWireid.TPC;
-	    }
-	  else hit_ttpc=1; */
-
-        /*        art::Handle< std::vector<recob::Hit> > hitListHandle;
-        std::vector<art::Ptr<recob::Hit> > hitlist;
-        if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
-        art::fill_ptr_vector(hitlist, hitListHandle);*/
-        // Calculate the x offset due to nonzero reconstructed time.
-        //double recotime = track.Time() * detprop->SamplingRate();       // nsec
-
-	  //}
+	{
+	geo::WireID tmpWireid=hits.at(0)->WireID();
+	hit_ttpc=tmpWireid.TPC;
+	}
+	else hit_ttpc=1; */
+    
+    /*  art::Handle< std::vector<recob::Hit> > hitListHandle;
+	std::vector<art::Ptr<recob::Hit> > hitlist;
+	if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
+	art::fill_ptr_vector(hitlist, hitListHandle);
+    */
+    // Calculate the x offset due to nonzero reconstructed time.
+    //double recotime = track.Time() * detprop->SamplingRate();       // nsec
+    
+    //}
     //}
   }// ipar
   nMCParticles = i;
@@ -987,7 +977,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // FINALLLY Fill Tree:
   // -------------------------------------------
   fTree->Fill();
-
+  
 }
 
 
@@ -1040,6 +1030,9 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkTPC",trkTPC,"trkTPC[ntracks_reco][3][1000]/D");
   fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
   fTree->Branch("trkresrg",trkresrg,"trkresrg[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkPosx",trkPosx,"trky[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkPosy",trkPosy,"trky[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkPosz",trkPosz,"trky[ntracks_reco][3][1000]/D");
   fTree->Branch("trklen",trklen,"trklen[ntracks_reco]/D");
   fTree->Branch("trklen_L",trklen_L,"trklen_L[ntracks_reco]/D");
   fTree->Branch("trkcolinearity",trkcolinearity,"trkcolinearity[ntracks_reco]/D");
@@ -1162,7 +1155,7 @@ void AnaTree::AnaTree::ResetVars(){
 
     for(int ii=0;ii<3;ii++)
       {
-    trkkinE[i][ii] = -99999;
+	trkkinE[i][ii] = -99999;
 	for(int k=0;k<1000;k++)
 	  {
 	    trkdedx2[i][ii][k] = -99999;
@@ -1171,6 +1164,9 @@ void AnaTree::AnaTree::ResetVars(){
 	    trkTPC[i][ii][k] = -99999;
 	    trkplaneid[i][ii][k] = -99999;
 	    trkresrg[i][ii][k] = -99999;
+	    trkPosx[i][ii][k]  = -99999;
+	    trkPosy[i][ii][k]  = -99999;
+	    trkPosz[i][ii][k]  = -99999;
 	  }
       }
     trkdedx_MC[i] = -99999;
