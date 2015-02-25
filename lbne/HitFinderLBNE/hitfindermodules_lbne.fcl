@@ -38,9 +38,11 @@ lbne35t_gaushitfinder:    @local::gaus_hitfinder
 lbne35t_apahitfinder:     @local::apa_hitfinder
 lbne35t_hitcheater:	  @local::standard_hitcheater
 
-lbne35t_gaushitfinder.IndMinWidth: 1.0
-lbne35t_gaushitfinder.ColMinWidth: 1.0
-
+#lbne35t_gaushitfinder.IndMinWidth: 1.0
+#lbne35t_gaushitfinder.ColMinWidth: 1.0
+lbne35t_gaushitfinder.MinWidth: [1.0, 1.0, 1.0]
+lbne35t_gaushitfinder.InitWidth: [6.0, 6.0, 7.8]
+lbne35t_gaushitfinder.AreaNorms: [13.25, 13.25, 16.31]
 lbne35t_disambigalg:
 {
     TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
