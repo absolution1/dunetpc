@@ -9,6 +9,7 @@ art_make( BASENAME_ONLY
 			RawData
                         SignalShapingServiceLBNE10kt_service
 			SignalShapingServiceLBNE35t_service
+                        ${SEEDSERVICE_SERVICE} # artextensions
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
