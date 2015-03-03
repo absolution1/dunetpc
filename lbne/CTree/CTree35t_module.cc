@@ -21,6 +21,7 @@
 #include "SimulationBase/MCTruth.h"
 #include "SimpleTypesAndConstants/geo_types.h"
 #include "RawData/raw.h"
+#include "RawData/RawDigit.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -547,7 +548,7 @@ void CTree35t::processRaw( const art::Event& event )
         int pedstal = hit->GetPedestal(); // should be 0 as of 2/25
 
         std::vector<short> uncompressed(nSamples);
-        raw::Uncompress(hit->fADC, uncompressed, hit->Compression());
+        raw::Uncompress(hit->ADCs(), uncompressed, hit->Compression());
         // uncompressed size is 3200 samples per waveform
         short thresh = pedstal + 1; // threshold set to 1 adc;
         bool isHit = false;
@@ -725,7 +726,7 @@ void CTree35t::processHits( const art::Event& event )
     for (int i=0; i<no_hits; i++) {
         art::Ptr<recob::Hit> hit = hitlist[i];
         hit_channel[i] = hit->Channel();
-        hit_charge[i] = hit->Charge();
+        hit_charge[i] = hit->Integral();
         hit_peakT[i] = hit->PeakTime();        
     }
 }
