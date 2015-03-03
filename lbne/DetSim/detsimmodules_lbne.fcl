@@ -21,7 +21,7 @@ lbnefd_simwire:
  NoiseArrayPoints:   "1000"     #number of points in noise array
  NoiseOn:            "0"        #1 for noise on, 0 for noise off
 
- SimCombs:           true
+ SimCombs:           false
 
 # random initial guesses for charge inefficiency and wrong-type collection on the induction-plane wires
 
