@@ -1,8 +1,8 @@
 //=========================================================
 // OpDetDigitizerLBNE_module.cc
 // This module produces digitized output 
-// (OpDetPulses now, OpticalRawDigit in the near future)
-// from photon detectors taking SimPhotons as input.
+// (creating OpticalRawDigits)
+// from photon detectors taking SimPhotonsLite as input.
 //
 // Gleb Sinev, Duke, 2015
 // Based on OpMCDigi_module.cc
@@ -20,6 +20,9 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 //#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "fhiclcpp/ParameterSet.h"
+
+// ART extensions
+//#include "artextensions/SeedService/SeedService.hh"
 
 // LArSoft includes
 
