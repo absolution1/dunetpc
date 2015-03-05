@@ -168,12 +168,12 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
     //Each channel is uniquely identified by (fragmentID, group, sample) in an online event
     
     unsigned int fragmentID = UnpackFragment::getFragIDForChan(chan);
-    unsigned int group = UnpackFragment::getNanoSliceGroupForChan(chan);
+    //unsigned int group = UnpackFragment::getNanoSliceGroupForChan(chan); <// No longer using group
     unsigned int sample = UnpackFragment::getNanoSliceSampleForChan(chan);
 
     std::cout << "channel: " << chan
 	      << "\tfragment: " << fragmentID
-	      << "\tgroup: " << group
+        //<< "\tgroup: " << group
 	      << "\tsample: " << sample
 	      << std::endl;
 
@@ -206,7 +206,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
       auto numNanoSlices = microSlice->nanoSliceCount();
 
       for(uint32_t i_nano=0; i_nano < numNanoSlices; i_nano++){
-	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice = microSlice->nanoSlice(group,i_nano);
+	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice = microSlice->nanoSlice(i_nano);
 	
 	uint16_t val = std::numeric_limits<uint16_t>::max();
 	bool success = nanoSlice->sampleValue(sample, val);
