@@ -16,6 +16,8 @@ lbnefd_opdetresponse:
    WavelengthCutHigh:       10000
    LightGuideAttenuation:   true
 
+   LongAxis:                z
+   
    # Convert geometry to readout channels
    # when reading in fast simulation
    ChannelConversion:       fast
@@ -29,7 +31,7 @@ lbne35t_opdigiproperties.UseEmpiricalShape: true
 lbne35t_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
 
 lbne35t_opdetresponse: @local::lbnefd_opdetresponse
-
+lbne35t_opdetresponse.LongAxis: y
 
 
 END_PROLOG
