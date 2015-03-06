@@ -8,7 +8,7 @@
 #ifndef LBNE_35T_TRANSFORMATION_PLUGIN_H
 #define LBNE_35T_TRANSFORMATION_PLUGIN_H 1
 
-#include "LArPandoraAlgorithms/LArPlugins/LArRotationalTransformationPlugin.h"
+#include "LArPlugins/LArRotationalTransformationPlugin.h"
 
 namespace lar_pandora
 {

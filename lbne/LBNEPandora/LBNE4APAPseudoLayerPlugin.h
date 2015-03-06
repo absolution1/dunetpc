@@ -8,7 +8,7 @@
 #ifndef LBNE_4APA_PSEUDO_LAYER_PLUGIN_H
 #define LBNE_4APA_PSEUDO_LAYER_PLUGIN_H 1
 
-#include "LArPandoraAlgorithms/LArPlugins/LArPseudoLayerPlugin.h"
+#include "LArPlugins/LArPseudoLayerPlugin.h"
 
 namespace lar_pandora
 {
