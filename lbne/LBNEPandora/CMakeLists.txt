@@ -6,8 +6,8 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories( $ENV{PANDORA_INC} )
 include_directories( $ENV{PANDORA_FQ_DIR}/PandoraSDK/include )
 include_directories( $ENV{PANDORA_FQ_DIR}/PandoraMonitoring/include )
-include_directories( $ENV{LARPANDORA_DIR}/LArPandoraAlgorithms )
-include_directories( $ENV{LARPANDORA_DIR}/LArPandoraInterface )
+include_directories( $ENV{LARPANDORA_INC}/LArPandoraAlgorithms )
+include_directories( $ENV{LARPANDORA_INC}/LArPandoraInterface )
 
 art_make( BASENAME_ONLY
           LIBRARY_NAME  LBNEPandora
