@@ -1,8 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 //
-// SimWireLBNE10kt class designed to simulate signal on a wire in the TPC
+// SimWireLBNE35t class designed to simulate signal on a wire in the TPC
 //
-// katori@fnal.gov
 //
 // jti3@fnal.gov
 // - Revised to use sim::RawDigit instead of rawdata::RawDigit, and to
@@ -59,6 +58,13 @@ extern "C" {
 ///Detector simulation of raw signals on wires
 namespace detsim {
 
+  // tye used for passing messages for simulating gaps
+
+    typedef enum {
+      NONACTIVE, UCOMB, VCOMB, ACTIVE, HORIZGAP, VERTGAP
+    } GapType_t;
+
+
   // Base class for creation of raw signals on wires. 
   class SimWireLBNE35t : public art::EDProducer {
     
@@ -108,6 +114,35 @@ namespace detsim {
     
     TH1D*                fNoiseDist;          ///< distribution of noise counts
 
+    // variables for simulating the charge deposition in gaps and charge drifting over the comb materials.
+
+    uint32_t               fFirstCollectionChannel;
+
+    // input fcl parameters
+
+    bool                   fSimCombs;          // switch for simulation of the combs
+    float                  fFractUUCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding U wires
+    float                  fFractUVCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding V wires
+    float                  fFractVUCollect;    // fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding U wires
+    float                  fFractVVCollect;    // fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding V wires
+    float                  fFractUUMiss;       // fraction of charge that gets missed on U when charge drifts over the comb holding U
+    float                  fFractUVMiss;       // fraction of charge that gets missed on U when charge drifts over the comb holding V
+    float                  fFractVUMiss;       // fraction of charge that gets missed on V when charge drifts over the comb holding U
+    float                  fFractVVMiss;       // fraction of charge that gets missed on V when charge drifts over the comb holding V
+    float                  fFractHorizGapMiss;     // fraction of charge in the horizontal gap that is missing
+    float                  fFractVertGapMiss;     // fraction of charge in the horizontal gaps that is missing
+
+    // boundaries of the combs -- cached here for speed
+
+    double zcomb1,zcomb2,zcomb3,zcomb4,zcomb5,zcomb6;
+    double zcomb7,zcomb8,zcomb9,zcomb10,zcomb11,zcomb12;
+    double zcomb13,zcomb14,zcomb15,zcomb16,zcomb17,zcomb18;
+    double ycomb1,ycomb2,ycomb3,ycomb4,ycomb5,ycomb6;
+    double ycomb7,ycomb8,ycomb9,ycomb10,ycomb11,ycomb12;
+    double ycomb13,ycomb14,ycomb15,ycomb16,ycomb17,ycomb18;
+
+    GapType_t combtest35t(double x, double y, double z);
+
   }; // class SimWireLBNE35t
 
   DEFINE_ART_MODULE(SimWireLBNE35t)
@@ -129,11 +164,11 @@ namespace detsim {
     if(compression.Contains("Huffman",TString::kIgnoreCase)) fCompression = raw::kHuffman;    
     if(compression.Contains("ZeroSuppression",TString::kIgnoreCase)) fCompression = raw::kZeroSuppression;
 
-    // create a default random engine; obtain the random seed from SeedService,
-    // unless overridden in configuration with key "Seed"
+// create a default random engine; obtain the random seed from SeedService,
+// unless overridden in configuration with key "Seed"
     art::ServiceHandle<artext::SeedService>()
       ->createEngine(*this, pset, "Seed");
-    
+
   }
 
   //-------------------------------------------------
@@ -177,6 +212,18 @@ namespace detsim {
     fNSamplesReadout  = detprop->ReadOutWindowSize();
     fNTimeSamples  = detprop->NumberTimeSamples();
     
+    fSimCombs            = p.get< bool >("SimCombs");          
+    fFractUUCollect      = p.get< float >("FractUUCollect");
+    fFractUVCollect      = p.get< float >("FractUVCollect");
+    fFractVUCollect      = p.get< float >("FractVUCollect");
+    fFractVVCollect      = p.get< float >("FractVVCollect");
+    fFractUUMiss         = p.get< float >("FractUUMiss");
+    fFractUVMiss         = p.get< float >("FractUVMiss");
+    fFractVUMiss         = p.get< float >("FractVUMiss");
+    fFractVVMiss         = p.get< float >("FractVVMiss");
+    fFractHorizGapMiss  = p.get< float >("FractHorizGapMiss");
+    fFractVertGapMiss   = p.get< float >("FractVertGapMiss");
+
     return;
   }
 
@@ -194,14 +241,30 @@ namespace detsim {
 
     if ( fNTicks%2 != 0 ) 
       LOG_DEBUG("SimWireLBNE35t") << "Warning: FFTSize not a power of 2. "
-				   << "May cause issues in (de)convolution.\n";
+				  << "May cause issues in (de)convolution.\n";
 
     if ( (int)fNSamplesReadout > fNTicks ) 
       mf::LogError("SimWireLBNE35t") << "Cannot have number of readout samples "
-				      << "greater than FFTSize!";
+				     << "greater than FFTSize!";
 
     fChargeWork.resize(fNTicks, 0.);
     art::ServiceHandle<geo::Geometry> geo;
+
+    bool foundfirstcollectionchannel = false;
+    for (uint32_t ichan=0;ichan<geo->Nchannels();ichan++)
+      {
+         const geo::View_t view = geo->View(ichan);
+	 if (view == geo::kZ)
+	   {
+	     foundfirstcollectionchannel = true;
+	     fFirstCollectionChannel = ichan;
+	     break;
+	   }
+      }
+    if (!foundfirstcollectionchannel)
+      {
+	throw  cet::exception("SimWireLBNE35t  BeginJob") << " Could not find any collection channels\n";
+      }
     
     //Generate noise if selected to be on
     if(fNoiseOn){
@@ -244,6 +307,144 @@ namespace detsim {
 	
       }// end loop over wires
     } 
+
+    // initialize the comb test positions.  This is clumsy here mainly due to the irregular geometry
+    // should write something more systematic for the FD.  There is also some duplication as the
+    // vertical positions of APA's 0 and 3 are assumed to be the same.  Could think about either adding
+    // an exception if they're not, or defining more y positions to hold different APA positions if we want
+    // them to be different at a later time.  Simulation may always be perfect though.
+
+    // WireEndPoints takes cryostat, tpc, plane, wire, as ints and returns endpoints
+    //geo->WireEndPoints(c,t,p,w,xyzbeg,xyzend);
+
+    // wire endpoints are at the places where the wire hits the comb that supports it.  Bits of
+    // wire running over the comb are beyond the endpoints.  So we need to extrapolate.
+
+    double xyzbeg[3],xyzend[3];
+
+    // Numbers in comments are from Geometry V3 for debugging purposes.
+
+    // APA 0
+
+    geo->WireEndPoints(0,0,0,0,xyzbeg,xyzend);  // first U wire in TPC 0. 
+    zcomb2 = xyzbeg[2];  // 0.0
+    ycomb5 = xyzend[1];  // 113.142
+
+    geo->WireEndPoints(0,0,0,358,xyzbeg,xyzend);  // last U wire in TPC 0.
+    zcomb5 = xyzend[2];  // 50.8929
+    ycomb2 = xyzbeg[1];  // -82.9389
+
+    geo->WireEndPoints(0,0,1,0,xyzbeg,xyzend);  // first V wire in TPC 0.  
+    zcomb4 = xyzend[2];  //  50.5774
+    ycomb4 = xyzbeg[1];  //  113.142
+
+    geo->WireEndPoints(0,0,1,344,xyzbeg,xyzend);  // last V wire in TPC 0.  
+    zcomb3 = xyzbeg[2];  //  0.3155
+    ycomb3 = xyzend[1];  //  -82.6234
+
+    // the collection wires appear to end where they meet their comb.
+    //geo->WireEndPoints(0,0,2,0,xyzbeg,xyzend);  // first collection wire in TPC 0
+    //ycomb3 = xyzbeg[2];  // -82.308
+    //ycomb4 = xyzend[2];  // 113.142
+
+    // need to get zcomb1, zcomb6, ycomb1, and ycomb6 -- extrapolate
+
+    zcomb1 = zcomb2 - (zcomb3 - zcomb2);
+    zcomb6 = zcomb5 + (zcomb5 - zcomb4);
+    ycomb1 = ycomb2 - (ycomb3 - ycomb2);
+    ycomb6 = ycomb5 + (ycomb5 - ycomb4);
+
+
+    // APA 1
+
+    geo->WireEndPoints(0,2,0,0,xyzbeg,xyzend);  // first U wire in TPC 2. 
+    zcomb11 = xyzend[2];  // 102.817
+    ycomb8 = xyzbeg[1];  // -85.221
+
+    geo->WireEndPoints(0,2,0,194,xyzbeg,xyzend);  // last U wire in TPC 2.
+    zcomb8 = xyzbeg[2];  // 51.924
+    ycomb11 = xyzend[1];  // -0.831
+
+    geo->WireEndPoints(0,2,1,0,xyzbeg,xyzend);  // first V wire in TPC 2.  
+    zcomb9 = xyzbeg[2];  //  52.2395 
+    ycomb9 = xyzend[1];  //  -85.222
+
+    geo->WireEndPoints(0,2,1,188,xyzbeg,xyzend);  // last V wire in TPC 2.  
+    zcomb10 = xyzend[2];  //  102.501
+    ycomb10 = xyzbeg[1];  //  -1.14655
+
+    //geo->WireEndPoints(0,2,2,0,xyzbeg,xyzend);  // first collection wire in TPC 2
+    //ycombx = xyzbeg[2];  // -85.222   edges of the combs
+    //ycombx = xyzend[2];  // -1.46205
+
+    // need to get zcomb7, zcomb12, ycomb7, and ycomb12 -- extrapolate
+
+    zcomb7 = zcomb8 - (zcomb9 - zcomb8);
+    zcomb12 = zcomb11 + (zcomb11 - zcomb10);
+    ycomb7 = ycomb8 - (ycomb9 - ycomb8);
+    ycomb12 = ycomb11 + (ycomb11 - ycomb10);
+
+    // APA 2
+
+    geo->WireEndPoints(0,4,0,0,xyzbeg,xyzend);  // first U wire in TPC 4.
+    zcomb8 = xyzbeg[2]; // 51.924 -- same as above
+    ycomb17 = xyzend[1];  // 113.142 -- same as above 
+
+    geo->WireEndPoints(0,4,0,235,xyzbeg,xyzend);  // last U wire in TPC 4.
+    zcomb11 = xyzend[2];  // 102.817 -- same as above 
+    ycomb14 = xyzbeg[1];  // 0.83105 
+
+    geo->WireEndPoints(0,4,1,0,xyzbeg,xyzend);  // first V wire in TPC 4.  
+    zcomb10 = xyzend[2];  //   102.501 -- same as above
+    ycomb16 = xyzbeg[1];  //  113.142 -- everything ends here in y
+
+    geo->WireEndPoints(0,4,1,227,xyzbeg,xyzend);  // last V wire in TPC 4.  
+    zcomb9 = xyzbeg[2];  //  52.2395  -- same as above
+    ycomb15 = xyzend[1];  //  1.14655
+
+    //geo->WireEndPoints(0,4,2,0,xyzbeg,xyzend);  // first collection wire in TPC 1
+    //ycombx = xyzbeg[2];  // 52.2234   edges of the combs -- not what we want
+    //ycombx = xyzend[2];  // 113.142   for this
+
+    // need to get zcomb7, zcomb12, ycomb13, and ycomb18 -- extrapolate
+    // the z's are just recalculations of the numbers above
+
+    zcomb7 = zcomb8 - (zcomb9 - zcomb8);
+    zcomb12 = zcomb11 + (zcomb11 - zcomb10);
+    ycomb13 = ycomb14 - (ycomb15 - ycomb14);
+    ycomb18 = ycomb17 + (ycomb17 - ycomb16);
+
+    // APA 3 -- a lot like APA 0
+
+    geo->WireEndPoints(0,6,0,0,xyzbeg,xyzend);  // first U wire in TPC 6.
+    zcomb14 = xyzbeg[2];  // 103.84
+    ycomb5 = xyzend[1];  //  113.142 -- same as above
+
+    geo->WireEndPoints(0,6,0,358,xyzbeg,xyzend);  // last U wire in TPC 6.
+    zcomb17 = xyzend[2];  // 154.741
+    ycomb2 = xyzbeg[1];  // -82.9389 -- same as above
+
+    geo->WireEndPoints(0,6,1,0,xyzbeg,xyzend);  // first V wire in TPC 6.  
+    zcomb16 = xyzend[2];  //  154.425
+    ycomb4 = xyzbeg[1];  //  113.142 -- same as above
+
+    geo->WireEndPoints(0,6,1,344,xyzbeg,xyzend);  // last V wire in TPC 6.  
+    zcomb15 = xyzbeg[2];  //  104.164
+    ycomb3 = xyzend[1];  //  -82.6234 -- same as above
+
+    // the collection wires appear to end where they meet their comb.
+    //geo->WireEndPoints(0,6,2,0,xyzbeg,xyzend);  // first collection wire in TPC 0
+    //ycomb3 = xyzbeg[2];  // -82.308
+    //ycomb4 = xyzend[2];  // 113.142
+
+    // need to get zcomb13, zcomb18, ycomb1, and ycomb6 -- extrapolate
+    // the ycomb1 and ycomb6 are just copies.
+
+    zcomb13 = zcomb14 - (zcomb15 - zcomb14);
+    zcomb18 = zcomb17 + (zcomb17 - zcomb16);
+    ycomb1 = ycomb2 - (ycomb3 - ycomb2);
+    ycomb6 = ycomb5 + (ycomb5 - ycomb4);
+
     return;
 
   }
@@ -291,6 +492,7 @@ namespace detsim {
     fChargeWork.resize(fNTicks, 0.);
 	  
     std::vector<double> fChargeWorkPreSpill, fChargeWorkPostSpill;
+    std::vector<double> fChargeWorkCollInd, fChargeWorkCollIndPreSpill, fChargeWorkCollIndPostSpill;
 
     art::ServiceHandle<util::LArFFT> fFFT;
 
@@ -309,23 +511,127 @@ namespace detsim {
       fChargeWork.clear();    
       //      fChargeWork.resize(fNTicks, 0.);    
       fChargeWork.resize(fNTimeSamples, 0.);    
+      if (fSimCombs)
+	{
+	  fChargeWorkCollInd.clear();
+	  fChargeWorkCollInd.resize(fNTimeSamples, 0.);
+	}
 
 
       if (prepost) {
         fChargeWorkPreSpill.clear();
-        fChargeWorkPostSpill.clear();
         fChargeWorkPreSpill.resize(fNTicks,0);
+        fChargeWorkPostSpill.clear();
         fChargeWorkPostSpill.resize(fNTicks,0);
+	if (fSimCombs)
+	  {
+	    fChargeWorkCollIndPreSpill.clear();
+	    fChargeWorkCollIndPreSpill.resize(fNTicks, 0.);
+	    fChargeWorkCollIndPostSpill.clear();
+	    fChargeWorkCollIndPostSpill.resize(fNTicks, 0.);
+	  }
       }
 
       // get the sim::SimChannel for this channel
       const sim::SimChannel* sc = channels[chan];
+      const geo::View_t view = geo->View(chan);
 
       if( sc ){      
-
 	// loop over the tdcs and grab the number of electrons for each
 	for(size_t t = 0; t < fChargeWork.size(); ++t) 
-	  fChargeWork[t] = sc->Charge(t);      
+	  if (fSimCombs)
+	    {
+	      const std::vector<sim::IDE> ides = sc->TrackIDsAndEnergies(t,t);
+	      for (auto const &ide : ides)
+		{
+		  GapType_t gaptype = combtest35t(ide.x,ide.y,ide.z);
+		  switch (gaptype)
+		    {
+		    case ACTIVE:
+		      {
+			fChargeWork[t] += ide.numElectrons;
+			break;
+		      }
+		    case UCOMB:
+		      {
+			switch (view)
+			  {
+			  case geo::kU:
+			    {
+			      fChargeWork[t] += ide.numElectrons * (1.0-fFractUUCollect-fFractUUMiss);
+			      fChargeWorkCollInd[t] += ide.numElectrons * fFractUUCollect;
+			      break;
+			    }
+			  case geo::kV:
+			    {
+			      fChargeWork[t] += ide.numElectrons * (1.0-fFractVUCollect-fFractVUMiss);
+			      fChargeWorkCollInd[t] += ide.numElectrons * fFractVUCollect;
+			      break;
+			    }
+			  case geo::kZ:
+			    {
+			      fChargeWork[t] += ide.numElectrons * (1.0-fFractVUCollect-fFractUUCollect);
+			      break;
+			    }
+			  default:
+			    {
+			      throw cet::exception("SimWireLBNE35t") << "ILLEGAL VIEW Type: " << view <<"\n";
+			    }
+			  }
+			break;
+		      }
+		    case VCOMB:
+		      {
+			switch (view)
+			  {
+			  case geo::kU:
+			    {
+			      fChargeWork[t] += ide.numElectrons * (1.0-fFractUVCollect-fFractUVMiss);
+			      fChargeWorkCollInd[t] += ide.numElectrons * fFractUVCollect;
+			      break;
+			    }
+			  case geo::kV:
+			    {
+			      fChargeWork[t] += ide.numElectrons * (1.0-fFractVVCollect-fFractVVMiss);
+			      fChargeWorkCollInd[t] += ide.numElectrons * fFractVVCollect;
+			      break;
+			    }
+			  case geo::kZ:
+			    {
+			      fChargeWork[t] += ide.numElectrons * (1.0-fFractVVCollect-fFractUVCollect);
+			      break;
+			    }
+			  default:
+			    {
+			      throw cet::exception("SimWireLBNE35t") << "ILLEGAL VIEW Type: " << view <<"\n";
+			    }
+			  }
+			break;
+		      }
+		    case NONACTIVE:
+		      {
+			break;
+		      }
+		    case HORIZGAP:
+		      {
+			fChargeWork[t] += ide.numElectrons * (1.0-fFractHorizGapMiss);
+			break;
+		      }
+		    case VERTGAP:
+		      {
+			fChargeWork[t] += ide.numElectrons * (1.0-fFractVertGapMiss);
+			break;
+		      }
+		    }
+		  
+		}
+	      // fChargeWork[t] = sc->Charge(t);
+ 
+	    }
+	  else
+	    {
+	      fChargeWork[t] = sc->Charge(t);
+	    }      
 
         // Convolve charge with appropriate response function 
 	if(prepost) {
@@ -337,11 +643,29 @@ namespace detsim {
 
 	  fChargeWorkPreSpill.resize(fNTicks,0);
 	  fChargeWorkPostSpill.resize(fNTicks,0);
+
+	  // add in the bits of charge that collect on the induction wires.
+
+	  fChargeWorkCollIndPreSpill.assign(fChargeWorkCollInd.begin(), fChargeWorkCollInd.begin()+fNSamplesReadout);
+	  fChargeWorkCollIndPostSpill.assign(fChargeWorkCollInd.begin()+2*fNSamplesReadout, fChargeWorkCollInd.end());
+
+	  fChargeWorkCollInd.erase( fChargeWorkCollInd.begin()+2*fNSamplesReadout, fChargeWorkCollInd.end() );
+	  fChargeWorkCollInd.erase( fChargeWorkCollInd.begin(), fChargeWorkCollInd.begin()+fNSamplesReadout );
+
+	  fChargeWorkCollIndPreSpill.resize(fNTicks,0);
+	  fChargeWorkCollIndPostSpill.resize(fNTicks,0);
+
 	  sss->Convolute(chan, fChargeWorkPreSpill);
 	  sss->Convolute(chan, fChargeWorkPostSpill);
+
+	  sss->Convolute(fFirstCollectionChannel, fChargeWorkCollIndPreSpill);
+	  sss->Convolute(fFirstCollectionChannel, fChargeWorkCollIndPostSpill);
+
 	}
 	fChargeWork.resize(fNTicks,0);
 	sss->Convolute(chan,fChargeWork);
+	fChargeWorkCollInd.resize(fNTicks,0);
+        sss->Convolute(fFirstCollectionChannel,fChargeWorkCollInd); 
 
       }
 
@@ -350,8 +674,6 @@ namespace detsim {
       // pick a new "noise channel" for every channel  - this makes sure    
       // the noise has the right coherent characteristics to be on one channel
 
-      const geo::View_t view = geo->View(chan);
-    
       int noisechan = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
       int noisechanpre = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
       int noisechanpost = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
@@ -361,6 +683,9 @@ namespace detsim {
       double *fChargeWork_a=0;
       double *fChargeWorkPreSpill_a=0;
       double *fChargeWorkPostSpill_a=0;
+      double *fChargeWorkCollInd_a=0;
+      double *fChargeWorkCollIndPreSpill_a=0;
+      double *fChargeWorkCollIndPostSpill_a=0;
       short *adcvec_a=0;
       short *adcvecPreSpill_a=0;
       short *adcvecPostSpill_a=0;
@@ -378,6 +703,9 @@ namespace detsim {
 	fChargeWork_a = fChargeWork.data();
 	fChargeWorkPreSpill_a = fChargeWorkPreSpill.data();
 	fChargeWorkPostSpill_a = fChargeWorkPostSpill.data();
+	fChargeWorkCollInd_a = fChargeWorkCollInd.data();
+	fChargeWorkCollIndPreSpill_a = fChargeWorkCollIndPreSpill.data();
+	fChargeWorkCollIndPostSpill_a = fChargeWorkCollIndPostSpill.data();
 	adcvec_a = adcvec.data();
 	adcvecPreSpill_a = adcvecPreSpill.data();
 	adcvecPostSpill_a = adcvecPostSpill.data();
@@ -410,7 +738,8 @@ namespace detsim {
 	  if(view==geo::kU)       { tnoise = noise_a_U[i]; }
 	  else if (view==geo::kV) { tnoise = noise_a_V[i]; }
 	  else                    { tnoise = noise_a_Z[i]; }
-	  tmpfv = tnoise + fChargeWork_a[i];
+          tmpfv = tnoise + fChargeWork_a[i];
+	  if (fSimCombs)  tmpfv += fChargeWorkCollInd_a[i];
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
@@ -420,8 +749,10 @@ namespace detsim {
 	    else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
 
 	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
@@ -429,13 +760,16 @@ namespace detsim {
       else {   // no noise, so just round the values to nearest short ints and store them
 	for(unsigned int i = 0; i < signalSize; ++i){
 	  tmpfv = fChargeWork_a[i];
+	  if (fSimCombs) tmpfv += fChargeWorkCollInd_a[i];
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
 	  for(unsigned int i = 0; i < signalSize; ++i){
 	    tmpfv = fChargeWorkPreSpill_a[i];
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	    tmpfv = fChargeWorkPostSpill_a[i];
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
@@ -528,4 +862,244 @@ namespace detsim {
 
     return;
   }
+
+  //-------------------------------------------------
+
+
+  // see the ASCII cartoon of APA's at the bottom of this file for a picture of what all the boundaries are
+
+  //-------------------------------------------------
+  GapType_t SimWireLBNE35t::combtest35t(double x, double y, double z)
+  {
+
+    if (z<zcomb1) return NONACTIVE;  // outside first APA
+    if (z<zcomb2) return UCOMB;  // over U comb
+    if (z<zcomb3) return VCOMB;  // over V comb
+    if (z<zcomb4) 
+      {
+	if (y<ycomb1) return NONACTIVE; // below the bottom
+	if (y<ycomb2) return UCOMB; // over U comb
+	if (y<ycomb3) return VCOMB; // over V comb
+	if (y<ycomb4) return ACTIVE; // active volume
+	if (y<ycomb5) return VCOMB; // over V comb
+	if (y<ycomb6) return UCOMB; // over U comb
+	return NONACTIVE; // outside top edge
+
+      }
+    if (z<zcomb5) return VCOMB;  // over V comb
+    if (z<zcomb6) return UCOMB;  // over U comb
+
+    if (z<zcomb7) return VERTGAP; // in gap
+    if (z<zcomb8) return UCOMB; // over U comb
+    if (z<zcomb9) return VCOMB; // over V comb
+    if (z<zcomb10) 
+      {
+	if (y<ycomb7) return NONACTIVE; // off the bottom
+	if (y<ycomb8) return UCOMB; // over U comb
+	if (y<ycomb9) return VCOMB; // over V comb
+	if (y<ycomb10) return ACTIVE; // active
+	if (y<ycomb11) return VCOMB; // over V comb
+	if (y<ycomb12) return UCOMB; // over U comb
+	if (y<ycomb13) return HORIZGAP; // over gap
+	if (y<ycomb14) return UCOMB; // over U comb
+	if (y<ycomb15) return VCOMB; // over V comb
+	if (y<ycomb16) return ACTIVE; // active volume
+	if (y<ycomb17) return VCOMB; // over V comb
+	if (y<ycomb18) return UCOMB; // over U comb
+	return NONACTIVE;  // above the top edge
+      }
+    if (z<zcomb11) return VCOMB;  // over V comb
+    if (z<zcomb12) return UCOMB;  // over U comb
+
+    if (z<zcomb13) return VERTGAP;  // outside first APA
+    if (z<zcomb14) return UCOMB;  // over U comb
+    if (z<zcomb15) return VCOMB;  // over V comb
+    if (z<zcomb16) 
+      {
+	if (y<ycomb1) return NONACTIVE; // below the bottom
+	if (y<ycomb2) return UCOMB; // over U comb
+	if (y<ycomb3) return VCOMB; // over V comb
+	if (y<ycomb4) return ACTIVE; // active volume
+	if (y<ycomb5) return VCOMB; // over V comb
+	if (y<ycomb6) return UCOMB; // over U comb
+	return NONACTIVE; // outside top edge
+      }
+    if (z<zcomb17) return VCOMB;  // over V comb
+    if (z<zcomb18) return UCOMB;  // over U comb
+    return NONACTIVE; // off the end in Z.
+
+  }
+
 }
+
+
+/* -------------------------------------------------
+   APA Cartoons for the combtest35t method
+
+   z->
+
+   ^
+   |
+   y
+
+
+   zcomb1                                       zcomb6
+    zcomb2                                    zcomb5
+     zcomb3                                  zcomb4
+   ______________________________________________  ycomb6
+   |____________________________________________|  ycomb5
+   ||__________________________________________||  ycomb4
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                 APA0                   |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   ||__________________________________________||  ycomb3
+   |____________________________________________|  ycomb2
+   ______________________________________________  ycomb1
+
+
+   z->
+
+   ^
+   |
+   y
+
+
+   zcomb7                                       zcomb12
+    zcomb8                                    zcomb11
+     zcomb9                                  zcomb10
+   ______________________________________________  ycomb18
+   |____________________________________________|  ycomb17
+   ||__________________________________________||  ycomb16
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||               APA2                     |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   ||__________________________________________||  ycomb15
+   |____________________________________________|  ycomb14
+   ______________________________________________  ycomb13
+
+   ______________________________________________  ycomb12
+   |____________________________________________|  ycomb11
+   ||__________________________________________||  ycomb10
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||              APA1                      |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   ||__________________________________________||  ycomb9
+   |____________________________________________|  ycomb8
+   ______________________________________________  ycomb7
+
+
+   APA 0 Cartoon:
+
+   z->
+
+   ^
+   |
+   y
+
+
+   zcomb13                                      zcomb18
+    zcomb14                                   zcomb17
+     zcomb15                                 zcomb16
+   ______________________________________________  ycomb6
+   |____________________________________________|  ycomb5
+   ||__________________________________________||  ycomb4
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||         APA3                           |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   |||                                        |||
+   ||__________________________________________||  ycomb3
+   |____________________________________________|  ycomb2
+   ______________________________________________  ycomb1
+
+
+
+*/

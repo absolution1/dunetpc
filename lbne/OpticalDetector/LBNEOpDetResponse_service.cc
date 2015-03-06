@@ -53,7 +53,14 @@ namespace opdet{
         fWavelengthCutHigh =     pset.get<double>("WavelengthCutHigh");
         fLightGuideAttenuation = pset.get<bool>("LightGuideAttenuation");
         fChannelConversion =     pset.get<std::string>("ChannelConversion");
+        std::string tmpAxis =    pset.get<std::string>("LongAxis"); 
 
+        boost::algorithm::to_lower(tmpAxis);
+
+        if (tmpAxis == "x") fLongAxis = 0;
+        if (tmpAxis == "y") fLongAxis = 1;
+        if (tmpAxis == "z") fLongAxis = 2;
+        
         // Only allow channel conversion once - so it must be set to happen
         // either during full simulation (library generation) or during
         // fast simulation (library use).
@@ -118,23 +125,39 @@ namespace opdet{
 
             // Get the length of the photon detector
             TGeoBBox *box = (TGeoBBox*)node->GetVolume()->GetShape();
-            double opdetLength = box->GetDY();    // X is depth and Z is width
+            double opdetLength = 0;
+            double sipmDistance = 0;
+
+            if (fLongAxis == 0) {
+                opdetLength = box->GetDX();
+                sipmDistance = opdetLength - Phot.FinalLocalPosition.x();
+            }
+            else if (fLongAxis == 1) {
+                opdetLength = box->GetDY();
+                sipmDistance = opdetLength - Phot.FinalLocalPosition.y();
+            }
+            else if (fLongAxis == 2) {
+                opdetLength = box->GetDZ();
+                sipmDistance = opdetLength - Phot.FinalLocalPosition.z();
+            }
+            else {
+                mf::LogError("LBNEOpDetResponse") << "Unknown axis, fLongAxis = " << fLongAxis;
+                assert(false);
+            }
 
             // Identify the photon detector type
             int pdtype;
             std::string detname = node->GetName();
-            if      (detname.find("Bar") != std::string::npos )   pdtype = 0;
-            else if (detname.find("Fiber") != std::string::npos ) pdtype = 1;
-            else if (detname.find("Plank") != std::string::npos ) pdtype = 2;
+            boost::to_lower(detname);
+            if      (detname.find("bar") != std::string::npos )   pdtype = 0;
+            else if (detname.find("fiber") != std::string::npos ) pdtype = 1;
+            else if (detname.find("plank") != std::string::npos ) pdtype = 2;
             else {
                 pdtype = -1;
                 mf::LogWarning("LBNEOpDetResponse") << "OpChannel: " << OpChannel << " is an unknown PD type named: " << detname 
                                                    << ". Assuming no attenuation.";
             }
 
-
-            // Assume sipm is at the +y end of the sipm
-            double sipmDistance = opdetLength - Phot.FinalLocalPosition.y();
 
             if (pdtype == 0) {
                 // Now assume Bar and Fiber have the same behavior, modify later when more is known
@@ -146,16 +169,20 @@ namespace opdet{
 
                 // Throw away some photons based on attenuation
                 double AttenuationProb = fracShort*exp(-sipmDistance/lambdaShort) + fracLong*exp(-sipmDistance/lambdaLong);
+                
+                //mf::LogVerbatim("LBNEOpDetResponse") << "OpChannel: " << OpChannel << " is a " << pdtype 
+                //                                     << " with length " << opdetLength << " in detector "
+                //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ()
+                //                                     << " named " << detname;
+                //mf::LogVerbatim("LBNEOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
+                //                                     << ", " << Phot.FinalLocalPosition.y() << ", " << Phot.FinalLocalPosition.z() << ")";
+                //mf::LogVerbatim("LBNEOpDetResponse") << "   Distance to SiPM = " << sipmDistance << " along axis " << fLongAxis;
+                //mf::LogVerbatim("LBNEOpDetResponse") << "   Attenuation Probability = " << AttenuationProb;
+
                 if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
 
           
                 
-                  //mf::LogVerbatim("LBNEOpDetResponse") << "OpChannel: " << OpChannel << " is a " << typenames[pdtype] 
-                  //<< " with length " << opdetLength << ", width " << opdetWidth << ", and depth " << opdetDepth;
-                  //mf::LogVerbatim("LBNEOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
-                  //<< ", " << Phot.FinalLocalPosition.y() << ", " << Phot.FinalLocalPosition.z() << ")";
-                  //mf::LogVerbatim("LBNEOpDetResponse") << "   Distance to SiPM = " << sipmDistance;
-                  //mf::LogVerbatim("LBNEOpDetResponse") << "   Attenuation Probability = " << AttenuationProb;
                
             }
             else if (pdtype == 1) {
