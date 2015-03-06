@@ -41,8 +41,7 @@ physics:
     caldata:           @local::lbne35t_calwire	
     hitcheat:          @local::lbne35t_hitcheater
     pandora:           @local::lbne35t_pandora
-    particlestitcher:  @local::lbne35t_particlestitcher
-    particletracks:    {module_type: PFParticleTrackMaker}
+    particlestitcher:   @local::lbne35t_particlestitcher
   }
 
   filters:{
@@ -56,10 +55,10 @@ physics:
   }
 
   ### Set up a chain of Producer modules
-  reco: [ caldata, hitcheat, pandora, particlestitcher, particletracks ]
+  reco: [ caldata, hitcheat, pandora, particlestitcher ]
 
   ### Set up a chain of Analyzer modules
-  ana: [ pandorana, pandoramonitoring, analysistree  ]
+  ana: [ pandorana, pandoramonitoring, analysistree ]
  
   ### Set up the output stream
   stream1: [ out1 ]
@@ -73,21 +72,25 @@ physics:
 
 ### Configure the Producer modules
 physics.producers.pandora.HitFinderModuleLabel: "hitcheat"
+physics.producers.pandora.EnableMonitoring: true
 physics.producers.particlestitcher.PFParticleModuleLabel: "pandora"
+physics.producers.particlestitcher.TrackModuleLabel: "pandora"
 physics.producers.particlestitcher.UseXCoordinate: false
-physics.producers.particletracks.PFParticleModuleLabel: "particlestitcher"
-physics.producers.particletracks.SpacePointModuleLabel: "pandora"
+physics.producers.particlestitcher.EnableMonitoring: true
 
 ### Configure the Pandora Analyzer modules
 physics.analyzers.pandoramonitoring.UseDaughterPFParticles:  true
 physics.analyzers.pandoramonitoring.HitFinderModule: "hitcheat"
 physics.analyzers.pandoramonitoring.SpacePointModule: "pandora"
 physics.analyzers.pandoramonitoring.PFParticleModule: "particlestitcher"
+physics.analyzers.pandoramonitoring.TrackModule: "particlestitcher"
+physics.analyzers.pandorana.SpacePointModule: "pandora"
 physics.analyzers.pandorana.PFParticleModule: "particlestitcher"
-physics.analyzers.pandorana.TrackModule: "particletracks"
+physics.analyzers.pandorana.TrackModule: "particlestitcher"
 
 ### Configure the Analysis Tree module
-physics.analyzers.analysistree.TrackModuleLabel: "particletracks"
-physics.analyzers.analysistree.ClusterModuleLabel: "particlestitcher"
-physics.analyzers.analysistree.HitsModuleLabel: "hitcheat"
-physics.analyzers.analysistree.SimulationLabel: "largeant"
+physics.analyzers.analysistree.TrackModuleLabel: "particlestitcher"
+physics.analyzers.analysistree.ClusterModuleLabel:  "pandora"
+physics.analyzers.analysistree.HitsModuleLabel:  "hitcheat"
+physics.analyzers.analysistree.SimulationLabel:  "largeant"
+

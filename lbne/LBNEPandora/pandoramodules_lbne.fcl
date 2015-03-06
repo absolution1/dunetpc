@@ -6,19 +6,23 @@ lbne35t_pandora:
   ConfigFile:            "PandoraSettings_LBNE35t_Cosmic.xml"
   GeantModuleLabel:      "largeant"
   HitFinderModuleLabel:  "hitcheat"
-  EnableMCParticles:     true
+  EnableMCParticles:     false
   EnableProduction:      true
   EnableMonitoring:      false
   UseHitWidths:          false
   UseShortVolume:        true
   UseLongVolume:         true
+  BuildTracks:           true
 }
 
 lbne35t_particlestitcher:
 {
   module_type:           "LBNE35tParticleStitcher"
   PFParticleModuleLabel: "pandora"
+  TrackModuleLabel:      "pandora"
   UseXCoordinate:        false
+  EnableMonitoring:      false
+  EnableStitching:       true
 }
 
 END_PROLOG
