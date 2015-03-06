@@ -9,7 +9,7 @@
 #include "art/Framework/Core/ModuleMacros.h"
 
 // Local includes
-#include "LArPandoraParticleCreator.h"
+#include "LArPandoraInterface/LArPandoraParticleCreator.h"
 
 // std includes
 #include <string>
@@ -58,7 +58,7 @@ DEFINE_ART_MODULE(LBNE35tPandora)
 #include "Geometry/Geometry.h"
 
 // Local includes (LArContent) 
-#include "LArContent.h"
+#include "LArPandoraAlgorithms/LArContent.h"
 
 // Local includes (LArPandora)
 #include "LBNE35tPseudoLayerPlugin.h"

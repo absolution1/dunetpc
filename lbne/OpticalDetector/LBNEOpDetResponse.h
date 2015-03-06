@@ -52,6 +52,8 @@ namespace opdet
         int Nchannels;
         std::vector<std::vector<int> > opChannelMap; // Map which sets correspondence between detector and readout channels
 
+        int fLongAxis;                 // 0 = x, 1 = y, 2 = z
+
     }; // class LBNEOpDetResponse
 
     inline int LBNEOpDetResponse::doNOpChannels() const { return Nchannels; }

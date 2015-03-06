@@ -48,6 +48,12 @@ physics:
 
 
 
+services.user.Geometry.GDML: "lbne4apa36deg.gdml"
+services.user.Geometry.ROOT: "lbne4apa36deg.gdml"
+services.user.Geometry.SortingParameters.DetectorVersion: "lbne4apa36deg"
+
+
+
 # Begin optical specific parts:
 
 #
