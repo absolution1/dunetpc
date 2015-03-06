@@ -107,11 +107,11 @@ echo "PWD:        " $PWD     1>> ${LOG} 2>&1
 
 echo "> Setup $GROUP environment"                      1>> ${LOG} 2>&1
 source /grid/fermiapp/$GROUP/software/setup_$GROUP.sh  1>> ${LOG} 2>&1
-echo "> mrbsetenv"                                     1>> ${LOG} 2>&1
+#echo "> mrbsetenv"                                     1>> ${LOG} 2>&1
 source $WORK/localProducts_larsoft_*/setup             1>> ${LOG} 2>&1
-#echo "> mrbslp"                                        1>> ${LOG} 2>&1
-#source $MRB_DIR/bin/setup_local_products               1>> ${LOG} 2>&1
-setup lbnecode v03_06_00_01 -qe6:prof                  1>> ${LOG} 2>&1
+echo "> mrbslp"                                        1>> ${LOG} 2>&1
+source $MRB_DIR/bin/setup_local_products               1>> ${LOG} 2>&1
+#setup lbnecode v03_06_00_01 -qe6:prof                  1>> ${LOG} 2>&1
 
 ENVLOG=$CONDOR_DIR_LOG/environment_${label}.log
 touch $ENVLOG
@@ -131,7 +131,9 @@ echo   "***** Job completed ($ret)"    1>> ${LOG} 2>&1
 echo                                   1>> ${LOG} 2>&1
 date                                   1>> ${LOG} 2>&1
 
-mv -v PhotonLibraryFile_lbne35ton.root PhotonLibraryFile_lbne35ton_${label}.root  1>> ${LOG} 2>&1
+
+
+mv -v PhotonLibraryFile.root PhotonLibraryFile_${label}.root  1>> ${LOG} 2>&1
 
 exit $ret
 
