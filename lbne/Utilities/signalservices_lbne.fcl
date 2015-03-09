@@ -15,8 +15,8 @@ lbnefd_signalshapingservice:
   FieldBins:        75
   Col3DCorrection:  2.5
   Ind3DCorrection:  1.5
-  ColFieldRespAmp:  0.0354
-  IndFieldRespAmp:  0.018
+  ColFieldRespAmp:  3.54
+  IndFieldRespAmp:  1.8
  
 
   # For IndFilter and ColFilter, frequency (x) is measured in
