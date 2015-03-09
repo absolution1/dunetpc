@@ -37,7 +37,7 @@
 #include "TF1.h"
 #include "TH1D.h"
 
-
+using DoubleVec = std::vector<double>;
 namespace util {
   class SignalShapingServiceLBNE10kt {
   public:
@@ -52,6 +52,13 @@ namespace util {
 
     void reconfigure(const fhicl::ParameterSet& pset);
 
+
+    std::vector<DoubleVec> GetNoiseFactVec()                { return fNoiseFactVec; }
+    double GetASICGain(unsigned int const channel) const;
+    double GetShapingTime(unsigned int const channel) const; 
+
+    double GetRawNoise(unsigned int const channel) const ;
+    double GetDeconNoise(unsigned int const channel) const;
     // Accessors.
 
     const util::SignalShaping& SignalShaping(unsigned int channel) const;
@@ -99,6 +106,8 @@ namespace util {
     double fIndFieldRespAmp;  			///< amplitude of response to field 
     double fDeconNorm;
     double fADCPerPCAtLowestASICGain; ///< Pulse amplitude gain for a 1 pc charge impulse after convoluting it the with field and electronics response with the lowest ASIC gain setting of 4.7 mV/fC
+    std::vector<DoubleVec> fNoiseFactVec; 
+
     std::vector<double> fASICGainInMVPerFC;    
 
     std::vector<double> fShapeTimeConst;  	///< time constants for exponential shaping

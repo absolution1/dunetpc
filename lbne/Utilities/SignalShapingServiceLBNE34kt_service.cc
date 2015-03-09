@@ -55,7 +55,8 @@ void util::SignalShapingServiceLBNE34kt::reconfigure(const fhicl::ParameterSet& 
   fADCPerPCAtLowestASICGain = pset.get<double>("ADCPerPCAtLowestASICGain");
   fASICGainInMVPerFC = pset.get<std::vector<double> >("ASICGainInMVPerFC");
   fShapeTimeConst = pset.get<std::vector<double> >("ShapeTimeConst");
-
+  fNoiseFactVec =  pset.get<std::vector<DoubleVec> >("NoiseFactVec");
+  
   fUseFunctionFieldShape= pset.get<bool>("UseFunctionFieldShape");
   fGetFilterFromHisto= pset.get<bool>("GetFilterFromHisto");
   
@@ -152,6 +153,110 @@ util::SignalShapingServiceLBNE34kt::SignalShaping(unsigned int channel) const
 return fColSignalShaping;
 }
 
+//-----Give Gain Settings to SimWire-----//jyoti
+double util::SignalShapingServiceLBNE34kt::GetASICGain(unsigned int const channel) const
+{
+  art::ServiceHandle<geo::Geometry> geom;
+   
+  geo::SigType_t sigtype = geom->SignalType(channel);
+
+  
+  double gain = 0;
+  if(sigtype == geo::kInduction)
+    gain = fASICGainInMVPerFC.at(0);
+  else if(sigtype == geo::kCollection)
+    gain = fASICGainInMVPerFC.at(1);
+  else
+    throw cet::exception("SignalShapingServiceLBNE35t")<< "can't determine"
+						       << " SignalType\n";
+  return gain;
+}
+
+
+//-----Give Shaping time to SimWire-----//jyoti
+double util::SignalShapingServiceLBNE34kt::GetShapingTime(unsigned int const channel) const
+{
+  art::ServiceHandle<geo::Geometry> geom;
+  geo::SigType_t sigtype = geom->SignalType(channel);
+
+  double shaping_time = 0;
+
+  if(sigtype == geo::kInduction)
+    shaping_time = fShapeTimeConst.at(0);
+  else if(sigtype == geo::kCollection)
+    shaping_time = fShapeTimeConst.at(1);
+  else
+    throw cet::exception("SignalShapingServiceLBNE35t")<< "can't determine"
+						       << " SignalType\n";
+  return shaping_time;
+}
+
+double util::SignalShapingServiceLBNE34kt::GetRawNoise(unsigned int const channel) const
+{
+  unsigned int plane;
+  art::ServiceHandle<geo::Geometry> geom;
+  geo::SigType_t sigtype = geom->SignalType(channel);
+  if(sigtype == geo::kInduction)
+    plane = 0;
+  else if(sigtype == geo::kCollection)
+    plane = 1;
+  else
+    throw cet::exception("SignalShapingServiceLBNE35t")<< "can't determine"
+                                                          << " SignalType\n";
+
+  double shapingtime = fShapeTimeConst.at(plane);
+  double gain = fASICGainInMVPerFC.at(plane);
+  int temp;
+  if (shapingtime == 0.5){
+    temp = 0;
+  }else if (shapingtime == 1.0){
+    temp = 1;
+  }else if (shapingtime == 2.0){
+    temp = 2;
+  }else{
+    temp = 3;
+  }
+  double rawNoise;
+
+  auto tempNoise = fNoiseFactVec.at(plane);
+  rawNoise = tempNoise.at(temp);
+
+  rawNoise *= gain/4.7;
+  return rawNoise;
+}
+
+double util::SignalShapingServiceLBNE34kt::GetDeconNoise(unsigned int const channel) const
+{
+  unsigned int plane;
+  art::ServiceHandle<geo::Geometry> geom;
+  
+  geo::SigType_t sigtype = geom->SignalType(channel);
+  if(sigtype == geo::kInduction)
+    plane = 0;
+  else if(sigtype == geo::kCollection)
+    plane = 1;
+  else
+    throw cet::exception("SignalShapingServiceLBNE35t")<< "can't determine"
+                                                          << " SignalType\n";
+
+  double shapingtime = fShapeTimeConst.at(plane);
+  int temp;
+  if (shapingtime == 0.5){
+    temp = 0;
+  }else if (shapingtime == 1.0){
+    temp = 1;
+  }else if (shapingtime == 2.0){
+    temp = 2;
+  }else{
+    temp = 3;
+  }
+  auto tempNoise = fNoiseFactVec.at(plane);
+  double deconNoise = tempNoise.at(temp);
+
+  deconNoise = deconNoise /4096.*2000./4.7 *6.241*1000/fDeconNorm;
+  return deconNoise;
+}
+
 
 //----------------------------------------------------------------------
 // Initialization method.
@@ -168,7 +273,7 @@ void util::SignalShapingServiceLBNE34kt::init()
     // Calculate field and electronics response functions.
 
     SetFieldResponse();
-    SetElectResponse(fShapeTimeConst.at(0),fASICGainInMVPerFC.at(0));
+    SetElectResponse(fShapeTimeConst.at(1),fASICGainInMVPerFC.at(1));
 
     // Configure convolution kernels.
 
@@ -176,7 +281,7 @@ void util::SignalShapingServiceLBNE34kt::init()
     fColSignalShaping.AddResponseFunction(fElectResponse);
     fColSignalShaping.SetPeakResponseTime(0.);
 
-    SetElectResponse(fShapeTimeConst.at(1),fASICGainInMVPerFC.at(1));
+    SetElectResponse(fShapeTimeConst.at(0),fASICGainInMVPerFC.at(0));
     
     fIndSignalShaping.AddResponseFunction(fIndFieldResponse);
     fIndSignalShaping.AddResponseFunction(fElectResponse);
