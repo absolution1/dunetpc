@@ -63,7 +63,8 @@ namespace util {
     // Do deconvolution calcution (for reconstruction).
 
     template <class T> void Deconvolute(unsigned int channel, std::vector<T>& func) const;
-
+    double GetDeconNorm(){return fDeconNorm;};
+    
   private:
 
     // Private configuration methods.
@@ -77,7 +78,7 @@ namespace util {
     // Copied from SimWireLBNE10kt.
 
     void SetFieldResponse();
-    void SetElectResponse();
+    void SetElectResponse(double shapingtime, double gain);
 
     // Calculate filter functions.
 
@@ -96,6 +97,10 @@ namespace util {
 						///< electrons thru wires
     double fColFieldRespAmp;  			///< amplitude of response to field 
     double fIndFieldRespAmp;  			///< amplitude of response to field 
+    double fDeconNorm;
+    double fADCPerPCAtLowestASICGain; ///< Pulse amplitude gain for a 1 pc charge impulse after convoluting it the with field and electronics response with the lowest ASIC gain setting of 4.7 mV/fC
+    std::vector<double> fASICGainInMVPerFC;    
+
     std::vector<double> fShapeTimeConst;  	///< time constants for exponential shaping
     TF1* fColFilterFunc;      			///< Parameterized collection filter function.
     TF1* fIndFilterFunc;      			///< Parameterized induction filter function.

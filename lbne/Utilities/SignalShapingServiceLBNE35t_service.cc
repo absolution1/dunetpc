@@ -51,6 +51,10 @@ void util::SignalShapingServiceLBNE35t::reconfigure(const fhicl::ParameterSet& p
   fInd3DCorrection = pset.get<double>("Ind3DCorrection");
   fColFieldRespAmp = pset.get<double>("ColFieldRespAmp");
   fIndFieldRespAmp = pset.get<double>("IndFieldRespAmp");
+  
+  fDeconNorm = pset.get<double>("DeconNorm");
+  fADCPerPCAtLowestASICGain = pset.get<double>("ADCPerPCAtLowestASICGain");
+  fASICGainInMVPerFC = pset.get<std::vector<double> >("ASICGainInMVPerFC");
   fShapeTimeConst = pset.get<std::vector<double> >("ShapeTimeConst");
 
   fUseFunctionFieldShape= pset.get<bool>("UseFunctionFieldShape");
@@ -165,13 +169,15 @@ void util::SignalShapingServiceLBNE35t::init()
     // Calculate field and electronics response functions.
 
     SetFieldResponse();
-    SetElectResponse();
+    SetElectResponse(fShapeTimeConst.at(0),fASICGainInMVPerFC.at(0));
 
     // Configure convolution kernels.
 
     fColSignalShaping.AddResponseFunction(fColFieldResponse);
     fColSignalShaping.AddResponseFunction(fElectResponse);
     fColSignalShaping.SetPeakResponseTime(0.);
+
+    SetElectResponse(fShapeTimeConst.at(1),fASICGainInMVPerFC.at(1));
 
     fIndSignalShaping.AddResponseFunction(fIndFieldResponse);
     fIndSignalShaping.AddResponseFunction(fElectResponse);
@@ -292,7 +298,7 @@ void util::SignalShapingServiceLBNE35t::SetFieldResponse()
 
 //----------------------------------------------------------------------
 // Calculate microboone field response.
-void util::SignalShapingServiceLBNE35t::SetElectResponse()
+void util::SignalShapingServiceLBNE35t::SetElectResponse(double shapingtime, double gain)
 {
   // Get services.
 
@@ -307,8 +313,8 @@ void util::SignalShapingServiceLBNE35t::SetElectResponse()
   std::vector<double> time(nticks,0.);
 
   //Gain and shaping time variables from fcl file:    
-  double Ao = fShapeTimeConst[0];  //gain
-  double To = fShapeTimeConst[1];  //peaking time
+  double Ao = 1.0;
+  double To = shapingtime;  //peaking time
     
   // this is actually sampling time, in ns
   // mf::LogInfo("SignalShapingLBNE35t") << "Check sampling intervals: " 
@@ -324,7 +330,7 @@ void util::SignalShapingServiceLBNE35t::SetElectResponse()
   // from the full (ASIC->Intermediate amp->Receiver->ADC) electronics chain. 
   // They have been adjusted to make the SPICE simulation to match the 
   // actual electronics response. Default params are Ao=1.4, To=0.5us. 
-  double integral=0.;
+  double max = 0;
   
   for(int i = 0; i < nticks; ++i){
 
@@ -344,16 +350,20 @@ void util::SignalShapingServiceLBNE35t::SetElectResponse()
       -0.327684*exp(-2.40318*time[i]/To)*cos(2.5928*time[i]/To)*sin(5.18561*time[i]/To)*Ao
       +0.464924*exp(-2.40318*time[i]/To)*sin(2.5928*time[i]/To)*sin(5.18561*time[i]/To)*Ao;
 
-      integral+=fElectResponse[i];
+    if(fElectResponse[i] > max) max = fElectResponse[i];
+    
   }// end loop over time buckets
     
+
   LOG_DEBUG("SignalShapingLBNE35t") << " Done.";
 
  //normalize fElectResponse[i], before the convolution   
-   for(int i = 0; i < nticks; ++i){
-     fElectResponse[i]/=integral;
-   }
   
+   for(auto& element : fElectResponse){
+    element /= max;
+    element *= fADCPerPCAtLowestASICGain * 1.60217657e-7;
+    element *= gain / 4.7;
+   }
   
   return;
 

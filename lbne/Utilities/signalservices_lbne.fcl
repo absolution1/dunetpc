@@ -2,12 +2,18 @@ BEGIN_PROLOG
 
 lbnefd_signalshapingservice:
 {
+  DeconNorm: 200
+  ADCPerPCAtLowestASICGain: 9390 #ADC/pC
+  ASICGainInMVPerFC:  [7.8, 7.8] #mV/fC for Ind & col planes
+  ShapeTimeConst:  [ 2.0, 2.0 ] #Gain and Peaking time (microseconds)	
+
+
   FieldBins:        75
   Col3DCorrection:  2.5
   Ind3DCorrection:  1.5
   ColFieldRespAmp:  0.0354
   IndFieldRespAmp:  0.018
-  ShapeTimeConst:  [ 1.4, 0.5 ] #Gain and Peaking time (microseconds)
+ 
 
   # For IndFilter and ColFilter, frequency (x) is measured in
   # cycles/microsecond.  The conversion to frequency bin depends on FFT size
