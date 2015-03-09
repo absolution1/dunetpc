@@ -12,12 +12,19 @@ lbnefd_signalshapingservice:
   # to turn off noise
   # NoiseFactVec:         [[ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ]]
 
-  FieldBins:        75
+
+  #FieldBins:        75 # for UseFunctionFieldShape: true
+  FieldBins:        1000
+  InputFieldRespSamplingPeriod: 30. # in nano second
   Col3DCorrection:  2.5
   Ind3DCorrection:  1.5
-  ColFieldRespAmp:  3.54
-  IndFieldRespAmp:  1.8
- 
+  #ColFieldRespAmp:  3.54
+  ColFieldRespAmp:  1.0
+  #IndFieldRespAmp:  1.8
+  IndFieldRespAmp:  1.0
+  FieldResponseTOffset: [-26.6e3, -26.3e3, -26e3] # in ns, time offset of field response shape
+  
+
 
   # For IndFilter and ColFilter, frequency (x) is measured in
   # cycles/microsecond.  The conversion to frequency bin depends on FFT size
@@ -37,6 +44,10 @@ lbnefd_signalshapingservice:
   
 
   UseFunctionFieldShape: false
+  UseHistogramFieldShape: true
+  FieldResponseFname:     "lbne35t_response_v1.3.root"
+  FieldResponseHistoName: "FieldResponse"
+ 
   IndFieldShape: "[0]*(1.0+[3]*tanh(x-[4]))*([4]-x)*exp(-0.5*((x-[4])/[2])^2.0)"
   IndFieldParams:  [.00843,.1534,1.77,0.,0.5]    #last parameter needs to be half of FFT vector, correct for in code
   ColFieldShape: "x^[2]/(1.0+(x/[0])^[1])"

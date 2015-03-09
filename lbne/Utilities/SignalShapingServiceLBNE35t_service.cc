@@ -57,9 +57,12 @@ void util::SignalShapingServiceLBNE35t::reconfigure(const fhicl::ParameterSet& p
   fASICGainInMVPerFC = pset.get<std::vector<double> >("ASICGainInMVPerFC");
   fShapeTimeConst = pset.get<std::vector<double> >("ShapeTimeConst");
   fNoiseFactVec =  pset.get<std::vector<DoubleVec> >("NoiseFactVec");
+  fInputFieldRespSamplingPeriod = pset.get<double>("InputFieldRespSamplingPeriod");
 
 
   fUseFunctionFieldShape= pset.get<bool>("UseFunctionFieldShape");
+  fUseHistogramFieldShape = pset.get<bool>("UseHistogramFieldShape");
+
   fGetFilterFromHisto= pset.get<bool>("GetFilterFromHisto");
   
   // Construct parameterized collection filter function.
@@ -104,6 +107,7 @@ void util::SignalShapingServiceLBNE35t::reconfigure(const fhicl::ParameterSet& p
    in->Close();
    
  }
+
  
  /////////////////////////////////////
  if(fUseFunctionFieldShape)
@@ -123,9 +127,34 @@ void util::SignalShapingServiceLBNE35t::reconfigure(const fhicl::ParameterSet& p
   fIndFieldFunc = new TF1("indField", indField.c_str());
   for(unsigned int i=0; i<indFieldParams.size(); ++i)
     fIndFieldFunc->SetParameter(i, indFieldParams[i]);
- }   // Warning, last parameter needs to be multiplied by the FFTSize, in current version of the code,
- 
- 
+   // Warning, last parameter needs to be multiplied by the FFTSize, in current version of the code,
+  } else if ( fUseHistogramFieldShape ) {
+    mf::LogInfo("SignalShapingServiceMicroBooNE") << " using the field response provided from a .root file " ;
+    int fNPlanes = 3;
+    
+    // constructor decides if initialized value is a path or an environment variable
+    std::string fname;   
+    cet::search_path sp("FW_SEARCH_PATH");
+    sp.find_file( pset.get<std::string>("FieldResponseFname"), fname );
+    std::string histoname = pset.get<std::string>("FieldResponseHistoName");
+
+    std::unique_ptr<TFile> fin(new TFile(fname.c_str(), "READ"));
+    if ( !fin->IsOpen() ) throw art::Exception( art::errors::NotFound ) << "Could not find the field response file " << fname << "!" << std::endl;
+
+    std::string iPlane[3] = { "U", "V", "Y" };
+
+    for ( int i = 0; i < fNPlanes; i++ ) {
+      TString iHistoName = Form( "%s_%s", histoname.c_str(), iPlane[i].c_str());
+      TH1F *temp = (TH1F*) fin->Get( iHistoName );  
+      if ( !temp ) throw art::Exception( art::errors::NotFound ) << "Could not find the field response histogram " << iHistoName << std::endl;
+      if ( temp->GetNbinsX() > fNFieldBins ) throw art::Exception( art::errors::InvalidNumber ) << "FieldBins should always be larger than or equal to the number of the bins in the input histogram!" << std::endl;
+      
+      fFieldResponseHist[i] = new TH1F( iHistoName, iHistoName, temp->GetNbinsX(), temp->GetBinLowEdge(1), temp->GetBinLowEdge( temp->GetNbinsX() + 1) );
+      temp->Copy(*fFieldResponseHist[i]);
+    }
+    
+    fin->Close();
+  }
 }
 
 
@@ -282,14 +311,14 @@ void util::SignalShapingServiceLBNE35t::init()
     fColSignalShaping.AddResponseFunction(fColFieldResponse);
     fColSignalShaping.AddResponseFunction(fElectResponse);
     fColSignalShaping.set_normflag(false);
-    fColSignalShaping.SetPeakResponseTime(0.);
+    //fColSignalShaping.SetPeakResponseTime(0.);
 
     SetElectResponse(fShapeTimeConst.at(0),fASICGainInMVPerFC.at(0));
 
     fIndSignalShaping.AddResponseFunction(fIndFieldResponse);
     fIndSignalShaping.AddResponseFunction(fElectResponse);
     fIndSignalShaping.set_normflag(false);
-    fIndSignalShaping.SetPeakResponseTime(0.);
+    //fIndSignalShaping.SetPeakResponseTime(0.);
 
     // Calculate filter functions.
 
@@ -337,7 +366,7 @@ void util::SignalShapingServiceLBNE35t::SetFieldResponse()
 
   double driftvelocity=larp->DriftVelocity()/1000.;  
   int nbinc = TMath::Nint(fCol3DCorrection*(fabs(pitch))/(driftvelocity*detprop->SamplingRate())); ///number of bins //KP
-  
+  double integral = 0.;  
   ////////////////////////////////////////////////////
    if(fUseFunctionFieldShape)
   {
@@ -358,7 +387,7 @@ void util::SignalShapingServiceLBNE35t::SetFieldResponse()
   fIndFieldFunc->SetParameter(4,fIndFieldFunc->GetParameter(4)*signalSize);
   
   
-  double integral = 0.;
+  //double integral = 0.;
     for(int i = 0; i < signalSize; i++) {
           ramp[i]=fColFieldFunc->Eval(i);
           fColFieldResponse[i]=ramp[i];
@@ -375,8 +404,21 @@ void util::SignalShapingServiceLBNE35t::SetFieldResponse()
       
     //this might be not necessary if the function definition is not defined in the middle of the signal range  
     fft->ShiftData(fIndFieldResponse,signalSize/2.0);
-  }
-  else
+  } else if ( fUseHistogramFieldShape ) {
+    
+    // Ticks in nanosecond
+    // Calculate the normalization of the collection plane
+    for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
+      integral += fFieldResponseHist[2]->GetBinContent( ibin );   
+
+    // Induction plane
+    for ( int ibin = 1; ibin <= fFieldResponseHist[1]->GetNbinsX(); ibin++ )
+      fIndFieldResponse[ibin-1] = fIndFieldRespAmp*fFieldResponseHist[0]->GetBinContent( ibin )/integral;
+
+    for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
+      fColFieldResponse[ibin-1] = fColFieldRespAmp*fFieldResponseHist[2]->GetBinContent( ibin )/integral;
+
+  } else
   {
   //////////////////////////////////////////////////
   mf::LogInfo("SignalShapingServiceLBNE35t") << " using the old field shape " ;
