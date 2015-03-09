@@ -281,12 +281,14 @@ void util::SignalShapingServiceLBNE35t::init()
 
     fColSignalShaping.AddResponseFunction(fColFieldResponse);
     fColSignalShaping.AddResponseFunction(fElectResponse);
+    fColSignalShaping.set_normflag(false);
     fColSignalShaping.SetPeakResponseTime(0.);
 
     SetElectResponse(fShapeTimeConst.at(0),fASICGainInMVPerFC.at(0));
 
     fIndSignalShaping.AddResponseFunction(fIndFieldResponse);
     fIndSignalShaping.AddResponseFunction(fElectResponse);
+    fIndSignalShaping.set_normflag(false);
     fIndSignalShaping.SetPeakResponseTime(0.);
 
     // Calculate filter functions.
