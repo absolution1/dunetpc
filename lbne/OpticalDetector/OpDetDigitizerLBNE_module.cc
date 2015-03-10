@@ -37,7 +37,7 @@
 
 // CLHEP includes
 
-#include "CLHEP/Random/RandBinomial.h"
+//#include "CLHEP/Random/RandBinomial.h"
 
 // C++ includes
 
@@ -70,7 +70,7 @@ namespace opdet {
       double fVoltageToADC;                // Conversion factor mV to ADC counts
 
       // Random number engines
-      CLHEP::RandBinomial *fRandBinomial;
+      //CLHEP::RandBinomial *fRandBinomial;
 
       // Function that adds n pulses to a waveform
       void AddPulse(int timeBin, int scale, std::vector< double >& waveform);
