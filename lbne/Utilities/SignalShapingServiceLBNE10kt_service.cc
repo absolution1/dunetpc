@@ -57,8 +57,14 @@ void util::SignalShapingServiceLBNE10kt::reconfigure(const fhicl::ParameterSet& 
   fASICGainInMVPerFC = pset.get<std::vector<double> >("ASICGainInMVPerFC");
   fShapeTimeConst = pset.get<std::vector<double> >("ShapeTimeConst");
   fNoiseFactVec =  pset.get<std::vector<DoubleVec> >("NoiseFactVec");
+
+  fInputFieldRespSamplingPeriod = pset.get<double>("InputFieldRespSamplingPeriod");
   
+  fFieldResponseTOffset = pset.get<std::vector<double> >("FieldResponseTOffset");   
+
   fUseFunctionFieldShape= pset.get<bool>("UseFunctionFieldShape");
+  fUseHistogramFieldShape = pset.get<bool>("UseHistogramFieldShape");
+  
   fGetFilterFromHisto= pset.get<bool>("GetFilterFromHisto");
   
   // Construct parameterized collection filter function.
@@ -122,9 +128,34 @@ void util::SignalShapingServiceLBNE10kt::reconfigure(const fhicl::ParameterSet& 
   fIndFieldFunc = new TF1("indField", indField.c_str());
   for(unsigned int i=0; i<indFieldParams.size(); ++i)
     fIndFieldFunc->SetParameter(i, indFieldParams[i]);
- }   // Warning, last parameter needs to be multiplied by the FFTSize, in current version of the code,
- 
- 
+    // Warning, last parameter needs to be multiplied by the FFTSize, in current version of the code,
+    } else if ( fUseHistogramFieldShape ) {
+    mf::LogInfo("SignalShapingServiceLBNE35t") << " using the field response provided from a .root file " ;
+    int fNPlanes = 3;
+    
+    // constructor decides if initialized value is a path or an environment variable
+    std::string fname;   
+    cet::search_path sp("FW_SEARCH_PATH");
+    sp.find_file( pset.get<std::string>("FieldResponseFname"), fname );
+    std::string histoname = pset.get<std::string>("FieldResponseHistoName");
+
+    std::unique_ptr<TFile> fin(new TFile(fname.c_str(), "READ"));
+    if ( !fin->IsOpen() ) throw art::Exception( art::errors::NotFound ) << "Could not find the field response file " << fname << "!" << std::endl;
+
+    std::string iPlane[3] = { "U", "V", "Y" };
+
+    for ( int i = 0; i < fNPlanes; i++ ) {
+      TString iHistoName = Form( "%s_%s", histoname.c_str(), iPlane[i].c_str());
+      TH1F *temp = (TH1F*) fin->Get( iHistoName );  
+      if ( !temp ) throw art::Exception( art::errors::NotFound ) << "Could not find the field response histogram " << iHistoName << std::endl;
+      if ( temp->GetNbinsX() > fNFieldBins ) throw art::Exception( art::errors::InvalidNumber ) << "FieldBins should always be larger than or equal to the number of the bins in the input histogram!" << std::endl;
+      
+      fFieldResponseHist[i] = new TH1F( iHistoName, iHistoName, temp->GetNbinsX(), temp->GetBinLowEdge(1), temp->GetBinLowEdge( temp->GetNbinsX() + 1) );
+      temp->Copy(*fFieldResponseHist[i]);
+    }
+    
+    fin->Close();
+  }
 }
 
 
@@ -168,7 +199,7 @@ double util::SignalShapingServiceLBNE10kt::GetASICGain(unsigned int const channe
   else if(sigtype == geo::kCollection)
     gain = fASICGainInMVPerFC.at(1);
   else
-    throw cet::exception("SignalShapingServiceLBNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceLBNE10kt")<< "can't determine"
 						       << " SignalType\n";
   return gain;
 }
@@ -187,7 +218,7 @@ double util::SignalShapingServiceLBNE10kt::GetShapingTime(unsigned int const cha
   else if(sigtype == geo::kCollection)
     shaping_time = fShapeTimeConst.at(1);
   else
-    throw cet::exception("SignalShapingServiceLBNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceLBNE10kt")<< "can't determine"
 						       << " SignalType\n";
   return shaping_time;
 }
@@ -202,7 +233,7 @@ double util::SignalShapingServiceLBNE10kt::GetRawNoise(unsigned int const channe
   else if(sigtype == geo::kCollection)
     plane = 1;
   else
-    throw cet::exception("SignalShapingServiceLBNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceLBNE10kt")<< "can't determine"
                                                           << " SignalType\n";
 
   double shapingtime = fShapeTimeConst.at(plane);
@@ -237,7 +268,7 @@ double util::SignalShapingServiceLBNE10kt::GetDeconNoise(unsigned int const chan
   else if(sigtype == geo::kCollection)
     plane = 1;
   else
-    throw cet::exception("SignalShapingServiceLBNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceLBNE10kt")<< "can't determine"
                                                           << " SignalType\n";
 
   double shapingtime = fShapeTimeConst.at(plane);
@@ -280,16 +311,20 @@ void util::SignalShapingServiceLBNE10kt::init()
 
     fColSignalShaping.AddResponseFunction(fColFieldResponse);
     fColSignalShaping.AddResponseFunction(fElectResponse);
+    fColSignalShaping.save_response();
     fColSignalShaping.set_normflag(false);
-    fColSignalShaping.SetPeakResponseTime(0.);
+    //fColSignalShaping.SetPeakResponseTime(0.);
 
      SetElectResponse(fShapeTimeConst.at(0),fASICGainInMVPerFC.at(0));
      
 
     fIndSignalShaping.AddResponseFunction(fIndFieldResponse);
     fIndSignalShaping.AddResponseFunction(fElectResponse);
+    fIndSignalShaping.save_response(); 
     fIndSignalShaping.set_normflag(false);
-    fIndSignalShaping.SetPeakResponseTime(0.);
+    //fIndSignalShaping.SetPeakResponseTime(0.);
+
+    SetResponseSampling();
 
     // Calculate filter functions.
 
@@ -337,7 +372,7 @@ void util::SignalShapingServiceLBNE10kt::SetFieldResponse()
 
   double driftvelocity=larp->DriftVelocity()/1000.;  
   int nbinc = TMath::Nint(fCol3DCorrection*(std::abs(pitch))/(driftvelocity*detprop->SamplingRate())); ///number of bins //KP
-  
+  double integral = 0;
   ////////////////////////////////////////////////////
    if(fUseFunctionFieldShape)
   {
@@ -358,7 +393,7 @@ void util::SignalShapingServiceLBNE10kt::SetFieldResponse()
   fIndFieldFunc->SetParameter(4,fIndFieldFunc->GetParameter(4)*signalSize);
   
   
-  double integral = 0.;
+  //double integral = 0.;
     for(int i = 0; i < signalSize; i++) {
           ramp[i]=fColFieldFunc->Eval(i);
           fColFieldResponse[i]=ramp[i];
@@ -375,32 +410,44 @@ void util::SignalShapingServiceLBNE10kt::SetFieldResponse()
       
     //this might be not necessary if the function definition is not defined in the middle of the signal range  
     fft->ShiftData(fIndFieldResponse,signalSize/2.0);
-  }
-  else
-  {
-  //////////////////////////////////////////////////
-  mf::LogInfo("SignalShapingServiceLBNE10kt") << " using the old field shape ";
-  double integral = 0.;
-  for(int i = 1; i < nbinc; ++i){
-    fColFieldResponse[i] = fColFieldResponse[i-1] + 1.0;
-    integral += fColFieldResponse[i];
-  }
-
-  for(int i = 0; i < nbinc; ++i){
-    fColFieldResponse[i] *= fColFieldRespAmp/integral;
-  }
-
-  // now the induction plane
+  } else if ( fUseHistogramFieldShape ) {
     
-  int nbini = TMath::Nint(fInd3DCorrection*(std::abs(pitch))/(driftvelocity*detprop->SamplingRate()));//KP
-  for(int i = 0; i < nbini; ++i){
-    fIndFieldResponse[i] = fIndFieldRespAmp/(1.*nbini);
-    fIndFieldResponse[nbini+i] = -fIndFieldRespAmp/(1.*nbini);
-    }
+    // Ticks in nanosecond
+    // Calculate the normalization of the collection plane
+    for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
+      integral += fFieldResponseHist[2]->GetBinContent( ibin );   
 
-  }
-  
-  return;
+    // Induction plane
+    for ( int ibin = 1; ibin <= fFieldResponseHist[1]->GetNbinsX(); ibin++ )
+      fIndFieldResponse[ibin-1] = fIndFieldRespAmp*fFieldResponseHist[1]->GetBinContent( ibin )/integral;
+
+    for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
+      fColFieldResponse[ibin-1] = fColFieldRespAmp*fFieldResponseHist[2]->GetBinContent( ibin )/integral;
+   }else
+   {
+     //////////////////////////////////////////////////
+     mf::LogInfo("SignalShapingServiceLBNE10kt") << " using the old field shape ";
+     double integral = 0.;
+     for(int i = 1; i < nbinc; ++i){
+       fColFieldResponse[i] = fColFieldResponse[i-1] + 1.0;
+       integral += fColFieldResponse[i];
+     }
+     
+     for(int i = 0; i < nbinc; ++i){
+       fColFieldResponse[i] *= fColFieldRespAmp/integral;
+     }
+     
+     // now the induction plane
+     
+     int nbini = TMath::Nint(fInd3DCorrection*(std::abs(pitch))/(driftvelocity*detprop->SamplingRate()));//KP
+     for(int i = 0; i < nbini; ++i){
+       fIndFieldResponse[i] = fIndFieldRespAmp/(1.*nbini);
+       fIndFieldResponse[nbini+i] = -fIndFieldRespAmp/(1.*nbini);
+     }
+
+   }
+   
+   return;
 }
 
 void util::SignalShapingServiceLBNE10kt::SetElectResponse(double shapingtime, double gain)
@@ -411,7 +458,7 @@ void util::SignalShapingServiceLBNE10kt::SetElectResponse(double shapingtime, do
   art::ServiceHandle<util::DetectorProperties> detprop;
   art::ServiceHandle<util::LArFFT> fft;
 
-  LOG_DEBUG("SignalShapingLBNE35t") << "Setting LBNE35t electronics response function...";
+  LOG_DEBUG("SignalShapingLBNE10kt") << "Setting LBNE10kt electronics response function...";
 
   int nticks = fft->FFTSize();
   fElectResponse.resize(nticks, 0.);
@@ -437,10 +484,10 @@ void util::SignalShapingServiceLBNE10kt::SetElectResponse(double shapingtime, do
   // actual electronics response. Default params are Ao=1.4, To=0.5us. 
   double max = 0;
   
-  for(int i = 0; i < nticks; ++i){
+  for(size_t i = 0; i < fElectResponse.size(); ++i){
 
     //convert time to microseconds, to match fElectResponse[i] definition
-    time[i] = (1.*i)*detprop->SamplingRate()*1e-3; 
+    time[i] = (1.*i)*fInputFieldRespSamplingPeriod *1e-3; 
     fElectResponse[i] = 
       4.31054*exp(-2.94809*time[i]/To)*Ao - 2.6202*exp(-2.82833*time[i]/To)*cos(1.19361*time[i]/To)*Ao
       -2.6202*exp(-2.82833*time[i]/To)*cos(1.19361*time[i]/To)*cos(2.38722*time[i]/To)*Ao
@@ -460,7 +507,7 @@ void util::SignalShapingServiceLBNE10kt::SetElectResponse(double shapingtime, do
   }// end loop over time buckets
     
 
-  LOG_DEBUG("SignalShapingLBNE35t") << " Done.";
+  LOG_DEBUG("SignalShapingLBNE10kt") << " Done.";
 
  //normalize fElectResponse[i], before the convolution   
   
@@ -534,6 +581,113 @@ void util::SignalShapingServiceLBNE10kt::SetFilters()
   
 }
 
+//----------------------------------------------------------------------
+// Sample microboone response (the convoluted field and electronic
+// response), will probably add the filter later
+void util::SignalShapingServiceLBNE10kt::SetResponseSampling()
+{
+  // Get services
+  art::ServiceHandle<geo::Geometry> geo;
+  art::ServiceHandle<util::LArProperties> larp;
+  art::ServiceHandle<util::DetectorProperties> detprop;
+  art::ServiceHandle<util::LArFFT> fft;
+
+  // Operation permitted only if output of rebinning has a larger bin size
+  if( fInputFieldRespSamplingPeriod > detprop->SamplingRate() )
+    throw cet::exception(__FUNCTION__) << "\033[93m"
+				       << "Invalid operation: cannot rebin to a more finely binned vector!"
+				       << "\033[00m" << std::endl;
+
+  int nticks = fft->FFTSize();
+  std::vector<double> SamplingTime( nticks, 0. );
+  for ( int itime = 0; itime < nticks; itime++ ) {
+    SamplingTime[itime] = (1.*itime) * detprop->SamplingRate();
+    /// VELOCITY-OUT ... comment out kDVel usage here
+    //SamplingTime[itime] = (1.*itime) * detprop->SamplingRate() / kDVel;
+  }
+
+  // Sampling
+  for ( int iplane = 0; iplane < 2; iplane++ ) {
+    const std::vector<double>* pResp;
+    switch ( iplane ) {
+    case 0: pResp = &(fIndSignalShaping.Response_save()); break;
+    default: pResp = &(fColSignalShaping.Response_save()); break;
+    }
+
+    std::vector<double> SamplingResp(nticks , 0. );
+    
+    
+    int nticks_input = pResp->size();
+    std::vector<double> InputTime(nticks_input, 0. );
+    for ( int itime = 0; itime < nticks_input; itime++ ) {
+      InputTime[itime] = (1.*itime) * fInputFieldRespSamplingPeriod;
+    }
+    
+   
+    /*
+      Much more sophisticated approach using a linear (trapezoidal) interpolation 
+      Current default!
+    */
+    int SamplingCount = 0;    
+    for ( int itime = 0; itime < nticks; itime++ ) {
+      int low = -1, up = -1;
+      for ( int jtime = 0; jtime < nticks_input; jtime++ ) {
+        if ( InputTime[jtime] == SamplingTime[itime] ) {
+          SamplingResp[itime] = (*pResp)[jtime];
+	  /// VELOCITY-OUT ... comment out kDVel usage here
+          //SamplingResp[itime] = kDVel * (*pResp)[jtime];
+          SamplingCount++;
+          break;
+        } else if ( InputTime[jtime] > SamplingTime[itime] ) {
+          low = jtime - 1;
+          up = jtime;
+          SamplingResp[itime] = (*pResp)[low] + ( SamplingTime[itime] - InputTime[low] ) * ( (*pResp)[up] - (*pResp)[low] ) / ( InputTime[up] - InputTime[low] );
+	  /// VELOCITY-OUT ... comment out kDVel usage here
+          //SamplingResp[itime] *= kDVel;
+          SamplingCount++;
+          break;
+        } else {
+          SamplingResp[itime] = 0.;
+        }
+      } // for ( int jtime = 0; jtime < nticks; jtime++ )
+    } // for ( int itime = 0; itime < nticks; itime++ )
+    SamplingResp.resize( SamplingCount, 0.);    
+
+  
+
+  
+    switch ( iplane ) {
+      case 0: fIndSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+    default: fColSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+    }
+
+   
+
+  } // for ( int iplane = 0; iplane < fNPlanes; iplane++ )
+
+  return;
+}
+
+
+
+int util::SignalShapingServiceLBNE10kt::FieldResponseTOffset(unsigned int const channel) const
+{
+  art::ServiceHandle<geo::Geometry> geom;
+  geo::SigType_t sigtype = geom->SignalType(channel);
+  double time_offset = 0;
+  if(sigtype == geo::kInduction)
+    time_offset = fFieldResponseTOffset.at(0); 
+  else if(sigtype == geo::kCollection)
+    time_offset = fFieldResponseTOffset.at(1); 
+  else
+    throw cet::exception("SignalShapingServiceLBNE10kt")<< "can't determine"
+						       << " SignalType\n";
+
+ 
+  auto tpc_clock = art::ServiceHandle<util::TimeService>()->TPCClock();
+  return tpc_clock.Ticks(time_offset/1.e3);
+  
+}
 
 
 namespace util {
