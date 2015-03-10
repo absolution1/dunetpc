@@ -88,8 +88,7 @@ void util::SignalShapingServiceLBNE35t::reconfigure(const fhicl::ParameterSet& p
     fIndFilterFunc->SetParameter(i, indFiltParams[i]);
  }
  else
- {
-  
+ {  
    std::string histoname = pset.get<std::string>("FilterHistoName");
    mf::LogInfo("SignalShapingServiceLBNE35t") << " using filter from .root file " ;
    int fNPlanes=3;
@@ -110,7 +109,6 @@ void util::SignalShapingServiceLBNE35t::reconfigure(const fhicl::ParameterSet& p
    
  }
 
- 
  /////////////////////////////////////
  if(fUseFunctionFieldShape)
  {
@@ -185,7 +183,6 @@ util::SignalShapingServiceLBNE35t::SignalShaping(unsigned int channel) const
 							  
 return fColSignalShaping;
 }
-
 
 //-----Give Gain Settings to SimWire-----//jyoti
 double util::SignalShapingServiceLBNE35t::GetASICGain(unsigned int const channel) const
@@ -326,8 +323,6 @@ void util::SignalShapingServiceLBNE35t::init()
 
     SetResponseSampling();
 
-    
-
     // Calculate filter functions.
 
     SetFilters();
@@ -425,7 +420,6 @@ void util::SignalShapingServiceLBNE35t::SetFieldResponse()
 
     for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
       fColFieldResponse[ibin-1] = fColFieldRespAmp*fFieldResponseHist[2]->GetBinContent( ibin )/integral;
-
   } else
   {
     //////////////////////////////////////////////////
@@ -452,7 +446,6 @@ void util::SignalShapingServiceLBNE35t::SetFieldResponse()
   
   return;
 }
-
 
 //----------------------------------------------------------------------
 // Calculate microboone field response.
@@ -693,7 +686,6 @@ int util::SignalShapingServiceLBNE35t::FieldResponseTOffset(unsigned int const c
   return tpc_clock.Ticks(time_offset/1.e3);
   
 }
-
 
 
 namespace util {

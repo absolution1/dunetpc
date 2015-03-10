@@ -195,9 +195,7 @@ template <class T> inline void util::SignalShapingServiceLBNE35t::Deconvolute(un
   }else{
     temp.assign(func.begin(),func.begin()+time_offset);
     func.erase(func.begin(),func.begin()+time_offset);
-    func.insert(func.end(),temp.begin(),temp.end());
-
-    
+    func.insert(func.end(),temp.begin(),temp.end());    
   }
 }
 
