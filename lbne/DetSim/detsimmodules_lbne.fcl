@@ -15,7 +15,8 @@ lbnefd_simwire:
  NoiseFactZ:          0.0132       #Noise Scale for Z plane
  NoiseWidthZ:         62.4         #Exponential Noise width (kHz) for Z plane
  LowCutoffZ:          7.5          #Low frequency filter cutoff (kHz) for Z plane
- CompressionType:    "ZeroSuppression"       #could also be none
+ #CompressionType:    "ZeroSuppression"       #could also be none
+ CompressionType:    ""       #could also be none	
  ZeroThreshold:      "10"        #Threshold for zero suppression
  NearestNeighbor:    "25"        #Maximum distance between hits above threshold before they are separated into different blocks
  NoiseArrayPoints:   "1000"     #number of points in noise array

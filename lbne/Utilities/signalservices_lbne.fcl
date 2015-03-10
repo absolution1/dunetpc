@@ -16,13 +16,14 @@ lbnefd_signalshapingservice:
   #FieldBins:        75 # for UseFunctionFieldShape: true
   FieldBins:        1000
   InputFieldRespSamplingPeriod: 30. # in nano second
+  
+
   Col3DCorrection:  2.5
   Ind3DCorrection:  1.5
-  #ColFieldRespAmp:  3.54
   ColFieldRespAmp:  1.0
-  #IndFieldRespAmp:  1.8
   IndFieldRespAmp:  1.0
-  FieldResponseTOffset: [-26.6e3, -26.3e3, -26e3] # in ns, time offset of field response shape
+
+  FieldResponseTOffset: [-26.3e3, -26e3] # in ns, time offset of field response shape
   
 
 
@@ -44,7 +45,7 @@ lbnefd_signalshapingservice:
   
 
   UseFunctionFieldShape: false
-  UseHistogramFieldShape: false
+  UseHistogramFieldShape: true
   FieldResponseFname:     "lbne35t_response_v1.3.root"
   FieldResponseHistoName: "FieldResponse"
  

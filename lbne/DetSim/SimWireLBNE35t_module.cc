@@ -463,6 +463,8 @@ namespace detsim {
     art::ServiceHandle<geo::Geometry> geo;
     unsigned int signalSize = fNTicks;
 
+    //std::cout << "Xin " << fNTicks << std::endl;
+
     // vectors for working
     std::vector<short>    adcvec(signalSize, 0);	
     std::vector<short>    adcvecPreSpill(signalSize, 0);	

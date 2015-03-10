@@ -144,15 +144,16 @@ namespace caldata {
     // Use the handle to get a particular (0th) element of collection.
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
         
-    if (digitVec0->Compression() != raw::kZeroSuppression) {
-      throw art::Exception(art::errors::UnimplementedFeature)
-	<< "CalGausHFLBNE only supports zero-suppressed raw digit input!";
-    } // if
+    //  if (digitVec0->Compression() != raw::kZeroSuppression) {
+    //   throw art::Exception(art::errors::UnimplementedFeature)
+    //	<< "CalGausHFLBNE only supports zero-suppressed raw digit input!";
+    //} // if
 
 
 
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
-    
+    //std::cout << "Xin " << dataSize << std::endl;
+
     raw::ChannelID_t channel = raw::InvalidChannelID; // channel number
     unsigned int bin(0);     // time bin loop variable
     
