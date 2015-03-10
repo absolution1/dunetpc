@@ -580,8 +580,8 @@ void util::SignalShapingServiceLBNE35t::SetFilters()
     }
   }
   
-  fIndSignalShaping.AddFilterFunction(fIndFilter);
-  fColSignalShaping.AddFilterFunction(fColFilter);
+  // fIndSignalShaping.AddFilterFunction(fIndFilter);
+  // fColSignalShaping.AddFilterFunction(fColFilter);
   
 }
 
