@@ -77,7 +77,7 @@ namespace {
 
   //----------------------------------------------------------------------------
   // removed
-  /*
+
   // Length of reconstructed track.
   //----------------------------------------------------------------------------
   double length(const recob::Track& track)
@@ -97,7 +97,6 @@ namespace {
     //    mf::LogVerbatim("output") << " length (track) " << result;
     return result;
   }
-  */
   // Length of MC particle.
   //----------------------------------------------------------------------------
   double length(const simb::MCParticle& part, double dx,
@@ -197,7 +196,6 @@ private:
   double trkendz[kMaxTrack];
 
   int nMCParticles;
-  int CryoHits_MC[kMaxTrack];
   double trkstartx_MC[kMaxTrack];
   double trkstarty_MC[kMaxTrack];
   double trkstartz_MC[kMaxTrack];
@@ -206,10 +204,7 @@ private:
   double trkendz_MC[kMaxTrack];
   double trklen_MC[kMaxTrack];
   double trklen_cut_MC[kMaxTrack];
-  double Hits_posx_MC[kMaxTrack][1000];
-  double Hits_posy_MC[kMaxTrack][1000];
-  double Hits_posz_MC[kMaxTrack][1000];
-  double Hits_mom_MC[kMaxTrack][1000];
+
   double trkmom_MC[kMaxTrack];
   double trkmom_XMC[kMaxTrack];
   double trkmom_YMC[kMaxTrack];
@@ -217,15 +212,42 @@ private:
   double trkstartdoc_XMC[kMaxTrack];
   double trkstartdoc_YMC[kMaxTrack];
   double trkstartdoc_ZMC[kMaxTrack];
-  double trkpdg_MC[kMaxTrack];
-  int trkPrimary_MC[kMaxTrack];
-
+  int    trkpdg_MC[kMaxTrack];
+  int    trkMother_MC[kMaxTrack];
+  int    trkNumDaughters_MC[kMaxTrack];
+  int    trkFirstDaughter_MC[kMaxTrack];
+  int    trkLastDaughter_MC[kMaxTrack];
+  int    trkPrimary_MC[kMaxTrack];
+  double trkd2[kMaxTrack];
+  double trkcolin[kMaxTrack];
+  double trklen[kMaxTrack];
+  double trklen_L[kMaxTrack];
+  double trkid[kMaxTrack];
   double trktheta_xz_MC[kMaxTrack];
   double trktheta_yz_MC[kMaxTrack];
   double trketa_xy_MC[kMaxTrack];
   double trketa_zy_MC[kMaxTrack];
   double trktheta_MC[kMaxTrack];
   double trkphi_MC[kMaxTrack];
+
+  double trktheta_xz[kMaxTrack];
+  double trketa_xy[kMaxTrack];
+  double trktheta_yz[kMaxTrack];
+  double trketa_zy[kMaxTrack];
+  double trktheta[kMaxTrack];
+  double trkphi[kMaxTrack];
+
+  double trkdedx[kMaxTrack];
+  double trkdedx2[kMaxTrack][3][1000];
+  double trkdqdx[kMaxTrack][3][1000];
+  double trkpitchHit[kMaxTrack][3][1000];
+  double trkkinE[kMaxTrack][3];
+  double trkTPC[kMaxTrack][3][1000];
+  double trkplaneid[kMaxTrack][3][1000];
+  double trkresrg[kMaxTrack][3][1000];
+  double trkPosx[kMaxTrack][3][1000];
+  double trkPosy[kMaxTrack][3][1000];
+  double trkPosz[kMaxTrack][3][1000]; 
   double trkdedx_MC[kMaxTrack];
   double trkdq_MC[kMaxTrack];
   double mcang_x[kMaxTrack];
@@ -234,35 +256,6 @@ private:
   double mcpos_x[kMaxTrack];
   double mcpos_y[kMaxTrack];
   double mcpos_z[kMaxTrack];
-
-  double trkd2[kMaxTrack];
-  double trkcolin[kMaxTrack];
-  double trklen[kMaxTrack];
-  double trklen_L[kMaxTrack];
-  double trkid[kMaxTrack];
-  double trktheta_xz[kMaxTrack];
-  double trketa_xy[kMaxTrack];
-  double trktheta_yz[kMaxTrack];
-  double trketa_zy[kMaxTrack];
-  double trktheta[kMaxTrack];
-  double trkphi[kMaxTrack];
-  double trkdQdxSum[kMaxTrack];
-  double trkdQdxAverage[kMaxTrack];
-  double trkdEdxSum[kMaxTrack];
-  double trkdEdxAverage[kMaxTrack];
-
-  double trkdedx[kMaxTrack];
-  double trkdedx2[kMaxTrack][3][1000];
-  double trkdqdx[kMaxTrack][3][1000];
-  double trkpitchHit[kMaxTrack][3][1000];
-  double trkkinE[kMaxTrack][3];
-  double trkrange[kMaxTrack][3];
-  double trkTPC[kMaxTrack][3][1000];
-  double trkplaneid[kMaxTrack][3][1000];
-  double trkresrg[kMaxTrack][3][1000];
-  double trkPosx[kMaxTrack][3][1000];
-  double trkPosy[kMaxTrack][3][1000];
-  double trkPosz[kMaxTrack][3][1000]; 
 
   double trkang[kMaxTrack];
   double trkcolinearity[kMaxTrack];
@@ -417,10 +410,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   std::vector<double> trackStart;
   std::vector<double> trackEnd;
   
-  // Get Cryostat information.........Only taking one cryo atm....
-  int c=0;//only one cryo   
-  double boundaries[6];
-  geom->CryostatBoundaries(boundaries, c); // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
+
 
    
   // **********************
@@ -571,9 +561,12 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
       //std::cout<<"calo size "<<calos.size()<<std::endl;
       for (size_t jj = 0; jj<calos.size(); ++jj){
-	trkrange[i][jj] = calos[jj]->Range();
+	//          trkke[it1][i][j]    = calos[j]->KineticEnergy();
+	//	  trkrange[i][jj] = calos[jj]->Range();
+	//          trkpitchc[it1][i][j]= calos[j] -> TrkPitchC();
+	//   ntrkhitscal[i][jj] = calos[jj] -> dEdx().size();
 	trkkinE[i][jj]  = (calos[jj] -> KineticEnergy());
-	
+	//std::cout << trkkinE[i][jj] << std::endl;
 	int tt= calos[jj] -> dEdx().size();
 	for(int k = 0; k < tt; ++k) {
 	  trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
@@ -586,12 +579,11 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkPosx[i][jj][k]    = (calos[jj]->XYZ())[k].x();
 	  trkPosy[i][jj][k]    = (calos[jj]->XYZ())[k].y();
 	  trkPosz[i][jj][k]    = (calos[jj]->XYZ())[k].z();
-
-	  trkdQdxSum[i] += trkdqdx[i][jj][k];
-	  trkdEdxSum[i] += trkdedx2[i][jj][k];
+	  
+	  //            trkxyz[it1][i][j][k][0] = (calos[jj] -> XYZ())[k].X();
+	  //            trkxyz[it1][i][j][k][1] = (calos[jj] -> XYZ())[k].Y();
+	  //            trkxyz[it1][i][j][k][2] = (calos[jj] -> XYZ())[k].Z();
 	}
-	trkdQdxAverage[i] = trkdQdxSum[i] / tt;
-	trkdEdxAverage[i] = trkdEdxSum[i] / tt;
       }
     }
     
@@ -626,8 +618,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     art::Ptr<recob::Track> ptrack(trackh, i);
     const recob::Track& track = *ptrack;
     //trklenratio[i] = length(track)/plen;
-    // trklen_L[i]=length(track);
-    trklen_L[i]=track.Length(); // exactly the same as old function delcared at top, but this accesses track information.
+    trklen_L[i]=length(track);
     //
     //**********************
     //
@@ -755,6 +746,10 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     //        fMC_daughters.push_back(daughters);
     size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
     trkpdg_MC[i]=particle->PdgCode();
+    trkMother_MC[i]=particle->Mother();
+    trkNumDaughters_MC[i]=particle->NumberDaughters();
+    trkFirstDaughter_MC[i]=particle->FirstDaughter();
+    trkLastDaughter_MC[i]=particle->LastDaughter();
     if (particle->Process() == "primary" ) trkPrimary_MC[i] = 1;
     else trkPrimary_MC[i] = 0;
     
@@ -779,15 +774,9 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       }//simChannel
       trkdq_MC[i]=trkde*1e6/23.6;//back to q
     */
-    int zz =0;
-    int zz2 =0;
-    bool insideActiveVolume=false;
-    int CryoHitsCounts =0;
-    double xyztArray[4];
-    /* // Using cryo halfwidth to get dimension, gave them as much bigger than the cryostat for some reason. The way as declared at the top
-       // using Boundaries(vec,cryo) gives the correct dimensions. 
     double origin[3] = {0.};
     double world[3] = {0.};
+    double xyztArray[4];
     double cryoBound_pos[3];
     double cryoBound_neg[3];
     int c=0;//only one cryo
@@ -801,19 +790,15 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     cryoBound_pos[1]=world[1] + geom->Cryostat(c).HalfWidth();
     cryoBound_pos[2]=world[2] + geom->Cryostat(c).HalfWidth();
     
+    int zz =0;
+    int zz2 =0;
+    bool insideActiveVolume=false;
     for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
       const TLorentzVector& tmpPosition=particle->Position(ii);
       //tmpPosition.GetXYZT(xyztArray);   
       if((tmpPosition[0]<cryoBound_pos[0]) && (tmpPosition[0]>cryoBound_neg[0])) {
 	if((tmpPosition[1]<cryoBound_pos[1]) && (tmpPosition[1]>cryoBound_neg[1])) {
 	  if((tmpPosition[2]<cryoBound_pos[2]) && (tmpPosition[2]>cryoBound_neg[2])) {
-    */
-    for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
-      const TLorentzVector& tmpPosition=particle->Position(ii);
-      //tmpPosition.GetXYZT(xyztArray);   
-      if((tmpPosition[0]>boundaries[0]) && (tmpPosition[0]<boundaries[1])) {
-	if((tmpPosition[1]>boundaries[2]) && (tmpPosition[1]<boundaries[3])) {
-	  if((tmpPosition[2]>boundaries[4]) && (tmpPosition[2]<boundaries[5])) {
 	    if (!insideActiveVolume) {
 	      zz = ii;
 	      //std::cout << "Now particle is in cryostat " << std::endl;
@@ -822,18 +807,13 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	    //std::cout << "Temp Pos " << tmpPosition[0] << ", " <<  tmpPosition[1] << ", " <<  tmpPosition[2] << std::endl;
 	    tmpPosition.GetXYZT(xyztArray);
 	    zz2 = ii;
-	    ++CryoHitsCounts; //Count MCHits within the cryostat - note this does not mean they are all in TPC's! 
-	    Hits_posx_MC[i][ii] = tmpPosition[0];
-	    Hits_posy_MC[i][ii] = tmpPosition[1];
-	    Hits_posz_MC[i][ii] = tmpPosition[2];
-	    Hits_mom_MC[i][ii]  = particle->P(ii);
 	  }
 	}
       }
       
       if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
     }
-    CryoHits_MC[i] = CryoHitsCounts;
+    
     const TLorentzVector& positionStart = particle->Position(zz);
     TLorentzVector& positionEnd  =( TLorentzVector&)particle->Position(zz2);     
     //        const TLorentzVector& momentumStart = particle->Momentum(0);
@@ -1055,27 +1035,25 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkpitch",trkpitch,"trkpitch[ntracks_reco][3]/D");
   fTree->Branch("trkpitchHit",trkpitchHit,"trkpitchHit[ntracks_reco][3][1000]/D"); 
   fTree->Branch("trkkinE",trkkinE,"trkkinE[ntracks_reco][3]/D"); 
-  fTree->Branch("trkrange",trkrange,"trkrange[ntracks_reco][3]/D"); 
   fTree->Branch("trkTPC",trkTPC,"trkTPC[ntracks_reco][3][1000]/D");
   fTree->Branch("trkplaneid",trkplaneid,"trkplaneid[ntracks_reco][3][1000]/D");
   fTree->Branch("trkresrg",trkresrg,"trkresrg[ntracks_reco][3][1000]/D");
-  fTree->Branch("trkPosx",trkPosx,"trkPosx[ntracks_reco][3][1000]/D");
-  fTree->Branch("trkPosy",trkPosy,"trkPosy[ntracks_reco][3][1000]/D");
-  fTree->Branch("trkPosz",trkPosz,"trkPosz[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkPosx",trkPosx,"trky[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkPosy",trkPosy,"trky[ntracks_reco][3][1000]/D");
+  fTree->Branch("trkPosz",trkPosz,"trky[ntracks_reco][3][1000]/D");
   fTree->Branch("trklen",trklen,"trklen[ntracks_reco]/D");
   fTree->Branch("trklen_L",trklen_L,"trklen_L[ntracks_reco]/D");
   fTree->Branch("trkcolinearity",trkcolinearity,"trkcolinearity[ntracks_reco]/D");
   fTree->Branch("trkmatchdisp",trkmatchdisp,"trkmatchdisp[ntracks_reco]/D");
   fTree->Branch("trkwmatchdisp",trkwmatchdisp,"trkwmatchdisp[ntracks_reco]/D");
   fTree->Branch("trklenratio",trklenratio,"trklenratio[ntracks_reco]/D");
-  fTree->Branch("trkdQdxSum",trkdQdxSum,"trkdQdxSum[ntracks_reco]/D");
-  fTree->Branch("trkdQdxAverage",trkdQdxAverage,"trkdQdxAverage[ntracks_reco]/D");
-  fTree->Branch("trkdEdxSum",trkdEdxSum,"trkdEdxSum[ntracks_reco]/D");
-  fTree->Branch("trkdEdxAverage",trkdEdxAverage,"trkdEdxAverage[ntracks_reco]/D");
-
+  
   fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
-  fTree->Branch("CryoHits_MC",&CryoHits_MC,"CryoHits_MC[nMCParticles]/I");
-  fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[nMCParticles]/D");
+  fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[nMCParticles]/I");
+  fTree->Branch("trkMother_MC",trkMother_MC,"trkMother_MC[nMCParticles]/I");
+  fTree->Branch("trkNumDaughters_MC",trkNumDaughters_MC,"trkNumDaughters_MC[nMCParticles]/I");
+  fTree->Branch("trkFirstDaughter_MC",trkFirstDaughter_MC,"trkFirstDaughter_MC[nMCParticles]/I");
+  fTree->Branch("trkLastDaughter_MC",trkLastDaughter_MC,"trkLastDaughter_MC[nMCParticles]/I");
   fTree->Branch("trkPrimary_MC",trkPrimary_MC,"trkPrimarys_MC[nMCParticles]/I");    
   fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[nMCParticles]/D");
   fTree->Branch("trkstarty_MC",trkstarty_MC,"trkstarty_MC[nMCParticles]/D");
@@ -1083,10 +1061,6 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkendx_MC",trkendx_MC,"trkendx_MC[nMCParticles]/D");
   fTree->Branch("trkendy_MC",trkendy_MC,"trkendy_MC[nMCParticles]/D");
   fTree->Branch("trkendz_MC",trkendz_MC,"trkendz_MC[nMCParticles]/D");
-  fTree->Branch("Hits_posx_MC",Hits_posx_MC,"Hits_posx_MC[nMCParticles][1000]/D");
-  fTree->Branch("Hits_posy_MC",Hits_posy_MC,"Hits_posy_MC[nMCParticles][1000]/D");
-  fTree->Branch("Hits_posz_MC",Hits_posz_MC,"Hits_posz_MC[nMCParticles][1000]/D");
-  fTree->Branch("Hits_mom_MC",Hits_mom_MC,"Hits_mom_MC[nMCParticles][1000]/D");
   fTree->Branch("trkmom_MC",trkmom_MC,"trkmom_MC[nMCParticles]/D");
   fTree->Branch("trkmom_XMC",trkmom_XMC,"trkmom_XMC[nMCParticles]/D");
   fTree->Branch("trkmom_YMC",trkmom_YMC,"trkmom_YMC[nMCParticles]/D");
@@ -1168,6 +1142,10 @@ void AnaTree::AnaTree::ResetVars(){
     trkstartdoc_YMC[i] = -99999;
     trkstartdoc_ZMC[i] = -99999;
     trkpdg_MC[i] = -99999;
+    trkMother_MC[i] = -99999;
+    trkNumDaughters_MC[i] = -99999;
+    trkFirstDaughter_MC[i] = -99999;
+    trkLastDaughter_MC[i] = -99999;
     trkPrimary_MC[i] = 0;
     trkd2[i] = -99999;
     trkcolin[i] = -99999;
@@ -1190,14 +1168,10 @@ void AnaTree::AnaTree::ResetVars(){
     mcang_x[i] = -99999;
     mcang_y[i] = -99999;
     mcang_z[i] = -99999;
-    trkdQdxSum[i] = 0;
-    trkdEdxSum[i] = 0;
-    CryoHits_MC[i]=0;
 
     for(int ii=0;ii<3;ii++)
       {
 	trkkinE[i][ii] = -99999;
-	trkrange[i][ii] = -99999;
 	for(int k=0;k<1000;k++)
 	  {
 	    trkdedx2[i][ii][k] = -99999;
@@ -1235,10 +1209,6 @@ void AnaTree::AnaTree::ResetVars(){
       trkx[i][j] = -99999;
       trky[i][j] = -99999;
       trkz[i][j] = -99999;
-      Hits_posx_MC[i][j] = -99999;
-      Hits_posy_MC[i][j] = -99999;
-      Hits_posz_MC[i][j] = -99999;
-      Hits_mom_MC[i][j] = -99999;
     }
     for (int j = 0; j<3; ++j){
       trkpitch[i][j] = -99999;
