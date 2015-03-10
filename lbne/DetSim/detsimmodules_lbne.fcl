@@ -19,7 +19,8 @@ lbnefd_simwire:
  ZeroThreshold:      "10"        #Threshold for zero suppression
  NearestNeighbor:    "25"        #Maximum distance between hits above threshold before they are separated into different blocks
  NoiseArrayPoints:   "1000"     #number of points in noise array
- NoiseOn:            "0"        #1 for noise on, 0 for noise off
+ NoiseOn:            "1"        #1 for noise on, 0 for noise off
+ NoiseModel:         "2"        #1 for original model, 2 for a model similar to uBooNE
 
  SimCombs:           false
 

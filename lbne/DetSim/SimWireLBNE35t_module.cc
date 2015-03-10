@@ -86,6 +86,7 @@ namespace detsim {
     std::string            fDriftEModuleLabel;///< module making the ionization electrons
     raw::Compress_t        fCompression;      ///< compression type to use
     unsigned int           fNoiseOn;          ///< noise turned on or off for debugging; default is on
+    unsigned int           fNoiseModel;          ///< noise model>
     float                  fNoiseFact;        ///< noise scale factor
     float                  fNoiseWidth;       ///< exponential noise width (kHz)
     float                  fLowCutoff;        ///< low frequency filter cutoff (kHz)
@@ -207,6 +208,7 @@ namespace detsim {
     fNearestNeighbor         = p.get< int                 >("NearestNeighbor");
     fNoiseArrayPoints = p.get< unsigned int        >("NoiseArrayPoints");
     fNoiseOn           = p.get< unsigned int       >("NoiseOn");
+    fNoiseModel           = p.get< unsigned int       >("NoiseModel");
     art::ServiceHandle<util::DetectorProperties> detprop;
     fSampleRate       = detprop->SamplingRate();
     fNSamplesReadout  = detprop->ReadOutWindowSize();
@@ -267,7 +269,7 @@ namespace detsim {
       }
     
     //Generate noise if selected to be on
-    if(fNoiseOn){
+    if(fNoiseOn && fNoiseModel==1){
 
       //fNoise.resize(geo->Nchannels());
       fNoiseZ.resize(fNoiseArrayPoints);
@@ -536,6 +538,7 @@ namespace detsim {
       const sim::SimChannel* sc = channels[chan];
       const geo::View_t view = geo->View(chan);
 
+
       if( sc ){      
 	// loop over the tdcs and grab the number of electrons for each
 	for(size_t t = 0; t < fChargeWork.size(); ++t) 
@@ -709,7 +712,7 @@ namespace detsim {
 	adcvec_a = adcvec.data();
 	adcvecPreSpill_a = adcvecPreSpill.data();
 	adcvecPostSpill_a = adcvecPostSpill.data();
-	if (fNoiseOn) {
+	if (fNoiseOn && fNoiseModel==1) {
           noise_a_U=(fNoiseU[noisechan]).data();
 	  noise_a_V=(fNoiseV[noisechan]).data();
 	  noise_a_Z=(fNoiseZ[noisechan]).data();
@@ -733,7 +736,9 @@ namespace detsim {
 	mf::LogError("SimWireLBNE35t") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
       }
 
-      if(fNoiseOn) {	      
+      //std::cout << "Xin " << fNoiseOn << " " << fNoiseModel << std::endl;
+
+      if(fNoiseOn && fNoiseModel==1) {	      
 	for(unsigned int i = 0; i < signalSize; ++i){
 	  if(view==geo::kU)       { tnoise = noise_a_U[i]; }
 	  else if (view==geo::kV) { tnoise = noise_a_V[i]; }
@@ -756,8 +761,71 @@ namespace detsim {
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
-      }
-      else {   // no noise, so just round the values to nearest short ints and store them
+      }else if (fNoiseOn && fNoiseModel==2){
+
+	float fASICGain      = sss->GetASICGain(chan);  
+	
+	double fShapingTime   = sss->GetShapingTime(chan);
+	std::map< double, int > fShapingTimeOrder;
+	fShapingTimeOrder = { {0.5, 0}, {1.0, 1}, {2.0, 2}, {3.0, 3} };
+	DoubleVec              fNoiseFactVec;
+
+	//
+
+	auto tempNoiseVec = sss->GetNoiseFactVec();
+
+	if ( fShapingTimeOrder.find( fShapingTime ) != fShapingTimeOrder.end() ){
+	  size_t i = 0;
+	  fNoiseFactVec.resize(2);
+	  for (auto& item : tempNoiseVec) {
+	    fNoiseFactVec[i]   = item.at( fShapingTimeOrder.find( fShapingTime )->second );
+	    fNoiseFactVec[i] *= fASICGain/4.7;
+	    ++i;
+	  }
+	}
+	else {//Throw exception...
+	  throw cet::exception("SimWireMicroBooNE")
+	    << "\033[93m"
+	    << "Shaping Time received from signalservices_microboone.fcl is not one of allowed values"
+	    << std::endl
+	    << "Allowed values: 0.5, 1.0, 2.0, 3.0 usec"
+	    << "\033[00m"
+	    << std::endl;
+	}
+	//std::cout << "Xin " << fASICGain << " " << fShapingTime << " " << fNoiseFactVec[0] << " " << fNoiseFactVec[1] << std::endl;
+
+	art::ServiceHandle<art::RandomNumberGenerator> rng;
+	CLHEP::HepRandomEngine &engine = rng->getEngine();
+	CLHEP::RandGaussQ rGauss_Ind(engine, 0.0, fNoiseFactVec[0]);
+	CLHEP::RandGaussQ rGauss_Col(engine, 0.0, fNoiseFactVec[1]);
+
+
+	for(unsigned int i = 0; i < signalSize; ++i){
+	  if(view==geo::kU)       { tnoise = rGauss_Ind.fire(); }
+	  else if (view==geo::kV) { tnoise = rGauss_Ind.fire(); }
+	  else                    { tnoise = rGauss_Col.fire(); }
+          tmpfv = tnoise + fChargeWork_a[i];
+	  if (fSimCombs)  tmpfv += fChargeWorkCollInd_a[i];
+	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	}
+	if (prepost) {
+	  for(unsigned int i = 0; i < signalSize; ++i){
+	    if(view==geo::kU)      { tnoisepre = rGauss_Ind.fire(); tnoisepost = rGauss_Ind.fire(); }
+	    else if(view==geo::kV) { tnoisepre = rGauss_Ind.fire(); tnoisepost = rGauss_Ind.fire(); }
+	    else                   { tnoisepre = rGauss_Col.fire(); tnoisepost = rGauss_Col.fire(); }
+
+	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
+	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
+	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+	  }
+	}
+
+
+
+      }else {   // no noise, so just round the values to nearest short ints and store them
 	for(unsigned int i = 0; i < signalSize; ++i){
 	  tmpfv = fChargeWork_a[i];
 	  if (fSimCombs) tmpfv += fChargeWorkCollInd_a[i];

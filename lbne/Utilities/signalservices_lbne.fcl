@@ -44,7 +44,7 @@ lbnefd_signalshapingservice:
   
 
   UseFunctionFieldShape: false
-  UseHistogramFieldShape: true
+  UseHistogramFieldShape: false
   FieldResponseFname:     "lbne35t_response_v1.3.root"
   FieldResponseHistoName: "FieldResponse"
  
