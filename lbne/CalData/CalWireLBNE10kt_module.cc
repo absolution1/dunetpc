@@ -63,12 +63,13 @@ namespace caldata {
     
     int          fDataSize;          ///< size of raw data on one wire
     int          fPostsample;        ///< number of postsample bins
+    int          fDoBaselineSub;        ///< number of postsample bins
     std::string  fDigitModuleLabel;  ///< module that made digits
                                                        ///< constants
     std::string  fSpillName;  ///< nominal spill is an empty string
                               ///< it is set by the DigitModuleLabel
                               ///< ex.:  "daq:preSpill" for prespill data
-
+    void SubtractBaseline(std::vector<float>& holder);
   protected: 
     
   }; // class CalWireLBNE10kt
@@ -94,6 +95,7 @@ namespace caldata {
   {
     fDigitModuleLabel = p.get< std::string >("DigitModuleLabel", "daq");
     fPostsample       = p.get< int >        ("PostsampleBins");
+    fDoBaselineSub    = p.get< bool >       ("DoBaselineSub");
     
     fSpillName.clear();
     
@@ -182,6 +184,10 @@ namespace caldata {
 	// loop over all adc values and subtract the pedestal
 	for(bin = 0; bin < dataSize; ++bin) 
 	  holder[bin]=(rawadc[bin]-digitVec->GetPedestal());
+	//Xin fill the remaining bin with data
+	for (bin = dataSize;bin<holder.size();bin++){
+	  holder[bin] = (rawadc[bin-dataSize]-digitVec->GetPedestal());
+	}
 
 	// Do deconvolution.
 	sss->Deconvolute(channel, holder);
@@ -197,6 +203,8 @@ namespace caldata {
 	  average+=holder[holder.size()-1-bin]/(double)fPostsample;
         for(bin = 0; bin < holder.size(); ++bin) holder[bin]-=average;
       }  
+       // adaptive baseline subtraction
+      if(fDoBaselineSub) SubtractBaseline(holder);
       
       // Make a single ROI that spans the entire data size
       wirecol->push_back(recob::WireCreator(holder,*digitVec).move());
@@ -220,4 +228,36 @@ namespace caldata {
     return;
   }
   
+  void CalWireLBNE10kt::SubtractBaseline(std::vector<float>& holder)
+  {
+    
+    float min = 0,max=0;
+    for (unsigned int bin = 0; bin < holder.size(); bin++){
+      if (holder[bin] > max) max = holder[bin];
+      if (holder[bin] < min) min = holder[bin];
+    }
+    int nbin = max - min;
+    if (nbin!=0){
+      TH1F *h1 = new TH1F("h1","h1",nbin,min,max);
+      for (unsigned int bin = 0; bin < holder.size(); bin++){
+	h1->Fill(holder[bin]);
+      }
+      float ped = h1->GetMaximum();
+      float ave=0,ncount = 0;
+      for (unsigned int bin = 0; bin < holder.size(); bin++){
+	if (fabs(holder[bin]-ped)<2){
+	  ave +=holder[bin];
+	  ncount ++;
+	}
+      }
+      if (ncount==0) ncount=1;
+      ave = ave/ncount;
+      for (unsigned int bin = 0; bin < holder.size(); bin++){
+	holder[bin] -= ave;
+      }
+      h1->Delete();
+    }
+  }
+
+
 } // end namespace caldata

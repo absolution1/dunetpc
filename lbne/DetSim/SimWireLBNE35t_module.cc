@@ -636,6 +636,7 @@ namespace detsim {
 	  else
 	    {
 	      fChargeWork[t] = sc->Charge(t);
+	      //if (chan == 180 ) std::cout << "Xin1: " << t << " " << fChargeWork[t] << std::endl;
 	    }      
 
         // Convolve charge with appropriate response function 
@@ -669,6 +670,12 @@ namespace detsim {
 	}
 	fChargeWork.resize(fNTicks,0);
 	sss->Convolute(chan,fChargeWork);
+	// if (chan == 180 ) {
+	//   for(size_t t = 0; t < fChargeWork.size(); ++t) {
+	//     std::cout << "Xin2: " << t << " " << fChargeWork[t] << std::endl;
+	//   }
+	// }
+
 	fChargeWorkCollInd.resize(fNTicks,0);
         sss->Convolute(fFirstCollectionChannel,fChargeWorkCollInd); 
 
@@ -855,6 +862,8 @@ namespace detsim {
 
       adcvec.resize(fNSamplesReadout);
       raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
+      
+      
       raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
       adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
       digcol->push_back(rd);            // add this digit to the collection

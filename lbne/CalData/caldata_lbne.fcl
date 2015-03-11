@@ -10,6 +10,7 @@ lbnefd_calwire:
  module_type:        "CalWireLBNE10kt"
  DigitModuleLabel:   "daq"
  PostsampleBins:     400
+ DoBaselineSub:   true # subtract baseline after deconvolution?
 }
 lbnefd_calwireana:   @local::standard_calwireana
 
@@ -18,7 +19,9 @@ lbne35t_calwire:
 {
  module_type:        "CalWireLBNE35t"
  DigitModuleLabel:   "daq"
- PostsampleBins:     400
+ # PostsampleBins:     400
+ PostsampleBins:     0	
+ DoBaselineSub:   true # subtract baseline after deconvolution?
 }
 lbne35t_calwireana:    @local::standard_calwireana
 
