@@ -112,7 +112,9 @@ namespace detsim {
     //define max ADC value - if one wishes this can
     //be made a fcl parameter but not likely to ever change
     const float adcsaturation = 4095;
-
+     float                  fCollectionPed;    ///< ADC value of baseline for collection plane
+    float                  fInductionPed;     ///< ADC value of baseline for induction plane
+    
   }; // class SimWireLBNE10kt
 
   DEFINE_ART_MODULE(SimWireLBNE10kt)
@@ -178,6 +180,8 @@ namespace detsim {
     fNoiseArrayPoints = p.get< unsigned int        >("NoiseArrayPoints");
     fNoiseOn           = p.get< unsigned int       >("NoiseOn");
     fNoiseModel           = p.get< unsigned int       >("NoiseModel");
+    fCollectionPed    = p.get< float               >("CollectionPed");
+    fInductionPed     = p.get< float               >("InductionPed");
     art::ServiceHandle<util::DetectorProperties> detprop;
     fSampleRate       = detprop->SamplingRate();
     fNSamplesReadout  = detprop->ReadOutWindowSize();
@@ -358,7 +362,15 @@ namespace detsim {
 
 
       }
-
+      
+      float ped_mean = fCollectionPed;
+      geo::SigType_t sigtype = geo->SignalType(chan);
+      if (sigtype == geo::kInduction){
+        ped_mean = fInductionPed;
+      }
+      else if (sigtype == geo::kCollection){
+        ped_mean = fCollectionPed;
+      }
       // noise was already generated for each wire in the event
       // raw digit vec is already in channel order
       // pick a new "noise channel" for every channel  - this makes sure    
@@ -427,7 +439,7 @@ namespace detsim {
           if(view==geo::kU)       { tnoise = noise_a_U[i]; }
           else if (view==geo::kV) { tnoise = noise_a_V[i]; }
           else                    { tnoise = noise_a_Z[i]; }
-          tmpfv = tnoise + fChargeWork_a[i];
+          tmpfv = tnoise + fChargeWork_a[i]+ ped_mean;
 	  //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -442,7 +454,7 @@ namespace detsim {
             else if(view==geo::kV) { tnoisepre = noise_a_Vpre[i]; tnoisepost = noise_a_Vpost[i]; }
             else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
 
-            tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
+            tmpfv = tnoisepre + fChargeWorkPreSpill_a[i]+ ped_mean;
 	    //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -450,7 +462,7 @@ namespace detsim {
 	  if ( tmpfv < 0 )
 	    tmpfv = 0;
             adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-            tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
+            tmpfv = tnoisepost + fChargeWorkPostSpill_a[i]+ ped_mean;
 	    //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -497,7 +509,7 @@ namespace detsim {
 	  if(view==geo::kU)       { tnoise = rGauss_Ind.fire(); }
 	  else if (view==geo::kV) { tnoise = rGauss_Ind.fire(); }
 	  else                    { tnoise = rGauss_Col.fire(); }
-          tmpfv = tnoise + fChargeWork_a[i];
+          tmpfv = tnoise + fChargeWork_a[i]+ ped_mean;
 	  //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -512,7 +524,7 @@ namespace detsim {
 	    else if(view==geo::kV) { tnoisepre = rGauss_Ind.fire(); tnoisepost = rGauss_Ind.fire(); }
 	    else                   { tnoisepre = rGauss_Col.fire(); tnoisepost = rGauss_Col.fire(); }
 
-	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
+	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i]+ ped_mean;
 	    //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -520,7 +532,7 @@ namespace detsim {
 	  if ( tmpfv < 0 )
 	    tmpfv = 0;
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
+	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i]+ ped_mean;
 	    //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -533,7 +545,7 @@ namespace detsim {
       }
       else {   // no noise, so just round the values to nearest short ints and store them
         for(unsigned int i = 0; i < signalSize; ++i){
-          tmpfv = fChargeWork_a[i];
+          tmpfv = fChargeWork_a[i]+ ped_mean;
 	  //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -544,7 +556,7 @@ namespace detsim {
         }
         if (prepost) {
           for(unsigned int i = 0; i < signalSize; ++i){
-            tmpfv = fChargeWorkPreSpill_a[i];
+            tmpfv = fChargeWorkPreSpill_a[i]+ ped_mean;
 	    //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -552,7 +564,7 @@ namespace detsim {
 	  if ( tmpfv < 0 )
 	    tmpfv = 0;
             adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-            tmpfv = fChargeWorkPostSpill_a[i];
+            tmpfv = fChargeWorkPostSpill_a[i]+ ped_mean;
 	    //allow for ADC saturation
 	  if ( tmpfv > adcsaturation )
 	    tmpfv = adcsaturation;
@@ -575,20 +587,35 @@ namespace detsim {
 
       adcvec.resize(fNSamplesReadout);
       raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
-      // add the digit to the collection (in-place constructon)
-      digcol->emplace_back(chan, fNSamplesReadout, adcvec, fCompression);
+      raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
+      rd.SetPedestal(ped_mean);
       adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
+      digcol->push_back(rd);            // add this digit to the collection
+
+      // add the digit to the collection (in-place constructon)
+      // digcol->emplace_back(chan, fNSamplesReadout, adcvec, fCompression);
+      // adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
 
       // do all this for the prespill and postspill samples if need be
       if (prepost) {
         adcvecPreSpill.resize(fNSamplesReadout);
         adcvecPostSpill.resize(fNSamplesReadout);
-        raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
+	raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
         raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
-        digcolPreSpill->emplace_back(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
-        digcolPostSpill->emplace_back(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
+        raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
+        raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
+	rdPreSpill.SetPedestal(ped_mean);
+	rdPostSpill.SetPedestal(ped_mean);
         adcvecPreSpill.resize(signalSize);
         adcvecPostSpill.resize(signalSize);
+        digcolPreSpill->push_back(rdPreSpill);
+        digcolPostSpill->push_back(rdPostSpill);
+        // raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
+        // raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
+        // digcolPreSpill->emplace_back(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
+        // digcolPostSpill->emplace_back(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
+        // adcvecPreSpill.resize(signalSize);
+        // adcvecPostSpill.resize(signalSize);
       }
 
     }// end loop over channels      

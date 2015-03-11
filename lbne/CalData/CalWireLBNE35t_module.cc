@@ -206,9 +206,9 @@ namespace caldata {
 	  holder[bin]=(rawadc[bin]-digitVec->GetPedestal());
 
 	//Xin fill the remaining bin with data
-	for (bin = dataSize;bin<holder.size();bin++){
-	  holder[bin] = (rawadc[bin-dataSize]-digitVec->GetPedestal());
-	}
+	// for (bin = dataSize;bin<holder.size();bin++){
+	//   holder[bin] = (rawadc[bin-dataSize]-digitVec->GetPedestal());
+	// }
 
 	// Do deconvolution.
 	sss->Deconvolute(channel, holder);
