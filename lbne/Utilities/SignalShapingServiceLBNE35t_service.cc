@@ -415,8 +415,8 @@ void util::SignalShapingServiceLBNE35t::SetFieldResponse()
       integral += fFieldResponseHist[2]->GetBinContent( ibin );   
 
     // Induction plane
-    for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
-      fIndFieldResponse[ibin-1] = fIndFieldRespAmp*fFieldResponseHist[2]->GetBinContent( ibin )/integral;
+    for ( int ibin = 1; ibin <= fFieldResponseHist[1]->GetNbinsX(); ibin++ )
+      fIndFieldResponse[ibin-1] = fIndFieldRespAmp*fFieldResponseHist[1]->GetBinContent( ibin )/integral;
 
     for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
       fColFieldResponse[ibin-1] = fColFieldRespAmp*fFieldResponseHist[2]->GetBinContent( ibin )/integral;

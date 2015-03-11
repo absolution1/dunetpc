@@ -69,6 +69,8 @@ namespace caldata {
     std::string  fSpillName;  ///< nominal spill is an empty string
                               ///< it is set by the DigitModuleLabel
                               ///< ex.:  "daq:preSpill" for prespill data
+    unsigned short fPreROIPad; ///< ROI padding
+    unsigned short fPostROIPad; ///< ROI padding
     void SubtractBaseline(std::vector<float>& holder);
   protected: 
     
@@ -93,10 +95,17 @@ namespace caldata {
   //////////////////////////////////////////////////////
   void CalWireLBNE10kt::reconfigure(fhicl::ParameterSet const& p)
   {
+    std::vector<unsigned short> uin;    std::vector<unsigned short> vin;
+    std::vector<unsigned short> zin;
+
     fDigitModuleLabel = p.get< std::string >("DigitModuleLabel", "daq");
     fPostsample       = p.get< int >        ("PostsampleBins");
     fDoBaselineSub    = p.get< bool >       ("DoBaselineSub");
+    uin               = p.get< std::vector<unsigned short> >   ("PlaneROIPad");
     
+     // put the ROI pad sizes into more convenient vectors
+    fPreROIPad  = uin[0];
+    fPostROIPad = uin[1];
     fSpillName.clear();
     
     size_t pos = fDigitModuleLabel.find(":");
@@ -206,8 +215,95 @@ namespace caldata {
        // adaptive baseline subtraction
       if(fDoBaselineSub) SubtractBaseline(holder);
       
+      // work out the ROI 
+      recob::Wire::RegionsOfInterest_t ROIVec;
+      std::vector<std::pair<unsigned int, unsigned int>> holderInfo;
+      std::vector<std::pair<unsigned int, unsigned int>> rois;
+      
+      double max = 0;
+      double deconNoise = sss->GetDeconNoise(channel);
+      // find out all ROI
+      unsigned int roiStart = 0;
+      for(bin = 0; bin < dataSize; ++bin) {
+	double SigVal = holder[bin];
+	if (SigVal > max) max = SigVal;
+	if(roiStart == 0) {
+	  if (SigVal > 4*deconNoise) roiStart = bin; // 3 sigma above noise
+	}else{
+	  if (SigVal < deconNoise){
+	    rois.push_back(std::make_pair(roiStart, bin));
+	    roiStart = 0;
+	  }
+	}
+      }
+      if (roiStart!=0){
+	rois.push_back(std::make_pair(roiStart, dataSize-1));
+	roiStart = 0;
+      }
+      
+      // pad them
+      // if (channel==512){
+      // 	for (bin = 0; bin< holder.size();++bin){
+      // 	  if (fabs(holder[bin]) > 2)
+      // 	      std::cout << "Xin1: " << holder[bin] << std::endl;
+      // 	}
+      // }
+      //std::cout << "Xin: "  << max << " "<< channel << " " << deconNoise << " " << rois.size() << std::endl;
+
+      if(rois.size() == 0) continue;
+      holderInfo.clear();
+      for(unsigned int ii = 0; ii < rois.size(); ++ii) {
+	// low ROI end
+	int low = rois[ii].first - fPreROIPad;
+	if(low < 0) low = 0;
+	rois[ii].first = low;
+	// high ROI end
+	unsigned int high = rois[ii].second + fPostROIPad;
+	if(high >= dataSize) high = dataSize-1;
+	rois[ii].second = high;
+	
+      }
+      // merge them
+      if(rois.size() > 1) {
+	// temporary vector for merged ROIs
+		
+	for (unsigned int ii = 0; ii<rois.size();ii++){
+	  unsigned int roiStart = rois[ii].first;
+	  unsigned int roiEnd = rois[ii].second;
+	 	  
+	  int flag1 = 1;
+	  unsigned int jj=ii+1;
+	  while(flag1){	
+	    if (jj<rois.size()){
+	      if(rois[jj].first <= roiEnd  ) {
+		roiEnd = rois[jj].second;
+		ii = jj;
+		jj = ii+1;
+	      }else{
+		flag1 = 0;
+	      }
+	    }else{
+	      flag1 = 0;
+	    }
+	  }
+	  std::vector<float> sigTemp;
+	  for(unsigned int kk = roiStart; kk < roiEnd; ++kk) {
+	    sigTemp.push_back(holder[kk]);
+	  } // jj
+	  //	  std::cout << "Xin: " << roiStart << std::endl;
+	  ROIVec.add_range(roiStart, std::move(sigTemp));
+	  //trois.push_back(std::make_pair(roiStart,roiEnd));	    
+	}
+      }
+      
+      // save them
+      wirecol->push_back(recob::WireCreator(std::move(ROIVec),*digitVec).move());
+
+
+
+
       // Make a single ROI that spans the entire data size
-      wirecol->push_back(recob::WireCreator(holder,*digitVec).move());
+      //wirecol->push_back(recob::WireCreator(holder,*digitVec).move());
       // add an association between the last object in wirecol
       // (that we just inserted) and digitVec
       if (!util::CreateAssn(*this, evt, *wirecol, digitVec, *WireDigitAssn, fSpillName)) {
