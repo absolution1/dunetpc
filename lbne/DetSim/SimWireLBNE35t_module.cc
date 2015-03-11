@@ -119,6 +119,10 @@ namespace detsim {
 
     uint32_t               fFirstCollectionChannel;
 
+    //define max ADC value - if one wishes this can
+    //be made a fcl parameter but not likely to ever change
+    const float adcsaturation = 4095;
+
     // input fcl parameters
 
     bool                   fSimCombs;          // switch for simulation of the combs
@@ -754,6 +758,13 @@ namespace detsim {
 	  else                    { tnoise = noise_a_Z[i]; }
           tmpfv = tnoise + fChargeWork_a[i];
 	  if (fSimCombs)  tmpfv += fChargeWorkCollInd_a[i];
+	  //allow for ADC saturation
+	  if ( tmpfv > adcsaturation )
+	    tmpfv = adcsaturation;
+	  //don't allow for "negative" saturation
+	  if ( tmpfv < 0 )
+	    tmpfv = 0;
+
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
@@ -764,9 +775,21 @@ namespace detsim {
 
 	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
+	    //allow for ADC saturation
+	    if ( tmpfv > adcsaturation )
+	      tmpfv = adcsaturation;
+	    //don't allow for "negative" saturation
+	    if ( tmpfv < 0 )
+	      tmpfv = 0;
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
+	    //allow for ADC saturation
+	    if ( tmpfv > adcsaturation )
+	      tmpfv = adcsaturation;
+	    //don't allow for "negative" saturation
+	    if ( tmpfv < 0 )
+	      tmpfv = 0;
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
@@ -815,6 +838,12 @@ namespace detsim {
 	  else                    { tnoise = rGauss_Col.fire(); }
           tmpfv = tnoise + fChargeWork_a[i];
 	  if (fSimCombs)  tmpfv += fChargeWorkCollInd_a[i];
+	  //allow for ADC saturation
+	  if ( tmpfv > adcsaturation )
+	    tmpfv = adcsaturation;
+	  //don't allow for "negative" saturation
+	  if ( tmpfv < 0 )
+	    tmpfv = 0;
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
@@ -825,9 +854,21 @@ namespace detsim {
 
 	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
+	    //allow for ADC saturation
+	  if ( tmpfv > adcsaturation )
+	    tmpfv = adcsaturation;
+	  //don't allow for "negative" saturation
+	  if ( tmpfv < 0 )
+	    tmpfv = 0;
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
+	    //allow for ADC saturation
+	  if ( tmpfv > adcsaturation )
+	    tmpfv = adcsaturation;
+	  //don't allow for "negative" saturation
+	  if ( tmpfv < 0 )
+	    tmpfv = 0;
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
@@ -838,15 +879,33 @@ namespace detsim {
 	for(unsigned int i = 0; i < signalSize; ++i){
 	  tmpfv = fChargeWork_a[i];
 	  if (fSimCombs) tmpfv += fChargeWorkCollInd_a[i];
+	  //allow for ADC saturation
+	  if ( tmpfv > adcsaturation )
+	    tmpfv = adcsaturation;
+	  //don't allow for "negative" saturation
+	  if ( tmpfv < 0 )
+	    tmpfv = 0;
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
 	  for(unsigned int i = 0; i < signalSize; ++i){
 	    tmpfv = fChargeWorkPreSpill_a[i];
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
+	    //allow for ADC saturation
+	    if ( tmpfv > adcsaturation )
+	      tmpfv = adcsaturation;
+	    //don't allow for "negative" saturation
+	    if ( tmpfv < 0 )
+	      tmpfv = 0;
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	    tmpfv = fChargeWorkPostSpill_a[i];
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
+	    //allow for ADC saturation
+	    if ( tmpfv > adcsaturation )
+	      tmpfv = adcsaturation;
+	    //don't allow for "negative" saturation
+	    if ( tmpfv < 0 )
+	      tmpfv = 0;
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
