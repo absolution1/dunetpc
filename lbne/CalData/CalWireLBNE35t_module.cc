@@ -206,9 +206,9 @@ namespace caldata {
 	  holder[bin]=(rawadc[bin]-digitVec->GetPedestal());
 
 	//Xin fill the remaining bin with data
-	// for (bin = dataSize;bin<holder.size();bin++){
-	//   holder[bin] = (rawadc[bin-dataSize]-digitVec->GetPedestal());
-	// }
+	for (bin = dataSize;bin<holder.size();bin++){
+	  holder[bin] = (rawadc[bin-dataSize]-digitVec->GetPedestal());
+	}
 
 	// Do deconvolution.
 	sss->Deconvolute(channel, holder);
@@ -264,54 +264,54 @@ namespace caldata {
       //std::cout << "Xin: "  << max << " "<< channel << " " << deconNoise << " " << rois.size() << std::endl;
 
       if(rois.size() == 0) continue;
-      holderInfo.clear();
-      for(unsigned int ii = 0; ii < rois.size(); ++ii) {
-	// low ROI end
-	int low = rois[ii].first - fPreROIPad;
-	if(low < 0) low = 0;
-	rois[ii].first = low;
-	// high ROI end
-	unsigned int high = rois[ii].second + fPostROIPad;
-	if(high >= dataSize) high = dataSize-1;
-	rois[ii].second = high;
-	
-      }
+	holderInfo.clear();
+	for(unsigned int ii = 0; ii < rois.size(); ++ii) {
+	  // low ROI end
+	  int low = rois[ii].first - fPreROIPad;
+	  if(low < 0) low = 0;
+	  rois[ii].first = low;
+	  // high ROI end
+	  unsigned int high = rois[ii].second + fPostROIPad;
+	  if(high >= dataSize) high = dataSize-1;
+	  rois[ii].second = high;
+	  
+	}
       // merge them
-      if(rois.size() >= 1) {
-	// temporary vector for merged ROIs
-		
-	for (unsigned int ii = 0; ii<rois.size();ii++){
-	  unsigned int roiStart = rois[ii].first;
-	  unsigned int roiEnd = rois[ii].second;
-	 	  
-	  int flag1 = 1;
-	  unsigned int jj=ii+1;
-	  while(flag1){	
-	    if (jj<rois.size()){
-	      if(rois[jj].first <= roiEnd  ) {
-		roiEnd = rois[jj].second;
-		ii = jj;
-		jj = ii+1;
+	if(rois.size() >= 1) {
+	  // temporary vector for merged ROIs
+	  
+	  for (unsigned int ii = 0; ii<rois.size();ii++){
+	    unsigned int roiStart = rois[ii].first;
+	    unsigned int roiEnd = rois[ii].second;
+	    
+	    int flag1 = 1;
+	    unsigned int jj=ii+1;
+	    while(flag1){	
+	      if (jj<rois.size()){
+		if(rois[jj].first <= roiEnd  ) {
+		  roiEnd = rois[jj].second;
+		  ii = jj;
+		  jj = ii+1;
+		}else{
+		  flag1 = 0;
+		}
 	      }else{
 		flag1 = 0;
 	      }
-	    }else{
-	      flag1 = 0;
 	    }
+	    std::vector<float> sigTemp;
+	    for(unsigned int kk = roiStart; kk < roiEnd; ++kk) {
+	      sigTemp.push_back(holder[kk]);
+	    } // jj
+	    //	  std::cout << "Xin: " << roiStart << std::endl;
+	    ROIVec.add_range(roiStart, std::move(sigTemp));
+	    //trois.push_back(std::make_pair(roiStart,roiEnd));	    
 	  }
-	  std::vector<float> sigTemp;
-	  for(unsigned int kk = roiStart; kk < roiEnd; ++kk) {
-	    sigTemp.push_back(holder[kk]);
-	  } // jj
-	  //	  std::cout << "Xin: " << roiStart << std::endl;
-	  ROIVec.add_range(roiStart, std::move(sigTemp));
-	  //trois.push_back(std::make_pair(roiStart,roiEnd));	    
 	}
-      }
-      
-      // save them
-      wirecol->push_back(recob::WireCreator(std::move(ROIVec),*digitVec).move());
-
+	
+	// save them
+	wirecol->push_back(recob::WireCreator(std::move(ROIVec),*digitVec).move());
+	
       // Make a single ROI that spans the entire data size
       //wirecol->push_back(recob::WireCreator(holder,*digitVec).move());
 
