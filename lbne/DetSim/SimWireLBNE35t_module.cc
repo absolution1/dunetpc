@@ -769,14 +769,14 @@ namespace detsim {
 	  if(view==geo::kU)       { tnoise = noise_a_U[i]; }
 	  else if (view==geo::kV) { tnoise = noise_a_V[i]; }
 	  else                    { tnoise = noise_a_Z[i]; }
-          tmpfv = tnoise + fChargeWork_a[i] + ped_mean;
+          tmpfv = tnoise + fChargeWork_a[i] ;
 	  if (fSimCombs)  tmpfv += fChargeWorkCollInd_a[i];
 	  //allow for ADC saturation
-	  if ( tmpfv > adcsaturation )
-	    tmpfv = adcsaturation;
+	  if ( tmpfv > adcsaturation - ped_mean)
+	    tmpfv = adcsaturation- ped_mean;
 	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 )
-	    tmpfv = 0;
+	  if ( tmpfv < 0 - ped_mean)
+	    tmpfv = 0- ped_mean;
 
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
@@ -786,23 +786,23 @@ namespace detsim {
 	    else if(view==geo::kV) { tnoisepre = noise_a_Vpre[i]; tnoisepost = noise_a_Vpost[i]; }
 	    else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
 
-	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i] + ped_mean;
+	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i] ;
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
 	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation )
-	      tmpfv = adcsaturation;
+	    if ( tmpfv > adcsaturation - ped_mean)
+	      tmpfv = adcsaturation- ped_mean;
 	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 )
-	      tmpfv = 0;
+	    if ( tmpfv < 0 - ped_mean)
+	      tmpfv = 0- ped_mean;
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i] + ped_mean;
+	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i] ;
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
 	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation )
-	      tmpfv = adcsaturation;
+	    if ( tmpfv > adcsaturation - ped_mean)
+	      tmpfv = adcsaturation- ped_mean;
 	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 )
-	      tmpfv = 0;
+	    if ( tmpfv < 0 - ped_mean)
+	      tmpfv = 0- ped_mean;
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
@@ -849,14 +849,14 @@ namespace detsim {
 	  if(view==geo::kU)       { tnoise = rGauss_Ind.fire(); }
 	  else if (view==geo::kV) { tnoise = rGauss_Ind.fire(); }
 	  else                    { tnoise = rGauss_Col.fire(); }
-          tmpfv = tnoise + fChargeWork_a[i] + ped_mean;
+          tmpfv = tnoise + fChargeWork_a[i] ;
 	  if (fSimCombs)  tmpfv += fChargeWorkCollInd_a[i];
 	  //allow for ADC saturation
-	  if ( tmpfv > adcsaturation )
-	    tmpfv = adcsaturation;
+	  if ( tmpfv > adcsaturation - ped_mean)
+	    tmpfv = adcsaturation- ped_mean;
 	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 )
-	    tmpfv = 0;
+	  if ( tmpfv < 0 - ped_mean)
+	    tmpfv = 0- ped_mean;
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
@@ -865,60 +865,58 @@ namespace detsim {
 	    else if(view==geo::kV) { tnoisepre = rGauss_Ind.fire(); tnoisepost = rGauss_Ind.fire(); }
 	    else                   { tnoisepre = rGauss_Col.fire(); tnoisepost = rGauss_Col.fire(); }
 
-	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i] + ped_mean;
+	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i] ;
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
 	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation )
-	    tmpfv = adcsaturation;
+	  if ( tmpfv > adcsaturation - ped_mean)
+	    tmpfv = adcsaturation- ped_mean;
 	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 )
-	    tmpfv = 0;
+	  if ( tmpfv < 0 - ped_mean)
+	    tmpfv = 0- ped_mean;
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i] + ped_mean;
+	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i] ;
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
 	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation )
-	    tmpfv = adcsaturation;
+	  if ( tmpfv > adcsaturation - ped_mean)
+	    tmpfv = adcsaturation- ped_mean;
 	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 )
-	    tmpfv = 0;
+	  if ( tmpfv < 0 - ped_mean)
+	    tmpfv = 0- ped_mean;
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
 
-
-
       }else {   // no noise, so just round the values to nearest short ints and store them
 	for(unsigned int i = 0; i < signalSize; ++i){
 	  tmpfv = fChargeWork_a[i];
-	  if (fSimCombs) tmpfv += fChargeWorkCollInd_a[i] + ped_mean;
+	  if (fSimCombs) tmpfv += fChargeWorkCollInd_a[i] ;
 	  //allow for ADC saturation
-	  if ( tmpfv > adcsaturation )
-	    tmpfv = adcsaturation;
+	  if ( tmpfv > adcsaturation - ped_mean)
+	    tmpfv = adcsaturation- ped_mean;
 	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 )
-	    tmpfv = 0;
+	  if ( tmpfv < 0 - ped_mean)
+	    tmpfv = 0- ped_mean;
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
 	  for(unsigned int i = 0; i < signalSize; ++i){
 	    tmpfv = fChargeWorkPreSpill_a[i];
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i] + ped_mean;
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i] ;
 	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation )
-	      tmpfv = adcsaturation;
+	    if ( tmpfv > adcsaturation - ped_mean)
+	      tmpfv = adcsaturation- ped_mean;
 	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 )
-	      tmpfv = 0;
+	    if ( tmpfv < 0 - ped_mean)
+	      tmpfv = 0- ped_mean;
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	    tmpfv = fChargeWorkPostSpill_a[i];
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i] + ped_mean;
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i] ;
 	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation )
-	      tmpfv = adcsaturation;
+	    if ( tmpfv > adcsaturation - ped_mean)
+	      tmpfv = adcsaturation- ped_mean;
 	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 )
-	      tmpfv = 0;
+	    if ( tmpfv < 0 - ped_mean)
+	      tmpfv = 0- ped_mean;
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
@@ -937,7 +935,7 @@ namespace detsim {
       
       
       raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
-      rd.SetPedestal(ped_mean);
+      
       adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
       digcol->push_back(rd);            // add this digit to the collection
 
@@ -949,8 +947,7 @@ namespace detsim {
         raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
         raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
         raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
-	rdPreSpill.SetPedestal(ped_mean);
-	rdPostSpill.SetPedestal(ped_mean);
+
         adcvecPreSpill.resize(signalSize);
         adcvecPostSpill.resize(signalSize);
         digcolPreSpill->push_back(rdPreSpill);
