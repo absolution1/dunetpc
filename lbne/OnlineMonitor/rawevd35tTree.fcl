@@ -7,27 +7,16 @@ services:
   Timing:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
-  #user:         @local::lbnefd_simulation_services
   user:         @local::lbne35t_simulation_services
 }
 
 source:
 {
   module_type: RootInput
-  #fileNames:  [ "/lbne/data/users/babu2038/result_1000_event/35T_singleGen_electron_100MeV.root" ]
-#old one from Seogtae  
-#fileNames:  [ "/lbne/data/users/babu2038/muonfiles/muon/35T_singleGen_muMinus_500MeV.root" ]
-  fileNames:  [ "/lbne/app/users/trj/mt2/build_slf6.x86_64/single35t_gen.root"]
-  #fileNames:  [ "/lbne/data/users/babu2038/cosmicevent/cosmics35t_gen.root" ]
-  #fileNames:  [ "/lbne/data/users/babu2038/pionfiles/pionplus/35T_singleGen_pionPlus_30MeV.root" ]
-  #fileNames:  [ "muons_fuzzy36.root" ] 
-  #fileNames:  [ "muons_gen36.root" ] 
-  firstEvent : 1
+  fileNames:  [ "input.root" ]
+  firstEvent: 1
   maxEvents:  50
 }
-services.user.Geometry.GDML: "lbne35t4apa_v2.gdml"
-services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v2"
-#services.user.Geometry.ROOT: "lbne35t4apa_v3.gdml"
 
 outputs:{}
 
@@ -38,7 +27,10 @@ physics:
     rawdraw: 
     {
       module_type:     "RawEVD35tTree"
-      RawDigitLabel:   "daq"
+      TPCInputModule:  "daq" #"tpcdaqtooffline"
+      TPCInstanceName: "" #"offline"
+      SSPInputModule:  "opdigi" #"ssptooffline"
+      SSPInstanceName: "" #"offlinephoton"
     }
   }
   analysis: [ rawdraw ] //Directory for histograms
