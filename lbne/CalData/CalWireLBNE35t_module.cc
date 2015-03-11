@@ -277,7 +277,7 @@ namespace caldata {
 	
       }
       // merge them
-      if(rois.size() > 1) {
+      if(rois.size() >= 1) {
 	// temporary vector for merged ROIs
 		
 	for (unsigned int ii = 0; ii<rois.size();ii++){
@@ -310,10 +310,10 @@ namespace caldata {
       }
       
       // save them
-      //wirecol->push_back(recob::WireCreator(std::move(ROIVec),*digitVec).move());
+      wirecol->push_back(recob::WireCreator(std::move(ROIVec),*digitVec).move());
 
       // Make a single ROI that spans the entire data size
-      wirecol->push_back(recob::WireCreator(holder,*digitVec).move());
+      //wirecol->push_back(recob::WireCreator(holder,*digitVec).move());
 
 
 

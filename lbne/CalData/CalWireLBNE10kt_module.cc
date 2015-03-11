@@ -264,7 +264,7 @@ namespace caldata {
 	
       }
       // merge them
-      if(rois.size() > 1) {
+      if(rois.size() >= 1) {
 	// temporary vector for merged ROIs
 		
 	for (unsigned int ii = 0; ii<rois.size();ii++){
@@ -294,7 +294,16 @@ namespace caldata {
 	  ROIVec.add_range(roiStart, std::move(sigTemp));
 	  //trois.push_back(std::make_pair(roiStart,roiEnd));	    
 	}
-      }
+      }// else{
+      // 	unsigned int roiStart = rois[0].first;
+      // 	unsigned int roiEnd = rois[0].second;
+      // 	std::vector<float> sigTemp;
+      // 	  for(unsigned int kk = roiStart; kk < roiEnd; ++kk) {
+      // 	    sigTemp.push_back(holder[kk]);
+      // 	  } // jj
+      // 	  //	  std::cout << "Xin: " << roiStart << std::endl;
+      // 	  ROIVec.add_range(roiStart, std::move(sigTemp));
+      // }
       
       // save them
       wirecol->push_back(recob::WireCreator(std::move(ROIVec),*digitVec).move());
