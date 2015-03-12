@@ -135,7 +135,7 @@ namespace {
       double ticks;
       
       ticks = detprop->ConvertXToTicks(pos[0], 0, tpcid.TPC, tpcid.Cryostat);
-      
+
 	//if(ticks >5e+12)
 	// continue;
         if(ticks >= 0. && ticks < detprop->ReadOutWindowSize()) {
@@ -181,7 +181,8 @@ private:
   void ResetVars();
   
   TTree* fTree;
-  //run information
+
+  // Run information
   int run;
   int subrun;
   int event;
@@ -212,14 +213,16 @@ private:
   double Hits_posz_MC[kMaxTrack][1000];
   double Hits_mom_MC[kMaxTrack][1000];
 
+  int    trkid_MC[kMaxTrack];
+  int    trkpdg_MC[kMaxTrack];
   double trkmom_MC[kMaxTrack];
   double trkmom_XMC[kMaxTrack];
   double trkmom_YMC[kMaxTrack];
   double trkmom_ZMC[kMaxTrack];
+  double trkenergy_MC[kMaxTrack];
   double trkstartdoc_XMC[kMaxTrack];
   double trkstartdoc_YMC[kMaxTrack];
   double trkstartdoc_ZMC[kMaxTrack];
-  int    trkpdg_MC[kMaxTrack];
   int    trkMother_MC[kMaxTrack];
   int    trkNumDaughters_MC[kMaxTrack];
   int    trkFirstDaughter_MC[kMaxTrack];
@@ -724,7 +727,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   int i=0; // particle index
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
     particle = ipar->second;
-    
+
     // Line below selects only primaries, have removed so get all particles.
     // So want to add if Process=="Primary" in macro, this way can see particles other than primaries too.
     //if(!(particle->Process()=="primary" && abs(particle->PdgCode())== abs(fPdg))) continue;
@@ -758,6 +761,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     //        }
     //        fMC_daughters.push_back(daughters);
     size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
+    trkid_MC[i]=particle->TrackId();
     trkpdg_MC[i]=particle->PdgCode();
     trkMother_MC[i]=particle->Mother();
     trkNumDaughters_MC[i]=particle->NumberDaughters();
@@ -846,6 +850,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     //        const TLorentzVector& momentumStart = particle->Momentum(0);
     //        const TLorentzVector& momentumEnd   = particle->Momentum(last);
     TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(zz);
+    trkenergy_MC[i]=particle->E();
     trkmom_MC[i]=momentumStart.P();
     trkmom_XMC[i]=momentumStart.Px();
     trkmom_YMC[i]=momentumStart.Py();
@@ -1081,6 +1086,7 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkdEdxAverage",trkdEdxAverage,"trkdEdxAverage[ntracks_reco]/D");
   
   fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
+  fTree->Branch("trkid_MC",trkid_MC,"trkid_MC[nMCParticles]/I");
   fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[nMCParticles]/I");
   fTree->Branch("CryoHits_MC",&CryoHits_MC,"CryoHits_MC[nMCParticles]/I");
   fTree->Branch("trkMother_MC",trkMother_MC,"trkMother_MC[nMCParticles]/I");
@@ -1098,6 +1104,7 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("Hits_posy_MC",Hits_posy_MC,"Hits_posy_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_posz_MC",Hits_posz_MC,"Hits_posz_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_mom_MC",Hits_mom_MC,"Hits_mom_MC[nMCParticles][1000]/D");
+  fTree->Branch("trkenergy_MC",trkenergy_MC,"trkenergy_MC[nMCParticles]/D");
   fTree->Branch("trkmom_MC",trkmom_MC,"trkmom_MC[nMCParticles]/D");
   fTree->Branch("trkmom_XMC",trkmom_XMC,"trkmom_XMC[nMCParticles]/D");
   fTree->Branch("trkmom_YMC",trkmom_YMC,"trkmom_YMC[nMCParticles]/D");
@@ -1171,6 +1178,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkendz_MC[i] = -99999;
     trklen_MC[i] = -99999;
     trklen_cut_MC[i] = -99999;
+    trkenergy_MC[i] = -99999;
     trkmom_MC[i] = -99999;
     trkmom_XMC[i] = -99999;
     trkmom_YMC[i] = -99999;
@@ -1178,6 +1186,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkstartdoc_XMC[i] = -99999;
     trkstartdoc_YMC[i] = -99999;
     trkstartdoc_ZMC[i] = -99999;
+    trkid_MC[i] = -99999;
     trkpdg_MC[i] = -99999;
     trkMother_MC[i] = -99999;
     trkNumDaughters_MC[i] = -99999;
@@ -1274,13 +1283,8 @@ void AnaTree::AnaTree::ResetVars(){
 }
 
 void AnaTree::AnaTree::endJob()
-  //
-  // Purpose: End of job.
-  //
-  {
-
- 
-  }
+{
+}
 
 
 DEFINE_ART_MODULE(AnaTree::AnaTree)
