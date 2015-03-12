@@ -10,9 +10,6 @@ lbnefd_calwire:
  module_type:        "CalWireLBNE10kt"
  DigitModuleLabel:   "daq"
  PostsampleBins:     400
- DoBaselineSub:   true # subtract baseline after deconvolution?
- PlaneROIPad: [ 50, 50 ] # number of bins to pad both ends of the ROIs
- 
 }
 lbnefd_calwireana:   @local::standard_calwireana
 
@@ -21,11 +18,7 @@ lbne35t_calwire:
 {
  module_type:        "CalWireLBNE35t"
  DigitModuleLabel:   "daq"
- # PostsampleBins:     400
- PostsampleBins:     0	
- DoBaselineSub:   true # subtract baseline after deconvolution?
- PlaneROIPad: [ 50, 50 ] # number of bins to pad both ends of the ROIs
- 
+ PostsampleBins:     400
 }
 lbne35t_calwireana:    @local::standard_calwireana
 

@@ -8,11 +8,6 @@ include_directories( $ENV{PANDORA_FQ_DIR}/PandoraSDK/include )
 include_directories( $ENV{PANDORA_FQ_DIR}/PandoraMonitoring/include )
 include_directories( $ENV{LARPANDORA_INC}/LArPandoraAlgorithms )
 include_directories( $ENV{LARPANDORA_INC}/LArPandoraInterface )
-# kludge for building both lbnecode and larpandora at the same time
-# because larpandora does not follow the larsoft model of using full header paths
-# remove when pandora 0.18 is released and used
-include_directories( $ENV{LARPANDORA_DIR}/LArPandoraAlgorithms )
-include_directories( $ENV{LARPANDORA_DIR}/LArPandoraInterface )
 
 art_make( BASENAME_ONLY
           LIBRARY_NAME  LBNEPandora
