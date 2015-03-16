@@ -29,6 +29,8 @@
 #include "RawData/raw.h"
 #include "Geometry/Geometry.h"
 
+#include "tpcFragmentToRawDigits.h"
+
 #include "utilities/UnpackFragment.h"
 
 namespace DAQToOffline {
@@ -47,7 +49,7 @@ public:
   TpcDAQToOffline & operator = (TpcDAQToOffline const &) = delete;
   TpcDAQToOffline & operator = (TpcDAQToOffline &&) = delete;
   void produce(art::Event & evt) override;
-  void reconfigure(fhicl::ParameterSet const& pset);
+  void reconfigure(const fhicl::ParameterSet &pset);
   void printParameterSet();
 
 private:
@@ -108,11 +110,19 @@ void DAQToOffline::TpcDAQToOffline::printParameterSet(){
 
 void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 {
+  art::Handle<artdaq::Fragments> rawFragments;
+  evt.getByLabel(fRawDataLabel, fFragType, rawFragments);
 
   art::EventNumber_t eventNumber = evt.event();
 
-  art::Handle<artdaq::Fragments> rawFragments;
-  evt.getByLabel(fRawDataLabel, fFragType, rawFragments);
+  //Check that the data is valid
+  if(!rawFragments.isValid()){
+    std::cerr << "Run: " << evt.run()
+	      << ", SubRun: " << evt.subRun()
+	      << ", Event: " << eventNumber
+	      << " is NOT VALID" << std::endl;
+    throw cet::exception("rawFragments NOT VALID");
+  }
 
   // Check if there is RCE data in this event
   // Don't crash code if not present, just don't save anything
@@ -122,117 +132,9 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
     return;
   }
 
-  //Check that the data is valid
-  if(!rawFragments.isValid()){
-    std::cerr << "Run: " << evt.run()
-	      << ", SubRun: " << evt.subRun()
-	      << ", Event: " << eventNumber
-	      << " is NOT VALID" << std::endl;
-    throw cet::exception("rawFragments NOT VALID");
-    return;
+  auto digits = tpcFragmentToRawDigits(evt.id(), *rawFragments, fDebug, fCompression, fZeroThreshold);
 
-  }
-
-  // Create a vector to hold the raw::RawDigits
-  std::unique_ptr< std::vector<raw::RawDigit> > rawDigitVector(new std::vector <raw::RawDigit > );
-
-  //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
-  unsigned int numFragments = rawFragments->size();
-
-  std::map < unsigned int, unsigned int > mapFragID;
-  
-  for(size_t fragIndex = 0; fragIndex < rawFragments->size(); fragIndex++){
-
-    const artdaq::Fragment &singleFragment ((*rawFragments)[fragIndex]);
-    
-    unsigned int fragmentID = singleFragment.fragmentID();
-
-    mapFragID.insert(std::pair<unsigned int, unsigned int>(fragmentID,fragIndex));
-
-  }
-
-
-  if(fDebug){
-    std::cout << "Run: " << evt.run()
-	      << ", SubRun: " << evt.subRun()
-	      << ", Event: " << eventNumber
-	      << " has " << numFragments
-	      << " rawFragments" << std::endl;
-  }
-  
-
-  //JPD -- first go at unpacking the information
-  //    -- seems to make sense to look through channel number, 
-  //    -- then we'll create a rawDigit object for each channel
-  //    -- will need some helper functions to do this for us, so I created a utilites directory
-  
-
-  art::ServiceHandle<geo::Geometry> geometry;
-  size_t numChans = geometry->Nchannels();
-
-  for(size_t chan=0;chan < numChans;chan++) {
-
-    //Each channel is uniquely identified by (fragmentID, sample) in an online event
-    
-    unsigned int fragmentID = UnpackFragment::getFragIDForChan(chan);
-    unsigned int sample = UnpackFragment::getNanoSliceSampleForChan(chan);
-
-    if (fDebug) {
-      std::cout << "channel: " << chan
-		<< "\tfragment: " << fragmentID
-		<< "\tsample: " << sample
-		<< std::endl;
-    }
-
-    //Check that the necessary fragmentID is present in the event
-    //i.e. do we have data for this channel?
-
-    if( mapFragID.find(fragmentID) == mapFragID.end() ) {
-
-      std::cout << "Fragment (" << fragmentID << ") not found" << std::endl;
-      continue;
-
-    }
-
-    unsigned int fragIndex = mapFragID[fragmentID];
-
-    if (fDebug) std::cout << "fragIndex: " << fragIndex << std::endl;
-    
-    std::vector<short> adcvec;
-
-    const artdaq::Fragment &singleFragment ((*rawFragments)[fragIndex]);
-    lbne::TpcMilliSliceFragment millisliceFragment(singleFragment);
-
-    //Properties of fragment
-    auto numMicroSlices = millisliceFragment.microSliceCount();
-    
-    for(unsigned int i_micro=0;i_micro<numMicroSlices;i_micro++){
-     
-      std::unique_ptr <const lbne::TpcMicroSlice> microSlice = millisliceFragment.microSlice(i_micro);
-      auto numNanoSlices = microSlice->nanoSliceCount();
-
-      for(uint32_t i_nano=0; i_nano < numNanoSlices; i_nano++){
-	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice = microSlice->nanoSlice(i_nano);
-	
-	uint16_t val = std::numeric_limits<uint16_t>::max();
-	bool success = nanoSlice->sampleValue(sample, val);
-
-	if(success) adcvec.push_back(short(val));
-	
-      }
-    }
-
-    if (fDebug) std::cout << "adcvec->size(): " << adcvec.size() << std::endl;
-    unsigned int numTicks = adcvec.size();
-
-    raw::Compress(adcvec, fCompression, fZeroThreshold);
-    raw::RawDigit theRawDigit(chan, numTicks, adcvec, fCompression);
-    rawDigitVector->push_back(theRawDigit);            // add this digit to the collection
-
-  }
-
-  evt.put(std::move(rawDigitVector), fOutputDataLabel);
-
+  evt.put(std::make_unique<decltype(digits)>(std::move(digits)), fOutputDataLabel);
 }
 
 DEFINE_ART_MODULE(DAQToOffline::TpcDAQToOffline)
