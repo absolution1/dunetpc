@@ -13,9 +13,9 @@ services:
 source:
 {
   module_type: RootInput
-  fileNames:  [ "input.root" ]
+  fileNames:  [ "/lbne/data2/users/wallbank/DAQToOffline.root" ]
   firstEvent: 1
-  maxEvents:  50
+  maxEvents:  1000
 }
 
 outputs:{}
@@ -27,10 +27,10 @@ physics:
     rawdraw: 
     {
       module_type:     "RawEVD35tTree"
-      TPCInputModule:  "daq" #"tpcdaqtooffline"
-      TPCInstanceName: "" #"offline"
-      SSPInputModule:  "opdigi" #"ssptooffline"
-      SSPInstanceName: "" #"offlinephoton"
+      TPCInputModule:  "tpcdaqtooffline"
+      TPCInstanceName: "offline"
+      SSPInputModule:  "ssptooffline"
+      SSPInstanceName: "offlinePhoton"
     }
   }
   analysis: [ rawdraw ] //Directory for histograms

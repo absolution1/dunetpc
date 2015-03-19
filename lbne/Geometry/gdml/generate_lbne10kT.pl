@@ -83,10 +83,10 @@ $UWirePitch             =   0.49;
 $VWirePitch             =   0.5;
 $XWirePitch             =   0.45;
 
-$UAngle                 =   45.7;
-$VAngle                 =   44.3;
-#$UAngle                 =   35;
-#$VAngle                 =   35;
+#$UAngle                 =   45.7;
+#$VAngle                 =   44.3;
+$UAngle                 =   36;
+$VAngle                 =   36;
 
 $SinUAngle              =   sin( deg2rad($UAngle) );
 $CosUAngle              =   cos( deg2rad($UAngle) );
@@ -118,6 +118,12 @@ $nCryos	               =     2;
 $nAPAWide	       =     3; 
 $nAPAHigh	       =     2;
 $nAPALong	       =     10;
+
+# 4 APA testing geometry
+#$nCryos               =     1;
+#$nAPAWide	       =     1; 
+#$nAPAHigh	       =     2;
+#$nAPALong	       =     2;
 
 $CPAThickness          =     5.1; 
 $APAFrame_x            =     2*$inch; # this does not include the wire spacing
@@ -230,7 +236,8 @@ $HeightGaseousAr        =       50;
 
 
 $ArgonWidth		=	$FiducialWidth 
-                              + 2*$SpaceCPAToCryoWall;
+                              + 2*$SpaceCPAtoCryoWall;
+
 $ArgonHeight		=	$FiducialHeight
                               + $SpaceAPAToFloor + $SpaceAPAToTopLAr 
                               + $HeightGaseousAr; 
@@ -1486,8 +1493,8 @@ print CRYO <<EOF;
       <solidref ref="Cathode" />
     </volume>
 
-    <volume name="volOpDetSensitive">
-      <materialref ref="Acrylic"/>
+    <volume name="volOpDetSensitive_Bar">
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
 

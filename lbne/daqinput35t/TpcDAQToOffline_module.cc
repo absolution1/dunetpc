@@ -109,13 +109,18 @@ void DAQToOffline::TpcDAQToOffline::printParameterSet(){
 void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 {
 
+  art::EventNumber_t eventNumber = evt.event();
 
   art::Handle<artdaq::Fragments> rawFragments;
   evt.getByLabel(fRawDataLabel, fFragType, rawFragments);
 
-  std::unique_ptr< std::vector<raw::RawDigit> > rawDigitVector(new std::vector <raw::RawDigit > );  
-  
-  art::EventNumber_t eventNumber = evt.event();
+  // Check if there is RCE data in this event
+  // Don't crash code if not present, just don't save anything
+  try { rawFragments->size(); }
+  catch(std::exception e) {
+    std::cout << "WARNING: Raw RCE data not found in event " << eventNumber << std::endl;
+    return;
+  }
 
   //Check that the data is valid
   if(!rawFragments.isValid()){
@@ -127,7 +132,9 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
     return;
 
   }
-  
+
+  // Create a vector to hold the raw::RawDigits
+  std::unique_ptr< std::vector<raw::RawDigit> > rawDigitVector(new std::vector <raw::RawDigit > );
 
   //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
   unsigned int numFragments = rawFragments->size();
@@ -135,12 +142,13 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
   std::map < unsigned int, unsigned int > mapFragID;
   
   for(size_t fragIndex = 0; fragIndex < rawFragments->size(); fragIndex++){
-    
+
     const artdaq::Fragment &singleFragment ((*rawFragments)[fragIndex]);
     
     unsigned int fragmentID = singleFragment.fragmentID();
 
     mapFragID.insert(std::pair<unsigned int, unsigned int>(fragmentID,fragIndex));
+
   }
 
 
@@ -161,38 +169,36 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 
   art::ServiceHandle<geo::Geometry> geometry;
   size_t numChans = geometry->Nchannels();
-  
-  for(size_t chan=0;chan < numChans;chan++){
 
+  for(size_t chan=0;chan < numChans;chan++) {
 
-    //Each channel is uniquely identified by (fragmentID, group, sample) in an online event
+    //Each channel is uniquely identified by (fragmentID, sample) in an online event
     
     unsigned int fragmentID = UnpackFragment::getFragIDForChan(chan);
-    //unsigned int group = UnpackFragment::getNanoSliceGroupForChan(chan); <// No longer using group
     unsigned int sample = UnpackFragment::getNanoSliceSampleForChan(chan);
 
-    std::cout << "channel: " << chan
-	      << "\tfragment: " << fragmentID
-        //<< "\tgroup: " << group
-	      << "\tsample: " << sample
-	      << std::endl;
+    if (fDebug) {
+      std::cout << "channel: " << chan
+		<< "\tfragment: " << fragmentID
+		<< "\tsample: " << sample
+		<< std::endl;
+    }
 
     //Check that the necessary fragmentID is present in the event
     //i.e. do we have data for this channel?
 
-    if( mapFragID.find(fragmentID) == mapFragID.end() ){
+    if( mapFragID.find(fragmentID) == mapFragID.end() ) {
 
-      std::cout << "Fragment not found" << std::endl;
+      std::cout << "Fragment (" << fragmentID << ") not found" << std::endl;
       continue;
 
     }
 
     unsigned int fragIndex = mapFragID[fragmentID];
 
-    std::cout << "fragIndex: " << fragIndex << std::endl;
+    if (fDebug) std::cout << "fragIndex: " << fragIndex << std::endl;
     
     std::vector<short> adcvec;
-
 
     const artdaq::Fragment &singleFragment ((*rawFragments)[fragIndex]);
     lbne::TpcMilliSliceFragment millisliceFragment(singleFragment);
@@ -216,7 +222,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
       }
     }
 
-    std::cout << "adcvec->size(): " << adcvec.size() << std::endl;
+    if (fDebug) std::cout << "adcvec->size(): " << adcvec.size() << std::endl;
     unsigned int numTicks = adcvec.size();
 
     raw::Compress(adcvec, fCompression, fZeroThreshold);
@@ -226,9 +232,6 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
   }
 
   evt.put(std::move(rawDigitVector), fOutputDataLabel);
-
-
-
 
 }
 

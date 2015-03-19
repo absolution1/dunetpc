@@ -15,27 +15,20 @@
   A milli-slice contains N micro-slices, each 1 drift time long
   A micro-slice contains M nano-slices, where M is the number of TDCs in a drift window
   A nano-slice is 1 time tick for 128 channels (i.e. has 128 ADC values, corresponding to ADC at that TDC)
-  Nano-slices have their ADC values organised in groups = 4 groups that are 32 samples wide 4*32=128 samples
-
 
   Future plans:
-  -Probably want to read in the geometry upon intialisation from a text file or database
-  
-  
+  -Probably want to read in the geometry upon intialisation from a text file or database  
 
- */
+*/
 
 
 
 namespace UnpackFragment{
 
-  //Each channel's ADC values can be uniquely addressed by: [FragmentID, nSlice Group, nSlice Sample]
+  //Each channel's ADC values can be uniquely addressed by: [FragmentID, nSlice Sample]
 
   //Which FragmentID would contain this channel
   unsigned int getFragIDForChan(unsigned int channel);
-
-  //Which Nano-slice group would contain this channel
-  unsigned int getNanoSliceGroupForChan(unsigned int channel);
 
   //Which Nano-slice sample number would contain this channel
   unsigned int getNanoSliceSampleForChan(unsigned int channel);

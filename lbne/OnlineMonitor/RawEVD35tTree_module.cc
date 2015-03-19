@@ -72,9 +72,11 @@ namespace AnalysisExample{
 
     void reconfigure(fhicl::ParameterSet const& pset);
  
-    void initOutput();
-
     void analyze(const art::Event& evt); 
+
+    void analyzeRCE(const std::vector< art::Ptr<raw::RawDigit> > RawDigits);
+
+    void analyzeSSP(const std::vector< art::Ptr<raw::OpDetPulse> > RawPulses);
 
   private:
 
@@ -121,15 +123,18 @@ namespace AnalysisExample{
     art::ServiceHandle<geo::Geometry> fGeom;
     art::ServiceHandle<util::DetectorProperties> fDetProp;
 
+    // Boolean to hold which data is present
+    bool fIsRCE = true;
+    bool fIsSSP = true;
+
+    // TTree to hold information
     TTree *tRD;
     
  }; // class RawEVD35tTree
 
   //-----------------------------------------------------------------------
 
-  RawEVD35tTree::RawEVD35tTree(fhicl::ParameterSet const& parameterSet)
-	: EDAnalyzer(parameterSet)
-	{
+  RawEVD35tTree::RawEVD35tTree(fhicl::ParameterSet const& parameterSet): EDAnalyzer(parameterSet) {
     this->reconfigure(parameterSet);
   }
 
@@ -148,12 +153,11 @@ namespace AnalysisExample{
 
   //-----------------------------------------------------------------------
 
-  RawEVD35tTree::~RawEVD35tTree(){
-  }
+  RawEVD35tTree::~RawEVD35tTree() {}
    
   //-----------------------------------------------------------------------
 
-  void RawEVD35tTree::beginJob(){
+  void RawEVD35tTree::beginJob() {
 
     art::ServiceHandle<art::TFileService> tfs;
 
@@ -217,14 +221,13 @@ namespace AnalysisExample{
 
   //-----------------------------------------------------------------------
 
-  void RawEVD35tTree::beginRun(const art::Run& run){
-
+  void RawEVD35tTree::beginRun(const art::Run& run) {
   }
 
 
   //-----------------------------------------------------------------------
 
-  void RawEVD35tTree::analyze(const art::Event& event){
+  void RawEVD35tTree::analyze(const art::Event& event) {
 
     fEvent  = event.id().event(); 
     fRun    = event.run();
@@ -237,17 +240,33 @@ namespace AnalysisExample{
     art::Handle< std::vector<raw::OpDetPulse> > RawSSP;
     event.getByLabel(fSSPInput, fSSPInstance, RawSSP);
 
+    // Check to see which data is present
+    try { RawTPC->size(); }
+    catch(std::exception e) { fIsRCE = false; }
+    try { RawSSP->size(); }
+    catch(std::exception e) { fIsSSP = false; }
+
     // Fill pointer vectors - more useful form for the raw data
     std::vector< art::Ptr<raw::RawDigit> > RawDigits;
-    art::fill_ptr_vector(RawDigits, RawTPC);
+    if (fIsRCE) art::fill_ptr_vector(RawDigits, RawTPC);
     std::vector< art::Ptr<raw::OpDetPulse> > RawPulses;
-    art::fill_ptr_vector(RawPulses, RawSSP);
+    if (fIsSSP) art::fill_ptr_vector(RawPulses, RawSSP);
 
     fADC.clear();
     fTDC.clear();
     fChan.clear();
     fAPA.clear();
     fPlane.clear();
+
+    if (fIsRCE) analyzeRCE(RawDigits);
+    if (fIsSSP) analyzeSSP(RawPulses);
+
+    tRD->Fill();
+    return;
+
+  }
+
+  void RawEVD35tTree::analyzeRCE(const std::vector< art::Ptr<raw::RawDigit> > RawDigits) {
 
     // Loop over RawDigits (TPC channels)
     for(size_t d = 0; d < RawDigits.size(); d++) {
@@ -286,12 +305,14 @@ namespace AnalysisExample{
       fAPA.push_back(apa);
       fPlane.push_back(Plane);
 
-    } // End RawDigit loop
+    } // End RawDigit function
+
+  }
+
+  void RawEVD35tTree::analyzeSSP(const std::vector< art::Ptr<raw::OpDetPulse> > RawPulses) {
 
     // Loop over OpDetPulses (SSP channels)
     for(size_t p = 0; p < RawPulses.size(); p++) {
-
-      std::cout << "RawPulse no... " << p << std::endl;
 
       art::Ptr<raw::OpDetPulse> pulsePtr;
       pulsePtr = RawPulses.at(p);
@@ -304,21 +325,18 @@ namespace AnalysisExample{
 
       std::vector<int> tmpWaveform;
       for (int i=0; i<nsamples; i++) {
-	std::cout << "Sample no... " << i << std::endl;
-      	short adc = waveform[i];
-      	tmpWaveform.push_back(int(adc));
+	short adc = waveform[i];
+	tmpWaveform.push_back(int(adc));
       }
 
       fWaveform.push_back(tmpWaveform);
       fOpChannel.push_back(opchan);
       fPMTFrame.push_back(PMTFrame);
 
-    }
+    } // End OpDetPulse function
 
-    tRD->Fill();
-    return;
   }
-  
+
   DEFINE_ART_MODULE(RawEVD35tTree)
   
 } // namespace
