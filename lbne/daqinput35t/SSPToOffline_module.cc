@@ -35,7 +35,7 @@
 #include "utilities/UnpackFragment.h"
 
 namespace DAQToOffline {
-    class SSPToOffline;
+  class SSPToOffline;
 }
 
 class DAQToOffline::SSPToOffline : public art::EDProducer {
@@ -102,15 +102,20 @@ void DAQToOffline::SSPToOffline::printParameterSet(){
 void DAQToOffline::SSPToOffline::produce(art::Event & evt)
 {
 
+    art::EventNumber_t eventNumber = evt.event();
 
     art::Handle<artdaq::Fragments> raw;
     evt.getByLabel(fRawDataLabel, fFragType, raw);
 
-    std::unique_ptr< std::vector<raw::OpDetPulse> > opDetPulseVector(new std::vector <raw::OpDetPulse > );  
-  
-    art::EventNumber_t eventNumber = evt.event();
+    // Check if there is SSP data in this event
+    // Don't crash code if not present, just don't save anything
+    try { raw->size(); }
+    catch(std::exception e) {
+      std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
+      return;
+    }
 
-    //Check that the data is valid
+    // Check that the data is valid
     if(!raw.isValid()){
         mf::LogError("SSPToOffline") << "Run: " << evt.run()
                   << ", SubRun: " << evt.subRun()
@@ -120,15 +125,13 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
         return;
     }
   
-
-
     mf::LogDebug("SSPToOffline") << "Run: " << evt.run()
                                  << ", SubRun: " << evt.subRun()
                                  << ", Event: " << eventNumber
                                  << " has " << raw->size()
                                  << " rawFragments";
 
-
+    std::unique_ptr< std::vector<raw::OpDetPulse> > opDetPulseVector(new std::vector <raw::OpDetPulse>);
 
     for (size_t idx = 0; idx < raw->size(); ++idx) {
         const auto& frag((*raw)[idx]);
