@@ -1,5 +1,6 @@
 //Use this module to create a Tree for raw data display for 35t detector
 //Mar. 20, 2014, Seongtae Park
+//Mar. 2015: Added functionality for photon detectors, M Wallbank (wallbank@fnal.gov)
 
 #ifndef RawEVD35tTree_module
 #define RawEVD35t_module
@@ -8,15 +9,19 @@
 #include "Utilities/DetectorProperties.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
-#include "RawData/raw.h"
-#include "RawData/RawDigit.h"
-#include "RecoBase/Hit.h"
-#include "RecoBase/Cluster.h"
 #include "Geometry/Geometry.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
 #include "SimpleTypesAndConstants/geo_types.h"
+
+// Data type includes
 #include "RawData/raw.h"
+#include "RawData/RawDigit.h"
+#include "RawData/OpDetPulse.h"
+#include "RecoBase/Hit.h"
+#include "RecoBase/Cluster.h"
+#include "RecoBase/OpHit.h"
+#include "OpticalDetector/OpDigiProperties.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -67,20 +72,27 @@ namespace AnalysisExample{
 
     void reconfigure(fhicl::ParameterSet const& pset);
  
-    void initOutput();
-
     void analyze(const art::Event& evt); 
+
+    void analyzeRCE(const std::vector< art::Ptr<raw::RawDigit> > RawDigits);
+
+    void analyzeSSP(const std::vector< art::Ptr<raw::OpDetPulse> > RawPulses);
 
   private:
 
-    // the parameters we'll read from the .fcl
+    // Parameters in .fcl file
     std::string fRawDigitLabel;
+    std::string fTPCInput;
+    std::string fTPCInstance;
+    std::string fSSPInput;
+    std::string fSSPInstance;
 
-	 //Branch variables for tree
+    // Branch variables for tree
     unsigned int fEvent;
     unsigned int fRun;
     unsigned int fSubRun;
 
+    // TPC
     unsigned int fNUCh;
     unsigned int fNVCh;
     unsigned int fNZ0Ch;
@@ -103,18 +115,26 @@ namespace AnalysisExample{
     std::vector<std::vector<int> > fADC;
     std::vector<std::vector<int> > fTDC;
 
+    // SSP
+    std::vector<int> fOpChannel;
+    std::vector<int> fPMTFrame;
+    std::vector<std::vector<int> > fWaveform;
+
     art::ServiceHandle<geo::Geometry> fGeom;
     art::ServiceHandle<util::DetectorProperties> fDetProp;
 
+    // Boolean to hold which data is present
+    bool fIsRCE = true;
+    bool fIsSSP = true;
+
+    // TTree to hold information
     TTree *tRD;
     
  }; // class RawEVD35tTree
 
   //-----------------------------------------------------------------------
 
-  RawEVD35tTree::RawEVD35tTree(fhicl::ParameterSet const& parameterSet)
-	: EDAnalyzer(parameterSet)
-	{
+  RawEVD35tTree::RawEVD35tTree(fhicl::ParameterSet const& parameterSet): EDAnalyzer(parameterSet) {
     this->reconfigure(parameterSet);
   }
 
@@ -122,7 +142,10 @@ namespace AnalysisExample{
 
   // read in the parameters from the .fcl file
   void RawEVD35tTree::reconfigure(fhicl::ParameterSet const& p){
-    fRawDigitLabel  =  p.get< std::string >("RawDigitLabel");
+    fTPCInput       = p.get< std::string >("TPCInputModule");
+    fTPCInstance    = p.get< std::string >("TPCInstanceName");
+    fSSPInput       = p.get< std::string >("SSPInputModule");
+    fSSPInstance    = p.get< std::string >("SSPInstanceName");
     fNticks         = fDetProp->NumberTimeSamples();
     return;
   }
@@ -130,40 +153,45 @@ namespace AnalysisExample{
 
   //-----------------------------------------------------------------------
 
-  RawEVD35tTree::~RawEVD35tTree(){
-  }
+  RawEVD35tTree::~RawEVD35tTree() {}
    
   //-----------------------------------------------------------------------
 
-  void RawEVD35tTree::beginJob(){
-    // Access ART's TFileService, which will handle creating and writing
-    // histograms and n-tuples for us. 
+  void RawEVD35tTree::beginJob() {
+
     art::ServiceHandle<art::TFileService> tfs;
 
     // Accquiring geometry data
-	 fNofAPA=fGeom->NTPC()*fGeom->Ncryostats()/2;
+    fNofAPA=fGeom->NTPC()*fGeom->Ncryostats()/2;
     fChansPerAPA = fGeom->Nchannels()/fNofAPA;
 
-	//Defining a Tree
-	tRD = tfs->make<TTree>("RawData","Raw Data Display");
-	tRD->Branch("Run",&fRun,"Run/i");
-	tRD->Branch("SubRun",&fSubRun,"SubRun/i");
-	tRD->Branch("Event",&fEvent,"Event/i");
-	tRD->Branch("ADC",&fADC);
-	tRD->Branch("TDC",&fTDC);
-	tRD->Branch("Nticks",&fNticks,"Nticks/i");
-	tRD->Branch("NofUChan",&fNUCh,"NofUChan/i");
-	tRD->Branch("NofVChan",&fNVCh,"NofVChan/i");
-	tRD->Branch("NofZ0Chan",&fNZ0Ch,"NofZ0Chan/i");
-	tRD->Branch("NofZ1Chan",&fNZ1Ch,"NofZ1Chan/i");
-	tRD->Branch("Chan",&fChan);
-	tRD->Branch("APA",&fAPA);
-	tRD->Branch("Plane",&fPlane);
+    // Defining a Tree
+    tRD = tfs->make<TTree>("RawData","Raw Data Display");
+    tRD->Branch("Run",&fRun,"Run/i");
+    tRD->Branch("SubRun",&fSubRun,"SubRun/i");
+    tRD->Branch("Event",&fEvent,"Event/i");
+
+    // TPC info
+    tRD->Branch("ADC",&fADC);
+    tRD->Branch("TDC",&fTDC);
+    tRD->Branch("Nticks",&fNticks,"Nticks/i");
+    tRD->Branch("NofUChan",&fNUCh,"NofUChan/i");
+    tRD->Branch("NofVChan",&fNVCh,"NofVChan/i");
+    tRD->Branch("NofZ0Chan",&fNZ0Ch,"NofZ0Chan/i");
+    tRD->Branch("NofZ1Chan",&fNZ1Ch,"NofZ1Chan/i");
+    tRD->Branch("Chan",&fChan);
+    tRD->Branch("APA",&fAPA);
+    tRD->Branch("Plane",&fPlane);
+
+    // SSP info
+    tRD->Branch("Waveform",&fWaveform);
+    tRD->Branch("OpChan",&fOpChannel);
+    tRD->Branch("PMTFrame",&fPMTFrame);
 
     // loop through channels in the first APA to find the channel boundaries for each view
     // will adjust for desired APA after
     fUChanMin = 0;
-	 fNofAPA=fGeom->NTPC()*fGeom->Ncryostats()/2;
+    fNofAPA=fGeom->NTPC()*fGeom->Ncryostats()/2;
     fChansPerAPA = fGeom->Nchannels()/fNofAPA;
     fZ1ChanMax = fChansPerAPA - 1;
     for ( unsigned int c = fUChanMin + 1; c < fZ1ChanMax; c++ ){
@@ -180,90 +208,138 @@ namespace AnalysisExample{
         fZ0ChanMax = c-1;
       }
     }
-
-	fNUCh=fUChanMax-fUChanMin+1;
-	fNVCh=fVChanMax-fVChanMin+1;
-	fNZ0Ch=fZ0ChanMax-fZ0ChanMin+1;
-	fNZ1Ch=fZ1ChanMax-fZ1ChanMin+1;
-
-//	ofstream outfile;
-//	outfile.open("msglog.txt");
-//outfile<<fNUCh<<"  "<<fNVCh<<"  "<<fNZ0Ch<<"  "<<fNZ1Ch<<std::endl;
+    
+    fNUCh=fUChanMax-fUChanMin+1;
+    fNVCh=fVChanMax-fVChanMin+1;
+    fNZ0Ch=fZ0ChanMax-fZ0ChanMin+1;
+    fNZ1Ch=fZ1ChanMax-fZ1ChanMin+1;
+    
+    //	ofstream outfile;
+    //	outfile.open("msglog.txt");
+    //outfile<<fNUCh<<"  "<<fNVCh<<"  "<<fNZ0Ch<<"  "<<fNZ1Ch<<std::endl;
   }
 
   //-----------------------------------------------------------------------
 
-  void RawEVD35tTree::beginRun(const art::Run& run){
-
+  void RawEVD35tTree::beginRun(const art::Run& run) {
   }
 
 
   //-----------------------------------------------------------------------
 
-  void RawEVD35tTree::analyze( const art::Event& event ){
+  void RawEVD35tTree::analyze(const art::Event& event) {
 
     fEvent  = event.id().event(); 
     fRun    = event.run();
     fSubRun = event.subRun();
-//	 unsigned int tpcid, cryoid;
+    //	 unsigned int tpcid, cryoid;
+
+    // Get the objects holding raw information: RawDigit for TPC data, OpDetPulse for SSP data
+    art::Handle< std::vector<raw::RawDigit> > RawTPC;
+    event.getByLabel(fTPCInput, fTPCInstance, RawTPC);
+    art::Handle< std::vector<raw::OpDetPulse> > RawSSP;
+    event.getByLabel(fSSPInput, fSSPInstance, RawSSP);
+
+    // Check to see which data is present
+    try { RawTPC->size(); }
+    catch(std::exception e) { fIsRCE = false; }
+    try { RawSSP->size(); }
+    catch(std::exception e) { fIsSSP = false; }
+
+    // Fill pointer vectors - more useful form for the raw data
+    std::vector< art::Ptr<raw::RawDigit> > RawDigits;
+    if (fIsRCE) art::fill_ptr_vector(RawDigits, RawTPC);
+    std::vector< art::Ptr<raw::OpDetPulse> > RawPulses;
+    if (fIsSSP) art::fill_ptr_vector(RawPulses, RawSSP);
 
     fADC.clear();
     fTDC.clear();
     fChan.clear();
-	 fAPA.clear();
-	 fPlane.clear();
+    fAPA.clear();
+    fPlane.clear();
 
-    // get the objects holding all of the raw data information
-    art::Handle< std::vector<raw::RawDigit> > Raw;
-    event.getByLabel(fRawDigitLabel, Raw);
+    if (fIsRCE) analyzeRCE(RawDigits);
+    if (fIsSSP) analyzeSSP(RawPulses);
 
-    // put it in a more easily usable form
-    std::vector< art::Ptr<raw::RawDigit> >  Digits;
-    art::fill_ptr_vector(Digits, Raw);
+    tRD->Fill();
+    return;
 
-    //loop through all RawDigits (over entire channels)
-    for(size_t d = 0; d < Digits.size(); d++){
-    art::Ptr<raw::RawDigit> digit;
-	 digit=Digits.at(d);
+  }
 
-    // get the channel number for this digit
-    uint32_t chan = digit->Channel();
-	 int nSamples = digit->Samples();
-    unsigned int apa = std::floor( chan/fChansPerAPA );
-//	 tpcid=fGeom->ChannelToWire(chan)[0].TPC;
-//	 cryoid=fGeom->ChannelToWire(chan)[0].Cryostat;
-	 int Plane=0;
-	 if( fGeom->View(chan) == geo::kU) Plane=0;
-	 if( fGeom->View(chan) == geo::kV) Plane=1;
-	 if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 0) Plane=2;
-	 if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 1) Plane=3;
+  void RawEVD35tTree::analyzeRCE(const std::vector< art::Ptr<raw::RawDigit> > RawDigits) {
 
-    std::vector<short> uncompressed(digit->Samples());
-    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
+    // Loop over RawDigits (TPC channels)
+    for(size_t d = 0; d < RawDigits.size(); d++) {
 
-    std::vector<int> tmpADC;
-    std::vector<int> tmpTDC;
-    for (int i=0; i<nSamples; i++) {
-		short adc = uncompressed[i];
-		if(adc!=0) {
-			tmpADC.push_back(int(adc));
-			tmpTDC.push_back(int(i));				
-			}	
-		}
-    fADC.push_back(tmpADC);
-    fTDC.push_back(tmpTDC);
-    fChan.push_back(chan);
-    fAPA.push_back(apa);
-    fPlane.push_back(Plane);
-    } // end RawDigit loop
+      art::Ptr<raw::RawDigit> digit;
+      digit = RawDigits.at(d);
 
-   tRD->Fill();
-   return;
+      // Get the channel number for this digit
+      uint32_t chan = digit->Channel();
+      int nSamples = digit->Samples();
+      unsigned int apa = std::floor( chan/fChansPerAPA );
+      //	 tpcid=fGeom->ChannelToWire(chan)[0].TPC;
+      //	 cryoid=fGeom->ChannelToWire(chan)[0].Cryostat;
+      int Plane=0;
+      if( fGeom->View(chan) == geo::kU) Plane=0;
+      if( fGeom->View(chan) == geo::kV) Plane=1;
+      if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 0) Plane=2;
+      if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 1) Plane=3;
+      
+      std::vector<short> uncompressed(digit->Samples());
+      raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
+      
+      std::vector<int> tmpADC;
+      std::vector<int> tmpTDC;
+      for (int i=0; i<nSamples; i++) {
+	short adc = uncompressed[i];
+	if(adc!=0) {
+	  tmpADC.push_back(int(adc));
+	  tmpTDC.push_back(int(i));				
+	}	
+      }
+
+      fADC.push_back(tmpADC);
+      fTDC.push_back(tmpTDC);
+      fChan.push_back(chan);
+      fAPA.push_back(apa);
+      fPlane.push_back(Plane);
+
+    } // End RawDigit function
+
+  }
+
+  void RawEVD35tTree::analyzeSSP(const std::vector< art::Ptr<raw::OpDetPulse> > RawPulses) {
+
+    // Loop over OpDetPulses (SSP channels)
+    for(size_t p = 0; p < RawPulses.size(); p++) {
+
+      art::Ptr<raw::OpDetPulse> pulsePtr;
+      pulsePtr = RawPulses.at(p);
+      raw::OpDetPulse pulse = *pulsePtr;
+
+      unsigned short opchan = pulse.OpChannel();
+      unsigned short nsamples = pulse.Samples();
+      std::vector<short> waveform = pulse.Waveform();
+      unsigned int PMTFrame = pulse.PMTFrame();
+
+      std::vector<int> tmpWaveform;
+      for (int i=0; i<nsamples; i++) {
+	short adc = waveform[i];
+	tmpWaveform.push_back(int(adc));
+      }
+
+      fWaveform.push_back(tmpWaveform);
+      fOpChannel.push_back(opchan);
+      fPMTFrame.push_back(PMTFrame);
+
+    } // End OpDetPulse function
+
   }
 
   DEFINE_ART_MODULE(RawEVD35tTree)
-
-} // namespace AnalysisExample
+  
+} // namespace
 
 #endif // RawEVD35tTree_module
 
