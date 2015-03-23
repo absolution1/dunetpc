@@ -5,6 +5,9 @@
 #include "art/Framework/IO/Sources/SourceTraits.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
 
+// From lardata
+#include "RawData/RawDigit.h"
+
 #include <vector>
 #include <string>
 
@@ -42,14 +45,18 @@ namespace DAQToOffline
     void closeCurrentFile();
 
   private:
-    vector<string> filenames;
+    vector<string>        filenames_;
+    vector<raw::RawDigit> bufferedDigits_;
+    size_t                nextDigit_;
   };
 }
 
 DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
 				 art::ProductRegistryHelper&,
 				 art::SourceHelper& ) :
-  filenames(ps.get<vector<string>>("fileNames"))
+  filenames_(ps.get<vector<string>>("fileNames")),
+  bufferedDigits_(),
+  nextDigit_()
 {
 }
 
