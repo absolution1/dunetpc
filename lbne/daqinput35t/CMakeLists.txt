@@ -81,6 +81,7 @@ RawData
 
 simple_plugin(SplitterInput "source"
  lbne_daqinput35t
+ art_Framework_IO_Sources
 )
 
 install_fhicl()
