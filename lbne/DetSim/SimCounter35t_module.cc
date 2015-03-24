@@ -54,12 +54,8 @@ public:
 
   // Selected optional functions.
   void beginJob() override;
-  void endJob() override;
-  void reconfigure(fhicl::ParameterSet const & p) override;
 
 private:
-
-  // Declare member data here.
 
   // chanTick represents a single time "tick" for a single counter.
   // multiple hits during the same time window on the same counter are possible.
@@ -72,14 +68,13 @@ private:
     unsigned int auxDetID;
     int numHits;
   
-    chanTick(int t, int adid, double ed = -1) 
-      : tick(t), eDep(ed), auxDetID(adid), numHits(0) {
-      if (ed != -1) numHits++;
+    chanTick(int t, int adid, double ed) 
+      : tick(t), eDep(ed), auxDetID(adid), numHits(1) {
     }
 
     void Add(double ed) { 
       eDep += ed;
-      numHits++;
+      ++numHits;
     }
   };
 
@@ -94,7 +89,6 @@ private:
   double fTriggerEfficiency;
   double fClockSpeedCounter;
   unsigned int fCombinedTimeDelay; // ns
-  unsigned int fSampleTime; // in ns, can get this from somewhere else?
 
   // Tree containing aux det hit info. copied from lbne/LArG4/CheckAuxDet_module.cc
   TTree *fTree;
@@ -130,20 +124,18 @@ detsim::SimCounter35t::SimCounter35t(fhicl::ParameterSet const & p)
   fTriggerEfficiency(p.get<double>("TriggerEfficiency",1.)),
   fClockSpeedCounter(p.get<double>("ClockSpeedCounter",31.25)), // MHz
   fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)) // ns
-// Initialize member data here.
 {
   this->reconfigure(p);
   
   art::ServiceHandle<artext::SeedService>()->createEngine(*this, "HepJamesRandom", "rand");
  
-  // Call appropriate produces<>() functions here.
   produces< std::vector< raw::ExternalTrigger > >();
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 
 void detsim::SimCounter35t::produce(art::Event & e)
-{ // Implementation of required member function here.
+{
   int skippedHitsIneff = 0;
   int skippedHitsOutRange = 0;
 
@@ -199,7 +191,7 @@ void detsim::SimCounter35t::produce(art::Event & e)
 
       double randEff = flat.fire();
       if (randEff > fTriggerEfficiency) {
-	skippedHitsIneff++;
+	++skippedHitsIneff;
 	continue;
       }
 
@@ -212,21 +204,16 @@ void detsim::SimCounter35t::produce(art::Event & e)
       // get information from AuxDetIDE
       double time = setOfIDEs[j].entryT+fCombinedTimeDelay-triggerOffsetTPC; // ns
       if (time<0 || time>windowLength*1000) {
-	//mf::LogInfo("SimCounter35t") << "Hit registered outside of detector window. Ignored.";
-	skippedHitsOutRange++;
+	++skippedHitsOutRange;
 	continue;
       }
       uint32_t tickIDE = time*fClockSpeedCounter/1000;
       double edepIDE = setOfIDEs[j].energyDeposited*1000;//MeV
       
-      if (edepIDE == 0) continue; // no energy deposit, skip
-
-      //mf::LogVerbatim("SimCounter35t") << "Counter " << auxdetid << " hit at time " << time << " (tick " << tickIDE << ") with eDep " << edepIDE;
-
       // loop over tickv to add eDep
       std::vector<chanTick>::iterator it;
-      for (it = tickv.begin(); it != tickv.end(); it++) {
-	chanTick* ct = &*it;		
+      for (it = tickv.begin(); it != tickv.end(); ++it) {
+	chanTick* ct = &*it;
 	if (ct->tick == tickIDE && ct->auxDetID == auxdetid) {
 	  ct->Add(edepIDE);
 	  break;
@@ -243,12 +230,12 @@ void detsim::SimCounter35t::produce(art::Event & e)
 
   // fill collection of raw::ExternalTriggers, if eDep is above threshold
   std::vector<chanTick>::iterator it;
-  for (it = tickv.begin(); it != tickv.end(); it++) {
+  for (it = tickv.begin(); it != tickv.end(); ++it) {
     chanTick ct = *it;
     if ( (ct.auxDetID >= 44 && ct.auxDetID <= 91 && ct.eDep > fBSUTriggerThreshold) || 
 	 (ct.auxDetID >= 0 && ct.auxDetID <=43 && ct.eDep > fTSUTriggerThreshold) )
       trigcol->push_back(raw::ExternalTrigger(ct.auxDetID,ct.tick));
-    else if (ct.eDep > 0) // for auxDetIDs not included above, such as coincidences
+    else if (ct.eDep > 0) // for auxDetIDs not included above
       trigcol->push_back(raw::ExternalTrigger(ct.auxDetID,ct.tick));
   }
 
@@ -258,7 +245,7 @@ void detsim::SimCounter35t::produce(art::Event & e)
 
   // output hit information for event
   std::ostringstream out;
-  for (std::vector<chanTick>::iterator it = tickv.begin(); it != tickv.end(); it++) {
+  for (std::vector<chanTick>::iterator it = tickv.begin(); it != tickv.end(); ++it) {
     chanTick ct = *it;
     out << "AuxDet " << ct.auxDetID << " had " << ct.numHits << " hits at readout tick " << ct.tick << ". Total eDep = " << ct.eDep << " MeV.\n";
   }
@@ -298,19 +285,6 @@ void detsim::SimCounter35t::beginJob()
     fTree->Branch("trackid",&trackid,"trackid/D");
     fTree->Branch("energy",&energy,"energy/D");
   }
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-
-void detsim::SimCounter35t::endJob()
-{
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-
-void detsim::SimCounter35t::reconfigure(fhicl::ParameterSet const & p)
-{
-  // Implementation of optional member function here.
 }
 
 DEFINE_ART_MODULE(detsim::SimCounter35t)
