@@ -72,9 +72,9 @@ private:
     unsigned int auxDetID;
     int numHits;
   
-    chanTick(int t, int adid, double ed = 0) 
+    chanTick(int t, int adid, double ed = -1) 
       : tick(t), eDep(ed), auxDetID(adid), numHits(0) {
-      if (ed != 0) numHits++;
+      if (ed != -1) numHits++;
     }
 
     void Add(double ed) { 
@@ -95,9 +95,6 @@ private:
   double fClockSpeedCounter;
   unsigned int fCombinedTimeDelay; // ns
   unsigned int fSampleTime; // in ns, can get this from somewhere else?
-  
-  int skippedHitsIneff;
-  int skippedHitsOutRange;
 
   // Tree containing aux det hit info. copied from lbne/LArG4/CheckAuxDet_module.cc
   TTree *fTree;
@@ -132,9 +129,7 @@ detsim::SimCounter35t::SimCounter35t(fhicl::ParameterSet const & p)
   fTSUTriggerThreshold(p.get<double>("TSUTriggerThreshold",0.25)),// MeV
   fTriggerEfficiency(p.get<double>("TriggerEfficiency",1.)),
   fClockSpeedCounter(p.get<double>("ClockSpeedCounter",31.25)), // MHz
-  fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)), // ns
-  skippedHitsIneff(0),
-  skippedHitsOutRange(0)
+  fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)) // ns
 // Initialize member data here.
 {
   this->reconfigure(p);
@@ -149,6 +144,8 @@ detsim::SimCounter35t::SimCounter35t(fhicl::ParameterSet const & p)
 
 void detsim::SimCounter35t::produce(art::Event & e)
 { // Implementation of required member function here.
+  int skippedHitsIneff = 0;
+  int skippedHitsOutRange = 0;
 
   art::ServiceHandle<art::RandomNumberGenerator> rng;
   CLHEP::HepRandomEngine &engine = rng->getEngine("rand");
@@ -215,14 +212,16 @@ void detsim::SimCounter35t::produce(art::Event & e)
       // get information from AuxDetIDE
       double time = setOfIDEs[j].entryT+fCombinedTimeDelay-triggerOffsetTPC; // ns
       if (time<0 || time>windowLength*1000) {
-	mf::LogInfo("SimCounter35t") << "Hit registered outside of detector window. Ignored.";
+	//mf::LogInfo("SimCounter35t") << "Hit registered outside of detector window. Ignored.";
 	skippedHitsOutRange++;
 	continue;
       }
       uint32_t tickIDE = time*fClockSpeedCounter/1000;
       double edepIDE = setOfIDEs[j].energyDeposited*1000;//MeV
       
-      mf::LogVerbatim("SimCounter35t") << "Counter " << auxdetid << " hit at time " << time << " (tick " << tickIDE << ") with eDep " << edepIDE;
+      if (edepIDE == 0) continue; // no energy deposit, skip
+
+      //mf::LogVerbatim("SimCounter35t") << "Counter " << auxdetid << " hit at time " << time << " (tick " << tickIDE << ") with eDep " << edepIDE;
 
       // loop over tickv to add eDep
       std::vector<chanTick>::iterator it;
