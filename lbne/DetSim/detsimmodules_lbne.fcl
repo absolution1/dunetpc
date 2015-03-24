@@ -55,5 +55,16 @@ lbne35t_simwireana:             @local::lbnefd_simwireana
 lbne35t_wienerfilterana:        @local::lbnefd_wienerfilterana
 lbne35t_simwire.module_type:    "SimWireLBNE35t"
 
+lbne35t_simcounter:
+{
+    module_type:           "SimCounter35t"
+    LArGeantModuleLabel:   "largeant"
+    MakeTree:              false
+    BSUTriggerThreshold:   0.5 # MeV
+    TSUTriggerThreshold:   0.25 # MeV
+    TriggerEfficiency:     1.0
+    ClockSpeedCounter:     31.25 # MHz
+    CombinedTimeDelay:     160 # ns. cable length delay + various electronics delays
+}
 
 END_PROLOG
