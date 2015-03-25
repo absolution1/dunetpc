@@ -125,8 +125,6 @@ detsim::SimCounter35t::SimCounter35t(fhicl::ParameterSet const & p)
   fClockSpeedCounter(p.get<double>("ClockSpeedCounter",31.25)), // MHz
   fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)) // ns
 {
-  this->reconfigure(p);
-  
   art::ServiceHandle<artext::SeedService>()->createEngine(*this, "HepJamesRandom", "rand");
  
   produces< std::vector< raw::ExternalTrigger > >();
@@ -233,9 +231,8 @@ void detsim::SimCounter35t::produce(art::Event & e)
   for (it = tickv.begin(); it != tickv.end(); ++it) {
     chanTick ct = *it;
     if ( (ct.auxDetID >= 44 && ct.auxDetID <= 91 && ct.eDep > fBSUTriggerThreshold) || 
-	 (ct.auxDetID >= 0 && ct.auxDetID <=43 && ct.eDep > fTSUTriggerThreshold) )
-      trigcol->push_back(raw::ExternalTrigger(ct.auxDetID,ct.tick));
-    else if (ct.eDep > 0) // for auxDetIDs not included above
+	 (ct.auxDetID >= 0 && ct.auxDetID <=43 && ct.eDep > fTSUTriggerThreshold) ||
+	 (ct.auxDetID >= 92 && ct.eDep > 1.e-6) )
       trigcol->push_back(raw::ExternalTrigger(ct.auxDetID,ct.tick));
   }
 
@@ -247,7 +244,10 @@ void detsim::SimCounter35t::produce(art::Event & e)
   std::ostringstream out;
   for (std::vector<chanTick>::iterator it = tickv.begin(); it != tickv.end(); ++it) {
     chanTick ct = *it;
-    out << "AuxDet " << ct.auxDetID << " had " << ct.numHits << " hits at readout tick " << ct.tick << ". Total eDep = " << ct.eDep << " MeV.\n";
+    if ( (ct.auxDetID >= 44 && ct.auxDetID <= 91 && ct.eDep > fBSUTriggerThreshold) ||
+         (ct.auxDetID >= 0 && ct.auxDetID <=43 && ct.eDep > fTSUTriggerThreshold) ||
+	 (ct.auxDetID >= 92 && ct.eDep > 1.e-6) )
+      out << "AuxDet " << ct.auxDetID << " had " << ct.numHits << " hits at readout tick " << ct.tick << ". Total eDep = " << ct.eDep << " MeV.\n";
   }
   if (skippedHitsIneff) out << skippedHitsIneff << " hits were skipped due to counter inefficiency.\n";
   if (skippedHitsOutRange) out << skippedHitsOutRange << " hits were skipped for being out of TPC window range.\n";
