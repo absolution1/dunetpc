@@ -115,6 +115,14 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 
   art::EventNumber_t eventNumber = evt.event();
 
+  // Check if there is RCE data in this event
+  // Don't crash code if not present, just don't save anything
+  try { rawFragments->size(); }
+  catch(std::exception e) {
+    std::cout << "WARNING: Raw RCE data not found in event " << eventNumber << std::endl;
+    return;
+  }
+
   //Check that the data is valid
   if(!rawFragments.isValid()){
     std::cerr << "Run: " << evt.run()
@@ -122,14 +130,6 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 	      << ", Event: " << eventNumber
 	      << " is NOT VALID" << std::endl;
     throw cet::exception("rawFragments NOT VALID");
-  }
-
-  // Check if there is RCE data in this event
-  // Don't crash code if not present, just don't save anything
-  try { rawFragments->size(); }
-  catch(std::exception e) {
-    std::cout << "WARNING: Raw RCE data not found in event " << eventNumber << std::endl;
-    return;
   }
 
   auto digits = tpcFragmentToRawDigits(evt.id(), *rawFragments, fDebug, fCompression, fZeroThreshold);
