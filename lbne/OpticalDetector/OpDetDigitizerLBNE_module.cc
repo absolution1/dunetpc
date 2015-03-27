@@ -1,7 +1,7 @@
 //=========================================================
 // OpDetDigitizerLBNE_module.cc
 // This module produces digitized output 
-// (creating OpticalRawDigits)
+// (creating OpDetWaveform)
 // from photon detectors taking SimPhotonsLite as input.
 //
 // Gleb Sinev, Duke, 2015
@@ -32,8 +32,9 @@
 //#include "Geometry/Geometry.h"
 #include "Utilities/TimeService.h"
 #include "OpticalDetector/OpDetResponseInterface.h"
+#include "RawData/OpDetWaveform.h"
 //#include "RawData/OpDetPulse.h"
-#include "OpticalDetectorData/OpticalRawDigit.h"
+//#include "OpticalDetectorData/OpticalRawDigit.h"
 
 // CLHEP includes
 
@@ -109,7 +110,8 @@ namespace opdet {
 
     // This module produces (infrastructure piece)
     //produces< std::vector< raw::OpDetPulse > >();
-    produces< std::vector< optdata::OpticalRawDigit > >();
+    //produces< std::vector< optdata::OpticalRawDigit > >();
+    produces< std::vector< raw::OpDetWaveform > >();
 
     // Read the fcl-file
     fInputModule  = pset.get< std:: string >("InputModule" );
@@ -158,10 +160,12 @@ namespace opdet {
   void OpDetDigitizerLBNE::produce(art::Event& evt)
   {
     
-    // A pointer that will store produced OpDetPulses or OpticalRawDigits
+    // A pointer that will store produced OpDetWaveforms
     //std::unique_ptr< std::vector< raw::OpDetPulse > > pulseVecPtr(new std::vector< raw::OpDetPulse >);
-    std::unique_ptr< std::vector< optdata::OpticalRawDigit > > 
-                                             pulseVecPtr(new std::vector< optdata::OpticalRawDigit >);
+    //std::unique_ptr< std::vector< optdata::OpticalRawDigit > > 
+    //                                         pulseVecPtr(new std::vector< optdata::OpticalRawDigit >);
+    std::unique_ptr< std::vector< raw::OpDetWaveform > > 
+                                             pulseVecPtr(new std::vector< raw::OpDetWaveform >);
     
     art::ServiceHandle< sim::LArG4Parameters > lgp;
     bool fUseLitePhotons = lgp->UseLitePhotons();
@@ -222,7 +226,8 @@ namespace opdet {
     {
       // Produce ADC pulse of integers rather than doubles
       //std::vector< short > adcVec;
-      optdata::OpticalRawDigit adcVec(0, channel, nSamples);
+      //optdata::OpticalRawDigit adcVec(0, channel, nSamples);
+      raw::OpDetWaveform adcVec(0, channel, nSamples);
 
       for (auto& value : opDetWaveforms[channel])
       {

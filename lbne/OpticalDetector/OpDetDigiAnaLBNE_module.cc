@@ -1,7 +1,7 @@
 //==========================================================
 // OpDetDigiAnaLBNE_module.cc
 // This analysis module creates histograms
-// with information from OpDetPulses (or OpticalRawDigits)
+// with information from OpDetWaveforms
 //
 // Gleb Sinev, Duke, 2015
 // Based on OpDigiAna_module.cc
@@ -26,7 +26,8 @@
 
 //#include "RawData/OpDetPulse.h"
 #include "Utilities/TimeService.h"
-#include "OpticalDetectorData/OpticalRawDigit.h"
+//#include "OpticalDetectorData/OpticalRawDigit.h"
+#include "RawData/OpDetWaveform.h"
 
 // ROOT includes
 
@@ -53,7 +54,7 @@ namespace opdet {
     private:
 
       // Parameters we'll read from the fcl-file
-      std::string fInputModule; // Module used to create OpDetPulses (OpticalRawDigits)
+      std::string fInputModule; // Module used to create OpDetWaveforms
       double fSampleFreq;       // Frequency in GHz (number of ticks in one ns)
       double fTimeBegin;        // Beginning of sample in ns
       double fTimeEnd;          // End of sample in ns
@@ -105,9 +106,10 @@ namespace opdet {
     // Create a string for histogram names
     char histName[50];
 
-    // Get OpDetPulses (OpticalRawDigits) from the event
+    // Get OpDetWaveforms from the event
     //art::Handle< std::vector< raw::OpDetPulse > > waveformHandle;
-    art::Handle< std::vector< optdata::OpticalRawDigit > > waveformHandle;
+    //art::Handle< std::vector< optdata::OpticalRawDigit > > waveformHandle;
+    art::Handle< std::vector< raw::OpDetWaveform > > waveformHandle;
     evt.getByLabel(fInputModule, waveformHandle);
 
     // Access ART's TFileService, which will handle creating and writing
@@ -119,9 +121,11 @@ namespace opdet {
       // This is probably required to overcome the "const" problem 
       // with OpDetPulse::Waveform()
       //art::Ptr< raw::OpDetPulse > waveformPtr(waveformHandle, i);
-      art::Ptr< optdata::OpticalRawDigit > waveformPtr(waveformHandle, i);
+      //art::Ptr< optdata::OpticalRawDigit > waveformPtr(waveformHandle, i);
+      art::Ptr< raw::OpDetWaveform > waveformPtr(waveformHandle, i);
       //raw::OpDetPulse pulse = *waveformPtr;
-      optdata::OpticalRawDigit pulse = *waveformPtr;
+      //optdata::OpticalRawDigit pulse = *waveformPtr;
+      raw::OpDetWaveform pulse = *waveformPtr;
       // Make a name for the histogram
       //sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.OpChannel());
       sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.ChannelNumber());
