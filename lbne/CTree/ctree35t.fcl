@@ -35,9 +35,15 @@ physics:
       RawDigitLabel:    "daq"
       CalibLabel:       "caldata"
       HitsModuleLabel:  "gaushit"
-      TrackModuleLabel: "particletracks"
+      TrackModuleLabel: "particlestitcher"
+      #TrackModuleLabel: "particletracks"
       outFile:          "sample.root"
       saveChannelWireMap: false
+      InputModule:             "largeant"
+      MakeAllPhotonsTree:      true
+      MakeDetectedPhotonsTree: true
+      MakeOpDetsTree:          true
+      MakeOpDetEventsTree:     true
     }
   }
   analysis: [ chao ] //Directory for histograms
