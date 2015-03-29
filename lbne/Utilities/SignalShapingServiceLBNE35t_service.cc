@@ -418,7 +418,6 @@ void util::SignalShapingServiceLBNE35t::SetFieldResponse()
     for ( int ibin = 1; ibin <= fFieldResponseHist[1]->GetNbinsX(); ibin++ )
       fIndFieldResponse[ibin-1] = fIndFieldRespAmp*fFieldResponseHist[1]->GetBinContent( ibin )/integral;
 
-    // Collection plane
     for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
       fColFieldResponse[ibin-1] = fColFieldRespAmp*fFieldResponseHist[2]->GetBinContent( ibin )/integral;
   } else

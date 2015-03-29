@@ -26,6 +26,7 @@ lbnefd_signalshapingservice:
   FieldResponseTOffset: [-32.5e3, -32.5e3] # in ns, time offset of field response shape
   
 
+
   # For IndFilter and ColFilter, frequency (x) is measured in
   # cycles/microsecond.  The conversion to frequency bin depends on FFT size
   # samping rate.

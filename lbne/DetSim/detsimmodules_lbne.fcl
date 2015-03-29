@@ -16,30 +16,31 @@ lbnefd_simwire:
  NoiseWidthZ:         62.4         #Exponential Noise width (kHz) for Z plane
  LowCutoffZ:          7.5          #Low frequency filter cutoff (kHz) for Z plane
  CompressionType:    "ZeroSuppression"       #could also be none
- #CompressionType:    ""       #could also be none	
  ZeroThreshold:      "10"        #Threshold for zero suppression
  NearestNeighbor:    "25"        #Maximum distance between hits above threshold before they are separated into different blocks
  NoiseArrayPoints:   "1000"     #number of points in noise array
- NoiseOn:            "1"        #1 for noise on, 0 for noise off
- NoiseModel:         "2"        #1 for original model, 2 for a model similar to uBooNE
-
- CollectionPed:       400         #ADC baseline for coll plane
- InductionPed:        2048        #ADC baseline for ind plane
+ NoiseOn:            "0"        #1 for noise on, 0 for noise off
 
  SimCombs:           false
 
 # random initial guesses for charge inefficiency and wrong-type collection on the induction-plane wires
+# First element of the vector -- gaps without the deflector.  Second element of the vector -- gaps with the deflector
+# assume perfect functioning deflector for now.  See Bo Yu, LBNE DocDB 10073
 
- FractUUCollect:     0.5        # fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding U wires
- FractUVCollect:     0.1        # fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding V wires
- FractVUCollect:     0.5        # fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding U wires
- FractVVCollect:     0.1        # fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding V wires
- FractUUMiss:        0.2        # fraction of charge that gets missed on U when charge drifts over the comb holding U
- FractUVMiss:        0.2        # fraction of charge that gets missed on U when charge drifts over the comb holding V
- FractVUMiss:        0.2        # fraction of charge that gets missed on V when charge drifts over the comb holding U
- FractVVMiss:        0.2        # fraction of charge that gets missed on V when charge drifts over the comb holding V
- FractHorizGapMiss:  0.8        # fraction of charge in the horizontal gap that is missing
- FractVertGapMiss:   0.8        # fraction of charge in the horizontal gaps that is missing
+# If the fractions don't add up to 1.0 below, then the remaining charge gets measured normally
+# e.g. 1-FractUUCollect-FractUUMiss gets measured normally on the U wires when chrage drifts over the combs holding the U wires.
+# charge that collects on U wires is assumed not to be measured by V or collection
+
+ FractUUCollect:     [ 0.5, 0.0 ]     # fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding U wires
+ FractUVCollect:     [ 0.1, 0.0 ]     # fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding V wires
+ FractVUCollect:     [ 0.1, 0.0 ]     # fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding U wires
+ FractVVCollect:     [ 0.5, 0.0 ]     # fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding V wires
+ FractUUMiss:        [ 0.2, 0.0 ]     # fraction of charge that gets missed on U when charge drifts over the comb holding U
+ FractUVMiss:        [ 0.0, 0.0 ]     # fraction of charge that gets missed on U when charge drifts over the comb holding V
+ FractVUMiss:        [ 0.2, 0.0 ]     # fraction of charge that gets missed on V when charge drifts over the comb holding U
+ FractVVMiss:        [ 0.2, 0.0 ]     # fraction of charge that gets missed on V when charge drifts over the comb holding V
+ FractHorizGapMiss:  [ 0.8, 0.0 ]     # fraction of charge in the horizontal gap that is missing
+ FractVertGapMiss:   [ 0.8, 0.0 ]     # fraction of charge in the horizontal gaps that is missing
 
 
 }

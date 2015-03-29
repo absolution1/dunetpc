@@ -86,7 +86,6 @@ namespace detsim {
     std::string            fDriftEModuleLabel;///< module making the ionization electrons
     raw::Compress_t        fCompression;      ///< compression type to use
     unsigned int           fNoiseOn;          ///< noise turned on or off for debugging; default is on
-    unsigned int           fNoiseModel;          ///< noise model>
     float                  fNoiseFact;        ///< noise scale factor
     float                  fNoiseWidth;       ///< exponential noise width (kHz)
     float                  fLowCutoff;        ///< low frequency filter cutoff (kHz)
@@ -119,25 +118,19 @@ namespace detsim {
 
     uint32_t               fFirstCollectionChannel;
 
-    //define max ADC value - if one wishes this can
-    //be made a fcl parameter but not likely to ever change
-    const float adcsaturation = 4095;
-    float                  fCollectionPed;    ///< ADC value of baseline for collection plane
-    float                  fInductionPed;     ///< ADC value of baseline for induction plane
-
     // input fcl parameters
 
     bool                   fSimCombs;          // switch for simulation of the combs
-    float                  fFractUUCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding U wires
-    float                  fFractUVCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding V wires
-    float                  fFractVUCollect;    // fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding U wires
-    float                  fFractVVCollect;    // fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding V wires
-    float                  fFractUUMiss;       // fraction of charge that gets missed on U when charge drifts over the comb holding U
-    float                  fFractUVMiss;       // fraction of charge that gets missed on U when charge drifts over the comb holding V
-    float                  fFractVUMiss;       // fraction of charge that gets missed on V when charge drifts over the comb holding U
-    float                  fFractVVMiss;       // fraction of charge that gets missed on V when charge drifts over the comb holding V
-    float                  fFractHorizGapMiss;     // fraction of charge in the horizontal gap that is missing
-    float                  fFractVertGapMiss;     // fraction of charge in the horizontal gaps that is missing
+    std::vector<float>     fFractUUCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding U wires
+    std::vector<float>     fFractUVCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding V wires
+    std::vector<float>     fFractVUCollect;    // fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding U wires
+    std::vector<float>     fFractVVCollect;    // fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding V wires
+    std::vector<float>     fFractUUMiss;       // fraction of charge that gets missed on U when charge drifts over the comb holding U
+    std::vector<float>     fFractUVMiss;       // fraction of charge that gets missed on U when charge drifts over the comb holding V
+    std::vector<float>     fFractVUMiss;       // fraction of charge that gets missed on V when charge drifts over the comb holding U
+    std::vector<float>     fFractVVMiss;       // fraction of charge that gets missed on V when charge drifts over the comb holding V
+    std::vector<float>     fFractHorizGapMiss;     // fraction of charge in the horizontal gap that is missing
+    std::vector<float>     fFractVertGapMiss;     // fraction of charge in the horizontal gaps that is missing
 
     // boundaries of the combs -- cached here for speed
 
@@ -149,6 +142,8 @@ namespace detsim {
     double ycomb13,ycomb14,ycomb15,ycomb16,ycomb17,ycomb18;
 
     GapType_t combtest35t(double x, double y, double z);
+
+    int GapHasDeflector(double x, double y, double z);
 
   }; // class SimWireLBNE35t
 
@@ -214,25 +209,22 @@ namespace detsim {
     fNearestNeighbor         = p.get< int                 >("NearestNeighbor");
     fNoiseArrayPoints = p.get< unsigned int        >("NoiseArrayPoints");
     fNoiseOn           = p.get< unsigned int       >("NoiseOn");
-    fNoiseModel           = p.get< unsigned int       >("NoiseModel");
-    fCollectionPed    = p.get< float               >("CollectionPed");
-    fInductionPed     = p.get< float               >("InductionPed");
     art::ServiceHandle<util::DetectorProperties> detprop;
     fSampleRate       = detprop->SamplingRate();
     fNSamplesReadout  = detprop->ReadOutWindowSize();
     fNTimeSamples  = detprop->NumberTimeSamples();
     
     fSimCombs            = p.get< bool >("SimCombs");          
-    fFractUUCollect      = p.get< float >("FractUUCollect");
-    fFractUVCollect      = p.get< float >("FractUVCollect");
-    fFractVUCollect      = p.get< float >("FractVUCollect");
-    fFractVVCollect      = p.get< float >("FractVVCollect");
-    fFractUUMiss         = p.get< float >("FractUUMiss");
-    fFractUVMiss         = p.get< float >("FractUVMiss");
-    fFractVUMiss         = p.get< float >("FractVUMiss");
-    fFractVVMiss         = p.get< float >("FractVVMiss");
-    fFractHorizGapMiss  = p.get< float >("FractHorizGapMiss");
-    fFractVertGapMiss   = p.get< float >("FractVertGapMiss");
+    fFractUUCollect      = p.get< std::vector<float> >("FractUUCollect");
+    fFractUVCollect      = p.get< std::vector<float> >("FractUVCollect");
+    fFractVUCollect      = p.get< std::vector<float> >("FractVUCollect");
+    fFractVVCollect      = p.get< std::vector<float> >("FractVVCollect");
+    fFractUUMiss         = p.get< std::vector<float> >("FractUUMiss");
+    fFractUVMiss         = p.get< std::vector<float> >("FractUVMiss");
+    fFractVUMiss         = p.get< std::vector<float> >("FractVUMiss");
+    fFractVVMiss         = p.get< std::vector<float> >("FractVVMiss");
+    fFractHorizGapMiss  = p.get< std::vector<float> >("FractHorizGapMiss");
+    fFractVertGapMiss   = p.get< std::vector<float> >("FractVertGapMiss");
 
     return;
   }
@@ -277,7 +269,7 @@ namespace detsim {
       }
     
     //Generate noise if selected to be on
-    if(fNoiseOn && fNoiseModel==1){
+    if(fNoiseOn){
 
       //fNoise.resize(geo->Nchannels());
       fNoiseZ.resize(fNoiseArrayPoints);
@@ -471,8 +463,6 @@ namespace detsim {
     art::ServiceHandle<geo::Geometry> geo;
     unsigned int signalSize = fNTicks;
 
-    //std::cout << "Xin " << fNTicks << std::endl;
-
     // vectors for working
     std::vector<short>    adcvec(signalSize, 0);	
     std::vector<short>    adcvecPreSpill(signalSize, 0);	
@@ -548,7 +538,7 @@ namespace detsim {
       const sim::SimChannel* sc = channels[chan];
       const geo::View_t view = geo->View(chan);
 
-
+      int dflag=0;
       if( sc ){      
 	// loop over the tdcs and grab the number of electrons for each
 	for(size_t t = 0; t < fChargeWork.size(); ++t) 
@@ -567,23 +557,24 @@ namespace detsim {
 		      }
 		    case UCOMB:
 		      {
+			dflag = GapHasDeflector(ide.x,ide.y,ide.z);
 			switch (view)
 			  {
 			  case geo::kU:
 			    {
-			      fChargeWork[t] += ide.numElectrons * (1.0-fFractUUCollect-fFractUUMiss);
-			      fChargeWorkCollInd[t] += ide.numElectrons * fFractUUCollect;
+			      fChargeWork[t] += ide.numElectrons * (1.0 - fFractUUCollect[dflag] - fFractUUMiss[dflag]);
+			      fChargeWorkCollInd[t] += ide.numElectrons * fFractUUCollect[dflag];
 			      break;
 			    }
 			  case geo::kV:
 			    {
-			      fChargeWork[t] += ide.numElectrons * (1.0-fFractVUCollect-fFractVUMiss);
-			      fChargeWorkCollInd[t] += ide.numElectrons * fFractVUCollect;
+			      fChargeWork[t] += ide.numElectrons * (1.0 - fFractVUCollect[dflag] - fFractUUCollect[dflag] - fFractVUMiss[dflag]);
+			      fChargeWorkCollInd[t] += ide.numElectrons * fFractVUCollect[dflag];
 			      break;
 			    }
 			  case geo::kZ:
 			    {
-			      fChargeWork[t] += ide.numElectrons * (1.0-fFractVUCollect-fFractUUCollect);
+			      fChargeWork[t] += ide.numElectrons * (1.0 - fFractVUCollect[dflag] - fFractUUCollect[dflag]);
 			      break;
 			    }
 			  default:
@@ -595,23 +586,24 @@ namespace detsim {
 		      }
 		    case VCOMB:
 		      {
+			dflag = GapHasDeflector(ide.x,ide.y,ide.z);
 			switch (view)
 			  {
 			  case geo::kU:
 			    {
-			      fChargeWork[t] += ide.numElectrons * (1.0-fFractUVCollect-fFractUVMiss);
-			      fChargeWorkCollInd[t] += ide.numElectrons * fFractUVCollect;
+			      fChargeWork[t] += ide.numElectrons * (1.0 - fFractUVCollect[dflag] - fFractUVMiss[dflag]);
+			      fChargeWorkCollInd[t] += ide.numElectrons * fFractUVCollect[dflag];
 			      break;
 			    }
 			  case geo::kV:
 			    {
-			      fChargeWork[t] += ide.numElectrons * (1.0-fFractVVCollect-fFractVVMiss);
-			      fChargeWorkCollInd[t] += ide.numElectrons * fFractVVCollect;
+			      fChargeWork[t] += ide.numElectrons * (1.0 - fFractVVCollect[dflag] - fFractUVCollect[dflag] - fFractVVMiss[dflag]);
+			      fChargeWorkCollInd[t] += ide.numElectrons * fFractVVCollect[dflag];
 			      break;
 			    }
 			  case geo::kZ:
 			    {
-			      fChargeWork[t] += ide.numElectrons * (1.0-fFractVVCollect-fFractUVCollect);
+			      fChargeWork[t] += ide.numElectrons * (1.0 - fFractVVCollect[dflag] - fFractUVCollect[dflag]);
 			      break;
 			    }
 			  default:
@@ -627,12 +619,14 @@ namespace detsim {
 		      }
 		    case HORIZGAP:
 		      {
-			fChargeWork[t] += ide.numElectrons * (1.0-fFractHorizGapMiss);
+			dflag = GapHasDeflector(ide.x,ide.y,ide.z);
+			fChargeWork[t] += ide.numElectrons * (1.0 - fFractHorizGapMiss[dflag]);
 			break;
 		      }
 		    case VERTGAP:
 		      {
-			fChargeWork[t] += ide.numElectrons * (1.0-fFractVertGapMiss);
+			dflag = GapHasDeflector(ide.x,ide.y,ide.z);
+			fChargeWork[t] += ide.numElectrons * (1.0 - fFractVertGapMiss[dflag]);
 			break;
 		      }
 		    }
@@ -644,7 +638,6 @@ namespace detsim {
 	  else
 	    {
 	      fChargeWork[t] = sc->Charge(t);
-	      //if (chan == 180 ) std::cout << "Xin1: " << t << " " << fChargeWork[t] << std::endl;
 	    }      
 
         // Convolve charge with appropriate response function 
@@ -678,24 +671,9 @@ namespace detsim {
 	}
 	fChargeWork.resize(fNTicks,0);
 	sss->Convolute(chan,fChargeWork);
-	// if (chan == 180 ) {
-	//   for(size_t t = 0; t < fChargeWork.size(); ++t) {
-	//     std::cout << "Xin2: " << t << " " << fChargeWork[t] << std::endl;
-	//   }
-	// }
-
 	fChargeWorkCollInd.resize(fNTicks,0);
         sss->Convolute(fFirstCollectionChannel,fChargeWorkCollInd); 
 
-      }
-
-      float ped_mean = fCollectionPed;
-      geo::SigType_t sigtype = geo->SignalType(chan);
-      if (sigtype == geo::kInduction){
-        ped_mean = fInductionPed;
-      }
-      else if (sigtype == geo::kCollection){
-        ped_mean = fCollectionPed;
       }
 
       // noise was already generated for each wire in the event
@@ -738,7 +716,7 @@ namespace detsim {
 	adcvec_a = adcvec.data();
 	adcvecPreSpill_a = adcvecPreSpill.data();
 	adcvecPostSpill_a = adcvecPostSpill.data();
-	if (fNoiseOn && fNoiseModel==1) {
+	if (fNoiseOn) {
           noise_a_U=(fNoiseU[noisechan]).data();
 	  noise_a_V=(fNoiseV[noisechan]).data();
 	  noise_a_Z=(fNoiseZ[noisechan]).data();
@@ -762,22 +740,13 @@ namespace detsim {
 	mf::LogError("SimWireLBNE35t") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
       }
 
-      //std::cout << "Xin " << fNoiseOn << " " << fNoiseModel << std::endl;
-
-      if(fNoiseOn && fNoiseModel==1) {	      
+      if(fNoiseOn) {	      
 	for(unsigned int i = 0; i < signalSize; ++i){
 	  if(view==geo::kU)       { tnoise = noise_a_U[i]; }
 	  else if (view==geo::kV) { tnoise = noise_a_V[i]; }
 	  else                    { tnoise = noise_a_Z[i]; }
-          tmpfv = tnoise + fChargeWork_a[i] ;
+          tmpfv = tnoise + fChargeWork_a[i];
 	  if (fSimCombs)  tmpfv += fChargeWorkCollInd_a[i];
-	  //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
-
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
@@ -786,137 +755,28 @@ namespace detsim {
 	    else if(view==geo::kV) { tnoisepre = noise_a_Vpre[i]; tnoisepost = noise_a_Vpost[i]; }
 	    else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
 
-	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i] ;
+	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
-	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation - ped_mean)
-	      tmpfv = adcsaturation- ped_mean;
-	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 - ped_mean)
-	      tmpfv = 0- ped_mean;
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i] ;
+	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
 	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
-	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation - ped_mean)
-	      tmpfv = adcsaturation- ped_mean;
-	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 - ped_mean)
-	      tmpfv = 0- ped_mean;
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
-      }else if (fNoiseOn && fNoiseModel==2){
-
-	float fASICGain      = sss->GetASICGain(chan);  
-	
-	double fShapingTime   = sss->GetShapingTime(chan);
-	std::map< double, int > fShapingTimeOrder;
-	fShapingTimeOrder = { {0.5, 0}, {1.0, 1}, {2.0, 2}, {3.0, 3} };
-	DoubleVec              fNoiseFactVec;
-
-	//
-
-	auto tempNoiseVec = sss->GetNoiseFactVec();
-
-	if ( fShapingTimeOrder.find( fShapingTime ) != fShapingTimeOrder.end() ){
-	  size_t i = 0;
-	  fNoiseFactVec.resize(2);
-	  for (auto& item : tempNoiseVec) {
-	    fNoiseFactVec[i]   = item.at( fShapingTimeOrder.find( fShapingTime )->second );
-	    fNoiseFactVec[i] *= fASICGain/4.7;
-	    ++i;
-	  }
-	}
-	else {//Throw exception...
-	  throw cet::exception("SimWireMicroBooNE")
-	    << "\033[93m"
-	    << "Shaping Time received from signalservices_microboone.fcl is not one of allowed values"
-	    << std::endl
-	    << "Allowed values: 0.5, 1.0, 2.0, 3.0 usec"
-	    << "\033[00m"
-	    << std::endl;
-	}
-	//std::cout << "Xin " << fASICGain << " " << fShapingTime << " " << fNoiseFactVec[0] << " " << fNoiseFactVec[1] << std::endl;
-
-	art::ServiceHandle<art::RandomNumberGenerator> rng;
-	CLHEP::HepRandomEngine &engine = rng->getEngine();
-	CLHEP::RandGaussQ rGauss_Ind(engine, 0.0, fNoiseFactVec[0]);
-	CLHEP::RandGaussQ rGauss_Col(engine, 0.0, fNoiseFactVec[1]);
-
-
-	for(unsigned int i = 0; i < signalSize; ++i){
-	  if(view==geo::kU)       { tnoise = rGauss_Ind.fire(); }
-	  else if (view==geo::kV) { tnoise = rGauss_Ind.fire(); }
-	  else                    { tnoise = rGauss_Col.fire(); }
-          tmpfv = tnoise + fChargeWork_a[i] ;
-	  if (fSimCombs)  tmpfv += fChargeWorkCollInd_a[i];
-	  //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
-	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	}
-	if (prepost) {
-	  for(unsigned int i = 0; i < signalSize; ++i){
-	    if(view==geo::kU)      { tnoisepre = rGauss_Ind.fire(); tnoisepost = rGauss_Ind.fire(); }
-	    else if(view==geo::kV) { tnoisepre = rGauss_Ind.fire(); tnoisepost = rGauss_Ind.fire(); }
-	    else                   { tnoisepre = rGauss_Col.fire(); tnoisepost = rGauss_Col.fire(); }
-
-	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i] ;
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
-	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
-	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i] ;
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
-	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
-	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	  }
-	}
-
-      }else {   // no noise, so just round the values to nearest short ints and store them
+      }
+      else {   // no noise, so just round the values to nearest short ints and store them
 	for(unsigned int i = 0; i < signalSize; ++i){
 	  tmpfv = fChargeWork_a[i];
-	  if (fSimCombs) tmpfv += fChargeWorkCollInd_a[i] ;
-	  //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
+	  if (fSimCombs) tmpfv += fChargeWorkCollInd_a[i];
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
 	if (prepost) {
 	  for(unsigned int i = 0; i < signalSize; ++i){
 	    tmpfv = fChargeWorkPreSpill_a[i];
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i] ;
-	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation - ped_mean)
-	      tmpfv = adcsaturation- ped_mean;
-	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 - ped_mean)
-	      tmpfv = 0- ped_mean;
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	    tmpfv = fChargeWorkPostSpill_a[i];
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i] ;
-	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation - ped_mean)
-	      tmpfv = adcsaturation- ped_mean;
-	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 - ped_mean)
-	      tmpfv = 0- ped_mean;
+	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
@@ -932,10 +792,7 @@ namespace detsim {
 
       adcvec.resize(fNSamplesReadout);
       raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
-      
-      
       raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
-      
       adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
       digcol->push_back(rd);            // add this digit to the collection
 
@@ -947,7 +804,6 @@ namespace detsim {
         raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
         raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
         raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
-
         adcvecPreSpill.resize(signalSize);
         adcvecPostSpill.resize(signalSize);
         digcolPreSpill->push_back(rdPreSpill);
@@ -1016,6 +872,16 @@ namespace detsim {
 
   //-------------------------------------------------
 
+  // see the ASCII cartoon of APA's at the bottom of this file for a picture of what all the boundaries are
+
+  // returns 0 if this gap does not have a deflector as described by Bo Yu, LBNE DocDB 10073.  Returns 1 if this gap does.
+  // Also returns 0 if we are not in a gap.   This is an int instead of a bool so it can be used as the index into the parameter array
+
+  int SimWireLBNE35t::GapHasDeflector(double x, double y, double z)
+  {
+    if ( y < ycomb12 && y > ycomb7 && x > 0 &&  z < zcomb9 && z > zcomb4 ) return 1;
+    return 0;
+  }
 
   // see the ASCII cartoon of APA's at the bottom of this file for a picture of what all the boundaries are
 

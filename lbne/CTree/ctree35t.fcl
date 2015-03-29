@@ -1,0 +1,52 @@
+#include "services_lbne.fcl"
+
+process_name: ctree35t
+
+services:
+{
+  # TFileService: { fileName: "test.root" }
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  #user:         @local::lbnefd_simulation_services
+  user:         @local::lbne35t_simulation_services
+}
+
+
+source:
+{
+  module_type: RootInput
+  # fileNames:  [ "/afs/fnal.gov/test.root" ] 
+  firstEvent : 1
+  maxEvents:  -1
+}
+
+
+outputs:{}
+
+
+physics:
+{
+  analyzers:
+  {
+    chao: 
+    {
+      module_type:      "CTree35t"
+      RawDigitLabel:    "daq"
+      CalibLabel:       "caldata"
+      HitsModuleLabel:  "gaushit"
+      TrackModuleLabel: "particlestitcher"
+      #TrackModuleLabel: "particletracks"
+      outFile:          "sample.root"
+      saveChannelWireMap: false
+      InputModule:             "largeant"
+      MakeAllPhotonsTree:      true
+      MakeDetectedPhotonsTree: true
+      MakeOpDetsTree:          true
+      MakeOpDetEventsTree:     true
+    }
+  }
+  analysis: [ chao ] //Directory for histograms
+  end_paths: [ analysis ]
+}
+

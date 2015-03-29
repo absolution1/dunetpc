@@ -6,7 +6,7 @@ tpc_daq_to_offline:
   FragType: "TPC"
   RawDataLabel: "daq"
   OutputDataLabel: "offline"
-  Debug: "true"
+  Debug: "false"
 }
 
 
