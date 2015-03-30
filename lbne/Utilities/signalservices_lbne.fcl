@@ -14,8 +14,8 @@ lbnefd_signalshapingservice:
 
 
   #FieldBins:        75 # for UseFunctionFieldShape: true
-  FieldBins:        1000
-  InputFieldRespSamplingPeriod: 30. # in nano second
+  FieldBins:        400
+  InputFieldRespSamplingPeriod: 100. # in nano second
   
 
   Col3DCorrection:  2.5
