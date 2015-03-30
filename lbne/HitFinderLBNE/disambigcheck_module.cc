@@ -110,9 +110,9 @@ namespace disambigcheck{
   {
     art::ServiceHandle<art::TFileService> tfs;
     
-    fCorrect = tfs->make<TH1D>("correct","Correct disambiguated",     100, 0, 1);
-    fMissed = tfs->make<TH1D>("missed","Missed hits",     100, 0, 1);
-    fIncorrect = tfs->make<TH1D>("incorrect","Incorrect disambiguated",     100, 0, 1);
+    fCorrect = tfs->make<TH1D>("correct","Correct disambiguated",     100, 0, 1.01);
+    fMissed = tfs->make<TH1D>("missed","Missed hits",     100, 0, 1.01);
+    fIncorrect = tfs->make<TH1D>("incorrect","Incorrect disambiguated",     100, 0, 1.01);
   }
   
   //-------------------------------------------------
