@@ -941,13 +941,16 @@ lbnecode : lardata : Utilities/ClockConstants.h
 lbnecode : lardata : Utilities/DatabaseUtil.h
 lbnecode : lardata : Utilities/DetectorProperties.h
 lbnecode : lardata : Utilities/ElecClock.h
+lbnecode : lardata : Utilities/GeometryUtilities.h
 lbnecode : lardata : Utilities/LArFFT.h
 lbnecode : lardata : Utilities/LArProperties.h
+lbnecode : lardata : Utilities/PxUtils.h
 lbnecode : lardata : Utilities/SignalShaping.h
 lbnecode : lardata : Utilities/SimpleTimeService.h
 lbnecode : lardata : Utilities/SumSecondFunction.h
 lbnecode : lardata : Utilities/TimeService.h
 lbnecode : lardata : Utilities/TimeServiceException.h
+lbnecode : lardata : Utilities/UtilException.h
 lbnecode : lardata : Utilities/VectorMap.h
 lbnecode : lardata : Utilities/sparse_vector.h
 lbnecode : larevt : Filters/ChannelFilter.h
@@ -1106,4 +1109,5 @@ lbnecode : lbnecode : lbne/OpticalDetector/LBNEOpDetResponse.h
 lbnecode : lbnecode : lbne/Utilities/SignalShapingServiceLBNE10kt.h
 lbnecode : lbnecode : lbne/Utilities/SignalShapingServiceLBNE34kt.h
 lbnecode : lbnecode : lbne/Utilities/SignalShapingServiceLBNE35t.h
+lbnecode : lbnecode : lbne/daqinput35t/tpcFragmentToRawDigits.h
 lbnecode : lbnecode : lbne/daqinput35t/utilities/UnpackFragment.h
