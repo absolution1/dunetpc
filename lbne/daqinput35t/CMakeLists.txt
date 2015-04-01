@@ -85,6 +85,7 @@ simple_plugin(SplitterInput "source"
  art_Framework_IO_Sources
  ${ROOT_TREE}
  ${ROOT_RIO}
+ ${MF_MESSAGELOGGER}
 )
 
 install_fhicl()
