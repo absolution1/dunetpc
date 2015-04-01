@@ -12,6 +12,7 @@
 #include "art/Persistency/Provenance/SubRunID.h"
 #include "art/Persistency/Provenance/MasterProductRegistry.h"
 #include "art/Utilities/InputTag.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 // artdaq
 #include "artdaq-core/Data/Fragments.hh"
@@ -307,7 +308,7 @@ DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE){
                                  *outE,
                                  sourceName_,
                                  inputTag_.instance() );
-  std::cout << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " digits" << std::endl;
+  mf::LogDebug("DigitsTest") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " digits";
   bufferedDigits_.clear();
 }
 
