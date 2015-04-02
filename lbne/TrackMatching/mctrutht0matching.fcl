@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+lbne35t_mctrutht0matching:
+{
+    module_type:              "MCTruthT0Matching"
+    TrackModuleLabel:         "stitch"
+#   TrackModuleLabel:         "track3d"
+
+}
+
+END_PROLOG
