@@ -53,11 +53,9 @@ DAQToOffline::tpcFragmentToRawDigits(art::EventID const& eid, artdaq::Fragments 
   
   for(size_t chan=0;chan < numChans;chan++){
 
+    //Each channel is uniquely identified by (fragmentID, sample) in an online event
 
-    //Each channel is uniquely identified by (fragmentID, group, sample) in an online event
-    
     unsigned int fragmentID = UnpackFragment::getFragIDForChan(chan);
-    //unsigned int group = UnpackFragment::getNanoSliceGroupForChan(chan); <// No longer using group
     unsigned int sample = UnpackFragment::getNanoSliceSampleForChan(chan);
 
     std::cout << "channel: " << chan
@@ -78,7 +76,7 @@ DAQToOffline::tpcFragmentToRawDigits(art::EventID const& eid, artdaq::Fragments 
 
     unsigned int fragIndex = mapFragID[fragmentID];
 
-    std::cout << "fragIndex: " << fragIndex << std::endl;
+    if (debug) std::cout << "fragIndex: " << fragIndex << std::endl;
     
     std::vector<short> adcvec;
 
@@ -95,17 +93,16 @@ DAQToOffline::tpcFragmentToRawDigits(art::EventID const& eid, artdaq::Fragments 
       auto numNanoSlices = microSlice->nanoSliceCount();
 
       for(uint32_t i_nano=0; i_nano < numNanoSlices; i_nano++){
-	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice = microSlice->nanoSlice(i_nano);
 	
 	uint16_t val = std::numeric_limits<uint16_t>::max();
-	bool success = nanoSlice->sampleValue(sample, val);
+	bool success = microSlice->nanosliceSampleValue(i_nano, sample, val);
 
 	if(success) adcvec.push_back(short(val));
 	
       }
     }
 
-    std::cout << "adcvec->size(): " << adcvec.size() << std::endl;
+    if (debug) std::cout << "adcvec->size(): " << adcvec.size() << std::endl;
     unsigned int numTicks = adcvec.size();
     raw::Compress(adcvec, compression, zeroThreshold);
     raw::RawDigit theRawDigit(chan, numTicks, adcvec, compression);
