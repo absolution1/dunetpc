@@ -132,7 +132,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto digits = tpcFragmentToRawDigits(evt.id(), *rawFragments, fDebug, fCompression, fZeroThreshold);
+  auto digits = tpcFragmentToRawDigits(*rawFragments, fDebug, fCompression, fZeroThreshold);
 
   evt.put(std::make_unique<decltype(digits)>(std::move(digits)), fOutputDataLabel);
 }
