@@ -3,14 +3,14 @@
 #include "art/Framework/Core/InputSourceMacros.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
 #include "art/Framework/IO/Root/rootNames.h"
-#include "art/Framework/IO/Sources/SourceHelper.h"
 #include "art/Framework/IO/Sources/Source.h"
+#include "art/Framework/IO/Sources/SourceHelper.h"
 #include "art/Framework/IO/Sources/SourceTraits.h"
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
 #include "art/Persistency/Provenance/EventID.h"
+#include "art/Persistency/Provenance/MasterProductRegistry.h"
 #include "art/Persistency/Provenance/RunID.h"
 #include "art/Persistency/Provenance/SubRunID.h"
-#include "art/Persistency/Provenance/MasterProductRegistry.h"
 #include "art/Utilities/InputTag.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -27,8 +27,8 @@
 #include <functional>
 #include <memory>
 #include <regex>
-#include <vector>
 #include <string>
+#include <vector>
 
 // ROOT
 #include "TTree.h"
@@ -45,12 +45,12 @@ namespace {
 
   struct LoadedDigits {
 
-    LoadedDigits() : digits(), index(0) {}
+    LoadedDigits() : digits(), index() {}
 
     vector<RawDigit> digits;
     size_t index;
 
-    void assign(vector<RawDigit> const & v ) {
+    void assign( vector<RawDigit> const & v ) {
       digits = v;
       index = 0ul;
     }
@@ -223,7 +223,7 @@ DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb)
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
   fragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( inputTag_ ) ); // get branch for specific input tag
   nInputEvts_      = static_cast<size_t>( fragmentsBranch_->GetEntries() );
-  treeIndex_       = 0u;
+  treeIndex_       = 0ul;
 
   // New fileblock
   fb = new art::FileBlock(art::FileFormatVersion(),filename);
@@ -252,11 +252,13 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   if ( runNumber_ != cachedRunNumber_ ){
     outR = sh_.makeRunPrincipal(runNumber_,ts);
     cachedRunNumber_ = runNumber_;
+    eventNumber_ = 0ul;
   }
 
   if ( subRunNumber_ != cachedSubRunNumber_ ) {
     outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
     cachedSubRunNumber_ = subRunNumber_;
+    eventNumber_ = 0ul;
   }
 
   // eventIsFull_ is what LBNE should modify based on its needs
