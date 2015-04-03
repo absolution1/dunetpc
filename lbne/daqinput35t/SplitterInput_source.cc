@@ -25,8 +25,7 @@
 
 // C++
 #include <functional>
-#include <deque>
-#include <iostream>
+#include <memory>
 #include <regex>
 #include <vector>
 #include <string>
@@ -35,12 +34,35 @@
 #include "TTree.h"
 #include "TFile.h"
 
+using raw::RawDigit;
 using std::vector;
 using std::string;
 
 //==========================================================================
 
 namespace {
+
+
+  struct LoadedDigits {
+
+    LoadedDigits() : digits(), index(0) {}
+
+    vector<RawDigit> digits;
+    size_t index;
+
+    void assign(vector<RawDigit> const & v ) {
+      digits = v;
+      index = 0ul;
+    }
+
+    bool empty() const { return index == digits.size(); }
+
+    RawDigit next() {
+      ++index;
+      return digits.at(index-1);
+    }
+
+  };
 
   // Retrieves branch name (a la art convention) where object resides
   template <typename PROD>
@@ -58,14 +80,11 @@ namespace {
     return pat_s.str().data();
   }
 
-  // Must use getObject<T*>(...) pattern.
-  //   i.e. template argument must be a pointer
-  template <typename PROD>
-  std::enable_if_t<std::is_pointer<PROD>::value,PROD>
-  getObject( TBranch* br, unsigned entry )
+  artdaq::Fragments*
+  getFragments( TBranch* br, unsigned entry )
   {
     br->GetEntry( entry );
-    return reinterpret_cast<PROD>( br->GetAddress() );
+    return reinterpret_cast<artdaq::Fragments*>( br->GetAddress() );
   }
 
   // Assumed file format is
@@ -124,16 +143,17 @@ namespace DAQToOffline
     void closeCurrentFile();
 
   private:
-    using rawDigits_t = vector<raw::RawDigit>;
+
+    using rawDigits_t = vector<RawDigit>;
 
     string                 sourceName_;
     string                 lastFileName_;
-    TFile*                 file_;
+    std::unique_ptr<TFile> file_;
     bool                   doneWithFiles_;
     art::InputTag          inputTag_;
     art::SourceHelper      sh_;
     TBranch*               fragmentsBranch_;
-    std::deque<raw::RawDigit> loadedDigits_;
+    LoadedDigits           loadedDigits_;
     size_t                 digitIndex_;
     size_t                 nInputEvts_;
     size_t                 treeIndex_;
@@ -145,11 +165,11 @@ namespace DAQToOffline
     size_t                 bufferLimit_;
     rawDigits_t            bufferedDigits_;
 
-    using eid_t   = art::EventID;
-    using frags_t = artdaq::Fragments;
-    std::function<rawDigits_t(eid_t const&, frags_t const&)> fragmentsToDigits_;
+    std::function<rawDigits_t(artdaq::Fragments const&)> fragmentsToDigits_;
 
-    void loadDigits_();
+    bool eventIsFull_(rawDigits_t const & v);
+
+    bool loadDigits_();
 
     void makeEventAndPutDigits_( art::EventPrincipal*& outE );
   };
@@ -161,7 +181,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  art::SourceHelper& sh) :
   sourceName_("SplitterInput"),
   lastFileName_(ps.get<vector<string>>("fileNames",{}).back()),
-  file_(nullptr),
+  file_(),
   doneWithFiles_(false),
   inputTag_("daq:TPC:DAQ"), // "moduleLabel:instance:processName"
   sh_(sh),
@@ -173,20 +193,16 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   cachedRunNumber_(-1),
   cachedSubRunNumber_(-1),
   bufferLimit_(ps.get<size_t>("rawDigitsPerEvent")),
-  bufferedDigits_()
+  bufferedDigits_(),
+  fragmentsToDigits_( std::bind( DAQToOffline::tpcFragmentToRawDigits,
+                                 std::placeholders::_1, // artdaq::Fragments
+                                 ps.get<bool>("debug",false),
+                                 ps.get<raw::Compress_t>("compression",raw::kNone),
+                                 ps.get<unsigned>("zeroThreshold",0) ) )
 {
   // Will use same instance name for the outgoing products as for the
   // incoming ones.
   prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, inputTag_.instance() );
-
-  // Binding at c'tor level so we don't re-evaluate 'ps.get' everytime
-  // we need to call tpcFragmentToRawDigits
-  fragmentsToDigits_ = std::bind( DAQToOffline::tpcFragmentToRawDigits,
-                                  std::placeholders::_1,
-                                  std::placeholders::_2,
-                                  ps.get<bool>("debug",false),
-                                  ps.get<raw::Compress_t>("compression",raw::kNone),
-                                  ps.get<unsigned>("zeroThreshold",0) );
 }
 
 //=======================================================================================
@@ -194,6 +210,8 @@ bool
 DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb)
 {
 
+  // Run numbers determined based on file name...see comment in
+  // anon. namespace above.
   std::smatch matches;
   if ( std::regex_match( filename, matches, filename_format ) ) {
     runNumber_       = std::stoul( matches[1] );
@@ -201,14 +219,11 @@ DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb)
   }
 
   // Get fragments branch
-  file_            = new TFile(filename.data());
+  file_.reset( new TFile(filename.data()) );
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
-  fragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( inputTag_ ) );
+  fragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( inputTag_ ) ); // get branch for specific input tag
   nInputEvts_      = static_cast<size_t>( fragmentsBranch_->GetEntries() );
   treeIndex_       = 0u;
-
-  // Get first set of digits
-  loadDigits_();
 
   // New fileblock
   fb = new art::FileBlock(art::FileFormatVersion(),filename);
@@ -233,7 +248,7 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     return false;
   }
 
-  art::Timestamp ts;
+  art::Timestamp ts; // LBNE should decide how to initialize this
   if ( runNumber_ != cachedRunNumber_ ){
     outR = sh_.makeRunPrincipal(runNumber_,ts);
     cachedRunNumber_ = runNumber_;
@@ -244,40 +259,24 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     cachedSubRunNumber_ = subRunNumber_;
   }
 
-  while ( !loadedDigits_.empty() ) {
+  // eventIsFull_ is what LBNE should modify based on its needs
+  while ( !eventIsFull_( bufferedDigits_ ) ) {
 
-    auto      begin  = loadedDigits_.begin();
-    auto const cend  = loadedDigits_.cend();
-    for ( auto digit = begin; digit != cend ; ) {
-
-      auto nextDigit = std::next(digit);
-      bufferedDigits_.emplace_back( *digit );
-      loadedDigits_.pop_front();
-
-      if ( loadedDigits_.empty() ) {
-        loadDigits_();
+    if ( loadedDigits_.empty() && !loadDigits_() ) {
+      if ( file_->GetName() != lastFileName_ )
+        return false;
+      else {
+        doneWithFiles_ = true;
+        break;
       }
-
-      digit = nextDigit; // okay when loadedDigits_ is empty
-
-      // The following line is where the code should be adjusted
-      // according to LBNE's needs
-      if ( bufferedDigits_.size() == bufferLimit_ ){
-        makeEventAndPutDigits_( outE );
-        return true;
-      }
-
     }
+
+    bufferedDigits_.emplace_back( loadedDigits_.next() );
+
   }
 
-  // Handle remaining buffered digits that were not put into event
-  if ( file_->GetName() == lastFileName_  ) {
-    makeEventAndPutDigits_( outE );
-    doneWithFiles_ = true;
-    return true;
-  }
-
-  return false;
+  makeEventAndPutDigits_( outE );
+  return true;
 
 }
 
@@ -285,18 +284,27 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 void
 DAQToOffline::Splitter::closeCurrentFile()
 {
-  delete file_;
+  file_.reset(nullptr);
 }
 
 //=======================================================================================
-void
+bool
+DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v )
+{
+  return v.size() == bufferLimit_;
+}
+
+//=======================================================================================
+bool
 DAQToOffline::Splitter::loadDigits_()
 {
   if ( loadedDigits_.empty() && treeIndex_ != nInputEvts_ ) {
-    auto* fragments = getObject<artdaq::Fragments*>( fragmentsBranch_, treeIndex_++ );
-    rawDigits_t const digits = fragmentsToDigits_( art::EventID(), *fragments );
-    loadedDigits_.assign( digits.cbegin(), digits.cend() );
+    auto* fragments = getFragments( fragmentsBranch_, treeIndex_++ );
+    rawDigits_t const digits = fragmentsToDigits_( *fragments );
+    loadedDigits_.assign( digits );
+    return true;
   }
+  else return false;
 }
 
 //=======================================================================================

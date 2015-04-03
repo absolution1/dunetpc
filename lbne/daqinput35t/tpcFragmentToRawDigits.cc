@@ -16,7 +16,7 @@
 #include "RawData/raw.h"
 
 std::vector<raw::RawDigit>
-DAQToOffline::tpcFragmentToRawDigits(art::EventID const& eid, artdaq::Fragments const& rawFragments, bool debug,
+DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, bool debug,
                                      raw::Compress_t compression, unsigned int zeroThreshold)
 {
   //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
@@ -35,9 +35,7 @@ DAQToOffline::tpcFragmentToRawDigits(art::EventID const& eid, artdaq::Fragments 
 
 
   if(debug){
-    std::cout << eid
-              << " has " << numFragments
-              << " rawFragments" << std::endl;
+    std::cout << numFragments<< " rawFragments" << std::endl;
   }
 
   std::vector<raw::RawDigit> rawDigitVector;
