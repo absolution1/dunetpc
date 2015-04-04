@@ -52,6 +52,12 @@ namespace geo{
     SigType_t                SignalType( uint32_t const channel)    const;
     std::set<View_t>  const& Views()                                const;
     std::set<PlaneID> const& PlaneIDs()                             const;
+
+    unsigned int NUniqueOpChannels() const;
+
+    unsigned int OpChanUniqueID(int detNum, int channel) const;
+    unsigned int OpDetFromUniqueChanID(int uniqueChannel) const;
+    unsigned int OpDetChannelFromUniqueChanID(int uniqueChannel) const;
     
   private:
     

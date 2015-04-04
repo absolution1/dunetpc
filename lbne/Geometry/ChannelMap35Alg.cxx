@@ -433,4 +433,31 @@ namespace geo{
     return fPlaneIDs;
   }
 
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::NUniqueOpChannels() const
+  {
+    return 96;
+  }
+
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::OpChanUniqueID(int detNum, int channel) const
+  {
+    int uniqueChannel = (detNum * 12) + channel;
+    return uniqueChannel;
+  }
+
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::OpDetFromUniqueChanID(int uniqueChannel) const
+  {
+    int detectorNum = (int) uniqueChannel / 12;
+    return detectorNum;
+  }
+
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::OpDetChannelFromUniqueChanID(int uniqueChannel) const
+  {
+    int channel = uniqueChannel % 12;
+    return channel;
+  }
+
 } // namespace

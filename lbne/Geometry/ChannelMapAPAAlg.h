@@ -49,6 +49,12 @@ namespace geo{
    std::set<View_t>  const&  Views()                                   const;
    std::set<PlaneID> const&  PlaneIDs()                                const;
 
+   unsigned int NUniqueOpChannels() const;
+
+   unsigned int OpChanUniqueID(int detNum, int channel) const;
+   unsigned int OpDetFromUniqueChanID(int uniqueChannel) const;
+   unsigned int OpDetChannelFromUniqueChanID(int uniqueChannel) const;
+
   private:
     
     unsigned int                                         fNcryostat;      ///< number of cryostats in the detector

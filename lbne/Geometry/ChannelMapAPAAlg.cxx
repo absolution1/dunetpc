@@ -410,4 +410,31 @@ namespace geo{
     return fPlaneIDs;
   }
 
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::NUniqueOpChannels() const
+  {
+    return 96;
+  }
+
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::OpChanUniqueID(int detNum, int channel) const
+  {
+    int uniqueChannel = (detNum * 12) + channel;
+    return uniqueChannel;
+  }
+
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::OpDetFromUniqueChanID(int uniqueChannel) const
+  {
+    int detectorNum = (int) uniqueChannel / 12;
+    return detectorNum;
+  }
+
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::OpDetChannelFromUniqueChanID(int uniqueChannel) const
+  {
+    int channel = uniqueChannel % 12;
+    return channel;
+  }
+
 } // namespace
