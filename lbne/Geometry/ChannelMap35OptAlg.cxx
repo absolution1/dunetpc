@@ -443,6 +443,12 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
+  unsigned int ChannelMap35OptAlg::NHardwareChannels(int opDet) const
+  {
+    return 12;
+  }
+
+  //----------------------------------------------------------------------------
   unsigned int ChannelMap35OptAlg::OpChannel(int detNum, int channel) const
   {
     int uniqueChannel = (detNum * 12) + channel;

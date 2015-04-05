@@ -49,11 +49,11 @@ namespace geo{
    std::set<View_t>  const&  Views()                                   const;
    std::set<PlaneID> const&  PlaneIDs()                                const;
 
-    unsigned int NOpChannels(int NOpDets) const;
-
-    unsigned int OpChannel(int detNum, int channel = 0) const;
-    unsigned int OpDetFromOpChannel(int opChannel) const;
-    unsigned int HardwareChannelFromOpChannel(int opChannel) const;
+    unsigned int NOpChannels(int NOpDets)                              const;
+    unsigned int NHardwareChannels(int opDet)                          const;
+    unsigned int OpChannel(int detNum, int channel = 0)                const;
+    unsigned int OpDetFromOpChannel(int opChannel)                     const;
+    unsigned int HardwareChannelFromOpChannel(int opChannel)           const;
     
   private:
     
