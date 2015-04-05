@@ -30,13 +30,8 @@ namespace opdet
 
         virtual void doReconfigure(fhicl::ParameterSet const& p);
 
-        virtual int  doNOpChannels() const;
-        virtual int  doReadoutToGeoChannel(int readoutChannel) const;
-
         virtual bool doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const;
         virtual bool doDetectedLite(int OpChannel, int &newOpChannel) const;
-
-        virtual void PrintChannelMap() const;
 
         float fQE;                     // Quantum efficiency of tube
         
@@ -49,14 +44,10 @@ namespace opdet
         bool fFullSimChannelConvert;   // Flag to conver detector->electronics channels in full optical sim
         bool fFastSimChannelConvert;   // Flag to conver detector->electronics channels in fast optical sim
 
-        int Nchannels;
-        std::vector<std::vector<int> > opChannelMap; // Map which sets correspondence between detector and readout channels
-
         int fLongAxis;                 // 0 = x, 1 = y, 2 = z
 
     }; // class LBNEOpDetResponse
 
-    inline int LBNEOpDetResponse::doNOpChannels() const { return Nchannels; }
     
 } //namespace opdet
 
