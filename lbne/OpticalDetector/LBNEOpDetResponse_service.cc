@@ -60,6 +60,18 @@ namespace opdet{
 
 
     //--------------------------------------------------------------------
+    int  LBNEOpDetResponse::doNOpChannels() const
+    {
+        art::ServiceHandle<geo::Geometry> geom;
+        if (fFastSimChannelConvert || fFullSimChannelConvert)
+            return geom->GetNOpChannels();
+        else
+            return geom->GetNOpDets();
+
+    }
+
+
+    //--------------------------------------------------------------------
     bool LBNEOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
     {
         
