@@ -411,29 +411,29 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::NUniqueOpChannels() const
+  unsigned int ChannelMapAPAAlg::NOpChannels(int NOpDets) const
   {
-    return 96;
+    return 12*NOpDets;
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::OpChanUniqueID(int detNum, int channel) const
+  unsigned int ChannelMapAPAAlg::OpChannel(int detNum, int channel) const
   {
     int uniqueChannel = (detNum * 12) + channel;
     return uniqueChannel;
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::OpDetFromUniqueChanID(int uniqueChannel) const
+  unsigned int ChannelMapAPAAlg::OpDetFromOpChannel(int opChannel) const
   {
-    int detectorNum = (int) uniqueChannel / 12;
+    int detectorNum = (int) opChannel / 12;
     return detectorNum;
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::OpDetChannelFromUniqueChanID(int uniqueChannel) const
+  unsigned int ChannelMapAPAAlg::HardwareChannelFromOpChannel(int opChannel) const
   {
-    int channel = uniqueChannel % 12;
+    int channel = opChannel % 12;
     return channel;
   }
 
