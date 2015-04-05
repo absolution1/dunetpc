@@ -417,7 +417,7 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35OptAlg::NHardwareChannels(int opDet) const
+  unsigned int ChannelMapAPAAlg::NHardwareChannels(int opDet) const
   {
     return 12;
   }
