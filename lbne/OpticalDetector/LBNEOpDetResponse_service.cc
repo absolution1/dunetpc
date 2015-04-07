@@ -64,9 +64,9 @@ namespace opdet{
     {
         art::ServiceHandle<geo::Geometry> geom;
         if (fFastSimChannelConvert || fFullSimChannelConvert)
-            return geom->GetNOpChannels();
+            return geom->NOpChannels();
         else
-            return geom->GetNOpDets();
+            return geom->NOpDets();
 
     }
 
@@ -77,9 +77,7 @@ namespace opdet{
         
         // Find the Optical Detector using the geometry service
         art::ServiceHandle<geo::Geometry> geom;
-        unsigned int cryostatID=0, opdetID=0;
-        geom->OpChannelToCryoOpDet(OpChannel, opdetID, cryostatID);
-        const TGeoNode* node = geom->Cryostat(cryostatID).OpDet(opdetID).Node();
+        const TGeoNode* node = geom->OpDetGeoFromOpChannel(OpChannel).Node();
 
         // Identify the photon detector type
         int pdtype;
@@ -196,9 +194,7 @@ namespace opdet{
     {
         // Find the Optical Detector using the geometry service
         art::ServiceHandle<geo::Geometry> geom;
-        unsigned int cryostatID=0, opdetID=0;
-        geom->OpChannelToCryoOpDet(OpChannel, opdetID, cryostatID);
-        const TGeoNode* node = geom->Cryostat(cryostatID).OpDet(opdetID).Node();
+        const TGeoNode* node = geom->OpDetGeoFromOpChannel(OpChannel).Node();
 
         
         // Identify the photon detector type
@@ -226,6 +222,7 @@ namespace opdet{
         // Check QE
         if ( CLHEP::RandFlat::shoot(1.0) > fQE ) return false;
 
+        
         return true;
     }
 
