@@ -192,26 +192,29 @@ namespace opdet{
     //--------------------------------------------------------------------
     bool LBNEOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
     {
-        // Find the Optical Detector using the geometry service
-        art::ServiceHandle<geo::Geometry> geom;
-        const TGeoNode* node = geom->OpDetGeoFromOpChannel(OpChannel).Node();
-
-        
-        // Identify the photon detector type
-        int pdtype;
-        std::string detname = node->GetName();
-        boost::to_lower(detname);
-        if      (detname.find("bar") != std::string::npos )   pdtype = 0;
-        else if (detname.find("fiber") != std::string::npos ) pdtype = 1;
-        else if (detname.find("plank") != std::string::npos ) pdtype = 2;
-        else                                                  pdtype = -1;
-
         if (fFastSimChannelConvert){
+
+            // Find the Optical Detector using the geometry service
+            art::ServiceHandle<geo::Geometry> geom;
+            // Here OpChannel must be opdet since we are introducing
+            // channel mapping here.
+            const TGeoNode* node = geom->OpDetGeoFromOpDet(OpChannel).Node();
+
+            
+            // Identify the photon detector type
+            int pdtype;
+            std::string detname = node->GetName();
+            boost::to_lower(detname);
+            if      (detname.find("bar") != std::string::npos )   pdtype = 0;
+            else if (detname.find("fiber") != std::string::npos ) pdtype = 1;
+            else if (detname.find("plank") != std::string::npos ) pdtype = 2;
+            else                                                  pdtype = -1;
+
             // Override default number of channels for Fiber and Plank
             float NHardwareChannels = geom->NHardwareChannels(OpChannel);
             if (pdtype == 1) NHardwareChannels = 3;
             if (pdtype == 2) NHardwareChannels = 2;
-            
+
             int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NHardwareChannels );
             newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
         }
