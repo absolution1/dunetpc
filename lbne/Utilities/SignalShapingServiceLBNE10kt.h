@@ -62,6 +62,7 @@ namespace util {
     // Accessors.
 
     int FieldResponseTOffset(unsigned int const channel) const;
+
     const util::SignalShaping& SignalShaping(unsigned int channel) const;
 
     // Do convolution calcution (for simulation).
@@ -109,9 +110,11 @@ namespace util {
     double fInd3DCorrection;  			///< correction factor to account for 3D path of 
 						///< electrons thru wires
     double fColFieldRespAmp;  			///< amplitude of response to field 
-    double fIndFieldRespAmp;  			///< amplitude of response to field 
+    double fIndUFieldRespAmp;  			///< amplitude of response to field  
+    double fIndVFieldRespAmp;  			///< amplitude of response to field
 
     std::vector<double> fFieldResponseTOffset;  ///< Time offset for field response in ns
+    std::vector<double> fCalibResponseTOffset;
     double fInputFieldRespSamplingPeriod;       ///< Sampling period in the input field response.
 
     double fDeconNorm;
@@ -122,14 +125,15 @@ namespace util {
 
     std::vector<double> fShapeTimeConst;  	///< time constants for exponential shaping
     TF1* fColFilterFunc;      			///< Parameterized collection filter function.
-    TF1* fIndFilterFunc;      			///< Parameterized induction filter function.
-
+    TF1* fIndUFilterFunc;      			///< Parameterized induction filter function.
+    TF1* fIndVFilterFunc;      			///< Parameterized induction filter function.
     
     bool fUseFunctionFieldShape;   		///< Flag that allows to use a parameterized field response instead of the hardcoded version
     bool fUseHistogramFieldShape;               ///< Flag that turns on field response shapes from histograms
     bool fGetFilterFromHisto;   		///< Flag that allows to use a filter function from a histogram instead of the functional dependency
     TF1* fColFieldFunc;      			///< Parameterized collection field shape function.
-    TF1* fIndFieldFunc;      			///< Parameterized induction field shape function.
+    TF1* fIndUFieldFunc;      			///< Parameterized induction field shape function.
+    TF1* fIndVFieldFunc;      			///< Parameterized induction field shape function.
     
     TH1F *fFieldResponseHist[3];                ///< Histogram used to hold the field response, hardcoded for the time being
     TH1D *fFilterHist[3];    			///< Histogram used to hold the collection filter, hardcoded for the time being
@@ -137,12 +141,14 @@ namespace util {
     // Following attributes hold the convolution and deconvolution kernels
 
     util::SignalShaping fColSignalShaping;
-    util::SignalShaping fIndSignalShaping;
+    util::SignalShaping fIndUSignalShaping;
+    util::SignalShaping fIndVSignalShaping;
 
     // Field response.
 
     std::vector<double> fColFieldResponse;
-    std::vector<double> fIndFieldResponse;
+    std::vector<double> fIndUFieldResponse;
+    std::vector<double> fIndVFieldResponse;
 
     // Electronics response.
 
@@ -151,7 +157,8 @@ namespace util {
     // Filters.
 
     std::vector<TComplex> fColFilter;
-    std::vector<TComplex> fIndFilter;
+    std::vector<TComplex> fIndUFilter;
+    std::vector<TComplex> fIndVFilter;
   };
 }
 //----------------------------------------------------------------------
