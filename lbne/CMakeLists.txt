@@ -14,7 +14,6 @@ add_subdirectory(daqinput35t)
 add_subdirectory(OnlineMonitor)
 add_subdirectory(HitFinderLBNE)
 add_subdirectory(TrackFinderLBNE)
-add_subdirectory(T0Reco)
 add_subdirectory(LBNEPandora)
 add_subdirectory(CTree)
 # Respect the order specified in lar_build, which is:
