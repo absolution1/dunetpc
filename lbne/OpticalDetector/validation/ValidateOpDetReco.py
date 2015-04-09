@@ -18,12 +18,12 @@ usage = "usage: %prog -n <nominal file> -t <test file> [-o <dir>] [-s] [-d] [-e 
 parser = OptionParser(usage=usage)
 parser.add_option("-n", "--nominal", dest="nominalfile", help="Nominal flashan file", metavar="F")
 parser.add_option("-t", "--test",    dest="testfile",    help="Test flashan file",    metavar="F")
-parser.add_option("-o", "--outdir",  dest="dir",         help="Directory to output plots")
-parser.add_option("-f", "--flash",   dest="flash",       help="Flash-by-flash compare", default=False, action="store_true")
-parser.add_option("-h", "--hit",     dest="hit",         help="Hit-by-hit compare",  default=False, action="store_true")
-parser.add_option("-a", "--assoc",   dest="assoc",       help="Assosciation-by-assosciation compare",  default=False, action="store_true")
-parser.add_option("-o", "--plots",   dest="plots",       help="Hit and flash comparison plots",  default=False, action="store_true")
-
+parser.add_option("-o", "--outdir",  dest="dir",         help="Directory to output plots", default="plots")
+parser.add_option(      "--flash",   dest="flash",       help="Flash-by-flash compare", default=False, action="store_true")
+parser.add_option(      "--hit",     dest="hit",         help="Hit-by-hit compare",  default=False, action="store_true")
+parser.add_option(      "--assoc",   dest="assoc",       help="Assosciation-by-assosciation compare",  default=False, action="store_true")
+parser.add_option(      "--plots",   dest="plots",       help="Hit and flash comparison plots",  default=False, action="store_true")
+parser.add_option(      "--rootdir", dest="rootdir",     help="TDirectory in root file from analyzer (%default)", default="flashana")
 
 (options, args) = parser.parse_args()
 
@@ -31,8 +31,8 @@ if not (options.nominalfile and options.testfile):
     print "Both nominal file (-n) and test file (-t) required."
     sys.exit(1)
 
-if not (options.simplots or options.digiplots or options.event):
-    print "No plots to make.  Specify at least one of --sim, --digi, or --events=M,N,O."
+if not (options.flash or options.hit or options.assoc or options.plots):
+    print "No plots to make.  Specify at least one of --flash, --hit, --assoc, --plots."
     sys.exit(1)
 
 # Load libraries after parsing arguments
@@ -121,7 +121,7 @@ class Flash(object):
         self.ZCenter     = tree.ZCenter
         self.YWidth      = tree.YWidth
         self.ZWidth      = tree.ZWidth
-        self.FlashFrame  = tree.FlashFrame
+        self.FlashFrame  = 0 #tree.FlashFrame
         self.FlashTime   = tree.FlashTime
         self.AbsTime     = tree.AbsTime
         self.InBeamFrame = tree.InBeamFrame
@@ -307,16 +307,16 @@ S = versions[0]
 R = versions[1]
 
 files = {}
-files[S] = TFile(options.nominal)
-files[R] = TFile(options.test)
+files[S] = TFile(options.nominalfile)
+files[R] = TFile(options.testfile)
 
 hittrees = {}
 flashtrees = {}
 assoctrees = {}
 for v in versions:
-    hittrees[v]   = files[v].Get("flashana/PerOpHitTree")
-    flashtrees[v] = files[v].Get("flashana/PerFlashTree")
-    assoctrees[v] = files[v].Get("flashana/FlashHitMatchTree")
+    hittrees[v]   = files[v].Get(options.rootdir+"/PerOpHitTree")
+    flashtrees[v] = files[v].Get(options.rootdir+"/PerFlashTree")
+    assoctrees[v] = files[v].Get(options.rootdir+"/FlashHitMatchTree")
 
 
 
@@ -605,7 +605,7 @@ if options.plots:
         h2.SetLineStyle(2)
         h2.SetMarkerColor(color[R])
         h2.SetMarkerStyle(mstyle)
-        c1.Print(options.dir+"perhit_"+name+".png")
+        c1.Print(os.path.join(options.dir,"perhit_"+name+".png"))
 
         hRatio = h2.Clone("hRatio")
         hRatio.Divide(h1)
@@ -618,7 +618,7 @@ if options.plots:
         l1.SetLineColor(kBlack)
         l1.Draw()
         hRatio.Draw("psame")
-        c1.Print(options.dir+"perhit_"+name+"_ratio.png")
+        c1.Print(os.path.join(options.dir,"perhit_"+name+"_ratio.png"))
 
 
     for var, name, select in [("EventID","EventID",""),
@@ -642,7 +642,7 @@ if options.plots:
         h2.SetLineStyle(lstyle)
         h2.SetMarkerColor(color[R])
         h2.SetMarkerStyle(mstyle)
-        c1.Print(options.dir+"perflash_"+name+".png")
+        c1.Print(os.path.join(options.dir,"perflash_"+name+".png"))
 
         hRatio = h2.Clone("hRatio")
         hRatio.Divide(h1)
@@ -655,5 +655,5 @@ if options.plots:
         l1.SetLineWidth(1)
         l1.SetLineColor(kBlack)
         hRatio.Draw("psame")
-        c1.Print(options.dir+"perflash_"+name+"_ratio.png")
+        c1.Print(os.path.join(options.dir,"perflash_"+name+"_ratio.png"))
 

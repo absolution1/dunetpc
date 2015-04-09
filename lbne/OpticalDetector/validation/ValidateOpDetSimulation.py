@@ -11,9 +11,9 @@ usage = "usage: %prog -n <nominal file> -t <test file> [-o <dir>] [-s] [-d] [-e 
 parser = OptionParser(usage=usage)
 parser.add_option("-n", "--nominal", dest="nominalfile", help="Nominal hist file", metavar="F")
 parser.add_option("-t", "--test",    dest="testfile",    help="Test hist file",    metavar="F")
-parser.add_option("-o", "--outdir",  dest="dir",         help="Directory to output plots")
-parser.add_option("-s", "--sim",     dest="simplots",    help="Make simulation plots", default=False, action="store_true")
-parser.add_option("-d", "--digi",    dest="digiplots",   help="Make digitizer plots",  default=False, action="store_true")
+parser.add_option("-o", "--outdir",  dest="dir",         help="Directory to output plots", default="plots")
+parser.add_option("-s", "--sim",     dest="sim",         help="Make simulation plots", default=False, action="store_true")
+parser.add_option("-d", "--digi",    dest="digi",        help="Make digitizer plots",  default=False, action="store_true")
 parser.add_option("-e", "--events",  dest="events",      help="List of events to draw an individual opdet, comma-separated")
 parser.add_option(      "--opdets",  dest="opdets",      help="List of opdets to draw, comma-separated", default="0")
 
@@ -23,9 +23,12 @@ if not (options.nominalfile and options.testfile):
     print "Both nominal file (-n) and test file (-t) required."
     sys.exit(1)
 
-if not (options.simplots or options.digiplots or options.event):
+if not (options.sim or options.digi or options.event):
     print "No plots to make.  Specify at least one of --sim, --digi, or --events=M,N,O."
     sys.exit(1)
+
+if not os.path.exists(options.dir):
+    os.makedirs(options.dir)
 
 # Load libraries after parsing arguments
 
@@ -34,7 +37,7 @@ if startup:
 
 from ROOT import *
 from HandyFuncs import VerticalRange, GetHists, pbloop
-    
+from collections import defaultdict
 
 # Load the files
 files = {}
@@ -55,10 +58,8 @@ c = {}
 
 if options.sim:
     for var, treename, nbins, xmin, xmax in [ ("CountAll", "OpDetEvents", 100, 0, 4500),
-                                              ("CountAll", "OpDets", 100, 0, 500) ]:
-
+                                              ("CountAll", "OpDets",      100, 0, 500) ]:
         trees = {}
-        files = {}
         for v in versions:
             trees[v] = files[v].Get("pmtresponse/"+treename)
 
@@ -73,7 +74,7 @@ if options.sim:
             if "same" not in dopt: dopt+="same"
             print v, var, hists[v].Integral()
 
-        VerticalRange(GetHists(c1))
+        VerticalRange(GetHists(c1), ignoreError=True)
         c1.Print(os.path.join(options.dir, "g4_{0}_by_{1}.png".format(treename, var)))
         c[var,treename] = c1
         
@@ -104,27 +105,25 @@ if options.digi:
 
     dopt = "hist"
     
-    files = {}
     for v in versions:
         eventintegral = defaultdict(int)
         opdetintegral = defaultdict(int)
         
-        hists["per_Event"][v]      = TH1D("hperevent"     +v+dir, "ADCs Per Event",           100, 0,  4e4)
-        hists["per_Channel"][v]    = TH1D("hperchannel"   +v+dir, "ADCs Per Channel",         100, 0,  3e3)
-        hists["by_Channel"][v]     = TH1D("hbychannel"    +v+dir, "ADCs by Channel Number",    96, 0,   96)
-        hists["by_Channel_cnt"][v] = TH1D("hbychannelcnt" +v+dir, "Count by Channel Number",   96, 0,   96)
-        hists["per_OpDet"][v]      = TH1D("hperopdet"     +v+dir, "ADCs Per OpDet",           100, 0, 5000)
-        hists["by_OpDet"][v]       = TH1D("hbyopdet"      +v+dir, "ADCs by OpDet Number",       8, 0,    8)
-        hists["by_OpDet_cnt"][v]   = TH1D("hbyopdetcnt"   +v+dir, "Count by OpDet Number",      8, 0,    8)
+        hists["per_Event"][v]      = TH1D("hperevent"     +v, "ADCs Per Event",           100, 0,  4e4)
+        hists["per_Channel"][v]    = TH1D("hperchannel"   +v, "ADCs Per Channel",         100, 0,  3e3)
+        hists["by_Channel"][v]     = TH1D("hbychannel"    +v, "ADCs by Channel Number",    96, 0,   96)
+        hists["by_Channel_cnt"][v] = TH1D("hbychannelcnt" +v, "Count by Channel Number",   96, 0,   96)
+        hists["per_OpDet"][v]      = TH1D("hperopdet"     +v, "ADCs Per OpDet",           100, 0, 5000)
+        hists["by_OpDet"][v]       = TH1D("hbyopdet"      +v, "ADCs by OpDet Number",       8, 0,    8)
+        hists["by_OpDet_cnt"][v]   = TH1D("hbyopdetcnt"   +v, "Count by OpDet Number",      8, 0,    8)
 
         for name in hists:
             hists[name][v].SetLineColor(colors[v])
 
                 
-        files[v] = TFile(os.path.join(dir, "lbne35t_optical_tutorial_{0}_hist_{1}.root".format(mode, v)))
         tdir = files[v].Get("opdigiana")
         keys = list(tdir.GetListOfKeys())
-        for rootkey in pbloop(keys, v+dir+":"):
+        for rootkey in pbloop(keys, v+":"):
             hist = tdir.Get(rootkey.GetName())
             
             event = int(rootkey.GetName().split("_")[1])
@@ -161,7 +160,7 @@ if options.digi:
         else:
             VerticalRange(GetHists(c[name]), ignoreError = True)
         c[name].Update()
-        c[name].Print(os.path.join(dir, "ADC_"+name+".png"))
+        c[name].Print(os.path.join(options.dir, "ADC_"+name+".png"))
 
 
 
@@ -177,7 +176,6 @@ if options.events:
         channels[T] = range(o*12,(o+1)*12)
 
         hists = {}
-        files = {}
         trees = {}
         for v in versions:
             trees[v] = files[v].Get("pmtresponse/OpDets")
@@ -205,14 +203,14 @@ if options.events:
             hists[v].Draw(dopt)
             print v, hists[v].Integral(), hists[v].Integral()/trees[v].CountAll
             if "same" not in dopt: dopt += "same"
-        c1.Print(os.path.join(dir,"waveform_event{0:d}_opdet{1:d}.png".format(event, opdet)))
+        c1.Print(os.path.join(options.dir,"waveform_event{0:d}_opdet{1:d}.png".format(event, opdet)))
 
         c1 = TCanvas("c2_event{0:d}_opdet{1:d}".format(event, opdet),"c_event{0:d}_opdet{1:d}")
         dopt = ""
         for v in versions:
             ratio[v].Draw(dopt)
             if "same" not in dopt: dopt += "same"
-        c2.Print(os.path.join(dir,"waveform_event{0:d}_opdet{1:d}_ratio.png".format(event, opdet)))
+        c2.Print(os.path.join(options.dir,"waveform_event{0:d}_opdet{1:d}_ratio.png".format(event, opdet)))
 
         c[c1.GetName()] = c1
         c[c2.GetName()] = c2
