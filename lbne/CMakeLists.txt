@@ -17,6 +17,7 @@ add_subdirectory(TrackFinderLBNE)
 add_subdirectory(LBNEPandora)
 add_subdirectory(CTree)
 add_subdirectory(TrackMatching)
+add_subdirectory(T0Reco)
 # Respect the order specified in lar_build, which is:
 #
 #     "SoftRelTools",
