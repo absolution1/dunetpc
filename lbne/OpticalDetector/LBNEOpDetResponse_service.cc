@@ -91,11 +91,11 @@ namespace opdet{
 
         if (fFullSimChannelConvert){
             // Override default number of channels for Fiber and Plank
-            float NHardwareChannels = geom->NHardwareChannels(OpChannel);
-            if (pdtype == 1) NHardwareChannels = 3;
-            if (pdtype == 2) NHardwareChannels = 2;
+            float NOpHardwareChannels = geom->NOpHardwareChannels(OpChannel);
+            if (pdtype == 1) NOpHardwareChannels = 3;
+            if (pdtype == 2) NOpHardwareChannels = 2;
             
-            int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NHardwareChannels );
+            int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NOpHardwareChannels );
             newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
         }
         else{
@@ -211,11 +211,11 @@ namespace opdet{
             else                                                  pdtype = -1;
 
             // Override default number of channels for Fiber and Plank
-            float NHardwareChannels = geom->NHardwareChannels(OpChannel);
-            if (pdtype == 1) NHardwareChannels = 3;
-            if (pdtype == 2) NHardwareChannels = 2;
+            float NOpHardwareChannels = geom->NOpHardwareChannels(OpChannel);
+            if (pdtype == 1) NOpHardwareChannels = 3;
+            if (pdtype == 2) NOpHardwareChannels = 2;
 
-            int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NHardwareChannels );
+            int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NOpHardwareChannels );
             newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
         }
         else{

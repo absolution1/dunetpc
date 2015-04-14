@@ -411,13 +411,13 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::NOpChannels(int NOpDets) const
+  unsigned int ChannelMapAPAAlg::NOpChannels() const
   {
     return 12*NOpDets;
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::NHardwareChannels(int opDet) const
+  unsigned int ChannelMapAPAAlg::NOpHardwareChannels(int opDet) const
   {
     return 12;
   }

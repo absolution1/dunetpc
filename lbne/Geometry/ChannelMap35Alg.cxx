@@ -434,13 +434,13 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35Alg::NOpChannels(int NOpDets) const
+  unsigned int ChannelMap35Alg::NOpChannels() const
   {
     return 12*NOpDets;
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35Alg::NHardwareChannels(int opDet) const
+  unsigned int ChannelMap35Alg::NOpHardwareChannels(int opDet) const
   {
     return 12;
   }
