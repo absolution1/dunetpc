@@ -53,7 +53,7 @@ namespace geo{
     std::set<View_t>  const& Views()                                const;
     std::set<PlaneID> const& PlaneIDs()                             const;
 
-    unsigned int NOpChannels()                                            const;
+    unsigned int NOpChannels(unsigned int NOpDets)                        const;
     unsigned int NOpHardwareChannels(unsigned int opDet)                  const;
     unsigned int OpChannel(unsigned int detNum, unsigned int channel = 0) const;
     unsigned int OpDetFromOpChannel(unsigned int opChannel)               const;

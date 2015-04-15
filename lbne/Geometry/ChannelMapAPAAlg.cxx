@@ -411,7 +411,7 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAPAAlg::NOpChannels() const
+  unsigned int ChannelMapAPAAlg::NOpChannels(unsigned int NOpDets) const
   {
     return 12*NOpDets;
   }
