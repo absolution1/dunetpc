@@ -443,29 +443,29 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35OptAlg::NOpHardwareChannels(int opDet) const
+  unsigned int ChannelMap35OptAlg::NOpHardwareChannels(unsigned int opDet) const
   {
     return 12;
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35OptAlg::OpChannel(int detNum, int channel) const
+  unsigned int ChannelMap35OptAlg::OpChannel(unsigned int detNum, unsigned int channel) const
   {
-    int uniqueChannel = (detNum * 12) + channel;
+    unsigned int uniqueChannel = (detNum * 12) + channel;
     return uniqueChannel;
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35OptAlg::OpDetFromOpChannel(int opChannel) const
+  unsigned int ChannelMap35OptAlg::OpDetFromOpChannel(unsigned int opChannel) const
   {
-    int detectorNum = (int) opChannel / 12;
+    unsigned int detectorNum = (unsigned int) opChannel / 12;
     return detectorNum;
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMap35OptAlg::HardwareChannelFromOpChannel(int opChannel) const
+  unsigned int ChannelMap35OptAlg::HardwareChannelFromOpChannel(unsigned int opChannel) const
   {
-    int channel = opChannel % 12;
+    unsigned int channel = opChannel % 12;
     return channel;
   }
 
