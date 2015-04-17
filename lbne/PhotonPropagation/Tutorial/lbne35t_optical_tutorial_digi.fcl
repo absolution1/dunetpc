@@ -94,4 +94,5 @@ outputs:
    }
 }
 
-
+physics.producers.opdigi.DarkRate: 0
+#services.user.OpDetResponseInterface.ChannelConversion: "none"

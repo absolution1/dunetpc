@@ -97,8 +97,9 @@ lbne35t_g4_services.OpDetResponseInterface:  @local::lbne35t_opdetresponse
 # Settings to turn on and configure photon simulation
 ## 
 
-# set quantum efficiency supressed scint yield to 0.03 * 24000
-lbne35t_g4_services.LArProperties.ScintYield: 720
+# Pre-scale the scintillation yield to save memory (correct when applying QE)
+lbne35t_g4_services.LArProperties.ScintYield: 24000
+lbne35t_g4_services.LArProperties.ScintPreScale: 0.03
 
 # disable cerenkov
 lbne35t_g4_services.LArProperties.EnableCerenkovLight: false

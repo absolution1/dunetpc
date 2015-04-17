@@ -26,6 +26,10 @@ lbne35t_photolibbuild_services.LArG4Parameters.UseLitePhotons: false
 # disable cerenkov light
 lbne35t_photolibbuild_services.LArProperties.EnableCerenkovLight: false
 
+# Turn off prescaling in opdeteresponse and geant4
+lbne35t_photolibbuild_services.OpDetResponseInterface.QuantumEfficiency: 1
+lbne35t_photolibbuild_services.LArProperties.ScintPreScale: 1
+
 
 
 END_PROLOG
