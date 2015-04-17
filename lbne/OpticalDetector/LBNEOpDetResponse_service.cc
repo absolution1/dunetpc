@@ -1,3 +1,4 @@
+// -*- mode: c++; c-basic-offset: 4; -*-
 ////////////////////////////////////////////////////////////////////////
 //
 //  \file LBNEOpDetResponse_service.cc
@@ -22,23 +23,6 @@ namespace opdet{
                                          art::ActivityRegistry &/*reg*/)
     {
         this->doReconfigure(pset);
-        
-        art::ServiceHandle<geo::Geometry> geom;
-        Nchannels = geom->NOpChannels();
-
-
-        if (fFullSimChannelConvert || fFastSimChannelConvert) {
-            int nReadout = 0;
-            
-            for (int gChannel = 0; gChannel < Nchannels; gChannel++) {
-                if (gChannel == 2) opChannelMap.push_back( {nReadout++, nReadout++} );  // Plank (channel 2) has only 2 SiPM's
-                else               opChannelMap.push_back( {nReadout++, nReadout++, nReadout++} );
-            }
-            Nchannels = nReadout;
-
-            // Print out the channel map.  Only once per job.
-            PrintChannelMap();
-        }
     }
     
     //--------------------------------------------------------------------
@@ -90,33 +74,43 @@ namespace opdet{
 
 
     //--------------------------------------------------------------------
-    int  LBNEOpDetResponse::doReadoutToGeoChannel(int readoutChannel) const
+    int  LBNEOpDetResponse::doNOpChannels() const
     {
-        if (!fFullSimChannelConvert && !fFastSimChannelConvert) {
-            mf::LogError("LBNEOpDetResponse") << "Trying to convert a readout channel to a geometry channel, but no conversion is turned on.";
-            exit(1);
-        }
+        art::ServiceHandle<geo::Geometry> geom;
+        if (fFastSimChannelConvert || fFullSimChannelConvert)
+            return geom->NOpChannels();
+        else
+            return geom->NOpDets();
 
-        for (unsigned int g = 0; g < opChannelMap.size(); g++) {
-            // Search for readoutChannel in this channel map vector
-            auto itr = std::find(opChannelMap[g].begin(), opChannelMap[g].end(), readoutChannel);
-            if (itr != opChannelMap[g].end())
-                return g;
-        }
-
-        PrintChannelMap();
-        mf::LogError("LBNEOpDetResponse") << "Readout channel " << readoutChannel << " was not found in the above channel map.";
-        exit(2);
-        return -1;
     }
 
 
     //--------------------------------------------------------------------
     bool LBNEOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
     {
+        
+        // Find the Optical Detector using the geometry service
+        art::ServiceHandle<geo::Geometry> geom;
+        const TGeoNode* node = geom->OpDetGeoFromOpChannel(OpChannel).Node();
+
+        // Identify the photon detector type
+        int pdtype;
+        std::string detname = node->GetName();
+        boost::to_lower(detname);
+        if      (detname.find("bar") != std::string::npos )   pdtype = 0;
+        else if (detname.find("fiber") != std::string::npos ) pdtype = 1;
+        else if (detname.find("plank") != std::string::npos ) pdtype = 2;
+        else                                                  pdtype = -1;
+
+
         if (fFullSimChannelConvert){
-            int i = (int) ( CLHEP::RandFlat::shoot(1.0) * (float)opChannelMap[OpChannel].size() );
-            newOpChannel = opChannelMap[OpChannel][i];
+            // Override default number of channels for Fiber and Plank
+            float NOpHardwareChannels = geom->NOpHardwareChannels(OpChannel);
+            if (pdtype == 1) NOpHardwareChannels = 3;
+            if (pdtype == 2) NOpHardwareChannels = 2;
+            
+            int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NOpHardwareChannels );
+            newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
         }
         else{
             newOpChannel = OpChannel;
@@ -131,12 +125,6 @@ namespace opdet{
         if (wavel > fWavelengthCutHigh) return false;
 
         if (fLightGuideAttenuation) {
-            // Find the Optical Detector using geom
-            unsigned int cryostatID=0, opdetID=0;
-            art::ServiceHandle<geo::Geometry> geom;
-            geom->OpChannelToCryoOpDet(OpChannel, opdetID, cryostatID);
-            const TGeoNode* node = geom->Cryostat(cryostatID).OpDet(opdetID).Node();
-
             // Get the length of the photon detector
             TGeoBBox *box = (TGeoBBox*)node->GetVolume()->GetShape();
             double opdetLength = 0;
@@ -159,18 +147,6 @@ namespace opdet{
                 assert(false);
             }
 
-            // Identify the photon detector type
-            int pdtype;
-            std::string detname = node->GetName();
-            boost::to_lower(detname);
-            if      (detname.find("bar") != std::string::npos )   pdtype = 0;
-            else if (detname.find("fiber") != std::string::npos ) pdtype = 1;
-            else if (detname.find("plank") != std::string::npos ) pdtype = 2;
-            else {
-                pdtype = -1;
-                mf::LogWarning("LBNEOpDetResponse") << "OpChannel: " << OpChannel << " is an unknown PD type named: " << detname 
-                                                   << ". Assuming no attenuation.";
-            }
 
 
             if (pdtype == 0) {
@@ -217,6 +193,10 @@ namespace opdet{
                 double AttenuationProb = frac*exp(-sipmDistance/lambda) + frac*exp(-altDistance/lambda);
                 if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
             }
+            else {
+                mf::LogWarning("LBNEOpDetResponse") << "OpDet: " << OpChannel << " is an unknown PD type named: " << detname 
+                                                    << ". Assuming no attenuation.";
+            }
 
         }
 
@@ -227,8 +207,30 @@ namespace opdet{
     bool LBNEOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
     {
         if (fFastSimChannelConvert){
-            int i = (int) ( CLHEP::RandFlat::shoot(1.0) * (float)opChannelMap[OpChannel].size() );
-            newOpChannel = opChannelMap[OpChannel][i];
+
+            // Find the Optical Detector using the geometry service
+            art::ServiceHandle<geo::Geometry> geom;
+            // Here OpChannel must be opdet since we are introducing
+            // channel mapping here.
+            const TGeoNode* node = geom->OpDetGeoFromOpDet(OpChannel).Node();
+
+            
+            // Identify the photon detector type
+            int pdtype;
+            std::string detname = node->GetName();
+            boost::to_lower(detname);
+            if      (detname.find("bar") != std::string::npos )   pdtype = 0;
+            else if (detname.find("fiber") != std::string::npos ) pdtype = 1;
+            else if (detname.find("plank") != std::string::npos ) pdtype = 2;
+            else                                                  pdtype = -1;
+
+            // Override default number of channels for Fiber and Plank
+            float NOpHardwareChannels = geom->NOpHardwareChannels(OpChannel);
+            if (pdtype == 1) NOpHardwareChannels = 3;
+            if (pdtype == 2) NOpHardwareChannels = 2;
+
+            int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NOpHardwareChannels );
+            newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
         }
         else{
             newOpChannel = OpChannel;
@@ -237,26 +239,9 @@ namespace opdet{
         // Check QE
         if ( CLHEP::RandFlat::shoot(1.0) > fQE ) return false;
 
+        
         return true;
     }
-
-
-    //--------------------------------------------------------------------
-    void LBNEOpDetResponse::PrintChannelMap() const
-    {
-        //mf::LogInfo("LBNEOpDetResponse") << "Converting optical channel numbers in " << fChannelConversion << " simulation" << std::endl;
-
-        std::cout << "LBNE OpDetResponse channel map:" << std::endl;
-        for (unsigned int g = 0; g < opChannelMap.size(); g++) {
-            std::cout << "  " <<  g << " -> ";
-            for (unsigned int d = 0; d < opChannelMap[g].size(); d++) {
-                std::cout <<  opChannelMap[g][d] << " ";
-            }
-            std::cout << std::endl;
-        }
-    }
-
-
 
 } // namespace
 

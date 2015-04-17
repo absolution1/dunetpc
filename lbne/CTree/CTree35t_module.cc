@@ -398,7 +398,7 @@ void CTree35t::beginJob()
     
     fNchannels = fGeom->Nchannels();
     //std::cout<<"channel number is "<<fNchannels<<std::endl;
-    fNOpDets = fGeom->NOpDet();
+    fNOpDets = fGeom->NOpDets();
     //std::cout<<"# of OpDets is "<<fNOpDets<<std::endl;
     double xyz[3];
     double tmp;
@@ -558,7 +558,7 @@ void CTree35t::printGeometry()
             << ")" << endl;
     }
     cout << "fNchannels: " << fNchannels << endl;
-    cout << "fNOpDet: " << fGeom->NOpDet() << endl;
+    cout << "fNOpDets: " << fGeom->NOpDets() << endl;
     cout << "fAuxDetectors: " << fGeom->NAuxDets() << endl;
     cout << endl;
 }
