@@ -7,13 +7,23 @@ lbnefd_opdigi:
    module_type:         "OpDetDigitizerLBNE"
    InputModule:         "largeant"           # Module that created simphotons
    VoltageToADC:        151.5                # Converting mV to ADC counts (counts in 1 mV)
-#   ReadoutWindow:       240                  # readout window in optical ticks  - see SSP manual, lbne-doc-9928, p. 58
-#   ReadoutPretrigger:   40                   # buffer before waveform           - see SSP manual, lbne-doc-9928, p. 58
+
+   # readout window in optical ticks
+   # buffer before waveform
+   # see SSP manual, lbne-doc-9928, p. 58
+   #
+   # IU waveform window
+   # ReadoutWindow:       700
+   # ReadoutPretrigger:   100
+   #
+   # SSP Maximum window
+   # ReadoutWindow:      2046
+   # ReadoutPretrigger:   100
    
-#   SaturationScale:         16383 # 2^14 - 1, based on SSP Data
-#   DarkRate:                20    # Hz, Ranges 2-50 depending on Vbias
-#   CrossTalk:               ??
-#   AfterPulseRate:          ??
+   # SaturationScale:         16383 # 2^14 - 1, based on SSP Data
+   # DarkRate:                20    # Hz, Ranges 2-50 depending on Vbias
+   # CrossTalk:               ??
+   # AfterPulseRate:          ??
 } 
 
 lbnefd_simphotoncounter:
