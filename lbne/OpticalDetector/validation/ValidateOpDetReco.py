@@ -44,7 +44,7 @@ from ROOT import *
 from HandyFuncs import VerticalRange, GetHists, pbloop
 from collections import defaultdict
 import copy
-
+import progressbar as pb
 
 
 ############################
@@ -95,7 +95,7 @@ def ListFailuresAssoc(left, right):
 
 def ListFailuresHit(left, right):
     failures = []
-    tolerance = 0.000001
+    tolerance = 0.000000001
     if left.Frame != right.Frame: failures += [ 'Frame' ]
     if not ApproxCompare(left.PeakTimeAbs,   right.PeakTimeAbs, tolerance): failures += [ 'PeakTimeAbs' ] 
     if not ApproxCompare(left.PeakTime,      right.PeakTime,    tolerance): failures += [ 'PeakTime' ]
@@ -283,7 +283,7 @@ class Hit(object):
         failures = ListFailures(self, other)
         if "PeakTimeAbs" in failures \
           or "PeakTime" in failures:            return False
-        if len(failures) > 1:                   return False
+        if len(failures) > 0:                   return False
         return True
 
     def __ne__(self, other):
@@ -501,7 +501,7 @@ if options.assoc:
             elif onlies[E][S][0] < onlies[E][R][0]:
                 matches.append( { S: onlies[E][S].pop( 0 ) } )
             elif onlies[E][S][0] > onlies[E][R][0]:
-                matches.append( { R: onlies[E][S].pop( 0 ) } )
+                matches.append( { R: onlies[E][R].pop( 0 ) } )
             else: # Same time, unmatched
                 matches.append( { S: onlies[E][S].pop( 0 ) } )
                 matches.append( { R: onlies[E][R].pop( 0 ) } )
