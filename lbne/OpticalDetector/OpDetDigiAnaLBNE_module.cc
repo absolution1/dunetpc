@@ -88,8 +88,8 @@ namespace opdet {
     art::ServiceHandle< util::TimeService > timeService;
     // Converting MHz into GHz and us into ns
     fSampleFreq = timeService->OpticalClock().Frequency()/1000.0;
-    fTimeBegin  = timeService->OpticalClock().Time()*1000.0;
-    fTimeEnd    = timeService->OpticalClock().FramePeriod()*1000.0;
+    fTimeBegin  = 0; //timeService->OpticalClock().Time()*1000.0;
+    fTimeEnd    = 8000; //timeService->OpticalClock().FramePeriod()*1000.0;
 
   }
 
@@ -130,6 +130,12 @@ namespace opdet {
       //sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.OpChannel());
       sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.ChannelNumber());
 
+      int total = 0;
+      for (unsigned int tick = 0; tick < pulse.size(); tick++)
+        total += pulse[tick];
+
+      if (total < 1) continue;
+      
       TH1D * waveformHist = nullptr;
 
       waveformHist = tfs->make< TH1D >(histName, ";t (ns);",
