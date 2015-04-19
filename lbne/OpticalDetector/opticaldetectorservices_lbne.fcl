@@ -11,7 +11,7 @@ lbnefd_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
 lbnefd_opdetresponse:
 {
    service_provider:        LBNEOpDetResponse
-   QuantumEfficiency:       1
+   QuantumEfficiency:       0.0048
    WavelengthCutLow:        0 
    WavelengthCutHigh:       10000
    LightGuideAttenuation:   true
@@ -21,6 +21,14 @@ lbnefd_opdetresponse:
    # Convert geometry to readout channels
    # when reading in fast simulation
    ChannelConversion:       fast
+
+   # QE here includes:
+   #   SiPMQE: 35%
+   #   Microcell Fill: 64%
+   #   SiPM Coverage: 71%
+   #   Surface Conversion: 3% (generous estimate)
+   #   Attenuation in bars already in library response
+
 }
 
 

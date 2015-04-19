@@ -257,6 +257,7 @@ namespace AnalysisExample{
     fChan.clear();
     fAPA.clear();
     fPlane.clear();
+    fWaveform.clear();
 
     if (fIsRCE) analyzeRCE(RawDigits);
     if (fIsSSP) analyzeSSP(RawPulses);

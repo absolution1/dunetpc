@@ -9,19 +9,25 @@
 #include "Utilities/DetectorProperties.h"
 #include "Utilities/GeometryUtilities.h"
 // #include "Utilities/LArProperties.h"
-
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
+#include "Simulation/SimListUtils.h"
+#include "Simulation/LArG4Parameters.h"
 #include "RecoBase/Hit.h"
+#include "RecoBase/Wire.h"
 #include "RecoBase/Cluster.h"
 #include "RecoBase/Track.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/PlaneGeo.h"
+#include "Geometry/CryostatGeo.h"
+#include "Geometry/OpDetGeo.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
 #include "SimpleTypesAndConstants/geo_types.h"
 #include "RawData/raw.h"
 #include "RawData/RawDigit.h"
+#include "PhotonPropagation/PhotonVisibilityService.h"
+#include "OpticalDetector/OpDetResponseInterface.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -36,9 +42,6 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include "RecoBase/Hit.h"
-#include "RecoBase/Wire.h"
-
 // ROOT includes.
 #include "TFile.h"
 #include "TTree.h"
@@ -47,7 +50,8 @@
 #include "TList.h"
 #include "TClonesArray.h"
 #include "TLorentzVector.h"
-
+#include "TGeoTube.h"
+#include "TGeoNode.h"
 // C++ Includes
 #include <map>
 #include <vector>
@@ -69,6 +73,7 @@
 #define MAX_CHANNEL 2048
 #define MAX_TRACKS 2000
 #define MAX_HITS 20000
+#define MAX_OPDET 8
 
 using namespace std;
 
@@ -95,7 +100,7 @@ public:
     void processMC(const art::Event& evt);
     void processHits(const art::Event& evt);
     void processRecoTracks(const art::Event& event);
-
+    void processOpDet(const art::Event& event);
     void printEvent();
     void reset();
 
@@ -130,7 +135,11 @@ private:
     double fPlane_wireangle[MAX_PLANE];  // wire angle (to vertical) of each plane
     int fPlane_wires[MAX_PLANE];  // number of wires in each plane
     int fNchannels;
-
+    int fNOpDets;
+    float fOpDetPositions_Y[MAX_OPDET];
+    float fOpDetPositions_Z[MAX_OPDET];
+    float fOpDetHalfWidths[MAX_OPDET];
+    float fOpDetHalfHeights[MAX_OPDET];
 
     // Event Tree Leafs
     int fEvent;
@@ -174,6 +183,28 @@ private:
 	 // unsigned int UVPlane[4]={3,2,1,0};
 	 // unsigned int ZPlane[8]={7,6,5,4,3,2,1,0};
 
+  //Photon detector related
+    TTree * fThePhotonTreeAll;
+    TTree * fThePhotonTreeDetected;
+    TTree * fTheOpDetTree;
+    TTree * fTheEventTree;
+    std::string fInputModule;
+    bool fMakeDetectedPhotonsTree;
+    bool fMakeAllPhotonsTree;
+    bool fMakeOpDetsTree;
+    bool fMakeOpDetEventsTree;
+    float fQE;
+    float fWavelengthCutLow;
+    float fWavelengthCutHigh;
+    Float_t fWavelength;
+    Float_t fTime;
+    Int_t fCount;
+    Int_t fCountOpDetAll[MAX_OPDET];
+    Int_t fCountOpDetDetected[MAX_OPDET];
+    Int_t fCountEventAll;
+    Int_t fCountEventDetected;
+    Int_t fOpChannel;
+
  }; // class CTree35t
 
 
@@ -200,6 +231,11 @@ void CTree35t::reconfigure(fhicl::ParameterSet const& p){
     fTrackModuleLabel = p.get< std::string >("TrackModuleLabel");
     fOutFileName = p.get< std::string >("outFile");
     fSaveChannelWireMap = p.get< bool >("saveChannelWireMap");
+    fInputModule = p.get<std::string>("InputModule");
+    fMakeAllPhotonsTree = p.get<bool>("MakeAllPhotonsTree");
+    fMakeDetectedPhotonsTree = p.get<bool>("MakeDetectedPhotonsTree");
+    fMakeOpDetsTree = p.get<bool>("MakeOpDetsTree");
+    fMakeOpDetEventsTree = p.get<bool>("MakeOpDetEventsTree");
 }
 
 
@@ -230,6 +266,11 @@ void CTree35t::initOutput()
 
     fGeoTree->Branch("Nchannels" , &fNchannels);  // number of total channels
 
+    fGeoTree->Branch("NOpDets", &fNOpDets, "NOpDets/I");
+    fGeoTree->Branch("OpDetPositions_Y", &fOpDetPositions_Y, "OpDetPositions_Y[NOpDets]/F");
+    fGeoTree->Branch("OpDetPositions_Z", &fOpDetPositions_Z, "OpDetPositions_Z[NOpDets]/F");
+    fGeoTree->Branch("OpDetHalfWidths", &fOpDetHalfWidths, "OpDetHalfWidths[NOpDets]/F");
+    fGeoTree->Branch("OpDetHalfHeights", &fOpDetHalfHeights, "OpDetHalfHeights[NOpDets]/F");
 
     // init Event TTree
     TDirectory* subDir2 = fOutFile->mkdir("Event");
@@ -264,16 +305,8 @@ void CTree35t::initOutput()
 
     fMC_trackPosition = new TObjArray();
     fMC_trackMomentum= new TObjArray();
-    // fMC_trackPosition->SetName("mc_trackPosition");
-    // fMC_trackMomentum->SetName("mc_trackMomentum");
     fMC_trackPosition->SetOwner(kTRUE);
     fMC_trackMomentum->SetOwner(kTRUE);
-    // this seems more cumbersome
-    // TList *topBranch = new TList();
-    // topBranch->Add(fMC_trackPosition);
-    // topBranch->Add(fMC_trackMomentum);
-    // int bufsize = 128*1024*1024;
-    // fEventTree->Branch(topBranch, bufsize, 0);
 
     fEventTree->Branch("mc_trackPosition", &fMC_trackPosition);
     fEventTree->Branch("mc_trackMomentum", &fMC_trackMomentum);
@@ -290,13 +323,54 @@ void CTree35t::initOutput()
 
     gDirectory = tmpDir;
 
+    // init Photon TTree
+    TDirectory *subDir3 = fOutFile->mkdir("OpDet");
+    subDir3->cd();
+    if(fMakeAllPhotonsTree){
+      fThePhotonTreeAll = new TTree("AllPhotons","AllPhotons");
+      fThePhotonTreeAll->Branch("eventNo", &fEvent);
+      fThePhotonTreeAll->Branch("runNo", &fRun);
+      fThePhotonTreeAll->Branch("subRunNo", &fSubRun);
+      fThePhotonTreeAll->Branch("Wavelength", &fWavelength, "Wavelength/F");
+      fThePhotonTreeAll->Branch("OpChannel", &fOpChannel, "OpChannel/I");
+      fThePhotonTreeAll->Branch("Time", &fTime, "Time/F");
+    }
+    if(fMakeDetectedPhotonsTree){
+      fThePhotonTreeDetected = new TTree("DetectedPhotons", "DetectedPhotons");
+      fThePhotonTreeDetected->Branch("eventNo", &fEvent);
+      fThePhotonTreeDetected->Branch("runNo", &fRun);
+      fThePhotonTreeDetected->Branch("subRunNo", &fSubRun);
+      fThePhotonTreeDetected->Branch("Wavelength", &fWavelength, "Wavelength/F");
+      fThePhotonTreeDetected->Branch("OpChannel", &fOpChannel, "OpChannel/I");
+      fThePhotonTreeDetected->Branch("Time", &fTime, "Time/F");
+    }
+    if(fMakeOpDetsTree){
+      fTheOpDetTree = new TTree("OpDets", "OpDets");
+      //fTheOpDetTree->Branch("eventNo", &fEvent);
+      //fTheOpDetTree->Branch("runNo", &fRun);
+      //fTheOpDetTree->Branch("subRunNo", &fSubRun);
+      fTheOpDetTree->Branch("NOpDets", &fNOpDets, "NOpDets/I");
+      //fTheOpDetTree->Branch("OpChannel", &fOpChannel, "OpChannel/I");
+      fTheOpDetTree->Branch("CountOpDetAll", &fCountOpDetAll, "CountOpDetAll[NOpDets]/I");
+      fTheOpDetTree->Branch("CountOpDetDetected", &fCountOpDetDetected, "CountOpDetDetected[NOpDets]/I");
+    }
+    if(fMakeOpDetEventsTree){
+      fTheEventTree = new TTree("OpDetEvents", "OpDetEvents");
+      //fTheEventTree->Branch("eventNo", &fEvent);
+      //fTheEventTree->Branch("runNo", &fRun);
+      //fTheEventTree->Branch("subRunNo", &fSubRun);
+      fTheEventTree->Branch("CountAll", &fCountEventAll, "CountAll/I");
+      fTheEventTree->Branch("CountDetected", &fCountEventDetected, "CountDetected/I");
+    }
+
+
 }
 
 //-----------------------------------------------------------------------
 void CTree35t::beginJob()
 {
+  std::cout<<"job begin"<<std::endl;
     fNcryostats = fGeom->Ncryostats();  // 1 for 35t
-
     // 8 TPC for 35t
     // TPC (0,1), (6,7): large APA
     // TPC (2,3), (4,5): small APA
@@ -323,6 +397,32 @@ void CTree35t::beginJob()
     }
     
     fNchannels = fGeom->Nchannels();
+    //std::cout<<"channel number is "<<fNchannels<<std::endl;
+    fNOpDets = fGeom->NOpDets();
+    //std::cout<<"# of OpDets is "<<fNOpDets<<std::endl;
+    double xyz[3];
+    double tmp;
+    for (int i=0; i<fNOpDets; i++) {
+      const geo::OpDetGeo& fOpDetNode = fGeom->Cryostat(0).OpDet(i);
+      fOpDetNode.GetCenter(xyz,0.);
+      //fGeom->Cryostat(0).OpDet(i).GetCenter(xyz);
+      //std::cout<<"i = "<<i<<"; got centers"<<std::endl;
+      fOpDetPositions_Y[i] = (float)xyz[1];
+      fOpDetPositions_Z[i] = (float)xyz[2];
+      std::cout<<"(y,z) = ("<<fOpDetPositions_Y[i]<<","<<fOpDetPositions_Z[i]<<")"<<std::endl;
+      TGeoNode *fOpNode = (TGeoNode*)fOpDetNode.Node();
+      //std::cout<<"got TGeoNode "<<fOpNode->GetName()<<std::endl;
+      TGeoTube *fOpTube = (TGeoTube*)fOpNode->GetVolume()->GetShape();
+      //std::cout<<"got TGeoTube "<<fOpTube->GetName()<<std::endl;
+      //std::cout<<"---------------x, y, z-----------------------------\n"<<fOpTube->GetDX()<<" "<<fOpTube->GetDY()<<" "<<fOpTube->GetDZ()<<std::endl;
+      tmp = fOpTube->GetDZ();//GetRmax();//fOpDetNode.RMax();
+      //std::cout<<"tmp = "<<tmp<<std::endl;
+      fOpDetHalfWidths[i] = (float)tmp;
+      //std::cout<<"got half-wdith"<<std::endl;
+      tmp = fOpTube->GetDY();//fOpDetNode.HalfL();
+      fOpDetHalfHeights[i] = (float)tmp;
+      std::cout<<i<<"(w,h) = ("<<fOpDetHalfWidths[i]<<","<<fOpDetHalfHeights[i]<<")"<<std::endl;
+    }
 
     printGeometry();
 
@@ -427,6 +527,11 @@ void CTree35t::endJob()
     TDirectory* tmpDir = gDirectory;
     fOutFile->cd("/Event");
     fEventTree->Write();
+    fOutFile->cd("/OpDet");
+    if(fMakeAllPhotonsTree) fThePhotonTreeAll->Write();
+    if(fMakeDetectedPhotonsTree) fThePhotonTreeDetected->Write();
+    if(fMakeOpDetsTree) fTheOpDetTree->Write();
+    if(fMakeOpDetEventsTree) fTheEventTree->Write();
     gDirectory = tmpDir;
     fOutFile->Close();
 }
@@ -453,7 +558,7 @@ void CTree35t::printGeometry()
             << ")" << endl;
     }
     cout << "fNchannels: " << fNchannels << endl;
-    cout << "fNOpDet: " << fGeom->NOpDet() << endl;
+    cout << "fNOpDets: " << fGeom->NOpDets() << endl;
     cout << "fAuxDetectors: " << fGeom->NAuxDets() << endl;
     cout << endl;
 }
@@ -480,8 +585,10 @@ void CTree35t::analyze( const art::Event& event )
     processCalib(event);
     processHits(event);
     processRecoTracks(event);
-    printEvent();
     fEventTree->Fill();
+    processOpDet(event);
+    printEvent();
+
 }
 
 
@@ -522,6 +629,15 @@ void CTree35t::reset()
     }
 
     fReco_trackPosition->Clear();
+
+    fCount=0;
+    fCountEventAll=0;
+    fCountEventDetected=0;
+    fOpChannel=0;
+    for (int i=0; i<MAX_OPDET; i++) {
+        fCountOpDetAll[i]=0;
+        fCountOpDetDetected[i]=0;
+    }
 }
 
 
@@ -672,6 +788,10 @@ void CTree35t::processMC( const art::Event& event )
         fMC_id[i] = particle->TrackId();
         fMC_pdg[i] = particle->PdgCode();
         fMC_mother[i] = particle->Mother();
+	std::cout<<"i = "<<i
+		 <<"\nfMC_id[i]     = "<<fMC_id[i]
+		 <<"\nfMC_pdg[i]    = "<<fMC_pdg[i]
+		 <<"\nfMC_mother[i] = "<<fMC_mother[i]<<std::endl;
         int Ndaughters = particle->NumberDaughters();
         vector<int> daughters;
         for (int i=0; i<Ndaughters; i++) {
@@ -755,6 +875,74 @@ void CTree35t::processRecoTracks( const art::Event& event )
         fReco_trackPosition->Add(Lposition);
     }
 }
+  
+void CTree35t::processOpDet(const art::Event& event)
+{
+    art::ServiceHandle<sim::LArG4Parameters> lgp;
+    bool fUseLitePhotons = lgp->UseLitePhotons();
+
+    // Service for determining opdet responses
+    art::ServiceHandle<opdet::OpDetResponseInterface> odresponse;
+
+    if (!fUseLitePhotons) {
+      std::cout<<"Cannot get SimPhotonsLite. Aborting..."<<std::endl;
+      return;
+    }
+
+    art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle;
+    event.getByLabel("largeant", photonHandle);
+    std::vector<art::Ptr<sim::SimPhotonsLite> > photonlite;
+    art::fill_ptr_vector(photonlite, photonHandle);
+
+    // reset counters
+    fCountEventAll=0;
+    fCountEventDetected=0;
+    //std::cout<<"Found OpDet hit collection of size "<< photonlite.size()<<std::endl;
+
+    if (photonlite.size()>0) {
+        int size = photonlite.size();
+	std::cout<<"photonlite.size() = "<<size<<std::endl;
+        for (int k=0; k<size; k++) {
+            //Get data from HitCollection entry
+	    art::Ptr<sim::SimPhotonsLite> photon = photonlite[k];
+	    fOpChannel=photon->OpChannel;
+	    std::map<int, int> PhotonsMap = photon->DetectedPhotons;
+	    
+	    for (auto it = PhotonsMap.begin(); it!= PhotonsMap.end(); it++){
+	        // Calculate wavelength in nm
+	        fWavelength= 128;
+		//Get arrival time from phot 
+		fTime= it->first*2;
+		//std::cout<<"Arrival time: " << fTime<<std::endl;
+		for (int i = 0; i < it->second ; i++) { // second: number of photons
+		    // Increment per OpDet counters and fill per phot trees      
+		    fCountOpDetAll[fOpChannel]++;
+		    if (fMakeAllPhotonsTree) fThePhotonTreeAll->Fill();
+		    if (odresponse->detectedLite(fOpChannel)) {
+		        if (fMakeDetectedPhotonsTree) fThePhotonTreeDetected->Fill();
+			fCountOpDetDetected[fOpChannel]++;
+			//std::cout<<"OpDetResponseInterface PerPhoton : Event "<<fEvent<<" OpChannel " <<fOpChannel << " Wavelength " << fWavelength << " Detected 1 "<<std::endl;
+		    } else {
+		        //std::cout<<"OpDetResponseInterface PerPhoton : Event "<<fEvent<<" OpChannel " <<fOpChannel << " Wavelength " << fWavelength << " Detected 0 "<<std::endl;
+		    }
+		}
+	    }
+	    // Incremenent per event and fill Per OpDet trees
+	    fCountEventAll+=fCountOpDetAll[fOpChannel];
+	    fCountEventDetected+=fCountOpDetDetected[fOpChannel];
+	    //std::cout<<"OpDetResponseInterface PerOpDet : Event "<<fEvent<<" OpDet " << fOpChannel << " All " << fCountOpDetAll << " Det " <<fCountOpDetDetected<<std::endl;
+	}
+	if(fMakeOpDetsTree) fTheOpDetTree->Fill();
+	if (fMakeOpDetEventsTree) fTheEventTree->Fill();
+	//std::cout<<"OpDetResponseInterface PerEvent : Event "<<fEvent<<" All " << fCountEventAll << " Det " <<fCountEventDetected<<std::endl; 
+    } else { 
+        // if empty OpDet hit collection, 
+        // add an empty record to the per event tree 
+        if(fMakeOpDetsTree) fTheOpDetTree->Fill();
+        if(fMakeOpDetEventsTree) fTheEventTree->Fill();
+    }
+    
+}
 
 // -------------------------------------------------------------------
 void CTree35t::printEvent()
@@ -779,7 +967,9 @@ void CTree35t::printEvent()
     }
 
     cout << "Number of Hits Found: " << no_hits << endl;
-    cout << "number of reco tracks: " << reco_nTrack << endl;
+    cout << "Number of reco tracks: " << reco_nTrack << endl;
+    cout << "Number of all photons:      "<< fCountEventAll << endl;
+    cout << "Number of photons detected: "<< fCountEventDetected << endl;
 
     // for (int i=0; i<no_hits; i++) {
     //     cout << hit_channel[i] << ", ";
