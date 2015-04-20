@@ -6,7 +6,7 @@
  *  $Log: $
  */
 
-#include "LBNE4APAPseudoLayerPlugin.h"
+#include "lbne/LBNEPandora/LBNE4APAPseudoLayerPlugin.h"
 
 namespace lar_pandora
 {

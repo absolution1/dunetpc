@@ -5,7 +5,7 @@
  *
  */
 
-#include "LBNE4APAGeometryHelper.h"
+#include "lbne/LBNEPandora/LBNE4APAGeometryHelper.h"
 
 #include "Geometry/TPCGeo.h"
 #include "Geometry/Geometry.h"

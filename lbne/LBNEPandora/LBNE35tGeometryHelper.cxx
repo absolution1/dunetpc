@@ -5,7 +5,7 @@
  *
  */
 
-#include "LBNE35tGeometryHelper.h"
+#include "lbne/LBNEPandora/LBNE35tGeometryHelper.h"
 
 #include "Geometry/TPCGeo.h"
 #include "Geometry/Geometry.h"

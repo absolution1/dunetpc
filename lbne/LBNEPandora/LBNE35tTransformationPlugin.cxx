@@ -6,7 +6,7 @@
  *  $Log: $
  */
 
-#include "LBNE35tTransformationPlugin.h"
+#include "lbne/LBNEPandora/LBNE35tTransformationPlugin.h"
 
 #include <cmath>
 
