@@ -39,9 +39,9 @@ physics:
         module_type:  "OpDetDigitizerLBNE"
         InputModule:  "largeant" # Module that created OpDetPulses (OpticalRawDigits)
 #        QE:           0.16       # Quantum efficiency of photon detectors
-#        SampleFreq:   0.15       # Sampling frequency in GHz
-#        TimeBegin:    0.0        # Readout window begin in ns
-#        TimeEnd:      1600000.0  # Readout window end in ns
+#        SampleFreq:   128        # Sampling frequency in MHz
+#        TimeBegin:    0.0        # Readout window begin in us
+#        TimeEnd:      1600.0     # Readout window end in us
         VoltageToADC: 151.5       # Converting mV to ADC counts (counts in 1 mV)
       } 
       rns:       { module_type: "RandomNumberSaver" }

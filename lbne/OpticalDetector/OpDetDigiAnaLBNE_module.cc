@@ -24,9 +24,7 @@
 
 // LArSoft includes
 
-//#include "RawData/OpDetPulse.h"
 #include "Utilities/TimeService.h"
-//#include "OpticalDetectorData/OpticalRawDigit.h"
 #include "RawData/OpDetWaveform.h"
 
 // ROOT includes
@@ -55,9 +53,9 @@ namespace opdet {
 
       // Parameters we'll read from the fcl-file
       std::string fInputModule; // Module used to create OpDetWaveforms
-      double fSampleFreq;       // Frequency in GHz (number of ticks in one ns)
-      double fTimeBegin;        // Beginning of sample in ns
-      double fTimeEnd;          // End of sample in ns
+      float fSampleFreq;        // Sampling frequency in MHz 
+      float fTimeBegin;         // Beginning of sample in us
+      float fTimeEnd;           // End of sample in us
 
   };
 
@@ -73,7 +71,7 @@ namespace opdet {
 
 namespace opdet {
 
-  //----------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   // Constructor
   OpDetDigiAnaLBNE::OpDetDigiAnaLBNE(fhicl::ParameterSet const& pset)
     : EDAnalyzer(pset)
@@ -81,25 +79,22 @@ namespace opdet {
 
     // Read the fcl-file
     fInputModule = pset.get< std::string >("InputModule");
-//    fSampleFreq  = pset.get< double >("SampleFreq");
-//    fTimeBegin   = pset.get< double >("TimeBegin");
-//    fTimeEnd     = pset.get< double >("TimeEnd");
 
+    // Obtaining parameters from TimeService
     art::ServiceHandle< util::TimeService > timeService;
-    // Converting MHz into GHz and us into ns
-    fSampleFreq = timeService->OpticalClock().Frequency()/1000.0;
-    fTimeBegin  = 0; //timeService->OpticalClock().Time()*1000.0;
-    fTimeEnd    = 8000; //timeService->OpticalClock().FramePeriod()*1000.0;
+    fSampleFreq = timeService->OpticalClock().Frequency();
+    fTimeBegin  = 0.0; //timeService->OpticalClock().Time();
+    fTimeEnd    = 1600.0; //timeService->OpticalClock().FramePeriod();
 
   }
 
-  //----------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   // Destructor
   OpDetDigiAnaLBNE::~OpDetDigiAnaLBNE()
   {
   }
 
-  //----------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   void OpDetDigiAnaLBNE::analyze(art::Event const& evt)
   {
 
@@ -107,8 +102,6 @@ namespace opdet {
     char histName[50];
 
     // Get OpDetWaveforms from the event
-    //art::Handle< std::vector< raw::OpDetPulse > > waveformHandle;
-    //art::Handle< std::vector< optdata::OpticalRawDigit > > waveformHandle;
     art::Handle< std::vector< raw::OpDetWaveform > > waveformHandle;
     evt.getByLabel(fInputModule, waveformHandle);
 
@@ -116,36 +109,32 @@ namespace opdet {
     // histograms for us
     art::ServiceHandle< art::TFileService > tfs;
 
-    for (unsigned int i = 0; i < waveformHandle->size(); i++)
+    for (size_t i = 0; i < waveformHandle->size(); i++)
     {
-      // This is probably required to overcome the "const" problem 
+
+      // This was probably required to overcome the "const" problem 
       // with OpDetPulse::Waveform()
-      //art::Ptr< raw::OpDetPulse > waveformPtr(waveformHandle, i);
-      //art::Ptr< optdata::OpticalRawDigit > waveformPtr(waveformHandle, i);
       art::Ptr< raw::OpDetWaveform > waveformPtr(waveformHandle, i);
-      //raw::OpDetPulse pulse = *waveformPtr;
-      //optdata::OpticalRawDigit pulse = *waveformPtr;
       raw::OpDetWaveform pulse = *waveformPtr;
       // Make a name for the histogram
-      //sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.OpChannel());
-      sprintf(histName, "event_%d_opdet_%i", evt.id().event(), pulse.ChannelNumber());
+      sprintf(histName, "event_%d_opdet_%i", evt.id().event(), 
+                                        pulse.ChannelNumber());
 
-      int total = 0;
-      for (unsigned int tick = 0; tick < pulse.size(); tick++)
+      short total = 0;
+      for (size_t tick = 0; tick < pulse.size(); tick++)
         total += pulse[tick];
 
       if (total < 1) continue;
       
       TH1D * waveformHist = nullptr;
 
-      waveformHist = tfs->make< TH1D >(histName, ";t (ns);",
-                                       int((fTimeEnd - fTimeBegin)*fSampleFreq),
-                                                            fTimeBegin, fTimeEnd);
+      waveformHist = tfs->make< TH1D >(histName, ";t (us);",
+                                       int((fTimeEnd - fTimeBegin)
+                                           *fSampleFreq + 1),
+                                              fTimeBegin, fTimeEnd);
 
-      //for (unsigned int tick = 0; tick < pulse.Waveform().size(); tick++)
-      for (unsigned int tick = 0; tick < pulse.size(); tick++)
-        //waveformHist->SetBinContent(tick, (double) pulse.Waveform()[tick]);
-        waveformHist->SetBinContent(tick, (double) pulse.at(tick));
+      for (size_t tick = 0; tick < pulse.size(); tick++)
+        waveformHist->SetBinContent(tick, (float) pulse[tick]);
 
     }
 

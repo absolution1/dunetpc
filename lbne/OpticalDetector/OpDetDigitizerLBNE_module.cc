@@ -19,6 +19,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 //#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
+#include "cetlib/exception.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // ART extensions
@@ -29,12 +30,9 @@
 #include "Simulation/sim.h"
 #include "Simulation/SimPhotons.h"
 #include "Simulation/LArG4Parameters.h"
-//#include "Geometry/Geometry.h"
 #include "Utilities/TimeService.h"
 #include "OpticalDetector/OpDetResponseInterface.h"
 #include "RawData/OpDetWaveform.h"
-//#include "RawData/OpDetPulse.h"
-//#include "OpticalDetectorData/OpticalRawDigit.h"
 
 // CLHEP includes
 
@@ -62,32 +60,38 @@ namespace opdet {
 
     private:
 
-      // The parameters read from the .fcl file
-      std::string fInputModule;            // Input tag for OpDet collection
-      //double fQE;                          // Quantum efficiency
-      double fSampleFreq;                  // Frequency in GHz (number of ticks in one ns)
-      double fTimeBegin;                   // Beginning of sample in ns
-      double fTimeEnd;                     // End of sample in ns
-      double fVoltageToADC;                // Conversion factor mV to ADC counts
+      // The parameters read from the FHiCL file
+      std::string fInputModule; // Input tag for OpDet collection
+      float fSampleFreq;        // Sampling frequency in MHz
+      float fTimeBegin;         // Beginning of sample in us
+      float fTimeEnd;           // End of sample in us
+      float fVoltageToADC;      // Conversion factor mV to ADC counts
 
       // Random number engines
       //CLHEP::RandBinomial *fRandBinomial;
 
       // Function that adds n pulses to a waveform
-      void AddPulse(int timeBin, int scale, std::vector< double >& waveform);
+      void AddPulse(int timeBin, int scale, std::vector< float >& waveform);
 
       // Functional response to one photoelectron (time in ns)
-      double Pulse1PE(double time);
+      float Pulse1PE(float time) const;
 
-      // One photoelectron pulse parameters
-      double fPulseLength;  // 1PE pulse length in ticks
-      double fPeakTime;     // Time when the pulse reaches its maximum in ns
-      double fMaxAmplitude; // Maximum amplitude of the pulse in mV
-      double fFrontTime;    // Constant in the exponential function in ns
-      double fBackTime;     // Constant in the exponential function in ns
+      // Single photoelectron pulse parameters
+      float fPulseLength;  // 1PE pulse length in us
+      float fPeakTime;     // Time when the pulse reaches its maximum in us
+      float fMaxAmplitude; // Maximum amplitude of the pulse in mV
+      float fFrontTime;    // Constant in the exponential function 
+                           // of the leading edge in us
+      float fBackTime;     // Constant in the exponential function 
+                           // of the tail in us
 
-      std::vector< double > fSinglePEWaveform;
+      std::vector< float > fSinglePEWaveform;
       void CreateSinglePEWaveform();
+
+      // Produce waveform on one of the optical detectors
+      void CreateOpDetWaveform(sim::SimPhotonsLite const&, 
+                               opdet::OpDetResponseInterface const&,
+                                std::vector< std::vector< float > >&);
 
   };
 
@@ -103,69 +107,64 @@ namespace opdet {
 
 namespace opdet {
   
-  //---------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   // Constructor
   OpDetDigitizerLBNE::OpDetDigitizerLBNE(fhicl::ParameterSet const& pset)
   {
 
     // This module produces (infrastructure piece)
-    //produces< std::vector< raw::OpDetPulse > >();
-    //produces< std::vector< optdata::OpticalRawDigit > >();
     produces< std::vector< raw::OpDetWaveform > >();
 
     // Read the fcl-file
     fInputModule  = pset.get< std:: string >("InputModule" );
-    //fQE           = pset.get< double       >("QE"          );
-    fVoltageToADC = pset.get< double       >("VoltageToADC");
-    //fSampleFreq   = pset.get< double >("SampleFreq");
-    //fTimeBegin    = pset.get< double >("TimeBegin");
-    //fTimeEnd      = pset.get< double >("TimeEnd");
+    fVoltageToADC = pset.get< float       >("VoltageToADC");
+    //fSampleFreq   = pset.get< float >("SampleFreq");
+    //fTimeBegin    = pset.get< float >("TimeBegin");
+    //fTimeEnd      = pset.get< float >("TimeEnd");
 
+    // Obtaining parameters from the TimeService
     art::ServiceHandle< util::TimeService > timeService;
-    // Converting MHz into GHz and us into ns
-    fSampleFreq = timeService->OpticalClock().Frequency()  /1000.0;
-    fTimeBegin  = timeService->OpticalClock().Time()       *1000.0;
-    fTimeEnd    = timeService->OpticalClock().FramePeriod()*1000.0;
+    fSampleFreq = timeService->OpticalClock().Frequency();
+    fTimeBegin  = timeService->OpticalClock().Time();
+    fTimeEnd    = timeService->OpticalClock().FramePeriod();
 /*
     // Initializing random number engines
-    unsigned int seed = pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
+    unsigned int seed = 
+             pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
     createEngine(seed);
 
     art::ServiceHandle< art::RandomNumberGenerator > rng;
     CLHEP::HepRandomEngine &engine = rng->getEngine();
     fRandBinomial = new CLHEP::RandBinomial(engine);
 */
-    // Creating single photoelectron waveform
-    fPulseLength = 4000.0;
-    fPeakTime = 260.0;
+    // Creating a single photoelectron waveform
+    fPulseLength  = 4.0;
+    fPeakTime     = 0.260;
     fMaxAmplitude = 0.12;
-    fFrontTime = 9.0;
-    fBackTime  = 476.0;
+    fFrontTime    = 0.009;
+    fBackTime     = 0.476;
     CreateSinglePEWaveform();
 
   }
 
-  //---------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   // Destructor
   OpDetDigitizerLBNE::~OpDetDigitizerLBNE()
   {
   }
 /*
-  //---------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   void OpDetDigitizerLBNE::beginJob()
   {
   }
  */ 
-  //---------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   void OpDetDigitizerLBNE::produce(art::Event& evt)
   {
     
     // A pointer that will store produced OpDetWaveforms
-    //std::unique_ptr< std::vector< raw::OpDetPulse > > pulseVecPtr(new std::vector< raw::OpDetPulse >);
-    //std::unique_ptr< std::vector< optdata::OpticalRawDigit > > 
-    //                                         pulseVecPtr(new std::vector< optdata::OpticalRawDigit >);
     std::unique_ptr< std::vector< raw::OpDetWaveform > > 
-                                             pulseVecPtr(new std::vector< raw::OpDetWaveform >);
+                      pulseVecPtr(new std::vector< raw::OpDetWaveform >);
     
     art::ServiceHandle< sim::LArG4Parameters > lgp;
     bool fUseLitePhotons = lgp->UseLitePhotons();
@@ -173,15 +172,14 @@ namespace opdet {
     // Total number of ticks in our readout
     int nSamples = (fTimeEnd - fTimeBegin)*fSampleFreq;
 
-    //art::ServiceHandle< geo::Geometry > geom;
-    //int nOpChannels = geom->NOpChannels();
-
     // Service for determining opdet responses
     art::ServiceHandle< opdet::OpDetResponseInterface > odResponse;
+    // Total number of optical channels
     int nOpChannels = odResponse->NOpChannels();
 
     // This vector stores waveforms we create for each optical detector
-    std::vector< std::vector< double > > opDetWaveforms(nOpChannels, std::vector< double >(nSamples,0.0));
+    std::vector< std::vector< float > > 
+               opDetWaveforms(nOpChannels, std::vector< float >(nSamples,0.0));
 
     if (fUseLitePhotons)
     {
@@ -190,53 +188,24 @@ namespace opdet {
       evt.getByLabel(fInputModule, litePhotonHandle);
 
       // For every optical detector:
-      for (auto const& opDet : (*litePhotonHandle))
-      {
-        int channel = opDet.OpChannel;
-        int readoutCh;
-        std::map< int, int > photonsMap = opDet.DetectedPhotons;
-
-        // For every pair of (arrival time, number of photons) in the map:
-        for (auto const& pulse : photonsMap)
-        {
-          for (int i = 0; i < pulse.second; i++)
-          {
-            // Sample a random subset according to QE
-            if (odResponse->detectedLite(channel, readoutCh) && 
-                (pulse.first > fTimeBegin) && (pulse.first < fTimeEnd))
-            {
-              // Convert the time of the pulse to ticks
-              int timeBin = int((pulse.first - fTimeBegin)*fSampleFreq);
-              /*
-              // Take into account the quantum efficiency
-              int detPhotons = pulse.second;
-              if (fQE < 1.0) detPhotons = fRandBinomial->fire(pulse.second,fQE);
-              */
-              // Add the pulse to the waveform
-              //AddPulse(timeBin, detPhotons, opDetWaveforms[channel]);
-              AddPulse(timeBin, 1, opDetWaveforms[readoutCh]);
-            }
-          }
-        }
-      }
+      for (auto const& opDet : (*litePhotonHandle)) 
+        CreateOpDetWaveform(opDet, *odResponse, opDetWaveforms);
     }
-    else std::cout << "Sorry, but for now only Lite Photons are implemented!\n";
+    else throw art::Exception(art::errors::UnimplementedFeature)
+      << "Sorry, but for now only Lite Photon digitization is implemented!\n";
 
-    for (int channel = 0; channel != nOpChannels; channel++)
+    for (int channel = 0; channel != nOpChannels; ++channel)
     {
-      // Produce ADC pulse of integers rather than doubles
-      //std::vector< short > adcVec;
-      //optdata::OpticalRawDigit adcVec(0, channel, nSamples);
-      raw::OpDetWaveform adcVec(0, channel, nSamples);
+      // Produce ADC pulse of integers rather than floats
+      raw::OpDetWaveform adcVec(0.0, channel, nSamples);
 
-      for (auto& value : opDetWaveforms[channel])
+      for (short value : opDetWaveforms[channel])
       {
         // 0.5 here is to round the value correctly
-        adcVec.push_back(int(value + 0.5));
+        adcVec.emplace_back(short(value + 0.5));
       }
 
-      //pulseVecPtr->push_back(raw::OpDetPulse(channel, adcVec, 0, fTimeBegin));
-      pulseVecPtr->push_back(adcVec);
+      pulseVecPtr->emplace_back(std::move(adcVec));
 
     }
 
@@ -244,8 +213,10 @@ namespace opdet {
 
   }
 
-  //---------------------------------------------------------------------
-  void OpDetDigitizerLBNE::AddPulse(int timeBin, int scale, std::vector< double >& waveform)
+  //---------------------------------------------------------------------------
+  void OpDetDigitizerLBNE::AddPulse(int timeBin, 
+                                    int scale, 
+                                    std::vector< float >& waveform)
   {
 
     // How many bins will be changed
@@ -254,32 +225,69 @@ namespace opdet {
       pulseLength = (waveform.size() - timeBin);
 
     // Adding a pulse to the waveform
-    for (size_t tick = 0; tick != pulseLength; tick++)
+    for (size_t tick = 0; tick != pulseLength; ++tick)
     {
-      waveform.at(timeBin + tick) += scale*fSinglePEWaveform.at(tick);
+      waveform[timeBin + tick] += scale*fSinglePEWaveform[tick];
     }
 
   }
 
-  //---------------------------------------------------------------------
-  double OpDetDigitizerLBNE::Pulse1PE(double time)
+  //---------------------------------------------------------------------------
+  float OpDetDigitizerLBNE::Pulse1PE(float time) const
   {
 
-    if (time < fPeakTime) return (fVoltageToADC*fMaxAmplitude*std::exp((time - fPeakTime)/fFrontTime));
-    else return (fVoltageToADC*fMaxAmplitude*std::exp(-(time - fPeakTime)/fBackTime));
+    if (time < fPeakTime) return 
+      (fVoltageToADC*fMaxAmplitude*std::exp((time - fPeakTime)/fFrontTime));
+    else return 
+      (fVoltageToADC*fMaxAmplitude*std::exp(-(time - fPeakTime)/fBackTime));
 
   }
 
+  //---------------------------------------------------------------------------
   void OpDetDigitizerLBNE::CreateSinglePEWaveform()
   {
 
-    int length = fPulseLength*fSampleFreq;
+    size_t length = size_t(fPulseLength*fSampleFreq + 0.5);
     fSinglePEWaveform.resize(length);
-    for (size_t tick = 0; tick != fSinglePEWaveform.size(); tick++)
+    for (size_t tick = 0; tick != length; ++tick)
     {
-      fSinglePEWaveform.at(tick) = Pulse1PE(double(tick)/fSampleFreq);
+      fSinglePEWaveform[tick] = Pulse1PE(float(tick)/fSampleFreq);
     }
 
   }
+
+  //---------------------------------------------------------------------------
+  void OpDetDigitizerLBNE::CreateOpDetWaveform
+                             (sim::SimPhotonsLite const& opDet,
+                              opdet::OpDetResponseInterface const& odResponse,
+                              std::vector< std::vector< float > >& 
+                                                                opDetWaveforms)
+  {
+    int channel = opDet.OpChannel;
+    int readoutCh;
+    // For a group of photons arriving at the same time this is a map
+    // of < arrival time (in ns), number of photons >
+    std::map< int, int > photonsMap = opDet.DetectedPhotons;
+
+    // For every pair of (arrival time, number of photons) in the map:
+    for (auto const& pulse : photonsMap)
+    {
+      // Converting ns to us
+      float photonTime = float(pulse.first/1000.0);
+      for (int i = 0; i < pulse.second; i++)
+      {
+        // Sample a random subset according to QE
+        if (odResponse.detectedLite(channel, readoutCh) && 
+            (photonTime > fTimeBegin) && (photonTime < fTimeEnd))
+        {
+          // Convert the time of the pulse to ticks
+          int timeBin = int((photonTime - fTimeBegin)*fSampleFreq);
+          // Add 1 pulse to the waveform
+          AddPulse(timeBin, 1, opDetWaveforms[readoutCh]);
+        }
+      }
+    }
+  }
+
 
 }
