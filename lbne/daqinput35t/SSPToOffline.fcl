@@ -6,6 +6,7 @@ ssp_to_offline:
   FragType:        PHOTON
   RawDataLabel:    daq
   OutputDataLabel: offlinePhoton
+  NOvAClockFrequency: 64.0 #MHz 
 #  Debug:           true
 }
 
