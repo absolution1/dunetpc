@@ -4,12 +4,27 @@ BEGIN_PROLOG
 
 lbnefd_opdigi:
 {
-  module_type:        "OpMCDigi"
-  InputModule:        "largeant"
-  QE:                      1
-  SaturationScale:         50000
-  DarkRate:                0 #10000
-}
+   module_type:         "OpDetDigitizerLBNE"
+   InputModule:         "largeant"           # Module that created simphotons
+   VoltageToADC:        151.5                # Converting mV to ADC counts (counts in 1 mV)
+
+   # readout window in optical ticks
+   # buffer before waveform
+   # see SSP manual, lbne-doc-9928, p. 58
+   #
+   # IU waveform window
+   # ReadoutWindow:       700
+   # ReadoutPretrigger:   100
+   #
+   # SSP Maximum window
+   # ReadoutWindow:      2046
+   # ReadoutPretrigger:   100
+   
+   # SaturationScale:         16383 # 2^14 - 1, based on SSP Data
+   # DarkRate:                20    # Hz, Ranges 2-50 depending on Vbias
+   # CrossTalk:               ??
+   # AfterPulseRate:          ??
+} 
 
 lbnefd_simphotoncounter:
 {
@@ -28,34 +43,21 @@ lbnefd_simphotoncounter:
 lbnefd_tracktimeassoc:   @local::standard_tracktimeassoc
 lbnefd_opflash:          @local::standard_opflash
 
-lbnefd_opdigiana:        @local::standard_opdigiana
+lbnefd_opdigiana:
+{
+        module_type:  "OpDetDigiAnaLBNE"
+        InputModule:  "opdigi"  # Module that created raw::OpDetWaveforms
+}
 lbnefd_opflashana:       @local::standard_opflashana
 
 
 lbne35t_simphotoncounter: @local::standard_simphotoncounter
 
-lbne35t_opdigi:
-{
-  module_type:        "OpMCDigi"
-  InputModule:        "largeant"
-  QE:                      0.16  # See below
-  SaturationScale:         16383 # 2^14 - 1, based on SSP Data
-  DarkRate:                20    # Hz, Ranges 2-50 depending on Vbias
-
-   # QE here assumes 3% already applied at generation time and
-   # attempts to correct for total collection efficiency, which
-   # includes:
-   #   SiPMQE: 35%
-   #   Microcell Fill: 64%
-   #   SiPM Coverage: 71%
-   #   Surface Conversion: 3% (generous estimate)
-   #   Attenuation in bars already in library response
-}
-
+lbne35t_opdigi:           @local::lbnefd_opdigi
 lbne35t_tracktimeassoc:   @local::standard_tracktimeassoc
 lbne35t_opflash:          @local::standard_opflash
 
-lbne35t_opdigiana:        @local::standard_opdigiana
+lbne35t_opdigiana:        @local::lbnefd_opdigiana
 lbne35t_opflashana:       @local::standard_opflashana
 lbne35t_opdigiana.MakeUnipolarHist: false
 

@@ -9,7 +9,7 @@
 #include "art/Framework/Core/ModuleMacros.h"
 
 // Local includes
-#include "PFParticleStitcher.h"
+#include "LArPandoraInterface/PFParticleStitcher.h"
 
 #include "cetlib/exception.h"
 
@@ -51,7 +51,7 @@ DEFINE_ART_MODULE(LBNE35tParticleStitcher)
 //------------------------------------------------------------------------------------------------------------------------------------------
 // implementation follows
 
-#include "LBNE35tGeometryHelper.h"
+#include "lbne/LBNEPandora/LBNE35tGeometryHelper.h"
 
 namespace lar_pandora {
 

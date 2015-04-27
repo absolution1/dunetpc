@@ -6,7 +6,7 @@
  *  $Log: $
  */
 
-#include "LBNE4APATransformationPlugin.h"
+#include "lbne/LBNEPandora/LBNE4APATransformationPlugin.h"
 
 #include <cmath>
 

@@ -16,6 +16,7 @@ parser.add_option("-s", "--sim",     dest="sim",         help="Make simulation p
 parser.add_option("-d", "--digi",    dest="digi",        help="Make digitizer plots",  default=False, action="store_true")
 parser.add_option("-e", "--events",  dest="events",      help="List of events to draw an individual opdet, comma-separated")
 parser.add_option(      "--opdets",  dest="opdets",      help="List of opdets to draw, comma-separated", default="0")
+parser.add_option(      "--wide",    dest="wide",        help="Make widely binned plots (for uBooNE)")
 
 (options, args) = parser.parse_args()
 
@@ -57,8 +58,13 @@ c = {}
 ############################
 
 if options.sim:
-    for var, treename, nbins, xmin, xmax in [ ("CountAll", "OpDetEvents", 100, 0, 4500),
-                                              ("CountAll", "OpDets",      100, 0, 500) ]:
+    if options.wide:
+        plotinfo = [ ("CountAll", "OpDetEvents", 100, 0, 100000),
+                     ("CountAll", "OpDets",      100, 0, 5000) ]
+    else:
+        plotinfo = [ ("CountAll", "OpDetEvents", 100, 0, 4500),
+                     ("CountAll", "OpDets",      100, 0, 500) ]
+    for var, treename, nbins, xmin, xmax in plotinfo:
         trees = {}
         for v in versions:
             trees[v] = files[v].Get("pmtresponse/"+treename)
