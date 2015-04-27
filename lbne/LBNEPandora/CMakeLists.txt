@@ -11,6 +11,7 @@ art_make( BASENAME_ONLY
                         Geometry
                         Geometry_service
                         Simulation
+			LArContent
                         ${PANDORASDK}
                         ${PANDORAMONITORING}
                         ${SIMULATIONBASE}
