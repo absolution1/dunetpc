@@ -7,6 +7,7 @@ art_make( BASENAME_ONLY
 	                Utilities
 			Filters
 			RawData
+			TimeService_service
                         SignalShapingServiceLBNE10kt_service
 			SignalShapingServiceLBNE35t_service
                         ${SEEDSERVICE_SERVICE} # artextensions

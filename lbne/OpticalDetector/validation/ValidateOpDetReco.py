@@ -235,7 +235,7 @@ class Assoc(object):
         return not result
 
     def PrintStr(self):
-        return "{0.OpChannel:2d} t={0.HitPeakTimeAbs:9.3f}/{0.FlashTimeAbs:9.3f}  q={0.HitPE:7.2f}/{0.FlashPE:7.2f} frame={0.HitFrame:1}/{0.FlashFrame:1}  flash={0.FlashID:3}".format(self)
+        return "{0.OpChannel:2d} t={0.HitPeakTimeAbs:8.3f}/{0.FlashTimeAbs:8.3f}  q={0.HitPE:7.2f}/{0.FlashPE:7.2f} frame={0.HitFrame:1}/{0.FlashFrame:1}".format(self)
     #.OpChannel, self.HitPeakTimeAbs, self.HitPE, self.HitFrame, self.FlashFrame, self.FlashID)
 
 
@@ -320,7 +320,6 @@ for v in versions:
 
 
 
-NumEvents = 11
 
 
 ####################
@@ -329,23 +328,22 @@ NumEvents = 11
 
 if options.flash:
 
-    all = []
-    for n in range(NumEvents):
-        all.append(defaultdict(list))
-
+    all = {}
     for v in versions:
         for e in range(flashtrees[v].GetEntries()):
             flashtrees[v].GetEntry(e)
+            if flashtrees[v].EventID not in all:
+                all[flashtrees[v].EventID] = defaultdict(list)
             all[flashtrees[v].EventID][v].append(Flash(flashtrees[v]))
 
-    for EventID in range(NumEvents):
+    for EventID in sorted(all.keys()):
         for v in versions:
             all[EventID][v].sort()
         print EventID, ":", len(all[EventID][S]), len(all[EventID][R])
 
     onlies = copy.deepcopy(all)
 
-    for E in range(1, NumEvents):
+    for E in sorted(all.keys()):
         iS = 0
 
         matches = []
@@ -394,22 +392,21 @@ if options.flash:
 
 if options.hit:
 
-    onlies = []
-    for n in range(NumEvents):
-        onlies.append(defaultdict(list))
-
+    onlies = {}
     for v in versions:
         for e in pbloop(range(hittrees[v].GetEntries())):
             hittrees[v].GetEntry(e)
+            if hittrees[v].EventID not in onlies:
+                onlies[hittrees[v].EventID]= defaultdict(list)
             onlies[hittrees[v].EventID][v].append(Hit(hittrees[v]))
 
-    for EventID in range(NumEvents):
+    for EventID in sorted(onlies.keys()):
         for v in versions:
             onlies[EventID][v].sort()
         print EventID, ":", len(onlies[EventID][S]), len(onlies[EventID][R])
 
 
-    for E in range(1, NumEvents):
+    for E in sorted(onlies.keys()):
         iS = 0
 
         matches = []
@@ -465,22 +462,21 @@ if options.hit:
 if options.assoc:
 
 
-    onlies = []
-    for n in range(NumEvents):
-        onlies.append(defaultdict(list))
-
+    onlies = {}
     for v in versions:
         for e in pbloop(range(assoctrees[v].GetEntries())):
             assoctrees[v].GetEntry(e)
+            if assoctrees[v].EventID not in onlies:
+                onlies[assoctrees[v].EventID] = defaultdict(list)
             onlies[assoctrees[v].EventID][v].append(Assoc(assoctrees[v]))
 
-    for EventID in range(NumEvents):
+    for EventID in sorted(onlies.keys()):
         for v in versions:
             onlies[EventID][v].sort()
         print EventID, ":", len(onlies[EventID][S]), len(onlies[EventID][R])
 
 
-    for E in range(1, NumEvents):
+    for E in sorted(onlies.keys()):
         iS = 0
 
         matches = []
@@ -545,12 +541,12 @@ if options.assoc:
 
         print "  Matches"
         for hit in matches:
-            print "    ",
+            print "",
             if S in hit:   print  S+":", hit[S].PrintStr(),
-            else:          print "{0:74}".format(""),
-            print "  ",
+            else:          print "{0:65}".format(""),
+            print "",
             if R in hit:   print "    ", R+":", hit[R].PrintStr(),
-            else:          print "{0:74}".format(""),
+            else:          print "{0:65}".format(""),
             print "  ",
             if S in hit and R in hit:
                 failures_here = ListFailures(hit[S],hit[R])

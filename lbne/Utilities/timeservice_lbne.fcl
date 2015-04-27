@@ -10,7 +10,7 @@ lbnefd_timeservice.G4RefTime:            0. # G4 time [us] where electronics clo
 lbnefd_timeservice.TriggerOffsetTPC: -1600. # Time [us] for TPC readout start w.r.t. trigger time
 lbnefd_timeservice.FramePeriod:       1600. # Frame period [us]
 lbnefd_timeservice.ClockSpeedTPC:        2. # TPC clock speed in MHz
-lbnefd_timeservice.ClockSpeedOptical:  150. # Optical clock speed in MHz
+lbnefd_timeservice.ClockSpeedOptical:  128. # Optical clock speed in MHz
 lbnefd_timeservice.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
 lbnefd_timeservice.DefaultTrigTime:      0. # Default trigger time [us].
 lbnefd_timeservice.DefaultBeamTime:      0. # Default beam time [us].
@@ -24,7 +24,7 @@ lbne35t_timeservice.G4RefTime:            0. # G4 time [us] where electronics cl
 lbne35t_timeservice.TriggerOffsetTPC:     0. # Time [us] for TPC readout start w.r.t. trigger time
 lbne35t_timeservice.FramePeriod:       1600. # Frame period [us]
 lbne35t_timeservice.ClockSpeedTPC:        2. # TPC clock speed in MHz
-lbne35t_timeservice.ClockSpeedOptical:  150. # Optical clock speed in MHz
+lbne35t_timeservice.ClockSpeedOptical:  128. # Optical clock speed in MHz
 lbne35t_timeservice.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
 lbne35t_timeservice.DefaultTrigTime:      0. # Default trigger time [us].
 lbne35t_timeservice.DefaultBeamTime:      0. # Default beam time [us].

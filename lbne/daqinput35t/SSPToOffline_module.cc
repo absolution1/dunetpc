@@ -29,7 +29,7 @@
 
 //larsoft includes
 #include "RawData/raw.h"
-#include "RawData/OpDetPulse.h"
+#include "RawData/OpDetWaveform.h"
 #include "Geometry/Geometry.h"
 
 #include "utilities/UnpackFragment.h"
@@ -58,6 +58,11 @@ private:
     std::string fFragType;
     std::string fRawDataLabel;
     std::string fOutputDataLabel;
+    double      fNOvAClockFrequency; //MHz
+    long        first_FirstSample;
+    double      first_TimeStamp;
+    long        first_InternalSample;
+    double      first_InternalTimeStamp;
     //bool fDebug;
     //raw::Compress_t        fCompression;      ///< compression type to use
     //unsigned int           fZeroThreshold;    ///< Zero suppression threshold
@@ -71,8 +76,10 @@ DAQToOffline::SSPToOffline::SSPToOffline(fhicl::ParameterSet const & pset)
 
     this->reconfigure(pset);
 
-    produces< std::vector<raw::OpDetPulse> > (fOutputDataLabel);  
+    produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);  
 
+    first_FirstSample = -1;
+    first_TimeStamp = -1;
 }
 
 void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
@@ -80,6 +87,7 @@ void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
     fFragType = pset.get<std::string>("FragType");
     fRawDataLabel = pset.get<std::string>("RawDataLabel");
     fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
+    fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
     //fDebug = pset.get<bool>("Debug");
 
     //fZeroThreshold=0;
@@ -111,7 +119,7 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
     // Don't crash code if not present, just don't save anything
     try { raw->size(); }
     catch(std::exception e) {
-      std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
+      mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << eventNumber;
       return;
     }
 
@@ -131,7 +139,7 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
                                  << " has " << raw->size()
                                  << " rawFragments";
 
-    std::unique_ptr< std::vector<raw::OpDetPulse> > opDetPulseVector(new std::vector <raw::OpDetPulse>);
+    std::unique_ptr< std::vector<raw::OpDetWaveform> > opDetWaveformVector(new std::vector <raw::OpDetWaveform>);
 
     for (size_t idx = 0; idx < raw->size(); ++idx) {
         const auto& frag((*raw)[idx]);
@@ -153,15 +161,16 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
             meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);
             
             mf::LogInfo("SSPToOffline")
-                <<"===Slice metadata:"<<std::endl
-                <<"Start time         "<<meta->startTime<<std::endl
-                <<"End time           "<<meta->endTime<<std::endl
-                <<"Packet length      "<<meta->length<<std::endl
-                <<"Number of triggers "<<meta->nTriggers<<std::endl<<std::endl;
+                << "===Slice metadata====" << "\n"
+                << "  Start time         " << meta->startTime << "\n"
+                << "  End time           " << meta->endTime << "\n"
+                << "  Packet length      " << meta->length << "\n"
+                << "  Number of triggers " << meta->nTriggers << "\n"
+                << "=====================";
 	}
         else
         {
-            mf::LogWarning("SSPToOffline") << "SSP fragment has no metadata associated with it." << "\n";
+          mf::LogWarning("SSPToOffline") << "SSP fragment has no metadata associated with it.";
         }
 
       
@@ -175,10 +184,10 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
             // The elements of the OpDet Pulse
             //
             unsigned short     OpChannel = -1;     ///< channel in the readout
-            std::vector<short> Waveform;           ///< vector of ADC counts
-            unsigned int       PMTFrame = 0;       ///< frame number where pulse begins
-            unsigned long      FirstSample = 0;    ///< first sample number within pmt frame (time in us?)
-
+            unsigned long      FirstSample = 0;    ///< first sample time in ticks
+            unsigned long      InternalSample = 0;    ///< first sample time in ticks
+            double             TimeStamp = 0.0;    ///< first sample time in microseconds
+            double             InternalTimeStamp = 0.0;
         
 
             
@@ -189,43 +198,68 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
             if(peaksum & 0x00800000) {
                 peaksum |= 0xFF000000;
             }
-            mf::LogDebug("SSPToOffline")
-	    << "Header:                             " << daqHeader->header   << std::endl
-	    << "Length:                             " << daqHeader->length   << std::endl
-	    << "Trigger type:                       " << ((daqHeader->group1 & 0xFF00) >> 8) << std::endl
-	    << "Status flags:                       " << ((daqHeader->group1 & 0x00F0) >> 4) << std::endl
-	    << "Header type:                        " << ((daqHeader->group1 & 0x000F) >> 0) << std::endl
-	    << "Trigger ID:                         " << daqHeader->triggerID << std::endl
-	    << "Module ID:                          " << ((daqHeader->group2 & 0xFFF0) >> 4) << std::endl
-	    << "Channel ID:                         " << ((daqHeader->group2 & 0x000F) >> 0) << std::endl
-	    << "External timestamp (FP mode):       " << std::endl
-	    << "  Sync delay:                       " << ((unsigned int)(daqHeader->timestamp[1]) << 16) + (unsigned int)(daqHeader->timestamp[0]) << std::endl
-	    << "  Sync count:                       " << ((unsigned int)(daqHeader->timestamp[3]) << 16) + (unsigned int)(daqHeader->timestamp[2]) << std::endl
-	    << "External timestamp (NOvA mode):     " << (unsigned long)daqHeader->timestamp[3] << 48 + (unsigned long)daqHeader->timestamp[2] << 32
-	                                               + (unsigned long)daqHeader->timestamp[1] << 16 + (unsigned long)daqHeader->timestamp[0] <<std::endl
-	    << "Peak sum:                           " << peaksum << std::endl
-	    << "Peak time:                          " << ((daqHeader->group3 & 0xFF00) >> 8) << std::endl
-	    << "Prerise:                            " << ((daqHeader->group4 & 0x00FF) << 16) + daqHeader->preriseLow << std::endl
-	    << "Integrated sum:                     " << ((unsigned int)(daqHeader->intSumHigh) << 8) + (((unsigned int)(daqHeader->group4) & 0xFF00) >> 8) << std::endl
-	    << "Baseline:                           " << daqHeader->baseline << std::endl
-	    << "CFD Timestamp interpolation points: " << daqHeader->cfdPoint[0] << " " << daqHeader->cfdPoint[1] << " " << daqHeader->cfdPoint[2] << " " << daqHeader->cfdPoint[3] << std::endl
-	    << "Internal interpolation point:       " << daqHeader->intTimestamp[0] << std::endl
-	    << "Internal timestamp:                 " << ((uint64_t)((uint64_t)daqHeader->intTimestamp[3] << 32)) + ((uint64_t)((uint64_t)daqHeader->intTimestamp[2]) << 16) + ((uint64_t)((uint64_t)daqHeader->intTimestamp[1])) << std::endl
-	    << std::endl;
 
-            // Store the channel number
+            // Extract values we need for the data product
             OpChannel = ((daqHeader->group2 & 0x000F) >> 0);
-            FirstSample = ( (unsigned long)daqHeader->timestamp[3] << 48 )
-                        + ( (unsigned long)daqHeader->timestamp[2] << 32 )
-                        + ( (unsigned long)daqHeader->timestamp[1] << 16 )
-                        + ( (unsigned long)daqHeader->timestamp[0] );
+            
+            FirstSample = ( ( (unsigned long)daqHeader->timestamp[3] << 48 )
+                          + ( (unsigned long)daqHeader->timestamp[2] << 32 )
+                          + ( (unsigned long)daqHeader->timestamp[1] << 16 )
+                          + ( (unsigned long)daqHeader->timestamp[0] ) );
 
+            InternalSample =  ( ((uint64_t)((uint64_t)daqHeader->intTimestamp[3] << 32))
+                              + ((uint64_t)((uint64_t)daqHeader->intTimestamp[2]) << 16)
+                              + ((uint64_t)((uint64_t)daqHeader->intTimestamp[1])) );
+
+            TimeStamp = ((double)FirstSample)/fNOvAClockFrequency;
+            InternalTimeStamp = ((double)InternalSample)/fNOvAClockFrequency;
+
+            if (first_FirstSample < 0) {
+              mf::LogInfo("SSPToOffline") << "Reset first time stamp to " << first_TimeStamp;
+              first_FirstSample = FirstSample;
+              first_TimeStamp = TimeStamp;
+              first_InternalSample = InternalSample;
+              first_InternalTimeStamp = InternalTimeStamp;
+            }
+            
+            mf::LogDebug("SSPToOffline")
+	    << "Header:                             " << daqHeader->header   << "\n"
+	    << "Length:                             " << daqHeader->length   << "\n"
+	    << "Trigger type:                       " << ((daqHeader->group1 & 0xFF00) >> 8) << "\n"
+	    << "Status flags:                       " << ((daqHeader->group1 & 0x00F0) >> 4) << "\n"
+	    << "Header type:                        " << ((daqHeader->group1 & 0x000F) >> 0) << "\n"
+	    << "Trigger ID:                         " << daqHeader->triggerID << "\n"
+	    << "Module ID:                          " << ((daqHeader->group2 & 0xFFF0) >> 4) << "\n"
+	    << "Channel ID:                         " << ((daqHeader->group2 & 0x000F) >> 0) << "\n"
+	    << "External (NOvA) timestamp:          " << FirstSample << " ticks" << "\n"
+            << "                                    " << TimeStamp << " microseconds" << "\n"
+	    << "Since first sample this run:        " << FirstSample-first_FirstSample << " ticks" << "\n"
+            << "                                    " << TimeStamp-first_TimeStamp << " microseconds" << "\n"
+	    << "Peak sum:                           " << peaksum << "\n"
+	    << "Peak time:                          " << ((daqHeader->group3 & 0xFF00) >> 8) << "\n"
+	    << "Prerise:                            " << ((daqHeader->group4 & 0x00FF) << 16) + daqHeader->preriseLow << "\n"
+	    << "Integrated sum:                     " << ((unsigned int)(daqHeader->intSumHigh) << 8) + (((unsigned int)(daqHeader->group4) & 0xFF00) >> 8) << "\n"
+	    << "Baseline:                           " << daqHeader->baseline << "\n"
+	    << "CFD Timestamp interpolation points: " << daqHeader->cfdPoint[0] << " " << daqHeader->cfdPoint[1]
+                                               << " " << daqHeader->cfdPoint[2] << " " << daqHeader->cfdPoint[3] << "\n"
+	    << "Internal interpolation point:       " << daqHeader->intTimestamp[0] << "\n"
+	    << "Internal timestamp:                 " << InternalSample << " ticks\n"
+            << "                                    " << InternalTimeStamp << " microseconds" << "\n"
+	    << "Relative internal timestamp:        " << InternalSample-first_InternalSample << " ticks" << "\n"
+            << "                                    " << InternalTimeStamp-first_InternalTimeStamp << " microseconds"
+            << ""  ;
+
+            
+            
             dataPointer+=sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int);
  
 
 
             unsigned int nADC=(daqHeader->length-sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int))*2;
             const unsigned short* adcPointer=reinterpret_cast<const unsigned short*>(dataPointer);
+
+            // Initialize our 
+            raw::OpDetWaveform Waveform(TimeStamp, OpChannel, nADC);
 
 
             for(size_t idata = 0; idata < nADC; idata++) {
@@ -234,13 +268,12 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
             }
         
 
-            opDetPulseVector->push_back( raw::OpDetPulse( OpChannel, Waveform, PMTFrame, FirstSample ) );
+            opDetWaveformVector->emplace_back( std::move(Waveform) );
             dataPointer+=nADC/2;
             ++triggersProcessed;
-            std::cout<<std::endl<<"Triggers processed: "<<triggersProcessed<<std::endl<<std::endl;
         } // End of loop over triggers
     } // End of loop over fragments (raw)
-    evt.put(std::move(opDetPulseVector), fOutputDataLabel);
+    evt.put(std::move(opDetWaveformVector), fOutputDataLabel);
 
 
 }
