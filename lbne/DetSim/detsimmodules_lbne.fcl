@@ -51,6 +51,8 @@ lbnefd_wienerfilterana:       @local::standard_wienerfilterana
 # For now treat the other lbne geometries like FD
 
 lbne35t_simwire:		@local::lbnefd_simwire
+lbne35t_simwire.CollectionPed:  500         #ADC baseline for coll plane
+lbne35t_simwire.InductionPed:   1800        #ADC baseline for ind plane
 lbne35t_simwireana:             @local::lbnefd_simwireana
 lbne35t_wienerfilterana:        @local::lbnefd_wienerfilterana
 lbne35t_simwire.module_type:    "SimWireLBNE35t"
