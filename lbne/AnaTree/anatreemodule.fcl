@@ -13,6 +13,7 @@ anatree_anatree:
    ClusterModuleLabel:        "cluster"
    CalorimetryModuleLabel:  "calo"
    SimulationLabel: "largeant"
+   MCTruthT0Modulelabel: "mctrutht0"
 
    pdg: 13
    Dump: 10

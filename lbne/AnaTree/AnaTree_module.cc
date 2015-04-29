@@ -38,6 +38,7 @@
 #include "RawData/ExternalTrigger.h"
 #include "MCCheater/BackTracker.h"
 #include "AnalysisBase/Calorimetry.h"
+#include "AnalysisBase/T0.h"
 #include "AnalysisBase/ParticleID.h"
 
 
@@ -242,6 +243,9 @@ private:
   double trktheta_MC[kMaxTrack];
   double trkphi_MC[kMaxTrack];
 
+  double trkMCTruthT0[kMaxTrack];
+  double trkMCTruthPdG[kMaxTrack];
+
   double trktheta_xz[kMaxTrack];
   double trketa_xy[kMaxTrack];
   double trktheta_yz[kMaxTrack];
@@ -312,6 +316,7 @@ private:
   std::string fHitSpptAssocModuleLabel;
   std::string fSimulationProducerLabel; 
   std::string fCalorimetryModuleLabel; 
+  std::string fMCTruthT0Modulelabel;
 
 
 
@@ -344,8 +349,9 @@ AnaTree::AnaTree::AnaTree(fhicl::ParameterSet const & pset)
   , fClusterModuleLabel       (pset.get< std::string >("ClusterModuleLabel"))
   , fTrkSpptAssocModuleLabel    (pset.get< std::string >("TrkSpptAssocModuleLabel"))
   , fHitSpptAssocModuleLabel    (pset.get< std::string >("HitSpptAssocModuleLabel"))
-  ,  fSimulationProducerLabel ( pset.get< std::string >("SimulationLabel"))
-  ,  fCalorimetryModuleLabel ( pset.get< std::string >("CalorimetryModuleLabel"))
+  , fSimulationProducerLabel ( pset.get< std::string >("SimulationLabel"))
+  , fCalorimetryModuleLabel ( pset.get< std::string >("CalorimetryModuleLabel"))
+  , fMCTruthT0Modulelabel     ( pset.get< std::string >("MCTruthT0Modulelabel"))
   , fDump              (pset.get<int>("Dump"))
   , fPdg              (pset.get<int>("pdg"))
   , fMinMCKE            (pset.get<double>("MinMCKE"))
@@ -410,7 +416,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   
   art::Handle< std::vector<sim::SimChannel> > simChannelHandle;
   evt.getByLabel(fSimulationProducerLabel, simChannelHandle);
-  
+ 
   //  Event.getByLabel(fSimulationProducerLabel, particleHandle);
   //  art::Handle< std::vector<simb::MCParticle> > particleHandle;
 
@@ -418,6 +424,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   art::FindMany<recob::Track>       fmtk(hitListHandle, evt, fTrackModuleLabel);
 
   art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
+  art::FindMany<anab::T0>           fmt0( trackListHandle, evt, fMCTruthT0Modulelabel);
 
   //track information
   ntracks_reco=tracklist.size();
@@ -430,8 +437,20 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // Get Cryostat information.........Only taking one cryo atm....
   int c=0;//only one cryo   
   double boundaries[6];
-  geom->CryostatBoundaries(boundaries, c); // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
-   
+  double TempBounds[6];
+  int NCryo = geom->Ncryostats();
+  for ( int b=0; b<6; b++) boundaries[b] = 0;
+  for ( int c1 = 0; c1 < NCryo; c1++ ) {
+    geom->CryostatBoundaries(TempBounds, c); // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
+    if ( boundaries[0] > TempBounds [0] ) boundaries[0] = TempBounds [0];
+    if ( boundaries[1] < TempBounds [1] ) boundaries[1] = TempBounds [1];
+    if ( boundaries[2] > TempBounds [2] ) boundaries[2] = TempBounds [2];
+    if ( boundaries[3] < TempBounds [3] ) boundaries[3] = TempBounds [3];
+    if ( boundaries[4] > TempBounds [4] ) boundaries[4] = TempBounds [4];
+    if ( boundaries[5] < TempBounds [5] ) boundaries[5] = TempBounds [5];
+  }
+  std::cout << boundaries[0] << " " << boundaries[1] << " " << boundaries[2] << " " << boundaries[3] << " " <<boundaries[4] << " " << boundaries[5] << std::endl;
+
   // **********************
   // **********************
   //
@@ -599,20 +618,36 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkdQdxSum[i] += trkdqdx[i][jj][k];
 	  trkdEdxSum[i] += trkdedx2[i][jj][k];
 	}
-	trkdQdxAverage[i] = trkdQdxSum[i] / tt;
-	trkdEdxAverage[i] = trkdEdxSum[i] / tt;
       }
+      trkdQdxAverage[i] = trkdQdxSum[i] / calos.size();
+      trkdEdxAverage[i] = trkdEdxSum[i] / calos.size();
     }
-    
-    
+        
     // *********************
     //  End Calorimetric stuff
     //  
     // *********************
     
-    
-    
-    
+    //***************
+    //   T0 stuff 
+    //***************
+
+    if ( fmt0.isValid() ) {
+      std::vector<const anab::T0*> T0s = fmt0.at(i);
+      for (size_t t0size =0; t0size < T0s.size(); t0size++) { // Possibly unnecessary as for MCTruth at least size=0
+	if (T0s[t0size] -> TriggerType() == 0 ) { // If Trigger 0
+	} // Trig 0
+	if (T0s[t0size] -> TriggerType() == 1 ) { // If Counters
+	  //std::cout << "Using Counter Information!!!! T0 " << T0s[t0size]->Time() << ", Bits " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;	  
+	} // Trig 1
+	if (T0s[t0size] -> TriggerType() == 2 ) { // If MCTruth
+	  //std::cout << "Using Trigger Type Monte Carlo Truth!!! T0 " << T0s[t0size]->Time() << ", PdG " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;
+	  trkMCTruthT0[i]  = T0s[t0size]->Time();
+	  trkMCTruthPdG[i] = T0s[t0size]->TriggerBits();
+	} // Trig 2
+      } // T0 size
+    } // T0 valid
+
     // *********************
     //   Cuts specific quantities
     //  
@@ -1087,6 +1122,8 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkdQdxAverage",trkdQdxAverage,"trkdQdxAverage[ntracks_reco]/D");
   fTree->Branch("trkdEdxSum",trkdEdxSum,"trkdEdxSum[ntracks_reco]/D");
   fTree->Branch("trkdEdxAverage",trkdEdxAverage,"trkdEdxAverage[ntracks_reco]/D");
+  fTree->Branch("trkMCTruthT0",trkMCTruthT0,"trkMCTruthT0[ntracks_reco]/D");
+  fTree->Branch("trkMCTruthPdG",trkMCTruthPdG,"trkMCTruthPdG[ntracks_reco]/D");
   
   fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
   fTree->Branch("trkid_MC",trkid_MC,"trkid_MC[nMCParticles]/I");
@@ -1254,7 +1291,8 @@ void AnaTree::AnaTree::ResetVars(){
     trkmatchdisp[i] = -99999;
     trkwmatchdisp[i] = -99999;
     trklenratio[i] = -99999;
-
+    trkMCTruthT0[i] = -99999;
+    trkMCTruthPdG[i] = -99999;
 
     trkenddcosx[i] = -99999;
     trkenddcosy[i] = -99999;
