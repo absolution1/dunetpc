@@ -119,6 +119,8 @@ void lbne::MCTruthT0Matching::beginJob()
 
 void lbne::MCTruthT0Matching::produce(art::Event & evt)
 {
+  if (evt.isRealData()) return;
+
   // Access art services...
   art::ServiceHandle<geo::Geometry> geom;
   art::ServiceHandle<util::LArProperties> larprop;
