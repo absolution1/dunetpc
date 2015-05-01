@@ -28,7 +28,6 @@ umask 0002
 
 export GROUP=lbne
 export HOME=$CONDOR_DIR_ROOT
-export WORK=/lbne/app/users/ahimmel/testRel_35t_opsim/workdir
 
 CPN=/grid/fermiapp/minos/scripts/cpn
 #CPN="ifdh cp"
@@ -105,13 +104,21 @@ echo "PWD:        " $PWD     1>> ${LOG} 2>&1
 ## This sets all the needed FW and SRT and LD_LIBRARY_PATH envt variables. 
 ## Then we cd back to our TMP area. EC, 23-Nov-2010.
 
-echo "> Setup $GROUP environment"                      1>> ${LOG} 2>&1
-source /grid/fermiapp/$GROUP/software/setup_$GROUP.sh  1>> ${LOG} 2>&1
-#echo "> mrbsetenv"                                     1>> ${LOG} 2>&1
-source $WORK/localProducts_larsoft_*/setup             1>> ${LOG} 2>&1
-echo "> mrbslp"                                        1>> ${LOG} 2>&1
-source $MRB_DIR/bin/setup_local_products               1>> ${LOG} 2>&1
-#setup lbnecode v03_06_00_01 -qe6:prof                  1>> ${LOG} 2>&1
+mrb_top=$3
+mrb_project=$4
+mrb_version=$5
+mrb_quals=$6
+
+echo "> Setup $GROUP environment"                                                              1>> ${LOG} 2>&1
+echo "> source /grid/fermiapp/$GROUP/software/setup_$GROUP.sh"                                 1>> ${LOG} 2>&1
+source /grid/fermiapp/$GROUP/software/setup_$GROUP.sh                                          1>> ${LOG} 2>&1
+echo "> source ${mrb_top}/localProducts_${mrb_project}_${mrb_version}_${mrb_quals/:/_}/setup"  1>> ${LOG} 2>&1
+source ${mrb_top}/localProducts_${mrb_project}_${mrb_version}_${mrb_quals/:/_}/setup           1>> ${LOG} 2>&1
+echo "> mrbslp"                                                                                1>> ${LOG} 2>&1
+source $MRB_DIR/bin/setup_local_products                                                       1>> ${LOG} 2>&1
+#echo "> setup lbnecode"                                                                       1>> ${LOG} 2>&1
+#echo "setup lbnecode $mrb_version -q$mrb_quals"                                               1>> ${LOG} 2>&1
+#setup lbnecode $mrb_version -q$mrb_quals                                                      1>> ${LOG} 2>&1
 
 ENVLOG=$CONDOR_DIR_LOG/environment_${label}.log
 touch $ENVLOG
