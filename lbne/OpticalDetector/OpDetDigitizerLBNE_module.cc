@@ -19,7 +19,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 //#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
-#include "cetlib/exception.h"
+#include "art/Utilities/Exception.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // ART extensions
@@ -91,7 +91,7 @@ namespace opdet {
       // Produce waveform on one of the optical detectors
       void CreateOpDetWaveform(sim::SimPhotonsLite const&, 
                                opdet::OpDetResponseInterface const&,
-                                std::vector< std::vector< float > >&);
+                               std::vector< std::vector< float > >&);
 
   };
 
@@ -116,7 +116,7 @@ namespace opdet {
     produces< std::vector< raw::OpDetWaveform > >();
 
     // Read the fcl-file
-    fInputModule  = pset.get< std:: string >("InputModule" );
+    fInputModule  = pset.get< std::string >("InputModule" );
     fVoltageToADC = pset.get< float       >("VoltageToADC");
     //fSampleFreq   = pset.get< float >("SampleFreq");
     //fTimeBegin    = pset.get< float >("TimeBegin");
@@ -263,18 +263,18 @@ namespace opdet {
                               std::vector< std::vector< float > >& 
                                                                 opDetWaveforms)
   {
-    int channel = opDet.OpChannel;
+    int const channel = opDet.OpChannel;
     int readoutCh;
     // For a group of photons arriving at the same time this is a map
     // of < arrival time (in ns), number of photons >
-    std::map< int, int > photonsMap = opDet.DetectedPhotons;
+    std::map< int, int > const& photonsMap = opDet.DetectedPhotons;
 
     // For every pair of (arrival time, number of photons) in the map:
     for (auto const& pulse : photonsMap)
     {
       // Converting ns to us
       float photonTime = float(pulse.first/1000.0);
-      for (int i = 0; i < pulse.second; i++)
+      for (int i = 0; i < pulse.second; ++i)
       {
         // Sample a random subset according to QE
         if (odResponse.detectedLite(channel, readoutCh) && 
