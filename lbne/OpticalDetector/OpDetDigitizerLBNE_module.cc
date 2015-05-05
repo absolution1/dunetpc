@@ -18,12 +18,12 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-//#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
+#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "art/Utilities/Exception.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // ART extensions
-//#include "artextensions/SeedService/SeedService.hh"
+#include "artextensions/SeedService/SeedService.hh"
 
 // LArSoft includes
 
@@ -36,7 +36,7 @@
 
 // CLHEP includes
 
-//#include "CLHEP/Random/RandBinomial.h"
+#include "CLHEP/Random/RandGauss.h"
 
 // C++ includes
 
@@ -68,7 +68,7 @@ namespace opdet {
       float fVoltageToADC;      // Conversion factor mV to ADC counts
 
       // Random number engines
-      //CLHEP::RandBinomial *fRandBinomial;
+      CLHEP::RandGauss *fRandGauss;
 
       // Function that adds n pulses to a waveform
       void AddPulse(int timeBin, int scale, std::vector< float >& waveform);
@@ -84,6 +84,7 @@ namespace opdet {
                            // of the leading edge in us
       float fBackTime;     // Constant in the exponential function 
                            // of the tail in us
+      float fLineNoise;    // Pedestal RMS in ADC counts
 
       std::vector< float > fSinglePEWaveform;
       void CreateSinglePEWaveform();
@@ -92,6 +93,9 @@ namespace opdet {
       void CreateOpDetWaveform(sim::SimPhotonsLite const&, 
                                opdet::OpDetResponseInterface const&,
                                std::vector< std::vector< float > >&);
+
+      // Vary the pedestal
+      void AddLineNoise(std::vector< std::vector< float > >&);
 
   };
 
@@ -118,6 +122,7 @@ namespace opdet {
     // Read the fcl-file
     fInputModule  = pset.get< std::string >("InputModule" );
     fVoltageToADC = pset.get< float       >("VoltageToADC");
+    fLineNoise    = pset.get< float       >("LineNoise");
     //fSampleFreq   = pset.get< float >("SampleFreq");
     //fTimeBegin    = pset.get< float >("TimeBegin");
     //fTimeEnd      = pset.get< float >("TimeEnd");
@@ -127,7 +132,7 @@ namespace opdet {
     fSampleFreq = timeService->OpticalClock().Frequency();
     fTimeBegin  = timeService->OpticalClock().Time();
     fTimeEnd    = timeService->OpticalClock().FramePeriod();
-/*
+
     // Initializing random number engines
     unsigned int seed = 
              pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
@@ -135,8 +140,8 @@ namespace opdet {
 
     art::ServiceHandle< art::RandomNumberGenerator > rng;
     CLHEP::HepRandomEngine &engine = rng->getEngine();
-    fRandBinomial = new CLHEP::RandBinomial(engine);
-*/
+    fRandGauss = new CLHEP::RandGauss(engine);
+
     // Creating a single photoelectron waveform
     fPulseLength  = 4.0;
     fPeakTime     = 0.260;
@@ -194,14 +199,17 @@ namespace opdet {
     else throw art::Exception(art::errors::UnimplementedFeature)
       << "Sorry, but for now only Lite Photon digitization is implemented!\n";
 
+    // Vary the pedestal
+    AddLineNoise(opDetWaveforms);
+
     for (int channel = 0; channel != nOpChannels; ++channel)
     {
       // Produce ADC pulse of integers rather than floats
       raw::OpDetWaveform adcVec(0.0, channel, nSamples);
 
-      for (short value : opDetWaveforms[channel])
+      for (float value : opDetWaveforms[channel])
       {
-        // 0.5 here is to round the value correctly
+        // Add 0.5 here to round the value correctly
         adcVec.emplace_back(short(value + 0.5));
       }
 
@@ -263,6 +271,7 @@ namespace opdet {
                               std::vector< std::vector< float > >& 
                                                                 opDetWaveforms)
   {
+
     int const channel = opDet.OpChannel;
     int readoutCh;
     // For a group of photons arriving at the same time this is a map
@@ -287,7 +296,19 @@ namespace opdet {
         }
       }
     }
+
   }
 
 
+  //---------------------------------------------------------------------------
+  void OpDetDigitizerLBNE::AddLineNoise
+                           (std::vector< std::vector< float > >& waveforms)
+  {
+
+    for(auto& waveform : waveforms)
+    {
+      for(float& value : waveform) value += float(fRandGauss->fire(0, fLineNoise));
+    }
+
+  }
 }

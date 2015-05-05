@@ -35,6 +35,7 @@
 
 #include <vector>
 #include <cstring>
+#include <iostream>
 
 namespace opdet {
 
@@ -120,12 +121,6 @@ namespace opdet {
       sprintf(histName, "event_%d_opdet_%i", evt.id().event(), 
                                         pulse.ChannelNumber());
 
-      short total = 0;
-      for (size_t tick = 0; tick < pulse.size(); tick++)
-        total += pulse[tick];
-
-      if (total < 1) continue;
-      
       TH1D * waveformHist = nullptr;
 
       waveformHist = tfs->make< TH1D >(histName, ";t (us);",
