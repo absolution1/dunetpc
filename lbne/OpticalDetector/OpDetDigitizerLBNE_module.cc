@@ -37,12 +37,12 @@
 // CLHEP includes
 
 #include "CLHEP/Random/RandGauss.h"
+#include "CLHEP/Random/RandExponential.h"
 
 // C++ includes
 
 #include <vector>
 #include <map>
-//#include <iostream>
 #include <cmath>
 
 namespace opdet {
@@ -68,7 +68,8 @@ namespace opdet {
       float fVoltageToADC;      // Conversion factor mV to ADC counts
 
       // Random number engines
-      CLHEP::RandGauss *fRandGauss;
+      CLHEP::RandGauss       *fRandGauss;
+      CLHEP::RandExponential *fRandExponential;
 
       // Function that adds n pulses to a waveform
       void AddPulse(int timeBin, int scale, std::vector< float >& waveform);
@@ -77,14 +78,15 @@ namespace opdet {
       float Pulse1PE(float time) const;
 
       // Single photoelectron pulse parameters
-      float fPulseLength;  // 1PE pulse length in us
-      float fPeakTime;     // Time when the pulse reaches its maximum in us
-      float fMaxAmplitude; // Maximum amplitude of the pulse in mV
-      float fFrontTime;    // Constant in the exponential function 
-                           // of the leading edge in us
-      float fBackTime;     // Constant in the exponential function 
-                           // of the tail in us
-      float fLineNoise;    // Pedestal RMS in ADC counts
+      float fPulseLength;   // 1PE pulse length in us
+      float fPeakTime;      // Time when the pulse reaches its maximum in us
+      float fMaxAmplitude;  // Maximum amplitude of the pulse in mV
+      float fFrontTime;     // Constant in the exponential function 
+                            // of the leading edge in us
+      float fBackTime;      // Constant in the exponential function 
+                            // of the tail in us
+      float fLineNoise;     // Pedestal RMS in ADC counts
+      float fDarkNoiseRate; // In Hz
 
       std::vector< float > fSinglePEWaveform;
       void CreateSinglePEWaveform();
@@ -97,6 +99,7 @@ namespace opdet {
       // Vary the pedestal
       void AddLineNoise(std::vector< std::vector< float > >&);
 
+      void AddDarkNoise(std::vector< std::vector< float > >&, int);
   };
 
 }
@@ -120,9 +123,10 @@ namespace opdet {
     produces< std::vector< raw::OpDetWaveform > >();
 
     // Read the fcl-file
-    fInputModule  = pset.get< std::string >("InputModule" );
-    fVoltageToADC = pset.get< float       >("VoltageToADC");
-    fLineNoise    = pset.get< float       >("LineNoise");
+    fInputModule   = pset.get< std::string >("InputModule"  );
+    fVoltageToADC  = pset.get< float       >("VoltageToADC" );
+    fLineNoise     = pset.get< float       >("LineNoise"    );
+    fDarkNoiseRate = pset.get< float       >("DarkNoiseRate");
     //fSampleFreq   = pset.get< float >("SampleFreq");
     //fTimeBegin    = pset.get< float >("TimeBegin");
     //fTimeEnd      = pset.get< float >("TimeEnd");
@@ -140,7 +144,8 @@ namespace opdet {
 
     art::ServiceHandle< art::RandomNumberGenerator > rng;
     CLHEP::HepRandomEngine &engine = rng->getEngine();
-    fRandGauss = new CLHEP::RandGauss(engine);
+    fRandGauss        = new CLHEP::RandGauss(engine);
+    fRandExponential  = new CLHEP::RandExponential(engine);
 
     // Creating a single photoelectron waveform
     fPulseLength  = 4.0;
@@ -198,6 +203,9 @@ namespace opdet {
     }
     else throw art::Exception(art::errors::UnimplementedFeature)
       << "Sorry, but for now only Lite Photon digitization is implemented!\n";
+
+    // Generate dark noise
+    AddDarkNoise(opDetWaveforms, nOpChannels);
 
     // Vary the pedestal
     AddLineNoise(opDetWaveforms);
@@ -311,4 +319,28 @@ namespace opdet {
     }
 
   }
+
+  //---------------------------------------------------------------------------
+  void OpDetDigitizerLBNE::AddDarkNoise
+                           (std::vector< std::vector< float > >& waveforms,
+                            int nChannels)
+  {
+
+    for (int channel = 0; channel < nChannels; ++channel)
+    {
+      // Multiply by 10^6 since fDarkNoiseRate is in Hz
+      float darkNoiseTime = 
+        float(fRandExponential->fire(1.0/fDarkNoiseRate)*1000000.0) 
+        + fTimeBegin;
+      while (darkNoiseTime < fTimeEnd) 
+      {
+        int timeBin = int((darkNoiseTime - fTimeBegin)*fSampleFreq);
+        AddPulse(timeBin, 1, waveforms[channel]);
+        darkNoiseTime += 
+          float(fRandExponential->fire(1.0/fDarkNoiseRate)*1000000.0);
+      }
+
+    }
+  }
+
 }
