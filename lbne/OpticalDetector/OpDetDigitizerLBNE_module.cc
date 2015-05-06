@@ -38,6 +38,7 @@
 
 #include "CLHEP/Random/RandGauss.h"
 #include "CLHEP/Random/RandExponential.h"
+#include "CLHEP/Random/RandFlat.h"
 
 // C++ includes
 
@@ -66,10 +67,15 @@ namespace opdet {
       float fTimeBegin;         // Beginning of sample in us
       float fTimeEnd;           // End of sample in us
       float fVoltageToADC;      // Conversion factor mV to ADC counts
+      float fLineNoise;         // Pedestal RMS in ADC counts
+      float fDarkNoiseRate;     // In Hz
+      float fCrossTalk;         // Probability of SiPM producing 2 PE signal
+                                // in response to 1 photon
 
       // Random number engines
       CLHEP::RandGauss       *fRandGauss;
       CLHEP::RandExponential *fRandExponential;
+      CLHEP::RandFlat        *fRandFlat;
 
       // Function that adds n pulses to a waveform
       void AddPulse(int timeBin, int scale, std::vector< float >& waveform);
@@ -85,8 +91,6 @@ namespace opdet {
                             // of the leading edge in us
       float fBackTime;      // Constant in the exponential function 
                             // of the tail in us
-      float fLineNoise;     // Pedestal RMS in ADC counts
-      float fDarkNoiseRate; // In Hz
 
       std::vector< float > fSinglePEWaveform;
       void CreateSinglePEWaveform();
@@ -100,6 +104,8 @@ namespace opdet {
       void AddLineNoise(std::vector< std::vector< float > >&);
 
       void AddDarkNoise(std::vector< std::vector< float > >&, int);
+
+      int CrossTalk() const;
   };
 
 }
@@ -127,6 +133,7 @@ namespace opdet {
     fVoltageToADC  = pset.get< float       >("VoltageToADC" );
     fLineNoise     = pset.get< float       >("LineNoise"    );
     fDarkNoiseRate = pset.get< float       >("DarkNoiseRate");
+    fCrossTalk     = pset.get< float       >("CrossTalk"    );
     //fSampleFreq   = pset.get< float >("SampleFreq");
     //fTimeBegin    = pset.get< float >("TimeBegin");
     //fTimeEnd      = pset.get< float >("TimeEnd");
@@ -146,6 +153,7 @@ namespace opdet {
     CLHEP::HepRandomEngine &engine = rng->getEngine();
     fRandGauss        = new CLHEP::RandGauss(engine);
     fRandExponential  = new CLHEP::RandExponential(engine);
+    fRandFlat         = new CLHEP::RandFlat(engine);
 
     // Creating a single photoelectron waveform
     fPulseLength  = 4.0;
@@ -300,7 +308,7 @@ namespace opdet {
           // Convert the time of the pulse to ticks
           int timeBin = int((photonTime - fTimeBegin)*fSampleFreq);
           // Add 1 pulse to the waveform
-          AddPulse(timeBin, 1, opDetWaveforms[readoutCh]);
+          AddPulse(timeBin, CrossTalk(), opDetWaveforms[readoutCh]);
         }
       }
     }
@@ -335,12 +343,19 @@ namespace opdet {
       while (darkNoiseTime < fTimeEnd) 
       {
         int timeBin = int((darkNoiseTime - fTimeBegin)*fSampleFreq);
-        AddPulse(timeBin, 1, waveforms[channel]);
+        AddPulse(timeBin, CrossTalk(), waveforms[channel]);
         darkNoiseTime += 
           float(fRandExponential->fire(1.0/fDarkNoiseRate)*1000000.0);
       }
 
     }
+  }
+  
+  //---------------------------------------------------------------------------
+  int OpDetDigitizerLBNE::CrossTalk() const
+  {
+    if (fRandFlat->fire(1.0) > fCrossTalk) return 1;
+    else                                   return 2;
   }
 
 }
