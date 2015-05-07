@@ -114,17 +114,30 @@ void DAQToOffline::SSPToOffline::printParameterSet(){
 void DAQToOffline::SSPToOffline::produce(art::Event & evt)
 {
 
-  art::Handle<artdaq::Fragments> raw;
-  evt.getByLabel(fRawDataLabel, fFragType, raw);
+  art::Handle<artdaq::Fragments> rawFragments;
+  evt.getByLabel(fRawDataLabel, fFragType, rawFragments);
 
-  //std::vector <raw::OpDetWaveform> opDetWaveformVector 
-  auto waveform = SSPFragmentToOpDetWaveform(raw, 
-					     fNOvAClockFrequency,
-					     evt.run(),
-					     evt.subRun(),
-					     evt.event());
+  // Check if there is SSP data in this event
+  // Don't crash code if not present, just don't save anything
+  try { rawFragments->size(); }
+  catch(std::exception e) {
+    mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << evt.event();
+    return;
+  }
 
-  evt.put(std::make_unique<decltype(waveform)>(std::move(waveform)), fOutputDataLabel);
+  // Check that the data is valid
+  if(!rawFragments.isValid()){
+    mf::LogError("SSPToOffline") << "Run: " << evt.run()
+				 << ", SubRun: " << evt.subRun()
+				 << ", Event: " << evt.event()
+				 << " is NOT VALID";
+    throw cet::exception("raw NOT VALID");
+    return;
+  }
+
+  auto waveforms = SSPFragmentToOpDetWaveform(*rawFragments, fNOvAClockFrequency);
+
+  evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
 
 
 }
