@@ -124,7 +124,7 @@ namespace opdet {
 
       waveformHist = tfs->make< TH1D >(histName, ";t (us);",
                                        int((fTimeEnd - fTimeBegin)
-                                           *fSampleFreq + 1),
+                                                 *fSampleFreq - 1),
                                               fTimeBegin, fTimeEnd);
 
       for (size_t tick = 0; tick < pulse.size(); tick++)

@@ -71,6 +71,7 @@ namespace opdet {
       float fDarkNoiseRate;     // In Hz
       float fCrossTalk;         // Probability of SiPM producing 2 PE signal
                                 // in response to 1 photon
+      short fPedestal;          // In ADC counts
 
       // Random number engines
       CLHEP::RandGauss       *fRandGauss;
@@ -134,9 +135,7 @@ namespace opdet {
     fLineNoise     = pset.get< float       >("LineNoise"    );
     fDarkNoiseRate = pset.get< float       >("DarkNoiseRate");
     fCrossTalk     = pset.get< float       >("CrossTalk"    );
-    //fSampleFreq   = pset.get< float >("SampleFreq");
-    //fTimeBegin    = pset.get< float >("TimeBegin");
-    //fTimeEnd      = pset.get< float >("TimeEnd");
+    fPedestal      = pset.get< short       >("Pedestal"     );
 
     // Obtaining parameters from the TimeService
     art::ServiceHandle< util::TimeService > timeService;
@@ -197,7 +196,8 @@ namespace opdet {
 
     // This vector stores waveforms we create for each optical detector
     std::vector< std::vector< float > > 
-               opDetWaveforms(nOpChannels, std::vector< float >(nSamples,0.0));
+               opDetWaveforms(nOpChannels, 
+                              std::vector< float >(nSamples,float(fPedestal)));
 
     if (fUseLitePhotons)
     {
