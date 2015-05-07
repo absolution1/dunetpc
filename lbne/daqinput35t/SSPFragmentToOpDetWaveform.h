@@ -20,11 +20,7 @@ namespace DAQToOffline {
   // checked.
 
   std::vector<raw::OpDetWaveform>
-    SSPFragmentToOpDetWaveform(art::Handle<artdaq::Fragments> const& raw, 
-			       const double NOvAClockFrequency, 
-			       const art::RunNumber_t runNumber,
-			       const art::SubRunNumber_t subRunNumber,
-                               const art::EventNumber_t eventNumber);
+    SSPFragmentToOpDetWaveform(artdaq::Fragments const& raw, const double NOvAClockFrequency);
 
 }
 #endif
