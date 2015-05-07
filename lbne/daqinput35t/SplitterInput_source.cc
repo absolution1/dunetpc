@@ -22,6 +22,7 @@
 
 // lbne
 #include "lbne/daqinput35t/tpcFragmentToRawDigits.h"
+#include "lbne/daqinput35t/SSPFragmentToOpDetWaveform.h"
 
 // C++
 #include <functional>
@@ -150,7 +151,8 @@ namespace DAQToOffline
     string                 lastFileName_;
     std::unique_ptr<TFile> file_;
     bool                   doneWithFiles_;
-    art::InputTag          inputTag_;
+    art::InputTag          TPCinputTag_;
+    art::InputTag          SSPinputTag_;
     art::SourceHelper      sh_;
     TBranch*               fragmentsBranch_;
     LoadedDigits           loadedDigits_;
@@ -183,7 +185,9 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   lastFileName_(ps.get<vector<string>>("fileNames",{}).back()),
   file_(),
   doneWithFiles_(false),
-  inputTag_("daq:TPC:DAQ"), // "moduleLabel:instance:processName"
+  //  TPCinputTag_("daq:TPC:DAQ"), // "moduleLabel:instance:processName"
+  TPCinputTag_(ps.get<string>("TPCInputTag")), // "moduleLabel:instance:processName"
+  SSPinputTag_(ps.get<string>("SSPInputTag")), // "moduleLabel:instance:processName"
   sh_(sh),
   fragmentsBranch_(nullptr),
   nInputEvts_(),
@@ -202,7 +206,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
 {
   // Will use same instance name for the outgoing products as for the
   // incoming ones.
-  prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, inputTag_.instance() );
+  prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, TPCinputTag_.instance() );
 }
 
 //=======================================================================================
@@ -221,7 +225,7 @@ DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb)
   // Get fragments branch
   file_.reset( new TFile(filename.data()) );
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
-  fragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( inputTag_ ) ); // get branch for specific input tag
+  fragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( TPCinputTag_ ) ); // get branch for specific input tag
   nInputEvts_      = static_cast<size_t>( fragmentsBranch_->GetEntries() );
   treeIndex_       = 0ul;
 
@@ -317,7 +321,7 @@ DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE){
   art::put_product_in_principal( std::make_unique<rawDigits_t>(bufferedDigits_),
                                  *outE,
                                  sourceName_,
-                                 inputTag_.instance() );
+                                 TPCinputTag_.instance() );
   mf::LogDebug("DigitsTest") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " digits";
   bufferedDigits_.clear();
 }
