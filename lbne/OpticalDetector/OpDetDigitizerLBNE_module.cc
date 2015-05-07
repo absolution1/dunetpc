@@ -225,8 +225,8 @@ namespace opdet {
 
       for (float value : opDetWaveforms[channel])
       {
-        // Add 0.5 here to round the value correctly
-        adcVec.emplace_back(short(value + 0.5));
+        // Round the value, then cast to short
+        adcVec.emplace_back(short(std::roundf(value)));
       }
 
       pulseVecPtr->emplace_back(std::move(adcVec));

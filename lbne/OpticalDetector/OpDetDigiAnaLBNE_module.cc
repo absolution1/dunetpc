@@ -35,7 +35,6 @@
 
 #include <vector>
 #include <cstring>
-#include <iostream>
 
 namespace opdet {
 
