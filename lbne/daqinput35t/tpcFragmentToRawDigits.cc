@@ -48,7 +48,6 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, bool
 
   art::ServiceHandle<geo::Geometry> geometry;
   size_t numChans = geometry->Nchannels();
-
   for(size_t chan=0;chan < numChans;chan++){
 
     //Each channel is uniquely identified by (fragmentID, group, sample) in an online event
@@ -77,7 +76,7 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, bool
     unsigned int fragIndex = mapFragID[fragmentID];
 
     if (debug) std::cout << "fragIndex: " << fragIndex << std::endl;
-    
+
     std::vector<short> adcvec;
 
 
