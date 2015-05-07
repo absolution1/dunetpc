@@ -18,33 +18,14 @@
 
 
 std::vector<raw::OpDetWaveform>
-DAQToOffline::SSPFragmentToOpDetWaveform(art::Handle<artdaq::Fragments> const& raw, const double NOvAClockFrequency, 
-			   const art::RunNumber_t runNumber,
-			   const art::SubRunNumber_t subRunNumber,
-			   const art::EventNumber_t eventNumber)
+DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, const double NOvAClockFrequency)
 {
   std::vector<raw::OpDetWaveform> opDetWaveformVector;
 
-  // Check if there is SSP data in this event
-  // Don't crash code if not present, just don't save anything
-  try { raw->size(); }
-  catch(std::exception e) {
-    mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << eventNumber;
-    return opDetWaveformVector;
-  }
+  unsigned int numFragments = rawFragments.size();
 
-  // Check that the data is valid
-  if(!raw.isValid()){
-    mf::LogError("SSPToOffline") << "Run: " << runNumber 
-				 << ", SubRun: " << subRunNumber
-				 << ", Event: " << eventNumber
-				 << " is NOT VALID";
-    throw cet::exception("raw NOT VALID");
-    return opDetWaveformVector;
-  }
-
-  for (size_t idx = 0; idx < raw->size(); ++idx) {
-    const auto& frag((*raw)[idx]);
+  for (size_t idx = 0; idx < numFragments; ++idx) {
+    const auto& frag(rawFragments[idx]);
 
     lbne::SSPFragment sspf(frag);
 
@@ -175,7 +156,7 @@ DAQToOffline::SSPFragmentToOpDetWaveform(art::Handle<artdaq::Fragments> const& r
       dataPointer+=nADC/2;
       ++triggersProcessed;
     } // End of loop over triggers
-  } // End of loop over fragments (raw)
+  } // End of loop over fragments (rawFragments)
 
   return opDetWaveformVector;
 }
