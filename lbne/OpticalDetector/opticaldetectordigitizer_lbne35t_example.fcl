@@ -38,11 +38,11 @@ physics:
       {
         module_type:  "OpDetDigitizerLBNE"
         InputModule:  "largeant" # Module that created OpDetPulses (OpticalRawDigits)
-#        QE:           0.16       # Quantum efficiency of photon detectors
-#        SampleFreq:   0.15       # Sampling frequency in GHz
-#        TimeBegin:    0.0        # Readout window begin in ns
-#        TimeEnd:      1600000.0  # Readout window end in ns
-        VoltageToADC: 151.5       # Converting mV to ADC counts (counts in 1 mV)
+        VoltageToADC: 151.5      # Converting mV to ADC counts (counts in 1 mV)
+        LineNoise:      2.6      # Pedestal RMS in ADC counts
+        DarkNoiseRate: 10.0      # In Hz
+        CrossTalk:      0.165    # Probability of producing 2 PE for 1 incident photon
+        Pedestal:    1500        # in ADC counts
       } 
       rns:       { module_type: "RandomNumberSaver" }
    }
@@ -54,9 +54,6 @@ physics:
       {
         module_type:  "OpDetDigiAnaLBNE"
         InputModule:  "opdigi"  # Module that created OpDetPulses (OpticalRawDigits)
-#        SampleFreq:   0.15      # Sampling frequency in GHz
-#        TimeBegin:    0.0       # Readout window begin in ns
-#        TimeEnd:      1600000.0 # Readout window end in ns
       } 
    }
    
