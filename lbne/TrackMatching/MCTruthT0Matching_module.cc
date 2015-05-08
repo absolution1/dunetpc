@@ -82,6 +82,7 @@ private:
 
   // Variable in TFS branches
   TTree* fTree;
+  int    TrackID      = 0;
   int    TrueTrackID  = 0;
   int    TrueTriggerType = 0;
   double TrueTrackT0  = 0;  
@@ -143,7 +144,9 @@ void lbne::MCTruthT0Matching::produce(art::Event & evt)
   
   // Now to access MCTruth for each track... 
   for(size_t iTrk=0; iTrk < NTracks; ++iTrk) { 
-
+    TrueTrackT0 = 0;
+    TrackID     = 0;
+    TrueTrackID = 0;
     std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(iTrk);
       
     std::map<int,double> trkide;
@@ -163,13 +166,14 @@ void lbne::MCTruthT0Matching::produce(art::Event & evt)
       tote += ii->second;
       if ((ii->second)>maxe){
 	maxe = ii->second;
-	TrueTrackID = ii->first;
+	TrackID = ii->first;
       }
     }
 
     // Now have trackID, so get PdG code and T0 etc.
-    const simb::MCParticle *particle = bt->TrackIDToParticle(TrueTrackID);
-    TrueTrackT0  = particle->T();
+    const simb::MCParticle *particle = bt->TrackIDToParticle(TrackID);
+    TrueTrackT0 = particle->T();
+    TrueTrackID = particle->TrackId();
         
     TrueTriggerType = 2; // Using MCTruth as trigger, so tigger type is 2.
 
