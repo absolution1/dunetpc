@@ -56,6 +56,29 @@ using std::string;
 
 namespace {
 
+  struct LoadedWaveforms {
+
+    LoadedWaveforms() : waveforms(), index() {}
+
+    vector<OpDetWaveform> waveforms;
+    size_t index;
+
+    void assign( vector<OpDetWaveform> const & v ) {
+      waveforms = v;
+      index = 0ul;
+    }
+
+    // not really used 
+    bool empty() const 
+    { 
+      if (waveforms.size() == 0) return true;
+      return false;
+    }
+
+    // provide a method to dig out a particular OpDetWaveform at a particular time
+
+  };
+
 
   struct LoadedDigits {
 
@@ -179,8 +202,10 @@ namespace DAQToOffline
     art::InputTag          SSPinputTag_;
     double                 fNOvAClockFrequency; // MHz
     art::SourceHelper      sh_;
-    TBranch*               fragmentsBranch_;
+    TBranch*               TPCfragmentsBranch_;
+    TBranch*               SSPfragmentsBranch_;
     LoadedDigits           loadedDigits_;
+    LoadedWaveforms        loadedWaveforms_;
     size_t                 digitIndex_;
     size_t                 nInputEvts_;
     size_t                 treeIndex_;
@@ -218,7 +243,8 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   SSPinputTag_(ps.get<string>("SSPInputTag")), // "moduleLabel:instance:processName"
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
   sh_(sh),
-  fragmentsBranch_(nullptr),
+  TPCfragmentsBranch_(nullptr),
+  SSPfragmentsBranch_(nullptr),
   nInputEvts_(),
   runNumber_(1),      // Defaults in case input filename does not
   subRunNumber_(0),   // follow assumed filename_format above.
@@ -253,11 +279,14 @@ DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb)
     subRunNumber_    = std::stoul( matches[2] );
   }
 
-  // Get fragments branch
+  // Get fragments branches
   file_.reset( new TFile(filename.data()) );
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
-  fragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( TPCinputTag_ ) ); // get branch for specific input tag
-  nInputEvts_      = static_cast<size_t>( fragmentsBranch_->GetEntries() );
+  TPCfragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( TPCinputTag_ ) ); // get branch for TPC input tag
+  SSPfragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( SSPinputTag_ ) ); // get branch for SSP input tag
+  nInputEvts_      = static_cast<size_t>( TPCfragmentsBranch_->GetEntries() );
+  size_t nevt_ssp  = static_cast<size_t>( SSPfragmentsBranch_->GetEntries() );
+  if (nevt_ssp != nInputEvts_) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and SSP input events in file");
   treeIndex_       = 0ul;
 
   // New fileblock
@@ -373,9 +402,13 @@ bool
 DAQToOffline::Splitter::loadDigits_()
 {
   if ( loadedDigits_.empty() && treeIndex_ != nInputEvts_ ) {
-    auto* fragments = getFragments( fragmentsBranch_, treeIndex_++ );
+    auto* SSPfragments = getFragments( SSPfragmentsBranch_, treeIndex_ );
+    auto* fragments = getFragments( TPCfragmentsBranch_, treeIndex_++ );
     rawDigits_t const digits = fragmentsToDigits_( *fragments );
     loadedDigits_.assign( digits );
+    std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency);
+    loadedWaveforms_.assign( waveforms );
+    // todo -- unpack SSP fragments
     return true;
   }
   else return false;
