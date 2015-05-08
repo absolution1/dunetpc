@@ -47,6 +47,10 @@ using std::string;
 //  Deal with ZS data -- currently this assumes non-ZS data
 //  Discover if an event is not contiguous with the next event and do not stitch in that case -- dump the
 //    loaded digits and the partially constructed event and start over
+//  Make it capable of splitting MC as well -- already have raw::RawDigit and raw::OpDetWaveform data products
+//    in the MC
+//  There's an assumption that the channels are the same event to event and they come in the same order --
+//    would need a list of channels from one event to another to look it up properly
 
 //==========================================================================
 
