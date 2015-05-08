@@ -36,6 +36,7 @@
 #include "TFile.h"
 
 using raw::RawDigit;
+using raw::OpDetWaveform;
 using std::vector;
 using std::string;
 
@@ -56,11 +57,21 @@ namespace {
       index = 0ul;
     }
 
-    bool empty() const { return index == digits.size(); }
+    bool empty() const 
+    { 
+      if (digits.size() == 0) return true;
+      if (index == digits[0].Samples()) return true; 
+      return false;
+    }
 
-    RawDigit next() {
+    RawDigit::ADCvector_t next() {
       ++index;
-      return digits.at(index-1);
+      RawDigit::ADCvector_t digitsatindex;
+      for (size_t ichan=0; ichan<digits.size(); ichan++)
+	{
+	  digitsatindex.push_back(digits[ichan].ADC(index-1));
+	}
+      return digitsatindex;
     }
 
   };
@@ -146,6 +157,7 @@ namespace DAQToOffline
   private:
 
     using rawDigits_t = vector<RawDigit>;
+    using SSPWaveform_t = vector<OpDetWaveform>;
 
     string                 sourceName_;
     string                 lastFileName_;
@@ -153,6 +165,7 @@ namespace DAQToOffline
     bool                   doneWithFiles_;
     art::InputTag          TPCinputTag_;
     art::InputTag          SSPinputTag_;
+    double                 fNOvAClockFrequency; // MHz
     art::SourceHelper      sh_;
     TBranch*               fragmentsBranch_;
     LoadedDigits           loadedDigits_;
@@ -164,8 +177,10 @@ namespace DAQToOffline
     art::EventNumber_t     eventNumber_;
     art::RunNumber_t       cachedRunNumber_;
     art::SubRunNumber_t    cachedSubRunNumber_;
-    size_t                 bufferLimit_;
+    size_t                 ticksPerEvent_;
     rawDigits_t            bufferedDigits_;
+    std::vector<RawDigit::ADCvector_t>  dbuf_;
+    unsigned short         fTicksAccumulated;
 
     std::function<rawDigits_t(artdaq::Fragments const&)> fragmentsToDigits_;
 
@@ -174,6 +189,7 @@ namespace DAQToOffline
     bool loadDigits_();
 
     void makeEventAndPutDigits_( art::EventPrincipal*& outE );
+
   };
 }
 
@@ -188,6 +204,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   //  TPCinputTag_("daq:TPC:DAQ"), // "moduleLabel:instance:processName"
   TPCinputTag_(ps.get<string>("TPCInputTag")), // "moduleLabel:instance:processName"
   SSPinputTag_(ps.get<string>("SSPInputTag")), // "moduleLabel:instance:processName"
+  fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
   sh_(sh),
   fragmentsBranch_(nullptr),
   nInputEvts_(),
@@ -196,8 +213,10 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   eventNumber_(),
   cachedRunNumber_(-1),
   cachedSubRunNumber_(-1),
-  bufferLimit_(ps.get<size_t>("rawDigitsPerEvent")),
+  ticksPerEvent_(ps.get<size_t>("ticksPerEvent")),
   bufferedDigits_(),
+  dbuf_(),
+  fTicksAccumulated(0),
   fragmentsToDigits_( std::bind( DAQToOffline::tpcFragmentToRawDigits,
                                  std::placeholders::_1, // artdaq::Fragments
                                  ps.get<bool>("debug",false),
@@ -265,21 +284,58 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     eventNumber_ = 0ul;
   }
 
-  // eventIsFull_ is what LBNE should modify based on its needs
-  while ( !eventIsFull_( bufferedDigits_ ) ) {
+  while ( fTicksAccumulated < ticksPerEvent_ ) {
 
-    if ( loadedDigits_.empty() && !loadDigits_() ) {
-      if ( file_->GetName() != lastFileName_ )
-        return false;
-      else {
-        doneWithFiles_ = true;
-        break;
+
+    while (loadedDigits_.empty())
+      {
+	bool rc = loadDigits_();
+	if (!rc)
+	  {
+	    if (file_->GetName() != lastFileName_)
+	      { return false; }
+	    else
+	      { 
+		doneWithFiles_ = true; 
+		break;
+	      }
+	  }
       }
-    }
 
-    bufferedDigits_.emplace_back( loadedDigits_.next() );
+    // original code from artists.  Doesn't retry if we still have no digits
+    // if ( loadedDigits_.empty() && !loadDigits_() ) {
+    //  if ( file_->GetName() != lastFileName_ )
+    //    return false;
+    //  else {
+    //    doneWithFiles_ = true;
+    //    break;  // the last event may be short if we cannot stitch with the next
+    //  }
+    // }
 
+    std::vector<short> nextdigits = loadedDigits_.next(); 
+    if (dbuf_.size() == 0)
+      {
+	RawDigit::ADCvector_t emptyvector; 
+	for (size_t ichan=0;ichan<nextdigits.size();ichan++) dbuf_.push_back(emptyvector);
+      }
+    for (size_t ichan=0;ichan<nextdigits.size();ichan++)
+      {
+	dbuf_[ichan].push_back(nextdigits[ichan]);
+      }
+    fTicksAccumulated ++;
   }
+
+  // copy all the info (channel number, digits, pedestal, sigma, compression) from the current loaded digits
+
+  for (size_t ichan=0;ichan<dbuf_.size();ichan++)
+    {
+      RawDigit d(loadedDigits_.digits[ichan].Channel(),
+                 fTicksAccumulated,dbuf_[ichan],
+                 loadedDigits_.digits[ichan].Compression());
+      d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
+                    loadedDigits_.digits[ichan].GetSigma());
+      bufferedDigits_.emplace_back(d);
+    }
 
   makeEventAndPutDigits_( outE );
   return true;
@@ -297,7 +353,7 @@ DAQToOffline::Splitter::closeCurrentFile()
 bool
 DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v )
 {
-  return v.size() == bufferLimit_;
+  return v.size() == ticksPerEvent_;
 }
 
 //=======================================================================================
@@ -324,6 +380,9 @@ DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE){
                                  TPCinputTag_.instance() );
   mf::LogDebug("DigitsTest") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " digits";
   bufferedDigits_.clear();
+  for (size_t ichan=0;ichan<dbuf_.size();ichan++) { dbuf_[ichan].clear(); }
+  dbuf_.clear();
+  fTicksAccumulated = 0;
 }
 
 //=======================================================================================
