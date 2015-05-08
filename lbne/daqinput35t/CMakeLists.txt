@@ -7,6 +7,8 @@ art_make(LIB_LIBRARIES
 	${ART_PERSISTENCY_PROVENANCE}
 	${ART_UTILITIES}
 	${ROOT_CORE}
+        ${MF_MESSAGELOGGER}
+        ${MF_UTILITIES}
 	Geometry_service
 	Geometry
 	lbne_daqinput35t_utilities
