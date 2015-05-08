@@ -16,6 +16,7 @@
 #include "lbne-raw-data/Overlays/SSPFragment.hh"
 #include "lbne-raw-data/Overlays/anlTypes.hh"
 
+// NOvAClockFrequency is in MHz.
 
 std::vector<raw::OpDetWaveform>
 DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, const double NOvAClockFrequency)
