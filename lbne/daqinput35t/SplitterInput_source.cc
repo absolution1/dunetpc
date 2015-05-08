@@ -40,6 +40,14 @@ using raw::OpDetWaveform;
 using std::vector;
 using std::string;
 
+// TODO:
+//  Split the SSP data too.
+//  Change the index in the loadeddigits based on where we want to draw the split
+//  Put in external trigger (Penn board) info when we get it
+//  Deal with ZS data -- currently this assumes non-ZS data
+//  Discover if an event is not contiguous with the next event and do not stitch in that case -- dump the
+//    loaded digits and the partially constructed event and start over
+
 //==========================================================================
 
 namespace {
