@@ -1,8 +1,6 @@
 #ifndef tpcFragmentToRawDigits_h
 #define tpcFragmentToRawDigits_h
 
-#include "art/Persistency/Provenance/EventID.h"
-#include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/Fragments.hh"
 
 // From lardata
@@ -17,11 +15,10 @@ namespace DAQToOffline {
   // checked.
 
   std::vector<raw::RawDigit>
-  tpcFragmentToRawDigits(art::EventID const& id,
-			 artdaq::Fragments const& rawFragments,
-			 bool debug,
-			 raw::Compress_t compression,
-			 unsigned int zeroThreshold);
+  tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
+                         bool debug,
+                         raw::Compress_t compression,
+                         unsigned int zeroThreshold);
 }
 
 #endif
