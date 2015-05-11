@@ -70,6 +70,6 @@ lbnefd_signalshapingservice:
 # 35t is the same for now
 
 lbne35t_signalshapingservice:   @local::lbnefd_signalshapingservice
-
+lbne35t_signalshapingservice.ADCPerPCAtLowestASICGain: 11700 #ADC/pC   (For correct Digitization)
 
 END_PROLOG

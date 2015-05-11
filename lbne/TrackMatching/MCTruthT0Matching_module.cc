@@ -10,7 +10,6 @@
 // Framework includes
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
-#include "art/Framework/Principal/Event.h"
 #include "art/Framework/Core/FindManyP.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Event.h" 
@@ -83,8 +82,8 @@ private:
 
   // Variable in TFS branches
   TTree* fTree;
+  int    TrackID      = 0;
   int    TrueTrackID  = 0;
-  int    TrueTrackPDG = 0;
   int    TrueTriggerType = 0;
   double TrueTrackT0  = 0;  
 };
@@ -113,12 +112,14 @@ void lbne::MCTruthT0Matching::beginJob()
   fTree = tfs->make<TTree>("MCTruthT0Matching","MCTruthT0");
   fTree->Branch("TrueTrackID" ,&TrueTrackID ,"TrueTrackID/I");
   fTree->Branch("TrueTrackT0" ,&TrueTrackT0 ,"TrueTrackT0/D");
-  fTree->Branch("TrueTrackPDG",&TrueTrackPDG,"TrueTrackPDG/D");
+  fTree->Branch("TrueTrackID",&TrueTrackID,"TrueTrackID/D");
 
 }
 
 void lbne::MCTruthT0Matching::produce(art::Event & evt)
 {
+  if (evt.isRealData()) return;
+
   // Access art services...
   art::ServiceHandle<geo::Geometry> geom;
   art::ServiceHandle<util::LArProperties> larprop;
@@ -143,7 +144,9 @@ void lbne::MCTruthT0Matching::produce(art::Event & evt)
   
   // Now to access MCTruth for each track... 
   for(size_t iTrk=0; iTrk < NTracks; ++iTrk) { 
-
+    TrueTrackT0 = 0;
+    TrackID     = 0;
+    TrueTrackID = 0;
     std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(iTrk);
       
     std::map<int,double> trkide;
@@ -163,22 +166,22 @@ void lbne::MCTruthT0Matching::produce(art::Event & evt)
       tote += ii->second;
       if ((ii->second)>maxe){
 	maxe = ii->second;
-	TrueTrackID = ii->first;
+	TrackID = ii->first;
       }
     }
 
     // Now have trackID, so get PdG code and T0 etc.
-    const simb::MCParticle *particle = bt->TrackIDToParticle(TrueTrackID);
-    TrueTrackT0  = particle->T();
-    TrueTrackPDG = particle->PdgCode();
-    
+    const simb::MCParticle *particle = bt->TrackIDToParticle(TrackID);
+    TrueTrackT0 = particle->T();
+    TrueTrackID = particle->TrackId();
+        
     TrueTriggerType = 2; // Using MCTruth as trigger, so tigger type is 2.
 
-    std::cout << "Filling T0col with " << TrueTrackT0 << " " << TrueTriggerType << " " << TrueTrackPDG << " " << (*T0col).size() << std::endl;
+    std::cout << "Filling T0col with " << TrueTrackT0 << " " << TrueTriggerType << " " << TrueTrackID << " " << (*T0col).size() << std::endl;
     
     T0col->push_back(anab::T0(TrueTrackT0,
 			      TrueTriggerType,
-			      TrueTrackPDG,
+			      TrueTrackID,
 			      (*T0col).size()
 			      ));
     util::CreateAssn(*this, evt, *T0col, tracklist[iTrk], *assn);    

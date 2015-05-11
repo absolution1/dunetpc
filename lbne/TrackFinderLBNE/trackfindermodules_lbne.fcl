@@ -35,5 +35,9 @@ lbne35t_track3Dkalmanhit.KalmanFilterAlg:            @local::lbne35t_kalmanfilte
 lbne35t_track3Dkalmanhit.SeedFinderAlg:              @local::lbne35t_seedfinderalgorithm
 lbne35t_track3Dkalmanhit.SpacePointAlg:              @local::lbne35t_spacepointalg
 
+lbne35t_cctrackmaker:                          @local::standard_cctrackmaker
+lbne35t_cctrackmaker.HitModuleLabel:           "linecluster"
+lbne35t_cctrackmaker.ClusterModuleLabel:       "linecluster"
+lbne35t_cctrackmaker.VertexModuleLabel:        "linecluster"
 
 END_PROLOG

@@ -12,6 +12,14 @@
 //
 ////////////////////////////////////////////////////////////////////////
 // Framework includes
+//#include "art/Framework/Core/EDProducer.h"
+//#include "art/Framework/Core/FindManyP.h"
+//#include "art/Framework/Principal/Run.h"
+//#include "art/Framework/Principal/SubRun.h"
+//#include "art/Utilities/InputTag.h"
+//#include <iterator>
+//#include "SimpleTypesAndConstants/PhysicalConstants.h"
+
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Principal/Event.h" 
@@ -38,9 +46,8 @@
 #include "RawData/ExternalTrigger.h"
 #include "MCCheater/BackTracker.h"
 #include "AnalysisBase/Calorimetry.h"
+#include "AnalysisBase/T0.h"
 #include "AnalysisBase/ParticleID.h"
-
-
 
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
@@ -72,98 +79,7 @@ namespace AnaTree {
 namespace {
 
   // Local functions.
-
-  // Calculate distance to boundary.
-
-  //----------------------------------------------------------------------------
-  // removed
-
-  // Length of reconstructed track.
-  //----------------------------------------------------------------------------
-  /*
-  double length(const recob::Track& track)
-  {
-    double result = 0.;
-    TVector3 disp = track.LocationAtPoint(0);
-    int n = track.NumberTrajectoryPoints();
-    for(int i = 1; i < n; ++i) {
-      const TVector3& pos = track.LocationAtPoint(i);
-
-      disp -= pos;
-
-      result += disp.Mag();
-
-      disp = pos;
-    }
-    //    mf::LogVerbatim("output") << " length (track) " << result;
-    return result;
-  }
-  */
-  // Length of MC particle.
-  //----------------------------------------------------------------------------
-  double length(const simb::MCParticle& part, double dx,
-                TVector3& start, TVector3& end, TVector3& startmom, TVector3& endmom,
-                unsigned int /*tpc*/ = 0, unsigned int /*cstat*/ = 0)
-  {
-
-    // Get services.
-    art::ServiceHandle<geo::Geometry> geom;
-    art::ServiceHandle<util::DetectorProperties> detprop;
-
-    double result = 0.;
-
-    TVector3 disp;
-
-    int n = part.NumberTrajectoryPoints();
-
-    bool first = true;
-    //    std::cout<< " n is " << n << std::endl;
-    for(int i = 0; i < n; ++i) {
-
-      TVector3 pos = part.Position(i).Vect();
-
-      // Make fiducial cuts.  Require the particle to be within the physical volume of
-      // the tpc, and also require the apparent x position to be within the expanded
-      // readout frame.
-
-      double const tmpArray[]={pos.X(),pos.Y(),pos.Z()};
-      geo::TPCID tpcid = geom->FindTPCAtPosition(tmpArray);
-      if (!tpcid.isValid) continue;
-      
-      pos[0] += dx;
-      
-      double ticks;
-      
-      ticks = detprop->ConvertXToTicks(pos[0], 0, tpcid.TPC, tpcid.Cryostat);
-
-	//if(ticks >5e+12)
-	// continue;
-        if(ticks >= 0. && ticks < detprop->ReadOutWindowSize()) {
-          if(first) {
-            start = pos;
-            startmom = part.Momentum(i).Vect();
-	   
-          }
-          else {
-            disp -= pos;
-            result += disp.Mag();
-          }
-          first = false;
-          disp = pos;
-          end = pos;
-          endmom = part.Momentum(i).Vect();
-        }
-	
-    }
-
-    //    mf::LogVerbatim("output") << " length (MCParticle) " << result;
-
-    return result;
-
-  }
-
-  // Fill efficiency histogram assuming binomial errors.
-
+  
 }
 class AnaTree::AnaTree : public art::EDAnalyzer {
 public:
@@ -199,7 +115,7 @@ private:
   double trkendz[kMaxTrack];
 
   int nMCParticles;
-  int nCryoHits_MC[kMaxTrack];
+  int nTPCHits_MC[kMaxTrack];
   double StartTime_MC[kMaxTrack];
   double trkstartx_MC[kMaxTrack];
   double trkstarty_MC[kMaxTrack];
@@ -207,13 +123,19 @@ private:
   double trkendx_MC[kMaxTrack];
   double trkendy_MC[kMaxTrack];
   double trkendz_MC[kMaxTrack];
-  double trklen_MC[kMaxTrack];
-  double trklen_cut_MC[kMaxTrack];
+  double TPCLen_MC[kMaxTrack];
   double Hits_posx_MC[kMaxTrack][1000];
   double Hits_posy_MC[kMaxTrack][1000];
   double Hits_posz_MC[kMaxTrack][1000];
+  double Hits_inTPC_MC[kMaxTrack][1000];
   double Hits_mom_MC[kMaxTrack][1000];
+  double Hits_momx_MC[kMaxTrack][1000];
+  double Hits_momy_MC[kMaxTrack][1000];
+  double Hits_momz_MC[kMaxTrack][1000];
   double Hits_E_MC[kMaxTrack][1000];
+  double Hits_dEdx_MC[kMaxTrack][1000];
+  double Hits_dE_MC[kMaxTrack][1000];
+  double Hits_dx_MC[kMaxTrack][1000];
 
   int    trkid_MC[kMaxTrack];
   int    trkpdg_MC[kMaxTrack];
@@ -228,19 +150,21 @@ private:
   int    trkMother_MC[kMaxTrack];
   int    trkNumDaughters_MC[kMaxTrack];
   int    trkFirstDaughter_MC[kMaxTrack];
-  int    trkLastDaughter_MC[kMaxTrack];
   int    trkPrimary_MC[kMaxTrack];
-  double trkd2[kMaxTrack];
-  double trkcolin[kMaxTrack];
-  double trklen[kMaxTrack];
-  double trklen_L[kMaxTrack];
-  int trkid[kMaxTrack];
   double trktheta_xz_MC[kMaxTrack];
   double trktheta_yz_MC[kMaxTrack];
   double trketa_xy_MC[kMaxTrack];
   double trketa_zy_MC[kMaxTrack];
   double trktheta_MC[kMaxTrack];
   double trkphi_MC[kMaxTrack];
+
+  double trkd2[kMaxTrack];
+  double trklen[kMaxTrack];
+  double trklen_L[kMaxTrack];
+  int trkid[kMaxTrack];
+  
+  int    trkMCTruthTrackID[kMaxTrack];
+  double trkMCTruthT0[kMaxTrack];
 
   double trktheta_xz[kMaxTrack];
   double trketa_xy[kMaxTrack];
@@ -253,7 +177,6 @@ private:
   double trkdEdxSum[kMaxTrack];
   double trkdEdxAverage[kMaxTrack];
 
-  double trkdedx[kMaxTrack];
   double trkdedx2[kMaxTrack][3][1000];
   double trkdqdx[kMaxTrack][3][1000];
   double trkpitchHit[kMaxTrack][3][1000];
@@ -265,8 +188,6 @@ private:
   double trkPosx[kMaxTrack][3][1000];
   double trkPosy[kMaxTrack][3][1000];
   double trkPosz[kMaxTrack][3][1000]; 
-  double trkdedx_MC[kMaxTrack];
-  double trkdq_MC[kMaxTrack];
   double mcang_x[kMaxTrack];
   double mcang_y[kMaxTrack];
   double mcang_z[kMaxTrack];
@@ -274,11 +195,6 @@ private:
   double mcpos_y[kMaxTrack];
   double mcpos_z[kMaxTrack];
 
-  double trkang[kMaxTrack];
-  double trkcolinearity[kMaxTrack];
-  double trkmatchdisp[kMaxTrack];
-  double trkwmatchdisp[kMaxTrack];
-  double trklenratio[kMaxTrack];
   double trkstartdcosx[kMaxTrack];
   double trkstartdcosy[kMaxTrack];
   double trkstartdcosz[kMaxTrack];
@@ -312,6 +228,7 @@ private:
   std::string fHitSpptAssocModuleLabel;
   std::string fSimulationProducerLabel; 
   std::string fCalorimetryModuleLabel; 
+  std::string fMCTruthT0ModuleLabel;
 
 
 
@@ -344,8 +261,9 @@ AnaTree::AnaTree::AnaTree(fhicl::ParameterSet const & pset)
   , fClusterModuleLabel       (pset.get< std::string >("ClusterModuleLabel"))
   , fTrkSpptAssocModuleLabel    (pset.get< std::string >("TrkSpptAssocModuleLabel"))
   , fHitSpptAssocModuleLabel    (pset.get< std::string >("HitSpptAssocModuleLabel"))
-  ,  fSimulationProducerLabel ( pset.get< std::string >("SimulationLabel"))
-  ,  fCalorimetryModuleLabel ( pset.get< std::string >("CalorimetryModuleLabel"))
+  , fSimulationProducerLabel ( pset.get< std::string >("SimulationLabel"))
+  , fCalorimetryModuleLabel ( pset.get< std::string >("CalorimetryModuleLabel"))
+  , fMCTruthT0ModuleLabel     ( pset.get< std::string >("MCTruthT0ModuleLabel"))
   , fDump              (pset.get<int>("Dump"))
   , fPdg              (pset.get<int>("pdg"))
   , fMinMCKE            (pset.get<double>("MinMCKE"))
@@ -373,6 +291,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   art::ServiceHandle<geo::Geometry> geom;
   art::ServiceHandle<util::LArProperties> larprop;
   art::ServiceHandle<util::DetectorProperties> detprop;
+  art::ServiceHandle<cheat::BackTracker> bktrk;
   
   run = evt.run();
   subrun = evt.subRun();
@@ -410,38 +329,21 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   
   art::Handle< std::vector<sim::SimChannel> > simChannelHandle;
   evt.getByLabel(fSimulationProducerLabel, simChannelHandle);
-  
-  //  Event.getByLabel(fSimulationProducerLabel, particleHandle);
+ 
+  const sim::ParticleList& plist = bktrk->ParticleList();
+  simb::MCParticle *particle=0;
+
+ //  Event.getByLabel(fSimulationProducerLabel, particleHandle);
   //  art::Handle< std::vector<simb::MCParticle> > particleHandle;
 
   art::FindManyP<recob::SpacePoint> fmsp(trackListHandle, evt, fTrackModuleLabel);
   art::FindMany<recob::Track>       fmtk(hitListHandle, evt, fTrackModuleLabel);
 
   art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
+  art::FindMany<anab::T0>           fmt0( trackListHandle, evt, fMCTruthT0ModuleLabel);
 
-  //track information
-  ntracks_reco=tracklist.size();
+  std::cout << fMCTruthT0ModuleLabel << std::endl;
 
-  double larStart[3];
-  double larEnd[3];
-  std::vector<double> trackStart;
-  std::vector<double> trackEnd;
-  
-  // Get Cryostat information.........Only taking one cryo atm....
-  int c=0;//only one cryo   
-  double boundaries[6];
-  geom->CryostatBoundaries(boundaries, c); // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
-   
-  // **********************
-  // **********************
-  //
-  //  Trackh:
-  //  Trackvh:
-  //
-  //
-  // *********************
-  // *********************
-  
   art::Handle< std::vector<recob::Track> > trackh;
   evt.getByLabel(fTrackModuleLabel, trackh);
   
@@ -452,19 +354,36 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // Protect against invalid art::Handle (both here and when trackvh is used below)
   // TODO: How to do this for art::PtrVector without the uninitialised iterator?
   std::vector< art::PtrVector<recob::Track> >::const_iterator cti; 
-  if (trackvh.isValid()) cti = trackvh->begin();                   
+  if (trackvh.isValid()) cti = trackvh->begin(); 
+
+  //track information
+  ntracks_reco=tracklist.size();
+
+  double larStart[3];
+  double larEnd[3];
+  std::vector<double> trackStart;
+  std::vector<double> trackEnd;
   
-  
-  
-  // **********************
-  // **********************
-  //
-  //  TrackList:
-  //
-  //
-  //
-  // *********************
-  // *********************
+  // Get Cryostat information.....
+  int c=0;//only one cryo   
+  double boundaries[6];
+  double TempBounds[6];
+  int NCryo = geom->Ncryostats();
+  for ( int b=0; b<6; b++) boundaries[b] = 0;
+  for ( int c1 = 0; c1 < NCryo; c1++ ) {
+    geom->CryostatBoundaries(TempBounds, c); // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
+    if ( boundaries[0] > TempBounds [0] ) boundaries[0] = TempBounds [0];
+    if ( boundaries[1] < TempBounds [1] ) boundaries[1] = TempBounds [1];
+    if ( boundaries[2] > TempBounds [2] ) boundaries[2] = TempBounds [2];
+    if ( boundaries[3] < TempBounds [3] ) boundaries[3] = TempBounds [3];
+    if ( boundaries[4] > TempBounds [4] ) boundaries[4] = TempBounds [4];
+    if ( boundaries[5] < TempBounds [5] ) boundaries[5] = TempBounds [5];
+  }
+  //std::cout << boundaries[0] << " " << boundaries[1] << " " << boundaries[2] << " " << boundaries[3] << " " <<boundaries[4] << " " << boundaries[5] << std::endl;
+
+  // ------------------------------------
+  //  NOW DO THE TRACK LIST STUFF 
+  // ------------------------------------
   
   for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
     
@@ -484,25 +403,34 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     trkstartdcosx[i]  = larStart[0];
     trkstartdcosy[i]  = larStart[1];
     trkstartdcosz[i]  = larStart[2];
+    trkenddcosx[i]    = larEnd[0];
+    trkenddcosy[i]    = larEnd[1];
+    trkenddcosz[i]    = larEnd[2]; 
     TLorentzVector v1(trackStart[0],trackStart[1],trackStart[2],0);
     TLorentzVector v2(trackEnd[0],trackEnd[1],trackEnd[2],0);
     trklen[i]=(v2-v1).Rho();
-    //trkdedx[i]=trkde/trklen[i];
-    //    trkang[i]=TMath::Cos((v2-v1).Angle(tmpVec.Vect()));
-    //trkang[i]=TMath::Cos((v2-v1).Angle(tmpVec.Vect()));
-    //    trklen[i]=v.Mag();
-    trkenddcosx[i]    = larEnd[0];
-    trkenddcosy[i]    = larEnd[1];
-    trkenddcosz[i]    = larEnd[2];
-    //    ntrkhits[i] = fmsp.at(i).size();
-    
-    //    std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
-    //   art::Ptr<recob::Track> pptrack(trackh, i);
-    //    auto pp { pptrack };
-    //    art::FindManyP<recob::SpacePoint> spptAssns(pp, evt, fTrackModuleLabel); 
-    //    ntrkhits[i] = spptAssns.at(0).size();   
-    //    int nnn = spptAssns.at(0).size();
-    //    std::cout << " Number of clumps ----> " << nnn<< std::endl;
+
+    art::Ptr<recob::Track> ptrack(trackh, i);
+    const recob::Track& track = *ptrack;
+    trklen_L[i]=track.Length(); 
+
+    double recotime = 0.;
+    double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
+    // Fill histograms involving reco tracks only.
+    int ntraj = track.NumberTrajectoryPoints();
+    if(ntraj > 0) {
+      TVector3 pos = track.Vertex();
+      TVector3 dir = track.VertexDirection();
+      TVector3 end = track.End();
+      pos[0] += trackdx;
+      end[0] += trackdx;
+      trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
+      trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
+      trketa_xy[i] = std::atan2(dir.X(), dir.Y());
+      trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
+      trktheta[i]=dir.Theta();
+      trkphi[i]=dir.Phi();
+    }
     
     double distance_squared=0;
     TVector3 V1(trackStart[0],trackStart[1],trackStart[2]);
@@ -510,42 +438,12 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     TVector3 vOrth=(V2-V1).Orthogonal();
     TVector3 pointVector=V1;
     
-    /* if(trackvh.isValid())
-      {
-      int k=i;
-      int ntrackhits=0;
-      const art::PtrVector<recob::Track> pvtrack(*(cti++));
-      //        auto it = pvtrack.begin();
-      
-      int ntrack = pvtrack.size();
-      art::FindManyP<recob::SpacePoint> fs( pvtrack, evt, fTrkSpptAssocModuleLabel);
-      double distance=0;
-      for(int ii=0;ii<ntrack;ii++){
-      
-      for (size_t j = 0; j<fs.at(ii).size(); ++j){
-      
-      ntrackhits++;
-      TVector3 sptVector(fs.at(ii).at(j)->XYZ()[0],fs.at(ii).at(j)->XYZ()[1],fs.at(ii).at(j)->XYZ()[2]);
-      TVector3 vToPoint=sptVector-pointVector;
-      distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
-      if(isnan(distance)){
-      mf::LogVerbatim("output") <<"is nan" <<(vOrth.Dot(vToPoint));
-      mf::LogVerbatim("output") <<"is nan" <<vOrth.Mag();
-      }
-      distance_squared+=distance *distance;
-      trkx[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[0];
-      trky[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[1];
-      trkz[k][ntrackhits] = fs.at(ii).at(j)->XYZ()[2];
-      }
-      }
-      ntrkhits[k]=ntrackhits;
-      distance_squared=distance_squared/ntrkhits[k];
-      if(!isnan(distance_squared))
-      trkd2[k]=distance_squared;
-      }*/
-    //    else
+    // *********************
+    //  Space Point stuff:
+    // *********************    
     if(fmsp.isValid() ){
       ntrkhits[i] = fmsp.at(i).size();
+      //std::cout << "Space Points " <<  ntrkhits[i] << std::endl;
       //	double distance_squared=0;
       double distance=0;
       
@@ -561,21 +459,15 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	
       }
       distance_squared=distance_squared/spts.size();
-	trkd2[i]=distance_squared;
-	
+      trkd2[i]=distance_squared;
     }
+    // ***********************
+    // END Space Point stuff:
+    // ***********************    
     
     // *********************
     //  Calorimetric stuff:
-    //  
-    // *********************
-    //
-    //
-    //
-    //
-    //
-    //
-    
+    // *********************    
     if (fmcal.isValid()){
       std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
       //std::cout<<"calo size "<<calos.size()<<std::endl;
@@ -599,54 +491,40 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkdQdxSum[i] += trkdqdx[i][jj][k];
 	  trkdEdxSum[i] += trkdedx2[i][jj][k];
 	}
-	trkdQdxAverage[i] = trkdQdxSum[i] / tt;
-	trkdEdxAverage[i] = trkdEdxSum[i] / tt;
       }
-    }
-    
-    
+      trkdQdxAverage[i] = trkdQdxSum[i] / calos.size();
+      trkdEdxAverage[i] = trkdEdxSum[i] / calos.size();
+    }       
     // *********************
     //  End Calorimetric stuff
-    //  
     // *********************
     
+    //***************
+    //   T0 stuff 
+    //***************
+    std::cout << "JUST BEFORE T0 SECTION!!" << std::endl;
+    if ( fmt0.isValid() ) {
+      std::cout << "JUST AFTER T0 SECTION!!" << std::endl;
+      std::vector<const anab::T0*> T0s = fmt0.at(i);
+      std::cout << int(T0s.size()) << std::endl;
+      for (size_t t0size =0; t0size < T0s.size(); t0size++) { 
+	if (T0s[t0size] -> TriggerType() == 0 ) { // If Trigger 0
+	} // Trig 0
+	if (T0s[t0size] -> TriggerType() == 1 ) { // If Counters
+	  //std::cout << "Using Counter Information!!!! T0 " << T0s[t0size]->Time() << ", Bits " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;	  
+	} // Trig 1
+	if (T0s[t0size] -> TriggerType() == 2 ) { // If MCTruth
+	  std::cout << "Using Trigger Type Monte Carlo Truth!!! T0 " << T0s[t0size]->Time() << ", GEANT4 track id " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;
+	  trkMCTruthT0[i]  = T0s[t0size]->Time();
+	  trkMCTruthTrackID[i] = T0s[t0size]->TriggerBits();      	  
+	} // Trig 2
+      } // T0 size
+    } // T0 valid
+    //***************
+    // END T0 stuff 
+    //***************   
     
-    
-    
-    // *********************
-    //   Cuts specific quantities
-    //  
-    // *********************
-    //
-    //
-    //
-    //
-    TMatrixD rot(3,3);
-    int start_point =0;
-    tracklist[i]->GlobalToLocalRotationAtPoint(start_point, rot);
-    //  int ntraj = tracklist[i]->NumberTrajectoryPoints();
-    // if(ntraj > 0) {
-    TVector3 pos = tracklist[i]->Vertex();
-    art::ServiceHandle<cheat::BackTracker> bktrk;
-    const   sim::ParticleList& ppplist=bktrk->ParticleList();
-    std::vector<const simb::MCParticle*> plist2;
-    plist2.reserve(ppplist.size());
-    
-    art::Ptr<recob::Track> ptrack(trackh, i);
-    const recob::Track& track = *ptrack;
-    //trklenratio[i] = length(track)/plen;
-    //trklen_L[i]=length(track);
-    trklen_L[i]=track.Length(); // exactly the same as old function delcared at top, but this accesses track information.
-    //
-    //**********************
-    //
-    // End Cut specific quantities
-    //  
-    //***********************
-
-    
-    
-    
+    // ---------FIND THE TRACK PITCH IN EACH PLANE------------
     for (int j = 0; j<3; ++j){
       try {
 	if (j==0)
@@ -662,35 +540,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       }
     }
     
-    /*   simb::MCParticle* particle=0;
-    for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar) {
-      particle = ipar->second;
-    }
-    int pdg = particle->PdgCode();
-    if (abs(pdg)!=abs(fPdg)) continue;
-    TVector3 startmom;
-    startmom=particle->Momentum(0).Vect();
-    TVector3 mcmomltemp=rot * startmom;
-    trkcolin[i]=mcmomltemp.Z()/mcmomltemp.Mag();
-    */
-    double recotime = 0.;
-    double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
-    // Fill histograms involving reco tracks only.
-    int ntraj = track.NumberTrajectoryPoints();
-    if(ntraj > 0) {
-      TVector3 pos = track.Vertex();
-      TVector3 dir = track.VertexDirection();
-      TVector3 end = track.End();
-      pos[0] += trackdx;
-      end[0] += trackdx;
-      trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
-      trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
-      trketa_xy[i] = std::atan2(dir.X(), dir.Y());
-      trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
-      trktheta[i]=dir.Theta();
-      trkphi[i]=dir.Phi();
-    }
-  }
+  } // TRACK LOOP
   
   // -----------------------------------------------
   // NOW DO THE CLUSTER/HIT STUFF.......
@@ -721,11 +571,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // -----------------------------------------------
   // NOW DO ALL THE MONTE CARLO TRUTH STUFF.......
   // -----------------------------------------------
-  art::ServiceHandle<cheat::BackTracker> bt;
-  //  int trkid=1;
-  const sim::ParticleList& plist = bt->ParticleList();
-  simb::MCParticle *particle=0;
-  //  const simb::MCParticle *particle = bt->TrackIDToParticle(trkid);
+ 
   int i=0; // particle index
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
     particle = ipar->second;
@@ -733,287 +579,116 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     // Line below selects only primaries, have removed so get all particles.
     // So want to add if Process=="Primary" in macro, this way can see particles other than primaries too.
     //if(!(particle->Process()=="primary" && abs(particle->PdgCode())== abs(fPdg))) continue;
-        
-    mcang_x[i]=particle->Px();
-    mcang_y[i]=particle->Py();
-    mcang_z[i]=particle->Pz();
+    
+    if (particle->Process() == "primary" ) trkPrimary_MC[i] = 1;
+    else trkPrimary_MC[i] = 0;
+    trkid_MC[i]=particle->TrackId();
+    trkpdg_MC[i]=particle->PdgCode();
+    StartTime_MC[i] = particle->T();                                 // nsec
+    trkMother_MC[i]=particle->Mother();
+    trkNumDaughters_MC[i]=particle->NumberDaughters();
+    trkFirstDaughter_MC[i]=particle->FirstDaughter();
+          
+    double xyztArray[4];
+    int zz =0;
+    int zz2 =0;
+    bool insideActiveVolume=false;
+    int nTPCHitsCounts =0;
+  
+    size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
+    for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
+      const TLorentzVector& tmpPosition=particle->Position(ii);
+      Hits_posx_MC[i][ii] = tmpPosition[0];
+      Hits_posy_MC[i][ii] = tmpPosition[1];
+      Hits_posz_MC[i][ii] = tmpPosition[2];
+      Hits_mom_MC[i][ii]  = particle->P(ii);
+      Hits_momx_MC[i][ii] = particle->Px(ii);
+      Hits_momy_MC[i][ii] = particle->Py(ii);
+      Hits_momz_MC[i][ii] = particle->Pz(ii);
+      Hits_E_MC[i][ii]    = particle->E(ii);
+
+
+      double const tmpPosArray[]={tmpPosition[0],tmpPosition[1],tmpPosition[2]};
+      geo::TPCID tpcid = geom->FindTPCAtPosition(tmpPosArray);
+      if (tpcid.isValid) { // Check if hit is in TPC
+	if (!insideActiveVolume) { // Check if first hit in TPC
+	  zz = ii;
+	  insideActiveVolume=true;
+	}		  
+	tmpPosition.GetXYZT(xyztArray);
+	zz2 = ii;
+	Hits_inTPC_MC[i][ii]=1;
+	++nTPCHitsCounts; //Count MCHits within the TPC
+      }
+           
+      if (ii != 0) { // Work out MCTruth dEdx
+	Hits_dx_MC[i][ii] = pow ( (Hits_posx_MC[i][ii-1]-Hits_posx_MC[i][ii])*(Hits_posx_MC[i][ii-1]-Hits_posx_MC[i][ii])
+				  + (Hits_posy_MC[i][ii-1]-Hits_posy_MC[i][ii])*(Hits_posy_MC[i][ii-1]-Hits_posy_MC[i][ii])
+				  + (Hits_posz_MC[i][ii-1]-Hits_posz_MC[i][ii])*(Hits_posz_MC[i][ii-1]-Hits_posz_MC[i][ii])
+				  , 0.5 );
+	Hits_dE_MC[i][ii] = Hits_E_MC[i][ii-1] - Hits_E_MC[i][ii];
+	Hits_dEdx_MC[i][ii] = Hits_dE_MC[i][ii]/ Hits_dx_MC[i][ii];
+      }
+
+      if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
+      //std::cout << ii << " " << Hits_inTPC_MC[i][ii] << " " << Hits_dx_MC[i][ii] << " " << zz << " " << zz2 << std::endl;
+    }
+    nTPCHits_MC[i] = nTPCHitsCounts;
+    const TLorentzVector& positionStart = particle->Position(zz);
+    TLorentzVector& positionEnd  =( TLorentzVector&)particle->Position(zz2);     
+    TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(zz);
+
+    mcang_x[i]=particle->Px(zz);
+    mcang_y[i]=particle->Py(zz);
+    mcang_z[i]=particle->Pz(zz);
     
     TLorentzVector tmpVec;
     TLorentzVector vectx(1,0,0,0);
     TLorentzVector vecty(0,1,0,0);
     TLorentzVector vectz(0,0,1,0);
-    tmpVec=particle->Position();
+    tmpVec=particle->Position(zz);
     mcpos_x[i]=(1./TMath::DegToRad())*tmpVec.Angle(vectx.Vect());
     mcpos_y[i]=(1./TMath::DegToRad())*tmpVec.Angle(vecty.Vect());
     mcpos_z[i]=(1./TMath::DegToRad())*tmpVec.Angle(vectz.Vect());
     
-   
-    //    int fMC_Ntrack = particles2.size();
     float fMC_startXYZT[1000][4];
-    float fMC_endXYZT[1000][4];
-    
-    //double trkde=0;
-    
-    
-    //for (auto const& particle: particles2 ) {
-    //        int Ndaughters = particle->NumberDaughters();
-    //        vector<int> daughters;
-    //        for (int i=0; i<Ndaughters; i++) {
-    //            daughters.push_back(particle->Daughter(i));
-    //        }
-    //        fMC_daughters.push_back(daughters);
-    size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
-    trkid_MC[i]=particle->TrackId();
-    trkpdg_MC[i]=particle->PdgCode();
-    trkMother_MC[i]=particle->Mother();
-    trkNumDaughters_MC[i]=particle->NumberDaughters();
-    trkFirstDaughter_MC[i]=particle->FirstDaughter();
-    //trkLastDaughter_MC[i]=particle->LastDaughter();
-    if (particle->Process() == "primary" ) trkPrimary_MC[i] = 1;
-    else trkPrimary_MC[i] = 0;
-    
-    
-    //int trackID=particle->TrackId();
-    
-    /*
-      for ( auto const& channel : (*simChannelHandle) ) {
-      auto channelNumber = channel.Channel();
-      if ( fGeometry->SignalType( channelNumber ) == geo::kCollection ) {
-      auto const& timeSlices = channel.TDCIDEMap();
-      for ( auto const& timeSlice : timeSlices ) {
-      auto const& energyDeposits = timeSlice.second;
-      for ( auto const& energyDeposit : energyDeposits ) {
-      if ( energyDeposit.trackID == trackID ) {
-      
-      trkde+=energyDeposit.numElectrons*1./( 1e6/23.6);//MeV
-      }//TrackID
-      }//energyDeposit
-      }//timeSlice
-      }//CollectionPlane
-      }//simChannel
-      trkdq_MC[i]=trkde*1e6/23.6;//back to q
-    */
-    double xyztArray[4];
-    int zz =0;
-    int zz2 =0;
-    bool insideActiveVolume=false;
-    int nCryoHitsCounts =0;
-    /*    
-    double origin[3] = {0.};
-    double world[3] = {0.};
-    double cryoBound_pos[3];
-    double cryoBound_neg[3];
-    int c=0;//only one cryo
-    
-    geom->Cryostat(c).LocalToWorld(origin, world);
-    cryoBound_neg[0]=world[0] - geom->Cryostat(c).HalfWidth();
-    cryoBound_neg[1]=world[1] - geom->Cryostat(c).HalfWidth();
-    cryoBound_neg[2]=world[2] - geom->Cryostat(c).HalfWidth();
-    
-    cryoBound_pos[0]=world[0] + geom->Cryostat(c).HalfWidth();
-    cryoBound_pos[1]=world[1] + geom->Cryostat(c).HalfWidth();
-    cryoBound_pos[2]=world[2] + geom->Cryostat(c).HalfWidth();
-    
-    for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
-      const TLorentzVector& tmpPosition=particle->Position(ii);
-      //tmpPosition.GetXYZT(xyztArray);   
-      if((tmpPosition[0]<cryoBound_pos[0]) && (tmpPosition[0]>cryoBound_neg[0])) {
-	if((tmpPosition[1]<cryoBound_pos[1]) && (tmpPosition[1]>cryoBound_neg[1])) {
-	  if((tmpPosition[2]<cryoBound_pos[2]) && (tmpPosition[2]>cryoBound_neg[2])) {
-    */
-    for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
-      const TLorentzVector& tmpPosition=particle->Position(ii);
-      //tmpPosition.GetXYZT(xyztArray);
-      if((tmpPosition[0]>boundaries[0]) && (tmpPosition[0]<boundaries[1])) {
-	if((tmpPosition[1]>boundaries[2]) && (tmpPosition[1]<boundaries[3])) {
-	  if((tmpPosition[2]>boundaries[4]) && (tmpPosition[2]<boundaries[5])) {
-	    if (!insideActiveVolume) {
-	      zz = ii;
-	      //std::cout << "Now particle is in cryostat " << std::endl;
-	      insideActiveVolume=true;
-	    }		  
-	    //std::cout << "Temp Pos " << tmpPosition[0] << ", " <<  tmpPosition[1] << ", " <<  tmpPosition[2] << std::endl;
-	    tmpPosition.GetXYZT(xyztArray);
-	    zz2 = ii;
-	    ++nCryoHitsCounts; //Count MCHits within the cryostat - note this does not mean they are all in TPC's! 
-	    Hits_posx_MC[i][ii] = tmpPosition[0];
-	    Hits_posy_MC[i][ii] = tmpPosition[1];
-	    Hits_posz_MC[i][ii] = tmpPosition[2];
-	    Hits_mom_MC[i][ii]  = particle->P(ii);
-	    Hits_E_MC[i][ii]    = particle->E(ii);
-	  }
-	}
-      }
-      
-      if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
-    }
-    nCryoHits_MC[i] = nCryoHitsCounts;
-    const TLorentzVector& positionStart = particle->Position(zz);
-    TLorentzVector& positionEnd  =( TLorentzVector&)particle->Position(zz2);     
-    //        const TLorentzVector& momentumStart = particle->Momentum(0);
-    //        const TLorentzVector& momentumEnd   = particle->Momentum(last);
-    TLorentzVector& momentumStart  =( TLorentzVector&)particle->Momentum(zz);
-    trkenergy_MC[i]=particle->E();
+    float fMC_endXYZT[1000][4];  
+
+    trkenergy_MC[i]=particle->E(zz);
     trkmom_MC[i]=momentumStart.P();
     trkmom_XMC[i]=momentumStart.Px();
     trkmom_YMC[i]=momentumStart.Py();
     trkmom_ZMC[i]=momentumStart.Pz();
+    trktheta_xz_MC[i] =  std::atan2(trkmom_XMC[i], trkmom_ZMC[i]);
+    trktheta_yz_MC[i] = std::atan2(trkmom_YMC[i], trkmom_ZMC[i]);
+    trketa_xy_MC[i] = std::atan2(trkmom_XMC[i], trkmom_YMC[i]);
+    trketa_zy_MC[i] = std::atan2(trkmom_ZMC[i], trkmom_YMC[i]);
+    TVector3 mcstartmom = particle->Momentum(zz).Vect();
+    trktheta_MC[i]=mcstartmom.Theta();
+    trkphi_MC[i]=mcstartmom.Phi();
+
     trkstartdoc_XMC[i]= pow ( (momentumStart.Px()*momentumStart.Px()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
     trkstartdoc_YMC[i]= pow ( (momentumStart.Py()*momentumStart.Py()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
     trkstartdoc_ZMC[i]= pow ( (momentumStart.Pz()*momentumStart.Pz()) / ( trkmom_MC[i]* trkmom_MC[i]) , 0.5);
     if ( trkmom_XMC[i] < 0 ) trkstartdoc_XMC[i] = -trkstartdoc_XMC[i];
     if ( trkmom_YMC[i] < 0 ) trkstartdoc_YMC[i] = -trkstartdoc_YMC[i];
     if ( trkmom_ZMC[i] < 0 ) trkstartdoc_ZMC[i] = -trkstartdoc_ZMC[i];
-    positionStart.GetXYZT(fMC_startXYZT[i]);
-    positionEnd.GetXYZT(fMC_endXYZT[i]);
+    positionStart.GetXYZT(fMC_startXYZT[i]); // In TPC
+    positionEnd.GetXYZT(fMC_endXYZT[i]);     // In TPC
     trkstartx_MC[i]=fMC_startXYZT[i][0];
     trkstarty_MC[i]=fMC_startXYZT[i][1];
     trkstartz_MC[i]=fMC_startXYZT[i][2];
     trkendx_MC[i]=fMC_endXYZT[i][0];
     trkendy_MC[i]=fMC_endXYZT[i][1];
     trkendz_MC[i]=fMC_endXYZT[i][2];
-    tmpVec= positionEnd-positionStart;
-    trklen_MC[i]=(positionEnd-positionStart).Rho();
-    StartTime_MC[i] = particle->T();                                 // nsec
-    double mcdx = StartTime_MC[i] * 1.e-3 * larprop->DriftVelocity();   // cm
-    // Calculate the points where this mc particle enters and leaves the
-    // fiducial volume, and the length in the fiducial volume.
-    TVector3 mcstart;
-    TVector3 mcend;
-    TVector3 mcstartmom;
-    TVector3 mcendmom;
-    double plen = length(*particle, mcdx, mcstart, mcend, mcstartmom, mcendmom);
-    trklen_cut_MC[i]=plen;
-    //trkdedx_MC[i]=trkde/trklen_cut_MC[i];
-    //        momentumStart.GetXYZT(fMC_startMomentum[i]);
-    //        momentumEnd.GetXYZT(fMC_endMomentum[i]);
-    
-    // Calculate the points where this mc particle enters and leaves the
-    // fiducial volume, and the length in the fiducial volume.
-    
-    // Get the displacement of this mc particle in the global coordinate system.
-    //  TVector3 mcpos = mcstart - pos;
-    //TVector3 mcpos = pos -mcstart ;
-    // Rotate the momentum and position to the
-    // track-local coordinate system.
-    //TVector3 mcmoml = rot * mcstartmom;
-    //TVector3 mcposl = rot * mcpos;
-    trktheta_xz_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Z());
-    trktheta_yz_MC[i] = std::atan2(mcstartmom.Y(), mcstartmom.Z());
-    trketa_xy_MC[i] = std::atan2(mcstartmom.X(), mcstartmom.Y());
-    trketa_zy_MC[i] = std::atan2(mcstartmom.Z(), mcstartmom.Y());
-    
-    
-    
-    trktheta_MC[i]=mcstartmom.Theta();
-    trkphi_MC[i]=mcstartmom.Phi();
-    
-    /*
-      trkcolinearity[i] = mcmoml.Z() / mcmoml.Mag();
-      double u = mcposl.X();
-      double v = mcposl.Y();
-      double w = mcposl.Z();
-      trkwmatchdisp[i]=w;
-      std::cout << "++++++" << std::endl;
-      std::cout << "w " << w << std::endl;
-      std::cout << "trkcolinearity  " << trkcolinearity[i] << std::endl;
-      std::cout << "plen  " << plen << std::endl;
-      std::cout << "mcstartmom mag  " << mcstartmom.Mag() << std::endl;
-      
-      std::cout << "++++++" << std::endl;
-      
-      double pu = mcmoml.X();
-      double pv = mcmoml.Y();
-      double pw = mcmoml.Z();
-      double dudw = pu / pw;
-      double dvdw = pv / pw;
-      std::cout << "pu  "<<pu << "pv  " << pv << std::endl;
-      std::cout << "pw  "<<pw  << std::endl;
-      
-      std::cout << "u  "<<u << "v  " << v << std::endl; 
-      
-      double u0 = u - w * dudw;
-      double v0 = v - w * dvdw;
-      trkmatchdisp[i]=abs( std::sqrt(u0*u0 + v0*v0));
-    */
-    
-    ++i;
+
+    for ( int LenLoop = zz+1; LenLoop<=zz2; ++LenLoop) {
+      TPCLen_MC[i] +=  Hits_dx_MC[i][LenLoop];
+    }
+        
+    ++i; // Increment number of MCParticles
     if (i == kMaxTrack) break;
-    //} // particle loop done 
-   
-    // **********************
-    //  Histograms:
-    // *********************
-    
-    // 
-    //  Not any more
-    // *********************
-    
-    /*  art::ServiceHandle<cheat::BackTracker> bt2;
-	const   sim::ParticleList& pplist=bt2->ParticleList();
-	std::vector<const simb::MCParticle*> plist2;
-	plist2.reserve(pplist.size());*/
-    
-    //    art::Handle< std::vector<recob::Track> > trackh;
-    //    evt.getByLabel(fTrackModuleLabel, trackh);
-    /* 
-       if(!trackh.isValid()) continue;
-       unsigned int ntrack = trackh->size();
-       for(unsigned int i = 0; i < ntrack; ++i) {
-       
-       art::Ptr<recob::Track> ptrack(trackh, i);
-       art::FindMany<recob::Hit>       fmhit(trackListHandle, evt, fTrackModuleLabel);
-       std::vector<const recob::Hit*> hits = fmhit.at(i);
-       
-       //
-       // Trick learned from the newest TrackAna
-       // Extract hits associated with this track.
-       art::FindManyP<recob::Hit> tkhit_find(trackh, evt, fTrackModuleLabel);
-       std::vector<art::Ptr<recob::Hit> > trackhits;
-       tkhit_find.get(i, trackhits);
-       //
-       //
-       
-       const recob::Track& track = *ptrack;
-    */
-    /*auto pcoll{ptrack};
-      art::FindManyP<recob::SpacePoint> fs(pcoll, evt, fTrkSpptAssocModuleLabel);
-      auto sppt = fs.at(0);
-      art::FindManyP<recob::Hit> fh(sppt, evt, fHitSpptAssocModuleLabel);*/
-    ////
-    ///              figuring out which TPC
-    ///
-    ///
-    //
-    //        auto pcoll { ptrack };
-    //art::FindManyP<recob::SpacePoint> fs( pcoll, evt, fTrkSpptAssocModuleLabel);
-    //        auto sppt = fs.at(0);//.at(is);
-    //        art::FindManyP<recob::Hit> fh( sppt, evt, fHitSpptAssocModuleLabel);
-    //	auto hit = fh.at(0).at(0);
-    //auto hit = fmhit.at(0).at(0);
-    /*	for(int ii=0;ii<hitlist->size())
-	{
-	
-	}
-	hit_trkid[i] = fmtk.at(i)[0]->ID();
-	int hit_ttpc=-1;
-	if(hits.size()!=0)
-	{
-	geo::WireID tmpWireid=hits.at(0)->WireID();
-	hit_ttpc=tmpWireid.TPC;
-	}
-	else hit_ttpc=1; */
-    
-    /*  art::Handle< std::vector<recob::Hit> > hitListHandle;
-	std::vector<art::Ptr<recob::Hit> > hitlist;
-	if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
-	art::fill_ptr_vector(hitlist, hitListHandle);
-    */
-    // Calculate the x offset due to nonzero reconstructed time.
-    //double recotime = track.Time() * detprop->SamplingRate();       // nsec
-    
-    //}
-    //}
+ 
   }// ipar
   nMCParticles = i;
   // -------------------------------------------
@@ -1061,10 +736,7 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trketa_zy",trketa_zy,"trketa_zy[ntracks_reco]/D");
   fTree->Branch("trktheta",trktheta,"trktheta[ntracks_reco]/D");
   fTree->Branch("trkphi",trkphi,"trkphi[ntracks_reco]/D");
-  fTree->Branch("trkang",trkang,"trkang[ntracks_reco]/D"); 
   fTree->Branch("trkd2",trkd2,"trkd2[ntracks_reco]/D");
-  fTree->Branch("trkcolin",trkcolin,"trkcolin[ntracks_reco]/D");
-  fTree->Branch("trkdedx",trkdedx,"trkdedx[ntracks_reco]/D");
   fTree->Branch("trkdedx2",trkdedx2,"trkdedx2[ntracks_reco][3][1000]/D");
   fTree->Branch("trkdqdx",trkdqdx,"trkdqdx[ntracks_reco][3][1000]/D");
   fTree->Branch("trkpitch",trkpitch,"trkpitch[ntracks_reco][3]/D");
@@ -1079,23 +751,20 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkPosz",trkPosz,"trkPosz[ntracks_reco][3][1000]/D");
   fTree->Branch("trklen",trklen,"trklen[ntracks_reco]/D");
   fTree->Branch("trklen_L",trklen_L,"trklen_L[ntracks_reco]/D");
-  fTree->Branch("trkcolinearity",trkcolinearity,"trkcolinearity[ntracks_reco]/D");
-  fTree->Branch("trkmatchdisp",trkmatchdisp,"trkmatchdisp[ntracks_reco]/D");
-  fTree->Branch("trkwmatchdisp",trkwmatchdisp,"trkwmatchdisp[ntracks_reco]/D");
-  fTree->Branch("trklenratio",trklenratio,"trklenratio[ntracks_reco]/D");
   fTree->Branch("trkdQdxSum",trkdQdxSum,"trkdQdxSum[ntracks_reco]/D");
   fTree->Branch("trkdQdxAverage",trkdQdxAverage,"trkdQdxAverage[ntracks_reco]/D");
   fTree->Branch("trkdEdxSum",trkdEdxSum,"trkdEdxSum[ntracks_reco]/D");
   fTree->Branch("trkdEdxAverage",trkdEdxAverage,"trkdEdxAverage[ntracks_reco]/D");
+  fTree->Branch("trkMCTruthT0",trkMCTruthT0,"trkMCTruthT0[ntracks_reco]/D");
+  fTree->Branch("trkMCTruthTrackID",trkMCTruthTrackID,"trkMCTruthTrackID[ntracks_reco]/I");
   
   fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
   fTree->Branch("trkid_MC",trkid_MC,"trkid_MC[nMCParticles]/I");
   fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[nMCParticles]/I");
-  fTree->Branch("nCryoHits_MC",&nCryoHits_MC,"nCryoHits_MC[nMCParticles]/I");
+  fTree->Branch("nTPCHits_MC",&nTPCHits_MC,"nTPCHits_MC[nMCParticles]/I");
   fTree->Branch("trkMother_MC",trkMother_MC,"trkMother_MC[nMCParticles]/I");
   fTree->Branch("trkNumDaughters_MC",trkNumDaughters_MC,"trkNumDaughters_MC[nMCParticles]/I");
   fTree->Branch("trkFirstDaughter_MC",trkFirstDaughter_MC,"trkFirstDaughter_MC[nMCParticles]/I");
-  fTree->Branch("trkLastDaughter_MC",trkLastDaughter_MC,"trkLastDaughter_MC[nMCParticles]/I");
   fTree->Branch("trkPrimary_MC",trkPrimary_MC,"trkPrimarys_MC[nMCParticles]/I");
   fTree->Branch("StartTime_MC",StartTime_MC,"StartTime_MC[nMCParticles]/D");
   fTree->Branch("trkstartx_MC",trkstartx_MC,"trkstartx_MC[nMCParticles]/D");
@@ -1107,8 +776,13 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("Hits_posx_MC",Hits_posx_MC,"Hits_posx_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_posy_MC",Hits_posy_MC,"Hits_posy_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_posz_MC",Hits_posz_MC,"Hits_posz_MC[nMCParticles][1000]/D");
+  fTree->Branch("Hits_inTPC_MC",Hits_inTPC_MC,"Hits_inTPC_MC[nMCParticles][1000]/I");
   fTree->Branch("Hits_mom_MC",Hits_mom_MC,"Hits_mom_MC[nMCParticles][1000]/D");
+  fTree->Branch("Hits_momx_MC",Hits_momx_MC,"Hits_momx_MC[nMCParticles][1000]/D");
+  fTree->Branch("Hits_momy_MC",Hits_momy_MC,"Hits_momy_MC[nMCParticles][1000]/D");
+  fTree->Branch("Hits_momz_MC",Hits_momz_MC,"Hits_momz_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_E_MC",Hits_E_MC,"Hits_E_MC[nMCParticles][1000]/D");
+  fTree->Branch("Hits_dEdx_MC",Hits_dEdx_MC,"HitsdEdx_MC[nMCParticles][1000]/D");
   fTree->Branch("trkenergy_MC",trkenergy_MC,"trkenergy_MC[nMCParticles]/D");
   fTree->Branch("trkmom_MC",trkmom_MC,"trkmom_MC[nMCParticles]/D");
   fTree->Branch("trkmom_XMC",trkmom_XMC,"trkmom_XMC[nMCParticles]/D");
@@ -1129,10 +803,7 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkphi_MC",trkphi_MC,"trkphi_MC[nMCParticles]/D");
   fTree->Branch("trketa_xy_MC",trketa_xy_MC,"trketa_xy_MC[nMCParticles]/D");
   fTree->Branch("trketa_zy_MC",trketa_zy_MC,"trketa_zy_MC[nMCParticles]/D");
-  fTree->Branch("trkdedx_MC",trkdedx_MC,"trkdedx_MC[nMCParticles]/D");
-  fTree->Branch("trkdq_MC",trkdq_MC,"trkdq_MC[nMCParticles]/D");
-  fTree->Branch("trklen_MC",trklen_MC,"trklen_MC[nMCParticles]/D");
-  fTree->Branch("trklen_cut_MC",trklen_cut_MC,"trklen_cut_MC[nMCParticles]/D");
+  fTree->Branch("trkTPCLen_MC",TPCLen_MC,"trkTPCLen_MC[nMCParticles]/D");
  
   fTree->Branch("nhits",&nhits,"nhits/I");
   fTree->Branch("nclust",&nclust,"nclust/I");
@@ -1144,11 +815,6 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("hit_charge",hit_charge,"hit_charge[nhits]/D");
   fTree->Branch("hit_ph",hit_ph,"hit_ph[nhits]/D");
   fTree->Branch("hit_trkid",hit_trkid,"hit_trkid[nhits]/I");
-
-  //  art::ServiceHandle<sim::LArG4Parameters> larParameters;
-  //  fElectronsToGeV = 1./larParameters->GeVToElectrons();
-
-
 }
 
 //void AnaTree::AnaTree::reconfigure(fhicl::ParameterSet const & p)
@@ -1181,8 +847,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkendx_MC[i] = -99999;
     trkendy_MC[i] = -99999;
     trkendz_MC[i] = -99999;
-    trklen_MC[i] = -99999;
-    trklen_cut_MC[i] = -99999;
+    TPCLen_MC[i] = 0;
     trkenergy_MC[i] = -99999;
     trkmom_MC[i] = -99999;
     trkmom_XMC[i] = -99999;
@@ -1196,15 +861,12 @@ void AnaTree::AnaTree::ResetVars(){
     trkMother_MC[i] = -99999;
     trkNumDaughters_MC[i] = -99999;
     trkFirstDaughter_MC[i] = -99999;
-    trkLastDaughter_MC[i] = -99999;
     trkPrimary_MC[i] = 0;
     trkd2[i] = -99999;
-    trkcolin[i] = -99999;
     trktheta_xz_MC[i] = -99999;
     trktheta_yz_MC[i] = -99999;
     trktheta_MC[i] = -99999;
     trkphi_MC[i] = -99999;
-    trkdedx[i] = -99999;
     trketa_xy_MC[i] = -99999;
     trketa_zy_MC[i] = -99999;
     trktheta_xz[i] = -99999;
@@ -1221,7 +883,7 @@ void AnaTree::AnaTree::ResetVars(){
     mcang_z[i] = -99999;
     trkdQdxSum[i] = 0;
     trkdEdxSum[i] = 0;
-    nCryoHits_MC[i]=0;
+    nTPCHits_MC[i]=0;
     StartTime_MC[i]=0;
     for(int ii=0;ii<3;ii++)
       {
@@ -1240,21 +902,14 @@ void AnaTree::AnaTree::ResetVars(){
 	    trkPosz[i][ii][k]  = -99999;
 	  }
       }
-    trkdedx_MC[i] = -99999;
-    trkdq_MC[i] = -99999;
-
     trkstartdcosx[i] = -99999;
     trkstartdcosy[i] = -99999;
     trkstartdcosz[i] = -99999;
     trklen[i] = -99999;
     trklen_L[i] = -99999;
     trkid[i] = -99999;
-    trkang[i] = -99999;
-    trkcolinearity[i] = -99999;
-    trkmatchdisp[i] = -99999;
-    trkwmatchdisp[i] = -99999;
-    trklenratio[i] = -99999;
-
+    trkMCTruthT0[i] = -99999;
+    trkMCTruthTrackID[i] = -99999;
 
     trkenddcosx[i] = -99999;
     trkenddcosy[i] = -99999;
@@ -1267,8 +922,13 @@ void AnaTree::AnaTree::ResetVars(){
       Hits_posx_MC[i][j] = -99999;
       Hits_posy_MC[i][j] = -99999;
       Hits_posz_MC[i][j] = -99999;
+      Hits_inTPC_MC[i][j] = 0;
       Hits_mom_MC[i][j] = -99999;
+      Hits_momx_MC[i][j] = -99999;
+      Hits_momy_MC[i][j] = -99999;
+      Hits_momz_MC[i][j] = -99999;
       Hits_E_MC[i][j] = -99999;
+      Hits_dEdx_MC[i][j] = -9999;
     }
     for (int j = 0; j<3; ++j){
       trkpitch[i][j] = -99999;

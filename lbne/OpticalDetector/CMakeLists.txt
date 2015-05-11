@@ -37,6 +37,7 @@ art_make( BASENAME_ONLY
 			                  ${MF_UTILITIES}
 	                      ${FHICLCPP}
 			                  ${CETLIB}
+                        ${CLHEP}
                         ${ROOT_BASIC_LIB_LIST}
           SERVICE_LIBRARIES
                         Geometry

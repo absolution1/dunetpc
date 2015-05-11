@@ -66,4 +66,12 @@ lbne35t_fasthitfinder.MinSigInd: 5.0
 lbne35t_fasthitfinder.MinSigCol: 5.0
 lbne35t_gaushitfinder.Chi2NDFRetry: 1000.
 
+lbne35t_clustercrawlerhit: @local::standard_clustercrawlerhit
+lbne35t_clustercrawlerhit.CCHitFinderAlg.ChiNorms:           [ 0.31, 0.62, 0.6 ]
+lbne35t_clustercrawlerhit.CCHitFinderAlg.MinSigCol:          3.
+lbne35t_clustercrawlerhit.CCHitFinderAlg.MinRMSCol:          2.1
+lbne35t_clustercrawlerhit.CCHitFinderAlg.MinSigInd:          3.
+lbne35t_clustercrawlerhit.CCHitFinderAlg.MinRMSInd:          2.3
+lbne35t_clustercrawlerhit.CCHitFinderAlg.AllowNoHitWire:     2
+
 END_PROLOG

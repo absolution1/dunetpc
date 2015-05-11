@@ -17,11 +17,11 @@ lbnefd_simwire:
  LowCutoffZ:          7.5          #Low frequency filter cutoff (kHz) for Z plane
  CompressionType:    "ZeroSuppression"       #could also be none
  #CompressionType:    ""       #could also be none	
- ZeroThreshold:      "10"        #Threshold for zero suppression
- NearestNeighbor:    "25"        #Maximum distance between hits above threshold before they are separated into different blocks
- NoiseArrayPoints:   "1000"     #number of points in noise array
- NoiseOn:            "1"        #1 for noise on, 0 for noise off
- NoiseModel:         "2"        #1 for original model, 2 for a model similar to uBooNE
+ ZeroThreshold:      10        #Threshold for zero suppression
+ NearestNeighbor:    25        #Maximum distance between hits above threshold before they are separated into different blocks
+ NoiseArrayPoints:   1000     #number of points in noise array
+ NoiseOn:            1        #1 for noise on, 0 for noise off
+ NoiseModel:         2        #1 for original model, 2 for a model similar to uBooNE
 
  CollectionPed:       400         #ADC baseline for coll plane
  InductionPed:        2048        #ADC baseline for ind plane
@@ -51,6 +51,16 @@ lbnefd_wienerfilterana:       @local::standard_wienerfilterana
 # For now treat the other lbne geometries like FD
 
 lbne35t_simwire:		@local::lbnefd_simwire
+lbne35t_simwire.CollectionPed:  500         #ADC baseline for coll plane
+lbne35t_simwire.InductionPed:   1800        #ADC baseline for ind plane
+lbne35t_simwire.ZeroThreshold:  5
+lbne35t_simwire.NoiseModel:     1
+lbne35t_simwire.NoiseWidthU:   0.624  # If turn NoiseModel to 1 use these numbers..
+lbne35t_simwire.NoiseWidthV:   0.624  # If turn NoiseModel to 1 use these numbers..
+lbne35t_simwire.NoiseWidthZ:   0.624  # If turn NoiseModel to 1 use these numbers..
+lbne35t_simwire.NoiseFactU:   0.332  # If turn NoiseModel to 1 use these numbers..
+lbne35t_simwire.NoiseFactV:   0.332  # If turn NoiseModel to 1 use these numbers..
+lbne35t_simwire.NoiseFactZ:   0.332  # If turn NoiseModel to 1 use these numbers..
 lbne35t_simwireana:             @local::lbnefd_simwireana
 lbne35t_wienerfilterana:        @local::lbnefd_wienerfilterana
 lbne35t_simwire.module_type:    "SimWireLBNE35t"

@@ -156,7 +156,7 @@ void lbne::T0Counter::produce(art::Event & e)
   
   // get raw::ExternalTriggers
   art::Handle< std::vector< raw::ExternalTrigger> > externalTriggerListHandle;
-  e.getByLabel(fSimCounterModuleLabel, externalTriggerListHandle);
+  if (!e.getByLabel(fSimCounterModuleLabel, externalTriggerListHandle) ) return;
   std::vector< art::Ptr< raw::ExternalTrigger> > trigs;
   art::fill_ptr_vector(trigs,externalTriggerListHandle);
 
