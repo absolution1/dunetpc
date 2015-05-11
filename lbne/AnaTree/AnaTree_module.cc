@@ -124,18 +124,18 @@ private:
   double trkendy_MC[kMaxTrack];
   double trkendz_MC[kMaxTrack];
   double TPCLen_MC[kMaxTrack];
-  double Hits_posx_MC[kMaxTrack][1000];
-  double Hits_posy_MC[kMaxTrack][1000];
-  double Hits_posz_MC[kMaxTrack][1000];
-  double Hits_inTPC_MC[kMaxTrack][1000];
-  double Hits_mom_MC[kMaxTrack][1000];
-  double Hits_momx_MC[kMaxTrack][1000];
-  double Hits_momy_MC[kMaxTrack][1000];
-  double Hits_momz_MC[kMaxTrack][1000];
-  double Hits_E_MC[kMaxTrack][1000];
-  double Hits_dEdx_MC[kMaxTrack][1000];
-  double Hits_dE_MC[kMaxTrack][1000];
-  double Hits_dx_MC[kMaxTrack][1000];
+  double Hits_posx_MC[kMaxTrack][10000];
+  double Hits_posy_MC[kMaxTrack][10000];
+  double Hits_posz_MC[kMaxTrack][10000];
+  double Hits_inTPC_MC[kMaxTrack][10000];
+  double Hits_mom_MC[kMaxTrack][10000];
+  double Hits_momx_MC[kMaxTrack][10000];
+  double Hits_momy_MC[kMaxTrack][10000];
+  double Hits_momz_MC[kMaxTrack][10000];
+  double Hits_E_MC[kMaxTrack][10000];
+  double Hits_dEdx_MC[kMaxTrack][10000];
+  double Hits_dE_MC[kMaxTrack][10000];
+  double Hits_dx_MC[kMaxTrack][10000];
 
   int    trkid_MC[kMaxTrack];
   int    trkpdg_MC[kMaxTrack];
@@ -342,8 +342,6 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
   art::FindMany<anab::T0>           fmt0( trackListHandle, evt, fMCTruthT0ModuleLabel);
 
-  std::cout << fMCTruthT0ModuleLabel << std::endl;
-
   art::Handle< std::vector<recob::Track> > trackh;
   evt.getByLabel(fTrackModuleLabel, trackh);
   
@@ -502,9 +500,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     //***************
     //   T0 stuff 
     //***************
-    std::cout << "JUST BEFORE T0 SECTION!!" << std::endl;
     if ( fmt0.isValid() ) {
-      std::cout << "JUST AFTER T0 SECTION!!" << std::endl;
       std::vector<const anab::T0*> T0s = fmt0.at(i);
       std::cout << int(T0s.size()) << std::endl;
       for (size_t t0size =0; t0size < T0s.size(); t0size++) { 
@@ -595,8 +591,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     bool insideActiveVolume=false;
     int nTPCHitsCounts =0;
   
-    size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
-    for(size_t ii=0;ii<numberTrajectoryPoints;ii++) {
+    int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
+    for(int ii=0;ii<numberTrajectoryPoints;++ii) {
       const TLorentzVector& tmpPosition=particle->Position(ii);
       Hits_posx_MC[i][ii] = tmpPosition[0];
       Hits_posy_MC[i][ii] = tmpPosition[1];
@@ -630,8 +626,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	Hits_dEdx_MC[i][ii] = Hits_dE_MC[i][ii]/ Hits_dx_MC[i][ii];
       }
 
-      if ( (insideActiveVolume) && (zz2 != (int)ii) ) break;
-      //std::cout << ii << " " << Hits_inTPC_MC[i][ii] << " " << Hits_dx_MC[i][ii] << " " << zz << " " << zz2 << std::endl;
+      if ( (insideActiveVolume) && (zz2 < ii-50) ) break; //if passes out of TPC break...what about TPC gaps..reasonable number of hits?
+      //std::cout << ii << " " << Hits_inTPC_MC[i][ii] << " " << Hits_posx_MC[i][ii] << " " << Hits_posy_MC[i][ii] << " " << Hits_posz_MC[i][ii] << " " << zz << " " << zz2 << std::endl;
     }
     nTPCHits_MC[i] = nTPCHitsCounts;
     const TLorentzVector& positionStart = particle->Position(zz);
