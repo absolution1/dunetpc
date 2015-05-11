@@ -38,8 +38,7 @@ namespace geo{
 
     ChannelMap35OptAlg(fhicl::ParameterSet const& p);
     
-    void                     Initialize( std::vector<geo::CryostatGeo*> & cgeo,
-                                         std::vector<geo::AuxDetGeo*>   & adgeo ) override;
+    void                     Initialize( GeometryData_t& geodata ) override;
     void                     Uninitialize();
     std::vector<WireID>      ChannelToWire(uint32_t channel)        const;
     uint32_t                 Nchannels()                            const;

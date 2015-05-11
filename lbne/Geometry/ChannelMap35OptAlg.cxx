@@ -20,6 +20,7 @@
 ///
 ///
 #include "lbne/Geometry/ChannelMap35OptAlg.h"
+#include "Geometry/GeometryCore.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/AuxDetGeo.h"
 #include "Geometry/TPCGeo.h"
@@ -38,16 +39,14 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMap35OptAlg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
-                                       std::vector<geo::AuxDetGeo*>   & adgeo )
+  void ChannelMap35OptAlg::Initialize( GeometryData_t& geodata )
   {
-
-    if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
-      {
-        this->Uninitialize();
-      }
-
-
+    // start over:
+    Uninitialize();
+    
+    std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
+    std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+    
     fNcryostat = cgeo.size();
     
     mf::LogInfo("ChannelMap35OptAlg") << "Sorting...";

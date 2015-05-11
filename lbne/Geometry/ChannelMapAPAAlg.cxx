@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "lbne/Geometry/ChannelMapAPAAlg.h"
+#include "Geometry/GeometryCore.h"
 #include "Geometry/AuxDetGeo.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
@@ -25,15 +26,14 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMapAPAAlg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
-                                     std::vector<geo::AuxDetGeo*>   & adgeo )
+  void ChannelMapAPAAlg::Initialize( GeometryData_t& geodata )
   {
-
-    if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
-      {
-        this->Uninitialize();
-      }
-
+    // start over:
+    Uninitialize();
+    
+    std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
+    std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+    
     fNcryostat = cgeo.size();
     
     mf::LogInfo("ChannelMapAPAAlg") << "Sorting volumes...";

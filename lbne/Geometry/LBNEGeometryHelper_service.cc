@@ -1,78 +1,81 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// \file LBNEGeometryHelper_service.cc
 ///
-/// \version $Id
 /// \author  rs@fnal.gov
 ////////////////////////////////////////////////////////////////////////////////
 
-// Migration note:
-// Geometry --> lbne/Geometry
+// class header
 #include "lbne/Geometry/LBNEGeometryHelper.h"
 
+// LArSoft libraries
+#include "Geometry/GeometryCore.h"
 #include "Geometry/ChannelMapAlg.h"
-
-// Migration note:
-// Geometry --> lbne/Geometry for the two below
 #include "lbne/Geometry/ChannelMap35Alg.h"
 #include "lbne/Geometry/ChannelMap35OptAlg.h"
 #include "lbne/Geometry/ChannelMapAPAAlg.h"
 
-#include "TString.h"
+// C/C++ standard libraries
+#include <string>
 
 
 namespace lbne
 {
 
-  LBNEGeometryHelper::LBNEGeometryHelper( fhicl::ParameterSet const & pset, art::ActivityRegistry & reg )
+  LBNEGeometryHelper::LBNEGeometryHelper( fhicl::ParameterSet const & pset, art::ActivityRegistry & )
   :  fPset( pset ),
-     fReg( reg ),
      fChannelMap()
   {}
 
-  LBNEGeometryHelper::~LBNEGeometryHelper() throw()
-  {}  
-  
-  void LBNEGeometryHelper::doConfigureChannelMapAlg( const TString & detectorName,
-                                                     fhicl::ParameterSet const & sortingParam,
-                                                     std::vector<geo::CryostatGeo*> & c,
-						     std::vector<geo::AuxDetGeo*>   & ad )
+  void LBNEGeometryHelper::doConfigureChannelMapAlg
+    (fhicl::ParameterSet const& sortingParameters, geo::GeometryCore* geom)
   {
-    fChannelMap = nullptr;
+    fChannelMap.reset();
     
-    if ( detectorName.Contains("lbne35t") ) 
+    std::string const detectorName = geom->DetectorName();
+    
+    //
+    // DUNE 35t prototype
+    //
+    if (( detectorName.find("lbne35t") != std::string::npos )
+      || ( detectorName.find("dune35t") != std::string::npos )
+      )
     {
-// Migration note:
-// Change all geo::ChannelMap... to lbne::ChannelMap... throughout file
-
-      TString detectorVersion = sortingParam.get< std::string >("DetectorVersion");
-
-      // Want any version after v2 to used the optimized map, as it also contains a bug fix
-      //   probably should change how this is done from contains(vx) to getitng the actual
-      //   int x and checking x>2
-      if ( detectorVersion.Contains("v3") || detectorVersion.Contains("v4") )
-	fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMap35OptAlg( sortingParam ) );
+      std::string const detectorVersion
+        = sortingParameters.get< std::string >("DetectorVersion");
+      
+      if (( detectorVersion.find("v3") != std::string::npos )
+        || ( detectorVersion.find("v4") != std::string::npos ))
+        fChannelMap = std::make_shared<geo::ChannelMap35OptAlg>(sortingParameters);
       else
-	fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMap35Alg( sortingParam ) );
+        fChannelMap = std::make_shared<geo::ChannelMap35Alg>(sortingParameters);
+      
     }
-    else if ( detectorName.Contains("lbne10kt") ) 
+    //
+    // DUNE 10kt
+    //
+    else if (( detectorName.find("lbne10kt") != std::string::npos ) 
+      || ( detectorName.find("dune10kt") != std::string::npos ))
     {
-      fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMapAPAAlg( sortingParam ) );
+      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
     }
-    else if ( detectorName.Contains("lbne34kt") )
+    //
+    // DUNE 34kt
+    //
+    else if (( detectorName.find("lbne34kt") != std::string::npos )
+      || ( detectorName.find("dune34kt") != std::string::npos ))
     {
-      fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMapAPAAlg( sortingParam ) );
+      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
     }
-    else
-    {
-      fChannelMap = nullptr;
-    }
+    
     if ( fChannelMap )
     {
-      fChannelMap->Initialize( c, ad );
+      geom->ApplyChannelMap(fChannelMap);
     }
   }
   
-  std::shared_ptr<const geo::ChannelMapAlg> LBNEGeometryHelper::doGetChannelMapAlg() const
+  
+  LBNEGeometryHelper::ChannelMapAlgPtr_t
+  LBNEGeometryHelper::doGetChannelMapAlg() const
   {
     return fChannelMap;
   }
