@@ -31,12 +31,12 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   void ChannelMapAPAAlg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
-				     std::vector<geo::AuxDetGeo*>   & adgeo )
+                                     std::vector<geo::AuxDetGeo*>   & adgeo )
   {
 
     if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
       {
-	this->Uninitialize();
+        this->Uninitialize();
       }
 
     fNcryostat = cgeo.size();
@@ -53,7 +53,7 @@ namespace geo{
     fNTPC.resize(fNcryostat);
     fFirstChannelInNextPlane.resize(1);  // Change 1 to Ncryostat if you want
     fFirstChannelInThisPlane.resize(1);  // to treat each APA uniquely,and do
-					 // the same with the other resizes.
+                                         // the same with the other resizes.
     fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
     nAnchoredWires.resize(fPlanesPerAPA);
     fWiresInPlane.resize(fPlanesPerAPA);
@@ -85,19 +85,19 @@ namespace geo{
       
       for(unsigned int w = 0; w != fWiresInPlane[p]; ++w){
 
-	// for vertical planes
-	if(cgeo[0]->TPC(0).Plane(p).View()==geo::kZ)   { 
-	  nAnchoredWires[p] = fWiresInPlane[p];      
-	  break;
-	}
+        // for vertical planes
+        if(cgeo[0]->TPC(0).Plane(p).View()==geo::kZ)   { 
+          nAnchoredWires[p] = fWiresInPlane[p];      
+          break;
+        }
 
-	cgeo[0]->TPC(0).Plane(p).Wire(w).GetCenter(xyz);
-	cgeo[0]->TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
+        cgeo[0]->TPC(0).Plane(p).Wire(w).GetCenter(xyz);
+        cgeo[0]->TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
-	if(xyz[2]==xyz_next[2]){
-	  nAnchoredWires[p] = w-1;      
-	  break;
-	}
+        if(xyz[2]==xyz_next[2]){
+          nAnchoredWires[p] = w-1;      
+          break;
+        }
       }// end wire loop
 
     }// end plane loop
@@ -209,22 +209,22 @@ namespace geo{
 
     bool breakVariable = false;
     for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
-	  
+          
       NextPlane = fFirstChannelInNextPlane[0][0][planeloop];
       ThisPlane = fFirstChannelInThisPlane[0][0][planeloop];
-	  
+          
       if(chan < NextPlane){
 
-	// fNTPC[0] works for now since there are the same number of TPCs per crostat
-	cstat = std::floor( channel / ((fNTPC[0]/2)*fChannelsPerAPA) );
-	tpc   = (2*pureAPAnum) % fNTPC[0];
-	plane = planeloop;
-	wireThisPlane  = chan - ThisPlane;
-	    
-	breakVariable = true;
-	break;
+        // fNTPC[0] works for now since there are the same number of TPCs per crostat
+        cstat = std::floor( channel / ((fNTPC[0]/2)*fChannelsPerAPA) );
+        tpc   = (2*pureAPAnum) % fNTPC[0];
+        plane = planeloop;
+        wireThisPlane  = chan - ThisPlane;
+            
+        breakVariable = true;
+        break;
       }
-      if(breakVariable) break;	  
+      if(breakVariable) break;          
     }// end plane loop
 
     
@@ -237,7 +237,7 @@ namespace geo{
     
     if(ChannelGroup%2==1){
       tpc += 1;
-      WrapDirection  = -1;	 
+      WrapDirection  = -1;         
     }
     
     for(unsigned int SegCount = 0; SegCount != 50; ++SegCount){
@@ -336,18 +336,18 @@ namespace geo{
   
   //----------------------------------------------------------------------------
   uint32_t ChannelMapAPAAlg::PlaneWireToChannel(unsigned int plane,
-						unsigned int wire,
-						unsigned int tpc,
-						unsigned int cstat) const
+                                                unsigned int wire,
+                                                unsigned int tpc,
+                                                unsigned int cstat) const
   {
     unsigned int OtherSideWires = 0;
 
     uint32_t Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
     Channel += cstat*(fNTPC[cstat]/2)*fChannelsPerAPA;       // move channel to proper cstat.
-    Channel += std::floor( tpc/2 )*fChannelsPerAPA;		  // move channel to proper APA.
-    OtherSideWires += (tpc%2)*nAnchoredWires[plane];	          // get number of wires on the first
-								  // side of the APA if starting
-								  // on the other side TPC.
+    Channel += std::floor( tpc/2 )*fChannelsPerAPA;                  // move channel to proper APA.
+    OtherSideWires += (tpc%2)*nAnchoredWires[plane];                  // get number of wires on the first
+                                                                  // side of the APA if starting
+                                                                  // on the other side TPC.
 
 
     // Lastly, account for the fact that channel number while moving up wire number in one
@@ -373,7 +373,7 @@ namespace geo{
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ sigt = kCollection; }
     else{    mf::LogWarning("BadChannelSignalType") << "Channel " << channel 
-						    << " (" << chan << ") not given signal type." << std::endl;         }
+                                                    << " (" << chan << ") not given signal type." << std::endl;         }
   
     return sigt;
   }
@@ -393,7 +393,7 @@ namespace geo{
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ view = geo::kZ; }
     else{    mf::LogWarning("BadChannelViewType") << "Channel " << channel 
-						  << " (" << chan << ") not given view type.";  }
+                                                  << " (" << chan << ") not given view type.";  }
     
     return view;
   }  

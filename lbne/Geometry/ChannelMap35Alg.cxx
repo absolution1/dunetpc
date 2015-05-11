@@ -36,12 +36,12 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   void ChannelMap35Alg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
-				    std::vector<geo::AuxDetGeo*>   & adgeo )
+                                    std::vector<geo::AuxDetGeo*>   & adgeo )
   {
 
     if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
       {
-	this->Uninitialize();
+        this->Uninitialize();
       }
 
 
@@ -79,9 +79,9 @@ namespace geo{
       fFirstChannelInNextPlane[cs].resize(fNTPC[cs]/2);
 
       for(unsigned int apa = 0; apa != fNTPC[cs]/2; ++apa){
-	
+        
         nAnchoredWires[cs][apa].resize(fPlanesPerAPA);
-	fWiresPerPlane[cs][apa].resize(fPlanesPerAPA);
+        fWiresPerPlane[cs][apa].resize(fPlanesPerAPA);
         fFirstChannelInThisPlane[cs][apa].resize(fPlanesPerAPA);
         fFirstChannelInNextPlane[cs][apa].resize(fPlanesPerAPA);
 
@@ -98,24 +98,24 @@ namespace geo{
           double xyz[3] = {0.};
           double xyz_next[3] = {0.};
 
-	  fViews.emplace(cgeo[c]->TPC(t).Plane(p).View());
+          fViews.emplace(cgeo[c]->TPC(t).Plane(p).View());
 
           for(unsigned int w = 0; w != fWiresPerPlane[c][a][p]; ++w){
 
-	    // for vertical planes
-	    if(cgeo[c]->TPC(t).Plane(p).View() == geo::kZ)   { 
-	      nAnchoredWires[c][a][p] = fWiresPerPlane[c][a][p];      
-	      break;
-	    }
+            // for vertical planes
+            if(cgeo[c]->TPC(t).Plane(p).View() == geo::kZ)   { 
+              nAnchoredWires[c][a][p] = fWiresPerPlane[c][a][p];      
+              break;
+            }
 
-	    cgeo[c]->TPC(t).Plane(p).Wire(w).GetCenter(xyz);
-	    cgeo[c]->TPC(t).Plane(p).Wire(w+1).GetCenter(xyz_next);
+            cgeo[c]->TPC(t).Plane(p).Wire(w).GetCenter(xyz);
+            cgeo[c]->TPC(t).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
-    	    if(xyz[2]==xyz_next[2]){
-	      nAnchoredWires[c][a][p] = w-1; // this is a known bug, should be w
-	                                     // fixed in ChannelMap35OptAlg
-	      break;
-	    }
+                if(xyz[2]==xyz_next[2]){
+              nAnchoredWires[c][a][p] = w-1; // this is a known bug, should be w
+                                             // fixed in ChannelMap35OptAlg
+              break;
+            }
 
           }
         }
@@ -227,26 +227,26 @@ namespace geo{
       bool breakVariable = false;
       
       for(unsigned int apaloop = 0; apaloop != fNTPC[csloop]/2; ++apaloop){
-	for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
-	  
-	  NextPlane = fFirstChannelInNextPlane[csloop][apaloop][planeloop];
-       	  ThisPlane = fFirstChannelInThisPlane[csloop][apaloop][planeloop];
-	  
-	  if(channel < NextPlane){
-	    
-	    cstat = csloop;
-	    tpc   = 2*apaloop;
-	    plane = planeloop;
-	    wireThisPlane  = channel - ThisPlane;
-	    
-	    breakVariable = true;
-	    break;
-	  }// end if break	  
-	  if(breakVariable) break;
-	  
-	}// end plane loop	
-	if(breakVariable) break;
-	
+        for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
+          
+          NextPlane = fFirstChannelInNextPlane[csloop][apaloop][planeloop];
+                 ThisPlane = fFirstChannelInThisPlane[csloop][apaloop][planeloop];
+          
+          if(channel < NextPlane){
+            
+            cstat = csloop;
+            tpc   = 2*apaloop;
+            plane = planeloop;
+            wireThisPlane  = channel - ThisPlane;
+            
+            breakVariable = true;
+            break;
+          }// end if break          
+          if(breakVariable) break;
+          
+        }// end plane loop        
+        if(breakVariable) break;
+        
       }// end apa loop      
       if(breakVariable) break;
       
@@ -262,7 +262,7 @@ namespace geo{
     if(ChannelGroup%2==1){
       // start in the other TPC
       tpc += 1;
-      WrapDirection  = -1;	 
+      WrapDirection  = -1;         
     }
     
     for(unsigned int WireSegmentCount = 0; WireSegmentCount != 50; ++WireSegmentCount){
@@ -277,7 +277,7 @@ namespace geo{
       tpc -= WrapDirection*(WireSegmentCount%2);
       
       if( bottomwire + (WireSegmentCount+1)*nAnchoredWires[cstat][std::floor(tpc/2)][plane] > 
-	  fWiresPerPlane[cstat][std::floor(tpc/2)][plane]-1) break;
+          fWiresPerPlane[cstat][std::floor(tpc/2)][plane]-1) break;
       
     } //end WireSegmentCount loop
     
@@ -365,9 +365,9 @@ namespace geo{
   
   //----------------------------------------------------------------------------
   uint32_t ChannelMap35Alg::PlaneWireToChannel(unsigned int plane,
-					       unsigned int wire,
-					       unsigned int tpc,
-					       unsigned int cstat) const
+                                               unsigned int wire,
+                                               unsigned int tpc,
+                                               unsigned int cstat) const
   {
 
     unsigned int OtherSideWires = 0;
@@ -399,7 +399,7 @@ namespace geo{
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ sigt = kCollection; }
     else{    mf::LogWarning("BadChannelSignalType") << "Channel " << channel 
-						    << " (" << chan << ") not given signal type." << std::endl;         }
+                                                    << " (" << chan << ") not given signal type." << std::endl;         }
   
     return sigt;
   }
@@ -416,7 +416,7 @@ namespace geo{
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ view = geo::kZ; }
     else{    mf::LogWarning("BadChannelViewType") << "Channel " << channel 
-						  << " (" << chan << ") not given view type.";}
+                                                  << " (" << chan << ") not given view type.";}
     
     return view;
   }  

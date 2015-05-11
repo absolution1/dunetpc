@@ -28,7 +28,7 @@ namespace geo{
     ~ChannelMapAPAAlg();
     
     void                     Initialize( std::vector<geo::CryostatGeo*> & cgeo,
-					 std::vector<geo::AuxDetGeo*>   & adgeo );
+                                         std::vector<geo::AuxDetGeo*>   & adgeo );
     void                     Uninitialize();
     std::vector<WireID>      ChannelToWire(uint32_t channel)           const;
     uint32_t                 Nchannels()                               const;
@@ -37,13 +37,13 @@ namespace geo{
                                   unsigned int TPCNo,
                                   unsigned int cstat) const override;
     WireID                   NearestWireID(const TVector3& worldPos,
-					   unsigned int    PlaneNo,
-					   unsigned int    TPCNo,
-					   unsigned int    cstat)        const;
+                                           unsigned int    PlaneNo,
+                                           unsigned int    TPCNo,
+                                           unsigned int    cstat)        const;
     uint32_t                 PlaneWireToChannel(unsigned int plane,
-						unsigned int wire,
-						unsigned int tpc,
-						unsigned int cstat)    const;
+                                                unsigned int wire,
+                                                unsigned int tpc,
+                                                unsigned int cstat)    const;
    View_t                    View( uint32_t const channel )            const;
    SigType_t                 SignalType( uint32_t const channel )      const;
    std::set<View_t>  const&  Views()                                   const;
@@ -64,10 +64,10 @@ namespace geo{
     std::set<View_t>                                     fViews;          ///< vector of the views present in the detector
     std::set<PlaneID>                                    fPlaneIDs;       ///< vector of the PlaneIDs present in the detector
     // Assuming all APA's are identical
-    std::vector< unsigned int >				 fWiresInPlane;
-    unsigned int					 fPlanesPerAPA;   
-    uint32_t					         fChannelsPerAPA;
-    std::vector< unsigned int >				 nAnchoredWires;
+    std::vector< unsigned int >                                 fWiresInPlane;
+    unsigned int                                         fPlanesPerAPA;   
+    uint32_t                                                 fChannelsPerAPA;
+    std::vector< unsigned int >                                 nAnchoredWires;
 
     std::vector<std::vector<std::vector<unsigned int>>>  fWiresPerPlane;  ///< The number of wires in this plane 
                                                                           ///< in the heirachy
