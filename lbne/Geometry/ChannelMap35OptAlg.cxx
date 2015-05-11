@@ -38,11 +38,6 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  ChannelMap35OptAlg::~ChannelMap35OptAlg()
-  {
-  }
-
-  //----------------------------------------------------------------------------
   void ChannelMap35OptAlg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
                                        std::vector<geo::AuxDetGeo*>   & adgeo )
   {

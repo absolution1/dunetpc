@@ -25,11 +25,6 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  ChannelMapAPAAlg::~ChannelMapAPAAlg()
-  {
-  }
-
-  //----------------------------------------------------------------------------
   void ChannelMapAPAAlg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
                                      std::vector<geo::AuxDetGeo*>   & adgeo )
   {
