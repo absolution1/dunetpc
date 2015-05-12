@@ -8,6 +8,7 @@
 
 #include "lbne/Geometry/GeoObjectSorter35.h"
 #include "Geometry/AuxDetGeo.h"
+#include "Geometry/AuxDetSensitiveGeo.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
@@ -34,6 +35,36 @@ namespace geo{
     float VertEps(0);
     if     ( strncmp( (ad1->TotalVolume())->GetName(), "volAuxDetTrap", 13) == 0 ) VertEps = 13;
     else if( strncmp( (ad1->TotalVolume())->GetName(), "volAuxDetBox",  12) == 0 ) VertEps = 1;
+
+    // First sort all AuxDets into same-y groups
+    if( xyz1[1] < xyz2[1] && xyz2[1]-xyz1[1] >= VertEps ) return true;
+ 
+    // Within a same-y group, sort AuxDets into same-x groups
+    if( std::abs(xyz2[1]-xyz1[1]) < VertEps && xyz1[0] < xyz2[0]) return true;
+ 
+    // Within a same-x, same-y group, sort AuxDets according to z
+    if(xyz1[0] == xyz2[0] && std::abs(xyz2[1]-xyz1[1]) < VertEps && xyz1[2] < xyz2[2]) return true;      
+
+    // none of those are true, so return false
+    return false;
+
+  }
+
+  //----------------------------------------------------------------------------
+  static bool sortAuxDetSensitive35(const AuxDetSensitiveGeo* ad1, const AuxDetSensitiveGeo* ad2)
+  {
+
+    double xyz1[3] = {0.};
+    double xyz2[3] = {0.};
+    double local[3] = {0.};
+    ad1->LocalToWorld(local, xyz1);
+    ad2->LocalToWorld(local, xyz2);
+
+    // AuxDet groups in 35t may have a couple-cm difference in vertical pos
+    // Adjusting for this messes up sorting between the top layers of AuxDets
+    float VertEps(0);
+    if     ( strncmp( (ad1->TotalVolume())->GetName(), "volAuxDetTrapSensitive", 13) == 0 ) VertEps = 13;
+    else if( strncmp( (ad1->TotalVolume())->GetName(), "volAuxDetBoxSensitive",  12) == 0 ) VertEps = 1;
 
     // First sort all AuxDets into same-y groups
     if( xyz1[1] < xyz2[1] && xyz2[1]-xyz1[1] >= VertEps ) return true;
@@ -204,6 +235,14 @@ namespace geo{
   void GeoObjectSorter35::SortAuxDets(std::vector<geo::AuxDetGeo*> & adgeo) const
   {
     std::sort(adgeo.begin(), adgeo.end(), sortAuxDet35);
+    
+    return;
+  }
+
+  //----------------------------------------------------------------------------
+  void GeoObjectSorter35::SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*> & adgeo) const
+  {
+    std::sort(adgeo.begin(), adgeo.end(), sortAuxDetSensitive35);
     
     return;
   }
