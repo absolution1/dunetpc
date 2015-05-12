@@ -53,6 +53,7 @@ namespace opdet {
 
       // Parameters we'll read from the fcl-file
       std::string fInputModule; // Module used to create OpDetWaveforms
+      std::string fInstanceName;// Input tag for OpDetWaveforms collection
       float fSampleFreq;        // Sampling frequency in MHz 
       float fTimeBegin;         // Beginning of sample in us
       float fTimeEnd;           // End of sample in us
@@ -79,6 +80,7 @@ namespace opdet {
 
     // Read the fcl-file
     fInputModule = pset.get< std::string >("InputModule");
+    fInstanceName = pset.get<std::string>("InstanceName");
 
     // Obtaining parameters from TimeService
     art::ServiceHandle< util::TimeService > timeService;
@@ -103,7 +105,7 @@ namespace opdet {
 
     // Get OpDetWaveforms from the event
     art::Handle< std::vector< raw::OpDetWaveform > > waveformHandle;
-    evt.getByLabel(fInputModule, waveformHandle);
+    evt.getByLabel(fInputModule, fInstanceName, waveformHandle);
 
     // Access ART's TFileService, which will handle creating and writing
     // histograms for us
