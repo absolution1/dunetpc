@@ -46,8 +46,9 @@ lbnefd_opflash:          @local::standard_opflash
 
 lbnefd_opdigiana:
 {
-        module_type:  "OpDetDigiAnaLBNE"
-        InputModule:  "opdigi"  # Module that created raw::OpDetWaveforms
+   module_type:  "OpDetDigiAnaLBNE"
+   InputModule:  "opdigi"  # Module that created raw::OpDetWaveforms
+   InstanceName: ""     
 }
 lbnefd_opflashana:       @local::standard_opflashana
 
