@@ -8,11 +8,12 @@
 #ifndef GEO_CHANNELAPAMAPALG_H
 #define GEO_CHANNELAPAMAPALG_H
 
+
 #include <vector>
 #include <set>
-#include <stdint.h>
 
 #include "cetlib/exception.h"
+#include "SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "Geometry/ChannelMapAlg.h"
 #include "lbne/Geometry/GeoObjectSorterAPA.h"
 
@@ -28,24 +29,41 @@ namespace geo{
     
     void                     Initialize( GeometryData_t& geodata ) override;
     void                     Uninitialize();
-    std::vector<WireID>      ChannelToWire(uint32_t channel)           const;
-    uint32_t                 Nchannels()                               const;
-    virtual double WireCoordinate(double YPos, double ZPos,
+    std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel) const;
+    unsigned int             Nchannels()                            const;
+    //@{
+    virtual double WireCoordinate(double YPos,
+                                  double ZPos,
                                   unsigned int PlaneNo,
                                   unsigned int TPCNo,
                                   unsigned int cstat) const override;
-    WireID                   NearestWireID(const TVector3& worldPos,
-                                           unsigned int    PlaneNo,
-                                           unsigned int    TPCNo,
-                                           unsigned int    cstat)        const;
-    uint32_t                 PlaneWireToChannel(unsigned int plane,
+    virtual double WireCoordinate(double YPos,
+                                  double ZPos,
+                                  geo::PlaneID const& planeID) const override
+      { return WireCoordinate(YPos, ZPos, planeID.Plane, planeID.TPC, planeID.Cryostat); }
+    //@}
+    
+    //@{
+    virtual WireID NearestWireID(const TVector3& worldPos,
+                                 unsigned int    PlaneNo,
+                                 unsigned int    TPCNo,
+                                 unsigned int    cstat) const override;
+    virtual WireID NearestWireID(const TVector3& worldPos,
+                                 geo::PlaneID const& planeID) const override
+      { return NearestWireID(worldPos, planeID.Plane, planeID.TPC, planeID.Cryostat); }
+    //@}
+    //@{
+    virtual raw::ChannelID_t PlaneWireToChannel(unsigned int plane,
                                                 unsigned int wire,
                                                 unsigned int tpc,
-                                                unsigned int cstat)    const;
-   View_t                    View( uint32_t const channel )            const;
-   SigType_t                 SignalType( uint32_t const channel )      const;
-   std::set<View_t>  const&  Views()                                   const;
-   std::set<PlaneID> const&  PlaneIDs()                                const;
+                                                unsigned int cstat) const override;
+    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override
+      { return PlaneWireToChannel(wireID.Plane, wireID.Wire, wireID.TPC, wireID.Cryostat); }
+    //@}
+    View_t                   View( raw::ChannelID_t const channel )      const;
+    SigType_t                SignalType( raw::ChannelID_t const channel) const;
+    std::set<View_t>  const& Views()                                     const;
+    std::set<PlaneID> const& PlaneIDs()                                  const;
 
     unsigned int NOpChannels(unsigned int NOpDets)                        const;
     unsigned int NOpHardwareChannels(unsigned int opDet)                  const;
@@ -57,17 +75,17 @@ namespace geo{
     
     unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
     unsigned int                                         fNchannels;      ///< number of channels in the detector
-    uint32_t                                             fTopChannel;     ///< book keeping highest channel #
+    raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #
     std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
     std::set<View_t>                                     fViews;          ///< vector of the views present in the detector
     std::set<PlaneID>                                    fPlaneIDs;       ///< vector of the PlaneIDs present in the detector
     // Assuming all APA's are identical
     std::vector< unsigned int >                                 fWiresInPlane;
     unsigned int                                         fPlanesPerAPA;   
-    uint32_t                                                 fChannelsPerAPA;
+    unsigned int                                             fChannelsPerAPA;
     std::vector< unsigned int >                                 nAnchoredWires;
 
-    std::vector<std::vector<std::vector<unsigned int>>>  fWiresPerPlane;  ///< The number of wires in this plane 
+    PlaneInfoMap_t<unsigned int>                         fWiresPerPlane;  ///< The number of wires in this plane 
                                                                           ///< in the heirachy
 
     geo::GeoObjectSorterAPA                              fSorter;         ///< sorts geo::XXXGeo objects
@@ -81,7 +99,7 @@ namespace geo{
     } PlaneData_t;
     
     ///< collects all data we need for each plane (indices: c t p)
-    std::vector<std::vector<std::vector<PlaneData_t>>> fPlaneData;
+    PlaneInfoMap_t<PlaneData_t>                          fPlaneData;
     
     std::vector< double > fWirePitch;
     std::vector< double > fOrientation;

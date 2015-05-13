@@ -97,7 +97,7 @@ namespace geo{
 
     }// end plane loop
 
-    static uint32_t CurrentChannel = 0;
+    static raw::ChannelID_t CurrentChannel = 0;
    
     for(unsigned int PCount = 0; PCount != fPlanesPerAPA; ++PCount){
 
@@ -177,13 +177,13 @@ namespace geo{
   void ChannelMapAPAAlg::Uninitialize()
   {
 
-    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInThisPlane);
-    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInNextPlane);
+    PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInThisPlane);
+    PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInNextPlane);
 
   }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::WireID> ChannelMapAPAAlg::ChannelToWire(uint32_t channel)  const
+  std::vector<geo::WireID> ChannelMapAPAAlg::ChannelToWire(raw::ChannelID_t channel)  const
   {
 
     // first check if this channel ID is legal
@@ -199,8 +199,8 @@ namespace geo{
     static unsigned int NextPlane;
     static unsigned int ThisPlane;
     
-    uint32_t chan       = channel%fChannelsPerAPA;
-    uint32_t pureAPAnum = std::floor( channel/fChannelsPerAPA );
+    raw::ChannelID_t chan       = channel%fChannelsPerAPA;
+    raw::ChannelID_t pureAPAnum = std::floor( channel/fChannelsPerAPA );
 
     bool breakVariable = false;
     for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
@@ -227,7 +227,7 @@ namespace geo{
     int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
 
     // find the lowest wire
-    uint32_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
+    raw::ChannelID_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
     unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[plane];
     
     if(ChannelGroup%2==1){
@@ -252,7 +252,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  uint32_t ChannelMapAPAAlg::Nchannels() const
+  unsigned int ChannelMapAPAAlg::Nchannels() const
   {
     return fNchannels;
   }
@@ -330,14 +330,14 @@ namespace geo{
   
   
   //----------------------------------------------------------------------------
-  uint32_t ChannelMapAPAAlg::PlaneWireToChannel(unsigned int plane,
-                                                unsigned int wire,
-                                                unsigned int tpc,
-                                                unsigned int cstat) const
+  raw::ChannelID_t ChannelMapAPAAlg::PlaneWireToChannel(unsigned int plane,
+                                                        unsigned int wire,
+                                                        unsigned int tpc,
+                                                        unsigned int cstat) const
   {
     unsigned int OtherSideWires = 0;
 
-    uint32_t Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
+    raw::ChannelID_t Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
     Channel += cstat*(fNTPC[cstat]/2)*fChannelsPerAPA;       // move channel to proper cstat.
     Channel += std::floor( tpc/2 )*fChannelsPerAPA;                  // move channel to proper APA.
     OtherSideWires += (tpc%2)*nAnchoredWires[plane];                  // get number of wires on the first
@@ -356,9 +356,9 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  SigType_t ChannelMapAPAAlg::SignalType( uint32_t const channel )  const
+  SigType_t ChannelMapAPAAlg::SignalType( raw::ChannelID_t const channel )  const
   {
-    uint32_t chan = channel % fChannelsPerAPA;
+    raw::ChannelID_t chan = channel % fChannelsPerAPA;
     SigType_t sigt = kInduction;
 
     // instead of calling channel to wire, we can make use of the way we 
@@ -374,9 +374,9 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  View_t ChannelMapAPAAlg::View( uint32_t const channel )  const
+  View_t ChannelMapAPAAlg::View( raw::ChannelID_t const channel )  const
   {
-    uint32_t chan = channel % fChannelsPerAPA;
+    raw::ChannelID_t chan = channel % fChannelsPerAPA;
     View_t view = geo::kU;
 
     // instead of calling channel to wire, we can make use of the way we 

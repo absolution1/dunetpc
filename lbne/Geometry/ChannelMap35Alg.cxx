@@ -116,7 +116,7 @@ namespace geo{
       }
     }
 
-    static uint32_t CurrentChannel = 0;
+    static raw::ChannelID_t CurrentChannel = 0;
  
     for(unsigned int cs = 0; cs != fNcryostat; ++cs){
       for(unsigned int apa = 0; apa != fNTPC[cs]/2; ++apa){  
@@ -194,13 +194,13 @@ namespace geo{
   void ChannelMap35Alg::Uninitialize()
   {
 
-    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInThisPlane);
-    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInNextPlane);
+    PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInThisPlane);
+    PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInNextPlane);
 
   }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::WireID> ChannelMap35Alg::ChannelToWire(uint32_t channel)  const
+  std::vector<geo::WireID> ChannelMap35Alg::ChannelToWire(raw::ChannelID_t channel)  const
   {
 
     // first check if this channel ID is legal
@@ -250,7 +250,7 @@ namespace geo{
     int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
 
     // find the lowest wire
-    uint32_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[cstat][tpc/2][plane] );
+    raw::ChannelID_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[cstat][tpc/2][plane] );
     unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[cstat][tpc/2][plane];
     
     if(ChannelGroup%2==1){
@@ -281,7 +281,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  uint32_t ChannelMap35Alg::Nchannels() const
+  unsigned int ChannelMap35Alg::Nchannels() const
   {
     return fNchannels;
   }
@@ -358,15 +358,15 @@ namespace geo{
   } // ChannelMap35Alg::NearestWireID()
   
   //----------------------------------------------------------------------------
-  uint32_t ChannelMap35Alg::PlaneWireToChannel(unsigned int plane,
-                                               unsigned int wire,
-                                               unsigned int tpc,
-                                               unsigned int cstat) const
+  raw::ChannelID_t ChannelMap35Alg::PlaneWireToChannel(unsigned int plane,
+                                                       unsigned int wire,
+                                                       unsigned int tpc,
+                                                       unsigned int cstat) const
   {
 
     unsigned int OtherSideWires = 0;
 
-    uint32_t Channel = fFirstChannelInThisPlane[cstat][std::floor(tpc/2)][plane];
+    raw::ChannelID_t Channel = fFirstChannelInThisPlane[cstat][std::floor(tpc/2)][plane];
 
     // get number of wires starting on the first side of the APA if starting
     // on the other side TPC.
@@ -384,9 +384,9 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  SigType_t ChannelMap35Alg::SignalType( uint32_t const channel )  const
+  SigType_t ChannelMap35Alg::SignalType( raw::ChannelID_t const channel )  const
   {
-    uint32_t chan = channel % fChannelsPerAPA;
+    raw::ChannelID_t chan = channel % fChannelsPerAPA;
     SigType_t sigt = kInduction;
 
     if(       chan <  fFirstChannelInThisPlane[0][0][2]     ){ sigt = kInduction;  }
@@ -399,9 +399,9 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  View_t ChannelMap35Alg::View( uint32_t const channel )  const
+  View_t ChannelMap35Alg::View( raw::ChannelID_t const channel )  const
   {
-    uint32_t chan = channel % fChannelsPerAPA;
+    raw::ChannelID_t chan = channel % fChannelsPerAPA;
     View_t view = geo::kU;
 
     if(       chan <  fFirstChannelInNextPlane[0][0][0]     ){ view = geo::kU; }
