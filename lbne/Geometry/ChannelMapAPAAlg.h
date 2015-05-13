@@ -36,29 +36,29 @@ namespace geo{
                                   double ZPos,
                                   unsigned int PlaneNo,
                                   unsigned int TPCNo,
-                                  unsigned int cstat) const override;
+                                  unsigned int cstat) const override
+      { return WireCoordinate(YPos, ZPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
     virtual double WireCoordinate(double YPos,
                                   double ZPos,
-                                  geo::PlaneID const& planeID) const override
-      { return WireCoordinate(YPos, ZPos, planeID.Plane, planeID.TPC, planeID.Cryostat); }
+                                  geo::PlaneID const& planeID) const override;
     //@}
     
     //@{
     virtual WireID NearestWireID(const TVector3& worldPos,
                                  unsigned int    PlaneNo,
                                  unsigned int    TPCNo,
-                                 unsigned int    cstat) const override;
-    virtual WireID NearestWireID(const TVector3& worldPos,
-                                 geo::PlaneID const& planeID) const override
-      { return NearestWireID(worldPos, planeID.Plane, planeID.TPC, planeID.Cryostat); }
+                                 unsigned int    cstat) const override
+      { return NearestWireID(worldPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+    virtual WireID NearestWireID
+      (const TVector3& worldPos, geo::PlaneID const& planeID) const override;
     //@}
     //@{
     virtual raw::ChannelID_t PlaneWireToChannel(unsigned int plane,
                                                 unsigned int wire,
                                                 unsigned int tpc,
-                                                unsigned int cstat) const override;
-    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override
-      { return PlaneWireToChannel(wireID.Plane, wireID.Wire, wireID.TPC, wireID.Cryostat); }
+                                                unsigned int cstat) const override
+      { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
+    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
     //@}
     View_t                   View( raw::ChannelID_t const channel )      const;
     SigType_t                SignalType( raw::ChannelID_t const channel) const;

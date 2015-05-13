@@ -259,30 +259,28 @@ namespace geo{
   
   
   //----------------------------------------------------------------------------
-  double ChannelMapAPAAlg::WireCoordinate(double YPos, double ZPos,
-                                          unsigned int PlaneNo,
-                                          unsigned int TPCNo,
-                                          unsigned int cstat) const
+  double ChannelMapAPAAlg::WireCoordinate
+    (double YPos, double ZPos, geo::PlaneID const& planeid) const
   {
-    // Returns the wire number corresponding to a (Y,Z) position in PlaneNo
+    // Returns the wire number corresponding to a (Y,Z) position in the plane
     // with float precision.
     // Core code ripped from original NearestWireID() implementation
     
-    const PlaneData_t& PlaneData = fPlaneData[cstat][TPCNo][PlaneNo];
+    const PlaneData_t& PlaneData = AccessElement(fPlaneData, planeid);
     
     //get the orientation angle of a given plane and calculate the distance between first wire
     //and a point projected in the plane
-//    const double rotate = (TPCNo % 2 == 1)? -1.: +1.;
+//    const double rotate = (planeid.TPC % 2 == 1)? -1.: +1.;
     
     // the formula used here is geometric:
     // distance = delta_y cos(theta_z) + delta_z sin(theta_z)
     // with a correction for the orientation of the TPC:
     // odd TPCs have supplementary wire angle (pi-theta_z), changing cosine sign
     
-    const bool bSuppl = (TPCNo % 2) == 1;
+    const bool bSuppl = (planeid.TPC % 2) == 1;
     float distance =
-      -(YPos - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[PlaneNo]
-      +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[PlaneNo]
+      -(YPos - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[planeid.Plane]
+      +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[planeid.Plane]
       ;
     
     // The sign of this formula is correct if the wire with larger ID is on the
@@ -290,30 +288,27 @@ namespace geo{
     // than this one.
     // Of course, we are not always that lucky. fWireSortingInZ fixes our luck.
 
-    return PlaneData.fWireSortingInZ * distance/fWirePitch[PlaneNo];
+    return PlaneData.fWireSortingInZ * distance/fWirePitch[planeid.Plane];
   } // ChannelMapAPAAlg::WireCoordinate()
   
-  
   //----------------------------------------------------------------------------
-  WireID ChannelMapAPAAlg::NearestWireID(const TVector3& xyz,
-                                         unsigned int    plane,
-                                         unsigned int    tpc,
-                                         unsigned int    cryostat)     const
+  WireID ChannelMapAPAAlg::NearestWireID
+    (const TVector3& xyz, geo::PlaneID const& planeid) const
   {
     // add 0.5 to have the correct rounding
     int NearestWireNumber
-      = int (0.5 + WireCoordinate(xyz.Y(), xyz.Z(), plane, tpc, cryostat));
+      = int (0.5 + WireCoordinate(xyz.Y(), xyz.Z(), planeid));
     
     // If we are outside of the wireplane range, throw an exception
     // (this response maintains consistency with the previous
     // implementation based on geometry lookup)
     if(NearestWireNumber < 0 ||
-       NearestWireNumber >= (int) fWiresInPlane[plane])
+       NearestWireNumber >= (int) fWiresInPlane[planeid.Plane])
     {
       const int wireNumber = NearestWireNumber; // save for the output
       
       if(wireNumber < 0 ) NearestWireNumber = 0;
-      else                NearestWireNumber = fWiresInPlane[plane] - 1;
+      else                NearestWireNumber = fWiresInPlane[planeid.Plane] - 1;
     
     /*
       // comment in the following statement to throw an exception instead
@@ -325,31 +320,31 @@ namespace geo{
     */
     } // if invalid wire
     
-    return { cryostat, tpc, plane, (unsigned int) NearestWireNumber };
+    return { planeid, (geo::WireID::ID_t) NearestWireNumber };
   } // ChannelMapAPAAlg::NearestWireID()
   
   
   //----------------------------------------------------------------------------
-  raw::ChannelID_t ChannelMapAPAAlg::PlaneWireToChannel(unsigned int plane,
-                                                        unsigned int wire,
-                                                        unsigned int tpc,
-                                                        unsigned int cstat) const
+  raw::ChannelID_t ChannelMapAPAAlg::PlaneWireToChannel
+    (geo::WireID const& wireid) const
   {
     unsigned int OtherSideWires = 0;
 
-    raw::ChannelID_t Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
-    Channel += cstat*(fNTPC[cstat]/2)*fChannelsPerAPA;       // move channel to proper cstat.
-    Channel += std::floor( tpc/2 )*fChannelsPerAPA;                  // move channel to proper APA.
-    OtherSideWires += (tpc%2)*nAnchoredWires[plane];                  // get number of wires on the first
-                                                                  // side of the APA if starting
-                                                                  // on the other side TPC.
+    // start in very first APA:
+    raw::ChannelID_t Channel = fFirstChannelInThisPlane[0][0][wireid.Plane];
+    // move channel to proper cryostat:
+    Channel += wireid.Cryostat*(fNTPC[wireid.Cryostat]/2)*fChannelsPerAPA;
+    // move channel to proper APA:
+    Channel += std::floor( wireid.TPC/2 )*fChannelsPerAPA;
+    // get number of wires on the first side of the APA if starting on the other side TPC:
+    OtherSideWires += (wireid.TPC%2)*nAnchoredWires[wireid.Plane];
 
 
     // Lastly, account for the fact that channel number while moving up wire number in one
     // plane resets after 2 times the number of wires anchored -- one for each APA side.
     // At the same time, OtherSideWires accounts for the fact that if a channel starts on 
     // the other side, it is offset by the number of wires on the first side.
-    Channel += (OtherSideWires + wire)%(2*nAnchoredWires[plane]);
+    Channel += (OtherSideWires + wireid.Wire)%(2*nAnchoredWires[wireid.Plane]);
     
     return Channel;
 
