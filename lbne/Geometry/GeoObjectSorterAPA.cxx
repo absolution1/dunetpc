@@ -43,6 +43,33 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
+  static bool sortAuxDetSensitiveAPA(const AuxDetSensitiveGeo* ad1, const AuxDetSensitiveGeo* ad2)
+  {
+  
+    // NOTE: This initial sorting is arbitrary, there
+    //       are no APAAlg users using AuxDet yet
+
+    double xyz1[3] = {0.};
+    double xyz2[3] = {0.};
+    double local[3] = {0.};
+    ad1->LocalToWorld(local, xyz1);
+    ad2->LocalToWorld(local, xyz2);
+
+    // First sort all AuxDets into same-y groups
+    if(xyz1[1] < xyz2[1]) return true;
+ 
+    // Within a same-y group, sort TPCs into same-z groups
+    if(xyz1[1] == xyz2[1] && xyz1[2] < xyz2[2]) return true;
+ 
+    // Within a same-z, same-y group, sort TPCs according to x
+    if(xyz1[2] == xyz2[2] && xyz1[1] == xyz2[1] && xyz1[0] < xyz2[0]) return true;      
+
+    // none of those are true, so return false
+    return false;
+
+  }
+
+  //----------------------------------------------------------------------------
   // Define sort order for cryostats in APA configuration
   //   same as standard
   static bool sortCryoAPA(const CryostatGeo* c1, const CryostatGeo* c2)
@@ -137,6 +164,14 @@ namespace geo{
   void GeoObjectSorterAPA::SortAuxDets(std::vector<geo::AuxDetGeo*> & adgeo) const
   {
     std::sort(adgeo.begin(), adgeo.end(), sortAuxDetAPA);
+    
+    return;
+  }
+
+  //----------------------------------------------------------------------------
+  void GeoObjectSorterAPA::SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*> & adgeo) const
+  {
+    std::sort(adgeo.begin(), adgeo.end(), sortAuxDetSensitiveAPA);
     
     return;
   }
