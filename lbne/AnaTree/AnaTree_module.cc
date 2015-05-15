@@ -124,6 +124,7 @@ private:
   double trkendy_MC[kMaxTrack];
   double trkendz_MC[kMaxTrack];
   double TPCLen_MC[kMaxTrack];
+  double EnergyDeposited_MC[kMaxTrack];
   double Hits_posx_MC[kMaxTrack][10000];
   double Hits_posy_MC[kMaxTrack][10000];
   double Hits_posz_MC[kMaxTrack][10000];
@@ -136,7 +137,7 @@ private:
   double Hits_dEdx_MC[kMaxTrack][10000];
   double Hits_dE_MC[kMaxTrack][10000];
   double Hits_dx_MC[kMaxTrack][10000];
-
+ 
   int    trkid_MC[kMaxTrack];
   int    trkpdg_MC[kMaxTrack];
   double trkmom_MC[kMaxTrack];
@@ -594,16 +595,6 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
     for(int ii=0;ii<numberTrajectoryPoints;++ii) {
       const TLorentzVector& tmpPosition=particle->Position(ii);
-      Hits_posx_MC[i][ii] = tmpPosition[0];
-      Hits_posy_MC[i][ii] = tmpPosition[1];
-      Hits_posz_MC[i][ii] = tmpPosition[2];
-      Hits_mom_MC[i][ii]  = particle->P(ii);
-      Hits_momx_MC[i][ii] = particle->Px(ii);
-      Hits_momy_MC[i][ii] = particle->Py(ii);
-      Hits_momz_MC[i][ii] = particle->Pz(ii);
-      Hits_E_MC[i][ii]    = particle->E(ii);
-
-
       double const tmpPosArray[]={tmpPosition[0],tmpPosition[1],tmpPosition[2]};
       geo::TPCID tpcid = geom->FindTPCAtPosition(tmpPosArray);
       if (tpcid.isValid) { // Check if hit is in TPC
@@ -616,7 +607,14 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	Hits_inTPC_MC[i][ii]=1;
 	++nTPCHitsCounts; //Count MCHits within the TPC
       }
-           
+      Hits_posx_MC[i][ii] = tmpPosition[0];
+      Hits_posy_MC[i][ii] = tmpPosition[1];
+      Hits_posz_MC[i][ii] = tmpPosition[2];
+      Hits_mom_MC[i][ii]  = particle->P(ii);
+      Hits_momx_MC[i][ii] = particle->Px(ii);
+      Hits_momy_MC[i][ii] = particle->Py(ii);
+      Hits_momz_MC[i][ii] = particle->Pz(ii);
+      Hits_E_MC[i][ii]    = particle->E(ii);
       if (ii != 0) { // Work out MCTruth dEdx
 	Hits_dx_MC[i][ii] = pow ( (Hits_posx_MC[i][ii-1]-Hits_posx_MC[i][ii])*(Hits_posx_MC[i][ii-1]-Hits_posx_MC[i][ii])
 				  + (Hits_posy_MC[i][ii-1]-Hits_posy_MC[i][ii])*(Hits_posy_MC[i][ii-1]-Hits_posy_MC[i][ii])
@@ -651,6 +649,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     float fMC_endXYZT[1000][4];  
 
     trkenergy_MC[i]=particle->E(zz);
+    EnergyDeposited_MC[i] = particle->E(zz) - particle->E(zz2);
     trkmom_MC[i]=momentumStart.P();
     trkmom_XMC[i]=momentumStart.Px();
     trkmom_YMC[i]=momentumStart.Py();
@@ -677,6 +676,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     trkendx_MC[i]=fMC_endXYZT[i][0];
     trkendy_MC[i]=fMC_endXYZT[i][1];
     trkendz_MC[i]=fMC_endXYZT[i][2];
+    //std::cout << trkstartx_MC[i] << " " << trkstarty_MC[i] << " " << trkstartz_MC[i] << " " << trkendx_MC[i] << " " << trkendy_MC[i] << " " << trkendz_MC[i] << std::endl;
 
     for ( int LenLoop = zz+1; LenLoop<=zz2; ++LenLoop) {
       TPCLen_MC[i] +=  Hits_dx_MC[i][LenLoop];
@@ -769,6 +769,9 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkendx_MC",trkendx_MC,"trkendx_MC[nMCParticles]/D");
   fTree->Branch("trkendy_MC",trkendy_MC,"trkendy_MC[nMCParticles]/D");
   fTree->Branch("trkendz_MC",trkendz_MC,"trkendz_MC[nMCParticles]/D");
+  fTree->Branch("trkenergy_MC",trkenergy_MC,"trkenergy_MC[nMCParticles]/D");
+  fTree->Branch("EnergyDeposited_MC",EnergyDeposited_MC,"EnergyDeposited_MC[nMCParticles]/D");
+  /* // MC information per hit....uses too much space though?
   fTree->Branch("Hits_posx_MC",Hits_posx_MC,"Hits_posx_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_posy_MC",Hits_posy_MC,"Hits_posy_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_posz_MC",Hits_posz_MC,"Hits_posz_MC[nMCParticles][1000]/D");
@@ -779,7 +782,7 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("Hits_momz_MC",Hits_momz_MC,"Hits_momz_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_E_MC",Hits_E_MC,"Hits_E_MC[nMCParticles][1000]/D");
   fTree->Branch("Hits_dEdx_MC",Hits_dEdx_MC,"HitsdEdx_MC[nMCParticles][1000]/D");
-  fTree->Branch("trkenergy_MC",trkenergy_MC,"trkenergy_MC[nMCParticles]/D");
+  */
   fTree->Branch("trkmom_MC",trkmom_MC,"trkmom_MC[nMCParticles]/D");
   fTree->Branch("trkmom_XMC",trkmom_XMC,"trkmom_XMC[nMCParticles]/D");
   fTree->Branch("trkmom_YMC",trkmom_YMC,"trkmom_YMC[nMCParticles]/D");
@@ -845,6 +848,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkendz_MC[i] = -99999;
     TPCLen_MC[i] = 0;
     trkenergy_MC[i] = -99999;
+    EnergyDeposited_MC[i] = -99999;
     trkmom_MC[i] = -99999;
     trkmom_XMC[i] = -99999;
     trkmom_YMC[i] = -99999;
