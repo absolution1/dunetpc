@@ -14,6 +14,8 @@
 #include "art/Utilities/InputTag.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+//#include <iostream>
+
 // artdaq
 #include "artdaq-core/Data/Fragments.hh"
 
@@ -94,8 +96,12 @@ namespace {
 
     bool empty() const 
     { 
+      //std::cout << "Checking if loaded digits is empty" << std::endl;
+      //std::cout << "Number of rawdigits: " << digits.size() << std::endl;
       if (digits.size() == 0) return true;
-      if (index == digits[0].Samples()) return true; 
+      //std::cout << "Number of samples: " << digits[0].Samples() << std::endl;
+      if (digits[0].Samples() == 0) return true;
+      if (index >= digits[0].Samples()) return true; 
       return false;
     }
 
@@ -206,7 +212,6 @@ namespace DAQToOffline
     TBranch*               SSPfragmentsBranch_;
     LoadedDigits           loadedDigits_;
     LoadedWaveforms        loadedWaveforms_;
-    size_t                 digitIndex_;
     size_t                 nInputEvts_;
     size_t                 treeIndex_;
     art::RunNumber_t       runNumber_;
@@ -312,18 +317,6 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     return false;
   }
 
-  art::Timestamp ts; // LBNE should decide how to initialize this
-  if ( runNumber_ != cachedRunNumber_ ){
-    outR = sh_.makeRunPrincipal(runNumber_,ts);
-    cachedRunNumber_ = runNumber_;
-    eventNumber_ = 0ul;
-  }
-
-  if ( subRunNumber_ != cachedSubRunNumber_ ) {
-    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
-    cachedSubRunNumber_ = subRunNumber_;
-    eventNumber_ = 0ul;
-  }
 
   while ( fTicksAccumulated < ticksPerEvent_ ) {
 
@@ -333,13 +326,8 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	bool rc = loadDigits_();
 	if (!rc)
 	  {
-	    if (file_->GetName() != lastFileName_)
-	      { return false; }
-	    else
-	      { 
-		doneWithFiles_ = true; 
-		break;
-	      }
+	    doneWithFiles_ = (file_->GetName() == lastFileName_);
+	    return false;
 	  }
       }
 
@@ -377,6 +365,19 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
                     loadedDigits_.digits[ichan].GetSigma());
       bufferedDigits_.emplace_back(d);
     }
+
+  art::Timestamp ts; // LBNE should decide how to initialize this
+  if ( runNumber_ != cachedRunNumber_ ){
+    outR = sh_.makeRunPrincipal(runNumber_,ts);
+    cachedRunNumber_ = runNumber_;
+    eventNumber_ = 0ul;
+  }
+
+  if ( subRunNumber_ != cachedSubRunNumber_ ) {
+    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
+    cachedSubRunNumber_ = subRunNumber_;
+    eventNumber_ = 0ul;
+  }
 
   makeEventAndPutDigits_( outE );
   return true;
