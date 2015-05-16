@@ -320,7 +320,7 @@ namespace geo{
     */
     } // if invalid wire
     
-    return { planeid, (geo::WireID::ID_t) NearestWireNumber };
+    return { planeid, (geo::WireID::WireID_t) NearestWireNumber };
   } // ChannelMapAPAAlg::NearestWireID()
   
   
