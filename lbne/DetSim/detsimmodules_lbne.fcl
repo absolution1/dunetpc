@@ -17,11 +17,12 @@ lbnefd_simwire:
  LowCutoffZ:          7.5          #Low frequency filter cutoff (kHz) for Z plane
  CompressionType:    "ZeroSuppression"       #could also be none
  #CompressionType:    ""       #could also be none	
- ZeroThreshold:      10        #Threshold for zero suppression
- NearestNeighbor:    25        #Maximum distance between hits above threshold before they are separated into different blocks
- NoiseArrayPoints:   1000     #number of points in noise array
- NoiseOn:            1        #1 for noise on, 0 for noise off
- NoiseModel:         2        #1 for original model, 2 for a model similar to uBooNE
+ ZeroThreshold:       10        #Threshold for zero suppression
+ NearestNeighbor:     25        #Maximum distance between hits above threshold before they are separated into different blocks
+ NeighboringChannels: 3        #Number of neighboring channels on either side allowed to influence zero suppression
+ NoiseArrayPoints:    1000     #number of points in noise array
+ NoiseOn:             1        #1 for noise on, 0 for noise off
+ NoiseModel:          2        #1 for original model, 2 for a model similar to uBooNE
 
  CollectionPed:       400         #ADC baseline for coll plane
  InductionPed:        2048        #ADC baseline for ind plane
