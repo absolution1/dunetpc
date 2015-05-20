@@ -55,8 +55,6 @@ extern "C" {
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandGaussQ.h"
 
-#include <boost/circular_buffer.hpp>
-
 ///Detector simulation of raw signals on wires 
 namespace detsim {
 
@@ -126,8 +124,6 @@ namespace detsim {
 
     std::vector< uint32_t > fFirstChannelsInPlane;
     std::vector< uint32_t > fLastChannelsInPlane;
-
-    uint32_t fCollectionChannelTPCBoundaries[4] = {400,912,1424,1936}; // hard-wired array of 35t collection plane channels at TPC boundaries
 
     //define max ADC value - if one wishes this can
     //be made a fcl parameter but not likely to ever change
@@ -268,46 +264,44 @@ namespace detsim {
     art::ServiceHandle<geo::Geometry> geo;
 
     bool foundfirstcollectionchannel = false;
-
-    geo::View_t currentView = geo->View(0);
-
     fFirstChannelsInPlane.push_back(0);
-
-    uint32_t cpb = 0; // counter for collection plane boundaries in TPCs
+    unsigned int currentPlaneNumber = geo->ChannelToWire(0).at(0).Plane; // ID of current wire plane
+    unsigned int currentTPCNumber = geo->ChannelToWire(0).at(0).TPC; // ID of current wire plane
 
     for (uint32_t ichan=0;ichan<geo->Nchannels();ichan++)
       {
 
-         const geo::View_t view = geo->View(ichan);
-	 if (view == geo::kZ && !foundfirstcollectionchannel)
-	   {
-	     foundfirstcollectionchannel = true;
-	     fFirstCollectionChannel = ichan;
-	     //break;
-	   }
-	 
-	 if (view != currentView) // plane boundary has been reached 
-	   {
-	     fLastChannelsInPlane.push_back(ichan-1);
-	     fFirstChannelsInPlane.push_back(ichan);
-	     currentView = view;
-	   }
+	if(!foundfirstcollectionchannel)
+	  {
+	    const geo::View_t view = geo->View(ichan);
+	    if (view == geo::kZ)
+	      {
+		foundfirstcollectionchannel = true;
+		fFirstCollectionChannel = ichan;
+		//break;
+	      }
+	  }
 
-	 if (ichan==fCollectionChannelTPCBoundaries[cpb])
-	   {
-	     fLastChannelsInPlane.push_back(ichan-1);
-	     fFirstChannelsInPlane.push_back(ichan);
-	     ++cpb;
-	   }
+	const unsigned int thisPlaneNumber = geo->ChannelToWire(ichan).at(0).Plane;
+	const unsigned int thisTPCNumber = geo->ChannelToWire(ichan).at(0).TPC;
+		
+	if(thisPlaneNumber != currentPlaneNumber || (thisPlaneNumber == geo::kZ && thisTPCNumber != currentTPCNumber))
+	  {
+	    fLastChannelsInPlane.push_back(ichan-1);
+	    fFirstChannelsInPlane.push_back(ichan); 
+	    currentPlaneNumber = thisPlaneNumber;
+	    currentTPCNumber = thisTPCNumber;
+	  }
 
-      }
-    fLastChannelsInPlane.push_back(geo->Nchannels()-1);
-
+      } 
     if (!foundfirstcollectionchannel)
       {
 	throw  cet::exception("SimWireLBNE35t  BeginJob") << " Could not find any collection channels\n";
       }
     
+    fLastChannelsInPlane.push_back(geo->Nchannels()-1);
+
+     
     // //Check starting and ending channels for each wire plane
     // for(size_t ip = 0; ip < fFirstChannelsInPlane.size(); ++ip){
     //   std::cout << "First channel in plane " << ip << " is " << fFirstChannelsInPlane.at(ip) << std::endl;
@@ -833,6 +827,8 @@ namespace detsim {
 	
 	
 	raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
+
+
 	raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
 	
 	adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
