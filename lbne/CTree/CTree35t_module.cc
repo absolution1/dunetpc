@@ -74,6 +74,7 @@
 #define MAX_TRACKS 2000
 #define MAX_HITS 20000
 #define MAX_OPDET 8
+#define MAX_CLUSTER 10
 
 using namespace std;
 
@@ -112,7 +113,9 @@ private:
     std::string fHitsModuleLabel;
     std::string fOutFileName;
     std::string fTrackModuleLabel;
+    std::string fClusterModuleLabel; 
     bool fSaveChannelWireMap;
+    bool fSaveChannelWireGeo;
 
     art::ServiceHandle<geo::Geometry> fGeom;
     // art::ServiceHandle<util::LArProperties> larp;
@@ -176,6 +179,27 @@ private:
     int    hit_channel[MAX_HITS];    //channel ID
     float  hit_peakT[MAX_HITS];      //peak time
     float  hit_charge[MAX_HITS];     //charge (area)
+    float  hit_wireID[MAX_HITS];
+    float  hit_plane[MAX_HITS]; 
+    float  hit_tpc[MAX_HITS]; 
+
+    int    nthits;
+    int    thit_channel[MAX_HITS];
+    float  thit_peakT[MAX_HITS];
+    float  thit_charge[MAX_HITS];
+    int    thit_wireID[MAX_HITS];
+    int    thit_plane[MAX_HITS];
+    int    thit_tpc[MAX_HITS];
+
+    int    nclhits;
+    int    chit_cryostat[MAX_HITS];
+    int    chit_tpc[MAX_HITS];
+    int    chit_plane[MAX_HITS];
+    int    chit_charge[MAX_HITS];
+    float  chit_peakT[MAX_HITS];
+    int    chit_wire[MAX_HITS];
+    int    chit_channel[MAX_HITS];
+    int    chit_cluster[MAX_HITS];
 
     int reco_nTrack;    // number of reco tracks
     TObjArray *fReco_trackPosition;
@@ -228,9 +252,11 @@ void CTree35t::reconfigure(fhicl::ParameterSet const& p){
     fRawDigitLabel = p.get< std::string >("RawDigitLabel");
     fCalibLabel = p.get< std::string >("CalibLabel");
     fHitsModuleLabel = p.get< std::string >("HitsModuleLabel");
+    fClusterModuleLabel = p.get< std::string >("ClusterModuleLabel");
     fTrackModuleLabel = p.get< std::string >("TrackModuleLabel");
     fOutFileName = p.get< std::string >("outFile");
     fSaveChannelWireMap = p.get< bool >("saveChannelWireMap");
+    fSaveChannelWireGeo = p.get< bool >("saveChannelWireGeo");
     fInputModule = p.get<std::string>("InputModule");
     fMakeAllPhotonsTree = p.get<bool>("MakeAllPhotonsTree");
     fMakeDetectedPhotonsTree = p.get<bool>("MakeDetectedPhotonsTree");
@@ -315,6 +341,27 @@ void CTree35t::initOutput()
     fEventTree->Branch("hit_channel", &hit_channel, "hit_channel[no_hits]/I");  // channel ID
     fEventTree->Branch("hit_peakT", &hit_peakT, "hit_peakT[no_hits]/F");  // peak time
     fEventTree->Branch("hit_charge", &hit_charge, "hit_charge[no_hits]/F");  // charge (area)
+    fEventTree->Branch("hit_wireID", &hit_wireID, "hit_wireID[no_hits]/F");
+    fEventTree->Branch("hit_plane", &hit_plane, "hit_plane[no_hits]/F");
+    fEventTree->Branch("hit_tpc", &hit_tpc, "hit_tpc[no_hits]/F");
+
+    fEventTree->Branch("nthits", &nthits);
+    fEventTree->Branch("thit_channel", &thit_channel, "thit_channel[nthits]/I");
+    fEventTree->Branch("thit_peakT", &thit_peakT, "thit_peakT[nthits]/F");
+    fEventTree->Branch("thit_charge", &thit_charge, "thit_charge[nthits]/F");
+    fEventTree->Branch("thit_wireID", &thit_wireID, "thit_wireID[nthits]/I");
+    fEventTree->Branch("thit_plane", &thit_plane, "thit_plane[nthits]/I");
+    fEventTree->Branch("thit_tpc", &thit_tpc, "thit_tpc[nthits]/I");
+
+    fEventTree->Branch("nclhits", &nclhits, "nclhits/I");
+    fEventTree->Branch("chit_cryostat", &chit_cryostat, "chit_cryostat[nclhits]/I");
+    fEventTree->Branch("chit_tpc", &chit_tpc, "chit_tpc[nclhits]/I");
+    fEventTree->Branch("chit_plane", &chit_plane, "chit_plane[nclhits]/I");
+    fEventTree->Branch("chit_charge", &chit_charge, "chit_charge[nclhits]/I");
+    fEventTree->Branch("chit_peakT", &chit_peakT, "chit_peakT[nclhits]/F");
+    fEventTree->Branch("chit_wire", &chit_wire, "chit_wire[nclhits]/I");
+    fEventTree->Branch("chit_channel", &chit_channel, "chit_channel[nclhits]/I");
+    fEventTree->Branch("chit_cluster", &chit_cluster, "chit_cluster[nclhits]/I");
 
     fEventTree->Branch("reco_nTrack", &reco_nTrack); 
     fReco_trackPosition = new TObjArray();
@@ -409,7 +456,7 @@ void CTree35t::beginJob()
       //std::cout<<"i = "<<i<<"; got centers"<<std::endl;
       fOpDetPositions_Y[i] = (float)xyz[1];
       fOpDetPositions_Z[i] = (float)xyz[2];
-      std::cout<<"(y,z) = ("<<fOpDetPositions_Y[i]<<","<<fOpDetPositions_Z[i]<<")"<<std::endl;
+      //std::cout<<"(y,z) = ("<<fOpDetPositions_Y[i]<<","<<fOpDetPositions_Z[i]<<")"<<std::endl;
       TGeoNode *fOpNode = (TGeoNode*)fOpDetNode.Node();
       //std::cout<<"got TGeoNode "<<fOpNode->GetName()<<std::endl;
       TGeoTube *fOpTube = (TGeoTube*)fOpNode->GetVolume()->GetShape();
@@ -421,7 +468,7 @@ void CTree35t::beginJob()
       //std::cout<<"got half-wdith"<<std::endl;
       tmp = fOpTube->GetDY();//fOpDetNode.HalfL();
       fOpDetHalfHeights[i] = (float)tmp;
-      std::cout<<i<<"(w,h) = ("<<fOpDetHalfWidths[i]<<","<<fOpDetHalfHeights[i]<<")"<<std::endl;
+      //std::cout<<i<<"(w,h) = ("<<fOpDetHalfWidths[i]<<","<<fOpDetHalfHeights[i]<<")"<<std::endl;
     }
 
     printGeometry();
@@ -450,6 +497,32 @@ void CTree35t::beginJob()
     // saveWireGeometry(1, 3);
     // saveWireGeometry(1, 5);
     // saveWireGeometry(1, 7);
+
+    ofstream wireGeoFile;
+    wireGeoFile.open("WireGeometry.txt");
+    for (unsigned int plane=0; plane<(unsigned int)fNplanes; plane++) {
+      wireGeoFile << "***************** PLANE " << plane <<" ********************\n";
+      for(unsigned int tpc=0; tpc<(unsigned int)fNTPC; tpc++) {
+	wireGeoFile << "----------- TPC "<< tpc << " ------------\n";
+	wireGeoFile << "Wire#    WireID    ChannelID     Start        End\n";
+	int Nwires = fGeom->Nwires(plane, tpc);
+	double xyzStart[3];
+	double xyzEnd[3];
+	for(int wire=0; wire<Nwires; wire++) {
+	  fGeom->WireEndPoints(0, tpc, plane, wire, xyzStart, xyzEnd);
+	  uint32_t channelid = fGeom->PlaneWireToChannel(plane, wire, tpc, 0);
+	  int wireid = wire;
+	  wireGeoFile << "                                " << xyzStart[0] << " " << xyzEnd[0] <<"\n";
+	  wireGeoFile << wire << "         " << wireid << "         ";
+	  wireGeoFile << channelid << "            " << xyzStart[1] << " " << xyzEnd[1] << "\n";
+	  wireGeoFile << "                                " << xyzStart[2] << " " << xyzEnd[2] <<"\n";
+	}
+	wireGeoFile << "------------------------------------------\n\n";
+      }
+      wireGeoFile << "\n***********************************************\n\n";
+    }
+    wireGeoFile << "\n" << endl;
+    wireGeoFile.close();
 
 }
 
@@ -558,7 +631,7 @@ void CTree35t::printGeometry()
             << ")" << endl;
     }
     cout << "fNchannels: " << fNchannels << endl;
-    cout << "fNOpDets: " << fGeom->NOpDets() << endl;
+    cout << "fNOpDet: " << fGeom->NOpDets() << endl;
     cout << "fAuxDetectors: " << fGeom->NAuxDets() << endl;
     cout << endl;
 }
@@ -626,6 +699,9 @@ void CTree35t::reset()
         hit_channel[i] = 0;
         hit_peakT[i] = 0;
         hit_charge[i] = 0;
+	hit_wireID[i] = 0;
+	hit_plane[i] = 0;
+	hit_tpc[i] = 0;
     }
 
     fReco_trackPosition->Clear();
@@ -848,6 +924,58 @@ void CTree35t::processHits( const art::Event& event )
         hit_channel[i] = hit->Channel();
         hit_charge[i] = hit->Integral();
         hit_peakT[i] = hit->PeakTime();        
+	hit_wireID[i] = hit->WireID().Wire;
+	hit_tpc[i] = hit->WireID().TPC;
+	hit_plane[i] = hit->WireID().Plane;
+    }
+
+    art::Handle< std::vector<recob::Hit> > tHitListHandle;
+    if(! event.getByLabel("dcheat", tHitListHandle)) return;
+    std::vector< art::Ptr<recob::Hit> > tHitlist;
+    art::fill_ptr_vector(tHitlist, tHitListHandle);
+    nthits = tHitlist.size();
+    if (nthits>MAX_HITS) {
+        mf::LogError("CTree35t") << "Event has " << nthits
+        << " hits, MAX ALLOWED: " << MAX_HITS;
+    }
+    for (int i=0; i<nthits; i++) {
+        art::Ptr<recob::Hit> hit = tHitlist[i];
+        thit_channel[i] = hit->Channel();
+        thit_charge[i] = hit->Integral();
+        thit_peakT[i] = hit->PeakTime();        
+	thit_wireID[i] = hit->WireID().Wire;
+	thit_tpc[i] = hit->WireID().TPC;
+	thit_plane[i] = hit->WireID().Plane;
+    }
+
+
+    art::Handle< std::vector<recob::Cluster> > clusterListHandle;
+    if (! event.getByLabel(fClusterModuleLabel, clusterListHandle)) return;
+    std::vector<art::Ptr<recob::Cluster> > clusterlist;
+    art::fill_ptr_vector(clusterlist, clusterListHandle);
+    art::FindManyP<recob::Hit> fm(clusterListHandle, event, fClusterModuleLabel);
+    //if (fm.empty()) {cout<<"can't associate cluters with hits. aborting..."<<endl; return;}
+    int nclusters = clusterlist.size();
+    cout<<"# of clusters is "<<nclusters<<endl;
+    nclhits=0;
+    for(size_t i=0; i<clusterlist.size(); ++i){
+      geo::PlaneID planeid = clusterlist[i]->Plane();
+      std::vector< art::Ptr<recob::Hit> > hitslist = fm.at(i);
+      size_t n_hits = hitslist.size();
+      //for (auto theHit=hitslist.begin();theHit!=hitslist.end();theHit++){
+      for(size_t j=0; j<n_hits; j++) {
+	art::Ptr<recob::Hit> hit = hitslist[j];
+	chit_channel[nclhits] = hit->Channel();
+	chit_wire[nclhits] = hit->WireID().Wire;
+	chit_peakT[nclhits] = hit->PeakTime();
+	chit_plane[nclhits] = planeid.Plane;
+	chit_tpc[nclhits] = planeid.TPC;
+	chit_cryostat[nclhits] = planeid.Cryostat;
+	chit_charge[nclhits] = clusterlist[i]->Charge(0);
+	chit_cluster[nclhits] = i;
+	nclhits++;
+      }
+      //cout<<"nclhits = "<<nclhits<<endl;
     }
 }
 
@@ -901,7 +1029,7 @@ void CTree35t::processOpDet(const art::Event& event)
 
     if (photonlite.size()>0) {
         int size = photonlite.size();
-	std::cout<<"photonlite.size() = "<<size<<std::endl;
+	//std::cout<<"photonlite.size() = "<<size<<std::endl;
         for (int k=0; k<size; k++) {
             //Get data from HitCollection entry
 	    art::Ptr<sim::SimPhotonsLite> photon = photonlite[k];
