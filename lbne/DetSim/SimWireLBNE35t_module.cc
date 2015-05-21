@@ -55,7 +55,7 @@ extern "C" {
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandGaussQ.h"
 
-///Detector simulation of raw signals on wires
+///Detector simulation of raw signals on wires 
 namespace detsim {
 
   // tye used for passing messages for simulating gaps
@@ -100,7 +100,8 @@ namespace detsim {
     float                  fNoiseWidthV;       ///< exponential noise width (kHz)   for V plane
     float                  fLowCutoffV;        ///< low frequency filter cutoff (kHz)  for V plane
     unsigned int           fZeroThreshold;    ///< Zero suppression threshold
-    int                    fNearestNeighbor;         ///< Maximum distance between hits above threshold before they are separated into different blocks
+    int                    fNearestNeighbor;  ///< Maximum distance between hits above threshold before they are separated into different blocks
+    unsigned int           fNeighboringChannels; ///< Number of neighboring channels on either side allowed to influence zero suppression
     int                    fNTicks;           ///< number of ticks of the clock
     double                 fSampleRate;       ///< sampling rate in ns
     unsigned int           fNSamplesReadout;  ///< number of ADC readout samples in 1 readout frame
@@ -118,6 +119,11 @@ namespace detsim {
     // variables for simulating the charge deposition in gaps and charge drifting over the comb materials.
 
     uint32_t               fFirstCollectionChannel;
+
+    // variables for finding the first and last channel numbers on each plane
+
+    std::vector< uint32_t > fFirstChannelsInPlane;
+    std::vector< uint32_t > fLastChannelsInPlane;
 
     //define max ADC value - if one wishes this can
     //be made a fcl parameter but not likely to ever change
@@ -161,10 +167,6 @@ namespace detsim {
     this->reconfigure(pset);
 
     produces< std::vector<raw::RawDigit>   >();
-    if(fNSamplesReadout != fNTimeSamples ) {
-      produces< std::vector<raw::RawDigit>   >("preSpill");
-      produces< std::vector<raw::RawDigit>   >("postSpill");
-    } 
 
     fCompression = raw::kNone;
     TString compression(pset.get< std::string >("CompressionType"));
@@ -210,13 +212,14 @@ namespace detsim {
     fNoiseFactV        = p.get< double              >("NoiseFactV");
     fNoiseWidthV       = p.get< double              >("NoiseWidthV");
     fLowCutoffV        = p.get< double              >("LowCutoffV");
-    fZeroThreshold    = p.get< unsigned int        >("ZeroThreshold");
-    fNearestNeighbor         = p.get< int                 >("NearestNeighbor");
-    fNoiseArrayPoints = p.get< unsigned int        >("NoiseArrayPoints");
-    fNoiseOn           = p.get< unsigned int       >("NoiseOn");
-    fNoiseModel           = p.get< unsigned int       >("NoiseModel");
-    fCollectionPed    = p.get< float               >("CollectionPed");
-    fInductionPed     = p.get< float               >("InductionPed");
+    fZeroThreshold    = p.get< unsigned int         >("ZeroThreshold");
+    fNearestNeighbor         = p.get< int           >("NearestNeighbor");
+    fNeighboringChannels   = p.get< unsigned int    >("NeighboringChannels");
+    fNoiseArrayPoints = p.get< unsigned int         >("NoiseArrayPoints");
+    fNoiseOn           = p.get< unsigned int        >("NoiseOn");
+    fNoiseModel           = p.get< unsigned int     >("NoiseModel");
+    fCollectionPed    = p.get< float                >("CollectionPed");
+    fInductionPed     = p.get< float                >("InductionPed");
     art::ServiceHandle<util::DetectorProperties> detprop;
     fSampleRate       = detprop->SamplingRate();
     fNSamplesReadout  = detprop->ReadOutWindowSize();
@@ -261,21 +264,53 @@ namespace detsim {
     art::ServiceHandle<geo::Geometry> geo;
 
     bool foundfirstcollectionchannel = false;
+    fFirstChannelsInPlane.push_back(0);
+    unsigned int currentPlaneNumber = geo->ChannelToWire(0).at(0).Plane; // ID of current wire plane
+    unsigned int currentTPCNumber = geo->ChannelToWire(0).at(0).TPC; // ID of current wire plane
+
     for (uint32_t ichan=0;ichan<geo->Nchannels();ichan++)
       {
-         const geo::View_t view = geo->View(ichan);
-	 if (view == geo::kZ)
-	   {
-	     foundfirstcollectionchannel = true;
-	     fFirstCollectionChannel = ichan;
-	     break;
-	   }
-      }
+
+	if(!foundfirstcollectionchannel)
+	  {
+	    const geo::View_t view = geo->View(ichan);
+	    if (view == geo::kZ)
+	      {
+		foundfirstcollectionchannel = true;
+		fFirstCollectionChannel = ichan;
+		//break;
+	      }
+	  }
+
+	const unsigned int thisPlaneNumber = geo->ChannelToWire(ichan).at(0).Plane;
+	const unsigned int thisTPCNumber = geo->ChannelToWire(ichan).at(0).TPC;
+		
+	if(thisPlaneNumber != currentPlaneNumber || (thisPlaneNumber == geo::kZ && thisTPCNumber != currentTPCNumber))
+	  {
+	    fLastChannelsInPlane.push_back(ichan-1);
+	    fFirstChannelsInPlane.push_back(ichan); 
+	    currentPlaneNumber = thisPlaneNumber;
+	    currentTPCNumber = thisTPCNumber;
+	  }
+
+      } 
     if (!foundfirstcollectionchannel)
       {
 	throw  cet::exception("SimWireLBNE35t  BeginJob") << " Could not find any collection channels\n";
       }
     
+    fLastChannelsInPlane.push_back(geo->Nchannels()-1);
+
+     
+    // //Check starting and ending channels for each wire plane
+    // for(size_t ip = 0; ip < fFirstChannelsInPlane.size(); ++ip){
+    //   std::cout << "First channel in plane " << ip << " is " << fFirstChannelsInPlane.at(ip) << std::endl;
+    // }
+
+    // for(size_t ip = 0; ip < fLastChannelsInPlane.size(); ++ip){
+    //   std::cout << "Last channel in plane " << ip << " is " << fLastChannelsInPlane.at(ip) << std::endl;
+    // }
+
     //Generate noise if selected to be on
     if(fNoiseOn && fNoiseModel==1){
 
@@ -455,6 +490,8 @@ namespace detsim {
     ycomb1 = ycomb2 - (ycomb3 - ycomb2);
     ycomb6 = ycomb5 + (ycomb5 - ycomb4);
 
+
+
     return;
 
   }
@@ -471,12 +508,9 @@ namespace detsim {
     art::ServiceHandle<geo::Geometry> geo;
     unsigned int signalSize = fNTicks;
 
-    //std::cout << "Xin " << fNTicks << std::endl;
-
+ 
     // vectors for working
     std::vector<short>    adcvec(signalSize, 0);	
-    std::vector<short>    adcvecPreSpill(signalSize, 0);	
-    std::vector<short>    adcvecPostSpill(signalSize, 0);	
     std::vector<const sim::SimChannel*> chanHandle;
     evt.getView(fDriftEModuleLabel,chanHandle);
 
@@ -495,16 +529,13 @@ namespace detsim {
     // make an unique_ptr of sim::SimDigits that allows ownership of the produced
     // digits to be transferred to the art::Event after the put statement below
     std::unique_ptr< std::vector<raw::RawDigit>   >  digcol(new std::vector<raw::RawDigit>);
-    std::unique_ptr< std::vector<raw::RawDigit>   >  digcolPreSpill(new std::vector<raw::RawDigit>);
-    std::unique_ptr< std::vector<raw::RawDigit>   >  digcolPostSpill(new std::vector<raw::RawDigit>);
-
 	  
     unsigned int chan = 0; 
     fChargeWork.clear();
     fChargeWork.resize(fNTicks, 0.);
 	  
-    std::vector<double> fChargeWorkPreSpill, fChargeWorkPostSpill;
-    std::vector<double> fChargeWorkCollInd, fChargeWorkCollIndPreSpill, fChargeWorkCollIndPostSpill;
+ 
+    std::vector<double> fChargeWorkCollInd;
 
     art::ServiceHandle<util::LArFFT> fFFT;
 
@@ -515,11 +546,20 @@ namespace detsim {
 
     std::map<int,double>::iterator mapIter;      
 
-    bool prepost = false;  // whether or not to do the prespill and postspill digitization
-    if(fNSamplesReadout != fNTimeSamples ) { prepost = true; }  
+
+    // make ring buffer to hold neighboring channels in order to enable nearest neighbor-influenced zero suppression
+
+    boost::circular_buffer<std::vector<short>> adcvec_neighbors(fNeighboringChannels*2+1); 
+
+    // make vector of adc vectors to hold first channels in induction plane in order to wrap around to the start for nearest neighbor-influenced zero suppression
+
+    std::vector<std::vector<short>> adcvec_inductionplanestart; 
+
+    unsigned int plane_number = 0;
 
     for(chan = 0; chan < geo->Nchannels(); chan++) {    
       
+ 
       fChargeWork.clear();    
       //      fChargeWork.resize(fNTicks, 0.);    
       fChargeWork.resize(fNTimeSamples, 0.);    
@@ -528,21 +568,6 @@ namespace detsim {
 	  fChargeWorkCollInd.clear();
 	  fChargeWorkCollInd.resize(fNTimeSamples, 0.);
 	}
-
-
-      if (prepost) {
-        fChargeWorkPreSpill.clear();
-        fChargeWorkPreSpill.resize(fNTicks,0);
-        fChargeWorkPostSpill.clear();
-        fChargeWorkPostSpill.resize(fNTicks,0);
-	if (fSimCombs)
-	  {
-	    fChargeWorkCollIndPreSpill.clear();
-	    fChargeWorkCollIndPreSpill.resize(fNTicks, 0.);
-	    fChargeWorkCollIndPostSpill.clear();
-	    fChargeWorkCollIndPostSpill.resize(fNTicks, 0.);
-	  }
-      }
 
       // get the sim::SimChannel for this channel
       const sim::SimChannel* sc = channels[chan];
@@ -622,7 +647,7 @@ namespace detsim {
 			break;
 		      }
 		    case NONACTIVE:
-		      {
+		      { 
 			break;
 		      }
 		    case HORIZGAP:
@@ -648,34 +673,7 @@ namespace detsim {
 	    }      
 
         // Convolve charge with appropriate response function 
-	if(prepost) {
-	  fChargeWorkPreSpill.assign(fChargeWork.begin(), fChargeWork.begin()+fNSamplesReadout);
-	  fChargeWorkPostSpill.assign(fChargeWork.begin()+2*fNSamplesReadout, fChargeWork.end());
 
-	  fChargeWork.erase( fChargeWork.begin()+2*fNSamplesReadout, fChargeWork.end() );
-	  fChargeWork.erase( fChargeWork.begin(), fChargeWork.begin()+fNSamplesReadout );
-
-	  fChargeWorkPreSpill.resize(fNTicks,0);
-	  fChargeWorkPostSpill.resize(fNTicks,0);
-
-	  // add in the bits of charge that collect on the induction wires.
-
-	  fChargeWorkCollIndPreSpill.assign(fChargeWorkCollInd.begin(), fChargeWorkCollInd.begin()+fNSamplesReadout);
-	  fChargeWorkCollIndPostSpill.assign(fChargeWorkCollInd.begin()+2*fNSamplesReadout, fChargeWorkCollInd.end());
-
-	  fChargeWorkCollInd.erase( fChargeWorkCollInd.begin()+2*fNSamplesReadout, fChargeWorkCollInd.end() );
-	  fChargeWorkCollInd.erase( fChargeWorkCollInd.begin(), fChargeWorkCollInd.begin()+fNSamplesReadout );
-
-	  fChargeWorkCollIndPreSpill.resize(fNTicks,0);
-	  fChargeWorkCollIndPostSpill.resize(fNTicks,0);
-
-	  sss->Convolute(chan, fChargeWorkPreSpill);
-	  sss->Convolute(chan, fChargeWorkPostSpill);
-
-	  sss->Convolute(fFirstCollectionChannel, fChargeWorkCollIndPreSpill);
-	  sss->Convolute(fFirstCollectionChannel, fChargeWorkCollIndPostSpill);
-
-	}
 	fChargeWork.resize(fNTicks,0);
 	sss->Convolute(chan,fChargeWork);
 	// if (chan == 180 ) {
@@ -704,65 +702,32 @@ namespace detsim {
       // the noise has the right coherent characteristics to be on one channel
 
       int noisechan = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
-      int noisechanpre = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
-      int noisechanpost = nearbyint(flat.fire()*(1.*(fNoiseArrayPoints-1)+0.1));
-    
       // optimize for speed -- access vectors as arrays 
 
       double *fChargeWork_a=0;
-      double *fChargeWorkPreSpill_a=0;
-      double *fChargeWorkPostSpill_a=0;
       double *fChargeWorkCollInd_a=0;
-      double *fChargeWorkCollIndPreSpill_a=0;
-      double *fChargeWorkCollIndPostSpill_a=0;
       short *adcvec_a=0;
-      short *adcvecPreSpill_a=0;
-      short *adcvecPostSpill_a=0;
       float *noise_a_U=0;
       float *noise_a_V=0;
       float *noise_a_Z=0;
-      float *noise_a_Upre=0;
-      float *noise_a_Vpre=0;
-      float *noise_a_Zpre=0;
-      float *noise_a_Upost=0;
-      float *noise_a_Vpost=0;
-      float *noise_a_Zpost=0;
 
       if (signalSize>0)	{
 	fChargeWork_a = fChargeWork.data();
-	fChargeWorkPreSpill_a = fChargeWorkPreSpill.data();
-	fChargeWorkPostSpill_a = fChargeWorkPostSpill.data();
 	fChargeWorkCollInd_a = fChargeWorkCollInd.data();
-	fChargeWorkCollIndPreSpill_a = fChargeWorkCollIndPreSpill.data();
-	fChargeWorkCollIndPostSpill_a = fChargeWorkCollIndPostSpill.data();
 	adcvec_a = adcvec.data();
-	adcvecPreSpill_a = adcvecPreSpill.data();
-	adcvecPostSpill_a = adcvecPostSpill.data();
 	if (fNoiseOn && fNoiseModel==1) {
           noise_a_U=(fNoiseU[noisechan]).data();
 	  noise_a_V=(fNoiseV[noisechan]).data();
 	  noise_a_Z=(fNoiseZ[noisechan]).data();
-	  if (prepost) {
-	    noise_a_Upre=(fNoiseU[noisechanpre]).data();
-	    noise_a_Vpre=(fNoiseV[noisechanpre]).data();
-	    noise_a_Zpre=(fNoiseZ[noisechanpre]).data();
-	    noise_a_Upost=(fNoiseU[noisechanpost]).data();
-	    noise_a_Vpost=(fNoiseV[noisechanpost]).data();
-	    noise_a_Zpost=(fNoiseZ[noisechanpost]).data();
-	  }
 	}
       }
 
       float tmpfv=0;  // this is here so we do our own rounding from floats to short ints (saves CPU time)
       float tnoise=0;
-      float tnoisepre=0;
-      float tnoisepost=0;
 
       if (view != geo::kU && view != geo::kV && view != geo::kZ) {
 	mf::LogError("SimWireLBNE35t") << "ERROR: CHANNEL NUMBER " << chan << " OUTSIDE OF PLANE";
       }
-
-      //std::cout << "Xin " << fNoiseOn << " " << fNoiseModel << std::endl;
 
       if(fNoiseOn && fNoiseModel==1) {	      
 	for(unsigned int i = 0; i < signalSize; ++i){
@@ -779,32 +744,6 @@ namespace detsim {
 	    tmpfv = 0- ped_mean;
 
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	}
-	if (prepost) {
-	  for(unsigned int i = 0; i < signalSize; ++i){
-	    if(view==geo::kU)      { tnoisepre = noise_a_Upre[i]; tnoisepost = noise_a_Upost[i];  }
-	    else if(view==geo::kV) { tnoisepre = noise_a_Vpre[i]; tnoisepost = noise_a_Vpost[i]; }
-	    else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
-
-	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i] ;
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
-	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation - ped_mean)
-	      tmpfv = adcsaturation- ped_mean;
-	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 - ped_mean)
-	      tmpfv = 0- ped_mean;
-	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i] ;
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
-	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation - ped_mean)
-	      tmpfv = adcsaturation- ped_mean;
-	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 - ped_mean)
-	      tmpfv = 0- ped_mean;
-	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	  }
 	}
       }else if (fNoiseOn && fNoiseModel==2){
 
@@ -829,9 +768,9 @@ namespace detsim {
 	  }
 	}
 	else {//Throw exception...
-	  throw cet::exception("SimWireMicroBooNE")
+	  throw cet::exception("SimWireLBNE35t")
 	    << "\033[93m"
-	    << "Shaping Time received from signalservices_microboone.fcl is not one of allowed values"
+	    << "Shaping Time received from signalservices_lbne.fcl is not one of allowed values"
 	    << std::endl
 	    << "Allowed values: 0.5, 1.0, 2.0, 3.0 usec"
 	    << "\033[00m"
@@ -859,33 +798,6 @@ namespace detsim {
 	    tmpfv = 0- ped_mean;
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
-	if (prepost) {
-	  for(unsigned int i = 0; i < signalSize; ++i){
-	    if(view==geo::kU)      { tnoisepre = rGauss_Ind.fire(); tnoisepost = rGauss_Ind.fire(); }
-	    else if(view==geo::kV) { tnoisepre = rGauss_Ind.fire(); tnoisepost = rGauss_Ind.fire(); }
-	    else                   { tnoisepre = rGauss_Col.fire(); tnoisepost = rGauss_Col.fire(); }
-
-	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i] ;
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i];
-	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
-	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i] ;
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i];
-	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
-	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	  }
-	}
-
       }else {   // no noise, so just round the values to nearest short ints and store them
 	for(unsigned int i = 0; i < signalSize; ++i){
 	  tmpfv = fChargeWork_a[i];
@@ -898,69 +810,165 @@ namespace detsim {
 	    tmpfv = 0- ped_mean;
 	  adcvec_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	}
-	if (prepost) {
-	  for(unsigned int i = 0; i < signalSize; ++i){
-	    tmpfv = fChargeWorkPreSpill_a[i];
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPreSpill_a[i] ;
-	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation - ped_mean)
-	      tmpfv = adcsaturation- ped_mean;
-	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 - ped_mean)
-	      tmpfv = 0- ped_mean;
-	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	    tmpfv = fChargeWorkPostSpill_a[i];
-	    if (fSimCombs) tmpfv += fChargeWorkCollIndPostSpill_a[i] ;
-	    //allow for ADC saturation
-	    if ( tmpfv > adcsaturation - ped_mean)
-	      tmpfv = adcsaturation- ped_mean;
-	    //don't allow for "negative" saturation
-	    if ( tmpfv < 0 - ped_mean)
-	      tmpfv = 0- ped_mean;
-	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
-	  }
-	}
       }
 
       // resize the adcvec to be the correct number of time samples, 
       // just drop the extra samples
 
-      // compress the adc vector using the desired compression scheme,
-      // if raw::kNone is selected nothing happens to adcvec
-      // This shrinks adcvec, if fCompression is not kNone.
-
-
+ 
       adcvec.resize(fNSamplesReadout);
-      raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
-      
-      
-      raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
-      
-      adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
-      digcol->push_back(rd);            // add this digit to the collection
 
-      // do all this for the prespill and postspill samples if need be
-      if (prepost) {
-        adcvecPreSpill.resize(fNSamplesReadout);
-        adcvecPostSpill.resize(fNSamplesReadout);
-        raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
-        raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
-        raw::RawDigit rdPreSpill(chan, fNSamplesReadout, adcvecPreSpill, fCompression);
-        raw::RawDigit rdPostSpill(chan, fNSamplesReadout, adcvecPostSpill, fCompression);
+      if(fNeighboringChannels==0){ // case where neighboring channels are disregarded in zero suppression
 
-        adcvecPreSpill.resize(signalSize);
-        adcvecPostSpill.resize(signalSize);
-        digcolPreSpill->push_back(rdPreSpill);
-        digcolPostSpill->push_back(rdPostSpill);
+
+	// compress the adc vector using the desired compression scheme,
+	// if raw::kNone is selected nothing happens to adcvec
+	// This shrinks adcvec, if fCompression is not kNone.
+	
+	
+	raw::Compress(adcvec, fCompression, fZeroThreshold, fNearestNeighbor); 
+
+
+	raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
+	
+	adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
+	digcol->push_back(rd);            // add this digit to the collection
+	
+	
       }
+      else{ //case where contribution of neighboring channels is included in zero suppression
+
+
+	if(sigtype == geo::kCollection)
+	  {
+	      
+	
+	    // push the adc vector to the ring buffer to enable zero suppression with neighboring channel contributions
+      
+	    adcvec_neighbors.push_back(adcvec);
+
+
+	    if(!(adcvec_neighbors.full()))
+	      {
+		if(adcvec_neighbors.size()>fNeighboringChannels){ // apply zero suppression to entries at start of collection plane, once ring buffer is full enough with neighbors
+		  
+		  adcvec = adcvec_neighbors.at(adcvec_neighbors.size()-fNeighboringChannels);
+		  raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entries at start of collection plane, once ring buffer is full enough with neighbors
+		  
+		  raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
+		  
+		  digcol->push_back(rd);            // add this digit to the collection
+
+		}
+	      }	    
+	    else{ // ring buffer is full
+	      
+	      // compress the adc vector using the desired compression scheme,
+	      // if raw::kNone is selected nothing happens to adcvec
+	      // This shrinks adcvec, if fCompression is not kNone.
+	      
+	      adcvec = adcvec_neighbors.at(fNeighboringChannels);
+	      raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
+	      
+	      raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
+	      
+	      digcol->push_back(rd);            // add this digit to the collection
+
+	      if(chan == fLastChannelsInPlane.at(plane_number)) // End of collection plane is reached, so apply zero suppression to last entries as well
+		{
+		  
+
+		  unsigned int channel_number = chan - fNeighboringChannels;
+		  //std::cout << "We have reached the end of a collection plane!" << std::endl;
+		  for(size_t lastentries = 0; lastentries < fNeighboringChannels; ++lastentries)
+		    { 
+		      ++channel_number;
+		   
+		      adcvec_neighbors.pop_front(); // remove first entry from ring buffer, to exclude it from nearest neighboring wire checks in zero
+		  	
+		      adcvec = adcvec_neighbors.at(fNeighboringChannels);
+		      raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
+		      
+		      raw::RawDigit rd2(channel_number, fNSamplesReadout, adcvec, fCompression);
+		      
+		      digcol->push_back(rd2);            // add this digit to the collection
+
+		    }
+		  
+		  adcvec_neighbors.clear(); // clear ring buffer for next wire plane
+		}
+	    } // ring buffer is full
+
+	  } // collection plane
+	else if(sigtype == geo::kInduction)
+	  {
+	    // push the adc vector to the ring buffer to enable zero suppression with neighboring channel contributions
+      
+
+	    adcvec_neighbors.push_back(adcvec);
+	    if(!(adcvec_neighbors.full()))
+	      {
+		adcvec_inductionplanestart.push_back(adcvec);
+
+
+	      }
+	    else //ring buffer is full
+	      {
+
+		// compress the adc vector using the desired compression scheme,
+		// if raw::kNone is selected nothing happens to adcvec
+		// This shrinks adcvec, if fCompression is not kNone.
+		
+		adcvec = adcvec_neighbors.at(fNeighboringChannels);
+		raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
+		
+		raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
+		
+		digcol->push_back(rd);            // add this digit to the collection
+		
+	      }
+	    if(chan==fLastChannelsInPlane.at(plane_number)){ // reached the last channel of the induction plane
+
+	      unsigned int channel_number = chan-fNeighboringChannels;
+
+	      for(size_t lastentries = 0; lastentries < 2*fNeighboringChannels; ++lastentries)
+		{ 
+		  
+		  ++channel_number;
+
+		  if(channel_number > fLastChannelsInPlane.at(plane_number))
+		    channel_number = fFirstChannelsInPlane.at(plane_number); // set channel number back to start of induction plane after looping around
+
+		  //std::cout << "Channel number of looping-around sections of induction plane = " << channel_number << std::endl;
+		  
+		  adcvec_neighbors.push_back(adcvec_inductionplanestart.at(lastentries)); // push channel from start of plane onto ring buffer
+		  	
+		  adcvec = adcvec_neighbors.at(fNeighboringChannels);	
+
+		  raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
+		  
+		  raw::RawDigit rd2(channel_number, fNSamplesReadout, adcvec, fCompression);
+		  
+		  digcol->push_back(rd2);            // add this digit to the collection
+
+		}
+	      
+	      adcvec_neighbors.clear(); // clear ring buffer for next wire plane
+	      adcvec_inductionplanestart.clear(); // clear vector of starting adc vectors for next induction plane
+	    }
+	    
+	  } // induction plane
+
+      } // zero suppression with nearest neighboring wire influence complete
+    
+      adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
+ 
+      if(chan==fLastChannelsInPlane.at(plane_number))
+	++plane_number;
 
     }// end loop over channels      
 
     evt.put(std::move(digcol));
-    if(prepost) {
-      evt.put(std::move(digcolPreSpill), "preSpill");
-      evt.put(std::move(digcolPostSpill), "postSpill");
-    }
 
     return;
   }
