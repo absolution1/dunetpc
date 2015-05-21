@@ -15,7 +15,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Provenance/EventAuxiliary.h"
 
-#include <iostream>
+//#include <iostream>
 
 // artdaq
 #include "artdaq-core/Data/Fragments.hh"
@@ -131,14 +131,14 @@ namespace {
           << tag.process()
           << ".obj";
 
-    std::cout << inputDataProduct << "s" 
-          << '_'
-          << tag.label()
-          << '_'
-          << tag.instance()
-          << '_'
-          << tag.process()
-	      << ".obj" << std::endl;
+    //std::cout << inputDataProduct << "s" 
+    //    << '_'
+    //    << tag.label()
+    //    << '_'
+    //    << tag.instance()
+    //      << '_'
+    //      << tag.process()
+    //      << ".obj" << std::endl;
 
     return pat_s.str().data();
   }
