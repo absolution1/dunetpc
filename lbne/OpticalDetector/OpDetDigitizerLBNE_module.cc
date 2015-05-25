@@ -213,10 +213,10 @@ namespace opdet {
       << "Sorry, but for now only Lite Photon digitization is implemented!\n";
 
     // Generate dark noise
-    AddDarkNoise(opDetWaveforms, nOpChannels);
+    if (fDarkNoiseRate > 0.0) AddDarkNoise(opDetWaveforms, nOpChannels);
 
     // Vary the pedestal
-    AddLineNoise(opDetWaveforms);
+    if (fLineNoise > 0.0) AddLineNoise(opDetWaveforms);
 
     for (int channel = 0; channel != nOpChannels; ++channel)
     {
@@ -354,8 +354,9 @@ namespace opdet {
   //---------------------------------------------------------------------------
   int OpDetDigitizerLBNE::CrossTalk() const
   {
-    if (fRandFlat->fire(1.0) > fCrossTalk) return 1;
-    else                                   return 2;
+    if      (fCrossTalk <= 0.0)                 return 1;
+    else if (fRandFlat->fire(1.0) > fCrossTalk) return 1;
+    else                                        return 2;
   }
 
 }
