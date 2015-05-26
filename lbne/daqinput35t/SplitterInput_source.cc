@@ -47,13 +47,11 @@ using std::string;
 //  Split the SSP data too.
 //  Change the index in the loadeddigits based on where we want to draw the split
 //  Put in external trigger (Penn board) info when we get it
-//  Deal with ZS data -- currently this assumes non-ZS data
+//  Deal with ZS data and MC -- currently this assumes non-ZS data
 //  Discover if an event is not contiguous with the next event and do not stitch in that case -- dump the
 //    loaded digits and the partially constructed event and start over
-//  Make it capable of splitting MC as well -- already have raw::RawDigit and raw::OpDetWaveform data products
-//    in the MC
 //  There's an assumption that the channels are the same event to event and they come in the same order --
-//    would need a list of channels from one event to another to look it up properly
+//    would need a list of channels from one event to another to look it up properly if we are missing some channels
 
 //==========================================================================
 
@@ -90,8 +88,29 @@ namespace {
     vector<RawDigit> digits;
     size_t index;
 
+    // copy rawdigits to LoadedDigits and uncompress if necessary.  
+
     void assign( vector<RawDigit> const & v ) {
-      digits = v;
+      if (v.size() == 0 || v.back().Compression() == raw::kNone)
+	{ 
+	  digits = v; 
+	}
+      else
+	{
+	  // make a new raw::RawDigit object for each compressed one
+	  // to think about optimization -- two copies of the uncompressed raw digits here.
+	  digits = std::vector<RawDigit>();
+          for (auto idigit = v.begin(); idigit != v.end(); ++idigit)
+	    {
+	       std::vector<short> uncompressed;
+	       raw::Uncompress(idigit->ADCs(),uncompressed,idigit->Compression());
+	       raw::RawDigit digit(idigit->Channel(),
+				   idigit->Samples(),
+				   uncompressed,
+				   raw::kNone);
+	       digits.push_back(digit);
+	    }
+	}
       index = 0ul;
     }
 
@@ -463,22 +482,29 @@ DAQToOffline::Splitter::loadDigits_()
     inputEventNumber_ = evAux_.event();
 
     // assume we have artdaq fragments coming in for real data and rawdigits and waveforms for MC.
+    // old test on if it is real data or not -- instead check the input data product name
+    //if (evAux_.isRealData() )
 
-    if (evAux_.isRealData() )
+    if (TPCinputDataProduct_.find("Fragment") != std::string::npos)
       {
         auto* fragments = getFragments( TPCfragmentsBranch_, treeIndex_ );
         rawDigits_t const digits = fragmentsToDigits_( *fragments );
         loadedDigits_.assign( digits );
+      }
+    else
+      {
+	auto* digits = getRawDigits(TPCfragmentsBranch_, treeIndex_ );
+	loadedDigits_.assign( *digits);
+      }
 
+    if (SSPinputDataProduct_.find("Fragment") != std::string::npos)
+      {
         auto* SSPfragments = getFragments( SSPfragmentsBranch_, treeIndex_ );
         std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency);
         loadedWaveforms_.assign( waveforms );
       }
     else
       {
-	auto* digits = getRawDigits(TPCfragmentsBranch_, treeIndex_ );
-	loadedDigits_.assign( *digits);
-
 	auto* waveforms = getSSPWaveforms(SSPfragmentsBranch_, treeIndex_ );
         loadedWaveforms_.assign( *waveforms );
       }
