@@ -3551,7 +3551,7 @@
         <position name="posAuxDet-BSU-L2-1" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
-          z="-11.99515 - 132.6652"/>
+          z="-24.13635 - 132.6652"/>
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
@@ -3559,7 +3559,7 @@
         <position name="posAuxDet-BSU-L2-2" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
-          z="5.14985 - 132.6652"/>
+          z="-6.99135 - 132.6652"/>
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
@@ -3567,7 +3567,7 @@
         <position name="posAuxDet-BSU-L2-3" unit="cm" 
 	  x="88.5571 - 145.6898036" 
 	  y="233.61603 - 50.6845"
-          z="22.29485 - 132.6652"/>
+          z="10.15365 - 132.6652"/>
         <rotationref ref="rPlus90AboutY"/>
       </physvol>
       <physvol>
