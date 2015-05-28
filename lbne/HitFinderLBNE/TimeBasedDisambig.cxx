@@ -30,7 +30,7 @@
 #include "Geometry/PlaneGeo.h"
 #include "Geometry/WireGeo.h"
 #include "TimeBasedDisambig.h"
-#include "MCCheater/BackTracker.h"
+//#include "MCCheater/BackTracker.h"
 #include "Filters/ChannelFilter.h"
 
 #include <map>
@@ -74,7 +74,7 @@ void TimeBasedDisambig::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &
 
   //create geometry and backtracker servicehandle object
   art::ServiceHandle<geo::Geometry> geo;
-  art::ServiceHandle<cheat::BackTracker> bt;
+  //art::ServiceHandle<cheat::BackTracker> bt;
   //define timeoffset and the maximum chargeratio allowed when matching induction plane hits
   //the timeoffset array is going to be replaced with defined values in the detectorproperties package later
   double timeoffset[3]={10.4,5.2,0.0};
@@ -262,20 +262,21 @@ void TimeBasedDisambig::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &
 	}
 
 	//read simulated position of the induction plane hit using backtracker
-	std::vector<double> SimPosition;
-	unsigned int SimTPC, SimCstat, SimWire, SimWireID;
-	SimPosition=bt->HitToXYZ(hitsUV[uv0]);
-	if (SimPosition[2]!=99999){
-	  double xyzpos[3];
-	  xyzpos[0]=SimPosition[0];
-	  xyzpos[1]=SimPosition[1];
-	  xyzpos[2]=SimPosition[2];
-	  geo->PositionToTPC(xyzpos, SimTPC, SimCstat);
-	  SimWire=int(0.5+geo->WireCoordinate(xyzpos[1], xyzpos[2], hitsUV[uv0]->WireID().Plane, SimTPC, SimCstat));
-	  for (unsigned int wireid0=0; wireid0 < wireiduv0.size(); ++wireid0){
-	    if (abs(int(wireiduv0[wireid0].Wire)-int(SimWire))<2) SimWireID=wireid0;
-	  }
-	}
+	// trj: skip this as it is part of the analysis and not the reco alg
+	//std::vector<double> SimPosition;
+	//unsigned int SimTPC, SimCstat, SimWire, SimWireID;
+	//SimPosition=bt->HitToXYZ(hitsUV[uv0]);
+	//if (SimPosition[2]!=99999){
+	// double xyzpos[3];
+	//xyzpos[0]=SimPosition[0];
+	//xyzpos[1]=SimPosition[1];
+	//xyzpos[2]=SimPosition[2];
+	// geo->PositionToTPC(xyzpos, SimTPC, SimCstat);
+	//SimWire=int(0.5+geo->WireCoordinate(xyzpos[1], xyzpos[2], hitsUV[uv0]->WireID().Plane, SimTPC, SimCstat));
+	// for (unsigned int wireid0=0; wireid0 < wireiduv0.size(); ++wireid0){
+	//   if (abs(int(wireiduv0[wireid0].Wire)-int(SimWire))<2) SimWireID=wireid0;
+	// }
+	//}
 
 	//save timeoffset corrected peaktime
 	double PeakTime=hitsUV[uv0]->PeakTime();
@@ -306,9 +307,9 @@ void TimeBasedDisambig::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &
 	h.FinalZPos=FinalPosition[2];
 	h.TPC=hitsUV[uv0]->WireID().TPC;
 	h.DisambigWireID=FinalWireID;
-	h.SimYPos=SimPosition[1];
-	h.SimZPos=SimPosition[2];
-	h.SimWireID=SimWireID;
+	//h.SimYPos=SimPosition[1];
+	//h.SimZPos=SimPosition[2];
+	//h.SimWireID=SimWireID;
 	InductionAll.push_back(h);
 	
       }//end of induction plane hit loop

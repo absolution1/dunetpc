@@ -64,9 +64,9 @@ struct HitPos{
   double FinalZPos;
   unsigned int TPC;
   unsigned int DisambigWireID;
-  double SimYPos;
-  double SimZPos;
-  double SimWireID;
+  //double SimYPos;
+  //double SimZPos;
+  //double SimWireID;
 };
 
 

@@ -77,8 +77,8 @@ namespace lbne{
   //-------------------------------------------------
   //-------------------------------------------------
   HitFinder35t::HitFinder35t(fhicl::ParameterSet const& pset) :
-  fDisambigAlg(pset.get< fhicl::ParameterSet >("DisambigAlg"))
-  fTimeBasedDisambigAlg(pset.get< fhicl::ParameterSet >("TimeBasedDisambigAlg"))
+    fDisambigAlg(pset.get< fhicl::ParameterSet >("DisambigAlg")),
+    fTimeBasedDisambigAlg(pset.get< fhicl::ParameterSet >("TimeBasedDisambigAlg"))
   {
     this->reconfigure(pset);
     
@@ -151,34 +151,55 @@ namespace lbne{
     
     // Run alg on all APAs
 
-  switch (fAlg)
-    {
-    case "TripletMatch":
-      fDisambigAlg.RunDisambig(ChHits);
-      break;
-    case "TimeBased":
-      fTimeBasedDisambigAlg.RunDisambig(ChHits);
-      break;
-    default:
-      throw cet::exception("HitFinder35t") << "Disambiguation algorithm name: " << fAlg << " is not supported.\n" 
-    }    
+    if (fAlg == "TripletMatch")
+      {
+        fDisambigAlg.RunDisambig(ChHits);
+
+	for( size_t t=0; t < fDisambigAlg.fDisambigHits.size(); t++ ){
+	  art::Ptr<recob::Hit>  hit = fDisambigAlg.fDisambigHits[t].first;
+	  geo::WireID           wid = fDisambigAlg.fDisambigHits[t].second;
+      
+	  // create a new hit copy of the original one, but with new wire ID
+	  recob::HitCreator disambiguous_hit(*hit, wid);
+      
+	  // get the objects associated with the original hit;
+	  // since hit comes from ChannelHits, its key is the index in that collection
+	  // and also the index for the query of associated objects
+	  art::Ptr<recob::Hit>::key_type hit_index = hit.key();
+	  art::Ptr<recob::Wire> wire = ChannelHitWires.at(hit_index);
+	  art::Ptr<raw::RawDigit> rawdigits = ChannelHitRawDigits.at(hit_index);
+      
+	  hcol.emplace_back(disambiguous_hit.move(), wire, rawdigits);
+	} // for
+
+      }
+    else if (fAlg == "TimeBased")
+      {
+        fTimeBasedDisambigAlg.RunDisambig(ChHits);
+
+	for( size_t t=0; t < fTimeBasedDisambigAlg.fDisambigHits.size(); t++ ){
+	  art::Ptr<recob::Hit>  hit = fTimeBasedDisambigAlg.fDisambigHits[t].first;
+	  geo::WireID           wid = fTimeBasedDisambigAlg.fDisambigHits[t].second;
+      
+	  // create a new hit copy of the original one, but with new wire ID
+	  recob::HitCreator disambiguous_hit(*hit, wid);
+      
+	  // get the objects associated with the original hit;
+	  // since hit comes from ChannelHits, its key is the index in that collection
+	  // and also the index for the query of associated objects
+	  art::Ptr<recob::Hit>::key_type hit_index = hit.key();
+	  art::Ptr<recob::Wire> wire = ChannelHitWires.at(hit_index);
+	  art::Ptr<raw::RawDigit> rawdigits = ChannelHitRawDigits.at(hit_index);
+      
+	  hcol.emplace_back(disambiguous_hit.move(), wire, rawdigits);
+	} // for
+
+      }
+    else
+      {
+        throw cet::exception("HitFinder35t") << "Disambiguation algorithm name: " << fAlg << " is not supported.\n" ;
+      }
     
-    for( size_t t=0; t < fDisambigAlg.fDisambigHits.size(); t++ ){
-      art::Ptr<recob::Hit>  hit = fDisambigAlg.fDisambigHits[t].first;
-      geo::WireID           wid = fDisambigAlg.fDisambigHits[t].second;
-      
-      // create a new hit copy of the original one, but with new wire ID
-      recob::HitCreator disambiguous_hit(*hit, wid);
-      
-      // get the objects associated with the original hit;
-      // since hit comes from ChannelHits, its key is the index in that collection
-      // and also the index for the query of associated objects
-      art::Ptr<recob::Hit>::key_type hit_index = hit.key();
-      art::Ptr<recob::Wire> wire = ChannelHitWires.at(hit_index);
-      art::Ptr<raw::RawDigit> rawdigits = ChannelHitRawDigits.at(hit_index);
-      
-      hcol.emplace_back(disambiguous_hit.move(), wire, rawdigits);
-    } // for
     
     // put the hit collection and associations into the event
     hcol.put_into(evt);
