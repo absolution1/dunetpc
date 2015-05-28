@@ -25,8 +25,8 @@ lbne35t_geo(TString volName="")
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
 
-  //TGeoManager::Import("lbne35t4apa_v3.gdml");
-  TGeoManager::Import("lbne35t4apa_v3_nowires.gdml");
+  //TGeoManager::Import("lbne35t4apa_v4.gdml");
+  TGeoManager::Import("lbne35t4apa_v4_nowires.gdml");
   gGeoManager->DefaultColors();
 
   //for (int i=0;; ++i) 

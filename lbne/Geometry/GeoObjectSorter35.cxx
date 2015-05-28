@@ -190,9 +190,11 @@ namespace geo{
       if(detVersion=="lbne35t")             InVertSplitRegion = xyz1[2] > 76.35;      // the old
       else if(detVersion=="lbne35t4apa")    InVertSplitRegion = ((51 < xyz1[2])       // the new...
 								 && (xyz1[2] < 102)); //
-      else if(detVersion=="lbne35t4apa_v2") InVertSplitRegion = ((52.74 < xyz1[2])   // ...and improved
+      else if(detVersion=="lbne35t4apa_v2") InVertSplitRegion = ((52.74 < xyz1[2])    // ...and improved
       								 && (xyz1[2] < 106.23));
       else if(detVersion=="lbne35t4apa_v3") InVertSplitRegion = ((51.41045 < xyz1[2])   
+      								 && (xyz1[2] < 103.33445));
+      else if(detVersion=="lbne35t4apa_v4") InVertSplitRegion = ((51.41045 < xyz1[2]) // v4 is the same as v3 here
       								 && (xyz1[2] < 103.33445));
 
       ///////////////////////////////////////////////////////////

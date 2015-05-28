@@ -46,7 +46,7 @@ namespace opdet {
       OpDetDigiAnaLBNE(fhicl::ParameterSet const&);
       virtual ~OpDetDigiAnaLBNE();
 
-      // The analyzer routine, called one per event
+      // The analyzer routine, called once per event
       void analyze(art::Event const&);
    
     private:
@@ -82,7 +82,7 @@ namespace opdet {
     fInputModule = pset.get< std::string >("InputModule");
     fInstanceName = pset.get<std::string>("InstanceName");
 
-    // Obtaining parameters from TimeService
+    // Obtain parameters from TimeService
     art::ServiceHandle< util::TimeService > timeService;
     fSampleFreq = timeService->OpticalClock().Frequency();
     fTimeBegin  = 0.0; //timeService->OpticalClock().Time();

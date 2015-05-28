@@ -46,7 +46,10 @@ namespace lbne
 
       TString detectorVersion = sortingParam.get< std::string >("DetectorVersion");
 
-      if ( detectorVersion.Contains("v3") )
+      // Want any version after v2 to used the optimized map, as it also contains a bug fix
+      //   probably should change how this is done from contains(vx) to getitng the actual
+      //   int x and checking x>2
+      if ( detectorVersion.Contains("v3") || detectorVersion.Contains("v4") )
 	fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMap35OptAlg( sortingParam ) );
       else
 	fChannelMap = std::shared_ptr<geo::ChannelMapAlg>( new geo::ChannelMap35Alg( sortingParam ) );

@@ -13,6 +13,7 @@
 #include "art/Persistency/Provenance/SubRunID.h"
 #include "art/Utilities/InputTag.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Persistency/Provenance/EventAuxiliary.h"
 
 //#include <iostream>
 
@@ -46,13 +47,11 @@ using std::string;
 //  Split the SSP data too.
 //  Change the index in the loadeddigits based on where we want to draw the split
 //  Put in external trigger (Penn board) info when we get it
-//  Deal with ZS data -- currently this assumes non-ZS data
+//  Deal with ZS data and MC -- currently this assumes non-ZS data
 //  Discover if an event is not contiguous with the next event and do not stitch in that case -- dump the
 //    loaded digits and the partially constructed event and start over
-//  Make it capable of splitting MC as well -- already have raw::RawDigit and raw::OpDetWaveform data products
-//    in the MC
 //  There's an assumption that the channels are the same event to event and they come in the same order --
-//    would need a list of channels from one event to another to look it up properly
+//    would need a list of channels from one event to another to look it up properly if we are missing some channels
 
 //==========================================================================
 
@@ -89,8 +88,29 @@ namespace {
     vector<RawDigit> digits;
     size_t index;
 
+    // copy rawdigits to LoadedDigits and uncompress if necessary.  
+
     void assign( vector<RawDigit> const & v ) {
-      digits = v;
+      if (v.size() == 0 || v.back().Compression() == raw::kNone)
+	{ 
+	  digits = v; 
+	}
+      else
+	{
+	  // make a new raw::RawDigit object for each compressed one
+	  // to think about optimization -- two copies of the uncompressed raw digits here.
+	  digits = std::vector<RawDigit>();
+          for (auto idigit = v.begin(); idigit != v.end(); ++idigit)
+	    {
+	       std::vector<short> uncompressed;
+	       raw::Uncompress(idigit->ADCs(),uncompressed,idigit->Compression());
+	       raw::RawDigit digit(idigit->Channel(),
+				   idigit->Samples(),
+				   uncompressed,
+				   raw::kNone);
+	       digits.push_back(digit);
+	    }
+	}
       index = 0ul;
     }
 
@@ -118,11 +138,10 @@ namespace {
   };
 
   // Retrieves branch name (a la art convention) where object resides
-  template <typename PROD>
-  const char* getBranchName( art::InputTag const & tag )
+  const char* getBranchName( art::InputTag const & tag, const string inputDataProduct )
   {
     std::ostringstream pat_s;
-    pat_s << art::TypeID(typeid(PROD)).friendlyClassName()
+    pat_s << inputDataProduct << "s" 
           << '_'
           << tag.label()
           << '_'
@@ -130,6 +149,16 @@ namespace {
           << '_'
           << tag.process()
           << ".obj";
+
+    //std::cout << inputDataProduct << "s" 
+    //    << '_'
+    //    << tag.label()
+    //    << '_'
+    //    << tag.instance()
+    //      << '_'
+    //      << tag.process()
+    //      << ".obj" << std::endl;
+
     return pat_s.str().data();
   }
 
@@ -140,7 +169,22 @@ namespace {
     return reinterpret_cast<artdaq::Fragments*>( br->GetAddress() );
   }
 
-  // Assumed file format is
+  vector<raw::RawDigit>*
+  getRawDigits( TBranch* br, unsigned entry )
+  {
+    br->GetEntry( entry );
+    return reinterpret_cast<vector<raw::RawDigit>*>( br->GetAddress() );
+  }
+
+  vector<raw::OpDetWaveform>*
+  getSSPWaveforms( TBranch* br, unsigned entry )
+  {
+    br->GetEntry( entry );
+    return reinterpret_cast<vector<raw::OpDetWaveform>*>( br->GetAddress() );
+  }
+
+
+  // Assumed file format is no longer: we get run and subrun out of evAux now
   //
   //     "lbne_r[digits]_sr[digits]_other_stuff.root"
   //
@@ -198,7 +242,7 @@ namespace DAQToOffline
   private:
 
     using rawDigits_t = vector<RawDigit>;
-    using SSPWaveform_t = vector<OpDetWaveform>;
+    using SSPWaveforms_t = vector<OpDetWaveform>;
 
     string                 sourceName_;
     string                 lastFileName_;
@@ -206,10 +250,13 @@ namespace DAQToOffline
     bool                   doneWithFiles_;
     art::InputTag          TPCinputTag_;
     art::InputTag          SSPinputTag_;
+    string                 TPCinputDataProduct_;
+    string                 SSPinputDataProduct_;
     double                 fNOvAClockFrequency; // MHz
     art::SourceHelper      sh_;
     TBranch*               TPCfragmentsBranch_;
     TBranch*               SSPfragmentsBranch_;
+    TBranch*               EventAuxBranch_;
     LoadedDigits           loadedDigits_;
     LoadedWaveforms        loadedWaveforms_;
     size_t                 nInputEvts_;
@@ -219,6 +266,9 @@ namespace DAQToOffline
     art::EventNumber_t     eventNumber_;
     art::RunNumber_t       cachedRunNumber_;
     art::SubRunNumber_t    cachedSubRunNumber_;
+    art::RunNumber_t       inputRunNumber_;
+    art::SubRunNumber_t    inputSubRunNumber_;
+    art::EventNumber_t     inputEventNumber_;
     size_t                 ticksPerEvent_;
     rawDigits_t            bufferedDigits_;
     std::vector<RawDigit::ADCvector_t>  dbuf_;
@@ -232,6 +282,8 @@ namespace DAQToOffline
 
     void makeEventAndPutDigits_( art::EventPrincipal*& outE );
 
+    art::EventAuxiliary    evAux_;
+    art::EventAuxiliary*   pevaux_;
   };
 }
 
@@ -246,16 +298,23 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   //  TPCinputTag_("daq:TPC:DAQ"), // "moduleLabel:instance:processName"
   TPCinputTag_(ps.get<string>("TPCInputTag")), // "moduleLabel:instance:processName"
   SSPinputTag_(ps.get<string>("SSPInputTag")), // "moduleLabel:instance:processName"
+  TPCinputDataProduct_(ps.get<string>("TPCInputDataProduct")),
+  SSPinputDataProduct_(ps.get<string>("SSPInputDataProduct")),
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
   sh_(sh),
   TPCfragmentsBranch_(nullptr),
   SSPfragmentsBranch_(nullptr),
+  EventAuxBranch_(nullptr),
   nInputEvts_(),
   runNumber_(1),      // Defaults in case input filename does not
   subRunNumber_(0),   // follow assumed filename_format above.
   eventNumber_(),
   cachedRunNumber_(-1),
   cachedSubRunNumber_(-1),
+  inputRunNumber_(1),      
+  inputSubRunNumber_(1),   
+  inputEventNumber_(1),
+
   ticksPerEvent_(ps.get<size_t>("ticksPerEvent")),
   bufferedDigits_(),
   dbuf_(),
@@ -266,9 +325,10 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
                                  ps.get<unsigned>("zeroThreshold",0) ) )
 {
-  // Will use same instance name for the outgoing products as for the
+  // Will use same instance names for the outgoing products as for the
   // incoming ones.
   prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, TPCinputTag_.instance() );
+  prh.reconstitutes<SSPWaveforms_t,art::InEvent>( sourceName_, SSPinputTag_.instance() );
 }
 
 //=======================================================================================
@@ -276,23 +336,32 @@ bool
 DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb)
 {
 
+  // Now use the run and subrun number input from the EventAuxiliary object instead of the file name
+  // needed so we can split MC which has arbitrary filenames
+
   // Run numbers determined based on file name...see comment in
   // anon. namespace above.
-  std::smatch matches;
-  if ( std::regex_match( filename, matches, filename_format ) ) {
-    runNumber_       = std::stoul( matches[1] );
-    subRunNumber_    = std::stoul( matches[2] );
-  }
+  //std::smatch matches;
+  //if ( std::regex_match( filename, matches, filename_format ) ) {
+  //  runNumber_       = std::stoul( matches[1] );
+  //  subRunNumber_    = std::stoul( matches[2] );
+  //}
 
   // Get fragments branches
   file_.reset( new TFile(filename.data()) );
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
-  TPCfragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( TPCinputTag_ ) ); // get branch for TPC input tag
-  SSPfragmentsBranch_ = evtree->GetBranch( getBranchName<artdaq::Fragments>( SSPinputTag_ ) ); // get branch for SSP input tag
+
+  TPCfragmentsBranch_ = evtree->GetBranch( getBranchName(TPCinputTag_, TPCinputDataProduct_ ) ); // get branch for TPC input tag
+  SSPfragmentsBranch_ = evtree->GetBranch( getBranchName(SSPinputTag_, SSPinputDataProduct_ ) ); // get branch for SSP input tag
+
   nInputEvts_      = static_cast<size_t>( TPCfragmentsBranch_->GetEntries() );
   size_t nevt_ssp  = static_cast<size_t>( SSPfragmentsBranch_->GetEntries() );
   if (nevt_ssp != nInputEvts_) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and SSP input events in file");
   treeIndex_       = 0ul;
+
+  EventAuxBranch_ = evtree->GetBranch( "EventAuxiliary" );
+  pevaux_ = &evAux_;
+  EventAuxBranch_->SetAddress(&pevaux_);
 
   // New fileblock
   fb = new art::FileBlock(art::FileFormatVersion(),filename);
@@ -366,6 +435,9 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       bufferedDigits_.emplace_back(d);
     }
 
+  runNumber_ = inputRunNumber_;
+  subRunNumber_ = inputSubRunNumber_;
+
   art::Timestamp ts; // LBNE should decide how to initialize this
   if ( runNumber_ != cachedRunNumber_ ){
     outR = sh_.makeRunPrincipal(runNumber_,ts);
@@ -403,13 +475,42 @@ bool
 DAQToOffline::Splitter::loadDigits_()
 {
   if ( loadedDigits_.empty() && treeIndex_ != nInputEvts_ ) {
-    auto* SSPfragments = getFragments( SSPfragmentsBranch_, treeIndex_ );
-    auto* fragments = getFragments( TPCfragmentsBranch_, treeIndex_++ );
-    rawDigits_t const digits = fragmentsToDigits_( *fragments );
-    loadedDigits_.assign( digits );
-    std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency);
-    loadedWaveforms_.assign( waveforms );
-    // todo -- unpack SSP fragments
+
+    EventAuxBranch_->GetEntry(treeIndex_);
+    inputRunNumber_ = evAux_.run();
+    inputSubRunNumber_ = evAux_.subRun();
+    inputEventNumber_ = evAux_.event();
+
+    // assume we have artdaq fragments coming in for real data and rawdigits and waveforms for MC.
+    // old test on if it is real data or not -- instead check the input data product name
+    //if (evAux_.isRealData() )
+
+    if (TPCinputDataProduct_.find("Fragment") != std::string::npos)
+      {
+        auto* fragments = getFragments( TPCfragmentsBranch_, treeIndex_ );
+        rawDigits_t const digits = fragmentsToDigits_( *fragments );
+        loadedDigits_.assign( digits );
+      }
+    else
+      {
+	auto* digits = getRawDigits(TPCfragmentsBranch_, treeIndex_ );
+	loadedDigits_.assign( *digits);
+      }
+
+    if (SSPinputDataProduct_.find("Fragment") != std::string::npos)
+      {
+        auto* SSPfragments = getFragments( SSPfragmentsBranch_, treeIndex_ );
+        std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency);
+        loadedWaveforms_.assign( waveforms );
+      }
+    else
+      {
+	auto* waveforms = getSSPWaveforms(SSPfragmentsBranch_, treeIndex_ );
+        loadedWaveforms_.assign( *waveforms );
+      }
+
+    treeIndex_++;
+
     return true;
   }
   else return false;
@@ -418,7 +519,11 @@ DAQToOffline::Splitter::loadDigits_()
 //=======================================================================================
 void
 DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE){
+
+  // just keep incrementing the event number as we split along
+
   ++eventNumber_;
+
   outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, art::Timestamp() );
   art::put_product_in_principal( std::make_unique<rawDigits_t>(bufferedDigits_),
                                  *outE,
