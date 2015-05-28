@@ -1,13 +1,11 @@
-////////////////////////////////////////////////////////////////////////////////
-/// \file LBNEGeometryHelper.h
-/// \brief Geometry helper service for LBNE geometries. 
-/// 
-/// Handles LBNE-specific information for the generic Geometry service
-/// within LArSoft. Derived from the ExptGeoHelperInterface class
-///
-/// \verion $Id
-/// \author rs@fnal.gov
-////////////////////////////////////////////////////////////////////////////////
+/**
+ * @file   StandardGeometryHelper.h
+ * @brief  Geometry helper service for DUNE geometries
+ * @author rs@fnal.gov
+ * 
+ * Handles DUNE-specific information for the generic Geometry service
+ * within LArSoft. Derived from the ExptGeoHelperInterface class.
+ */
 
 #ifndef LBNE_ExptGeoHelperInterface_h
 #define LBNE_ExptGeoHelperInterface_h
@@ -15,23 +13,12 @@
 #include "Geometry/ExptGeoHelperInterface.h"
 
 #include <memory>
-#include <vector>
 
 // Forward declarations
-//
-class TString;
-
 namespace geo
 {
   class ChannelMapAlg;
-  class AuxDetGeo;
-  class CryostaGeo;
-  class ExptGeoHelperInterface;
-}
-
-namespace geo
-{
-  class ChannelMapAlg;
+  class GeometryCore;
 }
 
 // Declaration
@@ -41,36 +28,32 @@ namespace lbne
   class LBNEGeometryHelper : public geo::ExptGeoHelperInterface
   {
   public:
-  
+    
     LBNEGeometryHelper( fhicl::ParameterSet const & pset, art::ActivityRegistry &reg );
-    ~LBNEGeometryHelper() throw();
-
-    // Public interface for ExptGeoHelperInterface (for reference purposes)
-    //
-    // Configure and initialize the channel map.
-    //
-    // void  ConfigureChannelMapAlg( const TString & detectorName, 
-    //                               fhicl::ParameterSet const & sortingParam,
-    //                               std::vector<geo::CryostatGeo*> & c,
-    //				     std::vector<geo::AuxDetGeo*>   & ad );
-    //
-    // Returns null pointer if the initialization failed
-    // NOTE:  the sub-class owns the ChannelMapAlg object
-    //
-    // std::shared_ptr<const geo::ChannelMapAlg> & GetChannelMapAlg() const;
+    
+    /*
+      Public interface for ExptGeoHelperInterface (for reference purposes)
+      
+      Configure, initialize and return the channel map:
+      
+      void ConfigureChannelMapAlg
+        (fhicl::ParameterSet const& sortingParameters, geo::GeometryCore* geom);
+      
+      Returns null pointer if the initialization failed:
+      
+      ChannelMapAlgPtr_t GetChannelMapAlg() const;
+    */
   
   private:
     
-    void  doConfigureChannelMapAlg( const TString & detectorName,
-                                    fhicl::ParameterSet const & sortingParam,
-                                    std::vector<geo::CryostatGeo*> & c,
-				    std::vector<geo::AuxDetGeo*>   & ad ) override;
-    std::shared_ptr<const geo::ChannelMapAlg> doGetChannelMapAlg() const override;
+    virtual void doConfigureChannelMapAlg
+      (fhicl::ParameterSet const& sortingParameters, geo::GeometryCore* geom)
+      override;
+    virtual ChannelMapAlgPtr_t doGetChannelMapAlg() const override;
     
     fhicl::ParameterSet const & fPset;
-    art::ActivityRegistry & fReg;
     std::shared_ptr<geo::ChannelMapAlg> fChannelMap;
-  
+    
   };
 
 }

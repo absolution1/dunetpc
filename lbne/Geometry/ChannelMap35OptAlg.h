@@ -24,8 +24,8 @@
 
 #include <vector>
 #include <set>
-#include <stdint.h>
 
+#include "SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "Geometry/ChannelMapAlg.h"
 #include "lbne/Geometry/GeoObjectSorter35.h"
 #include "fhiclcpp/ParameterSet.h"
@@ -37,29 +37,44 @@ namespace geo{
   public:
 
     ChannelMap35OptAlg(fhicl::ParameterSet const& p);
-    ~ChannelMap35OptAlg();
     
-    void                     Initialize( std::vector<geo::CryostatGeo*> & cgeo,
-					 std::vector<geo::AuxDetGeo*>   & adgeo );
+    void                     Initialize( GeometryData_t& geodata ) override;
     void                     Uninitialize();
-    std::vector<WireID>      ChannelToWire(uint32_t channel)        const;
-    uint32_t                 Nchannels()                            const;
-    virtual double WireCoordinate(double YPos, double ZPos,
+    std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel) const;
+    unsigned int             Nchannels()                            const;
+    //@{
+    virtual double WireCoordinate(double YPos,
+                                  double ZPos,
                                   unsigned int PlaneNo,
                                   unsigned int TPCNo,
-                                  unsigned int cstat) const override;
-    WireID                   NearestWireID(const TVector3& worldPos,
-					   unsigned int    PlaneNo,
-					   unsigned int    TPCNo,
-					   unsigned int    cstat)   const;
-    uint32_t                 PlaneWireToChannel(unsigned int plane,
-						unsigned int wire,
-						unsigned int tpc,
-						unsigned int cstat) const;
-    View_t                   View( uint32_t const channel )         const;
-    SigType_t                SignalType( uint32_t const channel)    const;
-    std::set<View_t>  const& Views()                                const;
-    std::set<PlaneID> const& PlaneIDs()                             const;
+                                  unsigned int cstat) const override
+      { return WireCoordinate(YPos, ZPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+    virtual double WireCoordinate(double YPos,
+                                  double ZPos,
+                                  geo::PlaneID const& planeID) const override;
+    //@}
+    
+    //@{
+    virtual WireID NearestWireID(const TVector3& worldPos,
+                                 unsigned int    PlaneNo,
+                                 unsigned int    TPCNo,
+                                 unsigned int    cstat) const override
+      { return NearestWireID(worldPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+    virtual WireID NearestWireID
+      (const TVector3& worldPos, geo::PlaneID const& planeID) const override;
+    //@}
+    //@{
+    virtual raw::ChannelID_t PlaneWireToChannel(unsigned int plane,
+                                                unsigned int wire,
+                                                unsigned int tpc,
+                                                unsigned int cstat) const override
+      { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
+    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
+    //@}
+    View_t                   View( raw::ChannelID_t const channel )      const;
+    SigType_t                SignalType( raw::ChannelID_t const channel) const;
+    std::set<View_t>  const& Views()                                     const;
+    std::set<PlaneID> const& PlaneIDs()                                  const;
 
     unsigned int NOpChannels(unsigned int NOpDets)                        const;
     unsigned int NOpHardwareChannels(unsigned int opDet)                  const;
@@ -70,18 +85,17 @@ namespace geo{
   private:
     
     unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
-    uint32_t                                             fNchannels;      ///< number of channels in the detector
-    uint32_t                                             fTopChannel;     ///< book keeping highest channel #
+    unsigned int                                         fNchannels;      ///< number of channels in the detector
+    raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #
     std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
     std::set<View_t>                                     fViews;          ///< vector of the views present in the detector
     std::set<PlaneID>                                    fPlaneIDs;       ///< vector of the PlaneIDs present in the detector
 
-    std::vector< unsigned int >				 fWiresInPlane;
-    unsigned int					 fPlanesPerAPA;   
-    uint32_t					         fChannelsPerAPA;
-    std::vector<std::vector<std::vector<unsigned int>>>	 nAnchoredWires;
+    unsigned int                                         fPlanesPerAPA;   
+    raw::ChannelID_t                                         fChannelsPerAPA;
+    PlaneInfoMap_t<unsigned int>                         nAnchoredWires;
 
-    std::vector<std::vector<std::vector<unsigned int>>>  fWiresPerPlane;  ///< The number of wires in this plane 
+    PlaneInfoMap_t<unsigned int>                         fWiresPerPlane;  ///< The number of wires in this plane 
                                                                           ///< in the heirachy
     geo::GeoObjectSorter35                               fSorter;         ///< sorts geo::XXXGeo objects
     
@@ -94,14 +108,21 @@ namespace geo{
     } PlaneData_t;
 
     ///< collects all data we need for each plane (indices: c t p)
-    std::vector<std::vector<std::vector<PlaneData_t>>> fPlaneData;
+    PlaneInfoMap_t<PlaneData_t>                          fPlaneData;
     
     std::vector< double > fWirePitch;
     std::vector< double > fOrientation;
     std::vector< double > fSinOrientation; // to explore improving speed
     std::vector< double > fCosOrientation; // to explore improving speed
 
-
+    template <typename T>
+    T const& AccessAPAelement
+      (PlaneInfoMap_t<T> const& data, geo::PlaneID planeid) const
+      { planeid.TPC /= 2; return AccessElement(data, planeid); }
+    unsigned int WiresPerPlane(geo::PlaneID const& planeid) const
+      { return AccessAPAelement(fWiresPerPlane, planeid); }
+    unsigned int AnchoredWires(geo::PlaneID const& planeid) const
+      { return AccessAPAelement(nAnchoredWires, planeid); }
 
   };
 
