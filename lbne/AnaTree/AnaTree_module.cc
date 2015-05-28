@@ -9,6 +9,7 @@
 //  ** modified by Muhammad Elnimr to access track information and clusters as well
 //  mmelnimr@as.ua.edu
 //  August 2014
+//  ** Numerous changes since Feb 2015, Karl Warburton k.warburton@sheffield.ac.uk
 //
 ////////////////////////////////////////////////////////////////////////
 // Framework includes
@@ -34,6 +35,8 @@
 
 // LArSoft includes
 #include "Geometry/Geometry.h"
+#include "Geometry/CryostatGeo.h"
+#include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
 #include "Geometry/WireGeo.h"
 #include "RecoBase/Hit.h"
@@ -43,6 +46,7 @@
 #include "Utilities/LArProperties.h"
 #include "Utilities/DetectorProperties.h"
 #include "Utilities/AssociationUtil.h"
+#include "Utilities/TimeService.h"
 #include "RawData/ExternalTrigger.h"
 #include "MCCheater/BackTracker.h"
 #include "AnalysisBase/Calorimetry.h"
@@ -134,6 +138,7 @@ private:
   double Hits_momy_MC[kMaxTrack][10000];
   double Hits_momz_MC[kMaxTrack][10000];
   double Hits_E_MC[kMaxTrack][10000];
+  double Hits_T_MC[kMaxTrack][10000];
   double Hits_dEdx_MC[kMaxTrack][10000];
   double Hits_dE_MC[kMaxTrack][10000];
   double Hits_dx_MC[kMaxTrack][10000];
@@ -292,7 +297,10 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   art::ServiceHandle<geo::Geometry> geom;
   art::ServiceHandle<util::LArProperties> larprop;
   art::ServiceHandle<util::DetectorProperties> detprop;
+  art::ServiceHandle<util::TimeService> timeservice;
+  //fClock = timeservice->TPCClock();
   art::ServiceHandle<cheat::BackTracker> bktrk;
+
   
   run = evt.run();
   subrun = evt.subRun();
@@ -339,6 +347,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 
   art::FindManyP<recob::SpacePoint> fmsp(trackListHandle, evt, fTrackModuleLabel);
   art::FindMany<recob::Track>       fmtk(hitListHandle, evt, fTrackModuleLabel);
+  art::FindManyP<recob::Hit>        fmht(trackListHandle, evt, fTrackModuleLabel);
 
   art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
   art::FindMany<anab::T0>           fmt0( trackListHandle, evt, fMCTruthT0ModuleLabel);
@@ -386,6 +395,41 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   
   for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
     
+    //***************************************************
+    //   T0 stuff - So can correct X Start/End positions
+    //***************************************************
+    double TickT0 = 0;
+    if ( fmt0.isValid() ) {
+      std::vector<const anab::T0*> T0s = fmt0.at(i);
+      std::cout << int(T0s.size()) << std::endl;
+      for (size_t t0size =0; t0size < T0s.size(); t0size++) { 
+	if (T0s[t0size] -> TriggerType() == 0 ) { // If Trigger 0
+	} // Trig 0
+	if (T0s[t0size] -> TriggerType() == 1 ) { // If Counters
+	  //std::cout << "Using Counter Information!!!! T0 " << T0s[t0size]->Time() << ", Bits " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;	  
+	} // Trig 1
+	if (T0s[t0size] -> TriggerType() == 2 ) { // If MCTruth
+	  std::cout << "Using Trigger Type Monte Carlo Truth!!! T0 " << T0s[t0size]->Time() << ", GEANT4 track id " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;
+	  trkMCTruthT0[i]  = T0s[t0size]->Time();
+	  TickT0 = trkMCTruthT0[i] / detprop->SamplingRate();
+	  trkMCTruthTrackID[i] = T0s[t0size]->TriggerBits();      	  
+	} // Trig 2
+      } // T0 size
+    } // T0 valid
+    
+    //**************
+    // END T0 stuff 
+    //*************** 
+
+    //******************************
+    // Hit Level Stuff - Correct X
+    //******************************
+    std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(i);
+    double Hit_Size = allHits.size();
+    //*********************************
+    // End Hit Level Stuff - Correct X
+    //*********************************
+
     trkid[i]=i;
     trackStart.clear();
     trackEnd.clear();
@@ -393,10 +437,10 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     memset(larEnd, 0, 3);
     tracklist[i]->Extent(trackStart,trackEnd); 
     tracklist[i]->Direction(larStart,larEnd);
-    trkstartx[i]        = trackStart[0];
-    trkstarty[i]        = trackStart[1];
-    trkstartz[i]        = trackStart[2];
-    trkendx[i]        = trackEnd[0];
+    trkstartx[i]      = trackStart[0] - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'  
+    trkstarty[i]      = trackStart[1];
+    trkstartz[i]      = trackStart[2];
+    trkendx[i]        = trackEnd[0] - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'  
     trkendy[i]        = trackEnd[1];
     trkendz[i]        = trackEnd[2];
     trkstartdcosx[i]  = larStart[0];
@@ -413,16 +457,12 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     const recob::Track& track = *ptrack;
     trklen_L[i]=track.Length(); 
 
-    double recotime = 0.;
-    double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
+    //double recotime = 0.;
+    //double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
     // Fill histograms involving reco tracks only.
     int ntraj = track.NumberTrajectoryPoints();
     if(ntraj > 0) {
-      TVector3 pos = track.Vertex();
       TVector3 dir = track.VertexDirection();
-      TVector3 end = track.End();
-      pos[0] += trackdx;
-      end[0] += trackdx;
       trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
       trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
       trketa_xy[i] = std::atan2(dir.X(), dir.Y());
@@ -496,30 +536,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     }       
     // *********************
     //  End Calorimetric stuff
-    // *********************
-    
-    //***************
-    //   T0 stuff 
-    //***************
-    if ( fmt0.isValid() ) {
-      std::vector<const anab::T0*> T0s = fmt0.at(i);
-      std::cout << int(T0s.size()) << std::endl;
-      for (size_t t0size =0; t0size < T0s.size(); t0size++) { 
-	if (T0s[t0size] -> TriggerType() == 0 ) { // If Trigger 0
-	} // Trig 0
-	if (T0s[t0size] -> TriggerType() == 1 ) { // If Counters
-	  //std::cout << "Using Counter Information!!!! T0 " << T0s[t0size]->Time() << ", Bits " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;	  
-	} // Trig 1
-	if (T0s[t0size] -> TriggerType() == 2 ) { // If MCTruth
-	  std::cout << "Using Trigger Type Monte Carlo Truth!!! T0 " << T0s[t0size]->Time() << ", GEANT4 track id " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;
-	  trkMCTruthT0[i]  = T0s[t0size]->Time();
-	  trkMCTruthTrackID[i] = T0s[t0size]->TriggerBits();      	  
-	} // Trig 2
-      } // T0 size
-    } // T0 valid
-    //***************
-    // END T0 stuff 
-    //***************   
+    // ********************* 
     
     // ---------FIND THE TRACK PITCH IN EACH PLANE------------
     for (int j = 0; j<3; ++j){
@@ -589,24 +606,18 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     double xyztArray[4];
     int zz =0;
     int zz2 =0;
-    bool insideActiveVolume=false;
-    int nTPCHitsCounts =0;
+    bool insideActiveVolume    = false;
+    int nTPCHitsCounts         = 0;
+    double XPlanePosition      = 0;
+    double DriftTimeCorrection = 0;
+    double TimeAtPlane         = 0;
+    double XDriftVelocity      = larprop->DriftVelocity()*1e-3; //cm/ns
+    double WindowSize          = detprop->NumberTimeSamples() * timeservice->TPCClock().TickPeriod() * 1e3;
   
     int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
     for(int ii=0;ii<numberTrajectoryPoints;++ii) {
       const TLorentzVector& tmpPosition=particle->Position(ii);
       double const tmpPosArray[]={tmpPosition[0],tmpPosition[1],tmpPosition[2]};
-      geo::TPCID tpcid = geom->FindTPCAtPosition(tmpPosArray);
-      if (tpcid.isValid) { // Check if hit is in TPC
-	if (!insideActiveVolume) { // Check if first hit in TPC
-	  zz = ii;
-	  insideActiveVolume=true;
-	}		  
-	tmpPosition.GetXYZT(xyztArray);
-	zz2 = ii;
-	Hits_inTPC_MC[i][ii]=1;
-	++nTPCHitsCounts; //Count MCHits within the TPC
-      }
       Hits_posx_MC[i][ii] = tmpPosition[0];
       Hits_posy_MC[i][ii] = tmpPosition[1];
       Hits_posz_MC[i][ii] = tmpPosition[2];
@@ -615,6 +626,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       Hits_momy_MC[i][ii] = particle->Py(ii);
       Hits_momz_MC[i][ii] = particle->Pz(ii);
       Hits_E_MC[i][ii]    = particle->E(ii);
+      Hits_T_MC[i][ii]    = particle->T(ii);
+
       if (ii != 0) { // Work out MCTruth dEdx
 	Hits_dx_MC[i][ii] = pow ( (Hits_posx_MC[i][ii-1]-Hits_posx_MC[i][ii])*(Hits_posx_MC[i][ii-1]-Hits_posx_MC[i][ii])
 				  + (Hits_posy_MC[i][ii-1]-Hits_posy_MC[i][ii])*(Hits_posy_MC[i][ii-1]-Hits_posy_MC[i][ii])
@@ -623,8 +636,31 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	Hits_dE_MC[i][ii] = Hits_E_MC[i][ii-1] - Hits_E_MC[i][ii];
 	Hits_dEdx_MC[i][ii] = Hits_dE_MC[i][ii]/ Hits_dx_MC[i][ii];
       }
-
-      if ( (insideActiveVolume) && (zz2 < ii-50) ) break; //if passes out of TPC break...what about TPC gaps..reasonable number of hits?
+      
+      geo::TPCID tpcid = geom->FindTPCAtPosition(tmpPosArray);
+      if (tpcid.isValid) { // Check if hit is in TPC
+	geo::CryostatGeo const& cryo = geom->Cryostat(tpcid.Cryostat);
+	geo::TPCGeo      const& tpc  = cryo.TPC(tpcid.TPC);
+	XPlanePosition      = tpc.PlaneLocation(0)[0];
+	DriftTimeCorrection = fabs( Hits_posx_MC[i][ii] - XPlanePosition ) / XDriftVelocity;
+	TimeAtPlane         = Hits_T_MC[i][ii] + DriftTimeCorrection;
+	//std::cout << "Time at the APA " << TimeAtPlane << ", Compared to Gen Time " << Hits_T_MC[i][ii] << std::endl;
+	if ( TimeAtPlane < detprop->TriggerOffset() || 
+	     TimeAtPlane > detprop->TriggerOffset() + WindowSize ) {
+	  //std::cout <<"!!!!!THIS TIME IS OUTSIDE READOUT WINDOW!!!"<< WindowSize << std::endl;
+	  continue;
+	} else { // If outside drift window...
+	  //std::cout << "Got an entry with correct timing." << std::endl;
+	  if (!insideActiveVolume) { // Check if first hit in TPC
+	    zz = ii;
+	    insideActiveVolume=true;
+	  }		  
+	  tmpPosition.GetXYZT(xyztArray);
+	  zz2 = ii;
+	  Hits_inTPC_MC[i][ii]=1;
+	  ++nTPCHitsCounts; //Count MCHits within the TPC
+	} // If inside Drift Window
+      }
       //std::cout << ii << " " << Hits_inTPC_MC[i][ii] << " " << Hits_posx_MC[i][ii] << " " << Hits_posy_MC[i][ii] << " " << Hits_posz_MC[i][ii] << " " << zz << " " << zz2 << std::endl;
     }
     nTPCHits_MC[i] = nTPCHitsCounts;
@@ -928,6 +964,7 @@ void AnaTree::AnaTree::ResetVars(){
       Hits_momy_MC[i][j] = -99999;
       Hits_momz_MC[i][j] = -99999;
       Hits_E_MC[i][j] = -99999;
+      Hits_T_MC[i][j] = -99999;
       Hits_dEdx_MC[i][j] = -9999;
     }
     for (int j = 0; j<3; ++j){
