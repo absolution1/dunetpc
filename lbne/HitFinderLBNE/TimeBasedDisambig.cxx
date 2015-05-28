@@ -381,7 +381,7 @@ void TimeBasedDisambig::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &
 	YPosFitFirstPeak->SetParameter(1, PeakBinXmin+10);
 	YPosFitFirstPeak->SetParameter(2, 0.1);
 	//YPosFitFirstPeak->SetLineColor(4);
-	YPosXZ[cell]->Fit("YPosFitFirstPeak", "", "", PeakBinXmin-10, PeakBinXmax+10);
+	YPosXZ[cell]->Fit("YPosFitFirstPeak", "Q", "", PeakBinXmin-10, PeakBinXmax+10);
 	//save interal, mean and rms in variables
 	double FirstPeakBinAll=YPosFitFirstPeak->GetParameter(0);
 	double FirstPeakBinMean=YPosFitFirstPeak->GetParameter(1);
@@ -409,7 +409,7 @@ void TimeBasedDisambig::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &
 	YPosFitSecondPeak->SetParameter(1, SecondPeakXmin[cell]+10);
 	YPosFitSecondPeak->SetParameter(2, 0.1);
 	//YPosFitSecondPeak->SetLineColor(4);
-	YPosXZ[cell]->Fit("YPosFitSecondPeak", "", "", SecondPeakXmin[cell]-20, SecondPeakXmax[cell]+20);
+	YPosXZ[cell]->Fit("YPosFitSecondPeak", "Q", "", SecondPeakXmin[cell]-20, SecondPeakXmax[cell]+20);
 	//define variables to save integral, mean and rms of the guassian fit result.
 	double SecondPeakBinAll=YPosFitSecondPeak->GetParameter(0);
 	double SecondPeakBinMean=YPosFitSecondPeak->GetParameter(1);
