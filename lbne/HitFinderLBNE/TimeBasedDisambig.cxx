@@ -48,7 +48,6 @@ using namespace std;
 namespace lbne{
 
 TimeBasedDisambig::TimeBasedDisambig(fhicl::ParameterSet const& pset)
-  : fDBScan(pset.get< fhicl::ParameterSet >("DBScanAlg"))
 {
   this->reconfigure(pset); 
 }
@@ -60,7 +59,6 @@ void TimeBasedDisambig::reconfigure(fhicl::ParameterSet const& p)
   fTimeCut = p.get<double>("TimeCut");
   fDistanceCut = p.get<double>("DistanceCut");
   fDistanceCutClu = p.get<double>("DistanceCutClu");
-  fDBScan.reconfigure(p.get< fhicl::ParameterSet >("DBScanAlg"));
 }
 
 

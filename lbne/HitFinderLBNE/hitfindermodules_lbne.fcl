@@ -62,11 +62,7 @@ lbne35t_TimeBasedDisambigAlg:
     TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
     DistanceCut:      1.   #tolerance to determine whether wires cross, in cm
     DistanceCutClu:   4.   #tolerance to get disambiguated hits around a given hit, in cm
-    DBScanAlg:        @local::standard_dbscanalg
 }
-
-lbne35t_TimeBasedDisambigAlg.DBScanAlg.eps:       13.
-lbne35t_TimeBasedDisambigAlg.DBScanAlg.epstwo:    15.
 
 lbne35t_hitfinder35t:
 {
