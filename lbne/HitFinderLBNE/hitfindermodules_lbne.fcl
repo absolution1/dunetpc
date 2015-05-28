@@ -54,6 +54,12 @@ lbne35t_disambigalg:
 lbne35t_disambigalg.DBScanAlg.eps:       13.
 lbne35t_disambigalg.DBScanAlg.epstwo:    15.
 
+<<<<<<< HEAD
+=======
+lbne35t_disambigalg.DBScanAlg.eps:       13.
+lbne35t_disambigalg.DBScanAlg.epstwo:    15.
+
+>>>>>>> feature/trj_jae_disambig
 lbne35t_TimeBasedDisambigAlg:
 {
     TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
