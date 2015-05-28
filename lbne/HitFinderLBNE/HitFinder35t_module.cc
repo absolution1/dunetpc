@@ -33,6 +33,7 @@
 #include "Utilities/AssociationUtil.h"
 #include "Utilities/DetectorProperties.h"
 #include "DisambigAlg35t.h"
+#include "TimeBasedDisambig.h"
 
 // ROOT Includes 
 #include "TH1D.h"
@@ -60,10 +61,12 @@ namespace lbne{
   private:
     
     DisambigAlg35t    fDisambigAlg;
+    TimeBasedDisambig fTimeBasedDisambigAlg;
+
     art::ServiceHandle<geo::Geometry> fGeom;
     
     std::string fChanHitLabel;
-    
+    std::string fAlg;    // which algorithm to use
     
   protected: 
     
@@ -75,6 +78,7 @@ namespace lbne{
   //-------------------------------------------------
   HitFinder35t::HitFinder35t(fhicl::ParameterSet const& pset) :
   fDisambigAlg(pset.get< fhicl::ParameterSet >("DisambigAlg"))
+  fTimeBasedDisambigAlg(pset.get< fhicl::ParameterSet >("TimeBasedDisambigAlg"))
   {
     this->reconfigure(pset);
     
@@ -91,6 +95,7 @@ namespace lbne{
   {
     
     fChanHitLabel =  p.get< std::string >("ChanHitLabel");
+    fAlg = p.get < std::string >("Algorithm");
     
   }  
   
@@ -145,8 +150,18 @@ namespace lbne{
     } // for
     
     // Run alg on all APAs
-    fDisambigAlg.RunDisambig(ChHits);
-    
+
+  switch (fAlg)
+    {
+    case "TripletMatch":
+      fDisambigAlg.RunDisambig(ChHits);
+      break;
+    case "TimeBased":
+      fTimeBasedDisambigAlg.RunDisambig(ChHits);
+      break;
+    default:
+      throw cet::exception("HitFinder35t") << "Disambiguation algorithm name: " << fAlg << " is not supported.\n" 
+    }    
     
     for( size_t t=0; t < fDisambigAlg.fDisambigHits.size(); t++ ){
       art::Ptr<recob::Hit>  hit = fDisambigAlg.fDisambigHits[t].first;
