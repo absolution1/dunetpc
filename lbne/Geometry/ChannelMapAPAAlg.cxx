@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "lbne/Geometry/ChannelMapAPAAlg.h"
+#include "Geometry/GeometryCore.h"
 #include "Geometry/AuxDetGeo.h"
 #include "Geometry/CryostatGeo.h"
 #include "Geometry/TPCGeo.h"
@@ -25,20 +26,14 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  ChannelMapAPAAlg::~ChannelMapAPAAlg()
+  void ChannelMapAPAAlg::Initialize( GeometryData_t& geodata )
   {
-  }
-
-  //----------------------------------------------------------------------------
-  void ChannelMapAPAAlg::Initialize( std::vector<geo::CryostatGeo*> & cgeo,
-				     std::vector<geo::AuxDetGeo*>   & adgeo )
-  {
-
-    if(!fFirstChannelInThisPlane.empty() || !fFirstChannelInNextPlane.empty())
-      {
-	this->Uninitialize();
-      }
-
+    // start over:
+    Uninitialize();
+    
+    std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
+    std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+    
     fNcryostat = cgeo.size();
     
     mf::LogInfo("ChannelMapAPAAlg") << "Sorting volumes...";
@@ -53,7 +48,7 @@ namespace geo{
     fNTPC.resize(fNcryostat);
     fFirstChannelInNextPlane.resize(1);  // Change 1 to Ncryostat if you want
     fFirstChannelInThisPlane.resize(1);  // to treat each APA uniquely,and do
-					 // the same with the other resizes.
+                                         // the same with the other resizes.
     fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
     nAnchoredWires.resize(fPlanesPerAPA);
     fWiresInPlane.resize(fPlanesPerAPA);
@@ -85,24 +80,24 @@ namespace geo{
       
       for(unsigned int w = 0; w != fWiresInPlane[p]; ++w){
 
-	// for vertical planes
-	if(cgeo[0]->TPC(0).Plane(p).View()==geo::kZ)   { 
-	  nAnchoredWires[p] = fWiresInPlane[p];      
-	  break;
-	}
+        // for vertical planes
+        if(cgeo[0]->TPC(0).Plane(p).View()==geo::kZ)   { 
+          nAnchoredWires[p] = fWiresInPlane[p];      
+          break;
+        }
 
-	cgeo[0]->TPC(0).Plane(p).Wire(w).GetCenter(xyz);
-	cgeo[0]->TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
+        cgeo[0]->TPC(0).Plane(p).Wire(w).GetCenter(xyz);
+        cgeo[0]->TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
-	if(xyz[2]==xyz_next[2]){
-	  nAnchoredWires[p] = w-1;      
-	  break;
-	}
+        if(xyz[2]==xyz_next[2]){
+          nAnchoredWires[p] = w-1;      
+          break;
+        }
       }// end wire loop
 
     }// end plane loop
 
-    static uint32_t CurrentChannel = 0;
+    static raw::ChannelID_t CurrentChannel = 0;
    
     for(unsigned int PCount = 0; PCount != fPlanesPerAPA; ++PCount){
 
@@ -182,13 +177,13 @@ namespace geo{
   void ChannelMapAPAAlg::Uninitialize()
   {
 
-    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInThisPlane);
-    std::vector< std::vector<std::vector<uint32_t> > >().swap(fFirstChannelInNextPlane);
+    PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInThisPlane);
+    PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInNextPlane);
 
   }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::WireID> ChannelMapAPAAlg::ChannelToWire(uint32_t channel)  const
+  std::vector<geo::WireID> ChannelMapAPAAlg::ChannelToWire(raw::ChannelID_t channel)  const
   {
 
     // first check if this channel ID is legal
@@ -204,27 +199,27 @@ namespace geo{
     static unsigned int NextPlane;
     static unsigned int ThisPlane;
     
-    uint32_t chan       = channel%fChannelsPerAPA;
-    uint32_t pureAPAnum = std::floor( channel/fChannelsPerAPA );
+    raw::ChannelID_t chan       = channel%fChannelsPerAPA;
+    raw::ChannelID_t pureAPAnum = std::floor( channel/fChannelsPerAPA );
 
     bool breakVariable = false;
     for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
-	  
+          
       NextPlane = fFirstChannelInNextPlane[0][0][planeloop];
       ThisPlane = fFirstChannelInThisPlane[0][0][planeloop];
-	  
+          
       if(chan < NextPlane){
 
-	// fNTPC[0] works for now since there are the same number of TPCs per crostat
-	cstat = std::floor( channel / ((fNTPC[0]/2)*fChannelsPerAPA) );
-	tpc   = (2*pureAPAnum) % fNTPC[0];
-	plane = planeloop;
-	wireThisPlane  = chan - ThisPlane;
-	    
-	breakVariable = true;
-	break;
+        // fNTPC[0] works for now since there are the same number of TPCs per crostat
+        cstat = std::floor( channel / ((fNTPC[0]/2)*fChannelsPerAPA) );
+        tpc   = (2*pureAPAnum) % fNTPC[0];
+        plane = planeloop;
+        wireThisPlane  = chan - ThisPlane;
+            
+        breakVariable = true;
+        break;
       }
-      if(breakVariable) break;	  
+      if(breakVariable) break;          
     }// end plane loop
 
     
@@ -232,12 +227,12 @@ namespace geo{
     int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
 
     // find the lowest wire
-    uint32_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
+    raw::ChannelID_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
     unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[plane];
     
     if(ChannelGroup%2==1){
       tpc += 1;
-      WrapDirection  = -1;	 
+      WrapDirection  = -1;         
     }
     
     for(unsigned int SegCount = 0; SegCount != 50; ++SegCount){
@@ -257,37 +252,35 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  uint32_t ChannelMapAPAAlg::Nchannels() const
+  unsigned int ChannelMapAPAAlg::Nchannels() const
   {
     return fNchannels;
   }
   
   
   //----------------------------------------------------------------------------
-  double ChannelMapAPAAlg::WireCoordinate(double YPos, double ZPos,
-                                          unsigned int PlaneNo,
-                                          unsigned int TPCNo,
-                                          unsigned int cstat) const
+  double ChannelMapAPAAlg::WireCoordinate
+    (double YPos, double ZPos, geo::PlaneID const& planeid) const
   {
-    // Returns the wire number corresponding to a (Y,Z) position in PlaneNo
+    // Returns the wire number corresponding to a (Y,Z) position in the plane
     // with float precision.
     // Core code ripped from original NearestWireID() implementation
     
-    const PlaneData_t& PlaneData = fPlaneData[cstat][TPCNo][PlaneNo];
+    const PlaneData_t& PlaneData = AccessElement(fPlaneData, planeid);
     
     //get the orientation angle of a given plane and calculate the distance between first wire
     //and a point projected in the plane
-//    const double rotate = (TPCNo % 2 == 1)? -1.: +1.;
+//    const double rotate = (planeid.TPC % 2 == 1)? -1.: +1.;
     
     // the formula used here is geometric:
     // distance = delta_y cos(theta_z) + delta_z sin(theta_z)
     // with a correction for the orientation of the TPC:
     // odd TPCs have supplementary wire angle (pi-theta_z), changing cosine sign
     
-    const bool bSuppl = (TPCNo % 2) == 1;
+    const bool bSuppl = (planeid.TPC % 2) == 1;
     float distance =
-      -(YPos - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[PlaneNo]
-      +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[PlaneNo]
+      -(YPos - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[planeid.Plane]
+      +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[planeid.Plane]
       ;
     
     // The sign of this formula is correct if the wire with larger ID is on the
@@ -295,30 +288,27 @@ namespace geo{
     // than this one.
     // Of course, we are not always that lucky. fWireSortingInZ fixes our luck.
 
-    return PlaneData.fWireSortingInZ * distance/fWirePitch[PlaneNo];
+    return PlaneData.fWireSortingInZ * distance/fWirePitch[planeid.Plane];
   } // ChannelMapAPAAlg::WireCoordinate()
   
-  
   //----------------------------------------------------------------------------
-  WireID ChannelMapAPAAlg::NearestWireID(const TVector3& xyz,
-                                         unsigned int    plane,
-                                         unsigned int    tpc,
-                                         unsigned int    cryostat)     const
+  WireID ChannelMapAPAAlg::NearestWireID
+    (const TVector3& xyz, geo::PlaneID const& planeid) const
   {
     // add 0.5 to have the correct rounding
     int NearestWireNumber
-      = int (0.5 + WireCoordinate(xyz.Y(), xyz.Z(), plane, tpc, cryostat));
+      = int (0.5 + WireCoordinate(xyz.Y(), xyz.Z(), planeid));
     
     // If we are outside of the wireplane range, throw an exception
     // (this response maintains consistency with the previous
     // implementation based on geometry lookup)
     if(NearestWireNumber < 0 ||
-       NearestWireNumber >= (int) fWiresInPlane[plane])
+       NearestWireNumber >= (int) fWiresInPlane[planeid.Plane])
     {
       const int wireNumber = NearestWireNumber; // save for the output
       
       if(wireNumber < 0 ) NearestWireNumber = 0;
-      else                NearestWireNumber = fWiresInPlane[plane] - 1;
+      else                NearestWireNumber = fWiresInPlane[planeid.Plane] - 1;
     
     /*
       // comment in the following statement to throw an exception instead
@@ -330,40 +320,40 @@ namespace geo{
     */
     } // if invalid wire
     
-    return { cryostat, tpc, plane, (unsigned int) NearestWireNumber };
+    return { planeid, (geo::WireID::WireID_t) NearestWireNumber };
   } // ChannelMapAPAAlg::NearestWireID()
   
   
   //----------------------------------------------------------------------------
-  uint32_t ChannelMapAPAAlg::PlaneWireToChannel(unsigned int plane,
-						unsigned int wire,
-						unsigned int tpc,
-						unsigned int cstat) const
+  raw::ChannelID_t ChannelMapAPAAlg::PlaneWireToChannel
+    (geo::WireID const& wireid) const
   {
     unsigned int OtherSideWires = 0;
 
-    uint32_t Channel = fFirstChannelInThisPlane[0][0][plane]; // start in very first APA.
-    Channel += cstat*(fNTPC[cstat]/2)*fChannelsPerAPA;       // move channel to proper cstat.
-    Channel += std::floor( tpc/2 )*fChannelsPerAPA;		  // move channel to proper APA.
-    OtherSideWires += (tpc%2)*nAnchoredWires[plane];	          // get number of wires on the first
-								  // side of the APA if starting
-								  // on the other side TPC.
+    // start in very first APA:
+    raw::ChannelID_t Channel = fFirstChannelInThisPlane[0][0][wireid.Plane];
+    // move channel to proper cryostat:
+    Channel += wireid.Cryostat*(fNTPC[wireid.Cryostat]/2)*fChannelsPerAPA;
+    // move channel to proper APA:
+    Channel += std::floor( wireid.TPC/2 )*fChannelsPerAPA;
+    // get number of wires on the first side of the APA if starting on the other side TPC:
+    OtherSideWires += (wireid.TPC%2)*nAnchoredWires[wireid.Plane];
 
 
     // Lastly, account for the fact that channel number while moving up wire number in one
     // plane resets after 2 times the number of wires anchored -- one for each APA side.
     // At the same time, OtherSideWires accounts for the fact that if a channel starts on 
     // the other side, it is offset by the number of wires on the first side.
-    Channel += (OtherSideWires + wire)%(2*nAnchoredWires[plane]);
+    Channel += (OtherSideWires + wireid.Wire)%(2*nAnchoredWires[wireid.Plane]);
     
     return Channel;
 
   }
 
   //----------------------------------------------------------------------------
-  SigType_t ChannelMapAPAAlg::SignalType( uint32_t const channel )  const
+  SigType_t ChannelMapAPAAlg::SignalType( raw::ChannelID_t const channel )  const
   {
-    uint32_t chan = channel % fChannelsPerAPA;
+    raw::ChannelID_t chan = channel % fChannelsPerAPA;
     SigType_t sigt = kInduction;
 
     // instead of calling channel to wire, we can make use of the way we 
@@ -373,15 +363,15 @@ namespace geo{
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ sigt = kCollection; }
     else{    mf::LogWarning("BadChannelSignalType") << "Channel " << channel 
-						    << " (" << chan << ") not given signal type." << std::endl;         }
+                                                    << " (" << chan << ") not given signal type." << std::endl;         }
   
     return sigt;
   }
 
   //----------------------------------------------------------------------------
-  View_t ChannelMapAPAAlg::View( uint32_t const channel )  const
+  View_t ChannelMapAPAAlg::View( raw::ChannelID_t const channel )  const
   {
-    uint32_t chan = channel % fChannelsPerAPA;
+    raw::ChannelID_t chan = channel % fChannelsPerAPA;
     View_t view = geo::kU;
 
     // instead of calling channel to wire, we can make use of the way we 
@@ -393,7 +383,7 @@ namespace geo{
     else if( (chan >= fFirstChannelInThisPlane[0][0][2]) &&
              (chan <  fFirstChannelInNextPlane[0][0][2])    ){ view = geo::kZ; }
     else{    mf::LogWarning("BadChannelViewType") << "Channel " << channel 
-						  << " (" << chan << ") not given view type.";  }
+                                                  << " (" << chan << ") not given view type.";  }
     
     return view;
   }  

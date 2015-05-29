@@ -50,9 +50,9 @@ lbne35t_disambigalg:
     DistanceCut:      1.   #tolerance to determine whether wires cross, in cm
     DistanceCutClu:   4.   #tolerance to get disambiguated hits around a given hit, in cm
     DBScanAlg:        @local::standard_dbscanalg
+    DBScanAlg.eps:       13.
+    DBScanAlg.epstwo:    15.
 }
-lbne35t_disambigalg.DBScanAlg.eps:       13.
-lbne35t_disambigalg.DBScanAlg.epstwo:    15.
 
 lbne35t_hitfinder35t:
 {
