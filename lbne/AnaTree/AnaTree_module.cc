@@ -580,6 +580,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     if (fmtk.at(i).size()!=0){
       hit_trkid[i] = fmtk.at(i)[0]->ID();
     }
+    if ( i == kMaxHits ) break;
   }
   
   // -----------------------------------------------
