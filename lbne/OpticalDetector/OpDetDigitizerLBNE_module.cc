@@ -30,6 +30,7 @@
 #include "Simulation/sim.h"
 #include "Simulation/SimPhotons.h"
 #include "Simulation/LArG4Parameters.h"
+#include "Utilities/DetectorProperties.h"
 #include "Utilities/TimeService.h"
 #include "OpticalDetector/OpDetResponseInterface.h"
 #include "RawData/OpDetWaveform.h"
@@ -140,9 +141,14 @@ namespace opdet {
     // Obtaining parameters from the TimeService
     art::ServiceHandle< util::TimeService > timeService;
     fSampleFreq = timeService->OpticalClock().Frequency();
-    fTimeBegin  = timeService->OpticalClock().Time();
-    fTimeEnd    = timeService->OpticalClock().FramePeriod();
 
+    // Assume starting at 0
+    fTimeBegin  = 0;
+
+    // Take the TPC readout window size and covert to us with the electronics clock frequency
+    fTimeEnd    = art::ServiceHandle<util::DetectorProperties>()->ReadOutWindowSize()/timeService->TPCClock().Frequency();
+
+    
     // Initializing random number engines
     unsigned int seed = 
              pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
@@ -301,14 +307,18 @@ namespace opdet {
       float photonTime = float(pulse.first/1000.0);
       for (int i = 0; i < pulse.second; ++i)
       {
-        // Sample a random subset according to QE
-        if (odResponse.detectedLite(channel, readoutCh) && 
-            (photonTime > fTimeBegin) && (photonTime < fTimeEnd))
-        {
-          // Convert the time of the pulse to ticks
-          int timeBin = int((photonTime - fTimeBegin)*fSampleFreq);
-          // Add 1 pulse to the waveform
-          AddPulse(timeBin, CrossTalk(), opDetWaveforms[readoutCh]);
+        if ((photonTime >= fTimeBegin) && (photonTime < fTimeEnd))  {
+          // Sample a random subset according to QE
+          if (odResponse.detectedLite(channel, readoutCh))
+          {
+            // Convert the time of the pulse to ticks
+            int timeBin = int((photonTime - fTimeBegin)*fSampleFreq);
+            // Add 1 pulse to the waveform
+            AddPulse(timeBin, CrossTalk(), opDetWaveforms[readoutCh]);
+          }
+        }
+        else {
+          mf::LogInfo("OpDetDigitizerLBNE") << "Throwing away an out-of-time photon at " << photonTime << "\n";
         }
       }
     }
