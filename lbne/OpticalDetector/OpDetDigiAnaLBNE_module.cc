@@ -24,6 +24,7 @@
 
 // LArSoft includes
 
+#include "Utilities/DetectorProperties.h"
 #include "Utilities/TimeService.h"
 #include "RawData/OpDetWaveform.h"
 
@@ -85,10 +86,12 @@ namespace opdet {
     // Obtain parameters from TimeService
     art::ServiceHandle< util::TimeService > timeService;
     fSampleFreq = timeService->OpticalClock().Frequency();
-    //fTimeBegin  = 0.0; //timeService->OpticalClock().Time();
-    //fTimeEnd    = 1600.0; //timeService->OpticalClock().FramePeriod();
-    fTimeBegin  = timeService->OpticalClock().Time();
-    fTimeEnd    = timeService->OpticalClock().FramePeriod();
+
+    // Assume starting at 0
+    fTimeBegin  = 0;
+
+    // Take the TPC readout window size and covert to us with the electronics clock frequency
+    fTimeEnd    = art::ServiceHandle<util::DetectorProperties>()->ReadOutWindowSize()/timeService->TPCClock().Frequency();
 
   }
 
