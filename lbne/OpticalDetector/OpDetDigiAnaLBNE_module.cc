@@ -85,8 +85,10 @@ namespace opdet {
     // Obtain parameters from TimeService
     art::ServiceHandle< util::TimeService > timeService;
     fSampleFreq = timeService->OpticalClock().Frequency();
-    fTimeBegin  = 0.0; //timeService->OpticalClock().Time();
-    fTimeEnd    = 1600.0; //timeService->OpticalClock().FramePeriod();
+    //fTimeBegin  = 0.0; //timeService->OpticalClock().Time();
+    //fTimeEnd    = 1600.0; //timeService->OpticalClock().FramePeriod();
+    fTimeBegin  = timeService->OpticalClock().Time();
+    fTimeEnd    = timeService->OpticalClock().FramePeriod();
 
   }
 

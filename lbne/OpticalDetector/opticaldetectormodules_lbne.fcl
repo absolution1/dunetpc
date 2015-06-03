@@ -44,7 +44,8 @@ lbnefd_simphotoncounter:
 lbnefd_tracktimeassoc:         @local::standard_tracktimeassoc
 lbnefd_opflash:                @local::standard_opflash
 lbnefd_opflash.InputModule:    "opdigi"
-lbnefd_opflash.algo_threshold: @local::standard_algo_firstpeak
+lbnefd_opflash.algo_threshold: @local::standard_algo_sipm
+lbnefd_opflash.AreaToPE:        true
 
 lbnefd_opdigiana:
 {
@@ -61,7 +62,8 @@ lbne35t_opdigi:                 @local::lbnefd_opdigi
 lbne35t_tracktimeassoc:         @local::standard_tracktimeassoc
 lbne35t_opflash:                @local::standard_opflash
 lbne35t_opflash.InputModule:    "opdigi"
-lbne35t_opflash.algo_threshold: @local::standard_algo_firstpeak
+lbne35t_opflash.algo_threshold: @local::standard_algo_sipm
+lbne35t_opflash.AreaToPE:        true
 
 lbne35t_opdigiana:        @local::lbnefd_opdigiana
 lbne35t_opflashana:       @local::standard_opflashana
