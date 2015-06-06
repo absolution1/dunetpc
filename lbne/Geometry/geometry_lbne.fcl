@@ -13,14 +13,19 @@ lbnefd_geo:
 			#  and there are no other FD detector IDs. 9/7/13
 
  # Choose GDML file
- GDML:         "lbne10kt.gdml"
- ROOT:         "lbne10kt.gdml"
- #GDML:     "Geometry/gdml/lbne34kt.gdml"
- #ROOT:     "Geometry/gdml/lbne34kt.gdml"
- #GDML:     "Geometry/gdml/lbne10kt_APAoutside.gdml"
- #ROOT:     "Geometry/gdml/lbne10kt_APAoutside.gdml"
- #GDML:     "Geometry/gdml/lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
- #ROOT:     "Geometry/gdml/lbne4apa36deg.gdml"
+
+# GDML:      "dune10kt_v1_workspace.gdml"
+# ROOT:      "dune10kt_v1_workspace.gdml"
+# GDML:      "dune10kt_v1.gdml"
+# ROOT:      "dune10kt_v1.gdml"
+# GDML:      "dune10kt_v1_45deg.gdml"
+# ROOT:      "dune10kt_v1_45deg.gdml"
+ GDML:     "lbne10kt.gdml"
+ ROOT:     "lbne10kt.gdml"
+# GDML:     "lbne34kt.gdml"
+# ROOT:     "lbne34kt.gdml"
+# GDML:     "lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
+# ROOT:     "lbne4apa36deg.gdml"
 
 
  SurfaceY:         0.0e2               # in cm, vertical distance to the surface
