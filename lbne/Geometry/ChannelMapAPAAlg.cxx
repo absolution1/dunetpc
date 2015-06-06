@@ -89,10 +89,11 @@ namespace geo{
         cgeo[0]->TPC(0).Plane(p).Wire(w).GetCenter(xyz);
         cgeo[0]->TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
-        if(xyz[2]==xyz_next[2]){
-          nAnchoredWires[p] = w-1;      
-          break;
-        }
+	if(xyz[2]==xyz_next[2]){
+	  nAnchoredWires[p] = w;      
+	  break;
+	}
+
       }// end wire loop
 
     }// end plane loop
@@ -152,22 +153,24 @@ namespace geo{
     }
 
 
-    mf::LogVerbatim("ChannelMapAPAAlg") << "fNchannels = " << fNchannels ; 
+    for(unsigned int c=0; c<fNcryostat; c++){
 
-    mf::LogVerbatim("ChannelMapAPAAlg") << "For all identical APA:" ; 
-    mf::LogVerbatim("ChannelMapAPAAlg") << "Number of channels per APA = " << fChannelsPerAPA ; 
+      mf::LogVerbatim("ChannelMapAPAAlg") << "Cryostat " << c << ":"; 
 
-    mf::LogVerbatim("ChannelMapAPAAlg") << "Number of WireIDs in a U plane = " << fWiresInPlane[0] ;
-    mf::LogVerbatim("ChannelMapAPAAlg") << "Number of WireIDs in a V plane = " << fWiresInPlane[1] ;
-    mf::LogVerbatim("ChannelMapAPAAlg") << "Number of WireIDs in a Z Plane = " << fWiresInPlane[2] ;
-
-    mf::LogVerbatim("ChannelMapAPAAlg") << "U channels per APA = " << 2*nAnchoredWires[0] ;
-    mf::LogVerbatim("ChannelMapAPAAlg") << "V channels per APA = " << 2*nAnchoredWires[1] ;
-    mf::LogVerbatim("ChannelMapAPAAlg") << "Z channels per APA side = " << nAnchoredWires[2] ;
-
-    mf::LogVerbatim("ChannelMapAPAAlg") << "Pitch in U Plane = " << fWirePitch[0] ;
-    mf::LogVerbatim("ChannelMapAPAAlg") << "Pitch in V Plane = " << fWirePitch[1] ;
-    mf::LogVerbatim("ChannelMapAPAAlg") << "Pitch in Z Plane = " << fWirePitch[2] ;
+      mf::LogVerbatim("ChannelMapAPAAlg") << "  " << fNchannels << " total channels"; 
+      mf::LogVerbatim("ChannelMapAPAAlg") << "  " << fNTPC[c]/2 << " APAs";       
+      mf::LogVerbatim("ChannelMapAPAAlg") << "  For all identical APA:" ; 
+      mf::LogVerbatim("ChannelMapAPAAlg") << "    Number of channels per APA = " << fChannelsPerAPA ; 
+      
+      mf::LogVerbatim("ChannelMapAPAAlg") << "    U channels per APA = " << 2*nAnchoredWires[0] ;
+      mf::LogVerbatim("ChannelMapAPAAlg") << "    V channels per APA = " << 2*nAnchoredWires[1] ;
+      mf::LogVerbatim("ChannelMapAPAAlg") << "    Z channels per APA = " << 2*nAnchoredWires[2] ;
+      
+      mf::LogVerbatim("ChannelMapAPAAlg") << "    Pitch in U Plane = " << fWirePitch[0] ;
+      mf::LogVerbatim("ChannelMapAPAAlg") << "    Pitch in V Plane = " << fWirePitch[1] ;
+      mf::LogVerbatim("ChannelMapAPAAlg") << "    Pitch in Z Plane = " << fWirePitch[2] ;
+      
+    }
 
     return;
 
