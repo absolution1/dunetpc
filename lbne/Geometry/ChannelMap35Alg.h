@@ -97,6 +97,10 @@ namespace geo{
       double fFirstWireCenterZ;
       /// +1 if the wire ID order follow z (larger z, or smaller intercept => larger wire ID); -1 otherwise
       float fWireSortingInZ;
+      double fYmax;
+      double fYmin;
+      double fZmax;
+      double fZmin;
     } PlaneData_t;
     
     ///< collects all data we need for each plane (indices: c t p)

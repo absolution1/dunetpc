@@ -170,6 +170,29 @@ namespace geo{
           // In fact, for TPC #0 it is W + N for V and Z planes, W - N for U
           // plane; for TPC #0 it is W + N for V and Z planes, W - N for U
           PlaneData.fWireSortingInZ = thePlane.WireIDincreasesWithZ()? +1.: -1.;
+
+	  // find boundaries of the APA frame for this plane by looking at endpoints of wires
+
+	  double endpoint[3];
+	  thePlane.Wire(0).GetStart(endpoint);
+	  PlaneData.fYmax = endpoint[1];
+	  PlaneData.fYmin = endpoint[1];
+	  PlaneData.fZmax = endpoint[2];
+	  PlaneData.fZmin = endpoint[2];
+	  unsigned int nwires = thePlane.Nwires(); 
+	  for (unsigned int iwire=0;iwire<nwires;iwire++){
+  	    thePlane.Wire(iwire).GetStart(endpoint);
+	    PlaneData.fYmax = std::max(PlaneData.fYmax,endpoint[1]);
+	    PlaneData.fYmin = std::min(PlaneData.fYmin,endpoint[1]);
+	    PlaneData.fZmax = std::max(PlaneData.fZmax,endpoint[2]);
+	    PlaneData.fZmin = std::min(PlaneData.fZmin,endpoint[2]);
+  	    thePlane.Wire(iwire).GetEnd(endpoint);
+	    PlaneData.fYmax = std::max(PlaneData.fYmax,endpoint[1]);
+	    PlaneData.fYmin = std::min(PlaneData.fYmin,endpoint[1]);
+	    PlaneData.fZmax = std::max(PlaneData.fZmax,endpoint[2]);
+	    PlaneData.fZmin = std::min(PlaneData.fZmin,endpoint[2]);	    
+	  } // loop on wire 
+
         } // for plane
       } // for TPC
     } // for cryostat
@@ -300,6 +323,13 @@ namespace geo{
     
     const PlaneData_t& PlaneData = AccessElement(fPlaneData, planeid);
     
+    // cap the position to be within the boundaries of the wire endpoints.
+    // This simulates charge drifting in from outside of the wire frames inwards towards
+    // the first and last collection wires on the side, and towards the right endpoints
+
+    double YPosCap = std::max(PlaneData.fYmin,std::min(PlaneData.fYmax,YPos));
+    double ZPosCap = std::max(PlaneData.fZmin,std::min(PlaneData.fZmax,ZPos));
+
     //get the orientation angle of a given plane and calculate the distance between first wire
     //and a point projected in the plane
 //    const double rotate = (planeid.TPC % 2 == 1)? -1.: +1.;
@@ -311,8 +341,8 @@ namespace geo{
     
     const bool bSuppl = (planeid.TPC % 2) == 1;
     float distance =
-      -(YPos - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[planeid.Plane]
-      +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[planeid.Plane]
+      -(YPosCap - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[planeid.Plane]
+      +(ZPosCap - PlaneData.fFirstWireCenterZ) * fSinOrientation[planeid.Plane]
       ;
     
     // The sign of this formula is correct if the wire with larger ID is on the
