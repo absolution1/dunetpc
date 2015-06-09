@@ -9,6 +9,7 @@ art_make(LIB_LIBRARIES
 	${ROOT_CORE}
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
+	${Boost_SYSTEM_LIBRARY}
 	Geometry_service
 	Geometry
 	lbne_daqinput35t_utilities

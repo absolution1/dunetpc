@@ -29,6 +29,7 @@ art_make( BASENAME_ONLY
                         ${FHICLCPP}
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
+			${Boost_SYSTEM_LIBRARY}
           MODULE_LIBRARIES LArPandoraInterface 
                            LBNEPandora
           )

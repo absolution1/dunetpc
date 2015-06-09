@@ -22,8 +22,13 @@ standard_trackanact:
 lbne35t_trackcheater:                     @local::standard_trackcheater
 
 lbne35t_cosmictracker:                    @local::standard_cosmictracker
-lbne35t_cosmictracker.CleanUpHits:        true
+#lbne35t_cosmictracker.CleanUpHits:        true
 lbne35t_cosmictracker.SortDirection:      "-y"
+lbne35t_cosmictracker.StitchTracks:       false
+lbne35t_cosmictracker.DisCut:             100.
+lbne35t_cosmictracker.AngCut:             0.2
+lbne35t_cosmictracker.ClusterMatch:       @local::lbne35t_clustermatchtq
+lbne35t_cosmictracker.TrajOnly:           true
 lbne35t_trackstitcher:                    @local::standard_trackstitcher
 lbne35t_trackstitcher.SpptSepTolerance:   100
 lbne35t_trackstitcher.CosAngTolerance:    0.80
