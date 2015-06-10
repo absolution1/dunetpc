@@ -319,13 +319,6 @@ namespace geo{
     
     const PlaneData_t& PlaneData = AccessElement(fPlaneData, planeid);
     
-    // cap the position to be within the boundaries of the wire endpoints.
-    // This simulates charge drifting in from outside of the wire frames inwards towards
-    // the first and last collection wires on the side, and towards the right endpoints
-
-    double YPosCap = std::max(PlaneData.fYmin,std::min(PlaneData.fYmax,YPos));
-    double ZPosCap = std::max(PlaneData.fZmin,std::min(PlaneData.fZmax,ZPos));
-
     //get the orientation angle of a given plane and calculate the distance between first wire
     //and a point projected in the plane
 //    const double rotate = (planeid.TPC % 2 == 1)? -1.: +1.;
@@ -337,8 +330,8 @@ namespace geo{
     
     const bool bSuppl = (planeid.TPC % 2) == 1;
     float distance =
-      -(YPosCap - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[planeid.Plane]
-      +(ZPosCap - PlaneData.fFirstWireCenterZ) * fSinOrientation[planeid.Plane]
+      -(YPos - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[planeid.Plane]
+      +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[planeid.Plane]
       ;
     
     // The sign of this formula is correct if the wire with larger ID is on the
@@ -354,9 +347,18 @@ namespace geo{
   WireID ChannelMap35Alg::NearestWireID
     (const TVector3& xyz, geo::PlaneID const& planeid) const
   {
+
+    // cap the position to be within the boundaries of the wire endpoints.
+    // This simulates charge drifting in from outside of the wire frames inwards towards
+    // the first and last collection wires on the side, and towards the right endpoints
+
+    const PlaneData_t& PlaneData = AccessElement(fPlaneData, planeid);
+    double ycap = std::max(PlaneData.fYmin,std::min(PlaneData.fYmax,xyz.Y()));
+    double zcap = std::max(PlaneData.fZmin,std::min(PlaneData.fZmax,xyz.Z()));
+
     // add 0.5 to have the correct rounding
     int NearestWireNumber
-      = int (0.5 + WireCoordinate(xyz.Y(), xyz.Z(), planeid));
+      = int (0.5 + WireCoordinate(ycap, zcap, planeid));
     
     // If we are outside of the wireplane range, throw an exception
     // (this response maintains consistency with the previous
