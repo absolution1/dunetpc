@@ -25,6 +25,7 @@ art_make( BASENAME_ONLY
 	                   ${FHICLCPP}
 			   ${CETLIB}
                            ${CLHEP}
+			   ${Boost_SYSTEM_LIBRARY}
 			   ${ROOT_BASIC_LIB_LIST}
          MODULE_LIBRARIES HitFinderLBNE
                            RecoBase
