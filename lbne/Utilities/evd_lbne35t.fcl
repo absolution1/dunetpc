@@ -42,3 +42,6 @@ physics:
  #and output modules. all items here can be run simultaneously
  end_paths: [evd]  
 }
+
+services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
+services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
