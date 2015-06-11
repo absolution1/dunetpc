@@ -59,6 +59,7 @@ namespace lbne{
     double fTimeCut;
     double fDistanceCut;
     double fDistanceCutClu;
+    double fTimeWiggle;
     cluster::DBScanAlg fDBScan; ///< object that implements the DB scan algorithm
   }; // class DisambigAlg35t
 

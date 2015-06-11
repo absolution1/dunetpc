@@ -57,6 +57,7 @@ void DisambigAlg35t::reconfigure(fhicl::ParameterSet const& p)
   fTimeCut = p.get<double>("TimeCut");
   fDistanceCut = p.get<double>("DistanceCut");
   fDistanceCutClu = p.get<double>("DistanceCutClu");
+  fTimeWiggle     = p.get<double>("TimeWiggle");
   fDBScan.reconfigure(p.get< fhicl::ParameterSet >("DBScanAlg"));
 }
 
@@ -135,6 +136,7 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
     //find triplets of U,V,Z hits that are common in time
     unsigned int apaz(0), cryoz(0);
     fAPAGeo.ChannelToAPA(hitsZ[z]->Channel(), apaz, cryoz);
+
     double tz = hitsZ[z]->PeakTime()
       - detprop->GetXTicksOffset(hitsZ[z]->WireID().Plane,
 				 hitsZ[z]->WireID().TPC,
@@ -150,6 +152,7 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	- detprop->GetXTicksOffset(0,
 				   hitsZ[z]->WireID().TPC,
 				   hitsZ[z]->WireID().Cryostat);
+       
       if (std::abs(tu-tz)<fTimeCut){
 	//find a matched u hit, loop over v hits
 	for (size_t v = 0; v<hitsUV[1].size(); ++v){
@@ -161,7 +164,9 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	    - detprop->GetXTicksOffset(1,
 				       hitsZ[z]->WireID().TPC,
 				       hitsZ[z]->WireID().Cryostat);
+    
 	  if (std::abs(tv-tz)<fTimeCut){
+	    
 	    //find a matched v hit, see if the 3 wire segments cross
 	    geo::WireID zwire = geo->ChannelToWire(hitsZ[z]->Channel())[0];
 	    std::vector<geo::WireID>  uwires = geo->ChannelToWire(hitsUV[0][u]->Channel());
@@ -170,22 +175,27 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	    unsigned int totalintersections = 0;
 	    unsigned int bestu = 0;  //index to wires associated with channel
 	    unsigned int bestv = 0;
+
 	    for (size_t uw = 0; uw<uwires.size(); ++uw){
 	      for (size_t vw = 0; vw<vwires.size(); ++vw){
 		geo::WireIDIntersection widiuv;
 		geo::WireIDIntersection widiuz;
 		geo::WireIDIntersection widivz;
+
 		if (uwires[uw].TPC!=vwires[vw].TPC) continue;
 		if (uwires[uw].TPC!=zwire.TPC) continue;
 		if (vwires[vw].TPC!=zwire.TPC) continue;
+
 		if (!geo->WireIDsIntersect(zwire,uwires[uw],widiuz)) continue;
 		if (!geo->WireIDsIntersect(zwire,vwires[vw],widivz)) continue;
 		if (!geo->WireIDsIntersect(uwires[uw],vwires[vw],widiuv)) continue;
+
 		double dis1 = sqrt(pow(widiuz.y-widivz.y,2)+pow(widiuz.z-widivz.z,2));
 		double dis2 = sqrt(pow(widiuz.y-widiuv.y,2)+pow(widiuz.z-widiuv.z,2));
 		double dis3 = sqrt(pow(widiuv.y-widivz.y,2)+pow(widiuv.z-widivz.z,2));
 		double maxdis = std::max(dis1,dis2);
 		maxdis = std::max(maxdis,dis3);
+
 		if (maxdis<fDistanceCut){
 		  ++totalintersections;
 		  bestu = uw;
@@ -211,12 +221,13 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
     }//loop over all u hits
   }//loop over all z hits
   //Done finding trivial disambiguated hits
-
+  
   //running DB scan to identify and remove outlier hits
   // get the ChannelFilter
   filter::ChannelFilter chanFilt;
   for (size_t i = 0; i<ntpc; ++i){//loop over all TPCs
     if (!allhitsu[i].size()) continue;
+
     //initialize dbscan with all hits in u view
     fDBScan.InitScan(allhitsu[i], chanFilt.SetOfBadChannels(), wireidsu[i]);
     //run dbscan
@@ -224,59 +235,118 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
     //fpointId_to_clusterId maps a hit index to a cluster index (which can be negative if the hit is not associated with any clusters)
     if (allhitsu[i].size()!=fDBScan.fpointId_to_clusterId.size())
       throw cet::exception("DisambigAlg35t") <<"DBScan hits do not match input hits"<<allhitsu[i].size()<<" "<<fDBScan.fpointId_to_clusterId.size()<<"\n";
-    //find hits associated with the biggest cluster
-    int dbclu = -1;
-    unsigned int maxhit = 0;
+
+    //Find out which clusters are unique in time
     std::vector<unsigned int> hitstoaddu;
     std::vector<unsigned int> dbcluhits(fDBScan.fclusters.size(),0);
+    std::vector< bool > boolVector(fDBScan.fclusters.size(), true);
+    std::map<int, std::pair <double,double> > ClusterStartEndTime;
     for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
-      if (fDBScan.fpointId_to_clusterId[j]>=0&&fDBScan.fpointId_to_clusterId[j]<fDBScan.fclusters.size())
-      ++dbcluhits[fDBScan.fpointId_to_clusterId[j]];
+       if (fDBScan.fpointId_to_clusterId[j]>=0&&fDBScan.fpointId_to_clusterId[j]<fDBScan.fclusters.size()) {
+	++dbcluhits[fDBScan.fpointId_to_clusterId[j]];
+
+	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first > allhitsu[i][j]->PeakTime()) 
+	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first = allhitsu[i][j]->PeakTime();
+	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second < allhitsu[i][j]->PeakTime()) 
+	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second = allhitsu[i][j]->PeakTime();
+	/*
+	std::cout << "Looking at Cluster " << fDBScan.fpointId_to_clusterId[j] 
+		  << ", It has start time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first 
+		  << ", and end time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second << std::endl;
+	*/
+       }
     }
-    //find the cluster that has the most hits
-    for(size_t j = 0; j<dbcluhits.size(); ++j){
-      if (dbcluhits[j]>maxhit){
-	dbclu = j;
-	maxhit = dbcluhits[j];
+    for ( unsigned int ClusNum = 0; ClusNum < fDBScan.fclusters.size(); ++ClusNum ) {
+      for ( unsigned int ClusIt = 0; ClusIt < fDBScan.fclusters.size(); ++ClusIt ) {
+      	if ( dbcluhits[ClusIt] > dbcluhits[ClusNum] ) { 
+	  if ( ClusterStartEndTime[ClusNum].first > ( ClusterStartEndTime[ClusIt].first + fTimeWiggle ) 
+	       && ClusterStartEndTime[ClusNum].first < ( ClusterStartEndTime[ClusIt].second + fTimeWiggle ) ) {
+	    if ( ClusterStartEndTime[ClusNum].second > ( ClusterStartEndTime[ClusIt].first + fTimeWiggle ) 
+	       && ClusterStartEndTime[ClusNum].second < ( ClusterStartEndTime[ClusIt].second + fTimeWiggle ) ) {
+	      boolVector[ClusNum] = false;
+	    }
+	  }
+	}
       }
+      /*
+      std::cout << "\nLooking at Cluster Number " << ClusNum << ".\n" 
+		<< "It had start time " << ClusterStartEndTime[ClusNum].first << ", and end time " << ClusterStartEndTime[ClusNum].second << ".\n"
+		<< "The bool vector value for this cluster is..." << boolVector[ClusNum] << std::endl;
+      */
     }
-    //hitstoaddu holds all u hits in the biggest cluster
+
+    //std::cout << "Now going to look at v hits....." << std::endl;
+
+    //hitstoaddu holds all u hits in the time separated clusters 
     for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
-      if (int(fDBScan.fpointId_to_clusterId[j]) == dbclu) hitstoaddu.push_back(j);
+      if (int(fDBScan.fpointId_to_clusterId[j]) == -1 ) continue;
+      if (boolVector[fDBScan.fpointId_to_clusterId[j]] == true ) hitstoaddu.push_back(j);
     }
-    //do the same for v hits
+
+    //Now to do the same for v hits
     fDBScan.InitScan(allhitsv[i], chanFilt.SetOfBadChannels(), wireidsv[i]);
     fDBScan.run_cluster();
     if (allhitsv[i].size()!=fDBScan.fpointId_to_clusterId.size())
       throw cet::exception("DisambigAlg35t") <<"DBScan hits do not match input hits"<<allhitsv[i].size()<<" "<<fDBScan.fpointId_to_clusterId.size()<<"\n";
-    dbclu = -1;
-    maxhit = 0;
+
     std::vector<unsigned int> hitstoaddv;
     dbcluhits.clear();
+    boolVector.clear();
+    ClusterStartEndTime.clear();
     dbcluhits.resize(fDBScan.fclusters.size(),0);
+    boolVector.resize(fDBScan.fclusters.size(),true);
     for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
-      if (fDBScan.fpointId_to_clusterId[j]>=0&&fDBScan.fpointId_to_clusterId[j]<fDBScan.fclusters.size())
+      if (fDBScan.fpointId_to_clusterId[j]>=0&&fDBScan.fpointId_to_clusterId[j]<fDBScan.fclusters.size()) {
 	++dbcluhits[fDBScan.fpointId_to_clusterId[j]];
-    }
-    for(size_t j = 0; j<dbcluhits.size(); ++j){
-      if (dbcluhits[j]>maxhit){
-	dbclu = j;
-	maxhit = dbcluhits[j];
+
+	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first > allhitsu[i][j]->PeakTime()) 
+	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first = allhitsu[i][j]->PeakTime();
+	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second < allhitsu[i][j]->PeakTime()) 
+	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second = allhitsu[i][j]->PeakTime();
+	/*
+	std::cout << "Looking at Cluster " << fDBScan.fpointId_to_clusterId[j] 
+		  << ", It has start time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first 
+		  << ", and end time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second << std::endl;
+	*/
       }
     }
-    //hitstoaddv holds all v hits in the biggest cluster
-    for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
-      if (int(fDBScan.fpointId_to_clusterId[j]) == dbclu) hitstoaddv.push_back(j);
+    for ( unsigned int ClusNum = 0; ClusNum < fDBScan.fclusters.size(); ++ClusNum ) {
+      for ( unsigned int ClusIt = 0; ClusIt < fDBScan.fclusters.size(); ++ClusIt ) {
+      	if ( dbcluhits[ClusIt] > dbcluhits[ClusNum] ) { 
+	  if ( ClusterStartEndTime[ClusNum].first > ( ClusterStartEndTime[ClusIt].first + fTimeWiggle ) 
+	       && ClusterStartEndTime[ClusNum].first < ( ClusterStartEndTime[ClusIt].second + fTimeWiggle ) ) {
+	    if ( ClusterStartEndTime[ClusNum].second > ( ClusterStartEndTime[ClusIt].first + fTimeWiggle ) 
+	       && ClusterStartEndTime[ClusNum].second < ( ClusterStartEndTime[ClusIt].second + fTimeWiggle ) ) {
+	      boolVector[ClusNum] = false;
+	    }
+	  }
+	}
+      }
+      /*
+      std::cout << "\nLooking at Cluster Number " << ClusNum << ".\n" 
+		<< "It had start time " << ClusterStartEndTime[ClusNum].first << ", and end time " << ClusterStartEndTime[ClusNum].second << ".\n"
+		<< "The bool vector value for this cluster is..." << boolVector[ClusNum] << std::endl;
+      */
     }
+    //hitstoaddv holds all v hits in the time separated clusters
+    for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
+      if (int(fDBScan.fpointId_to_clusterId[j]) == -1 ) continue;
+      if (boolVector[fDBScan.fpointId_to_clusterId[j]] == true ) hitstoaddv.push_back(j);
+    }
+    //std::cout << "Looking back through all hits to see if can add hits? Loops through " << hitstoaddu.size() << " hits for U, and " << hitstoaddv.size() << " for V." << std::endl;
     //size(allhitsu)=size(allhitsv)
     for (size_t j = 0; j < allhitsu[i].size(); ++j){
       bool foundu = false;
       bool foundv = false;
       for (size_t k = 0; k<hitstoaddu.size(); ++k){
-	if (j==hitstoaddu[k]) foundu = true;
+	if (j==hitstoaddu[k]) {
+	  foundu = true;
+	}
       }
       for (size_t k = 0; k<hitstoaddv.size(); ++k){
-	if (j==hitstoaddv[k]) foundv = true;
+	if (j==hitstoaddv[k]) {
+	  foundv = true;
+	}
       }
       if (foundu&&foundv){
 	//only add each hit once
@@ -292,8 +362,8 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
       }
     }
   }
-
-  //loop over undisambiguated hits, find the nearest channel of disambiguated hits and determine the correct wire segment.
+  
+//loop over undisambiguated hits, find the nearest channel of disambiguated hits and determine the correct wire segment.
   for (size_t i = 0; i<2; ++i){//loop over U and V hits
     for (size_t hit = 0; hit<hitsUV[i].size(); ++hit){
       if (fHasBeenDisambigedUV[i].find(hit)!=fHasBeenDisambigedUV[i].end()) continue;
@@ -334,8 +404,7 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 //	mf::LogWarning("DisambigAlg35t")<<"Could not find disambiguated hit for  "<<*hitsUV[i][hit]<<"\n";
 //      }
     }
-  }
-  
+  }  
 }
 
 } //end namespace apa

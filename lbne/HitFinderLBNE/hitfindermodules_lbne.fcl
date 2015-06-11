@@ -48,6 +48,8 @@ lbne35t_disambigalg:
     TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
     DistanceCut:      1.   #tolerance to determine whether wires cross, in cm
     DistanceCutClu:   4.   #tolerance to get disambiguated hits around a given hit, in cm
+    TimeWiggle:       0.   #Buffer to extend cluster windows by to exclude small clusters 
+                           # of mis-identified hits. 
     DBScanAlg:        @local::standard_dbscanalg
 }
 
@@ -59,6 +61,8 @@ lbne35t_TimeBasedDisambigAlg:
     TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
     DistanceCut:      1.   #tolerance to determine whether wires cross, in cm
     DistanceCutClu:   4.   #tolerance to get disambiguated hits around a given hit, in cm
+    TimeWiggle:       0.   #Buffer to extend cluster windows by to exclude small clusters 
+                           # of mis-identified hits. 
 }
 
 lbne35t_hitfinder35t:

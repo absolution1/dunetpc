@@ -177,7 +177,7 @@ void lbne::MCTruthT0Matching::produce(art::Event & evt)
         
     TrueTriggerType = 2; // Using MCTruth as trigger, so tigger type is 2.
 
-    std::cout << "Filling T0col with " << TrueTrackT0 << " " << TrueTriggerType << " " << TrueTrackID << " " << (*T0col).size() << std::endl;
+    //std::cout << "Filling T0col with " << TrueTrackT0 << " " << TrueTriggerType << " " << TrueTrackID << " " << (*T0col).size() << std::endl;
     
     T0col->push_back(anab::T0(TrueTrackT0,
 			      TrueTriggerType,
