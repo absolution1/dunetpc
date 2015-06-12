@@ -214,6 +214,7 @@ private:
   
   double trkpitch[kMaxTrack][3];
   int    nhits;
+  int    nhits2;
   int nclust;
 
   int  hit_tpc[kMaxHits];
@@ -401,7 +402,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     double TickT0 = 0;
     if ( fmt0.isValid() ) {
       std::vector<const anab::T0*> T0s = fmt0.at(i);
-      std::cout << int(T0s.size()) << std::endl;
+      //std::cout << int(T0s.size()) << std::endl;
       for (size_t t0size =0; t0size < T0s.size(); t0size++) { 
 	if (T0s[t0size] -> TriggerType() == 0 ) { // If Trigger 0
 	} // Trig 0
@@ -409,7 +410,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  //std::cout << "Using Counter Information!!!! T0 " << T0s[t0size]->Time() << ", Bits " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;	  
 	} // Trig 1
 	if (T0s[t0size] -> TriggerType() == 2 ) { // If MCTruth
-	  std::cout << "Using Trigger Type Monte Carlo Truth!!! T0 " << T0s[t0size]->Time() << ", GEANT4 track id " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;
+	  //std::cout << "Using Trigger Type Monte Carlo Truth!!! T0 " << T0s[t0size]->Time() << ", GEANT4 track id " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;
 	  trkMCTruthT0[i]  = T0s[t0size]->Time();
 	  TickT0 = trkMCTruthT0[i] / detprop->SamplingRate();
 	  trkMCTruthTrackID[i] = T0s[t0size]->TriggerBits();      	  
@@ -565,7 +566,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
     art::fill_ptr_vector(clusterlist, clusterListHandle);
 
-  nhits = hitlist.size();
+  nhits  = hitlist.size();
+  nhits2 = std::min(int(hitlist.size()),kMaxHits);
   nclust=clusterlist.size();
   for (int i = 0; i<std::min(int(hitlist.size()),kMaxHits); ++i){
     unsigned int channel = hitlist[i]->Channel();
@@ -842,15 +844,16 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkTPCLen_MC",TPCLen_MC,"trkTPCLen_MC[nMCParticles]/D");
  
   fTree->Branch("nhits",&nhits,"nhits/I");
+  fTree->Branch("nhits2",&nhits2,"nhits2/I");
   fTree->Branch("nclust",&nclust,"nclust/I");
-  fTree->Branch("hit_plane",hit_plane,"hit_plane[nhits]/I");
-  fTree->Branch("hit_tpc",hit_tpc,"hit_tpc[nhits]/I");
-  fTree->Branch("hit_wire",hit_wire,"hit_wire[nhits]/I");
-  fTree->Branch("hit_channel",hit_channel,"hit_channel[nhits]/I");
-  fTree->Branch("hit_peakT",hit_peakT,"hit_peakT[nhits]/D");
-  fTree->Branch("hit_charge",hit_charge,"hit_charge[nhits]/D");
-  fTree->Branch("hit_ph",hit_ph,"hit_ph[nhits]/D");
-  fTree->Branch("hit_trkid",hit_trkid,"hit_trkid[nhits]/I");
+  fTree->Branch("hit_plane",hit_plane,"hit_plane[nhits2]/I");
+  fTree->Branch("hit_tpc",hit_tpc,"hit_tpc[nhits2]/I");
+  fTree->Branch("hit_wire",hit_wire,"hit_wire[nhits2]/I");
+  fTree->Branch("hit_channel",hit_channel,"hit_channel[nhits2]/I");
+  fTree->Branch("hit_peakT",hit_peakT,"hit_peakT[nhits2]/D");
+  fTree->Branch("hit_charge",hit_charge,"hit_charge[nhits2]/D");
+  fTree->Branch("hit_ph",hit_ph,"hit_ph[nhits2]/D");
+  fTree->Branch("hit_trkid",hit_trkid,"hit_trkid[nhits2]/I");
 }
 
 //void AnaTree::AnaTree::reconfigure(fhicl::ParameterSet const & p)
@@ -973,7 +976,7 @@ void AnaTree::AnaTree::ResetVars(){
     }
   }
   nhits = -99999;
-
+  nhits2= 0;
   for (int i = 0; i<kMaxHits; ++i){
     hit_plane[i] = -99999;
     hit_tpc[i] = -99999;
