@@ -38,7 +38,7 @@ lbnefd_geo:
 
 lbne35t_geo:
 {
- Name:     "lbne35t"
+ Name:     "lbne35t4apa_v4"
 
  # Choose GDML file and set detector version similarly
  GDML:         "lbne35t4apa_v4.gdml"
