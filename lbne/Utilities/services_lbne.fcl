@@ -203,6 +203,16 @@ lbne_message_services_prod_debug.destinations.LogDebugFile.categories:{
   CosmicTracker: {limit: 0}
   HitCheater: {limit: 0}
   DisambigAlg35t: {limit: 0}
+  ClusterCheater: {limit: 0}
+  ClusterCrawlerAlg: {limit: 0}
+  CaloPrtTrk: {limit: 0}
+  CaloPrtHit: {limit: 0}
+  BackTracker: {limit: 0}
+  DisambigCheat: {limit: 0}
+  Summary: {limit: 0}
+  CosmicTracker: {limit: 0}
+  ClusterMergeTQ: {limit: 0}
+  LArPandora: {limit: 0}
 }
 
 
