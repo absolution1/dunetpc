@@ -38,16 +38,13 @@ lbnefd_geo:
 
 lbne35t_geo:
 {
- Name:     "lbne35t"
+ Name:     "lbne35t4apa_v4"
 
  # Choose GDML file and set detector version similarly
- GDML:         "lbne35t4apa_v3.gdml"
- ROOT:         "lbne35t4apa_v3.gdml"
-# GDML:         "lbne35t4apa_v4.gdml"
-# ROOT:         "lbne35t4apa_v4.gdml"
+ GDML:         "lbne35t4apa_v4.gdml"
+ ROOT:         "lbne35t4apa_v4.gdml"
  SortingParameters: { 
-   DetectorVersion: "lbne35t4apa_v3" 
-   # DetectorVersion: "lbne35t4apa_v4" 
+   DetectorVersion: "lbne35t4apa_v4" 
  } 
 
  SurfaceY:           0.0e2               #in cm, vertical distance to the surface
