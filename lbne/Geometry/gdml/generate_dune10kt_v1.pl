@@ -1852,6 +1852,11 @@ for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
                             + (1-$j)*($LightPaddle_y/2 + $APAFrameZSide_y) 
                             + $PaddleYInterval*$paddle; 
 
+             # Alternate the paddle orientations
+             if ( $paddle % 2 == 0 ) { $rot = "rIdentity"; }
+             else                    { $rot = "rPlus180AboutY"; }
+
+             
              print CRYO <<EOF;
      <physvol>
        <volumeref ref="volOpDetSensitive\-$apa_i\-$paddle"/>
@@ -1859,7 +1864,7 @@ for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
          x="$APACenter_x" 
 	 y="$Paddle_Y" 
          z="$APACenter_z + $SiPM_z/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="$rot"/>
      </physvol>
 EOF
 
