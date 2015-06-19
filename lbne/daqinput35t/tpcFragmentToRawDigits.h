@@ -6,6 +6,10 @@
 // From lardata
 #include "RawData/RawDigit.h"
 
+// from lbne-raw-data
+
+#include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
+
 #include <vector>
 
 namespace DAQToOffline {
@@ -16,6 +20,7 @@ namespace DAQToOffline {
 
   std::vector<raw::RawDigit>
   tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
+			 lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
                          bool debug,
                          raw::Compress_t compression,
                          unsigned int zeroThreshold);
