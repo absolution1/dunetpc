@@ -59,9 +59,8 @@ lbne35t_disp.RecoDrawingOptions.HitModuleLabels:  ["linecluster"]
 lbne35t_disp.RecoDrawingOptions.ClusterModuleLabels:  ["linecluster"]
 lbne35t_disp.RecoDrawingOptions.TrackModuleLabels:  ["costrk"]
 lbne35t_disp.RecoDrawingOptions.DrawClusters:     1
-
-
-
+lbne35t_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
+lbne35t_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
 
 
 
