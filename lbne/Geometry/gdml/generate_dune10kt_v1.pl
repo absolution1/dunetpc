@@ -80,7 +80,7 @@ $inch = 2.54;
 
 
 # options for different parameters
-$Pitch3mmVersion = 1;
+$Pitch3mmVersion = 0;
 $UVAngle45Option = 0;
 
 

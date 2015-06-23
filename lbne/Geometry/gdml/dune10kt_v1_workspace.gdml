@@ -195,8 +195,8 @@
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
    <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
-   <fraction n="  0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="1-0.5" ref="Air"/>
+   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="0.5"   ref="Air"/>
   </material>
 
   <material formula=" " name="G10">
@@ -62294,7 +62294,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-0-2"/>
@@ -62310,7 +62310,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-0-4"/>
@@ -62326,7 +62326,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-0-6"/>
@@ -62342,7 +62342,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-0-8"/>
@@ -62358,7 +62358,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -62380,7 +62380,7 @@
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-0-0" unit="cm" 
+        <position name="posCathode-1-0" unit="cm" 
 	x="-363.38405" 
 	y="-324.664375" 
 	z="9.80499999999994"/> 
@@ -62388,7 +62388,7 @@
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-0-1" unit="cm" 
+        <position name="posCathode-1-1" unit="cm" 
 	x="363.38405" 
 	y="-324.664375" 
 	z="9.80499999999994"/> 
@@ -62517,7 +62517,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-1-2"/>
@@ -62533,7 +62533,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-1-4"/>
@@ -62549,7 +62549,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-1-6"/>
@@ -62565,7 +62565,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-1-8"/>
@@ -62581,7 +62581,7 @@
          x="0" 
 	 y="571.63875" 
          z="9.80499999999994 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -62603,7 +62603,7 @@
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-0-0" unit="cm" 
+        <position name="posCathode-2-0" unit="cm" 
 	x="-363.38405" 
 	y="283.164375" 
 	z="9.80499999999994"/> 
@@ -62611,7 +62611,7 @@
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-0-1" unit="cm" 
+        <position name="posCathode-2-1" unit="cm" 
 	x="363.38405" 
 	y="283.164375" 
 	z="9.80499999999994"/> 
@@ -62740,7 +62740,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-2-2"/>
@@ -62756,7 +62756,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-2-4"/>
@@ -62772,7 +62772,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-2-6"/>
@@ -62788,7 +62788,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-2-8"/>
@@ -62804,7 +62804,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -62826,7 +62826,7 @@
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-0-0" unit="cm" 
+        <position name="posCathode-3-0" unit="cm" 
 	x="-363.38405" 
 	y="-324.664375" 
 	z="242.195"/> 
@@ -62834,7 +62834,7 @@
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-0-1" unit="cm" 
+        <position name="posCathode-3-1" unit="cm" 
 	x="363.38405" 
 	y="-324.664375" 
 	z="242.195"/> 
@@ -62963,7 +62963,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-3-2"/>
@@ -62979,7 +62979,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-3-4"/>
@@ -62995,7 +62995,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-3-6"/>
@@ -63011,7 +63011,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-3-8"/>
@@ -63027,7 +63027,7 @@
          x="0" 
 	 y="571.63875" 
          z="242.195 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -63049,7 +63049,7 @@
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-0-0" unit="cm" 
+        <position name="posCathode-4-0" unit="cm" 
 	x="-363.38405" 
 	y="283.164375" 
 	z="242.195"/> 
@@ -63057,7 +63057,7 @@
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-0-1" unit="cm" 
+        <position name="posCathode-4-1" unit="cm" 
 	x="363.38405" 
 	y="283.164375" 
 	z="242.195"/> 
