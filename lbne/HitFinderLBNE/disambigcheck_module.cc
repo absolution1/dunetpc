@@ -193,7 +193,7 @@ namespace disambigcheck{
       // Now have trackID, so get PdG code and T0 etc.
       const simb::MCParticle *particle = bt->TrackIDToParticle(TrackID);
       if ( ParticleMap.count(TrackID) == 0) {
-	std::cout << "Looking at key " << TrackID << " for the first time so setting the angles." << std::endl;
+	//std::cout << "Looking at key " << TrackID << " for the first time so setting the angles." << std::endl;
 	TVector3 MC_NormMom;
 	MC_NormMom[0] = ( particle->Px() / particle->P() );
 	MC_NormMom[1] = ( particle->Py() / particle->P() );
