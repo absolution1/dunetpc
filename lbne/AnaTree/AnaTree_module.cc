@@ -644,8 +644,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       
       geo::TPCID tpcid = geom->FindTPCAtPosition(tmpPosArray);
       if (tpcid.isValid) { // Check if hit is in TPC
-	if ( ii == 0 ) StartInTPC_MC[ii] = 1; // Particle starts in TPC
-	if ( ii == numberTrajectoryPoints-1 ) EndInTPC_MC[ii] = 1; // Particle stops in TPC
+	if ( ii == 0 ) StartInTPC_MC[i] = 1; // Particle starts in TPC
+	if ( ii == numberTrajectoryPoints-1 ) EndInTPC_MC[i] = 1; // Particle stops in TPC
 	geo::CryostatGeo const& cryo = geom->Cryostat(tpcid.Cryostat);
 	geo::TPCGeo      const& tpc  = cryo.TPC(tpcid.TPC);
 	XPlanePosition      = tpc.PlaneLocation(0)[0];
@@ -800,9 +800,9 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
   fTree->Branch("trkid_MC",trkid_MC,"trkid_MC[nMCParticles]/I");
   fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[nMCParticles]/I");
-  fTree->Branch("nTPCHits_MC",&nTPCHits_MC,"nTPCHits_MC[nMCParticles]/I");
-  fTree->Branch("StartInTPC_MC",&StartInTPC_MC,"StartInTPC_MC[nMCParticles]/I");
-  fTree->Branch("EndInTPC_MC",&EndInTPC_MC,"EndInTPC_MC[nMCParticles]/I");
+  fTree->Branch("nTPCHits_MC",nTPCHits_MC,"nTPCHits_MC[nMCParticles]/I");
+  fTree->Branch("StartInTPC_MC",StartInTPC_MC,"StartInTPC_MC[nMCParticles]/I");
+  fTree->Branch("EndInTPC_MC",EndInTPC_MC,"EndInTPC_MC[nMCParticles]/I");
   fTree->Branch("trkMother_MC",trkMother_MC,"trkMother_MC[nMCParticles]/I");
   fTree->Branch("trkNumDaughters_MC",trkNumDaughters_MC,"trkNumDaughters_MC[nMCParticles]/I");
   fTree->Branch("trkFirstDaughter_MC",trkFirstDaughter_MC,"trkFirstDaughter_MC[nMCParticles]/I");
