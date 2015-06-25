@@ -6,8 +6,8 @@ BEGIN_PROLOG
 lbnefd_detproperties:                   @local::standard_detproperties
 # lbnefd_detproperties.SamplingRate:      500.         #in ns
 lbnefd_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for LBNE fd
-lbnefd_detproperties.NumberTimeSamples: 3200
-lbnefd_detproperties.ReadOutWindowSize: 3200
+lbnefd_detproperties.NumberTimeSamples: 4492         # drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+lbnefd_detproperties.ReadOutWindowSize: 4492         # drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
 lbnefd_detproperties.TimeOffsetU:       -10.
 lbnefd_detproperties.TimeOffsetV:       -5.
 lbnefd_detproperties.TimeOffsetZ:       0.

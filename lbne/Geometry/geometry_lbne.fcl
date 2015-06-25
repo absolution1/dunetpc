@@ -14,19 +14,17 @@ lbnefd_geo:
 
  # Choose GDML file
 
-# GDML:      "dune10kt_v1_workspace.gdml"
-# ROOT:      "dune10kt_v1_workspace.gdml"
 # GDML:      "dune10kt_v1.gdml"
-# ROOT:      "dune10kt_v1.gdml"
+# GDML:      "dune10kt_v1_workspace.gdml"
 # GDML:      "dune10kt_v1_45deg.gdml"
-# ROOT:      "dune10kt_v1_45deg.gdml"
- GDML:     "lbne10kt.gdml"
- ROOT:     "lbne10kt.gdml"
-# GDML:     "lbne34kt.gdml"
-# ROOT:     "lbne34kt.gdml"
-# GDML:     "lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
-# ROOT:     "lbne4apa36deg.gdml"
+# GDML:      "dune10kt_v1_45deg_workspace.gdml"
+# GDML:      "dune10kt_v1_3mmPitch.gdml"
+# GDML:      "dune10kt_v1_3mmPitch_workspace.gdml"
+ GDML:      "lbne10kt.gdml"
+# GDML:      "lbne34kt.gdml"
+# GDML:      "lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
 
+ ROOT: GDML
 
  SurfaceY:         0.0e2               # in cm, vertical distance to the surface
  #SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833

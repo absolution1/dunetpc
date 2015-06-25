@@ -195,8 +195,8 @@
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
    <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
-   <fraction n="  0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="1-0.5" ref="Air"/>
+   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="0.5"   ref="Air"/>
   </material>
 
   <material formula=" " name="G10">
@@ -68134,7 +68134,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-0-2"/>
@@ -68150,7 +68150,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-0-4"/>
@@ -68166,7 +68166,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-0-6"/>
@@ -68182,7 +68182,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-0-8"/>
@@ -68198,7 +68198,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -68350,7 +68350,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-1-2"/>
@@ -68366,7 +68366,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-1-4"/>
@@ -68382,7 +68382,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-1-6"/>
@@ -68398,7 +68398,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-1-8"/>
@@ -68414,7 +68414,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -68566,7 +68566,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-2-2"/>
@@ -68582,7 +68582,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-2-4"/>
@@ -68598,7 +68598,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-2-6"/>
@@ -68614,7 +68614,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-2-8"/>
@@ -68630,7 +68630,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -68772,7 +68772,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-3-2"/>
@@ -68788,7 +68788,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-3-4"/>
@@ -68804,7 +68804,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-3-6"/>
@@ -68820,7 +68820,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-3-8"/>
@@ -68836,7 +68836,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -68988,7 +68988,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-4-2"/>
@@ -69004,7 +69004,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-4-4"/>
@@ -69020,7 +69020,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-4-6"/>
@@ -69036,7 +69036,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-4-8"/>
@@ -69052,7 +69052,7 @@
          x="0" 
 	 y="571.63875" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -69204,7 +69204,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-5-2"/>
@@ -69220,7 +69220,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-5-4"/>
@@ -69236,7 +69236,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-5-6"/>
@@ -69252,7 +69252,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-5-8"/>
@@ -69268,7 +69268,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-2662.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -69410,7 +69410,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-6-2"/>
@@ -69426,7 +69426,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-6-4"/>
@@ -69442,7 +69442,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-6-6"/>
@@ -69458,7 +69458,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-6-8"/>
@@ -69474,7 +69474,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -69626,7 +69626,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-7-2"/>
@@ -69642,7 +69642,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-7-4"/>
@@ -69658,7 +69658,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-7-6"/>
@@ -69674,7 +69674,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-7-8"/>
@@ -69690,7 +69690,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -69842,7 +69842,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-8-2"/>
@@ -69858,7 +69858,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-8-4"/>
@@ -69874,7 +69874,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-8-6"/>
@@ -69890,7 +69890,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-8-8"/>
@@ -69906,7 +69906,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -70048,7 +70048,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-9-2"/>
@@ -70064,7 +70064,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-9-4"/>
@@ -70080,7 +70080,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-9-6"/>
@@ -70096,7 +70096,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-9-8"/>
@@ -70112,7 +70112,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -70264,7 +70264,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-10-2"/>
@@ -70280,7 +70280,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-10-4"/>
@@ -70296,7 +70296,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-10-6"/>
@@ -70312,7 +70312,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-10-8"/>
@@ -70328,7 +70328,7 @@
          x="0" 
 	 y="571.63875" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -70480,7 +70480,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-11-2"/>
@@ -70496,7 +70496,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-11-4"/>
@@ -70512,7 +70512,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-11-6"/>
@@ -70528,7 +70528,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-11-8"/>
@@ -70544,7 +70544,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-2430.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -70686,7 +70686,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-12-2"/>
@@ -70702,7 +70702,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-12-4"/>
@@ -70718,7 +70718,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-12-6"/>
@@ -70734,7 +70734,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-12-8"/>
@@ -70750,7 +70750,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -70902,7 +70902,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-13-2"/>
@@ -70918,7 +70918,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-13-4"/>
@@ -70934,7 +70934,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-13-6"/>
@@ -70950,7 +70950,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-13-8"/>
@@ -70966,7 +70966,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -71118,7 +71118,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-14-2"/>
@@ -71134,7 +71134,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-14-4"/>
@@ -71150,7 +71150,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-14-6"/>
@@ -71166,7 +71166,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-14-8"/>
@@ -71182,7 +71182,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -71324,7 +71324,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-15-2"/>
@@ -71340,7 +71340,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-15-4"/>
@@ -71356,7 +71356,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-15-6"/>
@@ -71372,7 +71372,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-15-8"/>
@@ -71388,7 +71388,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -71540,7 +71540,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-16-2"/>
@@ -71556,7 +71556,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-16-4"/>
@@ -71572,7 +71572,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-16-6"/>
@@ -71588,7 +71588,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-16-8"/>
@@ -71604,7 +71604,7 @@
          x="0" 
 	 y="571.63875" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -71756,7 +71756,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-17-2"/>
@@ -71772,7 +71772,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-17-4"/>
@@ -71788,7 +71788,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-17-6"/>
@@ -71804,7 +71804,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-17-8"/>
@@ -71820,7 +71820,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-2197.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -71962,7 +71962,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-18-2"/>
@@ -71978,7 +71978,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-18-4"/>
@@ -71994,7 +71994,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-18-6"/>
@@ -72010,7 +72010,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-18-8"/>
@@ -72026,7 +72026,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -72178,7 +72178,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-19-2"/>
@@ -72194,7 +72194,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-19-4"/>
@@ -72210,7 +72210,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-19-6"/>
@@ -72226,7 +72226,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-19-8"/>
@@ -72242,7 +72242,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -72394,7 +72394,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-20-2"/>
@@ -72410,7 +72410,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-20-4"/>
@@ -72426,7 +72426,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-20-6"/>
@@ -72442,7 +72442,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-20-8"/>
@@ -72458,7 +72458,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -72600,7 +72600,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-21-2"/>
@@ -72616,7 +72616,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-21-4"/>
@@ -72632,7 +72632,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-21-6"/>
@@ -72648,7 +72648,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-21-8"/>
@@ -72664,7 +72664,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -72816,7 +72816,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-22-2"/>
@@ -72832,7 +72832,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-22-4"/>
@@ -72848,7 +72848,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-22-6"/>
@@ -72864,7 +72864,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-22-8"/>
@@ -72880,7 +72880,7 @@
          x="0" 
 	 y="571.63875" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -73032,7 +73032,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-23-2"/>
@@ -73048,7 +73048,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-23-4"/>
@@ -73064,7 +73064,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-23-6"/>
@@ -73080,7 +73080,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-23-8"/>
@@ -73096,7 +73096,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-1965.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -73238,7 +73238,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-24-2"/>
@@ -73254,7 +73254,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-24-4"/>
@@ -73270,7 +73270,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-24-6"/>
@@ -73286,7 +73286,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-24-8"/>
@@ -73302,7 +73302,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -73454,7 +73454,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-25-2"/>
@@ -73470,7 +73470,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-25-4"/>
@@ -73486,7 +73486,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-25-6"/>
@@ -73502,7 +73502,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-25-8"/>
@@ -73518,7 +73518,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -73670,7 +73670,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-26-2"/>
@@ -73686,7 +73686,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-26-4"/>
@@ -73702,7 +73702,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-26-6"/>
@@ -73718,7 +73718,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-26-8"/>
@@ -73734,7 +73734,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -73876,7 +73876,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-27-2"/>
@@ -73892,7 +73892,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-27-4"/>
@@ -73908,7 +73908,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-27-6"/>
@@ -73924,7 +73924,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-27-8"/>
@@ -73940,7 +73940,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -74092,7 +74092,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-28-2"/>
@@ -74108,7 +74108,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-28-4"/>
@@ -74124,7 +74124,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-28-6"/>
@@ -74140,7 +74140,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-28-8"/>
@@ -74156,7 +74156,7 @@
          x="0" 
 	 y="571.63875" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -74308,7 +74308,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-29-2"/>
@@ -74324,7 +74324,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-29-4"/>
@@ -74340,7 +74340,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-29-6"/>
@@ -74356,7 +74356,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-29-8"/>
@@ -74372,7 +74372,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-1733.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -74514,7 +74514,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-30-2"/>
@@ -74530,7 +74530,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-30-4"/>
@@ -74546,7 +74546,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-30-6"/>
@@ -74562,7 +74562,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-30-8"/>
@@ -74578,7 +74578,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -74730,7 +74730,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-31-2"/>
@@ -74746,7 +74746,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-31-4"/>
@@ -74762,7 +74762,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-31-6"/>
@@ -74778,7 +74778,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-31-8"/>
@@ -74794,7 +74794,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -74946,7 +74946,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-32-2"/>
@@ -74962,7 +74962,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-32-4"/>
@@ -74978,7 +74978,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-32-6"/>
@@ -74994,7 +74994,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-32-8"/>
@@ -75010,7 +75010,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -75152,7 +75152,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-33-2"/>
@@ -75168,7 +75168,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-33-4"/>
@@ -75184,7 +75184,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-33-6"/>
@@ -75200,7 +75200,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-33-8"/>
@@ -75216,7 +75216,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -75368,7 +75368,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-34-2"/>
@@ -75384,7 +75384,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-34-4"/>
@@ -75400,7 +75400,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-34-6"/>
@@ -75416,7 +75416,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-34-8"/>
@@ -75432,7 +75432,7 @@
          x="0" 
 	 y="571.63875" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -75584,7 +75584,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-35-2"/>
@@ -75600,7 +75600,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-35-4"/>
@@ -75616,7 +75616,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-35-6"/>
@@ -75632,7 +75632,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-35-8"/>
@@ -75648,7 +75648,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-1500.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -75790,7 +75790,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-36-2"/>
@@ -75806,7 +75806,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-36-4"/>
@@ -75822,7 +75822,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-36-6"/>
@@ -75838,7 +75838,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-36-8"/>
@@ -75854,7 +75854,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -76006,7 +76006,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-37-2"/>
@@ -76022,7 +76022,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-37-4"/>
@@ -76038,7 +76038,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-37-6"/>
@@ -76054,7 +76054,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-37-8"/>
@@ -76070,7 +76070,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -76222,7 +76222,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-38-2"/>
@@ -76238,7 +76238,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-38-4"/>
@@ -76254,7 +76254,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-38-6"/>
@@ -76270,7 +76270,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-38-8"/>
@@ -76286,7 +76286,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -76428,7 +76428,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-39-2"/>
@@ -76444,7 +76444,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-39-4"/>
@@ -76460,7 +76460,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-39-6"/>
@@ -76476,7 +76476,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-39-8"/>
@@ -76492,7 +76492,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -76644,7 +76644,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-40-2"/>
@@ -76660,7 +76660,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-40-4"/>
@@ -76676,7 +76676,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-40-6"/>
@@ -76692,7 +76692,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-40-8"/>
@@ -76708,7 +76708,7 @@
          x="0" 
 	 y="571.63875" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -76860,7 +76860,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-41-2"/>
@@ -76876,7 +76876,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-41-4"/>
@@ -76892,7 +76892,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-41-6"/>
@@ -76908,7 +76908,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-41-8"/>
@@ -76924,7 +76924,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-1268.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -77066,7 +77066,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-42-2"/>
@@ -77082,7 +77082,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-42-4"/>
@@ -77098,7 +77098,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-42-6"/>
@@ -77114,7 +77114,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-42-8"/>
@@ -77130,7 +77130,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -77282,7 +77282,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-43-2"/>
@@ -77298,7 +77298,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-43-4"/>
@@ -77314,7 +77314,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-43-6"/>
@@ -77330,7 +77330,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-43-8"/>
@@ -77346,7 +77346,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -77498,7 +77498,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-44-2"/>
@@ -77514,7 +77514,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-44-4"/>
@@ -77530,7 +77530,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-44-6"/>
@@ -77546,7 +77546,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-44-8"/>
@@ -77562,7 +77562,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -77704,7 +77704,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-45-2"/>
@@ -77720,7 +77720,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-45-4"/>
@@ -77736,7 +77736,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-45-6"/>
@@ -77752,7 +77752,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-45-8"/>
@@ -77768,7 +77768,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -77920,7 +77920,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-46-2"/>
@@ -77936,7 +77936,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-46-4"/>
@@ -77952,7 +77952,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-46-6"/>
@@ -77968,7 +77968,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-46-8"/>
@@ -77984,7 +77984,7 @@
          x="0" 
 	 y="571.63875" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -78136,7 +78136,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-47-2"/>
@@ -78152,7 +78152,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-47-4"/>
@@ -78168,7 +78168,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-47-6"/>
@@ -78184,7 +78184,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-47-8"/>
@@ -78200,7 +78200,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-1035.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -78342,7 +78342,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-48-2"/>
@@ -78358,7 +78358,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-48-4"/>
@@ -78374,7 +78374,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-48-6"/>
@@ -78390,7 +78390,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-48-8"/>
@@ -78406,7 +78406,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -78558,7 +78558,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-49-2"/>
@@ -78574,7 +78574,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-49-4"/>
@@ -78590,7 +78590,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-49-6"/>
@@ -78606,7 +78606,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-49-8"/>
@@ -78622,7 +78622,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -78774,7 +78774,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-50-2"/>
@@ -78790,7 +78790,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-50-4"/>
@@ -78806,7 +78806,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-50-6"/>
@@ -78822,7 +78822,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-50-8"/>
@@ -78838,7 +78838,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -78980,7 +78980,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-51-2"/>
@@ -78996,7 +78996,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-51-4"/>
@@ -79012,7 +79012,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-51-6"/>
@@ -79028,7 +79028,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-51-8"/>
@@ -79044,7 +79044,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -79196,7 +79196,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-52-2"/>
@@ -79212,7 +79212,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-52-4"/>
@@ -79228,7 +79228,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-52-6"/>
@@ -79244,7 +79244,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-52-8"/>
@@ -79260,7 +79260,7 @@
          x="0" 
 	 y="571.63875" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -79412,7 +79412,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-53-2"/>
@@ -79428,7 +79428,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-53-4"/>
@@ -79444,7 +79444,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-53-6"/>
@@ -79460,7 +79460,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-53-8"/>
@@ -79476,7 +79476,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-803.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -79618,7 +79618,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-54-2"/>
@@ -79634,7 +79634,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-54-4"/>
@@ -79650,7 +79650,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-54-6"/>
@@ -79666,7 +79666,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-54-8"/>
@@ -79682,7 +79682,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -79834,7 +79834,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-55-2"/>
@@ -79850,7 +79850,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-55-4"/>
@@ -79866,7 +79866,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-55-6"/>
@@ -79882,7 +79882,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-55-8"/>
@@ -79898,7 +79898,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -80050,7 +80050,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-56-2"/>
@@ -80066,7 +80066,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-56-4"/>
@@ -80082,7 +80082,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-56-6"/>
@@ -80098,7 +80098,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-56-8"/>
@@ -80114,7 +80114,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -80256,7 +80256,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-57-2"/>
@@ -80272,7 +80272,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-57-4"/>
@@ -80288,7 +80288,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-57-6"/>
@@ -80304,7 +80304,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-57-8"/>
@@ -80320,7 +80320,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -80472,7 +80472,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-58-2"/>
@@ -80488,7 +80488,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-58-4"/>
@@ -80504,7 +80504,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-58-6"/>
@@ -80520,7 +80520,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-58-8"/>
@@ -80536,7 +80536,7 @@
          x="0" 
 	 y="571.63875" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -80688,7 +80688,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-59-2"/>
@@ -80704,7 +80704,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-59-4"/>
@@ -80720,7 +80720,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-59-6"/>
@@ -80736,7 +80736,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-59-8"/>
@@ -80752,7 +80752,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-571.17 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -80894,7 +80894,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-60-2"/>
@@ -80910,7 +80910,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-60-4"/>
@@ -80926,7 +80926,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-60-6"/>
@@ -80942,7 +80942,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-60-8"/>
@@ -80958,7 +80958,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -81110,7 +81110,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-61-2"/>
@@ -81126,7 +81126,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-61-4"/>
@@ -81142,7 +81142,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-61-6"/>
@@ -81158,7 +81158,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-61-8"/>
@@ -81174,7 +81174,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -81326,7 +81326,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-62-2"/>
@@ -81342,7 +81342,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-62-4"/>
@@ -81358,7 +81358,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-62-6"/>
@@ -81374,7 +81374,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-62-8"/>
@@ -81390,7 +81390,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -81532,7 +81532,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-63-2"/>
@@ -81548,7 +81548,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-63-4"/>
@@ -81564,7 +81564,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-63-6"/>
@@ -81580,7 +81580,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-63-8"/>
@@ -81596,7 +81596,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -81748,7 +81748,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-64-2"/>
@@ -81764,7 +81764,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-64-4"/>
@@ -81780,7 +81780,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-64-6"/>
@@ -81796,7 +81796,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-64-8"/>
@@ -81812,7 +81812,7 @@
          x="0" 
 	 y="571.63875" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -81964,7 +81964,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-65-2"/>
@@ -81980,7 +81980,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-65-4"/>
@@ -81996,7 +81996,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-65-6"/>
@@ -82012,7 +82012,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-65-8"/>
@@ -82028,7 +82028,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-338.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -82170,7 +82170,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-66-2"/>
@@ -82186,7 +82186,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-66-4"/>
@@ -82202,7 +82202,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-66-6"/>
@@ -82218,7 +82218,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-66-8"/>
@@ -82234,7 +82234,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -82386,7 +82386,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-67-2"/>
@@ -82402,7 +82402,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-67-4"/>
@@ -82418,7 +82418,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-67-6"/>
@@ -82434,7 +82434,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-67-8"/>
@@ -82450,7 +82450,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -82602,7 +82602,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-68-2"/>
@@ -82618,7 +82618,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-68-4"/>
@@ -82634,7 +82634,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-68-6"/>
@@ -82650,7 +82650,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-68-8"/>
@@ -82666,7 +82666,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -82808,7 +82808,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-69-2"/>
@@ -82824,7 +82824,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-69-4"/>
@@ -82840,7 +82840,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-69-6"/>
@@ -82856,7 +82856,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-69-8"/>
@@ -82872,7 +82872,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -83024,7 +83024,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-70-2"/>
@@ -83040,7 +83040,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-70-4"/>
@@ -83056,7 +83056,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-70-6"/>
@@ -83072,7 +83072,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-70-8"/>
@@ -83088,7 +83088,7 @@
          x="0" 
 	 y="571.63875" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -83240,7 +83240,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-71-2"/>
@@ -83256,7 +83256,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-71-4"/>
@@ -83272,7 +83272,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-71-6"/>
@@ -83288,7 +83288,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-71-8"/>
@@ -83304,7 +83304,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="-106.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -83446,7 +83446,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-72-2"/>
@@ -83462,7 +83462,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-72-4"/>
@@ -83478,7 +83478,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-72-6"/>
@@ -83494,7 +83494,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-72-8"/>
@@ -83510,7 +83510,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -83662,7 +83662,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-73-2"/>
@@ -83678,7 +83678,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-73-4"/>
@@ -83694,7 +83694,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-73-6"/>
@@ -83710,7 +83710,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-73-8"/>
@@ -83726,7 +83726,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -83878,7 +83878,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-74-2"/>
@@ -83894,7 +83894,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-74-4"/>
@@ -83910,7 +83910,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-74-6"/>
@@ -83926,7 +83926,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-74-8"/>
@@ -83942,7 +83942,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -84084,7 +84084,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-75-2"/>
@@ -84100,7 +84100,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-75-4"/>
@@ -84116,7 +84116,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-75-6"/>
@@ -84132,7 +84132,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-75-8"/>
@@ -84148,7 +84148,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -84300,7 +84300,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-76-2"/>
@@ -84316,7 +84316,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-76-4"/>
@@ -84332,7 +84332,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-76-6"/>
@@ -84348,7 +84348,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-76-8"/>
@@ -84364,7 +84364,7 @@
          x="0" 
 	 y="571.63875" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -84516,7 +84516,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-77-2"/>
@@ -84532,7 +84532,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-77-4"/>
@@ -84548,7 +84548,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-77-6"/>
@@ -84564,7 +84564,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-77-8"/>
@@ -84580,7 +84580,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="126 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -84722,7 +84722,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-78-2"/>
@@ -84738,7 +84738,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-78-4"/>
@@ -84754,7 +84754,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-78-6"/>
@@ -84770,7 +84770,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-78-8"/>
@@ -84786,7 +84786,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -84938,7 +84938,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-79-2"/>
@@ -84954,7 +84954,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-79-4"/>
@@ -84970,7 +84970,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-79-6"/>
@@ -84986,7 +84986,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-79-8"/>
@@ -85002,7 +85002,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -85154,7 +85154,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-80-2"/>
@@ -85170,7 +85170,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-80-4"/>
@@ -85186,7 +85186,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-80-6"/>
@@ -85202,7 +85202,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-80-8"/>
@@ -85218,7 +85218,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -85360,7 +85360,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-81-2"/>
@@ -85376,7 +85376,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-81-4"/>
@@ -85392,7 +85392,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-81-6"/>
@@ -85408,7 +85408,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-81-8"/>
@@ -85424,7 +85424,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -85576,7 +85576,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-82-2"/>
@@ -85592,7 +85592,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-82-4"/>
@@ -85608,7 +85608,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-82-6"/>
@@ -85624,7 +85624,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-82-8"/>
@@ -85640,7 +85640,7 @@
          x="0" 
 	 y="571.63875" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -85792,7 +85792,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-83-2"/>
@@ -85808,7 +85808,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-83-4"/>
@@ -85824,7 +85824,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-83-6"/>
@@ -85840,7 +85840,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-83-8"/>
@@ -85856,7 +85856,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="358.39 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -85998,7 +85998,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-84-2"/>
@@ -86014,7 +86014,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-84-4"/>
@@ -86030,7 +86030,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-84-6"/>
@@ -86046,7 +86046,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-84-8"/>
@@ -86062,7 +86062,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -86214,7 +86214,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-85-2"/>
@@ -86230,7 +86230,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-85-4"/>
@@ -86246,7 +86246,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-85-6"/>
@@ -86262,7 +86262,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-85-8"/>
@@ -86278,7 +86278,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -86430,7 +86430,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-86-2"/>
@@ -86446,7 +86446,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-86-4"/>
@@ -86462,7 +86462,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-86-6"/>
@@ -86478,7 +86478,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-86-8"/>
@@ -86494,7 +86494,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -86636,7 +86636,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-87-2"/>
@@ -86652,7 +86652,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-87-4"/>
@@ -86668,7 +86668,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-87-6"/>
@@ -86684,7 +86684,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-87-8"/>
@@ -86700,7 +86700,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -86852,7 +86852,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-88-2"/>
@@ -86868,7 +86868,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-88-4"/>
@@ -86884,7 +86884,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-88-6"/>
@@ -86900,7 +86900,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-88-8"/>
@@ -86916,7 +86916,7 @@
          x="0" 
 	 y="571.63875" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -87068,7 +87068,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-89-2"/>
@@ -87084,7 +87084,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-89-4"/>
@@ -87100,7 +87100,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-89-6"/>
@@ -87116,7 +87116,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-89-8"/>
@@ -87132,7 +87132,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="590.78 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -87274,7 +87274,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-90-2"/>
@@ -87290,7 +87290,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-90-4"/>
@@ -87306,7 +87306,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-90-6"/>
@@ -87322,7 +87322,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-90-8"/>
@@ -87338,7 +87338,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -87490,7 +87490,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-91-2"/>
@@ -87506,7 +87506,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-91-4"/>
@@ -87522,7 +87522,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-91-6"/>
@@ -87538,7 +87538,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-91-8"/>
@@ -87554,7 +87554,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -87706,7 +87706,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-92-2"/>
@@ -87722,7 +87722,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-92-4"/>
@@ -87738,7 +87738,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-92-6"/>
@@ -87754,7 +87754,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-92-8"/>
@@ -87770,7 +87770,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -87912,7 +87912,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-93-2"/>
@@ -87928,7 +87928,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-93-4"/>
@@ -87944,7 +87944,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-93-6"/>
@@ -87960,7 +87960,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-93-8"/>
@@ -87976,7 +87976,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -88128,7 +88128,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-94-2"/>
@@ -88144,7 +88144,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-94-4"/>
@@ -88160,7 +88160,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-94-6"/>
@@ -88176,7 +88176,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-94-8"/>
@@ -88192,7 +88192,7 @@
          x="0" 
 	 y="571.63875" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -88344,7 +88344,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-95-2"/>
@@ -88360,7 +88360,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-95-4"/>
@@ -88376,7 +88376,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-95-6"/>
@@ -88392,7 +88392,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-95-8"/>
@@ -88408,7 +88408,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="823.170000000001 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -88550,7 +88550,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-96-2"/>
@@ -88566,7 +88566,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-96-4"/>
@@ -88582,7 +88582,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-96-6"/>
@@ -88598,7 +88598,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-96-8"/>
@@ -88614,7 +88614,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -88766,7 +88766,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-97-2"/>
@@ -88782,7 +88782,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-97-4"/>
@@ -88798,7 +88798,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-97-6"/>
@@ -88814,7 +88814,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-97-8"/>
@@ -88830,7 +88830,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -88982,7 +88982,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-98-2"/>
@@ -88998,7 +88998,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-98-4"/>
@@ -89014,7 +89014,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-98-6"/>
@@ -89030,7 +89030,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-98-8"/>
@@ -89046,7 +89046,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -89188,7 +89188,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-99-2"/>
@@ -89204,7 +89204,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-99-4"/>
@@ -89220,7 +89220,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-99-6"/>
@@ -89236,7 +89236,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-99-8"/>
@@ -89252,7 +89252,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -89404,7 +89404,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-100-2"/>
@@ -89420,7 +89420,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-100-4"/>
@@ -89436,7 +89436,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-100-6"/>
@@ -89452,7 +89452,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-100-8"/>
@@ -89468,7 +89468,7 @@
          x="0" 
 	 y="571.63875" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -89620,7 +89620,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-101-2"/>
@@ -89636,7 +89636,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-101-4"/>
@@ -89652,7 +89652,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-101-6"/>
@@ -89668,7 +89668,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-101-8"/>
@@ -89684,7 +89684,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="1055.56 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -89826,7 +89826,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-102-2"/>
@@ -89842,7 +89842,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-102-4"/>
@@ -89858,7 +89858,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-102-6"/>
@@ -89874,7 +89874,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-102-8"/>
@@ -89890,7 +89890,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -90042,7 +90042,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-103-2"/>
@@ -90058,7 +90058,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-103-4"/>
@@ -90074,7 +90074,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-103-6"/>
@@ -90090,7 +90090,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-103-8"/>
@@ -90106,7 +90106,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -90258,7 +90258,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-104-2"/>
@@ -90274,7 +90274,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-104-4"/>
@@ -90290,7 +90290,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-104-6"/>
@@ -90306,7 +90306,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-104-8"/>
@@ -90322,7 +90322,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -90464,7 +90464,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-105-2"/>
@@ -90480,7 +90480,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-105-4"/>
@@ -90496,7 +90496,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-105-6"/>
@@ -90512,7 +90512,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-105-8"/>
@@ -90528,7 +90528,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -90680,7 +90680,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-106-2"/>
@@ -90696,7 +90696,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-106-4"/>
@@ -90712,7 +90712,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-106-6"/>
@@ -90728,7 +90728,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-106-8"/>
@@ -90744,7 +90744,7 @@
          x="0" 
 	 y="571.63875" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -90896,7 +90896,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-107-2"/>
@@ -90912,7 +90912,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-107-4"/>
@@ -90928,7 +90928,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-107-6"/>
@@ -90944,7 +90944,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-107-8"/>
@@ -90960,7 +90960,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="1287.95 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -91102,7 +91102,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-108-2"/>
@@ -91118,7 +91118,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-108-4"/>
@@ -91134,7 +91134,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-108-6"/>
@@ -91150,7 +91150,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-108-8"/>
@@ -91166,7 +91166,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -91318,7 +91318,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-109-2"/>
@@ -91334,7 +91334,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-109-4"/>
@@ -91350,7 +91350,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-109-6"/>
@@ -91366,7 +91366,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-109-8"/>
@@ -91382,7 +91382,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -91534,7 +91534,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-110-2"/>
@@ -91550,7 +91550,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-110-4"/>
@@ -91566,7 +91566,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-110-6"/>
@@ -91582,7 +91582,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-110-8"/>
@@ -91598,7 +91598,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -91740,7 +91740,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-111-2"/>
@@ -91756,7 +91756,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-111-4"/>
@@ -91772,7 +91772,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-111-6"/>
@@ -91788,7 +91788,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-111-8"/>
@@ -91804,7 +91804,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -91956,7 +91956,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-112-2"/>
@@ -91972,7 +91972,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-112-4"/>
@@ -91988,7 +91988,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-112-6"/>
@@ -92004,7 +92004,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-112-8"/>
@@ -92020,7 +92020,7 @@
          x="0" 
 	 y="571.63875" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -92172,7 +92172,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-113-2"/>
@@ -92188,7 +92188,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-113-4"/>
@@ -92204,7 +92204,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-113-6"/>
@@ -92220,7 +92220,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-113-8"/>
@@ -92236,7 +92236,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="1520.34 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -92378,7 +92378,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-114-2"/>
@@ -92394,7 +92394,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-114-4"/>
@@ -92410,7 +92410,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-114-6"/>
@@ -92426,7 +92426,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-114-8"/>
@@ -92442,7 +92442,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -92594,7 +92594,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-115-2"/>
@@ -92610,7 +92610,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-115-4"/>
@@ -92626,7 +92626,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-115-6"/>
@@ -92642,7 +92642,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-115-8"/>
@@ -92658,7 +92658,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -92810,7 +92810,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-116-2"/>
@@ -92826,7 +92826,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-116-4"/>
@@ -92842,7 +92842,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-116-6"/>
@@ -92858,7 +92858,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-116-8"/>
@@ -92874,7 +92874,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -93016,7 +93016,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-117-2"/>
@@ -93032,7 +93032,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-117-4"/>
@@ -93048,7 +93048,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-117-6"/>
@@ -93064,7 +93064,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-117-8"/>
@@ -93080,7 +93080,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -93232,7 +93232,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-118-2"/>
@@ -93248,7 +93248,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-118-4"/>
@@ -93264,7 +93264,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-118-6"/>
@@ -93280,7 +93280,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-118-8"/>
@@ -93296,7 +93296,7 @@
          x="0" 
 	 y="571.63875" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -93448,7 +93448,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-119-2"/>
@@ -93464,7 +93464,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-119-4"/>
@@ -93480,7 +93480,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-119-6"/>
@@ -93496,7 +93496,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-119-8"/>
@@ -93512,7 +93512,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="1752.73 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -93654,7 +93654,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-120-2"/>
@@ -93670,7 +93670,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-120-4"/>
@@ -93686,7 +93686,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-120-6"/>
@@ -93702,7 +93702,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-120-8"/>
@@ -93718,7 +93718,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -93870,7 +93870,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-121-2"/>
@@ -93886,7 +93886,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-121-4"/>
@@ -93902,7 +93902,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-121-6"/>
@@ -93918,7 +93918,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-121-8"/>
@@ -93934,7 +93934,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -94086,7 +94086,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-122-2"/>
@@ -94102,7 +94102,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-122-4"/>
@@ -94118,7 +94118,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-122-6"/>
@@ -94134,7 +94134,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-122-8"/>
@@ -94150,7 +94150,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -94292,7 +94292,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-123-2"/>
@@ -94308,7 +94308,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-123-4"/>
@@ -94324,7 +94324,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-123-6"/>
@@ -94340,7 +94340,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-123-8"/>
@@ -94356,7 +94356,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -94508,7 +94508,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-124-2"/>
@@ -94524,7 +94524,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-124-4"/>
@@ -94540,7 +94540,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-124-6"/>
@@ -94556,7 +94556,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-124-8"/>
@@ -94572,7 +94572,7 @@
          x="0" 
 	 y="571.63875" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -94724,7 +94724,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-125-2"/>
@@ -94740,7 +94740,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-125-4"/>
@@ -94756,7 +94756,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-125-6"/>
@@ -94772,7 +94772,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-125-8"/>
@@ -94788,7 +94788,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="1985.12 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -94930,7 +94930,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-126-2"/>
@@ -94946,7 +94946,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-126-4"/>
@@ -94962,7 +94962,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-126-6"/>
@@ -94978,7 +94978,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-126-8"/>
@@ -94994,7 +94994,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -95146,7 +95146,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-127-2"/>
@@ -95162,7 +95162,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-127-4"/>
@@ -95178,7 +95178,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-127-6"/>
@@ -95194,7 +95194,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-127-8"/>
@@ -95210,7 +95210,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -95362,7 +95362,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-128-2"/>
@@ -95378,7 +95378,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-128-4"/>
@@ -95394,7 +95394,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-128-6"/>
@@ -95410,7 +95410,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-128-8"/>
@@ -95426,7 +95426,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -95568,7 +95568,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-129-2"/>
@@ -95584,7 +95584,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-129-4"/>
@@ -95600,7 +95600,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-129-6"/>
@@ -95616,7 +95616,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-129-8"/>
@@ -95632,7 +95632,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -95784,7 +95784,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-130-2"/>
@@ -95800,7 +95800,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-130-4"/>
@@ -95816,7 +95816,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-130-6"/>
@@ -95832,7 +95832,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-130-8"/>
@@ -95848,7 +95848,7 @@
          x="0" 
 	 y="571.63875" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -96000,7 +96000,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-131-2"/>
@@ -96016,7 +96016,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-131-4"/>
@@ -96032,7 +96032,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-131-6"/>
@@ -96048,7 +96048,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-131-8"/>
@@ -96064,7 +96064,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="2217.51 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -96206,7 +96206,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-132-2"/>
@@ -96222,7 +96222,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-132-4"/>
@@ -96238,7 +96238,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-132-6"/>
@@ -96254,7 +96254,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-132-8"/>
@@ -96270,7 +96270,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -96422,7 +96422,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-133-2"/>
@@ -96438,7 +96438,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-133-4"/>
@@ -96454,7 +96454,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-133-6"/>
@@ -96470,7 +96470,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-133-8"/>
@@ -96486,7 +96486,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -96638,7 +96638,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-134-2"/>
@@ -96654,7 +96654,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-134-4"/>
@@ -96670,7 +96670,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-134-6"/>
@@ -96686,7 +96686,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-134-8"/>
@@ -96702,7 +96702,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -96844,7 +96844,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-135-2"/>
@@ -96860,7 +96860,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-135-4"/>
@@ -96876,7 +96876,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-135-6"/>
@@ -96892,7 +96892,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-135-8"/>
@@ -96908,7 +96908,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -97060,7 +97060,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-136-2"/>
@@ -97076,7 +97076,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-136-4"/>
@@ -97092,7 +97092,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-136-6"/>
@@ -97108,7 +97108,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-136-8"/>
@@ -97124,7 +97124,7 @@
          x="0" 
 	 y="571.63875" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -97276,7 +97276,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-137-2"/>
@@ -97292,7 +97292,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-137-4"/>
@@ -97308,7 +97308,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-137-6"/>
@@ -97324,7 +97324,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-137-8"/>
@@ -97340,7 +97340,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="2449.9 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -97482,7 +97482,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-138-2"/>
@@ -97498,7 +97498,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-138-4"/>
@@ -97514,7 +97514,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-138-6"/>
@@ -97530,7 +97530,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-138-8"/>
@@ -97546,7 +97546,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -97698,7 +97698,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-139-2"/>
@@ -97714,7 +97714,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-139-4"/>
@@ -97730,7 +97730,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-139-6"/>
@@ -97746,7 +97746,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-139-8"/>
@@ -97762,7 +97762,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -97914,7 +97914,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-140-2"/>
@@ -97930,7 +97930,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-140-4"/>
@@ -97946,7 +97946,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-140-6"/>
@@ -97962,7 +97962,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-140-8"/>
@@ -97978,7 +97978,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -98120,7 +98120,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-141-2"/>
@@ -98136,7 +98136,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-141-4"/>
@@ -98152,7 +98152,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-141-6"/>
@@ -98168,7 +98168,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-141-8"/>
@@ -98184,7 +98184,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -98336,7 +98336,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-142-2"/>
@@ -98352,7 +98352,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-142-4"/>
@@ -98368,7 +98368,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-142-6"/>
@@ -98384,7 +98384,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-142-8"/>
@@ -98400,7 +98400,7 @@
          x="0" 
 	 y="571.63875" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -98552,7 +98552,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-143-2"/>
@@ -98568,7 +98568,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-143-4"/>
@@ -98584,7 +98584,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-143-6"/>
@@ -98600,7 +98600,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-143-8"/>
@@ -98616,7 +98616,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="2682.29 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -98758,7 +98758,7 @@
          x="-726.7681" 
 	 y="-550.782039473684" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-144-2"/>
@@ -98774,7 +98774,7 @@
          x="-726.7681" 
 	 y="-426.068618421053" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-144-4"/>
@@ -98790,7 +98790,7 @@
          x="-726.7681" 
 	 y="-301.355197368421" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-144-6"/>
@@ -98806,7 +98806,7 @@
          x="-726.7681" 
 	 y="-176.64177631579" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-144-8"/>
@@ -98822,7 +98822,7 @@
          x="-726.7681" 
 	 y="-51.928355263158" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -98974,7 +98974,7 @@
          x="0" 
 	 y="-550.782039473684" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-145-2"/>
@@ -98990,7 +98990,7 @@
          x="0" 
 	 y="-426.068618421053" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-145-4"/>
@@ -99006,7 +99006,7 @@
          x="0" 
 	 y="-301.355197368421" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-145-6"/>
@@ -99022,7 +99022,7 @@
          x="0" 
 	 y="-176.64177631579" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-145-8"/>
@@ -99038,7 +99038,7 @@
          x="0" 
 	 y="-51.928355263158" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -99190,7 +99190,7 @@
          x="726.7681" 
 	 y="-550.782039473684" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-146-2"/>
@@ -99206,7 +99206,7 @@
          x="726.7681" 
 	 y="-426.068618421053" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-146-4"/>
@@ -99222,7 +99222,7 @@
          x="726.7681" 
 	 y="-301.355197368421" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-146-6"/>
@@ -99238,7 +99238,7 @@
          x="726.7681" 
 	 y="-176.64177631579" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-146-8"/>
@@ -99254,7 +99254,7 @@
          x="726.7681" 
 	 y="-51.928355263158" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -99396,7 +99396,7 @@
          x="-726.7681" 
 	 y="72.7850657894736" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-147-2"/>
@@ -99412,7 +99412,7 @@
          x="-726.7681" 
 	 y="197.498486842105" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-147-4"/>
@@ -99428,7 +99428,7 @@
          x="-726.7681" 
 	 y="322.211907894737" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-147-6"/>
@@ -99444,7 +99444,7 @@
          x="-726.7681" 
 	 y="446.925328947368" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-147-8"/>
@@ -99460,7 +99460,7 @@
          x="-726.7681" 
 	 y="571.63875" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -99612,7 +99612,7 @@
          x="0" 
 	 y="72.7850657894736" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-148-2"/>
@@ -99628,7 +99628,7 @@
          x="0" 
 	 y="197.498486842105" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-148-4"/>
@@ -99644,7 +99644,7 @@
          x="0" 
 	 y="322.211907894737" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-148-6"/>
@@ -99660,7 +99660,7 @@
          x="0" 
 	 y="446.925328947368" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-148-8"/>
@@ -99676,7 +99676,7 @@
          x="0" 
 	 y="571.63875" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
@@ -99828,7 +99828,7 @@
          x="726.7681" 
 	 y="72.7850657894736" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-149-2"/>
@@ -99844,7 +99844,7 @@
          x="726.7681" 
 	 y="197.498486842105" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-149-4"/>
@@ -99860,7 +99860,7 @@
          x="726.7681" 
 	 y="322.211907894737" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-149-6"/>
@@ -99876,7 +99876,7 @@
          x="726.7681" 
 	 y="446.925328947368" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive-149-8"/>
@@ -99892,7 +99892,7 @@
          x="726.7681" 
 	 y="571.63875" 
          z="2914.68 + 0/2"/>
-       <rotationref ref="rIdentity"/>
+       <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>

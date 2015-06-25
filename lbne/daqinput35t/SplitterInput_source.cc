@@ -59,14 +59,11 @@ namespace {
 
   struct LoadedWaveforms {
 
-    LoadedWaveforms() : waveforms(), index() {}
-
+    LoadedWaveforms() : waveforms() {}
     vector<OpDetWaveform> waveforms;
-    size_t index;
 
-    void assign( vector<OpDetWaveform> const & v ) {
+    void load( vector<OpDetWaveform> const & v ) {
       waveforms = v;
-      index = 0ul;
     }
 
     // not really used 
@@ -76,21 +73,37 @@ namespace {
       return false;
     }
 
-    // provide a method to dig out a particular OpDetWaveform at a particular time
+    // retrieve bits of opdetwaveforms between tpc index beginnings and ends, and append
+    // them to the currently active ones if need be, and make new ones if not.
+
+    void append( vector<OpDetWaveform> &v, std::set<unsigned int> &curwforms, 
+                 unsigned int tpcindexbeg, unsigned int tpcindexend )
+    {
+      for (auto wf : waveforms) // see if any waveforms have pieces inside this TPC boundary
+	{
+	  
+	}
+    }
 
   };
 
 
   struct LoadedDigits {
 
-    LoadedDigits() : digits(), index() {}
+    LoadedDigits() : digits(), index(), firstTimestamp(0) {}
 
     vector<RawDigit> digits;
     size_t index;
+    lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp; // timestamp of the first nanoslice in the digits vector
+
+    void loadTimestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t ts)
+    {
+      firstTimestamp = ts;
+    }
 
     // copy rawdigits to LoadedDigits and uncompress if necessary.  
 
-    void assign( vector<RawDigit> const & v ) {
+    void load( vector<RawDigit> const & v ) {
       if (v.size() == 0 || v.back().Compression() == raw::kNone)
 	{ 
 	  digits = v; 
@@ -254,8 +267,8 @@ namespace DAQToOffline
     string                 SSPinputDataProduct_;
     double                 fNOvAClockFrequency; // MHz
     art::SourceHelper      sh_;
-    TBranch*               TPCfragmentsBranch_;
-    TBranch*               SSPfragmentsBranch_;
+    TBranch*               TPCinputBranch_;
+    TBranch*               SSPinputBranch_;
     TBranch*               EventAuxBranch_;
     LoadedDigits           loadedDigits_;
     LoadedWaveforms        loadedWaveforms_;
@@ -273,8 +286,10 @@ namespace DAQToOffline
     rawDigits_t            bufferedDigits_;
     std::vector<RawDigit::ADCvector_t>  dbuf_;
     unsigned short         fTicksAccumulated;
+    std::vector<raw::OpDetWaveform> sbuf_;
+    std::set<unsigned int> curwaveforms_; // list of waveform indices that are currently being built up
 
-    std::function<rawDigits_t(artdaq::Fragments const&)> fragmentsToDigits_;
+    std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t& )> fragmentsToDigits_;
 
     bool eventIsFull_(rawDigits_t const & v);
 
@@ -302,8 +317,8 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   SSPinputDataProduct_(ps.get<string>("SSPInputDataProduct")),
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
   sh_(sh),
-  TPCfragmentsBranch_(nullptr),
-  SSPfragmentsBranch_(nullptr),
+  TPCinputBranch_(nullptr),
+  SSPinputBranch_(nullptr),
   EventAuxBranch_(nullptr),
   nInputEvts_(),
   runNumber_(1),      // Defaults in case input filename does not
@@ -321,6 +336,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   fTicksAccumulated(0),
   fragmentsToDigits_( std::bind( DAQToOffline::tpcFragmentToRawDigits,
                                  std::placeholders::_1, // artdaq::Fragments
+                                 std::placeholders::_2, // lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
                                  ps.get<unsigned>("zeroThreshold",0) ) )
@@ -351,11 +367,11 @@ DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb)
   file_.reset( new TFile(filename.data()) );
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
 
-  TPCfragmentsBranch_ = evtree->GetBranch( getBranchName(TPCinputTag_, TPCinputDataProduct_ ) ); // get branch for TPC input tag
-  SSPfragmentsBranch_ = evtree->GetBranch( getBranchName(SSPinputTag_, SSPinputDataProduct_ ) ); // get branch for SSP input tag
+  TPCinputBranch_ = evtree->GetBranch( getBranchName(TPCinputTag_, TPCinputDataProduct_ ) ); // get branch for TPC input tag
+  SSPinputBranch_ = evtree->GetBranch( getBranchName(SSPinputTag_, SSPinputDataProduct_ ) ); // get branch for SSP input tag
 
-  nInputEvts_      = static_cast<size_t>( TPCfragmentsBranch_->GetEntries() );
-  size_t nevt_ssp  = static_cast<size_t>( SSPfragmentsBranch_->GetEntries() );
+  nInputEvts_      = static_cast<size_t>( TPCinputBranch_->GetEntries() );
+  size_t nevt_ssp  = static_cast<size_t>( SSPinputBranch_->GetEntries() );
   if (nevt_ssp != nInputEvts_) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and SSP input events in file");
   treeIndex_       = 0ul;
 
@@ -399,16 +415,6 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	    return false;
 	  }
       }
-
-    // original code from artists.  Doesn't retry if we still have no digits
-    // if ( loadedDigits_.empty() && !loadDigits_() ) {
-    //  if ( file_->GetName() != lastFileName_ )
-    //    return false;
-    //  else {
-    //    doneWithFiles_ = true;
-    //    break;  // the last event may be short if we cannot stitch with the next
-    //  }
-    // }
 
     std::vector<short> nextdigits = loadedDigits_.next(); 
     if (dbuf_.size() == 0)
@@ -481,32 +487,32 @@ DAQToOffline::Splitter::loadDigits_()
     inputSubRunNumber_ = evAux_.subRun();
     inputEventNumber_ = evAux_.event();
 
-    // assume we have artdaq fragments coming in for real data and rawdigits and waveforms for MC.
-    // old test on if it is real data or not -- instead check the input data product name
-    //if (evAux_.isRealData() )
-
     if (TPCinputDataProduct_.find("Fragment") != std::string::npos)
       {
-        auto* fragments = getFragments( TPCfragmentsBranch_, treeIndex_ );
-        rawDigits_t const digits = fragmentsToDigits_( *fragments );
-        loadedDigits_.assign( digits );
+        lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
+        auto* fragments = getFragments( TPCinputBranch_, treeIndex_ );
+        rawDigits_t const digits = fragmentsToDigits_( *fragments, firstTimestamp );
+        loadedDigits_.load( digits );
+	loadedDigits_.loadTimestamp( firstTimestamp );
       }
     else
       {
-	auto* digits = getRawDigits(TPCfragmentsBranch_, treeIndex_ );
-	loadedDigits_.assign( *digits);
+	auto* digits = getRawDigits(TPCinputBranch_, treeIndex_ );
+	loadedDigits_.load( *digits);
+	loadedDigits_.loadTimestamp(0); // MC timestamp is zero (? assume?)
+
       }
 
     if (SSPinputDataProduct_.find("Fragment") != std::string::npos)
       {
-        auto* SSPfragments = getFragments( SSPfragmentsBranch_, treeIndex_ );
+        auto* SSPfragments = getFragments( SSPinputBranch_, treeIndex_ );
         std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency);
-        loadedWaveforms_.assign( waveforms );
+        loadedWaveforms_.load( waveforms );
       }
     else
       {
-	auto* waveforms = getSSPWaveforms(SSPfragmentsBranch_, treeIndex_ );
-        loadedWaveforms_.assign( *waveforms );
+	auto* waveforms = getSSPWaveforms(SSPinputBranch_, treeIndex_ );
+        loadedWaveforms_.load( *waveforms );
       }
 
     treeIndex_++;

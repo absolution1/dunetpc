@@ -58,6 +58,7 @@ void DisambigAlg35t::reconfigure(fhicl::ParameterSet const& p)
   fDistanceCut = p.get<double>("DistanceCut");
   fDistanceCutClu = p.get<double>("DistanceCutClu");
   fTimeWiggle     = p.get<double>("TimeWiggle");
+  fColChanWiggle  = p.get<int>("ColChannelWiggle");
   fDBScan.reconfigure(p.get< fhicl::ParameterSet >("DBScanAlg"));
 }
 
@@ -121,6 +122,7 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
   //hits and wireids for DBScan
   std::vector<std::vector<art::Ptr<recob::Hit> > > allhitsu(ntpc);
   std::vector<std::vector<art::Ptr<recob::Hit> > > allhitsv(ntpc);
+  std::vector<std::vector<art::Ptr<recob::Hit> > > allhitsz(ntpc);
   std::vector<std::vector<geo::WireID> > wireidsu(ntpc);
   std::vector<std::vector<geo::WireID> > wireidsv(ntpc);
   
@@ -206,6 +208,7 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 	    if (totalintersections==1){
 	      allhitsu[uwires[bestu].TPC].push_back(hitsUV[0][u]);
 	      allhitsv[vwires[bestv].TPC].push_back(hitsUV[1][v]);
+	      allhitsz[hitsZ[z]->WireID().TPC].push_back(hitsZ[z]);
 	      wireidsu[uwires[bestu].TPC].push_back(uwires[bestu]);
 	      wireidsv[vwires[bestv].TPC].push_back(vwires[bestv]);
 	      cluidu[uwires[bestu].TPC].push_back(u);
@@ -225,6 +228,8 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
   //running DB scan to identify and remove outlier hits
   // get the ChannelFilter
   filter::ChannelFilter chanFilt;
+  double CorrectedHitTime = 0;
+  int ChannelNumber = 0;
   for (size_t i = 0; i<ntpc; ++i){//loop over all TPCs
     if (!allhitsu[i].size()) continue;
 
@@ -241,29 +246,49 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
     std::vector<unsigned int> dbcluhits(fDBScan.fclusters.size(),0);
     std::vector< bool > boolVector(fDBScan.fclusters.size(), true);
     std::map<int, std::pair <double,double> > ClusterStartEndTime;
+    std::map<int, std::pair <int, int> > ClusterStartEndColChan;
     for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
        if (fDBScan.fpointId_to_clusterId[j]>=0&&fDBScan.fpointId_to_clusterId[j]<fDBScan.fclusters.size()) {
 	++dbcluhits[fDBScan.fpointId_to_clusterId[j]];
 
-	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first > allhitsu[i][j]->PeakTime()) 
-	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first = allhitsu[i][j]->PeakTime();
-	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second < allhitsu[i][j]->PeakTime()) 
-	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second = allhitsu[i][j]->PeakTime();
+	CorrectedHitTime = allhitsu[i][j]->PeakTime() - detprop->GetXTicksOffset(allhitsu[i][j]->WireID().Plane, allhitsu[i][j]->WireID().TPC, allhitsu[i][j]->WireID().Cryostat);
+	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first > CorrectedHitTime) 
+	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first = CorrectedHitTime;
+	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second < CorrectedHitTime) 
+	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second = CorrectedHitTime;
+
+	ChannelNumber = allhitsz[i][j]->Channel();
+	if (ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].first==0 || ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].first > ChannelNumber) 
+	  ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].first = ChannelNumber;
+	if (ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].second==0 || ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].second < ChannelNumber) 
+	  ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].second = ChannelNumber;
 	/*
-	std::cout << "Looking at Cluster " << fDBScan.fpointId_to_clusterId[j] 
+	std::cout << "Looking at Cluster " << fDBScan.fpointId_to_clusterId[j] << " in TPC " << (int)i
 		  << ", It has start time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first 
-		  << ", and end time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second << std::endl;
-	*/
+		  << ", and end time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second 
+		  << ", It has start ColChan " << ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].first 
+		  << ", and end ColChan " << ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].second 
+		  << std::endl;
+	//*/
        }
     }
     for ( unsigned int ClusNum = 0; ClusNum < fDBScan.fclusters.size(); ++ClusNum ) {
       for ( unsigned int ClusIt = 0; ClusIt < fDBScan.fclusters.size(); ++ClusIt ) {
       	if ( dbcluhits[ClusIt] > dbcluhits[ClusNum] ) { 
+	  // Smaller cluster, so check not in the same time range...
 	  if ( ClusterStartEndTime[ClusNum].first > ( ClusterStartEndTime[ClusIt].first + fTimeWiggle ) 
 	       && ClusterStartEndTime[ClusNum].first < ( ClusterStartEndTime[ClusIt].second + fTimeWiggle ) ) {
 	    if ( ClusterStartEndTime[ClusNum].second > ( ClusterStartEndTime[ClusIt].first + fTimeWiggle ) 
 	       && ClusterStartEndTime[ClusNum].second < ( ClusterStartEndTime[ClusIt].second + fTimeWiggle ) ) {
-	      boolVector[ClusNum] = false;
+	      // Within the same time...now check if same collection channel range...
+	      if ( ClusterStartEndColChan[ClusNum].first > ( ClusterStartEndColChan[ClusIt].first + fColChanWiggle ) 
+		   && ClusterStartEndColChan[ClusNum].first < ( ClusterStartEndColChan[ClusIt].second + fColChanWiggle ) ) {
+		if ( ClusterStartEndColChan[ClusNum].second > ( ClusterStartEndColChan[ClusIt].first + fColChanWiggle ) 
+		     && ClusterStartEndColChan[ClusNum].second < ( ClusterStartEndColChan[ClusIt].second + fColChanWiggle ) ) {
+		  // Within same time and collection channel range...Bad Cluster?
+		  boolVector[ClusNum] = false;
+		}
+	      }
 	    }
 	  }
 	}
@@ -271,8 +296,10 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
       /*
       std::cout << "\nLooking at Cluster Number " << ClusNum << ".\n" 
 		<< "It had start time " << ClusterStartEndTime[ClusNum].first << ", and end time " << ClusterStartEndTime[ClusNum].second << ".\n"
-		<< "The bool vector value for this cluster is..." << boolVector[ClusNum] << std::endl;
-      */
+		<< "It had start ColChan " << ClusterStartEndColChan[ClusNum].first << ", and end ColChan " << ClusterStartEndColChan[ClusNum].second << ".\n"
+		<< "The bool vector value for this cluster is..." << boolVector[ClusNum]
+		<< std::endl;
+      //*/
     }
 
     //std::cout << "Now going to look at v hits....." << std::endl;
@@ -293,31 +320,52 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
     dbcluhits.clear();
     boolVector.clear();
     ClusterStartEndTime.clear();
+    ClusterStartEndColChan.clear();
     dbcluhits.resize(fDBScan.fclusters.size(),0);
     boolVector.resize(fDBScan.fclusters.size(),true);
     for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
       if (fDBScan.fpointId_to_clusterId[j]>=0&&fDBScan.fpointId_to_clusterId[j]<fDBScan.fclusters.size()) {
 	++dbcluhits[fDBScan.fpointId_to_clusterId[j]];
 
-	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first > allhitsu[i][j]->PeakTime()) 
-	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first = allhitsu[i][j]->PeakTime();
-	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second < allhitsu[i][j]->PeakTime()) 
-	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second = allhitsu[i][j]->PeakTime();
+	CorrectedHitTime = allhitsv[i][j]->PeakTime() - detprop->GetXTicksOffset(allhitsv[i][j]->WireID().Plane, allhitsv[i][j]->WireID().TPC, allhitsv[i][j]->WireID().Cryostat);
+	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first > CorrectedHitTime) 
+	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first = CorrectedHitTime;
+	if (ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second==0 || ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second < CorrectedHitTime) 
+	  ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second = CorrectedHitTime;
+
+	ChannelNumber = allhitsz[i][j]->Channel();
+	if (ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].first==0 || ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].first > ChannelNumber) 
+	  ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].first = ChannelNumber;
+	if (ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].second==0 || ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].second < ChannelNumber) 
+	  ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].second = ChannelNumber;
 	/*
-	std::cout << "Looking at Cluster " << fDBScan.fpointId_to_clusterId[j] 
+	std::cout << "Looking at Cluster " << fDBScan.fpointId_to_clusterId[j] << " in TPC " << (int)i
 		  << ", It has start time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].first 
-		  << ", and end time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second << std::endl;
-	*/
+		  << ", and end time " << ClusterStartEndTime[fDBScan.fpointId_to_clusterId[j]].second 
+		  << ", It has start ColChan " << ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].first 
+		  << ", and end ColChan " << ClusterStartEndColChan[fDBScan.fpointId_to_clusterId[j]].second 
+		  << std::endl;
+	
+	//*/
       }
     }
     for ( unsigned int ClusNum = 0; ClusNum < fDBScan.fclusters.size(); ++ClusNum ) {
       for ( unsigned int ClusIt = 0; ClusIt < fDBScan.fclusters.size(); ++ClusIt ) {
       	if ( dbcluhits[ClusIt] > dbcluhits[ClusNum] ) { 
+	  // Smaller cluster, so check not in the same time range...
 	  if ( ClusterStartEndTime[ClusNum].first > ( ClusterStartEndTime[ClusIt].first + fTimeWiggle ) 
 	       && ClusterStartEndTime[ClusNum].first < ( ClusterStartEndTime[ClusIt].second + fTimeWiggle ) ) {
 	    if ( ClusterStartEndTime[ClusNum].second > ( ClusterStartEndTime[ClusIt].first + fTimeWiggle ) 
 	       && ClusterStartEndTime[ClusNum].second < ( ClusterStartEndTime[ClusIt].second + fTimeWiggle ) ) {
-	      boolVector[ClusNum] = false;
+	      // Within the same time...now check if same collection channel range...
+	      if ( ClusterStartEndColChan[ClusNum].first > ( ClusterStartEndColChan[ClusIt].first + fColChanWiggle ) 
+		   && ClusterStartEndColChan[ClusNum].first < ( ClusterStartEndColChan[ClusIt].second + fColChanWiggle ) ) {
+		if ( ClusterStartEndColChan[ClusNum].second > ( ClusterStartEndColChan[ClusIt].first + fColChanWiggle ) 
+		     && ClusterStartEndColChan[ClusNum].second < ( ClusterStartEndColChan[ClusIt].second + fColChanWiggle ) ) {
+		  // Within same time and collection channel range...Bad Cluster?	      
+		  boolVector[ClusNum] = false;
+		}
+	      }
 	    }
 	  }
 	}
@@ -325,8 +373,9 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
       /*
       std::cout << "\nLooking at Cluster Number " << ClusNum << ".\n" 
 		<< "It had start time " << ClusterStartEndTime[ClusNum].first << ", and end time " << ClusterStartEndTime[ClusNum].second << ".\n"
+		<< "It had start ColChan " << ClusterStartEndColChan[ClusNum].first << ", and end ColChan " << ClusterStartEndColChan[ClusNum].second << ".\n"
 		<< "The bool vector value for this cluster is..." << boolVector[ClusNum] << std::endl;
-      */
+      //*/
     }
     //hitstoaddv holds all v hits in the time separated clusters
     for(size_t j = 0; j < fDBScan.fpointId_to_clusterId.size(); ++j){
@@ -404,7 +453,7 @@ void DisambigAlg35t::RunDisambig( const std::vector< art::Ptr<recob::Hit> > &Ori
 //	mf::LogWarning("DisambigAlg35t")<<"Could not find disambiguated hit for  "<<*hitsUV[i][hit]<<"\n";
 //      }
     }
-  }  
+    }  
 }
 
 } //end namespace apa

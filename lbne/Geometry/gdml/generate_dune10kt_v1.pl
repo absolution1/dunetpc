@@ -259,6 +259,7 @@ $SteelSupport_y        =	50;
 $SteelSupport_z        =	100;
 $FoamPadding           =        80;
 $FracMassOfSteel       =        0.5; #The steel support is not a solid block, but a mixture of air and steel
+$FracMassOfAir         =        1-$FracMassOfSteel;
 
 $SpaceSteelSupportToWall    = 100;
 $SpaceSteelSupportToCeiling = 100;
@@ -584,8 +585,8 @@ sub gen_Materials()
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
    <D value=" 0.001205*(1-$FracMassOfSteel) + 7.9300*$FracMassOfSteel " unit="g/cc"/>
-   <fraction n="  $FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="1-$FracMassOfSteel" ref="Air"/>
+   <fraction n="$FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="$FracMassOfAir"   ref="Air"/>
   </material>
 
   <material formula=" " name="G10">
@@ -785,6 +786,7 @@ $NumberCornerVWires = int( $APAFrame_z/($VWirePitch/$CosVAngle) );
    # Total number of wires touching one vertical (longer) side
    # Note that the total number of wires per plane is this + another set of corner wires
 $NumberSideUWires = int( $Uactive_y/$UWire_yint );
+if($Pitch3mmVersion==1){ $NumberSideUWires = $NumberSideUWires-1; }
 
 $NumberSideVWires = int( $Vactive_y/$VWire_yint );
 
@@ -1080,14 +1082,8 @@ for ($i = 0; $i < $NumberCornerUWires; ++$i)
 my $ypos = $FirstU_ypos + ($i)*0.5*$UWire_yint;
 my $zpos = $FirstU_zpos - ($i)*0.5*$UWire_zint;
 
-# cant actually define like this:
-  #    my $ypos = (-0.5*$Uactive_y) + $CornerUWireLength[$i]*$CosUAngle/2;
-  #    my $zpos = (+0.5*$Uactive_z) - $CornerUWireLength[$i]*$SinUAngle/2;
-# since the wire lengths need to be slightly reduced to avoid the 
-# wire corner's overlap with the plane boundary
-
 $pitch  =  ($ypos - $lastYpos) * $SinUAngle
-	      - ($zpos - $lastZpos) * $CosUAngle;
+         - ($zpos - $lastZpos) * $CosUAngle;
 
 print TPC <<EOF;
       <physvol>
@@ -1121,19 +1117,19 @@ $lastZpos = $zpos;
 
 
 my $StartCommonUWires_ypos = $lastYpos + $UWire_yint - abs( $lastZpos )/$TanUAngle;
-#print "$StartCommonUWires_ypos = $lastYpos + $UWire_yint - abs( $lastZpos )/$TanUAngle\n";
-
 
 for ($i = $NumberCornerUWires; $i < $NumberSideUWires; ++$i)
 {
 
     $j = $i - $NumberCornerUWires;
-
-#my $ypos = (-0.5*$Uactive_y)
-#           + 0.5*($NumberCornerUWires)*$UWire_yint+($i+1-$NumberCornerUWires)*$UWire_yint;
     my $ypos = $StartCommonUWires_ypos + $UWire_yint*($j);
 
-$pitch  =  ($ypos - $lastYpos) * $SinUAngle;
+    $lastWnum = $i-1;
+    if ( $ypos <  $lastYpos ){  print "WARNING: y position dropped from $lastYpos (wire U$lastWnum) to $ypos (wire U$i)\n"; }
+    if ( $ypos == $lastYpos ){  print "WARNING: y position between wire U$lastWnum and U$lastWnum did not move: $ypos\n"; }
+
+
+$pitch  =   ($ypos - $lastYpos) * $SinUAngle - ($zpos - $lastZpos) * $CosUAngle ;
 
 print TPC <<EOF;
       <physvol>
@@ -1176,9 +1172,11 @@ $i = $j - $NumberSideUWires;
 my $ypos = $StartTopUWires_ypos + ($i)*0.5*$UWire_yint;
 my $zpos = $StartTopUWires_zpos - ($i)*0.5*$UWire_zint;
 
+    $lastWnum = $j-1;
+    if ( $ypos <  $lastYpos ){  print "WARNING: y position dropped from $lastYpos (wire U$lastWnum) to $ypos (wire U$j)\n"; }
+    if ( $ypos == $lastYpos ){  print "WARNING: y position between wire U$lastWnum and U$j did not move: $ypos\n"; }
 
-$pitch  =   ($ypos - $lastYpos) * $SinUAngle
-    - ($zpos - $lastZpos) * $CosUAngle ;
+$pitch  =   ($ypos - $lastYpos) * $SinUAngle - ($zpos - $lastZpos) * $CosUAngle ;
 
 print TPC <<EOF;
       <physvol>
@@ -1788,7 +1786,7 @@ print CRYO <<EOF;
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode\-$cpa_i-0" unit="cm" 
+        <position name="posCathode\-$apa_i-0" unit="cm" 
 	x="$CPA_0_x" 
 	y="$APACenter_y" 
 	z="$APACenter_z"/> 
@@ -1796,7 +1794,7 @@ print CRYO <<EOF;
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode\-$cpa_i-1" unit="cm" 
+        <position name="posCathode\-$apa_i-1" unit="cm" 
 	x="$CPA_1_x" 
 	y="$APACenter_y" 
 	z="$APACenter_z"/> 

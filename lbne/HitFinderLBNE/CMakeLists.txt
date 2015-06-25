@@ -9,7 +9,9 @@ art_make( BASENAME_ONLY
                            RecoObjects
                            LArProperties_service
                            DetectorProperties_service
+			   BackTracker_service
                            Utilities
+			   ${SIMULATIONBASE}
                            ${ART_FRAMEWORK_CORE}
    			   ${ART_FRAMEWORK_PRINCIPAL}
 			   ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -34,7 +36,9 @@ art_make( BASENAME_ONLY
                            Geometry_service
                            LArProperties_service
                            DetectorProperties_service
+			   BackTracker_service
                            Utilities
+			   ${SIMULATIONBASE}
  			   ${ART_FRAMEWORK_CORE}
 			   ${ART_FRAMEWORK_PRINCIPAL}
 			   ${ART_FRAMEWORK_SERVICES_REGISTRY}

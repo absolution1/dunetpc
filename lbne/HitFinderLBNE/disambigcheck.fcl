@@ -5,9 +5,9 @@ BEGIN_PROLOG
 
 standard_disambigcheck:
 {
- module_type:         "disambigcheck"
- ChanHitDisambig:      "disambig"
- ChanHitCheater:        "disambigcheat"
+ module_type:     "disambigcheck"
+ ChanHitDisambig: "hit35t"
+ ChanHitCheater:  "dcheat"
 }
 
 END_PROLOG

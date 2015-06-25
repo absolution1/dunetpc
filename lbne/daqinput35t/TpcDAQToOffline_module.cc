@@ -140,7 +140,9 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto digits = tpcFragmentToRawDigits(*rawFragments, fDebug, fCompression, fZeroThreshold);
+  lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
+
+  auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fDebug, fCompression, fZeroThreshold);
 
   evt.put(std::make_unique<decltype(digits)>(std::move(digits)), fOutputDataLabel);
 }
