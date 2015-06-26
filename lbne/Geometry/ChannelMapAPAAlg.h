@@ -30,10 +30,18 @@ namespace geo{
     
     void                     Initialize( GeometryData_t& geodata ) override;
     void                     Uninitialize();
+    
+    /// Returns a list of TPC wires connected to the specified readout channel ID
+    /// @throws cet::exception (category: "Geometry") if non-existent channel
     std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel) const;
+    
     unsigned int             Nchannels()                            const;
-    /// Returns the number of channels in the specified ROP (0 if invalid)
+    
+    /// @brief Returns the number of channels in the specified ROP
+    /// @return number of channels in the specified ROP, 0 if non-existent
+    /// @todo to be completed
     virtual unsigned int     Nchannels(readout::ROPID const& ropid) const override;
+    
     //@{
     virtual double WireCoordinate(double YPos,
                                   double ZPos,
@@ -83,17 +91,25 @@ namespace geo{
     virtual unsigned int NTPCsets
       (readout::CryostatID const& cryoid) const override;
     
-    /// Returns the largest number of TPC sets a cryostat in the detector has
+    /// Returns the largest number of TPC sets any cryostat in the detector has
+    /// @todo to be completed
     virtual unsigned int MaxTPCsets() const override;
     
     /// Returns whether we have the specified TPC set
+    /// @return whether the TPC set is valid and exists
+    /// @todo to be completed
     virtual bool HasTPCset(readout::TPCsetID const& tpcsetid) const override;
     
     /**
      * @brief Returns the ID of the TPC set the specified TPC belongs to
      * @param tpcid ID of the TPC
-     * @return the ID of the corresponding TPC set, or invalid ID when tpcid is
+     * @return the ID of the corresponding TPC set
      *
+     * Note that the check is performed on the validity of the TPC set ID, that
+     * does not necessarily imply that the TPC set specified by the ID actually
+     * exists. Check the existence of the TPC set first (HasTPCset()).
+     * Behaviour on valid, non-existent TPC set IDs is undefined.
+     * 
      * @todo to be completed
      */
     virtual readout::TPCsetID TPCtoTPCset
@@ -104,12 +120,18 @@ namespace geo{
      * @param tpcsetid ID of the TPC set to convert into TPC IDs
      * @return the list of TPCs, empty if TPC set is invalid
      *
+     * Note that the check is performed on the validity of the TPC set ID, that
+     * does not necessarily imply that the TPC set specified by the ID actually
+     * exists. Check the existence of the TPC set first (HasTPCset()).
+     * Behaviour on valid, non-existent TPC set IDs is undefined.
+     *
      * @todo to be completed
      */
     virtual std::vector<geo::TPCID> TPCsetToTPCs
       (readout::TPCsetID const& tpcsetid) const override;
     
     /// Returns the ID of the first TPC belonging to the specified TPC set
+    /// @todo to be completed
     virtual geo::TPCID FirstTPCinTPCset
       (readout::TPCsetID const& tpcsetid) const override;
     
@@ -124,9 +146,11 @@ namespace geo{
     /// @{
 
     /**
-     * @brief Returns the total number of ROPs in the specified TPC set
+     * @brief Returns the total number of ROP in the specified TPC set
      * @param tpcsetid TPC set ID
-     * @return number of readout planes in the TPC sets, or 0 if no set found
+     * @return number of readout planes in the TPC set, or 0 if no TPC set found
+     * 
+     * Note that this methods explicitly check the existence of the TPC set.
      *
      * @todo to be completed
      */
@@ -134,16 +158,23 @@ namespace geo{
       (readout::TPCsetID const& tpcsetid) const override;
     
     /// Returns the largest number of ROPs a TPC set in the detector has
+    /// @todo to be completed
     virtual unsigned int MaxROPs() const override;
     
     /// Returns whether we have the specified ROP
+    /// @return whether the readout plane is valid and exists
     virtual bool HasROP(readout::ROPID const& ropid) const override;
     
     /**
      * @brief Returns the ID of the ROP planeid belongs to, or invalid if none
-     * @param planeid ID of the plane
+     * @param planeid ID of the wire plane
      * @return the ID of the corresponding ROP, or invalid ID when planeid is
      *
+     * Note that this check is performed on the validity of the wire plane
+     * ID, that does not necessarily imply that the wire plane specified by
+     * the ID actually exists. Check if the wire plane exists with HasPlane().
+     * The behaviour on non-existing wire planes is undefined.
+     * 
      * @todo to be completed
      */
     virtual readout::ROPID WirePlaneToROP
@@ -154,6 +185,11 @@ namespace geo{
      * @param ropid ID of the readout plane to convert into wire planes
      * @return the list of wire plane IDs, empty if readout plane ID is invalid
      *
+     * Note that this check is performed on the validity of the readout plane
+     * ID, that does not necessarily imply that the readout plane specified by
+     * the ID actually exists. Check if the ROP exists with HasROP().
+     * The behaviour on non-existing readout planes is undefined.
+     * 
      * @todo to be completed
      */
     virtual std::vector<geo::PlaneID> ROPtoWirePlanes
@@ -164,23 +200,48 @@ namespace geo{
      * @param ropid ID of the readout plane
      * @return the list of TPC IDs, empty if readout plane ID is invalid
      *
+     * Note that this check is performed on the validity of the readout plane
+     * ID, that does not necessarily imply that the readout plane specified by
+     * the ID actually exists. Check if the ROP exists with HasROP().
+     * The behaviour on non-existing readout planes is undefined.
+     *
      * @todo to be completed
      */
     virtual std::vector<geo::TPCID> ROPtoTPCs
       (readout::ROPID const& ropid) const override;
     
     /// Returns the ID of the ROP the channel belongs to (invalid if none)
+    /// @throws cet::exception (category: "Geometry") if non-existent channel
     virtual readout::ROPID ChannelToROP
       (raw::ChannelID_t channel) const override;
     
     /**
      * @brief Returns the ID of the first channel in the specified readout plane
-     * @return the ID of the first channel, or raw::InvalidChannelID if none
+     * @param ropid ID of the readout plane
+     * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
+     * 
+     * Note that this check is performed on the validity of the readout plane
+     * ID, that does not necessarily imply that the readout plane specified by
+     * the ID actually exists. Check if the ROP exists with HasROP().
+     * The behaviour for non-existing readout planes is undefined.
+     *
+     * @todo to be completed
      */
     virtual raw::ChannelID_t FirstChannelInROP
       (readout::ROPID const& ropid) const override;
     
-    /// Returns the ID of the first plane belonging to the specified ROP
+    /**
+     * @brief Returns the ID of the first plane belonging to the specified ROP
+     * @param ropid ID of the readout plane
+     * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
+     * 
+     * Note that this check is performed on the validity of the readout plane
+     * ID, that does not necessarily imply that the readout plane specified by
+     * the ID actually exists. Check if the ROP exists with HasROP().
+     * The behaviour for non-existing readout planes is undefined.
+     *
+     * @todo to be completed
+     */
     virtual geo::PlaneID FirstWirePlaneInROP
       (readout::ROPID const& ropid) const override;
     
