@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////
 ///
 /// Any gdml before v3 should stay configured to use ChannelMap35Alg, and 
-/// any gdml v3 or later should be configured to use ChannelMap35OptAlg.
+/// any gdml v3 or later should be configured to use ChannelMap35Alg.
 /// This is done in LBNEGeometryHelper using the fcl parameter DetectorVersion
 /// in the SortingParameters pset.
 ///
@@ -107,7 +107,7 @@ namespace geo{
 
                 if(xyz[2]==xyz_next[2]){
               nAnchoredWires[c][a][p] = w-1; // this is a known bug, should be w
-                                             // fixed in ChannelMap35OptAlg
+                                             // fixed in ChannelMap35Alg
               break;
             }
 
@@ -310,6 +310,14 @@ namespace geo{
   
 
   //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::Nchannels
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::Nchannels(ROPID)
+  
+  
+  //----------------------------------------------------------------------------
   double ChannelMap35Alg::WireCoordinate
     (double YPos, double ZPos, geo::PlaneID const& planeid) const
   {
@@ -485,4 +493,118 @@ namespace geo{
     return channel;
   }
 
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::NTPCsets
+    (readout::CryostatID const& cryoid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::NTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::MaxTPCsets() const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::MaxTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  bool ChannelMap35Alg::HasTPCset(readout::TPCsetID const& tpcsetid) const
+  {
+    return tpcsetid.TPCset < NTPCsets(tpcsetid);
+  } // ChannelMap35Alg::HasTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::TPCsetID ChannelMap35Alg::TPCtoTPCset
+    (geo::TPCID const& tpcid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::TPCtoTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::TPCID> ChannelMap35Alg::TPCsetToTPCs
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::TPCsetToTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::TPCID ChannelMap35Alg::FirstTPCinTPCset
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::FirstTPCinTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::NROPs
+      (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::NROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMap35Alg::MaxROPs() const {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::MaxROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  bool ChannelMap35Alg::HasROP(readout::ROPID const& ropid) const {
+    return ropid.ROP < NROPs(ropid);
+  } // ChannelMap35Alg::HasROP()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::ROPID ChannelMap35Alg::WirePlaneToROP
+    (geo::PlaneID const& planeid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::WirePlaneToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::PlaneID> ChannelMap35Alg::ROPtoWirePlanes
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::ROPtoWirePlanes()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::TPCID> ChannelMap35Alg::ROPtoTPCs
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::ROPtoTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::ROPID ChannelMap35Alg::ChannelToROP
+    (raw::ChannelID_t channel) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::ROPtoTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  raw::ChannelID_t ChannelMap35Alg::FirstChannelInROP
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::FirstChannelInROP()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::PlaneID ChannelMap35Alg::FirstWirePlaneInROP
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMap35Alg") << __func__ << " not implemented!\n";
+  } // ChannelMap35Alg::FirstWirePlaneInROP()
+  
+  
 } // namespace
