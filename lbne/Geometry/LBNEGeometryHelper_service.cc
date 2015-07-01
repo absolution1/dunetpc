@@ -44,7 +44,8 @@ namespace lbne
         = sortingParameters.get< std::string >("DetectorVersion");
       
       if (( detectorVersion.find("v3") != std::string::npos )
-        || ( detectorVersion.find("v4") != std::string::npos ))
+        || ( detectorVersion.find("v4") != std::string::npos )
+        || ( detectorVersion.find("v5") != std::string::npos ))
         fChannelMap = std::make_shared<geo::ChannelMap35OptAlg>(sortingParameters);
       else
         fChannelMap = std::make_shared<geo::ChannelMap35Alg>(sortingParameters);
