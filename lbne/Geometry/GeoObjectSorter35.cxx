@@ -192,11 +192,11 @@ namespace geo{
 								 && (xyz1[2] < 102)); //
       else if(detVersion=="lbne35t4apa_v2") InVertSplitRegion = ((52.74 < xyz1[2])    // ...and improved
       								 && (xyz1[2] < 106.23));
-      else if(detVersion=="lbne35t4apa_v3") InVertSplitRegion = ((51.41045 < xyz1[2])   
+      else if(    detVersion=="lbne35t4apa_v3"
+	       || detVersion=="lbne35t4apa_v4"
+               || detVersion=="lbne35t4apa_v5"
+	                                  ) InVertSplitRegion = ((51.41045 < xyz1[2])   
       								 && (xyz1[2] < 103.33445));
-      else if(detVersion=="lbne35t4apa_v4") InVertSplitRegion = ((51.41045 < xyz1[2]) // v4 is the same as v3 here
-      								 && (xyz1[2] < 103.33445));
-
       ///////////////////////////////////////////////////////////
 
       // we want the wires to be sorted such that the smallest corner wire
