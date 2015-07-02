@@ -1,5 +1,6 @@
 #include <iostream>
 #include <utility>
+#include <set>
 
 
 #include "art/Framework/Core/EDFilter.h" 
@@ -39,11 +40,10 @@ namespace filt{
       std::vector<int> fInterestingPDGs; //A vector of particle PDGs which want to be filtered on
       double fParticleMinEnergy;  //The minimum energy of a particle to be filtered
       double fParticleMaxEnergy;  //The maximum energy of a particle to be filtered
-      double fParticleMinEDep;  //The minimum energy a particle must deposit in an external counter to be filtered
   
-      bool IsInterestingParticle(const simb::MCParticle &particle);  //Define whether a particular particle is initially worth saving e.g. is it a muon, pion etc
-      bool UsesCounterSetPair(const CounterSetPair &CSP, const std::vector<const sim::AuxDetSimChannel*> &auxDetSimChannels, const simb::MCParticle &particle); //Check if a particle uses a pariwse set of counters
-      bool UsesCounterSet(const std::vector<unsigned int> &counterIDs, const std::vector<const sim::AuxDetSimChannel*> &auxDetSimChannels, const simb::MCParticle &particle); //Check if a particle uses one set of the pairwise set of counters
+      bool IsInterestingParticle(const art::Ptr<simb::MCParticle> particle);  //Define whether a particular particle is initially worth saving e.g. is it a muon, pion etc
+      bool UsesCounterSetPair(const CounterSetPair &CSP, const std::set<unsigned int> &usedCounterIDs); //Check if a list of counter IDs matches with those in a particular set pair
+      bool UsesCounterSet(const std::vector<unsigned int> &counterIDs, const std::set<unsigned int> &usedCounterIDs); //Check if any of a list of counters are counter in a particular counter set
 
   };
 
@@ -68,39 +68,53 @@ namespace filt{
     std::cout<<"Particle min energy: " << fParticleMinEnergy << std::endl;
     fParticleMaxEnergy = pset.get<double>("ParticleMaxEnergy",999999999);
     std::cout<<"Particle max energy: " << fParticleMaxEnergy << std::endl;
-    fParticleMinEDep = pset.get<double>("ParticleMinEDep",1e-9);
-    std::cout<<"Particle min E deposit: " << fParticleMinEDep << std::endl;
   }
 
   bool LArG4Filter::filter(art::Event & e){
 
-    //Get the simulated counters
-    std::vector<const sim::AuxDetSimChannel*> auxDetSimChannels;
-    e.getView("largeant",auxDetSimChannels);
+    art::ServiceHandle<geo::Geometry> geom;
 
-    //Get the simulated particles
-    std::vector< art::Handle< std::vector<simb::MCTruth> > > mclists;
-    e.getManyByType(mclists);
-    //Loop through the list of particles
-    for (unsigned int i = 0; i < mclists.size() ; i++){
-      for (unsigned int j = 0; j < mclists[i]->size(); j++){
-        const art::Ptr<simb::MCTruth> mc_truth(mclists[i],j);
-        for (int part = 0; part < mc_truth->NParticles(); part++){
-          //Get an individual particle
-          const simb::MCParticle particle = mc_truth->GetParticle(part);
-          //Check if the particle is initially interested
-          if (IsInterestingParticle(particle) == true){
-            //Now see if it goes through a pairwise counter set
-            for (unsigned int pair_i = 0; pair_i < fCounterSetPairs.size(); pair_i++){
-              if (!fCounterSetPairs[pair_i].IsRequested) continue;
-              //If the particle uses deposits energy in both of the opposing counter sets, save it
-              if (UsesCounterSetPair(fCounterSetPairs[pair_i], auxDetSimChannels, particle)){
-                //std::cout<<"DID USE COUNTER"<<std::endl;
-                std::cout<<"SELECTED EVENT"<<std::endl;
-                return true;
-              }
-              //else std::cout<<"DID NOT USE COUNTER"<<std::endl;
-            }
+
+    //Get the vector of particles
+    art::Handle<std::vector<simb::MCParticle> > particles;
+    e.getByLabel("largeant",particles);
+    //Loop through the particles
+    for (unsigned int part_i = 0; part_i < particles->size(); part_i++){
+      //Get the particle
+      const art::Ptr<simb::MCParticle> particle(particles,part_i);
+      //Check if the particle is initially worth considering
+      if (IsInterestingParticle(particle)){
+        //OK so the particle matches the criteria we need.  Now we need to get the IDs of all external counters it passes through
+        //To do this, get the trajectory points and find which counter (if any) said points are contained in
+        //Use a set to store the counter IDs the particle passes through
+        std::set<unsigned int> usedExtCounterIDs;
+        //Now get the trajcectory points
+        unsigned int npts = particle->NumberTrajectoryPoints();
+        //Loop over those points
+        for (unsigned int pt = 0; pt < npts; pt++){
+          //Get the position at the point
+          TLorentzVector pos4 = particle->Position(pt);
+          //The function which checks whether a position is contained in a counter requires a double[3].  So convert the position to that format
+          double pos[3];
+          pos[0] = pos4.X();
+          pos[1] = pos4.Y();
+          pos[2] = pos4.Z();
+          //If the position is not contained in a counter, the function throws an exception.  We don't want to end the process when this happens
+          try{
+            //std::cout<<"AuxDetID: " << geom->FindAuxDetAtPosition(pos) << "  pdg: " << particle->PdgCode() << std::endl;
+            unsigned int counterID = geom->FindAuxDetAtPosition(pos);
+            usedExtCounterIDs.insert(counterID);
+          }
+          catch(...){};
+        }
+        std::cout<<"NCounters (any) passed through: " << usedExtCounterIDs.size() << std::endl;
+        //We now have a list (set) of the counter IDs which the particles passed through.  Now compare this list with the information stored in the CounterSetPairs
+        for (unsigned int csp_i = 0; csp_i < fCounterSetPairs.size(); csp_i++){
+          //Only bother comparing the information if a particlar counter set pair has been requested
+          if (!fCounterSetPairs[csp_i].IsRequested) continue;
+          if (UsesCounterSetPair(fCounterSetPairs[csp_i],usedExtCounterIDs)){
+            std::cout<<"SELECTED EVENT"<<std::endl;
+            return true;
           }
         }
       }
@@ -151,13 +165,13 @@ namespace filt{
     }
   }
 
-  bool LArG4Filter::IsInterestingParticle(const simb::MCParticle &particle){
+  bool LArG4Filter::IsInterestingParticle(const art::Ptr<simb::MCParticle> particle){
     //Loop over the list of requested PDGs.  See if that matches the particle under consideration
     for (unsigned int i = 0; i < fInterestingPDGs.size(); i++){
       //Check if the particle under consideration has a requested PDG
-      if (particle.PdgCode() == fInterestingPDGs[i]){
+      if (particle->PdgCode() == fInterestingPDGs[i]){
         //Got a requested PDG,  now check that the energy matches the requested range
-        TLorentzVector mom4 = particle.Momentum();
+        TLorentzVector mom4 = particle->Momentum();
         if (mom4.T() > fParticleMinEnergy && mom4.T() < fParticleMaxEnergy){
           std::cout<<"FOUND INTERESTING PARTICLE"<<std::endl;
           return true;
@@ -167,36 +181,33 @@ namespace filt{
     return false;
   }
 
-  bool LArG4Filter::UsesCounterSetPair(const CounterSetPair &CSP, const std::vector<const sim::AuxDetSimChannel*> &auxDetSimChannels, const simb::MCParticle &particle){
-    //Check if particle uses one of the counters in the first pair
-    if (UsesCounterSet(CSP.setA, auxDetSimChannels, particle)){
-      //OK, it used the first set of the pair.  Now see if it uses the second set
-      if (UsesCounterSet(CSP.setB, auxDetSimChannels, particle)) return true;
+  bool LArG4Filter::UsesCounterSetPair(const CounterSetPair &CSP, const std::set<unsigned int> &usedCounterIDs){
+
+    bool usesSetA = UsesCounterSet(CSP.setA,usedCounterIDs);
+    bool usesSetB = UsesCounterSet(CSP.setB,usedCounterIDs);
+    if (usesSetA && usesSetB){
+      std::cout<<"USES BOTH SETS OF COUNTERS"<<std::endl;
+      return true;
     }
+
     return false;
   }
 
-  bool LArG4Filter::UsesCounterSet(const std::vector<unsigned int> &counterIDs, const std::vector<const sim::AuxDetSimChannel*> &auxDetSimChannels, const simb::MCParticle &particle){
-    //The bulk of the filter code is here.
-    //This code works by looking at which particle deposited energy in a particular counter.  If the ID of the energy deposit matches the particle passed as an argument, then the requested particle used one of the counters 
-    //Loop through the counter IDs in the set
-    for (unsigned int id_i = 0; id_i < counterIDs.size(); id_i++){
-      //Get the ID of the counter
-      int counterID = counterIDs[id_i];
-      //Now we need to get the corresponding AuxDetSimChannel
-      const sim::AuxDetSimChannel *channel = auxDetSimChannels[counterID];
-      //Now need the vector of IDEs for this channel
-      const std::vector<sim::AuxDetIDE>& auxDetIDEs = channel->AuxDetIDEs();
-      //Loop over them
-      for (unsigned int ide_i = 0; ide_i < auxDetIDEs.size(); ide_i++){
-        //Check to see if the particle resposible for the deposited energy is the same as the one passed to this function
-        if (auxDetIDEs[ide_i].trackID == particle.TrackId() && auxDetIDEs[ide_i].energyDeposited > fParticleMinEDep) {
+  bool LArG4Filter::UsesCounterSet(const std::vector<unsigned int> &counterIDs, const std::set<unsigned int> &userCounterIDs){
+    //Iterate over the used counter IDs and compare them with every counter ID in the vector.  If a match is found, this means the particle of interest passed through one of the counters in the vector
+    for (std::set<unsigned int>::iterator setIt = userCounterIDs.begin(); setIt != userCounterIDs.end(); setIt++){
+      unsigned int usedCounterID = (*setIt);
+      //Now loop through the IDs in the vector
+      for (unsigned int i = 0; i < counterIDs.size(); i++){
+        //Compare the elements.  If there is a match, return true
+        if (usedCounterID == counterIDs[i]){
+          std::cout<<"Counter ID match"<<std::endl;
           return true;
         }
       }
     }
 
-    //Assume the particle did not deposit energy in any of the counters in the set
+    //None of the used counters matched the counters in the set
     return false;
   }
 

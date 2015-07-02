@@ -10,7 +10,6 @@ lbne35t_larg4extcounterfilter_ewcounterpair:
    InterestingPDGs: [13, -13]
    ParticleMinEnergy: 0.
    ParticleMaxEnergy: 1.0e20
-   ParticleMinEDep: 1.0e-9
 }
 
 END_PROLOG
