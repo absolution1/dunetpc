@@ -14,9 +14,7 @@ void Tutorial2()
     int    CountDetected;  pdtree->SetBranchAddress("CountDetected", &CountDetected);
     double StartXYZT[4];   mctree->SetBranchAddress("StartXYZT",     StartXYZT);
 
-    // Number of events and PDs.  The number of PDs in the file does not match
-    // the actual number of PDs (8) because of a geometry mismatch.  This will
-    // be fixed soon.
+    // Number of events and PDs.
     const int nevents = mctree->GetEntries();
     int numPDs_in_file = pdtree->GetEntries() / nevents;
 
