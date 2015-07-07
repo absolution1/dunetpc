@@ -26,6 +26,11 @@ services:
 }
 
 
+services.user.Geometry.GDML: "lbne35t4apa_v5.gdml"
+services.user.Geometry.ROOT: "lbne35t4apa_v5.gdml"
+services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v5"
+
+
 #Start each new event with an empty event.
 source:
 {
@@ -101,3 +106,7 @@ physics.analyzers.pmtresponse.MakeOpDetEventsTree: false
 
 
 
+# Number of voxels
+services.user.PhotonVisibilityService.NX: 100
+services.user.PhotonVisibilityService.NY: 100
+services.user.PhotonVisibilityService.NZ: 100
