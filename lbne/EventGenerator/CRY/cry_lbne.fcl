@@ -9,7 +9,7 @@ lbne35t_cry.Latitude:     "latitude 41.8 "
 lbne35t_cry.SubBoxLength: "subboxLength 75 "
 
 lbne35t_milliblock_cry:    @local::lbne35t_cry
-lbne35t_milliblock_cry.SampleTime: 1.6e-2   #10*3200 ticks
+lbne35t_milliblock_cry.SampleTime: 1.76e-2   #11*3200 ticks. 11 so have 1 drift window before T = 0, and 10 after.
 
 lbnefd_cry:               @local::standard_cry
 lbnefd_cry.SampleTime:    1.47e-3               #the maximum time it would take an electron to drift through the volume is 2.4 ms
