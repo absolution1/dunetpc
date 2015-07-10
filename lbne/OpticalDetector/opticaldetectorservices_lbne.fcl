@@ -3,20 +3,77 @@
 BEGIN_PROLOG
 
 
+##
+# Opdigi Properties for both detectors
+##
+
 lbnefd_opdigiproperties:           @local::standard_opdigiproperties
 lbnefd_opdigiproperties.WaveformFile: "OpticalDetector/sensl_1.dat"
 lbnefd_opdigiproperties.UseEmpiricalShape: true
 lbnefd_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
 
-lbnefd_opdetresponse:
+lbne35t_opdigiproperties:           @local::standard_opdigiproperties
+lbne35t_opdigiproperties.WaveformFile: "lbne/OpticalDetector/sensl_1.dat"
+lbne35t_opdigiproperties.UseEmpiricalShape: true
+lbne35t_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
+
+
+
+##
+# FD op det response services, nominal and reference
+##
+
+lbnefd_opdetresponse_reference:
 {
-   service_provider:        LBNEOpDetResponse
+   service_provider:        DUNEOpDetResponse
+   QuantumEfficiency:       0.0016
+   WavelengthCutLow:        0 
+   WavelengthCutHigh:       10000
+   
+   LightGuideAttenuation:   true
+   LambdaShort:              5.56 # cm
+   LambdaLong:              44.13 # cm
+   FracShort:                0.40
+   FracLong:                 0.60
+
+   LongAxis:                z
+   
+   # Convert geometry to readout channels
+   # when reading in fast simulation
+   ChannelConversion:       fast
+
+   # QE here includes:
+   #   SiPMQE: 35%
+   #   SiPM Coverage: 71%
+   #   Surface Conversion: 0.92%
+   #   Mesh transmission: 70%
+   #   Attenuation in bars already in library response
+
+}
+
+lbnefd_opdetresponse_alternative: @local::lbnefd_opdetresponse_reference
+lbnefd_opdetresponse_alternative.QuantumEfficiency:   0.0057 # Surface conversion -> 3.3%
+lbnefd_opdetresponse_alternative.LambdaShort:        66.0 #cm
+lbnefd_opdetresponse_alternative.LambdaLong:        350.0 #cm
+
+# Use the alternative design by default
+lbnefd_opdetresponse: @local::lbnefd_opdetresponse_reference
+
+
+
+##
+# 35ton op det response service
+##
+
+lbne35t_opdetresponse:
+{
+   service_provider:        LBNE35tonOpDetResponse
    QuantumEfficiency:       0.0041
    WavelengthCutLow:        0 
    WavelengthCutHigh:       10000
    LightGuideAttenuation:   true
 
-   LongAxis:                z
+   LongAxis:                y
    
    # Convert geometry to readout channels
    # when reading in fast simulation
@@ -30,16 +87,6 @@ lbnefd_opdetresponse:
    #   Attenuation in bars already in library response
 
 }
-
-
-
-lbne35t_opdigiproperties:           @local::standard_opdigiproperties
-lbne35t_opdigiproperties.WaveformFile: "lbne/OpticalDetector/sensl_1.dat"
-lbne35t_opdigiproperties.UseEmpiricalShape: true
-lbne35t_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
-
-lbne35t_opdetresponse: @local::lbnefd_opdetresponse
-lbne35t_opdetresponse.LongAxis: y
 
 
 END_PROLOG
