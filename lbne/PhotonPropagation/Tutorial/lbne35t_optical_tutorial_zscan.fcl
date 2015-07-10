@@ -32,10 +32,6 @@ services:
 }
 
 
-services.user.Geometry.GDML: "lbne35t4apa_v3.gdml"
-services.user.Geometry.ROOT: "lbne35t4apa_v3.gdml"
-services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v3"
-
 
 #Start each new event with an empty event.
 source:

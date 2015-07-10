@@ -120,7 +120,20 @@ lbne35t_g4_services.LArG4Parameters.EnabledPhysics: [ "Em",
 lbne35t_detsim_services:        @local::lbne35t_basic_services
 lbne35t_detsim_services.LArFFT: @local::lbne35t_larfft
 lbne35t_detsim_services.SignalShapingServiceLBNE35t:  @local::lbne35t_signalshapingservice
-lbne35t_detsim.OpDetResponseInterface:                @local::lbne35t_opdetresponse  
+lbne35t_detsim_services.OpDetResponseInterface:       @local::lbne35t_opdetresponse
+lbne35t_detsim_services.LArG4Parameters:              @local::lbne35t_largeantparameters
+
+# enable "FastOptical" in geant4
+lbne35t_detsim_services.LArG4Parameters.UseCustomPhysics: true
+lbne35t_detsim_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                      "FastOptical",
+                                                      "SynchrotronAndGN",
+                                                      "Ion",
+                                                      "Hadron",
+                                                      "Decay",
+                                                      "HadronElastic",
+                                                      "Stopping",
+                                                      "NeutronTrackingCut" ]
 
 # Pre-scale the scintillation yield to save memory (correct when applying QE)
 # MUST match between g4 and detsim steps
@@ -136,7 +149,7 @@ lbne35t_simulation_services.BackTracker:  @local::lbne35t_backtracker
 lbne35t_milliblock_services:    @local::lbne35t_services
 lbne35t_milliblock_services.DetectorProperties: @local::lbne35t_milliblock_detproperties
 
-lbne35t_milliblock_detsim_services: @local::lbne35t_simulation_services
+lbne35t_milliblock_detsim_services: @local::lbne35t_detsim_services
 lbne35t_milliblock_detsim_services.DetectorProperties: @local::lbne35t_milliblock_detproperties
 
 lbne35t_milliblock_simulation_services: @local::lbne35t_simulation_services
