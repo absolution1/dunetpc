@@ -1595,7 +1595,7 @@ EOF
 for($i=0 ; $i<$nAPAs ; $i++){
 for($p=0 ; $p<10 ; $p++){
 print CRYO <<EOF;
-    <volume name="volOpDetSensitive\-$i\-$p">
+    <volume name="volOpDetSensitive_$i\-$p">
       <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
@@ -1861,7 +1861,7 @@ for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
              
              print CRYO <<EOF;
      <physvol>
-       <volumeref ref="volOpDetSensitive\-$apa_i\-$paddle"/>
+       <volumeref ref="volOpDetSensitive_$apa_i\-$paddle"/>
        <position name="posPaddle\-$paddle\-TPC\-$i\-$j\-$k" unit="cm" 
          x="$APACenter_x" 
 	 y="$Paddle_Y" 
