@@ -1,8 +1,8 @@
 #!/bin/bash
 
 script=OpticalLibraryBuild_Grid_lbne.sh
-outdir=/pnfs/lbne/scratch/users/ahimmel/OpticalLibraries/OpticalLib_35ton_v5
-fcl=$PWD/lbne35t_buildopticallibrary_grid.fcl
+outdir=/pnfs/lbne/scratch/users/ahimmel/OpticalLibraries/OpticalLib_dune10kt_v1_workspace/
+fcl=$PWD/dune10kt_workspace_buildopticallibrary_grid.fcl
 
 clientargs="--resource-provides=usage_model=DEDICATED,OPPORTUNISTIC --OS=SL6 --group=lbne -f $fcl --role=Analysis"
 toolsargs="-q -g --opportunistic --OS=SL6 "
