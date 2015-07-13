@@ -142,11 +142,13 @@ namespace opdet {
     art::ServiceHandle< util::TimeService > timeService;
     fSampleFreq = timeService->OpticalClock().Frequency();
 
-    // Assume starting at 0
-    fTimeBegin  = 0;
+    // Assume the readout starts at 0
+    fTimeBegin  = 0.0;
 
-    // Take the TPC readout window size and covert to us with the electronics clock frequency
-    fTimeEnd    = art::ServiceHandle<util::DetectorProperties>()->ReadOutWindowSize()/timeService->TPCClock().Frequency();
+    // Take the TPC readout window size and covert 
+    // to us with the electronics clock frequency
+    fTimeEnd    = art::ServiceHandle< util::DetectorProperties >()->
+                  ReadOutWindowSize()/timeService->TPCClock().Frequency();
 
     
     // Initializing random number engines
@@ -318,7 +320,8 @@ namespace opdet {
           }
         }
         else {
-          mf::LogInfo("OpDetDigitizerLBNE") << "Throwing away an out-of-time photon at " << photonTime << "\n";
+          mf::LogInfo("OpDetDigitizerLBNE") 
+            << "Throwing away an out-of-time photon at " << photonTime << "\n";
         }
       }
     }
@@ -333,7 +336,8 @@ namespace opdet {
 
     for(auto& waveform : waveforms)
     {
-      for(float& value : waveform) value += float(fRandGauss->fire(0, fLineNoise));
+      for(float& value : waveform) value += 
+                                        float(fRandGauss->fire(0, fLineNoise));
     }
 
   }
