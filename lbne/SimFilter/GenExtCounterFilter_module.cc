@@ -17,10 +17,10 @@ namespace filt{
 
   class GenFilter : public art::EDFilter {
     public:
-      explicit GenFilter(fhicl::ParameterSet const & pset) {};
+      explicit GenFilter(fhicl::ParameterSet const & pset);
       virtual ~GenFilter() {};
       virtual bool filter(art::Event& e);
-      void reconfigure(fhicl::ParameterSet const& pset) {};
+      void reconfigure(fhicl::ParameterSet const& pset);
       void beginJob() ;
 
     private:
@@ -34,11 +34,48 @@ namespace filt{
       };
       std::vector<CounterSetPair> fCounterSetPairs;
 
+      //Adjustable parameters
+      bool fUseEWCounterPair; //Use the EW counter pair
+      bool fUseNupSdownCounterPair; //Use North (up) South (down) counter pair
+      bool fUseNdownSupCounterPair; //Use the North (down) South (up) counter pair
+      std::vector<int> fInterestingPDGs; //A vector of particle PDGs which want to be filtered on
+      double fParticleMinEnergy;  //The minimum energy of a particle to be filtered
+      double fParticleMaxEnergy;  //The maximum energy of a particle to be filtered
+      double fCounterSizeScaleFactor; //The scaling factor to increase/decrease thedimensions of the counter
+ 
+
       bool IsInterestingParticle(const simb::MCParticle &particle);
       bool ParticleHitsCounterSetPairs(const simb::MCParticle &particle, const CounterSetPair &CSP);
       bool ParticleHitsCounterSet(const simb::MCParticle &particle, const std::vector<geo::AuxDetGeo*> &counters, const TVector3 &counter_norm);
   
   };
+
+
+  GenFilter::GenFilter::GenFilter(fhicl::ParameterSet const & pset)
+  {
+    this->reconfigure(pset);
+  }
+
+  void GenFilter::reconfigure(fhicl::ParameterSet const& pset){
+    fUseEWCounterPair = pset.get<bool>("UseEWCounterPair",1);
+    std::cout<<"Use EW counter pair: " << fUseEWCounterPair<<std::endl;
+    fUseNupSdownCounterPair = pset.get<bool>("UseNupSdownCounterPair",1);
+    std::cout<<"Use N (up) S (down) counter pair: " << fUseNupSdownCounterPair << std::endl;
+    fUseNdownSupCounterPair = pset.get<bool>("UseNdownSupCounterPair",1);
+    std::cout<<"Use N (down) S (up) counter pair: " << fUseNdownSupCounterPair << std::endl;
+    fInterestingPDGs = pset.get<std::vector<int> >("InterestingPDGs");
+    std::cout<<"NInteresting PDGs: " << fInterestingPDGs.size() << std::endl;
+    for (unsigned int i = 0; i < fInterestingPDGs.size(); i++){
+      std::cout<<"-- PDG: " << fInterestingPDGs[i] << std::endl; 
+    }
+    fParticleMinEnergy = pset.get<double>("ParticleMinEnergy",0);
+    std::cout<<"Particle min energy: " << fParticleMinEnergy << std::endl;
+    fParticleMaxEnergy = pset.get<double>("ParticleMaxEnergy",999999999);
+    std::cout<<"Particle max energy: " << fParticleMaxEnergy << std::endl;
+
+    fCounterSizeScaleFactor = pset.get<double>("CounterSizeScaleFactor",1.);
+    std::cout<<"Counter size scale factor: " << fCounterSizeScaleFactor << std::endl;
+  }
 
 
   bool GenFilter::filter(art::Event & e){
@@ -90,23 +127,65 @@ namespace filt{
   void GenFilter::beginJob() {
     art::ServiceHandle<geo::Geometry> geom;
 
-    CounterSetPair fEWCounterSetPair;
-    for (unsigned int i = 0; i < geom->AuxDetGeoVec().size(); i++){
+    CounterSetPair EWCounterSetPair;
+    CounterSetPair NupSdownCounterSetPair;
+    CounterSetPair NdownSupCounterSetPair;
 
-      if (i >= 6 && i <= 15) fEWCounterSetPair.setA.push_back(geom->AuxDetGeoVec()[i]);
-      else if (i >= 28 && i <= 37) fEWCounterSetPair.setB.push_back(geom->AuxDetGeoVec()[i]);
+    for (unsigned int i = 0; i < geom->AuxDetGeoVec().size(); i++){
+      //The WE counter pairs
+      geo::AuxDetGeo* counter = geom->AuxDetGeoVec()[i];
+      if (i >=6 && i <= 15) EWCounterSetPair.setA.push_back(counter);
+      else if (i >= 28 && i <=37) EWCounterSetPair.setB.push_back(counter);
+      //The N (up) S (down) counter pairs
+      else if (i >= 22 && i <= 27) NupSdownCounterSetPair.setA.push_back(counter);
+      else if (i >= 0 && i <= 5) NupSdownCounterSetPair.setB.push_back(counter);
+      //The N (down) S (up) counter pairs
+      else if (i >= 16 && i <= 21) NdownSupCounterSetPair.setA.push_back(counter);
+      else if (i >= 38 && i <= 43) NdownSupCounterSetPair.setB.push_back(counter);
     }
-    fEWCounterSetPair.normalVec[0] = 0.;
-    fEWCounterSetPair.normalVec[1] = 0.;
-    fEWCounterSetPair.normalVec[2] = 1.;
-    fEWCounterSetPair.isRequested = true;
-    fCounterSetPairs.push_back(fEWCounterSetPair);
+
+    EWCounterSetPair.normalVec[0] = 0.;
+    EWCounterSetPair.normalVec[1] = 0.;
+    EWCounterSetPair.normalVec[2] = 1.;
+    EWCounterSetPair.isRequested = fUseEWCounterPair;
+    fCounterSetPairs.push_back(EWCounterSetPair);
+
+    NupSdownCounterSetPair.normalVec[0] = 1.;
+    NupSdownCounterSetPair.normalVec[1] = 0.;
+    NupSdownCounterSetPair.normalVec[2] = 0.;
+    NupSdownCounterSetPair.isRequested = fUseNupSdownCounterPair;
+    fCounterSetPairs.push_back(NupSdownCounterSetPair);
+
+    NdownSupCounterSetPair.normalVec[0] = 1.;
+    NdownSupCounterSetPair.normalVec[1] = 0.;
+    NdownSupCounterSetPair.normalVec[2] = 0.;
+    NdownSupCounterSetPair.isRequested = fUseNdownSupCounterPair;
+    fCounterSetPairs.push_back(NdownSupCounterSetPair);
+
+    for (unsigned int i = 0; i < fCounterSetPairs.size(); i++){
+      std::cout<<"Counter set pair: "<<i<<std::endl;
+      std::cout<<"--setA size: " << fCounterSetPairs[i].setA.size() << std::endl;
+      std::cout<<"--setB size: " << fCounterSetPairs[i].setB.size() << std::endl;
+
+    }
+
 
   }
 
   bool GenFilter::IsInterestingParticle(const simb::MCParticle &particle){
 
-    if (particle.PdgCode() == 13) return true;
+    for (unsigned int i = 0; i < fInterestingPDGs.size(); i++){
+      //Check if the particle under consideration has a requested PDG
+      if (particle.PdgCode() == fInterestingPDGs[i]){
+        //Got a requested PDG,  now check that the energy matches the requested range
+        TLorentzVector mom4 = particle.Momentum();
+        if (mom4.T() > fParticleMinEnergy && mom4.T() < fParticleMaxEnergy){
+          std::cout<<"FOUND INTERESTING PARTICLE"<<std::endl;
+          return true;
+        }
+      }
+    }
+
     return false;
   }
 
@@ -155,8 +234,8 @@ namespace filt{
       TVector3 pos_corner, neg_corner;
       //Lets start with the one passed to this function
       //The thin dimension of the counter is the one associated with normal passed to this function
-      pos_corner += counter->HalfHeight()*counter_norm;
-      neg_corner += -1.*counter->HalfHeight()*counter_norm; 
+      pos_corner += counter->HalfHeight()*counter_norm*fCounterSizeScaleFactor;
+      neg_corner += -1.*counter->HalfHeight()*counter_norm*fCounterSizeScaleFactor; 
 
       //Now lets to the same for the normal stored in the C++ object (this "normal" actually points out the top of a counter)
       double counter_top_norm_array[3];
@@ -167,15 +246,15 @@ namespace filt{
       counter_top_norm.SetY(counter_top_norm_array[1]);
       counter_top_norm.SetZ(counter_top_norm_array[2]);
       //OK now we can add the dimension to the corner vectors.  The relevant dimension this time is Length/2
-      pos_corner += counter->Length()*counter_top_norm*0.5;
-      neg_corner += -1.*counter->Length()*counter_top_norm*0.5;
+      pos_corner += counter->Length()*counter_top_norm*0.5*fCounterSizeScaleFactor;
+      neg_corner += -1.*counter->Length()*counter_top_norm*0.5*fCounterSizeScaleFactor;
       //Now we need to the same for the vector pointing along the counter.  
       //The relevant dimension in this case in HalfWidth1 (going to assume the counter is a square and take the bigger width)
       //Because we have the other two vectors already, we can very easily get the final one by taking the cross product of them
       TVector3 counter_side_norm = counter_norm.Cross(counter_top_norm); 
       //now add the dimenions onto the corner vectors
-      pos_corner += counter->HalfWidth1()*counter_side_norm;
-      neg_corner += -1.*counter->HalfWidth1()*counter_side_norm;
+      pos_corner += counter->HalfWidth1()*counter_side_norm*fCounterSizeScaleFactor;
+      neg_corner += -1.*counter->HalfWidth1()*counter_side_norm*fCounterSizeScaleFactor;
 
       //Almost ready
       //We have calculated the corners assuming the centre of the counter is the origin.  Two choices, either translate the corners OR translate the propagated particle position
