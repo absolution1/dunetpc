@@ -21,7 +21,7 @@
 		<element name="titanium" formula="Ti" Z="22"> <atom value="47.867"/>   </element>
 		<element name="argon" formula="Ar" Z="18"> <atom value="39.9480"/>  </element>
 		<element name="sulphur" formula="S" Z="16"> <atom value="32.065"/>  </element>
-		<element name="phosphorus" formula="P" Z="16"> <atom value="30.973"/>  </element>
+		<element name="phosphorus" formula="P" Z="15"> <atom value="30.973"/>  </element>
 
 		<material name="Vacuum" formula="Vacuum">
 		<D value="1.e-25" unit="g/cm3"/>
