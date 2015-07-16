@@ -1186,7 +1186,7 @@
        <volumeref ref="volTPCPlaneZLargestLongDriftUpstream"/>
        <position name="posLargestLongDriftUpstreamPlaneZ" unit="cm" 
          x="-111.4890244" y="-3.09510000000002" z="0.761290000000002"/>
-       <rotationref ref="rPlus180AboutY"/>
+       <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVLargestLongDriftUpstream"/>
@@ -1303,7 +1303,7 @@
        <volumeref ref="volTPCPlaneZSmallestLongDrift"/>
        <position name="posSmallestLongDriftPlaneZ" unit="cm" 
          x="-111.4890244" y="-3.0951" z="0"/>
-       <rotationref ref="rPlus180AboutY"/>
+       <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVSmallestLongDrift"/>
@@ -1420,7 +1420,7 @@
        <volumeref ref="volTPCPlaneZMidLongDrift"/>
        <position name="posMidLongDriftPlaneZ" unit="cm" 
          x="-111.4890244" y="-3.0951" z="0"/>
-       <rotationref ref="rPlus180AboutY"/>
+       <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVMidLongDrift"/>
@@ -1537,7 +1537,7 @@
        <volumeref ref="volTPCPlaneZLargestLongDriftDownstream"/>
        <position name="posLargestLongDriftDownstreamPlaneZ" unit="cm" 
          x="-111.4890244" y="-3.09510000000002" z="-0.761290000000002"/>
-       <rotationref ref="rPlus180AboutY"/>
+       <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVLargestLongDriftDownstream"/>
