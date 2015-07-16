@@ -164,8 +164,12 @@ $APAFrame_x              = 5.0661; # ~2in -- this does not include the wire spac
 $TPCWireThickness        = 0.015;
 $TPCWirePlaneThickness   = $TPCWireThickness;
 #$APAWirePlaneSpacing     = 0.4730488 + $TPCWirePlaneThickness; # center to center spacing between all of the wire planes (g, u, v, and x)
-$APAWirePlaneSpacing     = 0.476;
 
+if($Pitch3mmVersion==1){
+    $APAWirePlaneSpacing     = 0.3;
+} else {
+    $APAWirePlaneSpacing     = 0.476;
+}
 
 # At creation of the plane volumes, the y and z boundaries will be increased
 # by this much at each of the 4 edges. this is so the corners of the wire 
