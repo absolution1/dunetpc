@@ -27,7 +27,7 @@ lbnefd_evd:                                   @local::standard_evd
 lbnefd_disp:
 {
  ExptGeoHelperInterface:   @local::lbne_geometry_helper
- Geometry:                 @local::lbnefd_geo 
+ Geometry:                 @local::dune10kt_workspace_geo 
  LArProperties:            @local::lbnefd_properties
  DetectorProperties:       @local::lbnefd_detproperties
  DatabaseUtil:		   @local::lbnefd_database 
@@ -43,6 +43,8 @@ lbnefd_disp:
 # InfoTransfer: 		   @local::lbnefd_infotransfer
  TimeService:              @local::lbnefd_timeservice # defined in timeservice_lbne.fcl
 }
+lbnefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
+lbnefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
 
 
 

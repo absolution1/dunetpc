@@ -4,7 +4,7 @@ lbnefd_signalshapingservice:
 {
   DeconNorm: 200
   ADCPerPCAtLowestASICGain: 9390 #ADC/pC
-  ASICGainInMVPerFC:  [7.8, 7.8, 7.8] #mV/fC for Ind & col planes
+  ASICGainInMVPerFC:  [ 14, 14, 14 ] #mV/fC for Ind & col planes
   ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peaking time (microseconds)	
   
   # Noise Factor - rms ADCs @ lowest ASIC Gain (4.7 mV/fC)
@@ -71,5 +71,6 @@ lbnefd_signalshapingservice:
 
 lbne35t_signalshapingservice:   @local::lbnefd_signalshapingservice
 lbne35t_signalshapingservice.ADCPerPCAtLowestASICGain: 11700 #ADC/pC   (For correct Digitization)
-
+lbne35t_signalshapingservice.ASICGainInMVPerFC: [7.8, 7.8, 7.8] #mV/fC for Ind & col planes
+lbne35t_signalshapingservice.ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peaking time (microseconds)
 END_PROLOG

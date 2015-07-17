@@ -1,5 +1,5 @@
 #include "services_lbne.fcl"
-#include "genie_lbne.fcl"
+#include "genie_dune.fcl"
 #include "largeantmodules_lbne.fcl"
 #include "detsimmodules_lbne.fcl"
 
@@ -33,7 +33,7 @@ physics:
 
  producers:
  {
-   generator: @local::lbnefd_genie_simple_neutrino
+   generator: @local::dunefd_genie_simple_neutrino
    largeant:  @local::lbnefd_largeant	       
    daq:       @local::lbnefd_simwire         
    rns:       { module_type: "RandomNumberSaver" }

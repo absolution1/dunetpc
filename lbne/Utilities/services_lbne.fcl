@@ -24,10 +24,10 @@ BEGIN_PROLOG
 # file to include. This file is an example of that
 
 
-lbnefd_services:
+dunefd_services:
 {
  ExptGeoHelperInterface:       @local::lbne_geometry_helper
- Geometry:                     @local::lbnefd_geo
+ Geometry:                     @local::dune10kt_geo
  TimeService:                  @local::lbnefd_timeservice
  DetectorProperties:           @local::lbnefd_detproperties
  LArProperties:                @local::lbnefd_properties
@@ -38,12 +38,12 @@ lbnefd_services:
  SignalShapingServiceLBNE10kt: @local::lbnefd_signalshapingservice
 }
 
-lbnefd_simulation_services:
+dunefd_simulation_services:
 {
  LArFFT:                       @local::lbnefd_larfft
  LArG4Parameters:              @local::lbnefd_largeantparameters
  ExptGeoHelperInterface:       @local::lbne_geometry_helper
- Geometry:                     @local::lbnefd_geo
+ Geometry:                     @local::dune10kt_geo
  TimeService:                  @local::lbnefd_timeservice
  DetectorProperties:           @local::lbnefd_detproperties
  LArProperties:                @local::lbnefd_properties
@@ -59,12 +59,12 @@ lbnefd_simulation_services:
 
 # lbne10kt and lbne34kt consolidated into lbnefd,
 # but catch any leftover cases of 10kt...
-lbne10kt_services: @local::lbnefd_services
-lbne10kt_services.Geometry.GDML: "lbne10kt.gdml"
-lbne10kt_services.Geometry.ROOT: "lbne10kt.gdml"
-lbne10kt_simulation_services: @local::lbnefd_services
-lbne10kt_simulation_services.Geometry.GDML: "lbne10kt.gdml"
-lbne10kt_simulation_services.Geometry.ROOT: "lbne10kt.gdml"
+#lbne10kt_services: @local::dunefd_services
+#lbne10kt_services.Geometry.GDML: "lbne10kt.gdml"
+#lbne10kt_services.Geometry.ROOT: "lbne10kt.gdml"
+#lbne10kt_simulation_services: @local::dunefd_services
+#lbne10kt_simulation_services.Geometry.GDML: "lbne10kt.gdml"
+#lbne10kt_simulation_services.Geometry.ROOT: "lbne10kt.gdml"
 
 
 lbne35t_basic_services:
