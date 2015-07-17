@@ -284,7 +284,7 @@
 </materials>
 <solids>
     <box name="Inner" lunit="cm" 
-      x="360.843" 
+      x="360.315" 
       y="607.82875" 
       z="232.39"/>
     <box name="InnerUPlane" lunit="cm" 
@@ -16496,7 +16496,7 @@
       lunit="cm"/>
 
     <box name="Outer" lunit="cm" 
-      x="16.443" 
+      x="15.915" 
       y="607.82875" 
       z="232.39"/>
     <box name="OuterUPlane" lunit="cm" 
@@ -32708,15 +32708,15 @@
       lunit="cm"/>
 
     <box name="Cryostat" lunit="cm" 
-      x="759.3241" 
+      x="758.2681" 
       y="1357.6975" 
       z="816.92"/>
     <box name="ArgonInterior" lunit="cm" 
-      x="756.7841"
+      x="755.7281"
       y="1355.1575"
       z="814.38"/>
     <box name="GaseousArgon" lunit="cm" 
-      x="756.7841"
+      x="755.7281"
       y="50"
       z="814.38"/>
     <subtraction name="SteelShell">
@@ -32783,7 +32783,7 @@
 
 
     <box name="FoamPadBlock" lunit="cm"
-      x="759.3241 + 2*80"
+      x="758.2681 + 2*80"
       y="1357.6975 + 2*80"
       z="816.92 + 2*80" />
 
@@ -32794,7 +32794,7 @@
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="759.3241 + 2*80 + 2*100"
+      x="758.2681 + 2*80 + 2*100"
       y="1357.6975 + 2*80 + 2*50"
       z="816.92 + 2*80 + 2*100" />
 
@@ -32805,13 +32805,13 @@
     </subtraction>
 
     <box name="DetEnclosure" lunit="cm" 
-      x="1219.3241"
+      x="1218.2681"
       y="1817.6975"
       z="1376.92"/>
 
 
     <box name="World" lunit="cm" 
-      x="1219.3241+2*3000" 
+      x="1218.2681+2*3000" 
       y="1817.6975+2*3000" 
       z="1376.92+2*3000"/>
 </solids>
@@ -62575,25 +62575,25 @@
      <physvol>
        <volumeref ref="volTPCPlaneZInner"/>
        <position name="posInnerPlaneZ" unit="cm" 
-         x="-179.953" y="-3.09062500000005" z="0"/>
+         x="-179.865" y="-3.09062500000005" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVInner"/>
        <position name="posInnerPlaneV" unit="cm" 
-         x="-179.477" y="-3.24937500000004" z="0"/>
+         x="-179.565" y="-3.24937500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneUInner"/>
        <position name="posInnerPlaneU" unit="cm" 
-         x="-179.001" y="-3.40812500000004" z="0"/>
+         x="-179.265" y="-3.40812500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveInner"/>
        <position name="posInnerActive" unit="cm" 
-         x="0.713999999999999" y="-3.90500000000003" z="0"/>
+         x="0.450000000000045" y="-3.90500000000003" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
     </volume>
@@ -92357,25 +92357,25 @@
      <physvol>
        <volumeref ref="volTPCPlaneZOuter"/>
        <position name="posOuterPlaneZ" unit="cm" 
-         x="-7.753" y="-3.09062500000005" z="0"/>
+         x="-7.665" y="-3.09062500000005" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVOuter"/>
        <position name="posOuterPlaneV" unit="cm" 
-         x="-7.277" y="-3.24937500000004" z="0"/>
+         x="-7.365" y="-3.24937500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneUOuter"/>
        <position name="posOuterPlaneU" unit="cm" 
-         x="-6.801" y="-3.40812500000004" z="0"/>
+         x="-7.065" y="-3.40812500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveOuter"/>
        <position name="posOuterActive" unit="cm" 
-         x="0.714" y="-3.90500000000003" z="0"/>
+         x="0.449999999999999" y="-3.90500000000003" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
     </volume>
@@ -92782,7 +92782,7 @@
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-0" unit="cm" 
-	  x="0 - 5.0661/2 - 360.843/2" 
+	  x="0 - 5.0661/2 - 360.315/2" 
 	  y="-324.664375" 
 	  z="9.80499999999994"/> 
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
@@ -92790,7 +92790,7 @@
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-1" unit="cm"
-	  x="0 + 5.0661/2 + 360.843/2" 
+	  x="0 + 5.0661/2 + 360.315/2" 
 	  y="-324.664375"
 	  z="9.80499999999994"/>
         <rotationref ref="rPlus180AboutX"/>
@@ -92799,7 +92799,7 @@
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode-1-0" unit="cm" 
-	x="-363.38405" 
+	x="-362.85605" 
 	y="-324.664375" 
 	z="9.80499999999994"/> 
         <rotationref ref="rIdentity"/>
@@ -92807,7 +92807,7 @@
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode-1-1" unit="cm" 
-	x="363.38405" 
+	x="362.85605" 
 	y="-324.664375" 
 	z="9.80499999999994"/> 
         <rotationref ref="rIdentity"/>
@@ -93005,7 +93005,7 @@
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-2" unit="cm" 
-	  x="0 - 5.0661/2 - 360.843/2" 
+	  x="0 - 5.0661/2 - 360.315/2" 
 	  y="283.164375" 
 	  z="9.80499999999994"/> 
         <rotationref ref="rPlus180AboutY"/>
@@ -93013,7 +93013,7 @@
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-3" unit="cm"
-	  x="0 + 5.0661/2 + 360.843/2" 
+	  x="0 + 5.0661/2 + 360.315/2" 
 	  y="283.164375"
 	  z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
@@ -93022,7 +93022,7 @@
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode-2-0" unit="cm" 
-	x="-363.38405" 
+	x="-362.85605" 
 	y="283.164375" 
 	z="9.80499999999994"/> 
         <rotationref ref="rIdentity"/>
@@ -93030,7 +93030,7 @@
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode-2-1" unit="cm" 
-	x="363.38405" 
+	x="362.85605" 
 	y="283.164375" 
 	z="9.80499999999994"/> 
         <rotationref ref="rIdentity"/>
@@ -93228,7 +93228,7 @@
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-4" unit="cm" 
-	  x="0 - 5.0661/2 - 360.843/2" 
+	  x="0 - 5.0661/2 - 360.315/2" 
 	  y="-324.664375" 
 	  z="242.195"/> 
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
@@ -93236,7 +93236,7 @@
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-5" unit="cm"
-	  x="0 + 5.0661/2 + 360.843/2" 
+	  x="0 + 5.0661/2 + 360.315/2" 
 	  y="-324.664375"
 	  z="242.195"/>
         <rotationref ref="rPlus180AboutX"/>
@@ -93245,7 +93245,7 @@
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode-3-0" unit="cm" 
-	x="-363.38405" 
+	x="-362.85605" 
 	y="-324.664375" 
 	z="242.195"/> 
         <rotationref ref="rIdentity"/>
@@ -93253,7 +93253,7 @@
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode-3-1" unit="cm" 
-	x="363.38405" 
+	x="362.85605" 
 	y="-324.664375" 
 	z="242.195"/> 
         <rotationref ref="rIdentity"/>
@@ -93451,7 +93451,7 @@
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-6" unit="cm" 
-	  x="0 - 5.0661/2 - 360.843/2" 
+	  x="0 - 5.0661/2 - 360.315/2" 
 	  y="283.164375" 
 	  z="242.195"/> 
         <rotationref ref="rPlus180AboutY"/>
@@ -93459,7 +93459,7 @@
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-7" unit="cm"
-	  x="0 + 5.0661/2 + 360.843/2" 
+	  x="0 + 5.0661/2 + 360.315/2" 
 	  y="283.164375"
 	  z="242.195"/>
         <rotationref ref="rIdentity"/>
@@ -93468,7 +93468,7 @@
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode-4-0" unit="cm" 
-	x="-363.38405" 
+	x="-362.85605" 
 	y="283.164375" 
 	z="242.195"/> 
         <rotationref ref="rIdentity"/>
@@ -93476,7 +93476,7 @@
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode-4-1" unit="cm" 
-	x="363.38405" 
+	x="362.85605" 
 	y="283.164375" 
 	z="242.195"/> 
         <rotationref ref="rIdentity"/>
