@@ -9,7 +9,7 @@ services:
   Timing:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
-  #user:         @local::lbnefd_simulation_services
+  #user:         @local::dunefd_simulation_services
   user:         @local::lbne35t_simulation_services
 }
 

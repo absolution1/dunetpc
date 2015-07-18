@@ -34,7 +34,7 @@ lbne35t_photolibbuild_services.LArProperties.ScintPreScale: 1
 
 
 # FD G4-specific services do not exist yet
-lbnefd_photolibbuild_services:                        @local::lbnefd_simulation_services
+lbnefd_photolibbuild_services:                        @local::dunefd_simulation_services
 
 # Set the photon visiblity service to library building mode
 lbnefd_photolibbuild_services.PhotonVisibilityService: @local::lbnefd_photonvisibilityservice_buildlib
