@@ -43,6 +43,7 @@
 #include "RecoBase/Cluster.h"
 #include "RecoBase/Track.h"
 #include "RecoBase/SpacePoint.h"
+#include "RecoBase/OpFlash.h"
 #include "Utilities/LArProperties.h"
 #include "Utilities/DetectorProperties.h"
 #include "Utilities/AssociationUtil.h"
@@ -76,6 +77,7 @@ const int kMaxTrack      = 1000;  //maximum number of tracks
 const int kMaxHits       = 10000; //maximum number of hits
 const int kMaxClust      = 10000; //maximum number of clusters
 const int kMaxTrackHits  = 1000;  //maximum number of space points
+const int kMaxFlash      = 100;  //maximum number of flashes
 
 namespace AnaTree {
   class AnaTree;
@@ -217,9 +219,9 @@ private:
   double trkpitch[kMaxTrack][3];
   int    nhits;
   int    nhits2;
-  int nclust;
+  int    nclust;
 
-  int  hit_tpc[kMaxHits];
+  int    hit_tpc[kMaxHits];
   int    hit_plane[kMaxHits];
   int    hit_wire[kMaxHits];
   int    hit_channel[kMaxHits];
@@ -227,6 +229,16 @@ private:
   double hit_charge[kMaxHits];
   double hit_ph[kMaxHits];
   int    hit_trkid[kMaxHits];
+
+  int    flash_total;
+  double flash_time[kMaxFlash];
+  double flash_width[kMaxFlash];
+  double flash_abstime[kMaxFlash];
+  double flash_YCentre[kMaxFlash];
+  double flash_YWidth[kMaxFlash];
+  double flash_ZCentre[kMaxFlash];
+  double flash_ZWidth[kMaxFlash];
+  double flash_TotalPE[kMaxFlash];
 
 
   std::string fTrigModuleLabel;
@@ -238,20 +250,7 @@ private:
   std::string fSimulationProducerLabel; 
   std::string fCalorimetryModuleLabel; 
   std::string fMCTruthT0ModuleLabel;
-
-
-
-
-
-  int fDump;                 // Number of events to dump to debug message facility.
-  int fPdg;
-  double fMinMCKE;           // Minimum MC particle kinetic energy (GeV).
-  double fMinMCLen;          // Minimum MC particle length in tpc (cm).
-  double fMatchColinearity;  // Minimum matching colinearity.
-  double fMatchDisp;         // Maximum matching displacement.
-  double fWMatchDisp;        // Maximum matching displacement in the w direction.
-  bool fIgnoreSign;          // Ignore sign of mc particle if true.
-  bool fStitchedAnalysis;    // if true, do the whole drill-down from stitched track to assd hits
+  std::string fFlashModuleLabel;
 
   double fElectronsToGeV; // conversion factor
   art::ServiceHandle<geo::Geometry> fGeometry;       // pointer to Geometry service
@@ -264,24 +263,16 @@ private:
 
 AnaTree::AnaTree::AnaTree(fhicl::ParameterSet const & pset)
   : EDAnalyzer(pset)
-  , fTrigModuleLabel       (pset.get< std::string >("TrigModuleLabel"))
-  , fHitsModuleLabel       (pset.get< std::string >("HitsModuleLabel"))
-  , fTrackModuleLabel       (pset.get< std::string >("TrackModuleLabel"))
-  , fClusterModuleLabel       (pset.get< std::string >("ClusterModuleLabel"))
-  , fTrkSpptAssocModuleLabel    (pset.get< std::string >("TrkSpptAssocModuleLabel"))
-  , fHitSpptAssocModuleLabel    (pset.get< std::string >("HitSpptAssocModuleLabel"))
+  , fTrigModuleLabel         ( pset.get< std::string >("TrigModuleLabel"))
+  , fHitsModuleLabel         ( pset.get< std::string >("HitsModuleLabel"))
+  , fTrackModuleLabel        ( pset.get< std::string >("TrackModuleLabel"))
+  , fClusterModuleLabel      ( pset.get< std::string >("ClusterModuleLabel"))
+  , fTrkSpptAssocModuleLabel ( pset.get< std::string >("TrkSpptAssocModuleLabel"))
+  , fHitSpptAssocModuleLabel ( pset.get< std::string >("HitSpptAssocModuleLabel"))
   , fSimulationProducerLabel ( pset.get< std::string >("SimulationLabel"))
-  , fCalorimetryModuleLabel ( pset.get< std::string >("CalorimetryModuleLabel"))
-  , fMCTruthT0ModuleLabel     ( pset.get< std::string >("MCTruthT0ModuleLabel"))
-  , fDump              (pset.get<int>("Dump"))
-  , fPdg              (pset.get<int>("pdg"))
-  , fMinMCKE            (pset.get<double>("MinMCKE"))
-  , fMinMCLen           (pset.get<double>("MinMCLen"))
-  , fMatchColinearity       (pset.get<double>("MatchColinearity"))
-  , fMatchDisp             (pset.get<double>("MatchDisp"))
-  , fWMatchDisp             (pset.get<double>("WMatchDisp"))
-  , fIgnoreSign             (pset.get<bool>("IgnoreSign"))
-  , fStitchedAnalysis       (pset.get<bool>("StitchedAnalysis",false))
+  , fCalorimetryModuleLabel  ( pset.get< std::string >("CalorimetryModuleLabel"))
+  , fMCTruthT0ModuleLabel    ( pset.get< std::string >("MCTruthT0ModuleLabel"))
+  , fFlashModuleLabel        ( pset.get< std::string >("FlashModuleLabel"))
 {
 
 }
@@ -330,15 +321,28 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
-  if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
-    art::fill_ptr_vector(tracklist, trackListHandle);    
+  if ( fTrackModuleLabel != "" ) {
+    if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
+      art::fill_ptr_vector(tracklist, trackListHandle);
+  }
   
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
-  if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
-    art::fill_ptr_vector(hitlist, hitListHandle);
+  if ( fHitsModuleLabel != "" ) {
+    if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
+      art::fill_ptr_vector(hitlist, hitListHandle);
+  }
+
+  art::Handle< std::vector<recob::Cluster> > clusterListHandle;
+  std::vector<art::Ptr<recob::Cluster> > clusterlist;
+  if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
+    art::fill_ptr_vector(clusterlist, clusterListHandle);
   
-  
+  art::Handle< std::vector<recob::OpFlash> > flashListHandle;
+  std::vector<art::Ptr<recob::OpFlash> > flashlist;
+  if (evt.getByLabel(fFlashModuleLabel, flashListHandle))
+    art::fill_ptr_vector(flashlist, flashListHandle);
+
   art::Handle< std::vector<sim::SimChannel> > simChannelHandle;
   evt.getByLabel(fSimulationProducerLabel, simChannelHandle);
  
@@ -552,7 +556,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkpitch[i][j] = tracklist[i]->PitchInView(geo::kZ);
       }
       catch( cet::exception &e) {
-	mf::LogWarning("AnaTree")<<"caught exeption "<<e<<"\n setting pitch to 0";
+	mf::LogWarning("AnaTree")<<"caught exception "<<e<<"\n setting pitch to 0";
 	trkpitch[i][j] = 0;
       }
     }
@@ -562,19 +566,13 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // -----------------------------------------------
   // NOW DO THE CLUSTER/HIT STUFF.......
   // -----------------------------------------------
-  
-  art::Handle< std::vector<recob::Cluster> > clusterListHandle;
-  std::vector<art::Ptr<recob::Cluster> > clusterlist;
-  if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
-    art::fill_ptr_vector(clusterlist, clusterListHandle);
-
   nhits  = hitlist.size();
   nhits2 = std::min(int(hitlist.size()),kMaxHits);
-  nclust=clusterlist.size();
-  for (int i = 0; i<std::min(int(hitlist.size()),kMaxHits); ++i){
+  nclust = clusterlist.size();
+  for (int i = 0; i < nhits2; ++i){
     unsigned int channel = hitlist[i]->Channel();
     geo::WireID wireid = hitlist[i]->WireID();
-    hit_tpc[i]     =wireid.TPC;
+    hit_tpc[i]     = wireid.TPC;
     hit_plane[i]   = wireid.Plane;
     hit_wire[i]    = wireid.Wire;
     hit_channel[i] = channel;
@@ -587,6 +585,24 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     if ( i == kMaxHits ) break;
   }
   
+  // -----------------------------------------------
+  // NOW DO THE FLASH STUFF.......
+  // -----------------------------------------------
+
+  flash_total = flashlist.size();
+  std::cout << "Total Number of flashes for this event...." << flash_total << std::endl;
+  for ( int f = 0; f < flash_total; ++f ) {
+    flash_time[f]      = flashlist[f]->Time();
+    flash_width[f]     = flashlist[f]->TimeWidth();
+    flash_abstime[f]   = flashlist[f]->AbsTime();
+    flash_YCentre[f]   = flashlist[f]->YCenter();
+    flash_YWidth[f]    = flashlist[f]->YWidth();
+    flash_ZCentre[f]   = flashlist[f]->ZCenter();
+    flash_ZWidth[f]    = flashlist[f]->ZWidth();
+    flash_TotalPE[f]   = flashlist[f]->TotalPE();
+  }
+
+
   // -----------------------------------------------
   // NOW DO ALL THE MONTE CARLO TRUTH STUFF.......
   // -----------------------------------------------
@@ -860,6 +876,16 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("hit_charge",hit_charge,"hit_charge[nhits2]/D");
   fTree->Branch("hit_ph",hit_ph,"hit_ph[nhits2]/D");
   fTree->Branch("hit_trkid",hit_trkid,"hit_trkid[nhits2]/I");
+
+  fTree->Branch("flash_total"  ,&flash_total ,"flash_total/I");
+  fTree->Branch("flash_time"   ,flash_time   ,"flash_time[flash_total]/D");
+  fTree->Branch("flash_width"  ,flash_width  ,"flash_width[flash_total]/D");
+  fTree->Branch("flash_abstime",flash_abstime,"flash_abstime[flash_total]/D");
+  fTree->Branch("flash_YCentre",flash_YCentre,"flash_YCentre[flash_total]/D");
+  fTree->Branch("flash_YWidth" ,flash_YWidth ,"flash_YWidth[flash_total]/D");
+  fTree->Branch("flash_ZCentre",flash_ZCentre,"flash_ZCentre[flash_total]/D");
+  fTree->Branch("flash_ZWidth" ,flash_ZWidth ,"flash_ZWidth[flash_total]/D");
+  fTree->Branch("flash_TotalPE",flash_TotalPE,"flash_TotalPE[flash_total]/D");
 }
 
 //void AnaTree::AnaTree::reconfigure(fhicl::ParameterSet const & p)
@@ -995,7 +1021,17 @@ void AnaTree::AnaTree::ResetVars(){
     hit_ph[i] = -99999;
     hit_trkid[i] = -99999;
   }
-
+  flash_total = 0;
+  for (int f = 0; f < kMaxFlash; ++f) {
+    flash_time[f]    = -9999;
+    flash_width[f]   = -9999;
+    flash_abstime[f] = -9999;
+    flash_YCentre[f] = -9999;
+    flash_YWidth[f]  = -9999;
+    flash_ZCentre[f] = -9999;
+    flash_ZWidth[f]  = -9999;
+    flash_TotalPE[f] = -9999;
+  }
 }
 
 void AnaTree::AnaTree::endJob()

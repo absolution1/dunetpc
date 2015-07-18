@@ -1928,7 +1928,7 @@ print TPC <<EOF;
        <volumeref ref="volTPCPlaneZ${_[3]}"/>
        <position name="pos${_[3]}PlaneZ" unit="cm" 
          x="$posZplane[0]" y="$posZplane[1]" z="$posZplane[2]"/>
-       <rotationref ref="$planeRot"/>
+       <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneV${_[3]}"/>
