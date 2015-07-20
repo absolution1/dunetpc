@@ -39,6 +39,21 @@
 #include <iostream>
 #include <fstream>
 
+struct IniSeg
+{
+	unsigned int idcl1;
+	unsigned int idcl2;
+	pma::Track3D* track;
+
+	IniSeg(void)
+	{
+	}
+
+	~IniSeg()
+	{
+	}
+};
+
 class EMShower3D;
 
 class EMShower3D : public art::EDProducer {
@@ -86,16 +101,19 @@ private:
 	bool Has(const std::vector<size_t>& v, size_t idx);
 
 	void Test(art::Event const & e);
-
-	std::vector< pma::Track3D* > fInisegs;
-	std::vector< pma::Track3D* > fSeltracks;
+	
+	std::vector< IniSeg > fInisegs;
+	std::vector< IniSeg > fSeltracks;
 	std::vector< std::vector< art::Ptr<recob::Hit> > > fClusters;
   unsigned int fTrkIndex; unsigned int fClIndex;
 
 	std::string fCluModuleLabel;
 	std::string fTrk3DModuleLabel;
 
+	art::Handle< std::vector< recob::Cluster > > fCluListHandle;
+
 	pma::ProjectionMatchingAlg fProjectionMatchingAlg;
+
 
 	ofstream file0; // test
 };
@@ -166,6 +184,8 @@ void EMShower3D::produce(art::Event & e)
 	fInisegs.clear();
 	fClusters.clear();
 
+  if (!e.getByLabel(fCluModuleLabel, fCluListHandle)) return;
+
 	for (unsigned int c = 0; c < geom->Ncryostats(); c++)
 	{
 		const geo::CryostatGeo& cryo = geom->Cryostat(c);
@@ -206,18 +226,22 @@ void EMShower3D::produce(art::Event & e)
 	for (size_t i = 0; i < 6; i++) sp_err[i] = 1.0;
 
 	fTrkIndex = 0;
-	for (auto const& trk : fSeltracks) 
+	for (auto const trk : fSeltracks) 
 	{
-			tracks->push_back(ConvertFrom(*trk));
+			tracks->push_back(ConvertFrom(*(trk.track)));
 			fTrkIndex++;
+
+			std::vector< art::Ptr< recob::Cluster > > cl2d; 
+			cl2d.push_back( art::Ptr< recob::Cluster >(fCluListHandle, trk.idcl1) );
+			cl2d.push_back( art::Ptr< recob::Cluster >(fCluListHandle, trk.idcl2) );
 
 			std::vector< art::Ptr< recob::Hit > > hits2d; 
 			art::PtrVector< recob::Hit > sp_hits;
 
 			spStart = allsp->size();
-			for (int h = trk->size() - 1; h >= 0; h--)
+			for (int h = trk.track->size() - 1; h >= 0; h--)
 			{
-				pma::Hit3D* h3d = (*trk)[h];
+				pma::Hit3D* h3d = (*trk.track)[h];
 				hits2d.push_back(h3d->Hit2DPtr());
 
 				if ((h == 0) ||
@@ -242,6 +266,11 @@ void EMShower3D::produce(art::Event & e)
 				util::CreateAssn(*this, e, *allsp, sp_hits, *sp2hit);
 			}
 			spEnd = allsp->size();
+
+			if (cl2d.size())
+			{
+				util::CreateAssn(*this, e, *tracks, cl2d, *trk2cl); 
+			}
 
 			if (hits2d.size())
 			{
@@ -268,10 +297,10 @@ void EMShower3D::produce(art::Event & e)
 	// stop
 
 	for (unsigned int i = 0; i < fSeltracks.size(); i++)
-			delete fSeltracks[i];
+			delete fSeltracks[i].track; 
 
 	for (unsigned int i = 0; i < fInisegs.size(); i++)
-			delete fInisegs[i];
+			delete fInisegs[i].track;  
 
 		e.put(std::move(tracks));
 		e.put(std::move(clusters));
@@ -362,13 +391,9 @@ std::vector< Shower2DAlg* > EMShower3D::CollectShower2D(art::Event const & e, un
 	art::ServiceHandle<util::LArProperties> larprop;
 	art::ServiceHandle<geo::Geometry> geom;
 
-	art::Handle< std::vector< recob::Cluster > > cluListHandle;
+	art::FindManyP< recob::Hit > fb(fCluListHandle, e, fCluModuleLabel);
 
-  if (e.getByLabel(fCluModuleLabel, cluListHandle))
-	{
-		art::FindManyP< recob::Hit > fb(cluListHandle, e, fCluModuleLabel);
-
-		for (unsigned int c = 0; c < cluListHandle->size(); c++)
+		for (unsigned int c = 0; c < fCluListHandle->size(); c++)
 		{
 			std::vector< art::Ptr<recob::Hit> > hitlist;	
 			hitlist = fb.at(c);
@@ -384,12 +409,12 @@ std::vector< Shower2DAlg* > EMShower3D::CollectShower2D(art::Event const & e, un
 				if (hits_out.size() > 5)
 				{
 					fClusters.push_back(hits_out);
-					Shower2DAlg * sh = new Shower2DAlg(hits_out, 14); 
+					Shower2DAlg * sh = new Shower2DAlg(hits_out, 14, c); 
 					input.push_back(sh);
 				}
 			}
 		}
-	}
+	
 
 	return input;
 }
@@ -459,12 +484,15 @@ void EMShower3D::Make3DSeg(art::Event const & e, std::vector< Shower2DAlg* > pai
 
 	if ((vec1.size() < 3) && (vec2.size() < 3)) return;
 
-
 	if ((trk->back()->Hit2DPtr() == vec1[0])
 			 || (trk->back()->Hit2DPtr() == vec2[0])) trk->Flip();			
 
-	fInisegs.push_back(trk);
+	IniSeg initrack;
+	initrack.idcl1 = pair[0]->GetIdCl();
+	initrack.idcl2 = pair[1]->GetIdCl();
+	initrack.track = trk;	
 
+	fInisegs.push_back(initrack);
 }
 
 void EMShower3D::SelectTrks(art::Event const & e)
@@ -483,7 +511,7 @@ void EMShower3D::SelectTrks(art::Event const & e)
 
 				for (unsigned int s = 0; s < fInisegs.size(); s++)
 				{
-					pma::Track3D* seg = fInisegs[s];
+					pma::Track3D* seg = fInisegs[s].track;
 					TVector3 segfront = seg->front()->Point3D();
 					
 					for (unsigned int v = 0; v < trk.NumberTrajectoryPoints(); v++)
@@ -513,7 +541,7 @@ void EMShower3D::SelectTrks(art::Event const & e)
 					double inilength = (segsave->back()->Point3D() - segsave->front()->Point3D()).Mag();
 					if (inilength == 0) { fInisegs.erase(fInisegs.begin() + ids); continue;}
 
-					fSeltracks.push_back(segsave);
+					fSeltracks.push_back(fInisegs[ids]);
 					fInisegs.erase(fInisegs.begin() + ids);
 				}
 			}
