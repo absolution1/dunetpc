@@ -238,6 +238,7 @@ private:
   double flash_YWidth[kMaxFlash];
   double flash_ZCentre[kMaxFlash];
   double flash_ZWidth[kMaxFlash];
+  double flash_TotalPE[kMaxFlash];
 
 
   std::string fTrigModuleLabel;
@@ -320,13 +321,17 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
-  if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
-    art::fill_ptr_vector(tracklist, trackListHandle);    
+  if ( fTrackModuleLabel != "" ) {
+    if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
+      art::fill_ptr_vector(tracklist, trackListHandle);
+  }
   
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
-  if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
-    art::fill_ptr_vector(hitlist, hitListHandle);
+  if ( fHitsModuleLabel != "" ) {
+    if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
+      art::fill_ptr_vector(hitlist, hitListHandle);
+  }
 
   art::Handle< std::vector<recob::Cluster> > clusterListHandle;
   std::vector<art::Ptr<recob::Cluster> > clusterlist;
@@ -551,7 +556,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkpitch[i][j] = tracklist[i]->PitchInView(geo::kZ);
       }
       catch( cet::exception &e) {
-	mf::LogWarning("AnaTree")<<"caught exeption "<<e<<"\n setting pitch to 0";
+	mf::LogWarning("AnaTree")<<"caught exception "<<e<<"\n setting pitch to 0";
 	trkpitch[i][j] = 0;
       }
     }
@@ -583,25 +588,6 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // -----------------------------------------------
   // NOW DO THE FLASH STUFF.......
   // -----------------------------------------------
- 
-  // nhits  = hitlist.size();
-  // nhits2 = std::min(int(hitlist.size()),kMaxHits);
-  // nclust = clusterlist.size();
-  // for (int i = 0; i < nhits2; ++i){
-  //   unsigned int channel = hitlist[i]->Channel();
-  //   geo::WireID wireid = hitlist[i]->WireID();
-  //   hit_tpc[i]     = wireid.TPC;
-  //   hit_plane[i]   = wireid.Plane;
-  //   hit_wire[i]    = wireid.Wire;
-  //   hit_channel[i] = channel;
-  //   hit_peakT[i]   = hitlist[i]->PeakTime();
-  //   hit_charge[i]  = hitlist[i]->Integral();
-  //   hit_ph[i]      = hitlist[i]->PeakAmplitude();
-  //   if (fmtk.at(i).size()!=0){
-  //     hit_trkid[i] = fmtk.at(i)[0]->ID();
-  //   }
-  //   if ( i == kMaxHits ) break;
-  // }
 
   flash_total = flashlist.size();
   std::cout << "Total Number of flashes for this event...." << flash_total << std::endl;
@@ -613,6 +599,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     flash_YWidth[f]    = flashlist[f]->YWidth();
     flash_ZCentre[f]   = flashlist[f]->ZCenter();
     flash_ZWidth[f]    = flashlist[f]->ZWidth();
+    flash_TotalPE[f]   = flashlist[f]->TotalPE();
   }
 
 
@@ -898,6 +885,7 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("flash_YWidth" ,flash_YWidth ,"flash_YWidth[flash_total]/D");
   fTree->Branch("flash_ZCentre",flash_ZCentre,"flash_ZCentre[flash_total]/D");
   fTree->Branch("flash_ZWidth" ,flash_ZWidth ,"flash_ZWidth[flash_total]/D");
+  fTree->Branch("flash_TotalPE",flash_TotalPE,"flash_TotalPE[flash_total]/D");
 }
 
 //void AnaTree::AnaTree::reconfigure(fhicl::ParameterSet const & p)
@@ -1042,6 +1030,7 @@ void AnaTree::AnaTree::ResetVars(){
     flash_YWidth[f]  = -9999;
     flash_ZCentre[f] = -9999;
     flash_ZWidth[f]  = -9999;
+    flash_TotalPE[f] = -9999;
   }
 }
 

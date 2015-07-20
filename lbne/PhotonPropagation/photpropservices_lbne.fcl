@@ -31,8 +31,37 @@ lbne35t_photonvisibilityservice_buildlib.LibraryBuildJob: true
 lbne35t_photonvisibilityservice_buildlib.LibraryFile: "PhotonPropagation/LibraryData/Not_A_Library.root"	 
 
 
-lbnefd_photonvisibilityservice: @local::standard_photonvisibilityservice
-lbnefd_photonvisibilityservice_buildlib: @local::standard_photonvisibilityservice_buildlib
+#lbnefd_photonvisibilityservice: @local::standard_photonvisibilityservice
+#lbnefd_photonvisibilityservice_buildlib: @local::standard_photonvisibilityservice_buildlib
+
+
+lbnefd_photonvisibilityservice:
+{
+
+  NX: 100
+  NY: 100
+  NZ: 100
+  UseCryoBoundary: true
+
+  DoNotLoadLibrary: false
+
+  LibraryBuildJob: false
+
+  LibraryFile: "PhotonPropagation/LibraryData/lib_lbne4apa_20150306.root"
+
+ #These are not used when usecryoboundary=true
+  XMin: -120
+  XMax: 120
+  YMin: -120
+  YMax: 120
+  ZMin: 0
+  ZMax: 1200
+}
+
+lbnefd_photonvisibilityservice_buildlib: @local::lbnefd_photonvisibilityservice
+lbnefd_photonvisibilityservice_buildlib.DoNotLoadLibrary: true
+lbnefd_photonvisibilityservice_buildlib.LibraryBuildJob: true
+lbnefd_photonvisibilityservice_buildlib.LibraryFile: "PhotonPropagation/LibraryData/Not_A_Library.root"	 
 
 
 END_PROLOG

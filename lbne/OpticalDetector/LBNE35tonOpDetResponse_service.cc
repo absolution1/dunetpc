@@ -1,12 +1,12 @@
 // -*- mode: c++; c-basic-offset: 4; -*-
 ////////////////////////////////////////////////////////////////////////
 //
-//  \file LBNEOpDetResponse_service.cc
+//  \file LBNE35tonOpDetResponse_service.cc
 //
 ////////////////////////////////////////////////////////////////////////
 
 
-#include "lbne/OpticalDetector/LBNEOpDetResponse.h"
+#include "lbne/OpticalDetector/LBNE35tonOpDetResponse.h"
 #include "TGeoNode.h"
 #include "TGeoBBox.h"
 #include "Geometry/OpDetGeo.h"
@@ -19,19 +19,19 @@ namespace opdet{
 
 
     //--------------------------------------------------------------------
-    LBNEOpDetResponse::LBNEOpDetResponse(fhicl::ParameterSet const& pset, 
+    LBNE35tonOpDetResponse::LBNE35tonOpDetResponse(fhicl::ParameterSet const& pset, 
                                          art::ActivityRegistry &/*reg*/)
     {
         this->doReconfigure(pset);
     }
     
     //--------------------------------------------------------------------
-    LBNEOpDetResponse::~LBNEOpDetResponse() throw()
+    LBNE35tonOpDetResponse::~LBNE35tonOpDetResponse() throw()
     { }
 
 
     //--------------------------------------------------------------------
-    void LBNEOpDetResponse::doReconfigure(fhicl::ParameterSet const& pset)
+    void LBNE35tonOpDetResponse::doReconfigure(fhicl::ParameterSet const& pset)
     {
         double tempfQE =         pset.get<double>("QuantumEfficiency");
         fWavelengthCutLow =      pset.get<double>("WavelengthCutLow");
@@ -63,7 +63,7 @@ namespace opdet{
         fQE = tempfQE / LarProp->ScintPreScale();
         
         if (fQE > 1.0001 ) {
-            mf::LogError("LBNEOpDetResponse_service") << "Quantum efficiency set in OpDetResponse_service, " << tempfQE
+            mf::LogError("LBNE35tonOpDetResponse_service") << "Quantum efficiency set in OpDetResponse_service, " << tempfQE
                                                       << " is too large.  It is larger than the prescaling applied during simulation, "
                                                       << LarProp->ScintPreScale()
                                                       << ".  Final QE must be equalt to or smaller than the QE applied at simulation time.";
@@ -74,7 +74,7 @@ namespace opdet{
 
 
     //--------------------------------------------------------------------
-    int  LBNEOpDetResponse::doNOpChannels() const
+    int  LBNE35tonOpDetResponse::doNOpChannels() const
     {
         art::ServiceHandle<geo::Geometry> geom;
         if (fFastSimChannelConvert || fFullSimChannelConvert)
@@ -86,7 +86,7 @@ namespace opdet{
 
 
     //--------------------------------------------------------------------
-    bool LBNEOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
+    bool LBNE35tonOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
     {
         
         // Find the Optical Detector using the geometry service
@@ -144,7 +144,7 @@ namespace opdet{
                 sipmDistance = opdetLength - Phot.FinalLocalPosition.z();
             }
             else {
-                mf::LogError("LBNEOpDetResponse") << "Unknown axis, fLongAxis = " << fLongAxis;
+                mf::LogError("LBNE35tonOpDetResponse") << "Unknown axis, fLongAxis = " << fLongAxis;
                 assert(false);
             }
 
@@ -173,7 +173,7 @@ namespace opdet{
                     fracLong    =  0.60 * normalize;
                 }
                 else {
-                    mf::LogError("LBNEOpDetResponse") << "Something has gone wrong in bar identification, pdtype = " << pdtype;
+                    mf::LogError("LBNE35tonOpDetResponse") << "Something has gone wrong in bar identification, pdtype = " << pdtype;
                     assert(false);
                 }
                
@@ -181,14 +181,14 @@ namespace opdet{
                 // Throw away some photons based on attenuation
                 double AttenuationProb = fracShort*exp(-sipmDistance/lambdaShort) + fracLong*exp(-sipmDistance/lambdaLong);
                 
-                //mf::LogVerbatim("LBNEOpDetResponse") << "OpChannel: " << OpChannel << " is a " << pdtype 
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "OpChannel: " << OpChannel << " is a " << pdtype 
                 //                                     << " with length " << opdetLength << " in detector "
                 //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ()
                 //                                     << " named " << detname;
-                //mf::LogVerbatim("LBNEOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
                 //                                     << ", " << Phot.FinalLocalPosition.y() << ", " << Phot.FinalLocalPosition.z() << ")";
-                //mf::LogVerbatim("LBNEOpDetResponse") << "   Distance to SiPM = " << sipmDistance << " along axis " << fLongAxis;
-                //mf::LogVerbatim("LBNEOpDetResponse") << "   Attenuation Probability = " << AttenuationProb;
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Distance to SiPM = " << sipmDistance << " along axis " << fLongAxis;
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Attenuation Probability = " << AttenuationProb;
 
                 if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
 
@@ -215,7 +215,7 @@ namespace opdet{
                 if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
             }
             else {
-                mf::LogWarning("LBNEOpDetResponse") << "OpDet: " << OpChannel << " is an unknown PD type named: " << detname 
+                mf::LogWarning("LBNE35tonOpDetResponse") << "OpDet: " << OpChannel << " is an unknown PD type named: " << detname 
                                                     << ". Assuming no attenuation.";
             }
 
@@ -225,7 +225,7 @@ namespace opdet{
     }
 
     //--------------------------------------------------------------------
-    bool LBNEOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
+    bool LBNE35tonOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
     {
         if (fFastSimChannelConvert){
 
@@ -266,5 +266,5 @@ namespace opdet{
 
 } // namespace
 
-DEFINE_ART_SERVICE_INTERFACE_IMPL(opdet::LBNEOpDetResponse, opdet::OpDetResponseInterface)
+DEFINE_ART_SERVICE_INTERFACE_IMPL(opdet::LBNE35tonOpDetResponse, opdet::OpDetResponseInterface)
 

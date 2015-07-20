@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////
-// \file LBNEOpDetResponse.h
+// \file DUNEOpDetResponse.h
 //
-// \brief service containing information about the response of optical detectors in LBNE
+// \brief service containing information about the response of optical detectors in DUNE
 //
 // \author ahimmel@phy.duke.edu
 //
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef LBNE_OPDET_RESPONSE_H
-#define LBNE_OPDET_RESPONSE_H
+#ifndef DUNE_OPDET_RESPONSE_H
+#define DUNE_OPDET_RESPONSE_H
 
 // LArSoft includes
 #include "Simulation/SimPhotons.h"
@@ -18,11 +18,11 @@
 
 namespace opdet
 {
-    class LBNEOpDetResponse : public opdet::OpDetResponseInterface {
+    class DUNEOpDetResponse : public opdet::OpDetResponseInterface {
     public:
 
-        LBNEOpDetResponse(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
-        ~LBNEOpDetResponse() throw();
+        DUNEOpDetResponse(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
+        ~DUNEOpDetResponse() throw();
 
 
 
@@ -40,6 +40,11 @@ namespace opdet
         float fWavelengthCutHigh;      // 
         
         bool fLightGuideAttenuation;   // Flag to turn on position-dependent sensitivity
+        double lambdaShort;
+        double lambdaLong;
+        double fracShort;
+        double fracLong;
+
 
         std::string fChannelConversion;
         bool fFullSimChannelConvert;   // Flag to conver detector->electronics channels in full optical sim
@@ -47,12 +52,12 @@ namespace opdet
 
         int fLongAxis;                 // 0 = x, 1 = y, 2 = z
 
-    }; // class LBNEOpDetResponse
+    }; // class DUNEOpDetResponse
 
     
 } //namespace opdet
 
 
-DECLARE_ART_SERVICE_INTERFACE_IMPL(opdet::LBNEOpDetResponse, opdet::OpDetResponseInterface, LEGACY)
+DECLARE_ART_SERVICE_INTERFACE_IMPL(opdet::DUNEOpDetResponse, opdet::OpDetResponseInterface, LEGACY)
 
-#endif //OPDET_RESPONSE_LBNE_H
+#endif //OPDET_RESPONSE_DUNE_H

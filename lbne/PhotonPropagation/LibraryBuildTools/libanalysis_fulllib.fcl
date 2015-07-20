@@ -17,7 +17,7 @@ process_name: LibraryBuild
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "libanalysis_lbne35t_v5_hists.root" }
+  TFileService: { fileName: "libanalysis_dune10kt_v1_workspace_hists.root" }
   Timing:       {}
   user:          @local::lbne35t_simulation_services  # defined in services.fcl
   message:       @local::standard_info
@@ -48,9 +48,9 @@ physics:
 
 
 
-services.user.Geometry.GDML: "lbne35t4apa_v5.gdml"
-services.user.Geometry.ROOT: "lbne35t4apa_v5.gdml"
-services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v5"
+services.user.Geometry.GDML: "dune10kt_v1_workspace.gdml"
+services.user.Geometry.ROOT: "dune10kt_v1_workspace.gdml"
+services.user.Geometry.SortingParameters.DetectorVersion: "dune10kt_v1_workspace"
 
 
 
@@ -60,7 +60,7 @@ services.user.Geometry.SortingParameters.DetectorVersion: "lbne35t4apa_v5"
 # Examine your own library file - need to customize the visibility service
 #
 
-services.user.PhotonVisibilityService.LibraryFile: "lib_35ton_v5_20150708.root"
+services.user.PhotonVisibilityService.LibraryFile: "lib_dune10kt_v1_workspace_20150616.root"
 
 # Number of voxels
 services.user.PhotonVisibilityService.NX: 100

@@ -97,6 +97,10 @@ namespace opdet {
       std::vector< float > fSinglePEWaveform;
       void CreateSinglePEWaveform();
 
+      // Values in this map determine whether we are going
+      // to record the waveform for this optical channel or not
+      std::map< int, bool > fRecordMap;
+
       // Produce waveform on one of the optical detectors
       void CreateOpDetWaveform(sim::SimPhotonsLite const&, 
                                opdet::OpDetResponseInterface const&,
@@ -227,21 +231,26 @@ namespace opdet {
     if (fLineNoise > 0.0) AddLineNoise(opDetWaveforms);
 
     for (int channel = 0; channel != nOpChannels; ++channel)
-    {
-      // Produce ADC pulse of integers rather than floats
-      raw::OpDetWaveform adcVec(0.0, channel, nSamples);
-
-      for (float value : opDetWaveforms[channel])
+      if (fRecordMap[channel])
       {
-        // Round the value, then cast to short
-        adcVec.emplace_back(short(std::roundf(value)));
+        // Produce ADC pulse of integers rather than floats
+        raw::OpDetWaveform adcVec(0.0, channel, nSamples);
+
+        for (float value : opDetWaveforms[channel])
+        {
+          // Round the value, then cast to short
+          adcVec.emplace_back(short(std::roundf(value)));
+        }
+
+        pulseVecPtr->emplace_back(std::move(adcVec));
+
       }
 
-      pulseVecPtr->emplace_back(std::move(adcVec));
-
-    }
-
+    // Push the OpDetWaveforms into the event
     evt.put(std::move(pulseVecPtr));
+
+    // Empty the map
+    fRecordMap.clear();
 
   }
 
@@ -317,6 +326,8 @@ namespace opdet {
             int timeBin = int((photonTime - fTimeBegin)*fSampleFreq);
             // Add 1 pulse to the waveform
             AddPulse(timeBin, CrossTalk(), opDetWaveforms[readoutCh]);
+            // Make sure this waveform is recorded
+            fRecordMap[readoutCh] = true;
           }
         }
         else {
@@ -360,6 +371,8 @@ namespace opdet {
         AddPulse(timeBin, CrossTalk(), waveforms[channel]);
         darkNoiseTime += 
           float(fRandExponential->fire(1.0/fDarkNoiseRate)*1000000.0);
+        // Make sure this waveform is recorded
+        fRecordMap[channel] = true;
       }
 
     }
