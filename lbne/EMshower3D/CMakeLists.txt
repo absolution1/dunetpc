@@ -1,7 +1,7 @@
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-simple_plugin(EMshower2D "module"
+simple_plugin(EMShower3D "module"
 			RawData
 			RecoAlg
 			Shower2DAlg
