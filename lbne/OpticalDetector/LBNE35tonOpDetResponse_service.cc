@@ -86,12 +86,12 @@ namespace opdet{
 
 
     //--------------------------------------------------------------------
-    bool LBNE35tonOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
+    bool LBNE35tonOpDetResponse::doDetected(int OpDet, const sim::OnePhoton& Phot, int &newOpChannel) const
     {
         
         // Find the Optical Detector using the geometry service
         art::ServiceHandle<geo::Geometry> geom;
-        const TGeoNode* node = geom->OpDetGeoFromOpChannel(OpChannel).Node();
+        const TGeoNode* node = geom->OpDetGeoFromOpDet(OpDet).Node();
 
         // Identify the photon detector type
         int pdtype;
@@ -106,15 +106,15 @@ namespace opdet{
 
         if (fFullSimChannelConvert){
             // Override default number of channels for Fiber and Plank
-            float NOpHardwareChannels = geom->NOpHardwareChannels(OpChannel);
+            float NOpHardwareChannels = geom->NOpHardwareChannels(OpDet);
             if (pdtype == 1) NOpHardwareChannels = 3;
             if (pdtype == 2) NOpHardwareChannels = 2;
             
             int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NOpHardwareChannels );
-            newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
+            newOpChannel = geom->OpChannel(OpDet, hardwareChannel);
         }
         else{
-            newOpChannel = OpChannel;
+            newOpChannel = OpDet;
         }
         
         // Check QE
@@ -215,7 +215,7 @@ namespace opdet{
                 if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
             }
             else {
-                mf::LogWarning("LBNE35tonOpDetResponse") << "OpDet: " << OpChannel << " is an unknown PD type named: " << detname 
+                mf::LogWarning("LBNE35tonOpDetResponse") << "OpDet: " << OpDet << " is an unknown PD type named: " << detname 
                                                     << ". Assuming no attenuation.";
             }
 
@@ -225,15 +225,15 @@ namespace opdet{
     }
 
     //--------------------------------------------------------------------
-    bool LBNE35tonOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
+    bool LBNE35tonOpDetResponse::doDetectedLite(int OpDet, int &newOpChannel) const
     {
         if (fFastSimChannelConvert){
 
             // Find the Optical Detector using the geometry service
             art::ServiceHandle<geo::Geometry> geom;
-            // Here OpChannel must be opdet since we are introducing
+            // Here OpDet must be opdet since we are introducing
             // channel mapping here.
-            const TGeoNode* node = geom->OpDetGeoFromOpDet(OpChannel).Node();
+            const TGeoNode* node = geom->OpDetGeoFromOpDet(OpDet).Node();
 
             
             // Identify the photon detector type
@@ -246,15 +246,15 @@ namespace opdet{
             else                                                  pdtype = -1;
 
             // Override default number of channels for Fiber and Plank
-            float NOpHardwareChannels = geom->NOpHardwareChannels(OpChannel);
+            float NOpHardwareChannels = geom->NOpHardwareChannels(OpDet);
             if (pdtype == 1) NOpHardwareChannels = 3;
             if (pdtype == 2) NOpHardwareChannels = 2;
 
             int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NOpHardwareChannels );
-            newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
+            newOpChannel = geom->OpChannel(OpDet, hardwareChannel);
         }
         else{
-            newOpChannel = OpChannel;
+            newOpChannel = OpDet;
         }
         
         // Check QE
