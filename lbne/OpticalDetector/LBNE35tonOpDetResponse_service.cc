@@ -155,12 +155,12 @@ namespace opdet{
                 double lambdaLong  =  44.13; // cm
                 double fracShort   =  0.40 * normalize;
                 double fracLong    =  0.60 * normalize;
-               
 
-                // Throw away some photons based on attenuation
                 double AttenuationProb = fracShort*exp(-sipmDistance/lambdaShort) + fracLong*exp(-sipmDistance/lambdaLong);
+
+                //std::cout <<"GRAPH: " << OpDet << "," << Phot.FinalLocalPosition.y() << "," << sipmDistance << "," << AttenuationProb << std::endl;
                 
-                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "OpChannel: " << OpChannel << " is a " << pdtype 
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "OpDet: " << OpDet << " is a " << pdtype 
                 //                                     << " with length " << opdetLength << " in detector "
                 //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ()
                 //                                     << " named " << detname;
@@ -168,12 +168,9 @@ namespace opdet{
                 //                                     << ", " << Phot.FinalLocalPosition.y() << ", " << Phot.FinalLocalPosition.z() << ")";
                 //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Distance to SiPM = " << sipmDistance << " along axis " << fLongAxis;
                 //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Attenuation Probability = " << AttenuationProb;
-
-                if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
-
-          
                 
-               
+                // Throw away some photons based on attenuation
+                if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
             }
             else if (pdtype == 1) {
                 double normalize   = 1.0; // Normalize mean performance to be the same in all PDs
@@ -181,6 +178,19 @@ namespace opdet{
 
                 // Throw away some photons based on attenuation
                 double AttenuationProb = normalize*exp(-sipmDistance/lambda);
+
+                //std::cout <<"GRAPH: " << OpDet << "," << Phot.FinalLocalPosition.y() << "," << sipmDistance << "," << AttenuationProb << std::endl;
+
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "OpDet: " << OpDet << " is a " << pdtype 
+                //                                     << " with length " << opdetLength << " in detector "
+                //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ()
+                //                                     << " named " << detname;
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
+                //                                     << ", " << Phot.FinalLocalPosition.y() << ", " << Phot.FinalLocalPosition.z() << ")";
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Distance to SiPM = " << sipmDistance << " along axis " << fLongAxis;
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Attenuation Probability = " << AttenuationProb;
+                
+                // Throw away some photons based on attenuation
                 if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
             }
             else if (pdtype == 2) {
@@ -189,8 +199,20 @@ namespace opdet{
                 double altDistance = 2*opdetLength - sipmDistance;
                 double frac        = 0.5 * normalize;
 
-                // Throw away some photons based on attenuation
                 double AttenuationProb = frac*exp(-sipmDistance/lambda) + frac*exp(-altDistance/lambda);
+
+                //std::cout <<"GRAPH: " << OpDet << "," << Phot.FinalLocalPosition.y() << "," << sipmDistance << "," << AttenuationProb << std::endl;
+                
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "OpDet: " << OpDet << " is a " << pdtype 
+                //                                     << " with length " << opdetLength << " in detector "
+                //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ()
+                //                                     << " named " << detname;
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
+                //                                     << ", " << Phot.FinalLocalPosition.y() << ", " << Phot.FinalLocalPosition.z() << ")";
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Distance to SiPM = " << sipmDistance << " along axis " << fLongAxis;
+                //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Attenuation Probability = " << AttenuationProb;
+                                
+                // Throw away some photons based on attenuation
                 if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
             }
             else {
