@@ -127,20 +127,20 @@ namespace opdet{
         if (fLightGuideAttenuation) {
             // Get the length of the photon detector
             TGeoBBox *box = (TGeoBBox*)node->GetVolume()->GetShape();
-            double opdetLength = 0;
+            double opdetHalfLength = 0;
             double sipmDistance = 0;
 
             if (fLongAxis == 0) {
-                opdetLength = box->GetDX();
-                sipmDistance = opdetLength - Phot.FinalLocalPosition.x();
+                opdetHalfLength = box->GetDX();
+                sipmDistance = opdetHalfLength - Phot.FinalLocalPosition.x();
             }
             else if (fLongAxis == 1) {
-                opdetLength = box->GetDY();
-                sipmDistance = opdetLength - Phot.FinalLocalPosition.y();
+                opdetHalfLength = box->GetDY();
+                sipmDistance = opdetHalfLength - Phot.FinalLocalPosition.y();
             }
             else if (fLongAxis == 2) {
-                opdetLength = box->GetDZ();
-                sipmDistance = opdetLength - Phot.FinalLocalPosition.z();
+                opdetHalfLength = box->GetDZ();
+                sipmDistance = opdetHalfLength - Phot.FinalLocalPosition.z();
             }
             else {
                 mf::LogError("LBNE35tonOpDetResponse") << "Unknown axis, fLongAxis = " << fLongAxis;
@@ -161,7 +161,7 @@ namespace opdet{
                 //std::cout <<"GRAPH: " << OpDet << "," << Phot.FinalLocalPosition.y() << "," << sipmDistance << "," << AttenuationProb << std::endl;
                 
                 //mf::LogVerbatim("LBNE35tonOpDetResponse") << "OpDet: " << OpDet << " is a " << pdtype 
-                //                                     << " with length " << opdetLength << " in detector "
+                //                                     << " with length " << opdetHalfLength << " in detector "
                 //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ()
                 //                                     << " named " << detname;
                 //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
@@ -182,7 +182,7 @@ namespace opdet{
                 //std::cout <<"GRAPH: " << OpDet << "," << Phot.FinalLocalPosition.y() << "," << sipmDistance << "," << AttenuationProb << std::endl;
 
                 //mf::LogVerbatim("LBNE35tonOpDetResponse") << "OpDet: " << OpDet << " is a " << pdtype 
-                //                                     << " with length " << opdetLength << " in detector "
+                //                                     << " with length " << opdetHalfLength << " in detector "
                 //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ()
                 //                                     << " named " << detname;
                 //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
@@ -196,7 +196,7 @@ namespace opdet{
             else if (pdtype == 2) {
                 double normalize   = 0.4498; // Normalize mean performance to be the same in all PDs
                 double lambda      = 48.4; // cm
-                double altDistance = 2*opdetLength - sipmDistance;
+                double altDistance = 2*opdetHalfLength - sipmDistance;
                 double frac        = 0.5 * normalize;
 
                 double AttenuationProb = frac*exp(-sipmDistance/lambda) + frac*exp(-altDistance/lambda);
@@ -204,7 +204,7 @@ namespace opdet{
                 //std::cout <<"GRAPH: " << OpDet << "," << Phot.FinalLocalPosition.y() << "," << sipmDistance << "," << AttenuationProb << std::endl;
                 
                 //mf::LogVerbatim("LBNE35tonOpDetResponse") << "OpDet: " << OpDet << " is a " << pdtype 
-                //                                     << " with length " << opdetLength << " in detector "
+                //                                     << " with length " << opdetHalfLength << " in detector "
                 //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ()
                 //                                     << " named " << detname;
                 //mf::LogVerbatim("LBNE35tonOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
