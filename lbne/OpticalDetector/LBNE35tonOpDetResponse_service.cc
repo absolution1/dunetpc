@@ -100,7 +100,6 @@ namespace opdet{
         if      (detname.find("bar") != std::string::npos )     pdtype = 0;
         else if (detname.find("fiber") != std::string::npos )   pdtype = 1;
         else if (detname.find("plank") != std::string::npos )   pdtype = 2;
-        else if (detname.find("radiator") != std::string::npos) pdtype = 3;
         else                                                    pdtype = -1;
 
 
@@ -150,32 +149,12 @@ namespace opdet{
 
 
 
-            if (pdtype == 0 || pdtype == 3) {
-                // Now assume Bar and Fiber have the same behavior, modify later when more is known
-                double normalize   =   1.0;
-                double lambdaShort =   0;
-                double lambdaLong  =   0;
-                double fracShort   =   0;
-                double fracLong    =   0;
-
-                if (pdtype == 0) {
-                    normalize   =  0.6719; // Normalize mean performance to be the same in all PDs
-                    lambdaShort =  5.56; // cm
-                    lambdaLong  =  44.13; // cm
-                    fracShort   =  0.40 * normalize;
-                    fracLong    =  0.60 * normalize;
-                }
-                else if (pdtype == 3){
-                    normalize   = 1.0;
-                    lambdaShort =  66.0; // cm
-                    lambdaLong  =  350.0; // cm
-                    fracShort   =  0.40 * normalize;
-                    fracLong    =  0.60 * normalize;
-                }
-                else {
-                    mf::LogError("LBNE35tonOpDetResponse") << "Something has gone wrong in bar identification, pdtype = " << pdtype;
-                    assert(false);
-                }
+            if (pdtype == 0) {
+                double normalize   =  0.6961; // Normalize mean performance to be the same in all PDs
+                double lambdaShort =  5.56; // cm
+                double lambdaLong  =  44.13; // cm
+                double fracShort   =  0.40 * normalize;
+                double fracLong    =  0.60 * normalize;
                
 
                 // Throw away some photons based on attenuation
