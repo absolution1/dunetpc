@@ -184,9 +184,9 @@ namespace opdet{
                 if ( CLHEP::RandFlat::shoot(1.0) > AttenuationProb ) return false;
             }
             else if (pdtype == 2) {
-                double normalize   = 0.4305; // Normalize mean performance to be the same in all PDs
+                double normalize   = 0.4498; // Normalize mean performance to be the same in all PDs
                 double lambda      = 48.4; // cm
-                double altDistance = opdetLength - sipmDistance;
+                double altDistance = 2*opdetLength - sipmDistance;
                 double frac        = 0.5 * normalize;
 
                 // Throw away some photons based on attenuation
