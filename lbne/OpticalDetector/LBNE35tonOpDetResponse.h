@@ -31,8 +31,8 @@ namespace opdet
         virtual void doReconfigure(fhicl::ParameterSet const& p);
 
         virtual int  doNOpChannels() const;
-        virtual bool doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const;
-        virtual bool doDetectedLite(int OpChannel, int &newOpChannel) const;
+        virtual bool doDetected(int OpDet, const sim::OnePhoton& Phot, int &newOpChannel) const;
+        virtual bool doDetectedLite(int OpDet, int &newOpChannel) const;
 
         float fQE;                     // Quantum efficiency of tube
         

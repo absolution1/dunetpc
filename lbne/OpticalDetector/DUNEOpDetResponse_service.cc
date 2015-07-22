@@ -90,7 +90,7 @@ namespace opdet{
 
 
     //--------------------------------------------------------------------
-    bool DUNEOpDetResponse::doDetected(int OpChannel, const sim::OnePhoton& Phot, int &newOpChannel) const
+    bool DUNEOpDetResponse::doDetected(int OpDet, const sim::OnePhoton& Phot, int &newOpChannel) const
     {
         
         // Find the Optical Detector using the geometry service
@@ -99,12 +99,12 @@ namespace opdet{
 
         if (fFullSimChannelConvert){
             // Override default number of channels for Fiber and Plank
-            float NOpHardwareChannels = geom->NOpHardwareChannels(OpChannel);
+            float NOpHardwareChannels = geom->NOpHardwareChannels(OpDet);
             int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NOpHardwareChannels );
-            newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
+            newOpChannel = geom->OpChannel(OpDet, hardwareChannel);
         }
         else{
-            newOpChannel = OpChannel;
+            newOpChannel = OpDet;
         }
         
         // Check QE
@@ -117,7 +117,7 @@ namespace opdet{
 
         if (fLightGuideAttenuation) {
             // Get the length of the photon detector
-            const TGeoNode* node = geom->OpDetGeoFromOpChannel(OpChannel).Node();
+            const TGeoNode* node = geom->OpDetGeoFromOpDet(OpDet).Node();
             TGeoBBox *box = (TGeoBBox*)node->GetVolume()->GetShape();
             double opdetLength = 0;
             double sipmDistance = 0;
@@ -144,7 +144,7 @@ namespace opdet{
             // Throw away some photons based on attenuation
             double AttenuationProb = fracShort*exp(-sipmDistance/lambdaShort) + fracLong*exp(-sipmDistance/lambdaLong);
             
-            //mf::LogVerbatim("DUNEOpDetResponse") << "OpChannel: " << OpChannel 
+            //mf::LogVerbatim("DUNEOpDetResponse") << "OpDet: " << OpDet 
             //                                     << " has length " << opdetLength << " in detector "
             //                                     << box->GetDX() << " x " << box->GetDY()  << " x " << box->GetDZ();
             //mf::LogVerbatim("DUNEOpDetResponse") << "   Local Position = (" << Phot.FinalLocalPosition.x() 
@@ -161,20 +161,20 @@ namespace opdet{
     }
 
     //--------------------------------------------------------------------
-    bool DUNEOpDetResponse::doDetectedLite(int OpChannel, int &newOpChannel) const
+    bool DUNEOpDetResponse::doDetectedLite(int OpDet, int &newOpChannel) const
     {
         if (fFastSimChannelConvert){
 
             // Find the Optical Detector using the geometry service
             art::ServiceHandle<geo::Geometry> geom;
-            // Here OpChannel must be opdet since we are introducing
+            // Here OpDet must be opdet since we are introducing
             // channel mapping here.
-            float NOpHardwareChannels = geom->NOpHardwareChannels(OpChannel);
+            float NOpHardwareChannels = geom->NOpHardwareChannels(OpDet);
             int hardwareChannel = (int) ( CLHEP::RandFlat::shoot(1.0) * NOpHardwareChannels );
-            newOpChannel = geom->OpChannel(OpChannel, hardwareChannel);
+            newOpChannel = geom->OpChannel(OpDet, hardwareChannel);
         }
         else{
-            newOpChannel = OpChannel;
+            newOpChannel = OpDet;
         }
         
         // Check QE
