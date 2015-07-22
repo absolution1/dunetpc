@@ -34,13 +34,13 @@ lbne35t_photolibbuild_services.LArProperties.ScintPreScale: 1
 
 
 # FD G4-specific services do not exist yet
-lbnefd_photolibbuild_services:                        @local::dunefd_simulation_services
+dunefd_photolibbuild_services:                        @local::dunefd_simulation_services
 
 # Set the photon visiblity service to library building mode
-lbnefd_photolibbuild_services.PhotonVisibilityService: @local::lbnefd_photonvisibilityservice_buildlib
+dunefd_photolibbuild_services.PhotonVisibilityService: @local::dunefd_photonvisibilityservice_buildlib
 
 # enable optical physics in LArG4
-lbnefd_photolibbuild_services.LArG4Parameters.EnabledPhysics: [ "Em", 
+dunefd_photolibbuild_services.LArG4Parameters.EnabledPhysics: [ "Em", 
 						"Optical", 
 						"SynchrotronAndGN", 
 						"Ion", 
@@ -51,15 +51,15 @@ lbnefd_photolibbuild_services.LArG4Parameters.EnabledPhysics: [ "Em",
 						"NeutronTrackingCut" ]
 
 # enable this custom physics list
-lbnefd_photolibbuild_services.LArG4Parameters.UseCustomPhysics: true
-lbnefd_photolibbuild_services.LArG4Parameters.UseLitePhotons: false
+dunefd_photolibbuild_services.LArG4Parameters.UseCustomPhysics: true
+dunefd_photolibbuild_services.LArG4Parameters.UseLitePhotons: false
 
 # disable cerenkov light
-lbnefd_photolibbuild_services.LArProperties.EnableCerenkovLight: false
+dunefd_photolibbuild_services.LArProperties.EnableCerenkovLight: false
 
 # Turn off prescaling in opdeteresponse and geant4
-lbnefd_photolibbuild_services.OpDetResponseInterface.QuantumEfficiency: 1
-lbnefd_photolibbuild_services.LArProperties.ScintPreScale: 1
+dunefd_photolibbuild_services.OpDetResponseInterface.QuantumEfficiency: 1
+dunefd_photolibbuild_services.LArProperties.ScintPreScale: 1
 
 
 END_PROLOG
