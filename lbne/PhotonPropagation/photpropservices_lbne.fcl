@@ -14,7 +14,7 @@ lbne35t_photonvisibilityservice:
 
   LibraryBuildJob: false
 
-  LibraryFile: "PhotonPropagation/LibraryData/lib_35ton_v5_20150708.root"
+  LibraryFile: "PhotonPropagation/LibraryData/lib_35ton_v5_20150721.root"
 
  #These are not used when usecryoboundary=true
   XMin: -120
@@ -47,7 +47,7 @@ lbnefd_photonvisibilityservice:
 
   LibraryBuildJob: false
 
-  LibraryFile: "PhotonPropagation/LibraryData/lib_lbne4apa_20150306.root"
+  LibraryFile: "PhotonPropagation/LibraryData/lib_dune10kt_v1_workspace_20150716.root"
 
  #These are not used when usecryoboundary=true
   XMin: -120
@@ -62,6 +62,8 @@ lbnefd_photonvisibilityservice_buildlib: @local::lbnefd_photonvisibilityservice
 lbnefd_photonvisibilityservice_buildlib.DoNotLoadLibrary: true
 lbnefd_photonvisibilityservice_buildlib.LibraryBuildJob: true
 lbnefd_photonvisibilityservice_buildlib.LibraryFile: "PhotonPropagation/LibraryData/Not_A_Library.root"	 
+
+dunefd_photonvisibilityservice: @local::lbnefd_photonvisibilityservice
 
 
 END_PROLOG
