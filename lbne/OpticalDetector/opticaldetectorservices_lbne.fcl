@@ -57,7 +57,7 @@ lbnefd_opdetresponse_alternative.LambdaShort:        66.0 #cm
 lbnefd_opdetresponse_alternative.LambdaLong:        350.0 #cm
 
 # Use the alternative design by default
-lbnefd_opdetresponse: @local::lbnefd_opdetresponse_reference
+lbnefd_opdetresponse: @local::lbnefd_opdetresponse_alternative
 
 
 
