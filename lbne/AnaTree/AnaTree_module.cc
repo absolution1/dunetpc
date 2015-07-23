@@ -77,8 +77,8 @@ const int kMaxTrack      = 1000;  //maximum number of tracks
 const int kMaxHits       = 10000; //maximum number of hits
 const int kMaxClust      = 10000; //maximum number of clusters
 const int kMaxTrackHits  = 1000;  //maximum number of space points
-const int kMaxFlash      = 100;  //maximum number of flashes
-const int kMaxTrig      = 100;  //maximum number of triggers
+const int kMaxFlash      = 1000;  //maximum number of flashes
+const int kMaxTrig       = 1000;  //maximum number of triggers
 
 
 
@@ -619,7 +619,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 
   flash_total = flashlist.size();
   std::cout << "Total Number of flashes for this event...." << flash_total << std::endl;
-  for ( int f = 0; f < flash_total; ++f ) {
+  for ( int f = 0; f < std::min(flash_total,kMaxHits); ++f ) {
     flash_time[f]      = flashlist[f]->Time();
     flash_width[f]     = flashlist[f]->TimeWidth();
     flash_abstime[f]   = flashlist[f]->AbsTime();
