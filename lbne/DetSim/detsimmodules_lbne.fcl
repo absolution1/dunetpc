@@ -28,6 +28,7 @@ lbnefd_simwire:
  InductionPed:        2048        #ADC baseline for ind plane
 
  SimCombs:           false
+ SaveEmptyChannel:   true      #if channel's ADC vector is entirely full of zeros, save it in RawDigit collection (true) or discard (false)
 
 # random initial guesses for charge inefficiency and wrong-type collection on the induction-plane wires
 
