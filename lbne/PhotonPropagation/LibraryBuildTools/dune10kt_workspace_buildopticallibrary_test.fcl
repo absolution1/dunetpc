@@ -21,7 +21,7 @@ services:
   TFileService: { fileName: "PhotonLibraryFile_dune10kt_v1_workspace_test.root" }
   Timing:       {}
   RandomNumberGenerator: {} #ART native random number generator
-  user:          @local::lbnefd_photolibbuild_services 
+  user:          @local::dunefd_photolibbuild_services 
   message:       @local::standard_info
 }
 

@@ -37,11 +37,12 @@ physics:
    largeant:  @local::lbne35t_largeant	  
    daq:       @local::lbne35t_simwire       
    rns:       { module_type: "RandomNumberSaver" }
+   simcounter: @local::lbne35t_simcounter	 
  }
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below 
- simulate: [ generator, largeant, daq, rns ] 
+ simulate: [ generator, largeant, daq, simcounter, rns ] 
  
  #define the output stream, there could be more than one if using filters 
  stream1:  [ out1 ]
