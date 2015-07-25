@@ -19,6 +19,8 @@ standard_trackanact:
   IgnoreSign:         true
 }
 
+dunefd_trackcheater:                      @local::standard_trackcheater
+
 lbne35t_trackcheater:                     @local::standard_trackcheater
 
 lbne35t_cosmictracker:                    @local::standard_cosmictracker

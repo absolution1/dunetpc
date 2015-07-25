@@ -20,29 +20,18 @@ apa_hitfinder:
  ClusLabel:           "fuzzy"
 }
 
-
-
-
-lbnefd_gaushitfinder:   @local::gaus_hitfinder
-lbnefd_apahitfinder:    @local::apa_hitfinder
-lbnefd_hitcheater:	  @local::standard_hitcheater
-
-lbnefd_gaushitfinder.IndMinWidth: 1.0
-lbnefd_gaushitfinder.ColMinWidth: 1.0
-
-
 lbne35t_disambigcheat:    @local::standard_disambigcheat
 
 lbne35t_gaushitfinder:    @local::gaus_hitfinder
 lbne35t_apahitfinder:     @local::apa_hitfinder
 lbne35t_hitcheater:	  @local::standard_hitcheater
 
-#lbne35t_gaushitfinder.IndMinWidth: 1.0
-#lbne35t_gaushitfinder.ColMinWidth: 1.0
 lbne35t_gaushitfinder.MinSig:    [6.0, 6.0, 11.0]
 lbne35t_gaushitfinder.MinWidth:  [1.0, 1.0, 1.0]
 lbne35t_gaushitfinder.InitWidth: [6.0, 6.0, 7.8]
 lbne35t_gaushitfinder.AreaNorms: [13.25, 13.25, 16.31]
+lbne35t_gaushitfinder.Chi2NDFRetry: 1000.
+
 lbne35t_disambigalg:
 {
     TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
@@ -81,7 +70,6 @@ lbne35t_hitfinder35t:
 lbne35t_fasthitfinder:    @local::standard_fasthitfinder
 lbne35t_fasthitfinder.MinSigInd: 5.0
 lbne35t_fasthitfinder.MinSigCol: 5.0
-lbne35t_gaushitfinder.Chi2NDFRetry: 1000.
 
 lbne35t_clustercrawlerhit: @local::standard_clustercrawlerhit
 lbne35t_clustercrawlerhit.CCHitFinderAlg.ChiNorms:           [ 0.31, 0.62, 0.6 ]
@@ -90,5 +78,13 @@ lbne35t_clustercrawlerhit.CCHitFinderAlg.MinRMSCol:          2.1
 lbne35t_clustercrawlerhit.CCHitFinderAlg.MinSigInd:          3.
 lbne35t_clustercrawlerhit.CCHitFinderAlg.MinRMSInd:          2.3
 lbne35t_clustercrawlerhit.CCHitFinderAlg.AllowNoHitWire:     2
+
+dunefd_disambigcheat:     @local::standard_disambigcheat
+dunefd_gaushitfinder:     @local::lbne35t_gaushitfinder
+dunefd_apahitfinder:      @local::apa_hitfinder
+dunefd_hitcheater:	  @local::standard_hitcheater
+dunefd_fasthitfinder:     @local::lbne35t_fasthitfinder
+dunefd_clustercrawlerhit: @local::lbne35t_clustercrawlerhit
+dunefd_hitfinderfd:       @local::lbne35t_hitfinder35t
 
 END_PROLOG
