@@ -79,6 +79,7 @@ public:
 	
 private:
   recob::Track ConvertFrom(const pma::Track3D& src);
+	recob::Track ConvertFrom2(const pma::Track3D& src);
 	recob::Cluster ConvertFrom(const std::vector< art::Ptr<recob::Hit> > & src);
 
 	std::vector< Shower2DAlg* > CollectShower2D(art::Event const & e, unsigned int cryo, unsigned int tpc);
@@ -90,6 +91,10 @@ private:
 	void Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int tpc);
 
 	void SelectTrks(art::Event const & e);
+
+	void MarkUsedCls(size_t idcl);
+
+	void MarkUsedTrks(size_t idtrk);
 
 	void FilterOutSmallParts(
 		double r2d, unsigned int view, unsigned int tpc, unsigned int cryo,
@@ -107,21 +112,23 @@ private:
 	
 	std::vector< IniSeg > fInisegs;
 	std::vector< IniSeg > fSeltracks;
+	std::vector< IniSeg > fPMA3D;
+
 	std::vector< std::vector< art::Ptr<recob::Hit> > > fClusters;
 
-	std::vector< unsigned int > fClustersNotUsed;
+	std::vector< size_t > fClustersNotUsed;
+	std::vector< size_t > fTracksNotUsed;
 
   unsigned int fTrkIndex; unsigned int fClIndex;
 	unsigned int fIniIndex;
 
 	std::string fCluModuleLabel;
 	std::string fTrk3DModuleLabel;
-
-	art::Handle< std::vector< recob::Cluster > > fCluListHandle;
 	
 
 	pma::ProjectionMatchingAlg fProjectionMatchingAlg;
 
+	art::Handle< std::vector< recob::Cluster > > fCluListHandle;
 
 	ofstream file0; // test
 };
@@ -187,12 +194,36 @@ recob::Track EMShower3D::ConvertFrom(const pma::Track3D& src)
 	return recob::Track(xyz, dircos, std::vector< std::vector<double> >(0), std::vector< double >(2, util::kBogusD), fTrkIndex);
 }
 
+recob::Track EMShower3D::ConvertFrom2(const pma::Track3D& src)
+{
+	std::vector< TVector3 > xyz, dircos;
+
+	for (size_t i = 0; i < src.size(); i++)
+	{
+		xyz.push_back(src[i]->Point3D());
+
+		if (i < src.size() - 1)
+		{
+			TVector3 dc(src[i + 1]->Point3D());
+			dc -= src[i]->Point3D();
+			dc *= 1.0 / dc.Mag();
+			dircos.push_back(dc);
+		}
+		else dircos.push_back(dircos.back());
+	}
+
+	return recob::Track(xyz, dircos, std::vector< std::vector<double> >(0), std::vector< double >(2, util::kBogusD), fIniIndex);
+}
+
 void EMShower3D::produce(art::Event & e)
 {
 	art::ServiceHandle<geo::Geometry> geom;
 	fSeltracks.clear();
 	fInisegs.clear();
 	fClusters.clear();
+	fPMA3D.clear();
+	fClustersNotUsed.clear();
+	fTracksNotUsed.clear();
 
 	std::unique_ptr< std::vector< recob::Track > > tracks(new std::vector< recob::Track >);
 	std::unique_ptr< std::vector< recob::Vertex > > vertices(new std::vector< recob::Vertex >);
@@ -206,30 +237,52 @@ void EMShower3D::produce(art::Event & e)
 	std::unique_ptr< art::Assns< recob::Track, recob::SpacePoint > > trk2sp(new art::Assns< recob::Track, recob::SpacePoint >);
 	std::unique_ptr< art::Assns< recob::SpacePoint, recob::Hit > > sp2hit(new art::Assns< recob::SpacePoint, recob::Hit >);
 
+	
+	
 
   if (e.getByLabel(fCluModuleLabel, fCluListHandle))
 	{
-
+		
 	for (unsigned int c = 0; c < geom->Ncryostats(); c++)
 	{
 		const geo::CryostatGeo& cryo = geom->Cryostat(c);
-		//for (unsigned int t = 0; t < cryo.NTPC(); t++)
-		//{
-			unsigned int t = 1;
-
+		for (unsigned int t = 0; t < cryo.NTPC(); t++)
+		{
+		
 			fInisegs.clear();
+			fClustersNotUsed.clear();
+			fTracksNotUsed.clear();
+
+			std::cout << " tpc = " << t << std::endl;
+			art::FindManyP< recob::Hit > fb(fCluListHandle, e, fCluModuleLabel);
+			for (size_t id = 0; id < fCluListHandle->size(); id++)
+			{
+				std::vector< art::Ptr<recob::Hit> > hitlist;	
+				hitlist = fb.at(id);
+
+				if ((hitlist.size() > 5) && 
+					(hitlist[0]->WireID().Cryostat == c) && 
+					(hitlist[0]->WireID().TPC == t)) 
+						fClustersNotUsed.push_back(id);
+			}
+
+			art::Handle< std::vector< recob::Track > > trkList;		
+  		if ((e.getByLabel(fTrk3DModuleLabel, trkList)) && trkList->size())
+				for (size_t id = 0; id < trkList->size(); id++)
+					fTracksNotUsed.push_back(id);
+			
 			
 			std::vector< Shower2DAlg* > showernviews = CollectShower2D(e, c, t); 
+
+			for (size_t i = 0; i < showernviews.size(); i++)
+				std::cout << " showernviews plane: " << showernviews[i]->GetFirstHit()->WireID().Plane << " size " << showernviews[i]->GetHits2D().size() << std::endl;
+			
 			
 			Link(e, showernviews);
-			SelectTrks(e);
-			
 
-			for (unsigned int i = 0; i < fInisegs.size(); i++)
-			{
-				fClustersNotUsed.push_back(fInisegs[i].idcl1);	
-				fClustersNotUsed.push_back(fInisegs[i].idcl2);				
-			}
+			SelectTrks(e);
+
+		
 
 			Make3DPMA(e, c, t);
 
@@ -240,7 +293,7 @@ void EMShower3D::produce(art::Event & e)
 			for (unsigned int i = 0; i < showernviews.size(); i++) 
 				delete showernviews[i];
 
-		//}
+		}
 	}
 	//Test(e); 
 
@@ -321,15 +374,10 @@ void EMShower3D::produce(art::Event & e)
 	// stop
 
 
-	/*fIniIndex = 0;
-	for (auto const trk : fInisegs) 
+	fIniIndex = 0;
+	for (auto const trk : fPMA3D) 
 	{
-			tracks->push_back(ConvertFrom(*(trk.track)));
-
-			vtx_pos[0] = trk.track->front()->Point3D().X();
-			vtx_pos[1] = trk.track->front()->Point3D().Y();
-			vtx_pos[2] = trk.track->front()->Point3D().Z();
-			// vertices->push_back(recob::Vertex(vtx_pos, fTrkIndex));
+			tracks->push_back(ConvertFrom2(*(trk.track)));
 
 			fIniIndex++;
 
@@ -380,7 +428,7 @@ void EMShower3D::produce(art::Event & e)
 				util::CreateAssn(*this, e, *tracks, *allsp, *trk2sp, spStart, spEnd);
 				util::CreateAssn(*this, e, *tracks, hits2d, *trk2hit); 
 			}
-		}*/
+		}
 
 	// stop
 
@@ -404,7 +452,11 @@ void EMShower3D::produce(art::Event & e)
 				delete fSeltracks[i].track; 
 
 		for (unsigned int i = 0; i < fInisegs.size(); i++)
-				delete fInisegs[i].track;  
+				delete fInisegs[i].track; 
+
+		for (unsigned int i = 0; i < fPMA3D.size(); i++)
+				delete fPMA3D[i].track;  
+
 }
 
 		e.put(std::move(tracks));
@@ -418,6 +470,7 @@ void EMShower3D::produce(art::Event & e)
 		e.put(std::move(trk2cl));
 		e.put(std::move(trk2sp));
 		e.put(std::move(sp2hit));
+	
 }
 
 /*void EMShower3D::Test(art::Event const & e)
@@ -567,6 +620,9 @@ void EMShower3D::Link(art::Event const & e, std::vector< Shower2DAlg* > input)
 		
 		if (pairs.size())
 		{
+			std::cout << " pairs " << std::endl;
+			std::cout << " plane a : " << pairs[0]->GetFirstHit()->WireID().Plane << " size " << pairs[0]->GetHits2D().size() 
+								<< " plane b : " << pairs[1]->GetFirstHit()->WireID().Plane << " size " << pairs[1]->GetHits2D().size() << std::endl;
 			if (!exist) Make3DSeg(e, pairs);
 
 			std::vector< unsigned int > ids;
@@ -608,71 +664,232 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 	std::cout << " Make3DPMA " << std::endl;
 
 	art::Handle< std::vector< recob::Track > > trkListHandle;	
-	std::vector< std::vector< recob::Track > > trks;
-	std::vector< std::vector< unsigned int > > trksid;
 
-	if ((e.getByLabel(fTrk3DModuleLabel, trkListHandle)) && trkListHandle->size())
+	std::map< size_t, std::vector< size_t > > trkshs;
+
+	if ((e.getByLabel(fTrk3DModuleLabel, trkListHandle)) && trkListHandle->size() &&
+			 e.getByLabel(fCluModuleLabel, fCluListHandle))
 	{
 		art::FindManyP< recob::Hit > fbt(trkListHandle, e, fTrk3DModuleLabel);
 		art::FindManyP< recob::Hit > fbc(fCluListHandle, e, fCluModuleLabel);		
 
 		// chose unused cluster		
-		for (unsigned int id = 0; id < fClustersNotUsed.size(); id++)
+		for (size_t id = 0; id < fClustersNotUsed.size(); id++)
 		{
 			std::vector< art::Ptr<recob::Hit> > hitscl = fbc.at(fClustersNotUsed[id]);
-			std::vector< recob::Track > track;
-			std::vector< unsigned int > trackid;
+	
 			if ((hitscl.size()) && 
 				 (hitscl[0]->WireID().Cryostat == cryo) &&
 				 (hitscl[0]->WireID().TPC == tpc))
 			{
-				for (unsigned int t = 0; t < trkListHandle->size(); t++)
+
+				std::cout << fClustersNotUsed[id] << " plane " << hitscl[0]->WireID().Plane << std::endl;
+
+				//for (unsigned int t = 0; t < trkListHandle->size(); t++)
+				for (unsigned int t = 0; t < fTracksNotUsed.size(); t++)
 				{
-					std::vector< art::Ptr<recob::Hit> > hitstrk = fbt.at(t);
+					std::vector< art::Ptr<recob::Hit> > hitstrk = fbt.at(fTracksNotUsed[t]);
 					bool commonhits = false;
 					for (unsigned int ht = 0; ht < hitstrk.size(); ht++)
 					{
 						if ((hitstrk[ht]->WireID().Cryostat == cryo) &&
 								(hitstrk[ht]->WireID().TPC == tpc))
 						{
-						
+							
 							for (unsigned int c = 0; c < hitscl.size(); c++)
 								if ((hitscl[c]->PeakTime() == hitstrk[ht]->PeakTime())
-										&& (hitscl[c]->WireID().Wire == hitstrk[ht]->WireID().Wire)) 
-								{ commonhits = true; break; }
+									 && (hitscl[c]->WireID().Wire == hitstrk[ht]->WireID().Wire) &&
+											(hitscl[c]->WireID().Plane == hitstrk[ht]->WireID().Plane)) 
+								{ 
+							
+									commonhits = true; break; 
+								}
 						}
 
 						if (commonhits)	
-						{	track.push_back((*trkListHandle)[t]); trackid.push_back(t); 
-															break;}		
+						{	
+							trkshs[fClustersNotUsed[id]].push_back(fTracksNotUsed[t]);
+							break;
+						}		
 					}
 						
 				}				
 			}
-
-			trksid.push_back(trackid);
 		}
 
+		std::cout << " *** TPC = " << tpc << std::endl;
 
-		/*for (unsigned int i = 0; i < trksid.size(); i++)
+		std::cout << " fClustersNotUsed.size() " << fClustersNotUsed.size() << std::endl;
+		for (auto& x: trkshs) {
+    	std::cout << x.first << ": " << x.second.size() << '\n';
+  	}
+		
+
+		size_t ntracks = 1; 
+		while (ntracks < 4)
 		{
-			std::cout << " 3d pca tracks size: " << trksid[i].size() << std::endl;
-			if (trksid[i].size() == 1)
+			auto it = trkshs.begin();
+			while (it != trkshs.end())
 			{
-				for (unsigned int id = 0; id < fClustersNotUsed.size(); id++)
+			
+				size_t startsize = trkshs.size();
+				
+				if ((it->second.size() == ntracks) && fClustersNotUsed.size())
 				{
-					std::vector< art::Ptr<recob::Hit> > hitscl = fbc.at(fClustersNotUsed[id]);
-					if ((hitscl.size()) && 
-				 			(hitscl[0]->WireID().Cryostat == cryo) &&
-				 			(hitscl[0]->WireID().TPC == tpc))
+					std::vector< art::Ptr<recob::Hit> > hitstrk = fbt.at(it->second[0]);
+					if (!hitstrk.size()) continue;
+
+					size_t plane1 = hitstrk[0]->WireID().Plane; size_t clid1 = it->first;
+					size_t plane2 = plane1; size_t clid2 = clid1;
+					size_t plane3 = plane1;	size_t clid3 = clid1;
+
+					bool pl1 = false; bool pl2 = false; bool pl3 = false;
+
+					for (size_t h = 0; h < hitstrk.size(); h++)
 					{
-							
+						bool common = false;				
+						std::vector< art::Ptr<recob::Hit> > hitscl = fbc.at(it->first);
+						for (size_t hc = 0; hc < hitscl.size(); hc++)
+							if ((hitscl[hc]->PeakTime() == hitstrk[h]->PeakTime()) &&
+								(hitscl[hc]->WireID().Wire == hitstrk[h]->WireID().Wire) &&
+								(hitscl[hc]->WireID().Plane == hitstrk[h]->WireID().Plane))
+							{common = true; break;}
+
+							if (common) {
+							pl1 = true;
+							clid1 = it->first; plane1 = hitstrk[h]->WireID().Plane; break;}		
 					}
+
+					std::cout << " pl1 ===== " << pl1 << std::endl;
+			
+					for (size_t h = 0; h < hitstrk.size(); h++)
+						if (pl1 && (hitstrk[h]->WireID().Plane != plane1)) 
+						{
+							bool common = false;
+							for (size_t id = 0; id < fClustersNotUsed.size(); id++)
+							{
+								std::vector< art::Ptr<recob::Hit> > hitscl = fbc.at(fClustersNotUsed[id]);
+								for (size_t hc = 0; hc < hitscl.size(); hc++)
+									if ((hitscl[hc]->PeakTime() == hitstrk[h]->PeakTime()) &&
+										(hitscl[hc]->WireID().Wire == hitstrk[h]->WireID().Wire) &&
+										(hitscl[hc]->WireID().Plane == hitstrk[h]->WireID().Plane))
+									{common = true; break;}
+
+								if (common) {
+								pl2 = true;
+								clid2 = fClustersNotUsed[id]; plane2 = hitstrk[h]->WireID().Plane; break;}
+							}
+						
+							if (common) break;
+						}
+
+					std::cout << " pl2 ===== " << pl2 << std::endl;
+
+					for (size_t h = 0; h < hitstrk.size(); h++)
+						if (pl1 && pl2 && (hitstrk[h]->WireID().Plane != plane1) &&
+								(hitstrk[h]->WireID().Plane != plane2))
+						{
+							bool common = false;
+							for (size_t id = 0; id < fClustersNotUsed.size(); id++)
+							{
+								std::vector< art::Ptr<recob::Hit> > hitscl = fbc.at(fClustersNotUsed[id]);
+								for (size_t hc = 0; hc < hitscl.size(); hc++)
+									if ((hitscl[hc]->PeakTime() == hitstrk[h]->PeakTime()) &&
+										(hitscl[hc]->WireID().Wire == hitstrk[h]->WireID().Wire) &&
+										(hitscl[hc]->WireID().Plane == hitstrk[h]->WireID().Plane))
+									{common = true; break;}
+
+								if (common) {
+									pl3 = true;
+									clid3 = fClustersNotUsed[id]; plane3 = hitstrk[h]->WireID().Plane; break;}
+							}
+						
+							if (common) break;
+						}
+
+						std::cout << " plane1 = " << plane1 << " plane2 = " << plane2 << " plane3 = " << plane3 << std::endl;
+ 						std::cout << " cl1 = " << clid1 << " cl2 = " << clid2 << " cl3 = " << clid3 << std::endl;
+
+						std::cout << " pl3 ===== " << pl3 << std::endl;
+					
+						//if ((clid1 != clid2) && (clid2 != clid3) && (clid1 != clid3))
+						if (pl1 && pl2 && pl3)
+						{
+							if (trkshs[clid2].size() > trkshs[clid3].size()) clid2 = clid3;
+
+							std::cout << " * cl1 = " << clid1 << " cl2 = " << clid2 << " cl3 = " << clid3 << std::endl;	
+					
+							std::vector< art::Ptr<recob::Hit> > hitscl1 = fbc.at(clid1);
+							std::vector< art::Ptr<recob::Hit> > hitscl2 = fbc.at(clid2);
+							pma::Track3D* trk = fProjectionMatchingAlg.buildSegment(hitscl1, hitscl2);
+							
+							IniSeg initrack;
+							initrack.idcl1 = clid1;
+							initrack.idcl2 = clid2;
+							initrack.track = trk;	
+							fPMA3D.push_back(initrack);
+
+							std::cout << " startsize = " << startsize << std::endl;
+							size_t cnt = 0; bool erase = false;
+							while (cnt < fClustersNotUsed.size())
+							{
+								if (fClustersNotUsed[cnt] == clid1) 
+								{
+									fClustersNotUsed.erase(fClustersNotUsed.begin() + cnt);
+									trkshs.erase(clid1); erase = true;	
+								}
+								else if (fClustersNotUsed[cnt] == clid2) 
+								{
+									fClustersNotUsed.erase(fClustersNotUsed.begin() + cnt);
+									trkshs.erase(clid2); erase = true;
+								}
+								else cnt++;
+							}
+
+							if (erase) {it = trkshs.begin(); continue;}
+							std::cout << " trkshs size = " << trkshs.size() << std::endl;
+						
+						}
+						else if (pl1 && pl2)
+						{
+							std::cout << " pl1 && pl2 " << std::endl;
+							std::vector< art::Ptr<recob::Hit> > hitscl1 = fbc.at(clid1);
+							std::vector< art::Ptr<recob::Hit> > hitscl2 = fbc.at(clid2);
+
+							std::cout << " hitscl1 size " << hitscl1.size() << " hitscl2 size " << hitscl2.size() << std::endl;
+							
+							pma::Track3D* trk = fProjectionMatchingAlg.buildSegment(hitscl1, hitscl2);
+							
+							IniSeg initrack;
+							initrack.idcl1 = clid1;
+							initrack.idcl2 = clid2;
+							initrack.track = trk;	
+							fPMA3D.push_back(initrack);
+							
+							size_t cnt = 0; bool erase = false;
+							while (cnt < fClustersNotUsed.size())
+							{
+								if (fClustersNotUsed[cnt] == clid1) 
+								{
+									fClustersNotUsed.erase(fClustersNotUsed.begin() + cnt);
+									trkshs.erase(clid1); erase = true;	
+								}
+								else if (fClustersNotUsed[cnt] == clid2) 
+								{
+									fClustersNotUsed.erase(fClustersNotUsed.begin() + cnt);
+									trkshs.erase(clid2); erase = true;
+								}
+								else cnt++;
+							}
+
+							if (erase) {it = trkshs.begin(); continue;}
+							
+						}
 				}
+				it++;
 			}
-		}*/
-
-
+			ntracks++;
+		}
 	}
 }
 
@@ -712,7 +929,10 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 
 void EMShower3D::SelectTrks(art::Event const & e)
 {
+	std::cout << " SlectTrks " << std::endl;
 	const float mindist2 = 1.0F; // 1 cm
+
+	std::vector< size_t > trkids;
 	art::Handle< std::vector< recob::Track > > trkListHandle;		
   if ((e.getByLabel(fTrk3DModuleLabel, trkListHandle)) && trkListHandle->size())
 	{	
@@ -751,15 +971,69 @@ void EMShower3D::SelectTrks(art::Event const & e)
 					}
 				}
 
+				std::cout << " fSeltracks size " << fSeltracks.size() << " found " << found << std::endl;
+
 				if (found)
 				{
 					double inilength = (segsave->back()->Point3D() - segsave->front()->Point3D()).Mag();
 					if (inilength == 0) { fInisegs.erase(fInisegs.begin() + ids); continue;}
+	
+					std::cout << " clid1 " << fInisegs[ids].idcl1 << " clid2 " << fInisegs[ids].idcl2 << std::endl;
 
 					fSeltracks.push_back(fInisegs[ids]);
 					fInisegs.erase(fInisegs.begin() + ids);
+					trkids.push_back(t);
 				}
 			}
+	}
+
+	for (size_t i = 0; i < trkids.size(); i++)
+		MarkUsedTrks(trkids[i]);
+	
+	for (size_t i = 0; i < fSeltracks.size(); i++)
+	{
+		MarkUsedCls(fSeltracks[i].idcl1);
+		MarkUsedCls(fSeltracks[i].idcl2);
+	}
+}
+
+void EMShower3D::MarkUsedTrks(size_t idtrk)
+{
+	unsigned int cnt = 0;
+	while (cnt < fTracksNotUsed.size())
+	{
+		bool has = false;
+
+		if (idtrk == fTracksNotUsed[cnt])
+		{
+			std::cout << " erase = " << fTracksNotUsed[cnt] << std::endl;
+			fTracksNotUsed.erase(fTracksNotUsed.begin() + cnt);
+
+			has = true;
+		}
+
+		if (has) continue;
+		else cnt++;
+	}
+}
+
+void EMShower3D::MarkUsedCls(size_t idcl)
+{
+	unsigned int cnt = 0;
+	while (cnt < fClustersNotUsed.size())
+	{
+		bool has = false;
+		
+		if (idcl == fClustersNotUsed[cnt]) 
+		{
+			std::cout << " erase = " << fClustersNotUsed[cnt] << std::endl;
+			fClustersNotUsed.erase(fClustersNotUsed.begin() + cnt);
+				
+			has = true;
+		}
+
+		if (has) continue;
+		else cnt++;
 	}
 }
 
