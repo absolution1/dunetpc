@@ -35,6 +35,7 @@
 // C++ includes
 
 #include <vector>
+#include <map>
 #include <cstring>
 
 namespace opdet {
@@ -80,8 +81,8 @@ namespace opdet {
   {
 
     // Read the fcl-file
-    fInputModule = pset.get< std::string >("InputModule");
-    fInstanceName = pset.get<std::string>("InstanceName");
+    fInputModule  = pset.get< std::string >("InputModule");
+    fInstanceName = pset.get< std::string >("InstanceName");
 
     // Obtain parameters from TimeService
     art::ServiceHandle< util::TimeService > timeService;
@@ -90,8 +91,10 @@ namespace opdet {
     // Assume starting at 0
     fTimeBegin  = 0;
 
-    // Take the TPC readout window size and covert to us with the electronics clock frequency
-    fTimeEnd    = art::ServiceHandle<util::DetectorProperties>()->ReadOutWindowSize()/timeService->TPCClock().Frequency();
+    // Take the TPC readout window size and convert to us 
+    // with the electronics clock frequency
+//    fTimeEnd    = art::ServiceHandle< util::DetectorProperties >()
+//                    ->ReadOutWindowSize()/timeService->TPCClock().Frequency();
 
   }
 
@@ -108,6 +111,9 @@ namespace opdet {
     // Create a string for histogram names
     char histName[50];
 
+    // Map to store how many waveforms are on one optical channel
+    std::map< int, int > mapChannelWF;
+
     // Get OpDetWaveforms from the event
     art::Handle< std::vector< raw::OpDetWaveform > > waveformHandle;
     evt.getByLabel(fInputModule, fInstanceName, waveformHandle);
@@ -123,16 +129,24 @@ namespace opdet {
       // with OpDetPulse::Waveform()
       art::Ptr< raw::OpDetWaveform > waveformPtr(waveformHandle, i);
       raw::OpDetWaveform pulse = *waveformPtr;
+      int channel = pulse.ChannelNumber();
       // Make a name for the histogram
-      sprintf(histName, "event_%d_opdet_%i", evt.id().event(), 
-                                        pulse.ChannelNumber());
+      sprintf(histName, "event_%i_opchannel_%i_waveform_%i", 
+                        evt.id().event(), channel, mapChannelWF[channel]);
+      // Increase counter for number of waveforms on this optical channel
+      mapChannelWF[channel]++;
 
-      TH1D * waveformHist = nullptr;
+      TH1F *waveformHist = nullptr;
 
-      waveformHist = tfs->make< TH1D >(histName, ";t (us);",
-                                       int((fTimeEnd - fTimeBegin)
-                                                 *fSampleFreq - 1),
-                                              fTimeBegin, fTimeEnd);
+      // Implement different end time for waveforms of variable length
+      float endTime = float(pulse.size()/fSampleFreq) + fTimeBegin;
+
+      waveformHist = tfs->make< TH1F >(histName, ";t (us);",
+                                       pulse.size(), fTimeBegin, endTime);
+
+//                                       int((fTimeEnd - fTimeBegin)
+//                                                 *fSampleFreq - 1),
+//                                              fTimeBegin, fTimeEnd);
 
       for (size_t tick = 0; tick < pulse.size(); tick++)
         waveformHist->SetBinContent(tick, (float) pulse[tick]);
