@@ -134,6 +134,7 @@ namespace detsim {
     // input fcl parameters
 
     bool                   fSimCombs;          // switch for simulation of the combs
+    bool                   fSaveEmptyChannel;  // switch for saving channels with all zero entries
     float                  fFractUUCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding U wires
     float                  fFractUVCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding V wires
     float                  fFractVUCollect;    // fraction of charge that collects on V (non-transparency) when charge drifts over the comb holding U wires
@@ -225,7 +226,8 @@ namespace detsim {
     fNSamplesReadout  = detprop->ReadOutWindowSize();
     fNTimeSamples  = detprop->NumberTimeSamples();
     
-    fSimCombs            = p.get< bool >("SimCombs");          
+    fSimCombs            = p.get< bool >("SimCombs");  
+    fSaveEmptyChannel    = p.get< bool >("SaveEmptyChannel");  
     fFractUUCollect      = p.get< float >("FractUUCollect");
     fFractUVCollect      = p.get< float >("FractUVCollect");
     fFractVUCollect      = p.get< float >("FractVUCollect");
@@ -508,7 +510,6 @@ namespace detsim {
     art::ServiceHandle<geo::Geometry> geo;
     unsigned int signalSize = fNTicks;
 
- 
     // vectors for working
     std::vector<short>    adcvec(signalSize, 0);	
     std::vector<const sim::SimChannel*> chanHandle;
@@ -832,7 +833,8 @@ namespace detsim {
 	raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
 	
 	adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
-	digcol->push_back(rd);            // add this digit to the collection
+	if(fSaveEmptyChannel || adcvec[1]>0)
+	  digcol->push_back(rd);            // add this digit to the collection
 	
 	
       }
@@ -856,8 +858,8 @@ namespace detsim {
 		  raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entries at start of collection plane, once ring buffer is full enough with neighbors
 		  
 		  raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
-		  
-		  digcol->push_back(rd);            // add this digit to the collection
+		  if(fSaveEmptyChannel || adcvec[1]>0)
+		    digcol->push_back(rd);            // add this digit to the collection
 
 		}
 	      }	    
@@ -871,8 +873,8 @@ namespace detsim {
 	      raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
 	      
 	      raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
-	      
-	      digcol->push_back(rd);            // add this digit to the collection
+	      if(fSaveEmptyChannel || adcvec[1]>0)
+		digcol->push_back(rd);            // add this digit to the collection
 
 	      if(chan == fLastChannelsInPlane.at(plane_number)) // End of collection plane is reached, so apply zero suppression to last entries as well
 		{
@@ -890,8 +892,8 @@ namespace detsim {
 		      raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
 		      
 		      raw::RawDigit rd2(channel_number, fNSamplesReadout, adcvec, fCompression);
-		      
-		      digcol->push_back(rd2);            // add this digit to the collection
+		      if(fSaveEmptyChannel || adcvec[1]>0)
+			digcol->push_back(rd2);            // add this digit to the collection
 
 		    }
 		  
@@ -923,8 +925,8 @@ namespace detsim {
 		raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
 		
 		raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
-		
-		digcol->push_back(rd);            // add this digit to the collection
+		if(fSaveEmptyChannel || adcvec[1]>0)
+		  digcol->push_back(rd);            // add this digit to the collection
 		
 	      }
 	    if(chan==fLastChannelsInPlane.at(plane_number)){ // reached the last channel of the induction plane
@@ -948,8 +950,8 @@ namespace detsim {
 		  raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
 		  
 		  raw::RawDigit rd2(channel_number, fNSamplesReadout, adcvec, fCompression);
-		  
-		  digcol->push_back(rd2);            // add this digit to the collection
+		  if(fSaveEmptyChannel || adcvec[1]>0)
+		    digcol->push_back(rd2);            // add this digit to the collection
 
 		}
 	      
