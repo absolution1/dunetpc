@@ -58,7 +58,6 @@ namespace opdet {
       std::string fInstanceName;// Input tag for OpDetWaveforms collection
       float fSampleFreq;        // Sampling frequency in MHz 
       float fTimeBegin;         // Beginning of sample in us
-      float fTimeEnd;           // End of sample in us
 
   };
 
@@ -90,11 +89,6 @@ namespace opdet {
 
     // Assume starting at 0
     fTimeBegin  = 0;
-
-    // Take the TPC readout window size and convert to us 
-    // with the electronics clock frequency
-//    fTimeEnd    = art::ServiceHandle< util::DetectorProperties >()
-//                    ->ReadOutWindowSize()/timeService->TPCClock().Frequency();
 
   }
 
@@ -143,10 +137,6 @@ namespace opdet {
 
       waveformHist = tfs->make< TH1F >(histName, ";t (us);",
                                        pulse.size(), fTimeBegin, endTime);
-
-//                                       int((fTimeEnd - fTimeBegin)
-//                                                 *fSampleFreq - 1),
-//                                              fTimeBegin, fTimeEnd);
 
       for (size_t tick = 0; tick < pulse.size(); tick++)
         waveformHist->SetBinContent(tick, (float) pulse[tick]);
