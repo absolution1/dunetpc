@@ -1,0 +1,72 @@
+#include "services_lbne.fcl"
+#include "singles.fcl"
+#include "largeantmodules.fcl"
+#include "detsimmodules.fcl"
+#include "opticaldetectormodules.fcl"
+#include "photpropservices_lbne.fcl"
+#include "lightsource.fcl"
+
+
+process_name: FailureRateStudy
+
+
+
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "failure_rate_study_hists.root" }
+  Timing:       {}
+  user:          @local::lbnefd_simulation_services  # defined in services.fcl
+  message:       @local::standard_info
+}
+
+
+services.user.Geometry.GDML: "dune10kt_v1_workspace.gdml"
+services.user.Geometry.ROOT: "dune10kt_v1_workspace.gdml"
+services.user.Geometry.SortingParameters.DetectorVersion: "dune10kt_v1_workspace"
+
+#
+# Examine your own library file - need to customize the visibility service
+#
+
+services.user.PhotonVisibilityService.LibraryFile: "lib_dune10kt_v1_workspace_20150616.root"
+
+# Number of voxels
+services.user.PhotonVisibilityService.NX: 100
+services.user.PhotonVisibilityService.NY: 100
+services.user.PhotonVisibilityService.NZ: 100
+
+
+
+physics:
+{
+
+ producers:
+ {
+ }
+
+ analyzers:
+ {
+   libana: {
+         module_type:    "PhotoLibFailureStudy"
+         alt_x_axis:     "Y"
+         opdet:          -1 # -1 = all op dets
+         failure_rate:   0.0 # Fraction of failed channels
+         nhardware_chan: 12
+         ganging:        1   # Channels ganged together in failure rates 
+         mask_num:       0   # Fraction of opdets to fully mask off
+         mask_denom:     1   #
+      }
+ }
+
+ analyzeIt:  [ libana ]
+
+ #trigger_paths is a keyword and contains the paths that modify the art::event, 
+ #ie filters and producers
+ trigger_paths: [] 
+
+ #end_paths is a keyword and contains the paths that do not modify the art::Event, 
+ #ie analyzers and output streams.  these all run simultaneously
+ end_paths:     [analyzeIt]  
+}
