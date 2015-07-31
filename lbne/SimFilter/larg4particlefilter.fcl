@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+lbne35t_larg4particlefilter:
+{
+   module_type:              "LArG4ParticleFilter"
+
+   InterestingPDGs: [13, -13]
+   ParticleMinEnergy: 0.
+   ParticleMaxEnergy: 1.0e20
+}
+
+END_PROLOG
