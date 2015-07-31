@@ -164,8 +164,12 @@ $APAFrame_x              = 5.0661; # ~2in -- this does not include the wire spac
 $TPCWireThickness        = 0.015;
 $TPCWirePlaneThickness   = $TPCWireThickness;
 #$APAWirePlaneSpacing     = 0.4730488 + $TPCWirePlaneThickness; # center to center spacing between all of the wire planes (g, u, v, and x)
-$APAWirePlaneSpacing     = 0.476;
 
+if($Pitch3mmVersion==1){
+    $APAWirePlaneSpacing     = 0.3;
+} else {
+    $APAWirePlaneSpacing     = 0.476;
+}
 
 # At creation of the plane volumes, the y and z boundaries will be increased
 # by this much at each of the 4 edges. this is so the corners of the wire 
@@ -433,7 +437,7 @@ sub gen_Materials()
   <element name="titanium" formula="Ti" Z="22"> <atom value="47.867"/>   </element>
   <element name="argon" formula="Ar" Z="18"> <atom value="39.9480"/>  </element>
   <element name="sulphur" formula="S" Z="16"> <atom value="32.065"/>  </element>
-  <element name="phosphorus" formula="P" Z="16"> <atom value="30.973"/>  </element>
+  <element name="phosphorus" formula="P" Z="15"> <atom value="30.973"/>  </element>
 
   <material name="Vacuum" formula="Vacuum">
    <D value="1.e-25" unit="g/cm3"/>
@@ -1591,7 +1595,7 @@ EOF
 for($i=0 ; $i<$nAPAs ; $i++){
 for($p=0 ; $p<10 ; $p++){
 print CRYO <<EOF;
-    <volume name="volOpDetSensitive\-$i\-$p">
+    <volume name="volOpDetSensitive_$i\-$p">
       <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
@@ -1857,7 +1861,7 @@ for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
              
              print CRYO <<EOF;
      <physvol>
-       <volumeref ref="volOpDetSensitive\-$apa_i\-$paddle"/>
+       <volumeref ref="volOpDetSensitive_$apa_i\-$paddle"/>
        <position name="posPaddle\-$paddle\-TPC\-$i\-$j\-$k" unit="cm" 
          x="$APACenter_x" 
 	 y="$Paddle_Y" 
