@@ -19,6 +19,7 @@ add_subdirectory(CTree)
 add_subdirectory(TrackMatching)
 add_subdirectory(T0Reco)
 add_subdirectory(SimFilter)
+add_subdirectory(FDSensOpt)
 add_subdirectory(EMShower3D)
 
 # Respect the order specified in lar_build, which is:
