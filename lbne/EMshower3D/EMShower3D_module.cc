@@ -806,7 +806,7 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 							}
 							std::cout << " * cl1 = " << clid1 << " cl2 = " << clid2 << " cl3 = " << clid3 << std::endl;	
 					
-							Find3DCandidate(e, clid1, clid2, tpc, cryo);
+							// Find3DCandidate(e, clid1, clid2, tpc, cryo);
 
 							std::vector< art::Ptr<recob::Hit> > hitscl1 = fbc.at(clid1);
 							std::vector< art::Ptr<recob::Hit> > hitscl2 = fbc.at(clid2);
@@ -846,7 +846,7 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 						}
 						else if (pl1 && pl2)
 						{
-							Find3DCandidate(e, clid1, clid2, tpc, cryo);
+							// Find3DCandidate(e, clid1, clid2, tpc, cryo);
 
 							std::vector< art::Ptr<recob::Hit> > hitscl1 = fbc.at(clid1);
 							std::vector< art::Ptr<recob::Hit> > hitscl2 = fbc.at(clid2);
