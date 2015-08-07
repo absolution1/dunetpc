@@ -1,0 +1,96 @@
+
+BEGIN_PROLOG
+
+
+dunefd_geo:
+{
+
+ # Various configurations for FD-related geometries
+
+ Name:     "dune10kt"   #note: this does not need to change with GDML file
+			#unless it is important that DetId be 34kt.
+			#  At this point, 34kt is no different than 10kt,
+			#  and there are no other FD detector IDs. 9/7/13
+
+ # Choose GDML file
+
+# GDML:      "dune10kt_v1.gdml"
+# ROOT:      "dune10kt_v1.gdml"
+# GDML:      "dune10kt_v1_workspace.gdml"
+# ROOT:      "dune10kt_v1_workspace.gdml"
+# GDML:      "dune10kt_v1_45deg.gdml"
+# ROOT:      "dune10kt_v1_45deg.gdml"
+# GDML:      "dune10kt_v1_45deg_workspace.gdml"
+# ROOT:      "dune10kt_v1_45deg_workspace.gdml"
+# GDML:      "dune10kt_v1_3mmPitch.gdml"
+# ROOT:      "dune10kt_v1_3mmPitch.gdml"
+# GDML:      "dune10kt_v1_3mmPitch_workspace.gdml"
+# ROOT:      "dune10kt_v1_3mmPitch_workspace.gdml"
+ GDML:      "dune10kt.gdml"
+ ROOT:      "dune10kt.gdml"
+# GDML:      "dune34kt.gdml"
+# ROOT:      "dune34kt.gdml"
+# GDML:      "dune4apa36deg.gdml"
+# ROOT:      "dune4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
+
+
+ SurfaceY:         0.0e2               # in cm, vertical distance to the surface
+ #SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
+
+
+ DisableWiresInG4: true
+}
+
+dune10kt_geo:
+{
+ Name:      "dune10kt_v1"
+ 
+ GDML:      "dune10kt_v1.gdml"
+ ROOT:      "dune10kt_v1.gdml"
+
+ SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
+
+ DisableWiresInG4:   true
+
+}
+
+dune10kt_workspace_geo: @local::dune10kt_geo
+dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
+dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
+dune10kt_workspace_geo.ROOT: "dune10kt_v1_workspace.gdml"
+
+dune10kt_45deg_workspace_geo: @local::dune10kt_geo
+dune10kt_45deg_workspace_geo.Name: "dune10kt_v1_45deg_workspace"
+dune10kt_45deg_workspace_geo.GDML: "dune10kt_v1_45deg_workspace.gdml"
+dune10kt_45deg_workspace_geo.ROOT: "dune10kt_v1_45deg_workspace.gdml"
+
+dune10kt_3mmPitch_workspace_geo: @local::dune10kt_geo
+dune10kt_3mmPitch_workspace_geo.Name: "dune10kt_v1_3mmPitch_workspace"
+dune10kt_3mmPitch_workspace_geo.GDML: "dune10kt_v1_3mmPitch_workspace.gdml"
+dune10kt_3mmPitch_workspace_geo.ROOT: "dune10kt_v1_3mmPitch_workspace.gdml"
+
+dune35t_geo:
+{
+ Name:     "dune35t4apa_v4"
+
+ # Choose GDML file and set detector version similarly
+ GDML:         "dune35t4apa_v4.gdml"
+ ROOT:         "dune35t4apa_v4.gdml"
+ SortingParameters: { 
+   DetectorVersion: "dune35t4apa_v4" 
+ } 
+
+ SurfaceY:           0.0e2               #in cm, vertical distance to the surface
+ DisableWiresInG4:   true
+
+}
+
+
+dune_geometry_helper:
+{
+ service_provider : DUNEGeometryHelper
+}
+
+
+
+END_PROLOG

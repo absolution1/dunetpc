@@ -1,4 +1,4 @@
-#include "services_lbne.fcl"
+#include "services_dune.fcl"
 #include "genie_dune.fcl"
 
 process_name: GenieGen

@@ -1,5 +1,5 @@
 For a dependency database to be useful, it should be built against both 
-lbnecode and the larsoft suite. 
+dunetpc and the larsoft suite. 
 
 To generate a new base_dependency_database:
 
@@ -10,10 +10,10 @@ mrb newDev -v <version> -q <quals>
 source localProductsXXX/setup
 cd srcs
 mrb g [-t <version>] larsoft_suite
-mrb g [-t <version>] lbnecode
+mrb g [-t <version>] dunetpc
 cd $MRB_BUILDDIR
 mrbsetenv
 mrb b [-jN]
 mrb md
-cp .dependency_database  $MRB_SOURCE/lbnecode/releaseDB/base_dependency_database
+cp .dependency_database  $MRB_SOURCE/dunetpc/releaseDB/base_dependency_database
 

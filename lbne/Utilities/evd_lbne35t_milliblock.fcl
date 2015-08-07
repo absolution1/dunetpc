@@ -1,4 +1,0 @@
-#include "evd_lbne35t.fcl"
-
-services.user.RawDrawingOptions.TotalTicks: 32000
-

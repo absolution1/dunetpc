@@ -1,0 +1,17 @@
+#include "larfft.fcl"
+
+BEGIN_PROLOG
+
+
+dunefd_larfft:           @local::standard_larfft
+dunefd_larfft.FitBins:   5
+
+dune35t_larfft:            @local::standard_larfft
+dune35t_larfft.FitBins:    5
+
+# Note: going much higher on the FitBins introduces an 
+# undesired time offset in dune wires
+
+
+END_PROLOG
+

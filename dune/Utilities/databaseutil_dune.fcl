@@ -1,0 +1,23 @@
+#include "databaseutil.fcl"
+
+BEGIN_PROLOG
+
+
+dunefd_database:               @local::standard_database
+dunefd_database.DBName:	       "dune_dev"
+dunefd_database.DBUser:	       "dune_reader"
+dunefd_database.Port:	       5438
+dunefd_database.PassFileName:  ".lpswd"
+dunefd_database.ShouldConnect: false # enable it when DB is available
+dunefd_database.ToughErrorTreatment: false # enable it when DB is available too
+
+dune35t_database:               @local::standard_database
+dune35t_database.DBName:        "dune_dev"
+dune35t_database.DBUser:        "dune_reader"
+dune35t_database.Port:          5438
+dune35t_database.PassFileName:  ".lpswd"
+dune35t_database.ShouldConnect: false # enable it when DB is available
+dune35t_database.ToughErrorTreatment: false # enable it when DB is available too
+
+
+END_PROLOG
