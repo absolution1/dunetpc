@@ -5,9 +5,9 @@ BEGIN_PROLOG
 lbnefd_timeservice: @local::standard_timeservice
 
 # lbnefd_timeservice.TrigModuleName:      ""
-lbnefd_timeservice.InheritClockConfig:   true
+lbnefd_timeservice.InheritClockConfig:   false
 lbnefd_timeservice.G4RefTime:            0. # G4 time [us] where electronics clock counting start
-lbnefd_timeservice.TriggerOffsetTPC: -1600. # Time [us] for TPC readout start w.r.t. trigger time
+lbnefd_timeservice.TriggerOffsetTPC:     0. # Time [us] for TPC readout start w.r.t. trigger time
 lbnefd_timeservice.FramePeriod:       1600. # Frame period [us]
 lbnefd_timeservice.ClockSpeedTPC:        2. # TPC clock speed in MHz
 lbnefd_timeservice.ClockSpeedOptical:  128. # Optical clock speed in MHz

@@ -45,6 +45,7 @@ lbnefd_disp:
 }
 lbnefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
 lbnefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
+lbnefd_disp.RecoDrawingOptions.WireModuleLabels: ["caldata"]
 
 
 

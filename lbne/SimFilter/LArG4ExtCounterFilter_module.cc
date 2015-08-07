@@ -15,10 +15,10 @@
 
 namespace filt{
 
-  class LArG4Filter : public art::EDFilter {
+  class LArG4ExtCounterFilter : public art::EDFilter {
     public:
-      explicit LArG4Filter(fhicl::ParameterSet const & pset);
-      virtual ~LArG4Filter() {};
+      explicit LArG4ExtCounterFilter(fhicl::ParameterSet const & pset);
+      virtual ~LArG4ExtCounterFilter() {};
       virtual bool filter(art::Event& e);
       void reconfigure(fhicl::ParameterSet const& pset);
       void beginJob() ;
@@ -47,12 +47,12 @@ namespace filt{
 
   };
 
-  LArG4Filter::LArG4Filter::LArG4Filter(fhicl::ParameterSet const & pset)
+  LArG4ExtCounterFilter::LArG4ExtCounterFilter::LArG4ExtCounterFilter(fhicl::ParameterSet const & pset)
   {
     this->reconfigure(pset);
   }
 
-  void LArG4Filter::reconfigure(fhicl::ParameterSet const& pset){
+  void LArG4ExtCounterFilter::reconfigure(fhicl::ParameterSet const& pset){
     fUseEWCounterPair = pset.get<bool>("UseEWCounterPair",1);
     std::cout<<"Use EW counter pair: " << fUseEWCounterPair<<std::endl;
     fUseNupSdownCounterPair = pset.get<bool>("UseNupSdownCounterPair",1);
@@ -70,7 +70,7 @@ namespace filt{
     std::cout<<"Particle max energy: " << fParticleMaxEnergy << std::endl;
   }
 
-  bool LArG4Filter::filter(art::Event & e){
+  bool LArG4ExtCounterFilter::filter(art::Event & e){
 
     art::ServiceHandle<geo::Geometry> geom;
 
@@ -124,7 +124,7 @@ namespace filt{
     return false;
   }
 
-  void LArG4Filter::beginJob() {
+  void LArG4ExtCounterFilter::beginJob() {
 
     //Need to get the counter information.  By doing this at the start of the job, rather than per event, the code assumes the geomtry is not going to change between events
     art::ServiceHandle<geo::Geometry> geom;
@@ -165,7 +165,7 @@ namespace filt{
     }
   }
 
-  bool LArG4Filter::IsInterestingParticle(const art::Ptr<simb::MCParticle> particle){
+  bool LArG4ExtCounterFilter::IsInterestingParticle(const art::Ptr<simb::MCParticle> particle){
     //Loop over the list of requested PDGs.  See if that matches the particle under consideration
     for (unsigned int i = 0; i < fInterestingPDGs.size(); i++){
       //Check if the particle under consideration has a requested PDG
@@ -181,7 +181,7 @@ namespace filt{
     return false;
   }
 
-  bool LArG4Filter::UsesCounterSetPair(const CounterSetPair &CSP, const std::set<unsigned int> &usedCounterIDs){
+  bool LArG4ExtCounterFilter::UsesCounterSetPair(const CounterSetPair &CSP, const std::set<unsigned int> &usedCounterIDs){
 
     bool usesSetA = UsesCounterSet(CSP.setA,usedCounterIDs);
     bool usesSetB = UsesCounterSet(CSP.setB,usedCounterIDs);
@@ -193,7 +193,7 @@ namespace filt{
     return false;
   }
 
-  bool LArG4Filter::UsesCounterSet(const std::vector<unsigned int> &counterIDs, const std::set<unsigned int> &userCounterIDs){
+  bool LArG4ExtCounterFilter::UsesCounterSet(const std::vector<unsigned int> &counterIDs, const std::set<unsigned int> &userCounterIDs){
     //Iterate over the used counter IDs and compare them with every counter ID in the vector.  If a match is found, this means the particle of interest passed through one of the counters in the vector
     for (std::set<unsigned int>::iterator setIt = userCounterIDs.begin(); setIt != userCounterIDs.end(); setIt++){
       unsigned int usedCounterID = (*setIt);
@@ -211,5 +211,5 @@ namespace filt{
     return false;
   }
 
-  DEFINE_ART_MODULE(LArG4Filter)
+  DEFINE_ART_MODULE(LArG4ExtCounterFilter)
 }

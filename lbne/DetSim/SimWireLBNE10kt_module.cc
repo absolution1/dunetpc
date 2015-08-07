@@ -112,7 +112,9 @@ namespace detsim {
     //define max ADC value - if one wishes this can
     //be made a fcl parameter but not likely to ever change
     const float adcsaturation = 4095;
-     float                  fCollectionPed;    ///< ADC value of baseline for collection plane
+
+    bool                   fSaveEmptyChannel;  // switch for saving channels with all zero entries
+    float                  fCollectionPed;    ///< ADC value of baseline for collection plane
     float                  fInductionPed;     ///< ADC value of baseline for induction plane
     
   }; // class SimWireLBNE10kt
@@ -186,7 +188,7 @@ namespace detsim {
     fSampleRate       = detprop->SamplingRate();
     fNSamplesReadout  = detprop->ReadOutWindowSize();
     fNTimeSamples  = detprop->NumberTimeSamples();
-    
+    fSaveEmptyChannel    = p.get< bool >("SaveEmptyChannel");  
     return;
   }
 
@@ -590,7 +592,9 @@ namespace detsim {
       raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
       //rd.SetPedestal(ped_mean);
       adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
-      digcol->push_back(rd);            // add this digit to the collection
+
+      if(fSaveEmptyChannel || adcvec[1]>0)
+	digcol->push_back(rd);            // add this digit to the collection
 
       // add the digit to the collection (in-place constructon)
       // digcol->emplace_back(chan, fNSamplesReadout, adcvec, fCompression);
@@ -608,8 +612,11 @@ namespace detsim {
 	// rdPostSpill.SetPedestal(ped_mean);
         adcvecPreSpill.resize(signalSize);
         adcvecPostSpill.resize(signalSize);
-        digcolPreSpill->push_back(rdPreSpill);
-        digcolPostSpill->push_back(rdPostSpill);
+
+	if(fSaveEmptyChannel || adcvecPreSpill[1]>0)	
+	  digcolPreSpill->push_back(rdPreSpill);
+	if(fSaveEmptyChannel || adcvecPostSpill[1]>0)
+	  digcolPostSpill->push_back(rdPostSpill);
         // raw::Compress(adcvecPreSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
         // raw::Compress(adcvecPostSpill, fCompression, fZeroThreshold, fNearestNeighbor); 
         // digcolPreSpill->emplace_back(chan, fNSamplesReadout, adcvecPreSpill, fCompression);

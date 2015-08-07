@@ -1,13 +1,11 @@
 
-simple_plugin(MCTruthT0Matching "module"
+simple_plugin(NueAna "module"
 		      RawData
-		      AnalysisBase
 		      RecoBase
 		        Geometry
 			Geometry_service
 			Utilities
 			DetectorProperties_service
-			BackTracker_service
 			LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}

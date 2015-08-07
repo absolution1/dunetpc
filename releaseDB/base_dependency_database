@@ -919,6 +919,7 @@ lbnecode : larcore : test/Geometry/GeometryTestAlg.h
 lbnecode : larcore : test/Geometry/geometry_boost_unit_test_base.h
 lbnecode : larcore : test/Geometry/geometry_unit_test_base.h
 lbnecode : lardata : AnalysisBase/Calorimetry.h
+lbnecode : lardata : AnalysisBase/CosmicTag.h
 lbnecode : lardata : AnalysisBase/ParticleID.h
 lbnecode : lardata : AnalysisBase/T0.h
 lbnecode : lardata : OpticalDetectorData/OpticalTypes.h
