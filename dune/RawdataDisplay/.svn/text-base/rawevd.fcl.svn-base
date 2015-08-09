@@ -7,7 +7,7 @@ process_name: RawEVD
 services:
 {
   TFileService: { fileName: "histOutput/duneEVDraw10kt.root" }
-  Timing:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
   user:         @local::dunefd_simulation_services

@@ -7,7 +7,7 @@ process_name: MuonOccupancy
 services:
 {
   TFileService: { fileName: "muonoccupancy.root" }
-  Timing:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
   user:         @local::dune35t_simulation_services

@@ -4,7 +4,7 @@ process_name: RawEVD35tTree
 services:
 {
   TFileService: { fileName: "duneEVDraw35t_tree_Mu_50evt.root" }
-  Timing:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
   user:         @local::dune35t_simulation_services

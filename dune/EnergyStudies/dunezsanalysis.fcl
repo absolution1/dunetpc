@@ -20,7 +20,7 @@ services:
   # default output file -- contains a tree of ADC sums 
   TFileService: { fileName: "dunezsanalysis.root" }
 
-  Timing:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
   user:         @local::dune35t_simulation_services

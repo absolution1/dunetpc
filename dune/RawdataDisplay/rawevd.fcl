@@ -7,7 +7,7 @@ process_name: RawEVD
 services:
 {
   TFileService: { fileName: "duneEVDraw10kt_atmos1.root" }
-  Timing:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
   user:         @local::dunefd_simulation_services

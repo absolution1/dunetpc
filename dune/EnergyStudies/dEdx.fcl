@@ -7,7 +7,7 @@ process_name: dEdx
 services:
 {
   TFileService: { fileName: "dEdx.root" }
-  Timing:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {}
   message:      @local::standard_info
   user:         @local::dunefd_simulation_services
