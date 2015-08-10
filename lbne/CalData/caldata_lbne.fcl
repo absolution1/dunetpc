@@ -113,7 +113,13 @@ lbnefd_calgaushf:
 }
 lbnefd_calgaushfana:    @local::standard_calwireana
 
-
+dune35t_unstick:
+{
+ module_type:        "UnstickADCCodes"
+ DigitModuleLabel:   "daq" 
+ StickyADCCodesLimit:  5                # Number of ADC codes to check for stickiness at 0x00 or 0x3f before stopping, 
+                                        # i.e. assuming that ADC values are at true zero or pedestal value that is not sticky
+}
 
 END_PROLOG
 
