@@ -62,9 +62,19 @@ public:
   void beginJob() override;
   void endJob() override;
 
+  void reconfigure(fhicl::ParameterSet const& p) override;
+
+
+	/*bool isActivityAtVtx() 
+	{ 
+		if (!multiplicity) return false;
+		else return true;
+	}*/
+
 private:
 
   void ResetVars();
+  bool insideFidVol(const TLorentzVector& pvtx); 
 
   // Declare member data here.
   TTree *fTree;
@@ -132,16 +142,16 @@ private:
   std::string fTrackModuleLabel;
   std::string fVertexModuleLabel;
   std::string fGenieGenModuleLabel;
+
+  double fFidVolCut;
 };
 
 
 dunefd::NueAna::NueAna(fhicl::ParameterSet const & pset)
   : EDAnalyzer(pset)
-  , fHitsModuleLabel         ( pset.get< std::string >("HitsModuleLabel"))
-  , fTrackModuleLabel        ( pset.get< std::string >("TrackModuleLabel"))
-  , fVertexModuleLabel       ( pset.get< std::string >("VertexModuleLabel"))
-  , fGenieGenModuleLabel     ( pset.get< std::string >("GenieGenModuleLabel"))
-{}
+{
+  reconfigure(pset);
+}
 
 void dunefd::NueAna::analyze(art::Event const & evt)
 {
@@ -399,5 +409,106 @@ void dunefd::NueAna::endJob()
 {
   // Implementation of optional member function here.
 }
+
+void dunefd::NueAna::reconfigure(fhicl::ParameterSet const & p)
+{
+  fHitsModuleLabel     =   p.get< std::string >("HitsModuleLabel");
+  fTrackModuleLabel    =   p.get< std::string >("TrackModuleLabel");
+  fVertexModuleLabel   =   p.get< std::string >("VertexModuleLabel");
+  fGenieGenModuleLabel =   p.get< std::string >("GenieGenModuleLabel");
+  fFidVolCut           =   p.get< double >("FidVolCut");
+  return;
+}
+
+/***********************************************************************/
+
+bool dunefd::NueAna::insideFidVol(const TLorentzVector& pvtx) 
+{
+	art::ServiceHandle<geo::Geometry> geom;
+
+	double vtx[3];
+	vtx[0] = pvtx.X(); vtx[1] = pvtx.Y(); vtx[2] = pvtx.Z();
+
+	bool inside = true;
+	geo::TPCID idtpc = geom->FindTPCAtPosition(vtx);
+	if (geom->HasTPC(idtpc))
+	{
+		const geo::TPCGeo& tpcgeo = geom->GetElement(idtpc); 
+		if ((fabs(vtx[0] - tpcgeo.MinX()) < fFidVolCut) ||
+				(fabs(tpcgeo.MaxX() - vtx[0]) < fFidVolCut) ||
+				(fabs(vtx[1] - tpcgeo.MinY()) < fFidVolCut) ||
+				(fabs(tpcgeo.MaxY() - vtx[1]) < fFidVolCut) ||
+				(fabs(vtx[2] - tpcgeo.MinZ()) < fFidVolCut) ||
+				(fabs(tpcgeo.MaxZ() - vtx[2]) < fFidVolCut)) inside = false;
+	}
+	else inside = false;
+		
+	return inside;
+}
+
+/***********************************************************************/
+/*
+TLorentzVector dunefd::NueAna::findNuPVtx()
+{
+	TLorentzVector position;
+	
+	art::ServiceHandle<cheat::BackTracker> bt;
+	const sim::ParticleList& plist = bt->ParticleList();
+
+	for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar)
+	{
+		simb::MCParticle* particle = ipar->second;
+		bool found = false;
+		if (particle->Process() == "primary")
+			{
+				if ((abs(particle->PdgCode()) == 12) ||
+						(abs(particle->PdgCode()) == 14) ||
+						(abs(particle->PdgCode()) == 16))
+				{
+					fPdg = particle->PdgCode();
+					position = particle->Position();
+					found = true;
+					break;
+				}
+			}
+			
+			if (found) break;
+	}
+
+	return position;
+}
+
+TVector3 dunefd::NueAna::findElectronDir()
+{
+	TVector3 dir;
+
+	art::ServiceHandle<cheat::BackTracker> bt;
+	const sim::ParticleList& plist = bt->ParticleList();
+
+	for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar)
+	{
+		simb::MCParticle* particle = ipar->second;
+		bool found = false;
+		if (particle->Process() == "primary")
+			for (int p = 0; p < particle->NumberDaughters(); p++)			
+				if ((bt->TrackIDToParticle(particle->Daughter(p))->PdgCode() == 11) ||
+						(bt->TrackIDToParticle(particle->Daughter(p))->PdgCode() == -11))
+				{
+					TLorentzVector mom = particle->Momentum();
+					TVector3 momvec3(mom.Px(), mom.Py(), mom.Pz());
+					dir = momvec3 *  (1/momvec3.Mag());
+
+					found = true;
+					break;
+				}
+			
+			if (found) break;
+				
+	}
+
+	return dir;
+}
+*/
+/***********************************************************************/
 
 DEFINE_ART_MODULE(dunefd::NueAna)
