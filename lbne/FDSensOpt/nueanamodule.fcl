@@ -4,6 +4,8 @@ dunefd_nueana:
 {
    module_type:             "NueAna"
 #  HitsModuleLabel:         "gaushit"
+
+	 FidVolCut:								3.0
 }
 
 END_PROLOG

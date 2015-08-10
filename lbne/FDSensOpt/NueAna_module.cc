@@ -17,6 +17,23 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "MCCheater/BackTracker.h"
+
+#include "Geometry/Geometry.h"
+#include "Geometry/CryostatGeo.h"
+#include "Geometry/TPCGeo.h"
+#include "Geometry/PlaneGeo.h"
+#include "Simulation/ParticleList.h"
+#include "SimulationBase/MCParticle.h"
+#include "SimulationBase/MCTruth.h"
+
+#include "RecoAlg/ProjectionMatchingAlg.h"
+#include "RecoAlg/PMAlg/PmaTrack3D.h"
+#include "RecoAlg/PMAlg/PmaHit3D.h"
+#include "RecoAlg/PMAlg/Utilities.h"
+
+// ROOT includes
+#include "TTree.h"
 
 namespace dunefd {
   class NueAna;
@@ -41,32 +58,195 @@ public:
   void beginJob() override;
   void endJob() override;
 
+	void reconfigure(fhicl::ParameterSet const& p) override;
+
+	void setMC(bool value) { fIsMC = value; }
+
+	/*bool isActivityAtVtx() 
+	{ 
+		if (!multiplicity) return false;
+		else return true;
+	}*/
+
 private:
 
   // Declare member data here.
+	void resetVars(void);
 
+	bool insideFidVol(const TLorentzVector& pvtx);
+	TLorentzVector findNuPVtx(void);
+	TVector3 findElectronDir(void);
+
+	// Number of tracks coming out from the primary vertex
+	// size_t multiplicity(void);
+
+	// bool isActivityAtVtx(void);
+	
+	bool fIsMC;	
+	double fFidVolCut;
+
+  TTree* fTree;
+	int fRun;
+	int fEvent;
+	int fPdg;
+	double fVtxX;
+	double fVtxY;
+	double fVtxZ;
+	double fDiffdir;
+	double fDqdx;
 };
 
 
 dunefd::NueAna::NueAna(fhicl::ParameterSet const & p)
   :
-  EDAnalyzer(p)  // ,
+  EDAnalyzer(p)
  // More initializers here.
-{}
+{
+	reconfigure(p);
+	setMC(true); 
+}
+
+void dunefd::NueAna::resetVars()
+{
+	fRun = 0; fEvent = 0; fPdg = 0;
+	fVtxX = 0.0; fVtxY = 0.0; fVtxZ = 0.0;
+	fDiffdir = 0.0; fDqdx = 0.0;
+}
 
 void dunefd::NueAna::analyze(art::Event const & e)
 {
   // Implementation of required member function here.
+	if (!fIsMC) return;
+	
+	resetVars();
+	fRun = e.run();
+	fEvent = e.id().event();
+
+	TLorentzVector vtx = findNuPVtx();
+	if (insideFidVol(vtx))
+	{
+		fVtxX = vtx.X(); fVtxY = vtx.Y(); fVtxZ = vtx.Z();
+		fTree->Fill();
+	}
 }
 
 void dunefd::NueAna::beginJob()
 {
   // Implementation of optional member function here.
+  art::ServiceHandle<art::TFileService> tfs;
+  fTree = tfs->make<TTree>("nuana", "nu analysis");
+  fTree->Branch("run", &fRun, "run/I");
+  fTree->Branch("event", &fEvent, "event/I");
+	fTree->Branch("pdg", &fPdg, "pdg/I");
+	fTree->Branch("vtxx", &fVtxX, "vtxx/D");
+	fTree->Branch("vtxy", &fVtxY, "vtxy/D");
+	fTree->Branch("vtxz", &fVtxZ, "vtxz/D");
+	fTree->Branch("diffdir", &fDiffdir, "diffdir/D");
+	fTree->Branch("dqdx", &fDqdx, "dqdx/D");
 }
 
 void dunefd::NueAna::endJob()
 {
   // Implementation of optional member function here.
 }
+
+void dunefd::NueAna::reconfigure(fhicl::ParameterSet const & p)
+{
+	fFidVolCut = p.get< double >("FidVolCut");
+  return;
+}
+
+/***********************************************************************/
+
+bool dunefd::NueAna::insideFidVol(const TLorentzVector& pvtx) 
+{
+	art::ServiceHandle<geo::Geometry> geom;
+
+	double vtx[3];
+	vtx[0] = pvtx.X(); vtx[1] = pvtx.Y(); vtx[2] = pvtx.Z();
+
+	bool inside = true;
+	geo::TPCID idtpc = geom->FindTPCAtPosition(vtx);
+	if (geom->HasTPC(idtpc))
+	{
+		const geo::TPCGeo& tpcgeo = geom->GetElement(idtpc); 
+		if ((fabs(vtx[0] - tpcgeo.MinX()) < fFidVolCut) ||
+				(fabs(tpcgeo.MaxX() - vtx[0]) < fFidVolCut) ||
+				(fabs(vtx[1] - tpcgeo.MinY()) < fFidVolCut) ||
+				(fabs(tpcgeo.MaxY() - vtx[1]) < fFidVolCut) ||
+				(fabs(vtx[2] - tpcgeo.MinZ()) < fFidVolCut) ||
+				(fabs(tpcgeo.MaxZ() - vtx[2]) < fFidVolCut)) inside = false;
+	}
+	else inside = false;
+		
+	return inside;
+}
+
+/***********************************************************************/
+
+TLorentzVector dunefd::NueAna::findNuPVtx()
+{
+	TLorentzVector position;
+	
+	art::ServiceHandle<cheat::BackTracker> bt;
+	const sim::ParticleList& plist = bt->ParticleList();
+
+	for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar)
+	{
+		simb::MCParticle* particle = ipar->second;
+		bool found = false;
+		if (particle->Process() == "primary")
+			{
+				if ((abs(particle->PdgCode()) == 12) ||
+						(abs(particle->PdgCode()) == 14) ||
+						(abs(particle->PdgCode()) == 16))
+				{
+					fPdg = particle->PdgCode();
+					position = particle->Position();
+					found = true;
+					break;
+				}
+			}
+			
+			if (found) break;
+	}
+
+	return position;
+}
+
+/***********************************************************************/
+
+TVector3 dunefd::NueAna::findElectronDir()
+{
+	TVector3 dir;
+
+	art::ServiceHandle<cheat::BackTracker> bt;
+	const sim::ParticleList& plist = bt->ParticleList();
+
+	for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar)
+	{
+		simb::MCParticle* particle = ipar->second;
+		bool found = false;
+		if (particle->Process() == "primary")
+			for (int p = 0; p < particle->NumberDaughters(); p++)			
+				if ((bt->TrackIDToParticle(particle->Daughter(p))->PdgCode() == 11) ||
+						(bt->TrackIDToParticle(particle->Daughter(p))->PdgCode() == -11))
+				{
+					TLorentzVector mom = particle->Momentum();
+					TVector3 momvec3(mom.Px(), mom.Py(), mom.Pz());
+					dir = momvec3 *  (1/momvec3.Mag());
+
+					found = true;
+					break;
+				}
+			
+			if (found) break;
+				
+	}
+
+	return dir;
+}
+
+/***********************************************************************/
 
 DEFINE_ART_MODULE(dunefd::NueAna)
