@@ -115,6 +115,7 @@ namespace detsim {
     std::vector< std::vector<float> > fNoiseV;///< noise on each channel for each time for V plane
     
     TH1D*                fNoiseDist;          ///< distribution of noise counts
+    
 
     // variables for simulating the charge deposition in gaps and charge drifting over the comb materials.
 
@@ -129,11 +130,15 @@ namespace detsim {
     //be made a fcl parameter but not likely to ever change
     const float adcsaturation = 4095;
     float                  fCollectionPed;    ///< ADC value of baseline for collection plane
+    float                  fCollectionPedRMS;    ///< ADC value of baseline RMS for collection plane
     float                  fInductionPed;     ///< ADC value of baseline for induction plane
+    float                  fInductionPedRMS;     ///< ADC value of baseline RMS for induction plane
+    bool                   fPedestalOn;          // switch for simulation of nonzero pedestals
 
     // input fcl parameters
 
     bool                   fSimCombs;          // switch for simulation of the combs
+    bool                   fSimStuckBits;      // switch for simulation of stuck bits
     bool                   fSaveEmptyChannel;  // switch for saving channels with all zero entries
     float                  fFractUUCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding U wires
     float                  fFractUVCollect;    // fraction of charge that collects on U (non-transparency) when charge drifts over the comb holding V wires
@@ -156,6 +161,14 @@ namespace detsim {
     double ycomb13,ycomb14,ycomb15,ycomb16,ycomb17,ycomb18;
 
     GapType_t combtest35t(double x, double y, double z);
+
+
+    double               fZeroprobs[32];       ///< array of probabilities of 6 LSF bits getting stuck at 000000
+    double               fThreefprobs[32];     ///< array of probabilities of 6 LSF bits getting stuck at 111111
+
+    TH1D*                fZeroProbabilities;          ///< histogram for probabilities of 6 LSF bits getting stuck at 000000
+    TH1D*                fThreefProbabilities;        ///< histogram for probabilities of 6 LSF bits getting stuck at 111111
+
 
   }; // class SimWireLBNE35t
 
@@ -220,13 +233,17 @@ namespace detsim {
     fNoiseOn           = p.get< unsigned int        >("NoiseOn");
     fNoiseModel           = p.get< unsigned int     >("NoiseModel");
     fCollectionPed    = p.get< float                >("CollectionPed");
+    fCollectionPedRMS = p.get< float                >("CollectionPedRMS");
     fInductionPed     = p.get< float                >("InductionPed");
+    fInductionPedRMS  = p.get< float                >("InductionPedRMS");
+    fPedestalOn       = p.get< bool                 >("PedestalOn");  
     art::ServiceHandle<util::DetectorProperties> detprop;
     fSampleRate       = detprop->SamplingRate();
     fNSamplesReadout  = detprop->ReadOutWindowSize();
     fNTimeSamples  = detprop->NumberTimeSamples();
     
     fSimCombs            = p.get< bool >("SimCombs");  
+    fSimStuckBits        = p.get< bool >("SimStuckBits");   
     fSaveEmptyChannel    = p.get< bool >("SaveEmptyChannel");  
     fFractUUCollect      = p.get< float >("FractUUCollect");
     fFractUVCollect      = p.get< float >("FractUVCollect");
@@ -250,6 +267,7 @@ namespace detsim {
     art::ServiceHandle<art::TFileService> tfs;
 
     fNoiseDist  = tfs->make<TH1D>("Noise", ";Noise  (ADC);", 1000,   -10., 10.);
+
 
     art::ServiceHandle<util::LArFFT> fFFT;
     fNTicks = fFFT->FFTSize();
@@ -492,8 +510,83 @@ namespace detsim {
     ycomb1 = ycomb2 - (ycomb3 - ycomb2);
     ycomb6 = ycomb5 + (ycomb5 - ycomb4);
 
+    if(fSimStuckBits){
+  
+      fZeroprobs[0] = 0.38;
+      fZeroprobs[1] = 0.38;
+      fZeroprobs[2] = 0.245;
+      fZeroprobs[3] = 0.155;
+      fZeroprobs[4] = 0.12;
+      fZeroprobs[5] = 0.082;
+      fZeroprobs[6] = 0.07;
+      fZeroprobs[7] = 0.075;
+      fZeroprobs[8] = 0.078;
+      fZeroprobs[9] = 0.08;
+      fZeroprobs[10] = 0.082;
+      fZeroprobs[11] = 0.105;
+      fZeroprobs[12] = 0.11;
+      fZeroprobs[13] = 0.112;
+      fZeroprobs[14] = 0.11;
+      fZeroprobs[15] = 0.075;
+      fZeroprobs[16] = 0.065;
+      fZeroprobs[17] = 0.125;
+      fZeroprobs[18] = 0.145;
+      fZeroprobs[19] = 0.145;
+      fZeroprobs[20] = 0.1;
+      fZeroprobs[21] = 0.145;
+      fZeroprobs[22] = 0.175;
+      fZeroprobs[23] = 0.21;
+      fZeroprobs[24] = 0.245;
+      fZeroprobs[25] = 0.25;
+      fZeroprobs[26] = 0.24;
+      fZeroprobs[27] = 0.265;
+      fZeroprobs[28] = 0.305;
+      fZeroprobs[29] = 0.26;
+      fZeroprobs[30] = 0.275;
+      fZeroprobs[31] = 0.27;
+      
+      fThreefprobs[0] = 0.27;
+      fThreefprobs[1] = 0.2175;
+      fThreefprobs[2] = 0.23;
+      fThreefprobs[3] = 0.18;
+      fThreefprobs[4] = 0.12;
+      fThreefprobs[5] = 0.178;
+      fThreefprobs[6] = 0.125;
+      fThreefprobs[7] = 0.11;
+      fThreefprobs[8] = 0.10;
+      fThreefprobs[9] = 0.097;
+      fThreefprobs[10] = 0.05;
+      fThreefprobs[11] = 0.055;
+      fThreefprobs[12] = 0.05;
+      fThreefprobs[13] = 0.054;
+      fThreefprobs[14] = 0.02;
+      fThreefprobs[15] = 0.02;
+      fThreefprobs[16] = 0.02;
+      fThreefprobs[17] = 0.018;
+      fThreefprobs[18] = 0.025;
+      fThreefprobs[19] = 0.017;
+      fThreefprobs[20] = 0.018;
+      fThreefprobs[21] = 0.017;
+      fThreefprobs[22] = 0.025;
+      fThreefprobs[23] = 0.0252;
+      fThreefprobs[24] = 0.02;
+      fThreefprobs[25] = 0.035;
+      fThreefprobs[26] = 0.05;
+      fThreefprobs[27] = 0.065;
+      fThreefprobs[28] = 0.07;
+      fThreefprobs[29] = 0.12;
+      fThreefprobs[30] = 0.165;
+      fThreefprobs[31] = 0.38;
 
+      fZeroProbabilities  = tfs->make<TH1D>("ZeroProbabilities", "Probability of 6 LSBs sticking to 0x00; Input voltage (ADC modulo 64);", 32,   0., 64.);
+      fThreefProbabilities  = tfs->make<TH1D>("ThreefProbabilities", "Probability of 6 LSBs sticking to 0x3f; Input voltage (ADC modulo 64);", 32,   0., 64.);
 
+      for(int i=0;i<32;++i){
+	fZeroProbabilities->SetBinContent(i+1,fZeroprobs[i]);
+	fThreefProbabilities->SetBinContent(i+1,fThreefprobs[i]);
+      }
+
+    }
     return;
 
   }
@@ -689,12 +782,15 @@ namespace detsim {
       }
 
       float ped_mean = fCollectionPed;
+      float ped_rms = fCollectionPedRMS;
       geo::SigType_t sigtype = geo->SignalType(chan);
       if (sigtype == geo::kInduction){
         ped_mean = fInductionPed;
+	ped_rms = fInductionPedRMS;
       }
       else if (sigtype == geo::kCollection){
         ped_mean = fCollectionPed;
+	ped_rms = fCollectionPedRMS;
       }
 
       // noise was already generated for each wire in the event
@@ -816,8 +912,70 @@ namespace detsim {
       // resize the adcvec to be the correct number of time samples, 
       // just drop the extra samples
 
- 
+
       adcvec.resize(fNSamplesReadout);
+
+      // add pedestal values
+      if(fPedestalOn)
+	{
+	  art::ServiceHandle<art::RandomNumberGenerator> rng;
+	  CLHEP::HepRandomEngine &engine = rng->getEngine();
+	  CLHEP::RandGaussQ rGauss_Ped(engine, 0.0, ped_rms);
+	  for(unsigned int i = 0; i < signalSize; ++i){
+	    
+	    float ped_variation = rGauss_Ped.fire();
+	    tmpfv = adcvec_a[i] + ped_mean + ped_variation;
+	  
+	    adcvec_a[i] = (short) tmpfv; 
+	  
+	  }
+	}
+
+ 
+
+
+      if(fSimStuckBits)//
+      	{
+
+
+
+	  for(size_t i = 0; i < adcvec.size(); ++i){
+
+	    art::ServiceHandle<art::RandomNumberGenerator> rng;
+	    CLHEP::HepRandomEngine &engine = rng->getEngine();
+	    CLHEP::RandFlat flat(engine);
+	    
+	    
+	    double rnd[2] = {0.};
+	    flat.fireArray(2,rnd,0,1);
+
+	    unsigned int zeromask = 0xffc0;
+	    unsigned int onemask = 0x003f;
+
+	    unsigned int sixlsbs = adcvec_a[i] & onemask;
+
+	    int probability_index = (int)sixlsbs/2.0;
+
+	    if(adcvec_a[i] != 0){
+	      if(rnd[0] < rnd[1]){
+		if(rnd[0] < fZeroprobs[probability_index]){  // 6 LSBs are stuck at 0
+		  
+		  adcvec_a[i] = adcvec_a[i] & zeromask;
+		  
+		}
+	      }
+	      
+	      else{ 
+		if(rnd[1] < fThreefprobs[probability_index]){  // 6 LSBs are stuck at 3F
+		  
+		  adcvec_a[i] = adcvec_a[i] | onemask;
+		  
+		}	      
+	      }
+	    }
+	  }
+ 
+      	}
 
       if(fNeighboringChannels==0){ // case where neighboring channels are disregarded in zero suppression
 
@@ -831,7 +989,8 @@ namespace detsim {
 
 
 	raw::RawDigit rd(chan, fNSamplesReadout, adcvec, fCompression);
-	
+	rd.SetPedestal(ped_mean,ped_rms);
+
 	adcvec.resize(signalSize);        // Then, resize adcvec back to full length.  Do not initialize to zero (slow)
 	if(fSaveEmptyChannel || adcvec[1]>0)
 	  digcol->push_back(rd);            // add this digit to the collection
@@ -858,6 +1017,8 @@ namespace detsim {
 		  raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entries at start of collection plane, once ring buffer is full enough with neighbors
 		  
 		  raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
+		  rd.SetPedestal(ped_mean,ped_rms);
+	
 		  if(fSaveEmptyChannel || adcvec[1]>0)
 		    digcol->push_back(rd);            // add this digit to the collection
 
@@ -873,6 +1034,8 @@ namespace detsim {
 	      raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
 	      
 	      raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
+	      rd.SetPedestal(ped_mean,ped_rms);
+
 	      if(fSaveEmptyChannel || adcvec[1]>0)
 		digcol->push_back(rd);            // add this digit to the collection
 
@@ -892,6 +1055,8 @@ namespace detsim {
 		      raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
 		      
 		      raw::RawDigit rd2(channel_number, fNSamplesReadout, adcvec, fCompression);
+		      rd2.SetPedestal(ped_mean,ped_rms);
+
 		      if(fSaveEmptyChannel || adcvec[1]>0)
 			digcol->push_back(rd2);            // add this digit to the collection
 
@@ -925,6 +1090,8 @@ namespace detsim {
 		raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
 		
 		raw::RawDigit rd(chan-fNeighboringChannels, fNSamplesReadout, adcvec, fCompression);
+		rd.SetPedestal(ped_mean,ped_rms);
+
 		if(fSaveEmptyChannel || adcvec[1]>0)
 		  digcol->push_back(rd);            // add this digit to the collection
 		
@@ -950,6 +1117,8 @@ namespace detsim {
 		  raw::Compress(adcvec_neighbors, adcvec, fCompression, fZeroThreshold, fNearestNeighbor); // apply zero suppression to entry in middle of ring buffer
 		  
 		  raw::RawDigit rd2(channel_number, fNSamplesReadout, adcvec, fCompression);
+		  rd2.SetPedestal(ped_mean,ped_rms);
+
 		  if(fSaveEmptyChannel || adcvec[1]>0)
 		    digcol->push_back(rd2);            // add this digit to the collection
 
@@ -1023,6 +1192,8 @@ namespace detsim {
 
     return;
   }
+
+
 
   //-------------------------------------------------
 
@@ -1264,3 +1435,4 @@ namespace detsim {
 
 
 */
+  
