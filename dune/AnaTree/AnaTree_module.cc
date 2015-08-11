@@ -248,8 +248,6 @@ private:
   int trig_time[kMaxTrig];
   int trig_id[kMaxTrig];
 
-
-
   std::string fTrigModuleLabel;
   std::string fHitsModuleLabel;
   std::string fTrackModuleLabel;
@@ -268,7 +266,6 @@ private:
   //  std::map<int, RecoHists> fRecoHistMap;   // Indexed by pdg id.
 
 };
-
 
 AnaTree::AnaTree::AnaTree(fhicl::ParameterSet const & pset)
   : EDAnalyzer(pset)
@@ -312,7 +309,6 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   TTimeStamp tts(ts.timeHigh(), ts.timeLow());
   evttime = tts.AsDouble();
 
-
   efield[0] = larprop->Efield(0);
   efield[1] = larprop->Efield(1);
   efield[2] = larprop->Efield(2);
@@ -323,27 +319,22 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   std::vector<art::Ptr<raw::ExternalTrigger> > triglist;
   if (evt.getByLabel(fTrigModuleLabel,trigListHandle))
     art::fill_ptr_vector(triglist, trigListHandle);
-  
-  
+
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
-  if ( fTrackModuleLabel != "" ) {
-    if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
-      art::fill_ptr_vector(tracklist, trackListHandle);
-  }
-  
+  if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
+    art::fill_ptr_vector(tracklist, trackListHandle);
+
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
-  if ( fHitsModuleLabel != "" ) {
-    if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
-      art::fill_ptr_vector(hitlist, hitListHandle);
-  }
+  if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
+    art::fill_ptr_vector(hitlist, hitListHandle);
 
   art::Handle< std::vector<recob::Cluster> > clusterListHandle;
   std::vector<art::Ptr<recob::Cluster> > clusterlist;
   if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
     art::fill_ptr_vector(clusterlist, clusterListHandle);
-  
+
   art::Handle< std::vector<recob::OpFlash> > flashListHandle;
   std::vector<art::Ptr<recob::OpFlash> > flashlist;
   if (evt.getByLabel(fFlashModuleLabel, flashListHandle))
@@ -351,24 +342,16 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 
   art::Handle< std::vector<sim::SimChannel> > simChannelHandle;
   evt.getByLabel(fSimulationProducerLabel, simChannelHandle);
- 
+
   const sim::ParticleList& plist = bktrk->ParticleList();
   simb::MCParticle *particle=0;
 
- //  Event.getByLabel(fSimulationProducerLabel, particleHandle);
+  //  Event.getByLabel(fSimulationProducerLabel, particleHandle);
   //  art::Handle< std::vector<simb::MCParticle> > particleHandle;
-
-  art::FindManyP<recob::SpacePoint> fmsp(trackListHandle, evt, fTrackModuleLabel);
-  art::FindMany<recob::Track>       fmtk(hitListHandle, evt, fTrackModuleLabel);
-  art::FindManyP<recob::Hit>        fmht(trackListHandle, evt, fTrackModuleLabel);
-
-  art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
-  art::FindMany<anab::T0>           fmt0( trackListHandle, evt, fMCTruthT0ModuleLabel);
 
   art::Handle< std::vector<recob::Track> > trackh;
   evt.getByLabel(fTrackModuleLabel, trackh);
-  
-  
+
   art::Handle< std::vector< art::PtrVector < recob::Track > > > trackvh;
   evt.getByLabel(fTrackModuleLabel, trackvh);
   
@@ -418,218 +401,212 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   //  END EXTERNAL TRIGGER STUFF 
   // ------------------------------------
 
-
-
   // ------------------------------------
   //  NOW DO THE TRACK LIST STUFF 
   // ------------------------------------
   
-  for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
-    
-    //***************************************************
-    //   T0 stuff - So can correct X Start/End positions
-    //***************************************************
-    double TickT0 = 0;
-    if ( fmt0.isValid() ) {
-      std::vector<const anab::T0*> T0s = fmt0.at(i);
-      //std::cout << int(T0s.size()) << std::endl;
-      for (size_t t0size =0; t0size < T0s.size(); t0size++) { 
-	if (T0s[t0size] -> TriggerType() == 0 ) { // If Trigger 0
-	} // Trig 0
-	if (T0s[t0size] -> TriggerType() == 1 ) { // If Counters
-	  //std::cout << "Using Counter Information!!!! T0 " << T0s[t0size]->Time() << ", Bits " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;	  
-	} // Trig 1
-	if (T0s[t0size] -> TriggerType() == 2 ) { // If MCTruth
+  if ( trackListHandle.isValid() ) {
+    art::FindManyP<recob::SpacePoint> fmsp (trackListHandle, evt, fTrackModuleLabel);
+    art::FindManyP<recob::Hit>        fmht (trackListHandle, evt, fTrackModuleLabel);
+    art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
+    art::FindMany<anab::T0>           fmt0 (trackListHandle, evt, fMCTruthT0ModuleLabel);
+    for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
+
+      //***************************************************
+      //   T0 stuff - So can correct X Start/End positions
+      //***************************************************
+      double TickT0 = 0;
+      if ( fmt0.isValid() ) {
+	std::vector<const anab::T0*> T0s = fmt0.at(i);
+	//std::cout << int(T0s.size()) << std::endl;
+	for (size_t t0size =0; t0size < T0s.size(); t0size++) {
 	  //std::cout << "Using Trigger Type Monte Carlo Truth!!! T0 " << T0s[t0size]->Time() << ", GEANT4 track id " << T0s[t0size]->TriggerBits() << ", Size " << T0s[t0size]->ID() << std::endl;
 	  trkMCTruthT0[i]  = T0s[t0size]->Time();
 	  TickT0 = trkMCTruthT0[i] / detprop->SamplingRate();
-	  trkMCTruthTrackID[i] = T0s[t0size]->TriggerBits();      	  
-	} // Trig 2
-      } // T0 size
-    } // T0 valid
-    
-    //**************
-    // END T0 stuff 
-    //*************** 
+	  trkMCTruthTrackID[i] = T0s[t0size]->TriggerBits();
+	} // T0 size
+      } // T0 valid
+      // Add other T0 handles...with same structure...
+      //**************
+      // END T0 stuff
+      //***************
 
+      //******************************
+      // Hit Level Stuff - Correct X
+      //******************************
+      std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(i);
+      double Hit_Size = allHits.size();
+      //*********************************
+      // End Hit Level Stuff - Correct X
+      //*********************************
 
- 
+      trkid[i]=i;
+      trackStart.clear();
+      trackEnd.clear();
+      memset(larStart, 0, 3);
+      memset(larEnd, 0, 3);
+      tracklist[i]->Extent(trackStart,trackEnd);
+      tracklist[i]->Direction(larStart,larEnd);
+      trkstartx[i]      = trackStart[0] - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'
+      trkstarty[i]      = trackStart[1];
+      trkstartz[i]      = trackStart[2];
+      trkendx[i]        = trackEnd[0] - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'
+      trkendy[i]        = trackEnd[1];
+      trkendz[i]        = trackEnd[2];
+      trkstartdcosx[i]  = larStart[0];
+      trkstartdcosy[i]  = larStart[1];
+      trkstartdcosz[i]  = larStart[2];
+      trkenddcosx[i]    = larEnd[0];
+      trkenddcosy[i]    = larEnd[1];
+      trkenddcosz[i]    = larEnd[2];
+      TLorentzVector v1(trackStart[0],trackStart[1],trackStart[2],0);
+      TLorentzVector v2(trackEnd[0],trackEnd[1],trackEnd[2],0);
+      trklen[i]=(v2-v1).Rho();
 
+      art::Ptr<recob::Track> ptrack(trackh, i);
+      const recob::Track& track = *ptrack;
+      trklen_L[i]=track.Length();
 
-    //******************************
-    // Hit Level Stuff - Correct X
-    //******************************
-    std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(i);
-    double Hit_Size = allHits.size();
-    //*********************************
-    // End Hit Level Stuff - Correct X
-    //*********************************
-
-    trkid[i]=i;
-    trackStart.clear();
-    trackEnd.clear();
-    memset(larStart, 0, 3);
-    memset(larEnd, 0, 3);
-    tracklist[i]->Extent(trackStart,trackEnd); 
-    tracklist[i]->Direction(larStart,larEnd);
-    trkstartx[i]      = trackStart[0] - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'  
-    trkstarty[i]      = trackStart[1];
-    trkstartz[i]      = trackStart[2];
-    trkendx[i]        = trackEnd[0] - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'  
-    trkendy[i]        = trackEnd[1];
-    trkendz[i]        = trackEnd[2];
-    trkstartdcosx[i]  = larStart[0];
-    trkstartdcosy[i]  = larStart[1];
-    trkstartdcosz[i]  = larStart[2];
-    trkenddcosx[i]    = larEnd[0];
-    trkenddcosy[i]    = larEnd[1];
-    trkenddcosz[i]    = larEnd[2]; 
-    TLorentzVector v1(trackStart[0],trackStart[1],trackStart[2],0);
-    TLorentzVector v2(trackEnd[0],trackEnd[1],trackEnd[2],0);
-    trklen[i]=(v2-v1).Rho();
-
-    art::Ptr<recob::Track> ptrack(trackh, i);
-    const recob::Track& track = *ptrack;
-    trklen_L[i]=track.Length(); 
-
-    //double recotime = 0.;
-    //double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
-    // Fill histograms involving reco tracks only.
-    int ntraj = track.NumberTrajectoryPoints();
-    if(ntraj > 0) {
-      TVector3 dir = track.VertexDirection();
-      trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
-      trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
-      trketa_xy[i] = std::atan2(dir.X(), dir.Y());
-      trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
-      trktheta[i]=dir.Theta();
-      trkphi[i]=dir.Phi();
-    }
-    
-    double distance_squared=0;
-    TVector3 V1(trackStart[0],trackStart[1],trackStart[2]);
-    TVector3 V2(trackEnd[0],trackEnd[1],trackEnd[2]);
-    TVector3 vOrth=(V2-V1).Orthogonal();
-    TVector3 pointVector=V1;
-    
-    // *********************
-    //  Space Point stuff:
-    // *********************    
-    if(fmsp.isValid() ){
-      ntrkhits[i] = fmsp.at(i).size();
-      //std::cout << "Space Points " <<  ntrkhits[i] << std::endl;
-      //	double distance_squared=0;
-      double distance=0;
-      
-      std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
-      for (size_t j = 0; j<spts.size(); ++j){
-	TVector3 sptVector(spts[j]->XYZ()[0],spts[j]->XYZ()[1],spts[j]->XYZ()[2]);
-	TVector3 vToPoint=sptVector-pointVector;
-	distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
-	distance_squared+=distance *distance;
-	trkx[i][j] = spts[j]->XYZ()[0];
-	trky[i][j] = spts[j]->XYZ()[1];
-	trkz[i][j] = spts[j]->XYZ()[2];
-	
+      //double recotime = 0.;
+      //double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
+      // Fill histograms involving reco tracks only.
+      int ntraj = track.NumberTrajectoryPoints();
+      if(ntraj > 0) {
+	TVector3 dir = track.VertexDirection();
+	trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
+	trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
+	trketa_xy[i] = std::atan2(dir.X(), dir.Y());
+	trketa_zy[i] = std::atan2(dir.Z(), dir.Y());
+	trktheta[i]=dir.Theta();
+	trkphi[i]=dir.Phi();
       }
-      distance_squared=distance_squared/spts.size();
-      trkd2[i]=distance_squared;
-    }
-    // ***********************
-    // END Space Point stuff:
-    // ***********************    
-    
-    // *********************
-    //  Calorimetric stuff:
-    // *********************    
-    if (fmcal.isValid()){
-      std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
-      //std::cout<<"calo size "<<calos.size()<<std::endl;
-      for (size_t jj = 0; jj<calos.size(); ++jj){
-	trkrange[i][jj] = calos[jj]->Range();
-	trkkinE[i][jj]  = (calos[jj] -> KineticEnergy());
-	//std::cout << trkkinE[i][jj] << std::endl;
-	int tt= calos[jj] -> dEdx().size();
-	for(int k = 0; k < tt; ++k) {
-	  trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
-	  trkdqdx[i][jj][k]   = (calos[jj] -> dQdx())[k];
-	  trkpitchHit[i][jj][k]  = (calos[jj] -> TrkPitchVec())[k];   	    
-	  trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
-	  trkTPC[i][jj][k]    =(calos[jj]->PlaneID()).TPC;
-	  trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;	 
 
-	  trkPosx[i][jj][k]    = (calos[jj]->XYZ())[k].x();
-	  trkPosy[i][jj][k]    = (calos[jj]->XYZ())[k].y();
-	  trkPosz[i][jj][k]    = (calos[jj]->XYZ())[k].z();
-	  
-	  trkdQdxSum[i] += trkdqdx[i][jj][k];
-	  trkdEdxSum[i] += trkdedx2[i][jj][k];
+      double distance_squared=0;
+      TVector3 V1(trackStart[0],trackStart[1],trackStart[2]);
+      TVector3 V2(trackEnd[0],trackEnd[1],trackEnd[2]);
+      TVector3 vOrth=(V2-V1).Orthogonal();
+      TVector3 pointVector=V1;
+
+      // *********************
+      //  Space Point stuff:
+      // *********************
+      if(fmsp.isValid() ){
+	ntrkhits[i] = fmsp.at(i).size();
+	//std::cout << "Space Points " <<  ntrkhits[i] << std::endl;
+	//	double distance_squared=0;
+	double distance=0;
+
+	std::vector<art::Ptr<recob::SpacePoint> > spts = fmsp.at(i);
+	for (size_t j = 0; j<spts.size(); ++j){
+	  TVector3 sptVector(spts[j]->XYZ()[0],spts[j]->XYZ()[1],spts[j]->XYZ()[2]);
+	  TVector3 vToPoint=sptVector-pointVector;
+	  distance=(vOrth.Dot(vToPoint))/vOrth.Mag();
+	  distance_squared+=distance *distance;
+	  trkx[i][j] = spts[j]->XYZ()[0];
+	  trky[i][j] = spts[j]->XYZ()[1];
+	  trkz[i][j] = spts[j]->XYZ()[2];
+
+	}
+	distance_squared=distance_squared/spts.size();
+	trkd2[i]=distance_squared;
+      }
+      // ***********************
+      // END Space Point stuff:
+      // ***********************
+
+      // *********************
+      //  Calorimetric stuff:
+      // *********************
+      if (fmcal.isValid()){
+	std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
+	//std::cout<<"calo size "<<calos.size()<<std::endl;
+	for (size_t jj = 0; jj<calos.size(); ++jj){
+	  trkrange[i][jj] = calos[jj]->Range();
+	  trkkinE[i][jj]  = (calos[jj] -> KineticEnergy());
+	  //std::cout << trkkinE[i][jj] << std::endl;
+	  int tt= calos[jj] -> dEdx().size();
+	  for(int k = 0; k < tt; ++k) {
+	    trkdedx2[i][jj][k]  = (calos[jj] -> dEdx())[k];
+	    trkdqdx[i][jj][k]   = (calos[jj] -> dQdx())[k];
+	    trkpitchHit[i][jj][k]  = (calos[jj] -> TrkPitchVec())[k];
+	    trkresrg[i][jj][k]  = (calos[jj] -> ResidualRange())[k];
+	    trkTPC[i][jj][k]    =(calos[jj]->PlaneID()).TPC;
+	    trkplaneid[i][jj][k]=(calos[jj]->PlaneID()).Plane;
+
+	    trkPosx[i][jj][k]    = (calos[jj]->XYZ())[k].x();
+	    trkPosy[i][jj][k]    = (calos[jj]->XYZ())[k].y();
+	    trkPosz[i][jj][k]    = (calos[jj]->XYZ())[k].z();
+
+	    trkdQdxSum[i] += trkdqdx[i][jj][k];
+	    trkdEdxSum[i] += trkdedx2[i][jj][k];
+	  }
+	}
+	trkdQdxAverage[i] = trkdQdxSum[i] / calos.size();
+	trkdEdxAverage[i] = trkdEdxSum[i] / calos.size();
+      }
+      // ************************
+      //  End Calorimetric stuff
+      // ************************
+    
+      // ---------FIND THE TRACK PITCH IN EACH PLANE------------
+      for (int j = 0; j<3; ++j){
+	try {
+	  if (j==0)
+	    trkpitch[i][j] = tracklist[i]->PitchInView(geo::kU);
+	  else if (j==1)
+	    trkpitch[i][j] = tracklist[i]->PitchInView(geo::kV);
+	  else if (j==2)
+	    trkpitch[i][j] = tracklist[i]->PitchInView(geo::kZ);
+	}
+	catch( cet::exception &e) {
+	  mf::LogWarning("AnaTree")<<"caught exception "<<e<<"\n setting pitch to 0";
+	  trkpitch[i][j] = 0;
 	}
       }
-      trkdQdxAverage[i] = trkdQdxSum[i] / calos.size();
-      trkdEdxAverage[i] = trkdEdxSum[i] / calos.size();
-    }       
-    // *********************
-    //  End Calorimetric stuff
-    // ********************* 
     
-    // ---------FIND THE TRACK PITCH IN EACH PLANE------------
-    for (int j = 0; j<3; ++j){
-      try {
-	if (j==0)
-	  trkpitch[i][j] = tracklist[i]->PitchInView(geo::kU);
-	else if (j==1)
-	  trkpitch[i][j] = tracklist[i]->PitchInView(geo::kV);
-	else if (j==2)
-	  trkpitch[i][j] = tracklist[i]->PitchInView(geo::kZ);
-      }
-      catch( cet::exception &e) {
-	mf::LogWarning("AnaTree")<<"caught exception "<<e<<"\n setting pitch to 0";
-	trkpitch[i][j] = 0;
-      }
-    }
-    
-  } // TRACK LOOP
-  
+    } // TRACK LOOP
+  }
   // -----------------------------------------------
   // NOW DO THE CLUSTER/HIT STUFF.......
   // -----------------------------------------------
-  nhits  = hitlist.size();
-  nhits2 = std::min(int(hitlist.size()),kMaxHits);
-  nclust = clusterlist.size();
-  for (int i = 0; i < nhits2; ++i){
-    unsigned int channel = hitlist[i]->Channel();
-    geo::WireID wireid = hitlist[i]->WireID();
-    hit_tpc[i]     = wireid.TPC;
-    hit_plane[i]   = wireid.Plane;
-    hit_wire[i]    = wireid.Wire;
-    hit_channel[i] = channel;
-    hit_peakT[i]   = hitlist[i]->PeakTime();
-    hit_charge[i]  = hitlist[i]->Integral();
-    hit_ph[i]      = hitlist[i]->PeakAmplitude();
-    if (fmtk.at(i).size()!=0){
-      hit_trkid[i] = fmtk.at(i)[0]->ID();
+  if ( hitListHandle.isValid() ) {
+    art::FindMany<recob::Track>       fmtk (hitListHandle  , evt, fTrackModuleLabel);
+    nhits  = hitlist.size();
+    nhits2 = std::min(int(hitlist.size()),kMaxHits);
+    nclust = clusterlist.size();
+    for (int i = 0; i < nhits2; ++i){
+      unsigned int channel = hitlist[i]->Channel();
+      geo::WireID wireid = hitlist[i]->WireID();
+      hit_tpc[i]     = wireid.TPC;
+      hit_plane[i]   = wireid.Plane;
+      hit_wire[i]    = wireid.Wire;
+      hit_channel[i] = channel;
+      hit_peakT[i]   = hitlist[i]->PeakTime();
+      hit_charge[i]  = hitlist[i]->Integral();
+      hit_ph[i]      = hitlist[i]->PeakAmplitude();
+      if (fmtk.at(i).size()!=0){
+      	hit_trkid[i] = fmtk.at(i)[0]->ID();
+      }
+      if ( i == kMaxHits ) break;
     }
-    if ( i == kMaxHits ) break;
   }
-  
   // -----------------------------------------------
   // NOW DO THE FLASH STUFF.......
   // -----------------------------------------------
-
-  flash_total = flashlist.size();
-  std::cout << "Total Number of flashes for this event...." << flash_total << std::endl;
-  for ( int f = 0; f < std::min(flash_total,kMaxHits); ++f ) {
-    flash_time[f]      = flashlist[f]->Time();
-    flash_width[f]     = flashlist[f]->TimeWidth();
-    flash_abstime[f]   = flashlist[f]->AbsTime();
-    flash_YCentre[f]   = flashlist[f]->YCenter();
-    flash_YWidth[f]    = flashlist[f]->YWidth();
-    flash_ZCentre[f]   = flashlist[f]->ZCenter();
-    flash_ZWidth[f]    = flashlist[f]->ZWidth();
-    flash_TotalPE[f]   = flashlist[f]->TotalPE();
+  if ( flashListHandle.isValid() ) {
+    flash_total = flashlist.size();
+    std::cout << "Total Number of flashes for this event...." << flash_total << std::endl;
+    for ( int f = 0; f < std::min(flash_total,kMaxHits); ++f ) {
+      flash_time[f]      = flashlist[f]->Time();
+      flash_width[f]     = flashlist[f]->TimeWidth();
+      flash_abstime[f]   = flashlist[f]->AbsTime();
+      flash_YCentre[f]   = flashlist[f]->YCenter();
+      flash_YWidth[f]    = flashlist[f]->YWidth();
+      flash_ZCentre[f]   = flashlist[f]->ZCenter();
+      flash_ZWidth[f]    = flashlist[f]->ZWidth();
+      flash_TotalPE[f]   = flashlist[f]->TotalPE();
+    }
   }
-
 
   // -----------------------------------------------
   // NOW DO ALL THE MONTE CARLO TRUTH STUFF.......
