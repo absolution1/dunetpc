@@ -1,14 +1,16 @@
+add_subdirectory(IniSegAlg)
 
 simple_plugin(NueAna "module"
 		      RawData
 		      RecoBase
+					RecoAlg
+					IniSegAlg
 		        Geometry
 			Geometry_service
 			Utilities
 			Simulation
 			DetectorProperties_service
 			LArProperties_service
-			BackTracker_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
