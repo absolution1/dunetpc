@@ -4,6 +4,7 @@ simple_plugin(NueAna "module"
 		      RawData
 		      RecoBase
 					RecoAlg
+					PMAlg
 					IniSegAlg
 		        Geometry
 			Geometry_service
