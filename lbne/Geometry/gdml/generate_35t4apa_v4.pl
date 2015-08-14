@@ -71,6 +71,8 @@ $inch = 2.54;
 #################################################
 
 
+$Pitch3mmVersion = 1;
+
 
 ##################################################################
 ##################### wire plane parameters ######################
@@ -97,9 +99,15 @@ $VAng[3] = 44.274;
 # $UAng[3] = 45.707;
 # $VAng[3] = 44.275;
 
-$UWirePitch = $UVReadoutBoardPitch*cos(deg2rad($UAng[0]));
-$VWirePitch = $UVReadoutBoardPitch*cos(deg2rad($VAng[0]));
-$XWirePitch = 0.449055;
+if($Pitch3mmVersion==1){
+    $UWirePitch = 0.3;
+    $VWirePitch = 0.3;
+    $XWirePitch = 0.3;
+} else {
+    $UWirePitch = $UVReadoutBoardPitch*cos(deg2rad($UAng[0]));
+    $VWirePitch = $UVReadoutBoardPitch*cos(deg2rad($VAng[0]));
+    $XWirePitch = 0.449055;
+}
 
 
 ##################################################################
@@ -116,7 +124,12 @@ $APAFrame_x              = 5.0661; # ~2in -- this does not include the wire spac
 
 $TPCWireThickness        = 0.015;
 $TPCWirePlaneThickness   = $TPCWireThickness;
-$APAWirePlaneSpacing     = 0.4730488 + $TPCWirePlaneThickness; # center to center spacing between all of the wire planes (g, u, v, and x)
+
+if($Pitch3mmVersion==1){
+    $APAWirePlaneSpacing     = 0.3;
+} else { 
+    $APAWirePlaneSpacing     = 0.4730488 + $TPCWirePlaneThickness; # center to center spacing between all of the wire planes (g, u, v, and x)
+}
 
 # At creation of the plane volumes, the y and z boundaries will be increased
 # by this much at each of the 4 edges. this is so the corners of the wire 
@@ -125,8 +138,11 @@ $UVPlaneBoundNudge = $TPCWireThickness;
 
 # The following are all widths about the same z center,
 # namely the center of the corresponding APA
-#$Zactive_z    = 49.8441 + $TPCWireThickness;
-$Zactive_z    = 112*$XWirePitch + $TPCWireThickness;
+if($Pitch3mmVersion==1){
+    $Zactive_z    = 49.8441 + $TPCWireThickness;
+} else {
+    $Zactive_z    = 112*$XWirePitch + $TPCWireThickness;
+}
 $APAFrame_z   = 50.2619;
 #$Vactive_z    = 50.8929 - 2*$G10thickness;
 #$Uactive_z    = 51.5240 - 2*$G10thickness;
@@ -1212,10 +1228,15 @@ sub gen_TPC()
     my $TanVAngle = tan( deg2rad($VAngle) );
     
     my $UWire_yint = $UWirePitch/$SinUAngle;
-    my $UWire_zint = $UVReadoutBoardPitch  ;
-    
     my $VWire_yint = $VWirePitch/$SinVAngle;
-    my $VWire_zint = $UVReadoutBoardPitch  ;
+
+if($Pitch3mmVersion==1){
+    $UWire_zint = $UWirePitch/$CosUAngle;
+    $VWire_zint = $VWirePitch/$CosVAngle;
+} else {
+    $UWire_zint = $UVReadoutBoardPitch;
+    $VWire_zint = $UVReadoutBoardPitch;
+}
 
 #constructs everything inside volTPC, namely
 # (moving from left to right, or from +x to -x)
@@ -1297,11 +1318,17 @@ my $NumberVerticalWires = 0;
 if ($wires_on == 1)
 {
    # Number of wires in one corner
-#$NumberCornerUWires = int( $APAFrame_z/($UWirePitch/$CosUAngle) );
-$NumberCornerUWires = 72;
+if($Pitch3mmVersion==1){
+    $NumberCornerUWires = int( $APAFrame_z/($UWirePitch/$CosUAngle) );
+} else {
+    $NumberCornerUWires = 72;
+}
 
-#$NumberCornerVWires = int( $APAFrame_z/($VWirePitch/$CosVAngle) );
-$NumberCornerVWires = 72;
+if($Pitch3mmVersion==1){
+    $NumberCornerVWires = int( $APAFrame_z/($VWirePitch/$CosVAngle) );
+} else {
+    $NumberCornerVWires = 72;
+}
 
    # Total number of wires touching one vertical (longer) side
    # Note that the total number of wires per plane is this + another set of corner wires
@@ -1318,22 +1345,33 @@ $NumberCommonVWires = $NumberSideVWires - $NumberCornerVWires;
    #   Since APA Active z is defined in docdb 7550 to be distance 
    #   between outer vertical wires, + 1 since the floor of this
    #   division will be one under, giveing the amt of spaces, not wires
-# $NumberVerticalWires = int( $Zactive_z/$XWirePitch ) + 1;
-$NumberVerticalWires = 112; # Zactive now defined in terms of 112, 
-
+if($Pitch3mmVersion==1){
+    $NumberVerticalWires = int( $Zactive_z/$XWirePitch ) + 1; 
+} else {
+    $NumberVerticalWires = 112; # Zactive now defined in terms of 112, 
+}
 
 $nUchans = 2*$NumberCornerUWires;
 $nVchans = 2*$NumberCornerVWires;
+$nUwires = 2*$NumberCornerUWires+$NumberSideUWires;
+$nVwires = 2*$NumberCornerVWires+$NumberSideVWires;
 
 print $wout "$nUchans U channels\n";
 print $wout "$nVchans V channels\n";
 print $wout "$NumberVerticalWires Z channels per side\n";
+print $wout "$nUwires U wire segments per plane\n";
+print $wout "$nVwires V wire segments per plane\n";
+
 
 }
 
-
-my $FirstUWireOffset = .35 + $G10thickness + 2*$G10thickness*$TanUAngle - $UVReadoutBoardPitch;
-my $FirstVWireOffset = .35; # doesnt include a G10 board in width
+if($Pitch3mmVersion==1){
+    $FirstUWireOffset = .15 + $G10thickness + 2*$G10thickness*$TanUAngle - $UWire_zint;
+    $FirstVWireOffset = .15;
+} else {
+    $FirstUWireOffset = .35 + $G10thickness + 2*$G10thickness*$TanUAngle - $UWire_zint;
+    $FirstVWireOffset = .35; # doesnt include a G10 board in width
+}
 
 my $FirstTopUWire_yspan =
     $Uactive_y[$apa]/2
@@ -1356,7 +1394,7 @@ if ($wires_on==1)
 {
     for ($i = 0; $i < $NumberCornerUWires; $i++)
     {
-	$CornerUWireLength[$i] = ($FirstUWireOffset + $i*$UVReadoutBoardPitch)/$SinUAngle;
+	$CornerUWireLength[$i] = ($FirstUWireOffset + $i*$UWire_zint)/$SinUAngle;
 
    print TPC <<EOF;
     <tube name="${_[3]}WireU$i"
@@ -1406,7 +1444,7 @@ if ($wires_on==1)
 {
     for ($i = 0; $i < $NumberCornerVWires; ++$i)
     {
-	$CornerVWireLength[$i] = ($FirstVWireOffset + $i*$UVReadoutBoardPitch)/$SinVAngle;
+	$CornerVWireLength[$i] = ($FirstVWireOffset + $i*$VWire_zint)/$SinVAngle;
 
 	print TPC <<EOF;
 
@@ -1591,7 +1629,7 @@ for ($i = 0; $i < $NumberCornerUWires; ++$i)
 {
 
 my $ypos = $FirstU_ypos + ($i)*0.5*$UWire_yint;
-my $zpos = $FirstU_zpos - ($i)*0.5*$UVReadoutBoardPitch;
+my $zpos = $FirstU_zpos - ($i)*0.5*$UWire_zint;
 
 # cant actually define like this:
   #    my $ypos = (-0.5*$Uactive_y[$apa]) + $CornerUWireLength[$i]*$CosUAngle/2;
@@ -1600,11 +1638,13 @@ my $zpos = $FirstU_zpos - ($i)*0.5*$UVReadoutBoardPitch;
 # wire corner's overlap with the plane boundary
 
 print TPC <<EOF;
+
       <physvol>
         <volumeref ref="volTPCWireU$i${_[3]}"/>
         <position name="pos${_[3]}WireU$i" unit="cm" x="0" y="$ypos " z="$zpos"/>
         <rotation name="rUAngle$i"   unit="deg" x="90-$UAngle" y="0"   z="0"/>
       </physvol>
+
 EOF
 
 $topY = $ypos + ($CosUAngle*$CornerUWireLength[$i]/2);
@@ -1631,7 +1671,6 @@ $lastZpos = $zpos;
 
 
 my $StartCommonUWires_ypos = $lastYpos + $UWire_yint - abs( $lastZpos )/$TanUAngle;
-#print "$StartCommonUWires_ypos = $lastYpos + $UWire_yint - abs( $lastZpos )/$TanUAngle\n";
 
 
 for ($i = $NumberCornerUWires; $i < $NumberSideUWires; ++$i)
@@ -1682,7 +1721,7 @@ for ($j = $NumberSideUWires; $j < $NumberSideUWires+$NumberCornerUWires; ++$j)
 $i = $j - $NumberSideUWires;
 
 my $ypos = $StartTopUWires_ypos + ($i)*0.5*$UWire_yint;
-my $zpos = $StartTopUWires_zpos - ($i)*0.5*$UVReadoutBoardPitch;
+my $zpos = $StartTopUWires_zpos - ($i)*0.5*$UWire_zint;
 
 
 print TPC <<EOF;
@@ -1740,7 +1779,7 @@ for ($i = 0; $i < $NumberCornerVWires; ++$i)
 {
 
 my $ypos = $FirstV_ypos + ($i)*0.5*$VWire_yint;
-my $zpos = $FirstV_zpos + ($i)*0.5*$UVReadoutBoardPitch;
+my $zpos = $FirstV_zpos + ($i)*0.5*$VWire_zint;
 
 print TPC <<EOF;
       <physvol>
@@ -1816,7 +1855,7 @@ for ($j = $NumberSideVWires; $j < $NumberSideVWires+$NumberCornerVWires; ++$j)
 $i = $j - $NumberSideVWires;
 
 my $ypos = $StartTopVWires_ypos + ($i)*0.5*$VWire_yint;
-my $zpos = $StartTopVWires_zpos + ($i)*0.5*$UVReadoutBoardPitch;
+my $zpos = $StartTopVWires_zpos + ($i)*0.5*$VWire_zint;
 
 print TPC <<EOF;
       <physvol>
@@ -2411,7 +2450,6 @@ print CRYO <<EOF;
         <positionref ref="posTPCSmallestLongDrift"/>
 	<rotationref ref="rPlus180AboutX"/>
       </physvol>
-
       <physvol>
         <volumeref ref="volTPCSmallestShortDrift"/>
         <positionref ref="posTPCSmallestShortDrift"/>
@@ -2433,7 +2471,6 @@ print CRYO <<EOF;
         <positionref ref="posTPCMidLongDrift"/>
 	<rotationref ref="rIdentity"/>
       </physvol>
-
       <physvol>
         <volumeref ref="volTPCMidShortDrift"/>
         <positionref ref="posTPCMidShortDrift"/>
