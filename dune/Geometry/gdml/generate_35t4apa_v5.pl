@@ -147,23 +147,41 @@ $APAphys_z    = 51.8395;
 #  2 - Smallest (Middle Bottom)
 #  APA heights and positions will be indexed by APA number
 
-$ReadoutBoardOverlap = 7.61; #board overlaps wires, chop this off of their active height
-
 $APAFrame_y[0] = 203.06;
 $APAFrame_y[1] = 119.29;
 $APAFrame_y[2] = 91.37;
 $APAFrame_y[3] = $APAFrame_y[0];
 
+# the physical assembply includes 4 boards to anchor Grid, U, V, and Z, then a cover 
+for($apa = 0; $apa < 4; ++$apa){
+    $APAphys_y[$apa]    = $APAFrame_y[$apa] + 4*$G10thickness + $WrapCover; 
+}
+
+# The field cage dictates the boundaries of the active volumes.
+$ReadoutBoardOverlap = 7.61; #board overlaps wires, chop this off of their active height
+$OuterWireToCage      = 2.33;
+$TopAPAToCage         = -5.6647; # negative because the cage is actually lower than the APA frame
+$BottomTallAPAToCage  = 0.673;
+$BottomShortAPAToCage =    $BottomTallAPAToCage
+                        - ($APAphys_y[1] + $APAGap_y + $APAphys_y[2] - $APAphys_y[0]); # also negative
+
 for($apa = 0; $apa < 4; ++$apa){
 
-      # each view has its own G10 board to wrap around at the bottom 
-      # and is covered by the readout board at the top
-    $Zactive_y[$apa]    = $APAFrame_y[$apa] + 0*$G10thickness - $ReadoutBoardOverlap;
-    $Vactive_y[$apa]    = $APAFrame_y[$apa] + 1*$G10thickness - $ReadoutBoardOverlap; 
-    $Uactive_y[$apa]    = $APAFrame_y[$apa] + 2*$G10thickness - $ReadoutBoardOverlap;
+    $overlap = $ReadoutBoardOverlap;
 
-      # the last G10 board for the grid, then a cover. This is not "covered" by the board
-    $APAphys_y[$apa]    = $APAFrame_y[$apa] + 4*$G10thickness + $WrapCover; 
+      # the smallest bottom APA wire planes extrude ~1cm past the field cage
+      # before being overlapped by the readout board. For the purposes of the 
+      # LArSoft Geometry interface, we want to end the wires at the edge of the
+      # active volume, or rather the edge of the cage.
+    if($apa==2){ $overlap = -$BottomShortAPAToCage + $UVPlaneBoundNudge; } 
+                            # negative sign so overlap is positive
+
+      # each view has its own G10 board to wrap around at the bottom
+      # and is covered by the readout board at the top
+    $Zactive_y[$apa]    = $APAFrame_y[$apa] + 0*$G10thickness - $overlap;
+    $Vactive_y[$apa]    = $APAFrame_y[$apa] + 1*$G10thickness - $overlap;
+    $Uactive_y[$apa]    = $APAFrame_y[$apa] + 2*$G10thickness - $overlap;
+
 }
 
 
@@ -176,12 +194,7 @@ $APAGap_z     =    0.0845;  #separation between APAs along the vertical axis
 
 $TPCLongDrift_x  = $LongDrift  + 3*$APAWirePlaneSpacing + $TPCWirePlaneThickness;
 $TPCShortDrift_x = $ShortDrift + 3*$APAWirePlaneSpacing + $TPCWirePlaneThickness;
-#$TPC_z           = $APAphys_z + $APAGap_z;
 
-# height is the same for each  
-for($apa = 0; $apa < 4; ++$apa){
-    $TPC_y[$apa]  = $APAphys_y[$apa] + $APAGap_y;
-}
 
 
 ############################################################
@@ -526,11 +539,10 @@ $posTPCLongDrift_x   =    $APACenter[0][0]
                         + $TPCLongDrift_x/2;
 
 
-# see the define section
 
 
-$OuterWireToCage = 2.33; # email from Russ
-
+# We want the active volumes to extend all the way to the field cage
+# so that LArG4 tracks everything inside the cage.
 $TPCActive_z[0] =   $APAphys_z
                   - ($APAphys_z-$Zactive_z)/2
                   + $APAGap_z/2
@@ -538,6 +550,26 @@ $TPCActive_z[0] =   $APAphys_z
 $TPCActive_z[1] =   $APAphys_z + $APAGap_z;
 $TPCActive_z[2] =   $APAphys_z + $APAGap_z;
 $TPCActive_z[3] =   $TPCActive_z[0];
+
+
+$TPCActive_y[0] =   $APAphys_y[0]
+                  + $TopAPAToCage
+                  + $BottomTallAPAToCage;
+$TPCActive_y[1] =   $APAphys_y[1]
+                  + $APAGap_y/2
+                  + $TopAPAToCage;
+$TPCActive_y[2] =   $APAphys_y[2]
+                  + $APAGap_y/2
+                  + $BottomShortAPAToCage
+                  + $UVPlaneBoundNudge; # Without this relatively negligible addition, the nudge
+                                        # further downstream on the plane causes the planes to extrude 
+                                        # the TPC volume, whose height is TPCActive_y.
+                                        # The plane nudge is to avoid many overlaps between the wire 
+                                        # corners and the plane boundaries.
+$TPCActive_y[3] =   $TPCActive_y[0];
+
+
+
 
 $TPCCenter[0][2] =   $APACenter[0][2] 
                    - $Zactive_z/2
@@ -549,6 +581,23 @@ $TPCCenter[3][2] =   $APACenter[3][2]
                    + $Zactive_z/2
                    + $OuterWireToCage
                    - $TPCActive_z[0]/2;
+
+
+
+$TPCCenter[0][1] =   $APACenter[0][1] 
+                   - $APAphys_y[0]/2
+                   - $BottomTallAPAToCage
+                   + $TPCActive_y[0]/2;
+$TPCCenter[1][1] =   $APACenter[1][1]
+                   + $APAphys_y[1]/2
+                   + $TopAPAToCage
+                   - $TPCActive_y[1]/2;
+$TPCCenter[2][1] =   $APACenter[2][1]
+                   - $APAphys_y[2]/2
+                   - $BottomShortAPAToCage
+                   + $TPCActive_y[2]/2;
+$TPCCenter[3][1] =   $TPCCenter[0][1];
+
     
 
 
@@ -711,17 +760,17 @@ gen_Materials(); # generates materials to be used
 
 open(my $wout, '>', 'gdmlWireCenters.txt');
 
-    gen_TPC( $TPCLongDrift_x,  $TPC_y[0], $TPCActive_z[0], 'LargestLongDriftUpstream', 0);
-    gen_TPC( $TPCShortDrift_x, $TPC_y[0], $TPCActive_z[0], 'LargestShortDriftUpstream', 0);
+    gen_TPC( $TPCLongDrift_x,  $TPCActive_y[0], $TPCActive_z[0], 'LargestLongDriftUpstream', 0);
+    gen_TPC( $TPCShortDrift_x, $TPCActive_y[0], $TPCActive_z[0], 'LargestShortDriftUpstream', 0);
 
-    gen_TPC( $TPCLongDrift_x,  $TPC_y[2], $TPCActive_z[2], 'SmallestLongDrift', 2);
-    gen_TPC( $TPCShortDrift_x, $TPC_y[2], $TPCActive_z[2], 'SmallestShortDrift', 2);
+    gen_TPC( $TPCLongDrift_x,  $TPCActive_y[2], $TPCActive_z[2], 'SmallestLongDrift', 2);
+    gen_TPC( $TPCShortDrift_x, $TPCActive_y[2], $TPCActive_z[2], 'SmallestShortDrift', 2);
 
-    gen_TPC( $TPCLongDrift_x,  $TPC_y[1], $TPCActive_z[1], 'MidLongDrift', 1);
-    gen_TPC( $TPCShortDrift_x, $TPC_y[1], $TPCActive_z[1], 'MidShortDrift', 1);
+    gen_TPC( $TPCLongDrift_x,  $TPCActive_y[1], $TPCActive_z[1], 'MidLongDrift', 1);
+    gen_TPC( $TPCShortDrift_x, $TPCActive_y[1], $TPCActive_z[1], 'MidShortDrift', 1);
 
-    gen_TPC( $TPCLongDrift_x,  $TPC_y[0], $TPCActive_z[3], 'LargestLongDriftDownstream', 3);
-    gen_TPC( $TPCShortDrift_x, $TPC_y[0], $TPCActive_z[3], 'LargestShortDriftDownstream', 3);
+    gen_TPC( $TPCLongDrift_x,  $TPCActive_y[0], $TPCActive_z[3], 'LargestLongDriftDownstream', 3);
+    gen_TPC( $TPCShortDrift_x, $TPCActive_y[0], $TPCActive_z[3], 'LargestShortDriftDownstream', 3);
 
 close $wout;
 
@@ -778,14 +827,14 @@ print DEF <<EOF;
 
    <position name="posOriginSet"        unit="cm" x="$OriginXSet" y="$OriginYSet" z="$OriginZSet"/>
 
-   <position name="posTPCLargestShortDrift_Pos"  unit="cm" x="$posTPCShortDrift_x" y="$APACenter[3][1]"  z="$TPCCenter[3][2]"/>
-   <position name="posTPCLargestLongDrift_Pos"   unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[3][1]"  z="$TPCCenter[3][2]"/>
-   <position name="posTPCLargestShortDrift_Neg"  unit="cm" x="$posTPCShortDrift_x" y="$APACenter[0][1]"  z="$TPCCenter[0][2]"/>
-   <position name="posTPCLargestLongDrift_Neg"   unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[0][1]"  z="$TPCCenter[0][2]"/>
-   <position name="posTPCSmallestShortDrift"     unit="cm" x="$posTPCShortDrift_x" y="$APACenter[2][1]"  z="$TPCCenter[2][2]"/>
-   <position name="posTPCSmallestLongDrift"      unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[2][1]"  z="$TPCCenter[2][2]"/>
-   <position name="posTPCMidShortDrift"          unit="cm" x="$posTPCShortDrift_x" y="$APACenter[1][1]"  z="$TPCCenter[1][2]"/>
-   <position name="posTPCMidLongDrift"           unit="cm" x="$posTPCLongDrift_x"  y="$APACenter[1][1]"  z="$TPCCenter[1][2]"/>
+   <position name="posTPCLargestShortDrift_Pos"  unit="cm" x="$posTPCShortDrift_x" y="$TPCCenter[3][1]"  z="$TPCCenter[3][2]"/>
+   <position name="posTPCLargestLongDrift_Pos"   unit="cm" x="$posTPCLongDrift_x"  y="$TPCCenter[3][1]"  z="$TPCCenter[3][2]"/>
+   <position name="posTPCLargestShortDrift_Neg"  unit="cm" x="$posTPCShortDrift_x" y="$TPCCenter[0][1]"  z="$TPCCenter[0][2]"/>
+   <position name="posTPCLargestLongDrift_Neg"   unit="cm" x="$posTPCLongDrift_x"  y="$TPCCenter[0][1]"  z="$TPCCenter[0][2]"/>
+   <position name="posTPCSmallestShortDrift"     unit="cm" x="$posTPCShortDrift_x" y="$TPCCenter[2][1]"  z="$TPCCenter[2][2]"/>
+   <position name="posTPCSmallestLongDrift"      unit="cm" x="$posTPCLongDrift_x"  y="$TPCCenter[2][1]"  z="$TPCCenter[2][2]"/>
+   <position name="posTPCMidShortDrift"          unit="cm" x="$posTPCShortDrift_x" y="$TPCCenter[1][1]"  z="$TPCCenter[1][2]"/>
+   <position name="posTPCMidLongDrift"           unit="cm" x="$posTPCLongDrift_x"  y="$TPCCenter[1][1]"  z="$TPCCenter[1][2]"/>
 
 
    <position name="posCathodeLongDrift"  unit="cm" x="$posCPAShortDrift_x" y="$posCPAShortDrift_y" z="$posCPAShortDrift_z"/>
@@ -1196,9 +1245,7 @@ sub gen_TPC()
     my $apa = $_[4];
 
     my $TPCActive_x   =  $_[0]-(3*$APAWirePlaneSpacing);
-    my $TPCActive_y   =  $_[1] - $APAGap_y/2 - $ReadoutBoardOverlap ; #TODO: make the Active height more accurate
-    #print "  APA $apa TPCActive xyz dimensions = ($TPCActive_x, $TPCActive_y, $TPCActive_z[$apa])\n";
-
+    my $TPCActive_y   =  $_[1] - $APAGap_y/2 - $ReadoutBoardOverlap;
 
     my $UAngle = $UAng[$apa];
     my $VAngle = $VAng[$apa];
@@ -1265,7 +1312,7 @@ print TPC <<EOF;
       z="$Zactive_z"/>
     <box name="${_[3]}Active" lunit="cm"
       x="$TPCActive_x"
-      y="$TPCActive_y"
+      y="$TPCActive_y[$apa]"
       z="$TPCActive_z[$apa]"/>
 EOF
 
@@ -1891,10 +1938,19 @@ EOF
     my $BottomOfAPA = - $TPC_y[$apa]/2 + $APAGap_y/2;
 
 
-if   ($apa==0){ $zz = -1; }
-elsif($apa==1){ $zz = 0;  }
-elsif($apa==2){ $zz = 0;  }
-elsif($apa==3){ $zz = 1;  }
+if   ($apa==0){
+    $BottomOfAPA = -$TPCActive_y[0]/2 + $BottomTallAPAToCage;
+    $zz = -1;
+} elsif($apa==1){
+    $BottomOfAPA = -$TPCActive_y[1]/2 + $APAGap_y/2;
+    $zz = 0;  
+} elsif($apa==2){ 
+    $BottomOfAPA = -$TPCActive_y[2]/2 + $APAGap_y/2;
+    $zz = 0;  
+} elsif($apa==3){ 
+    $BottomOfAPA = -$TPCActive_y[3]/2 + $BottomTallAPAToCage;
+    $zz = 1;  
+}
 
 if ($TPCActive_x<100){ $xx = -1; }
 else                 { $xx = 1;  }
@@ -1912,7 +1968,7 @@ else                 { $xx = 1;  }
     $posUplane[2]   = $posZplane[2];
 
     $posTPCActive[0] = $posUplane[0] + $xx*($TPCWirePlaneThickness/2 + $TPCActive_x/2);
-    $posTPCActive[1] = -$_[1]/2 + $TPCActive_y/2;
+    $posTPCActive[1] = 0;
     $posTPCActive[2] = 0;
 
 if ($TPCActive_x<100){ $planeRot = "rIdentity"; }
