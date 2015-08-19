@@ -463,7 +463,7 @@ namespace geo{
   {
     // CSU 3-sipm design
     if (opDet == 0 || opDet == 4 || opDet == 6)
-      return 3;
+      return 8;
 
     // LSU 2-sipm design
     if (opDet == 2)

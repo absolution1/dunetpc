@@ -98,21 +98,21 @@ namespace util {
 
     // Add metadata.
 
-    if (fMCGenerators!="") mds->addMetadata("duneMCGenerators", fMCGenerators);
-    if (fMCOscillationP!="") mds->addMetadata("duneMCOscillationP", fMCOscillationP);
-    if (fMCTriggerListVersion!="") mds->addMetadata("duneMCTriggerListVersion", fMCTriggerListVersion);
-    if (fMCBeamEnergy!="") mds->addMetadata("duneMCBeamEnergy", fMCBeamEnergy);
-    if (fMCBeamFluxID!="") mds->addMetadata("duneMCBeamFluxID", fMCBeamFluxID);
-    if (fMCName!="") mds->addMetadata("duneMCName", fMCName);
-    if (fMCDetectorType!="") mds->addMetadata("duneMCDetectorType", fMCDetectorType);
-    if (fMCNeutrinoFlavors!="") mds->addMetadata("duneMCNeutrinoFlavors", fMCNeutrinoFlavors);
-    if (fMCMassHierarchy!="") mds->addMetadata("duneMCMassHierarchy", fMCMassHierarchy);
-    if (fMCMiscellaneous!="") mds->addMetadata("duneMCMiscellaneous", fMCMiscellaneous);
-    if (fMCGeometryVersion!="") mds->addMetadata("duneMCGeometryVersion", fMCGeometryVersion);
-    if (fMCOverlay!="") mds->addMetadata("duneMCOverlay", fMCOverlay);
-    if (fDataRunMode!="") mds->addMetadata("duneDataRunMode", fDataRunMode);
-    if (fDataDetectorType!="") mds->addMetadata("duneDataDetectorType", fDataDetectorType);
-    if (fDataName!="") mds->addMetadata("duneDataName", fDataName);
+    if (fMCGenerators!="") mds->addMetadata("lbneMCGenerators", fMCGenerators);
+    if (fMCOscillationP!="") mds->addMetadata("lbneMCOscillationP", fMCOscillationP);
+    if (fMCTriggerListVersion!="") mds->addMetadata("lbneMCTriggerListVersion", fMCTriggerListVersion);
+    if (fMCBeamEnergy!="") mds->addMetadata("lbneMCBeamEnergy", fMCBeamEnergy);
+    if (fMCBeamFluxID!="") mds->addMetadata("lbneMCBeamFluxID", fMCBeamFluxID);
+    if (fMCName!="") mds->addMetadata("lbneMCName", fMCName);
+    if (fMCDetectorType!="") mds->addMetadata("lbneMCDetectorType", fMCDetectorType);
+    if (fMCNeutrinoFlavors!="") mds->addMetadata("lbneMCNeutrinoFlavors", fMCNeutrinoFlavors);
+    if (fMCMassHierarchy!="") mds->addMetadata("lbneMCMassHierarchy", fMCMassHierarchy);
+    if (fMCMiscellaneous!="") mds->addMetadata("lbneMCMiscellaneous", fMCMiscellaneous);
+    if (fMCGeometryVersion!="") mds->addMetadata("lbneMCGeometryVersion", fMCGeometryVersion);
+    if (fMCOverlay!="") mds->addMetadata("lbneMCOverlay", fMCOverlay);
+    if (fDataRunMode!="") mds->addMetadata("lbneDataRunMode", fDataRunMode);
+    if (fDataDetectorType!="") mds->addMetadata("lbneDataDetectorType", fDataDetectorType);
+    if (fDataName!="") mds->addMetadata("lbneDataName", fDataName);
     if (fStageName!="") mds->addMetadata("StageName",fStageName);
   }
 
