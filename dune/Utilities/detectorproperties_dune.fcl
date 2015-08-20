@@ -1,0 +1,29 @@
+#include "detectorproperties.fcl"
+
+BEGIN_PROLOG
+
+
+dunefd_detproperties:                   @local::standard_detproperties
+# dunefd_detproperties.SamplingRate:      500.         #in ns
+dunefd_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
+dunefd_detproperties.NumberTimeSamples: 4492         # drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+dunefd_detproperties.ReadOutWindowSize: 4492         # drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+dunefd_detproperties.TimeOffsetU:       0.
+dunefd_detproperties.TimeOffsetV:       0.
+dunefd_detproperties.TimeOffsetZ:       0.
+
+
+dune35t_detproperties:                   @local::standard_detproperties
+# dune35t_detproperties.SamplingRate:      500.         #in ns
+dune35t_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE 35t
+dune35t_detproperties.NumberTimeSamples: 3200
+dune35t_detproperties.ReadOutWindowSize: 3200
+dune35t_detproperties.TimeOffsetU:       0.
+dune35t_detproperties.TimeOffsetV:       0.
+dune35t_detproperties.TimeOffsetZ:       0.
+
+dune35t_milliblock_detproperties:         @local::dune35t_detproperties
+dune35t_milliblock_detproperties.NumberTimeSamples: 32000
+dune35t_milliblock_detproperties.ReadOutWindowSize: 32000
+
+END_PROLOG

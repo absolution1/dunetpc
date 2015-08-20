@@ -1,0 +1,46 @@
+#include "services_dune.fcl"
+
+
+process_name: RawEVD
+
+
+services:
+{
+  TFileService: { fileName: "duneEVDraw10kt_atmos1.root" }
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  user:         @local::dunefd_simulation_services
+  #user:         @local::dune35t_simulation_services
+}
+
+
+source:
+{
+  module_type: RootInput
+#  fileNames:  [ "/dune/data/users/trj/geniecry_jul26_2013/rootfiles/genieNtp_20130423_dune_duneCD1_anuflux_nuebarflux_nuebar_g280_Ar40_5000_9_019.root" ]
+  fileNames:  [ "/dune/data2/users/trj/atmospheric10kt_jan2013/rootfiles/gntp.atmo.argon.bartol.max.00001.ghep_98.root" ]
+#fileNames:  [ "muons_fuzzy36.root" ] 
+  #fileNames:  [ "muons_gen36.root" ] 
+  firstEvent : 1
+  maxEvents:  1
+}
+
+
+outputs:{}
+
+
+physics:
+{
+  analyzers:
+  {
+    rawdraw: 
+    {
+      module_type:     "RawEVD"
+      RawDigitLabel:   "daq"
+    }
+  }
+  analysis: [ rawdraw ] //Directory for histograms
+  end_paths: [ analysis ]
+}
+

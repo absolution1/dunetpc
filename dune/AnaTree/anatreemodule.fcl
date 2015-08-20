@@ -1,0 +1,23 @@
+BEGIN_PROLOG
+
+anatree_anatree:
+{
+   module_type:             "AnaTree"
+#  HitsModuleLabel:         "gaushit"
+   HitsModuleLabel:         "hitcheat"
+#   TrigModuleLabel:         "daq"
+   TrigModuleLabel:         "simcounter"
+#  TrackModuleLabel:        "track3d"
+#   TrackModuleLabel:        "ct"
+   TrackModuleLabel:        "costrkdc"
+   TrkSpptAssocModuleLabel: "ct"
+   HitSpptAssocModuleLabel: "hitcheat"
+   ClusterModuleLabel:      "cluster"
+   CalorimetryModuleLabel:  "calo"
+   SimulationLabel:         "largeant"
+   MCTruthT0ModuleLabel:    "mctrutht0"
+   PhotonT0ModuleLabel:     "photont0costrk"
+   FlashModuleLabel:        "opflash"
+}
+
+END_PROLOG
