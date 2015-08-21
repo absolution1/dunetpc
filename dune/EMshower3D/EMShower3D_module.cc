@@ -1,10 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 // Class:       EMShower3D
 // Module Type: producer
-// File:        EMShower3D_module.cc
-//
-// Generated at Wed Jul 15 13:42:17 2015 by Dorota Stefan using artmod
-// from cetpkgsupport v1_08_06.
+// File:        EMShower3D_module.cc	
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDProducer.h"
@@ -136,8 +133,6 @@ private:
 	pma::ProjectionMatchingAlg fProjectionMatchingAlg;
 
 	art::Handle< std::vector< recob::Cluster > > fCluListHandle;
-
-	ofstream file0; // test
 };
 
 
@@ -162,7 +157,6 @@ EMShower3D::EMShower3D(fhicl::ParameterSet const & p)
 
 void EMShower3D::beginJob()
 {
-	file0.open("/lbne/app/users/rnd/dor_fnal_work/data0.dat");
 }
 
 void EMShower3D::reconfigure(fhicl::ParameterSet const & p)
@@ -258,7 +252,6 @@ void EMShower3D::produce(art::Event & e)
 			fClustersNotUsed.clear();
 			fTracksNotUsed.clear();
 
-			std::cout << " tpc = " << t << std::endl;
 			art::FindManyP< recob::Hit > fb(fCluListHandle, e, fCluModuleLabel);
 			for (size_t id = 0; id < fCluListHandle->size(); id++)
 			{
@@ -648,9 +641,6 @@ void EMShower3D::Link(art::Event const & e, std::vector< Shower2DAlg* > input)
 		if (!exist)
 			notused.push_back(input[i]);
 
-		std::cout << " input size: " << input.size() << std::endl;
-		std::cout << " notused size: " << notused.size() << std::endl;
-
 		i++;
 	}
 	
@@ -729,8 +719,6 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 						
 				}					
 		}
-
-		std::cout << " *** TPC = " << tpc << std::endl;
 		
 		size_t ntracks = 1; 
 		while (ntracks < 4)
@@ -765,8 +753,6 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 							pl1 = true;
 							clid1 = it->first; plane1 = hitstrk[h]->WireID().Plane; break;}		
 					}
-
-					std::cout << " pl1 ===== " << pl1 << std::endl;
 			
 					for (size_t h = 0; h < hitstrk.size(); h++)
 						if (pl1 && (hitstrk[h]->WireID().Plane != plane1)) 
@@ -789,8 +775,6 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 							if (common) break;
 						}
 
-					std::cout << " pl2 ===== " << pl2 << std::endl;
-
 					for (size_t h = 0; h < hitstrk.size(); h++)
 						if (pl1 && pl2 && (hitstrk[h]->WireID().Plane != plane1) &&
 								(hitstrk[h]->WireID().Plane != plane2))
@@ -812,11 +796,6 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 						
 							if (common) break;
 						}
-
-						std::cout << " plane1 = " << plane1 << " plane2 = " << plane2 << " plane3 = " << plane3 << std::endl;
- 						std::cout << " cl1 = " << clid1 << " cl2 = " << clid2 << " cl3 = " << clid3 << std::endl;
-
-						std::cout << " pl3 ===== " << pl3 << std::endl;
 					
 						if (pl1 && pl2 && pl3)
 						{
@@ -827,7 +806,6 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 								plane2 = plane3;
 								plane3 = temp;
 							}
-							std::cout << " * cl1 = " << clid1 << " cl2 = " << clid2 << " cl3 = " << clid3 << std::endl;	
 					
 							// Find3DCandidate(e, clid1, clid2, tpc, cryo);
 
@@ -1069,7 +1047,6 @@ bool EMShower3D::Validate(art::Event const & e, const pma::Track3D& src, size_t 
 
 void EMShower3D::SelectTrks(art::Event const & e, unsigned int cryo, unsigned int tpc)
 {
-	std::cout << " SlectTrks " << std::endl;
 	const float mindist2 = 1.0F; // 1 cm
 
 	std::vector< size_t > trkids;
@@ -1111,14 +1088,10 @@ void EMShower3D::SelectTrks(art::Event const & e, unsigned int cryo, unsigned in
 					}
 				}
 
-				std::cout << " fSeltracks size " << fSeltracks.size() << " found " << found << std::endl;
-
 				if (found)
 				{
 					double inilength = (segsave->back()->Point3D() - segsave->front()->Point3D()).Mag();
 					if (inilength == 0) { fInisegs.erase(fInisegs.begin() + ids); continue;}
-	
-					std::cout << " clid1 " << fInisegs[ids].idcl1 << " clid2 " << fInisegs[ids].idcl2 << std::endl;
 
 					fSeltracks.push_back(fInisegs[ids]);
 					fInisegs.erase(fInisegs.begin() + ids);
@@ -1188,7 +1161,6 @@ void EMShower3D::MarkUsedTrks(size_t idtrk)
 
 		if (idtrk == fTracksNotUsed[cnt])
 		{
-			std::cout << " erase = " << fTracksNotUsed[cnt] << std::endl;
 			fTracksNotUsed.erase(fTracksNotUsed.begin() + cnt);
 
 			has = true;
