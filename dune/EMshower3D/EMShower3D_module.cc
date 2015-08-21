@@ -110,8 +110,8 @@ private:
 		const std::vector< art::Ptr<recob::Hit> >& hits_in, std::vector<size_t>& used,
 		std::vector< art::Ptr<recob::Hit> >& hits_out);
 
-	void Find3DCandidate(art::Event const & e, const size_t indexcl1, const size_t indexcl2, size_t tpc, size_t cryo);
-	void LinkCandidates(const Shower2DAlg& sh1, const Shower2DAlg& sh2);
+	// void Find3DCandidate(art::Event const & e, const size_t indexcl1, const size_t indexcl2, size_t tpc, size_t cryo);
+	// void LinkCandidates(const Shower2DAlg& sh1, const Shower2DAlg& sh2);
 
 	bool Has(const std::vector<size_t>& v, size_t idx);
 
@@ -568,13 +568,12 @@ std::vector< Shower2DAlg* > EMShower3D::CollectShower2D(art::Event const & e, un
 				if (hits_out.size() > 5)
 				{
 					fClusters.push_back(hits_out);
+					// fClusters.push_back(hitlist);
 					Shower2DAlg * sh = new Shower2DAlg(hits_out, 14, c); 
 					input.push_back(sh);
 				}
 			}
 		}
-	
-
 	return input;
 }
 
@@ -614,12 +613,14 @@ void EMShower3D::Link(art::Event const & e, std::vector< Shower2DAlg* > input)
 			}
 		}
 
+		/***/
 		bool exist = false;
 		for (unsigned int v = 0; v < saveids.size(); v++)
 				if ((saveids[v][0] == i) || (saveids[v][0] == idsave))
 					if ((saveids[v][1] == i) || (saveids[v][1] == idsave)) 
 						exist = true;
-		
+		/***/
+
 		if (pairs.size())
 		{
 			if (!exist) Make3DSeg(e, pairs);
@@ -631,6 +632,29 @@ void EMShower3D::Link(art::Event const & e, std::vector< Shower2DAlg* > input)
 
 		i++;
 	}
+
+	// Shower2DAlg not used
+	std::vector< Shower2DAlg* > notused;
+	i = 0;
+	while (i < input.size())
+	{
+		bool exist = false;
+		for (size_t j = 0; j < saveids.size(); j++)
+			if ((i == saveids[j][0]) || (i == saveids[j][1]))
+			{
+				exist = true; break;
+			}
+
+		if (!exist)
+			notused.push_back(input[i]);
+
+		std::cout << " input size: " << input.size() << std::endl;
+		std::cout << " notused size: " << notused.size() << std::endl;
+
+		i++;
+	}
+	
+	
 }
 
 void EMShower3D::Make3DSeg(art::Event const & e, std::vector< Shower2DAlg* > pair)
@@ -661,7 +685,6 @@ void EMShower3D::Make3DSeg(art::Event const & e, std::vector< Shower2DAlg* > pai
 
 void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int tpc)
 {
-	std::cout << " Make3DPMA " << std::endl;
 
 	art::Handle< std::vector< recob::Track > > trkListHandle;	
 	std::map< size_t, std::vector< size_t > > trkshs;
@@ -902,7 +925,7 @@ void EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int
 	}
 }
 
-void EMShower3D::Find3DCandidate(art::Event const & e, const size_t indexcl1, const size_t indexcl2, size_t tpc, size_t cryo) // nowy
+/*void EMShower3D::Find3DCandidate(art::Event const & e, const size_t indexcl1, const size_t indexcl2, size_t tpc, size_t cryo) // nowy
 {
 	art::FindManyP< recob::Hit > fbc(fCluListHandle, e, fCluModuleLabel);		
 	std::vector< art::Ptr<recob::Hit> > hitscl1 = fbc.at(indexcl1);
@@ -923,9 +946,9 @@ void EMShower3D::Find3DCandidate(art::Event const & e, const size_t indexcl1, co
 
 	delete sh1; delete sh2;
 				
-}
+}*/
 
-void EMShower3D::LinkCandidates(const Shower2DAlg& sh1, const Shower2DAlg& sh2) // nowy
+/*void EMShower3D::LinkCandidates(const Shower2DAlg& sh1, const Shower2DAlg& sh2) // nowy
 {
 	art::ServiceHandle<util::DetectorProperties> detprop;
 	art::ServiceHandle<geo::Geometry> geom;
@@ -993,7 +1016,7 @@ void EMShower3D::LinkCandidates(const Shower2DAlg& sh1, const Shower2DAlg& sh2) 
 
 		i++;	
 	}
-}
+}*/
 
 bool EMShower3D::Validate(art::Event const & e, const pma::Track3D& src, size_t plane)
 {
