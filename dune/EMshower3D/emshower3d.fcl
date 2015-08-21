@@ -1,0 +1,15 @@
+#include "trackfinderalgorithms.fcl"
+
+BEGIN_PROLOG
+
+emshower3d:
+{
+    module_type:            "EMShower3D"
+    HitsModuleLabel:	      "hit"
+		ClustersModuleLabel:		"dbcluster"
+		Trk3DModuleLabel:       "track"
+    ProjectionMatchingAlg:  @local::standard_projectionmatchingalg
+}
+emshower3d.ProjectionMatchingAlg.TrkValidationDist2D: 1.0 # max. distance [cm] used in the track validation in the "third" plane
+
+END_PROLOG
