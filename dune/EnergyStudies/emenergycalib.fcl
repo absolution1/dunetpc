@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+emenergycalib:
+{
+   module_type:             "EMEnergyCalib"
+   HitsModuleLabel:         "gaushit"
+   ClusterModuleLabel:      "blurredclusterdc"
+}
+
+END_PROLOG
