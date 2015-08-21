@@ -179,6 +179,8 @@ private:
   
   int    trkMCTruthTrackID[kMaxTrack];
   double trkMCTruthT0[kMaxTrack];
+  int    trkPhotonCounterID[kMaxTrack];
+  double trkPhotonCounterT0[kMaxTrack];
 
   double trktheta_xz[kMaxTrack];
   double trketa_xy[kMaxTrack];
@@ -257,6 +259,7 @@ private:
   std::string fSimulationProducerLabel; 
   std::string fCalorimetryModuleLabel; 
   std::string fMCTruthT0ModuleLabel;
+  std::string fPhotonT0ModuleLabel;
   std::string fFlashModuleLabel;
 
   double fElectronsToGeV; // conversion factor
@@ -278,6 +281,7 @@ AnaTree::AnaTree::AnaTree(fhicl::ParameterSet const & pset)
   , fSimulationProducerLabel ( pset.get< std::string >("SimulationLabel"))
   , fCalorimetryModuleLabel  ( pset.get< std::string >("CalorimetryModuleLabel"))
   , fMCTruthT0ModuleLabel    ( pset.get< std::string >("MCTruthT0ModuleLabel"))
+  , fPhotonT0ModuleLabel     ( pset.get< std::string >("PhotonT0ModuleLabel"))
   , fFlashModuleLabel        ( pset.get< std::string >("FlashModuleLabel"))
 {
 
@@ -406,10 +410,11 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   // ------------------------------------
   
   if ( trackListHandle.isValid() ) {
-    art::FindManyP<recob::SpacePoint> fmsp (trackListHandle, evt, fTrackModuleLabel);
-    art::FindManyP<recob::Hit>        fmht (trackListHandle, evt, fTrackModuleLabel);
-    art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
-    art::FindMany<anab::T0>           fmt0 (trackListHandle, evt, fMCTruthT0ModuleLabel);
+    art::FindManyP<recob::SpacePoint> fmsp  (trackListHandle, evt, fTrackModuleLabel);
+    art::FindManyP<recob::Hit>        fmht  (trackListHandle, evt, fTrackModuleLabel);
+    art::FindMany<anab::Calorimetry>  fmcal (trackListHandle, evt, fCalorimetryModuleLabel);
+    art::FindMany<anab::T0>           fmt0  (trackListHandle, evt, fMCTruthT0ModuleLabel);
+    art::FindMany<anab::T0>           fmphot(trackListHandle, evt, fFlashModuleLabel);
     for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
 
       //***************************************************
@@ -426,6 +431,13 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
 	  trkMCTruthTrackID[i] = T0s[t0size]->TriggerBits();
 	} // T0 size
       } // T0 valid
+      if ( fmphot.isValid() ) {
+        std::vector<const anab::T0*> PhotT0 = fmphot.at(i);
+        for (size_t T0it=0; T0it<PhotT0.size(); ++T0it) {
+          trkPhotonCounterT0[i] = PhotT0[T0it]->Time();
+          trkPhotonCounterID[i] = PhotT0[T0it]->TriggerBits();
+        }
+      }       
       // Add other T0 handles...with same structure...
       //**************
       // END T0 stuff
@@ -814,8 +826,11 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkdQdxAverage",trkdQdxAverage,"trkdQdxAverage[ntracks_reco]/D");
   fTree->Branch("trkdEdxSum",trkdEdxSum,"trkdEdxSum[ntracks_reco]/D");
   fTree->Branch("trkdEdxAverage",trkdEdxAverage,"trkdEdxAverage[ntracks_reco]/D");
+  
   fTree->Branch("trkMCTruthT0",trkMCTruthT0,"trkMCTruthT0[ntracks_reco]/D");
   fTree->Branch("trkMCTruthTrackID",trkMCTruthTrackID,"trkMCTruthTrackID[ntracks_reco]/I");
+  fTree->Branch("trkPhotonCounterT0",trkPhotonCounterT0,"trkPhotonCounterT0[ntracks_reco]/D");
+  fTree->Branch("trkPhotonCounterID",trkPhotonCounterID,"trkPhotonCounterID[ntracks_reco]/I");
   
   fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
   fTree->Branch("trkid_MC",trkid_MC,"trkid_MC[nMCParticles]/I");
@@ -992,6 +1007,8 @@ void AnaTree::AnaTree::ResetVars(){
     trkid[i] = -99999;
     trkMCTruthT0[i] = -99999;
     trkMCTruthTrackID[i] = -99999;
+    trkPhotonCounterT0[i]= -99999;
+    trkPhotonCounterID[i]= -99999;
 
     trkenddcosx[i] = -99999;
     trkenddcosy[i] = -99999;

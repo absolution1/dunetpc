@@ -71,13 +71,13 @@ dune10kt_3mmPitch_workspace_geo.ROOT: "dune10kt_v1_3mmPitch_workspace.gdml"
 
 dune35t_geo:
 {
- Name:     "dune35t4apa_v4"
+ Name:     "dune35t4apa_v5"
 
  # Choose GDML file and set detector version similarly
- GDML:         "dune35t4apa_v4.gdml"
- ROOT:         "dune35t4apa_v4.gdml"
+ GDML:         "dune35t4apa_v5.gdml"
+ ROOT:         "dune35t4apa_v5.gdml"
  SortingParameters: { 
-   DetectorVersion: "dune35t4apa_v4" 
+   DetectorVersion: "dune35t4apa_v5" 
  } 
 
  SurfaceY:           0.0e2               #in cm, vertical distance to the surface

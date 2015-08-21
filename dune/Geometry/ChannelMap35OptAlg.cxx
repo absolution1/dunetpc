@@ -465,7 +465,16 @@ namespace geo{
   //----------------------------------------------------------------------------
   unsigned int ChannelMap35OptAlg::NOpHardwareChannels(unsigned int opDet) const
   {
-    return 12;
+    // CSU 3-sipm design
+    if (opDet == 0 || opDet == 4 || opDet == 6)
+      return 8;
+
+    // LSU 2-sipm design
+    if (opDet == 2)
+      return 2;
+
+    // IU 12-sipm design
+    return 12;    
   }
 
   //----------------------------------------------------------------------------

@@ -43,8 +43,15 @@ dunefd_disp:
 # InfoTransfer: 		   @local::dunefd_infotransfer
  TimeService:              @local::dunefd_timeservice # defined in timeservice_dune.fcl
 }
-dunefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
-dunefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
+dunefd_disp.IDetPedestalService:
+{
+  service_provider: SIOVDetPedestalService
+  DetPedestalRetrievalAlg: @local::standard_pedestalretrievalalg
+}
+dunefd_disp.IDetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean:  0
+dunefd_disp.IDetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean:  0
+#dunefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
+#dunefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
 dunefd_disp.RecoDrawingOptions.WireModuleLabels: ["caldata"]
 
 
@@ -62,8 +69,8 @@ dune35t_disp.RecoDrawingOptions.HitModuleLabels:  ["linecluster"]
 dune35t_disp.RecoDrawingOptions.ClusterModuleLabels:  ["linecluster"]
 dune35t_disp.RecoDrawingOptions.TrackModuleLabels:  ["costrk"]
 dune35t_disp.RecoDrawingOptions.DrawClusters:     1
-dune35t_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
-dune35t_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
+#dune35t_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
+#dune35t_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
 
 
 

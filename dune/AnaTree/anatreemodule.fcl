@@ -16,6 +16,7 @@ anatree_anatree:
    CalorimetryModuleLabel:  "calo"
    SimulationLabel:         "largeant"
    MCTruthT0ModuleLabel:    "mctrutht0"
+   PhotonT0ModuleLabel:     "photont0costrk"
    FlashModuleLabel:        "opflash"
 }
 

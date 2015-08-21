@@ -57,6 +57,20 @@ dunefd_simulation_services:
 }
 
 
+#
+# Settings for optical simulation. Optical simulation not on by default
+# for FD, turned on by custom physics list and defining a photon visibility
+# services is workspace g4 fhicl file.
+#
+dunefd_simulation_services.LArProperties.ScintYield: 24000
+dunefd_simulation_services.LArProperties.ScintPreScale: 0.006
+
+# disable cerenkov
+dunefd_simulation_services.LArProperties.EnableCerenkovLight: false
+
+
+
+
 # dune10kt and dune34kt consolidated into dunefd,
 # but catch any leftover cases of 10kt...
 #dune10kt_services: @local::dunefd_services
