@@ -9,14 +9,15 @@ dune10kt_v1_geo(TString volName="")
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
 
-  TGeoManager::Import("dune10kt_v1_workspace.gdml");
-//  TGeoManager::Import("dune10kt_v1_nowires.gdml");
+//  TGeoManager::Import("dune10kt_v1_workspace.gdml");
+  TGeoManager::Import("dune10kt_v1_nowires.gdml");
 //  TGeoManager::Import("dune10kt_v1_3mmPitch.gdml");
 //  TGeoManager::Import("dune10kt_v1_45deg.gdml");
 //  TGeoManager::Import("dune10kt_v1_workspace_nowires.gdml");
 //  TGeoManager::Import("dune10kt_v1_workspace.gdml");
 //  TGeoManager::Import("dune10kt_v1_3mmPitch_workspace.gdml");
 //  TGeoManager::Import("dune10kt_v1_45deg_workspace.gdml");
+//  TGeoManager::Import("protoDune_v1.gdml");
   
   //TList* mat = gGeoManager->GetListOfMaterials();
   //TIter next(mat);
@@ -25,11 +26,11 @@ dune10kt_v1_geo(TString volName="")
  TGeoNode *node = 0;
 
  gGeoManager->GetVolume("volSteelShell")->SetLineColor(19);
- gGeoManager->GetVolume("volSteelShell")->SetVisibility(0);
+ gGeoManager->GetVolume("volSteelShell")->SetVisibility(1);
  gGeoManager->GetVolume("volSteelShell")->SetTransparency(90);
 
  gGeoManager->GetVolume("volGaseousArgon")->SetLineColor(kYellow-7);
- gGeoManager->GetVolume("volGaseousArgon")->SetVisibility(0);
+ gGeoManager->GetVolume("volGaseousArgon")->SetVisibility(1);
  gGeoManager->GetVolume("volGaseousArgon")->SetTransparency(85);
 
 
@@ -100,7 +101,7 @@ dune10kt_v1_geo(TString volName="")
   gGeoManager->SetMaxVisNodes(70000);
 
   //gGeoManager->GetTopVolume()->Draw("ogl");
-  gGeoManager->FindVolumeFast("volCryostat")->Draw("ogl");
+  gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
   //gGeoManager->FindVolumeFast("volTPCPlaneUInner")->Draw("ogl");
   //if ( ! volName.IsNull() ) gGeoManager->FindVolumeFast(volName)->Draw("ogl");
 //  gGeoManager->FindVolumeFast("volCryostat")->Draw("X3D");
