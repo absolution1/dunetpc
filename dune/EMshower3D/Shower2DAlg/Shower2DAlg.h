@@ -46,7 +46,7 @@ class Bin2D
 
 	const TVector2 & GetCenter(void) const { return fCenter2D; }
 
-	std::vector< art::Ptr< recob::Hit > > GetIniHits(const double radius = 5.0, const unsigned int nhits = 5) const;
+	std::vector< art::Ptr< recob::Hit > > GetIniHits(const double radius = 5.0, const unsigned int nhits = 10) const;
 
 	private:
 	const TVector2 & fCenter2D;

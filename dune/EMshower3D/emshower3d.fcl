@@ -6,7 +6,7 @@ emshower3d:
 {
     module_type:            "EMShower3D"
     HitsModuleLabel:	      "hit"
-		ClustersModuleLabel:		"dbcluster"
+		ClustersModuleLabel:		"cluster"
 		Trk3DModuleLabel:       "track"
     ProjectionMatchingAlg:  @local::standard_projectionmatchingalg
 }
