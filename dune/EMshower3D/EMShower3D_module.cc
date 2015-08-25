@@ -48,10 +48,6 @@ struct IniSeg
 	IniSeg(void)
 	{
 	}
-
-	~IniSeg()
-	{
-	}
 };
 
 class EMShower3D;
@@ -123,7 +119,6 @@ private:
 
 	std::string fCluModuleLabel;
 	std::string fTrk3DModuleLabel;
-	
 
 	pma::ProjectionMatchingAlg fProjectionMatchingAlg;
 
