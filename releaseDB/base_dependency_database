@@ -24,8 +24,10 @@ dunetpc : dunetpc : dune/daqinput35t/SSPFragmentToOpDetWaveform.h
 dunetpc : dunetpc : dune/daqinput35t/tpcFragmentToRawDigits.h
 dunetpc : dunetpc : dune/daqinput35t/utilities/UnpackFragment.h
 dunetpc : dunetpc : test/Geometry/geometry_unit_test_dune.h
+dunetpc : larana : OpticalDetector/AlgoSiPM.h
 dunetpc : larana : OpticalDetector/OpDetResponseInterface.h
 dunetpc : larana : OpticalDetector/OpDigiProperties.h
+dunetpc : larana : OpticalDetector/PMTPulseRecoBase.h
 dunetpc : larcore : Geometry/AuxDetGeo.h
 dunetpc : larcore : Geometry/AuxDetSensitiveGeo.h
 dunetpc : larcore : Geometry/BoxBoundedGeo.h
