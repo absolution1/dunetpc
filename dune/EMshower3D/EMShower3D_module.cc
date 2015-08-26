@@ -1084,6 +1084,4 @@ void EMShower3D::FilterOutSmallParts(
 			for (auto h : close_hits) hits_out.push_back(h);
 	}
 }
-
-
 DEFINE_ART_MODULE(EMShower3D)

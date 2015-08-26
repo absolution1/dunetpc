@@ -10,6 +10,7 @@ art_make( BASENAME_ONLY
                         RawData
                         RecoBase
 												RecoAlg
+												PMAlg
                         Utilities
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}

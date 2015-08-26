@@ -12,4 +12,15 @@ emshower3d:
 }
 emshower3d.ProjectionMatchingAlg.TrkValidationDist2D: 1.0 # max. distance [cm] used in the track validation in the "third" plane
 
+mergeemshower3d:
+{
+    module_type:            "MergeEMShower3D"
+    HitsModuleLabel:	      "hit"
+		ClustersModuleLabel:		"cluster"
+		Trk3DModuleLabel:       "track"
+		VtxModuleLabel:					"vertex"
+    ProjectionMatchingAlg:  @local::standard_projectionmatchingalg
+}
+mergeemshower3d.ProjectionMatchingAlg.TrkValidationDist2D: 1.0 # max. distance [cm] used in the track validation in the "third" plane
+
 END_PROLOG
