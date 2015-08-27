@@ -19,6 +19,8 @@ mergeemshower3d:
 		ClustersModuleLabel:		"cluster"
 		Trk3DModuleLabel:       "track"
 		VtxModuleLabel:					"vertex"
+    NarrowConeAngle:        15
+    WideConeAngle:          40
     ProjectionMatchingAlg:  @local::standard_projectionmatchingalg
 }
 mergeemshower3d.ProjectionMatchingAlg.TrkValidationDist2D: 1.0 # max. distance [cm] used in the track validation in the "third" plane

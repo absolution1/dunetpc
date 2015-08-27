@@ -1,3 +1,9 @@
+////////////////////////////////////////////////////////////////////////
+// Class:       
+// Module Type: 
+// File:        
+// Authors: dorota.stefan@cern.ch robert.sulej@cern.ch	
+////////////////////////////////////////////////////////////////////////
 
 #ifndef Shower2D_h
 #define Shower2D_h
@@ -9,7 +15,18 @@
 #include "TVector2.h"
 #include "TVector3.h"
 
-class Hit2D
+namespace ems
+{
+	class Hit2D;
+	class Bin2D;
+	class EndPoint;
+	//class Shower2DAlg;	
+	class DirOfGamma;
+	class bDistCentMore2D;
+	class bDistCentLess2D;
+}
+
+class ems::Hit2D
 {
 	public:
 	Hit2D(art::Ptr< recob::Hit > src);
@@ -27,7 +44,7 @@ class Hit2D
 	art::Ptr< recob::Hit > fHit;
 };
 
-class Bin2D
+class ems::Bin2D
 {
 	public:	
 	Bin2D(const TVector2 & center);
@@ -55,7 +72,7 @@ class Bin2D
 	unsigned int fSize;
 };
 
-class EndPoint
+class ems::EndPoint
 {
 	public:
 	EndPoint(const Hit2D & center, const std::vector< Hit2D* > & hits, unsigned int nbins);	
@@ -89,11 +106,13 @@ class EndPoint
 	void ComputeMeanCharge();	
 };
 
-class Shower2DAlg
+//class ems::Shower2DAlg
+class ems::DirOfGamma
 {
 	public:
-	Shower2DAlg(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl);
-	~Shower2DAlg() { for (unsigned int i = 0; i < fPoints2D.size(); i++) delete fPoints2D[i]; }
+	//Shower2DAlg(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl);
+	DirOfGamma(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl);
+	~DirOfGamma() { for (unsigned int i = 0; i < fPoints2D.size(); ++i) delete fPoints2D[i];}
 
 	TVector2 const & GetBaryCenterCm(void) const { return fBaryCenter; }
 
@@ -142,7 +161,7 @@ class Shower2DAlg
 	float fNormCharge;
 };
 
-class bDistCentMore2D :
+class ems::bDistCentMore2D :
 	public std::binary_function< Hit2D*, Hit2D*, bool>
 	{
 		public:
@@ -164,7 +183,7 @@ class bDistCentMore2D :
   TVector2 center;
 };
 
-class bDistCentLess2D :
+class ems::bDistCentLess2D :
 	public std::binary_function< Hit2D*, Hit2D*, bool>
 	{
 		public:

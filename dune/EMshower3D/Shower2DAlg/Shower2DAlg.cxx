@@ -14,7 +14,7 @@
 
 //class Hit2D
 
-Hit2D::Hit2D(art::Ptr< recob::Hit > src) :
+ems::Hit2D::Hit2D(art::Ptr< recob::Hit > src) :
 fHit(src)
 {
 	unsigned int wire  = src->WireID().Wire;
@@ -26,14 +26,14 @@ fHit(src)
 	fCharge = src->SummedADC();
 }
 
-Bin2D::Bin2D(const TVector2 & center) : 
+ems::Bin2D::Bin2D(const TVector2 & center) : 
 fCenter2D(center), 
 fTotCharge(0.0), 
 fSize(0)
 {
 }
 
-void Bin2D::Add(Hit2D* hit)
+void ems::Bin2D::Add(Hit2D* hit)
 {
 	fHits2D.push_back(hit);
 	fTotCharge += hit->GetCharge();
@@ -41,17 +41,17 @@ void Bin2D::Add(Hit2D* hit)
 	SortLess();
 }
 
-void Bin2D::Sort()
+void ems::Bin2D::Sort()
 {
 	return std::sort(fHits2D.begin(), fHits2D.end(), bDistCentMore2D(fCenter2D));
 }
 
-void Bin2D::SortLess()
+void ems::Bin2D::SortLess()
 {
 	return std::sort(fHits2D.begin(), fHits2D.end(), bDistCentLess2D(fCenter2D)); 
 }
 
-std::vector< art::Ptr< recob::Hit > > Bin2D::GetIniHits(const double radius, const unsigned int nhits) const
+std::vector< art::Ptr< recob::Hit > > ems::Bin2D::GetIniHits(const double radius, const unsigned int nhits) const
 {
 
 	std::vector< art::Ptr< recob::Hit > > vec;
@@ -67,7 +67,7 @@ std::vector< art::Ptr< recob::Hit > > Bin2D::GetIniHits(const double radius, con
 	return vec;
 }
 
-EndPoint::EndPoint(const Hit2D & center, const std::vector< Hit2D* > & hits, unsigned int nbins) : 
+ems::EndPoint::EndPoint(const Hit2D & center, const std::vector< Hit2D* > & hits, unsigned int nbins) : 
 fCenter2D(center), 
 fPoints2D(hits),
 fNbins(nbins)
@@ -83,7 +83,7 @@ fNbins(nbins)
 	ComputeMeanCharge();
 }
 
-void EndPoint::FillBins() 
+void ems::EndPoint::FillBins() 
 {
 	TVector2 vstart(0, 1);
 
@@ -115,7 +115,7 @@ void EndPoint::FillBins()
 		for (unsigned int id = 0; id < fNbins; id++) fBins[id].Add(fPoints2D[saveid]);	
 }
 
-void EndPoint::ComputeMaxCharge()
+void ems::EndPoint::ComputeMaxCharge()
 {
 	fMaxCharge = 0.0;
 	unsigned int saveid = 0; 
@@ -129,7 +129,7 @@ void EndPoint::ComputeMaxCharge()
 	fMaxChargeIdBin = saveid; 
 }
 
-void EndPoint::ComputeMeanCharge()
+void ems::EndPoint::ComputeMeanCharge()
 {
 	fMeanCharge = 0.0;
 	if (fNbins == 0) return;
@@ -148,13 +148,14 @@ void EndPoint::ComputeMeanCharge()
 	fMeanCharge = sumcharge / double (fNbins);
 }
 
-double EndPoint::GetAsymmetry() const
+double ems::EndPoint::GetAsymmetry() const
 {
 	if ((fMaxCharge + fMeanCharge) == 0) return 0.0;
 	else return ((fMaxCharge - fMeanCharge) / (fMaxCharge + fMeanCharge));
 }
 
-Shower2DAlg::Shower2DAlg(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl) :
+//ems::Shower2DAlg::Shower2DAlg(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl) :
+ems::DirOfGamma::DirOfGamma(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl) :
 fNbins(nbins),
 fIdCl(idcl)
 {
@@ -180,7 +181,8 @@ fIdCl(idcl)
 	FindInitialPartvec();
 }
 
-void Shower2DAlg::ComputeBaryCenter()
+//void ems::Shower2DAlg::ComputeBaryCenter()
+void ems::DirOfGamma::ComputeBaryCenter()
 {
 	double nomx = 0.0; double nomy = 0.0;
 	double denom = 0.0;
@@ -195,7 +197,8 @@ void Shower2DAlg::ComputeBaryCenter()
 	fBaryCenter.Set(bx, by);
 }
 
-void Shower2DAlg::FillBins()
+//void ems::Shower2DAlg::FillBins()
+void ems::DirOfGamma::FillBins()
 {
 	TVector2 vstart(0, 1);	
 
@@ -220,7 +223,8 @@ void Shower2DAlg::FillBins()
 	
 }
 
-void Shower2DAlg::ComputeMaxDist()
+//void ems::Shower2DAlg::ComputeMaxDist()
+void ems::DirOfGamma::ComputeMaxDist()
 {
 	double maxdist2 = 0.0;
 	
@@ -243,7 +247,8 @@ void Shower2DAlg::ComputeMaxDist()
 	fNormDist = std::sqrt(maxdist2);
 }
 
-void Shower2DAlg::FindCandidates()
+//void ems::Shower2DAlg::FindCandidates()
+void ems::DirOfGamma::FindCandidates()
 {
 	float rad = 0.5F * fNormDist; unsigned int nbins = fNbins * 2;
 	for (unsigned int id = 0; id < fNbins; id++)
@@ -267,7 +272,8 @@ void Shower2DAlg::FindCandidates()
 	}
 }
 
-void Shower2DAlg::ComputeMaxCharge()
+//void ems::Shower2DAlg::ComputeMaxCharge()
+void ems::DirOfGamma::ComputeMaxCharge()
 {
 	fNormCharge = 0.0;
 	for (unsigned int i = 0; i < fCandidates.size(); i++)
@@ -311,7 +317,8 @@ void Shower2DAlg::ComputeMaxCharge()
 	return result;
 }*/
 
-void Shower2DAlg::FindInitialPartvec()
+//void ems::Shower2DAlg::FindInitialPartvec()
+void ems::DirOfGamma::FindInitialPartvec()
 {
 	double maxdist2 = 0.0; double maxcharge = 0.0;
 	size_t idmaxdist1 = 0; size_t idmaxdist2 = 0;
@@ -354,7 +361,8 @@ void Shower2DAlg::FindInitialPartvec()
 	fIniHitsvec  = inihits;
 }
 
-void Shower2DAlg::FindInitialPart()
+//void ems::Shower2DAlg::FindInitialPart()
+void ems::DirOfGamma::FindInitialPart()
 {
 	double max_asymmetry = 0.0; 
 	unsigned int saveid = 0; bool found = false;
@@ -384,7 +392,7 @@ void Shower2DAlg::FindInitialPart()
 		}	
 	}
 
-	if (!found) mf::LogError("Shower2DAlg") << "Shower2DAlg - Find Initial Part problem.";
+	if (!found) mf::LogError("DirOfGamma") << "DirOfGamma - Find Initial Part problem.";
 
 	fStartHit = fCandidates[saveid].GetHit(); 
 	fStartPoint = fCandidates[saveid].GetPosition();
