@@ -1,4 +1,12 @@
-// Module to calibrate EM shower energy
+////////////////////////////////////////////////////////////////////////
+// Class:       EMEnergyCalib
+// Module Type: analyzer
+// File:        EMEnergyCalib_module.cc
+// Author:      Mike Wallbank (m.wallbank@sheffield.ac.uk), August 2015
+//
+// Analyser module to produce useful information for characterising
+// em showers.
+////////////////////////////////////////////////////////////////////////
 
 // Framework includes:
 #include "art/Framework/Core/ModuleMacros.h"
@@ -34,6 +42,7 @@
 #include "TTree.h"
 #include "TBranch.h"
 #include "TLeaf.h"
+#include "TVector3.h"
 
 const int kMaxHits = 10000;
 
@@ -48,6 +57,7 @@ public:
   void analyze(art::Event const& evt);
   void reconfigure(fhicl::ParameterSet const& p);
   void reset();
+  int FindTrackID(art::Ptr<recob::Hit> const& hit);
 
 private:
 
@@ -57,14 +67,16 @@ private:
   double depositU;
   double depositV;
   double depositZ;
+  double vertexDetectorDist;
   int    nhits;
-  int    hit_tpc      [kMaxHits];
-  int    hit_plane    [kMaxHits];
-  int    hit_wire     [kMaxHits];
-  int    hit_channel  [kMaxHits];
-  double hit_peakT    [kMaxHits];
-  double hit_charge   [kMaxHits];
-  int    hit_clusterid[kMaxHits];
+  int    hit_tpc        [kMaxHits];
+  int    hit_plane      [kMaxHits];
+  int    hit_wire       [kMaxHits];
+  int    hit_channel    [kMaxHits];
+  double hit_peakT      [kMaxHits];
+  double hit_charge     [kMaxHits];
+  int    hit_truetrackid[kMaxHits];
+  int    hit_clusterid  [kMaxHits];
 
   std::string fHitsModuleLabel;
   std::string fClusterModuleLabel;
@@ -77,18 +89,20 @@ private:
 emshower::EMEnergyCalib::EMEnergyCalib(fhicl::ParameterSet const& pset) : EDAnalyzer(pset) {
   this->reconfigure(pset);
   fTree = tfs->make<TTree>("EMEnergyCalib","EMEnergyCalib");
-  fTree->Branch("TrueEnergy",   &trueEnergy);
-  fTree->Branch("DepositU",     &depositU);
-  fTree->Branch("DepositV",     &depositV);
-  fTree->Branch("DepositZ",     &depositZ);
-  fTree->Branch("NHits",        &nhits);
-  fTree->Branch("Hit_TPC",      hit_tpc,      "hit_tpc[NHits]/I");
-  fTree->Branch("Hit_Plane",    hit_plane,    "hit_plane[NHits]/I");
-  fTree->Branch("Hit_Wire",     hit_wire,     "hit_wire[NHits]/I");
-  fTree->Branch("Hit_Channel",  hit_channel,  "hit_channel[NHits]/I");
-  fTree->Branch("Hit_PeakT",    hit_peakT,    "hit_peakT[NHits]/D");
-  fTree->Branch("Hit_Charge",   hit_charge,   "hit_charge[NHits]/D");
-  fTree->Branch("Hit_ClusterID",hit_clusterid,"hit_clusterid[NHits]/I");
+  fTree->Branch("TrueEnergy",        &trueEnergy);
+  fTree->Branch("DepositU",          &depositU);
+  fTree->Branch("DepositV",          &depositV);
+  fTree->Branch("DepositZ",          &depositZ);
+  fTree->Branch("VertexDetectorDist",&vertexDetectorDist);
+  fTree->Branch("NHits",             &nhits);
+  fTree->Branch("Hit_TPC",           hit_tpc,        "hit_tpc[NHits]/I");
+  fTree->Branch("Hit_Plane",         hit_plane,      "hit_plane[NHits]/I");
+  fTree->Branch("Hit_Wire",          hit_wire,       "hit_wire[NHits]/I");
+  fTree->Branch("Hit_Channel",       hit_channel,    "hit_channel[NHits]/I");
+  fTree->Branch("Hit_PeakT",         hit_peakT,      "hit_peakT[NHits]/D");
+  fTree->Branch("Hit_Charge",        hit_charge,     "hit_charge[NHits]/D");
+  fTree->Branch("Hit_TrueTrackID",   hit_truetrackid,"hit_truetrackid[NHits]/I");
+  fTree->Branch("Hit_ClusterID",     hit_clusterid,  "hit_clusterid[NHits]/I");
 }
 
 void emshower::EMEnergyCalib::reconfigure(fhicl::ParameterSet const& pset) {
@@ -133,6 +147,9 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
     hit_charge [hitIt] = hit->Integral();
     hit_channel[hitIt] = hit->Channel();
 
+    // Find the true track this hit is associated with
+    hit_truetrackid[hitIt] = this->FindTrackID(hit);
+
     // Find the cluster index this hit it associated with (-1 if unclustered)
     if (fmc.isValid()) {
       std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(hitIt);
@@ -176,10 +193,45 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
     }
   }
 
+  // Find the distance between the particle vertex and the edge of the detector
+  TVector3 vertex = TVector3(trueParticle->Vx(),trueParticle->Vy(),trueParticle->Vz());
+  TVector3 end = TVector3(trueParticle->EndX(),trueParticle->EndY(),trueParticle->EndZ());
+  TVector3 direction = TVector3(trueParticle->Px(),trueParticle->Py(),trueParticle->Pz()).Unit();
+
+  int distanceStep = 1, steps = 0;
+  TVector3 pos;
+  bool inTPC = true;
+  while (inTPC) {
+    pos = end + ( (steps*distanceStep) * direction );
+    double currentPos[3]; currentPos[0] = pos.X(); currentPos[1] = pos.Y(); currentPos[2] = pos.Z();
+    if (!geom->FindTPCAtPosition(currentPos).isValid)
+      inTPC = false;
+    ++steps;
+  }
+  vertexDetectorDist = (end - pos).Mag();
+
+  // Put energies in GeV units
+  depositU /= 1000;
+  depositV /= 1000;
+  depositZ /= 1000;
+
   fTree->Fill();
 
   return;
 
+}
+
+int emshower::EMEnergyCalib::FindTrackID(art::Ptr<recob::Hit> const& hit) {
+  double particleEnergy = 0;
+  int likelyTrackID = 0;
+  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackID(hit);
+  for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
+    if (trackIDs.at(idIt).energy > particleEnergy) {
+      particleEnergy = trackIDs.at(idIt).energy;
+      likelyTrackID = TMath::Abs(trackIDs.at(idIt).trackID);
+    }
+  }
+  return likelyTrackID;
 }
 
 void emshower::EMEnergyCalib::reset() {
@@ -187,6 +239,7 @@ void emshower::EMEnergyCalib::reset() {
   depositU = 0;
   depositV = 0;
   depositZ = 0;
+  vertexDetectorDist = 0;
   nhits = 0;
   for (int hit = 0; hit < kMaxHits; ++hit) {
     hit_tpc[hit] = 0;
