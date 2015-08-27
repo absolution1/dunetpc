@@ -33,7 +33,7 @@
 
 #include <memory>
 
-#include "Shower2DAlg/Shower2DAlg.h"
+#include "DirOfGamma/DirOfGamma.h"
 
 // ROOT includes
 #include "TTree.h"

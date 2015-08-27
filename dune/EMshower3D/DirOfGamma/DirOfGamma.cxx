@@ -1,4 +1,4 @@
-#include "Shower2DAlg.h"
+#include "DirOfGamma.h"
 
 #include "RecoAlg/PMAlg/PmaHit3D.h"
 #include "RecoAlg/PMAlg/Utilities.h"
@@ -154,7 +154,6 @@ double ems::EndPoint::GetAsymmetry() const
 	else return ((fMaxCharge - fMeanCharge) / (fMaxCharge + fMeanCharge));
 }
 
-//ems::Shower2DAlg::Shower2DAlg(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl) :
 ems::DirOfGamma::DirOfGamma(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl) :
 fNbins(nbins),
 fIdCl(idcl)
@@ -181,7 +180,6 @@ fIdCl(idcl)
 	FindInitialPartvec();
 }
 
-//void ems::Shower2DAlg::ComputeBaryCenter()
 void ems::DirOfGamma::ComputeBaryCenter()
 {
 	double nomx = 0.0; double nomy = 0.0;
@@ -197,7 +195,6 @@ void ems::DirOfGamma::ComputeBaryCenter()
 	fBaryCenter.Set(bx, by);
 }
 
-//void ems::Shower2DAlg::FillBins()
 void ems::DirOfGamma::FillBins()
 {
 	TVector2 vstart(0, 1);	
@@ -223,7 +220,6 @@ void ems::DirOfGamma::FillBins()
 	
 }
 
-//void ems::Shower2DAlg::ComputeMaxDist()
 void ems::DirOfGamma::ComputeMaxDist()
 {
 	double maxdist2 = 0.0;
@@ -247,7 +243,6 @@ void ems::DirOfGamma::ComputeMaxDist()
 	fNormDist = std::sqrt(maxdist2);
 }
 
-//void ems::Shower2DAlg::FindCandidates()
 void ems::DirOfGamma::FindCandidates()
 {
 	float rad = 0.5F * fNormDist; unsigned int nbins = fNbins * 2;
@@ -272,7 +267,6 @@ void ems::DirOfGamma::FindCandidates()
 	}
 }
 
-//void ems::Shower2DAlg::ComputeMaxCharge()
 void ems::DirOfGamma::ComputeMaxCharge()
 {
 	fNormCharge = 0.0;
@@ -317,7 +311,6 @@ void ems::DirOfGamma::ComputeMaxCharge()
 	return result;
 }*/
 
-//void ems::Shower2DAlg::FindInitialPartvec()
 void ems::DirOfGamma::FindInitialPartvec()
 {
 	double maxdist2 = 0.0; double maxcharge = 0.0;
@@ -361,7 +354,6 @@ void ems::DirOfGamma::FindInitialPartvec()
 	fIniHitsvec  = inihits;
 }
 
-//void ems::Shower2DAlg::FindInitialPart()
 void ems::DirOfGamma::FindInitialPart()
 {
 	double max_asymmetry = 0.0; 

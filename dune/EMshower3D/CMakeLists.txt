@@ -4,7 +4,7 @@ simple_plugin(EMShower3D "module"
 			RawData
 			RecoAlg
 			PMAlg
-			Shower2DAlg
+			DirOfGamma
 			BackTracker_service
       RecoBase
 			Simulation
@@ -38,7 +38,7 @@ simple_plugin(MergeEMShower3D "module"
 			RawData
 			RecoAlg
 			PMAlg
-			Shower2DAlg
+			DirOfGamma
 			BackTracker_service
       RecoBase
 			Simulation
@@ -69,7 +69,7 @@ simple_plugin(MergeEMShower3D "module"
 )
 
 
-add_subdirectory(Shower2DAlg)
+add_subdirectory(DirOfGamma)
 
 install_headers()
 install_fhicl()

@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////
 // Class:       
 // Module Type: 
-// File:        
+// File: DirOfGamma.h        
 // Authors: dorota.stefan@cern.ch robert.sulej@cern.ch	
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef Shower2D_h
-#define Shower2D_h
+#ifndef DirOfGamma_h
+#define DirOfGamma_h
 
 #include "RecoBase/Hit.h"
 
@@ -20,7 +20,6 @@ namespace ems
 	class Hit2D;
 	class Bin2D;
 	class EndPoint;
-	//class Shower2DAlg;	
 	class DirOfGamma;
 	class bDistCentMore2D;
 	class bDistCentLess2D;
@@ -106,11 +105,9 @@ class ems::EndPoint
 	void ComputeMeanCharge();	
 };
 
-//class ems::Shower2DAlg
 class ems::DirOfGamma
 {
 	public:
-	//Shower2DAlg(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl);
 	DirOfGamma(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl);
 	~DirOfGamma() { for (unsigned int i = 0; i < fPoints2D.size(); ++i) delete fPoints2D[i];}
 
