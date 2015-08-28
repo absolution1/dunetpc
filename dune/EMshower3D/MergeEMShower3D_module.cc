@@ -53,7 +53,6 @@ class ems::ShowerInfo
 	public:
 	ShowerInfo(int key, int gid, bool hasvtx, double adcsum, recob::Track const& trk);
 	double Pointsto(ems::ShowerInfo const& s1) const;
-	//double Pointsto(TVector3 const& pmapoint) const;
 	double Angleto(TVector3 const& pmapoint) const;
 
 	bool HasConPoint() const {return fHasVtx;}
@@ -291,7 +290,6 @@ public:
 	const TVector3& p0, const TVector3& p1,
 	double step);
 
-	void pi0topology(std::vector< ShowerInfo > const & sis, TVector3 const & vtx);
 private:
 
 	TTree* fEvTree;
@@ -299,21 +297,16 @@ private:
 
 	int fNParts[2];
 	int fNPMA; int fNConv; int fNTot;
-  int fIdParts[2];
   int fHasConvPt;
   int fWhat, fEvWhat;
   int fNMerged, fNCleanMerged;
 
-	double fDx, fDy, fDz, fD3D, fDFi, fDFi2, fDFiCnv;
+	double fDistvtxmcreco;
   double fMcMom, fTrkLen, fAdcSum;
   int fEvNumber;
 
-	 //for pi0
-  double fMCrecovtxs;
-  double fMCrecoCOS;
-  double fMCrecoTh;
-
-  double fGamma[2];
+	TVector3 fPi0vtx;
+	TVector3 fRefPoint;
 
 	std::string fHitsModuleLabel;
 	std::string fCluModuleLabel;
@@ -325,10 +318,9 @@ private:
 };
 
 ems::MergeEMShower3D::MergeEMShower3D(fhicl::ParameterSet const & p)
-// Initialize member data here.
 {
 	reconfigure(p);
-  // Call appropriate produces<>() functions here.
+
 	produces< std::vector<recob::Shower> >();
 	produces< art::Assns<recob::Shower, recob::Cluster> >();
 	produces< art::Assns<recob::Shower, recob::Hit> >();
@@ -345,19 +337,12 @@ void ems::MergeEMShower3D::beginJob()
 	fEvTree->Branch("fNTot", &fNTot, "fNTot/I");
 	fEvTree->Branch("fNPMA", &fNPMA, "fNPMA/I");
 	fEvTree->Branch("fNConv", &fNConv, "fNConv/I");
-	fEvTree->Branch("fId1", &fIdParts[0], "fId1/I");
-	fEvTree->Branch("fId2", &fIdParts[1], "fId2/I");
 	fEvTree->Branch("fEvWhat", &fEvWhat, "fEvWhat/I");
 	fEvTree->Branch("fMcMom", &fMcMom, "fMcMom/D");
-	fEvTree->Branch("fGamma1", &fGamma[0], "fGamma1/D");
-	fEvTree->Branch("fGamma2", &fGamma[1], "fGamma2/D");
 
-	fEvTree->Branch("fD3D", &fD3D, "fD3D/D");
+	fEvTree->Branch("fDistvtxmcreco", &fDistvtxmcreco, "fDistvtxmcreco/D");
 	fEvTree->Branch("fNMerged", &fNMerged, "fNMerged/I");
 	fEvTree->Branch("fNCleanMerged", &fNCleanMerged, "fNCleanMerged/I");
-	fEvTree->Branch("fMCrecovtxs", &fMCrecovtxs, "fMCrecovtxs/D");
-	fEvTree->Branch("fMCrecoCOS", &fMCrecoCOS, "fMCrecoCOS/D");
-	fEvTree->Branch("fMCrecoTh", &fMCrecoTh, "fMCrecoTh/D");
 }
 
 void ems::MergeEMShower3D::reconfigure(fhicl::ParameterSet const & p)
@@ -394,6 +379,7 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 		fEvNumber = evt.id().event();
 		fNMerged = 0; fNCleanMerged = 0; fNParts[0] = 0; fNParts[1] = 0;
 		fNPMA = 0; fNConv = 0; fNTot = 0; fMcMom = 0; fWhat = 0;
+		fDistvtxmcreco = -10.0;
 
 		art::FindManyP< recob::Cluster > cluFromTrk(trkListHandle, evt, fTrk3DModuleLabel);
 		art::FindManyP< recob::Vertex > vtxFromTrk(trkListHandle, evt, fVtxModuleLabel);
@@ -434,6 +420,7 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 		gammawithconv = collectshowers(evt, showers, true);
 	
 		// with pma segments reconstructed
+		// procceed with pma segments when two conversions 
 		std::vector< ShowerInfo > pmaseg;
 		for (size_t i = 0; i < showers.size(); ++i)
 			if (!showers[i].HasConPoint())
@@ -444,34 +431,37 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 
 		const double bigcone = fWideConeAngle; // degree.
 
-		for (size_t i = 0; i < pmaseg.size(); i++)
-		{
-			double a_min = bigcone; size_t best = 0;
-			for (size_t j = 0; j < gammawithconv.size(); j++)
+		if (gammawithconv.size())
+			for (size_t i = 0; i < pmaseg.size(); i++)
 			{
-				TVector3 halfpoint = (pmaseg[i].GetFront() + pmaseg[i].GetEnd()) * 0.5;
-				double a = gammawithconv[j].first.Angleto(halfpoint);
-				if (a < a_min)
+				double a_min = bigcone; size_t best = 0;
+				for (size_t j = 0; j < gammawithconv.size(); j++)
 				{
-					a_min = a; best = j;
+					TVector3 halfpoint = (pmaseg[i].GetFront() + pmaseg[i].GetEnd()) * 0.5;
+					double a = gammawithconv[j].first.Angleto(halfpoint);
+					if (a < a_min)
+					{
+						a_min = a; best = j;
+					}
 				}
+				if (a_min < bigcone)
+					gammawithconv[best].Merge(pmaseg[i]);		
 			}
-			if (a_min < bigcone)
-				gammawithconv[best].Merge(pmaseg[i]);		
-		}
 		
 		mcinfo(evt);
+		
 
 		for (size_t i = 0; i < gammawithconv.size(); ++i)
 				if (gammawithconv[i].IsClean()) fNCleanMerged++;
 		
-		fNMerged = gammawithconv.size(); // convert to recob::Shower
+		fNMerged = gammawithconv.size(); 
 		if (gammawithconv.size() == 2)
 		{
 			fNParts[0] = gammawithconv[0].Size();
 			fNParts[1] = gammawithconv[1].Size();
 		}
-		
+
+		fDistvtxmcreco = std::sqrt(pma::Dist2(fRefPoint, fPi0vtx));	
 		fEvTree->Fill();
 
 		for (size_t i = 0; i < gammawithconv.size(); ++i)
@@ -486,8 +476,6 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 				vd, vd, vd, vd, 0, id);
 
 			cascades->push_back(cas);
-
-			// art::FindManyP< recob::Hit > hitFromClu(cluListHandle, evt, fCluModuleLabel);
 
 			std::vector< art::Ptr<recob::Cluster> > cls;
 			std::vector< art::Ptr<recob::Hit> > hits;
@@ -531,6 +519,7 @@ std::vector< ems::ShowersCollection > ems::MergeEMShower3D::collectshowers(art::
 			geom->CryostatBoundaries(dsize, 0);
 			TVector3 geoP0(dsize[0], dsize[2], dsize[4]), geoP1(dsize[1], dsize[3], dsize[5]);
 			TVector3 pov = getBestPoint(*trkListHandle, showers, geoP0, geoP1, 5.0);
+			fRefPoint = pov;
 
 			for (size_t is = 0; is < showers.size(); is++)
 				showers[is].SetP0Dist(pov);
@@ -667,6 +656,7 @@ void ems::MergeEMShower3D::mcinfo(art::Event & evt)
 
 	const simb::MCParticle & pi0 = mclist[0]->GetParticle(pi0_idx);
 	TVector3 pi0_vtx(pi0.Vx(), pi0.Vy(), pi0.Vz());
+	fPi0vtx = pi0_vtx;
 	fMcMom = pi0.P();
 }
 
@@ -712,9 +702,9 @@ TVector3 ems::MergeEMShower3D::getBestPoint(
 
 	double f, fmin = 1.0e10;
 
-	double dx = step; // (p1.X() - p0.X()) / nBins;
-	double dy = step; // (p1.Y() - p0.Y()) / nBins;
-	double dz = step; // (p1.Z() - p0.Z()) / nBins;
+	double dx = step; 
+	double dy = step; 
+	double dz = step; 
 
 	double x0 = p0.X();
 	while (x0 < p1.X())
@@ -795,64 +785,6 @@ double ems::MergeEMShower3D::getClusterAdcSum(std::vector< art::Ptr<recob::Hit> 
 		sum += ptr->SummedADC();
 	}
 	return sum;
-}
-
-
-void ems::MergeEMShower3D::pi0topology(std::vector< ShowerInfo > const & sis, TVector3 const & vtx)
-{
-	if (sis.size() != 2) return;
-
-	/*double cosine_reco = sis[0].GetDir() * sis[1].GetDir();
-	double threco = 180.0F * (std::acos(cosine_reco)) / TMath::Pi();
-	if ((cosine_reco > 1.0) || (cosine_reco < -1.0)) threco = 0.0; // it should never happened!
-	
-	std::vector< std::pair<TVector3, TVector3> > lines;
-	
-	for (size_t i = 0; i < sis.size(); ++i)
-	{
-		std::pair<TVector3, TVector3> frontback(sis[i].GetFront(), sis[i].GetFront() + sis[i].GetDir());
-		lines.push_back(frontback);
-	}
-
-	double cosine_mc = 0.0; bool found = false;	
-	art::ServiceHandle< cheat::BackTracker > bt;
-	const sim::ParticleList& plist = bt->ParticleList();
-	for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar)
-	{
-		simb::MCParticle* particle = ipar->second;
-
-		if ((particle->Process() == "primary") && (particle->NumberDaughters() == 2))	
-		{
-			TLorentzVector mom1 = bt->TrackIDToParticle(particle->Daughter(0))->Momentum();
-			TLorentzVector mom2 = bt->TrackIDToParticle(particle->Daughter(1))->Momentum();
-		
-			TVector3 mom1vec3(mom1.Px(), mom1.Py(), mom1.Pz());
-			TVector3 mom2vec3(mom2.Px(), mom2.Py(), mom2.Pz());
-
-			TVector3 vecnorm1 = mom1vec3 * (1.0 / mom1vec3.Mag());
-			TVector3 vecnorm2 = mom2vec3 * (1.0 / mom2vec3.Mag());
-
-			cosine_mc = vecnorm1 * vecnorm2;
-			found = true;
-		}
-	}
-	if (!found) return;
-
-	double thmc = 180.0F * (std::acos(cosine_mc)) / TMath::Pi();
-	if ((cosine_mc > 1.0) || (cosine_mc < -1.0)) thmc = 0.0; // it should never happened!
-
-	TVector3 result;
-	pma::SolveLeastSquares3D(lines, result); // mse.
-
-	double dist1_0 = pma::Dist2(result, sis[0].Front);
-	double dist2_0 = pma::Dist2(result, sis[0].End);
-	double dist1_1 = pma::Dist2(result, sis[1].Front);
-	double dist2_1 = pma::Dist2(result, sis[1].End);
-	if ((dist1_0 > dist2_0) || (dist1_1 > dist2_1)) return;
-
-	fMCrecovtxs = std::sqrt(pma::Dist2(pi0_vtx, result));
-	fMCrecoCOS = cosine_reco - cosine_mc;
-	fMCrecoTh = threco - thmc;*/
 }
 
 DEFINE_ART_MODULE(ems::MergeEMShower3D)
