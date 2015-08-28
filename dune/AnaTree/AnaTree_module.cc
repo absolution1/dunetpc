@@ -151,6 +151,7 @@ private:
  
   int    trkid_MC[kMaxTrack];
   int    trkpdg_MC[kMaxTrack];
+  int    trkndaughters_MC[kMaxTrack];
   int    StartInTPC_MC[kMaxTrack];
   int    EndInTPC_MC[kMaxTrack];
   double trkmom_MC[kMaxTrack];
@@ -636,6 +637,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     else trkPrimary_MC[i] = 0;
     trkid_MC[i]=particle->TrackId();
     trkpdg_MC[i]=particle->PdgCode();
+    trkndaughters_MC[i]=particle->NumberDaughters();
     StartTime_MC[i] = particle->T();                                 // nsec
     trkMother_MC[i]=particle->Mother();
     trkNumDaughters_MC[i]=particle->NumberDaughters();
@@ -835,6 +837,7 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
   fTree->Branch("trkid_MC",trkid_MC,"trkid_MC[nMCParticles]/I");
   fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[nMCParticles]/I");
+  fTree->Branch("trkndaughters_MC",trkndaughters_MC,"trkndaughters_MC[nMCParticles]/I");
   fTree->Branch("nTPCHits_MC",nTPCHits_MC,"nTPCHits_MC[nMCParticles]/I");
   fTree->Branch("StartInTPC_MC",StartInTPC_MC,"StartInTPC_MC[nMCParticles]/I");
   fTree->Branch("EndInTPC_MC",EndInTPC_MC,"EndInTPC_MC[nMCParticles]/I");
@@ -953,6 +956,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkstartdoc_ZMC[i] = -99999;
     trkid_MC[i] = -99999;
     trkpdg_MC[i] = -99999;
+    trkndaughters_MC[i] = -99999;
     trkMother_MC[i] = -99999;
     trkNumDaughters_MC[i] = -99999;
     trkFirstDaughter_MC[i] = -99999;
