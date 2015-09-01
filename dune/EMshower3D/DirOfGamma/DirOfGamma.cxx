@@ -17,12 +17,28 @@
 ems::Hit2D::Hit2D(art::Ptr< recob::Hit > src) :
 fHit(src)
 {
-	unsigned int wire  = src->WireID().Wire;
+	art::ServiceHandle<geo::Geometry> geom;
+	art::ServiceHandle<util::DetectorProperties> detprop;
+
 	unsigned int plane = src->WireID().Plane;
 	unsigned int tpc   = src->WireID().TPC;
 	unsigned int cryo  = src->WireID().Cryostat;
-
-	fPoint = pma::WireDriftToCm(wire, src->PeakTime(), plane, tpc, cryo);
+	
+	double wireCentre[3];
+	geom->WireIDToWireGeo(src->WireID()).GetCenter(wireCentre);
+	double x = detprop->ConvertTicksToX(src->PeakTime(), plane, tpc, cryo);
+	double globalWire;
+	
+	if (tpc % 2 == 0) 
+	{	
+		globalWire = geom->WireCoordinate(wireCentre[1], wireCentre[2], plane, 0, cryo);
+		fPoint.Set(globalWire, x);
+	}
+	else 
+	{
+		globalWire = geom->WireCoordinate(wireCentre[1], wireCentre[2], plane, 1, cryo);
+		fPoint.Set(globalWire, x);
+	}
 	fCharge = src->SummedADC();
 }
 
@@ -90,7 +106,7 @@ void ems::EndPoint::FillBins()
 	unsigned int saveid = 0; bool exist = false;
 	for (unsigned int i = 0; i < fPoints2D.size(); i++)
 	{
-		if (fPoints2D[i]->GetHitPtr() != fCenter2D.GetHitPtr())
+		if (fPoints2D[i]->GetHitPtr().key() != fCenter2D.GetHitPtr().key())
 		{
 			TVector2 pos(fPoints2D[i]->GetPointCm());
 			TVector2 centre(fCenter2D.GetPointCm());
@@ -105,8 +121,8 @@ void ems::EndPoint::FillBins()
 			else if (sinsign < 0) id = int (theta / bin) + (fNbins / 2); 
 			if (id > (fNbins - 1)) id = (fNbins - 1);		
 
-			fBins[id].Add(fPoints2D[i]); 
-			fBins[(id + 1) % fNbins].Add(fPoints2D[i]);
+				fBins[id].Add(fPoints2D[i]); 
+				fBins[(id + 1) % fNbins].Add(fPoints2D[i]);
 		}
 		else {saveid = i; exist = true;}
 	}
@@ -172,12 +188,14 @@ fIdCl(idcl)
 
 	FillBins();
 	ComputeMaxDist();
-	FindCandidates();
-	ComputeMaxCharge();
+	if (FindCandidates())
+	{
+		ComputeMaxCharge();
 
-	FindInitialPart();
+		FindInitialPart();
 
-	FindInitialPartvec();
+		FindInitialPartvec();
+	}
 }
 
 void ems::DirOfGamma::ComputeBaryCenter()
@@ -243,9 +261,9 @@ void ems::DirOfGamma::ComputeMaxDist()
 	fNormDist = std::sqrt(maxdist2);
 }
 
-void ems::DirOfGamma::FindCandidates()
+bool ems::DirOfGamma::FindCandidates()
 {
-	float rad = 0.5F * fNormDist; unsigned int nbins = fNbins * 2;
+	float rad = 0.5F * fNormDist; unsigned int nbins = fNbins * 4; 
 	for (unsigned int id = 0; id < fNbins; id++)
 	{
 		
@@ -262,9 +280,15 @@ void ems::DirOfGamma::FindCandidates()
 			if ((distnorm > 0.5) && (dist2 < rad*rad)) points.push_back(fPoints2D[i]);
 		}
 
-		EndPoint ep(*candidate2D, points, nbins); 
-		fCandidates.push_back(ep);
+		
+		if (fBins[id].Size() > 1)
+		{
+			EndPoint ep(*candidate2D, points, nbins); 
+			fCandidates.push_back(ep);
+		}
 	}
+	if (fCandidates.size()) return true;
+	else return false;
 }
 
 void ems::DirOfGamma::ComputeMaxCharge()
@@ -278,38 +302,6 @@ void ems::DirOfGamma::ComputeMaxCharge()
 		}
 	}
 }
-
-/*std::vector< TVector2 > const Shower2DAlg::GetCandidatePoints() const
-{
-	double maxdist2 = 0.0; double maxcharge = 0.0;
-	size_t idmaxdist1 = 0; size_t idmaxdist2 = 0;
-	size_t idmaxcharge = 0;
-
-	for (size_t i = 0; i < fCandidates.size(); i++)
-	{
-		double dist2 = pma::Dist2(fCandidates[i].GetPosition(), fBaryCenter);
-		double charge = fCandidates[i].GetMaxCharge();
-		if (dist2 > maxdist2) { maxdist2 = dist2; idmaxdist1 = i;}
-		if (charge > maxcharge) { maxcharge = charge; idmaxcharge = i;}
-	}
-
-	maxdist2 = 0.0;
-	for (size_t i = 0; i < fCandidates.size(); i++)
-	{
-		if ((i == idmaxdist1) || (i == idmaxcharge)) continue;
-
-		double dist2 = pma::Dist2(fCandidates[i].GetPosition(), fBaryCenter);
-		if (dist2 > maxdist2) { maxdist2 = dist2; idmaxdist2 = i; }
-	}
-	
-	std::vector< TVector2 > result;
-
-	result.push_back(fCandidates[idmaxdist1].GetPosition());
-	result.push_back(fCandidates[idmaxdist2].GetPosition());
-	result.push_back(fCandidates[idmaxcharge].GetPosition());
-
-	return result;
-}*/
 
 void ems::DirOfGamma::FindInitialPartvec()
 {
@@ -370,25 +362,54 @@ void ems::DirOfGamma::FindInitialPart()
 		if (charge > maxcharge) { maxcharge = charge; idmaxcharge = i;}
 	}
 
-	for (unsigned int i = 0; i < fCandidates.size(); i++)
+	maxdist2 = 0.0; unsigned int idmaxdistb = 0;
+	for (size_t i = 0; i < fCandidates.size(); i++)
 	{
-		double asymmetry = fCandidates[i].GetAsymmetry();
+		if ((i == idmaxdist) || (i == idmaxcharge)) continue;
+		
+		double dist2 = pma::Dist2(fCandidates[i].GetPosition(), fCandidates[idmaxdist].GetPosition());
+		if (dist2 > maxdist2) { maxdist2 = dist2; idmaxdistb = i;}		
+	}	
 
-		if ((i == idmaxdist) || (i == idmaxcharge))
+	if (fCandidates.size() > 2)
+	{
+		for (unsigned int i = 0; i < fCandidates.size(); i++)
 		{
-			if (asymmetry > max_asymmetry)
-			{			
-				max_asymmetry = asymmetry;
-				saveid = i; found = true;
-			}
-		}	
+			double asymmetry = fCandidates[i].GetAsymmetry();
+
+			if ((i == idmaxdist) || (i == idmaxcharge) || (i == idmaxdistb))
+			{
+				if (asymmetry > max_asymmetry)
+				{			
+					max_asymmetry = asymmetry;
+					saveid = i; found = true;
+				}
+			}	
+		}
+	}
+	else
+	{
+		for (unsigned int i = 0; i < fCandidates.size(); i++)
+		{
+			double asymmetry = fCandidates[i].GetAsymmetry();
+
+			if ((i == idmaxdist) || (i == idmaxdistb))
+			{
+				if (asymmetry > max_asymmetry)
+				{			
+					max_asymmetry = asymmetry;
+					saveid = i; found = true;
+				}
+			}	
+		}
 	}
 
-	if (!found) mf::LogError("DirOfGamma") << "DirOfGamma - Find Initial Part problem.";
-
+	if (!found) mf::LogError("DirOfGamma") << fCandidates.size() << "DirOfGamma - Find Initial Part problem.";
+	
 	fStartHit = fCandidates[saveid].GetHit(); 
 	fStartPoint = fCandidates[saveid].GetPosition();
 	fIniHits  = fCandidates[saveid].MaxChargeBin().GetIniHits();
+	
 }
 
 

@@ -62,7 +62,7 @@ class ems::Bin2D
 
 	const TVector2 & GetCenter(void) const { return fCenter2D; }
 
-	std::vector< art::Ptr< recob::Hit > > GetIniHits(const double radius = 5.0, const unsigned int nhits = 10) const;
+	std::vector< art::Ptr< recob::Hit > > GetIniHits(const double radius = 10.0, const unsigned int nhits = 10) const;
 
 	private:
 	const TVector2 & fCenter2D;
@@ -115,6 +115,8 @@ class ems::DirOfGamma
 
 	std::vector< Hit2D* > const & GetHits2D(void) const { return fPoints2D; }  
 
+	std::vector< EndPoint > const & GetCandidates(void) const { return fCandidates; }
+
 	art::Ptr< recob::Hit > const & GetFirstHit(void) const { return fStartHit; }
 	std::vector< art::Ptr< recob::Hit > > const & GetFirstHitvec(void) const { return fStartHitvec; }
 
@@ -146,7 +148,8 @@ class ems::DirOfGamma
 	void FindInitialPartvec(void);
 
 	void FillBins(void);
-	void FindCandidates(void);
+	//void FindCandidates(void);
+	bool FindCandidates(void);
 	void ComputeBaryCenter(void);	
 	void ComputeMaxDist(void);
 	void ComputeMaxCharge(void);
