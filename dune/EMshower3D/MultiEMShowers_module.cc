@@ -273,27 +273,28 @@ private:
 
 	//reco
 	int fEvReco;
-	double fRecth;
+	int fEv2Groups;
+	int fEv2Good;
+	
 	TTree* fShTree; 	
 	TTree* fRecoTree;
 	double fStartX; double fStartY; double fStartZ;
 	double fMCrecovtx; double fMCrecoTh;
+	double fMCrecovtxgood; double fMCrecoThgood;
+	double fRecth; double fRecthgood;
 	double fDistConvrecomc1; double fDistConvrecomc2;
-	
+
   	std::string fHitsModuleLabel;
 	std::string fCluModuleLabel;
 	std::string fTrk3DModuleLabel;
 	std::string fVtxModuleLabel;
 	std::string fShsModuleLabel;
-
-	pma::ProjectionMatchingAlg fProjectionMatchingAlg;
 };
 
 
 ems::MultiEMShowers::MultiEMShowers(fhicl::ParameterSet const & p)
   :
-  EDAnalyzer(p),
-  fProjectionMatchingAlg(p.get< fhicl::ParameterSet >("ProjectionMatchingAlg"))  
+  EDAnalyzer(p)  
 {
 	fConvGood = 0;
 	fConvWrong = 0;
@@ -303,6 +304,8 @@ ems::MultiEMShowers::MultiEMShowers(fhicl::ParameterSet const & p)
 	fEvGMomCut = 0;
 	fEvReco = 0;
 	fEvInput = 0;
+	fEv2Groups = 0;
+	fEv2Good = 0;
 	reconfigure(p);
 }
 
@@ -313,7 +316,7 @@ void ems::MultiEMShowers::reconfigure(fhicl::ParameterSet const& p)
   fTrk3DModuleLabel = p.get< std::string >("Trk3DModuleLabel");
   fVtxModuleLabel = p.get< std::string >("VtxModuleLabel");
   fShsModuleLabel = p.get< std::string >("ShsModuleLabel");
-  fProjectionMatchingAlg.reconfigure(p.get< fhicl::ParameterSet >("ProjectionMatchingAlg"));
+  
   return;
 }
 
@@ -341,6 +344,9 @@ void ems::MultiEMShowers::beginJob()
 	fRecoTree->Branch("fRecth", &fRecth, "fRecth/D");
 	fRecoTree->Branch("fMCrecovtx", &fMCrecovtx, "fMCrecovtx/D");
 	fRecoTree->Branch("fMCrecoTh", &fMCrecoTh, "fMCrecoTh/D");
+	fRecoTree->Branch("fRecthgood", &fRecthgood, "fRecthgood/D");
+	fRecoTree->Branch("fMCrecovtxgood", &fMCrecovtxgood, "fMCrecovtxgood/D");
+	fRecoTree->Branch("fMCrecoThgood", &fMCrecoThgood, "fMCrecoThgood/D");
 
 	fShTree = tfs->make<TTree>("Shower", "conv point");
 	fShTree->Branch("fNShs", &fNShs, "fNShs/I");
@@ -356,6 +362,8 @@ void ems::MultiEMShowers::endJob()
 	std::cout << "******************** fEvComp =    " << fEvComp << std::endl;
 	std::cout << "******************** fEvReco =    " << fEvReco << std::endl;
 	std::cout << "******************** fEvInput =   " << fEvInput << std::endl;
+	std::cout << "******************** fEv2Groups = " << fEv2Groups << std::endl;
+	std::cout << "******************** fEv2Good =   " << fEv2Good << std::endl;
 	if (fEvInput)
 	std::cout << "******************** reco %  =    " << double(fEvReco)/double(fEvInput) << std::endl; 
 }
@@ -368,8 +376,11 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 	fPi0mom = 0.0; fNgammas = 0;
 	fDistConvrecomc1 = 0.0; fDistConvrecomc2 = 0.0;
 	fMCrecovtx = -400.0;	
+	fMCrecovtxgood = -400.0;
 	fRecth = -400.0;
+	fRecthgood = -400.0;
 	fMCrecoTh = -400.0;
+	fMCrecoThgood = -400.0;
 	fGammasInside = 0;
 
 	ems::MCinfo mc(e);
@@ -413,7 +424,7 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 		art::FindManyP< recob::Vertex > vtxFromTrk(trkListHandle, e, fVtxModuleLabel);
 		art::FindManyP< recob::Hit > hitFromClu(cluListHandle, e, fCluModuleLabel);
 
-		fNGroups = shsListHandle->size();
+		fNGroups = shsListHandle->size();	
 
 		int countph = 0;
 		if (fNgammas == 2)
@@ -442,7 +453,6 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 					TVector3 pos = sh.ShowerStart(); 
 					fStartX = pos.X(); fStartY = pos.Y(); fStartZ = pos.Z();
 					fNShs++;
-		
 					fShTree->Fill();	
 				}
 		}
@@ -451,8 +461,11 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 		//cut from mc and clusters
 		if (mc.IsInside1() && mc.IsInside2() && (fGmom1 > 0.1) && (fGmom2 > 0.1) && (!mc.IsCompton()) && convCluster(e))
 		{
+			if (fNGroups == 2) fEv2Groups++;	
+			if ((fNGroups == 2) && (countph == 2)) fEv2Good++;
 			// cut from reco
-			if (countph == 2)
+			//if (countph == 2)
+			if (fNGroups == 2)
 			{
 				std::vector< std::pair<TVector3, TVector3> > lines;
 				const recob::Shower& sh1 = (*shsListHandle)[0];
@@ -474,17 +487,23 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 				{
 					fMCrecovtx = std::sqrt(pma::Dist2(pospi0, result));
 
+					if (countph == 2) fMCrecovtxgood = fMCrecovtx;
+
 					double cosine_reco = sh1.Direction() * sh2.Direction();
 					fRecth = 180.0F * (std::acos(cosine_reco)) / TMath::Pi();
 
+					if (countph == 2) fRecthgood = fRecth;
+
 					fMCrecoTh = fRecth - fMcth;
-					//lep_dedx = fProjectionMatchingAlg.selectInitialHits(*trk, geo::kZ);
+
+					if (countph == 2) fMCrecoThgood = fMCrecoTh;					
 
 					fEvReco++;
+					fRecoTree->Fill();
 				}
 			}
 			fEvInput++;
-			fRecoTree->Fill();
+			//fRecoTree->Fill();
 		}
 	}
 
@@ -553,15 +572,14 @@ bool ems::MultiEMShowers::convCluster(art::Event const & evt)
 		}
 	}
 	bool result = false;
-	std::cout << " used size: " << used.size() << std::endl;
+	
 	if (used.size() > 1)	 
 		for (auto const & ids : used)
 		{
-			std::cout << " ************used: " << ids.second.size() << std::endl; 
 			if (ids.second.size() > 1) result = true;
 			else {result = false; break;}
 		}
-	std::cout << " result " << result << std::endl;
+	
 	return result;
 }
 

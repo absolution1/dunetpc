@@ -35,8 +35,10 @@
 
 #include "DirOfGamma/DirOfGamma.h"
 
-#include <iostream>
-#include <fstream>
+// ROOT includes
+#include "TTree.h"
+#include "TLorentzVector.h"
+#include "TMathBase.h"
 
 struct IniSeg
 {
@@ -113,6 +115,9 @@ private:
   unsigned int fTrkIndex; unsigned int fClIndex;
 	unsigned int fIniIndex;
 
+	TTree* fShTree;
+	double fDedx;
+
 	std::string fCluModuleLabel;
 	std::string fTrk3DModuleLabel;
 
@@ -141,6 +146,11 @@ ems::EMShower3D::EMShower3D(fhicl::ParameterSet const & p)
 
 void ems::EMShower3D::beginJob()
 {
+	art::ServiceHandle<art::TFileService> tfs;
+
+	fShTree = tfs->make<TTree>("SingleShower", "shower");
+	fShTree->Branch("fDedx", &fDedx, "fDedx/D");
+	
 }
 
 void ems::EMShower3D::reconfigure(fhicl::ParameterSet const & p)
@@ -209,6 +219,7 @@ void ems::EMShower3D::produce(art::Event & e)
 	fPMA3D.clear();
 	fClustersNotUsed.clear();
 	fTracksNotUsed.clear();
+	fDedx = 0.;
 
 	std::unique_ptr< std::vector< recob::Track > > tracks(new std::vector< recob::Track >);
 	std::unique_ptr< std::vector< recob::Vertex > > vertices(new std::vector< recob::Vertex >);
@@ -491,12 +502,10 @@ void ems::EMShower3D::Link(art::Event const & e, std::vector< ems::DirOfGamma* >
 		{
 			if (!input[j]->GetCandidates().size()) continue;
 
-			//if (input[j]->GetCandidates().size())
-			//{
-				size_t secondview = input[j]->GetFirstHit()->WireID().Plane;
+			size_t secondview = input[j]->GetFirstHit()->WireID().Plane;
 					
-				if ((i != j) && (secondview != startview) && (tpc == input[j]->GetFirstHit()->WireID().TPC) && (cryo == input[j]->GetFirstHit()->WireID().Cryostat))
-				{				
+			if ((i != j) && (secondview != startview) && (tpc == input[j]->GetFirstHit()->WireID().TPC) && (cryo == input[j]->GetFirstHit()->WireID().Cryostat))
+			{				
 				float t2 = detprop->ConvertTicksToX(input[j]->GetFirstHit()->PeakTime(), secondview, tpc, cryo);
 				float dist = fabs(t2 - t1);
 			
@@ -507,8 +516,7 @@ void ems::EMShower3D::Link(art::Event const & e, std::vector< ems::DirOfGamma* >
 					pairs.push_back(input[i]); pairs.push_back(input[j]); 
 					idsave = j;
 				}
-				}
-			//}
+			}
 		
 		}
 
@@ -573,6 +581,12 @@ void ems::EMShower3D::Make3DSeg(art::Event const & e, std::vector< ems::DirOfGam
 		initrack.track = trk;	
 
 		fInisegs.push_back(initrack);
+
+		fDedx = fProjectionMatchingAlg.selectInitialHits(*trk, geo::kZ);
+		if (fDedx == 0) fDedx = fProjectionMatchingAlg.selectInitialHits(*trk, geo::kV);
+		if (fDedx == 0) fDedx = fProjectionMatchingAlg.selectInitialHits(*trk, geo::kU);
+
+		fShTree->Fill();
 	}
 }
 

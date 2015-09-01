@@ -80,6 +80,8 @@ class ems::ShowerInfo
 	TVector3 fFront;
 	TVector3 fEnd; 
 	TVector3 fDir;
+
+	
 };
 
 ems::ShowerInfo::ShowerInfo(int key, int gid,  bool hasvtx, double adcsum, recob::Track const& trk) :
@@ -154,6 +156,7 @@ class ems::ShowersCollection
 
 		TVector3 Front(); 
 		TVector3 Dir(); 
+		double DeDx();
 
 		ShowerInfo first;
 	
@@ -173,6 +176,7 @@ first(part)
 	
 	fParts.push_back(part);
 }
+
 
 TVector3 ems::ShowersCollection::Front()
 {
@@ -311,9 +315,10 @@ private:
 
   double fNarrowConeAngle;
   double fWideConeAngle;
+
 };
 
-ems::MergeEMShower3D::MergeEMShower3D(fhicl::ParameterSet const & p)
+ems::MergeEMShower3D::MergeEMShower3D(fhicl::ParameterSet const & p) 
 {
 	reconfigure(p);
 
@@ -465,7 +470,7 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 			int id = i;
 			TVector3 v0(0., 0., 0.);
 			TVector3 dir = gammawithconv[i].Dir();
-			TVector3 front = gammawithconv[i].Front();
+			TVector3 front = gammawithconv[i].Front();			
 			std::vector< double > vd;
 			recob::Shower cas(
 				dir, v0, front, v0,
