@@ -67,6 +67,14 @@ namespace dune
     {
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
     }
+    //
+    // protoDUNE
+    //
+    else if (( detectorName.find("protodune") != std::string::npos )
+      || ( detectorName.find("protodune") != std::string::npos ))
+    {
+      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
+    }
     
     if ( fChannelMap )
     {
