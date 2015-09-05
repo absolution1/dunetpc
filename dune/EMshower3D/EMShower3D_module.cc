@@ -36,9 +36,11 @@
 #include "DirOfGamma/DirOfGamma.h"
 
 // ROOT includes
-#include "TTree.h"
 #include "TLorentzVector.h"
 #include "TMathBase.h"
+
+#include <iostream>
+#include <fstream>
 
 struct IniSeg
 {
@@ -71,8 +73,8 @@ public:
 
 	
 private:
-  recob::Track ConvertFrom(const pma::Track3D& src);
-	recob::Track ConvertFrom2(const pma::Track3D& src);
+  	recob::Track ConvertFrom(pma::Track3D& src);
+	recob::Track ConvertFrom2(pma::Track3D& src);
 	recob::Cluster ConvertFrom(const std::vector< art::Ptr<recob::Hit> > & src);
 
 	std::vector< ems::DirOfGamma* > CollectShower2D(art::Event const & e);
@@ -112,11 +114,8 @@ private:
 	std::vector< size_t > fClustersNotUsed;
 	std::vector< size_t > fTracksNotUsed;
 
-  unsigned int fTrkIndex; unsigned int fClIndex;
+  	unsigned int fTrkIndex; unsigned int fClIndex;
 	unsigned int fIniIndex;
-
-	TTree* fShTree;
-	double fDedx;
 
 	std::string fCluModuleLabel;
 	std::string fTrk3DModuleLabel;
@@ -124,6 +123,8 @@ private:
 	pma::ProjectionMatchingAlg fProjectionMatchingAlg;
 
 	art::Handle< std::vector< recob::Cluster > > fCluListHandle;
+
+	// ofstream file;
 };
 
 
@@ -141,16 +142,13 @@ ems::EMShower3D::EMShower3D(fhicl::ParameterSet const & p)
 	produces< art::Assns<recob::Cluster, recob::Hit> >();
 	produces< art::Assns<recob::Track, recob::SpacePoint> >();
 	produces< art::Assns<recob::SpacePoint, recob::Hit> >();
-  produces< art::Assns<recob::Track, recob::Cluster> >();
+  	produces< art::Assns<recob::Track, recob::Cluster> >();
+
+	// file.open("file.dat");
 }
 
 void ems::EMShower3D::beginJob()
-{
-	art::ServiceHandle<art::TFileService> tfs;
-
-	fShTree = tfs->make<TTree>("SingleShower", "shower");
-	fShTree->Branch("fDedx", &fDedx, "fDedx/D");
-	
+{	
 }
 
 void ems::EMShower3D::reconfigure(fhicl::ParameterSet const & p)
@@ -168,9 +166,23 @@ recob::Cluster ems::EMShower3D::ConvertFrom(const std::vector< art::Ptr<recob::H
 	return recob::Cluster(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, src.size(), 0.0F, 0.0F, fClIndex,  src[0]->View(), src[0]->WireID().planeID());
 }
 
-recob::Track ems::EMShower3D::ConvertFrom(const pma::Track3D& src)
+recob::Track ems::EMShower3D::ConvertFrom(pma::Track3D& src)
 {
-	std::vector< TVector3 > xyz, dircos;
+	art::ServiceHandle<geo::Geometry> geom;
+	size_t cryo = src.FrontCryo();
+	const geo::CryostatGeo& cryostat = geom->Cryostat(cryo);
+
+	std::vector< std::vector< double > > vdqdx;
+	double dedxZ = fProjectionMatchingAlg.selectInitialHits(src, geo::kZ); //loop over planes
+	double dedxV = fProjectionMatchingAlg.selectInitialHits(src, geo::kV);
+	double dedxU = fProjectionMatchingAlg.selectInitialHits(src, geo::kU);
+
+	std::vector< double > dqdx;
+	dqdx.push_back(dedxZ); vdqdx.push_back(dqdx);
+	dqdx.clear(); dqdx.push_back(dedxV); vdqdx.push_back(dqdx);
+	dqdx.clear(); dqdx.push_back(dedxU); vdqdx.push_back(dqdx);
+
+	std::vector< TVector3 > xyz, dircos; 
 
 	for (size_t i = 0; i < src.size(); i++)
 	{
@@ -186,11 +198,25 @@ recob::Track ems::EMShower3D::ConvertFrom(const pma::Track3D& src)
 		else dircos.push_back(dircos.back());
 	}
 
-	return recob::Track(xyz, dircos, std::vector< std::vector<double> >(0), std::vector< double >(2, util::kBogusD), fTrkIndex);
+	return recob::Track(xyz, dircos, vdqdx, std::vector< double >(2, util::kBogusD), fTrkIndex);
 }
 
-recob::Track ems::EMShower3D::ConvertFrom2(const pma::Track3D& src)
+recob::Track ems::EMShower3D::ConvertFrom2(pma::Track3D& src)
 {
+	art::ServiceHandle<geo::Geometry> geom;
+	size_t cryo = src.FrontCryo();
+	const geo::CryostatGeo& cryostat = geom->Cryostat(cryo);
+
+	std::vector< std::vector< double > > vdqdx;
+	double dedxZ = fProjectionMatchingAlg.selectInitialHits(src, geo::kZ);
+	double dedxV = fProjectionMatchingAlg.selectInitialHits(src, geo::kV);
+	double dedxU = fProjectionMatchingAlg.selectInitialHits(src, geo::kU);
+
+	std::vector< double > dqdx;
+	dqdx.push_back(dedxZ); vdqdx.push_back(dqdx);
+	dqdx.clear(); dqdx.push_back(dedxV); vdqdx.push_back(dqdx);
+	dqdx.clear(); dqdx.push_back(dedxU); vdqdx.push_back(dqdx);
+
 	std::vector< TVector3 > xyz, dircos;
 
 	for (size_t i = 0; i < src.size(); i++)
@@ -207,7 +233,7 @@ recob::Track ems::EMShower3D::ConvertFrom2(const pma::Track3D& src)
 		else dircos.push_back(dircos.back());
 	}
 
-	return recob::Track(xyz, dircos, std::vector< std::vector<double> >(0), std::vector< double >(2, util::kBogusD), fIniIndex);
+	return recob::Track(xyz, dircos, vdqdx, std::vector< double >(2, util::kBogusD), fIniIndex);
 }
 
 void ems::EMShower3D::produce(art::Event & e)
@@ -219,7 +245,6 @@ void ems::EMShower3D::produce(art::Event & e)
 	fPMA3D.clear();
 	fClustersNotUsed.clear();
 	fTracksNotUsed.clear();
-	fDedx = 0.;
 
 	std::unique_ptr< std::vector< recob::Track > > tracks(new std::vector< recob::Track >);
 	std::unique_ptr< std::vector< recob::Vertex > > vertices(new std::vector< recob::Vertex >);
@@ -472,6 +497,17 @@ std::vector< ems::DirOfGamma* > ems::EMShower3D::CollectShower2D(art::Event cons
 			}
 		}
 	}
+
+	/*if (input.size())
+		for (size_t i = 0; i < input.size(); ++i)
+		{
+			for (size_t j = 0; j < input[i]->GetHits2D().size(); ++j)
+				file << e.id().event() << " " << input[i]->GetHits2D().size() << " " << input[i]->GetFirstHit()->WireID().Plane << " " << input[i]->GetHits2D()[j]->GetPointCm().X() << " " << input[i]->GetHits2D()[j]->GetPointCm().Y() << " " << input[i]->GetFirstPoint().X() << " " << input[i]->GetFirstPoint().Y() << std::endl;
+
+			for (size_t j = 0; j < input[i]->GetCandidates().size(); ++j)
+				file << e.id().event() << " " << input[i]->GetHits2D().size() << " " << input[i]->GetFirstHit()->WireID().Plane << " " << input[i]->GetCandidates().size() << " " << input[i]->GetCandidates()[j].GetPosition().X() << " " << input[i]->GetCandidates()[j].GetPosition().Y() << std::endl;			
+		}*/
+
 	return input;
 }
 
@@ -495,7 +531,6 @@ void ems::EMShower3D::Link(art::Event const & e, std::vector< ems::DirOfGamma* >
 		unsigned int cryo = input[i]->GetFirstHit()->WireID().Cryostat;
 
 		float t1 = detprop->ConvertTicksToX(input[i]->GetFirstHit()->PeakTime(), startview, tpc, cryo);
-
 		
 		unsigned int idsave = 0; 
 		for (unsigned int j = 0; j < input.size(); j++)
@@ -581,12 +616,6 @@ void ems::EMShower3D::Make3DSeg(art::Event const & e, std::vector< ems::DirOfGam
 		initrack.track = trk;	
 
 		fInisegs.push_back(initrack);
-
-		fDedx = fProjectionMatchingAlg.selectInitialHits(*trk, geo::kZ);
-		if (fDedx == 0) fDedx = fProjectionMatchingAlg.selectInitialHits(*trk, geo::kV);
-		if (fDedx == 0) fDedx = fProjectionMatchingAlg.selectInitialHits(*trk, geo::kU);
-
-		fShTree->Fill();
 	}
 }
 

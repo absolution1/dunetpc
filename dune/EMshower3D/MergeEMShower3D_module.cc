@@ -55,17 +55,18 @@ class ems::ShowerInfo
 	double Pointsto(ems::ShowerInfo const& s1) const;
 	double Angleto(TVector3 const& pmapoint) const;
 
-	bool HasConPoint() const {return fHasVtx;}
-	int GetKey() const {return fKey;}
-	int GetGid() const {return fGId;}
-	double GetAdcSum() const {return fAdcSum;}
-	TVector3 GetFront() const {return fFront;}
-	TVector3 GetEnd() const {return fEnd;}
-	TVector3 GetDir() const {return fDir;}
-	
+	bool HasConPoint(void) const {return fHasVtx;}
+	int GetKey(void) const {return fKey;}
+	int GetGid(void) const {return fGId;}
+	double GetAdcSum(void) const {return fAdcSum;}
+	TVector3 GetFront(void) const {return fFront;}
+	TVector3 GetEnd(void) const {return fEnd;}
+	TVector3 GetDir(void) const {return fDir;}
+	std::vector<double> GetDedx(void) const { return fVdqdx; }
+
 	double GetP0Dist(void) const { return fP0Dist; }
 	void SetP0Dist(const TVector3 p)
-  {
+  	{
 		if (fHasVtx) fP0Dist = std::sqrt( pma::Dist2(p, fFront) );
 		else fP0Dist = std::sqrt( pma::Dist2(p, 0.5 * (fFront + fEnd)) );
 	}
@@ -81,7 +82,7 @@ class ems::ShowerInfo
 	TVector3 fEnd; 
 	TVector3 fDir;
 
-	
+	std::vector<double> fVdqdx;
 };
 
 ems::ShowerInfo::ShowerInfo(int key, int gid,  bool hasvtx, double adcsum, recob::Track const& trk) :
@@ -94,6 +95,10 @@ fP0Dist(0)
 	fFront = trk.Vertex();
 	fEnd = trk.End();			
 	fHasVtx = hasvtx;
+
+	fVdqdx.push_back(trk.DQdxAtPoint(0, geo::kZ)); 
+	fVdqdx.push_back(trk.DQdxAtPoint(0, geo::kV)); 
+	fVdqdx.push_back(trk.DQdxAtPoint(0, geo::kU)); 
 }
 
 double ems::ShowerInfo::Pointsto(ems::ShowerInfo const& s1) const
@@ -156,7 +161,7 @@ class ems::ShowersCollection
 
 		TVector3 Front(); 
 		TVector3 Dir(); 
-		double DeDx();
+		std::vector<double> DeDx(void);
 
 		ShowerInfo first;
 	
@@ -188,6 +193,12 @@ TVector3 ems::ShowersCollection::Dir()
 {
 	if (fParts.size()) return fParts.front().GetDir();
 	else return TVector3(0, 0, 0);
+}
+
+std::vector<double> ems::ShowersCollection::DeDx()
+{
+	if (fParts.size()) return fParts.front().GetDedx();
+	else return std::vector<double>(0.0);
 }
 
 double ems::ShowersCollection::Angle(TVector3 p0, TVector3 test)
@@ -470,11 +481,13 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 			int id = i;
 			TVector3 v0(0., 0., 0.);
 			TVector3 dir = gammawithconv[i].Dir();
-			TVector3 front = gammawithconv[i].Front();			
+			TVector3 front = gammawithconv[i].Front();
+			 
+			std::vector<double> dedx = gammawithconv[i].DeDx();
 			std::vector< double > vd;
 			recob::Shower cas(
 				dir, v0, front, v0,
-				vd, vd, vd, vd, 0, id);
+				vd, vd, dedx, vd, 0, id);
 
 			cascades->push_back(cas);
 

@@ -258,7 +258,6 @@ private:
 	TTree* fEvTree; 
 	int fEvNumber;
 	int fNGroups;
-	int fNShs;
 
 	// mc 
 	double fPi0mom;
@@ -270,19 +269,26 @@ private:
 	int fEvComp;
 	int fEvGMomCut;	
 	int fEvInput;
+	TVector3 fGdir1;
+	TVector3 fGdir2;
 
 	//reco
 	int fEvReco;
 	int fEv2Groups;
 	int fEv2Good;
+	int fCountph;
+	int fCountreco;
 	
 	TTree* fShTree; 	
 	TTree* fRecoTree;
 	double fStartX; double fStartY; double fStartZ;
+	double fDedxZ; double fDedxV; double fDedxU;
 	double fMCrecovtx; double fMCrecoTh;
 	double fMCrecovtxgood; double fMCrecoThgood;
 	double fRecth; double fRecthgood;
 	double fDistConvrecomc1; double fDistConvrecomc2;
+	double fGdirmcreco1; double fGdirmcreco2;
+	double fGdirmcreco1good; double fGdirmcreco2good;
 
   	std::string fHitsModuleLabel;
 	std::string fCluModuleLabel;
@@ -339,6 +345,8 @@ void ems::MultiEMShowers::beginJob()
 	fEvTree->Branch("fConvWrong", &fConvWrong, "fConvWrong/I");
 	fEvTree->Branch("fConvBothGood", &fConvBothGood, "fConvBothGood/I");
 	fEvTree->Branch("fGammasInside", &fGammasInside, "fGammasInside/I");
+	fEvTree->Branch("fCountph", &fCountph, "fCountph/I");
+	fEvTree->Branch("fCountreco", &fCountreco, "fCountreco/I");
 
 	fRecoTree = tfs->make<TTree>("Cascades", "conv points");
 	fRecoTree->Branch("fRecth", &fRecth, "fRecth/D");
@@ -347,12 +355,19 @@ void ems::MultiEMShowers::beginJob()
 	fRecoTree->Branch("fRecthgood", &fRecthgood, "fRecthgood/D");
 	fRecoTree->Branch("fMCrecovtxgood", &fMCrecovtxgood, "fMCrecovtxgood/D");
 	fRecoTree->Branch("fMCrecoThgood", &fMCrecoThgood, "fMCrecoThgood/D");
+	fRecoTree->Branch("fGdirmcreco1", &fGdirmcreco1, "fGdirmcreco1/D");
+	fRecoTree->Branch("fGdirmcreco2", &fGdirmcreco2, "fGdirmcreco2/D");
+	fRecoTree->Branch("fGdirmcreco1good", &fGdirmcreco1good, "fGdirmcreco1good/D");
+	fRecoTree->Branch("fGdirmcreco2good", &fGdirmcreco2good, "fGdirmcreco2good/D");
 
 	fShTree = tfs->make<TTree>("Shower", "conv point");
-	fShTree->Branch("fNShs", &fNShs, "fNShs/I");
+	
 	fShTree->Branch("fStartX", &fStartX, "fStartX/D");
 	fShTree->Branch("fStartY", &fStartY, "fStartY/D");
 	fShTree->Branch("fStartZ", &fStartZ, "fStartZ/D");
+	fShTree->Branch("fDedxZ", &fDedxZ, "fDedxZ/D");
+	fShTree->Branch("fDedxV", &fDedxV, "fDedxV/D");
+	fShTree->Branch("fDedxU", &fDedxU, "fDedxU/D");
 }
 
 void ems::MultiEMShowers::endJob()
@@ -371,7 +386,7 @@ void ems::MultiEMShowers::endJob()
 void ems::MultiEMShowers::analyze(art::Event const & e)
 {
 	fEvNumber = e.id().event();
-	fNGroups = 0; fNShs = 0;
+	fNGroups = 0; 
 	fStartX = 0.0; fStartY = 0.0; fStartZ = 0.0;
 	fPi0mom = 0.0; fNgammas = 0;
 	fDistConvrecomc1 = 0.0; fDistConvrecomc2 = 0.0;
@@ -382,11 +397,20 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 	fMCrecoTh = -400.0;
 	fMCrecoThgood = -400.0;
 	fGammasInside = 0;
+	fCountph = 0;
+	fCountreco = 0;
+	fGdirmcreco1 = 0.0;
+	fGdirmcreco2 = 0.0;
+	fGdirmcreco1good = 0.0;
+	fGdirmcreco2good = 0.0;
+	fDedxZ = 0.0; fDedxV = 0.0; fDedxU = 0.0;
 
 	ems::MCinfo mc(e);
 	fPi0mom = mc.GetMompi0();
 	fGmom1 = mc.GetMomGamma1();
 	fGmom2 = mc.GetMomGamma2();
+	fGdir1 = mc.GetDirgamma1();
+	fGdir2 = mc.GetDirgamma2();
 	fNgammas = mc.GetNgammas();
 	TVector3 pospi0 = mc.GetPospi0();
 
@@ -426,7 +450,7 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 
 		fNGroups = shsListHandle->size();	
 
-		int countph = 0;
+		fCountph = 0;
 		if (fNgammas == 2)
 		{
 			int idph = -1; 
@@ -441,18 +465,25 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 					if ((dist < mindist) && (idph != i)) 
 					{ mindist =  dist; idph = i; found = true; }
 				}
-				if (found) { fConvGood++; countph++; }
+				if (found) { fConvGood++; fCountph++; }
 				else { fConvWrong++; }
 			}
-			if (countph == 2) fConvBothGood++;
+			if (fCountph == 2) fConvBothGood++;
 		
-			if (countph == 2)
+			// plot a few variables if there are 2 showers
+			if (fCountph == 2)
 				for (size_t s = 0; s < shsListHandle->size(); ++s)	
 				{
 					const recob::Shower& sh = (*shsListHandle)[s];
 					TVector3 pos = sh.ShowerStart(); 
 					fStartX = pos.X(); fStartY = pos.Y(); fStartZ = pos.Z();
-					fNShs++;
+					std::vector<double> vecdedx = sh.dEdx();
+					
+					if (vecdedx.size() == 3)
+					{
+						fDedxZ = vecdedx[0]; fDedxV = vecdedx[1]; fDedxU = vecdedx[2];
+					}
+					
 					fShTree->Fill();	
 				}
 		}
@@ -461,8 +492,9 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 		//cut from mc and clusters
 		if (mc.IsInside1() && mc.IsInside2() && (fGmom1 > 0.1) && (fGmom2 > 0.1) && (!mc.IsCompton()) && convCluster(e))
 		{
+			fCountreco = 1;
 			if (fNGroups == 2) fEv2Groups++;	
-			if ((fNGroups == 2) && (countph == 2)) fEv2Good++;
+			if ((fNGroups == 2) && (fCountph == 2)) fEv2Good++;
 			// cut from reco
 			//if (countph == 2)
 			if (fNGroups == 2)
@@ -487,16 +519,24 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 				{
 					fMCrecovtx = std::sqrt(pma::Dist2(pospi0, result));
 
-					if (countph == 2) fMCrecovtxgood = fMCrecovtx;
+					if (fCountph == 2) fMCrecovtxgood = fMCrecovtx;
 
 					double cosine_reco = sh1.Direction() * sh2.Direction();
 					fRecth = 180.0F * (std::acos(cosine_reco)) / TMath::Pi();
 
-					if (countph == 2) fRecthgood = fRecth;
+					fGdirmcreco1 = fGdir1 * sh1.Direction();
+					fGdirmcreco2 = fGdir2 * sh2.Direction();
+					if (fCountph == 2)
+					{
+						fGdirmcreco1good = fGdirmcreco1;
+						fGdirmcreco2good = fGdirmcreco2;
+					}
+
+					if (fCountph == 2) fRecthgood = fRecth;
 
 					fMCrecoTh = fRecth - fMcth;
 
-					if (countph == 2) fMCrecoThgood = fMCrecoTh;					
+					if (fCountph == 2) fMCrecoThgood = fMCrecoTh;					
 
 					fEvReco++;
 					fRecoTree->Fill();
