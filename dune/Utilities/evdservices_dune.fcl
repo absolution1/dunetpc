@@ -64,11 +64,15 @@ dune35t_disp.ExptHelperInterface: @local::dune_geometry_helper
 dune35t_disp.Geometry:     @local::dune35t_geo
 dune35t_disp.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
 dune35t_disp.TimeService:  @local::dune35t_timeservice # defined in timeservice_dune.fcl
-dune35t_disp.RecoDrawingOptions.WireModuleLabels: ["caldata"]
-dune35t_disp.RecoDrawingOptions.HitModuleLabels:  ["linecluster"]
-dune35t_disp.RecoDrawingOptions.ClusterModuleLabels:  ["linecluster"]
-dune35t_disp.RecoDrawingOptions.TrackModuleLabels:  ["costrk"]
-dune35t_disp.RecoDrawingOptions.DrawClusters:     1
+dune35t_disp.RecoDrawingOptions.WireModuleLabels:           ["caldata"]
+dune35t_disp.RecoDrawingOptions.HitModuleLabels:            ["linecluster"]
+dune35t_disp.RecoDrawingOptions.ClusterModuleLabels:        ["linecluster"]
+dune35t_disp.RecoDrawingOptions.TrackModuleLabels:          ["costrk"]
+dune35t_disp.RecoDrawingOptions.DrawClusters:               1
+dune35t_disp.RecoDrawingOptions.DrawTracks:                 1
+dune35t_disp.RecoDrawingOptions.DrawTrackSpacePoints:       1
+dune35t_disp.RecoDrawingOptions.DrawOpFlashes:              1
+dune35t_disp.RecoDrawingOptions.OpFlashModuleLabels:        ["opflash"]
 #dune35t_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
 #dune35t_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
 

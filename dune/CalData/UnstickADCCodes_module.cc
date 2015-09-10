@@ -14,6 +14,7 @@
 #include <vector>
 #include <utility> // std::move()
 #include <memory> // std::unique_ptr<>
+//#include <fstream>
 
 // ROOT libraries
 #include "TComplex.h"
@@ -160,6 +161,12 @@ namespace unstick {
 
 	if(sixlsbs==onemask || sixlsbs==0){ //ADC code is stuck at 0x3f or 0x00
 	  
+
+	  if(i==0){ //if first ADC code is stuck, set it equal to pedestal value
+	    rawadc_a[i] = (short) pedestal;
+	    continue;
+	  }
+
 	  //find nearest preceding unstuck ADC code
 	  //which should be immediately preceding ADC code since all earlier ADC codes have been interpolated to non-stuck values
 	  size_t last_unstuck = i > 0 ? i - 1 : 0;
@@ -172,20 +179,20 @@ namespace unstick {
 
 	  do{
 
-	    if(next_unstuck < dataSize - 1)
+	    if(next_unstuck < dataSize - 1 && sixlsbs_stuck_in_a_row < fStickyADCCodesLimit)
 	      ++next_unstuck;
 	    else{ 
-	      rawadc_a[next_unstuck] = pedestal;
+	      rawadc_a[next_unstuck] = (short) pedestal;
 	      break;
 	    }
 	    next_unstuck_sixlsbs = rawadc_a[next_unstuck] & onemask;
-	    // if(next_unstuck_sixlsbs==0 || next_unstuck_sixlsbs==onemask)
-	    //   ++sixlsbs_stuck_in_a_row;
-	    // else
-	    //   sixlsbs_stuck_in_a_row = 0;
+	    if(next_unstuck_sixlsbs==0 || next_unstuck_sixlsbs==onemask)
+	      ++sixlsbs_stuck_in_a_row;
+	    else
+	      sixlsbs_stuck_in_a_row = 0;
 
 	  }
-	  while(next_unstuck_sixlsbs==onemask || next_unstuck_sixlsbs==0 || sixlsbs_stuck_in_a_row < fStickyADCCodesLimit);
+	  while(next_unstuck_sixlsbs==onemask || next_unstuck_sixlsbs==0);
 
 	  // With last and next unstuck ADC codes found, interpolate linearly and replace stuck ADC code
 
