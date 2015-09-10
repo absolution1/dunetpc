@@ -7,4 +7,11 @@ emenergycalib:
    ClusterModuleLabel:      "blurredclusterdc"
 }
 
+emenergypi0:
+{
+   module_type:        "EMPi0Energy"
+   HitsModuleLabel:    "gaushit"
+   ClusterModuleLabel: "blurredclusterdc"
+}
+
 END_PROLOG
