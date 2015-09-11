@@ -98,7 +98,7 @@ namespace geo{
 
     }// end plane loop
 
-    static raw::ChannelID_t CurrentChannel = 0;
+    raw::ChannelID_t CurrentChannel = 0;
    
     for(unsigned int PCount = 0; PCount != fPlanesPerAPA; ++PCount){
 
