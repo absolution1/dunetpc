@@ -37,7 +37,7 @@ namespace dune
     // DUNE 35t prototype
     //
     if (( detectorName.find("dune35t") != std::string::npos )
-      || ( detectorName.find("dune35t") != std::string::npos )
+      || ( detectorName.find("lbne35t") != std::string::npos )
       )
     {
       std::string const detectorVersion
@@ -55,7 +55,7 @@ namespace dune
     // DUNE 10kt
     //
     else if (( detectorName.find("dune10kt") != std::string::npos ) 
-      || ( detectorName.find("dune10kt") != std::string::npos ))
+      || ( detectorName.find("lbne10kt") != std::string::npos ))
     {
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
     }
@@ -63,9 +63,21 @@ namespace dune
     // DUNE 34kt
     //
     else if (( detectorName.find("dune34kt") != std::string::npos )
-      || ( detectorName.find("dune34kt") != std::string::npos ))
+      || ( detectorName.find("lbne34kt") != std::string::npos ))
     {
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
+    }
+    //
+    // protoDUNE
+    //
+    else if (( detectorName.find("protodune") != std::string::npos )
+      || ( detectorName.find("protolbne") != std::string::npos ))
+    {
+      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
+    }
+    else {
+      throw cet::exception("DUNEGeometryHelper")
+        << "Unsupported geometry from input file: '" << detectorName << "'\n";
     }
     
     if ( fChannelMap )

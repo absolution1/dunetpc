@@ -116,7 +116,7 @@ namespace geo{
       }
     }
 
-    static raw::ChannelID_t CurrentChannel = 0;
+    raw::ChannelID_t CurrentChannel = 0;
  
     for(unsigned int cs = 0; cs != fNcryostat; ++cs){
       for(unsigned int apa = 0; apa != fNTPC[cs]/2; ++apa){  
