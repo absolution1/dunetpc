@@ -80,6 +80,61 @@ dunefd_simulation_services.LArProperties.EnableCerenkovLight: false
 #dune10kt_simulation_services.Geometry.GDML: "dune10kt.gdml"
 #dune10kt_simulation_services.Geometry.ROOT: "dune10kt.gdml"
 
+protodune_services:
+{
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ Geometry:                     @local::protoDune_geo
+ TimeService:                  @local::dunefd_timeservice
+ DetectorProperties:           @local::dunefd_detproperties
+ LArProperties:                @local::dunefd_properties
+ LArFFT:                       @local::dunefd_larfft
+ DatabaseUtil:                 @local::dunefd_database
+ BackTracker:                  @local::dunefd_backtracker
+ SeedService:                  @local::dune_seedservice
+ SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
+}
+
+protodune_simulation_services:
+{
+ LArFFT:                       @local::dunefd_larfft
+ LArG4Parameters:              @local::protodune_largeantparameters
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ Geometry:                     @local::protoDune_geo
+ TimeService:                  @local::dunefd_timeservice
+ DetectorProperties:           @local::dunefd_detproperties
+ LArProperties:                @local::dunefd_properties
+ DatabaseUtil:                 @local::dunefd_database
+ LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
+ MagneticField:                @local::no_mag
+ BackTracker:                  @local::dunefd_backtracker
+ SeedService:                  @local::dune_seedservice
+ SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
+ PhotonVisibilityService:      @local::protodune_photonvisibilityservice
+ OpDetResponseInterface:       @local::dunefd_opdetresponse
+}
+
+
+#
+# Settings for optical simulation. Optical simulation not on by default
+# for FD, turned on by custom physics list and defining a photon visibility
+# services is workspace g4 fhicl file.
+#
+protodune_simulation_services.LArProperties.ScintYield: 24000
+protodune_simulation_services.LArProperties.ScintPreScale: 0.03 #ETW for protoDUNE turn up to match 35-ton
+
+# disable cerenkov
+protodune_simulation_services.LArProperties.EnableCerenkovLight: false
+protodune_simulation_services.LArG4Parameters.UseCustomPhysics: true
+protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                             "FastOptical",
+                                                             "SynchrotronAndGN",
+                                                             "Ion",
+                                                             "Hadron",
+                                                             "Decay",
+                                                             "HadronElastic",
+                                                             "Stopping",
+                                                             "NeutronTrackingCut" ]
+
 
 dune35t_basic_services:
 {
