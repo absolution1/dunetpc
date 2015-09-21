@@ -120,7 +120,7 @@ protodune_simulation_services:
 # services is workspace g4 fhicl file.
 #
 protodune_simulation_services.LArProperties.ScintYield: 24000
-protodune_simulation_services.LArProperties.ScintPreScale: 0.03 #ETW for protoDUNE turn up to match 35-ton
+protodune_simulation_services.LArProperties.ScintPreScale: 0.006 
 
 # disable cerenkov
 protodune_simulation_services.LArProperties.EnableCerenkovLight: false
@@ -169,7 +169,7 @@ dune35t_g4_services.OpDetResponseInterface:  @local::dune35t_opdetresponse
 # Pre-scale the scintillation yield to save memory (correct when applying QE)
 # MUST match between g4 and detsim steps
 dune35t_g4_services.LArProperties.ScintYield: 24000
-dune35t_g4_services.LArProperties.ScintPreScale: 0.03
+dune35t_g4_services.LArProperties.ScintPreScale: 0.0023 
 
 # disable cerenkov
 dune35t_g4_services.LArProperties.EnableCerenkovLight: false
@@ -206,7 +206,7 @@ dune35t_detsim_services.LArG4Parameters.EnabledPhysics: [ "Em",
 
 # Pre-scale the scintillation yield to save memory (correct when applying QE)
 # MUST match between g4 and detsim steps
-dune35t_g4_services.LArProperties.ScintPreScale:      0.03
+dune35t_detsim_services.LArProperties.ScintPreScale:      0.0023
 
 
 dune35t_simulation_services:        @local::dune35t_g4_services
