@@ -88,6 +88,8 @@ fCenter2D(center),
 fPoints2D(hits),
 fNbins(nbins)
 {
+	art::ServiceHandle<geo::Geometry> geom;
+	art::ServiceHandle<util::DetectorProperties> detprop;
 	
 	for (unsigned int i = 0; i < fNbins; i++)
 	{
@@ -97,6 +99,10 @@ fNbins(nbins)
 	FillBins();
 	ComputeMaxCharge();
 	ComputeMeanCharge();
+
+	fPlane = center.GetHitPtr()->WireID().Plane;
+	fTpc   = center.GetHitPtr()->WireID().TPC;
+	fCryo  = center.GetHitPtr()->WireID().Cryostat;
 }
 
 void ems::EndPoint::FillBins() 
@@ -172,8 +178,11 @@ double ems::EndPoint::GetAsymmetry() const
 
 ems::DirOfGamma::DirOfGamma(const std::vector< art::Ptr< recob::Hit > > & src, unsigned int nbins, unsigned int idcl) :
 fNbins(nbins),
-fIdCl(idcl)
+fIdCl(idcl),
+fCandidateID(0),
+fIsCandidateIDset(false)
 {
+	fHits = src;
 
 	for (unsigned int i = 0; i < src.size(); i++)
 	{
@@ -191,10 +200,7 @@ fIdCl(idcl)
 	if (FindCandidates())
 	{
 		ComputeMaxCharge();
-
 		FindInitialPart();
-
-		FindInitialPartvec();
 	}
 }
 
@@ -303,49 +309,6 @@ void ems::DirOfGamma::ComputeMaxCharge()
 	}
 }
 
-void ems::DirOfGamma::FindInitialPartvec()
-{
-	double maxdist2 = 0.0; double maxcharge = 0.0;
-	size_t idmaxdist1 = 0; size_t idmaxdist2 = 0;
-	size_t idmaxcharge = 0;
-
-	for (size_t i = 0; i < fCandidates.size(); i++)
-	{
-		double dist2 = pma::Dist2(fCandidates[i].GetPosition(), fBaryCenter);
-		double charge = fCandidates[i].GetMaxCharge();
-		if (dist2 > maxdist2) { maxdist2 = dist2; idmaxdist1 = i;}
-		if (charge > maxcharge) { maxcharge = charge; idmaxcharge = i;}
-	}
-
-	maxdist2 = 0.0;
-	for (size_t i = 0; i < fCandidates.size(); i++)
-	{
-		if ((i == idmaxdist1) || (i == idmaxcharge)) continue;
-
-		double dist2 = pma::Dist2(fCandidates[i].GetPosition(), fBaryCenter);
-		if (dist2 > maxdist2) { maxdist2 = dist2; idmaxdist2 = i; }
-	}
-	
-	std::vector< art::Ptr< recob::Hit > > ahit;
-	ahit.push_back(fCandidates[idmaxdist1].GetHit());
-	ahit.push_back(fCandidates[idmaxdist2].GetHit());
-	ahit.push_back(fCandidates[idmaxcharge].GetHit());
-
-	std::vector< TVector2 > points2d;
-	points2d.push_back(fCandidates[idmaxdist1].GetPosition());
-	points2d.push_back(fCandidates[idmaxdist2].GetPosition());
-	points2d.push_back(fCandidates[idmaxcharge].GetPosition());
-
-	std::vector< std::vector< art::Ptr< recob::Hit > > > inihits;
-	inihits.push_back(fCandidates[idmaxdist1].MaxChargeBin().GetIniHits());
-	inihits.push_back(fCandidates[idmaxdist2].MaxChargeBin().GetIniHits());
-	inihits.push_back(fCandidates[idmaxcharge].MaxChargeBin().GetIniHits());
-
-	fStartHitvec = ahit;
-	fStartPointvec = points2d;
-	fIniHitsvec  = inihits;
-}
-
 void ems::DirOfGamma::FindInitialPart()
 {
 	double max_asymmetry = 0.0; 
@@ -409,6 +372,7 @@ void ems::DirOfGamma::FindInitialPart()
 	fStartHit = fCandidates[saveid].GetHit(); 
 	fStartPoint = fCandidates[saveid].GetPosition();
 	fIniHits  = fCandidates[saveid].MaxChargeBin().GetIniHits();
+	fCandidateID = saveid;
 	
 }
 

@@ -59,6 +59,7 @@ class ems::MCinfo
 
 	double GetCosine(void) { return fCosine; }
 
+	TVector3 GetPrimary(void) const & { return fPrimary; }
 	TVector3 GetPospi0(void) const & { return fPi0pos; }
 	TVector3 GetPosgamma1(void) const & { return fConvgamma1; }
 	TVector3 GetPosgamma2(void) const & { return fConvgamma2; }
@@ -88,6 +89,7 @@ class ems::MCinfo
 
 	bool fCompton;
 
+	TVector3 fPrimary;
 	TVector3 fPi0pos;
 	TVector3 fConvgamma1;
 	TVector3 fConvgamma2;
@@ -118,6 +120,12 @@ void ems::MCinfo::Info(const art::Event& evt)
 	for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar)
 	{
 		simb::MCParticle* particle = ipar->second;
+		if (particle->Process() == "primary") 
+		{
+			TLorentzVector posvec = particle->Position();
+			TVector3 pose(posvec.X(), posvec.Y(), posvec.Z());
+			fPrimary = pose;
+		}
 
 		if ((particle->Process() == "primary") && (particle->PdgCode() == 111))
 		{
@@ -129,7 +137,7 @@ void ems::MCinfo::Info(const art::Event& evt)
 
 			if ((particle->NumberDaughters() == 2) &&
 			    (bt->TrackIDToParticle(particle->Daughter(0))->PdgCode() == 22) &&
-			    (bt->TrackIDToParticle(particle->Daughter(1))->PdgCode() == 22))
+			    (bt->TrackIDToParticle(particle->Daughter(1))->PdgCode() == 22)) // pi0
 			{
 				fNgammas = particle->NumberDaughters();
 				TLorentzVector mom1 = bt->TrackIDToParticle(particle->Daughter(0))->Momentum();
@@ -171,6 +179,10 @@ void ems::MCinfo::Info(const art::Event& evt)
 			{
 				fNgammas = particle->NumberDaughters();
 			}
+		}
+		else 
+		{
+			
 		}	
 	}
 }
@@ -230,17 +242,17 @@ bool ems::MCinfo::insideFidVol(const TLorentzVector& pvtx)
 
 class ems::MultiEMShowers : public art::EDAnalyzer {
 public:
-  explicit MultiEMShowers(fhicl::ParameterSet const & p);
+ 	explicit MultiEMShowers(fhicl::ParameterSet const & p);
 
-  MultiEMShowers(MultiEMShowers const &) = delete;
-  MultiEMShowers(MultiEMShowers &&) = delete;
-  MultiEMShowers & operator = (MultiEMShowers const &) = delete;
-  MultiEMShowers & operator = (MultiEMShowers &&) = delete;
+  	MultiEMShowers(MultiEMShowers const &) = delete;
+ 	MultiEMShowers(MultiEMShowers &&) = delete;
+  	MultiEMShowers & operator = (MultiEMShowers const &) = delete;
+  	MultiEMShowers & operator = (MultiEMShowers &&) = delete;
 
 	void beginJob() override;
 	void endJob() override;
   
-  void analyze(art::Event const & e) override;
+  	void analyze(art::Event const & e) override;
 
 	void reconfigure(fhicl::ParameterSet const& p);
 
@@ -271,6 +283,7 @@ private:
 	int fEvInput;
 	TVector3 fGdir1;
 	TVector3 fGdir2;
+	TVector3 fPrimary;
 
 	//reco
 	int fEvReco;
@@ -406,6 +419,7 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 	fDedxZ = 0.0; fDedxV = 0.0; fDedxU = 0.0;
 
 	ems::MCinfo mc(e);
+	fPrimary = mc.GetPrimary();
 	fPi0mom = mc.GetMompi0();
 	fGmom1 = mc.GetMomGamma1();
 	fGmom2 = mc.GetMomGamma2();
@@ -438,7 +452,7 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 	art::Handle< std::vector<recob::Cluster> > cluListHandle;
 	art::Handle< std::vector<recob::Hit> > hitListHandle;
 	if (e.getByLabel(fShsModuleLabel, shsListHandle) &&
-			e.getByLabel(fTrk3DModuleLabel, trkListHandle) &&
+		e.getByLabel(fTrk3DModuleLabel, trkListHandle) &&
 	    e.getByLabel(fVtxModuleLabel, vtxListHandle) &&
 	    e.getByLabel(fCluModuleLabel, cluListHandle) &&
 	    e.getByLabel(fHitsModuleLabel, hitListHandle))
@@ -451,7 +465,7 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 		fNGroups = shsListHandle->size();	
 
 		fCountph = 0;
-		if (fNgammas == 2)
+		if (fNgammas == 2) // pi0
 		{
 			int idph = -1; 
 			for (size_t s = 0; s < shsListHandle->size(); ++s)
@@ -487,9 +501,32 @@ void ems::MultiEMShowers::analyze(art::Event const & e)
 					fShTree->Fill();	
 				}
 		}
+		else  // other than pi0
+		{
+			for (size_t s = 0; s < shsListHandle->size(); ++s)
+			{
+				const recob::Shower& sh = (*shsListHandle)[s];
+				double mindist = maxdist; 
+			
+				double dist = sqrt(pma::Dist2(sh.ShowerStart(), fPrimary));
+				if (dist < mindist) 
+				{ 
+					TVector3 pos = sh.ShowerStart(); 
+					fStartX = pos.X(); fStartY = pos.Y(); fStartZ = pos.Z();
+					std::vector<double> vecdedx = sh.dEdx();
+					if (vecdedx.size() == 3)
+					{
+						fDedxZ = vecdedx[0]; fDedxV = vecdedx[1]; fDedxU = vecdedx[2];
+					}
+				}
+					
+				fShTree->Fill();	
+			}
+		}
 		// compute the crossing point
 
 		//cut from mc and clusters
+	
 		if (mc.IsInside1() && mc.IsInside2() && (fGmom1 > 0.1) && (fGmom2 > 0.1) && (!mc.IsCompton()) && convCluster(e))
 		{
 			fCountreco = 1;

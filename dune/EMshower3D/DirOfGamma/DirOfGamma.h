@@ -87,22 +87,32 @@ class ems::EndPoint
 	std::vector< Bin2D > const & GetBins2D(void) const { return fBins;  } 
 
 	art::Ptr< recob::Hit > const & GetHit(void) const { return fCenter2D.GetHitPtr(); }
+
+	const std::vector< art::Ptr< recob::Hit > > GetIniHits(void) const { return MaxChargeBin().GetIniHits(); }
 	
+	size_t const & GetPlane(void) const { return fPlane; }
+	size_t const & GetTPC(void) const { return fTpc; }
+	size_t const & GetCryo(void) const { return fCryo; }
+
 	private:
 	Hit2D fCenter2D;
 	std::vector< Hit2D* > fPoints2D; 
-	unsigned int fNbins;
+	size_t fNbins;
 
 	double fMaxCharge;
 	double fMeanCharge;
 
 	std::vector< Bin2D > fBins;
 
-	unsigned int fMaxChargeIdBin;
+	size_t fMaxChargeIdBin;
 
 	void FillBins();
 	void ComputeMaxCharge();
 	void ComputeMeanCharge();	
+
+	size_t fPlane;
+	size_t fTpc;
+	size_t fCryo;
 };
 
 class ems::DirOfGamma
@@ -117,20 +127,30 @@ class ems::DirOfGamma
 
 	std::vector< EndPoint > const & GetCandidates(void) const { return fCandidates; }
 
+	void SetIdCandidate(size_t id) { 
+		
+		fIsCandidateIDset = true; fCandidateID = id; 	
+		fStartHit = fCandidates[id].GetHit(); 		
+		fStartPoint = fCandidates[id].GetPosition();		
+		fIniHits  = fCandidates[id].MaxChargeBin().GetIniHits();		
+	}
+
+	const size_t GetIdCandidate(void) { return fCandidateID; }
+
 	art::Ptr< recob::Hit > const & GetFirstHit(void) const { return fStartHit; }
-	std::vector< art::Ptr< recob::Hit > > const & GetFirstHitvec(void) const { return fStartHitvec; }
+
+	std::vector< art::Ptr< recob::Hit > > const & GetHits(void) { return fHits; }
 
 	TVector2 const & GetFirstPoint(void) const { return fStartPoint; }
-	std::vector< TVector2 > const & GetFirstPointvec(void) const { return fStartPointvec; }
 
 	std::vector< art::Ptr< recob::Hit > > const & GetIniHits(void) const { return fIniHits;}
-	std::vector< std::vector< art::Ptr< recob::Hit > > > const & GetIniHitsvec(void) const { return fIniHitsvec; }
 
-	unsigned int const GetIdCl(void) const {return fIdCl;}
+	size_t const GetIdCl(void) const {return fIdCl;}
 
 	private:
-	unsigned int fNbins;	
-	unsigned int fIdCl;
+	size_t fNbins;	
+	size_t fIdCl;
+	size_t fCandidateID;
 
 	std::vector< Hit2D* > fPoints2D;
 	std::vector< Bin2D > fBins;
@@ -139,16 +159,12 @@ class ems::DirOfGamma
 	art::Ptr< recob::Hit > fStartHit;
 	TVector2 fStartPoint;
 	std::vector< art::Ptr< recob::Hit > > fIniHits;
-
-	std::vector< art::Ptr< recob::Hit > > fStartHitvec;
-	std::vector< TVector2 > fStartPointvec;
-	std::vector< std::vector< art::Ptr< recob::Hit > > > fIniHitsvec;
+	std::vector< art::Ptr< recob::Hit > > fHits;
 
 	void FindInitialPart(void);
-	void FindInitialPartvec(void);
 
 	void FillBins(void);
-	//void FindCandidates(void);
+	
 	bool FindCandidates(void);
 	void ComputeBaryCenter(void);	
 	void ComputeMaxDist(void);
@@ -159,6 +175,8 @@ class ems::DirOfGamma
 
 	float fNormDist;	
 	float fNormCharge;
+
+	bool fIsCandidateIDset;
 };
 
 class ems::bDistCentMore2D :

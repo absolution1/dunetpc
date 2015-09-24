@@ -279,7 +279,7 @@ public:
 
 	void beginJob();
 
-  void produce(art::Event & e) override;
+	void produce(art::Event & e) override;
 
 	void reconfigure(fhicl::ParameterSet const& p);
 
@@ -304,17 +304,19 @@ public:
 private:
 
 	TTree* fEvTree;
-  TTree* fClTree;
+	TTree* fClTree;
+
+	int fVtxIndex;
 
 	int fNParts[2];
 	int fNPMA; int fNConv; int fNTot;
-  int fHasConvPt;
-  int fWhat, fEvWhat;
-  int fNMerged, fNCleanMerged;
+	int fHasConvPt;
+	int fWhat, fEvWhat;
+	int fNMerged, fNCleanMerged;
 
 	double fDistvtxmcreco;
-  double fMcMom, fTrkLen, fAdcSum;
-  int fEvNumber;
+	double fMcMom, fTrkLen, fAdcSum;
+	int fEvNumber;
 
 	TVector3 fPi0vtx;
 	TVector3 fRefPoint;
@@ -324,8 +326,8 @@ private:
 	std::string fTrk3DModuleLabel;
 	std::string fVtxModuleLabel;
 
-  double fNarrowConeAngle;
-  double fWideConeAngle;
+	double fNarrowConeAngle;
+	double fWideConeAngle;
 
 };
 
@@ -334,6 +336,9 @@ ems::MergeEMShower3D::MergeEMShower3D(fhicl::ParameterSet const & p)
 	reconfigure(p);
 
 	produces< std::vector<recob::Shower> >();
+	produces< std::vector<recob::Vertex> >();
+
+	produces< art::Assns<recob::Shower, recob::Vertex> >(); 
 	produces< art::Assns<recob::Shower, recob::Cluster> >();
 	produces< art::Assns<recob::Shower, recob::Hit> >();
 }
@@ -359,10 +364,10 @@ void ems::MergeEMShower3D::beginJob()
 
 void ems::MergeEMShower3D::reconfigure(fhicl::ParameterSet const & p)
 {
-  fHitsModuleLabel = p.get< std::string >("HitsModuleLabel");
-  fCluModuleLabel = p.get< std::string >("ClustersModuleLabel");
-  fTrk3DModuleLabel = p.get< std::string >("Trk3DModuleLabel");
-  fVtxModuleLabel = p.get< std::string >("VtxModuleLabel");
+	fHitsModuleLabel = p.get< std::string >("HitsModuleLabel");
+	fCluModuleLabel = p.get< std::string >("ClustersModuleLabel");
+	fTrk3DModuleLabel = p.get< std::string >("Trk3DModuleLabel");
+	fVtxModuleLabel = p.get< std::string >("VtxModuleLabel");
 
 	fNarrowConeAngle = p.get< double >("NarrowConeAngle");
 	fWideConeAngle = p.get< double >("WideConeAngle");
@@ -373,6 +378,9 @@ void ems::MergeEMShower3D::reconfigure(fhicl::ParameterSet const & p)
 void ems::MergeEMShower3D::produce(art::Event & evt)
 {
 	std::unique_ptr< std::vector< recob::Shower > > cascades(new std::vector< recob::Shower >);
+	std::unique_ptr< std::vector< recob::Vertex > > vertices(new std::vector< recob::Vertex >);
+
+	std::unique_ptr< art::Assns< recob::Shower, recob::Vertex > > shs2vtx(new art::Assns< recob::Shower, recob::Vertex >);
 	std::unique_ptr< art::Assns< recob::Shower, recob::Cluster > > shs2cl(new art::Assns< recob::Shower, recob::Cluster >);
 	std::unique_ptr< art::Assns< recob::Shower, recob::Hit > > shs2hit(new art::Assns< recob::Shower, recob::Hit >);
 
@@ -427,9 +435,9 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 		}
 
 		fNTot = showers.size();
-		//// collect shower fragments 
 
-		gammawithconv = collectshowers(evt, showers, true);
+		//// collect shower fragments 
+		gammawithconv = collectshowers(evt, showers, true); // true switches on refpoint
 	
 		// with pma segments reconstructed
 		// procceed with pma segments when two conversions 
@@ -476,6 +484,7 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 		fDistvtxmcreco = std::sqrt(pma::Dist2(fRefPoint, fPi0vtx));	
 		fEvTree->Fill();
 
+		fVtxIndex = 0;
 		for (size_t i = 0; i < gammawithconv.size(); ++i)
 		{
 			int id = i;
@@ -497,6 +506,7 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 			{
 				int trkKey = gammawithconv[i].GetParts()[p].GetKey();
 				auto src_clu_list = cluFromTrk.at(trkKey);
+
 				for (size_t c = 0; c < src_clu_list.size(); c++)
 				{
 					cls.push_back(src_clu_list[c]);
@@ -504,7 +514,20 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 					auto v = hitFromClu.at(src_clu_list[c].key());
 					for (size_t h = 0; h < v.size(); h++) hits.push_back(v[h]);
 				}
+
+				auto ver_list = vtxFromTrk.at(trkKey);
 			}
+
+			double vtx_pos[3] = {front.X(), front.Y(), front.Z()};
+			vertices->push_back(recob::Vertex(vtx_pos, fVtxIndex));
+			fVtxIndex++;
+
+			if (vertices->size())
+			{
+				size_t vtx_idx = (size_t)(vertices->size() - 1);
+				util::CreateAssn(*this, evt, *cascades, *vertices, *shs2vtx, vtx_idx, vtx_idx + 1);
+			}
+
 			util::CreateAssn(*this, evt, *cascades, cls, *shs2cl);
 			util::CreateAssn(*this, evt, *cascades, hits, *shs2hit);
 
@@ -513,6 +536,9 @@ void ems::MergeEMShower3D::produce(art::Event & evt)
 	}
 
 	evt.put(std::move(cascades));
+	evt.put(std::move(vertices));
+
+	evt.put(std::move(shs2vtx));
 	evt.put(std::move(shs2cl));
 	evt.put(std::move(shs2hit));
 }
@@ -705,7 +731,7 @@ int ems::MergeEMShower3D::getGammaId(art::Event & evt, const size_t t)
 
 	if (fWhat == 0) return gid;
 	else return 9999;
-}	
+}
 
 TVector3 ems::MergeEMShower3D::getBestPoint(
 	const std::vector< recob::Track >& tracks,

@@ -44,11 +44,16 @@
 
 struct IniSeg
 {
-	unsigned int idcl1;
-	unsigned int idcl2;
+	size_t idcl1;
+	size_t idcl2;
+	size_t idcl3;
 	size_t view1;
 	size_t view2;
+	size_t view3;
 	pma::Track3D* track;
+	std::vector< art::Ptr< recob::Hit > > hits1; 
+	std::vector< art::Ptr< recob::Hit > > hits2; 
+	std::vector< art::Ptr< recob::Hit > > hits3; 
 };
 
 namespace ems
@@ -80,17 +85,20 @@ private:
 	std::vector< ems::DirOfGamma* > CollectShower2D(art::Event const & e);
 	void Link(art::Event const & e, std::vector< ems::DirOfGamma* > input);
 
+	void Reoptimize();
+
 	void Make3DSeg(art::Event const & e, std::vector< ems::DirOfGamma* > pair);
 
-	void Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int tpc);
+	// void Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int tpc);
 
-	void SelectTrks(art::Event const & e);
+	// void SelectTrks(art::Event const & e);
 
 	void MarkUsedCls(size_t idcl);
 
 	void MarkUsedTrks(size_t idtrk);
 
 	bool Validate(art::Event const & e, const pma::Track3D& src, size_t plane);
+	bool Validate(std::vector< ems::DirOfGamma* > input, size_t id1, size_t id2, size_t c1, size_t c2, size_t plane3);
 
 	void FilterOutSmallParts(
 		double r2d, 
@@ -104,6 +112,8 @@ private:
 		std::vector< art::Ptr<recob::Hit> >& hits_out);
 
 	bool Has(const std::vector<size_t>& v, size_t idx);
+
+	size_t LinkCandidates(art::Event const & e, std::vector< ems::DirOfGamma* > input, size_t id);
 	
 	std::vector< IniSeg > fInisegs;
 	std::vector< IniSeg > fSeltracks;
@@ -154,9 +164,9 @@ void ems::EMShower3D::beginJob()
 void ems::EMShower3D::reconfigure(fhicl::ParameterSet const & p)
 {
 	fCluModuleLabel = p.get< std::string >("ClustersModuleLabel");
-  fProjectionMatchingAlg.reconfigure(p.get< fhicl::ParameterSet >("ProjectionMatchingAlg"));
+  	fProjectionMatchingAlg.reconfigure(p.get< fhicl::ParameterSet >("ProjectionMatchingAlg"));
 	fTrk3DModuleLabel = p.get< std::string >("Trk3DModuleLabel");
-
+	
   return;
 }
 
@@ -284,20 +294,22 @@ void ems::EMShower3D::produce(art::Event & e)
 		
 		Link(e, showernviews);	
 
-		/*while (fInisegs.size())
+		while (fInisegs.size())
 		{	
 			fSeltracks.push_back(fInisegs[0]);
 			fInisegs.erase(fInisegs.begin() + 0);
-		}*/
+		}
 
-		SelectTrks(e);
+		Reoptimize();
+
+		/*SelectTrks(e);
 
 		for (unsigned int c = 0; c < geom->Ncryostats(); c++)
 		{
 			const geo::CryostatGeo& cryo = geom->Cryostat(c);
 			for (unsigned int t = 0; t < cryo.NTPC(); t++)
 				Make3DPMA(e, c, t);
-		}
+		}*/
 	
 		// conversion from pma track to recob::track
 
@@ -468,6 +480,86 @@ void ems::EMShower3D::produce(art::Event & e)
 	
 }
 
+void ems::EMShower3D::Reoptimize()
+{
+	if (!fSeltracks.size()) return;
+	const float min_dist = 3.0F;
+	size_t ta = 0; 
+	while (ta < (fSeltracks.size() - 1))
+	{	
+		size_t tb = ta + 1;
+		bool found = false;
+		while (tb < fSeltracks.size())
+		{
+			if (ta == tb) {tb++; continue;}
+	
+			TVector3 p1 = fSeltracks[ta].track->front()->Point3D();
+			TVector3 p2 = fSeltracks[tb].track->front()->Point3D();
+			float dist = std::sqrt(pma::Dist2(p1, p2));
+
+			if (dist < min_dist)
+				if ((fSeltracks[ta].idcl1 == fSeltracks[tb].idcl1) || (fSeltracks[ta].idcl1 == fSeltracks[tb].idcl2) ||
+				    (fSeltracks[ta].idcl2 == fSeltracks[tb].idcl1) || (fSeltracks[ta].idcl2 == fSeltracks[tb].idcl2))
+					{
+						found = true;
+						size_t view3 = fSeltracks[ta].view1; size_t idcl3 = fSeltracks[ta].idcl1;
+						std::vector< art::Ptr< recob::Hit > > hits3 = fSeltracks[ta].hits1;
+						std::vector< art::Ptr< recob::Hit > > hits = fSeltracks[ta].hits1;
+						for (size_t h = 0; h < fSeltracks[ta].hits2.size(); ++h)
+							hits.push_back(fSeltracks[ta].hits2[h]);
+
+						if ((fSeltracks[tb].view1 != fSeltracks[ta].view1) && (fSeltracks[tb].view1 != fSeltracks[ta].view2))
+						{
+							view3 = fSeltracks[tb].view1;
+							for (size_t h = 0; h < fSeltracks[tb].hits1.size(); ++h)	
+								hits.push_back(fSeltracks[tb].hits1[h]); 
+						}	
+						if ((fSeltracks[tb].view2 != fSeltracks[ta].view1) && (fSeltracks[tb].view2 != fSeltracks[ta].view2))
+						{
+							view3 = fSeltracks[tb].view2;
+							for (size_t h = 0; h < fSeltracks[tb].hits2.size(); ++h)
+								hits.push_back(fSeltracks[tb].hits2[h]);
+						}
+
+						
+						if ((view3 == fSeltracks[ta].view1) || (view3 == fSeltracks[ta].view2))
+						{
+							delete fSeltracks[ta].track;
+							fSeltracks.erase(fSeltracks.begin() + ta);
+						}
+						else
+						{
+							pma::Track3D* track = fProjectionMatchingAlg.buildSegment(hits);
+
+							if (pma::Dist2(track->back()->Point3D(), fSeltracks[ta].track->front()->Point3D()) < 
+							    pma::Dist2(track->front()->Point3D(), fSeltracks[ta].track->front()->Point3D()))
+									track->Flip();
+
+							IniSeg initrack;
+							initrack.idcl1 = fSeltracks[ta].idcl1; initrack.idcl3 = idcl3;
+							initrack.view1 = fSeltracks[ta].view1; initrack.view3 = view3;
+							initrack.hits1 = fSeltracks[ta].hits1; initrack.hits3 = hits3; 
+							initrack.idcl2 = fSeltracks[ta].idcl2;
+							initrack.view2 = fSeltracks[ta].view2;
+							initrack.hits2 = fSeltracks[ta].hits2;
+							initrack.track = track;	
+		
+							
+							delete fSeltracks[tb].track; delete fSeltracks[ta].track;
+							fSeltracks.erase(fSeltracks.begin() + tb); fSeltracks.erase(fSeltracks.begin() + ta);
+							fSeltracks.push_back(initrack);
+							
+						}
+					} 
+
+			if (found) break;
+			tb++;
+		}
+
+		if (!found) ta++;
+	}
+}
+
 std::vector< ems::DirOfGamma* > ems::EMShower3D::CollectShower2D(art::Event const & e) 
 {
 	std::vector< ems::DirOfGamma* > input;
@@ -516,8 +608,9 @@ void ems::EMShower3D::Link(art::Event const & e, std::vector< ems::DirOfGamma* >
 	art::ServiceHandle<util::DetectorProperties> detprop;
 	art::ServiceHandle<geo::Geometry> geom;
 
-	std::vector< std::vector< unsigned int > > saveids;
-	unsigned int i = 0;
+	std::vector< std::vector< size_t > > saveids;
+	std::vector< size_t > saveidsnotusedcls;
+	size_t i = 0;
 	
 	while (i < input.size())	
 	{
@@ -526,9 +619,9 @@ void ems::EMShower3D::Link(art::Event const & e, std::vector< ems::DirOfGamma* >
 		double mindist = 1.0; // cm 	
 		std::vector< ems::DirOfGamma* > pairs; 
 
-		unsigned int startview = input[i]->GetFirstHit()->WireID().Plane;
-		unsigned int tpc = input[i]->GetFirstHit()->WireID().TPC;
-		unsigned int cryo = input[i]->GetFirstHit()->WireID().Cryostat;
+		size_t startview = input[i]->GetFirstHit()->WireID().Plane;
+		size_t tpc = input[i]->GetFirstHit()->WireID().TPC;
+		size_t cryo = input[i]->GetFirstHit()->WireID().Cryostat;
 
 		float t1 = detprop->ConvertTicksToX(input[i]->GetFirstHit()->PeakTime(), startview, tpc, cryo);
 		
@@ -538,10 +631,12 @@ void ems::EMShower3D::Link(art::Event const & e, std::vector< ems::DirOfGamma* >
 			if (!input[j]->GetCandidates().size()) continue;
 
 			size_t secondview = input[j]->GetFirstHit()->WireID().Plane;
-					
-			if ((i != j) && (secondview != startview) && (tpc == input[j]->GetFirstHit()->WireID().TPC) && (cryo == input[j]->GetFirstHit()->WireID().Cryostat))
+			size_t tpc_j = input[j]->GetFirstHit()->WireID().TPC;
+			size_t cryo_j = input[j]->GetFirstHit()->WireID().Cryostat;
+		
+			if ((i != j) && (secondview != startview) && (tpc == tpc_j) && (cryo == cryo_j))
 			{				
-				float t2 = detprop->ConvertTicksToX(input[j]->GetFirstHit()->PeakTime(), secondview, tpc, cryo);
+				float t2 = detprop->ConvertTicksToX(input[j]->GetFirstHit()->PeakTime(), secondview, tpc_j, cryo_j);
 				float dist = fabs(t2 - t1);
 			
 				if (dist < mindist)
@@ -566,21 +661,106 @@ void ems::EMShower3D::Link(art::Event const & e, std::vector< ems::DirOfGamma* >
 		{
 			if (!exist) Make3DSeg(e, pairs);
 
-			std::vector< unsigned int > ids;
+			std::vector< size_t > ids;
 			ids.push_back(i); ids.push_back(idsave);
 			saveids.push_back(ids);
+		}
+		else
+		{
+			saveidsnotusedcls.push_back(i);
 		}
 
 		i++;
 	}
+
+	i = 0;
+	while(i < saveidsnotusedcls.size())
+	{
+		LinkCandidates(e, input, i);
+		i++;
+	}
+}
+
+size_t ems::EMShower3D::LinkCandidates(art::Event const & e, std::vector< ems::DirOfGamma* > input, size_t id)
+{
+	art::ServiceHandle<geo::Geometry> geom;
+
+	size_t index = id; bool found = false;
+
+	if (input[id]->GetCandidates().size() < 2) { return index; }
+
+	double mindist = 3.0; // cm 	
+	std::vector< ems::DirOfGamma* > pairs; 
+
+	size_t idcsave = 0; size_t idcjsave = 0;
+	size_t c = 0; size_t idsave = 0; 
+	while (c < input[id]->GetCandidates().size())	
+	{
+
+		size_t startview = input[id]->GetCandidates()[c].GetPlane();
+		size_t tpc = input[id]->GetCandidates()[c].GetTPC();   
+		size_t cryo = input[id]->GetCandidates()[c].GetCryo();
+
+		float t1 = input[id]->GetCandidates()[c].GetPosition().Y(); // y --> drift in 2D space.
+ 
+		// loop over 2D showers
+		for (size_t j = 0; j < input.size(); ++j)
+		{
+			if (!input[j]->GetCandidates().size()) continue;
+			if (j == id) continue;
+			
+			// loop over candidates
+			for (size_t cj = 0; cj < input[j]->GetCandidates().size(); ++cj)
+			{
+				size_t secondview = input[j]->GetCandidates()[cj].GetPlane();
+				size_t tpc_j = input[j]->GetCandidates()[cj].GetTPC();
+				size_t cryo_j = input[j]->GetCandidates()[cj].GetCryo();
+
+				size_t thirdview = startview;
+				
+				const geo::CryostatGeo& cryostat = geom->Cryostat(cryo);
+				for (size_t p = 0; p < cryostat.MaxPlanes(); p++)
+					if ((p == startview) || (p == secondview)) {continue;}
+					else {thirdview = p; break;}
+				
+		
+				if ((startview != secondview) && (tpc == tpc_j) && (cryo == cryo_j))// && Validate(input, id, cj, thirdview))
+				{	
+					float t2 = input[j]->GetCandidates()[cj].GetPosition().Y();
+					float dist = fabs(t2 - t1);
+				
+					if ((dist < mindist) && Validate(input, id, j, c, cj, thirdview))
+					{ 
+						mindist = dist;
+						pairs.clear();
+						pairs.push_back(input[id]); pairs.push_back(input[j]);
+						idsave = j; index = j;
+						idcsave = c; idcjsave = cj;
+						found = true;
+					}
+				}
+			}
+		}
+
+		c++;
+	}
+
+	if (found && pairs.size())
+	{
+		input[id]->SetIdCandidate(idcsave);	
+		input[idsave]->SetIdCandidate(idcjsave);
+		Make3DSeg(e, pairs);
+	}
+
+	return index;
 }
 
 void ems::EMShower3D::Make3DSeg(art::Event const & e, std::vector< ems::DirOfGamma* > pair)
-{
-	
+{	
 	if (pair.size() < 2) return;
+
 	// to build a track correctly 2d hits must belong to the same tpc	
-	size_t tpc1 = pair[0]->GetFirstHit()->WireID().TPC; 
+	size_t tpc1 = pair[0]->GetFirstHit()->WireID().TPC;  
 	size_t tpc2 = pair[1]->GetFirstHit()->WireID().TPC; 
 
 	std::vector< art::Ptr< recob::Hit > > vec1 = pair[0]->GetIniHits();
@@ -602,24 +782,31 @@ void ems::EMShower3D::Make3DSeg(art::Event const & e, std::vector< ems::DirOfGam
 
 	if ((hitscl1uniquetpc.size() > 2) && (hitscl2uniquetpc.size() > 2))
 	{
-		pma::Track3D* trk = fProjectionMatchingAlg.buildSegment(hitscl1uniquetpc, 
-																													  hitscl2uniquetpc);
+		pma::Track3D* trk = fProjectionMatchingAlg.buildSegment(hitscl1uniquetpc, hitscl2uniquetpc);
 
-		if ((trk->back()->Hit2DPtr() == vec1[0])
-			 || (trk->back()->Hit2DPtr() == vec2[0])) trk->Flip();			
+		//pma::Track3D* trk = fProjectionMatchingAlg.buildSegment(vec1, vec2);
 
+		// turn the track that front is at vertex - easier to handle associations.
+		if ((trk->back()->Hit2DPtr() == pair[0]->GetFirstHit()) 
+			|| (trk->back()->Hit2DPtr() == pair[1]->GetFirstHit())) trk->Flip();	
+
+	
 		IniSeg initrack;
 		initrack.idcl1 = pair[0]->GetIdCl();
 		initrack.view1 = pair[0]->GetFirstHit()->WireID().Plane;
+		initrack.hits1 = hitscl1uniquetpc;
 		initrack.idcl2 = pair[1]->GetIdCl();
 		initrack.view2 = pair[1]->GetFirstHit()->WireID().Plane;
+		initrack.hits2 = hitscl2uniquetpc;
 		initrack.track = trk;	
-
+		
 		fInisegs.push_back(initrack);
+
+		
 	}
 }
 
-void ems::EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int tpc)
+/*void ems::EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigned int tpc)
 {
 	art::Handle< std::vector< recob::Track > > trkListHandle;	
 	std::map< size_t, std::vector< size_t > > trkshs;
@@ -784,8 +971,10 @@ void ems::EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigne
 									IniSeg initrack;
 									initrack.idcl1 = clid1;
 									initrack.view1 = plane1;
+									initrack.hits1 = hitscl1uniquetpc;
 									initrack.idcl2 = clid2;
 									initrack.view2 = plane2;
+									initrack.hits2 = hitscl2uniquetpc;
 									initrack.track = trk;	
 									fPMA3D.push_back(initrack);
 
@@ -844,8 +1033,10 @@ void ems::EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigne
 									IniSeg initrack;
 									initrack.idcl1 = clid1;
 									initrack.view1 = plane1;
+									initrack.hits1 = hitscl1uniquetpc;
 									initrack.idcl2 = clid2;
 									initrack.view2 = plane2;
+									initrack.hits2 = hitscl2uniquetpc;
 									initrack.track = trk;	
 									fPMA3D.push_back(initrack);
 							
@@ -877,7 +1068,49 @@ void ems::EMShower3D::Make3DPMA(art::Event const & e, unsigned int cryo, unsigne
 			ntracks++;
 		}
 	}
+}*/
+
+bool ems::EMShower3D::Validate(std::vector< ems::DirOfGamma* > input, size_t id1, size_t id2, size_t c1, size_t c2, size_t plane3)
+{
+	bool result = false;
+	if (id1 == id2) return false;
+
+	std::vector< art::Ptr< recob::Hit > > vec1 = input[id1]->GetCandidates()[c1].GetIniHits();
+	std::vector< art::Ptr< recob::Hit > > vec2 = input[id2]->GetCandidates()[c2].GetIniHits();
+
+	if ((vec1.size() < 3) || (vec2.size() < 3)) return false;
+
+	std::vector< art::Ptr<recob::Hit> > hitscl1uniquetpc;
+	std::vector< art::Ptr<recob::Hit> > hitscl2uniquetpc;
+
+	size_t tpc = vec1[0]->WireID().TPC;
+	for (size_t i = 0; i < vec1.size(); ++i)
+		for (size_t j = 0; j < vec2.size(); ++j)
+			if ((vec1[i]->WireID().TPC ==  tpc) && (vec2[j]->WireID().TPC == tpc))
+			{
+				hitscl1uniquetpc.push_back(vec1[i]);
+				hitscl2uniquetpc.push_back(vec2[j]);
+			}
+	
+	if ((hitscl1uniquetpc.size() < 3) || (hitscl2uniquetpc.size() < 3)) return false;
+
+	pma::Track3D* track = fProjectionMatchingAlg.buildSegment(hitscl1uniquetpc, hitscl2uniquetpc);
+	for (size_t i = 0; i < input.size(); ++i)
+	{	
+		std::vector< Hit2D* > hits2dcl = input[i]->GetHits2D();
+		for (size_t h = 0; h < hits2dcl.size(); ++h)
+		{
+			TVector2 pfront = pma::GetProjectionToPlane(track->front()->Point3D(), plane3, track->FrontTPC(), track->FrontCryo());
+			TVector2 pback  = pma::GetProjectionToPlane(track->back()->Point3D(), plane3, track->BackTPC(), track->BackCryo());
+			if ( (pma::Dist2(hits2dcl[h]->GetPointCm(), pfront) < 1.0F) && 
+				(pma::Dist2(hits2dcl[h]->GetPointCm(), pback) < 1.0F) )
+			{result = true; break;}
+		}			
+	}
+	delete track;
+	return result;
 }
+
 
 
 bool ems::EMShower3D::Validate(art::Event const & e, const pma::Track3D& src, size_t plane)
@@ -898,7 +1131,7 @@ bool ems::EMShower3D::Validate(art::Event const & e, const pma::Track3D& src, si
 	return result;
 }
 
-void ems::EMShower3D::SelectTrks(art::Event const & e)
+/*void ems::EMShower3D::SelectTrks(art::Event const & e)
 {
 	const float mindist2 = 1.0F; // 1 cm
 
@@ -1018,7 +1251,7 @@ void ems::EMShower3D::SelectTrks(art::Event const & e)
 		
 
 	}
-}
+}*/
 
 void ems::EMShower3D::MarkUsedTrks(size_t idtrk)
 {
