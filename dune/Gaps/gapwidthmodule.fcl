@@ -1,0 +1,20 @@
+BEGIN_PROLOG
+
+gapwidth_gapwidth:
+{
+   module_type:             "GapWidth"
+   HitsModuleLabel:         "lineclusterdc"
+   SimulationProducerLabel: "largeant"
+   DisambigModuleLabel:     "dcheat"
+   TrigModuleLabel:         "simcounter"
+   TrackModuleLabel:        "pmtrackdc"
+   TrkSpptAssocModuleLabel: "pmtrackdc"
+   HitSpptAssocModuleLabel: "pmtrackdc"
+   ClusterModuleLabel:      "lineclusterdc"
+   SimulationLabel:         "largeant"
+   CalorimetryModuleLabel:  "pmtrackcalodc"
+   MCTruthT0ModuleLabel:    "mctrutht0pmtrackdc"
+   PhotonT0ModuleLabel:     "photont0costrkdc"
+}
+
+END_PROLOG
