@@ -24,12 +24,14 @@
 #include "RecoBase/Hit.h"
 #include "RecoBase/Cluster.h"
 #include "RecoBase/Vertex.h"
+#include "RecoBase/SpacePoint.h"
 #include "Utilities/LArProperties.h"
 #include "Utilities/DetectorProperties.h"
 #include "Utilities/AssociationUtil.h"
 #include "Utilities/TimeService.h"
 #include "MCCheater/BackTracker.h"
 #include "SimulationBase/MCTruth.h"
+#include "RecoAlg/PMAlg/Utilities.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -73,7 +75,7 @@ public:
 private:
 
   void ResetVars();
-  bool insideFidVol(const TLorentzVector& pvtx); 
+  bool insideFidVol(const double posX, const double posY, const double posZ);
 
   // Declare member data here.
   TTree *fTree;
@@ -101,7 +103,13 @@ private:
   float trkenddcosy[kMaxTrack];
   float trkenddcosz[kMaxTrack];
   float trklen[kMaxTrack];
-
+  //geant information
+  int   trkg4id[kMaxTrack];
+  int   trkg4pdg[kMaxTrack];
+  float trkg4startx[kMaxTrack];
+  float trkg4starty[kMaxTrack];
+  float trkg4startz[kMaxTrack];
+  float trkg4initdedx[kMaxTrack];
   int nhits;
   Short_t  hit_plane[kMaxHits];      //plane number
   Short_t  hit_wire[kMaxHits];       //wire number
@@ -112,9 +120,15 @@ private:
   Float_t  hit_endT[kMaxHits];       //hit end time
   
   // vertex information
+  int infidvol;
   Short_t  nvtx;                     //number of vertices
   Float_t  vtx[kMaxVertices][3];     //vtx[3] 
-  
+
+  Float_t	vtxrecomc;		// distance between mc and reco vtx
+  Float_t	vtxrecomcx;		
+  Float_t	vtxrecomcy;		
+  Float_t	vtxrecomcz;		
+
   //mctruth information
   Int_t     mcevts_truth;    //number of neutrino Int_teractions in the spill
   Int_t     nuPDG_truth;     //neutrino PDG code
@@ -139,7 +153,7 @@ private:
   
 
   std::string fHitsModuleLabel;
-	std::string fClusterModuleLabel;
+  std::string fClusterModuleLabel;
   std::string fTrackModuleLabel;
   std::string fVertexModuleLabel;
   std::string fGenieGenModuleLabel;
@@ -165,7 +179,7 @@ void dunefd::NueAna::analyze(art::Event const & evt)
   art::ServiceHandle<util::DetectorProperties> detprop;
   art::ServiceHandle<util::TimeService> timeservice;
   //fClock = timeservice->TPCClock();
-  art::ServiceHandle<cheat::BackTracker> bktrk;
+  art::ServiceHandle<cheat::BackTracker> bt;
 
   run = evt.run();
   subrun = evt.subRun();
@@ -194,6 +208,9 @@ void dunefd::NueAna::analyze(art::Event const & evt)
   if (evt.getByLabel(fVertexModuleLabel,vtxListHandle))
     art::fill_ptr_vector(vtxlist, vtxListHandle);
 
+  // * associations
+  art::FindManyP<recob::Hit> fmtht(trackListHandle, evt, fTrackModuleLabel);
+  art::FindManyP<recob::SpacePoint> fmhs(hitListHandle, evt, fTrackModuleLabel);
   //hit information
   nhits = hitlist.size();
   for (int i = 0; i < nhits && i < kMaxHits ; ++i){//loop over hits
@@ -234,6 +251,106 @@ void dunefd::NueAna::analyze(art::Event const & evt)
     trkenddcosy[i]    = larEnd[1];
     trkenddcosz[i]    = larEnd[2];
     trklen[i]         = tracklist[i]->Length();
+    if (!isdata){
+      // Find true track for each reconstructed track
+      int TrackID = 0;
+      std::vector< art::Ptr<recob::Hit> > allHits = fmtht.at(i);
+      
+      std::map<int,double> trkide;
+      for(size_t h = 0; h < allHits.size(); ++h){
+	art::Ptr<recob::Hit> hit = allHits[h];
+	std::vector<sim::TrackIDE> TrackIDs = bt->HitToTrackID(hit);
+	for(size_t e = 0; e < TrackIDs.size(); ++e){
+	  trkide[TrackIDs[e].trackID] += TrackIDs[e].energy;
+	}	    
+      }
+      // Work out which IDE despoited the most charge in the hit if there was more than one.
+      double maxe = -1;
+      double tote = 0;
+      for (std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
+	tote += ii->second;
+	if ((ii->second)>maxe){
+	  maxe = ii->second;
+	  TrackID = ii->first;
+	}
+      }
+      // Now have trackID, so get PdG code and T0 etc.
+      const simb::MCParticle *particle = bt->TrackIDToParticle(TrackID);
+      if (particle){
+	trkg4id[i] = TrackID;
+	trkg4pdg[i] = particle->PdgCode();
+	trkg4startx[i] = particle->Vx();
+	trkg4starty[i] = particle->Vy();
+	trkg4startz[i] = particle->Vz();
+	float sum_energy = 0;
+	int nhits = 0;
+	//std::map<float,float> hite;
+	double x = 0;
+	double y = 0;
+	double z = 0;
+	double mindis = 1e10;
+	//find the closest point to the neutrino vertex
+	for(size_t h = 0; h < allHits.size(); ++h){
+	  art::Ptr<recob::Hit> hit = allHits[h];
+	  if (hit->WireID().Plane==2){
+	    std::vector<art::Ptr<recob::SpacePoint> > spts = fmhs.at(hit.key());
+	    if (spts.size()){
+	      double dis = sqrt(pow(spts[0]->XYZ()[0]-trkg4startx[i],2)+
+				pow(spts[0]->XYZ()[1]-trkg4starty[i],2)+
+				pow(spts[0]->XYZ()[2]-trkg4startz[i],2));
+	      if (dis<mindis){
+		mindis = dis;
+		x = spts[0]->XYZ()[0];
+		y = spts[0]->XYZ()[1];
+		z = spts[0]->XYZ()[2];
+	      }
+	    }
+	  }
+	}
+	for(size_t h = 0; h < allHits.size(); ++h){
+	  art::Ptr<recob::Hit> hit = allHits[h];
+	  if (hit->WireID().Plane==2){
+	    std::vector<art::Ptr<recob::SpacePoint> > spts = fmhs.at(hit.key());
+	    if (spts.size()){
+	      if (sqrt(pow(spts[0]->XYZ()[0]-x,2)+
+		       pow(spts[0]->XYZ()[1]-y,2)+
+		       pow(spts[0]->XYZ()[2]-z,2))<3){
+		std::vector<sim::TrackIDE> TrackIDs = bt->HitToTrackID(hit);
+		float toten = 0;
+		for(size_t e = 0; e < TrackIDs.size(); ++e){
+		  //sum_energy += TrackIDs[e].energy;
+		  toten+=TrackIDs[e].energy;
+		}
+		if (toten){
+		  sum_energy += toten;
+		  ++nhits;
+		}
+	      }
+	    }
+	  }
+	}
+
+	float pitch = 0;
+	float dis1 = sqrt(pow(trkstartx[i]-trkg4startx[i],2)+
+			  pow(trkstarty[i]-trkg4starty[i],2)+
+			  pow(trkstartz[i]-trkg4startz[i],2));
+	float dis2 = sqrt(pow(trkendx[i]-trkg4startx[i],2)+
+			  pow(trkendy[i]-trkg4starty[i],2)+
+			  pow(trkendz[i]-trkg4startz[i],2));
+	if (dis1<dis2){
+	  pitch = tracklist[i]->PitchInView(geo::kZ,0);
+	}
+	else{
+	  pitch = tracklist[i]->PitchInView(geo::kZ,tracklist[i]->NumberTrajectoryPoints()-1);
+	}
+	if (pitch*nhits){
+	  trkg4initdedx[i] = sum_energy/(nhits*pitch);
+	}
+	else{
+	  trkg4initdedx[i] = 0;
+	}
+      }
+    }
   }
 
   //vertex information
@@ -278,8 +395,54 @@ void dunefd::NueAna::analyze(art::Event const & evt)
 	lep_dcosy_truth = mctruth->GetNeutrino().Lepton().Py()/mctruth->GetNeutrino().Lepton().P();
 	lep_dcosz_truth = mctruth->GetNeutrino().Lepton().Pz()/mctruth->GetNeutrino().Lepton().P();
       }
-    }
 
+	float mindist2 = 9999; // cm;
+	TVector3 nuvtx(nuvtxx_truth, nuvtxy_truth, nuvtxz_truth);
+	infidvol = insideFidVol(nuvtxx_truth, nuvtxy_truth, nuvtxz_truth); 
+	//find the closest reco vertex to the neutrino mc truth
+	if (infidvol)
+	{
+		// vertex is when at least two tracks meet
+  		for(size_t i = 0; i < vtxlist.size(); ++i){ // loop over vertices
+			Double_t xyz[3] = {};
+    			vtxlist[i]->XYZ(xyz);
+			TVector3 vtxreco(xyz);
+			float dist2 = pma::Dist2(vtxreco, nuvtx);
+			if (dist2 < mindist2)
+			{
+				mindist2 = dist2;
+				vtxrecomc = std::sqrt(dist2);
+				vtxrecomcx = vtxreco.X() - nuvtxx_truth;
+				vtxrecomcy = vtxreco.Y() - nuvtxy_truth;
+				vtxrecomcz = vtxreco.Z() - nuvtxz_truth;
+			}
+  		}
+
+		// two endpoints of tracks are somehow also vertices...
+		for (size_t i = 0; i < tracklist.size(); ++i){ // loop over tracks
+			float dist2 = pma::Dist2(tracklist[i]->Vertex(), nuvtx);
+			if (dist2 < mindist2)
+			{
+				mindist2 = dist2;
+				vtxrecomc = std::sqrt(dist2);
+				vtxrecomcx = tracklist[i]->Vertex().X() - nuvtxx_truth;
+				vtxrecomcy = tracklist[i]->Vertex().Y() - nuvtxy_truth;
+				vtxrecomcz = tracklist[i]->Vertex().Z() - nuvtxz_truth;
+				
+			}
+			dist2 = pma::Dist2(tracklist[i]->End(), nuvtx);
+			if (dist2 < mindist2)
+			{
+				mindist2 = dist2;
+				vtxrecomc = std::sqrt(dist2);
+				vtxrecomcx = tracklist[i]->End().X() - nuvtxx_truth;
+				vtxrecomcy = tracklist[i]->End().Y() - nuvtxy_truth;
+				vtxrecomcz = tracklist[i]->End().Z() - nuvtxz_truth;
+				
+			}
+		}
+	 }
+    }
   }
 
   fTree->Fill();
@@ -311,6 +474,12 @@ void dunefd::NueAna::beginJob()
   fTree->Branch("trkenddcosy",trkenddcosy,"trkenddcosy[ntracks_reco]/F");
   fTree->Branch("trkenddcosz",trkenddcosz,"trkenddcosz[ntracks_reco]/F");
   fTree->Branch("trklen",trklen,"trklen[ntracks_reco]/F");
+  fTree->Branch("trkg4id",trkg4id,"trkg4id[ntracks_reco]/I");
+  fTree->Branch("trkg4pdg",trkg4pdg,"trkg4pdg[ntracks_reco]/I");
+  fTree->Branch("trkg4startx",trkg4startx,"trkg4startx[ntracks_reco]/F");
+  fTree->Branch("trkg4starty",trkg4starty,"trkg4starty[ntracks_reco]/F");
+  fTree->Branch("trkg4startz",trkg4startz,"trkg4startz[ntracks_reco]/F");
+  fTree->Branch("trkg4initdedx",trkg4initdedx,"trkg4initdedx[ntracks_reco]/F");
   fTree->Branch("nhits",&nhits,"nhits/I");
   fTree->Branch("hit_plane",hit_plane,"hit_plane[nhits]/S");
   fTree->Branch("hit_wire",hit_wire,"hit_wire[nhits]/S");
@@ -319,8 +488,13 @@ void dunefd::NueAna::beginJob()
   fTree->Branch("hit_charge",hit_charge,"hit_charge[nhits]/F");
   fTree->Branch("hit_startT",hit_startT,"hit_startT[nhits]/F");
   fTree->Branch("hit_endT",hit_endT,"hit_endT[nhits]/F");
+  fTree->Branch("infidvol",&infidvol,"infidvol/I");
   fTree->Branch("nvtx",&nvtx,"nvtx/S");
   fTree->Branch("vtx",vtx,"vtx[nvtx][3]/F");
+  fTree->Branch("vtxrecomc",&vtxrecomc,"vtxrecomc/F");
+  fTree->Branch("vtxrecomcx",&vtxrecomcx,"vtxrecomcx/F");
+  fTree->Branch("vtxrecomcy",&vtxrecomcy,"vtxrecomcy/F");
+  fTree->Branch("vtxrecomcz",&vtxrecomcz,"vtxrecomcz/F");
   fTree->Branch("mcevts_truth",&mcevts_truth,"mcevts_truth/I");
   fTree->Branch("nuPDG_truth",&nuPDG_truth,"nuPDG_truth/I");
   fTree->Branch("ccnc_truth",&ccnc_truth,"ccnc_truth/I");
@@ -369,6 +543,12 @@ void dunefd::NueAna::ResetVars(){
     trkenddcosy[i] = -9999;
     trkenddcosz[i] = -9999;
     trklen[i] = -9999;
+    trkg4id[i] = -9999;
+    trkg4pdg[i] = -9999;
+    trkg4startx[i] = -9999;
+    trkg4starty[i] = -9999;
+    trkg4startz[i] = -9999;
+    trkg4initdedx[i] = -9999;
   }
 
   nhits = 0;
@@ -382,12 +562,17 @@ void dunefd::NueAna::ResetVars(){
     hit_endT[i] = -9999;
   }
 
+  infidvol = 0;
   nvtx = 0;
   for (int i = 0; i<kMaxVertices; ++i){
     vtx[i][0] = -9999;
     vtx[i][1] = -9999;
     vtx[i][2] = -9999;
   }
+  vtxrecomc = 9999;
+  vtxrecomcx = 9999;
+  vtxrecomcy = 9999;
+  vtxrecomcz = 9999;
 
   mcevts_truth = -9999; 
   nuPDG_truth = -9999;  
@@ -430,26 +615,57 @@ void dunefd::NueAna::reconfigure(fhicl::ParameterSet const & p)
 
 /***********************************************************************/
 
-bool dunefd::NueAna::insideFidVol(const TLorentzVector& pvtx) 
+bool dunefd::NueAna::insideFidVol(const double posX, const double posY, const double posZ) 
 {
+	
 	art::ServiceHandle<geo::Geometry> geom;
+	double vtx[3] = {posX, posY, posZ};
+	bool inside = false;
 
-	double vtx[3];
-	vtx[0] = pvtx.X(); vtx[1] = pvtx.Y(); vtx[2] = pvtx.Z();
-
-	bool inside = true;
 	geo::TPCID idtpc = geom->FindTPCAtPosition(vtx);
+
 	if (geom->HasTPC(idtpc))
-	{
-		const geo::TPCGeo& tpcgeo = geom->GetElement(idtpc); 
-		if ((fabs(vtx[0] - tpcgeo.MinX()) < fFidVolCut) ||
-				(fabs(tpcgeo.MaxX() - vtx[0]) < fFidVolCut) ||
-				(fabs(vtx[1] - tpcgeo.MinY()) < fFidVolCut) ||
-				(fabs(tpcgeo.MaxY() - vtx[1]) < fFidVolCut) ||
-				(fabs(vtx[2] - tpcgeo.MinZ()) < fFidVolCut) ||
-				(fabs(tpcgeo.MaxZ() - vtx[2]) < fFidVolCut)) inside = false;
+	{		
+		const geo::TPCGeo& tpcgeo = geom->GetElement(idtpc);
+		double minx = tpcgeo.MinX(); double maxx = tpcgeo.MaxX();
+		double miny = tpcgeo.MinY(); double maxy = tpcgeo.MaxY();
+		double minz = tpcgeo.MinZ(); double maxz = tpcgeo.MaxZ();
+
+		for (size_t c = 0; c < geom->Ncryostats(); c++)
+		{
+			const geo::CryostatGeo& cryostat = geom->Cryostat(c);
+			for (size_t t = 0; t < cryostat.NTPC(); t++)
+			{	
+				const geo::TPCGeo& tpcg = cryostat.TPC(t);
+				if (tpcg.MinX() < minx) minx = tpcg.MinX();
+				if (tpcg.MaxX() > maxx) maxx = tpcg.MaxX(); 
+				if (tpcg.MinY() < miny) miny = tpcg.MinY();
+				if (tpcg.MaxY() > maxy) maxy = tpcg.MaxY();
+				if (tpcg.MinZ() < minz) minz = tpcg.MinZ();
+				if (tpcg.MaxZ() > maxz) maxz = tpcg.MaxZ();
+			}
+		}	
+
+		
+		//x
+		double dista = fabs(minx - posX);
+		double distb = fabs(posX - maxx); 
+		if ((posX > minx) && (posX < maxx) &&
+		 	(dista > fFidVolCut) && (distb > fFidVolCut)) inside = true;
+		//y
+		dista = fabs(maxy - posY);
+		distb = fabs(posY - miny);
+		if (inside && (posY > miny) && (posY < maxy) &&
+		 	(dista > fFidVolCut) && (distb > fFidVolCut)) inside = true;
+		else inside = false;
+
+		//z
+		dista = fabs(maxz - posZ);
+		distb = fabs(posZ - minz);
+		if (inside && (posZ > minz) && (posZ < maxz) &&
+		 	(dista > fFidVolCut) && (distb > fFidVolCut)) inside = true;
+		else inside = false;
 	}
-	else inside = false;
 		
 	return inside;
 }

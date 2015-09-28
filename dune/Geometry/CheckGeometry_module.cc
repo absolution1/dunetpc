@@ -101,7 +101,12 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
       minz = world[2]-tpc.ActiveLength()/2.;
     if (maxz<world[2]+tpc.ActiveLength()/2.)
       maxz = world[2]+tpc.ActiveLength()/2.;
-
+    std::cout<<t<<" "<<world[0]-tpc.ActiveHalfWidth()
+	     <<" "<<world[0]+tpc.ActiveHalfWidth()
+	     <<" "<<world[1]-tpc.ActiveHalfHeight()
+	     <<" "<<world[1]+tpc.ActiveHalfHeight()
+	     <<" "<<world[2]-tpc.ActiveLength()/2.
+	     <<" "<<world[2]+tpc.ActiveLength()/2.<<std::endl;
  
     TPCBox.push_back(new TBox(world[2]-tpc.ActiveLength()/2.,
 			      world[1]-tpc.ActiveHalfHeight(),
