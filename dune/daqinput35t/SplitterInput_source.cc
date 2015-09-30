@@ -290,6 +290,7 @@ namespace DAQToOffline {
     string                 SSPinputDataProduct_;
     string                 PenninputDataProduct_;
     double                 fNOvAClockFrequency; // MHz
+    string                 fOpDetChannelMapFile;
     art::SourceHelper      sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SSPinputBranch_;
@@ -312,6 +313,8 @@ namespace DAQToOffline {
     std::vector<RawDigit::ADCvector_t>  dbuf_;
     SSPWaveforms_t         wbuf_;
     unsigned short         fTicksAccumulated;
+
+    std::map<int,int>      OpDetChannelMap;
 
     std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t& )> fragmentsToDigits_;
 
@@ -345,6 +348,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   SSPinputDataProduct_(ps.get<string>("SSPInputDataProduct")),
   PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
+  fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -377,6 +381,8 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   // incoming ones.
   prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, TPCinputTag_.instance() );
   prh.reconstitutes<SSPWaveforms_t,art::InEvent>( sourceName_, SSPinputTag_.instance() );
+
+  BuildChannelMap(fOpDetChannelMapFile, OpDetChannelMap);
 }
 
 //=======================================================================================
@@ -548,7 +554,7 @@ DAQToOffline::Splitter::loadDigits_() {
     if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
       std::cout << "Loading data waveform" << std::endl;
       auto* SSPfragments = getFragments( SSPinputBranch_, treeIndex_ );
-      std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency);
+      std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency, OpDetChannelMap);
       std::cout << "waveforms has size " << waveforms.size() << std::endl;
       for (auto waveform: waveforms) {
 	std::cout << "OpDetWaveform Timestamp: " << waveform.TimeStamp() << std::endl;
