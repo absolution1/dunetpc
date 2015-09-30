@@ -7,6 +7,7 @@ ssp_to_offline:
   RawDataLabel:       daq
   OutputDataLabel:    offlinePhoton
   NOvAClockFrequency: 64.0 #MHz 
+  ChannelMapFile:     "ssp_channel_map_dune35t.txt"
   #Debug:             true
 }
 

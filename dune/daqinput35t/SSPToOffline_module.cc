@@ -22,6 +22,7 @@
 
 #include <memory>
 #include <iostream>
+#include <map>
 
 //lbne-artdaq includes
 #include "lbne-raw-data/Overlays/SSPFragment.hh"
@@ -63,6 +64,10 @@ private:
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
   double      fNOvAClockFrequency; //MHz
+  std::string fChannelMapFile;
+  
+  std::map<int,int> theChannelMap;
+    
   //long        first_FirstSample;
   //double      first_TimeStamp;
   //long        first_InternalSample;
@@ -93,12 +98,15 @@ void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
   fRawDataLabel       = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel    = pset.get<std::string>("OutputDataLabel");
   fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
-  //fDebug = pset.get<bool>("Debug");
+  fChannelMapFile     = pset.get<std::string>("ChannelMapFile");
 
+  //fDebug = pset.get<bool>("Debug");
   //fZeroThreshold=0;
   //fCompression=raw::kNone;
-  printParameterSet();
 
+  printParameterSet();
+  BuildChannelMap(fChannelMapFile, theChannelMap);
+  
 }
 
 void DAQToOffline::SSPToOffline::printParameterSet(){
@@ -109,8 +117,10 @@ void DAQToOffline::SSPToOffline::printParameterSet(){
 			       << "fFragType:        " << fFragType        << "\n"
 			       << "fRawDataLabel:    " << fRawDataLabel    << "\n"
 			       << "fOutputDataLabel: " << fOutputDataLabel << "\n"
+			       << "fChannelMapFile:  " << fChannelMapFile  << "\n"
 			       << "===================================="   << "\n";
 }
+
 
 void DAQToOffline::SSPToOffline::produce(art::Event & evt)
 {
@@ -136,7 +146,7 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto waveforms = SSPFragmentToOpDetWaveform(*rawFragments, fNOvAClockFrequency);
+  auto waveforms = SSPFragmentToOpDetWaveform(*rawFragments, fNOvAClockFrequency, theChannelMap);
 
   evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
 
