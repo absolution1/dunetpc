@@ -1,3 +1,4 @@
+// -*- mode: c++; c-basic-offset: 2; -*-
 ////////////////////////////////////////////////////////////////////////
 // Class:       SSPToOffline
 // Module Type: producer
@@ -88,9 +89,9 @@ DAQToOffline::SSPToOffline::SSPToOffline(fhicl::ParameterSet const & pset)
 
 void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
 
-  fFragType = pset.get<std::string>("FragType");
-  fRawDataLabel = pset.get<std::string>("RawDataLabel");
-  fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
+  fFragType           = pset.get<std::string>("FragType");
+  fRawDataLabel       = pset.get<std::string>("RawDataLabel");
+  fOutputDataLabel    = pset.get<std::string>("OutputDataLabel");
   fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
   //fDebug = pset.get<bool>("Debug");
 
@@ -102,13 +103,13 @@ void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
 
 void DAQToOffline::SSPToOffline::printParameterSet(){
 
-  mf::LogDebug("SSPToOffline") << "====================================" << "\n"
-			       << "Parameter Set" << "\n"
-			       << "====================================" << "\n"
-			       << "fFragType:        " << fFragType << "\n"
-			       << "fRawDataLabel:    " << fRawDataLabel << "\n"
+  mf::LogDebug("SSPToOffline") << "===================================="   << "\n"
+			       << "Parameter Set"                          << "\n"
+			       << "===================================="   << "\n"
+			       << "fFragType:        " << fFragType        << "\n"
+			       << "fRawDataLabel:    " << fRawDataLabel    << "\n"
 			       << "fOutputDataLabel: " << fOutputDataLabel << "\n"
-			       << "====================================" << "\n";
+			       << "===================================="   << "\n";
 }
 
 void DAQToOffline::SSPToOffline::produce(art::Event & evt)

@@ -2,12 +2,12 @@ BEGIN_PROLOG
 
 ssp_to_offline:
 {
-  module_type:     SSPToOffline
-  FragType:        PHOTON
-  RawDataLabel:    daq
-  OutputDataLabel: offlinePhoton
+  module_type:        SSPToOffline
+  FragType:           PHOTON
+  RawDataLabel:       daq
+  OutputDataLabel:    offlinePhoton
   NOvAClockFrequency: 64.0 #MHz 
-#  Debug:           true
+  #Debug:             true
 }
 
 

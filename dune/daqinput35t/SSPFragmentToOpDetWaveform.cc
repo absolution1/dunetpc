@@ -1,4 +1,4 @@
-
+// -*- mode: c++; c-basic-offset: 2; -*-
 // art includes
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -30,7 +30,7 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
 
     lbne::SSPFragment sspf(frag);
 
-    mf::LogDebug("SSPToOffline") << "\n"
+    mf::LogDebug("DAQToOffline") << "\n"
 				 << "SSP fragment "     << frag.fragmentID() 
 				 << " has total size: " << sspf.hdr_event_size()
 				 << " and run number: " << sspf.hdr_run_number()
@@ -41,21 +41,21 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
     const SSPDAQ::MillisliceHeader* meta=0;
     //get the information from the header
     if(frag.hasMetadata())
-      {
+    {
 	meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);
             
-	mf::LogInfo("SSPToOffline")
+	mf::LogInfo("DAQToOffline")
 	  << "===Slice metadata====" << "\n"
 	  << "  Start time         " << meta->startTime << "\n"
 	  << "  End time           " << meta->endTime << "\n"
 	  << "  Packet length      " << meta->length << "\n"
 	  << "  Number of triggers " << meta->nTriggers << "\n"
 	  << "=====================";
-      }
+    }
     else
-      {
-	mf::LogWarning("SSPToOffline") << "SSP fragment has no metadata associated with it.";
-      }
+    {
+	mf::LogWarning("DAQToOffline") << "SSP fragment has no metadata associated with it.";
+    }
 
       
     const unsigned int* dataPointer = sspf.dataBegin();
@@ -67,10 +67,10 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
       //
       // The elements of the OpDet Pulse
       //
-      unsigned short     OpChannel = -1;     ///< channel in the readout
-      unsigned long      FirstSample = 0;    ///< first sample time in ticks
-      unsigned long      InternalSample = 0;    ///< first sample time in ticks
-      double             TimeStamp = 0.0;    ///< first sample time in microseconds
+      unsigned short     OpChannel = -1;       ///< Derived Optical channel
+      unsigned long      FirstSample = 0;      ///< first sample time in ticks
+      unsigned long      InternalSample = 0;   ///< first sample time in ticks
+      double             TimeStamp = 0.0;      ///< first sample time in microseconds
       double             InternalTimeStamp = 0.0;
         
 
@@ -99,14 +99,14 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
       InternalTimeStamp = ((double)InternalSample)/NOvAClockFrequency;
 
       //if (first_FirstSample < 0) {
-      //  mf::LogInfo("SSPToOffline") << "Reset first time stamp to " << first_TimeStamp;
+      //  mf::LogInfo("DAQToOffline") << "Reset first time stamp to " << first_TimeStamp;
       //  first_FirstSample = FirstSample;
       //  first_TimeStamp = TimeStamp;
       //  first_InternalSample = InternalSample;
       //  first_InternalTimeStamp = InternalTimeStamp;
       // }
             
-      mf::LogDebug("SSPToOffline")
+      mf::LogDebug("DAQToOffline")
 	<< "Header:                             " << daqHeader->header   << "\n"
 	<< "Length:                             " << daqHeader->length   << "\n"
 	<< "Trigger type:                       " << ((daqHeader->group1 & 0xFF00) >> 8) << "\n"
