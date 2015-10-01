@@ -191,14 +191,6 @@
    <fraction n="0.00934" ref="argon"/>
   </material>
 
-
-  <!-- preliminary values -->
-  <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
-   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="0.5"   ref="Air"/>
-  </material>
-
   <material formula=" " name="G10">
    <D value="1.7" unit="g/cc"/>
    <fraction n="0.2805" ref="silicon"/>
@@ -281,6 +273,13 @@
    <fraction n="0.080" ref="hydrogen"/>
   </material>
 
+  <!-- preliminary values -->
+  <material name="AirSteelMixture" formula="AirSteelMixture">
+   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
+   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="0.5"   ref="Air"/>
+  </material>
+
 </materials>
 <solids>
     <box name="Inner" lunit="cm" 
@@ -298,7 +297,7 @@
     <box name="InnerZPlane" lunit="cm" 
       x="0.015" 
       y="598.39" 
-      z="114.585"/>
+      z="229.455"/>
     <box name="InnerActive" lunit="cm"
       x="359.415"
       y="600.01875"
@@ -326,7 +325,7 @@
     <box name="OuterZPlane" lunit="cm" 
       x="0.015" 
       y="598.39" 
-      z="114.585"/>
+      z="229.455"/>
     <box name="OuterActive" lunit="cm"
       x="15.015"
       y="600.01875"
