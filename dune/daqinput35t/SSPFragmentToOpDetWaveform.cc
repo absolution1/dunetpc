@@ -1,8 +1,10 @@
-
+// -*- mode: c++; c-basic-offset: 2; -*-
 // art includes
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Principal/Event.h"
+#include "cetlib/search_path.h"
+#include <fstream>
 
 // lbnecode/daqinput35t includes
 
@@ -19,7 +21,7 @@
 // NOvAClockFrequency is in MHz.
 
 std::vector<raw::OpDetWaveform>
-DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, const double NOvAClockFrequency)
+DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, const double NOvAClockFrequency, std::map<int,int> theChannelMap)
 {
   std::vector<raw::OpDetWaveform> opDetWaveformVector;
 
@@ -30,7 +32,7 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
 
     lbne::SSPFragment sspf(frag);
 
-    mf::LogDebug("SSPToOffline") << "\n"
+    mf::LogDebug("DAQToOffline") << "\n"
 				 << "SSP fragment "     << frag.fragmentID() 
 				 << " has total size: " << sspf.hdr_event_size()
 				 << " and run number: " << sspf.hdr_run_number()
@@ -41,36 +43,36 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
     const SSPDAQ::MillisliceHeader* meta=0;
     //get the information from the header
     if(frag.hasMetadata())
-      {
+    {
 	meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);
             
-	mf::LogInfo("SSPToOffline")
+	mf::LogInfo("DAQToOffline")
 	  << "===Slice metadata====" << "\n"
 	  << "  Start time         " << meta->startTime << "\n"
 	  << "  End time           " << meta->endTime << "\n"
 	  << "  Packet length      " << meta->length << "\n"
 	  << "  Number of triggers " << meta->nTriggers << "\n"
 	  << "=====================";
-      }
+    }
     else
-      {
-	mf::LogWarning("SSPToOffline") << "SSP fragment has no metadata associated with it.";
-      }
+    {
+	mf::LogWarning("DAQToOffline") << "SSP fragment has no metadata associated with it.";
+    }
 
       
     const unsigned int* dataPointer = sspf.dataBegin();
 
         
-    unsigned int triggersProcessed=0;
-    while((meta==0||triggersProcessed<meta->nTriggers)&&dataPointer<sspf.dataEnd()) {
-
+    for (unsigned int triggersProcessed = 0;
+         (meta==0 || triggersProcessed < meta->nTriggers) && dataPointer < sspf.dataEnd();
+         ++triggersProcessed) {
       //
       // The elements of the OpDet Pulse
       //
-      unsigned short     OpChannel = -1;     ///< channel in the readout
-      unsigned long      FirstSample = 0;    ///< first sample time in ticks
-      unsigned long      InternalSample = 0;    ///< first sample time in ticks
-      double             TimeStamp = 0.0;    ///< first sample time in microseconds
+      unsigned short     OpChannel = -1;       ///< Derived Optical channel
+      unsigned long      FirstSample = 0;      ///< first sample time in ticks
+      unsigned long      InternalSample = 0;   ///< first sample time in ticks
+      double             TimeStamp = 0.0;      ///< first sample time in microseconds
       double             InternalTimeStamp = 0.0;
         
 
@@ -84,8 +86,22 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
       }
 
       // Extract values we need for the data product
-      OpChannel = ((daqHeader->group2 & 0x000F) >> 0);
-            
+      if ( theChannelMap.size() == 0) {
+        // No channel map, default to debugging map
+        int HardwareChannel = ((daqHeader->group2 & 0x000F) >> 0); // Channel Number
+        int SSPNumber       = ((daqHeader->group2 & 0x00F0) >> 4); // Module Number
+        OpChannel = 100*SSPNumber + HardwareChannel;
+      }
+      else if ( theChannelMap.find(daqHeader->group2) != theChannelMap.end() ) {
+        OpChannel = theChannelMap[daqHeader->group2];
+      }
+      else {
+        int HardwareChannel = ((daqHeader->group2 & 0x000F) >> 0); // Channel Number
+        int SSPNumber       = ((daqHeader->group2 & 0x00F0) >> 4); // Module Number
+        mf::LogWarning("DAQToOffline") << "SSP " << SSPNumber << " Channel " << HardwareChannel << " not in the map (OK for uninstrumented channels), skipping." << std::endl;
+        continue;
+      }
+      
       FirstSample = ( ( (unsigned long)daqHeader->timestamp[3] << 48 )
 		      + ( (unsigned long)daqHeader->timestamp[2] << 32 )
 		      + ( (unsigned long)daqHeader->timestamp[1] << 16 )
@@ -99,14 +115,14 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
       InternalTimeStamp = ((double)InternalSample)/NOvAClockFrequency;
 
       //if (first_FirstSample < 0) {
-      //  mf::LogInfo("SSPToOffline") << "Reset first time stamp to " << first_TimeStamp;
+      //  mf::LogInfo("DAQToOffline") << "Reset first time stamp to " << first_TimeStamp;
       //  first_FirstSample = FirstSample;
       //  first_TimeStamp = TimeStamp;
       //  first_InternalSample = InternalSample;
       //  first_InternalTimeStamp = InternalTimeStamp;
       // }
             
-      mf::LogDebug("SSPToOffline")
+      mf::LogDebug("DAQToOffline")
 	<< "Header:                             " << daqHeader->header   << "\n"
 	<< "Length:                             " << daqHeader->length   << "\n"
 	<< "Trigger type:                       " << ((daqHeader->group1 & 0xFF00) >> 8) << "\n"
@@ -155,9 +171,41 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
 
       opDetWaveformVector.emplace_back( std::move(Waveform) );
       dataPointer+=nADC/2;
-      ++triggersProcessed;
     } // End of loop over triggers
   } // End of loop over fragments (rawFragments)
 
   return opDetWaveformVector;
 }
+
+
+
+void DAQToOffline::BuildChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap)
+{
+    theChannelMap.clear();
+
+    int onlineChannel;
+    int offlineChannel;
+    
+    std::string fullname;
+    cet::search_path sp("FW_SEARCH_PATH");
+    sp.find_file(fChannelMapFile, fullname);
+    
+    if ( fullname.empty() ) {
+      mf::LogWarning("DAQToOffline") << "Input spectrum file "
+                                        << fChannelMapFile
+                                        << " not found in FW_SEARCH_PATH, using debugging map!\n";
+    } 
+    else {
+      mf::LogVerbatim("DAQToOffline") << "Build Online->Offline channel Map from " << fullname;
+      std::ifstream infile(fullname);
+      while (infile.good()) {
+        infile >> onlineChannel >> offlineChannel;
+        theChannelMap[onlineChannel] = offlineChannel;
+        mf::LogVerbatim("DAQToOffline") << "   " << onlineChannel << " -> " << offlineChannel;
+      }
+    }
+    
+}
+
+
+

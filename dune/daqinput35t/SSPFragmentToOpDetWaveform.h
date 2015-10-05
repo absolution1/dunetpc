@@ -12,6 +12,7 @@
 //lbnecode/daqinput35t includes
 #include "utilities/UnpackFragment.h"
 #include <vector>
+#include <map>
 
 namespace DAQToOffline {
 
@@ -20,7 +21,9 @@ namespace DAQToOffline {
   // checked.
 
   std::vector<raw::OpDetWaveform>
-    SSPFragmentToOpDetWaveform(artdaq::Fragments const& raw, const double NOvAClockFrequency);
+    SSPFragmentToOpDetWaveform(artdaq::Fragments const& raw, const double NOvAClockFrequency, const std::map<int,int> theChannelMap);
+
+  void BuildChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap);
 
 }
 #endif

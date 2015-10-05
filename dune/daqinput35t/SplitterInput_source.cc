@@ -58,29 +58,28 @@ using std::string;
 //==========================================================================
 
 namespace {
-
+  
   struct LoadedWaveforms {
-
+    
     LoadedWaveforms() : waveforms() {}
     vector<OpDetWaveform> waveforms;
-
+    
     void load( vector<OpDetWaveform> const & v ) {
       waveforms = v;
     }
-
+    
     // not really used 
-    bool empty() const 
-    { 
+    bool empty() const { 
       if (waveforms.size() == 0) return true;
       return false;
     }
-
+    
     // split the waveforms and add the pieces that overlap the first_timestamp and last_timestamp
     // range onto the wbo vector of OpDetWaveforms
     // note -- the OpDetWaveform timestamp is a double  -- while the RCE timestamp is a uint64_t
     // TODO -- figure out how to convert them.  Offsets?  In the MC, all the t0's are zero so far. 
     // maybe use the nova clock frequency which is input.
-
+    
     // may need this.
    // Obtaining parameters from the TimeService
     //art::ServiceHandle< util::TimeService > timeService;
@@ -91,76 +90,80 @@ namespace {
 		     lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
 		     unsigned int novaticksperssptick)
     {
-      for (auto wf : waveforms) // see if any waveforms have pieces inside this TPC boundary
-	{
-	  raw::TimeStamp_t tsbeg = wf.TimeStamp();  // is this a nova timestamp?
-	  raw::TimeStamp_t tsend = tsbeg + wf.size()*novaticksperssptick;
-	  if (tsbeg < last_timestamp && tsend > first_timestamp)
-	    {
-	      raw::TimeStamp_t fts = first_timestamp;
-	      raw::TimeStamp_t lts = last_timestamp;  // TODO convert these nova timestamps to OpDetWaveform timestamps
-
-	      raw::TimeStamp_t tbw = std::max(tsbeg,fts);
-	      raw::TimeStamp_t tew = std::min(tsend,lts);
-
-	      int ifirst = (tbw - tsbeg)/((double) novaticksperssptick); // may need the SSP sample frequency instead.
-	      int ilast = (tew - tsbeg)/((double) novaticksperssptick); // may need the SSP sample frequency instead.
-	      int nsamples = ilast - ifirst + 1;
-	      raw::Channel_t channel = wf.ChannelNumber();
-	      raw::OpDetWaveform odw(tbw,channel,nsamples);
-	      for (int i=ifirst; i<=ilast; i++)
-		{
-		  odw.emplace_back(wf[i]);
-		}
-	      wbo.emplace_back(std::move(odw));  
-	    }
-
+      std::cout << "Now in findinrange, wbo has size " << wbo.size() << std::endl;
+      double lowest, highest, averagelow, averagehigh;
+      highest = averagelow = averagehigh = 0;
+      lowest = 1e7;
+      for (auto wf : waveforms) { // see if any waveforms have pieces inside this TPC boundary
+	raw::TimeStamp_t tsbeg = wf.TimeStamp();  // is this a nova timestamp?
+	raw::TimeStamp_t tsend = tsbeg + wf.size()*novaticksperssptick;
+	//std::cout << (int)tsbeg << " " << (int)tsend << " ... " << (int)first_timestamp << " " << (int)last_timestamp << std::endl;
+	if (tsbeg < last_timestamp && tsend > first_timestamp) {
+	  if ( tsbeg < lowest ) lowest = tsbeg;
+	  if ( tsend > highest ) highest = tsend;
+	  averagelow += tsbeg;
+	  averagehigh += tsend;
+	  //std::cout << "Correct ordering" << std::endl;
+	  raw::TimeStamp_t fts = first_timestamp;
+	  raw::TimeStamp_t lts = last_timestamp;  // TODO convert these nova timestamps to OpDetWaveform timestamps
+	  
+	  raw::TimeStamp_t tbw = std::max(tsbeg,fts);
+	  raw::TimeStamp_t tew = std::min(tsend,lts);
+	  
+	  int ifirst = (tbw - tsbeg)/((double) novaticksperssptick); // may need the SSP sample frequency instead.
+	  int ilast = (tew - tsbeg)/((double) novaticksperssptick); // may need the SSP sample frequency instead.
+	  int nsamples = ilast - ifirst + 1;
+	  raw::Channel_t channel = wf.ChannelNumber();
+	  raw::OpDetWaveform odw(tbw,channel,nsamples);
+	  for (int i=ifirst; i<=ilast; i++) {
+	    odw.emplace_back(wf[i]);
+	  }
+	  wbo.emplace_back(std::move(odw));  
 	}
-    }
-  };
-
-
+	
+      } // auto waveforms
+      averagelow = averagelow / waveforms.size();
+      averagehigh = averagehigh / waveforms.size();
+      std::cout << lowest << " " <<  highest << " " <<  averagelow << " " <<  averagehigh << " ... " << first_timestamp << " " << last_timestamp << std::endl;
+    } // findinrange
+  }; // Loaded Waveforms
+  
   struct LoadedDigits {
-
+    
     LoadedDigits() : digits(), index(), firstTimestamp(0) {}
-
+    
     vector<RawDigit> digits;
     size_t index;
     lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp; // timestamp of the first nanoslice in the digits vector
-
-    void loadTimestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t ts)
-    {
+    
+    void loadTimestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t ts) {
       firstTimestamp = ts;
     }
-
+    
     // copy rawdigits to LoadedDigits and uncompress if necessary.  
 
     void load( vector<RawDigit> const & v ) {
-      if (v.size() == 0 || v.back().Compression() == raw::kNone)
-	{ 
-	  digits = v; 
+      if (v.size() == 0 || v.back().Compression() == raw::kNone) {
+	digits = v;
+      }
+      else {
+	// make a new raw::RawDigit object for each compressed one
+	// to think about optimization -- two copies of the uncompressed raw digits here.
+	digits = std::vector<RawDigit>();
+	for (auto idigit = v.begin(); idigit != v.end(); ++idigit) {
+	  std::vector<short> uncompressed;
+	  raw::Uncompress(idigit->ADCs(),uncompressed,idigit->Compression());
+	  raw::RawDigit digit(idigit->Channel(),
+			      idigit->Samples(),
+			      uncompressed,
+			      raw::kNone);
+	  digits.push_back(digit);
 	}
-      else
-	{
-	  // make a new raw::RawDigit object for each compressed one
-	  // to think about optimization -- two copies of the uncompressed raw digits here.
-	  digits = std::vector<RawDigit>();
-          for (auto idigit = v.begin(); idigit != v.end(); ++idigit)
-	    {
-	       std::vector<short> uncompressed;
-	       raw::Uncompress(idigit->ADCs(),uncompressed,idigit->Compression());
-	       raw::RawDigit digit(idigit->Channel(),
-				   idigit->Samples(),
-				   uncompressed,
-				   raw::kNone);
-	       digits.push_back(digit);
-	    }
-	}
+      }
       index = 0ul;
-    }
-
-    bool empty() const 
-    { 
+    } // load
+    
+    bool empty() const {
       //std::cout << "Checking if loaded digits is empty" << std::endl;
       //std::cout << "Number of rawdigits: " << digits.size() << std::endl;
       if (digits.size() == 0) return true;
@@ -168,27 +171,26 @@ namespace {
       if (digits[0].Samples() == 0) return true;
       if (index >= digits[0].Samples()) return true; 
       return false;
-    }
+    } // empty
 
     // returns a vector of ADC values for each channel for the next index.
-
+    
     RawDigit::ADCvector_t next() {
       ++index;
       RawDigit::ADCvector_t digitsatindex;
-      for (size_t ichan=0; ichan<digits.size(); ichan++)
-	{
-	  digitsatindex.push_back(digits[ichan].ADC(index-1));
-	}
+      for (size_t ichan=0; ichan<digits.size(); ichan++) {
+	digitsatindex.push_back(digits[ichan].ADC(index-1));
+      }
       return digitsatindex;
     }
-
-    lbne::TpcNanoSlice::Header::nova_timestamp_t getTimeStampAtIndex(size_t index_local, unsigned int novatickspertpctick)
+    
+    lbne::TpcNanoSlice::Header::nova_timestamp_t getTimeStampAtIndex(size_t index_local, double novatickspertpctick)
     {
       return firstTimestamp + index_local*novatickspertpctick;
     }
-
+    
   };
-
+  
   // Retrieves branch name (a la art convention) where object resides
   const char* getBranchName( art::InputTag const & tag, const string inputDataProduct )
   {
@@ -232,7 +234,7 @@ namespace {
 //==========================================================================
 
 namespace raw {
-
+  
   // Enable 'pset.get<raw::Compress_t>("compression")'
   void decode (boost::any const & a, Compress_t & result ){
     unsigned tmp;
@@ -243,8 +245,7 @@ namespace raw {
 
 //==========================================================================
 
-namespace DAQToOffline
-{
+namespace DAQToOffline {
   // The class Splitter is to be used as the template parameter for
   // art::Source<T>. It understands how to read art's ROOT data files,
   // to extract artdaq::Fragments from them, how to convert the
@@ -254,31 +255,30 @@ namespace DAQToOffline
   // the user of the art::Source<Splitter> with a sequence of
   // art::Events that have the desired event structure, different from
   // the event structure of the data file(s) being read.
-
-  class Splitter
-  {
+  
+  class Splitter {
   public:
     Splitter(fhicl::ParameterSet const& ps,
              art::ProductRegistryHelper& prh,
              art::SourceHelper& sh);
-
+    
     // See art/Framework/IO/Sources/Source.h for a description of each
     // of the public member functions of Splitter.
     bool readFile(string const& filename, art::FileBlock*& fb);
-
+    
     bool readNext(art::RunPrincipal* const& inR,
                   art::SubRunPrincipal* const& inSR,
                   art::RunPrincipal*& outR,
                   art::SubRunPrincipal*& outSR,
                   art::EventPrincipal*& outE);
-
+    
     void closeCurrentFile();
-
+    
   private:
-
+    
     using rawDigits_t = vector<RawDigit>;
     using SSPWaveforms_t = vector<OpDetWaveform>;
-
+    
     string                 sourceName_;
     string                 lastFileName_;
     std::unique_ptr<TFile> file_;
@@ -290,6 +290,7 @@ namespace DAQToOffline
     string                 SSPinputDataProduct_;
     string                 PenninputDataProduct_;
     double                 fNOvAClockFrequency; // MHz
+    string                 fOpDetChannelMapFile;
     art::SourceHelper      sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SSPinputBranch_;
@@ -313,6 +314,8 @@ namespace DAQToOffline
     SSPWaveforms_t         wbuf_;
     unsigned short         fTicksAccumulated;
 
+    std::map<int,int>      OpDetChannelMap;
+
     std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t& )> fragmentsToDigits_;
 
     bool eventIsFull_(rawDigits_t const & v);
@@ -324,7 +327,7 @@ namespace DAQToOffline
     art::EventAuxiliary    evAux_;
     art::EventAuxiliary*   pevaux_;
 
-    unsigned int novatickspertpctick_;
+    double novatickspertpctick_;
     unsigned int novaticksperssptick_;
   };
 }
@@ -343,8 +346,9 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   PenninputTag_(ps.get<string>("PennInputTag")), // "moduleLabel:instance:processName"
   TPCinputDataProduct_(ps.get<string>("TPCInputDataProduct")),
   SSPinputDataProduct_(ps.get<string>("SSPInputDataProduct")),
-  PenninputDataProduct_(ps.get<string>("SSPInputDataProduct")),
+  PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
+  fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -370,24 +374,25 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
                                  ps.get<unsigned>("zeroThreshold",0) ) ),
-  novatickspertpctick_(ps.get<unsigned int>("novatickspertpctick",32)),
-  novaticksperssptick_(ps.get<unsigned int>("novatickspertpctick",1))
+  novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
+  novaticksperssptick_(ps.get<unsigned int>("novaticksperssptick",1))
 {
   // Will use same instance names for the outgoing products as for the
   // incoming ones.
   prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, TPCinputTag_.instance() );
   prh.reconstitutes<SSPWaveforms_t,art::InEvent>( sourceName_, SSPinputTag_.instance() );
+
+  BuildChannelMap(fOpDetChannelMapFile, OpDetChannelMap);
 }
 
 //=======================================================================================
 bool
-DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb)
-{
-
+DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb) {
+  
   // Get fragments branches
   file_.reset( new TFile(filename.data()) );
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
-
+  
   TPCinputBranch_ = evtree->GetBranch( getBranchName(TPCinputTag_, TPCinputDataProduct_ ) ); // get branch for TPC input tag
   SSPinputBranch_ = evtree->GetBranch( getBranchName(SSPinputTag_, SSPinputDataProduct_ ) ); // get branch for SSP input tag
   PenninputBranch_ = evtree->GetBranch( getBranchName(PenninputTag_, PenninputDataProduct_ ) ); // get branch for Penn Board input tag
@@ -420,9 +425,7 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
                                  art::SubRunPrincipal* const& inSR,
                                  art::RunPrincipal*    & outR,
                                  art::SubRunPrincipal* & outSR,
-                                 art::EventPrincipal*  & outE)
-{
-
+                                 art::EventPrincipal*  & outE) {
   if ( doneWithFiles_ ) {
     return false;
   }
@@ -430,148 +433,156 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 
   lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp=0;
   lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp=0;
+  bool first_tick = true; // The earliest time in this new split event, so want to calculate time of this
+                          // for use with first_timestamp variable only!
 
   while ( fTicksAccumulated < ticksPerEvent_ ) {
     
     // check to see if we are out of RawDigits in the input record and load another event from the DAQ
     // at the same time, buffer the waveforms that have accumulated.  We'll have to do that again when
     // we're done with the loop over RCE ticks.  Reason -- the waveforms will get discarded by loadDigits_
+    
+    //std::cout << "Have collected " << fTicksAccumulated << " ticks, want a total of " << ticksPerEvent_ << std::endl;
 
-    while (loadedDigits_.empty())
-      {
-	loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
-
-	bool rc = loadDigits_();
-	if (!rc)
-	  {
-	    doneWithFiles_ = (file_->GetName() == lastFileName_);
-	    return false;
-	  }
+    while (loadedDigits_.empty()) {
+      first_tick = true; // Just loaded in new event, so want to reset first_timestamp...doesn't effect previous loaded event.
+      loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
+      std::cout << "Loaded digits is empty...wbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
+      bool rc = loadDigits_();
+      if (!rc) {
+	doneWithFiles_ = (file_->GetName() == lastFileName_);
+	return false;
       }
-
-    if (first_timestamp == 0) first_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
-    last_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
-
-    std::vector<short> nextdigits = loadedDigits_.next(); 
-    if (dbuf_.size() == 0)
-      {
-	RawDigit::ADCvector_t emptyvector; 
-	for (size_t ichan=0;ichan<nextdigits.size();ichan++) dbuf_.push_back(emptyvector);
-      }
-    for (size_t ichan=0;ichan<nextdigits.size();ichan++)
-      {
-	dbuf_[ichan].push_back(nextdigits[ichan]);
-      }
-    fTicksAccumulated ++;
-  }
-  loadedWaveforms_.findinrange(wbuf_, first_timestamp,last_timestamp,novaticksperssptick_);
-
-  // copy all the RCE info (channel number, digits, pedestal, sigma, compression) from dbuf into output RawDigits.
-
-  for (size_t ichan=0;ichan<dbuf_.size();ichan++)
-    {
-      RawDigit d(loadedDigits_.digits[ichan].Channel(),
-                 fTicksAccumulated,dbuf_[ichan],
-                 loadedDigits_.digits[ichan].Compression());
-      d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
-                    loadedDigits_.digits[ichan].GetSigma());
-      bufferedDigits_.emplace_back(d);
     }
-
+    //std::cout << "Looking at loaded digits index " << loadedDigits_.index << std::endl;
+    if (first_tick) // First tick in split event and/or first tick in newly loaded event.
+      first_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_); first_tick = false;
+    last_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
+    //std::cout << "last_timestamp = " << last_timestamp << " = " << first_timestamp << " + " << loadedDigits_.index << " * " << novatickspertpctick_ << std::endl;
+    
+    //std::cout << "First timestamp " << first_timestamp << " and last " << last_timestamp << std::endl;
+    
+    std::vector<short> nextdigits = loadedDigits_.next(); 
+    if (dbuf_.size() == 0) {
+      RawDigit::ADCvector_t emptyvector;
+      for (size_t ichan=0;ichan<nextdigits.size();ichan++) dbuf_.push_back(emptyvector);
+    }
+    for (size_t ichan=0;ichan<nextdigits.size();ichan++) {
+      //if (nextdigits[ichan] != 0 ) std::cout << "Pushing back digit for each channel...now at " << ichan << " of " << nextdigits.size() << " it has value " << nextdigits[ichan] << std::endl;
+      dbuf_[ichan].push_back(nextdigits[ichan]);
+    }
+    fTicksAccumulated ++;
+  } // while ticks accumulated < ticksperEvent
+  
+  std::cout << "Got eneough ticks now check...wbuf_ has size " << wbuf_.size() << " " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
+  loadedWaveforms_.findinrange(wbuf_, first_timestamp,last_timestamp,novaticksperssptick_);
+  std::cout << "What did we get from checking...wbuf_ has size " << wbuf_.size() << " " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
+  
+  // copy all the RCE info (channel number, digits, pedestal, sigma, compression) from dbuf into output RawDigits.
+  
+  std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
+  for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
+    RawDigit d(loadedDigits_.digits[ichan].Channel(),
+	       fTicksAccumulated,dbuf_[ichan]
+	       //,loadedDigits_.digits[ichan].Compression()
+	       );
+    d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
+		  loadedDigits_.digits[ichan].GetSigma());
+    bufferedDigits_.emplace_back(d);
+  }
+  
   runNumber_ = inputRunNumber_;
   subRunNumber_ = inputSubRunNumber_;
-
+  
   art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
-  if ( runNumber_ != cachedRunNumber_ ){
+  if ( runNumber_ != cachedRunNumber_ ) {
     outR = sh_.makeRunPrincipal(runNumber_,ts);
     cachedRunNumber_ = runNumber_;
     eventNumber_ = 0ul;
   }
-
+  
   if ( subRunNumber_ != cachedSubRunNumber_ ) {
     outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
     cachedSubRunNumber_ = subRunNumber_;
     eventNumber_ = 0ul;
   }
-
+  
   makeEventAndPutDigits_( outE );
   return true;
-
-}
+  
+} // read next
 
 //=======================================================================================
 void
-DAQToOffline::Splitter::closeCurrentFile()
-{
+DAQToOffline::Splitter::closeCurrentFile() {
   file_.reset(nullptr);
 }
 
 //=======================================================================================
 bool
-DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v )
-{
+DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v ) {
   return v.size() == ticksPerEvent_;
 }
 
 //=======================================================================================
 bool
-DAQToOffline::Splitter::loadDigits_()
-{
+DAQToOffline::Splitter::loadDigits_() {
+  std::cout << "Loading digits. treeIndex_ = " << treeIndex_ << ", nInputEvents = " << nInputEvts_ << std::endl;
   if ( loadedDigits_.empty() && treeIndex_ != nInputEvts_ ) {
-
+    std::cout << "Digits is empty and treeIndex != nInputEvents" << std::endl;
+    
     EventAuxBranch_->GetEntry(treeIndex_);
     inputRunNumber_ = evAux_.run();
     inputSubRunNumber_ = evAux_.subRun();
     inputEventNumber_ = evAux_.event();
-
-    if (TPCinputDataProduct_.find("Fragment") != std::string::npos)
-      {
-        lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
-        auto* fragments = getFragments( TPCinputBranch_, treeIndex_ );
-        rawDigits_t const digits = fragmentsToDigits_( *fragments, firstTimestamp );
-        loadedDigits_.load( digits );
-	loadedDigits_.loadTimestamp( firstTimestamp );
-	std::cout << "RCE Fragment First Timestamp: " << firstTimestamp << std::endl;
+    
+    if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
+      lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
+      auto* fragments = getFragments( TPCinputBranch_, treeIndex_ );
+      rawDigits_t const digits = fragmentsToDigits_( *fragments, firstTimestamp );
+      loadedDigits_.load( digits );
+      loadedDigits_.loadTimestamp( firstTimestamp );
+      std::cout << "RCE Fragment First Timestamp: " << firstTimestamp << std::endl;
+    }
+    else {
+      auto* digits = getRawDigits(TPCinputBranch_, treeIndex_ );
+      loadedDigits_.load( *digits);
+      loadedDigits_.loadTimestamp(0); // MC timestamp is zero (? assume?)
+      std::cout << "Loaded MC time stamp" << std::endl;
+    }
+    
+    if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
+      std::cout << "Loading data waveform" << std::endl;
+      auto* SSPfragments = getFragments( SSPinputBranch_, treeIndex_ );
+      std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency, OpDetChannelMap);
+      std::cout << "waveforms has size " << waveforms.size() << std::endl;
+      for (auto waveform: waveforms) {
+	std::cout << "OpDetWaveform Timestamp: " << waveform.TimeStamp() << std::endl;
       }
-    else
-      {
-	auto* digits = getRawDigits(TPCinputBranch_, treeIndex_ );
-	loadedDigits_.load( *digits);
-	loadedDigits_.loadTimestamp(0); // MC timestamp is zero (? assume?)
-
-      }
-
-    if (SSPinputDataProduct_.find("Fragment") != std::string::npos)
-      {
-        auto* SSPfragments = getFragments( SSPinputBranch_, treeIndex_ );
-        std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency);
-	for (auto waveform: waveforms)
-	  {
-	    std::cout << "OpDetWaveform Timestamp: " << waveform.TimeStamp() << std::endl;
-	  }
-        loadedWaveforms_.load( waveforms );
-      }
-    else
-      {
-	auto* waveforms = getSSPWaveforms(SSPinputBranch_, treeIndex_ );
-        loadedWaveforms_.load( *waveforms );
-      }
-
+      loadedWaveforms_.load( waveforms );
+    }
+    else {
+      std::cout << "Loading MC waveform" << std::endl;
+      auto* waveforms = getSSPWaveforms(SSPinputBranch_, treeIndex_ );
+      std::cout << "waveforms has size " << waveforms->size() << std::endl;
+      loadedWaveforms_.load( *waveforms );
+    }
+    
     treeIndex_++;
-
+    
     return true;
   }
   else return false;
-}
+} // load digits
 
 //=======================================================================================
 void
-DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE){
-
+DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE) {
+  
   // just keep incrementing the event number as we split along
-
+  
   ++eventNumber_;
-
+  
   outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, art::Timestamp() );
   art::put_product_in_principal( std::make_unique<rawDigits_t>(bufferedDigits_),
                                  *outE,

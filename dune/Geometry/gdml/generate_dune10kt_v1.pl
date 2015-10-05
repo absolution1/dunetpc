@@ -109,7 +109,7 @@ if($Pitch3mmVersion==1){
     $UWirePitch         =   0.3;
     $VWirePitch         =   0.3;
     $XWirePitch         =   0.3;
-    $nZChannelsPerAPA   =   229.44/0.3 + 1;
+    $nZChannelsPerAPA   =   2*(229.44/0.3 + 1);
 }
 
 # dune10kt ~45 deg UV wires version

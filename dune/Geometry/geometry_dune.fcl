@@ -64,10 +64,10 @@ dune10kt_45deg_workspace_geo.Name: "dune10kt_v1_45deg_workspace"
 dune10kt_45deg_workspace_geo.GDML: "dune10kt_v1_45deg_workspace.gdml"
 dune10kt_45deg_workspace_geo.ROOT: "dune10kt_v1_45deg_workspace.gdml"
 
-dune10kt_3mmPitch_workspace_geo: @local::dune10kt_geo
-dune10kt_3mmPitch_workspace_geo.Name: "dune10kt_v1_3mmPitch_workspace"
-dune10kt_3mmPitch_workspace_geo.GDML: "dune10kt_v1_3mmPitch_workspace.gdml"
-dune10kt_3mmPitch_workspace_geo.ROOT: "dune10kt_v1_3mmPitch_workspace.gdml"
+dune10kt_3mmpitch_workspace_geo: @local::dune10kt_geo
+dune10kt_3mmpitch_workspace_geo.Name: "dune10kt_v1_3mmpitch_workspace"
+dune10kt_3mmpitch_workspace_geo.GDML: "dune10kt_v1_3mmpitch_workspace.gdml"
+dune10kt_3mmpitch_workspace_geo.ROOT: "dune10kt_v1_3mmpitch_workspace.gdml"
 
 protoDune_geo: @local::dune10kt_geo
 protoDune_geo.Name: "protodune" # will be made lower case anyway
