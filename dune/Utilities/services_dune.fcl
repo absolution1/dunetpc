@@ -13,6 +13,7 @@
 #include "photpropservices_dune.fcl"
 #include "sam_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
+#include "channelstatus_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -36,6 +37,7 @@ dunefd_services:
  BackTracker:                  @local::dunefd_backtracker
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
+ IChannelStatusService:        @local::channel_filter_dunefd
 }
 
 dunefd_simulation_services:
@@ -54,6 +56,7 @@ dunefd_simulation_services:
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
+ IChannelStatusService:        @local::channel_filter_dunefd
 }
 
 
@@ -92,6 +95,7 @@ protodune_services:
  BackTracker:                  @local::dunefd_backtracker
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
+ 
 }
 
 protodune_simulation_services:
@@ -145,6 +149,7 @@ dune35t_basic_services:
  LArProperties:                @local::dune35t_properties
  DatabaseUtil:                 @local::dune35t_database
  SeedService:                  @local::dune_seedservice
+ IChannelStatusService:        @local::channel_filter_dune35t
 }
 
 dune35t_services:              @local::dune35t_basic_services

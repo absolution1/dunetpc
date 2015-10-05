@@ -1,0 +1,31 @@
+#
+# Channel filter service configuration for DUNE
+#
+#
+BEGIN_PROLOG
+
+channel_filter_dune35t: {
+  # implements IChannelStatusService
+  service_provider: SimpleChannelFilterService
+
+  # list of bad channels:
+  BadChannels:   []
+
+  # list of bad noisy channels:
+  NoisyChannels: []
+
+} # channel_filter_dune35t
+
+channel_filter_dunefd: {
+  # implements IChannelStatusService
+  service_provider: SimpleChannelFilterService
+
+  # list of bad channels:
+  BadChannels:   []
+
+  # list of bad noisy channels:
+  NoisyChannels: []
+
+} # channel_filter_dune35t
+
+END_PROLOG

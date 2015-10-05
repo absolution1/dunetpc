@@ -1,11 +1,11 @@
-#include "services_lbne.fcl"
+#include "services_dune.fcl"
 #include "SSPToOffline.fcl"
 
 
 process_name: RunSSPToOffline
 
 services : {
-  user:         @local::lbne35t_services
+  user:         @local::dune35t_services
   Timing:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
