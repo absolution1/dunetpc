@@ -240,7 +240,7 @@ namespace {
 	int ii = 0;
 	for (auto icounter = v.begin(); icounter != v.end(); ++icounter) {
 	  std::vector<short> uncompressed;
-	  std::cout << "Looking at " << ii << " in the event out of " << v.size() << ". It had TrigID " << icounter->GetTrigID() << " and TrigTime " <<  icounter->GetTrigTime() << ", is now being added to counters." << std::endl;
+	  //std::cout << "Looking at " << ii << " in the event out of " << v.size() << ". It had TrigID " << icounter->GetTrigID() << " and TrigTime " <<  icounter->GetTrigTime() << ", is now being added to counters." << std::endl;
 	  raw::ExternalTrigger counter(icounter->GetTrigID(),
 				       icounter->GetTrigTime() );
 	  counters.push_back(counter);
@@ -254,6 +254,30 @@ namespace {
     {
       return TrigTime/novatickspercounttick;
     }
+
+    void findinrange(std::vector<ExternalTrigger> &cbo,
+		     lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
+		     lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
+		     unsigned int novaticksperssptick)
+    {
+      std::cout << "\nNow in findinrange, cbo has size " << cbo.size() << std::endl;
+
+      int hh = 0; // Just want to write out the first few waveforms....Definitely get rid of this hh stuff!
+      for (auto count : counters) { // see if any waveforms have pieces inside this TPC boundary
+	unsigned int TimeStamp = count.GetTrigTime() / novaticksperssptick;
+	//if ( hh < 5 )  // Just want to look at first few waveforms.
+	std::cout << "Looking at muon counter " << count.GetTrigID() << ". It was at time " << count.GetTrigTime() << " corresponding to timestamp " << TimeStamp
+		  << ". The times I passed were " << first_timestamp << " and " << last_timestamp << std::endl;
+	++hh;
+	
+	if (TimeStamp <= (unsigned int)last_timestamp && TimeStamp >= (unsigned int)first_timestamp) {
+	  std::cout << "Got a muon counter within the time range!" << std::endl;
+	  raw::ExternalTrigger ET(count.GetTrigID(),
+				  count.GetTrigTime() );
+	  cbo.emplace_back(std::move(ET));
+	} // If within range
+      } // auto waveforms
+    } // findinrange
 
     //=======================================================================================
     bool CounterTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, double novatickspercounttick_ ) { // Triggering on muon counters
@@ -273,9 +297,8 @@ namespace {
 	  if ( count.GetTrigID() == 110 || // A list of all the 'special'
 	       count.GetTrigID() == 111 || // counter TrigID's
 	       count.GetTrigID() == 112 ||
-	       count.GetTrigID() == 113 ||
-	       1 ) {                       // And to just trigger if timestamps match
-	    std::cout << "Triggering on Muon counter " << count.GetTrigID() << " at TrigTime " << count.GetTrigTime() << " corresponding to TimeStamp " << EffecTimeStamp << std::endl;
+	       count.GetTrigID() == 113 ) {
+	    std::cout << "\nTriggering on Muon counter " << count.GetTrigID() << " at TrigTime " << count.GetTrigTime() << " corresponding to TimeStamp " << EffecTimeStamp << std::endl;
 	    return true;
 	  } // If a special TrigID
 	} // If timestamps match
@@ -413,6 +436,7 @@ namespace DAQToOffline {
     rawDigits_t            bufferedDigits_;
     std::vector<RawDigit::ADCvector_t>  dbuf_;
     SSPWaveforms_t         wbuf_;
+    PennCounters_t         cbuf_;
     unsigned short         fTicksAccumulated;
 
     bool                   fTrigger = false; 
@@ -447,6 +471,7 @@ namespace DAQToOffline {
     double fTimeStampThreshold_;
     int  fMCTrigLevel;
     int  fwhichTrigger;
+    int  fTrigSeparation;
   };
 }
 
@@ -485,24 +510,26 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   bufferedDigits_(),
   dbuf_(),
   wbuf_(),
+  cbuf_(),
   fTicksAccumulated(0),
   fragmentsToDigits_( std::bind( DAQToOffline::tpcFragmentToRawDigits,
                                  std::placeholders::_1, // artdaq::Fragments
                                  std::placeholders::_2, // lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
-                                 ps.get<unsigned>("zeroThreshold",0) ) ),
-  novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
+                                 ps.get<unsigned>("zeroThreshold",0) ) ),  novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
   novaticksperssptick_(ps.get<unsigned int>("novaticksperssptick",1)),
   novatickspercounttick_(ps.get<double>("novatickspercounttick",32)),
   fTimeStampThreshold_(ps.get<double>("TimeStampThreshold",5)),
   fMCTrigLevel(ps.get<int>("MCTrigLevel",10000)),
-  fwhichTrigger(ps.get<int>("whichTrigger",0))
+  fwhichTrigger(ps.get<int>("whichTrigger",0)),
+  fTrigSeparation(ps.get<int>("TrigSeparation",0))
 {
   // Will use same instance names for the outgoing products as for the
   // incoming ones.
   prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, TPCinputTag_.instance() );
   prh.reconstitutes<SSPWaveforms_t,art::InEvent>( sourceName_, SSPinputTag_.instance() );
+  prh.reconstitutes<PennCounters_t,art::InEvent>( sourceName_, PenninputTag_.instance() );
 
   BuildChannelMap(fOpDetChannelMapFile, OpDetChannelMap);
 }
@@ -554,7 +581,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   bool first_tick = true; // The earliest time in this new split event, so want to calculate time of this for use with first_timestamp variable only!
   bool NewTree;
   
-  std::cout << "\nAt the top of readNext....what do I increment here? " << fTicksAccumulated << " " << ticksPerEvent_ << " " << loadedDigits_.empty() << " " << wbuf_.size() << std::endl;
+  std::cout << "\nAt the top of readNext....what do I increment here? " << fTicksAccumulated << " " << ticksPerEvent_ << " " << loadedDigits_.empty() << " " << wbuf_.size() << " " << cbuf_.size() << std::endl;
   while ( fTicksAccumulated < ticksPerEvent_ ) {  
     ++fDiffFromLastTrig;
     /*
@@ -570,7 +597,11 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       std::cout << "Loaded digits is empty..." << std::endl;
       if ( fTrigger ) { // Want to load wbuf with end of last event, before loading new data.
 	loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
-	std::cout << "Loaded digits was empty, will be refilled...wbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
+	loadedCounters_.findinrange (cbuf_, first_timestamp, last_timestamp, novatickspercounttick_ );
+	std::cout << "Loaded digits was empty, will be refilled..."
+		  << "\nwbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_
+		  << "\ncbuf_ has size " << cbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novatickspercounttick_
+		  << std::endl;
       }
       bool rc = loadDigits_(treeIndex_);
       if (!rc) {
@@ -593,8 +624,14 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	*/
       }
       // ******* Check that the time stamps lead on from one another!! ***********
+      /*
       loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
-      std::cout << "Loaded digits no longer empty...wbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
+      loadedCounters_.findinrange (cbuf_, first_timestamp, last_timestamp, novatickspercounttick_ );
+      std::cout << "Loaded digits no longer empty..."
+		<< "\nwbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_
+		<< "\ncbuf_ has size " << cbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novatickspercounttick_
+		<< std::endl;
+      */
     } // loadedDigits_.empty()
     
     if (NewTree) std::cout << "Looking at treeIndex " << treeIndex_ << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex" << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
@@ -604,27 +641,34 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
     if ( fTicksAccumulated == 0 ) { 
-      if ( fwhichTrigger == 0 ) { // Trigger on Monte Carlo whichTrigger == 0
-	if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;  
-      }
-      else if ( fwhichTrigger == 1 ) // Trigger on Phton Detectors whichTrigger == 1
-	fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, this_timestamp, novaticksperssptick_ );
-      else if ( fwhichTrigger == 2 ) // Trigger on Muon Counters whichTrigger == 2
-	fTrigger = loadedCounters_.CounterTrigger( this_timestamp, novatickspercounttick_ );
-      
-      if ( fTrigger ) {
-      	fLastTriggerIndex = loadedDigits_.index;
-	fLastTreeIndex    = treeIndex_ -1;
-	fLastTimeStamp    = this_timestamp;
-	std::cout << "Should I trigger on index " << loadedDigits_.index << "?...."
-		  << "I've had " << fDiffFromLastTrig << " indexs since the last trigger, my threshold for triggering on Monte Carlo is " << fMCTrigLevel << ", Trigger is " << fTrigger << std::endl;
-      }
+      if ( treeIndex_ != fLastTreeIndex ) fLastTimeStamp = 0; // No longer looking at same treeIndex as previous trigger, so reset lastTimeStamp
+      if ( (int)this_timestamp - (int)fLastTimeStamp > fTrigSeparation) { // Don't want two triggers too close together!
+	// Trigger on Monte Carlo whichTrigger == 0
+	if ( fwhichTrigger == 0 ) {
+	  if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;
+	}
+	// Trigger on Phton Detectors whichTrigger == 1
+	else if ( fwhichTrigger == 1 )
+	  fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, this_timestamp, novaticksperssptick_ );
+	// Trigger on Muon Counters whichTrigger == 2
+	else if ( fwhichTrigger == 2 )
+	  fTrigger = loadedCounters_.CounterTrigger( this_timestamp, novatickspercounttick_ );
+	// Triggered!
+	if ( fTrigger ) {
+	  std::cout << "Triggering on timestamp " << (int)this_timestamp << ", last trigger was on " << (int)fLastTimeStamp << "...." << (int)this_timestamp - (int)fLastTimeStamp << std::endl;
+	  fLastTriggerIndex = loadedDigits_.index;
+	  fLastTreeIndex    = treeIndex_ -1;
+	  fLastTimeStamp    = this_timestamp;
+	  std::cout << "Should I trigger on index " << loadedDigits_.index << "?...."
+		    << "I've had " << fDiffFromLastTrig << " indexs since the last trigger, my threshold for triggering on Monte Carlo is " << fMCTrigLevel << ", Trigger is " << fTrigger << std::endl;
+	} //fTrigger
+      } // Triggers adequately separated
     } // if TickAccumulated == 0
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
     
     if ( fTrigger ) { // Have triggered!
       if (fTicksAccumulated == 0 ) std::cout << "\nTriggering on loadedDigits index " << loadedDigits_.index << std::endl;
-      // ************* Work out first and last SSP Timestamp for wbuf_ ************************
+      // ************* Work out first and last SSP Timestamp for wbuf_ and cbuf_ ************************
       if (first_tick) // First tick in split event and/or first tick in newly loaded event.
 	first_timestamp = this_timestamp; first_tick = false;
       last_timestamp = this_timestamp;
@@ -643,11 +687,13 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     // ************* Now Done for this tick ************************
   } // while ticks accumulated < ticksperEvent
   
-    // ************* Fill wbuf_ with the SSP information within time range ************************
+    // ************* Fill wbuf_ with the SSP information and cbuf_ with muon counter information within time range ************************
   std::cout << "Got eneough ticks now check...wbuf_ has size " << wbuf_.size() << " " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
   loadedWaveforms_.findinrange(wbuf_, first_timestamp,last_timestamp,novaticksperssptick_);
   std::cout << "What did we get from checking...wbuf_ has size " << wbuf_.size() << " " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
-  
+  std::cout << "Now to load in the muon counter information! cbuf size " << cbuf_.size() << " counterticks " << novatickspercounttick_ << std::endl;
+  loadedCounters_.findinrange(cbuf_, first_timestamp, last_timestamp, novatickspercounttick_ );
+  std::cout << "Now cbuf has size " << cbuf_.size() << std::endl;
   // copy all the RCE info (channel number, digits, pedestal, sigma, compression) from dbuf into output RawDigits.
   
   // ************* Fill dbuf_ with the RCE information for ticks collected ************************
@@ -692,6 +738,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     std::cout << loadedDigits_.empty() << std::endl;
     loadDigits_(treeIndex_);
     loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
+    loadedCounters_.findinrange (cbuf_, first_timestamp, last_timestamp, novatickspercounttick_ );
     std::cout << loadedDigits_.empty() << std::endl;
     //loadedDigits_.empty() == 1;
   } else std::cout << "No, I'm still looking at the same tree!" << std::endl;
@@ -754,11 +801,9 @@ bool DAQToOffline::Splitter::loadDigits_( size_t InputTree ) {
     if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
       std::cout << "Looking at data muon counter information!" << std::endl;
     } else {
-      std::cout << "Looking at Monte Carlo muon counter information!" << std::endl;
       auto* counters = getRawExternalTriggers(PenninputBranch_, treeIndex_ );
-      std::cout << "Made the External Trigs" << std::endl;
       loadedCounters_.load( *counters );
-      std::cout << "Loaded the External Trigs!!" << std::endl;
+      std::cout << "Loaded the External Trigers, they have size " << counters->size() << "!!" << std::endl;
     }
 
     std::cout << std::endl;
@@ -786,8 +831,12 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE) 
                                  *outE,
                                  sourceName_,
                                  SSPinputTag_.instance() );
+  art::put_product_in_principal( std::make_unique<PennCounters_t>(cbuf_),
+				 *outE,
+                                 sourceName_,
+				 PenninputTag_.instance() );
   mf::LogDebug("DigitsTest") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " RCE digits and " <<
-    wbuf_.size() << " SSP waveforms ";
+    wbuf_.size() << " SSP waveforms " << cbuf_.size() << " External Triggers (muon counters)";
   Reset();
 }
 //=======================================================================================
@@ -796,6 +845,7 @@ void DAQToOffline::Splitter::Reset() {
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) { dbuf_[ichan].clear(); }
   dbuf_.clear();
   wbuf_.clear();
+  cbuf_.clear();
 
   fTicksAccumulated = 0; // No longer have any RCE data...
   fTrigger = false;      // Need to re-decide where to trigger
