@@ -182,6 +182,7 @@ private:
   double trkMCTruthT0[kMaxTrack];
   int    trkPhotonCounterID[kMaxTrack];
   double trkPhotonCounterT0[kMaxTrack];
+  double trkPhotonCounterConf[kMaxTrack];
 
   double trktheta_xz[kMaxTrack];
   double trketa_xy[kMaxTrack];
@@ -415,7 +416,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     art::FindManyP<recob::Hit>        fmht  (trackListHandle, evt, fTrackModuleLabel);
     art::FindMany<anab::Calorimetry>  fmcal (trackListHandle, evt, fCalorimetryModuleLabel);
     art::FindMany<anab::T0>           fmt0  (trackListHandle, evt, fMCTruthT0ModuleLabel);
-    art::FindMany<anab::T0>           fmphot(trackListHandle, evt, fFlashModuleLabel);
+    art::FindMany<anab::T0>           fmphot(trackListHandle, evt, fPhotonT0ModuleLabel);
     for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
 
       //***************************************************
@@ -435,8 +436,9 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       if ( fmphot.isValid() ) {
         std::vector<const anab::T0*> PhotT0 = fmphot.at(i);
         for (size_t T0it=0; T0it<PhotT0.size(); ++T0it) {
-          trkPhotonCounterT0[i] = PhotT0[T0it]->Time();
-          trkPhotonCounterID[i] = PhotT0[T0it]->TriggerBits();
+          trkPhotonCounterT0[i]   = PhotT0[T0it]->Time();
+          trkPhotonCounterID[i]   = PhotT0[T0it]->TriggerBits();
+	  trkPhotonCounterConf[i] = PhotT0[T0it]->TriggerConfidence();
         }
       }       
       // Add other T0 handles...with same structure...
@@ -833,7 +835,8 @@ void AnaTree::AnaTree::beginJob()
   fTree->Branch("trkMCTruthTrackID",trkMCTruthTrackID,"trkMCTruthTrackID[ntracks_reco]/I");
   fTree->Branch("trkPhotonCounterT0",trkPhotonCounterT0,"trkPhotonCounterT0[ntracks_reco]/D");
   fTree->Branch("trkPhotonCounterID",trkPhotonCounterID,"trkPhotonCounterID[ntracks_reco]/I");
-  
+  fTree->Branch("trkPhotonCounterConf",trkPhotonCounterConf,"trkPhotonCounterConf[ntracks_reco]/I");
+
   fTree->Branch("nMCParticles",&nMCParticles,"nMCParticles/I");
   fTree->Branch("trkid_MC",trkid_MC,"trkid_MC[nMCParticles]/I");
   fTree->Branch("trkpdg_MC",trkpdg_MC,"trkpdg_MC[nMCParticles]/I");
@@ -1013,6 +1016,7 @@ void AnaTree::AnaTree::ResetVars(){
     trkMCTruthTrackID[i] = -99999;
     trkPhotonCounterT0[i]= -99999;
     trkPhotonCounterID[i]= -99999;
+    trkPhotonCounterConf[i]= -99999;
 
     trkenddcosx[i] = -99999;
     trkenddcosy[i] = -99999;
