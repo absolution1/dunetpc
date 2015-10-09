@@ -22,6 +22,7 @@
 
 // lardata
 #include "RawData/RawDigit.h"
+#include "RawData/ExternalTrigger.h"
 #include "Utilities/TimeService.h"
 
 // dune
@@ -41,6 +42,7 @@
 
 using raw::RawDigit;
 using raw::OpDetWaveform;
+using raw::ExternalTrigger;
 using std::vector;
 using std::string;
 
@@ -146,6 +148,15 @@ namespace {
       }
       return false;
     }
+    
+    //=======================================================================================
+    bool PhotonTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp,
+		       double novaticksperssptick_) { // Triggering on photon detectors
+      if ( CheckRange ( prev_timestamp, this_timestamp, novaticksperssptick_ ) ) {
+	std::cout << "There is a flash between timestamps " <<  prev_timestamp << " and " << this_timestamp << std::endl;
+	return true;
+      } else return false;
+    } // Photon Trigger
   }; // Loaded Waveforms
   
   struct LoadedDigits {
@@ -182,14 +193,6 @@ namespace {
       }
       index = 0ul;
     } // load
-    
-    /*
-      void clear() {
-      for (auto dig : digits) 
-	for (size_t cchan=0;cchan<digits.size();++cchan) 
-	  dig[cchan].clear();
-    } //clear
-    */
 
     bool empty() const {
       //std::cout << "Checking if loaded digits is empty" << std::endl;
@@ -219,6 +222,69 @@ namespace {
     
   }; // loadedDigits
   
+  struct LoadedCounters {
+    
+    LoadedCounters() : counters(), index() {}
+    
+    vector<ExternalTrigger> counters;
+    size_t index;
+    
+    void load( vector<ExternalTrigger> const & v ) {
+      
+      if (v.size() == 0 )
+	counters = v;
+      else {
+	// make a new raw::ExternalTrigger object for each compressed one
+	// to think about optimization -- two copies of the uncompressed raw ExternalTrigger here.
+	counters = std::vector<ExternalTrigger>();
+	int ii = 0;
+	for (auto icounter = v.begin(); icounter != v.end(); ++icounter) {
+	  std::vector<short> uncompressed;
+	  std::cout << "Looking at " << ii << " in the event out of " << v.size() << ". It had TrigID " << icounter->GetTrigID() << " and TrigTime " <<  icounter->GetTrigTime() << ", is now being added to counters." << std::endl;
+	  raw::ExternalTrigger counter(icounter->GetTrigID(),
+				       icounter->GetTrigTime() );
+	  counters.push_back(counter);
+	  ++ii;
+	}
+      }
+      index = 0ul;
+    } // load
+    
+    int ConvCounterTick(int TrigTime, double novatickspercounttick)
+    {
+      return TrigTime/novatickspercounttick;
+    }
+
+    //=======================================================================================
+    bool CounterTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, double novatickspercounttick_ ) { // Triggering on muon counters
+      /// For a list of the muon counter locations see https://cdcvs.fnal.gov/redmine/projects/35ton/wiki/TSU_Counter_Locations
+      /// This shows the counter channels 0 - 92, however if you look at the raw::ExternalTriggers_simcounter event record you
+      /// will see that the are also 'hits' on channels 110, 111, 112, 113. These are 'special' channels corresponding to;
+      /// 110 - Counters in the 'telescope' are triggered in coincidence. The telescope is the gap between the counters on the
+      ///       roof and on top of the detector.
+      /// 111 - Counters on the East (lower) and West (upper) are triggered in coincidence.
+      /// 112 - Counters on the North (upper) and South (lower) are triggered in coincidence.
+      /// 113 - Counters on the North (lower) and South (upper) are triggered in coincidence.
+      /// It is only these 'special channels' which we want to trigger on.
+      int EffecTimeStamp;
+      for ( auto count : counters ) {
+	EffecTimeStamp = ConvCounterTick( count.GetTrigTime(), novatickspercounttick_ );
+	if ( EffecTimeStamp == (int)this_timestamp ) { // If timestamps match!
+	  if ( count.GetTrigID() == 110 || // A list of all the 'special'
+	       count.GetTrigID() == 111 || // counter TrigID's
+	       count.GetTrigID() == 112 ||
+	       count.GetTrigID() == 113 ||
+	       1 ) {                       // And to just trigger if timestamps match
+	    std::cout << "Triggering on Muon counter " << count.GetTrigID() << " at TrigTime " << count.GetTrigTime() << " corresponding to TimeStamp " << EffecTimeStamp << std::endl;
+	    return true;
+	  } // If a special TrigID
+	} // If timestamps match
+      } // Loop through counters
+      return false;
+    } // CounterTrigger
+    
+  }; // LoadedCounters
+  
   // Retrieves branch name (a la art convention) where object resides
   const char* getBranchName( art::InputTag const & tag, const string inputDataProduct )
   {
@@ -231,10 +297,10 @@ namespace {
           << '_'
           << tag.process()
           << ".obj";
-
+    
     return pat_s.str().data();
   }
-
+  
   artdaq::Fragments*
   getFragments( TBranch* br, unsigned entry )
   {
@@ -248,15 +314,20 @@ namespace {
     br->GetEntry( entry );
     return reinterpret_cast<vector<raw::RawDigit>*>( br->GetAddress() );
   }
-
+  
   vector<raw::OpDetWaveform>*
   getSSPWaveforms( TBranch* br, unsigned entry )
   {
     br->GetEntry( entry );
     return reinterpret_cast<vector<raw::OpDetWaveform>*>( br->GetAddress() );
   }
-
-
+  
+  vector<raw::ExternalTrigger>*
+  getRawExternalTriggers( TBranch* br, unsigned entry )
+  {
+    br->GetEntry( entry );
+    return reinterpret_cast<vector<raw::ExternalTrigger>*>( br->GetAddress() );
+  }
 }
 
 //==========================================================================
@@ -306,6 +377,7 @@ namespace DAQToOffline {
     
     using rawDigits_t = vector<RawDigit>;
     using SSPWaveforms_t = vector<OpDetWaveform>;
+    using PennCounters_t = vector<ExternalTrigger>;
     
     string                 sourceName_;
     string                 lastFileName_;
@@ -326,6 +398,7 @@ namespace DAQToOffline {
     TBranch*               EventAuxBranch_;
     LoadedDigits           loadedDigits_;
     LoadedWaveforms        loadedWaveforms_;
+    LoadedCounters         loadedCounters_;
     size_t                 nInputEvts_;
     size_t                 treeIndex_;
     art::RunNumber_t       runNumber_;
@@ -365,15 +438,12 @@ namespace DAQToOffline {
 
     void Reset();
 
-    bool PhotonTrigger();
-
-    bool CounterTrigger();
-
     art::EventAuxiliary    evAux_;
     art::EventAuxiliary*   pevaux_;
 
     double novatickspertpctick_;
     unsigned int novaticksperssptick_;
+    double novatickspercounttick_;
     double fTimeStampThreshold_;
     int  fMCTrigLevel;
     int  fwhichTrigger;
@@ -424,6 +494,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  ps.get<unsigned>("zeroThreshold",0) ) ),
   novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
   novaticksperssptick_(ps.get<unsigned int>("novaticksperssptick",1)),
+  novatickspercounttick_(ps.get<double>("novatickspercounttick",32)),
   fTimeStampThreshold_(ps.get<double>("TimeStampThreshold",5)),
   fMCTrigLevel(ps.get<int>("MCTrigLevel",10000)),
   fwhichTrigger(ps.get<int>("whichTrigger",0))
@@ -486,12 +557,12 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   std::cout << "\nAt the top of readNext....what do I increment here? " << fTicksAccumulated << " " << ticksPerEvent_ << " " << loadedDigits_.empty() << " " << wbuf_.size() << std::endl;
   while ( fTicksAccumulated < ticksPerEvent_ ) {  
     ++fDiffFromLastTrig;
-    
+    /*
     std::cout << "Ticks since previous trig " << fDiffFromLastTrig << ", Triggered? " << fTrigger << ", ticks collected " << fTicksAccumulated << ", want a total of " << ticksPerEvent_ << ", looking treeIndex ";
     if (treeIndex_ == 0 ) std::cout << treeIndex_;
     else std::cout << treeIndex_-1;
     std::cout << ", index " << loadedDigits_.index << " loadDigits.empty? " << loadedDigits_.empty() << std::endl;  
-    
+    */
     NewTree = false;
     prev_timestamp = this_timestamp; // set prev_timestamp to old timestamp
     // ************* Check if loadedDigits is empty... ************************
@@ -507,11 +578,11 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	return false;
       }
       NewTree = true;
-      // ******* Check that the time stamps lead on from one another!! ***********
       if (treeIndex_ == fLastTreeIndex) 
 	loadedDigits_.index = fLastTriggerIndex; // If have to re-laod an old tree, need to jump back to previous position in that tree.
       first_tick = true; // Just loaded in new event, so want to reset first_timestamp...doesn't effect previous loaded event.
       first_timestamp=0, last_timestamp=0; // Want to reset the timestamps.
+      // ******* Check that the time stamps lead on from one another!! ***********
       int StampDiff = fabs( (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) - (int)prev_timestamp );
       if ( StampDiff > fTimeStampThreshold_ ) { // Timestamps of old and new file too far apart. So want to clear all previously loaded event.
 	std::cout << "\nThe gap between timestamps is " << StampDiff << " so could reset RCE information, but I'm not going to...\n" << std::endl;
@@ -533,20 +604,20 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
     if ( fTicksAccumulated == 0 ) { 
-      if ( fwhichTrigger == 0 ) { 
+      if ( fwhichTrigger == 0 ) { // Trigger on Monte Carlo whichTrigger == 0
 	if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;  
       }
-      else if ( fwhichTrigger == 1 ) 
-	fTrigger = PhotonTrigger();
-      else if ( fwhichTrigger == 2 ) 
-	fTrigger = CounterTrigger();
+      else if ( fwhichTrigger == 1 ) // Trigger on Phton Detectors whichTrigger == 1
+	fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, this_timestamp, novaticksperssptick_ );
+      else if ( fwhichTrigger == 2 ) // Trigger on Muon Counters whichTrigger == 2
+	fTrigger = loadedCounters_.CounterTrigger( this_timestamp, novatickspercounttick_ );
       
       if ( fTrigger ) {
       	fLastTriggerIndex = loadedDigits_.index;
 	fLastTreeIndex    = treeIndex_ -1;
 	fLastTimeStamp    = this_timestamp;
 	std::cout << "Should I trigger on index " << loadedDigits_.index << "?...."
-		  << "I've had " << fDiffFromLastTrig << " indexs since the last trigger, my threshold for triggering is " << fMCTrigLevel << ", Trigger is " << fTrigger << std::endl;
+		  << "I've had " << fDiffFromLastTrig << " indexs since the last trigger, my threshold for triggering on Monte Carlo is " << fMCTrigLevel << ", Trigger is " << fTrigger << std::endl;
       }
     } // if TickAccumulated == 0
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
@@ -679,6 +750,17 @@ bool DAQToOffline::Splitter::loadDigits_( size_t InputTree ) {
       std::cout << "Loading MC waveform which has size " << waveforms->size() << std::endl;
       loadedWaveforms_.load( *waveforms );
     }
+
+    if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
+      std::cout << "Looking at data muon counter information!" << std::endl;
+    } else {
+      std::cout << "Looking at Monte Carlo muon counter information!" << std::endl;
+      auto* counters = getRawExternalTriggers(PenninputBranch_, treeIndex_ );
+      std::cout << "Made the External Trigs" << std::endl;
+      loadedCounters_.load( *counters );
+      std::cout << "Loaded the External Trigs!!" << std::endl;
+    }
+
     std::cout << std::endl;
     treeIndex_++;
     
@@ -718,21 +800,6 @@ void DAQToOffline::Splitter::Reset() {
   fTicksAccumulated = 0; // No longer have any RCE data...
   fTrigger = false;      // Need to re-decide where to trigger
   fDiffFromLastTrig = 0; // Reset trigger counter.
-}
-//=======================================================================================
-bool // Triggering on photon detectors
-DAQToOffline::Splitter::PhotonTrigger() { 
-  if ( loadedWaveforms_.CheckRange ( prev_timestamp, this_timestamp, novaticksperssptick_ ) ) {
-    std::cout << "There is a flash between timestamps " <<  prev_timestamp << " and " << this_timestamp << std::endl;
-    return true;
-  } else return false;
-}
-//=======================================================================================
-bool // Triggering on muon counters
-DAQToOffline::Splitter::CounterTrigger() { 
-  if ( 1 ) {
-    return true;
-  } else return false;
 }
 //=======================================================================================
 DEFINE_ART_INPUT_SOURCE(art::Source<DAQToOffline::Splitter>)
