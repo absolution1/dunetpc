@@ -22,6 +22,7 @@
 
 // lardata
 #include "RawData/RawDigit.h"
+#include "RawData/ExternalTrigger.h"
 #include "Utilities/TimeService.h"
 
 // dune
@@ -41,6 +42,7 @@
 
 using raw::RawDigit;
 using raw::OpDetWaveform;
+using raw::ExternalTrigger;
 using std::vector;
 using std::string;
 
@@ -90,14 +92,22 @@ namespace {
 		     lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
 		     unsigned int novaticksperssptick)
     {
-      std::cout << "Now in findinrange, wbo has size " << wbo.size() << std::endl;
+      std::cout << "\nNow in findinrange, wbo has size " << wbo.size() << std::endl;
       double lowest, highest, averagelow, averagehigh;
       highest = averagelow = averagehigh = 0;
       lowest = 1e7;
+
+      int hh = 0; // Just want to write out the first few waveforms....Definitely get rid of this hh stuff!
+
       for (auto wf : waveforms) { // see if any waveforms have pieces inside this TPC boundary
 	raw::TimeStamp_t tsbeg = wf.TimeStamp();  // is this a nova timestamp?
 	raw::TimeStamp_t tsend = tsbeg + wf.size()*novaticksperssptick;
-	//std::cout << (int)tsbeg << " " << (int)tsend << " ... " << (int)first_timestamp << " " << (int)last_timestamp << std::endl;
+
+	if ( hh < 5 ) {
+	  std::cout << "Looking at waveform number " << hh << ". It began at time " << tsbeg << " and ended at " << tsend << ". The times I passed were " << first_timestamp << " and " << last_timestamp << std::endl;
+	} // Just want to look at first few waveforms...Definitely get rid of this hh stuff!
+	++hh;
+
 	if (tsbeg < last_timestamp && tsend > first_timestamp) {
 	  if ( tsbeg < lowest ) lowest = tsbeg;
 	  if ( tsend > highest ) highest = tsend;
@@ -115,6 +125,7 @@ namespace {
 	  int nsamples = ilast - ifirst + 1;
 	  raw::Channel_t channel = wf.ChannelNumber();
 	  raw::OpDetWaveform odw(tbw,channel,nsamples);
+	  //std::cout << (int)tsbeg << " " << (int)tsend << " ... " << (int)first_timestamp << " " << (int)last_timestamp << " " << wf.ChannelNumber() << " " << nsamples << std::endl;
 	  for (int i=ifirst; i<=ilast; i++) {
 	    odw.emplace_back(wf[i]);
 	  }
@@ -124,8 +135,28 @@ namespace {
       } // auto waveforms
       averagelow = averagelow / waveforms.size();
       averagehigh = averagehigh / waveforms.size();
-      std::cout << lowest << " " <<  highest << " " <<  averagelow << " " <<  averagehigh << " ... " << first_timestamp << " " << last_timestamp << std::endl;
+      std::cout << lowest << " " <<  highest << " " <<  averagelow << " " <<  averagehigh << " ... " << first_timestamp << " " << last_timestamp << "\n" << std::endl;
     } // findinrange
+
+    bool CheckRange ( lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
+		      lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
+		      unsigned int novaticksperssptick ) {
+      for (auto wf : waveforms) { // see if any waveforms have pieces inside this TPC boundary
+	raw::TimeStamp_t tsbeg = wf.TimeStamp();  // is this a nova timestamp?
+	raw::TimeStamp_t tsend = tsbeg + wf.size()*novaticksperssptick;
+	if (tsbeg < last_timestamp && tsend > first_timestamp) return true;
+      }
+      return false;
+    }
+    
+    //=======================================================================================
+    bool PhotonTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp,
+		       double novaticksperssptick_) { // Triggering on photon detectors
+      if ( CheckRange ( prev_timestamp, this_timestamp, novaticksperssptick_ ) ) {
+	std::cout << "There is a flash between timestamps " <<  prev_timestamp << " and " << this_timestamp << std::endl;
+	return true;
+      } else return false;
+    } // Photon Trigger
   }; // Loaded Waveforms
   
   struct LoadedDigits {
@@ -162,7 +193,7 @@ namespace {
       }
       index = 0ul;
     } // load
-    
+
     bool empty() const {
       //std::cout << "Checking if loaded digits is empty" << std::endl;
       //std::cout << "Number of rawdigits: " << digits.size() << std::endl;
@@ -189,7 +220,70 @@ namespace {
       return firstTimestamp + index_local*novatickspertpctick;
     }
     
-  };
+  }; // loadedDigits
+  
+  struct LoadedCounters {
+    
+    LoadedCounters() : counters(), index() {}
+    
+    vector<ExternalTrigger> counters;
+    size_t index;
+    
+    void load( vector<ExternalTrigger> const & v ) {
+      
+      if (v.size() == 0 )
+	counters = v;
+      else {
+	// make a new raw::ExternalTrigger object for each compressed one
+	// to think about optimization -- two copies of the uncompressed raw ExternalTrigger here.
+	counters = std::vector<ExternalTrigger>();
+	int ii = 0;
+	for (auto icounter = v.begin(); icounter != v.end(); ++icounter) {
+	  std::vector<short> uncompressed;
+	  std::cout << "Looking at " << ii << " in the event out of " << v.size() << ". It had TrigID " << icounter->GetTrigID() << " and TrigTime " <<  icounter->GetTrigTime() << ", is now being added to counters." << std::endl;
+	  raw::ExternalTrigger counter(icounter->GetTrigID(),
+				       icounter->GetTrigTime() );
+	  counters.push_back(counter);
+	  ++ii;
+	}
+      }
+      index = 0ul;
+    } // load
+    
+    int ConvCounterTick(int TrigTime, double novatickspercounttick)
+    {
+      return TrigTime/novatickspercounttick;
+    }
+
+    //=======================================================================================
+    bool CounterTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, double novatickspercounttick_ ) { // Triggering on muon counters
+      /// For a list of the muon counter locations see https://cdcvs.fnal.gov/redmine/projects/35ton/wiki/TSU_Counter_Locations
+      /// This shows the counter channels 0 - 92, however if you look at the raw::ExternalTriggers_simcounter event record you
+      /// will see that the are also 'hits' on channels 110, 111, 112, 113. These are 'special' channels corresponding to;
+      /// 110 - Counters in the 'telescope' are triggered in coincidence. The telescope is the gap between the counters on the
+      ///       roof and on top of the detector.
+      /// 111 - Counters on the East (lower) and West (upper) are triggered in coincidence.
+      /// 112 - Counters on the North (upper) and South (lower) are triggered in coincidence.
+      /// 113 - Counters on the North (lower) and South (upper) are triggered in coincidence.
+      /// It is only these 'special channels' which we want to trigger on.
+      int EffecTimeStamp;
+      for ( auto count : counters ) {
+	EffecTimeStamp = ConvCounterTick( count.GetTrigTime(), novatickspercounttick_ );
+	if ( EffecTimeStamp == (int)this_timestamp ) { // If timestamps match!
+	  if ( count.GetTrigID() == 110 || // A list of all the 'special'
+	       count.GetTrigID() == 111 || // counter TrigID's
+	       count.GetTrigID() == 112 ||
+	       count.GetTrigID() == 113 ||
+	       1 ) {                       // And to just trigger if timestamps match
+	    std::cout << "Triggering on Muon counter " << count.GetTrigID() << " at TrigTime " << count.GetTrigTime() << " corresponding to TimeStamp " << EffecTimeStamp << std::endl;
+	    return true;
+	  } // If a special TrigID
+	} // If timestamps match
+      } // Loop through counters
+      return false;
+    } // CounterTrigger
+    
+  }; // LoadedCounters
   
   // Retrieves branch name (a la art convention) where object resides
   const char* getBranchName( art::InputTag const & tag, const string inputDataProduct )
@@ -203,10 +297,10 @@ namespace {
           << '_'
           << tag.process()
           << ".obj";
-
+    
     return pat_s.str().data();
   }
-
+  
   artdaq::Fragments*
   getFragments( TBranch* br, unsigned entry )
   {
@@ -220,15 +314,20 @@ namespace {
     br->GetEntry( entry );
     return reinterpret_cast<vector<raw::RawDigit>*>( br->GetAddress() );
   }
-
+  
   vector<raw::OpDetWaveform>*
   getSSPWaveforms( TBranch* br, unsigned entry )
   {
     br->GetEntry( entry );
     return reinterpret_cast<vector<raw::OpDetWaveform>*>( br->GetAddress() );
   }
-
-
+  
+  vector<raw::ExternalTrigger>*
+  getRawExternalTriggers( TBranch* br, unsigned entry )
+  {
+    br->GetEntry( entry );
+    return reinterpret_cast<vector<raw::ExternalTrigger>*>( br->GetAddress() );
+  }
 }
 
 //==========================================================================
@@ -278,6 +377,7 @@ namespace DAQToOffline {
     
     using rawDigits_t = vector<RawDigit>;
     using SSPWaveforms_t = vector<OpDetWaveform>;
+    using PennCounters_t = vector<ExternalTrigger>;
     
     string                 sourceName_;
     string                 lastFileName_;
@@ -298,6 +398,7 @@ namespace DAQToOffline {
     TBranch*               EventAuxBranch_;
     LoadedDigits           loadedDigits_;
     LoadedWaveforms        loadedWaveforms_;
+    LoadedCounters         loadedCounters_;
     size_t                 nInputEvts_;
     size_t                 treeIndex_;
     art::RunNumber_t       runNumber_;
@@ -314,21 +415,38 @@ namespace DAQToOffline {
     SSPWaveforms_t         wbuf_;
     unsigned short         fTicksAccumulated;
 
+    bool                   fTrigger = false; 
+    double                 fLastTriggerIndex = 0;
+    double                 fLastTimeStamp = 0;
+    size_t                 fLastTreeIndex = 0;
+    int                    fDiffFromLastTrig = 0;
+
+    lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp=0;
+    lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp=0;
+    lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp=0;
+    lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp=0;
+
     std::map<int,int>      OpDetChannelMap;
 
     std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t& )> fragmentsToDigits_;
 
     bool eventIsFull_(rawDigits_t const & v);
 
-    bool loadDigits_();
+    bool loadDigits_( size_t InputTree );
 
     void makeEventAndPutDigits_( art::EventPrincipal*& outE );
+
+    void Reset();
 
     art::EventAuxiliary    evAux_;
     art::EventAuxiliary*   pevaux_;
 
     double novatickspertpctick_;
     unsigned int novaticksperssptick_;
+    double novatickspercounttick_;
+    double fTimeStampThreshold_;
+    int  fMCTrigLevel;
+    int  fwhichTrigger;
   };
 }
 
@@ -348,7 +466,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   SSPinputDataProduct_(ps.get<string>("SSPInputDataProduct")),
   PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
-  fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile")),
+  fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile","")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -375,7 +493,11 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
                                  ps.get<unsigned>("zeroThreshold",0) ) ),
   novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
-  novaticksperssptick_(ps.get<unsigned int>("novaticksperssptick",1))
+  novaticksperssptick_(ps.get<unsigned int>("novaticksperssptick",1)),
+  novatickspercounttick_(ps.get<double>("novatickspercounttick",32)),
+  fTimeStampThreshold_(ps.get<double>("TimeStampThreshold",5)),
+  fMCTrigLevel(ps.get<int>("MCTrigLevel",10000)),
+  fwhichTrigger(ps.get<int>("whichTrigger",0))
 {
   // Will use same instance names for the outgoing products as for the
   // incoming ones.
@@ -386,8 +508,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
 }
 
 //=======================================================================================
-bool
-DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb) {
+bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb) {
   
   // Get fragments branches
   file_.reset( new TFile(filename.data()) );
@@ -420,8 +541,7 @@ DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb) {
 }
 
 //=======================================================================================
-bool
-DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
+bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
                                  art::SubRunPrincipal* const& inSR,
                                  art::RunPrincipal*    & outR,
                                  art::SubRunPrincipal* & outSR,
@@ -429,57 +549,108 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   if ( doneWithFiles_ ) {
     return false;
   }
-
-
-  lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp=0;
-  lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp=0;
-  bool first_tick = true; // The earliest time in this new split event, so want to calculate time of this
-                          // for use with first_timestamp variable only!
-
-  while ( fTicksAccumulated < ticksPerEvent_ ) {
-    
-    // check to see if we are out of RawDigits in the input record and load another event from the DAQ
-    // at the same time, buffer the waveforms that have accumulated.  We'll have to do that again when
-    // we're done with the loop over RCE ticks.  Reason -- the waveforms will get discarded by loadDigits_
-    
-    //std::cout << "Have collected " << fTicksAccumulated << " ticks, want a total of " << ticksPerEvent_ << std::endl;
-
+  
+  first_timestamp = last_timestamp = this_timestamp = prev_timestamp = 0;
+  bool first_tick = true; // The earliest time in this new split event, so want to calculate time of this for use with first_timestamp variable only!
+  bool NewTree;
+  
+  std::cout << "\nAt the top of readNext....what do I increment here? " << fTicksAccumulated << " " << ticksPerEvent_ << " " << loadedDigits_.empty() << " " << wbuf_.size() << std::endl;
+  while ( fTicksAccumulated < ticksPerEvent_ ) {  
+    ++fDiffFromLastTrig;
+    /*
+    std::cout << "Ticks since previous trig " << fDiffFromLastTrig << ", Triggered? " << fTrigger << ", ticks collected " << fTicksAccumulated << ", want a total of " << ticksPerEvent_ << ", looking treeIndex ";
+    if (treeIndex_ == 0 ) std::cout << treeIndex_;
+    else std::cout << treeIndex_-1;
+    std::cout << ", index " << loadedDigits_.index << " loadDigits.empty? " << loadedDigits_.empty() << std::endl;  
+    */
+    NewTree = false;
+    prev_timestamp = this_timestamp; // set prev_timestamp to old timestamp
+    // ************* Check if loadedDigits is empty... ************************
     while (loadedDigits_.empty()) {
-      first_tick = true; // Just loaded in new event, so want to reset first_timestamp...doesn't effect previous loaded event.
-      loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
-      std::cout << "Loaded digits is empty...wbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
-      bool rc = loadDigits_();
+      std::cout << "Loaded digits is empty..." << std::endl;
+      if ( fTrigger ) { // Want to load wbuf with end of last event, before loading new data.
+	loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
+	std::cout << "Loaded digits was empty, will be refilled...wbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
+      }
+      bool rc = loadDigits_(treeIndex_);
       if (!rc) {
 	doneWithFiles_ = (file_->GetName() == lastFileName_);
 	return false;
       }
-    }
-    //std::cout << "Looking at loaded digits index " << loadedDigits_.index << std::endl;
-    if (first_tick) // First tick in split event and/or first tick in newly loaded event.
-      first_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_); first_tick = false;
-    last_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
-    //std::cout << "last_timestamp = " << last_timestamp << " = " << first_timestamp << " + " << loadedDigits_.index << " * " << novatickspertpctick_ << std::endl;
+      NewTree = true;
+      if (treeIndex_ == fLastTreeIndex) 
+	loadedDigits_.index = fLastTriggerIndex; // If have to re-laod an old tree, need to jump back to previous position in that tree.
+      first_tick = true; // Just loaded in new event, so want to reset first_timestamp...doesn't effect previous loaded event.
+      first_timestamp=0, last_timestamp=0; // Want to reset the timestamps.
+      // ******* Check that the time stamps lead on from one another!! ***********
+      int StampDiff = fabs( (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) - (int)prev_timestamp );
+      if ( StampDiff > fTimeStampThreshold_ ) { // Timestamps of old and new file too far apart. So want to clear all previously loaded event.
+	std::cout << "\nThe gap between timestamps is " << StampDiff << " so could reset RCE information, but I'm not going to...\n" << std::endl;
+	/*
+	  std::cout << "\nThe gap between timestamps is " << StampDiff << " so resetting RCE information...\n" << std::endl;
+	  Reset();
+	  fLastTriggerIndex = 0;
+	*/
+      }
+      // ******* Check that the time stamps lead on from one another!! ***********
+      loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
+      std::cout << "Loaded digits no longer empty...wbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
+    } // loadedDigits_.empty()
     
-    //std::cout << "First timestamp " << first_timestamp << " and last " << last_timestamp << std::endl;
-    
+    if (NewTree) std::cout << "Looking at treeIndex " << treeIndex_ << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex" << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
+
     std::vector<short> nextdigits = loadedDigits_.next(); 
-    if (dbuf_.size() == 0) {
-      RawDigit::ADCvector_t emptyvector;
-      for (size_t ichan=0;ichan<nextdigits.size();ichan++) dbuf_.push_back(emptyvector);
-    }
-    for (size_t ichan=0;ichan<nextdigits.size();ichan++) {
-      //if (nextdigits[ichan] != 0 ) std::cout << "Pushing back digit for each channel...now at " << ichan << " of " << nextdigits.size() << " it has value " << nextdigits[ichan] << std::endl;
-      dbuf_[ichan].push_back(nextdigits[ichan]);
-    }
-    fTicksAccumulated ++;
+    this_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
+
+    // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
+    if ( fTicksAccumulated == 0 ) { 
+      if ( fwhichTrigger == 0 ) { // Trigger on Monte Carlo whichTrigger == 0
+	if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;  
+      }
+      else if ( fwhichTrigger == 1 ) // Trigger on Phton Detectors whichTrigger == 1
+	fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, this_timestamp, novaticksperssptick_ );
+      else if ( fwhichTrigger == 2 ) // Trigger on Muon Counters whichTrigger == 2
+	fTrigger = loadedCounters_.CounterTrigger( this_timestamp, novatickspercounttick_ );
+      
+      if ( fTrigger ) {
+      	fLastTriggerIndex = loadedDigits_.index;
+	fLastTreeIndex    = treeIndex_ -1;
+	fLastTimeStamp    = this_timestamp;
+	std::cout << "Should I trigger on index " << loadedDigits_.index << "?...."
+		  << "I've had " << fDiffFromLastTrig << " indexs since the last trigger, my threshold for triggering on Monte Carlo is " << fMCTrigLevel << ", Trigger is " << fTrigger << std::endl;
+      }
+    } // if TickAccumulated == 0
+    // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
+    
+    if ( fTrigger ) { // Have triggered!
+      if (fTicksAccumulated == 0 ) std::cout << "\nTriggering on loadedDigits index " << loadedDigits_.index << std::endl;
+      // ************* Work out first and last SSP Timestamp for wbuf_ ************************
+      if (first_tick) // First tick in split event and/or first tick in newly loaded event.
+	first_timestamp = this_timestamp; first_tick = false;
+      last_timestamp = this_timestamp;
+      // ************* Now want to load the RCE information into dbuf_ ************************
+      
+      if (dbuf_.size() == 0) {
+	RawDigit::ADCvector_t emptyvector;
+	for (size_t ichan=0;ichan<nextdigits.size();ichan++) dbuf_.push_back(emptyvector);
+      }
+      for (size_t ichan=0;ichan<nextdigits.size();ichan++) {
+	  //if (nextdigits[ichan] != 0 ) std::cout << "Pushing back digit for each channel...now at " << ichan << " of " << nextdigits.size() << " it has value " << nextdigits[ichan] << std::endl;
+	dbuf_[ichan].push_back(nextdigits[ichan]);
+      }
+      fTicksAccumulated ++;  
+    } // If triggered on this tick!
+    // ************* Now Done for this tick ************************
   } // while ticks accumulated < ticksperEvent
   
+    // ************* Fill wbuf_ with the SSP information within time range ************************
   std::cout << "Got eneough ticks now check...wbuf_ has size " << wbuf_.size() << " " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
   loadedWaveforms_.findinrange(wbuf_, first_timestamp,last_timestamp,novaticksperssptick_);
   std::cout << "What did we get from checking...wbuf_ has size " << wbuf_.size() << " " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_ << std::endl;
   
   // copy all the RCE info (channel number, digits, pedestal, sigma, compression) from dbuf into output RawDigits.
   
+  // ************* Fill dbuf_ with the RCE information for ticks collected ************************
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
     RawDigit d(loadedDigits_.digits[ichan].Channel(),
@@ -491,6 +662,7 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     bufferedDigits_.emplace_back(d);
   }
   
+  // ************* Set run numbers etc ************************
   runNumber_ = inputRunNumber_;
   subRunNumber_ = inputSubRunNumber_;
   
@@ -507,30 +679,43 @@ DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     eventNumber_ = 0ul;
   }
   
+  // ******** Now Build the event *********
   makeEventAndPutDigits_( outE );
-  return true;
+  // ******** Reset loadedDigits_.index and TreeIndex_ to where the trigger was *********
+  std::cout << "Making an event which went from Tree Index " << fLastTreeIndex << ", tick " << fLastTriggerIndex << " to Tree index " << treeIndex_-1 << ", tick " << loadedDigits_.index << ".\n" 
+	    << "I want to reset the tick value for sure, but do I need to reload the digits because treeIndex is different?" << std::endl;
+  if ( treeIndex_-1 != fLastTreeIndex ) {
+    std::cout << "Yes I do! Changing treeIndex_ to fLastTreeIndex...Also want to clear loadedDigits." << std::endl;
+    treeIndex_ = fLastTreeIndex;  // want to -1 as treeIndex_ is incremented straight after loaded.
+    loadedDigits_.index = 0;
+    while (!loadedDigits_.empty() ) std::vector<short> nextdigits = loadedDigits_.next();
+    std::cout << loadedDigits_.empty() << std::endl;
+    loadDigits_(treeIndex_);
+    loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
+    std::cout << loadedDigits_.empty() << std::endl;
+    //loadedDigits_.empty() == 1;
+  } else std::cout << "No, I'm still looking at the same tree!" << std::endl;
+  loadedDigits_.index = fLastTriggerIndex;
+  this_timestamp      = fLastTimeStamp;
   
+  return true;
 } // read next
 
 //=======================================================================================
-void
-DAQToOffline::Splitter::closeCurrentFile() {
+void DAQToOffline::Splitter::closeCurrentFile() {
   file_.reset(nullptr);
 }
 
 //=======================================================================================
-bool
-DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v ) {
+bool DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v ) {
   return v.size() == ticksPerEvent_;
 }
 
 //=======================================================================================
-bool
-DAQToOffline::Splitter::loadDigits_() {
-  std::cout << "Loading digits. treeIndex_ = " << treeIndex_ << ", nInputEvents = " << nInputEvts_ << std::endl;
+bool DAQToOffline::Splitter::loadDigits_( size_t InputTree ) {
+  std::cout << "\nLoading digits for treeIndex_ = " << treeIndex_ << ", nInputEvents = " << nInputEvts_ << std::endl;
   if ( loadedDigits_.empty() && treeIndex_ != nInputEvts_ ) {
-    std::cout << "Digits is empty and treeIndex != nInputEvents" << std::endl;
-    
+        
     EventAuxBranch_->GetEntry(treeIndex_);
     inputRunNumber_ = evAux_.run();
     inputSubRunNumber_ = evAux_.subRun();
@@ -552,22 +737,31 @@ DAQToOffline::Splitter::loadDigits_() {
     }
     
     if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
-      std::cout << "Loading data waveform" << std::endl;
       auto* SSPfragments = getFragments( SSPinputBranch_, treeIndex_ );
       std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency, OpDetChannelMap);
-      std::cout << "waveforms has size " << waveforms.size() << std::endl;
+      std::cout << "Loading data waveforms which have size " << waveforms.size() << std::endl;
       for (auto waveform: waveforms) {
 	std::cout << "OpDetWaveform Timestamp: " << waveform.TimeStamp() << std::endl;
       }
       loadedWaveforms_.load( waveforms );
     }
     else {
-      std::cout << "Loading MC waveform" << std::endl;
       auto* waveforms = getSSPWaveforms(SSPinputBranch_, treeIndex_ );
-      std::cout << "waveforms has size " << waveforms->size() << std::endl;
+      std::cout << "Loading MC waveform which has size " << waveforms->size() << std::endl;
       loadedWaveforms_.load( *waveforms );
     }
-    
+
+    if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
+      std::cout << "Looking at data muon counter information!" << std::endl;
+    } else {
+      std::cout << "Looking at Monte Carlo muon counter information!" << std::endl;
+      auto* counters = getRawExternalTriggers(PenninputBranch_, treeIndex_ );
+      std::cout << "Made the External Trigs" << std::endl;
+      loadedCounters_.load( *counters );
+      std::cout << "Loaded the External Trigs!!" << std::endl;
+    }
+
+    std::cout << std::endl;
     treeIndex_++;
     
     return true;
@@ -576,13 +770,13 @@ DAQToOffline::Splitter::loadDigits_() {
 } // load digits
 
 //=======================================================================================
-void
-DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE) {
-  
+void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE) {
   // just keep incrementing the event number as we split along
-  
   ++eventNumber_;
   
+  if ( fwhichTrigger == 0 )
+    std::cout << "\n\n\nI hope you know that you are triggering on a random number of ticks and not any sort of data! Check that fwhichTrigger(" << fwhichTrigger << ") is set correctly.\n\n\n" << std::endl;
+
   outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, art::Timestamp() );
   art::put_product_in_principal( std::make_unique<rawDigits_t>(bufferedDigits_),
                                  *outE,
@@ -594,13 +788,19 @@ DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE) {
                                  SSPinputTag_.instance() );
   mf::LogDebug("DigitsTest") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " RCE digits and " <<
     wbuf_.size() << " SSP waveforms ";
+  Reset();
+}
+//=======================================================================================
+void DAQToOffline::Splitter::Reset() {
   bufferedDigits_.clear();
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) { dbuf_[ichan].clear(); }
   dbuf_.clear();
-  fTicksAccumulated = 0;
   wbuf_.clear();
-}
 
+  fTicksAccumulated = 0; // No longer have any RCE data...
+  fTrigger = false;      // Need to re-decide where to trigger
+  fDiffFromLastTrig = 0; // Reset trigger counter.
+}
 //=======================================================================================
 DEFINE_ART_INPUT_SOURCE(art::Source<DAQToOffline::Splitter>)
 //=======================================================================================

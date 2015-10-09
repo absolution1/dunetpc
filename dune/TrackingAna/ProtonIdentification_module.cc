@@ -359,6 +359,44 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       // IF NOT CHEATIING now want to work out PIDA with NO MC INFO
       // ***********************************************************
       
+      /*  // Taken from Calorimetry module where it works out PIDA but then doesn't do anything with it! DOH!!!
+
+	  bool startsonboundary = BeginsOnBoundary(tracklist[trkIter]);
+	  bool endsonboundary   = EndsOnBoundary(tracklist[trkIter]);
+	  
+	  int containment = 0;
+	  if(!startsonboundary && !endsonboundary ) containment = 0;  // contained track
+	  if(!startsonboundary &&  endsonboundary ) containment = 1;  // escaping track
+	  if( startsonboundary && !endsonboundary ) containment = 2;  // entering track
+	  if( startsonboundary &&  endsonboundary ) containment = 3;  // passing track
+
+	  bool TrackStops = (containment == 0 || containment == 2);
+	  
+	  ......
+	  
+	  for (int i = 0; i < fnsps; ++i){//loop over all 3D points
+	  if (i!=0 && i!= fnsps-1){//ignore the first and last point
+	  vresRange.push_back(fResRng[i]);
+	  vdEdx.push_back(fdEdx[i]);
+	  vdQdx.push_back(fdQdx[i]);
+	  // Calculate PIDA
+	  if(TrackStops){
+	  Ai = fdEdx[i] * pow(fResRng[i],0.42);
+	  nPIDA++;
+	  PIDA += Ai;
+	  }
+	  }
+	  } // end looping over 3D points
+	  if(nPIDA > 0) {
+	  PIDA = PIDA / (double)nPIDA;
+	  }
+	  else {
+	  PIDA = -1;
+	  }
+	  
+      */
+
+
     } // Loop over Tracks    
   } // if trackListHandle.isValid()
   //std::cout << "\nThis event had " << NPart << " particles that were 'interesting'." << std::endl;
