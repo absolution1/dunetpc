@@ -4,9 +4,9 @@
 #
 BEGIN_PROLOG
 
-channel_filter_dune35t: {
+dune35t_channel_status: {
   # implements IChannelStatusService
-  service_provider: SimpleChannelFilterService
+  service_provider: SimpleChannelStatusService
 
   # list of bad channels:
   BadChannels:   []
@@ -14,11 +14,11 @@ channel_filter_dune35t: {
   # list of bad noisy channels:
   NoisyChannels: []
 
-} # channel_filter_dune35t
+} 
 
-channel_filter_dunefd: {
+dunefd_channel_status: {
   # implements IChannelStatusService
-  service_provider: SimpleChannelFilterService
+  service_provider: SimpleChannelStatusService
 
   # list of bad channels:
   BadChannels:   []
@@ -26,6 +26,6 @@ channel_filter_dunefd: {
   # list of bad noisy channels:
   NoisyChannels: []
 
-} # channel_filter_dune35t
+} 
 
 END_PROLOG
