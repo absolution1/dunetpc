@@ -1,31 +1,28 @@
-#include "services_lbne.fcl"
-#include "singles_lbne.fcl"
-#include "largeantmodules_lbne.fcl"
-#include "detsimmodules_lbne.fcl"
-
+#include "services_dune.fcl"
 #include "TpcDAQToOffline.fcl"
 #include "SSPToOffline.fcl"
 
 # Mar 2015, M Wallbank
 # Module to run both TPC and SSP to offline to reformulate daq data to LArSoft data types
 
+process_name: RunDaqToOffline
+
 services: {
-  user:         @local::lbne35t_simulation_services
-  Timing:       {}
-  RandomNumberGenerator: {} 
-  message:      @local::standard_info
+  user:         @local::dune35t_services
+  TimeTracker:       {}
+
 }
 
 physics:
 {
   producers:
   {
-    tpcdaqtooffline: @local::tpc_daq_to_offline
+    daq: @local::tpc_daq_to_offline
     ssptooffline: @local::ssp_to_offline
   }
 
   # Create path to run module
-  produce: [  tpcdaqtooffline, ssptooffline ]
+  produce: [  daq, ssptooffline ]
 
   output: [ out1 ]
   trigger_paths: [ produce ]
@@ -48,4 +45,4 @@ source:
   fileNames: [ "/lbne/data2/users/wallbank/lbne_r000730_sr01_20150317T160905.root" ]
 }
 
-process_name: RunDaqToOffline
+physics.producers.daq.OutputDataLabel: ""
