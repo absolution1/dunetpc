@@ -557,12 +557,14 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
   SSPinputBranch_ = evtree->GetBranch( getBranchName(SSPinputTag_, SSPinputDataProduct_ ) ); // get branch for SSP input tag
   PenninputBranch_ = evtree->GetBranch( getBranchName(PenninputTag_, PenninputDataProduct_ ) ); // get branch for Penn Board input tag
 
-  nInputEvts_      = static_cast<size_t>( TPCinputBranch_->GetEntries() );
-  size_t nevt_ssp  = static_cast<size_t>( SSPinputBranch_->GetEntries() );
-  size_t nevt_penn  = static_cast<size_t>( PenninputBranch_->GetEntries() );
+  if (TPCinputBranch_) nInputEvts_      = static_cast<size_t>( TPCinputBranch_->GetEntries() );
+  size_t nevt_ssp  = 0;
+  if (SSPinputBranch_) nevt_ssp = static_cast<size_t>( SSPinputBranch_->GetEntries() );
+  size_t nevt_penn  = 0;
+  if (PenninputBranch_) nevt_penn  = static_cast<size_t>( PenninputBranch_->GetEntries());
 
-  if (nevt_ssp != nInputEvts_) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and SSP input events in file");
-  if (nevt_penn != nInputEvts_) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and Penn input events in file");
+  if (nevt_ssp != nInputEvts_&& nevt_ssp) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and SSP input events in file");
+  if (nevt_penn != nInputEvts_&& nevt_penn) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and Penn input events in file");
   treeIndex_       = 0ul;
 
   EventAuxBranch_ = evtree->GetBranch( "EventAuxiliary" );
