@@ -462,6 +462,8 @@ namespace DAQToOffline {
 
     void Reset();
 
+    bool TicklerTrigger( std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits );
+
     art::EventAuxiliary    evAux_;
     art::EventAuxiliary*   pevaux_;
 
@@ -580,6 +582,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   first_timestamp = last_timestamp = this_timestamp = prev_timestamp = 0;
   bool first_tick = true; // The earliest time in this new split event, so want to calculate time of this for use with first_timestamp variable only!
   bool NewTree;
+
+  std::map<int,int> PrevChanADC;
   
   std::cout << "\nAt the top of readNext....what do I increment here? " << fTicksAccumulated << " " << ticksPerEvent_ << " " << loadedDigits_.empty() << " " << wbuf_.size() << " " << cbuf_.size() << std::endl;
   while ( fTicksAccumulated < ticksPerEvent_ ) {  
@@ -653,6 +657,10 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	// Trigger on Muon Counters whichTrigger == 2
 	else if ( fwhichTrigger == 2 )
 	  fTrigger = loadedCounters_.CounterTrigger( this_timestamp, novatickspercounttick_ );
+	// Trigger on "Tickler" / TPC information.
+	else if ( fwhichTrigger == 3 ) 
+	  TicklerTrigger( PrevChanADC, nextdigits );
+	
 	// Triggered!
 	if ( fTrigger ) {
 	  std::cout << "Triggering on timestamp " << (int)this_timestamp << ", last trigger was on " << (int)fLastTimeStamp << "...." << (int)this_timestamp - (int)fLastTimeStamp << std::endl;
@@ -672,14 +680,14 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       if (first_tick) // First tick in split event and/or first tick in newly loaded event.
 	first_timestamp = this_timestamp; first_tick = false;
       last_timestamp = this_timestamp;
-      // ************* Now want to load the RCE information into dbuf_ ************************
       
+      // ************* Now want to load the RCE information into dbuf_ ************************
       if (dbuf_.size() == 0) {
 	RawDigit::ADCvector_t emptyvector;
 	for (size_t ichan=0;ichan<nextdigits.size();ichan++) dbuf_.push_back(emptyvector);
       }
       for (size_t ichan=0;ichan<nextdigits.size();ichan++) {
-	  //if (nextdigits[ichan] != 0 ) std::cout << "Pushing back digit for each channel...now at " << ichan << " of " << nextdigits.size() << " it has value " << nextdigits[ichan] << std::endl;
+	//if (nextdigits[ichan] != 0 ) std::cout << "Pushing back digit for each channel on tickAccum " << fTicksAccumulated <<"...now at " << ichan << " of " << nextdigits.size() << " it has value " << nextdigits[ichan] << std::endl;
 	dbuf_[ichan].push_back(nextdigits[ichan]);
       }
       fTicksAccumulated ++;  
@@ -700,7 +708,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
     RawDigit d(loadedDigits_.digits[ichan].Channel(),
-	       fTicksAccumulated,dbuf_[ichan]
+	       fTicksAccumulated,
+	       dbuf_[ichan]
 	       //,loadedDigits_.digits[ichan].Compression()
 	       );
     d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
@@ -850,6 +859,23 @@ void DAQToOffline::Splitter::Reset() {
   fTicksAccumulated = 0; // No longer have any RCE data...
   fTrigger = false;      // Need to re-decide where to trigger
   fDiffFromLastTrig = 0; // Reset trigger counter.
+}
+//=======================================================================================
+bool DAQToOffline::Splitter::TicklerTrigger( std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits ) {
+  int HitsOverThreshold = 0;
+  int ADCdiffThreshold  = 40;
+  int ADCsOverThreshold = 1000;
+  
+  if (PrevChanADC.size() != 0) {
+    for (unsigned int achan=0; achan<ADCdigits.size(); ++achan) 
+      if ( fabs( ADCdigits[achan] - PrevChanADC[achan] ) > ADCdiffThreshold ) 
+	++HitsOverThreshold;
+    //std::cout << " after looking through all the channels I had " << HitsOverThreshold << " ticks with diff more than " << ADCdiffThreshold << std::endl;
+    if ( HitsOverThreshold < ADCsOverThreshold ) return true;
+  } // if PrevChanADC not empty.
+  for (unsigned int bchan=0; bchan<ADCdigits.size(); ++bchan)
+    PrevChanADC[bchan] = ADCdigits[bchan];
+  return false;
 }
 //=======================================================================================
 DEFINE_ART_INPUT_SOURCE(art::Source<DAQToOffline::Splitter>)
