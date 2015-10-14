@@ -92,7 +92,6 @@ namespace {
 		     lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
 		     unsigned int novaticksperssptick)
     {
-      std::cout << "\nNow in findinrange, wbo has size " << wbo.size() << std::endl;
       double lowest, highest, averagelow, averagehigh;
       highest = averagelow = averagehigh = 0;
       lowest = 1e7;
@@ -135,27 +134,43 @@ namespace {
       } // auto waveforms
       averagelow = averagelow / waveforms.size();
       averagehigh = averagehigh / waveforms.size();
-      std::cout << lowest << " " <<  highest << " " <<  averagelow << " " <<  averagehigh << " ... " << first_timestamp << " " << last_timestamp << "\n" << std::endl;
+      std::cout << "At the end of Waveform findinrange, wbo has size " << wbo.size() << std::endl;
     } // findinrange
 
-    bool CheckRange ( lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
-		      lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
-		      unsigned int novaticksperssptick ) {
-      for (auto wf : waveforms) { // see if any waveforms have pieces inside this TPC boundary
-	raw::TimeStamp_t tsbeg = wf.TimeStamp();  // is this a nova timestamp?
-	raw::TimeStamp_t tsend = tsbeg + wf.size()*novaticksperssptick;
-	if (tsbeg < last_timestamp && tsend > first_timestamp) return true;
-      }
-      return false;
-    }
-    
     //=======================================================================================
     bool PhotonTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp,
-		       double novaticksperssptick_) { // Triggering on photon detectors
-      if ( CheckRange ( prev_timestamp, this_timestamp, novaticksperssptick_ ) ) {
-	std::cout << "There is a flash between timestamps " <<  prev_timestamp << " and " << this_timestamp << std::endl;
-	return true;
-      } else return false;
+		       double novaticksperssptick_, double fWaveformADCThreshold, int fWaveformADCsOverThreshold ) { // Triggering on photon detectors
+      int HighADCWaveforms = 0;
+
+      double SumWaveforms = 0;
+      int ADCs = 0;
+      int More1550 = 0;
+      int More1750 = 0;
+      int More2000 = 0;
+      double Lowest = 1e7;
+      double Biggest = 0;
+      for (auto wf : waveforms) { // see if any waveforms have pieces inside this TPC boundary
+	raw::TimeStamp_t tsbeg = wf.TimeStamp();  // is this a nova timestamp?
+	raw::TimeStamp_t tsend = tsbeg + wf.size()*novaticksperssptick_;
+	if (tsbeg < this_timestamp && tsend > prev_timestamp) {
+	  for (int ii=0;ii<(int)wf.size();++ii) {
+	    if ((int)wf.Waveform()[ii] >  fWaveformADCThreshold) {
+	      ++HighADCWaveforms;
+	      
+	      SumWaveforms += (int)wf.Waveform()[ii];
+	      if ( wf.Waveform()[ii] < Lowest ) Lowest = wf.Waveform()[ii];
+	      if ( wf.Waveform()[ii] > Biggest) Biggest= wf.Waveform()[ii];
+	      if ( wf.Waveform()[ii] > 1550 ) ++More1550;
+	      if ( wf.Waveform()[ii] > 1750 ) ++More1750;
+	      if ( wf.Waveform()[ii] > 2000 ) ++More2000;
+	      ++ADCs;
+	    } // If ADC count more than threshold (1550)
+	  } // Loop over wf ADC's
+	} // If times match
+      } // Loop over waveforms
+      //std::cout << "Lowest " << Lowest << ", Biggest " << Biggest << ", Average " << SumWaveforms / ADCs << ", Total " << ADCs << ", More1550 " << More1550 << ", More1750 " << More1750 << ", More2000 " << More2000 << std::endl;
+      if ( HighADCWaveforms > fWaveformADCsOverThreshold ) return true;
+      else return false;
     } // Photon Trigger
   }; // Loaded Waveforms
   
@@ -260,8 +275,6 @@ namespace {
 		     lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
 		     unsigned int novaticksperssptick)
     {
-      std::cout << "\nNow in findinrange, cbo has size " << cbo.size() << std::endl;
-
       int hh = 0; // Just want to write out the first few waveforms....Definitely get rid of this hh stuff!
       for (auto count : counters) { // see if any waveforms have pieces inside this TPC boundary
 	unsigned int TimeStamp = count.GetTrigTime() / novaticksperssptick;
@@ -271,12 +284,13 @@ namespace {
 	++hh;
 	
 	if (TimeStamp <= (unsigned int)last_timestamp && TimeStamp >= (unsigned int)first_timestamp) {
-	  std::cout << "Got a muon counter within the time range!" << std::endl;
+	  //std::cout << "Got a muon counter within the time range!" << std::endl;
 	  raw::ExternalTrigger ET(count.GetTrigID(),
 				  count.GetTrigTime() );
 	  cbo.emplace_back(std::move(ET));
 	} // If within range
       } // auto waveforms
+      std::cout << "At the end of Counter findinrange, cbo has size " << cbo.size() << std::endl;
     } // findinrange
 
     //=======================================================================================
@@ -478,6 +492,8 @@ namespace DAQToOffline {
     int fMCTrigLevel;
     int fwhichTrigger;
     int fTrigSeparation;
+    double fWaveformADCThreshold;
+    int fWaveformADCsOverThreshold;
     int fADCdiffThreshold;
     int fADCsOverThreshold;
   };
@@ -526,13 +542,16 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  std::placeholders::_2, // lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
-                                 ps.get<unsigned>("zeroThreshold",0) ) ),  novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
+                                 ps.get<unsigned>("zeroThreshold",0) ) ),
+  novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
   novaticksperssptick_(ps.get<unsigned int>("novaticksperssptick",1)),
   novatickspercounttick_(ps.get<double>("novatickspercounttick",32)),
   fTimeStampThreshold_(ps.get<double>("TimeStampThreshold",5)),
   fMCTrigLevel(ps.get<int>("MCTrigLevel",10000)),
   fwhichTrigger(ps.get<int>("whichTrigger",0)),
   fTrigSeparation(ps.get<int>("TrigSeparation",0)),
+  fWaveformADCThreshold(ps.get<double>("fWaveformADCThreshold",1550)),
+  fWaveformADCsOverThreshold(ps.get<double>("fWaveformADCsOverThreshold",10)),
   fADCdiffThreshold(ps.get<int>("ADCdiffThreshold",40)),
   fADCsOverThreshold(ps.get<int>("ADCsOverThreshold",1000))
 {
@@ -628,28 +647,33 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       }
       NewTree = true;
       if (treeIndex_ == fLastTreeIndex) 
-	loadedDigits_.index = fLastTriggerIndex; // If have to re-laod an old tree, need to jump back to previous position in that tree.
+	loadedDigits_.index = fLastTriggerIndex; // If have to re-load an old tree, need to jump back to previous position in that tree.
       first_tick = true; // Just loaded in new event, so want to reset first_timestamp...doesn't effect previous loaded event.
       first_timestamp=0, last_timestamp=0; // Want to reset the timestamps.
       // ******* Check that the time stamps lead on from one another!! ***********
-      int StampDiff = fabs( (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) - (int)prev_timestamp );
-      if ( StampDiff > fTimeStampThreshold_ ) { // Timestamps of old and new file too far apart. So want to clear all previously loaded event.
-	std::cout << "\nThe gap between timestamps is " << StampDiff << " so could reset RCE information, but I'm not going to...\n" << std::endl;
-	/*
-	  std::cout << "\nThe gap between timestamps is " << StampDiff << " so resetting RCE information...\n" << std::endl;
-	  Reset();
-	  fLastTriggerIndex = 0;
-	*/
+      if (fTrigger) {
+	int StampDiff = fabs( (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) - (int)prev_timestamp );
+	if ( StampDiff > fTimeStampThreshold_ ) { // Timestamps of old and new file too far apart. So want to clear all previously loaded event.
+	  std::cout << "\nThe gap between timestamps is " << StampDiff << " so could reset RCE information, but I'm not going to...\n" << std::endl;
+	  /*
+	    std::cout << "\nThe gap between timestamps is " << StampDiff << " so resetting RCE information...\n" << std::endl;
+	    Reset();
+	    fLastTriggerIndex = 0;
+	  */
+	}
       }
       // ******* Check that the time stamps lead on from one another!! ***********
-      loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
-      loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
+      //loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
+      //loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
+
+      std::cout << "Looking at event " << treeIndex_ << " (treeIndex_ " << treeIndex_ << "), it has " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
     } // loadedDigits_.empty()
     
     if (NewTree) std::cout << "Looking at treeIndex " << treeIndex_-1 << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex " << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
 
-    std::vector<short> nextdigits = loadedDigits_.next(); 
     this_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
+    //if (fTrigger) std::cout << fTicksAccumulated << " " << prev_timestamp << " " << this_timestamp << std::endl;
+    std::vector<short> nextdigits = loadedDigits_.next();
 
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
     if ( fTicksAccumulated == 0 ) { 
@@ -723,7 +747,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   // ******** Now Build the event *********
   makeEventAndPutDigits_( outE );
   // ******** Reset loadedDigits_.index and TreeIndex_ to where the trigger was *********
-  std::cout << "Making an event which triggered on Tree Index " << fLastTreeIndex << ", tick " << fLastTriggerIndex << ".\n"
+  std::cout << "\nMaking an event which triggered on Tree Index " << fLastTreeIndex << ", tick " << fLastTriggerIndex << ".\n"
 	    << "It went from Tree index " << FirstDigTree  << ", tick " << FirstDigIndex << " to Tree index " << treeIndex_-1 << ", tick " << loadedDigits_.index << ".\n" 
 	    << "I want to reset the tick value for sure, but do I need to reload the digits because treeIndex is different?" << std::endl;
   if ( treeIndex_-1 != fLastTreeIndex ) {
@@ -731,13 +755,12 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     treeIndex_ = fLastTreeIndex;  // want to -1 as treeIndex_ is incremented straight after loaded.
     loadedDigits_.index = 0;
     while (!loadedDigits_.empty() ) std::vector<short> nextdigits = loadedDigits_.next();
-    std::cout << loadedDigits_.empty() << std::endl;
     loadDigits_(treeIndex_);
     loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
     loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
-    std::cout << loadedDigits_.empty() << std::endl;
+    std::cout << "" << std::endl;
     //loadedDigits_.empty() == 1;
-  } else std::cout << "No, I'm still looking at the same tree!" << std::endl;
+  } else std::cout << "No, I'm still looking at the same tree!\n" << std::endl;
   loadedDigits_.index = fLastTriggerIndex;
   this_timestamp      = fLastTimeStamp;
   
@@ -849,17 +872,21 @@ void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vec
   if ( treeIndex_-1 != fLastTreeIndex ) fLastTimeStamp = 0; // No longer looking at same treeIndex as previous trigger, so reset lastTimeStamp
   if ( (int)this_timestamp - (int)fLastTimeStamp > fTrigSeparation) { // Don't want two triggers too close together!
     // Trigger on Monte Carlo whichTrigger == 0
-    if ( fwhichTrigger == 0 ) 
-      { if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true; }
+    if ( fwhichTrigger == 0 ) {
+      if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;
+    }
     // Trigger on Phton Detectors whichTrigger == 1
-    else if ( fwhichTrigger == 1 )
-      { fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, this_timestamp, novaticksperssptick_ ); }
+    else if ( fwhichTrigger == 1 ) {
+      fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, this_timestamp, novaticksperssptick_, fWaveformADCThreshold, fWaveformADCsOverThreshold );
+    }
     // Trigger on Muon Counters whichTrigger == 2
-    else if ( fwhichTrigger == 2 )
-      { fTrigger = loadedCounters_.CounterTrigger( this_timestamp, novatickspercounttick_ ); }
+    else if ( fwhichTrigger == 2 ) {
+      fTrigger = loadedCounters_.CounterTrigger( this_timestamp, novatickspercounttick_ );
+    }
     // Trigger on "Tickler" / TPC information, whichTrigger == 3.
-    else if ( fwhichTrigger == 3 ) 
-      { TicklerTrigger( PrevChanADC, ADCdigits ); }
+    else if ( fwhichTrigger == 3 ) {
+      fTrigger = TicklerTrigger( PrevChanADC, ADCdigits );
+    }
     
     // Triggered!
     double TempTriggerIndex = loadedDigits_.index;
@@ -930,13 +957,18 @@ void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vec
 //=======================================================================================
 bool DAQToOffline::Splitter::TicklerTrigger( std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits ) {
   int HitsOverThreshold = 0;
-    
   if (PrevChanADC.size() != 0) {
     for (unsigned int achan=0; achan<ADCdigits.size(); ++achan)
-      if ( fabs( ADCdigits[achan] - PrevChanADC[achan] ) > fADCdiffThreshold )
+      if ( fabs( ADCdigits[achan] - PrevChanADC[achan] ) > fADCdiffThreshold ) {
 	++HitsOverThreshold;
-    //std::cout << " after looking through all the channels I had " << HitsOverThreshold << " ticks with diff more than " << ADCdiffThreshold << std::endl;
-    if ( HitsOverThreshold < fADCsOverThreshold ) return true;
+	//std::cout << "Looking at index " << loadedDigits_.index << " channel " << achan << "..."  << ADCdigits[achan] << " - " << PrevChanADC[achan] << " = " << fabs( ADCdigits[achan] - PrevChanADC[achan] ) << " > " << fADCdiffThreshold << std::endl;
+      }
+    if ( HitsOverThreshold != 0 )
+      //std::cout << " after looking through all the channels ("<<ADCdigits.size()<<") I had " << HitsOverThreshold << " ticks with diff more than " << fADCdiffThreshold << std::endl;
+    if ( HitsOverThreshold > fADCsOverThreshold ) {
+      std::cout << "Looking at index " << loadedDigits_.index << ", which had " << HitsOverThreshold << " hits over diff threshold. Trigger threshold is " << fADCsOverThreshold << std::endl;
+      return true;
+    }
   } // if PrevChanADC not empty.
   for (unsigned int bchan=0; bchan<ADCdigits.size(); ++bchan)
     PrevChanADC[bchan] = ADCdigits[bchan];
