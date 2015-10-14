@@ -526,7 +526,9 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  std::placeholders::_2, // lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
-                                 ps.get<unsigned>("zeroThreshold",0) ) ),  novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
+                                 ps.get<unsigned>("zeroThreshold",0),
+				 std::map<int,int>()) ),  
+  novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
   novaticksperssptick_(ps.get<unsigned int>("novaticksperssptick",1)),
   novatickspercounttick_(ps.get<double>("novatickspercounttick",32)),
   fTimeStampThreshold_(ps.get<double>("TimeStampThreshold",5)),
