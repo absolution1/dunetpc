@@ -19,7 +19,8 @@ std::vector<raw::RawDigit>
 DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, 
 				     lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
 				     bool debug,
-                                     raw::Compress_t compression, unsigned int zeroThreshold)
+                                     raw::Compress_t compression, unsigned int zeroThreshold,
+				     std::map<int,int> const& channelMap)
 {
   //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
   unsigned int numFragments = rawFragments.size();
@@ -104,7 +105,8 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
     if (debug) std::cout << "adcvec->size(): " << adcvec.size() << std::endl;
     unsigned int numTicks = adcvec.size();
     raw::Compress(adcvec, compression, zeroThreshold);
-    raw::RawDigit theRawDigit(chan, numTicks, adcvec, compression);
+    int offlineChannel = channelMap.at(chan);
+    raw::RawDigit theRawDigit(offlineChannel, numTicks, adcvec, compression);
     rawDigitVector.push_back(theRawDigit);            // add this digit to the collection
   }
 

@@ -11,6 +11,7 @@
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
 
 #include <vector>
+#include <map>
 
 namespace DAQToOffline {
 
@@ -23,7 +24,8 @@ namespace DAQToOffline {
 			 lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
                          bool debug,
                          raw::Compress_t compression,
-                         unsigned int zeroThreshold);
+                         unsigned int zeroThreshold,
+			 std::map<int,int> const& channelMap);
 }
 
 #endif

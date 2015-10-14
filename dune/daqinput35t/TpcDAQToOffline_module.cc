@@ -19,6 +19,8 @@
 
 #include <memory>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 //lbne-artdaq includes
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
@@ -52,6 +54,8 @@ public:
   void reconfigure(const fhicl::ParameterSet &pset);
   void printParameterSet();
 
+  void BuildChannelMap(std::string const& mapFile);
+
 private:
 
   std::string fFragType;
@@ -61,6 +65,7 @@ private:
   raw::Compress_t        fCompression;      ///< compression type to use
   unsigned int           fZeroThreshold;    ///< Zero suppression threshold
 
+  std::map<int,int> fChannelMap;
 
 };
 
@@ -69,8 +74,27 @@ DAQToOffline::TpcDAQToOffline::TpcDAQToOffline(fhicl::ParameterSet const & pset)
 {
 
   this->reconfigure(pset);
+  this->BuildChannelMap("utilities/channelMap.txt");
 
   produces< std::vector<raw::RawDigit> > (fOutputDataLabel);  
+
+}
+
+void DAQToOffline::TpcDAQToOffline::BuildChannelMap(std::string const& mapFile) {
+
+  /// Builds a channel map from a text file
+
+  std::ifstream inFile(mapFile, std::ios::in);
+  std::string line;
+
+  while (std::getline(inFile,line)) {
+    int onlineChannel, offlineChannel;
+    std::stringstream linestream(line);
+    linestream >> onlineChannel >> offlineChannel;
+    fChannelMap[onlineChannel] = offlineChannel;
+  }
+
+  inFile.close();
 
 }
 
@@ -142,7 +166,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 
   lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
 
-  auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fDebug, fCompression, fZeroThreshold);
+  auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fDebug, fCompression, fZeroThreshold, fChannelMap);
 
   evt.put(std::make_unique<decltype(digits)>(std::move(digits)), fOutputDataLabel);
 }
