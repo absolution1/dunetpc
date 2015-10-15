@@ -467,12 +467,13 @@ namespace DAQToOffline {
     lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp=0;
 
     std::map<int,int>      OpDetChannelMap;
+    std::map<uint64_t,size_t> EventTreeMap;
 
     std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t& )> fragmentsToDigits_;
 
     bool eventIsFull_(rawDigits_t const & v);
 
-    bool loadDigits_( size_t InputTree );
+    bool loadDigits_( size_t &InputTree );
 
     void makeEventAndPutDigits_( art::EventPrincipal*& outE );
 
@@ -590,6 +591,22 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
   pevaux_ = &evAux_;
   EventAuxBranch_->SetAddress(&pevaux_);
 
+  // ------------ Make my sorted event branch --------------------
+  EventTreeMap.clear();
+  art::RunNumber_t TreeRunNumber; uint16_t IntRunNumber;
+  art::SubRunNumber_t TreeSubRunNumber; uint16_t IntSubRunNumber;
+  art::EventNumber_t TreeEventNumber; uint32_t IntEventNumber;
+  uint64_t CombinedInt;
+  for (size_t Tree=0; Tree < nInputEvts_; ++Tree) {
+    EventAuxBranch_->GetEntry(Tree); TreeRunNumber = evAux_.run(); //Get the run number
+    IntRunNumber    = (int)TreeRunNumber; TreeSubRunNumber = evAux_.subRun(); IntSubRunNumber = (int)TreeSubRunNumber; //Get the subrun number
+    TreeEventNumber = evAux_.event();   IntEventNumber  = (int)TreeEventNumber; //Get the event number
+    CombinedInt = (uint64_t) IntRunNumber << 16 | IntSubRunNumber << 16 | IntEventNumber; // Combine them as a 64 bit int.
+    //std::cout << "Looking at Tree " << Tree << ", RunNumber " << IntRunNumber << ", SubRunNumber " << IntSubRunNumber << ", EventNumber " << IntEventNumber << ", CrazyNumber " << CombinedInt << std::endl;
+    EventTreeMap[CombinedInt] = Tree; // Add that to a tree - use the fact that this will sort them by Run, Subrun, Event.
+  }
+  // ------------ Make my sorted event branch --------------------
+
   // New fileblock
   fb = new art::FileBlock(art::FileFormatVersion(),filename);
   if ( fb == nullptr ) {
@@ -641,6 +658,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 		  << std::endl;
       }
       bool rc = loadDigits_(treeIndex_);
+      std::cout << "Looking at event " << treeIndex_ << " (treeIndex_ " << treeIndex_-1 << "), it has " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
       if (!rc) {
 	doneWithFiles_ = (file_->GetName() == lastFileName_);
 	return false;
@@ -666,7 +684,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       //loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
       //loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
 
-      std::cout << "Looking at event " << treeIndex_ << " (treeIndex_ " << treeIndex_ << "), it has " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
+      std::cout << "Looking at event " << treeIndex_ << " (treeIndex_ " << treeIndex_-1 << "), it has " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
     } // loadedDigits_.empty()
     
     if (NewTree) std::cout << "Looking at treeIndex " << treeIndex_-1 << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex " << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
@@ -778,32 +796,45 @@ bool DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v ) {
 }
 
 //=======================================================================================
-bool DAQToOffline::Splitter::loadDigits_( size_t InputTree ) {
-  std::cout << "\nLoading digits for treeIndex_ = " << treeIndex_ << ", nInputEvents = " << nInputEvts_ << std::endl;
-  if ( loadedDigits_.empty() && treeIndex_ != nInputEvts_ ) {
-        
-    EventAuxBranch_->GetEntry(treeIndex_);
+bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
+  std::cout << "\nLoading digits for treeIndex_ = " << InputTree << ", nInputEvents = " << nInputEvts_ << std::endl;
+  if ( loadedDigits_.empty() && InputTree != nInputEvts_ ) {
+    
+    // I want to look through my map to find correct tree for this event!
+    int LookingAtIndex =0;
+    size_t LoadTree = 0;
+    for (std::map<uint64_t,size_t>::iterator it=EventTreeMap.begin(); it!=EventTreeMap.end(); ++it ) {
+      ++LookingAtIndex;
+      //std::cout << "Looking at index " << LookingAtIndex << std::endl;
+      if ( LookingAtIndex == (int)InputTree )
+	{ LoadTree = it->second; break; }
+    }
+    // I want to look through my map to find correct tree for this event!
+      
+    EventAuxBranch_->GetEntry(LoadTree);
     inputRunNumber_ = evAux_.run();
     inputSubRunNumber_ = evAux_.subRun();
     inputEventNumber_ = evAux_.event();
     
+    std::cout << "Loading an event..Run Number " << inputRunNumber_ << ", Subrun number " << inputSubRunNumber_ << " Event Number " << inputEventNumber_ << ", Tree Index " << LoadTree << ". I wanted event " << int(InputTree) << std::endl;
+
     if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
       lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
-      auto* fragments = getFragments( TPCinputBranch_, treeIndex_ );
+      auto* fragments = getFragments( TPCinputBranch_, LoadTree );
       rawDigits_t const digits = fragmentsToDigits_( *fragments, firstTimestamp );
       loadedDigits_.load( digits );
       loadedDigits_.loadTimestamp( firstTimestamp );
       std::cout << "RCE Fragment First Timestamp: " << firstTimestamp << std::endl;
     }
     else {
-      auto* digits = getRawDigits(TPCinputBranch_, treeIndex_ );
+      auto* digits = getRawDigits(TPCinputBranch_, LoadTree );
       loadedDigits_.load( *digits);
       loadedDigits_.loadTimestamp(0); // MC timestamp is zero (? assume?)
       std::cout << "Loaded MC time stamp" << std::endl;
     }
     
     if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
-      auto* SSPfragments = getFragments( SSPinputBranch_, treeIndex_ );
+      auto* SSPfragments = getFragments( SSPinputBranch_, LoadTree );
       std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency, OpDetChannelMap);
       std::cout << "Loading data waveforms which have size " << waveforms.size() << std::endl;
       for (auto waveform: waveforms) {
@@ -812,7 +843,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t InputTree ) {
       loadedWaveforms_.load( waveforms );
     }
     else {
-      auto* waveforms = getSSPWaveforms(SSPinputBranch_, treeIndex_ );
+      auto* waveforms = getSSPWaveforms(SSPinputBranch_, LoadTree );
       std::cout << "Loading MC waveform which has size " << waveforms->size() << std::endl;
       loadedWaveforms_.load( *waveforms );
     }
@@ -820,11 +851,11 @@ bool DAQToOffline::Splitter::loadDigits_( size_t InputTree ) {
     if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
       std::cout << "Looking at data muon counter information!" << std::endl;
     } else {
-      auto* counters = getRawExternalTriggers(PenninputBranch_, treeIndex_ );
+      auto* counters = getRawExternalTriggers(PenninputBranch_, LoadTree );
       loadedCounters_.load( *counters );
       std::cout << "Loaded the External Trigers, they have size " << counters->size() << "!!" << std::endl;
     }
-    treeIndex_++;
+    InputTree++;
     return true;
   }
   else return false;
