@@ -648,14 +648,14 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     prev_timestamp = this_timestamp; // set prev_timestamp to old timestamp
     // ************* Check if loadedDigits is empty... ************************
     while (loadedDigits_.empty()) {
-      std::cout << "\nLoaded digits is empty..." << std::endl;
+      //std::cout << "\nLoaded digits is empty..." << std::endl;
       if ( fTrigger ) { // Want to load wbuf with end of last event, before loading new data.
 	loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp,novaticksperssptick_);
 	loadedCounters_.findinrange (cbuf_, first_timestamp, last_timestamp, novatickspercounttick_ );
-	std::cout << "Loaded digits was empty, will be refilled..."
-		  << "\nwbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_
-		  << "\ncbuf_ has size " << cbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novatickspercounttick_
-		  << std::endl;
+	//std::cout << "Loaded digits was empty, will be refilled..."
+	//	  << "\nwbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novaticksperssptick_
+	//	  << "\ncbuf_ has size " << cbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << novatickspercounttick_
+	//	  << std::endl;
       }
       bool rc = loadDigits_(treeIndex_);
       std::cout << "Looking at event " << treeIndex_ << " (treeIndex_ " << treeIndex_-1 << "), it has " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
@@ -669,7 +669,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       first_tick = true; // Just loaded in new event, so want to reset first_timestamp...doesn't effect previous loaded event.
       first_timestamp=0, last_timestamp=0; // Want to reset the timestamps.
       // ******* Check that the time stamps lead on from one another!! ***********
-      if (fTrigger) {
+      if (fTrigger && loadedDigits_.digits[0].NADC() != 0) {
 	int StampDiff = fabs( (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) - (int)prev_timestamp );
 	if ( StampDiff > fTimeStampThreshold_ ) { // Timestamps of old and new file too far apart. So want to clear all previously loaded event.
 	  std::cout << "\nThe gap between timestamps is " << StampDiff << " so could reset RCE information, but I'm not going to...\n" << std::endl;
@@ -681,10 +681,6 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	}
       }
       // ******* Check that the time stamps lead on from one another!! ***********
-      //loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
-      //loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
-
-      std::cout << "Looking at event " << treeIndex_ << " (treeIndex_ " << treeIndex_-1 << "), it has " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
     } // loadedDigits_.empty()
     
     if (NewTree) std::cout << "Looking at treeIndex " << treeIndex_-1 << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex " << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
@@ -797,7 +793,7 @@ bool DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v ) {
 
 //=======================================================================================
 bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
-  std::cout << "\nLoading digits for treeIndex_ = " << InputTree << ", nInputEvents = " << nInputEvts_ << std::endl;
+  //std::cout << "\nLoading digits for treeIndex_ = " << InputTree << ", nInputEvents = " << nInputEvts_ << std::endl;
   if ( loadedDigits_.empty() && InputTree != nInputEvts_ ) {
     
     // I want to look through my map to find correct tree for this event!
@@ -816,8 +812,6 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     inputSubRunNumber_ = evAux_.subRun();
     inputEventNumber_ = evAux_.event();
     
-    std::cout << "Loading an event..Run Number " << inputRunNumber_ << ", Subrun number " << inputSubRunNumber_ << " Event Number " << inputEventNumber_ << ", Tree Index " << LoadTree << ". I wanted event " << int(InputTree) << std::endl;
-
     if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
       lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
       auto* fragments = getFragments( TPCinputBranch_, LoadTree );
@@ -830,7 +824,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
       auto* digits = getRawDigits(TPCinputBranch_, LoadTree );
       loadedDigits_.load( *digits);
       loadedDigits_.loadTimestamp(0); // MC timestamp is zero (? assume?)
-      std::cout << "Loaded MC time stamp" << std::endl;
+      //std::cout << "Loaded MC time stamp" << std::endl;
     }
     
     if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
@@ -933,45 +927,67 @@ void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vec
 		  << ")! Moving loadedDigits_.index to " << BufferResidual << std::endl;
 	loadedDigits_.index = BufferResidual;
       }
-      else { // Don't have enough ticks in the event for the prebuffer :( so need to load a previous event!
+      else { // Don't have enough ticks in the event for the prebuffer :( so need to load previous events!
 	BufferResidual = -BufferResidual;
-	std::cout << "I don't have enough previous digits :(, I need an extra " << BufferResidual << " ticks from the previous event." << std::endl;
-	if ( (int)treeIndex_ - 2 >= 0 ) { // No events with -ve treeIndexes
-	  std::cout << "Want to load the previous file, so clearing loadedDigits..." << std::endl;
-	  treeIndex_ = treeIndex_ - 2; // want to load the event before event with triger.
-	  loadedDigits_.index = 0;
-	  lbne::TpcNanoSlice::Header::nova_timestamp_t TrigEvStart = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
-	  while (!loadedDigits_.empty() ) std::vector<short> nextdigits = loadedDigits_.next();
-	  std::cout << "Is loadedDigits empty? " << loadedDigits_.empty() << std::endl;
-	  loadDigits_(treeIndex_);
-	  std::cout << "What about now? " << loadedDigits_.empty() << std::endl;
-	  
-	  // Loaded the previous event, check is correct.
-	  loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
-	  loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
-	  
-	  // Check whether last timestamp of this event matches first timestamp of triggered event.
-	  size_t NADCs = loadedDigits_.digits[0].NADC();
-	  lbne::TpcNanoSlice::Header::nova_timestamp_t PrevEvEnd = loadedDigits_.getTimeStampAtIndex(NADCs, novatickspertpctick_);
-	  int StampDiff = fabs( (int)TrigEvStart - (int)PrevEvEnd );
-	  if ( StampDiff < fTimeStampThreshold_ || 1) { // Check Timestamps match...
-	    std::cout << "\nThe timestamps match, or at least the fact they don't is being ignored...StampDiff = " << StampDiff << std::endl;
-	    std::cout << "I have a total of " << NADCs << " ticks in this file, but only want " << BufferResidual << " so I want to set loadedDigits_.index to " << NADCs-BufferResidual << std::endl;
-	    loadedDigits_.index = NADCs - BufferResidual;
-	    std::cout << "loadedDigits_index is now set to " << loadedDigits_.index << std::endl;
-	  } // Timestamps match
-	  else { // if triggers don't match have to go back to where I was before!
-	    std::cout << "Timestamps don't match, so setting Trigger to false, and going back to where I triggered..." << std::endl;
-	    fTrigger = false; 
+	loadedDigits_.index = 0;
+	lbne::TpcNanoSlice::Header::nova_timestamp_t TrigEvStart = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
+	std::cout << "I don't have enough previous digits :(, I need an extra " << BufferResidual << " ticks from previous events. TrigEvStart = " << (int)TrigEvStart << std::endl;
+	while ( BufferResidual > 0 && (int)treeIndex_ - 2 >= 0 && fTrigger) {
+	  if ( (int)treeIndex_ - 2 >= 0 ) { // No events with -ve treeIndexes
+	    std::cout << "Want to load the previous file, so clearing loadedDigits..." << std::endl;
+	    treeIndex_ = treeIndex_ - 2; // want to load the event before event with triger.
 	    loadedDigits_.index = 0;
 	    while (!loadedDigits_.empty() ) std::vector<short> nextdigits = loadedDigits_.next();
-	    loadDigits_(TempTreeIndex); // treeIndex_ was incremented when loaded the 'bad' file, so can just use the value it currently has!
+	    std::cout << "Is loadedDigits empty? " << loadedDigits_.empty() << std::endl;
+	    loadDigits_(treeIndex_);
+	    std::cout << "What about now? " << loadedDigits_.empty() << std::endl;
+	    
+	    // Loaded the previous event, check is correct.
 	    loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
 	    loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
-	    loadedDigits_.index = TempTriggerIndex;
-	  }
-	} // Have a previous event to load
-	else { fTrigger = false; std::cout << "Can't load a previous event, as trigger was in treeIndex_ 0!" << std::endl; }
+	    
+	    // Check that this event isn't empty.
+	    size_t NADCs = loadedDigits_.digits[0].NADC();
+	    if ( (int)NADCs == 0 ) {
+	      while ( (int)NADCs == 0 ) {
+		if ( (int)treeIndex_ - 2 >= 0 ) {
+		  treeIndex_ = treeIndex_ - 2;
+		  loadDigits_(treeIndex_);
+		  NADCs = loadedDigits_.digits[0].NADC();
+		} else { fTrigger = false; break; }
+	      }
+	    }
+	    // Check whether last timestamp of this event matches first timestamp of triggered event.
+	    lbne::TpcNanoSlice::Header::nova_timestamp_t PrevEvEnd = loadedDigits_.getTimeStampAtIndex(NADCs, novatickspertpctick_);
+	    int StampDiff = fabs( (int)TrigEvStart - (int)PrevEvEnd );
+	    if ( StampDiff < fTimeStampThreshold_ || 1) { // Check Timestamps match...
+	      std::cout << "\nThe timestamps match, or at least the fact they don't is being ignored...StampDiff = " << StampDiff
+			<< " = " << (int)TrigEvStart << " - " << (int)PrevEvEnd
+			<< "\nI have a total of " << NADCs << " ticks in this file, and want " << BufferResidual
+			<< std::endl;
+	      if ( BufferResidual - NADCs ) {
+		loadedDigits_.index = NADCs - BufferResidual;
+		std::cout << "loadedDigits_index is now set to " << loadedDigits_.index << std::endl;
+		break;
+	      }
+	      else {
+		BufferResidual = BufferResidual - NADCs;
+		std::cout << "Still need another " << BufferResidual << "ticks!" << std::endl;
+	      }
+	    } // Timestamps match
+	    else { // if triggers don't match have to go back to where I was before!
+	      std::cout << "Timestamps don't match, so setting Trigger to false, and going back to where I triggered..." << std::endl;
+	      fTrigger = false;
+	      loadedDigits_.index = 0;
+	      while (!loadedDigits_.empty() ) std::vector<short> nextdigits = loadedDigits_.next();
+	      loadDigits_(TempTreeIndex); // treeIndex_ was incremented when loaded the 'bad' file, so can just use the value it currently has!
+	      loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
+	      loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
+	      loadedDigits_.index = TempTriggerIndex;
+	    } // else
+	  } // Have a previous event to load
+	  else { fTrigger = false; std::cout << "Can't load a previous event, as trigger was in treeIndex_ 0!" << std::endl; }
+	} // Go back however many events to find enough ticks for prebuffer.
       } //Too few ticks for prebuffer...
     } //fTrigger
     
