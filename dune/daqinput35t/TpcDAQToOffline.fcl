@@ -7,6 +7,7 @@ tpc_daq_to_offline:
   RawDataLabel: "daq"
   OutputDataLabel: "offline"
   Debug: "false"
+  TPCChannelMapFile: "rce_channel_map_dune35t.txt"
 }
 
 

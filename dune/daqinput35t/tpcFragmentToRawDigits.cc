@@ -18,9 +18,8 @@
 std::vector<raw::RawDigit>
 DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, 
 				     lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
-				     bool debug,
-                                     raw::Compress_t compression, unsigned int zeroThreshold,
-				     std::map<int,int> const& channelMap)
+				     std::map<int,int> const& channelMap,
+				     bool debug, raw::Compress_t compression, unsigned int zeroThreshold)
 {
   //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
   unsigned int numFragments = rawFragments.size();
@@ -113,3 +112,30 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
   return rawDigitVector;
 }
 
+void DAQToOffline::BuildTPCChannelMap(std::string channelMapFile, std::map<int,int>& channelMap) {
+
+  /// Builds TPC channel map from the map txt file
+
+  channelMap.clear();
+
+  int onlineChannel;
+  int offlineChannel;
+    
+  std::string fullname;
+  cet::search_path sp("FW_SEARCH_PATH");
+  sp.find_file(channelMapFile, fullname);
+    
+  if (fullname.empty())
+    mf::LogError("DAQToOffline") << "Input TPC channel map file " << channelMapFile << " not found in FW_SEARCH_PATH" << std::endl;
+
+  else {
+    mf::LogVerbatim("DAQToOffline") << "Build TPC Online->Offline channel Map from " << fullname;
+    std::ifstream infile(fullname);
+    while (infile.good()) {
+      infile >> onlineChannel >> offlineChannel;
+      channelMap.insert(std::make_pair(onlineChannel,offlineChannel));
+      mf::LogVerbatim("DAQToOffline") << "   " << onlineChannel << " -> " << offlineChannel;
+    }
+  }
+    
+}

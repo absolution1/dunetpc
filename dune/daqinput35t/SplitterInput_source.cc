@@ -414,6 +414,7 @@ namespace DAQToOffline {
     string                 PenninputDataProduct_;
     double                 fNOvAClockFrequency; // MHz
     string                 fOpDetChannelMapFile;
+    string                 fTPCChannelMapFile;
     art::SourceHelper      sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SSPinputBranch_;
@@ -453,8 +454,9 @@ namespace DAQToOffline {
     lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp=0;
 
     std::map<int,int>      OpDetChannelMap;
+    std::map<int,int>      TPCChannelMap;
 
-    std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t& )> fragmentsToDigits_;
+    std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t&, std::map<int,int> const&)> fragmentsToDigits_;
 
     bool eventIsFull_(rawDigits_t const & v);
 
@@ -500,6 +502,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
   fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile","")),
+  fTPCChannelMapFile(ps.get<string>("TPCChannelMapFile","")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -524,10 +527,10 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   fragmentsToDigits_( std::bind( DAQToOffline::tpcFragmentToRawDigits,
                                  std::placeholders::_1, // artdaq::Fragments
                                  std::placeholders::_2, // lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp
+				 std::placeholders::_3, // the channel map
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
-                                 ps.get<unsigned>("zeroThreshold",0),
-				 std::map<int,int>()) ),  
+                                 ps.get<unsigned>("zeroThreshold",0) ) ),
   novatickspertpctick_(ps.get<double>("novatickspertpctick",32)), // But 0.5 in Monte Carlo....Set default value to data.
   novaticksperssptick_(ps.get<unsigned int>("novaticksperssptick",1)),
   novatickspercounttick_(ps.get<double>("novatickspercounttick",32)),
@@ -545,7 +548,8 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   prh.reconstitutes<SSPWaveforms_t,art::InEvent>( sourceName_, SSPinputTag_.instance() );
   prh.reconstitutes<PennCounters_t,art::InEvent>( sourceName_, PenninputTag_.instance() );
 
-  BuildChannelMap(fOpDetChannelMapFile, OpDetChannelMap);
+  BuildOpDetChannelMap(fOpDetChannelMapFile, OpDetChannelMap);
+  BuildTPCChannelMap(fTPCChannelMapFile, TPCChannelMap);
 }
 
 //=======================================================================================
@@ -769,7 +773,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t InputTree ) {
     if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
       lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
       auto* fragments = getFragments( TPCinputBranch_, treeIndex_ );
-      rawDigits_t const digits = fragmentsToDigits_( *fragments, firstTimestamp );
+      rawDigits_t const digits = fragmentsToDigits_(*fragments, firstTimestamp, TPCChannelMap);
       loadedDigits_.load( digits );
       loadedDigits_.loadTimestamp( firstTimestamp );
       std::cout << "RCE Fragment First Timestamp: " << firstTimestamp << std::endl;

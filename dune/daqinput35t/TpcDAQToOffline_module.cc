@@ -54,13 +54,12 @@ public:
   void reconfigure(const fhicl::ParameterSet &pset);
   void printParameterSet();
 
-  void BuildChannelMap(std::string const& mapFile);
-
 private:
 
   std::string fFragType;
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
+  std::string fChannelMapFile;
   bool fDebug;
   raw::Compress_t        fCompression;      ///< compression type to use
   unsigned int           fZeroThreshold;    ///< Zero suppression threshold
@@ -70,44 +69,27 @@ private:
 };
 
 
-DAQToOffline::TpcDAQToOffline::TpcDAQToOffline(fhicl::ParameterSet const & pset)
-{
+DAQToOffline::TpcDAQToOffline::TpcDAQToOffline(fhicl::ParameterSet const & pset) {
 
   this->reconfigure(pset);
-  this->BuildChannelMap("utilities/channelMap.txt");
 
   produces< std::vector<raw::RawDigit> > (fOutputDataLabel);  
 
 }
 
-void DAQToOffline::TpcDAQToOffline::BuildChannelMap(std::string const& mapFile) {
-
-  /// Builds a channel map from a text file
-
-  std::ifstream inFile(mapFile, std::ios::in);
-  std::string line;
-
-  while (std::getline(inFile,line)) {
-    int onlineChannel, offlineChannel;
-    std::stringstream linestream(line);
-    linestream >> onlineChannel >> offlineChannel;
-    fChannelMap[onlineChannel] = offlineChannel;
-  }
-
-  inFile.close();
-
-}
-
-void DAQToOffline::TpcDAQToOffline::reconfigure(fhicl::ParameterSet const& pset){
+void DAQToOffline::TpcDAQToOffline::reconfigure(fhicl::ParameterSet const& pset) {
 
   fFragType = pset.get<std::string>("FragType");
   fRawDataLabel = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
+  fChannelMapFile = pset.get<std::string>("TPCChannelMapFile");
   fDebug = pset.get<bool>("Debug");
 
   fZeroThreshold=0;
   fCompression=raw::kNone;
   if(fDebug) printParameterSet();
+
+  BuildTPCChannelMap(fChannelMapFile, fChannelMap);
 
 }
 
@@ -166,11 +148,9 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 
   lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
 
-  auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fDebug, fCompression, fZeroThreshold, fChannelMap);
+  auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fChannelMap, fDebug, fCompression, fZeroThreshold);
 
   evt.put(std::make_unique<decltype(digits)>(std::move(digits)), fOutputDataLabel);
 }
 
 DEFINE_ART_MODULE(DAQToOffline::TpcDAQToOffline)
-
-
