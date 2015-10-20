@@ -2,6 +2,8 @@
 #define tpcFragmentToRawDigits_h
 
 #include "artdaq-core/Data/Fragments.hh"
+#include "messagefacility/MessageLogger/MessageLogger.h"
+
 
 // From lardata
 #include "RawData/RawDigit.h"
@@ -11,6 +13,8 @@
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
 
 #include <vector>
+#include <map>
+#include <fstream>
 
 namespace DAQToOffline {
 
@@ -18,12 +22,15 @@ namespace DAQToOffline {
   // Fragments are expected to be carrying TPC data; this is not
   // checked.
 
-  std::vector<raw::RawDigit>
-  tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
-			 lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
-                         bool debug,
-                         raw::Compress_t compression,
-                         unsigned int zeroThreshold);
+  std::vector<raw::RawDigit> tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
+						    lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
+						    std::map<int,int> const& channelMap,
+						    bool debug,
+						    raw::Compress_t compression,
+						    unsigned int zeroThreshold);
+
+  void BuildTPCChannelMap(std::string channelMapFile, std::map<int,int>& channelMap);
+
 }
 
 #endif
