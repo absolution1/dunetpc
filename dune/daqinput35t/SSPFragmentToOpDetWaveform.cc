@@ -179,7 +179,7 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
 
 
 
-void DAQToOffline::BuildChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap)
+void DAQToOffline::BuildOpDetChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap)
 {
     theChannelMap.clear();
 
