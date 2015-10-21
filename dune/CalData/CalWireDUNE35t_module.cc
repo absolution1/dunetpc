@@ -13,7 +13,7 @@
 #include <vector>
 #include <utility> // std::move()
 #include <memory> // std::unique_ptr<>
-
+//#include <fstream>
 // ROOT libraries
 #include "TComplex.h"
 
@@ -165,7 +165,7 @@ namespace caldata {
 
     // Use the handle to get a particular (0th) element of collection.
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
-        
+
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     //std::cout << "Xin " << dataSize << std::endl;
 
@@ -192,8 +192,22 @@ namespace caldata {
 	holder.resize(transformSize);
 	
 	// uncompress the data
-	raw::Uncompress(digitVec->ADCs(), rawadc, digitVec->Compression());
+
+	int pedestal_value = (int) digitVec->GetPedestal();
+	raw::Uncompress(digitVec->ADCs(), rawadc, pedestal_value, digitVec->Compression());
+	  
+	// char filename0[250];
+	// sprintf(filename0,"/lbne/data/users/jti3/testpedestals/adcvec_uncompressed_evt%d_chan%d.dat",evt.id().event(),channel);
+	// std::ofstream ofs1 (filename0,std::ofstream::out); 
 	
+	// for(size_t t = 0; t < rawadc.size(); ++t){ 
+	//   ofs1 << rawadc[t] << std::endl;
+	//   //std::cout << rawadc[t] << std::endl;
+
+	// }
+	// ofs1.close();
+
+
 	// loop over all adc values and subtract the pedestal
 	for(bin = 0; bin < dataSize; ++bin) 
 	  holder[bin]=(rawadc[bin]-digitVec->GetPedestal());
