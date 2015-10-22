@@ -98,14 +98,14 @@ void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
   fRawDataLabel       = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel    = pset.get<std::string>("OutputDataLabel");
   fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
-  fChannelMapFile     = pset.get<std::string>("ChannelMapFile");
+  fChannelMapFile     = pset.get<std::string>("OpDetChannelMapFile");
 
   //fDebug = pset.get<bool>("Debug");
   //fZeroThreshold=0;
   //fCompression=raw::kNone;
 
   printParameterSet();
-  BuildChannelMap(fChannelMapFile, theChannelMap);
+  BuildOpDetChannelMap(fChannelMapFile, theChannelMap);
   
 }
 

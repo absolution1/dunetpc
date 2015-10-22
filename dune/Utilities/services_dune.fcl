@@ -95,7 +95,7 @@ protodune_services:
  BackTracker:                  @local::dunefd_backtracker
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
- 
+ IChannelStatusService:        @local::dunefd_channel_status 
 }
 
 protodune_simulation_services:
@@ -115,6 +115,7 @@ protodune_simulation_services:
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
+ IChannelStatusService:        @local::dunefd_channel_status
 }
 
 
