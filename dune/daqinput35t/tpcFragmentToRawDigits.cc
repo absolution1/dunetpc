@@ -104,7 +104,9 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
     if (debug) std::cout << "adcvec->size(): " << adcvec.size() << std::endl;
     unsigned int numTicks = adcvec.size();
     raw::Compress(adcvec, compression, zeroThreshold);
-    int offlineChannel = channelMap.at(chan);
+    int offlineChannel = -1;
+    if (channelMap.size() == 0) offlineChannel = chan;
+    else offlineChannel = channelMap.at(chan);
     raw::RawDigit theRawDigit(offlineChannel, numTicks, adcvec, compression);
     rawDigitVector.push_back(theRawDigit);            // add this digit to the collection
   }
@@ -126,7 +128,7 @@ void DAQToOffline::BuildTPCChannelMap(std::string channelMapFile, std::map<int,i
   sp.find_file(channelMapFile, fullname);
     
   if (fullname.empty())
-    mf::LogError("DAQToOffline") << "Input TPC channel map file " << channelMapFile << " not found in FW_SEARCH_PATH" << std::endl;
+    mf::LogWarning("DAQToOffline") << "Input TPC channel map file " << channelMapFile << " not found in FW_SEARCH_PATH.  Using online channel numbers!" << std::endl;
 
   else {
     mf::LogVerbatim("DAQToOffline") << "Build TPC Online->Offline channel Map from " << fullname;

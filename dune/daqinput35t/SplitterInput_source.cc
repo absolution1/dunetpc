@@ -28,6 +28,7 @@
 // dune
 #include "tpcFragmentToRawDigits.h"
 #include "SSPFragmentToOpDetWaveform.h"
+#include "PennToOffline.h"
 
 // C++ 
 #include <functional>
@@ -519,8 +520,8 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   SSPinputDataProduct_(ps.get<string>("SSPInputDataProduct")),
   PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
-  fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile","")),
-  fTPCChannelMapFile(ps.get<string>("TPCChannelMapFile","")),
+  fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile","ssp_channel_map_dune35t.txt")),
+  fTPCChannelMapFile(ps.get<string>("TPCChannelMapFile","rce_channel_map_dune35t.txt")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -817,7 +818,8 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     inputRunNumber_ = evAux_.run();
     inputSubRunNumber_ = evAux_.subRun();
     inputEventNumber_ = evAux_.event();
-    
+
+    //-----------------------------------------------------------------------------------------------------------
     if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
       lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
       auto* fragments = getFragments( TPCinputBranch_, LoadTree );
@@ -832,7 +834,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
       loadedDigits_.loadTimestamp(0); // MC timestamp is zero (? assume?)
       //std::cout << "Loaded MC time stamp" << std::endl;
     }
-    
+    //-----------------------------------------------------------------------------------------------------------
     if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
       auto* SSPfragments = getFragments( SSPinputBranch_, LoadTree );
       std::vector<raw::OpDetWaveform> waveforms = DAQToOffline::SSPFragmentToOpDetWaveform(*SSPfragments, fNOvAClockFrequency, OpDetChannelMap);
@@ -847,14 +849,19 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
       std::cout << "Loading MC waveform which has size " << waveforms->size() << std::endl;
       loadedWaveforms_.load( *waveforms );
     }
-
+    //-----------------------------------------------------------------------------------------------------------
     if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
       std::cout << "Looking at data muon counter information!" << std::endl;
+      auto* PennFragments = getFragments ( PenninputBranch_, LoadTree );
+      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments );
+      loadedCounters_.load( counters );
+      std::cout << "Loaded muon counter information!" << std::endl; //*/
     } else {
       auto* counters = getRawExternalTriggers(PenninputBranch_, LoadTree );
       loadedCounters_.load( *counters );
       std::cout << "Loaded the External Trigers, they have size " << counters->size() << "!!" << std::endl;
     }
+    //-----------------------------------------------------------------------------------------------------------
     InputTree++;
     return true;
   }
