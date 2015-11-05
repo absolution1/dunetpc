@@ -13,7 +13,7 @@
 #include <vector>
 #include <utility> // std::move()
 #include <memory> // std::unique_ptr<>
-//#include <fstream>
+
 // ROOT libraries
 #include "TComplex.h"
 
@@ -196,18 +196,6 @@ namespace caldata {
 	int pedestal_value = (int) digitVec->GetPedestal();
 	raw::Uncompress(digitVec->ADCs(), rawadc, pedestal_value, digitVec->Compression());
 	  
-	// char filename0[250];
-	// sprintf(filename0,"/lbne/data/users/jti3/testpedestals/adcvec_uncompressed_evt%d_chan%d.dat",evt.id().event(),channel);
-	// std::ofstream ofs1 (filename0,std::ofstream::out); 
-	
-	// for(size_t t = 0; t < rawadc.size(); ++t){ 
-	//   ofs1 << rawadc[t] << std::endl;
-	//   //std::cout << rawadc[t] << std::endl;
-
-	// }
-	// ofs1.close();
-
-
 	// loop over all adc values and subtract the pedestal
 	for(bin = 0; bin < dataSize; ++bin) 
 	  holder[bin]=(rawadc[bin]-digitVec->GetPedestal());
