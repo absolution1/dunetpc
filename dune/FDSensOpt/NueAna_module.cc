@@ -174,24 +174,27 @@ private:
   Float_t  lep_dcosz_truth; //lepton dcos z
   Float_t  t0_truth;        // t0
 
-   // === Storing Geant4 MC Truth Information ===
-   int no_primaries;				//<---Number of primary Geant4 particles in the event
-   int geant_list_size;				//<---Number of Geant4 particles tracked
-   int pdg[kMaxPrimaries];			//<---PDG Code number of this particle
-   Float_t Eng[kMaxPrimaries];			//<---Energy of the particle
-   Float_t Px[kMaxPrimaries];			//<---Px momentum of the particle
-   Float_t Py[kMaxPrimaries];			//<---Py momentum of the particle
-   Float_t Pz[kMaxPrimaries];			//<---Pz momentum of the particle
-   Float_t StartPointx[kMaxPrimaries];		//<---X position that this Geant4 particle started at
-   Float_t StartPointy[kMaxPrimaries];		//<---Y position that this Geant4 particle started at
-   Float_t StartPointz[kMaxPrimaries];		//<---Z position that this Geant4 particle started at
-   Float_t EndPointx[kMaxPrimaries];		//<---X position that this Geant4 particle ended at
-   Float_t EndPointy[kMaxPrimaries];		//<---Y position that this Geant4 particle ended at
-   Float_t EndPointz[kMaxPrimaries];		//<---Z position that this Geant4 particle ended at
-   int NumberDaughters[kMaxPrimaries];		//<---Number of Daughters this particle has
-   int TrackId[kMaxPrimaries];			//<---Geant4 TrackID number
-   int Mother[kMaxPrimaries];			//<---TrackID of the mother of this particle
-   int process_primary[kMaxPrimaries];		//<---Is this particle primary (primary = 1, non-primary = 1)
+  // === Storing Geant4 MC Truth Information ===
+  int no_primaries;				//<---Number of primary Geant4 particles in the event
+  int geant_list_size;				//<---Number of Geant4 particles tracked
+  int pdg[kMaxPrimaries];			//<---PDG Code number of this particle
+  Float_t Eng[kMaxPrimaries];			//<---Energy of the particle
+  Float_t Px[kMaxPrimaries];			//<---Px momentum of the particle
+  Float_t Py[kMaxPrimaries];			//<---Py momentum of the particle
+  Float_t Pz[kMaxPrimaries];			//<---Pz momentum of the particle
+  Float_t StartPointx[kMaxPrimaries];		//<---X position that this Geant4 particle started at
+  Float_t StartPointy[kMaxPrimaries];		//<---Y position that this Geant4 particle started at
+  Float_t StartPointz[kMaxPrimaries];		//<---Z position that this Geant4 particle started at
+  Float_t EndPointx[kMaxPrimaries];		//<---X position that this Geant4 particle ended at
+  Float_t EndPointy[kMaxPrimaries];		//<---Y position that this Geant4 particle ended at
+  Float_t EndPointz[kMaxPrimaries];		//<---Z position that this Geant4 particle ended at
+  Float_t Startdcosx[kMaxPrimaries];            //<---X direction cosine that Geant4 particle started at
+  Float_t Startdcosy[kMaxPrimaries];            //<---Y direction cosine that Geant4 particle started at
+  Float_t Startdcosz[kMaxPrimaries];            //<---Z direction cosine that Geant4 particle started at
+  int NumberDaughters[kMaxPrimaries];		//<---Number of Daughters this particle has
+  int TrackId[kMaxPrimaries];			//<---Geant4 TrackID number
+  int Mother[kMaxPrimaries];			//<---TrackID of the mother of this particle
+  int process_primary[kMaxPrimaries];		//<---Is this particle primary (primary = 1, non-primary = 1)
 
 
   std::string fHitsModuleLabel;
@@ -616,7 +619,11 @@ void dunefd::NueAna::analyze(art::Event const & evt)
       EndPointx[i]=geant_part[i]->EndPosition()[0];
       EndPointy[i]=geant_part[i]->EndPosition()[1];
       EndPointz[i]=geant_part[i]->EndPosition()[2];
-      
+
+      // ### Saving the Start direction cosines for this particle ###
+      Startdcosx[i] = geant_part[i]->Momentum(0).Px() / geant_part[i]->Momentum(0).P();
+      Startdcosy[i] = geant_part[i]->Momentum(0).Py() / geant_part[i]->Momentum(0).P();
+      Startdcosz[i] = geant_part[i]->Momentum(0).Pz() / geant_part[i]->Momentum(0).P();
       // ### Saving the number of Daughters for this particle ###
       NumberDaughters[i]=geant_part[i]->NumberDaughters();
       
@@ -723,6 +730,9 @@ void dunefd::NueAna::beginJob()
   fTree->Branch("EndPointx",EndPointx,"EndPointx[geant_list_size]/F");
   fTree->Branch("EndPointy",EndPointy,"EndPointy[geant_list_size]/F");
   fTree->Branch("EndPointz",EndPointz,"EndPointz[geant_list_size]/F");
+  fTree->Branch("Startdcosx",Startdcosx,"Startdcosx[geant_list_size]/F");
+  fTree->Branch("Startdcosy",Startdcosy,"Startdcosy[geant_list_size]/F");
+  fTree->Branch("Startdcosz",Startdcosz,"Startdcosz[geant_list_size]/F");
   fTree->Branch("NumberDaughters",NumberDaughters,"NumberDaughters[geant_list_size]/I");
   fTree->Branch("Mother",Mother,"Mother[geant_list_size]/I");
   fTree->Branch("TrackId",TrackId,"TrackId[geant_list_size]/I");
@@ -841,6 +851,9 @@ void dunefd::NueAna::ResetVars(){
     EndPointx[i] = -99999;
     EndPointy[i] = -99999;
     EndPointz[i] = -99999;
+    Startdcosx[i]= -99999;
+    Startdcosy[i]= -99999;
+    Startdcosz[i]= -99999;
     NumberDaughters[i] = -99999;
     Mother[i] = -99999;
     TrackId[i] = -99999;
