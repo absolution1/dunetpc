@@ -60,6 +60,7 @@ private:
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
   std::string fChannelMapFile;
+  bool fUseChannelMap;
   bool fDebug;
   raw::Compress_t        fCompression;      ///< compression type to use
   unsigned int           fZeroThreshold;    ///< Zero suppression threshold
@@ -83,13 +84,15 @@ void DAQToOffline::TpcDAQToOffline::reconfigure(fhicl::ParameterSet const& pset)
   fRawDataLabel = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
   fChannelMapFile = pset.get<std::string>("TPCChannelMapFile");
+  fUseChannelMap = pset.get<bool>("UseChannelMap");
   fDebug = pset.get<bool>("Debug");
 
   fZeroThreshold=0;
   fCompression=raw::kNone;
   if(fDebug) printParameterSet();
 
-  BuildTPCChannelMap(fChannelMapFile, fChannelMap);
+  if (fUseChannelMap)
+    BuildTPCChannelMap(fChannelMapFile, fChannelMap);
 
 }
 
