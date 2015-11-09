@@ -9,6 +9,7 @@ proton_id:
    PhotonT0ModuleLabel:     "photont0costrk"
    CalorimetryModuleLabel:  "calo"
    PIDApower:               0.42
+   BoundaryEdge:            0
 }
 
 END_PROLOG
