@@ -22,7 +22,6 @@
 
 // lardata
 #include "RawData/RawDigit.h"
-#include "Utilities/TimeService.h"
 
 // dune
 #include "tpcFragmentToRawDigits.h"
@@ -34,6 +33,7 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <iostream>
 
 // ROOT
 #include "TTree.h"
@@ -81,8 +81,8 @@ namespace {
     // maybe use the nova clock frequency which is input.
     
     // may need this.
-   // Obtaining parameters from the TimeService
-    //art::ServiceHandle< util::TimeService > timeService;
+   // Obtaining parameters from the DetectorClocksService
+    //auto const *timeService = lar::providerFrom< util::DetectorClocksService >();
     //fSampleFreq = timeService->OpticalClock().Frequency();
 
     void findinrange(std::vector<OpDetWaveform> &wbo, 

@@ -44,10 +44,9 @@
 #include "RecoBase/Track.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/OpFlash.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/DetectorProperties.h"
+#include "Utilities/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
-#include "Utilities/TimeService.h"
+#include "Utilities/DetectorClocksService.h"
 #include "RawData/ExternalTrigger.h"
 #include "MCCheater/BackTracker.h"
 #include "AnalysisBase/Calorimetry.h"
@@ -300,9 +299,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   ResetVars();
 
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::LArProperties> larprop;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::TimeService> timeservice;
+  auto const *detprop = lar::providerFrom<util::DetectorPropertiesService>();
+  auto const *timeservice = lar::providerFrom<util::DetectorClocksService>();
   //fClock = timeservice->TPCClock();
   art::ServiceHandle<cheat::BackTracker> bktrk;
 
@@ -314,9 +312,9 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   TTimeStamp tts(ts.timeHigh(), ts.timeLow());
   evttime = tts.AsDouble();
 
-  efield[0] = larprop->Efield(0);
-  efield[1] = larprop->Efield(1);
-  efield[2] = larprop->Efield(2);
+  efield[0] = detprop->Efield(0);
+  efield[1] = detprop->Efield(1);
+  efield[2] = detprop->Efield(2);
   
   t0 = detprop->TriggerOffset();
   
@@ -651,7 +649,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     double XPlanePosition      = 0;
     double DriftTimeCorrection = 0;
     double TimeAtPlane         = 0;
-    double XDriftVelocity      = larprop->DriftVelocity()*1e-3; //cm/ns
+    double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
     double WindowSize          = detprop->NumberTimeSamples() * timeservice->TPCClock().TickPeriod() * 1e3;
   
     int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit

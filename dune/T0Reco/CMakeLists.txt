@@ -5,9 +5,9 @@ art_make( BASENAME_ONLY
                            Geometry
                            Geometry_service
 			   RawData
-			   TimeService_service
-                           LArProperties_service
-                           DetectorProperties_service
+			   DetectorClocksServiceStandard_service
+                           LArPropertiesServiceStandard_service
+                           DetectorPropertiesServiceStandard_service
                            Utilities
 			   Simulation
 			   BackTracker_service

@@ -6,9 +6,7 @@
 // test
 
 // LArSoft includes
-#include "Utilities/DetectorProperties.h"
 #include "Utilities/GeometryUtilities.h"
-// #include "Utilities/LArProperties.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
 #include "Simulation/SimListUtils.h"
@@ -118,7 +116,7 @@ private:
     bool fSaveChannelWireGeo;
 
     art::ServiceHandle<geo::Geometry> fGeom;
-    // art::ServiceHandle<util::LArProperties> larp;
+    // lar::providerFrom<util::LArPropertiesService> larp;
 
     // art::ServiceHandle<art::TFileService> fTfs;
     TFile *fOutFile;

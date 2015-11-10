@@ -10,7 +10,6 @@
 #define MuonOccupancy_Module
 
 // LArSoft includes
-#include "Utilities/DetectorProperties.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
 #include "RawData/RawDigit.h"
@@ -138,7 +137,6 @@ namespace AnalysisExample{
 
     // pointers to services
     art::ServiceHandle<geo::Geometry> fGeom;
-    art::ServiceHandle<util::DetectorProperties> fDetProp;
 
  }; // class MuonOccupancy
 

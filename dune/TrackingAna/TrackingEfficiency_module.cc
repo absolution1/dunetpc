@@ -38,10 +38,9 @@
 #include "RecoBase/Track.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/OpFlash.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/DetectorProperties.h"
+#include "Utilities/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
-#include "Utilities/TimeService.h"
+#include "Utilities/DetectorClocksService.h"
 #include "RawData/ExternalTrigger.h"
 #include "MCCheater/BackTracker.h"
 #include "AnalysisBase/Calorimetry.h"
@@ -147,14 +146,13 @@ private:
   
   bool MCMatched, AllChargedTrack;
   // Handles
-  art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::LArProperties> larprop;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::TimeService> timeservice;
+  art::ServiceHandle<geo::Geometry> geom;  
   art::ServiceHandle<cheat::BackTracker> bktrk;
-  
-  double XDriftVelocity      = larprop->DriftVelocity()*1e-3; //cm/ns
-  double WindowSize          = detprop->NumberTimeSamples() * timeservice->TPCClock().TickPeriod() * 1e3;
+
+  dataprov::DetectorProperties const *detprop = lar::providerFrom<util::DetectorPropertiesService>();
+  dataprov::DetectorClocks const *ts = lar::providerFrom<util::DetectorClocksService>();
+  double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
+  double WindowSize          = detprop->NumberTimeSamples() * ts->TPCClock().TickPeriod() * 1e3;
   // Parameter List
   std::string fHitsModuleLabel;
   std::string fTrackModuleLabel;

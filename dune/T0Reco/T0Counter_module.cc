@@ -20,7 +20,7 @@
 
 #include "RawData/ExternalTrigger.h"
 #include "AnalysisBase/T0.h"
-#include "Utilities/TimeService.h"
+#include "Utilities/DetectorClocksService.h"
 #include "Utilities/AssociationUtil.h"
 
 #include <memory>
@@ -52,8 +52,6 @@ public:
   void beginJob() override;
 
 private:
-
-  art::ServiceHandle<util::TimeService> fTimeService;
 
   // data structure to hold t0 information and ExternalTrigger data products
   struct t0 {
@@ -135,7 +133,10 @@ dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
     fMakeTree(p.get<bool>("MakeTree",false))
 {
   fSampleTimeCounter = 1.e3/fClockSpeedCounter;//ns
-  fTriggerOffsetTPC = fTimeService->TriggerOffsetTPC()*1.e3; // ns
+
+  auto const *clks = lar::providerFrom<util::DetectorClocksService>();
+
+  fTriggerOffsetTPC = clks->TriggerOffsetTPC()*1.e3; // ns
 
   produces< std::vector< anab::T0 > >();
   produces< art::Assns< anab::T0, raw::ExternalTrigger> >();
