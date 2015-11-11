@@ -165,7 +165,7 @@ namespace caldata {
 
     // Use the handle to get a particular (0th) element of collection.
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
-        
+
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     //std::cout << "Xin " << dataSize << std::endl;
 
@@ -192,8 +192,10 @@ namespace caldata {
 	holder.resize(transformSize);
 	
 	// uncompress the data
-	raw::Uncompress(digitVec->ADCs(), rawadc, digitVec->Compression());
-	
+
+	int pedestal_value = (int) digitVec->GetPedestal();
+	raw::Uncompress(digitVec->ADCs(), rawadc, pedestal_value, digitVec->Compression());
+	  
 	// loop over all adc values and subtract the pedestal
 	for(bin = 0; bin < dataSize; ++bin) 
 	  holder[bin]=(rawadc[bin]-digitVec->GetPedestal());

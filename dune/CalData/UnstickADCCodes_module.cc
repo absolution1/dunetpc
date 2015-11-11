@@ -149,7 +149,9 @@ namespace unstick {
       fCompression = digitVec->Compression();
       float pedestal = digitVec->GetPedestal();
       // uncompress the data
-      raw::Uncompress(digitVec->ADCs(), rawadc, fCompression);
+
+      int pedestal_value = (int) digitVec->GetPedestal();
+      raw::Uncompress(digitVec->ADCs(), rawadc, pedestal_value, fCompression);
       dataSize = rawadc.size();
       rawadc_a = rawadc.data();
 
