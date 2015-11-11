@@ -29,42 +29,15 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
 
   for (size_t idx = 0; idx < numFragments; ++idx) {
     const auto& frag(rawFragments[idx]);
-
     lbne::SSPFragment sspf(frag);
 
-    mf::LogDebug("DAQToOffline") << "\n"
-				 << "SSP fragment "     << frag.fragmentID() 
-				 << " has total size: " << sspf.hdr_event_size()
-				 << " and run number: " << sspf.hdr_run_number()
-				 << " with " << sspf.total_adc_values() << " total ADC values"
-				 << "\n"
-				 << "\n";
-
-    const SSPDAQ::MillisliceHeader* meta=0;
-    //get the information from the header
-    if(frag.hasMetadata())
-    {
-	meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);
-            
-	mf::LogInfo("DAQToOffline")
-	  << "===Slice metadata====" << "\n"
-	  << "  Start time         " << meta->startTime << "\n"
-	  << "  End time           " << meta->endTime << "\n"
-	  << "  Packet length      " << meta->length << "\n"
-	  << "  Number of triggers " << meta->nTriggers << "\n"
-	  << "=====================";
-    }
-    else
-    {
-	mf::LogWarning("DAQToOffline") << "SSP fragment has no metadata associated with it.";
-    }
-
+    unsigned int nTriggers = CheckAndGetNTriggers(frag, sspf);
       
     const unsigned int* dataPointer = sspf.dataBegin();
 
         
     for (unsigned int triggersProcessed = 0;
-         (meta==0 || triggersProcessed < meta->nTriggers) && dataPointer < sspf.dataEnd();
+         (nTriggers==0 || triggersProcessed < nTriggers) && dataPointer < sspf.dataEnd();
          ++triggersProcessed) {
       //
       // The elements of the OpDet Pulse
@@ -117,6 +90,47 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+unsigned int DAQToOffline::CheckAndGetNTriggers(const artdaq::Fragment& frag, const lbne::SSPFragment sspf)
+{
+    mf::LogDebug("DAQToOffline") << "\n"
+				 << "SSP fragment "     << frag.fragmentID() 
+				 << " has total size: " << sspf.hdr_event_size()
+				 << " and run number: " << sspf.hdr_run_number()
+				 << " with " << sspf.total_adc_values() << " total ADC values"
+				 << "\n"
+				 << "\n";
+
+    const SSPDAQ::MillisliceHeader* meta=0;
+    //get the information from the header
+    if(frag.hasMetadata())
+    {
+	meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);
+            
+	mf::LogInfo("DAQToOffline")
+	  << "===Slice metadata====" << "\n"
+	  << "  Start time         " << meta->startTime << "\n"
+	  << "  End time           " << meta->endTime << "\n"
+	  << "  Packet length      " << meta->length << "\n"
+	  << "  Number of triggers " << meta->nTriggers << "\n"
+	  << "=====================";
+    }
+    else
+    {
+	mf::LogWarning("DAQToOffline") << "SSP fragment has no metadata associated with it.";
+    }
+
+    // No metadata, no trigger count
+    if (meta == 0) return 0;
+
+    return meta->nTriggers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void DAQToOffline::BuildOpDetChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap)
 {
@@ -147,6 +161,9 @@ void DAQToOffline::BuildOpDetChannelMap(std::string fChannelMapFile, std::map<in
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 uint32_t DAQToOffline::GetPeaksum(const SSPDAQ::EventHeader* daqHeader)
 {
   uint32_t peaksum = ((daqHeader->group3 & 0x00FF) >> 16) + daqHeader->peakSumLow;
@@ -155,6 +172,9 @@ uint32_t DAQToOffline::GetPeaksum(const SSPDAQ::EventHeader* daqHeader)
   }
   return peaksum;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 unsigned short DAQToOffline::GetOpChannel(const SSPDAQ::EventHeader* daqHeader, std::map<int,int> theChannelMap)
@@ -182,6 +202,9 @@ unsigned short DAQToOffline::GetOpChannel(const SSPDAQ::EventHeader* daqHeader, 
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 unsigned long DAQToOffline::GetGlobalFirstSample(const SSPDAQ::EventHeader* daqHeader)
 {
   return (   ( (unsigned long)daqHeader->timestamp[3] << 48 )
@@ -190,12 +213,19 @@ unsigned long DAQToOffline::GetGlobalFirstSample(const SSPDAQ::EventHeader* daqH
            + ( (unsigned long)daqHeader->timestamp[0] ) );
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 unsigned long DAQToOffline::GetInternalFirstSample(const SSPDAQ::EventHeader *daqHeader)
 {
   return (   ((uint64_t)((uint64_t)daqHeader->intTimestamp[3] << 32))
            + ((uint64_t)((uint64_t)daqHeader->intTimestamp[2]) << 16)
            + ((uint64_t)((uint64_t)daqHeader->intTimestamp[1])) );
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void DAQToOffline::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const double NOvAClockFrequency)

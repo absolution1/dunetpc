@@ -32,7 +32,7 @@ namespace DAQToOffline {
   void BuildOpDetChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap);
 
   // Load the milislice
-  //const SSPDAQ::MillisliceHeader* CheckMilisliceMetadata(const auto& frag, lbne::SSPFragment sspf);
+  unsigned int CheckAndGetNTriggers(const artdaq::Fragment& frag, const lbne::SSPFragment sspf);
   
   // Extract data from the header
   uint32_t GetPeaksum(const SSPDAQ::EventHeader* daqHeader);
