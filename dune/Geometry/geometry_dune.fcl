@@ -14,8 +14,8 @@ dunefd_geo:
 
  # Choose GDML file
 
-# GDML:      "dune10kt_v1.gdml"
-# ROOT:      "dune10kt_v1.gdml"
+ GDML:      "dune10kt_v1.gdml"
+ ROOT:      "dune10kt_v1.gdml"
 # GDML:      "dune10kt_v1_workspace.gdml"
 # ROOT:      "dune10kt_v1_workspace.gdml"
 # GDML:      "dune10kt_v1_45deg.gdml"
@@ -26,12 +26,12 @@ dunefd_geo:
 # ROOT:      "dune10kt_v1_3mmPitch.gdml"
 # GDML:      "dune10kt_v1_3mmPitch_workspace.gdml"
 # ROOT:      "dune10kt_v1_3mmPitch_workspace.gdml"
- GDML:      "dune10kt.gdml"
- ROOT:      "dune10kt.gdml"
-# GDML:      "dune34kt.gdml"
-# ROOT:      "dune34kt.gdml"
-# GDML:      "dune4apa36deg.gdml"
-# ROOT:      "dune4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
+# GDML:      "lbne10kt.gdml"
+# ROOT:      "lbne10kt.gdml"
+# GDML:      "lbne34kt.gdml"
+# ROOT:      "lbne34kt.gdml"
+# GDML:      "lbne4apa36deg.gdml"
+# ROOT:      "lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
 
 
  SurfaceY:         0.0e2               # in cm, vertical distance to the surface
