@@ -1,7 +1,5 @@
 #include "services_dune.fcl"
 #include "hitfindermodules_dune.fcl"
-#include "TpcDAQToOffline.fcl"
-#include "SSPToOffline.fcl"
 
 process_name: Nearline
 
@@ -30,14 +28,12 @@ physics:
  {
 # random number saver
   rns:                { module_type: RandomNumberSaver }
-  tpcdaqtooffline:    @local::tpc_daq_to_offline
-  ssptooffline:       @local::ssp_to_offline
   fasthit:            @local::dune35t_fasthitfinder      
  }
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
- nearline: [  rns, tpcdaqtooffline, ssptooffline, fasthit ]
+ nearline: [  rns, fasthit ]
 
  #define the output stream, there could be more than one if using filters 
  stream1:  [ out1 ]
@@ -65,4 +61,5 @@ outputs:
  }
 }
 
-physics.producers.fasthit.DigitModuleLabel: "tpcdaqtooffline:offline"
+physics.producers.fasthit.DigitModuleLabel: "daq"
+
