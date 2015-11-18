@@ -133,6 +133,8 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
   try { rawFragments->size(); }
   catch(std::exception e) {
     mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << evt.event();
+    std::vector<raw::OpDetWaveform> waveforms;
+    evt.put(std::make_unique<std::vector<raw::OpDetWaveform>>(std::move(waveforms)), fOutputDataLabel);
     return;
   }
 
