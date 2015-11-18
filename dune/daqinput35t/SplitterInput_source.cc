@@ -49,6 +49,9 @@ using std::string;
 
 // TODO:
 //  Handle cases of missing data products.  What if SSP or Penn or RCE data are just not there?
+//         If SSP or Penn not there it is fine, but if no RCE then it won't know how when to stop making the event...
+//  Timestamps of SSP's and External Triggers.
+//  Matching timestamps between events.
 //  Deal with ZS data -- currently this assumes non-ZS data
 //===================================================================================================================
 
@@ -598,7 +601,7 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
   art::SubRunNumber_t TreeSubRunNumber; uint16_t IntSubRunNumber;
   art::EventNumber_t TreeEventNumber; uint32_t IntEventNumber;
   uint64_t CombinedInt;
-  for (size_t Tree=0; Tree < nInputEvts_; ++Tree) {
+  for (size_t Tree=1; Tree < nInputEvts_; ++Tree) {
     EventAuxBranch_->GetEntry(Tree); TreeRunNumber = evAux_.run(); //Get the run number
     IntRunNumber    = (int)TreeRunNumber; TreeSubRunNumber = evAux_.subRun(); IntSubRunNumber = (int)TreeSubRunNumber; //Get the subrun number
     TreeEventNumber = evAux_.event();   IntEventNumber  = (int)TreeEventNumber; //Get the event number

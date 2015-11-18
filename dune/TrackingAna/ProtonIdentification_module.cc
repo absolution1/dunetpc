@@ -104,7 +104,8 @@ public:
     TH2D* XYPlaneEnd;
     TH2D* XZPlaneEnd;
     TH2D* YZPlaneEnd;
-  } Cheat_Proton, Cheat_Muon, Cheat_All;
+    TH2D* PIDA_nHits;
+} Cheat_Proton, Cheat_Muon, Cheat_All;
   // ----------- Declare my structs ----------
 
 private:
@@ -117,7 +118,7 @@ private:
   double CalcPIDA ( std::vector<const anab::Calorimetry*> calos );
   
   void CheatPIDAFiller ( struct ProtonIdentification::ProtonIdentification::CheatHists *HistPtr, 
-			 std::vector<const anab::Calorimetry*> calos, TVector3 larStart, TVector3 larEnd );
+			 std::vector<const anab::Calorimetry*> calos, TVector3 larStart, TVector3 larEnd, int TrackHits );
 
   double boundaries[6]; // For use in finding detector boundaries.  
   TTree *fCheatTree, *fRecoTree;
@@ -133,7 +134,8 @@ private:
   bool   MCStartInTPC, MCEndInTPC, MCStops;
   int    MCPdgCode, MCTrackId, MatchedTrackID, MCContainment, MCParticleKept;
 
-  double PIDA, TrackDistFromEdge;
+  double PIDA, PIDA_Plane0, PIDA_Plane1, PIDA_Plane2, TrackDistFromEdge, TrackHits;
+  double CorrectedStartX, CorrectedStartY, CorrectedStartZ, CorrectedEndX, CorrectedEndY, CorrectedEndZ;
   bool   startsonboundary, endsonboundary, trackstops;
   int    RecoContainment;
 
@@ -214,24 +216,35 @@ void ProtonIdentification::ProtonIdentification::beginJob()
   fCheatTree->Branch("MCParticleKept"   ,&MCParticleKept   ,"MCParticleKept/I"   );
   
   fRecoTree = tfs->make<TTree>("ReconstructedTree","analysis tree");
+  fRecoTree->Branch("MCPdgCode"        ,&MCPdgCode        ,"MCPdgCode/I"        );
   fRecoTree->Branch("PIDA"             ,&PIDA             ,"PIDA/D"             );
+  fRecoTree->Branch("PIDA_Plane0"      ,&PIDA_Plane0      ,"PIDA_Plane0/D"      );
+  fRecoTree->Branch("PIDA_Plane1"      ,&PIDA_Plane1      ,"PIDA_Plane1/D"      );
+  fRecoTree->Branch("PIDA_Plane2"      ,&PIDA_Plane2      ,"PIDA_Plane2/D"      );
   fRecoTree->Branch("startsonboundary" ,&startsonboundary ,"startsonboundary/B" );
   fRecoTree->Branch("endsonboundary"   ,&endsonboundary   ,"endsonboundary/B"   );
   fRecoTree->Branch("trackstops"       ,&trackstops       ,"trackstops/B"       );
   fRecoTree->Branch("RecoContainment"  ,&RecoContainment  ,"RecoContainment/I"  );
-
+  fRecoTree->Branch("TrackLength"      ,&TrackLength      ,"TrackLength/D"      );
+  fRecoTree->Branch("TrackHits"        ,&TrackHits        ,"TrackHits/D"        );
+  fRecoTree->Branch("CorrectedStartX"  ,&CorrectedStartX  ,"CorrectedStartX/D"  );
+  fRecoTree->Branch("CorrectedStartY"  ,&CorrectedStartY  ,"CorrectedStartY/D"  );
+  fRecoTree->Branch("CorrectedStartZ"  ,&CorrectedStartZ  ,"CorrectedStartZ/D"  );
+  fRecoTree->Branch("CorrectedEndX"    ,&CorrectedEndX    ,"CorrectedEndX/D"    );
+  fRecoTree->Branch("CorrectedEndY"    ,&CorrectedEndY    ,"CorrectedEndY/D"    );
+  fRecoTree->Branch("CorrectedEndZ"    ,&CorrectedEndZ    ,"CorrectedEndZ/D"    );
 
   // ----- CHEATED HISTOGRAMS ------- Protons first -----
   Cheat_Proton.dEdx     = tfs->make<TH1D>("Proton_dEdx", "dEdx values for protons in the detector; dEdx (MeV cm); Number", 100, 0, 50);
   Cheat_Proton.ResRange = tfs->make<TH1D>("Proton_ResRange", "Residual range for protons in the detector; Residual Range (cm); Number", 100, 0, 50);
   Cheat_Proton.dEdx_ResRange = tfs->make<TH2D>("Proton_dEdx_ResRange", 
-					 "Residual range against dEdx for protons in the detector; Residual Range (cm); dEdx (MeV cm)",
-					 100, 0, 50, 100, 0, 50);
+					       "Residual range against dEdx for protons in the detector; Residual Range (cm); dEdx (MeV cm)",
+					       100, 0, 50, 100, 0, 50);
   Cheat_Proton.PIDA     = tfs->make<TH1D>("Proton_PIDA", "PIDA values for protons in the detector; PIDA, Number", 100, 0, 30);
   Cheat_Proton.PIDA_Plane0 = tfs->make<TH1D>("Proton_PIDA_Plane0", "PIDA values for protons in the detector on plane 0; PIDA; Number", 100, 0, 30);
   Cheat_Proton.PIDA_Plane1 = tfs->make<TH1D>("Proton_PIDA_Plane1", "PIDA values for protons in the detector on plane 1; PIDA; Number", 100, 0, 30);
   Cheat_Proton.PIDA_Plane2 = tfs->make<TH1D>("Proton_PIDA_Plane2", "PIDA values for protons in the detector on plane 2; PIDA; Number", 100, 0, 30);
-
+  
   Cheat_Proton.DistFromEdge= tfs->make<TH1D>("Proton_DistFromEdge","Distance of reconstructed track from TPC edge; Distance (cm); Number", 100, 0, 80);
   Cheat_Proton.XYPlaneStart= tfs->make<TH2D>("Proton_XYPlaneStart","Starting position of track in XY plane; X (cm); Y (cm);", 100, boundaries[0], boundaries[1], 100, boundaries[2], boundaries[3] );
   Cheat_Proton.XZPlaneStart= tfs->make<TH2D>("Proton_XZPlaneStart","Starting position of track in XZ plane; X (cm); Z (cm);", 100, boundaries[0], boundaries[1], 100, boundaries[4], boundaries[5] );
@@ -239,6 +252,7 @@ void ProtonIdentification::ProtonIdentification::beginJob()
   Cheat_Proton.XYPlaneEnd= tfs->make<TH2D>("Proton_XYPlaneEnd","Ending position of track in XY plane; X (cm); Y (cm);", 100, boundaries[0], boundaries[1], 100, boundaries[2], boundaries[3] );
   Cheat_Proton.XZPlaneEnd= tfs->make<TH2D>("Proton_XZPlaneEnd","Ending position of track in XZ plane; X (cm); Z (cm);", 100, boundaries[0], boundaries[1], 100, boundaries[4], boundaries[5] );
   Cheat_Proton.YZPlaneEnd= tfs->make<TH2D>("Proton_YZPlaneEnd","Ending position of track in YZ plane; Y (cm); Z (cm);", 100, boundaries[2], boundaries[3], 100, boundaries[4], boundaries[5] );
+  Cheat_Proton.PIDA_nHits= tfs->make<TH2D>("Proton_PIDA_nHits","PIDA value versus number of hits; PIDA value; number of hits;", 100, 0, 30, 100, 0, 500 );
 
   // ------ Now for Muons ------
   Cheat_Muon.dEdx     = tfs->make<TH1D>("Muon_dEdx", "dEdx values for muons in the detector; dEdx (MeV cm); Number", 100, 0, 50);
@@ -258,6 +272,7 @@ void ProtonIdentification::ProtonIdentification::beginJob()
   Cheat_Muon.XYPlaneEnd= tfs->make<TH2D>("Muon_XYPlaneEnd","Ending position of track in XY plane; X (cm); Y (cm);", 100, boundaries[0], boundaries[1], 100, boundaries[2], boundaries[3] );
   Cheat_Muon.XZPlaneEnd= tfs->make<TH2D>("Muon_XZPlaneEnd","Ending position of track in XZ plane; X (cm); Z (cm);", 100, boundaries[0], boundaries[1], 100, boundaries[4], boundaries[5] );
   Cheat_Muon.YZPlaneEnd= tfs->make<TH2D>("Muon_YZPlaneEnd","Ending position of track in YZ plane; Y (cm); Z (cm);", 100, boundaries[2], boundaries[3], 100, boundaries[4], boundaries[5] );
+  Cheat_Muon.PIDA_nHits= tfs->make<TH2D>("Muon_PIDA_nHits","PIDA value versus number of hits; PIDA value; number of hits;", 100, 0, 30, 100, 0, 500 );
   // ------ One for all particle ------
   Cheat_All.dEdx     = tfs->make<TH1D>("All_dEdx", "dEdx values for muons in the detector; dEdx (MeV cm); Number", 100, 0, 50);
   Cheat_All.ResRange = tfs->make<TH1D>("All_ResRange", "Residual range for muons in the detector; Residual Range (cm); Number", 100, 0, 50);
@@ -276,6 +291,7 @@ void ProtonIdentification::ProtonIdentification::beginJob()
   Cheat_All.XYPlaneEnd= tfs->make<TH2D>("All_XYPlaneEnd","Ending position of track in XY plane; X (cm); Y (cm);", 100, boundaries[0], boundaries[1], 100, boundaries[2], boundaries[3] );
   Cheat_All.XZPlaneEnd= tfs->make<TH2D>("All_XZPlaneEnd","Ending position of track in XZ plane; X (cm); Z (cm);", 100, boundaries[0], boundaries[1], 100, boundaries[4], boundaries[5] );
   Cheat_All.YZPlaneEnd= tfs->make<TH2D>("All_YZPlaneEnd","Ending position of track in YZ plane; Y (cm); Z (cm);", 100, boundaries[2], boundaries[3], 100, boundaries[4], boundaries[5] );
+  Cheat_All.PIDA_nHits= tfs->make<TH2D>("All_PIDA_nHits","PIDA value versus number of hits; PIDA value; number of hits;", 100, 0, 30, 100, 0, 500 );
   
   PIDA_vs_Hits_good = tfs->make<TH2D>("PIDA_vs_Hits_good","PIDA vs Hits; PIDA (log 10); Number of hits", 100,0,1.5, 100,0,500);
   PIDA_vs_Hits_bad = tfs->make<TH2D>("PIDA_vs_Hits_bad","PIDA vs Hits; PIDA (log 10); Number of hits", 100,1.5,10, 100,0,500);
@@ -285,10 +301,12 @@ void ProtonIdentification::ProtonIdentification::beginJob()
 }
 // ************************************ End Job *********************************************************
 void ProtonIdentification::ProtonIdentification::endJob() {
-  std::cout << "Finished all the events...In the TPC had a total of " << TrueMuons << " Muons, " << TrueProtons << " Protons, " << TrueElectrons << " Electrons, " << TrueGammas << " Gammas, and " << TrueOthers << " others." << std::endl; 
-  std::cout << "Finished all the events...Had a total of " << AllBad << " high PIDA's, Muons " << MuonBad << ", Protons " << ProtonBad << ", Gammas " << GammaBad << ", Electrons " << ElectronBad << ", Others " << OtherBad << std::endl;
-  std::cout << "Finished all the events...Had a total of " << AllAll << " tracks, Muons " << MuonAll << ", Protons " << ProtonAll << ", Gammas " << GammaAll << ", Electrons " << ElectronBad << ", Others " << OtherAll << std::endl;
-  std::cout << "Finished all the events...Had a total of " << AllRange << " tracks within a PIDA range, Muons " << MuonRange << ", Protons " << ProtonRange << ", Gammas " << GammaRange << ", ElectronRange " << ElectronRange << ", Others " << OtherRange << std::endl;
+  std::cout << "\nFinished all the events..."
+	    << "\nMonte Carlo's in the TPC had a total of " << TrueMuons << " Muons, " << TrueProtons << " Protons, " << TrueElectrons << " Electrons, " << TrueGammas << " Gammas, and " << TrueOthers << " others." 
+	    << "\nHad a total of " << AllAll << " tracks. Comprised of Muons " << MuonAll << ", Protons " << ProtonAll << ", Gammas " << GammaAll << ", Electrons " << ElectronBad << ", Others " << OtherAll  
+	    << "\n" << AllBad << " of which had high PIDA's, Muons " << MuonBad << ", Protons " << ProtonBad << ", Gammas " << GammaBad << ", Electrons " << ElectronBad << ", Others " << OtherBad
+	    << "\n" << AllRange << " tracks were within PIDA range, Muons " << MuonRange << ", Protons " << ProtonRange << ", Gammas " << GammaRange << ", ElectronRange " << ElectronRange << ", Others " << OtherRange 
+	    << std::endl;
 }
 // ************************************ End Run *********************************************************
 void ProtonIdentification::ProtonIdentification::endRun() {
@@ -394,8 +412,8 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       
       // ---- Get lengths and angles.
       TrackLength = track.Length();
-      int ntraj = track.NumberTrajectoryPoints();
-      if(ntraj > 0) {
+      TrackHits = track.NumberTrajectoryPoints();
+      if(TrackHits > 0) {
 	TVector3 dir = track.VertexDirection();
 	TrackTheta_XZ = std::atan2(dir.X(), dir.Z());
 	TrackTheta_YZ = std::atan2(dir.Y(), dir.Z());
@@ -406,12 +424,18 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       }
       // ---- Correct X positions!
       std::vector < TVector3 > CorrectedLocations;
-      for ( int point=0; point < ntraj; ++point ) {
+      for ( int point=0; point < TrackHits; ++point ) {
 	const TVector3 ThisLoc = track.LocationAtPoint(point);
 	TVector3 CorrectLoc = ThisLoc;
 	CorrectLoc[0] = CorrectLoc[0] - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-(1+point)]->WireID().Plane, allHits[Hit_Size-(1+point)]->WireID().TPC, allHits[Hit_Size-(1+point)]->WireID().Cryostat );
 	CorrectedLocations.push_back(CorrectLoc);
       }
+      CorrectedStartX = CorrectedLocations[0][0];
+      CorrectedStartY = CorrectedLocations[0][1];
+      CorrectedStartZ = CorrectedLocations[0][2];
+      CorrectedEndX   = CorrectedLocations[TrackHits-1][0];
+      CorrectedEndY   = CorrectedLocations[TrackHits-1][1];
+      CorrectedEndZ   = CorrectedLocations[TrackHits-1][2];
       // **************************************************************
       // Determine what kind of particle actually caused the track.....
       for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
@@ -432,16 +456,16 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       // ****************************************************************
 
       // Want to select only tracks which stop in the detector.
-      TrackBoundaries( CorrectedLocations[0], CorrectedLocations[ntraj-1]);
-      if (RecoContainment != 0) continue;
+      TrackBoundaries( CorrectedLocations[0], CorrectedLocations[TrackHits-1]);
+      //if (RecoContainment != 0) continue;
      
       // ---- Make a vector of calorimetry objects...
       std::vector<const anab::Calorimetry*> calos = fmcal.at(Track);
       PIDA = CalcPIDA ( calos );
       int QuickThresh = 25;
-      if (PIDA < 25 ) PIDA_vs_Hits_good -> Fill (log10(PIDA), ntraj);
+      if (PIDA < 25 ) PIDA_vs_Hits_good -> Fill (log10(PIDA), TrackHits);
       else {
-	PIDA_vs_Hits_bad  -> Fill (log10(PIDA), ntraj);
+	PIDA_vs_Hits_bad  -> Fill (log10(PIDA), TrackHits);
       }
      
       // ************************************************************
@@ -449,7 +473,7 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       // ************************************************************
       MCParticleKept = 1;
       if (PIDA > QuickThresh ) {
-	std::cout << "\nTrack " << Track << " has a PIDA value of " << PIDA << ", " << ntraj << " hits, PdGCode " << MCPdgCode << " , MCTrackID " << MCTrackId << std::endl;
+	std::cout << "\nTrack " << Track << " has a PIDA value of " << PIDA << ", " << TrackHits << " hits, PdGCode " << MCPdgCode << " , MCTrackID " << MCTrackId << std::endl;
 	++AllBad;
 	if (fabs(MCPdgCode) == 13  ) ++MuonBad;
 	else if (fabs(MCPdgCode) == 11) ++ElectronBad;
@@ -466,11 +490,11 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
 	  else ++OtherRange;
       }
       
-      CheatPIDAFiller( &Cheat_All, calos, CorrectedLocations[0], CorrectedLocations[ntraj-1] );
-      if ( fabs(MCPdgCode) == 13 ) CheatPIDAFiller( &Cheat_Muon, calos, CorrectedLocations[0], CorrectedLocations[ntraj-1] );
+      CheatPIDAFiller( &Cheat_All, calos, CorrectedLocations[0], CorrectedLocations[TrackHits-1], TrackHits );
+      if ( fabs(MCPdgCode) == 13 ) CheatPIDAFiller( &Cheat_Muon, calos, CorrectedLocations[0], CorrectedLocations[TrackHits-1], TrackHits );
       else if ( MCPdgCode == 2212     ) {
 	//if ( particle -> NumberDaughters() != 0 ) continue;
-	CheatPIDAFiller( &Cheat_Proton, calos, CorrectedLocations[0], CorrectedLocations[ntraj-1] );
+	CheatPIDAFiller( &Cheat_Proton, calos, CorrectedLocations[0], CorrectedLocations[TrackHits-1], TrackHits );
       }
       // ******** Fill Tree for each MCParticle **********
       fCheatTree->Fill();
@@ -484,12 +508,19 @@ double ProtonIdentification::ProtonIdentification::CalcPIDA ( std::vector<const 
   double PIDA  = 0;
   int UsedHits = 0;
   for ( int Plane=0; Plane < (int)calos.size(); ++Plane ) { // Loop through planes
+    double PlanePIDA=0; int PlaneHits=0;
     for ( int PlaneHit=0; PlaneHit < (int)calos[Plane]->dEdx().size(); ++PlaneHit ) { // loop through hits on each plane
       if ( calos[Plane]->ResidualRange()[PlaneHit] < 30 ) { // Only want PIDA for last 30 cm
 	PIDA += calos[Plane]->dEdx()[PlaneHit] * pow(calos[Plane]->ResidualRange()[PlaneHit], PIDApower ); 
 	++UsedHits;
+	PlanePIDA += calos[Plane]->dEdx()[PlaneHit] * pow(calos[Plane]->ResidualRange()[PlaneHit], PIDApower );
+	++PlaneHits;
       } // If ResRange < 30 cm
     } // Loop over hits on each plane
+    PlanePIDA = PlanePIDA/PlaneHits;
+    if (Plane == 0 ) PIDA_Plane0 = PlanePIDA;
+    else if (Plane == 1 ) PIDA_Plane1 = PlanePIDA;
+    else if (Plane == 2 ) PIDA_Plane2 = PlanePIDA;
   } // Loop over planes
   
   if ( UsedHits != 0 ) // If had any hits, work out PIDA and calculate
@@ -500,7 +531,7 @@ double ProtonIdentification::ProtonIdentification::CalcPIDA ( std::vector<const 
 
 // ******************************** Cheat PIDA Filler ****************************************************
 void ProtonIdentification::ProtonIdentification::CheatPIDAFiller ( struct ProtonIdentification::ProtonIdentification::CheatHists *HistPtr, 
-								   std::vector<const anab::Calorimetry*> calos, TVector3 larStart, TVector3 larEnd ) {
+								   std::vector<const anab::Calorimetry*> calos, TVector3 larStart, TVector3 larEnd, int TrackHits ) {
   for ( int Plane=0; Plane < (int)calos.size(); ++Plane ) { // Loop through planes
     double TempPIDA = 0; int UsedHits = 0;
     for ( int PlaneHit=0; PlaneHit < (int)calos[Plane]->dEdx().size(); ++PlaneHit ) { // loop through hits on each plane
@@ -527,6 +558,7 @@ void ProtonIdentification::ProtonIdentification::CheatPIDAFiller ( struct Proton
   HistPtr->XYPlaneEnd   -> Fill (larEnd[0], larEnd[1]);
   HistPtr->XZPlaneEnd   -> Fill (larEnd[0], larEnd[2]);
   HistPtr->YZPlaneEnd   -> Fill (larEnd[1], larEnd[2]);
+  HistPtr->PIDA_nHits   -> Fill (PIDA, TrackHits );
   return;
 } // CheatPIDAFiller
 
