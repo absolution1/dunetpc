@@ -35,6 +35,8 @@ namespace dune {
     void PrintAllValues();
     
   private:
+    void LoadFromCSV();
+    
     bool fUseDB;
     bool fUseDefaults;
     int  fDetId;

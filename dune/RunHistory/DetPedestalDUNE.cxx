@@ -14,6 +14,7 @@ namespace dune {
     fRmsMap.clear();
     fMeanErrMap.clear();
     fRmsErrMap.clear();
+    fUseDB = false;
   }
 
   //------------------------------------------------------------
@@ -26,7 +27,8 @@ namespace dune {
     fRmsMap.clear();
     fMeanErrMap.clear();
     fRmsErrMap.clear();
-
+    fUseDB = false;
+    
     Configure(pset);
   }
   
@@ -38,7 +40,7 @@ namespace dune {
     if (!fUseDB) {
       fVldTime = p.get<bool>("Run",0);
     }
-    fCSVFileName = p.get<std::string>("CSVFile","");
+    fCSVFileName = p.get<std::string>("CSVFile","");    
     fUseDefaults = p.get<bool>("UseDefaults",false);
     fDefaultMean = p.get<float>("DefaultMean",0.);
     fDefaultMeanErr = p.get<float>("DefaultMeanErr",0.);
@@ -54,7 +56,7 @@ namespace dune {
   bool DetPedestalDUNE::Update(uint64_t ts)
   {
     if (!fUseDB) return true;
-    
+
     std::string tableName = "pedestals";
     nutools::dbi::Table t;
 
@@ -75,8 +77,11 @@ namespace dune {
     t.SetMaxTSVld(ts);
 
     t.SetVerbosity(100);
-    t.Load();
-
+    if (fCSVFileName.empty())
+      t.Load();
+    else
+      t.LoadFromCSV(fCSVFileName);
+    
     nutools::dbi::Row* row;
     float mean,rms,meanerr,rmserr;
     uint64_t chan;
