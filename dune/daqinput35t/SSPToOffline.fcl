@@ -11,7 +11,15 @@ ssp_to_offline:
   #Debug:             true
 }
 
-
+ssp_trigger_ana:
+{
+  module_type:         SSPTriggerAna
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  NOvAClockFrequency:  64.0 #MHz 
+  OpDetChannelMapFile: ""
+  #Debug:             true
+}
 
 
 END_PROLOG

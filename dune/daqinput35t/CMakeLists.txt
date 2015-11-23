@@ -64,6 +64,16 @@ ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
 )
 
+simple_plugin(SSPTriggerAna "module"
+lbne-raw-data_Overlays
+Geometry_service
+Geometry
+lbne_daqinput35t
+RawData
+${SIMULATIONBASE}
+${MF_MESSAGELOGGER}
+)
+
 simple_plugin(TpcDAQToOffline "module"
 lbne-raw-data_Overlays
 lbne_daqinput35t_utilities
