@@ -23,6 +23,7 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
 {
   //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
   unsigned int numFragments = rawFragments.size();
+  bool TimestampSet = false; std::cout << "TimestampSet is false " << std::endl;
 
   std::map < unsigned int, unsigned int > mapFragID;
 
@@ -94,8 +95,13 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
       auto numNanoSlices = microSlice->nanoSliceCount();
 
       if (numNanoSlices) {
-	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice0 = microSlice->nanoSlice(0);
-	firstTimestamp = nanoSlice0->nova_timestamp();
+	//std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice0 = microSlice->nanoSlice(0);
+	lbne::TpcNanoSlice::Header::nova_timestamp_t Timestamp = microSlice->nanoSlice(0)->nova_timestamp();
+	if (!TimestampSet || Timestamp < firstTimestamp) {
+	  //std::cout << "Resetting timestamp from " << (int)firstTimestamp << " to " << (int)Timestamp << std::endl;
+	  firstTimestamp = Timestamp;
+	  TimestampSet = true;
+	}
 	/*
 	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice0 = microSlice->nanoSlice(0);
 	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice1 = microSlice->nanoSlice(1);

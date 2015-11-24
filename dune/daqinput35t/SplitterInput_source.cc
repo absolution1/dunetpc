@@ -15,6 +15,12 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Provenance/EventAuxiliary.h"
 
+//Pedestal stuff...
+#include "CalibrationDBI/Interface/IDetPedestalService.h"
+#include "CalibrationDBI/Interface/IDetPedestalProvider.h"
+#include "CalibrationDBI/Interface/IChannelStatusService.h"
+#include "CalibrationDBI/Interface/IChannelStatusProvider.h"
+
 //#include <iostream>
 
 // artdaq 
@@ -749,17 +755,29 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
    
   // ************* Fill dbuf_ with the RCE information for ticks collected ************************
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
+  //get pedestal conditions
+  //const lariov::IDetPedestalProvider& pedestalRetrievalAlg = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
+    //std::cout << "Looking at ichan " << ichan << "("<<loadedDigits_.digits[ichan].Channel()<< ") of " << dbuf_.size() << ", should be " << fTicksAccumulated << " samples and dbuf has size " << dbuf_[ichan].size() << std::endl;
+    // ****** Now to subtract the pedestals.... ********
+    // Check if good channel? Done in uBoone code.
+    // loop over all adc values and subtract the pedestal
+    // When we have a pedestal database, can provide the digit timestamp as the third argument of GetPedestalMean
+    /*
+    float pdstl = pedestalRetrievalAlg.PedMean(ichan);
+    for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem) {
+      std::cout << "Before substracting pedestal element " << elem << " had ADC value " << dbuf_[ichan][elem];
+      dbuf_[ichan][0] = dbuf_[ichan][0] - pdstl;
+      std::cout << " after subtracting the pedestal (" << pdstl << ") it has value " << dbuf_[ichan][elem] << std::endl;
+    }
+    */
     RawDigit d(loadedDigits_.digits[ichan].Channel(),
 	       fTicksAccumulated,
 	       dbuf_[ichan]
 	       //,loadedDigits_.digits[ichan].Compression()
 	       );
-    //d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
-    //		  loadedDigits_.digits[ichan].GetSigma());
     //d.SetPedestal(780, // THIS IS WHERE I WANT TO IMPLEMENT THE 
     //		  20); // PEDESTAL MAP FROM JOHN
-    //std::cout << "Channel " << ichan << ", pedestal " << d.GetPedestal() << " and sigma " << d.GetSigma() << std::endl;
     bufferedDigits_.emplace_back(d);
   }
   
@@ -956,8 +974,9 @@ void DAQToOffline::Splitter::CheckTrigger() {
 	}
 	std::cout << "Is loadedDigits empty? " << loadedDigits_.empty() << std::endl;
       }
-      std::cout << "\nWant to load event " << treeIndex_-1 << " corresponding to index " << treeIndex_ -2 << std::endl;
+      
       while (loadedDigits_.empty()) {
+	std::cout << "\nWant to load event " << treeIndex_-1 << " corresponding to index " << treeIndex_ -2 << std::endl;
 	treeIndex_ = treeIndex_ - 2; // want to load the event before previously loaded event.
 	loadDigits_(treeIndex_);
 	if ( treeIndex_ == 1 ) {
