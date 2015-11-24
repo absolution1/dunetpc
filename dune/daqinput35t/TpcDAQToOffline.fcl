@@ -6,6 +6,8 @@ tpc_daq_to_offline:
   FragType: "TPC"
   RawDataLabel: "daq"
   OutputDataLabel: "offline"
+  TPCChannelMapFile: "rce_channel_map_dune35t.txt"
+  UseChannelMap: "true"
   Debug: "false"
 }
 

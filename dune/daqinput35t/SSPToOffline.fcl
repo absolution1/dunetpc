@@ -2,15 +2,24 @@ BEGIN_PROLOG
 
 ssp_to_offline:
 {
-  module_type:     SSPToOffline
-  FragType:        PHOTON
-  RawDataLabel:    daq
-  OutputDataLabel: offlinePhoton
-  NOvAClockFrequency: 64.0 #MHz 
-#  Debug:           true
+  module_type:         SSPToOffline
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  OutputDataLabel:     offlinePhoton
+  NOvAClockFrequency:  64.0 #MHz 
+  OpDetChannelMapFile: "ssp_channel_map_dune35t.txt"
+  #Debug:             true
 }
 
-
+ssp_trigger_ana:
+{
+  module_type:         SSPTriggerAna
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  NOvAClockFrequency:  64.0 #MHz 
+  OpDetChannelMapFile: ""
+  #Debug:             true
+}
 
 
 END_PROLOG

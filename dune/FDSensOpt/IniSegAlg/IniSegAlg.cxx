@@ -27,17 +27,37 @@ fKey(key)
 dunefd::IniSegAlg::IniSegAlg(std::map<size_t, std::vector<dunefd::Hit2D> > clusters) :
 fClusters(clusters),
 fRadius(10.0),
-fDistVtxCl(0.0F)
+fDistVtxCl(0.0F),
+fThrcos(0.9),
+fCos(0.0F)
 {
 }
 
-void dunefd::IniSegAlg::FeedwithMc(TVector2 const & vtx, TVector2 const & dir)
+dunefd::IniSegAlg::IniSegAlg(std::vector< art::Ptr<recob::Track> > const & tracks, TVector3 const & mcvtx) :
+fRadius(10.0),
+fDistVtxCl(0.0F),
+fThrcos(0.9),
+fCos(-9999.0F)
+{
+	fSelTrks = tracks;
+	fMcVtx3d = mcvtx;
+	fFound = false;
+}
+
+void dunefd::IniSegAlg::FeedwithMc(TVector2 const & vtx, TVector2 const & dir, TVector3 const & dir3d)
 {
 	fMcVtx = vtx;
 	fDir = dir;
+	fDir3d = dir3d;
 	FindClustersInRad();
 	SortLess();
 	FindCluster();
+}
+
+void dunefd::IniSegAlg::FeedwithMc(TVector3 const & dir3d)
+{
+	fDir3d = dir3d;
+	Find3dTrack();
 }
 
 void dunefd::IniSegAlg::FindClustersInRad()
@@ -95,6 +115,39 @@ void dunefd::IniSegAlg::FindCluster()
 
 	fSelCls.clear();
 	fSelCls = chosen;
+}
+
+void dunefd::IniSegAlg::Find3dTrack()
+{
+	double larStart[3] = {0.0, 0.0, 0.0};
+  	double larEnd[3] = {0.0, 0.0, 0.0};
+
+	double maxcos = 0.0; 
+	const double thrdist = 10; // cm
+
+	for (auto& trk: fSelTrks)
+	{
+		trk->Direction(larStart,larEnd); // correct, check both directions
+		TVector3 dir(larStart[0], larStart[1], larStart[2]);
+	
+		if (!trk->NumberTrajectoryPoints()) continue;
+		TVector3 pos_p = trk->LocationAtPoint(0);
+		TVector3 pos_end = trk->LocationAtPoint(trk->NumberTrajectoryPoints()-1);
+
+		double dist = std::sqrt(pma::Dist2(pos_p, fMcVtx3d));		
+
+		if (dist > std::sqrt(pma::Dist2(pos_end, fMcVtx3d))) continue;
+
+		double cos = fDir3d * dir;
+		
+		if ((cos > maxcos) && (dist < thrdist))
+		{		
+			maxcos = cos;
+			fTrk = trk;
+			fCos = cos;
+			fFound = true;
+		}
+	}
 }
 
 

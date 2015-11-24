@@ -1,7 +1,7 @@
-#include "services_lbne.fcl"
-#include "singles_lbne.fcl"
-#include "largeantmodules_lbne.fcl"
-#include "detsimmodules_lbne.fcl"
+#include "services_dune.fcl"
+#include "singles_dune.fcl"
+#include "largeantmodules_dune.fcl"
+#include "detsimmodules_dune.fcl"
 
 #This is the default configuration file
 #include "TpcDAQToOffline.fcl"
@@ -27,7 +27,7 @@
 }
 
 services : {
-  user:         @local::lbne35t_simulation_services
+  user:         @local::dune35t_simulation_services
   Timing:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
@@ -48,7 +48,7 @@ source:
 {
   module_type: RootInput
   fileNames: [ "/afs/fnal.gov/files/home/room3/jpdavies/lbne_r000200_sr01_20140807T150347.root" ]
-  maxEvents : 1
+  maxEvents : -1
 }
 
 

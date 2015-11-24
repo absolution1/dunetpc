@@ -109,7 +109,7 @@ if($Pitch3mmVersion==1){
     $UWirePitch         =   0.3;
     $VWirePitch         =   0.3;
     $XWirePitch         =   0.3;
-    $nZChannelsPerAPA   =   229.44/0.3 + 1;
+    $nZChannelsPerAPA   =   2*(229.44/0.3 + 1);
 }
 
 # dune10kt ~45 deg UV wires version
@@ -299,6 +299,15 @@ $DetEncLength           =       $Cryostat_z
 $posCryoInDetEnc_y = - $DetEncHeight/2 + $SteelSupport_y + $FoamPadding + $Cryostat_y/2;
 
 $RockThickness	        =       3000;
+if ($workspace == 0){
+    # Initially, the world dimensions and the OriginZSet
+    #   left only ~222cm to the world boundary from the 
+    #   +z boundary of volDetEnclosure. Bump that up to 
+    #   at least 10m for good measure.
+    # This is in an if statement so that it does not affect
+    #   the workspace geometries, which are already being used
+    $RockThickness += 800
+}
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 

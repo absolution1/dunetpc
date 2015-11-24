@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+proton_id:
+{
+   module_type:             "ProtonIdentification"
+   TrackModuleLabel:        "costrk"
+   HitsModuleLabel:         "gaushit"
+   MCTruthT0ModuleLabel:    "mctrutht0"
+   PhotonT0ModuleLabel:     "photont0costrk"
+   CalorimetryModuleLabel:  "calo"
+   PIDApower:               0.42
+   BoundaryEdge:            0
+}
+
+END_PROLOG

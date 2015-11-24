@@ -14,8 +14,8 @@ dunefd_geo:
 
  # Choose GDML file
 
-# GDML:      "dune10kt_v1.gdml"
-# ROOT:      "dune10kt_v1.gdml"
+ GDML:      "dune10kt_v1.gdml"
+ ROOT:      "dune10kt_v1.gdml"
 # GDML:      "dune10kt_v1_workspace.gdml"
 # ROOT:      "dune10kt_v1_workspace.gdml"
 # GDML:      "dune10kt_v1_45deg.gdml"
@@ -26,12 +26,12 @@ dunefd_geo:
 # ROOT:      "dune10kt_v1_3mmPitch.gdml"
 # GDML:      "dune10kt_v1_3mmPitch_workspace.gdml"
 # ROOT:      "dune10kt_v1_3mmPitch_workspace.gdml"
- GDML:      "dune10kt.gdml"
- ROOT:      "dune10kt.gdml"
-# GDML:      "dune34kt.gdml"
-# ROOT:      "dune34kt.gdml"
-# GDML:      "dune4apa36deg.gdml"
-# ROOT:      "dune4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
+# GDML:      "lbne10kt.gdml"
+# ROOT:      "lbne10kt.gdml"
+# GDML:      "lbne34kt.gdml"
+# ROOT:      "lbne34kt.gdml"
+# GDML:      "lbne4apa36deg.gdml"
+# ROOT:      "lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
 
 
  SurfaceY:         0.0e2               # in cm, vertical distance to the surface
@@ -64,10 +64,10 @@ dune10kt_45deg_workspace_geo.Name: "dune10kt_v1_45deg_workspace"
 dune10kt_45deg_workspace_geo.GDML: "dune10kt_v1_45deg_workspace.gdml"
 dune10kt_45deg_workspace_geo.ROOT: "dune10kt_v1_45deg_workspace.gdml"
 
-dune10kt_3mmPitch_workspace_geo: @local::dune10kt_geo
-dune10kt_3mmPitch_workspace_geo.Name: "dune10kt_v1_3mmPitch_workspace"
-dune10kt_3mmPitch_workspace_geo.GDML: "dune10kt_v1_3mmPitch_workspace.gdml"
-dune10kt_3mmPitch_workspace_geo.ROOT: "dune10kt_v1_3mmPitch_workspace.gdml"
+dune10kt_3mmpitch_workspace_geo: @local::dune10kt_geo
+dune10kt_3mmpitch_workspace_geo.Name: "dune10kt_v1_3mmpitch_workspace"
+dune10kt_3mmpitch_workspace_geo.GDML: "dune10kt_v1_3mmpitch_workspace.gdml"
+dune10kt_3mmpitch_workspace_geo.ROOT: "dune10kt_v1_3mmpitch_workspace.gdml"
 
 protoDune_geo: @local::dune10kt_geo
 protoDune_geo.Name: "protodune" # will be made lower case anyway

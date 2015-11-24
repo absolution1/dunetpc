@@ -20,6 +20,7 @@ dunetpc : dunetpc : dune/OpticalDetector/DUNEOpDetResponse.h
 dunetpc : dunetpc : dune/Utilities/SignalShapingServiceDUNE10kt.h
 dunetpc : dunetpc : dune/Utilities/SignalShapingServiceDUNE34kt.h
 dunetpc : dunetpc : dune/Utilities/SignalShapingServiceDUNE35t.h
+dunetpc : dunetpc : dune/daqinput35t/PennToOffline.h
 dunetpc : dunetpc : dune/daqinput35t/SSPFragmentToOpDetWaveform.h
 dunetpc : dunetpc : dune/daqinput35t/tpcFragmentToRawDigits.h
 dunetpc : dunetpc : dune/daqinput35t/utilities/UnpackFragment.h
@@ -51,6 +52,7 @@ dunetpc : larcore : test/Geometry/GeometryTestAlg.h
 dunetpc : larcore : test/Geometry/NameSelector.h
 dunetpc : larcore : test/Geometry/geometry_boost_unit_test_base.h
 dunetpc : larcore : test/Geometry/geometry_unit_test_base.h
+dunetpc : lardata : AnalysisAlg/CalorimetryAlg.h
 dunetpc : lardata : AnalysisBase/Calorimetry.h
 dunetpc : lardata : AnalysisBase/CosmicTag.h
 dunetpc : lardata : AnalysisBase/ParticleID.h
@@ -71,6 +73,7 @@ dunetpc : lardata : RecoBase/Seed.h
 dunetpc : lardata : RecoBase/Shower.h
 dunetpc : lardata : RecoBase/SpacePoint.h
 dunetpc : lardata : RecoBase/Track.h
+dunetpc : lardata : RecoBase/TrackHitMeta.h
 dunetpc : lardata : RecoBase/Vertex.h
 dunetpc : lardata : RecoBase/Wire.h
 dunetpc : lardata : RecoBaseArt/HitCreator.h
@@ -92,6 +95,7 @@ dunetpc : lardata : Utilities/TimeServiceException.h
 dunetpc : lardata : Utilities/UtilException.h
 dunetpc : lardata : Utilities/VectorMap.h
 dunetpc : lardata : Utilities/sparse_vector.h
+dunetpc : larevt : CalibrationDBI/Interface/IChannelStatusProvider.h
 dunetpc : larevt : Filters/ChannelFilter.h
 dunetpc : larpandora : LArPandoraInterface/LArPandoraBase.h
 dunetpc : larpandora : LArPandoraInterface/LArPandoraCollector.h
@@ -124,6 +128,9 @@ dunetpc : larsim : Simulation/SimChannel.h
 dunetpc : larsim : Simulation/SimListUtils.h
 dunetpc : larsim : Simulation/SimPhotons.h
 dunetpc : larsim : Simulation/sim.h
+dunetpc : lbne_raw_data : lbne-raw-data/Overlays/PennMicroSlice.hh
+dunetpc : lbne_raw_data : lbne-raw-data/Overlays/PennMilliSlice.hh
+dunetpc : lbne_raw_data : lbne-raw-data/Overlays/PennMilliSliceFragment.hh
 dunetpc : lbne_raw_data : lbne-raw-data/Overlays/SSPFragment.hh
 dunetpc : lbne_raw_data : lbne-raw-data/Overlays/TpcMicroSlice.hh
 dunetpc : lbne_raw_data : lbne-raw-data/Overlays/TpcMilliSlice.hh
@@ -136,6 +143,7 @@ larana : larana : CosmicRemoval/HitTagAssociatorAlg.h
 larana : larana : OpticalDetector/AlgoFixedWindow.h
 larana : larana : OpticalDetector/AlgoPedestal.h
 larana : larana : OpticalDetector/AlgoSiPM.h
+larana : larana : OpticalDetector/AlgoSlidingWindow.h
 larana : larana : OpticalDetector/AlgoThreshold.h
 larana : larana : OpticalDetector/DefaultOpDetResponse.h
 larana : larana : OpticalDetector/FlashHypothesis.h
@@ -218,7 +226,8 @@ larana : lardata : Utilities/SumSecondFunction.h
 larana : lardata : Utilities/TimeService.h
 larana : lardata : Utilities/TimeServiceException.h
 larana : lardata : Utilities/VectorMap.h
-larana : larevt : Filters/ChannelFilter.h
+larana : larevt : CalibrationDBI/Interface/IChannelStatusProvider.h
+larana : larevt : CalibrationDBI/Interface/IChannelStatusService.h
 larana : larreco : RecoAlg/Cluster3DAlgs/PrincipalComponentsAlg.h
 larana : larreco : RecoAlg/SpacePointAlg.h
 larana : larsim : MCCheater/BackTracker.h
@@ -342,6 +351,7 @@ lardata : lardata : RecoBase/Seed.h
 lardata : lardata : RecoBase/Shower.h
 lardata : lardata : RecoBase/SpacePoint.h
 lardata : lardata : RecoBase/Track.h
+lardata : lardata : RecoBase/TrackHitMeta.h
 lardata : lardata : RecoBase/Vertex.h
 lardata : lardata : RecoBase/Wire.h
 lardata : lardata : RecoBase/classes.h
@@ -496,6 +506,8 @@ lareventdisplay : lareventdisplay : EventDisplay/TWQMultiTPCProjection.h
 lareventdisplay : lareventdisplay : EventDisplay/TWQProjectionView.h
 lareventdisplay : lareventdisplay : EventDisplay/TWireProjPad.h
 lareventdisplay : lareventdisplay : EventDisplay/eventdisplay.h
+lareventdisplay : larevt : CalibrationDBI/Interface/IChannelStatusProvider.h
+lareventdisplay : larevt : CalibrationDBI/Interface/IChannelStatusService.h
 lareventdisplay : larevt : CalibrationDBI/Interface/IDetPedestalProvider.h
 lareventdisplay : larevt : CalibrationDBI/Interface/IDetPedestalService.h
 lareventdisplay : larevt : Filters/ChannelFilter.h
@@ -540,20 +552,27 @@ larevt : lardata : Utilities/TimeServiceException.h
 larevt : lardata : Utilities/UtilException.h
 larevt : lardata : Utilities/sparse_vector.h
 larevt : larevt : CalibrationDBI/IOVData/ChData.h
+larevt : larevt : CalibrationDBI/IOVData/ChannelStatus.h
 larevt : larevt : CalibrationDBI/IOVData/DetPedestal.h
 larevt : larevt : CalibrationDBI/IOVData/IOVDataConstants.h
 larevt : larevt : CalibrationDBI/IOVData/IOVDataError.h
 larevt : larevt : CalibrationDBI/IOVData/IOVTimeStamp.h
 larevt : larevt : CalibrationDBI/IOVData/Snapshot.h
 larevt : larevt : CalibrationDBI/IOVData/TimeStampDecoder.h
+larevt : larevt : CalibrationDBI/Interface/CalibrationDBIFwd.h
+larevt : larevt : CalibrationDBI/Interface/IChannelStatusProvider.h
+larevt : larevt : CalibrationDBI/Interface/IChannelStatusService.h
 larevt : larevt : CalibrationDBI/Interface/IDetPedestalProvider.h
 larevt : larevt : CalibrationDBI/Interface/IDetPedestalService.h
 larevt : larevt : CalibrationDBI/Providers/DBFolder.h
 larevt : larevt : CalibrationDBI/Providers/DatabaseRetrievalAlg.h
 larevt : larevt : CalibrationDBI/Providers/DetPedestalRetrievalAlg.h
+larevt : larevt : CalibrationDBI/Providers/SIOVChannelStatusProvider.h
 larevt : larevt : CalibrationDBI/Providers/WebDBIConstants.h
 larevt : larevt : CalibrationDBI/Providers/WebError.h
 larevt : larevt : Filters/ChannelFilter.h
+larevt : larevt : Filters/SimpleChannelStatus.h
+larevt : larevt : Filters/SimpleChannelStatusService.h
 larevt : larevt : SpaceCharge/SpaceCharge.h
 larexamples : larcore : Geometry/AuxDetGeo.h
 larexamples : larcore : Geometry/AuxDetSensitiveGeo.h
@@ -649,6 +668,7 @@ larreco : larcore : SimpleTypesAndConstants/geo_types.h
 larreco : lardata : AnalysisAlg/CalorimetryAlg.h
 larreco : lardata : AnalysisBase/Calorimetry.h
 larreco : lardata : AnalysisBase/ParticleID.h
+larreco : lardata : AnalysisBase/T0.h
 larreco : lardata : MCBase/MCBaseException.h
 larreco : lardata : MCBase/MCDataHolder.h
 larreco : lardata : MCBase/MCHit.h
@@ -673,6 +693,7 @@ larreco : lardata : RecoBase/Seed.h
 larreco : lardata : RecoBase/Shower.h
 larreco : lardata : RecoBase/SpacePoint.h
 larreco : lardata : RecoBase/Track.h
+larreco : lardata : RecoBase/TrackHitMeta.h
 larreco : lardata : RecoBase/Vertex.h
 larreco : lardata : RecoBase/Wire.h
 larreco : lardata : RecoBaseArt/HitCreator.h
@@ -728,11 +749,14 @@ larreco : lardata : Utilities/TimeServiceException.h
 larreco : lardata : Utilities/UtilException.h
 larreco : lardata : Utilities/VectorMap.h
 larreco : lardata : Utilities/sparse_vector.h
+larreco : larevt : CalibrationDBI/Interface/IChannelStatusProvider.h
+larreco : larevt : CalibrationDBI/Interface/IChannelStatusService.h
 larreco : larevt : Filters/ChannelFilter.h
 larreco : larreco : ClusterFinder/ClusterCreator.h
 larreco : larreco : ClusterFinder/RStarTree/RStarBoundingBox.h
 larreco : larreco : ClusterFinder/RStarTree/RStarTree.h
 larreco : larreco : ClusterFinder/RStarTree/RStarVisitor.h
+larreco : larreco : DirOfGamma/DirOfGamma.h
 larreco : larreco : Genfit/GFAbsBField.h
 larreco : larreco : Genfit/GFAbsEnergyLoss.h
 larreco : larreco : Genfit/GFAbsFinitePlane.h
@@ -858,6 +882,7 @@ larreco : larreco : RecoAlg/CornerFinderAlg.h
 larreco : larreco : RecoAlg/CosmicTrackerAlg.h
 larreco : larreco : RecoAlg/DBScanAlg.h
 larreco : larreco : RecoAlg/DisambigAlg.h
+larreco : larreco : RecoAlg/EMShowerAlg.h
 larreco : larreco : RecoAlg/EndPointAlg.h
 larreco : larreco : RecoAlg/GausFitCache.h
 larreco : larreco : RecoAlg/HoughBaseAlg.h
@@ -869,8 +894,10 @@ larreco : larreco : RecoAlg/PMAlg/PmaHit3D.h
 larreco : larreco : RecoAlg/PMAlg/PmaNode3D.h
 larreco : larreco : RecoAlg/PMAlg/PmaSegment3D.h
 larreco : larreco : RecoAlg/PMAlg/PmaTrack3D.h
+larreco : larreco : RecoAlg/PMAlg/PmaVtxCandidate.h
 larreco : larreco : RecoAlg/PMAlg/SortedObjects.h
 larreco : larreco : RecoAlg/PMAlg/Utilities.h
+larreco : larreco : RecoAlg/PMAlgVertexing.h
 larreco : larreco : RecoAlg/ProjectionMatchingAlg.h
 larreco : larreco : RecoAlg/RootMathFunctor.h
 larreco : larreco : RecoAlg/SeedFinderAlgorithm.h
@@ -951,7 +978,8 @@ larsim : lardata : Utilities/TimeService.h
 larsim : lardata : Utilities/TimeServiceException.h
 larsim : lardata : Utilities/VectorMap.h
 larsim : lardata : Utilities/sparse_vector.h
-larsim : larevt : Filters/ChannelFilter.h
+larsim : larevt : CalibrationDBI/Interface/IChannelStatusProvider.h
+larsim : larevt : CalibrationDBI/Interface/IChannelStatusService.h
 larsim : larevt : SpaceCharge/SpaceCharge.h
 larsim : larsim : LArG4/AuxDetReadout.h
 larsim : larsim : LArG4/AuxDetReadoutGeometry.h
@@ -1040,4 +1068,5 @@ lbne_raw_data : lbne_raw_data : lbne-raw-data/Overlays/TpcMilliSlice.hh
 lbne_raw_data : lbne_raw_data : lbne-raw-data/Overlays/TpcMilliSliceFragment.hh
 lbne_raw_data : lbne_raw_data : lbne-raw-data/Overlays/TpcMilliSliceWriter.hh
 lbne_raw_data : lbne_raw_data : lbne-raw-data/Overlays/TpcNanoSlice.hh
+lbne_raw_data : lbne_raw_data : lbne-raw-data/Overlays/Utilities.hh
 lbne_raw_data : lbne_raw_data : lbne-raw-data/Overlays/anlTypes.hh

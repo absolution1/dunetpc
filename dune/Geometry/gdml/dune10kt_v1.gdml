@@ -191,14 +191,6 @@
    <fraction n="0.00934" ref="argon"/>
   </material>
 
-
-  <!-- preliminary values -->
-  <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
-   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="0.5"   ref="Air"/>
-  </material>
-
   <material formula=" " name="G10">
    <D value="1.7" unit="g/cc"/>
    <fraction n="0.2805" ref="silicon"/>
@@ -279,6 +271,13 @@
    <fraction n="0.600" ref="carbon"/>
    <fraction n="0.320" ref="oxygen"/>
    <fraction n="0.080" ref="hydrogen"/>
+  </material>
+
+  <!-- preliminary values -->
+  <material name="AirSteelMixture" formula="AirSteelMixture">
+   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
+   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="0.5"   ref="Air"/>
   </material>
 
 </materials>
@@ -21267,9 +21266,9 @@
 
 
     <box name="World" lunit="cm" 
-      x="1954.0283+2*3000" 
-      y="1817.6975+2*3000" 
-      z="6721.89+2*3000"/>
+      x="1954.0283+2*3800" 
+      y="1817.6975+2*3800" 
+      z="6721.89+2*3800"/>
 </solids>
 <structure>
     <volume name="volTPCActiveInner">
