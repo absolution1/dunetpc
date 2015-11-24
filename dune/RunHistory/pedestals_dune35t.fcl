@@ -1,0 +1,16 @@
+BEGIN_PROLOG
+
+pedestals_dune35t :
+{
+
+   UseDB: 'false'
+   CSVFileName: ""
+   UseDefaults: 'false'
+   DefaultMean: 750.
+   DefaultMeanErr: 0.
+   DefaultRms: 5.
+   DefaultRmsErr: 0.
+   
+}
+
+END_PROLOG
