@@ -42,5 +42,7 @@ namespace DAQToOffline {
   void CollectCounterBits(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::CounterWordSize> > &fCounterBits);
   void CollectMuonTrigger(uint8_t* payload, size_t payload_size, std::map<int,int> &fMuonTriggerRates, std::vector<std::bitset<TypeSizes::TriggerWordSize> > &fMuonTriggerBits,
 			  std::vector<int> &fMuonTriggerTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp);
+  void ReverseBits(std::bitset<TypeSizes::TriggerWordSize> &bits);
+  void ReverseBits(std::bitset<TypeSizes::CounterWordSize> &bits);
 }
 #endif

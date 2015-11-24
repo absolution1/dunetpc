@@ -93,6 +93,19 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
       std::unique_ptr <const lbne::TpcMicroSlice> microSlice = millisliceFragment.microSlice(i_micro);
       auto numNanoSlices = microSlice->nanoSliceCount();
 
+      if (numNanoSlices) {
+	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice0 = microSlice->nanoSlice(0);
+	firstTimestamp = nanoSlice0->nova_timestamp();
+	/*
+	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice0 = microSlice->nanoSlice(0);
+	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice1 = microSlice->nanoSlice(1);
+	std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice2 = microSlice->nanoSlice(2);
+	std::unique_ptr<const lbne::TpcNanoSlice> nanoSliceX = microSlice->nanoSlice(numNanoSlices-1);
+	if ( chan == 129 || chan == 257 )
+	  std::cout << "LOOKING AT " << chan << " " << i_micro << " " << nanoSlice0->nova_timestamp() << " " << nanoSlice1->nova_timestamp()<< " " << nanoSlice2->nova_timestamp() << " " << nanoSliceX->nova_timestamp() << std::endl;
+	*/
+      }
+
       for(uint32_t i_nano=0; i_nano < numNanoSlices; i_nano++){
 
 	uint16_t val = std::numeric_limits<uint16_t>::max();
