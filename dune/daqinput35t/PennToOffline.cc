@@ -28,7 +28,7 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
   fMuonTriggerRates[2] = 0;
   fMuonTriggerRates[4] = 0;
   fMuonTriggerRates[8] = 0;
-
+  
   for ( size_t idx = 0; idx < numFragments; ++idx ) {
     const auto& frag(Fragments[idx]);
     
@@ -38,7 +38,8 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
     //Get the number of each payload type in the millislice
     lbne::PennMilliSlice::Header::payload_count_t n_frames, n_frames_counter, n_frames_trigger, n_frames_timestamp;
     n_frames = msf.payloadCount(n_frames_counter, n_frames_trigger, n_frames_timestamp);
-    
+    std::cout << n_frames << " " << n_frames_counter << " " << n_frames_trigger << " " << n_frames_timestamp << std::endl;
+
     //Now we need to grab the payload information in the millislice
     lbne::PennMicroSlice::Payload_Header::data_packet_type_t type;
     lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp;
@@ -51,6 +52,8 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
       payload_data = msf.payload(ip, type, timestamp, payload_size);
       unsigned int payload_type = (unsigned int) type;
       
+      //std::cout << "Payload " << ip << ", payload size " << payload_size << ", timestamp " << (int)timestamp << ", payload_type " << payload_type << std::endl;
+
       //Loop over the words in the payload
       if (!((payload_data != nullptr) && payload_size)) continue;
       switch (payload_type){
@@ -69,7 +72,7 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
   } // Loop over fragments...
 
   //std::cout << "Looked at all fragments. fCounterTimes.size() = " <<  fCounterTimes.size() << ", fCounterBits.size() " << fCounterBits.size() 
-  //	    << ", fMuonTriggerTimes.size() = " << fMuonTriggerTimes.size() << ", fMuonTriggerBits.size() " << fMuonTriggerBits.size() << std::endl;
+  //<< ", fMuonTriggerTimes.size() = " << fMuonTriggerTimes.size() << ", fMuonTriggerBits.size() " << fMuonTriggerBits.size() << std::endl;
 
   // *************** Now I want to loop over all coutners / triggers and find when they are 'turned on' ****************
   
@@ -99,11 +102,11 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
       int this_time = fCounterTimes.at(index);
       
       //std::cout << "Looking at counter " << counter_index << ", bitset " << index << " correpsonding to time " << fCounterTimes.at(index) 
-      //		<< ". Counter was on? " << counter_previously_on << ", and now? " << counter_currently_on << std::endl;
+      //	<< ". Counter was on? " << counter_previously_on << ", and now? " << counter_currently_on << std::endl;
       
       // If the first counter word was on, we want to ignore the first 400 ticks, as per law D.
-      if ( std::distance((std::vector<std::bitset<TypeSizes::CounterWordSize> >::const_iterator)fCounterBits.begin(), countIt) == 1
-	   && counter_previously_on  ) 
+      if ( std::distance((std::vector<std::bitset<TypeSizes::CounterWordSize> >::const_iterator)fCounterBits.begin(), countIt) == 0
+	   && counter_currently_on)
 	LastTrigger = fCounterTimes.at(index);
       
       //If the counter was previously on and it is still on, just continue
@@ -121,7 +124,9 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
       else if (!counter_previously_on && counter_currently_on){
 	counter_previously_on = true; //Record that it is now on and record some numbers
 	//If this bit is outside an ignoreBit then make an ExternalTrigger
+	//std::cout << "Counter just turned on at timestamp " << this_time << ", last turned on at " << LastTrigger << std::endl;
 	if ( this_time-LastTrigger > IgnoreTime ){
+	  //std::cout << "Making an external trigger!!" << std::endl;
 	  raw::ExternalTrigger counter( counter_index, this_time );
 	  ExternTrigs.push_back(counter);
 	  LastTrigger = fCounterTimes.at(index);
@@ -148,12 +153,12 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
       int index = std::distance((std::vector<std::bitset<TypeSizes::TriggerWordSize> >::const_iterator)fMuonTriggerBits.begin(), countIt);
       int this_time = fMuonTriggerTimes.at(index);
       
-      //std::cout << "Looking at counter " << trigger_index << ", bitset " << index << " correpsonding to time " << fMuonTriggerTimes.at(index) 
-      //	<< ". Counter was on? " << counter_previously_on << ", and now? " << counter_currently_on << std::endl;
+      //std::cout << "Looking at trigger " << trigger_index << ", bitset " << index << " correpsonding to time " << fMuonTriggerTimes.at(index)
+      //	<< ". Trigger was on? " << counter_previously_on << ", and now? " << counter_currently_on << std::endl;
 
       // If the first counter word was on, we want to ignore the first 400 ticks, as per law D.
-      if ( std::distance((std::vector<std::bitset<TypeSizes::TriggerWordSize> >::const_iterator)fMuonTriggerBits.begin(), countIt) == 1
-	   && counter_previously_on  ) 
+      if ( std::distance((std::vector<std::bitset<TypeSizes::TriggerWordSize> >::const_iterator)fMuonTriggerBits.begin(), countIt) == 0
+	   && counter_currently_on)
 	LastTrigger = fMuonTriggerTimes.at(index);
       
       //If the counter was previously on and it is still on, just continue
@@ -183,7 +188,7 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
   
   //std::cout << "\n\nAll done, lets loop through ExternTrigs...." << std::endl;
   //for ( std::vector<raw::ExternalTrigger>::const_iterator TrigIt = ExternTrigs.begin(); TrigIt != ExternTrigs.end(); TrigIt++ )
-  //std::cout << "Looking at index " << std::distance((std::vector<raw::ExternalTrigger>::const_iterator)ExternTrigs.begin(), TrigIt) << " which has indexes " << TrigIt->GetTrigID() << ", " << TrigIt->GetTrigTime() << std::endl;
+  //  std::cout << "Looking at index " << std::distance((std::vector<raw::ExternalTrigger>::const_iterator)ExternTrigs.begin(), TrigIt) << " which has indexes " << TrigIt->GetTrigID() << ", " << TrigIt->GetTrigTime() << std::endl;
   
   return ExternTrigs;
 }
@@ -193,7 +198,11 @@ void DAQToOffline::CollectCounterBits(uint8_t* payload, size_t payload_size, std
   for (size_t ib = 0; ib < payload_size; ib++){
     std::bitset<TypeSizes::CounterWordSize> byte = payload[ib];
     bits ^= (byte << 8*ib);
+    //bits ^= (byte << 8*(payload_size-(ib+1)));
   }
+  //std::cout << "Counter " << bits << std::endl;
+  //ReverseBits(bits);
+  //std::cout << bits << std::endl;
   fCounterBits.push_back(bits);
   return;
 }
@@ -203,14 +212,21 @@ void DAQToOffline::CollectMuonTrigger(uint8_t* payload, size_t payload_size, std
   std::bitset<TypeSizes::TriggerWordSize> bits;
   for (size_t ib = 0; ib < payload_size; ib++){
     std::bitset<TypeSizes::TriggerWordSize> byte = payload[ib];
-    bits ^= (byte << 8*ib);
+    //std::cout <<byte<< " " << ib << std::endl;
+    //bits ^= (byte << 8*ib);
+    bits ^= (byte << 8*(payload_size-(ib)));
   }
+  //std::cout<<"Trigger " << bits <<std::endl;
+  //ReverseBits(bits);
+  //std::cout<<bits<<std::endl;
   //Bits collected, now get the trigger type
   std::bitset<TypeSizes::TriggerWordSize> trigger_type_bits; 
   trigger_type_bits ^= (bits >> (TypeSizes::TriggerWordSize - 5));
+  //std::cout << trigger_type_bits << std::endl;
   int trigger_type = static_cast<int>(trigger_type_bits.to_ulong());
   //If we have a muon trigger, get which trigger it was and increase the hit rate
-  if (trigger_type == 16){
+  //std::cout << "MUONTRIGGER!! Trig type " << trigger_type << std::endl;
+  if (trigger_type == 16 || 1){
     std::bitset<TypeSizes::TriggerWordSize> muon_trigger_bits;
     //Shift the bits left by 5 first to remove the trigger type bits
     muon_trigger_bits ^= (bits << 5);
@@ -219,10 +235,28 @@ void DAQToOffline::CollectMuonTrigger(uint8_t* payload, size_t payload_size, std
     muon_trigger_bits >>= (TypeSizes::TriggerWordSize-4);
     int muon_trigger = static_cast<int>(muon_trigger_bits.to_ulong());
     fMuonTriggerRates[muon_trigger]++;
-
+    std::cout << muon_trigger_bits << " " << muon_trigger << std::endl;
     fMuonTriggerBits.push_back(muon_trigger_bits); // Is this right!!???? Probably not wholly, but it works.
     fMuonTriggerTimes.push_back(timestamp);
   }
   return;
+}
+//=======================================================================================
+void DAQToOffline::ReverseBits(std::bitset<TypeSizes::TriggerWordSize> &bits) {
+  for (unsigned int i=0; i<bits.size()/2; ++i) {
+    bool TrigStart = bits[i];
+    bool TrigEnd   = bits[bits.size()-i-1];
+    bits[i] = TrigEnd;
+    bits[bits.size()-i-1] = TrigStart;
+  }
+}
+//=======================================================================================
+void DAQToOffline::ReverseBits(std::bitset<TypeSizes::CounterWordSize> &bits) {
+  for (unsigned int i=0; i<bits.size()/2; ++i) {
+    bool TrigStart = bits[i];
+    bool TrigEnd   = bits[bits.size()-i-1];
+    bits[i] = TrigEnd;
+    bits[bits.size()-i-1] = TrigStart;
+  }
 }
 //=======================================================================================
