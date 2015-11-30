@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+ptb_to_offline:
+{
+  module_type:         PTBToOffline
+  FragType:            TRIGGER
+  RawDataLabel:        daq
+  OutputDataLabel:     offlineTrigger
+  NOvAClockFrequency:  64.0 #MHz 
+}
+
+END_PROLOG
