@@ -221,7 +221,7 @@ void DAQToOffline::CollectMuonTrigger(uint8_t* payload, size_t payload_size, std
     //Now we need to shift the entire thing set to the LSB so we can record the number
     //The muon trigger pattern words are 4 bits
     muon_trigger_bits >>= (TypeSizes::TriggerWordSize-4);
-    int muon_trigger = static_cast<int>(muon_trigger_bits.to_ulong());
+    //int muon_trigger = static_cast<int>(muon_trigger_bits.to_ulong());
     //std::cout << "HasTriggerType" << muon_trigger_bits << " " << muon_trigger << std::endl;
     fMuonTriggerBits.push_back(muon_trigger_bits); // Is this right!!???? Probably not wholly, but it works.
     fMuonTriggerTimes.push_back(timestamp);

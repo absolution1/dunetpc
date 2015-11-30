@@ -41,7 +41,7 @@ namespace DAQToOffline {
     PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, int const& PTBIgnoreBit, std::map<int,int> const& PTBChannelMap );
 
   void CollectCounterBits(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::CounterWordSize> > &fCounterBits);
-  void CollectMuonTrigger(uint8_t* payload, size_t payload_size, std::map<int,int> &fMuonTriggerRates, std::vector<std::bitset<TypeSizes::TriggerWordSize> > &fMuonTriggerBits,
+  void CollectMuonTrigger(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::TriggerWordSize> > &fMuonTriggerBits,
 			  std::vector<int> &fMuonTriggerTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp);
   void BuildPTBChannelMap(std::string PTBMapFile, std::map<int,int>& PTBChannelMap);
 }
