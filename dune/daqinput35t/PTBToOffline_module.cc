@@ -64,7 +64,12 @@ private:
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
   double      fNOvAClockFrequency; //MHz
-    
+
+  std::map<int,int> PTBChannelMap;
+  std::string       fPTBChannelMapFile;
+
+  int fPTBIgnoreBit;
+
   //long        first_FirstSample;
   //double      first_TimeStamp;
   //long        first_InternalSample;
@@ -95,9 +100,12 @@ void DAQToOffline::PTBToOffline::reconfigure(fhicl::ParameterSet const& pset){
   fRawDataLabel       = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel    = pset.get<std::string>("OutputDataLabel");
   fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
-  
+  fPTBIgnoreBit       = pset.get<int>("PTBIgnoreBit",400);
+  fPTBChannelMapFile  = pset.get<std::string>("PTBChannelMapFile","ptb_channel_map_dune35t.txt");
+
   printParameterSet();
-  
+
+  BuildPTBChannelMap(fPTBChannelMapFile, PTBChannelMap);
 }
 
 void DAQToOffline::PTBToOffline::printParameterSet(){
@@ -136,7 +144,7 @@ void DAQToOffline::PTBToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto triggers = PennFragmentToExternalTrigger(*rawFragments);
+  auto triggers = PennFragmentToExternalTrigger(*rawFragments, fPTBIgnoreBit, PTBChannelMap);
 
   evt.put(std::make_unique<decltype(triggers)>(std::move(triggers)), fOutputDataLabel);
 

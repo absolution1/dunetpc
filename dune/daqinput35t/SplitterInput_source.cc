@@ -20,6 +20,7 @@
 #include "CalibrationDBI/Interface/IDetPedestalProvider.h"
 #include "CalibrationDBI/Interface/IChannelStatusService.h"
 #include "CalibrationDBI/Interface/IChannelStatusProvider.h"
+//#include "dune/RunHistory/DetPedestalDUNE.h"
 
 //#include <iostream>
 
@@ -432,6 +433,7 @@ namespace DAQToOffline {
     double                 fNOvAClockFrequency; // MHz
     string                 fOpDetChannelMapFile;
     string                 fTPCChannelMapFile;
+    string                 fPTBChannelMapFile;
     art::SourceHelper      sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SSPinputBranch_;
@@ -453,6 +455,7 @@ namespace DAQToOffline {
     size_t                 ticksPerEvent_;
     size_t                 posttriggerticks_;
     size_t                 pretriggerticks_;
+    int                    fPTBIgnoreBit;
     rawDigits_t            bufferedDigits_;
     std::vector<RawDigit::ADCvector_t>  dbuf_;
     SSPWaveforms_t         wbuf_;
@@ -472,6 +475,7 @@ namespace DAQToOffline {
 
     std::map<int,int>      OpDetChannelMap;
     std::map<int,int>      TPCChannelMap;
+    std::map<int,int>      PTBChannelMap;
 
     std::map<uint64_t,size_t> EventTreeMap;
 
@@ -526,6 +530,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
   fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile","ssp_channel_map_dune35t.txt")),
   fTPCChannelMapFile(ps.get<string>("TPCChannelMapFile","rce_channel_map_dune35t.txt")),
+  fPTBChannelMapFile(ps.get<string>("PTBChannelMapFile","ptb_channel_map_dune35t.txt")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -542,6 +547,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
 
   posttriggerticks_(ps.get<size_t>("posttriggerticks")),
   pretriggerticks_(ps.get<size_t>("pretriggerticks")),
+  fPTBIgnoreBit(ps.get<int>("PTBIgnoreBit",400)),
   bufferedDigits_(),
   dbuf_(),
   wbuf_(),
@@ -575,6 +581,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
 
   BuildOpDetChannelMap(fOpDetChannelMapFile, OpDetChannelMap);
   BuildTPCChannelMap(fTPCChannelMapFile, TPCChannelMap);
+  BuildPTBChannelMap(fPTBChannelMapFile, PTBChannelMap);
 }
 
 //=======================================================================================
@@ -756,21 +763,22 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   // ************* Fill dbuf_ with the RCE information for ticks collected ************************
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
   //get pedestal conditions
-  //const lariov::IDetPedestalProvider& pedestalRetrievalAlg = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
+  //const lariov::DetPedestalProvider& pedestals = lar::providerFrom<lariov::DetPedestalService>();
+  const lariov::IDetPedestalProvider& pedestals = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
     //std::cout << "Looking at ichan " << ichan << "("<<loadedDigits_.digits[ichan].Channel()<< ") of " << dbuf_.size() << ", should be " << fTicksAccumulated << " samples and dbuf has size " << dbuf_[ichan].size() << std::endl;
     // ****** Now to subtract the pedestals.... ********
     // Check if good channel? Done in uBoone code.
     // loop over all adc values and subtract the pedestal
     // When we have a pedestal database, can provide the digit timestamp as the third argument of GetPedestalMean
-    /*
-    float pdstl = pedestalRetrievalAlg.PedMean(ichan);
+    
+    float pdstl = pedestals.PedMean(ichan);
     for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem) {
       std::cout << "Before substracting pedestal element " << elem << " had ADC value " << dbuf_[ichan][elem];
       dbuf_[ichan][0] = dbuf_[ichan][0] - pdstl;
       std::cout << " after subtracting the pedestal (" << pdstl << ") it has value " << dbuf_[ichan][elem] << std::endl;
     }
-    */
+    
     RawDigit d(loadedDigits_.digits[ichan].Channel(),
 	       fTicksAccumulated,
 	       dbuf_[ichan]
@@ -886,7 +894,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
       std::cout << "Looking at data muon counter information!" << std::endl;
       auto* PennFragments = getFragments ( PenninputBranch_, LoadTree );
-      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments );
+      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, fPTBIgnoreBit, PTBChannelMap );
       loadedCounters_.load( counters );
       std::cout << "Loaded muon counter information!" << std::endl; //*/
     } else {
