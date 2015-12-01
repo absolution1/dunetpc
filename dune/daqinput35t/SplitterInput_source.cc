@@ -509,6 +509,9 @@ namespace DAQToOffline {
     int fWaveformADCsOverThreshold;
     int fADCdiffThreshold;
     int fADCsOverThreshold;
+
+    std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
+	       std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
   };
 }
 
@@ -894,7 +897,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
       std::cout << "Looking at data muon counter information!" << std::endl;
       auto* PennFragments = getFragments ( PenninputBranch_, LoadTree );
-      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, fPTBIgnoreBit, PTBChannelMap );
+      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, fPTBIgnoreBit, PTBChannelMap, PrevTimeStampWords );
       loadedCounters_.load( counters );
       std::cout << "Loaded muon counter information!" << std::endl; //*/
     } else {
