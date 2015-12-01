@@ -15,8 +15,8 @@
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
-   <rotation name="rPlusUAngleAboutX"	unit="deg" x="90-45.7" y="0"   z="0"/>
-   <rotation name="rPlusVAngleAboutX"	unit="deg" x="90+44.3" y="0"   z="0"/>
+   <rotation name="rPlusUAngleAboutX"	unit="deg" x="90-35.71" y="0"   z="0"/>
+   <rotation name="rPlusVAngleAboutX"	unit="deg" x="90+35.71" y="0"   z="0"/>
    <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
@@ -191,14 +191,6 @@
    <fraction n="0.00934" ref="argon"/>
   </material>
 
-
-  <!-- preliminary values -->
-  <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
-   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="0.5"   ref="Air"/>
-  </material>
-
   <material formula=" " name="G10">
    <D value="1.7" unit="g/cc"/>
    <fraction n="0.2805" ref="silicon"/>
@@ -279,6 +271,13 @@
    <fraction n="0.600" ref="carbon"/>
    <fraction n="0.320" ref="oxygen"/>
    <fraction n="0.080" ref="hydrogen"/>
+  </material>
+
+  <!-- preliminary values -->
+  <material name="AirSteelMixture" formula="AirSteelMixture">
+   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
+   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="0.5"   ref="Air"/>
   </material>
 
 </materials>
@@ -443,9 +442,9 @@
 
 
     <box name="World" lunit="cm" 
-      x="1954.0283+2*3000" 
-      y="1817.6975+2*3000" 
-      z="6721.89+2*3000"/>
+      x="1954.0283+2*3800" 
+      y="1817.6975+2*3800" 
+      z="6721.89+2*3800"/>
 </solids>
 <structure>
     <volume name="volTPCActiveInner">
