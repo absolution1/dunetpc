@@ -132,6 +132,8 @@ void DAQToOffline::PTBToOffline::produce(art::Event & evt)
   try { rawFragments->size(); }
   catch(std::exception e) {
     mf::LogWarning("PTBToOffline") << "WARNING: Raw PTB data not found in event " << evt.event();
+    std::vector<raw::ExternalTrigger> Triggers;
+    evt.put(std::make_unique<std::vector<raw::ExternalTrigger>>(std::move(Triggers)), fOutputDataLabel);
     return;
   }
 
