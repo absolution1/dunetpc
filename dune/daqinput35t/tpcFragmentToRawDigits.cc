@@ -23,7 +23,7 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
 {
   //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
   unsigned int numFragments = rawFragments.size();
-  bool TimestampSet = false; std::cout << "TimestampSet is false " << std::endl;
+  bool TimestampSet = false;
 
   std::map < unsigned int, unsigned int > mapFragID;
 
