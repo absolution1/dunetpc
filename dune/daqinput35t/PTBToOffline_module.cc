@@ -69,7 +69,8 @@ private:
   std::string       fPTBChannelMapFile;
 
   int fPTBIgnoreBit;
-
+  std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
+	     std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
   //long        first_FirstSample;
   //double      first_TimeStamp;
   //long        first_InternalSample;
@@ -131,6 +132,8 @@ void DAQToOffline::PTBToOffline::produce(art::Event & evt)
   try { rawFragments->size(); }
   catch(std::exception e) {
     mf::LogWarning("PTBToOffline") << "WARNING: Raw PTB data not found in event " << evt.event();
+    std::vector<raw::ExternalTrigger> Triggers;
+    evt.put(std::make_unique<std::vector<raw::ExternalTrigger>>(std::move(Triggers)), fOutputDataLabel);
     return;
   }
 
@@ -144,7 +147,7 @@ void DAQToOffline::PTBToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto triggers = PennFragmentToExternalTrigger(*rawFragments, fPTBIgnoreBit, PTBChannelMap);
+  auto triggers = PennFragmentToExternalTrigger(*rawFragments, fPTBIgnoreBit, PTBChannelMap, PrevTimeStampWords);
 
   evt.put(std::make_unique<decltype(triggers)>(std::move(triggers)), fOutputDataLabel);
 

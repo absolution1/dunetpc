@@ -38,11 +38,24 @@ namespace DAQToOffline {
   // Unpack the given artdaq::Fragment objects, and create a vector of raw::ExternalTrigger objects. The
   // Fragments are expected to be carrying Penn Trigger board data; this is not checked.
   std::vector<raw::ExternalTrigger> 
-    PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, int const& PTBIgnoreBit, std::map<int,int> const& PTBChannelMap );
+    PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, int const& PTBIgnoreBit, std::map<int,int> const& PTBChannelMap,
+				   std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
+				   std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords );
 
-  void CollectCounterBits(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::CounterWordSize> > &fCounterBits);
+  void CollectCounterBits(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::CounterWordSize> > &fCounterBits,
+			  std::vector<int> &fCounterTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp,
+			  std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
+			  std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords,
+			  int const& PTBIgnoreBit
+			  );
+
   void CollectMuonTrigger(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::TriggerWordSize> > &fMuonTriggerBits,
-			  std::vector<int> &fMuonTriggerTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp);
+			  std::vector<int> &fMuonTriggerTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp,
+			  std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
+			  std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords,
+			  int const& PTBIgnoreBit
+			  );
+
   void BuildPTBChannelMap(std::string PTBMapFile, std::map<int,int>& PTBChannelMap);
 }
 #endif
