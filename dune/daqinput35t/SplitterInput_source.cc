@@ -20,7 +20,7 @@
 #include "CalibrationDBI/Interface/IDetPedestalProvider.h"
 #include "CalibrationDBI/Interface/IChannelStatusService.h"
 #include "CalibrationDBI/Interface/IChannelStatusProvider.h"
-//#include "dune/RunHistory/DetPedestalDUNE.h"
+#include "dune/RunHistory/DetPedestalDUNE.h"
 
 //#include <iostream>
 
@@ -527,6 +527,8 @@ namespace DAQToOffline {
     int fADCdiffThreshold;
     int fADCsOverThreshold;
 
+    std::vector<size_t> GoodEvents;
+
     std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
 	       std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
   };
@@ -732,7 +734,14 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       // ******* Check that the time stamps lead on from one another!! ***********
     } // loadedDigits_.empty()
     
-    if (NewTree) std::cout << "Looking at treeIndex " << treeIndex_-1 << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex " << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
+    if (NewTree) {
+      std::cout << "Looking at treeIndex " << treeIndex_-1 << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex " << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
+      bool NewEvent = true;
+      for (unsigned int GoodEvSize = 0; GoodEvSize < GoodEvents.size(); ++GoodEvSize ) {
+	if (GoodEvents[GoodEvSize] == treeIndex_-1 ) NewEvent = false;
+      }
+      if (NewEvent) GoodEvents.push_back(treeIndex_-1);
+    }
 
     //if (fTrigger) std::cout << "index " << loadedDigits_.index << " " << fTicksAccumulated << " " << prev_timestamp << " " << this_timestamp << std::endl;
     std::vector<short> nextdigits = loadedDigits_.next();
@@ -784,7 +793,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
   //get pedestal conditions
   //const lariov::DetPedestalProvider& pedestals = lar::providerFrom<lariov::DetPedestalService>();
-  //const lariov::IDetPedestalProvider& pedestals = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
+  const lariov::IDetPedestalProvider& pedestals = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
     //std::cout << "Looking at ichan " << ichan << "("<<loadedDigits_.digits[ichan].Channel()<< ") of " << dbuf_.size() << ", should be " << fTicksAccumulated << " samples and dbuf has size " << dbuf_[ichan].size() << std::endl;
     // ****** Now to subtract the pedestals.... ********
@@ -792,8 +801,9 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     // loop over all adc values and subtract the pedestal
     // When we have a pedestal database, can provide the digit timestamp as the third argument of GetPedestalMean
     
-    //float pdstl = pedestals.PedMean(ichan);
-    float pdstl = 0;
+    float pdstl = pedestals.PedMean(ichan);
+    std::cout << "The pedestal for channel " << ichan << " is " << pdstl << std::endl;
+    //float pdstl = 0;
     for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem) {
       //std::cout << "Before substracting pedestal element " << elem << " had ADC value " << dbuf_[ichan][elem];
       dbuf_[ichan][elem] = dbuf_[ichan][elem] - pdstl;
@@ -842,6 +852,11 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   } else std::cout << "No, I'm still looking at the same tree!\n" << std::endl;
   loadedDigits_.index = fLastTriggerIndex;
   this_timestamp      = fLastTimeStamp;
+
+  std::cout << "This is a list of the good events seen so far!" << std::endl;
+  for( size_t el=0; el<GoodEvents.size(); ++el ) {
+    std::cout << "Tree index " << GoodEvents[el] << " was a good event." << std::endl;
+  }
   
   return true;
 } // read next
