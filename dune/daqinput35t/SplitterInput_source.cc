@@ -20,6 +20,7 @@
 #include "CalibrationDBI/Interface/IDetPedestalProvider.h"
 #include "CalibrationDBI/Interface/IChannelStatusService.h"
 #include "CalibrationDBI/Interface/IChannelStatusProvider.h"
+//#include "dune/RunHistory/DetPedestalDUNE.h"
 
 //#include <iostream>
 
@@ -181,16 +182,23 @@ namespace {
       firstTimestamp = ts;
     }
     
-    // copy rawdigits to LoadedDigits and uncompress if necessary.  
+    // Clear digits vector.
+    void clear() {
+      digits.clear();
+      empty();
+    }
 
+    // copy rawdigits to LoadedDigits and uncompress if necessary.
     void load( vector<RawDigit> const & v ) {
       if (v.size() == 0 || v.back().Compression() == raw::kNone) {
 	digits = v;
+	std::cout << "Loading from the top. v.size is " << v.size() << std::endl;
       }
       else {
 	// make a new raw::RawDigit object for each compressed one
 	// to think about optimization -- two copies of the uncompressed raw digits here.
 	digits = std::vector<RawDigit>();
+	std::cout << "Loading from the bottom." << std::endl;
 	for (auto idigit = v.begin(); idigit != v.end(); ++idigit) {
 	  std::vector<short> uncompressed;
 	  raw::Uncompress(idigit->ADCs(),uncompressed,idigit->Compression());
@@ -201,14 +209,24 @@ namespace {
 	  digits.push_back(digit);
 	}
       }
+      bool GoodDig = true;
+      for (unsigned int j=0; j<digits.size(); j=j+128) {
+	if ( digits[0].NADC() - digits[j].NADC() ) GoodDig = false;
+	std::cout << "digits[0] has " << digits[0].NADC() << " ADC's, whilst digits["<<j<<"] has " << digits[j].NADC() << " ADCs. Still a good digit? " << GoodDig << std::endl;
+      }
+      if (!GoodDig) {
+	std::cout << "Got a bad digit, so want to clear it..." << std::endl;
+	clear();
+      }
+      
       index = 0ul;
     } // load
 
     bool empty() const {
       //std::cout << digits.size() << " " << digits[0].Samples() << " " << index << std::endl;
-      if (digits.size() == 0) return true;
-      if (digits[0].Samples() == 0) return true;
-      if (index >= digits[0].Samples()) return true; 
+      if (digits.size() == 0) {std::cout << "digits.size is 0" << std::endl; return true;}
+      if (digits[0].Samples() == 0) {std::cout << "digits[0] has no more samples" << std::endl; return true;}
+      if (index >= digits[0].Samples()) {std::cout << "index is more than digits samples" << std::endl; return true;}
       return false;
     } // empty
     
@@ -432,6 +450,7 @@ namespace DAQToOffline {
     double                 fNOvAClockFrequency; // MHz
     string                 fOpDetChannelMapFile;
     string                 fTPCChannelMapFile;
+    string                 fPTBChannelMapFile;
     art::SourceHelper      sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SSPinputBranch_;
@@ -453,6 +472,7 @@ namespace DAQToOffline {
     size_t                 ticksPerEvent_;
     size_t                 posttriggerticks_;
     size_t                 pretriggerticks_;
+    int                    fPTBIgnoreBit;
     rawDigits_t            bufferedDigits_;
     std::vector<RawDigit::ADCvector_t>  dbuf_;
     SSPWaveforms_t         wbuf_;
@@ -472,6 +492,7 @@ namespace DAQToOffline {
 
     std::map<int,int>      OpDetChannelMap;
     std::map<int,int>      TPCChannelMap;
+    std::map<int,int>      PTBChannelMap;
 
     std::map<uint64_t,size_t> EventTreeMap;
 
@@ -505,6 +526,9 @@ namespace DAQToOffline {
     int fWaveformADCsOverThreshold;
     int fADCdiffThreshold;
     int fADCsOverThreshold;
+
+    std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
+	       std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
   };
 }
 
@@ -526,6 +550,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   fNOvAClockFrequency(ps.get<double>("NOvAClockFrequency",64.0)),
   fOpDetChannelMapFile(ps.get<string>("OpDetChannelMapFile","ssp_channel_map_dune35t.txt")),
   fTPCChannelMapFile(ps.get<string>("TPCChannelMapFile","rce_channel_map_dune35t.txt")),
+  fPTBChannelMapFile(ps.get<string>("PTBChannelMapFile","ptb_channel_map_dune35t.txt")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -542,6 +567,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
 
   posttriggerticks_(ps.get<size_t>("posttriggerticks")),
   pretriggerticks_(ps.get<size_t>("pretriggerticks")),
+  fPTBIgnoreBit(ps.get<int>("PTBIgnoreBit",400)),
   bufferedDigits_(),
   dbuf_(),
   wbuf_(),
@@ -575,6 +601,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
 
   BuildOpDetChannelMap(fOpDetChannelMapFile, OpDetChannelMap);
   BuildTPCChannelMap(fTPCChannelMapFile, TPCChannelMap);
+  BuildPTBChannelMap(fPTBChannelMapFile, PTBChannelMap);
 }
 
 //=======================================================================================
@@ -756,21 +783,23 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   // ************* Fill dbuf_ with the RCE information for ticks collected ************************
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
   //get pedestal conditions
-  //const lariov::IDetPedestalProvider& pedestalRetrievalAlg = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
+  //const lariov::DetPedestalProvider& pedestals = lar::providerFrom<lariov::DetPedestalService>();
+  //const lariov::IDetPedestalProvider& pedestals = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
     //std::cout << "Looking at ichan " << ichan << "("<<loadedDigits_.digits[ichan].Channel()<< ") of " << dbuf_.size() << ", should be " << fTicksAccumulated << " samples and dbuf has size " << dbuf_[ichan].size() << std::endl;
     // ****** Now to subtract the pedestals.... ********
     // Check if good channel? Done in uBoone code.
     // loop over all adc values and subtract the pedestal
     // When we have a pedestal database, can provide the digit timestamp as the third argument of GetPedestalMean
-    /*
-    float pdstl = pedestalRetrievalAlg.PedMean(ichan);
+    
+    //float pdstl = pedestals.PedMean(ichan);
+    float pdstl = 0;
     for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem) {
-      std::cout << "Before substracting pedestal element " << elem << " had ADC value " << dbuf_[ichan][elem];
-      dbuf_[ichan][0] = dbuf_[ichan][0] - pdstl;
-      std::cout << " after subtracting the pedestal (" << pdstl << ") it has value " << dbuf_[ichan][elem] << std::endl;
+      //std::cout << "Before substracting pedestal element " << elem << " had ADC value " << dbuf_[ichan][elem];
+      dbuf_[ichan][elem] = dbuf_[ichan][elem] - pdstl;
+      //std::cout << " after subtracting the pedestal (" << pdstl << ") it has value " << dbuf_[ichan][elem] << std::endl;
     }
-    */
+    
     RawDigit d(loadedDigits_.digits[ichan].Channel(),
 	       fTicksAccumulated,
 	       dbuf_[ichan]
@@ -808,12 +837,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     std::cout << "Yes I do! Changing treeIndex_ to fLastTreeIndex...Also want to clear loadedDigits." << std::endl;
     treeIndex_ = fLastTreeIndex;
     loadedDigits_.index = 0;
-    while (!loadedDigits_.empty() ) std::vector<short> nextdigits = loadedDigits_.next();
+    loadedDigits_.clear();
     loadDigits_(treeIndex_);
-    loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
-    loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
-    std::cout << "" << std::endl;
-    //loadedDigits_.empty() == 1;
   } else std::cout << "No, I'm still looking at the same tree!\n" << std::endl;
   loadedDigits_.index = fLastTriggerIndex;
   this_timestamp      = fLastTimeStamp;
@@ -886,7 +911,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
       std::cout << "Looking at data muon counter information!" << std::endl;
       auto* PennFragments = getFragments ( PenninputBranch_, LoadTree );
-      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments );
+      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, fPTBIgnoreBit, PTBChannelMap, PrevTimeStampWords );
       loadedCounters_.load( counters );
       std::cout << "Loaded muon counter information!" << std::endl; //*/
     } else {
@@ -980,14 +1005,11 @@ void DAQToOffline::Splitter::CheckTrigger() {
 	treeIndex_ = treeIndex_ - 2; // want to load the event before previously loaded event.
 	loadDigits_(treeIndex_);
 	if ( treeIndex_ == 1 ) {
-	  std::cout << "Looking at the first event and still not got enough buffers. Trigger isn't good :(" << std::endl;
-	  fTrigger = false; break;
+	  fTrigger = false;
+	  break;
 	} 
       }
       
-      // Loaded the previous event, check it is correct.
-      loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
-      loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
       NADCs = loadedDigits_.digits[0].NADC();
       std::cout << "This event has " << NADCs << " of a desired " << BufferResidual << std::endl;
       
@@ -1020,11 +1042,9 @@ void DAQToOffline::Splitter::CheckTrigger() {
   else {
     std::cout << "Trigger isn't good so I'm going back to where I triggered..." << std::endl;
     loadedDigits_.index = 0;
-    while (!loadedDigits_.empty() ) std::vector<short> nextdigits = loadedDigits_.next();
+    loadedDigits_.clear();
     treeIndex_ = TempTreeIndex;
     loadDigits_(treeIndex_); // treeIndex_ was incremented when loaded the 'bad' file, so can just use the value it currently has!
-    loadedWaveforms_.findinrange(wbuf_,1e7,1e7,novaticksperssptick_);
-    loadedCounters_.findinrange (cbuf_,1e7,1e7, novatickspercounttick_ );
     loadedDigits_.index = TempTriggerIndex + BufferResidual; // Jump to where the trigger was plus buffer residual
     std::cout << "Attempted trigger was in event " << TempTreeIndex << " at index " << TempTriggerIndex << " at timestamp " << (int)TempTimeStamp << ", it had " << TempNADCs << " adc's"
 	      << "\nI'm now at event " << treeIndex_-1 << " index " << loadedDigits_.index << " and timestamp " << (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) 
