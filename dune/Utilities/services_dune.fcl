@@ -154,6 +154,12 @@ dune35t_basic_services:
  IChannelStatusService:        @local::dune35t_channel_status
 }
 
+dune35t_basic_services.IDetPedestalService:
+{
+  service_provider: DetPedestalServiceDUNE
+  DetPedestalDUNE: @local::dune35t_pedestals
+}
+
 dune35t_services:              @local::dune35t_basic_services
 dune35t_services.LArFFT:       @local::dune35t_larfft
 dune35t_services.BackTracker:  @local::dune35t_backtracker

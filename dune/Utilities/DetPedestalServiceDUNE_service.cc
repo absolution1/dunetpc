@@ -6,6 +6,7 @@
 #include "art/Framework/Principal/Run.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "CalibrationDBI/Interface/IDetPedestalService.h"
+#include "CalibrationDBI/Providers/DetPedestalRetrievalAlg.h"
 #include "dune/RunHistory/DetPedestalDUNE.h"
 
 namespace lariov{
@@ -40,7 +41,7 @@ namespace lariov{
   };
 }//end namespace lariov
       
-DECLARE_ART_SERVICE_INTERFACE_IMPL(lariov::DetPedestalServiceDUNE, lariov::DetPedestalServiceDUNE, LEGACY)
+DECLARE_ART_SERVICE_INTERFACE_IMPL(lariov::DetPedestalServiceDUNE, lariov::IDetPedestalService, LEGACY)
       
 
 namespace lariov{
@@ -56,6 +57,6 @@ namespace lariov{
 
 }//end namespace lariov
 
-DEFINE_ART_SERVICE_INTERFACE_IMPL(lariov::DetPedestalServiceDUNE, lariov::DetPedestalServiceDUNE)
+DEFINE_ART_SERVICE_INTERFACE_IMPL(lariov::DetPedestalServiceDUNE, lariov::IDetPedestalService)
 
 #endif
