@@ -83,10 +83,11 @@ namespace dune {
       t.LoadFromCSV(fCSVFileName);
     
     nutools::dbi::Row* row;
-    float mean,rms,meanerr,rmserr;
+    float mean, rms, meanerr, rmserr;
     uint64_t chan;
     for (int i=0; i<t.NRow(); ++i) {
-      row = t.GetRow(i);
+      mean = rms = meanerr = rmserr = 0.;
+      row = t.GetRow(i);      
       chan = row->Channel();
       row->Col(meanIdx).Get(mean);
       row->Col(meanErrIdx).Get(meanerr);
