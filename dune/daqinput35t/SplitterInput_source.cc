@@ -797,7 +797,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     // Check if good channel? Done in uBoone code.
     // loop over all adc values and subtract the pedestal
     float pdstl = pedestals.PedMean(ichan);
-    //std::cout << "Channel " << loadedDigits_.digits[ichan].Channel() << " (dbuf_ index " << ichan << ") has pedestal " << pdstl << std::endl;
+    std::cout << "Channel " << loadedDigits_.digits[ichan].Channel() << " (dbuf_ index " << ichan << ") has pedestal " << pdstl << std::endl;
     for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem)
       dbuf_[ichan][elem] = dbuf_[ichan][elem] - pdstl;
     
