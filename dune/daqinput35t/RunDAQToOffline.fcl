@@ -1,9 +1,11 @@
 #include "services_dune.fcl"
 #include "TpcDAQToOffline.fcl"
 #include "SSPToOffline.fcl"
+#include "PTBToOffline.fcl"
 
 # Mar 2015, M Wallbank
 # Module to run both TPC and SSP to offline to reformulate daq data to LArSoft data types
+#Nov 2015, K Warburton - Adding PTB.
 
 process_name: RunDaqToOffline
 
@@ -19,10 +21,11 @@ physics:
   {
     tpcdaqtooffline: @local::tpc_daq_to_offline
     ssptooffline: @local::ssp_to_offline
+    ptbtooffline: @local::ptb_to_offline
   }
 
   # Create path to run module
-  produce: [  tpcdaqtooffline, ssptooffline ]
+  produce: [  tpcdaqtooffline, ssptooffline, ptbtooffline ]
 
   output: [ out1 ]
   trigger_paths: [ produce ]
