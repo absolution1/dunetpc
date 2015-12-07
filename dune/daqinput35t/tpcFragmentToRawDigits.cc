@@ -157,6 +157,7 @@ void DAQToOffline::BuildTPCChannelMap(std::string channelMapFile, std::map<int,i
       channelMap.insert(std::make_pair(onlineChannel,offlineChannel));
       mf::LogVerbatim("DAQToOffline") << "   " << onlineChannel << " -> " << offlineChannel;
     }
+    std::cout << "channelMap has size " << channelMap.size() << ". If this is 2048, then it's fine even if the above lines skipped a 'few' channels..." << std::endl;
   }
     
 }

@@ -315,7 +315,7 @@ void DAQToOffline::BuildPTBChannelMap(std::string PTBMapFile, std::map<int,int>&
   else {
     mf::LogVerbatim("DAQToOffline") << "Build PTB Online->Offline channel Map from " << fullname;
     std::ifstream infile(fullname);
-    if (!infile.good()) std::cout << "Couldn't find the channel map so using online channels instead." << std::endl;
+    if (!infile.good()) std::cout << "Input PTB channel map file not found. Using online channels instead." << std::endl;
     while (infile.good()) {
       infile >> onlineChannel >> offlineChannel;
       PTBChannelMap.insert(std::make_pair(onlineChannel,offlineChannel));

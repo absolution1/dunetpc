@@ -192,13 +192,11 @@ namespace {
     void load( vector<RawDigit> const & v ) {
       if (v.size() == 0 || v.back().Compression() == raw::kNone) {
 	digits = v;
-	std::cout << "Loading from the top. v.size is " << v.size() << std::endl;
       }
       else {
 	// make a new raw::RawDigit object for each compressed one
 	// to think about optimization -- two copies of the uncompressed raw digits here.
 	digits = std::vector<RawDigit>();
-	std::cout << "Loading from the bottom." << std::endl;
 	for (auto idigit = v.begin(); idigit != v.end(); ++idigit) {
 	  std::vector<short> uncompressed;
 	  raw::Uncompress(idigit->ADCs(),uncompressed,idigit->Compression());
@@ -212,10 +210,10 @@ namespace {
       bool GoodDig = true;
       for (unsigned int j=0; j<digits.size(); j=j+128) {
 	if ( digits[0].NADC() - digits[j].NADC() ) GoodDig = false;
-	std::cout << "digits[0] has " << digits[0].NADC() << " ADC's, whilst digits["<<j<<"] has " << digits[j].NADC() << " ADCs. Still a good digit? " << GoodDig << std::endl;
+	//std::cout << "digits[0] has " << digits[0].NADC() << " ADC's, whilst digits["<<j<<"] has " << digits[j].NADC() << " ADCs. Still a good digit? " << GoodDig << std::endl;
       }
       if (!GoodDig) {
-	std::cout << "Got a bad digit, so want to clear it..." << std::endl;
+	//std::cout << "Got a bad digit, so want to clear it..." << std::endl;
 	clear();
       }
       
@@ -224,9 +222,9 @@ namespace {
 
     bool empty() const {
       //std::cout << digits.size() << " " << digits[0].Samples() << " " << index << std::endl;
-      if (digits.size() == 0) {std::cout << "digits.size is 0" << std::endl; return true;}
-      if (digits[0].Samples() == 0) {std::cout << "digits[0] has no more samples" << std::endl; return true;}
-      if (index >= digits[0].Samples()) {std::cout << "index is more than digits samples" << std::endl; return true;}
+      if (digits.size() == 0) return true;
+      if (digits[0].Samples() == 0) return true;
+      if (index >= digits[0].Samples()) return true;
       return false;
     } // empty
     
@@ -527,7 +525,7 @@ namespace DAQToOffline {
     int fADCdiffThreshold;
     int fADCsOverThreshold;
 
-    std::vector<size_t> GoodEvents;
+    std::vector<std::pair<size_t,size_t> > GoodEvents;
 
     std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
 	       std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
@@ -645,8 +643,7 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
     //std::cout << "Looking at Tree " << Tree << ", RunNumber " << IntRunNumber << ", SubRunNumber " << IntSubRunNumber << ", EventNumber " << IntEventNumber << ", CrazyNumber " << CombinedInt << std::endl;
     EventTreeMap[CombinedInt] = Tree; // Add that to a tree - use the fact that this will sort them by Run, Subrun, Event.
   }
-  // ------------ Make my sorted event branch --------------------
-
+  
   // New fileblock
   fb = new art::FileBlock(art::FileFormatVersion(),filename);
   if ( fb == nullptr ) {
@@ -738,9 +735,9 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       std::cout << "Looking at treeIndex " << treeIndex_-1 << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex " << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
       bool NewEvent = true;
       for (unsigned int GoodEvSize = 0; GoodEvSize < GoodEvents.size(); ++GoodEvSize ) {
-	if (GoodEvents[GoodEvSize] == treeIndex_-1 ) NewEvent = false;
+	if (GoodEvents[GoodEvSize].first == treeIndex_-1 ) NewEvent = false;
       }
-      if (NewEvent) GoodEvents.push_back(treeIndex_-1);
+      if (NewEvent) GoodEvents.push_back( std::make_pair(treeIndex_-1,loadedDigits_.digits[0].NADC()) );
     }
 
     //if (fTrigger) std::cout << "index " << loadedDigits_.index << " " << fTicksAccumulated << " " << prev_timestamp << " " << this_timestamp << std::endl;
@@ -799,16 +796,10 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     // ****** Now to subtract the pedestals.... ********
     // Check if good channel? Done in uBoone code.
     // loop over all adc values and subtract the pedestal
-    // When we have a pedestal database, can provide the digit timestamp as the third argument of GetPedestalMean
-    
     float pdstl = pedestals.PedMean(ichan);
-    std::cout << "The pedestal for channel " << ichan << " is " << pdstl << std::endl;
-    //float pdstl = 0;
-    for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem) {
-      //std::cout << "Before substracting pedestal element " << elem << " had ADC value " << dbuf_[ichan][elem];
+    //std::cout << "Channel " << loadedDigits_.digits[ichan].Channel() << " (dbuf_ index " << ichan << ") has pedestal " << pdstl << std::endl;
+    for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem)
       dbuf_[ichan][elem] = dbuf_[ichan][elem] - pdstl;
-      //std::cout << " after subtracting the pedestal (" << pdstl << ") it has value " << dbuf_[ichan][elem] << std::endl;
-    }
     
     RawDigit d(loadedDigits_.digits[ichan].Channel(),
 	       fTicksAccumulated,
@@ -854,10 +845,10 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   this_timestamp      = fLastTimeStamp;
 
   std::cout << "This is a list of the good events seen so far!" << std::endl;
-  for( size_t el=0; el<GoodEvents.size(); ++el ) {
-    std::cout << "Tree index " << GoodEvents[el] << " was a good event." << std::endl;
+  for( size_t el=0; el<GoodEvents.size(); ++el) {
+    std::cout << "Tree index " << GoodEvents[el].first << " was a good event, which had " << GoodEvents[el].second << " ADC values." << std::endl;
   }
-  
+  std::cout << std::endl;
   return true;
 } // read next
 
@@ -891,7 +882,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     inputRunNumber_ = evAux_.run();
     inputSubRunNumber_ = evAux_.subRun();
     inputEventNumber_ = evAux_.event();
-
+    //std::cout << "Loading event " << inputEventNumber_ << " which was on Tree " << InputTree << std::endl;
     //-----------------------------------------------------------------------------------------------------------
     if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
       lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
@@ -995,57 +986,39 @@ void DAQToOffline::Splitter::CheckTrigger() {
   }
   else { // Don't have enough ticks in the event for the prebuffer :( so need to load previous events!
     BufferResidual = -BufferResidual;
-    loadedDigits_.index = 0;
     lbne::TpcNanoSlice::Header::nova_timestamp_t TrigEvStart = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
+    fTrigger = false;
     std::cout << "I don't have enough previous digits :(, I need an extra " << BufferResidual << " ticks from previous events. TrigEvStart = " << (int)TrigEvStart << std::endl;
-    size_t NADCs = loadedDigits_.digits[0].NADC();
-    while ( BufferResidual > 0 && fTrigger) {
-      
-      if ( (int)NADCs != 0 ) {
-	std::cout << "Clearing loadedDigits..." << std::endl;
-	loadedDigits_.index = 0;
-	std::cout << "empty? " << loadedDigits_.empty() << std::endl;
-	//int abc = 0;
-	while (!loadedDigits_.empty() ) {
-	  //std::cout << abc << " of " << NADCs << " Step1" << std::endl;
-	  std::vector<short> nextdigits = loadedDigits_.next();
-	  //std::cout << "Step 2." << loadedDigits_.empty() << std::endl;
-	  //++abc;
-	}
-	std::cout << "Is loadedDigits empty? " << loadedDigits_.empty() << std::endl;
-      }
-      
-      while (loadedDigits_.empty()) {
-	std::cout << "\nWant to load event " << treeIndex_-1 << " corresponding to index " << treeIndex_ -2 << std::endl;
-	treeIndex_ = treeIndex_ - 2; // want to load the event before previously loaded event.
-	loadDigits_(treeIndex_);
-	if ( treeIndex_ == 1 ) {
-	  fTrigger = false;
-	  break;
-	} 
-      }
-      
-      NADCs = loadedDigits_.digits[0].NADC();
-      std::cout << "This event has " << NADCs << " of a desired " << BufferResidual << std::endl;
-      
-      // Check if have enough pre-trigger ticks yet
-      if ( BufferResidual - (int)NADCs < 0) {
-	loadedDigits_.index = NADCs - BufferResidual;
-	std::cout << "GOT A GOOD TIRGGGER! Want loaded digits set to event " << treeIndex_ << " index " << loadedDigits_.index << "." << std::endl;
+
+    size_t LoadEv = 0; int    LoadInd = 0;
+    //std::cout << "GoodEvents vector currently has a size " << GoodEvents.size() << " these are the things which are stored in it..." << std::endl;
+    //for( size_t el=0; el<GoodEvents.size(); ++el) {
+    //  std::cout << "Tree index " << GoodEvents[el].first << " was a good event, which had " << GoodEvents[el].second << " ADC values." << std::endl;
+    //}
+    //std::cout << "However, I can only use the events prior to this to go back, so outputting the same thing, but this time not considering this event..." << std::endl;
+    for( size_t el=0; el<(GoodEvents.size()-1); ++el) {
+      //std::cout << "Tree index " << GoodEvents[el].first << " was a good event, which had " << GoodEvents[el].second << " ADC values."
+      //	<< "\nThis means TempBuffer has gone from " << BufferResidual << " to " << BufferResidual-(int)GoodEvents[el].second
+      //	<< std::endl;
+      if (BufferResidual-(int)GoodEvents[el].second < 0) {
+	std::cout << "I can satisfy the prebuffer on this event at index " << (int)GoodEvents[el].second - BufferResidual << std::endl;
+	LoadEv = GoodEvents[el].first;
+	LoadInd= (int)GoodEvents[el].second - BufferResidual;
+	fTrigger = true;
 	break;
+      } else {
+	BufferResidual = BufferResidual-(int)GoodEvents[el].second;
+	std::cout << "Can't quite trigger on this event, need another " << BufferResidual << "ticks." << std::endl;
       }
-      else {
-	BufferResidual = BufferResidual - NADCs;
-	std::cout << "Still need another " << BufferResidual << "ticks!" << std::endl;
-	
-	if ( treeIndex_ == 1 ) {
-	  std::cout << "Looking at the first event and still not got enough buffers. Trigger isn't good :(" << std::endl;
-	  fTrigger = false; break;
-	}
-      } // Have a previous event to load
-    } // Go back however many events to find enough ticks for prebuffer.
-  } //Too few ticks for prebuffer...
-  
+    }
+    if (fTrigger) {
+      loadedDigits_.index = 0;
+      loadedDigits_.clear();
+      treeIndex_ = LoadEv;
+      loadDigits_(treeIndex_);
+      loadedDigits_.index = LoadInd;
+    }
+  }
   this_timestamp = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_); // Set this_timestamp to whatever it now is....
   
   if ( fTrigger ) { // If trigger is still good!
@@ -1056,10 +1029,6 @@ void DAQToOffline::Splitter::CheckTrigger() {
   }
   else {
     std::cout << "Trigger isn't good so I'm going back to where I triggered..." << std::endl;
-    loadedDigits_.index = 0;
-    loadedDigits_.clear();
-    treeIndex_ = TempTreeIndex;
-    loadDigits_(treeIndex_); // treeIndex_ was incremented when loaded the 'bad' file, so can just use the value it currently has!
     loadedDigits_.index = TempTriggerIndex + BufferResidual; // Jump to where the trigger was plus buffer residual
     std::cout << "Attempted trigger was in event " << TempTreeIndex << " at index " << TempTriggerIndex << " at timestamp " << (int)TempTimeStamp << ", it had " << TempNADCs << " adc's"
 	      << "\nI'm now at event " << treeIndex_-1 << " index " << loadedDigits_.index << " and timestamp " << (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) 
