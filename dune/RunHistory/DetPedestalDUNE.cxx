@@ -115,7 +115,7 @@ namespace dune {
       return fDefaultMean;
     if (fVldTime == 0) {
       std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
-      abort(0);
+      abort();
     }
     float retVal=-1.;
     auto it = fMeanMap.find(ch);
@@ -149,7 +149,7 @@ namespace dune {
       return fDefaultRms;
     if (fVldTime == 0) {
       std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
-      abort(0);
+      abort();
     }
     float retVal=0.;
     auto it = fRmsMap.find(ch);
@@ -166,7 +166,7 @@ namespace dune {
       return fDefaultRmsErr;
     if (fVldTime == 0) {
       std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
-      abort(0);
+      abort();
     }
     float retVal=0.;
     auto it = fRmsErrMap.find(ch);
