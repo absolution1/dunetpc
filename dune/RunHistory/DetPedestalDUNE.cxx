@@ -132,7 +132,7 @@ namespace dune {
       return fDefaultMeanErr;
     if (fVldTime == 0) {
       std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
-      abort(0);
+      abort();
     }
     float retVal=0.;
     auto it = fMeanErrMap.find(ch);
