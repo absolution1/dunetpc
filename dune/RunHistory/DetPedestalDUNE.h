@@ -20,7 +20,7 @@ namespace dune {
   {
   public:
 
-    DetPedestalDUNE(int detid);
+    DetPedestalDUNE(std::string detName="");
     DetPedestalDUNE(fhicl::ParameterSet const& pset);
     
     virtual float PedMean(raw::ChannelID_t ch) const;    
@@ -33,19 +33,22 @@ namespace dune {
 
     void SetUseDB(bool f) { fUseDB = f;}
     void PrintAllValues();
+
+    void SetDetName(std::string detName) { fDetName = detName;}
+    std::string DetName() { return fDetName; }
     
   private:
     void LoadFromCSV();
     
     bool fUseDB;
     bool fUseDefaults;
-    int  fDetId;
     float fDefaultMean;
     float fDefaultMeanErr;
     float fDefaultRms;
     float fDefaultRmsErr;
     uint64_t fVldTime;   
     std::string fCSVFileName;
+    std::string fDetName;
     std::unordered_map<raw::ChannelID_t,float> fMeanMap;
     std::unordered_map<raw::ChannelID_t,float> fRmsMap;
     std::unordered_map<raw::ChannelID_t,float> fMeanErrMap;

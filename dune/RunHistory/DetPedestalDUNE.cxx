@@ -6,9 +6,9 @@
 
 namespace dune {
 
-  DetPedestalDUNE::DetPedestalDUNE(int detId)
+  DetPedestalDUNE::DetPedestalDUNE(std::string detName)
   {
-    fDetId = detId;
+    fDetName = detName;
     fVldTime = 0;   
     fMeanMap.clear();
     fRmsMap.clear();
@@ -21,14 +21,13 @@ namespace dune {
 
   DetPedestalDUNE::DetPedestalDUNE(fhicl::ParameterSet const& pset)
   {
-    fDetId = 0;
     fVldTime = 0;   
     fMeanMap.clear();
     fRmsMap.clear();
     fMeanErrMap.clear();
     fRmsErrMap.clear();
     fUseDB = false;
-    
+    fDetName = "";
     Configure(pset);
   }
   
@@ -46,7 +45,6 @@ namespace dune {
     fDefaultMeanErr = p.get<float>("DefaultMeanErr",0.);
     fDefaultRms = p.get<float>("DefaultRms",0.);
     fDefaultRmsErr = p.get<float>("DefaultRmsErr",0.);    
-    fDetId = p.get<int>("DetId",1);
 
     return true;
   }
@@ -60,10 +58,12 @@ namespace dune {
     std::string tableName = "pedestals";
     nutools::dbi::Table t;
 
-    std::string detName = "";
-    if (fDetId == 1) detName = "dune35t";
+    if (fDetName.empty()) {
+      std::cerr << "Detector name is undefined.  Aborting." << std::endl;
+      std::abort();
+    }
     
-    t.SetDetector(detName);
+    t.SetDetector(fDetName);
     t.SetTableName(tableName);
     t.SetTableType(nutools::dbi::kConditionsTable);
     t.SetDataTypeMask(nutools::dbi::kDataOnly);
@@ -81,7 +81,12 @@ namespace dune {
       t.Load();
     else
       t.LoadFromCSV(fCSVFileName);
-    
+
+    if (t.NRow() == 0) {
+      std::cerr << "Number of pedestals from database/CSV file is 0.  This should never be the case, aborting." << std::endl;
+      abort();
+    }
+
     nutools::dbi::Row* row;
     float mean, rms, meanerr, rmserr;
     uint64_t chan;
@@ -108,7 +113,8 @@ namespace dune {
   float DetPedestalDUNE::PedMean(raw::ChannelID_t ch) const { 
     if (fUseDefaults)
       return fDefaultMean;
-    float retVal=0.;
+    std::cout << "***** fVldTime = " << fVldTime << std::endl;
+    float retVal=-1.;
     auto it = fMeanMap.find(ch);
     if (it != fMeanMap.end())
       retVal = it->second;

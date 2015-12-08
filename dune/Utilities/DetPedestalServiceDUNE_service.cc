@@ -8,6 +8,7 @@
 #include "CalibrationDBI/Interface/IDetPedestalService.h"
 #include "CalibrationDBI/Providers/DetPedestalRetrievalAlg.h"
 #include "dune/RunHistory/DetPedestalDUNE.h"
+#include "Geometry/Geometry.h"
 
 namespace lariov{
 
@@ -53,6 +54,14 @@ namespace lariov{
     //register callback to update local database cache before each event is processed
     //reg.sPreProcessEvent.watch(&SIOVDetPedestalService::PreProcessEvent, *this);
     reg.sPreBeginRun.watch(this, &DetPedestalServiceDUNE::preBeginRun);
+
+    art::ServiceHandle<geo::Geometry> geom;
+    std::string detName = geom->DetectorName();
+    std::string d35tName = "dune35t";
+    
+    if (detName.find(std::string(d35tName)) != std::string::npos)
+      fProvider.SetDetName(d35tName);
+    
   }
 
 }//end namespace lariov
