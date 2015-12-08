@@ -55,6 +55,16 @@ namespace dune {
   {
     if (!fUseDB) return true;
 
+    if (ts == fVldTime)
+      return true;
+    else
+      fVldTime = ts;
+    
+    fMeanMap.clear();
+    fMeanErrMap.clear();
+    fRmsMap.clear();
+    fRmsErrMap.clear();
+    
     std::string tableName = "pedestals";
     nutools::dbi::Table t;
 

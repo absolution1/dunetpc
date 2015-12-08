@@ -26,11 +26,6 @@ namespace lariov{
     void preBeginRun(const art::Run& run) {
       fProvider.Update(run.id().run());
     }
-    /*
-    void PreProcessEvent(const art::Event& evt) {
-      fProvider.Update(evt.time().value());
-    }
-    */
     
     private:
     
