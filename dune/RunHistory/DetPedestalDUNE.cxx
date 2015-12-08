@@ -113,7 +113,10 @@ namespace dune {
   float DetPedestalDUNE::PedMean(raw::ChannelID_t ch) const { 
     if (fUseDefaults)
       return fDefaultMean;
-    std::cout << "***** fVldTime = " << fVldTime << std::endl;
+    if (fVldTime == 0) {
+      std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
+      abort(0);
+    }
     float retVal=-1.;
     auto it = fMeanMap.find(ch);
     if (it != fMeanMap.end())
@@ -127,6 +130,10 @@ namespace dune {
   float DetPedestalDUNE::PedMeanErr(raw::ChannelID_t ch) const { 
     if (fUseDefaults)
       return fDefaultMeanErr;
+    if (fVldTime == 0) {
+      std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
+      abort(0);
+    }
     float retVal=0.;
     auto it = fMeanErrMap.find(ch);
     if (it != fMeanErrMap.end())
@@ -140,6 +147,10 @@ namespace dune {
   float DetPedestalDUNE::PedRms(raw::ChannelID_t ch) const { 
     if (fUseDefaults)
       return fDefaultRms;
+    if (fVldTime == 0) {
+      std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
+      abort(0);
+    }
     float retVal=0.;
     auto it = fRmsMap.find(ch);
     if (it != fRmsMap.end())
@@ -153,6 +164,10 @@ namespace dune {
   float DetPedestalDUNE::PedRmsErr(raw::ChannelID_t ch) const { 
     if (fUseDefaults)
       return fDefaultRmsErr;
+    if (fVldTime == 0) {
+      std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
+      abort(0);
+    }
     float retVal=0.;
     auto it = fRmsErrMap.find(ch);
     if (it != fRmsErrMap.end())
