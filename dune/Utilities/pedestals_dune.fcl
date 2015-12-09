@@ -2,13 +2,14 @@ BEGIN_PROLOG
 
 dune35t_pedestals :
 {
-   UseDB: 'false'
+   UseDB: 'true'
    CSVFileName: ""
-   UseDefaults: 'true'
+   UseDefaults: 'false'
    DefaultMean: 750.
    DefaultMeanErr: 0.
    DefaultRms: 5.
    DefaultRmsErr: 0.
+   DetID: 1
 }
 
 END_PROLOG

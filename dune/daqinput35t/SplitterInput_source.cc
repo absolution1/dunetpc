@@ -788,16 +788,34 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
    
   // ************* Fill dbuf_ with the RCE information for ticks collected ************************
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
+  
+  // ************* Set run numbers etc Have to do this before doing pedestal stuff ************************
+  runNumber_ = inputRunNumber_;
+  subRunNumber_ = inputSubRunNumber_;
+  art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+  if ( runNumber_ != cachedRunNumber_ ) {
+    outR = sh_.makeRunPrincipal(runNumber_,ts);
+    cachedRunNumber_ = runNumber_;
+    eventNumber_ = 0ul;
+  }
+  if ( subRunNumber_ != cachedSubRunNumber_ ) {
+    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
+    cachedSubRunNumber_ = subRunNumber_;
+    eventNumber_ = 0ul;
+  }
+
   //get pedestal conditions
-  //const lariov::DetPedestalProvider& pedestals = lar::providerFrom<lariov::DetPedestalService>();
-  const lariov::IDetPedestalProvider& pedestals = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
+  dune::DetPedestalDUNE pedestals("dune35t");
+  pedestals.SetDetName("dune35t");
+  pedestals.SetUseDB(true);
+  pedestals.Update(runNumber_);
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
-    //std::cout << "Looking at ichan " << ichan << "("<<loadedDigits_.digits[ichan].Channel()<< ") of " << dbuf_.size() << ", should be " << fTicksAccumulated << " samples and dbuf has size " << dbuf_[ichan].size() << std::endl;
     // ****** Now to subtract the pedestals.... ********
     // Check if good channel? Done in uBoone code.
     // loop over all adc values and subtract the pedestal
     float pdstl = pedestals.PedMean(ichan);
-    std::cout << "Channel " << loadedDigits_.digits[ichan].Channel() << " (dbuf_ index " << ichan << ") has pedestal " << pdstl << std::endl;
+
+    //std::cout << "Channel " << loadedDigits_.digits[ichan].Channel() << " (dbuf_ index " << ichan << ") has pedestal " << pdstl << std::endl;
     for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem)
       dbuf_[ichan][elem] = dbuf_[ichan][elem] - pdstl;
     
@@ -811,25 +829,9 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     bufferedDigits_.emplace_back(d);
   }
   
-  // ************* Set run numbers etc ************************
-  runNumber_ = inputRunNumber_;
-  subRunNumber_ = inputSubRunNumber_;
-  
-  art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
-  if ( runNumber_ != cachedRunNumber_ ) {
-    outR = sh_.makeRunPrincipal(runNumber_,ts);
-    cachedRunNumber_ = runNumber_;
-    eventNumber_ = 0ul;
-  }
-  
-  if ( subRunNumber_ != cachedSubRunNumber_ ) {
-    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
-    cachedSubRunNumber_ = subRunNumber_;
-    eventNumber_ = 0ul;
-  }
-  
   // ******** Now Build the event *********
   makeEventAndPutDigits_( outE );
+  
   // ******** Reset loadedDigits_.index and TreeIndex_ to where the trigger was *********
   std::cout << "\nMaking an event which triggered on Tree Index " << fLastTreeIndex << ", tick " << fLastTriggerIndex << ".\n"
 	    << "It went from Tree index " << FirstDigTree  << ", tick " << FirstDigIndex << " to Tree index " << treeIndex_-1 << ", tick " << loadedDigits_.index << ".\n" 

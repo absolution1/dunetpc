@@ -12,6 +12,7 @@ art_make(BASENAME_ONLY
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
 	${Boost_SYSTEM_LIBRARY}
+	RunHistoryDUNE
 	Geometry_service
 	Geometry
 	lbne_daqinput35t_utilities
