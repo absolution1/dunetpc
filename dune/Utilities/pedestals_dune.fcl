@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 dune35t_pedestals :
 {
-   UseDB: 'true'
+   UseDB: 'false'
    CSVFileName: ""
    UseDefaults: 'false'
    DefaultMean: 750.
