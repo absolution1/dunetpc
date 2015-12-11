@@ -7,6 +7,7 @@
 
 bool gUseDB = false;
 int gRun = -1;
+std::string gDetName = "";
 std::string gCfgFile = "";
 std::vector<uint64_t> gChannelList{};
 
@@ -14,7 +15,7 @@ std::vector<uint64_t> gChannelList{};
 
 void PrintUsage()
 {
-  std::cout << "Usage: RunInfo [options] -r|--run [run number]" << std::endl;
+  std::cout << "Usage: RunInfo [options] -r|--run [run number] -d|--detector [detector name, eg, dune35t]" << std::endl;
   std::cout << "Options:" << std::endl;
   std::cout << "-f (--file) [fhicl file] : use fhicl config file" << std::endl;
   std::cout << "-D (--database)          : get peds from database" << std::endl;
@@ -31,6 +32,7 @@ bool ParseCLArgs(int argc, char* argv[])
   struct option long_options[] = {
     {"help",   0, 0, 'h'},
     {"run",   0, 0, 'r'},
+    {"detector",   0, 0, 'd'},
     {"file",   0, 0, 'f'},
     {"database",   0, 0, 'D'},
     {0,0,0,0}
@@ -39,7 +41,7 @@ bool ParseCLArgs(int argc, char* argv[])
   while (1) {
     int optindx;
 
-    int c = getopt_long(argc,argv,"r:f:C:Dh",long_options,&optindx);
+    int c = getopt_long(argc,argv,"r:d:f:C:Dh",long_options,&optindx);
         
     if (c==-1) break;
     
@@ -52,6 +54,11 @@ bool ParseCLArgs(int argc, char* argv[])
 	  exit(0);
 	}
 	gRun = run;
+	break;
+      }
+    case 'd':
+      {
+	gDetName = optarg;
 	break;
       }
     case 'D':
@@ -105,7 +112,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  dune::DetPedestalDUNE* ped = new dune::DetPedestalDUNE(1);
+  dune::DetPedestalDUNE* ped = new dune::DetPedestalDUNE(gDetName);
 
   /*
   if (gCfgFile != "")
