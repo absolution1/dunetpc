@@ -169,7 +169,7 @@ void lbne::TpcMilliSliceDump::analyze(art::Event const & evt)
 
 
 						std::cout << "    Decoded ADC Values:" << std::endl << "    ";
-						for (uint32_t i_samp = 0; i_samp < lbne::TpcNanoSlice::num_channels; i_samp++)
+						for (uint32_t i_samp = 0; i_samp < nanoslice->getNChannels(); ++i_samp)
 						{
 							uint16_t val = std::numeric_limits<uint16_t>::max();
 							nanoslice->sampleValue(i_samp, val);
