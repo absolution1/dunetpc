@@ -1,4 +1,5 @@
 simple_plugin(TPCHits   "module"
+                        lbne-raw-data_Overlays
                         Geometry_service
                         Geometry
                         RawData
