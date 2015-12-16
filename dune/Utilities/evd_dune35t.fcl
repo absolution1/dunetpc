@@ -1,1 +1,4 @@
 #include "evd_dune.fcl"
+process_name: EVD
+
+services.user: @local::dune35t_disp

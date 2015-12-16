@@ -5,7 +5,7 @@ process_name: EVD
 services:
 {
   message:      @local::evd_message
-  user:         @local::dune35t_disp
+  user:         @local::dune10kt_disp
 }
 
 # Define the services
@@ -45,3 +45,5 @@ physics:
 
 #services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
 #services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
+#services.user.IDetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 500
+#services.user.IDetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 1800

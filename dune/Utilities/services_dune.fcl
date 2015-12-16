@@ -14,6 +14,7 @@
 #include "sam_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
 #include "channelstatus_dune.fcl"
+#include "pedestals_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -151,6 +152,12 @@ dune35t_basic_services:
  DatabaseUtil:                 @local::dune35t_database
  SeedService:                  @local::dune_seedservice
  IChannelStatusService:        @local::dune35t_channel_status
+}
+
+dune35t_basic_services.IDetPedestalService:
+{
+  service_provider: DetPedestalServiceDUNE
+  DetPedestalDUNE: @local::dune35t_pedestals
 }
 
 dune35t_services:              @local::dune35t_basic_services

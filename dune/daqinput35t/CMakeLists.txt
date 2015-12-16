@@ -12,6 +12,7 @@ art_make(BASENAME_ONLY
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
 	${Boost_SYSTEM_LIBRARY}
+	RunHistoryDUNE
 	Geometry_service
 	Geometry
 	lbne_daqinput35t_utilities
@@ -55,6 +56,16 @@ ${ROOT_HIST}
 )
 
 simple_plugin(SSPToOffline "module"
+lbne-raw-data_Overlays
+Geometry_service
+Geometry
+lbne_daqinput35t
+RawData
+${SIMULATIONBASE}
+${MF_MESSAGELOGGER}
+)
+
+simple_plugin(PTBToOffline "module"
 lbne-raw-data_Overlays
 Geometry_service
 Geometry

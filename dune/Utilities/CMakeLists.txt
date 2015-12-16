@@ -1,9 +1,11 @@
+#include_directories("${CMAKE_SOURCE_DIR/")
 
 set( dune_util_lib_list LArFFT_service
                         LArProperties_service
 			Geometry
 			Geometry_service
 			Utilities
+			RunHistoryDUNE
   			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -22,6 +24,11 @@ set( dune_util_lib_list LArFFT_service
 
 
 simple_plugin( SignalShapingServiceDUNE10kt  "service"
+               ${dune_util_lib_list}
+	       BASENAME_ONLY
+        )
+             
+simple_plugin( DetPedestalServiceDUNE  "service"
                ${dune_util_lib_list}
 	       BASENAME_ONLY
         )

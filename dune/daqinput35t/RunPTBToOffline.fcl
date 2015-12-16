@@ -1,0 +1,48 @@
+#include "services_dune.fcl"
+#include "PTBToOffline.fcl"
+
+
+process_name: RunSSPToOffline
+
+services : {
+  user:         @local::dune35t_services
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+
+}
+
+physics:
+{
+  producers:
+  {
+    ptbtooffline: @local::ptb_to_offline    
+  }
+
+  #Create path to run module
+  produce: [ ptbtooffline ]
+  output: [ out1 ]
+
+  trigger_paths : [ produce ]
+  end_paths: [ output ]
+}
+
+
+source:
+{
+  module_type: RootInput
+  maxEvents : 1000
+}
+
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "PTBEventToOffline.root"
+  }
+
+}
+
+ 
