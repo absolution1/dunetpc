@@ -6,10 +6,10 @@ process_name: RunSSPToOffline
 
 services : {
   user:         @local::dune35t_services
-  TimeTracker:     {}
+  Timing:       {}
   RandomNumberGenerator: {} 
-  message:      @local::standard_info
-  TFileService:  { fileName: "SSPToOffline_ana.root" }
+  message:      @local::standard_debug
+  TFileService: { fileName: "waveforms.root" } 
 }
 
 physics:
@@ -32,7 +32,6 @@ physics:
   end_paths: [ analyze, output ]
 }
 
-#physics.producers.ssptooffline.ChannelMapFile: ""
 
 source:
 {
