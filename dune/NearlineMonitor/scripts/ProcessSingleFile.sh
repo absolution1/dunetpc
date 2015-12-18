@@ -3,12 +3,12 @@
 args=("$@")
 RunDir=${args[0]}
 infile=${args[1]}
-RelDir=${args[2]}
-version=${args[3]}
-qual=${args[4]}
-comp=${args[5]}
+LPDir=${args[2]}
 
 INFILE=`basename $infile`
+
+fileend=.root
+outhistfile=${INFILE%$fileend}_nearline_hist.root
 
 export LOCKFILE=$INFILE.LOCK
 export DONEFILE=$INFILE.DONE
@@ -25,8 +25,8 @@ touch $RunDir/$LOCKFILE
 echo ""
 echo "Setting up LArSoft/DUNETPC:"
 source /grid/fermiapp/products/dune/setup_dune.sh
-cd $RelDir
-source $RelDir/setup
+cd $LPDir
+source ./setup
 cd ..
 mrbslp
 echo ""
@@ -41,7 +41,7 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 if [ $infilesize -gt 500 ];
 then
     echo "Processing $infile"
-    lar -c test_daqtooffline_nearlineana.fcl ${infile}
+    lar -c test_daqtooffline_nearlineana.fcl ${infile} -T $outhistfile
 fi
 
 

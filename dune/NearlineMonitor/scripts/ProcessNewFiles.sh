@@ -2,11 +2,11 @@
 
 args=("$@")
 argssize=${#args[*]}
-if [ $argssize -ne 4 ];then
+if [ $argssize -ne 3 ];then
     echo ""
-    echo "Usage:   ./ProcessNewFiles.sh {maximum number of jobs to run} {version} {qualifier} {compiler}"
+    echo "Usage:   ./ProcessNewFiles.sh {maximum number of jobs to run} {version} {compiler}"
     echo ""
-    echo "Example:  ./ProcessNewFiles.sh 4 v04_30_03 prof e9"
+    echo "Example:  ./ProcessNewFiles.sh 4 v04_30_03 e9"
     echo ""
     echo ""
     exit
@@ -14,8 +14,7 @@ fi
 
 maxjobs=${args[0]}
 version=${args[1]}
-qual=${args[2]}
-comp=${args[3]}
+comp=${args[2]}
 
 echo ""
 echo "Processing 35t nearline with maxjobs: $maxjobs"
@@ -60,8 +59,9 @@ touch /tmp/Batch-35t-Nearline.LOCK
 
 
 # Setup necessary pathways:
-export ScriptPath=/home/mbaird42/nearline_test_release/srcs/dunetpc/dune/NearlineMonitor/scripts
-export RelDir=/home/mbaird42/nearline_test_release/localProducts_larsoft_${version}_${qual}_${comp}
+export RelDir=/home/mbaird42/nearline_test_release_v04_30_03
+export ScriptPath=${RelDir}/srcs/dunetpc/dune/NearlineMonitor/scripts
+export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
 export OutputPath=/home/mbaird42/35t_nearline/output
 export BaseFileName=lbne_r
 export FileSearch='/home/mbaird42/tickler_data/lbne_r*.root'
@@ -71,7 +71,7 @@ export filepos=5
 
 # Only look for new files between 10 min and 10 days old and sort them so that files
 # with the largest run/subrun numbers are first in the list.
-for file in $( find ${FileSearch} -mtime -10 -mmin +0 | sort -t "/" -k$filepos -r )
+for file in $( find ${FileSearch} -mtime -20 -mmin +10 | sort -t "/" -k$filepos -r )
 do {
 
 	if [ `ps aux | grep ProcessSingleFile | wc -l` -gt $maxjobs ];then
@@ -94,18 +94,22 @@ do {
 
 	# Check if this file has already been processed or is curently being processed.
 	if [ -e $RunDir/$FILE.DONE ];then
-	    #echo "SKIP: $FILE has already been processed."
+	    echo "SKIP: $FILE has already been processed."
 	    continue
 	fi
 	if [ -e $RunDir/$FILE.LOCK ];then
-	    #echo "SKIP: $FILE is currently being processed."
+	    echo "SKIP: $FILE is currently being processed."
 	    continue
 	fi
 
       	# execute script to process single file
 	echo "Processing $file"
 	cd $ScriptPath
-	nohup ./ProcessSingleFile.sh $RunDir $file $RelDir $version $qual $comp > $RunDir/$FILE.log 2>&1 &
+
+	# There is too much text output in these jobs. So for now, don't pipe it
+	# to a log file...
+	# nohup ./ProcessSingleFile.sh $RunDir $file $LPDir > $RunDir/$FILE.log 2>&1 &
+	nohup ./ProcessSingleFile.sh $RunDir $file $LPDir >> /dev/null 2>&1 &
 
     } done
 
