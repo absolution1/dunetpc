@@ -2,15 +2,20 @@
 
 args=("$@")
 argssize=${#args[*]}
-if [ $argssize -ne 1 ];then
+if [ $argssize -ne 4 ];then
     echo ""
-    echo "Usage:   ./ProcessNewFiles.sh {maximum number of jobs to run}"
+    echo "Usage:   ./ProcessNewFiles.sh {maximum number of jobs to run} {version} {qualifier} {compiler}"
+    echo ""
+    echo "Example:  ./ProcessNewFiles.sh 4 v04_30_03 prof e9"
     echo ""
     echo ""
     exit
 fi
 
 maxjobs=${args[0]}
+version=${args[1]}
+qual=${args[2]}
+comp=${args[3]}
 
 echo ""
 echo "Processing 35t nearline with maxjobs: $maxjobs"
@@ -55,7 +60,8 @@ touch /tmp/Batch-35t-Nearline.LOCK
 
 
 # Setup necessary pathways:
-export ScriptPath=/home/mbaird42/35t_nearline/scripts
+export ScriptPath=/home/mbaird42/nearline_test_release/srcs/dunetpc/dune/NearlineMonitor/scripts
+export RelDir=/home/mbaird42/nearline_test_release/localProducts_larsoft_${version}_${qual}_${comp}
 export OutputPath=/home/mbaird42/35t_nearline/output
 export BaseFileName=lbne_r
 export FileSearch='/home/mbaird42/tickler_data/lbne_r*.root'
@@ -99,7 +105,7 @@ do {
       	# execute script to process single file
 	echo "Processing $file"
 	cd $ScriptPath
-	nohup ./ProcessSingleFile.sh $RunDir $file > $RunDir/$FILE.log 2>&1 &
+	nohup ./ProcessSingleFile.sh $RunDir $file $RelDir $version $qual $comp > $RunDir/$FILE.log 2>&1 &
 
     } done
 

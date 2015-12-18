@@ -3,6 +3,10 @@
 args=("$@")
 RunDir=${args[0]}
 infile=${args[1]}
+RelDir=${args[2]}
+version=${args[3]}
+qual=${args[4]}
+comp=${args[5]}
 
 INFILE=`basename $infile`
 
@@ -18,8 +22,14 @@ echo "Creating file $infile.LOCK"
 touch $RunDir/$LOCKFILE
 
 # Setup the LArSoft environment...
-echo "Setting up LArSoft:"
-echo "insert all setup stuff here..."
+echo ""
+echo "Setting up LArSoft/DUNETPC:"
+source /grid/fermiapp/products/dune/setup_dune.sh
+cd $RelDir
+source $RelDir/setup
+cd ..
+mrbslp
+echo ""
 
 # Move into the appropriate output directory...
 cd $RunDir
@@ -30,9 +40,8 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 # Skip files that are too small and probably DAQ junk...
 if [ $infilesize -gt 500 ];
 then
-    echo $infile
     echo "Processing $infile"
-    echo "lar -c whateverjob.fcl ${infile}"
+    lar -c test_daqtooffline_nearlineana.fcl ${infile}
 fi
 
 
