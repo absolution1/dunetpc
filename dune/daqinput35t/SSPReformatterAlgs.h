@@ -1,6 +1,6 @@
 // -*- mode: c++; c-basic-offset: 2; -*-
-#ifndef SSPFragmentToOpDetWaveform_h
-#define SSPFragmentToOpDetWaveform_h
+#ifndef SSPReformatterAlgs_h
+#define SSPReformatterAlgs_h
 
 //artdaq includes
 #include "artdaq-core/Data/Fragments.hh"

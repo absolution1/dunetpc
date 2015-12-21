@@ -8,7 +8,7 @@
 
 // lbnecode/daqinput35t includes
 
-#include "SSPFragmentToOpDetWaveform.h"
+#include "SSPReformatterAlgs.h"
 
 // larsoft includes
 

@@ -34,7 +34,7 @@
 
 // dune
 #include "tpcFragmentToRawDigits.h"
-#include "SSPFragmentToOpDetWaveform.h"
+#include "SSPReformatterAlgs.h"
 #include "PennToOffline.h"
 
 // C++ 
