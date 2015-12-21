@@ -6,8 +6,7 @@ process_name: RunSSPToOffline
 
 services : {
   user:         @local::dune35t_services
-  #TimeTracker:       {}
-  #MemoryTracker:     {} 
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
   TFileService:  { fileName: "SSPTests.root" }
