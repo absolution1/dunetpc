@@ -20,8 +20,11 @@
 
 // NOvAClockFrequency is in MHz.
 
-std::vector<raw::OpDetWaveform>
-DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, const double NOvAClockFrequency, std::map<int,int> theChannelMap)
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<raw::OpDetWaveform> DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments,
+                                                                         const double NOvAClockFrequency,
+                                                                         std::map<int,int> theChannelMap)
 {
   std::vector<raw::OpDetWaveform> opDetWaveformVector;
 
@@ -73,8 +76,8 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
 
       // Build up the waveform
       for(size_t idata = 0; idata < nADC; idata++) {
-	const unsigned short* adc = adcPointer + idata;
-	Waveform.push_back(*adc);
+        const unsigned short* adc = adcPointer + idata;
+        Waveform.push_back(*adc);
       }
         
       // Store the waveform
@@ -96,30 +99,30 @@ DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments, 
 unsigned int DAQToOffline::CheckAndGetNTriggers(const artdaq::Fragment& frag, const lbne::SSPFragment sspf)
 {
     mf::LogDebug("DAQToOffline") << "\n"
-				 << "SSP fragment "     << frag.fragmentID() 
-				 << " has total size: " << sspf.hdr_event_size()
-				 << " and run number: " << sspf.hdr_run_number()
-				 << " with " << sspf.total_adc_values() << " total ADC values"
-				 << "\n"
-				 << "\n";
+                                 << "SSP fragment "     << frag.fragmentID() 
+                                 << " has total size: " << sspf.hdr_event_size()
+                                 << " and run number: " << sspf.hdr_run_number()
+                                 << " with " << sspf.total_adc_values() << " total ADC values"
+                                 << "\n"
+                                 << "\n";
 
     const SSPDAQ::MillisliceHeader* meta=0;
     //get the information from the header
     if(frag.hasMetadata())
     {
-	meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);
+        meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);
             
-	mf::LogInfo("DAQToOffline")
-	  << "===Slice metadata====" << "\n"
-	  << "  Start time         " << meta->startTime << "\n"
-	  << "  End time           " << meta->endTime << "\n"
-	  << "  Packet length      " << meta->length << "\n"
-	  << "  Number of triggers " << meta->nTriggers << "\n"
-	  << "=====================";
+        mf::LogInfo("DAQToOffline")
+          << "===Slice metadata====" << "\n"
+          << "  Start time         " << meta->startTime << "\n"
+          << "  End time           " << meta->endTime << "\n"
+          << "  Packet length      " << meta->length << "\n"
+          << "  Number of triggers " << meta->nTriggers << "\n"
+          << "=====================";
     }
     else
     {
-	mf::LogWarning("DAQToOffline") << "SSP fragment has no metadata associated with it.";
+        mf::LogWarning("DAQToOffline") << "SSP fragment has no metadata associated with it.";
     }
 
     // No metadata, no trigger count
@@ -194,7 +197,9 @@ unsigned short DAQToOffline::GetOpChannel(const SSPDAQ::EventHeader* daqHeader, 
   else {
     int HardwareChannel = ((daqHeader->group2 & 0x000F) >> 0); // Channel Number
     int SSPNumber       = ((daqHeader->group2 & 0x00F0) >> 4); // Module Number
-    mf::LogWarning("DAQToOffline") << "SSP " << SSPNumber << " Channel " << HardwareChannel << "(" << daqHeader->group2 << ") " << " not in the map (OK for uninstrumented channels), skipping." << std::endl;
+    mf::LogWarning("DAQToOffline") << "SSP " << SSPNumber << " Channel " << HardwareChannel
+                                             << "(" << daqHeader->group2 << ") "
+                                             << " not in the map (OK for uninstrumented channels), skipping." << std::endl;
     throw cet::exception( "SSP Channel Invalid" );
   }
 
@@ -236,32 +241,32 @@ void DAQToOffline::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const d
   auto InternalTimeStamp = ((double)InternalSample)/NOvAClockFrequency;
   
   mf::LogDebug("DAQToOffline")
-	<< "Header:                             " << daqHeader->header   << "\n"
-	<< "Length:                             " << daqHeader->length   << "\n"
-	<< "Trigger type:                       " << ((daqHeader->group1 & 0xFF00) >> 8) << "\n"
-	<< "Status flags:                       " << ((daqHeader->group1 & 0x00F0) >> 4) << "\n"
-	<< "Header type:                        " << ((daqHeader->group1 & 0x000F) >> 0) << "\n"
-	<< "Trigger ID:                         " << daqHeader->triggerID << "\n"
-	<< "Module ID:                          " << ((daqHeader->group2 & 0xFFF0) >> 4) << "\n"
-	<< "Channel ID:                         " << ((daqHeader->group2 & 0x000F) >> 0) << "\n"
-	<< "External (NOvA) timestamp:          " << FirstSample << " ticks" << "\n"
-	<< "                                    " << TimeStamp << " microseconds" << "\n"
-	// these first_ ouptuts are a little ill-defined anyway since they are not 
-	// reset by run but rather with the job
-	//<< "Since first sample this run:        " << FirstSample-first_FirstSample << " ticks" << "\n"
-	//<< "                                    " << TimeStamp-first_TimeStamp << " microseconds" << "\n"
-	<< "Peak sum:                           " << GetPeaksum(daqHeader) << "\n"
-	<< "Peak time:                          " << ((daqHeader->group3 & 0xFF00) >> 8) << "\n"
-	<< "Prerise:                            " << ((daqHeader->group4 & 0x00FF) << 16) + daqHeader->preriseLow << "\n"
-	<< "Integrated sum:                     " << ((unsigned int)(daqHeader->intSumHigh) << 8) + (((unsigned int)(daqHeader->group4) & 0xFF00) >> 8) << "\n"
-	<< "Baseline:                           " << daqHeader->baseline << "\n"
-	<< "CFD Timestamp interpolation points: " << daqHeader->cfdPoint[0] << " " << daqHeader->cfdPoint[1]
-	<< " " << daqHeader->cfdPoint[2] << " " << daqHeader->cfdPoint[3] << "\n"
-	<< "Internal interpolation point:       " << daqHeader->intTimestamp[0] << "\n"
-	<< "Internal timestamp:                 " << InternalSample << " ticks\n"
-	<< "                                    " << InternalTimeStamp << " microseconds" << "\n"
-	//<< "Relative internal timestamp:        " << InternalSample-first_InternalSample << " ticks" << "\n"
-	//<< "                                    " << InternalTimeStamp-first_InternalTimeStamp << " microseconds"
-	<< ""  ;
+        << "Header:                             " << daqHeader->header   << "\n"
+        << "Length:                             " << daqHeader->length   << "\n"
+        << "Trigger type:                       " << ((daqHeader->group1 & 0xFF00) >> 8) << "\n"
+        << "Status flags:                       " << ((daqHeader->group1 & 0x00F0) >> 4) << "\n"
+        << "Header type:                        " << ((daqHeader->group1 & 0x000F) >> 0) << "\n"
+        << "Trigger ID:                         " << daqHeader->triggerID << "\n"
+        << "Module ID:                          " << ((daqHeader->group2 & 0xFFF0) >> 4) << "\n"
+        << "Channel ID:                         " << ((daqHeader->group2 & 0x000F) >> 0) << "\n"
+        << "External (NOvA) timestamp:          " << FirstSample << " ticks" << "\n"
+        << "                                    " << TimeStamp << " microseconds" << "\n"
+        // these first_ ouptuts are a little ill-defined anyway since they are not 
+        // reset by run but rather with the job
+        //<< "Since first sample this run:        " << FirstSample-first_FirstSample << " ticks" << "\n"
+        //<< "                                    " << TimeStamp-first_TimeStamp << " microseconds" << "\n"
+        << "Peak sum:                           " << GetPeaksum(daqHeader) << "\n"
+        << "Peak time:                          " << ((daqHeader->group3 & 0xFF00) >> 8) << "\n"
+        << "Prerise:                            " << ((daqHeader->group4 & 0x00FF) << 16) + daqHeader->preriseLow << "\n"
+        << "Integrated sum:                     " << ((unsigned int)(daqHeader->intSumHigh) << 8) + (((unsigned int)(daqHeader->group4) & 0xFF00) >> 8) << "\n"
+        << "Baseline:                           " << daqHeader->baseline << "\n"
+        << "CFD Timestamp interpolation points: " << daqHeader->cfdPoint[0] << " " << daqHeader->cfdPoint[1]
+        << " " << daqHeader->cfdPoint[2] << " " << daqHeader->cfdPoint[3] << "\n"
+        << "Internal interpolation point:       " << daqHeader->intTimestamp[0] << "\n"
+        << "Internal timestamp:                 " << InternalSample << " ticks\n"
+        << "                                    " << InternalTimeStamp << " microseconds" << "\n"
+        //<< "Relative internal timestamp:        " << InternalSample-first_InternalSample << " ticks" << "\n"
+        //<< "                                    " << InternalTimeStamp-first_InternalTimeStamp << " microseconds"
+        << ""  ;
 
 }
