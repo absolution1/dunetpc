@@ -25,8 +25,9 @@ namespace DAQToOffline {
   // Fragments are expected to be carrying Optical Detector data; this is not
   // checked.
 
-  std::vector<raw::OpDetWaveform>
-    SSPFragmentToOpDetWaveform(artdaq::Fragments const& raw, const double NOvAClockFrequency, const std::map<int,int> theChannelMap);
+  std::vector<raw::OpDetWaveform> SSPFragmentToOpDetWaveform(artdaq::Fragments const& raw,
+                                                             const double NOvAClockFrequency,
+                                                             const std::map<int,int> theChannelMap);
 
 
   void BuildOpDetChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap);
