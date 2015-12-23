@@ -2,7 +2,7 @@
 #define DbigEVD4_Module
 
 // LArSoft includes
-#include "Utilities/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
 #include "RecoBase/Hit.h"
@@ -150,7 +150,7 @@ namespace AnalysisExample{
  
     fTimeReverseZ0  =  p.get< bool         >("TimeReverseZ0"); 
 
-    auto const *fDetProp = lar::providerFrom<util::DetectorPropertiesService>();
+    auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fNticks         = fDetProp->NumberTimeSamples();
     fnAPAs          = fGeom->NTPC()/2;
     return;

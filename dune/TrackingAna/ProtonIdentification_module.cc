@@ -38,9 +38,9 @@
 #include "RecoBase/Track.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/OpFlash.h"
-#include "Utilities/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
-#include "Utilities/DetectorClocksService.h"
+#include "DetectorInfoServices/DetectorClocksService.h"
 #include "RawData/ExternalTrigger.h"
 #include "MCCheater/BackTracker.h"
 #include "AnalysisBase/Calorimetry.h"
@@ -142,8 +142,8 @@ private:
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
   art::ServiceHandle<cheat::BackTracker> bktrk;
-  dataprov::DetectorProperties const *detprop = lar::providerFrom<util::DetectorPropertiesService>();
-  dataprov::DetectorClocks const *ts = lar::providerFrom<util::DetectorClocksService>();
+  detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
   
   double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
   double WindowSize          = detprop->NumberTimeSamples() * ts->TPCClock().TickPeriod() * 1e3;

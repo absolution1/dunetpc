@@ -14,12 +14,12 @@
 #include <map>
 
 #include "fhiclcpp/ParameterSet.h"
-#include "DataProviders/RunHistory.h"
+#include "DetectorInfo/RunHistory.h"
 
 ///General LArSoft Utilities
 namespace dune {
 
-  class SubRunDUNE : public dataprov::SubRun {
+  class SubRunDUNE : public detinfo::SubRun {
   public:
     SubRunDUNE() : fTStart(0) {};
     SubRunDUNE(SubRunDUNE const&) = delete;
@@ -32,7 +32,7 @@ namespace dune {
     uint64_t fTStart;
   };
     
-  class RunHistoryDUNE : public dataprov::RunHistory {
+  class RunHistoryDUNE : public detinfo::RunHistory {
   public: 
     typedef enum {
       kUnknownDet = 0,

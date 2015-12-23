@@ -30,9 +30,9 @@
 #include "RecoBase/Track.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/OpFlash.h"
-#include "Utilities/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
-#include "Utilities/DetectorClocksService.h"
+#include "DetectorInfoServices/DetectorClocksService.h"
 #include "MCCheater/BackTracker.h"
 #include "AnalysisBase/Calorimetry.h"
 #include "AnalysisBase/T0.h"
@@ -319,7 +319,7 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
   ResetVars();
 
   art::ServiceHandle<geo::Geometry> geom;
-  auto const *detprop = lar::providerFrom<util::DetectorPropertiesService>();
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<cheat::BackTracker> bktrk;
 
   art::ServiceHandle<art::TFileService> tfs;

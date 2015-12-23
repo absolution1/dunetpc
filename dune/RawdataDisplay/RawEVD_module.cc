@@ -8,7 +8,7 @@
 #define RawEVD_Module
 
 // LArSoft includes
-#include "Utilities/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
 #include "RawData/raw.h"
@@ -183,7 +183,7 @@ namespace AnalysisExample{
 
   void RawEVD::reconfigure(fhicl::ParameterSet const& p){
     fRawDigitLabel  =  p.get< std::string >("RawDigitLabel");
-    auto const *fDetProp = lar::providerFrom<util::DetectorPropertiesService>();
+    auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fNticks         = fDetProp->NumberTimeSamples();
     return;
   }

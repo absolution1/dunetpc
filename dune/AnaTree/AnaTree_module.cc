@@ -44,9 +44,9 @@
 #include "RecoBase/Track.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/OpFlash.h"
-#include "Utilities/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
-#include "Utilities/DetectorClocksService.h"
+#include "DetectorInfoServices/DetectorClocksService.h"
 #include "RawData/ExternalTrigger.h"
 #include "MCCheater/BackTracker.h"
 #include "AnalysisBase/Calorimetry.h"
@@ -299,8 +299,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   ResetVars();
 
   art::ServiceHandle<geo::Geometry> geom;
-  auto const *detprop = lar::providerFrom<util::DetectorPropertiesService>();
-  auto const *timeservice = lar::providerFrom<util::DetectorClocksService>();
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const *timeservice = lar::providerFrom<detinfo::DetectorClocksService>();
   //fClock = timeservice->TPCClock();
   art::ServiceHandle<cheat::BackTracker> bktrk;
 

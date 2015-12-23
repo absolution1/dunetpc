@@ -10,8 +10,8 @@
 #include "Geometry/Geometry.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
-#include "Utilities/DetectorPropertiesService.h"
-#include "Utilities/DetectorClocksService.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorClocksService.h"
 #include "Utilities/LArFFT.h"
 #include "TFile.h"
 
@@ -398,7 +398,7 @@ void util::SignalShapingServiceDUNE35t::SetFieldResponse()
   // Get services.
 
   art::ServiceHandle<geo::Geometry> geo;
-  auto const *detprop = lar::providerFrom<util::DetectorPropertiesService>();
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   // Get plane pitch.
  
@@ -591,7 +591,7 @@ void util::SignalShapingServiceDUNE35t::SetFilters()
 {
   // Get services.
 
-  auto const *detprop = lar::providerFrom<util::DetectorPropertiesService>();
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
   double ts = detprop->SamplingRate();
@@ -661,7 +661,7 @@ void util::SignalShapingServiceDUNE35t::SetResponseSampling()
 {
   // Get services
   art::ServiceHandle<geo::Geometry> geo;
-  auto const *detprop = lar::providerFrom<util::DetectorPropertiesService>();
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
   // Operation permitted only if output of rebinning has a larger bin size
@@ -764,7 +764,7 @@ int util::SignalShapingServiceDUNE35t::FieldResponseTOffset(unsigned int const c
     throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
 						       << " View\n";
  
-  auto tpc_clock = lar::providerFrom<util::DetectorClocksService>()->TPCClock();
+  auto tpc_clock = lar::providerFrom<detinfo::DetectorClocksService>()->TPCClock();
   return tpc_clock.Ticks(time_offset/1.e3);
   
 }

@@ -28,7 +28,7 @@
 #include "Geometry/PlaneGeo.h"
 #include "Geometry/WireGeo.h"
 #include "RecoBase/Hit.h"
-#include "Utilities/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h" 

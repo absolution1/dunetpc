@@ -6,7 +6,7 @@
 #define RawEVD35t_module
 
 // LArSoft includes
-#include "Utilities/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
 #include "Geometry/Geometry.h"
@@ -145,7 +145,7 @@ namespace AnalysisExample{
     fTPCInstance    = p.get< std::string >("TPCInstanceName");
     fSSPInput       = p.get< std::string >("SSPInputModule");
     fSSPInstance    = p.get< std::string >("SSPInstanceName");
-    auto const *fDetProp = lar::providerFrom<util::DetectorPropertiesService>();
+    auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fNticks         = fDetProp->NumberTimeSamples();
     return;
   }

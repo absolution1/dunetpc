@@ -86,17 +86,17 @@ namespace dune {
   std::string RunHistoryDUNE::RunTypeAsString() const
   {
     switch(fRunType) {
-    case(dataprov::kProductionRun):
+    case(detinfo::kProductionRun):
       return std::string("Production");
-    case(dataprov::kCommissioningRun):
+    case(detinfo::kCommissioningRun):
       return std::string("Commissioning");
-    case(dataprov::kTestRun):
+    case(detinfo::kTestRun):
       return std::string("Test");
-    case(dataprov::kPedestalRun):
+    case(detinfo::kPedestalRun):
       return std::string("Pedestal");
-    case(dataprov::kCalibrationRun):
+    case(detinfo::kCalibrationRun):
       return std::string("Calibration");
-    case(dataprov::kUnknownRunType):
+    case(detinfo::kUnknownRunType):
     default:
       return std::string("Uknown");
     }

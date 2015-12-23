@@ -20,7 +20,7 @@
 
 #include "RawData/ExternalTrigger.h"
 #include "AnalysisBase/T0.h"
-#include "Utilities/DetectorClocksService.h"
+#include "DetectorInfoServices/DetectorClocksService.h"
 #include "Utilities/AssociationUtil.h"
 
 #include <memory>
@@ -134,7 +134,7 @@ dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
 {
   fSampleTimeCounter = 1.e3/fClockSpeedCounter;//ns
 
-  auto const *clks = lar::providerFrom<util::DetectorClocksService>();
+  auto const *clks = lar::providerFrom<detinfo::DetectorClocksService>();
 
   fTriggerOffsetTPC = clks->TriggerOffsetTPC()*1.e3; // ns
 
