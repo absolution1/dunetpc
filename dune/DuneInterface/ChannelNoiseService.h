@@ -10,7 +10,7 @@
 
 #include <vector>
 #include <iostream>
-#include "DZSInterface/AdcTypes.h"
+#include "dune/DuneInterface/AdcTypes.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class ChannelNoiseService {

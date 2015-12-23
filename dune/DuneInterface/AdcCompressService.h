@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 #include <iostream>
-#include "DZSInterface/AdcTypes.h"
+#include "dune/DuneInterface/AdcTypes.h"
 #include "SimpleTypesAndConstants/RawTypes.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 

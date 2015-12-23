@@ -12,7 +12,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "DZSInterface/AdcTypes.h"
+#include "dune/DuneInterface/AdcTypes.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace sim {
