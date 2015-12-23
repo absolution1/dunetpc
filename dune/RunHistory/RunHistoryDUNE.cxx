@@ -18,6 +18,9 @@
 #include "cetlib/exception.h"
 
 #include "IFDatabase/Table.h"
+#include "IFDatabase/Util.h"
+#include <boost/tokenizer.hpp>
+#include <ctime>
 
 namespace dune {
   //-----------------------------------------------
@@ -28,19 +31,19 @@ namespace dune {
       fRun=run;
       switch(fDetId) {
       case(k35t):
-	detName = "dune35t";
+	fDetName = "dune35t";
 	break;
       case(kProtoDUNE):
-	detName = "protoDUNE";
+	fDetName = "protoDUNE";
 	break;	
       case(kFarDet):
-	detName = "FarDet";
+	fDetName = "FarDet";
 	break;
       case(kNearDet):
-	detName = "NearDet";
+	fDetName = "NearDet";
 	break;
       default:
-	detName = "";
+	fDetName = "";
 	break;
       }
     }
@@ -61,22 +64,66 @@ namespace dune {
     if (run == 0) return false;
 
     std::string tableName = "run_summary";
-    auto * t = new nutools::dbi::Table(detName,tableName,nutools::dbi::kGenericTable);
-    int cfgLabelIdx = t->AddCol("configuration_label", "integer");
-    int runTypeIdx = t->AddCol("run_type", "text");
-    int compListIdx = t->AddCol("component_list", "text");
-    int startIdx = t->AddCol("start", "timestamp");
-    int stopIdx = t->AddCol("stop", "timestamp");
+    nutools::dbi::Table t;
+    
+    t.SetDetector(fDetName);
+    t.SetTableName(tableName);
+    t.SetTableType(nutools::dbi::kGenericTable);
 
-    t->SetValidityRange("run",run);
+    int runIdx = t.AddCol("run", "integer");
+    int cfgLabelIdx = t.AddCol("configuration_label", "integer");
+    int runTypeIdx = t.AddCol("run_type", "text");
+    int compListIdx = t.AddCol("component_list", "text");
+    int startIdx = t.AddCol("start", "timestamp");
+    int stopIdx = t.AddCol("stop", "timestamp");
 
-    t->Load();
+    t.SetValidityRange("run",run);
 
-    if (t->NRow() != 1)
+    t.SetVerbosity(100);
+    t.Load();
+
+    if (t.NRow() != 1)
       abort();
 
-    nutools::dbi::Row* row = t->GetRow(0);
+    std::string runTypeStr, compList;
+    int runNum=0;
     
+    nutools::dbi::Row* row = t.GetRow(0);
+    std::cout << *row << std::endl;
+    row->Col(runIdx).Get(runNum);
+    row->Col(cfgLabelIdx).Get(fCfgLabel);
+    row->Col(compListIdx).Get(compList);
+    row->Col(runTypeIdx).Get(runTypeStr);
+    row->Col(startIdx).Get(fTStartStr);
+    row->Col(stopIdx).Get(fTStopStr);
+
+    if (runNum != int(run)) abort();
+
+    boost::tokenizer< boost::escaped_list_separator<char> > tok(compList);
+    fComponents.assign(tok.begin(),tok.end());
+
+    fTStart = fTStop = 0;
+    time_t tval;
+    nutools::dbi::Util::TimeAsStringToTime_t(fTStartStr,tval);
+    fTStart = tval;
+    if (fTStopStr != "" && fTStopStr != "None") {
+      nutools::dbi::Util::TimeAsStringToTime_t(fTStopStr,tval);
+      fTStop = tval;
+    }
+    
+    std::cout << "Run " << runNum
+      	      << "\nCfg: " << fCfgLabel
+      	      << "\nComponents: ";
+    for (size_t i=0; i<fComponents.size(); ++i)
+      std::cout << fComponents[i] << " ";
+
+    
+    std::cout << "\nrunType: " << runTypeStr 
+      	      << "\nStart time: " << fTStartStr << "(" << fTStart << ")"
+      	      << "\nStop time: " << fTStopStr << "(" << fTStop << ")"
+	      << std::endl;
+    if (fTStop > fTStart)
+      std::cout << "Duration: " << (fTStop - fTStart) << std::endl;
     
     return true;
     

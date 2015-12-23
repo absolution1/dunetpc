@@ -43,12 +43,24 @@ namespace dune {
       kNDUNEDetectors
     } DetId_t;
 
+    static std::string DetIdToString(int detId) {
+      if (detId == k35t) return std::string("dune35t");
+      else return std::string("UNKNOWN_DET");
+    }
+
+    static int DetNameToId(std::string detStr) {
+      if (detStr == "dune35t" || detStr == "DUNE35t" ||
+	  detStr == "35t") return k35t;
+      else return kUnknownDet;
+    }
+
+
   public:
     RunHistoryDUNE(int detid, int runnum);
     RunHistoryDUNE(RunHistoryDUNE const&) = delete;
     virtual ~RunHistoryDUNE();
       
-    virtual bool   Update(uint64_t ts=0);
+    virtual bool Update(uint64_t ts=0);
        
     virtual int RunNumber() const override{ return fRun; }
     int DetId() const { return fDetId; }
@@ -60,7 +72,8 @@ namespace dune {
     virtual uint64_t Duration() const override { return fTStop-fTStart; }
 
     std::vector<std::string> Shifters() { return fShifter; }     
-      
+    std::vector<std::string> Components() {return fComponents; }
+    
     void SetNSubruns(int nsr) { fNSubruns = nsr;}
     void SetRunType(int rt) { fRunType = rt; }
     void SetTStart(uint64_t t) { fTStart = t; }
@@ -79,8 +92,12 @@ namespace dune {
     uint64_t  fTStop;      
     
     std::vector<std::string> fShifter;
+    std::vector<std::string> fComponents;
     std::string fDetName;
     std::string fCfgLabel;
+    std::string fTStartStr;
+    std::string fTStopStr;
+    
     std::vector<SubRunDUNE> fSubrun;
     
   }; // class RunHistoryDUNE
