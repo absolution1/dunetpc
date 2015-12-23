@@ -29,8 +29,8 @@ dunefd_disp:
 {
  ExptGeoHelperInterface:   @local::dune_geometry_helper
  Geometry:                 @local::dune10kt_workspace_geo 
- LArProperties:            @local::dunefd_properties
- DetectorProperties:       @local::dunefd_detproperties
+ LArPropertiesService:            @local::dunefd_properties
+ DetectorPropertiesService:       @local::dunefd_detproperties
  DatabaseUtil:		   @local::dunefd_database 
  ColorDrawingOptions:      @local::dunefd_colordrawingopt
  SimulationDrawingOptions: @local::dunefd_simdrawingopt  
@@ -42,16 +42,16 @@ dunefd_disp:
  LArG4Parameters:          @local::dunefd_largeantparameters
  LArVoxelCalculator:       @local::dunefd_larvoxelcalculator
 # InfoTransfer: 		   @local::dunefd_infotransfer
- TimeService:              @local::dunefd_timeservice # defined in timeservice_dune.fcl
+ DetectorClocksService:              @local::dunefd_detectorclocks # defined in detectorclocks_dune.fcl
 }
-dunefd_disp.IDetPedestalService:
+dunefd_disp.DetPedestalService:
 {
   service_provider: SIOVDetPedestalService
   DetPedestalRetrievalAlg: @local::standard_pedestalretrievalalg
 }
-dunefd_disp.IDetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean:  0
-dunefd_disp.IDetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean:  0
-dunefd_disp.IChannelStatusService: @local::channel_filter_dunefd
+dunefd_disp.DetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean:  0
+dunefd_disp.DetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean:  0
+dunefd_disp.ChannelStatusService: @local::channel_filter_dunefd
 #dunefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
 #dunefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
 dunefd_disp.RecoDrawingOptions.WireModuleLabels: ["caldata"]
@@ -65,8 +65,8 @@ dune35t_disp:              @local::dunefd_disp
 dune35t_disp.ExptHelperInterface: @local::dune_geometry_helper
 dune35t_disp.Geometry:     @local::dune35t_geo
 dune35t_disp.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
-dune35t_disp.TimeService:  @local::dune35t_timeservice # defined in timeservice_dune.fcl
-dune35t_disp.IChannelStatusService: @local::channel_filter_dune35t
+dune35t_disp.DetectorClocksService:  @local::dune35t_detectorclocks # defined in detectorclocks_dune.fcl
+dune35t_disp.ChannelStatusService: @local::channel_filter_dune35t
 dune35t_disp.RecoDrawingOptions.WireModuleLabels:           ["caldata"]
 dune35t_disp.RecoDrawingOptions.HitModuleLabels:            ["lineclusterdc"]
 dune35t_disp.RecoDrawingOptions.ClusterModuleLabels:        ["lineclusterdc"]

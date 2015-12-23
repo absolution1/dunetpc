@@ -82,7 +82,7 @@ namespace {
     
     // may need this.
    // Obtaining parameters from the DetectorClocksService
-    //auto const *timeService = lar::providerFrom< util::DetectorClocksService >();
+    //auto const *timeService = lar::providerFrom< detinfo::DetectorClocksService >();
     //fSampleFreq = timeService->OpticalClock().Frequency();
 
     void findinrange(std::vector<OpDetWaveform> &wbo, 

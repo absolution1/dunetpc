@@ -116,7 +116,7 @@ private:
     bool fSaveChannelWireGeo;
 
     art::ServiceHandle<geo::Geometry> fGeom;
-    // lar::providerFrom<util::LArPropertiesService> larp;
+    // lar::providerFrom<detinfo::LArPropertiesService> larp;
 
     // art::ServiceHandle<art::TFileService> fTfs;
     TFile *fOutFile;
