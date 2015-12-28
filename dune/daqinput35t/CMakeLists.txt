@@ -14,7 +14,7 @@ art_make(BASENAME_ONLY
 	${Boost_SYSTEM_LIBRARY}
 	Geometry_service
 	Geometry
-	lbne_daqinput35t_utilities
+	lbne_daqinput35t_utilities 
 	lbne-raw-data_Overlays
         RawData
         NO_PLUGINS

@@ -10,8 +10,8 @@
 #include "Geometry/Geometry.h"
 #include "Geometry/TPCGeo.h"
 #include "Geometry/PlaneGeo.h"
-#include "Utilities/DetectorProperties.h"
-#include "Utilities/LArProperties.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
+#include "DetectorInfoServices/DetectorClocksService.h"
 #include "Utilities/LArFFT.h"
 #include "TFile.h"
 
@@ -398,8 +398,7 @@ void util::SignalShapingServiceDUNE35t::SetFieldResponse()
   // Get services.
 
   art::ServiceHandle<geo::Geometry> geo;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::LArProperties> larp;
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   // Get plane pitch.
  
@@ -421,7 +420,7 @@ void util::SignalShapingServiceDUNE35t::SetFieldResponse()
   // set the response for the collection plane first
   // the first entry is 0
 
-  double driftvelocity=larp->DriftVelocity()/1000.;  
+  double driftvelocity=detprop->DriftVelocity()/1000.;  
   int nbinc = TMath::Nint(fCol3DCorrection*(fabs(pitch))/(driftvelocity*detprop->SamplingRate())); ///number of bins //KP
   double integral = 0.;  
   ////////////////////////////////////////////////////
@@ -520,7 +519,6 @@ void util::SignalShapingServiceDUNE35t::SetElectResponse(double shapingtime, dou
   // Get services.
 
   art::ServiceHandle<geo::Geometry> geo;
-  art::ServiceHandle<util::DetectorProperties> detprop;
   art::ServiceHandle<util::LArFFT> fft;
 
   LOG_DEBUG("SignalShapingDUNE35t") << "Setting DUNE35t electronics response function...";
@@ -593,7 +591,7 @@ void util::SignalShapingServiceDUNE35t::SetFilters()
 {
   // Get services.
 
-  art::ServiceHandle<util::DetectorProperties> detprop;
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
   double ts = detprop->SamplingRate();
@@ -663,8 +661,7 @@ void util::SignalShapingServiceDUNE35t::SetResponseSampling()
 {
   // Get services
   art::ServiceHandle<geo::Geometry> geo;
-  art::ServiceHandle<util::LArProperties> larp;
-  art::ServiceHandle<util::DetectorProperties> detprop;
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
   // Operation permitted only if output of rebinning has a larger bin size
@@ -767,7 +764,7 @@ int util::SignalShapingServiceDUNE35t::FieldResponseTOffset(unsigned int const c
     throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
 						       << " View\n";
  
-  auto tpc_clock = art::ServiceHandle<util::TimeService>()->TPCClock();
+  auto tpc_clock = lar::providerFrom<detinfo::DetectorClocksService>()->TPCClock();
   return tpc_clock.Ticks(time_offset/1.e3);
   
 }

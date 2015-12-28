@@ -8,7 +8,7 @@
 #define RawEVD_Module
 
 // LArSoft includes
-#include "Utilities/DetectorProperties.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Simulation/SimChannel.h"
 #include "Simulation/LArG4Parameters.h"
 #include "RawData/raw.h"
@@ -107,7 +107,6 @@ namespace AnalysisExample{
     unsigned int fMinT, fMaxT, fMaxTimeRange;
 
     art::ServiceHandle<geo::Geometry> fGeom;
-    art::ServiceHandle<util::DetectorProperties> fDetProp;
 
     std::vector<TH2I*> fTimeChanU;
     std::vector<TH2I*> fTimeChanV;
@@ -184,6 +183,7 @@ namespace AnalysisExample{
 
   void RawEVD::reconfigure(fhicl::ParameterSet const& p){
     fRawDigitLabel  =  p.get< std::string >("RawDigitLabel");
+    auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fNticks         = fDetProp->NumberTimeSamples();
     return;
   }

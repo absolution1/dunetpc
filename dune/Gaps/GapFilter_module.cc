@@ -28,8 +28,7 @@
 #include "Geometry/PlaneGeo.h"
 #include "Geometry/WireGeo.h"
 #include "RecoBase/Hit.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/DetectorProperties.h"
+#include "DetectorInfoServices/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h" 
@@ -171,8 +170,6 @@ namespace MyGapFilter {
     ResetVars();
 
     art::ServiceHandle<geo::Geometry> geom;
-    art::ServiceHandle<util::LArProperties> larprop;
-    art::ServiceHandle<util::DetectorProperties> detprop;
     
     run = evt.run();
     subrun = evt.subRun();

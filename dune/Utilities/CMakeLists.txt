@@ -1,6 +1,7 @@
 
 set( dune_util_lib_list LArFFT_service
-                        LArProperties_service
+                        DetectorPropertiesServiceStandard_service
+                        LArPropertiesServiceStandard_service
 			Geometry
 			Geometry_service
 			Utilities

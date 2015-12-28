@@ -24,7 +24,6 @@ simple_plugin(dEdx "module"
                         Geometry
                         RawData
                         RecoBase
-                        LArProperties_service
                         Utilities
                         Simulation
                         ${SIMULATIONBASE}
@@ -51,8 +50,6 @@ simple_plugin(EMEnergyCalib "module"
 			BackTracker_service
 			Simulation
 			Utilities
-			DetectorProperties_service
-			LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -77,8 +74,6 @@ simple_plugin(EMPi0Energy "module"
 			BackTracker_service
 			Simulation
 			Utilities
-			DetectorProperties_service
-			LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

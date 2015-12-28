@@ -6,8 +6,6 @@ simple_plugin(CFilter "module"
 		        Geometry
 			Geometry_service
 			Utilities
-			DetectorProperties_service
-			LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
