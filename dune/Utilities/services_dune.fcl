@@ -9,7 +9,7 @@
 #include "databaseutil_dune.fcl"
 #include "backtracker.fcl"
 #include "seedservice_dune.fcl"
-#include "detectorclocks_dune.fcl"
+#include "timeservice_dune.fcl"
 #include "photpropservices_dune.fcl"
 #include "sam_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
