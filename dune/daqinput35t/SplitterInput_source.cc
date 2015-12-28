@@ -16,10 +16,10 @@
 #include "art/Persistency/Provenance/EventAuxiliary.h"
 
 //Pedestal stuff...
-#include "CalibrationDBI/Interface/IDetPedestalService.h"
-#include "CalibrationDBI/Interface/IDetPedestalProvider.h"
-#include "CalibrationDBI/Interface/IChannelStatusService.h"
-#include "CalibrationDBI/Interface/IChannelStatusProvider.h"
+#include "CalibrationDBI/Interface/DetPedestalService.h"
+#include "CalibrationDBI/Interface/DetPedestalProvider.h"
+#include "CalibrationDBI/Interface/ChannelStatusService.h"
+#include "CalibrationDBI/Interface/ChannelStatusProvider.h"
 //#include "dune/RunHistory/DetPedestalDUNE.h"
 
 //#include <iostream>
@@ -769,7 +769,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
   //get pedestal conditions
   //const lariov::DetPedestalProvider& pedestals = lar::providerFrom<lariov::DetPedestalService>();
-  const lariov::IDetPedestalProvider& pedestals = art::ServiceHandle<lariov::IDetPedestalService>()->GetPedestalProvider();
+  const lariov::DetPedestalProvider& pedestals = art::ServiceHandle<lariov::DetPedestalService>()->GetPedestalProvider();
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
     //std::cout << "Looking at ichan " << ichan << "("<<loadedDigits_.digits[ichan].Channel()<< ") of " << dbuf_.size() << ", should be " << fTicksAccumulated << " samples and dbuf has size " << dbuf_[ichan].size() << std::endl;
     // ****** Now to subtract the pedestals.... ********

@@ -9,7 +9,7 @@
 #include "databaseutil_dune.fcl"
 #include "backtracker.fcl"
 #include "seedservice_dune.fcl"
-#include "timeservice_dune.fcl"
+#include "detectorclocks_dune.fcl"
 #include "photpropservices_dune.fcl"
 #include "sam_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
@@ -37,7 +37,7 @@ dunefd_services:
  BackTracker:                  @local::dunefd_backtracker
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
- ChannelStatusService:        @local::channel_filter_dunefd
+ ChannelStatusService:        @local::dunefd_channel_status
 }
 
 dunefd_simulation_services:
@@ -56,7 +56,7 @@ dunefd_simulation_services:
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
- ChannelStatusService:        @local::channel_filter_dunefd
+ ChannelStatusService:        @local::dunefd_channel_status
 }
 
 
@@ -95,7 +95,7 @@ protodune_services:
  BackTracker:                  @local::dunefd_backtracker
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
- ChannelStatusService:        @local::channel_filter_dunefd 
+ ChannelStatusService:        @local::dunefd_channel_status 
 }
 
 protodune_simulation_services:
@@ -115,7 +115,7 @@ protodune_simulation_services:
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
- ChannelStatusService:        @local::channel_filter_dunefd
+ ChannelStatusService:        @local::dunefd_channel_status
 }
 
 

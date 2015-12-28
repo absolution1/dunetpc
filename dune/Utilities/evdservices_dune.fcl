@@ -42,7 +42,7 @@ dunefd_disp:
  LArG4Parameters:          @local::dunefd_largeantparameters
  LArVoxelCalculator:       @local::dunefd_larvoxelcalculator
 # InfoTransfer: 		   @local::dunefd_infotransfer
- DetectorClocksService:              @local::dunefd_detectorclocks # defined in timeservice_dune.fcl
+ DetectorClocksService:              @local::dunefd_detectorclocks # defined in detectorclocks_dune.fcl
 }
 dunefd_disp.DetPedestalService:
 {
@@ -51,7 +51,7 @@ dunefd_disp.DetPedestalService:
 }
 dunefd_disp.DetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean:  0
 dunefd_disp.DetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean:  0
-dunefd_disp.ChannelStatusService: @local::channel_filter_dunefd
+dunefd_disp.ChannelStatusService: @local::dunefd_channel_status
 #dunefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
 #dunefd_disp.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
 dunefd_disp.RecoDrawingOptions.WireModuleLabels: ["caldata"]
@@ -65,7 +65,7 @@ dune35t_disp:              @local::dunefd_disp
 dune35t_disp.ExptHelperInterface: @local::dune_geometry_helper
 dune35t_disp.Geometry:     @local::dune35t_geo
 dune35t_disp.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
-dune35t_disp.DetectorClocksService:  @local::dune35t_detectorclocks # defined in timeservice_dune.fcl
+dune35t_disp.DetectorClocksService:  @local::dune35t_detectorclocks # defined in detectorclocks_dune.fcl
 dune35t_disp.ChannelStatusService: @local::channel_filter_dune35t
 dune35t_disp.RecoDrawingOptions.WireModuleLabels:           ["caldata"]
 dune35t_disp.RecoDrawingOptions.HitModuleLabels:            ["lineclusterdc"]
