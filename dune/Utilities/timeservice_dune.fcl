@@ -1,32 +1,13 @@
-#include "detectorclocks.fcl"
+#
+# deprecated: include detectorclocks_dune.fcl directly instead
+#
+
+#include "detectorclocks_dune.fcl"
 
 BEGIN_PROLOG
 
-dunefd_detectorclocks: @local::standard_detectorclocks
+dunefd_detectorclocks: @local::dune_detectorclocks
 
-# dunefd_detectorclocks.TrigModuleName:      ""
-dunefd_detectorclocks.InheritClockConfig:   false
-dunefd_detectorclocks.G4RefTime:            0. # G4 time [us] where electronics clock counting start
-dunefd_detectorclocks.TriggerOffsetTPC:     0. # Time [us] for TPC readout start w.r.t. trigger time
-dunefd_detectorclocks.FramePeriod:       1600. # Frame period [us]
-dunefd_detectorclocks.ClockSpeedTPC:        2. # TPC clock speed in MHz
-dunefd_detectorclocks.ClockSpeedOptical:  128. # Optical clock speed in MHz
-dunefd_detectorclocks.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
-dunefd_detectorclocks.DefaultTrigTime:      0. # Default trigger time [us].
-dunefd_detectorclocks.DefaultBeamTime:      0. # Default beam time [us].
-
-
-dune35t_detectorclocks: @local::standard_detectorclocks
-
-# dune35t_detectorclocks.TrigModuleName:      ""
-dune35t_detectorclocks.InheritClockConfig:   false
-dune35t_detectorclocks.G4RefTime:            0. # G4 time [us] where electronics clock counting start
-dune35t_detectorclocks.TriggerOffsetTPC:     0. # Time [us] for TPC readout start w.r.t. trigger time
-dune35t_detectorclocks.FramePeriod:       1600. # Frame period [us]
-dune35t_detectorclocks.ClockSpeedTPC:        2. # TPC clock speed in MHz
-dune35t_detectorclocks.ClockSpeedOptical:  128. # Optical clock speed in MHz
-dune35t_detectorclocks.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
-dune35t_detectorclocks.DefaultTrigTime:      0. # Default trigger time [us].
-dune35t_detectorclocks.DefaultBeamTime:      0. # Default beam time [us].
+dune35t_detectorclocks: @local::dune_detectorclocks
 
 END_PROLOG
