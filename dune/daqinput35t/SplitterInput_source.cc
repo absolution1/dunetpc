@@ -29,8 +29,7 @@
 
 // lardata
 #include "RawData/RawDigit.h"
-//#include "RawData/ExternalTrigger.h"
-//#include "Utilities/TimeService.h"
+#include "RawData/ExternalTrigger.h"
 
 // dune
 #include "tpcFragmentToRawDigits.h"
