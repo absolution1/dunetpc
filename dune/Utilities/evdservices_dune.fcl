@@ -66,7 +66,7 @@ dune35t_disp.ExptHelperInterface: @local::dune_geometry_helper
 dune35t_disp.Geometry:     @local::dune35t_geo
 dune35t_disp.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
 dune35t_disp.DetectorClocksService:  @local::dune35t_detectorclocks # defined in detectorclocks_dune.fcl
-dune35t_disp.ChannelStatusService: @local::channel_filter_dune35t
+dune35t_disp.ChannelStatusService: @local::dune35t_channel_status
 dune35t_disp.RecoDrawingOptions.WireModuleLabels:           ["caldata"]
 dune35t_disp.RecoDrawingOptions.HitModuleLabels:            ["lineclusterdc"]
 dune35t_disp.RecoDrawingOptions.ClusterModuleLabels:        ["lineclusterdc"]

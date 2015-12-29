@@ -150,7 +150,7 @@ dune35t_basic_services:
  LArPropertiesService:                @local::dune35t_properties
  DatabaseUtil:                 @local::dune35t_database
  SeedService:                  @local::dune_seedservice
- ChannelStatusService:        @local::channel_filter_dune35t
+ ChannelStatusService:        @local::dune35t_channel_status
 }
 
 dune35t_services:              @local::dune35t_basic_services
