@@ -523,7 +523,7 @@ namespace DAQToOffline {
 
     void Reset();
 
-    void Triggering(std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits);
+    void Triggering(std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits, bool NewTree);
     
     void CheckTrigger();
     
@@ -776,7 +776,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
     if ( fTicksAccumulated == 0 ) {
-      Triggering (PrevChanADC, nextdigits);
+      Triggering (PrevChanADC, nextdigits, NewTree);
     } // if TickAccumulated == 0
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
     
@@ -848,7 +848,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     // ****** Now to subtract the pedestals.... ********
     // Check if good channel? Done in uBoone code.
     // loop over all adc values and subtract the pedestal
-    std::cout << "dbuf_["<<ichan<<"][0] corresponding to channel " << loadedDigits_.digits[ichan].Channel() << " has ADC value " << dbuf_[ichan][0] << ". It also had pedestal " << PedMap[ichan].first << " and pedestal error " << PedMap[ichan].second <<  std::endl;
+    //std::cout << "dbuf_["<<ichan<<"][0] corresponding to channel " << loadedDigits_.digits[ichan].Channel() << " has ADC value " << dbuf_[ichan][0] << ". It also had pedestal " << PedMap[ichan].first << " and pedestal error " << PedMap[ichan].second <<  std::endl;
     //if ( evAux_.isRealData() ) { // If real data subtract pedestal conditions
     //for (size_t elem=0; elem<dbuf_[ichan].size(); ++elem)
     //	dbuf_[ichan][elem] = dbuf_[ichan][elem] - PedMap[ichan];
@@ -864,7 +864,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     else //If looking at Truth
       d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
 		    loadedDigits_.digits[ichan].GetSigma() );
-    std::cout << "digit[0] corresponding to channel " << d.Channel() << " has ADC value " << d.ADC(0) << ", pedestal " << d.GetPedestal() << ", and sigma " << d.GetSigma() << std::endl;
+    //std::cout << "digit[0] corresponding to channel " << d.Channel() << " has ADC value " << d.ADC(0) << ", pedestal " << d.GetPedestal() << ", and sigma " << d.GetSigma() << std::endl;
     bufferedDigits_.emplace_back(d);
   }
   
@@ -1077,7 +1077,7 @@ void DAQToOffline::Splitter::CheckTrigger() {
   }
 }
 //===================================================================================================================================
-void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits) {
+void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits, bool NewTree) {
   if ( treeIndex_-1 != fLastTreeIndex ) fLastTimeStamp = 0; // No longer looking at same treeIndex as previous trigger, so reset lastTimeStamp
   if ( (int)this_timestamp - (int)fLastTimeStamp > fTrigSeparation) { // Don't want two triggers too close together!
     // Trigger on Monte Carlo whichTrigger == 0
@@ -1099,6 +1099,9 @@ void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vec
     // Trigger on the Photon Trigger from the Penn Trigger Board
     else if ( fwhichTrigger == 4 ) {
       fTrigger = loadedCounters_.PTBPhotonTrigger( this_timestamp, novatickspercounttick_ );
+    }
+    else if ( fwhichTrigger == 5 && NewTree ) {
+      fTrigger = true;
     }
     
     if (fTrigger) CheckTrigger();
