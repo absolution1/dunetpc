@@ -743,8 +743,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	  if (!fixed) {
 	    std::cout << "\nCan't reconcile the timestamps, so voiding this trigger :( \n" << std::endl;
 	    Reset();
-	    loadedDigits_.index = fLastTriggerIndex;
-	    this_timestamp      = fLastTimeStamp;
+	    loadedDigits_.index = 0;
+	    this_timestamp      = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
 	    fLastTriggerIndex = 0;
 	  } else std::cout << "\nRectified the timestamps, carry on building event :D\n" << std::endl;
 	} else std::cout << "\nTimestamps lead on from each other, carry on :)\n" << std::endl;
