@@ -18,6 +18,10 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Optional/TFileService.h" 
 
+//cpp
+#include <sstream>
+#include <fstream>
+
 //ROOT
 #include "TH1I.h"
 #include "TTimeStamp.h"
@@ -30,6 +34,8 @@
 #include "RawData/RawDigit.h"
 #include "RawData/raw.h"
 
+//dunetpc
+#include "dune/daqinput35t/tpcFragmentToRawDigits.h" //JPD - For online channel map
 
 namespace nearline {
   class NearlineAna;
@@ -48,17 +54,37 @@ public:
   void beginJob();
   void endJob();
 
-  //NoiseSpectrum plots
-  void makeNoiseSpectrumPlots();
-  void fillNoiseSpectrumPlots(art::Event const & e);
+  size_t getRawDigits(art::Event const & e, art::Handle<std::vector<raw::RawDigit>> & digitHandle);
 
+  //PedestalPerEvent plots
+  void makePedestalPerEventPlots();
+  void fillPedestalPerEventPlots(art::Event const & e);
+  void writePedestalPerEventSummaryFile(std::string fileName);
+ 
+  //PedestalPerTick plots
+  void makePedestalPerTickPlots();
+  void fillPedestalPerTickPlots(art::Event const & e);
+  void writePedestalPerTickSummaryFile(std::string fileName);
 
 private:
 
-  bool fMakeNoiseSpectrumPlots;
-  std::vector<unsigned int> fNoiseSpectrumChannels;
-  std::vector<TH1I*> fVecNoiseSpectrumPlots;
+  std::string fChannelMapFile;
+  bool fUseOnlineChannels;
+  std::map<int,int> fChannelMap;
+
+  bool fMakePedestalPerEventPlots;
+  bool fWritePedestalPerEventFile;
+  std::string fPedestalPerEventFileName;
+  std::vector<unsigned int> fPedestalPerEventChannels;
+  std::vector<TH1I*> fVecPedestalPerEventPlots;
   art::InputTag fRawDigitsTag;
+
+  bool fMakePedestalPerTickPlots;
+  bool fWritePedestalPerTickFile;
+  std::string fPedestalPerTickFileName;
+  std::vector<unsigned int> fPedestalPerTickChannels;
+  std::vector<TH1I*> fVecPedestalPerTickPlots;
+  
 
   // Variables needed for the header info tree:
   TTree*       fHeader;
@@ -108,6 +134,9 @@ nearline::NearlineAna::NearlineAna(fhicl::ParameterSet const & p)
     logInfo << "NearlineAna" << "\n";
   }
   reconfigure(p);
+
+  //build channel map
+
   printConfig();
 
 }
@@ -119,8 +148,21 @@ void nearline::NearlineAna::reconfigure(fhicl::ParameterSet const & p){
   mf::LogInfo logInfo("NearlineAna::reconfigure");
   logInfo << "reconfigure" << "\n";
 
-  fMakeNoiseSpectrumPlots = p.get<bool>("MakeNoiseSpectrumPlots", true);
-  fNoiseSpectrumChannels = p.get<std::vector<unsigned int>>("NoiseSpectrumChannels", {1,2,3,4});
+  fUseOnlineChannels = p.get<bool>("UseOnlineChannels", true);
+  fChannelMapFile = p.get<std::string>("TPCChannelMapFile");
+
+  if(fUseOnlineChannels) DAQToOffline::BuildTPCChannelMap(fChannelMapFile, fChannelMap);
+
+  fMakePedestalPerEventPlots = p.get<bool>("MakePedestalPerEventPlots", true);
+  fPedestalPerEventChannels = p.get<std::vector<unsigned int>>("PedestalPerEventChannels", {1,2,3,4});
+  fWritePedestalPerEventFile = p.get<bool>("WritePedestalPerEventFile", false);
+  fPedestalPerEventFileName = p.get<std::string>("PedestalPerEventFileName", "PedestalPerEvent.txt");
+
+  fMakePedestalPerTickPlots = p.get<bool>("MakePedestalPerTickPlots", true);
+  fPedestalPerTickChannels = p.get<std::vector<unsigned int>>("PedestalPerTickChannels", {1,2,3,4});
+  fWritePedestalPerTickFile = p.get<bool>("WritePedestalPerTickFile", false);
+  fPedestalPerTickFileName = p.get<std::string>("PedestalPerTickFileName", "PedestalPerTick.txt");
+
   fRawDigitsTag = p.get<art::InputTag>("RawDigitsTag", "a:b:c");
 }
 
@@ -131,14 +173,38 @@ void nearline::NearlineAna::printConfig(){
   mf::LogInfo logInfo("NearlineAna::printConfig");
 
   logInfo << "fRawDigitsTag: " << fRawDigitsTag << "\n";
-  logInfo << "fMakeNoiseSpectrumPlots: " << fMakeNoiseSpectrumPlots << "\n";
-  if(fNoiseSpectrumChannels.size()){
-    logInfo << "fNoiseSpectrumChannels:";
-    for(size_t i=0;i<fNoiseSpectrumChannels.size();i++){
-      logInfo << " " << fNoiseSpectrumChannels.at(i);
-    }//fNoiseSpectrumChannels
+  logInfo << "fUseOnlineChannels: " << (fUseOnlineChannels ? "true" : "false") << "\n";
+
+  logInfo << "fMakePedestalPerEventPlots: " << (fMakePedestalPerEventPlots ? "true" : "false") << "\n";
+  if(fPedestalPerEventChannels.size()){
+    logInfo << "fPedestalPerEventChannels";
+    if(fUseOnlineChannels) logInfo << " (online/offline): ";
+    else logInfo << "(offline): ";
+    for(size_t i=0;i<fPedestalPerEventChannels.size();i++){
+      logInfo << " " << fPedestalPerEventChannels.at(i);
+      if(fUseOnlineChannels) logInfo << "/" << fChannelMap.at(fPedestalPerEventChannels.at(i));
+    }//fPedestalPerEventChannels
     logInfo << "\n";
   }
+  logInfo << "fWritePedestalPerEventFile: " << (fWritePedestalPerEventFile ? "true" : "false") << "\n";
+  if(fWritePedestalPerEventFile) logInfo << "fPedestalPerEventFileName: " << fPedestalPerEventFileName << "\n";
+
+
+  logInfo << "fMakePedestalPerTickPlots: " << (fMakePedestalPerTickPlots ? "true" : "false") << "\n";
+  if(fPedestalPerTickChannels.size()){
+    logInfo << "fPedestalPerTickChannels";
+    if(fUseOnlineChannels) logInfo << " (online/offline): ";
+    else logInfo << "(offline): ";
+    for(size_t i=0;i<fPedestalPerTickChannels.size();i++){
+      logInfo << " " << fPedestalPerTickChannels.at(i);
+      if(fUseOnlineChannels) logInfo << "/" << fChannelMap.at(fPedestalPerTickChannels.at(i));
+    }//fPedestalPerTickChannels
+    logInfo << "\n";
+  }
+  logInfo << "fWritePedestalPerTickFile: " << (fWritePedestalPerTickFile ? "true" : "false") << "\n";
+  if(fWritePedestalPerTickFile) logInfo << "fPedestalPerTickFileName: " << fPedestalPerTickFileName << "\n";
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -166,7 +232,8 @@ void nearline::NearlineAna::beginJob(){
   fHeader->Branch("EndDay",&fEndDay);
   fHeader->Branch("EndHour",&fEndHour);
 
-  if(fMakeNoiseSpectrumPlots) makeNoiseSpectrumPlots();
+  if(fMakePedestalPerEventPlots) makePedestalPerEventPlots();
+  if(fMakePedestalPerTickPlots) makePedestalPerTickPlots();
 
 }
 
@@ -223,6 +290,12 @@ void nearline::NearlineAna::endJob(){
 
   fHeader->Fill();
 
+  //Write out pedestal plots summary to files
+  if(fWritePedestalPerEventFile) writePedestalPerEventSummaryFile(fPedestalPerEventFileName);
+  if(fWritePedestalPerTickFile) writePedestalPerTickSummaryFile(fPedestalPerTickFileName);
+
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -248,33 +321,65 @@ void nearline::NearlineAna::analyze(art::Event const & e)
   if(time > fEndTime)          fEndTime = time;
   if((int)event > fLastEvent)  fLastEvent = event;
 
-
-
   //
   // Fill the desired plots.
   //
-  if(fMakeNoiseSpectrumPlots) fillNoiseSpectrumPlots(e);
+  if(fMakePedestalPerEventPlots) fillPedestalPerEventPlots(e);
+  if(fMakePedestalPerTickPlots) fillPedestalPerTickPlots(e);
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void nearline::NearlineAna::makeNoiseSpectrumPlots(){
+size_t nearline::NearlineAna::getRawDigits(art::Event const & e, art::Handle<std::vector<raw::RawDigit>> & digitHandle){
 
-  mf::LogInfo logInfo("NearlineAna::makeNoiseSpectrumPlots");
-  logInfo << "fNoiseSpectrumChannels:" << "\n";
+  bool retVal = e.getByLabel(fRawDigitsTag, digitHandle);
+  if(retVal!=true){
+    mf::LogWarning("NearlineAna::getRawDigits") << "Getting RawDigits FAIL: " << fRawDigitsTag << std::endl;
+    return 0;
+  }
+  
+  try { digitHandle->size(); }
+  catch(std::exception e) {
+    mf::LogError("NearlineAna::getRawDigits") << "WARNING: Issue with digitHandle for RawDigits" << std::endl;
+    return 0;
+  }
+
+  if(!digitHandle.isValid()){
+    mf::LogError("NearlineAna::getRawDigits") << "Run: " << e.run()
+                            << ", SubRun: " << e.subRun()
+                            << ", Event: " << e.event()
+                            << " is NOT VALID";
+    throw cet::exception("RawDigit NOT VALID");
+    return 0;
+  }
+
+  return digitHandle->size();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void nearline::NearlineAna::makePedestalPerEventPlots(){
+
+
+  mf::LogInfo logInfo("NearlineAna::makePedestalPerEventPlots");
+  logInfo << "fPedestalPerEventChannels:" << "\n";
 
   art::ServiceHandle<art::TFileService> tfs;
 
-  for(auto channel: fNoiseSpectrumChannels){
+  for(auto channel: fPedestalPerEventChannels){
     int numBins = 100;
     int xmin = 0;
     int xmax = 2048;
-    std::string hist_name = "hnoise_spectrum_chan_" + std::to_string(channel);
-    std::string hist_title = "Average ADC Spectrum (Channel " + std::to_string(channel) + ")";
+    std::string hist_name = "hped_per_event_chan_" + std::to_string(channel);
+    std::string hist_title = "Average ADC Per Event - Channel " 
+    + (fUseOnlineChannels ? 
+       "(online/offline) " + std::to_string(channel) + "/" + std::to_string(fChannelMap.at(channel)) : 
+       "(offline) " + std::to_string(channel));
+
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
-    fVecNoiseSpectrumPlots.push_back(histTemp);
-    logInfo << "channel: " << channel << " hist_name: " << hist_name << "\n";
+    fVecPedestalPerEventPlots.push_back(histTemp);
+    logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
   logInfo << "\n";
 
@@ -282,60 +387,71 @@ void nearline::NearlineAna::makeNoiseSpectrumPlots(){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void nearline::NearlineAna::fillNoiseSpectrumPlots(art::Event const & e){
+void nearline::NearlineAna::makePedestalPerTickPlots(){
 
-  mf::LogInfo logInfo("NearlineAna::fillNoiseSpectrumPlots");
 
-  for(size_t index=0;index<fVecNoiseSpectrumPlots.size();index++){
-    auto channel = fNoiseSpectrumChannels.at(index);
-    auto hist = fVecNoiseSpectrumPlots.at(index);
-    logInfo << "channel: " << channel << " hist_title: " << hist->GetTitle() << "\n";
+  mf::LogInfo logInfo("NearlineAna::makePedestalPerTickPlots");
+  logInfo << "fPedestalPerTickChannels:" << "\n";
+
+  art::ServiceHandle<art::TFileService> tfs;
+
+  for(auto channel: fPedestalPerTickChannels){
+    int numBins = 100;
+    int xmin = 0;
+    int xmax = 2048;
+    std::string hist_name = "hped_per_tick_chan_" + std::to_string(channel);
+    std::string hist_title = "Average ADC Per Tick - Channel " 
+    + (fUseOnlineChannels ? 
+       "(online/offline) " + std::to_string(channel) + "/" + std::to_string(fChannelMap.at(channel)) : 
+       "(offline) " + std::to_string(channel));
+
+    TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
+    fVecPedestalPerTickPlots.push_back(histTemp);
+    logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
+  logInfo << "\n";
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void nearline::NearlineAna::fillPedestalPerEventPlots(art::Event const & e){
+
+  mf::LogInfo logInfo("NearlineAna::fillPedestalPerEventPlots");
+
+  // for(size_t index=0;index<fVecPedestalPerEventPlots.size();index++){
+  //   auto channel = fPedestalPerEventChannels.at(index);
+  //   auto offline_channel = (fUseOnlineChannels ? fChannelMap.at(channel) : channel );
+  //   auto hist = fVecPedestalPerEventPlots.at(index);
+  //   logInfo << "channel " << (fUseOnlineChannels ? "(online/offline): " + std::to_string(channel) + "/" + std::to_string(offline_channel) : "(offline): " + std::to_string(offline_channel) );
+  //   logInfo << " hist_title: " << hist->GetTitle() << "\n";
+  // }
 
 
   art::Handle<std::vector<raw::RawDigit> > digitHandle;
-
-  bool retVal = e.getByLabel(fRawDigitsTag, digitHandle);
-  if(retVal!=true){
-    mf::LogWarning("NearlineAna::fillNoiseSpectrumPlots") << "Getting RawDigits FAIL: " << fRawDigitsTag << std::endl;
-    return;
-  }
-  
-  try { digitHandle->size(); }
-  catch(std::exception e) {
-    mf::LogError("NearlineAna::fillNoiseSpectrumPlots") << "WARNING: Issue with digitHandle for RawDigits" << std::endl;
-    return;
-  }
-
-  if(!digitHandle.isValid()){
-    mf::LogError("NearlineAna::fillNoiseSpectrumPlots") << "Run: " << e.run()
-                            << ", SubRun: " << e.subRun()
-                            << ", Event: " << e.event()
-                            << " is NOT VALID";
-    throw cet::exception("RawDigit NOT VALID");
-    return;
-  }
-
-  size_t numDigitChans = digitHandle->size();
-//  logInfo << "Got RawDigit Handle - size: " << numDigitChans << "\n";
+  size_t numDigitChans = getRawDigits(e, digitHandle);
 
   //Loop through the vector of rawDigits and pick out channels that match our list of channels
+  //DEBUG
+  if(numDigitChans > 0) logInfo << "JPD" << "\n";
+
   for(size_t rdIter=0;rdIter<numDigitChans;rdIter++){
     art::Ptr<raw::RawDigit> digitVec(digitHandle, rdIter);
     auto channel =  digitVec->Channel();    
-    for(size_t index=0;index<fNoiseSpectrumChannels.size();index++){
-      auto this_channel = fNoiseSpectrumChannels.at(index);
+    for(size_t index=0;index<fPedestalPerEventChannels.size();index++){
+      auto this_channel = (fUseOnlineChannels ? fChannelMap.at(fPedestalPerEventChannels.at(index)) : fPedestalPerEventChannels.at(index));
 
       //Only proceed if this is a channel of interest
       if(this_channel!=channel) continue; 
+
+      //DEBUG 
+      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << this_channel << "/" << fPedestalPerEventChannels.at(index) << ")\n";
 
       auto numSamples = digitVec->Samples();
       auto compression = digitVec->Compression();
 
       //Only proceed if there is a non-zero number of samples
       if(numSamples==0) continue;
-//      logInfo << "rdIter: " << rdIter << " channel: " << channel << " this_channel: " << this_channel << "\n";
-//      logInfo << "numSamples: " << numSamples << " compression: " << compression << "\n";
 
       //We should uncompress the samples in case there is some form of compression applied
       raw::RawDigit::ADCvector_t ADCsUncompressed(numSamples);
@@ -345,22 +461,128 @@ void nearline::NearlineAna::fillNoiseSpectrumPlots(art::Event const & e){
       double averageADC=0;
       for(unsigned int sample=0;sample<numSamples;sample++){
         averageADC+=ADCsUncompressed[sample];
-       // logInfo << "ADC: " << ADCsUncompressed[sample]<< " cumulative ADC: " << averageADC << "\n";
       }//sample
 
       averageADC/=numSamples; 
 
-//      logInfo << "averageADC: " << averageADC << "\n";
-
-      TH1I* histTemp = fVecNoiseSpectrumPlots.at(index);
+      TH1I* histTemp = fVecPedestalPerEventPlots.at(index);
       histTemp->Fill(averageADC);
 
     }//index
   }//rdIter
 
+}
 
 
-//unsigned int  Nchannels () const 
+////////////////////////////////////////////////////////////////////////////////
+
+void nearline::NearlineAna::fillPedestalPerTickPlots(art::Event const & e){
+
+  mf::LogInfo logInfo("NearlineAna::fillPedestalPerTickPlots");
+
+  // for(size_t index=0;index<fVecPedestalPerTickPlots.size();index++){
+  //   auto channel = fPedestalPerTickChannels.at(index);
+  //   auto offline_channel = (fUseOnlineChannels ? fChannelMap.at(channel) : channel );
+  //   auto hist = fVecPedestalPerTickPlots.at(index);
+  //   logInfo << "channel " << (fUseOnlineChannels ? "(online/offline): " + std::to_string(channel) + "/" + std::to_string(offline_channel) : "(offline): " + std::to_string(offline_channel) );
+  //   logInfo << " hist_title: " << hist->GetTitle() << "\n";
+  // }
+
+
+  art::Handle<std::vector<raw::RawDigit> > digitHandle;
+  size_t numDigitChans = getRawDigits(e, digitHandle);
+
+  //Loop through the vector of rawDigits and pick out channels that match our list of channels
+  //DEBUG
+  if(numDigitChans > 0) logInfo << "JPD" << "\n";
+
+  for(size_t rdIter=0;rdIter<numDigitChans;rdIter++){
+    art::Ptr<raw::RawDigit> digitVec(digitHandle, rdIter);
+    auto channel =  digitVec->Channel();    
+    for(size_t index=0;index<fPedestalPerTickChannels.size();index++){
+      auto this_channel = (fUseOnlineChannels ? fChannelMap.at(fPedestalPerTickChannels.at(index)) : fPedestalPerTickChannels.at(index));
+
+      //Only proceed if this is a channel of interest
+      if(this_channel!=channel) continue; 
+
+      //DEBUG 
+      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << this_channel << "/" << fPedestalPerTickChannels.at(index) << ")\n";
+
+      auto numSamples = digitVec->Samples();
+      auto compression = digitVec->Compression();
+
+      //Only proceed if there is a non-zero number of samples
+      if(numSamples==0) continue;
+
+      //We should uncompress the samples in case there is some form of compression applied
+      raw::RawDigit::ADCvector_t ADCsUncompressed(numSamples);
+      raw::Uncompress(digitVec->ADCs(), ADCsUncompressed, compression);
+
+      TH1I* histTemp = fVecPedestalPerTickPlots.at(index);
+
+      for(unsigned int sample=0;sample<numSamples;sample++){
+        histTemp->Fill(ADCsUncompressed[sample]);
+      }//sample
+    }//index
+  }//rdIter
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void nearline::NearlineAna::writePedestalPerEventSummaryFile(std::string fileName){
+  std::ostringstream my_ostream;
+  my_ostream << "online_channel " << "offline_channel " << "pedestal_mean " << "pedestal_rms " << "\n";
+
+  for(size_t index=0;index<fPedestalPerEventChannels.size();index++){
+    auto online_channel = -1;
+    auto offline_channel = fPedestalPerEventChannels.at(index);
+    if(fUseOnlineChannels){
+      online_channel = fPedestalPerEventChannels.at(index);
+      offline_channel = fChannelMap.at(fPedestalPerEventChannels.at(index));
+    } 
+    TH1I* histTemp = fVecPedestalPerEventPlots.at(index);
+    double mean = histTemp->GetMean();
+    double rms = histTemp->GetRMS();
+    my_ostream << online_channel << " " << offline_channel << " " << mean << " " << rms << "\n";
+  }//index
+
+  std::ofstream outFile(fileName);
+  if(outFile.is_open()) outFile << my_ostream.str();
+  else mf::LogWarning("writePedestalPerEventSummaryFile") << "FAILED to open file: " << fileName;
+  outFile.close();
+
+  //DEBUG
+  mf::LogInfo("writePedestalPerEventSummaryFile") << my_ostream.str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void nearline::NearlineAna::writePedestalPerTickSummaryFile(std::string fileName){
+  std::ostringstream my_ostream;
+  my_ostream << "online_channel " << "offline_channel " << "pedestal_mean " << "pedestal_rms " << "\n";
+
+  for(size_t index=0;index<fPedestalPerTickChannels.size();index++){
+    auto online_channel = -1;
+    auto offline_channel = fPedestalPerTickChannels.at(index);
+    if(fUseOnlineChannels){
+      online_channel = fPedestalPerTickChannels.at(index);
+      offline_channel = fChannelMap.at(fPedestalPerTickChannels.at(index));
+    } 
+    TH1I* histTemp = fVecPedestalPerTickPlots.at(index);
+    double mean = histTemp->GetMean();
+    double rms = histTemp->GetRMS();
+    my_ostream << online_channel << " " << offline_channel << " " << mean << " " << rms << "\n";
+  }//index
+
+  std::ofstream outFile(fileName);
+  if(outFile.is_open()) outFile << my_ostream.str();
+  else mf::LogWarning("writePedestalPerEventSummaryFile") << "FAILED to open file: " << fileName;
+  outFile.close();
+
+  //DEBUG
+  mf::LogInfo("writePedestalPerTickSummaryFile") << my_ostream.str();
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -19,8 +19,10 @@
 #                        BASENAME_ONLY
 #)
 
+
 simple_plugin(NearlineAna "module"
                            lbne-raw-data_Overlays
+                           lbne_daqinput35t       #For online to offline channel map
                            Geometry_service
                            Geometry
                            RawData

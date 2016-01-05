@@ -31,6 +31,20 @@ physics:
 
 }
 
-physics.analyzers.nearlineana.NoiseSpectrumChannels: [ 0, 1164]
 
-physics.analyzers.nearlineana.RawDigitsTag: "tpcdaqtooffline:offline"
+
+physics.analyzers.nearlineana.RawDigitsTag: "tpcdaqtooffline:offline"  
+physics.analyzers.nearlineana.UseOnlineChannels: true
+physics.analyzers.nearlineana.TPCChannelMapFile: "rce_channel_map_dune35t.txt"
+
+physics.analyzers.nearlineana.MakePedestalPerEventPlots: true
+#physics.analyzers.nearlineana.PedestalPerEventChannels: [ 0, 1164 ]
+physics.analyzers.nearlineana.PedestalPerEventChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920 ]
+physics.analyzers.nearlineana.WritePedestalPerEventFile: true
+physics.analyzers.nearlineana.PedestalPerEventFileName: "PedestalPerEventTest.txt"
+
+physics.analyzers.nearlineana.MakePedestalPerTickPlots: true
+physics.analyzers.nearlineana.PedestalPerTickChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920 ]
+physics.analyzers.nearlineana.WritePedestalPerTickFile: true
+physics.analyzers.nearlineana.PedestalPerTickFileName: "PedestalPerTickTest.txt"
+
