@@ -143,16 +143,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
     throw cet::exception("rawFragments NOT VALID");
   }
 
-  // Check if there is RCE data in this event
-  // Don't crash code if not present, just don't save anything
-  try { rawFragments->size(); }
-  catch(std::exception e) {
-    std::cout << "WARNING: Raw RCE data not found in event " << eventNumber << std::endl;
-    return;
-  }
-
   lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
-
   auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fChannelMap, fDebug, fCompression, fZeroThreshold);
 
   evt.put(std::make_unique<decltype(digits)>(std::move(digits)), fOutputDataLabel);

@@ -194,7 +194,7 @@ unsigned short DAQToOffline::GetOpChannel(const SSPDAQ::EventHeader* daqHeader, 
   else {
     int HardwareChannel = ((daqHeader->group2 & 0x000F) >> 0); // Channel Number
     int SSPNumber       = ((daqHeader->group2 & 0x00F0) >> 4); // Module Number
-    mf::LogWarning("DAQToOffline") << "SSP " << SSPNumber << " Channel " << HardwareChannel << " not in the map (OK for uninstrumented channels), skipping." << std::endl;
+    mf::LogWarning("DAQToOffline") << "SSP " << SSPNumber << " Channel " << HardwareChannel << "(" << daqHeader->group2 << ") " << " not in the map (OK for uninstrumented channels), skipping." << std::endl;
     throw cet::exception( "SSP Channel Invalid" );
   }
 
