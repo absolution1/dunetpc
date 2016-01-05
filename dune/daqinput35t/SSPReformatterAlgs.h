@@ -36,10 +36,13 @@ namespace DAQToOffline {
   unsigned int CheckAndGetNTriggers(const artdaq::Fragment& frag, const lbne::SSPFragment sspf);
   
   // Extract data from the header
-  uint32_t GetPeaksum(const SSPDAQ::EventHeader* daqHeader);
+  uint32_t GetPeakSum(const SSPDAQ::EventHeader* daqHeader);
   unsigned short GetOpChannel(const SSPDAQ::EventHeader* daqHeader, std::map<int,int> theChannelMap);
   unsigned long GetGlobalFirstSample(const SSPDAQ::EventHeader* daqHeader);
   unsigned long GetInternalFirstSample(const SSPDAQ::EventHeader *daqHeader);
+  unsigned long GetBaselineSum(const SSPDAQ::EventHeader *daqHeader);
+  unsigned long GetIntegratedSum(const SSPDAQ::EventHeader *daqHeader);
+  unsigned int  GetPeakTime(const SSPDAQ::EventHeader *daqHeader);
   void PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const double NOvAClockFrequency = 64);
 
 }

@@ -167,7 +167,7 @@ void DAQToOffline::BuildOpDetChannelMap(std::string fChannelMapFile, std::map<in
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-uint32_t DAQToOffline::GetPeaksum(const SSPDAQ::EventHeader* daqHeader)
+uint32_t DAQToOffline::GetPeakSum(const SSPDAQ::EventHeader* daqHeader)
 {
   uint32_t peaksum = ((daqHeader->group3 & 0x00FF) >> 16) + daqHeader->peakSumLow;
   if(peaksum & 0x00800000) {
@@ -232,6 +232,29 @@ unsigned long DAQToOffline::GetInternalFirstSample(const SSPDAQ::EventHeader *da
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+unsigned long DAQToOffline::GetBaselineSum(const SSPDAQ::EventHeader *daqHeader)
+{
+  return ((daqHeader->group4 & 0x00FF) << 16) + daqHeader->preriseLow;
+  
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+unsigned long DAQToOffline::GetIntegratedSum(const SSPDAQ::EventHeader *daqHeader)
+{
+  return ((unsigned int)(daqHeader->intSumHigh) << 8) + (((unsigned int)(daqHeader->group4) & 0xFF00) >> 8);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+unsigned int DAQToOffline::GetPeakTime(const SSPDAQ::EventHeader *daqHeader)
+{
+  return (daqHeader->group3 & 0xFF00) >> 8 ;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void DAQToOffline::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const double NOvAClockFrequency)
 {
@@ -255,10 +278,10 @@ void DAQToOffline::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const d
         // reset by run but rather with the job
         //<< "Since first sample this run:        " << FirstSample-first_FirstSample << " ticks" << "\n"
         //<< "                                    " << TimeStamp-first_TimeStamp << " microseconds" << "\n"
-        << "Peak sum:                           " << GetPeaksum(daqHeader) << "\n"
-        << "Peak time:                          " << ((daqHeader->group3 & 0xFF00) >> 8) << "\n"
-        << "Prerise:                            " << ((daqHeader->group4 & 0x00FF) << 16) + daqHeader->preriseLow << "\n"
-        << "Integrated sum:                     " << ((unsigned int)(daqHeader->intSumHigh) << 8) + (((unsigned int)(daqHeader->group4) & 0xFF00) >> 8) << "\n"
+        << "Peak sum:                           " << GetPeakSum(daqHeader) << "\n"
+        << "Peak time:                          " << GetPeakTime(daqHeader) << "\n"
+        << "Baseline Sum (Prerise):             " << GetBaselineSum(daqHeader) << "\n"
+        << "Integrated sum:                     " << GetIntegratedSum(daqHeader) << "\n"
         << "Baseline:                           " << daqHeader->baseline << "\n"
         << "CFD Timestamp interpolation points: " << daqHeader->cfdPoint[0] << " " << daqHeader->cfdPoint[1]
         << " " << daqHeader->cfdPoint[2] << " " << daqHeader->cfdPoint[3] << "\n"
