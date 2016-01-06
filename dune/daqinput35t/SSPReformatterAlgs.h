@@ -9,6 +9,7 @@
 //larsoft includes
 #include "RawData/raw.h"
 #include "RawData/OpDetWaveform.h"
+#include "RecoBase/OpHit.h"
 
 // lbne-raw-data includes
 #include "lbne-raw-data/Overlays/SSPFragment.hh"
@@ -28,7 +29,10 @@ namespace DAQToOffline {
   std::vector<raw::OpDetWaveform> SSPFragmentToOpDetWaveform(artdaq::Fragments const& raw,
                                                              const double NOvAClockFrequency,
                                                              const std::map<int,int> theChannelMap);
-
+  std::vector<recob::OpHit> SSPHeaderToOpHit(artdaq::Fragments const& raw,
+                                             const double NOvAClockFrequency,
+                                             const std::map<int,int> theChannelMap);
+  
 
   void BuildOpDetChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap);
 

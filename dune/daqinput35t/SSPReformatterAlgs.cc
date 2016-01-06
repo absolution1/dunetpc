@@ -4,6 +4,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Principal/Event.h"
 #include "cetlib/search_path.h"
+#include "Utilities/TimeService.h"
 #include <fstream>
 
 // lbnecode/daqinput35t includes
@@ -92,6 +93,103 @@ std::vector<raw::OpDetWaveform> DAQToOffline::SSPFragmentToOpDetWaveform(artdaq:
   return opDetWaveformVector;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<recob::OpHit> DAQToOffline::SSPHeaderToOpHit(artdaq::Fragments const& rawFragments,
+                                                         const double NOvAClockFrequency,
+                                                         std::map<int,int> theChannelMap)
+{
+  // FIX: This should be an actual number from calibration, maybe from a database?
+  double SPESize = 25;
+  
+  art::ServiceHandle<util::TimeService> ts;
+  std::vector<recob::OpHit> opHitVector;
+  
+  unsigned int numFragments = rawFragments.size();
+  
+  
+  for (size_t idx = 0; idx < numFragments; ++idx) {
+    const auto& frag(rawFragments[idx]);
+    lbne::SSPFragment sspf(frag);
+    
+    unsigned int nTriggers = CheckAndGetNTriggers(frag, sspf);
+    
+    const unsigned int* dataPointer = sspf.dataBegin();
+    
+    
+    for (unsigned int triggersProcessed = 0;
+         (nTriggers==0 || triggersProcessed < nTriggers) && dataPointer < sspf.dataEnd();
+         ++triggersProcessed) {
+      //
+      // The elements of the OpDet Pulse
+      //
+      unsigned short     OpChannel = -1;       ///< Derived Optical channel
+      unsigned long      FirstSample = 0;      ///< first sample time in ticks
+      double             TimeStamp = 0.0;      ///< first sample time in microseconds
+      
+      
+      // Load the event header, advance the pointer
+      const SSPDAQ::EventHeader* daqHeader=reinterpret_cast<const SSPDAQ::EventHeader*>(dataPointer);
+      dataPointer += sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int);
+      
+      // Get ADC Count, create pointer to adcs
+      unsigned int nADC=(daqHeader->length-sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int))*2;
+
+      /*
+       ALL_i2_window:             500
+       ALL_m1_window:             10
+       ALL_m2_window:             10
+       ALL_d_window:              20
+       ALL_i1_window:             500
+       ALL_disc_width:            10
+       */
+      
+      // FIX: Magic numbers! Copied from the DAQ fhicl configuration.
+      int m1 = 10;
+      int i1 = 500;
+      int i2 = 500;
+      
+
+      
+      //get the information from the header
+      try {
+        OpChannel = GetOpChannel(daqHeader, theChannelMap);
+        
+        FirstSample = GetGlobalFirstSample(daqHeader);
+        TimeStamp = ((double)FirstSample)/NOvAClockFrequency;
+      }
+      catch (cet::exception e) {
+        continue;
+      }
+
+      double peakTime = ((double)GetPeakTime(daqHeader)) * ts->OpticalClock().TickPeriod(); // microseconds
+      double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds
+      
+      double pedestal = ((double)GetBaselineSum(daqHeader)) / ((double)i1);
+      double area = ((double)GetIntegratedSum(daqHeader))  - pedestal * i2;
+      double peak = ((double)GetPeakSum(daqHeader)) / ((double)m1) - pedestal;
+
+      
+      opHitVector.emplace_back(OpChannel,
+                               TimeStamp+peakTime,  // Relative Time
+                               TimeStamp+peakTime,  // Absolute time
+                               0,          // Frame, not used by DUNE
+                               width,
+                               area,
+                               peak,
+                               area / SPESize, // PE
+                               0.);
+      
+
+      
+      // Advance the dataPointer to the next header
+      dataPointer+=nADC/2;
+      
+    } // End of loop over triggers
+  } // End of loop over fragments (rawFragments)
+  
+  return opHitVector;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 

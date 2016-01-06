@@ -6,8 +6,11 @@ ssp_to_offline:
   FragType:            PHOTON
   RawDataLabel:        daq
   OutputDataLabel:     offlinePhoton
-  NOvAClockFrequency:  64.0 #MHz 
+  NOvAClockFrequency:  64.0 #MHz
   OpDetChannelMapFile: "ssp_channel_map_dune35t.txt"
+  SSPm1:               10  #samples used to calculate peak height
+  SSPi1:               500 #samples used to calculate pedestal
+  SSPi2:               500 #samples used to calculate peak height
   #Debug:             true
 }
 
@@ -21,5 +24,13 @@ ssp_trigger_ana:
   #Debug:             true
 }
 
+ssp_reformatter:
+{
+  NOvAClockFrequency:  64.0 #MHz
+  OpDetChannelMapFile: "ssp_channel_map_dune35t.txt"
+  SSPm1:               10  #samples used to calculate peak height
+  SSPi1:               500 #samples used to calculate pedestal
+  SSPi2:               500 #samples used to calculate peak height
+}
 
 END_PROLOG
