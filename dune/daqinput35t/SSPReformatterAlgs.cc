@@ -19,13 +19,25 @@
 #include "lbne-raw-data/Overlays/SSPFragment.hh"
 #include "lbne-raw-data/Overlays/anlTypes.hh"
 
-// NOvAClockFrequency is in MHz.
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<raw::OpDetWaveform> DAQToOffline::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments,
-                                                                         const double NOvAClockFrequency,
-                                                                         std::map<int,int> theChannelMap)
+DAQToOffline::SSPReformatterAlgs::SSPReformatterAlgs(fhicl::ParameterSet const & pset)
+{
+  NOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
+  std::string fChannelMapFile     = pset.get<std::string>("OpDetChannelMapFile");
+
+  BuildOpDetChannelMap(fChannelMapFile);
+  
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<raw::OpDetWaveform> DAQToOffline::SSPReformatterAlgs::SSPFragmentToOpDetWaveform(artdaq::Fragments const& rawFragments)
 {
   std::vector<raw::OpDetWaveform> opDetWaveformVector;
 
@@ -61,7 +73,7 @@ std::vector<raw::OpDetWaveform> DAQToOffline::SSPFragmentToOpDetWaveform(artdaq:
 
       //get the information from the header
       try {
-        OpChannel = GetOpChannel(daqHeader, theChannelMap);
+        OpChannel = GetOpChannel(daqHeader);
 
         FirstSample = GetGlobalFirstSample(daqHeader);
         TimeStamp = ((double)FirstSample)/NOvAClockFrequency;
@@ -95,9 +107,7 @@ std::vector<raw::OpDetWaveform> DAQToOffline::SSPFragmentToOpDetWaveform(artdaq:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<recob::OpHit> DAQToOffline::SSPHeaderToOpHit(artdaq::Fragments const& rawFragments,
-                                                         const double NOvAClockFrequency,
-                                                         std::map<int,int> theChannelMap)
+std::vector<recob::OpHit> DAQToOffline::SSPReformatterAlgs::SSPHeaderToOpHit(artdaq::Fragments const& rawFragments)
 {
   // FIX: This should be an actual number from calibration, maybe from a database?
   double SPESize = 25;
@@ -153,7 +163,7 @@ std::vector<recob::OpHit> DAQToOffline::SSPHeaderToOpHit(artdaq::Fragments const
       
       //get the information from the header
       try {
-        OpChannel = GetOpChannel(daqHeader, theChannelMap);
+        OpChannel = GetOpChannel(daqHeader);
         
         FirstSample = GetGlobalFirstSample(daqHeader);
         TimeStamp = ((double)FirstSample)/NOvAClockFrequency;
@@ -194,7 +204,7 @@ std::vector<recob::OpHit> DAQToOffline::SSPHeaderToOpHit(artdaq::Fragments const
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned int DAQToOffline::CheckAndGetNTriggers(const artdaq::Fragment& frag, const lbne::SSPFragment sspf)
+unsigned int DAQToOffline::SSPReformatterAlgs::CheckAndGetNTriggers(const artdaq::Fragment& frag, const lbne::SSPFragment sspf)
 {
     mf::LogDebug("DAQToOffline") << "\n"
                                  << "SSP fragment "     << frag.fragmentID() 
@@ -233,7 +243,7 @@ unsigned int DAQToOffline::CheckAndGetNTriggers(const artdaq::Fragment& frag, co
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void DAQToOffline::BuildOpDetChannelMap(std::string fChannelMapFile, std::map<int,int> &theChannelMap)
+void DAQToOffline::SSPReformatterAlgs::BuildOpDetChannelMap(std::string fChannelMapFile)
 {
     theChannelMap.clear();
 
@@ -265,7 +275,7 @@ void DAQToOffline::BuildOpDetChannelMap(std::string fChannelMapFile, std::map<in
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-uint32_t DAQToOffline::GetPeakSum(const SSPDAQ::EventHeader* daqHeader)
+uint32_t DAQToOffline::SSPReformatterAlgs::GetPeakSum(const SSPDAQ::EventHeader* daqHeader)
 {
   uint32_t peaksum = ((daqHeader->group3 & 0x00FF) >> 16) + daqHeader->peakSumLow;
   if(peaksum & 0x00800000) {
@@ -278,7 +288,7 @@ uint32_t DAQToOffline::GetPeakSum(const SSPDAQ::EventHeader* daqHeader)
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned short DAQToOffline::GetOpChannel(const SSPDAQ::EventHeader* daqHeader, std::map<int,int> theChannelMap)
+unsigned short DAQToOffline::SSPReformatterAlgs::GetOpChannel(const SSPDAQ::EventHeader* daqHeader)
 {
   unsigned short OpChannel = -1;
   
@@ -308,7 +318,7 @@ unsigned short DAQToOffline::GetOpChannel(const SSPDAQ::EventHeader* daqHeader, 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned long DAQToOffline::GetGlobalFirstSample(const SSPDAQ::EventHeader* daqHeader)
+unsigned long DAQToOffline::SSPReformatterAlgs::GetGlobalFirstSample(const SSPDAQ::EventHeader* daqHeader)
 {
   return (   ( (unsigned long)daqHeader->timestamp[3] << 48 )
            + ( (unsigned long)daqHeader->timestamp[2] << 32 )
@@ -320,7 +330,7 @@ unsigned long DAQToOffline::GetGlobalFirstSample(const SSPDAQ::EventHeader* daqH
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned long DAQToOffline::GetInternalFirstSample(const SSPDAQ::EventHeader *daqHeader)
+unsigned long DAQToOffline::SSPReformatterAlgs::GetInternalFirstSample(const SSPDAQ::EventHeader *daqHeader)
 {
   return (   ((uint64_t)((uint64_t)daqHeader->intTimestamp[3] << 32))
            + ((uint64_t)((uint64_t)daqHeader->intTimestamp[2]) << 16)
@@ -330,7 +340,7 @@ unsigned long DAQToOffline::GetInternalFirstSample(const SSPDAQ::EventHeader *da
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned long DAQToOffline::GetBaselineSum(const SSPDAQ::EventHeader *daqHeader)
+unsigned long DAQToOffline::SSPReformatterAlgs::GetBaselineSum(const SSPDAQ::EventHeader *daqHeader)
 {
   return ((daqHeader->group4 & 0x00FF) << 16) + daqHeader->preriseLow;
   
@@ -338,14 +348,14 @@ unsigned long DAQToOffline::GetBaselineSum(const SSPDAQ::EventHeader *daqHeader)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned long DAQToOffline::GetIntegratedSum(const SSPDAQ::EventHeader *daqHeader)
+unsigned long DAQToOffline::SSPReformatterAlgs::GetIntegratedSum(const SSPDAQ::EventHeader *daqHeader)
 {
   return ((unsigned int)(daqHeader->intSumHigh) << 8) + (((unsigned int)(daqHeader->group4) & 0xFF00) >> 8);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned int DAQToOffline::GetPeakTime(const SSPDAQ::EventHeader *daqHeader)
+unsigned int DAQToOffline::SSPReformatterAlgs::GetPeakTime(const SSPDAQ::EventHeader *daqHeader)
 {
   return (daqHeader->group3 & 0xFF00) >> 8 ;
 }
@@ -354,7 +364,7 @@ unsigned int DAQToOffline::GetPeakTime(const SSPDAQ::EventHeader *daqHeader)
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void DAQToOffline::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const double NOvAClockFrequency)
+void DAQToOffline::SSPReformatterAlgs::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const double NOvAClockFrequency)
 {
   auto FirstSample = GetGlobalFirstSample(daqHeader);
   auto InternalSample = GetInternalFirstSample(daqHeader);
@@ -378,6 +388,7 @@ void DAQToOffline::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const d
         //<< "                                    " << TimeStamp-first_TimeStamp << " microseconds" << "\n"
         << "Peak sum:                           " << GetPeakSum(daqHeader) << "\n"
         << "Peak time:                          " << GetPeakTime(daqHeader) << "\n"
+
         << "Baseline Sum (Prerise):             " << GetBaselineSum(daqHeader) << "\n"
         << "Integrated sum:                     " << GetIntegratedSum(daqHeader) << "\n"
         << "Baseline:                           " << daqHeader->baseline << "\n"

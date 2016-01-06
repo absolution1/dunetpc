@@ -1,16 +1,21 @@
 BEGIN_PROLOG
 
+ssp_reformatter:
+{
+  NOvAClockFrequency:  64.0 #MHz
+  OpDetChannelMapFile: "ssp_channel_map_dune35t.txt"
+  SSPm1:               10  #samples used to calculate peak height
+  SSPi1:               500 #samples used to calculate pedestal
+  SSPi2:               500 #samples used to calculate peak height
+}
+
 ssp_to_offline:
 {
   module_type:         SSPToOffline
   FragType:            PHOTON
   RawDataLabel:        daq
   OutputDataLabel:     offlinePhoton
-  NOvAClockFrequency:  64.0 #MHz
-  OpDetChannelMapFile: "ssp_channel_map_dune35t.txt"
-  SSPm1:               10  #samples used to calculate peak height
-  SSPi1:               500 #samples used to calculate pedestal
-  SSPi2:               500 #samples used to calculate peak height
+  SSPReformatter:      @local::ssp_reformatter
   #Debug:             true
 }
 
@@ -19,18 +24,8 @@ ssp_trigger_ana:
   module_type:         SSPTriggerAna
   FragType:            PHOTON
   RawDataLabel:        daq
-  NOvAClockFrequency:  64.0 #MHz 
-  OpDetChannelMapFile: ""
+  SSPReformatter:      @local::ssp_reformatter
   #Debug:             true
-}
-
-ssp_reformatter:
-{
-  NOvAClockFrequency:  64.0 #MHz
-  OpDetChannelMapFile: "ssp_channel_map_dune35t.txt"
-  SSPm1:               10  #samples used to calculate peak height
-  SSPi1:               500 #samples used to calculate pedestal
-  SSPi2:               500 #samples used to calculate peak height
 }
 
 END_PROLOG

@@ -63,11 +63,9 @@ private:
   std::string fFragType;
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
-  double      fNOvAClockFrequency; //MHz
-  std::string fChannelMapFile;
+
+  SSPReformatterAlgs sspReform;
   
-  std::map<int,int> theChannelMap;
-    
   //long        first_FirstSample;
   //double      first_TimeStamp;
   //long        first_InternalSample;
@@ -82,6 +80,7 @@ private:
 
 
 DAQToOffline::SSPToOffline::SSPToOffline(fhicl::ParameterSet const & pset)
+                           : sspReform(pset.get<fhicl::ParameterSet>("SSPReformatter"))
 {
 
   this->reconfigure(pset);
@@ -97,16 +96,12 @@ void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
   fFragType           = pset.get<std::string>("FragType");
   fRawDataLabel       = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel    = pset.get<std::string>("OutputDataLabel");
-  fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
-  fChannelMapFile     = pset.get<std::string>("OpDetChannelMapFile");
 
   //fDebug = pset.get<bool>("Debug");
   //fZeroThreshold=0;
   //fCompression=raw::kNone;
 
   printParameterSet();
-  BuildOpDetChannelMap(fChannelMapFile, theChannelMap);
-  
 }
 
 void DAQToOffline::SSPToOffline::printParameterSet(){
@@ -117,7 +112,6 @@ void DAQToOffline::SSPToOffline::printParameterSet(){
                                << "fFragType:        " << fFragType        << "\n"
                                << "fRawDataLabel:    " << fRawDataLabel    << "\n"
                                << "fOutputDataLabel: " << fOutputDataLabel << "\n"
-                               << "fChannelMapFile:  " << fChannelMapFile  << "\n"
                                << "===================================="   << "\n";
 }
 
