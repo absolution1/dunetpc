@@ -116,7 +116,7 @@ private:
     std::string fClusterModuleLabel; 
     bool fSaveChannelWireMap;
     bool fSaveChannelWireGeo;
-
+  
     art::ServiceHandle<geo::Geometry> fGeom;
     // art::ServiceHandle<util::LArProperties> larp;
 
@@ -217,6 +217,12 @@ private:
     bool fMakeAllPhotonsTree;
     bool fMakeOpDetsTree;
     bool fMakeOpDetEventsTree;
+    bool fUncompressWithPed;
+  bool fProcessMCtruth;
+  bool fProcessCalib;
+  bool fProcessHits;
+  bool fProcessReco;
+  bool fProcessOpDet;
     float fQE;
     float fWavelengthCutLow;
     float fWavelengthCutHigh;
@@ -262,6 +268,12 @@ void CTree35t::reconfigure(fhicl::ParameterSet const& p){
     fMakeDetectedPhotonsTree = p.get<bool>("MakeDetectedPhotonsTree");
     fMakeOpDetsTree = p.get<bool>("MakeOpDetsTree");
     fMakeOpDetEventsTree = p.get<bool>("MakeOpDetEventsTree");
+    fUncompressWithPed  = p.get< bool         >("UncompressWithPed", true);
+    fProcessMCtruth = p.get< bool         >("ProcessMCtruth", true);
+    fProcessCalib = p.get< bool         >("ProcessCalib", true);
+    fProcessHits = p.get< bool         >("ProcessHits", true);
+    fProcessReco = p.get< bool         >("ProcessReco", true);
+    fProcessOpDet = p.get< bool         >("ProcessOpDet", true);
 }
 
 
@@ -653,13 +665,13 @@ void CTree35t::analyze( const art::Event& event )
     fRun    = event.run();
     fSubRun = event.subRun();
 
-    processMC(event);
+    if (fProcessMCtruth)  processMC(event);
     processRaw(event);
-    processCalib(event);
-    processHits(event);
-    processRecoTracks(event);
+    if (fProcessCalib) processCalib(event);
+    if (fProcessHits)  processHits(event);
+    if (fProcessReco) processRecoTracks(event);
     fEventTree->Fill();
-    processOpDet(event);
+    if (fProcessOpDet) processOpDet(event);
     printEvent();
 
 }
@@ -729,44 +741,51 @@ void CTree35t::processRaw( const art::Event& event )
     std::vector< art::Ptr<raw::RawDigit> >  rawhits;
     art::fill_ptr_vector(rawhits, rawdigit);
 
-    // rawhits size should == Nchannels == 1992; (no hit channel has a flat 0-waveform)
-    // cout << "\n Raw Hits size: " << rawhits.size() << endl;
+    // rawhits size should == Nchannels == 2048; (no hit channel has a flat 0-waveform)
+    cout << "\n Raw Hits size: " << rawhits.size() << endl;
 
     //loop through all RawDigits (over entire channels)
     fRaw_Nhit = 0;
     for (auto const& hit : rawhits) {      
         int chanId = hit->Channel();
         int nSamples = hit->Samples();
-        int pedstal = hit->GetPedestal(); // should be 0 as of 2/25
-
         std::vector<short> uncompressed(nSamples);
-        raw::Uncompress(hit->ADCs(), uncompressed, hit->Compression());
-        // uncompressed size is 3200 samples per waveform
-        short thresh = pedstal + 1; // threshold set to 1 adc;
+	int pedestal = (int)hit->GetPedestal();
+	// uncompress the data
+        if (fUncompressWithPed){
+          raw::Uncompress(hit->ADCs(), uncompressed, pedestal, hit->Compression());
+        }
+        else{
+          raw::Uncompress(hit->ADCs(), uncompressed, hit->Compression());
+        }
+	
+	//        short thresh = pedestal + 1; // threshold set to 1 adc;
+        short thresh = 1; // threshold set to 1 adc;
         bool isHit = false;
         for (auto const& adc : uncompressed) {
-            if (adc > thresh) {
-                isHit = true;
-                break;
-            }
+	  short ladc = adc-pedestal;
+	  if (ladc > thresh) {
+	    isHit = true;
+	    break;
+	  }
         }
         if (!isHit) continue; // skip empty channels
-
+	
         int id = fRaw_Nhit;
         fRaw_channelId[id] = chanId;
 
         vector<int> wfADC;
         vector<int> wfTDC;
         int nSavedSamples = 0;
+        // std::cout << " channel " << chanId << std::endl;
         bool hasTime = false;
         for (int i=0; i<nSamples; i++) {
-            short adc = uncompressed[i];
-            if (adc != pedstal) {
-                // cout << i << "," << adc << " | ";
+	  short adc = uncompressed[i]-pedestal;
+	  if (adc != 0) {
                 nSavedSamples++;
-                wfADC.push_back(int(adc));
+		wfADC.push_back(int(adc));
                 wfTDC.push_back(i);
-                fRaw_charge[id] += adc;
+		fRaw_charge[id] += adc;
                 if (!hasTime) {
                     fRaw_time[id] = i;
                     hasTime = true;

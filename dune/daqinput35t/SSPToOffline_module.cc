@@ -37,7 +37,7 @@
 //daqinput35t includes
 
 #include "utilities/UnpackFragment.h"
-#include "SSPFragmentToOpDetWaveform.h"
+#include "SSPReformatterAlgs.h"
 
 namespace DAQToOffline {
   class SSPToOffline;

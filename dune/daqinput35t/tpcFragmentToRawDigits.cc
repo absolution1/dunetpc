@@ -48,7 +48,6 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
   //    -- then we'll create a rawDigit object for each channel
   //    -- will need some helper functions to do this for us, so I created a utilites directory
 
-
   art::ServiceHandle<geo::Geometry> geometry;
   size_t numChans = geometry->Nchannels();
   for(size_t chan=0;chan < numChans;chan++){
@@ -89,20 +88,24 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
     //Properties of fragment
     auto numMicroSlices = millisliceFragment.microSliceCount();
     bool FirstMicro = false;
+    //std::cout << "Channel " << chan << " has " << numMicroSlices << " microslices." << std::endl;
     for(unsigned int i_micro=0;i_micro<numMicroSlices;i_micro++){
 
       std::unique_ptr <const lbne::TpcMicroSlice> microSlice = millisliceFragment.microSlice(i_micro);
       auto numNanoSlices = microSlice->nanoSliceCount();
-
+      
       if (numNanoSlices) {
+	//std::cout << "This microslice has " << numNanoSlices << " nanoslices." << std::endl;
 	//std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice0 = microSlice->nanoSlice(0);
 	lbne::TpcNanoSlice::Header::nova_timestamp_t Timestamp = microSlice->nanoSlice(0)->nova_timestamp();
+	//std::cout << "Getting new timestamp " << Timestamp << std::endl;
 	if (!FirstMicro && chan%128==0) {
-	  std::cout << "Channel " << chan << ", microslice " << i_micro << ", nanoslice 0 has timestamp " << (int)Timestamp << std::endl;
+	  std::cout << "Channel " << chan << ", microslice " << i_micro << ", nanoslice 0 has timestamp " << Timestamp
+		    << ". nanoslice 1 has timestamp " << microSlice->nanoSlice(1)->nova_timestamp() << std::endl;
 	  FirstMicro=true;
 	}
 	if (!TimestampSet || Timestamp < firstTimestamp) {
-	  std::cout << "!!!Resetting timestamp from " << (int)firstTimestamp << " to " << (int)Timestamp << " on Chan " << chan << ",Micro " << i_micro << "!!!" << std::endl;
+	  std::cout << "!!!Resetting timestamp from " << firstTimestamp << " to " << Timestamp << " on Chan " << chan << ",Micro " << i_micro << "!!!" << std::endl;
 	  firstTimestamp = Timestamp;
 	  TimestampSet = true;
 	}
