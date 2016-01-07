@@ -85,8 +85,9 @@ DAQToOffline::SSPToOffline::SSPToOffline(fhicl::ParameterSet const & pset)
 
   this->reconfigure(pset);
 
-  produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);  
-
+  //produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);
+  produces< std::vector<recob::OpHit> > (fOutputDataLabel);
+  
   //first_FirstSample = -1;
   //first_TimeStamp = -1;
 }
@@ -127,8 +128,10 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
   try { rawFragments->size(); }
   catch(std::exception e) {
     mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << evt.event();
-    std::vector<raw::OpDetWaveform> waveforms;
-    evt.put(std::make_unique<std::vector<raw::OpDetWaveform>>(std::move(waveforms)), fOutputDataLabel);
+    //std::vector<raw::OpDetWaveform> empty_waveforms;
+    //evt.put(std::make_unique<std::vector<raw::OpDetWaveform>>(std::move(waveforms)), fOutputDataLabel);
+    std::vector<recob::OpHit> empty_hits;
+    evt.put(std::make_unique<std::vector<recob::OpHit>>(std::move(empty_hits)), fOutputDataLabel);
     return;
   }
 
@@ -142,10 +145,10 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto waveforms = SSPFragmentToOpDetWaveform(*rawFragments, fNOvAClockFrequency, theChannelMap);
-
-  evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
-
+  //auto waveforms = sspReformSSPFragmentToOpDetWaveform(*rawFragments);
+  //evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
+  auto hits = sspReform.SSPHeaderToOpHit(*rawFragments);
+  evt.put(std::make_unique<decltype(hits)>(std::move(hits)), fOutputDataLabel);
 
 }
 
