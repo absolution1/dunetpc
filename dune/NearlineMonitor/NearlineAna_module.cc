@@ -37,6 +37,9 @@
 //dunetpc
 #include "dune/daqinput35t/tpcFragmentToRawDigits.h" //JPD - For online channel map
 
+const int NearlineMinorVersion=1;
+const int NearlineMajorVersion=0;
+
 namespace nearline {
   class NearlineAna;
 }
@@ -104,6 +107,9 @@ private:
   unsigned long long int fStartTime;
   unsigned long long int fEndTime;
 
+  //Histogram to store the 
+  TH1I* fHistNearlineVersion;
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,8 +140,6 @@ nearline::NearlineAna::NearlineAna(fhicl::ParameterSet const & p)
     logInfo << "NearlineAna" << "\n";
   }
   reconfigure(p);
-
-  //build channel map
 
   printConfig();
 
@@ -231,6 +235,14 @@ void nearline::NearlineAna::beginJob(){
   fHeader->Branch("EndMonth",&fEndMonth);
   fHeader->Branch("EndDay",&fEndDay);
   fHeader->Branch("EndHour",&fEndHour);
+
+  // Set Nearline Version Number
+  fHistNearlineVersion = tfs->make<TH1I>("hist_nearline_version", "hist_nearline_version", 2, 0, 2);
+  fHistNearlineVersion->GetXaxis()->SetBinLabel(1,"NearlineMinorVersion");
+  fHistNearlineVersion->GetXaxis()->SetBinLabel(2,"NearlineMajorVersion");
+  fHistNearlineVersion->SetBinContent(1, NearlineMinorVersion);
+  fHistNearlineVersion->SetBinContent(2, NearlineMajorVersion);
+  
 
   if(fMakePedestalPerEventPlots) makePedestalPerEventPlots();
   if(fMakePedestalPerTickPlots) makePedestalPerTickPlots();
@@ -445,7 +457,7 @@ void nearline::NearlineAna::fillPedestalPerEventPlots(art::Event const & e){
       if(this_channel!=channel) continue; 
 
       //DEBUG 
-      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << this_channel << "/" << fPedestalPerEventChannels.at(index) << ")\n";
+      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerEventChannels.at(index) << "/" << fChannelMap.at(fPedestalPerEventChannels.at(index)) << ")\n";
 
       auto numSamples = digitVec->Samples();
       auto compression = digitVec->Compression();
@@ -506,7 +518,7 @@ void nearline::NearlineAna::fillPedestalPerTickPlots(art::Event const & e){
       if(this_channel!=channel) continue; 
 
       //DEBUG 
-      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << this_channel << "/" << fPedestalPerTickChannels.at(index) << ")\n";
+      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerTickChannels.at(index) << "/" << fChannelMap.at(fPedestalPerTickChannels.at(index)) << ")\n";
 
       auto numSamples = digitVec->Samples();
       auto compression = digitVec->Compression();
