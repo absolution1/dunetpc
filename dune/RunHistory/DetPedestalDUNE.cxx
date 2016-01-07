@@ -15,6 +15,7 @@ namespace dune {
     fMeanErrMap.clear();
     fRmsErrMap.clear();
     fUseDB = false;
+    fUseDefaults = false;
   }
 
   //------------------------------------------------------------
@@ -120,13 +121,15 @@ namespace dune {
   
   //------------------------------------------------------------
 
-  float DetPedestalDUNE::PedMean(raw::ChannelID_t ch) const { 
-    if (fUseDefaults)
+  float DetPedestalDUNE::PedMean(raw::ChannelID_t ch) const {
+    if (fUseDefaults) {
       return fDefaultMean;
+    }
     if (fVldTime == 0) {
       std::cerr << "DetPedestalDUNE: Validity time is not set!  Aborting." << std::endl;
       abort();
     }
+
     float retVal=-1.;
     auto it = fMeanMap.find(ch);
     if (it != fMeanMap.end())
