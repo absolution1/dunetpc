@@ -2,7 +2,7 @@
 art_make( BASENAME_ONLY
           MODULE_LIBRARIES Geometry
 	                dune_Geometry
-			Geometry_service
+			larcore_Geometry_Geometry_service
 	                Utilities
 			Filters
 			RawData

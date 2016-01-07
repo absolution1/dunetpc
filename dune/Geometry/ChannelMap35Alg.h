@@ -17,8 +17,8 @@
 #include <vector>
 #include <set>
 
-#include "SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "Geometry/ChannelMapAlg.h"
+#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
+#include "larcore/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/GeoObjectSorter35.h"
 #include "fhiclcpp/ParameterSet.h"
 

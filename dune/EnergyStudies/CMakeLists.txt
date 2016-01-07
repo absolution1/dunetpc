@@ -1,6 +1,6 @@
 
 simple_plugin(dunezsanalysis "module"
-			Geometry_service
+			larcore_Geometry_Geometry_service
                         Geometry
 			RawData
                         ${SIMULATIONBASE}
@@ -20,7 +20,7 @@ simple_plugin(dunezsanalysis "module"
 )
 
 simple_plugin(dEdx "module"
-                        Geometry_service
+                        larcore_Geometry_Geometry_service
                         Geometry
                         RawData
                         RecoBase
@@ -46,8 +46,8 @@ simple_plugin(EMEnergyCalib "module"
 		        RawData
 		        RecoBase
 		        Geometry
-			Geometry_service
-			BackTracker_service
+			larcore_Geometry_Geometry_service
+			larsim_MCCheater_BackTracker_service
 			Simulation
 			Utilities
 			${SIMULATIONBASE}
@@ -70,8 +70,8 @@ simple_plugin(EMPi0Energy "module"
 		        RawData
 		        RecoBase
 		        Geometry
-			Geometry_service
-			BackTracker_service
+			larcore_Geometry_Geometry_service
+			larsim_MCCheater_BackTracker_service
 			Simulation
 			Utilities
 			${SIMULATIONBASE}

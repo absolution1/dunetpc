@@ -4,7 +4,7 @@ simple_plugin(CFilter "module"
 		      RecoBase
 		      dune_Geometry
 		        Geometry
-			Geometry_service
+			larcore_Geometry_Geometry_service
 			Utilities
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}

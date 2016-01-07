@@ -1,9 +1,9 @@
 
-set( dune_util_lib_list LArFFT_service
-                        DetectorPropertiesServiceStandard_service
-                        LArPropertiesServiceStandard_service
+set( dune_util_lib_list lardata_Utilities_LArFFT_service
+                        lardata_DetectorInfoServices_DetectorPropertiesServiceStandard_service
+                        lardata_DetectorInfoServices_LArPropertiesServiceStandard_service
 			Geometry
-			Geometry_service
+			larcore_Geometry_Geometry_service
 			Utilities
   			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

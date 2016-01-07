@@ -7,8 +7,8 @@
 
 
 //larsoft includes
-#include "RawData/raw.h"
-#include "RawData/OpDetWaveform.h"
+#include "lardata/RawData/raw.h"
+#include "lardata/RawData/OpDetWaveform.h"
 
 // lbne-raw-data includes
 #include "lbne-raw-data/Overlays/SSPFragment.hh"

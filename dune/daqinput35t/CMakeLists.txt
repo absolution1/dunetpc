@@ -12,7 +12,7 @@ art_make(BASENAME_ONLY
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
 	${Boost_SYSTEM_LIBRARY}
-	Geometry_service
+	larcore_Geometry_Geometry_service
 	Geometry
 	lbne_daqinput35t_utilities 
 	lbne-raw-data_Overlays
@@ -22,7 +22,7 @@ art_make(BASENAME_ONLY
 
 simple_plugin(TpcMilliSliceDump "module"
 lbne-raw-data_Overlays
-Geometry_service
+larcore_Geometry_Geometry_service
 Geometry
 RawData
 ${SIMULATIONBASE}
@@ -44,7 +44,7 @@ ${ROOT_HIST}
 
 simple_plugin(SSPDump "module"
 lbne-raw-data_Overlays
-Geometry_service
+larcore_Geometry_Geometry_service
 Geometry
 RawData
 ${SIMULATIONBASE}
@@ -56,7 +56,7 @@ ${ROOT_HIST}
 
 simple_plugin(SSPToOffline "module"
 lbne-raw-data_Overlays
-Geometry_service
+larcore_Geometry_Geometry_service
 Geometry
 lbne_daqinput35t
 RawData
@@ -66,7 +66,7 @@ ${MF_MESSAGELOGGER}
 
 simple_plugin(PTBToOffline "module"
 lbne-raw-data_Overlays
-Geometry_service
+larcore_Geometry_Geometry_service
 Geometry
 lbne_daqinput35t
 RawData
@@ -76,7 +76,7 @@ ${MF_MESSAGELOGGER}
 
 simple_plugin(SSPTriggerAna "module"
 lbne-raw-data_Overlays
-Geometry_service
+larcore_Geometry_Geometry_service
 Geometry
 lbne_daqinput35t
 RawData
@@ -88,7 +88,7 @@ simple_plugin(TpcDAQToOffline "module"
 lbne-raw-data_Overlays
 lbne_daqinput35t_utilities
 lbne_daqinput35t
-Geometry_service
+larcore_Geometry_Geometry_service
 Geometry
 RawData
 )

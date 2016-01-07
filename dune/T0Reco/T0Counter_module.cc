@@ -18,10 +18,10 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "RawData/ExternalTrigger.h"
-#include "AnalysisBase/T0.h"
-#include "DetectorInfoServices/DetectorClocksService.h"
-#include "Utilities/AssociationUtil.h"
+#include "lardata/RawData/ExternalTrigger.h"
+#include "lardata/AnalysisBase/T0.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardata/Utilities/AssociationUtil.h"
 
 #include <memory>
 #include <map>

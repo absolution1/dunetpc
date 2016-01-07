@@ -7,11 +7,11 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "dune/Geometry/GeoObjectSorterAPA.h"
-#include "Geometry/AuxDetGeo.h"
-#include "Geometry/CryostatGeo.h"
-#include "Geometry/TPCGeo.h"
-#include "Geometry/PlaneGeo.h"
-#include "Geometry/WireGeo.h"
+#include "larcore/Geometry/AuxDetGeo.h"
+#include "larcore/Geometry/CryostatGeo.h"
+#include "larcore/Geometry/TPCGeo.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "larcore/Geometry/WireGeo.h"
 
 namespace geo{
 

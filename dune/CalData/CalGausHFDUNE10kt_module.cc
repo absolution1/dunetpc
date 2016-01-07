@@ -31,14 +31,14 @@
 #include "cetlib/exception.h"
 
 #include "dune/Utilities/SignalShapingServiceDUNE10kt.h"
-#include "SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "Geometry/Geometry.h"
-#include "Filters/ChannelFilter.h"
-#include "RawData/RawDigit.h"
-#include "RawData/raw.h"
-#include "RecoBase/Hit.h"
-#include "RecoBaseArt/HitCreator.h"
-#include "Utilities/LArFFT.h"
+#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
+#include "larcore/Geometry/Geometry.h"
+#include "larevt/Filters/ChannelFilter.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/raw.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBaseArt/HitCreator.h"
+#include "lardata/Utilities/LArFFT.h"
 
 // ROOT Includes 
 #include "TH1D.h"

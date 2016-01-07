@@ -2,15 +2,15 @@
 #define DbigEVD4_Module
 
 // LArSoft includes
-#include "DetectorInfoServices/DetectorPropertiesService.h"
-#include "Simulation/SimChannel.h"
-#include "Simulation/LArG4Parameters.h"
-#include "RecoBase/Hit.h"
-#include "RecoBase/Cluster.h"
-#include "Geometry/Geometry.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larsim/Simulation/SimChannel.h"
+#include "larsim/Simulation/LArG4Parameters.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBase/Cluster.h"
+#include "larcore/Geometry/Geometry.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
-#include "SimpleTypesAndConstants/geo_types.h"
+#include "larcore/SimpleTypesAndConstants/geo_types.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"

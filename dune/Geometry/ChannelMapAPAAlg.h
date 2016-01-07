@@ -13,8 +13,8 @@
 #include <set>
 
 #include "cetlib/exception.h"
-#include "SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "Geometry/ChannelMapAlg.h"
+#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
+#include "larcore/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
 
 #include "fhiclcpp/ParameterSet.h"

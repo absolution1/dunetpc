@@ -3,10 +3,10 @@ simple_plugin(AnaTree "module"
 		      RawData
 		      RecoBase
 		        Geometry
-			Geometry_service
+			larcore_Geometry_Geometry_service
 			Utilities
-			DetectorPropertiesServiceStandard_service
-			DetectorClocksServiceStandard_service
+			lardata_DetectorInfoServices_DetectorPropertiesServiceStandard_service
+			lardata_DetectorInfoServices_DetectorClocksServiceStandard_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

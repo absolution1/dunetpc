@@ -16,10 +16,10 @@
 #include "art/Persistency/Provenance/EventAuxiliary.h"
 
 //Pedestal stuff...
-#include "CalibrationDBI/Interface/DetPedestalService.h"
-#include "CalibrationDBI/Interface/DetPedestalProvider.h"
-#include "CalibrationDBI/Interface/ChannelStatusService.h"
-#include "CalibrationDBI/Interface/ChannelStatusProvider.h"
+#include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
+#include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 //#include "dune/RunHistory/DetPedestalDUNE.h"
 
 //#include <iostream>
@@ -28,8 +28,8 @@
 #include "artdaq-core/Data/Fragments.hh"
 
 // lardata
-#include "RawData/RawDigit.h"
-#include "RawData/ExternalTrigger.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/ExternalTrigger.h"
 
 // dune
 #include "tpcFragmentToRawDigits.h"

@@ -12,7 +12,7 @@
 
 // larsoft includes
 
-#include "Geometry/Geometry.h"
+#include "larcore/Geometry/Geometry.h"
 
 // lbne-raw-data includes
 #include "lbne-raw-data/Overlays/SSPFragment.hh"

@@ -1,6 +1,6 @@
 
 simple_plugin(RawEVD "module"
-			Geometry_service
+			larcore_Geometry_Geometry_service
                         Geometry
 			RawData
                         ${SIMULATIONBASE}
@@ -20,7 +20,7 @@ simple_plugin(RawEVD "module"
 )
 
 simple_plugin(RawEVD35t "module"
-			Geometry_service
+			larcore_Geometry_Geometry_service
                         Geometry
 			RawData
                         ${SIMULATIONBASE}
@@ -40,7 +40,7 @@ simple_plugin(RawEVD35t "module"
 )
 
 simple_plugin(MuonOccupancy "module"
-			Geometry_service
+			larcore_Geometry_Geometry_service
                         Geometry
 			RawData
 			dune_Geometry
