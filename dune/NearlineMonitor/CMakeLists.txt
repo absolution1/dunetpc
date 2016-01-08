@@ -42,5 +42,10 @@ simple_plugin(NearlineAna "module"
                            BASENAME_ONLY
 )
 
+art_make_exec( NearlineSummariser  
+               SOURCE NearlineSummariser.cxx
+               LIBRARIES ${ROOT_BASIC_LIB_LIST}
+)
+
 install_fhicl()
 
