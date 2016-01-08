@@ -548,6 +548,8 @@ namespace DAQToOffline {
 
     std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
 	       std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
+
+    std::map<uint16_t, std::map <size_t, std::pair<float,float> > > AllPedMap;
   };
 }
 
@@ -654,6 +656,8 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
   art::SubRunNumber_t TreeSubRunNumber; uint16_t IntSubRunNumber;
   art::EventNumber_t TreeEventNumber; uint32_t IntEventNumber;
   uint64_t CombinedInt;
+
+  art::RunNumber_t PrevRunNumber = -1;
   for (size_t Tree=1; Tree < nInputEvts_; ++Tree) {
     EventAuxBranch_->GetEntry(Tree); TreeRunNumber = evAux_.run(); //Get the run number
     IntRunNumber    = (int)TreeRunNumber; TreeSubRunNumber = evAux_.subRun(); IntSubRunNumber = (int)TreeSubRunNumber; //Get the subrun number
@@ -661,6 +665,23 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
     CombinedInt = (uint64_t) IntRunNumber << 16 | IntSubRunNumber << 16 | IntEventNumber; // Combine them as a 64 bit int.
     //std::cout << "Looking at Tree " << Tree << ", RunNumber " << IntRunNumber << ", SubRunNumber " << IntSubRunNumber << ", EventNumber " << IntEventNumber << ", CrazyNumber " << CombinedInt << std::endl;
     EventTreeMap[CombinedInt] = Tree; // Add that to a tree - use the fact that this will sort them by Run, Subrun, Event.
+  
+    art::RunNumber_t ThisNumber = evAux_.run();;
+    if (ThisNumber != PrevRunNumber ) {
+      if ( evAux_.isRealData() ) { // If real data subtract pedestal conditions
+	dune::DetPedestalDUNE pedestals("dune35t");
+	pedestals.SetDetName("dune35t");
+	pedestals.SetUseDB(true);
+	pedestals.SetUseDefaults(false);
+	pedestals.Update(ThisNumber);
+	for (size_t ichan=0;ichan<2048;ichan++) {
+	  AllPedMap[ThisNumber][ichan].first  = pedestals.PedMean(ichan);
+	  AllPedMap[ThisNumber][ichan].second = pedestals.PedMeanErr(ichan);
+	  //std::cout << "AllPedMap["<<ThisNumber<<"]["<<ichan<<"] has mean " << pedestals.PedMean(ichan) << " (" << AllPedMap[ThisNumber][ichan].first << ") and error " << pedestals.PedMeanErr(ichan) << " (" << AllPedMap[ThisNumber][ichan].second << "). " << std::endl;
+	}
+	PrevRunNumber = ThisNumber;
+      }
+    }
   }
   
   // New fileblock
@@ -847,18 +868,6 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     eventNumber_ = 0ul;
   }
 
-  std::map<size_t, std::pair<float,float> > PedMap;
-  if ( evAux_.isRealData() ) { // If real data subtract pedestal conditions
-    dune::DetPedestalDUNE pedestals("dune35t");
-    pedestals.SetDetName("dune35t");
-    pedestals.SetUseDB(true);
-    pedestals.Update(runNumber_);
-    for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
-      PedMap[ichan].first  = pedestals.PedMean(ichan);
-      PedMap[ichan].second = pedestals.PedMeanErr(ichan);
-    }
-  }
-
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
     // ****** Now to subtract the pedestals.... ********
     // Check if good channel? Done in uBoone code.
@@ -874,15 +883,17 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	       //,loadedDigits_.digits[ichan].Compression()
 	       );
     if (evAux_.isRealData() ) //If looking at real data!
-      d.SetPedestal(PedMap[ichan].first,
-		    PedMap[ichan].second);
+      d.SetPedestal(AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].first,
+		    AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].second );
     else //If looking at Truth
       d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
 		    loadedDigits_.digits[ichan].GetSigma() );
-    //std::cout << "digit[0] corresponding to channel " << d.Channel() << " has ADC value " << d.ADC(0) << ", pedestal " << d.GetPedestal() << ", and sigma " << d.GetSigma() << std::endl;
+    //std::cout << "digit[0] corresponding to channel " << d.Channel() << " ("<<ichan<<") has ADC value " << d.ADC(0)
+    //	      << ", pedestal "<<d.GetPedestal()<<" ["<<AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].first <<"],"
+    //	      << " and sigma "<<d.GetSigma()   <<" ["<<AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].second<<"]."
+    //	      << std::endl;
     bufferedDigits_.emplace_back(d);
   }
-  
   // ******** Now Build the event *********
   makeEventAndPutDigits_( outE );
   
