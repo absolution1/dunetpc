@@ -112,13 +112,13 @@ void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
 void DAQToOffline::SSPToOffline::printParameterSet(){
 
   mf::LogDebug("SSPToOffline") << "===================================="   << "\n"
-			       << "Parameter Set"                          << "\n"
-			       << "===================================="   << "\n"
-			       << "fFragType:        " << fFragType        << "\n"
-			       << "fRawDataLabel:    " << fRawDataLabel    << "\n"
-			       << "fOutputDataLabel: " << fOutputDataLabel << "\n"
-			       << "fChannelMapFile:  " << fChannelMapFile  << "\n"
-			       << "===================================="   << "\n";
+                               << "Parameter Set"                          << "\n"
+                               << "===================================="   << "\n"
+                               << "fFragType:        " << fFragType        << "\n"
+                               << "fRawDataLabel:    " << fRawDataLabel    << "\n"
+                               << "fOutputDataLabel: " << fOutputDataLabel << "\n"
+                               << "fChannelMapFile:  " << fChannelMapFile  << "\n"
+                               << "===================================="   << "\n";
 }
 
 
@@ -141,9 +141,9 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
   // Check that the data is valid
   if(!rawFragments.isValid()){
     mf::LogError("SSPToOffline") << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event()
-				 << " is NOT VALID";
+                                 << ", SubRun: " << evt.subRun()
+                                 << ", Event: " << evt.event()
+                                 << " is NOT VALID";
     throw cet::exception("raw NOT VALID");
     return;
   }
