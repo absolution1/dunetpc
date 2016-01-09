@@ -34,13 +34,13 @@
 using namespace std;
 
 //
-// Define global variables to be used in AnaPlotMkr.C
+// Define global variables to be used in NearlinePlotMaker.C
 //
 
 ifstream inFile;
 
-TDatime *TNowGMT;  // current GMT time
-TDatime *TNow;  // current local time
+TDatime *TNowGMT; // current GMT time
+TDatime *TNow;    // current local time
 TDatime *SRtime;
 Int_t GMToffset;
 
