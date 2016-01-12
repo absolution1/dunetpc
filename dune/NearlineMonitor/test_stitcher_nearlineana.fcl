@@ -1,7 +1,6 @@
 #include "services_dune.fcl"
 #include "hitfindermodules_dune.fcl"
-#include "TpcDAQToOffline.fcl"
-#include "SSPToOffline.fcl"
+#include "standard_nearline35t.fcl"
 
 process_name: NearlineAna
 
@@ -15,30 +14,7 @@ services:
   user:         @local::dune35t_services
 }
 
-source:
-{
-  module_type: SplitterInput
-  firstEvent : 1
-  maxEvents:  100
-  posttriggerticks:  10000
-  pretriggerticks:   0
-# should be 0.5 for MC and 32 for data.                                                                              
-  novatickspertpctick: 32
-  TimeStampThreshold:  5.
-  # trigger below is to start window when TPC payload appears (not just headers from RCEs.)                            
-  MCTrigLevel:  0
-  whichTrigger: 5
-  ADCdiffThreshold:  50
-  ADCsOverThreshold: 100
-  TrigSeparation:   10000
-  TPCInputTag : "daq:TPC:DAQ"
-  TPCInputDataProduct : "artdaq::Fragment"
-  SSPInputTag : "daq:PHOTON:DAQ"
-  SSPInputDataProduct : "artdaq::Fragment"
-  PennInputTag : "daq:TRIGGER:DAQ"
-  PennInputDataProduct : "artdaq::Fragment"
-  NOvAClockFrequency : 64.0 # MHz
-}
+source: @local::standard_nearlinesplitter
 
 physics:
 {
@@ -49,9 +25,7 @@ physics:
 
     analyzers:
     {
-        nearlineana:{
-          module_type: NearlineAna
-        }
+        nearlineana: @local::standard_nearlineana
     }
 
     hitfinding:   [ fasthit ]

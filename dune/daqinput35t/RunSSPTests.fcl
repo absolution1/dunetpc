@@ -16,19 +16,21 @@ physics:
 {
   producers:
   {
-    ssptooffline: @local::ssp_to_offline    
+    ssptooffline: @local::ssp_to_offline
+    opflash:      @local::dune35t_opflash_data  
   }
 
   analyzers:
   {
     opdigiana:       @local::dune35t_opdigiana_data  
     averagewaveform: @local::dune35t_averagewaveform_data
-    ssptriggerana:   @local::ssp_trigger_ana  
+    ssptriggerana:   @local::ssp_trigger_ana
+    opflashana:      @local::dune35t_opflashana  
   }
 
   #Create path to run module
-  produce: [ ssptooffline ]
-  analyze: [ averagewaveform, ssptriggerana ]
+  produce: [ ssptooffline, opflash ]
+  analyze: [ averagewaveform, ssptriggerana, opflashana ]
   output:  [  ]
 
   trigger_paths : [ produce ]
@@ -36,7 +38,7 @@ physics:
 }
 
 
-physics.producers.ssptooffline.OpDetChannelMapFile: ""
+#physics.producers.ssptooffline.OpDetChannelMapFile: ""
 
 source:
 {

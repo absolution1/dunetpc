@@ -307,7 +307,6 @@ void nearline::NearlineAna::endJob(){
   if(fWritePedestalPerTickFile) writePedestalPerTickSummaryFile(fPedestalPerTickFileName);
 
 
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -328,7 +327,7 @@ void nearline::NearlineAna::analyze(art::Event const & e)
   fSubrun = subrun;
 
   // Don't assume first/last events are coorelated with start/end times...
-  if(time < fStartTime)        fStartTime = time;
+  if(time < fStartTime && e.time() != art::Timestamp::invalidTimestamp())        fStartTime = time;
   if((int)event < fFirstEvent) fFirstEvent = event;
   if(time > fEndTime)          fEndTime = time;
   if((int)event > fLastEvent)  fLastEvent = event;
@@ -444,8 +443,6 @@ void nearline::NearlineAna::fillPedestalPerEventPlots(art::Event const & e){
   size_t numDigitChans = getRawDigits(e, digitHandle);
 
   //Loop through the vector of rawDigits and pick out channels that match our list of channels
-  //DEBUG
-  if(numDigitChans > 0) logInfo << "JPD" << "\n";
 
   for(size_t rdIter=0;rdIter<numDigitChans;rdIter++){
     art::Ptr<raw::RawDigit> digitVec(digitHandle, rdIter);
@@ -505,8 +502,6 @@ void nearline::NearlineAna::fillPedestalPerTickPlots(art::Event const & e){
   size_t numDigitChans = getRawDigits(e, digitHandle);
 
   //Loop through the vector of rawDigits and pick out channels that match our list of channels
-  //DEBUG
-  if(numDigitChans > 0) logInfo << "JPD" << "\n";
 
   for(size_t rdIter=0;rdIter<numDigitChans;rdIter++){
     art::Ptr<raw::RawDigit> digitVec(digitHandle, rdIter);

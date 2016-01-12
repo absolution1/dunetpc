@@ -34,7 +34,7 @@
 
 // dune
 #include "tpcFragmentToRawDigits.h"
-#include "SSPFragmentToOpDetWaveform.h"
+#include "SSPReformatterAlgs.h"
 #include "PennToOffline.h"
 
 // C++ 
@@ -503,6 +503,7 @@ namespace DAQToOffline {
     int                    fDiffFromLastTrig = 0;
 
     lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp=0;
+    lbne::TpcNanoSlice::Header::nova_timestamp_t Event_timestamp=0;
     lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp=0;
     lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp=0;
     lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp=0;
@@ -519,7 +520,7 @@ namespace DAQToOffline {
 
     bool loadDigits_( size_t &InputTree );
 
-    void makeEventAndPutDigits_( art::EventPrincipal*& outE );
+    void makeEventAndPutDigits_( art::EventPrincipal*& outE, art::Timestamp art_timestamp=0);
 
     void Reset();
 
@@ -548,6 +549,8 @@ namespace DAQToOffline {
 
     std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
 	       std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
+
+    std::map<uint16_t, std::map <size_t, std::pair<float,float> > > AllPedMap;
   };
 }
 
@@ -654,6 +657,8 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
   art::SubRunNumber_t TreeSubRunNumber; uint16_t IntSubRunNumber;
   art::EventNumber_t TreeEventNumber; uint32_t IntEventNumber;
   uint64_t CombinedInt;
+
+  art::RunNumber_t PrevRunNumber = -1;
   for (size_t Tree=1; Tree < nInputEvts_; ++Tree) {
     EventAuxBranch_->GetEntry(Tree); TreeRunNumber = evAux_.run(); //Get the run number
     IntRunNumber    = (int)TreeRunNumber; TreeSubRunNumber = evAux_.subRun(); IntSubRunNumber = (int)TreeSubRunNumber; //Get the subrun number
@@ -661,6 +666,23 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
     CombinedInt = (uint64_t) IntRunNumber << 16 | IntSubRunNumber << 16 | IntEventNumber; // Combine them as a 64 bit int.
     //std::cout << "Looking at Tree " << Tree << ", RunNumber " << IntRunNumber << ", SubRunNumber " << IntSubRunNumber << ", EventNumber " << IntEventNumber << ", CrazyNumber " << CombinedInt << std::endl;
     EventTreeMap[CombinedInt] = Tree; // Add that to a tree - use the fact that this will sort them by Run, Subrun, Event.
+  
+    art::RunNumber_t ThisNumber = evAux_.run();;
+    if (ThisNumber != PrevRunNumber ) {
+      if ( evAux_.isRealData() ) { // If real data subtract pedestal conditions
+	dune::DetPedestalDUNE pedestals("dune35t");
+	pedestals.SetDetName("dune35t");
+	pedestals.SetUseDB(true);
+	pedestals.SetUseDefaults(false);
+	pedestals.Update(ThisNumber);
+	for (size_t ichan=0;ichan<2048;ichan++) {
+	  AllPedMap[ThisNumber][ichan].first  = pedestals.PedMean(ichan);
+	  AllPedMap[ThisNumber][ichan].second = pedestals.PedMeanErr(ichan);
+	  //std::cout << "AllPedMap["<<ThisNumber<<"]["<<ichan<<"] has mean " << pedestals.PedMean(ichan) << " (" << AllPedMap[ThisNumber][ichan].first << ") and error " << pedestals.PedMeanErr(ichan) << " (" << AllPedMap[ThisNumber][ichan].second << "). " << std::endl;
+	}
+	PrevRunNumber = ThisNumber;
+      }
+    }
   }
   
   // New fileblock
@@ -683,11 +705,13 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     return false;
   }
   
-  first_timestamp = last_timestamp = this_timestamp = prev_timestamp = 0;
+  first_timestamp = Event_timestamp = last_timestamp = this_timestamp = prev_timestamp = 0;
   double FirstDigIndex;
   size_t FirstDigTree;
-  bool first_tick = true; // The earliest time in this new split event, so want to calculate time of this for use with first_timestamp variable only!
-  bool NewTree;
+  bool   first_tick = true; // The earliest time in this new split event, so want to calculate time of this for use with first_timestamp variable only!
+  bool   NewTree;
+  bool   JumpEvent = false;
+  size_t JumpNADC  = 0;
 
   std::map<int,int> PrevChanADC;
   
@@ -727,32 +751,52 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       first_tick = true; // Just loaded in new event, so want to reset first_timestamp...doesn't effect previous loaded event.
       first_timestamp=0, last_timestamp=0; // Want to reset the timestamps.
       // ******* Check that the time stamps lead on from one another!! ***********
-      if (fTrigger && loadedDigits_.digits[0].NADC() != 0) {
-	int StampDiff = (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) - (int)prev_timestamp;
-	std::cout << "\n" << StampDiff << " = " << (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) << " - " << (int)prev_timestamp << std::endl;
-	if ( fabs(StampDiff) > fTimeStampThreshold_ ) { // Timestamps of old and new file too far apart. So want to clear all previously loaded event.
-	  std::cout << "\nThe absolute gap between timestamps is " << fabs(StampDiff) << " which is more than the threshold " << fTimeStampThreshold_ << std::endl;
-	  bool fixed = false;
-	  if ( StampDiff < 0 ) { // got overlapping timestamps.
-	    std::cout << "Stamp diff is negative...need to figure out how to try and fix..." << std::endl;
-	    //fixed = true;
-	  } else {
-	    std::cout << "Stamp diff is positive...need to figure out how to try and fix..." << std::endl;
-	    //fixed=true;
-	  }
-	  if (!fixed) {
-	    std::cout << "\nCan't reconcile the timestamps, so voiding this trigger :( \n" << std::endl;
-	    Reset();
-	    loadedDigits_.index = 0;
-	    this_timestamp      = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
-	    fLastTriggerIndex = 0;
-	  } else std::cout << "\nRectified the timestamps, carry on building event :D\n" << std::endl;
-	} else std::cout << "\nTimestamps lead on from each other, carry on :)\n" << std::endl;
+      if ( loadedDigits_.digits[0].NADC() != 0) {
+	bool NewEvent = true;
+	for (unsigned int GoodEvSize = 0; GoodEvSize < GoodEvents.size(); ++GoodEvSize ) {
+	  if (GoodEvents[GoodEvSize].first == treeIndex_-1 ) NewEvent = false;
+	}
+	if (NewEvent) {
+	  //std::cout << "Adding a new event to goodEvents" << std::endl;
+	  GoodEvents.push_back( std::make_pair(treeIndex_-1,loadedDigits_.digits[0].NADC()) );
+	}
+	if (fTrigger ) {
+	  int StampDiff = (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) - (int)prev_timestamp;
+	  std::cout << "\n" << StampDiff << " = " << (int)loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_) << " - " << (int)prev_timestamp << std::endl;
+	  if ( fabs(StampDiff) > fTimeStampThreshold_ ) { // Timestamps of old and new file too far apart. So want to clear all previously loaded event.
+	    std::cout << "\nThe absolute gap between timestamps is " << fabs(StampDiff) << " which is more than the threshold " << fTimeStampThreshold_ << std::endl;
+	    bool fixed = false;
+	    if ( StampDiff < 0 ) { // got overlapping timestamps.
+	      std::cout << "Stamp diff is negative...need to figure out how to try and fix..." << std::endl;
+	      //fixed = true;
+	    } else {
+	      std::cout << "Stamp diff is positive...need to figure out how to try and fix..." << std::endl;
+	      //fixed=true;
+	    }
+	    if (!fixed) {
+	      std::cout << "\nCan't reconcile the timestamps, so voiding this trigger :( \n" << std::endl;
+	      Reset();
+	      loadedDigits_.index = pretriggerticks_;
+	      if (pretriggerticks_ > loadedDigits_.digits[0].NADC() ) {
+		JumpEvent = true;
+		JumpNADC  = loadedDigits_.digits[0].NADC();
+	      }
+	      fDiffFromLastTrig   = pretriggerticks_;
+	      this_timestamp      = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
+	      fLastTriggerIndex = 0;
+	    } else std::cout << "\nRectified the timestamps, carry on building event :D\n" << std::endl;
+	  } else std::cout << "\nTimestamps lead on from each other, carry on :)\n" << std::endl;
+	}
+	// ******* Check that the time stamps lead on from one another!! ***********
       }
-      // ******* Check that the time stamps lead on from one another!! ***********
     } // loadedDigits_.empty()
     
     if (NewTree) {
+      if (JumpEvent) {
+	loadedDigits_.index = pretriggerticks_ - JumpNADC;
+	JumpEvent = false;
+	JumpNADC  = 0;
+      }
       std::cout << "Looking at treeIndex " << treeIndex_-1 << ", index " << loadedDigits_.index << ". I have missed " << fDiffFromLastTrig << " ticks since my last trigger at treeIndex " << fLastTreeIndex << ", tick " << fLastTriggerIndex << std::endl;
       // Set my tick position in new event. If have accumulated 0 ticks, then I am at my pretriggerpoint. If have accumulated all my pretrigger ticks, then I am at my T=0.
       // I think I only want to do this with Monte Carlo....
@@ -761,13 +805,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	// I need to figure out how to get negative timestamps in the structs at the top...
 	// With this line commented out the fTickPosAtStart variable is always 0, and so doesn't change anything
       }
-      bool NewEvent = true;
-      for (unsigned int GoodEvSize = 0; GoodEvSize < GoodEvents.size(); ++GoodEvSize ) {
-	if (GoodEvents[GoodEvSize].first == treeIndex_-1 ) NewEvent = false;
-      }
-      if (NewEvent) GoodEvents.push_back( std::make_pair(treeIndex_-1,loadedDigits_.digits[0].NADC()) );
     }
-
     //if (fTrigger) std::cout << "index " << loadedDigits_.index << " " << fTicksAccumulated << " " << prev_timestamp << " " << this_timestamp << std::endl;
     std::vector<short> nextdigits = loadedDigits_.next();
     //if (fTrigger) std::cout << "loaded new index " << std::endl;
@@ -779,12 +817,12 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       Triggering (PrevChanADC, nextdigits, NewTree);
     } // if TickAccumulated == 0
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
-    
     if ( fTrigger ) { // Have triggered!
       if (fTicksAccumulated == 0 ) {
 	FirstDigIndex = loadedDigits_.index;
 	FirstDigTree  = treeIndex_ - 1;
-	std::cout << "\nThe first loadedDigits index in this event is " << loadedDigits_.index << " in treeIndex_ " << treeIndex_-1 << std::endl;
+	Event_timestamp = this_timestamp;
+	std::cout << "\nThe first loadedDigits index in this event is " << loadedDigits_.index << " in treeIndex_ " << treeIndex_-1 << ". It has timestamp " << this_timestamp << std::endl;
       }
       // ************* Work out first and last SSP Timestamp for wbuf_ and cbuf_ ************************
       if (first_tick) // First tick in split event and/or first tick in newly loaded event.
@@ -820,28 +858,20 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   // ************* Set run numbers etc Have to do this before doing pedestal stuff ************************
   runNumber_ = inputRunNumber_;
   subRunNumber_ = inputSubRunNumber_;
-  art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+
+  //art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+  //FIXME - This is a first attempt at interpreting the novatimestamp from the tpc data to create an art event timestamp
+  art::Timestamp this_art_event_timestamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(Event_timestamp);
+
   if ( runNumber_ != cachedRunNumber_ ) {
-    outR = sh_.makeRunPrincipal(runNumber_,ts);
+    outR = sh_.makeRunPrincipal(runNumber_,this_art_event_timestamp);
     cachedRunNumber_ = runNumber_;
     eventNumber_ = 0ul;
   }
   if ( subRunNumber_ != cachedSubRunNumber_ ) {
-    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
+    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,this_art_event_timestamp);
     cachedSubRunNumber_ = subRunNumber_;
     eventNumber_ = 0ul;
-  }
-
-  std::map<size_t, std::pair<float,float> > PedMap;
-  if ( evAux_.isRealData() ) { // If real data subtract pedestal conditions
-    dune::DetPedestalDUNE pedestals("dune35t");
-    pedestals.SetDetName("dune35t");
-    pedestals.SetUseDB(true);
-    pedestals.Update(runNumber_);
-    for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
-      PedMap[ichan].first  = pedestals.PedMean(ichan);
-      PedMap[ichan].second = pedestals.PedMeanErr(ichan);
-    }
   }
 
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
@@ -859,17 +889,19 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	       //,loadedDigits_.digits[ichan].Compression()
 	       );
     if (evAux_.isRealData() ) //If looking at real data!
-      d.SetPedestal(PedMap[ichan].first,
-		    PedMap[ichan].second);
+      d.SetPedestal(AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].first,
+		    AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].second );
     else //If looking at Truth
       d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
 		    loadedDigits_.digits[ichan].GetSigma() );
-    //std::cout << "digit[0] corresponding to channel " << d.Channel() << " has ADC value " << d.ADC(0) << ", pedestal " << d.GetPedestal() << ", and sigma " << d.GetSigma() << std::endl;
+    //std::cout << "digit[0] corresponding to channel " << d.Channel() << " ("<<ichan<<") has ADC value " << d.ADC(0)
+    //	      << ", pedestal "<<d.GetPedestal()<<" ["<<AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].first <<"],"
+    //	      << " and sigma "<<d.GetSigma()   <<" ["<<AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].second<<"]."
+    //	      << std::endl;
     bufferedDigits_.emplace_back(d);
   }
-  
   // ******** Now Build the event *********
-  makeEventAndPutDigits_( outE );
+  makeEventAndPutDigits_( outE, this_art_event_timestamp );
   
   // ******** Reset loadedDigits_.index and TreeIndex_ to where the trigger was *********
   std::cout << "\nMaking an event which triggered on Tree Index " << fLastTreeIndex << ", tick " << fLastTriggerIndex << ".\n"
@@ -974,14 +1006,16 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
 } // load digits
 
 //=======================================================================================
-void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE) {
+void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, art::Timestamp art_timestamp) {
   // just keep incrementing the event number as we split along
   ++eventNumber_;
   
   if ( fwhichTrigger == 0 )
     std::cout << "\n\n\nI hope you know that you are triggering on a random number of ticks and not any sort of data! Check that fwhichTrigger(" << fwhichTrigger << ") is set correctly.\n\n\n" << std::endl;
 
-  outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, art::Timestamp() );
+  std::cout << "Making an event with RunNumber " << runNumber_ << ", subRunNumber " << subRunNumber_ << ", EventNumber " << eventNumber_ << " and art_timestamp " << art_timestamp.value() << std::endl;
+
+  outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, art_timestamp );
   art::put_product_in_principal( std::make_unique<rawDigits_t>(bufferedDigits_),
                                  *outE,
                                  sourceName_,
@@ -1005,7 +1039,7 @@ void DAQToOffline::Splitter::Reset() {
   dbuf_.clear();
   wbuf_.clear();
   cbuf_.clear();
-
+  Event_timestamp = 0;
   fTicksAccumulated = fTickPosAtTreeStart = 0; // No longer have any RCE data...
   fTrigger = false;      // Need to re-decide where to trigger
   fDiffFromLastTrig = 0; // Reset trigger counter.
@@ -1030,26 +1064,25 @@ void DAQToOffline::Splitter::CheckTrigger() {
     lbne::TpcNanoSlice::Header::nova_timestamp_t TrigEvStart = loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, novatickspertpctick_);
     fTrigger = false;
     std::cout << "I don't have enough previous digits :(, I need an extra " << BufferResidual << " ticks from previous events. TrigEvStart = " << (int)TrigEvStart << std::endl;
-
+    
     size_t LoadEv = 0; int    LoadInd = 0;
-    //std::cout << "GoodEvents vector currently has a size " << GoodEvents.size() << " these are the things which are stored in it..." << std::endl;
     //for( size_t el=0; el<GoodEvents.size(); ++el) {
-    //  std::cout << "Tree index " << GoodEvents[el].first << " was a good event, which had " << GoodEvents[el].second << " ADC values." << std::endl;
+    //std::cout << "Tree index " << GoodEvents[el].first << " was a good event, which had " << GoodEvents[el].second << " ADC values." << std::endl;
     //}
     //std::cout << "However, I can only use the events prior to this to go back, so outputting the same thing, but this time not considering this event..." << std::endl;
-    for( size_t el=0; el<(GoodEvents.size()-1); ++el) {
-      //std::cout << "Tree index " << GoodEvents[el].first << " was a good event, which had " << GoodEvents[el].second << " ADC values."
-      //	<< "\nThis means TempBuffer has gone from " << BufferResidual << " to " << BufferResidual-(int)GoodEvents[el].second
+    for ( size_t el=2; el<GoodEvents.size()+1; ++el) {
+      //  std::cout << "Going backwards...Tree index " << GoodEvents[GoodEvents.size()-el].first << " was a good event, which had " << GoodEvents[GoodEvents.size()-el].second << " ADC values."
+      //	<< "\nThis means TempBuffer has gone from " << BufferResidual << " to " << BufferResidual-(int)GoodEvents[GoodEvents.size()-el].second
       //	<< std::endl;
-      if (BufferResidual-(int)GoodEvents[el].second < 0) {
-	std::cout << "I can satisfy the prebuffer on this event at index " << (int)GoodEvents[el].second - BufferResidual << std::endl;
-	LoadEv = GoodEvents[el].first;
-	LoadInd= (int)GoodEvents[el].second - BufferResidual;
+      if (BufferResidual-(int)GoodEvents[GoodEvents.size()-el].second < 0) {
+	std::cout << "I can satisfy the prebuffer on treeIndex " << GoodEvents[GoodEvents.size()-el].first << " at index " << (int)GoodEvents[GoodEvents.size()-el].second - BufferResidual << std::endl;
+	LoadEv = GoodEvents[GoodEvents.size()-el].first;
+	LoadInd= (int)GoodEvents[GoodEvents.size()-el].second - BufferResidual;
 	fTrigger = true;
 	break;
       } else {
-	BufferResidual = BufferResidual-(int)GoodEvents[el].second;
-	std::cout << "Can't quite trigger on this event, need another " << BufferResidual << "ticks." << std::endl;
+	BufferResidual = BufferResidual-(int)GoodEvents[GoodEvents.size()-el].second;
+	std::cout << "Can't quite trigger on treeIndex " << GoodEvents[GoodEvents.size()-el].first << ", need another " << BufferResidual << "ticks." << std::endl;
       }
     }
     if (fTrigger) {
@@ -1079,7 +1112,7 @@ void DAQToOffline::Splitter::CheckTrigger() {
 //===================================================================================================================================
 void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits, bool NewTree) {
   if ( treeIndex_-1 != fLastTreeIndex ) fLastTimeStamp = 0; // No longer looking at same treeIndex as previous trigger, so reset lastTimeStamp
-  if ( (int)this_timestamp - (int)fLastTimeStamp > fTrigSeparation) { // Don't want two triggers too close together!
+  if ( fDiffFromLastTrig >= fTrigSeparation) { // Don't want two triggers too close together!
     // Trigger on Monte Carlo whichTrigger == 0
     if ( fwhichTrigger == 0 ) {
       if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;
