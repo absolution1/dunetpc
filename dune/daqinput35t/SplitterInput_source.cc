@@ -503,6 +503,7 @@ namespace DAQToOffline {
     int                    fDiffFromLastTrig = 0;
 
     lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp=0;
+    lbne::TpcNanoSlice::Header::nova_timestamp_t Event_timestamp=0;
     lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp=0;
     lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp=0;
     lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp=0;
@@ -704,7 +705,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     return false;
   }
   
-  first_timestamp = last_timestamp = this_timestamp = prev_timestamp = 0;
+  first_timestamp = Event_timestamp = last_timestamp = this_timestamp = prev_timestamp = 0;
   double FirstDigIndex;
   size_t FirstDigTree;
   bool   first_tick = true; // The earliest time in this new split event, so want to calculate time of this for use with first_timestamp variable only!
@@ -820,7 +821,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       if (fTicksAccumulated == 0 ) {
 	FirstDigIndex = loadedDigits_.index;
 	FirstDigTree  = treeIndex_ - 1;
-	std::cout << "\nThe first loadedDigits index in this event is " << loadedDigits_.index << " in treeIndex_ " << treeIndex_-1 << std::endl;
+	Event_timestamp = this_timestamp;
+	std::cout << "\nThe first loadedDigits index in this event is " << loadedDigits_.index << " in treeIndex_ " << treeIndex_-1 << ". It has timestamp " << this_timestamp << std::endl;
       }
       // ************* Work out first and last SSP Timestamp for wbuf_ and cbuf_ ************************
       if (first_tick) // First tick in split event and/or first tick in newly loaded event.
@@ -1007,7 +1009,8 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE) 
   if ( fwhichTrigger == 0 )
     std::cout << "\n\n\nI hope you know that you are triggering on a random number of ticks and not any sort of data! Check that fwhichTrigger(" << fwhichTrigger << ") is set correctly.\n\n\n" << std::endl;
 
-  outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, art::Timestamp() );
+  std::cout << "Making an event with RunNumber " << runNumber_ << ", subRunNumber " << subRunNumber_ << ", EventNumber " << eventNumber_ << " and TimeStamp " << Event_timestamp << std::endl;
+  outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, Event_timestamp );
   art::put_product_in_principal( std::make_unique<rawDigits_t>(bufferedDigits_),
                                  *outE,
                                  sourceName_,
@@ -1031,7 +1034,7 @@ void DAQToOffline::Splitter::Reset() {
   dbuf_.clear();
   wbuf_.clear();
   cbuf_.clear();
-
+  Event_timestamp = 0;
   fTicksAccumulated = fTickPosAtTreeStart = 0; // No longer have any RCE data...
   fTrigger = false;      // Need to re-decide where to trigger
   fDiffFromLastTrig = 0; // Reset trigger counter.
