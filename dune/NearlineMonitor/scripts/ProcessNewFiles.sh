@@ -59,13 +59,13 @@ touch /tmp/Batch-35t-Nearline.LOCK
 
 
 # Setup necessary pathways:
-export RelDir=/home/mbaird42/nearline_test_release_v04_30_03
+export RelDir=/home/lbnedaq/nearline/nearline_test_release_${version}
 export ScriptPath=${RelDir}/srcs/dunetpc/dune/NearlineMonitor/scripts
 export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
-export OutputPath=/home/mbaird42/35t_nearline/output
+export OutputPath=/lbne/data2/users/lbnedaq/nearline/${version}
 export BaseFileName=lbne_r
-export FileSearch='/home/mbaird42/tickler_data/lbne_r*.root'
-export filepos=5
+export FileSearch='/data/lbnedaq/data/transferred_files/lbne_r*.root'
+export filepos=6
 
 
 
