@@ -520,7 +520,7 @@ namespace DAQToOffline {
 
     bool loadDigits_( size_t &InputTree );
 
-    void makeEventAndPutDigits_( art::EventPrincipal*& outE );
+    void makeEventAndPutDigits_( art::EventPrincipal*& outE, art::Timestamp art_timestamp=0);
 
     void Reset();
 
@@ -858,14 +858,18 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   // ************* Set run numbers etc Have to do this before doing pedestal stuff ************************
   runNumber_ = inputRunNumber_;
   subRunNumber_ = inputSubRunNumber_;
-  art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+
+  //art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+  //FIXME - This is a first attempt at interpreting the novatimestamp from the tpc data to create an art event timestamp
+  art::Timestamp this_art_event_timestamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(Event_timestamp);
+
   if ( runNumber_ != cachedRunNumber_ ) {
-    outR = sh_.makeRunPrincipal(runNumber_,ts);
+    outR = sh_.makeRunPrincipal(runNumber_,this_art_event_timestamp);
     cachedRunNumber_ = runNumber_;
     eventNumber_ = 0ul;
   }
   if ( subRunNumber_ != cachedSubRunNumber_ ) {
-    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
+    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,this_art_event_timestamp);
     cachedSubRunNumber_ = subRunNumber_;
     eventNumber_ = 0ul;
   }
@@ -897,7 +901,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     bufferedDigits_.emplace_back(d);
   }
   // ******** Now Build the event *********
-  makeEventAndPutDigits_( outE );
+  makeEventAndPutDigits_( outE, this_art_event_timestamp );
   
   // ******** Reset loadedDigits_.index and TreeIndex_ to where the trigger was *********
   std::cout << "\nMaking an event which triggered on Tree Index " << fLastTreeIndex << ", tick " << fLastTriggerIndex << ".\n"
@@ -1002,15 +1006,16 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
 } // load digits
 
 //=======================================================================================
-void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE) {
+void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, art::Timestamp art_timestamp) {
   // just keep incrementing the event number as we split along
   ++eventNumber_;
   
   if ( fwhichTrigger == 0 )
     std::cout << "\n\n\nI hope you know that you are triggering on a random number of ticks and not any sort of data! Check that fwhichTrigger(" << fwhichTrigger << ") is set correctly.\n\n\n" << std::endl;
 
-  std::cout << "Making an event with RunNumber " << runNumber_ << ", subRunNumber " << subRunNumber_ << ", EventNumber " << eventNumber_ << " and TimeStamp " << Event_timestamp << std::endl;
-  outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, Event_timestamp );
+  std::cout << "Making an event with RunNumber " << runNumber_ << ", subRunNumber " << subRunNumber_ << ", EventNumber " << eventNumber_ << " and art_timestamp " << art_timestamp.value() << std::endl;
+
+  outE = sh_.makeEventPrincipal( runNumber_, subRunNumber_, eventNumber_, art_timestamp );
   art::put_product_in_principal( std::make_unique<rawDigits_t>(bufferedDigits_),
                                  *outE,
                                  sourceName_,

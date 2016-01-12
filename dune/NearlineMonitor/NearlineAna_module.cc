@@ -307,7 +307,6 @@ void nearline::NearlineAna::endJob(){
   if(fWritePedestalPerTickFile) writePedestalPerTickSummaryFile(fPedestalPerTickFileName);
 
 
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -328,7 +327,7 @@ void nearline::NearlineAna::analyze(art::Event const & e)
   fSubrun = subrun;
 
   // Don't assume first/last events are coorelated with start/end times...
-  if(time < fStartTime)        fStartTime = time;
+  if(time < fStartTime && e.time() != art::Timestamp::invalidTimestamp())        fStartTime = time;
   if((int)event < fFirstEvent) fFirstEvent = event;
   if(time > fEndTime)          fEndTime = time;
   if((int)event > fLastEvent)  fLastEvent = event;
