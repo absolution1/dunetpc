@@ -1,6 +1,15 @@
 #!/bin/bash
 
 args=("$@")
+argssize=${#args[*]}
+if [ $argssize -ne 3 ];then
+    echo ""
+    echo "Three input arguments must be provided! Exiting..."
+    echo ""
+    echo ""
+    exit
+fi
+
 RunDir=${args[0]}
 infile=${args[1]}
 LPDir=${args[2]}
@@ -12,8 +21,6 @@ outhistfile=${INFILE%$fileend}_nearline_hist.root
 
 export LOCKFILE=$INFILE.LOCK
 export DONEFILE=$INFILE.DONE
-
-# source /home/mbaird42/.bashrc # may be necessary later to have access to setup functions
 
 
 
@@ -44,11 +51,8 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 if [ $infilesize -gt 500 ];
 then
     echo "Processing $infile"
-    lar -c test_daqtooffline_nearlineana.fcl ${infile} -o /home/lbnedaq/nearline/temp/${INFILE}.temp -T $outhistfile
+    lar -c test_daqtooffline_nearlineana.fcl ${infile} -T $outhistfile
 fi
-
-# No need to keep the art output file. Remove it...
-rm -f /home/lbnedaq/nearline/temp/${INFILE}.temp
 
 
 

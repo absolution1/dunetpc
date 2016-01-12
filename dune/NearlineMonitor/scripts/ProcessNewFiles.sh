@@ -24,7 +24,7 @@ echo ""
 
 
 # Check Disk space before making a mess
-export DiskUsage=`df /home -h |  awk 'NR==2 && match($5,"%"){print substr($5,RSTART-3,1)}'`
+export DiskUsage=`df /home -h |  awk 'NR==2 && match($5,"%"){print substr($5,RSTART-3,2)}'`
 if [ $DiskUsage -gt 95 ];then
     echo ""
     echo "Disk too full..."
@@ -94,11 +94,11 @@ do {
 
 	# Check if this file has already been processed or is curently being processed.
 	if [ -e $RunDir/$FILE.DONE ];then
-	    echo "SKIP: $FILE has already been processed."
+	    # echo "SKIP: $FILE has already been processed."
 	    continue
 	fi
 	if [ -e $RunDir/$FILE.LOCK ];then
-	    echo "SKIP: $FILE is currently being processed."
+	    # echo "SKIP: $FILE is currently being processed."
 	    continue
 	fi
 
