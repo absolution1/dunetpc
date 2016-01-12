@@ -6,6 +6,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
 
+#include "TTimeStamp.h"
+
 // From dunetpc
 #include "utilities/UnpackFragment.h"
 
@@ -167,4 +169,23 @@ void DAQToOffline::BuildTPCChannelMap(std::string channelMapFile, std::map<int,i
     std::cout << "channelMap has size " << channelMap.size() << ". If this is 2048, then it's fine even if the above lines skipped a 'few' channels..." << std::endl;
   }
     
+}
+
+art::Timestamp DAQToOffline::make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp){
+
+/*
+
+"NOvA time standard"
+which is a 56 bit timestamp at an LSB resolution of 15.6 ns (64 MHz) and a starting epoch of
+January 1, 2010 at 00:00:00.
+
+*/
+  unsigned long long int seconds_since_nova_epoch = (unsigned long long int)(this_nova_timestamp/nova_time_ticks_per_second);
+  TTimeStamp time_of_event(20100101u,
+                           0u,
+                           0u,
+                           true,
+                           seconds_since_nova_epoch);
+
+  return art::Timestamp(time_of_event.GetSec());
 }
