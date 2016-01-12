@@ -39,6 +39,7 @@ physics:
     {
       module_type:     "RawEVD35t"
       RawDigitLabel:   "daq"
+      UncompressWithPed: "true"
     }
   }
   analysis: [ rawdraw ] //Directory for histograms

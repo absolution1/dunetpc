@@ -48,6 +48,12 @@ physics:
       MakeDetectedPhotonsTree: true
       MakeOpDetsTree:          true
       MakeOpDetEventsTree:     true
+      UncompressWithPed:       true
+      ProcessMCtruth:          true
+      ProcessCalib:            true
+      ProcessHits:             true
+      ProcessReco:             true
+      ProcessOpDet:            true
     }
   }
   analysis: [ chao ] //Directory for histograms

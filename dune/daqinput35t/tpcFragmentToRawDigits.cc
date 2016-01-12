@@ -103,7 +103,7 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
 	//std::cout << "Getting new timestamp " << Timestamp << std::endl;
 	if (!FirstMicro && chan%128==0) {
 	  std::cout << "Channel " << chan << ", microslice " << i_micro << ", nanoslice 0 has timestamp " << Timestamp
-		    << "nanoslice 1 has timestamp " << microSlice->nanoSlice(1)->nova_timestamp() << std::endl;
+		    << ". nanoslice 1 has timestamp " << microSlice->nanoSlice(1)->nova_timestamp() << std::endl;
 	  FirstMicro=true;
 	}
 	if (!TimestampSet || Timestamp < firstTimestamp) {

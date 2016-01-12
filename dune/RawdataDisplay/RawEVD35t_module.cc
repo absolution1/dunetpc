@@ -106,6 +106,8 @@ namespace AnalysisExample{
 
     unsigned int fMinT, fMaxT, fMaxTimeRange;
 
+    bool fUncompressWithPed;
+
     art::ServiceHandle<geo::Geometry> fGeom;
     art::ServiceHandle<util::DetectorProperties> fDetProp;
 
@@ -143,6 +145,7 @@ namespace AnalysisExample{
   void RawEVD35t::reconfigure(fhicl::ParameterSet const& p){
     fRawDigitLabel  =  p.get< std::string >("RawDigitLabel");
     fNticks         = fDetProp->NumberTimeSamples();
+    fUncompressWithPed  = p.get< bool         >("UncompressWithPed", true);
     return;
   }
 
@@ -338,42 +341,57 @@ outfile<<fChansPerAPA<<"  "<<fGeom->Ncryostats()<<"  "<<fNofAPA<<std::endl;
 	 tpcid=fGeom->ChannelToWire(chan)[0].TPC;
 	 cryoid=fGeom->ChannelToWire(chan)[0].Cryostat;
 
-    std::vector<short> uncompressed(digit->Samples());
-    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
+	 int nSamples = digit->Samples();
+	 std::vector<short> uncompressed(nSamples);
+    //    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
+	int pedestal = (int)digit->GetPedestal();
+      // uncompress the data
+        if (fUncompressWithPed){
+          raw::Uncompress(digit->ADCs(), uncompressed, pedestal, digit->Compression());
+        }
+        else{
+          raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
+        }
 
+	// subtract pedestals
+	std::vector<short> ladc(nSamples);
+        for (int i=0; i<nSamples; i++) {
+	  ladc.push_back(uncompressed[i]-pedestal);
+	  if (i<10) std::cout << uncompressed[i] << " " << ladc[i] << std::endl;
+	}
 	if( fGeom->View(chan) == geo::kU ){
-		for(unsigned int l=0;l<uncompressed.size();l++) {
-			if(uncompressed.at(l)!=0){
-				fTimeChanU[apa]->Fill(chan,l, uncompressed.at(l));
-				if(uncompressed.at(l)>0) fTimeChanThumbU[apa]->Fill(chan,l, uncompressed.at(l));
-				fChargeSumU->Fill(1+getAPAindex(apa)%2, 2-(getAPAindex(apa)/2),std::abs(uncompressed.at(l))/2);
+		for(unsigned int l=0;l<ladc.size();l++) {
+			if(ladc.at(l)!=0){
+				fTimeChanU[apa]->Fill(chan,l, ladc.at(l));
+				if(ladc.at(l)>0) fTimeChanThumbU[apa]->Fill(chan,l, ladc.at(l));
+				fChargeSumU->Fill(1+getAPAindex(apa)%2, 2-(getAPAindex(apa)/2),std::abs(ladc.at(l))/2);
 				}
 			}
 		}
 	if( fGeom->View(chan) == geo::kV ){
-		for(unsigned int l=0;l<uncompressed.size();l++) {
-			if(uncompressed.at(l)!=0){
-				fTimeChanV[apa]->Fill(chan,l, uncompressed.at(l));
-				if(uncompressed.at(l)>0) fTimeChanThumbV[apa]->Fill(chan,l, uncompressed.at(l));
-				fChargeSumV->Fill(1+getAPAindex(apa)%2, 2-(getAPAindex(apa)/2),std::abs(uncompressed.at(l))/2);
+		for(unsigned int l=0;l<ladc.size();l++) {
+			if(ladc.at(l)!=0){
+				fTimeChanV[apa]->Fill(chan,l, ladc.at(l));
+				if(ladc.at(l)>0) fTimeChanThumbV[apa]->Fill(chan,l, ladc.at(l));
+				fChargeSumV->Fill(1+getAPAindex(apa)%2, 2-(getAPAindex(apa)/2),std::abs(ladc.at(l))/2);
 				}
 			}
 		}
 	if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 0 ){
-		for(unsigned int l=0;l<uncompressed.size();l++) {
-			if(uncompressed.at(l)!=0){
-				fTimeChanZ0[apa]->Fill(chan,l, uncompressed.at(l));
-				if(uncompressed.at(l)>0) fTimeChanThumbZ0[apa]->Fill(chan,l, uncompressed.at(l));
-				fChargeSumZ->Fill(1+getTPCindex(cryoid*4+tpcid)%4, 4-(getTPCindex(cryoid*4+tpcid)/4),uncompressed.at(l));
+		for(unsigned int l=0;l<ladc.size();l++) {
+			if(ladc.at(l)!=0){
+				fTimeChanZ0[apa]->Fill(chan,l, ladc.at(l));
+				if(ladc.at(l)>0) fTimeChanThumbZ0[apa]->Fill(chan,l, ladc.at(l));
+				fChargeSumZ->Fill(1+getTPCindex(cryoid*4+tpcid)%4, 4-(getTPCindex(cryoid*4+tpcid)/4),ladc.at(l));
 				}
 			}
 		}
 	if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 1 ){
-		for(unsigned int l=0;l<uncompressed.size();l++) {
-			if(uncompressed.at(l)!=0){
-				fTimeChanZ1[apa]->Fill(chan,l, uncompressed.at(l));
-				if(uncompressed.at(l)>0) fTimeChanThumbZ1[apa]->Fill(chan,l, uncompressed.at(l));
-				fChargeSumZ->Fill(1+getTPCindex(cryoid*4+tpcid)%4, 4-(getTPCindex(cryoid*4+tpcid)/4),uncompressed.at(l));
+		for(unsigned int l=0;l<ladc.size();l++) {
+			if(ladc.at(l)!=0){
+				fTimeChanZ1[apa]->Fill(chan,l, ladc.at(l));
+				if(ladc.at(l)>0) fTimeChanThumbZ1[apa]->Fill(chan,l, ladc.at(l));
+				fChargeSumZ->Fill(1+getTPCindex(cryoid*4+tpcid)%4, 4-(getTPCindex(cryoid*4+tpcid)/4),ladc.at(l));
 				}
 			}
 		}
