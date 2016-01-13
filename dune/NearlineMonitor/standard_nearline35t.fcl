@@ -34,8 +34,10 @@ standard_nearlineana:
     UseOnlineChannels: true
     TPCChannelMapFile: "rce_channel_map_dune35t.txt"
 
-    MakePedestalPerEventPlots: true
+    MakeHitsPerEventPlots: true
+    HitsPerEventChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920 ]
 
+    MakePedestalPerEventPlots: true
     PedestalPerEventChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920 ]
     WritePedestalPerEventFile: false
     #PedestalPerEventFileName: "PedestalPerEventTest.txt"
