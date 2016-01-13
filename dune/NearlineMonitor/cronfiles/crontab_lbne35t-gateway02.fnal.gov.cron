@@ -8,5 +8,5 @@
 #
 # Nearline Monitoring cronjobs:
 #
-# */10 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/ProcessNewFiles.sh 2 v04_32_01 e9 >> /dev/null 2>&1
-# 0 5 * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/CleanUpNearlineFiles.sh >> /dev/null 2>&1
+*/5 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/ProcessNewFiles.sh 4 v04_32_01 e9 >> /dev/null 2>&1
+0 5 * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/CleanUpNearlineFiles.sh >> /dev/null 2>&1
