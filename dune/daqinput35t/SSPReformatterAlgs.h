@@ -58,6 +58,12 @@ namespace DAQToOffline {
     double NOvAClockFrequency;
     std::map<int,int> theChannelMap;
     
+    int m1;
+    int i1;
+    int i2;
+    double SPESize;
+    
+
     
     void BuildOpDetChannelMap(std::string fChannelMapFile);
     

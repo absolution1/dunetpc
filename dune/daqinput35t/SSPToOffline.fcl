@@ -5,8 +5,12 @@ ssp_reformatter:
   NOvAClockFrequency:  64.0 #MHz
   OpDetChannelMapFile: "ssp_channel_map_dune35t.txt"
   SSPm1:               10  #samples used to calculate peak height
+  SSPm2:               10
   SSPi1:               500 #samples used to calculate pedestal
   SSPi2:               500 #samples used to calculate peak height
+  SSPd:                20
+  SSPdisc:             10
+  SPESize:             25
 }
 
 ssp_to_offline:

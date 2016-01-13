@@ -23,13 +23,15 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-DAQToOffline::SSPReformatterAlgs::SSPReformatterAlgs(fhicl::ParameterSet const & pset)
-{
-  NOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
-  std::string fChannelMapFile     = pset.get<std::string>("OpDetChannelMapFile");
+DAQToOffline::SSPReformatterAlgs::SSPReformatterAlgs(fhicl::ParameterSet const & pset) :
+                                                     NOvAClockFrequency(pset.get<double>("NOvAClockFrequency")), // in MHz
+                                                     m1(pset.get<int>("SSPm1")),
+                                                     i1(pset.get<int>("SSPi1")),
+                                                     i2(pset.get<int>("SSPi2")),
+                                                     SPESize(pset.get<float>("SPESize"))
 
-  BuildOpDetChannelMap(fChannelMapFile);
-  
+{
+  BuildOpDetChannelMap(pset.get<std::string>("OpDetChannelMapFile"));
 }
 
 
@@ -145,19 +147,6 @@ std::vector<recob::OpHit> DAQToOffline::SSPReformatterAlgs::SSPHeaderToOpHit(art
       // Get ADC Count, create pointer to adcs
       unsigned int nADC=(daqHeader->length-sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int))*2;
 
-      /*
-       ALL_i2_window:             500
-       ALL_m1_window:             10
-       ALL_m2_window:             10
-       ALL_d_window:              20
-       ALL_i1_window:             500
-       ALL_disc_width:            10
-       */
-      
-      // FIX: Magic numbers! Copied from the DAQ fhicl configuration.
-      int m1 = 10;
-      int i1 = 500;
-      int i2 = 500;
       
 
       
