@@ -32,7 +32,7 @@ physics:
     nearline:     [ nearlineana ]
     stream1:      [ out1 ]
     trigger_paths:[ hitfinding ]
-    end_paths:    [ stream1, nearline ]  
+    end_paths:    [ nearline ]  
 
 }
 
