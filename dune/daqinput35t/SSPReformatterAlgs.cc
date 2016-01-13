@@ -35,6 +35,49 @@ DAQToOffline::SSPReformatterAlgs::SSPReformatterAlgs(fhicl::ParameterSet const &
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void DAQToOffline::SSPReformatterAlgs::SSPFragmentToWaveformsAndHits(artdaq::Fragments const& rawFragments,
+                                                                     std::vector<raw::OpDetWaveform> &opDetWaveformVector,
+                                                                     std::vector<recob::OpHit> &opHitVector)
+{
+  unsigned int numFragments = rawFragments.size();
+  
+  for (size_t idx = 0; idx < numFragments; ++idx) {
+    const auto& frag(rawFragments[idx]);
+    lbne::SSPFragment sspf(frag);
+    
+    unsigned int nTriggers = CheckAndGetNTriggers(frag, sspf);
+    
+    const unsigned int* dataPointer = sspf.dataBegin();
+    
+    
+    for (unsigned int triggersProcessed = 0;
+         (nTriggers==0 || triggersProcessed < nTriggers) && dataPointer < sspf.dataEnd();
+         ++triggersProcessed) {
+      
+      try {
+        auto daqHeader = GetHeaderAndAdvance(dataPointer);
+        if ( GetWaveformLength(daqHeader) > 0) {
+          // We have a waveform
+          opDetWaveformVector.emplace_back( ConstructWaveformAndAdvance(daqHeader, dataPointer) );
+          
+        }
+        else {
+          // We only have a header
+          opHitVector.emplace_back( ConstructOpHit(daqHeader) );
+        }
+        
+      }
+      catch (cet::exception e) {
+        continue;
+      }
+    } // End of loop over triggers
+  } // End of loop over fragments (rawFragments)
+
+  
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,49 +100,14 @@ std::vector<raw::OpDetWaveform> DAQToOffline::SSPReformatterAlgs::SSPFragmentToO
     for (unsigned int triggersProcessed = 0;
          (nTriggers==0 || triggersProcessed < nTriggers) && dataPointer < sspf.dataEnd();
          ++triggersProcessed) {
-      //
-      // The elements of the OpDet Pulse
-      //
-      unsigned short     OpChannel = -1;       ///< Derived Optical channel
-      unsigned long      FirstSample = 0;      ///< first sample time in ticks
-      double             TimeStamp = 0.0;      ///< first sample time in microseconds
-        
 
-      // Load the event header, advance the pointer
-      const SSPDAQ::EventHeader* daqHeader=reinterpret_cast<const SSPDAQ::EventHeader*>(dataPointer);
-      dataPointer += sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int);
-
-      // Get ADC Count, create pointer to adcs
-      unsigned int nADC=(daqHeader->length-sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int))*2;
-      const unsigned short* adcPointer=reinterpret_cast<const unsigned short*>(dataPointer);
-
-      //get the information from the header
       try {
-        OpChannel = GetOpChannel(daqHeader);
-
-        FirstSample = GetGlobalFirstSample(daqHeader);
-        TimeStamp = ((double)FirstSample)/NOvAClockFrequency;
-
-        PrintHeaderInfo(daqHeader, NOvAClockFrequency);
+        auto daqHeader = GetHeaderAndAdvance(dataPointer);
+        opDetWaveformVector.emplace_back( ConstructWaveformAndAdvance(daqHeader, dataPointer) );
       }
       catch (cet::exception e) {
         continue;
       }
-
-      // Initialize the waveform
-      raw::OpDetWaveform Waveform(TimeStamp, OpChannel, nADC);
-
-      // Build up the waveform
-      for(size_t idata = 0; idata < nADC; idata++) {
-        const unsigned short* adc = adcPointer + idata;
-        Waveform.push_back(*adc);
-      }
-        
-      // Store the waveform
-      opDetWaveformVector.emplace_back( std::move(Waveform) );
-
-      // Advance the dataPointer to the next header
-      dataPointer+=nADC/2;
       
     } // End of loop over triggers
   } // End of loop over fragments (rawFragments)
@@ -111,10 +119,6 @@ std::vector<raw::OpDetWaveform> DAQToOffline::SSPReformatterAlgs::SSPFragmentToO
 
 std::vector<recob::OpHit> DAQToOffline::SSPReformatterAlgs::SSPHeaderToOpHit(artdaq::Fragments const& rawFragments)
 {
-  // FIX: This should be an actual number from calibration, maybe from a database?
-  double SPESize = 25;
-  
-  art::ServiceHandle<util::TimeService> ts;
   std::vector<recob::OpHit> opHitVector;
   
   unsigned int numFragments = rawFragments.size();
@@ -125,70 +129,76 @@ std::vector<recob::OpHit> DAQToOffline::SSPReformatterAlgs::SSPHeaderToOpHit(art
     lbne::SSPFragment sspf(frag);
     
     unsigned int nTriggers = CheckAndGetNTriggers(frag, sspf);
-    
     const unsigned int* dataPointer = sspf.dataBegin();
     
     
     for (unsigned int triggersProcessed = 0;
          (nTriggers==0 || triggersProcessed < nTriggers) && dataPointer < sspf.dataEnd();
          ++triggersProcessed) {
-      //
-      // The elements of the OpDet Pulse
-      //
-      unsigned short     OpChannel = -1;       ///< Derived Optical channel
-      unsigned long      FirstSample = 0;      ///< first sample time in ticks
-      double             TimeStamp = 0.0;      ///< first sample time in microseconds
       
       
-      // Load the event header, advance the pointer
-      const SSPDAQ::EventHeader* daqHeader=reinterpret_cast<const SSPDAQ::EventHeader*>(dataPointer);
-      dataPointer += sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int);
-      
-      // Get ADC Count, create pointer to adcs
-      unsigned int nADC=(daqHeader->length-sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int))*2;
-
-      
-
-      
-      //get the information from the header
       try {
-        OpChannel = GetOpChannel(daqHeader);
+        auto daqHeader = GetHeaderAndAdvance(dataPointer);
+        opHitVector.emplace_back( ConstructOpHit(daqHeader) );
         
-        FirstSample = GetGlobalFirstSample(daqHeader);
-        TimeStamp = ((double)FirstSample)/NOvAClockFrequency;
+        // Advance the dataPointer to the next header
+        unsigned int nADC = GetWaveformLength(daqHeader);
+        dataPointer+=nADC/2;
       }
       catch (cet::exception e) {
         continue;
       }
-
-      double peakTime = ((double)GetPeakTime(daqHeader)) * ts->OpticalClock().TickPeriod(); // microseconds
-      double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds
-      
-      double pedestal = ((double)GetBaselineSum(daqHeader)) / ((double)i1);
-      double area = ((double)GetIntegratedSum(daqHeader))  - pedestal * i2;
-      double peak = ((double)GetPeakSum(daqHeader)) / ((double)m1) - pedestal;
-
-      
-      opHitVector.emplace_back(OpChannel,
-                               TimeStamp+peakTime,  // Relative Time
-                               TimeStamp+peakTime,  // Absolute time
-                               0,          // Frame, not used by DUNE
-                               width,
-                               area,
-                               peak,
-                               area / SPESize, // PE
-                               0.);
-      
-
-      
-      // Advance the dataPointer to the next header
-      dataPointer+=nADC/2;
-      
     } // End of loop over triggers
   } // End of loop over fragments (rawFragments)
   
   return opHitVector;
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+void DAQToOffline::SSPReformatterAlgs::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader)
+{
+  auto FirstSample = GetGlobalFirstSample(daqHeader);
+  auto InternalSample = GetInternalFirstSample(daqHeader);
+  auto TimeStamp = ((double)FirstSample)/NOvAClockFrequency;
+  auto InternalTimeStamp = ((double)InternalSample)/NOvAClockFrequency;
+  
+  mf::LogDebug("DAQToOffline")
+  << "Header:                             " << daqHeader->header   << "\n"
+  << "Length:                             " << daqHeader->length   << "\n"
+  << "Trigger type:                       " << ((daqHeader->group1 & 0xFF00) >> 8) << "\n"
+  << "Status flags:                       " << ((daqHeader->group1 & 0x00F0) >> 4) << "\n"
+  << "Header type:                        " << ((daqHeader->group1 & 0x000F) >> 0) << "\n"
+  << "Trigger ID:                         " << daqHeader->triggerID << "\n"
+  << "Module ID:                          " << ((daqHeader->group2 & 0xFFF0) >> 4) << "\n"
+  << "Channel ID:                         " << ((daqHeader->group2 & 0x000F) >> 0) << "\n"
+  << "OpChannel:                          " << GetOpChannel(daqHeader) << "\n"
+  << "External (NOvA) timestamp:          " << FirstSample << " ticks" << "\n"
+  << "                                    " << TimeStamp << " microseconds" << "\n"
+  // these first_ ouptuts are a little ill-defined anyway since they are not
+  // reset by run but rather with the job
+  //<< "Since first sample this run:        " << FirstSample-first_FirstSample << " ticks" << "\n"
+  //<< "                                    " << TimeStamp-first_TimeStamp << " microseconds" << "\n"
+  << "Peak sum:                           " << GetPeakSum(daqHeader) << "\n"
+  << "Peak time:                          " << GetPeakTime(daqHeader) << "\n"
+  
+  << "Baseline Sum (Prerise):             " << GetBaselineSum(daqHeader) << "\n"
+  << "Integrated sum:                     " << GetIntegratedSum(daqHeader) << "\n"
+  << "Baseline:                           " << daqHeader->baseline << "\n"
+  << "CFD Timestamp interpolation points: " << daqHeader->cfdPoint[0] << " " << daqHeader->cfdPoint[1]
+  << " " << daqHeader->cfdPoint[2] << " " << daqHeader->cfdPoint[3] << "\n"
+  << "Internal interpolation point:       " << daqHeader->intTimestamp[0] << "\n"
+  << "Internal timestamp:                 " << InternalSample << " ticks\n"
+  << "                                    " << InternalTimeStamp << " microseconds" << "\n"
+  //<< "Relative internal timestamp:        " << InternalSample-first_InternalSample << " ticks" << "\n"
+  //<< "                                    " << InternalTimeStamp-first_InternalTimeStamp << " microseconds"
+  << ""  ;
+  
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -263,6 +273,18 @@ void DAQToOffline::SSPReformatterAlgs::BuildOpDetChannelMap(std::string fChannel
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+const SSPDAQ::EventHeader* DAQToOffline::SSPReformatterAlgs::GetHeaderAndAdvance(const unsigned int* &dataPointer)
+{
+  // Load the event header, advance the pointer
+  const SSPDAQ::EventHeader* daqHeader=reinterpret_cast<const SSPDAQ::EventHeader*>(dataPointer);
+  dataPointer += sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int);
+  return daqHeader;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 uint32_t DAQToOffline::SSPReformatterAlgs::GetPeakSum(const SSPDAQ::EventHeader* daqHeader)
 {
@@ -272,6 +294,7 @@ uint32_t DAQToOffline::SSPReformatterAlgs::GetPeakSum(const SSPDAQ::EventHeader*
   }
   return peaksum;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,42 +375,76 @@ unsigned int DAQToOffline::SSPReformatterAlgs::GetPeakTime(const SSPDAQ::EventHe
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-void DAQToOffline::SSPReformatterAlgs::PrintHeaderInfo(const SSPDAQ::EventHeader *daqHeader, const double NOvAClockFrequency)
+unsigned int DAQToOffline::SSPReformatterAlgs::GetWaveformLength(const SSPDAQ::EventHeader *daqHeader)
 {
-  auto FirstSample = GetGlobalFirstSample(daqHeader);
-  auto InternalSample = GetInternalFirstSample(daqHeader);
-  auto TimeStamp = ((double)FirstSample)/NOvAClockFrequency;
-  auto InternalTimeStamp = ((double)InternalSample)/NOvAClockFrequency;
-  
-  mf::LogDebug("DAQToOffline")
-        << "Header:                             " << daqHeader->header   << "\n"
-        << "Length:                             " << daqHeader->length   << "\n"
-        << "Trigger type:                       " << ((daqHeader->group1 & 0xFF00) >> 8) << "\n"
-        << "Status flags:                       " << ((daqHeader->group1 & 0x00F0) >> 4) << "\n"
-        << "Header type:                        " << ((daqHeader->group1 & 0x000F) >> 0) << "\n"
-        << "Trigger ID:                         " << daqHeader->triggerID << "\n"
-        << "Module ID:                          " << ((daqHeader->group2 & 0xFFF0) >> 4) << "\n"
-        << "Channel ID:                         " << ((daqHeader->group2 & 0x000F) >> 0) << "\n"
-        << "External (NOvA) timestamp:          " << FirstSample << " ticks" << "\n"
-        << "                                    " << TimeStamp << " microseconds" << "\n"
-        // these first_ ouptuts are a little ill-defined anyway since they are not 
-        // reset by run but rather with the job
-        //<< "Since first sample this run:        " << FirstSample-first_FirstSample << " ticks" << "\n"
-        //<< "                                    " << TimeStamp-first_TimeStamp << " microseconds" << "\n"
-        << "Peak sum:                           " << GetPeakSum(daqHeader) << "\n"
-        << "Peak time:                          " << GetPeakTime(daqHeader) << "\n"
-
-        << "Baseline Sum (Prerise):             " << GetBaselineSum(daqHeader) << "\n"
-        << "Integrated sum:                     " << GetIntegratedSum(daqHeader) << "\n"
-        << "Baseline:                           " << daqHeader->baseline << "\n"
-        << "CFD Timestamp interpolation points: " << daqHeader->cfdPoint[0] << " " << daqHeader->cfdPoint[1]
-        << " " << daqHeader->cfdPoint[2] << " " << daqHeader->cfdPoint[3] << "\n"
-        << "Internal interpolation point:       " << daqHeader->intTimestamp[0] << "\n"
-        << "Internal timestamp:                 " << InternalSample << " ticks\n"
-        << "                                    " << InternalTimeStamp << " microseconds" << "\n"
-        //<< "Relative internal timestamp:        " << InternalSample-first_InternalSample << " ticks" << "\n"
-        //<< "                                    " << InternalTimeStamp-first_InternalTimeStamp << " microseconds"
-        << ""  ;
-
+  unsigned int nADC=(daqHeader->length-sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int))*2;
+  return nADC;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+raw::OpDetWaveform DAQToOffline::SSPReformatterAlgs::ConstructWaveformAndAdvance(const SSPDAQ::EventHeader* daqHeader,
+                                                                                 const unsigned int* &dataPointer)
+{
+  
+  // Get basic information from the header
+  unsigned short     OpChannel   = GetOpChannel(daqHeader);                  ///< Derived Optical channel
+  unsigned long      FirstSample = GetGlobalFirstSample(daqHeader);          ///< first sample time in ticks
+  double             TimeStamp   = ((double)FirstSample)/NOvAClockFrequency; ///< first sample time in microseconds
+
+  // Print some debugging info
+  PrintHeaderInfo(daqHeader);
+  
+  // Get ADC Count, create pointer to adcs
+  unsigned int          nADC       = GetWaveformLength(daqHeader);
+  const unsigned short* adcPointer = reinterpret_cast<const unsigned short*>(dataPointer);
+  
+  // Initialize the waveform
+  raw::OpDetWaveform Waveform(TimeStamp, OpChannel, nADC);
+  
+  // Build up the waveform
+  for(size_t idata = 0; idata < nADC; idata++) {
+    const unsigned short* adc = adcPointer + idata;
+    Waveform.push_back(*adc);
+  }
+  
+  // Advance the dataPointer to the next header
+  dataPointer+=nADC/2;
+  
+  return Waveform;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+recob::OpHit DAQToOffline::SSPReformatterAlgs::ConstructOpHit(const SSPDAQ::EventHeader* daqHeader)
+{
+  // Get basic information from the header
+  unsigned short     OpChannel   = GetOpChannel(daqHeader);                  ///< Derived Optical channel
+  unsigned long      FirstSample = GetGlobalFirstSample(daqHeader);;         ///< first sample time in ticks
+  double             TimeStamp   = ((double)FirstSample)/NOvAClockFrequency; ///< first sample time in microseconds
+  
+  art::ServiceHandle<util::TimeService> ts;
+  
+  double peakTime = ((double)GetPeakTime(daqHeader)) * ts->OpticalClock().TickPeriod(); // microseconds
+  double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds
+  
+  double pedestal = ((double)GetBaselineSum(daqHeader)) / ((double)i1);
+  double area = ((double)GetIntegratedSum(daqHeader))  - pedestal * i2;
+  double peak = ((double)GetPeakSum(daqHeader)) / ((double)m1) - pedestal;
+  
+  
+  recob::OpHit ophit(OpChannel,
+                     TimeStamp+peakTime,  // Relative Time
+                     TimeStamp+peakTime,  // Absolute time
+                     0,          // Frame, not used by DUNE
+                     width,
+                     area,
+                     peak,
+                     area / SPESize, // PE
+                     0.);
+  
+  return ophit;
+}
+
