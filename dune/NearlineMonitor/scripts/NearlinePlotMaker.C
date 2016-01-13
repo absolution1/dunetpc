@@ -5,7 +5,7 @@
 //
 
 Long64_t NearlinePlotMaker(int Ndays){
-  
+
   std::cout << "\n\nMaking 35t Nearline plots for " << Ndays << " days...\n\n";
   
 
@@ -60,31 +60,31 @@ Long64_t NearlinePlotMaker(int Ndays){
 
   // Open list of input files...
   char filelist_title[128];
-  sprintf(filelist_title,"35t_%uDay_Nearline_File_List.txt",Ndays);
+  sprintf(filelist_title,"/dune/app/users/mbaird42/35t_nearline_releases/temp/FileList.txt");
   inFile.open(filelist_title);
 
 
 
   // Book histos...
-  // FIX:
-  // TH1F *blah...;
+  // FIX: add spectra histos...
+  TH1F *hped_per_event_chan_0;
 
 
   
   // Declare variables used to make the TGraphs...
-  float *MeanADCChannel00      = new float;
-  float *MeanADCChannel00time  = new float;
-  int    MeanADCChennel00Count = 0;
+  float *MeanPedChan0000      = new float[Npoint];
+  float *MeanPedChan0000Time  = new float[Npoint];
+  int    MeanPedChan0000Count = 0;
+
+  float *MeanPedChan0128      = new float[Npoint];
+  float *MeanPedChan0128Time  = new float[Npoint];
+  int    MeanPedChan0128Count = 0;
+
+  float *MeanPedChan0256      = new float[Npoint];
+  float *MeanPedChan0256Time  = new float[Npoint];
+  int    MeanPedChan0256Count = 0;
 
 
-
-  /*
-  // FIX this later...
-  string time;
-  if(period == "Day") time = "past 24 hrs.";
-  if(period == "Week") time = "past 7 days";
-  if(period == "Month") time = "past 30 days";
-  */
 
   // initalize histos
 
@@ -114,7 +114,6 @@ Long64_t NearlinePlotMaker(int Ndays){
       header->SetBranchAddress("EndHour",    &HourEnd);
       header->SetBranchAddress("Run",        &run);
       header->SetBranchAddress("Subrun",     &subrun);
-      header->SetBranchAddress("Nevents",    &nevent);
       header->GetEntry(0);
       
       hour = Hour;
@@ -125,7 +124,7 @@ Long64_t NearlinePlotMaker(int Ndays){
       // Ana/DAQ keeps track of GMT time, so convert to local time
       SRtime->Set(year,month,day,hour,min,sec);
       Xsrtime = SRtime->Convert() - GMToffset;
-      cout << "time " << year << " " << day << " " << Hour << endl;
+      cout << "time:\t" << year << " " << month << " " << day << " " << Hour << endl;
       hour = HourEnd;
       Min  = (HourEnd-hour)*60.0;
       min  = (HourEnd-hour)*60.0;
@@ -136,39 +135,60 @@ Long64_t NearlinePlotMaker(int Ndays){
       
       if(Xsrtime < time_ago) continue; 
       
-      if(run >= Last_Run) {
-	if(run > Last_Run) {
-	  Last_Run = run;
-	  Last_SR  = subrun;
+      if(run >= LastRun) {
+	if(run > LastRun) {
+	  LastRun = run;
+	  LastSR  = subrun;
 	}
-	else if(subrun > Last_SR) {
-	  Last_Run = run;
-	  Last_SR  = subrun;
+	else if(subrun > LastSR) {
+	  LastRun = run;
+	  LastSR  = subrun;
 	}
       }
     
-    }
+    } // end if header != 0
 
     
-
-    // FIX: Example of lifting out a histo and recording the TGraph info.
-
-    TH1F *hnSlicetemp = (TH1F*)file.FindObjectAny("fNumSlices");
-    if(hnSlicetemp != 0){
-            hNSliceDay->Add(hnSlicetemp,1.0);
+    
+    // FIX: make the spectra plots... (book the histo above...)
+    TH1F *hped_per_event_chan_0_temp = (TH1F*)file.FindObjectAny("hped_per_event_chan_0");    
+    if(hped_per_event_chan_0_temp != 0){
+      // hped_per_event_chan_0->Add(hped_per_event_chan_0_temp,1.0);
+    }    
+    if(hped_per_event_chan_0_temp != 0 && header != 0) {
+      MeanPedChan0000Time[MeanPedChan0000Count] = Xsrtime;
+      MeanPedChan0000    [MeanPedChan0000Count] = hped_per_event_chan_0_temp->GetMean(1);
+      MeanPedChan0000Count++;      
     }
-    if(hnSlicetemp != 0 && header !=0) {
-      NSlicetimeDay[NSliceDayCount] = Xsrtime;
-      NSliceDay    [NSliceDayCount] = hnSlicetemp->GetMean(1);
-      NSliceDayCount++;      
+    
+    // FIX: make the spectra plots... (book the histo above...)
+    TH1F *hped_per_event_chan_128_temp = (TH1F*)file.FindObjectAny("hped_per_event_chan_128");    
+    if(hped_per_event_chan_128_temp != 0){
+      // hped_per_event_chan_128->Add(hped_per_event_chan_128_temp,1.0);
+    }    
+    if(hped_per_event_chan_128_temp != 0 && header != 0) {
+      MeanPedChan0128Time[MeanPedChan0128Count] = Xsrtime;
+      MeanPedChan0128    [MeanPedChan0128Count] = hped_per_event_chan_128_temp->GetMean(1);
+      MeanPedChan0128Count++;      
     }
-
+    
+    // FIX: make the spectra plots... (book the histo above...)
+    TH1F *hped_per_event_chan_256_temp = (TH1F*)file.FindObjectAny("hped_per_event_chan_256");    
+    if(hped_per_event_chan_256_temp != 0){
+      // hped_per_event_chan_256->Add(hped_per_event_chan_256_temp,1.0);
+    }    
+    if(hped_per_event_chan_256_temp != 0 && header != 0) {
+      MeanPedChan0256Time[MeanPedChan0256Count] = Xsrtime;
+      MeanPedChan0256    [MeanPedChan0256Count] = hped_per_event_chan_256_temp->GetMean(1);
+      MeanPedChan0256Count++;      
+    }
+    
 
 
 
     file.Close();
 
-  } // end while loop
+  } // end while loop over input files
 
 
 
@@ -224,12 +244,24 @@ Long64_t NearlinePlotMaker(int Ndays){
   char buff2[256];
   sprintf(buff1, "Last updated on:    %s (central time)", Tfinish->AsString());
   UpdateText->AddText(buff1);
-  sprintf(buff2, "Last run / subrun:   %i / %i", Last_Run, Last_SR);
+  sprintf(buff2, "Last run / subrun:   %i / %i", LastRun, LastSR);
   UpdateText->AddText(buff2);
 
     
 
+
+
+
+
+
+
+
+
+
+
+
   // FIX: example of making a spectrum plot
+  /*
   TCanvas *cnSliceday = new TCanvas("cnSliceday","# Slice Day",1200,800);
   cnSliceday->cd();
   cnSliceday->SetLogy();
@@ -242,41 +274,107 @@ Long64_t NearlinePlotMaker(int Ndays){
 
   sprintf(filename,"/nusoft/app/web/htdoc/nova/datacheck/nearline/plots/%s-%s-P%.1uNSlice%s.png",det.c_str(),trig.c_str(),p,period.c_str());
   cnSliceday->Print(filename);
+  */
 
-
-
-  // FIX: example of TGraph version of the plot
   maxtime = 0;
   max = 0.0;
   ave = 0.0;
-  for(int i = 0; i < NSliceDayCount; ++i) {
-    ave += (double)NSliceDay[i];
-    if(NSlicetimeDay[i] > maxtime) {
-      maxtime = NSlicetimeDay[i];
-      max     = NSliceDay[i];
+  for(int i = 0; i < MeanPedChan0000Count; ++i) {
+    ave += (double)MeanPedChan0000[i];
+    if(MeanPedChan0000Time[i] > maxtime) {
+      maxtime = MeanPedChan0000Time[i];
+      max     = MeanPedChan0000[i];
     }
   }
-  if(NSliceDayCount > 0) ave = ave/(double)NSliceDayCount;
+  if(MeanPedChan0000Count > 0) ave = ave/(double)MeanPedChan0000Count;
   sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
   LastPoint->Clear();
   LastPoint->AddText(lptext);
-  TCanvas *ctnSliceday = new TCanvas("cnSliceday","# Non-Noise Slices day",1200,800);
-  ctnSliceday->cd();
+  TCanvas *cMeanPedChan0000 = new TCanvas("cMeanPedChan0000","Mean Pedestal for Channel 0",1200,800);
+  cMeanPedChan0000->cd();
   gPad->SetGridx();
-  TGraph *gnSliceday = new TGraph(NSliceDayCount,NSlicetimeDay,NSliceDay);
-  sprintf(title,"Number of Slices per Subrun");
-  gnSliceday->SetTitle(title);
-  gnSliceday->SetMarkerColor(kBlue);
-  gnSliceday->GetXaxis()->SetTimeDisplay(1);
-  gnSliceday->GetXaxis()->SetLabelSize(0.03);
-  gnSliceday->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
-  gnSliceday->GetXaxis()->SetLimits(time_ago,XNow);
-  gnSliceday->GetXaxis()->SetTitle("(central time)");
-  gnSliceday->Draw("A*");
+  TGraph *gMeanPedChan0000 = new TGraph(MeanPedChan0000Count,MeanPedChan0000Time,MeanPedChan0000);
+  sprintf(title,"Mean Pedestal per Event for Channel 0");
+  gMeanPedChan0000->SetTitle(title);
+  gMeanPedChan0000->SetMarkerColor(kBlue);
+  gMeanPedChan0000->GetXaxis()->SetTimeDisplay(1);
+  gMeanPedChan0000->GetXaxis()->SetLabelSize(0.03);
+  gMeanPedChan0000->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gMeanPedChan0000->GetXaxis()->SetLimits(time_ago,XNow);
+  gMeanPedChan0000->GetXaxis()->SetTitle("(central time)");
+  gMeanPedChan0000->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  sprintf(filename,"/nusoft/app/web/htdoc/nova/datacheck/nearline/plots/%s-%s-P%.1unSliceperSR%s.png",det.c_str(),trig.c_str(),p,period.c_str());
-  ctnSliceday->Print(filename);
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/MeanPedChan0000.png");
+  cMeanPedChan0000->Print(filename);
+
+
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < MeanPedChan0128Count; ++i) {
+    ave += (double)MeanPedChan0128[i];
+    if(MeanPedChan0128Time[i] > maxtime) {
+      maxtime = MeanPedChan0128Time[i];
+      max     = MeanPedChan0128[i];
+    }
+  }
+  if(MeanPedChan0128Count > 0) ave = ave/(double)MeanPedChan0128Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cMeanPedChan0128 = new TCanvas("cMeanPedChan0128","Mean Pedestal for Channel 128",1200,800);
+  cMeanPedChan0128->cd();
+  gPad->SetGridx();
+  TGraph *gMeanPedChan0128 = new TGraph(MeanPedChan0128Count,MeanPedChan0128Time,MeanPedChan0128);
+  sprintf(title,"Mean Pedestal per Event for Channel 128");
+  gMeanPedChan0128->SetTitle(title);
+  gMeanPedChan0128->SetMarkerColor(kBlue);
+  gMeanPedChan0128->GetXaxis()->SetTimeDisplay(1);
+  gMeanPedChan0128->GetXaxis()->SetLabelSize(0.03);
+  gMeanPedChan0128->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gMeanPedChan0128->GetXaxis()->SetLimits(time_ago,XNow);
+  gMeanPedChan0128->GetXaxis()->SetTitle("(central time)");
+  gMeanPedChan0128->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/MeanPedChan0128.png");
+  cMeanPedChan0128->Print(filename);
+
+
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < MeanPedChan0256Count; ++i) {
+    ave += (double)MeanPedChan0256[i];
+    if(MeanPedChan0256Time[i] > maxtime) {
+      maxtime = MeanPedChan0256Time[i];
+      max     = MeanPedChan0256[i];
+    }
+  }
+  if(MeanPedChan0256Count > 0) ave = ave/(double)MeanPedChan0256Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cMeanPedChan0256 = new TCanvas("cMeanPedChan0256","Mean Pedestal for Channel 256",1200,800);
+  cMeanPedChan0256->cd();
+  gPad->SetGridx();
+  TGraph *gMeanPedChan0256 = new TGraph(MeanPedChan0256Count,MeanPedChan0256Time,MeanPedChan0256);
+  sprintf(title,"Mean Pedestal per Event for Channel 256");
+  gMeanPedChan0256->SetTitle(title);
+  gMeanPedChan0256->SetMarkerColor(kBlue);
+  gMeanPedChan0256->GetXaxis()->SetTimeDisplay(1);
+  gMeanPedChan0256->GetXaxis()->SetLabelSize(0.03);
+  gMeanPedChan0256->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gMeanPedChan0256->GetXaxis()->SetLimits(time_ago,XNow);
+  gMeanPedChan0256->GetXaxis()->SetTitle("(central time)");
+  gMeanPedChan0256->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/MeanPedChan0256.png");
+  cMeanPedChan0256->Print(filename);
 
 
 
