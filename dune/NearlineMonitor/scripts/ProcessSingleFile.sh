@@ -51,7 +51,7 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 if [ $infilesize -gt 500 ];
 then
     echo "Processing $infile"
-    lar -c test_daqtooffline_nearlineana.fcl ${infile} -T $outhistfile
+    lar -c test_stitcher_nearlineana.fcl -n 10 ${infile} -T $outhistfile
 fi
 
 
