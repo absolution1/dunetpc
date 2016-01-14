@@ -66,8 +66,10 @@ Long64_t NearlinePlotMaker(int Ndays){
 
 
   // Book histos...
-  // FIX: add spectra histos...
-  TH1F *hped_per_event_chan_0;
+  TH1F *hped_per_tick_chan_0    = new TH1F("hped_per_tick_chan_0","ADC per Tick - Channel 0;ADC",100,0,2048);
+  TH1F *hped_per_tick_chan_128  = new TH1F("hped_per_tick_chan_128","ADC per Tick - Channel 128;ADC",100,0,2048);
+  TH1F *hped_per_tick_chan_256  = new TH1F("hped_per_tick_chan_256","ADC per Tick - Channel 256;ADC",100,0,2048);
+  TH1F *hped_per_tick_chan_384  = new TH1F("hped_per_tick_chan_384","ADC per Tick - Channel 384;ADC",100,0,2048);
 
 
   
@@ -83,6 +85,10 @@ Long64_t NearlinePlotMaker(int Ndays){
   float *MeanPedChan0256      = new float[Npoint];
   float *MeanPedChan0256Time  = new float[Npoint];
   int    MeanPedChan0256Count = 0;
+
+  float *MeanPedChan0384      = new float[Npoint];
+  float *MeanPedChan0384Time  = new float[Npoint];
+  int    MeanPedChan0384Count = 0;
 
 
 
@@ -150,40 +156,47 @@ Long64_t NearlinePlotMaker(int Ndays){
 
     
     
-    // FIX: make the spectra plots... (book the histo above...)
-    TH1F *hped_per_event_chan_0_temp = (TH1F*)file.FindObjectAny("hped_per_event_chan_0");    
-    if(hped_per_event_chan_0_temp != 0){
-      // hped_per_event_chan_0->Add(hped_per_event_chan_0_temp,1.0);
+    // Lift out the histos that we want...
+    TH1F *hped_per_tick_chan_0_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_0");    
+    if(hped_per_tick_chan_0_temp != 0){
+      hped_per_tick_chan_0->Add(hped_per_tick_chan_0_temp,1.0);
     }    
-    if(hped_per_event_chan_0_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_0_temp != 0 && header != 0) {
       MeanPedChan0000Time[MeanPedChan0000Count] = Xsrtime;
-      MeanPedChan0000    [MeanPedChan0000Count] = hped_per_event_chan_0_temp->GetMean(1);
+      MeanPedChan0000    [MeanPedChan0000Count] = hped_per_tick_chan_0_temp->GetMean(1);
       MeanPedChan0000Count++;      
     }
     
-    // FIX: make the spectra plots... (book the histo above...)
-    TH1F *hped_per_event_chan_128_temp = (TH1F*)file.FindObjectAny("hped_per_event_chan_128");    
-    if(hped_per_event_chan_128_temp != 0){
-      // hped_per_event_chan_128->Add(hped_per_event_chan_128_temp,1.0);
+    TH1F *hped_per_tick_chan_128_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_128");    
+    if(hped_per_tick_chan_128_temp != 0){
+      hped_per_tick_chan_128->Add(hped_per_tick_chan_128_temp,1.0);
     }    
-    if(hped_per_event_chan_128_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_128_temp != 0 && header != 0) {
       MeanPedChan0128Time[MeanPedChan0128Count] = Xsrtime;
-      MeanPedChan0128    [MeanPedChan0128Count] = hped_per_event_chan_128_temp->GetMean(1);
+      MeanPedChan0128    [MeanPedChan0128Count] = hped_per_tick_chan_128_temp->GetMean(1);
       MeanPedChan0128Count++;      
     }
     
-    // FIX: make the spectra plots... (book the histo above...)
-    TH1F *hped_per_event_chan_256_temp = (TH1F*)file.FindObjectAny("hped_per_event_chan_256");    
-    if(hped_per_event_chan_256_temp != 0){
-      // hped_per_event_chan_256->Add(hped_per_event_chan_256_temp,1.0);
+    TH1F *hped_per_tick_chan_256_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_256");    
+    if(hped_per_tick_chan_256_temp != 0){
+      hped_per_tick_chan_256->Add(hped_per_tick_chan_256_temp,1.0);
     }    
-    if(hped_per_event_chan_256_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_256_temp != 0 && header != 0) {
       MeanPedChan0256Time[MeanPedChan0256Count] = Xsrtime;
-      MeanPedChan0256    [MeanPedChan0256Count] = hped_per_event_chan_256_temp->GetMean(1);
+      MeanPedChan0256    [MeanPedChan0256Count] = hped_per_tick_chan_256_temp->GetMean(1);
       MeanPedChan0256Count++;      
     }
     
-
+    TH1F *hped_per_tick_chan_384_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_384");    
+    if(hped_per_tick_chan_384_temp != 0){
+      hped_per_tick_chan_384->Add(hped_per_tick_chan_384_temp,1.0);
+    }    
+    if(hped_per_tick_chan_384_temp != 0 && header != 0) {
+      MeanPedChan0384Time[MeanPedChan0384Count] = Xsrtime;
+      MeanPedChan0384    [MeanPedChan0384Count] = hped_per_tick_chan_384_temp->GetMean(1);
+      MeanPedChan0384Count++;      
+    }
+        
 
 
     file.Close();
@@ -260,21 +273,17 @@ Long64_t NearlinePlotMaker(int Ndays){
 
 
 
-  // FIX: example of making a spectrum plot
-  /*
-  TCanvas *cnSliceday = new TCanvas("cnSliceday","# Slice Day",1200,800);
-  cnSliceday->cd();
-  cnSliceday->SetLogy();
+  TCanvas *cADCSpecChan0000 = new TCanvas("cADCSpecChan0000","ADC Spectrum - Channel 0",1200,800);
+  cADCSpecChan0000->cd();
+  cADCSpecChan0000->SetLogy();
   gStyle->SetOptStat(111111);
-  hNSliceDay->SetAxisRange(0.0,50.0,"X");
-  hNSliceDay->SetLineWidth(2);
-  hNSliceDay->SetLineColor(kRed);
-  hNSliceDay->Draw();
+  // hped_per_tick_chan_0->SetAxisRange(0.0,2048.0,"X");
+  hped_per_tick_chan_0->SetLineWidth(2);
+  hped_per_tick_chan_0->SetLineColor(kRed);
+  hped_per_tick_chan_0->Draw();
   UpdateText->Draw();
-
-  sprintf(filename,"/nusoft/app/web/htdoc/nova/datacheck/nearline/plots/%s-%s-P%.1uNSlice%s.png",det.c_str(),trig.c_str(),p,period.c_str());
-  cnSliceday->Print(filename);
-  */
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/ADCSpecChan0000_%.3u_days.png",Ndays);
+  cADCSpecChan0000->Print(filename);
 
   maxtime = 0;
   max = 0.0;
@@ -305,10 +314,22 @@ Long64_t NearlinePlotMaker(int Ndays){
   gMeanPedChan0000->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/MeanPedChan0000.png");
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/MeanPedChan0000_%.3u_days.png",Ndays);
   cMeanPedChan0000->Print(filename);
 
 
+
+  TCanvas *cADCSpecChan0128 = new TCanvas("cADCSpecChan0128","ADC Spectrum - Channel 128",1200,800);
+  cADCSpecChan0128->cd();
+  cADCSpecChan0128->SetLogy();
+  gStyle->SetOptStat(111111);
+  // hped_per_tick_chan_128->SetAxisRange(0.0,2048.0,"X");
+  hped_per_tick_chan_128->SetLineWidth(2);
+  hped_per_tick_chan_128->SetLineColor(kRed);
+  hped_per_tick_chan_128->Draw();
+  UpdateText->Draw();
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/ADCSpecChan0128_%.3u_days.png",Ndays);
+  cADCSpecChan0128->Print(filename);
 
   maxtime = 0;
   max = 0.0;
@@ -339,10 +360,22 @@ Long64_t NearlinePlotMaker(int Ndays){
   gMeanPedChan0128->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/MeanPedChan0128.png");
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/MeanPedChan0128_%.3u_days.png",Ndays);
   cMeanPedChan0128->Print(filename);
 
 
+
+  TCanvas *cADCSpecChan0256 = new TCanvas("cADCSpecChan0256","ADC Spectrum - Channel 256",1200,800);
+  cADCSpecChan0256->cd();
+  cADCSpecChan0256->SetLogy();
+  gStyle->SetOptStat(111111);
+  // hped_per_tick_chan_256->SetAxisRange(0.0,2048.0,"X");
+  hped_per_tick_chan_256->SetLineWidth(2);
+  hped_per_tick_chan_256->SetLineColor(kRed);
+  hped_per_tick_chan_256->Draw();
+  UpdateText->Draw();
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/ADCSpecChan0256_%.3u_days.png",Ndays);
+  cADCSpecChan0256->Print(filename);
 
   maxtime = 0;
   max = 0.0;
@@ -373,8 +406,54 @@ Long64_t NearlinePlotMaker(int Ndays){
   gMeanPedChan0256->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/MeanPedChan0256.png");
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/MeanPedChan0256_%.3u_days.png",Ndays);
   cMeanPedChan0256->Print(filename);
+
+
+
+  TCanvas *cADCSpecChan0384 = new TCanvas("cADCSpecChan0384","ADC Spectrum - Channel 384",1200,800);
+  cADCSpecChan0384->cd();
+  cADCSpecChan0384->SetLogy();
+  gStyle->SetOptStat(111111);
+  // hped_per_tick_chan_384->SetAxisRange(0.0,2048.0,"X");
+  hped_per_tick_chan_384->SetLineWidth(2);
+  hped_per_tick_chan_384->SetLineColor(kRed);
+  hped_per_tick_chan_384->Draw();
+  UpdateText->Draw();
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/ADCSpecChan0384_%.3u_days.png",Ndays);
+  cADCSpecChan0384->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < MeanPedChan0384Count; ++i) {
+    ave += (double)MeanPedChan0384[i];
+    if(MeanPedChan0384Time[i] > maxtime) {
+      maxtime = MeanPedChan0384Time[i];
+      max     = MeanPedChan0384[i];
+    }
+  }
+  if(MeanPedChan0384Count > 0) ave = ave/(double)MeanPedChan0384Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cMeanPedChan0384 = new TCanvas("cMeanPedChan0384","Mean Pedestal for Channel 384",1200,800);
+  cMeanPedChan0384->cd();
+  gPad->SetGridx();
+  TGraph *gMeanPedChan0384 = new TGraph(MeanPedChan0384Count,MeanPedChan0384Time,MeanPedChan0384);
+  sprintf(title,"Mean Pedestal per Event for Channel 384");
+  gMeanPedChan0384->SetTitle(title);
+  gMeanPedChan0384->SetMarkerColor(kBlue);
+  gMeanPedChan0384->GetXaxis()->SetTimeDisplay(1);
+  gMeanPedChan0384->GetXaxis()->SetLabelSize(0.03);
+  gMeanPedChan0384->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gMeanPedChan0384->GetXaxis()->SetLimits(time_ago,XNow);
+  gMeanPedChan0384->GetXaxis()->SetTitle("(central time)");
+  gMeanPedChan0384->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/MeanPedChan0384_%.3u_days.png",Ndays);
+  cMeanPedChan0384->Print(filename);
 
 
 
