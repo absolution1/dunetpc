@@ -236,12 +236,12 @@ int main(int argc, char** argv){
   for(auto thisRunPlotSet: VecRunPlotSet){
     std::cout << "NearlineSummariser: INFO: " << thisRunPlotSet.FileInfo << std::endl;
     
-    for(auto thisPlotName: VecPlotNames){
-      auto thisHist =thisRunPlotSet.MapNameHists.at(thisPlotName);
-      double mean = (thisHist)->GetMean();
-      double rms = (thisHist)->GetRMS();
-      std::cout << "NearlineSummariser: INFO: Name " << thisPlotName << " count " << thisHist.use_count() << " mean " << mean << " rms " << rms << std::endl;
-    }//thisPlotName
+    // for(auto thisPlotName: VecPlotNames){
+    //   auto thisHist =thisRunPlotSet.MapNameHists.at(thisPlotName);
+    //   double mean = (thisHist)->GetMean();
+    //   double rms = (thisHist)->GetRMS();
+    //   std::cout << "NearlineSummariser: INFO: Name " << thisPlotName << " count " << thisHist.use_count() << " mean " << mean << " rms " << rms << std::endl;
+    // }//thisPlotName
 
     // for(auto thisNameHistPair: thisRunPlotSet.MapNameHists){
     //   double mean = (thisNameHistPair.second)->GetMean();

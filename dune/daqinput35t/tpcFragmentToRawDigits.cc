@@ -97,10 +97,7 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
       auto numNanoSlices = microSlice->nanoSliceCount();
       
       if (numNanoSlices) {
-	//std::cout << "This microslice has " << numNanoSlices << " nanoslices." << std::endl;
-	//std::unique_ptr<const lbne::TpcNanoSlice> nanoSlice0 = microSlice->nanoSlice(0);
 	lbne::TpcNanoSlice::Header::nova_timestamp_t Timestamp = microSlice->nanoSlice(0)->nova_timestamp();
-	//std::cout << "Getting new timestamp " << Timestamp << std::endl;
 	if (!FirstMicro && chan%128==0) {
 	  std::cout << "Channel " << chan << ", microslice " << i_micro << ", nanoslice 0 has timestamp " << Timestamp
 		    << ". nanoslice 1 has timestamp " << microSlice->nanoSlice(1)->nova_timestamp() << std::endl;
@@ -180,7 +177,7 @@ which is a 56 bit timestamp at an LSB resolution of 15.6 ns (64 MHz) and a start
 January 1, 2010 at 00:00:00.
 
 */
-  unsigned long long int seconds_since_nova_epoch = (unsigned long long int)(this_nova_timestamp/nova_time_ticks_per_second);
+  lbne::TpcNanoSlice::Header::nova_timestamp_t seconds_since_nova_epoch = (this_nova_timestamp/nova_time_ticks_per_second);
   TTimeStamp time_of_event(20100101u,
                            0u,
                            0u,

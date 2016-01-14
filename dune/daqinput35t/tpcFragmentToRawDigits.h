@@ -32,7 +32,7 @@ namespace DAQToOffline {
 
   void BuildTPCChannelMap(std::string channelMapFile, std::map<int,int>& channelMap);
 
-  const double nova_time_ticks_per_second = 64e6;
+  const lbne::TpcNanoSlice::Header::nova_timestamp_t nova_time_ticks_per_second = 64e6;
 
   art::Timestamp make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp);
 
