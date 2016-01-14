@@ -71,10 +71,8 @@ private:
   std::string fFragType;
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
-  double      fNOvAClockFrequency; //MHz
-  std::string fChannelMapFile;
   
-  std::map<int,int> theChannelMap;
+  SSPReformatterAlgs sspReform;
 
   unsigned long int firstTime;
   unsigned long int lastTime;
@@ -82,7 +80,9 @@ private:
 };
 
 
-DAQToOffline::SSPTriggerAna::SSPTriggerAna(fhicl::ParameterSet const & pset) : art::EDAnalyzer(pset)
+DAQToOffline::SSPTriggerAna::SSPTriggerAna(fhicl::ParameterSet const & pset)
+                                         : art::EDAnalyzer(pset),
+                                           sspReform(pset.get<fhicl::ParameterSet>("SSPReformatter"))
 {
 
   this->reconfigure(pset);
@@ -95,15 +95,12 @@ void DAQToOffline::SSPTriggerAna::reconfigure(fhicl::ParameterSet const& pset){
 
   fFragType           = pset.get<std::string>("FragType");
   fRawDataLabel       = pset.get<std::string>("RawDataLabel");
-  fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
-  fChannelMapFile     = pset.get<std::string>("OpDetChannelMapFile");
 
   //fDebug = pset.get<bool>("Debug");
   //fZeroThreshold=0;
   //fCompression=raw::kNone;
 
   printParameterSet();
-  BuildOpDetChannelMap(fChannelMapFile, theChannelMap);
   
 }
 
@@ -114,7 +111,6 @@ void DAQToOffline::SSPTriggerAna::printParameterSet(){
 			       << "===================================="   << "\n"
 			       << "fFragType:        " << fFragType        << "\n"
 			       << "fRawDataLabel:    " << fRawDataLabel    << "\n"
-			       << "fChannelMapFile:  " << fChannelMapFile  << "\n"
 			       << "===================================="   << "\n";
 }
 
@@ -149,7 +145,7 @@ void DAQToOffline::SSPTriggerAna::endJob()
 
   
   long int deltaT = lastTime-firstTime;
-  double deltaTus =  ((double)deltaT)/fNOvAClockFrequency;
+  double deltaTus =  ((double)deltaT)/sspReform.ClockFrequency();
 
 
   mf::LogVerbatim("SSPTriggerAna") << "!! Trigger Rate Report." << std::endl;
@@ -206,7 +202,7 @@ void DAQToOffline::SSPTriggerAna::analyze(art::Event const & evt)
     const auto& frag((*rawFragments)[idx]);
     lbne::SSPFragment sspf(frag);
 
-    unsigned int nTriggers = CheckAndGetNTriggers(frag, sspf);
+    unsigned int nTriggers = sspReform.CheckAndGetNTriggers(frag, sspf);
       
     const unsigned int* dataPointer = sspf.dataBegin();
 
@@ -231,13 +227,13 @@ void DAQToOffline::SSPTriggerAna::analyze(art::Event const & evt)
 
       //get the information from the header
       try {
-        OpChannel = GetOpChannel(daqHeader, theChannelMap);
+        OpChannel = sspReform.GetOpChannel(daqHeader);
 
-        FirstSample = GetGlobalFirstSample(daqHeader);
+        FirstSample = sspReform.GetGlobalFirstSample(daqHeader);
         //TimeStamp = ((double)FirstSample)/fNOvAClockFrequency;
 
         if (FirstSample < 1e16) {
-          PrintHeaderInfo(daqHeader, fNOvAClockFrequency);
+          sspReform.PrintHeaderInfo(daqHeader);
           mf::LogInfo("SSPTriggerAna") << "Problem timestamp at " << FirstSample << std::endl;
           continue;
         }
