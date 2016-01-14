@@ -485,6 +485,7 @@ namespace DAQToOffline {
     art::RunNumber_t       inputRunNumber_;
     art::SubRunNumber_t    inputSubRunNumber_;
     art::EventNumber_t     inputEventNumber_;
+    art::Timestamp         inputEventTime_; 
     size_t                 ticksPerEvent_;
     size_t                 posttriggerticks_;
     size_t                 pretriggerticks_;
@@ -901,7 +902,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     bufferedDigits_.emplace_back(d);
   }
   // ******** Now Build the event *********
-  makeEventAndPutDigits_( outE, this_art_event_timestamp );
+  //inputEventTime_ is the art::Timestamp() of the online art::Event() used to create the offline art::Event()
+  makeEventAndPutDigits_( outE, inputEventTime_ );
   
   // ******** Reset loadedDigits_.index and TreeIndex_ to where the trigger was *********
   std::cout << "\nMaking an event which triggered on Tree Index " << fLastTreeIndex << ", tick " << fLastTriggerIndex << ".\n"
@@ -955,6 +957,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     inputRunNumber_ = evAux_.run();
     inputSubRunNumber_ = evAux_.subRun();
     inputEventNumber_ = evAux_.event();
+    inputEventTime_ = evAux_.time();
     //std::cout << "Loading event " << inputEventNumber_ << " which was on Tree " << InputTree << std::endl;
     //-----------------------------------------------------------------------------------------------------------
     if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
