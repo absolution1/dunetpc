@@ -544,6 +544,8 @@ namespace DAQToOffline {
     int fADCdiffThreshold;
     int fADCsOverThreshold;
 
+    bool RCEsNotPresent = false;
+
     std::vector<std::pair<size_t,size_t> > GoodEvents;
 
     std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
@@ -737,6 +739,24 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       }
       std::cout << "\nLooking at event " << treeIndex_+1 << " (treeIndex_ " << treeIndex_ << ")" << std::endl;
       bool rc = loadDigits_(treeIndex_);
+      if (RCEsNotPresent) {
+	std::cout << "The RCEs aren't present, so quitting." << std::endl;
+	runNumber_ = inputRunNumber_;
+	subRunNumber_ = inputSubRunNumber_;
+	art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+	if ( runNumber_ != cachedRunNumber_ ) {
+	  outR = sh_.makeRunPrincipal(runNumber_,ts);
+	  cachedRunNumber_ = runNumber_;
+	  eventNumber_ = 0ul;
+	}
+	if ( subRunNumber_ != cachedSubRunNumber_ ) {
+	  outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
+	  cachedSubRunNumber_ = subRunNumber_;
+	  eventNumber_ = 0ul;
+	}
+	makeEventAndPutDigits_( outE );
+	return true;
+      }
       std::cout << "There are a total of " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
       if (!rc) {
         doneWithFiles_ = (file_->GetName() == lastFileName_);
@@ -851,21 +871,6 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
    
   // ************* Fill dbuf_ with the RCE information for ticks collected ************************
   std::cout << "Just about to fill d " << fTicksAccumulated << " " << dbuf_.size() << std::endl;
-  
-  // ************* Set run numbers etc Have to do this before doing pedestal stuff ************************
-  runNumber_ = inputRunNumber_;
-  subRunNumber_ = inputSubRunNumber_;
-  art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
-  if ( runNumber_ != cachedRunNumber_ ) {
-    outR = sh_.makeRunPrincipal(runNumber_,ts);
-    cachedRunNumber_ = runNumber_;
-    eventNumber_ = 0ul;
-  }
-  if ( subRunNumber_ != cachedSubRunNumber_ ) {
-    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
-    cachedSubRunNumber_ = subRunNumber_;
-    eventNumber_ = 0ul;
-  }
 
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) {
     // ****** Now to subtract the pedestals.... ********
@@ -894,6 +899,19 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     bufferedDigits_.emplace_back(d);
   }
   // ******** Now Build the event *********
+  runNumber_ = inputRunNumber_;
+  subRunNumber_ = inputSubRunNumber_;
+  art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+  if ( runNumber_ != cachedRunNumber_ ) {
+    outR = sh_.makeRunPrincipal(runNumber_,ts);
+    cachedRunNumber_ = runNumber_;
+    eventNumber_ = 0ul;
+  }
+  if ( subRunNumber_ != cachedSubRunNumber_ ) {
+    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
+    cachedSubRunNumber_ = subRunNumber_;
+    eventNumber_ = 0ul;
+  }
   makeEventAndPutDigits_( outE );
   
   // ******** Reset loadedDigits_.index and TreeIndex_ to where the trigger was *********
@@ -954,6 +972,9 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
       lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
       auto* fragments = getFragments( TPCinputBranch_, LoadTree );
       rawDigits_t const digits = fragmentsToDigits_( *fragments, firstTimestamp, TPCChannelMap );
+      if (!digits.size() ) {
+	RCEsNotPresent = true;
+      }
       loadedDigits_.load( digits );
       loadedDigits_.loadTimestamp( firstTimestamp );
       std::cout << "RCE Fragment First Timestamp: " << firstTimestamp << std::endl;
