@@ -1,5 +1,7 @@
 #include "NearlinePlotMaker.h"
 
+const std::string PLOT_DIR = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots";
+
 //
 // Make the plots for the nearline webpage from the nearline output files.
 //
@@ -60,7 +62,8 @@ Long64_t NearlinePlotMaker(int Ndays){
 
   // Open list of input files...
   char filelist_title[128];
-  sprintf(filelist_title,"/dune/app/users/mbaird42/35t_nearline_releases/temp/FileList.txt");
+  sprintf(filelist_title,"/home/lbnedaq/nearline/temp/35t_%.dDay_Nearline_File_List.txt",Ndays);
+  std::cout << "\n\nOpening list of input files:\n" << filelist_title << "\n\n";
   inFile.open(filelist_title);
 
 
@@ -282,7 +285,7 @@ Long64_t NearlinePlotMaker(int Ndays){
   hped_per_tick_chan_0->SetLineColor(kRed);
   hped_per_tick_chan_0->Draw();
   UpdateText->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/ADCSpecChan0000_%.3u_days.png",Ndays);
+  sprintf(filename,"%s/ADCSpecChan0000_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cADCSpecChan0000->Print(filename);
 
   maxtime = 0;
@@ -314,7 +317,7 @@ Long64_t NearlinePlotMaker(int Ndays){
   gMeanPedChan0000->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/MeanPedChan0000_%.3u_days.png",Ndays);
+  sprintf(filename,"%s/MeanPedChan0000_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cMeanPedChan0000->Print(filename);
 
 
@@ -328,7 +331,7 @@ Long64_t NearlinePlotMaker(int Ndays){
   hped_per_tick_chan_128->SetLineColor(kRed);
   hped_per_tick_chan_128->Draw();
   UpdateText->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/ADCSpecChan0128_%.3u_days.png",Ndays);
+  sprintf(filename,"%s/ADCSpecChan0128_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cADCSpecChan0128->Print(filename);
 
   maxtime = 0;
@@ -360,7 +363,7 @@ Long64_t NearlinePlotMaker(int Ndays){
   gMeanPedChan0128->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/MeanPedChan0128_%.3u_days.png",Ndays);
+  sprintf(filename,"%s/MeanPedChan0128_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cMeanPedChan0128->Print(filename);
 
 
@@ -374,7 +377,7 @@ Long64_t NearlinePlotMaker(int Ndays){
   hped_per_tick_chan_256->SetLineColor(kRed);
   hped_per_tick_chan_256->Draw();
   UpdateText->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/ADCSpecChan0256_%.3u_days.png",Ndays);
+  sprintf(filename,"%s/ADCSpecChan0256_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cADCSpecChan0256->Print(filename);
 
   maxtime = 0;
@@ -406,7 +409,7 @@ Long64_t NearlinePlotMaker(int Ndays){
   gMeanPedChan0256->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/MeanPedChan0256_%.3u_days.png",Ndays);
+  sprintf(filename,"%s/MeanPedChan0256_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cMeanPedChan0256->Print(filename);
 
 
@@ -420,7 +423,7 @@ Long64_t NearlinePlotMaker(int Ndays){
   hped_per_tick_chan_384->SetLineColor(kRed);
   hped_per_tick_chan_384->Draw();
   UpdateText->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/ADCSpecChan0384_%.3u_days.png",Ndays);
+  sprintf(filename,"%s/ADCSpecChan0384_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cADCSpecChan0384->Print(filename);
 
   maxtime = 0;
@@ -452,7 +455,7 @@ Long64_t NearlinePlotMaker(int Ndays){
   gMeanPedChan0384->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  sprintf(filename,"/dune/app/users/mbaird42/35t_nearline_releases/temp/MeanPedChan0384_%.3u_days.png",Ndays);
+  sprintf(filename,"%s/MeanPedChan0384_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cMeanPedChan0384->Print(filename);
 
 

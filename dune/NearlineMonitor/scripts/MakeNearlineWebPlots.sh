@@ -10,7 +10,7 @@ if [ $argssize -ne 3 ];then
     echo ""
     echo "Usage:   ./MakeNearlineWebPlots.sh {dunetpc release: vXX_YY_ZZ} {compiler} {time period in days}"
     echo ""
-    echo "Example: ./MakeNearlineWebPlots.sh v04_30_03 e9 2"
+    echo "Example: ./MakeNearlineWebPlots.sh v04_32_01 e9 2"
     echo ""
     exit
 fi
@@ -38,12 +38,12 @@ KEYUSE=`/usr/krb5/bin/klist -k ${KEYTAB} | grep FNAL.GOV | head -1 | cut -c 5- |
 
 
 # Specify path to nearline output files...
-SearchPath="somewhere..."
+SearchPath="/lbne/data2/users/lbnedaq/nearline/${REL}/*/*/"
 
 
 
 # Setup the LArSoft/dunetpc environment to pick up root.
-export RelDir=/home/lbnedaq/nearline_test_release_${REL}
+export RelDir=/home/lbnedaq/nearline/nearline_test_release_${REL}
 export ScriptPath=${RelDir}/srcs/dunetpc/dune/NearlineMonitor/scripts
 export LPDir=${RelDir}/localProducts_larsoft_${REL}_${COMP}_prof
 
@@ -54,7 +54,7 @@ cd $LPDir
 source ./setup
 cd ..
 mrbslp
-cd ~/NearlineTemp
+cd ~/nearline/temp
 echo ""
 
 
@@ -66,7 +66,7 @@ find ${SearchPath} -mtime -${DAYS} -name "lbne_*_nearline_hist.root" | sort -r >
 
 
 # Execute root script to make plots...
-root -l -b -q "$ScriptPath/NearlinePlotMaker.C+($DAYS)"
+root -l -b -q "${ScriptPath}/NearlinePlotMaker.C+(${DAYS})"
 
 
 
