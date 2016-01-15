@@ -1,10 +1,10 @@
 
 simple_plugin(TrackingEfficiency "module"
-				  RawData
-				  RecoBase	  
-		        	  Geometry  
+				  lardata_RawData
+				  lardata_RecoBase	  
+		        	  larcore_Geometry  
 				  larcore_Geometry_Geometry_service
-				  Utilities
+				  lardata_Utilities
 				  lardata_DetectorInfoServices_DetectorPropertiesServiceStandard_service
 				  lardata_DetectorInfoServices_DetectorClocksServiceStandard_service
 				  ${SIMULATIONBASE}
@@ -24,11 +24,11 @@ simple_plugin(TrackingEfficiency "module"
 )
 
 simple_plugin(ProtonIdentification "module"
-				  RawData
-				  RecoBase	  
-		        	  Geometry  
+				  lardata_RawData
+				  lardata_RecoBase	  
+		        	  larcore_Geometry  
 				  larcore_Geometry_Geometry_service
-				  Utilities
+				  lardata_Utilities
 				  lardata_DetectorInfoServices_DetectorPropertiesServiceStandard_service
 				  lardata_DetectorInfoServices_DetectorClocksServiceStandard_service
 				  ${SIMULATIONBASE}

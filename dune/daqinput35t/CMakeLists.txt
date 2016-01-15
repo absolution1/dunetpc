@@ -13,18 +13,18 @@ art_make(BASENAME_ONLY
         ${MF_UTILITIES}
 	${Boost_SYSTEM_LIBRARY}
 	larcore_Geometry_Geometry_service
-	Geometry
+	larcore_Geometry
 	lbne_daqinput35t_utilities 
 	lbne-raw-data_Overlays
-        RawData
+        lardata_RawData
         NO_PLUGINS
         )
 
 simple_plugin(TpcMilliSliceDump "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-Geometry
-RawData
+larcore_Geometry
+lardata_RawData
 ${SIMULATIONBASE}
 # ${ART_FRAMEWORK_CORE}
 # ${ART_FRAMEWORK_PRINCIPAL}
@@ -45,8 +45,8 @@ ${ROOT_HIST}
 simple_plugin(SSPDump "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-Geometry
-RawData
+larcore_Geometry
+lardata_RawData
 ${SIMULATIONBASE}
 art_Framework_Services_Registry
 art_Framework_Services_Optional
@@ -57,9 +57,9 @@ ${ROOT_HIST}
 simple_plugin(SSPToOffline "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-Geometry
+larcore_Geometry
 lbne_daqinput35t
-RawData
+lardata_RawData
 ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
 )
@@ -67,9 +67,9 @@ ${MF_MESSAGELOGGER}
 simple_plugin(PTBToOffline "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-Geometry
+larcore_Geometry
 lbne_daqinput35t
-RawData
+lardata_RawData
 ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
 )
@@ -77,9 +77,9 @@ ${MF_MESSAGELOGGER}
 simple_plugin(SSPTriggerAna "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-Geometry
+larcore_Geometry
 lbne_daqinput35t
-RawData
+lardata_RawData
 ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
 )
@@ -89,8 +89,8 @@ lbne-raw-data_Overlays
 lbne_daqinput35t_utilities
 lbne_daqinput35t
 larcore_Geometry_Geometry_service
-Geometry
-RawData
+larcore_Geometry
+lardata_RawData
 )
 
 simple_plugin(SplitterInput "source"

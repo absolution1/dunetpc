@@ -2,12 +2,12 @@
 art_make( BASENAME_ONLY
 	  EXCLUDE CheckGeometry_module.cc
 	  LIBRARY_NAME dune_Geometry
-	  LIB_LIBRARIES Geometry
+	  LIB_LIBRARIES larcore_Geometry
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
                         ${FHICLCPP}
                         ${ROOT_BASIC_LIB_LIST}
-	  SERVICE_LIBRARIES Geometry
+	  SERVICE_LIBRARIES larcore_Geometry
 	  		dune_Geometry
 			${MF_UTILITIES}
 	                ${FHICLCPP}
@@ -19,7 +19,7 @@ art_make( BASENAME_ONLY
         )							   
 
 simple_plugin ( CheckGeometry "module"
-                     Geometry
+                     larcore_Geometry
                      larcore_Geometry_Geometry_service
 		     ${ART_FRAMEWORK_CORE}
    		     ${ART_FRAMEWORK_PRINCIPAL}

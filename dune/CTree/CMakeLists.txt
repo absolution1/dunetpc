@@ -1,13 +1,13 @@
 art_make( BASENAME_ONLY
-          MODULE_LIBRARIES Geometry
+          MODULE_LIBRARIES larcore_Geometry
           dune_Geometry
           larcore_Geometry_Geometry_service
-          Simulation
+          larsim_Simulation
           larsim_MCCheater_BackTracker_service
-          Utilities
-          RawData
-          RecoBase
-          RecoObjects
+          lardata_Utilities
+          lardata_RawData
+          lardata_RecoBase
+          lardata_RecoObjects
           ${SIMULATIONBASE}
           ${LARRECO_LIB}
           ${LARDATA_LIB}

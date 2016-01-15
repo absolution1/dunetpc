@@ -2,8 +2,8 @@
 
 simple_plugin(RawEVD35tTree "module"
 			larcore_Geometry_Geometry_service
-                        Geometry
-			RawData
+                        larcore_Geometry
+			lardata_RawData
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
