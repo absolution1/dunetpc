@@ -69,9 +69,9 @@ export filepos=6
 
 
 
-# Only look for new files between 10 min and 10 days old and sort them so that files
+# Only look for new files between 10 min and 60 days old and sort them so that files
 # with the largest run/subrun numbers are first in the list.
-for file in $( find ${FileSearch} -mtime -20 -mmin +10 | sort -t "/" -k$filepos -r )
+for file in $( find ${FileSearch} -mtime -60 -mmin +10 | sort -t "/" -k$filepos -r )
 do {
 
 	if [ `ps aux | grep ProcessSingleFile | wc -l` -gt $maxjobs ];then

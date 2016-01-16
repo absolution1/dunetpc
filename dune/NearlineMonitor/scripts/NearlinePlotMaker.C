@@ -68,11 +68,19 @@ Long64_t NearlinePlotMaker(int Ndays){
 
 
 
+  // NOTE: Much of the code below is not written in a smart, flexible way. For future users, I'd advise
+  //       makeing this a bit more general and less "copy and paste" style...
+
   // Book histos...
   TH1F *hped_per_tick_chan_20   = new TH1F("hped_per_tick_chan_20",  "ADC per Tick - Channel 20;ADC"  ,100,0,2048);
   TH1F *hped_per_tick_chan_548  = new TH1F("hped_per_tick_chan_548", "ADC per Tick - Channel 548;ADC" ,100,0,2048);
   TH1F *hped_per_tick_chan_1297 = new TH1F("hped_per_tick_chan_1297","ADC per Tick - Channel 1297;ADC",100,0,2048);
   TH1F *hped_per_tick_chan_1697 = new TH1F("hped_per_tick_chan_1697","ADC per Tick - Channel 1697;ADC",100,0,2048);
+
+  TH1F *hped_per_tick_chan_1838 = new TH1F("hped_per_tick_chan_1838","ADC per Tick - Channel 1838;ADC",100,0,2048);
+  TH1F *hped_per_tick_chan_1482 = new TH1F("hped_per_tick_chan_1482","ADC per Tick - Channel 1482;ADC",100,0,2048);
+  TH1F *hped_per_tick_chan_952  = new TH1F("hped_per_tick_chan_952", "ADC per Tick - Channel 952;ADC", 100,0,2048);
+  TH1F *hped_per_tick_chan_454  = new TH1F("hped_per_tick_chan_454", "ADC per Tick - Channel 454;ADC", 100,0,2048);
 
 
   
@@ -93,6 +101,23 @@ Long64_t NearlinePlotMaker(int Ndays){
   float *MeanPedChan1697Time  = new float[Npoint];
   int    MeanPedChan1697Count = 0;
 
+  float *MeanPedChan1838      = new float[Npoint];
+  float *MeanPedChan1838Time  = new float[Npoint];
+  int    MeanPedChan1838Count = 0;
+
+  float *MeanPedChan1482      = new float[Npoint];
+  float *MeanPedChan1482Time  = new float[Npoint];
+  int    MeanPedChan1482Count = 0;
+
+  float *MeanPedChan0952      = new float[Npoint];
+  float *MeanPedChan0952Time  = new float[Npoint];
+  int    MeanPedChan0952Count = 0;
+
+  float *MeanPedChan0454      = new float[Npoint];
+  float *MeanPedChan0454Time  = new float[Npoint];
+  int    MeanPedChan0454Count = 0;
+
+
 
   float *RMSPedChan0020      = new float[Npoint];
   float *RMSPedChan0020Time  = new float[Npoint];
@@ -109,6 +134,22 @@ Long64_t NearlinePlotMaker(int Ndays){
   float *RMSPedChan1697      = new float[Npoint];
   float *RMSPedChan1697Time  = new float[Npoint];
   int    RMSPedChan1697Count = 0;
+
+  float *RMSPedChan1838      = new float[Npoint];
+  float *RMSPedChan1838Time  = new float[Npoint];
+  int    RMSPedChan1838Count = 0;
+
+  float *RMSPedChan1482      = new float[Npoint];
+  float *RMSPedChan1482Time  = new float[Npoint];
+  int    RMSPedChan1482Count = 0;
+
+  float *RMSPedChan0952      = new float[Npoint];
+  float *RMSPedChan0952Time  = new float[Npoint];
+  int    RMSPedChan0952Count = 0;
+
+  float *RMSPedChan0454      = new float[Npoint];
+  float *RMSPedChan0454Time  = new float[Npoint];
+  int    RMSPedChan0454Count = 0;
 
 
 
@@ -231,6 +272,62 @@ Long64_t NearlinePlotMaker(int Ndays){
       RMSPedChan1697Time[RMSPedChan1697Count] = Xsrtime;
       RMSPedChan1697    [RMSPedChan1697Count] = hped_per_tick_chan_1697_temp->GetRMS(1);
       RMSPedChan1697Count++;      
+    }
+        
+    TH1F *hped_per_tick_chan_1838_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_1838");    
+    if(hped_per_tick_chan_1838_temp != 0){
+      hped_per_tick_chan_1838->Add(hped_per_tick_chan_1838_temp,1.0);
+    }    
+    if(hped_per_tick_chan_1838_temp != 0 && header != 0) {
+      MeanPedChan1838Time[MeanPedChan1838Count] = Xsrtime;
+      MeanPedChan1838    [MeanPedChan1838Count] = hped_per_tick_chan_1838_temp->GetMean(1);
+      MeanPedChan1838Count++;      
+
+      RMSPedChan1838Time[RMSPedChan1838Count] = Xsrtime;
+      RMSPedChan1838    [RMSPedChan1838Count] = hped_per_tick_chan_1838_temp->GetRMS(1);
+      RMSPedChan1838Count++;      
+    }
+        
+    TH1F *hped_per_tick_chan_1482_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_1482");    
+    if(hped_per_tick_chan_1482_temp != 0){
+      hped_per_tick_chan_1482->Add(hped_per_tick_chan_1482_temp,1.0);
+    }    
+    if(hped_per_tick_chan_1482_temp != 0 && header != 0) {
+      MeanPedChan1482Time[MeanPedChan1482Count] = Xsrtime;
+      MeanPedChan1482    [MeanPedChan1482Count] = hped_per_tick_chan_1482_temp->GetMean(1);
+      MeanPedChan1482Count++;      
+
+      RMSPedChan1482Time[RMSPedChan1482Count] = Xsrtime;
+      RMSPedChan1482    [RMSPedChan1482Count] = hped_per_tick_chan_1482_temp->GetRMS(1);
+      RMSPedChan1482Count++;      
+    }
+        
+    TH1F *hped_per_tick_chan_952_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_952");    
+    if(hped_per_tick_chan_952_temp != 0){
+      hped_per_tick_chan_952->Add(hped_per_tick_chan_952_temp,1.0);
+    }    
+    if(hped_per_tick_chan_952_temp != 0 && header != 0) {
+      MeanPedChan0952Time[MeanPedChan0952Count] = Xsrtime;
+      MeanPedChan0952    [MeanPedChan0952Count] = hped_per_tick_chan_952_temp->GetMean(1);
+      MeanPedChan0952Count++;      
+
+      RMSPedChan0952Time[RMSPedChan0952Count] = Xsrtime;
+      RMSPedChan0952    [RMSPedChan0952Count] = hped_per_tick_chan_952_temp->GetRMS(1);
+      RMSPedChan0952Count++;      
+    }
+        
+    TH1F *hped_per_tick_chan_454_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_454");    
+    if(hped_per_tick_chan_454_temp != 0){
+      hped_per_tick_chan_454->Add(hped_per_tick_chan_454_temp,1.0);
+    }    
+    if(hped_per_tick_chan_454_temp != 0 && header != 0) {
+      MeanPedChan0454Time[MeanPedChan0454Count] = Xsrtime;
+      MeanPedChan0454    [MeanPedChan0454Count] = hped_per_tick_chan_454_temp->GetMean(1);
+      MeanPedChan0454Count++;      
+
+      RMSPedChan0454Time[RMSPedChan0454Count] = Xsrtime;
+      RMSPedChan0454    [RMSPedChan0454Count] = hped_per_tick_chan_454_temp->GetRMS(1);
+      RMSPedChan0454Count++;      
     }
         
 
@@ -619,6 +716,318 @@ Long64_t NearlinePlotMaker(int Ndays){
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan1697_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1697->Print(filename);
+
+
+
+  TCanvas *cADCSpecChan1838 = new TCanvas("cADCSpecChan1838","ADC Spectrum - Channel 1838",1200,800);
+  cADCSpecChan1838->cd();
+  cADCSpecChan1838->SetLogy();
+  gStyle->SetOptStat(111111);
+  // hped_per_tick_chan_1838->SetAxisRange(0.0,2048.0,"X");
+  hped_per_tick_chan_1838->SetLineWidth(2);
+  hped_per_tick_chan_1838->SetLineColor(kRed);
+  hped_per_tick_chan_1838->Draw();
+  UpdateText->Draw();
+  sprintf(filename,"%s/ADCSpecChan1838_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cADCSpecChan1838->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < MeanPedChan1838Count; ++i) {
+    ave += (double)MeanPedChan1838[i];
+    if(MeanPedChan1838Time[i] > maxtime) {
+      maxtime = MeanPedChan1838Time[i];
+      max     = MeanPedChan1838[i];
+    }
+  }
+  if(MeanPedChan1838Count > 0) ave = ave/(double)MeanPedChan1838Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cMeanPedChan1838 = new TCanvas("cMeanPedChan1838","Mean Pedestal for Channel 1838",1200,800);
+  cMeanPedChan1838->cd();
+  gPad->SetGridx();
+  TGraph *gMeanPedChan1838 = new TGraph(MeanPedChan1838Count,MeanPedChan1838Time,MeanPedChan1838);
+  sprintf(title,"Mean Pedestal per Event for Channel 1838");
+  gMeanPedChan1838->SetTitle(title);
+  gMeanPedChan1838->SetMarkerColor(kBlue);
+  gMeanPedChan1838->GetXaxis()->SetTimeDisplay(1);
+  gMeanPedChan1838->GetXaxis()->SetLabelSize(0.03);
+  gMeanPedChan1838->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gMeanPedChan1838->GetXaxis()->SetLimits(time_ago,XNow);
+  gMeanPedChan1838->GetXaxis()->SetTitle("(central time)");
+  gMeanPedChan1838->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/MeanPedChan1838_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cMeanPedChan1838->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < RMSPedChan1838Count; ++i) {
+    ave += (double)RMSPedChan1838[i];
+    if(RMSPedChan1838Time[i] > maxtime) {
+      maxtime = RMSPedChan1838Time[i];
+      max     = RMSPedChan1838[i];
+    }
+  }
+  if(RMSPedChan1838Count > 0) ave = ave/(double)RMSPedChan1838Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cRMSPedChan1838 = new TCanvas("cRMSPedChan1838","Pedestal RMS for Channel 1838",1200,800);
+  cRMSPedChan1838->cd();
+  gPad->SetGridx();
+  TGraph *gRMSPedChan1838 = new TGraph(RMSPedChan1838Count,RMSPedChan1838Time,RMSPedChan1838);
+  sprintf(title,"Pedestal RMS for Channel 1838");
+  gRMSPedChan1838->SetTitle(title);
+  gRMSPedChan1838->SetMarkerColor(kBlue);
+  gRMSPedChan1838->GetXaxis()->SetTimeDisplay(1);
+  gRMSPedChan1838->GetXaxis()->SetLabelSize(0.03);
+  gRMSPedChan1838->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gRMSPedChan1838->GetXaxis()->SetLimits(time_ago,XNow);
+  gRMSPedChan1838->GetXaxis()->SetTitle("(central time)");
+  gRMSPedChan1838->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan1838_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan1838->Print(filename);
+
+
+
+  TCanvas *cADCSpecChan1482 = new TCanvas("cADCSpecChan1482","ADC Spectrum - Channel 1482",1200,800);
+  cADCSpecChan1482->cd();
+  cADCSpecChan1482->SetLogy();
+  gStyle->SetOptStat(111111);
+  // hped_per_tick_chan_1482->SetAxisRange(0.0,2048.0,"X");
+  hped_per_tick_chan_1482->SetLineWidth(2);
+  hped_per_tick_chan_1482->SetLineColor(kRed);
+  hped_per_tick_chan_1482->Draw();
+  UpdateText->Draw();
+  sprintf(filename,"%s/ADCSpecChan1482_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cADCSpecChan1482->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < MeanPedChan1482Count; ++i) {
+    ave += (double)MeanPedChan1482[i];
+    if(MeanPedChan1482Time[i] > maxtime) {
+      maxtime = MeanPedChan1482Time[i];
+      max     = MeanPedChan1482[i];
+    }
+  }
+  if(MeanPedChan1482Count > 0) ave = ave/(double)MeanPedChan1482Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cMeanPedChan1482 = new TCanvas("cMeanPedChan1482","Mean Pedestal for Channel 1482",1200,800);
+  cMeanPedChan1482->cd();
+  gPad->SetGridx();
+  TGraph *gMeanPedChan1482 = new TGraph(MeanPedChan1482Count,MeanPedChan1482Time,MeanPedChan1482);
+  sprintf(title,"Mean Pedestal per Event for Channel 1482");
+  gMeanPedChan1482->SetTitle(title);
+  gMeanPedChan1482->SetMarkerColor(kBlue);
+  gMeanPedChan1482->GetXaxis()->SetTimeDisplay(1);
+  gMeanPedChan1482->GetXaxis()->SetLabelSize(0.03);
+  gMeanPedChan1482->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gMeanPedChan1482->GetXaxis()->SetLimits(time_ago,XNow);
+  gMeanPedChan1482->GetXaxis()->SetTitle("(central time)");
+  gMeanPedChan1482->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/MeanPedChan1482_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cMeanPedChan1482->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < RMSPedChan1482Count; ++i) {
+    ave += (double)RMSPedChan1482[i];
+    if(RMSPedChan1482Time[i] > maxtime) {
+      maxtime = RMSPedChan1482Time[i];
+      max     = RMSPedChan1482[i];
+    }
+  }
+  if(RMSPedChan1482Count > 0) ave = ave/(double)RMSPedChan1482Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cRMSPedChan1482 = new TCanvas("cRMSPedChan1482","Pedestal RMS for Channel 1482",1200,800);
+  cRMSPedChan1482->cd();
+  gPad->SetGridx();
+  TGraph *gRMSPedChan1482 = new TGraph(RMSPedChan1482Count,RMSPedChan1482Time,RMSPedChan1482);
+  sprintf(title,"Pedestal RMS for Channel 1482");
+  gRMSPedChan1482->SetTitle(title);
+  gRMSPedChan1482->SetMarkerColor(kBlue);
+  gRMSPedChan1482->GetXaxis()->SetTimeDisplay(1);
+  gRMSPedChan1482->GetXaxis()->SetLabelSize(0.03);
+  gRMSPedChan1482->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gRMSPedChan1482->GetXaxis()->SetLimits(time_ago,XNow);
+  gRMSPedChan1482->GetXaxis()->SetTitle("(central time)");
+  gRMSPedChan1482->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan1482_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan1482->Print(filename);
+
+
+
+  TCanvas *cADCSpecChan0952 = new TCanvas("cADCSpecChan0952","ADC Spectrum - Channel 952",1200,800);
+  cADCSpecChan0952->cd();
+  cADCSpecChan0952->SetLogy();
+  gStyle->SetOptStat(111111);
+  // hped_per_tick_chan_952->SetAxisRange(0.0,2048.0,"X");
+  hped_per_tick_chan_952->SetLineWidth(2);
+  hped_per_tick_chan_952->SetLineColor(kRed);
+  hped_per_tick_chan_952->Draw();
+  UpdateText->Draw();
+  sprintf(filename,"%s/ADCSpecChan0952_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cADCSpecChan0952->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < MeanPedChan0952Count; ++i) {
+    ave += (double)MeanPedChan0952[i];
+    if(MeanPedChan0952Time[i] > maxtime) {
+      maxtime = MeanPedChan0952Time[i];
+      max     = MeanPedChan0952[i];
+    }
+  }
+  if(MeanPedChan0952Count > 0) ave = ave/(double)MeanPedChan0952Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cMeanPedChan0952 = new TCanvas("cMeanPedChan0952","Mean Pedestal for Channel 952",1200,800);
+  cMeanPedChan0952->cd();
+  gPad->SetGridx();
+  TGraph *gMeanPedChan0952 = new TGraph(MeanPedChan0952Count,MeanPedChan0952Time,MeanPedChan0952);
+  sprintf(title,"Mean Pedestal per Event for Channel 952");
+  gMeanPedChan0952->SetTitle(title);
+  gMeanPedChan0952->SetMarkerColor(kBlue);
+  gMeanPedChan0952->GetXaxis()->SetTimeDisplay(1);
+  gMeanPedChan0952->GetXaxis()->SetLabelSize(0.03);
+  gMeanPedChan0952->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gMeanPedChan0952->GetXaxis()->SetLimits(time_ago,XNow);
+  gMeanPedChan0952->GetXaxis()->SetTitle("(central time)");
+  gMeanPedChan0952->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/MeanPedChan0952_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cMeanPedChan0952->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < RMSPedChan0952Count; ++i) {
+    ave += (double)RMSPedChan0952[i];
+    if(RMSPedChan0952Time[i] > maxtime) {
+      maxtime = RMSPedChan0952Time[i];
+      max     = RMSPedChan0952[i];
+    }
+  }
+  if(RMSPedChan0952Count > 0) ave = ave/(double)RMSPedChan0952Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cRMSPedChan0952 = new TCanvas("cRMSPedChan0952","Pedestal RMS for Channel 952",1200,800);
+  cRMSPedChan0952->cd();
+  gPad->SetGridx();
+  TGraph *gRMSPedChan0952 = new TGraph(RMSPedChan0952Count,RMSPedChan0952Time,RMSPedChan0952);
+  sprintf(title,"Pedestal RMS for Channel 952");
+  gRMSPedChan0952->SetTitle(title);
+  gRMSPedChan0952->SetMarkerColor(kBlue);
+  gRMSPedChan0952->GetXaxis()->SetTimeDisplay(1);
+  gRMSPedChan0952->GetXaxis()->SetLabelSize(0.03);
+  gRMSPedChan0952->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gRMSPedChan0952->GetXaxis()->SetLimits(time_ago,XNow);
+  gRMSPedChan0952->GetXaxis()->SetTitle("(central time)");
+  gRMSPedChan0952->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan0952_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan0952->Print(filename);
+
+
+
+  TCanvas *cADCSpecChan0454 = new TCanvas("cADCSpecChan0454","ADC Spectrum - Channel 454",1200,800);
+  cADCSpecChan0454->cd();
+  cADCSpecChan0454->SetLogy();
+  gStyle->SetOptStat(111111);
+  // hped_per_tick_chan_454->SetAxisRange(0.0,2048.0,"X");
+  hped_per_tick_chan_454->SetLineWidth(2);
+  hped_per_tick_chan_454->SetLineColor(kRed);
+  hped_per_tick_chan_454->Draw();
+  UpdateText->Draw();
+  sprintf(filename,"%s/ADCSpecChan0454_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cADCSpecChan0454->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < MeanPedChan0454Count; ++i) {
+    ave += (double)MeanPedChan0454[i];
+    if(MeanPedChan0454Time[i] > maxtime) {
+      maxtime = MeanPedChan0454Time[i];
+      max     = MeanPedChan0454[i];
+    }
+  }
+  if(MeanPedChan0454Count > 0) ave = ave/(double)MeanPedChan0454Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cMeanPedChan0454 = new TCanvas("cMeanPedChan0454","Mean Pedestal for Channel 454",1200,800);
+  cMeanPedChan0454->cd();
+  gPad->SetGridx();
+  TGraph *gMeanPedChan0454 = new TGraph(MeanPedChan0454Count,MeanPedChan0454Time,MeanPedChan0454);
+  sprintf(title,"Mean Pedestal per Event for Channel 454");
+  gMeanPedChan0454->SetTitle(title);
+  gMeanPedChan0454->SetMarkerColor(kBlue);
+  gMeanPedChan0454->GetXaxis()->SetTimeDisplay(1);
+  gMeanPedChan0454->GetXaxis()->SetLabelSize(0.03);
+  gMeanPedChan0454->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gMeanPedChan0454->GetXaxis()->SetLimits(time_ago,XNow);
+  gMeanPedChan0454->GetXaxis()->SetTitle("(central time)");
+  gMeanPedChan0454->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/MeanPedChan0454_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cMeanPedChan0454->Print(filename);
+
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < RMSPedChan0454Count; ++i) {
+    ave += (double)RMSPedChan0454[i];
+    if(RMSPedChan0454Time[i] > maxtime) {
+      maxtime = RMSPedChan0454Time[i];
+      max     = RMSPedChan0454[i];
+    }
+  }
+  if(RMSPedChan0454Count > 0) ave = ave/(double)RMSPedChan0454Count;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+  TCanvas *cRMSPedChan0454 = new TCanvas("cRMSPedChan0454","Pedestal RMS for Channel 454",1200,800);
+  cRMSPedChan0454->cd();
+  gPad->SetGridx();
+  TGraph *gRMSPedChan0454 = new TGraph(RMSPedChan0454Count,RMSPedChan0454Time,RMSPedChan0454);
+  sprintf(title,"Pedestal RMS for Channel 454");
+  gRMSPedChan0454->SetTitle(title);
+  gRMSPedChan0454->SetMarkerColor(kBlue);
+  gRMSPedChan0454->GetXaxis()->SetTimeDisplay(1);
+  gRMSPedChan0454->GetXaxis()->SetLabelSize(0.03);
+  gRMSPedChan0454->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gRMSPedChan0454->GetXaxis()->SetLimits(time_ago,XNow);
+  gRMSPedChan0454->GetXaxis()->SetTitle("(central time)");
+  gRMSPedChan0454->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan0454_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan0454->Print(filename);
 
 
 
