@@ -168,6 +168,17 @@ Long64_t NearlinePlotMaker(int Ndays){
     if(!inFile.good()) continue; // prevent code from running over the last file twice...
     TFile file(filename);
     file.cd("nearlineana");
+
+    // Reset the time variables...
+    Xsrtime = 0;
+    year    = 0;
+    month   = 0;
+    day     = 0;
+    Hour    = 0.0;
+    Min     = 0.0;
+    hour    = 0;
+    min     = 0;
+    sec     = 0;
     
     TTree *header  = (TTree *)file.FindObjectAny("Header");
     if(header != 0) {
@@ -196,9 +207,6 @@ Long64_t NearlinePlotMaker(int Ndays){
       Min  = (HourEnd-hour)*60.0;
       min  = (HourEnd-hour)*60.0;
       sec  = (Min-min)*60.0;
-
-      // Get the end time and compute subrun duration.
-      SRtime->Set(yearEnd,monthEnd,dayEnd,hour,min,sec);
       
       if(Xsrtime < time_ago) continue; 
       
@@ -218,11 +226,21 @@ Long64_t NearlinePlotMaker(int Ndays){
     
     
     // Lift out the histos that we want...
+
+    //
+    // NOTE: In the if statements below, there occurs this: " && Xsrtime != XNow - GMToffset"
+    //       I don't know why, but somehow a bogus point was being included at the end of the
+    //       TGraphs with a value of zero and a time exactly equal to (now - 6 hours). This
+    //       likely comes somehow from looping over the last file twice or from somehow getting
+    //       empty information and defaulting to these values, but I couldn't track it down in
+    //       timely fashion. So it will remain a problem for the next person to find. For now,
+    //       this if statement catches it. If this is confusing, e-mail mbaird42@FNAL.GOV with
+    //       questions.)
     TH1F *hped_per_tick_chan_20_temp = (TH1F*)file.FindObjectAny("hped_per_tick_chan_20");    
     if(hped_per_tick_chan_20_temp != 0){
       hped_per_tick_chan_20->Add(hped_per_tick_chan_20_temp,1.0);
     }    
-    if(hped_per_tick_chan_20_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_20_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
       MeanPedChan0020Time[MeanPedChan0020Count] = Xsrtime;
       MeanPedChan0020    [MeanPedChan0020Count] = hped_per_tick_chan_20_temp->GetMean(1);
       MeanPedChan0020Count++;      
@@ -236,7 +254,7 @@ Long64_t NearlinePlotMaker(int Ndays){
     if(hped_per_tick_chan_548_temp != 0){
       hped_per_tick_chan_548->Add(hped_per_tick_chan_548_temp,1.0);
     }    
-    if(hped_per_tick_chan_548_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_548_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
       MeanPedChan0548Time[MeanPedChan0548Count] = Xsrtime;
       MeanPedChan0548    [MeanPedChan0548Count] = hped_per_tick_chan_548_temp->GetMean(1);
       MeanPedChan0548Count++;      
@@ -250,7 +268,7 @@ Long64_t NearlinePlotMaker(int Ndays){
     if(hped_per_tick_chan_1297_temp != 0){
       hped_per_tick_chan_1297->Add(hped_per_tick_chan_1297_temp,1.0);
     }    
-    if(hped_per_tick_chan_1297_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_1297_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
       MeanPedChan1297Time[MeanPedChan1297Count] = Xsrtime;
       MeanPedChan1297    [MeanPedChan1297Count] = hped_per_tick_chan_1297_temp->GetMean(1);
       MeanPedChan1297Count++;      
@@ -264,7 +282,7 @@ Long64_t NearlinePlotMaker(int Ndays){
     if(hped_per_tick_chan_1697_temp != 0){
       hped_per_tick_chan_1697->Add(hped_per_tick_chan_1697_temp,1.0);
     }    
-    if(hped_per_tick_chan_1697_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_1697_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
       MeanPedChan1697Time[MeanPedChan1697Count] = Xsrtime;
       MeanPedChan1697    [MeanPedChan1697Count] = hped_per_tick_chan_1697_temp->GetMean(1);
       MeanPedChan1697Count++;      
@@ -278,7 +296,7 @@ Long64_t NearlinePlotMaker(int Ndays){
     if(hped_per_tick_chan_1838_temp != 0){
       hped_per_tick_chan_1838->Add(hped_per_tick_chan_1838_temp,1.0);
     }    
-    if(hped_per_tick_chan_1838_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_1838_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
       MeanPedChan1838Time[MeanPedChan1838Count] = Xsrtime;
       MeanPedChan1838    [MeanPedChan1838Count] = hped_per_tick_chan_1838_temp->GetMean(1);
       MeanPedChan1838Count++;      
@@ -292,7 +310,7 @@ Long64_t NearlinePlotMaker(int Ndays){
     if(hped_per_tick_chan_1482_temp != 0){
       hped_per_tick_chan_1482->Add(hped_per_tick_chan_1482_temp,1.0);
     }    
-    if(hped_per_tick_chan_1482_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_1482_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
       MeanPedChan1482Time[MeanPedChan1482Count] = Xsrtime;
       MeanPedChan1482    [MeanPedChan1482Count] = hped_per_tick_chan_1482_temp->GetMean(1);
       MeanPedChan1482Count++;      
@@ -306,7 +324,7 @@ Long64_t NearlinePlotMaker(int Ndays){
     if(hped_per_tick_chan_952_temp != 0){
       hped_per_tick_chan_952->Add(hped_per_tick_chan_952_temp,1.0);
     }    
-    if(hped_per_tick_chan_952_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_952_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
       MeanPedChan0952Time[MeanPedChan0952Count] = Xsrtime;
       MeanPedChan0952    [MeanPedChan0952Count] = hped_per_tick_chan_952_temp->GetMean(1);
       MeanPedChan0952Count++;      
@@ -320,7 +338,7 @@ Long64_t NearlinePlotMaker(int Ndays){
     if(hped_per_tick_chan_454_temp != 0){
       hped_per_tick_chan_454->Add(hped_per_tick_chan_454_temp,1.0);
     }    
-    if(hped_per_tick_chan_454_temp != 0 && header != 0) {
+    if(hped_per_tick_chan_454_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
       MeanPedChan0454Time[MeanPedChan0454Count] = Xsrtime;
       MeanPedChan0454    [MeanPedChan0454Count] = hped_per_tick_chan_454_temp->GetMean(1);
       MeanPedChan0454Count++;      

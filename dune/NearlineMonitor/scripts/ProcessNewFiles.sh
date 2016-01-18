@@ -28,6 +28,17 @@ export DiskUsage=`df /home -h |  awk 'NR==2 && match($5,"%"){print substr($5,RST
 if [ $DiskUsage -gt 95 ];then
     echo ""
     echo "Disk too full..."
+    echo "nearline home disk for 35t machine is $DiskUsage % full."
+    echo "All processing will be stopped until you clear out some space."
+    echo ""
+    echo ""
+    exit
+fi
+
+export DiskUsage2=`df /lbne/data2 -h | awk 'NR==3 && match($4,"%"){print substr($4,RSTART-3,2)}'`
+if [ $DiskUsage2 -gt 95 ];then
+    echo ""
+    echo "Disk too full..."
     echo "nearline-data disk for 35t machine is $DiskUsage % full."
     echo "All processing will be stopped until you clear out some space."
     echo ""
