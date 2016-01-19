@@ -13,6 +13,7 @@
 #include "dune/Geometry/ChannelMap35Alg.h"
 #include "dune/Geometry/ChannelMap35OptAlg.h"
 #include "dune/Geometry/ChannelMapAPAAlg.h"
+#include "dune/Geometry/ChannelMapCRMAlg.h"
 
 // C/C++ standard libraries
 #include <string>
@@ -59,6 +60,14 @@ namespace dune
     {
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
     }
+    //
+    // DUNE 10kt dual-phase
+    //
+    else if ( detectorName.find("dunedphase10kt") != std::string::npos )
+      {
+	fChannelMap = std::make_shared<geo::ChannelMapCRMAlg>(sortingParameters);
+      }
+
     //
     // DUNE 34kt
     //

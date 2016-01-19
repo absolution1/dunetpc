@@ -60,6 +60,14 @@ dunefd_simulation_services:
  IChannelStatusService:        @local::dunefd_channel_status
 }
 
+#
+# for dual-phase implementation
+#
+dunefddphase_services:                    @local::dunefd_services
+dunefddphase_services.Geometry:           @local::dunedphase10kt_geo
+dunefddphase_services.TimeService:        @local::dunefddphase_timeservice
+dunefddphase_services.DetectorProperties: @local::dunefddphase_detproperties
+dunefddphase_services.LArProperties:      @local::dunefddphase_properties
 
 #
 # Settings for optical simulation. Optical simulation not on by default

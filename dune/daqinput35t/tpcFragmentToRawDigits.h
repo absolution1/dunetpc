@@ -4,6 +4,7 @@
 #include "artdaq-core/Data/Fragments.hh"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "art/Framework/Principal/Event.h"
 
 // From lardata
 #include "RawData/RawDigit.h"
@@ -30,6 +31,10 @@ namespace DAQToOffline {
 						    unsigned int zeroThreshold);
 
   void BuildTPCChannelMap(std::string channelMapFile, std::map<int,int>& channelMap);
+
+  const lbne::TpcNanoSlice::Header::nova_timestamp_t nova_time_ticks_per_second = 64e6;
+
+  art::Timestamp make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp);
 
 }
 

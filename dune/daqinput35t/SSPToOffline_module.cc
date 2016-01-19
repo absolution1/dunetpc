@@ -63,11 +63,9 @@ private:
   std::string fFragType;
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
-  double      fNOvAClockFrequency; //MHz
-  std::string fChannelMapFile;
+
+  SSPReformatterAlgs sspReform;
   
-  std::map<int,int> theChannelMap;
-    
   //long        first_FirstSample;
   //double      first_TimeStamp;
   //long        first_InternalSample;
@@ -82,12 +80,14 @@ private:
 
 
 DAQToOffline::SSPToOffline::SSPToOffline(fhicl::ParameterSet const & pset)
+                           : sspReform(pset.get<fhicl::ParameterSet>("SSPReformatter"))
 {
 
   this->reconfigure(pset);
 
-  produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);  
-
+  produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);
+  produces< std::vector<recob::OpHit> > (fOutputDataLabel);
+  
   //first_FirstSample = -1;
   //first_TimeStamp = -1;
 }
@@ -97,28 +97,23 @@ void DAQToOffline::SSPToOffline::reconfigure(fhicl::ParameterSet const& pset){
   fFragType           = pset.get<std::string>("FragType");
   fRawDataLabel       = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel    = pset.get<std::string>("OutputDataLabel");
-  fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
-  fChannelMapFile     = pset.get<std::string>("OpDetChannelMapFile");
 
   //fDebug = pset.get<bool>("Debug");
   //fZeroThreshold=0;
   //fCompression=raw::kNone;
 
   printParameterSet();
-  BuildOpDetChannelMap(fChannelMapFile, theChannelMap);
-  
 }
 
 void DAQToOffline::SSPToOffline::printParameterSet(){
 
   mf::LogDebug("SSPToOffline") << "===================================="   << "\n"
-			       << "Parameter Set"                          << "\n"
-			       << "===================================="   << "\n"
-			       << "fFragType:        " << fFragType        << "\n"
-			       << "fRawDataLabel:    " << fRawDataLabel    << "\n"
-			       << "fOutputDataLabel: " << fOutputDataLabel << "\n"
-			       << "fChannelMapFile:  " << fChannelMapFile  << "\n"
-			       << "===================================="   << "\n";
+                               << "Parameter Set"                          << "\n"
+                               << "===================================="   << "\n"
+                               << "fFragType:        " << fFragType        << "\n"
+                               << "fRawDataLabel:    " << fRawDataLabel    << "\n"
+                               << "fOutputDataLabel: " << fOutputDataLabel << "\n"
+                               << "===================================="   << "\n";
 }
 
 
@@ -128,30 +123,37 @@ void DAQToOffline::SSPToOffline::produce(art::Event & evt)
   art::Handle<artdaq::Fragments> rawFragments;
   evt.getByLabel(fRawDataLabel, fFragType, rawFragments);
 
+  // Create the output data structures
+  std::vector<raw::OpDetWaveform> waveforms;
+  std::vector<recob::OpHit>       hits;
+
+  
   // Check if there is SSP data in this event
   // Don't crash code if not present, just don't save anything
-  try { rawFragments->size(); }
+  try {
+    rawFragments->size();
+  }
   catch(std::exception e) {
     mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << evt.event();
-    std::vector<raw::OpDetWaveform> waveforms;
-    evt.put(std::make_unique<std::vector<raw::OpDetWaveform>>(std::move(waveforms)), fOutputDataLabel);
+    evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
+    evt.put(std::make_unique<decltype(hits)>(std::move(hits)), fOutputDataLabel);
     return;
   }
 
   // Check that the data is valid
   if(!rawFragments.isValid()){
     mf::LogError("SSPToOffline") << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event()
-				 << " is NOT VALID";
+    << ", SubRun: " << evt.subRun()
+    << ", Event: " << evt.event()
+    << " is NOT VALID";
     throw cet::exception("raw NOT VALID");
     return;
   }
-
-  auto waveforms = SSPFragmentToOpDetWaveform(*rawFragments, fNOvAClockFrequency, theChannelMap);
+  
+  sspReform.SSPFragmentToWaveformsAndHits(*rawFragments, waveforms, hits);
 
   evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
-
+  evt.put(std::make_unique<decltype(hits)>(std::move(hits)), fOutputDataLabel);
 
 }
 

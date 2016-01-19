@@ -37,7 +37,7 @@ outputs:
   out1:
   {
     module_type: RootOutput
-    fileName: "DAQToOffline.root"
+    fileName:    "%ifb_offline.root"
   }
 }
 
