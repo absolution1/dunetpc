@@ -58,6 +58,7 @@ public:
   void endJob();
 
   size_t getRawDigits(art::Event const & e, art::Handle<std::vector<raw::RawDigit>> & digitHandle);
+  size_t getHits(art::Event const & e, art::Handle<std::vector<recob::Hit>> & hitsHandle);
 
   //HitsPerEvent plots
   void makeHitsPerEventPlots();
@@ -82,6 +83,7 @@ private:
   bool fMakeHitsPerEventPlots;
   std::vector<unsigned int> fHitsPerEventChannels;
   std::vector<TH1I*> fVecHitsPerEventPlots;
+  art::InputTag fHitsTag;
 
   bool fMakePedestalPerEventPlots;
   bool fWritePedestalPerEventFile;
@@ -168,6 +170,8 @@ void nearline::NearlineAna::reconfigure(fhicl::ParameterSet const & p){
   fMakeHitsPerEventPlots = p.get<bool>("MakeHitsPerEventPlots", true);
   fHitsPerEventChannels = p.get<std::vector<unsigned int>>("HitsPerEventChannels", {1,2,3,4});
 
+  fHitsTag = p.get<art::InputTag>("HitsTag", "a:b:c");
+
   fMakePedestalPerEventPlots = p.get<bool>("MakePedestalPerEventPlots", true);
   fPedestalPerEventChannels = p.get<std::vector<unsigned int>>("PedestalPerEventChannels", {1,2,3,4});
   fWritePedestalPerEventFile = p.get<bool>("WritePedestalPerEventFile", false);
@@ -188,6 +192,7 @@ void nearline::NearlineAna::printConfig(){
   mf::LogInfo logInfo("NearlineAna::printConfig");
 
   logInfo << "fRawDigitsTag: " << fRawDigitsTag << "\n";
+  logInfo << "fHitsTag: " << fHitsTag << "\n";
   logInfo << "fUseOnlineChannels: " << (fUseOnlineChannels ? "true" : "false") << "\n";
 
   logInfo << "fMakeHitsPerEventPlots: " << (fMakeHitsPerEventPlots ? "true" : "false") << "\n";
@@ -394,6 +399,34 @@ size_t nearline::NearlineAna::getRawDigits(art::Event const & e, art::Handle<std
 
 ////////////////////////////////////////////////////////////////////////////////
 
+size_t nearline::NearlineAna::getHits(art::Event const & e, art::Handle<std::vector<recob::Hit>> & hitsHandle){
+
+  bool retVal = e.getByLabel(fHitsTag, hitsHandle);
+  if(retVal!=true){
+    mf::LogWarning("NearlineAna::getHits") << "Getting Hits FAIL: " << fHitsTag << std::endl;
+      return 0;
+  }
+  try { hitsHandle->size(); }
+  catch(std::exception e) {
+    mf::LogError("NearlineAna::getHits") << "WARNING: Issue with hitsHandle for Hits" << std::endl;
+    return 0;
+  }
+
+  if(!hitsHandle.isValid()){
+    mf::LogError("NearlineAna::getHits") << "Run: " << e.run()
+                            << ", SubRun: " << e.subRun()
+                            << ", Event: " << e.event()
+                            << " is NOT VALID";
+    throw cet::exception("Hit NOT VALID");
+    return 0;
+  }
+
+  return hitsHandle->size();
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void nearline::NearlineAna::makeHitsPerEventPlots(){
 
   mf::LogInfo logInfo("NearlineAna::makeHitsPerEventPlots");
@@ -478,6 +511,40 @@ void nearline::NearlineAna::makePedestalPerTickPlots(){
 ////////////////////////////////////////////////////////////////////////////////
 
 void nearline::NearlineAna::fillHitsPerEventPlots(art::Event const & e){
+
+
+  mf::LogInfo logInfo("NearlineAna::fillHistPerEventPlots");
+  art::Handle<std::vector<recob::Hit>> hitHandle;
+  size_t numHits = getHits(e, hitHandle);
+
+  //Count the number of hits on channels we are watching
+  std::vector<unsigned int> numHitsPerChannel(fHitsPerEventChannels.size(), 0);
+
+  if(numHits==0) return;
+
+  for(size_t hitIter=0;hitIter<numHits;hitIter++){
+    art::Ptr<recob::Hit> hitVec(hitHandle,hitIter);
+    raw::ChannelID_t channel = hitVec->Channel();
+    // geo::View_t      view = hitVec->View();
+    // geo::SigType_t   signalType = hitVec->SignalType();
+    // geo::WireID      wireID = hitVec->WireID();
+    // logInfo << "Hit Channel: " << channel 
+    //         << " View: " << view 
+    //         << " SignalType: " << signalType 
+    //         << " WireID: " << wireID << "\n";
+
+    for(size_t index=0;index<fHitsPerEventChannels.size();index++){
+      auto this_channel = (fUseOnlineChannels ? fChannelMap.at(fHitsPerEventChannels.at(index)) : fHitsPerEventChannels.at(index));
+      if(this_channel!=channel) continue;
+      numHitsPerChannel.at(index) += 1;
+    }//channel index
+  }//hitIter
+
+  //Now fill histogram
+  for(size_t index=0;index<fHitsPerEventChannels.size();index++){
+    TH1I* histTemp = fVecHitsPerEventPlots.at(index);
+    histTemp->Fill(numHitsPerChannel.at(index));
+  }//channel index
 
 }
 

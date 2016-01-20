@@ -34,6 +34,7 @@ standard_nearlineana:
     module_type: NearlineAna
 
     RawDigitsTag: "SplitterInput:TPC"  
+    HitsTag: "fasthit"
     UseOnlineChannels: true
     TPCChannelMapFile: "rce_channel_map_dune35t.txt"
 
