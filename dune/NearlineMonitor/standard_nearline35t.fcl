@@ -33,6 +33,7 @@ standard_nearlineana:
 {
     module_type: NearlineAna
 
+    VerboseOutput: false
     RawDigitsTag: "SplitterInput:TPC"  
     HitsTag: "fasthit"
     UseOnlineChannels: true

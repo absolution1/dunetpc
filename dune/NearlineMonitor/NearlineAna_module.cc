@@ -76,6 +76,9 @@ public:
 
 private:
 
+  bool fVerboseOutput;
+
+
   std::string fChannelMapFile;
   bool fUseOnlineChannels;
   std::map<int,int> fChannelMap;
@@ -162,6 +165,8 @@ void nearline::NearlineAna::reconfigure(fhicl::ParameterSet const & p){
   mf::LogInfo logInfo("NearlineAna::reconfigure");
   logInfo << "reconfigure" << "\n";
 
+  fVerboseOutput = p.get<bool>("VerboseOutput", false);
+
   fUseOnlineChannels = p.get<bool>("UseOnlineChannels", true);
   fChannelMapFile = p.get<std::string>("TPCChannelMapFile");
 
@@ -191,6 +196,7 @@ void nearline::NearlineAna::printConfig(){
 
   mf::LogInfo logInfo("NearlineAna::printConfig");
 
+  logInfo << "fVerboseOutput: " << (fVerboseOutput ? "true" : "false") << "\n";
   logInfo << "fRawDigitsTag: " << fRawDigitsTag << "\n";
   logInfo << "fHitsTag: " << fHitsTag << "\n";
   logInfo << "fUseOnlineChannels: " << (fUseOnlineChannels ? "true" : "false") << "\n";
@@ -430,7 +436,7 @@ size_t nearline::NearlineAna::getHits(art::Event const & e, art::Handle<std::vec
 void nearline::NearlineAna::makeHitsPerEventPlots(){
 
   mf::LogInfo logInfo("NearlineAna::makeHitsPerEventPlots");
-  logInfo << "fHitsPerEventChannels:" << "\n";
+  if(fVerboseOutput) logInfo << "fHitsPerEventChannels:" << "\n";
 
   art::ServiceHandle<art::TFileService> tfs;
 
@@ -446,9 +452,9 @@ void nearline::NearlineAna::makeHitsPerEventPlots(){
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
     fVecHitsPerEventPlots.push_back(histTemp);
-    logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
+    if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
-  logInfo << "\n";
+  if(fVerboseOutput) logInfo << "\n";
 
 }
 
@@ -458,7 +464,7 @@ void nearline::NearlineAna::makePedestalPerEventPlots(){
 
 
   mf::LogInfo logInfo("NearlineAna::makePedestalPerEventPlots");
-  logInfo << "fPedestalPerEventChannels:" << "\n";
+  if(fVerboseOutput) logInfo << "fPedestalPerEventChannels:" << "\n";
 
   art::ServiceHandle<art::TFileService> tfs;
 
@@ -474,9 +480,9 @@ void nearline::NearlineAna::makePedestalPerEventPlots(){
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
     fVecPedestalPerEventPlots.push_back(histTemp);
-    logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
+    if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
-  logInfo << "\n";
+  if(fVerboseOutput) logInfo << "\n";
 
 }
 
@@ -486,7 +492,7 @@ void nearline::NearlineAna::makePedestalPerTickPlots(){
 
 
   mf::LogInfo logInfo("NearlineAna::makePedestalPerTickPlots");
-  logInfo << "fPedestalPerTickChannels:" << "\n";
+  if(fVerboseOutput) logInfo << "fPedestalPerTickChannels:" << "\n";
 
   art::ServiceHandle<art::TFileService> tfs;
 
@@ -502,9 +508,9 @@ void nearline::NearlineAna::makePedestalPerTickPlots(){
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
     fVecPedestalPerTickPlots.push_back(histTemp);
-    logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
+    if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
-  logInfo << "\n";
+  if(fVerboseOutput) logInfo << "\n";
 
 }
 
@@ -546,6 +552,15 @@ void nearline::NearlineAna::fillHitsPerEventPlots(art::Event const & e){
     histTemp->Fill(numHitsPerChannel.at(index));
   }//channel index
 
+  if(fVerboseOutput){
+    logInfo << "Channel (Number of Hits): \n";
+    for(size_t index=0;index<fHitsPerEventChannels.size();index++){
+      logInfo << fHitsPerEventChannels.at(index) << " (" << numHitsPerChannel.at(index) << ") ";
+    }
+    logInfo << "\n";
+  }
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -578,7 +593,7 @@ void nearline::NearlineAna::fillPedestalPerEventPlots(art::Event const & e){
       if(this_channel!=channel) continue; 
 
       //DEBUG 
-      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerEventChannels.at(index) << "/" << fChannelMap.at(fPedestalPerEventChannels.at(index)) << ")\n";
+      if(fUseOnlineChannels && fVerboseOutput) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerEventChannels.at(index) << "/" << fChannelMap.at(fPedestalPerEventChannels.at(index)) << ")\n";
 
       auto numSamples = digitVec->Samples();
       auto compression = digitVec->Compression();
@@ -637,7 +652,7 @@ void nearline::NearlineAna::fillPedestalPerTickPlots(art::Event const & e){
       if(this_channel!=channel) continue; 
 
       //DEBUG 
-      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerTickChannels.at(index) << "/" << fChannelMap.at(fPedestalPerTickChannels.at(index)) << ")\n";
+      if(fUseOnlineChannels && fVerboseOutput) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerTickChannels.at(index) << "/" << fChannelMap.at(fPedestalPerTickChannels.at(index)) << ")\n";
 
       auto numSamples = digitVec->Samples();
       auto compression = digitVec->Compression();
