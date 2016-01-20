@@ -30,9 +30,11 @@ dunetpc : dunetpc : dune/FDSensOpt/IniSegAlg/IniSegAlg.h
 dunetpc : dunetpc : dune/Geometry/ChannelMap35Alg.h
 dunetpc : dunetpc : dune/Geometry/ChannelMap35OptAlg.h
 dunetpc : dunetpc : dune/Geometry/ChannelMapAPAAlg.h
+dunetpc : dunetpc : dune/Geometry/ChannelMapCRMAlg.h
 dunetpc : dunetpc : dune/Geometry/DUNEGeometryHelper.h
 dunetpc : dunetpc : dune/Geometry/GeoObjectSorter35.h
 dunetpc : dunetpc : dune/Geometry/GeoObjectSorterAPA.h
+dunetpc : dunetpc : dune/Geometry/GeoObjectSorterCRM.h
 dunetpc : dunetpc : dune/Geometry/MuonCounter35Alg.h
 dunetpc : dunetpc : dune/HitFinderDUNE/APAGeometryAlg.h
 dunetpc : dunetpc : dune/HitFinderDUNE/DisambigAlg35t.h
