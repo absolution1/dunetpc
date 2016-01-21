@@ -99,12 +99,12 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
       if (numNanoSlices) {
 	lbne::TpcNanoSlice::Header::nova_timestamp_t Timestamp = microSlice->nanoSlice(0)->nova_timestamp();
 	if (!FirstMicro && chan%128==0) {
-	  std::cout << "Channel " << chan << ", microslice " << i_micro << ", nanoslice 0 has timestamp " << Timestamp
-		    << ". nanoslice 1 has timestamp " << microSlice->nanoSlice(1)->nova_timestamp() << std::endl;
+	  //std::cout << "Channel " << chan << ", microslice " << i_micro << ", nanoslice 0 has timestamp " << Timestamp
+	  //	    << ". nanoslice 1 has timestamp " << microSlice->nanoSlice(1)->nova_timestamp() << std::endl;
 	  FirstMicro=true;
 	}
 	if (!TimestampSet || Timestamp < firstTimestamp) {
-	  std::cout << "!!!Resetting timestamp from " << firstTimestamp << " to " << Timestamp << " on Chan " << chan << ",Micro " << i_micro << "!!!" << std::endl;
+	  std::cout << "!!!Resetting timestamp to " << Timestamp << " on Chan " << chan << ",Micro " << i_micro << "!!!" << std::endl;
 	  firstTimestamp = Timestamp;
 	  TimestampSet = true;
 	}

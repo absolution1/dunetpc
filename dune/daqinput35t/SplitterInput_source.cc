@@ -554,7 +554,6 @@ namespace DAQToOffline {
 
     size_t       fPostTriggerTicks;
     size_t       fPreTriggerTicks;
-    int          fPTBIgnoreBit;
     double       fNovaTicksPerTPCTick;
     unsigned int fNovaTicksPerSSPTick;
     double       fNovaTicksPerCountTick;
@@ -591,15 +590,15 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   file_(),
   doneWithFiles_(false),
   //  TPCinputTag_("daq:TPC:DAQ"), // "moduleLabel:instance:processName"
-  TPCinputTag_         (ps.get<string>("TPCInputTag","daq:TPC:DAQ")),               // Input tag of TPC data "moduleLabel:instance:processName"
-  SSPinputTag_         (ps.get<string>("SSPInputTag","daq:PHOTON:DAQ")),            // Input tag of SSP data "moduleLabel:instance:processName"
-  PenninputTag_        (ps.get<string>("PennInputTag","daq:TRIGGER:DAQ")),          // Input tag of PTB data "moduleLabel:instance:processName"
-  TPCinputDataProduct_ (ps.get<string>("TPCInputDataProduct","artdaq::Fragment")),  // Data product type of TPC data
-  SSPinputDataProduct_ (ps.get<string>("SSPInputDataProduct","artdaq::Fragment")),  // Data product type of SSP data
-  PenninputDataProduct_(ps.get<string>("PennInputDataProduct","artdaq::Fragment")), // Data product type of PTB data
-  sspReform            (ps.get<fhicl::ParameterSet>("SSPReformatter")),             // The parameter set for the SSP reformatter
-  fTPCChannelMapFile   (ps.get<string>("TPCChannelMapFile","rce_channel_map_dune35t.txt")), // The TPC channel map
-  fPTBChannelMapFile   (ps.get<string>("PTBChannelMapFile","ptb_channel_map_dune35t.txt")), // The PTV channel map (defunct?)
+  TPCinputTag_         (ps.get<string>("TPCInputTag")),
+  SSPinputTag_         (ps.get<string>("SSPInputTag")),
+  PenninputTag_        (ps.get<string>("PennInputTag")),
+  TPCinputDataProduct_ (ps.get<string>("TPCInputDataProduct")),
+  SSPinputDataProduct_ (ps.get<string>("SSPInputDataProduct")),
+  PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
+  sspReform            (ps.get<fhicl::ParameterSet>("SSPReformatter")),
+  fTPCChannelMapFile   (ps.get<string>("TPCChannelMapFile")),
+  fPTBChannelMapFile   (ps.get<string>("PTBChannelMapFile")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -625,24 +624,23 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
                                  ps.get<unsigned>("zeroThreshold",0) ) ),
-  fPostTriggerTicks      (ps.get<size_t>("PostTriggerTicks",6400)),           // The number of TPC ticks gathered, post trigger
-  fPreTriggerTicks       (ps.get<size_t>("PreTriggerTicks",3200)),            // The number of TPC ticks gathered, pre trigger
-  fPTBIgnoreBit          (ps.get<int>   ("PTBIgnoreBit",400)),                // The separation required between two identical PTB words
-  fNovaTicksPerTPCTick   (ps.get<double>("NovaTicksPerTPCTick",32)),          // The number of Nova ticks per TPC tick
-  fNovaTicksPerSSPTick   (ps.get<unsigned int>("NovaTicksPerSSPTick",1)),     // The number of Nova ticks per SSP tick 
-  fNovaTicksPerCountTick (ps.get<double>("NovaTicksPerCountTick",32)),        // The number of Noca ticks per PTB tick
-  fDebugLevel            (ps.get<int>   ("DebugLevel",1)),                    // The level of information printed out 0 = none, 1 = basic info, <4 = all
-  fTimeStampThreshold    (ps.get<double>("TimeStampThreshold",5)),            // The threshold for trying to mitigate any timestamp ideosynchrosies
-  fMCTrigLevel           (ps.get<int>   ("MCTrigLevel",10000)),               // The threshold for the 'trigger every X TPC ticks trigger.' 
-  fWhichTrigger          (ps.get<int>   ("WhichTrigger",0)),                  // Which trigger to use - see Triggering function 
-  fTrigSeparation        (ps.get<int>   ("TrigSeparation",0)),                // The minimum separation between triggers.
-  fWaveformADCThreshold  (ps.get<double>("WaveformADCThreshold",1550)),       // The SSP ADC threshold to be used in SSP waveform trigger
-  fWaveformADCsOverThreshold(ps.get<double>("WaveformADCsOverThreshold",10)), // The number of channels required over threshold in SSP ADC trigger
-  fADCdiffThreshold      (ps.get<int>   ("ADCdiffThreshold",40)),             // The threshold for the change in TPC ADC trigger 
-  fADCsOverThreshold     (ps.get<int>   ("ADCsOverThreshold",1000)),          // The number of channels to satisfy the above threshold to have a TPC ADC trigger 
-  fUsePedestalDefault    (ps.get<bool>  ("UsePedestalDefault",false)),        // Whether to use the default pedestal values
-  fUsePedestalFile       (ps.get<bool>  ("UsePedestalFile",false)),           // Whether to use a pedestal file. If false, uses the online database.
-  fPedestalFile          (ps.get<std::string>("PedestalFile",""))             // What pedestal file to use (if one is used at all)
+  fPostTriggerTicks      (ps.get<size_t>("PostTriggerTicks")),
+  fPreTriggerTicks       (ps.get<size_t>("PreTriggerTicks")),
+  fNovaTicksPerTPCTick   (ps.get<double>("NovaTicksPerTPCTick")),
+  fNovaTicksPerSSPTick   (ps.get<unsigned int>("NovaTicksPerSSPTick")),
+  fNovaTicksPerCountTick (ps.get<double>("NovaTicksPerCountTick")),
+  fDebugLevel            (ps.get<int>   ("DebugLevel")),
+  fTimeStampThreshold    (ps.get<double>("TimeStampThreshold")),
+  fMCTrigLevel           (ps.get<int>   ("MCTrigLevel")),
+  fWhichTrigger          (ps.get<int>   ("WhichTrigger")),
+  fTrigSeparation        (ps.get<int>   ("TrigSeparation")),
+  fWaveformADCThreshold  (ps.get<double>("WaveformADCThreshold")),
+  fWaveformADCsOverThreshold(ps.get<double>("WaveformADCsOverThreshold")),
+  fADCdiffThreshold      (ps.get<int>   ("ADCdiffThreshold")),
+  fADCsOverThreshold     (ps.get<int>   ("ADCsOverThreshold")),
+  fUsePedestalDefault    (ps.get<bool>  ("UsePedestalDefault")),
+  fUsePedestalFile       (ps.get<bool>  ("UsePedestalFile")),
+  fPedestalFile          (ps.get<std::string>("PedestalFile"))
 {
   ticksPerEvent_ = fPostTriggerTicks + fPreTriggerTicks;
   // Will use same instance names for the outgoing products as for the
@@ -965,7 +963,6 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     size_t LoadTree = 0;
     for (std::map<uint64_t,size_t>::iterator it=EventTreeMap.begin(); it!=EventTreeMap.end(); ++it ) {
       ++LookingAtIndex;
-      //std::cout << "Looking at index " << LookingAtIndex << std::endl;
       if ( LookingAtIndex == (int)InputTree )
         { LoadTree = it->second; break; }
     }
@@ -977,6 +974,33 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     inputEventNumber_ = evAux_.event();
     inputEventTime_ = evAux_.time();
     if (fDebugLevel > 1) std::cout << "Loading event " << inputEventNumber_ << " on Tree " << InputTree;
+    //-----------------------------------------------------------------------------------------------------------
+    if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
+      auto* PennFragments = getFragments ( PenninputBranch_, LoadTree );
+      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, PTBChannelMap, PrevTimeStampWords );
+      //for (size_t CountLoop = 0; CountLoop < counters.size(); ++CountLoop) {
+      //std::cout << "Looking at counters[" << CountLoop << "] has CounterID " << counters[CountLoop].GetTrigID() << " and Timestamp " << counters[CountLoop].GetTrigTime() << std::endl;
+      //}
+      loadedCounters_.load( counters, fDebugLevel );
+      if (fDebugLevel > 1) std::cout << ", and counters " << counters.size() << std::endl;
+    } else {
+      auto* counters = getRawExternalTriggers(PenninputBranch_, LoadTree );
+      loadedCounters_.load( *counters, fDebugLevel );
+      if (fDebugLevel > 1) std::cout << ", and counters " << counters->size() << std::endl;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------
+    if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
+      auto* SSPfragments = getFragments( SSPinputBranch_, LoadTree );
+      std::vector<raw::OpDetWaveform> waveforms = sspReform.SSPFragmentToOpDetWaveform(*SSPfragments);
+      if (fDebugLevel > 1) std::cout << ", and waveforms with size " << waveforms.size();
+      loadedWaveforms_.load( waveforms, fDebugLevel );
+    }
+    else {
+      auto* waveforms = getSSPWaveforms(SSPinputBranch_, LoadTree );
+      if (fDebugLevel > 1) std::cout << " and waveforms with size " << waveforms->size();
+      loadedWaveforms_.load( *waveforms, fDebugLevel );
+    }
     //-----------------------------------------------------------------------------------------------------------
     if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
       lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp = 0;
@@ -994,29 +1018,6 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
       loadedDigits_.load( *digits, fDebugLevel);
       loadedDigits_.loadTimestamp(0); // MC timestamp is zero (? assume?)
       if (fDebugLevel > 1) std::cout << ". Loaded MC RCE's with timestamp 0";
-    }
-    //-----------------------------------------------------------------------------------------------------------
-    if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
-      auto* SSPfragments = getFragments( SSPinputBranch_, LoadTree );
-      std::vector<raw::OpDetWaveform> waveforms = sspReform.SSPFragmentToOpDetWaveform(*SSPfragments);
-      if (fDebugLevel > 1) std::cout << ", and waveforms with size " << waveforms.size();
-      loadedWaveforms_.load( waveforms, fDebugLevel );
-    }
-    else {
-      auto* waveforms = getSSPWaveforms(SSPinputBranch_, LoadTree );
-      if (fDebugLevel > 1) std::cout << " and waveforms with size " << waveforms->size();
-      loadedWaveforms_.load( *waveforms, fDebugLevel );
-    }
-    //-----------------------------------------------------------------------------------------------------------
-    if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
-      auto* PennFragments = getFragments ( PenninputBranch_, LoadTree );
-      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, fPTBIgnoreBit, PTBChannelMap, PrevTimeStampWords );
-      loadedCounters_.load( counters, fDebugLevel );
-      if (fDebugLevel > 1) std::cout << ", and counters " << counters.size() << std::endl;
-    } else {
-      auto* counters = getRawExternalTriggers(PenninputBranch_, LoadTree );
-      loadedCounters_.load( *counters, fDebugLevel );
-      if (fDebugLevel > 1) std::cout << ", and counters " << counters->size() << std::endl;
     }
     //-----------------------------------------------------------------------------------------------------------
     InputTree++;

@@ -63,7 +63,6 @@ private:
   SSPReformatterAlgs     sspReform;
   std::string fPTBFragType, fPTBRawDataLabel, fPTBOutputDataLabel, fPTBChannelMapFile;
   double fNOvAClockFrequency; //MHz
-  int fPTBIgnoreBit;
   bool fUseChannelMap;
   bool fDebug;
 
@@ -100,8 +99,6 @@ DAQToOffline::CheckTiming::CheckTiming(fhicl::ParameterSet const & pset)
   ,fPTBChannelMapFile  ( pset.get<std::string>("PTBChannelMapFile"))
     //--------------------------------------------------------------------
   ,fNOvAClockFrequency ( pset.get<double>("NOvAClockFrequency")) // in MHz
-
-  ,fPTBIgnoreBit  ( pset.get<int>("PTBIgnoreBit",400))
   ,fUseChannelMap ( pset.get<bool>("UseChannelMap"))
   ,fDebug         ( pset.get<bool>("Debug"))
 {
@@ -276,7 +273,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
       return;
     }
     
-    auto triggers = PennFragmentToExternalTrigger(*PTBrawFragments, fPTBIgnoreBit, fPTBChannelMap, PrevTimeStampWords);
+    auto triggers = PennFragmentToExternalTrigger(*PTBrawFragments, fPTBChannelMap, PrevTimeStampWords);
     
   } // PTB Present
   // ------------------------ NOW TO COMPARE ALL THESE NUMBERS -------------------------------------------
