@@ -1,4 +1,5 @@
 add_subdirectory(evd)
+add_subdirectory(channelMap)
 
 simple_plugin(NearlineAna "module"
                            lbne-raw-data_Overlays
