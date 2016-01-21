@@ -1,0 +1,68 @@
+#include "evdservices_dune.fcl"
+
+process_name: EVD
+
+services:
+{
+  message:      @local::evd_message
+  user:         @local::dune35t_disp
+}
+
+# Define the services
+
+#Look at the input files
+source:
+{
+  module_type: RootInput
+  fileNames:  [ "single_gen.root" ]
+  maxEvents:   -1       # Number of events to create
+}
+
+outputs:{}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers: {}
+
+ filters:{}
+
+ analyzers:
+ {
+  evdisp:{module_type: EVD}
+ }
+ 
+ #list the modules for this path, order matters, filters reject all following items
+ evd: [ evdisp ] 
+
+ #end_path are things that do not modify art::Event, includes analyzers 
+ #and output modules. all items here can be run simultaneously
+ end_paths: [evd]  
+}
+services.user.IDetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 750
+services.user.IDetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 750
+
+
+
+services.user.ColorDrawingOptions.ColorOrGrayScale:       0    # use color
+services.user.RawDrawingOptions.TotalTicks:               10000
+
+services.user.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
+#services.user.RawDrawingOptions.RawDataLabel: "daq"    #default option
+services.user.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"    #slicer
+
+#services.user.RecoDrawingOptions.HitModuleLabels:            ["lineclusterdc"]
+#services.user.RecoDrawingOptions.ClusterModuleLabels:        ["lineclusterdc"]
+#services.user.RecoDrawingOptions.TrackModuleLabels:          ["pmtrackdc"]
+services.user.RecoDrawingOptions.DrawClusters:               0
+services.user.RecoDrawingOptions.DrawTracks:                 0
+services.user.RecoDrawingOptions.DrawTrackSpacePoints:       0
+services.user.RecoDrawingOptions.DrawOpFlashes:              0
+#services.user.RecoDrawingOptions.OpFlashModuleLabels:        ["opflash"]
+services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  768
+services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  768
+
+
