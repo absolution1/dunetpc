@@ -52,7 +52,7 @@ if [ $infilesize -gt 500 ];
 then
     echo "Processing $infile"
     touch $outhistfile
-#    lar -c test_stitcher_nearlineana.fcl -n 10 ${infile} -T $outhistfile
+#    lar -c ctreeraw35t_trigTPC.fcl -n 10 ${infile} -o $outhistfile
 fi
 
 

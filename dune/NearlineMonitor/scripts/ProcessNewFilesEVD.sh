@@ -73,7 +73,7 @@ touch /tmp/Batch-35t-NearlineEVD.LOCK
 export RelDir=/home/lbnedaq/nearline/nearline_test_release_${version}
 export ScriptPath=${RelDir}/srcs/dunetpc/dune/NearlineMonitor/scripts
 export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
-export OutputPath=/lbne/data2/users/lbnedaq/nearline/${version}
+export OutputPath=/lbne/data2/users/lbnedaq/nearline_evd/${version}
 export BaseFileName=lbne_r
 export FileSearch='/data/lbnedaq/data/transferred_files/lbne_r*.root'
 export filepos=6
@@ -99,7 +99,7 @@ do {
 	export bigrun=${FILE:6:3}
 	export run=${FILE:6:6}
 	export subrun=${FILE:15:2}
-        export RunDir=$OutputPath/$bigrun/$run
+        export RunDir=$OutputPath/$bigrun/${run}_${subrun} #use subrun as well in case we have subruns
 
 	mkdir -p $RunDir
 
