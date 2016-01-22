@@ -51,8 +51,8 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 if [ $infilesize -gt 500 ];
 then
     echo "Processing $infile"
-    touch $outhistfile
-#    lar -c ctreeraw35t_trigTPC.fcl -n 10 ${infile} -o $outhistfile
+    lar -c ctreeraw35t_trigTPC.fcl -n 10 ${infile} >> ${outhistfile}_output.txt 2>&1
+    # lar -c ctreeraw35t_trigTPC.fcl -n 10 ${infile} -o $outhistfile >> ${outhistfile}_output.txt 2>&1
 fi
 
 
