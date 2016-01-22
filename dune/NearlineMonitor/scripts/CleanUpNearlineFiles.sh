@@ -9,3 +9,8 @@ outputDir=/lbne/data2/users/lbnedaq/nearline
 # Delete stale output files...
 find ${outputDir}/*/*/*/ -mtime +1 -name 'TFileService*.root' -exec rm -v {} \;
 find /home/lbnedaq/nearline/temp/ -mtime +1 -name '*.root*' -exec rm -v {} \:
+
+# Delete files from the EVD processing...
+find ${outputDir}_evd/*/*/*/ -mtime +1 -name '*.root' -exec rm -v {} \;
+find ${outputDir}_evd/*/*/*/ -mtime +1 -name '*.LOCK' -exec rm -v {} \;
+find ${outputDir}_evd/*/*/*/ -mtime +1 -name '*.txt' -exec rm -v {} \;
