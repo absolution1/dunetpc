@@ -51,8 +51,10 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 if [ $infilesize -gt 500 ];
 then
     echo "Processing $infile"
-    lar -c ctreeraw35t_trigTPC.fcl -n 10 ${infile} >> ${outhistfile}_output.txt 2>&1
-    # lar -c ctreeraw35t_trigTPC.fcl -n 10 ${infile} -o $outhistfile >> ${outhistfile}_output.txt 2>&1
+    lar -c ctreeraw35t_trigTPC.fcl -n 10 ${infile}
+    # Don't know why this text file gets created. Probably could be turned off at the fcl level.
+    # Just going to remove it manually for now...
+    rm -fv WireGeometry.txt
 fi
 
 
