@@ -1,0 +1,33 @@
+#include "services_dune.fcl"
+#include "standard_nearline35t.fcl"
+
+process_name: NearlineAna
+
+services:
+{
+  TimeTracker:       {}
+  SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
+  RandomNumberGenerator: {} #ART native random number generator
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  TFileService: { fileName: "nearlineana_hists.root" }
+  user:         @local::dune35t_services
+}
+
+source:
+{
+  module_type: RootInput
+}
+
+physics:
+{
+    analyzers:
+    {
+        nearlineana: @local::standard_nearlineana
+    }
+
+    nearline: [ nearlineana ]
+    end_paths:     [ nearline ]  
+
+}
+
+

@@ -1,0 +1,54 @@
+#include "SSPToOffline.fcl"
+
+BEGIN_PROLOG
+
+standard_nearlinesplitter:{
+
+  module_type: SplitterInput
+  firstEvent : 1
+  maxEvents:  100
+  posttriggerticks:  10000
+  pretriggerticks:   0
+# should be 0.5 for MC and 32 for data.                             
+  novatickspertpctick: 32
+  TimeStampThreshold:  5.
+  # trigger below is to start window when TPC payload appears (not just headers from RCEs.) 
+  MCTrigLevel:  0
+  whichTrigger: 5
+  ADCdiffThreshold:  50
+  ADCsOverThreshold: 100
+  TrigSeparation:   10000
+  TPCInputTag : "daq:TPC:DAQ"
+  TPCInputDataProduct : "artdaq::Fragment"
+  SSPInputTag : "daq:PHOTON:DAQ"
+  SSPInputDataProduct : "artdaq::Fragment"
+  PennInputTag : "daq:TRIGGER:DAQ"
+  PennInputDataProduct : "artdaq::Fragment"
+  NOvAClockFrequency : 64.0 # MHz
+  SSPReformatter:      @local::ssp_reformatter
+
+}
+
+standard_nearlineana:
+{
+    module_type: NearlineAna
+
+    RawDigitsTag: "SplitterInput:TPC"  
+    UseOnlineChannels: true
+    TPCChannelMapFile: "rce_channel_map_dune35t.txt"
+
+    MakeHitsPerEventPlots: true
+    HitsPerEventChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920 ]
+
+    MakePedestalPerEventPlots: true
+    PedestalPerEventChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920 ]
+    WritePedestalPerEventFile: false
+    #PedestalPerEventFileName: "PedestalPerEventTest.txt"
+
+    MakePedestalPerTickPlots: true
+    PedestalPerTickChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920 ]
+    WritePedestalPerTickFile: false
+    #PedestalPerTickFileName: "PedestalPerTickTest.txt"
+}
+
+END_PROLOG
