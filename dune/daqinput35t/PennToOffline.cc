@@ -13,7 +13,7 @@
 #include <iostream>
 //=======================================================================================
 std::vector<raw::ExternalTrigger> 
-DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, int const& PTBIgnoreBit, std::map<int,int> const& PTBChannelMap,
+DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, std::map<int,int> const& PTBChannelMap,
 					     std::pair<std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
 					     std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords) {
   
@@ -72,12 +72,12 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments,
       case 1:
 	//Dealing with counter word
 	//std::cout << "Collecting Counter word!" << std::endl;
-	CollectCounterBits(payload_data, payload_size, fCounterBits, fCounterTimes, timestamp, PrevTimeStampWords, PTBIgnoreBit);
+	CollectCounterBits(payload_data, payload_size, fCounterBits, fCounterTimes, timestamp, PrevTimeStampWords);
 	break;
       case 2:
 	//Dealing with trigger word
 	//std::cout << "Collecting Trigger word!" << std::endl;
-	CollectMuonTrigger(payload_data, payload_size, fMuonTriggerBits, fMuonTriggerTimes, timestamp, PrevTimeStampWords, PTBIgnoreBit);
+	CollectMuonTrigger(payload_data, payload_size, fMuonTriggerBits, fMuonTriggerTimes, timestamp, PrevTimeStampWords);
       default:
 	break;
       }
@@ -141,13 +141,11 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments,
 	counter_previously_on = true; //Record that it is now on and record some numbers
 	//If this bit is outside an ignoreBit then make an ExternalTrigger
 	//std::cout << "Counter just turned on at timestamp " << this_time << ", last turned on at " << LastCounter << std::endl;
-	if ( this_time-LastCounter > PTBIgnoreBit ){
-	  //std::cout << "Making an external trigger!!" << std::endl;
-	  raw::ExternalTrigger counter( counter_index, this_time );
-	  ExternTrigs.push_back(counter);
-	  LastCounter = fCounterTimes.at(index);
-	  //std::cout << "Pushing back a counter" << std::endl;
-	} 
+	//std::cout << "Making an external trigger!!" << std::endl;
+	raw::ExternalTrigger counter( counter_index, this_time );
+	ExternTrigs.push_back(counter);
+	LastCounter = fCounterTimes.at(index);
+	//std::cout << "Pushing back a counter" << std::endl; 
       }
       else std::cout<<"ERROR IN PTBFORMATTER'S LOGIC IN COUNTER ANALYSIS"<<std::endl; //We should never get here
     } // Loop over counter word size   
@@ -198,13 +196,11 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments,
       else if (!counter_previously_on && counter_currently_on){
 	counter_previously_on = true; //Record that it is now on and record some numbers
 	//If this bit is outside an ignoreBit then make an ExternalTrigger
-	//std::cout << "Trigger " << this_time << " - " << LastTrigger << " " << PTBIgnoreBit << std::endl;
-	if ( this_time-LastTrigger > PTBIgnoreBit ){
-	  //std::cout << "Making a trigger :D " << std::endl;
-	  raw::ExternalTrigger counter( FillIndex, this_time );
-	  ExternTrigs.push_back(counter);
-	  LastTrigger = fMuonTriggerTimes.at(index);
-	} 
+	//std::cout << "Trigger " << this_time << " - " << LastTrigger << std::endl;
+	//std::cout << "Making a trigger :D " << std::endl;
+	raw::ExternalTrigger counter( FillIndex, this_time );
+	ExternTrigs.push_back(counter);
+	LastTrigger = fMuonTriggerTimes.at(index);
       }
       else std::cout<<"ERROR IN PTBFORMATTER'S LOGIC IN COUNTER ANALYSIS"<<std::endl; //We should never get here
     }
@@ -220,8 +216,7 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments,
 void DAQToOffline::CollectCounterBits(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::CounterWordSize> > &fCounterBits,
 				      std::vector<int> &fCounterTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp,
 				      std::pair<std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
-				      std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords,
-				      int const& PTBIgnoreBit
+				      std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords
 				      ) {
   std::bitset<TypeSizes::CounterWordSize> bits;
   for (size_t ib = 0; ib < payload_size; ib++){
@@ -229,10 +224,9 @@ void DAQToOffline::CollectCounterBits(uint8_t* payload, size_t payload_size, std
     bits ^= (byte << 8*(payload_size-(ib+1)));
   }
 
-  if ( (int)timestamp - (int)PrevTimeStampWords.first.first < PTBIgnoreBit
-       && PrevTimeStampWords.first.second == bits ) {
-    std::cout << "Throwing away counter as too close and identical to previous counter." << std::endl;
-    std::cout << (int)timestamp << " " << (int)PrevTimeStampWords.first.first << " " << PrevTimeStampWords.first.second << " " << bits << std::endl;
+  if ( PrevTimeStampWords.first.second == bits ) {
+    //std::cout << "Throwing away counter as too close and identical to previous counter." << std::endl;
+    //std::cout << (int)timestamp << " " << (int)PrevTimeStampWords.first.first << " " << PrevTimeStampWords.first.second << " " << bits << std::endl;
     return;
   }
 
@@ -249,8 +243,7 @@ void DAQToOffline::CollectCounterBits(uint8_t* payload, size_t payload_size, std
 void DAQToOffline::CollectMuonTrigger(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::TriggerWordSize> > &fMuonTriggerBits,
 				      std::vector<int> &fMuonTriggerTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp,
 				      std::pair<std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
-				      std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords,
-				      int const& PTBIgnoreBit
+				      std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords
 				      ) {
   std::bitset<TypeSizes::TriggerWordSize> bits;
   for (size_t ib = 0; ib < payload_size; ib++){
@@ -258,10 +251,9 @@ void DAQToOffline::CollectMuonTrigger(uint8_t* payload, size_t payload_size, std
     bits ^= (byte << 8*(payload_size-(ib+1)));
   }
 
-  if ( (int)timestamp - (int)PrevTimeStampWords.second.first < PTBIgnoreBit
-       && PrevTimeStampWords.second.second == bits ) {
-    std::cout << "Throwing away trigger as too close and identical to previous trigger." << std::endl;
-    std::cout << (int)timestamp << " " << (int)PrevTimeStampWords.second.first << " " << PrevTimeStampWords.second.second << " " << bits << std::endl;
+  if ( PrevTimeStampWords.second.second == bits ) {
+    //std::cout << "Throwing away trigger as too close and identical to previous trigger." << std::endl;
+    //std::cout << (int)timestamp << " " << (int)PrevTimeStampWords.second.first << " " << PrevTimeStampWords.second.second << " " << bits << std::endl;
     return;
   }
 

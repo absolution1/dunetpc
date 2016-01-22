@@ -3,21 +3,22 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 ADD_SUBDIRECTORY(utilities)
 
 art_make(BASENAME_ONLY
-	LIBRARY_NAME lbne_daqinput35t
-	LIB_LIBRARIES
-	${ART_FRAMEWORK_SERVICES_REGISTRY}
-	${ART_PERSISTENCY_PROVENANCE}
-	${ART_UTILITIES}
-	${ROOT_CORE}
+        LIBRARY_NAME lbne_daqinput35t
+        LIB_LIBRARIES
+        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+        ${ART_PERSISTENCY_PROVENANCE}
+        ${ART_UTILITIES}
+        ${ROOT_CORE}
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
-	${Boost_SYSTEM_LIBRARY}
-	RunHistoryDUNE
-	Geometry_service
-	Geometry
-	lbne_daqinput35t_utilities
-	lbne-raw-data_Overlays
+        ${Boost_SYSTEM_LIBRARY}
+        RunHistoryDUNE
+        Geometry_service
+        Geometry
+        lbne_daqinput35t_utilities
+        lbne-raw-data_Overlays
         RawData
+        RecoBase
         NO_PLUGINS
         )
 
@@ -61,6 +62,7 @@ Geometry_service
 Geometry
 lbne_daqinput35t
 RawData
+RecoBase
 ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
 )
@@ -93,6 +95,27 @@ Geometry_service
 Geometry
 RawData
 )
+
+simple_plugin(CheckTiming "module"
+			  lbne-raw-data_Overlays
+			  lbne_daqinput35t_utilities
+			  lbne_daqinput35t
+			  Geometry_service
+			  Geometry
+			  RawData
+			  ${ART_FRAMEWORK_CORE}
+			  ${ART_FRAMEWORK_PRINCIPAL}
+			  ${ART_FRAMEWORK_SERVICES_REGISTRY}
+			  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+			  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			  ${ART_PERSISTENCY_COMMON}
+			  ${ART_PERSISTENCY_PROVENANCE}
+			  ${ART_UTILITIES}
+			  ${MF_MESSAGELOGGER}
+			  ${MF_UTILITIES}
+			  ${CETLIB}
+			  ${ROOT_BASIC_LIB_LIST}
+		)
 
 simple_plugin(SplitterInput "source"
  lbne_daqinput35t

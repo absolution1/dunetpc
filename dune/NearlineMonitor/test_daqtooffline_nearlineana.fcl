@@ -1,0 +1,47 @@
+#include "services_dune.fcl"
+#include "hitfindermodules_dune.fcl"
+#include "TpcDAQToOffline.fcl"
+#include "SSPToOffline.fcl"
+#include "standard_nearline35t.fcl"
+
+process_name: NearlineAna
+
+services:
+{
+  TimeTracker:       {}
+  SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
+  RandomNumberGenerator: {} #ART native random number generator
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  TFileService: { fileName: "nearlineana_hists.root" }
+  user:         @local::dune35t_services
+}
+
+source:
+{
+  module_type: RootInput
+}
+
+physics:
+{
+    producers:
+    {
+      rns:                { module_type: RandomNumberSaver }
+      tpcdaqtooffline:    @local::tpc_daq_to_offline
+      sspdaqtooffline:    @local::ssp_to_offline
+      fasthit:            @local::dune35t_fasthitfinder      
+    }
+
+    analyzers:
+    {
+        nearlineana: @local::standard_nearlineana
+
+    }
+
+    daqtooffline: [ rns, tpcdaqtooffline, sspdaqtooffline, fasthit ]
+    nearline:     [ nearlineana ]
+    trigger_paths:[ daqtooffline ]
+    end_paths:    [ nearline ]  
+
+}
+
+physics.analyzers.nearlineana.RawDigitsTag: "tpcdaqtooffline:offline"  

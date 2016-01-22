@@ -1,0 +1,27 @@
+BEGIN_PROLOG
+
+check_timing:
+{
+  module_type: "CheckTiming"
+
+  RCEFragType:        "TPC"
+  RCERawDataLabel:    "daq"
+  RCEOutputDataLabel: "offlineRCE"
+  RCEChannelMapFile:  "rce_channel_map_dune35t.txt"
+
+  SSPFragType:        "PHOTON"
+  SSPRawDataLabel:    "daq"
+  SSPOutputDataLabel: "offlinePhoton"
+  SSPChannelMapFile:  "ssp_channel_map_dune35t.txt"
+
+  PTBFragType:        "TRIGGER"
+  PTBRawDataLabel:    "daq"
+  PTBOutputDataLabel: "offlineTrigger"
+  PTBChannelMapFile:  "ptb_channel_map_dune35t.txt"
+
+  NOvAClockFrequency:  64.0 #MHz
+  UseChannelMap: "true"
+  Debug: "false"
+}
+
+END_PROLOG
