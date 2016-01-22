@@ -96,6 +96,27 @@ Geometry
 RawData
 )
 
+simple_plugin(CheckTiming "module"
+			  lbne-raw-data_Overlays
+			  lbne_daqinput35t_utilities
+			  lbne_daqinput35t
+			  Geometry_service
+			  Geometry
+			  RawData
+			  ${ART_FRAMEWORK_CORE}
+			  ${ART_FRAMEWORK_PRINCIPAL}
+			  ${ART_FRAMEWORK_SERVICES_REGISTRY}
+			  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+			  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			  ${ART_PERSISTENCY_COMMON}
+			  ${ART_PERSISTENCY_PROVENANCE}
+			  ${ART_UTILITIES}
+			  ${MF_MESSAGELOGGER}
+			  ${MF_UTILITIES}
+			  ${CETLIB}
+			  ${ROOT_BASIC_LIB_LIST}
+		)
+
 simple_plugin(SplitterInput "source"
  lbne_daqinput35t
  art_Framework_IO_Root
