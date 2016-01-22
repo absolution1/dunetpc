@@ -153,6 +153,13 @@ Long64_t NearlinePlotMaker(int Ndays){
 
 
 
+  // These variables are meant to be an expression of general DAQ health
+  float *RunVSYearYear  = new float[Npoint];
+  float *RunVSYearRun   = new float[Npoint];
+  int    RunVSYearCount = 0;
+
+
+
   // initalize histos
 
 
@@ -203,11 +210,16 @@ Long64_t NearlinePlotMaker(int Ndays){
       SRtime->Set(year,month,day,hour,min,sec);
       Xsrtime = SRtime->Convert() - GMToffset;
       cout << "time:\t" << year << " " << month << " " << day << " " << Hour << endl;
+      if(run == 0) std::cout << "\nWARNING: Run number zero for file:\t" << filename << "\n\n" << endl;
       hour = HourEnd;
       Min  = (HourEnd-hour)*60.0;
       min  = (HourEnd-hour)*60.0;
       sec  = (Min-min)*60.0;
       
+      RunVSYearYear[RunVSYearCount] = year;
+      RunVSYearRun [RunVSYearCount] = run;
+      RunVSYearCount++;            
+
       if(Xsrtime < time_ago) continue; 
       
       if(run >= LastRun) {
@@ -1046,6 +1058,40 @@ Long64_t NearlinePlotMaker(int Ndays){
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan0454_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan0454->Print(filename);
+
+
+
+
+  // A plot of general DAQ health...
+  int nzero = 0;
+  int firstrun = 1e9;
+  int lastrun  = 0;
+  for(int i = 0; i < RunVSYearCount; ++i) {
+    if(RunVSYearRun[i] == 0) nzero++;
+    if(RunVSYearRun[i] > lastrun  && RunVSYearRun[i] != 0) lastrun  = RunVSYearRun[i];
+    if(RunVSYearRun[i] < firstrun && RunVSYearRun[i] != 0) firstrun = RunVSYearRun[i];
+  }
+
+  sprintf(lptext,"Number of points with run number = 0 : %u",nzero);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+
+
+  TCanvas *cRunVSYear = new TCanvas("cRunVSYear","Year VS Run",1200,800);
+  cRunVSYear->cd();
+  gPad->SetGridx();
+  TGraph *gRunVSYear = new TGraph(RunVSYearCount,RunVSYearRun,RunVSYearYear);
+  sprintf(title,"Year VS Run");
+  gRunVSYear->SetTitle(title);
+  gRunVSYear->SetMarkerColor(kBlue);
+  gRunVSYear->GetXaxis()->SetTitle("Run Number");
+  gRunVSYear->GetYaxis()->SetTitle("Year");
+  gRunVSYear->GetXaxis()->SetLimits(firstrun,lastrun);
+  gRunVSYear->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RunVSYear_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRunVSYear->Print(filename);
 
 
 
