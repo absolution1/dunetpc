@@ -72,15 +72,15 @@ Long64_t NearlinePlotMaker(int Ndays){
   //       makeing this a bit more general and less "copy and paste" style...
 
   // Book histos...
-  TH1F *hped_per_tick_chan_20   = new TH1F("hped_per_tick_chan_20",  "ADC per Tick - Channel 20;ADC"  ,100,0,2048);
-  TH1F *hped_per_tick_chan_548  = new TH1F("hped_per_tick_chan_548", "ADC per Tick - Channel 548;ADC" ,100,0,2048);
-  TH1F *hped_per_tick_chan_1297 = new TH1F("hped_per_tick_chan_1297","ADC per Tick - Channel 1297;ADC",100,0,2048);
-  TH1F *hped_per_tick_chan_1697 = new TH1F("hped_per_tick_chan_1697","ADC per Tick - Channel 1697;ADC",100,0,2048);
+  TH1F *hped_per_tick_chan_20   = new TH1F("hped_per_tick_chan_20",  "ADC per Tick - Channel 20;ADC"  ,128,0,4096);
+  TH1F *hped_per_tick_chan_548  = new TH1F("hped_per_tick_chan_548", "ADC per Tick - Channel 548;ADC" ,128,0,4096);
+  TH1F *hped_per_tick_chan_1297 = new TH1F("hped_per_tick_chan_1297","ADC per Tick - Channel 1297;ADC",128,0,4096);
+  TH1F *hped_per_tick_chan_1697 = new TH1F("hped_per_tick_chan_1697","ADC per Tick - Channel 1697;ADC",128,0,4096);
 
-  TH1F *hped_per_tick_chan_1838 = new TH1F("hped_per_tick_chan_1838","ADC per Tick - Channel 1838;ADC",100,0,2048);
-  TH1F *hped_per_tick_chan_1482 = new TH1F("hped_per_tick_chan_1482","ADC per Tick - Channel 1482;ADC",100,0,2048);
-  TH1F *hped_per_tick_chan_952  = new TH1F("hped_per_tick_chan_952", "ADC per Tick - Channel 952;ADC", 100,0,2048);
-  TH1F *hped_per_tick_chan_454  = new TH1F("hped_per_tick_chan_454", "ADC per Tick - Channel 454;ADC", 100,0,2048);
+  TH1F *hped_per_tick_chan_1838 = new TH1F("hped_per_tick_chan_1838","ADC per Tick - Channel 1838;ADC",128,0,4096);
+  TH1F *hped_per_tick_chan_1482 = new TH1F("hped_per_tick_chan_1482","ADC per Tick - Channel 1482;ADC",128,0,4096);
+  TH1F *hped_per_tick_chan_952  = new TH1F("hped_per_tick_chan_952", "ADC per Tick - Channel 952;ADC", 128,0,4096);
+  TH1F *hped_per_tick_chan_454  = new TH1F("hped_per_tick_chan_454", "ADC per Tick - Channel 454;ADC", 128,0,4096);
 
 
   
