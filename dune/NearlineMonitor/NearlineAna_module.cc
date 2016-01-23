@@ -37,7 +37,7 @@
 //dunetpc
 #include "dune/daqinput35t/tpcFragmentToRawDigits.h" //JPD - For online channel map
 
-const int NearlineMinorVersion=1;
+const int NearlineMinorVersion=2;
 const int NearlineMajorVersion=0;
 
 namespace nearline {
@@ -469,9 +469,9 @@ void nearline::NearlineAna::makePedestalPerEventPlots(){
   art::ServiceHandle<art::TFileService> tfs;
 
   for(auto channel: fPedestalPerEventChannels){
-    int numBins = 100;
+    int numBins = 128;
     int xmin = 0;
-    int xmax = 2048;
+    int xmax = 4096;
     std::string hist_name = "hped_per_event_chan_" + std::to_string(channel);
     std::string hist_title = "Average ADC Per Event - Channel " 
     + (fUseOnlineChannels ? 
@@ -497,9 +497,9 @@ void nearline::NearlineAna::makePedestalPerTickPlots(){
   art::ServiceHandle<art::TFileService> tfs;
 
   for(auto channel: fPedestalPerTickChannels){
-    int numBins = 100;
+    int numBins = 128;
     int xmin = 0;
-    int xmax = 2048;
+    int xmax = 4096;
     std::string hist_name = "hped_per_tick_chan_" + std::to_string(channel);
     std::string hist_title = "Average ADC Per Tick - Channel " 
     + (fUseOnlineChannels ? 
