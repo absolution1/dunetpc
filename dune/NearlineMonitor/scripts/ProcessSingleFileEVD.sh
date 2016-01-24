@@ -52,6 +52,11 @@ if [ $infilesize -gt 500 ];
 then
     echo "Processing $infile"
     lar -c ctreeraw35t_trigTPC.fcl -n 10 ${infile}
+
+    # Rename the output file for the RED35 EVD so that the script that looks for the most recent file
+    # knows that the processing is finished.
+    mv sample.root sample_done.root
+
     # Don't know why this text file gets created. Probably could be turned off at the fcl level.
     # Just going to remove it manually for now...
     rm -fv WireGeometry.txt
