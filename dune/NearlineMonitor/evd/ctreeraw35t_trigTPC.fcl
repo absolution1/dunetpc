@@ -1,6 +1,7 @@
 #include "services_dune.fcl"
 #include "clusteralgorithms.fcl"
 #include "SSPToOffline.fcl"
+#include "standard_nearline35t.fcl"
 
 process_name: ctreeraw35t
 
@@ -16,48 +17,7 @@ services:
 }
 
 
-source:
-{
-  module_type: SplitterInput
-  firstEvent : 1
-  maxEvents:  10
-  posttriggerticks:  10000
-  pretriggerticks:   0
-# should be 0.5 for MC and 32 for data.
-  novatickspertpctick: 32
-  TimeStampThreshold:  5.
-
-# trigger below is to start window when TPC payload appears (not just headers from RCEs.)
-  MCTrigLevel:  0
-  whichTrigger: 5
-#  MCTrigLevel:  0
-#  whichTrigger: 0
-
-  ADCdiffThreshold:  50
-  ADCsOverThreshold: 100
-
-  TrigSeparation:   10000
-  TPCInputTag : "daq:TPC:DAQ" 
-  TPCInputDataProduct : "artdaq::Fragment"
-
-  SSPInputTag : "daq:PHOTON:DAQ"
-  SSPInputDataProduct : "artdaq::Fragment"
-
-#### If the Penn stuff is in the data record.... ####
-  PennInputTag : "daq:TRIGGER:DAQ"
-  PennInputDataProduct : "artdaq::Fragment"
-
-#### If the Penn stuff isn't in the data record.... ####
-#  PennInputDataProduct:  "raw::RawDigit"
-#  PennInputTag:  "daq::Detsim"
-
-  NOvAClockFrequency : 64.0 # MHz
-
-  # Added to bring up-to0date with changes Alex Himmel made...
-  SSPReformatter:    @local::ssp_reformatter
-
-}
-
+source: @local::standard_nearlinesplitter
 
 physics:
 {
@@ -79,14 +39,14 @@ physics:
       saveChannelWireMap: false
       saveChannelWireGeo: false
       InputModule:             "SplitterInput"
-      MakeAllPhotonsTree:      false
-      MakeDetectedPhotonsTree: false
-      MakeOpDetsTree:          false
-      MakeOpDetEventsTree:     false
+      MakeAllPhotonsTree:      true
+      MakeDetectedPhotonsTree: true
+      MakeOpDetsTree:          true
+      MakeOpDetEventsTree:     true
       UncompressWithPed:       true
       ProcessMCtruth:          false
-      ProcessCalib:            false
-      ProcessHits:             false
+      ProcessCalib:            true
+      ProcessHits:             true
       ProcessReco:             false
       ProcessOpDet:            false
     }
