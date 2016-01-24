@@ -25,7 +25,7 @@ export RelDir=/dune/app/home/duneana/35t_EventDisplay/larsoft_${version}
 export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
 export RED35Dir=/dune/app/home/duneana/35t_EventDisplay/RED35
 export InputPath=/lbne/data2/users/lbnedaq/nearline_evd/${version}
-export FileSearch='/lbne/data2/users/lbnedaq/nearline_evd/*/*/*/sample.root'
+export FileSearch='/lbne/data2/users/lbnedaq/nearline_evd/*/*/*/sample_done.root'
 export filepos=9
 
 
@@ -57,7 +57,7 @@ do {
 
 if [ $run -ne 0 ];then
     bigRun=${run:0:3}
-    file=${InputPath}/${bigRun}/${run}_01/sample.root    
+    file=${InputPath}/${bigRun}/${run}_01/sample_done.root    
 fi
 
 echo "Opening file:"
