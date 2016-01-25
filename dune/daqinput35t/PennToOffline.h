@@ -34,26 +34,24 @@ namespace DAQToOffline {
     static int const CounterWordSize = 104;
     static int const TriggerWordSize = 32;
   }
+    void CollectCounterBits(lbne::PennMicroSlice::Payload_Header *header,lbne::PennMicroSlice::Payload_Counter *trigger);
+    void CollectTrigger(lbne::PennMicroSlice::Payload_Header *header,lbne::PennMicroSlice::Payload_Trigger *trigger);
 
-  // Unpack the given artdaq::Fragment objects, and create a vector of raw::ExternalTrigger objects. The
-  // Fragments are expected to be carrying Penn Trigger board data; this is not checked.
-  std::vector<raw::ExternalTrigger> 
-    PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, std::map<int,int> const& PTBChannelMap,
-				   std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
-				   std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords );
+    typedef std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > PTBTrigger;
 
-  void CollectCounterBits(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::CounterWordSize> > &fCounterBits,
-			  std::vector<int> &fCounterTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp,
-			  std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
-			  std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords
-			  );
+    // Unpack the given artdaq::Fragment objects, and create a vector of raw::ExternalTrigger objects. The
+    // Fragments are expected to be carrying Penn Trigger board data; this is not checked.
+    std::vector<raw::ExternalTrigger> PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments );
 
-  void CollectMuonTrigger(uint8_t* payload, size_t payload_size, std::vector<std::bitset<TypeSizes::TriggerWordSize> > &fMuonTriggerBits,
-			  std::vector<int> &fMuonTriggerTimes, lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t timestamp,
-			  std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
-			  std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > &PrevTimeStampWords
-			  );
+    // Function to get the full timestamp of a given payload
+    void GetTimestamp( lbne::PennMilliSliceFragment msf,
+		       lbne::PennMicroSlice::Payload_Header*& word_header,
+		       lbne::PennMicroSlice::Payload_Timestamp* const& previous_timestamp,
+		       lbne::PennMicroSlice::Payload_Timestamp*& future_timestamp,
+		       lbne::PennMicroSlice::Payload_Header*& future_timestamp_header,
+		       std::vector<lbne::PennMicroSlice::Payload_Timestamp::timestamp_t> &TimeVector );
 
-  void BuildPTBChannelMap(std::string PTBMapFile, std::map<int,int>& PTBChannelMap);
+    // Function to decide whether to make a new External Trigger
+    bool MakeNewExtTrig( uint32_t pos, bool &PrevOn, bool NowOn );
 }
 #endif

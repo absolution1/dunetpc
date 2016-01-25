@@ -12,7 +12,6 @@ split_events:
   PennInputDataProduct: "artdaq::Fragment"            // Data product type of PTB data
   SSPReformatter:       @local::ssp_reformatter       // The parameter set for the SSP reformatter
   TPCChannelMapFile:    "rce_channel_map_dune35t.txt" // The TPC channel map
-  PTBChannelMapFile:    "ptb_channel_map_dune35t.txt" // The PTV channel map (defunct?)
 
   DebugLevel:                1       // The level of information printed out 0 = none, 1 = basic info, <4 = all
   TimeStampThreshold:        5       // The threshold for trying to mitigate any timestamp ideosynchrosies
