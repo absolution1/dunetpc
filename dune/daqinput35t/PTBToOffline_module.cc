@@ -64,6 +64,22 @@ private:
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
   double      fNOvAClockFrequency; //MHz
+
+  std::map<int,int> PTBChannelMap;
+  std::string       fPTBChannelMapFile;
+
+  std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
+	     std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
+  //long        first_FirstSample;
+  //double      first_TimeStamp;
+  //long        first_InternalSample;
+  //double      first_InternalTimeStamp;
+
+  //bool fDebug;
+  //raw::Compress_t        fCompression;      ///< compression type to use
+  //unsigned int           fZeroThreshold;    ///< Zero suppression threshold
+
+
 };
 
 
@@ -84,8 +100,11 @@ void DAQToOffline::PTBToOffline::reconfigure(fhicl::ParameterSet const& pset){
   fRawDataLabel       = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel    = pset.get<std::string>("OutputDataLabel");
   fNOvAClockFrequency = pset.get<double>("NOvAClockFrequency"); // in MHz
+  fPTBChannelMapFile  = pset.get<std::string>("PTBChannelMapFile","ptb_channel_map_dune35t.txt");
 
   printParameterSet();
+
+  BuildPTBChannelMap(fPTBChannelMapFile, PTBChannelMap);
 }
 
 void DAQToOffline::PTBToOffline::printParameterSet(){
@@ -126,11 +145,11 @@ void DAQToOffline::PTBToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto triggers = PennFragmentToExternalTrigger(*rawFragments );
-
-  std::cout << "Returned from PennFragmentToExternalTriggers and triggers has size " << triggers.size() << std::endl;
+  auto triggers = PennFragmentToExternalTrigger(*rawFragments, PTBChannelMap, PrevTimeStampWords);
 
   evt.put(std::make_unique<decltype(triggers)>(std::move(triggers)), fOutputDataLabel);
+
+
 }
 
 DEFINE_ART_MODULE(DAQToOffline::PTBToOffline)

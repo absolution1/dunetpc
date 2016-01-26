@@ -60,19 +60,23 @@ private:
   
   std::string fRCEFragType, fRCERawDataLabel, fRCEOutputDataLabel, fRCEChannelMapFile;
   std::string fSSPFragType, fSSPRawDataLabel, fSSPOutputDataLabel;
-  SSPReformatterAlgs sspReform;
+  SSPReformatterAlgs     sspReform;
   std::string fPTBFragType, fPTBRawDataLabel, fPTBOutputDataLabel, fPTBChannelMapFile;
   double fNOvAClockFrequency; //MHz
   bool fUseChannelMap;
   bool fDebug;
 
-  std::map<int,int> fRCEChannelMap;
+  raw::Compress_t fCompression;   // compression type to use
+  unsigned int    fZeroThreshold; // Zero suppression threshold
+
+  std::map<int,int> fRCEChannelMap, fSSPChannelMap, fPTBChannelMap;
+  std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
+	     std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
 
   TTree* fTree;
   int EvNum;
-  uint64_t RCETime, SSPTime, PTBTime;
-  uint64_t RCE_PTB_diff, RCE_SSP_diff, SSP_PTB_diff;
-  int NumADCs;
+  int64_t RCETime, SSPTime, PTBTime;
+  int NumADCs, AvNumADCs;
   bool InconsistRCE;
 };
 
@@ -92,6 +96,7 @@ DAQToOffline::CheckTiming::CheckTiming(fhicl::ParameterSet const & pset)
   ,fPTBFragType        ( pset.get<std::string>("PTBFragType"))
   ,fPTBRawDataLabel    ( pset.get<std::string>("PTBRawDataLabel"))
   ,fPTBOutputDataLabel ( pset.get<std::string>("PTBOutputDataLabel"))
+  ,fPTBChannelMapFile  ( pset.get<std::string>("PTBChannelMapFile"))
     //--------------------------------------------------------------------
   ,fNOvAClockFrequency ( pset.get<double>("NOvAClockFrequency")) // in MHz
   ,fUseChannelMap ( pset.get<bool>("UseChannelMap"))
@@ -104,22 +109,23 @@ DAQToOffline::CheckTiming::~CheckTiming() {
 
 void DAQToOffline::CheckTiming::beginJob() {
 
+  fZeroThreshold=0;
+  fCompression=raw::kNone;
   if(fDebug) printParameterSet();
 
   if (fUseChannelMap) {
     BuildTPCChannelMap  (fRCEChannelMapFile, fRCEChannelMap);
+    BuildPTBChannelMap  (fPTBChannelMapFile, fPTBChannelMap);
   }
 
   art::ServiceHandle<art::TFileService> tfs;
   fTree = tfs->make<TTree>("TimingCheck","TimingCheck");
-  fTree->Branch("EvNum"       , &EvNum       , "EvNum/I");
-  fTree->Branch("RCETime"     , &RCETime     , "RCETime/I");
-  fTree->Branch("SSPTime"     , &SSPTime     , "SSPTime/I");
-  fTree->Branch("PTBTime"     , &PTBTime     , "PTBTime/I");
-  fTree->Branch("RCE_SSP_diff", &RCE_SSP_diff,"RCE_SSP_diff/I");
-  fTree->Branch("RCE_PTB_diff", &RCE_PTB_diff,"RCE_PTB_diff/I");
-  fTree->Branch("SSP_PTB_diff", &SSP_PTB_diff,"SSP_PTB_diff/I");
-  fTree->Branch("NumADCs"     , &NumADCs     , "NumADCs/I");
+  fTree->Branch("EvNum", &EvNum, "EvNum/I");
+  fTree->Branch("RCETime", &RCETime, "RCETime/I");
+  fTree->Branch("SSPTime", &SSPTime, "SSPTime/I");
+  fTree->Branch("PTBTime", &PTBTime, "PTBTime/I");
+  fTree->Branch("NumADCs", &NumADCs, "NumADCs/I");
+  fTree->Branch("AvNumADCs", &AvNumADCs, "AvNumADCs/I");
   fTree->Branch("InconsistRCE", &InconsistRCE, "InconsistRCE/B");
 }
 
@@ -164,7 +170,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 
   RCETime = 0, SSPTime = 0, PTBTime = 0;
   InconsistRCE = false;
-  NumADCs = 0;
+  NumADCs = AvNumADCs = 0;
   EvNum = evt.event();
   // ------------- RCE Section ------------------------
   bool RCEPresent = true;
@@ -209,7 +215,9 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
       } else {
 	if ( ThisADCcount != NumADCs ) InconsistRCE = true;
       }
+      AvNumADCs += ThisADCcount;
     } // rawFragments.size()
+    AvNumADCs = AvNumADCs / rawFragmentsRCE.size();
     std::cout << "Got RCE start time, it is " << RCETime << std::endl;
   } //RCEPresent
   
@@ -244,6 +252,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 	}
     }
     std::cout << "Got SSP start time, it is " << SSPTime << std::endl;
+    std::vector<raw::OpDetWaveform> waveforms = sspReform.SSPFragmentToOpDetWaveform(*SSPrawFragments);
   } // SSP Present
   
   // ------------- PTB Section ------------------------
@@ -263,41 +272,13 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
       throw cet::exception("raw NOT VALID");
       return;
     }
-
-    lbne::PennMicroSlice::Payload_Header    *word_header    = nullptr;
-    lbne::PennMicroSlice::Payload_Timestamp *FirstTimestamp = nullptr;
-    uint32_t payload_index = 0;
-    uint16_t counter, trigger, timestamp, payloadCount;
-    uint8_t* payload_data = nullptr;
     
-    if (PTBrawFragments->size()) {
-      const auto& frag((*PTBrawFragments)[0]);
-      lbne::PennMilliSliceFragment msf(frag);
-      
-      payloadCount = msf.payloadCount(counter, trigger, timestamp);
-      
-      while (payload_index < uint32_t(payloadCount-1) && FirstTimestamp == nullptr) {
-	payload_data = msf.get_next_payload(payload_index,word_header);
-	switch(word_header->data_packet_type) {
-	case lbne::PennMicroSlice::DataTypeTimestamp:
-	  FirstTimestamp = reinterpret_cast<lbne::PennMicroSlice::Payload_Timestamp*>(payload_data);
-	  break;
-	default:
-	  break;
-	}
-      }
-    }
-    PTBTime = (uint64_t)FirstTimestamp->nova_timestamp;
-    std::cout << "Got PTB start time, it is " << PTBTime << std::endl;
+    auto triggers = PennFragmentToExternalTrigger(*PTBrawFragments, fPTBChannelMap, PrevTimeStampWords);
+    
   } // PTB Present
   // ------------------------ NOW TO COMPARE ALL THESE NUMBERS -------------------------------------------
   
   std::cout << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs << std::endl;
-
-  RCE_PTB_diff = RCETime - PTBTime;
-  RCE_SSP_diff = RCETime - SSPTime;
-  SSP_PTB_diff = SSPTime - PTBTime;
-  
   fTree->Fill();
 }
 

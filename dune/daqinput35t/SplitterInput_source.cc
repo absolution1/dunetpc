@@ -485,6 +485,7 @@ namespace DAQToOffline {
     string                 PenninputDataProduct_;
     SSPReformatterAlgs     sspReform;
     string                 fTPCChannelMapFile;
+    string                 fPTBChannelMapFile;
     art::SourceHelper      sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SSPinputBranch_;
@@ -524,6 +525,7 @@ namespace DAQToOffline {
     lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp=0;
 
     std::map<int,int>      TPCChannelMap;
+    std::map<int,int>      PTBChannelMap;
 
     std::map<uint64_t,size_t> EventTreeMap;
 
@@ -596,6 +598,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
   sspReform            (ps.get<fhicl::ParameterSet>("SSPReformatter")),
   fTPCChannelMapFile   (ps.get<string>("TPCChannelMapFile")),
+  fPTBChannelMapFile   (ps.get<string>("PTBChannelMapFile")),
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
@@ -647,6 +650,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   prh.reconstitutes<PennCounters_t,art::InEvent>( sourceName_, PenninputTag_.instance() );
 
   BuildTPCChannelMap(fTPCChannelMapFile, TPCChannelMap);
+  BuildPTBChannelMap(fPTBChannelMapFile, PTBChannelMap);
 }
 
 //=======================================================================================
@@ -973,7 +977,7 @@ bool DAQToOffline::Splitter::loadDigits_( size_t &InputTree ) {
     //-----------------------------------------------------------------------------------------------------------
     if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
       auto* PennFragments = getFragments ( PenninputBranch_, LoadTree );
-      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments );
+      std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, PTBChannelMap, PrevTimeStampWords );
       //for (size_t CountLoop = 0; CountLoop < counters.size(); ++CountLoop) {
       //std::cout << "Looking at counters[" << CountLoop << "] has CounterID " << counters[CountLoop].GetTrigID() << " and Timestamp " << counters[CountLoop].GetTrigTime() << std::endl;
       //}
