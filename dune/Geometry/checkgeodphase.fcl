@@ -14,6 +14,9 @@ services:
   message:      @local::standard_info
 }
 
+# workspace geometry
+#services.user.Geometry: @local::dunedphase10kt_workspace_geo
+
 #source is now a root file
 source:
 {
