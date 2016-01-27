@@ -15,6 +15,7 @@
 #include "opticaldetectorservices_dune.fcl"
 #include "channelstatus_dune.fcl"
 #include "pedestals_dune.fcl"
+#include "detsimmodules_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -63,11 +64,44 @@ dunefd_simulation_services:
 #
 # for dual-phase implementation
 #
-dunefddphase_services:                    @local::dunefd_services
-dunefddphase_services.Geometry:           @local::dunedphase10kt_geo
-dunefddphase_services.TimeService:        @local::dunefddphase_timeservice
-dunefddphase_services.DetectorProperties: @local::dunefddphase_detproperties
-dunefddphase_services.LArProperties:      @local::dunefddphase_properties
+dunefddphase_services:
+{
+ BackTracker:                    @local::dunefd_backtracker
+ DatabaseUtil:                   @local::dunefd_database
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ IChannelStatusService:          @local::dunefd_channel_status
+ LArFFT:                         @local::dunefd_larfft
+ SeedService:                    @local::dune_seedservice 
+
+ Geometry:                       @local::dunedphase10kt_geo
+ TimeService:                    @local::dunefddphase_timeservice
+ DetectorProperties:             @local::dunefddphase_detproperties
+ LArProperties:                  @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+}
+
+dunefddphase_simulation_services:
+{
+ LArFFT:                         @local::dunefd_larfft
+ LArG4Parameters:                @local::dunefd_largeantparameters
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
+ MagneticField:                  @local::no_mag
+ BackTracker:                    @local::dunefd_backtracker
+ SeedService:                    @local::dune_seedservice
+ DatabaseUtil:                   @local::dunefd_database
+ OpDetResponseInterface:         @local::dunefd_opdetresponse
+ IChannelStatusService:          @local::dunefd_channel_status
+ 
+ Geometry:                       @local::dunedphase10kt_geo
+ TimeService:                    @local::dunefddphase_timeservice
+ DetectorProperties:             @local::dunefddphase_detproperties
+ LArProperties:                  @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+}
+
 
 #
 # Settings for optical simulation. Optical simulation not on by default
