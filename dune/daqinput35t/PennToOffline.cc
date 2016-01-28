@@ -119,9 +119,7 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
       ////std::cout << "Looking at counter " << counter_index << " position " << pos << ", PrevOn? " << counter_previously_on << ", NowOn? " << counter_currently_on << std::endl;
       bool MakeNewExtCount = MakeNewExtTrig(pos, counter_previously_on, counter_currently_on);
       if (MakeNewExtCount) {
-	lbne::PennMicroSlice::Payload_Timestamp::timestamp_t current_counter_time = fCounterTimes.at(pos);
-	//std::cout << "Making an external trigger for counter " << counter_index << " at timestamp " << current_counter_time << "!!" << std::endl;
-	raw::ExternalTrigger counter( counter_index, current_counter_time );
+	raw::ExternalTrigger counter( counter_index, fCounterTimes.at(pos) );
 	ExternTrigs.push_back(counter);
 	//std::cout << "Made my new trigger, TrigID " << ExternTrigs.back().GetTrigID() << " (" << counter.GetTrigID() << ") TrigTime "
 	//	  << ExternTrigs.back().GetTrigTime() << " (" << counter.GetTrigTime() << ")" << std::endl;
