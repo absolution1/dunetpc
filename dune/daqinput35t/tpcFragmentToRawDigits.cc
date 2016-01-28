@@ -168,6 +168,33 @@ void DAQToOffline::BuildTPCChannelMap(std::string channelMapFile, std::map<int,i
     
 }
 
+
+DAQToOffline::TPCChannelMapDetailed::TPCChannelMapDetailed(std::string channelMapFile){
+
+  std::string fullname;
+  cet::search_path sp("DUNETPC_DIR");
+  sp.find_file(channelMapFile, fullname);
+  if (fullname.empty())
+    mf::LogWarning("DAQToOffline") << "Input TPC detailed channel map file " << channelMapFile << " not found\n";
+  
+  else{
+    std::ifstream infile(fullname);
+    //Ignore the first four lines as they are junk
+    for(int i=0;i<4;i++){
+      std::string line;
+      std::getline(infile, line);
+    }
+    while (infile.good()){
+      int online_channel, rce, rce_channel, apa, plane, offline_channel;
+      infile >> online_channel >> rce >> rce_channel >> apa >> plane >> offline_channel;
+      TPCChannel this_channel(online_channel, rce, rce_channel, apa, plane, offline_channel);
+      fOnlineChannelMap.insert(std::make_pair(online_channel, this_channel));
+      fOfflineChannelMap.insert(std::make_pair(offline_channel, this_channel));
+    }
+  }
+}
+
+
 art::Timestamp DAQToOffline::make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp){
 
 /*
