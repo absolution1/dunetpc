@@ -75,7 +75,7 @@ outputs:
  {
    module_type: RootOutput
    fileName:    "%ifb_%tc_split.root"
-   dataTier:    "raw"
+   dataTier:    "sliced"
    compressionLevel: 1
  }
 }
