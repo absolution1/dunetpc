@@ -2,6 +2,53 @@
 
 const std::string PLOT_DIR = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots";
 
+void histogramZoom(TH1* hist, double n_sigma);
+void graphZoom(TGraph* gr, double n_sigma);
+
+void histogramZoom(TH1* hist, double n_sigma){
+  
+  //Get the mean and RMS of the y-axis
+  double mean = hist->GetMean(2);
+  double rms = hist->GetRMS(2);
+
+  double y_low = mean - rms*n_sigma;
+  double y_high = mean + rms*n_sigma;
+  
+  if(y_low<0) y_low=0;
+
+  TAxis* y_axis = hist->GetYaxis();
+  y_axis->SetRangeUser(y_low, y_high);
+      
+}
+
+void graphZoom(TGraph* gr, double n_sigma){
+  
+  //We need to make sure that the TGraph has already had draw called
+  //Remember where we were cd'd into and go back there at the end
+  TVirtualPad* old_pad = gPad;
+  
+  TCanvas* can_temp = new TCanvas("can_temp", "can_temp");
+  gr->Draw("AL");
+  
+  //Get the mean and RMS of the y-axis
+  double mean = gr->GetMean(2);
+  double rms = gr->GetRMS(2);
+
+  double y_low = mean - rms*n_sigma;
+  double y_high = mean + rms*n_sigma;
+  
+  if(y_low<0) y_low=0;
+
+  TAxis* y_axis = gr->GetYaxis();
+  y_axis->SetRangeUser(y_low, y_high);
+  
+  //Return to whence we came
+  old_pad->cd();
+  delete can_temp;
+
+}
+
+
 //
 // Make the plots for the nearline webpage from the nearline output files.
 //
@@ -510,7 +557,14 @@ Long64_t NearlinePlotMaker(int Ndays){
   UpdateText->Draw();
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan0020_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  graphZoom(gRMSPedChan0020, 2.0);
   cRMSPedChan0020->Print(filename);
+  gRMSPedChan0020->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan0020_%.3u_days_zoom.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan0020->Print(filename);
+
 
 
 
@@ -588,6 +642,12 @@ Long64_t NearlinePlotMaker(int Ndays){
   UpdateText->Draw();
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan0548_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan0548->Print(filename);
+  graphZoom(gRMSPedChan0548, 2.0);
+  gRMSPedChan0548->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan0548_%.3u_days_zoom.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan0548->Print(filename);
 
 
@@ -668,6 +728,12 @@ Long64_t NearlinePlotMaker(int Ndays){
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan1297_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1297->Print(filename);
+  graphZoom(gRMSPedChan1297, 2.0);
+  gRMSPedChan1297->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan1297_%.3u_days_zoom.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan1297->Print(filename);
 
 
 
@@ -745,6 +811,12 @@ Long64_t NearlinePlotMaker(int Ndays){
   UpdateText->Draw();
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan1697_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan1697->Print(filename);
+  graphZoom(gRMSPedChan1697, 2.0);
+  gRMSPedChan1697->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan1697_%.3u_days_zoom.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1697->Print(filename);
 
 
@@ -824,6 +896,12 @@ Long64_t NearlinePlotMaker(int Ndays){
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan1838_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1838->Print(filename);
+  graphZoom(gRMSPedChan1838, 2.0);
+  gRMSPedChan1838->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan1838_%.3u_days_zoom.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan1838->Print(filename);
 
 
 
@@ -901,6 +979,12 @@ Long64_t NearlinePlotMaker(int Ndays){
   UpdateText->Draw();
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan1482_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan1482->Print(filename);
+  graphZoom(gRMSPedChan1482, 2.0);
+  gRMSPedChan1482->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan1482_%.3u_days_zoom.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1482->Print(filename);
 
 
@@ -980,6 +1064,12 @@ Long64_t NearlinePlotMaker(int Ndays){
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan0952_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan0952->Print(filename);
+  graphZoom(gRMSPedChan0952, 2.0);
+  gRMSPedChan0952->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan0952_%.3u_days_zoom.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan0952->Print(filename);
 
 
 
@@ -1057,6 +1147,12 @@ Long64_t NearlinePlotMaker(int Ndays){
   UpdateText->Draw();
   LastPoint->Draw();
   sprintf(filename,"%s/RMSPedChan0454_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+  cRMSPedChan0454->Print(filename);
+  graphZoom(gRMSPedChan0454, 2.0);
+  gRMSPedChan0454->Draw("A*");
+  UpdateText->Draw();
+  LastPoint->Draw();
+  sprintf(filename,"%s/RMSPedChan0454_%.3u_days_zoom.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan0454->Print(filename);
 
 
