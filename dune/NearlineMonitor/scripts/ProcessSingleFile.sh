@@ -50,8 +50,8 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 # Skip files that are too small and probably DAQ junk...
 if [ $infilesize -gt 500 ];
 then
-    echo "Processing $infile"
-    lar -c test_stitcher_nearlineana.fcl -n 10 ${infile} -T $outhistfile
+    echo "Processing /data/lbnedaq/data/nearline-monitoring-links/${INFILE}"
+    lar -c test_stitcher_nearlineana.fcl -n 10 /data/lbnedaq/data/nearline-monitoring-links/${INFILE} -T $outhistfile
 fi
 
 
