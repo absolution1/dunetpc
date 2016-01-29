@@ -23,8 +23,8 @@
 #
 
 # Look for new files to process every 2 minutes.
-*/2 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/ProcessNewFiles.sh 4 v04_32_01 e9 >> /dev/null 2>&1
-*/2 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/ProcessNewFilesEVD.sh 4 v04_32_01 e9 >> /dev/null 2>&1
+*/2 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/ProcessNewFiles.sh 6 v04_32_01 e9 >> /dev/null 2>&1
+*/2 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/ProcessNewFilesEVD.sh 6 v04_32_01 e9 >> /dev/null 2>&1
 
 # Update the 24 hour web plots every 10 minutes.
 */10 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_32_01/srcs/dunetpc/dune/NearlineMonitor/scripts/MakeNearlineWebPlots.sh v04_32_01 e9 1 >> /dev/null 2>&1
