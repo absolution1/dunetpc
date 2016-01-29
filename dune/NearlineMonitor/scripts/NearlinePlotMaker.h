@@ -57,25 +57,29 @@ struct NearlinePlot{
   TH1F* fHistogram;
   TGraph* fGraphTime;
   std::string fHistName;
+  std::string fOutputName;
   int fNumPoints;
   std::vector<float> fMetricVec;
   std::vector<float> fTimeVec;
   int fPlotCount;
-  bool fRMSPlot;
 
-  NearlinePlot(int Npoint, std::string this_hist_name, std::string hist_title, int num_bins, int min_x, int max_x, bool RMS=false);
+  bool fRMSPlot;
+  bool fMakeHistogram;
+
+  NearlinePlot(int Npoint, std::string this_hist_name, std::string this_output_name, std::string hist_title, int num_bins, int min_x, int max_x, bool RMS=false);
   bool AddHistogram(TFile const & file, TTree* header, int Xstrtime, int Xsrtime, int XNow, int GMToffset);
   TCanvas* makeHistoCanvas(std::string can_name, std::string can_title, int width, int height, TPaveText* updateText);
-  TCanvas* makeGraphTimeCanvas(std::string can_name, std::string can_title, int width, int height);
+  TCanvas* makeGraphTimeCanvas(std::string can_name, std::string can_title, int width, int height, TPaveText* updateText, std::string taxis_labels, int time_ago, int XNow);
 
 
 };
 
 
-NearlinePlot::NearlinePlot(int Npoint, std::string this_hist_name, std::string hist_title, int num_bins, int min_x, int max_x, bool RMS)
+NearlinePlot::NearlinePlot(int Npoint, std::string this_hist_name, std::string this_output_name, std::string hist_title, int num_bins, int min_x, int max_x, bool RMS)
 {
   fNumPoints = Npoint;
   fHistName = this_hist_name;
+  fOutputName = this_output_name;
   fMetricVec = std::vector<float>(Npoint, 0);
   fTimeVec = std::vector<float>(Npoint, 0);
   fPlotCount = 0;
@@ -115,12 +119,49 @@ TCanvas* NearlinePlot::makeHistoCanvas(std::string can_name, std::string can_tit
   return can;
 }
 
-TCanvas* NearlinePlot::makeGraphTimeCanvas(std::string can_name, std::string can_title, int width, int height){
+TCanvas* NearlinePlot::makeGraphTimeCanvas(std::string can_name, std::string can_title, int width, int height, TPaveText* updateText, std::string taxis_labels, int time_ago, int XNow){
   TCanvas* can = new TCanvas(can_name.c_str(), can_title.c_str(), width, height);
   can->cd();
   gPad->SetGridx();
   fGraphTime = new TGraph(fPlotCount);
   for(int i=0;i<fPlotCount;i++) fGraphTime->SetPoint(i, fTimeVec.at(i), fMetricVec.at(i));
+  
+  fGraphTime->SetTitle(can_title.c_str());
+  fGraphTime->SetMarkerColor(kBlue);
+  fGraphTime->GetXaxis()->SetTimeDisplay(1);
+  fGraphTime->GetXaxis()->SetLabelSize(0.03);
+  fGraphTime->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  fGraphTime->GetXaxis()->SetLimits(time_ago,XNow);
+  fGraphTime->GetXaxis()->SetTitle("(central time)");
+  fGraphTime->Draw("A*");
+
+  updateText->Draw();
+
+  int maxtime = 0;
+  double max  = 0.0, ave = 0.0;
+  TPaveText *LastPoint = new TPaveText(0.3,0.88,0.93,0.93,"NDC");
+  LastPoint->SetLineColor(1);
+  LastPoint->SetFillColor(0);
+  LastPoint->SetBorderSize(1);
+  char lptext[128];
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < fPlotCount; ++i) {
+    ave += (double)fMetricVec.at(i);
+    if(fTimeVec.at(i) > maxtime) {
+      maxtime = fTimeVec.at(i);
+      max     = fMetricVec.at(i);
+    }
+  }
+  if(fPlotCount > 0) ave = ave/(double)fPlotCount;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+
+
+  LastPoint->Draw();
+
   return can;
   
 }
