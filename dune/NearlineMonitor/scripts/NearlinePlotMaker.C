@@ -562,6 +562,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
   if(debug)  sprintf(filename,"%s/RMSPedChan0020_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RMSPedChan0020_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan0020->Print(filename);
+  sprintf(title,"Pedestal RMS for Channel 20 - Zoom");
+  gRMSPedChan0020->SetTitle(title);
   graphZoom(gRMSPedChan0020, 2.0);
   gRMSPedChan0020->Draw("A*");
   UpdateText->Draw();
@@ -651,6 +653,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
   if(debug)  sprintf(filename,"%s/RMSPedChan0548_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RMSPedChan0548_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan0548->Print(filename);
+  sprintf(title,"Pedestal RMS for Channel 548 - Zoom");
+  gRMSPedChan0548->SetTitle(title);
   graphZoom(gRMSPedChan0548, 2.0);
   gRMSPedChan0548->Draw("A*");
   UpdateText->Draw();
@@ -740,6 +744,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
   if(debug)  sprintf(filename,"%s/RMSPedChan1297_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RMSPedChan1297_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1297->Print(filename);
+  sprintf(title,"Pedestal RMS for Channel 1297 - Zoom");
+  gRMSPedChan1297->SetTitle(title);
   graphZoom(gRMSPedChan1297, 2.0);
   gRMSPedChan1297->Draw("A*");
   UpdateText->Draw();
@@ -828,6 +834,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
   if(debug)  sprintf(filename,"%s/RMSPedChan1697_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RMSPedChan1697_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1697->Print(filename);
+  sprintf(title,"Pedestal RMS for Channel 1697 - Zoom");
+  gRMSPedChan1697->SetTitle(title);
   graphZoom(gRMSPedChan1697, 2.0);
   gRMSPedChan1697->Draw("A*");
   UpdateText->Draw();
@@ -916,6 +924,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
   if(debug)  sprintf(filename,"%s/RMSPedChan1838_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RMSPedChan1838_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1838->Print(filename);
+  sprintf(title,"Pedestal RMS for Channel 1838 - Zoom");
+  gRMSPedChan1838->SetTitle(title);
   graphZoom(gRMSPedChan1838, 2.0);
   gRMSPedChan1838->Draw("A*");
   UpdateText->Draw();
@@ -1004,6 +1014,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
   if(debug)  sprintf(filename,"%s/RMSPedChan1482_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RMSPedChan1482_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan1482->Print(filename);
+  sprintf(title,"Pedestal RMS for Channel 1482 - Zoom");
+  gRMSPedChan1482->SetTitle(title);
   graphZoom(gRMSPedChan1482, 2.0);
   gRMSPedChan1482->Draw("A*");
   UpdateText->Draw();
@@ -1092,6 +1104,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
   if(debug)  sprintf(filename,"%s/RMSPedChan0952_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RMSPedChan0952_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan0952->Print(filename);
+  sprintf(title,"Pedestal RMS for Channel 952 - Zoom");
+  gRMSPedChan0952->SetTitle(title);
   graphZoom(gRMSPedChan0952, 2.0);
   gRMSPedChan0952->Draw("A*");
   UpdateText->Draw();
@@ -1180,6 +1194,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
   if(debug)  sprintf(filename,"%s/RMSPedChan0454_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RMSPedChan0454_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRMSPedChan0454->Print(filename);
+  sprintf(title,"Pedestal RMS for Channel 454 - Zoom");
+  gRMSPedChan0454->SetTitle(title);
   graphZoom(gRMSPedChan0454, 2.0);
   gRMSPedChan0454->Draw("A*");
   UpdateText->Draw();
