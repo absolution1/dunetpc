@@ -12,12 +12,11 @@ check_timing:
   SSPFragType:        "PHOTON"
   SSPRawDataLabel:    "daq"
   SSPOutputDataLabel: "offlinePhoton"
-  SSPChannelMapFile:  "ssp_channel_map_dune35t.txt"
+  SSPReformatter:      @local::ssp_reformatter
 
   PTBFragType:        "TRIGGER"
   PTBRawDataLabel:    "daq"
   PTBOutputDataLabel: "offlineTrigger"
-  PTBChannelMapFile:  "ptb_channel_map_dune35t.txt"
 
   NOvAClockFrequency:  64.0 #MHz
   UseChannelMap: "true"
