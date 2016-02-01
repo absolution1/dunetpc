@@ -1,4 +1,5 @@
 #include "NearlinePlotMaker.h"
+#include "TMath.h"
 
 const std::string PLOT_DIR = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots";
 const std::string PLOT_DIR_DEBUG = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots_testing";
@@ -28,9 +29,20 @@ void graphZoom(TGraph* gr, double n_sigma){
   TCanvas* can_temp = new TCanvas("can_temp", "can_temp");
   gr->Draw("AL");
   
-  //Get the mean and RMS of the y-axis
-  double mean = gr->GetMean(2);
-  double rms = gr->GetRMS(2);
+  //Get the mean and RMS excluding points that are less than 1 on the y-axis
+  double mean = 0;
+  double rms = 0;
+  int num_entries = 0;
+  double* y_values = gr->GetY();
+  for(int i=0;i<gr->GetN();i++){
+    if(y_values[i] < 1) continue;
+    rms += TMath::Power(y_values[i],2);
+    mean += y_values[i];
+    num_entries++;
+  }
+  mean /= num_entries;
+  rms = TMath::Abs(rms / num_entries - mean*mean);
+  rms = TMath::Sqrt(rms);
 
   double y_low = mean - rms*n_sigma;
   double y_high = mean + rms*n_sigma;
@@ -314,17 +326,25 @@ Long64_t NearlinePlotMakerJPD(int Ndays, bool debug=false){
     
 
     char output_name[256];
+    bool zoom;
     TCanvas *canMetricTime = this_plot->makeGraphMetricTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow);
     sprintf(output_name, "%s.png", this_plot->fGraphOutputName.c_str());
     canMetricTime->Print(output_name);
     delete canMetricTime;
-    TCanvas *canMetricRmsTime = this_plot->makeGraphMetricRmsTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow);
-    
 
+    zoom=true;
+    canMetricTime = this_plot->makeGraphMetricTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow, zoom);
+    sprintf(output_name, "%s_zoom.png", this_plot->fGraphOutputName.c_str());
+    canMetricTime->Print(output_name);      
+    delete canMetricTime;
+
+    TCanvas *canMetricRmsTime = this_plot->makeGraphMetricRmsTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow);    
     sprintf(output_name, "%s.png", this_plot->fGraphRmsOutputName.c_str());
     canMetricRmsTime->Print(output_name);
     delete canMetricRmsTime;
-    canMetricRmsTime = this_plot->makeGraphMetricRmsTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow, true);
+
+    zoom=true;
+    canMetricRmsTime = this_plot->makeGraphMetricRmsTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow, zoom);
     sprintf(output_name, "%s_zoom.png", this_plot->fGraphRmsOutputName.c_str());
     canMetricRmsTime->Print(output_name);
     delete canMetricRmsTime;
