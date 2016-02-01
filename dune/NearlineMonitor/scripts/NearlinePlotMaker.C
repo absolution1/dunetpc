@@ -63,7 +63,15 @@ void graphZoom(TGraph* gr, double n_sigma){
 // Make the plots for the nearline webpage from the nearline output files.
 //
 
-Long64_t NearlinePlotMaker(int Ndays, bool debug=false){
+Long64_t NearlinePlotMaker(int Ndays, bool debug=false);
+
+Long64_t NearlinePlotMakerDev(int Ndays, bool debug=false){
+  
+  NearlinePlotMaker(Ndays, debug);
+
+}
+
+Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
   std::cout << "\n\nMaking 35t Nearline plots for " << Ndays << " days...\n\n";
   
