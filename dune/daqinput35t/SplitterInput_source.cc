@@ -627,10 +627,11 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
 	dune::DetPedestalDUNE pedestals("dune35t");
 	pedestals.SetDetName("dune35t");
 	pedestals.SetUseDefaults(fUsePedestalDefault);
-	pedestals.SetUseDB(true);
 	if ( fUsePedestalFile ) {
 	  std::cout << "Setting CSVFileName to " << fPedestalFile << std::endl;
 	  pedestals.SetCSVFileName(fPedestalFile);
+	} else {
+	  pedestals.SetUseDB(true);
 	}
 	pedestals.Update(ThisNumber);
 	for (size_t ichan=0;ichan<2048;ichan++) {
