@@ -1181,7 +1181,7 @@ void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vec
     }
     // Trigger on Muon Coincidences which aren't the 'Telescope'
     else if (fWhichTrigger == 5 ) {
-      std::vector<unsigned int> SpecialChan = {110, 111, 112, 113};
+      std::vector<unsigned int> SpecialChan = {111, 112, 113};
       fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
     }
     // Trigger on Muon Telescope
