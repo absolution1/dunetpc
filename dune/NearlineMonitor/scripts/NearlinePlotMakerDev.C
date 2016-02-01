@@ -1,4 +1,4 @@
-#include "NearlinePlotMaker.h"
+#include "NearlinePlotMakerDev.h"
 #include "TMath.h"
 
 const std::string PLOT_DIR = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots";
@@ -39,6 +39,12 @@ void graphZoom(TGraph* gr, double n_sigma){
     rms += TMath::Power(y_values[i],2);
     mean += y_values[i];
     num_entries++;
+  }
+
+  if( num_entries == 0){
+    old_pad->cd();
+    delete can_temp;
+    return;
   }
   mean /= num_entries;
   rms = TMath::Abs(rms / num_entries - mean*mean);
@@ -168,12 +174,52 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     sprintf(can_metric_name, "Mean Pedestal per Event for Channel %i", channel);
     sprintf(can_metric_rms_name, "Pedestal RMS for Channel %i", channel);
 
-    NearlinePlot* this_plot = new NearlinePlot(Npoint, hist_name, hist_output_name, graph_output_name, graph_rms_output_name, can_metric_name, can_metric_rms_name, hist_title, 128, 0, 4096);
 
+    NearlinePlot* this_plot = new NearlinePlot(hist_name, hist_output_name, graph_output_name, graph_rms_output_name, can_metric_name, can_metric_rms_name);
+    this_plot->setHistTitle(hist_title);
     NearlinePlotVec.push_back(this_plot);
     
   }
 
+  for(int index=0;index<16;index++){
+    int channel = index*128;
+
+    char hist_name[256];
+    char hist_title[256];
+    char hist_output_name[256];
+    char graph_output_name[256];
+    char graph_rms_output_name[256];
+    char can_metric_name[256];
+    char can_metric_rms_name[256];
+
+    if(debug) sprintf(hist_output_name,"%s/HitsChan%04i_%.3u_days.png", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
+    else sprintf(hist_output_name,"%s/HitsChan%04i_%.3u_days.png", PLOT_DIR.c_str(), channel, Ndays);
+
+    if(debug) sprintf(graph_output_name,"%s/HitsMeanTimeChan%04i_%.3u_days", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
+    else sprintf(graph_output_name,"%s/HitsMeanTimeChan%04i_%.3u_days", PLOT_DIR.c_str(), channel, Ndays);
+
+    if(debug) sprintf(graph_rms_output_name,"%s/HitsRmsTimeChan%04i_%.3u_days", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
+    else sprintf(graph_rms_output_name,"%s/HitsRmsTimeChan%04i_%.3u_days", PLOT_DIR.c_str(), channel, Ndays);
+
+    sprintf(hist_name, "hhits_per_event_chan_%i", channel);
+    sprintf(hist_title, "Number of Hits per Event - Channel %i", channel);
+    sprintf(can_metric_name, "Number of Hits - Mean - per Event - Channel %i", channel);
+    sprintf(can_metric_rms_name, "Number of Hits - RMS - per Event - Channel %i", channel);
+
+
+    NearlinePlot *this_plot = new NearlinePlot(hist_name, hist_output_name, graph_output_name, graph_rms_output_name, can_metric_name, can_metric_rms_name);
+    this_plot->setHistTitle(hist_title);
+
+    NearlinePlotInfo plot_info("Hits", channel, Ndays, "png");
+    this_plot->setPlotInfo(plot_info);
+
+    NearlinePlotVec.push_back(this_plot);
+
+  }
+
+  for(size_t index=0;index<NearlinePlotVec.size();index++){
+    std::cerr << "NearlinePlot: " << (NearlinePlotVec.at(index))->fHistName << std::endl;
+  }
 
 
 
@@ -266,14 +312,12 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
       this_plot->AddHistogram(file, header, Xsrtime, XNow, GMToffset);
 
     }//loop over plots
-
     
     
 
     file.Close();
 
   } // end while loop over input files
-
 
 
   //
@@ -321,7 +365,6 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
 
 
-
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     NearlinePlot* this_plot = NearlinePlotVec.at(index);
     //  TCanvas* makeHistoCanvas(std::string can_name, std::string can_title, int width, int height, TPaveText* updateText);
@@ -330,7 +373,6 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     canHist->Print(this_plot->fHistOutputName.c_str());
     delete canHist;
     //  TCanvas* makeGraphMetricTimeCanvas(std::string can_name, std::string can_title, int width, int height, TPaveText* updateText, std::string taxis_labels, int time_ago, int XNow);
-    
 
     char output_name[256];
     bool zoom;
