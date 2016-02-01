@@ -63,7 +63,7 @@ void graphZoom(TGraph* gr, double n_sigma){
 // Make the plots for the nearline webpage from the nearline output files.
 //
 
-Long64_t NearlinePlotMakerJPD(int Ndays, bool debug=false){
+Long64_t NearlinePlotMakerDev(int Ndays, bool debug=false){
 
   std::cout << "\n\nMaking 35t Nearline plots for " << Ndays << " days...\n\n";
   
@@ -135,7 +135,7 @@ Long64_t NearlinePlotMakerJPD(int Ndays, bool debug=false){
   channelVec.push_back(1482);
   channelVec.push_back(952);
   channelVec.push_back(454);
-  std::cerr << "JPD: 1" << std::endl;
+
   for(size_t index=0;index<channelVec.size();index++){
     char hist_name[256];
     char hist_title[256];
@@ -165,7 +165,6 @@ Long64_t NearlinePlotMakerJPD(int Ndays, bool debug=false){
     NearlinePlotVec.push_back(this_plot);
     
   }
-  std::cerr << "JPD: 10" << std::endl;
 
 
 
