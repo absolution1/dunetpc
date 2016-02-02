@@ -74,6 +74,13 @@ namespace {
       if (waveforms.size() == 0) return true;
       return false;
     }
+
+    // Clear waveforms vector.
+    void clear(int fDebugLevel) {
+      if (fDebugLevel > 3) std::cout << "Clearing LoadedWaveforms." << std::endl;
+      waveforms.clear();
+      empty();
+    }
     
     void findinrange(std::vector<OpDetWaveform> &wbo, 
                      lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
@@ -158,6 +165,7 @@ namespace {
     
     // Clear digits vector.
     void clear(int fDebugLevel) {
+      if (fDebugLevel > 3) std::cout << "Clearing LoadedDigits." << std::endl;
       digits.clear();
       empty(fDebugLevel);
     }
@@ -905,12 +913,15 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
     bool PTBTrigPresent = false;
     if (fRequirePTB) {
       PTBTrigPresent = LoadPTBInformation( LoadTree );
-      if (fDebugLevel) std::cout << "Is there a PTB trigger present? " << PTBTrigPresent << std::endl;
+      if (fDebugLevel > 1) std::cout << "Is there a PTB trigger present? " << PTBTrigPresent << std::endl;
     }
     if ( ( fWhichTrigger >= 2 && fWhichTrigger <= 9 && PTBTrigPresent ) // If looking for  triggers only load if RCE/SSP if a trigger is present.
 	 || fWhichTrigger < 2 || fWhichTrigger > 9 || fTrigger ) { // If not looking for PTB triggers or already triggered load regardless.
       LoadSSPInformation( LoadTree );
       LoadRCEInformation( LoadTree );
+    } else {
+      loadedDigits_.clear(fDebugLevel);
+      loadedWaveforms_.clear(fDebugLevel);
     }
     InputTree++;
     return true;
@@ -929,7 +940,13 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
     for (size_t CountLoop = 0; CountLoop < counters.size(); ++CountLoop) {
       if (fDebugLevel > 3 )
 	std::cout << "Looking at counters[" << CountLoop << "] has CounterID " << counters[CountLoop].GetTrigID() << " and Timestamp " << counters[CountLoop].GetTrigTime() << std::endl;
-      if ( counters[CountLoop].GetTrigID() == 110 || counters[CountLoop].GetTrigID() == 111 || counters[CountLoop].GetTrigID() == 111 || counters[CountLoop].GetTrigID() == 111 || counters[CountLoop].GetTrigID() == 111 ) {
+      if ( counters[CountLoop].GetTrigID() == 110
+	   || counters[CountLoop].GetTrigID() == 111
+	   || counters[CountLoop].GetTrigID() == 112
+	   || counters[CountLoop].GetTrigID() == 113
+	   || counters[CountLoop].GetTrigID() == 114
+	   || counters[CountLoop].GetTrigID() == 115  ) {
+	std::cout << "Looking at event " << inputEventNumber_ << ", there is a trigger here on channel " << counters[CountLoop].GetTrigID() << std::endl;
 	TrigPresent = true;
       }
     }
@@ -943,7 +960,7 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
     for (auto count: *counters) {
       if (fDebugLevel > 3 )
 	std::cout << "Looking at a counter which has CounterID " << count.GetTrigID() << " and Timestamp " << count.GetTrigTime() << std::endl;
-      if ( count.GetTrigID() == 110 || count.GetTrigID() == 111 || count.GetTrigID() == 111 || count.GetTrigID() == 111 || count.GetTrigID() == 111 ) {
+      if ( count.GetTrigID() == 110 || count.GetTrigID() == 111 || count.GetTrigID() == 112 || count.GetTrigID() == 113 || count.GetTrigID() == 114 || count.GetTrigID() == 115) {
 	TrigPresent = true;
       }
     }
