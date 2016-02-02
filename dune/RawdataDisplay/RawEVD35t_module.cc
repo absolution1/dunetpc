@@ -360,7 +360,7 @@ outfile<<fChansPerAPA<<"  "<<fGeom->Ncryostats()<<"  "<<fNofAPA<<std::endl;
 	      for (int i=0; i<nSamples; i++) ladc[i]=uncompressed[i]-pedestal;
 	// for (int i=0; i<nSamples; i++) {ladc[i]=uncompressed[i]-pedestal;
 	//   if (i<10) std::cout << uncompressed[i] << " " << ladc[i] << std::endl;
-	}
+	      //	}
       if( fGeom->View(chan) == geo::kU ){
 	for(unsigned int l=0;l<ladc.size();l++) {
 	  if(ladc.at(l)!=0){
