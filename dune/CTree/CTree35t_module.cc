@@ -38,7 +38,6 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/FindManyP.h"
 #include "art/Persistency/Common/PtrVector.h"
-
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 
@@ -736,7 +735,8 @@ void CTree35t::processRaw( const art::Event& event )
     // get the objects holding all of the raw data information
     art::Handle< std::vector<raw::RawDigit> > rawdigit;
     event.getByLabel(fRawDigitLabel, rawdigit);
-
+   std::cout << "raw digit label check: " << fRawDigitLabel << std::endl;
+ 
     // put it in a more easily usable form
     std::vector< art::Ptr<raw::RawDigit> >  rawhits;
     art::fill_ptr_vector(rawhits, rawdigit);
@@ -751,6 +751,7 @@ void CTree35t::processRaw( const art::Event& event )
         int nSamples = hit->Samples();
         std::vector<short> uncompressed(nSamples);
 	int pedestal = (int)hit->GetPedestal();
+	std::cout << " channel " << chanId << " pedestal " << pedestal << std::endl;
 	// uncompress the data
         if (fUncompressWithPed){
           raw::Uncompress(hit->ADCs(), uncompressed, pedestal, hit->Compression());

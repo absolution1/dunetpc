@@ -19,7 +19,6 @@
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
 #include "SimpleTypesAndConstants/geo_types.h"
-#include "RawData/raw.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -86,6 +85,7 @@ namespace AnalysisExample{
 
     // number of time bins for histogram ranges
     unsigned int fNticks;
+    bool fUncompressWithPed;
 
     // find channel boundaries for each view
     unsigned int fUChanMin;
@@ -106,7 +106,6 @@ namespace AnalysisExample{
 
     unsigned int fMinT, fMaxT, fMaxTimeRange;
 
-    bool fUncompressWithPed;
 
     art::ServiceHandle<geo::Geometry> fGeom;
     art::ServiceHandle<util::DetectorProperties> fDetProp;
@@ -144,7 +143,8 @@ namespace AnalysisExample{
 
   void RawEVD35t::reconfigure(fhicl::ParameterSet const& p){
     fRawDigitLabel  =  p.get< std::string >("RawDigitLabel");
-    fNticks         = fDetProp->NumberTimeSamples();
+    //    fNticks         = fDetProp->NumberTimeSamples();
+    fNticks  =  (unsigned int) p.get< int >("TicksToDraw");
     fUncompressWithPed  = p.get< bool         >("UncompressWithPed", true);
     return;
   }
@@ -160,7 +160,7 @@ namespace AnalysisExample{
   void RawEVD35t::beginJob(){
     // Access ART's TFileService, which will handle creating and writing
     // histograms and n-tuples for us. 
-    art::ServiceHandle<art::TFileService> tfs;
+       art::ServiceHandle<art::TFileService> tfs;
 
 	//Histogram names and titles
 	std::stringstream  name, title;
@@ -319,11 +319,12 @@ outfile<<fChansPerAPA<<"  "<<fGeom->Ncryostats()<<"  "<<fNofAPA<<std::endl;
 
   void RawEVD35t::analyze( const art::Event& event ){
 
-	unsigned int tpcid, cryoid;
-	std::stringstream  thumbnameZ0, thumbnameZ1;
-
+    unsigned int tpcid, cryoid;
+    std::stringstream  thumbnameZ0, thumbnameZ1;
+    
     // get the objects holding all of the raw data information
     art::Handle< std::vector<raw::RawDigit> > Raw;
+    std::cout << "raw digit label check: " << fRawDigitLabel << std::endl;
     event.getByLabel(fRawDigitLabel, Raw);
 
     // put it in a more easily usable form
@@ -332,70 +333,71 @@ outfile<<fChansPerAPA<<"  "<<fGeom->Ncryostats()<<"  "<<fNofAPA<<std::endl;
 
     //loop through all RawDigits (over entire channels)
     for(size_t d = 0; d < Digits.size(); d++){
-    art::Ptr<raw::RawDigit> digit;
-	 digit=Digits.at(d);
-
-    // get the channel number for this digit
-    uint32_t chan = digit->Channel();
-    unsigned int apa = std::floor( chan/fChansPerAPA );
-	 tpcid=fGeom->ChannelToWire(chan)[0].TPC;
-	 cryoid=fGeom->ChannelToWire(chan)[0].Cryostat;
-
-	 int nSamples = digit->Samples();
-	 std::vector<short> uncompressed(nSamples);
-    //    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
-	int pedestal = (int)digit->GetPedestal();
+      art::Ptr<raw::RawDigit> digit;
+      digit=Digits.at(d);
+      
+      // get the channel number for this digit
+      uint32_t chan = digit->Channel();
+      unsigned int apa = std::floor( chan/fChansPerAPA );
+      tpcid=fGeom->ChannelToWire(chan)[0].TPC;
+      cryoid=fGeom->ChannelToWire(chan)[0].Cryostat;
+      
+      int nSamples = digit->Samples();
+      std::vector<short> uncompressed(nSamples);
+      //    raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
+      int pedestal = (int)digit->GetPedestal();
+      //      std::cout << "channel " << chan << " pedestal " << pedestal << std::endl;
       // uncompress the data
-        if (fUncompressWithPed){
-          raw::Uncompress(digit->ADCs(), uncompressed, pedestal, digit->Compression());
-        }
-        else{
-          raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
-        }
-
-	// subtract pedestals
+      if (fUncompressWithPed){
+	raw::Uncompress(digit->ADCs(), uncompressed, pedestal, digit->Compression());
+      }
+      else{
+	raw::Uncompress(digit->ADCs(), uncompressed, digit->Compression());
+      }
+      
+      // subtract pedestals
 	std::vector<short> ladc(nSamples);
-        for (int i=0; i<nSamples; i++) {
-	  ladc.push_back(uncompressed[i]-pedestal);
-	  if (i<10) std::cout << uncompressed[i] << " " << ladc[i] << std::endl;
+	      for (int i=0; i<nSamples; i++) ladc[i]=uncompressed[i]-pedestal;
+	// for (int i=0; i<nSamples; i++) {ladc[i]=uncompressed[i]-pedestal;
+	//   if (i<10) std::cout << uncompressed[i] << " " << ladc[i] << std::endl;
 	}
-	if( fGeom->View(chan) == geo::kU ){
-		for(unsigned int l=0;l<ladc.size();l++) {
-			if(ladc.at(l)!=0){
-				fTimeChanU[apa]->Fill(chan,l, ladc.at(l));
-				if(ladc.at(l)>0) fTimeChanThumbU[apa]->Fill(chan,l, ladc.at(l));
-				fChargeSumU->Fill(1+getAPAindex(apa)%2, 2-(getAPAindex(apa)/2),std::abs(ladc.at(l))/2);
-				}
-			}
-		}
-	if( fGeom->View(chan) == geo::kV ){
-		for(unsigned int l=0;l<ladc.size();l++) {
-			if(ladc.at(l)!=0){
-				fTimeChanV[apa]->Fill(chan,l, ladc.at(l));
-				if(ladc.at(l)>0) fTimeChanThumbV[apa]->Fill(chan,l, ladc.at(l));
-				fChargeSumV->Fill(1+getAPAindex(apa)%2, 2-(getAPAindex(apa)/2),std::abs(ladc.at(l))/2);
-				}
-			}
-		}
-	if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 0 ){
-		for(unsigned int l=0;l<ladc.size();l++) {
-			if(ladc.at(l)!=0){
-				fTimeChanZ0[apa]->Fill(chan,l, ladc.at(l));
-				if(ladc.at(l)>0) fTimeChanThumbZ0[apa]->Fill(chan,l, ladc.at(l));
-				fChargeSumZ->Fill(1+getTPCindex(cryoid*4+tpcid)%4, 4-(getTPCindex(cryoid*4+tpcid)/4),ladc.at(l));
-				}
-			}
-		}
-	if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 1 ){
-		for(unsigned int l=0;l<ladc.size();l++) {
-			if(ladc.at(l)!=0){
-				fTimeChanZ1[apa]->Fill(chan,l, ladc.at(l));
-				if(ladc.at(l)>0) fTimeChanThumbZ1[apa]->Fill(chan,l, ladc.at(l));
-				fChargeSumZ->Fill(1+getTPCindex(cryoid*4+tpcid)%4, 4-(getTPCindex(cryoid*4+tpcid)/4),ladc.at(l));
-				}
-			}
-		}
-
+      if( fGeom->View(chan) == geo::kU ){
+	for(unsigned int l=0;l<ladc.size();l++) {
+	  if(ladc.at(l)!=0){
+	    fTimeChanU[apa]->Fill(chan,l, ladc.at(l));
+	    if(ladc.at(l)>0) fTimeChanThumbU[apa]->Fill(chan,l, ladc.at(l));
+	    fChargeSumU->Fill(1+getAPAindex(apa)%2, 2-(getAPAindex(apa)/2),std::abs(ladc.at(l))/2);
+	  }
+	}
+      }
+      if( fGeom->View(chan) == geo::kV ){
+	for(unsigned int l=0;l<ladc.size();l++) {
+	     if(ladc.at(l)!=0){
+	       fTimeChanV[apa]->Fill(chan,l, ladc.at(l));
+	       if(ladc.at(l)>0) fTimeChanThumbV[apa]->Fill(chan,l, ladc.at(l));
+	       fChargeSumV->Fill(1+getAPAindex(apa)%2, 2-(getAPAindex(apa)/2),std::abs(ladc.at(l))/2);
+	     }
+	   }
+      }
+      if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 0 ){
+	for(unsigned int l=0;l<ladc.size();l++) {
+	  if(ladc.at(l)!=0){
+	    fTimeChanZ0[apa]->Fill(chan,l, ladc.at(l));
+	       if(ladc.at(l)>0) fTimeChanThumbZ0[apa]->Fill(chan,l, ladc.at(l));
+	       fChargeSumZ->Fill(1+getTPCindex(cryoid*4+tpcid)%4, 4-(getTPCindex(cryoid*4+tpcid)/4),ladc.at(l));
+	  }
+	}
+      }
+      if ( fGeom->View(chan) == geo::kZ && fGeom->ChannelToWire(chan)[0].TPC % 2 == 1 ){
+	for(unsigned int l=0;l<ladc.size();l++) {
+	  if(ladc.at(l)!=0){
+	    fTimeChanZ1[apa]->Fill(chan,l, ladc.at(l));
+	    if(ladc.at(l)>0) fTimeChanThumbZ1[apa]->Fill(chan,l, ladc.at(l));
+	    fChargeSumZ->Fill(1+getTPCindex(cryoid*4+tpcid)%4, 4-(getTPCindex(cryoid*4+tpcid)/4),ladc.at(l));
+	  }
+	}
+      }
+      
     } // end RawDigit loop
 
     return;
