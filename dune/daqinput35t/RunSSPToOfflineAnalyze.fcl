@@ -8,8 +8,8 @@ services : {
   user:         @local::dune35t_services
   Timing:       {}
   RandomNumberGenerator: {} 
-  message:      @local::standard_debug
-  TFileService: { fileName: "waveforms.root" } 
+  message:      @local::standard_info
+  TFileService: { fileName: "waveforms_r%r_sr%s.root" } 
 }
 
 physics:
@@ -45,7 +45,7 @@ outputs:
   out1:
   {
     module_type: RootOutput
-    fileName: "SSPEventToOffline.root"
+    fileName: "SSPEventToOffline_r%r_sr%s.root"
   }
 
 }
