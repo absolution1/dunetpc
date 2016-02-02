@@ -139,100 +139,98 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
 
   std::vector<NearlinePlot*> NearlinePlotVec;
-  std::vector<int> channelVec;
+  // std::vector<int> channelVec;
   
-  channelVec.push_back(20);
-  channelVec.push_back(548);
-  channelVec.push_back(1297);
-  channelVec.push_back(1697);
-  channelVec.push_back(1838);
-  channelVec.push_back(1482);
-  channelVec.push_back(952);
-  channelVec.push_back(454);
+  // channelVec.push_back(20);
+  // channelVec.push_back(548);
+  // channelVec.push_back(1297);
+  // channelVec.push_back(1697);
+  // channelVec.push_back(1838);
+  // channelVec.push_back(1482);
+  // channelVec.push_back(952);
+  // channelVec.push_back(454);
+  
+  {
+    int channel;
+    NearlinePlotInfo this_plot_info;
+    char hist_name [256];
+    NearlinePlot* this_plot;
+    std::string metric_details;
 
-  for(size_t index=0;index<channelVec.size();index++){
-    char hist_name[256];
-    char hist_title[256];
-    char hist_output_name[256];
-    char graph_output_name[256];
-    char graph_rms_output_name[256];
-    int channel = channelVec.at(index);
-    char can_metric_name[256];
-    char can_metric_rms_name[256];
-
-    if(debug) sprintf(hist_output_name,"%s/ADCSpecChan%04i_%.3u_days.png", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
-    else sprintf(hist_output_name,"%s/ADCSpecChan%04i_%.3u_days.png", PLOT_DIR.c_str(), channel, Ndays);
-
-    if(debug) sprintf(graph_output_name,"%s/MeanPedChan%04i_%.3u_days", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
-    else sprintf(graph_output_name,"%s/MeanPedChan%04i_%.3u_days", PLOT_DIR.c_str(), channel, Ndays);
-
-    if(debug) sprintf(graph_rms_output_name,"%s/RMSPedChan%04i_%.3u_days", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
-    else sprintf(graph_rms_output_name,"%s/RMSPedChan%04i_%.3u_days", PLOT_DIR.c_str(), channel, Ndays);
-    
+    channel=20;
+    metric_details = "(APA-3-U-plane)";
+    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
-    sprintf(hist_title, "ADC per Tick - Channel %i", channel);
-    sprintf(can_metric_name, "Mean Pedestal per Event for Channel %i", channel);
-    sprintf(can_metric_rms_name, "Pedestal RMS for Channel %i", channel);
-
-
-    NearlinePlot* this_plot = new NearlinePlot(hist_name, hist_output_name, graph_output_name, graph_rms_output_name, can_metric_name, can_metric_rms_name);
-    this_plot->setHistTitle(hist_title);
+    this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
-    
+
+    channel=548;
+    metric_details = "(APA-2-Z-plane)";
+    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    sprintf(hist_name, "hped_per_tick_chan_%i", channel);
+    this_plot = new NearlinePlot(hist_name, this_plot_info);
+    NearlinePlotVec.push_back(this_plot);
+
+    channel=1297;
+    metric_details = "(APA-1-V-plane)";
+    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    sprintf(hist_name, "hped_per_tick_chan_%i", channel);
+    this_plot = new NearlinePlot(hist_name, this_plot_info);
+    NearlinePlotVec.push_back(this_plot);
+
+    channel=1697;
+    metric_details = "(APA-0-Z-plane)";
+    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    sprintf(hist_name, "hped_per_tick_chan_%i", channel);
+    this_plot = new NearlinePlot(hist_name, this_plot_info);
+    NearlinePlotVec.push_back(this_plot);
+
+    channel=1838;
+    metric_details = "(APA-3-Z-plane)";
+    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    sprintf(hist_name, "hped_per_tick_chan_%i", channel);
+    this_plot = new NearlinePlot(hist_name, this_plot_info);
+    NearlinePlotVec.push_back(this_plot);
+
+    channel=1482;
+    metric_details = "(APA-2-U-plane)";
+    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    sprintf(hist_name, "hped_per_tick_chan_%i", channel);
+    this_plot = new NearlinePlot(hist_name, this_plot_info);
+    NearlinePlotVec.push_back(this_plot);
+
+    channel=952;
+    metric_details = "(APA-1-Z-plane)";
+    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    sprintf(hist_name, "hped_per_tick_chan_%i", channel);
+    this_plot = new NearlinePlot(hist_name, this_plot_info);
+    NearlinePlotVec.push_back(this_plot);
+
+    channel=454;
+    metric_details = "(APA-0-U-plane)";
+    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    sprintf(hist_name, "hped_per_tick_chan_%i", channel);
+    this_plot = new NearlinePlot(hist_name, this_plot_info);
+    NearlinePlotVec.push_back(this_plot);
   }
 
   for(int index=0;index<16;index++){
     int channel = index*128;
-
+    NearlinePlotInfo this_plot_info("Hits", channel, Ndays, "png");
     char hist_name[256];
-    char hist_title[256];
-    char hist_output_name[256];
-    char graph_output_name[256];
-    char graph_rms_output_name[256];
-    char can_metric_name[256];
-    char can_metric_rms_name[256];
-
-    if(debug) sprintf(hist_output_name,"%s/HitsChan%04i_%.3u_days.png", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
-    else sprintf(hist_output_name,"%s/HitsChan%04i_%.3u_days.png", PLOT_DIR.c_str(), channel, Ndays);
-
-    if(debug) sprintf(graph_output_name,"%s/HitsMeanTimeChan%04i_%.3u_days", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
-    else sprintf(graph_output_name,"%s/HitsMeanTimeChan%04i_%.3u_days", PLOT_DIR.c_str(), channel, Ndays);
-
-    if(debug) sprintf(graph_rms_output_name,"%s/HitsRmsTimeChan%04i_%.3u_days", PLOT_DIR_DEBUG.c_str(), channel, Ndays);
-    else sprintf(graph_rms_output_name,"%s/HitsRmsTimeChan%04i_%.3u_days", PLOT_DIR.c_str(), channel, Ndays);
-
     sprintf(hist_name, "hhits_per_event_chan_%i", channel);
-    sprintf(hist_title, "Number of Hits per Event - Channel %i", channel);
-    sprintf(can_metric_name, "Number of Hits - Mean - per Event - Channel %i", channel);
-    sprintf(can_metric_rms_name, "Number of Hits - RMS - per Event - Channel %i", channel);
-
-
-    NearlinePlot *this_plot = new NearlinePlot(hist_name, hist_output_name, graph_output_name, graph_rms_output_name, can_metric_name, can_metric_rms_name);
-    this_plot->setHistTitle(hist_title);
-
-    NearlinePlotInfo plot_info("Hits", channel, Ndays, "png");
-    this_plot->setPlotInfo(plot_info);
-
+    NearlinePlot *this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
-
   }
 
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     std::cerr << "NearlinePlot: " << (NearlinePlotVec.at(index))->fHistName << std::endl;
   }
 
-
-
   // These variables are meant to be an expression of general DAQ health
   float *RunVSYearYear  = new float[Npoint];
   float *RunVSYearRun   = new float[Npoint];
   int    RunVSYearCount = 0;
-
-
-
-  // initalize histos
-
-
 
   //
   // Looping over the list of input files...
@@ -360,45 +358,69 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   UpdateText->AddText(buff2);
 
     
-
-
-
-
+  std::string html_string = NearlineHTML::MakePageHeader(Ndays);;
 
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     NearlinePlot* this_plot = NearlinePlotVec.at(index);
-    //  TCanvas* makeHistoCanvas(std::string can_name, std::string can_title, int width, int height, TPaveText* updateText);
 
-    TCanvas *canHist = this_plot->makeHistoCanvas("can_histo", "can_histo", 1200, 800, UpdateText);
-    canHist->Print(this_plot->fHistOutputName.c_str());
-    delete canHist;
-    //  TCanvas* makeGraphMetricTimeCanvas(std::string can_name, std::string can_title, int width, int height, TPaveText* updateText, std::string taxis_labels, int time_ago, int XNow);
+    TCanvas *can_histogram = this_plot->makeHistoCanvas(UpdateText);
+    std::string can_histogram_name = this_plot->fPlotInfo.GetHistOutputName();
+    if(debug) can_histogram_name = PLOT_DIR_DEBUG + "/" + can_histogram_name;
+    else can_histogram_name = PLOT_DIR + "/" + can_histogram_name;
+    //    std::cerr << "INFO: can_histogram_name - " << can_histogram_name << std::endl;
+    can_histogram->Print(can_histogram_name.c_str());
 
-    char output_name[256];
-    bool zoom;
-    TCanvas *canMetricTime = this_plot->makeGraphMetricTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow);
-    sprintf(output_name, "%s.png", this_plot->fGraphOutputName.c_str());
-    canMetricTime->Print(output_name);
-    delete canMetricTime;
+    bool zoom=false;
+    bool rms=false;
 
-    zoom=true;
-    canMetricTime = this_plot->makeGraphMetricTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow, zoom);
-    sprintf(output_name, "%s_zoom.png", this_plot->fGraphOutputName.c_str());
-    canMetricTime->Print(output_name);      
-    delete canMetricTime;
-
-    TCanvas *canMetricRmsTime = this_plot->makeGraphMetricRmsTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow);    
-    sprintf(output_name, "%s.png", this_plot->fGraphRmsOutputName.c_str());
-    canMetricRmsTime->Print(output_name);
-    delete canMetricRmsTime;
+    TCanvas *can_metric_time = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow);
+    std::string can_metric_time_name = this_plot->fPlotInfo.GetMetricMeanTimeGraphName();
+    if(debug) can_metric_time_name = PLOT_DIR_DEBUG + "/" + can_metric_time_name;
+    else can_metric_time_name = PLOT_DIR + "/" + can_metric_time_name;
+    //    std::cerr << "INFO: can_metric_time_name - " << can_metric_time_name << std::endl;
+    can_metric_time->Print(can_metric_time_name.c_str());
 
     zoom=true;
-    canMetricRmsTime = this_plot->makeGraphMetricRmsTimeCanvas(1200, 800, UpdateText, taxis_labels, time_ago, XNow, zoom);
-    sprintf(output_name, "%s_zoom.png", this_plot->fGraphRmsOutputName.c_str());
-    canMetricRmsTime->Print(output_name);
-    delete canMetricRmsTime;
+    rms=false;
 
-  }//loop over plots
+    TCanvas *can_metric_time_zoom = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms, zoom);
+    std::string can_metric_time_name_zoom = this_plot->fPlotInfo.GetMetricMeanTimeGraphName(zoom);
+    if(debug) can_metric_time_name_zoom = PLOT_DIR_DEBUG + "/" + can_metric_time_name_zoom;
+    else can_metric_time_name_zoom = PLOT_DIR + "/" + can_metric_time_name_zoom;
+    //    std::cerr << "INFO: can_metric_time_name_zoom - " << can_metric_time_name_zoom << std::endl;
+    can_metric_time_zoom->Print(can_metric_time_name_zoom.c_str());
+
+    zoom=false;
+    rms=true;
+
+    TCanvas *can_rms_time = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms);
+    std::string can_rms_time_name = this_plot->fPlotInfo.GetMetricRmsTimeGraphName();
+    if(debug) can_rms_time_name = PLOT_DIR_DEBUG + "/" + can_rms_time_name;
+    else can_rms_time_name = PLOT_DIR + "/" + can_rms_time_name;
+    //    std::cerr << "INFO: can_rms_time_name - " << can_rms_time_name << std::endl;
+    can_rms_time->Print(can_rms_time_name.c_str());
+
+    zoom=true;
+    rms=true;
+
+    TCanvas *can_rms_time_zoom = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms, zoom);
+    std::string can_rms_time_name_zoom = this_plot->fPlotInfo.GetMetricRmsTimeGraphName(zoom);
+    if(debug) can_rms_time_name_zoom = PLOT_DIR_DEBUG + "/" + can_rms_time_name_zoom;
+    else can_rms_time_name_zoom = PLOT_DIR + "/" + can_rms_time_name_zoom;
+    //    std::cerr << "INFO: can_rms_time_name_zoom - " << can_rms_time_name_zoom << std::endl;
+    can_rms_time_zoom->Print(can_rms_time_name_zoom.c_str());
+
+    //Make HTML
+    std::string plot_location;
+    if(debug) plot_location = "plots_testing/";
+    else plot_location = "plots/";
+
+    //    std::cerr << NearlineHTML::MakePlotSet(plot_location, this_plot->fPlotInfo);
+
+    html_string += NearlineHTML::MakePlotSet(plot_location, this_plot->fPlotInfo);
+
+  }
+
 
 
 
@@ -449,6 +471,49 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   if(debug)  sprintf(filename,"%s/RunVSYear_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
   else  sprintf(filename,"%s/RunVSYear_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRunVSYear->Print(filename);
+
+
+  //Add this plot to the HTML page
+  if(debug) sprintf(filename,"%s/RunVSYear_%.3u_days.png","plots_testing/",Ndays);
+  else sprintf(filename,"%s/RunVSYear_%.3u_days.png","plots/",Ndays);
+  html_string += NearlineHTML::MakeStartYearPlot(filename);
+  
+  //Now create the html pages
+  std::string html_file_name;
+  html_file_name = PLOT_DIR + "/../";
+  if(Ndays <= 2){
+    if(debug) html_file_name += "indexDay_test.html";
+    else html_file_name += "indexDay.html";
+
+  }
+  else if(Ndays==7){
+    if(debug) html_file_name += "indexWeek_test.html";
+    else html_file_name += "indexWeek.html";
+
+  }
+  else if(Ndays==31){
+    if(debug) html_file_name += "indexMonth_test.html";
+    else html_file_name += "indexMonth.html";
+
+
+  }
+  else{
+    if(debug) html_file_name += "indexUnknown_test.html";
+    else html_file_name += "indexUnknown.html";
+  }
+
+  std::cerr << "INFO: Creating HTML file \"" << html_file_name << "\"\n";
+
+  std::ofstream html_file;;
+  html_file.open (html_file_name);
+
+  html_file << html_string;
+  
+  html_file.close();
+
+  std::cerr << "INFO: Done Creating HTML file \"" << html_file_name << "\"\n";
+
+
 
 
 
