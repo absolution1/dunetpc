@@ -39,6 +39,7 @@ physics:
       module_type:     "RawEVD"
       RawDigitLabel:   "daq"
       UncompressWithPed: "true"
+      TicksToDraw: 5200
     }
   }
   analysis: [ rawdraw ] //Directory for histograms

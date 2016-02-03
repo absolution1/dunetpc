@@ -13,6 +13,7 @@
 #include <vector>
 #include <utility> // std::move()
 #include <memory> // std::unique_ptr<>
+#include <iostream>
 
 // ROOT libraries
 #include "TComplex.h"
@@ -41,6 +42,8 @@
 #include "Utilities/AssociationUtil.h"
 #include "dune/Utilities/SignalShapingServiceDUNE35t.h"
 
+using std::cout;
+using std::endl;
 
 ///creation of calibrated signals on wires
 namespace caldata {
@@ -357,6 +360,12 @@ namespace caldata {
       }
       if (ncount==0) ncount=1;
       ave = ave/ncount;
+      //cout << "CalWireDUNE35t::SubtractBaseline: size, ped, ncount, ave = "
+      //     << holder.size()
+      //     << ", " << ped
+      //     << ", " << ncount
+      //     << ", " << ave
+      //     << endl;
       for (unsigned int bin = 0; bin < holder.size(); bin++){
 	holder[bin] -= ave;
       }

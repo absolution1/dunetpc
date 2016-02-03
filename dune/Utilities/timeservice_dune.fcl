@@ -16,6 +16,19 @@ dunefd_timeservice.DefaultTrigTime:      0. # Default trigger time [us].
 dunefd_timeservice.DefaultBeamTime:      0. # Default beam time [us].
 
 
+dunefddphase_timeservice: @local::standard_timeservice
+# dunefddphase_timeservice.TrigModuleName:      ""
+dunefddphase_timeservice.InheritClockConfig:   false
+dunefddphase_timeservice.G4RefTime:            0.  # G4 time [us] where electronics clock counting start
+dunefddphase_timeservice.TriggerOffsetTPC:     0.  # Time [us] for TPC readout start w.r.t. trigger time
+dunefddphase_timeservice.FramePeriod:       8000.  # Frame period [us]
+dunefddphase_timeservice.ClockSpeedTPC:        2.5 # TPC clock speed in MHz
+dunefddphase_timeservice.ClockSpeedOptical:   65.  # Optical clock speed in MHz
+dunefddphase_timeservice.ClockSpeedTrigger:   16.  # Trigger clock speed in MHz
+dunefddphase_timeservice.DefaultTrigTime:      0.  # Default trigger time [us].
+dunefddphase_timeservice.DefaultBeamTime:      0.  # Default beam time [us].
+
+
 dune35t_timeservice: @local::standard_timeservice
 
 # dune35t_timeservice.TrigModuleName:      ""

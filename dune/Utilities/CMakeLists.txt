@@ -27,7 +27,12 @@ simple_plugin( SignalShapingServiceDUNE10kt  "service"
                ${dune_util_lib_list}
 	       BASENAME_ONLY
         )
-             
+
+simple_plugin( SignalShapingServiceDUNEDPhase  "service"
+               ${dune_util_lib_list}
+	       BASENAME_ONLY
+        )
+	             
 simple_plugin( DetPedestalServiceDUNE  "service"
                ${dune_util_lib_list}
 	       BASENAME_ONLY

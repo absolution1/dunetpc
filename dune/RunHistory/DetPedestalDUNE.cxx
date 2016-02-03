@@ -54,7 +54,7 @@ namespace dune {
 
   bool DetPedestalDUNE::Update(uint64_t ts)
   {
-    if (!fUseDB) return true;
+    //if (!fUseDB) return true; //Commented out 1st Feb 2016, as no perceived use.
 
     if (ts == fVldTime)
       return true;
