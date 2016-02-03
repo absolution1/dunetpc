@@ -236,17 +236,20 @@ TCanvas* NearlinePlot::makeGraphMetricTimeCanvas(TPaveText* updateText, int time
   gPad->SetGridx();
 
   TGraph* gr;
+  std::vector<float> yValuesVec;
   if(rms){
     fGraphMetricRmsTime = new TGraph(fPlotCount);
     gr = fGraphMetricRmsTime;
+    yValuesVec = fMetricRmsVec;
   }
   else{
     fGraphMetricTime = new TGraph(fPlotCount);
     gr = fGraphMetricTime;
+    yValuesVec = fMetricVec;
   }
 
-
-  for(int i=0;i<fPlotCount;i++) gr->SetPoint(i, fTimeVec.at(i), fMetricVec.at(i));
+  
+  for(int i=0;i<fPlotCount;i++) gr->SetPoint(i, fTimeVec.at(i), yValuesVec.at(i));
   
   gr->SetMarkerColor(kBlue);
   gr->GetXaxis()->SetTimeDisplay(1);

@@ -1,8 +1,11 @@
 #include "NearlinePlotMaker.h"
 #include "TMath.h"
 
-const std::string PLOT_DIR = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots";
+const std::string PLOT_DIR_PRODUCTION = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots";
 const std::string PLOT_DIR_DEBUG = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots_testing";
+//const std::string PLOT_DIR_DEBUG = "/lbne/data2/users/lbnedaq/nearline_webpage_test/plots_testing";
+
+std::string PLOT_DIR;
 
 void histogramZoom(TH1* hist, double n_sigma){
   
@@ -80,7 +83,8 @@ Long64_t NearlinePlotMakerDev(int Ndays, bool debug=false){
 Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
   std::cout << "\n\nMaking 35t Nearline plots for " << Ndays << " days...\n\n";
-  
+  if(debug) PLOT_DIR=PLOT_DIR_DEBUG;
+  else PLOT_DIR=PLOT_DIR_PRODUCTION;
 
 
   // Define varibales about time...
@@ -134,21 +138,12 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   // Open list of input files...
   char filelist_title[128];
   sprintf(filelist_title,"/home/lbnedaq/nearline/temp/35t_%.dDay_Nearline_File_List.txt",Ndays);
+  //  sprintf(filelist_title,"/lbne/app/users/jpdavies/dunetpc-nearline/srcs/dunetpc/35t_%.dDay_Nearline_File_List.txt",Ndays);
   std::cout << "\n\nOpening list of input files:\n" << filelist_title << "\n\n";
   inFile.open(filelist_title);
 
 
   std::vector<NearlinePlot*> NearlinePlotVec;
-  // std::vector<int> channelVec;
-  
-  // channelVec.push_back(20);
-  // channelVec.push_back(548);
-  // channelVec.push_back(1297);
-  // channelVec.push_back(1697);
-  // channelVec.push_back(1838);
-  // channelVec.push_back(1482);
-  // channelVec.push_back(952);
-  // channelVec.push_back(454);
   
   {
     int channel;
@@ -365,8 +360,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     TCanvas *can_histogram = this_plot->makeHistoCanvas(UpdateText);
     std::string can_histogram_name = this_plot->fPlotInfo.GetHistOutputName();
-    if(debug) can_histogram_name = PLOT_DIR_DEBUG + "/" + can_histogram_name;
-    else can_histogram_name = PLOT_DIR + "/" + can_histogram_name;
+
+    can_histogram_name = PLOT_DIR + "/" + can_histogram_name;
     //    std::cerr << "INFO: can_histogram_name - " << can_histogram_name << std::endl;
     can_histogram->Print(can_histogram_name.c_str());
 
@@ -375,8 +370,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     TCanvas *can_metric_time = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow);
     std::string can_metric_time_name = this_plot->fPlotInfo.GetMetricMeanTimeGraphName();
-    if(debug) can_metric_time_name = PLOT_DIR_DEBUG + "/" + can_metric_time_name;
-    else can_metric_time_name = PLOT_DIR + "/" + can_metric_time_name;
+
+    can_metric_time_name = PLOT_DIR + "/" + can_metric_time_name;
     //    std::cerr << "INFO: can_metric_time_name - " << can_metric_time_name << std::endl;
     can_metric_time->Print(can_metric_time_name.c_str());
 
@@ -385,8 +380,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     TCanvas *can_metric_time_zoom = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms, zoom);
     std::string can_metric_time_name_zoom = this_plot->fPlotInfo.GetMetricMeanTimeGraphName(zoom);
-    if(debug) can_metric_time_name_zoom = PLOT_DIR_DEBUG + "/" + can_metric_time_name_zoom;
-    else can_metric_time_name_zoom = PLOT_DIR + "/" + can_metric_time_name_zoom;
+
+    can_metric_time_name_zoom = PLOT_DIR + "/" + can_metric_time_name_zoom;
     //    std::cerr << "INFO: can_metric_time_name_zoom - " << can_metric_time_name_zoom << std::endl;
     can_metric_time_zoom->Print(can_metric_time_name_zoom.c_str());
 
@@ -395,8 +390,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     TCanvas *can_rms_time = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms);
     std::string can_rms_time_name = this_plot->fPlotInfo.GetMetricRmsTimeGraphName();
-    if(debug) can_rms_time_name = PLOT_DIR_DEBUG + "/" + can_rms_time_name;
-    else can_rms_time_name = PLOT_DIR + "/" + can_rms_time_name;
+
+    can_rms_time_name = PLOT_DIR + "/" + can_rms_time_name;
     //    std::cerr << "INFO: can_rms_time_name - " << can_rms_time_name << std::endl;
     can_rms_time->Print(can_rms_time_name.c_str());
 
@@ -405,8 +400,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     TCanvas *can_rms_time_zoom = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms, zoom);
     std::string can_rms_time_name_zoom = this_plot->fPlotInfo.GetMetricRmsTimeGraphName(zoom);
-    if(debug) can_rms_time_name_zoom = PLOT_DIR_DEBUG + "/" + can_rms_time_name_zoom;
-    else can_rms_time_name_zoom = PLOT_DIR + "/" + can_rms_time_name_zoom;
+
+    can_rms_time_name_zoom = PLOT_DIR + "/" + can_rms_time_name_zoom;
     //    std::cerr << "INFO: can_rms_time_name_zoom - " << can_rms_time_name_zoom << std::endl;
     can_rms_time_zoom->Print(can_rms_time_name_zoom.c_str());
 
@@ -468,8 +463,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   gRunVSYear->Draw("A*");
   UpdateText->Draw();
   LastPoint->Draw();
-  if(debug)  sprintf(filename,"%s/RunVSYear_%.3u_days.png",PLOT_DIR_DEBUG.c_str(),Ndays);
-  else  sprintf(filename,"%s/RunVSYear_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
+
+  sprintf(filename,"%s/RunVSYear_%.3u_days.png",PLOT_DIR.c_str(),Ndays);
   cRunVSYear->Print(filename);
 
 
