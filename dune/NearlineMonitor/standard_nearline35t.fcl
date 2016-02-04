@@ -27,7 +27,9 @@ standard_nearlinesplitter.TrigSeparation:   10   #Suggested Parameters from Mich
 standard_nearlinesplitter.PreTriggerTicks:   300 #Suggested Parameters from Michelle on 3rd Feb 
 standard_nearlinesplitter.PostTriggerTicks: 5200 #Suggested Parameters from Michelle on 3rd Feb  
 standard_nearlinesplitter.UsePedestalFile: "true"
-standard_nearlinesplitter.PedestalFile: "/lbne/app/users/jpdavies/dunetpc-nearline/pedestal_offline_databaseRun_9754.csv"
+standard_nearlinesplitter.UsePedestalFileSearchPath: "true"
+standard_nearlinesplitter.PedestalFile: ""
+standard_nearlinesplitter.PedestalFileSearchPath: "NEARLINE_PEDESTAL"
 standard_nearlinesplitter.UsePedestalDefault: "false"
 
 

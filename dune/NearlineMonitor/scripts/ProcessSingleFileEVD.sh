@@ -22,7 +22,7 @@ outhistfile=${INFILE%$fileend}_evd.root
 export LOCKFILE=${INFILE}EVD.LOCK
 export DONEFILE=${INFILE}EVD.DONE
 
-
+START_DATE=`date`
 
 # Touch a lock file...
 echo "Creating file ${infile}EVD.LOCK"
@@ -51,6 +51,11 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 if [ $infilesize -gt 500 ];
 then
     echo "Processing /data/lbnedaq/data/nearline-monitoring-links/${INFILE}"
+    
+    export NEARLINE_PEDESTAL="/path/to/pedestal/file.csv"
+
+    echo "Setting pedestal to: $NEARLINE_PEDESTAL"
+
     lar -c ctreeraw35t_trigTPC.fcl -n 10 /data/lbnedaq/data/nearline-monitoring-links/${INFILE}
 
     # Rename the output file for the RED35 EVD so that the script that looks for the most recent file
@@ -70,8 +75,13 @@ rm -v $RunDir/$LOCKFILE
 # Remove hard link...
 rm -f /data/lbnedaq/data/nearline-monitoring-links/${INFILE}
 
+END_DATE=`date`
+
 # Touch done file...
 touch $RunDir/$DONEFILE
+
+echo $START_DATE >> $RunDir/$DONEFILE
+echo $END_DATE >> $RunDir/$DONEFILE
 
 echo ""
 echo "Done with file $infile..."
