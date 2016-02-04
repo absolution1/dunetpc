@@ -199,12 +199,11 @@ namespace {
       bool GoodDig = true;
       for (unsigned int j=0; j<digits.size(); j=j+128) {
         if ( digits[0].NADC() - digits[j].NADC() ) GoodDig = false;
-        if (fDebugLevel > 2) {
+        if (fDebugLevel > 2)
 	  std::cout << "digits[0] has " << digits[0].NADC() << " ADC's, whilst digits["<<j<<"] has " << digits[j].NADC() << " ADCs. Still a good digit? " << GoodDig << std::endl;
-	}
       }
       if (!GoodDig) {
-        if (fDebugLevel > 2) std::cout << "Got a bad digit, so want to clear it..." << std::endl;
+        if (fDebugLevel) std::cout << "Got a bad digit, so want to clear it...\n" << std::endl;
         clear(fDebugLevel);
       }
       
@@ -489,7 +488,8 @@ namespace DAQToOffline {
     int          fDebugLevel;
     double       fTimeStampThreshold;
     int          fMCTrigLevel;
-    int          fWhichTrigger;
+    std::vector<unsigned int> fWhichTrigger;
+    std::vector<unsigned int> fPTBTrigs;
     int          fTrigSeparation;
     double       fWaveformADCWidth;
     double       fWaveformADCThreshold;
@@ -564,7 +564,8 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   fDebugLevel            (ps.get<int>   ("DebugLevel")),
   fTimeStampThreshold    (ps.get<double>("TimeStampThreshold")),
   fMCTrigLevel           (ps.get<int>   ("MCTrigLevel")),
-  fWhichTrigger          (ps.get<int>   ("WhichTrigger")),
+  fWhichTrigger          (ps.get<std::vector<unsigned int> >("WhichTrigger")),
+  fPTBTrigs              (ps.get<std::vector<unsigned int> >("PTBTrigs")),
   fTrigSeparation        (ps.get<int>   ("TrigSeparation")),
   fWaveformADCWidth      (ps.get<double>("WaveformADCWidth")),
   fWaveformADCThreshold  (ps.get<double>("WaveformADCThreshold")),
@@ -583,11 +584,12 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   prh.reconstitutes<PennCounters_t,art::InEvent>( sourceName_, PenninputTag_.instance() );
 
   BuildTPCChannelMap(fTPCChannelMapFile, TPCChannelMap);
+  //std::cout << "Built TPC Channel Map" << std::endl;
 }
 
 //=======================================================================================
 bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb) {
-  
+  //std::cout << "At the top of readFile" << std::endl;
   // Get fragments branches
   file_.reset( new TFile(filename.data()) );
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
@@ -654,13 +656,15 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
       }
     }
   }
-  
+
   // New fileblock
   fb = new art::FileBlock(art::FileFormatVersion(),filename);
   if ( fb == nullptr ) {
     throw art::Exception(art::errors::FileOpenError)
       << "Unable to open file " << filename << ".\n";
   }
+
+  //std::cout << "At the end of ReadFile" << std::endl;
 
   return true;
 }
@@ -671,6 +675,12 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
                                  art::RunPrincipal*    & outR,
                                  art::SubRunPrincipal* & outSR,
                                  art::EventPrincipal*  & outE) {
+  //std::cout << "At the start of readNext..." << std::endl;
+  if (!fRequireRCE) {
+    NoRCEsCase(outR, outSR, outE);
+    return true;
+  }
+
   if ( doneWithFiles_ ) {
     return false;
   }
@@ -706,6 +716,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       }
       bool rc = loadEvents_(treeIndex_);
       if (RCEsNotPresent) {
+	if (fDebugLevel) std::cout << "The RCEs aren't present, so switching to the don't require RCEs case...." << std::endl;
+	fRequireRCE = false;
 	NoRCEsCase(outR, outSR, outE);
 	return true;
       } // RCEsNotPresent
@@ -766,7 +778,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
         if (fDebugLevel) {
 	  std::cout << "\nThe trigger is good so triggering on, treeIndex " << fLastTreeIndex
 		    << ", loadedDigits_.index() " << fLastTriggerIndex << ", with timestamp " << fLastTimeStamp
-		    << "\nThe first tick in this event is in tree index " << treeIndex_-1 << ", loadedDigits index " << loadedDigits_.index
+		    << "\nThe first tick in this event is in tree index " << inputEventNumber_ << ", loadedDigits index " << loadedDigits_.index
 		    << ". It has timestamp " << this_timestamp << "\n"
 		    << std::endl;
 	}
@@ -890,6 +902,7 @@ bool DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v ) {
 
 //=======================================================================================
 bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
+  //std::cout << "At the start of loadEvents..." << std::endl;
   if ( InputTree != nInputEvts_ ) {
     if ( !loadedDigits_.empty(fDebugLevel) && fRequireRCE ) return false;
     
@@ -910,19 +923,22 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
     inputEventTime_ = evAux_.time();
     if (fDebugLevel > 1) std::cout << "\nLoading event " << inputEventNumber_ << " on Tree " << InputTree << std::endl;
 
-    bool PTBTrigPresent = false;
-    if (fRequirePTB) {
-      PTBTrigPresent = LoadPTBInformation( LoadTree );
-      if (fDebugLevel > 1) std::cout << "Is there a PTB trigger present? " << PTBTrigPresent << std::endl;
-    }
-    if ( ( fWhichTrigger >= 2 && fWhichTrigger <= 9 && PTBTrigPresent ) // If looking for  triggers only load if RCE/SSP if a trigger is present.
-	 || fWhichTrigger < 2 || fWhichTrigger > 9 || fTrigger ) { // If not looking for PTB triggers or already triggered load regardless.
+    bool PTBTrigPresent = LoadPTBInformation( LoadTree );
+    if (fDebugLevel > 1) std::cout << "Is there a PTB trigger present? " << PTBTrigPresent << std::endl;
+    
+    if ( fWhichTrigger.size() == 1 && fWhichTrigger[0] == 3 ) { // If looking for only looking for triggers from the PTB
+      if ( PTBTrigPresent || fTrigger ) { // Only load RCEs and SSPs if a trigger is present.
+	LoadSSPInformation( LoadTree );
+	LoadRCEInformation( LoadTree );
+      } else {                // If no PTB trigger is present make sure to clear Digits and Waveforms.
+	loadedDigits_.clear(fDebugLevel);
+	loadedWaveforms_.clear(fDebugLevel);
+      }
+    } else { // If either not looking for PTB triggers at all, or looking for additional triggers too, then always load RCE/SSP.
       LoadSSPInformation( LoadTree );
       LoadRCEInformation( LoadTree );
-    } else {
-      loadedDigits_.clear(fDebugLevel);
-      loadedWaveforms_.clear(fDebugLevel);
     }
+      
     InputTree++;
     return true;
   }
@@ -940,14 +956,11 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
     for (size_t CountLoop = 0; CountLoop < counters.size(); ++CountLoop) {
       if (fDebugLevel > 3 )
 	std::cout << "Looking at counters[" << CountLoop << "] has CounterID " << counters[CountLoop].GetTrigID() << " and Timestamp " << counters[CountLoop].GetTrigTime() << std::endl;
-      if ( counters[CountLoop].GetTrigID() == 110
-	   || counters[CountLoop].GetTrigID() == 111
-	   || counters[CountLoop].GetTrigID() == 112
-	   || counters[CountLoop].GetTrigID() == 113
-	   || counters[CountLoop].GetTrigID() == 114
-	   || counters[CountLoop].GetTrigID() == 115  ) {
-	std::cout << "Looking at event " << inputEventNumber_ << ", there is a trigger here on channel " << counters[CountLoop].GetTrigID() << std::endl;
-	TrigPresent = true;
+      for (size_t PTB = 0; PTB < fPTBTrigs.size(); ++PTB) {
+	if ( counters[CountLoop].GetTrigID() == fPTBTrigs[PTB] ) {
+	  if (fDebugLevel) std::cout << "Looking at event " << inputEventNumber_ << ", there is a trigger here on channel " << counters[CountLoop].GetTrigID() << std::endl;
+	  TrigPresent = true;
+	}
       }
     }
   } else {
@@ -960,8 +973,11 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
     for (auto count: *counters) {
       if (fDebugLevel > 3 )
 	std::cout << "Looking at a counter which has CounterID " << count.GetTrigID() << " and Timestamp " << count.GetTrigTime() << std::endl;
-      if ( count.GetTrigID() == 110 || count.GetTrigID() == 111 || count.GetTrigID() == 112 || count.GetTrigID() == 113 || count.GetTrigID() == 114 || count.GetTrigID() == 115) {
-	TrigPresent = true;
+      for (size_t PTB = 0; PTB < fPTBTrigs.size(); ++PTB) {
+	if ( count.GetTrigID() == fPTBTrigs[PTB] ) {
+	  if (fDebugLevel) std::cout << "Looking at event " << inputEventNumber_ << ", there is a trigger here on channel " << count.GetTrigID() << std::endl;
+	  TrigPresent = true;
+	}
       }
     }
   }
@@ -1014,8 +1030,10 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, 
   // just keep incrementing the event number as we split along
   ++eventNumber_;
   
-  if ( fWhichTrigger == 0 && fDebugLevel) {
-    std::cout << "\n\n\nI hope you know that you are triggering on a random number of ticks and not any sort of data! Check that fwhichTrigger(" << fWhichTrigger << ") is set correctly.\n\n\n" << std::endl;
+  for (size_t TrigSize = 0; TrigSize < fWhichTrigger.size(); ++TrigSize) {
+    if ( fWhichTrigger[TrigSize] == 0 && fDebugLevel) {
+      std::cout << "\n\n\nI hope you know that you are triggering on a random number of ticks and not any sort of data! Check that fwhichTrigger is set correctly.\n\n\n" << std::endl;
+    }
   }
   std::cout << "Making an event with RunNumber " << runNumber_ << ", subRunNumber " << subRunNumber_ << ", EventNumber " << eventNumber_ << " and art_timestamp " << art_timestamp.value() << std::endl;
 
@@ -1083,7 +1101,6 @@ void DAQToOffline::Splitter::CheckTimestamps(bool &JumpEvent, size_t &JumpNADC )
 } // Check Timestamps
 //=======================================================================================
 void DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPrincipal*& outSR, art::EventPrincipal*& outE) {
-  if (fDebugLevel) std::cout << "The RCEs aren't present, so quitting." << std::endl;
   runNumber_ = inputRunNumber_;
   subRunNumber_ = inputSubRunNumber_;
   art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
@@ -1105,6 +1122,7 @@ void DAQToOffline::Splitter::CheckTrigger() {
   size_t TempTreeIndex    = treeIndex_ -1;
   lbne::TpcNanoSlice::Header::nova_timestamp_t TempTimeStamp = this_timestamp;
   size_t TempNADCs        = loadedDigits_.digits[0].NADC();
+  art::EventNumber_t TempEventNumber = inputEventNumber_;
   if (fDebugLevel) std::cout << "\nTrying to Trigger on timestamp " << this_timestamp << ", last trigger was on " << fLastTimeStamp << "...." << this_timestamp - fLastTimeStamp << std::endl;
   
   //******** Now to sort out the prebuffer!!! ***********
@@ -1124,7 +1142,7 @@ void DAQToOffline::Splitter::CheckTrigger() {
       std::cout << "I don't have enough previous digits :(, I need an extra " << BufferResidual << " ticks from previous events. TrigEvStart = " << TrigEvStart << std::endl;
     }
     
-    size_t LoadEv = 0; int    LoadInd = 0;
+    size_t LoadEv = 0, LoadInd = 0;
     for ( size_t el=2; el<GoodEvents.size()+1; ++el) {
       if (fDebugLevel > 3) {
 	std::cout << "Going backwards...Tree index " << GoodEvents[GoodEvents.size()-el].first << " was a good event, which had "
@@ -1162,9 +1180,9 @@ void DAQToOffline::Splitter::CheckTrigger() {
     loadedDigits_.index = TempTriggerIndex + BufferResidual; // Jump to where the trigger was plus buffer residual
     if (fDebugLevel) {
       std::cout << "Trigger isn't good so I'm going back to where I triggered..."
-		<< "Attempted trigger was in event " << TempTreeIndex << " at index " << TempTriggerIndex
+		<< "Attempted trigger was in event " << TempEventNumber << " at index " << TempTriggerIndex
 		<< " at timestamp " << TempTimeStamp << ", it had " << TempNADCs << " adc's"
-		<< "\nI'm now at event " << treeIndex_-1 << " index " << loadedDigits_.index
+		<< "\nI'm now at event " << inputEventNumber_ << " index " << loadedDigits_.index
 		<< " and timestamp " << loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, fNovaTicksPerTPCTick) 
 		<< " and " << loadedDigits_.digits[0].NADC() << " adcs, loadedDigits empty? " << loadedDigits_.empty(fDebugLevel) << "\n"
 		<< std::endl;
@@ -1175,64 +1193,32 @@ void DAQToOffline::Splitter::CheckTrigger() {
 void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits, bool NewTree) {
   if ( treeIndex_-1 != fLastTreeIndex ) fLastTimeStamp = 0; // No longer looking at same treeIndex as previous trigger, so reset lastTimeStamp
   if ( fDiffFromLastTrig >= fTrigSeparation) { // Don't want two triggers too close together!
-    // Trigger on Monte Carlo whichTrigger == 0
-    if ( fWhichTrigger == 0 ) {
-      if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;
-    }
-    // Trigger on new files
-    else if ( fWhichTrigger == 1 && NewTree ) {
-      fTrigger = true;
-    }
-    // Trigger on Photon Detectors
-    else if ( fWhichTrigger == 2 ) {
-      fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, fWaveformADCThreshold, fWaveformADCsOverThreshold, fWaveformADCWidth, fNovaTicksPerSSPTick, fDebugLevel );
-    }
-    // Trigger on Any PTB Trigger
-    else if ( fWhichTrigger == 3 ) {
-      std::vector<unsigned int> SpecialChan = {110, 111, 112, 113, 115};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on Any Muon Coincidence
-    else if ( fWhichTrigger == 4 ) {
-      std::vector<unsigned int> SpecialChan = {110, 111, 112, 113};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on Muon Coincidences which aren't the 'Telescope'
-    else if (fWhichTrigger == 5 ) {
-      std::vector<unsigned int> SpecialChan = {111, 112, 113};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on Muon Telescope
-    else if ( fWhichTrigger == 6 ) {
-      std::vector<unsigned int> SpecialChan = {110};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on East lower, West upper Muon Coincidence
-    else if ( fWhichTrigger == 7 ) {
-      std::vector<unsigned int> SpecialChan = {111};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on North lower, South upper Muon Coincidence
-    else if ( fWhichTrigger == 8 ) {
-      std::vector<unsigned int> SpecialChan = {113};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on North upper, South lower Muon Coincidence
-    else if ( fWhichTrigger == 9 ) {
-      std::vector<unsigned int> SpecialChan = {112};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on the Photon Trigger from the Penn Trigger Board
-    else if ( fWhichTrigger == 10 ) {
-      std::vector<unsigned int> SpecialChan = {115};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on "Tickler" / TPC information
-    else if ( fWhichTrigger == 11 ) {
-      fTrigger = TicklerTrigger( PrevChanADC, ADCdigits);
-    }
     
-    if (fTrigger) CheckTrigger();
+    for (size_t TrigSize = 0; TrigSize < fWhichTrigger.size(); ++TrigSize) {
+      // Trigger on Monte Carlo whichTrigger == 0
+      if ( fWhichTrigger[TrigSize] == 0 ) {
+	if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;
+      }
+      // Trigger on new files
+      else if ( fWhichTrigger[TrigSize] == 1 && NewTree ) {
+	fTrigger = true;
+      }
+      // Trigger on Photon Detectors
+      else if ( fWhichTrigger[TrigSize] == 2 ) {
+	fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, fWaveformADCThreshold, fWaveformADCsOverThreshold, fWaveformADCWidth, fNovaTicksPerSSPTick, fDebugLevel );
+      }
+      // Trigger using the user defined PTB Trigger vector
+      else if ( fWhichTrigger[TrigSize] == 3 ) {
+	fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, fPTBTrigs);
+      }
+      // Trigger on "Tickler" / TPC information
+      else if ( fWhichTrigger[TrigSize] == 4 ) {
+	fTrigger = TicklerTrigger( PrevChanADC, ADCdigits);
+      }
+    
+      if (fTrigger) CheckTrigger();
+      if (fTrigger) break;
+    }
   } // Triggers adequately separated
 }
 //===================================================================================================================================
