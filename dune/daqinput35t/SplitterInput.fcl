@@ -20,7 +20,8 @@ split_events:
   DebugLevel:                1       // The level of information printed out 0 = none, 1 = basic info, <4 = all
   TimeStampThreshold:        5       // The threshold for trying to mitigate any timestamp ideosynchrosies
 
-  WhichTrigger:              1       // Which trigger to use - see Triggering function
+  WhichTrigger:              [ 1 ]   // A vector of which triggers to use - see Triggering function
+  PTBTrigs:                  [ 110, 111, 112, 113, 114, 115] // The list of PTB channels to trigger on.
   PostTriggerTicks:          15000   // The number of TPC ticks gathered, post trigger
   PreTriggerTicks:           0       // The number of TPC ticks gathered, pre trigger
   TrigSeparation:            0       // The minimum separation between triggers.
