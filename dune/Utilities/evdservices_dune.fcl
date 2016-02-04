@@ -4,6 +4,7 @@
 #include "evdservices_base.fcl"
 #include "services_dune.fcl"
 #include "channelstatus_dune.fcl"
+#include "pedestals_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -81,6 +82,15 @@ dune35t_disp.IDetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean:  1800
 dune35t_disp.RawDrawingOptions.TotalTicks:               3200
 dune35t_disp.RawDrawingOptions.MinimumSignal:            10
 dune35t_disp.RawDrawingOptions.UncompressWithPed:        true
+
+
+dune35t_disp_data: @local::dune35t_disp
+dune35t_disp_data.IDetPedestalService:
+{
+  service_provider: DetPedestalServiceDUNE
+  DetPedestalDUNE: @local::dune35t_pedestals
+}
+
 
 dune10kt_disp:             @local::dunefd_disp
 dune10kt_disp.Geometry:    @local::dune10kt_geo 
