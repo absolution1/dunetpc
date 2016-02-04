@@ -39,14 +39,14 @@ physics:
       saveChannelWireMap: false
       saveChannelWireGeo: false
       InputModule:             "SplitterInput"
-      MakeAllPhotonsTree:      true
-      MakeDetectedPhotonsTree: true
+      MakeAllPhotonsTree:      false
+      MakeDetectedPhotonsTree: false
       MakeOpDetsTree:          true
       MakeOpDetEventsTree:     true
       UncompressWithPed:       true
       ProcessMCtruth:          false
-      ProcessCalib:            true
-      ProcessHits:             true
+      ProcessCalib:            false
+      ProcessHits:             false
       ProcessReco:             false
       ProcessOpDet:            false
     }

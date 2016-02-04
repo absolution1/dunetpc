@@ -1,33 +1,36 @@
 #include "SSPToOffline.fcl"
+#include "SplitterInput.fcl"
 
 BEGIN_PROLOG
 
-standard_nearlinesplitter:{
+standard_nearlinesplitter: @local::split_events
 
-  module_type: SplitterInput
-  firstEvent : 1
-  maxEvents:  100
-  posttriggerticks:  10000
-  pretriggerticks:   0
-# should be 0.5 for MC and 32 for data.                             
-  novatickspertpctick: 32
-  TimeStampThreshold:  5.
-  # trigger below is to start window when TPC payload appears (not just headers from RCEs.) 
-  MCTrigLevel:  0
-  whichTrigger: 5
-  ADCdiffThreshold:  50
-  ADCsOverThreshold: 100
-  TrigSeparation:   10000
-  TPCInputTag : "daq:TPC:DAQ"
-  TPCInputDataProduct : "artdaq::Fragment"
-  SSPInputTag : "daq:PHOTON:DAQ"
-  SSPInputDataProduct : "artdaq::Fragment"
-  PennInputTag : "daq:TRIGGER:DAQ"
-  PennInputDataProduct : "artdaq::Fragment"
-  NOvAClockFrequency : 64.0 # MHz
-  SSPReformatter:      @local::ssp_reformatter
+standard_nearlinesplitter.WhichTrigger: 5 #Any Muon Coincidence - Not Telescope (Horizontal Muons)
+#WhichTrigger
+#0 - MC
+#1 - New Files
+#2 - Photon Detectors
+#3 - Any PTB Trigger
+#4 - Any Muon Coincidence
+#5 - Any Muon Coincidence - Not Telescope
+#6 - Muon Telescope
+#7 - East Lower + West Upper Coincidence
+#8 - North Lower + South Upper Coincidence
+#9 - North Upper + South Lower Coincidence
+#10 - PTB Photon Trigger
+#11 - Tickler
+standard_nearlinesplitter.firstEvent: 1          #Suggested Parameters from Michelle on 3rd Feb
+standard_nearlinesplitter.maxEvents: 10000       #Suggested Parameters from Michelle on 3rd Feb
+#standard_nearlinesplitter.ADCdiffThreshold:  50  #Suggested Parameters from Michelle on 3rd Feb #JPD - Tickler Only - not needed
+#standard_nearlinesplitter.ADCsOverThreshold: 100 #Suggested Parameters from Michelle on 3rd Feb #JPD - Tickler Only - not needed
+standard_nearlinesplitter.TrigSeparation:   10   #Suggested Parameters from Michelle on 3rd Feb 
+standard_nearlinesplitter.PreTriggerTicks:   300 #Suggested Parameters from Michelle on 3rd Feb 
+standard_nearlinesplitter.PostTriggerTicks: 5200 #Suggested Parameters from Michelle on 3rd Feb  
+standard_nearlinesplitter.UsePedestalFile: "true"
+standard_nearlinesplitter.PedestalFile: "/lbne/app/users/jpdavies/dunetpc-nearline/pedestal_offline_databaseRun_9754.csv"
+standard_nearlinesplitter.UsePedestalDefault: "false"
 
-}
+
 
 standard_nearlineana:
 {
