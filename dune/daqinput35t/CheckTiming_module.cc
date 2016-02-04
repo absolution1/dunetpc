@@ -66,6 +66,7 @@ private:
   bool fUseChannelMap;
   bool fDebug;
 
+  int Event = 0;
   std::map<int,int> fRCEChannelMap;
 
   TTree* fTree;
@@ -161,7 +162,7 @@ void DAQToOffline::CheckTiming::printParameterSet(){
 
 void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 {
-
+  ++Event;
   RCETime = 0, SSPTime = 0, PTBTime = 0;
   InconsistRCE = false;
   NumADCs = 0;
@@ -210,7 +211,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 	if ( ThisADCcount != NumADCs ) InconsistRCE = true;
       }
     } // rawFragments.size()
-    std::cout << "Got RCE start time, it is " << RCETime << std::endl;
+    //std::cout << "Got RCE start time, it is " << RCETime << std::endl;
   } //RCEPresent
   
   // ------------- SSP Section ------------------------
@@ -243,7 +244,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 	  SSPTime = meta->startTime;
 	}
     }
-    std::cout << "Got SSP start time, it is " << SSPTime << std::endl;
+    //std::cout << "Got SSP start time, it is " << SSPTime << std::endl;
   } // SSP Present
   
   // ------------- PTB Section ------------------------
@@ -288,11 +289,11 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
       }
     }
     PTBTime = (uint64_t)FirstTimestamp->nova_timestamp;
-    std::cout << "Got PTB start time, it is " << PTBTime << std::endl;
+    //std::cout << "Got PTB start time, it is " << PTBTime << std::endl;
   } // PTB Present
   // ------------------------ NOW TO COMPARE ALL THESE NUMBERS -------------------------------------------
   
-  std::cout << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs << std::endl;
+  if (Event%1000 == 0) std::cout << "Looking at event " << Event << " it had " << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs << std::endl;
 
   RCE_PTB_diff = RCETime - PTBTime;
   RCE_SSP_diff = RCETime - SSPTime;
