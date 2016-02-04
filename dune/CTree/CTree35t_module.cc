@@ -751,7 +751,7 @@ void CTree35t::processRaw( const art::Event& event )
         int nSamples = hit->Samples();
         std::vector<short> uncompressed(nSamples);
 	int pedestal = (int)hit->GetPedestal();
-	std::cout << " channel " << chanId << " pedestal " << pedestal << std::endl;
+	//	std::cout << " channel " << chanId << " pedestal " << pedestal << std::endl;
 	// uncompress the data
         if (fUncompressWithPed){
           raw::Uncompress(hit->ADCs(), uncompressed, pedestal, hit->Compression());
