@@ -154,56 +154,56 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     channel=20;
     metric_details = "(APA-3-U-plane)";
-    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    this_plot_info = NearlinePlotInfo("ADC", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
     this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
 
     channel=548;
     metric_details = "(APA-2-Z-plane)";
-    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    this_plot_info = NearlinePlotInfo("ADC", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
     this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
 
     channel=1297;
     metric_details = "(APA-1-V-plane)";
-    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    this_plot_info = NearlinePlotInfo("ADC", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
     this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
 
     channel=1697;
     metric_details = "(APA-0-Z-plane)";
-    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    this_plot_info = NearlinePlotInfo("ADC", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
     this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
 
     channel=1838;
     metric_details = "(APA-3-Z-plane)";
-    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    this_plot_info = NearlinePlotInfo("ADC", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
     this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
 
     channel=1482;
     metric_details = "(APA-2-U-plane)";
-    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    this_plot_info = NearlinePlotInfo("ADC", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
     this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
 
     channel=952;
     metric_details = "(APA-1-Z-plane)";
-    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    this_plot_info = NearlinePlotInfo("ADC", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
     this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
 
     channel=454;
     metric_details = "(APA-0-U-plane)";
-    this_plot_info = NearlinePlotInfo("Pedestal", channel, Ndays, "png", metric_details);
+    this_plot_info = NearlinePlotInfo("ADC", channel, Ndays, "png", metric_details);
     sprintf(hist_name, "hped_per_tick_chan_%i", channel);
     this_plot = new NearlinePlot(hist_name, this_plot_info);
     NearlinePlotVec.push_back(this_plot);
