@@ -198,11 +198,11 @@ namespace {
 	if (WaveformTimestamp <= last_timestamp && WaveformTimestamp >= first_timestamp) {
           if (fDebugLevel > 3)
 	    std::cout << "Pushing back waveform " << hh << " on channel " << wf.OpChannel() << " at time " << HitTimestamp << ". The times I passed were " << first_timestamp << " and " << last_timestamp << std::endl;
-	  wbo.emplace_back(std::move(wf));
+	  obo.emplace_back(std::move(wf));
         }
         ++hh;
       } // auto ophits
-      if (fDebugLevel > 1) std::cout << "At the end of Waveform findinrange, wbo has size " << wbo.size() << std::endl;
+      if (fDebugLevel > 1) std::cout << "At the end of Waveform findinrange, wbo has size " << obo.size() << std::endl;
     } // findinrange
     
     //=======================================================================================
@@ -641,6 +641,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   bufferedDigits_(),
   dbuf_(),
   wbuf_(),
+  hbuf_(),
   cbuf_(),
   fTicksAccumulated(0),
   fragmentsToDigits_( std::bind( DAQToOffline::tpcFragmentToRawDigits,
@@ -802,7 +803,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   std::map<int,int> PrevChanADC;
   if (fDebugLevel > 3 ) {
     std::cout << "\nAt the top of readNext....what do I increment here? " << fTicksAccumulated << " " << ticksPerEvent_ << " " << loadedDigits_.empty(fDebugLevel)
-	      << " " << wbuf_.size() << " " << cbuf_.size() << " " << hbuf_.size()std::endl;
+	      << " " << wbuf_.size() << " " << cbuf_.size() << " " << hbuf_.size() << std::endl;
   }
   while ( fTicksAccumulated < ticksPerEvent_ ) {  
     ++fDiffFromLastTrig;
@@ -893,7 +894,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 		    << std::endl;
 	}
       }
-      // ************* Work out first and last SSP Timestamp for wbuf_ and cbuf_ ************************
+      // ************* Work out first and last SSP Timestamp for wbuf_, hbuf_ and cbuf_ ************************
       if (first_tick) { // First tick in split event and/or first tick in newly loaded event.
         first_timestamp = this_timestamp;
 	first_tick = false;
@@ -922,7 +923,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   if (fDebugLevel > 1)
     std::cout << "wbuf_ now has size " << wbuf_.size() << std::endl;
 
-  // ************* Fill wbuf_ with the OpHit information within time range ************************
+  // ************* Fill hbuf_ with the OpHit information within time range ************************
   if (fDebugLevel > 1)
     std::cout << "Loading the Waveforms...hbuf_ has size " << hbuf_.size() << " " << fNovaTicksPerSSPTick << std::endl;
   loadedOpHits_.findinrange(hbuf_, first_timestamp,last_timestamp,fNovaTicksPerSSPTick, fDebugLevel);
@@ -1200,7 +1201,7 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, 
                                  sourceName_,
                                  PenninputTag_.instance() );
   mf::LogDebug("SplitterFunc") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " RCE digits and " <<
-    wbuf_.size() << " SSP waveforms, " << hbuf.size() << " OpHits and " << cbuf_.size() << " External Triggers (muon counters)";
+    wbuf_.size() << " SSP waveforms, " << hbuf_.size() << " OpHits and " << cbuf_.size() << " External Triggers (muon counters)";
   Reset();
 }
 //=======================================================================================
@@ -1274,7 +1275,11 @@ bool DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPri
   }
   wbuf_ = loadedWaveforms_.TakeAll();
   std::cout << "Called wbuf_.TakeALL() " << std::endl;
+  hbug_ = loadedOpHits_.TakeAll();
+  std::cout << "Called hbuf_.TakeAll()." << std::endl;
   cbuf_ = loadedCounters_.TakeAll();
+  std::cout << "Called cbuf_.TakeAll()." << std::endl;
+  
   std::cout << "After looking at treeIndex_ " << treeIndex_-1 << " fTrigger is " << fTrigger << " and wbuf and cbuf have sizes " << wbuf_.size() << " and " << cbuf_.size() << std::endl;
   
   std::cout << "Making an event now...." << std::endl;
