@@ -52,7 +52,7 @@ if [ $infilesize -gt 500 ];
 then
     echo "Processing /data/lbnedaq/data/nearline-monitoring-links/${INFILE}"
 
-    export NEARLINE_PEDESTAL="/path/to/pedestal/file.csv"
+    export NEARLINE_PEDESTAL="/home/lbnedaq/nearline/pedestal_files/offline_databaseRun_9754.csv"
 
     echo "Setting pedestal to: $NEARLINE_PEDESTAL"
 
@@ -72,8 +72,9 @@ END_DATE=`date`
 # Touch done file...
 touch $RunDir/$DONEFILE
 
-echo $START_DATE >> $RunDir/$DONEFILE
-echo $END_DATE >> $RunDir/$DONEFILE
+echo "START_DATE $START_DATE" >> $RunDir/$DONEFILE
+echo "END_DATE $END_DATE" >> $RunDir/$DONEFILE
+echo "NEARLINE_PEDESTAL $NEARLINE_PEDESTAL" >> $RunDir/$DONEFILE
 
 echo ""
 echo "Done with file $infile..."
