@@ -19,7 +19,7 @@ run=${args[0]}
 ORIGINAL_PWD=$PWD
 
 # Setup necessary pathways:
-export version=v04_32_01
+export version=v04_35_00
 export comp=e9
 export RelDir=/dune/app/home/duneana/35t_EventDisplay/larsoft_${version}
 export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
