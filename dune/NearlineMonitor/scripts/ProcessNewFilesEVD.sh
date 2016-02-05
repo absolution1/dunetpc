@@ -74,6 +74,7 @@ export RelDir=/home/lbnedaq/nearline/nearline_test_release_${version}
 export ScriptPath=${RelDir}/srcs/dunetpc/dune/NearlineMonitor/scripts
 export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
 export OutputPath=/lbne/data2/users/lbnedaq/nearline_evd/${version}
+export OutputSearchPath=/lbne/data2/users/lbnedaq/nearline_evd/v*
 export BaseFileName=lbne_r
 export FileSearch='/data/lbnedaq/data/transferred_files/lbne_r*.root'
 export filepos=6
@@ -100,15 +101,21 @@ do {
 	export run=${FILE:6:6}
 	export subrun=${FILE:15:2}
         export RunDir=$OutputPath/$bigrun/${run}_${subrun} #use subrun as well in case we have subruns
+        export RunSearchDir=$OutputSearchPath/$bigrun/${run}_${subrun} #use subrun as well in case we have subruns
 
 	mkdir -p $RunDir
 
+	num_files=`find $RunSearchDir/${FILE}EVD.DONE 2>/dev/null | wc -l`
+
 	# Check if this file has already been processed or is curently being processed.
-	if [ -e $RunDir/${FILE}EVD.DONE ];then
+	if [ $num_files -gt 0 ];then
 	    # echo "SKIP: $FILE has already been processed."
 	    continue
 	fi
-	if [ -e $RunDir/${FILE}EVD.LOCK ];then
+
+	num_files=`find $RunSearchDir/${FILE}EVD.LOCK 2>/dev/null | wc -l`
+
+	if [ $num_files -gt 0 ];then
 	    # echo "SKIP: $FILE is currently being processed."
 	    continue
 	fi

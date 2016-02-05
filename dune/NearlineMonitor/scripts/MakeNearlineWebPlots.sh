@@ -38,7 +38,7 @@ KEYUSE=`/usr/krb5/bin/klist -k ${KEYTAB} | grep FNAL.GOV | head -1 | cut -c 5- |
 
 
 # Specify path to nearline output files...
-SearchPath="/lbne/data2/users/lbnedaq/nearline/${REL}/*/*/"
+SearchPath="/lbne/data2/users/lbnedaq/nearline/v*/*/*/"
 
 
 

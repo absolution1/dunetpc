@@ -224,8 +224,8 @@ TCanvas* NearlinePlot::makeGraphMetricTimeCanvas(TPaveText* updateText, int time
   else can_name= fHistName + "_metric_time_can";
 
   std::string can_title;
-  if(rms)  can_title = fHistTitle + " - RMS";
-  else  can_title = fHistTitle + " - Mean";
+  if(rms)  can_title = "RMS of " + fHistTitle;
+  else  can_title = "Mean of " + fHistTitle;
 
 
   if(zoom) can_name += "_zoom";

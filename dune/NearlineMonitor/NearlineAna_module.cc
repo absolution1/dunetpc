@@ -501,7 +501,8 @@ void nearline::NearlineAna::makePedestalPerTickPlots(){
     int xmin = 0;
     int xmax = 4096;
     std::string hist_name = "hped_per_tick_chan_" + std::to_string(channel);
-    std::string hist_title = "Average ADC Per Tick - Channel " 
+
+    std::string hist_title = "ADC Per Tick - Channel " 
     + (fUseOnlineChannels ? 
        "(online/offline) " + std::to_string(channel) + "/" + std::to_string(fChannelMap.at(channel)) : 
        "(offline) " + std::to_string(channel));
