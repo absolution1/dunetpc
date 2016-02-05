@@ -6,10 +6,10 @@ process_name: RunSSPToOffline
 
 services : {
   user:         @local::dune35t_services
-  Timing:       {}
-  RandomNumberGenerator: {} 
-  message:      @local::standard_debug
-  TFileService: { fileName: "SSPDiagnosticPlots.root" } 
+  #Timing:       {}
+  #RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  TFileService: { fileName: "SSPDiagnosticPlots_r%r_sr%s.root" } 
 }
 
 physics:
