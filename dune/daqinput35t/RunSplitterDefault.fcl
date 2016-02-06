@@ -17,31 +17,20 @@ services:
 source: @local::split_events
 
 #############  To configure any parameters yourself #############
-#source:
-#{
-#  module_type: SplitterInput
-#  maxEvents: 300        # Number of events to create
-#
-#  MCTrigLevel:  0
-#  WhichTrigger: 5
-#
-#  TrigSeparation:   0
-#
-#  PostTriggerTicks: 15000
-#  PreTriggerTicks:  0
-#
-#  DebugLevel: 1
-#
-#  TPCInputTag :         "daq:TPC:DAQ" 
-#  TPCInputDataProduct : "artdaq::Fragment"
+#source.WhichTrigger: 3
+#source.PTBTrigs:     [ 110, 111, 112, 113, 114, 115 ]
+#source.PreTriggerTicks: 3200
+#source.PostTriggerTicks: 6400
 
-#  SSPReformatter:       @local::ssp_reformatter
-#  SSPInputTag :         "daq:PHOTON:DAQ"
-#  SSPInputDataProduct : "artdaq::Fragment"
+############## A list of triggers........Please add to / change this list if YOU change develop.........###################
+# WhichTrigger = 0  corresponds to  Making a trigger after a user-defined number of ticks - not hugely useful
+# WhichTrigger = 1  corresponds to  Triggering on each new ADC payload
+# WhichTrigger = 2  corresponds to  Triggering using SSP information - number of waveforms above a threshold you define.
+# WhichTrigger = 3  corresponds to  Triggering on The PTB Triggers you specify using;	   PTBTrigs: [ x, y, z ]
+# WhichTrigger = 4  corresponds to  Triggering on TPC ADC difference - 'Tickler Trigger'
 
-#  PennInputTag :         "daq:TRIGGER:DAQ"
-#  PennInputDataProduct : "artdaq::Fragment"
-#}
+# WhichTrigger = 5  YOUR TRIGGER.....# WhichTrigger = 0  corresponds to  Making a trigger after a user-defined number of ticks - not hugely useful
+###########################################################################################################################
 
 # Define and configure some modules to do work on each event.
 # First modules are defined; they are scheduled later.

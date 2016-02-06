@@ -32,4 +32,30 @@ ssp_trigger_ana:
   #Debug:             true
 }
 
+ssp_diagnostic_ana:
+{
+  module_type:         SSPDiagnosticAna
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  SSPReformatter:      @local::ssp_reformatter
+  SSPm1:               10  #samples used to calculate peak height
+  SSPm2:               10
+  SSPi1:               500 #samples used to calculate pedestal
+  SSPi2:               500 #samples used to calculate peak height
+  #Debug:             true
+}
+
+special_ssp_diagnostic_ana:
+{
+  module_type:         SpecialSSPDiagnosticAna
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  SSPReformatter:      @local::ssp_reformatter
+  SSPm1:               10  #samples used to calculate peak height
+  SSPm2:               10
+  SSPi1:               500 #samples used to calculate pedestal
+  SSPi2:               500 #samples used to calculate peak height
+  #Debug:             true
+}
+
 END_PROLOG

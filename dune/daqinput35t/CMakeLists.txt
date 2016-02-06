@@ -87,6 +87,20 @@ ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
 )
 
+simple_plugin(SSPDiagnosticAna "module"
+lbne-raw-data_Overlays
+Geometry_service
+Geometry
+lbne_daqinput35t
+RawData
+${SIMULATIONBASE}
+${MF_MESSAGELOGGER}
+art_Framework_Services_Registry
+art_Framework_Services_Optional
+art_Framework_Services_Optional_TFileService_service
+${ROOT_HIST}
+)
+
 simple_plugin(TpcDAQToOffline "module"
 lbne-raw-data_Overlays
 lbne_daqinput35t_utilities

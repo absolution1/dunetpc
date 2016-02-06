@@ -6,10 +6,10 @@ process_name: RunSSPToOffline
 
 services : {
   user:         @local::dune35t_services
-  Timing:       {}
-  RandomNumberGenerator: {} 
+  #Timing:       {}
+  #RandomNumberGenerator: {} 
   message:      @local::standard_info
-  TFileService: { fileName: "waveforms_r%r_sr%s.root" } 
+  TFileService: { fileName: "SSPDiagnosticPlots_r%r_sr%s.root" } 
 }
 
 physics:
@@ -20,13 +20,14 @@ physics:
   }
   analyzers:
   {
-    opdigiana: @local::dune35t_opdigiana_data
+    sspdiagnosticana: @local::ssp_diagnostic_ana
+    #opdigiana: @local::dune35t_opdigiana_data
   }
 
   #Create path to run module
   produce: [ ssptooffline ]
-  analyze: [ opdigiana ]
-  output: [ out1 ]
+  analyze: [ sspdiagnosticana ]
+  output: [ ]
 
   trigger_paths : [ produce ]
   end_paths: [ analyze, output ]
@@ -36,18 +37,18 @@ physics:
 source:
 {
   module_type: RootInput
-  maxEvents : 1000
+  maxEvents : -1
 }
 
 
 outputs:
 {
-  out1:
-  {
-    module_type: RootOutput
-    fileName: "SSPEventToOffline_r%r_sr%s.root"
-  }
-
+#  out1:
+#  {
+#    module_type: RootOutput
+#    fileName: "/dune/data/users/jti3/SSPToOffline_output.root"
+#  }
+#
 }
 
  
