@@ -159,9 +159,9 @@ namespace {
   struct LoadedOpHits {
     
     LoadedOpHits() : ophits() {}
-    vector<OpHit> ophits;
+    vector<recob::OpHit> ophits;
     
-    void load( vector<OpHit> const & v, int fDebugLevel ) {
+    void load( vector<recob::OpHit> const & v, int fDebugLevel ) {
       ophits = v;
     }
     
@@ -178,24 +178,24 @@ namespace {
       empty();
     }
 
-    std::vector<OpHit> TakeAll() {
+    std::vector<recob::OpHit> TakeAll() {
       return ophits;
     }
     
-    void findinrange(std::vector<OpHit> &obo, 
+    void findinrange(std::vector<recob::OpHit> &obo, 
                      lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
                      lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
                      double NovaTicksPerSSPTick,
 		     int fDebugLevel) {
       int hh = 0;
       for (auto wf : ophits) { // see if any ophits have pieces inside this TPC boundary
-	lbne::TpcNanoSlice::Header::nova_timestamp_t HitTimestamp = wf.PeakTime() * novaticksperssptick;
+	lbne::TpcNanoSlice::Header::nova_timestamp_t HitTimestamp = wf.PeakTime() * NovaTicksPerSSPTick;
         if ( hh < 5 && fDebugLevel > 2) { // Just want to write out the first few ophits
 	  std::cout << "Looking at waveform number " << hh << ". It was on channel " << wf.OpChannel() << " at time " << HitTimestamp
 		    << ". The times I passed were " << first_timestamp << " and " << last_timestamp
 		    << std::endl;
 	}
-	if (WaveformTimestamp <= last_timestamp && WaveformTimestamp >= first_timestamp) {
+	if (HitTimestamp <= last_timestamp && HitTimestamp >= first_timestamp) {
           if (fDebugLevel > 3)
 	    std::cout << "Pushing back waveform " << hh << " on channel " << wf.OpChannel() << " at time " << HitTimestamp << ". The times I passed were " << first_timestamp << " and " << last_timestamp << std::endl;
 	  obo.emplace_back(std::move(wf));
@@ -206,7 +206,7 @@ namespace {
     } // findinrange
     
     //=======================================================================================
-    bool OpHitTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, double fOpHitADCThreshold, int fopHitADCsOverThreshold,
+    bool OpHitTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, double fOpHitADCThreshold, int fOpHitADCsOverThreshold,
                        double fOpHitADCWidth, double NovaTicksPerSSPTick, int fDebugLevel ) { // Triggering on photon detectors
       int hh = 0;
       int HighADCHits = 0;
@@ -216,7 +216,7 @@ namespace {
 	++hh;
 	if ( wf.Amplitude() > fOpHitADCThreshold ) ++HighADCHits;
       } // Loop over waveforms
-      if ( HighADCWaveforms > fWaveformADCsOverThreshold ) return true;
+      if ( HighADCHits > fOpHitADCsOverThreshold ) return true;
       else return false;
     } // Photon Trigger
   }; // Loaded OpHits
@@ -437,10 +437,10 @@ namespace {
     return reinterpret_cast<vector<raw::OpDetWaveform>*>( br->GetAddress() );
   }
 
-  vector<raw::OpHit>*
+  vector<recob::OpHit>*
   getOpHitWaveforms( TBranch* br, unsigned entry ) {
     br->GetEntry( entry );
-    return reinterpret_cast<vector<raw::OpHit>*>( br->GetAddress() );
+    return reinterpret_cast<vector<recob::OpHit>*>( br->GetAddress() );
   }
   
   vector<raw::ExternalTrigger>*
@@ -489,7 +489,7 @@ namespace DAQToOffline {
     
     using rawDigits_t = vector<RawDigit>;
     using SSPWaveforms_t = vector<OpDetWaveform>;
-    using OpHits_t = vector<OpHit>;
+    using OpHits_t = vector<recob::OpHit>;
     using PennCounters_t = vector<ExternalTrigger>;
     
     string                 sourceName_;
@@ -498,19 +498,23 @@ namespace DAQToOffline {
     bool                   doneWithFiles_;
     art::InputTag          TPCinputTag_;
     art::InputTag          SSPinputTag_;
+    art::InputTag          OpHitinputTag_;
     art::InputTag          PenninputTag_;
     string                 TPCinputDataProduct_;
     string                 SSPinputDataProduct_;
+    string                 OpHitinputDataProduct_;
     string                 PenninputDataProduct_;
     SSPReformatterAlgs     sspReform;
     string                 fTPCChannelMapFile;
     art::SourceHelper      sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SSPinputBranch_;
+    TBranch*               OpHitinputBranch_;
     TBranch*               PenninputBranch_;
     TBranch*               EventAuxBranch_;
     LoadedDigits           loadedDigits_;
     LoadedWaveforms        loadedWaveforms_;
+    LoadedOpHits           loadedOpHits_;
     LoadedCounters         loadedCounters_;
     size_t                 nInputEvts_;
     size_t                 treeIndex_;
@@ -553,6 +557,7 @@ namespace DAQToOffline {
     bool loadEvents_( size_t &InputTree );
     bool LoadPTBInformation( size_t LoadTree );
     void LoadSSPInformation( size_t LoadTree );
+    void LoadOpHitInformation( size_t LoadTree );
     void LoadRCEInformation( size_t LoadTree );
 
     void makeEventAndPutDigits_( art::EventPrincipal*& outE, art::Timestamp art_timestamp=0);
@@ -574,6 +579,7 @@ namespace DAQToOffline {
 
     bool         fRequireRCE;
     bool         fRequireSSP;
+    bool         fRequireOpHit;
     bool         fRequirePTB;
     size_t       fPostTriggerTicks;
     size_t       fPreTriggerTicks;
@@ -589,6 +595,9 @@ namespace DAQToOffline {
     double       fWaveformADCWidth;
     double       fWaveformADCThreshold;
     int          fWaveformADCsOverThreshold;
+    double       fOpHitADCWidth;
+    double       fOpHitADCThreshold;
+    int          fOpHitADCsOverThreshold;
     int          fADCdiffThreshold;
     int          fADCsOverThreshold;
     bool         fUsePedestalDefault;
@@ -617,7 +626,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   //  TPCinputTag_("daq:TPC:DAQ"), // "moduleLabel:instance:processName"
   TPCinputTag_         (ps.get<string>("TPCInputTag")),
   SSPinputTag_         (ps.get<string>("SSPInputTag")),
-  OpHitinputTag_       (ps.get<string>("OpHitinputTag_")),
+  OpHitinputTag_       (ps.get<string>("OpHitInputTag")),
   PenninputTag_        (ps.get<string>("PennInputTag")),
   TPCinputDataProduct_ (ps.get<string>("TPCInputDataProduct")),
   SSPinputDataProduct_ (ps.get<string>("SSPInputDataProduct")),
@@ -683,7 +692,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   // incoming ones.
   prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, TPCinputTag_.instance() );
   prh.reconstitutes<SSPWaveforms_t,art::InEvent>( sourceName_, SSPinputTag_.instance() );
-  prh.reconstitutes<OpHitWaveforms_t,art::InEvent>( sourceName_, OpHitinputTag_.instance() );
+  prh.reconstitutes<OpHits_t,art::InEvent>( sourceName_, OpHitinputTag_.instance() );
   prh.reconstitutes<PennCounters_t,art::InEvent>( sourceName_, PenninputTag_.instance() );
 
   BuildTPCChannelMap(fTPCChannelMapFile, TPCChannelMap);
@@ -699,21 +708,26 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
   
   TPCinputBranch_ = evtree->GetBranch( getBranchName(TPCinputTag_, TPCinputDataProduct_ ) ); // get branch for TPC input tag
   SSPinputBranch_ = evtree->GetBranch( getBranchName(SSPinputTag_, SSPinputDataProduct_ ) ); // get branch for SSP input tag
+  std::cout << "Getting OpHit" << std::endl;
+  OpHitinputBranch_ = evtree->GetBranch( getBranchName(OpHitinputTag_, OpHitinputDataProduct_ ) ); // get branch for OpHit input tag
+  std::cout << "Got OpHit" << std::endl;
   PenninputBranch_ = evtree->GetBranch( getBranchName(PenninputTag_, PenninputDataProduct_ ) ); // get branch for Penn Board input tag
-
+  
   if (TPCinputBranch_) nInputEvts_      = static_cast<size_t>( TPCinputBranch_->GetEntries() );
   size_t nevt_ssp  = 0;
   if (SSPinputBranch_) nevt_ssp = static_cast<size_t>( SSPinputBranch_->GetEntries() );
   size_t nevt_ophit = 0;
+  std::cout << "Another OpHit" << std::endl;
   if (OpHitinputBranch_) nevt_ophit = static_cast<size_t>( OpHitinputBranch_->GetEntries() );
+  std::cout << "Done that bit too" << std::endl;
   size_t nevt_penn  = 0;
   if (PenninputBranch_) nevt_penn  = static_cast<size_t>( PenninputBranch_->GetEntries());
-
+  
   if (nevt_ssp != nInputEvts_&& nevt_ssp) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and SSP input events in file");
   if (nevt_ophit !=  nInputEvts_&& nevt_ophit) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and OpHit input events in file");
   if (nevt_penn != nInputEvts_&& nevt_penn) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and Penn input events in file");
   treeIndex_       = 0ul;
-
+  
   EventAuxBranch_ = evtree->GetBranch( "EventAuxiliary" );
   pevaux_ = &evAux_;
   EventAuxBranch_->SetAddress(&pevaux_);
@@ -1054,7 +1068,7 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
 	if (fRequireRCE) LoadRCEInformation( LoadTree );
       } else {                // If no PTB trigger is present make sure to clear Digits and Waveforms.
 	if (fRequireSSP) loadedWaveforms_.clear(fDebugLevel);
-	if (fRequireOpHit) LoadOpHits_.clear(fDebugLevel);
+	if (fRequireOpHit) loadedOpHits_.clear(fDebugLevel);
 	if (fRequireRCE) loadedDigits_.clear(fDebugLevel);
       }
     } else { // If either not looking for PTB triggers at all, or looking for additional triggers too, then always load RCE/SSP.
@@ -1134,14 +1148,13 @@ void DAQToOffline::Splitter::LoadOpHitInformation( size_t LoadTree ) {
   if (OpHitinputDataProduct_.find("Fragment") != std::string::npos) {
     auto* OpHitfragments = getFragments( OpHitinputBranch_, LoadTree );
     std::vector<recob::OpHit> OpHits = sspReform.SSPHeaderToOpHit(*OpHitfragments);
-    for ( size_t HitLoop=0; HitLoop < waveforms.size(); ++HitLoop ) {
+    for ( size_t HitLoop=0; HitLoop < OpHits.size(); ++HitLoop ) {
       int64_t OpHitTime = OpHits[HitLoop].PeakTime()*fNovaTicksPerSSPTick;
       if (fDebugLevel > 3 )
-	std::cout << "Looking at waveform[" << HitLoop << "] it has channel number " << OpHits[HitLoop].ChannelNumber()
-		  << " and timestamp " << OpHitTime << ", and size " << OpHits[HitLoop].size() << std::endl;
+	std::cout << "Looking at waveform[" << HitLoop << "] it is on channel number " << OpHits[HitLoop].OpChannel() << " at timestamp " << OpHitTime << std::endl;
     }
     
-    if (fDebugLevel > 1) std::cout << "Loaded waveforms has size " << waveforms.size() << std::endl;
+    if (fDebugLevel > 1) std::cout << "Loaded OpHits has size " << OpHits.size() << std::endl;
     loadedOpHits_.load( OpHits, fDebugLevel );
   }
   else {
@@ -1275,7 +1288,7 @@ bool DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPri
   }
   wbuf_ = loadedWaveforms_.TakeAll();
   std::cout << "Called wbuf_.TakeALL() " << std::endl;
-  hbug_ = loadedOpHits_.TakeAll();
+  hbuf_ = loadedOpHits_.TakeAll();
   std::cout << "Called hbuf_.TakeAll()." << std::endl;
   cbuf_ = loadedCounters_.TakeAll();
   std::cout << "Called cbuf_.TakeAll()." << std::endl;
