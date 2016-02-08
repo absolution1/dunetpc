@@ -66,6 +66,7 @@ struct NearlinePlotInfo{
   void AddMetricDetails(std::string metric_details);
   std::string GetMetricMeanTimeGraphName(bool zoom=false);
   std::string GetMetricRmsTimeGraphName(bool zoom=false);
+  std::string GetBinByBinTimeGraphName(unsigned int bin);
   
 
   NearlinePlotInfo(){};
@@ -83,6 +84,13 @@ struct NearlinePlotInfo{
     sprintf(name, "%sChan%04i_%.3i_days.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
     return std::string(name);
   }
+
+  std::string GetHist2DOutputName(){
+    char name[256];
+    sprintf(name, "%sVsTimeChan%04i_%.3i_days.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
+    return std::string(name);
+  }
+
 };
 
 void NearlinePlotInfo::AddMetricDetails(std::string metric_details){
@@ -90,44 +98,66 @@ void NearlinePlotInfo::AddMetricDetails(std::string metric_details){
 }
 
 std::string NearlinePlotInfo::GetMetricMeanTimeGraphName(bool zoom){
-    char name[256];
-    if(zoom) sprintf(name, "%sMeanTimeChan%04i_%.3i_days_zoom.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
-    else sprintf(name, "%sMeanTimeChan%04i_%.3i_days.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
-    return std::string(name);
-  }
+  char name[256];
+  if(zoom) sprintf(name, "%sMeanTimeChan%04i_%.3i_days_zoom.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
+  else sprintf(name, "%sMeanTimeChan%04i_%.3i_days.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
+  return std::string(name);
+}
 
 std::string NearlinePlotInfo::GetMetricRmsTimeGraphName(bool zoom){
-    char name[256];
-    if(zoom) sprintf(name, "%sRmsTimeChan%04i_%.3i_days_zoom.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
-    else sprintf(name, "%sRmsTimeChan%04i_%.3i_days.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
-    return std::string(name);
-  }
+  char name[256];
+  if(zoom) sprintf(name, "%sRmsTimeChan%04i_%.3i_days_zoom.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
+  else sprintf(name, "%sRmsTimeChan%04i_%.3i_days.%s", fMetricName.c_str(), fChannel, fNumDays, fFileExtension.c_str());
+  return std::string(name);
+}
+
+std::string NearlinePlotInfo::GetBinByBinTimeGraphName(unsigned int bin){
+  char name[256];
+  sprintf(name, "%sTimeChan%04iBin%u_%.3i_days.%s", fMetricName.c_str(), fChannel, bin, fNumDays, fFileExtension.c_str());
+  return std::string(name);
+}
+
+
 
 
 struct NearlinePlot{
-  
+
   TH1F* fHistogram;
-  TGraph* fGraphMetricTime;
-  TGraph* fGraphMetricRmsTime;
-
-
   std::string fHistName;
   NearlinePlotInfo fPlotInfo;
   std::string fHistTitle;
 
-  int fNumPoints;
+  bool fMake2DHisto;
+  TH2F* fHistogram2D;
+  TH1F* fHistogram2DNormalisation;
+  bool fNormalised;
+
+
+  TGraph* fGraphMetricTime;
+  TGraph* fGraphMetricRmsTime;
   std::vector<float> fMetricVec;
   std::vector<float> fMetricRmsVec;
   std::vector<float> fTimeVec;
   int fPlotCount;
-  
 
-  NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info);
+  bool fMakeBinByBinPlots;
+  std::vector<TGraph*> fBinByBinGraphMetricTime;
+  std::vector<std::vector<float>> fBinByBinMetricVec;
+  std::vector<std::vector<float>> fBinByBinMetricErrorVec;
+
+  NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, bool make_2d_histo=false, bool make_bin_by_bin_plots=false);
 
 
-  bool AddHistogram(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset);
+  bool AddHistogram(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago);
+  bool AddHistogram1D(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago);
+  bool AddHistogram2D(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago);
   TCanvas* makeHistoCanvas(TPaveText* updateText, int width=1200, int height=800);
+  TCanvas* makeHisto2DCanvas(TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
   TCanvas* makeGraphMetricTimeCanvas(TPaveText* updateText, int time_ago, int XNow, bool rms=false, bool zoom=false, int width=1200, int height=800, std::string taxis_labels="");
+  TCanvas* makeBinByBinGraphTime(unsigned int bin, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
+  void printHistogram1D(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
+  void printHistogram2D(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
+  void printGraphs(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
   void setMetricDetails(std::string metric_details);
 
   //  TCanvas* makeGraphMetricRmsTimeCanvas(int width, int height, TPaveText* updateText, std::string taxis_labels, int time_ago, int XNow, bool zoom=false);
@@ -137,22 +167,31 @@ struct NearlinePlot{
 };
 
 
-NearlinePlot::NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info)
+NearlinePlot::NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, bool make_2d_histo, bool make_bin_by_bin_plots)
 {
 
   fHistogram=0;
-  fGraphMetricTime = 0;
-  fGraphMetricRmsTime = 0;
-
   fHistName = this_hist_name;  
   fPlotInfo = this_plot_info;
   fHistTitle = "";
 
-  fNumPoints = 0;
+  fMake2DHisto=make_2d_histo;
+  fHistogram2D=0;
+  fHistogram2DNormalisation=0;
+  fNormalised = false;
+
   fMetricVec.resize(0);
   fMetricRmsVec.resize(0);
   fTimeVec.resize(0);
   fPlotCount = 0;
+  fGraphMetricTime = 0;
+  fGraphMetricRmsTime = 0;
+
+  fMakeBinByBinPlots=make_bin_by_bin_plots;
+  fBinByBinGraphMetricTime.resize(0);
+  fBinByBinMetricVec.resize(0);
+  fBinByBinMetricErrorVec.resize(0);
+
 }
 
 void NearlinePlot::setHistTitle(std::string hist_title){
@@ -167,14 +206,22 @@ void NearlinePlot::setMetricDetails(std::string metric_details){
   fPlotInfo.AddMetricDetails(metric_details);
 }
 
-bool NearlinePlot::AddHistogram(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset){
 
-  //  std::cerr << "NearlinePlot::AddHistogram - Histogram name: " << fHistName << std::endl;
+bool NearlinePlot::AddHistogram(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago){
+
+  bool result;
+  result = AddHistogram1D(file, header, Xsrtime, XNow, GMToffset, time_ago);
+  if(fMake2DHisto) result = result & AddHistogram2D(file, header, Xsrtime, XNow, GMToffset, time_ago);
+  return result;
+
+}
+
+bool NearlinePlot::AddHistogram1D(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago){
 
   TH1F *hist_temp = (TH1F*)file.FindObjectAny(fHistName.c_str());    
   if(hist_temp != 0){
     if(fHistogram == 0){
-      fHistogram = (TH1F*) hist_temp->Clone((fHistName).c_str());
+      fHistogram = (TH1F*) hist_temp->Clone((fHistName + "_temp").c_str());
       if(fHistTitle!="") fHistogram->SetTitle(fHistTitle.c_str());
       else fHistTitle = fHistogram->GetTitle();
       
@@ -190,6 +237,19 @@ bool NearlinePlot::AddHistogram(TFile const & file, TTree* header, int Xsrtime, 
     fTimeVec.push_back(Xsrtime);
     fMetricVec.push_back(hist_temp->GetMean(1));
     fMetricRmsVec.push_back(hist_temp->GetRMS(1));
+
+    if(fMakeBinByBinPlots){
+      //Initiliase the binbybin vector of vectors
+      if(fBinByBinMetricVec.size()==0){
+        fBinByBinMetricVec.resize(hist_temp->GetNbinsX());
+        fBinByBinMetricErrorVec.resize(hist_temp->GetNbinsX());
+      }
+      for(int bin=1; bin<=hist_temp->GetNbinsX();bin++){
+        fBinByBinMetricVec.at(bin-1).push_back(hist_temp->GetBinContent(bin));
+        fBinByBinMetricErrorVec.at(bin-1).push_back(hist_temp->GetBinError(bin));
+      }
+    }//fMakeBinByBinPlots
+
     fPlotCount++;
     //    std::cerr << "NearlinePlot::AddHistogram - Success" << std::endl;
     return true;
@@ -199,6 +259,53 @@ bool NearlinePlot::AddHistogram(TFile const & file, TTree* header, int Xsrtime, 
   return false;
 
 }
+
+bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago){
+
+  TH1F *hist_temp = (TH1F*)file.FindObjectAny(fHistName.c_str());    
+  if(hist_temp != 0){
+    if(fHistogram2D == 0){
+      int nbinsx = hist_temp->GetNbinsX();
+      double xmin = hist_temp->GetBinLowEdge(1);
+      double xmax = hist_temp->GetBinLowEdge(1+nbinsx);
+      int nbinst = 72;//FIXME
+      double tmin = time_ago;
+      double tmax = XNow;
+      fHistogram2D = new TH2F((fHistName + "_vs_time").c_str(), (std::string(hist_temp->GetTitle()) + " - vs Time").c_str(), nbinst, tmin, tmax, nbinsx, xmin, xmax);
+      //      fHistogram2D->GetXaxis()->SetTitle("x axis");
+      fHistogram2D->GetYaxis()->SetTitle(hist_temp->GetXaxis()->GetTitle());
+      fHistogram2D->GetZaxis()->SetTitle(hist_temp->GetYaxis()->GetTitle());
+
+      //Also make the normalisation histogram
+      fHistogram2DNormalisation = new TH1F((fHistName + "_normalisation").c_str(), (std::string(hist_temp->GetName()) + " Normalisation").c_str(), nbinst, tmin, tmax);
+
+      //Make sure we keep the histograms in memory
+      fHistogram2D->SetDirectory(0);
+      fHistogram2DNormalisation->SetDirectory(0);
+
+    }//make TH2
+  }//Got TH1
+  else{
+    std::cerr << "NearlinePlot::AddHistogram2D - Failed to find histogram - " << fHistName << std::endl;
+    return false;
+  }
+  if(hist_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {  
+    //Now add this th1 to the th2
+    int nbins = hist_temp->GetNbinsX();
+    for(int i=0;i<nbins;i++){
+      double content = hist_temp->GetBinContent(i);
+      double center = hist_temp->GetBinCenter(i);
+      fHistogram2D->Fill(Xsrtime, center, content);
+    }//loops over the histogram bins
+    
+    //Add Entry to our normalisation
+    fHistogram2DNormalisation->Fill(Xsrtime);
+    return true;
+  }
+  std::cerr << "NearlinePlot::AddHistogram2D - Failed - Shouldn't get here" << std::endl;  
+  return false;
+}
+
 
 TCanvas* NearlinePlot::makeHistoCanvas(TPaveText* updateText, int width, int height){
 
@@ -211,10 +318,113 @@ TCanvas* NearlinePlot::makeHistoCanvas(TPaveText* updateText, int width, int hei
   gStyle->SetOptStat(111111);
   fHistogram->SetLineWidth(2);
   fHistogram->SetLineColor(kRed);
+  fHistogram->SetName(fHistName.c_str());
   fHistogram->Draw();
   updateText->Draw();
 
+
   return can;
+}
+
+TCanvas* NearlinePlot::makeHisto2DCanvas(TPaveText* updateText, int time_ago, int XNow, int width, int height, std::string taxis_labels){
+
+  std::string can_name = fHistName + "_vs_time_can";
+  std::string can_title = fHistName + "_vs_time_can";
+
+  TCanvas *can = new TCanvas(can_name.c_str(), can_title.c_str(), width, height);
+  can->cd();
+  can->SetLogz();
+  gStyle->SetOptStat(0);
+  if(taxis_labels==""){
+    if(fPlotInfo.fNumDays <= 2) taxis_labels = "%H:%M";
+    else taxis_labels = "%m/%d";
+  }
+
+  if(fNormalised!=true){
+    for(int xbin=1;xbin<=fHistogram2D->GetNbinsX();xbin++){
+      double norm = fHistogram2DNormalisation->GetBinContent(xbin);
+      if(norm <= 0.0) continue;
+      for(int ybin=1;ybin<=fHistogram2D->GetNbinsY();ybin++){
+        int global_bin = fHistogram2D->GetBin(xbin, ybin);
+        double content = fHistogram2D->GetBinContent(global_bin);
+        fHistogram2D->SetBinContent(global_bin, content/norm);
+      }//ybin
+    }//xbin
+    fNormalised=true;
+  }//Normalise
+
+
+  fHistogram2D->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  fHistogram2D->GetXaxis()->SetLimits(time_ago,XNow);
+  fHistogram2D->GetXaxis()->SetTitle("(central time)");
+  fHistogram2D->GetXaxis()->SetTimeDisplay(1);
+  fHistogram2D->GetXaxis()->SetLabelSize(0.03);
+  fHistogram2D->Draw("COLZ");
+  updateText->Draw();
+
+
+  return can;
+}
+
+TCanvas* NearlinePlot::makeBinByBinGraphTime(unsigned int bin, TPaveText* updateText, int time_ago, int XNow, int width, int height, std::string taxis_labels){
+
+
+  if(bin >= fBinByBinMetricVec.size()) return NULL;
+
+  std::string can_name = fHistName + "_time_bin_" + std::to_string(bin);
+  std::string can_title = "Mean of " + fHistTitle + " Bin " + std::to_string(bin);
+
+  TCanvas* can = new TCanvas(can_name.c_str(), can_title.c_str(), width, height);
+  can->cd();
+  gPad->SetGridx();
+
+  TGraph* gr = new TGraph(fPlotCount);
+  for(int i=0;i<fPlotCount;i++) gr->SetPoint(i, fTimeVec.at(i), fBinByBinMetricVec.at(bin).at(i));//FIXME add errors
+  
+  gr->SetMarkerColor(kBlue);
+  gr->GetXaxis()->SetTimeDisplay(1);
+  gr->GetXaxis()->SetLabelSize(0.03);
+
+  if(taxis_labels==""){
+    if(fPlotInfo.fNumDays <= 2) taxis_labels = "%H:%M";
+    else taxis_labels = "%m/%d";
+  }
+
+  gr->GetXaxis()->SetTimeFormat(taxis_labels.c_str());
+  gr->GetXaxis()->SetLimits(time_ago,XNow);
+  gr->GetXaxis()->SetTitle("(central time)");
+  gr->Draw("A*");
+
+  updateText->Draw();
+
+  int maxtime = 0;
+  double max  = 0.0, ave = 0.0;
+  TPaveText *LastPoint = new TPaveText(0.3,0.88,0.93,0.93,"NDC");
+  LastPoint->SetLineColor(1);
+  LastPoint->SetFillColor(0);
+  LastPoint->SetBorderSize(1);
+  char lptext[128];
+  maxtime = 0;
+  max = 0.0;
+  ave = 0.0;
+  for(int i = 0; i < fPlotCount; ++i) {
+    ave += (double)fMetricVec.at(i);
+    if(fTimeVec.at(i) > maxtime) {
+      maxtime = fTimeVec.at(i);
+      max     = fMetricVec.at(i);
+    }
+  }
+  if(fPlotCount > 0) ave = ave/(double)fPlotCount;
+  sprintf(lptext,"Last Point = %f  /  Average = %f",max,ave);
+  LastPoint->Clear();
+  LastPoint->AddText(lptext);
+
+
+  LastPoint->Draw();
+
+  return can;
+  
+
 }
 
 TCanvas* NearlinePlot::makeGraphMetricTimeCanvas(TPaveText* updateText, int time_ago, int XNow, bool rms, bool zoom, int width, int height, std::string taxis_labels){
@@ -302,6 +512,72 @@ TCanvas* NearlinePlot::makeGraphMetricTimeCanvas(TPaveText* updateText, int time
   
 }
 
+void NearlinePlot::printHistogram1D(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width, int height, std::string taxis_labels){
+  TCanvas* can = makeHistoCanvas(updateText,  width,  height);
+  std::string can_name = plot_dir + "/" + fPlotInfo.GetHistOutputName();
+  can->Print(can_name.c_str());
+  delete can;
+}
+
+void NearlinePlot::printHistogram2D(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width, int height, std::string taxis_labels){
+  TCanvas* can = makeHisto2DCanvas(updateText, time_ago, XNow,  width,  height, taxis_labels);
+  std::string can_name = plot_dir + "/" + fPlotInfo.GetHist2DOutputName();
+  can->Print(can_name.c_str());
+  delete can;
+}
+
+void NearlinePlot::printGraphs(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width, int height, std::string taxis_labels){
+
+  bool zoom;
+  bool rms;
+  TCanvas *can;
+  std::string can_name;
+
+  rms=false;  
+
+  zoom=false;
+  can = makeGraphMetricTimeCanvas(updateText, time_ago, XNow, rms, zoom);
+  can_name = plot_dir + "/" + fPlotInfo.GetMetricMeanTimeGraphName(zoom);
+  can->Print(can_name.c_str());
+
+  delete can;
+
+  zoom=true;
+  can = makeGraphMetricTimeCanvas(updateText, time_ago, XNow, rms, zoom);
+  can_name = plot_dir + "/" + fPlotInfo.GetMetricMeanTimeGraphName(zoom);
+  can->Print(can_name.c_str());
+  
+  delete can;
+
+  rms=true;  
+
+  zoom=false;
+  can = makeGraphMetricTimeCanvas(updateText, time_ago, XNow, rms, zoom);
+  can_name = plot_dir + "/" + fPlotInfo.GetMetricRmsTimeGraphName(zoom);
+  can->Print(can_name.c_str());
+
+  delete can;
+
+  zoom=true;
+  can = makeGraphMetricTimeCanvas(updateText, time_ago, XNow, rms, zoom);
+  can_name = plot_dir + "/" + fPlotInfo.GetMetricRmsTimeGraphName(zoom);
+  can->Print(can_name.c_str());
+  
+  delete can;
+
+  if(fMakeBinByBinPlots){
+    for(unsigned int bin=0;bin<fBinByBinMetricVec.size();bin++){
+      can = makeBinByBinGraphTime(bin, updateText, time_ago, XNow);
+      can_name = plot_dir + "/" + fPlotInfo.GetBinByBinTimeGraphName(bin);
+      can->Print(can_name.c_str());
+      delete can;
+    }//bin
+  }
+
+}
+
+
+
 struct NearlineHTML{
 
   static std::string MakeStartYearPlot(std::string relative_plot_path){
@@ -343,6 +619,51 @@ struct NearlineHTML{
     output += "</figure>\n"; 
     return output;
   }
+
+  static std::string MakeHistogram2D(std::string plot_location, NearlinePlotInfo plot_info){
+
+    std::string metric_name = plot_info.fMetricName;
+    int channel = plot_info.fChannel;
+    std::string metric_details = plot_info.fMetricDetails;
+    plot_location = plot_location + "/" + plot_info.GetHist2DOutputName();
+
+    std::string output;
+    output += "<hr>\n";
+    output += "<h3>" + metric_name + " spectrum vs. time for channel # " + std::to_string(channel);
+    if(metric_details!="") output += " " + metric_details; 
+    output += ".</h3>\n";
+    output += "<figure>\n";
+    output += "<img src=\"" + plot_location + "\" width=\"800\">\n"; 
+    output += "</figure>\n"; 
+    return output;
+
+  }
+
+  static std::string MakeHistogramPair(std::string plot_location, NearlinePlotInfo plot_info){
+
+    std::string metric_name = plot_info.fMetricName;
+    int channel = plot_info.fChannel;
+    std::string metric_details = plot_info.fMetricDetails;
+
+    std::string plot_location_histo = plot_location + "/" + plot_info.GetHistOutputName();
+    std::string plot_location_histo2d = plot_location + "/" + plot_info.GetHist2DOutputName();
+
+    std::string output;
+    output += "<hr>\n";
+    output += "<h3>" + metric_name + " spectrum  for channel # " + std::to_string(channel);
+    if(metric_details!="") output += " " + metric_details; 
+    output += ".</h3>\n";
+    output += "<table>\n";
+    output += "<tr>\n";
+    output += "<td> <img src=\"" + plot_location_histo + "\" width=\"800\"></td>\n"; 
+    output += "<td> <img src=\"" + plot_location_histo2d + "\" width=\"800\"></td>\n"; 
+    output += "</tr>\n";
+    output += "</table>\n";
+
+    return output;
+
+  }
+
   
   static std::string MakeGraphPair(std::string plot_location, NearlinePlotInfo plot_info, bool rms){
 
@@ -385,7 +706,11 @@ struct NearlineHTML{
     std::string metric_name = plot_info.fMetricName;
     std::string output;
     output += "\n\n\n";
-    output += MakeHistogram(plot_location, plot_info);
+    /* output += MakeHistogram(plot_location, plot_info); */
+    /* output += "\n"; */
+    /* output += MakeHistogram2D(plot_location, plot_info); */
+    /* output += "\n"; */
+    output += MakeHistogramPair(plot_location, plot_info);
     output += "\n";
     output += MakeGraphPair(plot_location, plot_info, false);
     output += "\n";
