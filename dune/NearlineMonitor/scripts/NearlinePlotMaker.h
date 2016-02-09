@@ -54,9 +54,21 @@ unsigned int subrun;
 UInt_t LastRun;
 UInt_t LastSR;
 
+struct NearlinePlotLogScale{
+  bool fMetricTimeGraphLog;
+  bool fHisto1DLog;
+  bool fHisto2DLog;
+  bool fBinByBinLog;
+  NearlinePlotLogScale(bool metric_time_graph_log=true, bool histo_1d_log=true, bool histo_2d_log=true, bool bin_by_bin_log=true){
+    fMetricTimeGraphLog=metric_time_graph_log;
+    fHisto1DLog=histo_1d_log;
+    fHisto2DLog=histo_2d_log;
+    fBinByBinLog=bin_by_bin_log;
+  }
+};
+
 
 struct NearlinePlotEnables{
-
   bool fMakeMetricTimeGraph;
   bool fMake2DHisto;
   bool fMakeBinByBinPlots;
@@ -149,6 +161,7 @@ std::string NearlinePlotInfo::GetBinByBinTimeGraphName(unsigned int bin){
 struct NearlinePlot{
 
   NearlinePlotEnables fPlotEnables;
+  NearlinePlotLogScale fPlotLogScale;
 
   TH1F* fHistogram;
   std::string fHistName;
@@ -170,7 +183,8 @@ struct NearlinePlot{
   std::vector<std::vector<float>> fBinByBinMetricVec;
   std::vector<std::vector<float>> fBinByBinMetricErrorVec;
 
-  NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, bool normalise_histo_1d=false, bool make_metric_time_graph=true, bool make_2d_histo=true, bool make_bin_by_bin_plots=false);
+  NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, NearlinePlotEnables this_plot_enable=NearlinePlotEnables(), NearlinePlotLogScale this_plot_log_scale=NearlinePlotLogScale());
+
 
 
   bool AddHistogram(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago);
@@ -194,21 +208,21 @@ struct NearlinePlot{
 };
 
 
-NearlinePlot::NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, bool normalise_histo_1d, bool make_metric_time_graph, bool make_2d_histo, bool make_bin_by_bin_plots)
+NearlinePlot::NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, NearlinePlotEnables this_plot_enable, NearlinePlotLogScale this_plot_log_scale)
 {
+
+  fPlotEnables=this_plot_enable;
+  fPlotLogScale=this_plot_log_scale;
 
   fHistogram=0;
   fHistName = this_hist_name;  
   fPlotInfo = this_plot_info;
   fHistTitle = "";
-  fPlotEnables.fNormaliseHisto1D=normalise_histo_1d;
 
-  fPlotEnables.fMake2DHisto=make_2d_histo;
   fHistogram2D=0;
   fHistogram2DNormalisation=0;
   fNormalised = false;
 
-  fPlotEnables.fMakeMetricTimeGraph=make_metric_time_graph;
   fMetricVec.resize(0);
   fMetricRmsVec.resize(0);
   fTimeVec.resize(0);
@@ -216,7 +230,6 @@ NearlinePlot::NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plo
   fGraphMetricTime = 0;
   fGraphMetricRmsTime = 0;
 
-  fPlotEnables.fMakeBinByBinPlots=make_bin_by_bin_plots;
   fBinByBinGraphMetricTime.resize(0);
   fBinByBinMetricVec.resize(0);
   fBinByBinMetricErrorVec.resize(0);
@@ -312,6 +325,16 @@ bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime
       fHistogram2D->SetDirectory(0);
       fHistogram2DNormalisation->SetDirectory(0);
 
+      //Get bin labels
+      int nbins = hist_temp->GetNbinsX();
+      for(int i=0;i<=nbins+1;i++){
+	std::string label = hist_temp->GetXaxis()->GetBinLabel(i);
+	if(label != "") {
+	  fHistogram2D->GetYaxis()->SetBinLabel(i, label.c_str());
+	  fHistogram2D->GetYaxis()->SetLabelSize(hist_temp->GetXaxis()->GetLabelSize());
+	}
+      }//bins
+
     }//make TH2
   }//Got TH1
   else{
@@ -321,7 +344,7 @@ bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime
   if(hist_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {  
     //Now add this th1 to the th2
     int nbins = hist_temp->GetNbinsX();
-    for(int i=0;i<nbins;i++){
+    for(int i=0;i<=nbins+1;i++){
       double content = hist_temp->GetBinContent(i);
       double center = hist_temp->GetBinCenter(i);
       fHistogram2D->Fill(Xsrtime, center, content);
@@ -350,7 +373,7 @@ TCanvas* NearlinePlot::makeHistoCanvas(TPaveText* updateText, int width, int hei
   can->cd();
   gPad->SetGridx();
   gPad->SetGridy();
-  can->SetLogy();
+  if(fPlotLogScale.fHisto1DLog) can->SetLogy();
   gStyle->SetOptStat(111111);
   fHistogram->SetLineWidth(2);
   fHistogram->SetLineColor(kRed);
@@ -369,7 +392,7 @@ TCanvas* NearlinePlot::makeHisto2DCanvas(TPaveText* updateText, int time_ago, in
 
   TCanvas *can = new TCanvas(can_name.c_str(), can_title.c_str(), width, height);
   can->cd();
-  can->SetLogz();
+  if(fPlotLogScale.fHisto2DLog)  can->SetLogz();
   can->SetRightMargin(0.15);
   gStyle->SetOptStat(0);
   gPad->SetGridx();
