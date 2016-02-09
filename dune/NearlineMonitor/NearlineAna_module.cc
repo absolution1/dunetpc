@@ -449,6 +449,8 @@ void nearline::NearlineAna::makeHitsPerEventPlots(){
        "(offline) " + std::to_string(channel));
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
+    histTemp->GetXaxis()->SetTitle("Hits per Event");
+    histTemp->GetYaxis()->SetTitle("Events");
     fVecHitsPerEventPlots.push_back(histTemp);
     if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
@@ -477,6 +479,8 @@ void nearline::NearlineAna::makePedestalPerEventPlots(){
        "(offline) " + std::to_string(channel));
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
+    histTemp->GetXaxis()->SetTitle("ADC");
+    histTemp->GetYaxis()->SetTitle("Events");
     fVecPedestalPerEventPlots.push_back(histTemp);
     if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
@@ -506,6 +510,8 @@ void nearline::NearlineAna::makePedestalPerTickPlots(){
        "(offline) " + std::to_string(channel));
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
+    histTemp->GetXaxis()->SetTitle("ADC");
+    histTemp->GetYaxis()->SetTitle("Events");
     fVecPedestalPerTickPlots.push_back(histTemp);
     if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }

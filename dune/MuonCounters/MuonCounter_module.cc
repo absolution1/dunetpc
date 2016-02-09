@@ -294,6 +294,7 @@ void Muoncounter::endJob()
   fHist1->GetYaxis()->SetTitle("Frequency, [Hz]. (No Hits/Run Time)");
   fHist1->GetYaxis()->SetTitleOffset(1.3);
 
+  fHist2->GetXaxis()->SetTitle("Counter Number");
   fHist2->GetYaxis()->SetTitle("Frequency, [Hz]. (No Hits/Run Time)");
   fHist2->GetYaxis()->SetTitleOffset(1.3);
 
@@ -340,7 +341,7 @@ void Muoncounter::endJob()
 
   for(int i = 48; i < 59; i++)
   {
-    TString label = Form("Telescope%i", i);
+    TString label = Form("Tel%i", i);
     fHist2->GetXaxis()->SetBinLabel(i-47, label);
   }
   for(int i = 59; i < 65; i++)
@@ -355,7 +356,7 @@ void Muoncounter::endJob()
   }
   for(int i = 74; i < 98; i++)
   {
-    TString label = Form("Telescope%i", i);
+    TString label = Form("Tel%i", i);
     fHist2->GetXaxis()->SetBinLabel(i-47, label);
   }
   fHist2->GetXaxis()->SetLabelSize(0.025);

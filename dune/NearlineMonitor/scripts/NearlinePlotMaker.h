@@ -319,7 +319,6 @@ bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime
     for(int i=0;i<nbins;i++){
       double content = hist_temp->GetBinContent(i);
       double center = hist_temp->GetBinCenter(i);
-      if(content<=0.0) continue;
       fHistogram2D->Fill(Xsrtime, center, content);
     }//loops over the histogram bins
     
