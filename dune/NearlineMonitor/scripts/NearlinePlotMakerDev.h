@@ -60,10 +60,12 @@ struct NearlinePlotEnables{
   bool fMakeMetricTimeGraph;
   bool fMake2DHisto;
   bool fMakeBinByBinPlots;
-  NearlinePlotEnables(bool make_metric_time_graph=true, bool make_2d_histo=true, bool make_bin_by_bin_plots=false){
+  bool fNormaliseHisto1D;
+  NearlinePlotEnables(bool normalise_histo_1d=false, bool make_metric_time_graph=true, bool make_2d_histo=true, bool make_bin_by_bin_plots=false){
     fMakeMetricTimeGraph=make_metric_time_graph;
     fMake2DHisto=make_2d_histo;
     fMakeBinByBinPlots=make_bin_by_bin_plots;
+    fNormaliseHisto1D=normalise_histo_1d;
   }
 };
 
@@ -168,12 +170,14 @@ struct NearlinePlot{
   std::vector<std::vector<float>> fBinByBinMetricVec;
   std::vector<std::vector<float>> fBinByBinMetricErrorVec;
 
-  NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, bool make_metric_time_graph=true, bool make_2d_histo=true, bool make_bin_by_bin_plots=false);
+  NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, bool normalise_histo_1d=false, bool make_metric_time_graph=true, bool make_2d_histo=true, bool make_bin_by_bin_plots=false);
 
 
   bool AddHistogram(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago);
   bool AddHistogram1D(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago);
   bool AddHistogram2D(TFile const & file, TTree* header, int Xsrtime, int XNow, int GMToffset, int time_ago);
+  void normaliseHisto1D();
+  
   TCanvas* makeHistoCanvas(TPaveText* updateText, int width=1200, int height=800);
   TCanvas* makeHisto2DCanvas(TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
   TCanvas* makeGraphMetricTimeCanvas(TPaveText* updateText, int time_ago, int XNow, bool rms=false, bool zoom=false, int width=1200, int height=800, std::string taxis_labels="");
@@ -190,13 +194,14 @@ struct NearlinePlot{
 };
 
 
-NearlinePlot::NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, bool make_metric_time_graph, bool make_2d_histo, bool make_bin_by_bin_plots)
+NearlinePlot::NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, bool normalise_histo_1d, bool make_metric_time_graph, bool make_2d_histo, bool make_bin_by_bin_plots)
 {
 
   fHistogram=0;
   fHistName = this_hist_name;  
   fPlotInfo = this_plot_info;
   fHistTitle = "";
+  fPlotEnables.fNormaliseHisto1D=normalise_histo_1d;
 
   fPlotEnables.fMake2DHisto=make_2d_histo;
   fHistogram2D=0;
@@ -330,8 +335,13 @@ bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime
   return false;
 }
 
+void NearlinePlot::normaliseHisto1D(){
+  if(fPlotCount>0) fHistogram->Scale(1./fPlotCount);
+}
 
 TCanvas* NearlinePlot::makeHistoCanvas(TPaveText* updateText, int width, int height){
+
+  if(fPlotEnables.fNormaliseHisto1D) normaliseHisto1D();
 
   std::string can_name = fHistName + "_can";
   std::string can_title = fHistName + "_can";

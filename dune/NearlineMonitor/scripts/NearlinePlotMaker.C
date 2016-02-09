@@ -216,20 +216,21 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     NearlinePlot *this_plot;
     NearlinePlotInfo this_plot_info;
     int channel = -1;
+    bool normalise_histo1d=true;
     bool make_average_rms_time_plots = false;
     bool make_2d_histos = true;
     bool make_bin_by_bin_plots = false;
     
     this_plot_info = NearlinePlotInfo("TSU Counter Rates", channel, Ndays, "png");
-    this_plot = new NearlinePlot("TSUs", this_plot_info, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
+    this_plot = new NearlinePlot("TSUs", this_plot_info, normalise_histo1d, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
     NearlinePlotVec.push_back(this_plot);
 
     this_plot_info = NearlinePlotInfo("BSU Counter Rates", channel, Ndays, "png");
-    this_plot = new NearlinePlot("BSUs", this_plot_info, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
+    this_plot = new NearlinePlot("BSUs", this_plot_info, normalise_histo1d, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
     NearlinePlotVec.push_back(this_plot);
 
     this_plot_info = NearlinePlotInfo("Counter Trigger Rates", channel, Ndays, "png");
-    this_plot = new NearlinePlot("Triggers", this_plot_info, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
+    this_plot = new NearlinePlot("Triggers", this_plot_info, normalise_histo1d, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
     NearlinePlotVec.push_back(this_plot);
     
   }
