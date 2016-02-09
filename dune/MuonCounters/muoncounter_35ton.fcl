@@ -1,0 +1,55 @@
+#include "services_dune.fcl"
+#include "PTBToOffline.fcl"
+#include "caldata_dune.fcl"
+#include "hitfindermodules_dune.fcl"
+#include "MuonCounter.fcl"
+
+process_name: Reco
+
+source:
+{
+  module_type: RootInput
+               maxEvents:  -1      # Number of events to create
+}
+
+services:
+{
+# Load the service that manages root files for histograms.
+  TFileService: { fileName: "counter_Frequencies.root" }
+# Timing:       {}
+# SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
+  user: @local::dune35t_services
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type:  RootOutput
+    fileName:     "standard_reco.root" #default file name, can override from command line with -o or --output
+  }
+}
+
+physics:
+{
+  analyzers:
+  {
+    muoncounter:     @local::muoncounter
+  }
+
+# reco: [] #, fasthit, dcheat]
+
+ana: [muoncounter]
+
+stream1: [out1]
+
+# trigger_paths: [reco] 
+
+# end_paths: [stream1, ana] 
+end_paths: [ana] 
+
+}
+
+# cable and electronics delay for counter signals
+physics.analyzers.muoncounter.CombinedTimeDelay:  160.0
+# physics.analyzers.hitdumper.CounterModuleLabel: "ptbtooffline:offlineTrigger"
