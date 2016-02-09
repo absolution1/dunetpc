@@ -51,4 +51,5 @@ outputs:
 #
 }
 
- 
+# temporary fix for DB access issues
+services.user.IDetPedestalService.DetPedestalDUNE.CSVFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_9754.csv"

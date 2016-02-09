@@ -99,6 +99,7 @@ art_Framework_Services_Registry
 art_Framework_Services_Optional
 art_Framework_Services_Optional_TFileService_service
 ${ROOT_HIST}
+${ROOT_SPECTRUM}
 )
 
 simple_plugin(TpcDAQToOffline "module"
