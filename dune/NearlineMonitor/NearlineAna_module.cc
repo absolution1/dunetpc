@@ -36,9 +36,7 @@
 
 //dunetpc
 #include "dune/daqinput35t/tpcFragmentToRawDigits.h" //JPD - For online channel map
-
-const int NearlineMinorVersion=2;
-const int NearlineMajorVersion=0;
+#include "dune/NearlineMonitor/NearlineVersion.h"
 
 namespace nearline {
   class NearlineAna;

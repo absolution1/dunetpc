@@ -29,4 +29,5 @@ art_make_exec( NearlineSummariser
 )
 
 install_fhicl()
+install_headers()
 

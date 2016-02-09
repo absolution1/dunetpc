@@ -43,12 +43,11 @@
 #include "TString.h"
 #include "TText.h"
 
-//PTB online to offline converter alg
-
+#include "dune/NearlineMonitor/NearlineVersion.h"
 
 const int kMaxHits       = 10000; //maximum number of hits
 const int kMaxAuxDets = 100;
-//const unsigned short kMaxTkIDs = 100;
+
 namespace MyMuoncounter {
 
 class Muoncounter : public art::EDAnalyzer {
@@ -56,33 +55,16 @@ public:
   explicit Muoncounter(fhicl::ParameterSet const & p);
   virtual ~Muoncounter();
 
-   // This method is called once, at the start of the job. In this
-    // example, it will define the histograms and n-tuples we'll write.
     void beginJob();
     void endJob();
 
-    // This method is called once, at the start of each run. It's a
-    // good place to read databases or files that may have
-    // run-dependent information.
-  //    void beginRun(const art::Run& run);
-
-    // This method reads in any parameters from the .fcl files. This
-    // method is called 'reconfigure' because it might be called in the
-    // middle of a job; e.g., if the user changes parameter values in an
-    // interactive event display.
     void reconfigure(fhicl::ParameterSet const& pset);
-
-    // The analysis routine, called once per event. 
     void analyze (const art::Event& evt); 
 
 private:
 
-  void ResetVars();
   
   int total_Hits;
-  int run;
-  int subrun;
-  int event;
   int l_TSU = 0;   
   int u_TSU = 47;  
   int l_BSU = 48;  
@@ -100,10 +82,49 @@ private:
   std::string fCounterModuleLabel;
   std::string fFragType;
   std::string fRawDataLabel;
+
+  // Variables needed for the header info tree for Nearline:
+  TTree*       fHeader;
+  unsigned int fRun;
+  unsigned int fSubrun;
+  int          fFirstEvent;
+  int          fLastEvent;
+  int          fNevents;
+  unsigned int fStartYear;
+  unsigned int fEndYear;
+  unsigned int fStartMonth;
+  unsigned int fEndMonth;
+  unsigned int fStartDay;
+  unsigned int fEndDay;
+  double       fStartHour;
+  double       fEndHour;
+  unsigned long long int fStartTime;
+  unsigned long long int fEndTime;
+
+  //Histogram to store the 
+  TH1I* fHistNearlineVersion;
+
+
 };
 
 Muoncounter::Muoncounter(fhicl::ParameterSet const& pset)
-  : EDAnalyzer(pset)
+  : EDAnalyzer(pset),
+  fHeader(0),
+  fRun(0),
+  fSubrun(0),
+  fFirstEvent(1e9),
+  fLastEvent(-1),
+  fNevents(0),
+  fStartYear(0),
+  fEndYear(0),
+  fStartMonth(0),
+  fEndMonth(0),
+  fStartDay(0),
+  fEndDay(0),
+  fStartHour(0.0),
+  fEndHour(0.0),
+  fStartTime(-1), // this is an unsigned int so it will default to a huge number
+  fEndTime(0)
 {
    // Read in the parameters from the .fcl file.
     this->reconfigure(pset);
@@ -129,13 +150,26 @@ Muoncounter::~Muoncounter()
 
 void Muoncounter::analyze(const art::Event& evt)
 {
-  // Implementation of required member function here.
-  ResetVars();
 
-  art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::LArProperties> larprop;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::TimeService> timeserv;
+  // Get event number / timing information required by Nearline
+  //
+  // Extract event info for the header...
+  //
+  unsigned int           run    = evt.run();
+  unsigned int           subrun = evt.subRun();
+  unsigned int           event  = evt.id().event();
+  unsigned long long int time   = evt.time().value();
+
+  fNevents++;
+  fRun    = run;
+  fSubrun = subrun;
+
+  // Don't assume first/last events are coorelated with start/end times...
+  if(time < fStartTime && evt.time() != art::Timestamp::invalidTimestamp())        fStartTime = time;
+  if((int)event < fFirstEvent) fFirstEvent = event;
+  if(time > fEndTime)          fEndTime = time;
+  if((int)event > fLastEvent)  fLastEvent = event;
+
 
   run = evt.run();
   subrun = evt.subRun();
@@ -203,6 +237,32 @@ void Muoncounter::beginJob()
   fHist1 = tfs->make<TH1D>("h1", "h1", u_TSU-l_TSU+1, l_TSU, u_TSU+1); 
   fHist2 = tfs->make<TH1D>("h2", "h2", u_BSU-l_BSU, l_BSU, u_BSU); 
   fHist3 = tfs->make<TH1D>("h3", "h3", u_Trig-l_Trig, l_Trig, u_Trig);
+
+  //Making the Nearline header information tree
+  fHeader = tfs->make<TTree>("Header","Subrun Information");
+  
+  fHeader->Branch("Run",&fRun);
+  fHeader->Branch("Subrun",&fSubrun);
+  fHeader->Branch("FirstEvent",&fFirstEvent);
+  fHeader->Branch("LastEvent",&fLastEvent);
+  fHeader->Branch("Nevents",&fNevents);
+  fHeader->Branch("StartYear",&fStartYear);
+  fHeader->Branch("StartMonth",&fStartMonth);
+  fHeader->Branch("StartDay",&fStartDay);
+  fHeader->Branch("StartHour",&fStartHour);
+  fHeader->Branch("EndYear",&fEndYear);
+  fHeader->Branch("EndMonth",&fEndMonth);
+  fHeader->Branch("EndDay",&fEndDay);
+  fHeader->Branch("EndHour",&fEndHour);
+
+  // Set Nearline Version Number
+  fHistNearlineVersion = tfs->make<TH1I>("hist_nearline_version", "hist_nearline_version", 2, 0, 2);
+  fHistNearlineVersion->GetXaxis()->SetBinLabel(1,"NearlineMinorVersion");
+  fHistNearlineVersion->GetXaxis()->SetBinLabel(2,"NearlineMajorVersion");
+  fHistNearlineVersion->SetBinContent(1, NearlineMinorVersion);
+  fHistNearlineVersion->SetBinContent(2, NearlineMajorVersion);
+
+
 }
 
 void Muoncounter::endJob()
@@ -216,12 +276,12 @@ void Muoncounter::endJob()
   fHist2->Scale(1/total_Time);
   fHist3->Scale(1/total_Time);
 
-  TString fHist1_Title = Form("TSU Frequency, Run %i", run);
-  TString fHist2_Title = Form("BSU Frequency, Run %i", run);
-  TString fHist3_Title = Form("Trigger Frequency, Run %i", run);
-  TString fHist1_Name  = Form("%i_TSUs", run);
-  TString fHist2_Name  = Form("%i_BSUs", run);
-  TString fHist3_Name  = Form("%i_Triggers", run);
+  TString fHist1_Title = Form("TSU Frequency");
+  TString fHist2_Title = Form("BSU Frequency");
+  TString fHist3_Title = Form("Trigger Frequency");
+  TString fHist1_Name  = Form("TSUs");
+  TString fHist2_Name  = Form("BSUs");
+  TString fHist3_Name  = Form("Triggers");
 
   fHist1->SetTitle(fHist1_Title);
   fHist1->SetName(fHist1_Name);
@@ -303,14 +363,59 @@ void Muoncounter::endJob()
   fHist3->GetXaxis()->SetBinLabel(, "Trigger 1");
   fHist3->GetXaxis()->SetBinLabel(, "Trigger 2");
   fHist3->GetXaxis()->SetBinLabel(, "Trigger 3");*/
+
+
+  //
+  // Compute header info.
+  //
+
+  //
+  // DISECTING the time from evt.time().value() into "human readable" format to display the date & time
+  //
+  unsigned int hour, minute, second;
+  int          nano;
+
+  // Get the time stamp.  art::Timestamp::value() returns a TimeValue_t which is a typedef to unsigned long long.
+  // The conventional use is for the upper 32 bits to have the seconds since 1970 epoch and the lower 32 bits to be
+  // the number of nanoseconds with the current second.
+  //
+  // NOTE: It seems that the above is NOT the convention for the 35t events. They only seem to use the lower 32 bits
+  //       for the year/month/day/hour/second. For now, I have reversed the values of lup and llo to get the time right.
+  //
+  //       THESE VARIABLES WILL NEED TO BE SWITCHED BACK IF USING THE LOWER 32 BITS FOR NANOSECONDS IS IMPLEMENTED!!!
+
+
+  const unsigned long int mask32 = 0xFFFFFFFFUL;
+
+  // taking start time apart
+
+  // unsigned long int lup = ( fStartTime >> 32 ) & mask32;
+  // unsigned long int llo = fStartTime & mask32;
+  unsigned long int llo = ( fStartTime >> 32 ) & mask32; // reversed value (see above comment)
+  unsigned long int lup = fStartTime & mask32;           // reversed value (see above comment)
+  TTimeStamp ts1(lup, (int)llo);
+  ts1.GetDate(kTRUE,0,&fStartYear,&fStartMonth,&fStartDay);
+  ts1.GetTime(kTRUE,0,&hour,&minute,&second);
+  nano = ts1.GetNanoSec();
+  double sec = ((double)second + (double)nano/1.0e9);
+  fStartHour = (double)hour + (double)minute/60.0 + sec/3600.0;
+
+  // taking end time apart
+  // lup = ( fEndTime >> 32 ) & mask32;
+  // llo = fEndTime & mask32;
+  llo = ( fEndTime >> 32 ) & mask32; // reversed value (see above comment)
+  lup = fEndTime & mask32;           // reversed value (see above comment)
+  TTimeStamp ts2(lup, (int)llo);
+  ts2.GetDate(kTRUE,0,&fEndYear,&fEndMonth,&fEndDay);
+  ts2.GetTime(kTRUE,0,&hour,&minute,&second);
+  nano = ts2.GetNanoSec();
+  sec = ((double)second + (double)nano/1.0e9);
+  fEndHour = (double)hour + (double)minute/60.0 + sec/3600.0;
+
+  fHeader->Fill();
+
 }
 
-void Muoncounter::ResetVars(){
-
-  run = -99999;
-  subrun = -99999;
-  event = -99999;
-}
 
 DEFINE_ART_MODULE(Muoncounter)
 
