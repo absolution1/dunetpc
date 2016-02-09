@@ -137,7 +137,9 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
   // Open list of input files...
   char filelist_title[128];
+
   sprintf(filelist_title,"/home/lbnedaq/nearline/temp/35t_%.dDay_Nearline_File_List.txt",Ndays);
+  //  sprintf(filelist_title,"/home/lbnedaq/nearline/temp/35t_%.dDay_Nearline_File_List_test.txt",Ndays);
   //  sprintf(filelist_title,"/lbne/app/users/jpdavies/dunetpc-nearline/srcs/dunetpc/35t_%.dDay_Nearline_File_List.txt",Ndays);
   std::cout << "\n\nOpening list of input files:\n" << filelist_title << "\n\n";
   inFile.open(filelist_title);
@@ -209,6 +211,30 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     NearlinePlotVec.push_back(this_plot);
   }
 
+
+  {
+    NearlinePlot *this_plot;
+    NearlinePlotInfo this_plot_info;
+    int channel = -1;
+    bool make_average_rms_time_plots = false;
+    bool make_2d_histos = true;
+    bool make_bin_by_bin_plots = false;
+    
+    this_plot_info = NearlinePlotInfo("TSU Counter Rates", channel, Ndays, "png");
+    this_plot = new NearlinePlot("TSUs", this_plot_info, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
+    NearlinePlotVec.push_back(this_plot);
+
+    this_plot_info = NearlinePlotInfo("BSU Counter Rates", channel, Ndays, "png");
+    this_plot = new NearlinePlot("BSUs", this_plot_info, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
+    NearlinePlotVec.push_back(this_plot);
+
+    this_plot_info = NearlinePlotInfo("Counter Trigger Rates", channel, Ndays, "png");
+    this_plot = new NearlinePlot("Triggers", this_plot_info, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
+    NearlinePlotVec.push_back(this_plot);
+    
+  }
+
+
   // for(int index=0;index<16;index++){
   //   int channel = index*128;
   //   NearlinePlotInfo this_plot_info("Hits", channel, Ndays, "png");
@@ -240,7 +266,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     if(!inFile.good()) continue; // prevent code from running over the last file twice...
     TFile file(filename);
-    file.cd("nearlineana");
+    //    file.cd("nearlineana");
 
     // Reset the time variables...
     Xsrtime = 0;
@@ -306,7 +332,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
       NearlinePlot* this_plot = NearlinePlotVec.at(index);
       //  bool AddHistogram(TFile const & file, TTree* header, int Xstrtime, int Xsrtime, int XNow, int GMToffset);
       this_plot->AddHistogram(file, header, Xsrtime, XNow, GMToffset, time_ago);
-      this_plot->AddHistogram2D(file, header, Xsrtime, XNow, GMToffset, time_ago);
+      //      this_plot->AddHistogram2D(file, header, Xsrtime, XNow, GMToffset, time_ago);
 
     }//loop over plots
     
@@ -362,9 +388,10 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     NearlinePlot* this_plot = NearlinePlotVec.at(index);
-    this_plot->printHistogram1D(PLOT_DIR, UpdateText, time_ago, XNow);
-    this_plot->printHistogram2D(PLOT_DIR, UpdateText, time_ago, XNow);
-    this_plot->printGraphs(PLOT_DIR, UpdateText, time_ago, XNow);
+    this_plot->printPlots(PLOT_DIR, UpdateText, time_ago, XNow);
+    // this_plot->printHistogram1D(PLOT_DIR, UpdateText, time_ago, XNow);
+    // this_plot->printHistogram2D(PLOT_DIR, UpdateText, time_ago, XNow);
+    // this_plot->printGraphs(PLOT_DIR, UpdateText, time_ago, XNow);
 
     //Make HTML
     std::string plot_location;
@@ -373,7 +400,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     //    std::cerr << NearlineHTML::MakePlotSet(plot_location, this_plot->fPlotInfo);
 
-    html_string += NearlineHTML::MakePlotSet(plot_location, this_plot->fPlotInfo);
+    html_string += NearlineHTML::MakePlotSet(plot_location, this_plot->fPlotInfo, this_plot->fPlotEnables);
 
   }
 

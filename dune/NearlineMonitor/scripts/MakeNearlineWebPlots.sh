@@ -61,7 +61,7 @@ echo ""
 
 # Make temporary list of files to be processed
 rm -vf 35t_${DAYS}Day_Nearline_File_List.txt
-find ${SearchPath} -mtime -${DAYS} -name "lbne_*_nearline_hist.root" | sort -r > 35t_${DAYS}Day_Nearline_File_List.txt
+find ${SearchPath} -mtime -${DAYS} -name "lbne_*_nearline*.root" | sort -r > 35t_${DAYS}Day_Nearline_File_List.txt
 
 
 
