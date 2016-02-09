@@ -18,6 +18,7 @@ INFILE=`basename $infile`
 
 fileend=.root
 outhistfile=${INFILE%$fileend}_nearline_hist.root
+outhistfilemuon=${INFILE%$fileend}_nearline_muon_counters.root
 
 export LOCKFILE=$INFILE.LOCK
 export DONEFILE=$INFILE.DONE
@@ -57,6 +58,13 @@ then
     echo "Setting pedestal to: $NEARLINE_PEDESTAL"
 
     lar -c test_stitcher_nearlineana.fcl -n 10 /data/lbnedaq/data/nearline-monitoring-links/${INFILE} -T $outhistfile
+    
+    END_NEARLINE_ANA=`date`
+
+    lar -c nearline_muoncounter35t.fcl /data/lbnedaq/data/nearline-monitoring-links/${INFILE} -T $outhistfilemuon
+
+    END_NEARLINE_MUON=`date`
+
 fi
 
 
@@ -73,6 +81,8 @@ END_DATE=`date`
 touch $RunDir/$DONEFILE
 
 echo "START_DATE $START_DATE" >> $RunDir/$DONEFILE
+echo "END_NEARLINE_ANA $END_NEARLINE_ANA" >> $RunDir/$DONEFILE
+echo "END_NEARLINE_MUON $END_NEARLINE_MUON" >> $RunDir/$DONEFILE
 echo "END_DATE $END_DATE" >> $RunDir/$DONEFILE
 echo "NEARLINE_PEDESTAL $NEARLINE_PEDESTAL" >> $RunDir/$DONEFILE
 

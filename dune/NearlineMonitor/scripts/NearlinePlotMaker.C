@@ -141,7 +141,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   //  sprintf(filelist_title,"/lbne/app/users/jpdavies/dunetpc-nearline/srcs/dunetpc/35t_%.dDay_Nearline_File_List.txt",Ndays);
   std::cout << "\n\nOpening list of input files:\n" << filelist_title << "\n\n";
   inFile.open(filelist_title);
-
+  
 
   std::vector<NearlinePlot*> NearlinePlotVec;
   
@@ -209,14 +209,14 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     NearlinePlotVec.push_back(this_plot);
   }
 
-  for(int index=0;index<16;index++){
-    int channel = index*128;
-    NearlinePlotInfo this_plot_info("Hits", channel, Ndays, "png");
-    char hist_name[256];
-    sprintf(hist_name, "hhits_per_event_chan_%i", channel);
-    NearlinePlot *this_plot = new NearlinePlot(hist_name, this_plot_info);
-    NearlinePlotVec.push_back(this_plot);
-  }
+  // for(int index=0;index<16;index++){
+  //   int channel = index*128;
+  //   NearlinePlotInfo this_plot_info("Hits", channel, Ndays, "png");
+  //   char hist_name[256];
+  //   sprintf(hist_name, "hhits_per_event_chan_%i", channel);
+  //   NearlinePlot *this_plot = new NearlinePlot(hist_name, this_plot_info);
+  //   NearlinePlotVec.push_back(this_plot);
+  // }
 
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     std::cerr << "NearlinePlot: " << (NearlinePlotVec.at(index))->fHistName << std::endl;
@@ -235,6 +235,9 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     // Open the Nth file...
     char filename[512];
     inFile >> filename;
+    
+    std::cerr << "FileName: " << filename << std::endl;
+
     if(!inFile.good()) continue; // prevent code from running over the last file twice...
     TFile file(filename);
     file.cd("nearlineana");
@@ -302,7 +305,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     for(size_t index=0;index<NearlinePlotVec.size(); index++){
       NearlinePlot* this_plot = NearlinePlotVec.at(index);
       //  bool AddHistogram(TFile const & file, TTree* header, int Xstrtime, int Xsrtime, int XNow, int GMToffset);
-      this_plot->AddHistogram(file, header, Xsrtime, XNow, GMToffset);
+      this_plot->AddHistogram(file, header, Xsrtime, XNow, GMToffset, time_ago);
+      this_plot->AddHistogram2D(file, header, Xsrtime, XNow, GMToffset, time_ago);
 
     }//loop over plots
     
@@ -311,6 +315,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     file.Close();
 
   } // end while loop over input files
+
 
 
   //
@@ -330,7 +335,6 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   else{
     taxis_labels = "%m/%d";
   }
-
 
 
 
@@ -355,55 +359,12 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     
   std::string html_string = NearlineHTML::MakePageHeader(Ndays);;
 
+
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     NearlinePlot* this_plot = NearlinePlotVec.at(index);
-
-    TCanvas *can_histogram = this_plot->makeHistoCanvas(UpdateText);
-    std::string can_histogram_name = this_plot->fPlotInfo.GetHistOutputName();
-
-    can_histogram_name = PLOT_DIR + "/" + can_histogram_name;
-    //    std::cerr << "INFO: can_histogram_name - " << can_histogram_name << std::endl;
-    can_histogram->Print(can_histogram_name.c_str());
-
-    bool zoom=false;
-    bool rms=false;
-
-    TCanvas *can_metric_time = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow);
-    std::string can_metric_time_name = this_plot->fPlotInfo.GetMetricMeanTimeGraphName();
-
-    can_metric_time_name = PLOT_DIR + "/" + can_metric_time_name;
-    //    std::cerr << "INFO: can_metric_time_name - " << can_metric_time_name << std::endl;
-    can_metric_time->Print(can_metric_time_name.c_str());
-
-    zoom=true;
-    rms=false;
-
-    TCanvas *can_metric_time_zoom = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms, zoom);
-    std::string can_metric_time_name_zoom = this_plot->fPlotInfo.GetMetricMeanTimeGraphName(zoom);
-
-    can_metric_time_name_zoom = PLOT_DIR + "/" + can_metric_time_name_zoom;
-    //    std::cerr << "INFO: can_metric_time_name_zoom - " << can_metric_time_name_zoom << std::endl;
-    can_metric_time_zoom->Print(can_metric_time_name_zoom.c_str());
-
-    zoom=false;
-    rms=true;
-
-    TCanvas *can_rms_time = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms);
-    std::string can_rms_time_name = this_plot->fPlotInfo.GetMetricRmsTimeGraphName();
-
-    can_rms_time_name = PLOT_DIR + "/" + can_rms_time_name;
-    //    std::cerr << "INFO: can_rms_time_name - " << can_rms_time_name << std::endl;
-    can_rms_time->Print(can_rms_time_name.c_str());
-
-    zoom=true;
-    rms=true;
-
-    TCanvas *can_rms_time_zoom = this_plot->makeGraphMetricTimeCanvas(UpdateText, time_ago, XNow, rms, zoom);
-    std::string can_rms_time_name_zoom = this_plot->fPlotInfo.GetMetricRmsTimeGraphName(zoom);
-
-    can_rms_time_name_zoom = PLOT_DIR + "/" + can_rms_time_name_zoom;
-    //    std::cerr << "INFO: can_rms_time_name_zoom - " << can_rms_time_name_zoom << std::endl;
-    can_rms_time_zoom->Print(can_rms_time_name_zoom.c_str());
+    this_plot->printHistogram1D(PLOT_DIR, UpdateText, time_ago, XNow);
+    this_plot->printHistogram2D(PLOT_DIR, UpdateText, time_ago, XNow);
+    this_plot->printGraphs(PLOT_DIR, UpdateText, time_ago, XNow);
 
     //Make HTML
     std::string plot_location;
@@ -415,6 +376,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     html_string += NearlineHTML::MakePlotSet(plot_location, this_plot->fPlotInfo);
 
   }
+
 
 
 

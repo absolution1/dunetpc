@@ -2,8 +2,8 @@
 #include "TMath.h"
 
 const std::string PLOT_DIR_PRODUCTION = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots";
-//const std::string PLOT_DIR_DEBUG = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots_testing";
-const std::string PLOT_DIR_DEBUG = "/lbne/data2/users/lbnedaq/nearline_webpage_test/plots_testing";
+const std::string PLOT_DIR_DEBUG = "/web/sites/lbne-dqm.fnal.gov/htdocs/NearlineMonitoring/plots_testing";
+//const std::string PLOT_DIR_DEBUG = "/lbne/data2/users/lbnedaq/nearline_webpage_test/plots_testing";
 
 std::string PLOT_DIR;
 
@@ -137,8 +137,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
   // Open list of input files...
   char filelist_title[128];
-  //  sprintf(filelist_title,"/home/lbnedaq/nearline/temp/35t_%.dDay_Nearline_File_List.txt",Ndays);
-  sprintf(filelist_title,"/lbne/app/users/jpdavies/dunetpc-nearline/srcs/dunetpc/35t_%.dDay_Nearline_File_List.txt",Ndays);
+  sprintf(filelist_title,"/home/lbnedaq/nearline/temp/35t_%.dDay_Nearline_File_List.txt",Ndays);
+  //  sprintf(filelist_title,"/lbne/app/users/jpdavies/dunetpc-nearline/srcs/dunetpc/35t_%.dDay_Nearline_File_List.txt",Ndays);
   std::cout << "\n\nOpening list of input files:\n" << filelist_title << "\n\n";
   inFile.open(filelist_title);
   
@@ -209,14 +209,14 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     NearlinePlotVec.push_back(this_plot);
   }
 
-  for(int index=0;index<16;index++){
-    int channel = index*128;
-    NearlinePlotInfo this_plot_info("Hits", channel, Ndays, "png");
-    char hist_name[256];
-    sprintf(hist_name, "hhits_per_event_chan_%i", channel);
-    NearlinePlot *this_plot = new NearlinePlot(hist_name, this_plot_info);
-    NearlinePlotVec.push_back(this_plot);
-  }
+  // for(int index=0;index<16;index++){
+  //   int channel = index*128;
+  //   NearlinePlotInfo this_plot_info("Hits", channel, Ndays, "png");
+  //   char hist_name[256];
+  //   sprintf(hist_name, "hhits_per_event_chan_%i", channel);
+  //   NearlinePlot *this_plot = new NearlinePlot(hist_name, this_plot_info);
+  //   NearlinePlotVec.push_back(this_plot);
+  // }
 
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     std::cerr << "NearlinePlot: " << (NearlinePlotVec.at(index))->fHistName << std::endl;

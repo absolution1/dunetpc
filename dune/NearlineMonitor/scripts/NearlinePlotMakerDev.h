@@ -585,7 +585,7 @@ struct NearlineHTML{
     std::string output;
     output+="<h3>Start Year of the Run VS Run Number.</h3>\n";
     output+="<figure>\n";
-    output+="<img src=\"plots/RunVSYear_001_days.png\" width=\"800\">\n";
+    output+="<img src=\"" + relative_plot_path + "\" width=\"800\">\n";
     output+="</figure>\n";
     output+="<p>\n";
     output+="<b>This plot requires some explanation:</b>\n";
