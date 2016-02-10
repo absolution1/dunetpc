@@ -71,6 +71,7 @@ namespace caldata {
                               ///< ex.:  "daq:preSpill" for prespill data
     unsigned short fPreROIPad; ///< ROI padding
     unsigned short fPostROIPad; ///< ROI padding
+    double       fSigThrFact; ///< Signal shreshold factor 
     void SubtractBaseline(std::vector<float>& holder);
   protected: 
     
@@ -102,7 +103,7 @@ namespace caldata {
     fPostsample       = p.get< int >        ("PostsampleBins");
     fDoBaselineSub    = p.get< bool >       ("DoBaselineSub");
     uin               = p.get< std::vector<unsigned short> >   ("PlaneROIPad");
-    
+    fSigThrFact       = p.get< double>      ("SigThrFact", 3.0);
      // put the ROI pad sizes into more convenient vectors
     fPreROIPad  = uin[0];
     fPostROIPad = uin[1];
@@ -221,7 +222,7 @@ namespace caldata {
 	double SigVal = holder[bin];
 	if (SigVal > max) max = SigVal;
 	if(roiStart == 0) {
-	  if (SigVal > 4*deconNoise) roiStart = bin; // 3 sigma above noise
+	  if (SigVal > fSigThrFact*deconNoise) roiStart = bin; // n sigma above noise
 	}else{
 	  if (SigVal < deconNoise){
 	    rois.push_back(std::make_pair(roiStart, bin));

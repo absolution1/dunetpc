@@ -4,6 +4,7 @@
 #include "evdservices_base.fcl"
 #include "services_dune.fcl"
 #include "channelstatus_dune.fcl"
+#include "pedestals_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -69,9 +70,16 @@ dunefd_disp.RecoDrawingOptions.OpFlashModuleLabels:        ["opflash"]
 dunefd_disp.RecoDrawingOptions.DrawVertices:               1
 dunefd_disp.RecoDrawingOptions.VertexModuleLabels:         ["pmtrackdc"]
 dunefd_disp.RawDrawingOptions.UncompressWithPed:        true
+
+# Different FD geometries
+dunefd3mm_disp:            @local::dunefd_disp
+dunefd3mm_disp.Geometry:   @local::dune10kt_3mmpitch_workspace_geo
+
+dunefd45deg_disp:            @local::dunefd_disp
+dunefd45deg_disp.Geometry:   @local::dune10kt_45deg_workspace_geo
+
 # For now, treat 35t like FD,
 # except of course Geometry
-
 dune35t_disp:              @local::dunefd_disp
 dune35t_disp.Geometry:     @local::dune35t_geo
 dune35t_disp.IChannelStatusService: @local::dune35t_channel_status
@@ -81,6 +89,15 @@ dune35t_disp.IDetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean:  1800
 dune35t_disp.RawDrawingOptions.TotalTicks:               3200
 dune35t_disp.RawDrawingOptions.MinimumSignal:            10
 dune35t_disp.RawDrawingOptions.UncompressWithPed:        true
+
+
+dune35t_disp_data: @local::dune35t_disp
+dune35t_disp_data.IDetPedestalService:
+{
+  service_provider: DetPedestalServiceDUNE
+  DetPedestalDUNE: @local::dune35t_pedestals
+}
+
 
 dune10kt_disp:             @local::dunefd_disp
 dune10kt_disp.Geometry:    @local::dune10kt_geo 

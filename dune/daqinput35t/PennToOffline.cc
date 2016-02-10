@@ -18,10 +18,10 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
   
   std::vector<raw::ExternalTrigger> ExternTrigs;
 
-  std::vector<lbne::PennMicroSlice::Payload_Trigger::trigger_type_t> trigger_types = {lbne::PennMicroSlice::Payload_Trigger::TA, // East lower, West upper coincidence....111
-										      lbne::PennMicroSlice::Payload_Trigger::TB, // North lower, South upper coincidence..113
-										      lbne::PennMicroSlice::Payload_Trigger::TC, // North upper, South lower coincidence..112
-										      lbne::PennMicroSlice::Payload_Trigger::TD};// The 'telescope' coincidence...........110
+  std::vector<lbne::PennMicroSlice::Payload_Trigger::trigger_type_t> trigger_types = {lbne::PennMicroSlice::Payload_Trigger::TA, // The 'telescope' coincidence...........110
+										      lbne::PennMicroSlice::Payload_Trigger::TB, // North upper, South lower coincidence..112
+										      lbne::PennMicroSlice::Payload_Trigger::TC, // North lower, South upper coincidence..113
+										      lbne::PennMicroSlice::Payload_Trigger::TD};// East lower, West upper coincidence....111
   std::vector<lbne::PennMicroSlice::Payload_Trigger::trigger_type_t> calib_types = {lbne::PennMicroSlice::Payload_Trigger::C1,
 										    lbne::PennMicroSlice::Payload_Trigger::C2,
 										    lbne::PennMicroSlice::Payload_Trigger::C3,
@@ -153,22 +153,22 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
     //std::cout << "So do I make a trigger? (" << MakeNewExtTrigA <<","<< MakeNewExtTrigB <<","<< MakeNewExtTrigC <<","<< MakeNewExtTrigD <<")."<< std::endl;
     if (MakeNewExtTrigA) {
       //std::cout << "Making an external trigger from Trigger A!!" << std::endl;
-      raw::ExternalTrigger counter( 111, current_trigger_time );
+      raw::ExternalTrigger counter( 110, current_trigger_time );
       ExternTrigs.push_back(counter);
     }
     if (MakeNewExtTrigB) {
       //std::cout << "Making an external trigger from Trigger B!!" << std::endl;
-      raw::ExternalTrigger counter( 113, current_trigger_time );
+      raw::ExternalTrigger counter( 112, current_trigger_time );
       ExternTrigs.push_back(counter);
     }
     if (MakeNewExtTrigC) {
       //std::cout << "Making an external trigger from Trigger C!!" << std::endl;
-      raw::ExternalTrigger counter( 112, current_trigger_time );
+      raw::ExternalTrigger counter( 113, current_trigger_time );
       ExternTrigs.push_back(counter);
     }
     if (MakeNewExtTrigD) {
       //std::cout << "Making an external trigger from Trigger D!!" << std::endl;
-      raw::ExternalTrigger counter( 110, current_trigger_time );
+      raw::ExternalTrigger counter( 111, current_trigger_time );
       ExternTrigs.push_back(counter);
     }
   } // Loop over Muon Triggers

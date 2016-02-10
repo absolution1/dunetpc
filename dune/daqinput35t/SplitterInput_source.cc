@@ -82,6 +82,10 @@ namespace {
       waveforms.clear();
       empty();
     }
+
+    std::vector<OpDetWaveform> TakeAll() {
+      return waveforms;
+    }
     
     void findinrange(std::vector<OpDetWaveform> &wbo, 
                      lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
@@ -151,7 +155,74 @@ namespace {
       else return false;
     } // Photon Trigger
   }; // Loaded Waveforms
-   //=============================== loaded Digits ========================================================
+  
+  //=============================== loaded OpHits ========================================================
+  struct LoadedOpHits {
+    
+    LoadedOpHits() : ophits() {}
+    vector<recob::OpHit> ophits;
+    
+    void load( vector<recob::OpHit> const & v, int fDebugLevel ) {
+      ophits = v;
+    }
+    
+    // not really used 
+    bool empty() const { 
+      if (ophits.size() == 0) return true;
+      return false;
+    }
+
+    // Clear waveforms vector.
+    void clear(int fDebugLevel) {
+      if (fDebugLevel > 3) std::cout << "Clearing LoadedOphits." << std::endl;
+      ophits.clear();
+      empty();
+    }
+
+    std::vector<recob::OpHit> TakeAll() {
+      return ophits;
+    }
+    
+    void findinrange(std::vector<recob::OpHit> &obo, 
+                     lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
+                     lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
+                     double NovaTicksPerSSPTick,
+		     int fDebugLevel) {
+      int hh = 0;
+      for (auto wf : ophits) { // see if any ophits have pieces inside this TPC boundary
+	lbne::TpcNanoSlice::Header::nova_timestamp_t HitTimestamp = wf.PeakTime() * NovaTicksPerSSPTick;
+        if ( hh < 5 && fDebugLevel > 2) { // Just want to write out the first few ophits
+	  std::cout << "Looking at waveform number " << hh << ". It was on channel " << wf.OpChannel() << " at time " << HitTimestamp
+		    << ". The times I passed were " << first_timestamp << " and " << last_timestamp
+		    << std::endl;
+	}
+	if (HitTimestamp <= last_timestamp && HitTimestamp >= first_timestamp) {
+          if (fDebugLevel > 3)
+	    std::cout << "Pushing back waveform " << hh << " on channel " << wf.OpChannel() << " at time " << HitTimestamp << ". The times I passed were " << first_timestamp << " and " << last_timestamp << std::endl;
+	  obo.emplace_back(std::move(wf));
+        }
+        ++hh;
+      } // auto ophits
+      if (fDebugLevel > 1) std::cout << "At the end of Waveform findinrange, wbo has size " << obo.size() << std::endl;
+    } // findinrange
+    
+    //=======================================================================================
+    bool OpHitTrigger(lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp, double fOpHitADCThreshold, int fOpHitADCsOverThreshold,
+                       double fOpHitADCWidth, double NovaTicksPerSSPTick, int fDebugLevel ) { // Triggering on photon detectors
+      int hh = 0;
+      int HighADCHits = 0;
+      for (auto wf : ophits) { // see if any waveforms have pieces inside this TPC boundary
+	std::cout << "Looping through ophits, looking at element " << hh << ". It is channel " << wf.OpChannel() << " at time " << wf.PeakTime()
+		  << ", it has Amplitude " << wf.Amplitude() << " and " << wf.PE() << " PE's." << std::endl;
+	++hh;
+	if ( wf.Amplitude() > fOpHitADCThreshold ) ++HighADCHits;
+      } // Loop over waveforms
+      if ( HighADCHits > fOpHitADCsOverThreshold ) return true;
+      else return false;
+    } // Photon Trigger
+  }; // Loaded OpHits
+  
+  //=============================== loaded Digits ========================================================
   struct LoadedDigits {
     
     LoadedDigits() : digits(), index(), firstTimestamp(0) {}
@@ -200,12 +271,11 @@ namespace {
       bool GoodDig = true;
       for (unsigned int j=0; j<digits.size(); j=j+128) {
         if ( digits[0].NADC() - digits[j].NADC() ) GoodDig = false;
-        if (fDebugLevel > 2) {
+        if (fDebugLevel > 2)
 	  std::cout << "digits[0] has " << digits[0].NADC() << " ADC's, whilst digits["<<j<<"] has " << digits[j].NADC() << " ADCs. Still a good digit? " << GoodDig << std::endl;
-	}
       }
       if (!GoodDig) {
-        if (fDebugLevel > 2) std::cout << "Got a bad digit, so want to clear it..." << std::endl;
+        if (fDebugLevel) std::cout << "Got a bad digit, so want to clear it...\n" << std::endl;
         clear(fDebugLevel);
       }
       
@@ -243,7 +313,7 @@ namespace {
     }
     
   }; // loadedDigits
-     //=============================== loaded Coutners ========================================================
+     //=============================== loaded Counters ========================================================
   struct LoadedCounters {
     
     LoadedCounters() : counters(), index() {}
@@ -271,8 +341,24 @@ namespace {
       index = 0ul;
     } // load
     
+    // not really used 
+    bool empty() const { 
+      if (counters.size() == 0) return true;
+      return false;
+    }   
+
     lbne::TpcNanoSlice::Header::nova_timestamp_t ConvCounterTick(lbne::TpcNanoSlice::Header::nova_timestamp_t TrigTime, double novatickspercounttick) {
       return TrigTime*novatickspercounttick;
+    }
+
+    std::vector<ExternalTrigger> TakeAll() {
+      return counters;
+    }
+
+    void clear(int fDebugLevel) {
+      if (fDebugLevel > 3) std::cout << "Clearing LoadedCounters." << std::endl;
+      counters.clear();
+      empty();
     }
 
     void findinrange(std::vector<ExternalTrigger> &cbo,
@@ -280,10 +366,10 @@ namespace {
                      lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
                      unsigned int novatickspercounttick,
 		     int fDebugLevel) {
-      int hh = 0; // Just want to write out the first few waveforms....Definitely get rid of this hh stuff!
-      for (auto count : counters) { // see if any waveforms have pieces inside this TPC boundary
+      int hh = 0;
+      for (auto count : counters) { // Loop through all the counters
         lbne::TpcNanoSlice::Header::nova_timestamp_t TimeStamp = ConvCounterTick(count.GetTrigTime(), novatickspercounttick);
-        if ( hh < 5 && fDebugLevel > 2) { // Just want to look at first few waveforms.
+        if ( hh < 5 && fDebugLevel > 2) { // Just want to look at first few counters.
           std::cout << "Looking at muon counter " << hh << " It has ID " << count.GetTrigID() << " and time " << TimeStamp << "."
 		    << " The times I passed were " << first_timestamp << " and " << last_timestamp << std::endl;
         }
@@ -351,6 +437,12 @@ namespace {
     br->GetEntry( entry );
     return reinterpret_cast<vector<raw::OpDetWaveform>*>( br->GetAddress() );
   }
+
+  vector<recob::OpHit>*
+  getOpHitWaveforms( TBranch* br, unsigned entry ) {
+    br->GetEntry( entry );
+    return reinterpret_cast<vector<recob::OpHit>*>( br->GetAddress() );
+  }
   
   vector<raw::ExternalTrigger>*
   getRawExternalTriggers( TBranch* br, unsigned entry ) {
@@ -398,6 +490,7 @@ namespace DAQToOffline {
     
     using rawDigits_t = vector<RawDigit>;
     using SSPWaveforms_t = vector<OpDetWaveform>;
+    using OpHits_t = vector<recob::OpHit>;
     using PennCounters_t = vector<ExternalTrigger>;
     
     string                 sourceName_;
@@ -406,19 +499,23 @@ namespace DAQToOffline {
     bool                   doneWithFiles_;
     art::InputTag          TPCinputTag_;
     art::InputTag          SSPinputTag_;
+    art::InputTag          OpHitinputTag_;
     art::InputTag          PenninputTag_;
     string                 TPCinputDataProduct_;
     string                 SSPinputDataProduct_;
+    string                 OpHitinputDataProduct_;
     string                 PenninputDataProduct_;
     SSPReformatterAlgs     sspReform;
     string                 fTPCChannelMapFile;
     art::SourceHelper      sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SSPinputBranch_;
+    TBranch*               OpHitinputBranch_;
     TBranch*               PenninputBranch_;
     TBranch*               EventAuxBranch_;
     LoadedDigits           loadedDigits_;
     LoadedWaveforms        loadedWaveforms_;
+    LoadedOpHits           loadedOpHits_;
     LoadedCounters         loadedCounters_;
     size_t                 nInputEvts_;
     size_t                 treeIndex_;
@@ -435,6 +532,7 @@ namespace DAQToOffline {
     rawDigits_t            bufferedDigits_;
     std::vector<RawDigit::ADCvector_t>  dbuf_;
     SSPWaveforms_t         wbuf_;
+    OpHits_t               hbuf_;
     PennCounters_t         cbuf_;
     unsigned short         fTicksAccumulated;
 
@@ -460,6 +558,7 @@ namespace DAQToOffline {
     bool loadEvents_( size_t &InputTree );
     bool LoadPTBInformation( size_t LoadTree );
     void LoadSSPInformation( size_t LoadTree );
+    void LoadOpHitInformation( size_t LoadTree );
     void LoadRCEInformation( size_t LoadTree );
 
     void makeEventAndPutDigits_( art::EventPrincipal*& outE, art::Timestamp art_timestamp=0);
@@ -468,7 +567,7 @@ namespace DAQToOffline {
 
     void CheckTimestamps(bool &JumpEvent, size_t &JumpNADC );
 
-    void NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPrincipal*& outSR, art::EventPrincipal*& outE);
+    bool NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPrincipal*& outSR, art::EventPrincipal*& outE);
 
     void Triggering(std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits, bool NewTree);
     
@@ -481,6 +580,7 @@ namespace DAQToOffline {
 
     bool         fRequireRCE;
     bool         fRequireSSP;
+    bool         fRequireOpHit;
     bool         fRequirePTB;
     size_t       fPostTriggerTicks;
     size_t       fPreTriggerTicks;
@@ -490,11 +590,15 @@ namespace DAQToOffline {
     int          fDebugLevel;
     double       fTimeStampThreshold;
     int          fMCTrigLevel;
-    int          fWhichTrigger;
+    std::vector<unsigned int> fWhichTrigger;
+    std::vector<unsigned int> fPTBTrigs;
     int          fTrigSeparation;
     double       fWaveformADCWidth;
     double       fWaveformADCThreshold;
     int          fWaveformADCsOverThreshold;
+    double       fOpHitADCWidth;
+    double       fOpHitADCThreshold;
+    int          fOpHitADCsOverThreshold;
     int          fADCdiffThreshold;
     int          fADCsOverThreshold;
     bool         fUsePedestalDefault;
@@ -525,9 +629,11 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   //  TPCinputTag_("daq:TPC:DAQ"), // "moduleLabel:instance:processName"
   TPCinputTag_         (ps.get<string>("TPCInputTag")),
   SSPinputTag_         (ps.get<string>("SSPInputTag")),
+  OpHitinputTag_       (ps.get<string>("OpHitInputTag")),
   PenninputTag_        (ps.get<string>("PennInputTag")),
   TPCinputDataProduct_ (ps.get<string>("TPCInputDataProduct")),
   SSPinputDataProduct_ (ps.get<string>("SSPInputDataProduct")),
+  OpHitinputDataProduct_(ps.get<string>("OpHitInputDataProduct")),
   PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
   sspReform            (ps.get<fhicl::ParameterSet>("SSPReformatter")),
   fTPCChannelMapFile   (ps.get<string>("TPCChannelMapFile")),
@@ -547,6 +653,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   bufferedDigits_(),
   dbuf_(),
   wbuf_(),
+  hbuf_(),
   cbuf_(),
   fTicksAccumulated(0),
   fragmentsToDigits_( std::bind( DAQToOffline::tpcFragmentToRawDigits,
@@ -558,6 +665,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  ps.get<unsigned>("zeroThreshold",0) ) ),
   fRequireRCE            (ps.get<bool>  ("RequireRCE")),
   fRequireSSP            (ps.get<bool>  ("RequireSSP")),
+  fRequireOpHit          (ps.get<bool>  ("RequireOpHit")),
   fRequirePTB            (ps.get<bool>  ("RequirePTB")),
   fPostTriggerTicks      (ps.get<size_t>("PostTriggerTicks")),
   fPreTriggerTicks       (ps.get<size_t>("PreTriggerTicks")),
@@ -567,11 +675,15 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   fDebugLevel            (ps.get<int>   ("DebugLevel")),
   fTimeStampThreshold    (ps.get<double>("TimeStampThreshold")),
   fMCTrigLevel           (ps.get<int>   ("MCTrigLevel")),
-  fWhichTrigger          (ps.get<int>   ("WhichTrigger")),
+  fWhichTrigger          (ps.get<std::vector<unsigned int> >("WhichTrigger")),
+  fPTBTrigs              (ps.get<std::vector<unsigned int> >("PTBTrigs")),
   fTrigSeparation        (ps.get<int>   ("TrigSeparation")),
   fWaveformADCWidth      (ps.get<double>("WaveformADCWidth")),
   fWaveformADCThreshold  (ps.get<double>("WaveformADCThreshold")),
   fWaveformADCsOverThreshold(ps.get<double>("WaveformADCsOverThreshold")),
+  fOpHitADCWidth         (ps.get<double>("OpHitADCWidth")),
+  fOpHitADCThreshold     (ps.get<double>("OpHitADCThreshold")),
+  fOpHitADCsOverThreshold(ps.get<double>("OpHitADCsOverThreshold")),
   fADCdiffThreshold      (ps.get<int>   ("ADCdiffThreshold")),
   fADCsOverThreshold     (ps.get<int>   ("ADCsOverThreshold")),
   fUsePedestalDefault    (ps.get<bool>  ("UsePedestalDefault")),
@@ -585,32 +697,42 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   // incoming ones.
   prh.reconstitutes<rawDigits_t,art::InEvent>( sourceName_, TPCinputTag_.instance() );
   prh.reconstitutes<SSPWaveforms_t,art::InEvent>( sourceName_, SSPinputTag_.instance() );
+  prh.reconstitutes<OpHits_t,art::InEvent>( sourceName_, OpHitinputTag_.instance() );
   prh.reconstitutes<PennCounters_t,art::InEvent>( sourceName_, PenninputTag_.instance() );
 
   BuildTPCChannelMap(fTPCChannelMapFile, TPCChannelMap);
+  //std::cout << "Built TPC Channel Map" << std::endl;
 }
 
 //=======================================================================================
 bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& fb) {
-  
+  //std::cout << "At the top of readFile" << std::endl;
   // Get fragments branches
   file_.reset( new TFile(filename.data()) );
   TTree* evtree    = reinterpret_cast<TTree*>(file_->Get(art::rootNames::eventTreeName().c_str()));
   
   TPCinputBranch_ = evtree->GetBranch( getBranchName(TPCinputTag_, TPCinputDataProduct_ ) ); // get branch for TPC input tag
   SSPinputBranch_ = evtree->GetBranch( getBranchName(SSPinputTag_, SSPinputDataProduct_ ) ); // get branch for SSP input tag
+  std::cout << "Getting OpHit" << std::endl;
+  OpHitinputBranch_ = evtree->GetBranch( getBranchName(OpHitinputTag_, OpHitinputDataProduct_ ) ); // get branch for OpHit input tag
+  std::cout << "Got OpHit" << std::endl;
   PenninputBranch_ = evtree->GetBranch( getBranchName(PenninputTag_, PenninputDataProduct_ ) ); // get branch for Penn Board input tag
-
+  
   if (TPCinputBranch_) nInputEvts_      = static_cast<size_t>( TPCinputBranch_->GetEntries() );
   size_t nevt_ssp  = 0;
   if (SSPinputBranch_) nevt_ssp = static_cast<size_t>( SSPinputBranch_->GetEntries() );
+  size_t nevt_ophit = 0;
+  std::cout << "Another OpHit" << std::endl;
+  if (OpHitinputBranch_) nevt_ophit = static_cast<size_t>( OpHitinputBranch_->GetEntries() );
+  std::cout << "Done that bit too" << std::endl;
   size_t nevt_penn  = 0;
   if (PenninputBranch_) nevt_penn  = static_cast<size_t>( PenninputBranch_->GetEntries());
-
+  
   if (nevt_ssp != nInputEvts_&& nevt_ssp) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and SSP input events in file");
+  if (nevt_ophit !=  nInputEvts_&& nevt_ophit) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and OpHit input events in file");
   if (nevt_penn != nInputEvts_&& nevt_penn) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and Penn input events in file");
   treeIndex_       = 0ul;
-
+  
   EventAuxBranch_ = evtree->GetBranch( "EventAuxiliary" );
   pevaux_ = &evAux_;
   EventAuxBranch_->SetAddress(&pevaux_);
@@ -674,13 +796,15 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
       }
     }
   }
-  
+
   // New fileblock
   fb = new art::FileBlock(art::FileFormatVersion(),filename);
   if ( fb == nullptr ) {
     throw art::Exception(art::errors::FileOpenError)
       << "Unable to open file " << filename << ".\n";
   }
+
+  //std::cout << "At the end of ReadFile" << std::endl;
 
   return true;
 }
@@ -691,6 +815,14 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
                                  art::RunPrincipal*    & outR,
                                  art::SubRunPrincipal* & outSR,
                                  art::EventPrincipal*  & outE) {
+  std::cout << "At the start of readNext..." << std::endl;
+  if (!fRequireRCE) {
+    std::cout << "Entering NoRCEsCase" << std::endl;
+    bool Return = NoRCEsCase(outR, outSR, outE);
+    std::cout << "Left NoRCEsCase" << std::endl;
+    return Return;
+  }
+
   if ( doneWithFiles_ ) {
     return false;
   }
@@ -704,7 +836,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 
   std::map<int,int> PrevChanADC;
   if (fDebugLevel > 3 ) {
-    std::cout << "\nAt the top of readNext....what do I increment here? " << fTicksAccumulated << " " << ticksPerEvent_ << " " << loadedDigits_.empty(fDebugLevel) << " " << wbuf_.size() << " " << cbuf_.size() << std::endl;
+    std::cout << "\nAt the top of readNext....what do I increment here? " << fTicksAccumulated << " " << ticksPerEvent_ << " " << loadedDigits_.empty(fDebugLevel)
+	      << " " << wbuf_.size() << " " << cbuf_.size() << " " << hbuf_.size() << std::endl;
   }
   while ( fTicksAccumulated < ticksPerEvent_ ) {  
     ++fDiffFromLastTrig;
@@ -716,18 +849,22 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       if (fDebugLevel > 3 ) std::cout << "\nLoaded digits is empty..." << std::endl;
       if ( fTrigger ) { // Want to load wbuf with end of last event, before loading new data.
         loadedWaveforms_.findinrange(wbuf_,first_timestamp,last_timestamp, fNovaTicksPerSSPTick, fDebugLevel);
+	loadedOpHits_.findinrange(hbuf_,first_timestamp,last_timestamp, fNovaTicksPerSSPTick, fDebugLevel);
         loadedCounters_.findinrange(cbuf_, first_timestamp, last_timestamp, fNovaTicksPerCountTick, fDebugLevel);
 	if (fDebugLevel > 2 ) {
 	  std::cout << "Loaded digits was empty, will be refilled..."
 		    << "\nwbuf_ has size " << wbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << fNovaTicksPerSSPTick
+		    << "\nhbuf_ has size " << hbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << fNovaTicksPerSSPTick
 		    << "\ncbuf_ has size " << cbuf_.size() << " at " << first_timestamp << " " << last_timestamp << " " << fNovaTicksPerCountTick
 		    << std::endl;
 	}
       }
       bool rc = loadEvents_(treeIndex_);
       if (RCEsNotPresent) {
-	NoRCEsCase(outR, outSR, outE);
-	return true;
+	if (fDebugLevel) std::cout << "The RCEs aren't present, so switching to the don't require RCEs case...." << std::endl;
+	fRequireRCE = false;
+	bool Return = NoRCEsCase(outR, outSR, outE);
+	return Return;
       } // RCEsNotPresent
       if (fDebugLevel > 2) std::cout << "There are a total of " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
       if (!rc) {
@@ -773,8 +910,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     if (fTrigger && fDebugLevel > 4) {
       std::cout << "Index " << loadedDigits_.index << " " << fTicksAccumulated << " " << prev_timestamp << " " << this_timestamp << std::endl;
     }    
-    // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
-    if ( fTicksAccumulated == 0 ) {
+    // ******* See if can trigger on this tick...only want to do this if haven't already triggered. We also don't want two triggers too close together!... *****************
+    if ( fTicksAccumulated == 0 && fDiffFromLastTrig >= fTrigSeparation ) {
       Triggering (PrevChanADC, nextdigits, NewTree);
     } // if TickAccumulated == 0
     // ******* See if can trigger on this tick...only want to do this if haven't already triggered.... *****************
@@ -786,12 +923,12 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
         if (fDebugLevel) {
 	  std::cout << "\nThe trigger is good so triggering on, treeIndex " << fLastTreeIndex
 		    << ", loadedDigits_.index() " << fLastTriggerIndex << ", with timestamp " << fLastTimeStamp
-		    << "\nThe first tick in this event is in tree index " << treeIndex_-1 << ", loadedDigits index " << loadedDigits_.index
+		    << "\nThe first tick in this event is in tree index " << inputEventNumber_ << ", loadedDigits index " << loadedDigits_.index
 		    << ". It has timestamp " << this_timestamp << "\n"
 		    << std::endl;
 	}
       }
-      // ************* Work out first and last SSP Timestamp for wbuf_ and cbuf_ ************************
+      // ************* Work out first and last SSP Timestamp for wbuf_, hbuf_ and cbuf_ ************************
       if (first_tick) { // First tick in split event and/or first tick in newly loaded event.
         first_timestamp = this_timestamp;
 	first_tick = false;
@@ -820,6 +957,13 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   if (fDebugLevel > 1)
     std::cout << "wbuf_ now has size " << wbuf_.size() << std::endl;
 
+  // ************* Fill hbuf_ with the OpHit information within time range ************************
+  if (fDebugLevel > 1)
+    std::cout << "Loading the Waveforms...hbuf_ has size " << hbuf_.size() << " " << fNovaTicksPerSSPTick << std::endl;
+  loadedOpHits_.findinrange(hbuf_, first_timestamp,last_timestamp,fNovaTicksPerSSPTick, fDebugLevel);
+  if (fDebugLevel > 1)
+    std::cout << "hbuf_ now has size " << hbuf_.size() << std::endl;
+  
   // ************* Fill cbuf_ with the PTB information within time range ************************
   if (fDebugLevel > 1)
     std::cout << "Loading the Counters! cbuf size " << cbuf_.size() << " counterticks " << fNovaTicksPerCountTick << std::endl;
@@ -910,6 +1054,7 @@ bool DAQToOffline::Splitter::eventIsFull_( vector<RawDigit> const & v ) {
 
 //=======================================================================================
 bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
+  //std::cout << "At the start of loadEvents..." << std::endl;
   if ( InputTree != nInputEvts_ ) {
     if ( !loadedDigits_.empty(fDebugLevel) && fRequireRCE ) return false;
     
@@ -932,17 +1077,26 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
 
     bool PTBTrigPresent = false;
     if (fRequirePTB) {
-      PTBTrigPresent = LoadPTBInformation( LoadTree );
+      PTBTrigPresent= LoadPTBInformation( LoadTree );
       if (fDebugLevel > 1) std::cout << "Is there a PTB trigger present? " << PTBTrigPresent << std::endl;
     }
-    if ( ( fWhichTrigger >= 2 && fWhichTrigger <= 9 && PTBTrigPresent ) // If looking for  triggers only load if RCE/SSP if a trigger is present.
-	 || fWhichTrigger < 2 || fWhichTrigger > 9 || fTrigger ) { // If not looking for PTB triggers or already triggered load regardless.
-      LoadSSPInformation( LoadTree );
-      LoadRCEInformation( LoadTree );
-    } else {
-      loadedDigits_.clear(fDebugLevel);
-      loadedWaveforms_.clear(fDebugLevel);
+    
+    if ( fWhichTrigger.size() == 1 && fWhichTrigger[0] == 3 ) { // If looking for only looking for triggers from the PTB
+      if ( PTBTrigPresent || fTrigger ) { // Only load RCEs and SSPs if a trigger is present.
+	if (fRequireSSP) LoadSSPInformation( LoadTree );
+	if (fRequireOpHit) LoadOpHitInformation( LoadTree);
+	if (fRequireRCE) LoadRCEInformation( LoadTree );
+      } else {                // If no PTB trigger is present make sure to clear Digits and Waveforms.
+	if (fRequireSSP) loadedWaveforms_.clear(fDebugLevel);
+	if (fRequireOpHit) loadedOpHits_.clear(fDebugLevel);
+	if (fRequireRCE) loadedDigits_.clear(fDebugLevel);
+      }
+    } else { // If either not looking for PTB triggers at all, or looking for additional triggers too, then always load RCE/SSP.
+      if (fRequireSSP) LoadSSPInformation( LoadTree );
+      if (fRequireOpHit) LoadOpHitInformation( LoadTree);
+      if (fRequireRCE) LoadRCEInformation( LoadTree );
     }
+      
     InputTree++;
     return true;
   }
@@ -960,14 +1114,11 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
     for (size_t CountLoop = 0; CountLoop < counters.size(); ++CountLoop) {
       if (fDebugLevel > 3 )
 	std::cout << "Looking at counters[" << CountLoop << "] has CounterID " << counters[CountLoop].GetTrigID() << " and Timestamp " << counters[CountLoop].GetTrigTime() << std::endl;
-      if ( counters[CountLoop].GetTrigID() == 110
-	   || counters[CountLoop].GetTrigID() == 111
-	   || counters[CountLoop].GetTrigID() == 112
-	   || counters[CountLoop].GetTrigID() == 113
-	   || counters[CountLoop].GetTrigID() == 114
-	   || counters[CountLoop].GetTrigID() == 115  ) {
-	std::cout << "Looking at event " << inputEventNumber_ << ", there is a trigger here on channel " << counters[CountLoop].GetTrigID() << std::endl;
-	TrigPresent = true;
+      for (size_t PTB = 0; PTB < fPTBTrigs.size(); ++PTB) {
+	if ( counters[CountLoop].GetTrigID() == fPTBTrigs[PTB] ) {
+	  if (fDebugLevel) std::cout << "Looking at event " << inputEventNumber_ << ", there is a trigger here on channel " << counters[CountLoop].GetTrigID() << std::endl;
+	  TrigPresent = true;
+	}
       }
     }
   } else {
@@ -980,8 +1131,11 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
     for (auto count: *counters) {
       if (fDebugLevel > 3 )
 	std::cout << "Looking at a counter which has CounterID " << count.GetTrigID() << " and Timestamp " << count.GetTrigTime() << std::endl;
-      if ( count.GetTrigID() == 110 || count.GetTrigID() == 111 || count.GetTrigID() == 112 || count.GetTrigID() == 113 || count.GetTrigID() == 114 || count.GetTrigID() == 115) {
-	TrigPresent = true;
+      for (size_t PTB = 0; PTB < fPTBTrigs.size(); ++PTB) {
+	if ( count.GetTrigID() == fPTBTrigs[PTB] ) {
+	  if (fDebugLevel) std::cout << "Looking at event " << inputEventNumber_ << ", there is a trigger here on channel " << count.GetTrigID() << std::endl;
+	  TrigPresent = true;
+	}
       }
     }
   }
@@ -1010,6 +1164,27 @@ void DAQToOffline::Splitter::LoadSSPInformation( size_t LoadTree ) {
   return;
 }
 //=======================================================================================
+void DAQToOffline::Splitter::LoadOpHitInformation( size_t LoadTree ) {
+  if (OpHitinputDataProduct_.find("Fragment") != std::string::npos) {
+    auto* OpHitfragments = getFragments( OpHitinputBranch_, LoadTree );
+    std::vector<recob::OpHit> OpHits = sspReform.SSPHeaderToOpHit(*OpHitfragments);
+    for ( size_t HitLoop=0; HitLoop < OpHits.size(); ++HitLoop ) {
+      int64_t OpHitTime = OpHits[HitLoop].PeakTime()*fNovaTicksPerSSPTick;
+      if (fDebugLevel > 3 )
+	std::cout << "Looking at waveform[" << HitLoop << "] it is on channel number " << OpHits[HitLoop].OpChannel() << " at timestamp " << OpHitTime << std::endl;
+    }
+    
+    if (fDebugLevel > 1) std::cout << "Loaded OpHits has size " << OpHits.size() << std::endl;
+    loadedOpHits_.load( OpHits, fDebugLevel );
+  }
+  else {
+    auto* OpHits = getOpHitWaveforms(OpHitinputBranch_, LoadTree );
+    if (fDebugLevel > 1) std::cout << "Loaded waveforms has size " << OpHits->size() << std::endl;
+    loadedOpHits_.load( *OpHits, fDebugLevel );
+  }
+  return;
+}
+//=======================================================================================
 void DAQToOffline::Splitter::LoadRCEInformation( size_t LoadTree ) {
   if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
     lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp = 0;
@@ -1034,8 +1209,10 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, 
   // just keep incrementing the event number as we split along
   ++eventNumber_;
   
-  if ( fWhichTrigger == 0 && fDebugLevel) {
-    std::cout << "\n\n\nI hope you know that you are triggering on a random number of ticks and not any sort of data! Check that fwhichTrigger(" << fWhichTrigger << ") is set correctly.\n\n\n" << std::endl;
+  for (size_t TrigSize = 0; TrigSize < fWhichTrigger.size(); ++TrigSize) {
+    if ( fWhichTrigger[TrigSize] == 0 && fDebugLevel) {
+      std::cout << "\n\n\nI hope you know that you are triggering on a random number of ticks and not any sort of data! Check that fwhichTrigger is set correctly.\n\n\n" << std::endl;
+    }
   }
   std::cout << "Making an event with RunNumber " << runNumber_ << ", subRunNumber " << subRunNumber_ << ", EventNumber " << eventNumber_ << " and art_timestamp " << art_timestamp.value() << std::endl;
 
@@ -1048,12 +1225,16 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, 
                                  *outE,
                                  sourceName_,
                                  SSPinputTag_.instance() );
+  art::put_product_in_principal( std::make_unique<OpHits_t>(hbuf_),
+                                 *outE,
+                                 sourceName_,
+                                 OpHitinputTag_.instance() );
   art::put_product_in_principal( std::make_unique<PennCounters_t>(cbuf_),
                                  *outE,
                                  sourceName_,
                                  PenninputTag_.instance() );
   mf::LogDebug("SplitterFunc") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " RCE digits and " <<
-    wbuf_.size() << " SSP waveforms " << cbuf_.size() << " External Triggers (muon counters)";
+    wbuf_.size() << " SSP waveforms, " << hbuf_.size() << " OpHits and " << cbuf_.size() << " External Triggers (muon counters)";
   Reset();
 }
 //=======================================================================================
@@ -1062,12 +1243,13 @@ void DAQToOffline::Splitter::Reset() {
   for (size_t ichan=0;ichan<dbuf_.size();ichan++) { dbuf_[ichan].clear(); }
   dbuf_.clear();
   wbuf_.clear();
+  hbuf_.clear();
   cbuf_.clear();
   Event_timestamp = 0;
   fTicksAccumulated = 0; // No longer have any RCE data...
   fTrigger = false;      // Need to re-decide where to trigger
   fDiffFromLastTrig = 0; // Reset trigger counter.
-  if (fDebugLevel > 1) std::cout << "Resetting everything (dbuf, cbuf, wbuf, Trigger, etc)" << std::endl;
+  if (fDebugLevel > 1) std::cout << "Resetting everything (dbuf, cbuf, wbuf, hbuf, Trigger, etc)" << std::endl;
 }
 //=======================================================================================
 void DAQToOffline::Splitter::CheckTimestamps(bool &JumpEvent, size_t &JumpNADC ) {
@@ -1102,22 +1284,62 @@ void DAQToOffline::Splitter::CheckTimestamps(bool &JumpEvent, size_t &JumpNADC )
   }
 } // Check Timestamps
 //=======================================================================================
-void DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPrincipal*& outSR, art::EventPrincipal*& outE) {
-  if (fDebugLevel) std::cout << "The RCEs aren't present, so quitting." << std::endl;
+bool DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPrincipal*& outSR, art::EventPrincipal*& outE) {
+  std::cout << "At the start of NoRCEsCase. fTrigger? " << fTrigger << ", Waveforms empty? " << loadedWaveforms_.empty() << ", what about Counters? " << loadedCounters_.empty() << std::endl;
+  while (!fTrigger) {
+    bool NewTree = false;
+    // Whilst LoadedWaveforms and LoadedCounters are empty, load a new event...
+    std::cout << "fTrigger is " << fTrigger << std::endl;
+    while ( loadedWaveforms_.empty() || loadedCounters_.empty() ) {
+      std::cout << "Going to load treeIndex_ " << treeIndex_ << std::endl;
+      bool rc = loadEvents_(treeIndex_);
+      std::cout << "Loaded the treeIndex. Waveforms empty? " << loadedWaveforms_.empty() << ", what about Counters? " << loadedCounters_.empty() << std::endl;
+      if (!rc) {
+	doneWithFiles_ = (file_->GetName() == lastFileName_);
+	return false;
+      }
+      NewTree = true; 
+    } // while empty
+    std::map<int,int> PrevChanADC;
+    std::vector<short> ADCdigits;
+    std::cout << "Calling triggering" << std::endl;
+    Triggering(PrevChanADC, ADCdigits, NewTree);
+    std::cout << "Called triggering, got a trigger? "  << fTrigger << std::endl;
+  }
+  wbuf_ = loadedWaveforms_.TakeAll();
+  std::cout << "Called wbuf_.TakeALL() " << std::endl;
+  hbuf_ = loadedOpHits_.TakeAll();
+  std::cout << "Called hbuf_.TakeAll()." << std::endl;
+  cbuf_ = loadedCounters_.TakeAll();
+  std::cout << "Called cbuf_.TakeAll()." << std::endl;
+  
+  std::cout << "After looking at treeIndex_ " << treeIndex_-1 << " fTrigger is " << fTrigger << " and wbuf and cbuf have sizes " << wbuf_.size() << " and " << cbuf_.size() << std::endl;
+  
+  std::cout << "Making an event now...." << std::endl;
+  // ******** Now Build the event *********
   runNumber_ = inputRunNumber_;
   subRunNumber_ = inputSubRunNumber_;
-  art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+  //art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
+  //FIXME - This is a first attempt at interpreting the novatimestamp from the tpc data to create an art event timestamp
+  art::Timestamp this_art_event_timestamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(Event_timestamp);
   if ( runNumber_ != cachedRunNumber_ ) {
-    outR = sh_.makeRunPrincipal(runNumber_,ts);
+    outR = sh_.makeRunPrincipal(runNumber_,this_art_event_timestamp);
     cachedRunNumber_ = runNumber_;
     eventNumber_ = 0ul;
   }
   if ( subRunNumber_ != cachedSubRunNumber_ ) {
-    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,ts);
+    outSR = sh_.makeSubRunPrincipal(runNumber_,subRunNumber_,this_art_event_timestamp);
     cachedSubRunNumber_ = subRunNumber_;
     eventNumber_ = 0ul;
   }
-  makeEventAndPutDigits_( outE );
+  //inputEventTime_ is the art::Timestamp() of the online art::Event() used to create the offline art::Event()
+  makeEventAndPutDigits_( outE, inputEventTime_ );
+  std::cout << "Should have made an event.." << std::endl;
+  Reset();
+  loadedWaveforms_.clear(fDebugLevel);
+  loadedCounters_.clear(fDebugLevel);
+  std::cout << "After reset() is Waveforms empty? " << loadedWaveforms_.empty() << ", what about Counters? " << loadedCounters_.empty() << std::endl;
+  return true;
 }
 //=======================================================================================
 void DAQToOffline::Splitter::CheckTrigger() {
@@ -1125,6 +1347,7 @@ void DAQToOffline::Splitter::CheckTrigger() {
   size_t TempTreeIndex    = treeIndex_ -1;
   lbne::TpcNanoSlice::Header::nova_timestamp_t TempTimeStamp = this_timestamp;
   size_t TempNADCs        = loadedDigits_.digits[0].NADC();
+  art::EventNumber_t TempEventNumber = inputEventNumber_;
   if (fDebugLevel) std::cout << "\nTrying to Trigger on timestamp " << this_timestamp << ", last trigger was on " << fLastTimeStamp << "...." << this_timestamp - fLastTimeStamp << std::endl;
   
   //******** Now to sort out the prebuffer!!! ***********
@@ -1144,7 +1367,7 @@ void DAQToOffline::Splitter::CheckTrigger() {
       std::cout << "I don't have enough previous digits :(, I need an extra " << BufferResidual << " ticks from previous events. TrigEvStart = " << TrigEvStart << std::endl;
     }
     
-    size_t LoadEv = 0; int    LoadInd = 0;
+    size_t LoadEv = 0, LoadInd = 0;
     for ( size_t el=2; el<GoodEvents.size()+1; ++el) {
       if (fDebugLevel > 3) {
 	std::cout << "Going backwards...Tree index " << GoodEvents[GoodEvents.size()-el].first << " was a good event, which had "
@@ -1182,9 +1405,9 @@ void DAQToOffline::Splitter::CheckTrigger() {
     loadedDigits_.index = TempTriggerIndex + BufferResidual; // Jump to where the trigger was plus buffer residual
     if (fDebugLevel) {
       std::cout << "Trigger isn't good so I'm going back to where I triggered..."
-		<< "Attempted trigger was in event " << TempTreeIndex << " at index " << TempTriggerIndex
+		<< "Attempted trigger was in event " << TempEventNumber << " at index " << TempTriggerIndex
 		<< " at timestamp " << TempTimeStamp << ", it had " << TempNADCs << " adc's"
-		<< "\nI'm now at event " << treeIndex_-1 << " index " << loadedDigits_.index
+		<< "\nI'm now at event " << inputEventNumber_ << " index " << loadedDigits_.index
 		<< " and timestamp " << loadedDigits_.getTimeStampAtIndex(loadedDigits_.index, fNovaTicksPerTPCTick) 
 		<< " and " << loadedDigits_.digits[0].NADC() << " adcs, loadedDigits empty? " << loadedDigits_.empty(fDebugLevel) << "\n"
 		<< std::endl;
@@ -1194,66 +1417,32 @@ void DAQToOffline::Splitter::CheckTrigger() {
 //===================================================================================================================================
 void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits, bool NewTree) {
   if ( treeIndex_-1 != fLastTreeIndex ) fLastTimeStamp = 0; // No longer looking at same treeIndex as previous trigger, so reset lastTimeStamp
-  if ( fDiffFromLastTrig >= fTrigSeparation) { // Don't want two triggers too close together!
+    
+  for (size_t TrigSize = 0; TrigSize < fWhichTrigger.size(); ++TrigSize) {
     // Trigger on Monte Carlo whichTrigger == 0
-    if ( fWhichTrigger == 0 ) {
+    if ( fWhichTrigger[TrigSize] == 0 ) {
       if ( fDiffFromLastTrig > fMCTrigLevel ) fTrigger = true;
     }
     // Trigger on new files
-    else if ( fWhichTrigger == 1 && NewTree ) {
+    else if ( fWhichTrigger[TrigSize] == 1 && NewTree ) {
       fTrigger = true;
     }
     // Trigger on Photon Detectors
-    else if ( fWhichTrigger == 2 ) {
+    else if ( fWhichTrigger[TrigSize] == 2 ) {
       fTrigger = loadedWaveforms_.PhotonTrigger( prev_timestamp, fWaveformADCThreshold, fWaveformADCsOverThreshold, fWaveformADCWidth, fNovaTicksPerSSPTick, fDebugLevel );
-    }
-    // Trigger on Any PTB Trigger
-    else if ( fWhichTrigger == 3 ) {
-      std::vector<unsigned int> SpecialChan = {110, 111, 112, 113, 115};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on Any Muon Coincidence
-    else if ( fWhichTrigger == 4 ) {
-      std::vector<unsigned int> SpecialChan = {110, 111, 112, 113};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on Muon Coincidences which aren't the 'Telescope'
-    else if (fWhichTrigger == 5 ) {
-      std::vector<unsigned int> SpecialChan = {111, 112, 113};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on Muon Telescope
-    else if ( fWhichTrigger == 6 ) {
-      std::vector<unsigned int> SpecialChan = {110};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on East lower, West upper Muon Coincidence
-    else if ( fWhichTrigger == 7 ) {
-      std::vector<unsigned int> SpecialChan = {111};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on North lower, South upper Muon Coincidence
-    else if ( fWhichTrigger == 8 ) {
-      std::vector<unsigned int> SpecialChan = {113};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on North upper, South lower Muon Coincidence
-    else if ( fWhichTrigger == 9 ) {
-      std::vector<unsigned int> SpecialChan = {112};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
-    }
-    // Trigger on the Photon Trigger from the Penn Trigger Board
-    else if ( fWhichTrigger == 10 ) {
-      std::vector<unsigned int> SpecialChan = {115};
-      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, SpecialChan);
+      }
+    // Trigger using the user defined PTB Trigger vector
+    else if ( fWhichTrigger[TrigSize] == 3 ) {
+      fTrigger = loadedCounters_.PTBTrigger( this_timestamp, fNovaTicksPerCountTick, fNovaTicksPerTPCTick, fDebugLevel, fPTBTrigs);
     }
     // Trigger on "Tickler" / TPC information
-    else if ( fWhichTrigger == 11 ) {
+    else if ( fWhichTrigger[TrigSize] == 4 ) {
       fTrigger = TicklerTrigger( PrevChanADC, ADCdigits);
     }
     
-    if (fTrigger) CheckTrigger();
-  } // Triggers adequately separated
+    if (fTrigger && fRequireRCE) CheckTrigger();
+    if (fTrigger) break;
+  }
 }
 //===================================================================================================================================
 bool DAQToOffline::Splitter::TicklerTrigger( std::map<int,int> &PrevChanADC, std::vector<short> ADCdigits ) {

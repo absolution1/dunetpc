@@ -18,6 +18,7 @@ source: @local::split_events
 
 #############  To configure any parameters yourself #############
 #source.WhichTrigger: 3
+#source.PTBTrigs:     [ 110, 111, 112, 113, 114, 115 ]
 #source.PreTriggerTicks: 3200
 #source.PostTriggerTicks: 6400
 
@@ -25,17 +26,10 @@ source: @local::split_events
 # WhichTrigger = 0  corresponds to  Making a trigger after a user-defined number of ticks - not hugely useful
 # WhichTrigger = 1  corresponds to  Triggering on each new ADC payload
 # WhichTrigger = 2  corresponds to  Triggering using SSP information - number of waveforms above a threshold you define.
-# WhichTrigger = 3  corresponds to  Triggering on ANY PTB Trigger
-# WhichTrigger = 4  corresponds to  Triggering on ANY MUON INDUCED PTB Trigger
-# WhichTrigger = 5  corresponds to  Triggering on ANY MUON INDUCED PTB Trigger EXCEPT THE TELESCOPE
-# WhichTrigger = 6  corresponds to  Triggering on Telescope PTB Trigger only
-# WhichTrigger = 7  corresponds to  Triggering on East lower, West upper Muon Coincidence PTB Trigger only
-# WhichTrigger = 8  corresponds to  Triggering on North lower, South upper Muon Coincidence PTB Trigger only
-# WhichTrigger = 9  corresponds to  Triggering on North upper, South lower Muon Coincidence PTB Trigger only
-# WhichTrigger = 10 corresponds to  Triggering on the SSP induced PTB Trigger only
-# WhichTrigger = 11 corresponds to Triggering on TPC ADC difference - 'Tickler Trigger'
+# WhichTrigger = 3  corresponds to  Triggering on The PTB Triggers you specify using;	   PTBTrigs: [ x, y, z ]
+# WhichTrigger = 4  corresponds to  Triggering on TPC ADC difference - 'Tickler Trigger'
 
-# WhichTrigger = 12 YOUR TRIGGER.....
+# WhichTrigger = 5  YOUR TRIGGER.....# WhichTrigger = 0  corresponds to  Making a trigger after a user-defined number of ticks - not hugely useful
 ###########################################################################################################################
 
 # Define and configure some modules to do work on each event.
