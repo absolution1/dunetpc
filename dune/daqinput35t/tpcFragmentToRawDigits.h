@@ -32,6 +32,31 @@ namespace DAQToOffline {
 
   void BuildTPCChannelMap(std::string channelMapFile, std::map<int,int>& channelMap);
 
+  struct TPCChannel{
+    int fOnlineChannel;
+    int fRCE;
+    int fRCEChannel;
+    int fAPA;
+    int fPlane;
+    int fOfflineChannel;
+    TPCChannel(int online_channel, int rce, int rce_channel, int apa, int plane, int offline_channel):
+      fOnlineChannel(online_channel),
+      fRCE(rce),
+      fRCEChannel(rce_channel),
+      fAPA(apa),
+      fPlane(plane),
+      fOfflineChannel(offline_channel)
+    {
+      
+    }
+  };
+
+  struct TPCChannelMapDetailed{
+    std::map<int,TPCChannel> fOnlineChannelMap;
+    std::map<int,TPCChannel> fOfflineChannelMap;
+    TPCChannelMapDetailed(std::string channelMapFile);
+  };
+
   const lbne::TpcNanoSlice::Header::nova_timestamp_t nova_time_ticks_per_second = 64e6;
 
   art::Timestamp make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp);

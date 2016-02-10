@@ -21,6 +21,7 @@
 #include "CalibrationDBI/Interface/IChannelStatusService.h"
 #include "CalibrationDBI/Interface/IChannelStatusProvider.h"
 #include "dune/RunHistory/DetPedestalDUNE.h"
+#include "cetlib/getenv.h"
 
 // artdaq 
 #include "artdaq-core/Data/Fragments.hh"
@@ -602,7 +603,9 @@ namespace DAQToOffline {
     int          fADCsOverThreshold;
     bool         fUsePedestalDefault;
     bool         fUsePedestalFile;
+    bool         fUsePedestalFileSearchPath;
     std::string  fPedestalFile;
+    std::string  fPedestalFileSearchPath;
 
     bool RCEsNotPresent = false;
 
@@ -685,7 +688,9 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   fADCsOverThreshold     (ps.get<int>   ("ADCsOverThreshold")),
   fUsePedestalDefault    (ps.get<bool>  ("UsePedestalDefault")),
   fUsePedestalFile       (ps.get<bool>  ("UsePedestalFile")),
-  fPedestalFile          (ps.get<std::string>("PedestalFile"))
+  fUsePedestalFileSearchPath       (ps.get<bool>  ("UsePedestalFileSearchPath",false)),
+  fPedestalFile          (ps.get<std::string>("PedestalFile")),
+  fPedestalFileSearchPath          (ps.get<std::string>("PedestalFileSearchPath", ""))
 {
   ticksPerEvent_ = fPostTriggerTicks + fPreTriggerTicks;
   // Will use same instance names for the outgoing products as for the
@@ -758,8 +763,23 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
 	pedestals.SetDetName("dune35t");
 	pedestals.SetUseDefaults(fUsePedestalDefault);
 	if ( fUsePedestalFile ) {
-	  std::cout << "Setting CSVFileName to " << fPedestalFile << std::endl;
-	  pedestals.SetCSVFileName(fPedestalFile);
+          std::string fullname;
+          if( fUsePedestalFileSearchPath ){
+            if( fPedestalFileSearchPath != "" ){
+              std::cout << "SplitterStitcher: fPedestalFileSearchPath: " << fPedestalFileSearchPath << " fPedestalFile: " << fPedestalFile << std::endl;
+              cet::search_path sp(fPedestalFileSearchPath);
+              if(fPedestalFile != "" ) sp.find_file(fPedestalFile, fullname);
+              else fullname = cet::getenv(fPedestalFileSearchPath);
+            }//fPedestalFileSearchPath != ""
+            else{
+              std::cout << "SplitterStitcher: fPedestalFileSearchPath: " << fPedestalFileSearchPath << " fPedestalFile: " << fPedestalFile << std::endl;
+              fullname = fPedestalFile;
+            }
+          }//fUsePedestalFileSearchPath
+          else fullname = fPedestalFile;
+
+	  std::cout << "SplitterStitcher: Setting CSVFileName to " << fullname << std::endl;
+	  pedestals.SetCSVFileName(fullname);
 	} else {
 	  pedestals.SetUseDB(true);
 	}

@@ -36,9 +36,7 @@
 
 //dunetpc
 #include "dune/daqinput35t/tpcFragmentToRawDigits.h" //JPD - For online channel map
-
-const int NearlineMinorVersion=1;
-const int NearlineMajorVersion=0;
+#include "dune/NearlineMonitor/NearlineVersion.h"
 
 namespace nearline {
   class NearlineAna;
@@ -58,6 +56,7 @@ public:
   void endJob();
 
   size_t getRawDigits(art::Event const & e, art::Handle<std::vector<raw::RawDigit>> & digitHandle);
+  size_t getHits(art::Event const & e, art::Handle<std::vector<recob::Hit>> & hitsHandle);
 
   //HitsPerEvent plots
   void makeHitsPerEventPlots();
@@ -75,6 +74,9 @@ public:
 
 private:
 
+  bool fVerboseOutput;
+
+
   std::string fChannelMapFile;
   bool fUseOnlineChannels;
   std::map<int,int> fChannelMap;
@@ -82,6 +84,7 @@ private:
   bool fMakeHitsPerEventPlots;
   std::vector<unsigned int> fHitsPerEventChannels;
   std::vector<TH1I*> fVecHitsPerEventPlots;
+  art::InputTag fHitsTag;
 
   bool fMakePedestalPerEventPlots;
   bool fWritePedestalPerEventFile;
@@ -160,6 +163,8 @@ void nearline::NearlineAna::reconfigure(fhicl::ParameterSet const & p){
   mf::LogInfo logInfo("NearlineAna::reconfigure");
   logInfo << "reconfigure" << "\n";
 
+  fVerboseOutput = p.get<bool>("VerboseOutput", false);
+
   fUseOnlineChannels = p.get<bool>("UseOnlineChannels", true);
   fChannelMapFile = p.get<std::string>("TPCChannelMapFile");
 
@@ -167,6 +172,8 @@ void nearline::NearlineAna::reconfigure(fhicl::ParameterSet const & p){
 
   fMakeHitsPerEventPlots = p.get<bool>("MakeHitsPerEventPlots", true);
   fHitsPerEventChannels = p.get<std::vector<unsigned int>>("HitsPerEventChannels", {1,2,3,4});
+
+  fHitsTag = p.get<art::InputTag>("HitsTag", "a:b:c");
 
   fMakePedestalPerEventPlots = p.get<bool>("MakePedestalPerEventPlots", true);
   fPedestalPerEventChannels = p.get<std::vector<unsigned int>>("PedestalPerEventChannels", {1,2,3,4});
@@ -187,7 +194,9 @@ void nearline::NearlineAna::printConfig(){
 
   mf::LogInfo logInfo("NearlineAna::printConfig");
 
+  logInfo << "fVerboseOutput: " << (fVerboseOutput ? "true" : "false") << "\n";
   logInfo << "fRawDigitsTag: " << fRawDigitsTag << "\n";
+  logInfo << "fHitsTag: " << fHitsTag << "\n";
   logInfo << "fUseOnlineChannels: " << (fUseOnlineChannels ? "true" : "false") << "\n";
 
   logInfo << "fMakeHitsPerEventPlots: " << (fMakeHitsPerEventPlots ? "true" : "false") << "\n";
@@ -394,10 +403,38 @@ size_t nearline::NearlineAna::getRawDigits(art::Event const & e, art::Handle<std
 
 ////////////////////////////////////////////////////////////////////////////////
 
+size_t nearline::NearlineAna::getHits(art::Event const & e, art::Handle<std::vector<recob::Hit>> & hitsHandle){
+
+  bool retVal = e.getByLabel(fHitsTag, hitsHandle);
+  if(retVal!=true){
+    mf::LogWarning("NearlineAna::getHits") << "Getting Hits FAIL: " << fHitsTag << std::endl;
+      return 0;
+  }
+  try { hitsHandle->size(); }
+  catch(std::exception e) {
+    mf::LogError("NearlineAna::getHits") << "WARNING: Issue with hitsHandle for Hits" << std::endl;
+    return 0;
+  }
+
+  if(!hitsHandle.isValid()){
+    mf::LogError("NearlineAna::getHits") << "Run: " << e.run()
+                            << ", SubRun: " << e.subRun()
+                            << ", Event: " << e.event()
+                            << " is NOT VALID";
+    throw cet::exception("Hit NOT VALID");
+    return 0;
+  }
+
+  return hitsHandle->size();
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void nearline::NearlineAna::makeHitsPerEventPlots(){
 
   mf::LogInfo logInfo("NearlineAna::makeHitsPerEventPlots");
-  logInfo << "fHitsPerEventChannels:" << "\n";
+  if(fVerboseOutput) logInfo << "fHitsPerEventChannels:" << "\n";
 
   art::ServiceHandle<art::TFileService> tfs;
 
@@ -412,10 +449,12 @@ void nearline::NearlineAna::makeHitsPerEventPlots(){
        "(offline) " + std::to_string(channel));
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
+    histTemp->GetXaxis()->SetTitle("Hits per Event");
+    histTemp->GetYaxis()->SetTitle("Events");
     fVecHitsPerEventPlots.push_back(histTemp);
-    logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
+    if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
-  logInfo << "\n";
+  if(fVerboseOutput) logInfo << "\n";
 
 }
 
@@ -425,14 +464,14 @@ void nearline::NearlineAna::makePedestalPerEventPlots(){
 
 
   mf::LogInfo logInfo("NearlineAna::makePedestalPerEventPlots");
-  logInfo << "fPedestalPerEventChannels:" << "\n";
+  if(fVerboseOutput) logInfo << "fPedestalPerEventChannels:" << "\n";
 
   art::ServiceHandle<art::TFileService> tfs;
 
   for(auto channel: fPedestalPerEventChannels){
-    int numBins = 100;
+    int numBins = 128;
     int xmin = 0;
-    int xmax = 2048;
+    int xmax = 4096;
     std::string hist_name = "hped_per_event_chan_" + std::to_string(channel);
     std::string hist_title = "Average ADC Per Event - Channel " 
     + (fUseOnlineChannels ? 
@@ -440,10 +479,12 @@ void nearline::NearlineAna::makePedestalPerEventPlots(){
        "(offline) " + std::to_string(channel));
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
+    histTemp->GetXaxis()->SetTitle("ADC");
+    histTemp->GetYaxis()->SetTitle("Events");
     fVecPedestalPerEventPlots.push_back(histTemp);
-    logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
+    if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
-  logInfo << "\n";
+  if(fVerboseOutput) logInfo << "\n";
 
 }
 
@@ -453,31 +494,77 @@ void nearline::NearlineAna::makePedestalPerTickPlots(){
 
 
   mf::LogInfo logInfo("NearlineAna::makePedestalPerTickPlots");
-  logInfo << "fPedestalPerTickChannels:" << "\n";
+  if(fVerboseOutput) logInfo << "fPedestalPerTickChannels:" << "\n";
 
   art::ServiceHandle<art::TFileService> tfs;
 
   for(auto channel: fPedestalPerTickChannels){
-    int numBins = 100;
+    int numBins = 128;
     int xmin = 0;
-    int xmax = 2048;
+    int xmax = 4096;
     std::string hist_name = "hped_per_tick_chan_" + std::to_string(channel);
-    std::string hist_title = "Average ADC Per Tick - Channel " 
+
+    std::string hist_title = "ADC Per Tick - Channel " 
     + (fUseOnlineChannels ? 
        "(online/offline) " + std::to_string(channel) + "/" + std::to_string(fChannelMap.at(channel)) : 
        "(offline) " + std::to_string(channel));
 
     TH1I* histTemp = tfs->make<TH1I>(hist_name.c_str(), hist_title.c_str(), numBins, xmin, xmax);
+    histTemp->GetXaxis()->SetTitle("ADC");
+    histTemp->GetYaxis()->SetTitle("Events");
     fVecPedestalPerTickPlots.push_back(histTemp);
-    logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
+    if(fVerboseOutput) logInfo << "channel: " << channel << " hist_name: " << hist_name << " hist_title: " << hist_title << "\n";
   }
-  logInfo << "\n";
+  if(fVerboseOutput) logInfo << "\n";
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void nearline::NearlineAna::fillHitsPerEventPlots(art::Event const & e){
+
+
+  mf::LogInfo logInfo("NearlineAna::fillHistPerEventPlots");
+  art::Handle<std::vector<recob::Hit>> hitHandle;
+  size_t numHits = getHits(e, hitHandle);
+
+  //Count the number of hits on channels we are watching
+  std::vector<unsigned int> numHitsPerChannel(fHitsPerEventChannels.size(), 0);
+
+  if(numHits==0) return;
+
+  for(size_t hitIter=0;hitIter<numHits;hitIter++){
+    art::Ptr<recob::Hit> hitVec(hitHandle,hitIter);
+    raw::ChannelID_t channel = hitVec->Channel();
+    // geo::View_t      view = hitVec->View();
+    // geo::SigType_t   signalType = hitVec->SignalType();
+    // geo::WireID      wireID = hitVec->WireID();
+    // logInfo << "Hit Channel: " << channel 
+    //         << " View: " << view 
+    //         << " SignalType: " << signalType 
+    //         << " WireID: " << wireID << "\n";
+
+    for(size_t index=0;index<fHitsPerEventChannels.size();index++){
+      auto this_channel = (fUseOnlineChannels ? fChannelMap.at(fHitsPerEventChannels.at(index)) : fHitsPerEventChannels.at(index));
+      if(this_channel!=channel) continue;
+      numHitsPerChannel.at(index) += 1;
+    }//channel index
+  }//hitIter
+
+  //Now fill histogram
+  for(size_t index=0;index<fHitsPerEventChannels.size();index++){
+    TH1I* histTemp = fVecHitsPerEventPlots.at(index);
+    histTemp->Fill(numHitsPerChannel.at(index));
+  }//channel index
+
+  if(fVerboseOutput){
+    logInfo << "Channel (Number of Hits): \n";
+    for(size_t index=0;index<fHitsPerEventChannels.size();index++){
+      logInfo << fHitsPerEventChannels.at(index) << " (" << numHitsPerChannel.at(index) << ") ";
+    }
+    logInfo << "\n";
+  }
+
 
 }
 
@@ -511,7 +598,7 @@ void nearline::NearlineAna::fillPedestalPerEventPlots(art::Event const & e){
       if(this_channel!=channel) continue; 
 
       //DEBUG 
-      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerEventChannels.at(index) << "/" << fChannelMap.at(fPedestalPerEventChannels.at(index)) << ")\n";
+      if(fUseOnlineChannels && fVerboseOutput) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerEventChannels.at(index) << "/" << fChannelMap.at(fPedestalPerEventChannels.at(index)) << ")\n";
 
       auto numSamples = digitVec->Samples();
       auto compression = digitVec->Compression();
@@ -570,7 +657,7 @@ void nearline::NearlineAna::fillPedestalPerTickPlots(art::Event const & e){
       if(this_channel!=channel) continue; 
 
       //DEBUG 
-      if(fUseOnlineChannels) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerTickChannels.at(index) << "/" << fChannelMap.at(fPedestalPerTickChannels.at(index)) << ")\n";
+      if(fUseOnlineChannels && fVerboseOutput) logInfo << "this_channel (online/offline): " << this_channel << " (" << fPedestalPerTickChannels.at(index) << "/" << fChannelMap.at(fPedestalPerTickChannels.at(index)) << ")\n";
 
       auto numSamples = digitVec->Samples();
       auto compression = digitVec->Compression();

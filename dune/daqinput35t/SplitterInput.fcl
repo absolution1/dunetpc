@@ -47,7 +47,9 @@ split_events:
 
   UsePedestalDefault:        "false" // Whether to use the default pedestal values
   UsePedestalFile:           "false" // Whether to use a pedestal file. If false, uses the online database.
+  UsePedestalFileSearchPath: "false" // Whether to use an environment variable to search for pedestal file in. Only used if UsePedestalFile is true
   PedestalFile:              ""      // What pedestal file to use (if one is used at all)
+  PedestalFileSearchPath:    ""      // What environment variable to use to search for pedestal file (no $ please, eg for $BAR enter "BAR")
 }
 
 END_PROLOG
