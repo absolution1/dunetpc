@@ -104,7 +104,11 @@ private:
   //Histogram to store the 
   TH1I* fHistNearlineVersion;
 
-
+  //PTB Map
+  std::string fPTBMapFile;
+  std::string fPTBMapDir;
+  
+  std::map<int,int> fPTBMap;
 };
 
 Muoncounter::Muoncounter(fhicl::ParameterSet const& pset)
@@ -137,9 +141,12 @@ void Muoncounter::reconfigure(fhicl::ParameterSet const& p)
   fCounterModuleLabel = p.get< std::string >("CounterModuleLabel");
   //    fLArG4ModuleLabel(p.get< std::string >("LArGeantModuleLabel", "largeant"));
   fCombinedTimeDelay = p.get< double >("CombinedTimeDelay");
-  fFragType = p.get<std::string>("FragType");
-  fRawDataLabel = p.get<std::string>("DataLabel");
+  fFragType          = p.get<std::string>("FragType");
+  fRawDataLabel      = p.get<std::string>("DataLabel");
+  fPTBMapFile        = p.get<std::string>("PTBMapFile");
+  fPTBMapDir         = p.get<std::string>("PTBMapDir");
 
+  DAQToOffline::BuildPTBChannelMap(fPTBMapDir, fPTBMapFile, fPTBMap);
   return;
 }
 
@@ -205,7 +212,7 @@ void Muoncounter::analyze(const art::Event& evt)
     return;
   }
 
-  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment);
+  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment, fPTBMap);
 
   unsigned int total_Hits = trigs.size();
 
