@@ -17,16 +17,15 @@ LPDir=${args[2]}
 INFILE=`basename $infile`
 
 fileend=.root
-outhistfile=${INFILE%$fileend}_nearline_hist.root
-outhistfilemuon=${INFILE%$fileend}_nearline_muon_counters.root
+outhistfile=${INFILE%$fileend}_evd.root
 
-export LOCKFILE=$INFILE.LOCK
-export DONEFILE=$INFILE.DONE
+export LOCKFILE=${INFILE}EVD.LOCK
+export DONEFILE=${INFILE}EVD.DONE
 
 START_DATE=`date`
 
 # Touch a lock file...
-echo "Creating file $infile.LOCK"
+echo "Creating file ${infile}EVD.LOCK"
 touch $RunDir/$LOCKFILE
 
 # Create a hard link...
@@ -52,19 +51,20 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 if [ $infilesize -gt 500 ];
 then
     echo "Processing /data/lbnedaq/data/nearline-monitoring-links/${INFILE}"
-
+    
     export NEARLINE_PEDESTAL="/home/lbnedaq/nearline/pedestal_files/offline_databaseRun_9754.csv"
 
     echo "Setting pedestal to: $NEARLINE_PEDESTAL"
 
-    lar -c test_stitcher_nearlineana.fcl -n 10 /data/lbnedaq/data/nearline-monitoring-links/${INFILE} -T $outhistfile
-    
-    END_NEARLINE_ANA=`date`
+    lar -c ctreeraw35t_trigTPC.fcl -n 10 /data/lbnedaq/data/nearline-monitoring-links/${INFILE}
 
-    lar -c nearline_muoncounter35t.fcl /data/lbnedaq/data/nearline-monitoring-links/${INFILE} -T $outhistfilemuon
+    # Rename the output file for the RED35 EVD so that the script that looks for the most recent file
+    # knows that the processing is finished.
+    mv sample.root sample_done.root
 
-    END_NEARLINE_MUON=`date`
-
+    # Don't know why this text file gets created. Probably could be turned off at the fcl level.
+    # Just going to remove it manually for now...
+    rm -fv WireGeometry.txt
 fi
 
 
@@ -81,8 +81,6 @@ END_DATE=`date`
 touch $RunDir/$DONEFILE
 
 echo "START_DATE $START_DATE" >> $RunDir/$DONEFILE
-echo "END_NEARLINE_ANA $END_NEARLINE_ANA" >> $RunDir/$DONEFILE
-echo "END_NEARLINE_MUON $END_NEARLINE_MUON" >> $RunDir/$DONEFILE
 echo "END_DATE $END_DATE" >> $RunDir/$DONEFILE
 echo "NEARLINE_PEDESTAL $NEARLINE_PEDESTAL" >> $RunDir/$DONEFILE
 
