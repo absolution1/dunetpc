@@ -1,7 +1,7 @@
 #ifndef _NLPlotMkr
 #define _NLPlotMkr
 
-#include <fstream>
+#include "TDatime.h"
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TGraph.h>
@@ -27,6 +27,11 @@
 #include <sstream>
 #include <string>
 #include <cstring>
+
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <fstream>
 
 // NOTE:  Go through ALL of the above and remove what isn't necessary!!!
 #include <sstream>
@@ -272,7 +277,7 @@ bool NearlinePlot::AddHistogram1D(TFile const & file, TTree* header, int Xsrtime
     else fHistogram->Add(hist_temp,1.0);
   }    
   else{
-    std::cerr << "NearlinePlot::AddHistogram - Failed to find histogram - " << fHistName << std::endl;
+    //    std::cerr << "NearlinePlot::AddHistogram - Failed to find histogram - " << fHistName << std::endl;
     return false;
   }
   if(hist_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
@@ -338,7 +343,7 @@ bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime
     }//make TH2
   }//Got TH1
   else{
-    std::cerr << "NearlinePlot::AddHistogram2D - Failed to find histogram - " << fHistName << std::endl;
+    //    std::cerr << "NearlinePlot::AddHistogram2D - Failed to find histogram - " << fHistName << std::endl;
     return false;
   }
   if(hist_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {  
@@ -823,6 +828,221 @@ struct NearlineHTML{
 
 };
 
+
+struct NearlineProcessingTime{
+  
+  TDatime fStartDate;
+  TDatime fEndNearlineAnaDate;
+  TDatime fEndNearlineMuonDate;
+  TDatime fEndDate;
+
+  NearlineProcessingTime(std::string file_name);
+  static TDatime GetDateTime(std::string date);
+  static std::string GetDoneFileName(std::string file_name);
+  static TDatime const InvalidDateTime;
+};
+
+const TDatime NearlineProcessingTime::InvalidDateTime = TDatime(1995,00,00,00,00,00);
+
+NearlineProcessingTime::NearlineProcessingTime(std::string file_name){
+
+  fStartDate=InvalidDateTime;
+  fEndNearlineAnaDate=InvalidDateTime;
+  fEndNearlineMuonDate=InvalidDateTime;
+  fEndDate=InvalidDateTime;
+  
+  std::ifstream in_file(file_name.c_str());
+  std::string line;
+
+  std::string start = "";
+  std::string end_nearline_ana = "";
+  std::string end_nearline_muon = "";
+  std::string end = "";
+
+  while(std::getline(in_file, line)){   
+    if(line.find("START_DATE ") != std::string::npos)  start = line.substr(std::string("START_DATE ").size());
+    if(line.find("END_NEARLINE_ANA ") != std::string::npos)  end_nearline_ana = line.substr(std::string("END_NEARLINE_ANA ").size());
+    if(line.find("END_NEARLINE_MUON ") != std::string::npos)  end_nearline_muon = line.substr(std::string("END_NEARLINE_MUON ").size());
+    if(line.find("END_DATE ") != std::string::npos)  end = line.substr(std::string("END_DATE ").size());
+  }
+
+  in_file.close();
+
+  if(start != "") fStartDate = GetDateTime(start);
+  if(end_nearline_ana != "") fEndNearlineAnaDate = GetDateTime(end_nearline_ana);
+  if(end_nearline_muon != "") fEndNearlineMuonDate = GetDateTime(end_nearline_muon);
+  if(end != "") fEndDate = GetDateTime(end);
+  
+}
+
+
+TDatime NearlineProcessingTime::GetDateTime(std::string date){
+  std::string temp_file_name = "/tmp/NearlineDate.txt";
+  std::string command = "date -d \"" + date + "\" +\"%Y-%m-%d %T\" > " + temp_file_name;
+  int retval = system(command.c_str());
+  std::ifstream temp_file(temp_file_name.c_str());
+  std::string new_date;
+  std::getline(temp_file, new_date);
+  temp_file.close();
+  TDatime date_time(new_date.c_str());
+  return date_time;
+}
+
+std::string NearlineProcessingTime::GetDoneFileName(std::string file_name){
+
+  std::string file_name_done = file_name.substr(0, file_name.find("_nearline")) + ".root.DONE";
+  return file_name_done;
+
+}
+
+struct NearlineProcessingTimePlot{
+  
+  std::vector<int> fVecRun;		
+  std::vector<int> fVecTotalTime;	
+  std::vector<int> fVecNearlineAnaTime;	
+  std::vector<int> fVecNearlineMuonTime;
+  //  TMultiGraph* fMultiGraph;
+  TLegend fLegend;
+
+  NearlineProcessingTimePlot(){
+    fVecRun.resize(0);		
+    fVecTotalTime.resize(0);	  
+    fVecNearlineAnaTime.resize(0);	  
+    fVecNearlineMuonTime.resize(0);
+  }
+
+  void AddFile(std::string filename, int run){
+    NearlineProcessingTime this_processing_time(filename);
+    if(run<=0) return;
+    if(this_processing_time.fStartDate == NearlineProcessingTime::InvalidDateTime) return;
+    if(this_processing_time.fEndDate == NearlineProcessingTime::InvalidDateTime) return;
+
+    int total_time = this_processing_time.fEndDate.Get() - this_processing_time.fStartDate.Get();
+    fVecRun.push_back(run);
+    fVecTotalTime.push_back(total_time);
+
+    std::cerr << "JPD: run " << run << " time " << total_time << std::endl;
+    
+    int nearline_ana_time = this_processing_time.fEndNearlineAnaDate.Get() - this_processing_time.fStartDate.Get();
+    int nearline_muon_time = this_processing_time.fEndNearlineMuonDate.Get() - this_processing_time.fEndNearlineAnaDate.Get();
+
+    if(this_processing_time.fEndNearlineAnaDate == NearlineProcessingTime::InvalidDateTime){ 
+      nearline_ana_time = 0;
+      nearline_muon_time = 0;
+    }
+    if(this_processing_time.fEndNearlineMuonDate == NearlineProcessingTime::InvalidDateTime){ 
+      nearline_muon_time = 0;
+    }
+    fVecNearlineAnaTime.push_back(nearline_ana_time);
+    fVecNearlineMuonTime.push_back(nearline_muon_time);
+  }
+  
+  TGraph* GetTotalTimeGraph(){
+    TGraph* gr = new TGraph(fVecRun.size());
+    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecTotalTime.at(i));
+    gr->SetTitle("Nearline Processing Time");
+    gr->SetMarkerColor(kBlue);
+    gr->SetMarkerStyle(20);
+    gr->SetMarkerSize(1.5);
+    gr->GetXaxis()->SetTitle("Run Number");
+    gr->GetYaxis()->SetTitle("Processing Time in Seconds");
+    return gr;
+  }
+  TGraph* GetNearlineAnaTimeGraph(){
+    TGraph* gr = new TGraph(fVecRun.size());
+    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecNearlineAnaTime.at(i));
+    gr->SetTitle("Nearline Ana Processing Time");
+    gr->SetMarkerColor(kRed);
+    gr->SetMarkerStyle(21);
+    gr->SetMarkerSize(1.5);
+    gr->GetXaxis()->SetTitle("Run Number");
+    gr->GetYaxis()->SetTitle("Processing Time in Seconds");
+    return gr;
+  }
+  TGraph* GetNearlineMuonTimeGraph(){
+    TGraph* gr = new TGraph(fVecRun.size());
+    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecNearlineMuonTime.at(i));
+    gr->SetTitle("Nearline Muon Processing Time");
+    gr->SetMarkerColor(kBlack);
+    gr->SetMarkerStyle(22);
+    gr->SetMarkerSize(1.5);
+    gr->GetXaxis()->SetTitle("Run Number");
+    gr->GetYaxis()->SetTitle("Processing Time in Seconds");
+    return gr;
+  }
+  TMultiGraph* GetTimeMultiGraph(){
+
+    TMultiGraph* mgr = new TMultiGraph();
+    TGraph* gr;
+    fLegend = TLegend(0.75,0.75,0.95,0.95);
+
+    gr = GetTotalTimeGraph();
+    mgr->Add(gr, "P");
+    fLegend.AddEntry(gr, gr->GetTitle(), "p");
+
+    gr = GetNearlineAnaTimeGraph();
+    mgr->Add(gr, "P");
+    fLegend.AddEntry(gr, gr->GetTitle(), "p");
+
+    gr = GetNearlineMuonTimeGraph();
+    mgr->Add(gr, "P");
+    fLegend.AddEntry(gr, gr->GetTitle(), "p");
+
+    return mgr;
+  }
+
+  TCanvas* GetTimeCanvas(TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas* can = new TCanvas("can_processing_time", "can_processing_time", width, height);
+    can->SetRightMargin(0.20);
+    TMultiGraph* gr = GetTimeMultiGraph();
+    can->cd()->SetLogy();
+    gr->Draw("A*");
+    gr->SetTitle("Nearline Processing Time");   
+    gr->GetXaxis()->SetTitle("Run Number");   
+    gr->GetYaxis()->SetTitle("Processing Time in Seconds");   
+
+    gPad->SetGridx();
+    gPad->SetGridy();
+
+    updateText->Draw();
+    fLegend.Draw();
+    //    fMultiGraph = gr;
+    return can;
+  }
+  
+  static std::string GetPlotName(int Ndays){ 
+    char name[256];
+    sprintf(name, "ProcessingTime_%.3i_days.png", Ndays);
+    return std::string(name);
+  }
+
+  void PrintTimePlots(std::string plot_dir, int Ndays, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas *can = GetTimeCanvas(updateText, time_ago, XNow, width, height);
+    can->Print((plot_dir + "/" + GetPlotName(Ndays)).c_str());
+    delete can;
+
+    //    delete fMultiGraph;
+  }
+
+  static std::string MakeTimePlotsHTML(std::string relative_plot_dir, int Ndays){
+
+    std::string output;
+    output+="<h3>Nearline Processing Time as a function of Run.</h3>\n";
+    output+="<figure>\n";
+    output+="<img src=\"" + relative_plot_dir + "/" + GetPlotName(Ndays) + "\" width=\"800\">\n";
+    output+="</figure>\n";
+    output+="<p>\n";
+    output+="<b>Nearline Processing Time</b> - Total time taken to run this Nearline Processing Job<BR>\n";
+    output+="<b>Nearline Ana Processing Time</b> - Time taken to run the NearlineAna part of the Job<BR>\n";
+    output+="<b>Nearline Muon Processing Time</b> - Time taken to run the Nearline Muon Counter part of the Job<BR>\n";
+    output+="</p>\n";
+    output+="<BR><BR><BR>\n";
+
+    return output;
+  }
+
+
+};
 
 
 #endif
