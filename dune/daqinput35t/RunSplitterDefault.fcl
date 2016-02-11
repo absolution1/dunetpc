@@ -17,7 +17,7 @@ services:
 source: @local::split_events
 
 #############  To configure any parameters yourself #############
-#source.WhichTrigger: 3
+#source.WhichTrigger: [ 3 ]
 #source.PTBTrigs:     [ 110, 111, 112, 113, 114, 115 ]
 #source.PreTriggerTicks: 3200
 #source.PostTriggerTicks: 6400

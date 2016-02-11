@@ -65,7 +65,6 @@ private:
   double fNOvAClockFrequency; //MHz
   bool fDebug;
 
-  int Event = 0;
   std::map<int,int> fRCEChannelMap;
   std::map<int,int> fPTBMap;
 
@@ -74,6 +73,8 @@ private:
   long long RCETime, SSPTime, PTBTime;
   long long RCE_PTB_diff, RCE_SSP_diff, SSP_PTB_diff;
   int NumADCs, ConsistRCE;
+
+  int RunNumber, nevts, nSSP, nRCE, nPTB, nSSPPayloads, nRCEPayloads, nConsistRCEPayloads, nPTBPayloads;
 };
 
 DAQToOffline::CheckTiming::CheckTiming(fhicl::ParameterSet const & pset)
@@ -104,6 +105,8 @@ DAQToOffline::CheckTiming::~CheckTiming() {
 }
 
 void DAQToOffline::CheckTiming::beginJob() {
+
+  RunNumber = nevts = nSSP = nRCE = nPTB = nSSPPayloads = nRCEPayloads = nConsistRCEPayloads = nPTBPayloads = 0;
 
   if(fDebug) printParameterSet();
 
@@ -161,7 +164,12 @@ void DAQToOffline::CheckTiming::printParameterSet(){
 
 void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 {
-  ++Event;
+  if (nevts == 0 ) {
+    RunNumber = evt.run();
+    std::cout << "Got runNumber it is " << RunNumber << std::endl;
+  }
+
+  ++nevts;
   RCETime = 0, SSPTime = 0, PTBTime = 0;
   ConsistRCE = -1;
   NumADCs = 0;
@@ -178,6 +186,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
   }
 
   if (RCEPresent) {
+    ++nRCE;
     if(!RCErawFragments.isValid()){
       std::cerr << "Run: " << evt.run() << ", SubRun: " << evt.subRun()	<< ", Event: " << evt.event() << " is NOT VALID" << std::endl;
       throw cet::exception("RCErawFragments NOT VALID");
@@ -217,7 +226,10 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
     } // rawFragments.size()
     //std::cout << "Got RCE start time, it is " << RCETime << std::endl;
   } //RCEPresent
-  
+  if (ConsistRCE > -1 ) ++nRCEPayloads;
+  if (ConsistRCE == 1 ) ++nConsistRCEPayloads;
+
+
   // ------------- SSP Section ------------------------
   bool SSPPresent = true;
   art::Handle<artdaq::Fragments> SSPrawFragments;
@@ -230,6 +242,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
   }
 
   if (SSPPresent) {
+    ++nSSP;
     if(!SSPrawFragments.isValid()){
       mf::LogError("SSPToOffline") << "Run: " << evt.run() << ", SubRun: " << evt.subRun() << ", Event: " << evt.event() << " is NOT VALID";
       throw cet::exception("raw NOT VALID");
@@ -238,6 +251,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
     
     artdaq::Fragments const& rawFragmentsSSP = *SSPrawFragments;
     if ( rawFragmentsSSP.size() ) {
+      ++nSSPPayloads;
       const auto& frag(rawFragmentsSSP[0]);
       const SSPDAQ::MillisliceHeader* meta=0;
       if(frag.hasMetadata())
@@ -263,6 +277,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
   }
 
   if (PTBPresent) {
+    ++nPTB;
     if(!PTBrawFragments.isValid()){
       mf::LogError("PTBToOffline") << "Run: " << evt.run() << ", SubRun: " << evt.subRun() << ", Event: " << evt.event() << " is NOT VALID";
       throw cet::exception("raw NOT VALID");
@@ -276,6 +291,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
     uint8_t* payload_data = nullptr;
     
     if (PTBrawFragments->size()) {
+      ++nPTBPayloads;
       const auto& frag((*PTBrawFragments)[0]);
       lbne::PennMilliSliceFragment msf(frag);
       
@@ -297,7 +313,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
   } // PTB Present
   // ------------------------ NOW TO COMPARE ALL THESE NUMBERS -------------------------------------------
   
-  if (Event%1000 == 0) std::cout << "Looking at event " << Event << " it had " << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs << std::endl;
+  if (nevts%1000 == 0) std::cout << "Looking at event " << evt.event() << " it had " << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs << std::endl;
 
   RCE_PTB_diff = RCETime - PTBTime;
   RCE_SSP_diff = RCETime - SSPTime;
@@ -308,6 +324,10 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 
 void DAQToOffline::CheckTiming::endJob()
 {
+  std::cout << "IDENTIFIER: Run: " << RunNumber << " has " << nevts << " events in total, " 
+	    << nSSP << " have SSP data and " << nSSPPayloads << " payloads, " 
+	    << nRCE << " have RCE data and " << nRCEPayloads << " payloads " << nConsistRCEPayloads << " of which had consistent numbers of RCE payloads, "
+	    << nPTB << " have PTB data and " << nPTBPayloads << " payloads." << std::endl;
 }
 
 DEFINE_ART_MODULE(DAQToOffline::CheckTiming)
