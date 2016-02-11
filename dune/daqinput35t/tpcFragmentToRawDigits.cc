@@ -12,10 +12,10 @@
 #include "utilities/UnpackFragment.h"
 
 // From larcore
-#include "Geometry/Geometry.h"
+#include "larcore/Geometry/Geometry.h"
 
 // From lardata
-#include "RawData/raw.h"
+#include "lardata/RawData/raw.h"
 
 std::vector<raw::RawDigit>
 DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, 

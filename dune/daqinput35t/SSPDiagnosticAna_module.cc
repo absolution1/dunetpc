@@ -39,10 +39,10 @@
 #include "artdaq-core/Data/Fragments.hh"
 
 //larsoft includes
-#include "RawData/raw.h"
-#include "RawData/OpDetWaveform.h"
-#include "Geometry/Geometry.h"
-#include "Utilities/TimeService.h"
+#include "lardata/RawData/raw.h"
+#include "lardata/RawData/OpDetWaveform.h"
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/Utilities/TimeService.h"
 
 //daqinput35t includes
 

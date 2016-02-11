@@ -17,7 +17,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "Geometry/Geometry.h"
+#include "larcore/Geometry/Geometry.h"
 
 #include "TFile.h"
 #include "TCanvas.h"

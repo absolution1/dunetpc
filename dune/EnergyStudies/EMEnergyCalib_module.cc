@@ -22,18 +22,18 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 
 // LArSoft includes
-#include "Geometry/Geometry.h"
-#include "Geometry/CryostatGeo.h"
-#include "Geometry/TPCGeo.h"
-#include "Geometry/PlaneGeo.h"
-#include "RecoBase/Cluster.h"
-#include "RecoBase/Hit.h"
-#include "MCCheater/BackTracker.h"
-#include "Utilities/AssociationUtil.h"
-#include "Filters/ChannelFilter.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/CryostatGeo.h"
+#include "larcore/Geometry/TPCGeo.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "lardata/RecoBase/Cluster.h"
+#include "lardata/RecoBase/Hit.h"
+#include "larsim/MCCheater/BackTracker.h"
+#include "lardata/Utilities/AssociationUtil.h"
+#include "larevt/Filters/ChannelFilter.h"
 #include "SimulationBase/MCParticle.h"
-#include "Simulation/ParticleList.h"
-#include "Simulation/sim.h"
+#include "larsim/Simulation/ParticleList.h"
+#include "larsim/Simulation/sim.h"
 
 // ROOT & C++ includes
 #include <string>

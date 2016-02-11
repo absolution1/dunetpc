@@ -1,13 +1,13 @@
 
 simple_plugin(CFilter "module"
-		      RawData
-		      RecoBase
+		      lardata_RawData
+		      lardata_RecoBase
 		      dune_Geometry
-		        Geometry
-			Geometry_service
-			Utilities
-			DetectorProperties_service
-			LArProperties_service
+		        larcore_Geometry
+			larcore_Geometry_Geometry_service
+			lardata_Utilities
+			lardata_Utilities_DetectorProperties_service
+			lardata_Utilities_LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

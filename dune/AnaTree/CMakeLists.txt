@@ -1,12 +1,12 @@
 
 simple_plugin(AnaTree "module"
-		      RawData
-		      RecoBase
-		        Geometry
-			Geometry_service
-			Utilities
-			DetectorProperties_service
-			LArProperties_service
+		      lardata_RawData
+		      lardata_RecoBase
+		        larcore_Geometry
+			larcore_Geometry_Geometry_service
+			lardata_Utilities
+			lardata_Utilities_DetectorProperties_service
+			lardata_Utilities_LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

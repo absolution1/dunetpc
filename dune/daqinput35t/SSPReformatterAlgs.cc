@@ -4,7 +4,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Principal/Event.h"
 #include "cetlib/search_path.h"
-#include "Utilities/TimeService.h"
+#include "lardata/Utilities/TimeService.h"
 #include <fstream>
 
 // lbnecode/daqinput35t includes
@@ -13,7 +13,7 @@
 
 // larsoft includes
 
-#include "Geometry/Geometry.h"
+#include "larcore/Geometry/Geometry.h"
 
 // lbne-raw-data includes
 #include "lbne-raw-data/Overlays/SSPFragment.hh"

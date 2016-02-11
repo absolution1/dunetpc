@@ -6,22 +6,22 @@
 #define RawEVD35t_module
 
 // LArSoft includes
-#include "Utilities/DetectorProperties.h"
-#include "Simulation/SimChannel.h"
-#include "Simulation/LArG4Parameters.h"
-#include "Geometry/Geometry.h"
+#include "lardata/Utilities/DetectorProperties.h"
+#include "larsim/Simulation/SimChannel.h"
+#include "larsim/Simulation/LArG4Parameters.h"
+#include "larcore/Geometry/Geometry.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
-#include "SimpleTypesAndConstants/geo_types.h"
+#include "larcore/SimpleTypesAndConstants/geo_types.h"
 
 // Data type includes
-#include "RawData/raw.h"
-#include "RawData/RawDigit.h"
-#include "RawData/OpDetPulse.h"
-#include "RecoBase/Hit.h"
-#include "RecoBase/Cluster.h"
-#include "RecoBase/OpHit.h"
-#include "OpticalDetector/OpDigiProperties.h"
+#include "lardata/RawData/raw.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/OpDetPulse.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBase/Cluster.h"
+#include "lardata/RecoBase/OpHit.h"
+#include "larana/OpticalDetector/OpDigiProperties.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"

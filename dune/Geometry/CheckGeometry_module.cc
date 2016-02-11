@@ -17,7 +17,7 @@
 #include "art/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "Geometry/Geometry.h"
+#include "larcore/Geometry/Geometry.h"
 #include "TCanvas.h"
 #include "TBox.h"
 #include "TH2F.h"

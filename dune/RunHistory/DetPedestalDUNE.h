@@ -9,8 +9,8 @@
 #ifndef DETPEDESTALDUNE_H
 #define DETPEDESTALDUNE_H
 
-#include "CalibrationDBI/IOVData/DetPedestal.h"
-#include "CalibrationDBI/Interface/IDetPedestalProvider.h"
+#include "larevt/CalibrationDBI/IOVData/DetPedestal.h"
+#include "larevt/CalibrationDBI/Interface/IDetPedestalProvider.h"
 #include "fhiclcpp/ParameterSet.h"
 #include <unordered_map>
 

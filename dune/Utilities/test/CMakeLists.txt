@@ -3,7 +3,7 @@ cet_enable_asserts()
 art_make( NO_PLUGINS
           BASENAME_ONLY
           LIBRARY_NAME  dune_Utilities
-	  MODULE_LIBRARIES Utilities
+	  MODULE_LIBRARIES lardata_Utilities
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}

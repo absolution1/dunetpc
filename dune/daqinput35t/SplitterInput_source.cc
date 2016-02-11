@@ -15,13 +15,13 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Provenance/EventAuxiliary.h"
 #include "SimulationBase/MCParticle.h"
-#include "Simulation/SimChannel.h"
+#include "larsim/Simulation/SimChannel.h"
 
 //Pedestal stuff...
-#include "CalibrationDBI/Interface/IDetPedestalService.h"
-#include "CalibrationDBI/Interface/IDetPedestalProvider.h"
-#include "CalibrationDBI/Interface/IChannelStatusService.h"
-#include "CalibrationDBI/Interface/IChannelStatusProvider.h"
+#include "larevt/CalibrationDBI/Interface/IDetPedestalService.h"
+#include "larevt/CalibrationDBI/Interface/IDetPedestalProvider.h"
+#include "larevt/CalibrationDBI/Interface/IChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/IChannelStatusProvider.h"
 #include "dune/RunHistory/DetPedestalDUNE.h"
 #include "cetlib/getenv.h"
 
@@ -29,9 +29,9 @@
 #include "artdaq-core/Data/Fragments.hh"
 
 // lardata
-#include "RawData/RawDigit.h"
-#include "RawData/ExternalTrigger.h"
-#include "Utilities/TimeService.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/ExternalTrigger.h"
+#include "lardata/Utilities/TimeService.h"
 
 // dune
 #include "tpcFragmentToRawDigits.h"

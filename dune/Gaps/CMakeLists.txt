@@ -1,11 +1,11 @@
 simple_plugin(GapFilter "module"
-                        RawData
-                        RecoBase
-                        Geometry
-                        Geometry_service
-                        Utilities
-                        DetectorProperties_service
-                        LArProperties_service
+                        lardata_RawData
+                        lardata_RecoBase
+                        larcore_Geometry
+                        larcore_Geometry_Geometry_service
+                        lardata_Utilities
+                        lardata_Utilities_DetectorProperties_service
+                        lardata_Utilities_LArProperties_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -27,13 +27,13 @@ simple_plugin(GapFilter "module"
 )
 
 simple_plugin(GapWidth "module"
-                       RawData
-                       RecoBase
-                       Geometry
-                       Geometry_service
-                       Utilities
-                       DetectorProperties_service
-                       LArProperties_service
+                       lardata_RawData
+                       lardata_RecoBase
+                       larcore_Geometry
+                       larcore_Geometry_Geometry_service
+                       lardata_Utilities
+                       lardata_Utilities_DetectorProperties_service
+                       lardata_Utilities_LArProperties_service
                        ${SIMULATIONBASE}
                        ${ART_FRAMEWORK_CORE}
                        ${ART_FRAMEWORK_PRINCIPAL}

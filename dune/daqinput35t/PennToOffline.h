@@ -16,8 +16,8 @@
 #include "utilities/UnpackFragment.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "Geometry/Geometry.h"
-#include "RawData/ExternalTrigger.h"
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/RawData/ExternalTrigger.h"
 
 #include <iostream>
 #include <fstream>

@@ -25,10 +25,10 @@
 
 
 //larsoft
-#include "Geometry/Geometry.h"
-#include "Utilities/DetectorProperties.h"
-#include "RecoBase/Hit.h"
-#include "RawData/RawDigit.h"
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/Utilities/DetectorProperties.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RawData/RawDigit.h"
 
 //ROOT
 #include "TH1I.h"

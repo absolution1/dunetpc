@@ -12,12 +12,12 @@
 /// in the SortingParameters pset.
 ///
 #include "dune/Geometry/ChannelMap35Alg.h"
-#include "Geometry/GeometryCore.h"
-#include "Geometry/AuxDetGeo.h"
-#include "Geometry/CryostatGeo.h"
-#include "Geometry/TPCGeo.h"
-#include "Geometry/PlaneGeo.h"
-#include "Geometry/WireGeo.h"
+#include "larcore/Geometry/GeometryCore.h"
+#include "larcore/Geometry/AuxDetGeo.h"
+#include "larcore/Geometry/CryostatGeo.h"
+#include "larcore/Geometry/TPCGeo.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "larcore/Geometry/WireGeo.h"
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
