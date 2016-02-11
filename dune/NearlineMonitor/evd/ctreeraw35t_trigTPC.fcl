@@ -1,0 +1,67 @@
+#include "services_dune.fcl"
+#include "clusteralgorithms.fcl"
+#include "SSPToOffline.fcl"
+#include "standard_nearline35t.fcl"
+
+process_name: ctreeraw35t
+
+services:
+{
+  # TFileService: { fileName: "test.root" }
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  #user:         @local::dune35t_simulation_services
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  user:         @local::dune35t_services
+}
+
+
+source: @local::standard_nearlinesplitter
+
+physics:
+{
+
+#define the output stream, there could be more than one if using filters 
+   stream1:  [ out1 ]
+  analyzers:
+  {
+    chao: 
+    {
+      module_type:      "CTree35t"
+      RawDigitLabel:    "SplitterInput:TPC"
+      CalibLabel:       "caldata"
+      HitsModuleLabel:  "gaushit"
+      TrackModuleLabel: "particlestitcher"
+      ClusterModuleLabel: "clustercheat"
+      #TrackModuleLabel: "particletracks"
+      outFile:          "sample.root"
+      saveChannelWireMap: false
+      saveChannelWireGeo: false
+      InputModule:             "SplitterInput"
+      MakeAllPhotonsTree:      false
+      MakeDetectedPhotonsTree: false
+      MakeOpDetsTree:          true
+      MakeOpDetEventsTree:     true
+      UncompressWithPed:       true
+      ProcessMCtruth:          false
+      ProcessCalib:            false
+      ProcessHits:             false
+      ProcessReco:             false
+      ProcessOpDet:            false
+    }
+  }
+  analysis: [ chao ] //Directory for histograms
+  end_paths: [ stream1, analysis ]
+}
+
+outputs:{
+  out1: 
+ {
+   dataTier: "raw"
+   module_type: RootOutput
+   fileName:    "sliced_pedestal.root" 
+    #default file name, can override from command line with -o or --output
+ }
+
+}

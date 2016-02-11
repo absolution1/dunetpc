@@ -18,11 +18,12 @@ INFILE=`basename $infile`
 
 fileend=.root
 outhistfile=${INFILE%$fileend}_nearline_hist.root
+outhistfilemuon=${INFILE%$fileend}_nearline_muon_counters.root
 
 export LOCKFILE=$INFILE.LOCK
 export DONEFILE=$INFILE.DONE
 
-
+START_DATE=`date`
 
 # Touch a lock file...
 echo "Creating file $infile.LOCK"
@@ -50,8 +51,20 @@ export infilesize=`ls -l $infile | awk '{ print $5 }'`
 # Skip files that are too small and probably DAQ junk...
 if [ $infilesize -gt 500 ];
 then
-    echo "Processing $infile"
-    lar -c test_stitcher_nearlineana.fcl -n 10 ${infile} -T $outhistfile
+    echo "Processing /data/lbnedaq/data/nearline-monitoring-links/${INFILE}"
+
+    export NEARLINE_PEDESTAL="/home/lbnedaq/nearline/pedestal_files/offline_databaseRun_9754.csv"
+
+    echo "Setting pedestal to: $NEARLINE_PEDESTAL"
+
+    lar -c test_stitcher_nearlineana.fcl -n 10 /data/lbnedaq/data/nearline-monitoring-links/${INFILE} -T $outhistfile
+    
+    END_NEARLINE_ANA=`date`
+
+    lar -c nearline_muoncounter35t.fcl /data/lbnedaq/data/nearline-monitoring-links/${INFILE} -T $outhistfilemuon
+
+    END_NEARLINE_MUON=`date`
+
 fi
 
 
@@ -62,8 +75,16 @@ rm -v $RunDir/$LOCKFILE
 # Remove hard link...
 rm -f /data/lbnedaq/data/nearline-monitoring-links/${INFILE}
 
+END_DATE=`date`
+
 # Touch done file...
 touch $RunDir/$DONEFILE
+
+echo "START_DATE $START_DATE" >> $RunDir/$DONEFILE
+echo "END_NEARLINE_ANA $END_NEARLINE_ANA" >> $RunDir/$DONEFILE
+echo "END_NEARLINE_MUON $END_NEARLINE_MUON" >> $RunDir/$DONEFILE
+echo "END_DATE $END_DATE" >> $RunDir/$DONEFILE
+echo "NEARLINE_PEDESTAL $NEARLINE_PEDESTAL" >> $RunDir/$DONEFILE
 
 echo ""
 echo "Done with file $infile..."

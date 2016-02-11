@@ -14,7 +14,7 @@
 #include <iomanip>
 //=======================================================================================
 std::vector<raw::ExternalTrigger> 
-DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments ) {
+DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, std::map<int,int>& channelMap ) {
   
   std::vector<raw::ExternalTrigger> ExternTrigs;
 
@@ -116,10 +116,11 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments 
     bool counter_previously_on = true;
     for (uint32_t pos = 0; pos < fCounterWords.size(); ++pos) {
       bool counter_currently_on = fCounterWords.at(pos).get_counter_status(counter_index);
-      ////std::cout << "Looking at counter " << counter_index << " position " << pos << ", PrevOn? " << counter_previously_on << ", NowOn? " << counter_currently_on << std::endl;
+      //std::cout << "Looking at counter " << counter_index << " which in the map is channel " << channelMap[counter_index]
+      //	  << ", position " << pos << ", PrevOn? " << counter_previously_on << ", NowOn? " << counter_currently_on << std::endl;
       bool MakeNewExtCount = MakeNewExtTrig(pos, counter_previously_on, counter_currently_on);
       if (MakeNewExtCount) {
-	raw::ExternalTrigger counter( counter_index, fCounterTimes.at(pos) );
+	raw::ExternalTrigger counter( channelMap[counter_index], fCounterTimes.at(pos) );
 	ExternTrigs.push_back(counter);
 	//std::cout << "Made my new trigger, TrigID " << ExternTrigs.back().GetTrigID() << " (" << counter.GetTrigID() << ") TrigTime "
 	//	  << ExternTrigs.back().GetTrigTime() << " (" << counter.GetTrigTime() << ")" << std::endl;
@@ -236,3 +237,33 @@ bool DAQToOffline::MakeNewExtTrig( uint32_t pos, bool &PrevOn, bool NowOn ) {
   }
 }
 //=======================================================================================
+void DAQToOffline::BuildPTBChannelMap(std::string MapDir, std::string MapFile, std::map<int,int>& channelMap) {
+  /// Builds PTB channel map from the map txt file
+  channelMap.clear();
+
+  int onlineChannel;
+  int offlineChannel;
+  
+  std::ostringstream LocStream;
+  LocStream  << MapDir << MapFile;
+  std::string fullname = LocStream.str();
+
+  std::string FileLoc;
+  cet::search_path sp("FW_SEARCH_PATH");
+  if (sp.find_file(MapFile, FileLoc)) fullname = FileLoc;
+    
+  if (fullname.empty())
+    mf::LogWarning("DAQToOffline") << "Input PTB channel map file " << MapFile << " not found in FW_SEARCH_PATH, or in location " << LocStream.str() << ".  Using online channel numbers!" << std::endl;
+
+  else {
+    mf::LogVerbatim("DAQToOffline") << "Build PTB Online->Offline channel Map from " << fullname;
+    std::ifstream infile(fullname);
+    if (!infile.good()) std::cout << "Not finding " << fullname << std::endl;
+    while (infile.good()) {
+      infile >> onlineChannel >> offlineChannel;
+      channelMap.insert(std::make_pair(onlineChannel,offlineChannel));
+      mf::LogVerbatim("DAQToOffline") << "   " << onlineChannel << " -> " << offlineChannel;
+    }
+    mf::LogVerbatim("DAQToOffline")<< "channelMap has size " << channelMap.size();
+  }
+}

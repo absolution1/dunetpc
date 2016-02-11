@@ -28,6 +28,17 @@ export DiskUsage=`df /home -h |  awk 'NR==2 && match($5,"%"){print substr($5,RST
 if [ $DiskUsage -gt 95 ];then
     echo ""
     echo "Disk too full..."
+    echo "nearline home disk for 35t machine is $DiskUsage % full."
+    echo "All processing will be stopped until you clear out some space."
+    echo ""
+    echo ""
+    exit
+fi
+
+export DiskUsage2=`df /lbne/data2 -h | awk 'NR==3 && match($4,"%"){print substr($4,RSTART-3,2)}'`
+if [ $DiskUsage2 -gt 95 ];then
+    echo ""
+    echo "Disk too full..."
     echo "nearline-data disk for 35t machine is $DiskUsage % full."
     echo "All processing will be stopped until you clear out some space."
     echo ""
@@ -63,15 +74,16 @@ export RelDir=/home/lbnedaq/nearline/nearline_test_release_${version}
 export ScriptPath=${RelDir}/srcs/dunetpc/dune/NearlineMonitor/scripts
 export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
 export OutputPath=/lbne/data2/users/lbnedaq/nearline/${version}
+export OutputSearchPath=/lbne/data2/users/lbnedaq/nearline/v*
 export BaseFileName=lbne_r
 export FileSearch='/data/lbnedaq/data/transferred_files/lbne_r*.root'
 export filepos=6
 
 
 
-# Only look for new files between 10 min and 10 days old and sort them so that files
+# Only look for new files between 10 min and 60 days old and sort them so that files
 # with the largest run/subrun numbers are first in the list.
-for file in $( find ${FileSearch} -mtime -20 -mmin +10 | sort -t "/" -k$filepos -r )
+for file in $( find ${FileSearch} -mtime -60 -mmin +10 | sort -t "/" -k$filepos -r )
 do {
 
 	if [ `ps aux | grep ProcessSingleFile | wc -l` -gt $maxjobs ];then
@@ -89,15 +101,21 @@ do {
 	export run=${FILE:6:6}
 	export subrun=${FILE:15:2}
         export RunDir=$OutputPath/$bigrun/$run
+        export RunSearchDir=$OutputSearchPath/$bigrun/$run
 
 	mkdir -p $RunDir
 
+	num_files=`find $RunSearchDir/${FILE}.DONE 2>/dev/null | wc -l`
+
 	# Check if this file has already been processed or is curently being processed.
-	if [ -e $RunDir/$FILE.DONE ];then
+	if [ $num_files -gt 0 ];then
 	    # echo "SKIP: $FILE has already been processed."
 	    continue
 	fi
-	if [ -e $RunDir/$FILE.LOCK ];then
+
+	num_files=`find $RunSearchDir/${FILE}.LOCK 2>/dev/null | wc -l`
+
+	if [ $num_files -gt 0 ];then
 	    # echo "SKIP: $FILE is currently being processed."
 	    continue
 	fi

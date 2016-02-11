@@ -12,8 +12,17 @@ split_events:
   SSPInputDataProduct:  "artdaq::Fragment"            // Data product type of SSP data
   OpHitInputDataProduct:"artdaq::Fragment"            // Data produce type of OpHit data
   PennInputDataProduct: "artdaq::Fragment"            // Data product type of PTB data
+
+  MonteCarlo: "false"                                 // Whether you are looking at MonteCarlo or not.
+  MCPartInputTag:            "largeant::G4"           // Input tag of MCParticles
+  MCPartInputDataProduct:    "simb::MCParticle"       // Data product type of MCParticles
+  MCSimChanInputTag:         "largeant::G4"           // Input tag of MCSimChannels
+  MCSimChanInputDataProduct: "sim::SimChannel"        // Data product type of MCSimChannels
+
   SSPReformatter:       @local::ssp_reformatter       // The parameter set for the SSP reformatter
   TPCChannelMapFile:    "rce_channel_map_dune35t.txt" // The TPC channel map
+  PTBMapDir:            "/dune/data2/users/warburton/PTBChannelMap/" // The directory path to a user defined channel map
+  PTBMapFile:           "PTBChannelMap.txt"           // The name of the PTB channel map
 
   RequireRCE:               "true"  // Do you require the RCEs to be present?
   RequireSSP:               "true"  // Do you require the SSPs to be present?
@@ -33,6 +42,7 @@ split_events:
   NovaTicksPerTPCTick:       32      // The number of Nova ticks per RawDigit index
   NovaTicksPerSSPTick:       64      // The number of Nova ticks per MicroSecond as stored in SSP waveforms
   NovaTicksPerCountTick:     1       // The number of Nova ticks per ExternalTrigger timestamp. !!!! 32 when looking at Monte Carlo !!!!
+  NanoSecondsPerNovaTick:    15.625  // The number of Nano Seconds per Nova tick
 
   WaveformADCWidth:          100     // The number of MicroSeconds where waveforms will be considered for the trigger
   WaveformADCThreshold:      1550    // The SSP ADC threshold to be used in SSP waveform trigger
@@ -47,7 +57,9 @@ split_events:
 
   UsePedestalDefault:        "false" // Whether to use the default pedestal values
   UsePedestalFile:           "false" // Whether to use a pedestal file. If false, uses the online database.
+  UsePedestalFileSearchPath: "false" // Whether to use an environment variable to search for pedestal file in. Only used if UsePedestalFile is true
   PedestalFile:              ""      // What pedestal file to use (if one is used at all)
+  PedestalFileSearchPath:    ""      // What environment variable to use to search for pedestal file (no $ please, eg for $BAR enter "BAR")
 }
 
 END_PROLOG

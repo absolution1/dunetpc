@@ -85,6 +85,11 @@ lbne_daqinput35t
 RawData
 ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
+art_Framework_Services_Registry
+art_Framework_Services_Optional
+art_Framework_Services_Optional_TFileService_service
+${ROOT_BASIC_LIB_LIST}
+${ROOT_HIST}
 )
 
 simple_plugin(SSPDiagnosticAna "module"
@@ -99,6 +104,7 @@ art_Framework_Services_Registry
 art_Framework_Services_Optional
 art_Framework_Services_Optional_TFileService_service
 ${ROOT_HIST}
+${ROOT_SPECTRUM}
 )
 
 simple_plugin(TpcDAQToOffline "module"
@@ -138,6 +144,7 @@ simple_plugin(SplitterInput "source"
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
+ ${SIMULATIONBASE}
 )
 
 install_fhicl()
