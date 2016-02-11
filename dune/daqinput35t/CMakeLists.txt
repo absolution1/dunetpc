@@ -85,6 +85,11 @@ lbne_daqinput35t
 RawData
 ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
+art_Framework_Services_Registry
+art_Framework_Services_Optional
+art_Framework_Services_Optional_TFileService_service
+${ROOT_BASIC_LIB_LIST}
+${ROOT_HIST}
 )
 
 simple_plugin(SSPDiagnosticAna "module"

@@ -6,7 +6,7 @@
 //
 // Quickly analyze raw data trigger rate in the SSP
 //
-// Alex Himmel ahimmel@fnal.gov
+// Alex Himmel ahimmel@fnal.gov (modified by Celio Moura camj@fnal.gov)
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -41,6 +41,12 @@
 #include "utilities/UnpackFragment.h"
 #include "SSPReformatterAlgs.h"
 
+/*camj_includes*/
+#include "TH1.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Framework/Services/Optional/TFileDirectory.h"
+
 namespace DAQToOffline {
   class SSPTriggerAna;
 }
@@ -67,6 +73,10 @@ private:
   void endJob  () override;
   void beginEvent(art::EventNumber_t eventNumber);
   void endEvent  (art::EventNumber_t eventNumber);
+  /*camj_changes*/
+  void beginRun(art::Run const& run) override;
+  void endRun  (art::Run const& run) override;
+  /*camj_changes_end*/
 
   std::string fFragType;
   std::string fRawDataLabel;
@@ -77,6 +87,11 @@ private:
   unsigned long int firstTime;
   unsigned long int lastTime;
   std::map<int, long int> triggerCount;
+
+  /*camj_changes*/
+  TH1D *fTriggerRateHist;
+  /*camj_canges_end*/
+
 };
 
 
@@ -119,12 +134,19 @@ void DAQToOffline::SSPTriggerAna::beginJob()
   //art::ServiceHandle<art::TFileService> tfs;
   //adc_values_ = tfs->make<TH1D>("adc_values","adc_values",4096,-0.5,4095.5);
 
+  /*camj_changes*/
+  art::ServiceHandle<art::TFileService> tfs;
+  fTriggerRateHist = tfs->make<TH1D>("triggerratehist",";Trigger Rate vs OpChannel;",116,-10,106);
+  /*camj_changes_end*/
+
   firstTime = (((unsigned long int)1)<<63);
   lastTime = 0;
 }
 
-void DAQToOffline::SSPTriggerAna::beginEvent(art::EventNumber_t /*eventNumber*/)
+//void DAQToOffline::SSPTriggerAna::beginEvent(art::EventNumber_t /*eventNumber*/)
+void DAQToOffline::SSPTriggerAna::beginEvent(art::EventNumber_t eventNumber)
 {
+  //  fTriggerRateHist->Reset();
   //reset ADC histogram
   //adc_values_->Reset();
   //reset counters
@@ -132,8 +154,24 @@ void DAQToOffline::SSPTriggerAna::beginEvent(art::EventNumber_t /*eventNumber*/)
   //adc_cumulative_ = 0;
 }
 
+void DAQToOffline::SSPTriggerAna::beginRun(art::Run const& run)
+{
+  // art::ServiceHandle<art::TFileService> tfs;
+  // fTriggerRateHist = tfs->make<TH1D>(Form("triggerratehist_%i",run.run()),Form(";Trigger Rate vs OpChannel - Run_%i;",run.run()),116,-10,106);
+  fTriggerRateHist->Reset();
+}
+
+void DAQToOffline::SSPTriggerAna::endRun(art::Run const& run)
+{
+   fTriggerRateHist->SetTitle(Form("Event %i Trigger Rate",run.run()));
+   fTriggerRateHist->Write(Form("evt_%i_trigger_rate",run.run()));
+  //  fTriggerRateHist->Write();
+}
+
 void DAQToOffline::SSPTriggerAna::endEvent(art::EventNumber_t eventNumber)
 {
+  // fTriggerRateHist->SetTitle(Form("Event %i Trigger Rate",eventNumber));
+  // fTriggerRateHist->Write(Form("evt_%i_trigger_rate",eventNumber));
   //write the ADC histogram for the given event
   //if(n_adc_counter_)
     //  adc_values_->Write(Form("adc_values:event_%d", eventNumber));
@@ -142,7 +180,7 @@ void DAQToOffline::SSPTriggerAna::endEvent(art::EventNumber_t eventNumber)
 void DAQToOffline::SSPTriggerAna::endJob()
 {
   //delete adc_values_;
-
+  delete fTriggerRateHist;
   
   long int deltaT = lastTime-firstTime;
   double deltaTus =  ((double)deltaT)/sspReform.ClockFrequency();
@@ -172,6 +210,8 @@ void DAQToOffline::SSPTriggerAna::endJob()
 
 void DAQToOffline::SSPTriggerAna::analyze(art::Event const & evt)
 {
+
+  //  std::cout<<"Event: "<<evt.event()<<"Run: "<<evt.run()<<std::endl;
 
   art::Handle<artdaq::Fragments> rawFragments;
   evt.getByLabel(fRawDataLabel, fFragType, rawFragments);
@@ -245,7 +285,11 @@ void DAQToOffline::SSPTriggerAna::analyze(art::Event const & evt)
       firstTime = std::min(firstTime, FirstSample);
       lastTime  = std::max(lastTime,  FirstSample);
       triggerCount[OpChannel]++;
-      
+
+      /*camj_changes*/
+      fTriggerRateHist->Fill(OpChannel);
+      /*camj_changes_end*/
+
       // Advance the dataPointer to the next header
       dataPointer+=nADC/2;
       
