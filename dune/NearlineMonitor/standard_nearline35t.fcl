@@ -5,7 +5,7 @@ BEGIN_PROLOG
 
 standard_nearlinesplitter: @local::split_events
 
-standard_nearlinesplitter.WhichTrigger: 5 #Any Muon Coincidence - Not Telescope (Horizontal Muons)
+standard_nearlinesplitter.WhichTrigger: [ 5 ] #Any Muon Coincidence - Not Telescope (Horizontal Muons)
 #WhichTrigger
 #0 - MC
 #1 - New Files
