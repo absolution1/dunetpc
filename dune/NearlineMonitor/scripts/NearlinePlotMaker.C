@@ -262,6 +262,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   float *RunVSYearRun   = new float[Npoint];
   int    RunVSYearCount = 0;
 
+  NearlineProcessingTimePlot nearline_processing_time_plot;
   //
   // Looping over the list of input files...
   //
@@ -345,7 +346,10 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     }//loop over plots
     
-    
+    std::string done_file_name = NearlineProcessingTime::GetDoneFileName(filename);
+    nearline_processing_time_plot.AddFile(done_file_name, run);
+
+    //    std::cerr << "JPD: done_file_name = " << done_file_name << std::endl;
 
     file.Close();
 
@@ -398,9 +402,6 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     NearlinePlot* this_plot = NearlinePlotVec.at(index);
     this_plot->printPlots(PLOT_DIR, UpdateText, time_ago, XNow);
-    // this_plot->printHistogram1D(PLOT_DIR, UpdateText, time_ago, XNow);
-    // this_plot->printHistogram2D(PLOT_DIR, UpdateText, time_ago, XNow);
-    // this_plot->printGraphs(PLOT_DIR, UpdateText, time_ago, XNow);
 
     //Make HTML
     std::string plot_location;
@@ -413,7 +414,10 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
   }
 
-
+  //Print the Nearline Processing Time plot and add to the webpage
+  nearline_processing_time_plot.PrintTimePlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
+  if(debug) html_string += nearline_processing_time_plot.MakeTimePlotsHTML("plots_testing/", Ndays);
+  else  html_string += nearline_processing_time_plot.MakeTimePlotsHTML("plots/", Ndays);
 
 
 

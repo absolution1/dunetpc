@@ -8,6 +8,9 @@ muoncounter:
     CombinedTimeDelay:         160.0
     FragType:                 "TRIGGER"
     DataLabel:                "daq"
+
+    PTBMapDir:           "/dune/data2/users/warburton/PTBChannelMap/"
+    PTBMapFile:          "PTBChannelMap.txt"
 }
 
 muoncounterfd:
