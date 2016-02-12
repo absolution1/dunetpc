@@ -1,6 +1,6 @@
 #include "services_dune.fcl"
 #include "PTBToOffline.fcl"
-#include "MuonCounter.fcl"
+#include "muoncounter.fcl"
 
 process_name: NearlineMuon
 
