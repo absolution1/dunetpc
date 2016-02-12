@@ -224,7 +224,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C6_31.at(0).at(i)-C6_31.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C6_31.at(0).at(i)-C6_31.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL10 & WU4, difference in trigger times: " << std::abs(C6_31.at(0).at(i)-C6_31.at(1).at(i)) << std::endl;
               }
@@ -238,7 +238,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C6_31.at(0).at(i)-C6_31.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C6_31.at(0).at(i)-C6_31.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL10 & WU4, difference in trigger times: " << std::abs(C6_31.at(0).at(i)-C6_31.at(1).at(i)) << std::endl;
               }
@@ -261,7 +261,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C7_30.at(0).at(i)-C7_30.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C7_30.at(0).at(i)-C7_30.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL9 & WU3, difference in trigger times: " << std::abs(C7_30.at(0).at(i)-C7_30.at(1).at(i)) << std::endl;
               }
@@ -275,7 +275,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C7_30.at(0).at(i)-C7_30.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C7_30.at(0).at(i)-C7_30.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL9 & WU3, difference in trigger times: " << std::abs(C7_30.at(0).at(i)-C7_30.at(1).at(i)) << std::endl;
               }
@@ -298,7 +298,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C8_29.at(0).at(i)-C8_29.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C8_29.at(0).at(i)-C8_29.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL8 & WU2, difference in trigger times: " << std::abs(C8_29.at(0).at(i)-C8_29.at(1).at(i)) << std::endl;
               }
@@ -312,7 +312,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C8_29.at(0).at(i)-C8_29.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C8_29.at(0).at(i)-C8_29.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL8 & WU2, difference in trigger times: " << std::abs(C8_29.at(0).at(i)-C8_29.at(1).at(i)) << std::endl;
               }
@@ -335,7 +335,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C9_28.at(0).at(i)-C9_28.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C9_28.at(0).at(i)-C9_28.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL7 & WU1, difference in trigger times: " << std::abs(C9_28.at(0).at(i)-C9_28.at(1).at(i)) << std::endl;
               }
@@ -349,7 +349,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C9_28.at(0).at(i)-C9_28.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C9_28.at(0).at(i)-C9_28.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL7 & WU1, difference in trigger times: " << std::abs(C9_28.at(0).at(i)-C9_28.at(1).at(i)) << std::endl;
               }
@@ -372,7 +372,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C6_32.at(0).at(i)-C6_32.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C6_32.at(0).at(i)-C6_32.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL10 & WU5, difference in trigger times: " << std::abs(C6_32.at(0).at(i)-C6_32.at(1).at(i)) << std::endl;
               }
@@ -386,7 +386,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C6_32.at(0).at(i)-C6_32.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C6_32.at(0).at(i)-C6_32.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL10 & WU5, difference in trigger times: " << std::abs(C6_32.at(0).at(i)-C6_32.at(1).at(i)) << std::endl;
               }
@@ -409,7 +409,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C10_28.at(0).at(i)-C10_28.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C10_28.at(0).at(i)-C10_28.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL6 & WU1, difference in trigger times: " << std::abs(C10_28.at(0).at(i)-C10_28.at(1).at(i)) << std::endl;
               }
@@ -423,7 +423,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C10_28.at(0).at(i)-C10_28.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C10_28.at(0).at(i)-C10_28.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between EL6 & WU1, difference in trigger times: " << std::abs(C10_28.at(0).at(i)-C10_28.at(1).at(i)) << std::endl;
               }
@@ -446,7 +446,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C16_43.at(0).at(i)-C16_43.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C16_43.at(0).at(i)-C16_43.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between NL1 & SU1, difference in trigger times: " << std::abs(C16_43.at(0).at(i)-C16_43.at(1).at(i)) << std::endl;
               }
@@ -460,7 +460,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C16_43.at(0).at(i)-C16_43.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C16_43.at(0).at(i)-C16_43.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between NL1 & SU1, difference in trigger times: " << std::abs(C16_43.at(0).at(i)-C16_43.at(1).at(i)) << std::endl;
               }
@@ -483,7 +483,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C21_38.at(0).at(i)-C21_38.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C21_38.at(0).at(i)-C21_38.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between NL6 & SU6, difference in trigger times: " << std::abs(C21_38.at(0).at(i)-C21_38.at(1).at(i)) << std::endl;
               }
@@ -497,7 +497,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C21_38.at(0).at(i)-C21_38.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C21_38.at(0).at(i)-C21_38.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between NL6 & SU6, difference in trigger times: " << std::abs(C21_38.at(0).at(i)-C21_38.at(1).at(i)) << std::endl;
               }
@@ -520,7 +520,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C0_27.at(0).at(i)-C0_27.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C0_27.at(0).at(i)-C0_27.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between SL1 & NU6, difference in trigger times: " << std::abs(C0_27.at(0).at(i)-C0_27.at(1).at(i)) << std::endl;
               }
@@ -534,7 +534,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C0_27.at(0).at(i)-C0_27.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C0_27.at(0).at(i)-C0_27.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between SL1 & NU6, difference in trigger times: " << std::abs(C0_27.at(0).at(i)-C0_27.at(1).at(i)) << std::endl;
               }
@@ -557,7 +557,7 @@ namespace filt{
           {
             if(j<=i)
             {
-              if(std::abs(C5_22.at(0).at(i)-C5_22.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C5_22.at(0).at(i)-C5_22.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between SL6 & NU1, difference in trigger times: " << std::abs(C5_22.at(0).at(i)-C5_22.at(1).at(i)) << std::endl;
               }
@@ -571,7 +571,7 @@ namespace filt{
           {
             if(i<=j)
             {
-              if(std::abs(C5_22.at(0).at(i)-C5_22.at(1).at(i))<coincidenceWindow)
+              if(std::abs(C5_22.at(0).at(i)-C5_22.at(1).at(j))<coincidenceWindow)
               {
                 std::cout << "Coincidence between SL6 & NU1, difference in trigger times: " << std::abs(C5_22.at(0).at(i)-C5_22.at(1).at(i)) << std::endl;
               }

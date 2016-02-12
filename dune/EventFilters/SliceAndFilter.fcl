@@ -24,7 +24,7 @@ services:
 
 source: @local::split_events
 source.UsePedestalFile: "true"
-source.PedestalFile: "/dune/app/users/tjyang/larsoft_mydev/job/offline_databaseRun_10389.csv" 
+source.PedestalFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_10873.csv" 
 #source.UsePedestalDefault: "true"
 source.UsePedestalDefault: "false"
 #source.UsePedestalFile: "false"
