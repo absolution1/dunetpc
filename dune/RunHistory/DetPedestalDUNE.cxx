@@ -54,8 +54,10 @@ namespace dune {
 
   bool DetPedestalDUNE::Update(uint64_t ts)
   {
-    if (!fUseDB) return true;
-
+    if (!fUseDB && fCSVFileName.empty()) {
+      std::cout << "Both UseDB is false and CSVFileName isn't set, so pedestals retrieval would fail..Leaving update." << std::endl;
+      return true;
+    }
     if (ts == fVldTime)
       return true;
     else

@@ -81,6 +81,12 @@ if ( $wires_on == 0 )
     $basename = $basename."_nowires";
 }
 
+if ( $workspace == 1 )
+{
+    $basename = $basename."_workspace";
+}
+
+
 ##################################################################
 ############## Parameters for Charge Readout Plane ###############
 
@@ -99,6 +105,13 @@ $lengthCRM = $lengthCRM_active + 2 * $borderCRM;
 # number of CRMs in y and z
 $nCRM_y   = 4;
 $nCRM_z   = 20;
+
+# create a smaller geometry
+if( $workspace == 1 )
+{
+    $nCRM_y = 1;
+    $nCRM_z = 2;
+}
 
 # calculate tpc area based on number of CRMs and their dimensions
 $widthTPCActive  = $nCRM_y * $widthCRM;  # around 1200
@@ -120,6 +133,13 @@ $ReadoutPlane = 2 * $padWidth;
 $Argon_x = 1510;
 $Argon_y = 1510;
 $Argon_z = 6200;
+
+if( $workspace == 1 )
+{
+    #active tpc + 1 m buffer on each side
+    $Argon_y = $widthTPCActive + 200;
+    $Argon_z = $lengthTPCActive + 200;
+}
 
 # width of gas argon layer on top
 $HeightGaseousAr = 100;
@@ -584,7 +604,7 @@ for($ii=0;$ii<$nCRM_z;$ii++)
 	print CRYO <<EOF;
       <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC$ii_$jj" unit="cm"
+	<position name="posTPC\-$ii\-$jj" unit="cm"
            x="$posX" y="$posY" z="$posZ"/>
       </physvol>
 EOF

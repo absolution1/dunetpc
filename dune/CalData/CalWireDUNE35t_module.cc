@@ -13,6 +13,7 @@
 #include <vector>
 #include <utility> // std::move()
 #include <memory> // std::unique_ptr<>
+#include <iostream>
 
 // ROOT libraries
 #include "TComplex.h"
@@ -41,6 +42,8 @@
 #include "Utilities/AssociationUtil.h"
 #include "dune/Utilities/SignalShapingServiceDUNE35t.h"
 
+using std::cout;
+using std::endl;
 
 ///creation of calibrated signals on wires
 namespace caldata {
@@ -71,7 +74,7 @@ namespace caldata {
                               ///< ex.:  "daq:preSpill" for prespill data
     unsigned short fPreROIPad; ///< ROI padding
     unsigned short fPostROIPad; ///< ROI padding
-
+    double       fSigThrFact; ///< Signal shreshold factor 
 
     void SubtractBaseline(std::vector<float>& holder);
 
@@ -107,10 +110,8 @@ namespace caldata {
     fPostsample       = p.get< int >        ("PostsampleBins");
     fDoBaselineSub    = p.get< bool >       ("DoBaselineSub");
     uin               = p.get< std::vector<unsigned short> >   ("PlaneROIPad");
-    
-    
-   
-    
+    fSigThrFact       = p.get< double>      ("SigThrFact", 3.0);
+               
     // put the ROI pad sizes into more convenient vectors
     fPreROIPad  = uin[0];
     fPostROIPad = uin[1];
@@ -236,7 +237,7 @@ namespace caldata {
 	double SigVal = holder[bin];
 	if (SigVal > max) max = SigVal;
 	if(roiStart == 0) {
-	  if (SigVal > 4*deconNoise) roiStart = bin; // 3 sigma above noise
+	  if (SigVal > fSigThrFact*deconNoise) roiStart = bin; // n sigma above noise
 	}else{
 	  if (SigVal < deconNoise){
 	    rois.push_back(std::make_pair(roiStart, bin));
@@ -357,6 +358,12 @@ namespace caldata {
       }
       if (ncount==0) ncount=1;
       ave = ave/ncount;
+      //cout << "CalWireDUNE35t::SubtractBaseline: size, ped, ncount, ave = "
+      //     << holder.size()
+      //     << ", " << ped
+      //     << ", " << ncount
+      //     << ", " << ave
+      //     << endl;
       for (unsigned int bin = 0; bin < holder.size(); bin++){
 	holder[bin] -= ave;
       }

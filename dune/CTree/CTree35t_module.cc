@@ -38,7 +38,6 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/FindManyP.h"
 #include "art/Persistency/Common/PtrVector.h"
-
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 
@@ -261,8 +260,8 @@ void CTree35t::reconfigure(fhicl::ParameterSet const& p){
     fClusterModuleLabel = p.get< std::string >("ClusterModuleLabel");
     fTrackModuleLabel = p.get< std::string >("TrackModuleLabel");
     fOutFileName = p.get< std::string >("outFile");
-    fSaveChannelWireMap = p.get< bool >("saveChannelWireMap");
-    fSaveChannelWireGeo = p.get< bool >("saveChannelWireGeo");
+    fSaveChannelWireMap = p.get< bool >("saveChannelWireMap", false);
+    fSaveChannelWireGeo = p.get< bool >("saveChannelWireGeo", false);
     fInputModule = p.get<std::string>("InputModule");
     fMakeAllPhotonsTree = p.get<bool>("MakeAllPhotonsTree");
     fMakeDetectedPhotonsTree = p.get<bool>("MakeDetectedPhotonsTree");
@@ -510,32 +509,33 @@ void CTree35t::beginJob()
     // saveWireGeometry(1, 5);
     // saveWireGeometry(1, 7);
 
-    ofstream wireGeoFile;
-    wireGeoFile.open("WireGeometry.txt");
-    for (unsigned int plane=0; plane<(unsigned int)fNplanes; plane++) {
-      wireGeoFile << "***************** PLANE " << plane <<" ********************\n";
-      for(unsigned int tpc=0; tpc<(unsigned int)fNTPC; tpc++) {
-	wireGeoFile << "----------- TPC "<< tpc << " ------------\n";
-	wireGeoFile << "Wire#    WireID    ChannelID     Start        End\n";
-	int Nwires = fGeom->Nwires(plane, tpc);
-	double xyzStart[3];
-	double xyzEnd[3];
-	for(int wire=0; wire<Nwires; wire++) {
-	  fGeom->WireEndPoints(0, tpc, plane, wire, xyzStart, xyzEnd);
-	  uint32_t channelid = fGeom->PlaneWireToChannel(plane, wire, tpc, 0);
-	  int wireid = wire;
-	  wireGeoFile << "                                " << xyzStart[0] << " " << xyzEnd[0] <<"\n";
-	  wireGeoFile << wire << "         " << wireid << "         ";
-	  wireGeoFile << channelid << "            " << xyzStart[1] << " " << xyzEnd[1] << "\n";
-	  wireGeoFile << "                                " << xyzStart[2] << " " << xyzEnd[2] <<"\n";
-	}
-	wireGeoFile << "------------------------------------------\n\n";
+    if(fSaveChannelWireGeo){
+      ofstream wireGeoFile;
+      wireGeoFile.open("WireGeometry.txt");
+      for (unsigned int plane=0; plane<(unsigned int)fNplanes; plane++) {
+        wireGeoFile << "***************** PLANE " << plane <<" ********************\n";
+        for(unsigned int tpc=0; tpc<(unsigned int)fNTPC; tpc++) {
+          wireGeoFile << "----------- TPC "<< tpc << " ------------\n";
+          wireGeoFile << "Wire#    WireID    ChannelID     Start        End\n";
+          int Nwires = fGeom->Nwires(plane, tpc);
+          double xyzStart[3];
+          double xyzEnd[3];
+          for(int wire=0; wire<Nwires; wire++) {
+            fGeom->WireEndPoints(0, tpc, plane, wire, xyzStart, xyzEnd);
+            uint32_t channelid = fGeom->PlaneWireToChannel(plane, wire, tpc, 0);
+            int wireid = wire;
+            wireGeoFile << "                                " << xyzStart[0] << " " << xyzEnd[0] <<"\n";
+            wireGeoFile << wire << "         " << wireid << "         ";
+            wireGeoFile << channelid << "            " << xyzStart[1] << " " << xyzEnd[1] << "\n";
+            wireGeoFile << "                                " << xyzStart[2] << " " << xyzEnd[2] <<"\n";
+          }
+          wireGeoFile << "------------------------------------------\n\n";
+        }
+        wireGeoFile << "\n***********************************************\n\n";
       }
-      wireGeoFile << "\n***********************************************\n\n";
-    }
-    wireGeoFile << "\n" << endl;
-    wireGeoFile.close();
-
+      wireGeoFile << "\n" << endl;
+      wireGeoFile.close();
+    }//fSaveChannelWireGeo
 }
 
 
@@ -736,7 +736,8 @@ void CTree35t::processRaw( const art::Event& event )
     // get the objects holding all of the raw data information
     art::Handle< std::vector<raw::RawDigit> > rawdigit;
     event.getByLabel(fRawDigitLabel, rawdigit);
-
+   std::cout << "raw digit label check: " << fRawDigitLabel << std::endl;
+ 
     // put it in a more easily usable form
     std::vector< art::Ptr<raw::RawDigit> >  rawhits;
     art::fill_ptr_vector(rawhits, rawdigit);
@@ -751,6 +752,7 @@ void CTree35t::processRaw( const art::Event& event )
         int nSamples = hit->Samples();
         std::vector<short> uncompressed(nSamples);
 	int pedestal = (int)hit->GetPedestal();
+	//	std::cout << " channel " << chanId << " pedestal " << pedestal << std::endl;
 	// uncompress the data
         if (fUncompressWithPed){
           raw::Uncompress(hit->ADCs(), uncompressed, pedestal, hit->Compression());

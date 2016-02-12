@@ -60,24 +60,21 @@ private:
   
   std::string fRCEFragType, fRCERawDataLabel, fRCEOutputDataLabel, fRCEChannelMapFile;
   std::string fSSPFragType, fSSPRawDataLabel, fSSPOutputDataLabel;
-  SSPReformatterAlgs     sspReform;
-  std::string fPTBFragType, fPTBRawDataLabel, fPTBOutputDataLabel, fPTBChannelMapFile;
+  SSPReformatterAlgs sspReform;
+  std::string fPTBFragType, fPTBRawDataLabel, fPTBOutputDataLabel, fPTBMapFile, fPTBMapDir;
   double fNOvAClockFrequency; //MHz
-  bool fUseChannelMap;
   bool fDebug;
 
-  raw::Compress_t fCompression;   // compression type to use
-  unsigned int    fZeroThreshold; // Zero suppression threshold
-
-  std::map<int,int> fRCEChannelMap, fSSPChannelMap, fPTBChannelMap;
-  std::pair <std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::CounterWordSize> >,
-	     std::pair<lbne::PennMicroSlice::Payload_Header::short_nova_timestamp_t, std::bitset<TypeSizes::TriggerWordSize> > > PrevTimeStampWords;
+  std::map<int,int> fRCEChannelMap;
+  std::map<int,int> fPTBMap;
 
   TTree* fTree;
   int EvNum;
-  int64_t RCETime, SSPTime, PTBTime;
-  int NumADCs, AvNumADCs;
-  bool InconsistRCE;
+  long long RCETime, SSPTime, PTBTime;
+  long long RCE_PTB_diff, RCE_SSP_diff, SSP_PTB_diff;
+  int NumADCs, ConsistRCE;
+
+  int RunNumber, nevts, nSSP, nRCE, nPTB, nSSPPayloads, nRCEPayloads, nConsistRCEPayloads, nPTBPayloads;
 };
 
 DAQToOffline::CheckTiming::CheckTiming(fhicl::ParameterSet const & pset)
@@ -96,10 +93,10 @@ DAQToOffline::CheckTiming::CheckTiming(fhicl::ParameterSet const & pset)
   ,fPTBFragType        ( pset.get<std::string>("PTBFragType"))
   ,fPTBRawDataLabel    ( pset.get<std::string>("PTBRawDataLabel"))
   ,fPTBOutputDataLabel ( pset.get<std::string>("PTBOutputDataLabel"))
-  ,fPTBChannelMapFile  ( pset.get<std::string>("PTBChannelMapFile"))
+  ,fPTBMapFile         ( pset.get<std::string>("PTBMapFile"))
+  ,fPTBMapDir          ( pset.get<std::string>("PTBMapDir"))
     //--------------------------------------------------------------------
   ,fNOvAClockFrequency ( pset.get<double>("NOvAClockFrequency")) // in MHz
-  ,fUseChannelMap ( pset.get<bool>("UseChannelMap"))
   ,fDebug         ( pset.get<bool>("Debug"))
 {
 }
@@ -109,24 +106,24 @@ DAQToOffline::CheckTiming::~CheckTiming() {
 
 void DAQToOffline::CheckTiming::beginJob() {
 
-  fZeroThreshold=0;
-  fCompression=raw::kNone;
+  RunNumber = nevts = nSSP = nRCE = nPTB = nSSPPayloads = nRCEPayloads = nConsistRCEPayloads = nPTBPayloads = 0;
+
   if(fDebug) printParameterSet();
 
-  if (fUseChannelMap) {
-    BuildTPCChannelMap  (fRCEChannelMapFile, fRCEChannelMap);
-    BuildPTBChannelMap  (fPTBChannelMapFile, fPTBChannelMap);
-  }
-
+  BuildTPCChannelMap  (fRCEChannelMapFile, fRCEChannelMap);
+  BuildPTBChannelMap(fPTBMapDir, fPTBMapFile, fPTBMap);
+  
   art::ServiceHandle<art::TFileService> tfs;
   fTree = tfs->make<TTree>("TimingCheck","TimingCheck");
-  fTree->Branch("EvNum", &EvNum, "EvNum/I");
-  fTree->Branch("RCETime", &RCETime, "RCETime/I");
-  fTree->Branch("SSPTime", &SSPTime, "SSPTime/I");
-  fTree->Branch("PTBTime", &PTBTime, "PTBTime/I");
-  fTree->Branch("NumADCs", &NumADCs, "NumADCs/I");
-  fTree->Branch("AvNumADCs", &AvNumADCs, "AvNumADCs/I");
-  fTree->Branch("InconsistRCE", &InconsistRCE, "InconsistRCE/B");
+  fTree->Branch("EvNum"       , &EvNum       , "EvNum/I");
+  fTree->Branch("RCETime"     , &RCETime     , "RCETime/I");
+  fTree->Branch("SSPTime"     , &SSPTime     , "SSPTime/I");
+  fTree->Branch("PTBTime"     , &PTBTime     , "PTBTime/I");
+  fTree->Branch("RCE_SSP_diff", &RCE_SSP_diff,"RCE_SSP_diff/I");
+  fTree->Branch("RCE_PTB_diff", &RCE_PTB_diff,"RCE_PTB_diff/I");
+  fTree->Branch("SSP_PTB_diff", &SSP_PTB_diff,"SSP_PTB_diff/I");
+  fTree->Branch("NumADCs"     , &NumADCs     , "NumADCs/I");
+  fTree->Branch("ConsistRCE"  , &ConsistRCE  , "ConsistRCE/I");
 }
 
 void DAQToOffline::CheckTiming::printParameterSet(){
@@ -167,10 +164,15 @@ void DAQToOffline::CheckTiming::printParameterSet(){
 
 void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 {
+  if (nevts == 0 ) {
+    RunNumber = evt.run();
+    std::cout << "Got runNumber it is " << RunNumber << std::endl;
+  }
 
+  ++nevts;
   RCETime = 0, SSPTime = 0, PTBTime = 0;
-  InconsistRCE = false;
-  NumADCs = AvNumADCs = 0;
+  ConsistRCE = -1;
+  NumADCs = 0;
   EvNum = evt.event();
   // ------------- RCE Section ------------------------
   bool RCEPresent = true;
@@ -184,6 +186,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
   }
 
   if (RCEPresent) {
+    ++nRCE;
     if(!RCErawFragments.isValid()){
       std::cerr << "Run: " << evt.run() << ", SubRun: " << evt.subRun()	<< ", Event: " << evt.event() << " is NOT VALID" << std::endl;
       throw cet::exception("RCErawFragments NOT VALID");
@@ -196,31 +199,37 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
       lbne::TpcMilliSliceFragment millisliceFragment(singleFragment);
       auto numMicroSlices = millisliceFragment.microSliceCount();
       for (unsigned int i_micro=0;i_micro<numMicroSlices;i_micro++) { // Loop through all MicroSlices
-	std::unique_ptr <const lbne::TpcMicroSlice> microSlice = millisliceFragment.microSlice(0);
+	std::unique_ptr <const lbne::TpcMicroSlice> microSlice = millisliceFragment.microSlice(i_micro);
 	auto numNanoSlices = microSlice->nanoSliceCount();
-	ThisADCcount += numNanoSlices;
+	if (numNanoSlices) {
+	  ConsistRCE = 1;
+	  ThisADCcount += numNanoSlices;
+	} // If numNanoSlices.
 	if ( fragIndex==0 && i_micro==0 ) {
+	  //std::cout << "Getting RCE time for event " << evt.event();
 	  if ( microSlice->nanoSliceCount() ) { // If this MicroSlice has any NanoSlices
 	    RCETime = microSlice->nanoSlice(0)->nova_timestamp();
-	    //std::cout << "Taking RCETime from first nanoslice." << std::endl;
+	    //std::cout << ", taking RCETime from first nanoslice " << RCETime << std::endl;
 	  } // NanoSlice
 	  else {
 	    RCETime = microSlice->software_message();
-	    //std::cout << "Taking RCETime from header." << std::endl;
+	    //std::cout << ", taking RCETime from header " << RCETime << std::endl;
 	  }
 	} // Looking at first MicroSlice of first Fragment
       } // MicroSlice
       if ( fragIndex == 0 ) {
 	NumADCs = ThisADCcount;
       } else {
-	if ( ThisADCcount != NumADCs ) InconsistRCE = true;
+	if ( ThisADCcount != NumADCs ) ConsistRCE = 0;
       }
-      AvNumADCs += ThisADCcount;
+      //std::cout << "Looking at event " << evt.event() << ", fragment " << fragIndex << ", it has " << ThisADCcount << ", InconsistRCEs? " << InconsistRCE << std::endl;
     } // rawFragments.size()
-    AvNumADCs = AvNumADCs / rawFragmentsRCE.size();
-    std::cout << "Got RCE start time, it is " << RCETime << std::endl;
+    //std::cout << "Got RCE start time, it is " << RCETime << std::endl;
   } //RCEPresent
-  
+  if (ConsistRCE > -1 ) ++nRCEPayloads;
+  if (ConsistRCE == 1 ) ++nConsistRCEPayloads;
+
+
   // ------------- SSP Section ------------------------
   bool SSPPresent = true;
   art::Handle<artdaq::Fragments> SSPrawFragments;
@@ -233,6 +242,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
   }
 
   if (SSPPresent) {
+    ++nSSP;
     if(!SSPrawFragments.isValid()){
       mf::LogError("SSPToOffline") << "Run: " << evt.run() << ", SubRun: " << evt.subRun() << ", Event: " << evt.event() << " is NOT VALID";
       throw cet::exception("raw NOT VALID");
@@ -241,6 +251,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
     
     artdaq::Fragments const& rawFragmentsSSP = *SSPrawFragments;
     if ( rawFragmentsSSP.size() ) {
+      ++nSSPPayloads;
       const auto& frag(rawFragmentsSSP[0]);
       const SSPDAQ::MillisliceHeader* meta=0;
       if(frag.hasMetadata())
@@ -251,8 +262,7 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
 	  SSPTime = meta->startTime;
 	}
     }
-    std::cout << "Got SSP start time, it is " << SSPTime << std::endl;
-    std::vector<raw::OpDetWaveform> waveforms = sspReform.SSPFragmentToOpDetWaveform(*SSPrawFragments);
+    //std::cout << "Got SSP start time, it is " << SSPTime << std::endl;
   } // SSP Present
   
   // ------------- PTB Section ------------------------
@@ -267,23 +277,57 @@ void DAQToOffline::CheckTiming::analyze(art::Event const & evt)
   }
 
   if (PTBPresent) {
+    ++nPTB;
     if(!PTBrawFragments.isValid()){
       mf::LogError("PTBToOffline") << "Run: " << evt.run() << ", SubRun: " << evt.subRun() << ", Event: " << evt.event() << " is NOT VALID";
       throw cet::exception("raw NOT VALID");
       return;
     }
+
+    lbne::PennMicroSlice::Payload_Header    *word_header    = nullptr;
+    lbne::PennMicroSlice::Payload_Timestamp *FirstTimestamp = nullptr;
+    uint32_t payload_index = 0;
+    uint16_t counter, trigger, timestamp, payloadCount;
+    uint8_t* payload_data = nullptr;
     
-    auto triggers = PennFragmentToExternalTrigger(*PTBrawFragments, fPTBChannelMap, PrevTimeStampWords);
-    
+    if (PTBrawFragments->size()) {
+      ++nPTBPayloads;
+      const auto& frag((*PTBrawFragments)[0]);
+      lbne::PennMilliSliceFragment msf(frag);
+      
+      payloadCount = msf.payloadCount(counter, trigger, timestamp);
+      
+      while (payload_index < uint32_t(payloadCount-1) && FirstTimestamp == nullptr) {
+	payload_data = msf.get_next_payload(payload_index,word_header);
+	switch(word_header->data_packet_type) {
+	case lbne::PennMicroSlice::DataTypeTimestamp:
+	  FirstTimestamp = reinterpret_cast<lbne::PennMicroSlice::Payload_Timestamp*>(payload_data);
+	  break;
+	default:
+	  break;
+	}
+      }
+    }
+    PTBTime = FirstTimestamp->nova_timestamp;
+    //std::cout << "Got PTB start time, it is " << PTBTime << std::endl;
   } // PTB Present
   // ------------------------ NOW TO COMPARE ALL THESE NUMBERS -------------------------------------------
   
-  std::cout << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs << std::endl;
+  if (nevts%1000 == 0) std::cout << "Looking at event " << evt.event() << " it had " << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs << std::endl;
+
+  RCE_PTB_diff = RCETime - PTBTime;
+  RCE_SSP_diff = RCETime - SSPTime;
+  SSP_PTB_diff = SSPTime - PTBTime;
+  
   fTree->Fill();
 }
 
 void DAQToOffline::CheckTiming::endJob()
 {
+  std::cout << "IDENTIFIER: Run: " << RunNumber << " has " << nevts << " events in total, " 
+	    << nSSP << " have SSP data and " << nSSPPayloads << " payloads, " 
+	    << nRCE << " have RCE data and " << nRCEPayloads << " payloads " << nConsistRCEPayloads << " of which had consistent numbers of RCE payloads, "
+	    << nPTB << " have PTB data and " << nPTBPayloads << " payloads." << std::endl;
 }
 
 DEFINE_ART_MODULE(DAQToOffline::CheckTiming)
