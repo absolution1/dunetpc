@@ -2,12 +2,17 @@
 #define DETPEDESTALDUNE_CXX
 
 #include "DetPedestalDUNE.h"
+#include <string>
+#include <iostream>
 #include "IFDatabase/Table.h"
+
+using std::string;
+using std::cout;
+using std::endl;
 
 namespace dune {
 
-  DetPedestalDUNE::DetPedestalDUNE(std::string detName)
-  {
+  DetPedestalDUNE::DetPedestalDUNE(std::string detName) {
     fDetName = detName;
     fVldTime = 0;   
     fMeanMap.clear();
@@ -20,8 +25,7 @@ namespace dune {
 
   //------------------------------------------------------------
 
-  DetPedestalDUNE::DetPedestalDUNE(fhicl::ParameterSet const& pset)
-  {
+  DetPedestalDUNE::DetPedestalDUNE(fhicl::ParameterSet const& pset) {
     fVldTime = 0;   
     fMeanMap.clear();
     fRmsMap.clear();
@@ -34,8 +38,8 @@ namespace dune {
   
   //------------------------------------------------------------
 
-  bool DetPedestalDUNE::Configure(fhicl::ParameterSet const& p)
-  {
+  bool DetPedestalDUNE::Configure(fhicl::ParameterSet const& p) {
+    const string myname = "DetPedestalDUNE::Configure: ";
     fUseDB = p.get<bool>("UseDB",false);
     if (!fUseDB) {
       fVldTime = p.get<bool>("Run",0);
@@ -46,16 +50,30 @@ namespace dune {
     fDefaultMeanErr = p.get<float>("DefaultMeanErr",0.);
     fDefaultRms = p.get<float>("DefaultRms",0.);
     fDefaultRmsErr = p.get<float>("DefaultRmsErr",0.);    
-
+    fLogLevel = p.get<int>("LogLevel", 1);    
+    if ( fLogLevel > 0 ) {
+      cout << myname << "          UseDB: " << fUseDB << endl;
+      cout << myname << "            Run: " << fVldTime << endl;
+      cout << myname << "        CSVFile: " << fCSVFileName << endl;
+      cout << myname << "    UseDefaults: " << fUseDefaults << endl;
+      cout << myname << "    DefaultMean: " << fDefaultMean << endl;
+      cout << myname << " DefaultMeanErr: " << fDefaultMeanErr << endl;
+      cout << myname << "     DefaultRms: " << fDefaultRms << endl;
+      cout << myname << "  DefaultRmsErr: " << fDefaultRmsErr << endl;
+      cout << myname << "       LogLevel: " << fLogLevel << endl;
+    }
     return true;
   }
 
   //------------------------------------------------------------
 
-  bool DetPedestalDUNE::Update(uint64_t ts)
-  {
+  bool DetPedestalDUNE::Update(uint64_t ts) {
+    const string myname = "DetPedestalDUNE::Update: ";
+    if ( fLogLevel > 0 ) {
+      cout << myname << "Called with run " << ts << endl;
+    }
     if (!fUseDB && fCSVFileName.empty()) {
-      std::cout << "Both UseDB is false and CSVFileName isn't set, so pedestals retrieval would fail..Leaving update." << std::endl;
+      cout << myname << "Both UseDB is false and CSVFileName isn't set, so pedestals retrieval would fail..Leaving update." << std::endl;
       return true;
     }
     if (ts == fVldTime)

@@ -58,6 +58,7 @@ namespace dune {
     uint64_t fVldTime;   
     std::string fCSVFileName;
     std::string fDetName;
+    int fLogLevel;
     std::unordered_map<raw::ChannelID_t,float> fMeanMap;
     std::unordered_map<raw::ChannelID_t,float> fRmsMap;
     std::unordered_map<raw::ChannelID_t,float> fMeanErrMap;
