@@ -31,5 +31,4 @@ physics:
 
 }
 
-#Temporary fix due to database issues
-muoncounter.PTBMapDir: "/lbne/data2/users/warburton/PTBChannelMap/"
+physics.analyzers.muoncounter.PTBMapDir: "/lbne/data2/users/warburton/PTBChannelMap/"
