@@ -23,7 +23,7 @@ function parse_args(){
     RELEASE_DIR=/home/lbnedaq/nearline/nearline_test_release_${VERSION}
     SCRIPT_PATH=${RELEASE_DIR}/srcs/dunetpc/dune/NearlineMonitor/scripts
     PRODUCTS_DIR=${RELEASE_DIR}/localProducts_larsoft_${VERSION}_${QUALIFIERS}_prof
-    OUTPUT_PATH=/lbne/data2/users/lbnedaq/nearline/${VERSION}
+    OUTPUT_PATH=/lbne/data2/users/lbnedaq/nearline_evd/${VERSION}
 
     echo-info "RUN $RUN"
     echo-info "RELEASE_DIR $RELEASE_DIR"
@@ -58,8 +58,8 @@ function process_file(){
     mkdir -p $RunDir
     OLD_PWD=$PWD
     cd $SCRIPT_PATH
-    echo-info "./ProcessSingleFile.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR"
-    nohup ./ProcessSingleFile.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR >> /dev/null 2>&1 &
+    echo-info "./ProcessSingleFileEVD.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR"
+    nohup ./ProcessSingleFileEVD.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR >> /dev/null 2>&1 &
     cd $OLD_PWD
 }
 
