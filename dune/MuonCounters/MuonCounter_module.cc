@@ -285,9 +285,9 @@ void Muoncounter::endJob()
   fHist1->Sumw2();
   fHist2->Sumw2();
   fHist3->Sumw2();
-  fHist1->Scale(1/total_Time);
-  fHist2->Scale(1/total_Time);
-  fHist3->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist1->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist2->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist3->Scale(1/total_Time);
 
   TString fHist1_Title = Form("TSU Frequency");
   TString fHist2_Title = Form("BSU Frequency");
