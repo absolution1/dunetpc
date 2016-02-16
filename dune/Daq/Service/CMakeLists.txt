@@ -10,4 +10,4 @@
 simple_plugin(FileChannelMappingService  "service"
              )
 
-#add_subdirectory(test)
+add_subdirectory(test)

@@ -78,8 +78,10 @@ Channel FileChannelMappingService::offline(Channel chin) const {
   Channel chout = bad();
   if ( chin < m_offMap.size() ) chout = m_offMap[chin];
   if ( chout == bad() ) {
-    cout << myname << "ERROR: " << "No offline channel mapped to online channel " << chin << endl;
-    throw cet::exception("Channel not found.");
+    if ( m_LogLevel > 1 ) {
+      cout << myname << "ERROR: " << "No offline channel mapped to online channel " << chin << endl;
+    }
+    throw cet::exception("Online channel not found.");
   }
   return chout;
 }
@@ -91,8 +93,10 @@ Channel FileChannelMappingService::online(Channel chin) const {
   Channel chout = bad();
   if ( chin < m_onMap.size() ) chout = m_onMap[chin];
   if ( chout == bad() ) {
-    cout << myname << "ERROR: " << "No online channel mapped to offline channel " << chin << endl;
-    throw cet::exception("Channel not found.");
+    if ( m_LogLevel > 1 ) {
+      cout << myname << "ERROR: " << "No online channel mapped to offline channel " << chin << endl;
+    }
+    throw cet::exception("Offline channel not found.");
   }
   return chout;
 }
