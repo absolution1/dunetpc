@@ -1054,7 +1054,7 @@ struct NearlineProcessingPedestal{
   static std::string GetPedestalFileName(std::string done_file_name){
     std::ifstream in_file(done_file_name.c_str());
     std::string line;
-    std::string pedestal_file="";
+    std::string pedestal_file="Unknown";
     while(std::getline(in_file, line)){   
       //    std::cerr << "INFO : " << line << std::endl;
       if(line.find("NEARLINE_PEDESTAL ") != std::string::npos)  pedestal_file = line.substr(std::string("NEARLINE_PEDESTAL ").size());
