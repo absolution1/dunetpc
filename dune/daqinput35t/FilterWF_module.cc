@@ -1,5 +1,14 @@
 #ifndef FILTERWF_H
 #define FILTERWF_H
+////////////////////////////////////////////////////////////////////////
+//
+// FilterWF_module
+//
+// bkirby@bnl.gov
+//
+// Updated by m.wallbank@sheffield.ac.uk
+//
+////////////////////////////////////////////////////////////////////////
 
 #include <string>
 #include <vector>
@@ -10,8 +19,6 @@
 #include <TFile.h>
 //#include <TFileDirectory.h>
 
-#include "art/Framework/Core/ModuleMacros.h" 
-#include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Principal/Handle.h" 
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
@@ -31,6 +38,7 @@
 #include "art/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "Utilities/DetectorProperties.h"
 
 #include <memory>
 #include <iostream>
@@ -59,7 +67,7 @@ private:
   //******************************
   //Variables Taken from FHICL File
   std::string       fRawDigitModuleLabel, fRawDigitModuleInstance, fChannelMapFile;   //label for rawdigit module
-  std::string fOutputModuleLabel;
+  //std::string fOutputModuleLabel;
 
   std::map<int, int> fOfflineToOnlineChannel, fOnlineToOfflineChannel;
 
@@ -71,7 +79,7 @@ lbne::FilterWF::FilterWF(fhicl::ParameterSet const& pset) {
   this->reconfigure(pset);
   // Only need to build channel map once -- do it in constructor
   this->buildChannelMap(fChannelMapFile);
-  produces< std::vector<raw::RawDigit> >(fOutputModuleLabel);
+  produces< std::vector<raw::RawDigit> >();
 }
 
 //-------------------------------------------------------------------
@@ -82,25 +90,24 @@ void lbne::FilterWF::reconfigure(fhicl::ParameterSet const& pset){
   fRawDigitModuleLabel = pset.get<std::string>("RawDigitModuleLabel");
   fRawDigitModuleInstance = pset.get<std::string>("RawDigitModuleInstance");
   fChannelMapFile = pset.get<std::string>("ChannelMapFile");
-  fOutputModuleLabel = "filterwf";
+  //fOutputModuleLabel = "filterwf";
 }
 
 //-------------------------------------------------------------------
 void lbne::FilterWF::beginRun(art::Run const& run){
-  art::ServiceHandle<art::TFileService> tfs;
   return;
 }
 
 //-------------------------------------------------------------------
 void lbne::FilterWF::endRun(art::Run const& run){
-  art::ServiceHandle<art::TFileService> tfs;
   return;
 }
   
 //-------------------------------------------------------------------
 void lbne::FilterWF::produce(art::Event& evt){
 
-  art::ServiceHandle<art::TFileService> tfs;    
+  art::ServiceHandle<util::DetectorProperties> detprop;
+
   art::Handle< std::vector<raw::RawDigit> > rawDigitHandle;
   evt.getByLabel(fRawDigitModuleLabel, fRawDigitModuleInstance,rawDigitHandle);
   std::vector<raw::RawDigit> const& rawDigitVector(*rawDigitHandle);
@@ -117,8 +124,10 @@ void lbne::FilterWF::produce(art::Event& evt){
     const size_t n_samp = rawDigitVector.at(ich).NADC();
     const int offlineChannel = rawDigitVector.at(ich).Channel();
     const int onlineChannel = fOfflineToOnlineChannel.at(offlineChannel);
-    if ((int)ich != onlineChannel)
+    if ((int)ich != onlineChannel){
       std::cout << "WARNING! Problem in first channel loop. Online channel " << onlineChannel << " (offline channel " << offlineChannel << ") is not equal to loop index, " << ich << std::endl;
+      abort();
+    }
     double mean = 0;
     int count = 0;
     for(unsigned int s = 0 ; s < n_samp ; s++){
@@ -148,7 +157,7 @@ void lbne::FilterWF::produce(art::Event& evt){
   //derive correction factors - require raw adc waveform and pedestal for each channel
   std::vector<Double_t> corrVals;
   //loop through time slices
-  int maxNumBins = 10000; //get this from previous loop
+  int maxNumBins = detprop->ReadOutWindowSize();
   for(int s = 0 ; s < maxNumBins ; s++ ){
     //loop through regulator groups
     for(int g = 0 ; g < 16*2 ; g++){

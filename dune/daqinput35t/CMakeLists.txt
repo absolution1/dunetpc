@@ -117,22 +117,19 @@ RawData
 )
 
 simple_plugin(FilterWF "module"
+ DetectorProperties_service
  lbne_daqinput35t
  art_Framework_IO_Root
  art_Framework_IO_Sources
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- Geometry_service
- Geometry
  RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
- ${SIMULATIONBASE}
  art_Framework_Services_Registry
  art_Framework_Services_Optional
- art_Framework_Services_Optional_TFileService_service
 )
 
 simple_plugin(CheckTiming "module"
