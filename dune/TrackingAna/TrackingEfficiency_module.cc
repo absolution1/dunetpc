@@ -38,10 +38,9 @@
 #include "lardata/RecoBase/Track.h"
 #include "lardata/RecoBase/SpacePoint.h"
 #include "lardata/RecoBase/OpFlash.h"
-#include "lardata/Utilities/LArProperties.h"
-#include "lardata/Utilities/DetectorProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "lardata/Utilities/TimeService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/RawData/ExternalTrigger.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "lardata/AnalysisBase/Calorimetry.h"
@@ -147,14 +146,13 @@ private:
   
   bool MCMatched, AllChargedTrack;
   // Handles
-  art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::LArProperties> larprop;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::TimeService> timeservice;
+  art::ServiceHandle<geo::Geometry> geom;  
   art::ServiceHandle<cheat::BackTracker> bktrk;
-  
-  double XDriftVelocity      = larprop->DriftVelocity()*1e-3; //cm/ns
-  double WindowSize          = detprop->NumberTimeSamples() * timeservice->TPCClock().TickPeriod() * 1e3;
+
+  detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
+  double WindowSize          = detprop->NumberTimeSamples() * ts->TPCClock().TickPeriod() * 1e3;
   // Parameter List
   std::string fHitsModuleLabel;
   std::string fTrackModuleLabel;

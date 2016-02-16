@@ -6,8 +6,6 @@ simple_plugin(CFilter "module"
 		        larcore_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			lardata_Utilities_DetectorProperties_service
-			lardata_Utilities_LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

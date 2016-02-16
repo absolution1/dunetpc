@@ -42,8 +42,8 @@ physics:
  #and output modules. all items here can be run simultaneously
  end_paths: [evd]  
 }
-services.user.IDetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 768
-services.user.IDetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 2700
+services.user.DetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 768
+services.user.DetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 2700
 
 
 services.user.ColorDrawingOptions.ColorOrGrayScale:       0    # use color

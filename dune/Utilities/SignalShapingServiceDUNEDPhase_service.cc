@@ -11,8 +11,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/TPCGeo.h"
 #include "larcore/Geometry/PlaneGeo.h"
-#include "lardata/Utilities/DetectorProperties.h"
-#include "lardata/Utilities/LArProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "TSpline.h"
 
@@ -220,7 +219,7 @@ void util::SignalShapingServiceDUNEDPhase::SetFilters()
   
   // Get services.
 
-  //art::ServiceHandle<util::DetectorProperties> detprop;
+  //auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   //art::ServiceHandle<util::LArFFT> fft;
 
   //double ts = detprop->SamplingRate();
@@ -234,7 +233,7 @@ void util::SignalShapingServiceDUNEDPhase::SetFilters()
 void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
 {
   // Get services
-  art::ServiceHandle<util::DetectorProperties> detprop;
+  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
   // Operation permitted only if output of rebinning has a larger bin size

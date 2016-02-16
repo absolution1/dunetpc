@@ -7,4 +7,4 @@ services.user.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"
 # Change vertical scale to 15000 ticks
 services.user.RawDrawingOptions.TotalTicks:               15000
 
-#services.user.IDetPedestalService.DetPedestalDUNE.CSVFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_9754.csv"
+#services.user.DetPedestalService.DetPedestalDUNE.CSVFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_9754.csv"

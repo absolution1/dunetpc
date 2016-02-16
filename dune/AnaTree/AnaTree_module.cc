@@ -44,10 +44,9 @@
 #include "lardata/RecoBase/Track.h"
 #include "lardata/RecoBase/SpacePoint.h"
 #include "lardata/RecoBase/OpFlash.h"
-#include "lardata/Utilities/LArProperties.h"
-#include "lardata/Utilities/DetectorProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "lardata/Utilities/TimeService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/RawData/ExternalTrigger.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "lardata/AnalysisBase/Calorimetry.h"
@@ -301,9 +300,8 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   ResetVars();
 
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::LArProperties> larprop;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::TimeService> timeservice;
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const *timeservice = lar::providerFrom<detinfo::DetectorClocksService>();
   //fClock = timeservice->TPCClock();
   art::ServiceHandle<cheat::BackTracker> bktrk;
 
@@ -315,9 +313,9 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
   TTimeStamp tts(ts.timeHigh(), ts.timeLow());
   evttime = tts.AsDouble();
 
-  efield[0] = larprop->Efield(0);
-  efield[1] = larprop->Efield(1);
-  efield[2] = larprop->Efield(2);
+  efield[0] = detprop->Efield(0);
+  efield[1] = detprop->Efield(1);
+  efield[2] = detprop->Efield(2);
   
   t0 = detprop->TriggerOffset();
   
@@ -483,7 +481,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
       trklen_L[i]=track.Length();
 
       //double recotime = 0.;
-      //double trackdx = recotime * 1.e-3 * larprop->DriftVelocity();  // cm
+      //double trackdx = recotime * 1.e-3 * detprop->DriftVelocity();  // cm
       // Fill histograms involving reco tracks only.
       int ntraj = track.NumberTrajectoryPoints();
       if(ntraj > 0) {
@@ -653,7 +651,7 @@ void AnaTree::AnaTree::analyze(art::Event const & evt)
     double XPlanePosition      = 0;
     double DriftTimeCorrection = 0;
     double TimeAtPlane         = 0;
-    double XDriftVelocity      = larprop->DriftVelocity()*1e-3; //cm/ns
+    double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
     double WindowSize          = detprop->NumberTimeSamples() * timeservice->TPCClock().TickPeriod() * 1e3;
   
     int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit

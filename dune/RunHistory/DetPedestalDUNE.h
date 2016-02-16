@@ -10,13 +10,13 @@
 #define DETPEDESTALDUNE_H
 
 #include "larevt/CalibrationDBI/IOVData/DetPedestal.h"
-#include "larevt/CalibrationDBI/Interface/IDetPedestalProvider.h"
+#include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
 #include "fhiclcpp/ParameterSet.h"
 #include <unordered_map>
 
 namespace dune {
 
-  class DetPedestalDUNE : public lariov::IDetPedestalProvider
+  class DetPedestalDUNE : public lariov::DetPedestalProvider
   {
   public:
 

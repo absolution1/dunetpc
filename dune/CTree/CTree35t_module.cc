@@ -6,9 +6,7 @@
 // test
 
 // LArSoft includes
-#include "lardata/Utilities/DetectorProperties.h"
 #include "lardata/Utilities/GeometryUtilities.h"
-// #include "Utilities/LArProperties.h"
 #include "larsim/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "larsim/Simulation/SimListUtils.h"
@@ -117,7 +115,7 @@ private:
     bool fSaveChannelWireGeo;
   
     art::ServiceHandle<geo::Geometry> fGeom;
-    // art::ServiceHandle<util::LArProperties> larp;
+    // detinfo::DetectorProperties const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
     // art::ServiceHandle<art::TFileService> fTfs;
     TFile *fOutFile;
@@ -599,9 +597,9 @@ void CTree35t::saveWireGeometry(int plane, int tpc)
         cout << endl;
     }
 
-    // cout << " Temperature: " << larp->Temperature() << endl;
-    // cout << " E field: " << larp->Efield() << endl;
-    // cout << " Drift Velocity: " << larp->DriftVelocity(larp->Efield(), larp->Temperature()) << endl;
+    // cout << " Temperature: " << detp->Temperature() << endl;
+    // cout << " E field: " << detp->Efield() << endl;
+    // cout << " Drift Velocity: " << detp->DriftVelocity(detp->Efield(), detp->Temperature()) << endl;
 
 }
 

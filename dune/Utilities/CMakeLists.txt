@@ -1,7 +1,6 @@
 #include_directories("${CMAKE_SOURCE_DIR/")
 
 set( dune_util_lib_list lardata_Utilities_LArFFT_service
-                        lardata_Utilities_LArProperties_service
 			larcore_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
@@ -60,4 +59,3 @@ install_fhicl()
 install_source()
 
 add_subdirectory(test)
-

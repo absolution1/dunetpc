@@ -5,6 +5,9 @@ BEGIN_PROLOG
 
 dunefd_detproperties:                   @local::standard_detproperties
 # dunefd_detproperties.SamplingRate:      500.         #in ns
+dunefd_detproperties.Temperature:       87
+dunefd_detproperties.Electronlifetime:  3.0e3
+dunefd_detproperties.Efield:           [0.5,0.666,0.8]  #(predicted for microBooNE)
 dunefd_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
 dunefd_detproperties.NumberTimeSamples: 4492         # drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
 dunefd_detproperties.ReadOutWindowSize: 4492         # drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
@@ -24,6 +27,9 @@ dunefddphase_detproperties.TimeOffsetZ:       0.
 
 dune35t_detproperties:                   @local::standard_detproperties
 # dune35t_detproperties.SamplingRate:      500.         #in ns
+dune35t_detproperties.Temperature:       87
+dune35t_detproperties.Electronlifetime:  3.0e3
+dune35t_detproperties.Efield:           [0.5,0.666,0.8]  #(predicted for microBooNE)
 dune35t_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE 35t
 dune35t_detproperties.NumberTimeSamples: 3200
 dune35t_detproperties.ReadOutWindowSize: 3200

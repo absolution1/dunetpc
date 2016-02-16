@@ -5,8 +5,6 @@ simple_plugin(MuonCounter "module"
 	                larcore_Geometry
 	                larcore_Geometry_Geometry_service
                         lardata_Utilities    
-			lardata_Utilities_DetectorProperties_service
-			lardata_Utilities_LArProperties_service  
    lbne-raw-data_Overlays
    lbne_daqinput35t_utilities
    lbne_daqinput35t

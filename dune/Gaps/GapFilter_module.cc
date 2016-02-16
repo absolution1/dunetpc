@@ -28,8 +28,7 @@
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/WireGeo.h"
 #include "lardata/RecoBase/Hit.h"
-#include "lardata/Utilities/LArProperties.h"
-#include "lardata/Utilities/DetectorProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h" 
@@ -171,8 +170,6 @@ namespace MyGapFilter {
     ResetVars();
 
     art::ServiceHandle<geo::Geometry> geom;
-    art::ServiceHandle<util::LArProperties> larprop;
-    art::ServiceHandle<util::DetectorProperties> detprop;
     
     run = evt.run();
     subrun = evt.subRun();

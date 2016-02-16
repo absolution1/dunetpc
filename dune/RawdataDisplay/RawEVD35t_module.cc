@@ -8,7 +8,7 @@
 #define RawEVD35t_Module
 
 // LArSoft includes
-#include "lardata/Utilities/DetectorProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larsim/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "lardata/RawData/raw.h"
@@ -108,7 +108,6 @@ namespace AnalysisExample{
 
 
     art::ServiceHandle<geo::Geometry> fGeom;
-    art::ServiceHandle<util::DetectorProperties> fDetProp;
 
     std::vector<TH2I*> fTimeChanU;
     std::vector<TH2I*> fTimeChanV;
@@ -143,6 +142,7 @@ namespace AnalysisExample{
 
   void RawEVD35t::reconfigure(fhicl::ParameterSet const& p){
     fRawDigitLabel  =  p.get< std::string >("RawDigitLabel");
+    // auto const* fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     //    fNticks         = fDetProp->NumberTimeSamples();
     fNticks  =  (unsigned int) p.get< int >("TicksToDraw");
     fUncompressWithPed  = p.get< bool         >("UncompressWithPed", true);

@@ -6,7 +6,7 @@
 #define RawEVD35t_module
 
 // LArSoft includes
-#include "lardata/Utilities/DetectorProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larsim/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "larcore/Geometry/Geometry.h"
@@ -121,7 +121,6 @@ namespace AnalysisExample{
     std::vector<std::vector<int> > fWaveform;
 
     art::ServiceHandle<geo::Geometry> fGeom;
-    art::ServiceHandle<util::DetectorProperties> fDetProp;
 
     // Boolean to hold which data is present
     bool fIsRCE = true;
@@ -146,6 +145,7 @@ namespace AnalysisExample{
     fTPCInstance    = p.get< std::string >("TPCInstanceName");
     fSSPInput       = p.get< std::string >("SSPInputModule");
     fSSPInstance    = p.get< std::string >("SSPInstanceName");
+    auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fNticks         = fDetProp->NumberTimeSamples();
     return;
   }

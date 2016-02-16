@@ -4,7 +4,7 @@
 #define RawEVDDP_Module
 
 // LArSoft includes
-#include "lardata/Utilities/DetectorProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larsim/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "lardata/RawData/raw.h"
@@ -84,7 +84,7 @@ namespace AnalysisExample{
 
     // art handles
     art::ServiceHandle<geo::Geometry> fGeom; 
-    art::ServiceHandle<util::DetectorProperties> fDetProp;
+    detinfo::DetectorProperties const* fDetProp = nullptr;
 
     std::vector<TH2I*> fTimeChanU; //data in view 0
     std::vector<TH2I*> fTimeChanV; //data in view 1
@@ -110,6 +110,7 @@ namespace AnalysisExample{
   //-----------------------------------------------------------------------
 
   void RawEVDDP::reconfigure(fhicl::ParameterSet const& p){
+    fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fRawDigitLabel  =  p.get< std::string >("RawDigitLabel");
     fNticks         = fDetProp->NumberTimeSamples();
     return;

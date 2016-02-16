@@ -42,7 +42,7 @@
 #include "lardata/RawData/raw.h"
 #include "lardata/RawData/OpDetWaveform.h"
 #include "larcore/Geometry/Geometry.h"
-#include "lardata/Utilities/TimeService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 //daqinput35t includes
 
@@ -130,7 +130,7 @@ void DAQToOffline::SSPDiagnosticAna::reconfigure(fhicl::ParameterSet const& pset
   //fZeroThreshold=0;
   //fCompression=raw::kNone;
   // Obtain parameters from TimeService
-  art::ServiceHandle< util::TimeService > timeService;
+  auto const* timeService = lar::providerFrom<detinfo::DetectorClocksService>();
   fSampleFreq = timeService->OpticalClock().Frequency();
 
 

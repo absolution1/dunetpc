@@ -2,14 +2,12 @@
 #define dEdx_Module
 
 // LArSoft includes
-#include "lardata/Utilities/DetectorProperties.h"
 #include "larsim/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "larcore/Geometry/Geometry.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
 #include "larcore/SimpleTypesAndConstants/geo_types.h"
-#include "lardata/Utilities/LArProperties.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"

@@ -29,7 +29,7 @@
 
 //larsoft
 #include "larcore/Geometry/Geometry.h"
-#include "lardata/Utilities/DetectorProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/RecoBase/Hit.h"
 #include "lardata/RawData/RawDigit.h"
 #include "lardata/RawData/raw.h"

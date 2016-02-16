@@ -24,7 +24,6 @@ simple_plugin(dEdx "module"
                         larcore_Geometry
                         lardata_RawData
                         lardata_RecoBase
-                        lardata_Utilities_LArProperties_service
                         lardata_Utilities
                         larsim_Simulation
                         ${SIMULATIONBASE}
@@ -51,8 +50,6 @@ simple_plugin(EMEnergyCalib "module"
 			larsim_MCCheater_BackTracker_service
 			larsim_Simulation
 			lardata_Utilities
-			lardata_Utilities_DetectorProperties_service
-			lardata_Utilities_LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -77,8 +74,6 @@ simple_plugin(EMPi0Energy "module"
 			larsim_MCCheater_BackTracker_service
 			larsim_Simulation
 			lardata_Utilities
-			lardata_Utilities_DetectorProperties_service
-			lardata_Utilities_LArProperties_service
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

@@ -5,9 +5,6 @@ art_make( BASENAME_ONLY
                            larcore_Geometry
                            larcore_Geometry_Geometry_service
 			   lardata_RawData
-			   lardata_Utilities_TimeService_service
-                           lardata_Utilities_LArProperties_service
-                           lardata_Utilities_DetectorProperties_service
                            lardata_Utilities
 			   larsim_Simulation
 			   larsim_MCCheater_BackTracker_service

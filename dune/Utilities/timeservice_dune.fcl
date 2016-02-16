@@ -1,45 +1,15 @@
-#include "timeservice.fcl"
+#
+# deprecated: include detectorclocks_dune.fcl directly instead
+#
+
+#include "detectorclocks_dune.fcl"
 
 BEGIN_PROLOG
 
-dunefd_timeservice: @local::standard_timeservice
+dunefd_detectorclocks: @local::dunefd_detectorclocks
 
-# dunefd_timeservice.TrigModuleName:      ""
-dunefd_timeservice.InheritClockConfig:   false
-dunefd_timeservice.G4RefTime:            0. # G4 time [us] where electronics clock counting start
-dunefd_timeservice.TriggerOffsetTPC:     0. # Time [us] for TPC readout start w.r.t. trigger time
-dunefd_timeservice.FramePeriod:       1600. # Frame period [us]
-dunefd_timeservice.ClockSpeedTPC:        2. # TPC clock speed in MHz
-dunefd_timeservice.ClockSpeedOptical:  128. # Optical clock speed in MHz
-dunefd_timeservice.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
-dunefd_timeservice.DefaultTrigTime:      0. # Default trigger time [us].
-dunefd_timeservice.DefaultBeamTime:      0. # Default beam time [us].
+dunefddphase_detectorclocks: @local::dunefddphase_detectorclocks
 
-
-dunefddphase_timeservice: @local::standard_timeservice
-# dunefddphase_timeservice.TrigModuleName:      ""
-dunefddphase_timeservice.InheritClockConfig:   false
-dunefddphase_timeservice.G4RefTime:            0.  # G4 time [us] where electronics clock counting start
-dunefddphase_timeservice.TriggerOffsetTPC:     0.  # Time [us] for TPC readout start w.r.t. trigger time
-dunefddphase_timeservice.FramePeriod:       8000.  # Frame period [us]
-dunefddphase_timeservice.ClockSpeedTPC:        2.5 # TPC clock speed in MHz
-dunefddphase_timeservice.ClockSpeedOptical:   65.  # Optical clock speed in MHz
-dunefddphase_timeservice.ClockSpeedTrigger:   16.  # Trigger clock speed in MHz
-dunefddphase_timeservice.DefaultTrigTime:      0.  # Default trigger time [us].
-dunefddphase_timeservice.DefaultBeamTime:      0.  # Default beam time [us].
-
-
-dune35t_timeservice: @local::standard_timeservice
-
-# dune35t_timeservice.TrigModuleName:      ""
-dune35t_timeservice.InheritClockConfig:   false
-dune35t_timeservice.G4RefTime:            0. # G4 time [us] where electronics clock counting start
-dune35t_timeservice.TriggerOffsetTPC:     0. # Time [us] for TPC readout start w.r.t. trigger time
-dune35t_timeservice.FramePeriod:       1600. # Frame period [us]
-dune35t_timeservice.ClockSpeedTPC:        2. # TPC clock speed in MHz
-dune35t_timeservice.ClockSpeedOptical:  128. # Optical clock speed in MHz
-dune35t_timeservice.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
-dune35t_timeservice.DefaultTrigTime:      0. # Default trigger time [us].
-dune35t_timeservice.DefaultBeamTime:      0. # Default beam time [us].
+dune35t_detectorclocks: @local::dune35t_detectorclocks
 
 END_PROLOG
