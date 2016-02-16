@@ -52,7 +52,13 @@ if [ $infilesize -gt 500 ];
 then
     echo "Processing /data/lbnedaq/data/nearline-monitoring-links/${INFILE}"
     
-    export NEARLINE_PEDESTAL="/home/lbnedaq/nearline/pedestal_files/offline_databaseRun_9754.csv"
+    PEDESTAL=`cat /data/lbnedaq/pedestals/current_run.txt`
+    NEARLINE_PEDESTAL=/data/lbnedaq/pedestals/database_pedestals/offline_databaseRun_${PEDESTAL}.csv
+    if [ -e $NEARLINE_PEDESTAL ];then
+	export NEARLINE_PEDESTAL=$NEARLINE_PEDESTAL
+    else
+	export NEARLINE_PEDESTAL="/home/lbnedaq/nearline/pedestal_files/offline_databaseRun_9754.csv"
+    fi
 
     echo "Setting pedestal to: $NEARLINE_PEDESTAL"
 
