@@ -264,6 +264,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
   NearlineProcessingTimePlot nearline_processing_time_plot;
   NearlineProcessingVersion nearline_processing_version_plot;
+  NearlineProcessingPedestal nearline_processing_pedestal_plot;
   //
   // Looping over the list of input files...
   //
@@ -350,6 +351,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     std::string done_file_name = NearlineProcessingTime::GetDoneFileName(filename);
     nearline_processing_time_plot.AddFile(done_file_name, run);
     nearline_processing_version_plot.AddFile(filename, run);
+    nearline_processing_pedestal_plot.AddFile(done_file_name, run);
 
     //    std::cerr << "JPD: done_file_name = " << done_file_name << std::endl;
 
@@ -428,6 +430,11 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   nearline_processing_version_plot.PrintVersionPlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
   if(debug) html_string += nearline_processing_version_plot.MakeVersionPlotsHTML("plots_testing/", Ndays);
   else  html_string += nearline_processing_version_plot.MakeVersionPlotsHTML("plots/", Ndays);
+
+  //Print the Nearline Processing Pedestal plot and add to the webpage
+  nearline_processing_pedestal_plot.PrintPedestalPlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
+  if(debug) html_string += nearline_processing_pedestal_plot.MakePedestalPlotsHTML("plots_testing/", Ndays);
+  else  html_string += nearline_processing_pedestal_plot.MakePedestalPlotsHTML("plots/", Ndays);
 
 
 
