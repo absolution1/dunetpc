@@ -23,7 +23,7 @@ public:
   virtual Channel offline(Channel onlineChannel) const =0;
 
   // Map offline to online.
-  virtual Channel online(Channel offlineChannel chan) const =0;
+  virtual Channel online(Channel offlineChannel) const =0;
 
   // Print parameters.
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;
