@@ -100,8 +100,10 @@ Channel FileChannelMappingService::online(Channel chin) const {
 //**********************************************************************
 
 ostream& FileChannelMappingService::print(ostream& out, string prefix) const {
-  cout << myname << "  FilePathEnv: " << m_FilePathEnv << endl;
-  cout << myname << "     LogLevel: " << m_LogLevel << endl;
+  string myname = prefix + "  ";
+  cout << myname << "   FileName: " << m_FileName << endl;
+  cout << myname << "FilePathEnv: " << m_FilePathEnv << endl;
+  cout << myname << "   LogLevel: " << m_LogLevel << endl;
   return out;
 }
 
