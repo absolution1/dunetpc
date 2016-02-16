@@ -263,6 +263,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   int    RunVSYearCount = 0;
 
   NearlineProcessingTimePlot nearline_processing_time_plot;
+  NearlineProcessingVersion nearline_processing_version_plot;
   //
   // Looping over the list of input files...
   //
@@ -348,6 +349,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     
     std::string done_file_name = NearlineProcessingTime::GetDoneFileName(filename);
     nearline_processing_time_plot.AddFile(done_file_name, run);
+    nearline_processing_version_plot.AddFile(filename, run);
 
     //    std::cerr << "JPD: done_file_name = " << done_file_name << std::endl;
 
@@ -421,6 +423,12 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   nearline_processing_time_plot.PrintTimePlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
   if(debug) html_string += nearline_processing_time_plot.MakeTimePlotsHTML("plots_testing/", Ndays);
   else  html_string += nearline_processing_time_plot.MakeTimePlotsHTML("plots/", Ndays);
+
+  //Print the Nearline Processing Version plot and add to the webpage
+  nearline_processing_version_plot.PrintVersionPlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
+  if(debug) html_string += nearline_processing_version_plot.MakeVersionPlotsHTML("plots_testing/", Ndays);
+  else  html_string += nearline_processing_version_plot.MakeVersionPlotsHTML("plots/", Ndays);
+
 
 
   //
