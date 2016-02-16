@@ -119,9 +119,11 @@ void lbne::FilterWF::produce(art::Event& evt){
   std::vector< std::vector<short> > filterWf(n_channels); // MW: I had to make this a vector of shorts to make it compile (the RawDigit constructor does not accept ADC as float)
 
   //loop over channels - get pedestal mean (no stuck ADC codes)
+  int maxNumBins = -1;
   std::vector<float> meanVec;
   for(unsigned int ich=0; ich<n_channels; ich++){
     const size_t n_samp = rawDigitVector.at(ich).NADC();
+    if (maxNumBins<0) maxNumBins = n_samp;
     const int offlineChannel = rawDigitVector.at(ich).Channel();
     const int onlineChannel = fOfflineToOnlineChannel.at(offlineChannel);
     if ((int)ich != onlineChannel){
@@ -157,7 +159,7 @@ void lbne::FilterWF::produce(art::Event& evt){
   //derive correction factors - require raw adc waveform and pedestal for each channel
   std::vector<Double_t> corrVals;
   //loop through time slices
-  int maxNumBins = detprop->ReadOutWindowSize();
+  //int maxNumBins = detprop->ReadOutWindowSize();
   for(int s = 0 ; s < maxNumBins ; s++ ){
     //loop through regulator groups
     for(int g = 0 ; g < 16*2 ; g++){
@@ -190,12 +192,12 @@ void lbne::FilterWF::produce(art::Event& evt){
 	
 	for(unsigned int c = 0 ; c < indCh.size() ; c++){
 	  int ch = baseCh + indCh.at(c);
-	  int adc = rawDigitVector.at(c).ADC(s);
+	  int adc = rawDigitVector.at(ch).ADC(s); //again c->ch
 	  double newAdc = adc - correction;
-	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
-	    newAdc = 0;
-	  if( adc < 10  ) //skip "sample dropping" problem
-	    newAdc = 0;
+//	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+//	    newAdc = 0;
+//	  if( adc < 10  ) //skip "sample dropping" problem
+//	    newAdc = 0;
 	  filterWf.at(ch).push_back(newAdc);
 	}
       }//end induction plane correction
@@ -229,10 +231,10 @@ void lbne::FilterWF::produce(art::Event& evt){
 	  int ch = baseCh + colCh.at(c);
 	  int adc = rawDigitVector.at(ch).ADC(s); // MW: and again
 	  double newAdc = adc - correction;
-	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
-	    newAdc = 0;
-	  if( adc < 10  ) //skip "sample dropping" problem
-	    newAdc = 0;
+//	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+//	    newAdc = 0;
+//	  if( adc < 10  ) //skip "sample dropping" problem
+//	    newAdc = 0;
 	  filterWf.at(ch).push_back(newAdc);
 	}
       }//end collection plane correction
