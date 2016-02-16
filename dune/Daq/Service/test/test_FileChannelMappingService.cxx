@@ -78,6 +78,7 @@ int test_FileChannelMappingService(string fname) {
     assert( chon == chin );
   }
 
+  cout << myname << line << endl;
   cout << myname << "Done." << endl;
   return 0;
 }
