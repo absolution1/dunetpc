@@ -476,13 +476,13 @@ TCanvas* NearlinePlot::makeBinByBinGraphTime(unsigned int bin, TPaveText* update
   if(bin >= fBinByBinMetricVec.size()) return NULL;
 
   std::string can_name = fHistName + "_time_bin_";
-  std::string can_title = fHistTitle + " Bin ";
+  std::string can_title = fHistTitle;
   if(fBinByBinLabels.at(bin) == "" ){
     can_name += std::to_string(bin);
-    can_title += std::to_string(bin);
+    can_title +=  + " Bin " + std::to_string(bin);
   }
   else{
-    can_title += fBinByBinLabels.at(bin);
+    can_title += " " + fBinByBinLabels.at(bin);
   }
 
   TCanvas* can = new TCanvas(can_name.c_str(), can_title.c_str(), width, height);
@@ -934,6 +934,227 @@ struct NearlineHTML{
 
 };
 
+struct NearlineProcessingVersion{
+
+  std::vector<std::string> fVersionStrings;
+  std::vector<int> fVersionInts;
+  std::vector<int> fRuns;
+  TGraph* fGr;
+
+  NearlineProcessingVersion(){
+    fVersionStrings.resize(0);
+    fVersionInts.resize(0);
+    fRuns.resize(0);
+    fGr=0;
+  }
+
+  std::string GetNearlineVersionFromFileName(std::string fileName){
+
+    std::string file_location = "/lbne/data2/users/lbnedaq/nearline/";
+    size_t file_location_size = file_location.size();
+    
+    std::string output = fileName.substr(file_location_size);
+    output = output.substr(0, output.find("/"));
+    
+    if(output.size()==0){
+      output = "Unknown";
+    }
+    else if(output.find("v") != 0){
+      output = "Unknown";
+    }
+    return output;
+  }//GetNearlineVersionFromFileName
+
+  void AddFile(std::string fileName, int run){
+    if(run<=0) return;
+    std::string version = GetNearlineVersionFromFileName(fileName);
+    //see if this is a new version
+    int version_index=-1;
+    for(size_t i=0;i<fVersionStrings.size();i++){
+      if(version == fVersionStrings.at(i)) version_index = i;
+    }//versions
+    if(version_index == -1){
+      version_index = fVersionStrings.size();
+      fVersionStrings.push_back(version);
+    }
+    
+    fVersionInts.push_back(version_index);
+    fRuns.push_back(run);    
+    std::cerr << "INFO : " << "run " << run << " version " << version << std::endl;
+  }
+
+  TGraph* GetGraph(){
+
+    fGr = new TGraph(fRuns.size());
+    for(size_t i=0;i<fRuns.size();i++) fGr->SetPoint(i, fRuns.at(i), fVersionInts.at(i));
+    
+    return fGr;
+  }
+
+  TCanvas* GetVersionCanvas(TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas* can = new TCanvas("can_processing_version", "can_processing_version", width, height);
+    can->SetRightMargin(0.20);
+    TGraph* gr = GetGraph();
+    //    can->cd()->SetLogy();
+    gr->Draw("A*");
+    gr->SetTitle("Nearline Processing Version");   
+    gr->GetXaxis()->SetTitle("Run Number");   
+
+    //Set the bin labels and range correctly
+    gr->GetYaxis()->Set(fVersionStrings.size(),-0.5,fVersionStrings.size()-0.5);
+    gr->GetYaxis()->SetRangeUser(-0.5, fVersionStrings.size()-0.5);
+    for(size_t i=0;i<fVersionStrings.size();i++){
+      gr->GetYaxis()->SetBinLabel(i+1, fVersionStrings.at(i).c_str());
+    }
+
+    gr->Draw("A*");
+
+    gPad->SetGridx();
+    gPad->SetGridy();
+
+    updateText->Draw();
+    return can;
+  }
+  
+  static std::string GetPlotName(int Ndays){ 
+    char name[256];
+    sprintf(name, "ProcessingVersion_%.3i_days.png", Ndays);
+    return std::string(name);
+  }
+
+  
+  void PrintVersionPlots(std::string plot_dir, int Ndays, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas *can = GetVersionCanvas(updateText, time_ago, XNow, width, height);
+    can->Print((plot_dir + "/" + GetPlotName(Ndays)).c_str());
+    delete can;
+    
+    for(size_t i=0;i<fVersionStrings.size();i++){
+      std::cerr << "INFO : Versions Used: " << fVersionStrings.at(i) << std::endl;
+    }
+
+  }
+
+
+  static std::string MakeVersionPlotsHTML(std::string relative_plot_dir, int Ndays){
+
+    std::string output;
+    output+="<h3>Nearline Processing Version as a function of Run.</h3>\n";
+    output+="<figure>\n";
+    output+="<img src=\"" + relative_plot_dir + "/" + GetPlotName(Ndays) + "\" width=\"800\">\n";
+    output+="</figure>\n";
+    output+="<BR><BR><BR>\n";
+
+    return output;
+  }
+};//NearlineProcessingVersion
+
+
+struct NearlineProcessingPedestal{
+
+  static std::string GetPedestalFileName(std::string done_file_name){
+    std::ifstream in_file(done_file_name.c_str());
+    std::string line;
+    std::string pedestal_file="Unknown";
+    while(std::getline(in_file, line)){   
+      //    std::cerr << "INFO : " << line << std::endl;
+      if(line.find("NEARLINE_PEDESTAL ") != std::string::npos)  pedestal_file = line.substr(std::string("NEARLINE_PEDESTAL ").size());
+      
+    }
+    return pedestal_file;
+  }
+
+  std::vector<std::string> fPedestalStrings;
+  std::vector<int> fPedestalInts;
+  std::vector<int> fRuns;
+  TGraph* fGr;
+
+  NearlineProcessingPedestal(){
+    fPedestalStrings.resize(0);
+    fPedestalInts.resize(0);
+    fRuns.resize(0);
+    fGr=0;
+  }
+  void AddFile(std::string fileName, int run){
+    if(run<=0) return;
+    std::string version = GetPedestalFileName(fileName);
+    //see if this is a new version
+    int version_index=-1;
+    for(size_t i=0;i<fPedestalStrings.size();i++){
+      if(version == fPedestalStrings.at(i)) version_index = i;
+    }//versions
+    if(version_index == -1){
+      version_index = fPedestalStrings.size();
+      fPedestalStrings.push_back(version);
+    }
+    
+    fPedestalInts.push_back(version_index);
+    fRuns.push_back(run);    
+    std::cerr << "INFO : " << "run " << run << " version " << version << std::endl;
+  }
+
+  TGraph* GetGraph(){
+
+    fGr = new TGraph(fRuns.size());
+    for(size_t i=0;i<fRuns.size();i++) fGr->SetPoint(i, fRuns.at(i), fPedestalInts.at(i));
+    
+    return fGr;
+  }
+
+  TCanvas* GetPedestalCanvas(TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas* can = new TCanvas("can_processing_version", "can_processing_version", width, height);
+    can->SetRightMargin(0.20);
+    TGraph* gr = GetGraph();
+    //    can->cd()->SetLogy();
+    gr->Draw("A*");
+    gr->SetTitle("Nearline Processing Pedestal");   
+    gr->GetXaxis()->SetTitle("Run Number");   
+
+    //Set the bin labels and range correctly
+    gr->GetYaxis()->Set(fPedestalStrings.size(),-0.5,fPedestalStrings.size()-0.5);
+    gr->GetYaxis()->SetRangeUser(-0.5, fPedestalStrings.size()-0.5);
+    for(size_t i=0;i<fPedestalStrings.size();i++){
+      gr->GetYaxis()->SetBinLabel(i+1, fPedestalStrings.at(i).c_str());
+    }
+
+    gr->Draw("A*");
+
+    gPad->SetGridx();
+    gPad->SetGridy();
+
+    updateText->Draw();
+    return can;
+  }
+  
+  static std::string GetPlotName(int Ndays){ 
+    char name[256];
+    sprintf(name, "ProcessingPedestal_%.3i_days.png", Ndays);
+    return std::string(name);
+  }
+
+  
+  void PrintPedestalPlots(std::string plot_dir, int Ndays, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas *can = GetPedestalCanvas(updateText, time_ago, XNow, width, height);
+    can->Print((plot_dir + "/" + GetPlotName(Ndays)).c_str());
+    delete can;
+    
+    for(size_t i=0;i<fPedestalStrings.size();i++){
+      std::cerr << "INFO : Pedestals Used: " << fPedestalStrings.at(i) << std::endl;
+    }
+
+  }
+
+  static std::string MakePedestalPlotsHTML(std::string relative_plot_dir, int Ndays){
+
+    std::string output;
+    output+="<h3>Nearline Processing Pedestal as a function of Run.</h3>\n";
+    output+="<figure>\n";
+    output+="<img src=\"" + relative_plot_dir + "/" + GetPlotName(Ndays) + "\" width=\"800\">\n";
+    output+="</figure>\n";
+    output+="<BR><BR><BR>\n";
+
+    return output;
+  }
+};
 
 struct NearlineProcessingTime{
   
