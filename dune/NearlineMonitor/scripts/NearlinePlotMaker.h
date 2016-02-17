@@ -279,11 +279,11 @@ bool NearlinePlot::AddHistogram1D(TFile const & file, TTree* header, int Xsrtime
     }
     else{
       if(fHistogram->GetNbinsX() != hist_temp->GetNbinsX()){
-	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
+	//	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
 	return false;
       }
       if(hist_temp->GetEntries() == 0){
-	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
+	//	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
 	return false;
       }
       fHistogram->Add(hist_temp,1.0);
@@ -312,11 +312,11 @@ bool NearlinePlot::AddHistogram1D(TFile const & file, TTree* header, int Xsrtime
 	}	
       }
       if(fHistogram->GetNbinsX() != hist_temp->GetNbinsX()){
-	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
+	//	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
 	return false;;
       }
       if(hist_temp->GetEntries() == 0){
-	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
+	//	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
 	return false;
       }
       for(int bin=1; bin<=hist_temp->GetNbinsX();bin++){
@@ -377,11 +377,11 @@ bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime
     //Now add this th1 to the th2
     int nbins = hist_temp->GetNbinsX();
     if(fHistogram->GetNbinsX() != hist_temp->GetNbinsX()){
-      std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
+      //      std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
       return false;
     }
     if(hist_temp->GetEntries() == 0){
-      std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
+      //      std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
       return false;
     }
 
@@ -1265,6 +1265,8 @@ struct NearlineProcessingTimePlot{
 
   void AddFile(std::string filename, int run){
     NearlineProcessingTime this_processing_time(filename);
+    std::cerr << "INFO : " << "run " << run << " StartDate: " << this_processing_time.fStartDate.AsString() << std::endl;
+    std::cerr << "INFO : " << "run " << run << " EndDate: " << this_processing_time.fEndDate.AsString() << std::endl;
     if(run<=0) return;
     if(this_processing_time.fStartDate == NearlineProcessingTime::InvalidDateTime) return;
     if(this_processing_time.fEndDate == NearlineProcessingTime::InvalidDateTime) return;
