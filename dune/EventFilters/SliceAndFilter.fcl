@@ -1,4 +1,3 @@
-
 #include "services_dune.fcl"
 #include "clusteralgorithms.fcl"
 #include "SSPToOffline.fcl"
@@ -20,7 +19,6 @@ services:
   FileCatalogMetadata:  @local::art_file_catalog_mc
   user:         @local::dune35t_services
 }
-
 
 source: @local::split_events
 source.UsePedestalFile: "true"
@@ -64,13 +62,14 @@ physics:
 outputs:{
   out1: 
  {
-   dataTier: "sliced"
-   module_type: RootOutput
+   dataTier:    "sliced"
+   module_type:  RootOutput
    fileName:    "sliced.root"     
-    #default file name, can override from command line with -o or --output
+   #default file name, can override from command line with -o or --output
    SelectEvents: @local::MySelection
  }
-
 }
 
+physics.filters.myfilter.firstset  : [6,7,8,9,6,10,16,21,0,5]
+physics.filters.myfilter.secondset : [31,30,29,28,32,28,43,38,27,22]
 #services.user.DatabaseUtil.ShouldConnect: true
