@@ -7,7 +7,7 @@ echo ""
 
 
 
-export FileSearch='/lbne/data2/users/lbnedaq/nearline_evd/*/*/*/sliced_pedestal.root'
+export FileSearch='/dune/data2/users/lbnedaq/nearline_evd/*/*/*/sliced_pedestal.root'
 
 
 

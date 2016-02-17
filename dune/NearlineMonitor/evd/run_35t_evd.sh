@@ -24,8 +24,8 @@ export comp=e9
 export RelDir=/dune/app/home/duneana/35t_EventDisplay/larsoft_${version}
 export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
 export EVDfclPath=${RelDir}/srcs/dunetpc/dune/NearlineMonitor/evd
-export InputPath=/lbne/data2/users/lbnedaq/nearline_evd/${version}
-export FileSearch='/lbne/data2/users/lbnedaq/nearline_evd/*/*/*/sliced_pedestal.root'
+export InputPath=/dune/data2/users/lbnedaq/nearline_evd/${version}
+export FileSearch='/dune/data2/users/lbnedaq/nearline_evd/*/*/*/sliced_pedestal.root'
 export filepos=9
 
 

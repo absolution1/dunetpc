@@ -85,6 +85,11 @@ lbne_daqinput35t
 lardata_RawData
 ${SIMULATIONBASE}
 ${MF_MESSAGELOGGER}
+art_Framework_Services_Registry
+art_Framework_Services_Optional
+art_Framework_Services_Optional_TFileService_service
+${ROOT_BASIC_LIB_LIST}
+${ROOT_HIST}
 )
 
 simple_plugin(SSPDiagnosticAna "module"
@@ -109,6 +114,22 @@ lbne_daqinput35t
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lardata_RawData
+)
+
+simple_plugin(FilterWF "module"
+ DetectorProperties_service
+ lbne_daqinput35t
+ art_Framework_IO_Root
+ art_Framework_IO_Sources
+ lbne-raw-data_Overlays
+ lbne_daqinput35t_utilities
+ lbne_daqinput35t
+ RawData
+ ${ROOT_TREE}
+ ${ROOT_RIO}
+ ${MF_MESSAGELOGGER}
+ art_Framework_Services_Registry
+ art_Framework_Services_Optional
 )
 
 simple_plugin(CheckTiming "module"

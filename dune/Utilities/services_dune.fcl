@@ -15,6 +15,7 @@
 #include "opticaldetectorservices_dune.fcl"
 #include "channelstatus_dune.fcl"
 #include "pedestals_dune.fcl"
+#include "daq_dune.fcl"
 #include "detsimmodules_dune.fcl"
 
 BEGIN_PROLOG

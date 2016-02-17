@@ -1,0 +1,12 @@
+#include "filters.fcl"
+
+BEGIN_PROLOG
+
+cwp_filter:
+{
+    module_type:              "CWPFilter"
+    CounterModuleLabel:       "SplitterInput:TRIGGER"
+
+}
+
+END_PROLOG

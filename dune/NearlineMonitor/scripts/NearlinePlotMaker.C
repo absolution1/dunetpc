@@ -138,6 +138,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   // Open list of input files...
   char filelist_title[128];
 
+  
   sprintf(filelist_title,"/home/lbnedaq/nearline/temp/35t_%.dDay_Nearline_File_List.txt",Ndays);
   //  sprintf(filelist_title,"/home/lbnedaq/nearline/temp/35t_%.dDay_Nearline_File_List_test.txt",Ndays);
   //  sprintf(filelist_title,"/lbne/app/users/jpdavies/dunetpc-nearline/srcs/dunetpc/35t_%.dDay_Nearline_File_List.txt",Ndays);
@@ -219,8 +220,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     bool normalise_histo1d=true;
     bool make_average_rms_time_plots = false;
     bool make_2d_histos = true;
-    bool make_bin_by_bin_plots = false;
-    NearlinePlotEnables this_plot_enables = NearlinePlotEnables(normalise_histo1d, make_bin_by_bin_plots, make_2d_histos, make_bin_by_bin_plots);
+    bool make_bin_by_bin_plots = true;
+    NearlinePlotEnables this_plot_enables = NearlinePlotEnables(normalise_histo1d, make_average_rms_time_plots, make_2d_histos, make_bin_by_bin_plots);
 
     bool metric_time_graph_log=false;
     bool histo_1D_log=false;
@@ -243,7 +244,6 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     
   }
 
-
   // for(int index=0;index<16;index++){
   //   int channel = index*128;
   //   NearlinePlotInfo this_plot_info("Hits", channel, Ndays, "png");
@@ -262,6 +262,9 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   float *RunVSYearRun   = new float[Npoint];
   int    RunVSYearCount = 0;
 
+  NearlineProcessingTimePlot nearline_processing_time_plot;
+  NearlineProcessingVersion nearline_processing_version_plot;
+  NearlineProcessingPedestal nearline_processing_pedestal_plot;
   //
   // Looping over the list of input files...
   //
@@ -271,7 +274,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     char filename[512];
     inFile >> filename;
     
-    std::cerr << "FileName: " << filename << std::endl;
+    std::cerr << "INFO : " << filename << std::endl;
 
     if(!inFile.good()) continue; // prevent code from running over the last file twice...
     TFile file(filename);
@@ -310,7 +313,7 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
       // Ana/DAQ keeps track of GMT time, so convert to local time
       SRtime->Set(year,month,day,hour,min,sec);
       Xsrtime = SRtime->Convert() - GMToffset;
-      cout << "time:\t" << year << " " << month << " " << day << " " << Hour << endl;
+      cout << "INFO : time:\t" << year << " " << month << " " << day << " " << Hour << endl;
       if(run == 0) std::cout << "\nWARNING: Run number zero for file:\t" << filename << "\n\n" << endl;
       hour = HourEnd;
       Min  = (HourEnd-hour)*60.0;
@@ -345,7 +348,12 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     }//loop over plots
     
-    
+    std::string done_file_name = NearlineProcessingTime::GetDoneFileName(filename);
+    nearline_processing_time_plot.AddFile(done_file_name, run);
+    nearline_processing_version_plot.AddFile(filename, run);
+    nearline_processing_pedestal_plot.AddFile(done_file_name, run);
+
+    //    std::cerr << "JPD: done_file_name = " << done_file_name << std::endl;
 
     file.Close();
 
@@ -393,14 +401,12 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     
   std::string html_string = NearlineHTML::MakePageHeader(Ndays);;
+  std::string html_string_bin_by_bin = NearlineHTML::MakePageHeader(Ndays);
 
 
   for(size_t index=0;index<NearlinePlotVec.size();index++){
     NearlinePlot* this_plot = NearlinePlotVec.at(index);
     this_plot->printPlots(PLOT_DIR, UpdateText, time_ago, XNow);
-    // this_plot->printHistogram1D(PLOT_DIR, UpdateText, time_ago, XNow);
-    // this_plot->printHistogram2D(PLOT_DIR, UpdateText, time_ago, XNow);
-    // this_plot->printGraphs(PLOT_DIR, UpdateText, time_ago, XNow);
 
     //Make HTML
     std::string plot_location;
@@ -409,11 +415,26 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
 
     //    std::cerr << NearlineHTML::MakePlotSet(plot_location, this_plot->fPlotInfo);
 
-    html_string += NearlineHTML::MakePlotSet(plot_location, this_plot->fPlotInfo, this_plot->fPlotEnables);
+    html_string += NearlineHTML::MakePlotSet(plot_location, this_plot);
+
+    if(this_plot->fPlotEnables.fMakeBinByBinPlots) html_string_bin_by_bin += NearlineHTML::MakeBinByBinGraphs(plot_location, this_plot);
 
   }
 
+  //Print the Nearline Processing Time plot and add to the webpage
+  nearline_processing_time_plot.PrintTimePlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
+  if(debug) html_string += nearline_processing_time_plot.MakeTimePlotsHTML("plots_testing/", Ndays);
+  else  html_string += nearline_processing_time_plot.MakeTimePlotsHTML("plots/", Ndays);
 
+  //Print the Nearline Processing Version plot and add to the webpage
+  nearline_processing_version_plot.PrintVersionPlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
+  if(debug) html_string += nearline_processing_version_plot.MakeVersionPlotsHTML("plots_testing/", Ndays);
+  else  html_string += nearline_processing_version_plot.MakeVersionPlotsHTML("plots/", Ndays);
+
+  //Print the Nearline Processing Pedestal plot and add to the webpage
+  nearline_processing_pedestal_plot.PrintPedestalPlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
+  if(debug) html_string += nearline_processing_pedestal_plot.MakePedestalPlotsHTML("plots_testing/", Ndays);
+  else  html_string += nearline_processing_pedestal_plot.MakePedestalPlotsHTML("plots/", Ndays);
 
 
 
@@ -474,26 +495,14 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   //Now create the html pages
   std::string html_file_name;
   html_file_name = PLOT_DIR + "/../";
-  if(Ndays <= 2){
-    if(debug) html_file_name += "indexDay_test.html";
-    else html_file_name += "indexDay.html";
 
-  }
-  else if(Ndays==7){
-    if(debug) html_file_name += "indexWeek_test.html";
-    else html_file_name += "indexWeek.html";
+  if(Ndays <= 2) html_file_name += "indexDay";
+  else if(Ndays==7) html_file_name += "indexWeek";
+  else if(Ndays==31) html_file_name += "indexMonth";
+  else html_file_name += "indexUnknown";
 
-  }
-  else if(Ndays==31){
-    if(debug) html_file_name += "indexMonth_test.html";
-    else html_file_name += "indexMonth.html";
-
-
-  }
-  else{
-    if(debug) html_file_name += "indexUnknown_test.html";
-    else html_file_name += "indexUnknown.html";
-  }
+  if(debug) html_file_name += "_test";
+  html_file_name += ".html";
 
   std::cerr << "INFO: Creating HTML file \"" << html_file_name << "\"\n";
 
@@ -507,8 +516,28 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   std::cerr << "INFO: Done Creating HTML file \"" << html_file_name << "\"\n";
 
 
+  //Create BinByBin html pages
+  html_file_name = PLOT_DIR + "/../";
 
+  if(Ndays <= 2) html_file_name += "indexDay";
+  else if(Ndays==7) html_file_name += "indexWeek";
+  else if(Ndays==31) html_file_name += "indexMonth";
+  else html_file_name += "indexUnknown";
 
+  html_file_name += "BinByBin";
+
+  if(debug) html_file_name += "_test";
+  html_file_name += ".html";
+
+  std::cerr << "INFO: Creating HTML file \"" << html_file_name << "\"\n";
+
+  html_file.open (html_file_name);
+
+  html_file << html_string_bin_by_bin;
+  
+  html_file.close();
+
+  std::cerr << "INFO: Done Creating HTML file \"" << html_file_name << "\"\n";
 
   // Done with everything...
   return 0;

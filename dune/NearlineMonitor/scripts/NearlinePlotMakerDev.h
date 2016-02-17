@@ -1,7 +1,7 @@
 #ifndef _NLPlotMkr
 #define _NLPlotMkr
 
-#include <fstream>
+#include "TDatime.h"
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TGraph.h>
@@ -27,6 +27,11 @@
 #include <sstream>
 #include <string>
 #include <cstring>
+
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <fstream>
 
 // NOTE:  Go through ALL of the above and remove what isn't necessary!!!
 #include <sstream>
@@ -179,9 +184,11 @@ struct NearlinePlot{
   std::vector<float> fTimeVec;
   int fPlotCount;
 
-  std::vector<TGraph*> fBinByBinGraphMetricTime;
+  std::vector<TGraphErrors*> fBinByBinGraphMetricTime;
   std::vector<std::vector<float>> fBinByBinMetricVec;
   std::vector<std::vector<float>> fBinByBinMetricErrorVec;
+  std::vector<std::string> fBinByBinLabels;
+  std::string fBinByBinYAxisTitle;
 
   NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plot_info, NearlinePlotEnables this_plot_enable=NearlinePlotEnables(), NearlinePlotLogScale this_plot_log_scale=NearlinePlotLogScale());
 
@@ -200,6 +207,7 @@ struct NearlinePlot{
   void printHistogram1D(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
   void printHistogram2D(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
   void printGraphs(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
+  void printBinByBinGraphs(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800, std::string taxis_labels="");
   void setMetricDetails(std::string metric_details);
 
   void setHistTitle(std::string hist_title);
@@ -233,7 +241,8 @@ NearlinePlot::NearlinePlot(std::string this_hist_name, NearlinePlotInfo this_plo
   fBinByBinGraphMetricTime.resize(0);
   fBinByBinMetricVec.resize(0);
   fBinByBinMetricErrorVec.resize(0);
-
+  fBinByBinLabels.resize(0);
+  fBinByBinYAxisTitle = "";
 }
 
 void NearlinePlot::setHistTitle(std::string hist_title){
@@ -266,13 +275,22 @@ bool NearlinePlot::AddHistogram1D(TFile const & file, TTree* header, int Xsrtime
       fHistogram = (TH1F*) hist_temp->Clone((fHistName + "_temp").c_str());
       if(fHistTitle!="") fHistogram->SetTitle(fHistTitle.c_str());
       else fHistTitle = fHistogram->GetTitle();
-      
       fHistogram->SetDirectory(0);
     }
-    else fHistogram->Add(hist_temp,1.0);
+    else{
+      if(fHistogram->GetNbinsX() != hist_temp->GetNbinsX()){
+	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
+	return false;
+      }
+      if(hist_temp->GetEntries() == 0){
+	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
+	return false;
+      }
+      fHistogram->Add(hist_temp,1.0);
+    }
   }    
   else{
-    std::cerr << "NearlinePlot::AddHistogram - Failed to find histogram - " << fHistName << std::endl;
+    //    std::cerr << "NearlinePlot::AddHistogram - Failed to find histogram - " << fHistName << std::endl;
     return false;
   }
   if(hist_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {
@@ -285,6 +303,21 @@ bool NearlinePlot::AddHistogram1D(TFile const & file, TTree* header, int Xsrtime
       if(fBinByBinMetricVec.size()==0){
         fBinByBinMetricVec.resize(hist_temp->GetNbinsX());
         fBinByBinMetricErrorVec.resize(hist_temp->GetNbinsX());
+	fBinByBinLabels.resize(hist_temp->GetNbinsX());
+	fBinByBinYAxisTitle = std::string(hist_temp->GetYaxis()->GetTitle());
+	for(int bin=1; bin<=hist_temp->GetNbinsX();bin++){
+	  std::string label = hist_temp->GetXaxis()->GetBinLabel(bin);
+	  fBinByBinLabels.at(bin-1) = (label);
+	  //	  std::cerr << "ERROR: " << hist_temp->GetName() << " bin " << bin << " " << label << std::endl;
+	}	
+      }
+      if(fHistogram->GetNbinsX() != hist_temp->GetNbinsX()){
+	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
+	return false;;
+      }
+      if(hist_temp->GetEntries() == 0){
+	std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
+	return false;
       }
       for(int bin=1; bin<=hist_temp->GetNbinsX();bin++){
         fBinByBinMetricVec.at(bin-1).push_back(hist_temp->GetBinContent(bin));
@@ -334,16 +367,24 @@ bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime
 	  fHistogram2D->GetYaxis()->SetLabelSize(hist_temp->GetXaxis()->GetLabelSize());
 	}
       }//bins
-
     }//make TH2
   }//Got TH1
   else{
-    std::cerr << "NearlinePlot::AddHistogram2D - Failed to find histogram - " << fHistName << std::endl;
+    //    std::cerr << "NearlinePlot::AddHistogram2D - Failed to find histogram - " << fHistName << std::endl;
     return false;
   }
   if(hist_temp != 0 && header != 0 && Xsrtime != XNow - GMToffset) {  
     //Now add this th1 to the th2
     int nbins = hist_temp->GetNbinsX();
+    if(fHistogram->GetNbinsX() != hist_temp->GetNbinsX()){
+      std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " " << fHistogram->GetNbinsX() << " bins vs " << hist_temp->GetNbinsX() << std::endl;
+      return false;
+    }
+    if(hist_temp->GetEntries() == 0){
+      std::cerr << "ERROR: " << file.GetName() << " " << fHistogram->GetName() << " Has no entries" << std::endl;
+      return false;
+    }
+
     for(int i=0;i<=nbins+1;i++){
       double content = hist_temp->GetBinContent(i);
       double center = hist_temp->GetBinCenter(i);
@@ -354,7 +395,7 @@ bool NearlinePlot::AddHistogram2D(TFile const & file, TTree* header, int Xsrtime
     fHistogram2DNormalisation->Fill(Xsrtime);
     return true;
   }
-  std::cerr << "NearlinePlot::AddHistogram2D - Failed - Shouldn't get here" << std::endl;  
+  //  std::cerr << "NearlinePlot::AddHistogram2D - Failed - Shouldn't get here" << std::endl;  
   return false;
 }
 
@@ -374,7 +415,7 @@ TCanvas* NearlinePlot::makeHistoCanvas(TPaveText* updateText, int width, int hei
   gPad->SetGridx();
   gPad->SetGridy();
   if(fPlotLogScale.fHisto1DLog) can->SetLogy();
-  gStyle->SetOptStat(111111);
+  if(!(fPlotEnables.fNormaliseHisto1D)) gStyle->SetOptStat(111111);
   fHistogram->SetLineWidth(2);
   fHistogram->SetLineColor(kRed);
   fHistogram->SetName(fHistName.c_str());
@@ -434,17 +475,27 @@ TCanvas* NearlinePlot::makeBinByBinGraphTime(unsigned int bin, TPaveText* update
 
   if(bin >= fBinByBinMetricVec.size()) return NULL;
 
-  std::string can_name = fHistName + "_time_bin_" + std::to_string(bin);
-  std::string can_title = "Mean of " + fHistTitle + " Bin " + std::to_string(bin);
+  std::string can_name = fHistName + "_time_bin_";
+  std::string can_title = fHistTitle;
+  if(fBinByBinLabels.at(bin) == "" ){
+    can_name += std::to_string(bin);
+    can_title +=  + " Bin " + std::to_string(bin);
+  }
+  else{
+    can_title += " " + fBinByBinLabels.at(bin);
+  }
 
   TCanvas* can = new TCanvas(can_name.c_str(), can_title.c_str(), width, height);
   can->cd();
   gPad->SetGridx();
 
-  TGraph* gr = new TGraph(fPlotCount);
-  for(int i=0;i<fPlotCount;i++) gr->SetPoint(i, fTimeVec.at(i), fBinByBinMetricVec.at(bin).at(i));//FIXME add errors
-  
+  TGraphErrors* gr = new TGraphErrors(fPlotCount);
+  for(int i=0;i<fPlotCount;i++) gr->SetPoint(i, fTimeVec.at(i), fBinByBinMetricVec.at(bin).at(i));
+  for(int i=0;i<fPlotCount;i++) gr->SetPointError(i, 0, fBinByBinMetricErrorVec.at(bin).at(i));
+
+  gr->SetTitle(can_title.c_str());
   gr->SetMarkerColor(kBlue);
+  gr->GetYaxis()->SetTitle(fBinByBinYAxisTitle.c_str());
   gr->GetXaxis()->SetTimeDisplay(1);
   gr->GetXaxis()->SetLabelSize(0.03);
 
@@ -583,6 +634,8 @@ void NearlinePlot::printPlots(std::string plot_dir, TPaveText* updateText, int t
   
   if(fPlotEnables.fMakeMetricTimeGraph) printGraphs(plot_dir, updateText, time_ago, XNow, width, height, taxis_labels);
 
+  if(fPlotEnables.fMakeBinByBinPlots) printBinByBinGraphs(plot_dir, updateText, time_ago, XNow, width, height, taxis_labels);
+
 }
 
 void NearlinePlot::printHistogram1D(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width, int height, std::string taxis_labels){
@@ -597,6 +650,20 @@ void NearlinePlot::printHistogram2D(std::string plot_dir, TPaveText* updateText,
   std::string can_name = plot_dir + "/" + fPlotInfo.GetHist2DOutputName();
   can->Print(can_name.c_str());
   delete can;
+}
+
+void NearlinePlot::printBinByBinGraphs(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width, int height, std::string taxis_labels){
+
+  TCanvas *can;
+  std::string can_name;
+
+  for(unsigned int bin=0;bin<fBinByBinMetricVec.size();bin++){ 
+    can = makeBinByBinGraphTime(bin, updateText, time_ago, XNow); 
+    can_name = plot_dir + "/" + fPlotInfo.GetBinByBinTimeGraphName(bin); 
+    can->Print(can_name.c_str()); 
+    delete can; 
+  }//bin 
+
 }
 
 void NearlinePlot::printGraphs(std::string plot_dir, TPaveText* updateText, int time_ago, int XNow, int width, int height, std::string taxis_labels){
@@ -638,15 +705,6 @@ void NearlinePlot::printGraphs(std::string plot_dir, TPaveText* updateText, int 
   
   delete can;
 
-  if(fPlotEnables.fMakeBinByBinPlots){
-    for(unsigned int bin=0;bin<fBinByBinMetricVec.size();bin++){
-      can = makeBinByBinGraphTime(bin, updateText, time_ago, XNow);
-      can_name = plot_dir + "/" + fPlotInfo.GetBinByBinTimeGraphName(bin);
-      can->Print(can_name.c_str());
-      delete can;
-    }//bin
-  }
-
 }
 
 
@@ -675,8 +733,9 @@ struct NearlineHTML{
     return output;
   }
 
-  static std::string MakeHistogram(std::string plot_location, NearlinePlotInfo plot_info){
+  static std::string MakeHistogram(std::string plot_location, NearlinePlot* plot){ 
 
+    NearlinePlotInfo plot_info = plot->fPlotInfo;
     std::string metric_name = plot_info.fMetricName;
     int channel = plot_info.fChannel;
     std::string metric_details = plot_info.fMetricDetails;
@@ -694,8 +753,9 @@ struct NearlineHTML{
     return output;
   }
 
-  static std::string MakeHistogram2D(std::string plot_location, NearlinePlotInfo plot_info){
+  static std::string MakeHistogram2D(std::string plot_location, NearlinePlot* plot){
 
+    NearlinePlotInfo plot_info = plot->fPlotInfo;
     std::string metric_name = plot_info.fMetricName;
     int channel = plot_info.fChannel;
     std::string metric_details = plot_info.fMetricDetails;
@@ -714,8 +774,9 @@ struct NearlineHTML{
 
   }
 
-  static std::string MakeHistogramPair(std::string plot_location, NearlinePlotInfo plot_info){
+  static std::string MakeHistogramPair(std::string plot_location, NearlinePlot* plot){
 
+    NearlinePlotInfo plot_info = plot->fPlotInfo;
     std::string metric_name = plot_info.fMetricName;
     int channel = plot_info.fChannel;
     std::string metric_details = plot_info.fMetricDetails;
@@ -741,8 +802,9 @@ struct NearlineHTML{
   }
 
   
-  static std::string MakeGraphPair(std::string plot_location, NearlinePlotInfo plot_info, bool rms){
+  static std::string MakeGraphPair(std::string plot_location, NearlinePlot* plot, bool rms){
 
+    NearlinePlotInfo plot_info = plot->fPlotInfo;
     std::string metric_name = plot_info.fMetricName;
     int channel = plot_info.fChannel;
     std::string metric_details = plot_info.fMetricDetails;
@@ -777,22 +839,21 @@ struct NearlineHTML{
     
   }
 
-  static std::string MakePlotSet(std::string plot_location, NearlinePlotInfo plot_info, NearlinePlotEnables plot_enables){
+  static std::string MakePlotSet(std::string plot_location, NearlinePlot* plot){
+
+    NearlinePlotInfo plot_info=plot->fPlotInfo;
+    NearlinePlotEnables plot_enables=plot->fPlotEnables;
 
     std::string metric_name = plot_info.fMetricName;
     std::string output;
     output += "\n\n\n";
-    /* output += MakeHistogram(plot_location, plot_info); */
-    /* output += "\n"; */
-    /* output += MakeHistogram2D(plot_location, plot_info); */
-    /* output += "\n"; */
 
-    if(plot_enables.fMake2DHisto) output += MakeHistogramPair(plot_location, plot_info) + "\n";
-    else output += MakeHistogram(plot_location, plot_info) + "\n";
+    if(plot_enables.fMake2DHisto) output += MakeHistogramPair(plot_location, plot) + "\n";
+    else output += MakeHistogram(plot_location, plot) + "\n";
     //    output += "\n";
-    if(plot_enables.fMakeMetricTimeGraph) output += MakeGraphPair(plot_location, plot_info, false) + "\n";
+    if(plot_enables.fMakeMetricTimeGraph) output += MakeGraphPair(plot_location, plot, false) + "\n";
     //    output += "\n";
-    if(plot_enables.fMakeMetricTimeGraph) output += MakeGraphPair(plot_location, plot_info, true) +"\n";
+    if(plot_enables.fMakeMetricTimeGraph) output += MakeGraphPair(plot_location, plot, true) +"\n";
     output += "\n\n";
     output += "<p>\n";
     output += "First plot: " + metric_name + " spectra on a specified channel in the specified time period.\n";
@@ -801,6 +862,56 @@ struct NearlineHTML{
     output += "</p>\n";
     output += "<BR><BR><BR>\n\n";
 
+    return output;
+
+  }
+
+  static std::string MakeBinByBinGraphs(std::string plot_location, NearlinePlot* plot){
+
+    NearlinePlotEnables plot_enables = plot->fPlotEnables;
+    NearlinePlotInfo plot_info = plot->fPlotInfo;
+    if(!plot_enables.fMakeBinByBinPlots) return "";
+
+    std::string output;
+    
+    for(size_t bin=0; bin<plot->fBinByBinMetricVec.size();bin++){
+      std::string metric_name = plot_info.fMetricName;
+      std::string plot_name = plot_info.GetBinByBinTimeGraphName(bin); 
+
+
+      if(bin+1 == (plot->fBinByBinMetricVec.size())){
+	output += "<h3>";
+	output += metric_name + " - ";
+	if(plot->fBinByBinLabels.at(bin)!="") output += plot->fBinByBinLabels.at(bin);
+	else output += "bin " + std::to_string(bin);
+	output += ".</h3>\n";
+	output += "<figure>\n";
+	output += "<img src=\"" + plot_location + "/" + plot_name + "\" width=\"800\">\n";
+	output += "</figure>\n";
+	output += "\n\n\n";
+      }//one bin
+      else{
+	std::string plot_name_next = plot_info.GetBinByBinTimeGraphName(bin+1); 
+	output += "<h3>" + metric_name + " - ";
+	
+	if(plot->fBinByBinLabels.at(bin)!="") output += plot->fBinByBinLabels.at(bin);	
+	else output += "bin " + std::to_string(bin);
+	
+	output += " and ";
+	if(plot->fBinByBinLabels.at(bin+1)!="") output += plot->fBinByBinLabels.at(bin+1);	
+	else output += "bin " + std::to_string(bin+1);
+	
+	output +="<table>\n";
+	output +="<tr>\n";
+	output +="<td> <img src=\"" + plot_location + "/" + plot_name + "\" width=\"800\"></td>\n";
+	output +="<td> <img src=\"" + plot_location + "/" + plot_name_next + "\" width=\"800\"></td>\n";
+	output +="</tr>\n";
+	output +="</table>\n";
+	output += "\n\n\n";
+	bin++;
+      }//two bins
+
+    }//loop over bins
     return output;
 
   }
@@ -823,6 +934,442 @@ struct NearlineHTML{
 
 };
 
+struct NearlineProcessingVersion{
+
+  std::vector<std::string> fVersionStrings;
+  std::vector<int> fVersionInts;
+  std::vector<int> fRuns;
+  TGraph* fGr;
+
+  NearlineProcessingVersion(){
+    fVersionStrings.resize(0);
+    fVersionInts.resize(0);
+    fRuns.resize(0);
+    fGr=0;
+  }
+
+  std::string GetNearlineVersionFromFileName(std::string fileName){
+
+    std::string file_location = "/lbne/data2/users/lbnedaq/nearline/";
+    size_t file_location_size = file_location.size();
+    
+    std::string output = fileName.substr(file_location_size);
+    output = output.substr(0, output.find("/"));
+    
+    if(output.size()==0){
+      output = "Unknown";
+    }
+    else if(output.find("v") != 0){
+      output = "Unknown";
+    }
+    return output;
+  }//GetNearlineVersionFromFileName
+
+  void AddFile(std::string fileName, int run){
+    if(run<=0) return;
+    std::string version = GetNearlineVersionFromFileName(fileName);
+    //see if this is a new version
+    int version_index=-1;
+    for(size_t i=0;i<fVersionStrings.size();i++){
+      if(version == fVersionStrings.at(i)) version_index = i;
+    }//versions
+    if(version_index == -1){
+      version_index = fVersionStrings.size();
+      fVersionStrings.push_back(version);
+    }
+    
+    fVersionInts.push_back(version_index);
+    fRuns.push_back(run);    
+    std::cerr << "INFO : " << "run " << run << " version " << version << std::endl;
+  }
+
+  TGraph* GetGraph(){
+
+    fGr = new TGraph(fRuns.size());
+    for(size_t i=0;i<fRuns.size();i++) fGr->SetPoint(i, fRuns.at(i), fVersionInts.at(i));
+    
+    return fGr;
+  }
+
+  TCanvas* GetVersionCanvas(TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas* can = new TCanvas("can_processing_version", "can_processing_version", width, height);
+    can->SetRightMargin(0.20);
+    TGraph* gr = GetGraph();
+    //    can->cd()->SetLogy();
+    gr->Draw("A*");
+    gr->SetTitle("Nearline Processing Version");   
+    gr->GetXaxis()->SetTitle("Run Number");   
+
+    //Set the bin labels and range correctly
+    gr->GetYaxis()->Set(fVersionStrings.size(),-0.5,fVersionStrings.size()-0.5);
+    gr->GetYaxis()->SetRangeUser(-0.5, fVersionStrings.size()-0.5);
+    for(size_t i=0;i<fVersionStrings.size();i++){
+      gr->GetYaxis()->SetBinLabel(i+1, fVersionStrings.at(i).c_str());
+    }
+
+    gr->Draw("A*");
+
+    gPad->SetGridx();
+    gPad->SetGridy();
+
+    updateText->Draw();
+    return can;
+  }
+  
+  static std::string GetPlotName(int Ndays){ 
+    char name[256];
+    sprintf(name, "ProcessingVersion_%.3i_days.png", Ndays);
+    return std::string(name);
+  }
+
+  
+  void PrintVersionPlots(std::string plot_dir, int Ndays, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas *can = GetVersionCanvas(updateText, time_ago, XNow, width, height);
+    can->Print((plot_dir + "/" + GetPlotName(Ndays)).c_str());
+    delete can;
+    
+    for(size_t i=0;i<fVersionStrings.size();i++){
+      std::cerr << "INFO : Versions Used: " << fVersionStrings.at(i) << std::endl;
+    }
+
+  }
+
+
+  static std::string MakeVersionPlotsHTML(std::string relative_plot_dir, int Ndays){
+
+    std::string output;
+    output+="<h3>Nearline Processing Version as a function of Run.</h3>\n";
+    output+="<figure>\n";
+    output+="<img src=\"" + relative_plot_dir + "/" + GetPlotName(Ndays) + "\" width=\"800\">\n";
+    output+="</figure>\n";
+    output+="<BR><BR><BR>\n";
+
+    return output;
+  }
+};//NearlineProcessingVersion
+
+
+struct NearlineProcessingPedestal{
+
+  static std::string GetPedestalFileName(std::string done_file_name){
+    std::ifstream in_file(done_file_name.c_str());
+    std::string line;
+    std::string pedestal_file="Unknown";
+    while(std::getline(in_file, line)){   
+      //    std::cerr << "INFO : " << line << std::endl;
+      if(line.find("NEARLINE_PEDESTAL ") != std::string::npos)  pedestal_file = line.substr(std::string("NEARLINE_PEDESTAL ").size());
+      
+    }
+    return pedestal_file;
+  }
+
+  std::vector<std::string> fPedestalStrings;
+  std::vector<int> fPedestalInts;
+  std::vector<int> fRuns;
+  TGraph* fGr;
+
+  NearlineProcessingPedestal(){
+    fPedestalStrings.resize(0);
+    fPedestalInts.resize(0);
+    fRuns.resize(0);
+    fGr=0;
+  }
+  void AddFile(std::string fileName, int run){
+    if(run<=0) return;
+    std::string version = GetPedestalFileName(fileName);
+    //see if this is a new version
+    int version_index=-1;
+    for(size_t i=0;i<fPedestalStrings.size();i++){
+      if(version == fPedestalStrings.at(i)) version_index = i;
+    }//versions
+    if(version_index == -1){
+      version_index = fPedestalStrings.size();
+      fPedestalStrings.push_back(version);
+    }
+    
+    fPedestalInts.push_back(version_index);
+    fRuns.push_back(run);    
+    std::cerr << "INFO : " << "run " << run << " version " << version << std::endl;
+  }
+
+  TGraph* GetGraph(){
+
+    fGr = new TGraph(fRuns.size());
+    for(size_t i=0;i<fRuns.size();i++) fGr->SetPoint(i, fRuns.at(i), fPedestalInts.at(i));
+    
+    return fGr;
+  }
+
+  TCanvas* GetPedestalCanvas(TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas* can = new TCanvas("can_processing_version", "can_processing_version", width, height);
+    can->SetRightMargin(0.20);
+    TGraph* gr = GetGraph();
+    //    can->cd()->SetLogy();
+    gr->Draw("A*");
+    gr->SetTitle("Nearline Processing Pedestal");   
+    gr->GetXaxis()->SetTitle("Run Number");   
+
+    //Set the bin labels and range correctly
+    gr->GetYaxis()->Set(fPedestalStrings.size(),-0.5,fPedestalStrings.size()-0.5);
+    gr->GetYaxis()->SetRangeUser(-0.5, fPedestalStrings.size()-0.5);
+    for(size_t i=0;i<fPedestalStrings.size();i++){
+      gr->GetYaxis()->SetBinLabel(i+1, fPedestalStrings.at(i).c_str());
+    }
+
+    gr->Draw("A*");
+
+    gPad->SetGridx();
+    gPad->SetGridy();
+
+    updateText->Draw();
+    return can;
+  }
+  
+  static std::string GetPlotName(int Ndays){ 
+    char name[256];
+    sprintf(name, "ProcessingPedestal_%.3i_days.png", Ndays);
+    return std::string(name);
+  }
+
+  
+  void PrintPedestalPlots(std::string plot_dir, int Ndays, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas *can = GetPedestalCanvas(updateText, time_ago, XNow, width, height);
+    can->Print((plot_dir + "/" + GetPlotName(Ndays)).c_str());
+    delete can;
+    
+    for(size_t i=0;i<fPedestalStrings.size();i++){
+      std::cerr << "INFO : Pedestals Used: " << fPedestalStrings.at(i) << std::endl;
+    }
+
+  }
+
+  static std::string MakePedestalPlotsHTML(std::string relative_plot_dir, int Ndays){
+
+    std::string output;
+    output+="<h3>Nearline Processing Pedestal as a function of Run.</h3>\n";
+    output+="<figure>\n";
+    output+="<img src=\"" + relative_plot_dir + "/" + GetPlotName(Ndays) + "\" width=\"800\">\n";
+    output+="</figure>\n";
+    output+="<BR><BR><BR>\n";
+
+    return output;
+  }
+};
+
+struct NearlineProcessingTime{
+  
+  TDatime fStartDate;
+  TDatime fEndNearlineAnaDate;
+  TDatime fEndNearlineMuonDate;
+  TDatime fEndDate;
+
+  NearlineProcessingTime(std::string file_name);
+  static TDatime GetDateTime(std::string date);
+  static std::string GetDoneFileName(std::string file_name);
+  static TDatime const InvalidDateTime;
+};
+
+const TDatime NearlineProcessingTime::InvalidDateTime = TDatime(1995,00,00,00,00,00);
+
+NearlineProcessingTime::NearlineProcessingTime(std::string file_name){
+
+  fStartDate=InvalidDateTime;
+  fEndNearlineAnaDate=InvalidDateTime;
+  fEndNearlineMuonDate=InvalidDateTime;
+  fEndDate=InvalidDateTime;
+  
+  std::ifstream in_file(file_name.c_str());
+  std::string line;
+
+  std::string start = "";
+  std::string end_nearline_ana = "";
+  std::string end_nearline_muon = "";
+  std::string end = "";
+
+  while(std::getline(in_file, line)){   
+    if(line.find("START_DATE ") != std::string::npos)  start = line.substr(std::string("START_DATE ").size());
+    if(line.find("END_NEARLINE_ANA ") != std::string::npos)  end_nearline_ana = line.substr(std::string("END_NEARLINE_ANA ").size());
+    if(line.find("END_NEARLINE_MUON ") != std::string::npos)  end_nearline_muon = line.substr(std::string("END_NEARLINE_MUON ").size());
+    if(line.find("END_DATE ") != std::string::npos)  end = line.substr(std::string("END_DATE ").size());
+  }
+
+  in_file.close();
+
+  if(start != "") fStartDate = GetDateTime(start);
+  if(end_nearline_ana != "") fEndNearlineAnaDate = GetDateTime(end_nearline_ana);
+  if(end_nearline_muon != "") fEndNearlineMuonDate = GetDateTime(end_nearline_muon);
+  if(end != "") fEndDate = GetDateTime(end);
+  
+}
+
+
+TDatime NearlineProcessingTime::GetDateTime(std::string date){
+  std::string temp_file_name = "/tmp/NearlineDate.txt";
+  std::string command = "date -d \"" + date + "\" +\"%Y-%m-%d %T\" > " + temp_file_name;
+  int retval = system(command.c_str());
+  std::ifstream temp_file(temp_file_name.c_str());
+  std::string new_date;
+  std::getline(temp_file, new_date);
+  temp_file.close();
+  TDatime date_time(new_date.c_str());
+  return date_time;
+}
+
+std::string NearlineProcessingTime::GetDoneFileName(std::string file_name){
+
+  std::string file_name_done = file_name.substr(0, file_name.find("_nearline")) + ".root.DONE";
+  return file_name_done;
+
+}
+
+struct NearlineProcessingTimePlot{
+  
+  std::vector<int> fVecRun;		
+  std::vector<int> fVecTotalTime;	
+  std::vector<int> fVecNearlineAnaTime;	
+  std::vector<int> fVecNearlineMuonTime;
+  //  TMultiGraph* fMultiGraph;
+  TLegend fLegend;
+
+  NearlineProcessingTimePlot(){
+    fVecRun.resize(0);		
+    fVecTotalTime.resize(0);	  
+    fVecNearlineAnaTime.resize(0);	  
+    fVecNearlineMuonTime.resize(0);
+  }
+
+  void AddFile(std::string filename, int run){
+    NearlineProcessingTime this_processing_time(filename);
+    if(run<=0) return;
+    if(this_processing_time.fStartDate == NearlineProcessingTime::InvalidDateTime) return;
+    if(this_processing_time.fEndDate == NearlineProcessingTime::InvalidDateTime) return;
+
+    int total_time = this_processing_time.fEndDate.Get() - this_processing_time.fStartDate.Get();
+    fVecRun.push_back(run);
+    fVecTotalTime.push_back(total_time);
+
+    //    std::cerr << "ERROR: run " << run << " time " << total_time << std::endl;
+    
+    int nearline_ana_time = this_processing_time.fEndNearlineAnaDate.Get() - this_processing_time.fStartDate.Get();
+    int nearline_muon_time = this_processing_time.fEndNearlineMuonDate.Get() - this_processing_time.fEndNearlineAnaDate.Get();
+
+    if(this_processing_time.fEndNearlineAnaDate == NearlineProcessingTime::InvalidDateTime){ 
+      nearline_ana_time = 0;
+      nearline_muon_time = 0;
+    }
+    if(this_processing_time.fEndNearlineMuonDate == NearlineProcessingTime::InvalidDateTime){ 
+      nearline_muon_time = 0;
+    }
+    fVecNearlineAnaTime.push_back(nearline_ana_time);
+    fVecNearlineMuonTime.push_back(nearline_muon_time);
+  }
+  
+  TGraph* GetTotalTimeGraph(){
+    TGraph* gr = new TGraph(fVecRun.size());
+    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecTotalTime.at(i));
+    gr->SetTitle("Nearline Processing Time");
+    gr->SetMarkerColor(kBlue);
+    gr->SetMarkerStyle(20);
+    gr->SetMarkerSize(1.5);
+    gr->GetXaxis()->SetTitle("Run Number");
+    gr->GetYaxis()->SetTitle("Processing Time in Seconds");
+    return gr;
+  }
+  TGraph* GetNearlineAnaTimeGraph(){
+    TGraph* gr = new TGraph(fVecRun.size());
+    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecNearlineAnaTime.at(i));
+    gr->SetTitle("Nearline Ana Processing Time");
+    gr->SetMarkerColor(kRed);
+    gr->SetMarkerStyle(21);
+    gr->SetMarkerSize(1.5);
+    gr->GetXaxis()->SetTitle("Run Number");
+    gr->GetYaxis()->SetTitle("Processing Time in Seconds");
+    return gr;
+  }
+  TGraph* GetNearlineMuonTimeGraph(){
+    TGraph* gr = new TGraph(fVecRun.size());
+    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecNearlineMuonTime.at(i));
+    gr->SetTitle("Nearline Muon Processing Time");
+    gr->SetMarkerColor(kBlack);
+    gr->SetMarkerStyle(22);
+    gr->SetMarkerSize(1.5);
+    gr->GetXaxis()->SetTitle("Run Number");
+    gr->GetYaxis()->SetTitle("Processing Time in Seconds");
+    return gr;
+  }
+  TMultiGraph* GetTimeMultiGraph(){
+
+    TMultiGraph* mgr = new TMultiGraph();
+    TGraph* gr;
+    fLegend = TLegend(0.75,0.75,0.95,0.95);
+
+    gr = GetTotalTimeGraph();
+    mgr->Add(gr, "P");
+    fLegend.AddEntry(gr, gr->GetTitle(), "p");
+
+    gr = GetNearlineAnaTimeGraph();
+    mgr->Add(gr, "P");
+    fLegend.AddEntry(gr, gr->GetTitle(), "p");
+
+    gr = GetNearlineMuonTimeGraph();
+    mgr->Add(gr, "P");
+    fLegend.AddEntry(gr, gr->GetTitle(), "p");
+
+    return mgr;
+  }
+
+  TCanvas* GetTimeCanvas(TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas* can = new TCanvas("can_processing_time", "can_processing_time", width, height);
+    can->SetRightMargin(0.20);
+    TMultiGraph* gr = GetTimeMultiGraph();
+    can->cd()->SetLogy();
+    gr->Draw("A*");
+    gr->SetTitle("Nearline Processing Time");   
+    gr->GetXaxis()->SetTitle("Run Number");   
+    gr->GetYaxis()->SetTitle("Processing Time in Seconds");   
+
+    gPad->SetGridx();
+    gPad->SetGridy();
+
+    updateText->Draw();
+    fLegend.Draw();
+    //    fMultiGraph = gr;
+    return can;
+  }
+  
+  static std::string GetPlotName(int Ndays){ 
+    char name[256];
+    sprintf(name, "ProcessingTime_%.3i_days.png", Ndays);
+    return std::string(name);
+  }
+
+  void PrintTimePlots(std::string plot_dir, int Ndays, TPaveText* updateText, int time_ago, int XNow, int width=1200, int height=800){
+    TCanvas *can = GetTimeCanvas(updateText, time_ago, XNow, width, height);
+    can->Print((plot_dir + "/" + GetPlotName(Ndays)).c_str());
+    delete can;
+
+    //    delete fMultiGraph;
+  }
+
+  static std::string MakeTimePlotsHTML(std::string relative_plot_dir, int Ndays){
+
+    std::string output;
+    output+="<h3>Nearline Processing Time as a function of Run.</h3>\n";
+    output+="<figure>\n";
+    output+="<img src=\"" + relative_plot_dir + "/" + GetPlotName(Ndays) + "\" width=\"800\">\n";
+    output+="</figure>\n";
+    output+="<p>\n";
+    output+="<b>Nearline Processing Time</b> - Total time taken to run this Nearline Processing Job<BR>\n";
+    output+="<b>Nearline Ana Processing Time</b> - Time taken to run the NearlineAna part of the Job<BR>\n";
+    output+="<b>Nearline Muon Processing Time</b> - Time taken to run the Nearline Muon Counter part of the Job<BR>\n";
+    output+="</p>\n";
+    output+="<BR><BR><BR>\n";
+
+    return output;
+  }
+
+
+};
 
 
 #endif

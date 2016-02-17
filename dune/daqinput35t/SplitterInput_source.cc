@@ -444,7 +444,8 @@ namespace {
       if (fDebugLevel > 2) std::cout << "In TakeSimChans....SimChans has size " << SimChans.size() << " I gave it timestamps " << start_timestamp << " " << end_timestamp << std::endl;
       int qq = 0;
       for (auto LoopSimChan: SimChans) {
-	//std::cout << "Looking at SimChan["<<qq<<"] it was on channel " << LoopSimChan.Channel() << ", I think that it was at time " << LoopSimChan.TDCIDEMap().first << std::endl;
+	//std::cout << "Looking at SimChan["<<qq<<"] it was on channel " << LoopSimChan.Channel() << ". The map has size " << LoopSimChan.TDCIDEMap().size() 
+	//	  << ", start time " << LoopSimChan.TDCIDEMap().begin()->first << ", end time " << LoopSimChan.TDCIDEMap().end()->first << std::endl;
 	retSimChans.emplace_back(LoopSimChan);
 	++qq;
       }
