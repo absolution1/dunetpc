@@ -117,14 +117,14 @@ lardata_RawData
 )
 
 simple_plugin(FilterWF "module"
- DetectorProperties_service
+ 
  lbne_daqinput35t
  art_Framework_IO_Root
  art_Framework_IO_Sources
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- RawData
+ lardata_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}

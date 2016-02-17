@@ -26,8 +26,8 @@
 #include "art/Framework/Services/Optional/detail/TH1AddDirectorySentry.h"
 //#include "art/Framework/Services/Optional/detail/RootDirectorySentry.h"
 
-#include "RawData/RawDigit.h"
-//#include "Utilities/DetectorProperties.h"
+#include "lardata/RawData/RawDigit.h"
+//#include "DetectorInfoServices/DetectorPropertiesService.h"
 
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -38,7 +38,6 @@
 #include "art/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "Utilities/DetectorProperties.h"
 
 #include <memory>
 #include <iostream>
@@ -105,8 +104,6 @@ void lbne::FilterWF::endRun(art::Run const& run){
   
 //-------------------------------------------------------------------
 void lbne::FilterWF::produce(art::Event& evt){
-
-  art::ServiceHandle<util::DetectorProperties> detprop;
 
   art::Handle< std::vector<raw::RawDigit> > rawDigitHandle;
   evt.getByLabel(fRawDigitModuleLabel, fRawDigitModuleInstance,rawDigitHandle);
