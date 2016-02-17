@@ -1,0 +1,12 @@
+# .bashrc
+
+o# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+if [ -f ~/.bash_login ]; then
+	. ~/.bash_login
+fi
+
+# User specific aliases and functions

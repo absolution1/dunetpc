@@ -17,9 +17,8 @@ fi
 run=${args[0]}
 
 
-
 # Setup necessary pathways:
-export version=v04_35_00
+export version=v04_36_01
 export comp=e9
 export RelDir=/dune/app/home/duneana/35t_EventDisplay/larsoft_${version}
 export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
@@ -57,6 +56,7 @@ do {
 
 
 if [ $run -ne 0 ];then
+    run=`printf %06i $run`
     bigRun=${run:0:3}
     file=${InputPath}/${bigRun}/${run}_01/sliced_pedestal.root    
 fi

@@ -1,0 +1,59 @@
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi
+
+# User specific environment and startup programs
+
+PATH=$PATH:$HOME/bin
+
+export PATH
+
+echo ""
+echo ""
+echo ""
+echo "==================================="
+echo "=                                 ="
+echo "= Welcome to the duneana account! ="
+echo "=                                 ="
+echo "==================================="
+echo ""
+echo ""
+echo "* To run the 35t event display, \"setup_35t_evd\", then:  run_35t_evd.sh {run number}"
+echo ""
+echo "* To run the 35t event display using the most recent run, use run number 0."
+echo ""
+echo "* To generate a list of the runs with available event display files, execute:  list_evd_runs.sh"
+echo ""
+echo "* To setup the offline environemnt, execute:  setup_35t_evd"
+echo ""
+echo ""
+
+function setup_35t_evd {
+    # Setup environment variables:
+    export version=v04_36_01
+    export comp=e9
+    export RelDir=/dune/app/home/duneana/35t_EventDisplay/larsoft_${version}
+    export LPDir=${RelDir}/localProducts_larsoft_${version}_${comp}_prof
+
+    # Set up the LArSoft environment
+    echo ""
+    echo ""
+    echo "Setting up LArSoft/DUNETPC:"
+    echo "=========================="
+    echo ""
+    source /grid/fermiapp/products/dune/setup_dune.sh
+    cd $LPDir
+    source ./setup
+    cd ..
+    mrbslp
+    echo ""
+    echo ""
+    alias run_35t_evd='${RelDir}/srcs/dunetpc/dune/NearlineMonitor/evd/run_35t_evd.sh'
+    alias run_RED35_evd='${RelDir}/srcs/dunetpc/dune/NearlineMonitor/evd/run_RED35_evd.sh'
+    alias list_evd_runs='${RelDir}/srcs/dunetpc/dune/NearlineMonitor/evd/list_evd_runs.sh'
+
+
+}
