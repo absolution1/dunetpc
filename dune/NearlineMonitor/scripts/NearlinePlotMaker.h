@@ -1166,6 +1166,7 @@ struct NearlineProcessingTime{
   NearlineProcessingTime(std::string file_name);
   static TDatime GetDateTime(std::string date);
   static std::string GetDoneFileName(std::string file_name);
+  static std::string GetEVDDoneFileName(std::string file_name);
   static TDatime const InvalidDateTime;
 };
 
@@ -1217,25 +1218,49 @@ TDatime NearlineProcessingTime::GetDateTime(std::string date){
 
 std::string NearlineProcessingTime::GetDoneFileName(std::string file_name){
 
+  ///lbne/data2/users/lbnedaq/nearline/v04_36_01/011/011425/lbne_r011425_sr01_20160217T083237_nearline_hists.root
+  ///lbne/data2/users/lbnedaq/nearline/v04_36_01/011/011425/lbne_r011425_sr01_20160217T083237.root.DONE
+
   std::string file_name_done = file_name.substr(0, file_name.find("_nearline")) + ".root.DONE";
   return file_name_done;
 
 }
 
+std::string NearlineProcessingTime::GetEVDDoneFileName(std::string file_name){
+
+
+  ///lbne/data2/users/lbnedaq/nearline/v04_36_01/011/011425/lbne_r011425_sr01_20160217T083237_nearline_hists.root
+  ///lbne/data2/users/lbnedaq/nearline_evd/v04_36_01/011/011425_01/lbne_r011425_sr01_20160217T083237.rootEVD.DONE
+
+  std::string prefix_dir = file_name.substr(0, file_name.find("/nearline/")); // = "/lbne/data2/users/lbnedaq"
+  std::string suffix_dir = file_name.substr(file_name.find("/v"), std::string("/v04_36_01/011/011425").size());
+  std::string short_file_name = file_name.substr(file_name.find(suffix_dir)+suffix_dir.size()+1);
+  std::string file_name_done = prefix_dir + "/nearline_evd" + suffix_dir + "_01/" + short_file_name;
+  file_name_done = file_name_done.substr(0, file_name_done.find("_nearline")) + ".rootEVD.DONE";
+
+  return file_name_done;
+}
+
 struct NearlineProcessingTimePlot{
   
-  std::vector<int> fVecRun;		
+  std::vector<int> fVecRunTotal;
+  std::vector<int> fVecRunNearlineAna;
+  std::vector<int> fVecRunNearlineMuon;
   std::vector<int> fVecTotalTime;	
   std::vector<int> fVecNearlineAnaTime;	
   std::vector<int> fVecNearlineMuonTime;
+  bool fIsEVD;
   //  TMultiGraph* fMultiGraph;
   TLegend fLegend;
 
   NearlineProcessingTimePlot(){
-    fVecRun.resize(0);		
+    fVecRunTotal.resize(0);		
+    fVecRunNearlineAna.resize(0);		
+    fVecRunNearlineMuon.resize(0);		
     fVecTotalTime.resize(0);	  
     fVecNearlineAnaTime.resize(0);	  
     fVecNearlineMuonTime.resize(0);
+    fIsEVD=false;
   }
 
   void AddFile(std::string filename, int run){
@@ -1245,7 +1270,7 @@ struct NearlineProcessingTimePlot{
     if(this_processing_time.fEndDate == NearlineProcessingTime::InvalidDateTime) return;
 
     int total_time = this_processing_time.fEndDate.Get() - this_processing_time.fStartDate.Get();
-    fVecRun.push_back(run);
+    fVecRunTotal.push_back(run);
     fVecTotalTime.push_back(total_time);
 
     //    std::cerr << "ERROR: run " << run << " time " << total_time << std::endl;
@@ -1260,13 +1285,19 @@ struct NearlineProcessingTimePlot{
     if(this_processing_time.fEndNearlineMuonDate == NearlineProcessingTime::InvalidDateTime){ 
       nearline_muon_time = 0;
     }
-    fVecNearlineAnaTime.push_back(nearline_ana_time);
-    fVecNearlineMuonTime.push_back(nearline_muon_time);
+    if(nearline_ana_time!=0){
+      fVecNearlineAnaTime.push_back(nearline_ana_time);
+      fVecRunNearlineAna.push_back(run);
+    }
+    if(nearline_muon_time!=0){
+      fVecNearlineMuonTime.push_back(nearline_ana_time);
+      fVecRunNearlineMuon.push_back(run);
+    }
   }
   
   TGraph* GetTotalTimeGraph(){
-    TGraph* gr = new TGraph(fVecRun.size());
-    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecTotalTime.at(i));
+    TGraph* gr = new TGraph(fVecRunTotal.size());
+    for(unsigned int i=0;i<fVecRunTotal.size();i++) gr->SetPoint(i, fVecRunTotal.at(i), fVecTotalTime.at(i));
     gr->SetTitle("Nearline Processing Time");
     gr->SetMarkerColor(kBlue);
     gr->SetMarkerStyle(20);
@@ -1276,8 +1307,8 @@ struct NearlineProcessingTimePlot{
     return gr;
   }
   TGraph* GetNearlineAnaTimeGraph(){
-    TGraph* gr = new TGraph(fVecRun.size());
-    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecNearlineAnaTime.at(i));
+    TGraph* gr = new TGraph(fVecRunNearlineAna.size());
+    for(unsigned int i=0;i<fVecRunNearlineAna.size();i++) gr->SetPoint(i, fVecRunNearlineAna.at(i), fVecNearlineAnaTime.at(i));
     gr->SetTitle("Nearline Ana Processing Time");
     gr->SetMarkerColor(kRed);
     gr->SetMarkerStyle(21);
@@ -1287,8 +1318,8 @@ struct NearlineProcessingTimePlot{
     return gr;
   }
   TGraph* GetNearlineMuonTimeGraph(){
-    TGraph* gr = new TGraph(fVecRun.size());
-    for(unsigned int i=0;i<fVecRun.size();i++) gr->SetPoint(i, fVecRun.at(i), fVecNearlineMuonTime.at(i));
+    TGraph* gr = new TGraph(fVecRunNearlineMuon.size());
+    for(unsigned int i=0;i<fVecRunNearlineMuon.size();i++) gr->SetPoint(i, fVecRunNearlineMuon.at(i), fVecNearlineMuonTime.at(i));
     gr->SetTitle("Nearline Muon Processing Time");
     gr->SetMarkerColor(kBlack);
     gr->SetMarkerStyle(22);
@@ -1301,20 +1332,23 @@ struct NearlineProcessingTimePlot{
 
     TMultiGraph* mgr = new TMultiGraph();
     TGraph* gr;
-    fLegend = TLegend(0.75,0.75,0.95,0.95);
+    if(fIsEVD) fLegend = TLegend(0.75,0.85,0.95,0.95);
+    else fLegend = TLegend(0.75,0.75,0.95,0.95);
 
     gr = GetTotalTimeGraph();
     mgr->Add(gr, "P");
     fLegend.AddEntry(gr, gr->GetTitle(), "p");
 
     gr = GetNearlineAnaTimeGraph();
-    mgr->Add(gr, "P");
-    fLegend.AddEntry(gr, gr->GetTitle(), "p");
-
+    if(gr->GetN()!=0){
+      mgr->Add(gr, "P");
+      fLegend.AddEntry(gr, gr->GetTitle(), "p");
+    }
     gr = GetNearlineMuonTimeGraph();
-    mgr->Add(gr, "P");
-    fLegend.AddEntry(gr, gr->GetTitle(), "p");
-
+    if(gr->GetN()!=0){
+      mgr->Add(gr, "P");
+      fLegend.AddEntry(gr, gr->GetTitle(), "p");
+    }
     return mgr;
   }
 
@@ -1324,7 +1358,8 @@ struct NearlineProcessingTimePlot{
     TMultiGraph* gr = GetTimeMultiGraph();
     can->cd()->SetLogy();
     gr->Draw("A*");
-    gr->SetTitle("Nearline Processing Time");   
+    if(fIsEVD) gr->SetTitle("Nearline Event Display Processing Time");   
+    else gr->SetTitle("Nearline Processing Time");   
     gr->GetXaxis()->SetTitle("Run Number");   
     gr->GetYaxis()->SetTitle("Processing Time in Seconds");   
 
@@ -1337,9 +1372,10 @@ struct NearlineProcessingTimePlot{
     return can;
   }
   
-  static std::string GetPlotName(int Ndays){ 
+  std::string GetPlotName(int Ndays){ 
     char name[256];
-    sprintf(name, "ProcessingTime_%.3i_days.png", Ndays);
+    if(fIsEVD) sprintf(name, "ProcessingTimeEvd_%.3i_days.png", Ndays);
+    else sprintf(name, "ProcessingTime_%.3i_days.png", Ndays);
     return std::string(name);
   }
 
@@ -1351,17 +1387,21 @@ struct NearlineProcessingTimePlot{
     //    delete fMultiGraph;
   }
 
-  static std::string MakeTimePlotsHTML(std::string relative_plot_dir, int Ndays){
+  std::string MakeTimePlotsHTML(std::string relative_plot_dir, int Ndays){
 
     std::string output;
-    output+="<h3>Nearline Processing Time as a function of Run.</h3>\n";
+    if(fIsEVD) output+="<h3>Nearline Event Display Processing Time as a function of Run.</h3>\n";
+    else output+="<h3>Nearline Processing Time as a function of Run.</h3>\n";
     output+="<figure>\n";
     output+="<img src=\"" + relative_plot_dir + "/" + GetPlotName(Ndays) + "\" width=\"800\">\n";
     output+="</figure>\n";
     output+="<p>\n";
-    output+="<b>Nearline Processing Time</b> - Total time taken to run this Nearline Processing Job<BR>\n";
-    output+="<b>Nearline Ana Processing Time</b> - Time taken to run the NearlineAna part of the Job<BR>\n";
-    output+="<b>Nearline Muon Processing Time</b> - Time taken to run the Nearline Muon Counter part of the Job<BR>\n";
+    if(fIsEVD)       output+="<b>Nearline Event Display Processing Time</b> - Total time taken to run this Nearline Processing Job<BR>\n";
+    else{
+      output+="<b>Nearline Processing Time</b> - Total time taken to run this Nearline Processing Job<BR>\n";
+      output+="<b>Nearline Ana Processing Time</b> - Time taken to run the NearlineAna part of the Job<BR>\n";
+      output+="<b>Nearline Muon Processing Time</b> - Time taken to run the Nearline Muon Counter part of the Job<BR>\n";
+    }
     output+="</p>\n";
     output+="<BR><BR><BR>\n";
 
