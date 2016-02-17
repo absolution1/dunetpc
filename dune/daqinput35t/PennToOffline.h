@@ -41,7 +41,7 @@ namespace DAQToOffline {
 
     // Unpack the given artdaq::Fragment objects, and create a vector of raw::ExternalTrigger objects. The
     // Fragments are expected to be carrying Penn Trigger board data; this is not checked.
-    std::vector<raw::ExternalTrigger> PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments );
+    std::vector<raw::ExternalTrigger> PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, std::map<int,int>& channelMap );
 
     // Function to get the full timestamp of a given payload
     void GetTimestamp( lbne::PennMilliSliceFragment msf,
@@ -53,5 +53,7 @@ namespace DAQToOffline {
 
     // Function to decide whether to make a new External Trigger
     bool MakeNewExtTrig( uint32_t pos, bool &PrevOn, bool NowOn );
+
+    void BuildPTBChannelMap(std::string MapDir, std::string MapFile, std::map<int,int>& channelMap);
 }
 #endif

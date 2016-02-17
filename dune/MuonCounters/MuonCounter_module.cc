@@ -42,6 +42,7 @@
 #include "TH1D.h"
 #include "TString.h"
 #include "TText.h"
+#include "TStyle.h"
 
 #include "dune/NearlineMonitor/NearlineVersion.h"
 
@@ -65,12 +66,14 @@ private:
 
   
   int total_Hits;
-  int l_TSU = 0;   
-  int u_TSU = 47;  
-  int l_BSU = 48;  
-  int u_BSU = 100; 
-  int l_Trig = 101;
-  int u_Trig = 120;
+  int l_TSU   = 0;   
+  int u_TSU   = 43;  
+  int l_BSU   = 44;  
+  int u_BSU   = 92; 
+  int l_Extra = 93;
+  int u_Extra = 96;
+  int l_Trig  = 100;
+  int u_Trig  = 120;
   int event_Count = 0;
   double event_Length = 10e-3;
 
@@ -104,7 +107,11 @@ private:
   //Histogram to store the 
   TH1I* fHistNearlineVersion;
 
-
+  //PTB Map
+  std::string fPTBMapFile;
+  std::string fPTBMapDir;
+  
+  std::map<int,int> fPTBMap;
 };
 
 Muoncounter::Muoncounter(fhicl::ParameterSet const& pset)
@@ -137,9 +144,12 @@ void Muoncounter::reconfigure(fhicl::ParameterSet const& p)
   fCounterModuleLabel = p.get< std::string >("CounterModuleLabel");
   //    fLArG4ModuleLabel(p.get< std::string >("LArGeantModuleLabel", "largeant"));
   fCombinedTimeDelay = p.get< double >("CombinedTimeDelay");
-  fFragType = p.get<std::string>("FragType");
-  fRawDataLabel = p.get<std::string>("DataLabel");
+  fFragType          = p.get<std::string>("FragType");
+  fRawDataLabel      = p.get<std::string>("DataLabel");
+  fPTBMapFile        = p.get<std::string>("PTBMapFile");
+  fPTBMapDir         = p.get<std::string>("PTBMapDir");
 
+  DAQToOffline::BuildPTBChannelMap(fPTBMapDir, fPTBMapFile, fPTBMap);
   return;
 }
 
@@ -205,7 +215,7 @@ void Muoncounter::analyze(const art::Event& evt)
     return;
   }
 
-  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment);
+  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment, fPTBMap);
 
   unsigned int total_Hits = trigs.size();
 
@@ -221,6 +231,10 @@ void Muoncounter::analyze(const art::Event& evt)
     {
       fHist2->Fill(auxdetid);
     }
+    else if(auxdetid>=l_Extra && auxdetid<=u_Extra)
+    {
+      fHist1->Fill(auxdetid-49);
+    }
     else
     {
       fHist3->Fill(auxdetid);
@@ -234,8 +248,8 @@ void Muoncounter::beginJob()
   // Implementation of optional member function here.
 
   art::ServiceHandle<art::TFileService> tfs;
-  fHist1 = tfs->make<TH1D>("h1", "h1", u_TSU-l_TSU+1, l_TSU, u_TSU+1); 
-  fHist2 = tfs->make<TH1D>("h2", "h2", u_BSU-l_BSU, l_BSU, u_BSU); 
+  fHist1 = tfs->make<TH1D>("h1", "h1", u_TSU-l_TSU+1+4, l_TSU, u_TSU+1+4); 
+  fHist2 = tfs->make<TH1D>("h2", "h2", u_BSU-l_BSU+1, l_BSU, u_BSU+1); 
   fHist3 = tfs->make<TH1D>("h3", "h3", u_Trig-l_Trig, l_Trig, u_Trig);
 
   //Making the Nearline header information tree
@@ -261,20 +275,19 @@ void Muoncounter::beginJob()
   fHistNearlineVersion->GetXaxis()->SetBinLabel(2,"NearlineMajorVersion");
   fHistNearlineVersion->SetBinContent(1, NearlineMinorVersion);
   fHistNearlineVersion->SetBinContent(2, NearlineMajorVersion);
-
-
 }
 
 void Muoncounter::endJob()
 {
   double total_Time = (double)(event_Length*event_Count);
+  gStyle->SetOptStat(0);
 
   fHist1->Sumw2();
   fHist2->Sumw2();
   fHist3->Sumw2();
-  fHist1->Scale(1/total_Time);
-  fHist2->Scale(1/total_Time);
-  fHist3->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist1->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist2->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist3->Scale(1/total_Time);
 
   TString fHist1_Title = Form("TSU Frequency");
   TString fHist2_Title = Form("BSU Frequency");
@@ -302,6 +315,81 @@ void Muoncounter::endJob()
   fHist3->GetYaxis()->SetTitle("Frequency, [Hz]. (No Hits/Run Time)");
   fHist3->GetYaxis()->SetTitleOffset(1.3);
 
+  for(int i = 28; i < 38; i++)
+  {
+    TString label = Form("WU%i", i-27);
+    fHist1->GetXaxis()->SetBinLabel(i+1, label);
+  }
+  for(int i = 22; i < 28; i++)
+  {
+    TString label = Form("NU%i", i-21);
+    fHist1->GetXaxis()->SetBinLabel(i+1, label);
+  }
+  for(int i = 0; i < 6; i++)
+  {
+    TString label = Form("SL%i", i+1);
+    fHist1->GetXaxis()->SetBinLabel(i+1, label);
+  }
+  for(int i = 16; i < 22; i++)
+  {
+    TString label = Form("NL%i", i-15);
+    fHist1->GetXaxis()->SetBinLabel(i+1, label);
+  }
+  for(int i = 1; i < 5; i++)
+  {
+    TString label = Form("XX%i", i);
+    fHist1->GetXaxis()->SetBinLabel(i+44, label);
+  }
+
+  fHist1->GetXaxis()->SetBinLabel(15+1, "EL1");
+  fHist1->GetXaxis()->SetBinLabel(14+1, "EL2");
+  fHist1->GetXaxis()->SetBinLabel(13+1, "EL3");
+  fHist1->GetXaxis()->SetBinLabel(12+1, "EL4");
+  fHist1->GetXaxis()->SetBinLabel(11+1, "EL5");
+  fHist1->GetXaxis()->SetBinLabel(10+1, "EL6");
+  fHist1->GetXaxis()->SetBinLabel(9+1,  "EL7");
+  fHist1->GetXaxis()->SetBinLabel(8+1,  "EL8");
+  fHist1->GetXaxis()->SetBinLabel(7+1,  "EL9");
+  fHist1->GetXaxis()->SetBinLabel(6+1,  "EL10");
+
+  fHist1->GetXaxis()->SetBinLabel(43+1, "SU1");
+  fHist1->GetXaxis()->SetBinLabel(42+1, "SU2");
+  fHist1->GetXaxis()->SetBinLabel(41+1, "SU3");
+  fHist1->GetXaxis()->SetBinLabel(40+1, "SU4");
+  fHist1->GetXaxis()->SetBinLabel(39+1, "SU5");
+  fHist1->GetXaxis()->SetBinLabel(38+1, "SU6");
+  fHist1->GetXaxis()->SetLabelSize(0.018);
+
+  for(int i = 67; i < 83; i++)
+  {
+    TString label = Form("RM%i", i-66);
+    fHist2->GetXaxis()->SetBinLabel(i-43, label);
+  }
+  for(int i = 83; i < 93; i++)
+  {
+    TString label = Form("RL%i", i-82);
+    fHist2->GetXaxis()->SetBinLabel(i-43, label);
+  }
+  for(int i = 44; i < 57; i++)
+  {
+    TString label = Form("CL%i", i-43);
+    fHist2->GetXaxis()->SetBinLabel(i-43, label);
+  }
+
+  fHist2->GetXaxis()->SetBinLabel(66+1-44, "CU1");
+  fHist2->GetXaxis()->SetBinLabel(65+1-44, "CU2");
+  fHist2->GetXaxis()->SetBinLabel(64+1-44, "CU3");
+  fHist2->GetXaxis()->SetBinLabel(63+1-44, "CU4");
+  fHist2->GetXaxis()->SetBinLabel(62+1-44, "CU5");
+  fHist2->GetXaxis()->SetBinLabel(61+1-44, "CU6");
+  fHist2->GetXaxis()->SetBinLabel(60+1-44, "CU7");
+  fHist2->GetXaxis()->SetBinLabel(59+1-44, "CU8");
+  fHist2->GetXaxis()->SetBinLabel(58+1-44, "CU9");
+  fHist2->GetXaxis()->SetBinLabel(57+1-44, "CU10");
+  fHist2->GetXaxis()->SetLabelSize(0.025);
+
+  //PTB TO OFFLINE MAP.
+  /*
   for(int i = 0; i < 10; i++)
   {
     TString label = Form("WU%i", i);
@@ -360,6 +448,7 @@ void Muoncounter::endJob()
     fHist2->GetXaxis()->SetBinLabel(i-47, label);
   }
   fHist2->GetXaxis()->SetLabelSize(0.025);
+  */
   /*
   fHist3->GetXaxis()->SetBinLabel(, "Trigger 1");
   fHist3->GetXaxis()->SetBinLabel(, "Trigger 2");

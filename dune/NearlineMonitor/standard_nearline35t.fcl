@@ -5,7 +5,7 @@ BEGIN_PROLOG
 
 standard_nearlinesplitter: @local::split_events
 
-standard_nearlinesplitter.WhichTrigger: 5 #Any Muon Coincidence - Not Telescope (Horizontal Muons)
+standard_nearlinesplitter.WhichTrigger: [ 3 ] #Any Muon Coincidence - Not Telescope (Horizontal Muons)
 #WhichTrigger
 #0 - MC
 #1 - New Files
@@ -19,10 +19,9 @@ standard_nearlinesplitter.WhichTrigger: 5 #Any Muon Coincidence - Not Telescope 
 #9 - North Upper + South Lower Coincidence
 #10 - PTB Photon Trigger
 #11 - Tickler
+standard_nearlinesplitter.PTBTrigs:                  [ 111, 112, 113, 114 ] # The list of PTB channels to trigger on.
 standard_nearlinesplitter.firstEvent: 1          #Suggested Parameters from Michelle on 3rd Feb
 standard_nearlinesplitter.maxEvents: 10000       #Suggested Parameters from Michelle on 3rd Feb
-#standard_nearlinesplitter.ADCdiffThreshold:  50  #Suggested Parameters from Michelle on 3rd Feb #JPD - Tickler Only - not needed
-#standard_nearlinesplitter.ADCsOverThreshold: 100 #Suggested Parameters from Michelle on 3rd Feb #JPD - Tickler Only - not needed
 standard_nearlinesplitter.TrigSeparation:   10   #Suggested Parameters from Michelle on 3rd Feb 
 standard_nearlinesplitter.PreTriggerTicks:   300 #Suggested Parameters from Michelle on 3rd Feb 
 standard_nearlinesplitter.PostTriggerTicks: 5200 #Suggested Parameters from Michelle on 3rd Feb  
@@ -32,6 +31,10 @@ standard_nearlinesplitter.PedestalFile: ""
 standard_nearlinesplitter.PedestalFileSearchPath: "NEARLINE_PEDESTAL"
 standard_nearlinesplitter.UsePedestalDefault: "false"
 
+
+#Alex Booth's trigger settings
+standard_nearlinesplitter_evd: @local::standard_nearlinesplitter
+standard_nearlinesplitter_evd.PTBTrigs:      [111, 112, 113]
 
 
 standard_nearlineana:

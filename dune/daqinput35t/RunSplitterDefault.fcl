@@ -17,7 +17,7 @@ services:
 source: @local::split_events
 
 #############  To configure any parameters yourself #############
-#source.WhichTrigger: 3
+#source.WhichTrigger: [ 3 ]
 #source.PTBTrigs:     [ 110, 111, 112, 113, 114, 115 ]
 #source.PreTriggerTicks: 3200
 #source.PostTriggerTicks: 6400
@@ -31,6 +31,16 @@ source: @local::split_events
 
 # WhichTrigger = 5  YOUR TRIGGER.....# WhichTrigger = 0  corresponds to  Making a trigger after a user-defined number of ticks - not hugely useful
 ###########################################################################################################################
+
+########### PTB Trigger information ###########
+# Trigger 110 - Telescope
+# Trigger 111 - North Upper / South Lower
+# Trigger 112 - North Lower / South Upper
+# Trigger 113 - East Lower / West Upper
+# Trigger 114 - Reserved for later use....
+# Trigger 115 - SSP Trigger
+# Trigger 116 - RCE Trigger.....Not set up by PTB but added regardless.
+###############################################
 
 # Define and configure some modules to do work on each event.
 # First modules are defined; they are scheduled later.

@@ -17,9 +17,11 @@ check_timing:
   PTBFragType:        "TRIGGER"
   PTBRawDataLabel:    "daq"
   PTBOutputDataLabel: "offlineTrigger"
+  PTBMapDir:          "/dune/data2/users/warburton/PTBChannelMap/"
+  PTBMapFile:         "PTBChannelMap.txt"
+
 
   NOvAClockFrequency:  64.0 #MHz
-  UseChannelMap: "true"
   Debug: "false"
 }
 

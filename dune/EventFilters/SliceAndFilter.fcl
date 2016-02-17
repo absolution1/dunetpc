@@ -1,0 +1,75 @@
+#include "services_dune.fcl"
+#include "clusteralgorithms.fcl"
+#include "SSPToOffline.fcl"
+#include "SplitterInput.fcl"
+#include "filters_dune35t.fcl"
+
+BEGIN_PROLOG
+MySelection: { SelectEvents: ["reco"] }
+END_PROLOG
+
+process_name: Trim
+
+services:
+{
+  # TFileService: { fileName: "test.root" }
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::dune_message_services_prod_debug
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  user:         @local::dune35t_services
+}
+
+source: @local::split_events
+source.UsePedestalFile: "true"
+source.PedestalFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_10873.csv" 
+#source.UsePedestalDefault: "true"
+source.UsePedestalDefault: "false"
+#source.UsePedestalFile: "false"
+source.firstEvent: 1
+source.maxEvents: 10000
+source.ADCdiffThreshold:  50
+source.ADCsOverThreshold: 100
+source.TrigSeparation:   10
+source.PreTriggerTicks:   300
+source.PostTriggerTicks: 5200
+source.WhichTrigger:  [3]
+#source.PTBTrigs:      [111]
+source.PTBTrigs:      [111, 112, 113]
+# 111 - EW  112 - NU-SL 113 - NL-SU
+
+physics:
+{
+#  producers:
+#  {
+#    fasthit:            @local::dune35t_fasthitfinder      
+#  }
+   filters:{
+      myfilter:  @local::cwp_filter
+   }
+#  analyzers:
+#  {
+#  }
+  reco: [myfilter]
+  stream1:      [ out1 ]
+  end_paths: [ stream1 ]
+}
+
+
+
+#define the output stream, there could be more than one if using filters 
+   stream1:  [ out1 ]
+outputs:{
+  out1: 
+ {
+   dataTier:    "sliced"
+   module_type:  RootOutput
+   fileName:    "sliced.root"     
+   #default file name, can override from command line with -o or --output
+   SelectEvents: @local::MySelection
+ }
+}
+
+physics.filters.myfilter.firstset  : [6,7,8,9,6,10,16,21,0,5]
+physics.filters.myfilter.secondset : [31,30,29,28,32,28,43,38,27,22]
+#services.user.DatabaseUtil.ShouldConnect: true

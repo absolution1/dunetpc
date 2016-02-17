@@ -1,0 +1,21 @@
+# dunetpc/dune/Daq/daq_dune.fcl
+#
+# David Adams
+# February 2016
+
+BEGIN_PROLOG
+
+#***********************************************************************
+
+# 35-ton online/offline channel mapping.
+
+chmap35t: {
+  service_provider: FileChannelMappingService
+  FileName:         "rce_channel_map_dune35t.txt"
+  FilePathEnv:      FW_SEARCH_PATH
+  LogLevel:         1
+}
+
+#***********************************************************************
+
+END_PROLOG
