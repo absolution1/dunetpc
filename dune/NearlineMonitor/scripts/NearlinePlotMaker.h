@@ -1163,8 +1163,8 @@ struct NearlineProcessingTime{
   TDatime fEndNearlineMuonDate;
   TDatime fEndDate;
 
-  NearlineProcessingTime(std::string file_name);
-  static TDatime GetDateTime(std::string date);
+  NearlineProcessingTime(std::string file_name, int Ndays);
+  static TDatime GetDateTime(std::string date, int Ndays);
   static std::string GetDoneFileName(std::string file_name);
   static std::string GetEVDDoneFileName(std::string file_name);
   static TDatime const InvalidDateTime;
@@ -1172,7 +1172,7 @@ struct NearlineProcessingTime{
 
 const TDatime NearlineProcessingTime::InvalidDateTime = TDatime(1995,00,00,00,00,00);
 
-NearlineProcessingTime::NearlineProcessingTime(std::string file_name){
+NearlineProcessingTime::NearlineProcessingTime(std::string file_name, int Ndays){
 
   fStartDate=InvalidDateTime;
   fEndNearlineAnaDate=InvalidDateTime;
@@ -1196,16 +1196,16 @@ NearlineProcessingTime::NearlineProcessingTime(std::string file_name){
 
   in_file.close();
 
-  if(start != "") fStartDate = GetDateTime(start);
-  if(end_nearline_ana != "") fEndNearlineAnaDate = GetDateTime(end_nearline_ana);
-  if(end_nearline_muon != "") fEndNearlineMuonDate = GetDateTime(end_nearline_muon);
-  if(end != "") fEndDate = GetDateTime(end);
+  if(start != "") fStartDate = GetDateTime(start, Ndays);
+  if(end_nearline_ana != "") fEndNearlineAnaDate = GetDateTime(end_nearline_ana, Ndays);
+  if(end_nearline_muon != "") fEndNearlineMuonDate = GetDateTime(end_nearline_muon, Ndays);
+  if(end != "") fEndDate = GetDateTime(end, Ndays);
   
 }
 
 
-TDatime NearlineProcessingTime::GetDateTime(std::string date){
-  std::string temp_file_name = "/tmp/NearlineDate.txt";
+TDatime NearlineProcessingTime::GetDateTime(std::string date, int Ndays){
+  std::string temp_file_name = "/tmp/NearlineDate_" + std::to_string(Ndays) + ".txt";
   std::string command = "date -d \"" + date + "\" +\"%Y-%m-%d %T\" > " + temp_file_name;
   int retval = system(command.c_str());
   std::ifstream temp_file(temp_file_name.c_str());
@@ -1263,8 +1263,8 @@ struct NearlineProcessingTimePlot{
     fIsEVD=false;
   }
 
-  void AddFile(std::string filename, int run){
-    NearlineProcessingTime this_processing_time(filename);
+  void AddFile(std::string filename, int run, int Ndays){
+    NearlineProcessingTime this_processing_time(filename, Ndays);
     std::cerr << "INFO : " << "run " << run << " StartDate: " << this_processing_time.fStartDate.AsString() << std::endl;
     std::cerr << "INFO : " << "run " << run << " EndDate: " << this_processing_time.fEndDate.AsString() << std::endl;
     if(run<=0) return;
@@ -1300,7 +1300,8 @@ struct NearlineProcessingTimePlot{
   TGraph* GetTotalTimeGraph(){
     TGraph* gr = new TGraph(fVecRunTotal.size());
     for(unsigned int i=0;i<fVecRunTotal.size();i++) gr->SetPoint(i, fVecRunTotal.at(i), fVecTotalTime.at(i));
-    gr->SetTitle("Nearline Processing Time");
+    if(fIsEVD) gr->SetTitle("Nearline Event Display Processing Time");
+    else gr->SetTitle("Nearline Processing Time");
     gr->SetMarkerColor(kBlue);
     gr->SetMarkerStyle(20);
     gr->SetMarkerSize(1.5);

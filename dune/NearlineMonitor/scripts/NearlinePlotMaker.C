@@ -352,8 +352,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     
     std::string done_file_name = NearlineProcessingTime::GetDoneFileName(filename);
     std::string evd_done_file_name = NearlineProcessingTime::GetEVDDoneFileName(filename);
-    nearline_processing_time_plot.AddFile(done_file_name, run);
-    nearline_evd_processing_time_plot.AddFile(evd_done_file_name, run);
+    nearline_processing_time_plot.AddFile(done_file_name, run, Ndays);
+    nearline_evd_processing_time_plot.AddFile(evd_done_file_name, run, Ndays);
     nearline_processing_version_plot.AddFile(filename, run);
     nearline_processing_pedestal_plot.AddFile(done_file_name, run);
 
