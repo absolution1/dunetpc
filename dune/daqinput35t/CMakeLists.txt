@@ -161,6 +161,7 @@ simple_plugin(SplitterInput "source"
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
  ${SIMULATIONBASE}
+ ${SIMULATION}
 )
 
 install_fhicl()

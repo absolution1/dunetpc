@@ -14,7 +14,7 @@ services:
   user:                  @local::dune35t_services
 }
 
-source: @local::split_events
+source: @local::mcsplit_events
 
 #############  To configure any parameters yourself #############
 #source.WhichTrigger: [ 3 ]
