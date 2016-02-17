@@ -7,7 +7,7 @@ function echo-error(){
 }
 
 function usage(){
-    echo-info "`basename $0` <runnum> <version> <qualifiers>"
+    echo-info "`basename $0` <runnum> <version> <qualifiers> [debug]"
     echo-info "`basename $0` 1234 v04_30_03 e9"
 }
 
@@ -19,6 +19,12 @@ function parse_args(){
     RUN=$1
     VERSION=$2
     QUALIFIERS=$3
+
+    if [ $# -eq 4 ];then
+	DEBUG=1
+    else
+	DEBUG=0
+    fi
 
     RELEASE_DIR=/home/lbnedaq/nearline/nearline_test_release_${VERSION}
     SCRIPT_PATH=${RELEASE_DIR}/srcs/dunetpc/dune/NearlineMonitor/scripts
@@ -59,7 +65,11 @@ function process_file(){
     OLD_PWD=$PWD
     cd $SCRIPT_PATH
     echo-info "./ProcessSingleFileEVD.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR"
-    nohup ./ProcessSingleFileEVD.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR >> /dev/null 2>&1 &
+    if [ $DEBUG -eq 1 ];then
+	./ProcessSingleFileEVD.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR
+    else
+	nohup ./ProcessSingleFileEVD.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR >> /dev/null 2>&1 &
+    fi
     cd $OLD_PWD
 }
 

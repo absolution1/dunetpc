@@ -20,6 +20,12 @@ function parse_args(){
     VERSION=$2
     QUALIFIERS=$3
 
+    if [ $# -eq 4 ];then
+	DEBUG=1
+    else
+	DEBUG=0
+    fi
+
     RELEASE_DIR=/home/lbnedaq/nearline/nearline_test_release_${VERSION}
     SCRIPT_PATH=${RELEASE_DIR}/srcs/dunetpc/dune/NearlineMonitor/scripts
     PRODUCTS_DIR=${RELEASE_DIR}/localProducts_larsoft_${VERSION}_${QUALIFIERS}_prof
@@ -59,7 +65,13 @@ function process_file(){
     OLD_PWD=$PWD
     cd $SCRIPT_PATH
     echo-info "./ProcessSingleFile.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR"
-    nohup ./ProcessSingleFile.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR >> /dev/null 2>&1 &
+
+    if [ $DEBUG -eq 1 ];then
+	./ProcessSingleFile.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR
+    else
+	nohup ./ProcessSingleFile.sh $RunDir $FILE_FULL_PATH $PRODUCTS_DIR >> /dev/null 2>&1 &
+    fi
+
     cd $OLD_PWD
 }
 
