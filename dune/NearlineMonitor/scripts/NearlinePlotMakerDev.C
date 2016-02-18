@@ -263,6 +263,8 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   int    RunVSYearCount = 0;
 
   NearlineProcessingTimePlot nearline_processing_time_plot;
+  NearlineProcessingTimePlot nearline_evd_processing_time_plot;
+  nearline_evd_processing_time_plot.fIsEVD=true;
   NearlineProcessingVersion nearline_processing_version_plot;
   NearlineProcessingPedestal nearline_processing_pedestal_plot;
   //
@@ -349,7 +351,9 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
     }//loop over plots
     
     std::string done_file_name = NearlineProcessingTime::GetDoneFileName(filename);
-    nearline_processing_time_plot.AddFile(done_file_name, run);
+    std::string evd_done_file_name = NearlineProcessingTime::GetEVDDoneFileName(filename);
+    nearline_processing_time_plot.AddFile(done_file_name, run, Ndays);
+    nearline_evd_processing_time_plot.AddFile(evd_done_file_name, run, Ndays);
     nearline_processing_version_plot.AddFile(filename, run);
     nearline_processing_pedestal_plot.AddFile(done_file_name, run);
 
@@ -425,6 +429,11 @@ Long64_t NearlinePlotMaker(int Ndays, bool debug){
   nearline_processing_time_plot.PrintTimePlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
   if(debug) html_string += nearline_processing_time_plot.MakeTimePlotsHTML("plots_testing/", Ndays);
   else  html_string += nearline_processing_time_plot.MakeTimePlotsHTML("plots/", Ndays);
+
+  //Print the Nearline Processing Event Display Time plot and add to the webpage
+  nearline_evd_processing_time_plot.PrintTimePlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);
+  if(debug) html_string += nearline_evd_processing_time_plot.MakeTimePlotsHTML("plots_testing/", Ndays);
+  else  html_string += nearline_evd_processing_time_plot.MakeTimePlotsHTML("plots/", Ndays);
 
   //Print the Nearline Processing Version plot and add to the webpage
   nearline_processing_version_plot.PrintVersionPlots(PLOT_DIR,  Ndays,  UpdateText, time_ago, XNow);

@@ -1,11 +1,12 @@
-#include "evdservices_dune.fcl"
+##include "evdservices_dune.fcl"
+#include "evd_dune.fcl"
 
 process_name: EVD
 
 services:
 {
   message:      @local::evd_message
-  user:         @local::dune35t_disp
+  user:         @local::dune35t_disp_data
 }
 
 # Define the services
@@ -42,28 +43,23 @@ physics:
  #and output modules. all items here can be run simultaneously
  end_paths: [evd]  
 }
-services.user.DetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 768
-services.user.DetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 2700
 
+services.user.DetPedestalService.DetPedestalDUNE.UseDB: true
 
 services.user.ColorDrawingOptions.ColorOrGrayScale:       0    # use color
-services.user.ColorDrawingOptions.RawQHigh: [200]
-services.user.ColorDrawingOptions.RawQLow:  [-200]
-
-
-services.user.RawDrawingOptions.TotalTicks:               10000
+services.user.RawDrawingOptions.TotalTicks:               5200
+services.user.RawDrawingOptions.StartTick:               0
 
 services.user.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
-#services.user.RawDrawingOptions.RawDataLabel: "daq"    #default option
 services.user.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"    #slicer
 
-#services.user.RecoDrawingOptions.HitModuleLabels:            ["lineclusterdc"]
-#services.user.RecoDrawingOptions.ClusterModuleLabels:        ["lineclusterdc"]
-#services.user.RecoDrawingOptions.TrackModuleLabels:          ["pmtrackdc"]
 services.user.RecoDrawingOptions.DrawClusters:               0
 services.user.RecoDrawingOptions.DrawTracks:                 0
 services.user.RecoDrawingOptions.DrawTrackSpacePoints:       0
 services.user.RecoDrawingOptions.DrawOpFlashes:              0
-#services.user.RecoDrawingOptions.OpFlashModuleLabels:        ["opflash"]
-services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  768
-services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  2700
+services.user.RawDrawingOptions.RawQHigh: 200
+services.user.RawDrawingOptions.RawQLow: -200
+services.user.ColorDrawingOptions.RawQHigh:[ 200 ]
+services.user.ColorDrawingOptions.RawQLow: [ -200 ]
+
+

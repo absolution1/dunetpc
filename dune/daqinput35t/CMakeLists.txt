@@ -157,10 +157,12 @@ simple_plugin(SplitterInput "source"
  lbne_daqinput35t
  art_Framework_IO_Root
  art_Framework_IO_Sources
+ larsim_Simulation
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
  ${SIMULATIONBASE}
+ ${SIMULATION}
 )
 
 install_fhicl()

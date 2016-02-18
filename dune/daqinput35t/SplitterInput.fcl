@@ -60,6 +60,21 @@ split_events:
   UsePedestalFileSearchPath: "false" // Whether to use an environment variable to search for pedestal file in. Only used if UsePedestalFile is true
   PedestalFile:              ""      // What pedestal file to use (if one is used at all)
   PedestalFileSearchPath:    ""      // What environment variable to use to search for pedestal file (no $ please, eg for $BAR enter "BAR")
+
+  SkipNInputEvents:          0       // The number of input events (including headers) you wish to ignore.
+  SkipNOutputEvents:         0       // The number of output events you wish to create and then delete.
 }
+
+###### Make an instance that can be ran on Monte Carlo, so the user doesn't have to change all the parameters themselves...
+mcsplit_events: @local::split_events
+mcsplit_events.MonteCarlo:           "true"
+mcsplit_events.TPCInputDataProduct:  "raw::RawDigit" 
+mcsplit_events.TPCInputTag:          "daq::Detsim" 
+mcsplit_events.SSPInputDataProduct:  "raw::OpDetWaveform" 
+mcsplit_events.SSPInputTag:          "opdigi::Detsim" 
+mcsplit_events.PennInputDataProduct: "raw::ExternalTrigger" 
+mcsplit_events.PennInputTag:         "simcounter::Detsim" 
+mcsplit_events.PreTriggerTicks:      0
+mcsplit_events.PostTriggerTicks:     3200
 
 END_PROLOG

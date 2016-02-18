@@ -37,6 +37,8 @@ ssp_diagnostic_ana:
   module_type:         SSPDiagnosticAna
   FragType:            PHOTON
   RawDataLabel:        daq
+  InputModule:	       ssptooffline
+  InputLabel:	       offlinePhoton
   SSPReformatter:      @local::ssp_reformatter
   SSPm1:               10  #samples used to calculate peak height
   SSPm2:               10

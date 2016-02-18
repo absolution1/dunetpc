@@ -6,8 +6,11 @@
 //
 // Quickly analyze raw data trigger rate in the SSP
 // and plot pulse amplitudes
+// 
+// Produces plots for each run, then plots vs run at endJob()
 //
 // Jonathan Insler jti3@fnal.gov
+// Denver Whittington dwwhitti@fnal.gov
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -73,12 +76,16 @@ public:
 private:
   void beginJob() override;
   void endJob  () override;
+  void beginRun(art::Run const &run) override;
+  void endRun(art::Run const &run) override;
   void beginEvent(art::EventNumber_t eventNumber);
   void endEvent  (art::EventNumber_t eventNumber);
 
   std::string fFragType;
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
+  std::string fInputModule;
+  std::string fInputLabel;
   double fSampleFreq;        // Sampling frequency in MHz 
   const int m1_window = 10;
   const int i1_window = 500;
@@ -95,6 +102,8 @@ private:
   std::map< int, TH1D* > IntegratedChargePerChannel;
   std::map< int, TH2D* > PulseAmplitudeVsIntegratedChargePerChannel;
 
+  std::map< int, TH2D* > PulseAmpVsRun;
+
   TSpectrum *specAnalyzer = new TSpectrum( 100 /* max peaks */ );
 
   SSPReformatterAlgs sspReform;
@@ -102,7 +111,6 @@ private:
   unsigned long int firstTime;
   unsigned long int lastTime;
   std::map<int, long int> triggerCount;
-
 
 };
 
@@ -122,6 +130,8 @@ void DAQToOffline::SSPDiagnosticAna::reconfigure(fhicl::ParameterSet const& pset
 
   fFragType           = pset.get<std::string>("FragType");
   fRawDataLabel       = pset.get<std::string>("RawDataLabel");
+  fInputModule        = pset.get<std::string>("InputModule");
+  fInputLabel         = pset.get<std::string>("InputLabel");
   // m1_window           = pset.get<int>("SSPm1");
   // i1_window           = pset.get<int>("SSPi1");
   // i2_window           = pset.get<int>("SSPi2");
@@ -159,6 +169,13 @@ void DAQToOffline::SSPDiagnosticAna::beginJob()
   lastTime = 0;
 }
 
+void DAQToOffline::SSPDiagnosticAna::beginRun(art::Run const &run)
+{
+  PulseAmplitudePerChannel.clear();
+  IntegratedChargePerChannel.clear();
+  PulseAmplitudeVsIntegratedChargePerChannel.clear();
+}
+
 void DAQToOffline::SSPDiagnosticAna::beginEvent(art::EventNumber_t /*eventNumber*/)
 {
   //reset ADC histogram
@@ -175,7 +192,7 @@ void DAQToOffline::SSPDiagnosticAna::endEvent(art::EventNumber_t eventNumber)
     //  adc_values_->Write(Form("adc_values:event_%d", eventNumber));
 }
 
-void DAQToOffline::SSPDiagnosticAna::endJob()
+void DAQToOffline::SSPDiagnosticAna::endRun(art::Run const &run)
 {
   //delete adc_values_;
   
@@ -271,6 +288,7 @@ void DAQToOffline::SSPDiagnosticAna::endJob()
 
   // FFT of average waveforms
   art::ServiceHandle<art::TFileService> tfs;
+  art::TFileDirectory RunDir = tfs->mkdir( TString::Format("r%03i", run.run()).Data(), "SSP Diagnostics by Run" );
   for ( int i = 0; i < 100; ++i ) {
     if ( PulseAmplitudePerChannel.find(i) == PulseAmplitudePerChannel.end() ) continue;
     TProfile *profile = averageWaveforms[i]->ProfileX();
@@ -278,9 +296,9 @@ void DAQToOffline::SSPDiagnosticAna::endJob()
     if ( fft == waveformFFTs.end() ) {
       TString histName = TString::Format("waveformFFT_channel_%03i", i);
       TString histTitle = TString::Format("Average Waveform FFT for OP Channel %03i;f (MHz);power", i);
-      double dt = averageWaveforms[i]->GetXaxis()->GetBinLowEdge(1) - averageWaveforms[i]->GetXaxis()->GetBinLowEdge(0);
+      double dt = averageWaveforms[i]->GetXaxis()->GetBinLowEdge(2) - averageWaveforms[i]->GetXaxis()->GetBinLowEdge(1);
       double Fmax = 1. / (2*dt);
-      waveformFFTs[i] = tfs->make< TH1D >(histName, histTitle, averageWaveforms[i]->GetNbinsX()/2, 0., Fmax);
+      waveformFFTs[i] = RunDir.make< TH1D >(histName, histTitle, averageWaveforms[i]->GetNbinsX()/2, 0., Fmax);
     }
     profile->FFT( waveformFFTs[i], "MAG" );
     waveformFFTs[i]->SetStats(false);
@@ -289,6 +307,56 @@ void DAQToOffline::SSPDiagnosticAna::endJob()
     delete profile;
   }
 
+  // Add pulse amplitude histos to pulse amp vs run histograms
+  for ( int i = 0; i < 100; ++i ) {
+    if ( PulseAmplitudePerChannel.find(i) == PulseAmplitudePerChannel.end() ) continue;
+    auto histo = PulseAmpVsRun.find( i );
+    // Make a new histogram if it doesn't already exist.
+    if ( histo == PulseAmpVsRun.end() ) {
+      TString histName = TString::Format("PulseAmpDistVsRun_channel_%03i", i);
+      TString histTitle = TString::Format("Pulse Amplitude Distribution vs Run Number for OP Channel %03i;run number;leading-edge amplitude [ADC]", i);
+      PulseAmpVsRun[i] = new TH2D( histName, histTitle, 1, run.run(), run.run()+1, 125, -20, 230 );
+    } else {
+    // Remake the histogram with extended range
+      TH2D* oldHist = PulseAmpVsRun[i];
+      int firstRun = (int)std::min( double(run.run()), oldHist->GetXaxis()->GetBinLowEdge(1) );
+      int lastRun = (int)std::max( double(run.run()), oldHist->GetXaxis()->GetBinLowEdge( oldHist->GetNbinsX() ) );
+      PulseAmpVsRun[i] = new TH2D( oldHist->GetName(), oldHist->GetTitle(), lastRun-firstRun+1, firstRun, lastRun+1, 125, -20, 230 );
+      for ( int binX = 0; binX <= oldHist->GetNbinsX(); ++binX ) {
+	for ( int binY = 0; binY <= oldHist->GetNbinsY(); ++binY ) {
+	  double oldVal = oldHist->GetBinContent( binX, binY );
+	  int runNum = oldHist->GetXaxis()->GetBinLowEdge( binX );
+	  int targBin = PulseAmpVsRun[i]->GetXaxis()->FindBin( runNum );
+	  std::cout << "Transferring into new histogram: " << targBin << " " << binY << " " << oldVal << std::endl;
+	  PulseAmpVsRun[i]->SetBinContent( targBin, binY, oldVal );
+	}
+      }
+      delete oldHist;
+    }
+    // Add the new data
+    for ( int binY = 0; binY <= PulseAmplitudePerChannel[i]->GetNbinsX(); ++binY ) {
+      double val = PulseAmplitudePerChannel[i]->GetBinContent(binY);
+      double amp = PulseAmplitudePerChannel[i]->GetBinCenter(binY);
+      std::cout << "Filling histogram with " << run.run() << " " << amp << " " << val << "( PulseAmplitudePerChannel bin " << binY << " )" << std::endl;
+      PulseAmpVsRun[i]->Fill( run.run(), amp, val );
+    }
+    
+  }
+
+}
+
+void DAQToOffline::SSPDiagnosticAna::endJob()
+{
+  // Register all vs-run histograms.
+  art::ServiceHandle<art::TFileService> tfs;
+  for ( int i = 0; i < 100; ++i ) {
+    auto histo = PulseAmpVsRun.find( i );
+    if ( histo == PulseAmpVsRun.end() ) continue;
+    TH2D *newHist = tfs->make< TH2D >( PulseAmpVsRun[i]->GetName(), PulseAmpVsRun[i]->GetTitle(),
+				       PulseAmpVsRun[i]->GetNbinsX(), PulseAmpVsRun[i]->GetXaxis()->GetBinLowEdge(1), PulseAmpVsRun[i]->GetXaxis()->GetBinLowEdge(PulseAmpVsRun[i]->GetNbinsX()+1),
+				       PulseAmpVsRun[i]->GetNbinsY(), PulseAmpVsRun[i]->GetYaxis()->GetBinLowEdge(1), PulseAmpVsRun[i]->GetYaxis()->GetBinLowEdge(PulseAmpVsRun[i]->GetNbinsY()+1) );
+    newHist->Add( PulseAmpVsRun[i] );
+  }
 }
 
 
@@ -297,6 +365,7 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
 {
 
   art::ServiceHandle<art::TFileService> tfs;
+  art::TFileDirectory RunDir = tfs->mkdir( TString::Format("r%03i", evt.run()).Data(), "SSP Diagnostics by Run" );
   //art::ServiceHandle<geo::Geometry> geo;
 
   art::Handle<artdaq::Fragments> rawFragments;
@@ -326,7 +395,7 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
 
   // Get OpDetWaveforms from the event
   art::Handle< std::vector< raw::OpDetWaveform > > waveformHandle;
-  evt.getByLabel("ssptooffline", "offlinePhoton", waveformHandle);
+  evt.getByLabel(fInputModule, fInputLabel, waveformHandle);
 
   for (size_t i = 0; i < waveformHandle->size(); i++)
     {
@@ -341,9 +410,9 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
       auto waveform = averageWaveforms.find( channel );
       if ( waveform == averageWaveforms.end() ) {
   	TString histName = TString::Format("avgwaveform_channel_%03i", channel);
-  	//averageWaveforms[channel] =  tfs->make< TH1D >(histName, ";t (us);", pulse.size(), 0, double(pulse.size()) / fSampleFreq);
+  	//averageWaveforms[channel] =  RunDir.make< TH1D >(histName, ";t (us);", pulse.size(), 0, double(pulse.size()) / fSampleFreq);
 	TString histTitle = TString::Format("Average Waveform for OP Channel %03i;t (us);amplitude (ADC)", channel);
-  	averageWaveforms[channel] =  tfs->make< TH2D >(histName, histTitle, pulse.size(), 0, double(pulse.size()) / fSampleFreq, 2000, 1200, 5200);
+  	averageWaveforms[channel] =  RunDir.make< TH2D >(histName, histTitle, pulse.size(), 0, double(pulse.size()) / fSampleFreq, 2000, 1200, 5200);
       }
 
       // Add this waveform to this histogram
@@ -426,7 +495,7 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
 	if( pulse_amplitude_per_channel == PulseAmplitudePerChannel.end() ) {
 	  TString histName = TString::Format("pulse_amplitude_channel_%03i", channel);
 	  TString histTitle = TString::Format("Pulse Amplitude for OP Channel %03i;leading-edge amplitude [ADC]", channel);
-	  PulseAmplitudePerChannel[channel] =  tfs->make< TH1D >(histName, histTitle ,125,-20,230);
+	  PulseAmplitudePerChannel[channel] =  RunDir.make< TH1D >(histName, histTitle ,125,-20,230);
 	}
 	
 	PulseAmplitudePerChannel[channel]->Fill(PulseAmplitude);
@@ -435,7 +504,7 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
 	if( integrated_charge_per_channel == IntegratedChargePerChannel.end() ) {
 	  TString histName = TString::Format("integrated_charge_channel_%03i", channel);
 	  TString histTitle = TString::Format("Integrated Charge on OP Channel %03i;integrated charge [ADC*tick]", channel);
-	  IntegratedChargePerChannel[channel] =  tfs->make< TH1D >(histName, histTitle ,300,0,3e4);
+	  IntegratedChargePerChannel[channel] =  RunDir.make< TH1D >(histName, histTitle ,300,0,3e4);
 	}
 	
 	IntegratedChargePerChannel[channel]->Fill(IntegratedCharge);
@@ -444,7 +513,7 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
 	if( pulse_amplitude_vs_integrated_charge_per_channel == PulseAmplitudeVsIntegratedChargePerChannel.end() ) {
 	  TString histName = TString::Format("pulse_amplitude_vs_integrated_charge_channel_%03i", channel);
 	  TString histTitle = TString::Format("Pulse Amplitude vs. Integrated Charge on OP Channel %03i;integrated charge [ADC*tick];leading-edge amplitude [ADC]", channel);
-	  PulseAmplitudeVsIntegratedChargePerChannel[channel] =  tfs->make< TH2D >(histName, histTitle ,300,0,3e4,125,-20,230);
+	  PulseAmplitudeVsIntegratedChargePerChannel[channel] =  RunDir.make< TH2D >(histName, histTitle ,300,0,3e4,125,-20,230);
 	}
 	
 	PulseAmplitudeVsIntegratedChargePerChannel[channel]->Fill(IntegratedCharge,PulseAmplitude);
