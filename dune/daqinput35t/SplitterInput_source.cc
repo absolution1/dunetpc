@@ -276,7 +276,9 @@ namespace {
                               idigit->Samples(),
                               uncompressed,
                               raw::kNone);
-          digits.push_back(digit);
+	  digit.SetPedestal( idigit->GetPedestal(), idigit->GetSigma() );
+	  if (fDebugLevel > 3) std::cout << "Setting defualt pedestal values on channel " << digit.Channel() << " to " << digit.GetPedestal() << " and sigma " << digit.GetSigma() <<  std::endl;
+	  digits.push_back(digit);
         }
       }
       bool GoodDig = true;
@@ -1136,17 +1138,22 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
                dbuf_[ichan]
                //,loadedDigits_.digits[ichan].Compression()
                );
-    if (evAux_.isRealData() ) //If looking at real data!
+    if (evAux_.isRealData() ) { //If looking at real data!
       d.SetPedestal(AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].first,
                     AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].second );
-    else //If looking at Truth
+      if (fDebugLevel > 3) {
+	std::cout << "digit[0] corresponding to channel " << d.Channel() << " ("<<ichan<<") has ADC value " << d.ADC(0)
+		  << ", pedestal "<<d.GetPedestal()<<" ["<<AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].first <<"],"
+		  << " and sigma "<<d.GetSigma()   <<" ["<<AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].second<<"]."
+		  << std::endl;
+      }
+    } else { //If looking at Truth
       d.SetPedestal(loadedDigits_.digits[ichan].GetPedestal(),
                     loadedDigits_.digits[ichan].GetSigma() );
-    if (fDebugLevel > 3) {
-      std::cout << "digit[0] corresponding to channel " << d.Channel() << " ("<<ichan<<") has ADC value " << d.ADC(0)
-		<< ", pedestal "<<d.GetPedestal()<<" ["<<AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].first <<"],"
-		<< " and sigma "<<d.GetSigma()   <<" ["<<AllPedMap[runNumber_][loadedDigits_.digits[ichan].Channel()].second<<"]."
-		<< std::endl;
+      if (fDebugLevel > 3)
+	std::cout << "Looking at Monte Carlo, so using pedestals loaded from event, channel " << ichan
+		  << ", pedestal " << d.GetPedestal() << " ("<<loadedDigits_.digits[ichan].GetPedestal()<<")"
+		  << ", sigma " << d.GetSigma() << " ("<<loadedDigits_.digits[ichan].GetSigma()<<")." << std::endl;
     }
     bufferedDigits_.emplace_back(d);
   }
