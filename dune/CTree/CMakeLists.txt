@@ -1,13 +1,19 @@
 art_make( BASENAME_ONLY
-          MODULE_LIBRARIES larcore_Geometry
-          dune_Geometry
+          MODULE_LIBRARIES 
+	  dune_Geometry
           larcore_Geometry_Geometry_service
           larsim_Simulation
-          larsim_MCCheater_BackTracker_service
+	  larsim_MCCheater_BackTracker_service
           lardata_Utilities
           lardata_RawData
           lardata_RecoBase
           lardata_RecoObjects
+	  larana_OpticalDetector
+	  larana_OpticalDetector_OpHitFinder
+	  larcore_Geometry
+#	  LArProperties_service
+	  RunHistoryDUNE
+	  lbne-raw-data_Overlays
           ${SIMULATIONBASE}
           ${LARRECO_LIB}
           ${LARDATA_LIB}

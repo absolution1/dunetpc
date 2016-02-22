@@ -6,7 +6,9 @@
 // test
 
 // LArSoft includes
+//#include "lardata/Utilities/DetectorProperties.h"
 #include "lardata/Utilities/GeometryUtilities.h"
+// #include "Utilities/LArProperties.h"
 #include "larsim/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "larsim/Simulation/SimListUtils.h"
@@ -15,6 +17,7 @@
 #include "lardata/RecoBase/Wire.h"
 #include "lardata/RecoBase/Cluster.h"
 #include "lardata/RecoBase/Track.h"
+#include "lardata/RecoBase/OpHit.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/CryostatGeo.h"
@@ -24,21 +27,34 @@
 #include "larcore/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/RawData/raw.h"
 #include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/OpDetWaveform.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larsim/PhotonPropagation/PhotonVisibilityService.h"
 #include "larana/OpticalDetector/OpDetResponseInterface.h"
-
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Principal/Run.h"
+#include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Utilities/InputTag.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/FindManyP.h"
 #include "art/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
-
+// lbne-artdaq includes
+#include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh" 
+#include "lbne-raw-data/Overlays/SSPFragment.hh" 
+#include "lbne-raw-data/Overlays/anlTypes.hh"
+#include "artdaq-core/Data/Fragments.hh" 
+#include "../daqinput35t/tpcFragmentToRawDigits.h"
+#include "../daqinput35t/PennToOffline.h"
+#include "../daqinput35t/SSPReformatterAlgs.h"
+#include "../daqinput35t/utilities/UnpackFragment.h"
 // ROOT includes.
 #include "TFile.h"
 #include "TTree.h"
@@ -49,12 +65,14 @@
 #include "TLorentzVector.h"
 #include "TGeoTube.h"
 #include "TGeoNode.h"
+#include "TH1D.h"
 // C++ Includes
 #include <map>
 #include <vector>
 // #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 // #include <string>
 // #include <sstream>
 // #include <cmath>
@@ -72,6 +90,7 @@
 #define MAX_HITS 20000
 #define MAX_OPDET 8
 #define MAX_CLUSTER 10
+#define MAX_OPWAVEFORMS 1000
 
 using namespace std;
 
@@ -99,6 +118,7 @@ public:
     void processHits(const art::Event& evt);
     void processRecoTracks(const art::Event& event);
     void processOpDet(const art::Event& event);
+    void processTiming(const art::Event& event);
     void printEvent();
     void reset();
 
@@ -111,11 +131,14 @@ private:
     std::string fOutFileName;
     std::string fTrackModuleLabel;
     std::string fClusterModuleLabel; 
+    std::string fOpDetInputModule;
+    std::string fInstanceName;
+    std::string fOpHitModule;
     bool fSaveChannelWireMap;
     bool fSaveChannelWireGeo;
   
     art::ServiceHandle<geo::Geometry> fGeom;
-    // detinfo::DetectorProperties const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    // art::ServiceHandle<util::LArProperties> larp;
 
     // art::ServiceHandle<art::TFileService> fTfs;
     TFile *fOutFile;
@@ -159,7 +182,6 @@ private:
     std::vector<std::vector<int> > fCalib_wfADC;  
     std::vector<std::vector<int> > fCalib_wfTDC;
 
-
     int fMC_Ntrack;  // number of tracks in MC
     int fMC_id[MAX_TRACKS];  // track id; size == mc_Ntrack
     int fMC_pdg[MAX_TRACKS];  // track particle pdg; size == mc_Ntrack
@@ -200,9 +222,9 @@ private:
 
     int reco_nTrack;    // number of reco tracks
     TObjArray *fReco_trackPosition;
-
-	 // unsigned int UVPlane[4]={3,2,1,0};
-	 // unsigned int ZPlane[8]={7,6,5,4,3,2,1,0};
+  
+  // unsigned int UVPlane[4]={3,2,1,0};
+  // unsigned int ZPlane[8]={7,6,5,4,3,2,1,0};
 
   //Photon detector related
     TTree * fThePhotonTreeAll;
@@ -215,11 +237,11 @@ private:
     bool fMakeOpDetsTree;
     bool fMakeOpDetEventsTree;
     bool fUncompressWithPed;
-  bool fProcessMCtruth;
-  bool fProcessCalib;
-  bool fProcessHits;
-  bool fProcessReco;
-  bool fProcessOpDet;
+    bool fProcessMCtruth;
+    bool fProcessCalib;
+    bool fProcessHits;
+    bool fProcessReco;
+    bool fProcessOpDet;
     float fQE;
     float fWavelengthCutLow;
     float fWavelengthCutHigh;
@@ -231,9 +253,39 @@ private:
     Int_t fCountEventAll;
     Int_t fCountEventDetected;
     Int_t fOpChannel;
+  // new photon detector display
+  TObjArray *averageWaveforms;
+  std::map<int, int> waveformCount; 
+  std::vector<std::vector<int> > OpChannelToOpDet;
+  std::vector<std::vector<int> > timestamp;
+  //std::map< int, int   > OpHitCount; 
+  //std::map< int, double   > FirstHitTimePerChannel;
+  /*
+  TH1D*       fPedestalMeanPerChannel;
+  TH1D*       fPedestalSigmaPerChannel;
+  TH1D*       fIntegratedSignalMeanPerChannel;
+  TH1D*       fFractionSamplesNearMaximumPerChannel;
+  TH1D*       fNumberOfWaveformsProcessedPerChannel;
+  TH1D*       fFirstOpHitTimeMean;
+  //TH1D*       fFirstOpHitTimeSigma;
+  TH1D*       fSecondOpHitTimeMean;
+  //TH1D*       fSecondOpHitTimeSigma;
+  TH1D*       fFirstSecondDiffOpHitTimeMean;
+  //TH1D*       fFirstSecondDiffOpHitTimeSigma; 
+  TH1D*       fNumberOfOpHitsPerChannelPerEvent;
+  */
 
- }; // class CTree35t
+  // timing
+    std::string fRCERawDataLabel, fRCEFragType;
+    std::string fSSPFragType, fSSPRawDataLabel;
+    double fSampleFreq;
+    double RCETimeBegin;
+    double RCETimeEnd;
+    double SSPTimeBegin;
+    double SSPTimeEnd;
 
+   }; // class CTree35t
+  
 
 //-----------------------------------------------------------------------
 CTree35t::CTree35t(fhicl::ParameterSet const& parameterSet)
@@ -258,8 +310,8 @@ void CTree35t::reconfigure(fhicl::ParameterSet const& p){
     fClusterModuleLabel = p.get< std::string >("ClusterModuleLabel");
     fTrackModuleLabel = p.get< std::string >("TrackModuleLabel");
     fOutFileName = p.get< std::string >("outFile");
-    fSaveChannelWireMap = p.get< bool >("saveChannelWireMap", false);
-    fSaveChannelWireGeo = p.get< bool >("saveChannelWireGeo", false);
+    fSaveChannelWireMap = p.get< bool >("saveChannelWireMap");
+    fSaveChannelWireGeo = p.get< bool >("saveChannelWireGeo");
     fInputModule = p.get<std::string>("InputModule");
     fMakeAllPhotonsTree = p.get<bool>("MakeAllPhotonsTree");
     fMakeDetectedPhotonsTree = p.get<bool>("MakeDetectedPhotonsTree");
@@ -271,6 +323,13 @@ void CTree35t::reconfigure(fhicl::ParameterSet const& p){
     fProcessHits = p.get< bool         >("ProcessHits", true);
     fProcessReco = p.get< bool         >("ProcessReco", true);
     fProcessOpDet = p.get< bool         >("ProcessOpDet", true);
+    fOpDetInputModule = p.get<std::string >("OpDetInputModule");
+    fInstanceName = p.get<std::string >("InstanceName");
+    fOpHitModule = p.get<std::string >("OpHitModule");
+    fRCEFragType = p.get<std::string >("RCEFragType");
+    fRCERawDataLabel = p.get<std::string >("RCERawDataLabel");
+    fSSPFragType = p.get<std::string >("SSPFragType");
+    fSSPRawDataLabel = p.get<std::string >("SSPRawDataLabel");
 }
 
 
@@ -377,6 +436,18 @@ void CTree35t::initOutput()
     fReco_trackPosition->SetOwner(kTRUE);
     fEventTree->Branch("reco_trackPosition", &fReco_trackPosition);
 
+    averageWaveforms = new TObjArray();
+    averageWaveforms->SetOwner(kTRUE);
+    fEventTree->Branch("averageWaveforms", &averageWaveforms);
+    fEventTree->Branch("waveformCount", &waveformCount);
+    fEventTree->Branch("OpChannelToOpDet", &OpChannelToOpDet);
+    fEventTree->Branch("timestamp", &timestamp);
+
+    fEventTree->Branch("sampleFreq", &fSampleFreq, "sampleFreq/D");
+    fEventTree->Branch("RCETimeBegin", &RCETimeBegin, "RCETimeBegin/D");
+    fEventTree->Branch("RCETimeEnd", &RCETimeEnd, "RCETimeEnd/D");
+    fEventTree->Branch("SSPTimeBegin", &SSPTimeBegin, "SSPTimeBegin[1000]/D");
+    fEventTree->Branch("SSPTimeEnd", &SSPTimeEnd, "SSPTimeEnd[1000]/D");
     gDirectory = tmpDir;
 
     // init Photon TTree
@@ -402,19 +473,19 @@ void CTree35t::initOutput()
     }
     if(fMakeOpDetsTree){
       fTheOpDetTree = new TTree("OpDets", "OpDets");
-      //fTheOpDetTree->Branch("eventNo", &fEvent);
-      //fTheOpDetTree->Branch("runNo", &fRun);
-      //fTheOpDetTree->Branch("subRunNo", &fSubRun);
+      fTheOpDetTree->Branch("eventNo", &fEvent);
+      fTheOpDetTree->Branch("runNo", &fRun);
+      fTheOpDetTree->Branch("subRunNo", &fSubRun);
       fTheOpDetTree->Branch("NOpDets", &fNOpDets, "NOpDets/I");
-      //fTheOpDetTree->Branch("OpChannel", &fOpChannel, "OpChannel/I");
+      fTheOpDetTree->Branch("OpChannel", &fOpChannel, "OpChannel/I");
       fTheOpDetTree->Branch("CountOpDetAll", &fCountOpDetAll, "CountOpDetAll[NOpDets]/I");
       fTheOpDetTree->Branch("CountOpDetDetected", &fCountOpDetDetected, "CountOpDetDetected[NOpDets]/I");
     }
     if(fMakeOpDetEventsTree){
       fTheEventTree = new TTree("OpDetEvents", "OpDetEvents");
-      //fTheEventTree->Branch("eventNo", &fEvent);
-      //fTheEventTree->Branch("runNo", &fRun);
-      //fTheEventTree->Branch("subRunNo", &fSubRun);
+      fTheEventTree->Branch("eventNo", &fEvent);
+      fTheEventTree->Branch("runNo", &fRun);
+      fTheEventTree->Branch("subRunNo", &fSubRun);
       fTheEventTree->Branch("CountAll", &fCountEventAll, "CountAll/I");
       fTheEventTree->Branch("CountDetected", &fCountEventDetected, "CountDetected/I");
     }
@@ -425,7 +496,10 @@ void CTree35t::initOutput()
 //-----------------------------------------------------------------------
 void CTree35t::beginJob()
 {
-  std::cout<<"job begin"<<std::endl;
+  //art::ServiceHandle< util::TimeService> timeService;
+    auto const* timeService = lar::providerFrom<detinfo::DetectorClocksService>();
+    fSampleFreq = timeService->OpticalClock().Frequency();
+
     fNcryostats = fGeom->Ncryostats();  // 1 for 35t
     // 8 TPC for 35t
     // TPC (0,1), (6,7): large APA
@@ -453,42 +527,27 @@ void CTree35t::beginJob()
     }
     
     fNchannels = fGeom->Nchannels();
-    //std::cout<<"channel number is "<<fNchannels<<std::endl;
+
+    // photon detector
     fNOpDets = fGeom->NOpDets();
-    //std::cout<<"# of OpDets is "<<fNOpDets<<std::endl;
+    OpChannelToOpDet.resize(MAX_OPDET);
+    timestamp.resize(MAX_OPDET);
     double xyz[3];
     double tmp;
     for (int i=0; i<fNOpDets; i++) {
       const geo::OpDetGeo& fOpDetNode = fGeom->Cryostat(0).OpDet(i);
       fOpDetNode.GetCenter(xyz,0.);
-      //fGeom->Cryostat(0).OpDet(i).GetCenter(xyz);
-      //std::cout<<"i = "<<i<<"; got centers"<<std::endl;
       fOpDetPositions_Y[i] = (float)xyz[1];
       fOpDetPositions_Z[i] = (float)xyz[2];
-      //std::cout<<"(y,z) = ("<<fOpDetPositions_Y[i]<<","<<fOpDetPositions_Z[i]<<")"<<std::endl;
       TGeoNode *fOpNode = (TGeoNode*)fOpDetNode.Node();
-      //std::cout<<"got TGeoNode "<<fOpNode->GetName()<<std::endl;
       TGeoTube *fOpTube = (TGeoTube*)fOpNode->GetVolume()->GetShape();
-      //std::cout<<"got TGeoTube "<<fOpTube->GetName()<<std::endl;
-      //std::cout<<"---------------x, y, z-----------------------------\n"<<fOpTube->GetDX()<<" "<<fOpTube->GetDY()<<" "<<fOpTube->GetDZ()<<std::endl;
       tmp = fOpTube->GetDZ();//GetRmax();//fOpDetNode.RMax();
-      //std::cout<<"tmp = "<<tmp<<std::endl;
       fOpDetHalfWidths[i] = (float)tmp;
-      //std::cout<<"got half-wdith"<<std::endl;
       tmp = fOpTube->GetDY();//fOpDetNode.HalfL();
       fOpDetHalfHeights[i] = (float)tmp;
-      //std::cout<<i<<"(w,h) = ("<<fOpDetHalfWidths[i]<<","<<fOpDetHalfHeights[i]<<")"<<std::endl;
     }
 
     printGeometry();
-
-    // for (int i=0; i<fNplanes; i++) {
-    //   int nw = fGeom->Nwires(i);
-    //   for (int j=0; j<nw; j++) {
-    //     cout << "channel (" << i << ", " << j << "): " << fGeom->PlaneWireToChannel(i, j) << endl;
-    //   }
-    
-    // }
 
     // Write fGeoTree to Disk (once)
     fGeoTree->Fill();
@@ -497,7 +556,6 @@ void CTree35t::beginJob()
     fGeoTree->Write();
     gDirectory = tmpDir;
     
-
     // Save Channel Map to text file.
     if (fSaveChannelWireMap) {
         saveChannelWireMap();
@@ -507,33 +565,33 @@ void CTree35t::beginJob()
     // saveWireGeometry(1, 5);
     // saveWireGeometry(1, 7);
 
-    if(fSaveChannelWireGeo){
-      ofstream wireGeoFile;
-      wireGeoFile.open("WireGeometry.txt");
-      for (unsigned int plane=0; plane<(unsigned int)fNplanes; plane++) {
-        wireGeoFile << "***************** PLANE " << plane <<" ********************\n";
-        for(unsigned int tpc=0; tpc<(unsigned int)fNTPC; tpc++) {
-          wireGeoFile << "----------- TPC "<< tpc << " ------------\n";
-          wireGeoFile << "Wire#    WireID    ChannelID     Start        End\n";
-          int Nwires = fGeom->Nwires(plane, tpc);
-          double xyzStart[3];
-          double xyzEnd[3];
-          for(int wire=0; wire<Nwires; wire++) {
-            fGeom->WireEndPoints(0, tpc, plane, wire, xyzStart, xyzEnd);
-            uint32_t channelid = fGeom->PlaneWireToChannel(plane, wire, tpc, 0);
-            int wireid = wire;
-            wireGeoFile << "                                " << xyzStart[0] << " " << xyzEnd[0] <<"\n";
-            wireGeoFile << wire << "         " << wireid << "         ";
-            wireGeoFile << channelid << "            " << xyzStart[1] << " " << xyzEnd[1] << "\n";
-            wireGeoFile << "                                " << xyzStart[2] << " " << xyzEnd[2] <<"\n";
-          }
-          wireGeoFile << "------------------------------------------\n\n";
-        }
-        wireGeoFile << "\n***********************************************\n\n";
+    /*
+    ofstream wireGeoFile;
+    wireGeoFile.open("WireGeometry.txt");
+    for (unsigned int plane=0; plane<(unsigned int)fNplanes; plane++) {
+      wireGeoFile << "***************** PLANE " << plane <<" ********************\n";
+      for(unsigned int tpc=0; tpc<(unsigned int)fNTPC; tpc++) {
+	wireGeoFile << "----------- TPC "<< tpc << " ------------\n";
+	wireGeoFile << "Wire#    WireID    ChannelID     Start        End\n";
+	int Nwires = fGeom->Nwires(plane, tpc);
+	double xyzStart[3];
+	double xyzEnd[3];
+	for(int wire=0; wire<Nwires; wire++) {
+	  fGeom->WireEndPoints(0, tpc, plane, wire, xyzStart, xyzEnd);
+	  uint32_t channelid = fGeom->PlaneWireToChannel(plane, wire, tpc, 0);
+	  int wireid = wire;
+	  wireGeoFile << "                                " << xyzStart[0] << " " << xyzEnd[0] <<"\n";
+	  wireGeoFile << wire << "         " << wireid << "         ";
+	  wireGeoFile << channelid << "            " << xyzStart[1] << " " << xyzEnd[1] << "\n";
+	  wireGeoFile << "                                " << xyzStart[2] << " " << xyzEnd[2] <<"\n";
+	}
+	wireGeoFile << "------------------------------------------\n\n";
       }
-      wireGeoFile << "\n" << endl;
-      wireGeoFile.close();
-    }//fSaveChannelWireGeo
+      wireGeoFile << "\n***********************************************\n\n";
+    }
+    wireGeoFile << "\n" << endl;
+    wireGeoFile.close();
+    */
 }
 
 
@@ -597,9 +655,9 @@ void CTree35t::saveWireGeometry(int plane, int tpc)
         cout << endl;
     }
 
-    // cout << " Temperature: " << detp->Temperature() << endl;
-    // cout << " E field: " << detp->Efield() << endl;
-    // cout << " Drift Velocity: " << detp->DriftVelocity(detp->Efield(), detp->Temperature()) << endl;
+    // cout << " Temperature: " << larp->Temperature() << endl;
+    // cout << " E field: " << larp->Efield() << endl;
+    // cout << " Drift Velocity: " << larp->DriftVelocity(larp->Efield(), larp->Temperature()) << endl;
 
 }
 
@@ -668,8 +726,9 @@ void CTree35t::analyze( const art::Event& event )
     if (fProcessCalib) processCalib(event);
     if (fProcessHits)  processHits(event);
     if (fProcessReco) processRecoTracks(event);
-    fEventTree->Fill();
     if (fProcessOpDet) processOpDet(event);
+    processTiming(event);
+    fEventTree->Fill();
     printEvent();
 
 }
@@ -716,6 +775,13 @@ void CTree35t::reset()
 
     fReco_trackPosition->Clear();
 
+    averageWaveforms->Clear();
+    waveformCount.clear();
+    for (size_t i = 0; i < MAX_OPDET; ++i) {
+      OpChannelToOpDet.at(i).clear();
+      timestamp.at(i).clear();
+    }
+
     fCount=0;
     fCountEventAll=0;
     fCountEventDetected=0;
@@ -730,11 +796,12 @@ void CTree35t::reset()
 //-----------------------------------------------------------------------
 void CTree35t::processRaw( const art::Event& event )
 {
+
     //    unsigned int tpcNo, cryoNo;
     // get the objects holding all of the raw data information
     art::Handle< std::vector<raw::RawDigit> > rawdigit;
     event.getByLabel(fRawDigitLabel, rawdigit);
-   std::cout << "raw digit label check: " << fRawDigitLabel << std::endl;
+    std::cout << "raw digit label check: " << fRawDigitLabel << std::endl;
  
     // put it in a more easily usable form
     std::vector< art::Ptr<raw::RawDigit> >  rawhits;
@@ -1025,6 +1092,40 @@ void CTree35t::processRecoTracks( const art::Event& event )
   
 void CTree35t::processOpDet(const art::Event& event)
 {
+    art::Handle< std::vector<raw::OpDetWaveform> > waveformHandle;
+    event.getByLabel(fOpDetInputModule, fInstanceName, waveformHandle);
+    art::Handle< std::vector< recob::OpHit > > OpHitHandle;
+    event.getByLabel(fOpHitModule, OpHitHandle);
+    std::cout << "OpHitHandle->size() = " << OpHitHandle->size() << std::endl;
+    std::cout<<"waveformHandle->size() = "<<waveformHandle->size()<<std::endl;
+    for (size_t i = 0; i < waveformHandle->size(); ++i) {
+      art::Ptr<raw::OpDetWaveform> waveformPtr(waveformHandle, i);
+      raw::OpDetWaveform pulse = *waveformPtr;
+      double extractedTimestamp = pulse.TimeStamp();
+      int channel = pulse.ChannelNumber();
+      int OpDetNumber = fGeom->GeometryCore::OpDetFromOpChannel(channel);
+      std::cout<<i<<": channel = "<<channel<<", timestamp = "<<std::setprecision(15)<<extractedTimestamp<<", OpDetNumber = "<<OpDetNumber<<", #Ticks = "<<pulse.size()<<", fSampleFreq = "<<fSampleFreq<<std::endl;
+      //auto findchannel = find(OpChannelToOpDet.at(OpDetNumber).begin(), OpChannelToOpDet.at(OpDetNumber).end(), channel);
+      //if (findchannel == OpChannelToOpDet.at(OpDetNumber).end()) {
+      OpChannelToOpDet.at(OpDetNumber).push_back(channel);
+      timestamp.at(OpDetNumber).push_back((int)extractedTimestamp);
+	//}
+      TH1D *hwaveform = new TH1D(Form("avgwaveform_channel_%i_%i", channel, waveformCount[channel]), Form("average waveform channel %i %i-waveform", channel, waveformCount[channel]), pulse.size(), extractedTimestamp, double(pulse.size())/fSampleFreq+extractedTimestamp);
+      for (size_t tick = 0; tick < pulse.size(); ++tick) {
+	hwaveform->Fill(extractedTimestamp+double(tick)/fSampleFreq, pulse[tick]);
+      }
+      waveformCount[channel]++;
+      averageWaveforms->Add(hwaveform);
+
+    }
+    /*
+      for (size_t i = 0; i != OpHitHandle->size(); ++i) {
+      int channel = OpHitHandle->at(i).OpChannel();
+      OpHitCount[channel]++;
+      OpHitCountPerEvent[channel]++;
+      }*/    
+    
+    /*
     art::ServiceHandle<sim::LArG4Parameters> lgp;
     bool fUseLitePhotons = lgp->UseLitePhotons();
 
@@ -1088,7 +1189,107 @@ void CTree35t::processOpDet(const art::Event& event)
         if(fMakeOpDetsTree) fTheOpDetTree->Fill();
         if(fMakeOpDetEventsTree) fTheEventTree->Fill();
     }
+    */
+}
+
+// -------------------------------------------------------------------
+void CTree35t::processTiming(const art::Event& event)
+{
+  // RCE
+  art::Handle<artdaq::Fragments> RCErawFragments;
+  event.getByLabel(fRCERawDataLabel, fRCEFragType, RCErawFragments);
+  bool RCEPresent = true;
+  try { RCErawFragments->size(); }
+  catch(std::exception e) {
+    std::cout << "WARNING: Raw RCE data not found in event " << event.event() << std::endl;
+    RCEPresent = false;
+  }
+
+  if (RCEPresent) {
+    if(!RCErawFragments.isValid()){
+      std::cerr << "Run: " << event.run() << ", SubRun: " << event.subRun()	<< ", Event: " << event.event() << " is NOT VALID" << std::endl;
+      throw cet::exception("RCErawFragments NOT VALID");
+      return;
+    }
     
+    artdaq::Fragments const& rawFragmentsRCE = *RCErawFragments;
+    std::cout<<"rawFragmentsRCE.size() = "<<rawFragmentsRCE.size()<<std::endl;
+    for ( size_t fragIndex=0; fragIndex < rawFragmentsRCE.size(); ++fragIndex ) {
+      int ThisADCcount = 0;
+      const artdaq::Fragment &singleFragment = rawFragmentsRCE[fragIndex];
+      lbne::TpcMilliSliceFragment millisliceFragment(singleFragment);
+      auto numMicroSlices = millisliceFragment.microSliceCount();
+      for (unsigned int i_micro=0;i_micro<numMicroSlices;i_micro++) { // Loop through all MicroSlices
+	std::unique_ptr <const lbne::TpcMicroSlice> microSlice = millisliceFragment.microSlice(i_micro);
+	auto numNanoSlices = microSlice->nanoSliceCount();
+	if (numNanoSlices) {
+	  //ConsistRCE = 1;
+	  ThisADCcount += numNanoSlices;
+	  std::cout<<fragIndex<<": "<<numNanoSlices<<", "<<ThisADCcount<<std::endl;
+	} // If numNanoSlices.                                                                    
+	if ( fragIndex==0 && i_micro==0 ) {
+	  std::cout << "Getting RCE time for event " << event.event();                        
+	  if ( microSlice->nanoSliceCount() ) { // If this MicroSlice has any NanoSlices      
+	    RCETimeBegin = microSlice->nanoSlice(0)->nova_timestamp();
+	    std::cout << ", taking RCETime from first nanoslice " << RCETimeBegin << std::endl;      
+	  } // NanoSlice                                                    
+	  else {
+	    RCETimeBegin = microSlice->software_message();
+	    std::cout << ", taking RCETime from header " << RCETimeBegin << std::endl;  
+	  }	  
+	} // Looking at first MicroSlice of first Fragment                                 
+	if ( fragIndex==rawFragmentsRCE.size()-1 && i_micro==numMicroSlices-1) { // last microslice of last fragment
+	  RCETimeEnd = microSlice->nanoSlice(numNanoSlices-1)->nova_timestamp();
+	} else {
+	  std::unique_ptr <const lbne::TpcMicroSlice> prevMicroSlice = millisliceFragment.microSlice(i_micro-1);
+	  RCETimeEnd = 2.*microSlice->software_message() - prevMicroSlice->software_message();
+	}
+      } // MicroSlice                                                                                                     
+    }
+  }
+
+  // SSP Section ------------------------
+  bool SSPPresent = true;
+  art::Handle<artdaq::Fragments> SSPrawFragments;
+  event.getByLabel(fSSPRawDataLabel, fSSPFragType, SSPrawFragments);
+  try { SSPrawFragments->size(); }
+  catch(std::exception e) {
+    mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << event.event();
+    SSPPresent = false;
+  }
+
+  if (SSPPresent) {
+    if(!SSPrawFragments.isValid()){
+      mf::LogError("SSPToOffline") << "Run: " << event.run() << ", SubRun: " << event.subRun() << ", Event: " << event.event() << " is NOT VALID";
+      throw cet::exception("raw NOT VALID");
+      return;
+    }
+    
+    artdaq::Fragments const& rawFragmentsSSP = *SSPrawFragments;
+    std::cout<<"rawFragmentsSSP.size() = "<<rawFragmentsSSP.size()<<std::endl;
+
+    if ( rawFragmentsSSP.size() ) {
+      const auto& frag(rawFragmentsSSP[0]);
+      const SSPDAQ::MillisliceHeader* meta=0;
+      if(frag.hasMetadata())
+	{
+	  meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);	  
+	  std::cout << "=== SSP Metadata, Start time " << meta->startTime << ", End time " << meta->endTime << " Packet length " << meta->length << " Number of triggers " << meta->nTriggers << "===" << std::endl;
+	  SSPTimeBegin = meta->startTime;
+	}
+    }
+    std::cout << "Got SSP start time, it is " << SSPTimeBegin << std::endl;
+    
+    for (size_t fragIndex = 0; fragIndex < rawFragmentsSSP.size(); ++fragIndex) {
+      const auto& frag(rawFragmentsSSP.at(fragIndex));
+      const SSPDAQ::MillisliceHeader *meta = 0;
+      if (frag.hasMetadata()) {
+	meta = &(frag.metadata<lbne::SSPFragment::Metadata>()->sliceHeader);
+	std::cout<<fragIndex<<", "<<meta->endTime<<std::endl;
+	if (fragIndex == rawFragmentsSSP.size()-1) SSPTimeEnd = meta->endTime;
+      }
+    }
+  } // SSP Present
 }
 
 // -------------------------------------------------------------------

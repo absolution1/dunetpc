@@ -134,7 +134,8 @@ void DAQToOffline::PTBToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto triggers = PennFragmentToExternalTrigger(*rawFragments, fPTBMap);
+  lbne::PennMicroSlice::Payload_Timestamp *FirstPTBTimestamp = nullptr;
+  auto triggers = PennFragmentToExternalTrigger(*rawFragments, fPTBMap, FirstPTBTimestamp);
 
   std::cout << "Returned from PennFragmentToExternalTriggers and triggers has size " << triggers.size() << std::endl;
 

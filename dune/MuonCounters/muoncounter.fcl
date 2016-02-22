@@ -4,11 +4,15 @@ muoncounter:
 {
     module_type:              "MuonCounter"
     HitsModuleLabel:          "hit"
-    CounterModuleLabel:       "simcounter" 
     CombinedTimeDelay:         160.0
-    FragType:                 "TRIGGER"
-    DataLabel:                "daq"
 
+    RCEFragType:        "TPC"
+    RCERawDataLabel:    "daq"
+    SSPFragType:        "PHOTON"
+    SSPRawDataLabel:    "daq"
+    PTBFragType:        "TRIGGER"
+    PTBRawDataLabel:    "daq"
+    
     PTBMapDir:           "/dune/data2/users/warburton/PTBChannelMap/"
     PTBMapFile:          "PTBChannelMap.txt"
 }
