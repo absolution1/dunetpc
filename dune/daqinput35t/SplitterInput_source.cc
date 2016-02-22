@@ -1188,7 +1188,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   loadedDigits_.index = fLastTriggerIndex;
   this_timestamp      = fLastTimeStamp;
   
-  if (fDebugLevel) {
+  if (fDebugLevel > 2) {
     std::cout << "This is a list of the good events seen so far!" << std::endl;
     for( size_t el=0; el<GoodEvents.size(); ++el) {
       std::cout << "Tree index " << GoodEvents[el].first << " was a good event, which had " << GoodEvents[el].second << " ADC values." << std::endl;
@@ -1247,7 +1247,6 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
     bool PTBTrigPresent = false;
     if (fRequirePTB) {
       PTBTrigPresent= LoadPTBInformation( LoadTree );
-      if (fDebugLevel > 1) std::cout << "Is there a PTB trigger present? " << PTBTrigPresent << std::endl;
     }
     
     if ( fWhichTrigger.size() == 1 && fWhichTrigger[0] == 3 ) { // If looking for only looking for triggers from the PTB
@@ -1269,10 +1268,8 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
     if (fMonteCarlo) {
       auto *particles = getMCParticles(MCPartinputBranch_, LoadTree);
       MonteCarlo_.loadMCParts(*particles);
-      if (fDebugLevel) std::cout << "Particles has size " << particles->size() << std::endl;
       auto *simchans = getMCSimChans(MCSimChaninputBranch_, LoadTree);
       MonteCarlo_.loadSimChans(*simchans);
-      if (fDebugLevel) std::cout << "SimChans has size " << simchans->size() << std::endl;
     }
     
     InputTree++;
@@ -1285,7 +1282,8 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
   bool TrigPresent = false;
   if (PenninputDataProduct_.find("Fragment") != std::string::npos) {
     auto* PennFragments = getFragments ( PenninputBranch_, LoadTree );
-    std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, fPTBMap );
+    lbne::PennMicroSlice::Payload_Timestamp *FirstPTBTimestamp = nullptr;
+    std::vector<raw::ExternalTrigger> counters = DAQToOffline::PennFragmentToExternalTrigger( *PennFragments, fPTBMap, FirstPTBTimestamp );
     loadedCounters_.load( counters, fDebugLevel );
     if (fDebugLevel > 1) std::cout << "Counters has size " << counters.size() << std::endl;
     
@@ -1294,7 +1292,7 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
 	std::cout << "Looking at counters[" << CountLoop << "] has CounterID " << counters[CountLoop].GetTrigID() << " and Timestamp " << counters[CountLoop].GetTrigTime() << std::endl;
       for (size_t PTB = 0; PTB < fPTBTrigs.size(); ++PTB) {
 	if ( counters[CountLoop].GetTrigID() == fPTBTrigs[PTB] ) {
-	  if (fDebugLevel) std::cout << "Looking at event " << inputEventNumber_ << ", there is a trigger here on channel " << counters[CountLoop].GetTrigID() << std::endl;
+	  if (fDebugLevel) std::cout << "There is a trigger on channel " << counters[CountLoop].GetTrigID() << " at time " << counters[CountLoop].GetTrigTime() << " in event " << inputEventNumber_ << std::endl;
 	  TrigPresent = true;
 	}
       }

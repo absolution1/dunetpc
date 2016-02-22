@@ -14,7 +14,7 @@
 #include <iomanip>
 //=======================================================================================
 std::vector<raw::ExternalTrigger> 
-DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, std::map<int,int>& channelMap ) {
+DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, std::map<int,int>& channelMap, lbne::PennMicroSlice::Payload_Timestamp *&FirstPTBTimestamp ) {
   
   std::vector<raw::ExternalTrigger> ExternTrigs;
 
@@ -101,7 +101,8 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments,
 	
       case lbne::PennMicroSlice::DataTypeTimestamp:
 	previous_timestamp = reinterpret_cast<lbne::PennMicroSlice::Payload_Timestamp*>(payload_data);
-	//std::cout << "Got a timestamp " << previous_timestamp << " " << previous_timestamp->nova_timestamp << std::endl;
+	if (FirstPTBTimestamp == nullptr) FirstPTBTimestamp = previous_timestamp;
+	//std::cout << "Got a timestamp " << previous_timestamp << " " << previous_timestamp->nova_timestamp << ", the first timestamp in this event is " << FirstPTBTimestamp << " " << FirstPTBTimestamp->nova_timestamp << std::endl;
 	break; // Timestamp Type
 	
       default:

@@ -179,7 +179,8 @@ void Muoncountertimes::analyze(const art::Event& evt)
   std::vector<std::vector<int>>       coincidences(2);
   std::vector<std::vector<int>>       trig_ID_Vec(2);
   std::vector<std::vector<long long>> trig_Times_Vec(2); 
-  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment, fPTBMap);
+  lbne::PennMicroSlice::Payload_Timestamp *FirstPTBTimestamp = nullptr;
+  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment, fPTBMap, FirstPTBTimestamp);
   
   unsigned int total_Hits = trigs.size();
 
