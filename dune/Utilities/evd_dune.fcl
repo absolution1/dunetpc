@@ -45,5 +45,5 @@ physics:
 
 #services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
 #services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
-#services.user.IDetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 500
-#services.user.IDetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 1800
+services.user.DetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 500
+services.user.DetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 1800

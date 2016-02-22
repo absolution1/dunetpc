@@ -25,10 +25,10 @@
 
 
 //larsoft
-#include "Geometry/Geometry.h"
-#include "Utilities/DetectorProperties.h"
-#include "RecoBase/Hit.h"
-#include "RawData/RawDigit.h"
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RawData/RawDigit.h"
 
 //ROOT
 #include "TH1I.h"
@@ -123,7 +123,7 @@ void nearline::TPCHits::makeHistograms(){
   
   art::ServiceHandle<art::TFileService> tfs;
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::DetectorProperties> detprop;
+  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   const double samplingRate = detprop->SamplingRate();
   const unsinged int millisliceSize = 5e6;

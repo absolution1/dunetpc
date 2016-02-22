@@ -1,8 +1,8 @@
 
 simple_plugin(dunezsanalysis "module"
-			Geometry_service
-                        Geometry
-			RawData
+			larcore_Geometry_Geometry_service
+                        larcore_Geometry
+			lardata_RawData
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -20,13 +20,12 @@ simple_plugin(dunezsanalysis "module"
 )
 
 simple_plugin(dEdx "module"
-                        Geometry_service
-                        Geometry
-                        RawData
-                        RecoBase
-                        LArProperties_service
-                        Utilities
-                        Simulation
+                        larcore_Geometry_Geometry_service
+                        larcore_Geometry
+                        lardata_RawData
+                        lardata_RecoBase
+                        lardata_Utilities
+                        larsim_Simulation
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
@@ -44,15 +43,13 @@ simple_plugin(dEdx "module"
 )
 
 simple_plugin(EMEnergyCalib "module"
-		        RawData
-		        RecoBase
-		        Geometry
-			Geometry_service
-			BackTracker_service
-			Simulation
-			Utilities
-			DetectorProperties_service
-			LArProperties_service
+		        lardata_RawData
+		        lardata_RecoBase
+		        larcore_Geometry
+			larcore_Geometry_Geometry_service
+			larsim_MCCheater_BackTracker_service
+			larsim_Simulation
+			lardata_Utilities
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -70,15 +67,13 @@ simple_plugin(EMEnergyCalib "module"
 )
 
 simple_plugin(EMPi0Energy "module"
-		        RawData
-		        RecoBase
-		        Geometry
-			Geometry_service
-			BackTracker_service
-			Simulation
-			Utilities
-			DetectorProperties_service
-			LArProperties_service
+		        lardata_RawData
+		        lardata_RecoBase
+		        larcore_Geometry
+			larcore_Geometry_Geometry_service
+			larsim_MCCheater_BackTracker_service
+			larsim_Simulation
+			lardata_Utilities
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

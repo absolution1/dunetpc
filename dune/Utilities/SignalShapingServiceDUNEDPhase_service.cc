@@ -8,12 +8,11 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib/exception.h"
-#include "Geometry/Geometry.h"
-#include "Geometry/TPCGeo.h"
-#include "Geometry/PlaneGeo.h"
-#include "Utilities/DetectorProperties.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/LArFFT.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/TPCGeo.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/Utilities/LArFFT.h"
 #include "TSpline.h"
 
 //#include "TFile.h"
@@ -220,7 +219,7 @@ void util::SignalShapingServiceDUNEDPhase::SetFilters()
   
   // Get services.
 
-  //art::ServiceHandle<util::DetectorProperties> detprop;
+  //auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   //art::ServiceHandle<util::LArFFT> fft;
 
   //double ts = detprop->SamplingRate();
@@ -234,7 +233,7 @@ void util::SignalShapingServiceDUNEDPhase::SetFilters()
 void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
 {
   // Get services
-  art::ServiceHandle<util::DetectorProperties> detprop;
+  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
   // Operation permitted only if output of rebinning has a larger bin size

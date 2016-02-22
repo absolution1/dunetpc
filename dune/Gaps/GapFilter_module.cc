@@ -24,17 +24,16 @@
 #include "art/Framework/Principal/Handle.h" 
 
 // LArSoft includes
-#include "Geometry/Geometry.h"
-#include "Geometry/PlaneGeo.h"
-#include "Geometry/WireGeo.h"
-#include "RecoBase/Hit.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/DetectorProperties.h"
-#include "Utilities/AssociationUtil.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "larcore/Geometry/WireGeo.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/Utilities/AssociationUtil.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h" 
 #include "SimulationBase/MCTrajectory.h"
-#include "Simulation/SimChannel.h"
+#include "larsim/Simulation/SimChannel.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -171,8 +170,6 @@ namespace MyGapFilter {
     ResetVars();
 
     art::ServiceHandle<geo::Geometry> geom;
-    art::ServiceHandle<util::LArProperties> larprop;
-    art::ServiceHandle<util::DetectorProperties> detprop;
     
     run = evt.run();
     subrun = evt.subRun();

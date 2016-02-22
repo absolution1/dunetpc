@@ -4,18 +4,18 @@
 #define RawEVDDP_Module
 
 // LArSoft includes
-#include "Utilities/DetectorProperties.h"
-#include "Simulation/SimChannel.h"
-#include "Simulation/LArG4Parameters.h"
-#include "RawData/raw.h"
-#include "RawData/RawDigit.h"
-#include "RecoBase/Hit.h"
-#include "RecoBase/Cluster.h"
-#include "Geometry/Geometry.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larsim/Simulation/SimChannel.h"
+#include "larsim/Simulation/LArG4Parameters.h"
+#include "lardata/RawData/raw.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBase/Cluster.h"
+#include "larcore/Geometry/Geometry.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
-#include "SimpleTypesAndConstants/geo_types.h"
-#include "RawData/raw.h"
+#include "larcore/SimpleTypesAndConstants/geo_types.h"
+#include "lardata/RawData/raw.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -84,7 +84,7 @@ namespace AnalysisExample{
 
     // art handles
     art::ServiceHandle<geo::Geometry> fGeom; 
-    art::ServiceHandle<util::DetectorProperties> fDetProp;
+    detinfo::DetectorProperties const* fDetProp = nullptr;
 
     std::vector<TH2I*> fTimeChanU; //data in view 0
     std::vector<TH2I*> fTimeChanV; //data in view 1
@@ -110,6 +110,7 @@ namespace AnalysisExample{
   //-----------------------------------------------------------------------
 
   void RawEVDDP::reconfigure(fhicl::ParameterSet const& p){
+    fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fRawDigitLabel  =  p.get< std::string >("RawDigitLabel");
     fNticks         = fDetProp->NumberTimeSamples();
     return;

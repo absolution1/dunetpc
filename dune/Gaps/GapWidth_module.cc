@@ -20,24 +20,23 @@
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
 // LArSoft includes
-#include "Geometry/Geometry.h"
-#include "Geometry/CryostatGeo.h"
-#include "Geometry/TPCGeo.h"
-#include "Geometry/PlaneGeo.h"
-#include "Geometry/WireGeo.h"
-#include "RecoBase/Hit.h"
-#include "RecoBase/Cluster.h"
-#include "RecoBase/Track.h"
-#include "RecoBase/SpacePoint.h"
-#include "RecoBase/OpFlash.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/DetectorProperties.h"
-#include "Utilities/AssociationUtil.h"
-#include "Utilities/TimeService.h"
-#include "MCCheater/BackTracker.h"
-#include "AnalysisBase/Calorimetry.h"
-#include "AnalysisBase/T0.h"
-#include "AnalysisBase/ParticleID.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/CryostatGeo.h"
+#include "larcore/Geometry/TPCGeo.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "larcore/Geometry/WireGeo.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBase/Cluster.h"
+#include "lardata/RecoBase/Track.h"
+#include "lardata/RecoBase/SpacePoint.h"
+#include "lardata/RecoBase/OpFlash.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/Utilities/AssociationUtil.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larsim/MCCheater/BackTracker.h"
+#include "lardata/AnalysisBase/Calorimetry.h"
+#include "lardata/AnalysisBase/T0.h"
+#include "lardata/AnalysisBase/ParticleID.h"
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
 
@@ -320,9 +319,7 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
   ResetVars();
 
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::LArProperties> larprop;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::TimeService> timeservice;
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<cheat::BackTracker> bktrk;
 
   art::ServiceHandle<art::TFileService> tfs;
@@ -355,9 +352,9 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
   TTimeStamp tts(ts.timeHigh(), ts.timeLow());
   evttime = tts.AsDouble();
 
-  efield[0] = larprop->Efield(0);
-  efield[1] = larprop->Efield(1);
-  efield[2] = larprop->Efield(2);
+  efield[0] = detprop->Efield(0);
+  efield[1] = detprop->Efield(1);
+  efield[2] = detprop->Efield(2);
   
   t0 = detprop->TriggerOffset();
 

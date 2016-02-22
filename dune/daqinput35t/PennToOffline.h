@@ -16,8 +16,8 @@
 #include "utilities/UnpackFragment.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "Geometry/Geometry.h"
-#include "RawData/ExternalTrigger.h"
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/RawData/ExternalTrigger.h"
 
 #include <iostream>
 #include <fstream>
@@ -41,7 +41,7 @@ namespace DAQToOffline {
 
     // Unpack the given artdaq::Fragment objects, and create a vector of raw::ExternalTrigger objects. The
     // Fragments are expected to be carrying Penn Trigger board data; this is not checked.
-    std::vector<raw::ExternalTrigger> PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, std::map<int,int>& channelMap );
+    std::vector<raw::ExternalTrigger> PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments, std::map<int,int>& channelMap, lbne::PennMicroSlice::Payload_Timestamp *&FirstPTBTimestamp );
 
     // Function to get the full timestamp of a given payload
     void GetTimestamp( lbne::PennMilliSliceFragment msf,

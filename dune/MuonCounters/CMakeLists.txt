@@ -1,12 +1,10 @@
 
 simple_plugin(MuonCounter "module"
-			RawData
-                        RecoBase
-	                Geometry
-	                Geometry_service
-                        Utilities    
-			DetectorProperties_service
-			LArProperties_service  
+			lardata_RawData
+                        lardata_RecoBase
+	                larcore_Geometry
+	                larcore_Geometry_Geometry_service
+                        lardata_Utilities    
    lbne-raw-data_Overlays
    lbne_daqinput35t_utilities
    lbne_daqinput35t

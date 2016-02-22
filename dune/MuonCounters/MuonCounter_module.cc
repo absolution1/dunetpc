@@ -23,17 +23,19 @@
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
 // LArSoft includes
-#include "Geometry/Geometry.h"
-#include "Geometry/PlaneGeo.h"
-#include "Geometry/WireGeo.h"
-#include "RecoBase/Hit.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/DetectorProperties.h"
-#include "Utilities/AssociationUtil.h"
-#include "Utilities/TimeService.h"
-#include "Simulation/AuxDetSimChannel.h"
-#include "RawData/ExternalTrigger.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "larcore/Geometry/WireGeo.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/DetectorInfoServices/LArPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/Utilities/AssociationUtil.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larsim/Simulation/AuxDetSimChannel.h"
+#include "lardata/RawData/ExternalTrigger.h"
 #include "dune/daqinput35t/PennToOffline.h"
+#include "dune/daqinput35t/tpcFragmentToRawDigits.h"
+#include "dune/daqinput35t/CheckTime.h"
 #include "dune/daqinput35t/utilities/UnpackFragment.h"
 
 // ROOT includes
@@ -82,9 +84,23 @@ private:
   TH1D *fHist3;
 
   double      fCombinedTimeDelay;
-  std::string fCounterModuleLabel;
-  std::string fFragType;
-  std::string fRawDataLabel;
+
+  // RCE Fragments
+  std::string fRCEFragType, fRCERawDataLabel;
+  // SSP Fragments
+  std::string fSSPFragType, fSSPRawDataLabel;
+  // PTB Fragments 
+  std::string fPTBFragType, fPTBRawDataLabel;
+
+  // Information for good run list histogram
+  long long RCETime = 0, SSPTime = 0, PTBTime = 0;
+  long long RCE_PTB_diff = 0, RCE_SSP_diff = 0, SSP_PTB_diff = 0;
+  int nSynchronousEvents = 0;
+  int nSSPPayloads = 0, nRCEPayloads = 0, nPTBPayloads = 0;
+  int nConsistRCEPayloads = 0;
+  int nPTBTrigsOn110 = 0, nPTBTrigsOn111 = 0, nPTBTrigsOn112 = 0, nPTBTrigsOn113 = 0, nPTBTrigsOn114 = 0, nPTBTrigsOn115 = 0;
+
+  TH1D *fGoodRunHisto;
 
   // Variables needed for the header info tree for Nearline:
   TTree*       fHeader;
@@ -140,14 +156,15 @@ Muoncounter::Muoncounter(fhicl::ParameterSet const& pset)
 void Muoncounter::reconfigure(fhicl::ParameterSet const& p)
 {   // Read parameters from the .fcl file. The names in the arguments
   // to p.get<TYPE> must match names in the .fcl file.
-
-  fCounterModuleLabel = p.get< std::string >("CounterModuleLabel");
-  //    fLArG4ModuleLabel(p.get< std::string >("LArGeantModuleLabel", "largeant"));
   fCombinedTimeDelay = p.get< double >("CombinedTimeDelay");
-  fFragType          = p.get<std::string>("FragType");
-  fRawDataLabel      = p.get<std::string>("DataLabel");
   fPTBMapFile        = p.get<std::string>("PTBMapFile");
   fPTBMapDir         = p.get<std::string>("PTBMapDir");
+  fRCEFragType       = p.get<std::string>("RCEFragType");
+  fRCERawDataLabel   = p.get<std::string>("RCERawDataLabel");
+  fSSPFragType       = p.get<std::string>("SSPFragType");
+  fSSPRawDataLabel   = p.get<std::string>("SSPRawDataLabel");
+  fPTBFragType       = p.get<std::string>("PTBFragType");
+  fPTBRawDataLabel   = p.get<std::string>("PTBRawDataLabel");
 
   DAQToOffline::BuildPTBChannelMap(fPTBMapDir, fPTBMapFile, fPTBMap);
   return;
@@ -180,67 +197,139 @@ void Muoncounter::analyze(const art::Event& evt)
   if(time > fEndTime)          fEndTime = time;
   if((int)event > fLastEvent)  fLastEvent = event;
 
-
   run = evt.run();
   subrun = evt.subRun();
   event = evt.id().event();
 
-  // New way to get counter hits
-  /*
-  art::Handle< std::vector< raw::ExternalTrigger> > externalTriggerListHandle;
-  evt.getByLabel(fCounterModuleLabel, externalTriggerListHandle);
-  std::vector< art::Ptr< raw::ExternalTrigger> > trigs;
-  art::fill_ptr_vector(trigs,externalTriggerListHandle);
- */
+  // Reset some Good Events List parameters
+  RCETime = SSPTime = PTBTime = 0;
+  RCE_SSP_diff = RCE_PTB_diff = SSP_PTB_diff = 0;
+  int NumADCs = 0, ConsistRCE = -1;
+  int ThisEv110 = 0, ThisEv111 = 0, ThisEv112 = 0, ThisEv113 = 0, ThisEv114 = 0, ThisEv115 = 0;
 
-  art::Handle< artdaq::Fragments > fragment;
-
-  evt.getByLabel(fRawDataLabel, fFragType, fragment);
+  bool PTBPresent = true;
+  art::Handle<artdaq::Fragments> PTBrawFragments;
+  evt.getByLabel(fPTBRawDataLabel, fPTBFragType, PTBrawFragments);
 
   // Check if there is PTB data in this event
   // Don't crash code if not present, just don't save anything
-  try { fragment->size(); }
+  try { PTBrawFragments->size(); }
   catch(std::exception e) {
     mf::LogWarning("MuonCounter") << "WARNING: Raw PTB data not found in event " << evt.event();
-    return;
+    PTBPresent = false;
   }
 
-  // Check that the data is valid
-  if(!fragment.isValid()){
-    mf::LogError("MuonCounter") << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event()
-				 << " is NOT VALID";
-    throw cet::exception("raw NOT VALID");
-    return;
-  }
-
-  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment, fPTBMap);
-
-  unsigned int total_Hits = trigs.size();
-
-  for(unsigned int i = 0; i < total_Hits; i++)
-  {
-    int auxdetid = trigs.at(i).GetTrigID();
-
-    if(auxdetid<=u_TSU)
-    {
-      fHist1->Fill(auxdetid);
+  if (PTBPresent) {
+    // Check that the data is valid
+    if(!PTBrawFragments.isValid()){
+      mf::LogError("MuonCounter") << "Run: " << evt.run() << ", SubRun: " << evt.subRun() << ", Event: " << evt.event() << " is NOT VALID";
+      throw cet::exception("raw NOT VALID");
+      return;
     }
-    else if(auxdetid>=l_BSU && auxdetid<=u_BSU)
-    {
-      fHist2->Fill(auxdetid);
-    }
-    else if(auxdetid>=l_Extra && auxdetid<=u_Extra)
-    {
-      fHist1->Fill(auxdetid-49);
-    }
-    else
-    {
-      fHist3->Fill(auxdetid);
+    
+    lbne::PennMicroSlice::Payload_Timestamp *FirstPTBTimestamp = nullptr;
+    auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*PTBrawFragments, fPTBMap, FirstPTBTimestamp);
+    PTBTime = FirstPTBTimestamp->nova_timestamp;
+    if (PTBTime) ++nPTBPayloads;
+    //std::cout << "Got PTB start time, it is " << PTBTime << std::endl;
+    
+    unsigned int total_Hits = trigs.size();
+    
+    for(unsigned int i = 0; i < total_Hits; i++) {
+      int auxdetid = trigs.at(i).GetTrigID();
+      if(auxdetid<=u_TSU) {
+	fHist1->Fill(auxdetid);
+      }	else if(auxdetid>=l_BSU && auxdetid<=u_BSU) {
+	fHist2->Fill(auxdetid);
+      }	else if(auxdetid>=l_Extra && auxdetid<=u_Extra) {
+	fHist1->Fill(auxdetid-49);
+      }	else {
+	fHist3->Fill(auxdetid);
+      }
+    
+      // Want to count the number of PTB trigs for in this event.
+      if ( trigs.at(i).GetTrigID() == 110 ) ++ThisEv110;
+      else if ( trigs.at(i).GetTrigID() == 111 ) ++ThisEv111;
+      else if ( trigs.at(i).GetTrigID() == 112 ) ++ThisEv112;
+      else if ( trigs.at(i).GetTrigID() == 113 ) ++ThisEv113;
+      else if ( trigs.at(i).GetTrigID() == 114 ) ++ThisEv114;
+      else if ( trigs.at(i).GetTrigID() == 115 ) ++ThisEv115;
     }
   }
   event_Count+=1;
+  
+  //---------------- SSP Good Event Timing stuff ----------------
+  bool SSPPresent = true;
+  art::Handle<artdaq::Fragments> SSPrawFragments;
+  evt.getByLabel(fSSPRawDataLabel, fSSPFragType, SSPrawFragments);
+  
+  try { SSPrawFragments->size(); }
+  catch(std::exception e) {
+    mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << evt.event();
+    SSPPresent = false;
+  }
+
+  if (SSPPresent) {
+    if(!SSPrawFragments.isValid()){
+      mf::LogError("SSPToOffline") << "Run: " << evt.run() << ", SubRun: " << evt.subRun() << ", Event: " << evt.event() << " is NOT VALID";
+      throw cet::exception("raw NOT VALID");
+      return;
+    }
+    
+    artdaq::Fragments const& rawFragmentsSSP = *SSPrawFragments;
+    DAQToOffline::GetSSPFirstTimestamp ( rawFragmentsSSP, nSSPPayloads, SSPTime );
+    //std::cout << "Got SSP start time, it is " << SSPTime << std::endl;
+  } // SSP Present
+  
+  //---------------- RCE Good Event Timing stuff ----------------
+  bool RCEPresent = true;
+  art::Handle<artdaq::Fragments> RCErawFragments;
+  evt.getByLabel(fRCERawDataLabel, fRCEFragType, RCErawFragments);
+  
+  try { RCErawFragments->size(); }
+  catch(std::exception e) {
+    mf::LogWarning("MuonCounter") << "WARNING: Raw RCE data not found in event " << evt.event() << std::endl;
+    RCEPresent = false;
+  }
+  
+  if (RCEPresent) {
+    if(!RCErawFragments.isValid()){
+      mf::LogError("SSPToOffline") << "Run: " << evt.run() << ", SubRun: " << evt.subRun() << ", Event: " << evt.event() << " is NOT VALID" << std::endl;
+      throw cet::exception("RCErawFragments NOT VALID");
+      return;
+    }
+    artdaq::Fragments const& rawFragmentsRCE = *RCErawFragments;
+    DAQToOffline::GetRCEFirstTimestamp ( rawFragmentsRCE, ConsistRCE, NumADCs, RCETime );
+  } //RCEPresent
+  //std::cout << "Got RCE start time, it is " << RCETime << std::endl;
+  if (ConsistRCE > -1 ) ++nRCEPayloads;
+  if (ConsistRCE == 1 ) ++nConsistRCEPayloads;
+
+  // ---------------- Get the Good Event stuff ready for this event ----------------
+  if (RCETime && PTBTime) RCE_PTB_diff = RCETime - PTBTime;
+  if (RCETime && SSPTime) RCE_SSP_diff = RCETime - SSPTime;
+  if (SSPTime && PTBTime) SSP_PTB_diff = SSPTime - PTBTime;
+
+  if (RCETime && SSPTime && PTBTime) { // Check that all components are synchronous.
+    RCE_PTB_diff = RCETime - PTBTime;
+    RCE_SSP_diff = RCETime - SSPTime;
+    if ( RCE_PTB_diff == 0 && RCE_SSP_diff == 0 ) ++nSynchronousEvents;
+  }
+
+  if (ConsistRCE == 1) {
+    //std::cout << "!!!Got consistent RCEs so adding the trigger numbers" << std::endl;
+    nPTBTrigsOn110 += ThisEv110;
+    nPTBTrigsOn111 += ThisEv111;
+    nPTBTrigsOn112 += ThisEv112;
+    nPTBTrigsOn113 += ThisEv113;
+    nPTBTrigsOn114 += ThisEv114;
+    nPTBTrigsOn115 += ThisEv115;
+  }
+  if (fNevents%1000 == 0) 
+    std::cout << "Looking at event " << evt.event() << " it had " << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs 
+	      << " RCE_SSP " << RCE_SSP_diff << " RCE_PTB " << RCE_PTB_diff << " SSP_PTB " << SSP_PTB_diff << ". "
+	      << "So far have had " << nPTBTrigsOn110 << " " << nPTBTrigsOn111 << " " << nPTBTrigsOn112 << " " << nPTBTrigsOn113 << " " << nPTBTrigsOn114 << " " << nPTBTrigsOn115 << " trigs on each coincidence."
+	      << std::endl;
 }
 
 void Muoncounter::beginJob()
@@ -251,6 +340,19 @@ void Muoncounter::beginJob()
   fHist1 = tfs->make<TH1D>("h1", "h1", u_TSU-l_TSU+1+4, l_TSU, u_TSU+1+4); 
   fHist2 = tfs->make<TH1D>("h2", "h2", u_BSU-l_BSU+1, l_BSU, u_BSU+1); 
   fHist3 = tfs->make<TH1D>("h3", "h3", u_Trig-l_Trig, l_Trig, u_Trig);
+
+  fGoodRunHisto = tfs->make<TH1D>("GoddRunHisto","GoodRunHisto", 11, 0, 11);
+  fGoodRunHisto->GetXaxis()->SetBinLabel(1 ,"PTB payload ratio");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(2 ,"SSP payload ratio");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(3 ,"RCE payload ratio");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(4 ,"Consistent RCE ratio");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(5 ,"Synchronous event ratio");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(6 ,"Trigs on Chan 110");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(7 ,"Trigs on Chan 111");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(8 ,"Trigs on Chan 112");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(9 ,"Trigs on Chan 113");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(10,"Trigs on Chan 114");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(11,"Trigs on Chan 115");
 
   //Making the Nearline header information tree
   fHeader = tfs->make<TTree>("Header","Subrun Information");
@@ -285,9 +387,9 @@ void Muoncounter::endJob()
   fHist1->Sumw2();
   fHist2->Sumw2();
   fHist3->Sumw2();
-  fHist1->Scale(1/total_Time);
-  fHist2->Scale(1/total_Time);
-  fHist3->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist1->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist2->Scale(1/total_Time);
+  if(total_Time > 0.0) fHist3->Scale(1/total_Time);
 
   TString fHist1_Title = Form("TSU Frequency");
   TString fHist2_Title = Form("BSU Frequency");
@@ -388,72 +490,32 @@ void Muoncounter::endJob()
   fHist2->GetXaxis()->SetBinLabel(57+1-44, "CU10");
   fHist2->GetXaxis()->SetLabelSize(0.025);
 
-  //PTB TO OFFLINE MAP.
-  /*
-  for(int i = 0; i < 10; i++)
-  {
-    TString label = Form("WU%i", i);
-    fHist1->GetXaxis()->SetBinLabel(i+1, label);
-  }
-  for(int i = 10; i < 20; i++)
-  {
-    TString label = Form("EL%i", i);
-    fHist1->GetXaxis()->SetBinLabel(i+1, label);
-  }
-  for(int i = 20; i < 24; i++)
-  {
-    TString label = Form("EL Special%i", i);
-    fHist1->GetXaxis()->SetBinLabel(i+1, label);
-  }
-  for(int i = 24; i < 30; i++)
-  {
-    TString label = Form("NU%i", i);
-    fHist1->GetXaxis()->SetBinLabel(i+1, label);
-  }
-  for(int i = 30; i < 36; i++)
-  {
-    TString label = Form("SL%i", i);
-    fHist1->GetXaxis()->SetBinLabel(i+1, label);
-  }
-  for(int i = 36; i < 42; i++)
-  {
-    TString label = Form("NL%i", i);
-    fHist1->GetXaxis()->SetBinLabel(i+1, label);
-  }
-  for(int i = 42; i < 48; i++)
-  {
-    TString label = Form("SU%i", i);
-    fHist1->GetXaxis()->SetBinLabel(i+1, label);
-  }
-  fHist1->GetXaxis()->SetLabelSize(0.018);
+  // -------------------- Stuff for Good Events List ---------------------
+  double PTBPayloadRat = nPTBPayloads / (double)fNevents;
+  double SSPPayloadRat = nSSPPayloads / (double)fNevents;
+  double RCEPayloadRat = nRCEPayloads / (double)fNevents;
+  double ConsistRCERat = nConsistRCEPayloads / (double)nRCEPayloads;
+  double SynchronRat   = nSynchronousEvents / (double)fNevents;
 
-  for(int i = 48; i < 59; i++)
-  {
-    TString label = Form("Tel%i", i);
-    fHist2->GetXaxis()->SetBinLabel(i-47, label);
-  }
-  for(int i = 59; i < 65; i++)
-  {
-    TString label = Form("CL%i", i);
-    fHist2->GetXaxis()->SetBinLabel(i-47, label);
-  }
-  for(int i = 65; i < 74; i++)
-  {
-    TString label = Form("CU%i", i);
-    fHist2->GetXaxis()->SetBinLabel(i-47, label);
-  }
-  for(int i = 74; i < 98; i++)
-  {
-    TString label = Form("Tel%i", i);
-    fHist2->GetXaxis()->SetBinLabel(i-47, label);
-  }
-  fHist2->GetXaxis()->SetLabelSize(0.025);
-  */
-  /*
-  fHist3->GetXaxis()->SetBinLabel(, "Trigger 1");
-  fHist3->GetXaxis()->SetBinLabel(, "Trigger 2");
-  fHist3->GetXaxis()->SetBinLabel(, "Trigger 3");*/
+  fGoodRunHisto->SetBinContent(1 , PTBPayloadRat);
+  fGoodRunHisto->SetBinContent(2 , SSPPayloadRat);
+  fGoodRunHisto->SetBinContent(3 , RCEPayloadRat);
+  fGoodRunHisto->SetBinContent(4 , ConsistRCERat);
+  fGoodRunHisto->SetBinContent(5 , SynchronRat);
+  fGoodRunHisto->SetBinContent(6 , nPTBTrigsOn110);
+  fGoodRunHisto->SetBinContent(7 , nPTBTrigsOn111);
+  fGoodRunHisto->SetBinContent(8 , nPTBTrigsOn112);
+  fGoodRunHisto->SetBinContent(9 , nPTBTrigsOn113);
+  fGoodRunHisto->SetBinContent(10, nPTBTrigsOn114);
+  fGoodRunHisto->SetBinContent(11, nPTBTrigsOn115);
 
+  std::cout << "IDENTIFIER: Run: " << fRun << " SubRun " << fSubrun << " has " << fNevents << " events in total" 
+	    << ", ratio that have PTB payloads " << PTBPayloadRat 
+	    << ", ratio that have SSP payloads " << SSPPayloadRat 
+	    << ", ratio that have RCE payloads " << RCEPayloadRat << ", ratio which were consistent " << ConsistRCERat
+	    << ", ratio of synchronous events " << SynchronRat
+	    << ". I had " << nPTBTrigsOn110 << " " << nPTBTrigsOn111 << " " << nPTBTrigsOn112 << " " << nPTBTrigsOn113 << " " << nPTBTrigsOn114 << " " << nPTBTrigsOn115 << " trigs on each coincidence."
+	    << std::endl;
 
   //
   // Compute header info.

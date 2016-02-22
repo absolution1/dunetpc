@@ -4,7 +4,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Principal/Event.h"
 #include "cetlib/search_path.h"
-#include "Utilities/TimeService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include <fstream>
 
 // lbnecode/daqinput35t includes
@@ -13,7 +13,7 @@
 
 // larsoft includes
 
-#include "Geometry/Geometry.h"
+#include "larcore/Geometry/Geometry.h"
 
 // lbne-raw-data includes
 #include "lbne-raw-data/Overlays/SSPFragment.hh"
@@ -425,7 +425,7 @@ recob::OpHit DAQToOffline::SSPReformatterAlgs::ConstructOpHit(const SSPDAQ::Even
   unsigned long      FirstSample = GetGlobalFirstSample(daqHeader);;         ///< first sample time in ticks
   double             TimeStamp   = ((double)FirstSample)/NOvAClockFrequency; ///< first sample time in microseconds
   
-  art::ServiceHandle<util::TimeService> ts;
+  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
   
   double peakTime = ((double)GetPeakTime(daqHeader)) * ts->OpticalClock().TickPeriod(); // microseconds
   double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds

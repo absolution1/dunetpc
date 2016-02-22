@@ -30,9 +30,9 @@
 #include "artdaq-core/Data/Fragments.hh"
 
 //larsoft includes
-#include "RawData/raw.h"
-#include "RawData/OpDetWaveform.h"
-#include "Geometry/Geometry.h"
+#include "lardata/RawData/raw.h"
+#include "lardata/RawData/OpDetWaveform.h"
+#include "larcore/Geometry/Geometry.h"
 
 //daqinput35t includes
 
@@ -134,7 +134,8 @@ void DAQToOffline::PTBToOffline::produce(art::Event & evt)
     return;
   }
 
-  auto triggers = PennFragmentToExternalTrigger(*rawFragments, fPTBMap);
+  lbne::PennMicroSlice::Payload_Timestamp *FirstPTBTimestamp = nullptr;
+  auto triggers = PennFragmentToExternalTrigger(*rawFragments, fPTBMap, FirstPTBTimestamp);
 
   std::cout << "Returned from PennFragmentToExternalTriggers and triggers has size " << triggers.size() << std::endl;
 

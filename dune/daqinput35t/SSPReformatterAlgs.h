@@ -7,9 +7,9 @@
 
 
 //larsoft includes
-#include "RawData/raw.h"
-#include "RawData/OpDetWaveform.h"
-#include "RecoBase/OpHit.h"
+#include "lardata/RawData/raw.h"
+#include "lardata/RawData/OpDetWaveform.h"
+#include "lardata/RecoBase/OpHit.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // lbne-raw-data includes

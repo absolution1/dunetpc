@@ -1,8 +1,8 @@
 
 simple_plugin(RawEVD "module"
-			Geometry_service
-                        Geometry
-			RawData
+			larcore_Geometry_Geometry_service
+                        larcore_Geometry
+			lardata_RawData
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -20,9 +20,9 @@ simple_plugin(RawEVD "module"
 )
 
 simple_plugin(RawEVD35t "module"
-			Geometry_service
-                        Geometry
-			RawData
+			larcore_Geometry_Geometry_service
+                        larcore_Geometry
+			lardata_RawData
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -40,9 +40,9 @@ simple_plugin(RawEVD35t "module"
 )
 
 simple_plugin(RawEVDDP "module"
-			Geometry_service
-                        Geometry
-			RawData
+			larcore_Geometry_Geometry_service
+                        larcore_Geometry
+			lardata_RawData
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -59,9 +59,9 @@ simple_plugin(RawEVDDP "module"
               BASENAME_ONLY
 )
 simple_plugin(MuonOccupancy "module"
-			Geometry_service
-                        Geometry
-			RawData
+			larcore_Geometry_Geometry_service
+                        larcore_Geometry
+			lardata_RawData
 			dune_Geometry
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}

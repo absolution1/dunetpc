@@ -1,8 +1,8 @@
 
 simple_plugin(TimeDist "module"
-			RecoBase
-			Geometry_service
-                        Geometry
+			lardata_RecoBase
+			larcore_Geometry_Geometry_service
+                        larcore_Geometry
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -20,9 +20,9 @@ simple_plugin(TimeDist "module"
 )
 
 simple_plugin(RecoTrack "module"
-			RecoBase
-			Geometry_service
-                        Geometry
+			lardata_RecoBase
+			larcore_Geometry_Geometry_service
+                        larcore_Geometry
                         ${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

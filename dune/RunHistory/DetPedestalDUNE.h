@@ -9,14 +9,14 @@
 #ifndef DETPEDESTALDUNE_H
 #define DETPEDESTALDUNE_H
 
-#include "CalibrationDBI/IOVData/DetPedestal.h"
-#include "CalibrationDBI/Interface/IDetPedestalProvider.h"
+#include "larevt/CalibrationDBI/IOVData/DetPedestal.h"
+#include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
 #include "fhiclcpp/ParameterSet.h"
 #include <unordered_map>
 
 namespace dune {
 
-  class DetPedestalDUNE : public lariov::IDetPedestalProvider
+  class DetPedestalDUNE : public lariov::DetPedestalProvider
   {
   public:
 
@@ -58,6 +58,7 @@ namespace dune {
     uint64_t fVldTime;   
     std::string fCSVFileName;
     std::string fDetName;
+    int fLogLevel;
     std::unordered_map<raw::ChannelID_t,float> fMeanMap;
     std::unordered_map<raw::ChannelID_t,float> fRmsMap;
     std::unordered_map<raw::ChannelID_t,float> fMeanErrMap;

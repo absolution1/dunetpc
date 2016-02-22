@@ -28,25 +28,24 @@
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
 // LArSoft includes
-#include "Geometry/Geometry.h"
-#include "Geometry/CryostatGeo.h"
-#include "Geometry/TPCGeo.h"
-#include "Geometry/PlaneGeo.h"
-#include "Geometry/WireGeo.h"
-#include "RecoBase/Hit.h"
-#include "RecoBase/Cluster.h"
-#include "RecoBase/Track.h"
-#include "RecoBase/SpacePoint.h"
-#include "RecoBase/OpFlash.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/DetectorProperties.h"
-#include "Utilities/AssociationUtil.h"
-#include "Utilities/TimeService.h"
-#include "RawData/ExternalTrigger.h"
-#include "MCCheater/BackTracker.h"
-#include "AnalysisBase/Calorimetry.h"
-#include "AnalysisBase/T0.h"
-#include "AnalysisBase/ParticleID.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/CryostatGeo.h"
+#include "larcore/Geometry/TPCGeo.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "larcore/Geometry/WireGeo.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBase/Cluster.h"
+#include "lardata/RecoBase/Track.h"
+#include "lardata/RecoBase/SpacePoint.h"
+#include "lardata/RecoBase/OpFlash.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/Utilities/AssociationUtil.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardata/RawData/ExternalTrigger.h"
+#include "larsim/MCCheater/BackTracker.h"
+#include "lardata/AnalysisBase/Calorimetry.h"
+#include "lardata/AnalysisBase/T0.h"
+#include "lardata/AnalysisBase/ParticleID.h"
 
 #include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCTruth.h"
@@ -147,13 +146,12 @@ private:
   int AllRange = 0, MuonRange = 0, ProtonRange = 0, GammaRange = 0, ElectronRange=0, OtherRange = 0;
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::LArProperties> larprop;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::TimeService> timeservice;
   art::ServiceHandle<cheat::BackTracker> bktrk;
+  detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
   
-  double XDriftVelocity      = larprop->DriftVelocity()*1e-3; //cm/ns
-  double WindowSize          = detprop->NumberTimeSamples() * timeservice->TPCClock().TickPeriod() * 1e3;
+  double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
+  double WindowSize          = detprop->NumberTimeSamples() * ts->TPCClock().TickPeriod() * 1e3;
   // Parameter List
   std::string fHitsModuleLabel;
   std::string fTrackModuleLabel;

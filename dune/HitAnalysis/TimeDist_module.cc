@@ -13,9 +13,9 @@
 #define TimeDist_Module
 
 // LArSoft includes
-#include "RecoBase/Hit.h"
-#include "RecoBase/OpFlash.h"
-#include "Utilities/TimeService.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBase/OpFlash.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -93,7 +93,7 @@ namespace TimeDist {
   //-----------------------------------------------------------------------
   void TimeDist::analyze(const art::Event& event) 
   {
-    art::ServiceHandle<util::TimeService> timeHandle;
+    auto const* timeHandle = lar::providerFrom<detinfo::DetectorClocksService>();
 
     art::Handle< std::vector<recob::Hit> > hitHandle;
     event.getByLabel(fHitProducerLabel, hitHandle);

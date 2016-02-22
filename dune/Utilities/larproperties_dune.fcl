@@ -3,14 +3,8 @@
 BEGIN_PROLOG
 
 dune35t_properties:                  @local::standard_properties
-dune35t_properties.Temperature:      87
-dune35t_properties.Electronlifetime: 3.0e3
-dune35t_properties.Efield:           [0.5,0.666,0.8]  #(predicted for microBooNE)
 
 dunefd_properties:                   @local::standard_properties
-dunefd_properties.Temperature:       87
-dunefd_properties.Electronlifetime:  3.0e3
-dunefd_properties.Efield:            [0.5,0.666,0.8]  #(predicted for microBooNE)
 
 dunefddphase_properties:                   @local::standard_properties
 dunefddphase_properties.Temperature:       87

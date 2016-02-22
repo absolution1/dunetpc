@@ -27,9 +27,9 @@
 #include "artdaq-core/Data/Fragments.hh"
 
 //larsoft includes
-#include "RawData/RawDigit.h"
-#include "RawData/raw.h"
-#include "Geometry/Geometry.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/raw.h"
+#include "larcore/Geometry/Geometry.h"
 
 #include "tpcFragmentToRawDigits.h"
 

@@ -15,10 +15,10 @@
 #define RecoTrack_Module
 
 // LArSoft includes
-#include "RecoBase/Hit.h"
-#include "RecoBase/Track.h"
-#include "Utilities/TimeService.h"
-#include "Utilities/AssociationUtil.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBase/Track.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardata/Utilities/AssociationUtil.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -254,7 +254,7 @@ namespace RecoTrack {
   //-----------------------------------------------------------------------
   void RecoTrack::analyze(const art::Event& event) 
   {
-    art::ServiceHandle<util::TimeService> timeHandle; // to get TPC clock and frequency
+    auto const* timeHandle = lar::providerFrom<detinfo::DetectorClocksService>(); // to get TPC clock and frequency
     frequency = timeHandle->TPCClock().Frequency();
 
     art::Handle< std::vector<recob::Hit> > hitHandle; // to get information about the hits

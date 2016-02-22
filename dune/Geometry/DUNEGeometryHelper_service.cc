@@ -8,8 +8,8 @@
 #include "dune/Geometry/DUNEGeometryHelper.h"
 
 // LArSoft libraries
-#include "Geometry/GeometryCore.h"
-#include "Geometry/ChannelMapAlg.h"
+#include "larcore/Geometry/GeometryCore.h"
+#include "larcore/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/ChannelMap35Alg.h"
 #include "dune/Geometry/ChannelMap35OptAlg.h"
 #include "dune/Geometry/ChannelMapAPAAlg.h"

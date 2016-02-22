@@ -7,7 +7,7 @@
 #include "art/Framework/Principal/Event.h"
 
 // From lardata
-#include "RawData/RawDigit.h"
+#include "lardata/RawData/RawDigit.h"
 
 // from lbne-raw-data
 

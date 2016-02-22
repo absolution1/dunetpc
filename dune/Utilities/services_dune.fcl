@@ -9,12 +9,13 @@
 #include "databaseutil_dune.fcl"
 #include "backtracker.fcl"
 #include "seedservice_dune.fcl"
-#include "timeservice_dune.fcl"
+#include "detectorclocks_dune.fcl"
 #include "photpropservices_dune.fcl"
 #include "sam_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
 #include "channelstatus_dune.fcl"
 #include "pedestals_dune.fcl"
+#include "daq_dune.fcl"
 #include "detsimmodules_dune.fcl"
 
 BEGIN_PROLOG
@@ -31,15 +32,15 @@ dunefd_services:
 {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::dune10kt_geo
- TimeService:                  @local::dunefd_timeservice
- DetectorProperties:           @local::dunefd_detproperties
- LArProperties:                @local::dunefd_properties
+ DetectorClocksService:                  @local::dunefd_detectorclocks
+ DetectorPropertiesService:           @local::dunefd_detproperties
+ LArPropertiesService:                @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
- IChannelStatusService:        @local::dunefd_channel_status
+ ChannelStatusService:        @local::dunefd_channel_status
 }
 
 dunefd_simulation_services:
@@ -48,9 +49,9 @@ dunefd_simulation_services:
  LArG4Parameters:              @local::dunefd_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::dune10kt_geo
- TimeService:                  @local::dunefd_timeservice
- DetectorProperties:           @local::dunefd_detproperties
- LArProperties:                @local::dunefd_properties
+ DetectorClocksService:                  @local::dunefd_detectorclocks
+ DetectorPropertiesService:           @local::dunefd_detproperties
+ LArPropertiesService:                @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
@@ -58,7 +59,7 @@ dunefd_simulation_services:
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
- IChannelStatusService:        @local::dunefd_channel_status
+ ChannelStatusService:        @local::dunefd_channel_status
 }
 
 #
@@ -69,14 +70,14 @@ dunefddphase_services:
  BackTracker:                    @local::dunefd_backtracker
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
- IChannelStatusService:          @local::dunefd_channel_status
+ ChannelStatusService:          @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
  SeedService:                    @local::dune_seedservice 
 
  Geometry:                       @local::dunedphase10kt_geo
- TimeService:                    @local::dunefddphase_timeservice
- DetectorProperties:             @local::dunefddphase_detproperties
- LArProperties:                  @local::dunefddphase_properties
+ DetectorClocksService:                    @local::dunefddphase_detectorclocks
+ DetectorPropertiesService:             @local::dunefddphase_detproperties
+ LArPropertiesService:                  @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
 }
@@ -92,12 +93,12 @@ dunefddphase_simulation_services:
  SeedService:                    @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::dunefd_opdetresponse
- IChannelStatusService:          @local::dunefd_channel_status
+ ChannelStatusService:          @local::dunefd_channel_status
  
  Geometry:                       @local::dunedphase10kt_geo
- TimeService:                    @local::dunefddphase_timeservice
- DetectorProperties:             @local::dunefddphase_detproperties
- LArProperties:                  @local::dunefddphase_properties
+ DetectorClocksService:                    @local::dunefddphase_detectorclocks
+ DetectorPropertiesService:             @local::dunefddphase_detproperties
+ LArPropertiesService:                  @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
 }
@@ -108,11 +109,11 @@ dunefddphase_simulation_services:
 # for FD, turned on by custom physics list and defining a photon visibility
 # services is workspace g4 fhicl file.
 #
-dunefd_simulation_services.LArProperties.ScintYield: 24000
-dunefd_simulation_services.LArProperties.ScintPreScale: 0.006
+dunefd_simulation_services.LArPropertiesService.ScintYield: 24000
+dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 
 # disable cerenkov
-dunefd_simulation_services.LArProperties.EnableCerenkovLight: false
+dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
 
 
@@ -130,15 +131,15 @@ protodune_services:
 {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protoDune_geo
- TimeService:                  @local::dunefd_timeservice
- DetectorProperties:           @local::dunefd_detproperties
- LArProperties:                @local::dunefd_properties
+ DetectorClocksService:                  @local::dunefd_detectorclocks
+ DetectorPropertiesService:           @local::dunefd_detproperties
+ LArPropertiesService:                @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
  SeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
- IChannelStatusService:        @local::dunefd_channel_status 
+ ChannelStatusService:        @local::dunefd_channel_status 
 }
 
 protodune_simulation_services:
@@ -147,9 +148,9 @@ protodune_simulation_services:
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protoDune_geo
- TimeService:                  @local::dunefd_timeservice
- DetectorProperties:           @local::dunefd_detproperties
- LArProperties:                @local::dunefd_properties
+ DetectorClocksService:                  @local::dunefd_detectorclocks
+ DetectorPropertiesService:           @local::dunefd_detproperties
+ LArPropertiesService:                @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
@@ -158,7 +159,7 @@ protodune_simulation_services:
  SignalShapingServiceDUNE10kt: @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
- IChannelStatusService:        @local::dunefd_channel_status
+ ChannelStatusService:        @local::dunefd_channel_status
 }
 
 
@@ -167,11 +168,11 @@ protodune_simulation_services:
 # for FD, turned on by custom physics list and defining a photon visibility
 # services is workspace g4 fhicl file.
 #
-protodune_simulation_services.LArProperties.ScintYield: 24000
-protodune_simulation_services.LArProperties.ScintPreScale: 0.006 
+protodune_simulation_services.LArPropertiesService.ScintYield: 24000
+protodune_simulation_services.LArPropertiesService.ScintPreScale: 0.006 
 
 # disable cerenkov
-protodune_simulation_services.LArProperties.EnableCerenkovLight: false
+protodune_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 protodune_simulation_services.LArG4Parameters.UseCustomPhysics: true
 protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                              "FastOptical",
@@ -188,15 +189,15 @@ dune35t_basic_services:
 {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::dune35t_geo
- TimeService:                  @local::dune35t_timeservice
- DetectorProperties:           @local::dune35t_detproperties
- LArProperties:                @local::dune35t_properties
+ DetectorClocksService:                  @local::dune35t_detectorclocks
+ DetectorPropertiesService:           @local::dune35t_detproperties
+ LArPropertiesService:                @local::dune35t_properties
  DatabaseUtil:                 @local::dune35t_database
  SeedService:                  @local::dune_seedservice
- IChannelStatusService:        @local::dune35t_channel_status
+ ChannelStatusService:        @local::dune35t_channel_status
 }
 
-dune35t_basic_services.IDetPedestalService:
+dune35t_basic_services.DetPedestalService:
 {
   service_provider: DetPedestalServiceDUNE
   DetPedestalDUNE: @local::dune35t_pedestals
@@ -223,11 +224,11 @@ dune35t_g4_services.OpDetResponseInterface:  @local::dune35t_opdetresponse
 
 # Pre-scale the scintillation yield to save memory (correct when applying QE)
 # MUST match between g4 and detsim steps
-dune35t_g4_services.LArProperties.ScintYield: 24000
-dune35t_g4_services.LArProperties.ScintPreScale: 0.0023 
+dune35t_g4_services.LArPropertiesService.ScintYield: 24000
+dune35t_g4_services.LArPropertiesService.ScintPreScale: 0.0023 
 
 # disable cerenkov
-dune35t_g4_services.LArProperties.EnableCerenkovLight: false
+dune35t_g4_services.LArPropertiesService.EnableCerenkovLight: false
 
 # enable "FastOptical" in geant4
 dune35t_g4_services.LArG4Parameters.UseCustomPhysics: true
@@ -261,7 +262,7 @@ dune35t_detsim_services.LArG4Parameters.EnabledPhysics: [ "Em",
 
 # Pre-scale the scintillation yield to save memory (correct when applying QE)
 # MUST match between g4 and detsim steps
-dune35t_detsim_services.LArProperties.ScintPreScale:      0.0023
+dune35t_detsim_services.LArPropertiesService.ScintPreScale:      0.0023
 
 
 dune35t_simulation_services:        @local::dune35t_g4_services
@@ -271,13 +272,13 @@ dune35t_simulation_services.PhotonVisibilityService:      @local::dune35t_photon
 dune35t_simulation_services.BackTracker:  @local::dune35t_backtracker
 
 dune35t_milliblock_services:    @local::dune35t_services
-dune35t_milliblock_services.DetectorProperties: @local::dune35t_milliblock_detproperties
+dune35t_milliblock_services.DetectorPropertiesService: @local::dune35t_milliblock_detproperties
 
 dune35t_milliblock_detsim_services: @local::dune35t_detsim_services
-dune35t_milliblock_detsim_services.DetectorProperties: @local::dune35t_milliblock_detproperties
+dune35t_milliblock_detsim_services.DetectorPropertiesService: @local::dune35t_milliblock_detproperties
 
 dune35t_milliblock_simulation_services: @local::dune35t_simulation_services
-dune35t_milliblock_simulation_services.DetectorProperties: @local::dune35t_milliblock_detproperties
+dune35t_milliblock_simulation_services.DetectorPropertiesService: @local::dune35t_milliblock_detproperties
 
 dune_message_services:
 {

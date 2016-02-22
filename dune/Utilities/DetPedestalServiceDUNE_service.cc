@@ -5,14 +5,14 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Principal/Run.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "CalibrationDBI/Interface/IDetPedestalService.h"
-#include "CalibrationDBI/Providers/DetPedestalRetrievalAlg.h"
+#include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
+#include "larevt/CalibrationDBI/Providers/DetPedestalRetrievalAlg.h"
 #include "dune/RunHistory/DetPedestalDUNE.h"
-#include "Geometry/Geometry.h"
+#include "larcore/Geometry/Geometry.h"
 
 namespace lariov{
 
-  class DetPedestalServiceDUNE : public IDetPedestalService {
+  class DetPedestalServiceDUNE : public DetPedestalService {
   
     public:
     
@@ -29,7 +29,7 @@ namespace lariov{
     
     private:
     
-      const IDetPedestalProvider& DoGetPedestalProvider() const override {
+      const DetPedestalProvider& DoGetPedestalProvider() const override {
         return fProvider;
       }    
     
@@ -37,7 +37,7 @@ namespace lariov{
   };
 }//end namespace lariov
       
-DECLARE_ART_SERVICE_INTERFACE_IMPL(lariov::DetPedestalServiceDUNE, lariov::IDetPedestalService, LEGACY)
+DECLARE_ART_SERVICE_INTERFACE_IMPL(lariov::DetPedestalServiceDUNE, lariov::DetPedestalService, LEGACY)
       
 
 namespace lariov{
@@ -61,6 +61,6 @@ namespace lariov{
 
 }//end namespace lariov
 
-DEFINE_ART_SERVICE_INTERFACE_IMPL(lariov::DetPedestalServiceDUNE, lariov::IDetPedestalService)
+DEFINE_ART_SERVICE_INTERFACE_IMPL(lariov::DetPedestalServiceDUNE, lariov::DetPedestalService)
 
 #endif

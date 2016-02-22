@@ -14,7 +14,7 @@
 #include <map>
 
 #include "fhiclcpp/ParameterSet.h"
-#include "DetectorInfo/RunHistory.h"
+#include "lardata/DetectorInfo/RunHistory.h"
 
 ///General LArSoft Utilities
 namespace dune {

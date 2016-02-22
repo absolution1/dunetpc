@@ -31,11 +31,11 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 
 // LArSoft libraries
-#include "SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "Geometry/Geometry.h"
-#include "RawData/RawDigit.h"
-#include "RawData/raw.h"
-#include "Utilities/AssociationUtil.h"
+#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/raw.h"
+#include "lardata/Utilities/AssociationUtil.h"
 
 ///creation of calibrated signals on wires
 namespace unstick {

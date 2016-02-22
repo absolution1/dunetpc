@@ -10,7 +10,7 @@
 #ifndef DUNE_ExptGeoHelperInterface_h
 #define DUNE_ExptGeoHelperInterface_h
 
-#include "Geometry/ExptGeoHelperInterface.h"
+#include "larcore/Geometry/ExptGeoHelperInterface.h"
 
 #include <memory>
 

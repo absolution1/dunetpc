@@ -28,11 +28,11 @@
 #include "TTree.h"
 
 //larsoft
-#include "Geometry/Geometry.h"
-#include "Utilities/DetectorProperties.h"
-#include "RecoBase/Hit.h"
-#include "RawData/RawDigit.h"
-#include "RawData/raw.h"
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/raw.h"
 
 //dunetpc
 #include "dune/daqinput35t/tpcFragmentToRawDigits.h" //JPD - For online channel map

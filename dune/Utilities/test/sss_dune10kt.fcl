@@ -11,9 +11,9 @@ services:
 
 services.user.ExptGeoHelperInterface: @local::dune_geometry_helper
 services.user.Geometry:           @local::dune10kt_geo
-services.user.TimeService:        @local::dune10kt_timeservice
-services.user.DetectorProperties: @local::dune10kt_detproperties
-services.user.LArProperties:      @local::dune10kt_properties
+services.user.DetectorClocksService:        @local::dune10kt_detectorclocks
+services.user.DetectorPropertiesService: @local::dune10kt_detproperties
+services.user.LArPropertiesService:      @local::dune10kt_properties
 services.user.LArFFT:             @local::dune10kt_larfft
 services.user.SignalShapingServiceDUNE10kt: @local::dune10kt_signalshapingservice
 services.user.DatabaseUtil:       @local::dune10kt_database

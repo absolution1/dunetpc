@@ -23,16 +23,15 @@
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
 // LArSoft includes
-#include "Geometry/Geometry.h"
-#include "Geometry/PlaneGeo.h"
-#include "Geometry/WireGeo.h"
-#include "RecoBase/Hit.h"
-#include "Utilities/LArProperties.h"
-#include "Utilities/DetectorProperties.h"
-#include "Utilities/AssociationUtil.h"
-#include "Utilities/TimeService.h"
-#include "Simulation/AuxDetSimChannel.h"
-#include "RawData/ExternalTrigger.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "larcore/Geometry/WireGeo.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/Utilities/AssociationUtil.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larsim/Simulation/AuxDetSimChannel.h"
+#include "lardata/RawData/ExternalTrigger.h"
 #include "dune/daqinput35t/PennToOffline.h"
 #include "dune/daqinput35t/utilities/UnpackFragment.h"
 
@@ -142,9 +141,6 @@ void Muoncountertimes::analyze(const art::Event& evt)
   ResetVars();
 
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<util::LArProperties> larprop;
-  art::ServiceHandle<util::DetectorProperties> detprop;
-  art::ServiceHandle<util::TimeService> timeserv;
 
   run = evt.run();
   subrun = evt.subRun();
@@ -183,7 +179,8 @@ void Muoncountertimes::analyze(const art::Event& evt)
   std::vector<std::vector<int>>       coincidences(2);
   std::vector<std::vector<int>>       trig_ID_Vec(2);
   std::vector<std::vector<long long>> trig_Times_Vec(2); 
-  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment, fPTBMap);
+  lbne::PennMicroSlice::Payload_Timestamp *FirstPTBTimestamp = nullptr;
+  auto trigs = DAQToOffline::PennFragmentToExternalTrigger(*fragment, fPTBMap, FirstPTBTimestamp);
   
   unsigned int total_Hits = trigs.size();
 

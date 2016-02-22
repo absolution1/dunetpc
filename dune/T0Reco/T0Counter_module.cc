@@ -18,10 +18,10 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "RawData/ExternalTrigger.h"
-#include "AnalysisBase/T0.h"
-#include "Utilities/TimeService.h"
-#include "Utilities/AssociationUtil.h"
+#include "lardata/RawData/ExternalTrigger.h"
+#include "lardata/AnalysisBase/T0.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardata/Utilities/AssociationUtil.h"
 
 #include <memory>
 #include <map>
@@ -52,8 +52,6 @@ public:
   void beginJob() override;
 
 private:
-
-  art::ServiceHandle<util::TimeService> fTimeService;
 
   // data structure to hold t0 information and ExternalTrigger data products
   struct t0 {
@@ -135,7 +133,10 @@ dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
     fMakeTree(p.get<bool>("MakeTree",false))
 {
   fSampleTimeCounter = 1.e3/fClockSpeedCounter;//ns
-  fTriggerOffsetTPC = fTimeService->TriggerOffsetTPC()*1.e3; // ns
+
+  auto const *clks = lar::providerFrom<detinfo::DetectorClocksService>();
+
+  fTriggerOffsetTPC = clks->TriggerOffsetTPC()*1.e3; // ns
 
   produces< std::vector< anab::T0 > >();
   produces< art::Assns< anab::T0, raw::ExternalTrigger> >();

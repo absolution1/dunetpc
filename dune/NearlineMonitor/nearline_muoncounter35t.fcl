@@ -1,6 +1,6 @@
 #include "services_dune.fcl"
 #include "PTBToOffline.fcl"
-#include "MuonCounter.fcl"
+#include "muoncounter.fcl"
 
 process_name: NearlineMuon
 
@@ -31,5 +31,4 @@ physics:
 
 }
 
-#Temporary fix due to database issues
-services.user.IDetPedestalService.DetPedestalDUNE.CSVFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_9754.csv"
+physics.analyzers.muoncounter.PTBMapDir: "/dune/data2/users/warburton/PTBChannelMap/"
