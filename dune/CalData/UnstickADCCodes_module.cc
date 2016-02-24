@@ -77,7 +77,7 @@ namespace unstick {
   UnstickADCCodes::UnstickADCCodes(fhicl::ParameterSet const& pset)
   {
     this->reconfigure(pset);
-    produces< std::vector<raw::RawDigit>   >();
+    produces< std::vector<raw::RawDigit>   >(fSpillName);
 
   }
   
