@@ -16,7 +16,7 @@ physics:
 {
   producers:
   {
-    opflash:      @local::dune35t_opflash_data  
+    opflash:      @local::dune35t_opflash_splitdata  
       
   }
   analyzers:
