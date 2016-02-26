@@ -13,6 +13,8 @@ services: {
   message:      @local::standard_info
 }
 
+services.user.DetPedestalService.DetPedestalDUNE.UseDB: true
+
 physics:
 {
   analyzers:

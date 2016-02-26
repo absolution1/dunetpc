@@ -33,6 +33,12 @@
 #include "larcore/Geometry/Geometry.h"
 #include "tpcFragmentToRawDigits.h"
 #include "utilities/UnpackFragment.h"
+#include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
+#include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
+#include "dune/RunHistory/DetPedestalDUNE.h"
+#include "cetlib/getenv.h"
 
 // c++
 #include <memory>
@@ -45,6 +51,7 @@
 #include "TMath.h"
 #include "TTree.h"
 #include "TH2F.h"
+#include "TStyle.h"
 
 namespace DAQToOffline {
   class NoiseCorrelation;
@@ -78,11 +85,16 @@ private:
   int fChannel1;
   int fChannel2;
 
+  std::map<int,int> fChannelMap;
+
+  const lariov::DetPedestalProvider& fPedestalRetrievalAlg = *(lar::providerFrom<lariov::DetPedestalService>());
+
 };
 
 DAQToOffline::NoiseCorrelation::NoiseCorrelation(fhicl::ParameterSet const & pset) : art::EDAnalyzer(pset) {
 
   this->reconfigure(pset);
+  gStyle->SetOptStat(0);
 
   art::ServiceHandle<art::TFileService> tfs;
   fCorrelationTree = tfs->make<TTree>("Correlations","Correlations");
@@ -90,6 +102,8 @@ DAQToOffline::NoiseCorrelation::NoiseCorrelation(fhicl::ParameterSet const & pse
   fCorrelationTree->Branch("Channel1",&fChannel1);
   fCorrelationTree->Branch("Channel2",&fChannel2);
   fCorrelationTree->Branch("Correlation",&fCorrelation);
+
+  BuildTPCChannelMap("rce_channel_map_dune35t.txt",fChannelMap);
 
 }
 
@@ -148,8 +162,14 @@ void DAQToOffline::NoiseCorrelation::analyze(art::Event const& evt) {
 	for(uint32_t i_nano = 0; i_nano < numNanoSlices; i_nano++){
 	  uint16_t val = std::numeric_limits<uint16_t>::max();
 	  bool success = microSlice->nanosliceSampleValue(i_nano, sample, val);
-	  if (success)
-	    adcvec.push_back(short(val));
+	  if (success) {
+	    float const pedestal = fPedestalRetrievalAlg.PedMean(fChannelMap.at(channel));
+	    short adc = short(val - pedestal);
+	    if ((adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F)
+	      adcvec.push_back(short(-999));
+	    else
+	      adcvec.push_back(adc);
+	  }
 	}
       }
     }
@@ -182,6 +202,8 @@ void DAQToOffline::NoiseCorrelation::analyze(art::Event const& evt) {
       double sumxy = 0, sumx = 0, sumy = 0, sumx2 = 0, sumy2 = 0;
       for (size_t tick = 0; tick < n1; ++tick) {
 	short adc1 = adcvec1[tick], adc2 = adcvec2[tick];
+	if (adc1 == -999 or adc2 == -999)
+	  continue;
 	sumx += adc1;
 	sumy += adc2;
 	sumxy += adc1*adc2;
@@ -193,6 +215,7 @@ void DAQToOffline::NoiseCorrelation::analyze(art::Event const& evt) {
       if (n1 > 0 and denom > 0) {
 	fCorrelation = ( (n1*sumxy) - (sumx*sumy) ) / ( TMath::Sqrt( denom ) );
 	correlationArray[fChannel1][fChannel2] = fCorrelation;
+	correlationArray[fChannel2][fChannel1] = fCorrelation;
       }
       //fCorrelationTree->Fill();
 
@@ -202,6 +225,7 @@ void DAQToOffline::NoiseCorrelation::analyze(art::Event const& evt) {
   for (unsigned int channel1 = 0; channel1 < correlationArray.size(); ++channel1)
     for (unsigned int channel2 = 0; channel2 < correlationArray.size(); ++channel2)
 	fCorrelationHist->SetBinContent(channel1, channel2, correlationArray[channel1][channel2]);
+  fCorrelationHist->GetZaxis()->SetRangeUser(-1,1);
 
   return;
 
