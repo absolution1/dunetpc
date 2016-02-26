@@ -17,6 +17,7 @@ physics:
   producers:
   {
     ssptooffline: @local::ssp_to_offline
+    ophit:        @local::dune35t_ophit_data  
     opflash:      @local::dune35t_opflash_data  
   }
 
@@ -29,7 +30,7 @@ physics:
   }
 
   #Create path to run module
-  produce: [ ssptooffline, opflash ]
+  produce: [ ssptooffline, ophit, opflash ]
   analyze: [ averagewaveform, ssptriggerana, opflashana ]
   output:  [  ]
 
