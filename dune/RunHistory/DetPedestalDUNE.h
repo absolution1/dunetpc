@@ -11,8 +11,10 @@
 
 #include "larevt/CalibrationDBI/IOVData/DetPedestal.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
+#include "larcore/SimpleTypesAndConstants/geo_types.h"
 #include "fhiclcpp/ParameterSet.h"
 #include <unordered_map>
+#include <map>
 
 namespace dune {
 
@@ -38,11 +40,16 @@ namespace dune {
     void SetDetName(std::string detName) { fDetName = detName;}
     std::string DetName() { return fDetName; }
 
-    void SetDefaults(float mean, float meanerr, float rms, float rmserr) {
-      fDefaultMean = mean; fDefaultMeanErr = meanerr;
-      fDefaultRms  = rms ; fDefaultRmsErr  = rmserr;
+    void SetDefaults(geo::View_t v, float mean, float meanerr, float rms, float rmserr)
+    {
+      fDefaultMean[v] = mean; fDefaultMeanErr[v] = meanerr;
+      fDefaultRms[v]  = rms ; fDefaultRmsErr[v]  = rmserr;
     }
-
+    float DefaultMean(geo::View_t v) const; 
+    float DefaultMeanErr(geo::View_t v) const; 
+    float DefaultRms(geo::View_t v) const; 
+    float DefaultRmsErr(geo::View_t v) const; 
+    
     void SetCSVFileName(std::string fname) { fCSVFileName = fname;}
     std::string CSVFileName() const {return fCSVFileName; }
     
@@ -51,10 +58,11 @@ namespace dune {
     
     bool fUseDB;
     bool fUseDefaults;
-    float fDefaultMean;
-    float fDefaultMeanErr;
-    float fDefaultRms;
-    float fDefaultRmsErr;
+    bool fAbortIfNoPeds;
+    std::map<geo::View_t,float> fDefaultMean;
+    std::map<geo::View_t,float> fDefaultMeanErr;
+    std::map<geo::View_t,float> fDefaultRms;
+    std::map<geo::View_t,float> fDefaultRmsErr;
     uint64_t fVldTime;   
     std::string fCSVFileName;
     std::string fDetName;

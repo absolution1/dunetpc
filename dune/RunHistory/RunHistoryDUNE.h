@@ -12,9 +12,13 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
+#include <memory>
 
 #include "fhiclcpp/ParameterSet.h"
+
 #include "lardata/DetectorInfo/RunHistory.h"
+#include "IFDatabase/Table.h"
 
 ///General LArSoft Utilities
 namespace dune {
@@ -81,7 +85,17 @@ namespace dune {
     void AddShifter(std::string sh) { fShifter.push_back(sh); }
     void SetShifters(std::vector<std::string> sh) { fShifter = sh; }
 
+    std::string CfgLabel() const { return fCfgLabel; }
+    std::string TStartAsString() const { return fTStartStr; }
+    std::string TStopAsString() const { return fTStopStr; }
+    
+    void DumpSCData();
+
   private:
+
+    bool LoadSCChanMap();
+    bool LoadSCData();
+    
   protected:
     int    fRun;
     int    fNSubruns;
@@ -99,6 +113,10 @@ namespace dune {
     std::string fTStopStr;
     
     std::vector<SubRunDUNE> fSubrun;
+    std::unordered_map<std::string,int> fSCChanMap;
+    std::unordered_map<int,std::string> fSCInvChanMap;
+
+    std::unique_ptr<nutools::dbi::Table> fSCDataTable;
     
   }; // class RunHistoryDUNE
 } //namespace dune

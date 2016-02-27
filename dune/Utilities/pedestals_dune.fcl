@@ -4,6 +4,7 @@ dune35t_pedestals :
 {
    UseDB: 'false'
    CSVFile: ""
+   AbortIfNoPeds: 'false'
    UseDefaults: 'false'
    DefaultMean: 750.
    DefaultMeanErr: 0.
