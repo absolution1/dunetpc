@@ -14,7 +14,7 @@ namespace dune {
 
   DetPedestalDUNE::DetPedestalDUNE(std::string detName) {
     fDetName = detName;
-    fVldTime = 0;   
+    fVldTime = fVldTimeUsed = 0;   
     fMeanMap.clear();
     fRmsMap.clear();
     fMeanErrMap.clear();
@@ -26,7 +26,7 @@ namespace dune {
   //------------------------------------------------------------
 
   DetPedestalDUNE::DetPedestalDUNE(fhicl::ParameterSet const& pset) {
-    fVldTime = 0;   
+    fVldTime = fVldTimeUsed = 0;   
     fMeanMap.clear();
     fRmsMap.clear();
     fMeanErrMap.clear();
@@ -96,10 +96,10 @@ namespace dune {
     if (fUseDefaults) return true;
 
     if ( fLogLevel > 0 ) 
-      std::cout << __FUNCTION__ << " Called with run " << ts << std::endl;
+      std::cout << __PRETTY_FUNCTION__ << " Called with run " << ts << std::endl;
 
     if (!fUseDB && fCSVFileName.empty()) {
-      std::cout << __FUNCTION__ << " Method of determining pedestals is undefined! Either set UseDB or CSVFileName in fhicl. ";
+      std::cout << __PRETTY_FUNCTION__ << " Method of determining pedestals is undefined! Either set UseDB or CSVFileName in fhicl. ";
       if (fAbortIfNoPeds) {
 	std::cout << "Aborting per request." << std::endl;
 	abort();
@@ -168,6 +168,13 @@ namespace dune {
       fMeanErrMap[chan] = meanerr;
       fRmsMap[chan] = rms;
       fRmsErrMap[chan] = rmserr;      
+      if (i==0) { // print out 
+	fVldTimeUsed = row->VldTime();
+	if (fLogLevel > 0) {
+	  std::cout << __PRETTY_FUNCTION__ << ": using run " << row->VldTime()
+		    << " for pedestals." << std::endl;
+	}
+      }
     }
     
     return true;

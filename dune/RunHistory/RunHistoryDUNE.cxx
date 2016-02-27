@@ -68,7 +68,7 @@ namespace dune {
     nutools::dbi::Table t;
 
     if (fDetName.empty()) {
-      std::cout << "Error in " << __func__ << ", line " << __LINE__ << ".  Detector name is undefined." << std::endl;
+      std::cout << __PRETTY_FUNCTION__ << ": Error in line " << __LINE__ << ".  Detector name is undefined." << std::endl;
       return false; //std::abort();
     }
     

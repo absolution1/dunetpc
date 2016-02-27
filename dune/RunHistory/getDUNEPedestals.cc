@@ -6,6 +6,7 @@
 #include <boost/lexical_cast.hpp>
 
 bool gUseDB = false;
+bool gPrintPedRun = false;
 int gRun = -1;
 std::string gDetName = "";
 std::string gCfgFile = "";
@@ -19,6 +20,7 @@ void PrintUsage()
   std::cout << "Options:" << std::endl;
   std::cout << "-f (--file) [fhicl file] : use fhicl config file" << std::endl;
   std::cout << "-D (--database)          : get peds from database" << std::endl;
+  std::cout << "-P (--pedestalRun)      : print pedestal run" << std::endl;
   std::cout << "-C [chan1,chan2,...]     : print only specific channels" << std::endl;
 }
 
@@ -35,13 +37,14 @@ bool ParseCLArgs(int argc, char* argv[])
     {"detector",   0, 0, 'd'},
     {"file",   0, 0, 'f'},
     {"database",   0, 0, 'D'},
+    {"pedestalRun",   0, 0, 'P'},
     {0,0,0,0}
   };
 
   while (1) {
     int optindx;
 
-    int c = getopt_long(argc,argv,"r:d:f:C:Dh",long_options,&optindx);
+    int c = getopt_long(argc,argv,"r:d:f:C:DPh",long_options,&optindx);
         
     if (c==-1) break;
     
@@ -64,6 +67,11 @@ bool ParseCLArgs(int argc, char* argv[])
     case 'D':
       {
 	gUseDB = true;
+	break;
+      }
+    case 'P':
+      {
+	gPrintPedRun = true;
 	break;
       }
     case 'f':
@@ -124,6 +132,10 @@ int main(int argc, char **argv)
     ped->Update(gRun);
   }
 
+  if (gPrintPedRun) {
+    std::cout << "Pedestal run: " << ped->VldTimeUsed() << std::endl;
+  }
+  
   if (gChannelList.empty()) 
     ped->PrintAllValues();
   else {

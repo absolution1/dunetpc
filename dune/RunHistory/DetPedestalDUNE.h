@@ -52,6 +52,8 @@ namespace dune {
     
     void SetCSVFileName(std::string fname) { fCSVFileName = fname;}
     std::string CSVFileName() const {return fCSVFileName; }
+
+    uint64_t VldTimeUsed() const { return fVldTimeUsed; }
     
   private:
     void LoadFromCSV();
@@ -63,7 +65,8 @@ namespace dune {
     std::map<geo::View_t,float> fDefaultMeanErr;
     std::map<geo::View_t,float> fDefaultRms;
     std::map<geo::View_t,float> fDefaultRmsErr;
-    uint64_t fVldTime;   
+    uint64_t fVldTime;
+    uint64_t fVldTimeUsed;
     std::string fCSVFileName;
     std::string fDetName;
     int fLogLevel;
