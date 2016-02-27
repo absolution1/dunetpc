@@ -127,20 +127,20 @@ void lbne::FilterWF::produce(art::Event& evt){
       std::cout << "WARNING! Problem in first channel loop. Online channel " << onlineChannel << " (offline channel " << offlineChannel << ") is not equal to loop index, " << ich << std::endl;
       abort();
     }
-    double mean = 0;
-    int count = 0;
-    for(unsigned int s = 0 ; s < n_samp ; s++){
-      short adc = rawDigitVector.at(ich).ADC(s);
-      if( adc < 10 ) 
-	continue;
-      if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
-	continue;
-      mean += adc;
-      count++;
-    }
-    if( count > 0 )
-      mean = mean / (double) count;
-    meanVec.push_back(mean);
+//    double mean = 0;
+//    int count = 0;
+//    for(unsigned int s = 0 ; s < n_samp ; s++){
+//      short adc = rawDigitVector.at(ich).ADC(s);
+//      if( adc < 10 ) 
+//	continue;
+//      if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+//	continue;
+//      mean += adc;
+//      count++;
+//    }
+//    if( count > 0 )
+//      mean = mean / (double) count;
+    meanVec.push_back(rawDigitVector.at(ich).GetPedestal());
   }
 
   //define set of induction and collection channels in each regulator group
@@ -191,8 +191,8 @@ void lbne::FilterWF::produce(art::Event& evt){
 	  int ch = baseCh + indCh.at(c);
 	  int adc = rawDigitVector.at(ch).ADC(s); //again c->ch
 	  double newAdc = adc - correction;
-//	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
-//	    newAdc = 0;
+	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+	    newAdc = adc; //don't do anything about stuck code, will run stuck code removal later
 //	  if( adc < 10  ) //skip "sample dropping" problem
 //	    newAdc = 0;
 	  filterWf.at(ch).push_back(newAdc);
@@ -228,8 +228,8 @@ void lbne::FilterWF::produce(art::Event& evt){
 	  int ch = baseCh + colCh.at(c);
 	  int adc = rawDigitVector.at(ch).ADC(s); // MW: and again
 	  double newAdc = adc - correction;
-//	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
-//	    newAdc = 0;
+	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+	    newAdc = adc;
 //	  if( adc < 10  ) //skip "sample dropping" problem
 //	    newAdc = 0;
 	  filterWf.at(ch).push_back(newAdc);
@@ -243,6 +243,8 @@ void lbne::FilterWF::produce(art::Event& evt){
   for(unsigned int ich=0; ich<n_channels; ich++){
     short fChan = rawDigitVector.at(ich).Channel();
     raw::RawDigit theRawDigit(fChan, filterWf.at(ich).size(), filterWf.at(ich));//, raw::kNone );
+    theRawDigit.SetPedestal(rawDigitVector.at(ich).GetPedestal(),
+			    rawDigitVector.at(ich).GetSigma());
     filterRawDigitVector.push_back(theRawDigit);            // add this digit to the collection
   }
 
