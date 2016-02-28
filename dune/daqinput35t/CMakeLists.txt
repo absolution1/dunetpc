@@ -17,6 +17,7 @@ art_make(BASENAME_ONLY
         larcore_Geometry
         lbne_daqinput35t_utilities
         lbne-raw-data_Overlays
+	lbne-raw-data_Services_ChannelMap_ChannelMapService_service
         lardata_RawData
         lardata_RecoBase
         NO_PLUGINS
@@ -109,6 +110,7 @@ ${ROOT_SPECTRUM}
 
 simple_plugin(TpcDAQToOffline "module"
 lbne-raw-data_Overlays
+lbne-raw-data_Services_ChannelMap_ChannelMapService_service
 lbne_daqinput35t_utilities
 lbne_daqinput35t
 larcore_Geometry_Geometry_service

@@ -1,5 +1,6 @@
 #include "services_dune.fcl"
 #include "singles_dune.fcl"
+#include "channelmap_35t.fcl"
 #include "largeantmodules_dune.fcl"
 #include "detsimmodules_dune.fcl"
 
@@ -26,13 +27,15 @@
   end_paths: [ output ]
 }
 
-services : {
+services: {
   user:         @local::dune35t_simulation_services
   Timing:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
-
+  ChannelMapService: @local::channelmap35t
 }
+
+services.ChannelMapService.FileName: "35tTPCChannelMap_v4.txt"
 
 outputs:
 {

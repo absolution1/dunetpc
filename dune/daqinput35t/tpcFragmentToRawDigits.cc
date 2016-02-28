@@ -1,26 +1,10 @@
+
 #include "tpcFragmentToRawDigits.h"
-
-#include <map>
-#include <iostream>
-
-#include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
-
-#include "TTimeStamp.h"
-
-// From dunetpc
-#include "utilities/UnpackFragment.h"
-
-// From larcore
-#include "larcore/Geometry/Geometry.h"
-
-// From lardata
-#include "lardata/RawData/raw.h"
 
 std::vector<raw::RawDigit>
 DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, 
 				     lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
-				     std::map<int,int> const& channelMap,
+				     art::ServiceHandle<lbne::ChannelMapService> const& channelMap, bool useChannelMap,
 				     bool debug, raw::Compress_t compression, unsigned int zeroThreshold)
 {
   //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
@@ -130,8 +114,8 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
     unsigned int numTicks = adcvec.size();
     raw::Compress(adcvec, compression, zeroThreshold);
     int offlineChannel = -1;
-    if (channelMap.size() == 0) offlineChannel = chan;
-    else offlineChannel = channelMap.at(chan);
+    if (useChannelMap) offlineChannel = channelMap->Offline(chan);
+    else offlineChannel = chan;
     raw::RawDigit theRawDigit(offlineChannel, numTicks, adcvec, compression);
     rawDigitVector.push_back(theRawDigit);            // add this digit to the collection
   }

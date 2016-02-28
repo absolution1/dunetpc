@@ -1,4 +1,5 @@
 #include "services_dune.fcl"
+#include "channelmap_35t.fcl"
 #include "SSPToOffline.fcl"
 #include "SplitterInput.fcl"
 
@@ -12,15 +13,18 @@ services:
   message:               @local::dune_message_services_prod_debug
   FileCatalogMetadata:   @local::art_file_catalog_data
   user:                  @local::dune35t_services
+  ChannelMapService:     @local::channelmap35t
 }
+
+services.ChannelMapService.FileName: "35tTPCChannelMap_v4.txt"
 
 source: @local::split_events
 
 #############  To configure any parameters yourself #############
-#source.WhichTrigger: [ 3 ]
-#source.PTBTrigs:     [ 110, 111, 112, 113, 114, 115 ]
-#source.PreTriggerTicks: 3200
-#source.PostTriggerTicks: 6400
+# source.WhichTrigger: [ 3 ]
+# source.PTBTrigs:     [ 110, 111, 112, 113, 114, 115 ]
+# source.PreTriggerTicks: 200
+# source.PostTriggerTicks: 5200
 
 ############## A list of triggers........Please add to / change this list if YOU change develop.........###################
 # WhichTrigger = 0  corresponds to  Making a trigger after a user-defined number of ticks - not hugely useful
@@ -78,3 +82,5 @@ outputs:
    compressionLevel: 1
  }
 }
+
+

@@ -7,6 +7,7 @@
 // from cetpkgsupport v1_06_02.
 ////////////////////////////////////////////////////////////////////////
 
+// framework includes
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -17,23 +18,23 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+// lbne-artdaq and lbne-raw-data includes
+#include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
+#include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
+#include "artdaq-core/Data/Fragments.hh"
+
+// larsoft includes
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/raw.h"
+#include "larcore/Geometry/Geometry.h"
+#include "tpcFragmentToRawDigits.h"
+#include "utilities/UnpackFragment.h"
+
+// C++
 #include <memory>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
-//lbne-artdaq includes
-#include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
-#include "artdaq-core/Data/Fragments.hh"
-
-//larsoft includes
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/raw.h"
-#include "larcore/Geometry/Geometry.h"
-
-#include "tpcFragmentToRawDigits.h"
-
-#include "utilities/UnpackFragment.h"
 
 namespace DAQToOffline {
   class TpcDAQToOffline;
@@ -59,13 +60,12 @@ private:
   std::string fFragType;
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
-  std::string fChannelMapFile;
   bool fUseChannelMap;
   bool fDebug;
   raw::Compress_t        fCompression;      ///< compression type to use
   unsigned int           fZeroThreshold;    ///< Zero suppression threshold
 
-  std::map<int,int> fChannelMap;
+  art::ServiceHandle<lbne::ChannelMapService> fChannelMap;
 
 };
 
@@ -83,16 +83,12 @@ void DAQToOffline::TpcDAQToOffline::reconfigure(fhicl::ParameterSet const& pset)
   fFragType = pset.get<std::string>("FragType");
   fRawDataLabel = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
-  fChannelMapFile = pset.get<std::string>("TPCChannelMapFile");
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   fDebug = pset.get<bool>("Debug");
 
   fZeroThreshold=0;
   fCompression=raw::kNone;
   if(fDebug) printParameterSet();
-
-  if (fUseChannelMap)
-    BuildTPCChannelMap(fChannelMapFile, fChannelMap);
 
 }
 
@@ -144,7 +140,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
   }
 
   lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
-  auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fChannelMap, fDebug, fCompression, fZeroThreshold);
+  auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fChannelMap, fUseChannelMap, fDebug, fCompression, fZeroThreshold);
 
   art::Timestamp this_time_stamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(firstTimestamp);
   std::cout << "JPD: this_time_stamp: " << this_time_stamp.value() << std::endl;
