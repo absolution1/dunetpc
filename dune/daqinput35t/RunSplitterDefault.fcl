@@ -16,8 +16,6 @@ services:
   ChannelMapService:     @local::channelmap35t
 }
 
-services.ChannelMapService.FileName: "35tTPCChannelMap_v4.txt"
-
 source: @local::split_events
 
 #############  To configure any parameters yourself #############
