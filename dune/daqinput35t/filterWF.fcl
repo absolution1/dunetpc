@@ -37,6 +37,7 @@ physics:
       ChannelMapFile: "rce_channel_map_dune35t.txt"
       RawDigitModuleLabel: "SplitterInput"
       RawDigitModuleInstance: "TPC"
+      SkipStuckCodes: true
     }
   }
 

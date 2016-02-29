@@ -70,6 +70,8 @@ private:
 
   std::map<int, int> fOfflineToOnlineChannel, fOnlineToOfflineChannel;
 
+  bool fSkipStuckCodes;
+
 }; //end class GetWF
 
 
@@ -90,6 +92,7 @@ void lbne::FilterWF::reconfigure(fhicl::ParameterSet const& pset){
   fRawDigitModuleInstance = pset.get<std::string>("RawDigitModuleInstance");
   fChannelMapFile = pset.get<std::string>("ChannelMapFile");
   //fOutputModuleLabel = "filterwf";
+  fSkipStuckCodes = pset.get<bool>("SkipStuckCodes",true);
 }
 
 //-------------------------------------------------------------------
@@ -133,7 +136,7 @@ void lbne::FilterWF::produce(art::Event& evt){
 //      short adc = rawDigitVector.at(ich).ADC(s);
 //      if( adc < 10 ) 
 //	continue;
-//      if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+//      if( fSkipStuckCodes && ( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F ) )
 //	continue;
 //      mean += adc;
 //      count++;
@@ -167,7 +170,7 @@ void lbne::FilterWF::produce(art::Event& evt){
 	for(unsigned int c = 0 ; c < indCh.size() ; c++){
 	  int ch = baseCh + indCh.at(c);
 	  int adc = rawDigitVector.at(ch).ADC(s); // NB/ MW: possible bug; changed .at(c) to .at(ch)
-	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+	  if( fSkipStuckCodes && ( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F ) )
 	    continue;
 	  if( adc < 10  ) //skip "sample dropping" problem
 	    continue;
@@ -191,8 +194,9 @@ void lbne::FilterWF::produce(art::Event& evt){
 	  int ch = baseCh + indCh.at(c);
 	  int adc = rawDigitVector.at(ch).ADC(s); //again c->ch
 	  double newAdc = adc - correction;
-	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+	  if( fSkipStuckCodes && ( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F ) )
 	    newAdc = adc; //don't do anything about stuck code, will run stuck code removal later
+	                  // if the code unsticker is run first, then don't skip the stuck codes.
 //	  if( adc < 10  ) //skip "sample dropping" problem
 //	    newAdc = 0;
 	  filterWf.at(ch).push_back(newAdc);
@@ -204,7 +208,7 @@ void lbne::FilterWF::produce(art::Event& evt){
 	for(unsigned int c = 0 ; c < colCh.size() ; c++){
 	  int ch = baseCh + colCh.at(c);
 	  int adc = rawDigitVector.at(ch).ADC(s); // MW: fix 'bug'(?) again
-	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+	  if( fSkipStuckCodes && ( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F ) )
 	    continue;
 	  if( adc < 10  ) //skip "sample dropping" problem
 	    continue;
@@ -228,7 +232,7 @@ void lbne::FilterWF::produce(art::Event& evt){
 	  int ch = baseCh + colCh.at(c);
 	  int adc = rawDigitVector.at(ch).ADC(s); // MW: and again
 	  double newAdc = adc - correction;
-	  if( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F )
+	  if( fSkipStuckCodes && ( (adc & 0x3F ) == 0x0 || (adc & 0x3F ) == 0x3F ) )
 	    newAdc = adc;
 //	  if( adc < 10  ) //skip "sample dropping" problem
 //	    newAdc = 0;
