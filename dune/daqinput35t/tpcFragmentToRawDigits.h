@@ -1,20 +1,30 @@
 #ifndef tpcFragmentToRawDigits_h
 #define tpcFragmentToRawDigits_h
 
-#include "artdaq-core/Data/Fragments.hh"
+// framework
+#include "art/Framework/Principal/Event.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "art/Framework/Principal/Event.h"
+// lbne-raw-data
+#include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
+#include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
+#include "artdaq-core/Data/Fragments.hh"
+
+// From dunetpc
+#include "utilities/UnpackFragment.h"
+
+// From larcore
+#include "larcore/Geometry/Geometry.h"
 
 // From lardata
+#include "lardata/RawData/raw.h"
 #include "lardata/RawData/RawDigit.h"
+#include "TTimeStamp.h"
 
-// from lbne-raw-data
-
-#include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
-
-#include <vector>
 #include <map>
+#include <iostream>
+#include <vector>
 #include <fstream>
 
 namespace DAQToOffline {
@@ -25,7 +35,7 @@ namespace DAQToOffline {
 
   std::vector<raw::RawDigit> tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
 						    lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
-						    std::map<int,int> const& channelMap,
+						    art::ServiceHandle<lbne::ChannelMapService> const& channelMap, bool useChannelMap,
 						    bool debug,
 						    raw::Compress_t compression,
 						    unsigned int zeroThreshold);

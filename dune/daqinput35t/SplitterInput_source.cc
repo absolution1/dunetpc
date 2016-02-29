@@ -27,6 +27,7 @@
 
 // artdaq 
 #include "artdaq-core/Data/Fragments.hh"
+#include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 
 // lardata
 #include "lardata/RawData/RawDigit.h"
@@ -67,7 +68,7 @@ namespace {
     
     LoadedWaveforms() : waveforms() {}
     vector<OpDetWaveform> waveforms;
-    
+
     void load( vector<OpDetWaveform> const & v, int fDebugLevel ) {
       waveforms = v;
     }
@@ -615,7 +616,6 @@ namespace DAQToOffline {
     string                 MCPartinputDataProduct_;
     string                 MCSimChaninputDataProduct_;
     SSPReformatterAlgs     sspReform;
-    string                 fTPCChannelMapFile;
     string                 fPTBMapFile;
     string                 fPTBMapDir;
     art::SourceHelper      sh_;
@@ -663,11 +663,9 @@ namespace DAQToOffline {
     lbne::TpcNanoSlice::Header::nova_timestamp_t this_timestamp=0;
     lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp=0;
 
-    std::map<int,int>      TPCChannelMap;
-
     std::map<uint64_t,size_t> EventTreeMap;
 
-    std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t&, std::map<int,int> const&)> fragmentsToDigits_;
+    std::function<rawDigits_t(artdaq::Fragments const&, lbne::TpcNanoSlice::Header::nova_timestamp_t&, art::ServiceHandle<lbne::ChannelMapService> const&)> fragmentsToDigits_;
 
     bool eventIsFull_(rawDigits_t const & v);
 
@@ -761,7 +759,6 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   MCPartinputDataProduct_(ps.get<string>("MCPartInputDataProduct")),
   MCSimChaninputDataProduct_(ps.get<string>("MCSimChanInputDataProduct")),
   sspReform            (ps.get<fhicl::ParameterSet>("SSPReformatter")),
-  fTPCChannelMapFile   (ps.get<string>("TPCChannelMapFile")),
   fPTBMapFile          (ps.get<std::string>("PTBMapFile")),
   fPTBMapDir           (ps.get<std::string>("PTBMapDir")),
   sh_(sh),
@@ -787,6 +784,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  std::placeholders::_1, // artdaq::Fragments
                                  std::placeholders::_2, // lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp
                                  std::placeholders::_3, // the channel map
+				 true,                  // use the channel map
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
                                  ps.get<unsigned>("zeroThreshold",0) ) ),
@@ -836,7 +834,6 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
     prh.reconstitutes<MCSimChan_t,art::InEvent>( sourceName_, MCSimChaninputTag_.instance() );
   }
 
-  BuildTPCChannelMap(fTPCChannelMapFile, TPCChannelMap);
   //std::cout << "Built TPC Channel Map" << std::endl;
   BuildPTBChannelMap(fPTBMapDir, fPTBMapFile, fPTBMap);
 }
@@ -1365,6 +1362,7 @@ void DAQToOffline::Splitter::LoadRCEInformation( size_t LoadTree ) {
   if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
     lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp = 0;
     auto* fragments = getFragments( TPCinputBranch_, LoadTree );
+    art::ServiceHandle<lbne::ChannelMapService> TPCChannelMap;
     rawDigits_t const digits = fragmentsToDigits_( *fragments, firstTimestamp, TPCChannelMap );
     if (!digits.size() ) {
       RCEsNotPresent = true;
