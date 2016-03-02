@@ -228,7 +228,7 @@ void lbne::FilterWF::produce(art::Event& evt) {
 	  unsigned int offlineChan = fChannelMap->Offline(ch);
 	  if (rawDigitMap.count(offlineChan) == 0)
 	    continue;
-	  int adc = rawDigitVector.at(offlineChan).ADC(s);
+	  int adc = rawDigitMap[offlineChan].ADC(s);
 	  double newAdc = adc - correction;
 	  if ( fSkipStuckCodes && ( (adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F ) )
 	    newAdc = adc;
@@ -246,8 +246,8 @@ void lbne::FilterWF::produce(art::Event& evt) {
     if (rawDigitMap.count(ich) == 0)
       continue;
     raw::RawDigit theRawDigit(ich, filterWf.at(ich).size(), filterWf.at(ich));
-    theRawDigit.SetPedestal(rawDigitVector.at(ich).GetPedestal(),
-			    rawDigitVector.at(ich).GetSigma());
+    theRawDigit.SetPedestal(rawDigitMap[ich].GetPedestal(),
+			    rawDigitMap[ich].GetSigma());
     filterRawDigitVector.push_back(theRawDigit);
   }
 
