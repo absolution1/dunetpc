@@ -1,5 +1,4 @@
 #include "services_dune.fcl"
-#include "channelmap_35t.fcl"
 #include "SSPToOffline.fcl"
 #include "SplitterInput.fcl"
 
@@ -13,7 +12,6 @@ services:
   message:               @local::dune_message_services_prod_debug
   FileCatalogMetadata:   @local::art_file_catalog_data
   user:                  @local::dune35t_services
-  ChannelMapService:     @local::channelmap35t
 }
 
 source: @local::split_events

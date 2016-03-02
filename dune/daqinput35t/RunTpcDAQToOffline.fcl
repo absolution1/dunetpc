@@ -32,7 +32,6 @@ services: {
   Timing:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
-  ChannelMapService: @local::channelmap35t
 }
 
 outputs:
