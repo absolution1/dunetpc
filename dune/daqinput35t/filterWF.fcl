@@ -36,6 +36,7 @@ physics:
       module_type: FilterWF
       RawDigitModuleLabel: "SplitterInput"
       RawDigitModuleInstance: "TPC"
+      SkipStuckCodes: true
     }
   }
 

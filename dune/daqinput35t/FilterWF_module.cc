@@ -72,6 +72,7 @@ private:
 
   std::string fRawDigitModuleLabel, fRawDigitModuleInstance;
   //std::string fOutputModuleLabel;
+  bool fSkipStuckCodes;
 
   art::ServiceHandle<geo::Geometry> fGeom;
   art::ServiceHandle<lbne::ChannelMapService> fChannelMap;
@@ -93,6 +94,7 @@ void lbne::FilterWF::reconfigure(fhicl::ParameterSet const& pset) {
   fRawDigitModuleLabel = pset.get<std::string>("RawDigitModuleLabel");
   fRawDigitModuleInstance = pset.get<std::string>("RawDigitModuleInstance");
   //fOutputModuleLabel = "filterwf";
+  fSkipStuckCodes = pset.get<bool>("SkipStuckCodes",true);
 }
 
 //-------------------------------------------------------------------
@@ -156,7 +158,7 @@ void lbne::FilterWF::produce(art::Event& evt) {
 	  if (rawDigitMap.count(offlineChan) == 0)
 	    continue;
 	  int adc = rawDigitMap.at(offlineChan).ADC(s);
-	  if ((adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F)
+	  if ( fSkipStuckCodes && ( (adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F ) ) 
 	    continue;
 	  if (adc < 10) //skip "sample dropping" problem
 	    continue;
@@ -183,8 +185,9 @@ void lbne::FilterWF::produce(art::Event& evt) {
 	    continue;
 	  int adc = rawDigitMap.at(offlineChan).ADC(s);
 	  double newAdc = adc - correction;
-	  if ((adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F)
+	  if ( fSkipStuckCodes && ( (adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F ) )
 	    newAdc = adc; //don't do anything about stuck code, will run stuck code removal later
+	                  // if the code unsticker is run first, then don't skip the stuck codes.
 //	  if( adc < 10  ) //skip "sample dropping" problem
 //	    newAdc = 0;
 	  filterWf.at(offlineChan).push_back(newAdc);
@@ -195,12 +198,12 @@ void lbne::FilterWF::produce(art::Event& evt) {
       if (1) {
 	corrVals.clear();
 	for(unsigned int c = 0 ; c < colCh.size() ; c++){
-	  int ch = baseCh + colCh.at(c);
+	  int ch = baseCh + indCh.at(c);
 	  unsigned int offlineChan = fChannelMap->Offline(ch);
 	  if (rawDigitMap.count(offlineChan) == 0)
 	    continue;
 	  int adc = rawDigitMap.at(offlineChan).ADC(s);
-	  if ((adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F)
+	  if ( fSkipStuckCodes && ( (adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F ) ) 
 	    continue;
 	  if (adc < 10) //skip "sample dropping" problem
 	    continue;
@@ -227,7 +230,7 @@ void lbne::FilterWF::produce(art::Event& evt) {
 	    continue;
 	  int adc = rawDigitVector.at(offlineChan).ADC(s);
 	  double newAdc = adc - correction;
-	  if ((adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F)
+	  if ( fSkipStuckCodes && ( (adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F ) )
 	    newAdc = adc;
 //	  if( adc < 10  ) //skip "sample dropping" problem
 //	    newAdc = 0;
