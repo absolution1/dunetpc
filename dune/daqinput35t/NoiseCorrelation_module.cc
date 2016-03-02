@@ -85,8 +85,6 @@ private:
   int fChannel1;
   int fChannel2;
 
-  std::map<int,int> fChannelMap;
-
   const lariov::DetPedestalProvider& fPedestalRetrievalAlg = *(lar::providerFrom<lariov::DetPedestalService>());
 
 };
@@ -102,8 +100,6 @@ DAQToOffline::NoiseCorrelation::NoiseCorrelation(fhicl::ParameterSet const & pse
   fCorrelationTree->Branch("Channel1",&fChannel1);
   fCorrelationTree->Branch("Channel2",&fChannel2);
   fCorrelationTree->Branch("Correlation",&fCorrelation);
-
-  BuildTPCChannelMap("rce_channel_map_dune35t.txt",fChannelMap);
 
 }
 
@@ -163,7 +159,7 @@ void DAQToOffline::NoiseCorrelation::analyze(art::Event const& evt) {
 	  uint16_t val = std::numeric_limits<uint16_t>::max();
 	  bool success = microSlice->nanosliceSampleValue(i_nano, sample, val);
 	  if (success) {
-	    float const pedestal = fPedestalRetrievalAlg.PedMean(fChannelMap.at(channel));
+	    float const pedestal = fPedestalRetrievalAlg.PedMean(channel);
 	    short adc = short(val - pedestal);
 	    if ((adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F)
 	      adcvec.push_back(short(-999));
