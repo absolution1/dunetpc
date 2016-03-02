@@ -5,6 +5,7 @@
 #include "services_dune.fcl"
 #include "channelstatus_dune.fcl"
 #include "pedestals_dune.fcl"
+#include "channelmap_35t.fcl"
 
 BEGIN_PROLOG
 
@@ -80,9 +81,11 @@ dunefd45deg_disp.Geometry:   @local::dune10kt_45deg_workspace_geo
 
 # For now, treat 35t like FD,
 # except of course Geometry
+# MW: 3/1/16 and channel map
 dune35t_disp:              @local::dunefd_disp
 dune35t_disp.Geometry:     @local::dune35t_geo
 dune35t_disp.ChannelStatusService: @local::dune35t_channel_status
+dune35t_disp.ChannelMapService: @local::channelmap35t
 dune35t_disp.DetectorClocksService:  @local::dune35t_detectorclocks # defined in detectorclocks_dune.fcl
 dune35t_disp.DetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean:  500
 dune35t_disp.DetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean:  1800

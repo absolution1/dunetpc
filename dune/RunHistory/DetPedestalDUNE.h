@@ -12,6 +12,8 @@
 #include "larevt/CalibrationDBI/IOVData/DetPedestal.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
 #include "larcore/SimpleTypesAndConstants/geo_types.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 #include "fhiclcpp/ParameterSet.h"
 #include <unordered_map>
 #include <map>
@@ -74,6 +76,8 @@ namespace dune {
     std::unordered_map<raw::ChannelID_t,float> fRmsMap;
     std::unordered_map<raw::ChannelID_t,float> fMeanErrMap;
     std::unordered_map<raw::ChannelID_t,float> fRmsErrMap;
+
+    art::ServiceHandle<lbne::ChannelMapService> fChannelMap;
   };
   
 } // end namespace dune

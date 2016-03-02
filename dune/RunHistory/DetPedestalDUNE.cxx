@@ -155,20 +155,22 @@ namespace dune {
 
     nutools::dbi::Row* row;
     float mean, rms, meanerr, rmserr;
-    uint64_t chan;
+    uint64_t chan, offlineChan;
     for (int i=0; i<t.NRow(); ++i) {
       mean = rms = meanerr = rmserr = 0.;
-      row = t.GetRow(i);      
-      chan = row->Channel();
+      row = t.GetRow(i);
+      chan = row->Channel();                     // MW: as of 3/1/16, this is now an online channel number
+      offlineChan = fChannelMap->Offline(chan);  // Need to map to an offline channel at this point
+      //offlineChan = chan;
       row->Col(meanIdx).Get(mean);
       row->Col(meanErrIdx).Get(meanerr);
       row->Col(rmsIdx).Get(rms);
       row->Col(rmsErrIdx).Get(rmserr);
-      fMeanMap[chan] = mean;
-      fMeanErrMap[chan] = meanerr;
-      fRmsMap[chan] = rms;
-      fRmsErrMap[chan] = rmserr;      
-      if (i==0) { // print out 
+      fMeanMap[offlineChan] = mean;
+      fMeanErrMap[offlineChan] = meanerr;
+      fRmsMap[offlineChan] = rms;
+      fRmsErrMap[offlineChan] = rmserr;
+      if (i==0) { // print out
 	fVldTimeUsed = row->VldTime();
 	if (fLogLevel > 0) {
 	  std::cout << __PRETTY_FUNCTION__ << ": using run " << row->VldTime()
@@ -176,7 +178,7 @@ namespace dune {
 	}
       }
     }
-    
+
     return true;
   }
 
