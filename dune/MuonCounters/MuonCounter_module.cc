@@ -37,6 +37,7 @@
 #include "dune/daqinput35t/tpcFragmentToRawDigits.h"
 #include "dune/daqinput35t/CheckTime.h"
 #include "dune/daqinput35t/utilities/UnpackFragment.h"
+#include "dune/daqinput35t/SSPReformatterAlgs.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -47,9 +48,6 @@
 #include "TStyle.h"
 
 #include "dune/NearlineMonitor/NearlineVersion.h"
-
-const int kMaxHits       = 10000; //maximum number of hits
-const int kMaxAuxDets = 100;
 
 namespace MyMuoncounter {
 
@@ -66,8 +64,6 @@ public:
 
 private:
 
-  
-  int total_Hits;
   int l_TSU   = 0;   
   int u_TSU   = 43;  
   int l_BSU   = 44;  
@@ -99,7 +95,7 @@ private:
   int nSSPPayloads = 0, nRCEPayloads = 0, nPTBPayloads = 0;
   int nConsistRCEPayloads = 0;
   int nPTBTrigsOn110 = 0, nPTBTrigsOn111 = 0, nPTBTrigsOn112 = 0, nPTBTrigsOn113 = 0, nPTBTrigsOn114 = 0, nPTBTrigsOn115 = 0;
-
+  int sumNADCs = 0;
   TH1D *fGoodRunHisto;
 
   // Variables needed for the header info tree for Nearline:
@@ -119,6 +115,7 @@ private:
   double       fEndHour;
   unsigned long long int fStartTime;
   unsigned long long int fEndTime;
+  DAQToOffline::SSPReformatterAlgs sspReform;
 
   //Histogram to store the 
   TH1I* fHistNearlineVersion;
@@ -147,7 +144,8 @@ Muoncounter::Muoncounter(fhicl::ParameterSet const& pset)
   fStartHour(0.0),
   fEndHour(0.0),
   fStartTime(-1), // this is an unsigned int so it will default to a huge number
-  fEndTime(0)
+    fEndTime(0),
+    sspReform(pset.get<fhicl::ParameterSet>("SSPReformatter"))
 {
    // Read in the parameters from the .fcl file.
     this->reconfigure(pset);
@@ -165,7 +163,6 @@ void Muoncounter::reconfigure(fhicl::ParameterSet const& p)
   fSSPRawDataLabel   = p.get<std::string>("SSPRawDataLabel");
   fPTBFragType       = p.get<std::string>("PTBFragType");
   fPTBRawDataLabel   = p.get<std::string>("PTBRawDataLabel");
-
   DAQToOffline::BuildPTBChannelMap(fPTBMapDir, fPTBMapFile, fPTBMap);
   return;
 }
@@ -218,7 +215,7 @@ void Muoncounter::analyze(const art::Event& evt)
     mf::LogWarning("MuonCounter") << "WARNING: Raw PTB data not found in event " << evt.event();
     PTBPresent = false;
   }
-
+  unsigned int total_Hits= 0;
   if (PTBPresent) {
     // Check that the data is valid
     if(!PTBrawFragments.isValid()){
@@ -233,7 +230,7 @@ void Muoncounter::analyze(const art::Event& evt)
     if (PTBTime) ++nPTBPayloads;
     //std::cout << "Got PTB start time, it is " << PTBTime << std::endl;
     
-    unsigned int total_Hits = trigs.size();
+    total_Hits = trigs.size();
     
     for(unsigned int i = 0; i < total_Hits; i++) {
       int auxdetid = trigs.at(i).GetTrigID();
@@ -246,7 +243,7 @@ void Muoncounter::analyze(const art::Event& evt)
       }	else {
 	fHist3->Fill(auxdetid);
       }
-    
+      
       // Want to count the number of PTB trigs for in this event.
       if ( trigs.at(i).GetTrigID() == 110 ) ++ThisEv110;
       else if ( trigs.at(i).GetTrigID() == 111 ) ++ThisEv111;
@@ -254,6 +251,10 @@ void Muoncounter::analyze(const art::Event& evt)
       else if ( trigs.at(i).GetTrigID() == 113 ) ++ThisEv113;
       else if ( trigs.at(i).GetTrigID() == 114 ) ++ThisEv114;
       else if ( trigs.at(i).GetTrigID() == 115 ) ++ThisEv115;
+      
+      if ( trigs.at(i).GetTrigID() > 109 ) {
+	std::cout << "Identifier:I Had a PTB trigger in event " << evt.event() << " on channel " << trigs.at(i).GetTrigID() << " at time " << trigs.at(i).GetTrigTime() << std::endl;
+      }
     }
   }
   event_Count+=1;
@@ -268,7 +269,7 @@ void Muoncounter::analyze(const art::Event& evt)
     mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << evt.event();
     SSPPresent = false;
   }
-
+  
   if (SSPPresent) {
     if(!SSPrawFragments.isValid()){
       mf::LogError("SSPToOffline") << "Run: " << evt.run() << ", SubRun: " << evt.subRun() << ", Event: " << evt.event() << " is NOT VALID";
@@ -279,6 +280,13 @@ void Muoncounter::analyze(const art::Event& evt)
     artdaq::Fragments const& rawFragmentsSSP = *SSPrawFragments;
     DAQToOffline::GetSSPFirstTimestamp ( rawFragmentsSSP, nSSPPayloads, SSPTime );
     //std::cout << "Got SSP start time, it is " << SSPTime << std::endl;
+
+    // Checking whether I have any waveforms......
+    std::vector<raw::OpDetWaveform> waveforms = sspReform.SSPFragmentToOpDetWaveform(rawFragmentsSSP);
+    if ( waveforms.size() ) {
+      std::cout << "Identifier:Looking at event " << evt.event() << ", I have a vector of waveforms which has size " << waveforms.size() << std::endl; 
+      std::cout << "Identifier:This event had " << total_Hits << " counter + trigger words " << std::endl;
+    }
   } // SSP Present
   
   //---------------- RCE Good Event Timing stuff ----------------
@@ -300,22 +308,25 @@ void Muoncounter::analyze(const art::Event& evt)
     }
     artdaq::Fragments const& rawFragmentsRCE = *RCErawFragments;
     DAQToOffline::GetRCEFirstTimestamp ( rawFragmentsRCE, ConsistRCE, NumADCs, RCETime );
+    sumNADCs += NumADCs;
+    if (NumADCs)
+      std::cout << "Identifier:I had " << NumADCs << " ADCs in event " << evt.event() << ", first timestamp in this event is " << RCETime << "\n" << std::endl;
   } //RCEPresent
   //std::cout << "Got RCE start time, it is " << RCETime << std::endl;
   if (ConsistRCE > -1 ) ++nRCEPayloads;
   if (ConsistRCE == 1 ) ++nConsistRCEPayloads;
-
+  
   // ---------------- Get the Good Event stuff ready for this event ----------------
   if (RCETime && PTBTime) RCE_PTB_diff = RCETime - PTBTime;
   if (RCETime && SSPTime) RCE_SSP_diff = RCETime - SSPTime;
   if (SSPTime && PTBTime) SSP_PTB_diff = SSPTime - PTBTime;
-
+  
   if (RCETime && SSPTime && PTBTime) { // Check that all components are synchronous.
     RCE_PTB_diff = RCETime - PTBTime;
     RCE_SSP_diff = RCETime - SSPTime;
     if ( RCE_PTB_diff == 0 && RCE_SSP_diff == 0 ) ++nSynchronousEvents;
   }
-
+  
   if (ConsistRCE == 1) {
     //std::cout << "!!!Got consistent RCEs so adding the trigger numbers" << std::endl;
     nPTBTrigsOn110 += ThisEv110;
@@ -328,20 +339,18 @@ void Muoncounter::analyze(const art::Event& evt)
   if (fNevents%1000 == 0) 
     std::cout << "Looking at event " << evt.event() << " it had " << RCETime << " " << SSPTime << " " << PTBTime << " " << NumADCs 
 	      << " RCE_SSP " << RCE_SSP_diff << " RCE_PTB " << RCE_PTB_diff << " SSP_PTB " << SSP_PTB_diff << ". "
-	      << "So far have had " << nPTBTrigsOn110 << " " << nPTBTrigsOn111 << " " << nPTBTrigsOn112 << " " << nPTBTrigsOn113 << " " << nPTBTrigsOn114 << " " << nPTBTrigsOn115 << " trigs on each coincidence."
-	      << std::endl;
+	      << "So far have had " << nPTBTrigsOn110 << " " << nPTBTrigsOn111 << " " << nPTBTrigsOn112 << " " << nPTBTrigsOn113 << " " << nPTBTrigsOn114 << " " << nPTBTrigsOn115 << " trigs on each coincidence"
+	      << ", and " << sumNADCs << " ADCs." << std::endl;
 }
 
-void Muoncounter::beginJob()
-{
+void Muoncounter::beginJob() {
   // Implementation of optional member function here.
-
   art::ServiceHandle<art::TFileService> tfs;
   fHist1 = tfs->make<TH1D>("h1", "h1", u_TSU-l_TSU+1+4, l_TSU, u_TSU+1+4); 
   fHist2 = tfs->make<TH1D>("h2", "h2", u_BSU-l_BSU+1, l_BSU, u_BSU+1); 
   fHist3 = tfs->make<TH1D>("h3", "h3", u_Trig-l_Trig, l_Trig, u_Trig);
-
-  fGoodRunHisto = tfs->make<TH1D>("GoddRunHisto","GoodRunHisto", 11, 0, 11);
+  
+  fGoodRunHisto = tfs->make<TH1D>("GoddRunHisto","GoodRunHisto", 12, 0, 12);
   fGoodRunHisto->GetXaxis()->SetBinLabel(1 ,"PTB payload ratio");
   fGoodRunHisto->GetXaxis()->SetBinLabel(2 ,"SSP payload ratio");
   fGoodRunHisto->GetXaxis()->SetBinLabel(3 ,"RCE payload ratio");
@@ -353,6 +362,8 @@ void Muoncounter::beginJob()
   fGoodRunHisto->GetXaxis()->SetBinLabel(9 ,"Trigs on Chan 113");
   fGoodRunHisto->GetXaxis()->SetBinLabel(10,"Trigs on Chan 114");
   fGoodRunHisto->GetXaxis()->SetBinLabel(11,"Trigs on Chan 115");
+  fGoodRunHisto->GetXaxis()->SetBinLabel(12,"Total ADCs");
+  
 
   //Making the Nearline header information tree
   fHeader = tfs->make<TTree>("Header","Subrun Information");
@@ -508,11 +519,13 @@ void Muoncounter::endJob()
   fGoodRunHisto->SetBinContent(9 , nPTBTrigsOn113);
   fGoodRunHisto->SetBinContent(10, nPTBTrigsOn114);
   fGoodRunHisto->SetBinContent(11, nPTBTrigsOn115);
+  fGoodRunHisto->SetBinContent(12, sumNADCs);
+  
 
   std::cout << "IDENTIFIER: Run: " << fRun << " SubRun " << fSubrun << " has " << fNevents << " events in total" 
 	    << ", ratio that have PTB payloads " << PTBPayloadRat 
 	    << ", ratio that have SSP payloads " << SSPPayloadRat 
-	    << ", ratio that have RCE payloads " << RCEPayloadRat << ", ratio which were consistent " << ConsistRCERat
+	    << ", ratio that have RCE payloads " << RCEPayloadRat << ", ratio which were consistent " << ConsistRCERat << ", I had a total of " << sumNADCs <<  " ADCs"
 	    << ", ratio of synchronous events " << SynchronRat
 	    << ". I had " << nPTBTrigsOn110 << " " << nPTBTrigsOn111 << " " << nPTBTrigsOn112 << " " << nPTBTrigsOn113 << " " << nPTBTrigsOn114 << " " << nPTBTrigsOn115 << " trigs on each coincidence."
 	    << std::endl;
@@ -571,6 +584,6 @@ void Muoncounter::endJob()
 
 DEFINE_ART_MODULE(Muoncounter)
 
-  }  // namespace Muoncounter
+}  // namespace Muoncounter
 
 #endif // Muoncounter_Module

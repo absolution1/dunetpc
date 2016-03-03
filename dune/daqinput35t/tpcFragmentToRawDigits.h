@@ -33,7 +33,7 @@ namespace DAQToOffline {
   // Fragments are expected to be carrying TPC data; this is not
   // checked.
 
-  std::vector<raw::RawDigit> tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
+  std::vector<raw::RawDigit> tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, std::vector<std::pair<int,int> > &DigitsIndexList,
 						    lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
 						    art::ServiceHandle<lbne::ChannelMapService> const& channelMap, bool useChannelMap,
 						    bool debug,

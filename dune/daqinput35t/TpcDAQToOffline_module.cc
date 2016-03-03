@@ -140,7 +140,8 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
   }
 
   lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp;
-  auto digits = tpcFragmentToRawDigits(*rawFragments, firstTimestamp, fChannelMap, fUseChannelMap, fDebug, fCompression, fZeroThreshold);
+  std::vector<std::pair<int,int> > DigitsIndexList;
+  auto digits = tpcFragmentToRawDigits(*rawFragments, DigitsIndexList, firstTimestamp, fChannelMap, fUseChannelMap, fDebug, fCompression, fZeroThreshold);
 
   art::Timestamp this_time_stamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(firstTimestamp);
   std::cout << "JPD: this_time_stamp: " << this_time_stamp.value() << std::endl;

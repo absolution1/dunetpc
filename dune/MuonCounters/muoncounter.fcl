@@ -1,3 +1,5 @@
+#include "SSPToOffline.fcl"
+
 BEGIN_PROLOG
 
 muoncounter:
@@ -15,6 +17,8 @@ muoncounter:
     
     PTBMapDir:           "/dune/data2/users/warburton/PTBChannelMap/"
     PTBMapFile:          "PTBChannelMap.txt"
+
+    SSPReformatter:       @local::ssp_reformatter
 }
 
 muoncounterfd:
