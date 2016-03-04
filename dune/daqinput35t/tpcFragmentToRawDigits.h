@@ -69,7 +69,12 @@ namespace DAQToOffline {
 
   const lbne::TpcNanoSlice::Header::nova_timestamp_t nova_time_ticks_per_second = 64e6;
 
+  // Convert nova time to DUNE timestamp.
+  // Please call instead DuneTimeConverter::fromNova(novaTime)
   art::Timestamp make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp);
+
+  // For those who want the old convention where seconds are stored in the low word.
+  art::Timestamp old_make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp);
 
 }
 

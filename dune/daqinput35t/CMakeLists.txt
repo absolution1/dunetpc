@@ -1,6 +1,7 @@
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 ADD_SUBDIRECTORY(utilities)
+ADD_SUBDIRECTORY(test)
 
 art_make(BASENAME_ONLY
         LIBRARY_NAME lbne_daqinput35t

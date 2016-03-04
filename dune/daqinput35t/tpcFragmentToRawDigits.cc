@@ -1,5 +1,7 @@
+// tpcFragmentToRawDigits.cc
 
 #include "tpcFragmentToRawDigits.h"
+#include "DuneTimeConverter.h"
 
 std::vector<raw::RawDigit>
 DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, 
@@ -179,21 +181,22 @@ DAQToOffline::TPCChannelMapDetailed::TPCChannelMapDetailed(std::string channelMa
 }
 
 
-art::Timestamp DAQToOffline::make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp){
+// NOvA time standard is a 56 bit timestamp at an LSB resolution of 15.6 ns (64 MHz)
+// and a starting epoch of January 1, 2010 at 00:00:00.
+// D. Adams March 2016: Update this to store the sec in the high word and remaing ns in
+// the low word. Previous version stored 0 in the high word and sec in the low word.
+art::Timestamp DAQToOffline::
+make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t novaTime) {
+  return DuneTimeConverter:: fromNova(novaTime);
+}
 
-/*
-
-"NOvA time standard"
-which is a 56 bit timestamp at an LSB resolution of 15.6 ns (64 MHz) and a starting epoch of
-January 1, 2010 at 00:00:00.
-
-*/
+art::Timestamp DAQToOffline::
+old_make_art_timestamp_from_nova_timestamp(lbne::TpcNanoSlice::Header::nova_timestamp_t this_nova_timestamp) {
   lbne::TpcNanoSlice::Header::nova_timestamp_t seconds_since_nova_epoch = (this_nova_timestamp/nova_time_ticks_per_second);
   TTimeStamp time_of_event(20100101u,
                            0u,
                            0u,
                            true,
                            seconds_since_nova_epoch);
-
   return art::Timestamp(time_of_event.GetSec());
 }
