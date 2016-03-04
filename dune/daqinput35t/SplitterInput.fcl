@@ -1,3 +1,5 @@
+#include "SSPToOffline.fcl"
+
 BEGIN_PROLOG
 
 split_events:

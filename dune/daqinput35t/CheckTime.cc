@@ -24,16 +24,21 @@ void DAQToOffline::GetRCEFirstTimestamp( artdaq::Fragments const& Fragments, int
       if (numNanoSlices) {
 	ConsistRCE = 1;
 	ThisADCcount += numNanoSlices;
+	//if (ThisADCcount == 1000 )
+	//std::cout << "Some microslice things..."
+	//	    << " Soft Message " << microSlice->software_message()
+	//	    << ", Firm Message " << microSlice->firmware_message()
+	//	    << ", Type ID " << microSlice->type_id()
+	//	    << ", sequence ID " << microSlice->sequence_id()
+	//	    << ", SoftTrig? " << microSlice->softTrig()
+	//	    << ", Ext Trig? " << microSlice->extTrig()  << std::endl;
       } // If numNanoSlices.
       if ( fragIndex==0 && i_micro==0 ) {
-	//std::cout << "Getting RCE time for event " << evt.event();
 	if ( microSlice->nanoSliceCount() ) { // If this MicroSlice has any NanoSlices
 	  RCETime = microSlice->nanoSlice(0)->nova_timestamp();
-	  //std::cout << ", taking RCETime from first nanoslice " << RCETime << std::endl;
 	} // NanoSlice
 	else {
 	  RCETime = microSlice->software_message();
-	  //std::cout << ", taking RCETime from header " << RCETime << std::endl;
 	}
       } // Looking at first MicroSlice of first Fragment
     } // MicroSlice
