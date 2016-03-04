@@ -1249,7 +1249,6 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &InputTree ) {
     inputSubRunNumber_ = evAux_.subRun();
     inputEventNumber_ = evAux_.event();
     inputEventTime_ = evAux_.time();
-std::cout << "DLA: input event time: " << inputEventTime_ << std::endl;
     if (fDebugLevel > 1)
       std::cout << "\nLoading event " << inputEventNumber_ << " on Tree " << InputTree << std::endl;
 
