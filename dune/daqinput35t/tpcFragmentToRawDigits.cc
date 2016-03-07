@@ -1,7 +1,7 @@
 // tpcFragmentToRawDigits.cc
 
 #include "tpcFragmentToRawDigits.h"
-#include "DuneTimeConverter.h"
+#include "dune/DuneCommon/DuneTimeConverter.h"
 
 std::vector<raw::RawDigit>
 DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, std::vector<std::pair<int,int> > &DigitsIndexList,

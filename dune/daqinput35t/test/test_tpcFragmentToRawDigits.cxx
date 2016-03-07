@@ -1,4 +1,4 @@
-// test_DuneTimeConverter.cxx
+// test_tpcFragmentToRawDigits.cxx
 
 // David Adams
 // September 2015
@@ -7,8 +7,8 @@
 
 #undef NDEBUG
 
-#include "../DuneTimeConverter.h"
 #include "../tpcFragmentToRawDigits.h"
+#include "dune/DuneCommon/DuneTimeConverter.h"
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -23,8 +23,8 @@ using std::uint64_t;
 
 //**********************************************************************
 
-int test_DuneTimeConverter() {
-  const string myname = "test_DuneTimeConverter: ";
+int test_tpcFragmentToRawDigits() {
+  const string myname = "test_tpcFragmentToRawDigits: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -32,13 +32,6 @@ int test_DuneTimeConverter() {
 #endif
   string line = "-----------------------------";
   string scfg;
-
-  cout << myname << line << endl;
-  cout << myname << "Test data" << endl;
-  assert( DuneTimeConverter::novaT0Sec() > 0 );
-  assert( DuneTimeConverter::novaTicksPerUsec() > 0 );
-  assert( DuneTimeConverter::novaTicksPerSec() > 0 );
-  assert( DuneTimeConverter::novaTicksPerSec() == 1000000*DuneTimeConverter::novaTicksPerUsec() );
 
   cout << myname << line << endl;
   cout << myname << "Create test time" << endl;
@@ -54,7 +47,6 @@ int test_DuneTimeConverter() {
   assert( ts1.timeLow() == trem );
   assert( ts1.timeHigh() == tsec );
 
-  cout << myname << line << endl;
   cout << myname << "Create nova time." << endl;
   uint64_t tnova = DuneTimeConverter::toNova(ts1);
   art::Timestamp ts2 = DuneTimeConverter::fromNova(tnova);
@@ -83,16 +75,6 @@ int test_DuneTimeConverter() {
   assert( ts4.timeLow() == ts2.timeHigh() );
 
   cout << myname << line << endl;
-  cout << myname << "Test creation from string." << endl;
-  string stime = "1577836800.123456789";
-  art::Timestamp ts5 = DuneTimeConverter::fromString(stime);
-  cout << myname << "   String: " << stime << endl;
-  cout << myname << "Timestamp: " << DuneTimeConverter::toString(ts5) << endl;
-  assert( ts5.timeLow() == ts1.timeLow() );
-  assert( ts5.timeHigh() == ts1.timeHigh() );
-  assert( DuneTimeConverter::toString(ts5) == stime );
-
-  cout << myname << line << endl;
   cout << myname << "Done." << endl;
   return 0;
 }
@@ -100,7 +82,7 @@ int test_DuneTimeConverter() {
 //**********************************************************************
 
 int main() {
-  return test_DuneTimeConverter();
+  return test_tpcFragmentToRawDigits();
 }
 
 //**********************************************************************

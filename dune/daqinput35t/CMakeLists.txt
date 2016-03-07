@@ -21,6 +21,7 @@ art_make(BASENAME_ONLY
 	lbne-raw-data_Services_ChannelMap_ChannelMapService_service
         lardata_RawData
         lardata_RecoBase
+        dune_DuneCommon
         NO_PLUGINS
         )
 
