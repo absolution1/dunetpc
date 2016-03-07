@@ -4,7 +4,8 @@
 #include "dune/DuneCommon/DuneTimeConverter.h"
 
 std::vector<raw::RawDigit>
-DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, std::vector<std::pair<int,int> > &DigitsIndexList,
+DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
+				     std::vector<std::pair <std::pair<unsigned int,unsigned int>,lbne::TpcNanoSlice::Header::nova_timestamp_t> > &DigitsIndexList,
 				     lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
 				     art::ServiceHandle<lbne::ChannelMapService> const& channelMap, bool useChannelMap,
 				     bool debug, raw::Compress_t compression, unsigned int zeroThreshold)
@@ -77,9 +78,10 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, std:
     //Properties of fragment
     auto numMicroSlices = millisliceFragment.microSliceCount();
     bool FirstMicro = false;
-    int FirstGoodIndex = 0;
-    int LastGoodIndex  = 0;
+    unsigned int FirstGoodIndex = 0;
+    unsigned int LastGoodIndex  = 0;
     bool PrevMicroRCE  = false;
+    lbne::TpcNanoSlice::Header::nova_timestamp_t ThisTimestamp = 0;
     bool MadeList = DigitsIndexList.size();
     for(unsigned int i_micro=0;i_micro<numMicroSlices;i_micro++){
       std::unique_ptr <const lbne::TpcMicroSlice> microSlice = millisliceFragment.microSlice(i_micro);
@@ -93,23 +95,27 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, std:
       }
 
       if ( chan%128==0 ) {
-	std::cout << "Looking at microslice " << i_micro << ", it has " << numNanoSlices << " nanoslices." << std::endl;
+	//std::cout << "Looking at microslice " << i_micro << ", it has " << numNanoSlices << " nanoslices." << std::endl;
 	// Get the First Timestamp for this channel
 	if (!FirstMicro && numNanoSlices) {
 	  lbne::TpcNanoSlice::Header::nova_timestamp_t Timestamp = microSlice->nanoSlice(0)->nova_timestamp();
 	  FirstMicro=true;
 	  if (!TimestampSet || Timestamp < firstTimestamp) {
-	    std::cout << "!!!Resetting timestamp to " << Timestamp << " on Chan " << chan << ",Micro " << i_micro << "!!!" << std::endl;
+	    //std::cout << "!!!Resetting timestamp to " << Timestamp << " on Chan " << chan << ",Micro " << i_micro << "!!!" << std::endl;
 	    firstTimestamp = Timestamp;
 	    TimestampSet = true;
 	  }
 	}
 	// Which indexes have RCE information?
 	if (!MadeList) {
-	  if (numNanoSlices) LastGoodIndex = LastGoodIndex + numNanoSlices;
+	  if (numNanoSlices) {
+	    LastGoodIndex = LastGoodIndex + numNanoSlices;
+	    if (PrevMicroRCE == false)
+	      ThisTimestamp = microSlice->nanoSlice(0)->nova_timestamp();
+	  }
 	  if (PrevMicroRCE == true && ( !numNanoSlices || i_micro==numMicroSlices-1 ) ) {
-	    std::cout << "This is the end of a good set of RCEs, so want to add a pair to my vector...." << std::endl;
-	    DigitsIndexList.push_back( std::make_pair(FirstGoodIndex,LastGoodIndex-1) );
+	    //std::cout << "This is the end of a good set of RCEs, so want to add a pair to my vector...." << std::endl;
+	    DigitsIndexList.push_back( std::make_pair( std::make_pair(FirstGoodIndex,LastGoodIndex-1), ThisTimestamp) );
 	    FirstGoodIndex = LastGoodIndex;
 	  }
 	  PrevMicroRCE = (bool)numNanoSlices;
@@ -118,9 +124,9 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments, std:
     }
     // Make my list of good RCEs
     if (DigitsIndexList.size() && !MadeList ) {
-      std::cout << "Finished looking through microslices. DigitsIndexList has size " << DigitsIndexList.size() << ", the useful things were in these microslices." << std::endl;
-      for (size_t qq=0; qq<DigitsIndexList.size(); ++qq)
-	std::cout << "Looking at element " << qq << " start " << DigitsIndexList[qq].first << ", end " << DigitsIndexList[qq].second << std::endl;
+      //std::cout << "Finished looking through microslices. DigitsIndexList has size " << DigitsIndexList.size() << ", the useful things were in these microslices." << std::endl;
+      //for (size_t qq=0; qq<DigitsIndexList.size(); ++qq)
+      //std::cout << "Looking at element " << qq << " start " << DigitsIndexList[qq].first.first << ", end " << DigitsIndexList[qq].first.second << " timestamp " << DigitsIndexList[qq].second << std::endl;
     }
     
     if (debug) std::cout << "adcvec->size(): " << adcvec.size() << std::endl;

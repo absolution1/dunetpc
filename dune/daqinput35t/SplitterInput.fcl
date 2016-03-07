@@ -7,6 +7,7 @@ split_events:
   module_type: "SplitterInput"
   
   TPCInputTag:          "daq:TPC:DAQ"                 // Input tag of TPC data "moduleLabel:instance:processName"
+  SparseInputTag:       "sparseSsp:PHOTON:DAQ"        // Input tag of Sparsified data "moduleLabel:instance:processName"
   SSPInputTag:          "daq:PHOTON:DAQ"              // Input tag of SSP data "moduleLabel:instance:processName"
   OpHitInputTag:        "daq:OPHIT:DAQ"               // Input tag of OpHit data "moduleLabel:instance:processName"
   PennInputTag:         "daq:TRIGGER:DAQ"             // Input tag of PTB data "moduleLabel:instance:processName"
