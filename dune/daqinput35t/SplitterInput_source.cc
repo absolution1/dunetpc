@@ -1123,8 +1123,6 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   // ******** Now Build the event *********
   runNumber_ = inputRunNumber_;
   subRunNumber_ = inputSubRunNumber_;
-  //art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
-  //FIXME - This is a first attempt at interpreting the novatimestamp from the tpc data to create an art event timestamp
   art::Timestamp this_art_event_timestamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(Event_timestamp);
   if ( runNumber_ != cachedRunNumber_ ) {
     outR = sh_.makeRunPrincipal(runNumber_,this_art_event_timestamp);
@@ -1173,9 +1171,8 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
     if (fDebugLevel) std::cout << "Have now returned from TakeMCSimChans, it has size " << simchanbuf_.size() << std::endl;
   } 
 
-
-  //inputEventTime_ is the art::Timestamp() of the online art::Event() used to create the offline art::Event()
-  makeEventAndPutDigits_( outE, inputEventTime_ );
+  // Create event using the time from the data.
+  makeEventAndPutDigits_( outE, this_art_event_timestamp);
   
   // ******** Reset loadedDigits_.index and TreeIndex_ to where the trigger was *********
   if (fDebugLevel) {

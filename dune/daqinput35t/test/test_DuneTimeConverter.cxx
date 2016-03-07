@@ -50,8 +50,7 @@ int test_DuneTimeConverter() {
   cout << myname << line << endl;
   cout << myname << "Create timestamp." << endl;
   art::Timestamp ts1 = DuneTimeConverter::makeTimestamp(tsec, trem);
-  cout << myname << "Timestamp: " << setw(9) << ts1.timeHigh() << "."
-       << setw(9) << ts1.timeLow() << " sec" << endl;
+  cout << myname << DuneTimeConverter::toString(ts1) << " sec " << endl;
   assert( ts1.timeLow() == trem );
   assert( ts1.timeHigh() == tsec );
 
@@ -60,8 +59,7 @@ int test_DuneTimeConverter() {
   uint64_t tnova = DuneTimeConverter::toNova(ts1);
   art::Timestamp ts2 = DuneTimeConverter::fromNova(tnova);
   cout << myname << "Nova time: " <<tnova << endl;
-  cout << myname << "Timestamp: " << setw(9) << ts2.timeHigh() << "."
-       << setw(9) << ts2.timeLow() << " sec" << endl;
+  cout << myname << "Timestamp: " << setw(9) << DuneTimeConverter::toString(ts2) << " sec" << endl;
   assert( ts2.timeHigh() == tsec );
   int64_t lodiff = ts2.timeLow();
   lodiff -= trem;
@@ -80,13 +78,22 @@ int test_DuneTimeConverter() {
   cout << myname << line << endl;
   cout << myname << "Test old_make_art_timestamp_from_nova_timestamp." << endl;
   art::Timestamp ts4 = DAQToOffline::old_make_art_timestamp_from_nova_timestamp(tnova);
-  cout << myname << "Timestamp: " << setw(9) << ts4.timeHigh() << "."
-       << setw(9) << ts4.timeLow() << " sec" << endl;
+  cout << myname << "Timestamp: " << DuneTimeConverter::toString(ts4) << endl;
   assert( ts4.timeHigh() == 0 );
   assert( ts4.timeLow() == ts2.timeHigh() );
 
   cout << myname << line << endl;
-  cout << "Done." << endl;
+  cout << myname << "Test creation from string." << endl;
+  string stime = "1577836800.123456789";
+  art::Timestamp ts5 = DuneTimeConverter::fromString(stime);
+  cout << myname << "   String: " << stime << endl;
+  cout << myname << "Timestamp: " << DuneTimeConverter::toString(ts5) << endl;
+  assert( ts5.timeLow() == ts1.timeLow() );
+  assert( ts5.timeHigh() == ts1.timeHigh() );
+  assert( DuneTimeConverter::toString(ts5) == stime );
+
+  cout << myname << line << endl;
+  cout << myname << "Done." << endl;
   return 0;
 }
 

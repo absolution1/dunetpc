@@ -15,6 +15,7 @@
 // i.e. there are 64 ticks/us.
 
 #include <stdint.h>
+#include <string>
 #include "art/Persistency/Provenance/Timestamp.h"
 
 class DuneTimeConverter {
@@ -36,13 +37,20 @@ public:
   }
     
   // Convert NOvA time to DUNE time.
-  static art::Timestamp fromNova(uint64_t);
+  static art::Timestamp fromNova(uint64_t tnova);
 
   // Convert NOvA time to dune time.
-  static uint64_t toNova(art::Timestamp);
+  static uint64_t toNova(art::Timestamp tart);
 
   // Construct timestamp from the time in sec and remainder in ns
   static art::Timestamp makeTimestamp(uint32_t tsec, uint32_t trem);
+
+  // Convert to a string with format "SSS.NNNNNNNNN" where SSS is the truncated
+  // time in seconds and NNNNNNNNN is the remainder in ns.
+  static std::string toString(art::Timestamp tart);
+
+  // Convert from a string in the above format.
+  static art::Timestamp fromString(std::string stime);
 
 };
 
