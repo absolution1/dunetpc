@@ -35,11 +35,11 @@
 #include "lardata/RawData/raw.h"
 
 //dunetpc
-#include "dune/daqinput35t/tpcFragmentToRawDigits.h" //JPD - For online channel map
 #include "dune/NearlineMonitor/NearlineVersion.h"
 
 namespace nearline {
   class NearlineAna;
+  void BuildTPCChannelMap(std::string channelMapFile, std::map<int,int>& channelMap);
 }
 
 class nearline::NearlineAna : public art::EDAnalyzer {
@@ -76,9 +76,8 @@ private:
 
   bool fVerboseOutput;
 
-
-  std::string fChannelMapFile;
   bool fUseOnlineChannels;
+  std::string fChannelMapFile;
   std::map<int,int> fChannelMap;
 
   bool fMakeHitsPerEventPlots;
@@ -168,7 +167,7 @@ void nearline::NearlineAna::reconfigure(fhicl::ParameterSet const & p){
   fUseOnlineChannels = p.get<bool>("UseOnlineChannels", true);
   fChannelMapFile = p.get<std::string>("TPCChannelMapFile");
 
-  if(fUseOnlineChannels) DAQToOffline::BuildTPCChannelMap(fChannelMapFile, fChannelMap);
+  if(fUseOnlineChannels) BuildTPCChannelMap(fChannelMapFile, fChannelMap);
 
   fMakeHitsPerEventPlots = p.get<bool>("MakeHitsPerEventPlots", true);
   fHitsPerEventChannels = p.get<std::vector<unsigned int>>("HitsPerEventChannels", {1,2,3,4});
@@ -737,5 +736,35 @@ void nearline::NearlineAna::writePedestalPerTickSummaryFile(std::string fileName
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+void nearline::BuildTPCChannelMap(std::string channelMapFile, std::map<int,int>& channelMap) {
+
+  /// Builds TPC channel map from the map txt file
+
+  channelMap.clear();
+
+  int onlineChannel;
+  int offlineChannel;
+
+  std::string fullname;
+  cet::search_path sp("FW_SEARCH_PATH");
+  sp.find_file(channelMapFile, fullname);
+
+  if (fullname.empty())
+    mf::LogWarning("DAQToOffline") << "Input TPC channel map file " << channelMapFile << " not found in FW_SEARCH_PATH.  Using online channel numbers!" << std::endl;
+
+  else {
+    mf::LogVerbatim("DAQToOffline") << "Build TPC Online->Offline channel Map from " << fullname;
+    std::ifstream infile(fullname);
+    while (infile.good()) {
+      infile >> onlineChannel >> offlineChannel;
+      channelMap.insert(std::make_pair(onlineChannel,offlineChannel));
+      mf::LogVerbatim("DAQToOffline") << "   " << onlineChannel << " -> " << offlineChannel;
+    }
+    std::cout << "channelMap has size " << channelMap.size() << ". If this is 2048, then it's fine even if the above lines skipped a 'few' channels..." << std::endl;
+  }
+
+}
 
 DEFINE_ART_MODULE(nearline::NearlineAna)

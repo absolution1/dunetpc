@@ -23,7 +23,6 @@ split_events:
   MCSimChanInputDataProduct: "sim::SimChannel"        // Data product type of MCSimChannels
 
   SSPReformatter:       @local::ssp_reformatter       // The parameter set for the SSP reformatter
-  TPCChannelMapFile:    "rce_channel_map_dune35t.txt" // The TPC channel map
   PTBMapDir:            "/dune/data2/users/warburton/PTBChannelMap/" // The directory path to a user defined channel map
   PTBMapFile:           "PTBChannelMap.txt"           // The name of the PTB channel map
 

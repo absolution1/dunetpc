@@ -8,8 +8,8 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
 				     std::vector<std::pair <std::pair<unsigned int,unsigned int>,lbne::TpcNanoSlice::Header::nova_timestamp_t> > &DigitsIndexList,
 				     lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp,
 				     art::ServiceHandle<lbne::ChannelMapService> const& channelMap, bool useChannelMap,
-				     bool debug, raw::Compress_t compression, unsigned int zeroThreshold)
-{
+				     bool debug, raw::Compress_t compression, unsigned int zeroThreshold) {
+
   DigitsIndexList.clear();
   //Create a map containing (fragmentID, fragIndex) for the event, will be used to check if each channel is present
   unsigned int numFragments = rawFragments.size();
@@ -141,62 +141,6 @@ DAQToOffline::tpcFragmentToRawDigits(artdaq::Fragments const& rawFragments,
 
   return rawDigitVector;
 }
-
-void DAQToOffline::BuildTPCChannelMap(std::string channelMapFile, std::map<int,int>& channelMap) {
-
-  /// Builds TPC channel map from the map txt file
-
-  channelMap.clear();
-
-  int onlineChannel;
-  int offlineChannel;
-    
-  std::string fullname;
-  cet::search_path sp("FW_SEARCH_PATH");
-  sp.find_file(channelMapFile, fullname);
-    
-  if (fullname.empty())
-    mf::LogWarning("DAQToOffline") << "Input TPC channel map file " << channelMapFile << " not found in FW_SEARCH_PATH.  Using online channel numbers!" << std::endl;
-
-  else {
-    mf::LogVerbatim("DAQToOffline") << "Build TPC Online->Offline channel Map from " << fullname;
-    std::ifstream infile(fullname);
-    while (infile.good()) {
-      infile >> onlineChannel >> offlineChannel;
-      channelMap.insert(std::make_pair(onlineChannel,offlineChannel));
-      mf::LogVerbatim("DAQToOffline") << "   " << onlineChannel << " -> " << offlineChannel;
-    }
-    std::cout << "channelMap has size " << channelMap.size() << ". If this is 2048, then it's fine even if the above lines skipped a 'few' channels..." << std::endl;
-  }
-    
-}
-
-
-DAQToOffline::TPCChannelMapDetailed::TPCChannelMapDetailed(std::string channelMapFile){
-
-  std::string fullname;
-  cet::search_path sp("DUNETPC_DIR");
-  sp.find_file(channelMapFile, fullname);
-  if (fullname.empty())
-    mf::LogWarning("DAQToOffline") << "Input TPC detailed channel map file " << channelMapFile << " not found\n";
-  
-  else{
-    std::ifstream infile(fullname);
-    //Ignore the first four lines as they are junk
-    for(int i=0;i<4;i++){
-      std::string line;
-      std::getline(infile, line);
-    }
-    while (infile.good()){
-      int online_channel, rce, rce_channel, apa, plane, offline_channel;
-      infile >> online_channel >> rce >> rce_channel >> apa >> plane >> offline_channel;
-      TPCChannel this_channel(online_channel, rce, rce_channel, apa, plane, offline_channel);
-      fOnlineChannelMap.insert(std::make_pair(online_channel, this_channel));
-      fOfflineChannelMap.insert(std::make_pair(offline_channel, this_channel));
-    }
-  }
-}
-
 
 // NOvA time standard is a 56 bit timestamp at an LSB resolution of 15.6 ns (64 MHz)
 // and a starting epoch of January 1, 2010 at 00:00:00.
