@@ -71,12 +71,10 @@ public:
 private:
   void beginJob() override;
   void endJob  () override;
-  void beginEvent(art::EventNumber_t eventNumber);
-  void endEvent  (art::EventNumber_t eventNumber);
-  /*camj_changes*/
+  //void beginEvent(art::EventNumber_t eventNumber);
+  //void endEvent  (art::EventNumber_t eventNumber);
   void beginRun(art::Run const& run) override;
   void endRun  (art::Run const& run) override;
-  /*camj_changes_end*/
 
   std::string fFragType;
   std::string fRawDataLabel;
@@ -87,10 +85,12 @@ private:
   unsigned long int firstTime;
   unsigned long int lastTime;
   std::map<int, long int> triggerCount;
+  std::map<int, long int> triggerCountHeaders;
+  std::map<int, long int> triggerCountWaveforms;
 
-  /*camj_changes*/
   TH1D *fTriggerRateHist;
-  /*camj_canges_end*/
+  TH1D *fTriggerRateHistHeaders;
+  TH1D *fTriggerRateHistWaveforms;
 
 };
 
@@ -134,53 +134,51 @@ void DAQToOffline::SSPTriggerAna::beginJob()
   //art::ServiceHandle<art::TFileService> tfs;
   //adc_values_ = tfs->make<TH1D>("adc_values","adc_values",4096,-0.5,4095.5);
 
-  /*camj_changes*/
   art::ServiceHandle<art::TFileService> tfs;
-  fTriggerRateHist = tfs->make<TH1D>("triggerratehist",";Trigger Rate vs OpChannel;",116,-10,106);
-  /*camj_changes_end*/
+  fTriggerRateHist = tfs->make<TH1D>("triggerratehist",";Trigger Rate vs OpChannel;Rate (Hz)",116,-10,106);
+  fTriggerRateHistHeaders = tfs->make<TH1D>("triggerratehist_headers",";Trigger Rate vs OpChannel;Rate (Hz)",116,-10,106);
+  fTriggerRateHistWaveforms = tfs->make<TH1D>("triggerratehist_waveforms",";Trigger Rate vs OpChannel;Rate (Hz)",116,-10,106);
 
   firstTime = (((unsigned long int)1)<<63);
   lastTime = 0;
 }
 
 //void DAQToOffline::SSPTriggerAna::beginEvent(art::EventNumber_t /*eventNumber*/)
-void DAQToOffline::SSPTriggerAna::beginEvent(art::EventNumber_t eventNumber)
-{
-  //  fTriggerRateHist->Reset();
-  //reset ADC histogram
-  //adc_values_->Reset();
-  //reset counters
-  //n_adc_counter_  = 0;
-  //adc_cumulative_ = 0;
-}
 
 void DAQToOffline::SSPTriggerAna::beginRun(art::Run const& run)
 {
-  // art::ServiceHandle<art::TFileService> tfs;
-  // fTriggerRateHist = tfs->make<TH1D>(Form("triggerratehist_%i",run.run()),Form(";Trigger Rate vs OpChannel - Run_%i;",run.run()),116,-10,106);
   fTriggerRateHist->Reset();
+  fTriggerRateHistHeaders->Reset();
+  fTriggerRateHistWaveforms->Reset();
 }
 
 void DAQToOffline::SSPTriggerAna::endRun(art::Run const& run)
 {
-   fTriggerRateHist->SetTitle(Form("Event %i Trigger Rate",run.run()));
-   fTriggerRateHist->Write(Form("evt_%i_trigger_rate",run.run()));
-  //  fTriggerRateHist->Write();
+  long int deltaT = lastTime-firstTime;
+  double deltaTus =  ((double)deltaT)/sspReform.ClockFrequency();
+
+  fTriggerRateHist->Scale(1.e6/deltaTus);
+  fTriggerRateHistHeaders->Scale(1.e6/deltaTus);
+  fTriggerRateHistWaveforms->Scale(1.e6/deltaTus);
+  
+  fTriggerRateHist->SetTitle(Form("Run %i Trigger Rate",run.run()));
+  fTriggerRateHistHeaders->SetTitle(Form("Run %i Header Trigger Rate",run.run()));
+  fTriggerRateHistWaveforms->SetTitle(Form("Run %i Wavefrom Trigger Rate",run.run()));
+
+  fTriggerRateHist->Write(Form("run_%i_trigger_rate",run.run()));
+  fTriggerRateHistHeaders->Write(Form("run_%i_trigger_rate_headers",run.run()));
+  fTriggerRateHistWaveforms->Write(Form("run_%i_trigger_rate_waveforms",run.run()));
+  
 }
 
-void DAQToOffline::SSPTriggerAna::endEvent(art::EventNumber_t eventNumber)
-{
-  // fTriggerRateHist->SetTitle(Form("Event %i Trigger Rate",eventNumber));
-  // fTriggerRateHist->Write(Form("evt_%i_trigger_rate",eventNumber));
-  //write the ADC histogram for the given event
-  //if(n_adc_counter_)
-    //  adc_values_->Write(Form("adc_values:event_%d", eventNumber));
-}
+//void DAQToOffline::SSPTriggerAna::endEvent(art::EventNumber_t eventNumber)
 
 void DAQToOffline::SSPTriggerAna::endJob()
 {
   //delete adc_values_;
   delete fTriggerRateHist;
+  delete fTriggerRateHistHeaders;
+  delete fTriggerRateHistWaveforms;
   
   long int deltaT = lastTime-firstTime;
   double deltaTus =  ((double)deltaT)/sspReform.ClockFrequency();
@@ -190,10 +188,20 @@ void DAQToOffline::SSPTriggerAna::endJob()
   mf::LogVerbatim("SSPTriggerAna") << "!! Time: " << deltaTus / 60.e6 << " minutes." << std::endl;
 
   for (auto itr = triggerCount.begin(); itr != triggerCount.end(); itr++) {
-    double freq = ((double)itr->second) / deltaTus * 1000.;
-    mf::LogVerbatim("SSPTriggerAna") << "!!    Channel " << std::setw(3) << itr->first << ": " << freq << " kHz" << std::endl;
+    double freq = ((double)itr->second) / deltaTus * 1e6;
+    mf::LogVerbatim("SSPTriggerAna") << "!!    Channel " << itr->first << ": " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::setw(7) << freq << " Hz" << std::endl;
   }
   
+  for (auto itr = triggerCountHeaders.begin(); itr != triggerCountHeaders.end(); itr++) {
+    double freq = ((double)itr->second) / deltaTus * 1e6;
+    mf::LogVerbatim("SSPTriggerAna") << "!!  H Channel " << itr->first << ": " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::setw(7) << freq << " Hz" << std::endl;
+  }
+  
+  for (auto itr = triggerCountWaveforms.begin(); itr != triggerCountWaveforms.end(); itr++) {
+    double freq = ((double)itr->second) / deltaTus * 1e6;
+    mf::LogVerbatim("SSPTriggerAna") << "!!  W Channel " << itr->first << ": " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::setw(7) << freq << " Hz" << std::endl;
+  }
+
   
   /*
   mf::LogInfo("SSPTriggerAna") << "firstSample:  " << firstTime << " samples\n"
@@ -259,11 +267,12 @@ void DAQToOffline::SSPTriggerAna::analyze(art::Event const & evt)
         
 
       // Load the event header, advance the pointer
-      const SSPDAQ::EventHeader* daqHeader=reinterpret_cast<const SSPDAQ::EventHeader*>(dataPointer);
-      dataPointer += sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int);
+      auto daqHeader = sspReform.GetHeaderAndAdvance(dataPointer);
+      //const SSPDAQ::EventHeader* daqHeader=reinterpret_cast<const SSPDAQ::EventHeader*>(dataPointer);
+      //dataPointer += sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int);
 
       // Get ADC Count, create pointer to adcs
-      unsigned int nADC=(daqHeader->length-sizeof(SSPDAQ::EventHeader)/sizeof(unsigned int))*2;
+      unsigned int nADC = sspReform.GetWaveformLength(daqHeader);
 
       //get the information from the header
       try {
@@ -284,14 +293,24 @@ void DAQToOffline::SSPTriggerAna::analyze(art::Event const & evt)
 
       firstTime = std::min(firstTime, FirstSample);
       lastTime  = std::max(lastTime,  FirstSample);
+
       triggerCount[OpChannel]++;
-
-      /*camj_changes*/
       fTriggerRateHist->Fill(OpChannel);
-      /*camj_changes_end*/
 
-      // Advance the dataPointer to the next header
-      dataPointer+=nADC/2;
+      if (nADC == 0) {
+        // Header only
+        triggerCountHeaders[OpChannel]++;
+        fTriggerRateHistHeaders->Fill(OpChannel);
+      }
+      else {
+        // Waveform to skip
+        triggerCountWaveforms[OpChannel]++;
+        fTriggerRateHistWaveforms->Fill(OpChannel);
+        
+        // Advance the dataPointer to the next header
+        dataPointer+=nADC/2;
+      }
+
       
     } // End of loop over triggers
   } // End of loop over fragments (rawFragments)

@@ -1,6 +1,7 @@
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 ADD_SUBDIRECTORY(utilities)
+ADD_SUBDIRECTORY(test)
 
 art_make(BASENAME_ONLY
         LIBRARY_NAME lbne_daqinput35t
@@ -17,8 +18,10 @@ art_make(BASENAME_ONLY
         larcore_Geometry
         lbne_daqinput35t_utilities
         lbne-raw-data_Overlays
+	lbne-raw-data_Services_ChannelMap_ChannelMapService_service
         lardata_RawData
         lardata_RecoBase
+        dune_DuneCommon
         NO_PLUGINS
         )
 
@@ -109,11 +112,33 @@ ${ROOT_SPECTRUM}
 
 simple_plugin(TpcDAQToOffline "module"
 lbne-raw-data_Overlays
+lbne-raw-data_Services_ChannelMap_ChannelMapService_service
 lbne_daqinput35t_utilities
 lbne_daqinput35t
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lardata_RawData
+)
+
+simple_plugin(NoiseCorrelation "module"
+			       lbne-raw-data_Overlays
+			       lbne_daqinput35t_utilities
+			       lbne_daqinput35t
+			       larcore_Geometry_Geometry_service
+			       larcore_Geometry
+			       lardata_RawData
+			       ${ART_FRAMEWORK_CORE}
+			       ${ART_FRAMEWORK_PRINCIPAL}
+			       ${ART_FRAMEWORK_SERVICES_REGISTRY}
+			       ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+			       ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			       ${ART_PERSISTENCY_COMMON}
+			       ${ART_PERSISTENCY_PROVENANCE}
+			       ${ART_UTILITIES}
+			       ${MF_MESSAGELOGGER}
+			       ${MF_UTILITIES}
+			       ${CETLIB}
+			       ${ROOT_BASIC_LIB_LIST}
 )
 
 simple_plugin(FilterWF "module"

@@ -1,3 +1,5 @@
+#include "SSPToOffline.fcl"
+
 BEGIN_PROLOG
 
 split_events:
@@ -5,6 +7,7 @@ split_events:
   module_type: "SplitterInput"
   
   TPCInputTag:          "daq:TPC:DAQ"                 // Input tag of TPC data "moduleLabel:instance:processName"
+  SparseInputTag:       "sparseSsp:PHOTON:DAQ"        // Input tag of Sparsified data "moduleLabel:instance:processName"
   SSPInputTag:          "daq:PHOTON:DAQ"              // Input tag of SSP data "moduleLabel:instance:processName"
   OpHitInputTag:        "daq:OPHIT:DAQ"               // Input tag of OpHit data "moduleLabel:instance:processName"
   PennInputTag:         "daq:TRIGGER:DAQ"             // Input tag of PTB data "moduleLabel:instance:processName"
@@ -20,7 +23,6 @@ split_events:
   MCSimChanInputDataProduct: "sim::SimChannel"        // Data product type of MCSimChannels
 
   SSPReformatter:       @local::ssp_reformatter       // The parameter set for the SSP reformatter
-  TPCChannelMapFile:    "rce_channel_map_dune35t.txt" // The TPC channel map
   PTBMapDir:            "/dune/data2/users/warburton/PTBChannelMap/" // The directory path to a user defined channel map
   PTBMapFile:           "PTBChannelMap.txt"           // The name of the PTB channel map
 

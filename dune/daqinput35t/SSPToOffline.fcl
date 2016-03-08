@@ -22,6 +22,8 @@ ssp_to_offline:
   SSPReformatter:      @local::ssp_reformatter
   #Debug:             true
 }
+ssp_to_offline_sparse: @local::ssp_to_offline
+ssp_to_offline_sparse.RawDataLabel: sparseSsp
 
 ssp_trigger_ana:
 {
@@ -31,6 +33,8 @@ ssp_trigger_ana:
   SSPReformatter:      @local::ssp_reformatter
   #Debug:             true
 }
+ssp_trigger_ana_sparse: @local::ssp_trigger_ana
+ssp_trigger_ana_sparse.RawDataLabel: sparseSsp
 
 ssp_diagnostic_ana:
 {
@@ -46,6 +50,8 @@ ssp_diagnostic_ana:
   SSPi2:               500 #samples used to calculate peak height
   #Debug:             true
 }
+ssp_diagnostic_ana_sparse: @local::ssp_diagnostic_ana
+ssp_diagnostic_ana_sparse.RawDataLabel: sparseSsp
 
 special_ssp_diagnostic_ana:
 {
@@ -59,5 +65,7 @@ special_ssp_diagnostic_ana:
   SSPi2:               500 #samples used to calculate peak height
   #Debug:             true
 }
+special_ssp_diagnostic_ana_sparse: @local::ssp_diagnostic_ana
+special_ssp_diagnostic_ana_sparse.RawDataLabel: sparseSsp
 
 END_PROLOG

@@ -7,16 +7,25 @@ cet_find_library( WDALIB NAMES wda PATHS ENV LIBWDA_LIB NO_DEFAULT_PATH )
 FILE (GLOB src_files *.cxx)
 
 art_make_library(  LIBRARY_NAME  RunHistoryDUNE
-		      	     SOURCE ${src_files}
+		             SOURCE ${src_files}
 			     LIBRARIES
 	                wda
 	                IFDatabase
+                        ${ART_FRAMEWORK_CORE}
+			${ART_FRAMEWORK_PRINCIPAL}
+			${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ 			${ART_PERSISTENCY_COMMON}
+			${ART_PERSISTENCY_PROVENANCE}
+			${ART_UTILITIES}
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}
                         ${CETLIB}
 			${FHICLCPP}
                         ${ROOT_BASIC_LIB_LIST}
 			${Boost_SYSTEM_LIBRARY}
+			lbne-raw-data_Services_ChannelMap_ChannelMapService_service
         )
 
 art_make_exec( NAME RunInfoDUNE
