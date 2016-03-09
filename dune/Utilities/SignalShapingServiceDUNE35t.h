@@ -160,6 +160,9 @@ namespace util {
     std::vector<TComplex> fColFilter;
     std::vector<TComplex> fIndUFilter;
     std::vector<TComplex> fIndVFilter;
+
+    bool fDebugFieldShape; ///< Save field response shape to a text file.
+
   };
 }
 //----------------------------------------------------------------------
