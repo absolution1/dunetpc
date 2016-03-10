@@ -133,7 +133,7 @@ void lbne::FilterWF::produce(art::Event& evt) {
     pedestalMap[digitIt->Channel()] = digitIt->GetPedestal();
     if (digitIt->NADC() > maxNumBins) maxNumBins = digitIt->NADC();
   }
-  
+  //std::cout<<"Method = "<<fMethod<<std::endl;
   // define set of induction and collection channels in each regulator group
   std::vector<std::vector<std::vector<unsigned int> > > Chs;  //Chs[plane id][group id][channel id]
 
@@ -149,6 +149,19 @@ void lbne::FilterWF::produce(art::Event& evt) {
       Chs[plane][rce*2+regulator].push_back(i);
     }
   }
+  else if (fMethod == 1){
+    Chs.resize(3);
+    for (size_t i = 0; i<3; ++i){
+      Chs[i].resize(128);
+    }
+    for (unsigned int i = 0; i<n_channels; ++i){//online channels
+      unsigned int plane     = fChannelMap->PlaneFromOnlineChannel(i);
+      unsigned int rce       = fChannelMap->RCEFromOnlineChannel(i);
+      unsigned int asic      = fChannelMap->ASICFromOnlineChannel(i);
+      //std::cout<<i<<" "<<plane<<" "<<rce<<" "<<asic<<std::endl;
+      Chs[plane][rce*8+asic].push_back(i);
+    }
+  }   
   
   // derive correction factors - require raw adc waveform and pedestal for each channel
   std::vector<Double_t> corrVals;
