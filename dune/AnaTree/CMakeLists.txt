@@ -2,10 +2,10 @@
 simple_plugin(AnaTree "module"
 		      lardata_RawData
 		      lardata_RecoBase
+		      lardata_RecoBaseArt
 		        larcore_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larreco_RecoAlg
 			${SIMULATIONBASE}
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
