@@ -7,6 +7,7 @@ dune35t_filterwf:
     RawDigitModuleLabel: "SplitterInput"
     RawDigitModuleInstance: "TPC"
     SkipStuckCodes: true
+    Method:         1
 }
 
 END_PROLOG

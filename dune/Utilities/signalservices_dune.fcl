@@ -76,7 +76,9 @@ dunefd_signalshapingservice: {
   IndVFieldShape: "[0]*(1.0+[3]*tanh(x-[4]))*([4]-x)*exp(-0.5*((x-[4])/[2])^2.0)"
   IndVFieldParams:  [.00843,.1534,1.77,0.,0.5]    #last parameter needs to be half of FFT vector, correct for in code
   ColFieldShape: "x^[2]/(1.0+(x/[0])^[1])"
-  ColFieldParams: [ 8.0,16.0,.75 ]  
+  ColFieldParams: [ 8.0,16.0,.75 ] 
+
+  DebugFieldShape: false 
 }
 
 # 35t is the same for now

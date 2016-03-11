@@ -8,6 +8,7 @@ int gRun = -1;
 std::string gDetStr = "";
 int gDetId = dune::RunHistoryDUNE::kUnknownDet;
 bool gDumpSCData = false;
+bool gDumpASICSettings = false;
 bool gPrintComponents = false;
 
 //------------------------------------------------------------
@@ -17,6 +18,7 @@ void PrintUsage()
   std::cout << "Usage: RunInfo -d|--detector [detectorName, eg dune35t] -r|--run [run number] [options]" << std::endl;
   std::cout << "Options:" << std::endl;
   std::cout << "-S (--dumpSCData): dump slow controls data from database" << std::endl;
+  std::cout << "-A (--dumpASICSettings): dump ASIC settings from database" << std::endl;
   std::cout << "-C (--components): print DAQ components" << std::endl;
 }
 
@@ -30,6 +32,7 @@ bool ParseCLArgs(int argc, char* argv[])
     {"run",   0, 0, 'r'},
     {"detector",   0, 0, 'd'},
     {"dumpSCData",   0, 0, 'S'},
+    {"dumpASICSettings",   0, 0, 'A'},
     {"components",   0, 0, 'C'},
     {0,0,0,0}
   };
@@ -37,7 +40,7 @@ bool ParseCLArgs(int argc, char* argv[])
   while (1) {
     int optindx;
 
-    int c = getopt_long(argc,argv,"r:d:hSC",long_options,&optindx);
+    int c = getopt_long(argc,argv,"r:d:hSCA",long_options,&optindx);
         
     if (c==-1) break;
     
@@ -66,6 +69,11 @@ bool ParseCLArgs(int argc, char* argv[])
     case 'S':
       {
 	gDumpSCData = true;
+	break;
+      }
+    case 'A':
+      {
+	gDumpASICSettings = true;
 	break;
       }
     case 'C':
@@ -120,6 +128,10 @@ int main(int argc, char **argv)
   
   if (gDumpSCData) {
     rh->DumpSCData();
+  }
+
+  if (gDumpASICSettings) {
+    rh->DumpASICSettings();
   }
   
   delete rh;

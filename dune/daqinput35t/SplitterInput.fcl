@@ -19,6 +19,8 @@ split_events:
   MonteCarlo: "false"                                 // Whether you are looking at MonteCarlo or not.
   MCPartInputTag:            "largeant::G4"           // Input tag of MCParticles
   MCPartInputDataProduct:    "simb::MCParticle"       // Data product type of MCParticles
+  MCTruthInputTag:           "generator::CosmicsGen"  // Input tag of MCTruth
+  MCTruthInputDataProduct:   "simb::MCTruth"          // Data product type of MCTruth
   MCSimChanInputTag:         "largeant::G4"           // Input tag of MCSimChannels
   MCSimChanInputDataProduct: "sim::SimChannel"        // Data product type of MCSimChannels
 

@@ -15,6 +15,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Provenance/EventAuxiliary.h"
 #include "SimulationBase/MCParticle.h"
+#include "SimulationBase/MCTruth.h"
 #include "larsim/Simulation/SimChannel.h"
 
 //Pedestal stuff...
@@ -32,6 +33,7 @@
 // lardata
 #include "lardata/RawData/RawDigit.h"
 #include "lardata/RawData/ExternalTrigger.h"
+#include "lardata/Utilities/AssociationUtil.h"
 
 // dune
 #include "tpcFragmentToRawDigits.h"
@@ -89,7 +91,7 @@ namespace {
     std::vector<OpDetWaveform> TakeAll() {
       return waveforms;
     }
-    
+
     void findinrange(std::vector<OpDetWaveform> &wbo, 
                      lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
                      lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
@@ -188,7 +190,7 @@ namespace {
     std::vector<recob::OpHit> TakeAll() {
       return ophits;
     }
-    
+
     void findinrange(std::vector<recob::OpHit> &obo, 
                      lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
                      lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
@@ -440,60 +442,75 @@ namespace {
       SimChans = b;
     }
     
-    vector<simb::MCParticle> TakeMCParts(lbne::TpcNanoSlice::Header::nova_timestamp_t start_timestamp,
-					 lbne::TpcNanoSlice::Header::nova_timestamp_t end_timestamp,
-					 lbne::TpcNanoSlice::Header::nova_timestamp_t event_timestamp,
-					 double fNanoSecondsPerNovaTick, int fDebugLevel) {
+    vector<simb::MCParticle> TakeMCParts(lbne::TpcNanoSlice::Header::nova_timestamp_t event_timestamp, double fNanoSecondsPerNovaTick, int fDebugLevel) {
       vector<simb::MCParticle> retParts;
-      if (fDebugLevel > 2) std::cout << "In TakeMCParts....MCParts has size " << MCParts.size() << " I gave it timestamps " << start_timestamp << " " << end_timestamp << std::endl;
       int hh=0;
+      unsigned short TimeCorrec = ( event_timestamp / (2*fNanoSecondsPerNovaTick) ) - 1;
+      if (fDebugLevel > 2) std::cout << "In TakeMCParts....MCParts has size " << MCParts.size() << ", event timestamp is " << event_timestamp << " meaning the time correction is " << TimeCorrec << std::endl;
+      
       for (auto part: MCParts) {
-	//if ( part.T() > (start_timestamp*fNanoSecondsPerNovaTick) && part.T() < (end_timestamp*fNanoSecondsPerNovaTick) ) {
 	simb::MCParticle newPart = simb::MCParticle(part.TrackId(), part.PdgCode(), part.Process(), part.Mother(), part.Mass(), part.StatusCode());
-	for (size_t qq=0; qq < part.NumberTrajectoryPoints(); ++qq) {
-	  const TLorentzVector pos = TLorentzVector( part.Vx(qq), part.Vy(qq), part.Vz(qq), part.T(qq) - (event_timestamp*fNanoSecondsPerNovaTick) );
-	  const TLorentzVector mom = TLorentzVector( part.Px(qq), part.Py(qq), part.Pz(qq), part.T(qq) - (event_timestamp*fNanoSecondsPerNovaTick) );
-	  newPart.AddTrajectoryPoint( pos, mom );
-	}
-	newPart.SetGvtx( part.Gvx(), part.Gvy(), part.Gvz(), part.Gvt() );
+	newPart.SetGvtx( part.GetGvtx() );
 	newPart.SetEndProcess( part.EndProcess() );
 	newPart.SetPolarization ( part.Polarization() );
 	newPart.SetRescatter( part.Rescatter() );
+	newPart.SetWeight( part.Weight() );
+	for (size_t qq=0; qq < part.NumberTrajectoryPoints(); ++qq) {
+	  const TLorentzVector pos = TLorentzVector( part.Vx(qq), part.Vy(qq), part.Vz(qq), part.T(qq) - TimeCorrec );
+	  const TLorentzVector mom = TLorentzVector( part.Px(qq), part.Py(qq), part.Pz(qq), part.E(qq) );
+	  newPart.AddTrajectoryPoint( pos, mom );
+	  if (fDebugLevel > 4)
+	    std::cout << "New Traj point...\nNew part is;"
+		      << newPart.Vx(qq) << " " << newPart.Vy(qq) << " " << newPart.Vz(qq) << " " << newPart.T(qq) << " "
+		      << newPart.Px(qq) << " " << newPart.Py(qq) << " " << newPart.Pz(qq) << " " << newPart.T(qq) << " " << newPart.P(qq) << " " << newPart.Pt(qq) << " " << newPart.E(qq)
+		      << "\nOld part is;"
+		      << part.Vx(qq) << " " << part.Vy(qq) << " " << part.Vz(qq) << " " << part.T(qq) << " "
+		      << part.Px(qq) << " " << part.Py(qq) << " " << part.Pz(qq) << " " << part.T(qq) << " " << part.P(qq) << " " << part.Pt(qq) << " " << part.E(qq)
+		      << std::endl;
+	}
+	for (int dd=0; dd<part.NumberDaughters(); ++dd)
+	  newPart.AddDaughter(part.Daughter(dd));
 	retParts.emplace_back(newPart);
-	if (fDebugLevel > 2) std::cout << "Made a new MCParticle, it has " << newPart.NumberTrajectoryPoints() << " traj points, and time " << newPart.T() << std::endl;
-	//}
+	if (fDebugLevel > 3)
+	  std::cout << "Made a new MCParticle"
+		    << ", TrajPoints " << newPart.NumberTrajectoryPoints() << " " << part.NumberTrajectoryPoints()
+		    << ", time " << newPart.T() << " " << part.T()
+		    << ", TrackID " << newPart.TrackId() << " " << part.TrackId()
+		    << ", Energy " << newPart.E() << " " << part.E()
+		    << ", NDaughters " << newPart.NumberDaughters() << " " << part.NumberDaughters()
+		    << std::endl;
+	if ( newPart.T() - part.T() != 0 ) std::cout << "!!!!!!!!!!!!!!!!!NOT EQUAL TO 0!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	++hh;
       }
       if (fDebugLevel > 1) std::cout << "At the end of TakeMCParts I am returning a vector of MCParticles with size " << retParts.size() << std::endl;
       return retParts;
     }
     
-    vector<sim::SimChannel> TakeSimChans(lbne::TpcNanoSlice::Header::nova_timestamp_t start_timestamp,
-					 lbne::TpcNanoSlice::Header::nova_timestamp_t end_timestamp,
-					 lbne::TpcNanoSlice::Header::nova_timestamp_t event_timestamp,
-					 double fNovaTicksPerTPCTick, int fDebugLevel) {
+    vector<sim::SimChannel> TakeSimChans(lbne::TpcNanoSlice::Header::nova_timestamp_t event_timestamp, double fNovaTicksPerTPCTick, int fDebugLevel) {
       vector<sim::SimChannel> retSimChans;
-      if (fDebugLevel > 2) std::cout << "In TakeSimChans....SimChans has size " << SimChans.size() << " I gave it timestamps " << start_timestamp << " " << end_timestamp << std::endl;
       int qq = 0;
       unsigned short TimeCorrec = ( event_timestamp / fNovaTicksPerTPCTick ) - 1;
-      std::cout << "The time correction applied is " << TimeCorrec << std::endl;
+      if (fDebugLevel > 2) std::cout << "In TakeSimChans....SimChans has size " << MCParts.size() << ", event timestamp is " << event_timestamp << " meaning the time correction is " << TimeCorrec << std::endl;
+      
       for (auto LoopSimChan: SimChans) {
 	sim::SimChannel newSimChan = sim::SimChannel( LoopSimChan.Channel() );
 	for (std::map<unsigned short,std::vector<sim::IDE> >::const_iterator ideMap = LoopSimChan.TDCIDEMap().begin(); ideMap != LoopSimChan.TDCIDEMap().end(); ++ideMap ) {
-	  //if ( ideMap->first > ( start_timestamp / fNovaTicksPerTPCTick ) && ideMap->first < ( end_timestamp / fNovaTicksPerTPCTick ) ) {
 	  const std::vector<sim::IDE> OldSimIDE = ideMap->second;
 	  unsigned short NewTime = ideMap->first - TimeCorrec;
 	  for (size_t zz = 0; zz<OldSimIDE.size(); ++zz) {
 	    double IDEPos[3] = { OldSimIDE[zz].x, OldSimIDE[zz].y, OldSimIDE[zz].z };
 	    newSimChan.AddIonizationElectrons(OldSimIDE[zz].trackID, NewTime, OldSimIDE[zz].numElectrons, IDEPos, OldSimIDE[zz].energy );
 	  }
-	  //if (fDebugLevel > 2 )
-	  std::cout //<< "The original key value is inbetween my two times..." << start_timestamp <<"("<<start_timestamp / 32<<"), and " << end_timestamp <<"("<<end_timestamp / 32<<")"
-		    << "Made a new element in the map. It has value " << ideMap->first << ", vector has size " << ideMap->second.size()
-		    << ". My new map has start time " << NewTime << " and size " << newSimChan.TDCIDEMap().size() << std::endl;
-	  //}
+	  if ( NewTime - ideMap->first != 0 ) std::cout << "!!!!!!!!!!!!!!!!!NOT EQUAL TO 0!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	}
 	retSimChans.emplace_back(newSimChan);
+	if (fDebugLevel > 3)
+	  std::cout << "Added a newSimChan with size " << newSimChan.TDCIDEMap().size() << ", " << LoopSimChan.TDCIDEMap().size()
+		    << ". Channel " << newSimChan.Channel() << ", " << LoopSimChan.Channel()
+		    << ". Charge on tdc(0) " << newSimChan.Charge(0) << ", " << LoopSimChan.Charge(0)
+		    << ". Energy on tdc(0) " << newSimChan.Energy(0) << ", " << LoopSimChan.Energy(0)
+		    << ". TrackIDEs(-10000,100000) " << newSimChan.TrackIDEs(0,100000).size() << " " << LoopSimChan.TrackIDEs(0,100000).size()
+		    << std::endl;
 	++qq;
       }
       if (fDebugLevel > 1) std::cout << "At the end of TakeSimChans I am returning a vector of SimChannels with size " << retSimChans.size() << std::endl;
@@ -551,6 +568,11 @@ namespace {
     return reinterpret_cast<vector<simb::MCParticle>*>(br->GetAddress() );
   }
 
+  vector<simb::MCTruth>* getMCTruths(TBranch* br, unsigned entry) {
+    br->GetEntry( entry );
+    return reinterpret_cast<vector<simb::MCTruth>*>(br->GetAddress() );
+  }
+
   vector<sim::SimChannel>* getMCSimChans(TBranch* br, unsigned entry) {
     br->GetEntry( entry );
     return reinterpret_cast<vector<sim::SimChannel>*>(br->GetAddress() );
@@ -600,6 +622,7 @@ namespace DAQToOffline {
     using PennCounters_t = vector<ExternalTrigger>;
 
     using MCPart_t = vector<simb::MCParticle>;
+    using MCTruth_t = vector<simb::MCTruth>;
     using MCSimChan_t = vector<sim::SimChannel>;
     
     string                 sourceName_;
@@ -612,12 +635,14 @@ namespace DAQToOffline {
     art::InputTag          OpHitinputTag_;
     art::InputTag          PenninputTag_;
     art::InputTag          MCPartinputTag_;
+    art::InputTag          MCTruthinputTag_;
     art::InputTag          MCSimChaninputTag_;
     string                 TPCinputDataProduct_;
     string                 SSPinputDataProduct_;
     string                 OpHitinputDataProduct_;
     string                 PenninputDataProduct_;
     string                 MCPartinputDataProduct_;
+    string                 MCTruthinputDataProduct_;
     string                 MCSimChaninputDataProduct_;
     SSPReformatterAlgs     sspReform;
     string                 fPTBMapFile;
@@ -629,6 +654,7 @@ namespace DAQToOffline {
     TBranch*               OpHitinputBranch_;
     TBranch*               PenninputBranch_;
     TBranch*               MCPartinputBranch_;
+    TBranch*               MCTruthinputBranch_;
     TBranch*               MCSimChaninputBranch_;
     TBranch*               EventAuxBranch_;
     LoadedDigits           loadedDigits_;
@@ -654,6 +680,7 @@ namespace DAQToOffline {
     OpHits_t               hbuf_;
     PennCounters_t         cbuf_;
     MCPart_t               mcbuf_;
+    MCTruth_t              mctruth_;
     MCSimChan_t            simchanbuf_;
     unsigned short         fTicksAccumulated;
 
@@ -760,12 +787,14 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   OpHitinputTag_       (ps.get<string>("OpHitInputTag")),
   PenninputTag_        (ps.get<string>("PennInputTag")),
   MCPartinputTag_      (ps.get<string>("MCPartInputTag")),
+  MCTruthinputTag_      (ps.get<string>("MCTruthInputTag")),
   MCSimChaninputTag_   (ps.get<string>("MCSimChanInputTag")),
   TPCinputDataProduct_ (ps.get<string>("TPCInputDataProduct")),
   SSPinputDataProduct_ (ps.get<string>("SSPInputDataProduct")),
   OpHitinputDataProduct_(ps.get<string>("OpHitInputDataProduct")),
   PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
   MCPartinputDataProduct_(ps.get<string>("MCPartInputDataProduct")),
+  MCTruthinputDataProduct_(ps.get<string>("MCTruthInputDataProduct")),
   MCSimChaninputDataProduct_(ps.get<string>("MCSimChanInputDataProduct")),
   sspReform            (ps.get<fhicl::ParameterSet>("SSPReformatter")),
   fPTBMapFile          (ps.get<std::string>("PTBMapFile")),
@@ -841,9 +870,10 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   // If looking at Monte Carlo, also want to copy the truth information to the split event.
   if (fMonteCarlo) {
     prh.reconstitutes<MCPart_t,art::InEvent>( sourceName_, MCPartinputTag_.instance() );
+    prh.reconstitutes<MCTruth_t,art::InEvent>( sourceName_, MCTruthinputTag_.instance() );
     prh.reconstitutes<MCSimChan_t,art::InEvent>( sourceName_, MCSimChaninputTag_.instance() );
+    //prh.produces< art::Assns< simb::MCParticle, simb::MCTruth> >( MCPartinputTag_.instance() );
   }
-
   //std::cout << "Built TPC Channel Map" << std::endl;
   BuildPTBChannelMap(fPTBMapDir, fPTBMapFile, fPTBMap);
 }
@@ -862,6 +892,7 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
   PenninputBranch_   = evtree->GetBranch( getBranchName(PenninputTag_  , PenninputDataProduct_  ) ); // get branch for Penn Board input tag
 
   MCPartinputBranch_    = evtree->GetBranch( getBranchName(MCPartinputTag_   , MCPartinputDataProduct_    ) ); // MCParticle input tag
+  MCTruthinputBranch_   = evtree->GetBranch( getBranchName(MCTruthinputTag_  , MCTruthinputDataProduct_   ) ); // MCTruth input tag
   MCSimChaninputBranch_ = evtree->GetBranch( getBranchName(MCSimChaninputTag_, MCSimChaninputDataProduct_ ) ); // SimChannel input tag
 
   if (TPCinputBranch_) nInputEvts_      = static_cast<size_t>( TPCinputBranch_->GetEntries() );
@@ -1174,9 +1205,9 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 
   // If looking at Monte Carlo, now want to add the Truth stuff
   if (fMonteCarlo) {
-    mcbuf_ = MonteCarlo_.TakeMCParts   (first_timestamp, last_timestamp, Event_timestamp, fNanoSecondsPerNovaTick, fDebugLevel);
+    mcbuf_ = MonteCarlo_.TakeMCParts(Event_timestamp, fNanoSecondsPerNovaTick, fDebugLevel);
     if (fDebugLevel) std::cout << "Have now returned from TakeMCParts, it has size " << mcbuf_.size() << std::endl;
-    simchanbuf_ = MonteCarlo_.TakeSimChans(first_timestamp, last_timestamp, Event_timestamp, fNovaTicksPerTPCTick, fDebugLevel);
+    simchanbuf_ = MonteCarlo_.TakeSimChans(Event_timestamp, fNovaTicksPerTPCTick, fDebugLevel);
     if (fDebugLevel) std::cout << "Have now returned from TakeMCSimChans, it has size " << simchanbuf_.size() << std::endl;
   } 
 
@@ -1220,7 +1251,7 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &LoadEventIndex ) {
   //std::cout << "At the start of loadEvents..." << std::endl;
   if ( LoadEventIndex != nInputEvts_ ) {
     if ( !loadedDigits_.empty(fDebugLevel) && fRequireRCE ) return false;
-    
+
     // I want to look through my map to find correct tree for this event, whilst ensuring I skip the neccessary number of events....
     bool GoodTree = false;
     size_t LoadTree = 0;
@@ -1275,6 +1306,8 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &LoadEventIndex ) {
     if (fMonteCarlo) {
       auto *particles = getMCParticles(MCPartinputBranch_, LoadTree);
       MonteCarlo_.loadMCParts(*particles);
+      auto *truths = getMCTruths(MCTruthinputBranch_, LoadTree);
+      mctruth_ = *truths;
       auto *simchans = getMCSimChans(MCSimChaninputBranch_, LoadTree);
       MonteCarlo_.loadSimChans(*simchans);
     }
@@ -1425,10 +1458,20 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, 
 				   *outE,
 				   sourceName_,
 				   MCPartinputTag_.instance() );
+    art::put_product_in_principal( std::make_unique<MCTruth_t>(mctruth_),
+				   *outE,
+				   sourceName_,
+				   MCTruthinputTag_.instance() );
     art::put_product_in_principal( std::make_unique<MCSimChan_t>(simchanbuf_),
 				   *outE,
 				   sourceName_,
 				   MCSimChaninputTag_.instance() );
+    //std::unique_ptr< art::Assns< simb::MCParticle, simb::MCTruth> > assn( new art::Assns<simb::MCParticle, simb::MCTruth> );
+    //util::CreateAssn(*this, eventNumber_, mcbuf_, mctruth_, *assn);
+    //art::put_product_in_principal( std::make_unique_ptr<art::Assns< simb::MCParticle, simb::MCTruth> >(assn),
+    //				   *outE,
+    //				   sourceName_,
+    //				   MCPartinputTag_.instance() );
   }
   
 
@@ -1488,23 +1531,23 @@ bool DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPri
   while (!fTrigger) {
     bool NewTree = false;
     // Whilst LoadedWaveforms and LoadedCounters are empty, load a new event...
-    while ( loadedWaveforms_.empty() || loadedCounters_.empty() ) {
-      bool rc = loadEvents_(EventIndex_);
-      if (!rc) {
-	doneWithFiles_ = (file_->GetName() == lastFileName_);
-	return false;
-      }
-      NewTree = true; 
-    } // while empty
+    while (!NewTree) {
+      if( loadedWaveforms_.empty() && loadedOpHits_.empty() ) {
+	bool rc = loadEvents_(EventIndex_);
+	if (!rc) {
+	  doneWithFiles_ = (file_->GetName() == lastFileName_);
+	  return false;
+	}
+      } else NewTree = true;
+    } // while not NewTree ( Waveforms and OpHits are empty )
     std::map<int,int> PrevChanADC;
     std::vector<short> ADCdigits;
-    std::cout << "Calling triggering..." << std::endl;
     Triggering(PrevChanADC, ADCdigits, NewTree);
   }
   wbuf_ = loadedWaveforms_.TakeAll();
   hbuf_ = loadedOpHits_.TakeAll();
   cbuf_ = loadedCounters_.TakeAll();
-  if (fDebugLevel > 2) std::cout << "After looking at EventIndex_ " << EventIndex_-1 << " fTrigger is " << fTrigger << " and wbuf and cbuf have sizes " << wbuf_.size() << " and " << cbuf_.size() << std::endl;
+  if (fDebugLevel) std::cout << "After looking at EventIndex_ " << EventIndex_-1 << ", event " << inputEventNumber_ << " fTrigger is " << fTrigger << " and wbuf and cbuf have sizes " << wbuf_.size() << " and " << cbuf_.size() << std::endl;
   
   // ******** Now Build the event *********
   runNumber_ = inputRunNumber_;
