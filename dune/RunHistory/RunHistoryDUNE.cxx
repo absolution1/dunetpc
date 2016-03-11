@@ -84,12 +84,12 @@ namespace dune {
 
     t.SetVerbosity(100);
     if (! t.Load()) {
-      std::cout << "Error in " << __func__ << ", line " << __LINE__ << ".  Load from database failed." << std::endl;
+      std::cout << "Error in " << __PRETTY_FUNCTION__ << ", line " << __LINE__ << ".  Load from database failed." << std::endl;
       return false; //std::abort();
     }
     
     if (t.NRow() == 0) {
-      std::cout << "Error in " << __func__ << ", line " << __LINE__ << ".  Number of rows in table is 0.  This should never be the case!" << std::endl;
+      std::cout << "Error in " << __PRETTY_FUNCTION__ << ", line " << __LINE__ << ".  Number of rows in table is 0.  This should never be the case!" << std::endl;
       return false;
     }
 
@@ -132,6 +132,63 @@ namespace dune {
   }
   
   //------------------------------------------------
+  void RunHistoryDUNE::DumpASICSettings()
+  {
+    LoadASICSettings();
+
+    for (auto i : fASICSettingsMap) {
+      int chan = i.first%100000;
+      int asic = i.first/100000;
+      std::cout << "ASIC " << asic << ", " << chan << ": " << i.second.gain << " mV/fC, " << i.second.shape << " us, " << i.second.base << " mV" << std::endl;
+    }
+  }
+
+  //------------------------------------------------
+  bool RunHistoryDUNE::LoadASICSettings()
+  {
+    if (fASICSettingsTable.get() != nullptr) return true;
+    
+    fASICSettingsTable.reset(new nutools::dbi::Table);
+    fASICSettingsTable->SetDetector(fDetName);
+
+    fASICSettingsTable->SetTableName("asic_settings_by_run");
+    fASICSettingsTable->SetTableType(nutools::dbi::kConditionsTable);
+    fASICSettingsTable->SetDataTypeMask(nutools::dbi::kDataOnly);
+    
+    int gainIdx = fASICSettingsTable->AddCol("gain","float");
+    int shapeIdx = fASICSettingsTable->AddCol("shape","float");
+    int baseIdx = fASICSettingsTable->AddCol("base","int");
+    
+    fASICSettingsTable->SetMinTSVld(fRun);
+    fASICSettingsTable->SetMaxTSVld(fRun);
+
+    fASICSettingsTable->SetVerbosity(100);
+    if (! fASICSettingsTable->Load()) {
+      std::cout << "Error in " << __PRETTY_FUNCTION__ << ", line " << __LINE__ << ".  Load from database failed." << std::endl;
+      return false; 
+    }
+
+    if (!fASICSettingsTable->NRow()) {
+      std::cout << "WARNING! " << __PRETTY_FUNCTION__ << ", no ASIC settings found for this run." << std::endl;
+      return false;
+    }
+    
+    fASICSettingsMap.clear();
+    float g=0.;
+    float s=0.;
+    int b=0;
+    for (int irow=0; irow<fASICSettingsTable->NRow(); ++irow) {
+      nutools::dbi::Row* r = fASICSettingsTable->GetRow(irow);
+      int chan = r->Channel();
+      r->Col(gainIdx).Get(g);
+      r->Col(shapeIdx).Get(s);
+      r->Col(baseIdx).Get(b);
+      fASICSettingsMap[chan] = ASICSetting(g,s,b);
+    }
+    return true;
+  }  
+  
+  //------------------------------------------------
   bool RunHistoryDUNE::LoadSCData() 
   {
     if (fSCDataTable.get() != nullptr) return true;
@@ -150,7 +207,7 @@ namespace dune {
 
     fSCDataTable->SetVerbosity(100);
     if (! fSCDataTable->Load()) {
-      std::cout << "Error in " << __func__ << ", line " << __LINE__ << ".  Load from database failed." << std::endl;
+      std::cout << "Error in " << __PRETTY_FUNCTION__ << ", line " << __LINE__ << ".  Load from database failed." << std::endl;
       return false; //std::abort();
     }
 
@@ -165,6 +222,7 @@ namespace dune {
     if (run == 0) return false;
 
     fSCDataTable.reset();
+    fASICSettingsTable.reset();
     
     std::string tableName = "run_summary";
     nutools::dbi::Table t;
