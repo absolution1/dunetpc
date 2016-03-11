@@ -91,7 +91,7 @@ namespace {
     std::vector<OpDetWaveform> TakeAll() {
       return waveforms;
     }
-    
+
     void findinrange(std::vector<OpDetWaveform> &wbo, 
                      lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
                      lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
@@ -190,7 +190,7 @@ namespace {
     std::vector<recob::OpHit> TakeAll() {
       return ophits;
     }
-    
+
     void findinrange(std::vector<recob::OpHit> &obo, 
                      lbne::TpcNanoSlice::Header::nova_timestamp_t first_timestamp,
                      lbne::TpcNanoSlice::Header::nova_timestamp_t last_timestamp,
@@ -1251,7 +1251,7 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &LoadEventIndex ) {
   //std::cout << "At the start of loadEvents..." << std::endl;
   if ( LoadEventIndex != nInputEvts_ ) {
     if ( !loadedDigits_.empty(fDebugLevel) && fRequireRCE ) return false;
-    
+
     // I want to look through my map to find correct tree for this event, whilst ensuring I skip the neccessary number of events....
     bool GoodTree = false;
     size_t LoadTree = 0;
@@ -1531,23 +1531,23 @@ bool DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPri
   while (!fTrigger) {
     bool NewTree = false;
     // Whilst LoadedWaveforms and LoadedCounters are empty, load a new event...
-    while ( loadedWaveforms_.empty() || loadedCounters_.empty() ) {
-      bool rc = loadEvents_(EventIndex_);
-      if (!rc) {
-	doneWithFiles_ = (file_->GetName() == lastFileName_);
-	return false;
-      }
-      NewTree = true; 
-    } // while empty
+    while (!NewTree) {
+      if( loadedWaveforms_.empty() && loadedOpHits_.empty() ) {
+	bool rc = loadEvents_(EventIndex_);
+	if (!rc) {
+	  doneWithFiles_ = (file_->GetName() == lastFileName_);
+	  return false;
+	}
+      } else NewTree = true;
+    } // while not NewTree ( Waveforms and OpHits are empty )
     std::map<int,int> PrevChanADC;
     std::vector<short> ADCdigits;
-    std::cout << "Calling triggering..." << std::endl;
     Triggering(PrevChanADC, ADCdigits, NewTree);
   }
   wbuf_ = loadedWaveforms_.TakeAll();
   hbuf_ = loadedOpHits_.TakeAll();
   cbuf_ = loadedCounters_.TakeAll();
-  if (fDebugLevel > 2) std::cout << "After looking at EventIndex_ " << EventIndex_-1 << " fTrigger is " << fTrigger << " and wbuf and cbuf have sizes " << wbuf_.size() << " and " << cbuf_.size() << std::endl;
+  if (fDebugLevel) std::cout << "After looking at EventIndex_ " << EventIndex_-1 << ", event " << inputEventNumber_ << " fTrigger is " << fTrigger << " and wbuf and cbuf have sizes " << wbuf_.size() << " and " << cbuf_.size() << std::endl;
   
   // ******** Now Build the event *********
   runNumber_ = inputRunNumber_;

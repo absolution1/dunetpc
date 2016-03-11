@@ -206,7 +206,8 @@ namespace unstick {
 	
       }
 
-      raw::RawDigit rd(channel, dataSize, rawadc, raw::kNone);
+      raw::RawDigit rd(channel, dataSize, rawadc, raw::kNone );
+      rd.SetPedestal( digitVec->GetPedestal(), digitVec->GetSigma() );
       digcol->push_back(rd);
  
     }
