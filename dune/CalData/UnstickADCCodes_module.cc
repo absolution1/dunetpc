@@ -77,7 +77,7 @@ namespace unstick {
   UnstickADCCodes::UnstickADCCodes(fhicl::ParameterSet const& pset)
   {
     this->reconfigure(pset);
-    produces< std::vector<raw::RawDigit>   >();
+    produces< std::vector<raw::RawDigit>   >(fSpillName);
 
   }
   
@@ -206,7 +206,8 @@ namespace unstick {
 	
       }
 
-      raw::RawDigit rd(channel, dataSize, rawadc, raw::kNone);
+      raw::RawDigit rd(channel, dataSize, rawadc, raw::kNone );
+      rd.SetPedestal( digitVec->GetPedestal(), digitVec->GetSigma() );
       digcol->push_back(rd);
  
     }

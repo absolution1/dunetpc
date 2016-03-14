@@ -1,0 +1,39 @@
+#include "services_dune.fcl"
+#include "singles_dune.fcl"
+#include "largeantmodules_dune.fcl"
+#include "detsimmodules_dune.fcl"
+
+process_name: NoiseCorrelation
+
+services: {
+  TFileService: { fileName: "correlation.root" }
+  user:         @local::dune35t_simulation_services
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+}
+
+services.user.DetPedestalService.DetPedestalDUNE.UseDB: true
+
+physics:
+{
+  analyzers:
+  {
+    noisecorrelation: {
+      module_type: NoiseCorrelation
+      FragType: "TPC"
+      RawDataLabel: "daq"
+    }
+  }
+
+  analyze: [ noisecorrelation ]
+  end_paths: [ analyze ]
+
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/afs/fnal.gov/files/home/room3/jpdavies/lbne_r000200_sr01_20140807T150347.root" ]
+  maxEvents: 1
+}

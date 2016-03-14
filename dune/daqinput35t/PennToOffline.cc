@@ -29,13 +29,13 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments,
   std::vector<lbne::PennMicroSlice::Payload_Timestamp::timestamp_t> fCounterTimes;
   std::vector<lbne::PennMicroSlice::Payload_Timestamp::timestamp_t> fMuonTriggerTimes;
   std::vector<lbne::PennMicroSlice::Payload_Timestamp::timestamp_t> fSSPTriggerTimes;
-  std::vector<lbne::PennMicroSlice::Payload_Timestamp::timestamp_t> fRCETriggerTimes;
+  //std::vector<lbne::PennMicroSlice::Payload_Timestamp::timestamp_t> fRCETriggerTimes;
   std::vector<lbne::PennMicroSlice::Payload_Timestamp::timestamp_t> fCalibrationTriggerTimes;
   
   std::vector<lbne::PennMicroSlice::Payload_Counter> fCounterWords;
   std::vector<lbne::PennMicroSlice::Payload_Trigger> fMuonTriggers;
   std::vector<lbne::PennMicroSlice::Payload_Trigger> fSSPTriggers;
-  std::vector<lbne::PennMicroSlice::Payload_Trigger> fRCETriggers;
+  //std::vector<lbne::PennMicroSlice::Payload_Trigger> fRCETriggers;
   std::vector<lbne::PennMicroSlice::Payload_Trigger> fCalibrationTriggers;
   
   //std::cout << "There are " << Fragments.size() << " fragments" << std::endl;
@@ -86,11 +86,13 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments,
           GetTimestamp( msf, word_header, previous_timestamp, future_timestamp, future_timestamp_header, fSSPTriggerTimes );
 	  //std::cout << "It is an SSP Trigger " << word_p_trigger << " with timestamp " << fSSPTriggerTimes.back() <<  std::endl;
 	}
+	/*
 	if (word_p_trigger->has_rce_trigger() ) { // If an 'RCE Trigger'
 	  fRCETriggers.push_back(*word_p_trigger);
 	  GetTimestamp( msf, word_header, previous_timestamp, future_timestamp, future_timestamp_header, fRCETriggerTimes );
 	  //std::cout << "It is an RCE Trigger " << word_p_trigger << " with timestamp " << fRCETriggerTimes.back() <<  std::endl;
 	}
+	*/
 	if (word_p_trigger->has_calibration()) { // If a 'Calibration Trigger'
 	  fCalibrationTriggers.push_back(*word_p_trigger);
 	  GetTimestamp( msf, word_header, previous_timestamp, future_timestamp, future_timestamp_header, fCalibrationTriggerTimes );
@@ -183,12 +185,14 @@ DAQToOffline::PennFragmentToExternalTrigger( artdaq::Fragments const& Fragments,
   }
 
   // *************** Now to loop through 'RCE TRIGGERS' ****************
+  /*
   for (uint32_t pos = 0; pos < fRCETriggers.size(); ++pos) {
     //std::cout << "Making an external trigger from RCE trigger!!" << std::endl;
     lbne::PennMicroSlice::Payload_Timestamp::timestamp_t current_trigger_time = fRCETriggerTimes.at(pos);
     raw::ExternalTrigger counter( 116, current_trigger_time ); // WHAT CHANNEL DOES AN RCE TRIGGER GO ON!!!????
   }
-  
+  */
+
   //std::cout << "\n\nAll done, lets loop through ExternTrigs...." << std::endl;
   for ( std::vector<raw::ExternalTrigger>::const_iterator TrigIt = ExternTrigs.begin(); TrigIt != ExternTrigs.end(); TrigIt++ ) {
     //std::cout << "Looking at index " << std::distance((std::vector<raw::ExternalTrigger>::const_iterator)ExternTrigs.begin(), TrigIt) << " which has indexes " << TrigIt->GetTrigID() << ", " << TrigIt->GetTrigTime() << std::endl;

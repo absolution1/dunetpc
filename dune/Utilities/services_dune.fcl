@@ -17,6 +17,7 @@
 #include "pedestals_dune.fcl"
 #include "daq_dune.fcl"
 #include "detsimmodules_dune.fcl"
+#include "channelmap_35t.fcl"
 
 BEGIN_PROLOG
 
@@ -194,13 +195,15 @@ dune35t_basic_services:
  LArPropertiesService:                @local::dune35t_properties
  DatabaseUtil:                 @local::dune35t_database
  SeedService:                  @local::dune_seedservice
- ChannelStatusService:        @local::dune35t_channel_status
+ ChannelStatusService:         @local::dune35t_channel_status
+ ChannelMapService:            @local::channelmap35t
 }
 
 dune35t_basic_services.DetPedestalService:
 {
   service_provider: DetPedestalServiceDUNE
   DetPedestalDUNE: @local::dune35t_pedestals
+  ChannelMapService: @local::channelmap35t
 }
 
 dune35t_services:              @local::dune35t_basic_services

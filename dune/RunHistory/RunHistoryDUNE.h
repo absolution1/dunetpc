@@ -12,13 +12,27 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
+#include <memory>
 
 #include "fhiclcpp/ParameterSet.h"
+
 #include "lardata/DetectorInfo/RunHistory.h"
+#include "IFDatabase/Table.h"
 
 ///General LArSoft Utilities
 namespace dune {
 
+  class ASICSetting {
+  public:
+    ASICSetting() {};
+    ASICSetting(float g, float s, int b) {gain=g; shape=s; base=b;};
+    ~ASICSetting() {};
+    float gain;
+    float shape;
+    int base;
+  }; 
+  
   class SubRunDUNE : public detinfo::SubRun {
   public:
     SubRunDUNE() : fTStart(0) {};
@@ -81,7 +95,19 @@ namespace dune {
     void AddShifter(std::string sh) { fShifter.push_back(sh); }
     void SetShifters(std::vector<std::string> sh) { fShifter = sh; }
 
+    std::string CfgLabel() const { return fCfgLabel; }
+    std::string TStartAsString() const { return fTStartStr; }
+    std::string TStopAsString() const { return fTStopStr; }
+    
+    void DumpSCData();
+    void DumpASICSettings();
+    
   private:
+
+    bool LoadSCChanMap();
+    bool LoadSCData();
+    bool LoadASICSettings();
+    
   protected:
     int    fRun;
     int    fNSubruns;
@@ -99,6 +125,12 @@ namespace dune {
     std::string fTStopStr;
     
     std::vector<SubRunDUNE> fSubrun;
+    std::unordered_map<std::string,int> fSCChanMap;
+    std::unordered_map<int,std::string> fSCInvChanMap;
+    std::unordered_map<int,ASICSetting> fASICSettingsMap;
+
+    std::unique_ptr<nutools::dbi::Table> fSCDataTable;
+    std::unique_ptr<nutools::dbi::Table> fASICSettingsTable;
     
   }; // class RunHistoryDUNE
 } //namespace dune
