@@ -1,5 +1,5 @@
 # add_subdirectory(Service)
-add_subdirectory(Service/test)
+# add_subdirectory(Service/test)
 
 simple_plugin(TriggerAna "module"
                      	   lbne-raw-data_Overlays
