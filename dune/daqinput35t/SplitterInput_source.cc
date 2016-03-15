@@ -763,7 +763,7 @@ namespace DAQToOffline {
     int          fSkipNInputEvents;
     int          fSkipNOutputEvents;
 
-    bool RCEsNotPresent = false;
+    bool RCEsPresent = true;
     int  gSkippedOuputEvents = 0;
     std::vector<std::pair<std::pair<unsigned int,unsigned int>, lbne::TpcNanoSlice::Header::nova_timestamp_t > > DigitsIndexList;
 
@@ -1044,15 +1044,17 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 	}
       }
       bool rc = loadEvents_(EventIndex_);
-      if (RCEsNotPresent) {
-	if (fDebugLevel) std::cout << "The RCEs aren't present, so switching to the don't require RCEs case...." << std::endl;
-	fRequireRCE = false;
+      //std::cout << "Loaded a new event..." << EventIndex_ << " " << loadedDigits_.empty(fDebugLevel) << " " << loadedWaveforms_.empty()
+      //          <<  " " << loadedCounters_.empty() << " " << loadedOpHits_.empty() << " " << RCEsPresent << std::endl;
+      if (!RCEsPresent && (!loadedWaveforms_.empty() || !loadedOpHits_.empty())) {
+	if (fDebugLevel) std::cout << "\nThe RCEs aren't present, so switching to the don't require RCEs case...." << std::endl;
 	bool Return = NoRCEsCase(outR, outSR, outE);
 	return Return;
-      } // RCEsNotPresent
+      } // RCEsPresent
       if (fDebugLevel > 2) std::cout << "There are a total of " << loadedDigits_.digits[0].NADC() << " ADC's " << std::endl;
       if (!rc) {
         doneWithFiles_ = (file_->GetName() == lastFileName_);
+	//std::cout << "Loaded the final file..." << std::endl;
         return false;
       }
       NewTree = true;
@@ -1145,21 +1147,21 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
   // ************* Fill wbuf_ with the SSP information within time range ************************
   if (fDebugLevel > 1)
     std::cout << "Loading the Waveforms...wbuf_ has size " << wbuf_.size() << " " << fNovaTicksPerSSPTick << std::endl;
-  loadedWaveforms_.findinrange(wbuf_, first_timestamp, last_timestamp, first_timestamp, fNovaTicksPerSSPTick, fDebugLevel);
+  loadedWaveforms_.findinrange(wbuf_, first_timestamp, last_timestamp, Event_timestamp, fNovaTicksPerSSPTick, fDebugLevel);
   if (fDebugLevel > 1)
     std::cout << "wbuf_ now has size " << wbuf_.size() << std::endl;
 
   // ************* Fill hbuf_ with the OpHit information within time range ************************
   if (fDebugLevel > 1)
     std::cout << "Loading the Waveforms...hbuf_ has size " << hbuf_.size() << " " << fNovaTicksPerSSPTick << std::endl;
-  loadedOpHits_.findinrange(hbuf_, first_timestamp, last_timestamp, first_timestamp, fNovaTicksPerSSPTick, fDebugLevel);
+  loadedOpHits_.findinrange(hbuf_, first_timestamp, last_timestamp, Event_timestamp, fNovaTicksPerSSPTick, fDebugLevel);
   if (fDebugLevel > 1)
     std::cout << "hbuf_ now has size " << hbuf_.size() << std::endl;
   
   // ************* Fill cbuf_ with the PTB information within time range ************************
   if (fDebugLevel > 1)
     std::cout << "Loading the Counters! cbuf size " << cbuf_.size() << " counterticks " << fNovaTicksPerCountTick << std::endl;
-  loadedCounters_.findinrange(cbuf_, first_timestamp, last_timestamp, first_timestamp, fNovaTicksPerCountTick, fDebugLevel);
+  loadedCounters_.findinrange(cbuf_, first_timestamp, last_timestamp, Event_timestamp, fNovaTicksPerCountTick, fDebugLevel);
   if (fDebugLevel > 1)
     std::cout << "Now cbuf has size " << cbuf_.size() << std::endl;
 
@@ -1405,12 +1407,13 @@ void DAQToOffline::Splitter::LoadOpHitInformation( size_t LoadTree ) {
 //=======================================================================================
 void DAQToOffline::Splitter::LoadRCEInformation( size_t LoadTree ) {
   if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
+    RCEsPresent = true;
     lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp = 0;
     auto* fragments = getFragments( TPCinputBranch_, LoadTree );
     art::ServiceHandle<lbne::ChannelMapService> TPCChannelMap;
     rawDigits_t const digits = fragmentsToDigits_( *fragments, DigitsIndexList, firstTimestamp, TPCChannelMap );
     if (!digits.size() ) {
-      RCEsNotPresent = true;
+      RCEsPresent = false;
     }
     loadedDigits_.load( digits, fDebugLevel );
     loadedDigits_.loadTimestamp( firstTimestamp );
@@ -1547,16 +1550,25 @@ bool DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPri
   wbuf_ = loadedWaveforms_.TakeAll();
   hbuf_ = loadedOpHits_.TakeAll();
   cbuf_ = loadedCounters_.TakeAll();
-  if (fDebugLevel) std::cout << "After looking at EventIndex_ " << EventIndex_-1 << ", event " << inputEventNumber_ << " fTrigger is " << fTrigger << " and wbuf and cbuf have sizes " << wbuf_.size() << " and " << cbuf_.size() << std::endl;
+  if (fDebugLevel) std::cout << "After looking at EventIndex_ " << EventIndex_-1 << ", event " << inputEventNumber_ << " wbuf, hbuf cbuf have sizes " << wbuf_.size() << ", " << hbuf_.size() << ", " << cbuf_.size() << std::endl;
   
   // ******** Now Build the event *********
   runNumber_ = inputRunNumber_;
   subRunNumber_ = inputSubRunNumber_;
   //art::Timestamp ts; // LBNE should decide how to initialize this -- use first_timestamp converted into an art::Timestamp
   //FIXME - This is a first attempt at interpreting the novatimestamp from the tpc data to create an art event timestamp
-  Event_timestamp = cbuf_[0].GetTrigTime();
+  if (cbuf_.size()) {
+    Event_timestamp = cbuf_[0].GetTrigTime();
+    if (wbuf_.size() && wbuf_[0].TimeStamp() < Event_timestamp) Event_timestamp = wbuf_[0].TimeStamp();
+    if (hbuf_.size() && hbuf_[0].PeakTime()  < Event_timestamp) Event_timestamp = hbuf_[0].PeakTime();
+  } else {
+    if (wbuf_.size()) {
+      Event_timestamp = wbuf_[0].TimeStamp();
+      if (hbuf_.size() && hbuf_[0].PeakTime()  < Event_timestamp) Event_timestamp = hbuf_[0].PeakTime();
+    } else Event_timestamp = hbuf_[0].PeakTime();
+  }
+    
   art::Timestamp this_art_event_timestamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(Event_timestamp);
-  std::cout << "Event timestamp is " << Event_timestamp << std::endl;
   if ( runNumber_ != cachedRunNumber_ ) {
     outR = sh_.makeRunPrincipal(runNumber_,this_art_event_timestamp);
     cachedRunNumber_ = runNumber_;
@@ -1678,7 +1690,7 @@ void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vec
       fTrigger = TicklerTrigger( PrevChanADC, ADCdigits);
     }
     
-    if (fTrigger && fRequireRCE) CheckTrigger();
+    if (fTrigger && RCEsPresent) CheckTrigger();
     if (fTrigger) break;
   }
 }
