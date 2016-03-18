@@ -16,10 +16,11 @@
 #include <iostream>
 
 
+
 //.....................................................................
 TriggerTestService::TriggerTestService() :
   fIndex(0),
-  fAString("")
+  fAString("no value...")
 { }
 
 
@@ -27,43 +28,28 @@ TriggerTestService::TriggerTestService() :
 //.....................................................................
 TriggerTestService::TriggerTestService(const fhicl::ParameterSet& pset, art::ActivityRegistry&) :
   fIndex(0),
-  fAString("")
+  fAString("no value...")
 {
-  fAString = pset.get<std::string>("TriggerLabel");
+  fAString = pset.get<std::string>("AString");
 }
 
 
 
 //.....................................................................
-bool TriggerTestService::TPCtrigger(art::Event const & evt)
+bool TriggerTestService::Trigger(art::Event const & evt)
 {
-
-  std::cout << "\n\nIn the TPCtrigger function for event "
+  
+  std::cout << "\n\nIn the Trigger function for event "
 	    << evt.id().event()
 	    << "\n\nfIndex = " << fIndex
 	    << "\nString = " << fAString
 	    << "\n\n\n";
-
+  
   fIndex++;
-
+  
   return true;
 }
 
 
-
-//.....................................................................
-bool TriggerTestService::PDtrigger(art::Event const & evt)
-{
-
-  std::cout << "\n\nIn the PDtrigger function for event "
-	    << evt.id().event()
-	    << "\n\n\n";
-
-  return false;
-
-}
-
-
-  
 
 DEFINE_ART_SERVICE_INTERFACE_IMPL(TriggerTestService, BaseTriggerService)
