@@ -1,5 +1,3 @@
-add_subdirectory(test)
-
 # dunetpc/dune/DAQTriggerSim/Service/CMakeLists.txt
 #
 # Michael Baird
