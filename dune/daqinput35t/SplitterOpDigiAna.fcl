@@ -16,6 +16,7 @@ physics:
 {
   producers:
   {
+    ophit:        @local::dune35t_ophit_splitdata  
     opflash:      @local::dune35t_opflash_splitdata  
       
   }
@@ -26,7 +27,7 @@ physics:
   }
 
   #Create path to run module
-  produce: [ opflash ]
+  produce: [ ophit, opflash ]
   analyze: [ opdigiana, opflashana ]
   output: [ ]
 
