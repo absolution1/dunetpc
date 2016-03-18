@@ -17,3 +17,5 @@ simple_plugin(TriggerTestService   "service"
                 ${MF_UTILITIES}
                 ${ROOT_BASIC_LIB_LIST}
              )
+
+install_fhicl()
