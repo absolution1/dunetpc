@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+#=======================================================================
+
+#
+# Template Trigger Service
+#
+templatetrigger: {
+  service_provider: TemplateTriggerService
+  AString:          "This is a string, read in from the configuration file..."
+}
+
+END_PROLOG
