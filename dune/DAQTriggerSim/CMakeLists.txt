@@ -1,6 +1,7 @@
 add_subdirectory(Service)
 
 simple_plugin(TriggerAna "module"
+			   dune_DAQTriggerSim_Service_test_TriggerTestService_service
                      	   lbne-raw-data_Overlays
                            lbne_daqinput35t       #For online to offline channel map
                            larcore_Geometry_Geometry_service
@@ -24,4 +25,4 @@ simple_plugin(TriggerAna "module"
 
 install_fhicl()
 install_headers()
-
+install_source()

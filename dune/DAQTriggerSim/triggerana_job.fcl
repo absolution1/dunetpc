@@ -1,6 +1,8 @@
 #include "services_dune.fcl"
 #include "TriggerAna.fcl"
 
+#include "TestTrigConfig.fcl"
+
 process_name: TriggerAna
 
 source:
@@ -17,6 +19,12 @@ services:
   RandomNumberGenerator: {} #ART native random number generator
   user:         @local::dune35t_services
 }
+
+services.user.BaseTriggerService: @local::triggertest
+#services.user.BaseTriggerService: {
+#  service_provider:   "TriggerTestService"
+#  TriggerTestService: @local::triggertest
+#}
 
 physics:
 {

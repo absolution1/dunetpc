@@ -16,11 +16,13 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // DUNETPC specific includes
+#include "Service/test/TriggerTestService.h"
 
 
 
@@ -49,7 +51,7 @@ private:
 
   // label for module that made trigger objects
   std::string fTriggerLabel;
-
+  
 };
 
 
@@ -76,7 +78,11 @@ void TriggerAna::reconfigure(fhicl::ParameterSet const & p)
 void TriggerAna::analyze(art::Event const & e)
 {
 
-  std::cout << "\n\n\nHello world!!!\n\n\n"
+  // make the trigger test service
+  art::ServiceHandle<TriggerTestService> TT;
+  TT->Trigger(e);
+
+  std::cout << "\n\n\nThe TriggerAna module says: \"Hello world!!!\"\n"
 	    << fTriggerLabel << "\n\n\n";
 
 }
