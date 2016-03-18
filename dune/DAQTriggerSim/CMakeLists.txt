@@ -1,4 +1,5 @@
 add_subdirectory(Service)
+add_subdirectory(TemplateMod)
 
 simple_plugin(TriggerAna "module"
 			   dune_DAQTriggerSim_Service_test_TriggerTestService_service
