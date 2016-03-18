@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+#=======================================================================
+
+#
+# Trigger Test Service
+#
+triggertest: {
+  service_provider: TriggerTestService
+  AString:          "Testing..."
+}
+
+END_PROLOG
