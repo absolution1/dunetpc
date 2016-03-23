@@ -1,0 +1,20 @@
+#include "calorimetry_dune35t.fcl"
+#include "calorimetry_dune10kt.fcl"
+#include "trackfinderalgorithms.fcl"
+
+BEGIN_PROLOG
+
+proto_ecalibration:
+{
+   module_type:             "ECalibration"
+		SimulationLabel:				"largeant"	
+   	HitsModuleLabel:        "lineclusterdc"
+   	TrackModuleLabel:       "pmtrackdc"
+	 	ShowerModuleLabel:      "emshower"
+   	ClusterModuleLabel:	    "lineclusterdc"
+   	VertexModuleLabel:      "lineclusterdc"
+   	CalorimetryModuleLabel: "calo"
+   	CalorimetryAlg:          @local::dune35t_calorimetryalgmc
+}
+
+END_PROLOG
