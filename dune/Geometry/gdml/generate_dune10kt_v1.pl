@@ -451,7 +451,7 @@ sub gen_Materials()
 my $asmix = <<EOF;
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-$FracMassOfSteel) + 7.9300*$FracMassOfSteel " unit="g/cc"/>
+   <D value=" 0.001205*(1-$FracMassOfSteel) + 7.9300*$FracMassOfSteel " unit="g/cm3"/>
    <fraction n="$FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="$FracMassOfAir"   ref="Air"/>
   </material>
