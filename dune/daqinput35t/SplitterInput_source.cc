@@ -446,7 +446,8 @@ namespace {
       vector<simb::MCParticle> retParts;
       int hh=0;
       unsigned short TimeCorrec = ( event_timestamp / (2*fNanoSecondsPerNovaTick) ) - 1;
-      if (fDebugLevel > 2) std::cout << "In TakeMCParts....MCParts has size " << MCParts.size() << ", event timestamp is " << event_timestamp << " meaning the time correction is " << TimeCorrec << std::endl;
+      if (fDebugLevel > 2)
+	std::cout << "\n\nIn TakeMCParts....MCParts has size " << MCParts.size() << ", event timestamp is " << event_timestamp << " meaning the time correction is " << TimeCorrec << std::endl;
       
       for (auto part: MCParts) {
 	simb::MCParticle newPart = simb::MCParticle(part.TrackId(), part.PdgCode(), part.Process(), part.Mother(), part.Mass(), part.StatusCode());
@@ -479,7 +480,7 @@ namespace {
 		    << ", Energy " << newPart.E() << " " << part.E()
 		    << ", NDaughters " << newPart.NumberDaughters() << " " << part.NumberDaughters()
 		    << std::endl;
-	if ( newPart.T() - part.T() != 0 ) std::cout << "!!!!!!!!!!!!!!!!!NOT EQUAL TO 0!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+	//if ( newPart.T() - part.T() != 0 ) std::cout << "!!!!!!!!!!!!!!!!!NOT EQUAL TO 0!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	++hh;
       }
       if (fDebugLevel > 1) std::cout << "At the end of TakeMCParts I am returning a vector of MCParticles with size " << retParts.size() << std::endl;
@@ -490,7 +491,8 @@ namespace {
       vector<sim::SimChannel> retSimChans;
       int qq = 0;
       unsigned short TimeCorrec = ( event_timestamp / fNovaTicksPerTPCTick ) - 1;
-      if (fDebugLevel > 2) std::cout << "In TakeSimChans....SimChans has size " << MCParts.size() << ", event timestamp is " << event_timestamp << " meaning the time correction is " << TimeCorrec << std::endl;
+      if (fDebugLevel > 2) 
+	std::cout << "\n\nIn TakeSimChans....SimChans has size " << MCParts.size() << ", event timestamp is " << event_timestamp << " meaning the time correction is " << TimeCorrec << std::endl;
       
       for (auto LoopSimChan: SimChans) {
 	sim::SimChannel newSimChan = sim::SimChannel( LoopSimChan.Channel() );
@@ -501,7 +503,7 @@ namespace {
 	    double IDEPos[3] = { OldSimIDE[zz].x, OldSimIDE[zz].y, OldSimIDE[zz].z };
 	    newSimChan.AddIonizationElectrons(OldSimIDE[zz].trackID, NewTime, OldSimIDE[zz].numElectrons, IDEPos, OldSimIDE[zz].energy );
 	  }
-	  if ( NewTime - ideMap->first != 0 ) std::cout << "!!!!!!!!!!!!!!!!!NOT EQUAL TO 0!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+	  //if ( NewTime - ideMap->first != 0 ) std::cout << "!!!!!!!!!!!!!!!!!NOT EQUAL TO 0!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	}
 	retSimChans.emplace_back(newSimChan);
 	if (fDebugLevel > 3)
@@ -1407,13 +1409,14 @@ void DAQToOffline::Splitter::LoadOpHitInformation( size_t LoadTree ) {
 //=======================================================================================
 void DAQToOffline::Splitter::LoadRCEInformation( size_t LoadTree ) {
   if (TPCinputDataProduct_.find("Fragment") != std::string::npos) {
-    RCEsPresent = true;
+    //RCEsPresent = true;
     lbne::TpcNanoSlice::Header::nova_timestamp_t firstTimestamp = 0;
     auto* fragments = getFragments( TPCinputBranch_, LoadTree );
     art::ServiceHandle<lbne::ChannelMapService> TPCChannelMap;
     rawDigits_t const digits = fragmentsToDigits_( *fragments, DigitsIndexList, firstTimestamp, TPCChannelMap );
-    if (!digits.size() ) {
+    if (!digits.size() && EventIndex_ == 0) {
       RCEsPresent = false;
+      fRequireRCE = false;
     }
     loadedDigits_.load( digits, fDebugLevel );
     loadedDigits_.loadTimestamp( firstTimestamp );
