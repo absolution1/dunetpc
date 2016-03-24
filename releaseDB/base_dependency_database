@@ -133,6 +133,7 @@ dunetpc : lardata : lardata/RecoBaseArt/TrackUtils.h
 dunetpc : lardata : lardata/RecoBaseArt/WireCreator.h
 dunetpc : lardata : lardata/RecoObjects/Cluster3D.h
 dunetpc : lardata : lardata/Utilities/AssociationUtil.h
+dunetpc : lardata : lardata/Utilities/DatabaseUtil.h
 dunetpc : lardata : lardata/Utilities/Dereference.h
 dunetpc : lardata : lardata/Utilities/GeometryUtilities.h
 dunetpc : lardata : lardata/Utilities/LArFFT.h
