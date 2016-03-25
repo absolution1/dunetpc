@@ -209,7 +209,6 @@ void proto::ECalibration::analyze(art::Event const & e)
 		art::fill_ptr_vector(fShslist, shsListHandle);
 }
 
-
 double proto::ECalibration::GetEkreco(double t0)
 {
 	if (!fHitlist.size()) return 0.0;
@@ -219,8 +218,7 @@ double proto::ECalibration::GetEkreco(double t0)
 	{
 		unsigned short plane = fHitlist[h]->WireID().Plane;
 		if (plane != geo::kZ) continue;
-
-		
+	
 		double dqadc = fHitlist[h]->Integral();
 		if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
 	
@@ -241,6 +239,10 @@ double proto::ECalibration::GetEkreco(double t0)
 void proto::ECalibration::ResetVars()
 {
 	fSimlist.clear();
+	fHitlist.clear();
+	fTracklist.clear();
+	fVertexlist.clear();
+	fShslist.clear();
 	fSimPdg = 0;
 	fStopping = false;
 	fDecaying = false;
