@@ -115,7 +115,7 @@ sub gen_Materials
   </material>
 
   <material formula=" " name="DUSEL_Rock">
-    <D value="2.82" unit="g/cc"/>
+    <D value="2.82" unit="g/cm3"/>
     <fraction n="0.5267" ref="SiO2"/>
     <fraction n="0.1174" ref="FeO"/>
     <fraction n="0.1025" ref="Al2O3"/>
@@ -147,7 +147,7 @@ sub gen_Materials
   </material>
 
   <material name="STEEL_STAINLESS_Fe7Cr2Ni" formula="STEEL_STAINLESS_Fe7Cr2Ni">
-   <D value="7.9300" unit="g/cc"/>
+   <D value="7.9300" unit="g/cm3"/>
    <fraction n="0.0010" ref="carbon"/>
    <fraction n="0.1792" ref="chromium"/>
    <fraction n="0.7298" ref="iron"/>
@@ -166,19 +166,19 @@ sub gen_Materials
   </material>
 
   <material name="ArGas" formula="ArGas">
-   <D value="0.00166" unit="g/cc"/>
+   <D value="0.00166" unit="g/cm3"/>
    <fraction n="1.0" ref="argon"/>
   </material>
 
   <material formula="Air" name="Air">
-   <D value="0.001205" unit="g/cc"/>
+   <D value="0.001205" unit="g/cm3"/>
    <fraction n="0.781154" ref="nitrogen"/>
    <fraction n="0.209476" ref="oxygen"/>
    <fraction n="0.00934" ref="argon"/>
   </material>
 
   <material formula=" " name="G10">
-   <D value="1.7" unit="g/cc"/>
+   <D value="1.7" unit="g/cm3"/>
    <fraction n="0.2805" ref="silicon"/>
    <fraction n="0.3954" ref="oxygen"/>
    <fraction n="0.2990" ref="carbon"/>
@@ -186,7 +186,7 @@ sub gen_Materials
   </material>
 
   <material formula=" " name="Granite">
-   <D value="2.7" unit="g/cc"/>
+   <D value="2.7" unit="g/cm3"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -196,7 +196,7 @@ sub gen_Materials
   </material>
 
   <material formula=" " name="ShotRock">
-   <D value="2.7*0.6" unit="g/cc"/>
+   <D value="2.7*0.6" unit="g/cm3"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -206,7 +206,7 @@ sub gen_Materials
   </material>
 
   <material formula=" " name="Dirt">
-   <D value="1.7" unit="g/cc"/>
+   <D value="1.7" unit="g/cm3"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -216,7 +216,7 @@ sub gen_Materials
   </material>
 
   <material formula=" " name="Concrete">
-   <D value="2.3" unit="g/cc"/>
+   <D value="2.3" unit="g/cm3"/>
    <fraction n="0.530" ref="oxygen"/>
    <fraction n="0.335" ref="silicon"/>
    <fraction n="0.060" ref="calcium"/>
@@ -226,13 +226,13 @@ sub gen_Materials
   </material>
 
   <material formula="H2O" name="Water">
-   <D value="1.0" unit="g/cc"/>
+   <D value="1.0" unit="g/cm3"/>
    <fraction n="0.1119" ref="hydrogen"/>
    <fraction n="0.8881" ref="oxygen"/>
   </material>
 
   <material formula="Ti" name="Titanium">
-   <D value="4.506" unit="g/cc"/>
+   <D value="4.506" unit="g/cm3"/>
    <fraction n="1." ref="titanium"/>
   </material>
 
