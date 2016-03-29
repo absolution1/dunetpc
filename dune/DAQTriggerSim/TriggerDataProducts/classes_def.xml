@@ -1,0 +1,36 @@
+<!--
+/////////////////////////////////////////////////////////
+//
+// DAQTriggerSim/TriggerDataProducts/classes_def.xml
+//
+// Michael Baird
+// March 2016
+//
+/////////////////////////////////////////////////////////
+-->
+
+<lcgdict>
+
+  <class name="triggersim::BasicTrigger"            ClassVersion="11" >
+    <version ClassVersion="11" checksum="4046040025"/>
+  </class>
+
+
+
+ <!-- art pointers and pointer vectors -->
+ <class name="art::Ptr< triggersim::BasicTrigger >"                      />
+ <class name="art::PtrVector< triggersim::BasicTrigger >"                />
+ <class name="std::vector< art::PtrVector< triggersim::BasicTrigger > >" />
+
+
+
+ <!-- vectors for data products -->
+ <class name="std::vector< triggersim::BasicTrigger >" />
+
+
+
+ <!-- art data product wrappers -->
+ <class name="art::Wrapper< std::vector< triggersim::BasicTrigger                   > >" />
+ <class name="art::Wrapper< std::vector< art::PtrVector< triggersim::BasicTrigger > > >" />
+
+</lcgdict>
