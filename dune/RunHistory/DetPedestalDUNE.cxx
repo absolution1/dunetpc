@@ -43,7 +43,7 @@ namespace dune {
     const string myname = "DetPedestalDUNE::Configure: ";
     fUseDB = p.get<bool>("UseDB",false);
     if (!fUseDB) {
-      fVldTime = p.get<bool>("Run",0);
+      fVldTime = p.get<int>("Run",0);
     }
     fAbortIfNoPeds = p.get<bool>("AbortIfNoPeds",false);
     fCSVFileName = p.get<std::string>("CSVFile","");    

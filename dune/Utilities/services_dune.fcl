@@ -199,12 +199,7 @@ dune35t_basic_services:
  ChannelMapService:            @local::channelmap35t
 }
 
-dune35t_basic_services.DetPedestalService:
-{
-  service_provider: DetPedestalServiceDUNE
-  DetPedestalDUNE: @local::dune35t_pedestals
-  ChannelMapService: @local::channelmap35t
-}
+dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
 
 dune35t_services:              @local::dune35t_basic_services
 dune35t_services.LArFFT:       @local::dune35t_larfft
