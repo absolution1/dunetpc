@@ -30,7 +30,7 @@ split_events:
 
   RequireRCE:               "true"  // Do you require the RCEs to be present?
   RequireSSP:               "true"  // Do you require the SSPs to be present?
-  RequireOpHit:             "false" // Do you require the OpHits to be present?
+  RequireOpHit:             "true"  // Do you require the OpHits to be present?
   RequirePTB:               "true"  // Do you require the PTB to be present?
 
   DebugLevel:                1       // The level of information printed out 0 = none, 1 = basic info, <4 = all

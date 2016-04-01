@@ -217,7 +217,7 @@ namespace {
 	}
         ++hh;
       } // auto ophits
-      if (fDebugLevel > 1) std::cout << "At the end of Waveform findinrange, wbo has size " << obo.size() << std::endl;
+      if (fDebugLevel > 1) std::cout << "At the end of OpHit findinrange, obo has size " << obo.size() << std::endl;
     } // findinrange
     
     //=======================================================================================
@@ -552,13 +552,13 @@ namespace {
     br->GetEntry( entry );
     return reinterpret_cast<vector<raw::OpDetWaveform>*>( br->GetAddress() );
   }
-
+  
   vector<recob::OpHit>*
-  getOpHitWaveforms( TBranch* br, unsigned entry ) {
+  getOpHits( TBranch* br, unsigned entry ) {
     br->GetEntry( entry );
     return reinterpret_cast<vector<recob::OpHit>*>( br->GetAddress() );
   }
-  
+
   vector<raw::ExternalTrigger>*
   getRawExternalTriggers( TBranch* br, unsigned entry ) {
     br->GetEntry( entry );
@@ -712,7 +712,6 @@ namespace DAQToOffline {
     bool loadEvents_( size_t &InputTree );
     bool LoadPTBInformation( size_t LoadTree );
     void LoadSSPInformation( size_t LoadTree );
-    void LoadOpHitInformation( size_t LoadTree );
     void LoadRCEInformation( size_t LoadTree );
 
     void makeEventAndPutDigits_( art::EventPrincipal*& outE, art::Timestamp art_timestamp=0);
@@ -790,11 +789,11 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   PenninputTag_        (ps.get<string>("PennInputTag")),
   MCPartinputTag_      (ps.get<string>("MCPartInputTag")),
   MCTruthinputTag_      (ps.get<string>("MCTruthInputTag")),
-  MCSimChaninputTag_   (ps.get<string>("MCSimChanInputTag")),
-  TPCinputDataProduct_ (ps.get<string>("TPCInputDataProduct")),
-  SSPinputDataProduct_ (ps.get<string>("SSPInputDataProduct")),
+  MCSimChaninputTag_    (ps.get<string>("MCSimChanInputTag")),
+  TPCinputDataProduct_  (ps.get<string>("TPCInputDataProduct")),
+  SSPinputDataProduct_  (ps.get<string>("SSPInputDataProduct")),
   OpHitinputDataProduct_(ps.get<string>("OpHitInputDataProduct")),
-  PenninputDataProduct_(ps.get<string>("PennInputDataProduct")),
+  PenninputDataProduct_ (ps.get<string>("PennInputDataProduct")),
   MCPartinputDataProduct_(ps.get<string>("MCPartInputDataProduct")),
   MCTruthinputDataProduct_(ps.get<string>("MCTruthInputDataProduct")),
   MCSimChaninputDataProduct_(ps.get<string>("MCSimChanInputDataProduct")),
@@ -804,6 +803,8 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
   sh_(sh),
   TPCinputBranch_(nullptr),
   SSPinputBranch_(nullptr),
+  OpHitinputBranch_(nullptr),
+  PenninputBranch_(nullptr),
   EventAuxBranch_(nullptr),
   nInputEvts_(),
   runNumber_(1),      // Defaults 
@@ -908,13 +909,10 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
   if (!nevt_ssp)
     if (SSPinputBranch_)
       nevt_ssp = static_cast<size_t>( SSPinputBranch_->GetEntries() );
-  size_t nevt_ophit = 0;
-  if (OpHitinputBranch_) nevt_ophit = static_cast<size_t>( OpHitinputBranch_->GetEntries() );
   size_t nevt_penn  = 0;
   if (PenninputBranch_) nevt_penn  = static_cast<size_t>( PenninputBranch_->GetEntries());
   
   if (nevt_ssp != nInputEvts_&& nevt_ssp) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and SSP input events in file");
-  if (nevt_ophit !=  nInputEvts_&& nevt_ophit) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and OpHit input events in file");
   if (nevt_penn != nInputEvts_&& nevt_penn) throw cet::exception("35-ton SplitterInput: Different numbers of RCE and Penn input events in file");
   EventIndex_ = 0ul;
   
@@ -1294,16 +1292,14 @@ bool DAQToOffline::Splitter::loadEvents_( size_t &LoadEventIndex ) {
     if ( fWhichTrigger.size() == 1 && fWhichTrigger[0] == 3 ) { // If looking for only looking for triggers from the PTB
       if ( PTBTrigPresent || fTrigger ) { // Only load RCEs and SSPs if a trigger is present.
 	if (fRequireSSP) LoadSSPInformation( LoadTree );
-	if (fRequireOpHit) LoadOpHitInformation( LoadTree);
 	if (fRequireRCE) LoadRCEInformation( LoadTree );
       } else {                // If no PTB trigger is present make sure to clear Digits and Waveforms.
-	if (fRequireSSP) loadedWaveforms_.clear(fDebugLevel);
+	if (fRequireSSP)   loadedWaveforms_.clear(fDebugLevel);
 	if (fRequireOpHit) loadedOpHits_.clear(fDebugLevel);
-	if (fRequireRCE) loadedDigits_.clear(fDebugLevel);
+	if (fRequireRCE)   loadedDigits_.clear(fDebugLevel);
       }
     } else { // If either not looking for PTB triggers at all, or looking for additional triggers too, then always load RCE/SSP.
       if (fRequireSSP) LoadSSPInformation( LoadTree );
-      if (fRequireOpHit) LoadOpHitInformation( LoadTree);
       if (fRequireRCE) LoadRCEInformation( LoadTree );
     }
     // If Looking at MonteCarlo, also want to load in some other stuff....
@@ -1365,44 +1361,40 @@ bool DAQToOffline::Splitter::LoadPTBInformation( size_t LoadTree ) {
 void DAQToOffline::Splitter::LoadSSPInformation( size_t LoadTree ) {
   if (SSPinputDataProduct_.find("Fragment") != std::string::npos) {
     auto* SSPfragments = getFragments( SSPinputBranch_, LoadTree );
-    std::vector<raw::OpDetWaveform> waveforms = sspReform.SSPFragmentToOpDetWaveform(*SSPfragments);
-
+    std::vector<raw::OpDetWaveform> waveforms;
+    std::vector<recob::OpHit>       hits;
+    sspReform.SSPFragmentToWaveformsAndHits(*SSPfragments, waveforms, hits);
     if (fDebugLevel > 3 ) {
       for ( size_t WaveLoop=0; WaveLoop < waveforms.size(); ++WaveLoop ) {
 	int64_t SSPTime = waveforms[WaveLoop].TimeStamp()*fNovaTicksPerSSPTick;
 	std::cout << "Looking at waveform[" << WaveLoop << "] it has channel number " << waveforms[WaveLoop].ChannelNumber()
 		  << " and timestamp " << SSPTime << ", and size " << waveforms[WaveLoop].size() << std::endl;
       }
+      for ( size_t HitLoop=0; HitLoop < hits.size(); ++HitLoop ) {
+	int64_t OpHitTime = hits[HitLoop].PeakTime()*fNovaTicksPerSSPTick;
+	std::cout << "Looking at waveform[" << HitLoop << "] it is on channel number " << hits[HitLoop].OpChannel() << " at timestamp " << OpHitTime << std::endl;
+      }
     }
     
-    if (fDebugLevel > 1) std::cout << "Loaded waveforms has size " << waveforms.size() << std::endl;
+    if (fDebugLevel > 1)
+      std::cout << "Loaded waveforms has size " << waveforms.size() << ", and OpHits has size " << hits.size() << std::endl;
+    if (waveforms.size() && hits.size()) std::cout << "\n They Both have non-zero size!!!!\n\n\n" << std::endl;
     loadedWaveforms_.load( waveforms, fDebugLevel );
+    loadedOpHits_.load   ( hits     , fDebugLevel );
   }
   else {
     auto* waveforms = getSSPWaveforms(SSPinputBranch_, LoadTree );
     if (fDebugLevel > 1) std::cout << "Loaded waveforms has size " << waveforms->size() << std::endl;
     loadedWaveforms_.load( *waveforms, fDebugLevel );
-  }
-  return;
-}
-//=======================================================================================
-void DAQToOffline::Splitter::LoadOpHitInformation( size_t LoadTree ) {
-  if (OpHitinputDataProduct_.find("Fragment") != std::string::npos) {
-    auto* OpHitfragments = getFragments( OpHitinputBranch_, LoadTree );
-    std::vector<recob::OpHit> OpHits = sspReform.SSPHeaderToOpHit(*OpHitfragments);
-    for ( size_t HitLoop=0; HitLoop < OpHits.size(); ++HitLoop ) {
-      int64_t OpHitTime = OpHits[HitLoop].PeakTime()*fNovaTicksPerSSPTick;
-      if (fDebugLevel > 3 )
-	std::cout << "Looking at waveform[" << HitLoop << "] it is on channel number " << OpHits[HitLoop].OpChannel() << " at timestamp " << OpHitTime << std::endl;
+    if ( evAux_.isRealData() ) {
+      auto* hits = getOpHits(OpHitinputBranch_, LoadTree );
+      if (fDebugLevel > 1) std::cout << "Loaded OpHits has size " << hits->size() << std::endl;
+      loadedOpHits_.load( *hits, fDebugLevel );
+    } else {
+      std::vector<recob::OpHit> hits;
+      hits.clear();
+      loadedOpHits_.load( hits, fDebugLevel );
     }
-    
-    if (fDebugLevel > 1) std::cout << "Loaded OpHits has size " << OpHits.size() << std::endl;
-    loadedOpHits_.load( OpHits, fDebugLevel );
-  }
-  else {
-    auto* OpHits = getOpHitWaveforms(OpHitinputBranch_, LoadTree );
-    if (fDebugLevel > 1) std::cout << "Loaded waveforms has size " << OpHits->size() << std::endl;
-    loadedOpHits_.load( *OpHits, fDebugLevel );
   }
   return;
 }
@@ -1586,6 +1578,7 @@ bool DAQToOffline::Splitter::NoRCEsCase(art::RunPrincipal*& outR, art::SubRunPri
   makeEventAndPutDigits_( outE, this_art_event_timestamp );
   Reset();
   loadedWaveforms_.clear(fDebugLevel);
+  loadedOpHits_.clear(fDebugLevel);
   loadedCounters_.clear(fDebugLevel);
   return true;
 }
@@ -1693,7 +1686,7 @@ void DAQToOffline::Splitter::Triggering(std::map<int,int> &PrevChanADC, std::vec
       fTrigger = TicklerTrigger( PrevChanADC, ADCdigits);
     }
     
-    if (fTrigger && RCEsPresent) CheckTrigger();
+    if (fTrigger && RCEsPresent && fRequireRCE) CheckTrigger();
     if (fTrigger) break;
   }
 }
