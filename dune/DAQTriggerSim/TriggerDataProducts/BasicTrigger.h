@@ -15,6 +15,11 @@
 // Framework includes
 
 // C++ includes
+#ifndef __GCCXML__
+#include <iosfwd> // std::ostream
+#endif
+
+
 
 namespace triggersim {
 
@@ -31,11 +36,14 @@ namespace triggersim {
 
     // Set and Get functions for the trigger type
     void setTrigType(unsigned int trigtype);
-    unsigned int TrigType();
+    unsigned int TrigType() const;
 
     // Set and Get functions for the trigger issued variable
     void setTrigIssued(bool trigissued);
-    bool TrigIssued();
+    bool TrigIssued() const;
+
+    friend std::ostream& operator << (std::ostream& o, BasicTrigger const& bt);
+    friend bool          operator <  (BasicTrigger const& a, BasicTrigger const& b);    
 
   private:
     

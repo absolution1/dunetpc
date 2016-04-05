@@ -7,10 +7,12 @@
 //
 
 // DUNETPC specific includes
+#include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
 
 // Framework includes
 
 // C++ includes
+#include <iomanip>
 
 namespace triggersim {
 
@@ -23,7 +25,7 @@ namespace triggersim {
 
   
   //----------------------------------------------------------------------
-  ~BasicTrigger::BasicTrigger()
+  BasicTrigger::~BasicTrigger()
   {}
 
 
@@ -37,7 +39,7 @@ namespace triggersim {
 
 
   //----------------------------------------------------------------------
-  unsigned int BasicTrigger::TrigType()
+  unsigned int BasicTrigger::TrigType() const
   {
     return fTrigType;
   }
@@ -53,9 +55,32 @@ namespace triggersim {
 
 
   //----------------------------------------------------------------------
-  bool BasicTrigger::TrigIssued()
+  bool BasicTrigger::TrigIssued() const
   {
     return fTrigIssued;
+  }
+
+
+  //----------------------------------------------------------------------
+  // ostream operator.
+  //
+  std::ostream& operator << (std::ostream& o, BasicTrigger const& bt) {
+
+    o << "Trigger Type   = " << bt.TrigType()   << std::endl;
+    o << "Trigger Issued = " << bt.TrigIssued() << std::endl;
+    return o;
+
+  }
+
+
+
+  //----------------------------------------------------------------------
+  // < operator.
+  //
+  bool operator < (BasicTrigger const& a, BasicTrigger const& b) {
+
+    return a.TrigType() < b.TrigType();
+
   }
   
 } // end namespace triggersim
