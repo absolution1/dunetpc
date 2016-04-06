@@ -87,7 +87,7 @@ namespace AnalysisExample{
     int fSelectedPDG; // PDG code for primary particle 
 
     // log file
-    ofstream outfile; 
+    std::ofstream outfile; 
 
     // define the histograms and ntuples
 

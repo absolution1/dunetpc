@@ -566,7 +566,7 @@ void CTree35t::beginJob()
     // saveWireGeometry(1, 7);
 
     /*
-    ofstream wireGeoFile;
+    std::ofstream wireGeoFile;
     wireGeoFile.open("WireGeometry.txt");
     for (unsigned int plane=0; plane<(unsigned int)fNplanes; plane++) {
       wireGeoFile << "***************** PLANE " << plane <<" ********************\n";
@@ -598,7 +598,7 @@ void CTree35t::beginJob()
 //-----------------------------------------------------------------------
 void CTree35t::saveChannelWireMap()
 {
-    ofstream mapfile;
+    std::ofstream mapfile;
     mapfile.open("ChannelWireMap.txt");
     mapfile << "# total channels: " << fNchannels << "\n\n";
     for (int i=0; i<fNchannels; i++) {
