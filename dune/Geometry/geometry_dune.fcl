@@ -66,11 +66,15 @@ dunedphase10kt_geo:
  DisableWiresInG4:   true
 }
 
-
 dune10kt_workspace_geo: @local::dune10kt_geo
 dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
 dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
 dune10kt_workspace_geo.ROOT: "dune10kt_v1_workspace.gdml"
+
+dune10kt_1x2x6_geo: @local::dune10kt_geo
+dune10kt_1x2x6_geo.Name: "dune10kt_v1_1x2x6"
+dune10kt_1x2x6_geo.GDML: "dune10kt_v1_1x2x6.gdml"
+dune10kt_1x2x6_geo.ROOT: "dune10kt_v1_1x2x6.gdml"
 
 dunedphase10kt_workspace_geo: @local::dunedphase10kt_geo
 dunedphase10kt_workspace_geo.Name: "dunedphase10kt_v2_workspace"
@@ -82,10 +86,21 @@ dune10kt_45deg_workspace_geo.Name: "dune10kt_v1_45deg_workspace"
 dune10kt_45deg_workspace_geo.GDML: "dune10kt_v1_45deg_workspace.gdml"
 dune10kt_45deg_workspace_geo.ROOT: "dune10kt_v1_45deg_workspace.gdml"
 
+dune10kt_45deg_1x2x6_geo: @local::dune10kt_geo
+dune10kt_45deg_1x2x6_geo.Name: "dune10kt_v1_45deg_1x2x6"
+dune10kt_45deg_1x2x6_geo.GDML: "dune10kt_v1_45deg_1x2x6.gdml"
+dune10kt_45deg_1x2x6_geo.ROOT: "dune10kt_v1_45deg_1x2x6.gdml"
+
+
 dune10kt_3mmpitch_workspace_geo: @local::dune10kt_geo
 dune10kt_3mmpitch_workspace_geo.Name: "dune10kt_v1_3mmpitch_workspace"
 dune10kt_3mmpitch_workspace_geo.GDML: "dune10kt_v1_3mmpitch_workspace.gdml"
 dune10kt_3mmpitch_workspace_geo.ROOT: "dune10kt_v1_3mmpitch_workspace.gdml"
+
+dune10kt_3mmpitch_1x2x6_geo: @local::dune10kt_geo
+dune10kt_3mmpitch_1x2x6_geo.Name: "dune10kt_v1_3mmpitch_1x2x6"
+dune10kt_3mmpitch_1x2x6_geo.GDML: "dune10kt_v1_3mmpitch_1x2x6.gdml"
+dune10kt_3mmpitch_1x2x6_geo.ROOT: "dune10kt_v1_3mmpitch_1x2x6.gdml"
 
 protoDune_geo: @local::dune10kt_geo
 protoDune_geo.Name: "protodune" # will be made lower case anyway
