@@ -5426,7 +5426,7 @@
     <box name="ConcreteWall" lunit="cm"
       x="2613.982"
       y="1605.04"
-      z="140"/>
+      z="140.0"/>
 
     <box name="DetEnclosure" lunit="cm"
       x="2613.982"
@@ -39650,14 +39650,14 @@
       <volumeref ref="volFoamPadding"/>
       <position name="posNegFoamCryo" unit="cm"
         x="0"
-	y="25"
+	y="25.0"
         z="-2662.02"/>
     </physvol>
     <physvol>
       <volumeref ref="volCryostat"/>
       <position name="posNegCryo" unit="cm"
         x="0"
-	y="25"
+	y="25.0"
         z="-2662.02" />
     </physvol>
     <physvol>
@@ -39671,14 +39671,14 @@
       <volumeref ref="volFoamPadding"/>
       <position name="posPosFoamCryo" unit="cm"
         x="0"
-	y="25"
+	y="25.0"
         z="2662.02"/>
     </physvol>
     <physvol>
       <volumeref ref="volCryostat"/>
       <position name="posPosCryo" unit="cm"
         x="0"
-	y="25"
+	y="25.0"
         z="2662.02" />
     </physvol>
     </volume>

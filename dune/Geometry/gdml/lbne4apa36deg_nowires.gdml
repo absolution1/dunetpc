@@ -8,8 +8,8 @@
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
-   <rotation name="rPlusUAngleAboutX"	unit="deg" x="54" y="0"   z="0"/>
-   <rotation name="rPlusVAngleAboutX"	unit="deg" x="126" y="0"   z="0"/>
+   <rotation name="rPlusUAngleAboutX"	unit="deg" x="54.0" y="0"   z="0"/>
+   <rotation name="rPlusVAngleAboutX"	unit="deg" x="126.0" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
 </define>
@@ -388,7 +388,7 @@
     </subtraction>
 
     <box name="ConcreteWall" lunit="cm"
-      x="140"
+      x="140.0"
       y="1605.04"
       z="868.04"/>
 
@@ -1132,11 +1132,11 @@
       <solidref ref="DetEnclosure"/>
     <physvol>
         <volumeref ref="volFoamPadding"/>
-        <position name="posNegFoamCryo" unit="cm" x="0" y="25" z="0"/>
+        <position name="posNegFoamCryo" unit="cm" x="0" y="25.0" z="0"/>
     </physvol>
     <physvol>
       <volumeref ref="volCryostat"/>
-      <position name="posNegCryo" unit="cm" x="0" y="25" z="0" />
+      <position name="posNegCryo" unit="cm" x="0" y="25.0" z="0" />
     </physvol>
     </volume>
 
@@ -1145,7 +1145,7 @@
       <solidref ref="World"/>
 <!--   <physvol>
      <volumeref ref="volHighBay"/>
-     <position name="posHighBay" unit="cm" x="0" y="1376.52" z="1020.77"/>
+     <position name="posHighBay" unit="cm" x="0" y="1376.52" z="1021.27"/>
    </physvol>
    <physvol>
      <volumeref ref="volLowBay"/>

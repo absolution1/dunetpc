@@ -268,11 +268,11 @@
       z="39202.54"/>
     <box name="UpperCavern" lunit="cm"
       x="3202.54"
-      y="15020"
+      y="15020.0"
       z="10202.54"/>
     <box name="RockTop" lunit="cm"
       x="3202.54"
-      y="14500"
+      y="14500.0"
       z="10202.54"/>
     <subtraction name="UpperRockWithCavern">
       <first ref="UpperRock"/>

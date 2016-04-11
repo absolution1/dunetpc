@@ -424,7 +424,7 @@
 
     <box name="LightPaddle" lunit="cm"
       x="0.476"
-      y="56"
+      y="56.0"
       z="10.16"/>
 
      <box name="APAFrameYSideHollow-0" lunit="cm"

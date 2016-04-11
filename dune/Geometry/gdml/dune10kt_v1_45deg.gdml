@@ -83436,7 +83436,7 @@
        <position name="posPaddle-0-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-613.13875"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83444,7 +83444,7 @@
        <position name="posPaddle-1-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-550.782039473684"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83452,7 +83452,7 @@
        <position name="posPaddle-2-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-488.425328947368"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83460,7 +83460,7 @@
        <position name="posPaddle-3-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-426.068618421053"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83468,7 +83468,7 @@
        <position name="posPaddle-4-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-363.711907894737"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83476,7 +83476,7 @@
        <position name="posPaddle-5-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-301.355197368421"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83484,7 +83484,7 @@
        <position name="posPaddle-6-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-238.998486842105"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83492,7 +83492,7 @@
        <position name="posPaddle-7-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-176.64177631579"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83500,7 +83500,7 @@
        <position name="posPaddle-8-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-114.285065789474"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83508,7 +83508,7 @@
        <position name="posPaddle-9-TPC-0-0-12" unit="cm"
          x="-726.7681"
 	 y="-51.928355263158"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
@@ -83652,7 +83652,7 @@
        <position name="posPaddle-0-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-613.13875"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83660,7 +83660,7 @@
        <position name="posPaddle-1-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-550.782039473684"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83668,7 +83668,7 @@
        <position name="posPaddle-2-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-488.425328947368"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83676,7 +83676,7 @@
        <position name="posPaddle-3-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-426.068618421053"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83684,7 +83684,7 @@
        <position name="posPaddle-4-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-363.711907894737"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83692,7 +83692,7 @@
        <position name="posPaddle-5-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-301.355197368421"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83700,7 +83700,7 @@
        <position name="posPaddle-6-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-238.998486842105"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83708,7 +83708,7 @@
        <position name="posPaddle-7-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-176.64177631579"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83716,7 +83716,7 @@
        <position name="posPaddle-8-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-114.285065789474"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83724,7 +83724,7 @@
        <position name="posPaddle-9-TPC-1-0-12" unit="cm"
          x="0"
 	 y="-51.928355263158"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
@@ -83868,7 +83868,7 @@
        <position name="posPaddle-0-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-613.13875"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83876,7 +83876,7 @@
        <position name="posPaddle-1-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-550.782039473684"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83884,7 +83884,7 @@
        <position name="posPaddle-2-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-488.425328947368"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83892,7 +83892,7 @@
        <position name="posPaddle-3-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-426.068618421053"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83900,7 +83900,7 @@
        <position name="posPaddle-4-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-363.711907894737"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83908,7 +83908,7 @@
        <position name="posPaddle-5-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-301.355197368421"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83916,7 +83916,7 @@
        <position name="posPaddle-6-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-238.998486842105"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83924,7 +83924,7 @@
        <position name="posPaddle-7-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-176.64177631579"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -83932,7 +83932,7 @@
        <position name="posPaddle-8-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-114.285065789474"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -83940,7 +83940,7 @@
        <position name="posPaddle-9-TPC-2-0-12" unit="cm"
          x="726.7681"
 	 y="-51.928355263158"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
@@ -84074,7 +84074,7 @@
        <position name="posPaddle-0-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="10.4283552631578"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84082,7 +84082,7 @@
        <position name="posPaddle-1-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="72.7850657894736"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84090,7 +84090,7 @@
        <position name="posPaddle-2-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="135.141776315789"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84098,7 +84098,7 @@
        <position name="posPaddle-3-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="197.498486842105"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84106,7 +84106,7 @@
        <position name="posPaddle-4-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="259.855197368421"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84114,7 +84114,7 @@
        <position name="posPaddle-5-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="322.211907894737"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84122,7 +84122,7 @@
        <position name="posPaddle-6-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="384.568618421053"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84130,7 +84130,7 @@
        <position name="posPaddle-7-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="446.925328947368"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84138,7 +84138,7 @@
        <position name="posPaddle-8-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="509.282039473684"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84146,7 +84146,7 @@
        <position name="posPaddle-9-TPC-0-1-12" unit="cm"
          x="-726.7681"
 	 y="571.63875"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
@@ -84290,7 +84290,7 @@
        <position name="posPaddle-0-TPC-1-1-12" unit="cm"
          x="0"
 	 y="10.4283552631578"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84298,7 +84298,7 @@
        <position name="posPaddle-1-TPC-1-1-12" unit="cm"
          x="0"
 	 y="72.7850657894736"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84306,7 +84306,7 @@
        <position name="posPaddle-2-TPC-1-1-12" unit="cm"
          x="0"
 	 y="135.141776315789"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84314,7 +84314,7 @@
        <position name="posPaddle-3-TPC-1-1-12" unit="cm"
          x="0"
 	 y="197.498486842105"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84322,7 +84322,7 @@
        <position name="posPaddle-4-TPC-1-1-12" unit="cm"
          x="0"
 	 y="259.855197368421"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84330,7 +84330,7 @@
        <position name="posPaddle-5-TPC-1-1-12" unit="cm"
          x="0"
 	 y="322.211907894737"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84338,7 +84338,7 @@
        <position name="posPaddle-6-TPC-1-1-12" unit="cm"
          x="0"
 	 y="384.568618421053"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84346,7 +84346,7 @@
        <position name="posPaddle-7-TPC-1-1-12" unit="cm"
          x="0"
 	 y="446.925328947368"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84354,7 +84354,7 @@
        <position name="posPaddle-8-TPC-1-1-12" unit="cm"
          x="0"
 	 y="509.282039473684"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84362,7 +84362,7 @@
        <position name="posPaddle-9-TPC-1-1-12" unit="cm"
          x="0"
 	 y="571.63875"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
@@ -84506,7 +84506,7 @@
        <position name="posPaddle-0-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="10.4283552631578"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84514,7 +84514,7 @@
        <position name="posPaddle-1-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="72.7850657894736"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84522,7 +84522,7 @@
        <position name="posPaddle-2-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="135.141776315789"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84530,7 +84530,7 @@
        <position name="posPaddle-3-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="197.498486842105"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84538,7 +84538,7 @@
        <position name="posPaddle-4-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="259.855197368421"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84546,7 +84546,7 @@
        <position name="posPaddle-5-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="322.211907894737"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84554,7 +84554,7 @@
        <position name="posPaddle-6-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="384.568618421053"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84562,7 +84562,7 @@
        <position name="posPaddle-7-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="446.925328947368"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
@@ -84570,7 +84570,7 @@
        <position name="posPaddle-8-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="509.282039473684"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -84578,7 +84578,7 @@
        <position name="posPaddle-9-TPC-2-1-12" unit="cm"
          x="726.7681"
 	 y="571.63875"
-         z="126"/>
+         z="126.0"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
