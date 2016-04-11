@@ -71,6 +71,16 @@ dunefd3mm_disp.Geometry:   @local::dune10kt_3mmpitch_workspace_geo
 dunefd45deg_disp:            @local::dunefd_disp
 dunefd45deg_disp.Geometry:   @local::dune10kt_45deg_workspace_geo
 
+dune10kt_1x2x6_disp:       @local::dunefd_disp
+dune10kt_1x2x6_disp.Geometry:   @local::dune10kt_1x2x6_geo
+
+dune10kt_3mmpitch_1x2x6_disp:            @local::dunefd_disp
+dune10kt_3mmpitch_1x2x6_disp.Geometry:   @local::dune10kt_3mmpitch_1x2x6_geo
+
+dune10kt_45deg_1x2x6_disp:            @local::dunefd_disp
+dune10kt_45deg_1x2x6_disp.Geometry:   @local::dune10kt_45deg_1x2x6_geo
+
+
 # For now, treat 35t like FD,
 # except of course Geometry
 # MW: 3/1/16 and channel map
