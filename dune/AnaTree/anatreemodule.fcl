@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 anatree_anatree:
 {
-   module_type:             "AnaTree"
+   module_type:             "dune/AnaTree/AnaTree"
 #  HitsModuleLabel:         "gaushit"
    HitsModuleLabel:         "hitcheat"
 #   TrigModuleLabel:         "daq"

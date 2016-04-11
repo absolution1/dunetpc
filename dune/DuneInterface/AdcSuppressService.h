@@ -39,7 +39,7 @@ public:
   //     keep: I/O boolean vector indicating which signals are retained.
   virtual int filter(const AdcCountVector& sigs,
                      Channel chan,
-                     AdcPedestal& ped,
+                     AdcPedestal ped,
                      AdcFilterVector& keep) const =0;
 
   // Print the configuration.

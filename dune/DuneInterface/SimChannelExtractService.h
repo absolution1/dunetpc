@@ -25,6 +25,8 @@ public:
 
   virtual int extract(const sim::SimChannel* psc, AdcSignalVector& sig) const =0;
 
+  virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;
+
 };
 
 DECLARE_ART_SERVICE_INTERFACE(SimChannelExtractService, LEGACY)
