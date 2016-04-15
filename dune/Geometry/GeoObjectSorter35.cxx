@@ -195,6 +195,7 @@ namespace geo{
       else if(    detVersion=="dune35t4apa_v3"
 	       || detVersion=="dune35t4apa_v4"
                || detVersion=="dune35t4apa_v5"
+               || detVersion=="dune35t4apa_v6"
 	                                  ) InVertSplitRegion = ((51.41045 < xyz1[2])   
       								 && (xyz1[2] < 103.33445));
       ///////////////////////////////////////////////////////////
