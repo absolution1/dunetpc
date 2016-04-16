@@ -38,9 +38,9 @@ namespace triggersim {
     void setTrigType(unsigned int trigtype);
     unsigned int TrigType() const;
 
-    // Set and Get functions for the trigger issued variable
-    void setTrigIssued(bool trigissued);
-    bool TrigIssued() const;
+    // Set and Get functions for the trigger decision variable
+    void setTrigDecision(bool trigdecision);
+    bool TrigDecision() const;
 
     friend std::ostream& operator << (std::ostream& o, BasicTrigger const& bt);
     friend bool          operator <  (BasicTrigger const& a, BasicTrigger const& b);    
@@ -49,7 +49,7 @@ namespace triggersim {
     
     // Parameters.
     unsigned int fTrigType;
-    bool         fTrigIssued;
+    bool         fTrigDecision;
     
   };
 } // end namespace triggersim

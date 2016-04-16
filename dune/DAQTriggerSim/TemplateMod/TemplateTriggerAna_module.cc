@@ -9,6 +9,9 @@
 
 // C++ includes
 
+// ROOT includes
+#include "TH1F.h"
+
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -16,13 +19,16 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // DUNETPC specific includes
-#include "../Service/TemplateTriggerService.h"
+#include "dune/DAQTriggerSim/TriggerDataProducts/TriggerTypes.h"
+#include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
 
 
 
@@ -45,12 +51,17 @@ public:
 
   void reconfigure(fhicl::ParameterSet const & p);
 
+  void beginJob();
+
 
 
 private:
 
   // label for module that made trigger objects
   std::string fTriggerLabel;
+
+  // a simple histo to be filled
+  TH1F *fTrigTypes;
   
 };
 
@@ -75,15 +86,43 @@ void TemplateTriggerAna::reconfigure(fhicl::ParameterSet const & p)
 
 
 //......................................................
+void TemplateTriggerAna::beginJob()
+{
+
+  art::ServiceHandle<art::TFileService> tfs;
+
+  fTrigTypes = tfs->make<TH1F>("fTrigTypes","Trigger Types;trig type;count",
+			       101,-0.5,100.5);
+
+}
+
+
+
+//......................................................
 void TemplateTriggerAna::analyze(art::Event const & e)
 {
 
-  // make the trigger test service
-  art::ServiceHandle<TemplateTriggerService> TT;
-  TT->Trigger(e);
+  //
+  // Get trigger data products out of the event
+  //
+  art::Handle< std::vector< triggersim::BasicTrigger > > triggers;
+  e.getByLabel(fTriggerLabel, triggers);
 
-  std::cout << "\n\n\nThe TemplateTriggerAna module says: \"Hello world!!!\"\n"
-	    << fTriggerLabel << "\n\n\n";
+  
+
+  //
+  // Loop over trigger objects, print some info, and fill a histo...
+  //
+  for(unsigned int i = 0; i < triggers->size(); ++i) {
+
+    std::cout << "\n\nInfo for trigger " << i << ":"
+	      << "\nTrigger Type     = " << (*triggers)[i].TrigType()
+	      << "\nTrigger Decision = " << (*triggers)[i].TrigDecision()
+	      << "\n\n\n";
+
+    fTrigTypes->Fill((*triggers)[i].TrigType());
+
+  }
 
 }
 

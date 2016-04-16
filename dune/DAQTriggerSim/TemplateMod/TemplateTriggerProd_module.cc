@@ -23,9 +23,9 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // DUNETPC specific includes
-#include "../Service/TemplateTriggerService.h"
-#include "../TriggerDataProducts/TriggerTypes.h"
-#include "../TriggerDataProducts/BasicTrigger.h"
+#include "dune/DAQTriggerSim/Service/TemplateTriggerService.h"
+#include "dune/DAQTriggerSim/TriggerDataProducts/TriggerTypes.h"
+#include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
 
 
 class TemplateTriggerProd;
@@ -51,8 +51,8 @@ public:
 
 private:
 
-  // label for module that made trigger objects
-  std::string fTriggerLabel;
+  // declare fcl input variables here
+  std::string fAString;
   
 };
 
@@ -70,7 +70,7 @@ TemplateTriggerProd::TemplateTriggerProd(fhicl::ParameterSet const & p)
 //......................................................
 void TemplateTriggerProd::reconfigure(fhicl::ParameterSet const & p)
 {
-  fTriggerLabel = p.get<std::string> ("TriggerLabel");
+  fAString = p.get<std::string> ("AString");
 }
 
 
@@ -78,6 +78,10 @@ void TemplateTriggerProd::reconfigure(fhicl::ParameterSet const & p)
 //......................................................
 void TemplateTriggerProd::produce(art::Event& e)
 {
+
+  // As an example of how to read in fcl parameters, just print
+  // the variable "AString."
+  std::cout << "\n\nfAString = " << fAString << "\n\n";
 
   // make the vector of BasicTrigger objects:
   std::unique_ptr< std::vector<triggersim::BasicTrigger> >
@@ -87,11 +91,8 @@ void TemplateTriggerProd::produce(art::Event& e)
   art::ServiceHandle<TemplateTriggerService> TT;
 
   // make the BasicTrigger object:
-  triggersim::BasicTrigger trig(triggersim::kNullTrigger,TT->Trigger(e));
+  triggersim::BasicTrigger trig(triggersim::kProtonDecay,TT->Trigger(e));
   triggers->push_back(trig);
-
-  std::cout << "\n\n\nThe TemplateTriggerProd module says: \"Hello world!!!\"\n"
-	    << fTriggerLabel << "\n\n\n";
 
   // put the triggers into the event:
   e.put(std::move(triggers));

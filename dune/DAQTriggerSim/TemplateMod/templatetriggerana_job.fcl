@@ -1,8 +1,6 @@
 #include "services_dune.fcl"
 #include "TemplateTriggerAna.fcl"
 
-#include "TemplateTriggerConfig.fcl"
-
 process_name: TemplateTriggerAna
 
 source:
@@ -15,12 +13,9 @@ services:
 {
   TFileService: { fileName: "TemplateTriggerAna_hist.root" }
   TimeTracker:       {}
-  SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
   RandomNumberGenerator: {} #ART native random number generator
   user:         @local::dune35t_services
 }
-
-services.user.BaseTriggerService: @local::templatetrigger
 
 physics:
 {

@@ -38,6 +38,10 @@ TemplateTriggerService::TemplateTriggerService(const fhicl::ParameterSet& pset, 
 //.....................................................................
 bool TemplateTriggerService::Trigger(art::Event const & evt)
 {
+
+  //
+  // Into this function will go the guts of the trigger algorithm.
+  //
   
   std::cout << "\n\nIn the Trigger function for event "
 	    << evt.id().event()

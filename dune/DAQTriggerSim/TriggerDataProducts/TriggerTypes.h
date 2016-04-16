@@ -15,6 +15,11 @@ namespace triggersim {
   const unsigned int kActivity    = 1;   // a simple trigger based off of some minimal activity above threshold
   const unsigned int kSNeShort    = 2;   // supernova trigger generated from the quick neutrino burst
   const unsigned int kSNeLong     = 3;   // supernova trigger generated from the full time window
+  const unsigned int kBeamNu      = 4;   // neutrino beam event
+  const unsigned int kProtonDecay = 5;   // proton decay event
+  const unsigned int kMonopole    = 6;   // magnetic monopole
+  const unsigned int kAtmoNu      = 7;   // atmospheric neutrino
+  const unsigned int kSolarNu     = 8;   // solar neutrino
 
 } // end namespace triggersim
 

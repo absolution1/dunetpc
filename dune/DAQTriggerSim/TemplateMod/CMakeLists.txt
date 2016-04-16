@@ -1,5 +1,5 @@
 simple_plugin(TemplateTriggerAna "module"
-			   dune_DAQTriggerSim_Service_TemplateTriggerService_service
+			   dune_DAQTriggerSim_TriggerDataProducts
                      	   lbne-raw-data_Overlays
                            lbne_daqinput35t       #For online to offline channel map
                            larcore_Geometry_Geometry_service

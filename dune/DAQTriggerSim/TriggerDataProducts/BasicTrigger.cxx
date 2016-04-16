@@ -17,9 +17,9 @@
 namespace triggersim {
 
   //----------------------------------------------------------------------
-  BasicTrigger::BasicTrigger(unsigned int trigtype, bool trigissued):
+  BasicTrigger::BasicTrigger(unsigned int trigtype, bool trigdecision):
     fTrigType(trigtype),
-    fTrigIssued(trigissued)
+    fTrigDecision(trigdecision)
   {}
 
 
@@ -47,17 +47,17 @@ namespace triggersim {
 
 
   //----------------------------------------------------------------------
-  void BasicTrigger::setTrigIssued(bool trigissued)
+  void BasicTrigger::setTrigDecision(bool trigdecision)
   {
-    fTrigIssued = trigissued;
+    fTrigDecision = trigdecision;
   }
 
 
 
   //----------------------------------------------------------------------
-  bool BasicTrigger::TrigIssued() const
+  bool BasicTrigger::TrigDecision() const
   {
-    return fTrigIssued;
+    return fTrigDecision;
   }
 
 
@@ -66,8 +66,8 @@ namespace triggersim {
   //
   std::ostream& operator << (std::ostream& o, BasicTrigger const& bt) {
 
-    o << "Trigger Type   = " << bt.TrigType()   << std::endl;
-    o << "Trigger Issued = " << bt.TrigIssued() << std::endl;
+    o << "Trigger Type     = " << bt.TrigType()     << std::endl;
+    o << "Trigger Decision = " << bt.TrigDecision() << std::endl;
     return o;
 
   }
