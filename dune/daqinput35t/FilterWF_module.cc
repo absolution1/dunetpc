@@ -14,6 +14,7 @@
 // framework
 #include "art/Framework/Principal/Handle.h" 
 #include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Framework/Services/Optional/TFileDirectory.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 #include "art/Framework/Services/Optional/detail/TH1AddDirectorySentry.h"
@@ -27,6 +28,7 @@
 #include "art/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+
 
 // larsoft
 #include "lardata/RawData/RawDigit.h"
@@ -49,7 +51,11 @@
 #include <TProfile.h>
 #include <TTree.h>
 #include <TMath.h>
-#include <TFile.h>
+#include "TH3.h"
+#include "TH2.h"
+#include "TH1.h"
+#include "TNtuple.h"
+#include "TFile.h"
 //#include <TFileDirectory.h>
 
 namespace lbne {
@@ -66,6 +72,7 @@ public:
   virtual void produce(art::Event& evt);
   void reconfigure(fhicl::ParameterSet const& pset);
   void beginRun(art::Run const& run);
+  void beginJob();
   void endRun(art::Run const& run);
 
 private:
@@ -80,6 +87,7 @@ private:
   art::ServiceHandle<geo::Geometry> fGeom;
   art::ServiceHandle<lbne::ChannelMapService> fChannelMap;
 
+  //TH2D* Channel_vs_tick[3][128];
 };
 
 //-------------------------------------------------------------------
@@ -105,6 +113,23 @@ void lbne::FilterWF::reconfigure(fhicl::ParameterSet const& pset) {
 //-------------------------------------------------------------------
 void lbne::FilterWF::beginRun(art::Run const& run) {
   return;
+}
+//-------------------------------------------------------------------
+void lbne::FilterWF::beginJob() {
+  art::ServiceHandle<art::TFileService> tfs;
+  /*
+  int NHisto =0;
+  for (int Plane=0; Plane<3; Plane++) {
+    for (int Reg=0; Reg < 128; ++Reg) {
+      ++NHisto;
+      std::stringstream oss;
+      oss << "Channel_vs_tick_" << Plane << "_" << Reg;
+      std::string Title = oss.str();
+      std::cout << oss.str() << " " << Title << std::endl;
+      Channel_vs_tick[Plane][Reg] = tfs->make<TH2D>(Title.c_str(),"Plot of Channel vs Tick; Tick; Channel", 6000, 0., 6000., 14, -0.5, 13.5);
+    }
+  }
+  */
 }
 
 //-------------------------------------------------------------------
@@ -162,13 +187,13 @@ void lbne::FilterWF::produce(art::Event& evt) {
       Chs[plane][rce*8+asic].push_back(i);
     }
   }   
-  
   // derive correction factors - require raw adc waveform and pedestal for each channel
   std::vector<Double_t> corrVals;
   // loop through time slices
   for (unsigned int s = 0; s < maxNumBins; s++) {
     for (size_t i = 0; i<Chs.size(); ++i){
       for (size_t j = 0; j<Chs[i].size(); ++j){
+	//if (s==0) std::cout << "Looking at " << s << " " << i << " " << j << " " << Chs[i][j].size() << std::endl;
 	corrVals.clear();
 	for (size_t k = 0; k<Chs[i][j].size(); ++k){
 	  
@@ -209,6 +234,10 @@ void lbne::FilterWF::produce(art::Event& evt) {
 	  //	  if( adc < 10  ) //skip "sample dropping" problem
 	  //	    newAdc = 0;
 	  filterWf.at(offlineChan).push_back(newAdc);
+	  //if (newAdc < 1000)
+	  //Channel_vs_tick[i][j] -> SetBinContent( Channel_vs_tick[i][j]->FindBin(s,k), newAdc);
+	  //if (s==0)
+	  //std::cout << "Set Channel_vs_tick["<<i<<"]["<<j<<"] bin (" << s << ", " << k << ") to " << Channel_vs_tick[i][j]->GetBinContent( Channel_vs_tick[i][j]->FindBin(s, k) ) << " it should have been " << newAdc << std::endl;
 	}
       }//all groups
     }//all planes
@@ -227,7 +256,6 @@ void lbne::FilterWF::produce(art::Event& evt) {
 
   // save filtered waveforms to event
   evt.put(std::make_unique<decltype(filterRawDigitVector)>(std::move(filterRawDigitVector)));
-
 }
 
 DEFINE_ART_MODULE(lbne::FilterWF)

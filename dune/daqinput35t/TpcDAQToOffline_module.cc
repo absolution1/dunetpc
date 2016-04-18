@@ -18,6 +18,10 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+
 // lbne-artdaq and lbne-raw-data includes
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
@@ -35,6 +39,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <TTree.h>
+
+const int MaxSamples  = 15000;
+const int MaxChannels = 2048;
 
 namespace DAQToOffline {
   class TpcDAQToOffline;
@@ -54,19 +62,27 @@ public:
   void produce(art::Event & evt) override;
   void reconfigure(const fhicl::ParameterSet &pset);
   void printParameterSet();
-
+  void beginJob();
 private:
+  void Reset();
 
   std::string fFragType;
   std::string fRawDataLabel;
   std::string fOutputDataLabel;
   bool fUseChannelMap;
   bool fDebug;
+  bool fMakeTree;
   raw::Compress_t        fCompression;      ///< compression type to use
   unsigned int           fZeroThreshold;    ///< Zero suppression threshold
 
   art::ServiceHandle<lbne::ChannelMapService> fChannelMap;
 
+  TTree* fTree;
+  int DigSize;
+  int NSamples;
+  float Channel[MaxChannels];
+  float ADCs[MaxChannels][MaxSamples];
+  float Pedestal[MaxChannels];
 };
 
 
@@ -85,11 +101,21 @@ void DAQToOffline::TpcDAQToOffline::reconfigure(fhicl::ParameterSet const& pset)
   fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   fDebug = pset.get<bool>("Debug");
-
+  fMakeTree = pset.get<bool>("MakeTree");
   fZeroThreshold=0;
   fCompression=raw::kNone;
   if(fDebug) printParameterSet();
 
+}
+
+void DAQToOffline::TpcDAQToOffline::beginJob() {
+  art::ServiceHandle<art::TFileService> tfs;
+  fTree = tfs->make<TTree>("FlatDigitTree","FlatDigitTree");
+  fTree->Branch("NSamples",&NSamples,"NSamples/I"      );
+  fTree->Branch("DigSize" ,&DigSize, "DigSize/I"      );
+  fTree->Branch("Channel" ,&Channel ,"Channel[DigSize]/F" );
+  fTree->Branch("Pedestal",&Pedestal,"Pedestal[DigSize]/F");
+  fTree->Branch("ADCs"    ,&ADCs    ,"ADCs[DigSize][15000]/F");
 }
 
 void DAQToOffline::TpcDAQToOffline::printParameterSet(){
@@ -143,11 +169,37 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
   std::vector<std::pair< std::pair<unsigned int,unsigned int>, lbne::TpcNanoSlice::Header::nova_timestamp_t> > DigitsIndexList;
   auto digits = tpcFragmentToRawDigits(*rawFragments, DigitsIndexList, firstTimestamp, fChannelMap, fUseChannelMap, fDebug, fCompression, fZeroThreshold);
 
+  // Make a flat rce tree.....
+  Reset();
+  std::cout << "Digits has size " << digits.size() << " digits[0] has " << digits[0].Samples() << std::endl;
+  DigSize = digits.size();
+  NSamples = digits[0].Samples();
+  for (int dig=0; dig<DigSize; ++dig ) {
+    int Chan = digits[dig].Channel();
+    Channel[dig]  = Chan;
+    Pedestal[dig] = digits[dig].GetPedestal();
+    for (int tick=0; tick<NSamples; ++tick) {
+      ADCs[dig][tick] = digits[dig].ADC(tick);
+      //std::cout << "Setting ADCs["<<dig<<"]["<<tick<<"] to " << ADCs[dig][tick] << " " << digits[dig].ADC(tick) << std::endl;
+    }
+  }
+  if (NSamples) fTree->Fill();
+
   art::Timestamp this_time_stamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(firstTimestamp);
   std::cout << "JPD: this_time_stamp: " << this_time_stamp.value() << std::endl;
   std::cout << "JPD: event.time().value(): " << evt.time().value() << std::endl;
 
   evt.put(std::make_unique<decltype(digits)>(std::move(digits)), fOutputDataLabel);
+}
+
+void DAQToOffline::TpcDAQToOffline::Reset() {
+  for (int ii=0; ii<MaxChannels; ++ii) {
+    Channel[ii]  = -1;
+    Pedestal[ii] = -1;
+    for (int kk=0; kk<MaxSamples; ++kk) {
+      ADCs[ii][kk] = -1;
+    }
+  }
 }
 
 DEFINE_ART_MODULE(DAQToOffline::TpcDAQToOffline)
