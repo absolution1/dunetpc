@@ -212,7 +212,6 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     // Apply the filter...    
     for (size_t bin = 0; bin < NADC; ++bin) {
       double freq = 2000. * bin / NADC;
-      if (Channel != 3) continue;
       if (view == geo::kU) { // U plane 
 	//Re[bin] = Re[bin] * 1. * (1.-1./(1.+exp(-(freq-105.)/19.))) * (1./(1.+exp(-(freq-18.)/10.)));
 	//Im[bin] = Im[bin] * 1. * (1.-1./(1.+exp(-(freq-105.)/19.))) * (1./(1.+exp(-(freq-18.)/10.)));
