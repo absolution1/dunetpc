@@ -12,6 +12,8 @@
 #include "larcore/SimpleTypesAndConstants/RawTypes.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "art/Framework/Principal/Event.h"
+#include "lardata/RawData/RawDigit.h"
+#include "lardata/RawData/OpDetWaveform.h"
 
 namespace fhicl {
   class ParameterSet;
@@ -29,11 +31,42 @@ public:
   virtual ~BaseTriggerService() = default;
 
   // Make your trigger decision.
+  // Can be overridden by the inherited class.
   //
   //   params:
   //   evt - The ART event, to be sliced and diced as the trigger algorithm
   //         sees fit...
   virtual bool Trigger(art::Event const & evt)
+  { return false; }
+
+  // Make your trigger decision based on TPC info only.
+  // Can be overridden by the inherited class.
+  //
+  //   params:
+  //   rawTPC - A vector of raw digits, to be sliced and diced as the trigger algorithm
+  //            sees fit...
+  virtual bool TPCTrigger(std::vector<raw::RawDigit> const & rawTPC)
+  { return false; }
+
+  // Make your trigger decision based on optical (PD) info only.
+  // Can be overridden by the inherited class.
+  //
+  //   params:
+  //   rawPD - A vector of optical waveforms, to be sliced and diced as the trigger algorithm
+  //           sees fit...
+  virtual bool PDTrigger(std::vector<raw::OpDetWaveform> const & rawPD)
+  { return false; }
+
+  // Make your trigger decision based on a mixture of TPC and PD info.
+  // Can be overridden by the inherited class.
+  //
+  //   params:
+  //   rawTPC - A vector of raw digits, to be sliced and diced as the trigger algorithm
+  //            sees fit...
+  //   rawPD  - A vector of optical waveforms, to be sliced and diced as the trigger algorithm
+  //            sees fit...
+  virtual bool TPCPDTrigger(std::vector<raw::RawDigit>      const & rawTPC,
+			    std::vector<raw::OpDetWaveform> const & rawPD)
   { return false; }
 
 };
