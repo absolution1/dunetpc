@@ -248,7 +248,8 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     hb = TH1::TransformHisto(fft_back, hb, "Re");
     std::vector<short> NewADC;
     for (int BinNum=0; BinNum<NBins; ++BinNum) {
-      NewADC.push_back( hb->GetBinContent(BinNum+1) / NBins );
+      short Val = rawDigitVector[DigLoop].GetPedestal() + hb->GetBinContent(BinNum+1) / NBins;
+      NewADC.push_back( Val);
     }
     raw::RawDigit theRawDigit( rawDigitVector[DigLoop].Channel(), NewADC.size(), NewADC );
     theRawDigit.SetPedestal( rawDigitVector[DigLoop].GetPedestal(), rawDigitVector[DigLoop].GetSigma());
