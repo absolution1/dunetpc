@@ -17,9 +17,11 @@ namespace triggersim {
   const unsigned int kSNeLong     = 3;   // supernova trigger generated from the full time window
   const unsigned int kBeamNu      = 4;   // neutrino beam event
   const unsigned int kProtonDecay = 5;   // proton decay event
-  const unsigned int kMonopole    = 6;   // magnetic monopole
-  const unsigned int kAtmoNu      = 7;   // atmospheric neutrino
-  const unsigned int kSolarNu     = 8;   // solar neutrino
+  const unsigned int kNnbar       = 6;   // n,n-bar oscillations
+  const unsigned int kMonopole    = 7;   // magnetic monopole
+  const unsigned int kAtmoNu      = 8;   // atmospheric neutrino
+  const unsigned int kSolarNu     = 9;   // solar neutrino
+  const unsigned int kCosmic      = 10;  // cosmic ray primary or secondary
 
 } // end namespace triggersim
 

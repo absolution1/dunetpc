@@ -40,7 +40,7 @@ bool TemplateTriggerService::Trigger(art::Event const & evt)
 {
 
   //
-  // Into this function will go the guts of the trigger algorithm.
+  // Into this function will go the guts of a trigger algorithm that uses the whole event.
   //
   
   std::cout << "\n\nIn the Trigger function for event "
@@ -52,6 +52,25 @@ bool TemplateTriggerService::Trigger(art::Event const & evt)
   fIndex++;
   
   return true;
+}
+
+
+
+//.....................................................................
+bool TemplateTriggerService::TPCTrigger(std::vector<raw::RawDigit> const & raw)
+{
+
+  //
+  // Into this function will go the guts of a trigger algorithm that uses TPC info only.
+  //
+  
+  std::cout << "\n\nIn the TPCTrigger function... "
+	    << "\n\nSize of raw vector = " << raw.size()
+	    << "\n\n\n";
+  
+  fIndex++;
+  
+  return false;
 }
 
 

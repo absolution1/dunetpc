@@ -28,6 +28,7 @@
 #include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
 
 
+
 class TemplateTriggerProd;
 
 class TemplateTriggerProd : public art::EDProducer {
@@ -53,6 +54,7 @@ private:
 
   // declare fcl input variables here
   std::string fAString;
+  std::string fRawDigitLabel;
   
 };
 
@@ -70,7 +72,8 @@ TemplateTriggerProd::TemplateTriggerProd(fhicl::ParameterSet const & p)
 //......................................................
 void TemplateTriggerProd::reconfigure(fhicl::ParameterSet const & p)
 {
-  fAString = p.get<std::string> ("AString");
+  fAString       = p.get<std::string> ("AString");
+  fRawDigitLabel = p.get<std::string> ("RawDigitLabel");
 }
 
 
@@ -90,9 +93,29 @@ void TemplateTriggerProd::produce(art::Event& e)
   // make the trigger test service:
   art::ServiceHandle<TemplateTriggerService> TT;
 
+
+
   // make the BasicTrigger object:
   triggersim::BasicTrigger trig(triggersim::kProtonDecay,TT->Trigger(e));
   triggers->push_back(trig);
+
+
+
+  // lift out the TPC raw digits:
+  art::Handle<std::vector<raw::RawDigit>> digitsHandle;
+  e.getByLabel(fRawDigitLabel, digitsHandle);
+
+  // shuffle the digits into an easier container to use:
+  std::vector<raw::RawDigit> rawdigits;
+  for(unsigned int i = 0; i < digitsHandle->size(); ++i) {
+    rawdigits.push_back((*digitsHandle)[i]);
+  }
+
+
+
+  // make a TPC only trigger object:
+  triggersim::BasicTrigger tpctrig(triggersim::kBeamNu,TT->TPCTrigger(rawdigits));
+  triggers->push_back(tpctrig);
 
   // put the triggers into the event:
   e.put(std::move(triggers));

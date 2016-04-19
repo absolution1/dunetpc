@@ -5,6 +5,7 @@ standard_templatetriggerprod:
   module_type:		TemplateTriggerProd
   #====================
   AString:		"This is a string..."	# ...just a string...
+  RawDigitLabel:	"daq" 	   		# module label for the process that made the RawDigits
 }
 
 END_PROLOG

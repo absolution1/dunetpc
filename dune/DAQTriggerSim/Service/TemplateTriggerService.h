@@ -39,6 +39,15 @@ class TemplateTriggerService : public BaseTriggerService {
   //         sees fit...
   bool Trigger(art::Event const & evt);
 
+  // Make a trigger decision based on TPC info only.
+  //
+  //   params:
+  //   raw - A vector of raw digits, to be sliced and diced as the trigger algorithm
+  //         sees fit...
+  virtual bool TPCTrigger(std::vector<raw::RawDigit> const & raw);
+
+
+
  private:
   
   // Parameters.
