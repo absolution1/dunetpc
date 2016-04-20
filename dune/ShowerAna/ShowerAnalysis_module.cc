@@ -1,0 +1,426 @@
+//////////////////////////////////////////////////////////////////////////
+// Class:       ShowerAnalysis
+// Module type: analyser
+// File:        ShowerAnalysis_module.cc
+// Author:      Mike Wallbank (m.wallbank@sheffield.ac.uk), April 2016
+//
+// Analyser module to evaluate the shower reconstruction performance.
+// Produces histograms and information within a tree for further
+// analysis.
+//////////////////////////////////////////////////////////////////////////
+
+// framework includes
+#include "art/Framework/Core/EDAnalyzer.h"
+#include "art/Framework/Core/ModuleMacros.h" 
+#include "art/Framework/Principal/Event.h" 
+#include "fhiclcpp/ParameterSet.h" 
+#include "art/Framework/Principal/Handle.h" 
+#include "art/Persistency/Common/Ptr.h" 
+#include "art/Persistency/Common/PtrVector.h" 
+#include "art/Framework/Services/Registry/ServiceHandle.h" 
+#include "art/Framework/Services/Optional/TFileService.h" 
+#include "art/Framework/Services/Optional/TFileDirectory.h" 
+#include "messagefacility/MessageLogger/MessageLogger.h" 
+#include "art/Framework/Core/FindManyP.h"
+
+// LArSoft includes
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/PlaneGeo.h"
+#include "larcore/Geometry/WireGeo.h"
+#include "lardata/RecoBase/Hit.h"
+#include "lardata/RecoBase/Cluster.h"
+#include "lardata/RecoBase/Track.h"
+#include "lardata/RecoBase/SpacePoint.h"
+#include "lardata/RecoBase/Shower.h"
+#include "lardata/Utilities/AssociationUtil.h"
+#include "larsim/MCCheater/BackTracker.h"
+#include "lardata/AnalysisBase/ParticleID.h"
+#include "SimulationBase/MCParticle.h"
+#include "SimulationBase/MCTruth.h"
+#include "larsim/MCCheater/BackTracker.h"
+
+// ROOT
+#include "TTree.h"
+#include "TVector3.h"
+#include "TH1D.h"
+#include "TH2D.h"
+
+// c++
+#include <string>
+
+namespace showerAna {
+  class ShowerAnalysis;
+  class ShowerParticle;
+}
+
+class showerAna::ShowerParticle {
+public:
+
+  ShowerParticle();                               // default constructor
+  ShowerParticle(int id);                         // standard constructor
+  ShowerParticle(const ShowerParticle& particle); // copy constructor
+  ~ShowerParticle();
+
+  // Setters
+  void SetEnergy(double energy);
+  void SetDirection(TVector3 direction);
+  void SetStart(TVector3 start);
+  void SetPDG(int pdg);
+
+  void AddAssociatedHit(const art::Ptr<recob::Hit>& hit);
+  void AddAssociatedCluster(const art::Ptr<recob::Cluster>& cluster, const std::vector<art::Ptr<recob::Hit> >& hits, const std::vector<art::Ptr<recob::Hit> >& trueHits);
+  void AddAssociatedShower(const art::Ptr<recob::Shower>& shower, const std::vector<art::Ptr<recob::Hit> >& hits, const std::vector<art::Ptr<recob::Hit> >& trueHits);
+
+  // Getters
+  int ID() const { return fID; }
+  int PDG() const { return fPDG; }
+
+  TVector3 Start() const { return fStart; }
+  TVector3 Direction() const { return fDirection; }
+  double Energy() const { return fEnergy; }
+
+  TVector3 ShowerStart() const { return fShowers.at(fLargestShower)->ShowerStart(); }
+  TVector3 ShowerStart(int shower) const { return fShowers.at(shower)->ShowerStart(); }
+  TVector3 ShowerDirection() const { return fShowers.at(fLargestShower)->Direction(); }
+  TVector3 ShowerDirection(int shower) const { return fShowers.at(shower)->Direction(); }
+  double ShowerEnergy() const { art::Ptr<recob::Shower> s = fShowers.at(fLargestShower); return s->Energy().at(s->best_plane()); }
+  double ShowerEnergy(int shower) const { art::Ptr<recob::Shower> s = fShowers.at(shower); return s->Energy().at(s->best_plane()); }
+  double ShowerdEdx() const { art::Ptr<recob::Shower> s = fShowers.at(fLargestShower); return s->dEdx().at(s->best_plane()); }
+  double ShowerdEdx(int shower) const { art::Ptr<recob::Shower> s = fShowers.at(shower); return s->dEdx().at(s->best_plane()); }
+
+  int NumHits() const { return fHits.size(); }
+  int NumClusters() const { return fClusters.size(); }
+  int NumShowers() const { return fShowers.size(); }
+
+  int LargestCluster() const { return fLargestCluster; }
+  bool LargestCluster(int cluster) const { return fLargestCluster == cluster; }
+  int LargestShower() const { return fLargestShower; }
+  bool LargestShower(int shower) const { return fLargestShower == shower; }
+
+  double ClusterCompleteness(int cluster) const { return fClusterTrueHits.at(cluster).size() / (double)fHits.size(); }
+  double ClusterPurity(int cluster) const { return fClusterTrueHits.at(cluster).size() / (double)fClusterHits.at(cluster).size(); }
+  double ShowerCompleteness(int shower) const { return fShowerTrueHits.at(shower).size() / (double)fHits.size(); }
+  double ShowerPurity(int shower) const { return fShowerTrueHits.at(shower).size() / (double)fShowerHits.at(shower).size(); }
+
+private:
+
+  int fID;
+  int fPDG;
+
+  TVector3 fStart, fDirection;
+  double fEnergy;
+
+  std::vector<art::Ptr<recob::Hit> > fHits;
+  std::vector<art::Ptr<recob::Cluster> > fClusters;
+  std::vector<std::vector<art::Ptr<recob::Hit> > > fClusterHits, fClusterTrueHits;
+  std::vector<art::Ptr<recob::Shower> > fShowers;
+  std::vector<std::vector<art::Ptr<recob::Hit> > > fShowerHits, fShowerTrueHits;
+
+  int fLargestCluster, fLargestShower;
+
+};
+
+showerAna::ShowerParticle::ShowerParticle(int id) {
+  fID = id;
+  fLargestCluster = 0;
+  fLargestShower = 0;
+}
+
+showerAna::ShowerParticle::ShowerParticle(const ShowerParticle& particle) {
+  fID = particle.ID();
+  fLargestCluster = 0;
+  fLargestShower = 0;
+}
+
+showerAna::ShowerParticle::~ShowerParticle() {
+}
+
+void showerAna::ShowerParticle::SetEnergy(double energy) {
+  fEnergy = energy;
+}
+
+void showerAna::ShowerParticle::SetDirection(TVector3 direction) {
+  fDirection = direction;
+}
+
+void showerAna::ShowerParticle::SetStart(TVector3 start) {
+  fStart = start;
+}
+
+void showerAna::ShowerParticle::SetPDG(int pdg) {
+  fPDG = pdg;
+}
+
+void showerAna::ShowerParticle::AddAssociatedHit(const art::Ptr<recob::Hit>& hit) {
+  fHits.push_back(hit);
+}
+
+void showerAna::ShowerParticle::AddAssociatedCluster(const art::Ptr<recob::Cluster>& cluster,
+						     const std::vector<art::Ptr<recob::Hit> >& hits,
+						     const std::vector<art::Ptr<recob::Hit> >& trueHits) {
+  fClusters.push_back(cluster);
+  fClusterHits.push_back(hits);
+  fClusterTrueHits.push_back(trueHits);
+  if (hits.size() > fClusterHits[fLargestCluster].size())
+    fLargestCluster = fClusters.size() - 1;
+}
+
+void showerAna::ShowerParticle::AddAssociatedShower(const art::Ptr<recob::Shower>& shower,
+						    const std::vector<art::Ptr<recob::Hit> >& hits,
+						    const std::vector<art::Ptr<recob::Hit> >& trueHits) {
+  fShowers.push_back(shower);
+  fShowerHits.push_back(hits);
+  fShowerTrueHits.push_back(trueHits);
+  if (hits.size() > fShowerHits[fLargestShower].size())
+    fLargestShower = fShowers.size() - 1;
+}
+
+class showerAna::ShowerAnalysis : public art::EDAnalyzer {
+ public:
+
+  ShowerAnalysis(const fhicl::ParameterSet& pset);
+  ~ShowerAnalysis();
+
+  void analyze(const art::Event& evt);
+
+  void MakeDataProducts();
+  void FillData(const std::map<int,std::unique_ptr<ShowerParticle> >& particles);
+  void FillPi0Data(const std::map<int,std::unique_ptr<ShowerParticle> >& particles, const std::vector<int>& pi0Decays);
+  int FindTrueParticle(const std::vector<art::Ptr<recob::Hit> >& hits);
+  int FindParticleID(const art::Ptr<recob::Hit>& hit);
+  std::vector<art::Ptr<recob::Hit> > FindTrueHits(const std::vector<art::Ptr<recob::Hit> >& hits, int trueParticle);
+
+ private:
+
+  std::string fShowerModuleLabel, fClusterModuleLabel, fHitsModuleLabel;
+
+  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<art::TFileService> tfs;
+
+  TTree* fTree;
+  TH1D *hClusterCompleteness, *hLargestClusterCompleteness, *hClusterPurity, *hLargestClusterPurity;
+  TH2D *hClusterCompletenessEnergy, *hLargestClusterCompletenessEnergy, *hClusterCompletenessDirection, *hLargestClusterCompletenessDirection;
+  TH1D *hShowerCompleteness, *hLargestShowerCompleteness, *hShowerPurity, *hLargestShowerPurity;
+  TH2D *hShowerCompletenessEnergy, *hLargestShowerCompletenessEnergy, *hShowerCompletenessDirection, *hLargestShowerCompletenessDirection;
+  TH1D *hShowerEnergy, *hShowerDirection, *hShowerdEdx;
+
+};
+
+showerAna::ShowerAnalysis::ShowerAnalysis(const fhicl::ParameterSet& pset) : EDAnalyzer(pset) {
+  fShowerModuleLabel  = pset.get<std::string>("ShowerModuleLabel");
+  fClusterModuleLabel = pset.get<std::string>("ClusterModuleLabel");
+  fHitsModuleLabel    = pset.get<std::string>("HitsModuleLabel");
+  this->MakeDataProducts();
+}
+
+showerAna::ShowerAnalysis::~ShowerAnalysis() {
+}
+
+void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
+
+  // Get showers out of event
+  std::vector<art::Ptr<recob::Shower> > showers;
+  art::Handle<std::vector<recob::Shower> > showerHandle;
+  if (evt.getByLabel(fShowerModuleLabel, showerHandle))
+    art::fill_ptr_vector(showers, showerHandle);
+
+  // Get clusters out of event
+  std::vector<art::Ptr<recob::Cluster> > clusters;
+  art::Handle<std::vector<recob::Cluster> > clusterHandle;
+  if (evt.getByLabel(fClusterModuleLabel, clusterHandle))
+    art::fill_ptr_vector(clusters, clusterHandle);
+
+  // Get hits out of event
+  std::vector<art::Ptr<recob::Hit> > hits;
+  art::Handle<std::vector<recob::Hit> > hitHandle;
+  if (evt.getByLabel(fHitsModuleLabel, hitHandle))
+    art::fill_ptr_vector(hits, hitHandle);
+
+  // Get associations out of event
+  art::FindManyP<recob::Hit> fmhc(clusterHandle, evt, fClusterModuleLabel);
+  art::FindManyP<recob::Hit> fmhs(showerHandle, evt, fShowerModuleLabel);
+
+  // Map all the true and reconstructed information for each particle
+  std::map<int,std::unique_ptr<ShowerParticle> > particles;
+
+  // Keep an eye out for pi0s!
+  bool isPi0 = false;
+  std::vector<int> pi0Decays;
+
+  // Fill true properties
+  const sim::ParticleList& trueParticles = bt->ParticleList();
+  for (sim::ParticleList::const_iterator particleIt = trueParticles.begin(); particleIt != trueParticles.end(); ++particleIt) {
+    const simb::MCParticle* trueParticle = particleIt->second;
+    int mother = trueParticle->Mother();
+    if (mother != 0 and trueParticles.at(mother)->PdgCode() == 111) {
+      isPi0 = true;
+      pi0Decays.push_back(particleIt->first);
+    }
+    std::unique_ptr<ShowerParticle> particle = std::make_unique<ShowerParticle>(trueParticle->TrackId());
+    particle->SetEnergy(trueParticle->E());
+    particle->SetDirection(trueParticle->Momentum().Vect().Unit());
+    particle->SetStart(trueParticle->Position().Vect());
+    particle->SetPDG(trueParticle->PdgCode());
+
+    particles[particleIt->first] = std::move(particle);
+  }
+
+  // Fill recon properties
+
+  for (std::vector<art::Ptr<recob::Hit> >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt) {
+    int trueParticle = FindParticleID(*hitIt);
+    if (particles.count(trueParticle))
+      particles[trueParticle]->AddAssociatedHit(*hitIt);
+  }
+
+  for (std::vector<art::Ptr<recob::Cluster> >::iterator clusterIt = clusters.begin(); clusterIt != clusters.end(); ++clusterIt) {
+    std::vector<art::Ptr<recob::Hit> > hits = fmhc.at(clusterIt->key());
+    int trueParticle = FindTrueParticle(hits);
+    std::vector<art::Ptr<recob::Hit> > trueHits = FindTrueHits(hits, trueParticle);
+    if (particles.count(trueParticle))
+      particles[trueParticle]->AddAssociatedCluster(*clusterIt, hits, trueHits);
+  }
+
+  for (std::vector<art::Ptr<recob::Shower> >::iterator showerIt = showers.begin(); showerIt != showers.end(); ++showerIt) {
+    std::vector<art::Ptr<recob::Hit> > hits = fmhs.at(showerIt->key());
+    int trueParticle = FindTrueParticle(hits);
+    std::vector<art::Ptr<recob::Hit> > trueHits = FindTrueHits(hits, trueParticle);
+    if (particles.count(trueParticle))
+      particles[trueParticle]->AddAssociatedShower(*showerIt, hits, trueHits);
+  }
+
+  // Fill output data products
+  this->FillData(particles);
+  if (isPi0)
+    this->FillPi0Data(particles, pi0Decays);
+
+  return;
+
+}
+
+void showerAna::ShowerAnalysis::FillData(const std::map<int,std::unique_ptr<ShowerParticle> >& particles) {
+
+  // Look at each particle
+  for (std::map<int,std::unique_ptr<ShowerParticle> >::const_iterator particle = particles.begin(); particle != particles.end(); ++particle) {
+
+    // Cluster plots
+    for (int cluster = 0; cluster < particle->second->NumClusters(); ++cluster) {
+      hClusterCompleteness		->Fill(particle->second->ClusterCompleteness(cluster));
+      hClusterPurity			->Fill(particle->second->ClusterPurity(cluster));
+      hClusterCompletenessEnergy	->Fill(particle->second->Energy(), particle->second->ClusterCompleteness(cluster));
+      hClusterCompletenessDirection	->Fill(particle->second->Direction().Angle(TVector3(0,1,0)), particle->second->ClusterCompleteness(cluster));
+      if (particle->second->LargestCluster(cluster)) {
+	hLargestClusterCompleteness		->Fill(particle->second->ClusterCompleteness(cluster));
+	hLargestClusterPurity			->Fill(particle->second->ClusterPurity(cluster));
+	hLargestClusterCompletenessEnergy	->Fill(particle->second->Energy(), particle->second->ClusterCompleteness(cluster));
+	hLargestClusterCompletenessDirection	->Fill(particle->second->Direction().Angle(TVector3(0,1,0)), particle->second->ClusterCompleteness(cluster));
+      }
+    }
+
+    // Shower plots
+    for (int shower = 0; shower < particle->second->NumShowers(); ++shower) {
+      hShowerCompleteness		->Fill(particle->second->ShowerCompleteness(shower));
+      hShowerPurity			->Fill(particle->second->ShowerPurity(shower));
+      hShowerCompletenessEnergy		->Fill(particle->second->Energy(), particle->second->ShowerCompleteness(shower));
+      hShowerCompletenessDirection	->Fill(particle->second->Direction().Angle(TVector3(0,1,0)), particle->second->ShowerCompleteness(shower));
+      if (particle->second->LargestShower(shower)) {
+	hLargestShowerCompleteness		->Fill(particle->second->ShowerCompleteness(shower));
+	hLargestShowerPurity			->Fill(particle->second->ShowerPurity(shower));
+	hLargestShowerCompletenessEnergy	->Fill(particle->second->Energy(), particle->second->ShowerCompleteness(shower));
+	hLargestShowerCompletenessDirection	->Fill(particle->second->Direction().Angle(TVector3(0,1,0)), particle->second->ShowerCompleteness(shower));
+	hShowerEnergy				->Fill(particle->second->ShowerEnergy() / particle->second->Energy());
+	hShowerDirection                        ->Fill(particle->second->Direction().Dot(particle->second->ShowerDirection()));
+	hShowerdEdx                             ->Fill(particle->second->ShowerdEdx());
+      }
+    }
+
+  }
+
+}
+
+void showerAna::ShowerAnalysis::FillPi0Data(const std::map<int,std::unique_ptr<ShowerParticle> >& particles, const std::vector<int>& pi0Decays) {
+  
+}
+
+int showerAna::ShowerAnalysis::FindTrueParticle(const std::vector<art::Ptr<recob::Hit> >& showerHits) {
+
+  /// Returns the true particle most likely associated with this shower
+
+  // Make a map of the tracks which are associated with this shower and the charge each contributes
+  std::map<int,double> trackMap;
+  for (std::vector<art::Ptr<recob::Hit> >::const_iterator showerHitIt = showerHits.begin(); showerHitIt != showerHits.end(); ++showerHitIt) {
+    art::Ptr<recob::Hit> hit = *showerHitIt;
+    int trackID = FindParticleID(hit);
+    trackMap[trackID] += hit->Integral();
+  }
+
+  // Pick the track with the highest charge as the 'true track'
+  double highestCharge = 0;
+  int showerTrack = 0;
+  for (std::map<int,double>::iterator trackIt = trackMap.begin(); trackIt != trackMap.end(); ++trackIt) {
+    if (trackIt->second > highestCharge) {
+      highestCharge = trackIt->second;
+      showerTrack  = trackIt->first;
+    }
+  }
+
+  return showerTrack;
+
+}
+
+int showerAna::ShowerAnalysis::FindParticleID(const art::Ptr<recob::Hit>& hit) {
+
+  /// Returns the true track ID associated with this hit (if more than one, returns the one with highest energy)
+
+  double particleEnergy = 0;
+  int likelyTrackID = 0;
+  std::vector<sim::TrackIDE> trackIDs = bt->HitToTrackID(hit);
+  for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
+    if (trackIDs.at(idIt).energy > particleEnergy) {
+      particleEnergy = trackIDs.at(idIt).energy;
+      likelyTrackID = TMath::Abs(trackIDs.at(idIt).trackID);
+    }
+  }
+
+  return likelyTrackID;
+
+}
+
+std::vector<art::Ptr<recob::Hit> > showerAna::ShowerAnalysis::FindTrueHits(const std::vector<art::Ptr<recob::Hit> >& hits, int trueParticle) {
+
+  std::vector<art::Ptr<recob::Hit> > trueHits;
+  for (std::vector<art::Ptr<recob::Hit> >::const_iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt)
+    if (FindParticleID(*hitIt) == trueParticle)
+      trueHits.push_back(*hitIt);
+
+  return trueHits;
+
+}
+
+void showerAna::ShowerAnalysis::MakeDataProducts() {
+
+  fTree = tfs->make<TTree>("ShowerAnalysis","ShowerAnalysis");
+
+  hClusterCompleteness = tfs->make<TH1D>("ClusterCompleteness","Completeness of all clusters",101,0,1.01);
+  hLargestClusterCompleteness = tfs->make<TH1D>("LargestClusterCompleteness","Completeness of largest cluster",101,0,1.01);
+  hClusterPurity = tfs->make<TH1D>("ClusterPurity","Purity of all clusters",101,0,1.01);
+  hLargestClusterPurity = tfs->make<TH1D>("LargestClusterPurity","Purity of largest cluster",101,0,1.01);
+  hClusterCompletenessEnergy = tfs->make<TH2D>("ClusterCompletenessEnergy","Completeness of all clusters vs Energy",100,0,10,101,0,1.01);
+  hLargestClusterCompletenessEnergy = tfs->make<TH2D>("LargestClusterCompletenessEnergy","Completeness of largest cluster vs Energy",100,0,10,101,0,1.01);
+  hClusterCompletenessDirection = tfs->make<TH2D>("ClusterCompletenessDirection","Completeness of all clusters vs Direction",100,0,5,101,0,1.01);
+  hLargestClusterCompletenessDirection = tfs->make<TH2D>("LargestClusterCompletenessDirection","Completeness of largest cluster vs Direction",100,0,5,101,0,1.01);
+  hShowerCompleteness = tfs->make<TH1D>("ShowerCompleteness","Completeness of all showers",101,0,1.01);
+  hLargestShowerCompleteness = tfs->make<TH1D>("LargestShowerCompleteness","Completeness of largest shower",101,0,1.01);
+  hShowerPurity = tfs->make<TH1D>("ShowerPurity","Purity of all showers",101,0,1.01);
+  hLargestShowerPurity = tfs->make<TH1D>("LargestShowerPurity","Purity of largest shower",101,0,1.01);
+  hShowerCompletenessEnergy = tfs->make<TH2D>("ShowerCompletenessEnergy","Completeness of all showers vs Energy",100,0,10,101,0,1.01);
+  hLargestShowerCompletenessEnergy = tfs->make<TH2D>("LargestShowerCompletenessEnergy","Completeness of largest shower vs Energy",100,0,10,101,0,1.01);
+  hShowerCompletenessDirection = tfs->make<TH2D>("ShowerCompletenessDirection","Completeness of all showers vs Direction",100,0,5,101,0,1.01);
+  hLargestShowerCompletenessDirection = tfs->make<TH2D>("LargestShowerCompletenessDirection","Completeness of largest shower vs Direction",100,0,5,101,0,1.01);
+  hShowerEnergy = tfs->make<TH1D>("ShowerEnergy","Shower energy",120,0,1.2);
+  hShowerDirection = tfs->make<TH1D>("ShowerDirection","Shower direction",101,0,1.01);
+  hShowerdEdx = tfs->make<TH1D>("ShowerdEdx","dEdx of Shower",50,0,10);
+
+}
+
+DEFINE_ART_MODULE(showerAna::ShowerAnalysis)
