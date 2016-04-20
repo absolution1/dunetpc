@@ -118,6 +118,11 @@ lbne_daqinput35t
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lardata_RawData
+art_Framework_Services_Registry
+art_Framework_Services_Optional
+${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+${FHICLCPP}
+${ROOT_BASIC_LIB_LIST}
 )
 
 simple_plugin(NoiseCorrelation "module"
@@ -155,6 +160,24 @@ simple_plugin(FilterWF "module"
  ${MF_MESSAGELOGGER}
  art_Framework_Services_Registry
  art_Framework_Services_Optional
+ ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+)
+
+simple_plugin(Sigmoidfilter "module"
+
+ lbne_daqinput35t
+ art_Framework_IO_Root
+ art_Framework_IO_Sources
+ lbne-raw-data_Overlays
+ lbne_daqinput35t_utilities
+ lbne_daqinput35t
+ lardata_RawData
+ ${ROOT_TREE}
+ ${ROOT_RIO}
+ ${MF_MESSAGELOGGER}
+ art_Framework_Services_Registry
+ art_Framework_Services_Optional
+ ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 )
 
 simple_plugin(CheckTiming "module"
@@ -166,16 +189,7 @@ simple_plugin(CheckTiming "module"
 			  lardata_RawData
 			  ${ART_FRAMEWORK_CORE}
 			  ${ART_FRAMEWORK_PRINCIPAL}
-			  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-			  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			  ${ART_PERSISTENCY_COMMON}
-			  ${ART_PERSISTENCY_PROVENANCE}
-			  ${ART_UTILITIES}
-			  ${MF_MESSAGELOGGER}
-			  ${MF_UTILITIES}
-			  ${CETLIB}
-			  ${ROOT_BASIC_LIB_LIST}
 		)
 
 simple_plugin(SplitterInput "source"

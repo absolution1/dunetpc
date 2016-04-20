@@ -8,6 +8,7 @@ tpc_daq_to_offline:
   OutputDataLabel: "offline"
   UseChannelMap: "true"
   Debug: "false"
+  MakeTree: "false"
 }
 
 
