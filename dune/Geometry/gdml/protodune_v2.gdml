@@ -12,10 +12,10 @@
 
    <position name="posCryoInDetEnc"     unit="cm" x="0" y="-100" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
-   <position name="posBeamWStSu2"       unit="cm" x="75.8017209141813" y="68.381344256797" z="-538.8"/>
-   <position name="posBeamWFoPA2"       unit="cm" x="61.5002145823703" y="58.1208297825812" z="-467.5"/>
-   <position name="posBeamWAr2"         unit="cm" x="49.3950826451361" y="49.436088569132" z="-407.15"/>
-   <position name="posBeamWInDetEncl2"         unit="cm" x="67.7984936681889" y="-37.3605144742158" z="-498.9"/>
+   <position name="posBeamWStSu2"       unit="cm" x="77.5813442567969" y="66.6017209141815" z="-538.8"/>
+   <position name="posBeamWFoPA2"       unit="cm" x="67.320829782581" y="52.3002145823704" z="-467.5"/>
+   <position name="posBeamWAr2"         unit="cm" x="58.4921823352719" y="39.9945005086452" z="-406.15"/>
+   <position name="posBeamWInDetEncl2"         unit="cm" x="71.8394855257841" y="-41.4015063318109" z="-498.9"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
@@ -25,8 +25,8 @@
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
    <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
-   <rotation name="rBeamW2" 		unit="deg" x="0" y="-13.8670486253842" z="35.6572805824571"/>
-   <rotation name="rBeamWRev2"          unit="deg"  x="-8.189" y="11.2293056922" z="-36.4636934299"/>
+   <rotation name="rBeamW2" 		unit="deg" x="0" y="-13.8670486253842" z="54.3427194175429"/>
+   <rotation name="rBeamWRev2"          unit="deg" x="-11.342" y="8.03118195044" z="-55.1415281209"/>
 </define>
 <materials>
   <element name="videRef" formula="VACUUM" Z="1">  <atom value="1"/> </element>
@@ -135,7 +135,7 @@
   </material>
 
   <material formula=" " name="DUSEL_Rock">
-    <D value="2.82" unit="g/cm3"/>
+    <D value="2.82" unit="g/cc"/>
     <fraction n="0.5267" ref="SiO2"/>
     <fraction n="0.1174" ref="FeO"/>
     <fraction n="0.1025" ref="Al2O3"/>
@@ -167,7 +167,7 @@
   </material>
 
   <material name="STEEL_STAINLESS_Fe7Cr2Ni" formula="STEEL_STAINLESS_Fe7Cr2Ni">
-   <D value="7.9300" unit="g/cm3"/>
+   <D value="7.9300" unit="g/cc"/>
    <fraction n="0.0010" ref="carbon"/>
    <fraction n="0.1792" ref="chromium"/>
    <fraction n="0.7298" ref="iron"/>
@@ -186,19 +186,19 @@
   </material>
 
   <material name="ArGas" formula="ArGas">
-   <D value="0.00166" unit="g/cm3"/>
+   <D value="0.00166" unit="g/cc"/>
    <fraction n="1.0" ref="argon"/>
   </material>
 
   <material formula="Air" name="Air">
-   <D value="0.001205" unit="g/cm3"/>
+   <D value="0.001205" unit="g/cc"/>
    <fraction n="0.781154" ref="nitrogen"/>
    <fraction n="0.209476" ref="oxygen"/>
    <fraction n="0.00934" ref="argon"/>
   </material>
 
   <material formula=" " name="G10">
-   <D value="1.7" unit="g/cm3"/>
+   <D value="1.7" unit="g/cc"/>
    <fraction n="0.2805" ref="silicon"/>
    <fraction n="0.3954" ref="oxygen"/>
    <fraction n="0.2990" ref="carbon"/>
@@ -206,7 +206,7 @@
   </material>
 
   <material formula=" " name="Granite">
-   <D value="2.7" unit="g/cm3"/>
+   <D value="2.7" unit="g/cc"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -216,7 +216,7 @@
   </material>
 
   <material formula=" " name="ShotRock">
-   <D value="2.7*0.6" unit="g/cm3"/>
+   <D value="2.7*0.6" unit="g/cc"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -226,7 +226,7 @@
   </material>
 
   <material formula=" " name="Dirt">
-   <D value="1.7" unit="g/cm3"/>
+   <D value="1.7" unit="g/cc"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -236,7 +236,7 @@
   </material>
 
   <material formula=" " name="Concrete">
-   <D value="2.3" unit="g/cm3"/>
+   <D value="2.3" unit="g/cc"/>
    <fraction n="0.530" ref="oxygen"/>
    <fraction n="0.335" ref="silicon"/>
    <fraction n="0.060" ref="calcium"/>
@@ -246,13 +246,13 @@
   </material>
 
   <material formula="H2O" name="Water">
-   <D value="1.0" unit="g/cm3"/>
+   <D value="1.0" unit="g/cc"/>
    <fraction n="0.1119" ref="hydrogen"/>
    <fraction n="0.8881" ref="oxygen"/>
   </material>
 
   <material formula="Ti" name="Titanium">
-   <D value="4.506" unit="g/cm3"/>
+   <D value="4.506" unit="g/cc"/>
    <fraction n="1." ref="titanium"/>
   </material>
 
@@ -280,7 +280,7 @@
   </material>
 
   <material name="NiGas">
-   <D value="0.001165" unit="g/cm3"/>
+   <D value="0.001165" unit="g/cc"/>
    <fraction n="1.000" ref="nitrogen"/>
   </material>
 
@@ -21179,7 +21179,7 @@
       y="790.4" 
       z="855.2"/>
 
-    <cutTube name="BeamWindowAr2" rmin="0" rmax="25/2" z="43.7758705733726" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="2.93510772649e-17" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
+    <cutTube name="BeamWindowAr2" rmin="0" rmax="25/2" z="43.7758705733726" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
     <subtraction name="Cryostat">
       <first ref="CryostatNoBW"/>
@@ -21188,7 +21188,7 @@
       <rotationref ref="rBeamW2"/>
     </subtraction>
 
-    <cutTube name="BeamWindowArNi2" rmin="0" rmax="24.96/2" z="43.7346697540094" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="2.93510772649e-17" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
+    <cutTube name="BeamWindowArNi2" rmin="0" rmax="24.96/2" z="43.7346697540094" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
     <box name="ArgonInterior" lunit="cm" 
       x="854.8"
@@ -21283,13 +21283,13 @@
       <positionref ref="posCenter"/>
     </subtraction>
 
-    <cutTube name="BeamWindowFoam2" rmin="0" rmax="25/2" z="82.1956346295326" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="2.93510772649e-17" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
+    <cutTube name="BeamWindowFoam2" rmin="0" rmax="25/2" z="82.1956346295326" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
-    <cutTube name="BeamWindowSteelSupp2" rmin="0" rmax="25/2" z="64.6852864001835" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="2.93510772649e-17" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
+    <cutTube name="BeamWindowSteelSupp2" rmin="0" rmax="25/2" z="64.6852864001835" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
-    <cutTube name="BWOSFo2" rmin="0" rmax="25/2" z="64.6852864001835+82.1956346295326" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="2.93510772649e-17" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
+    <cutTube name="BWOSFo2" rmin="0" rmax="25/2" z="64.6852864001835+82.1956346295326" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
-    <cutTube name="BWISFo2" rmin="0" rmax="24.96/2" z="146.839720210353" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="2.93510772649e-17" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
+    <cutTube name="BWISFo2" rmin="0" rmax="24.96/2" z="146.839720210353" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
     <subtraction name="FoamPadding">
       <first ref="FoamPaddingNoBW"/>
