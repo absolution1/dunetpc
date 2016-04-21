@@ -213,18 +213,12 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     for (size_t bin = 0; bin < NADC; ++bin) {
       double freq = 2000. * bin / NADC;
       if (view == geo::kU) { // U plane 
-	//Re[bin] = Re[bin] * 1. * (1.-1./(1.+exp(-(freq-105.)/19.))) * (1./(1.+exp(-(freq-18.)/10.)));
-	//Im[bin] = Im[bin] * 1. * (1.-1./(1.+exp(-(freq-105.)/19.))) * (1./(1.+exp(-(freq-18.)/10.)));
 	Re[bin] = Re[bin]*fIndUFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fIndUFilterFunc->Eval(freq);
       } else if ( view == geo::kV) { // V plane
-	//Re[bin] = Re[bin] * 0.95 * (1.-1./(1.+exp(-(freq-125.)/19.))) * (1./(1.+exp(-(freq-10.)/10.9)));
-	//Im[bin] = Im[bin] * 0.95 * (1.-1./(1.+exp(-(freq-125.)/19.))) * (1./(1.+exp(-(freq-10.)/10.9)));
 	Re[bin] = Re[bin]*fIndVFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fIndVFilterFunc->Eval(freq);
       } else if ( view == geo::kZ) { // Collection plane
-	//Re[bin] = Re[bin] * 1. * (1.-1./(1.+exp(-(freq-150.)/25.)));
-	//Im[bin] = Im[bin] * 1. * (1.-1./(1.+exp(-(freq-150.)/25.)));
 	Re[bin] = Re[bin]*fColFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fColFilterFunc->Eval(freq);
       }
