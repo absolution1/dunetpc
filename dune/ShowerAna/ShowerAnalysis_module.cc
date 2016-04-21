@@ -184,8 +184,8 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
   void analyze(const art::Event& evt);
 
   void MakeDataProducts();
-  void FillData(const std::map<int,std::unique_ptr<ShowerParticle> >& particles);
-  void FillPi0Data(const std::map<int,std::unique_ptr<ShowerParticle> >& particles, const std::vector<int>& pi0Decays);
+  void FillData(const std::map<int,std::shared_ptr<ShowerParticle> >& particles);
+  void FillPi0Data(const std::map<int,std::shared_ptr<ShowerParticle> >& particles, const std::vector<int>& pi0Decays);
   int FindTrueParticle(const std::vector<art::Ptr<recob::Hit> >& hits);
   int FindParticleID(const art::Ptr<recob::Hit>& hit);
   std::vector<art::Ptr<recob::Hit> > FindTrueHits(const std::vector<art::Ptr<recob::Hit> >& hits, int trueParticle);
@@ -198,11 +198,19 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
   art::ServiceHandle<art::TFileService> tfs;
 
   TTree* fTree;
+
+  // Showers
   TH1D *hClusterCompleteness, *hLargestClusterCompleteness, *hClusterPurity, *hLargestClusterPurity;
   TH2D *hClusterCompletenessEnergy, *hLargestClusterCompletenessEnergy, *hClusterCompletenessDirection, *hLargestClusterCompletenessDirection;
   TH1D *hShowerCompleteness, *hLargestShowerCompleteness, *hShowerPurity, *hLargestShowerPurity;
   TH2D *hShowerCompletenessEnergy, *hLargestShowerCompletenessEnergy, *hShowerCompletenessDirection, *hLargestShowerCompletenessDirection;
   TH1D *hShowerEnergy, *hShowerDirection, *hShowerdEdx;
+
+  // Pi0
+  TH1D* hPi0MassPeakReconEnergyReconAngle;
+  TH1D* hPi0MassPeakReconEnergyTrueAngle;
+  TH1D* hPi0MassPeakTrueEnergyReconAngle;
+  TH1D* hPi0MassPeakTrueEnergyTrueAngle;
 
 };
 
@@ -241,7 +249,7 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
   art::FindManyP<recob::Hit> fmhs(showerHandle, evt, fShowerModuleLabel);
 
   // Map all the true and reconstructed information for each particle
-  std::map<int,std::unique_ptr<ShowerParticle> > particles;
+  std::map<int,std::shared_ptr<ShowerParticle> > particles;
 
   // Keep an eye out for pi0s!
   bool isPi0 = false;
@@ -256,7 +264,7 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
       isPi0 = true;
       pi0Decays.push_back(particleIt->first);
     }
-    std::unique_ptr<ShowerParticle> particle = std::make_unique<ShowerParticle>(trueParticle->TrackId());
+    std::shared_ptr<ShowerParticle> particle = std::make_shared<ShowerParticle>(trueParticle->TrackId());
     particle->SetEnergy(trueParticle->E());
     particle->SetDirection(trueParticle->Momentum().Vect().Unit());
     particle->SetStart(trueParticle->Position().Vect());
@@ -291,54 +299,85 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
 
   // Fill output data products
   this->FillData(particles);
-  if (isPi0)
+  if (isPi0 and pi0Decays.size() == 2)
     this->FillPi0Data(particles, pi0Decays);
 
   return;
 
 }
 
-void showerAna::ShowerAnalysis::FillData(const std::map<int,std::unique_ptr<ShowerParticle> >& particles) {
+void showerAna::ShowerAnalysis::FillData(const std::map<int,std::shared_ptr<ShowerParticle> >& particles) {
 
   // Look at each particle
-  for (std::map<int,std::unique_ptr<ShowerParticle> >::const_iterator particle = particles.begin(); particle != particles.end(); ++particle) {
+  for (std::map<int,std::shared_ptr<ShowerParticle> >::const_iterator particleIt = particles.begin(); particleIt != particles.end(); ++particleIt) {
+
+    std::shared_ptr<ShowerParticle> particle = particleIt->second;
 
     // Cluster plots
-    for (int cluster = 0; cluster < particle->second->NumClusters(); ++cluster) {
-      hClusterCompleteness		->Fill(particle->second->ClusterCompleteness(cluster));
-      hClusterPurity			->Fill(particle->second->ClusterPurity(cluster));
-      hClusterCompletenessEnergy	->Fill(particle->second->Energy(), particle->second->ClusterCompleteness(cluster));
-      hClusterCompletenessDirection	->Fill(particle->second->Direction().Angle(TVector3(0,1,0)), particle->second->ClusterCompleteness(cluster));
-      if (particle->second->LargestCluster(cluster)) {
-	hLargestClusterCompleteness		->Fill(particle->second->ClusterCompleteness(cluster));
-	hLargestClusterPurity			->Fill(particle->second->ClusterPurity(cluster));
-	hLargestClusterCompletenessEnergy	->Fill(particle->second->Energy(), particle->second->ClusterCompleteness(cluster));
-	hLargestClusterCompletenessDirection	->Fill(particle->second->Direction().Angle(TVector3(0,1,0)), particle->second->ClusterCompleteness(cluster));
+    for (int cluster = 0; cluster < particle->NumClusters(); ++cluster) {
+      hClusterCompleteness		->Fill(particle->ClusterCompleteness(cluster));
+      hClusterPurity			->Fill(particle->ClusterPurity(cluster));
+      hClusterCompletenessEnergy	->Fill(particle->Energy(), particle->ClusterCompleteness(cluster));
+      hClusterCompletenessDirection	->Fill(particle->Direction().Angle(TVector3(0,1,0)), particle->ClusterCompleteness(cluster));
+      if (particle->LargestCluster(cluster)) {
+	hLargestClusterCompleteness		->Fill(particle->ClusterCompleteness(cluster));
+	hLargestClusterPurity			->Fill(particle->ClusterPurity(cluster));
+	hLargestClusterCompletenessEnergy	->Fill(particle->Energy(), particle->ClusterCompleteness(cluster));
+	hLargestClusterCompletenessDirection	->Fill(particle->Direction().Angle(TVector3(0,1,0)), particle->ClusterCompleteness(cluster));
       }
     }
 
     // Shower plots
-    for (int shower = 0; shower < particle->second->NumShowers(); ++shower) {
-      hShowerCompleteness		->Fill(particle->second->ShowerCompleteness(shower));
-      hShowerPurity			->Fill(particle->second->ShowerPurity(shower));
-      hShowerCompletenessEnergy		->Fill(particle->second->Energy(), particle->second->ShowerCompleteness(shower));
-      hShowerCompletenessDirection	->Fill(particle->second->Direction().Angle(TVector3(0,1,0)), particle->second->ShowerCompleteness(shower));
-      if (particle->second->LargestShower(shower)) {
-	hLargestShowerCompleteness		->Fill(particle->second->ShowerCompleteness(shower));
-	hLargestShowerPurity			->Fill(particle->second->ShowerPurity(shower));
-	hLargestShowerCompletenessEnergy	->Fill(particle->second->Energy(), particle->second->ShowerCompleteness(shower));
-	hLargestShowerCompletenessDirection	->Fill(particle->second->Direction().Angle(TVector3(0,1,0)), particle->second->ShowerCompleteness(shower));
-	hShowerEnergy				->Fill(particle->second->ShowerEnergy() / particle->second->Energy());
-	hShowerDirection                        ->Fill(particle->second->Direction().Dot(particle->second->ShowerDirection()));
-	hShowerdEdx                             ->Fill(particle->second->ShowerdEdx());
+    for (int shower = 0; shower < particle->NumShowers(); ++shower) {
+      hShowerCompleteness		->Fill(particle->ShowerCompleteness(shower));
+      hShowerPurity			->Fill(particle->ShowerPurity(shower));
+      hShowerCompletenessEnergy		->Fill(particle->Energy(), particle->ShowerCompleteness(shower));
+      hShowerCompletenessDirection	->Fill(particle->Direction().Angle(TVector3(0,1,0)), particle->ShowerCompleteness(shower));
+      if (particle->LargestShower(shower)) {
+	hLargestShowerCompleteness		->Fill(particle->ShowerCompleteness(shower));
+	hLargestShowerPurity			->Fill(particle->ShowerPurity(shower));
+	hLargestShowerCompletenessEnergy	->Fill(particle->Energy(), particle->ShowerCompleteness(shower));
+	hLargestShowerCompletenessDirection	->Fill(particle->Direction().Angle(TVector3(0,1,0)), particle->ShowerCompleteness(shower));
+	hShowerEnergy				->Fill(particle->ShowerEnergy() / particle->Energy());
+	hShowerDirection                        ->Fill(particle->Direction().Dot(particle->ShowerDirection()));
+	hShowerdEdx                             ->Fill(particle->ShowerdEdx());
       }
     }
 
   }
 
+  return;
+
 }
 
-void showerAna::ShowerAnalysis::FillPi0Data(const std::map<int,std::unique_ptr<ShowerParticle> >& particles, const std::vector<int>& pi0Decays) {
+void showerAna::ShowerAnalysis::FillPi0Data(const std::map<int,std::shared_ptr<ShowerParticle> >& particles, const std::vector<int>& pi0Decays) {
+
+  /// Fill data products related to pi0s
+  /// We only call this function if there are exactly two decay products, so we can assume the decay was pi0 -> gamma gamma
+
+  std::shared_ptr<ShowerParticle> photon1 = particles.at(pi0Decays.at(0));
+  std::shared_ptr<ShowerParticle> photon2 = particles.at(pi0Decays.at(1));
+
+  // Make sure there is at least one shower and it was fully reconstructed
+  if (photon1->NumShowers() == 0 or photon2->NumShowers() == 0 or
+      photon1->ShowerStart() == TVector3(0,0,0) or photon2->ShowerStart() == TVector3(0,0,0))
+    return;
+
+  double reconOpeningAngle = TMath::ASin(TMath::Sin(photon1->ShowerDirection().Angle(photon2->ShowerDirection())));
+  double trueOpeningAngle = photon1->Direction().Angle(photon2->Direction());
+
+  // Reconstruct the pi0 mass
+  double massReconEnergyReconAngle = TMath::Sqrt(4 * photon1->ShowerEnergy() * photon2->ShowerEnergy() * TMath::Power(TMath::Sin(reconOpeningAngle/2),2));
+  double massReconEnergyTrueAngle = TMath::Sqrt(4 * photon1->ShowerEnergy() * photon2->ShowerEnergy() * TMath::Power(TMath::Sin(trueOpeningAngle/2),2));
+  double massTrueEnergyReconAngle = TMath::Sqrt(4 * photon1->Energy() * photon2->Energy() * TMath::Power(TMath::Sin(reconOpeningAngle/2),2));
+  double massTrueEnergyTrueAngle = TMath::Sqrt(4 * photon1->Energy() * photon2->Energy() * TMath::Power(TMath::Sin(trueOpeningAngle/2),2));
+
+  hPi0MassPeakReconEnergyReconAngle->Fill(massReconEnergyReconAngle);
+  hPi0MassPeakReconEnergyTrueAngle->Fill(massReconEnergyTrueAngle);
+  hPi0MassPeakTrueEnergyReconAngle->Fill(massTrueEnergyReconAngle);
+  hPi0MassPeakTrueEnergyTrueAngle->Fill(massTrueEnergyTrueAngle);
+
+  return;
   
 }
 
@@ -420,6 +459,11 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
   hShowerEnergy = tfs->make<TH1D>("ShowerEnergy","Shower energy",120,0,1.2);
   hShowerDirection = tfs->make<TH1D>("ShowerDirection","Shower direction",101,0,1.01);
   hShowerdEdx = tfs->make<TH1D>("ShowerdEdx","dEdx of Shower",50,0,10);
+
+  hPi0MassPeakReconEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyReconAngle","",40,0,0.5);
+  hPi0MassPeakTrueEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakTrueEnergyReconAngle","",40,0,0.5);
+  hPi0MassPeakReconEnergyTrueAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyTrueAngle","",40,0,0.5);
+  hPi0MassPeakTrueEnergyTrueAngle = tfs->make<TH1D>("Pi0MassPeakTrueEnergyTrueAngle","",40,0,0.5);
 
 }
 
