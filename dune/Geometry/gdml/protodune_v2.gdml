@@ -21174,19 +21174,12 @@
       aunit="deg"
       lunit="cm"/>
 
-    <box name="CryostatNoBW" lunit="cm" 
+    <box name="Cryostat" lunit="cm" 
       x="855.2" 
       y="790.4" 
       z="855.2"/>
 
     <cutTube name="BeamWindowAr2" rmin="0" rmax="25/2" z="43.7758705733726" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
-
-    <subtraction name="Cryostat">
-      <first ref="CryostatNoBW"/>
-      <second ref="BeamWindowAr2"/>
-      <positionref ref="posBeamWAr2"/>
-      <rotationref ref="rBeamW2"/>
-    </subtraction>
 
     <cutTube name="BeamWindowArNi2" rmin="0" rmax="24.96/2" z="43.7346697540094" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
@@ -21194,10 +21187,12 @@
       x="854.8"
       y="790"
       z="854.8"/>
+
     <box name="GaseousArgon" lunit="cm" 
       x="854.8"
       y="80"
       z="854.8"/>
+
     <subtraction name="SteelShell">
       <first ref="Cryostat"/>
       <second ref="ArgonInterior"/>
@@ -21279,7 +21274,7 @@
 
     <subtraction name="SteelSupportNoBW">
       <first ref="SteelSupportBlock"/>
-      <second ref="FoamPaddingNoBW"/>
+      <second ref="FoamPadBlock"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
