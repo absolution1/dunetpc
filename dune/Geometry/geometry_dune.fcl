@@ -109,13 +109,13 @@ protoDune_geo.ROOT: "protoDune_v1.gdml"
 
 dune35t_geo:
 {
- Name:     "dune35t4apa_v5"
+ Name:     "dune35t4apa_v6"
 
  # Choose GDML file and set detector version similarly
- GDML:         "dune35t4apa_v5.gdml"
- ROOT:         "dune35t4apa_v5.gdml"
+ GDML:         "dune35t4apa_v6.gdml"
+ ROOT:         "dune35t4apa_v6.gdml"
  SortingParameters: { 
-   DetectorVersion: "dune35t4apa_v5" 
+   DetectorVersion: "dune35t4apa_v6" 
  } 
 
  SurfaceY:           0.0e2               #in cm, vertical distance to the surface
