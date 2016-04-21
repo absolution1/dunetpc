@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file   SignalShapingServiceDUNE35t_service.cc
+/// \file   SignalShapingServiceDUNE_service.cc
 /// \author H. Greenlee 
 ////////////////////////////////////////////////////////////////////////
 
-#include "dune/Utilities/SignalShapingServiceDUNE35t.h"
+#include "dune/Utilities/SignalShapingServiceDUNE.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib/exception.h"
@@ -14,29 +14,26 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "TFile.h"
-#include <fstream>
 
 //----------------------------------------------------------------------
 // Constructor.
-util::SignalShapingServiceDUNE35t::SignalShapingServiceDUNE35t(const fhicl::ParameterSet& pset,
+util::SignalShapingServiceDUNE::SignalShapingServiceDUNE(const fhicl::ParameterSet& pset,
 								    art::ActivityRegistry& /* reg */) 
   : fInit(false)
 {
-  // This class is deprecated. See https://cdcvs.fnal.gov/redmine/issues/11777.
-  mf::LogInfo("SignalShapingServiceDUNE10kt") << "Deprecated: Consider using SignalShapingServiceDUNE";
   reconfigure(pset);
 }
 
 
 //----------------------------------------------------------------------
 // Destructor.
-util::SignalShapingServiceDUNE35t::~SignalShapingServiceDUNE35t()
+util::SignalShapingServiceDUNE::~SignalShapingServiceDUNE()
 {}
 
 
 //----------------------------------------------------------------------
 // Reconfigure method.
-void util::SignalShapingServiceDUNE35t::reconfigure(const fhicl::ParameterSet& pset)
+void util::SignalShapingServiceDUNE::reconfigure(const fhicl::ParameterSet& pset)
 {
   // Reset initialization flag.
 
@@ -65,27 +62,25 @@ void util::SignalShapingServiceDUNE35t::reconfigure(const fhicl::ParameterSet& p
 
   fInputFieldRespSamplingPeriod = pset.get<double>("InputFieldRespSamplingPeriod");
   
-  fFieldResponseTOffset = pset.get<std::vector<double> >("FieldResponseTOffset");
+  fFieldResponseTOffset = pset.get<std::vector<double> >("FieldResponseTOffset");   
   fCalibResponseTOffset = pset.get<std::vector<double> >("CalibResponseTOffset");
 
   fUseFunctionFieldShape= pset.get<bool>("UseFunctionFieldShape");
   fUseHistogramFieldShape = pset.get<bool>("UseHistogramFieldShape");
-
+  
   fGetFilterFromHisto= pset.get<bool>("GetFilterFromHisto");
-
-  fDebugFieldShape       = pset.get<bool>("DebugFieldShape",false);  
-
+  
   // Construct parameterized collection filter function.
  if(!fGetFilterFromHisto)
  {
-  mf::LogInfo("SignalShapingServiceDUNE35t") << "Getting Filter from .fcl file" ;
+  mf::LogInfo("SignalShapingServiceDUNE") << "Getting Filter from .fcl file";
   std::string colFilt = pset.get<std::string>("ColFilter");
   std::vector<double> colFiltParams =
   pset.get<std::vector<double> >("ColFilterParams");
   fColFilterFunc = new TF1("colFilter", colFilt.c_str());
   for(unsigned int i=0; i<colFiltParams.size(); ++i)
     fColFilterFunc->SetParameter(i, colFiltParams[i]);
-
+ 
   // Construct parameterized induction filter function.
 
   std::string indUFilt = pset.get<std::string>("IndUFilter");
@@ -99,12 +94,13 @@ void util::SignalShapingServiceDUNE35t::reconfigure(const fhicl::ParameterSet& p
   fIndVFilterFunc = new TF1("indVFilter", indVFilt.c_str());
   for(unsigned int i=0; i<indVFiltParams.size(); ++i)
     fIndVFilterFunc->SetParameter(i, indVFiltParams[i]);
-
+  
  }
  else
- {  
+ {
+  
    std::string histoname = pset.get<std::string>("FilterHistoName");
-   mf::LogInfo("SignalShapingServiceDUNE35t") << " using filter from .root file " ;
+   mf::LogInfo("SignalShapingServiceDUNE") << " using filter from .root file ";
    int fNPlanes=3;
    
   // constructor decides if initialized value is a path or an environment variable
@@ -122,7 +118,7 @@ void util::SignalShapingServiceDUNE35t::reconfigure(const fhicl::ParameterSet& p
    in->Close();
    
  }
-
+ 
  /////////////////////////////////////
  if(fUseFunctionFieldShape)
  {
@@ -148,9 +144,9 @@ void util::SignalShapingServiceDUNE35t::reconfigure(const fhicl::ParameterSet& p
   for(unsigned int i=0; i<indVFieldParams.size(); ++i)
     fIndVFieldFunc->SetParameter(i, indVFieldParams[i]);
    // Warning, last parameter needs to be multiplied by the FFTSize, in current version of the code,
-   
-  } else if ( fUseHistogramFieldShape ) {
-    mf::LogInfo("SignalShapingServiceDUNE35t") << " using the field response provided from a .root file " ;
+
+    } else if ( fUseHistogramFieldShape ) {
+    mf::LogInfo("SignalShapingServiceDUNE") << " using the field response provided from a .root file " ;
     int fNPlanes = 3;
     
     // constructor decides if initialized value is a path or an environment variable
@@ -182,7 +178,7 @@ void util::SignalShapingServiceDUNE35t::reconfigure(const fhicl::ParameterSet& p
 //----------------------------------------------------------------------
 // Accessor for single-plane signal shaper.
 const util::SignalShaping&
-util::SignalShapingServiceDUNE35t::SignalShaping(unsigned int channel) const
+util::SignalShapingServiceDUNE::SignalShaping(unsigned int channel) const
 {
   if(!fInit)
     init();
@@ -192,7 +188,7 @@ util::SignalShapingServiceDUNE35t::SignalShaping(unsigned int channel) const
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
 
-  // we need to distinguis between the U and V planes
+   // we need to distinguis between the U and V planes
   geo::View_t view = geom->View(channel); 
 
   // Return appropriate shaper.
@@ -204,20 +200,19 @@ util::SignalShapingServiceDUNE35t::SignalShaping(unsigned int channel) const
   else if(view == geo::kZ)
     return fColSignalShaping;
   else
-    throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
                                                           << " View\n";
 							  
 return fColSignalShaping;
 }
 
 //-----Give Gain Settings to SimWire-----//jyoti
-double util::SignalShapingServiceDUNE35t::GetASICGain(unsigned int const channel) const
+double util::SignalShapingServiceDUNE::GetASICGain(unsigned int const channel) const
 {
   art::ServiceHandle<geo::Geometry> geom;
-    
   //geo::SigType_t sigtype = geom->SignalType(channel);
-  
-  // we need to distinguis between the U and V planes
+
+   // we need to distinguis between the U and V planes
   geo::View_t view = geom->View(channel); 
   
   double gain = 0;
@@ -228,14 +223,14 @@ double util::SignalShapingServiceDUNE35t::GetASICGain(unsigned int const channel
   else if(view == geo::kZ)
     gain = fASICGainInMVPerFC.at(2);
   else
-    throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
 						       << " View\n";
   return gain;
 }
 
 
 //-----Give Shaping time to SimWire-----//jyoti
-double util::SignalShapingServiceDUNE35t::GetShapingTime(unsigned int const channel) const
+double util::SignalShapingServiceDUNE::GetShapingTime(unsigned int const channel) const
 {
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
@@ -252,17 +247,17 @@ double util::SignalShapingServiceDUNE35t::GetShapingTime(unsigned int const chan
   else if(view == geo::kZ)
     shaping_time = fShapeTimeConst.at(2);
   else
-    throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
 						       << " View\n";
   return shaping_time;
 }
 
-double util::SignalShapingServiceDUNE35t::GetRawNoise(unsigned int const channel) const
+double util::SignalShapingServiceDUNE::GetRawNoise(unsigned int const channel) const
 {
   unsigned int plane;
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
-
+ 
   // we need to distinguis between the U and V planes
   geo::View_t view = geom->View(channel);
 
@@ -273,7 +268,7 @@ double util::SignalShapingServiceDUNE35t::GetRawNoise(unsigned int const channel
   else if(view == geo::kZ)
     plane = 2;
   else
-    throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
                                                           << " View\n";
 
   double shapingtime = fShapeTimeConst.at(plane);
@@ -297,12 +292,12 @@ double util::SignalShapingServiceDUNE35t::GetRawNoise(unsigned int const channel
   return rawNoise;
 }
 
-double util::SignalShapingServiceDUNE35t::GetDeconNoise(unsigned int const channel) const
+double util::SignalShapingServiceDUNE::GetDeconNoise(unsigned int const channel) const
 {
   unsigned int plane;
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
-  
+
   // we need to distinguis between the U and V planes
   geo::View_t view = geom->View(channel);
   
@@ -313,7 +308,7 @@ double util::SignalShapingServiceDUNE35t::GetDeconNoise(unsigned int const chann
   else if(view == geo::kZ)
     plane = 2;
   else
-    throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
                                                           << " View\n";
 
   double shapingtime = fShapeTimeConst.at(plane);
@@ -334,11 +329,12 @@ double util::SignalShapingServiceDUNE35t::GetDeconNoise(unsigned int const chann
   return deconNoise;
 }
 
+
 //----------------------------------------------------------------------
 // Initialization method.
 // Here we do initialization that can't be done in the constructor.
 // All public methods should ensure that this method is called as necessary.
-void util::SignalShapingServiceDUNE35t::init()
+void util::SignalShapingServiceDUNE::init()
 {
   if(!fInit) {
     fInit = true;
@@ -365,7 +361,7 @@ void util::SignalShapingServiceDUNE35t::init()
     fIndUSignalShaping.AddResponseFunction(fElectResponse);
     fIndUSignalShaping.save_response();
     fIndUSignalShaping.set_normflag(false);
-    //fIndSignalShaping.SetPeakResponseTime(0.);
+    //fIndUSignalShaping.SetPeakResponseTime(0.);
 
     SetElectResponse(fShapeTimeConst.at(1),fASICGainInMVPerFC.at(1));
 
@@ -373,8 +369,8 @@ void util::SignalShapingServiceDUNE35t::init()
     fIndVSignalShaping.AddResponseFunction(fElectResponse);
     fIndVSignalShaping.save_response();
     fIndVSignalShaping.set_normflag(false);
-    //fIndSignalShaping.SetPeakResponseTime(0.);
-    
+    //fIndVSignalShaping.SetPeakResponseTime(0.);
+        
 
     SetResponseSampling();
 
@@ -398,7 +394,7 @@ void util::SignalShapingServiceDUNE35t::init()
 
 //----------------------------------------------------------------------
 // Calculate microboone field response.
-void util::SignalShapingServiceDUNE35t::SetFieldResponse()
+void util::SignalShapingServiceDUNE::SetFieldResponse()
 {
   // Get services.
 
@@ -420,14 +416,14 @@ void util::SignalShapingServiceDUNE35t::SetFieldResponse()
 
   fColFieldResponse.resize(fNFieldBins, 0.);
   fIndUFieldResponse.resize(fNFieldBins, 0.);
-  fIndVFieldResponse.resize(fNFieldBins, 0.);
+  fIndVFieldResponse.resize(fNFieldBins, 0.); 
 
   // set the response for the collection plane first
   // the first entry is 0
 
   double driftvelocity=detprop->DriftVelocity()/1000.;  
-  int nbinc = TMath::Nint(fCol3DCorrection*(fabs(pitch))/(driftvelocity*detprop->SamplingRate())); ///number of bins //KP
-  double integral = 0.;  
+  int nbinc = TMath::Nint(fCol3DCorrection*(std::abs(pitch))/(driftvelocity*detprop->SamplingRate())); ///number of bins //KP
+  double integral = 0;
   ////////////////////////////////////////////////////
    if(fUseFunctionFieldShape)
   {
@@ -458,7 +454,7 @@ void util::SignalShapingServiceDUNE35t::SetFieldResponse()
 	  bipolar[i]=fIndUFieldFunc->Eval(i);
 	  fIndUFieldResponse[i]=bipolar[i];
 	  bipolar[i]=fIndVFieldFunc->Eval(i);
-	  fIndVFieldResponse[i]=bipolar[i];
+	  fIndVFieldResponse[i]=bipolar[i];    
 	  // bipol->Fill(i,bipolar[i]);
     }
      
@@ -482,51 +478,49 @@ void util::SignalShapingServiceDUNE35t::SetFieldResponse()
     for ( int ibin = 1; ibin <= fFieldResponseHist[1]->GetNbinsX(); ibin++ )
       fIndVFieldResponse[ibin-1] = fIndVFieldRespAmp*fFieldResponseHist[1]->GetBinContent( ibin )/integral;
 
-    // Collection plane
     for ( int ibin = 1; ibin <= fFieldResponseHist[2]->GetNbinsX(); ibin++ )
       fColFieldResponse[ibin-1] = fColFieldRespAmp*fFieldResponseHist[2]->GetBinContent( ibin )/integral;
-  } else
-  {
-    //////////////////////////////////////////////////
-    mf::LogInfo("SignalShapingServiceDUNE35t") << " using the old field shape " ;
-    double integral = 0.;
-    for(int i = 1; i < nbinc; ++i){
-      fColFieldResponse[i] = fColFieldResponse[i-1] + 1.0;
-      integral += fColFieldResponse[i];
-    }
+   }else
+   {
+     //////////////////////////////////////////////////
+     mf::LogInfo("SignalShapingServiceDUNE") << " using the old field shape ";
+     double integral = 0.;
+     for(int i = 1; i < nbinc; ++i){
+       fColFieldResponse[i] = fColFieldResponse[i-1] + 1.0;
+       integral += fColFieldResponse[i];
+     }
+     
+     for(int i = 0; i < nbinc; ++i){
+       fColFieldResponse[i] *= fColFieldRespAmp/integral;
+     }
+     
+     // now the induction plane
+     
     
-    for(int i = 0; i < nbinc; ++i){
-      fColFieldResponse[i] *= fColFieldRespAmp/integral;
-    }
-    
-    // now the induction plane
-    
-    int nbini = TMath::Nint(fInd3DCorrection*(fabs(pitch))/(driftvelocity*detprop->SamplingRate()));//KP
-    for(int i = 0; i < nbini; ++i){
-      fIndUFieldResponse[i] = fIndUFieldRespAmp/(1.*nbini);
-      fIndUFieldResponse[nbini+i] = -fIndUFieldRespAmp/(1.*nbini);
-    }
-
-    for(int i = 0; i < nbini; ++i){
-      fIndVFieldResponse[i] = fIndVFieldRespAmp/(1.*nbini);
-      fIndVFieldResponse[nbini+i] = -fIndVFieldRespAmp/(1.*nbini);
-    }
-
-  }
-  
-  return;
+     int nbini = TMath::Nint(fInd3DCorrection*(fabs(pitch))/(driftvelocity*detprop->SamplingRate()));//KP
+     for(int i = 0; i < nbini; ++i){
+       fIndUFieldResponse[i] = fIndUFieldRespAmp/(1.*nbini);
+       fIndUFieldResponse[nbini+i] = -fIndUFieldRespAmp/(1.*nbini);
+     }
+     
+     for(int i = 0; i < nbini; ++i){
+       fIndVFieldResponse[i] = fIndVFieldRespAmp/(1.*nbini);
+       fIndVFieldResponse[nbini+i] = -fIndVFieldRespAmp/(1.*nbini);
+     }
+     
+   }
+   
+   return;
 }
 
-//----------------------------------------------------------------------
-// Calculate microboone field response.
-void util::SignalShapingServiceDUNE35t::SetElectResponse(double shapingtime, double gain)
+void util::SignalShapingServiceDUNE::SetElectResponse(double shapingtime, double gain)
 {
   // Get services.
 
   art::ServiceHandle<geo::Geometry> geo;
   art::ServiceHandle<util::LArFFT> fft;
 
-  LOG_DEBUG("SignalShapingDUNE35t") << "Setting DUNE35t electronics response function...";
+  LOG_DEBUG("SignalShapingDUNE") << "Setting DUNE electronics response function...";
 
   int nticks = fft->FFTSize();
   fElectResponse.resize(nticks, 0.);
@@ -537,7 +531,7 @@ void util::SignalShapingServiceDUNE35t::SetElectResponse(double shapingtime, dou
   double To = shapingtime;  //peaking time
     
   // this is actually sampling time, in ns
-  // mf::LogInfo("SignalShapingDUNE35t") << "Check sampling intervals: " 
+  // mf::LogInfo("SignalShapingDUNE") << "Check sampling intervals: " 
   //                                  << fSampleRate << " ns" 
   //                                  << "Check number of samples: " << fNTicks;
 
@@ -575,7 +569,7 @@ void util::SignalShapingServiceDUNE35t::SetElectResponse(double shapingtime, dou
   }// end loop over time buckets
     
 
-  LOG_DEBUG("SignalShapingDUNE35t") << " Done.";
+  LOG_DEBUG("SignalShapingDUNE") << " Done.";
 
  //normalize fElectResponse[i], before the convolution   
   
@@ -590,9 +584,11 @@ void util::SignalShapingServiceDUNE35t::SetElectResponse(double shapingtime, dou
 }
 
 
+
+
 //----------------------------------------------------------------------
 // Calculate microboone filter functions.
-void util::SignalShapingServiceDUNE35t::SetFilters()
+void util::SignalShapingServiceDUNE::SetFilters()
 {
   // Get services.
 
@@ -607,7 +603,7 @@ void util::SignalShapingServiceDUNE35t::SetFilters()
   fColFilter.resize(n+1);
   fIndUFilter.resize(n+1);
   fIndVFilter.resize(n+1);
-  
+
   if(!fGetFilterFromHisto)
   {
   fColFilterFunc->SetRange(0, double(n));
@@ -621,17 +617,16 @@ void util::SignalShapingServiceDUNE35t::SetFilters()
 
   // Calculate induction filter.
 
- 
   fIndUFilterFunc->SetRange(0, double(n));
-
+  
   for(int i=0; i<=n; ++i) {
     double freq = 500. * i / (ts * n);      // Cycles / microsecond.
     double f = fIndUFilterFunc->Eval(freq);
     fIndUFilter[i] = TComplex(f, 0.);
-    }
+  }
   
   fIndVFilterFunc->SetRange(0, double(n));
-
+  
   for(int i=0; i<=n; ++i) {
     double freq = 500. * i / (ts * n);      // Cycles / microsecond.
     double f = fIndVFilterFunc->Eval(freq);
@@ -652,17 +647,16 @@ void util::SignalShapingServiceDUNE35t::SetFilters()
     }
   }
   
-  // fIndUSignalShaping.AddFilterFunction(fIndUFilter);
-  // fIndVSignalShaping.AddFilterFunction(fIndVFilter);
-  // fColSignalShaping.AddFilterFunction(fColFilter);
+  //fIndUSignalShaping.AddFilterFunction(fIndFilter);
+  //fIndVSignalShaping.AddFilterFunction(fIndVFilter);
+  //fColSignalShaping.AddFilterFunction(fColFilter);
   
 }
-
 
 //----------------------------------------------------------------------
 // Sample microboone response (the convoluted field and electronic
 // response), will probably add the filter later
-void util::SignalShapingServiceDUNE35t::SetResponseSampling()
+void util::SignalShapingServiceDUNE::SetResponseSampling()
 {
   // Get services
   art::ServiceHandle<geo::Geometry> geo;
@@ -740,29 +734,7 @@ void util::SignalShapingServiceDUNE35t::SetResponseSampling()
     default: fColSignalShaping.AddResponseFunction( SamplingResp, true ); break;
     }
 
-    if (fDebugFieldShape){
-      if (iplane == 0){
-	std::ofstream outfile("resutest.txt");
-	for (size_t i = 0; i<SamplingResp.size(); ++i){
-	  outfile<<i<<" "<<SamplingResp[i]<<std::endl;
-	}
-	outfile.close();
-      }
-      else if (iplane==1){
-	std::ofstream outfile("resvtest.txt");
-	for (size_t i = 0; i<SamplingResp.size(); ++i){
-	  outfile<<i<<" "<<SamplingResp[i]<<std::endl;
-	}
-	outfile.close();
-      }
-      else if (iplane==2){
-	std::ofstream outfile("resztest.txt");
-	for (size_t i = 0; i<SamplingResp.size(); ++i){
-	  outfile<<i<<" "<<SamplingResp[i]<<std::endl;
-	}
-	outfile.close();
-      }
-    }   
+   
 
   } // for ( int iplane = 0; iplane < fNPlanes; iplane++ )
 
@@ -771,7 +743,7 @@ void util::SignalShapingServiceDUNE35t::SetResponseSampling()
 
 
 
-int util::SignalShapingServiceDUNE35t::FieldResponseTOffset(unsigned int const channel) const
+int util::SignalShapingServiceDUNE::FieldResponseTOffset(unsigned int const channel) const
 {
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
@@ -788,9 +760,9 @@ int util::SignalShapingServiceDUNE35t::FieldResponseTOffset(unsigned int const c
   else if(view == geo::kZ)
     time_offset = fFieldResponseTOffset.at(2) + fCalibResponseTOffset.at(2); 
   else
-    throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
+    throw cet::exception("SignalShapingServiceDUNEt")<< "can't determine"
 						       << " View\n";
- 
+
   auto tpc_clock = lar::providerFrom<detinfo::DetectorClocksService>()->TPCClock();
   return tpc_clock.Ticks(time_offset/1.e3);
   
@@ -799,6 +771,6 @@ int util::SignalShapingServiceDUNE35t::FieldResponseTOffset(unsigned int const c
 
 namespace util {
 
-  DEFINE_ART_SERVICE(SignalShapingServiceDUNE35t)
+  DEFINE_ART_SERVICE(SignalShapingServiceDUNE)
 
 }
