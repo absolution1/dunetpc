@@ -454,13 +454,9 @@
       <positionref ref="posCenter"/>
     </subtraction>
 
-    <cutTube name="BeamWindowFoam2" rmin="0" rmax="25/2" z="82.1956346295326" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
+    <cutTube name="BeamWindowFoam2" rmin="0" rmax="25/2" z="82.1956346295326+0.1" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
-    <cutTube name="BeamWindowSteelSupp2" rmin="0" rmax="25/2" z="64.6852864001835" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
-
-    <cutTube name="BWOSFo2" rmin="0" rmax="25/2" z="64.6852864001835+82.1956346295326" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
-
-    <cutTube name="BWISFo2" rmin="0" rmax="24.96/2" z="146.839720210353" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
+    <cutTube name="BeamWindowSteelSupp2" rmin="0" rmax="25/2" z="64.6852864001835+0.1" startphi="0" deltaphi="360" lowX="-0.239669734044" lowY="0" lowZ="-0.970854478582" highX="0.239669734044" highY="0" highZ="0.970854478582" aunit="deg" lunit="cm"/>
 
     <subtraction name="FoamPadding">
       <first ref="FoamPaddingNoBW"/>
@@ -2173,20 +2169,6 @@
       <solidref ref="SteelSupport"/>
     </volume>
 
-    <volume name="volBeamWInPM">
-      <materialref ref="NiGas" />
-      <solidref ref="BWISFo2"/>
-    </volume>
-
-    <volume name="volBeamWOutPM">
-      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
-      <solidref ref="BWOSFo2"/>
-       <physvol>
-           <volumeref ref="volBeamWInPM"/>
-           <positionref ref="posCenter"/>
-       </physvol>
-    </volume>
-
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
@@ -2202,11 +2184,6 @@
        <physvol>
            <volumeref ref="volCryostat"/>
            <positionref ref="posCryoInDetEnc"/>
-       </physvol>
-       <physvol>
-           <volumeref ref="volBeamWOutPM"/>
-           <positionref ref="posBeamWInDetEncl2"/>
-           <rotationref ref="rBeamWRev2"/>
        </physvol>
     </volume>
 
