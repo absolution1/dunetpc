@@ -121,7 +121,7 @@ dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
 protodune_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protoDune_geo
+ Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
  DetectorPropertiesService:    @local::dunefd_detproperties
  LArPropertiesService:         @local::dunefd_properties
@@ -137,7 +137,7 @@ protodune_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protoDune_geo
+ Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
  DetectorPropertiesService:    @local::dunefd_detproperties
  LArPropertiesService:         @local::dunefd_properties
