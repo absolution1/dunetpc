@@ -1,0 +1,54 @@
+BEGIN_PROLOG
+
+dune35t_analysistree:
+{ 
+ module_type:                 "AnalysisTree"
+ DigitModuleLabel:            "daq"
+ HitsModuleLabel:             "gaushit"
+ LArGeantModuleLabel:         "largeant"
+ CalDataModuleLabel:          "caldata"
+ GenieGenModuleLabel:         "generator"
+ CryGenModuleLabel:           "generator"
+ G4ModuleLabel:               "largeant"
+ TrackModuleLabel:            [ "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
+ VertexModuleLabel:           [ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
+ PandoraNuVertexModuleLabel:  "pandoraNu"
+ ClusterModuleLabel:          "linecluster"
+ OpFlashModuleLabel:          "opflash"
+ ExternalCounterModuleLabel:    "simcounter"
+ MCShowerModuleLabel:         ""          # Don't have in the 35 ton....
+ MCTrackModuleLabel:          ""          # Don't have in the 35 ton....
+ CalorimetryModuleLabel:      [ "pmtrackcalo", "pmtrackcalodc", "pandoracalo", "pandoracalodc" ]
+ ParticleIDModuleLabel:       [ "", "", "", "" ]
+ FlashT0FinderLabel:          [ "photont0pmtrack", "photont0pmtrackcd", "photont0pandora", "photont0pandoradc" ]
+ MCT0FinderLabel:             [ "mctrutht0pmtrack", "mctrutht0pmtrackdc", "mctrutht0pandora", "mctrutht0pandoradc" ]
+ #ShowerModuleLabel:          [ "mergeemshower3d", "mergeemshower3ddc" ]
+ ShowerModuleLabel:           [ "" ] # I didn't run
+ CosmicClusterTaggerAssocLabel: ""   # Not used in 35 ton
+ CosmicTaggerAssocLabel:      [ "", "", "", "" ] # Not used in 35 ton
+ ContainmentTaggerAssocLabel: [ "", "", "", "" ] # Not used in 35 ton
+ FlashMatchAssocLabel:        [ "", "", "", "" ] # Not used in 35 ton
+ POTModuleLabel:              "generator"
+
+ UseBuffers:               false
+ IgnoreMissingShowers:     false
+ SaveAuxDetInfo:           false
+ SaveCryInfo:              true
+ SaveGenieInfo:            false # Don't have in the 35 ton
+ SaveGeantInfo:            true
+ SaveMCShowerInfo:         false # Don't have in the 35 ton 
+ SaveMCTrackInfo:          false # Don't have in the 35 ton
+ SaveHitInfo:              true
+ SaveRawDigitInfo:         false #set this to false by default since not everyone want rawdigits.
+ SaveTrackInfo:            true
+ SaveVertexInfo:           true 
+ SavePandoraNuVertexInfo:  false # Don't have in the 35 ton
+ SaveClusterInfo:          true
+ SaveFlashInfo:            true
+ SaveExternCounterInfo:    true
+ SaveShowerInfo:           false # I didn't run
+ SaveCaloCosmics:          false # Don't have in the 35 ton
+ G4minE:                   0.01
+}
+
+END_PROLOG

@@ -212,20 +212,13 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     // Apply the filter...    
     for (size_t bin = 0; bin < NADC; ++bin) {
       double freq = 2000. * bin / NADC;
-      if (Channel != 3) continue;
       if (view == geo::kU) { // U plane 
-	//Re[bin] = Re[bin] * 1. * (1.-1./(1.+exp(-(freq-105.)/19.))) * (1./(1.+exp(-(freq-18.)/10.)));
-	//Im[bin] = Im[bin] * 1. * (1.-1./(1.+exp(-(freq-105.)/19.))) * (1./(1.+exp(-(freq-18.)/10.)));
 	Re[bin] = Re[bin]*fIndUFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fIndUFilterFunc->Eval(freq);
       } else if ( view == geo::kV) { // V plane
-	//Re[bin] = Re[bin] * 0.95 * (1.-1./(1.+exp(-(freq-125.)/19.))) * (1./(1.+exp(-(freq-10.)/10.9)));
-	//Im[bin] = Im[bin] * 0.95 * (1.-1./(1.+exp(-(freq-125.)/19.))) * (1./(1.+exp(-(freq-10.)/10.9)));
 	Re[bin] = Re[bin]*fIndVFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fIndVFilterFunc->Eval(freq);
       } else if ( view == geo::kZ) { // Collection plane
-	//Re[bin] = Re[bin] * 1. * (1.-1./(1.+exp(-(freq-150.)/25.)));
-	//Im[bin] = Im[bin] * 1. * (1.-1./(1.+exp(-(freq-150.)/25.)));
 	Re[bin] = Re[bin]*fColFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fColFilterFunc->Eval(freq);
       }
@@ -248,7 +241,8 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     hb = TH1::TransformHisto(fft_back, hb, "Re");
     std::vector<short> NewADC;
     for (int BinNum=0; BinNum<NBins; ++BinNum) {
-      NewADC.push_back( hb->GetBinContent(BinNum+1) / NBins );
+      short Val = rawDigitVector[DigLoop].GetPedestal() + hb->GetBinContent(BinNum+1) / NBins;
+      NewADC.push_back( Val);
     }
     raw::RawDigit theRawDigit( rawDigitVector[DigLoop].Channel(), NewADC.size(), NewADC );
     theRawDigit.SetPedestal( rawDigitVector[DigLoop].GetPedestal(), rawDigitVector[DigLoop].GetSigma());

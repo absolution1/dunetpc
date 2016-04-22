@@ -66,11 +66,15 @@ dunedphase10kt_geo:
  DisableWiresInG4:   true
 }
 
-
 dune10kt_workspace_geo: @local::dune10kt_geo
 dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
 dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
 dune10kt_workspace_geo.ROOT: "dune10kt_v1_workspace.gdml"
+
+dune10kt_1x2x6_geo: @local::dune10kt_geo
+dune10kt_1x2x6_geo.Name: "dune10kt_v1_1x2x6"
+dune10kt_1x2x6_geo.GDML: "dune10kt_v1_1x2x6.gdml"
+dune10kt_1x2x6_geo.ROOT: "dune10kt_v1_1x2x6.gdml"
 
 dunedphase10kt_workspace_geo: @local::dunedphase10kt_geo
 dunedphase10kt_workspace_geo.Name: "dunedphase10kt_v2_workspace"
@@ -82,10 +86,21 @@ dune10kt_45deg_workspace_geo.Name: "dune10kt_v1_45deg_workspace"
 dune10kt_45deg_workspace_geo.GDML: "dune10kt_v1_45deg_workspace.gdml"
 dune10kt_45deg_workspace_geo.ROOT: "dune10kt_v1_45deg_workspace.gdml"
 
+dune10kt_45deg_1x2x6_geo: @local::dune10kt_geo
+dune10kt_45deg_1x2x6_geo.Name: "dune10kt_v1_45deg_1x2x6"
+dune10kt_45deg_1x2x6_geo.GDML: "dune10kt_v1_45deg_1x2x6.gdml"
+dune10kt_45deg_1x2x6_geo.ROOT: "dune10kt_v1_45deg_1x2x6.gdml"
+
+
 dune10kt_3mmpitch_workspace_geo: @local::dune10kt_geo
 dune10kt_3mmpitch_workspace_geo.Name: "dune10kt_v1_3mmpitch_workspace"
 dune10kt_3mmpitch_workspace_geo.GDML: "dune10kt_v1_3mmpitch_workspace.gdml"
 dune10kt_3mmpitch_workspace_geo.ROOT: "dune10kt_v1_3mmpitch_workspace.gdml"
+
+dune10kt_3mmpitch_1x2x6_geo: @local::dune10kt_geo
+dune10kt_3mmpitch_1x2x6_geo.Name: "dune10kt_v1_3mmpitch_1x2x6"
+dune10kt_3mmpitch_1x2x6_geo.GDML: "dune10kt_v1_3mmpitch_1x2x6.gdml"
+dune10kt_3mmpitch_1x2x6_geo.ROOT: "dune10kt_v1_3mmpitch_1x2x6.gdml"
 
 protodune_geo: @local::dune10kt_geo
 protodune_geo.Name: "protodune" # will be made lower case anyway
@@ -94,13 +109,13 @@ protodune_geo.ROOT: "protodune_v2.gdml"
 
 dune35t_geo:
 {
- Name:     "dune35t4apa_v5"
+ Name:     "dune35t4apa_v6"
 
  # Choose GDML file and set detector version similarly
- GDML:         "dune35t4apa_v5.gdml"
- ROOT:         "dune35t4apa_v5.gdml"
+ GDML:         "dune35t4apa_v6.gdml"
+ ROOT:         "dune35t4apa_v6.gdml"
  SortingParameters: { 
-   DetectorVersion: "dune35t4apa_v5" 
+   DetectorVersion: "dune35t4apa_v6" 
  } 
 
  SurfaceY:           0.0e2               #in cm, vertical distance to the surface
