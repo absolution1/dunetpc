@@ -204,7 +204,7 @@ namespace dune {
       HitData_t<Float_t>      trkdedx;
       HitData_t<Float_t>      trkdqdx;
       HitData_t<Float_t>      trkresrg;
-      HitData_t<Float_t>      trktpc;
+      HitData_t<Int_t>        trktpc;
       HitCoordData_t<Float_t> trkxyz;
 
       // more track info
@@ -1532,7 +1532,7 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
     FillWith(trkdedx[iTrk], 0.);
     FillWith(trkdqdx[iTrk], 0.);
     FillWith(trkresrg[iTrk], 0.);
-    FillWith(trktpc[iTrk], 0.);
+    FillWith(trktpc[iTrk], -1);
     FillWith(trkxyz[iTrk], 0.);
  
     FillWith(trkpidpdg[iTrk]    , -1);
@@ -1633,7 +1633,7 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
     CreateBranch(BranchName, trkresrg, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/F");
 
     BranchName = "trktpc_" + TrackLabel;
-    CreateBranch(BranchName, trktpc, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/F");
+    CreateBranch(BranchName, trktpc, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/I");
     
     BranchName = "trkxyz_" + TrackLabel;
     CreateBranch(BranchName, trkxyz, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "[3]" + "/F");
