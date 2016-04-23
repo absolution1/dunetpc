@@ -47,8 +47,8 @@ dune35t_analysistree:
  SaveFlashInfo:            true
  SaveExternCounterInfo:    true
  SaveShowerInfo:           false # I didn't run
- SaveCaloCosmics:          false # Don't have in the 35 ton
- G4minE:                   0.01
+ SaveCaloCosmics:          true
+ G4minE:                   -1
 }
 
 protodune_analysistree:   @local::dune35t_analysistree
