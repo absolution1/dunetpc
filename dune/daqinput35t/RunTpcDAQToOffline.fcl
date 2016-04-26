@@ -32,6 +32,7 @@ services: {
   Timing:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
+  TFileService: { fileName: "FlatDAQTree.root" }
 }
 
 outputs:

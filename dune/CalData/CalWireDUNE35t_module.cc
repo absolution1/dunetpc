@@ -40,7 +40,7 @@
 #include "lardata/RecoBaseArt/WireCreator.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "dune/Utilities/SignalShapingServiceDUNE35t.h"
+#include "dune/Utilities/SignalShapingServiceDUNE.h"
 
 using std::cout;
 using std::endl;
@@ -148,7 +148,7 @@ namespace caldata {
     int transformSize = fFFT->FFTSize();
 
     // Get signal shaping service.
-    art::ServiceHandle<util::SignalShapingServiceDUNE35t> sss;
+    art::ServiceHandle<util::SignalShapingServiceDUNE> sss;
     double DeconNorm = sss->GetDeconNorm();
 
     // make a collection of Wires
