@@ -170,20 +170,20 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     //	      << std::endl;
     
     // Fill the RawDigit histogram for this histogram.
-    TH1F* hRawDigit = new TH1F("hRawDigit","",NADC,0,NADC/2);
-    TH1F* hRawFFT   = new TH1F("hRawFFT"  ,"",NADC,0,NADC);
+    TH1F hRawDigit("hRawDigit","",NADC,0,NADC/2);
+    TH1F hRawFFT("hRawFFT"  ,"",NADC,0,NADC);
     for (size_t ADCs=0; ADCs < NADC; ++ADCs) {
-      hRawDigit -> SetBinContent( ADCs+1, rawDigitVector[DigLoop].ADC(ADCs)-Pedestal );
+      hRawDigit.SetBinContent( ADCs+1, rawDigitVector[DigLoop].ADC(ADCs)-Pedestal );
     }
     for (size_t ww=NADC; ww<NADC; ++ww)
-      hRawFFT -> SetBinContent( ww, 0 );
+      hRawFFT.SetBinContent( ww, 0 );
     // Make the FFT for this channel.
-    hRawDigit -> FFT( hRawFFT ,"MAG");
+    hRawDigit.FFT( (&hRawFFT) ,"MAG");
     for (size_t bin = 0; bin < NADC; ++bin) {
-      double BinVal = hRawFFT->GetBinContent(bin+1);
+      double BinVal = hRawFFT.GetBinContent(bin+1);
       double freq = 2000. * bin / (double)NADC;
       if (freq < 1000 && BinVal < 1e5 && fMakeTree) {
-	RawFFT -> Fill( (Channel-0.5) , freq, BinVal );
+	RawFFT->Fill( (Channel-0.5) , freq, BinVal );
       }
     }
       
@@ -191,6 +191,7 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     double Re[NADC], Im[NADC];
     TVirtualFFT *fft = TVirtualFFT::GetCurrentTransform();
     fft->GetPointsComplex(Re,Im);
+    delete fft;
     
     // Set the noisy frequency range bins to an average value.
     for (size_t aa=0; aa<ZeroFreq.size(); ++aa) {
@@ -239,6 +240,7 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     fft_back->Transform();
     TH1 *hb=0;
     hb = TH1::TransformHisto(fft_back, hb, "Re");
+    delete fft_back;
     std::vector<short> NewADC;
     for (int BinNum=0; BinNum<NBins; ++BinNum) {
       short Val = rawDigitVector[DigLoop].GetPedestal() + hb->GetBinContent(BinNum+1) / NBins;
