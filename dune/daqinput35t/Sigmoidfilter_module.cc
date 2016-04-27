@@ -87,8 +87,19 @@ private:
 
 //-------------------------------------------------------------------
 lbne::Sigmoidfilter::Sigmoidfilter(fhicl::ParameterSet const& pset) {
+  std::string colFilt               = pset.get<std::string>("ColFilter");
+  fColFilterFunc = new TF1("colFilter", colFilt.c_str());
+
+  std::string indUFilt               = pset.get<std::string>("IndUFilter");
+  fIndUFilterFunc = new TF1("indUFilter", indUFilt.c_str());
+
+  std::string indVFilt               = pset.get<std::string>("IndVFilter");
+  fIndVFilterFunc = new TF1("indVFilter", indVFilt.c_str());
+
+
   this->reconfigure(pset);
   produces<std::vector<raw::RawDigit> >();
+
 }
 
 //-------------------------------------------------------------------
@@ -102,21 +113,21 @@ void lbne::Sigmoidfilter::reconfigure(fhicl::ParameterSet const& pset) {
   fMakeTree            = pset.get<bool>("MakeTree");
 
   // Make the filter functions.
-  std::string colFilt               = pset.get<std::string>("ColFilter");
+  //std::string colFilt               = pset.get<std::string>("ColFilter");
   std::vector<double> colFiltParams = pset.get<std::vector<double> >("ColFilterParams");
-  fColFilterFunc = new TF1("colFilter", colFilt.c_str());
+  //fColFilterFunc = new TF1("colFilter", colFilt.c_str());
   for(unsigned int i=0; i<colFiltParams.size(); ++i)
     fColFilterFunc->SetParameter(i, colFiltParams[i]);
     
-  std::string indUFilt               = pset.get<std::string>("IndUFilter");
+  //std::string indUFilt               = pset.get<std::string>("IndUFilter");
   std::vector<double> indUFiltParams = pset.get<std::vector<double> >("IndUFilterParams");
-  fIndUFilterFunc = new TF1("indUFilter", indUFilt.c_str());
+  //fIndUFilterFunc = new TF1("indUFilter", indUFilt.c_str());
   for(unsigned int i=0; i<indUFiltParams.size(); ++i)
     fIndUFilterFunc->SetParameter(i, indUFiltParams[i]);
 
-  std::string indVFilt               = pset.get<std::string>("IndVFilter");
+  //std::string indVFilt               = pset.get<std::string>("IndVFilter");
   std::vector<double> indVFiltParams = pset.get<std::vector<double> >("IndVFilterParams");
-  fIndVFilterFunc = new TF1("indVFilter", indVFilt.c_str());
+  //fIndVFilterFunc = new TF1("indVFilter", indVFilt.c_str());
   for(unsigned int i=0; i<indVFiltParams.size(); ++i)
     fIndVFilterFunc->SetParameter(i, indVFiltParams[i]);
 }
@@ -246,6 +257,7 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
       short Val = rawDigitVector[DigLoop].GetPedestal() + hb->GetBinContent(BinNum+1) / NBins;
       NewADC.push_back( Val);
     }
+    delete hb;
     raw::RawDigit theRawDigit( rawDigitVector[DigLoop].Channel(), NewADC.size(), NewADC );
     theRawDigit.SetPedestal( rawDigitVector[DigLoop].GetPedestal(), rawDigitVector[DigLoop].GetSigma());
     filterRawDigitVector.push_back( theRawDigit );
