@@ -250,7 +250,7 @@ void DAQToOffline::SSPDiagnosticAna::endRun(art::Run const &run)
     { // Calculate leading-edge amplitude per photoelectron
       int nDiffs(0);
       int nPeaks = specAnalyzer->Search( PulseAmplitudePerChannel[i], 1.5/*sigma*/, "", 0.001 );
-      float *peaks = specAnalyzer->GetPositionX(); // ordered by height!
+      double *peaks = specAnalyzer->GetPositionX(); // ordered by height!
       std::vector<float> peakVec;
       for ( int p = 0; p < nPeaks; ++p ) peakVec.push_back(peaks[p]);
       std::sort(peakVec.begin(),peakVec.end());
@@ -268,7 +268,7 @@ void DAQToOffline::SSPDiagnosticAna::endRun(art::Run const &run)
     { // Calculate integrated charge per photoelectron
       int nDiffs(0);
       int nPeaks = specAnalyzer->Search( IntegratedChargePerChannel[i], 2.5/*sigma*/, "", 0.001 );
-      float *peaks = specAnalyzer->GetPositionX(); // ordered by height!
+      double *peaks = specAnalyzer->GetPositionX(); // ordered by height!
       std::vector<float> peakVec;
       for ( int p = 0; p < nPeaks; ++p ) peakVec.push_back(peaks[p]);
       std::sort(peakVec.begin(),peakVec.end());
