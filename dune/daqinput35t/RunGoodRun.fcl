@@ -1,13 +1,13 @@
 #include "services_dune.fcl"
 #include "SSPToOffline.fcl"
-#include "CheckTiming.fcl"
+#include "GoodRun.fcl"
 
 process_name: CheckTime
 
 services: {
   user:         @local::dune35t_services
   message:      @local::dune_message_services_prod_debug
-  TFileService: { fileName: "TimingCheck_hist.root" }
+  TFileService: { fileName: "GoodRun_hist.root" }
   TimeTracker:       {}
 }
 
@@ -15,11 +15,11 @@ physics:
 {
   analyzers:
   {
-    checktime: @local::check_timing
+    goodrun: @local::dune35t_goodrun
   }
 
   # Create path to run module
-  analyze: [ checktime ]
+  analyze: [ goodrun ]
 
   #output: [ out1 ]
   #trigger_paths: [ produce ]
@@ -31,7 +31,7 @@ outputs:
   out1:
   {
     module_type: RootOutput
-    fileName: "DAQToOffline.root"
+    fileName: "GoodRun.root"
   }
 }
 
@@ -39,5 +39,4 @@ source:
 {
   module_type: RootInput
   maxEvents: 1000
-  fileNames: [ "/lbne/data2/users/wallbank/lbne_r000730_sr01_20150317T160905.root" ]
 }

@@ -21,6 +21,8 @@ util::SignalShapingServiceDUNE10kt::SignalShapingServiceDUNE10kt(const fhicl::Pa
 								    art::ActivityRegistry& /* reg */) 
   : fInit(false)
 {
+  // This class is deprecated. See https://cdcvs.fnal.gov/redmine/issues/11777.
+  mf::LogInfo("SignalShapingServiceDUNE10kt") << "Deprecated: Consider using SignalShapingServiceDUNE";
   reconfigure(pset);
 }
 

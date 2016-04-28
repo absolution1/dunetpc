@@ -25,8 +25,7 @@ dune35t_geo(TString volName="")
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
 
-  //TGeoManager::Import("dune35t4apa_v5.gdml");
-  TGeoManager::Import("dune35t4apa_v4_nowires.gdml");
+  TGeoManager::Import("dune35t4apa_v6_nowires.gdml");
   gGeoManager->DefaultColors();
 
   //for (int i=0;; ++i) 
@@ -218,7 +217,7 @@ gGeoManager->FindVolumeFast("volAPAFrameZSide-3")->SetLineColor(14);
   //gGeoManager->FindVolumeFast("volDetEnclosure")->Draw("ogl");
   gGeoManager->FindVolumeFast("volWorld")->Draw("ogl");
   //gGeoManager->FindVolumeFast("volWorld")->Draw("");
-  //gGeoManager->FindVolumeFast("volTPCLargestShortDrift")->Draw("ogl");
+  //gGeoManager->FindVolumeFast("volTPCLargestShortDriftUpstream")->Draw("ogl");
 
 
 

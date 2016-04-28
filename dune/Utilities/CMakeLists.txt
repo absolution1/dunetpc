@@ -22,6 +22,11 @@ set( dune_util_lib_list lardata_Utilities_LArFFT_service
     )
 
 
+simple_plugin( SignalShapingServiceDUNE  "service"
+               ${dune_util_lib_list}
+	       BASENAME_ONLY
+        )
+
 simple_plugin( SignalShapingServiceDUNE10kt  "service"
                ${dune_util_lib_list}
 	       BASENAME_ONLY

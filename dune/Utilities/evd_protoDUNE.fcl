@@ -1,2 +1,2 @@
 #include "evd_dune.fcl"
-services.user.Geometry: @local::protoDune_geo
+services.user.Geometry: @local::protodune_geo

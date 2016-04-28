@@ -175,8 +175,8 @@ namespace AnalysisExample{
     unsigned int Z1ChMax;
     TH2I* TempHisto;
 
-	std::ofstream outfile;
-	outfile.open("msglog.txt");
+    std::ofstream outfile;
+    outfile.open("msglog.txt");
 
     // loop through channels in the first APA to find the channel boundaries for each view
     // will adjust for desired APA after
