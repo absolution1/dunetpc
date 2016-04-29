@@ -80,6 +80,43 @@ namespace triggersim {
   }
 
 
+
+  //----------------------------------------------------------------------
+  void BasicTrigger::setMetrics(std::vector<double> metrics)
+  {
+    fMetrics = metrics;
+  }
+
+
+
+  //----------------------------------------------------------------------
+  void BasicTrigger::setMetric(double metric)
+  {
+    fMetrics.push_back(metric);
+  }
+
+
+
+  //----------------------------------------------------------------------
+  std::vector<double> BasicTrigger::Metrics() const
+  {
+    return fMetrics;
+  }
+
+
+
+  //----------------------------------------------------------------------
+  double BasicTrigger::Metric(unsigned int i) const
+  {
+    if(fMetrics.size() > i) return fMetrics[i];
+    else {
+      std::cout << "\n\n\nWARNING!!! Requested metric index is larger than the size of fMetrics!!!\n\n\n";
+      return 0;
+    }
+  }
+
+
+
   //----------------------------------------------------------------------
   // ostream operator.
   //

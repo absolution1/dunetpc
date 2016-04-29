@@ -11,7 +11,8 @@
 
 <lcgdict>
 
-  <class name="triggersim::BasicTrigger"            ClassVersion="14" >
+  <class name="triggersim::BasicTrigger"            ClassVersion="15" >
+   <version ClassVersion="15" checksum="2148964458"/>
    <version ClassVersion="14" checksum="2398709385"/>
    <version ClassVersion="13" checksum="1245963813"/>
    <version ClassVersion="12" checksum="1570326036"/>
