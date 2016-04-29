@@ -1,0 +1,19 @@
+BEGIN_PROLOG
+
+dune35t_sigmoid:
+{
+  module_type:         "Sigmoidfilter"
+  DigitModuleLabel:    "SplitterInput"
+  DigitModuleInstance: "TPC"
+  MakeTree:            "false"
+
+  ColFilter:       "(x>1)*[0]*(1-1/(1+exp(-(x-[1])/[2])))"
+  ColFilterParams: [ 1, 150., 25. ]
+
+  IndUFilter:       "(x>30)*[0]*(1-1/(1+exp(-(x-[1])/[2])))*(1/(1+exp(-(x-[3])/[4])))"
+  IndUFilterParams: [ 1.0, 105., 19., 18., 10. ]
+  IndVFilter:       "(x>30)*[0]*(1-1/(1+exp(-(x-[1])/[2])))*(1/(1+exp(-(x-[3])/[4])))"
+  IndVFilterParams: [ 0.95, 125., 19., 10., 109. ] 
+}
+
+END_PROLOG
