@@ -87,8 +87,19 @@ private:
 
 //-------------------------------------------------------------------
 lbne::Sigmoidfilter::Sigmoidfilter(fhicl::ParameterSet const& pset) {
+  std::string colFilt               = pset.get<std::string>("ColFilter");
+  fColFilterFunc = new TF1("colFilter", colFilt.c_str());
+
+  std::string indUFilt               = pset.get<std::string>("IndUFilter");
+  fIndUFilterFunc = new TF1("indUFilter", indUFilt.c_str());
+
+  std::string indVFilt               = pset.get<std::string>("IndVFilter");
+  fIndVFilterFunc = new TF1("indVFilter", indVFilt.c_str());
+
+
   this->reconfigure(pset);
   produces<std::vector<raw::RawDigit> >();
+
 }
 
 //-------------------------------------------------------------------
@@ -102,21 +113,21 @@ void lbne::Sigmoidfilter::reconfigure(fhicl::ParameterSet const& pset) {
   fMakeTree            = pset.get<bool>("MakeTree");
 
   // Make the filter functions.
-  std::string colFilt               = pset.get<std::string>("ColFilter");
+  //std::string colFilt               = pset.get<std::string>("ColFilter");
   std::vector<double> colFiltParams = pset.get<std::vector<double> >("ColFilterParams");
-  fColFilterFunc = new TF1("colFilter", colFilt.c_str());
+  //fColFilterFunc = new TF1("colFilter", colFilt.c_str());
   for(unsigned int i=0; i<colFiltParams.size(); ++i)
     fColFilterFunc->SetParameter(i, colFiltParams[i]);
     
-  std::string indUFilt               = pset.get<std::string>("IndUFilter");
+  //std::string indUFilt               = pset.get<std::string>("IndUFilter");
   std::vector<double> indUFiltParams = pset.get<std::vector<double> >("IndUFilterParams");
-  fIndUFilterFunc = new TF1("indUFilter", indUFilt.c_str());
+  //fIndUFilterFunc = new TF1("indUFilter", indUFilt.c_str());
   for(unsigned int i=0; i<indUFiltParams.size(); ++i)
     fIndUFilterFunc->SetParameter(i, indUFiltParams[i]);
 
-  std::string indVFilt               = pset.get<std::string>("IndVFilter");
+  //std::string indVFilt               = pset.get<std::string>("IndVFilter");
   std::vector<double> indVFiltParams = pset.get<std::vector<double> >("IndVFilterParams");
-  fIndVFilterFunc = new TF1("indVFilter", indVFilt.c_str());
+  //fIndVFilterFunc = new TF1("indVFilter", indVFilt.c_str());
   for(unsigned int i=0; i<indVFiltParams.size(); ++i)
     fIndVFilterFunc->SetParameter(i, indVFiltParams[i]);
 }
@@ -170,20 +181,20 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     //	      << std::endl;
     
     // Fill the RawDigit histogram for this histogram.
-    TH1F* hRawDigit = new TH1F("hRawDigit","",NADC,0,NADC/2);
-    TH1F* hRawFFT   = new TH1F("hRawFFT"  ,"",NADC,0,NADC);
+    TH1F hRawDigit("hRawDigit","",NADC,0,NADC/2);
+    TH1F hRawFFT("hRawFFT"  ,"",NADC,0,NADC);
     for (size_t ADCs=0; ADCs < NADC; ++ADCs) {
-      hRawDigit -> SetBinContent( ADCs+1, rawDigitVector[DigLoop].ADC(ADCs)-Pedestal );
+      hRawDigit.SetBinContent( ADCs+1, rawDigitVector[DigLoop].ADC(ADCs)-Pedestal );
     }
     for (size_t ww=NADC; ww<NADC; ++ww)
-      hRawFFT -> SetBinContent( ww, 0 );
+      hRawFFT.SetBinContent( ww, 0 );
     // Make the FFT for this channel.
-    hRawDigit -> FFT( hRawFFT ,"MAG");
+    hRawDigit.FFT( (&hRawFFT) ,"MAG");
     for (size_t bin = 0; bin < NADC; ++bin) {
-      double BinVal = hRawFFT->GetBinContent(bin+1);
+      double BinVal = hRawFFT.GetBinContent(bin+1);
       double freq = 2000. * bin / (double)NADC;
       if (freq < 1000 && BinVal < 1e5 && fMakeTree) {
-	RawFFT -> Fill( (Channel-0.5) , freq, BinVal );
+	RawFFT->Fill( (Channel-0.5) , freq, BinVal );
       }
     }
       
@@ -191,6 +202,7 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     double Re[NADC], Im[NADC];
     TVirtualFFT *fft = TVirtualFFT::GetCurrentTransform();
     fft->GetPointsComplex(Re,Im);
+    delete fft;
     
     // Set the noisy frequency range bins to an average value.
     for (size_t aa=0; aa<ZeroFreq.size(); ++aa) {
@@ -213,18 +225,12 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     for (size_t bin = 0; bin < NADC; ++bin) {
       double freq = 2000. * bin / NADC;
       if (view == geo::kU) { // U plane 
-	//Re[bin] = Re[bin] * 1. * (1.-1./(1.+exp(-(freq-105.)/19.))) * (1./(1.+exp(-(freq-18.)/10.)));
-	//Im[bin] = Im[bin] * 1. * (1.-1./(1.+exp(-(freq-105.)/19.))) * (1./(1.+exp(-(freq-18.)/10.)));
 	Re[bin] = Re[bin]*fIndUFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fIndUFilterFunc->Eval(freq);
       } else if ( view == geo::kV) { // V plane
-	//Re[bin] = Re[bin] * 0.95 * (1.-1./(1.+exp(-(freq-125.)/19.))) * (1./(1.+exp(-(freq-10.)/10.9)));
-	//Im[bin] = Im[bin] * 0.95 * (1.-1./(1.+exp(-(freq-125.)/19.))) * (1./(1.+exp(-(freq-10.)/10.9)));
 	Re[bin] = Re[bin]*fIndVFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fIndVFilterFunc->Eval(freq);
       } else if ( view == geo::kZ) { // Collection plane
-	//Re[bin] = Re[bin] * 1. * (1.-1./(1.+exp(-(freq-150.)/25.)));
-	//Im[bin] = Im[bin] * 1. * (1.-1./(1.+exp(-(freq-150.)/25.)));
 	Re[bin] = Re[bin]*fColFilterFunc->Eval(freq);
 	Im[bin] = Im[bin]*fColFilterFunc->Eval(freq);
       }
@@ -245,11 +251,13 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     fft_back->Transform();
     TH1 *hb=0;
     hb = TH1::TransformHisto(fft_back, hb, "Re");
+    delete fft_back;
     std::vector<short> NewADC;
     for (int BinNum=0; BinNum<NBins; ++BinNum) {
       short Val = rawDigitVector[DigLoop].GetPedestal() + hb->GetBinContent(BinNum+1) / NBins;
       NewADC.push_back( Val);
     }
+    delete hb;
     raw::RawDigit theRawDigit( rawDigitVector[DigLoop].Channel(), NewADC.size(), NewADC );
     theRawDigit.SetPedestal( rawDigitVector[DigLoop].GetPedestal(), rawDigitVector[DigLoop].GetSigma());
     filterRawDigitVector.push_back( theRawDigit );

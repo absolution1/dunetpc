@@ -30,7 +30,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 #include "cetlib/exception.h"
 
-#include "dune/Utilities/SignalShapingServiceDUNE10kt.h"
+#include "dune/Utilities/SignalShapingServiceDUNE.h"
 #include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/Geometry.h"
 #include "larevt/Filters/ChannelFilter.h"
@@ -202,7 +202,7 @@ namespace calgaushf {
     art::ServiceHandle<geo::Geometry> geom;
 
     // Get signal shaping service.
-    art::ServiceHandle<util::SignalShapingServiceDUNE10kt> sss;
+    art::ServiceHandle<util::SignalShapingServiceDUNE> sss;
 
 
     //Gaussian hit finder initializations etc.
