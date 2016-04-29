@@ -28,8 +28,9 @@ namespace triggersim {
   public:
     
     // Constructor...
-    BasicTrigger(unsigned int trigtype = kNullTrigger,
-		 bool trigissued = false);
+    BasicTrigger(bool trigdecision = false,
+		 unsigned int trigtype = kNullTrigger,
+		 unsigned int trigsubtype = kNullTrigger);
     
     // Destructor...
     ~BasicTrigger();
@@ -37,6 +38,10 @@ namespace triggersim {
     // Set and Get functions for the trigger type
     void setTrigType(unsigned int trigtype);
     unsigned int TrigType() const;
+
+    // Set and Get functions for the trigger sub-type
+    void setTrigSubType(unsigned int trigsubtype);
+    unsigned int TrigSubType() const;
 
     // Set and Get functions for the trigger decision variable
     void setTrigDecision(bool trigdecision);
@@ -47,9 +52,10 @@ namespace triggersim {
 
   private:
     
-    // Parameters.
-    unsigned int fTrigType;
+    // Parameters:
     bool         fTrigDecision;
+    unsigned int fTrigType;
+    unsigned int fTrigSubType;
     
   };
 } // end namespace triggersim

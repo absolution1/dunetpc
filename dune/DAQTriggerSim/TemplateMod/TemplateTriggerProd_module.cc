@@ -96,7 +96,7 @@ void TemplateTriggerProd::produce(art::Event& e)
 
 
   // make the BasicTrigger object:
-  triggersim::BasicTrigger trig(triggersim::kProtonDecay,TT->Trigger(e));
+  triggersim::BasicTrigger trig(TT->Trigger(e),triggersim::kNucleon,triggersim::kProtonDecay);
   triggers->push_back(trig);
 
 
@@ -114,7 +114,7 @@ void TemplateTriggerProd::produce(art::Event& e)
 
 
   // make a TPC only trigger object:
-  triggersim::BasicTrigger tpctrig(triggersim::kBeamNu,TT->TPCTrigger(rawdigits));
+  triggersim::BasicTrigger tpctrig(TT->TPCTrigger(rawdigits),triggersim::kNu,triggersim::kNuBeam);
   triggers->push_back(tpctrig);
 
   // put the triggers into the event:

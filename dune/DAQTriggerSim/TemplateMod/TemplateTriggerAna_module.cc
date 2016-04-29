@@ -117,6 +117,7 @@ void TemplateTriggerAna::analyze(art::Event const & e)
 
     std::cout << "\n\nInfo for trigger " << i << ":"
 	      << "\nTrigger Type     = " << (*triggers)[i].TrigType()
+	      << "\nTrigger Sub-Type = " << (*triggers)[i].TrigSubType()
 	      << "\nTrigger Decision = " << (*triggers)[i].TrigDecision()
 	      << "\n\n\n";
 
