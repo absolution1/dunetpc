@@ -7,6 +7,7 @@
 #include "art/Framework/IO/Sources/SourceHelper.h"
 #include "art/Framework/IO/Sources/SourceTraits.h"
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
+#include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Persistency/Provenance/EventID.h"
 #include "art/Persistency/Provenance/MasterProductRegistry.h"
 #include "art/Persistency/Provenance/RunID.h"
@@ -57,6 +58,8 @@ using raw::OpDetWaveform;
 using raw::ExternalTrigger;
 using std::vector;
 using std::string;
+
+const int ArraySize = 500;
 
 // TODO:
 //  Handle cases of missing data products.  What if SSP or Penn or RCE data are just not there?
@@ -254,6 +257,10 @@ namespace {
       if (fDebugLevel > 3) std::cout << "Clearing LoadedDigits." << std::endl;
       digits.clear();
       empty(fDebugLevel);
+    }
+
+    unsigned int size() {
+      return digits.size();
     }
 
     // copy rawdigits to LoadedDigits and uncompress if necessary.
@@ -685,6 +692,7 @@ namespace DAQToOffline {
     MCTruth_t              mctruth_;
     MCSimChan_t            simchanbuf_;
     unsigned short         fTicksAccumulated;
+    unsigned int           fChansPresent = 0;
 
     bool                   fTrigger = false;
     bool                   fCheatPTBTrig = false;
@@ -701,6 +709,17 @@ namespace DAQToOffline {
     lbne::TpcNanoSlice::Header::nova_timestamp_t prev_timestamp=0;
 
     std::map<uint64_t,size_t> EventTreeMap;
+
+    TTree* fTree;
+    int AttemptedEvents;
+    int VoidedEvents;
+    int GoodEvents;
+    int GivenRunNum[ArraySize];
+    int GivenSubRunNum[ArraySize];
+    int GivenEventNum[ArraySize];
+    int TreeIndexStart[ArraySize];
+    int ChansAtStartOfEvent[ArraySize];
+    int ChansAtEndOfEvent[ArraySize];
 
     std::function<rawDigits_t(artdaq::Fragments const&,
 			      std::vector<std::pair< std::pair<unsigned int,unsigned int>, lbne::TpcNanoSlice::Header::nova_timestamp_t > > &,
@@ -987,7 +1006,21 @@ bool DAQToOffline::Splitter::readFile(string const& filename, art::FileBlock*& f
       << "Unable to open file " << filename << ".\n";
   }
 
-  //std::cout << "At the end of ReadFile" << std::endl;
+  art::ServiceHandle<art::TFileService> tfs;
+  fTree = tfs->make<TTree>("EventInfo","Split event information");
+  fTree->Branch("AttemptedEvents",&AttemptedEvents,"AttemptedEvents/I");
+  fTree->Branch("VoidedEvents"   ,&VoidedEvents   ,"VoidedEvents/I"   );
+  fTree->Branch("GoodEvents"     ,&GoodEvents     ,"GoodEvents/I"     );
+  fTree->Branch("GivenRunNum"        ,&GivenRunNum        ,"GivenRunNum[AttemptedEvents]/I"        );
+  fTree->Branch("GivenSubRunNum"     ,&GivenSubRunNum     ,"GivenSubRunNum[AttemptedEvents]/I"     );
+  fTree->Branch("GivenEventNum"      ,&GivenEventNum      ,"GivenEventNum[AttemptedEvents]/I"      );
+  fTree->Branch("TreeIndexStart"     ,&TreeIndexStart     ,"TreeIndexStart[AttemptedEvents]/I"     );
+  fTree->Branch("ChansAtStartOfEvent",&ChansAtStartOfEvent,"ChansAtStartOfEvent[AttemptedEvents]/I");
+  fTree->Branch("ChansAtEndOfEvent"  ,&ChansAtEndOfEvent  ,"ChansAtEndOfEvent[AttemptedEvents]/I"  );
+  
+  AttemptedEvents = VoidedEvents = GoodEvents = 0;
+  for (size_t q=0; q<ArraySize; ++q)
+    GivenRunNum[q] = GivenSubRunNum[q] = GivenEventNum[q] = TreeIndexStart[q] = ChansAtStartOfEvent[q] = ChansAtEndOfEvent[q] = 0;
 
   return true;
 }
@@ -1063,9 +1096,25 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
       // ******* Check that the time stamps lead on from one another!! ***********
       if ( loadedDigits_.digits.size() != 0 && loadedDigits_.digits[0].NADC() ) {
         if (fTrigger ) {
-	  CheckTimestamps( JumpEvent, JumpNADC ); // Check that the time stamps lead on from one another!!
-	}
-      }
+	  if (loadedDigits_.size() != fChansPresent) {
+	    if (fDebugLevel)
+	      std::cout << "\nThere are inconsistent numbers of digits between this millislice and the previous millislice: "
+			<< loadedDigits_.size() << " not " << fChansPresent << ". This means data is corrupted. Voiding this trigger."
+			<< std::endl;
+	    GivenRunNum[AttemptedEvents] = (int)runNumber_;
+	    GivenSubRunNum[AttemptedEvents] = (int)subRunNumber_;
+	    GivenEventNum[AttemptedEvents] = -1;
+	    TreeIndexStart[AttemptedEvents] = fLastEventIndex;
+	    ChansAtStartOfEvent[AttemptedEvents] = fChansPresent;
+	    ChansAtEndOfEvent[AttemptedEvents] = loadedDigits_.size();
+	    ++AttemptedEvents;
+	    ++VoidedEvents;
+	    Reset();
+	  } else {
+	    CheckTimestamps( JumpEvent, JumpNADC ); // Check that the time stamps lead on from one another!!
+	  } // If triggered and good digit consistency, check timestamps.
+	} // If triggered check digit consistency, and timestamps
+      } // If digits has size
     } // loadedDigits_.empty()
     
     if (NewTree) {
@@ -1108,9 +1157,10 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
         FirstDigEventIndex = EventIndex_ - 1;
 	FirstDigEvent      = inputEventNumber_;
         Event_timestamp    = this_timestamp;
+	fChansPresent      = nextdigits.size();
         if (fDebugLevel) {
 	  std::cout << "\nThe trigger is good so triggering on, EventIndex " << fLastEventIndex << " corresponding to event " << fLastEvent
-		    << ", loadedDigits_.index() " << fLastTriggerIndex << ", with timestamp " << fLastTimeStamp
+		    << ", loadedDigits_.index() " << fLastTriggerIndex << ", with timestamp " << fLastTimeStamp << ", there are " << fChansPresent << " digits in this event."
 		    << "\nThe first tick in this event is in EventIndex " << FirstDigEventIndex << ", event " << FirstDigEvent << ", loadedDigits index " << loadedDigits_.index
 		    << ". It has timestamp " << this_timestamp
 		    << std::endl;
@@ -1128,7 +1178,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
         for (size_t ichan=0;ichan<nextdigits.size();ichan++) dbuf_.push_back(emptyvector);
       }
       for (size_t ichan=0;ichan<nextdigits.size();ichan++) {
-        dbuf_[ichan].push_back(nextdigits[ichan]);
+	dbuf_[ichan].push_back(nextdigits[ichan]);
       }
       fTicksAccumulated ++;  
     } // If triggered on this tick!
@@ -1241,6 +1291,7 @@ bool DAQToOffline::Splitter::readNext(art::RunPrincipal*    const& inR,
 //=======================================================================================
 void DAQToOffline::Splitter::closeCurrentFile() {
   file_.reset(nullptr);
+  fTree->Fill();
 }
 
 //=======================================================================================
@@ -1471,8 +1522,15 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, 
     //				   sourceName_,
     //				   MCPartinputTag_.instance() );
   }
+  GivenRunNum[AttemptedEvents] = (int)runNumber_;
+  GivenSubRunNum[AttemptedEvents] = (int)subRunNumber_;
+  GivenEventNum[AttemptedEvents] = (int)eventNumber_;
+  TreeIndexStart[AttemptedEvents] = fLastEventIndex;
+  ChansAtStartOfEvent[AttemptedEvents] = fChansPresent;
+  ChansAtEndOfEvent[AttemptedEvents] = loadedDigits_.size();
+  ++AttemptedEvents;
+  ++GoodEvents;
   
-
   mf::LogDebug("SplitterFunc") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " RCE digits and " <<
     wbuf_.size() << " SSP waveforms, " << hbuf_.size() << " OpHits and " << cbuf_.size() << " External Triggers (muon counters)";
   Reset();
@@ -1489,6 +1547,7 @@ void DAQToOffline::Splitter::Reset() {
   fTicksAccumulated = 0; // No longer have any RCE data...
   fTrigger = false;      // Need to re-decide where to trigger
   fDiffFromLastTrig = 0; // Reset trigger counter.
+  fChansPresent = 0;
   if (fDebugLevel > 1) std::cout << "Resetting everything (dbuf, cbuf, wbuf, hbuf, Trigger, etc)" << std::endl;
 }
 //=======================================================================================
