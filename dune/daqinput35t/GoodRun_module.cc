@@ -29,6 +29,9 @@
 #include "TTree.h"
 #include "TH1D.h"
 
+const int MaxSamples  = 15000;
+const int MaxChannels = 2048;
+
 namespace DAQToOffline {
   class GoodRun;
 }
@@ -48,6 +51,7 @@ public:
 private:
 
   // Information for good run list histogram
+  TTree* fTree;
   int RunNumber;
   int TotEvents;
   int NumberOfRCEs;
@@ -61,9 +65,15 @@ private:
   int nPTBTrigsOn114;
   int nPTBTrigsOn115;
   int EvJustSSPs;
-  
-  TTree* fTree;
-  
+
+  TTree* FlatTree;
+  int Event;
+  int DigSize;
+  int NSamples;
+  float Channel[MaxChannels];
+  float ADCs[MaxChannels][MaxSamples];
+  float Pedestal[MaxChannels];
+    
   std::string fCounterModuleLabel, fWaveformModuleLabel, fRawDigitModuleLabel, fOpHitModuleLabel;
   
 };
@@ -91,6 +101,7 @@ DAQToOffline::GoodRun::~GoodRun() {
 void DAQToOffline::GoodRun::beginJob() {
   
   art::ServiceHandle<art::TFileService> tfs;
+  ///*  
   fTree = tfs->make<TTree>("RunList","RunList Information");
   fTree->Branch("RunNumber"      ,&RunNumber    );
   fTree->Branch("TotEvents"      ,&TotEvents    );
@@ -105,6 +116,16 @@ void DAQToOffline::GoodRun::beginJob() {
   fTree->Branch("nPTBTrigsOn114",&nPTBTrigsOn114);
   fTree->Branch("nPTBTrigsOn115",&nPTBTrigsOn115);
   fTree->Branch("EvJustSSPs"    ,&EvJustSSPs    );
+  //*/
+  /*
+  FlatTree = tfs->make<TTree>("FlatDigitTree","FlatDigitTree");
+  FlatTree->Branch("Event"   ,&Event   ,"Event/I"   );
+  FlatTree->Branch("NSamples",&NSamples,"NSamples/I");
+  FlatTree->Branch("DigSize" ,&DigSize, "DigSize/I" );
+  FlatTree->Branch("Channel" ,&Channel ,"Channel[DigSize]/F" );
+  FlatTree->Branch("Pedestal",&Pedestal,"Pedestal[DigSize]/F");
+  FlatTree->Branch("ADCs"    ,&ADCs    ,"ADCs[DigSize][15000]/F");
+  */
 }
 
 void DAQToOffline::GoodRun::beginRun(const art::Run & r) {
@@ -130,6 +151,22 @@ void DAQToOffline::GoodRun::analyze(art::Event const & evt)
   std::vector< art::Ptr< raw::RawDigit> > digits;
   if (evt.getByLabel(fRawDigitModuleLabel, externalRawDigitListHandle) )
     art::fill_ptr_vector(digits,externalRawDigitListHandle);
+
+  /*
+  Event = evt.event();
+  DigSize = digits.size();
+  NSamples = digits[0]->Samples();
+  for (int dig=0; dig<DigSize; ++dig ) {
+    int Chan = digits[dig]->Channel();
+    Channel[dig]  = Chan;
+    Pedestal[dig] = digits[dig]->GetPedestal();
+    for (int tick=0; tick<NSamples; ++tick) {
+      ADCs[dig][tick] = digits[dig]->ADC(tick);
+      //if (tick<5)std::cout << "Setting ADCs["<<dig<<"]["<<tick<<"] to " << ADCs[dig][tick] << " " << digits[dig]->ADC(tick) << std::endl;
+    }
+  }
+  if (digits.size()) FlatTree->Fill();
+  */
 
   // get raw::ExternalTriggers
   art::Handle< std::vector< raw::ExternalTrigger> > externalTriggerListHandle;
