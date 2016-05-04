@@ -8,8 +8,10 @@ dune35t_channel_status: {
 # implements IChannelStatusService
 service_provider: SimpleChannelStatusService
 
+#THIS IS A LIST OF OFFLINE CHANNEL NUMBERS WHICH SUFFER FROM BAD STUCK CODES, THEY CAN BE ADDED TO THE BAD CHANNEL LIST IF REQUIRED.
+#858, 861, 943, 952, 980, 1413, 1442, 1992
 #OFFLINE CHANNEL NUMBERS HIGHLIGHTED AS BAD BY DAN WAHL AND AARON. ALSO HAND SELECTED FROM THE EVENT DISPLAY. COLLECTION PLANE CORRECT
-#AS OF 05/02.
+#AS OF 05/03.
   BadChannels: [
     4,
    39,
@@ -91,8 +93,6 @@ service_provider: SimpleChannelStatusService
   853,
   854,
   855,
-  858,
-  861,
   884,
   886,
   887,
@@ -120,10 +120,7 @@ service_provider: SimpleChannelStatusService
   909,
   910,
   911,
-  943,
-  952,
   965,
-  980,
   992,
   993,
   1021,
@@ -137,11 +134,7 @@ service_provider: SimpleChannelStatusService
   1240,
   1259,
   1272,
-  1313,
-  1325,
-  1413,
   1440,
-  1442,
   1461,
   1486,
   1494,
@@ -250,7 +243,6 @@ service_provider: SimpleChannelStatusService
   1906,
   1907,
   1936,
-  1947,
   1950,
   1951,
   1952,
@@ -265,8 +257,6 @@ service_provider: SimpleChannelStatusService
   1961,
   1962,
   1963,
-  1976,
-  1992,
   2029,
   2034,
   2035,
