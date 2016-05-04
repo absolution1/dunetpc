@@ -3,7 +3,7 @@ BEGIN_PROLOG
 dune35t_t0counter:
 {
     module_type: "T0Counter"
-    SimCounterModuleLabel: "simcounter"
+    TriggerModuleLabel: "simcounter"
     ClockSpeedCounter: 31.25 # MHz
     CombinedTimeDelay: 160 # ns
     CoincidenceTolerance: 5 # num PENN board ticks
