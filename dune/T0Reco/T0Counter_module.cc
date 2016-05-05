@@ -92,7 +92,7 @@ private:
   double tick2Time(unsigned int t);
 
   // fhicl parameters
-  std::string fSimCounterModuleLabel;
+  std::string fTriggerModuleLabel;
   double fClockSpeedCounter;
   double fCombinedTimeDelay;
   int fCoincidenceTolerance;
@@ -125,7 +125,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 
 dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
-  : fSimCounterModuleLabel(p.get<std::string>("SimCounterModuleLabel")),
+  : fTriggerModuleLabel(p.get<std::string>("TriggerModuleLabel")),
     fClockSpeedCounter(p.get<double>("ClockSpeedCounter")), // MHz
     fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)), // ns
     fCoincidenceTolerance(p.get<int>("CoincidenceTolerance")), // num PENN board ticks
@@ -157,7 +157,7 @@ void dune::T0Counter::produce(art::Event & e)
   
   // get raw::ExternalTriggers
   art::Handle< std::vector< raw::ExternalTrigger> > externalTriggerListHandle;
-  if (!e.getByLabel(fSimCounterModuleLabel, externalTriggerListHandle) ) return;
+  if (!e.getByLabel(fTriggerModuleLabel, externalTriggerListHandle) ) return;
   std::vector< art::Ptr< raw::ExternalTrigger> > trigs;
   art::fill_ptr_vector(trigs,externalTriggerListHandle);
 

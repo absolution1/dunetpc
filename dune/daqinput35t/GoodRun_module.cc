@@ -22,12 +22,15 @@
 #include "lardata/RawData/OpDetWaveform.h"
 #include "lardata/RecoBase/OpHit.h"
 
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
+
 #include <memory>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include "TTree.h"
-#include "TH1D.h"
+#include "TH2D.h"
 
 const int MaxSamples  = 15000;
 const int MaxChannels = 2048;
@@ -56,6 +59,7 @@ private:
   int TotEvents;
   int NumberOfRCEs;
   double FracRCEs;
+  double AvADCPedDiff;
   double FracWaveforms;
   double FracOpHits;
   int nPTBTrigsOn110;
@@ -66,6 +70,10 @@ private:
   int nPTBTrigsOn115;
   int EvJustSSPs;
 
+  //TH2D* ADCDiff;
+  //TH2D* ADCPed;
+
+  /*
   TTree* FlatTree;
   int Event;
   int DigSize;
@@ -73,7 +81,7 @@ private:
   float Channel[MaxChannels];
   float ADCs[MaxChannels][MaxSamples];
   float Pedestal[MaxChannels];
-    
+  */
   std::string fCounterModuleLabel, fWaveformModuleLabel, fRawDigitModuleLabel, fOpHitModuleLabel;
   
 };
@@ -103,10 +111,11 @@ void DAQToOffline::GoodRun::beginJob() {
   art::ServiceHandle<art::TFileService> tfs;
   ///*  
   fTree = tfs->make<TTree>("RunList","RunList Information");
-  fTree->Branch("RunNumber"      ,&RunNumber    );
-  fTree->Branch("TotEvents"      ,&TotEvents    );
-  fTree->Branch("NumberOfRCEs"   ,&NumberOfRCEs );
-  fTree->Branch("FracRCEs"       ,&FracRCEs     );
+  fTree->Branch("RunNumber"     ,&RunNumber     );
+  fTree->Branch("TotEvents"     ,&TotEvents     );
+  fTree->Branch("NumberOfRCEs"  ,&NumberOfRCEs  );
+  fTree->Branch("FracRCEs"      ,&FracRCEs      );
+  fTree->Branch("AvADCPedDiff"  ,&AvADCPedDiff  );
   fTree->Branch("FracWaveforms" ,&FracWaveforms );
   fTree->Branch("FracOpHits"    ,&FracOpHits    );
   fTree->Branch("nPTBTrigsOn110",&nPTBTrigsOn110);
@@ -117,6 +126,10 @@ void DAQToOffline::GoodRun::beginJob() {
   fTree->Branch("nPTBTrigsOn115",&nPTBTrigsOn115);
   fTree->Branch("EvJustSSPs"    ,&EvJustSSPs    );
   //*/
+
+  //ADCDiff = tfs->make<TH2D>("ADCDiff","Difference in average ADC value and pedestal; Channel number; Difference (ADCs)", 2049,0,2048, 400,-50,50);
+  //ADCPed  = tfs->make<TH2D>("ADCPed" ,"Comparison of Average ADC values, and pedestal; Average ADC; Pedestal", 1200, 400, 1000, 1200, 400, 1000);
+
   /*
   FlatTree = tfs->make<TTree>("FlatDigitTree","FlatDigitTree");
   FlatTree->Branch("Event"   ,&Event   ,"Event/I"   );
@@ -130,11 +143,8 @@ void DAQToOffline::GoodRun::beginJob() {
 
 void DAQToOffline::GoodRun::beginRun(const art::Run & r) {
 
-  RunNumber = TotEvents = NumberOfRCEs = FracRCEs = FracWaveforms = FracOpHits = nPTBTrigsOn110 = nPTBTrigsOn111 = nPTBTrigsOn112 = nPTBTrigsOn113 = nPTBTrigsOn114 = nPTBTrigsOn115 = EvJustSSPs = 0;
-  std::cout << "At the start of the run....going to reset all the variables. " 
-	    << RunNumber << " " << TotEvents << " " << NumberOfRCEs << " " << FracRCEs << " " << FracWaveforms << " " << FracOpHits << " " << nPTBTrigsOn110 << " " 
-	    << nPTBTrigsOn111 << " " << nPTBTrigsOn112 << " " << nPTBTrigsOn113 << " " << nPTBTrigsOn114 << " " << nPTBTrigsOn115 << " " << EvJustSSPs 
-	    << std::endl;
+  RunNumber = TotEvents = NumberOfRCEs = FracRCEs = AvADCPedDiff = FracWaveforms = FracOpHits = nPTBTrigsOn110 = nPTBTrigsOn111 = nPTBTrigsOn112 = nPTBTrigsOn113 = nPTBTrigsOn114 = nPTBTrigsOn115 = EvJustSSPs = 0;
+  std::cout << "At the start of the run....going to reset all the variables. " << std::endl;
 
 }
 
@@ -195,13 +205,46 @@ void DAQToOffline::GoodRun::analyze(art::Event const & evt)
   if (digits.size()) {
     RCEsPresent = true;
     ++FracRCEs;
-    if (NumberOfRCEs == 0) NumberOfRCEs = digits.size() / 128;
+    if (NumberOfRCEs == 0) {
+      NumberOfRCEs = digits.size() / 128;
+      
+      //GET THE LIST OF BAD CHANNELS.
+      lariov::ChannelStatusProvider const& channelStatus = art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+      lariov::ChannelStatusProvider::ChannelSet_t const BadChannels = channelStatus.BadChannels();
+      
+      for (size_t dig=0; dig<digits.size(); ++dig) {
+	double AvADC = 0;
+	unsigned int Channel = digits[dig]->Channel();
+	double Pedestal = digits[dig]->GetPedestal();
+	for (size_t samp=0; samp<digits[dig]->Samples(); ++samp)
+	  AvADC += digits[dig]->ADC(samp);
+	AvADC = AvADC / digits[dig]->Samples();
+	// Do I want to use this channel? Both AvADC and Pedestal, plus not a 'bad' channel...
+	bool UseChan = true;
+	if ( AvADC == 0 && Pedestal == 0)
+	  UseChan = false;
+	for (auto it = BadChannels.begin(); it != BadChannels.end(); it++) {
+	  if(Channel==*it) {
+	    UseChan = false;
+	    break;
+	  }
+	} // Loop through bad chans.
+	if ( UseChan ) {
+	  double ADCPedDiff = AvADC - Pedestal;
+	  //ADCDiff->Fill( Channel, ADCPedDiff );
+	  //ADCPed ->Fill( AvADC  , Pedestal   );
+	  AvADCPedDiff += fabs(ADCPedDiff);
+	} // If have data for this tick, ie not turned off.
+      } // Loop over digits
+      AvADCPedDiff = AvADCPedDiff / digits.size();
+    } // NumberOfRCEs == 0
   }
   
   // PTB
   if (trigs.size()) {
     //PTBPresent = true;
     for (size_t tr=0; tr<trigs.size(); ++tr) {
+      if (trigs[tr]->GetTrigID() < 100) continue;
       if (trigs[tr]->GetTrigID() == 110) ++nPTBTrigsOn110;
       if (trigs[tr]->GetTrigID() == 111) ++nPTBTrigsOn111;
       if (trigs[tr]->GetTrigID() == 112) ++nPTBTrigsOn112;
@@ -233,7 +276,7 @@ void DAQToOffline::GoodRun::endRun(const art::Run & r)
   FracWaveforms = FracWaveforms / TotEvents;
   FracOpHits    = FracOpHits / TotEvents;
   std::cout << "At the end of the run, I am putting the following into the TTree:\n"
-	    << RunNumber << " " << TotEvents << " " << NumberOfRCEs << " " << FracRCEs << " " << FracWaveforms << " " << FracOpHits << " "  
+	    << RunNumber << " " << TotEvents << " " << NumberOfRCEs << " " << FracRCEs << " " << AvADCPedDiff << " " << FracWaveforms << " " << FracOpHits << " "
 	    << nPTBTrigsOn110 << " " << nPTBTrigsOn111 << " " << nPTBTrigsOn112 << " " << nPTBTrigsOn113 << " " << nPTBTrigsOn114 << " " << nPTBTrigsOn115 << " " << EvJustSSPs 
 	    << std::endl;
   fTree->Fill();
