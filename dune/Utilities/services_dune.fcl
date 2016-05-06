@@ -38,7 +38,7 @@ dunefd_services: {
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
- SeedService:                  @local::dune_seedservice
+ LArSeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
 }
@@ -55,7 +55,7 @@ dunefd_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::dunefd_backtracker
- SeedService:                  @local::dune_seedservice
+ LArSeedService:                  @local::dune_seedservice
  LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
@@ -71,7 +71,7 @@ dunefddphase_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
- SeedService:                    @local::dune_seedservice 
+ LArSeedService:                    @local::dune_seedservice 
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dunefddphase_detproperties
@@ -87,7 +87,7 @@ dunefddphase_simulation_services: {
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag
  BackTracker:                    @local::dunefd_backtracker
- SeedService:                    @local::dune_seedservice
+ LArSeedService:                    @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::dunefd_opdetresponse
  ChannelStatusService:           @local::dunefd_channel_status
@@ -129,7 +129,7 @@ protodune_services: {
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
- SeedService:                  @local::dune_seedservice
+ LArSeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status 
 }
@@ -146,7 +146,7 @@ protodune_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::dunefd_backtracker
- SeedService:                  @local::dune_seedservice
+ LArSeedService:                  @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
@@ -182,7 +182,7 @@ dune35t_basic_services: {
  DetectorPropertiesService:    @local::dune35t_detproperties
  LArPropertiesService:         @local::dune35t_properties
  DatabaseUtil:                 @local::dune35t_database
- SeedService:                  @local::dune_seedservice
+ LArSeedService:                  @local::dune_seedservice
  ChannelStatusService:         @local::dune35t_channel_status
  ChannelMapService:            @local::channelmap35t
 }
@@ -252,7 +252,7 @@ dune35t_detsim_services.LArPropertiesService.ScintPreScale:      0.0023
 
 dune35t_simulation_services:                                      @local::dune35t_g4_services
 dune35t_simulation_services.LArFFT:                               @local::dune35t_larfft
-dune35t_simulation_services.SignalShapingServiceDUNE35t:          @local::dune35t_signalshapingservice
+dune35t_simulation_services.SignalShapingServiceDUNE:             @local::dune35t_signalshapingservice
 dune35t_simulation_services.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
 dune35t_simulation_services.BackTracker:                          @local::dune35t_backtracker
 
