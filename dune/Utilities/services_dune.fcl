@@ -57,6 +57,7 @@ dunefd_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::dunefd_backtracker
+ SpaceCharge:                  @local::dunefd_spacecharge
  LArSeedService:               @local::dune_seedservice
  LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
@@ -101,6 +102,7 @@ dunefddphase_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
 
@@ -151,6 +153,7 @@ protodune_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::dunefd_backtracker
+ SpaceCharge:                  @local::protodune_spacecharge
  LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
