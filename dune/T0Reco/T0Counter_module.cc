@@ -127,8 +127,8 @@ private:
 dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
   : fTriggerModuleLabel(p.get<std::string>("TriggerModuleLabel")),
     fClockSpeedCounter(p.get<double>("ClockSpeedCounter")), // MHz
-    fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)), // ns
-    fCoincidenceTolerance(p.get<int>("CoincidenceTolerance")), // num PENN board ticks
+    fCombinedTimeDelay(p.get<double>("CombinedTimeDelay")), // ns
+    fCoincidenceTolerance(p.get<int>("CoincidenceTolerance")), // ticks
     fVerbose(p.get<bool>("Verbose",true)),
     fMakeTree(p.get<bool>("MakeTree",false))
 {
@@ -204,6 +204,7 @@ void dune::T0Counter::produce(art::Event & e)
       ++num;
     }
   }
+
 
   // make anab::T0 and Assns<anab::T0, raw::ExternalTrigger>
   for (auto const &i : t0vect) {
