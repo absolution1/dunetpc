@@ -44,6 +44,7 @@
 #include "TVector3.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TProfile.h"
 
 // c++
 #include <string>
@@ -204,7 +205,9 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
   TH2D *hClusterCompletenessEnergy, *hLargestClusterCompletenessEnergy, *hClusterCompletenessDirection, *hLargestClusterCompletenessDirection;
   TH1D *hShowerCompleteness, *hLargestShowerCompleteness, *hShowerPurity, *hLargestShowerPurity;
   TH2D *hShowerCompletenessEnergy, *hLargestShowerCompletenessEnergy, *hShowerCompletenessDirection, *hLargestShowerCompletenessDirection;
-  TH1D *hShowerEnergy, *hShowerDirection, *hShowerdEdx;
+  TH1D *hShowerEnergy, *hShowerDirection, *hShowerdEdx, *hShowerReconstructed, *hNumShowersReconstructed;
+  TH2D *hShowerReconstructedEnergy, *hShowerdEdxEnergy, *hNumShowersReconstructedEnergy;
+  TProfile *hShowerReconstructedEnergyProfile, *hShowerdEdxEnergyProfile, *hNumShowersReconstructedEnergyProfile;
 
   // Pi0
   TH1D* hPi0MassPeakReconEnergyReconAngle;
@@ -313,6 +316,10 @@ void showerAna::ShowerAnalysis::FillData(const std::map<int,std::shared_ptr<Show
 
     std::shared_ptr<ShowerParticle> particle = particleIt->second;
 
+    // No point making these plots for particles which don't shower!
+    if (TMath::Abs(particle->PDG()) != 11 and TMath::Abs(particle->PDG()) != 22)
+      continue;
+
     // Cluster plots
     for (int cluster = 0; cluster < particle->NumClusters(); ++cluster) {
       hClusterCompleteness		->Fill(particle->ClusterCompleteness(cluster));
@@ -344,6 +351,17 @@ void showerAna::ShowerAnalysis::FillData(const std::map<int,std::shared_ptr<Show
       }
     }
 
+    hShowerReconstructed->Fill(particle->NumShowers() != 0);
+    hNumShowersReconstructed->Fill(particle->NumShowers());
+    hShowerReconstructedEnergy->Fill(particle->Energy(), particle->NumShowers() != 0);
+    hShowerReconstructedEnergyProfile->Fill(particle->Energy(), particle->NumShowers() != 0);
+    hNumShowersReconstructedEnergy->Fill(particle->Energy(), particle->NumShowers());
+    hNumShowersReconstructedEnergyProfile->Fill(particle->Energy(), particle->NumShowers());
+    if (particle->NumShowers()) {
+      hShowerdEdxEnergy->Fill(particle->Energy(), particle->ShowerdEdx());
+      hShowerdEdxEnergyProfile->Fill(particle->Energy(), particle->ShowerdEdx());
+    }
+
   }
 
   return;
@@ -360,8 +378,10 @@ void showerAna::ShowerAnalysis::FillPi0Data(const std::map<int,std::shared_ptr<S
 
   // Make sure there is at least one shower and it was fully reconstructed
   if (photon1->NumShowers() == 0 or photon2->NumShowers() == 0 or
-      photon1->ShowerStart() == TVector3(0,0,0) or photon2->ShowerStart() == TVector3(0,0,0))
+      photon1->ShowerStart() == TVector3(0,0,0) or photon2->ShowerStart() == TVector3(0,0,0)) {
+    std::cout << "Event doesn't have enough info for pi0 mass determination" << std::endl;
     return;
+  }
 
   double reconOpeningAngle = TMath::ASin(TMath::Sin(photon1->ShowerDirection().Angle(photon2->ShowerDirection())));
   double trueOpeningAngle = photon1->Direction().Angle(photon2->Direction());
@@ -440,6 +460,7 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
 
   fTree = tfs->make<TTree>("ShowerAnalysis","ShowerAnalysis");
 
+  // Cluster
   hClusterCompleteness = tfs->make<TH1D>("ClusterCompleteness","Completeness of all clusters",101,0,1.01);
   hLargestClusterCompleteness = tfs->make<TH1D>("LargestClusterCompleteness","Completeness of largest cluster",101,0,1.01);
   hClusterPurity = tfs->make<TH1D>("ClusterPurity","Purity of all clusters",101,0,1.01);
@@ -448,6 +469,8 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
   hLargestClusterCompletenessEnergy = tfs->make<TH2D>("LargestClusterCompletenessEnergy","Completeness of largest cluster vs Energy",100,0,10,101,0,1.01);
   hClusterCompletenessDirection = tfs->make<TH2D>("ClusterCompletenessDirection","Completeness of all clusters vs Direction",100,0,5,101,0,1.01);
   hLargestClusterCompletenessDirection = tfs->make<TH2D>("LargestClusterCompletenessDirection","Completeness of largest cluster vs Direction",100,0,5,101,0,1.01);
+
+  // Shower
   hShowerCompleteness = tfs->make<TH1D>("ShowerCompleteness","Completeness of all showers",101,0,1.01);
   hLargestShowerCompleteness = tfs->make<TH1D>("LargestShowerCompleteness","Completeness of largest shower",101,0,1.01);
   hShowerPurity = tfs->make<TH1D>("ShowerPurity","Purity of all showers",101,0,1.01);
@@ -459,7 +482,19 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
   hShowerEnergy = tfs->make<TH1D>("ShowerEnergy","Shower energy",120,0,1.2);
   hShowerDirection = tfs->make<TH1D>("ShowerDirection","Shower direction",101,0,1.01);
   hShowerdEdx = tfs->make<TH1D>("ShowerdEdx","dEdx of Shower",50,0,10);
+  hShowerReconstructed = tfs->make<TH1D>("ShowerReconstructed","% of showering particles with reconstructed shower",101,0,1.01);
+  hNumShowersReconstructed = tfs->make<TH1D>("NumShowersReconstructed","Number of showers reconstructed for each showering particle",10,0,10);
+  // for (int n_showers = 1; n_showers <= 9; ++n_showers)
+  //   hNumShowersReconstructed->GetXaxis()->SetBinLabel(n_showers,std::to_string(n_showers).c_str());
+  // hNumShowersReconstructed->GetXaxis()->SetBinLabel(10,"10 or more");
+  hShowerReconstructedEnergy = tfs->make<TH2D>("ShowerReconstructedEnergy","% of showering particles with reconstructed shower vs true energy",100,0,1,101,0,1.01);
+  hShowerReconstructedEnergyProfile = tfs->make<TProfile>("ShowerReconstructedEnergyProfile","% of showering particles with reconstructed shower vs true energy",100,0,1);
+  hNumShowersReconstructedEnergy = tfs->make<TH2D>("NumShowersReconstructedEnergy","Number of showers reconstructed per showering particle vs true energy",100,0,1,10,0,10);
+  hNumShowersReconstructedEnergyProfile = tfs->make<TProfile>("NumShowersReconstructedEnergyProfile","",100,0,1);
+  hShowerdEdxEnergy = tfs->make<TH2D>("ShowerdEdxEnergy","Shower dE/dx vs true energy",100,0,1,50,0,10);
+  hShowerdEdxEnergyProfile = tfs->make<TProfile>("ShowerdEdxEnergyProfile","",100,0,1);
 
+  // pi0
   hPi0MassPeakReconEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyReconAngle","",40,0,0.5);
   hPi0MassPeakTrueEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakTrueEnergyReconAngle","",40,0,0.5);
   hPi0MassPeakReconEnergyTrueAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyTrueAngle","",40,0,0.5);
