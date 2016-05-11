@@ -80,14 +80,19 @@ public:
   TVector3 Direction() const { return fDirection; }
   double Energy() const { return fEnergy; }
 
-  TVector3 ShowerStart() const { return fShowers.at(fLargestShower)->ShowerStart(); }
+  TVector3 ShowerStart() const { return ShowerStart(fLargestShower); }
   TVector3 ShowerStart(int shower) const { return fShowers.at(shower)->ShowerStart(); }
-  TVector3 ShowerDirection() const { return fShowers.at(fLargestShower)->Direction(); }
+  TVector3 ShowerDirection() const { return ShowerDirection(fLargestShower); }
   TVector3 ShowerDirection(int shower) const { return fShowers.at(shower)->Direction(); }
-  double ShowerEnergy() const { art::Ptr<recob::Shower> s = fShowers.at(fLargestShower); return s->Energy().at(s->best_plane()); }
+  double ShowerEnergy() const { return ShowerEnergy(fLargestShower); }
   double ShowerEnergy(int shower) const { art::Ptr<recob::Shower> s = fShowers.at(shower); return s->Energy().at(s->best_plane()); }
-  double ShowerdEdx() const { art::Ptr<recob::Shower> s = fShowers.at(fLargestShower); return s->dEdx().at(s->best_plane()); }
+  double ShowerdEdx() const { return ShowerdEdx(fLargestShower); }
   double ShowerdEdx(int shower) const { art::Ptr<recob::Shower> s = fShowers.at(shower); return s->dEdx().at(s->best_plane()); }
+
+  double ElectronPull() const { return ElectronPull(fLargestShower); }
+  double ElectronPull(int shower) const { return (ShowerdEdx(shower) - 2)/0.513; }
+  double PhotonPull() const { return PhotonPull(fLargestShower); }
+  double PhotonPull(int shower) const { return (ShowerdEdx(shower) - 4)/1.75; }
 
   int NumHits() const { return fHits.size(); }
   int NumClusters() const { return fClusters.size(); }
@@ -208,6 +213,7 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
   TH1D *hShowerEnergy, *hShowerDirection, *hShowerdEdx, *hShowerReconstructed, *hNumShowersReconstructed;
   TH2D *hShowerdEdxEnergy, *hNumShowersReconstructedEnergy;
   TProfile *hShowerReconstructedEnergy, *hShowerdEdxEnergyProfile, *hNumShowersReconstructedEnergyProfile;
+  TH1D *hElectronPull, *hPhotonPull;
 
   // Pi0
   TH1D* hPi0MassPeakReconEnergyReconAngle;
@@ -359,6 +365,8 @@ void showerAna::ShowerAnalysis::FillData(const std::map<int,std::shared_ptr<Show
     if (particle->NumShowers()) {
       hShowerdEdxEnergy->Fill(particle->Energy(), particle->ShowerdEdx());
       hShowerdEdxEnergyProfile->Fill(particle->Energy(), particle->ShowerdEdx());
+      hElectronPull->Fill(particle->ElectronPull());
+      hPhotonPull->Fill(particle->PhotonPull());
     }
 
   }
@@ -491,6 +499,8 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
   hNumShowersReconstructedEnergyProfile = tfs->make<TProfile>("NumShowersReconstructedEnergyProfile",";True Energy (GeV);Number of Showers;",100,0,1);
   hShowerdEdxEnergy = tfs->make<TH2D>("ShowerdEdxEnergy","Shower dE/dx vs true energy;True Energy (GeV);dE/dx (MeV/cm);",100,0,1,50,0,10);
   hShowerdEdxEnergyProfile = tfs->make<TProfile>("ShowerdEdxEnergyProfile",";True Energy (GeV);dE/dx (MeV/cm);",100,0,1);
+  hElectronPull = tfs->make<TH1D>("ElectronPull","Electron pull;Electron pull;",100,-10,10);
+  hPhotonPull = tfs->make<TH1D>("PhotonPull","Photon pull;Photon pull;",100,-10,10);
 
   // pi0
   hPi0MassPeakReconEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyReconAngle",";Invariant Mass (GeV);",40,0,0.5);
