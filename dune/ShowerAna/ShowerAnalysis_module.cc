@@ -479,7 +479,7 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
   hShowerCompletenessDirection = tfs->make<TH2D>("ShowerCompletenessDirection","Completeness of all showers vs Direction;Direction;Completeness;",100,0,5,101,0,1.01);
   hLargestShowerCompletenessDirection = tfs->make<TH2D>("LargestShowerCompletenessDirection","Completeness of largest shower vs Direction;Direction;Completeness;",100,0,5,101,0,1.01);
   hShowerEnergy = tfs->make<TH1D>("ShowerEnergy","Shower energy;Recon Energy/True Energy",120,0,1.2);
-  hShowerDirection = tfs->make<TH1D>("ShowerDirection","Shower direction;True Direction.(Recon Direction);",101,0,1.01);
+  hShowerDirection = tfs->make<TH1D>("ShowerDirection","Shower direction;True Direction.(Recon Direction);",202,-1.01,1.01);
   hShowerdEdx = tfs->make<TH1D>("ShowerdEdx","dEdx of Shower;dE/dx (MeV/cm)",50,0,10);
   hShowerReconstructed = tfs->make<TH1D>("ShowerReconstructed","% of showering particles with reconstructed shower",101,0,1.01);
   hNumShowersReconstructed = tfs->make<TH1D>("NumShowersReconstructed","Number of showers reconstructed for each showering particle;Number of Showers",10,0,10);
@@ -493,10 +493,10 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
   hShowerdEdxEnergyProfile = tfs->make<TProfile>("ShowerdEdxEnergyProfile",";True Energy (GeV);dE/dx (MeV/cm);",100,0,1);
 
   // pi0
-  hPi0MassPeakReconEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyReconAngle","Invariant Mass (GeV)",40,0,0.5);
-  hPi0MassPeakTrueEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakTrueEnergyReconAngle","Invariant Mass (GeV)",40,0,0.5);
-  hPi0MassPeakReconEnergyTrueAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyTrueAngle","Invariant Mass (GeV)",40,0,0.5);
-  hPi0MassPeakTrueEnergyTrueAngle = tfs->make<TH1D>("Pi0MassPeakTrueEnergyTrueAngle","Invariant Mass (GeV)",40,0,0.5);
+  hPi0MassPeakReconEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyReconAngle",";Invariant Mass (GeV);",40,0,0.5);
+  hPi0MassPeakTrueEnergyReconAngle = tfs->make<TH1D>("Pi0MassPeakTrueEnergyReconAngle",";Invariant Mass (GeV);",40,0,0.5);
+  hPi0MassPeakReconEnergyTrueAngle = tfs->make<TH1D>("Pi0MassPeakReconEnergyTrueAngle",";Invariant Mass (GeV);",40,0,0.5);
+  hPi0MassPeakTrueEnergyTrueAngle = tfs->make<TH1D>("Pi0MassPeakTrueEnergyTrueAngle",";Invariant Mass (GeV);x",40,0,0.5);
 
 }
 
