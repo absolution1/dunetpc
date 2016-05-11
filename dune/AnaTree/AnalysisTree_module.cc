@@ -71,6 +71,7 @@
 #include "lardata/AnalysisBase/CosmicTag.h"
 #include "lardata/AnalysisBase/FlashMatch.h"
 #include "lardata/AnalysisBase/T0.h"
+#include "lardata/AnalysisBase/MVAPIDResult.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
@@ -256,6 +257,11 @@ namespace dune {
       PlaneData_t<Float_t> trkpidchipi;   // particle PID chisq for pion
       PlaneData_t<Float_t> trkpidchimu;   // particle PID chisq for muon
       PlaneData_t<Float_t> trkpidpida;    // particle PIDA
+      TrackData_t<Float_t> trkpidmvamu;   // particle MVA value for muon PID
+      TrackData_t<Float_t> trkpidmvae;   // particle MVA value for electron PID
+      TrackData_t<Float_t> trkpidmvapich;   // particle MVA value for charged pion PID
+      TrackData_t<Float_t> trkpidmvapi0;   // particle MVA value for neutral pion PID
+      TrackData_t<Float_t> trkpidmvapr;   // particle MVA value for proton PID
       TrackData_t<Short_t> trkpidbestplane; // this is defined as the plane with most hits   
 	
 	  TrackData_t<Short_t> trkhasPFParticle; // whether this belongs to a PFParticle 
@@ -349,9 +355,16 @@ namespace dune {
       PlaneData_t<Float_t>   shwr_totEng;     ///< Total energy of the shower per plane
       PlaneData_t<Float_t>   shwr_dedx;       ///< dE/dx of the shower per plane
       PlaneData_t<Float_t>   shwr_mipEng;     ///< Total MIP energy of the shower per plane
+
+      ShowerData_t<Float_t> shwr_pidmvamu;   // particle MVA value for muon PID
+      ShowerData_t<Float_t> shwr_pidmvae;   // particle MVA value for electron PID
+      ShowerData_t<Float_t> shwr_pidmvapich;   // particle MVA value for charged pion PID
+      ShowerData_t<Float_t> shwr_pidmvapi0;   // particle MVA value for neutral pion PID
+      ShowerData_t<Float_t> shwr_pidmvapr;   // particle MVA value for proton PID
 	  
-	  ShowerData_t<Short_t>  shwr_hasPFParticle; // whether this belongs to a PFParticle 
-	  ShowerData_t<Short_t>  shwr_PFParticleID;  // if hasPFParticle, its ID
+      
+      ShowerData_t<Short_t>  shwr_hasPFParticle; // whether this belongs to a PFParticle 
+      ShowerData_t<Short_t>  shwr_PFParticleID;  // if hasPFParticle, its ID
       /// @}
       
       /// Creates a shower data structure allowing up to maxShowers showers
@@ -1187,6 +1200,8 @@ namespace dune {
     std::vector<std::string> fShowerModuleLabel;
     std::vector<std::string> fCalorimetryModuleLabel;
     std::vector<std::string> fParticleIDModuleLabel;
+    std::vector<std::string> fMVAPIDShowerModuleLabel;
+    std::vector<std::string> fMVAPIDTrackModuleLabel;
     std::vector<std::string> fFlashT0FinderLabel;
     std::vector<std::string> fMCT0FinderLabel;
     std::string fPOTModuleLabel;
@@ -1439,6 +1454,11 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkpidchimu.resize(MaxTracks);
   trkpidpida.resize(MaxTracks);
   trkpidbestplane.resize(MaxTracks);
+  trkpidmvamu.resize(MaxTracks);
+  trkpidmvae.resize(MaxTracks);
+  trkpidmvapich.resize(MaxTracks);
+  trkpidmvapi0.resize(MaxTracks);
+  trkpidmvapr.resize(MaxTracks);
   
   trkke.resize(MaxTracks);
   trkrange.resize(MaxTracks);
@@ -1511,6 +1531,11 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
   FillWith(trksvtxid    , -1);
   FillWith(trkevtxid    , -1);
   FillWith(trkpidbestplane, -1); 
+  FillWith(trkpidmvamu  , -99999.);
+  FillWith(trkpidmvae   , -99999.);
+  FillWith(trkpidmvapich, -99999.);
+  FillWith(trkpidmvapi0 , -99999.);
+  FillWith(trkpidmvapr  , -99999.);
   
   FillWith(trkhasPFParticle, -1);
   FillWith(trkPFParticleID , -1);
@@ -1731,6 +1756,21 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
   
   BranchName = "trkevtxid_" + TrackLabel;
   CreateBranch(BranchName, trkevtxid, BranchName + NTracksIndexStr + "/S");
+
+  BranchName = "trkpidmvamu_" + TrackLabel;
+  CreateBranch(BranchName, trkpidmvamu, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkpidmvae_" + TrackLabel;
+  CreateBranch(BranchName, trkpidmvae, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkpidmvapich_" + TrackLabel;
+  CreateBranch(BranchName, trkpidmvapich, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkpidmvapi0_" + TrackLabel;
+  CreateBranch(BranchName, trkpidmvapi0, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkpidmvapr_" + TrackLabel;
+  CreateBranch(BranchName, trkpidmvapr, BranchName + NTracksIndexStr + "/F");
 
   BranchName = "trkpidpdg_" + TrackLabel;
   CreateBranch(BranchName, trkpidpdg, BranchName + NTracksIndexStr + "[3]/I");
@@ -1971,7 +2011,12 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::Resize
   shwr_totEng.resize(MaxShowers);
   shwr_dedx.resize(MaxShowers);
   shwr_mipEng.resize(MaxShowers);
-  
+  shwr_pidmvamu.resize(MaxShowers);
+  shwr_pidmvae.resize(MaxShowers);
+  shwr_pidmvapich.resize(MaxShowers);
+  shwr_pidmvapi0.resize(MaxShowers);
+  shwr_pidmvapr.resize(MaxShowers);
+
   shwr_hasPFParticle.resize(MaxShowers);
   shwr_PFParticleID.resize(MaxShowers);
   
@@ -1990,6 +2035,11 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::Clear() {
   FillWith(shwr_startx,     -99999.);
   FillWith(shwr_starty,     -99999.);
   FillWith(shwr_startz,     -99999.);
+  FillWith(shwr_pidmvamu,   -99999.);
+  FillWith(shwr_pidmvae,    -99999.);
+  FillWith(shwr_pidmvapich, -99999.);
+  FillWith(shwr_pidmvapi0,  -99999.);
+  FillWith(shwr_pidmvapr,   -99999.);
   
   FillWith(shwr_hasPFParticle, -1);
   FillWith(shwr_PFParticleID,  -1);
@@ -2091,6 +2141,21 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::SetAddresses
   
   BranchName = "shwr_PFParticleID_" + ShowerLabel;
   CreateBranch(BranchName, shwr_PFParticleID, BranchName + NShowerIndexStr + "/S");
+
+  BranchName = "shwr_pidmvamu_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_pidmvamu, BranchName + NShowerIndexStr + "/F");
+
+  BranchName = "shwr_pidmvae_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_pidmvae, BranchName + NShowerIndexStr + "/F");
+
+  BranchName = "shwr_pidmvapich_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_pidmvapich, BranchName + NShowerIndexStr + "/F");
+
+  BranchName = "shwr_pidmvapi0_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_pidmvapi0, BranchName + NShowerIndexStr + "/F");
+
+  BranchName = "shwr_pidmvapr_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_pidmvapr, BranchName + NShowerIndexStr + "/F");
   
 } // dune::AnalysisTreeDataStruct::ShowerDataStruct::SetAddresses()
 
@@ -3104,6 +3169,8 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fShowerModuleLabel        (pset.get< std::vector<std::string> >("ShowerModuleLabel")),
   fCalorimetryModuleLabel   (pset.get< std::vector<std::string> >("CalorimetryModuleLabel")),
   fParticleIDModuleLabel    (pset.get< std::vector<std::string> >("ParticleIDModuleLabel")   ),
+  fMVAPIDShowerModuleLabel  (pset.get< std::vector<std::string> >("MVAPIDShowerModuleLabel")   ),
+  fMVAPIDTrackModuleLabel   (pset.get< std::vector<std::string> >("MVAPIDTrackModuleLabel")   ),
   fFlashT0FinderLabel       (pset.get< std::vector<std::string> >("FlashT0FinderLabel")   ),
   fMCT0FinderLabel          (pset.get< std::vector<std::string> >("MCT0FinderLabel")   ),
   fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),   
@@ -3483,7 +3550,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   // the data structure itself is owned by art::Event and we should not try
   // to manage its memory
   std::vector<std::vector<recob::Shower> const*> showerList;
-  std::vector< art::Handle< std::vector<recob::Shower> > > showerListHandle(fShowerModuleLabel.size());
+  std::vector< art::Handle< std::vector<recob::Shower> > > showerListHandle;
   showerList.reserve(fShowerModuleLabel.size());
   if (fSaveShowerInfo) {
     for (art::InputTag ShowerInputTag: fShowerModuleLabel) {
@@ -3507,11 +3574,14 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	    << "' ; FILLING WITH FAKE DATA AS FOR USER'S REQUEST";
 	}
       }
-      else showerList.push_back(ShowerHandle.product());
-      
+	showerList.push_back(ShowerHandle.product());
+
       showerListHandle.push_back(ShowerHandle); // either way, put it into the handle list
-    } // for shower input tag
-  }
+
+    }
+
+  } // for shower input tag
+
 
   art::Handle< std::vector<simb::MCFlux> > mcfluxListHandle;
   std::vector<art::Ptr<simb::MCFlux> > fluxlist;
@@ -3973,8 +4043,24 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         = fData->GetShowerData(iShowerAlgo);
       std::vector<recob::Shower> const* pShowers = showerList[iShowerAlgo];
       art::Handle< std::vector<recob::Shower> > showerHandle = showerListHandle[iShowerAlgo];
-      
-      if (pShowers) FillShowers(ShowerData, *pShowers, fSavePFParticleInfo, showerIDtoPFParticleIDMap);
+
+      if (pShowers){
+	FillShowers(ShowerData, *pShowers, fSavePFParticleInfo, showerIDtoPFParticleIDMap);
+	
+	if(fMVAPIDShowerModuleLabel[iShowerAlgo].size()){
+	  art::FindOneP<anab::MVAPIDResult> fmvapid(showerHandle, evt, fMVAPIDShowerModuleLabel[iShowerAlgo]);
+	  if(fmvapid.isValid()){
+	    for(unsigned int iShower=0;iShower<showerHandle->size();++iShower){
+	      const art::Ptr<anab::MVAPIDResult> pid = fmvapid.at(iShower);
+	      ShowerData.shwr_pidmvamu[iShower] = pid->mvaOutput.at("mu");
+	      ShowerData.shwr_pidmvae[iShower] = pid->mvaOutput.at("e");
+	      ShowerData.shwr_pidmvapich[iShower] = pid->mvaOutput.at("pich");
+	      ShowerData.shwr_pidmvapi0[iShower] = pid->mvaOutput.at("pi0");
+	      ShowerData.shwr_pidmvapr[iShower] = pid->mvaOutput.at("pr");
+	    }
+	  } // fmvapid.isValid()
+	}
+      }
       else ShowerData.MarkMissing(fTree); // tree should reflect lack of data
     } // for iShowerAlgo
     
@@ -4230,7 +4316,17 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	    TrackerData.trkpidpida[iTrk][planenum] = pids[ipid]->PIDA();
 	  }
 	} // fmpid.isValid()
-	
+	if(fMVAPIDTrackModuleLabel[iTracker].size()){
+	  art::FindOneP<anab::MVAPIDResult> fmvapid(trackListHandle[iTracker], evt, fMVAPIDTrackModuleLabel[iTracker]);
+	  if(fmvapid.isValid()) {
+	    const art::Ptr<anab::MVAPIDResult> pid = fmvapid.at(iTrk);
+	    TrackerData.trkpidmvamu[iTrk] = pid->mvaOutput.at("mu");
+	    TrackerData.trkpidmvae[iTrk] = pid->mvaOutput.at("e");
+	    TrackerData.trkpidmvapich[iTrk] = pid->mvaOutput.at("pich");
+	    TrackerData.trkpidmvapi0[iTrk] = pid->mvaOutput.at("pi0");
+	    TrackerData.trkpidmvapr[iTrk] = pid->mvaOutput.at("pr");
+	  } // fmvapid.isValid()
+	}
 	art::FindMany<anab::Calorimetry> fmcal(trackListHandle[iTracker], evt, fCalorimetryModuleLabel[iTracker]);
 	if (fmcal.isValid()){
 	  std::vector<const anab::Calorimetry*> calos = fmcal.at(iTrk);
