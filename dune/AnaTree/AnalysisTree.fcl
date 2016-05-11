@@ -20,6 +20,8 @@ dune35t_analysistree:
  MCTrackModuleLabel:          ""          # Don't have in the 35 ton....
  CalorimetryModuleLabel:      [ "pmtrackcalo", "pmtrackcalodc", "pandoracalo", "pandoracalodc" ]
  ParticleIDModuleLabel:       [ "", "", "", "" ]
+ MVAPIDTrackModuleLabel:      [ "", "", "", "" ]
+ MVAPIDShowerModuleLabel:     [ "", "", "", "" ]
  FlashT0FinderLabel:          [ "photont0pmtrack", "photont0pmtrackcd", "photont0pandora", "photont0pandoradc" ]
  MCT0FinderLabel:             [ "mctrutht0pmtrack", "mctrutht0pmtrackdc", "mctrutht0pandora", "mctrutht0pandoradc" ]
  #ShowerModuleLabel:          [ "mergeemshower3d", "mergeemshower3ddc" ]
