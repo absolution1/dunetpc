@@ -4,6 +4,8 @@
 // Macro to produce energy-charge conversion for the DUNE FD/35t.
 //
 // Useage:
+//  root getEnergyConversion.C
+//
 //  -- runs over the output file (EMEnergyCalib.root) produced from the EMEnergyCalib_module art
 //     analyser
 //  -- produces an output root file which contains all of the plots used to find the conversion
@@ -12,7 +14,7 @@
 //         energy = A + (B * charge) and A and B are determined from this script
 //  -- linear plots showing relation are found in the output root file
 //  -- the values of A and B for each plane are also printed upon completion of the script and can
-//     be used in reconstruction (in DUNE the values are placed in the fhicl file
+//     be used in reconstruction; in DUNE the values are placed in the fhicl file:
 //         larreco/larreco/RecoAlg/showeralgorithms.fcl
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
