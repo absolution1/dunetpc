@@ -25,6 +25,7 @@
 #include "larcore/Geometry/WireGeo.h"
 #include "lardata/RecoBase/Hit.h"
 
+
 #include "TH1D.h"
 #include "TF1.h"
 #include <fstream>
@@ -65,9 +66,9 @@ public:
   void makeHistoSetForThisRun( int runID );
   void writeListOfDeadWires();
   void fillHitOccDistHists(std::vector<std::vector<size_t> > & badWireVect);
-  void fitHitOccDistHists( std::vector<std::vector<size_t> > & badWireList);
+  void fitHitOccDistHists( std::vector<std::vector<size_t> > & badWireList, std::vector<std::vector<size_t> > & goodWireList);
   void writeListOfBadWires(std::vector<std::vector<size_t> > badWireVect );
-  
+  void writeListOfGoodWires(std::vector<std::vector<size_t> > goodWireVect );
   
 
 private:
@@ -100,6 +101,10 @@ private:
 
   //Misc
   std::map<int,size_t> fNEvtsPerRun;
+  bool fVerbose;
+  bool fOnlyWriteCollectionPlane;
+
+
 
 };
 
@@ -111,6 +116,16 @@ GoodWireAna::GoodWireAna(fhicl::ParameterSet const & pset)
   EDAnalyzer(pset)  // ,
  // More initializers here.
 {
+
+  //Setting geometry info
+  art::ServiceHandle<geo::Geometry>            geometry;
+  fGeometry = &*geometry;
+  fNCry = fGeometry->Ncryostats();
+ 
+  //TFile Service
+  art::ServiceHandle<art::TFileService> tfs;
+  fTFS = &*tfs;
+
   //Reconfigure to set the data members
   this->reconfigure(pset);
 }
@@ -146,6 +161,7 @@ void GoodWireAna::analyze(art::Event const & e)
     size_t iTPC = theHit.WireID().TPC;
     size_t iPlane = theHit.WireID().Plane;
     size_t iWire = theHit.WireID().Wire;
+
 
     //Make the pair for Cryostat/TPC
     std::pair<size_t,size_t> CryTPCPair( iCry,iTPC );
@@ -265,7 +281,8 @@ void GoodWireAna::writeListOfDeadWires()
   ofstream outfile;
   outfile.open("deadWireList.txt");
 
-  std::cout << "Inside writing function." << std::endl;
+  if( fVerbose )
+    std::cout << "Inside writing function." << std::endl;
 
   //Loop through all hit occupancy histos
   for( std::map<int,std::map<std::pair<size_t,size_t>,std::vector<TH1D*> > >::iterator iterRun = fRunToCryTPCToPlaneMap.begin(); iterRun != fRunToCryTPCToPlaneMap.end(); ++iterRun ){
@@ -275,7 +292,8 @@ void GoodWireAna::writeListOfDeadWires()
     std::map<std::pair<size_t,size_t>,std::vector<TH1D*> > theCryTPCToPlaneVectMap = iterRun->second;
     
     //Debug
-    std::cout << "runID: " << runID << std::endl;
+    if( fVerbose )
+      std::cout << "runID: " << runID << std::endl;
 
     for( std::map<std::pair<size_t,size_t>,std::vector<TH1D*> >::iterator iterCryTPC = theCryTPCToPlaneVectMap.begin(); iterCryTPC != theCryTPCToPlaneVectMap.end(); ++iterCryTPC ){
       
@@ -284,7 +302,8 @@ void GoodWireAna::writeListOfDeadWires()
       size_t TPCID = iterCryTPC->first.second;
       std::vector<TH1D*> planeVect = iterCryTPC->second;
 
-      std::cout << "Cryo/TPC: " << CryID << "/" << TPCID << std::endl;
+      if( fVerbose )
+	std::cout << "Cryo/TPC: " << CryID << "/" << TPCID << std::endl;
       
 
       //Now loop over planes
@@ -295,7 +314,8 @@ void GoodWireAna::writeListOfDeadWires()
 	size_t PlaneID = iPlane;
 
 	//Debug
-	std::cout << "PlaneID: " << PlaneID << std::endl;
+	if( fVerbose )
+	  std::cout << "PlaneID: " << PlaneID << std::endl;
 	
 	//Get the histogram for this plane
 	TH1D * thisPlaneHist = planeVect.at(iPlane);
@@ -357,7 +377,8 @@ void GoodWireAna::fillHitOccDistHists(std::vector<std::vector<size_t> > & badWir
 	TH1D * thisPlaneHist = planeHistos.at(iPlane);
 	for( int iBin = 1; iBin <= thisPlaneHist->GetNbinsX(); ++iBin ){
 	  
-	  std::cout << "BinID: " << iBin << ", binContent: " << thisPlaneHist->GetBinContent(iBin) << std::endl;
+	  if( fVerbose )
+	    std::cout << "BinID: " << iBin << ", binContent: " << thisPlaneHist->GetBinContent(iBin) << std::endl;
 
 	  //Get the bin occupancy and increment the correct dist histogram in the corresponding bin
 	  int binContent = thisPlaneHist->GetBinContent(iBin);
@@ -368,14 +389,17 @@ void GoodWireAna::fillHitOccDistHists(std::vector<std::vector<size_t> > & badWir
 	  if( iPlane == 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventCol;
 	  if( iPlane != 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventInd;
 
+
 	  if( binContent > fHitOccLimit ){
-	    std::cout << "Not filling occupancy distributions with this wire - it's waaaay too big of an outlier on the high side." << std::endl;
+	    if( fVerbose )
+	      std::cout << "Not filling occupancy distributions with this wire - it's waaaay too big of an outlier on the high side." << std::endl;
 	  }
 	  
 	  //Also, if the bin content is zero, then don't push it back into the distribution. We know that 
 	  //this is a dead wire.
 	  else if( binContent == 0 ){
-	    std::cout << "Not filling occupancy distributions with this wire - it's waaaay too big of an outlier on the low side." << std::endl;
+	    if( fVerbose )
+	      std::cout << "Not filling occupancy distributions with this wire - it's waaaay too big of an outlier on the low side." << std::endl;
 	  }	    
 	 
 	  else{
@@ -392,7 +416,7 @@ void GoodWireAna::fillHitOccDistHists(std::vector<std::vector<size_t> > & badWir
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
 //This function fits the occupancy distribution histograms to gaussians and 
 //extracts fit parameters to use in good hit wire cuts.
-void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWireList)
+void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWireList, std::vector<std::vector<size_t> > & goodWireList )
 {
   //Loop through each run
   for( std::map<int,std::map<std::pair<size_t,size_t>,std::vector<TH1D*> > >::iterator iter = fRunToCryTPCToPlaneMapDist.begin(); iter != fRunToCryTPCToPlaneMapDist.end(); ++iter ){
@@ -420,7 +444,8 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 	TH1D * occupancyHist = fRunToCryTPCToPlaneMap.at(runID).at(CryTPCPair).at(iPlane);
 	if( thisPlaneHist->Integral() == 0 ){
 	  for( int iBin = 1; iBin <= occupancyHist->GetNbinsX(); ++iBin ){
-	    std::cout << "Adding badwirevect to completely dead plane." << std::endl;
+	    if( fVerbose )
+	      std::cout << "Adding badwirevect to completely dead plane." << std::endl;
 	    std::vector<size_t> theBadWire;
 	    
 	    //Fill the bad wire vector with information about the wire (pointing to it)
@@ -464,29 +489,30 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 	thisPlaneHist->Fit("gaus","0");
 	TF1* fit1 = (TF1*)thisPlaneHist->GetFunction("gaus");
 
-	std::cout << "Debug F." << std::endl;
-       	
+      	
 	//Get the parameters
 	gaus_mean = fit1->GetParameter(1);
 	gaus_sigma = fit1->GetParameter(2);
 	//	gaus_amplitude = fit1->GetParameter(0);
 	
-	std::cout << "Debug G." << std::endl;
-
 	//Print parameters
-	std::cout << "Fit Parameters, r" << runID << "tpc" << CryTPCPair.second << "plane" << iPlane << ": mean: " << gaus_mean << ", sigma: " << gaus_sigma << std::endl;
+	if( fVerbose )
+	  std::cout << "Fit Parameters, r" << runID << "tpc" << CryTPCPair.second << "plane" << iPlane << ": mean: " << gaus_mean << ", sigma: " << gaus_sigma << std::endl;
 
 	
 	//Now loop through the hit occupancy histogram and find wires that
 	//are outside of the mean + n sigma. Get the appropriate histo first.
 	for( int iBin = 1; iBin <= occupancyHist->GetNbinsX(); ++iBin ){
-	  std::cout << "Bin #" << iBin << ", occupancy: " << occupancyHist->GetBinContent(iBin) << std::endl;
+
+	  if( fVerbose )
+	    std::cout << "Bin #" << iBin << ", occupancy: " << occupancyHist->GetBinContent(iBin) << std::endl;
 
 	  //Setting hit occupancy reasonable limits as before
 	  if( iPlane == 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventCol;
 	  if( iPlane != 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventInd;
 	  if( occupancyHist->GetBinContent(iBin) > fHitOccLimit ){
-	    std::cout << "Adding badwirevect." << std::endl;
+	    if( fVerbose )
+	      std::cout << "Adding badwirevect." << std::endl;
 	    std::vector<size_t> theBadWire;
 
 	    //Fill the bad wire vector with information about the wire (pointing to it)
@@ -505,7 +531,8 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 	  //Also, if the bin content is zero, then don't push it back into the distribution. We know that 
 	  //this is a dead wire.
 	  else if( occupancyHist->GetBinContent(iBin) == 0 ){
-	    std::cout << "Adding badwirevect." << std::endl;
+	    if( fVerbose )
+	      std::cout << "Adding badwirevect." << std::endl;
 	    std::vector<size_t> theBadWire;
 
 	    //Fill the bad wire vector with information about the wire (pointing to it)
@@ -521,7 +548,8 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 	  }	    
 
 	  else if( fabs(float(occupancyHist->GetBinContent(iBin))-(gaus_mean)) > gaus_sigma*fNSigmaGoodWire ){
-	    std::cout << "Adding badwirevect." << std::endl;
+	    if( fVerbose )
+	      std::cout << "Adding badwirevect." << std::endl;
 	    std::vector<size_t> theBadWire;
 	    
 	    //Fill the bad wire vector with information about the wire (pointing to it)
@@ -537,7 +565,21 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 
 	    badWireList.push_back(theBadWire);
 	  }
-	  else{ std::cout << "GoodWire run/TPC/Plane/Bin: " << runID << "/" << CryTPCPair.second << "/" << iPlane << "/" << iBin << std::endl; }
+	  else{
+	    std::vector<size_t> theGoodWire;
+	    
+	    //Fill the good wire vector with information about the wire (pointing to it)
+	    theGoodWire.push_back(runID);
+	    theGoodWire.push_back(CryTPCPair.first);
+	    theGoodWire.push_back(CryTPCPair.second);
+	    theGoodWire.push_back(iPlane);
+	    theGoodWire.push_back(iBin);
+
+	    goodWireList.push_back(theGoodWire);
+
+	    if( fVerbose )
+	      std::cout << "GoodWire run/TPC/Plane/Bin: " << runID << "/" << CryTPCPair.second << "/" << iPlane << "/" << iBin << std::endl;
+	  }
 	}
       }
     }
@@ -552,25 +594,169 @@ void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireV
 {
   //Create an ofstream object (outfile)
   ofstream outfile;
-  outfile.open("badWireList.txt");
+  outfile.open("badChannelList.txt");
+
+  //Create vectors for listing bulk properties of different runs
+  std::map<size_t,std::vector<size_t> > runToTPCVectMapNoisy;
+  std::map<size_t,std::vector<size_t> > runToTPCVectMapQuiet;
+  std::map<size_t,std::vector<size_t> > runToTPCVectMapDead;
   
-  //Now loop through the vector
-  std::cout << "Size of badwirevect: " << badWireVect.size() << std::endl;
+  //Create blank initialization vectors
+  std::vector<size_t> tempVect;
+
+  //Initialize these vectors to the standard of Alex
+  size_t nTPCs = fGeometry->NTPC(0);
+  for( size_t iQ = 0; iQ < nTPCs ; ++iQ ){
+    tempVect.push_back(0);
+  }
+
+  //Now loop through the wire vector
+  if( fVerbose )
+    std::cout << "Size of badwirevect: " << badWireVect.size() << std::endl;
   for( size_t iWire = 0; iWire < badWireVect.size(); ++iWire ){
     
+    if( fOnlyWriteCollectionPlane ){
+      if( badWireVect.at(iWire).at(3) != 2 ) continue;
+    }
+
+    //Identify the run
+    size_t runID = badWireVect.at(iWire).at(0);
+    
+    //If the run has not already been seen, emplace maps back with empty vectors
+    if( runToTPCVectMapNoisy.count(runID) == 0 ){
+      runToTPCVectMapNoisy.emplace(runID,tempVect);
+      runToTPCVectMapQuiet.emplace(runID,tempVect);
+      runToTPCVectMapDead.emplace(runID,tempVect);
+    }
+    
+    //Now increment each vector in the appropriate spot corresp to this TPC and type of bad wire
+    size_t type = badWireVect.at(iWire).at(5);
+    size_t tpc = badWireVect.at(iWire).at(2);
+    if( type == 0 ){
+      runToTPCVectMapDead.at(runID).at(tpc)++;
+    }
+    if( type == 1 ){
+      runToTPCVectMapQuiet.at(runID).at(tpc)++;
+    }
+    if( type == 2 ){
+      runToTPCVectMapNoisy.at(runID).at(tpc)++;
+    }
+
+    /*
+    //Specify group in Alex notation
+    int group = 0;
+    if( badWireVect.at(iWire).at(3) % 2 == 1 ) group = (badWireVect.at(iWire).at(2)-1)/2;
+    else group = badWireVect.at(iWire).at(2)/2;
+    
+    //
+    if( badWireVect.at(iWire).at(5) == 0 ) numDeadVect.at(group)++;
+    if( badWireVect.at(iWire).at(5) == 1 ) numQuietVect.at(group)++;
+    if( badWireVect.at(iWire).at(5) == 2 ) numNoisyVect.at(group)++;
+    */
+
+
+    //Get the channel from the Cryo, TPC, Plane, and Wire
+    geo::WireID theWireID( badWireVect.at(iWire).at(1), badWireVect.at(iWire).at(2), badWireVect.at(iWire).at(3),badWireVect.at(iWire).at(4)-1);
+    size_t channel = fGeometry->PlaneWireToChannel(theWireID);
+
+    if( fVerbose )
+      std::cout << "Cryo/TPC/Plane/Wire/Channel: " << badWireVect.at(iWire).at(1) << "/"  << badWireVect.at(iWire).at(2) << "/" << badWireVect.at(iWire).at(3) << "/" << badWireVect.at(iWire).at(4)-1 << "/" << channel  << std::endl;
+   
+
+    outfile << badWireVect.at(iWire).at(0) << " " << channel << " " << badWireVect.at(iWire).at(5) << "\n";
+
+
+    /*
     outfile << badWireVect.at(iWire).at(0) << " " << badWireVect.at(iWire).at(1) << " " 
 	    << badWireVect.at(iWire).at(2) << " " << badWireVect.at(iWire).at(3) << " "
 	    << badWireVect.at(iWire).at(4)-1 << " " << badWireVect.at(iWire).at(5) << "\n";
+    */
   }
   
+ 
   outfile.close();
 
+  //  if( fSummary ){
+  std::cout << "********************************************************" << std::endl;
+  std::cout << "*************** JOB SUMMARY OF BAD WIRES ***************" << std::endl;
+  std::cout << "********************************************************" << std::endl;
+  
+  std::cout << "Note: Collection plane only at the moment." << std::endl;
+  
+  //Loop over all runs
+  for( std::map<size_t,std::vector<size_t> >::iterator runIter = runToTPCVectMapNoisy.begin(); runIter != runToTPCVectMapNoisy.end(); ++runIter ){
+    size_t runID = runIter->first;
+    std::cout << "\n **** RUN #" << runID << " SUMMARY **** " << std::endl;
+        
+    //Now loop over all TPCs in a given run
+    for( size_t iTPC = 0; iTPC < nTPCs; ++iTPC ){
+      std::cout << "Number of noisy wires in TPC #" << iTPC << ": " << runToTPCVectMapNoisy.at(runID).at(iTPC) << std::endl;
+      std::cout << "Number of quiet wires in TPC #" << iTPC << ": " << runToTPCVectMapQuiet.at(runID).at(iTPC) << std::endl;
+      std::cout << "Number of dead wires in TPC #" << iTPC << ":  " << runToTPCVectMapDead.at(runID).at(iTPC) << std::endl;
+    }
+    
+  }
+  /*
+    for(size_t iQ = 0; iQ < 4 ; ++iQ ){
+    std::cout << "Quarter: " << iQ << ", NumDead/Quiet/Noisy: " << numDeadVect.at(iQ) << "/" << numQuietVect.at(iQ) << "/" << numNoisyVect.at(iQ) << std::endl;
+    }
+  */
+  //}
+  
 }
+
+
+
+//..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
+//..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
+//This takes the good wire info and writes it to a text file
+void GoodWireAna::writeListOfGoodWires(std::vector<std::vector<size_t> > goodWireVect )
+{
+  //Create an ofstream object (outfile)
+  ofstream outfile;
+  outfile.open("goodChannelList.txt");
+
+  //Create an object for listing bulk properties
+  size_t numGood = 0;
+  
+  //Now loop through the vector
+  if( fVerbose )
+    std::cout << "Size of goodwirevect: " << goodWireVect.size() << std::endl;
+  for( size_t iWire = 0; iWire < goodWireVect.size(); ++iWire ){
+    
+    if( fOnlyWriteCollectionPlane ){
+      if( goodWireVect.at(iWire).at(3) != 2 ) continue;
+    }
+    
+    //Increment but restrict to collection planes
+    numGood++;
+
+    //Get the channel from the Cryo, TPC, Plane, and Wire
+    geo::WireID theWireID( goodWireVect.at(iWire).at(1), goodWireVect.at(iWire).at(2), goodWireVect.at(iWire).at(3),goodWireVect.at(iWire).at(4)-1);
+    size_t channel = fGeometry->PlaneWireToChannel(theWireID);
+
+    if( fVerbose )
+      std::cout << "Cryo/TPC/Plane/Wire/Channel: " << goodWireVect.at(iWire).at(1) << "/"  << goodWireVect.at(iWire).at(2) << "/" << goodWireVect.at(iWire).at(3) << "/" << goodWireVect.at(iWire).at(4)-1 << "/" << channel  << std::endl;
+   
+
+    outfile << goodWireVect.at(iWire).at(0) << " " << channel << std::endl;
+
+  }
+  
+ 
+  outfile.close();
+
+  if( fVerbose )
+    std::cout << "NumGood: " << numGood << std::endl;
+
+}
+
 
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
 void GoodWireAna::beginJob()
 {
+  /*
   //Setting geometry info
   art::ServiceHandle<geo::Geometry>            geometry;
   fGeometry = &*geometry;
@@ -580,6 +766,10 @@ void GoodWireAna::beginJob()
   art::ServiceHandle<art::TFileService> tfs;
   fTFS = &*tfs;
 
+  //Geometry Helper
+  art::ServiceHandle<dune::DUNEGeometryHelper> geometryHelper;
+  */
+  
 }
 
 void GoodWireAna::beginRun(art::Run const & r)
@@ -599,20 +789,30 @@ void GoodWireAna::beginSubRun(art::SubRun const & sr)
 //a simple text file (for now, that is).
 void GoodWireAna::endJob()
 {
-  std::cout << "EndJob reached. Writing wire lists to files." << std::endl;
+  if( fVerbose )
+    std::cout << "EndJob reached." << std::endl;
   
   //Fill Occupancy Distribution histograms
   std::vector<std::vector<size_t> > badWireVect;
-  std::cout << "Filling." << std::endl;
+  std::vector<std::vector<size_t> > goodWireVect;
+  if( fVerbose )
+    std::cout << "Filling." << std::endl;
   fillHitOccDistHists(badWireVect);
 
   //Fit those histograms and return a set of bad hits
-  std::cout << "Fitting." << std::endl;
-  fitHitOccDistHists(badWireVect);
+  if( fVerbose )
+    std::cout << "Fitting." << std::endl;
+  fitHitOccDistHists(badWireVect,goodWireVect);
   
   //Bad Wire Handling
-  std::cout << "Writing." << std::endl;
+  if( fVerbose )
+    std::cout << "Writing Bad." << std::endl;
   writeListOfBadWires(badWireVect);
+
+  //Good Wire Handling
+  if( fVerbose )
+    std::cout << "Writing Good." << std::endl;
+  writeListOfGoodWires(goodWireVect);
 
   //Dead wire handling (wires with zero signal)
   //  writeListOfDeadWires();
@@ -641,6 +841,9 @@ void GoodWireAna::reconfigure(fhicl::ParameterSet const & pset)
   fNSigmaGoodWire = pset.get<size_t>("NSigmaGoodWire",3);
   fHitLimitPerWirePerEventCol = pset.get<size_t>("HitLimitPerWirePerEventCol",10);
   fHitLimitPerWirePerEventInd = pset.get<size_t>("HitLimitPerWirePerEventInd",1);
+  fVerbose = pset.get<bool>("Verbosity",false);
+  fOnlyWriteCollectionPlane = pset.get<bool>("OnlyWriteCollectionPlane",true);
+
 
   fHitOccLimit = 0;
 
