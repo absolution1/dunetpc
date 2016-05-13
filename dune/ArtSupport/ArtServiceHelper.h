@@ -16,7 +16,9 @@
 #include <map>
 #include <iostream>
 #include <memory>
+#ifndef ACLIC
 #include "art/Framework/Services/Registry/ServiceRegistry.h"
+#endif
 
 class ArtServiceHelper {
 
@@ -36,7 +38,7 @@ public:
   static void close();
 
   // Dtor.
-  ~ArtServiceHelper() = default;
+  ~ArtServiceHelper();
 
   // Add a service.
   //   name - Name of the service, e.g. "TFileService"
@@ -76,11 +78,6 @@ private:
   // Return the pointer to the one instance of this (singleton) class.
   static std::unique_ptr<ArtServiceHelper>& instancePtr();
 
-  // Ctors.
-  ArtServiceHelper() = default;
-  ArtServiceHelper(const ArtServiceHelper&) = delete;
-  ArtServiceHelper& operator=(const ArtServiceHelper&) const = delete;
-
   NameList m_names;
   ConfigurationMap m_cfgmap;
   std::string m_scfgs;
@@ -88,6 +85,17 @@ private:
   bool m_needTriggerNamesService = false;
   bool m_needCurrentModuleService = false;
   art::ServiceRegistry::Operate* m_poperate;
+
+  // Ctors.
+#ifdef ACLIC
+  ArtServiceHelper() { };
+  ArtServiceHelper(const ArtServiceHelper&) { }
+  ArtServiceHelper& operator=(const ArtServiceHelper&) { return *this; }
+#else
+  ArtServiceHelper() = default;
+  ArtServiceHelper(const ArtServiceHelper&) = delete;
+  ArtServiceHelper& operator=(const ArtServiceHelper&) const = delete;
+#endif
 
 };
 

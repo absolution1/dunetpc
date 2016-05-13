@@ -67,6 +67,10 @@ void ArtServiceHelper::close() {
   
 //**********************************************************************
 
+ArtServiceHelper::~ArtServiceHelper() { }
+
+//**********************************************************************
+
 int ArtServiceHelper::addService(string name, string sval, bool isFile) {
   string myname = "ArtServiceHelper::addService: ";
   if ( m_load == 1 || m_load == 2 ) {
