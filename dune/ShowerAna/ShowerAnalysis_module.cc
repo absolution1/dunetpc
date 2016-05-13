@@ -64,7 +64,7 @@ public:
 
   // Setters
   void SetEnergy(double energy);
-  void SetDepositedEnergy(double depositedEnergy);
+  void SetDepositedEnergy(std::map<int,double> depositedEnergy);
   void SetDirection(TVector3 direction);
   void SetStart(TVector3 start);
   void SetPDG(int pdg);
@@ -80,7 +80,8 @@ public:
   TVector3 Start() const { return fStart; }
   TVector3 Direction() const { return fDirection; }
   double Energy() const { return fEnergy; }
-  double DepositedEnergy() const { return fDepositedEnergy; }
+  double DepositedEnergy() const { art::Ptr<recob::Shower> s = fShowers.at(fLargestShower); return DepositedEnergy(s->best_plane()); }
+  double DepositedEnergy(int plane) const { return fDepositedEnergy.at(plane); }
 
   TVector3 ShowerStart() const { return ShowerStart(fLargestShower); }
   TVector3 ShowerStart(int shower) const { return fShowers.at(shower)->ShowerStart(); }
@@ -111,7 +112,8 @@ private:
   int fPDG;
 
   TVector3 fStart, fDirection;
-  double fEnergy, fDepositedEnergy;
+  double fEnergy;
+  std::map<int,double> fDepositedEnergy;
 
   std::vector<art::Ptr<recob::Hit> > fHits;
   std::vector<art::Ptr<recob::Cluster> > fClusters;
@@ -142,7 +144,7 @@ void showerAna::ShowerParticle::SetEnergy(double energy) {
   fEnergy = energy;
 }
 
-void showerAna::ShowerParticle::SetDepositedEnergy(double depositedEnergy) {
+void showerAna::ShowerParticle::SetDepositedEnergy(std::map<int,double> depositedEnergy) {
   fDepositedEnergy = depositedEnergy;
 }
 
@@ -205,6 +207,7 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
 
   art::ServiceHandle<cheat::BackTracker> bt;
   art::ServiceHandle<art::TFileService> tfs;
+  art::ServiceHandle<geo::Geometry> geom;
 
   TTree* fTree;
 
@@ -282,10 +285,20 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
       pi0Decays.push_back(particleIt->first);
     }
 
-    std::vector<sim::IDE> ides = bt->TrackIDToSimIDE(trueParticle->TrackId());
-    double depositedEnergy = 0;
-    for (std::vector<sim::IDE>::iterator ideIt = ides.begin(); ideIt != ides.end(); ++ideIt)
-      depositedEnergy += ideIt->energy;
+    std::map<int,double> depositedEnergy;
+    const std::vector<const sim::SimChannel*>& simChannels = bt->SimChannels();
+    for (std::vector<const sim::SimChannel*>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
+      int plane = geom->View((*channelIt)->Channel());
+      const std::map<unsigned short, std::vector<sim::IDE> >& tdcidemap = (*channelIt)->TDCIDEMap();
+      for (std::map<unsigned short, std::vector<sim::IDE> >::const_iterator tdcIt = tdcidemap.begin(); tdcIt != tdcidemap.end(); ++tdcIt) {
+	const std::vector<sim::IDE>& idevec = tdcIt->second;
+	for (std::vector<sim::IDE>::const_iterator ideIt = idevec.begin(); ideIt != idevec.end(); ++ideIt) {
+	  if (TMath::Abs(ideIt->trackID) != trueParticle->TrackId())
+	    continue;
+	  depositedEnergy[plane] += ideIt->energy / 1000;
+	}
+      }
+    }
 
     std::shared_ptr<ShowerParticle> particle = std::make_shared<ShowerParticle>(trueParticle->TrackId());
     particle->SetEnergy(trueParticle->E());
@@ -502,7 +515,8 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
   hLargestShowerCompletenessEnergy = tfs->make<TH2D>("LargestShowerCompletenessEnergy","Completeness of largest shower vs Energy;Energy (GeV);Completeness;",100,0,10,101,0,1.01);
   hShowerCompletenessDirection = tfs->make<TH2D>("ShowerCompletenessDirection","Completeness of all showers vs Direction;Direction;Completeness;",100,0,5,101,0,1.01);
   hLargestShowerCompletenessDirection = tfs->make<TH2D>("LargestShowerCompletenessDirection","Completeness of largest shower vs Direction;Direction;Completeness;",100,0,5,101,0,1.01);
-  hShowerEnergy = tfs->make<TH1D>("ShowerEnergy","Shower energy;Recon Energy/True Energy",120,0,1.2);
+  hShowerEnergy = tfs->make<TH1D>("ShowerEnergy","Shower energy;Recon Energy/True Energy;",120,0,1.2);
+  hShowerDepositedEnergy = tfs->make<TH1D>("ShowerDepositedEnergy","Shower deposited energy;Recon Energy/True (Deposited) Energy;",120,0,1.2);
   hShowerDirection = tfs->make<TH1D>("ShowerDirection","Shower direction;True Direction.(Recon Direction);",202,-1.01,1.01);
   hShowerdEdx = tfs->make<TH1D>("ShowerdEdx","dEdx of Shower;dE/dx (MeV/cm)",50,0,10);
   hShowerReconstructed = tfs->make<TH1D>("ShowerReconstructed","% of showering particles with reconstructed shower",101,0,1.01);
