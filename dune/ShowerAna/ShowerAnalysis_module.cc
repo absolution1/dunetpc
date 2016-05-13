@@ -232,8 +232,8 @@ showerAna::ShowerAnalysis::ShowerAnalysis(const fhicl::ParameterSet& pset) : EDA
   fHitsModuleLabel    = pset.get<std::string>("HitsModuleLabel");
   fElectrondEdx       = pset.get<double>("ElectrondEdx",2.1);
   fPhotondEdx         = pset.get<double>("PhotondEdx",4.2);
-  fElectrondEdxWidth  = pset.get<double>("ElectrondEdxWidth",0.513);
-  fPhotondEdxWidth    = pset.get<double>("PhotondEdxWidth",1.75);
+  fElectrondEdxWidth  = pset.get<double>("ElectrondEdxWidth",0.410);
+  fPhotondEdxWidth    = pset.get<double>("PhotondEdxWidth",1.217);
   this->MakeDataProducts();
 }
 
