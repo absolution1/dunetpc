@@ -1,0 +1,12 @@
+
+
+BEGIN_PROLOG
+
+dune35t_goodwireana:
+{
+  module_type:     "GoodWireAna"
+  HitModuleLabel:  "fasthit"
+  NSigmaGoodWire:  3                #Number of stdevs to look away from occupancy peak mean while considering quality of wires
+}
+
+END_PROLOG

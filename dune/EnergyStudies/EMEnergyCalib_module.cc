@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Class:       EMEnergyCalib
 // Module Type: analyzer
 // File:        EMEnergyCalib_module.cc
@@ -6,7 +6,16 @@
 //
 // Analyser module to produce useful information for characterising
 // em showers.
-////////////////////////////////////////////////////////////////////////
+//
+// Usage:
+//   lar -c energyCalib.fcl -s /path/to/files/with/hit/recon/*.root
+//
+// Description of intended use:
+//   Designed to be used to provide information for characterising showers.
+//   Also can be used along with getEnergyConversion.C macro in this directory to find the
+//   conversion between collected charge and total deposited energy for MC showers.
+//   See notes in the getEnergyConversion.C file for a description of this.
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Framework includes:
 #include "art/Framework/Core/ModuleMacros.h"
@@ -22,6 +31,8 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 
 // LArSoft includes
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/CryostatGeo.h"
 #include "larcore/Geometry/TPCGeo.h"
@@ -67,6 +78,9 @@ private:
   double depositU;
   double depositV;
   double depositZ;
+  double correctedChargeU;
+  double correctedChargeV;
+  double correctedChargeZ;
   double vertexDetectorDist;
   int    nhits;
   int    hit_tpc        [kMaxHits];
@@ -83,16 +97,21 @@ private:
   art::ServiceHandle<art::TFileService> tfs;
   art::ServiceHandle<cheat::BackTracker> backtracker;
   art::ServiceHandle<geo::Geometry> geom;
+  detinfo::DetectorProperties const* detprop = nullptr;
 
 };
 
-emshower::EMEnergyCalib::EMEnergyCalib(fhicl::ParameterSet const& pset) : EDAnalyzer(pset) {
+emshower::EMEnergyCalib::EMEnergyCalib(fhicl::ParameterSet const& pset) : EDAnalyzer(pset),
+                                                                          detprop(lar::providerFrom<detinfo::DetectorPropertiesService>()) {
   this->reconfigure(pset);
   fTree = tfs->make<TTree>("EMEnergyCalib","EMEnergyCalib");
   fTree->Branch("TrueEnergy",        &trueEnergy);
   fTree->Branch("DepositU",          &depositU);
   fTree->Branch("DepositV",          &depositV);
   fTree->Branch("DepositZ",          &depositZ);
+  fTree->Branch("CorrectedChargeU",  &correctedChargeU);
+  fTree->Branch("CorrectedChargeV",  &correctedChargeV);
+  fTree->Branch("CorrectedChargeZ",  &correctedChargeZ);
   fTree->Branch("VertexDetectorDist",&vertexDetectorDist);
   fTree->Branch("NHits",             &nhits);
   fTree->Branch("Hit_TPC",           hit_tpc,        "hit_tpc[NHits]/I");
@@ -139,13 +158,23 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
     // Get the hit
     art::Ptr<recob::Hit> hit = hits.at(hitIt);
 
+    // Get the lifetime-corrected charge
+    switch (hit->WireID().Plane) {
+    case 0:
+      correctedChargeU += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+    case 1:
+      correctedChargeV += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+    case 2:
+      correctedChargeZ += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+    }
+
     // Fill hit level info
-    hit_tpc    [hitIt] = hit->WireID().TPC;
-    hit_plane  [hitIt] = hit->WireID().Plane;
-    hit_wire   [hitIt] = hit->WireID().Wire;
-    hit_peakT  [hitIt] = hit->PeakTime();
-    hit_charge [hitIt] = hit->Integral();
-    hit_channel[hitIt] = hit->Channel();
+    hit_tpc     [hitIt] = hit->WireID().TPC;
+    hit_plane   [hitIt] = hit->WireID().Plane;
+    hit_wire    [hitIt] = hit->WireID().Wire;
+    hit_peakT   [hitIt] = hit->PeakTime();
+    hit_charge  [hitIt] = hit->Integral();
+    hit_channel [hitIt] = hit->Channel();
 
     // Find the true track this hit is associated with
     hit_truetrackid[hitIt] = this->FindTrackID(hit);
