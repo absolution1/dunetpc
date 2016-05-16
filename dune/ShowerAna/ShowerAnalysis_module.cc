@@ -64,6 +64,7 @@ public:
 
   // Setters
   void SetEnergy(double energy);
+  void SetDepositedEnergy(double depositedEnergy);
   void SetDirection(TVector3 direction);
   void SetStart(TVector3 start);
   void SetPDG(int pdg);
@@ -79,6 +80,7 @@ public:
   TVector3 Start() const { return fStart; }
   TVector3 Direction() const { return fDirection; }
   double Energy() const { return fEnergy; }
+  double DepositedEnergy() const { return fDepositedEnergy; }
 
   TVector3 ShowerStart() const { return ShowerStart(fLargestShower); }
   TVector3 ShowerStart(int shower) const { return fShowers.at(shower)->ShowerStart(); }
@@ -88,11 +90,6 @@ public:
   double ShowerEnergy(int shower) const { art::Ptr<recob::Shower> s = fShowers.at(shower); return s->Energy().at(s->best_plane()); }
   double ShowerdEdx() const { return ShowerdEdx(fLargestShower); }
   double ShowerdEdx(int shower) const { art::Ptr<recob::Shower> s = fShowers.at(shower); return s->dEdx().at(s->best_plane()); }
-
-  double ElectronPull() const { return ElectronPull(fLargestShower); }
-  double ElectronPull(int shower) const { return (ShowerdEdx(shower) - 2)/0.513; }
-  double PhotonPull() const { return PhotonPull(fLargestShower); }
-  double PhotonPull(int shower) const { return (ShowerdEdx(shower) - 4)/1.75; }
 
   int NumHits() const { return fHits.size(); }
   int NumClusters() const { return fClusters.size(); }
@@ -114,7 +111,7 @@ private:
   int fPDG;
 
   TVector3 fStart, fDirection;
-  double fEnergy;
+  double fEnergy, fDepositedEnergy;
 
   std::vector<art::Ptr<recob::Hit> > fHits;
   std::vector<art::Ptr<recob::Cluster> > fClusters;
@@ -143,6 +140,10 @@ showerAna::ShowerParticle::~ShowerParticle() {
 
 void showerAna::ShowerParticle::SetEnergy(double energy) {
   fEnergy = energy;
+}
+
+void showerAna::ShowerParticle::SetDepositedEnergy(double depositedEnergy) {
+  fDepositedEnergy = depositedEnergy;
 }
 
 void showerAna::ShowerParticle::SetDirection(TVector3 direction) {
@@ -200,6 +201,8 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
 
   std::string fShowerModuleLabel, fClusterModuleLabel, fHitsModuleLabel;
 
+  double fElectrondEdx, fPhotondEdx, fElectrondEdxWidth, fPhotondEdxWidth;
+
   art::ServiceHandle<cheat::BackTracker> bt;
   art::ServiceHandle<art::TFileService> tfs;
 
@@ -210,7 +213,7 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
   TH2D *hClusterCompletenessEnergy, *hLargestClusterCompletenessEnergy, *hClusterCompletenessDirection, *hLargestClusterCompletenessDirection;
   TH1D *hShowerCompleteness, *hLargestShowerCompleteness, *hShowerPurity, *hLargestShowerPurity;
   TH2D *hShowerCompletenessEnergy, *hLargestShowerCompletenessEnergy, *hShowerCompletenessDirection, *hLargestShowerCompletenessDirection;
-  TH1D *hShowerEnergy, *hShowerDirection, *hShowerdEdx, *hShowerReconstructed, *hNumShowersReconstructed;
+  TH1D *hShowerEnergy, *hShowerDepositedEnergy, *hShowerDirection, *hShowerdEdx, *hShowerReconstructed, *hNumShowersReconstructed;
   TH2D *hShowerdEdxEnergy, *hNumShowersReconstructedEnergy;
   TProfile *hShowerReconstructedEnergy, *hShowerdEdxEnergyProfile, *hNumShowersReconstructedEnergyProfile;
   TH1D *hElectronPull, *hPhotonPull;
@@ -227,6 +230,10 @@ showerAna::ShowerAnalysis::ShowerAnalysis(const fhicl::ParameterSet& pset) : EDA
   fShowerModuleLabel  = pset.get<std::string>("ShowerModuleLabel");
   fClusterModuleLabel = pset.get<std::string>("ClusterModuleLabel");
   fHitsModuleLabel    = pset.get<std::string>("HitsModuleLabel");
+  fElectrondEdx       = pset.get<double>("ElectrondEdx",2.1);
+  fPhotondEdx         = pset.get<double>("PhotondEdx",4.2);
+  fElectrondEdxWidth  = pset.get<double>("ElectrondEdxWidth",0.410);
+  fPhotondEdxWidth    = pset.get<double>("PhotondEdxWidth",1.217);
   this->MakeDataProducts();
 }
 
@@ -267,14 +274,22 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
   // Fill true properties
   const sim::ParticleList& trueParticles = bt->ParticleList();
   for (sim::ParticleList::const_iterator particleIt = trueParticles.begin(); particleIt != trueParticles.end(); ++particleIt) {
+
     const simb::MCParticle* trueParticle = particleIt->second;
     int mother = trueParticle->Mother();
     if (mother != 0 and trueParticles.at(mother)->PdgCode() == 111) {
       isPi0 = true;
       pi0Decays.push_back(particleIt->first);
     }
+
+    std::vector<sim::IDE> ides = bt->TrackIDToSimIDE(trueParticle->TrackId());
+    double depositedEnergy = 0;
+    for (std::vector<sim::IDE>::iterator ideIt = ides.begin(); ideIt != ides.end(); ++ideIt)
+      depositedEnergy += ideIt->energy;
+
     std::shared_ptr<ShowerParticle> particle = std::make_shared<ShowerParticle>(trueParticle->TrackId());
     particle->SetEnergy(trueParticle->E());
+    particle->SetDepositedEnergy(depositedEnergy);
     particle->SetDirection(trueParticle->Momentum().Vect().Unit());
     particle->SetStart(trueParticle->Position().Vect());
     particle->SetPDG(trueParticle->PdgCode());
@@ -352,6 +367,7 @@ void showerAna::ShowerAnalysis::FillData(const std::map<int,std::shared_ptr<Show
 	hLargestShowerCompletenessEnergy	->Fill(particle->Energy(), particle->ShowerCompleteness(shower));
 	hLargestShowerCompletenessDirection	->Fill(particle->Direction().Angle(TVector3(0,1,0)), particle->ShowerCompleteness(shower));
 	hShowerEnergy				->Fill(particle->ShowerEnergy() / particle->Energy());
+	hShowerDepositedEnergy                  ->Fill(particle->ShowerEnergy() / particle->DepositedEnergy());
 	hShowerDirection                        ->Fill(particle->Direction().Dot(particle->ShowerDirection()));
 	hShowerdEdx                             ->Fill(particle->ShowerdEdx());
       }
@@ -365,8 +381,8 @@ void showerAna::ShowerAnalysis::FillData(const std::map<int,std::shared_ptr<Show
     if (particle->NumShowers()) {
       hShowerdEdxEnergy->Fill(particle->Energy(), particle->ShowerdEdx());
       hShowerdEdxEnergyProfile->Fill(particle->Energy(), particle->ShowerdEdx());
-      hElectronPull->Fill(particle->ElectronPull());
-      hPhotonPull->Fill(particle->PhotonPull());
+      hElectronPull->Fill((particle->ShowerdEdx() - fElectrondEdx)/fElectrondEdxWidth);
+      hPhotonPull->Fill((particle->ShowerdEdx() - fPhotondEdx)/fPhotondEdxWidth);
     }
 
   }

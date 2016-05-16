@@ -3,19 +3,31 @@
 //
 // Macro to produce energy-charge conversion for the DUNE FD/35t.
 //
-// Useage:
-//  root getEnergyConversion.C
+// Usage:
+//   root getEnergyConversion.C [ran in the same directory as EMEnergyCalib.root]
 //
-//  -- runs over the output file (EMEnergyCalib.root) produced from the EMEnergyCalib_module art
-//     analyser
-//  -- produces an output root file which contains all of the plots used to find the conversion
-//     from deposited charge to true energy
-//  -- function is of the form (straight line)
-//         energy = A + (B * charge) and A and B are determined from this script
-//  -- linear plots showing relation are found in the output root file
-//  -- the values of A and B for each plane are also printed upon completion of the script and can
-//     be used in reconstruction; in DUNE the values are placed in the fhicl file:
-//         larreco/larreco/RecoAlg/showeralgorithms.fcl
+// Description of intended use:
+//
+//   Used to provide conversion factors between collected charge and deposited energy in MC showers.
+//   Relationship is linear and must be determined separately for each plane.
+//
+//   -- runs over the output file (EMEnergyCalib.root) produced from the EMEnergyCalib_module art
+//      analyser
+//   -- produces an output root file which contains all of the plots used to find the conversion
+//      from deposited charge to true energy
+//   -- function is of the form (straight line)
+//          charge = A + (B * energy) and A and B are determined from this script
+//   -- linear plots showing relation are found in the output root file
+//   -- the values of A and B for each plane are also printed upon completion of the script and can
+//      be used in reconstruction; in DUNE the values are placed in the fhicl file:
+//          larreco/larreco/RecoAlg/showeralgorithms.fcl
+//
+//   It is intended to be used on a sample of PG showering particles of 10 different energies.
+//   e.g. 1000 electrons at each of the energies 0.5 GeV, 1.0 GeV, .. , 5.0 GeV.
+//   EMEnergyCalib must be run on the samples first before passing (as a single root file) into this
+//   macro.
+//   List the energies in the vector at the start (kParticleEnergies).
+//   The macro will plot collected charge vs true deposited energy and provide conversion factors.
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <string>
@@ -23,17 +35,19 @@
 #include <utility>
 #include <map>
 #include <algorithm>
+#include <vector>
 #include "TTree.h"
 #include "TMath.h"
 
 const int kMaxHits = 10000;
+const double kEnergy[10] = { 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0 };
+const double kdE = 0.5;
 
 class EMEnergyConversion {
 public:
 
   EMEnergyConversion(TTree* tree);
   ~EMEnergyConversion();
-  double ConvertChargeToEnergy(double charge, int plane);
   void MakeFits();
   std::pair<double,double> MakeFit(int num, TString plane);
   void Run();
@@ -48,6 +62,9 @@ private:
   double DepositU;
   double DepositV;
   double DepositZ;
+  double CorrectedChargeU;
+  double CorrectedChargeV;
+  double CorrectedChargeZ;
   double VertexDetectorDist;
   int    NHits;
   int    Hit_TPC      [kMaxHits];
@@ -64,22 +81,16 @@ private:
   TH2D* EnergyDepositUDistance;
   TH2D* EnergyDepositVDistance;
   TH2D* EnergyDepositZDistance;
-  TH1D* EnergyCompleteness;
 
   TFile *outFile;
-
-  // Convert from charge to energy
-  static const double Uintercept = -1519.33, Ugradient = 148867;
-  static const double Vintercept = -1234.91, Vgradient = 149458;
-  static const double Zintercept = -1089.73, Zgradient = 145372;
 
 };
 
 EMEnergyConversion::EMEnergyConversion(TTree* tree) {
   fTree = tree;
-  ChargeDepositEnergyU = new TH2D("ChargeDepositEnergyU","Charge v Depositied Energy on U;Deposited Energy (GeV);Charge (ADC);",50,0,1,100,0,200000);
-  ChargeDepositEnergyV = new TH2D("ChargeDepositEnergyV","Charge v Depositied Energy on V;Deposited Energy (GeV);Charge (ADC);",50,0,1,100,0,200000);
-  ChargeDepositEnergyZ = new TH2D("ChargeDepositEnergyZ","Charge v Depositied Energy on Z;Deposited Energy (GeV);Charge (ADC);",50,0,1,100,0,200000);
+  ChargeDepositEnergyU = new TH2D("ChargeDepositEnergyU","Charge v Depositied Energy on U;Deposited Energy (GeV);Charge (ADC);",50,0,5,100,0,15e9);
+  ChargeDepositEnergyV = new TH2D("ChargeDepositEnergyV","Charge v Depositied Energy on V;Deposited Energy (GeV);Charge (ADC);",50,0,5,100,0,15e9);
+  ChargeDepositEnergyZ = new TH2D("ChargeDepositEnergyZ","Charge v Depositied Energy on Z;Deposited Energy (GeV);Charge (ADC);",50,0,5,100,0,15e9);
   EnergyDepositUDistance = new TH2D("EnergyDepositUDistance","Deposited Energy on U vs Distance from Detector Edge;Distance (cm);Fraction of Energy Deposited;",100,0,220,50,0,1.1);
   EnergyDepositVDistance = new TH2D("EnergyDepositVDistance","Deposited Energy on V vs Distance from Detector Edge;Distance (cm);Fraction of Energy Deposited;",100,0,220,50,0,1.1);
   EnergyDepositZDistance = new TH2D("EnergyDepositZDistance","Deposited Energy on Z vs Distance from Detector Edge;Distance (cm);Fraction of Energy Deposited;",100,0,220,50,0,1.1);
@@ -92,31 +103,14 @@ EMEnergyConversion::~EMEnergyConversion() {
   delete outFile;
 }
 
-double EMEnergyConversion::ConvertChargeToEnergy(double charge, int plane) {
-
-  double energy;
-
-  switch (plane) {
-  case 0:
-    energy = (double)(charge - Uintercept)/(double)Ugradient;
-    break;
-  case 1:
-    energy = (double)(charge - Vintercept)/(double)Vgradient;
-    break;
-  case 2:
-    energy = (double)(charge - Zintercept)/(double)Zgradient;
-    break;
-  }
-
-  return energy;
-
-}
-
 void EMEnergyConversion::SetBranchAddresses() {
   fTree->SetBranchAddress("TrueEnergy",&TrueEnergy);
   fTree->SetBranchAddress("DepositU",&DepositU);
   fTree->SetBranchAddress("DepositV",&DepositV);
   fTree->SetBranchAddress("DepositZ",&DepositZ);
+  fTree->SetBranchAddress("CorrectedChargeU",&CorrectedChargeU);
+  fTree->SetBranchAddress("CorrectedChargeV",&CorrectedChargeV);
+  fTree->SetBranchAddress("CorrectedChargeZ",&CorrectedChargeZ);
   fTree->SetBranchAddress("VertexDetectorDist",&VertexDetectorDist);
   fTree->SetBranchAddress("NHits",&NHits);
   fTree->SetBranchAddress("Hit_TPC",&Hit_TPC);
@@ -143,49 +137,94 @@ void EMEnergyConversion::MakeFits() {
 
 std::pair<double,double> EMEnergyConversion::MakeFit(int num, TString plane) {
 
-  // Make a load of histograms!
-  TH1D* ChargeDist1 = new TH1D(TString("ChargeDist1Plane")+plane,";Total ADC;",200,0,30000);
-  TH1D* ChargeDist2 = new TH1D(TString("ChargeDist2Plane")+plane,";Total ADC;",200,10000,40000);
-  TH1D* ChargeDist3 = new TH1D(TString("ChargeDist3Plane")+plane,";Total ADC;",200,20000,60000);
-  TH1D* ChargeDist4 = new TH1D(TString("ChargeDist4Plane")+plane,";Total ADC;",200,40000,70000);
-  TH1D* ChargeDist5 = new TH1D(TString("ChargeDist5Plane")+plane,";Total ADC;",200,50000,90000);
-  TH1D* ChargeDist6 = new TH1D(TString("ChargeDist6Plane")+plane,";Total ADC;",200,60000,110000);
-  TH1D* ChargeDist7 = new TH1D(TString("ChargeDist7Plane")+plane,";Total ADC;",200,80000,120000);
-  TH1D* ChargeDist8 = new TH1D(TString("ChargeDist8Plane")+plane,";Total ADC;",200,90000,140000);
-  TH1D* ChargeDist9 = new TH1D(TString("ChargeDist9Plane")+plane,";Total ADC;",200,110000,150000);
-  TH1D* ChargeDist10 = new TH1D(TString("ChargeDist10Plane")+plane,";Total ADC;",200,120000,170000);
-  TH1D* EnergyDist1 = new TH1D(TString("EnergyDist1Plane")+plane,";Energy (GeV);",100,0.05,0.1);
-  TH1D* EnergyDist2 = new TH1D(TString("EnergyDist2Plane")+plane,";Energy (GeV);",100,0.15,0.2);
-  TH1D* EnergyDist3 = new TH1D(TString("EnergyDist3Plane")+plane,";Energy (GeV);",100,0.25,0.3);
-  TH1D* EnergyDist4 = new TH1D(TString("EnergyDist4Plane")+plane,";Energy (GeV);",100,0.35,0.4);
-  TH1D* EnergyDist5 = new TH1D(TString("EnergyDist5Plane")+plane,";Energy (GeV);",100,0.45,0.5);
-  TH1D* EnergyDist6 = new TH1D(TString("EnergyDist6Plane")+plane,";Energy (GeV);",100,0.55,0.6);
-  TH1D* EnergyDist7 = new TH1D(TString("EnergyDist7Plane")+plane,";Energy (GeV);",100,0.65,0.7);
-  TH1D* EnergyDist8 = new TH1D(TString("EnergyDist8Plane")+plane,";Energy (GeV);",100,0.75,0.8);
-  TH1D* EnergyDist9 = new TH1D(TString("EnergyDist9Plane")+plane,";Energy (GeV);",100,0.85,0.9);
-  TH1D* EnergyDist10 = new TH1D(TString("EnergyDist10Plane")+plane,";Energy (GeV);",100,0.95,1.0);
+  // Find the highest and lowest charge
+  std::map<int,double> hCharge;
+  std::map<int,double> lCharge;
+  for (int i = 1; i <= 10; ++i) {
+    hCharge[i] = 0;
+    lCharge[i] = 1e10;
+  }
 
   for (unsigned int event = 0; event < fTree->GetEntriesFast(); ++event) {
     fTree->GetEntry(event);
     double deposit;
+    double planeCharge;
     switch (num) {
-    case 0: deposit = DepositU;
-    case 1: deposit = DepositV;
-    case 2: deposit = DepositZ;
+    case 0:
+      deposit = DepositU;
+      planeCharge = CorrectedChargeU;
+      break;
+    case 1:
+      deposit = DepositV;
+      planeCharge = CorrectedChargeV;
+      break;
+    case 2:
+      deposit = DepositZ;
+      planeCharge = CorrectedChargeZ;
+      break;
     }
-    double planeCharge = 0;
-    for (unsigned int hit = 0; hit < NHits; ++hit)
-      if (Hit_Plane[hit] == num) planeCharge += (Hit_Charge[hit] * TMath::Exp((500 * Hit_PeakT[hit])/3e6));
-    if (deposit >= 0.05 && deposit <= 0.1) { ChargeDist1->Fill(planeCharge); EnergyDist1->Fill(deposit); }
-    if (deposit >= 0.15 && deposit <= 0.2) { ChargeDist2->Fill(planeCharge); EnergyDist2->Fill(deposit); }
-    if (deposit >= 0.25 && deposit <= 0.3) { ChargeDist3->Fill(planeCharge); EnergyDist3->Fill(deposit); }
-    if (deposit >= 0.35 && deposit <= 0.4) { ChargeDist4->Fill(planeCharge); EnergyDist4->Fill(deposit); }
-    if (deposit >= 0.45 && deposit <= 0.5) { ChargeDist5->Fill(planeCharge); EnergyDist5->Fill(deposit); }
-    if (deposit >= 0.55 && deposit <= 0.6) { ChargeDist6->Fill(planeCharge); EnergyDist6->Fill(deposit); }
-    if (deposit >= 0.65 && deposit <= 0.7) { ChargeDist7->Fill(planeCharge); EnergyDist7->Fill(deposit); }
-    if (deposit >= 0.75 && deposit <= 0.8) { ChargeDist8->Fill(planeCharge); EnergyDist8->Fill(deposit); }
-    if (deposit >= 0.85 && deposit <= 0.9) { ChargeDist9->Fill(planeCharge); EnergyDist9->Fill(deposit); }
-    if (deposit >= 0.95 && deposit <= 1.0) { ChargeDist10->Fill(planeCharge); EnergyDist10->Fill(deposit); }
+    if (deposit > kEnergy[0]-kdE && deposit <= kEnergy[0]) { if (planeCharge > hCharge[1]) hCharge[1] = planeCharge; if (planeCharge < lCharge[1]) lCharge[1] = planeCharge; }
+    if (deposit > kEnergy[1]-kdE && deposit <= kEnergy[1]) { if (planeCharge > hCharge[2]) hCharge[2] = planeCharge; if (planeCharge < lCharge[2]) lCharge[2] = planeCharge; }
+    if (deposit > kEnergy[2]-kdE && deposit <= kEnergy[2]) { if (planeCharge > hCharge[3]) hCharge[3] = planeCharge; if (planeCharge < lCharge[3]) lCharge[3] = planeCharge; }
+    if (deposit > kEnergy[3]-kdE && deposit <= kEnergy[3]) { if (planeCharge > hCharge[4]) hCharge[4] = planeCharge; if (planeCharge < lCharge[4]) lCharge[4] = planeCharge; }
+    if (deposit > kEnergy[4]-kdE && deposit <= kEnergy[4]) { if (planeCharge > hCharge[5]) hCharge[5] = planeCharge; if (planeCharge < lCharge[5]) lCharge[5] = planeCharge; }
+    if (deposit > kEnergy[5]-kdE && deposit <= kEnergy[5]) { if (planeCharge > hCharge[6]) hCharge[6] = planeCharge; if (planeCharge < lCharge[6]) lCharge[6] = planeCharge; }
+    if (deposit > kEnergy[6]-kdE && deposit <= kEnergy[6]) { if (planeCharge > hCharge[7]) hCharge[7] = planeCharge; if (planeCharge < lCharge[7]) lCharge[7] = planeCharge; }
+    if (deposit > kEnergy[7]-kdE && deposit <= kEnergy[7]) { if (planeCharge > hCharge[8]) hCharge[8] = planeCharge; if (planeCharge < lCharge[8]) lCharge[8] = planeCharge; }
+    if (deposit > kEnergy[8]-kdE && deposit <= kEnergy[8]) { if (planeCharge > hCharge[9]) hCharge[9] = planeCharge; if (planeCharge < lCharge[9]) lCharge[9] = planeCharge; }
+    if (deposit > kEnergy[9]-kdE && deposit <= kEnergy[9]) { if (planeCharge > hCharge[10]) hCharge[10] = planeCharge; if (planeCharge < lCharge[10]) lCharge[10] = planeCharge; }
+  }
+
+  // Make a load of histograms!
+  TH1D* ChargeDist1 = new TH1D(TString("ChargeDist1Plane")+plane,";Total ADC;",200,lCharge[1]-2e6,hCharge[1]+2e6);
+  TH1D* ChargeDist2 = new TH1D(TString("ChargeDist2Plane")+plane,";Total ADC;",200,lCharge[2]-2e6,hCharge[2]+2e6);
+  TH1D* ChargeDist3 = new TH1D(TString("ChargeDist3Plane")+plane,";Total ADC;",200,lCharge[3]-2e6,hCharge[3]+2e6);
+  TH1D* ChargeDist4 = new TH1D(TString("ChargeDist4Plane")+plane,";Total ADC;",200,lCharge[4]-2e6,hCharge[4]+2e6);
+  TH1D* ChargeDist5 = new TH1D(TString("ChargeDist5Plane")+plane,";Total ADC;",200,lCharge[5]-2e6,hCharge[5]+2e6);
+  TH1D* ChargeDist6 = new TH1D(TString("ChargeDist6Plane")+plane,";Total ADC;",200,lCharge[6]-2e6,hCharge[6]+2e6);
+  TH1D* ChargeDist7 = new TH1D(TString("ChargeDist7Plane")+plane,";Total ADC;",200,lCharge[7]-2e6,hCharge[7]+2e6);
+  TH1D* ChargeDist8 = new TH1D(TString("ChargeDist8Plane")+plane,";Total ADC;",200,lCharge[8]-2e6,hCharge[8]+2e6);
+  TH1D* ChargeDist9 = new TH1D(TString("ChargeDist9Plane")+plane,";Total ADC;",200,lCharge[9]-2e6,hCharge[9]+2e6);
+  TH1D* ChargeDist10 = new TH1D(TString("ChargeDist10Plane")+plane,";Total ADC;",200,lCharge[10]-2e6,hCharge[10]+2e6);
+  TH1D* EnergyDist1 = new TH1D(TString("EnergyDist1Plane")+plane,";Energy (GeV);",100,kEnergy[0]-kdE,kEnergy[0]);
+  TH1D* EnergyDist2 = new TH1D(TString("EnergyDist2Plane")+plane,";Energy (GeV);",100,kEnergy[1]-kdE,kEnergy[1]);
+  TH1D* EnergyDist3 = new TH1D(TString("EnergyDist3Plane")+plane,";Energy (GeV);",100,kEnergy[2]-kdE,kEnergy[2]);
+  TH1D* EnergyDist4 = new TH1D(TString("EnergyDist4Plane")+plane,";Energy (GeV);",100,kEnergy[3]-kdE,kEnergy[3]);
+  TH1D* EnergyDist5 = new TH1D(TString("EnergyDist5Plane")+plane,";Energy (GeV);",100,kEnergy[4]-kdE,kEnergy[4]);
+  TH1D* EnergyDist6 = new TH1D(TString("EnergyDist6Plane")+plane,";Energy (GeV);",100,kEnergy[5]-kdE,kEnergy[5]);
+  TH1D* EnergyDist7 = new TH1D(TString("EnergyDist7Plane")+plane,";Energy (GeV);",100,kEnergy[6]-kdE,kEnergy[6]);
+  TH1D* EnergyDist8 = new TH1D(TString("EnergyDist8Plane")+plane,";Energy (GeV);",100,kEnergy[7]-kdE,kEnergy[7]);
+  TH1D* EnergyDist9 = new TH1D(TString("EnergyDist9Plane")+plane,";Energy (GeV);",100,kEnergy[8]-kdE,kEnergy[8]);
+  TH1D* EnergyDist10 = new TH1D(TString("EnergyDist10Plane")+plane,";Energy (GeV);",100,kEnergy[9]-kdE,kEnergy[9]);
+
+  for (unsigned int event = 0; event < fTree->GetEntriesFast(); ++event) {
+    fTree->GetEntry(event);
+    double deposit;
+    double planeCharge;
+    switch (num) {
+    case 0:
+      deposit = DepositU;
+      planeCharge = CorrectedChargeU;
+      break;
+    case 1:
+      deposit = DepositV;
+      planeCharge = CorrectedChargeV;
+      break;
+    case 2:
+      deposit = DepositZ;
+      planeCharge = CorrectedChargeZ;
+      break;
+    }
+    if (deposit > kEnergy[0]-kdE && deposit <= kEnergy[0]) { ChargeDist1->Fill(planeCharge); EnergyDist1->Fill(deposit); }
+    if (deposit > kEnergy[1]-kdE && deposit <= kEnergy[1]) { ChargeDist2->Fill(planeCharge); EnergyDist2->Fill(deposit); }
+    if (deposit > kEnergy[2]-kdE && deposit <= kEnergy[2]) { ChargeDist3->Fill(planeCharge); EnergyDist3->Fill(deposit); }
+    if (deposit > kEnergy[3]-kdE && deposit <= kEnergy[3]) { ChargeDist4->Fill(planeCharge); EnergyDist4->Fill(deposit); }
+    if (deposit > kEnergy[4]-kdE && deposit <= kEnergy[4]) { ChargeDist5->Fill(planeCharge); EnergyDist5->Fill(deposit); }
+    if (deposit > kEnergy[5]-kdE && deposit <= kEnergy[5]) { ChargeDist6->Fill(planeCharge); EnergyDist6->Fill(deposit); }
+    if (deposit > kEnergy[6]-kdE && deposit <= kEnergy[6]) { ChargeDist7->Fill(planeCharge); EnergyDist7->Fill(deposit); }
+    if (deposit > kEnergy[7]-kdE && deposit <= kEnergy[7]) { ChargeDist8->Fill(planeCharge); EnergyDist8->Fill(deposit); }
+    if (deposit > kEnergy[8]-kdE && deposit <= kEnergy[8]) { ChargeDist9->Fill(planeCharge); EnergyDist9->Fill(deposit); }
+    if (deposit > kEnergy[9]-kdE && deposit <= kEnergy[9]) { ChargeDist10->Fill(planeCharge); EnergyDist10->Fill(deposit); }
   }
 
   TF1* fit;
@@ -256,15 +295,12 @@ void EMEnergyConversion::ProcessEvent() {
   for (int hit = 0; hit < NHits; ++hit) {
     switch (Hit_Plane[hit]) {
     case 0:
-      chargeU += (Hit_Charge[hit] * TMath::Exp((500 * Hit_PeakT[hit])/3e6));
       clusterChargeU[Hit_ClusterID[hit]] += (Hit_Charge[hit] * TMath::Exp((500 * Hit_PeakT[hit])/3e6));
       break;
     case 1:
-      chargeV += (Hit_Charge[hit] * TMath::Exp((500 * Hit_PeakT[hit])/3e6));
       clusterChargeV[Hit_ClusterID[hit]] += (Hit_Charge[hit] * TMath::Exp((500 * Hit_PeakT[hit])/3e6));
       break;
     case 2:
-      chargeZ += (Hit_Charge[hit] * TMath::Exp((500 * Hit_PeakT[hit])/3e6));
       clusterChargeZ[Hit_ClusterID[hit]] += (Hit_Charge[hit] * TMath::Exp((500 * Hit_PeakT[hit])/3e6));
       break;
     }
@@ -282,15 +318,12 @@ void EMEnergyConversion::ProcessEvent() {
   for (std::map<int,double>::iterator chargeIt = clusterChargeZ.begin(); chargeIt != clusterChargeZ.end(); ++chargeIt)
     if (chargeIt->second > highChargeZ) highChargeZ = chargeIt->second;
 
-  ChargeDepositEnergyU->Fill(DepositU, chargeU);
-  ChargeDepositEnergyV->Fill(DepositV, chargeV);
-  ChargeDepositEnergyZ->Fill(DepositZ, chargeZ);
+  ChargeDepositEnergyU->Fill(DepositU, CorrectedChargeU);
+  ChargeDepositEnergyV->Fill(DepositV, CorrectedChargeV);
+  ChargeDepositEnergyZ->Fill(DepositZ, CorrectedChargeZ);
   EnergyDepositUDistance->Fill(VertexDetectorDist, (double)DepositU/(double)TrueEnergy);
   EnergyDepositVDistance->Fill(VertexDetectorDist, (double)DepositV/(double)TrueEnergy);
   EnergyDepositZDistance->Fill(VertexDetectorDist, (double)DepositZ/(double)TrueEnergy);
-  EnergyCompleteness->Fill((double)ConvertChargeToEnergy(highChargeU,0)/(double)DepositU);
-  EnergyCompleteness->Fill((double)ConvertChargeToEnergy(highChargeV,1)/(double)DepositV);
-  EnergyCompleteness->Fill((double)ConvertChargeToEnergy(highChargeZ,2)/(double)DepositZ);
 
 }
 
@@ -311,8 +344,6 @@ void EMEnergyConversion::SaveHists() {
   EnergyDepositUDistance->Write("EnergyDepositUDistance");
   EnergyDepositVDistance->Write("EnergyDepositVDistance");
   EnergyDepositZDistance->Write("EnergyDepositZDistance");
-
-  EnergyCompleteness->Write("EnergyCompleteness");
 
 }
 
