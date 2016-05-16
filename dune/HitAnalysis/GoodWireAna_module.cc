@@ -277,8 +277,8 @@ void GoodWireAna::makeHistoSetForThisRun( int runID )
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
 void GoodWireAna::writeListOfDeadWires()
 {
-  //Create an ofstream object (outfile)
-  ofstream outfile;
+  //Create an std::ofstream object (outfile)
+  std::ofstream outfile;
   outfile.open("deadWireList.txt");
 
   if( fVerbose )
@@ -592,8 +592,8 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 //This takes the bad wire info and writes it to a text file
 void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireVect )
 {
-  //Create an ofstream object (outfile)
-  ofstream outfile;
+  //Create an std::ofstream object (outfile)
+  std::ofstream outfile;
   outfile.open("badChannelList.txt");
 
   //Create vectors for listing bulk properties of different runs
@@ -712,8 +712,8 @@ void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireV
 //This takes the good wire info and writes it to a text file
 void GoodWireAna::writeListOfGoodWires(std::vector<std::vector<size_t> > goodWireVect )
 {
-  //Create an ofstream object (outfile)
-  ofstream outfile;
+  //Create an std::ofstream object (outfile)
+  std::ofstream outfile;
   outfile.open("goodChannelList.txt");
 
   //Create an object for listing bulk properties
