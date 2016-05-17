@@ -183,7 +183,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
       //std::cout << "Setting ADCs["<<dig<<"]["<<tick<<"] to " << ADCs[dig][tick] << " " << digits[dig].ADC(tick) << std::endl;
     }
   }
-  if (NSamples) fTree->Fill();
+  if (NSamples && fMakeTree) fTree->Fill();
 
   art::Timestamp this_time_stamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(firstTimestamp);
   std::cout << "JPD: this_time_stamp: " << this_time_stamp.value() << std::endl;

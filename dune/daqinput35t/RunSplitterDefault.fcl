@@ -8,6 +8,7 @@ services:
 {
   TimeTracker:           {}
   MemoryTracker:         { ignoreTotal: 1 } # default is one
+  TFileService:          { fileName: "SplitterTree.root" }
   RandomNumberGenerator: {} #ART native random number generator
   message:               @local::dune_message_services_prod_debug
   FileCatalogMetadata:   @local::art_file_catalog_data
@@ -34,9 +35,9 @@ source: @local::split_events
 
 ########### PTB Trigger information ###########
 # Trigger 110 - Telescope
-# Trigger 111 - North Upper / South Lower
-# Trigger 112 - North Lower / South Upper
-# Trigger 113 - East Lower / West Upper
+# Trigger 111 - East Lower / West Upper
+# Trigger 112 - North Upper / South Lower
+# Trigger 113 - North Lower / South Upper
 # Trigger 114 - Reserved for later use....
 # Trigger 115 - SSP Trigger
 # Trigger 116 - RCE Trigger.....Not set up by PTB but added regardless.
