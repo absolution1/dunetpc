@@ -13,6 +13,7 @@
 #include "photpropservices_dune.fcl"
 #include "sam_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
+#include "channelmapping_dune.fcl"
 #include "channelstatus_dune.fcl"
 #include "pedestals_dune.fcl"
 #include "daq_dune.fcl"
@@ -20,7 +21,6 @@
 #include "channelmap_35t.fcl"
 
 BEGIN_PROLOG
-
 
 # The above *_dune.fcl include contain the parameter blocks
 # for all dune geometries. All PROLOG files for dune should
@@ -185,6 +185,7 @@ dune35t_basic_services: {
  LArSeedService:                  @local::dune_seedservice
  ChannelStatusService:         @local::dune35t_channel_status
  ChannelMapService:            @local::channelmap35t
+ ChannelMappingService:        @local::dune35t_channelmapping
 }
 
 dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
@@ -202,7 +203,6 @@ dune35t_g4_services.LArG4Parameters:         @local::dune35t_largeantparameters
 dune35t_g4_services.LArVoxelCalculator:      @local::dune35t_larvoxelcalculator
 dune35t_g4_services.PhotonVisibilityService: @local::dune35t_photonvisibilityservice
 dune35t_g4_services.OpDetResponseInterface:  @local::dune35t_opdetresponse  
-
 
 ##
 # Settings to turn on and configure photon simulation

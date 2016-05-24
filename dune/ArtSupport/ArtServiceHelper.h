@@ -37,6 +37,9 @@ public:
   // The load status is set to 3.
   static void close();
 
+  // Ctor.
+  ArtServiceHelper();
+
   // Dtor.
   ~ArtServiceHelper();
 
@@ -53,6 +56,12 @@ public:
   // Load the services, i.e. make them available for use via art::ServiceHandle.
   // Returns the status: 1 for success, 2 for failure.
   int loadServices();
+
+  // Set the log level.
+  //    0 - Only log errors.
+  //    1 - Log errors and warnings (default).
+  //   >1 - Noisy.
+  void setLogLevel(int lev);
 
   // Return the names of added services.
   NameList serviceNames() const;
@@ -78,6 +87,7 @@ private:
   // Return the pointer to the one instance of this (singleton) class.
   static std::unique_ptr<ArtServiceHelper>& instancePtr();
 
+  int m_LogLevel;
   NameList m_names;
   ConfigurationMap m_cfgmap;
   std::string m_scfgs;
@@ -88,11 +98,9 @@ private:
 
   // Ctors.
 #ifdef ACLIC
-  ArtServiceHelper() { };
   ArtServiceHelper(const ArtServiceHelper&) { }
   ArtServiceHelper& operator=(const ArtServiceHelper&) { return *this; }
 #else
-  ArtServiceHelper() = default;
   ArtServiceHelper(const ArtServiceHelper&) = delete;
   ArtServiceHelper& operator=(const ArtServiceHelper&) const = delete;
 #endif
