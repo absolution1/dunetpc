@@ -12,7 +12,7 @@ dune35t_analysistree:
  G4ModuleLabel:               "largeant"
  TrackModuleLabel:            [ "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
  VertexModuleLabel:           [ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
- PandoraNuVertexModuleLabel:  "pandoraNu"
+ PandoraNuVertexModuleLabel:  ""
  ClusterModuleLabel:          "linecluster"
  OpFlashModuleLabel:          "opflash"
  ExternalCounterModuleLabel:    "simcounter"
@@ -24,13 +24,12 @@ dune35t_analysistree:
  MVAPIDShowerModuleLabel:     [ "", "", "", "" ]
  FlashT0FinderLabel:          [ "photont0pmtrack", "photont0pmtrackcd", "photont0pandora", "photont0pandoradc" ]
  MCT0FinderLabel:             [ "mctrutht0pmtrack", "mctrutht0pmtrackdc", "mctrutht0pandora", "mctrutht0pandoradc" ]
- #ShowerModuleLabel:          [ "mergeemshower3d", "mergeemshower3ddc" ]
- ShowerModuleLabel:           [ "" ] # I didn't run
+ ShowerModuleLabel:           [ "emshower", "emshowerdc", "mergeemshower3d", "mergeemshower3ddc" ]
  CosmicClusterTaggerAssocLabel: ""   # Not used in 35 ton
  CosmicTaggerAssocLabel:      [ "", "", "", "" ] # Not used in 35 ton
  ContainmentTaggerAssocLabel: [ "", "", "", "" ] # Not used in 35 ton
  FlashMatchAssocLabel:        [ "", "", "", "" ] # Not used in 35 ton
- POTModuleLabel:              "generator"
+ POTModuleLabel:              ""
 
  UseBuffers:               false
  IgnoreMissingShowers:     false
@@ -48,7 +47,7 @@ dune35t_analysistree:
  SaveClusterInfo:          true
  SaveFlashInfo:            true
  SaveExternCounterInfo:    true
- SaveShowerInfo:           false # I didn't run
+ SaveShowerInfo:           true
  SaveCaloCosmics:          true
  G4minE:                   -1
 }
@@ -62,5 +61,15 @@ protodune_analysistree.MCT0FinderLabel:   [ "", "", "", "", "", "" ]
 protodune_analysistree.CosmicTaggerAssocLabel:  [ "", "", "", "", "", "" ]
 protodune_analysistree.ContainmentTaggerAssocLabel: [ "", "", "", "", "", "" ]
 protodune_analysistree.FlashMatchAssocLabel: [ "", "", "", "", "", "" ]
+
+dune10kt_analysistree: @local::dune35t_analysistree
+dune10kt_analysistree.FlashT0FinderLabel:         [ "","","","" ]
+dune10kt_analysistree.CalorimetryModuleLabel:     ["pmtrackcalo","pmtrackcalodc","pandoracalo","pandoracalodc"]
+dune10kt_analysistree.SaveCryInfo:                false
+dune10kt_analysistree.SaveGenieInfo:              false
+dune10kt_analysistree.SaveExternCounterInfo:      false
+dune10kt_analysistree.SaveFlashInfo:              false
+dune10kt_analysistree.SaveShowerInfo:             false
+
 
 END_PROLOG
