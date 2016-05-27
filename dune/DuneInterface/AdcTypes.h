@@ -13,7 +13,7 @@
 typedef short AdcCount;
 typedef std::vector<AdcCount> AdcCountVector;
 
-typedef double AdcSignal;
+typedef float AdcSignal;
 typedef std::vector<AdcSignal> AdcSignalVector;
 typedef std::vector<AdcSignalVector> AdcSignalVectorVector;
 

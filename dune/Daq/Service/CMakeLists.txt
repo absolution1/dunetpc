@@ -7,7 +7,10 @@
 
 # Add plugin for each service.
 
-simple_plugin(FileChannelMappingService  "service"
+simple_plugin(FileChannelMappingService  "service")
+simple_plugin(Dune35tChannelMappingService  "service"
+                lbne-raw-data_Services_ChannelMap_ChannelMapService_service
+                ${ART_UTILITIES}
              )
 
 add_subdirectory(test)
