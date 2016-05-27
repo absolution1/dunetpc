@@ -77,7 +77,6 @@ dunefddphase_services: {
  DetectorPropertiesService:      @local::dunefddphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
- SimChannelExtractService:       @local::scxdp
 }
 
 dunefddphase_simulation_services: {
@@ -96,7 +95,6 @@ dunefddphase_simulation_services: {
  DetectorPropertiesService:      @local::dunefddphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
- SimChannelExtractService:       @local::scxdp
 }
 
 
