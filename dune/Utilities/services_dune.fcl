@@ -19,6 +19,7 @@
 #include "daq_dune.fcl"
 #include "detsimmodules_dune.fcl"
 #include "channelmap_35t.fcl"
+#include "spacecharge_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -38,7 +39,8 @@ dunefd_services: {
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
- LArSeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::dunefd_spacecharge
+ LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
 }
@@ -55,7 +57,8 @@ dunefd_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::dunefd_backtracker
- LArSeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::dunefd_spacecharge
+ LArSeedService:               @local::dune_seedservice
  LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
@@ -71,12 +74,14 @@ dunefddphase_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
- LArSeedService:                    @local::dune_seedservice 
+ LArSeedService:                 @local::dune_seedservice 
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dunefddphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
 dunefddphase_simulation_services: {
@@ -86,7 +91,7 @@ dunefddphase_simulation_services: {
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag
  BackTracker:                    @local::dunefd_backtracker
- LArSeedService:                    @local::dune_seedservice
+ LArSeedService:                 @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::dunefd_opdetresponse
  ChannelStatusService:           @local::dunefd_channel_status
@@ -95,6 +100,8 @@ dunefddphase_simulation_services: {
  DetectorPropertiesService:      @local::dunefddphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
 
@@ -127,7 +134,8 @@ protodune_services: {
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
- LArSeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::protodune_spacecharge
+ LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status 
 }
@@ -144,7 +152,8 @@ protodune_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::dunefd_backtracker
- LArSeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::protodune_spacecharge
+ LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
@@ -180,7 +189,8 @@ dune35t_basic_services: {
  DetectorPropertiesService:    @local::dune35t_detproperties
  LArPropertiesService:         @local::dune35t_properties
  DatabaseUtil:                 @local::dune35t_database
- LArSeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::dune35t_spacecharge
+ LArSeedService:               @local::dune_seedservice
  ChannelStatusService:         @local::dune35t_channel_status
  ChannelMapService:            @local::channelmap35t
  ChannelMappingService:        @local::dune35t_channelmapping
