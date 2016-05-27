@@ -24,7 +24,7 @@ dune35t_analysistree:
  MVAPIDShowerModuleLabel:     [ "", "", "", "" ]
  FlashT0FinderLabel:          [ "photont0pmtrack", "photont0pmtrackcd", "photont0pandora", "photont0pandoradc" ]
  MCT0FinderLabel:             [ "mctrutht0pmtrack", "mctrutht0pmtrackdc", "mctrutht0pandora", "mctrutht0pandoradc" ]
- ShowerModuleLabel:           [ "emshower", "emshowerdc", "mergeemshower3d", "mergeemshower3ddc" ]
+ ShowerModuleLabel:           [ "emshower", "emshowerdc" ] ### , "mergeemshower3d", "mergeemshower3ddc" ] ## When we want to add back Dorota's showering.
  CosmicClusterTaggerAssocLabel: ""   # Not used in 35 ton
  CosmicTaggerAssocLabel:      [ "", "", "", "" ] # Not used in 35 ton
  ContainmentTaggerAssocLabel: [ "", "", "", "" ] # Not used in 35 ton
