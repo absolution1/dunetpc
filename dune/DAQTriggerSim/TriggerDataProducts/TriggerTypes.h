@@ -18,6 +18,7 @@ namespace triggersim {
   const unsigned int kNucleon     = 4;   // a nucleon based event
   const unsigned int kMonopole    = 5;   // magnetic monopole trigger
   const unsigned int kCosmic      = 6;   // cosmic ray primary/secondary or some other cosmic induced event
+  const unsigned int kBackground  = 7;   // background event (likely to be suppressed or ignored)
 
 
 
@@ -27,7 +28,10 @@ namespace triggersim {
 
 
   // Activity trigger sub-types:
-  // (specify activity trigger sub-types here...)
+  const unsigned int kColRCEHits = kActivity * kSubTypeOffset + 1;   // collection wire hits seen in an RCE
+  const unsigned int kColAPAHits = kActivity * kSubTypeOffset + 2;   // collection wire hits seen in an APA
+  const unsigned int kIndRCEHits = kActivity * kSubTypeOffset + 3;   // induction wire hits seen in an RCE
+  const unsigned int kIndAPAHits = kActivity * kSubTypeOffset + 4;   // induction wire hits seen in an APA
 
 
 
@@ -51,8 +55,14 @@ namespace triggersim {
 
 
   // Cosmic sub-types:
-  // (specify cosmic trigger sub-types here...)
+  const unsigned int kCosmicMu = kCosmic * kSubTypeOffset + 1;   // cosmic ray muon
 
+
+
+  // Background sub-types:
+  const unsigned int kGenRad = kBackground * kSubTypeOffset + 1;   // general radiological background event
+  const unsigned int kAr39   = kBackground * kSubTypeOffset + 2;   // Ar39 decay
+  const unsigned int kRadon  = kBackground * kSubTypeOffset + 3;   // Radon decay
 
 } // end namespace triggersim
 
