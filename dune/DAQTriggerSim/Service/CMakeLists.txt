@@ -21,6 +21,21 @@ simple_plugin(TemplateTriggerService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(ActivityTriggerService   "service"
+                larcore_Geometry
+                larcore_Geometry_Geometry_service
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+                ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                ${SEEDSERVICE_SERVICE}
+                ${ART_FRAMEWORK_CORE}
+                ${ART_UTILITIES}
+                ${MF_MESSAGELOGGER}
+                ${MF_UTILITIES}
+                ${ROOT_BASIC_LIB_LIST}
+		${ROOT_GEOM}
+             )
+
 install_fhicl()
 install_headers()
 install_source()
