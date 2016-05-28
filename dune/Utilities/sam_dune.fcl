@@ -8,7 +8,7 @@ art_file_catalog:
   # Note sam application name is taken from "process_name" fcl parameter in main job file.
   applicationFamily:   "art"
   applicationVersion:  "development"
-  group:               "lbne"
+  group:               "dune"
   runType:             "physics"
   fileType:            "unknown"
 }
