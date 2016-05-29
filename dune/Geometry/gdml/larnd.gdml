@@ -440,7 +440,15 @@
     <position name="Mod-11_TPC-0_in_Cryo" unit="cm" x="170.453" y="0.0" z="300.6"/>
     <position name="Mod-11_TPC-1_in_Cryo" unit="cm" x="270.499" y="0.0" z="300.6"/>
     <position name="Membrane_in_Cryo" unit="cm" x="0" y="0" z="0"/>
-    <position name="Cryo_in_Enc" unit="cm" x="5.41433564649e-14" y="-616.626" z="-337.54625"/>
+    <position name="Cryo_in_Enc" unit="cm" x="5.41433564649e-14" y="-606.626" z="-337.54625"/>
+    <position name="magBarShort_bot_up_in_Enc" unit="cm" x="5.41433564649e-14" y="-763.096" z="-762.11625"/>
+    <position name="magBarShort_top_up_in_Enc" unit="cm" x="5.41433564649e-14" y="-450.156" z="-762.11625"/>
+    <position name="magBarShort_bot_down_in_Enc" unit="cm" x="5.41433564649e-14" y="-763.096" z="87.02375"/>
+    <position name="magBarShort_top_down_in_Enc" unit="cm" x="5.41433564649e-14" y="-450.156" z="87.02375"/>
+    <position name="magBarLong_bot_neg_in_Enc" unit="cm" x="-354.484" y="-763.096" z="-337.54625"/>
+    <position name="magBarLong_top_neg_in_Enc" unit="cm" x="-354.484" y="-450.156" z="-337.54625"/>
+    <position name="magBarLong_bot_pos_in_Enc" unit="cm" x="354.484" y="-763.096" z="-337.54625"/>
+    <position name="magBarLong_top_pos_in_Enc" unit="cm" x="354.484" y="-450.156" z="-337.54625"/>
     <rotation name="r90aboutX" unit="degree" x="90" y="0" z="0"/>
     <rotation name="rminus90aboutX" unit="degree" x="-90" y="0" z="0"/>
     <rotation name="r90aboutY" unit="degree" x="0" y="90" z="0"/>
@@ -448,16 +456,16 @@
     <rotation name="rminus90aboutY" unit="degree" x="0" y="-90" z="0"/>
     <rotation name="r90aboutZ" unit="degree" x="0" y="0" z="90"/>
     <rotation name="r90aboutXZ" unit="degree" x="90" y="0" z="90"/>
-    <position name="DetEnc_in_World" unit="cm" x="-5.41433564649e-14" y="616.626" z="739.61625"/>
-    <position name="secHall_in_World" unit="cm" x="-1615.44" y="16.17" z="937.26"/>
-    <position name="pShaft_in_World" unit="cm" x="-5.41433564649e-14" y="3761.2476" z="-426.72"/>
-    <position name="sShaft_in_World" unit="cm" x="-2072.64" y="3160.7916" z="937.26"/>
+    <position name="DetEnc_in_World" unit="cm" x="-5.41433564649e-14" y="606.626" z="739.61625"/>
+    <position name="secHall_in_World" unit="cm" x="-1615.44" y="6.17" z="937.26"/>
+    <position name="pShaft_in_World" unit="cm" x="-5.41433564649e-14" y="3751.2476" z="-426.72"/>
+    <position name="sShaft_in_World" unit="cm" x="-2072.64" y="3150.7916" z="937.26"/>
     <position name="pShaft_in_dLayer" unit="cm" x="-5.41433564649e-14" y="0" z="-426.72"/>
     <position name="sShaft_in_dLayer" unit="cm" x="-2072.64" y="0" z="937.26"/>
-    <position name="dLayer_in_World" unit="cm" x="0" y="5375.7732" z="0"/>
-    <position name="sky_in_World" unit="cm" x="0" y="8068.8866" z="0"/>
+    <position name="dLayer_in_World" unit="cm" x="0" y="5365.7732" z="0"/>
+    <position name="sky_in_World" unit="cm" x="0" y="8063.8866" z="0"/>
     <rotation name="rSevBuilding_aboutY" unit="degree" x="0" y="74.3519835199" z="0"/>
-    <position name="servB_in_Sky" unit="cm" x="-454.92989085" y="-1359.6134" z="-299.290223217"/>
+    <position name="servB_in_Sky" unit="cm" x="-454.92989085" y="-1364.6134" z="-299.290223217"/>
     <position name="center"/>
     <rotation name="identity"/>
   </define>
@@ -639,6 +647,10 @@
       <D value="0.2297"/>
       <composite n="1" ref="argon"/>
     </material>
+    <material formula="" name="Aluminum">
+      <D value="2.7"/>
+      <composite n="1" ref="aluminum"/>
+    </material>
     <material formula="" name="CarbonFiber">
       <D value="1.6"/>
       <composite n="1" ref="carbon"/>
@@ -749,6 +761,8 @@
       <rotationref ref="identity"/>
     </subtraction>
     <box lunit="cm" name="DetEnclosure" x="1798.32" y="1536.192" z="3003.2325"/>
+    <box lunit="cm" name="magBarLong" x="45.0" y="10.0" z="894.14"/>
+    <box lunit="cm" name="magBarShort" x="663.968" y="10.0" z="45.0"/>
     <box lunit="cm" name="World" x="20000.0" y="20000.0" z="20000.0"/>
     <box lunit="cm" name="SecondaryHall" x="1432.56" y="335.28" z="579.12"/>
     <tube aunit="radian" deltaphi="6.28318530718" lunit="cm" name="PrimaryShaft" rmax="335.28" rmin="0.0" startphi="0.0" z="4753.0512"/>
@@ -766,7 +780,7 @@
       <positionref ref="sShaft_in_dLayer"/>
       <rotationref ref="r90aboutX"/>
     </subtraction>
-    <box lunit="cm" name="Sky" x="20000.0" y="3862.2268" z="20000.0"/>
+    <box lunit="cm" name="Sky" x="20000.0" y="3872.2268" z="20000.0"/>
     <box lunit="cm" name="ServiceBuilding" x="1371.6" y="1143.0" z="4130.04"/>
   </solids>
   <structure>
@@ -3057,12 +3071,60 @@
         <rotationref ref="identity"/>
       </physvol>
     </volume>
+    <volume name="volMagBarShort">
+      <materialref ref="Aluminum"/>
+      <solidref ref="magBarShort"/>
+    </volume>
+    <volume name="volMagBarLong">
+      <materialref ref="Aluminum"/>
+      <solidref ref="magBarLong"/>
+    </volume>
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
       <physvol>
         <volumeref ref="volCryostat"/>
         <positionref ref="Cryo_in_Enc"/>
+        <rotationref ref="identity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMagBarShort"/>
+        <positionref ref="magBarShort_bot_up_in_Enc"/>
+        <rotationref ref="identity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMagBarShort"/>
+        <positionref ref="magBarShort_top_up_in_Enc"/>
+        <rotationref ref="identity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMagBarShort"/>
+        <positionref ref="magBarShort_bot_down_in_Enc"/>
+        <rotationref ref="identity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMagBarShort"/>
+        <positionref ref="magBarShort_top_down_in_Enc"/>
+        <rotationref ref="identity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMagBarLong"/>
+        <positionref ref="magBarLong_bot_neg_in_Enc"/>
+        <rotationref ref="identity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMagBarLong"/>
+        <positionref ref="magBarLong_top_neg_in_Enc"/>
+        <rotationref ref="identity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMagBarLong"/>
+        <positionref ref="magBarLong_bot_pos_in_Enc"/>
+        <rotationref ref="identity"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volMagBarLong"/>
+        <positionref ref="magBarLong_top_pos_in_Enc"/>
         <rotationref ref="identity"/>
       </physvol>
     </volume>
