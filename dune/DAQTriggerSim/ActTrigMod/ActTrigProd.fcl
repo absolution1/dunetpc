@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_acttrigprod:
+{
+  module_type:		ActTrigProd
+  #====================
+  RawDigitLabel:	"daq" 	   		# module label for the process that made the RawDigits
+}
+
+END_PROLOG
