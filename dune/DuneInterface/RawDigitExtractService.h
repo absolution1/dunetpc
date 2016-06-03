@@ -20,10 +20,10 @@ class RawDigitExtractService {
 
 public:
 
-  // Extract the signals and flags. Both are pointer types so the caller can use null to
-  // indicate one of the fields is not of interest.
-  virtual int extract(const raw::RawDigit& rawin,
-                      AdcSignalVector* psigs, AdcFlagVector* pflags =nullptr) =0;
+  // Extract the channel, signals and flags. All are pointer types so the caller can use null to
+  // indicate any of the fields are not of interest.
+  virtual int extract(const raw::RawDigit& rawin, AdcChannel* pchan =nullptr,
+                      AdcSignalVector* psigs =nullptr, AdcFlagVector* pflags =nullptr) =0;
 
   // Print parameters.
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;

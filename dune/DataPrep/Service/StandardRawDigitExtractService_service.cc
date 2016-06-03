@@ -34,7 +34,7 @@ StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityReg
 //**********************************************************************
 
 int StandardRawDigitExtractService::
-extract(const raw::RawDigit& dig,
+extract(const raw::RawDigit& dig, AdcChannel* pchan,
         AdcSignalVector* psigs_in, AdcFlagVector* pflgs_in) {
   const string myname = "StandardRawDigitExtractService:ctor: ";
   if ( m_LogLevel >= 2 ) {
@@ -48,6 +48,7 @@ extract(const raw::RawDigit& dig,
     cout << "requested." << endl;
   }
   AdcChannel chan = dig.Channel();
+  if ( pchan != nullptr ) *pchan = chan;
   unsigned int nsig = dig.Samples();
   // Initialize the output signal and flag vectors.
   AdcSignalVector* psigs_local = nullptr;

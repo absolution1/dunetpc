@@ -107,6 +107,7 @@ int test_StandardRawDigitExtractService() {
   cout << myname << "    Compressed size: " << dig.NADC() << endl;
   cout << myname << "  Uncompressed size: " << dig.Samples() << endl;
   cout << myname << "           Pedestal: " << dig.GetPedestal() << endl;
+  cout << myname << "            Channel: " << dig.Channel() << endl;
   assert(dig.Samples() == nsig);
   assert(dig.Channel() == chan);
   assert(dig.GetPedestal() == ped);
@@ -133,11 +134,13 @@ int test_StandardRawDigitExtractService() {
   cout << myname << "Extract data from digit." << endl;
   AdcSignalVector sigs;
   AdcFlagVector flags;
-  assert( hrdx->extract(dig, &sigs, &flags) == 0 );
+  AdcChannel chanout;
+  assert( hrdx->extract(dig, &chanout, &sigs, &flags) == 0 );
   cout << myname << "Output vector size: " << sigs.size() << endl;
   cout << myname << " Output flags size: " << flags.size() << endl;
   assert( sigs.size() == nsig );
   assert( flags.size() == nsig );
+  assert( chanout == chan );
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
     cout << setw(4) << isig << ": " << setw(4) << adcsin[isig]
          << fixed << setprecision(1) << setw(8) << sigs[isig]
