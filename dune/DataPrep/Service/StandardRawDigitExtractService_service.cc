@@ -35,8 +35,8 @@ StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityReg
 
 int StandardRawDigitExtractService::
 extract(const raw::RawDigit& dig, AdcChannel* pchan,
-        AdcSignalVector* psigs_in, AdcFlagVector* pflgs_in) {
-  const string myname = "StandardRawDigitExtractService:ctor: ";
+        AdcSignalVector* psigs_in, AdcFlagVector* pflgs_in) const {
+  const string myname = "StandardRawDigitExtractService:extract: ";
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Entering..." << endl;
     cout << myname << "Input vector size: " << dig.Samples() << endl;

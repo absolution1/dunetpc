@@ -11,4 +11,10 @@ simple_plugin(StandardRawDigitExtractService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(StandardRawDigitPrepService   "service"
+                lardata_RawData
+                ${ART_UTILITIES}
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
