@@ -18,9 +18,9 @@
 #include "lardata/RecoBase/Vertex.h"
 #include "lardata/RecoBase/Shower.h"
 #include "lardata/AnalysisAlg/CalorimetryAlg.h"
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
-#include "larcore/SimpleTypesAndConstants/PhysicalConstants.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
 #include "lardata/Utilities/DatabaseUtil.h"
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -31,7 +31,7 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 

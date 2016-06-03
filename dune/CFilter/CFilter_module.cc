@@ -11,8 +11,8 @@
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "art/Persistency/Common/Ptr.h" 
-#include "art/Persistency/Common/PtrVector.h" 
+#include "canvas/Persistency/Common/Ptr.h" 
+#include "canvas/Persistency/Common/PtrVector.h" 
 #include "lardata/RawData/RawDigit.h"
 #include "lardata/RawData/raw.h"
 #include "larcore/Geometry/Geometry.h"
@@ -26,8 +26,8 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "TMath.h"
 
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 
 #include "dune/Geometry/MuonCounter35Alg.h"
 

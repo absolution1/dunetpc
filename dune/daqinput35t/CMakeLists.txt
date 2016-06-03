@@ -7,8 +7,8 @@ art_make(BASENAME_ONLY
         LIBRARY_NAME lbne_daqinput35t
         LIB_LIBRARIES
         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-        ${ART_PERSISTENCY_PROVENANCE}
-        ${ART_UTILITIES}
+        art_Persistency_Provenance canvas_Persistency_Provenance
+        art_Utilities canvas_Utilities
         ${ROOT_CORE}
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
@@ -30,16 +30,16 @@ lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lardata_RawData
-${SIMULATIONBASE}
+nusimdata_SimulationBase
 # ${ART_FRAMEWORK_CORE}
 # ${ART_FRAMEWORK_PRINCIPAL}
 ${ART_FRAMEWORK_SERVICES_REGISTRY}
 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 # ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-# ${ART_PERSISTENCY_COMMON}
-# ${ART_PERSISTENCY_PROVENANCE}
-# ${ART_UTILITIES}
+# art_Persistency_Common canvas_Persistency_Common
+# art_Persistency_Provenance canvas_Persistency_Provenance
+# art_Utilities canvas_Utilities
 # ${MF_MESSAGELOGGER}
 # ${MF_UTILITIES}
 # ${CETLIB}
@@ -52,7 +52,7 @@ lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lardata_RawData
-${SIMULATIONBASE}
+nusimdata_SimulationBase
 art_Framework_Services_Registry
 art_Framework_Services_Optional
 art_Framework_Services_Optional_TFileService_service
@@ -66,7 +66,7 @@ larcore_Geometry
 lbne_daqinput35t
 lardata_RawData
 lardata_RecoBase
-${SIMULATIONBASE}
+nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 )
 
@@ -76,7 +76,7 @@ larcore_Geometry_Geometry_service
 larcore_Geometry
 lbne_daqinput35t
 lardata_RawData
-${SIMULATIONBASE}
+nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 )
 
@@ -86,7 +86,7 @@ larcore_Geometry_Geometry_service
 larcore_Geometry
 lbne_daqinput35t
 lardata_RawData
-${SIMULATIONBASE}
+nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 art_Framework_Services_Registry
 art_Framework_Services_Optional
@@ -101,7 +101,7 @@ larcore_Geometry_Geometry_service
 larcore_Geometry
 lbne_daqinput35t
 lardata_RawData
-${SIMULATIONBASE}
+nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 art_Framework_Services_Registry
 art_Framework_Services_Optional
@@ -137,9 +137,9 @@ simple_plugin(NoiseCorrelation "module"
 			       ${ART_FRAMEWORK_SERVICES_REGISTRY}
 			       ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			       ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			       ${ART_PERSISTENCY_COMMON}
-			       ${ART_PERSISTENCY_PROVENANCE}
-			       ${ART_UTILITIES}
+			       art_Persistency_Common canvas_Persistency_Common
+			       art_Persistency_Provenance canvas_Persistency_Provenance
+			       art_Utilities canvas_Utilities
 			       ${MF_MESSAGELOGGER}
 			       ${MF_UTILITIES}
 			       ${CETLIB}
@@ -198,7 +198,7 @@ simple_plugin(SplitterInput "source"
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
- ${SIMULATIONBASE}
+ nusimdata_SimulationBase
  ${SIMULATION}
 )
 

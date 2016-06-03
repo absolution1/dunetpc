@@ -11,7 +11,7 @@
 
 #include "larevt/CalibrationDBI/IOVData/DetPedestal.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
-#include "larcore/SimpleTypesAndConstants/geo_types.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 #include "fhiclcpp/ParameterSet.h"
