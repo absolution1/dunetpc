@@ -6,14 +6,14 @@
 # Add plugin for each service.
 
 simple_plugin(StandardRawDigitExtractService   "service"
-                lardata_RawData
-                ${ART_UTILITIES}
+                lardataobj_RawData
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(StandardRawDigitPrepService   "service"
-                lardata_RawData
-                ${ART_UTILITIES}
+                lardataobj_RawData
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 

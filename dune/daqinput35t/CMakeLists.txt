@@ -187,7 +187,7 @@ simple_plugin(FilterAnalyzer "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
@@ -203,7 +203,7 @@ simple_plugin(FilterAnalyzerRunList "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
