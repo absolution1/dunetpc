@@ -17,7 +17,7 @@
 #include "canvas/Persistency/Provenance/EventAuxiliary.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "larsim/Simulation/SimChannel.h"
+#include "larsimobj/Simulation/SimChannel.h"
 
 //Pedestal stuff...
 #include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
@@ -32,8 +32,8 @@
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 
 // lardata
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/ExternalTrigger.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/ExternalTrigger.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
 // dune

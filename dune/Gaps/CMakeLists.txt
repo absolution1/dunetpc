@@ -1,6 +1,6 @@
 simple_plugin(GapFilter "module"
-                        lardata_RawData
-                        lardata_RecoBase
+                        lardataobj_RawData
+                        lardataobj_RecoBase
                         larcore_Geometry
                         larcore_Geometry_Geometry_service
                         lardata_Utilities
@@ -25,8 +25,8 @@ simple_plugin(GapFilter "module"
 )
 
 simple_plugin(GapWidth "module"
-                       lardata_RawData
-                       lardata_RecoBase
+                       lardataobj_RawData
+                       lardataobj_RecoBase
                        lardata_RecoBaseArt
                        larcore_Geometry
                        larcore_Geometry_Geometry_service

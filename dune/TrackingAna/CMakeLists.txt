@@ -1,7 +1,7 @@
 
 simple_plugin(TrackingEfficiency "module"
-				  lardata_RawData
-				  lardata_RecoBase	  
+				  lardataobj_RawData
+				  lardataobj_RecoBase	  
 		        	  larcore_Geometry  
 				  larcore_Geometry_Geometry_service
 				  lardata_Utilities
@@ -22,8 +22,8 @@ simple_plugin(TrackingEfficiency "module"
 )
 
 simple_plugin(ProtonIdentification "module"
-				  lardata_RawData
-				  lardata_RecoBase	  
+				  lardataobj_RawData
+				  lardataobj_RecoBase	  
 		        	  larcore_Geometry  
 				  larcore_Geometry_Geometry_service
 				  lardata_Utilities

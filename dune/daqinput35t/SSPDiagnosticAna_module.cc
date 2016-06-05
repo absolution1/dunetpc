@@ -42,8 +42,8 @@
 #include "artdaq-core/Data/Fragments.hh"
 
 //larsoft includes
-#include "lardata/RawData/raw.h"
-#include "lardata/RawData/OpDetWaveform.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/RawData/OpDetWaveform.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 

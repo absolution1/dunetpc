@@ -27,8 +27,8 @@
 //larsoft
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RawData/RawDigit.h"
 
 //ROOT
 #include "TH1I.h"

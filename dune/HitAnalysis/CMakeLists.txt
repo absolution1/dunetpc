@@ -1,6 +1,6 @@
 
 simple_plugin(TimeDist "module"
-			lardata_RecoBase
+			lardataobj_RecoBase
 			larcore_Geometry_Geometry_service
                         larcore_Geometry
                         nusimdata_SimulationBase
@@ -20,7 +20,7 @@ simple_plugin(TimeDist "module"
 )
 
 simple_plugin(RecoTrack "module"
-			lardata_RecoBase
+			lardataobj_RecoBase
 			larcore_Geometry_Geometry_service
                         larcore_Geometry
                         nusimdata_SimulationBase
@@ -42,7 +42,7 @@ simple_plugin(RecoTrack "module"
 
 
 simple_plugin(GoodWireAna "module"
-	       		  lardata_RecoBase
+	       		  lardataobj_RecoBase
 			  larcore_Geometry_Geometry_service
                           larcore_Geometry
                           nusimdata_SimulationBase

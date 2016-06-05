@@ -2,7 +2,7 @@
 simple_plugin(dunezsanalysis "module"
 			larcore_Geometry_Geometry_service
                         larcore_Geometry
-			lardata_RawData
+			lardataobj_RawData
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -22,10 +22,10 @@ simple_plugin(dunezsanalysis "module"
 simple_plugin(dEdx "module"
                         larcore_Geometry_Geometry_service
                         larcore_Geometry
-                        lardata_RawData
-                        lardata_RecoBase
+                        lardataobj_RawData
+                        lardataobj_RecoBase
                         lardata_Utilities
-                        larsim_Simulation
+                        larsim_Simulation larsimobj_Simulation
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
@@ -43,12 +43,12 @@ simple_plugin(dEdx "module"
 )
 
 simple_plugin(EMEnergyCalib "module"
-		        lardata_RawData
-		        lardata_RecoBase
+		        lardataobj_RawData
+		        lardataobj_RecoBase
 		        larcore_Geometry
 			larcore_Geometry_Geometry_service
 			larsim_MCCheater_BackTracker_service
-			larsim_Simulation
+			larsim_Simulation larsimobj_Simulation
 			lardata_Utilities
 			nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
@@ -67,12 +67,12 @@ simple_plugin(EMEnergyCalib "module"
 )
 
 simple_plugin(EMPi0Energy "module"
-		        lardata_RawData
-		        lardata_RecoBase
+		        lardataobj_RawData
+		        lardataobj_RecoBase
 		        larcore_Geometry
 			larcore_Geometry_Geometry_service
 			larsim_MCCheater_BackTracker_service
-			larsim_Simulation
+			larsim_Simulation larsimobj_Simulation
 			lardata_Utilities
 			nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}

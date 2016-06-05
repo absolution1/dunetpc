@@ -5,8 +5,8 @@ art_make( BASENAME_ONLY
 			larcore_Geometry_Geometry_service
 	                lardata_Utilities
 			larevt_Filters
-			lardata_RawData
-			lardata_RecoBase
+			lardataobj_RawData
+			lardataobj_RecoBase
 			lardata_RecoBaseArt
                         SignalShapingServiceDUNE_service
                         ${ART_FRAMEWORK_CORE}

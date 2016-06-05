@@ -1,7 +1,7 @@
 
 simple_plugin(ShowerAnalysis "module"
-			     lardata_RawData
-		      	     lardata_RecoBase
+			     lardataobj_RawData
+		      	     lardataobj_RecoBase
 		      	     lardata_RecoBaseArt
 		             larcore_Geometry
 			     larcore_Geometry_Geometry_service
@@ -29,8 +29,8 @@ install_scripts()
 
 
 # art_make(LIBRARY_NAME  ShowerAna
-# 	 LIB_LIBRARIES lardata_RawData
-# 	 	       lardata_RecoBase	  
+# 	 LIB_LIBRARIES lardataobj_RawData
+# 	 	       lardataobj_RecoBase	  
 # 	 	       larcore_Geometry  
 # 	 	       larcore_Geometry_Geometry_service
 # 	 	       lardata_Utilities

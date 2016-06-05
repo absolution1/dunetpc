@@ -1,12 +1,12 @@
 
 art_make( BASENAME_ONLY
-	  MODULE_LIBRARIES lardata_RecoBase
-	  		   lardata_AnalysisBase
+	  MODULE_LIBRARIES lardataobj_RecoBase
+	  		   lardataobj_AnalysisBase
                            larcore_Geometry
                            larcore_Geometry_Geometry_service
-			   lardata_RawData
+			   lardataobj_RawData
                            lardata_Utilities
-			   larsim_Simulation
+			   larsim_Simulation larsimobj_Simulation
 			   larsim_MCCheater_BackTracker_service
 			   nusimdata_SimulationBase
  			   ${ART_FRAMEWORK_CORE}

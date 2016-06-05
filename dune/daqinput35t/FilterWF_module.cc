@@ -31,7 +31,7 @@
 
 
 // larsoft
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "larcore/Geometry/Geometry.h"
 
 //#include "DetectorInfoServices/DetectorPropertiesService.h"

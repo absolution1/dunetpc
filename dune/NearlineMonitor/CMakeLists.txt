@@ -6,7 +6,7 @@ simple_plugin(NearlineAna "module"
                            lbne_daqinput35t       #For online to offline channel map
                            larcore_Geometry_Geometry_service
                            larcore_Geometry
-                           lardata_RawData
+                           lardataobj_RawData
                            nusimdata_SimulationBase
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}

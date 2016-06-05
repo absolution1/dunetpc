@@ -1,7 +1,7 @@
 
 simple_plugin(CFilter "module"
-		      lardata_RawData
-		      lardata_RecoBase
+		      lardataobj_RawData
+		      lardataobj_RecoBase
 		      dune_Geometry
 		        larcore_Geometry
 			larcore_Geometry_Geometry_service
