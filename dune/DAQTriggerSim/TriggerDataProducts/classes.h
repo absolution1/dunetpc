@@ -8,9 +8,9 @@
 /////////////////////////////////////////////////////////
 
 // Framework includes:
-#include "art/Persistency/Common/PtrVector.h" 
-#include "art/Persistency/Common/Wrapper.h"
-#include "art/Persistency/Common/Assns.h"
+#include "canvas/Persistency/Common/PtrVector.h" 
+#include "canvas/Persistency/Common/Wrapper.h"
+#include "canvas/Persistency/Common/Assns.h"
 
 // DUNETPC includes:
 #include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
