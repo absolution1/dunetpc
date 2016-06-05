@@ -25,7 +25,7 @@
 #include "larcore/Geometry/GeometryCore.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
-#include "lardataobj/RecoBase/TrackHitMeta.h"
+#include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardata/AnalysisAlg/CalorimetryAlg.h"
