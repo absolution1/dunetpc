@@ -1,4 +1,4 @@
-# art_extensions/AXService/CMakeLists.txt
+# dune/ArtSupport/CMakeLists.txt
 #
 # David Adams
 # September 2015

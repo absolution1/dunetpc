@@ -54,4 +54,22 @@ dune_fixedpeds: {
   }
 }
 
+dunedp_fixedpeds: {
+  service_provider: FixedDetPedestalService
+  FixedDetPedestal: {
+    PedMeanU: 5.0
+    PedMeanV: 5.0
+    PedMeanZ: 5.0
+    PedRmsU:     0.5
+    PedRmsV:     0.5
+    PedRmsZ:     0.5
+    PedMeanErrU: 0.1
+    PedMeanErrV: 0.1
+    PedMeanErrZ: 0.1
+    PedRmsErrU:  0.1
+    PedRmsErrV:  0.1
+    PedRmsErrZ:  0.1
+  }
+}
+
 END_PROLOG

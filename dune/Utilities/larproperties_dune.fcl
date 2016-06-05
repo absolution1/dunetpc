@@ -6,9 +6,6 @@ dune35t_properties:                  @local::standard_properties
 
 dunefd_properties:                   @local::standard_properties
 
-dunefddphase_properties:                   @local::standard_properties
-dunefddphase_properties.Temperature:       87
-dunefddphase_properties.Electronlifetime:  3.0e3           # us
-dunefddphase_properties.Efield:            [0.5,4.0,0.0]   # kV/cm
+dunefddphase_properties:             @local::standard_properties
 
 END_PROLOG
