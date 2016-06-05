@@ -4,6 +4,7 @@ dune35t_goodrun:
 {
   module_type: "GoodRun"
   
+  fMakeFlatTree:       false
   CounterModuleLabel:  "SplitterInput:TRIGGER"
   WaveformModuleLabel: "SplitterInput:PHOTON"
   RawDigitModuleLabel: "SplitterInput:TPC"

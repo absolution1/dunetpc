@@ -18,6 +18,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/AuxDetGeo.h"
 
 #include <iostream>
 #include <fstream>
@@ -27,6 +29,7 @@
 #include <utility>
 #include <iterator>
 #include "TMath.h"
+#include "TVector3.h"
 
 namespace DAQToOffline {
 
@@ -55,5 +58,13 @@ namespace DAQToOffline {
     bool MakeNewExtTrig( uint32_t pos, bool &PrevOn, bool NowOn );
 
     void BuildPTBChannelMap(std::string MapDir, std::string MapFile, std::map<int,int>& channelMap);
+
+    void MakeCounterPositionMap( std::string CounterDir, std::string CounterFile,
+				 std::map< unsigned int, std::pair < TVector3, std::vector< TVector3 > > >& CounterPositionMap,
+				 double fExtendCountersX=0, double fExtendCountersY=0, double fExtendCountersZ=0 );
+
+    void MakeCounterCorners( int CountInd, double HalfLength, double HalfWidth1, double HalfWidth2, TVector3 Centre,
+			     TVector3& TL, TVector3& TR, TVector3& BL, TVector3& BR,
+			     double fExtendCountersX=0, double fExtendCountersY=0, double fExtendCountersZ=0 );
 }
 #endif

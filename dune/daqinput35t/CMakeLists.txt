@@ -180,6 +180,38 @@ simple_plugin(Sigmoidfilter "module"
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 )
 
+simple_plugin(FilterAnalyzer "module"
+ lbne_daqinput35t
+ art_Framework_IO_Root
+ art_Framework_IO_Sources
+ lbne-raw-data_Overlays
+ lbne_daqinput35t_utilities
+ lbne_daqinput35t
+ lardata_RawData
+ ${ROOT_TREE}
+ ${ROOT_RIO}
+ ${MF_MESSAGELOGGER}
+ art_Framework_Services_Registry
+ art_Framework_Services_Optional
+ ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+)
+
+simple_plugin(FilterAnalyzerRunList "module"
+ lbne_daqinput35t
+ art_Framework_IO_Root
+ art_Framework_IO_Sources
+ lbne-raw-data_Overlays
+ lbne_daqinput35t_utilities
+ lbne_daqinput35t
+ lardata_RawData
+ ${ROOT_TREE}
+ ${ROOT_RIO}
+ ${MF_MESSAGELOGGER}
+ art_Framework_Services_Registry
+ art_Framework_Services_Optional
+ ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+)
+
 simple_plugin(GoodRun "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
