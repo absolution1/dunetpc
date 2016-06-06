@@ -13,5 +13,11 @@ cet_test(test_StandardRawDigitExtractService SOURCES test_StandardRawDigitExtrac
     dune_ArtSupport
 )
 
+cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx
+  LIBRARIES
+    dune_DataPrep_Service_StandardRawDigitExtractService_service
+    dune_ArtSupport
+)
+
 
 
