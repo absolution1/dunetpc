@@ -171,11 +171,15 @@ int test_StandardRawDigitPrepService() {
     AdcChannel chan = ichdat->first;
     const AdcSignalVector& sigs = ichdat->second.samples;
     const AdcFlagVector& flags = ichdat->second.flags;
+    const raw::RawDigit* pdig = ichdat->second.digit;
     cout << myname << "----- Channel " << chan << endl;
     cout << myname << "Output vector size: " << sigs.size() << endl;
     cout << myname << " Output flags size: " << flags.size() << endl;
     assert( sigs.size() == nsig );
     assert( flags.size() == nsig );
+    assert( pdig != nullptr );
+    assert( pdig == &digs[chan] );
+    assert( pdig->Channel() == chan );
     const AdcFlagVector& expflags = expflagsmap[chan];
     assert( expflagsmap[chan].size() == nsig );
     for ( unsigned int isig=0; isig<nsig; ++isig ) {

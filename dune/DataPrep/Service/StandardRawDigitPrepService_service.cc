@@ -43,6 +43,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& prepdigs) const {
     AdcChannel chan = 0;
     AdcChannelData data;
     m_pExtractSvc->extract(dig, &chan, &data.samples, &data.flags);
+    data.digit = &dig;
     AdcChannelDataMap::const_iterator idig = prepdigs.find(chan);
     if ( idig != prepdigs.end() ) {
       cout << myname << "WARNING: Data already exists for channel " << chan << ". Skipping." << endl;

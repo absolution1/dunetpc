@@ -11,12 +11,17 @@
 #include <map>
 #include "dune/DuneInterface/AdcTypes.h"
 
+namespace raw {
+  class RawDigit;
+}
+
 class AdcChannelData {
 
 public:
 
   AdcSignalVector samples;
   AdcFlagVector flags;
+  const raw::RawDigit* digit =nullptr;
 
 };
 
