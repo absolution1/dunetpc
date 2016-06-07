@@ -78,21 +78,25 @@ private:
   
   TTree* FlatTree;
   int Event;
+
   unsigned int DigSize;
   unsigned int NSamples;
   unsigned int Channel[2048];
-  float ADCs_Channel_10,   ADCs_Channel_70,   ADCs_Channel_110;
-  float ADCs_Channel_160,  ADCs_Channel_205,  ADCs_Channel_260;
-  float ADCs_Channel_300,  ADCs_Channel_410,  ADCs_Channel_500;
-  float ADCs_Channel_525,  ADCs_Channel_585,  ADCs_Channel_625;
-  float ADCs_Channel_675,  ADCs_Channel_720,  ADCs_Channel_775;
-  float ADCs_Channel_815,  ADCs_Channel_915,  ADCs_Channel_1015;
-  float ADCs_Channel_1040, ADCs_Channel_1095, ADCs_Channel_1135;
-  float ADCs_Channel_1185, ADCs_Channel_1230, ADCs_Channel_1285;
-  float ADCs_Channel_1325, ADCs_Channel_1435, ADCs_Channel_1525;
-  float ADCs_Channel_1545, ADCs_Channel_1605, ADCs_Channel_1645;
-  float ADCs_Channel_1695, ADCs_Channel_1740, ADCs_Channel_1795;
-  float ADCs_Channel_1835, ADCs_Channel_1945, ADCs_Channel_2035;
+  // RCE 0
+  float ADCs_Channel_1771, ADCs_Channel_1660, ADCs_Channel_1770, ADCs_Channel_1787;
+  float ADCs_Channel_1645, ADCs_Channel_1786, ADCs_Channel_1646, ADCs_Channel_1785;
+  // RCE 0
+  float ADCs_Channel_2037, ADCs_Channel_2034, ADCs_Channel_2035, ADCs_Channel_1671;
+  float ADCs_Channel_1778, ADCs_Channel_1777, ADCs_Channel_1654, ADCs_Channel_1776;
+  // RCE 4
+  float ADCs_Channel_1525, ADCs_Channel_1522, ADCs_Channel_1523, ADCs_Channel_1159;
+  float ADCs_Channel_1266, ADCs_Channel_1265, ADCs_Channel_1142, ADCs_Channel_1264;
+  // RCE 11
+  float ADCs_Channel_354 , ADCs_Channel_357 , ADCs_Channel_356 , ADCs_Channel_27  ;
+  float ADCs_Channel_206 , ADCs_Channel_205 , ADCs_Channel_10  , ADCs_Channel_204 ;
+  // RCE 15
+  float ADCs_Channel_722 , ADCs_Channel_518 , ADCs_Channel_721 , ADCs_Channel_519 ;
+  float ADCs_Channel_720 , ADCs_Channel_719 , ADCs_Channel_529 , ADCs_Channel_826 ;
 
   bool fMakeFlatTree;
   std::string fCounterModuleLabel, fWaveformModuleLabel, fRawDigitModuleLabel, fOpHitModuleLabel;
@@ -156,53 +160,54 @@ void DAQToOffline::GoodRun::beginJob() {
     FlatTree = tfs->make<TTree>("FlatDigitTree","FlatDigitTree");
     FlatTree->Branch("Event"   ,&Event   ,"Event/I"   );
     FlatTree->Branch("NSamples",&NSamples,"NSamples/I");
-    FlatTree->Branch("ADCs_Channel_10"  ,  &ADCs_Channel_10  , "ADCs_Channel_10/F");
-    FlatTree->Branch("ADCs_Channel_70"  ,  &ADCs_Channel_70  , "ADCs_Channel_70/F");
-    FlatTree->Branch("ADCs_Channel_110" ,  &ADCs_Channel_110 , "ADCs_Channel_110/F");
 
-    FlatTree->Branch("ADCs_Channel_160" ,  &ADCs_Channel_160 , "ADCs_Channel_160/F");
-    FlatTree->Branch("ADCs_Channel_205" ,  &ADCs_Channel_205 , "ADCs_Channel_205/F");
-    FlatTree->Branch("ADCs_Channel_260" ,  &ADCs_Channel_260 , "ADCs_Channel_260/F");
+    // RCE 0
+    FlatTree->Branch("ADCs_Channel_1771", &ADCs_Channel_1771, "ADCs_Channel_1771/F");
+    FlatTree->Branch("ADCs_Channel_1660", &ADCs_Channel_1660, "ADCs_Channel_1660/F"); 
+    FlatTree->Branch("ADCs_Channel_1770", &ADCs_Channel_1770, "ADCs_Channel_1770/F"); 
+    FlatTree->Branch("ADCs_Channel_1787", &ADCs_Channel_1787, "ADCs_Channel_1787/F");
+    FlatTree->Branch("ADCs_Channel_1645", &ADCs_Channel_1645, "ADCs_Channel_1645/F"); 
+    FlatTree->Branch("ADCs_Channel_1786", &ADCs_Channel_1786, "ADCs_Channel_1786/F"); 
+    FlatTree->Branch("ADCs_Channel_1646", &ADCs_Channel_1646, "ADCs_Channel_1646/F"); 
+    FlatTree->Branch("ADCs_Channel_1785", &ADCs_Channel_1785, "ADCs_Channel_1785/F");
+    // RCE 0
+    FlatTree->Branch("ADCs_Channel_2037", &ADCs_Channel_2037, "ADCs_Channel_2037/F"); 
+    FlatTree->Branch("ADCs_Channel_2034", &ADCs_Channel_2034, "ADCs_Channel_2034/F"); 
+    FlatTree->Branch("ADCs_Channel_2035", &ADCs_Channel_2035, "ADCs_Channel_2035/F"); 
+    FlatTree->Branch("ADCs_Channel_1671", &ADCs_Channel_1671, "ADCs_Channel_1671/F");
+    FlatTree->Branch("ADCs_Channel_1778", &ADCs_Channel_1778, "ADCs_Channel_1778/F"); 
+    FlatTree->Branch("ADCs_Channel_1777", &ADCs_Channel_1777, "ADCs_Channel_1777/F");
+    FlatTree->Branch("ADCs_Channel_1654", &ADCs_Channel_1654, "ADCs_Channel_1654/F"); 
+    FlatTree->Branch("ADCs_Channel_1776", &ADCs_Channel_1776, "ADCs_Channel_1776/F");
+    // RCE 4
+    FlatTree->Branch("ADCs_Channel_1525", &ADCs_Channel_1525, "ADCs_Channel_1525/F"); 
+    FlatTree->Branch("ADCs_Channel_1522", &ADCs_Channel_1522, "ADCs_Channel_1522/F"); 
+    FlatTree->Branch("ADCs_Channel_1523", &ADCs_Channel_1523, "ADCs_Channel_1523/F"); 
+    FlatTree->Branch("ADCs_Channel_1159", &ADCs_Channel_1159, "ADCs_Channel_1159/F");
+    FlatTree->Branch("ADCs_Channel_1266", &ADCs_Channel_1266, "ADCs_Channel_1266/F"); 
+    FlatTree->Branch("ADCs_Channel_1265", &ADCs_Channel_1265, "ADCs_Channel_1265/F"); 
+    FlatTree->Branch("ADCs_Channel_1142", &ADCs_Channel_1142, "ADCs_Channel_1142/F"); 
+    FlatTree->Branch("ADCs_Channel_1264", &ADCs_Channel_1264, "ADCs_Channel_1264/F");
+    // RCE 11
+    FlatTree->Branch("ADCs_Channel_354 ", &ADCs_Channel_354, "ADCs_Channel_354/F");
+    FlatTree->Branch("ADCs_Channel_357 ", &ADCs_Channel_357, "ADCs_Channel_357/F"); 
+    FlatTree->Branch("ADCs_Channel_356 ", &ADCs_Channel_356, "ADCs_Channel_356/F"); 
+    FlatTree->Branch("ADCs_Channel_27  ", &ADCs_Channel_27 , "ADCs_Channel_27/F" );
+    FlatTree->Branch("ADCs_Channel_206 ", &ADCs_Channel_206, "ADCs_Channel_206/F"); 
+    FlatTree->Branch("ADCs_Channel_205 ", &ADCs_Channel_205, "ADCs_Channel_205/F"); 
+    FlatTree->Branch("ADCs_Channel_10  ", &ADCs_Channel_10 , "ADCs_Channel_10/F" ); 
+    FlatTree->Branch("ADCs_Channel_204 ", &ADCs_Channel_204, "ADCs_Channel_204/F");
+    // RCE 15
+    FlatTree->Branch("ADCs_Channel_722 ", &ADCs_Channel_722, "ADCs_Channel_722/F"); 
+    FlatTree->Branch("ADCs_Channel_518 ", &ADCs_Channel_518, "ADCs_Channel_518/F"); 
+    FlatTree->Branch("ADCs_Channel_721 ", &ADCs_Channel_721, "ADCs_Channel_721/F");
+    FlatTree->Branch("ADCs_Channel_519 ", &ADCs_Channel_519, "ADCs_Channel_519/F");
+    FlatTree->Branch("ADCs_Channel_720 ", &ADCs_Channel_720, "ADCs_Channel_720/F"); 
+    FlatTree->Branch("ADCs_Channel_719 ", &ADCs_Channel_719, "ADCs_Channel_719/F"); 
+    FlatTree->Branch("ADCs_Channel_529 ", &ADCs_Channel_529, "ADCs_Channel_529/F"); 
+    FlatTree->Branch("ADCs_Channel_826 ", &ADCs_Channel_826, "ADCs_Channel_826/F");
 
-    FlatTree->Branch("ADCs_Channel_300" ,  &ADCs_Channel_300 , "ADCs_Channel_300/F");
-    FlatTree->Branch("ADCs_Channel_410" ,  &ADCs_Channel_410 , "ADCs_Channel_410/F");
-    FlatTree->Branch("ADCs_Channel_500" ,  &ADCs_Channel_500 , "ADCs_Channel_500/F");
-
-    FlatTree->Branch("ADCs_Channel_525" ,  &ADCs_Channel_525 , "ADCs_Channel_525/F");
-    FlatTree->Branch("ADCs_Channel_585" ,  &ADCs_Channel_585 , "ADCs_Channel_585/F");
-    FlatTree->Branch("ADCs_Channel_625" ,  &ADCs_Channel_625 , "ADCs_Channel_625/F");
-
-    FlatTree->Branch("ADCs_Channel_675" ,  &ADCs_Channel_675 , "ADCs_Channel_675/F");
-    FlatTree->Branch("ADCs_Channel_720" ,  &ADCs_Channel_720 , "ADCs_Channel_720/F");
-    FlatTree->Branch("ADCs_Channel_775" ,  &ADCs_Channel_775 , "ADCs_Channel_775/F");
-
-    FlatTree->Branch("ADCs_Channel_815" ,  &ADCs_Channel_815 , "ADCs_Channel_815/F");
-    FlatTree->Branch("ADCs_Channel_915" ,  &ADCs_Channel_915 , "ADCs_Channel_915/F");
-    FlatTree->Branch("ADCs_Channel_1015",  &ADCs_Channel_1015, "ADCs_Channel_1015/F");
-
-    FlatTree->Branch("ADCs_Channel_1040",  &ADCs_Channel_1040, "ADCs_Channel_1040/F");
-    FlatTree->Branch("ADCs_Channel_1095",  &ADCs_Channel_1095, "ADCs_Channel_1095/F");
-    FlatTree->Branch("ADCs_Channel_1135",  &ADCs_Channel_1135, "ADCs_Channel_1135/F");
-
-    FlatTree->Branch("ADCs_Channel_1185",  &ADCs_Channel_1185, "ADCs_Channel_1185/F");
-    FlatTree->Branch("ADCs_Channel_1230",  &ADCs_Channel_1230, "ADCs_Channel_1230/F");
-    FlatTree->Branch("ADCs_Channel_1285",  &ADCs_Channel_1285, "ADCs_Channel_1285/F");
-
-    FlatTree->Branch("ADCs_Channel_1325",  &ADCs_Channel_1325, "ADCs_Channel_1325/F");
-    FlatTree->Branch("ADCs_Channel_1435",  &ADCs_Channel_1435, "ADCs_Channel_1435/F");
-    FlatTree->Branch("ADCs_Channel_1525",  &ADCs_Channel_1525, "ADCs_Channel_1525/F");
-
-    FlatTree->Branch("ADCs_Channel_1545",  &ADCs_Channel_1545, "ADCs_Channel_1545/F");
-    FlatTree->Branch("ADCs_Channel_1605",  &ADCs_Channel_1605, "ADCs_Channel_1605/F");
-    FlatTree->Branch("ADCs_Channel_1645",  &ADCs_Channel_1645, "ADCs_Channel_1645/F");
-
-    FlatTree->Branch("ADCs_Channel_1695",  &ADCs_Channel_1695, "ADCs_Channel_1695/F");
-    FlatTree->Branch("ADCs_Channel_1740",  &ADCs_Channel_1740, "ADCs_Channel_1740/F");
-    FlatTree->Branch("ADCs_Channel_1795",  &ADCs_Channel_1795, "ADCs_Channel_1795/F");
-
-    FlatTree->Branch("ADCs_Channel_1835",  &ADCs_Channel_1835, "ADCs_Channel_1835/F");
-    FlatTree->Branch("ADCs_Channel_1945",  &ADCs_Channel_1945, "ADCs_Channel_1945/F");
-    FlatTree->Branch("ADCs_Channel_2035",  &ADCs_Channel_2035, "ADCs_Channel_2035/F");
+ 
   }
 }
 
@@ -234,53 +239,53 @@ void DAQToOffline::GoodRun::analyze(art::Event const & evt)
     unsigned int Samp=0;
     while ( Samp != NSamples ) {
       for (unsigned int dig=0; dig<DigSize; ++dig ) {
-	if      ( digits[dig]->Channel() == 10   ) ADCs_Channel_10   = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 70   ) ADCs_Channel_70   = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 110  ) ADCs_Channel_110  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	
-	else if ( digits[dig]->Channel() == 160  ) ADCs_Channel_160  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 205  ) ADCs_Channel_205  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 260  ) ADCs_Channel_260  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
 
-	else if ( digits[dig]->Channel() == 300  ) ADCs_Channel_300  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 410  ) ADCs_Channel_410  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 500  ) ADCs_Channel_500  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	// RCE 0
+	if      ( digits[dig]->Channel() == 10   ) ADCs_Channel_1771= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1660 ) ADCs_Channel_1660= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1770 ) ADCs_Channel_1770= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1787 ) ADCs_Channel_1787= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	else if ( digits[dig]->Channel() == 1645 ) ADCs_Channel_1645= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1786 ) ADCs_Channel_1786= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1646 ) ADCs_Channel_1646= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1785 ) ADCs_Channel_1785= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	// RCE 0
+	else if ( digits[dig]->Channel() == 2037 ) ADCs_Channel_2037= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 2034 ) ADCs_Channel_2034= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 2035 ) ADCs_Channel_2035= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1671 ) ADCs_Channel_1671= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	else if ( digits[dig]->Channel() == 1778 ) ADCs_Channel_1778= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1777 ) ADCs_Channel_1777= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1654 ) ADCs_Channel_1654= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1776 ) ADCs_Channel_1776= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	// RCE 4
+	else if ( digits[dig]->Channel() == 1525 ) ADCs_Channel_1525= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1522 ) ADCs_Channel_1522= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1523 ) ADCs_Channel_1523= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1159 ) ADCs_Channel_1159= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	else if ( digits[dig]->Channel() == 1266 ) ADCs_Channel_1266= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1265 ) ADCs_Channel_1265= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1142 ) ADCs_Channel_1142= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 1264 ) ADCs_Channel_1264= digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	// RCE 11
+	else if ( digits[dig]->Channel() == 354  ) ADCs_Channel_354 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 357  ) ADCs_Channel_357 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 356  ) ADCs_Channel_356 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 27   ) ADCs_Channel_27  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	else if ( digits[dig]->Channel() == 206  ) ADCs_Channel_206 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 205  ) ADCs_Channel_205 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 10   ) ADCs_Channel_10  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 204  ) ADCs_Channel_204 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	// RCE 15
+	else if ( digits[dig]->Channel() == 722  ) ADCs_Channel_722 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 518  ) ADCs_Channel_518 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 721  ) ADCs_Channel_721 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 519  ) ADCs_Channel_519 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
+	else if ( digits[dig]->Channel() == 720  ) ADCs_Channel_720 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 719  ) ADCs_Channel_719 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 529  ) ADCs_Channel_529 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal(); 
+	else if ( digits[dig]->Channel() == 826  ) ADCs_Channel_826 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
 
-	else if ( digits[dig]->Channel() == 525  ) ADCs_Channel_525  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 585  ) ADCs_Channel_585  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 625  ) ADCs_Channel_625  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-
-	else if ( digits[dig]->Channel() == 675  ) ADCs_Channel_675  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 720  ) ADCs_Channel_720  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 775  ) ADCs_Channel_775  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-
-	else if ( digits[dig]->Channel() == 815  ) ADCs_Channel_815  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 915  ) ADCs_Channel_915  = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1015 ) ADCs_Channel_1015 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-
-	else if ( digits[dig]->Channel() == 1040 ) ADCs_Channel_1040 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1095 ) ADCs_Channel_1095 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1135 ) ADCs_Channel_1135 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-
-	else if ( digits[dig]->Channel() == 1185 ) ADCs_Channel_1185 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1230 ) ADCs_Channel_1230 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1285 ) ADCs_Channel_1285 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-
-	else if ( digits[dig]->Channel() == 1325 ) ADCs_Channel_1325 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1435 ) ADCs_Channel_1435 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1525 ) ADCs_Channel_1525 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-
-	else if ( digits[dig]->Channel() == 1545 ) ADCs_Channel_1545 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1605 ) ADCs_Channel_1605 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1645 ) ADCs_Channel_1645 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-
-	else if ( digits[dig]->Channel() == 1695 ) ADCs_Channel_1695 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1740 ) ADCs_Channel_1740 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1795 ) ADCs_Channel_1795 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-
-	else if ( digits[dig]->Channel() == 1835 ) ADCs_Channel_1835 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 1945 ) ADCs_Channel_1945 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
-	else if ( digits[dig]->Channel() == 2035 ) ADCs_Channel_2035 = digits[dig]->ADC(Samp+1) - digits[dig]->GetPedestal();
       } // Loop through Digits.
       ++Samp;
       FlatTree->Fill();
