@@ -10,6 +10,7 @@ add_subdirectory(DetSim)
 add_subdirectory(EventGenerator)
 add_subdirectory(Daq)
 add_subdirectory(CalData)
+add_subdirectory(DataPrep)
 add_subdirectory(RawdataDisplay)
 add_subdirectory(EnergyStudies)
 add_subdirectory(AnaTree)
@@ -35,6 +36,9 @@ add_subdirectory(EventFilters)
 add_subdirectory(ClusterFinderDUNE)
 add_subdirectory(RecoAlgDUNE)
 add_subdirectory(Protodune)
+add_subdirectory(DAQTriggerSim)
+add_subdirectory(SpaceCharge)
+add_subdirectory(SpaceChargeServices)
 
 # Respect the order specified in lar_build, which is:
 #
