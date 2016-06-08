@@ -26,6 +26,7 @@
 #include "lardata/RecoBase/Hit.h"
 
 
+#include "TGraph.h"
 #include "TH1D.h"
 #include "TF1.h"
 #include <fstream>
@@ -69,7 +70,7 @@ public:
   void fitHitOccDistHists( std::vector<std::vector<size_t> > & badWireList, std::vector<std::vector<size_t> > & goodWireList);
   void writeListOfBadWires(std::vector<std::vector<size_t> > badWireVect );
   void writeListOfGoodWires(std::vector<std::vector<size_t> > goodWireVect );
-  
+  void runDiagnostics( std::map<size_t,std::map<size_t,bool> > runToBadChannelMap );
 
 private:
 
@@ -93,11 +94,15 @@ private:
   std::string fHitModuleLabel;
 
   //Additional parameters
-  double fNSigmaGoodWire;
+  float fNSigmaGoodWireHigh;
+  float fNSigmaGoodWireLow;
   double fHitOccLimit;
-  size_t fHitLimitPerWirePerEventCol;
-  size_t fHitLimitPerWirePerEventInd;
-
+  size_t fNBinsDist;
+  double fQuietWireFactor;
+  //size_t fHitLimitPerWirePerEventCol;
+  //size_t fHitLimitPerWirePerEventInd;
+  size_t fHitLimitPerWirePerEventEvenTPC;
+  size_t fHitLimitPerWirePerEventOddTPC;
 
   //Misc
   std::map<int,size_t> fNEvtsPerRun;
@@ -117,6 +122,9 @@ GoodWireAna::GoodWireAna(fhicl::ParameterSet const & pset)
  // More initializers here.
 {
 
+  std::cout << "GoodWireAna Constructor called." << std::endl;
+
+
   //Setting geometry info
   art::ServiceHandle<geo::Geometry>            geometry;
   fGeometry = &*geometry;
@@ -125,6 +133,8 @@ GoodWireAna::GoodWireAna(fhicl::ParameterSet const & pset)
   //TFile Service
   art::ServiceHandle<art::TFileService> tfs;
   fTFS = &*tfs;
+
+
 
   //Reconfigure to set the data members
   this->reconfigure(pset);
@@ -136,7 +146,9 @@ GoodWireAna::GoodWireAna(fhicl::ParameterSet const & pset)
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
 void GoodWireAna::analyze(art::Event const & e)
 {
+
   // Implementation of required member function here.
+  std::cout << "Analyze starting." << std::endl;
   
   //Check to see if this is a new run. If it is, then make a new set of histos
   if( !fRunToCryTPCToPlaneMap.count(e.run()) ) makeHistoSetForThisRun(e.run());
@@ -169,10 +181,9 @@ void GoodWireAna::analyze(art::Event const & e)
     //Now fill the appropriate histogram
     fRunToCryTPCToPlaneMap.at( e.run() ).at( CryTPCPair ).at(iPlane)->Fill(iWire);
 
-  }
-  
+    
 
-  
+  }
 
 
 }
@@ -184,6 +195,8 @@ void GoodWireAna::analyze(art::Event const & e)
 //called only if a set of histos doesn't already exist for a given run.
 void GoodWireAna::makeHistoSetForThisRun( int runID )
 {
+  std::cout << "Making histo set." << std::endl;
+
   //Create the output map of (Cryo/TPC) to (HistoVect)
   std::map< std::pair<size_t,size_t>, std::vector<TH1D*> > outputMap;
 
@@ -217,16 +230,23 @@ void GoodWireAna::makeHistoSetForThisRun( int runID )
       int n = sprintf( name, "r%d_cry%lu_tpc%lu_U_WireHitOcc", runID, iCry, iTPC);
       int t = sprintf( title, ";Run %d, Cryostat %lu, TPC %lu, U Plane Wire Hit Occupancies;", runID, iCry, iTPC);
       TH1D* uHisto = fTFS->make<TH1D>(name,title,nWiresU,0,nWiresU);
- 
+      uHisto->GetXaxis()->SetTitle("Wire Index in Plane");
+      uHisto->GetYaxis()->SetTitle("Hit Occupancy");
+
       //U Plane
       n = sprintf( name, "r%d_cry%lu_tpc%lu_V_WireHitOcc", runID, iCry, iTPC);
       t = sprintf( title, ";Run %d, Cryostat %lu, TPC %lu, V Plane Wire Hit Occupancies;", runID, iCry, iTPC);
       TH1D* vHisto = fTFS->make<TH1D>(name,title,nWiresV,0,nWiresV);
-      
+      vHisto->GetXaxis()->SetTitle("Wire Index in Plane");
+      vHisto->GetYaxis()->SetTitle("Hit Occupancy");
+
       //W Plane
       n = sprintf( name, "r%d_cry%lu_tpc%lu_W_WireHitOcc", runID, iCry, iTPC);
       t = sprintf( title, ";Run %d, Cryostat %lu, TPC %lu, W Plane Wire Hit Occupancies;", runID, iCry, iTPC);
       TH1D* wHisto = fTFS->make<TH1D>(name,title,nWiresW,0,nWiresW);
+      wHisto->GetXaxis()->SetTitle("Wire Index in Plane");
+      wHisto->GetYaxis()->SetTitle("Hit Occupancy");
+
 
       //Push the three histograms back into the histoVect
       histoVect.push_back(uHisto);
@@ -237,17 +257,23 @@ void GoodWireAna::makeHistoSetForThisRun( int runID )
       //U Plane
       n = sprintf( name, "r%d_cry%lu_tpc%lu_U_HitOccDist", runID, iCry, iTPC);
       t = sprintf( title, ";Run %d, Cryostat %lu, TPC %lu, U Plane Hit Occupancy Distribution;", runID, iCry, iTPC);
-      TH1D* uHistoDist = fTFS->make<TH1D>(name,title,100,0,-1);
- 
+      TH1D* uHistoDist = fTFS->make<TH1D>(name,title,fNBinsDist,0,-1);
+      uHistoDist->GetXaxis()->SetTitle("Hit Occupancy");
+      uHistoDist->GetYaxis()->SetTitle("Number of Wires");
+      
       //U Plane
       n = sprintf( name, "r%d_cry%lu_tpc%lu_V_HitOccDist", runID, iCry, iTPC);
       t = sprintf( title, ";Run %d, Cryostat %lu, TPC %lu, V Plane Hit Occupancy Distribution;", runID, iCry, iTPC);
-      TH1D* vHistoDist = fTFS->make<TH1D>(name,title,100,0,-1);
+      TH1D* vHistoDist = fTFS->make<TH1D>(name,title,fNBinsDist,0,-1);
+      vHistoDist->GetXaxis()->SetTitle("Hit Occupancy");
+      vHistoDist->GetYaxis()->SetTitle("Number of Wires");
       
       //W Plane
       n = sprintf( name, "r%d_cry%lu_tpc%lu_W_HitOccDist", runID, iCry, iTPC);
       t = sprintf( title, ";Run %d, Cryostat %lu, TPC %lu, W Plane Hit Occupancy Distribution;", runID, iCry, iTPC);
-      TH1D* wHistoDist = fTFS->make<TH1D>(name,title,100,0,-1);
+      TH1D* wHistoDist = fTFS->make<TH1D>(name,title,fNBinsDist,0,-1);
+      wHistoDist->GetXaxis()->SetTitle("Hit Occupancy");
+      wHistoDist->GetYaxis()->SetTitle("Number of Wires");
 
       //Push back these three histograms into the histoDistVect
       histoDistVect.push_back(uHistoDist);
@@ -270,7 +296,7 @@ void GoodWireAna::makeHistoSetForThisRun( int runID )
   fRunToCryTPCToPlaneMapDist.emplace(runID,outputDistMap);
   
 
-
+  std::cout << "Done making histo set." << std::endl;
 }
 
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
@@ -386,8 +412,10 @@ void GoodWireAna::fillHitOccDistHists(std::vector<std::vector<size_t> > & badWir
 	  //If the bin content is too large (way larger than some reasonable expected value), then don't push
 	  //it back into the distribution. This prevents us from having all of the good wires' occupancies fill
 	  //a single bin.
-	  if( iPlane == 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventCol;
-	  if( iPlane != 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventInd;
+	  //if( iPlane == 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventCol; //Messup - was here earlier
+	  //if( iPlane != 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventInd;
+	  if( CryTPCPair.second % 2 == 0 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventEvenTPC;
+	  if( CryTPCPair.second % 2 == 1 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventOddTPC;
 
 
 	  if( binContent > fHitOccLimit ){
@@ -508,8 +536,10 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 	    std::cout << "Bin #" << iBin << ", occupancy: " << occupancyHist->GetBinContent(iBin) << std::endl;
 
 	  //Setting hit occupancy reasonable limits as before
-	  if( iPlane == 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventCol;
-	  if( iPlane != 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventInd;
+	  if( CryTPCPair.second % 2 == 0 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventEvenTPC;
+	  if( CryTPCPair.second % 2 == 1 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventOddTPC;
+	  //	  if( iPlane == 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventCol;
+	  //if( iPlane != 2 ) fHitOccLimit = fNEvtsPerRun.at(runID)*fHitLimitPerWirePerEventInd;
 	  if( occupancyHist->GetBinContent(iBin) > fHitOccLimit ){
 	    if( fVerbose )
 	      std::cout << "Adding badwirevect." << std::endl;
@@ -547,7 +577,8 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 	    badWireList.push_back(theBadWire);
 	  }	    
 
-	  else if( fabs(float(occupancyHist->GetBinContent(iBin))-(gaus_mean)) > gaus_sigma*fNSigmaGoodWire ){
+	  else if( float(occupancyHist->GetBinContent(iBin))-(gaus_mean) > gaus_sigma*fNSigmaGoodWireHigh){ // ||
+	    //		   (gaus_mean)-float(occupancyHist->GetBinContent(iBin)) > gaus_sigma*fNSigmaGoodWireLow ){
 	    if( fVerbose )
 	      std::cout << "Adding badwirevect." << std::endl;
 	    std::vector<size_t> theBadWire;
@@ -565,6 +596,23 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 
 	    badWireList.push_back(theBadWire);
 	  }
+
+	  //Now do quiet wire cuts
+	  else if( float(occupancyHist->GetBinContent(iBin)) < fQuietWireFactor*(gaus_mean) ){
+	    if( fVerbose )
+	      std::cout << "Adding badwirevect." << std::endl;
+	    std::vector<size_t> theBadWire;
+	    
+	    //Fill the bad wire vector with information about the wire (pointing to it)
+	    theBadWire.push_back(runID);
+	    theBadWire.push_back(CryTPCPair.first);
+	    theBadWire.push_back(CryTPCPair.second);
+	    theBadWire.push_back(iPlane);
+	    theBadWire.push_back(iBin);
+	    theBadWire.push_back(1);
+	    badWireList.push_back(theBadWire);
+	  }
+
 	  else{
 	    std::vector<size_t> theGoodWire;
 	    
@@ -596,6 +644,8 @@ void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireV
   ofstream outfile;
   outfile.open("badChannelList.txt");
 
+
+
   //Create vectors for listing bulk properties of different runs
   std::map<size_t,std::vector<size_t> > runToTPCVectMapNoisy;
   std::map<size_t,std::vector<size_t> > runToTPCVectMapQuiet;
@@ -621,6 +671,7 @@ void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireV
 
     //Identify the run
     size_t runID = badWireVect.at(iWire).at(0);
+    
     
     //If the run has not already been seen, emplace maps back with empty vectors
     if( runToTPCVectMapNoisy.count(runID) == 0 ){
@@ -663,17 +714,12 @@ void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireV
       std::cout << "Cryo/TPC/Plane/Wire/Channel: " << badWireVect.at(iWire).at(1) << "/"  << badWireVect.at(iWire).at(2) << "/" << badWireVect.at(iWire).at(3) << "/" << badWireVect.at(iWire).at(4)-1 << "/" << channel  << std::endl;
    
 
-    outfile << badWireVect.at(iWire).at(0) << " " << channel << " " << badWireVect.at(iWire).at(5) << "\n";
+    outfile << badWireVect.at(iWire).at(0) << " " << channel << " " << badWireVect.at(iWire).at(5) << " " << badWireVect.at(iWire).at(2) << " " << badWireVect.at(iWire).at(3) << " " << badWireVect.at(iWire).at(4) << "\n";
 
 
-    /*
-    outfile << badWireVect.at(iWire).at(0) << " " << badWireVect.at(iWire).at(1) << " " 
-	    << badWireVect.at(iWire).at(2) << " " << badWireVect.at(iWire).at(3) << " "
-	    << badWireVect.at(iWire).at(4)-1 << " " << badWireVect.at(iWire).at(5) << "\n";
-    */
   }
-  
  
+
   outfile.close();
 
   //  if( fSummary ){
@@ -705,6 +751,46 @@ void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireV
   
 }
 
+
+//..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
+//..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
+void GoodWireAna::runDiagnostics( std::map<size_t,std::map<size_t,bool> > runToBadChannelMap )
+{
+  
+  //Fill the times of each of the runs (manual for now)
+  std::map<size_t,float> runToDayCount;
+  runToDayCount.emplace(15651, 0);
+  runToDayCount.emplace(15652, 0.0048);
+  runToDayCount.emplace(15653, 0.0069);
+  runToDayCount.emplace(15654, 0.01);
+  runToDayCount.emplace(15655, 0.011);
+  runToDayCount.emplace(15864, 0.98);
+  runToDayCount.emplace(15865, 0.984);
+  runToDayCount.emplace(15866, 0.99);
+  runToDayCount.emplace(16488, 4.501);
+  runToDayCount.emplace(16489, 4.502);
+
+  //Diagnostic 1: # of bad Channels vs. time of run
+  std::vector<float> badChannelCounts;
+  std::vector<float> timeInDays;
+  
+  //Loop through each run and get the size of that corresp map
+  for( std::map<size_t,std::map<size_t,bool> >::iterator iter = runToBadChannelMap.begin(); iter != runToBadChannelMap.end(); iter++ ){
+    badChannelCounts.push_back(iter->second.size());
+    timeInDays.push_back(runToDayCount.at(iter->first));
+  }
+
+  //Fill the plot
+  //for( size_t iRun = 0; iRun < timeInDays.size(); ++iRun ){
+    //    fNumBadChannelsVTime->SetPoint(iRun+1,timeInDays.at(iRun),badChannelCounts.at(iRun));
+  //}
+  
+  
+
+
+
+
+}
 
 
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
@@ -756,6 +842,7 @@ void GoodWireAna::writeListOfGoodWires(std::vector<std::vector<size_t> > goodWir
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
 void GoodWireAna::beginJob()
 {
+  std::cout << "GoodWireAna beginJob called." << std::endl;
   /*
   //Setting geometry info
   art::ServiceHandle<geo::Geometry>            geometry;
@@ -775,6 +862,7 @@ void GoodWireAna::beginJob()
 void GoodWireAna::beginRun(art::Run const & r)
 {
   // Implementation of optional member function here.
+  std::cout << "GoodWireAna beginRun called." << std::endl;
 }
 
 void GoodWireAna::beginSubRun(art::SubRun const & sr)
@@ -791,6 +879,9 @@ void GoodWireAna::endJob()
 {
   if( fVerbose )
     std::cout << "EndJob reached." << std::endl;
+  
+  std::cout << "EndJob Reached." << std::endl;
+
   
   //Fill Occupancy Distribution histograms
   std::vector<std::vector<size_t> > badWireVect;
@@ -838,12 +929,18 @@ void GoodWireAna::reconfigure(fhicl::ParameterSet const & pset)
 {
   // Implementation of optional member function here.
   fHitModuleLabel = pset.get<std::string>("HitModuleLabel","fasthit");
-  fNSigmaGoodWire = pset.get<size_t>("NSigmaGoodWire",3);
-  fHitLimitPerWirePerEventCol = pset.get<size_t>("HitLimitPerWirePerEventCol",10);
-  fHitLimitPerWirePerEventInd = pset.get<size_t>("HitLimitPerWirePerEventInd",1);
+  fNSigmaGoodWireHigh = pset.get<float>("NSigmaGoodWireHigh",5);
+  fNSigmaGoodWireLow = pset.get<float>("NSigmaGoodWireLow",3);
+  //  fHitLimitPerWirePerEventCol = pset.get<size_t>("HitLimitPerWirePerEventCol",10);
+  //fHitLimitPerWirePerEventInd = pset.get<size_t>("HitLimitPerWirePerEventInd",1);
+  fHitLimitPerWirePerEventEvenTPC = pset.get<size_t>("HitLimitPerWirePerEventEvenTPC",1);
+  fHitLimitPerWirePerEventOddTPC = pset.get<size_t>("HitLimitPerWirePerEventOddTPC",10);
   fVerbose = pset.get<bool>("Verbosity",false);
   fOnlyWriteCollectionPlane = pset.get<bool>("OnlyWriteCollectionPlane",true);
+  fNBinsDist = pset.get<size_t>("NBinsDist",80);
+  fQuietWireFactor = pset.get<float>("QuietWireFactor",0.1);
 
+  std::cout << "NSigmaGoodWireHigh/Low: " << fNSigmaGoodWireHigh << "/" << fNSigmaGoodWireLow << std::endl;
 
   fHitOccLimit = 0;
 
