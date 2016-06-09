@@ -5,6 +5,11 @@
 
 # Add plugin for each service.
 
+simple_plugin(InterpolatingAdcMitigationService   "service"
+                ${ART_UTILITIES}
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(StandardRawDigitExtractService   "service"
                 lardata_RawData
                 ${ART_UTILITIES}

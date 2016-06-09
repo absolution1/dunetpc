@@ -9,6 +9,7 @@
 //
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
+//   DoMitigation - Run mitigation (e.g. stuck bit removal) on extracted data.
 
 
 #ifndef StandardRawDigitPrepService_H
@@ -17,6 +18,7 @@
 #include "dune/DuneInterface/RawDigitPrepService.h"
 
 class RawDigitExtractService;
+class AdcMitigationService;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
@@ -32,8 +34,10 @@ private:
 
   // Configuration parameters.
   int m_LogLevel;
+  bool m_DoMitigation;
 
   const RawDigitExtractService* m_pExtractSvc;
+  const AdcMitigationService* m_pmitigateSvc;
 
 
 };

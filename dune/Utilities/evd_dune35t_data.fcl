@@ -3,16 +3,21 @@ process_name: EVD
 
 services.user: @local::dune35t_disp_data
 
-services.user.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"
+#services.user.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"
 # Change vertical scale to 15000 ticks
-services.user.RawDrawingOptions.TotalTicks:               6000
+services.user.RawDrawingOptions.DrawRawDataOrCalibWires:       1
+services.user.RawDrawingOptions.TotalTicks:               15000
 #services.user.RawDrawingOptions.TotalTicks:               3200
-services.user.RecoDrawingOptions.WireModuleLabels: ["caldata"]
+#services.user.RecoDrawingOptions.WireModuleLabels: ["caldata:TPC"]
 services.user.DetPedestalService.DetPedestalDUNE.UseDB: true
-#services.user.DetPedestalService.DetPedestalDUNE.CSVFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_9754.csv"
-#services.user.DetPedestalService.DetPedestalDUNE.CSVFile: "offline_databaseRun_10873.csv"
-#services.user.DetPedestalService.DetPedestalDUNE.UseDefaults: true
-#services.user.DetPedestalService.DetPedestalDUNE.DefaultMean: 0
+services.user.DetectorPropertiesService.Efield: [0.25, 0.782, 1.734]
+#services.user.IDetPedestalService.DetPedestalDUNE.CSVFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_9754.csv"
+#services.user.IDetPedestalService.DetPedestalDUNE.CSVFile: "offline_databaseRun_10873.csv"
+#services.user.IDetPedestalService.DetPedestalDUNE.UseDefaults: true
+#services.user.IDetPedestalService.DetPedestalDUNE.DefaultMean: 0
 services.user.ColorDrawingOptions.RawQHigh: [200]
 services.user.ColorDrawingOptions.RawQLow: [-200]
-
+#services.user.ChannelMapService.FileName: "channelMap.txt"
+services.user.RecoDrawingOptions.ClusterModuleLabels: "[linecluster]"
+services.user.RecoDrawingOptions.HitModuleLabels: "[linecluster]"
+services.user.RecoDrawingOptions.TrackModuleLabels: "[pmtrack]"
