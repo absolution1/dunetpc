@@ -6,6 +6,7 @@
 #include "lardata/RawData/RawDigit.h"
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "dune/DuneInterface/RawDigitExtractService.h"
+#include "dune/DuneInterface/AdcMitigationService.h"
 
 using std::string;
 using std::cout;
@@ -18,12 +19,19 @@ using raw::RawDigit;
 StandardRawDigitPrepService::
 StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1),
-  m_pExtractSvc(nullptr) {
+  m_pExtractSvc(nullptr),
+  m_pmitigateSvc(nullptr) {
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
-  if ( m_LogLevel ) cout << myname << "Fetching Extract service." << endl;
+  m_DoMitigation = pset.get<bool>("DoMitigation");
+  if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
   m_pExtractSvc = &*art::ServiceHandle<RawDigitExtractService>();
   if ( m_LogLevel ) cout << myname << "  Extract service: @" <<  m_pExtractSvc << endl;
+  if ( m_DoMitigation ) {
+    if ( m_LogLevel ) cout << myname << "Fetching mitigation service." << endl;
+    m_pmitigateSvc = &*art::ServiceHandle<AdcMitigationService>();
+    if ( m_LogLevel ) cout << myname << "  Mitigation service: @" <<  m_pmitigateSvc << endl;
+  }
   print(cout, myname);
 }
 
@@ -49,6 +57,9 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& prepdigs) const {
       cout << myname << "WARNING: Data already exists for channel " << chan << ". Skipping." << endl;
       ++nbad;
       continue;
+    }
+    if ( m_DoMitigation ) {
+      m_pmitigateSvc->update(data);
     }
     prepdigs[chan] = data;
   }
