@@ -19,6 +19,7 @@ class AdcChannelData {
 
 public:
 
+  AdcChannel channel =-1;
   AdcSignalVector samples;
   AdcFlagVector flags;
   const raw::RawDigit* digit =nullptr;
