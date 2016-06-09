@@ -27,7 +27,7 @@ InterpolatingAdcMitigationService(fhicl::ParameterSet const& pset, art::Activity
 int InterpolatingAdcMitigationService::
 update(AdcChannelData& data) const {
   const string myname = "InterpolatingAdcMitigationService:update: ";
-  if ( m_LogLevel >= 2 ) {
+  if ( m_LogLevel >= 3 ) {
     cout << myname << "Entering..." << endl;
     cout << myname << "          Channel: " << data.channel << endl;
     cout << myname << "Input vector size: " << data.samples.size() << endl;
@@ -37,6 +37,7 @@ update(AdcChannelData& data) const {
   unsigned int isigFirst = sigs.size();   // First sample in the bad sample sequence.
   bool useMax = m_MaxConsecutiveSamples >= 0;
   unsigned int maxsig = m_MaxConsecutiveSamples;
+  unsigned int nupdated = 0;
   // Loop over samples.
   for ( unsigned int isig=0; isig<sigs.size(); ++isig ) {
     AdcFlag flag = flags[isig];
@@ -75,7 +76,11 @@ update(AdcChannelData& data) const {
       // For too many samples or beginning or end of data, use MaxConsecutiveFlag.
       if ( tooMany || isigFirst == 0 || isLast ) {
         if ( m_MaxConsecutiveFlag == 1 ) {
-          for ( unsigned isig=isigFirst; isig<=isigLast; ++isig ) sigs[isig] = 0.0;
+          for ( unsigned isig=isigFirst; isig<=isigLast; ++isig ) {
+            sigs[isig] = 0.0;
+            flags[isig] = AdcSetFixed;
+            ++nupdated;
+          }
         }
       // Otherwise, interpolate: sig_i = a*i + b
       } else {
@@ -86,11 +91,17 @@ update(AdcChannelData& data) const {
         double fac = 1.0/(isig2 - isig1);
         double a = fac*(sig2 - sig1);
         double b = fac*(isig2*sig1 - isig1*sig2);
-        for ( unsigned isig=isigFirst; isig<=isigLast; ++isig ) sigs[isig] = a*isig + b;
+        for ( unsigned isig=isigFirst; isig<=isigLast; ++isig ) {
+          sigs[isig] = a*isig + b;
+          flags[isig] = AdcInterpolated;
+          ++nupdated;
+        }
       }
       isigFirst = sigs.size();
     }
   }
+  if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel
+                              << ": # updated/total = " << nupdated << "/" << sigs.size() << endl;
   return 0;
 }
 
