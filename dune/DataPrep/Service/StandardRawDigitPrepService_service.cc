@@ -40,8 +40,8 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& prepdigs) const {
   // Extract digits.
   int nbad = 0;
   for ( const RawDigit& dig : digs ) {
-    AdcChannel chan = 0;
     AdcChannelData data;
+    AdcChannel& chan = data.channel;
     m_pExtractSvc->extract(dig, &chan, &data.samples, &data.flags);
     data.digit = &dig;
     AdcChannelDataMap::const_iterator idig = prepdigs.find(chan);
