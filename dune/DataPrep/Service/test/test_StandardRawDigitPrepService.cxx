@@ -66,6 +66,7 @@ int test_StandardRawDigitPrepService() {
   fout << "services.RawDigitPrepService: {" << endl;
   fout << "  service_provider: StandardRawDigitPrepService" << endl;
   fout << "  LogLevel: " << loglevel << endl;
+  fout << "  DoMitigation:     false" << endl;
   fout << "}" << endl;
   fout.close();
 
