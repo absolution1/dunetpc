@@ -71,6 +71,7 @@ public:
   void writeListOfBadWires(std::vector<std::vector<size_t> > badWireVect );
   void writeListOfGoodWires(std::vector<std::vector<size_t> > goodWireVect );
   void runDiagnostics( std::map<size_t,std::map<size_t,bool> > runToBadChannelMap );
+  void findRepeatingWireCutoff();
 
 private:
 
@@ -109,6 +110,11 @@ private:
   bool fVerbose;
   bool fOnlyWriteCollectionPlane;
 
+  //Logs for repeating wire cutoffs for different TPCs
+  std::map<size_t,size_t> fUPlaneRepeatingWireStart;
+  std::map<size_t,size_t> fVPlaneRepeatingWireStart;
+
+
 
 
 };
@@ -138,6 +144,11 @@ GoodWireAna::GoodWireAna(fhicl::ParameterSet const & pset)
 
   //Reconfigure to set the data members
   this->reconfigure(pset);
+
+  //Now we need to build our map telling us where the wires in the U and V planes start to repeat
+  findRepeatingWireCutoff();
+  
+
 }
 
 
@@ -381,6 +392,15 @@ void GoodWireAna::writeListOfDeadWires()
 //dist histos per run that can be used to make cuts on good/bad wires
 void GoodWireAna::fillHitOccDistHists(std::vector<std::vector<size_t> > & badWireVect)
 {
+  //To do the induction planes, we modify a little bit. We know that there is redundancy
+  //in the induction wires, so that not all wires in a given plane are unique. To fix this
+  //problem, we consider the following fact for a pair of back-to-back TPCs. The wires from
+  //the U-plane of one of the TPCs wrap around to the U-plane of the other TPC, so to get
+  //all of the unique channels' signals, we just need to look at the wires of ONE of the
+  //back to back TPCs. We thus consider only the odd TPCs here for the U and V planes, and
+  //loop through the wires until we start having repetition in channel number.
+
+
   //Loop through each run
   for( std::map<int,std::map<std::pair<size_t,size_t>,std::vector<TH1D*> > >::iterator iter = fRunToCryTPCToPlaneMap.begin(); iter != fRunToCryTPCToPlaneMap.end(); ++iter ){
     
@@ -398,10 +418,27 @@ void GoodWireAna::fillHitOccDistHists(std::vector<std::vector<size_t> > & badWir
       
       //Loop over these histograms
       for( size_t iPlane = 0; iPlane < planeHistos.size(); ++iPlane ){
+
+	//If the plane is U or V, then only do the following for odd-TPC numbers
+	size_t repetitionStartWire = 9999;
+	if( iPlane == 0 || iPlane == 1 ){
+	  if( CryTPCPair.second % 2 == 0 ) continue;
+	  
+	  //Furthermore, if the plane is U or V, then find the bin where channel repetition begins and only fill with wires up to there
+	  if( iPlane == 0 )
+	    repetitionStartWire = fUPlaneRepeatingWireStart.at(CryTPCPair.second);
+	  if( iPlane == 1 )
+	    repetitionStartWire = fVPlaneRepeatingWireStart.at(CryTPCPair.second);
+	  
+	}
+
 	
+
 	//Get the histogram for this plane and loop over its bins
 	TH1D * thisPlaneHist = planeHistos.at(iPlane);
 	for( int iBin = 1; iBin <= thisPlaneHist->GetNbinsX(); ++iBin ){
+
+	  if( size_t(iBin)-1 == repetitionStartWire ) break;
 	  
 	  if( fVerbose )
 	    std::cout << "BinID: " << iBin << ", binContent: " << thisPlaneHist->GetBinContent(iBin) << std::endl;
@@ -464,6 +501,13 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
       //Loop over these histograms
       for( size_t iPlane = 0; iPlane < planeHistos.size(); ++iPlane ){
 	
+	//If you're looking at an induction plane, then only consider Odd-# TPCs
+	if( iPlane != 2 ){
+	  if( CryTPCPair.second % 2 == 0 ) continue;
+	}
+	
+	
+
 	//Get the histogram for this plane and loop over its bins
 	TH1D * thisPlaneHist = planeHistos.at(iPlane);
 
@@ -530,7 +574,47 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 	
 	//Now loop through the hit occupancy histogram and find wires that
 	//are outside of the mean + n sigma. Get the appropriate histo first.
+
+	//For the induction planes, we also look for where there is a "fault" in the channel number.
+	//This corresponds to adjacent wires that have nonadjacent channel numbers. Once the fault has been
+	//found, we stop the loop. This allows us to restrict our attention to the first, "real" wires for
+	//a given induction plane.
+	//	bool channelFault = false;      
+	size_t repetitionStartWire = 9999;
 	for( int iBin = 1; iBin <= occupancyHist->GetNbinsX(); ++iBin ){
+	  
+	  //If we're working with induction planes, make sure to only go as far
+	  //as the wires don't repeat.
+	  if( iPlane == 0 )
+	    repetitionStartWire = fUPlaneRepeatingWireStart.at(CryTPCPair.second);
+	  if( iPlane == 1 )
+	    repetitionStartWire = fVPlaneRepeatingWireStart.at(CryTPCPair.second);
+	  if( iPlane == 0 || iPlane == 1 ){
+	    if( size_t(iBin)-1 == repetitionStartWire ) break;
+	  }
+	    
+	    
+	  
+	  
+	  //Consider only induction planes for a moment
+	    /*	    
+	  if( iPlane == 0 || iPlane == 1 ){
+
+	    //Breaking if we found the channel fault on the previous loop
+	    //	    if( channelFault == true )break;
+
+	    //Searching for the channel fault
+	    geo::WireID theWireID( CryTPCPair.first, CryTPCPair.second, iPlane, iBin-1 );
+	    size_t channel = fGeometry->PlaneWireToChannel(theWireID);
+	    geo::WireID theNextWireID( CryTPCPair.first, CryTPCPair.second, iPlane, iBin );
+	    size_t nextChannel = fGeometry->PlaneWireToChannel(theNextWireID);
+	    if( abs(nextChannel-channel) != 1 ){
+	      std::cout << "Found the fault at wire: " << iBin-1 << std::endl;
+	      // channelFault = true;
+	    }
+	  }   
+	    */
+
 
 	  if( fVerbose )
 	    std::cout << "Bin #" << iBin << ", occupancy: " << occupancyHist->GetBinContent(iBin) << std::endl;
@@ -709,6 +793,7 @@ void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireV
     //Get the channel from the Cryo, TPC, Plane, and Wire
     geo::WireID theWireID( badWireVect.at(iWire).at(1), badWireVect.at(iWire).at(2), badWireVect.at(iWire).at(3),badWireVect.at(iWire).at(4)-1);
     size_t channel = fGeometry->PlaneWireToChannel(theWireID);
+    std::cout << "We're in plane: " << badWireVect.at(iWire).at(3) << ", and wire: " << theWireID.Wire << " corresponds to channel: " << channel << std::endl;
 
     if( fVerbose )
       std::cout << "Cryo/TPC/Plane/Wire/Channel: " << badWireVect.at(iWire).at(1) << "/"  << badWireVect.at(iWire).at(2) << "/" << badWireVect.at(iWire).at(3) << "/" << badWireVect.at(iWire).at(4)-1 << "/" << channel  << std::endl;
@@ -837,6 +922,64 @@ void GoodWireAna::writeListOfGoodWires(std::vector<std::vector<size_t> > goodWir
 
 }
 
+//..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
+//..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
+void GoodWireAna::findRepeatingWireCutoff()
+{
+  //We want to find the points at which the wires in each U/V plane start "repeating" so that
+  //later, we can stop filling our occupancy histograms at this point
+  
+  //Loop over TPCs
+  size_t iCry = 0;
+  size_t nTPCs = fGeometry->NTPC(iCry);
+  size_t nPlanes = 3;
+
+  for( size_t iTPC = 0; iTPC < nTPCs; ++iTPC ){
+    
+    //Loop over planes
+    for( size_t iPlane = 0; iPlane < nPlanes; ++iPlane ){
+      
+      //Select the correct plane
+      if( iPlane == 2 ) continue;
+      std::map<size_t,size_t> tempMap;
+      size_t theFinalWire = 0;
+      
+      //Loop over wires
+      for( size_t iWire = 0; iWire < fGeometry->Nwires(iPlane,iTPC,iCry); ++iWire ){
+	
+	//Construct the wireID
+	geo::WireID theWireID( iCry, iTPC, iPlane, iWire );	
+
+	//Get the channel corresponding to this wire
+	size_t channel = fGeometry->PlaneWireToChannel(theWireID);
+	
+	//If the channel has been found already, then return false. There's now repetition
+	if( tempMap.count(channel) == 1 ){
+	  theFinalWire = iWire;
+	  break;	
+	}
+	
+	//Otherwise, push back the tempMap
+	tempMap.emplace(channel,true);
+
+      }
+
+      //Now take the final Wire and push it into the correct persistent map
+      if( iPlane == 0 )
+	fUPlaneRepeatingWireStart.emplace(iTPC,theFinalWire);
+      if( iPlane == 1 )
+	fVPlaneRepeatingWireStart.emplace(iTPC,theFinalWire);
+      
+      //Just for kicks and gigabytes, let's print.
+      std::cout << "TPC/Plane/Wire: " << iTPC << "/" << iPlane << "/" << theFinalWire << std::endl;
+
+    }
+
+  }
+      
+  //Now we have this filled and can use it later.
+  
+}
 
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
@@ -863,6 +1006,7 @@ void GoodWireAna::beginRun(art::Run const & r)
 {
   // Implementation of optional member function here.
   std::cout << "GoodWireAna beginRun called." << std::endl;
+
 }
 
 void GoodWireAna::beginSubRun(art::SubRun const & sr)
