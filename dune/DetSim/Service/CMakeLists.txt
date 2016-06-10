@@ -34,7 +34,7 @@ simple_plugin(DPhaseSimChannelExtractService   "service"
                 ${ART_UTILITIES}
 		${ART_FRAMEWORK_CORE}
                 ${ROOT_BASIC_LIB_LIST}
-		${SEEDSERVICE_SERVICE}
+		larsim_RandomUtils_LArSeedService_service
 		${CLHEP}
              )
 simple_plugin(ExponentialChannelNoiseService   "service"
@@ -42,8 +42,7 @@ simple_plugin(ExponentialChannelNoiseService   "service"
                 SignalShapingServiceDUNE_service
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                ${SEEDSERVICE_SERVICE}
+                larsim_RandomUtils_LArSeedService_service
                 ${ART_FRAMEWORK_CORE}
                 ${ART_UTILITIES}
                 ${CLHEP}
@@ -53,10 +52,9 @@ simple_plugin(ExponentialChannelNoiseService   "service"
 simple_plugin(WhiteChannelNoiseService   "service"
                 larcore_Geometry
                 SignalShapingServiceDUNE_service
+                larsim_RandomUtils_LArSeedService_service
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                ${SEEDSERVICE_SERVICE}
                 ${ART_FRAMEWORK_CORE}
                 ${ART_UTILITIES}
                 ${CLHEP}
@@ -64,12 +62,12 @@ simple_plugin(WhiteChannelNoiseService   "service"
              )
 
 simple_plugin(ProvidedPedestalAdditionService "service"
+                larsim_RandomUtils_LArSeedService_service
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                ${SEEDSERVICE_SERVICE}
                 ${ART_FRAMEWORK_CORE}
                 ${ART_UTILITIES}
+                MF_MessageLogger
                 ${CLHEP}
                 ${ROOT_BASIC_LIB_LIST}
              )
@@ -96,8 +94,7 @@ simple_plugin(LarsoftHuffmanCompressService "service"
 simple_plugin(StuckBitAdcDistortionService   "service"
                 larcore_Geometry
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                ${SEEDSERVICE_SERVICE}
+                larsim_RandomUtils_LArSeedService_service
                 ${ART_FRAMEWORK_CORE}
                 ${ART_UTILITIES}
                 ${MF_MESSAGELOGGER}

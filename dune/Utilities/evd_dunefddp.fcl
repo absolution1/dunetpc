@@ -1,0 +1,12 @@
+#include "evd_dune.fcl"
+process_name: EVD
+
+services.user.Geometry: @local::dunedphase10kt_workspace_geo
+services.user.RawDrawingOptions.TotalTicks: 20000
+services.user.DetectorPropertiesService.Efield:	[0.5, 4.0, 0.0]
+services.user.DetectorPropertiesService.NumberTimeSamples: 20000
+services.user.RecoDrawingOptions.HitModuleLabels: ["linecluster"]
+services.user.RecoDrawingOptions.ClusterModuleLabels: ["linecluster"]
+services.user.RecoDrawingOptions.TrackModuleLabels: ["pmtrack"]
+services.user.RecoDrawingOptions.VertexModuleLabels: ["pmtrack"]
+

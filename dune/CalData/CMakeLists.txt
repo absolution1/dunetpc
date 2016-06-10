@@ -8,8 +8,8 @@ art_make( BASENAME_ONLY
 			lardata_RawData
 			lardata_RecoBase
 			lardata_RecoBaseArt
-                        SignalShapingServiceDUNE10kt_service
-			SignalShapingServiceDUNE35t_service
+			SignalShapingServiceDUNEDPhase_service
+                        SignalShapingServiceDUNE_service
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}

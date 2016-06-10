@@ -16,10 +16,13 @@ dunefd_detproperties.TimeOffsetV:       0.
 dunefd_detproperties.TimeOffsetZ:       0.
 
 dunefddphase_detproperties:                   @local::standard_detproperties
-# dunefddphase_detproperties.SamplingRate:    400.         # in ns
-dunefddphase_detproperties.ElectronsToADC:    5.1267e-04   # 
-dunefddphase_detproperties.NumberTimeSamples: 20000        # drift length/drift velocity*sampling rate
-dunefddphase_detproperties.ReadOutWindowSize: 20000        # drift length/drift velocity*sampling rate
+# dunefddphase_detproperties.SamplingRate:    400.          # in ns
+dunefddphase_detproperties.Temperature:       87            # in K
+dunefddphase_detproperties.Electronlifetime:  3.0e3         # in us
+dunefddphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
+dunefddphase_detproperties.ElectronsToADC:    5.1267e-04    # 
+dunefddphase_detproperties.NumberTimeSamples: 20000         # drift length/drift velocity*sampling rate
+dunefddphase_detproperties.ReadOutWindowSize: 20000         # drift length/drift velocity*sampling rate
 dunefddphase_detproperties.TimeOffsetU:       0.
 dunefddphase_detproperties.TimeOffsetV:       0.
 dunefddphase_detproperties.TimeOffsetZ:       0.

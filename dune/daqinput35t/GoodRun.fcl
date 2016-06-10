@@ -1,0 +1,14 @@
+BEGIN_PROLOG
+
+dune35t_goodrun:
+{
+  module_type: "GoodRun"
+  
+  MakeFlatTree:        false
+  CounterModuleLabel:  "SplitterInput:TRIGGER"
+  WaveformModuleLabel: "SplitterInput:PHOTON"
+  RawDigitModuleLabel: "SplitterInput:TPC"
+  OpHitModuleLabel:    "SplitterInput:OPHIT" 
+}
+
+END_PROLOG

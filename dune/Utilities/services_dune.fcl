@@ -13,14 +13,15 @@
 #include "photpropservices_dune.fcl"
 #include "sam_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
+#include "channelmapping_dune.fcl"
 #include "channelstatus_dune.fcl"
 #include "pedestals_dune.fcl"
 #include "daq_dune.fcl"
 #include "detsimmodules_dune.fcl"
 #include "channelmap_35t.fcl"
+#include "spacecharge_dune.fcl"
 
 BEGIN_PROLOG
-
 
 # The above *_dune.fcl include contain the parameter blocks
 # for all dune geometries. All PROLOG files for dune should
@@ -38,7 +39,8 @@ dunefd_services: {
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
- SeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::dunefd_spacecharge
+ LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
 }
@@ -55,7 +57,9 @@ dunefd_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::dunefd_backtracker
- SeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::dunefd_spacecharge
+ LArSeedService:               @local::dune_seedservice
+ LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
@@ -70,13 +74,14 @@ dunefddphase_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
- SeedService:                    @local::dune_seedservice 
+ LArSeedService:                 @local::dune_seedservice 
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dunefddphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
 dunefddphase_simulation_services: {
@@ -86,7 +91,7 @@ dunefddphase_simulation_services: {
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag
  BackTracker:                    @local::dunefd_backtracker
- SeedService:                    @local::dune_seedservice
+ LArSeedService:                 @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::dunefd_opdetresponse
  ChannelStatusService:           @local::dunefd_channel_status
@@ -96,6 +101,7 @@ dunefddphase_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
 
@@ -121,14 +127,15 @@ dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
 protodune_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protoDune_geo
+ Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
  DetectorPropertiesService:    @local::dunefd_detproperties
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
- SeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::protodune_spacecharge
+ LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status 
 }
@@ -137,7 +144,7 @@ protodune_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protoDune_geo
+ Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
  DetectorPropertiesService:    @local::dunefd_detproperties
  LArPropertiesService:         @local::dunefd_properties
@@ -145,7 +152,8 @@ protodune_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag
  BackTracker:                  @local::dunefd_backtracker
- SeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::protodune_spacecharge
+ LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
@@ -181,9 +189,11 @@ dune35t_basic_services: {
  DetectorPropertiesService:    @local::dune35t_detproperties
  LArPropertiesService:         @local::dune35t_properties
  DatabaseUtil:                 @local::dune35t_database
- SeedService:                  @local::dune_seedservice
+ SpaceCharge:                  @local::dune35t_spacecharge
+ LArSeedService:               @local::dune_seedservice
  ChannelStatusService:         @local::dune35t_channel_status
  ChannelMapService:            @local::channelmap35t
+ ChannelMappingService:        @local::dune35t_channelmapping
 }
 
 dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
@@ -201,7 +211,6 @@ dune35t_g4_services.LArG4Parameters:         @local::dune35t_largeantparameters
 dune35t_g4_services.LArVoxelCalculator:      @local::dune35t_larvoxelcalculator
 dune35t_g4_services.PhotonVisibilityService: @local::dune35t_photonvisibilityservice
 dune35t_g4_services.OpDetResponseInterface:  @local::dune35t_opdetresponse  
-
 
 ##
 # Settings to turn on and configure photon simulation
@@ -251,7 +260,7 @@ dune35t_detsim_services.LArPropertiesService.ScintPreScale:      0.0023
 
 dune35t_simulation_services:                                      @local::dune35t_g4_services
 dune35t_simulation_services.LArFFT:                               @local::dune35t_larfft
-dune35t_simulation_services.SignalShapingServiceDUNE35t:          @local::dune35t_signalshapingservice
+dune35t_simulation_services.SignalShapingServiceDUNE:             @local::dune35t_signalshapingservice
 dune35t_simulation_services.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
 dune35t_simulation_services.BackTracker:                          @local::dune35t_backtracker
 
