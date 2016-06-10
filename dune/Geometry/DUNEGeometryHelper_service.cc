@@ -10,6 +10,7 @@
 // LArSoft libraries
 #include "larcore/Geometry/GeometryCore.h"
 #include "larcore/Geometry/ChannelMapAlg.h"
+#include "larcore/Geometry/ChannelMapStandardAlg.h"
 #include "dune/Geometry/ChannelMap35Alg.h"
 #include "dune/Geometry/ChannelMap35OptAlg.h"
 #include "dune/Geometry/ChannelMapAPAAlg.h"
@@ -85,11 +86,18 @@ namespace dune
     {
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
     }
+    //
+    // LArND
+    //
+    else if ( detectorName.find("larnd") != std::string::npos )
+    {
+      fChannelMap = std::make_shared<geo::ChannelMapStandardAlg>(sortingParameters);
+    }
     else {
       throw cet::exception("DUNEGeometryHelper")
         << "Unsupported geometry from input file: '" << detectorName << "'\n";
-    }
-    
+    }    
+
     if ( fChannelMap )
     {
       geom->ApplyChannelMap(fChannelMap);

@@ -44,7 +44,7 @@ void util::SignalShapingServiceDUNEDPhase::reconfigure(const fhicl::ParameterSet
   fColSignalShaping.Reset();
 
   // Fetch fcl parameters.
-  //fDeconNorm            = pset.get<double>("DeconNorm");
+  fDeconNorm            = pset.get<double>("DeconNorm");
   fASICmVperfC          = pset.get<double>("ASICmVperfC");
   fADCpermV             = pset.get<double>("ADCpermV");
   fAmpENC               = pset.get<double>("AmpENC");
@@ -117,8 +117,8 @@ void util::SignalShapingServiceDUNEDPhase::init()
     SetFilters();
 
     // Configure deconvolution kernels.
-    //fColSignalShaping.AddFilterFunction(fColFilter);
-    //fColSignalShaping.CalculateDeconvKernel();
+    fColSignalShaping.AddFilterFunction(fColFilter);
+    fColSignalShaping.CalculateDeconvKernel();
     
     //mf::LogInfo("SignalShapingServiceDUNEDPhase")<<"Done Init";
   }
@@ -159,7 +159,7 @@ double util::SignalShapingServiceDUNEDPhase::GetRawNoise(unsigned int const chan
 
 double util::SignalShapingServiceDUNEDPhase::GetDeconNoise(unsigned int const channel) const
 {
-  return fAmpENC; //expected ENC
+  return fAmpENC / fDeconNorm; //expected ENC
 }
 
 
@@ -220,10 +220,37 @@ void util::SignalShapingServiceDUNEDPhase::SetFilters()
   // Get services.
 
   //auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  //art::ServiceHandle<util::LArFFT> fft;
+  art::ServiceHandle<util::LArFFT> fft;
 
   //double ts = detprop->SamplingRate();
-  //int n = fft->FFTSize() / 2;
+  int n = fft->FFTSize() / 2;
+  
+  
+    // ...should be accurately adopted for dual phase...
+  
+  // Get services.
+
+  fColFilter.resize(n+1);
+  
+  //if(!fGetFilterFromHisto)
+  //{
+  	//fColFilterFunc->SetRange(0, double(n));
+
+  	for(int i = 0; i <= n; ++i) 
+  	{
+    		// double freq = 400. * i / (ts * n);      // Cycles / microsecond. loop copied from SingalShaping for 10kt.
+    		double f = 1.0; // fColFilterFunc->Eval(freq);
+    		fColFilter[i] = TComplex(f, 0.);
+    	}
+  //}
+  //else
+  //{
+	// to be filled.
+  //}
+  
+  
+  
+  
   return;
 }
 

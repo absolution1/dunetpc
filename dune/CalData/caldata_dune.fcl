@@ -18,6 +18,17 @@ dunefd_calwire:
 }
 dunefd_calwireana:   @local::standard_calwireana
 
+dunefddphase_calwire:
+{
+ module_type:        "CalWireDUNEDPhase"
+ DigitModuleLabel:   "daq"
+ #PostsampleBins:     400
+ PostsampleBins:     0
+ DoBaselineSub:  false # subtract baseline after deconvolution?
+ PlaneROIPad: [ 50, 50 ] # number of bins to pad both ends of the ROIs
+ SigThrFact:  3.0
+}
+dunefddphase_calwireana: @local::standard_calwireana
 
 dune35t_calwire:
 {
