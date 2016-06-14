@@ -2,6 +2,7 @@
 
 #include "Dune35tNoiseRemovalService.h"
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
@@ -12,6 +13,7 @@ using std::string;
 using std::ostream;
 using std::cout;
 using std::endl;
+using std::ostringstream;
 using std::setw;
 using art::ServiceHandle;
 
@@ -22,10 +24,10 @@ Dune35tNoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistr
 : m_LogLevel(1) {
   const string myname = "Dune35tNoiseRemovalService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
-  m_GroupingFlag = pset.get<bool>("GroupingFlag");
-  m_SkipStuckCodes = pset.get<bool>("SkipStuckCodes");
+  m_GroupingFlag      = pset.get<int>("GroupingFlag");
+  m_SkipStuckCodes    = pset.get<bool>("SkipStuckCodes");
   m_CorrectStuckCodes = pset.get<bool>("CorrectStuckCodes");
-  m_ShowGroups = pset.get<bool>("ShowGroups");
+  m_ShowGroups        = pset.get<int>("ShowGroups");
   // Get services.
   m_pGeometry = &*ServiceHandle<geo::Geometry>();
   m_pChannelMap = &*ServiceHandle<lbne::ChannelMapService>();
@@ -92,8 +94,6 @@ int Dune35tNoiseRemovalService::update(AdcChannelDataMap& datamap) const {
     cout << myname << "  # Channels: " << datamap.size() << endl;
     cout << myname << "     # Ticks: " << nsig << endl;
   }
-  // derive correction factors - require raw adc waveform and pedestal for each channel
-  vector<double> corrVals;
   // loop through time slices
   for ( unsigned int isig=0; isig<nsig; ++isig) {
     // Loop over wire orientations.
@@ -104,14 +104,18 @@ int Dune35tNoiseRemovalService::update(AdcChannelDataMap& datamap) const {
         if ( m_LogLevel >= 3 && isig==0 ) {
           cout << myname << setw(3) << iori << setw(4) << igrp << " " << chans.size() << endl;
         }
-        // Loop over the channels for this group
-        for ( size_t icha : chans ) {
-          unsigned int offlineChan = m_pChannelMap->Offline(chans[icha]);
+        // Loop over the channels for this time slice, orientation and group
+        vector<double> corrVals;
+        for ( AdcChannel chan : chans ) {
+          unsigned int offlineChan = m_pChannelMap->Offline(chan);
+          if ( m_LogLevel >= 4 && isig==0 ) {
+            cout << myname << "Channel on/off: " << chan << "/" << offlineChan << endl;
+          }
           AdcChannelDataMap::const_iterator iacd = datamap.find(offlineChan);
           if ( iacd == datamap.end() ) continue;
           const AdcChannelData& acd = iacd->second;
           AdcSignal sig = acd.samples[isig];
-          AdcFlag flag = acd.flags[isig];
+          AdcFlag flag = acd.flags.size() ? acd.flags[isig] : AdcGood;
           if ( m_SkipStuckCodes && ( flag==AdcStuckOff || flag==AdcStuckOn ) ) continue;
           // The original code also skipped samples where the raw count or pedestal was less than 10.
           corrVals.push_back(sig);
@@ -127,13 +131,13 @@ int Dune35tNoiseRemovalService::update(AdcChannelDataMap& datamap) const {
         else
           correction = corrVals[(corrValSize-1)/2];
         // Loop over the channels for this group
-        for ( size_t icha : chans ) {
-          unsigned int offlineChan = m_pChannelMap->Offline(chans[icha]);
+        for ( AdcChannel chan : chans ) {
+          unsigned int offlineChan = m_pChannelMap->Offline(chan);
           AdcChannelDataMap::iterator iacd = datamap.find(offlineChan);
           if ( iacd == datamap.end() ) continue;
           AdcChannelData& acd = iacd->second;
           AdcSignal& sig = acd.samples[isig];
-          AdcFlag flag = acd.flags[isig];
+          AdcFlag flag = acd.flags.size() ? acd.flags[isig] : AdcGood;
           if ( m_SkipStuckCodes && ( flag==AdcStuckOff || flag==AdcStuckOn ) ) continue;
           if ( datamap.count(offlineChan) == 0 ) continue;
           if ( !m_CorrectStuckCodes && ( flag==AdcStuckOff || flag==AdcStuckOn ) ) continue;
@@ -149,12 +153,48 @@ int Dune35tNoiseRemovalService::update(AdcChannelDataMap& datamap) const {
 
 ostream& Dune35tNoiseRemovalService::
 print(ostream& out, string prefix) const {
-  out << prefix << "Dune35tNoiseRemovalService:"                   << endl;
+  out << prefix << "Dune35tNoiseRemovalService:"                          << endl;
   out << prefix << "               LogLevel: " << m_LogLevel              << endl;
   out << prefix << "           GroupingFlag: " << m_GroupingFlag          << endl;
   out << prefix << "         SkipStuckCodes: " << m_SkipStuckCodes        << endl;
   out << prefix << "      CorrectStuckCodes: " << m_CorrectStuckCodes     << endl;
   out << prefix << "             ShowGroups: " << m_ShowGroups            << endl;
+  if ( m_ShowGroups ) {
+    int wori = 10;
+    int wgrp = 10;
+    int wcha = 5;
+    if ( m_ShowGroups == 1 ) {
+      out << prefix << setw(wori) << "Orient." << setw(wgrp) << "Group" << ": " << "  Channels" << endl;
+    } else if ( m_ShowGroups == 2 ) {
+      out << prefix << setw(wgrp) << "Group" << ": " << " Channels" << endl;
+    }
+    vector<vector<string>> gochans;   // Store channel lists as strings ordering group before orient
+    unsigned int nori = m_GroupChannels.size();
+    for ( unsigned int iori=0; iori<nori; ++iori ) {
+      const std::vector<AdcChannelVector>& gchans = m_GroupChannels[iori];
+      for ( unsigned int igrp=0; igrp<gchans.size(); ++igrp ) {
+        const AdcChannelVector& chans = gchans[igrp];
+        if ( chans.size() == 0 ) continue;
+        ostringstream sout;
+        for ( AdcChannel chan : chans ) sout << setw(wcha) << chan;
+        if ( m_ShowGroups == 1 ) {
+          out << setw(wori) << iori << setw(wgrp) << igrp << ": " << sout.str() << endl;
+        } else if ( m_ShowGroups == 2 ) {
+          if ( gochans.size() < igrp+1 ) gochans.resize(igrp+1, std::vector<string>(nori));
+          gochans[igrp][iori] = sout.str();
+        }
+      }
+    }
+    if ( m_ShowGroups == 2 ) {
+      for ( unsigned int igrp=0; igrp<gochans.size(); ++igrp ) {
+        for ( unsigned int iori=0; iori<nori; ++iori ) {
+          string schans = gochans[igrp][iori];
+          if ( schans.size() ) out << setw(wgrp+2) << igrp << "-" << iori << ": " << schans << endl;
+        }
+      }
+    }
+      
+  }
   return out;
 }
 
