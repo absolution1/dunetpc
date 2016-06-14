@@ -16,10 +16,12 @@ simple_plugin(StandardRawDigitExtractService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
-#simple_plugin(Dune35tNoiseRemovalService   "service"
-#                ${ART_UTILITIES}
-#                ${ROOT_BASIC_LIB_LIST}
-#             )
+simple_plugin(Dune35tNoiseRemovalService   "service"
+                larcore_Geometry
+                lbne-raw-data_Services_ChannelMap_ChannelMapService_service
+                ${ART_UTILITIES}
+                ${ROOT_BASIC_LIB_LIST}
+             )
 
 simple_plugin(StandardRawDigitPrepService   "service"
                 lardata_RawData

@@ -23,12 +23,14 @@
 //      GroupingFlag - 0=By regulator (128 chan), 1=By ASIC (32 channels)
 //    SkipStuckCodes - Samples with stuck bits are not used to evaluate the correction.
 // CorrectStuckCodes - Samples with stuck bits are corrected iff this is true.
+//        ShowGroups - Display channel groups: 0=no display, 1=orient then group, 2=group then orient
 //
 
 #ifndef Dune35tNoiseRemovalService_H
 #define Dune35tNoiseRemovalService_H
 
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
+#include "dune/DuneInterface/AdcTypes.h"
 
 namespace geo {
   class Geometry;
@@ -52,13 +54,17 @@ private:
 
   // Configuration parameters.
   int  m_LogLevel;
-  bool m_GroupingFlag;
+  int  m_GroupingFlag;
   bool m_SkipStuckCodes;
   bool m_CorrectStuckCodes;
+  int  m_ShowGroups;
 
   // Services.
   const geo::Geometry* m_pGeometry;
   const lbne::ChannelMapService* m_pChannelMap;
+
+  // List of channels for each orientation and group.
+  std::vector<std::vector<AdcChannelVector>> m_GroupChannels;
 
 };
 
