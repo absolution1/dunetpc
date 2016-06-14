@@ -19,6 +19,12 @@ cet_test(test_InterpolatingAdcMitigationService SOURCES test_InterpolatingAdcMit
     dune_ArtSupport
 )
 
+cet_test(test_Dune35tNoiseRemovalService SOURCES test_Dune35tNoiseRemovalService
+  LIBRARIES
+    dune_ArtSupport
+    lbne-raw-data_Services_ChannelMap_ChannelMapService_service
+)
+
 cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx
   LIBRARIES
     dune_DataPrep_Service_StandardRawDigitExtractService_service
