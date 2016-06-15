@@ -31,7 +31,7 @@ using art::ServiceHandle;
 
 //**********************************************************************
 
-int test_Dune35tNoiseRemovalService() {
+int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
   const string myname = "test_Dune35tNoiseRemovalService: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -40,34 +40,38 @@ int test_Dune35tNoiseRemovalService() {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  cout << myname << "Create top-level FCL." << endl;
   string fclfile = "test_Dune35tNoiseRemovalService.fcl";
-  string gname = "dune35t4apa_v5";
-  ofstream fout(fclfile.c_str());
-  fout << "services.Geometry: {" << endl;
-  fout << "  DisableWiresInG4: true" << endl;
-  fout << "  GDML: \"" << gname << ".gdml\"" << endl;
-  fout << "  Name: \"" << gname << "\"" << endl;
-  fout << "  ROOT: \"" << gname << "\"" << endl;
-  fout << "  SortingParameters: { DetectorVersion: \"" << gname << "\" } " << endl;
-  fout << "  SurfaceY: 0" << endl;
-  fout << "}" << endl;
-  fout << "services.ExptGeoHelperInterface: {" << endl;
-  fout << "  service_provider: \"DUNEGeometryHelper\"" << endl;
-  fout << "}" << endl;
-  fout << "services.ChannelMapService: {" << endl;
-  fout << "  LogLevel: 1" << endl;
-  fout << "  FileName: \"35tTPCChannelMap_v6.txt\"" << endl;
-  fout << "}" << endl;
-  fout << "services.AdcNoiseRemovalService: {" << endl;
-  fout << "  service_provider: Dune35tNoiseRemovalService" << endl;
-  fout << "           LogLevel: 1" << endl;
-  fout << "       GroupingFlag: 0" << endl;
-  fout << "     SkipStuckCodes: false" << endl;
-  fout << "  CorrectStuckCodes: true" << endl;
-  fout << "         ShowGroups: 2" << endl;
-  fout << "}" << endl;
-  fout.close();
+  if ( ! useExistingFcl ) {
+    cout << myname << "Creating top-level FCL." << endl;
+    string gname = "dune35t4apa_v5";
+    ofstream fout(fclfile.c_str());
+    fout << "services.Geometry: {" << endl;
+    fout << "  DisableWiresInG4: true" << endl;
+    fout << "  GDML: \"" << gname << ".gdml\"" << endl;
+    fout << "  Name: \"" << gname << "\"" << endl;
+    fout << "  ROOT: \"" << gname << "\"" << endl;
+    fout << "  SortingParameters: { DetectorVersion: \"" << gname << "\" } " << endl;
+    fout << "  SurfaceY: 0" << endl;
+    fout << "}" << endl;
+    fout << "services.ExptGeoHelperInterface: {" << endl;
+    fout << "  service_provider: \"DUNEGeometryHelper\"" << endl;
+    fout << "}" << endl;
+    fout << "services.ChannelMapService: {" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  FileName: \"35tTPCChannelMap_v6.txt\"" << endl;
+    fout << "}" << endl;
+    fout << "services.AdcNoiseRemovalService: {" << endl;
+    fout << "  service_provider: Dune35tNoiseRemovalService" << endl;
+    fout << "           LogLevel: 1" << endl;
+    fout << "       GroupingFlag: 0" << endl;
+    fout << "     SkipStuckCodes: false" << endl;
+    fout << "  CorrectStuckCodes: true" << endl;
+    fout << "         ShowGroups: 2" << endl;
+    fout << "}" << endl;
+    fout.close();
+  } else {
+    cout << myname << "Using existing top-level FCL." << endl;
+  }
 
   cout << myname << "Fetch art service helper." << endl;
   ArtServiceHelper& ash = ArtServiceHelper::instance();
@@ -187,7 +191,17 @@ int test_Dune35tNoiseRemovalService() {
 //**********************************************************************
 
 int main(int argc, char* argv[]) {
-  return test_Dune35tNoiseRemovalService();
+  bool useExistingFcl = false;
+  if ( argc > 1 ) {
+    string sarg(argv[1]);
+    if ( sarg == "-h" ) {
+      cout << "Usage: " << argv[0] << " [ARG]" << endl;
+      cout << "  If ARG = true, existing FCL file is used." << endl;
+      return 0;
+    }
+    useExistingFcl = sarg == "true" || sarg == "1";
+  }
+  return test_Dune35tNoiseRemovalService(useExistingFcl);
 }
 
 //**********************************************************************

@@ -7,6 +7,7 @@
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "dune/DuneInterface/RawDigitExtractService.h"
 #include "dune/DuneInterface/AdcMitigationService.h"
+#include "dune/DuneInterface/AdcNoiseRemovalService.h"
 
 using std::string;
 using std::cout;
@@ -24,6 +25,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_DoMitigation = pset.get<bool>("DoMitigation");
+  m_DoNoiseRemoval = pset.get<bool>("DoNoiseRemoval");
   if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
   m_pExtractSvc = &*art::ServiceHandle<RawDigitExtractService>();
   if ( m_LogLevel ) cout << myname << "  Extract service: @" <<  m_pExtractSvc << endl;
@@ -31,6 +33,11 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     if ( m_LogLevel ) cout << myname << "Fetching mitigation service." << endl;
     m_pmitigateSvc = &*art::ServiceHandle<AdcMitigationService>();
     if ( m_LogLevel ) cout << myname << "  Mitigation service: @" <<  m_pmitigateSvc << endl;
+  }
+  if ( m_DoNoiseRemoval ) {
+    if ( m_LogLevel ) cout << myname << "Fetching noise removal service." << endl;
+    m_pNoiseRemoval = &*art::ServiceHandle<AdcNoiseRemovalService>();
+    if ( m_LogLevel ) cout << myname << "  Noise removal service: @" <<  m_pNoiseRemoval << endl;
   }
   print(cout, myname);
 }
@@ -62,6 +69,9 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& prepdigs) const {
       m_pmitigateSvc->update(data);
     }
     prepdigs[chan] = data;
+  }
+  if ( m_DoNoiseRemoval ) {
+    m_pNoiseRemoval->update(prepdigs);
   }
   return nbad;
 }

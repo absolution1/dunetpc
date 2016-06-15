@@ -38,7 +38,7 @@ Dune35tNoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistr
     for (size_t i = 0; i<3; ++i){
       m_GroupChannels[i].resize(32);
     }
-    for (unsigned int i = 0; i<nchan; ++i){//online channels
+    for (unsigned int i=0; i<nchan; ++i){//online channels
       unsigned int plane     = m_pChannelMap->PlaneFromOnlineChannel(i);
       unsigned int rce       = m_pChannelMap->RCEFromOnlineChannel(i);
       unsigned int regulator = m_pChannelMap->RegulatorFromOnlineChannel(i);
@@ -49,7 +49,7 @@ Dune35tNoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistr
     for (size_t i = 0; i<3; ++i){
       m_GroupChannels[i].resize(128);
     }
-    for (unsigned int i = 0; i<nchan; ++i){//online channels
+    for (unsigned int i=0; i<nchan; ++i){//online channels
       unsigned int plane     = m_pChannelMap->PlaneFromOnlineChannel(i);
       unsigned int rce       = m_pChannelMap->RCEFromOnlineChannel(i);
       unsigned int asic      = m_pChannelMap->ASICFromOnlineChannel(i);
@@ -164,9 +164,9 @@ print(ostream& out, string prefix) const {
     int wgrp = 10;
     int wcha = 5;
     if ( m_ShowGroups == 1 ) {
-      out << prefix << setw(wori) << "Orient." << setw(wgrp) << "Group" << ": " << "  Channels" << endl;
+      out << prefix << setw(wori) << "Orient." << setw(wgrp) << "Group" << ": " << "  Online channels" << endl;
     } else if ( m_ShowGroups == 2 ) {
-      out << prefix << setw(wgrp) << "Group" << ": " << " Channels" << endl;
+      out << prefix << setw(wgrp+4) << "Group" << ": " << " Online channels" << endl;
     }
     vector<vector<string>> gochans;   // Store channel lists as strings ordering group before orient
     unsigned int nori = m_GroupChannels.size();
@@ -178,7 +178,7 @@ print(ostream& out, string prefix) const {
         ostringstream sout;
         for ( AdcChannel chan : chans ) sout << setw(wcha) << chan;
         if ( m_ShowGroups == 1 ) {
-          out << setw(wori) << iori << setw(wgrp) << igrp << ": " << sout.str() << endl;
+          out << prefix << setw(wori) << iori << setw(wgrp) << igrp << ": " << sout.str() << endl;
         } else if ( m_ShowGroups == 2 ) {
           if ( gochans.size() < igrp+1 ) gochans.resize(igrp+1, std::vector<string>(nori));
           gochans[igrp][iori] = sout.str();
@@ -189,7 +189,7 @@ print(ostream& out, string prefix) const {
       for ( unsigned int igrp=0; igrp<gochans.size(); ++igrp ) {
         for ( unsigned int iori=0; iori<nori; ++iori ) {
           string schans = gochans[igrp][iori];
-          if ( schans.size() ) out << setw(wgrp+2) << igrp << "-" << iori << ": " << schans << endl;
+          if ( schans.size() ) out << prefix << setw(wgrp+2) << igrp << "-" << iori << ": " << schans << endl;
         }
       }
     }
