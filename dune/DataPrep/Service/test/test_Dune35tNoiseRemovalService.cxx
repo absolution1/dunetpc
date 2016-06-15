@@ -192,7 +192,7 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
-  if ( argc > 0 ) {
+  if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
       cout << "Usage: " << argv[0] << " [ARG]" << endl;
