@@ -516,6 +516,19 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 	TH1D * occupancyHist = fRunToCryTPCToPlaneMap.at(runID).at(CryTPCPair).at(iPlane);
 	if( thisPlaneHist->Integral() == 0 ){
 	  for( int iBin = 1; iBin <= occupancyHist->GetNbinsX(); ++iBin ){
+
+	    //Have to account for the induction planes and their wrapped wires...
+	    size_t repetitionStartWire = 9999;
+	    if( iPlane == 0 )
+	      repetitionStartWire = fUPlaneRepeatingWireStart.at(CryTPCPair.second);
+	    if( iPlane == 1 )
+	      repetitionStartWire = fVPlaneRepeatingWireStart.at(CryTPCPair.second);
+	    if( iPlane == 0 || iPlane == 1 ){
+	      if( size_t(iBin)-1 == repetitionStartWire ) break;
+	    }
+
+
+
 	    if( fVerbose )
 	      std::cout << "Adding badwirevect to completely dead plane." << std::endl;
 	    std::vector<size_t> theBadWire;
@@ -971,7 +984,7 @@ void GoodWireAna::findRepeatingWireCutoff()
 	fVPlaneRepeatingWireStart.emplace(iTPC,theFinalWire);
       
       //Just for kicks and gigabytes, let's print.
-      std::cout << "TPC/Plane/Wire: " << iTPC << "/" << iPlane << "/" << theFinalWire << std::endl;
+      std::cout << "TheFinalWire: TPC/Plane/Wire: " << iTPC << "/" << iPlane << "/" << theFinalWire << std::endl;
 
     }
 
