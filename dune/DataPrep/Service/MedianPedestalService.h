@@ -7,7 +7,8 @@
 // an input ADC signal vector.
 //
 // Configuration:
-//          LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
+//        LogLevel - Message logging level: 0=none, 1=initialization, 2+=every event
+//   SkipStuckBits - Exclude ticks with stuck bits from the pedestal calculation
 
 #ifndef MedianPedestalService_H
 #define MedianPedestalService_H
@@ -29,7 +30,7 @@ public:
 
   MedianPedestalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int evaluate(const AdcSignalVector& sigs,
+  int evaluate(const AdcChannelData& data,
                AdcSignal* pped =nullptr, AdcSignal* prms =nullptr,
                AdcSignal* ppederr =nullptr, AdcSignal* prmserr =nullptr) const;
 
@@ -39,10 +40,7 @@ private:
 
   // Configuration parameters.
   int  m_LogLevel;
-  int  m_GroupingFlag;
-  bool m_SkipStuckCodes;
-  bool m_CorrectStuckCodes;
-  int  m_ShowGroups;
+  int  m_SkipStuckBits;
 
   // Services.
   const geo::Geometry* m_pGeometry;

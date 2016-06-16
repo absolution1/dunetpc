@@ -9,7 +9,7 @@
 // Interface for a service that uses a vector of ADC signals to estimate
 // the pedestal for a channel.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/AdcChannelData.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class PedestalEvaluationService {
@@ -25,7 +25,7 @@ public:
   //  *premerr - Uncertainty in the pedestal RMS
   // The last four arguments are output values. Null values may be used to indicate the value
   // is not used and need not be calculated.
-  virtual int evaluate(const AdcSignalVector& sigs,
+  virtual int evaluate(const AdcChannelData& data,
                        AdcSignal* pped =nullptr, AdcSignal* prms =nullptr,
                        AdcSignal* ppederr =nullptr, AdcSignal* prmserr =nullptr) const =0;
 

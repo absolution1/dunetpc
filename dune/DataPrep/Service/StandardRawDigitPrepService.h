@@ -10,7 +10,8 @@
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
 //   DoMitigation - Run mitigation (e.g. stuck bit removal) on extracted data.
-//   DoNoiseRemoval - Run cherent noise suppression.
+//   DoNoiseRemoval - Run coherent noise suppression.
+//   DoPedestalAdjustment - Do dynamic pedestal adjustment.
 
 
 #ifndef StandardRawDigitPrepService_H
@@ -38,6 +39,7 @@ private:
   int m_LogLevel;
   bool m_DoMitigation;
   bool m_DoNoiseRemoval;
+  bool m_DoPedestalAdjustment;
 
   const RawDigitExtractService* m_pExtractSvc;
   const AdcMitigationService* m_pmitigateSvc;

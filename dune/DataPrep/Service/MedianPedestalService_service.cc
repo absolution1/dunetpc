@@ -28,14 +28,25 @@ MedianPedestalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 //**********************************************************************
 
 int MedianPedestalService::
-evaluate(const AdcSignalVector& sigsin, AdcSignal* pped, AdcSignal* prms,
+evaluate(const AdcChannelData& data, AdcSignal* pped, AdcSignal* prms,
          AdcSignal* ppederr, AdcSignal* prmserr) const {
   AdcSignal ped = 0.0;
   AdcSignal rms = 0.0;
   AdcSignal pederr = 0.0;
   AdcSignal rmserr = 0.0;
+  const AdcSignalVector sigsin = data.samples;
+  const AdcFlagVector flags = data.flags;
   if ( sigsin.size() == 0 ) return 0;
-  AdcSignalVector sigs = sigsin;
+  AdcSignalVector sigs;
+  for ( unsigned int isig=0; isig<sigsin.size(); ++isig ) {
+    AdcSignal sig = sigsin[isig];
+    if ( m_SkipStuckBits && flags.size() ) {
+      AdcFlag flag = flags[isig];
+      bool stuck = flag == AdcStuckOff || flag == AdcStuckOn;
+      if ( stuck ) continue;
+    }
+    sigs.push_back(sig);
+  }
   sort(sigs.begin(), sigs.end());
   unsigned int isig = sigs.size()/2;
   bool isodd = sigs.size()%2;
