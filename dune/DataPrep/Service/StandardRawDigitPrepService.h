@@ -22,6 +22,7 @@
 class RawDigitExtractService;
 class AdcMitigationService;
 class AdcNoiseRemovalService;
+class PedestalEvaluationService;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
@@ -44,6 +45,7 @@ private:
   const RawDigitExtractService* m_pExtractSvc;
   const AdcMitigationService* m_pmitigateSvc;
   const AdcNoiseRemovalService* m_pNoiseRemoval;
+  const PedestalEvaluationService* m_pPedestalEvaluation;
 
 };
 
