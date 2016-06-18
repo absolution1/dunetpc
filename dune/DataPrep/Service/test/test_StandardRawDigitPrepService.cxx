@@ -36,14 +36,19 @@ using raw::RawDigit;
 
 bool sigequal(AdcSignal sig1, AdcSignal sig2) {
   AdcSignal sigdiff = sig2 - sig1;
-  if ( sigdiff < -0.5 ) return false;
-  if ( sigdiff >  0.5 ) return false;
+  if ( sigdiff < -0.5 || sigdiff >  0.5 ) {
+    cout << "sigequal: " << sig1 << " != " << sig2 << endl;
+    return false;
+  }
   return true;
 }
 
 //**********************************************************************
 
-int test_StandardRawDigitPrepService() {
+// If usePedestalAdjustment is true, then extra pedestals are added and
+// then removed using the DoPedestalAdjustment option.
+
+int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedestalAdjustment =false) {
   const string myname = "test_StandardRawDigitPrepService: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -54,21 +59,33 @@ int test_StandardRawDigitPrepService() {
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
   string fclfile = "test_StandardRawDigitPrepService.fcl";
-  ofstream fout(fclfile.c_str());
-  int loglevel = 1;
-  fout << "services.RawDigitExtractService: {" << endl;
-  fout << "  service_provider: StandardRawDigitExtractService" << endl;
-  fout << "  LogLevel: " << loglevel << endl;
-  fout << "  PedestalOption: 1" << endl;
-  fout << "  FlagStuckOff: true" << endl;
-  fout << "  FlagStuckOn: true" << endl;
-  fout << "}" << endl;
-  fout << "services.RawDigitPrepService: {" << endl;
-  fout << "  service_provider: StandardRawDigitPrepService" << endl;
-  fout << "  LogLevel: " << loglevel << endl;
-  fout << "  DoMitigation:     false" << endl;
-  fout << "}" << endl;
-  fout.close();
+  if ( ! useExistingFcl ) {
+    ofstream fout(fclfile.c_str());
+    fout << "services.RawDigitExtractService: {" << endl;
+    fout << "  service_provider: StandardRawDigitExtractService" << endl;
+    fout << "  LogLevel:        1" << endl;
+    fout << "  PedestalOption:  1" << endl;
+    fout << "  FlagStuckOff: true" << endl;
+    fout << "  FlagStuckOn:  true" << endl;
+    fout << "}" << endl;
+    fout << "services.PedestalEvaluationService: {" << endl;
+    fout << "  service_provider: MedianPedestalService" << endl;
+    fout << "  LogLevel:         1" << endl;
+    fout << "  SkipStuckBits: true" << endl;
+    fout << "}" << endl;
+    fout << "services.RawDigitPrepService: {" << endl;
+    fout << "  service_provider: StandardRawDigitPrepService" << endl;
+    fout << "  LogLevel:                 1" << endl;
+    fout << "  DoMitigation:         false" << endl;
+    fout << "  DoNoiseRemoval:       false" << endl;
+    if ( usePedestalAdjustment ) {
+      fout << "  DoPedestalAdjustment:  true" << endl;
+    } else {
+      fout << "  DoPedestalAdjustment: false" << endl;
+    }
+    fout << "}" << endl;
+    fout.close();
+  }
 
   cout << myname << "Fetch art service helper." << endl;
   ArtServiceHelper& ash = ArtServiceHelper::instance();
@@ -77,6 +94,11 @@ int test_StandardRawDigitPrepService() {
   cout << myname << line << endl;
   cout << myname << "Add raw digit extract service." << endl;
   assert( ash.addService("RawDigitExtractService", fclfile, true) == 0 );
+  ash.print();
+
+  cout << myname << line << endl;
+  cout << myname << "Add pedestal evaluation service." << endl;
+  assert( ash.addService("PedestalEvaluationService", fclfile, true) == 0 );
   ash.print();
 
   cout << myname << line << endl;
@@ -101,6 +123,13 @@ int test_StandardRawDigitPrepService() {
   unsigned int isig_stucklo = 15;
   unsigned int isig_stuckhi = 25;
   AdcSignal peds[nchan] = {2000.2, 2010.1, 2020.3, 1990.4, 1979.6, 1979.2, 1995.0, 2001.3};
+  AdcSignal xpeds[nchan] = {0, 0, 0, 0, 0, 0, 0, 0};  // Need pedestal adju
+  if ( usePedestalAdjustment ) {
+    xpeds[4] = 100.0;
+    xpeds[5] = 100.0;
+    xpeds[6] = 100.0;
+    xpeds[7] = 100.0;
+  }
   vector<RawDigit> digs;
   map<AdcChannel, AdcCountVector> adcsmap;
   map<AdcChannel, AdcFlagVector> expflagsmap;
@@ -116,7 +145,7 @@ int test_StandardRawDigitPrepService() {
     assert(sigsin[chan].size() == nsig);
     AdcCountVector adcsin;
     for ( unsigned int isig=0; isig<nsig; ++isig) {
-      AdcSignal sig = sigsin[chan][isig] + peds[chan];
+      AdcSignal sig = sigsin[chan][isig] + peds[chan] + xpeds[chan];
       AdcCount adc = 0.0;
       if ( sig > 0.0 ) adc = int(sig+0.5);
       if ( adc > 4095 ) adc = 4095;
@@ -198,12 +227,22 @@ int test_StandardRawDigitPrepService() {
 //**********************************************************************
 
 int main(int argc, char* argv[]) {
-  int logLevel = 1;
+  bool useExistingFcl = false;
+  bool usePedestalAdjustment = true;
   if ( argc > 1 ) {
-    istringstream ssarg(argv[1]);
-    ssarg >> logLevel;
+    string sarg(argv[1]);
+    if ( sarg == "-h" ) {
+      cout << "Usage: " << argv[0] << " [ARG]" << endl;
+      cout << "  If ARG = true, existing FCL file is used." << endl;
+      return 0;
+    }
+    useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_StandardRawDigitPrepService();
+  if ( argc > 2 ) {
+    string sarg(argv[2]);
+    usePedestalAdjustment = sarg == "true" || sarg == "1";
+  }
+  return test_StandardRawDigitPrepService(useExistingFcl, usePedestalAdjustment);
 }
 
 //**********************************************************************

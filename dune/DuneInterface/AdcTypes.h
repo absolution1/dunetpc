@@ -34,5 +34,6 @@ const AdcFlag AdcInterpolated = 6; // ADC sample is interpolated
 const AdcFlag AdcExtrapolated = 7; // ADC sample is extrapolated
 
 typedef unsigned int AdcChannel;
+typedef std::vector<AdcChannel> AdcChannelVector;
 
 #endif
