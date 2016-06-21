@@ -63,10 +63,11 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
     fout << "services.AdcNoiseRemovalService: {" << endl;
     fout << "  service_provider: Dune35tNoiseRemovalService" << endl;
     fout << "           LogLevel: 1" << endl;
-    fout << "       GroupingFlag: 0" << endl;
+    fout << "       GroupingFlag: 1" << endl;
     fout << "     SkipStuckCodes: false" << endl;
     fout << "  CorrectStuckCodes: true" << endl;
     fout << "         ShowGroups: 2" << endl;
+    fout << "  ShowGroupsChannel: 4" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
