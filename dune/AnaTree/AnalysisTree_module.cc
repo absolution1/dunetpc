@@ -2329,12 +2329,12 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointx, -99999.);
   FillWith(StartPointy, -99999.);
   FillWith(StartPointz, -99999.);
-  FillWith(StartT, -99999.);
+  FillWith(StartT, -99e7);
   FillWith(EndT, -99999.);    
   FillWith(EndPointx, -99999.);
   FillWith(EndPointy, -99999.);
   FillWith(EndPointz, -99999.);
-  FillWith(EndT, -99999.);
+  FillWith(EndT, -99e7);
   FillWith(theta, -99999.);
   FillWith(phi, -99999.);
   FillWith(theta_xz, -99999.);
@@ -2344,7 +2344,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointx_tpcAV, -99999.);
   FillWith(StartPointy_tpcAV, -99999.);
   FillWith(StartPointz_tpcAV, -99999.);
-  FillWith(StartT_tpcAV, -99999.);
+  FillWith(StartT_tpcAV, -99e7);
   FillWith(StartE_tpcAV, -99999.);
   FillWith(StartP_tpcAV, -99999.);
   FillWith(StartPx_tpcAV, -99999.);
@@ -2353,7 +2353,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(EndPointx_tpcAV, -99999.);
   FillWith(EndPointy_tpcAV, -99999.);
   FillWith(EndPointz_tpcAV, -99999.);
-  FillWith(EndT_tpcAV, -99999.);
+  FillWith(EndT_tpcAV, -99e7);
   FillWith(EndE_tpcAV, -99999.);
   FillWith(EndP_tpcAV, -99999.);
   FillWith(EndPx_tpcAV, -99999.);
@@ -2364,7 +2364,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointx_drifted, -99999.);
   FillWith(StartPointy_drifted, -99999.);
   FillWith(StartPointz_drifted, -99999.);
-  FillWith(StartT_drifted, -99999.);
+  FillWith(StartT_drifted, -99e7);
   FillWith(StartE_drifted, -99999.);
   FillWith(StartP_drifted, -99999.);
   FillWith(StartPx_drifted, -99999.);
@@ -2373,7 +2373,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(EndPointx_drifted, -99999.);
   FillWith(EndPointy_drifted, -99999.);
   FillWith(EndPointz_drifted, -99999.); 
-  FillWith(EndT_drifted, -99999.);
+  FillWith(EndT_drifted, -99e7);
   FillWith(EndE_drifted, -99999.);
   FillWith(EndP_drifted, -99999.); 
   FillWith(EndPx_drifted, -99999.); 

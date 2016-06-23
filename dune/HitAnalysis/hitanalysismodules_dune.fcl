@@ -4,9 +4,17 @@ BEGIN_PROLOG
 
 dune35t_goodwireana:
 {
-  module_type:     "GoodWireAna"
-  HitModuleLabel:  "fasthit"
-  NSigmaGoodWire:  3                #Number of stdevs to look away from occupancy peak mean while considering quality of wires
+  module_type:         "GoodWireAna"
+  HitModuleLabel:      "fasthit"
+  NSigmaGoodWireHigh:  5                #Number of stdevs to look away from occupancy mean on high side while considering quality of wires
+  NSigmaGoodWireLow:   3                #Number of stdevs to look away from occupancy mean on low side while considering quality of wires
+}
+
+dune35t_fastgwa:
+{
+  module_type:         "FastGWA"
+  RawDigitModuleLabel: "unstick"
+  Verbosity:           true
 }
 
 END_PROLOG

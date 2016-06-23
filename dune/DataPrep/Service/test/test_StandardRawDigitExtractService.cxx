@@ -90,14 +90,16 @@ int test_StandardRawDigitExtractService() {
   unsigned int nsig = 41;
   assert(sigsin.size() == nsig);
   AdcCountVector adcsin;
+  unsigned int isig_stucklo = 5;
+  unsigned int isig_stuckhi = 15;
   for ( unsigned int isig=0; isig<nsig; ++isig) {
     AdcSignal sig = sigsin[isig] + ped;
     AdcCount adc = 0.0;
     if ( sig > 0.0 ) adc = int(sig+0.5);
     if ( adc > 4095 ) adc = 4095;
     AdcCount adchigh = adc & highbits;
-    if ( isig == 5 ) adc = adchigh;           // Stuck low bits to zero.
-    if ( isig == 6 ) adc = adchigh + lowbits; // Stuck low bits to one.
+    if ( isig == isig_stucklo ) adc = adchigh;           // Stuck low bits to zero.
+    if ( isig == isig_stuckhi ) adc = adchigh + lowbits; // Stuck low bits to one.
     adcsin.push_back(adc);
   }
   assert(adcsin.size() == nsig);
