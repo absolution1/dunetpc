@@ -171,7 +171,7 @@ simple_plugin(CheckRawDigit "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
