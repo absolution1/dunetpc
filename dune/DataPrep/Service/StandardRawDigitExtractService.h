@@ -31,8 +31,12 @@ public:
 
   StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int extract(const raw::RawDigit& rawin, AdcChannel* pchan =nullptr, AdcSignal* pped =nullptr,
-              AdcSignalVector* psigs =nullptr, AdcFlagVector* pflags =nullptr) const;
+  int extract(const raw::RawDigit& rawin,
+              AdcChannel* pchan =nullptr,
+              AdcSignal* pped =nullptr,
+              AdcCountVector* praw =nullptr,
+              AdcSignalVector* psigs =nullptr,
+              AdcFlagVector* pflags =nullptr) const;
 
   std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
 

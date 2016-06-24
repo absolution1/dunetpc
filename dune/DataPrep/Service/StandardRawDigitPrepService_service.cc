@@ -67,7 +67,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
     AdcChannelData data;
     AdcChannel& chan = data.channel;
     AdcSignal& ped = data.pedestal;
-    m_pExtractSvc->extract(dig, &chan, &ped, &data.samples, &data.flags);
+    m_pExtractSvc->extract(dig, &chan, &ped, &data.raw, &data.samples, &data.flags);
     data.digit = &dig;
     AdcChannelDataMap::const_iterator idig = datamap.find(chan);
     if ( idig != datamap.end() ) {

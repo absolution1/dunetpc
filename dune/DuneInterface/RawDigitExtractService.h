@@ -22,8 +22,12 @@ public:
 
   // Extract the channel, pedestal, signals and flags. All are pointer types so the caller can use null to
   // indicate any of the fields are not of interest.
-  virtual int extract(const raw::RawDigit& rawin, AdcChannel* pchan =nullptr, AdcSignal* pped =nullptr,
-                      AdcSignalVector* psigs =nullptr, AdcFlagVector* pflags =nullptr) const =0;
+  virtual int extract(const raw::RawDigit& rawin,
+                      AdcChannel* pchan =nullptr,
+                      AdcSignal* pped =nullptr,
+                      AdcCountVector* praw =nullptr,
+                      AdcSignalVector* psigs =nullptr,
+                      AdcFlagVector* pflags =nullptr) const =0;
 
   // Print parameters.
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;
