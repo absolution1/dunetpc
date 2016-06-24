@@ -34,7 +34,7 @@ StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityReg
 //**********************************************************************
 
 int StandardRawDigitExtractService::
-extract(const raw::RawDigit& dig, AdcChannel* pchan,
+extract(const raw::RawDigit& dig, AdcChannel* pchan, AdcSignal* pped,
         AdcSignalVector* psigs_in, AdcFlagVector* pflgs_in) const {
   const string myname = "StandardRawDigitExtractService:extract: ";
   if ( m_LogLevel >= 2 ) {
@@ -69,6 +69,7 @@ extract(const raw::RawDigit& dig, AdcChannel* pchan,
   } else if ( m_PedestalOption == 2 ) {
     ped = m_pPedProv->PedMean(chan);
   }
+  if ( pped != nullptr ) *pped = ped;
   // Convert int -> float, subtract pedestal and set conversion flag.
   const AdcCount lowbits = 0x3f;
   for ( unsigned int isig=0; isig<nsig; ++isig ) {

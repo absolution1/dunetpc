@@ -36,11 +36,6 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     m_pmitigateSvc = &*art::ServiceHandle<AdcMitigationService>();
     if ( m_LogLevel ) cout << myname << "  Mitigation service: @" <<  m_pmitigateSvc << endl;
   }
-  if ( m_DoPedestalAdjustment ) {
-    if ( m_LogLevel ) cout << myname << "Fetching pedestal evaluation service." << endl;
-    m_pPedestalEvaluation = &*art::ServiceHandle<PedestalEvaluationService>();
-    if ( m_LogLevel ) cout << myname << "  Noise removal service: @" <<  m_pNoiseRemoval << endl;
-  }
   print(cout, myname);
   if ( m_DoNoiseRemoval ) {
     if ( m_LogLevel ) cout << myname << "Fetching noise removal service." << endl;
@@ -71,7 +66,8 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
   for ( const RawDigit& dig : digs ) {
     AdcChannelData data;
     AdcChannel& chan = data.channel;
-    m_pExtractSvc->extract(dig, &chan, &data.samples, &data.flags);
+    AdcSignal& ped = data.pedestal;
+    m_pExtractSvc->extract(dig, &chan, &ped, &data.samples, &data.flags);
     data.digit = &dig;
     AdcChannelDataMap::const_iterator idig = datamap.find(chan);
     if ( idig != datamap.end() ) {

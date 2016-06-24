@@ -137,12 +137,14 @@ int test_StandardRawDigitExtractService() {
   AdcSignalVector sigs;
   AdcFlagVector flags;
   AdcChannel chanout;
-  assert( hrdx->extract(dig, &chanout, &sigs, &flags) == 0 );
+  AdcSignal pedout;
+  assert( hrdx->extract(dig, &chanout, &pedout, &sigs, &flags) == 0 );
   cout << myname << "Output vector size: " << sigs.size() << endl;
   cout << myname << " Output flags size: " << flags.size() << endl;
   assert( sigs.size() == nsig );
   assert( flags.size() == nsig );
   assert( chanout == chan );
+  assert( pedout == ped );
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
     cout << setw(4) << isig << ": " << setw(4) << adcsin[isig]
          << fixed << setprecision(1) << setw(8) << sigs[isig]
