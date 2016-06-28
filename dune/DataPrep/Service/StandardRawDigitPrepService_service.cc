@@ -7,6 +7,7 @@
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "dune/DuneInterface/RawDigitExtractService.h"
 #include "dune/DuneInterface/AdcMitigationService.h"
+#include "dune/DuneInterface/AdcSignalFindingService.h"
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
 #include "dune/DuneInterface/PedestalEvaluationService.h"
 
@@ -26,6 +27,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_DoMitigation = pset.get<bool>("DoMitigation");
+  m_DoEarlySignalFinding = pset.get<bool>("DoEarlySignalFinding");
   m_DoNoiseRemoval = pset.get<bool>("DoNoiseRemoval");
   m_DoPedestalAdjustment = pset.get<bool>("DoPedestalAdjustment");
   if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
@@ -35,6 +37,11 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     if ( m_LogLevel ) cout << myname << "Fetching mitigation service." << endl;
     m_pmitigateSvc = &*art::ServiceHandle<AdcMitigationService>();
     if ( m_LogLevel ) cout << myname << "  Mitigation service: @" <<  m_pmitigateSvc << endl;
+  }
+  if ( m_DoEarlySignalFinding ) {
+    if ( m_LogLevel ) cout << myname << "Fetching signal finding service." << endl;
+    m_pAdcSignalFindingService = &*art::ServiceHandle<AdcSignalFindingService>();
+    if ( m_LogLevel ) cout << myname << "  Signal finding service: @" <<  m_pAdcSignalFindingService << endl;
   }
   print(cout, myname);
   if ( m_DoNoiseRemoval ) {
@@ -78,6 +85,9 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
     if ( m_DoMitigation ) {
       m_pmitigateSvc->update(data);
     }
+    if ( m_DoEarlySignalFinding ) {
+      m_pAdcSignalFindingService->find(data);
+    }
     datamap[chan] = data;
   }
   if ( m_DoNoiseRemoval ) {
@@ -101,6 +111,7 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "StandardRawDigitPrepService:"                      << endl;
   out << prefix << "             LogLevel: " << m_LogLevel             << endl;
   out << prefix << "         DoMitigation: " << m_DoMitigation         << endl;
+  out << prefix << " DoEarlySignalFinding: " << m_DoEarlySignalFinding << endl;
   out << prefix << "       DoNoiseRemoval: " << m_DoNoiseRemoval       << endl;
   out << prefix << " DoPedestalAdjustment: " << m_DoPedestalAdjustment << endl;
   return out;

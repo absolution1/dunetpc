@@ -77,6 +77,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     fout << "  service_provider: StandardRawDigitPrepService" << endl;
     fout << "  LogLevel:                 1" << endl;
     fout << "  DoMitigation:         false" << endl;
+    fout << "  DoEarlySignalFinding: false" << endl;
     fout << "  DoNoiseRemoval:       false" << endl;
     if ( usePedestalAdjustment ) {
       fout << "  DoPedestalAdjustment:  true" << endl;

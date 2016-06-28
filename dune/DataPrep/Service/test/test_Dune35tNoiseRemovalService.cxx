@@ -65,6 +65,7 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
     fout << "           LogLevel: 1" << endl;
     fout << "       GroupingFlag: 1" << endl;
     fout << "     SkipStuckCodes: false" << endl;
+    fout << "        SkipSignals: false" << endl;
     fout << "  CorrectStuckCodes: true" << endl;
     fout << "         ShowGroups: 2" << endl;
     fout << "  ShowGroupsChannel: 4" << endl;
