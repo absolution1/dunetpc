@@ -143,6 +143,13 @@
     <fraction n="0.0771" ref="oxygen"/>
   </material> 
 
+  <material formula="Air" name="Air">
+   <D value="0.001205" unit="g/cm3"/>
+   <fraction n="0.781154" ref="nitrogen"/>
+   <fraction n="0.209476" ref="oxygen"/>
+   <fraction n="0.00934" ref="argon"/>
+  </material>
+
   <material name="fibrous_glass">
    <D value="2.74351" unit="g/cm3"/>
    <fraction n="0.600" ref="SiO2"/>
@@ -152,6 +159,14 @@
    <fraction n="0.034" ref="MgO"/>
    <fraction n="0.010" ref="Na2O"/>
    <fraction n="0.013" ref="TiO2"/>
+  </material>
+
+  <!-- density referenced from EHN1-Cold Cryostats Technical Requirements:
+       https://edms.cern.ch/document/1543254 -->
+  <material name="FD_foam">
+   <D value="0.09" unit="g/cm3"/>
+   <fraction n="0.95" ref="Air"/>
+   <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
   <material name="FR4">
@@ -182,13 +197,6 @@
   <material name="ArGas" formula="ArGas">
    <D value="0.00166" unit="g/cm3"/>
    <fraction n="1.0" ref="argon"/>
-  </material>
-
-  <material formula="Air" name="Air">
-   <D value="0.001205" unit="g/cm3"/>
-   <fraction n="0.781154" ref="nitrogen"/>
-   <fraction n="0.209476" ref="oxygen"/>
-   <fraction n="0.00934" ref="argon"/>
   </material>
 
   <material formula=" " name="G10">
@@ -275,9 +283,9 @@
 
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cc"/>
-   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="0.5"   ref="Air"/>
+   <D value="0.116981067938689" unit="g/cm3"/>
+   <fraction n="0.998" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="0.002"   ref="Air"/>
   </material>
 
 </materials>
@@ -18554,9 +18562,14 @@
       y="1357.6975 + 2*80"
       z="1746.48 + 2*80" />
 
+    <box name="FoamPadInner" lunit="cm"
+      x="759.3241 + 0.01"
+      y="1357.6975 + 0.01"
+      z="1746.48 + 0.01" />
+
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
-      <second ref="Cryostat"/>
+      <second ref="FoamPadInner"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
@@ -18565,9 +18578,14 @@
       y="1357.6975 + 2*80 + 2*50"
       z="1746.48 + 2*80 + 2*100" />
 
+    <box name="SteelSupportInner" lunit="cm"
+      x="759.3241 + 2*80 + 0.01"
+      y="1357.6975 + 2*80 + 0.01"
+      z="1746.48 + 2*80 + 0.01" />
+
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
-      <second ref="FoamPadding"/>
+      <second ref="SteelSupportInner"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
@@ -62938,7 +62956,7 @@
     </volume>
 
     <volume name="volFoamPadding">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="FD_foam"/>
       <solidref ref="FoamPadding"/>
     </volume>
 
