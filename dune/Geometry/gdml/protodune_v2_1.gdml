@@ -297,8 +297,8 @@
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
    <D value=" 0.001205*(1-0.08) + 7.9300*0.08 " unit="g/cm3"/>
-   <fraction n="0.08" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="0.92"   ref="Air"/>
+   <fraction n="0.99825557042029" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="(1-0.99825557042029)"   ref="Air"/>
   </material>
 
 </materials>
