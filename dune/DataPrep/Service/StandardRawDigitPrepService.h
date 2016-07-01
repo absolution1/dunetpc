@@ -10,6 +10,7 @@
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
 //   DoMitigation - Run mitigation (e.g. stuck bit removal) on extracted data.
+//   DoEarlySignalFinding - Run signal finding before noise removal.
 //   DoNoiseRemoval - Run coherent noise suppression.
 //   DoPedestalAdjustment - Do dynamic pedestal adjustment.
 
@@ -21,6 +22,7 @@
 
 class RawDigitExtractService;
 class AdcMitigationService;
+class AdcSignalFindingService;
 class AdcNoiseRemovalService;
 class PedestalEvaluationService;
 
@@ -39,11 +41,13 @@ private:
   // Configuration parameters.
   int m_LogLevel;
   bool m_DoMitigation;
+  bool m_DoEarlySignalFinding;
   bool m_DoNoiseRemoval;
   bool m_DoPedestalAdjustment;
 
   const RawDigitExtractService* m_pExtractSvc;
   const AdcMitigationService* m_pmitigateSvc;
+  const AdcSignalFindingService* m_pAdcSignalFindingService;
   const AdcNoiseRemovalService* m_pNoiseRemoval;
   const PedestalEvaluationService* m_pPedestalEvaluation;
 

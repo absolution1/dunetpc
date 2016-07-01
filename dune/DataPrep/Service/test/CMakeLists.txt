@@ -30,6 +30,12 @@ cet_test(test_MedianPedestalService SOURCES test_MedianPedestalService
     dune_ArtSupport
 )
 
+cet_test(test_AdcSuppressSignalFindingService SOURCES test_AdcSuppressSignalFindingService
+  LIBRARIES
+    dune_DataPrep_Service_AdcSuppressSignalFindingService_service
+    dune_ArtSupport
+)
+
 cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx
   LIBRARIES
     dune_DataPrep_Service_StandardRawDigitExtractService_service

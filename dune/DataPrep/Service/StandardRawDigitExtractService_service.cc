@@ -34,8 +34,8 @@ StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityReg
 //**********************************************************************
 
 int StandardRawDigitExtractService::
-extract(const raw::RawDigit& dig, AdcChannel* pchan,
-        AdcSignalVector* psigs_in, AdcFlagVector* pflgs_in) const {
+extract(const raw::RawDigit& dig, AdcChannel* pchan, AdcSignal* pped,
+        AdcCountVector* praw, AdcSignalVector* psigs_in, AdcFlagVector* pflgs_in) const {
   const string myname = "StandardRawDigitExtractService:extract: ";
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Entering..." << endl;
@@ -60,7 +60,9 @@ extract(const raw::RawDigit& dig, AdcChannel* pchan,
   AdcFlagVector& flgs = pflgs_in == nullptr ? *pflgs_local : *pflgs_in;
   flgs.resize(nsig, AdcGood);
   // Extract the signals from the digit.
-  AdcCountVector adcs(nsig, -999);   // See https://cdcvs.fnal.gov/redmine/issues/11572.
+  AdcCountVector locadcs;
+  AdcCountVector& adcs = praw == nullptr ? locadcs : *praw;
+  adcs.resize(nsig, -999);   // See https://cdcvs.fnal.gov/redmine/issues/11572.
   raw::Uncompress(dig.ADCs(), adcs, dig.GetPedestal(), dig.Compression());
   // Retrieve pedestal.
   AdcSignal ped = 0.0;
@@ -69,6 +71,7 @@ extract(const raw::RawDigit& dig, AdcChannel* pchan,
   } else if ( m_PedestalOption == 2 ) {
     ped = m_pPedProv->PedMean(chan);
   }
+  if ( pped != nullptr ) *pped = ped;
   // Convert int -> float, subtract pedestal and set conversion flag.
   const AdcCount lowbits = 0x3f;
   for ( unsigned int isig=0; isig<nsig; ++isig ) {

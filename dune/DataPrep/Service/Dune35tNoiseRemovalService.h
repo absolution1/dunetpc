@@ -22,8 +22,12 @@
 //          LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
 //      GroupingFlag - 0=By regulator (128 chan), 1=By ASIC (32 channels)
 //    SkipStuckCodes - Samples with stuck bits are not used to evaluate the correction.
+//       SkipSignals - Samples with signals are not used to evaluate the correction.
 // CorrectStuckCodes - Samples with stuck bits are corrected iff this is true.
 //        ShowGroups - Display channel groups: 0=no display, 1=orient then group, 2=group then orient
+// ShowGroupsChannel - Channel type for ShowGroups: 0=none, 1=online, 2=offline,
+//                                                  3=offline name (u, v, z1, z2)
+//                                                  4=alternative offline name (u, v, z, Z)
 //
 
 #ifndef Dune35tNoiseRemovalService_H
@@ -56,8 +60,10 @@ private:
   int  m_LogLevel;
   int  m_GroupingFlag;
   bool m_SkipStuckCodes;
+  bool m_SkipSignals;
   bool m_CorrectStuckCodes;
   int  m_ShowGroups;
+  int  m_ShowGroupsChannel;
 
   // Services.
   const geo::Geometry* m_pGeometry;
@@ -65,6 +71,12 @@ private:
 
   // List of channels for each orientation and group.
   std::vector<std::vector<AdcChannelVector>> m_GroupChannels;
+
+  // Map of online channels to ROP channel names.
+  std::map<unsigned int, std::string> m_sRopChannelMap;
+
+  // Number of warnings issued.
+  mutable unsigned int m_nwarn;
 
 };
 
