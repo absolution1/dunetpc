@@ -28,6 +28,11 @@ simple_plugin(MedianPedestalService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcSuppressSignalFindingService "service"
+                ${ART_UTILITIES}
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(StandardRawDigitPrepService   "service"
                 lardata_RawData
                 ${ART_UTILITIES}

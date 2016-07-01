@@ -134,15 +134,20 @@ int test_StandardRawDigitExtractService() {
 
   cout << myname << line << endl;
   cout << myname << "Extract data from digit." << endl;
+  AdcCountVector raw;
   AdcSignalVector sigs;
   AdcFlagVector flags;
   AdcChannel chanout;
-  assert( hrdx->extract(dig, &chanout, &sigs, &flags) == 0 );
-  cout << myname << "Output vector size: " << sigs.size() << endl;
+  AdcSignal pedout;
+  assert( hrdx->extract(dig, &chanout, &pedout, &raw, &sigs, &flags) == 0 );
+  cout << myname << "Output raw vector size: " << sigs.size() << endl;
+  cout << myname << "Output prep vector size: " << sigs.size() << endl;
   cout << myname << " Output flags size: " << flags.size() << endl;
+  assert( raw.size() == nsig );
   assert( sigs.size() == nsig );
   assert( flags.size() == nsig );
   assert( chanout == chan );
+  assert( pedout == ped );
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
     cout << setw(4) << isig << ": " << setw(4) << adcsin[isig]
          << fixed << setprecision(1) << setw(8) << sigs[isig]

@@ -129,6 +129,13 @@ sub gen_Materials
     <fraction n="0.0771" ref="oxygen"/>
   </material> 
 
+  <material formula="Air" name="Air">
+   <D value="0.001205" unit="g/cm3"/>
+   <fraction n="0.781154" ref="nitrogen"/>
+   <fraction n="0.209476" ref="oxygen"/>
+   <fraction n="0.00934" ref="argon"/>
+  </material>
+
   <material name="fibrous_glass">
    <D value="2.74351" unit="g/cm3"/>
    <fraction n="0.600" ref="SiO2"/>
@@ -138,6 +145,14 @@ sub gen_Materials
    <fraction n="0.034" ref="MgO"/>
    <fraction n="0.010" ref="Na2O"/>
    <fraction n="0.013" ref="TiO2"/>
+  </material>
+
+  <!-- density referenced from EHN1-Cold Cryostats Technical Requirements:
+       https://edms.cern.ch/document/1543254 -->
+  <material name="FD_foam">
+   <D value="0.09" unit="g/cm3"/>
+   <fraction n="0.95" ref="Air"/>
+   <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
   <material name="FR4">
@@ -168,13 +183,6 @@ sub gen_Materials
   <material name="ArGas" formula="ArGas">
    <D value="0.00166" unit="g/cm3"/>
    <fraction n="1.0" ref="argon"/>
-  </material>
-
-  <material formula="Air" name="Air">
-   <D value="0.001205" unit="g/cm3"/>
-   <fraction n="0.781154" ref="nitrogen"/>
-   <fraction n="0.209476" ref="oxygen"/>
-   <fraction n="0.00934" ref="argon"/>
   </material>
 
   <material formula=" " name="G10">
