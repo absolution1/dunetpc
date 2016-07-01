@@ -22,11 +22,12 @@ using art::ServiceHandle;
 
 Dune35tNoiseRemovalService::
 Dune35tNoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
-: m_LogLevel(1) {
+: m_LogLevel(1), m_nwarn(0) {
   const string myname = "Dune35tNoiseRemovalService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_GroupingFlag      = pset.get<int>("GroupingFlag");
   m_SkipStuckCodes    = pset.get<bool>("SkipStuckCodes");
+  m_SkipSignals       = pset.get<bool>("SkipSignals");
   m_CorrectStuckCodes = pset.get<bool>("CorrectStuckCodes");
   m_ShowGroups        = pset.get<int>("ShowGroups");
   m_ShowGroupsChannel = pset.get<int>("ShowGroupsChannel");
@@ -163,8 +164,21 @@ int Dune35tNoiseRemovalService::update(AdcChannelDataMap& datamap) const {
           const AdcChannelData& acd = iacd->second;
           AdcSignal sig = acd.samples[isig];
           AdcFlag flag = acd.flags.size() ? acd.flags[isig] : AdcGood;
-          if ( m_SkipStuckCodes && ( flag==AdcStuckOff || flag==AdcStuckOn ) ) continue;
+          // Skip stuck codes.
           // The original code also skipped samples where the raw count or pedestal was less than 10.
+          if ( m_SkipStuckCodes && ( flag==AdcStuckOff || flag==AdcStuckOn ) ) continue;
+          // Skip signals.
+          bool isSignal = false;
+          if ( m_SkipSignals ) {
+            if ( acd.signal.size() > isig ) {
+              isSignal = acd.signal[isig];
+            } else if ( m_nwarn < 100 ) {
+              ++m_nwarn;
+              cout << myname << "WARNING: Signal skip requested without signal finding." << endl;
+            }
+          }
+          if ( m_SkipSignals && isSignal ) continue;
+          // Add current sample to correction.
           corrVals.push_back(sig);
         }
         // Evaluate the correction as the median of the selected signals.
