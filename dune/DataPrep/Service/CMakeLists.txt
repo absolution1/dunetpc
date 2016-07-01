@@ -29,7 +29,7 @@ simple_plugin(MedianPedestalService   "service"
              )
 
 simple_plugin(AdcSuppressSignalFindingService "service"
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 
