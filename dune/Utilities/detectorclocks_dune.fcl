@@ -42,4 +42,16 @@ dune35t_detectorclocks.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
 dune35t_detectorclocks.DefaultTrigTime:      0. # Default trigger time [us].
 dune35t_detectorclocks.DefaultBeamTime:      0. # Default beam time [us].
 
+protodune_detectorclocks: @local::standard_detectorclocks
+
+protodune_detectorclocks.InheritClockConfig:   false
+protodune_detectorclocks.G4RefTime:            0. # G4 time [us] where electronics clock counting start
+protodune_detectorclocks.TriggerOffsetTPC:  -875. # Time [us] for TPC readout start w.r.t. trigger time
+protodune_detectorclocks.FramePeriod:       1600. # Frame period [us]
+protodune_detectorclocks.ClockSpeedTPC:        2. # TPC clock speed in MHz
+protodune_detectorclocks.ClockSpeedOptical:  128. # Optical clock speed in MHz
+protodune_detectorclocks.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
+protodune_detectorclocks.DefaultTrigTime:      0. # Default trigger time [us].
+protodune_detectorclocks.DefaultBeamTime:      0. # Default beam time [us].
+
 END_PROLOG

@@ -80,6 +80,7 @@ private:
 
   std::string fDigitModuleLabel;
   std::string fDigitModuleInstance;
+  bool        fMakeADCPlots;
 
   TF1* fColFilterFunc;  ///< Parameterized collection filter function.
   TF1* fIndUFilterFunc; ///< Parameterized induction filter function.
@@ -120,7 +121,8 @@ DAQToOffline::FilterAnalyzer::FilterAnalyzer(fhicl::ParameterSet const & pset) :
     oss2 << "Raw Digit for Channel "<<HistoChan<<"; Time (us); ADC";
     std::string Name1 = oss1.str();
     std::string Title1= oss2.str();
-    RawDigitHistos[HistoChan] = tfs->make<TH1F>(Name1.c_str(), Title1.c_str(), NumBins, 0, NumBins/2);  
+    if (fMakeADCPlots) RawDigitHistos[HistoChan] = tfs->make<TH1F>(Name1.c_str(), Title1.c_str(), NumBins, 0, NumBins/2);
+    else RawDigitHistos[HistoChan] = new TH1F(Name1.c_str(), Title1.c_str(), NumBins, 0, NumBins/2);  
     
     // Make the FFT Histograms....
     std::stringstream oss3, oss3a, oss4;
@@ -130,8 +132,8 @@ DAQToOffline::FilterAnalyzer::FilterAnalyzer(fhicl::ParameterSet const & pset) :
     std::string Name2 = oss3.str();
     std::string Name2a= oss3a.str();
     std::string Title2= oss4.str();
-    RawDigitFFT[HistoChan] = tfs->make<TH1F>(Name2.c_str(), Title2.c_str(), NumBins, 0, NumBins);
-    RawDigitFFTCorrect[HistoChan] = tfs->make<TH1F>(Name2a.c_str(),Title2.c_str(), NumBins, 0, NumBins);
+    RawDigitFFT[HistoChan] = new TH1F(Name2.c_str(), Title2.c_str(), NumBins, 0, NumBins);
+    RawDigitFFTCorrect[HistoChan] = new TH1F(Name2a.c_str(),Title2.c_str(), NumBins, 0, NumBins);
 
     // Make the FFT Channel Histograms....
     std::stringstream oss5, oss5a, oss6;
@@ -139,7 +141,7 @@ DAQToOffline::FilterAnalyzer::FilterAnalyzer(fhicl::ParameterSet const & pset) :
     oss6 << "FFT of Raw Digit for Channel "<<HistoChan<<"; Frequency (KHz); Number";
     std::string Name3 = oss5.str();
     std::string Title3= oss6.str();
-    RawDigitFFTChannel[HistoChan] = tfs->make<TH1F>(Name3.c_str(), Title3.c_str(), NumBins, 0, 2000);
+    RawDigitFFTChannel[HistoChan] = new TH1F(Name3.c_str(), Title3.c_str(), NumBins, 0, 2000);
 
     // Make the FFT Channel after filter Histograms....
     std::stringstream oss9, oss10;
@@ -147,7 +149,7 @@ DAQToOffline::FilterAnalyzer::FilterAnalyzer(fhicl::ParameterSet const & pset) :
     oss10 << "FFT of Raw Digit for Channel "<<HistoChan<<" after filter is applied; Frequency (KHz); Number";
     std::string Name5 = oss9.str();
     std::string Title5= oss10.str();
-    RawDigitFFTChannelFilter[HistoChan] = tfs->make<TH1F>(Name5.c_str(), Title5.c_str(), NumBins, 0, 2000);
+    RawDigitFFTChannelFilter[HistoChan] = new TH1F(Name5.c_str(), Title5.c_str(), NumBins, 0, 2000);
    
     // Make the Inverse FFT Histograms....
     std::stringstream oss7, oss8;
@@ -155,14 +157,14 @@ DAQToOffline::FilterAnalyzer::FilterAnalyzer(fhicl::ParameterSet const & pset) :
     oss6 << "Inverse FFT of the FFT Channel "<<HistoChan<<" histogram; Time (us); ADC";
     std::string Name4 = oss5.str();
     std::string Title4= oss6.str();
-    RawDigitInvFFT[HistoChan] = tfs->make<TH1F>(Name4.c_str(), Title4.c_str(), NumBins, 0, NumBins/2);
+    RawDigitInvFFT[HistoChan] = new TH1F(Name4.c_str(), Title4.c_str(), NumBins, 0, NumBins/2);
   }
 }
 
 void DAQToOffline::FilterAnalyzer::reconfigure(fhicl::ParameterSet const& pset) {
   fDigitModuleLabel    = pset.get<std::string>("DigitModuleLabel");
   fDigitModuleInstance = pset.get<std::string>("DigitModuleInstance");
-
+  fMakeADCPlots        = pset.get<bool>       ("MakeADCPlots");
   // Make the filter functions.
   std::string colFilt               = pset.get<std::string>("ColFilter");
   std::vector<double> colFiltParams = pset.get<std::vector<double> >("ColFilterParams");

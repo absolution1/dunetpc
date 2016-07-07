@@ -27,6 +27,7 @@ split_events:
   SSPReformatter:       @local::ssp_reformatter       // The parameter set for the SSP reformatter
   PTBMapDir:            "/dune/data2/users/warburton/PTBChannelMap/" // The directory path to a user defined channel map
   PTBMapFile:           "PTBChannelMap.txt"           // The name of the PTB channel map
+  UseRCEChanMap:        "true"                        // Do you want to use the RCE channel map?
 
   RequireRCE:               "true"  // Do you require the RCEs to be present?
   RequireSSP:               "true"  // Do you require the SSPs to be present?

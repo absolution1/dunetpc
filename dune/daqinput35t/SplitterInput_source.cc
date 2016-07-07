@@ -845,7 +845,7 @@ DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
 				 std::placeholders::_2, // std::vector< std::pair< std::pair<int,int>, lbne::TpcNanoSlice::Header::nova_timestamp_t > > DigitsIndexList
                                  std::placeholders::_3, // lbne::TpcNanoSlice::Header::nova_timestamp_t& firstTimestamp
                                  std::placeholders::_4, // the channel map
-				 true,                  // use the channel map
+				 ps.get<bool>("UseRCEChanMap",true), // use the channel map
                                  ps.get<bool>("debug",false),
                                  ps.get<raw::Compress_t>("compression",raw::kNone),
                                  ps.get<unsigned>("zeroThreshold",0) ) ),
