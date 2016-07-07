@@ -310,6 +310,7 @@ void DAQToOffline::MakeCounterPositionMap( std::string CounterDir, std::string C
     mf::LogWarning("DAQToOffline") << "ERROR::Cannot find the counter position map file " << CounterFile << " in FW_SEARCH_PATH or " << CounterDir << std::endl;
     return;
   } else {
+    std::cout << "Loading the counter position map from " << CountPath << std::endl;
     std::ifstream infile(CountPath);
     while (infile.good()) {
       int CountInd;
@@ -350,6 +351,7 @@ void DAQToOffline::MakeCounterCorners( int CountInd, double HalfLength, double H
 
   if ( fExtendCountersY == 0 ) fExtendCountersY = fExtendCountersX;
   if ( fExtendCountersZ == 0 ) fExtendCountersZ = fExtendCountersX;
+  //std::cout << "Extending counters by " << fExtendCountersX << " " << fExtendCountersY << " " << fExtendCountersZ << std::endl;
 
   if ( CountInd < 44 ) { 
     if ( (CountInd >=6 && CountInd <=15) || (CountInd >=28 && CountInd <=37) ) { // For the East / West counters
@@ -370,7 +372,7 @@ void DAQToOffline::MakeCounterCorners( int CountInd, double HalfLength, double H
       BR[0] = Centre[0] + fExtendCountersX + HalfWidth1;
       BR[1] = Centre[1] - fExtendCountersY - HalfLength;
       BR[2] = Centre[2];
-    } else {                            // For the North / South counters
+    } else { // For the North / South counters
       //std::cout << "Looking at a North South counter " << std::endl;
       // Top Left
       TL[0] = Centre[0];
@@ -386,8 +388,8 @@ void DAQToOffline::MakeCounterCorners( int CountInd, double HalfLength, double H
       BL[2] = Centre[2] - fExtendCountersZ - HalfWidth1;
       // Bottom Right
       BR[0] = Centre[0];
-      BR[1] = Centre[1] + fExtendCountersY + HalfLength;
-      BR[2] = Centre[2] - fExtendCountersZ - HalfWidth1;
+      BR[1] = Centre[1] - fExtendCountersY - HalfLength;
+      BR[2] = Centre[2] + fExtendCountersZ + HalfWidth1;
     } 
   } else { // For the telescope counters.
     if ( (CountInd >= 44 && CountInd <= 56) || (CountInd >= 67 && CountInd <= 82) ) { // For one group of Telescope counters
