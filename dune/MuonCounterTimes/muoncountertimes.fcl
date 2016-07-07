@@ -1,0 +1,22 @@
+BEGIN_PROLOG
+
+muoncountertimes:
+{
+    module_type:              "MuonCounterTimes"
+    HitsModuleLabel:          "hit"
+    CounterModuleLabel:       "simcounter" 
+    CombinedTimeDelay:         160.0
+    FragType:                 "TRIGGER"
+    DataLabel:                "daq"
+
+    PTBMapDir:                 "/dune/data2/users/warburton/PTBChannelMap/"
+    PTBMapFile:                "PTBChannelMap.txt"
+}
+
+muoncounterfd:
+{
+   module_type:               "MuonCounterFD"
+   HitsModuleLabel:           "hit"
+}
+
+END_PROLOG

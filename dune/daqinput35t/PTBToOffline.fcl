@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+ptb_to_offline:
+{
+  module_type:         PTBToOffline
+  FragType:            TRIGGER
+  RawDataLabel:        daq
+  OutputDataLabel:     offlineTrigger
+  NOvAClockFrequency:  64.0 #MHz
+
+  PTBMapDir:           "/dune/data2/users/warburton/PTBChannelMap/"
+  PTBMapFile:          "PTBChannelMap.txt"
+}
+
+END_PROLOG

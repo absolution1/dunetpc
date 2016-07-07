@@ -1,0 +1,58 @@
+#include "services_dune.fcl"
+#include "singles_dune.fcl"
+#include "channelmap_35t.fcl"
+#include "largeantmodules_dune.fcl"
+#include "detsimmodules_dune.fcl"
+
+#This is the default configuration file
+#include "TpcDAQToOffline.fcl"
+
+ physics:
+{
+  producers:
+  {
+
+    tpcdaqtooffline: @local::tpc_daq_to_offline    
+
+  }
+
+
+
+  #Create path to run module
+  produce: [  tpcdaqtooffline ]
+
+
+  output: [ out1 ]
+  trigger_paths : [ produce ]
+  end_paths: [ output ]
+}
+
+services: {
+  user:         @local::dune35t_simulation_services
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  TFileService: { fileName: "FlatDAQTree.root" }
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "TpcRceEventToOffline.root"
+  }
+
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/afs/fnal.gov/files/home/room3/jpdavies/lbne_r000200_sr01_20140807T150347.root" ]
+  maxEvents : -1
+}
+
+
+
+process_name: RunTpcDaqToOffline
+ 

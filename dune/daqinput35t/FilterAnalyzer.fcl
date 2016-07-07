@@ -1,0 +1,51 @@
+#include "services_dune.fcl"
+#include "singles_dune.fcl"
+#include "largeantmodules_dune.fcl"
+#include "detsimmodules_dune.fcl"
+
+process_name: FilterAnalyzer
+
+services: {
+  TFileService: { fileName: "AnalyzedFilter.root" }
+  user:         @local::dune35t_simulation_services
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+}
+
+services.user.DetPedestalService.DetPedestalDUNE.UseDB: true
+
+physics:
+{
+  analyzers:
+  {
+    noisecorrelation: {
+
+      module_type:  FilterAnalyzer         #### For a single run use this one....
+#      module_type: FilterAnalyzerRunList  ####### For a list of runs use this one.....
+
+      DigitModuleLabel:    "unstick"
+      DigitModuleInstance: "TPC"
+      
+      ColFilter:        "(x>1)*[0]*(1-1/(1+exp(-(x-[1])/[2])))"
+      ColFilterParams:  [ 1, 150., 25. ]
+
+      IndUFilter:       "(x>30)*[0]*(1-1/(1+exp(-(x-[1])/[2])))*(1/(1+exp(-(x-[3])/[4])))"
+      IndUFilterParams: [ 1.0, 105., 19., 18., 10. ]
+
+      IndVFilter:       "(x>30)*[0]*(1-1/(1+exp(-(x-[1])/[2])))*(1/(1+exp(-(x-[3])/[4])))"
+      IndVFilterParams: [ 0.95, 125., 19., 10., 109. ] 
+    }
+  }
+
+  analyze: [ noisecorrelation ]
+  end_paths: [ analyze ]
+
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/pnfs/lbne/scratch/lbnepro/dropbox/data/lbne_r015900_sr01_20160312T021753_20160325T231841_split.root" ]
+  maxEvents: 1
+}

@@ -1,0 +1,17 @@
+BEGIN_PROLOG
+
+tpc_daq_to_offline:
+{
+  module_type: "TpcDAQToOffline"
+  FragType: "TPC"
+  RawDataLabel: "daq"
+  OutputDataLabel: "offline"
+  UseChannelMap: "true"
+  Debug: "false"
+  MakeTree: "false"
+}
+
+
+
+
+END_PROLOG

@@ -1,0 +1,137 @@
+#include "caldata.fcl"
+#include "hitfindermodules_dune.fcl"
+
+BEGIN_PROLOG
+
+
+
+dunefd_calwire:
+{
+ module_type:        "CalWireDUNE10kt"
+ DigitModuleLabel:   "daq"
+ #PostsampleBins:     400
+ PostsampleBins:     0
+ DoBaselineSub:  false # subtract baseline after deconvolution?
+ PlaneROIPad: [ 50, 50 ] # number of bins to pad both ends of the ROIs
+ SigThrFact:  3.0
+ 
+}
+dunefd_calwireana:   @local::standard_calwireana
+
+dunefddphase_calwire:
+{
+ module_type:        "CalWireDUNEDPhase"
+ DigitModuleLabel:   "daq"
+ #PostsampleBins:     400
+ PostsampleBins:     0
+ DoBaselineSub:  false # subtract baseline after deconvolution?
+ PlaneROIPad: [ 50, 50 ] # number of bins to pad both ends of the ROIs
+ SigThrFact:  3.0
+}
+dunefddphase_calwireana: @local::standard_calwireana
+
+dune35t_calwire:
+{
+ module_type:        "CalWireDUNE35t"
+ DigitModuleLabel:   "daq"
+ # PostsampleBins:     400
+ PostsampleBins:     0	
+ DoBaselineSub:  false # subtract baseline after deconvolution?
+ PlaneROIPad: [ 50, 50 ] # number of bins to pad both ends of the ROIs
+ fSigThrFact: 3.0
+}
+dune35t_calwireana:    @local::standard_calwireana
+
+dune35t_deconvgaushf:
+{
+ module_type:        "DeconvGausHFDUNE35t"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       5                # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+dune35t_deconvgaushfana:    @local::standard_calwireana
+
+dunefd_deconvgaushf:
+{
+ module_type:        "DeconvGausHFDUNE10kt"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       30               # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+dunefd_deconvgaushfana:    @local::standard_calwireana
+
+
+
+dune35t_calgaushf:
+{
+ module_type:        "CalGausHFDUNE35t"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       5                # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+dune35t_calgaushfana:    @local::standard_calwireana
+
+
+dunefd_calgaushf:
+{
+ module_type:        "CalGausHFDUNE10kt"
+ DigitModuleLabel:   "daq"
+ PostsampleBins:     400
+ DeconvKernSize:       30               # Length of truncated deconvolution kernel
+ MinSigInd:            6.0              # Induction signal height threshold  
+ MinSigCol:            11.0             # Collection signal height threshold
+ IndWidth:             6.0              # Initial width for induction fit
+ ColWidth:             7.8              # Initial width for collection fit
+ IndMinWidth:          4.0              # Induction Hit width threshold
+ ColMinWidth:          6.0              # Collection hit width threshold
+ MaxMultiHit:          3                # maximum hits for multi fit   
+ AreaMethod:           0                # 0 = area by integral, 1 = area by gaussian area formula
+ AreaNorms:            [ 13.25, 26.31 ] # normalizations that put signal area in 
+                                        # same scale as peak height. 
+ Chi2NDF:              15               # maximum Chisquared / NDF allowed for a hit to be saved
+}
+dunefd_calgaushfana:    @local::standard_calwireana
+
+dune35t_unstick:
+{
+ module_type:        "UnstickADCCodes"
+ DigitModuleLabel:   "daq" 
+ StickyADCCodesLimit:  5                # Number of ADC codes to check for stickiness at 0x00 or 0x3f before stopping, 
+                                        # i.e. assuming that ADC values are at true zero or pedestal value that is not sticky
+}
+
+END_PROLOG
+

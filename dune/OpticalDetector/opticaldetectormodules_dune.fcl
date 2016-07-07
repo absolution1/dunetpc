@@ -1,0 +1,133 @@
+#include "opticaldetectormodules.fcl"
+
+BEGIN_PROLOG
+
+dunefd_opdigi:
+{
+   module_type:          "OpDetDigitizerDUNE"
+   InputModule:          "largeant" # Module that created simphotons
+   VoltageToADC:         151.5      # Converting mV to ADC counts (counts in 1 mV)
+   LineNoiseRMS:           2.6      # Pedestal RMS in ADC counts
+   DarkNoiseRate:         10.0      # In Hz, Ranges 2-50 depending on Vbias
+   CrossTalk:              0.165    # Probability of producing 2 PE for 1 incident photon
+   Pedestal:            1500        # in ADC counts
+   DefaultSimWindow:    true        # Use -1*drift window as the start time and
+                                    # the TPC readout window end time as the end time
+   FullWaveformOutput: false        # Output full waveform. Be careful with this option:
+                                    # setting it to "true" can result in large output files
+   TimeBegin:              0        # In us (not used if DefaultSimWindow is set to true)
+   TimeEnd:             1600        # In us (not used if DefaultSimWindow is set to true)
+   PreTrigger:           100        # In ticks
+   ReadoutWindow:       1000        # In ticks
+   algo_threshold: @local::standard_algo_sipm
+
+   # readout window in optical ticks
+   # buffer before waveform
+   # see SSP manual, dune-doc-9928, p. 58
+   #
+   # IU waveform window
+   # ReadoutWindow:       700
+   # ReadoutPretrigger:   100
+   #
+   # SSP Maximum window
+   # ReadoutWindow:      2046
+   # ReadoutPretrigger:   100
+   
+   # SaturationScale:         16383 # 2^14 - 1, based on SSP Data
+} 
+
+dunefd_simphotoncounter:
+{
+  module_type:            "SimPhotonCounter"
+  Verbosity:               0
+  InputModule:            "largeant"
+  MakeAllPhotonsTree:      true
+  MakeDetectedPhotonsTree: true
+  MakeOpDetsTree:          true
+  MakeOpDetEventsTree:     true
+  QuantumEfficiency:       1
+  WavelengthCutLow:        0
+  WavelengthCutHigh:       10000
+}
+
+dunefd_tracktimeassoc:    @local::standard_tracktimeassoc
+dunefd_ophit:             @local::standard_ophit
+dunefd_ophit.InputModule: "opdigi"
+dunefd_ophit.HitAlgoPset: @local::standard_algo_sipm
+dunefd_ophit.AreaToPE:    true
+dunefd_opflash:           @local::standard_opflash
+
+dunefd_opdigiana:
+{
+   module_type:  "OpDetDigiAnaDUNE"
+   InputModule:  "opdigi"  # Module that created raw::OpDetWaveforms
+   InstanceName: ""     
+}
+dunefd_opflashana:       @local::standard_opflashana
+
+
+dunefd_averagewaveform:
+{
+   module_type:  "AverageWaveform"
+   InputModule:  "opdigi"  # Module that created raw::OpDetWaveforms
+   InstanceName: ""     
+}
+
+dunefd_calibrationanalysis:
+{
+   module_type:  "CalibrationAnalysis"
+   InputModule:  "opdigi"  # Module that created raw::OpDetWaveforms
+   OpHitModule:  "ophit"   # Module that created recob::OpHits
+   InstanceName: ""     
+}
+
+
+
+dune35t_simphotoncounter: @local::standard_simphotoncounter
+
+dune35t_opdigi:         @local::dunefd_opdigi
+dune35t_tracktimeassoc: @local::standard_tracktimeassoc
+
+dune35t_ophit:   @local::dunefd_ophit
+dune35t_opflash: @local::dunefd_opflash
+
+dune35t_ophit_data:             @local::dune35t_ophit
+dune35t_ophit_data.InputModule:  ssptooffline
+dune35t_ophit_data.InputLabels: [ "offlinePhoton" ]
+dune35t_opflash_data:           @local::dune35t_opflash
+
+dune35t_ophit_splitdata:             @local::dune35t_ophit
+dune35t_ophit_splitdata.InputModule:  SplitterInput
+dune35t_ophit_splitdata.InputLabels: [ "PHOTON" ]
+dune35t_opflash_splitdata:           @local::dune35t_opflash
+
+dune35t_opdigiana:        @local::dunefd_opdigiana
+dune35t_opflashana:       @local::standard_opflashana
+dune35t_opdigiana.MakeUnipolarHist: false
+
+dune35t_opdigiana_data:   @local::dune35t_opdigiana
+dune35t_opdigiana_data.InputModule: ssptooffline
+dune35t_opdigiana_data.InstanceName: offlinePhoton
+
+dune35t_opdigiana_splitdata:   @local::dune35t_opdigiana
+dune35t_opdigiana_splitdata.InputModule: SplitterInput
+dune35t_opdigiana_splitdata.InstanceName: PHOTON
+
+
+dune35t_averagewaveform: @local::dunefd_averagewaveform
+dune35t_averagewaveform_data: @local::dune35t_averagewaveform
+dune35t_averagewaveform_data.InputModule: ssptooffline
+dune35t_averagewaveform_data.InstanceName: offlinePhoton
+
+dune35t_averagewaveform_splitdata: @local::dune35t_averagewaveform
+dune35t_averagewaveform_splitdata.InputModule: SplitterInput
+dune35t_averagewaveform_splitdata.InstanceName: Photon
+
+dune35t_calibrationanalysis: @local::dunefd_calibrationanalysis
+dune35t_calibrationanalysis_data: @local::dune35t_calibrationanalysis
+dune35t_calibrationanalysis_data.InputModule: ssptooffline
+dune35t_calibrationanalysis_data.OpHitModule: ophit
+dune35t_calibrationanalysis_data.InstanceName: offlinePhoton
+
+
+END_PROLOG

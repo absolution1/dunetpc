@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_templatetriggerana:
+{
+  module_type:		TemplateTriggerAna
+  #====================
+  TriggerLabel:		"templatetriggerprod"	# a string with the process label for the module that made the trigger objects
+}
+
+END_PROLOG

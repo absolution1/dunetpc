@@ -1,0 +1,61 @@
+#include "services_dune.fcl"
+#include "SSPToOffline.fcl"
+#include "opticaldetectormodules_dune.fcl"
+
+process_name: RunSSPToOffline
+
+services : {
+  user:         @local::dune35t_services
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  TFileService:  { fileName: "SSPTests.root" }
+}
+
+physics:
+{
+  producers:
+  {
+    ssptooffline: @local::ssp_to_offline
+    ophit:        @local::dune35t_ophit_data  
+    opflash:      @local::dune35t_opflash_data  
+  }
+
+  analyzers:
+  {
+    opdigiana:       @local::dune35t_opdigiana_data  
+    averagewaveform: @local::dune35t_averagewaveform_data
+    ssptriggerana:   @local::ssp_trigger_ana
+    opflashana:      @local::dune35t_opflashana  
+  }
+
+  #Create path to run module
+  produce: [ ssptooffline, ophit, opflash ]
+  analyze: [ averagewaveform, ssptriggerana, opflashana ]
+  output:  [  ]
+
+  trigger_paths : [ produce ]
+  end_paths: [ analyze, output ]
+}
+
+
+#physics.producers.ssptooffline.OpDetChannelMapFile: ""
+
+source:
+{
+  module_type: RootInput
+  maxEvents : -1
+}
+
+
+outputs:
+{
+  #out1:
+  #{
+  #  module_type: RootOutput
+  #  fileName: "SSPEventToOffline.root"
+  #}
+
+}
+
+ 

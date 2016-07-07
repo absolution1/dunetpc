@@ -1,0 +1,105 @@
+#include "services_dune.fcl"
+#include "clusteralgorithms.fcl"
+#include "SSPToOffline.fcl"
+#include "SplitterInput.fcl"
+#include "opticaldetectormodules_dune.fcl" 
+#include "opticaldetectormodules.fcl"
+
+process_name: ctreeraw35t
+
+services:
+{
+  # TFileService: { fileName: "test.root" }
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  #message:      @local::standard_info
+  message:      @local::dune_message_services_prod_debug
+  #user:         @local::dune35t_simulation_services
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  user:         @local::dune35t_services
+}
+
+
+source: @local::split_events
+source.UsePedestalFile: "true"
+#source.PedestalFile: "offline_databaseRun_9754.csv" 
+source.PedestalFile: "offline_databaseRun_10389.csv" 
+#source.UsePedestalDefault: "true"
+source.UsePedestalDefault: "false"
+#source.UsePedestalFile: "false"
+source.firstEvent: 1
+source.maxEvents: 10000
+source.ADCdiffThreshold:  50
+source.ADCsOverThreshold: 100
+source.TrigSeparation:   10
+source.PreTriggerTicks:   300
+source.PostTriggerTicks: 5200
+source.WhichTrigger:  [3]
+source.PTBTrigs:      [111, 112, 113]
+# 5=all horiz muon trigs
+
+physics:
+{
+#  producers:
+#  {
+#    fasthit:            @local::dune35t_fasthitfinder      
+#  }
+
+  analyzers:
+  {
+    chao: 
+    {
+      module_type:      "CTree35t"
+      RawDigitLabel:    "SplitterInput:TPC"
+      CalibLabel:       "caldata"
+      HitsModuleLabel:  "gaushit"
+      TrackModuleLabel: "particlestitcher"
+      ClusterModuleLabel: "clustercheat"
+      #TrackModuleLabel: "particletracks"
+      outFile:          "sample.root"
+      saveChannelWireMap: false
+      saveChannelWireGeo: false
+      InputModule:             "SplitterInput"
+      MakeAllPhotonsTree:      false
+      MakeDetectedPhotonsTree: false
+      MakeOpDetsTree:          true
+      MakeOpDetEventsTree:     true
+      UncompressWithPed:       false
+      ProcessMCtruth:          false
+      ProcessCalib:            false
+      ProcessHits:             false
+      ProcessReco:             false
+      ProcessOpDet:            true
+      OpDetInputModule:        "SplitterInput"
+      OpHitModule:             "SplitterInput:OPHIT"
+      InstanceName:            "PHOTON"
+      RCEFragType:        "TPC"
+      RCERawDataLabel:    "SplitterInput:TPC"
+      SSPFragType:        "PHOTON"
+      SSPRawDataLabel:    "SplitterInput:OPHIT"
+      NOvAClockFrequency:  64.0 #MHz
+    }
+  }
+  stream1:      [ out1 ]
+#  hitfinding:   [ fasthit ]
+#   trigger_paths:[ hitfinding ]
+  analysis: [ chao ] //Directory for histograms
+  end_paths: [ stream1, analysis ]
+}
+
+
+
+#define the output stream, there could be more than one if using filters 
+   stream1:  [ out1 ]
+outputs:{
+  out1: 
+ {
+   dataTier: "sliced"
+   module_type: RootOutput
+   fileName:    "sliced_pedestal.root"     
+    #default file name, can override from command line with -o or --output
+ }
+
+}
+
+#services.user.DatabaseUtil.ShouldConnect: true

@@ -19,7 +19,7 @@
 # use cmake 2.8 or later
 cmake_minimum_required (VERSION 2.8)
 
-project(lbnecode)
+project(dunetpc)
 
 # cetbuildtools contains our cmake modules
 SET ( CETBUILDTOOLS_VERSION $ENV{CETBUILDTOOLS_VERSION} )
@@ -39,6 +39,7 @@ set_install_root()
 cet_set_compiler_flags(DIAGS CAUTIOUS
   WERROR
   NO_UNDEFINED
+  ALLOW_DEPRECATIONS
   EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs
 )
 
@@ -53,7 +54,6 @@ find_ups_product( larpandora v1_00_00 )
 find_ups_product( larreco v1_00_00 )
 find_ups_product( larana v1_00_00 )
 find_ups_product( nutools v1_00_00 )
-find_ups_product( artextensions v1_00_01 )
 find_ups_product( art v1_09_00 )
 find_ups_product( clhep v2_1_3_0 )
 find_ups_product( messagefacility v1_10_00 )
@@ -68,7 +68,7 @@ include(ArtMake)
 include(BuildPlugins)
 
 # ADD SOURCE CODE SUBDIRECTORIES HERE
-add_subdirectory(lbne)
+add_subdirectory(dune)
 # release database
 add_subdirectory(releaseDB)
 # subdirectory for test code

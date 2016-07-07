@@ -1,0 +1,39 @@
+#
+# Online Monitoring cronjobs:
+#
+
+* * * * * /data/lbnedaq/bin/monitoringWebSync.sh >> /dev/null
+* * * * * sleep 30; /data/lbnedaq/bin/monitoringWebSync.sh >> /dev/null
+
+# every ten minutes: data transfer from daq file server to this node to dCache & metadata registration
+
+*/10 * * * * /home/lbnedaq/trj/dtranslog35t.sh >> /dev/null 2>&1
+
+# daily cleainup of daq6 file server disk
+
+10 2 * * * /home/lbnedaq/trj/daq6deleter.sh >> /dev/null 2>&1
+
+# daily cleanup of this node's data disk
+
+50 2 * * * /home/lbnedaq/trj/gwtdeleter.sh >> /dev/null 2>&1
+
+
+#
+# Nearline Monitoring cronjobs:
+#
+
+# Look for new files to process every 2 minutes.
+*/2 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_36_01/srcs/dunetpc/dune/NearlineMonitor/scripts/ProcessNewFiles.sh 6 v04_36_01 e9 >> /dev/null 2>&1
+*/2 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_36_01/srcs/dunetpc/dune/NearlineMonitor/scripts/ProcessNewFilesEVD.sh 6 v04_36_01 e9 >> /dev/null 2>&1
+
+# Update the 24 hour web plots every 10 minutes.
+*/10 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_36_01/srcs/dunetpc/dune/NearlineMonitor/scripts/MakeNearlineWebPlots.sh v04_36_01 e9 1 >> /dev/null 2>&1
+
+# Update the 1 week web plots every hour.
+0 * * * * /home/lbnedaq/nearline/nearline_test_release_v04_36_01/srcs/dunetpc/dune/NearlineMonitor/scripts/MakeNearlineWebPlots.sh v04_36_01 e9 7 >> /dev/null 2>&1
+
+# Update the 1 month web plots once per day.
+30 5 * * * /home/lbnedaq/nearline/nearline_test_release_v04_36_01/srcs/dunetpc/dune/NearlineMonitor/scripts/MakeNearlineWebPlots.sh v04_36_01 e9 31 >> /dev/null 2>&1
+
+# Do some cleanup...
+0 */6 * * * /home/lbnedaq/nearline/nearline_test_release_v04_36_01/srcs/dunetpc/dune/NearlineMonitor/scripts/CleanUpNearlineFiles.sh >> /dev/null 2>&1

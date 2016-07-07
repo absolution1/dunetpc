@@ -1,0 +1,86 @@
+#include "genie.fcl"
+
+BEGIN_PROLOG
+
+dunefd_genie:                         @local::standard_genie
+dunefd_genie.BeamName:                "lbnf"
+dunefd_genie.GlobalTimeOffset:        0
+
+dunefd_genie_hist:                    @local::dunefd_genie
+dunefd_genie_hist.FluxType:           "histogram"
+dunefd_genie_hist.FluxFiles:          ["GenieFluxFiles/g4lbne_v3r2p4b_FHC_FD_RIK.root"]
+dunefd_genie_hist.BeamCenter:         [0., 0., -1.] 
+dunefd_genie_hist.BeamDirection:      [0., 0.101, 0.995] # beam angle is 101mrad
+dunefd_genie_hist.BeamRadius:         7. #sqrt(pow(3.6,2)+pow(6,2)
+dunefd_genie_hist.TopVolume:          "volCryostat"
+
+dunefd_genie_simple_neutrino:         @local::dunefd_genie
+dunefd_genie_simple_neutrino.TopVolume:        "volDetEnclosure"
+
+dune35t_genie_simple_neutrino:                @local::standard_genie
+dune35t_genie_simple_neutrino.TopVolume:      "volCryostat"
+
+dune35t_genie_hist:                           @local::standard_genie
+dune35t_genie_hist.BeamCenter:                [100., 50., 0.]
+dune35t_genie_hist.BeamDirection:             [0., 0., 0.]
+
+dune_fd_genie_nu_simple_flux_workspace_window: @local::dunefd_genie
+dune_fd_genie_nu_simple_flux_workspace_window.FluxType: "simple_flux"
+dune_fd_genie_nu_simple_flux_workspace_window.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/ref_01/neutrino/gsimple/far/nominal/"
+dune_fd_genie_nu_simple_flux_workspace_window.FluxFiles: ["gsimple_LBNE-FarDet_Workspace_g4lbne_v3r3p9_QGSP_BERT_Nominal_neutrino_*root"]
+dune_fd_genie_nu_simple_flux_workspace_window.FluxCopyMethod: "IFDH"
+dune_fd_genie_nu_simple_flux_workspace_window.TopVolume: "volCryostat"
+
+dune_fd_genie_nu_simple_flux_workspace_window_rotated_tpc: @local::dune_fd_genie_nu_simple_flux_workspace_window
+dune_fd_genie_nu_simple_flux_workspace_window_rotated_tpc.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/ref_01/neutrino/gsimple/far/windowRotated10DegreesAroundY/"
+dune_fd_genie_nu_simple_flux_workspace_window_rotated_tpc.FluxFiles: ["gsimple_LBNE-FarDet_Workspace_Rotated_Window_g4lbne_v3r3p9_QGSP_BERT_Nominal_neutrino_*.root"]
+
+dune_fd_genie_anu_simple_flux_workspace_window: @local::dune_fd_genie_nu_simple_flux_workspace_window
+dune_fd_genie_anu_simple_flux_workspace_window.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/ref_01/antineutrino/gsimple/far/nominal/"
+dune_fd_genie_anu_simple_flux_workspace_window.FluxFiles: ["gsimple_LBNE-FarDet_Workspace_g4lbne_v3r3p9_QGSP_BERT_Nominal_antineutrino_*.root"]
+
+dune_fd_genie_anu_simple_flux_workspace_window_rotated_tpc: @local::dune_fd_genie_nu_simple_flux_workspace_window
+dune_fd_genie_anu_simple_flux_workspace_window_rotated_tpc.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/ref_01/antineutrino/gsimple/far/windowRotated10DegreesAroundY/"
+dune_fd_genie_anu_simple_flux_workspace_window_rotated_tpc.FluxFiles: ["gsimple_LBNE-FarDet_Workspace_Rotated_Window_g4lbne_v3r3p9_QGSP_BERT_Nominal_antineutrino_*.root"]
+
+#Configurations for 1x2x6 geometry
+dune_fd_genie_nu_simple_flux_1x2x6_window: @local::dunefd_genie
+dune_fd_genie_nu_simple_flux_1x2x6_window.FluxType: "simple_flux"
+dune_fd_genie_nu_simple_flux_1x2x6_window.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/ref_02/neutrino/gsimple/far/nominal/"
+dune_fd_genie_nu_simple_flux_1x2x6_window.FluxFiles: ["gsimple_dune10kt_v1_1x2x6_g4lbne_v3r3p9_QGSP_BERT_Nominal_neutrino_*root"]
+dune_fd_genie_nu_simple_flux_1x2x6_window.FluxCopyMethod: "IFDH"
+dune_fd_genie_nu_simple_flux_1x2x6_window.TopVolume: "volCryostat"
+
+dune_fd_genie_nu_simple_flux_1x2x6_window_rotated_tpc: @local::dune_fd_genie_nu_simple_flux_1x2x6_window
+dune_fd_genie_nu_simple_flux_1x2x6_window_rotated_tpc.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/ref_02/neutrino/gsimple/far/Rotate90Degrees/"
+dune_fd_genie_nu_simple_flux_1x2x6_window_rotated_tpc.FluxFiles: ["gsimple_dune10kt_v1_1x2x6_Rotate90Degrees_g4lbne_v3r3p9_QGSP_BERT_Nominal_neutrino_*root"]
+
+dune_fd_genie_anu_simple_flux_1x2x6_window: @local::dune_fd_genie_nu_simple_flux_1x2x6_window
+dune_fd_genie_anu_simple_flux_1x2x6_window.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/ref_02/antineutrino/gsimple/far/nominal/"
+dune_fd_genie_anu_simple_flux_1x2x6_window.FluxFiles: ["gsimple_dune10kt_v1_1x2x6_g4lbne_v3r3p9_QGSP_BERT_Nominal_antineutrino_*root"]
+
+dune_fd_genie_anu_simple_flux_1x2x6_window_rotated_tpc: @local::dune_fd_genie_nu_simple_flux_1x2x6_window
+dune_fd_genie_anu_simple_flux_1x2x6_window_rotated_tpc.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/ref_02/antineutrino/gsimple/far/Rotate90Degrees/"
+dune_fd_genie_anu_simple_flux_1x2x6_window_rotated_tpc.FluxFiles: ["gsimple_dune10kt_v1_1x2x6_Rotate90Degrees_g4lbne_v3r3p9_QGSP_BERT_Nominal_antineutrino_*root"]
+
+
+#changes from LARSIM for atm nu
+
+dune_fd_genie_atmo_min_flux:            @local::standard_genie_atmo_flux
+dune_fd_genie_atmo_min_flux.TopVolume:  "volCryostat"
+dune_fd_genie_atmo_min_flux.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/atmos/Bartol/"
+dune_fd_genie_atmo_min_flux.FluxFiles: ["fmin10_0401z.sou_nue","fmin10_0401z.sou_num","fmin10_0401z.sou_nbe","fmin10_0401z.sou_nbm"]
+dune_fd_genie_atmo_min_flux.FluxCopyMethod: "IFDH"
+
+dune_fd_genie_atmo_max_flux:            @local::standard_genie_atmo_flux
+dune_fd_genie_atmo_max_flux.TopVolume:  "volCryostat"
+dune_fd_genie_atmo_max_flux.FluxSearchPaths: "/pnfs/dune/persistent/TaskForce_Flux/atmos/Bartol/"
+dune_fd_genie_atmo_max_flux.FluxFiles: ["fmax10_0401z.sou_nue","fmax10_0401z.sou_num","fmax10_0401z.sou_nbe","fmax10_0401z.sou_nbm"]
+dune_fd_genie_atmo_max_flux.FluxCopyMethod: "IFDH"
+
+dune_fd_genie_atmo_hondaflux:            @local::standard_genie_atmo_flux
+dune_fd_genie_atmo_hondaflux.TopVolume:  "volCryostat"
+dune_fd_genie_atmo_simple_hondaflux.FluxSearchPaths: "/dune/app/users/santucci/dunetpc/jobs/outputs/honda_flux/"
+dune_fd_genie_atmo_hondaflux.FluxFiles: ["hms-ally-20-01-solmax.d"]
+
+END_PROLOG

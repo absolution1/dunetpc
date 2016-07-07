@@ -1,0 +1,57 @@
+#include "services_dune.fcl"
+
+process_name: SignalShapingDUNE10ktTest
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "ss_test_dune10kt.root" }
+  user: {}
+}
+
+services.user.ExptGeoHelperInterface: @local::dune_geometry_helper
+services.user.Geometry:           @local::dune10kt_geo
+services.user.DetectorClocksService:        @local::dune10kt_detectorclocks
+services.user.DetectorPropertiesService: @local::dune10kt_detproperties
+services.user.LArPropertiesService:      @local::dune10kt_properties
+services.user.LArFFT:             @local::dune10kt_larfft
+services.user.SignalShapingServiceDUNE10kt: @local::dune10kt_signalshapingservice
+services.user.DatabaseUtil:       @local::dune10kt_database
+services.user.DatabaseUtil.ShouldConnect: false
+
+source:
+{
+  module_type: EmptyEvent
+  timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
+  maxEvents:   0       # Number of events to create
+}
+
+outputs:
+{
+}
+
+physics:
+{
+
+ analyzers:
+ {
+  sstest: { module_type: "SignalShapingDUNE10ktTest" }
+ }
+
+ #define the path for analyzer modules, order does not matter.
+ #see lines starting physics.analyzers below
+ ana:  [ sstest ]
+
+ #trigger_paths is a keyword and contains the paths that modify the art::event, 
+ #ie filters and producers
+ trigger_paths: [ ] 
+
+ #end_paths is a keyword and contains the paths that do not modify the art::Event, 
+ #ie analyzers and output streams.  these all run simultaneously
+ end_paths:     [ana]  
+}
+
+physics.analyzers.sstest:
+{
+  module_type: "SignalShapingDUNE10ktTest"
+}

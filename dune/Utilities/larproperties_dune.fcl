@@ -1,0 +1,11 @@
+#include "larproperties.fcl"
+
+BEGIN_PROLOG
+
+dune35t_properties:                  @local::standard_properties
+
+dunefd_properties:                   @local::standard_properties
+
+dunefddphase_properties:             @local::standard_properties
+
+END_PROLOG

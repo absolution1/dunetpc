@@ -1,0 +1,85 @@
+#include "SSPToOffline.fcl"
+
+BEGIN_PROLOG
+
+split_events:
+{
+  module_type: "SplitterInput"
+  
+  TPCInputTag:          "daq:TPC:DAQ"                 // Input tag of TPC data "moduleLabel:instance:processName"
+  SparseInputTag:       "sparseSsp:PHOTON:DAQ"        // Input tag of Sparsified data "moduleLabel:instance:processName"
+  SSPInputTag:          "daq:PHOTON:DAQ"              // Input tag of SSP data "moduleLabel:instance:processName"
+  OpHitInputTag:        "daq:OPHIT:DAQ"               // Input tag of OpHit data "moduleLabel:instance:processName"
+  PennInputTag:         "daq:TRIGGER:DAQ"             // Input tag of PTB data "moduleLabel:instance:processName"
+  TPCInputDataProduct:  "artdaq::Fragment"            // Data product type of TPC data
+  SSPInputDataProduct:  "artdaq::Fragment"            // Data product type of SSP data
+  OpHitInputDataProduct:"artdaq::Fragment"            // Data produce type of OpHit data
+  PennInputDataProduct: "artdaq::Fragment"            // Data product type of PTB data
+
+  MonteCarlo: "false"                                 // Whether you are looking at MonteCarlo or not.
+  MCPartInputTag:            "largeant::G4"           // Input tag of MCParticles
+  MCPartInputDataProduct:    "simb::MCParticle"       // Data product type of MCParticles
+  MCTruthInputTag:           "generator::CosmicsGen"  // Input tag of MCTruth
+  MCTruthInputDataProduct:   "simb::MCTruth"          // Data product type of MCTruth
+  MCSimChanInputTag:         "largeant::G4"           // Input tag of MCSimChannels
+  MCSimChanInputDataProduct: "sim::SimChannel"        // Data product type of MCSimChannels
+
+  SSPReformatter:       @local::ssp_reformatter       // The parameter set for the SSP reformatter
+  PTBMapDir:            "/dune/data2/users/warburton/PTBChannelMap/" // The directory path to a user defined channel map
+  PTBMapFile:           "PTBChannelMap.txt"           // The name of the PTB channel map
+  UseRCEChanMap:        "true"                        // Do you want to use the RCE channel map?
+
+  RequireRCE:               "true"  // Do you require the RCEs to be present?
+  RequireSSP:               "true"  // Do you require the SSPs to be present?
+  RequireOpHit:             "true"  // Do you require the OpHits to be present?
+  RequirePTB:               "true"  // Do you require the PTB to be present?
+
+  DebugLevel:                1       // The level of information printed out 0 = none, 1 = basic info, <4 = all
+  TimeStampThreshold:        5       // The threshold for trying to mitigate any timestamp ideosynchrosies
+
+  WhichTrigger:              [ 1 ]   // A vector of which triggers to use - see Triggering function
+  PTBTrigs:                  [ 110, 111, 112, 113, 114, 115] // The list of PTB channels to trigger on.
+  PostTriggerTicks:          15000   // The number of TPC ticks gathered, post trigger
+  PreTriggerTicks:           0       // The number of TPC ticks gathered, pre trigger
+  TrigSeparation:            0       // The minimum separation between triggers.
+  MCTrigLevel:               0       // The threshold for the 'trigger every X TPC ticks trigger.' 
+
+  NovaTicksPerTPCTick:       32      // The number of Nova ticks per RawDigit index
+  NovaTicksPerSSPTick:       64      // The number of Nova ticks per MicroSecond as stored in SSP waveforms
+  NovaTicksPerCountTick:     1       // The number of Nova ticks per ExternalTrigger timestamp. !!!! 32 when looking at Monte Carlo !!!!
+  NanoSecondsPerNovaTick:    15.625  // The number of Nano Seconds per Nova tick
+
+  WaveformADCWidth:          100     // The number of MicroSeconds where waveforms will be considered for the trigger
+  WaveformADCThreshold:      1550    // The SSP ADC threshold to be used in SSP waveform trigger
+  WaveformADCsOverThreshold: 10      // The number of channels required over threshold in SSP ADC trigger
+
+  OpHitADCWidth:             100     // The number of MicroSeconds where OpHits will be considered for the trigger
+  OpHitADCThreshold:         1550    // The OpHit ADC threshold to be used in OpHit trigger
+  OpHitADCsOverThreshold:    10      // The number of channels required over threshold in OpHit ADC trigger
+
+  ADCdiffThreshold:          40      // The threshold for the change in TPC ADC trigger 
+  ADCsOverThreshold:         1000    // The number of channels to satisfy the above threshold to have a TPC ADC trigger 
+
+  UsePedestalDefault:        "false" // Whether to use the default pedestal values
+  UsePedestalFile:           "false" // Whether to use a pedestal file. If false, uses the online database.
+  UsePedestalFileSearchPath: "false" // Whether to use an environment variable to search for pedestal file in. Only used if UsePedestalFile is true
+  PedestalFile:              ""      // What pedestal file to use (if one is used at all)
+  PedestalFileSearchPath:    ""      // What environment variable to use to search for pedestal file (no $ please, eg for $BAR enter "BAR")
+
+  SkipNInputEvents:          0       // The number of input events (including headers) you wish to ignore.
+  SkipNOutputEvents:         0       // The number of output events you wish to create and then delete.
+}
+
+###### Make an instance that can be ran on Monte Carlo, so the user doesn't have to change all the parameters themselves...
+mcsplit_events: @local::split_events
+mcsplit_events.MonteCarlo:           "true"
+mcsplit_events.TPCInputDataProduct:  "raw::RawDigit" 
+mcsplit_events.TPCInputTag:          "daq::Detsim" 
+mcsplit_events.SSPInputDataProduct:  "raw::OpDetWaveform" 
+mcsplit_events.SSPInputTag:          "opdigi::Detsim" 
+mcsplit_events.PennInputDataProduct: "raw::ExternalTrigger" 
+mcsplit_events.PennInputTag:         "simcounter::Detsim" 
+mcsplit_events.PreTriggerTicks:      0
+mcsplit_events.PostTriggerTicks:     3200
+
+END_PROLOG

@@ -1,0 +1,71 @@
+BEGIN_PROLOG
+
+ssp_reformatter:
+{
+  NOvAClockFrequency:  64.0 #MHz
+  OpDetChannelMapFile: "ssp_channel_map_dune35t.txt"
+  SSPm1:               10  #samples used to calculate peak height
+  SSPm2:               10
+  SSPi1:               500 #samples used to calculate pedestal
+  SSPi2:               500 #samples used to calculate peak height
+  SSPd:                20
+  SSPdisc:             10
+  SPESize:             25
+}
+
+ssp_to_offline:
+{
+  module_type:         SSPToOffline
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  OutputDataLabel:     offlinePhoton
+  SSPReformatter:      @local::ssp_reformatter
+  #Debug:             true
+}
+ssp_to_offline_sparse: @local::ssp_to_offline
+ssp_to_offline_sparse.RawDataLabel: sparseSsp
+
+ssp_trigger_ana:
+{
+  module_type:         SSPTriggerAna
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  SSPReformatter:      @local::ssp_reformatter
+  #Debug:             true
+}
+ssp_trigger_ana_sparse: @local::ssp_trigger_ana
+ssp_trigger_ana_sparse.RawDataLabel: sparseSsp
+
+ssp_diagnostic_ana:
+{
+  module_type:         SSPDiagnosticAna
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  InputModule:	       ssptooffline
+  InputLabel:	       offlinePhoton
+  SSPReformatter:      @local::ssp_reformatter
+  SSPm1:               10  #samples used to calculate peak height
+  SSPm2:               10
+  SSPi1:               500 #samples used to calculate pedestal
+  SSPi2:               500 #samples used to calculate peak height
+  #Debug:             true
+}
+ssp_diagnostic_ana_sparse: @local::ssp_diagnostic_ana
+ssp_diagnostic_ana_sparse.RawDataLabel: sparseSsp
+
+special_ssp_diagnostic_ana:
+{
+  module_type:         SpecialSSPDiagnosticAna
+  FragType:            PHOTON
+  RawDataLabel:        daq
+  SSPReformatter:      @local::ssp_reformatter
+  SSPm1:               10  #samples used to calculate peak height
+  SSPm2:               10
+  SSPi1:               500 #samples used to calculate pedestal
+  SSPi2:               500 #samples used to calculate peak height
+  #Debug:             true
+}
+special_ssp_diagnostic_ana_sparse: @local::ssp_diagnostic_ana
+special_ssp_diagnostic_ana_sparse.RawDataLabel: sparseSsp
+
+END_PROLOG

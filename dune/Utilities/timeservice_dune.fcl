@@ -1,0 +1,15 @@
+#
+# deprecated: include detectorclocks_dune.fcl directly instead
+#
+
+#include "detectorclocks_dune.fcl"
+
+BEGIN_PROLOG
+
+dunefd_detectorclocks: @local::dunefd_detectorclocks
+
+dunefddphase_detectorclocks: @local::dunefddphase_detectorclocks
+
+dune35t_detectorclocks: @local::dune35t_detectorclocks
+
+END_PROLOG

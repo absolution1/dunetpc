@@ -1,0 +1,133 @@
+#include "hitfindermodules.fcl"
+#include "clusteralgorithms.fcl"
+#include "disambigalgorithms.fcl"
+
+BEGIN_PROLOG
+
+
+standard_disambigcheat:
+{
+ module_type:         "DisambigCheater"
+ ChanHitLabel:        "gaushit"
+}
+
+hit_repeater:
+{
+    module_type:      "HitRepeater"
+    ChanHitLabel:     "gaushit"
+}
+
+emlikehits:
+{
+    module_type:      "EmLikeHits"
+	HitModuleLabel:   "hit"   # hits used to reconstruct tagged tracks
+    Trk3DModuleLabel: "track" # tagged tracks (hadron/muon- or cascade-like)
+}
+
+apa_hitfinder:
+{
+ module_type:         "APAHitFinder"
+ DisambigAlg:         @local::apa_disambigalg
+ ChanHitLabel:        "gaushit"
+ ClusLabel:           "fuzzy"
+}
+
+dunefddphase_gaushitfinder:	@local::gaus_hitfinder
+dunefddphase_gaushitfinder.MinSig:    [6.0, 6.0]
+dunefddphase_gaushitfinder.MinWidth:  [1.0, 1.0]
+dunefddphase_gaushitfinder.InitWidth: [6.0, 6.0]
+dunefddphase_gaushitfinder.AreaNorms: [13.25, 13.25]
+dunefddphase_gaushitfinder.Chi2NDFRetry: 1000.
+
+dune35t_hit_repeater:    @local::hit_repeater
+dune35t_disambigcheat:    @local::standard_disambigcheat
+
+dune35t_gaushitfinder:    @local::gaus_hitfinder
+dune35t_apahitfinder:     @local::apa_hitfinder
+dune35t_emlikehits:    @local::emlikehits
+dune35t_hitcheater:	  @local::standard_hitcheater
+
+dune35t_gaushitfinder.MinSig:    [6.0, 6.0, 6.0]
+dune35t_gaushitfinder.MinWidth:  [1.0, 1.0, 1.0]
+dune35t_gaushitfinder.InitWidth: [6.0, 6.0, 6.0]
+dune35t_gaushitfinder.AreaNorms: [13.25, 13.25, 13.25]
+dune35t_gaushitfinder.Chi2NDFRetry: 1000.
+
+dune35t_disambigalg:
+{
+    TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
+    DistanceCut:      1.   #tolerance to determine whether wires cross, in cm
+    DistanceCutClu:   4.   #tolerance to get disambiguated hits around a given hit, in cm
+    TimeWiggle:       5.   #Buffer to extend cluster windows by to exclude small clusters 
+    		      	   # of mis-identified hits.  
+    ColChannelWiggle: 5    #Buffer to extend cluster windows by to exclude small clusters 
+                           # of mis-identified hits. 
+    DoCleanUpHits:    true #clean up wrong hit triplets
+    DBScanAlg:        @local::standard_dbscanalg
+}
+
+dune35t_disambigalg.DBScanAlg.eps:       13.
+dune35t_disambigalg.DBScanAlg.epstwo:    15.
+
+dune35t_TimeBasedDisambigAlg:
+{
+    TimeCut:          3.   #tolerance for 3 view hits matching, in ticks
+    DistanceCut:      1.   #tolerance to determine whether wires cross, in cm
+    DistanceCutClu:   4.   #tolerance to get disambiguated hits around a given hit, in cm
+    TimeWiggle:       5.   #Buffer to extend cluster windows by to exclude small clusters 
+                           # of mis-identified hits. 
+    ColChannelWiggle: 5    #Buffer to extend cluster windows by to exclude small clusters 
+                           # of mis-identified hits. 
+}
+
+dune35t_hitfinder35t:
+{
+    module_type:      "HitFinder35t"
+    DisambigAlg:      @local::dune35t_disambigalg
+    TimeBasedDisambigAlg:      @local::dune35t_TimeBasedDisambigAlg
+    ChanHitLabel:     "gaushit"
+    Algorithm:        "TripletMatch"
+}
+
+dune35t_handscan:
+{
+    module_type:     "HitHandScan"
+    HandScanFileName: "/dune/app/users/mthiesse/handscan.txt"
+    PreviousHitModuleLabel: "hit35t"
+}
+
+dune35t_hitfindercounters:
+{
+    module_type:           "HitFinderCounter35t"
+    Debug:                 false
+    HitsModuleLabel:       "gaushit"
+    CounterModuleLabel:    "SplitterInput:TRIGGER"
+    CounterDir:            "/dune/app/users/mthiesse/larDev/work/"
+    CounterFile:           "counterInformation.txt"
+    CoincidenceTolerance:  2
+    fConvCountTimeToTicks: 32
+    ExtendCounters:        10
+    AdjacentWireWidth:     10
+    AdjacentTimeWidth:     100
+    CollectionTimeWidth:   50
+}
+
+dune35t_fasthitfinder:    @local::standard_fasthitfinder
+dune35t_fasthitfinder.MinSigInd: 5.0
+dune35t_fasthitfinder.MinSigCol: 5.0
+
+dune35t_clustercrawlerhit: @local::standard_clustercrawlerhit
+dune35t_clustercrawlerhit.CCHitFinderAlg.ChiNorms:           [ 0.31, 0.62, 0.6 ]
+dune35t_clustercrawlerhit.CCHitFinderAlg.MinPeak:            [ 3., 3., 3. ]
+dune35t_clustercrawlerhit.CCHitFinderAlg.MinRMS:             [ 2.3, 2.3, 2.1 ]
+dune35t_clustercrawlerhit.CCHitFinderAlg.AllowNoHitWire:     2
+
+dunefd_disambigcheat:     @local::standard_disambigcheat
+dunefd_gaushitfinder:     @local::dune35t_gaushitfinder
+dunefd_apahitfinder:      @local::apa_hitfinder
+dunefd_hitcheater:	  @local::standard_hitcheater
+dunefd_fasthitfinder:     @local::dune35t_fasthitfinder
+dunefd_clustercrawlerhit: @local::dune35t_clustercrawlerhit
+dunefd_hitfinderfd:       @local::dune35t_hitfinder35t
+dunefd_hitfinderfd.DisambigAlg.DoCleanUpHits: false
+END_PROLOG

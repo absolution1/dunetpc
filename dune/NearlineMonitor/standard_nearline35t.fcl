@@ -1,0 +1,64 @@
+#include "SSPToOffline.fcl"
+#include "SplitterInput.fcl"
+
+BEGIN_PROLOG
+
+standard_nearlinesplitter: @local::split_events
+
+standard_nearlinesplitter.WhichTrigger: [ 3 ] #Any Muon Coincidence - Not Telescope (Horizontal Muons)
+#WhichTrigger
+#0 - MC
+#1 - New Files
+#2 - Photon Detectors
+#3 - Any PTB Trigger
+#4 - Any Muon Coincidence
+#5 - Any Muon Coincidence - Not Telescope
+#6 - Muon Telescope
+#7 - East Lower + West Upper Coincidence
+#8 - North Lower + South Upper Coincidence
+#9 - North Upper + South Lower Coincidence
+#10 - PTB Photon Trigger
+#11 - Tickler
+standard_nearlinesplitter.PTBTrigs:                  [ 111, 112, 113, 114 ] # The list of PTB channels to trigger on.
+standard_nearlinesplitter.firstEvent: 1          #Suggested Parameters from Michelle on 3rd Feb
+standard_nearlinesplitter.maxEvents: 10000       #Suggested Parameters from Michelle on 3rd Feb
+standard_nearlinesplitter.TrigSeparation:   10   #Suggested Parameters from Michelle on 3rd Feb 
+standard_nearlinesplitter.PreTriggerTicks:   300 #Suggested Parameters from Michelle on 3rd Feb 
+standard_nearlinesplitter.PostTriggerTicks: 5200 #Suggested Parameters from Michelle on 3rd Feb  
+standard_nearlinesplitter.UsePedestalFile: "true"
+standard_nearlinesplitter.UsePedestalFileSearchPath: "true"
+standard_nearlinesplitter.PedestalFile: ""
+standard_nearlinesplitter.PedestalFileSearchPath: "NEARLINE_PEDESTAL"
+standard_nearlinesplitter.UsePedestalDefault: "false"
+
+
+#Alex Booth's trigger settings
+standard_nearlinesplitter_evd: @local::standard_nearlinesplitter
+standard_nearlinesplitter_evd.PTBTrigs:      [111, 112, 113]
+
+
+standard_nearlineana:
+{
+    module_type: NearlineAna
+
+    VerboseOutput: false
+    RawDigitsTag: "SplitterInput:TPC"  
+    HitsTag: "fasthit"
+    UseOnlineChannels: true
+    TPCChannelMapFile: "rce_channel_map_dune35t.txt"
+
+    MakeHitsPerEventPlots: true
+    HitsPerEventChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920, 20, 548, 1297, 1697, 1838, 1482, 952, 454 ]
+
+    MakePedestalPerEventPlots: true
+    PedestalPerEventChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920, 20, 548, 1297, 1697, 1838, 1482, 952, 454 ]
+    WritePedestalPerEventFile: false
+    #PedestalPerEventFileName: "PedestalPerEventTest.txt"
+
+    MakePedestalPerTickPlots: true
+    PedestalPerTickChannels: [ 0, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920, 20, 548, 1297, 1697, 1838, 1482, 952, 454 ]
+    WritePedestalPerTickFile: false
+    #PedestalPerTickFileName: "PedestalPerTickTest.txt"
+}
+
+END_PROLOG

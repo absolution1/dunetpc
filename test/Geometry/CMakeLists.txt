@@ -1,5 +1,5 @@
 
-# geometry test on LBNE geometries
+# geometry test on DUNE geometries
 
 #
 # This test simply runs testgeo.sh script.
@@ -17,22 +17,22 @@
 # they are fast and always run.
 # FCL files need to be copied to the test area (DATAFILES directive) since they
 # are not installed.
-cet_test(geometry_lbnefd HANDBUILT
-  DATAFILES test_geometry_lbnefd.fcl
+cet_test(geometry_dunefd HANDBUILT
+  DATAFILES test_geometry_dunefd.fcl
   TEST_EXEC lar
-  TEST_ARGS --rethrow-all --config ./test_geometry_lbnefd.fcl
+  TEST_ARGS --rethrow-all --config ./test_geometry_dunefd.fcl
 )
 
-cet_test(geometry_lbne35t HANDBUILT
-  DATAFILES test_geometry_lbne35t.fcl
+cet_test(geometry_dune35t HANDBUILT
+  DATAFILES test_geometry_dune35t.fcl
   TEST_EXEC lar
-  TEST_ARGS --rethrow-all --config ./test_geometry_lbne35t.fcl
+  TEST_ARGS --rethrow-all --config ./test_geometry_dune35t.fcl
 )
 
 
 simple_plugin ( GeometryTest35 "module"
-                     Geometry
-                     Geometry_service
+                     larcore_Geometry
+                     larcore_Geometry_Geometry_service
 		     ${ART_FRAMEWORK_CORE}
    		     ${ART_FRAMEWORK_PRINCIPAL}
 		     ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -60,9 +60,9 @@ simple_plugin ( GeometryTest35 "module"
 # this uses BOOST for the test
 cet_test(geometry_iterator_dune35t_test
   SOURCES geometry_iterator_dune35t_test.cxx
-  LIBRARIES Geometry
+  LIBRARIES larcore_Geometry
             GeometryTestLib
-            lbne_Geometry
+            dune_Geometry
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
             ${FHICLCPP}
@@ -74,9 +74,9 @@ cet_test(geometry_iterator_dune35t_test
 # this uses BOOST for the test
 cet_test(geometry_iterator_dunefd_test
   SOURCES geometry_iterator_dunefd_test.cxx
-  LIBRARIES Geometry
+  LIBRARIES larcore_Geometry
             GeometryTestLib
-            lbne_Geometry
+            dune_Geometry
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
             ${FHICLCPP}
@@ -88,11 +88,11 @@ cet_test(geometry_iterator_dunefd_test
 # unit test (use the hard-coded configuration for DUNE 35t "optimized" geometry)
 cet_test(geometry_dune35t_test
   SOURCES geometry_dune35t_test.cxx
-  DATAFILES test_geometry_lbne35t.fcl
-  TEST_ARGS ./test_geometry_lbne35t.fcl
-  LIBRARIES Geometry
+  DATAFILES test_geometry_dune35t.fcl
+  TEST_ARGS ./test_geometry_dune35t.fcl
+  LIBRARIES larcore_Geometry
             GeometryTestLib
-            lbne_Geometry
+            dune_Geometry
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
             ${FHICLCPP}
@@ -102,11 +102,11 @@ cet_test(geometry_dune35t_test
 # unit test (use the hard-coded configuration for DUNE Far Detector geometry)
 cet_test(geometry_dunefd_test
   SOURCES geometry_dunefd_test.cxx
-  DATAFILES test_geometry_lbnefd.fcl
-  TEST_ARGS ./test_geometry_lbnefd.fcl
-  LIBRARIES Geometry
+  DATAFILES test_geometry_dunefd.fcl
+  TEST_ARGS ./test_geometry_dunefd.fcl
+  LIBRARIES larcore_Geometry
             GeometryTestLib
-            lbne_Geometry
+            dune_Geometry
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
             ${FHICLCPP}
@@ -117,9 +117,9 @@ cet_test(geometry_dunefd_test
 # unit test (use the hard-coded configuration for DUNE 35t "optimized" geometry)
 cet_test(geometry_iterator_loop_dune35t_test
   SOURCES geometry_iterator_loop_dune35t_test.cxx
-  LIBRARIES Geometry
+  LIBRARIES larcore_Geometry
             GeometryTestLib
-            lbne_Geometry
+            dune_Geometry
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
             ${FHICLCPP}
@@ -129,11 +129,26 @@ cet_test(geometry_iterator_loop_dune35t_test
 # unit test (use the hard-coded configuration for DUNE Far Detector geometry)
 cet_test(geometry_iterator_loop_dunefd_test
   SOURCES geometry_iterator_loop_dunefd_test.cxx
-  LIBRARIES Geometry
+  LIBRARIES larcore_Geometry
             GeometryTestLib
-            lbne_Geometry
+            dune_Geometry
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
             ${FHICLCPP}
             ${CETLIB}
 )
+
+
+# This is not really a test, but it dumps channel mapping on a file
+cet_test(dump_channel_map_dune35t_test HANDBUILT
+  DATAFILES dump_dune35t_channelmap.fcl
+  TEST_EXEC lar
+  TEST_ARGS --rethrow-all --config ./dump_dune35t_channelmap.fcl
+)
+
+cet_test(dump_channel_map_dunefd_test HANDBUILT
+  DATAFILES dump_dunefd_channelmap.fcl
+  TEST_EXEC lar
+  TEST_ARGS --rethrow-all --config ./dump_dunefd_channelmap.fcl
+)
+

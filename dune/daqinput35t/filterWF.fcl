@@ -1,0 +1,50 @@
+#include "services_dune.fcl"
+#include "singles_dune.fcl"
+#include "largeantmodules_dune.fcl"
+#include "detsimmodules_dune.fcl"
+
+services:
+{
+  user:         @local::dune35t_simulation_services
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "FilterWF.root"
+  }
+
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/afs/fnal.gov/files/home/room3/jpdavies/lbne_r000200_sr01_20140807T150347.root" ]
+  maxEvents: -1
+}
+
+physics:
+{
+  producers:
+  {
+    filterWF: {
+      module_type: FilterWF
+      RawDigitModuleLabel: "SplitterInput"
+      RawDigitModuleInstance: "TPC"
+      SkipStuckCodes: true
+    }
+  }
+
+  produce: [ filterWF ]
+  output: [ out1 ]
+  trigger_paths: [ produce ]
+  end_paths: [ output ]
+
+}
+
+process_name: RunFilterWF

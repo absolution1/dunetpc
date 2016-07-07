@@ -1,0 +1,52 @@
+#include "services_dune.fcl"
+
+
+process_name: duneEVD
+
+
+services:
+{
+  TFileService: { fileName: "DbigEVD4apaFD.root" }
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  user:         @local::dunefd_simulation_services
+}
+
+services.user.Geometry.ROOT: "dune4apa36deg.gdml"
+services.user.Geometry.GDML: "dune4apa36deg.gdml"
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  8
+  firstEvent: 1
+}
+
+
+outputs:{}
+
+
+physics:
+{
+  analyzers:
+  {
+    dbigevd: 
+    {
+      module_type:     "DbigEVD4apaFD"
+      ChanHitLabel:    "gaushit"
+      WidHitLabel:     "apahit"
+      HitCheatLabel:   "hitcheat"
+      ClusLabel:       "fuzzy"
+      nEvents:         8
+      TimeReverseZ0:   true
+
+      MaxTimeRange:    1   # 1 to use max time range, 0 to specify the range. If zero:
+          MinT: 1000
+          MaxT: 1500
+    }
+  }
+  analysis: [ dbigevd ]
+  end_paths: [ analysis ]
+}
+

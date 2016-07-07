@@ -1,0 +1,53 @@
+#include "services_dune.fcl"
+#include "SSPToOffline.fcl"
+#include "opticaldetectormodules_dune.fcl"
+
+process_name: RunSSPToOffline
+
+services : {
+  user:         @local::dune35t_services
+  Timing:       {}
+  RandomNumberGenerator: {} 
+  message:      @local::standard_info
+  TFileService: { fileName: "waveforms_r%r_sr%s.root" } 
+}
+
+physics:
+{
+  producers:
+  {
+    ssptooffline: @local::ssp_to_offline    
+  }
+  analyzers:
+  {
+    opdigiana: @local::dune35t_opdigiana_data
+  }
+
+  #Create path to run module
+  produce: [ ssptooffline ]
+  analyze: [ opdigiana ]
+  output: [ out1 ]
+
+  trigger_paths : [ produce ]
+  end_paths: [ analyze, output ]
+}
+
+
+source:
+{
+  module_type: RootInput
+  maxEvents : 1000
+}
+
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "SSPEventToOffline_r%r_sr%s.root"
+  }
+
+}
+
+ 

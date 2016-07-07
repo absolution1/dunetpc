@@ -1,0 +1,42 @@
+#include "services_dune.fcl"
+#include "SSPToOffline.fcl"
+#include "GoodRun.fcl"
+
+process_name: CheckTime
+
+services: {
+  user:         @local::dune35t_services
+  message:      @local::dune_message_services_prod_debug
+  TFileService: { fileName: "GoodRun_hist.root" }
+  TimeTracker:       {}
+}
+
+physics:
+{
+  analyzers:
+  {
+    goodrun: @local::dune35t_goodrun
+  }
+
+  # Create path to run module
+  analyze: [ goodrun ]
+
+  #output: [ out1 ]
+  #trigger_paths: [ produce ]
+  end_paths: [ analyze ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "GoodRun.root"
+  }
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents: 1000
+}

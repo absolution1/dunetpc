@@ -8,19 +8,20 @@
  * Boost unit testing environment keeps the arguments secret anyway.
  */
 
+// Boost test libraries; defining this symbol tells boost somehow to generate
+// a main() function; Boost is pulled in by geometry_boost_unit_test_base.h
+#define BOOST_TEST_MODULE GeometryIteratorTestDUNE35t
+
 // LArSoft libraries
 #include "test/Geometry/geometry_unit_test_dune.h"
-#include "test/Geometry/geometry_boost_unit_test_base.h"
 #include "test/Geometry/GeometryIteratorTestAlg.h"
-#include "Geometry/GeometryCore.h"
-#include "lbne/Geometry/ChannelMap35OptAlg.h"
+#include "larcore/TestUtils/boost_unit_test_base.h"
+#include "larcore/Geometry/GeometryCore.h"
+#include "dune/Geometry/ChannelMap35OptAlg.h"
 
 // utility libraries
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-// Boost libraries
-#define BOOST_TEST_MODULE GeometryIteratorTestDUNE35t
-#include <boost/test/included/unit_test.hpp>
 
 
 //------------------------------------------------------------------------------
@@ -35,7 +36,7 @@
 // the configuration file name from the command line.
 struct DUNE35tGeometryConfiguration:
   public testing::BoostCommandLineConfiguration<
-    lbne::testing::DUNE35tGeometryEnvironmentConfiguration
+    dune::testing::DUNE35tGeometryEnvironmentConfiguration
       <geo::ChannelMap35OptAlg>
     >
 {
@@ -58,7 +59,7 @@ struct DUNE35tGeometryConfiguration:
  * interface is provided.
  */
 class DUNE35tGeometryIteratorTestFixture:
-  private testing::SharedGeometryTesterEnvironment<DUNE35tGeometryConfiguration>
+  private testing::GeometryTesterEnvironment<DUNE35tGeometryConfiguration>
 {
   using Tester_t = geo::GeometryIteratorTestAlg;
   
@@ -91,10 +92,24 @@ BOOST_FIXTURE_TEST_SUITE(GeometryIterators, DUNE35tGeometryIteratorTestFixture)
 // BOOST_GLOBAL_FIXTURE(DUNE35tGeometryIteratorTestFixture)
 
 
+BOOST_AUTO_TEST_CASE( CryostatIDIteratorsTest )
+{
+  GlobalTester().CryostatIDIteratorsTest();
+} // BOOST_AUTO_TEST_CASE( CryostatIDIteratorsTest )
+
+
+
 BOOST_AUTO_TEST_CASE( CryostatIteratorsTest )
 {
   GlobalTester().CryostatIteratorsTest();
 } // BOOST_AUTO_TEST_CASE( CryostatIteratorsTest )
+
+
+
+BOOST_AUTO_TEST_CASE( TPCIDIteratorsTest )
+{
+  GlobalTester().TPCIDIteratorsTest();
+} // BOOST_AUTO_TEST_CASE( TPCIDIteratorsTest )
 
 
 
@@ -105,10 +120,24 @@ BOOST_AUTO_TEST_CASE( TPCIteratorsTest )
 
 
 
+BOOST_AUTO_TEST_CASE( PlaneIDIteratorsTest )
+{
+  GlobalTester().PlaneIDIteratorsTest();
+} // BOOST_AUTO_TEST_CASE( PlaneIDIteratorsTest )
+
+
+
 BOOST_AUTO_TEST_CASE( PlaneIteratorsTest )
 {
   GlobalTester().PlaneIteratorsTest();
 } // BOOST_AUTO_TEST_CASE( PlaneIteratorsTest )
+
+
+
+BOOST_AUTO_TEST_CASE( WireIDIteratorsTest )
+{
+  GlobalTester().WireIDIteratorsTest();
+} // BOOST_AUTO_TEST_CASE( WireIDIteratorsTest )
 
 
 

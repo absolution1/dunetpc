@@ -1,0 +1,15 @@
+# channelmapping_dune.fcl
+#
+# David Adams
+# May 2016
+#
+# Configurations for the ChannelMappingService.
+
+BEGIN_PROLOG
+
+# For 35t data, we use the service provided in lbne_raw_data.
+dune35t_channelmapping: {
+  service_provider:  Dune35tChannelMappingService
+}
+
+END_PROLOG

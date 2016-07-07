@@ -1,0 +1,30 @@
+#include "SSPToOffline.fcl"
+
+BEGIN_PROLOG
+
+muoncounter:
+{
+    module_type:              "MuonCounter"
+    HitsModuleLabel:          "hit"
+    CombinedTimeDelay:         160.0
+
+    RCEFragType:        "TPC"
+    RCERawDataLabel:    "daq"
+    SSPFragType:        "PHOTON"
+    SSPRawDataLabel:    "daq"
+    PTBFragType:        "TRIGGER"
+    PTBRawDataLabel:    "daq"
+    
+    PTBMapDir:           "/dune/data2/users/warburton/PTBChannelMap/"
+    PTBMapFile:          "PTBChannelMap.txt"
+
+    SSPReformatter:       @local::ssp_reformatter
+}
+
+muoncounterfd:
+{
+   module_type:               "MuonCounterFD"
+   HitsModuleLabel:           "hit"
+}
+
+END_PROLOG
