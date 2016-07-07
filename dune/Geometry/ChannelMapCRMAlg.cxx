@@ -215,6 +215,12 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
+  unsigned int ChannelMapCRMAlg::Nchannels(readout::ROPID const& ropid) const {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::Nchannels()
+  
+  
+  //----------------------------------------------------------------------------
   double ChannelMapCRMAlg::WireCoordinate
     (double YPos, double ZPos, geo::PlaneID const& planeID) const
   {
@@ -360,4 +366,172 @@ namespace geo{
     return fPlaneIDs;
   }
 
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns the total number of TPC sets in the specified cryostat
+   * @param cryoid cryostat ID
+   * @return number of TPC sets in the cryostat, or 0 if no cryostat found
+   */
+  unsigned int ChannelMapCRMAlg::NTPCsets
+    (readout::CryostatID const& cryoid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::NTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the largest number of TPC sets any cryostat in the detector has
+  unsigned int ChannelMapCRMAlg::MaxTPCsets() const {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::MaxTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns whether we have the specified TPC set
+  /// @return whether the TPC set is valid and exists
+  bool ChannelMapCRMAlg::HasTPCset(readout::TPCsetID const& tpcsetid) const {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::HasTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the TPC set tpcid belongs to
+  readout::TPCsetID ChannelMapCRMAlg::TPCtoTPCset
+    (geo::TPCID const& tpcid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::TPCtoTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns a list of ID of TPCs belonging to the specified TPC set
+   * @param tpcsetid ID of the TPC set to convert into TPC IDs
+   * @return the list of TPCs, empty if TPC set is invalid
+   *
+   * Note that the check is performed on the validity of the TPC set ID, that
+   * does not necessarily imply that the TPC set specified by the ID actually
+   * exists. Check the existence of the TPC set first (HasTPCset()).
+   * Behaviour on valid, non-existent TPC set IDs is undefined.
+   */
+  std::vector<geo::TPCID> ChannelMapCRMAlg::TPCsetToTPCs
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::TPCsetToTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the first TPC belonging to the specified TPC set
+  geo::TPCID ChannelMapCRMAlg::FirstTPCinTPCset
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::FirstTPCinTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns the total number of ROP in the specified TPC set
+   * @param tpcsetid TPC set ID
+   * @return number of readout planes in the TPC set, or 0 if no TPC set found
+   * 
+   * Note that this methods explicitly check the existence of the TPC set.
+   */
+  unsigned int ChannelMapCRMAlg::NROPs(readout::TPCsetID const& tpcsetid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::NROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the largest number of ROPs a TPC set in the detector has
+  unsigned int ChannelMapCRMAlg::MaxROPs() const {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::MaxROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns whether we have the specified ROP
+  /// @return whether the readout plane is valid and exists
+  bool ChannelMapCRMAlg::HasROP(readout::ROPID const& ropid) const {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::HasROP()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the ROP planeid belongs to
+  readout::ROPID ChannelMapCRMAlg::WirePlaneToROP
+    (geo::PlaneID const& planeid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::WirePlaneToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns a list of ID of planes belonging to the specified ROP
+  std::vector<geo::PlaneID> ChannelMapCRMAlg::ROPtoWirePlanes
+    (readout::ROPID const& ropid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::ROPtoWirePlanes()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the first plane belonging to the specified ROP
+  geo::PlaneID ChannelMapCRMAlg::FirstWirePlaneInROP
+    (readout::ROPID const& ropid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::FirstWirePlaneInROP()
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns a list of ID of TPCs the specified ROP spans
+   * @param ropid ID of the readout plane
+   * @return the list of TPC IDs, empty if readout plane ID is invalid
+   *
+   * Note that this check is performed on the validity of the readout plane
+   * ID, that does not necessarily imply that the readout plane specified by
+   * the ID actually exists. Check if the ROP exists with HasROP().
+   * The behaviour on non-existing readout planes is undefined.
+   */
+  std::vector<geo::TPCID> ChannelMapCRMAlg::ROPtoTPCs
+    (readout::ROPID const& ropid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::ROPtoTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the ROP the channel belongs to
+  /// @throws cet::exception (category: "Geometry") if non-existent channel
+  readout::ROPID ChannelMapCRMAlg::ChannelToROP(raw::ChannelID_t channel) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::ChannelToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns the ID of the first channel in the specified readout plane
+   * @param ropid ID of the readout plane
+   * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
+   * 
+   * Note that this check is performed on the validity of the readout plane
+   * ID, that does not necessarily imply that the readout plane specified by
+   * the ID actually exists. Check if the ROP exists with HasROP().
+   * The behaviour for non-existing readout planes is undefined.
+   */
+  raw::ChannelID_t ChannelMapCRMAlg::FirstChannelInROP
+    (readout::ROPID const& ropid) const
+  {
+    static_assert(false, "Not implemented (TODO)");
+  } // ChannelMapCRMAlg::FirstChannelInROP()
+  
+  
+  //----------------------------------------------------------------------------
+  
 } // namespace
