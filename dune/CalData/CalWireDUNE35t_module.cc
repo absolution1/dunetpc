@@ -169,6 +169,10 @@ namespace caldata {
 
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     //std::cout << "Xin " << dataSize << std::endl;
+    if (int(dataSize) != transformSize){
+      throw art::Exception(art::errors::Configuration)
+        << "FFT size: "<<transformSize<<" != Window size: "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
+    }
 
     raw::ChannelID_t channel = raw::InvalidChannelID; // channel number
     unsigned int bin(0);     // time bin loop variable
