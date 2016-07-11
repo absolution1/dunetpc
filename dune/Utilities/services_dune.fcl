@@ -129,7 +129,7 @@ protodune_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
- DetectorPropertiesService:    @local::dunefd_detproperties
+ DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
@@ -146,7 +146,7 @@ protodune_simulation_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
- DetectorPropertiesService:    @local::dunefd_detproperties
+ DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
