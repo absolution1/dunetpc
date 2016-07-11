@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_supernovaana:
+{
+  module_type:		SupernovaAna
+  #====================
+  TruthLabel:		"generator"	# a string with the process label for the module that made the MCTruth objects
+}
+
+END_PROLOG
