@@ -55,7 +55,7 @@ dunefd_simulation_services: {
  LArPropertiesService:         @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
- MagneticField:                @local::no_mag
+ MagneticField:                @local::no_mag_larsoft
  BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::dunefd_spacecharge
  LArSeedService:               @local::dune_seedservice
@@ -89,7 +89,7 @@ dunefddphase_simulation_services: {
  LArG4Parameters:                @local::dunefd_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
- MagneticField:                  @local::no_mag
+ MagneticField:                  @local::no_mag_larsoft
  BackTracker:                    @local::dunefd_backtracker
  LArSeedService:                 @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
@@ -150,7 +150,7 @@ protodune_simulation_services: {
  LArPropertiesService:         @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
- MagneticField:                @local::no_mag
+ MagneticField:                @local::no_mag_larsoft
  BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::protodune_spacecharge
  LArSeedService:               @local::dune_seedservice
@@ -204,7 +204,7 @@ dune35t_services.BackTracker:                @local::dune35t_backtracker
 dune35t_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 
 dune35t_gen_services:                        @local::dune35t_basic_services
-dune35t_gen_services.MagneticField:          @local::no_mag
+dune35t_gen_services.MagneticField:          @local::no_mag_larsoft
 
 dune35t_g4_services:                         @local::dune35t_gen_services
 dune35t_g4_services.LArG4Parameters:         @local::dune35t_largeantparameters
