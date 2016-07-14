@@ -41,6 +41,7 @@
 #include "lardata/Utilities/LArFFT.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Dune includes.
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
@@ -201,9 +202,10 @@ void CalWireDUNE10kt::produce(art::Event& evt) {
       
   unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
   if ( fLogLevel >= 2 ) cout << myname << "Expected raw data size: " << dataSize << endl;
-  if (int(dataSize) != transformSize){
+  int readoutwindowsize = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider()->ReadOutWindowSize();
+  if (int(dataSize) != readoutwindowsize){
     throw art::Exception(art::errors::Configuration)
-      << "FFT size: "<<transformSize<<" != Window size: "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
+      << "ReadOutWindowSize "<<readoutwindowsize<<" does not match data size "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
   }
   
   raw::ChannelID_t channel = raw::InvalidChannelID; // channel number
