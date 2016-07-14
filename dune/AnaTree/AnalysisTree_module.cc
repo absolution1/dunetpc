@@ -3574,7 +3574,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	    << "' ; FILLING WITH FAKE DATA AS FOR USER'S REQUEST";
 	}
       }
-	showerList.push_back(ShowerHandle.product());
+
+      else showerList.push_back(ShowerHandle.product());
 
       showerListHandle.push_back(ShowerHandle); // either way, put it into the handle list
 
