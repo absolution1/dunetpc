@@ -62,7 +62,11 @@ if ( ! defined $workspace )
 }
 elsif ( $workspace == 1)
 {
-    print "\t\tCreating smaller workspace geometry.\n";
+    print "\t\tCreating smaller (1x2x2-APA) workspace geometry.\n";
+}
+elsif ( $workspace == 2)
+{
+    print "\t\tCreating 1x2x6-APA geometry.\n";
 }
 
 # set wires on to be the default, unless given an input by the user
@@ -155,6 +159,10 @@ $TPCWirePlaneThickness  =   $TPCWireThickness;
 if($workspace==1){
     $nAPAWide	        =     1; 
     $nAPALong	        =     2;
+}
+elsif($workspace==2){
+    $nAPAWide	        =     1; 
+    $nAPALong	        =     6;
 }
 
 $nAPAs                 =     $nAPAWide*$nAPAHigh*$nAPALong;
@@ -254,7 +262,7 @@ $Argon_x		=       ($nAPAWide-1)*$APAToAPA
                               + $APA_UtoU_x + $TPCWirePlaneThickness
                               + 2*$SpaceAPAToCryoWall;
 
-if($workspace==1){ # this is arbitrary for the workspace, but size down a little
+if($workspace==1||$workspace==2){ # this is arbitrary for the workspace, but size down a little
 $Argon_x = 2*$CPAToAPA + $Cathode_x + 2*$SpaceAPAToCryoWall;
 }
 
@@ -283,7 +291,7 @@ $SteelSupport_x        =	100;
 $SteelSupport_y        =	50;
 $SteelSupport_z        =	100;
 $FoamPadding           =        80;
-$FracMassOfSteel       =        0.5; #The steel support is not a solid block, but a mixture of air and steel
+$FracMassOfSteel       =        0.998; #The steel support is not a solid block, but a mixture of air and steel
 $FracMassOfAir         =        1-$FracMassOfSteel;
 
 $SpaceSteelSupportToWall    = 100;
@@ -448,10 +456,13 @@ sub gen_Materials()
 
     # Add any materials special to this geometry by defining a mulitline string
     # and passing it to the gdmlMaterials::gen_Materials() function.
+
+    $DensityAirSteel = 1/(0.001205/$FracMassOfAir + 7.9300/$FracMassOfSteel);
+
 my $asmix = <<EOF;
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-$FracMassOfSteel) + 7.9300*$FracMassOfSteel " unit="g/cm3"/>
+   <D value="$DensityAirSteel" unit="g/cm3"/>
    <fraction n="$FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="$FracMassOfAir"   ref="Air"/>
   </material>
@@ -1538,7 +1549,7 @@ EOF
 
 
         # Make the workspace have only one center APA with CPAs and the full drift on either side
-        elsif( $workspace == 1 ){
+        elsif( $workspace == 1 || $workspace==2 ){
 
 		$APACenter_x  =  0;
 		$CPA_0_x      =  $APACenter_x  -  $CPAToAPA;
@@ -1926,9 +1937,14 @@ print ENCL <<EOF;
       y="$Cryostat_y + 2*$FoamPadding"
       z="$Cryostat_z + 2*$FoamPadding" />
 
+    <box name="FoamPadInner" lunit="cm"
+      x="$Cryostat_x + 0.01"
+      y="$Cryostat_y + 0.01"
+      z="$Cryostat_z + 0.01" />
+
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
-      <second ref="Cryostat"/>
+      <second ref="FoamPadInner"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
@@ -1937,9 +1953,14 @@ print ENCL <<EOF;
       y="$Cryostat_y + 2*$FoamPadding + 2*$SteelSupport_y"
       z="$Cryostat_z + 2*$FoamPadding + 2*$SteelSupport_z" />
 
+    <box name="SteelSupportInner" lunit="cm"
+      x="$Cryostat_x + 2*$FoamPadding + 0.01"
+      y="$Cryostat_y + 2*$FoamPadding + 0.01"
+      z="$Cryostat_z + 2*$FoamPadding + 0.01" />
+
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
-      <second ref="FoamPadding"/>
+      <second ref="SteelSupportInner"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
@@ -1957,7 +1978,7 @@ EOF
     print ENCL <<EOF;
 <structure>
     <volume name="volFoamPadding">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="FD_foam"/>
       <solidref ref="FoamPadding"/>
     </volume>
 
