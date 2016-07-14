@@ -39,7 +39,7 @@
 #include "lardata/Utilities/LArFFT.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "dune/Utilities/SignalShapingServiceDUNEDPhase.h"
-
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 ///creation of calibrated signals on wires
 namespace caldata {
@@ -157,11 +157,12 @@ namespace caldata {
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
         
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
-    if (int(dataSize) != transformSize){
+    int readoutwindowsize = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider()->ReadOutWindowSize();
+    if (int(dataSize) != readoutwindowsize){
       throw art::Exception(art::errors::Configuration)
-        << "FFT size: "<<transformSize<<" != Window size: "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
+        << "ReadOutWindowSize "<<readoutwindowsize<<" does not match data size "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
     }
-    
+     
     raw::ChannelID_t channel = raw::InvalidChannelID; // channel number
     unsigned int bin(0);     // time bin loop variable
     
