@@ -1,7 +1,7 @@
 // StandardRawDigitPrepService.h
 //
 // David Adams
-// May 2016
+// July 2016
 //
 // Implementation of service that prepares TPC raw digits for reconstruction.
 // The data is converted to float, pedestals are subtracted and optionally
@@ -13,7 +13,7 @@
 //   DoEarlySignalFinding - Run signal finding before noise removal.
 //   DoNoiseRemoval - Run coherent noise suppression.
 //   DoPedestalAdjustment - Do dynamic pedestal adjustment.
-
+//   DoDeconvolution - Deconvolute the signal.
 
 #ifndef StandardRawDigitPrepService_H
 #define StandardRawDigitPrepService_H
@@ -25,6 +25,7 @@ class AdcMitigationService;
 class AdcSignalFindingService;
 class AdcNoiseRemovalService;
 class PedestalEvaluationService;
+class AdcDeconvolutionService;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
@@ -44,12 +45,14 @@ private:
   bool m_DoEarlySignalFinding;
   bool m_DoNoiseRemoval;
   bool m_DoPedestalAdjustment;
+  bool m_DoDeconvolution;
 
   const RawDigitExtractService* m_pExtractSvc;
   const AdcMitigationService* m_pmitigateSvc;
   const AdcSignalFindingService* m_pAdcSignalFindingService;
   const AdcNoiseRemovalService* m_pNoiseRemoval;
   const PedestalEvaluationService* m_pPedestalEvaluation;
+  const AdcDeconvolutionService* m_pDeconvolutionService;
 
 };
 
