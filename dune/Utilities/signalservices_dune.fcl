@@ -11,7 +11,7 @@ BEGIN_PROLOG
 dunefd_signalshapingservice: {
 
   DeconNorm: 200
-  ADCPerPCAtLowestASICGain: 11700 #ADC/pC
+  ADCPerPCAtLowestASICGain: 13160 #ADC/pC (2.8 ADC/mV * 4.7 mV/fC * 1000)
   # ASICGains:           [4.7, 7.8, 14, 25]
   ASICGainInMVPerFC:  [ 14, 14, 14 ] #mV/fC for Ind & col planes
   ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peaking time (microseconds)	

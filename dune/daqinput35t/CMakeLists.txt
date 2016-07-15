@@ -237,6 +237,8 @@ simple_plugin(GoodRun "module"
  ${ART_FRAMEWORK_CORE}
  ${ART_FRAMEWORK_PRINCIPAL}
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ ${ROOT_BASIC_LIB_LIST}
+ ${ROOT_CORE}
 )
 
 simple_plugin(SplitterInput "source"
