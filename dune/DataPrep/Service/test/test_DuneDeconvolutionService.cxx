@@ -124,7 +124,7 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
 //**********************************************************************
 
 int main(int argc, char* argv[]) {
-  int a_LogLevel = 1;
+  int a_LogLevel = -1;
   if ( argc > 1 ) {
     istringstream ssarg(argv[1]);
     ssarg >> a_LogLevel;
