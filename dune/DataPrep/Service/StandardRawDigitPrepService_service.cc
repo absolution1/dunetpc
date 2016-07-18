@@ -119,6 +119,7 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "         DoMitigation: " << m_DoMitigation         << endl;
   out << prefix << " DoEarlySignalFinding: " << m_DoEarlySignalFinding << endl;
   out << prefix << "       DoNoiseRemoval: " << m_DoNoiseRemoval       << endl;
+  out << prefix << "      DoDeconvolution: " << m_DoDeconvolution      << endl;
   out << prefix << " DoPedestalAdjustment: " << m_DoPedestalAdjustment << endl;
   return out;
 }

@@ -39,6 +39,12 @@ simple_plugin(DuneDeconvolutionService "service"
                 SignalShapingServiceDUNE_service
              )
 
+simple_plugin(DuneRoiFindingService "service"
+                ${ART_UTILITIES}
+                ${ROOT_BASIC_LIB_LIST}
+                SignalShapingServiceDUNE_service
+             )
+
 simple_plugin(StandardRawDigitPrepService   "service"
                 lardata_RawData
                 ${ART_UTILITIES}
