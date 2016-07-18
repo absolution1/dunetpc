@@ -15,6 +15,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
+#include "dune/Utilities/SignalShapingServiceDUNE.h"
 #include "dune/DuneInterface/AdcDeconvolutionService.h"
 
 #undef NDEBUG
@@ -44,7 +45,7 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
   string line = "-----------------------------";
 
   if ( a_LogLevel < 0 ) {
-    cout << myname << "Skipping test while we wat for relution of larsoft issue 10618" << endl;
+    cout << myname << "Skipping test while we wat for resolution of larsoft issue 10618" << endl;
     return 0;
   }
 
@@ -95,23 +96,37 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
     acd.samples.push_back(0);
     acd.flags.push_back(AdcGood);
   }
-  acd.samples[50] = 100.0;
+  acd.samples[50] = 100000.0;
   AdcSignalVector& sigs = acd.samples;
   AdcSignalVector sigsin = sigs;
+
+  cout << myname << "Fetch FFT service." << endl;
+  art::ServiceHandle<util::LArFFT> hfft;
+  unsigned int fftsize = hfft->FFTSize();
+  cout << myname << "Resizing signal vector to FFT size " << fftsize
+       << " as required for convolution." << endl;
+  sigs.resize(fftsize, 0.0);
+
+  cout << myname << "Fetch shaping service." << endl;
+  ServiceHandle<util::SignalShapingServiceDUNE> hsss;
+
+  cout << myname << "Convolute." << endl;
+  hsss->Convolute(acd.channel, sigs);
+  AdcSignalVector sigsco = sigs;
 
   cout << myname << "Fetch deconvolution service." << endl;
   ServiceHandle<AdcDeconvolutionService> hdco;
   hdco->print();
-  ash.print();
 
   cout << myname << line << endl;
   cout << myname << "Deconvolute." << endl;
   assert( hdco->update(acd) == 0 );
   cout << myname << "Output vector size: " << sigs.size() << endl;
-  assert( sigs.size() == nsig );
+  assert( sigs.size() == sigsco.size() );
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
     cout << setw(4) << isig << ": "
          << fixed << setprecision(1) << setw(8) << sigsin[isig]
+         << fixed << setprecision(1) << setw(10) << sigsco[isig]
          << fixed << setprecision(1) << setw(10) << sigs[isig]
          << endl;
     //assert( sigs[isig] == sigsexp[isig] );
