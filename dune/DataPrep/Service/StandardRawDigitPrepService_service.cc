@@ -10,6 +10,7 @@
 #include "dune/DuneInterface/AdcSignalFindingService.h"
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
 #include "dune/DuneInterface/PedestalEvaluationService.h"
+#include "dune/DuneInterface/AdcDeconvolutionService.h"
 
 using std::string;
 using std::cout;
@@ -93,6 +94,11 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
   if ( m_DoNoiseRemoval ) {
     m_pNoiseRemoval->update(datamap);
   }
+  if ( m_DoDeconvolution ) {
+    for ( AdcChannelDataMap::value_type chdata : datamap ) {
+      m_pDeconvolutionService->update(chdata.second);
+    }
+  }
   if ( m_DoPedestalAdjustment ) {
     for ( auto& chdata : datamap ) {
       AdcChannelData& data = chdata.second;
@@ -113,6 +119,7 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "         DoMitigation: " << m_DoMitigation         << endl;
   out << prefix << " DoEarlySignalFinding: " << m_DoEarlySignalFinding << endl;
   out << prefix << "       DoNoiseRemoval: " << m_DoNoiseRemoval       << endl;
+  out << prefix << "      DoDeconvolution: " << m_DoDeconvolution      << endl;
   out << prefix << " DoPedestalAdjustment: " << m_DoPedestalAdjustment << endl;
   return out;
 }

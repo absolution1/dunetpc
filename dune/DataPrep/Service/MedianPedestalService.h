@@ -7,8 +7,9 @@
 // an input ADC signal vector.
 //
 // Configuration:
-//        LogLevel - Message logging level: 0=none, 1=initialization, 2+=every event
-//   SkipStuckBits - Exclude ticks with stuck bits from the pedestal calculation
+//             LogLevel - Message logging level: 0=none, 1=initialization, 2+=every event
+//   SkipFlaggedSamples - Exclude ticks for which flag != AdcGood
+//          SkipSignals - Exclude ticks identified as signal
 
 #ifndef MedianPedestalService_H
 #define MedianPedestalService_H
@@ -39,8 +40,9 @@ public:
 private:
 
   // Configuration parameters.
-  int  m_LogLevel;
-  int  m_SkipStuckBits;
+  int m_LogLevel;
+  int m_SkipFlaggedSamples;
+  int m_SkipSignals;
 
   // Services.
   const geo::Geometry* m_pGeometry;

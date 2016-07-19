@@ -45,8 +45,9 @@ int test_MedianPedestalService(bool useExistingFcl) {
     ofstream fout(fclfile.c_str());
     fout << "services.PedestalEvaluationService: {" << endl;
     fout << "  service_provider: MedianPedestalService" << endl;
-    fout << "         LogLevel:    1" << endl;
-    fout << "    SkipStuckBits: true" << endl;
+    fout << "            LogLevel:    1" << endl;
+    fout << "  SkipFlaggedSamples: true" << endl;
+    fout << "         SkipSignals: true" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -73,10 +74,17 @@ int test_MedianPedestalService(bool useExistingFcl) {
   cout << myname << "Make data." << endl;
   AdcSignalVector oddsigs = { 1.0, 8.0, 2.0, 3.0, 4.0 };
   AdcSignalVector evnsigs = { 1.0, 8.0, 2.0, 4.0, 6.0, 9.0 };
+  AdcSignalVector flgsigs = { 1.0, 8.0, 111.0, 2.0, 4.0, 6.0, 222.0, 9.0 };
+  AdcFlagVector flags(8, AdcGood);
+  flags[2] = AdcStuckOff;
+  flags[6] = AdcOverflow;
   AdcChannelData oddData;
   oddData.samples = oddsigs;
   AdcChannelData evnData;
   oddData.samples = evnsigs;
+  AdcChannelData flgData;
+  flgData.samples = flgsigs;
+  flgData.flags = flags;
 
   cout << myname << line << endl;
   cout << myname << "Fetch service." << endl;
@@ -93,6 +101,12 @@ int test_MedianPedestalService(bool useExistingFcl) {
   cout << myname << "Checking even data." << endl;
   ped = 0.0;
   assert( hpev->evaluate(evnData, &ped) == 0 );
+  assert( ped = 3.0 );
+
+  cout << myname << line << endl;
+  cout << myname << "Checking flagged data." << endl;
+  ped = 0.0;
+  assert( hpev->evaluate(flgData, &ped) == 0 );
   assert( ped = 3.0 );
 
   cout << myname << line << endl;
