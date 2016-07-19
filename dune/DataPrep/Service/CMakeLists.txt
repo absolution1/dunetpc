@@ -39,7 +39,7 @@ simple_plugin(DuneDeconvolutionService "service"
                 SignalShapingServiceDUNE_service
              )
 
-simple_plugin(DuneRoiFindingService "service"
+simple_plugin(DuneRoiBuildingService "service"
                 ${ART_UTILITIES}
                 ${ROOT_BASIC_LIB_LIST}
                 SignalShapingServiceDUNE_service

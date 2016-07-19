@@ -42,9 +42,9 @@ cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
     dune_ArtSupport
 )
 
-cet_test(test_DuneRoiFindingService SOURCES test_DuneRoiFindingService
+cet_test(test_DuneRoiBuildingService SOURCES test_DuneRoiBuildingService
   LIBRARIES
-    dune_DataPrep_Service_DuneRoiFindingService_service
+    dune_DataPrep_Service_DuneRoiBuildingService_service
     dune_ArtSupport
 )
 

@@ -1,9 +1,9 @@
-// test_DuneRoiFindingService.cxx
+// test_DuneRoiBuildingService.cxx
 //
 // David Adams
 // May 2016
 //
-// Test DuneRoiFindingService.
+// Test DuneRoiBuildingService.
 //
 
 #include <string>
@@ -14,7 +14,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
-#include "dune/DuneInterface/AdcRoiFindingService.h"
+#include "dune/DuneInterface/AdcRoiBuildingService.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -34,8 +34,8 @@ typedef vector<unsigned int> IndexVector;
 
 //**********************************************************************
 
-int test_DuneRoiFindingService(int a_LogLevel =1) {
-  const string myname = "test_DuneRoiFindingService: ";
+int test_DuneRoiBuildingService(int a_LogLevel =1) {
+  const string myname = "test_DuneRoiBuildingService: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -44,12 +44,12 @@ int test_DuneRoiFindingService(int a_LogLevel =1) {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_DuneRoiFindingService.fcl";
+  string fclfile = "test_DuneRoiBuildingService.fcl";
   ofstream fout(fclfile.c_str());
   fout << "#include \"services_dune.fcl\"" << endl;
   fout << "services.user: @local::dune35t_services" << endl;
-  fout << "services.AdcRoiFindingService: {" << endl;
-  fout << "  service_provider: DuneRoiFindingService" << endl;
+  fout << "services.AdcRoiBuildingService: {" << endl;
+  fout << "  service_provider: DuneRoiBuildingService" << endl;
   fout << "  NSigmaStart:  4.0" << endl;
   fout << "  NSigmaEnd:    1.0" << endl;
   fout << "  PadLow:         5" << endl;
@@ -76,8 +76,8 @@ int test_DuneRoiFindingService(int a_LogLevel =1) {
     ash.print();
 
     cout << myname << line << endl;
-    cout << myname << "Add ROI finding service." << endl;
-    assert( ash.addService("AdcRoiFindingService", fclfile, true) == 0 );
+    cout << myname << "Add ROI building service." << endl;
+    assert( ash.addService("AdcRoiBuildingService", fclfile, true) == 0 );
     ash.print();
 
     cout << myname << line << endl;
@@ -119,12 +119,12 @@ int test_DuneRoiFindingService(int a_LogLevel =1) {
   ServiceHandle<util::SignalShapingServiceDUNE> hsss;
   cout << myname << "Decon noise: " << hsss->GetDeconNoise(acd.channel) << endl;
 
-  cout << myname << "Fetch ROI finding service." << endl;
-  ServiceHandle<AdcRoiFindingService> hroi;
+  cout << myname << "Fetch ROI building service." << endl;
+  ServiceHandle<AdcRoiBuildingService> hroi;
   hroi->print(cout, myname);
 
-  cout << myname << "Find ROIs." << endl;
-  hroi->find(acd);
+  cout << myname << "Build ROIs." << endl;
+  hroi->build(acd);
   cout << myname << "Samples size: " << acd.samples.size() << endl;
   cout << myname << "Output ROIS size: " << acd.rois.size() << endl;
   assert( sigs.size() == nsig );
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     istringstream ssarg(argv[1]);
     ssarg >> a_LogLevel;
   }
-  return test_DuneRoiFindingService(a_LogLevel);
+  return test_DuneRoiBuildingService(a_LogLevel);
 }
 
 //**********************************************************************

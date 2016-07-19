@@ -11,7 +11,7 @@
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
 #include "dune/DuneInterface/PedestalEvaluationService.h"
 #include "dune/DuneInterface/AdcDeconvolutionService.h"
-#include "dune/DuneInterface/AdcRoiFindingService.h"
+#include "dune/DuneInterface/AdcRoiBuildingService.h"
 
 using std::string;
 using std::cout;
@@ -30,7 +30,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_pNoiseRemoval(nullptr),
   m_pPedestalEvaluation(nullptr),
   m_pDeconvolutionService(nullptr),
-  m_pRoiFindingService(nullptr) {
+  m_pRoiBuildingService(nullptr) {
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_DoMitigation = pset.get<bool>("DoMitigation");
@@ -67,8 +67,8 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   }
   if ( m_DoROI ) {
     if ( m_LogLevel ) cout << myname << "Fetching ROI building service." << endl;
-    m_pRoiFindingService = &*art::ServiceHandle<AdcRoiFindingService>();
-    if ( m_LogLevel ) cout << myname << "  ROI building service: @" <<  m_pRoiFindingService << endl;
+    m_pRoiBuildingService = &*art::ServiceHandle<AdcRoiBuildingService>();
+    if ( m_LogLevel ) cout << myname << "  ROI building service: @" <<  m_pRoiBuildingService << endl;
   }
   print(cout, myname);
 }
@@ -124,7 +124,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
   if ( m_DoROI ) {
     for ( auto& chdata : datamap ) {
       AdcChannelData& data = chdata.second;
-      m_pRoiFindingService->find(data);
+      m_pRoiBuildingService->build(data);
     }
   }
 

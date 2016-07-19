@@ -1,6 +1,6 @@
-// DuneRoiFindingService_service.cc
+// DuneRoiBuildingService_service.cc
 
-#include "DuneRoiFindingService.h"
+#include "DuneRoiBuildingService.h"
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -18,10 +18,10 @@ using art::ServiceHandle;
 
 //**********************************************************************
 
-DuneRoiFindingService::
-DuneRoiFindingService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
+DuneRoiBuildingService::
+DuneRoiBuildingService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1) {
-  const string myname = "DuneRoiFindingService::ctor: ";
+  const string myname = "DuneRoiBuildingService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_NSigmaStart = pset.get<AdcSignal>("NSigmaStart");
   m_NSigmaEnd   = pset.get<AdcSignal>("NSigmaEnd");
@@ -33,16 +33,16 @@ DuneRoiFindingService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 
 //**********************************************************************
 
-int DuneRoiFindingService::find(AdcChannelData& data) const {
-  const string myname = "DuneRoiFindingService:find: ";
-  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel "
+int DuneRoiBuildingService::build(AdcChannelData& data) const {
+  const string myname = "DuneRoiBuildingService:build: ";
+  if ( m_LogLevel >= 2 ) cout << myname << "Building ROIs for channel "
                               << data.channel << "." << endl;
   data.rois.clear();
   // Get signal shaping service.
   art::ServiceHandle<util::SignalShapingServiceDUNE> hsss;
   AdcSignal sigma = hsss->GetDeconNoise(data.channel);
   const AdcSignalVector& sigs = data.samples;
-  // Find ROIS before merging.
+  // Build ROIS before merging.
   AdcRoiVector rois;
   bool inroi = false;
   AdcIndex isig0 = 0;
@@ -115,9 +115,9 @@ int DuneRoiFindingService::find(AdcChannelData& data) const {
 
 //**********************************************************************
 
-ostream& DuneRoiFindingService::
+ostream& DuneRoiBuildingService::
 print(ostream& out, string prefix) const {
-  out << prefix << "DuneRoiFindingService:" << endl;
+  out << prefix << "DuneRoiBuildingService:" << endl;
   out << prefix << "    LogLevel: " << m_LogLevel << endl;
   out << prefix << " NSigmaStart: " << m_NSigmaStart << endl;
   out << prefix << "   NSigmaEnd: " << m_NSigmaEnd << endl;
@@ -128,6 +128,6 @@ print(ostream& out, string prefix) const {
 
 //**********************************************************************
 
-DEFINE_ART_SERVICE_INTERFACE_IMPL(DuneRoiFindingService, AdcRoiFindingService)
+DEFINE_ART_SERVICE_INTERFACE_IMPL(DuneRoiBuildingService, AdcRoiBuildingService)
 
 //**********************************************************************

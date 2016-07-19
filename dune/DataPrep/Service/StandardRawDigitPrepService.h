@@ -10,7 +10,7 @@
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
 //   DoMitigation - Run mitigation (e.g. stuck bit removal) on extracted data.
-//   DoEarlySignalFinding - Run signal finding before noise removal.
+//   DoEarlySignalFinding - Run signal building before noise removal.
 //   DoNoiseRemoval - Run coherent noise suppression.
 //   DoPedestalAdjustment - Do dynamic pedestal adjustment.
 //   DoDeconvolution - Deconvolute the signal.
@@ -27,7 +27,7 @@ class AdcSignalFindingService;
 class AdcNoiseRemovalService;
 class PedestalEvaluationService;
 class AdcDeconvolutionService;
-class AdcRoiFindingService;
+class AdcRoiBuildingService;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
@@ -56,7 +56,7 @@ private:
   const AdcNoiseRemovalService* m_pNoiseRemoval;
   const PedestalEvaluationService* m_pPedestalEvaluation;
   const AdcDeconvolutionService* m_pDeconvolutionService;
-  const AdcRoiFindingService* m_pRoiFindingService;
+  const AdcRoiBuildingService* m_pRoiBuildingService;
 
 };
 
