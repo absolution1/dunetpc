@@ -42,6 +42,12 @@ cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
     dune_ArtSupport
 )
 
+cet_test(test_DuneRoiFindingService SOURCES test_DuneRoiFindingService
+  LIBRARIES
+    dune_DataPrep_Service_DuneRoiFindingService_service
+    dune_ArtSupport
+)
+
 cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx
   LIBRARIES
     dune_DataPrep_Service_StandardRawDigitExtractService_service

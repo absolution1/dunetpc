@@ -3,6 +3,7 @@
 #include "DuneRoiFindingService.h"
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/DuneInterface/AdcSuppressService.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
@@ -12,6 +13,7 @@ using std::string;
 using std::ostream;
 using std::cout;
 using std::endl;
+using std::setw;
 using art::ServiceHandle;
 
 //**********************************************************************
@@ -20,11 +22,11 @@ DuneRoiFindingService::
 DuneRoiFindingService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1) {
   const string myname = "DuneRoiFindingService::ctor: ";
-  pset.get_if_present<int>("m_LogLevel", m_LogLevel);
-  m_NSigmaStart = pset.get<AdcSignal>("m_NSigmaStart");
-  m_NSigmaEnd   = pset.get<AdcSignal>("m_NSigmaEnd");
-  m_PadLow      = pset.get<AdcSignal>("m_PadLow");
-  m_PadHigh     = pset.get<AdcSignal>("m_PadHigh");
+  pset.get_if_present<int>("LogLevel", m_LogLevel);
+  m_NSigmaStart = pset.get<AdcSignal>("NSigmaStart");
+  m_NSigmaEnd   = pset.get<AdcSignal>("NSigmaEnd");
+  m_PadLow      = pset.get<AdcSignal>("PadLow");
+  m_PadHigh     = pset.get<AdcSignal>("PadHigh");
   if ( m_LogLevel > 0 ) print(cout, myname);
 }
 
@@ -44,14 +46,14 @@ int DuneRoiFindingService::find(AdcChannelData& data) const {
   AdcRoiVector rois;
   bool inroi = false;
   AdcIndex isig0 = 0;
-  AdcSignal siglow = m_NSigmaStart*sigma;
-  AdcSignal sighigh = m_NSigmaEnd*sigma;
+  AdcSignal siglow = m_NSigmaEnd*sigma;
+  AdcSignal sighigh = m_NSigmaStart*sigma;
   AdcIndex nsig = sigs.size();
   for ( AdcIndex isig=0; isig<sigs.size(); ++isig ) {
     AdcSignal sig = sigs[isig];
     if ( inroi ) {
       if ( sig < siglow || isig == nsig-1 ) {
-        rois.push_back(AdcRoi(isig0, isig));
+        rois.push_back(AdcRoi(isig0, isig-1));
         isig0 = 0;
         inroi = false;
       }
@@ -62,37 +64,52 @@ int DuneRoiFindingService::find(AdcChannelData& data) const {
       }
     }
   }
-  if ( m_LogLevel >= 2 ) cout << myname << "  ROI count before merge: "
-                              << rois.size() << endl;
+  // Display ROIs before padding and merging.
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "  ROIs before merge (size = " << rois.size() << "):" << endl;
+    for ( const AdcRoi& roi : rois ) {
+      cout << myname << setw(8) << roi.first << " " << setw(8) << roi.second << endl;
+    }
+  } else if ( m_LogLevel >= 2 ) {
+    cout << myname << "  ROI count before merge: " << rois.size() << endl;
+  }
   if ( rois.size() == 0 ) return 0;
-  // Merge ROIs.
-  AdcIndex iroi = 0;
-  AdcIndex lo1 = rois[iroi].first;
-  if ( lo1 > m_PadLow ) lo1 =- m_PadLow;
-  else lo1 = 0;
-  AdcIndex hi1 = rois[iroi].second + m_PadHigh;
-  if ( hi1 > nsig ) hi1 = nsig;
-  while ( ++iroi < rois.size() ) {
+  // Pad and merge ROIs. The current ROI is (lo1, hi1).
+  AdcIndex lo1 = 0;
+  AdcIndex hi1 = 0;
+  // Loop over unpadded and unmerged ROIs.
+  for ( AdcIndex iroi=0; iroi < rois.size(); ++iroi ) {
+    // Pad the new ROI and store it in (lo2, hi2).
     AdcIndex lo2 = rois[iroi].first;
-    if ( lo2 > m_PadLow ) lo1 =- m_PadLow;
+    if ( lo2 > m_PadLow ) lo2 -= m_PadLow;
     else lo2 = 0;
     AdcIndex hi2 = rois[iroi].second + m_PadHigh;
-    if ( hi2 > nsig ) hi2 = nsig;
-    bool endroi = false;
-    if ( lo2 <= hi1+1 ) {
+    if ( hi2 >= nsig ) hi2 = nsig-1;
+    // First ROI. Make it the current ROI.
+    if ( iroi == 0 ) {
+      lo1 = lo2;
       hi1 = hi2;
-      endroi = iroi+1 == rois.size();
+    // ROI overlaps the current ROI. Merge by extending the current ROI.
+    } else if ( lo2 <= hi1 + 1 ) {
+      hi1 = hi2;
+    // New ROI. Save the current ROI and make the new ROI current.
     } else {
-      endroi = true;
-    }
-    if ( endroi ) {
       data.rois.push_back(AdcRoi(lo1, hi1));
       lo1 = lo2;
       hi1 = hi2;
     }
   }
-  if ( m_LogLevel >= 2 ) cout << myname << "   ROI count after merge: "
-                              << data.rois.size() << endl;
+  // Save the last ROI.
+  data.rois.push_back(AdcRoi(lo1, hi1));
+  // Display final ROIs.
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "  ROIs after merge (size = " << data.rois.size() << "):" << endl;
+    for ( const AdcRoi& roi : data.rois ) {
+      cout << myname << setw(8) << roi.first << " " << setw(8) << roi.second << endl;
+    }
+  } else if ( m_LogLevel >= 2 ) {
+    cout << myname << "  ROI count after merge: " << data.rois.size() << endl;
+  }
   return 0;
 }
 
@@ -101,11 +118,11 @@ int DuneRoiFindingService::find(AdcChannelData& data) const {
 ostream& DuneRoiFindingService::
 print(ostream& out, string prefix) const {
   out << prefix << "DuneRoiFindingService:" << endl;
-  out << "    LogLevel: " << m_LogLevel << endl;
-  out << " NSigmaStart: " << m_NSigmaStart << endl;
-  out << "   NSigmaEnd: " << m_NSigmaEnd << endl;
-  out << "      PadLow: " << m_PadLow << endl;
-  out << "     PadHigh: " << m_PadHigh << endl;
+  out << prefix << "    LogLevel: " << m_LogLevel << endl;
+  out << prefix << " NSigmaStart: " << m_NSigmaStart << endl;
+  out << prefix << "   NSigmaEnd: " << m_NSigmaEnd << endl;
+  out << prefix << "      PadLow: " << m_PadLow << endl;
+  out << prefix << "     PadHigh: " << m_PadHigh << endl;
   return out;
 }
 
