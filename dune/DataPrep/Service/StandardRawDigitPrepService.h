@@ -14,6 +14,7 @@
 //   DoNoiseRemoval - Run coherent noise suppression.
 //   DoPedestalAdjustment - Do dynamic pedestal adjustment.
 //   DoDeconvolution - Deconvolute the signal.
+//   DoROI - Build ROIs.
 
 #ifndef StandardRawDigitPrepService_H
 #define StandardRawDigitPrepService_H
@@ -26,6 +27,7 @@ class AdcSignalFindingService;
 class AdcNoiseRemovalService;
 class PedestalEvaluationService;
 class AdcDeconvolutionService;
+class AdcRoiFindingService;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
@@ -46,6 +48,7 @@ private:
   bool m_DoNoiseRemoval;
   bool m_DoPedestalAdjustment;
   bool m_DoDeconvolution;
+  bool m_DoROI;
 
   const RawDigitExtractService* m_pExtractSvc;
   const AdcMitigationService* m_pmitigateSvc;
@@ -53,6 +56,7 @@ private:
   const AdcNoiseRemovalService* m_pNoiseRemoval;
   const PedestalEvaluationService* m_pPedestalEvaluation;
   const AdcDeconvolutionService* m_pDeconvolutionService;
+  const AdcRoiFindingService* m_pRoiFindingService;
 
 };
 
