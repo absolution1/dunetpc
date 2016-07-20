@@ -10,6 +10,8 @@
 #include "dune/DuneInterface/AdcSignalFindingService.h"
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
 #include "dune/DuneInterface/PedestalEvaluationService.h"
+#include "dune/DuneInterface/AdcDeconvolutionService.h"
+#include "dune/DuneInterface/AdcRoiBuildingService.h"
 
 using std::string;
 using std::cout;
@@ -23,7 +25,12 @@ StandardRawDigitPrepService::
 StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1),
   m_pExtractSvc(nullptr),
-  m_pmitigateSvc(nullptr) {
+  m_pmitigateSvc(nullptr),
+  m_pAdcSignalFindingService(nullptr),
+  m_pNoiseRemoval(nullptr),
+  m_pPedestalEvaluation(nullptr),
+  m_pDeconvolutionService(nullptr),
+  m_pRoiBuildingService(nullptr) {
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_DoMitigation = pset.get<bool>("DoMitigation");
@@ -43,17 +50,25 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     m_pAdcSignalFindingService = &*art::ServiceHandle<AdcSignalFindingService>();
     if ( m_LogLevel ) cout << myname << "  Signal finding service: @" <<  m_pAdcSignalFindingService << endl;
   }
-  print(cout, myname);
   if ( m_DoNoiseRemoval ) {
     if ( m_LogLevel ) cout << myname << "Fetching noise removal service." << endl;
     m_pNoiseRemoval = &*art::ServiceHandle<AdcNoiseRemovalService>();
     if ( m_LogLevel ) cout << myname << "  Noise removal service: @" <<  m_pNoiseRemoval << endl;
   }
-  print(cout, myname);
   if ( m_DoPedestalAdjustment ) {
     if ( m_LogLevel ) cout << myname << "Fetching pedestal evaluation service." << endl;
     m_pPedestalEvaluation = &*art::ServiceHandle<PedestalEvaluationService>();
     if ( m_LogLevel ) cout << myname << "  Pedestal evalution service: @" <<  m_pPedestalEvaluation << endl;
+  }
+  if ( m_DoDeconvolution ) {
+    if ( m_LogLevel ) cout << myname << "Fetching deconvolution service." << endl;
+    m_pDeconvolutionService = &*art::ServiceHandle<AdcDeconvolutionService>();
+    if ( m_LogLevel ) cout << myname << "  Deconvolution service: @" <<  m_pDeconvolutionService << endl;
+  }
+  if ( m_DoROI ) {
+    if ( m_LogLevel ) cout << myname << "Fetching ROI building service." << endl;
+    m_pRoiBuildingService = &*art::ServiceHandle<AdcRoiBuildingService>();
+    if ( m_LogLevel ) cout << myname << "  ROI building service: @" <<  m_pRoiBuildingService << endl;
   }
   print(cout, myname);
 }
@@ -93,6 +108,11 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
   if ( m_DoNoiseRemoval ) {
     m_pNoiseRemoval->update(datamap);
   }
+  if ( m_DoDeconvolution ) {
+    for ( AdcChannelDataMap::value_type chdata : datamap ) {
+      m_pDeconvolutionService->update(chdata.second);
+    }
+  }
   if ( m_DoPedestalAdjustment ) {
     for ( auto& chdata : datamap ) {
       AdcChannelData& data = chdata.second;
@@ -101,6 +121,13 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
       for ( AdcSignal& sig : data.samples ) sig -= ped;
     }
   }
+  if ( m_DoROI ) {
+    for ( auto& chdata : datamap ) {
+      AdcChannelData& data = chdata.second;
+      m_pRoiBuildingService->build(data);
+    }
+  }
+
   return nbad;
 }
 
@@ -113,7 +140,9 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "         DoMitigation: " << m_DoMitigation         << endl;
   out << prefix << " DoEarlySignalFinding: " << m_DoEarlySignalFinding << endl;
   out << prefix << "       DoNoiseRemoval: " << m_DoNoiseRemoval       << endl;
+  out << prefix << "      DoDeconvolution: " << m_DoDeconvolution      << endl;
   out << prefix << " DoPedestalAdjustment: " << m_DoPedestalAdjustment << endl;
+  out << prefix << "                DoROI: " << m_DoROI                << endl;
   return out;
 }
 

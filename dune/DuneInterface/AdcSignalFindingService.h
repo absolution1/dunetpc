@@ -7,7 +7,6 @@
 // June 2016
 //
 // Interface for a service that finds signals in ADC channel data.
-// of ADC channel signals.
 
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/AdcChannelData.h"
@@ -17,8 +16,7 @@ class AdcSignalFindingService {
 
 public:
 
-  // Extract the channel, signals and flags. All are pointer types so the caller can use null to
-  // indicate any of the fields are not of interest.
+  // Find signals and set data.signal correspondingly.
   virtual int find(AdcChannelData& data) const =0;
 
   // Print parameters.

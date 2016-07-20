@@ -5,7 +5,7 @@
 //
 // Implementation of service that replaces flagged samples in AdcChannelData
 // with values interpolated from neighboring unflagged samples.
-// This is a way to deal with the struck bits in DUNE 35-ton data.
+// This is a way to deal with the stuck bits in DUNE 35-ton data.
 //
 // Up to MaxConsecutiveSamples consecutive samples are replaced with interpolated values.
 //

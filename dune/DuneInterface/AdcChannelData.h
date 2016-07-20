@@ -34,6 +34,7 @@ public:
   AdcFlagVector flags;
   AdcFilterVector signal;
   const raw::RawDigit* digit =nullptr;
+  AdcRoiVector rois;
 
 };
 
