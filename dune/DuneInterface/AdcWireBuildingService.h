@@ -11,7 +11,7 @@
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
-#include "lardata/RecoBase/Wire.h"
+#include "lardataobj/RecoBase/Wire.h"
 
 class AdcWireBuildingService {
 

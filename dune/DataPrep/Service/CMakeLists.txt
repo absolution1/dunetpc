@@ -34,21 +34,21 @@ simple_plugin(AdcSuppressSignalFindingService "service"
              )
 
 simple_plugin(DuneDeconvolutionService "service"
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
                 SignalShapingServiceDUNE_service
              )
 
 simple_plugin(DuneRoiBuildingService "service"
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
                 SignalShapingServiceDUNE_service
              )
 
 simple_plugin(StandardAdcWireBuildingService "service"
-                lardata_RecoBase
+                lardataobj_RecoBase
                 lardata_RecoBaseArt
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 
