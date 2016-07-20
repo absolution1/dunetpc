@@ -7,7 +7,7 @@
 //
 //    channel - Offline channel number
 //   pedestal - Pedestal subtracted from the raw count
-//        raw - Array holding the raw ADC count for each tick
+//        raw - Uncompressed array holding the raw ADC count for each tick
 //    samples - Array holding the prepared signal value for each tick
 //      flags - Array holding the status flag for each tick
 //     signal - Array holding bools indicating which ticks have signals
@@ -22,6 +22,9 @@
 namespace raw {
   class RawDigit;
 }
+namespace recob {
+  class Wire;
+}
 
 class AdcChannelData {
 
@@ -33,8 +36,9 @@ public:
   AdcSignalVector samples;
   AdcFlagVector flags;
   AdcFilterVector signal;
-  const raw::RawDigit* digit =nullptr;
   AdcRoiVector rois;
+  const raw::RawDigit* digit =nullptr;
+  const recob::Wire* wire =nullptr;
 
 };
 

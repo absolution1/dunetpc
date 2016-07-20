@@ -45,6 +45,13 @@ simple_plugin(DuneRoiBuildingService "service"
                 SignalShapingServiceDUNE_service
              )
 
+simple_plugin(StandardAdcWireBuildingService "service"
+                lardata_RecoBase
+                lardata_RecoBaseArt
+                ${ART_UTILITIES}
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(StandardRawDigitPrepService   "service"
                 lardataobj_RawData
                 art_Utilities canvas_Utilities
