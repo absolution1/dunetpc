@@ -6,30 +6,30 @@
 # Add plugin for each service.
 
 simple_plugin(InterpolatingAdcMitigationService   "service"
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(StandardRawDigitExtractService   "service"
-                lardata_RawData
-                ${ART_UTILITIES}
+                lardataobj_RawData
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(Dune35tNoiseRemovalService   "service"
                 larcore_Geometry
                 lbne-raw-data_Services_ChannelMap_ChannelMapService_service
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(MedianPedestalService   "service"
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(AdcSuppressSignalFindingService "service"
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 
@@ -46,8 +46,8 @@ simple_plugin(DuneRoiBuildingService "service"
              )
 
 simple_plugin(StandardRawDigitPrepService   "service"
-                lardata_RawData
-                ${ART_UTILITIES}
+                lardataobj_RawData
+                art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
 

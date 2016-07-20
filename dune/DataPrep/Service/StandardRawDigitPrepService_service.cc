@@ -3,7 +3,7 @@
 #include "StandardRawDigitPrepService.h"
 #include <iostream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "dune/DuneInterface/RawDigitExtractService.h"
 #include "dune/DuneInterface/AdcMitigationService.h"

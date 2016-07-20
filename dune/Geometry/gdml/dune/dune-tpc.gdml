@@ -82,5 +82,5 @@
    <volumeref ref="volTPCPlaneVert"/>
    <position name="posTPCPlaneVert" unit="cm" x="-0.5*kTPCDepth-2.0*kTPCWirePlaneThickness" y="0" z="0"/>
   </physvol>
- </volume> 
+ </volume>
 </structure>

@@ -11,7 +11,7 @@
 #include <fstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/RawDigitPrepService.h"
