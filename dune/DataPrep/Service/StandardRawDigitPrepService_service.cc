@@ -35,8 +35,10 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_DoMitigation = pset.get<bool>("DoMitigation");
   m_DoEarlySignalFinding = pset.get<bool>("DoEarlySignalFinding");
-  m_DoNoiseRemoval = pset.get<bool>("DoNoiseRemoval");
+  m_DoNoiseRemoval       = pset.get<bool>("DoNoiseRemoval");
   m_DoPedestalAdjustment = pset.get<bool>("DoPedestalAdjustment");
+  m_DoDeconvolution      = pset.get<bool>("DoDeconvolution");
+  m_DoROI                = pset.get<bool>("DoROI");
   if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
   m_pExtractSvc = &*art::ServiceHandle<RawDigitExtractService>();
   if ( m_LogLevel ) cout << myname << "  Extract service: @" <<  m_pExtractSvc << endl;
@@ -127,7 +129,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
       m_pRoiBuildingService->build(data);
     }
   }
-
+  if ( m_LogLevel >=1 ) print(cout, myname);
   return nbad;
 }
 

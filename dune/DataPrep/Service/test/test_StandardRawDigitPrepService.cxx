@@ -80,6 +80,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     fout << "  DoMitigation:         false" << endl;
     fout << "  DoEarlySignalFinding: false" << endl;
     fout << "  DoNoiseRemoval:       false" << endl;
+    fout << "  DoDeconvolution:      false" << endl;
+    fout << "  DoROI:                false" << endl;
     if ( usePedestalAdjustment ) {
       fout << "  DoPedestalAdjustment:  true" << endl;
     } else {
