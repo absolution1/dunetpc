@@ -5,7 +5,6 @@
 #include <sstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "dune/DuneInterface/AdcSuppressService.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
 
 using std::vector;

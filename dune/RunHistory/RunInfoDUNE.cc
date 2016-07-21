@@ -1,6 +1,6 @@
 #include "dune/RunHistory/RunHistoryDUNE.h"
 
-#include "IFDatabase/Table.h"
+#include "nutools/IFDatabase/Table.h"
 #include <getopt.h>
 #include <iostream>
 

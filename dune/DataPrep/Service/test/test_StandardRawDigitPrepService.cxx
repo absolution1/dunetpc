@@ -11,7 +11,7 @@
 #include <fstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/RawDigitPrepService.h"
@@ -80,6 +80,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     fout << "  DoMitigation:         false" << endl;
     fout << "  DoEarlySignalFinding: false" << endl;
     fout << "  DoNoiseRemoval:       false" << endl;
+    fout << "  DoDeconvolution:      false" << endl;
+    fout << "  DoROI:                false" << endl;
     if ( usePedestalAdjustment ) {
       fout << "  DoPedestalAdjustment:  true" << endl;
     } else {
