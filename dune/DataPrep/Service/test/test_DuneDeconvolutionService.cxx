@@ -139,12 +139,17 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
 //**********************************************************************
 
 int main(int argc, char* argv[]) {
-  int a_LogLevel = -1;
+  const string myname = "main: ";
+  int a_LogLevel = 1;
   if ( argc > 1 ) {
     istringstream ssarg(argv[1]);
     ssarg >> a_LogLevel;
   }
-  return test_DuneDeconvolutionService(a_LogLevel);
+  int rstat = test_DuneDeconvolutionService(a_LogLevel);
+  cout << myname << "Closing service helper." << endl;
+  ArtServiceHelper::close();
+  cout << myname << "Exiting." << endl;
+  return rstat;
 }
 
 //**********************************************************************
