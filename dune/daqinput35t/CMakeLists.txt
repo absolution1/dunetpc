@@ -7,8 +7,8 @@ art_make(BASENAME_ONLY
         LIBRARY_NAME lbne_daqinput35t
         LIB_LIBRARIES
         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-        ${ART_PERSISTENCY_PROVENANCE}
-        ${ART_UTILITIES}
+        art_Persistency_Provenance canvas_Persistency_Provenance
+        art_Utilities canvas_Utilities
         ${ROOT_CORE}
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
@@ -19,8 +19,8 @@ art_make(BASENAME_ONLY
         lbne_daqinput35t_utilities
         lbne-raw-data_Overlays
 	lbne-raw-data_Services_ChannelMap_ChannelMapService_service
-        lardata_RawData
-        lardata_RecoBase
+        lardataobj_RawData
+        lardataobj_RecoBase
         dune_DuneCommon
         NO_PLUGINS
         )
@@ -29,17 +29,17 @@ simple_plugin(TpcMilliSliceDump "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
 larcore_Geometry
-lardata_RawData
-${SIMULATIONBASE}
+lardataobj_RawData
+nusimdata_SimulationBase
 # ${ART_FRAMEWORK_CORE}
 # ${ART_FRAMEWORK_PRINCIPAL}
 ${ART_FRAMEWORK_SERVICES_REGISTRY}
 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 # ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-# ${ART_PERSISTENCY_COMMON}
-# ${ART_PERSISTENCY_PROVENANCE}
-# ${ART_UTILITIES}
+# art_Persistency_Common canvas_Persistency_Common
+# art_Persistency_Provenance canvas_Persistency_Provenance
+# art_Utilities canvas_Utilities
 # ${MF_MESSAGELOGGER}
 # ${MF_UTILITIES}
 # ${CETLIB}
@@ -51,8 +51,8 @@ simple_plugin(SSPDump "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
 larcore_Geometry
-lardata_RawData
-${SIMULATIONBASE}
+lardataobj_RawData
+nusimdata_SimulationBase
 art_Framework_Services_Registry
 art_Framework_Services_Optional
 art_Framework_Services_Optional_TFileService_service
@@ -64,9 +64,9 @@ lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lbne_daqinput35t
-lardata_RawData
-lardata_RecoBase
-${SIMULATIONBASE}
+lardataobj_RawData
+lardataobj_RecoBase
+nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 )
 
@@ -75,8 +75,8 @@ lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lbne_daqinput35t
-lardata_RawData
-${SIMULATIONBASE}
+lardataobj_RawData
+nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 )
 
@@ -85,8 +85,8 @@ lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lbne_daqinput35t
-lardata_RawData
-${SIMULATIONBASE}
+lardataobj_RawData
+nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 art_Framework_Services_Registry
 art_Framework_Services_Optional
@@ -100,8 +100,8 @@ lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
 larcore_Geometry
 lbne_daqinput35t
-lardata_RawData
-${SIMULATIONBASE}
+lardataobj_RawData
+nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 art_Framework_Services_Registry
 art_Framework_Services_Optional
@@ -117,7 +117,7 @@ lbne_daqinput35t_utilities
 lbne_daqinput35t
 larcore_Geometry_Geometry_service
 larcore_Geometry
-lardata_RawData
+lardataobj_RawData
 art_Framework_Services_Registry
 art_Framework_Services_Optional
 ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
@@ -131,15 +131,15 @@ simple_plugin(NoiseCorrelation "module"
 			       lbne_daqinput35t
 			       larcore_Geometry_Geometry_service
 			       larcore_Geometry
-			       lardata_RawData
+			       lardataobj_RawData
 			       ${ART_FRAMEWORK_CORE}
 			       ${ART_FRAMEWORK_PRINCIPAL}
 			       ${ART_FRAMEWORK_SERVICES_REGISTRY}
 			       ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			       ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			       ${ART_PERSISTENCY_COMMON}
-			       ${ART_PERSISTENCY_PROVENANCE}
-			       ${ART_UTILITIES}
+			       art_Persistency_Common canvas_Persistency_Common
+			       art_Persistency_Provenance canvas_Persistency_Provenance
+			       art_Utilities canvas_Utilities
 			       ${MF_MESSAGELOGGER}
 			       ${MF_UTILITIES}
 			       ${CETLIB}
@@ -154,7 +154,7 @@ simple_plugin(FilterWF "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
@@ -171,7 +171,7 @@ simple_plugin(CheckRawDigit "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
@@ -188,7 +188,7 @@ simple_plugin(Sigmoidfilter "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
@@ -204,7 +204,7 @@ simple_plugin(FilterAnalyzer "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
@@ -220,7 +220,7 @@ simple_plugin(FilterAnalyzerRunList "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
@@ -233,7 +233,7 @@ simple_plugin(GoodRun "module"
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
  lbne_daqinput35t
- lardata_RawData
+ lardataobj_RawData
  ${ART_FRAMEWORK_CORE}
  ${ART_FRAMEWORK_PRINCIPAL}
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
@@ -245,11 +245,11 @@ simple_plugin(SplitterInput "source"
  lbne_daqinput35t
  art_Framework_IO_Root
  art_Framework_IO_Sources
- larsim_Simulation
+ larsim_Simulation larsimobj_Simulation
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
- ${SIMULATIONBASE}
+ nusimdata_SimulationBase
  ${SIMULATION}
 )
 

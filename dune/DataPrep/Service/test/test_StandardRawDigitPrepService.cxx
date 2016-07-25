@@ -11,7 +11,7 @@
 #include <fstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/RawDigitPrepService.h"
@@ -70,8 +70,9 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     fout << "}" << endl;
     fout << "services.PedestalEvaluationService: {" << endl;
     fout << "  service_provider: MedianPedestalService" << endl;
-    fout << "  LogLevel:         1" << endl;
-    fout << "  SkipStuckBits: true" << endl;
+    fout << "  LogLevel:           1" << endl;
+    fout << "  SkipFlaggedSamples: true" << endl;
+    fout << "  SkipSignals:        true" << endl;
     fout << "}" << endl;
     fout << "services.RawDigitPrepService: {" << endl;
     fout << "  service_provider: StandardRawDigitPrepService" << endl;
@@ -79,6 +80,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     fout << "  DoMitigation:         false" << endl;
     fout << "  DoEarlySignalFinding: false" << endl;
     fout << "  DoNoiseRemoval:       false" << endl;
+    fout << "  DoDeconvolution:      false" << endl;
+    fout << "  DoROI:                false" << endl;
     if ( usePedestalAdjustment ) {
       fout << "  DoPedestalAdjustment:  true" << endl;
     } else {

@@ -13,8 +13,8 @@
 #define TimeDist_Module
 
 // LArSoft includes
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/OpFlash.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/OpFlash.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 // Framework includes

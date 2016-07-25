@@ -15,28 +15,28 @@
 #include "art/Framework/Principal/Event.h" 
 #include "fhiclcpp/ParameterSet.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "art/Persistency/Common/Ptr.h" 
-#include "art/Persistency/Common/PtrVector.h" 
+#include "canvas/Persistency/Common/Ptr.h" 
+#include "canvas/Persistency/Common/PtrVector.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 #include "art/Framework/Services/Optional/TFileService.h" 
 #include "art/Framework/Services/Optional/TFileDirectory.h" 
 #include "messagefacility/MessageLogger/MessageLogger.h" 
-#include "art/Framework/Core/FindManyP.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/WireGeo.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Track.h"
-#include "lardata/RecoBase/SpacePoint.h"
-#include "lardata/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/Shower.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larsim/MCCheater/BackTracker.h"
-#include "lardata/AnalysisBase/ParticleID.h"
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 #include "larsim/MCCheater/BackTracker.h"
 
 // ROOT
@@ -67,6 +67,7 @@ public:
   void SetDepositedEnergy(std::map<int,double> depositedEnergy);
   void SetDirection(TVector3 direction);
   void SetStart(TVector3 start);
+  void SetEnd(TVector3 end);
   void SetPDG(int pdg);
 
   void AddAssociatedHit(const art::Ptr<recob::Hit>& hit);
@@ -78,6 +79,7 @@ public:
   int PDG() const { return fPDG; }
 
   TVector3 Start() const { return fStart; }
+  TVector3 End() const { return fEnd; }
   TVector3 Direction() const { return fDirection; }
   double Energy() const { return fEnergy; }
   double DepositedEnergy() const { art::Ptr<recob::Shower> s = fShowers.at(fLargestShower); return DepositedEnergy(s->best_plane()); }
@@ -111,7 +113,7 @@ private:
   int fID;
   int fPDG;
 
-  TVector3 fStart, fDirection;
+  TVector3 fStart, fEnd, fDirection;
   double fEnergy;
   std::map<int,double> fDepositedEnergy;
 
@@ -154,6 +156,10 @@ void showerAna::ShowerParticle::SetDirection(TVector3 direction) {
 
 void showerAna::ShowerParticle::SetStart(TVector3 start) {
   fStart = start;
+}
+
+void showerAna::ShowerParticle::SetEnd(TVector3 end) {
+  fEnd = end;
 }
 
 void showerAna::ShowerParticle::SetPDG(int pdg) {
@@ -305,6 +311,7 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
     particle->SetDepositedEnergy(depositedEnergy);
     particle->SetDirection(trueParticle->Momentum().Vect().Unit());
     particle->SetStart(trueParticle->Position().Vect());
+    particle->SetEnd(trueParticle->EndPosition().Vect());
     particle->SetPDG(trueParticle->PdgCode());
 
     particles[particleIt->first] = std::move(particle);
@@ -384,8 +391,14 @@ void showerAna::ShowerAnalysis::FillData(const std::map<int,std::shared_ptr<Show
 	hShowerEnergyCompleteness               ->Fill(particle->Energy(), particle->ShowerEnergy()/particle->DepositedEnergy());
 	hShowerDirection                        ->Fill(particle->Direction().Dot(particle->ShowerDirection()));
 	hShowerdEdx                             ->Fill(particle->ShowerdEdx());
-	hShowerStart                            ->Fill((particle->Start() - particle->ShowerStart()).Mag());
-	hShowerStartEnergy                      ->Fill(particle->Energy(), (particle->Start() - particle->ShowerStart()).Mag());
+	if (particle->PDG() == 22) {
+	  hShowerStart                          ->Fill((particle->End() - particle->ShowerStart()).Mag());
+	  hShowerStartEnergy                    ->Fill(particle->Energy(), (particle->End() - particle->ShowerStart()).Mag());
+	}
+	else {
+	  hShowerStart                          ->Fill((particle->Start() - particle->ShowerStart()).Mag());
+	  hShowerStartEnergy                    ->Fill(particle->Energy(), (particle->Start() - particle->ShowerStart()).Mag());
+	}
       }
     }
 
@@ -535,11 +548,11 @@ void showerAna::ShowerAnalysis::MakeDataProducts() {
   }
   hNumShowersReconstructed->GetXaxis()->SetBinLabel(10,"9 or more");
   hNumShowersReconstructedNonZero->GetXaxis()->SetBinLabel(9,"9 or more");
-  hShowerReconstructedEnergy = tfs->make<TProfile>("ShowerReconstructedEnergyProfile","% of showering particles with reconstructed shower vs true energy;True Energy (GeV);Fraction of particles with reconstructed shower;",100,0,1);
-  hNumShowersReconstructedEnergy = tfs->make<TH2D>("NumShowersReconstructedEnergy","Number of showers reconstructed per showering particle vs true energy;True Energy (GeV);Average Number of Showers;",100,0,1,10,0,10);
-  hNumShowersReconstructedEnergyProfile = tfs->make<TProfile>("NumShowersReconstructedEnergyProfile",";True Energy (GeV);Number of Showers;",100,0,1);
-  hShowerdEdxEnergy = tfs->make<TH2D>("ShowerdEdxEnergy","Shower dE/dx vs true energy;True Energy (GeV);dE/dx (MeV/cm);",100,0,1,50,0,10);
-  hShowerdEdxEnergyProfile = tfs->make<TProfile>("ShowerdEdxEnergyProfile",";True Energy (GeV);dE/dx (MeV/cm);",100,0,1);
+  hShowerReconstructedEnergy = tfs->make<TProfile>("ShowerReconstructedEnergyProfile","% of showering particles with reconstructed shower vs true energy;True Energy (GeV);Fraction of particles with reconstructed shower;",100,0,5);
+  hNumShowersReconstructedEnergy = tfs->make<TH2D>("NumShowersReconstructedEnergy","Number of showers reconstructed per showering particle vs true energy;True Energy (GeV);Average Number of Showers;",100,0,5,10,0,10);
+  hNumShowersReconstructedEnergyProfile = tfs->make<TProfile>("NumShowersReconstructedEnergyProfile",";True Energy (GeV);Number of Showers;",100,0,5);
+  hShowerdEdxEnergy = tfs->make<TH2D>("ShowerdEdxEnergy","Shower dE/dx vs true energy;True Energy (GeV);dE/dx (MeV/cm);",100,0,5,50,0,10);
+  hShowerdEdxEnergyProfile = tfs->make<TProfile>("ShowerdEdxEnergyProfile",";True Energy (GeV);dE/dx (MeV/cm);",100,0,5);
   hElectronPull = tfs->make<TH1D>("ElectronPull","Electron pull;Electron pull;",100,-10,10);
   hPhotonPull = tfs->make<TH1D>("PhotonPull","Photon pull;Photon pull;",100,-10,10);
 

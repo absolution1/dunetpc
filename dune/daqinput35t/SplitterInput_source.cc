@@ -2,22 +2,22 @@
 #include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Core/InputSourceMacros.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
-#include "art/Framework/IO/Root/rootNames.h"
+#include "canvas/Persistency/Provenance/rootNames.h"
 #include "art/Framework/IO/Sources/Source.h"
 #include "art/Framework/IO/Sources/SourceHelper.h"
 #include "art/Framework/IO/Sources/SourceTraits.h"
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
 #include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Persistency/Provenance/EventID.h"
+#include "canvas/Persistency/Provenance/EventID.h"
 #include "art/Persistency/Provenance/MasterProductRegistry.h"
-#include "art/Persistency/Provenance/RunID.h"
-#include "art/Persistency/Provenance/SubRunID.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Persistency/Provenance/RunID.h"
+#include "canvas/Persistency/Provenance/SubRunID.h"
+#include "canvas/Utilities/InputTag.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Persistency/Provenance/EventAuxiliary.h"
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
-#include "larsim/Simulation/SimChannel.h"
+#include "canvas/Persistency/Provenance/EventAuxiliary.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "larsimobj/Simulation/SimChannel.h"
 
 //Pedestal stuff...
 #include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
@@ -32,8 +32,8 @@
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 
 // lardata
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/ExternalTrigger.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/ExternalTrigger.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
 // dune

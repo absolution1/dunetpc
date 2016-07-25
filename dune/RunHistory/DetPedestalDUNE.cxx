@@ -4,7 +4,7 @@
 #include "dunetpc/dune/RunHistory/DetPedestalDUNE.h"
 #include <string>
 #include <iostream>
-#include "IFDatabase/Table.h"
+#include "nutools/IFDatabase/Table.h"
 
 using std::string;
 using std::cout;
