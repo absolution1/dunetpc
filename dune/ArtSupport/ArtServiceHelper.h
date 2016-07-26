@@ -45,13 +45,21 @@ public:
 
   // Add a service.
   //   name - Name of the service, e.g. "TFileService"
-  //   sval - if not isFile, configuration string for the service, e.g. for TFileService:
+  //   sval - If not isFile, configuration string for the service, e.g. for TFileService:
   //          service_type: "TFileService" fileName: "test.root"
   //          Note this is just the contents, not the full named block.
-  //          if isFile, base file name. Path to locate file is $FHICL_FILE_PATH.
+  //          If isFile, base file name. Path to locate file is $FHICL_FILE_PATH.
   // Configuration format is the same as that found in the services block of an fcl file.
   // Returns 0 for success.
   int addService(std::string name, std::string sval ="", bool isFile =false);
+
+  // Add all services from a istring or file.
+  //   sval - If not isFile, configuration string for the services.
+  //          Note that in contrast to the preceding, the string must hold full named blocks.
+  //          If isFile, base file name. Path to locate file is $FHICL_FILE_PATH.
+  // Configuration format is the same as that found in the services block of an fcl file.
+  // Returns 0 for success.
+  int addServices(std::string sval ="", bool isFile =false);
 
   // Load the services, i.e. make them available for use via art::ServiceHandle.
   // Returns the status: 1 for success, 2 for failure.

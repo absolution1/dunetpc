@@ -5,6 +5,7 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <cassert>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
@@ -18,13 +19,13 @@
 using std::string;
 using std::cout;
 using std::endl;
-using std::hex;
+using std::istringstream;
 using art::ServiceHandle;
 
 #undef NDEBUG
 #include <cassert>
 
-int test_ArtServiceHelper() {
+int test_ArtServiceHelper(int opt) {
   const string myname = "test_ArtServiceHelper: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
@@ -40,23 +41,31 @@ int test_ArtServiceHelper() {
 
   ash.print();
 
-  cout << myname << line << endl;
-  cout << myname << "Add TFileService" << endl;
-  scfg = "fileName: \"mytest.root\" service_type: \"TFileService\"";
-  assert( ash.addService("TFileService", scfg) == 0 );
-  ash.print();
+  if ( opt == 1 ) {
+    cout << myname << line << endl;
+    cout << myname << "Add TFileService" << endl;
+    scfg = "fileName: \"mytest.root\" service_type: \"TFileService\"";
+    assert( ash.addService("TFileService", scfg) == 0 );
+    ash.print();
 
-  cout << myname << line << endl;
-  cout << myname << "Try to add TFileService again" << endl;
-  assert( ash.addService("TFileService", scfg) != 0 );
-  ash.print();
+    cout << myname << line << endl;
+    cout << myname << "Try to add TFileService again" << endl;
+    assert( ash.addService("TFileService", scfg) != 0 );
+    ash.print();
 
-  cout << myname << line << endl;
-  cout << myname << "Add RandomNumberGenerator" << endl;
-  ash.addService("RandomNumberGenerator", "prodsingle_common_dune35t.fcl", true);
-  ash.print();
-  assert( ash.serviceNames().size() == 2 );
-  assert( ash.serviceStatus() == 0 );
+    cout << myname << line << endl;
+    cout << myname << "Add RandomNumberGenerator" << endl;
+    ash.addService("RandomNumberGenerator", "prodsingle_common_dune35t.fcl", true);
+    ash.print();
+    assert( ash.serviceNames().size() == 2 );
+    assert( ash.serviceStatus() == 0 );
+
+  } else if ( opt == 2 ) {
+    cout << myname << line << endl;
+    cout << myname << "Adding 35t reco services" << endl;
+    scfg = "standard_reco_dune35t.fcl";
+    assert( ash.addServices(scfg, true) == 0 );
+  }
   
   cout << myname << line << endl;
   cout << myname << "Full configuration:" << endl;
@@ -90,13 +99,20 @@ int test_ArtServiceHelper() {
 
 int main(int argc, char** argv) {
   const string myname = "main: ";
-  bool skip = false;
+  int opt = 1;
   if ( argc > 1 ) {
-    cout << myname << "Running with argument skips the test." << endl;
-    skip = true;
+    opt = -1;
+    istringstream ssopt(argv[1]);
+    ssopt >> opt;
+    if ( opt < 0 ) {
+      cout << "Usage: test_ArtServiceHelper [OPT]" << endl;
+      cout << "  OPT = 0 to skip test." << endl;
+      cout << "        1 to load from string." << endl;
+      cout << "        2 to load all services from a file." << endl;
+    }
   }
-  if ( skip ) return 0;
-  int rstat = test_ArtServiceHelper();
+  if ( opt == 0 ) return 0;
+  int rstat = test_ArtServiceHelper(opt);
   cout << myname << "Closing service helper (to avoid crash)." << endl;
   ArtServiceHelper::close();
   cout << myname << "Exiting." << endl;
