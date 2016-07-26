@@ -68,25 +68,14 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
   if ( ash.serviceStatus() == 0 ) {
 
     cout << myname << line << endl;
-    cout << myname << "Add supporting services." << endl;
-    assert( ash.addService("ExptGeoHelperInterface", fclfile, true) == 0 );
-    assert( ash.addService("Geometry", fclfile, true) == 0 );
-    assert( ash.addService("LArPropertiesService", fclfile, true) == 0 );
-    assert( ash.addService("DetectorClocksService", fclfile, true) == 0 );
-    assert( ash.addService("DetectorPropertiesService", fclfile, true) == 0 );
-    assert( ash.addService("LArFFT", fclfile, true) == 0 );
-    assert( ash.addService("SignalShapingServiceDUNE", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Add deconvolution service." << endl;
-    assert( ash.addService("AdcDeconvolutionService", fclfile, true) == 0 );
-    ash.print();
+    cout << myname << "Add services." << endl;
+    assert( ash.addServices(fclfile, true) == 0 );
 
     cout << myname << line << endl;
     cout << myname << "Load services." << endl;
     assert( ash.loadServices() == 1 );
     ash.print();
+
   }
 
   const unsigned int nsig = 100;
