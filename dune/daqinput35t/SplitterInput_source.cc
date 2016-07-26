@@ -502,16 +502,15 @@ namespace {
 	std::cout << "\n\nIn TakeSimChans....SimChans has size " << MCParts.size() << ", event timestamp is " << event_timestamp << " meaning the time correction is " << TimeCorrec << std::endl;
       
       for (auto LoopSimChan: SimChans) {
-	sim::SimChannel newSimChan = sim::SimChannel( LoopSimChan.Channel() );
-	for (std::map<unsigned short,std::vector<sim::IDE> >::const_iterator ideMap = LoopSimChan.TDCIDEMap().begin(); ideMap != LoopSimChan.TDCIDEMap().end(); ++ideMap ) {
-	  const std::vector<sim::IDE> OldSimIDE = ideMap->second;
-	  unsigned short NewTime = ideMap->first - TimeCorrec;
-	  for (size_t zz = 0; zz<OldSimIDE.size(); ++zz) {
-	    double IDEPos[3] = { OldSimIDE[zz].x, OldSimIDE[zz].y, OldSimIDE[zz].z };
-	    newSimChan.AddIonizationElectrons(OldSimIDE[zz].trackID, NewTime, OldSimIDE[zz].numElectrons, IDEPos, OldSimIDE[zz].energy );
-	  }
-	  //if ( NewTime - ideMap->first != 0 ) std::cout << "!!!!!!!!!!!!!!!!!NOT EQUAL TO 0!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-	}
+        sim::SimChannel newSimChan = sim::SimChannel( LoopSimChan.Channel() );
+        for (auto const& ideMap : LoopSimChan.TDCIDEMap()) {
+          unsigned short NewTime = ideMap.first - TimeCorrec;
+          for (auto const& ide : ideMap.second) {
+            double IDEPos[3] = { ide.x, ide.y, ide.z };
+            newSimChan.AddIonizationElectrons(ide.trackID, NewTime, ide.numElectrons, IDEPos, ide.energy );
+          }
+            //if ( NewTime - ideMap->first != 0 ) std::cout << "!!!!!!!!!!!!!!!!!NOT EQUAL TO 0!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+        }
 	retSimChans.emplace_back(newSimChan);
 	if (fDebugLevel > 3)
 	  std::cout << "Added a newSimChan with size " << newSimChan.TDCIDEMap().size() << ", " << LoopSimChan.TDCIDEMap().size()
