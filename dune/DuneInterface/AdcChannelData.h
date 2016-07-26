@@ -11,7 +11,9 @@
 //    samples - Array holding the prepared signal value for each tick
 //      flags - Array holding the status flag for each tick
 //     signal - Array holding bools indicating which ticks have signals
+//       rois - Array of ROIs indicating which ticks have signals
 //      digit - Corresponding raw digit
+//       wire - Correponding wire
 
 #ifndef AdcChannelData_H
 #define AdcChannelData_H

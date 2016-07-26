@@ -41,7 +41,7 @@ int DuneRoiBuildingService::build(AdcChannelData& data) const {
   art::ServiceHandle<util::SignalShapingServiceDUNE> hsss;
   AdcSignal sigma = hsss->GetDeconNoise(data.channel);
   const AdcSignalVector& sigs = data.samples;
-  // Build ROIS before merging.
+  // Build ROIS before padding merging.
   AdcRoiVector rois;
   bool inroi = false;
   AdcIndex isig0 = 0;

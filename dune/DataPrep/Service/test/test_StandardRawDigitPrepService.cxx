@@ -82,6 +82,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     fout << "  DoNoiseRemoval:       false" << endl;
     fout << "  DoDeconvolution:      false" << endl;
     fout << "  DoROI:                false" << endl;
+    fout << "  DoWires:              false" << endl;
     if ( usePedestalAdjustment ) {
       fout << "  DoPedestalAdjustment:  true" << endl;
     } else {
