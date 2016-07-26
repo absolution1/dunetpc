@@ -3,7 +3,7 @@
 // David Adams
 // June 2016
 //
-// Struct to hold the prepared time samples for single TPC channel.
+// Struct to hold the prepared time samples for a single TPC channel.
 //
 //    channel - Offline channel number
 //   pedestal - Pedestal subtracted from the raw count
@@ -13,7 +13,7 @@
 //     signal - Array holding bools indicating which ticks have signals
 //       rois - Array of ROIs indicating which ticks have signals
 //      digit - Corresponding raw digit
-//       wire - Correponding wire
+//       wire - Corresponding wire
 
 #ifndef AdcChannelData_H
 #define AdcChannelData_H
@@ -42,8 +42,28 @@ public:
   const raw::RawDigit* digit =nullptr;
   const recob::Wire* wire =nullptr;
 
+  // Fill rois from signal.
+  void roisFromSignal();
+
 };
 
 typedef std::map<AdcChannel, AdcChannelData> AdcChannelDataMap;
+
+inline void AdcChannelData::roisFromSignal() {
+  rois.clear();
+  bool inRoi = false;
+  for ( unsigned int isig=0; isig<signal.size(); ++isig ) {
+    if ( inRoi ) {
+      AdcRoi& roi = rois.back();
+      if ( signal[isig] ) roi.second = isig;
+      else inRoi = false;
+    } else {
+      if ( signal[isig] ) {
+        rois.push_back(AdcRoi(isig, isig));
+        inRoi = true;
+      }
+    }
+  }
+}
 
 #endif
