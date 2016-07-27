@@ -215,6 +215,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     assert( pdig != nullptr );
     assert( pdig == &digs[chan] );
     assert( pdig->Channel() == chan );
+    assert( ichdat->second.digitIndex == chan );
     const AdcFlagVector& expflags = expflagsmap[chan];
     assert( expflagsmap[chan].size() == nsig );
     for ( unsigned int isig=0; isig<nsig; ++isig ) {

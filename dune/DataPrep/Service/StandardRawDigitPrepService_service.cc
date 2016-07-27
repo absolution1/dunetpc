@@ -96,14 +96,16 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
   }
   // Extract digits.
   int nbad = 0;
-  for ( const RawDigit& dig : digs ) {
+  for ( size_t idig=0; idig<digs.size(); ++idig ) {
+    const RawDigit& dig = digs[idig];
     AdcChannelData data;
+    data.digitIndex = idig;
     AdcChannel& chan = data.channel;
     AdcSignal& ped = data.pedestal;
     m_pExtractSvc->extract(dig, &chan, &ped, &data.raw, &data.samples, &data.flags);
     data.digit = &dig;
-    AdcChannelDataMap::const_iterator idig = datamap.find(chan);
-    if ( idig != datamap.end() ) {
+    AdcChannelDataMap::const_iterator iacd = datamap.find(chan);
+    if ( iacd != datamap.end() ) {
       cout << myname << "WARNING: Data already exists for channel " << chan << ". Skipping." << endl;
       ++nbad;
       continue;
