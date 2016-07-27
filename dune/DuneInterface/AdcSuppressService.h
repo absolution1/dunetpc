@@ -15,7 +15,7 @@
 #include <iostream>
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/AdcCountSelection.h"
-#include "larcore/SimpleTypesAndConstants/RawTypes.h"
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace fhicl {

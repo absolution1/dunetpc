@@ -13,7 +13,7 @@
 #include <set>
 
 #include "cetlib/exception.h"
-#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
 

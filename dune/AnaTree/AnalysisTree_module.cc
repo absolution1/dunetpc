@@ -27,51 +27,51 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/View.h"
-#include "art/Persistency/Common/Ptr.h"
-#include "art/Persistency/Common/PtrVector.h"
+#include "canvas/Persistency/Common/Ptr.h"
+#include "canvas/Persistency/Common/PtrVector.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
-#include "art/Framework/Core/FindMany.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Persistency/Common/FindMany.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "larcore/Geometry/Geometry.h"
-#include "SimulationBase/MCTruth.h"
-#include "lardata/MCBase/MCShower.h"
-#include "lardata/MCBase/MCTrack.h"
-#include "lardata/MCBase/MCStep.h"
-#include "SimulationBase/MCFlux.h"
-#include "larsim/Simulation/SimChannel.h"
-#include "larsim/Simulation/AuxDetSimChannel.h"
-#include "lardata/AnalysisBase/Calorimetry.h"
-#include "lardata/AnalysisBase/ParticleID.h"
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/ExternalTrigger.h"
-#include "lardata/RawData/raw.h"
-#include "lardata/RawData/BeamInfo.h"
-#include "lardata/RawData/TriggerData.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "lardataobj/MCBase/MCShower.h"
+#include "lardataobj/MCBase/MCTrack.h"
+#include "lardataobj/MCBase/MCStep.h"
+#include "nusimdata/SimulationBase/MCFlux.h"
+#include "larsimobj/Simulation/SimChannel.h"
+#include "larsimobj/Simulation/AuxDetSimChannel.h"
+#include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/ExternalTrigger.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/RawData/BeamInfo.h"
+#include "lardataobj/RawData/TriggerData.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "larcore/SummaryData/POTSummary.h"
+#include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcore/Geometry/GeometryCore.h"
 #include "larsim/MCCheater/BackTracker.h"
-#include "lardata/RecoBase/Track.h"
-#include "lardata/RecoBase/Shower.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/EndPoint2D.h"
-#include "lardata/RecoBase/Vertex.h"
-#include "lardata/RecoBase/OpFlash.h"
-#include "lardata/RecoBase/PFParticle.h"
-#include "larcore/SimpleTypesAndConstants/geo_types.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/EndPoint2D.h"
+#include "lardataobj/RecoBase/Vertex.h"
+#include "lardataobj/RecoBase/OpFlash.h"
+#include "lardataobj/RecoBase/PFParticle.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/RecoObjects/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
-#include "lardata/AnalysisBase/CosmicTag.h"
-#include "lardata/AnalysisBase/FlashMatch.h"
-#include "lardata/AnalysisBase/T0.h"
-#include "lardata/AnalysisBase/MVAPIDResult.h"
+#include "lardataobj/AnalysisBase/CosmicTag.h"
+#include "lardataobj/AnalysisBase/FlashMatch.h"
+#include "lardataobj/AnalysisBase/T0.h"
+#include "lardataobj/AnalysisBase/MVAPIDResult.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
@@ -2329,12 +2329,12 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointx, -99999.);
   FillWith(StartPointy, -99999.);
   FillWith(StartPointz, -99999.);
-  FillWith(StartT, -99999.);
+  FillWith(StartT, -99e7);
   FillWith(EndT, -99999.);    
   FillWith(EndPointx, -99999.);
   FillWith(EndPointy, -99999.);
   FillWith(EndPointz, -99999.);
-  FillWith(EndT, -99999.);
+  FillWith(EndT, -99e7);
   FillWith(theta, -99999.);
   FillWith(phi, -99999.);
   FillWith(theta_xz, -99999.);
@@ -2344,7 +2344,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointx_tpcAV, -99999.);
   FillWith(StartPointy_tpcAV, -99999.);
   FillWith(StartPointz_tpcAV, -99999.);
-  FillWith(StartT_tpcAV, -99999.);
+  FillWith(StartT_tpcAV, -99e7);
   FillWith(StartE_tpcAV, -99999.);
   FillWith(StartP_tpcAV, -99999.);
   FillWith(StartPx_tpcAV, -99999.);
@@ -2353,7 +2353,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(EndPointx_tpcAV, -99999.);
   FillWith(EndPointy_tpcAV, -99999.);
   FillWith(EndPointz_tpcAV, -99999.);
-  FillWith(EndT_tpcAV, -99999.);
+  FillWith(EndT_tpcAV, -99e7);
   FillWith(EndE_tpcAV, -99999.);
   FillWith(EndP_tpcAV, -99999.);
   FillWith(EndPx_tpcAV, -99999.);
@@ -2364,7 +2364,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointx_drifted, -99999.);
   FillWith(StartPointy_drifted, -99999.);
   FillWith(StartPointz_drifted, -99999.);
-  FillWith(StartT_drifted, -99999.);
+  FillWith(StartT_drifted, -99e7);
   FillWith(StartE_drifted, -99999.);
   FillWith(StartP_drifted, -99999.);
   FillWith(StartPx_drifted, -99999.);
@@ -2373,7 +2373,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(EndPointx_drifted, -99999.);
   FillWith(EndPointy_drifted, -99999.);
   FillWith(EndPointz_drifted, -99999.); 
-  FillWith(EndT_drifted, -99999.);
+  FillWith(EndT_drifted, -99e7);
   FillWith(EndE_drifted, -99999.);
   FillWith(EndP_drifted, -99999.); 
   FillWith(EndPx_drifted, -99999.); 
@@ -3574,7 +3574,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	    << "' ; FILLING WITH FAKE DATA AS FOR USER'S REQUEST";
 	}
       }
-	showerList.push_back(ShowerHandle.product());
+
+      else showerList.push_back(ShowerHandle.product());
 
       showerListHandle.push_back(ShowerHandle); // either way, put it into the handle list
 
@@ -3727,13 +3728,11 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	  if(fSimChannels[sc]->Channel() == hitlist[i]->Channel()) chan = fSimChannels[sc];
 	}
 	if (chan){
-	  const std::map<unsigned short, std::vector<sim::IDE> >& tdcidemap = chan->TDCIDEMap();
-	  for(auto mapitr = tdcidemap.begin(); mapitr != tdcidemap.end(); mapitr++){
+    for(auto const& mapitr : chan->TDCIDEMap()){
 	    // loop over the vector of IDE objects.
-	    const std::vector<sim::IDE> idevec = (*mapitr).second;
-	    for(size_t iv = 0; iv < idevec.size(); ++iv){
-	      fData -> hit_nelec[i] += idevec[iv].numElectrons;
-	      fData -> hit_energy[i] += idevec[iv].energy;
+      for(auto const& ide : mapitr.second){
+	      fData -> hit_nelec[i] += ide.numElectrons;
+	      fData -> hit_energy[i] += ide.energy;
 	    }
 	  }
 	}

@@ -10,6 +10,7 @@ add_subdirectory(DetSim)
 add_subdirectory(EventGenerator)
 add_subdirectory(Daq)
 add_subdirectory(CalData)
+add_subdirectory(DataPrep)
 add_subdirectory(RawdataDisplay)
 add_subdirectory(EnergyStudies)
 add_subdirectory(AnaTree)
@@ -45,13 +46,13 @@ add_subdirectory(SpaceChargeServices)
 #     "SRT_LAR",
 #     "SimpleTypesAndConstants",
 #     "larcore_Geometry",
-#     "larcore_SummaryData",
-#     "lardata_RawData",
-#     "lardata_RecoBase",
-#     "lardata_OpticalDetectorData",
-#     "lardata_AnalysisBase",
+#     "larcoreobj_SummaryData",
+#     "lardataobj_RawData",
+#     "lardataobj_RecoBase",
+#     "lardataobj_OpticalDetectorData",
+#     "lardataobj_AnalysisBase",
 #     "lardata_Utilities",
-#     "larsim_Simulation",
+#     "larsim_Simulation larsimobj_Simulation",
 #     "larsim_MCCheater",
 #     "lardata_AnalysisAlg",
 #     "lardata_RecoObjects",
