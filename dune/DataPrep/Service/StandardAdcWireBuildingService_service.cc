@@ -42,6 +42,11 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
                    << ". No action taken." << endl;
     return 2;
   }
+  if ( data.digit->Channel() != data.channel ) {
+    cout << myname << "WARNING: Input data channel differs from digit: " << data.channel
+         << " != " << data.digit->Channel() << ". No action taken." << endl;
+    return 3;
+  }
   if ( m_LogLevel >= 2 ) {
     cout << myname << "  Channel " << data.channel << " has " << data.rois.size() << " ROI"
          << (data.rois.size()==1 ? "" : "s") << "." << endl;
@@ -58,11 +63,19 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
   // Create recob::Wire.
   recob::WireCreator wc(std::move(recobRois), *data.digit);
   // Record the new wire.
-  if ( pwires == nullptr ) {
+  bool dataOwnsWire = pwires == nullptr;
+  if ( ! dataOwnsWire ) {
+    if ( pwires->size() == pwires->capacity() ) {
+      cout << myname << "ERROR: Wire vector capacity is too small. Wire is not recorded." << endl;
+      dataOwnsWire = true;
+    } else {
+      data.wireIndex = pwires->size();
+      pwires->push_back(wc.move());
+      data.wire = &pwires->back();
+    }
+  }
+  if ( dataOwnsWire ) {
     data.wire = new recob::Wire(wc.move());
-  } else {
-    pwires->push_back(wc.move());
-    data.wire = &pwires->back();
   }
   return 0;
 }

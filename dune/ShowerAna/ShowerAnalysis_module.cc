@@ -295,14 +295,14 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
     const std::vector<const sim::SimChannel*>& simChannels = bt->SimChannels();
     for (std::vector<const sim::SimChannel*>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
       int plane = geom->View((*channelIt)->Channel());
-      const std::map<unsigned short, std::vector<sim::IDE> >& tdcidemap = (*channelIt)->TDCIDEMap();
-      for (std::map<unsigned short, std::vector<sim::IDE> >::const_iterator tdcIt = tdcidemap.begin(); tdcIt != tdcidemap.end(); ++tdcIt) {
-	const std::vector<sim::IDE>& idevec = tdcIt->second;
-	for (std::vector<sim::IDE>::const_iterator ideIt = idevec.begin(); ideIt != idevec.end(); ++ideIt) {
-	  if (TMath::Abs(ideIt->trackID) != trueParticle->TrackId())
-	    continue;
-	  depositedEnergy[plane] += ideIt->energy / 1000;
-	}
+      auto const & tdcidemap = (*channelIt)->TDCIDEMap();
+      for (auto const& tdcIt : tdcidemap) {
+        auto const& idevec = tdcIt.second;
+        for (auto const& ideIt : idevec) {
+          if (TMath::Abs(ideIt.trackID) != trueParticle->TrackId())
+            continue;
+          depositedEnergy[plane] += ideIt.energy / 1000;
+        }
       }
     }
 

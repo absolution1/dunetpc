@@ -93,7 +93,7 @@ dune35t_signalshapingservice.ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peakin
 #
 dunefddphase_signalshapingservice:
 {
-  DeconNorm: 500
+  DeconNorm: 200
 
   ASICmVperfC: 3.2    # Amplifier gain in mV/fC
   ADCpermV:    1.0    # ADC conversion factor
