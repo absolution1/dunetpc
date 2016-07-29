@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+dunefd_neutrondecayn2:
+{
+   module_type:             "FDNeutrondecayN2Ana"
+   TrackModuleLabel:        "pmtrack"
+   HitsModuleLabel:         "hitfd"
+   MCTruthT0ModuleLabel:    "mctrutht0pmtrack"
+}
+
+END_PROLOG
