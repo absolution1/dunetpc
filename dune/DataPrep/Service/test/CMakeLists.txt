@@ -52,6 +52,7 @@ cet_test(test_StandardAdcWireBuildingService SOURCES test_StandardAdcWireBuildin
   LIBRARIES
     dune_DataPrep_Service_StandardAdcWireBuildingService_service
     dune_ArtSupport
+    lardataobj_RawData
 )
 
 cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx

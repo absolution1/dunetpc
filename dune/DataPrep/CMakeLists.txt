@@ -5,3 +5,4 @@
 
 add_subdirectory(Service)
 add_subdirectory(Module)
+add_subdirectory(fcl)

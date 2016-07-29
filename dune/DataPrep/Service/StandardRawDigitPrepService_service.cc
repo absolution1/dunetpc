@@ -80,7 +80,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     m_pWireBuildingService = &*art::ServiceHandle<AdcWireBuildingService>();
     if ( m_LogLevel ) cout << myname << "  Wire building service: @" <<  m_pWireBuildingService << endl;
   }
-  print(cout, myname);
+  if ( m_LogLevel >=1 ) print(cout, myname);
 }
 
 //**********************************************************************
@@ -146,7 +146,6 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
       m_pWireBuildingService->build(acd, pwires);
     }
   }
-  if ( m_LogLevel >=1 ) print(cout, myname);
   return nbad;
 }
 
