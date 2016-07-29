@@ -12,6 +12,7 @@
 #include "dune/DuneInterface/PedestalEvaluationService.h"
 #include "dune/DuneInterface/AdcDeconvolutionService.h"
 #include "dune/DuneInterface/AdcRoiBuildingService.h"
+#include "dune/DuneInterface/AdcWireBuildingService.h"
 
 using std::string;
 using std::cout;
@@ -30,7 +31,8 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_pNoiseRemoval(nullptr),
   m_pPedestalEvaluation(nullptr),
   m_pDeconvolutionService(nullptr),
-  m_pRoiBuildingService(nullptr) {
+  m_pRoiBuildingService(nullptr),
+  m_pWireBuildingService(nullptr) {
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_DoMitigation = pset.get<bool>("DoMitigation");
@@ -39,6 +41,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_DoPedestalAdjustment = pset.get<bool>("DoPedestalAdjustment");
   m_DoDeconvolution      = pset.get<bool>("DoDeconvolution");
   m_DoROI                = pset.get<bool>("DoROI");
+  m_DoWires              = pset.get<bool>("DoWires");
   if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
   m_pExtractSvc = &*art::ServiceHandle<RawDigitExtractService>();
   if ( m_LogLevel ) cout << myname << "  Extract service: @" <<  m_pExtractSvc << endl;
@@ -72,13 +75,19 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     m_pRoiBuildingService = &*art::ServiceHandle<AdcRoiBuildingService>();
     if ( m_LogLevel ) cout << myname << "  ROI building service: @" <<  m_pRoiBuildingService << endl;
   }
+  if ( m_DoWires ) {
+    if ( m_LogLevel ) cout << myname << "Fetching wire building service." << endl;
+    m_pWireBuildingService = &*art::ServiceHandle<AdcWireBuildingService>();
+    if ( m_LogLevel ) cout << myname << "  Wire building service: @" <<  m_pWireBuildingService << endl;
+  }
   print(cout, myname);
 }
 
 //**********************************************************************
 
 int StandardRawDigitPrepService::
-prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
+prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
+        std::vector<recob::Wire>* pwires) const {
   const string myname = "StandardRawDigitPrepService:prepare: ";
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Entering..." << endl;
@@ -87,14 +96,16 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
   }
   // Extract digits.
   int nbad = 0;
-  for ( const RawDigit& dig : digs ) {
+  for ( size_t idig=0; idig<digs.size(); ++idig ) {
+    const RawDigit& dig = digs[idig];
     AdcChannelData data;
+    data.digitIndex = idig;
     AdcChannel& chan = data.channel;
     AdcSignal& ped = data.pedestal;
     m_pExtractSvc->extract(dig, &chan, &ped, &data.raw, &data.samples, &data.flags);
     data.digit = &dig;
-    AdcChannelDataMap::const_iterator idig = datamap.find(chan);
-    if ( idig != datamap.end() ) {
+    AdcChannelDataMap::const_iterator iacd = datamap.find(chan);
+    if ( iacd != datamap.end() ) {
       cout << myname << "WARNING: Data already exists for channel " << chan << ". Skipping." << endl;
       ++nbad;
       continue;
@@ -125,8 +136,14 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap) const {
   }
   if ( m_DoROI ) {
     for ( auto& chdata : datamap ) {
-      AdcChannelData& data = chdata.second;
-      m_pRoiBuildingService->build(data);
+      AdcChannelData& acd = chdata.second;
+      m_pRoiBuildingService->build(acd);
+    }
+  }
+  if ( m_DoWires ) {
+    for ( auto& chdata : datamap ) {
+      AdcChannelData& acd = chdata.second;
+      m_pWireBuildingService->build(acd, pwires);
     }
   }
   if ( m_LogLevel >=1 ) print(cout, myname);
@@ -145,6 +162,7 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "      DoDeconvolution: " << m_DoDeconvolution      << endl;
   out << prefix << " DoPedestalAdjustment: " << m_DoPedestalAdjustment << endl;
   out << prefix << "                DoROI: " << m_DoROI                << endl;
+  out << prefix << "               DoWires " << m_DoWires              << endl;
   return out;
 }
 

@@ -3728,13 +3728,11 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	  if(fSimChannels[sc]->Channel() == hitlist[i]->Channel()) chan = fSimChannels[sc];
 	}
 	if (chan){
-	  const std::map<unsigned short, std::vector<sim::IDE> >& tdcidemap = chan->TDCIDEMap();
-	  for(auto mapitr = tdcidemap.begin(); mapitr != tdcidemap.end(); mapitr++){
+    for(auto const& mapitr : chan->TDCIDEMap()){
 	    // loop over the vector of IDE objects.
-	    const std::vector<sim::IDE> idevec = (*mapitr).second;
-	    for(size_t iv = 0; iv < idevec.size(); ++iv){
-	      fData -> hit_nelec[i] += idevec[iv].numElectrons;
-	      fData -> hit_energy[i] += idevec[iv].energy;
+      for(auto const& ide : mapitr.second){
+	      fData -> hit_nelec[i] += ide.numElectrons;
+	      fData -> hit_energy[i] += ide.energy;
 	    }
 	  }
 	}
