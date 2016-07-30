@@ -203,21 +203,19 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
   const std::vector<const sim::SimChannel*>& simChannels = backtracker->SimChannels();
   for (std::vector<const sim::SimChannel*>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
     int plane = geom->View((*channelIt)->Channel());
-    const std::map<unsigned short, std::vector<sim::IDE> >& tdcidemap = (*channelIt)->TDCIDEMap();
-    for (std::map<unsigned short, std::vector<sim::IDE> >::const_iterator tdcIt = tdcidemap.begin(); tdcIt != tdcidemap.end(); ++tdcIt) {
-      const std::vector<sim::IDE>& idevec = tdcIt->second;
-      for (std::vector<sim::IDE>::const_iterator ideIt = idevec.begin(); ideIt != idevec.end(); ++ideIt) {
-	switch (plane) {
-	case 0:
-	  depositU += ideIt->energy;
-	  break;
-	case 1:
-	  depositV += ideIt->energy;
-	  break;
-	case 2:
-	  depositZ += ideIt->energy;
-	  break;
-	}
+    for (auto const& tdcIt : (*channelIt)->TDCIDEMap()) {
+      for (auto const& ideIt : tdcIt.second) {
+        switch (plane) {
+          case geo::kU:
+            depositU += ideIt.energy;
+            break;
+          case geo::kV:
+            depositV += ideIt.energy;
+            break;
+          case geo::kZ:
+            depositZ += ideIt.energy;
+            break;
+        }
       }
     }
   }

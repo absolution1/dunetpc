@@ -1,0 +1,78 @@
+# dataprep_dune.fcl
+#
+# David Adams
+# August 2016
+
+BEGIN_PROLOG
+
+services_dataprep.RawDigitExtractService: {
+  service_provider: StandardRawDigitExtractService
+  LogLevel: 1
+  PedestalOption: 1
+  FlagStuckOff: true
+  FlagStuckOn: true
+}
+
+services_dataprep.AdcMitigationService: {
+  service_provider: InterpolatingAdcMitigationService
+  LogLevel: 1
+  SkipUnderflows:      true
+  SkipOverflows:       true
+  MaxConsecutiveSamples:  5
+  MaxConsecutiveFlag:     0
+}
+
+services_dataprep.AdcNoiseRemovalService: {
+  service_provider: Dune35tNoiseRemovalService
+  LogLevel:             1
+  GroupingFlag:         1
+  SkipStuckCodes:    true
+  SkipSignals:       true
+  CorrectStuckCodes: true
+  ShowGroups:           2
+  ShowGroupsChannel:    4
+}
+
+services_dataprep.PedestalEvaluationService: {
+  service_provider: MedianPedestalService
+  LogLevel:              1
+  SkipFlaggedSamples: true
+  SkipSignals:        true
+}
+
+services_dataprep.AdcDeconvolutionService: {
+  service_provider: DuneDeconvolutionService
+  LogLevel:              1
+}
+
+services_dataprep.AdcRoiBuildingService: {
+  service_provider: DuneRoiBuildingService
+  NSigmaStart:        3.0
+  NSigmaEnd:          1.0
+  PadLow:              50
+  PadHigh:             50
+}
+
+services_dataprep.AdcDeconvolutionService: {
+  service_provider: DuneDeconvolutionService
+  LogLevel:              1
+}
+
+services_dataprep.AdcWireBuildingService: {
+  service_provider: StandardAdcWireBuildingService
+  LogLevel:              1
+}
+
+services_dataprep.RawDigitPrepService: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  DoMitigation:           true
+  DoEarlySignalFinding:   true
+  DoNoiseRemoval:         true
+  DoPedestalAdjustment:  false
+  DoDeconvolution:       false
+  DoROI:                 false
+  DoWires:               false
+}
+
+END_PROLOG

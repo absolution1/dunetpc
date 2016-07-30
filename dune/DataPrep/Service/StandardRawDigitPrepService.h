@@ -15,6 +15,7 @@
 //   DoPedestalAdjustment - Do dynamic pedestal adjustment.
 //   DoDeconvolution - Deconvolute the signal.
 //   DoROI - Build ROIs.
+//   DoWires - Build wires.
 
 #ifndef StandardRawDigitPrepService_H
 #define StandardRawDigitPrepService_H
@@ -28,6 +29,7 @@ class AdcNoiseRemovalService;
 class PedestalEvaluationService;
 class AdcDeconvolutionService;
 class AdcRoiBuildingService;
+class AdcWireBuildingService;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
@@ -35,7 +37,8 @@ public:
 
   StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int prepare(const std::vector<raw::RawDigit>& digs, AdcChannelDataMap& prepdigs) const;
+  int prepare(const std::vector<raw::RawDigit>& digs, AdcChannelDataMap& prepdigs,
+              std::vector<recob::Wire>* pwires) const;
 
   std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
 
@@ -49,6 +52,7 @@ private:
   bool m_DoPedestalAdjustment;
   bool m_DoDeconvolution;
   bool m_DoROI;
+  bool m_DoWires;
 
   const RawDigitExtractService* m_pExtractSvc;
   const AdcMitigationService* m_pmitigateSvc;
@@ -57,6 +61,7 @@ private:
   const PedestalEvaluationService* m_pPedestalEvaluation;
   const AdcDeconvolutionService* m_pDeconvolutionService;
   const AdcRoiBuildingService* m_pRoiBuildingService;
+  const AdcWireBuildingService* m_pWireBuildingService;
 
 };
 
