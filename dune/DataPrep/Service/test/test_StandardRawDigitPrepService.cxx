@@ -48,7 +48,7 @@ bool sigequal(AdcSignal sig1, AdcSignal sig2) {
 // If usePedestalAdjustment is true, then extra pedestals are added and
 // then removed using the DoPedestalAdjustment option.
 
-int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedestalAdjustment =false) {
+int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile =false) {
   const string myname = "test_StandardRawDigitPrepService: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -59,7 +59,13 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
   string fclfile = "test_StandardRawDigitPrepService.fcl";
-  if ( ! useExistingFcl ) {
+  bool usePedestalAdjustment = false;
+  if ( useExistingFcl ) {
+  } else if ( useFclFile ) {
+    ofstream fout(fclfile.c_str());
+    fout << "#include \"dataprep_dune.fcl\"" << endl;
+    fout.close();
+  } else {
     ofstream fout(fclfile.c_str());
     fout << "services.RawDigitExtractService: {" << endl;
     fout << "  service_provider: StandardRawDigitExtractService" << endl;
@@ -83,13 +89,10 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     fout << "  DoDeconvolution:      false" << endl;
     fout << "  DoROI:                false" << endl;
     fout << "  DoWires:              false" << endl;
-    if ( usePedestalAdjustment ) {
-      fout << "  DoPedestalAdjustment:  true" << endl;
-    } else {
-      fout << "  DoPedestalAdjustment: false" << endl;
-    }
+    fout << "  DoPedestalAdjustment:  true" << endl;
     fout << "}" << endl;
     fout.close();
+    usePedestalAdjustment = true;
   }
 
   cout << myname << "Fetch art service helper." << endl;
@@ -97,18 +100,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
   ash.print();
 
   cout << myname << line << endl;
-  cout << myname << "Add raw digit extract service." << endl;
-  assert( ash.addService("RawDigitExtractService", fclfile, true) == 0 );
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Add pedestal evaluation service." << endl;
-  assert( ash.addService("PedestalEvaluationService", fclfile, true) == 0 );
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Add raw digit prep service." << endl;
-  assert( ash.addService("RawDigitPrepService", fclfile, true) == 0 );
+  cout << myname << "Add services." << endl;
+  assert( ash.addServices(fclfile, true) == 0 );
   ash.print();
 
   cout << myname << line << endl;
@@ -227,6 +220,9 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
       assert( flags[isig] == expflags[isig] );
     }
   }
+
+  cout << myname << line << endl;
+  cout << "Done." << endl;
   return 0;
 }
 
@@ -234,21 +230,22 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
-  bool usePedestalAdjustment = true;
+  bool useFclFile = false;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [ARG]" << endl;
-      cout << "  If ARG = true, existing FCL file is used." << endl;
+      cout << "Usage: " << argv[0] << " [UseExisting] [UseFclFile]" << endl;
+      cout << "  If UseExisting = true, existing FCL file is used." << endl;
+      cout << "  If UseFclFile = true, FCL file dataprep_dune." << endl;
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
   if ( argc > 2 ) {
     string sarg(argv[2]);
-    usePedestalAdjustment = sarg == "true" || sarg == "1";
+    useFclFile = sarg == "true" || sarg == "1";
   }
-  return test_StandardRawDigitPrepService(useExistingFcl, usePedestalAdjustment);
+  return test_StandardRawDigitPrepService(useExistingFcl, useFclFile);
 }
 
 //**********************************************************************
