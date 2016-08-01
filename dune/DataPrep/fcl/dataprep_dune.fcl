@@ -5,7 +5,12 @@
 
 BEGIN_PROLOG
 
-services_dataprep.RawDigitExtractService: {
+#***********************************************************************
+
+# RawDigitExtractService pulls ADC signals (raw:RawDigit) out of the lar
+# container, converts to float, flags bad channels and subtracts pedestals.
+
+rdx_std: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
   PedestalOption: 1
@@ -13,7 +18,12 @@ services_dataprep.RawDigitExtractService: {
   FlagStuckOn: true
 }
 
-services_dataprep.AdcMitigationService: {
+#***********************************************************************
+
+# AdcMitigationService is used to mitigate ADC signals, e.g.
+# interpolate between good values to deal with stuck bits.
+
+adcmit_dune35t: {
   service_provider: InterpolatingAdcMitigationService
   LogLevel: 1
   SkipUnderflows:      true
@@ -22,7 +32,32 @@ services_dataprep.AdcMitigationService: {
   MaxConsecutiveFlag:     0
 }
 
-services_dataprep.AdcNoiseRemovalService: {
+#***********************************************************************
+
+# AdcSuppressService is used by AdcSuppressSignalFindingService (below).
+
+adcsuppress_legacy35t: {
+  service_provider: Legacy35tZeroSuppressService
+  AdcThreshold: 30.0
+  TickRange: 4
+  MinTickGap: 2
+  SuppressStickyBits: false
+}
+
+#***********************************************************************
+
+# AdcSuppressSignalFindingService is used to remove noise from ADC signals.
+
+# This implementation uses AdcSuppressService.
+adcsigfind_suppress: {
+  service_provider: AdcSuppressSignalFindingService
+}
+
+#***********************************************************************
+
+# AdcNoiseRemovalService is used to remove noise from ADC signals.
+
+adcnr_dune35t: {
   service_provider: Dune35tNoiseRemovalService
   LogLevel:             1
   GroupingFlag:         1
@@ -33,19 +68,32 @@ services_dataprep.AdcNoiseRemovalService: {
   ShowGroupsChannel:    4
 }
 
-services_dataprep.PedestalEvaluationService: {
+#***********************************************************************
+
+# PedestalEvaluationService is used to evaluate pedestals from the
+# ADC signals.
+
+adcped_median: {
   service_provider: MedianPedestalService
   LogLevel:              1
   SkipFlaggedSamples: true
   SkipSignals:        true
 }
 
-services_dataprep.AdcDeconvolutionService: {
+#***********************************************************************
+
+# AdcDeconvolutionService is used to deconvolute the ADC signals.
+
+adcdco_dune35t: {
   service_provider: DuneDeconvolutionService
   LogLevel:              1
 }
 
-services_dataprep.AdcRoiBuildingService: {
+#***********************************************************************
+
+# AdcRoiBuildingService is used to define ROIs for the ADC signals.
+
+adcroi_dune35t: {
   service_provider: DuneRoiBuildingService
   NSigmaStart:        3.0
   NSigmaEnd:          1.0
@@ -53,26 +101,34 @@ services_dataprep.AdcRoiBuildingService: {
   PadHigh:             50
 }
 
-services_dataprep.AdcDeconvolutionService: {
-  service_provider: DuneDeconvolutionService
-  LogLevel:              1
-}
+#***********************************************************************
 
-services_dataprep.AdcWireBuildingService: {
+# AdcWireBuildingService constructs lar outputs (recob::Wire) from ADC
+# signals.
+
+adcwire_std: {
   service_provider: StandardAdcWireBuildingService
   LogLevel:              1
 }
 
-services_dataprep.RawDigitPrepService: {
+#***********************************************************************
+
+# RawDigitPrepService is the high level service that uses the above
+# services to prepare ADC signals including the conversion of
+# raw::RawDigit to recob::Wire.
+
+adcprep_dune35t: {
   service_provider: StandardRawDigitPrepService
   LogLevel: 1
   DoMitigation:           true
   DoEarlySignalFinding:   true
   DoNoiseRemoval:         true
   DoPedestalAdjustment:  false
-  DoDeconvolution:       false
-  DoROI:                 false
-  DoWires:               false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
 }
+
+#***********************************************************************
 
 END_PROLOG

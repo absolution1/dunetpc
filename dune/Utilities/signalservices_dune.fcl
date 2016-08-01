@@ -99,7 +99,7 @@ dunefddphase_signalshapingservice:
   ADCpermV:    1.0    # ADC conversion factor
   AmpENC:      1700.0 # Amplifier ENC e for Cdet=450pF
 
-  RespSamplingPeriod: 100. # in nano second  
+  RespSamplingPeriod: 400. # in nano second  
 }
 
 END_PROLOG
