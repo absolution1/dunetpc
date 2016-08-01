@@ -143,6 +143,7 @@ int test_StandardRawDigitExtractService() {
   cout << myname << "Output raw vector size: " << sigs.size() << endl;
   cout << myname << "Output prep vector size: " << sigs.size() << endl;
   cout << myname << " Output flags size: " << flags.size() << endl;
+  cout << myname << "          Pedestal: " << pedout << endl;
   assert( raw.size() == nsig );
   assert( sigs.size() == nsig );
   assert( flags.size() == nsig );
