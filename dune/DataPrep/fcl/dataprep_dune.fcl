@@ -131,4 +131,15 @@ adcprep_dune35t: {
 
 #***********************************************************************
 
+# DataPrepModule is the producer that calls RawDigitPrepService
+producer_adcprep_dune35t: {
+  module_type: "DataPrepModule"
+  LogLevel:    1
+  DigitLabel:  "daq"
+  WireName:    ""
+  DoAssns:     true
+}
+
+#***********************************************************************
+
 END_PROLOG
