@@ -64,7 +64,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   } else if ( useFclFile ) {
     ofstream fout(fclfile.c_str());
     fout << "#include \"services_dune.fcl\"" << endl;
-    fout << "services: @local::dune35t_reco_services" << endl;
+    fout << "services: @local::dune35tdata_reco_services" << endl;
     fout << "services.RawDigitPrepService.DoMitigation: false" << endl;
     fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
     fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;

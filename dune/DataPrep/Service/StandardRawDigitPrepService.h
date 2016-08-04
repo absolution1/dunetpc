@@ -16,6 +16,9 @@
 //   DoDeconvolution - Deconvolute the signal.
 //   DoROI - Build ROIs.
 //   DoWires - Build wires.
+//   DoDump [false] - If true, the info for one tick is displayed in the log.
+//   DumpChannel [0] - The channel that is dumped.
+//   DumpTick [0] - The tick that is dumped.
 
 #ifndef StandardRawDigitPrepService_H
 #define StandardRawDigitPrepService_H
@@ -53,6 +56,9 @@ private:
   bool m_DoDeconvolution;
   bool m_DoROI;
   bool m_DoWires;
+  bool m_DoDump;
+  unsigned int m_DumpChannel;
+  unsigned int m_DumpTick;
 
   const RawDigitExtractService* m_pExtractSvc;
   const AdcMitigationService* m_pmitigateSvc;

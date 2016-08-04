@@ -25,6 +25,7 @@ using raw::RawDigit;
 StandardRawDigitPrepService::
 StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1),
+  m_DoDump(false), m_DumpChannel(0), m_DumpTick(0),
   m_pExtractSvc(nullptr),
   m_pmitigateSvc(nullptr),
   m_pAdcSignalFindingService(nullptr),
@@ -42,6 +43,9 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_DoDeconvolution      = pset.get<bool>("DoDeconvolution");
   m_DoROI                = pset.get<bool>("DoROI");
   m_DoWires              = pset.get<bool>("DoWires");
+  pset.get_if_present<bool>("DoDump", m_DoDump);
+  pset.get_if_present<unsigned int>("DumpChannel", m_DumpChannel);
+  pset.get_if_present<unsigned int>("DumpTick", m_DumpTick);
   if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
   m_pExtractSvc = &*art::ServiceHandle<RawDigitExtractService>();
   if ( m_LogLevel ) cout << myname << "  Extract service: @" <<  m_pExtractSvc << endl;
@@ -96,6 +100,8 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
   }
   // Extract digits.
   int nbad = 0;
+  unsigned int ichan = m_DumpChannel;
+  unsigned int isig = m_DumpTick;
   for ( size_t idig=0; idig<digs.size(); ++idig ) {
     const RawDigit& dig = digs[idig];
     AdcChannelData data;
@@ -118,14 +124,21 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
     }
     datamap[chan] = data;
   }
+  if ( m_DoDump ) {
+    cout << myname << "Dumping channel " << m_DumpChannel << ", Tick " << isig << endl;
+    cout << myname << "    Pedestal: " << datamap[ichan].pedestal << endl;
+    cout << myname << "         raw: " << datamap[ichan].raw[isig] << endl;
+    cout << myname << "        flag: " << datamap[ichan].flags[isig] << endl;
+  }
   if ( m_DoNoiseRemoval ) {
     m_pNoiseRemoval->update(datamap);
   }
   if ( m_DoDeconvolution ) {
-    for ( AdcChannelDataMap::value_type chdata : datamap ) {
+    for ( AdcChannelDataMap::value_type& chdata : datamap ) {
       m_pDeconvolutionService->update(chdata.second);
     }
   }
+  if ( m_DoDump ) cout << myname << "   After dco: " << datamap[ichan].samples[isig] << endl;
   if ( m_DoPedestalAdjustment ) {
     for ( auto& chdata : datamap ) {
       AdcChannelData& data = chdata.second;
@@ -140,10 +153,14 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
       m_pRoiBuildingService->build(acd);
     }
   }
+  if ( m_DoDump ) cout << myname << "   After roi: " << datamap[ichan].samples[isig] << endl;
   if ( m_DoWires ) {
     for ( auto& chdata : datamap ) {
       AdcChannelData& acd = chdata.second;
       m_pWireBuildingService->build(acd, pwires);
+      if ( m_DoDump && acd.channel==ichan ) {
+        cout << myname << "        Wire: " << pwires->back().Signal().at(isig) << endl;
+      }
     }
   }
   return nbad;
@@ -161,7 +178,12 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "      DoDeconvolution: " << m_DoDeconvolution      << endl;
   out << prefix << " DoPedestalAdjustment: " << m_DoPedestalAdjustment << endl;
   out << prefix << "                DoROI: " << m_DoROI                << endl;
-  out << prefix << "               DoWires " << m_DoWires              << endl;
+  out << prefix << "              DoWires: " << m_DoWires              << endl;
+  out << prefix << "               DoDump: " << m_DoDump               << endl;
+  if ( m_DoDump ) {
+    out << prefix << "          DumpChannel: " << m_DumpChannel          << endl;
+    out << prefix << "             DumpTick: " << m_DumpTick             << endl;
+  }
   return out;
 }
 
