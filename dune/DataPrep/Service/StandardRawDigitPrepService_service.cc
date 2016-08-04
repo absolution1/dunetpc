@@ -4,7 +4,10 @@
 #include <iostream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/ChannelMappingService.h"
 #include "dune/DuneInterface/RawDigitExtractService.h"
 #include "dune/DuneInterface/AdcMitigationService.h"
 #include "dune/DuneInterface/AdcSignalFindingService.h"
@@ -25,7 +28,10 @@ using raw::RawDigit;
 StandardRawDigitPrepService::
 StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1),
+  m_ChannelStatusOnline(false);
   m_DoDump(false), m_DumpChannel(0), m_DumpTick(0),
+  m_pChannelMappingService(0),
+  m_pChannelStatusProvider(nullptr),
   m_pExtractSvc(nullptr),
   m_pmitigateSvc(nullptr),
   m_pAdcSignalFindingService(nullptr),
@@ -36,6 +42,9 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_pWireBuildingService(nullptr) {
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
+  m_SkipBad        = pset.get<bool>("SkipBad");
+  m_SkipNoisy      = pset.get<bool>("SkipNoisy");
+  pset.get_if_present<bool>("ChannelStatusOnline", m_ChannelStatusOnline);
   m_DoMitigation = pset.get<bool>("DoMitigation");
   m_DoEarlySignalFinding = pset.get<bool>("DoEarlySignalFinding");
   m_DoNoiseRemoval       = pset.get<bool>("DoNoiseRemoval");
@@ -48,6 +57,18 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   pset.get_if_present<unsigned int>("DumpTick", m_DumpTick);
   if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
   m_pExtractSvc = &*art::ServiceHandle<RawDigitExtractService>();
+  if ( m_SkipBad || m_SkipNoisy ) {
+    if ( m_ChannelStatusOnline ) {
+      if ( m_LogLevel ) cout << myname << "Fetching channel mapping service." << endl;
+      m_pChannelMappingService = &*art::ServiceHandle<ChannelMappingService>();
+      if ( m_LogLevel ) cout << myname << "  Channel mapping service: @"
+                             << m_pChannelMappingService << endl;
+    }
+    if ( m_LogLevel ) cout << myname << "Fetching channel status provider." << endl;
+    m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    if ( m_LogLevel ) cout << myname << "  Channel status provider: @"
+                           <<  m_pChannelStatusProvider << endl;
+  }
   if ( m_LogLevel ) cout << myname << "  Extract service: @" <<  m_pExtractSvc << endl;
   if ( m_DoMitigation ) {
     if ( m_LogLevel ) cout << myname << "Fetching mitigation service." << endl;
@@ -93,17 +114,34 @@ int StandardRawDigitPrepService::
 prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
         std::vector<recob::Wire>* pwires) const {
   const string myname = "StandardRawDigitPrepService:prepare: ";
-  if ( m_LogLevel >= 2 ) {
-    cout << myname << "Entering..." << endl;
-    cout << myname << "Input # input digits: " << digs.size() << endl;
-    cout << myname << "Input # prepared digits: " << datamap.size() << endl;
-  }
   // Extract digits.
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Processing digits..." << endl;
+    cout << myname << "  Input # input digits: " << digs.size() << endl;
+    cout << myname << "  Input # prepared digits: " << datamap.size() << endl;
+  }
   int nbad = 0;
   unsigned int ichan = m_DumpChannel;
   unsigned int isig = m_DumpTick;
   for ( size_t idig=0; idig<digs.size(); ++idig ) {
     const RawDigit& dig = digs[idig];
+    AdcChannel chanoff = dig.Channel();
+    if ( m_LogLevel >= 3 ) cout << myname << "Processing digit for channel " << chanoff << endl;
+    if ( m_SkipBad || m_SkipNoisy ) {
+      unsigned int chanstat = chanoff;
+      if ( m_ChannelStatusOnline ) {
+        unsigned int chanon = m_pChannelMappingService->online(chanoff);
+        chanstat = chanon;
+      }
+      if ( m_SkipBad && m_pChannelStatusProvider->IsBad(chanstat) ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << chanstat << endl;
+        continue;
+      }
+      if ( m_SkipNoisy && m_pChannelStatusProvider->IsNoisy(chanstat) ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Skipping noisy channel " << chanstat << endl;
+        continue;
+      }
+    }
     AdcChannelData data;
     data.digitIndex = idig;
     AdcChannel& chan = data.channel;
@@ -172,6 +210,9 @@ std::ostream& StandardRawDigitPrepService::
 print(std::ostream& out, std::string prefix) const {
   out << prefix << "StandardRawDigitPrepService:"                      << endl;
   out << prefix << "             LogLevel: " << m_LogLevel             << endl;
+  out << prefix << "              SkipBad: " << m_SkipBad              << endl;
+  out << prefix << "            SkipNoisy: " << m_SkipNoisy            << endl;
+  out << prefix << "  ChannelStatusOnline: " << m_ChannelStatusOnline  << endl;
   out << prefix << "         DoMitigation: " << m_DoMitigation         << endl;
   out << prefix << " DoEarlySignalFinding: " << m_DoEarlySignalFinding << endl;
   out << prefix << "       DoNoiseRemoval: " << m_DoNoiseRemoval       << endl;

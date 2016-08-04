@@ -9,6 +9,10 @@
 //
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
+//   SkipBad - Skip bad channels as reported by ChannelStatusService.
+//   SkipNoisy - Skip noisy channels as reported by ChannelStatusService.
+//   ChannelStatusOnline [false] - If true, status is retrieved with online channel number.
+//                       The current (Aug 2016) DUNE convention is to use offline numbering.
 //   DoMitigation - Run mitigation (e.g. stuck bit removal) on extracted data.
 //   DoEarlySignalFinding - Run signal building before noise removal.
 //   DoNoiseRemoval - Run coherent noise suppression.
@@ -25,6 +29,10 @@
 
 #include "dune/DuneInterface/RawDigitPrepService.h"
 
+class ChannelMappingService;
+namespace lariov {
+class ChannelStatusProvider;
+}
 class RawDigitExtractService;
 class AdcMitigationService;
 class AdcSignalFindingService;
@@ -49,6 +57,9 @@ private:
 
   // Configuration parameters.
   int m_LogLevel;
+  bool m_SkipBad;
+  bool m_SkipNoisy;
+  bool m_ChanneStatusOnline;
   bool m_DoMitigation;
   bool m_DoEarlySignalFinding;
   bool m_DoNoiseRemoval;
@@ -60,6 +71,8 @@ private:
   unsigned int m_DumpChannel;
   unsigned int m_DumpTick;
 
+  const ChannelMappingService* m_pChannelMappingService;
+  const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
   const RawDigitExtractService* m_pExtractSvc;
   const AdcMitigationService* m_pmitigateSvc;
   const AdcSignalFindingService* m_pAdcSignalFindingService;

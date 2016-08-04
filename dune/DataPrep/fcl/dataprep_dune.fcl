@@ -121,6 +121,8 @@ adcwire_std: {
 adcprep_dune35tdata: {
   service_provider: StandardRawDigitPrepService
   LogLevel: 1
+  SkipBad:                true
+  SkipNoisy:             false
   DoMitigation:           true
   DoEarlySignalFinding:   true
   DoNoiseRemoval:         true

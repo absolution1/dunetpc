@@ -87,6 +87,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "services.RawDigitPrepService: {" << endl;
     fout << "  service_provider: StandardRawDigitPrepService" << endl;
     fout << "  LogLevel:                 1" << endl;
+    fout << "  SkipBad:              false" << endl;
+    fout << "  SkipNoisy:            false" << endl;
     fout << "  DoMitigation:         false" << endl;
     fout << "  DoEarlySignalFinding: false" << endl;
     fout << "  DoNoiseRemoval:       false" << endl;
@@ -198,10 +200,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   AdcFlagVector flags;
   AdcChannelDataMap prepdigs;
   assert( hrdp->prepare(digs, prepdigs) == 0 );
-cout << myname << " Channel 4 samples[0]: " << prepdigs[4].samples[4] << endl;
   cout << myname << "Found number of channels: " << prepdigs.size() << endl;
   for ( AdcChannelDataMap::const_iterator ichdat=prepdigs.begin(); ichdat!=prepdigs.end(); ++ichdat ) {
-cout << myname << " Channel 4 samples[0]: " << prepdigs[4].samples[4] << endl;
     AdcChannel chan = ichdat->first;
     const AdcChannelData& acd = ichdat->second;
     const AdcSignalVector& sigs = acd.samples;
