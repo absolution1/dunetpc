@@ -59,7 +59,7 @@ private:
   int m_LogLevel;
   bool m_SkipBad;
   bool m_SkipNoisy;
-  bool m_ChanneStatusOnline;
+  bool m_ChannelStatusOnline;
   bool m_DoMitigation;
   bool m_DoEarlySignalFinding;
   bool m_DoNoiseRemoval;

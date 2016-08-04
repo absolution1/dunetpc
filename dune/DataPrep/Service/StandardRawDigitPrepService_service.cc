@@ -28,7 +28,7 @@ using raw::RawDigit;
 StandardRawDigitPrepService::
 StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1),
-  m_ChannelStatusOnline(false);
+  m_ChannelStatusOnline(false),
   m_DoDump(false), m_DumpChannel(0), m_DumpTick(0),
   m_pChannelMappingService(0),
   m_pChannelStatusProvider(nullptr),
