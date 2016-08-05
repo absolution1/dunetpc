@@ -54,6 +54,7 @@ simple_plugin(StandardAdcWireBuildingService "service"
 
 simple_plugin(StandardRawDigitPrepService   "service"
                 lardataobj_RawData
+                lardataobj_RecoBase
                 art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
