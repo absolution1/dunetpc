@@ -63,7 +63,11 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   if ( useExistingFcl ) {
   } else if ( useFclFile ) {
     ofstream fout(fclfile.c_str());
-    fout << "#include \"dataprep_dune.fcl\"" << endl;
+    fout << "#include \"services_dune.fcl\"" << endl;
+    fout << "services: @local::dune35tdata_reco_services" << endl;
+    fout << "services.RawDigitPrepService.DoMitigation: false" << endl;
+    fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
+    fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
     fout.close();
   } else {
     ofstream fout(fclfile.c_str());
@@ -83,6 +87,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "services.RawDigitPrepService: {" << endl;
     fout << "  service_provider: StandardRawDigitPrepService" << endl;
     fout << "  LogLevel:                 1" << endl;
+    fout << "  SkipBad:              false" << endl;
+    fout << "  SkipNoisy:            false" << endl;
     fout << "  DoMitigation:         false" << endl;
     fout << "  DoEarlySignalFinding: false" << endl;
     fout << "  DoNoiseRemoval:       false" << endl;
@@ -144,7 +150,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     AdcCountVector adcsin;
     for ( unsigned int isig=0; isig<nsig; ++isig) {
       AdcSignal sig = sigsin[chan][isig] + peds[chan] + xpeds[chan];
-      AdcCount adc = 0.0;
+      AdcCount adc = 0;
       if ( sig > 0.0 ) adc = int(sig+0.5);
       if ( adc > 4095 ) adc = 4095;
       AdcCount adchigh = adc & highbits;
@@ -197,12 +203,16 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   cout << myname << "Found number of channels: " << prepdigs.size() << endl;
   for ( AdcChannelDataMap::const_iterator ichdat=prepdigs.begin(); ichdat!=prepdigs.end(); ++ichdat ) {
     AdcChannel chan = ichdat->first;
-    const AdcSignalVector& sigs = ichdat->second.samples;
-    const AdcFlagVector& flags = ichdat->second.flags;
-    const raw::RawDigit* pdig = ichdat->second.digit;
+    const AdcChannelData& acd = ichdat->second;
+    const AdcSignalVector& sigs = acd.samples;
+    const AdcFlagVector& flags = acd.flags;
+    const raw::RawDigit* pdig = acd.digit;
+    AdcSignal ped = acd.pedestal;
     cout << myname << "----- Channel " << chan << endl;
     cout << myname << "Output vector size: " << sigs.size() << endl;
     cout << myname << " Output flags size: " << flags.size() << endl;
+    cout << myname << "          Pedestal: " << ped << endl;
+    cout << myname << "        samples[0]: " << sigs[0] << endl;
     assert( sigs.size() == nsig );
     assert( flags.size() == nsig );
     assert( pdig != nullptr );
@@ -216,8 +226,9 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
            << setw(2) << isig << ": " << setw(4) << adcsmap[chan][isig]
            << fixed << setprecision(1) << setw(8) << sigs[isig]
            << " [" << flags[isig] << "]" << endl;
+      assert( adcsmap[chan][isig] == acd.raw[isig] );
       if ( flags[isig] == AdcGood ) assert( sigequal(sigs[isig], sigsin[chan][isig]) );
-      assert( flags[isig] == expflags[isig] );
+      assert( sigequal(flags[isig], expflags[isig]) );
     }
   }
 
@@ -230,7 +241,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
-  bool useFclFile = false;
+  bool useFclFile = true;   // If true ware are also test 35t dune reco fcl
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
