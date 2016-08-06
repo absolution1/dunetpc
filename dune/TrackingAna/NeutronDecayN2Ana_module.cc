@@ -17,35 +17,21 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Principal/Event.h" 
-#include "fhiclcpp/ParameterSet.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "canvas/Persistency/Common/Ptr.h" 
-#include "canvas/Persistency/Common/PtrVector.h" 
-#include "art/Framework/Services/Registry/ServiceHandle.h" 
+#include "fhiclcpp/ParameterSet.h" 
 #include "art/Framework/Services/Optional/TFileService.h" 
-#include "art/Framework/Services/Optional/TFileDirectory.h" 
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
-#include "lardataobj/RecoBase/SpacePoint.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardataobj/RawData/ExternalTrigger.h"
-#include "lardata/Utilities/AssociationUtil.h"
 #include "larsim/MCCheater/BackTracker.h"
-#include "lardataobj/AnalysisBase/Calorimetry.h"
-#include "lardataobj/AnalysisBase/T0.h"
-#include "lardataobj/AnalysisBase/ParticleID.h"
-
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 
 // ROOT includes
 #include "TTree.h"
-#include "TFile.h"
 
 //standard library includes
 #include <map>
@@ -55,6 +41,14 @@
 #include <cmath>
 #include <memory>
 #include <limits> // std::numeric_limits<>
+
+struct IDEYLess {
+  bool operator()(const sim::IDE& first, const sim::IDE& second) {
+    return first.y < second.y;
+  }
+};
+
+#define MaxPart 100
 
 namespace NeutronDecayN2Ana {
   class NeutronDecayN2Ana;
@@ -74,8 +68,10 @@ public:
   //void reconfigure(fhicl::ParameterSet const & p) override;
   
 private:
-  
+  // ------ My functions ------
   void ResetVars();
+  void FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
+	    int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE );
  
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
@@ -88,11 +84,54 @@ private:
 
   double ActiveBounds[6]; // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
 
-  TTree* fRecoTree;
-  int MCPdgCode;
-  int MCTrackID;
-
+  TTree* fDecayTree;
+  int Run;
+  int Event;
+  double PrimMuonRange;
+  double PrimMuonEDep;
+  double PrimMuonShadowEDep;
+  double DistEdge[3][2];
+  double TotalEDep;
+  // Muon
+  int nMuon;
+  double MuonEDep[MaxPart], MuonStart[MaxPart][4], MuonEnd[MaxPart][4];
+  // Charged Pion
+  int nPion;
+  double PionEDep[MaxPart], PionStart[MaxPart][4], PionEnd[MaxPart][4];
+  // Pi0
+  int nPi0;
+  double Pi0EDep[MaxPart], Pi0Start[MaxPart][4], Pi0End[MaxPart][4];
+  // K+
+  int nKPlus;
+  double KPlusEDep[MaxPart], KPlusStart[MaxPart][4], KPlusEnd[MaxPart][4];
+  // K-
+  int nKMinus;
+  double KMinusEDep[MaxPart], KMinusStart[MaxPart][4], KMinusEnd[MaxPart][4];
+  // e+
+  int nEPlus;
+  double EPlusEDep[MaxPart], EPlusStart[MaxPart][4], EPlusEnd[MaxPart][4];
+  // e-
+  int nEMinus;
+  double EMinusEDep[MaxPart], EMinusStart[MaxPart][4], EMinusEnd[MaxPart][4];
  };
+// ******************************** Reset Variables *****************************************************
+void NeutronDecayN2Ana::NeutronDecayN2Ana::ResetVars() {
+  Run = Event = 0;
+  PrimMuonRange = PrimMuonEDep = PrimMuonShadowEDep = TotalEDep = 0;
+  // DistEdge
+  for (int i=0; i<3; i++)
+    for (int j=0; j<2; j++)
+      DistEdge[i][j]=99999999.;
+  // Each particle type
+  nMuon = nPion = nPi0 = nKPlus = nKMinus = nEPlus = nEMinus = 0;
+  for (int i=0; i<MaxPart; ++i) {
+    MuonEDep[i] = PionEDep[i] = Pi0EDep[i] = KPlusEDep[i] = KMinusEDep[i] = EPlusEDep[i] = EMinusEDep[i] = 0;
+    for (int j=0; j<4; ++j) {
+      MuonStart[i][j] = PionStart[i][j] = Pi0Start[i][j] = KPlusStart[i][j] = KMinusStart[i][j] = EPlusStart[i][j] = EMinusStart[i][j] = 0;
+      MuonEnd[i][j]   = PionEnd[i][j]   = Pi0End[i][j]   = KPlusEnd[i][j]   = KMinusEnd[i][j]   = EPlusEnd[i][j]   = EMinusEnd[i][j]   = 0;
+    }
+  }
+}
 // ********************************** Begin Run *******************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::beginRun(art::Run& run) {
 
@@ -104,17 +143,15 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   ActiveBounds[0] = ActiveBounds[2] = ActiveBounds[4] = DBL_MAX;
   ActiveBounds[1] = ActiveBounds[3] = ActiveBounds[5] = -DBL_MAX;
 
-  std::cout << "The far detector has " << geom->Ncryostats() << " cryostats." << std::endl;
-
-  // assume single cryostats
+  // ----- FixMe: Assume single cryostats ------
   auto const* geom = lar::providerFrom<geo::Geometry>();
   for (geo::TPCGeo const& TPC: geom->IterateTPCs()) {
     // get center in world coordinates
-    double origin[3] = {0.};
+    const double origin[3] = {0.};
     double center[3] = {0.};
     TPC.LocalToWorld(origin, center);
-    double tpcDim[3] = {TPC.HalfWidth(), TPC.HalfHeight(), 0.5*TPC.Length() };
-    
+    //double tpcDim[3] = {TPC.ActiveHalfWidth(), TPC.ActiveHalfHeight(), 0.5*TPC.ActiveLength() };
+    double tpcDim[3] = {TPC.HalfWidth(), TPC.HalfHeight(), 0.5*TPC.Length() }; // Gives same result as what Matt has
     if( center[0] - tpcDim[0] < ActiveBounds[0] ) ActiveBounds[0] = center[0] - tpcDim[0];
     if( center[0] + tpcDim[0] > ActiveBounds[1] ) ActiveBounds[1] = center[0] + tpcDim[0];
     if( center[1] - tpcDim[1] < ActiveBounds[2] ) ActiveBounds[2] = center[1] - tpcDim[1];
@@ -127,13 +164,77 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
 	    << "\n\ty: " << ActiveBounds[2] << " to " << ActiveBounds[3]
 	    << "\n\tz: " << ActiveBounds[4] << " to " << ActiveBounds[5]
 	    << std::endl;
-  
+  /*
+  double minx_, maxx_, miny_, maxy_, minz_, maxz_;
+  minx_ = miny_ = minz_ = DBL_MAX;
+  maxx_ = maxy_ = maxz_ = -DBL_MAX;
+  for (unsigned int c=0; c<geom->Ncryostats(); c++)
+    {
+      const geo::CryostatGeo& cryostat=geom->Cryostat(c);
+      for (unsigned int t=0; t<cryostat.NTPC(); t++)
+	{
+	  geo::TPCID id;
+	  id.Cryostat=c;
+	  id.TPC=t;
+	  id.isValid=true;
+	  const geo::TPCGeo& tpc=cryostat.TPC(id);
+	  std::cout << t << "\t" << (tpc.Length()/2) << ", " << (tpc.ActiveLength()/2) << std::endl;
+	  if (tpc.MinX()<minx_) minx_=tpc.MinX();
+	  if (tpc.MaxX()>maxx_) maxx_=tpc.MaxX();
+	  if (tpc.MinY()<miny_) miny_=tpc.MinY();
+	  if (tpc.MaxY()>maxy_) maxy_=tpc.MaxY();
+	  if (tpc.MinZ()<minz_) minz_=tpc.MinZ();
+	  if (tpc.MaxZ()>maxz_) maxz_=tpc.MaxZ();
+	  
+	}
+    }
+  std::cout << "Matt's positions. " << minx_ << ", " << maxx_ << "\t" <<  miny_ << ", " << maxy_ << "\t" <<  minz_ << ", " << maxz_ << std::endl;
+  */
   // Implementation of optional member function here.
   art::ServiceHandle<art::TFileService> tfs;
-  fRecoTree = tfs->make<TTree>("ReconstructedTree","analysis tree");
-  fRecoTree->Branch("MCPdgCode"        ,&MCPdgCode        ,"MCPdgCode/I"        );
-  fRecoTree->Branch("MCTrackID"        ,&MCTrackID        ,"MCTrackID/I"        );
-  
+  fDecayTree = tfs->make<TTree>("ReconstructedTree","analysis tree");
+  fDecayTree->Branch("Run"          ,&Run          ,"Run/I"            );
+  fDecayTree->Branch("Event"        ,&Event        ,"Event/I"          );
+  fDecayTree->Branch("PrimMuonRange",&PrimMuonRange,"PrimMuonRange/D"  );
+  fDecayTree->Branch("PrimMuonEDep" ,&PrimMuonEDep ,"PrimMuonEDep/D"   );
+  fDecayTree->Branch("PrimMuonShadowEDep" ,&PrimMuonShadowEDep ,"PrimMuonShadowEDep/D"   );
+  fDecayTree->Branch("DistEdge"     ,&DistEdge     ,"DistEdge[3][2]/D" );
+  fDecayTree->Branch("TotalEDep"    ,&TotalEDep    ,"TotalEDep/D"      );
+  // Muon
+  fDecayTree->Branch("nMuon"     ,&nMuon      ,"nMuon/I"               );
+  fDecayTree->Branch("MuonEDep"  ,&MuonEDep   ,"MuonEDep[nMuon]/D"     );
+  fDecayTree->Branch("MuonStart" ,&MuonStart  ,"MuonStart[nMuon][4]/D" );
+  fDecayTree->Branch("MuonEnd"   ,&MuonEnd    ,"MuonEnd[nMuon][4]/D"   );
+  // Pion
+  fDecayTree->Branch("nPion"     ,&nPion      ,"nPion/I"               );
+  fDecayTree->Branch("PionEDep"  ,&PionEDep   ,"PionEDep[nPion]/D"     );
+  fDecayTree->Branch("PionStart" ,&PionStart  ,"PionStart[nPion][4]/D" );
+  fDecayTree->Branch("PionEnd"   ,&PionEnd    ,"PionEnd[nPion][4]/D"   );
+  // Pi0
+  fDecayTree->Branch("nPi0"     ,&nPi0      ,"nPi0/I"              );
+  fDecayTree->Branch("Pi0EDep"  ,&Pi0EDep   ,"Pi0EDep[nPi0]/D"     );
+  fDecayTree->Branch("Pi0Start" ,&Pi0Start  ,"Pi0Start[nPi0][4]/D" );
+  fDecayTree->Branch("Pi0End"   ,&Pi0End    ,"Pi0End[nPi0][4]/D"   );
+  // KPlus
+  fDecayTree->Branch("nKPlus"     ,&nKPlus      ,"nKPlus/I"                );
+  fDecayTree->Branch("KPlusEDep"  ,&KPlusEDep   ,"KPlusEDep[nKPlus]/D"     );
+  fDecayTree->Branch("KPlusStart" ,&KPlusStart  ,"KPlusStart[nKPlus][4]/D" );
+  fDecayTree->Branch("KPlusEnd"   ,&KPlusEnd    ,"KPlusEnd[nKPlus][4]/D"   );
+  // KMinus
+  fDecayTree->Branch("nKMinus"     ,&nKMinus      ,"nKMinus/I"                 );
+  fDecayTree->Branch("KMinusEDep"  ,&KMinusEDep   ,"KMinusEDep[nKMinus]/D"     );
+  fDecayTree->Branch("KMinusStart" ,&KMinusStart  ,"KMinusStart[nKMinus][4]/D" );
+  fDecayTree->Branch("KMinusEnd"   ,&KMinusEnd    ,"KMinusEnd[nKMinus][4]/D"   );
+  // EPlus
+  fDecayTree->Branch("nEPlus"     ,&nEPlus      ,"nEPlus/I"                );
+  fDecayTree->Branch("EPlusEDep"  ,&EPlusEDep   ,"EPlusEDep[nEPlus]/D"     );
+  fDecayTree->Branch("EPlusStart" ,&EPlusStart  ,"EPlusStart[nEPlus][4]/D" );
+  fDecayTree->Branch("EPlusEnd"   ,&EPlusEnd    ,"EPlusEnd[nEPlus][4]/D"   );
+  // EMinus
+  fDecayTree->Branch("nEMinus"     ,&nEMinus      ,"nEMinus/I"                 );
+  fDecayTree->Branch("EMinusEDep"  ,&EMinusEDep   ,"EMinusEDep[nEMinus]/D"     );
+  fDecayTree->Branch("EMinusStart" ,&EMinusStart  ,"EMinusStart[nEMinus][4]/D" );
+  fDecayTree->Branch("EMinusEnd"   ,&EMinusEnd    ,"EMinusEnd[nEMinus][4]/D"   );
 }
 // ************************************ End Job *********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::endJob() {
@@ -161,51 +262,191 @@ NeutronDecayN2Ana::NeutronDecayN2Ana::~NeutronDecayN2Ana()
 // ************************************ Analyse *********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
 {
-  //std::cout << "\n\n************* New Event / Module running *************\n\n" << std::endl;
+  ResetVars();
+  Run   = evt.run();
+  Event = evt.event();
+  std::cout << "\n\n************* New Event / Module running - Run " << Run << ", Event " << Event << " *************\n\n" << std::endl;
+
+  // Any providers I need.
+  auto const* geo = lar::providerFrom<geo::Geometry>();
+
   // Implementation of required member function here. 
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
   if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
     art::fill_ptr_vector(tracklist, trackListHandle);
   
-  const sim::ParticleList& plist = bktrk->ParticleList();
-  // Quickly get total number of MC Particles...
-  for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
-    simb::MCParticle *particle = ipar->second;
-    for ( int a=0; a<(int)particle->NumberTrajectoryPoints(); ++a ) {
+  // Make a map of MCParticles which I can access later.
+  art::Handle<std::vector<simb::MCParticle> > truth;
+  evt.getByLabel("largeant", truth);
+  std::map<int, const simb::MCParticle*> truthmap;
+  for (size_t i=0; i<truth->size(); i++)
+    truthmap[truth->at(i).TrackId()]=&((*truth)[i]);
+
+  // Get a vector of sim channels.
+  art::Handle<std::vector<sim::SimChannel> > simchannels;
+  evt.getByLabel("largeant", simchannels);
+  
+  // Make a vector for primary IDEs to work out total Edep and length of primary muon
+  std::vector<sim::IDE> priides;
+
+  // Make vectors to hold all of my particle TrackIDs
+  std::vector<int> MuonVec, PionVec, Pi0Vec, KPlusVec, KMinusVec, EPlusVec, EMinusVec;
+  std::vector<int> AllTrackIDs;
+  
+  // Want to loop through the simchannels, and the ides.
+  int chanIt = 0;
+  for (auto const& simchannel:*simchannels) {
+    // ------ Only want to look at collection plane hits ------
+    if (geo->SignalType(simchannel.Channel()) != geo::kCollection) continue;
+    int tdcideIt = 0;
+    // ------ Loop through all the IDEs for this channel ------
+    for (auto const& tdcide:simchannel.TDCIDEMap()) {
+      unsigned int tdc = tdcide.first;
+      auto const& idevec=tdcide.second;
+      //std::cout << "TDC IDE " << tdcideIt << " of " << simchannel.TDCIDEMap().size() << ", has tdc " << tdc << ", and idevec of size " << idevec.size() << std::endl;
+      int ideIt = 0;
+      // ------ Look at each individual IDE ------
+      for (auto const& ide:idevec) {
+	int ideTrackID = ide.trackID;
+	float ideEnergy = ide.energy;
+	double idePos[3];
+	idePos[0] = ide.x;
+	idePos[1] = ide.y;
+	idePos[2] = ide.z;
+	/*
+	if (ideTrackID == 1) { 
+	float ideNumEl  = ide.numElectrons;
+	std::cout << "      IDE " << ideIt << " of " << idevec.size() << " has TrackId " << ideTrackID << ", energy " << ideEnergy << ", NumEl " << ideNumEl << ", tdc " << tdc << ". ";
+	std::cout << "Position " << idePos[0] << ", " << idePos[1] << ", " << idePos[2] << std::endl;
+	}
+	//*/
+
+	// ------ Work out if this hit is in a TPC ------
+	bool InTPC = false;
+	if ( idePos[0] > ActiveBounds[0] && idePos[0] < ActiveBounds[1] )
+	  if ( idePos[1] > ActiveBounds[2] && idePos[1] < ActiveBounds[3] )
+	    if ( idePos[2] > ActiveBounds[4] && idePos[2] < ActiveBounds[5] )
+	      InTPC = true;
+	if (! InTPC ) {
+	  std::cout << "Outside the Active volume I found at the top!" << std::endl;
+	  continue;
+	}	  
+
+	// ------ Add the energy deposition from this IDE to the sum of IDEs
+	TotalEDep += ideEnergy;
+	if ( ideTrackID == -1 ) PrimMuonShadowEDep += ideEnergy;
+	
+	// ------ I want to make a vector of the IDEs for the primary muon ------
+	if (ideTrackID==1) priides.push_back(ide);
+	  
+	// ------ I want to work the closest IDE to an edge of the active volume ------
+	if ( DistEdge[0][0] > ( ide.x - ActiveBounds[0]) ) DistEdge[0][0] =  ide.x - ActiveBounds[0];
+	if ( DistEdge[0][1] > (-ide.x + ActiveBounds[1]) ) DistEdge[0][1] = -ide.x + ActiveBounds[1];
+	if ( DistEdge[1][0] > ( ide.y - ActiveBounds[2]) ) DistEdge[1][0] =  ide.y - ActiveBounds[2];
+	if ( DistEdge[1][1] > (-ide.y + ActiveBounds[3]) ) DistEdge[1][1] = -ide.y + ActiveBounds[3];
+	if ( DistEdge[2][0] > ( ide.z - ActiveBounds[4]) ) DistEdge[2][0] =  ide.z - ActiveBounds[4];
+	if ( DistEdge[2][1] > (-ide.z + ActiveBounds[5]) ) DistEdge[2][1] = -ide.z + ActiveBounds[5];
+	/*
+	  std::cout << "DistEdge[0][0] = " <<  ide.x - ActiveBounds[0] << " = " <<  ide.x << " - " << ActiveBounds[0] << ". The minimum is " << DistEdge[0][0] << std::endl;
+	  std::cout << "DistEdge[0][1] = " << -ide.x + ActiveBounds[1] << " = " << -ide.x << " + " << ActiveBounds[1] << ". The minimum is " << DistEdge[0][1] << std::endl;
+	  std::cout << "DistEdge[1][0] = " <<  ide.y - ActiveBounds[2] << " = " <<  ide.y << " - " << ActiveBounds[2] << ". The minimum is " << DistEdge[1][0] << std::endl;
+	  std::cout << "DistEdge[1][1] = " << -ide.y + ActiveBounds[3] << " = " << -ide.y << " + " << ActiveBounds[3] << ". The minimum is " << DistEdge[1][1] << std::endl;
+	  std::cout << "DistEdge[2][0] = " <<  ide.z - ActiveBounds[4] << " = " <<  ide.z << " - " << ActiveBounds[4] << ". The minimum is " << DistEdge[2][0] << std::endl;
+	  std::cout << "DistEdge[2][1] = " << -ide.z + ActiveBounds[5] << " = " << -ide.z << " + " << ActiveBounds[5] << ". The minimum is " << DistEdge[2][1] << std::endl;
+	//*/
+	
+	// ------ I can't get the truth information for negative track IDs ------
+	if ( ideTrackID < 0 ) continue;
+
+	// ------ Now to work out which particles in particular I want to save more information about... ------
+	const simb::MCParticle& part=*(truthmap[ideTrackID]);
+	int PdgCode=part.PdgCode();
+	
+	if      ( PdgCode == -13  || PdgCode == 13  ) FillVars( MuonVec  , nMuon  , MuonEDep  , MuonStart  , MuonEnd  , ideTrackID, tdc, ide ); // Muon
+	else if ( PdgCode == -211 || PdgCode == 211 ) FillVars( PionVec  , nPion  , PionEDep  , PionStart  , PionEnd  , ideTrackID, tdc, ide ); // Pion
+	else if ( PdgCode == 111  )                   FillVars( Pi0Vec   , nPi0   , Pi0EDep   , Pi0Start   , Pi0End   , ideTrackID, tdc, ide ); // Pi0
+	else if ( PdgCode == 321  )                   FillVars( KPlusVec , nKPlus , KPlusEDep , KPlusStart , KPlusEnd , ideTrackID, tdc, ide ); // KPlus
+	else if ( PdgCode == -321 )                   FillVars( KMinusVec, nKMinus, KMinusEDep, KMinusStart, KMinusEnd, ideTrackID, tdc, ide ); // KMinus
+	else if ( PdgCode == -11  )                   FillVars( EPlusVec , nEPlus , EPlusEDep , EPlusStart , EPlusEnd , ideTrackID, tdc, ide ); // EPlus
+	else if ( PdgCode == 11   )                   FillVars( EMinusVec, nEMinus, EMinusEDep, EMinusStart, EMinusEnd, ideTrackID, tdc, ide ); // EMinus
+	
+	std::vector<int>::iterator it=std::find(AllTrackIDs.begin(), AllTrackIDs.end(), ideTrackID);
+	if ( it==AllTrackIDs.end() ) {
+	  AllTrackIDs.push_back( ideTrackID );
+	  std::cerr << "I also had trackID " << ideTrackID << " in this event, it was from a " << PdgCode << std::endl;
+	}
+
+	ideIt++;
+      } // Each IDE ( ide:idevec )
+      ++tdcideIt;
+    } // IDE vector for SimChannel ( tdcide:simcahnnel.TPCIDEMap() )
+    ++chanIt;
+  } // Loop through simchannels
+
+  // Work out some properties of the primary muon
+  if (priides.size()) {
+    // ------ Sort the IDEs in y ------
+    std::sort(priides.begin(), priides.end(), IDEYLess());
+    // ------ Work out the range ------
+    double dx=priides.front().x-priides.back().x;
+    double dy=priides.front().y-priides.back().y;
+    double dz=priides.front().z-priides.back().z;
+    PrimMuonRange=sqrt(dx*dx+dy*dy+dz*dz);
+    // ------ Work out the energy deposited ------
+    for (unsigned int muIt=0; muIt<priides.size(); ++muIt) PrimMuonEDep += priides[muIt].energy;
+    PrimMuonEDep = PrimMuonEDep / priides.size();
+  } 
+  std::cout << "Primary muon track length = " << PrimMuonRange << " cm, and energy despoited = " << PrimMuonEDep << ", shadow EDep = " << PrimMuonShadowEDep << " and total Edep is " << TotalEDep << ".\n"
+	    << "There were " << nMuon << " muons, " << nPion << " pions, " << nPi0 << " pi0s, " << nKPlus << " KPlus, " << nKMinus << " KMinus, " << nEPlus << " EPlus, " << nEMinus << " EMinus.\n"
+	    << std::endl;
+  // If nMuon
+  if (nMuon) {
+    double MyRange = pow( pow((MuonStart[0][0]-MuonEnd[0][0]),2) + pow((MuonStart[0][1]-MuonEnd[0][1]),2) + pow((MuonStart[0][2]-MuonEnd[0][2]),2), 0.5 );
+    std::cout << "PrimMuon start " << MuonStart[0][0] << ", " << MuonStart[0][1] << ", " << MuonStart[0][2] << ", " << MuonStart[0][3]
+	      << ". PrimMuon end " << MuonEnd[0][0] << ", " << MuonEnd[0][1] << ", " << MuonEnd[0][2] << ", " << MuonEnd[0][3]
+	      << ". Distance of " << pow( pow((MuonStart[0][0]-MuonEnd[0][0]),2) + pow((MuonStart[0][1]-MuonEnd[0][1]),2) + pow((MuonStart[0][2]-MuonEnd[0][2]),2), 0.5 )
+	      << std::endl;
+    
+    if ( PrimMuonRange - MyRange > 2 ) {
+      std::cout << "\n NOT MATCHING!! \n" << std::endl;
+      for (size_t qq=0; qq<priides.size(); ++qq)
+	std::cout << "PrimMuon start " << priides[qq].x << ", " << priides[qq].y << ", " << priides[qq].z << std::endl;
+    }
+  }  
+  // ------ Fill the Tree ------
+  fDecayTree->Fill();
+} // Analyse
+// ******************************** Fill variables *****************************************************
+void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
+						     int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE ) {
+
+  std::vector<int>::iterator it=std::find(TrackIDVec.begin(), TrackIDVec.end(), ThisID);
+  int partNum;
+  if ( it==TrackIDVec.end() ) {
+    partNum = numParts;
+    ++numParts;
+    TrackIDVec.push_back( ThisID );
+    std::cerr << "Pushing back a new ideTrackID " << ThisID << std::endl;
+    Start[partNum][0] = End[partNum][0] = ThisIDE.x;
+    Start[partNum][1] = End[partNum][1] = ThisIDE.y;
+    Start[partNum][2] = End[partNum][2] = ThisIDE.z;
+    Start[partNum][3] = End[partNum][3] = ThisTDC;
+  } else {
+    partNum = it - TrackIDVec.begin();
+    if ( ThisTDC < Start[partNum][3] ) {
+      Start[partNum][0] = ThisIDE.x;
+      Start[partNum][1] = ThisIDE.y;
+      Start[partNum][2] = ThisIDE.z;
+      Start[partNum][3] = ThisTDC;
+    } else if ( ThisTDC > End[partNum][3] ) {
+      End[partNum][0] = ThisIDE.x;
+      End[partNum][1] = ThisIDE.y;
+      End[partNum][2] = ThisIDE.z;
+      End[partNum][3] = ThisTDC;
     }
   }
-  
-  // ------------------ Section for if I want to use reconstructed tracks -------------------
-  /*
-  if ( trackListHandle.isValid() ) { // Check that trackListHandle is valid.....
-    art::FindManyP<recob::Hit>        fmht   (trackListHandle, evt, fTrackModuleLabel);
-    art::FindMany<anab::T0>           fmt0   (trackListHandle, evt, fMCTruthT0ModuleLabel);
-    int ntracks_reco=tracklist.size();      
-    for(int Track=0; Track < ntracks_reco; ++Track){
-      if ( fmt0.isValid() ) {
-	std::vector<const anab::T0*> T0s = fmt0.at(Track);
-	for (size_t t0size =0; t0size < T0s.size(); t0size++) {
-	  MCTrackID = T0s[t0size]->TriggerBits();
-	} // T0 size
-      } else std::cout << "fmt0 isn't valid" << std::endl;
-      for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){
-	simb::MCParticle *particle = ipar->second;
-	if (particle->TrackId() == MCTrackID) {
-	  MCPdgCode = particle->PdgCode();
-	  std::cout << "Found my truth particle, it has pdg code " << MCPdgCode << std::endl;
-	}
-      }
-      
-      fRecoTree->Fill();
-    } // Loop through tracks
-  } // if trackListHandle.isValid()
-  */
-  // ------------------ Section for if I want to use reconstructed tracks -------------------
-} // Analyse
-
-// ******************************** Reset Variables *****************************************************
-void NeutronDecayN2Ana::NeutronDecayN2Ana::ResetVars() {
-}
+  EDep[partNum] += ThisIDE.energy;
+} // FillVars
 // ******************************** Define Module *****************************************************
 DEFINE_ART_MODULE(NeutronDecayN2Ana::NeutronDecayN2Ana)
