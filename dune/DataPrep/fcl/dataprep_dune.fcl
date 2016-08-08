@@ -57,12 +57,12 @@ adcsigfind_suppress: {
 
 # AdcNoiseRemovalService is used to remove noise from ADC signals.
 
-adcnr_dune35t: {
+adcnr_dune35tlegacy: {
   service_provider: Dune35tNoiseRemovalService
   LogLevel:             1
   GroupingFlag:         1
-  SkipStuckCodes:    true
-  SkipSignals:       true
+  SkipStuckCodes:   false
+  SkipSignals:      false
   CorrectStuckCodes: true
   ShowGroups:           2
   ShowGroupsChannel:    4
@@ -117,9 +117,27 @@ adcwire_std: {
 # services to prepare ADC signals including the conversion of
 # raw::RawDigit to recob::Wire.
 
-adcprep_dune35t: {
+# Read raw data and subtract pedestals without any other preparation.
+adcprep_readraw: {
   service_provider: StandardRawDigitPrepService
   LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:       false
+  DoROI:                 false
+  DoWires:               false
+}
+
+# Process 35-ton data
+adcprep_dune35tdata: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:                true
+  SkipNoisy:             false
   DoMitigation:           true
   DoEarlySignalFinding:   true
   DoNoiseRemoval:         true
@@ -127,6 +145,19 @@ adcprep_dune35t: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
+}
+
+#***********************************************************************
+
+# DataPrepModule is the producer that calls RawDigitPrepService
+
+# Process any data.
+producer_adcprep: {
+  module_type: "DataPrepModule"
+  LogLevel:    1
+  DigitLabel:  "daq"
+  WireName:    ""
+  DoAssns:     true
 }
 
 #***********************************************************************

@@ -199,7 +199,7 @@ dune35t_basic_services: {
 
 dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
 
-# DLA Aug2016: Drop this in favor of dune35t_reco_services below.
+# DLA Aug2016: Drop this in favor of dune35t_reco_services?
 dune35t_services:                            @local::dune35t_basic_services
 dune35t_services.LArFFT:                     @local::dune35t_larfft
 dune35t_services.BackTracker:                @local::dune35t_backtracker
@@ -266,20 +266,20 @@ dune35t_simulation_services.SignalShapingServiceDUNE:             @local::dune35
 dune35t_simulation_services.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
 dune35t_simulation_services.BackTracker:                          @local::dune35t_backtracker
 
-dune35t_reco_services:                            @local::dune35t_basic_services
-dune35t_reco_services.LArFFT:                     @local::dune35t_larfft
-dune35t_reco_services.BackTracker:                @local::dune35t_backtracker
-dune35t_reco_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
-dune35t_reco_services.RawDigitExtractService:     @local::rdx_std
-dune35t_reco_services.AdcSuppressonService:       @local::adcmit_dune35t
-dune35t_reco_services.AdcSuppressService:         @local::adcsuppress_legacy35t
-dune35t_reco_services.AdcNSignalFindingService:   @local::adcsigfind_suppress
-dune35t_reco_services.AdcNoiseRemovalService:     @local::adcnr_dune35t
-dune35t_reco_services.PedestalEvaluationService:  @local::adcped_median
-dune35t_reco_services.AdcDeconvolutionService:    @local::adcdco_dune35t
-dune35t_reco_services.AdcRoiBuildingService:      @local::adcroi_dune35t
-dune35t_reco_services.AdcWireBuildingService:     @local::adcwire_std
-dune35t_reco_services.RawDigitPrepService:        @local::adcprep_dune35t
+dune35tdata_reco_services:                            @local::dune35t_basic_services
+dune35tdata_reco_services.LArFFT:                     @local::dune35t_larfft
+dune35tdata_reco_services.BackTracker:                @local::dune35t_backtracker
+dune35tdata_reco_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
+dune35tdata_reco_services.RawDigitExtractService:     @local::rdx_std
+dune35tdata_reco_services.AdcSuppressonService:       @local::adcmit_dune35t
+dune35tdata_reco_services.AdcSuppressService:         @local::adcsuppress_legacy35t
+dune35tdata_reco_services.AdcNSignalFindingService:   @local::adcsigfind_suppress
+dune35tdata_reco_services.AdcNoiseRemovalService:     @local::adcnr_dune35tlegacy
+dune35tdata_reco_services.PedestalEvaluationService:  @local::adcped_median
+dune35tdata_reco_services.AdcDeconvolutionService:    @local::adcdco_dune35t
+dune35tdata_reco_services.AdcRoiBuildingService:      @local::adcroi_dune35t
+dune35tdata_reco_services.AdcWireBuildingService:     @local::adcwire_std
+dune35tdata_reco_services.RawDigitPrepService:        @local::adcprep_dune35tdata
 
 dune35t_milliblock_services:                                      @local::dune35t_services
 dune35t_milliblock_services.DetectorPropertiesService:            @local::dune35t_milliblock_detproperties
