@@ -50,6 +50,7 @@ public:
   ~EMEnergyConversion();
   void MakeFits();
   std::pair<double,double> MakeFit(int num, TString plane);
+  void ProcessEvent();
   void Run();
   void SaveHists();
   void SetBranchAddresses();
@@ -88,9 +89,9 @@ private:
 
 EMEnergyConversion::EMEnergyConversion(TTree* tree) {
   fTree = tree;
-  ChargeDepositEnergyU = new TH2D("ChargeDepositEnergyU","Charge v Depositied Energy on U;Deposited Energy (GeV);Charge (ADC);",50,0,5,100,0,15e9);
-  ChargeDepositEnergyV = new TH2D("ChargeDepositEnergyV","Charge v Depositied Energy on V;Deposited Energy (GeV);Charge (ADC);",50,0,5,100,0,15e9);
-  ChargeDepositEnergyZ = new TH2D("ChargeDepositEnergyZ","Charge v Depositied Energy on Z;Deposited Energy (GeV);Charge (ADC);",50,0,5,100,0,15e9);
+  ChargeDepositEnergyU = new TH2D("ChargeDepositEnergyU","Charge v Depositied Energy on U;Charge (ADC);Deposited Energy (GeV);",100,0,15e9,50,0,5);
+  ChargeDepositEnergyV = new TH2D("ChargeDepositEnergyV","Charge v Depositied Energy on V;Charge (ADC);Deposited Energy (GeV);",100,0,15e9,50,0,5);
+  ChargeDepositEnergyZ = new TH2D("ChargeDepositEnergyZ","Charge v Depositied Energy on Z;Charge (ADC);Deposited Energy (GeV);",100,0,15e9,50,0,5);
   EnergyDepositUDistance = new TH2D("EnergyDepositUDistance","Deposited Energy on U vs Distance from Detector Edge;Distance (cm);Fraction of Energy Deposited;",100,0,220,50,0,1.1);
   EnergyDepositVDistance = new TH2D("EnergyDepositVDistance","Deposited Energy on V vs Distance from Detector Edge;Distance (cm);Fraction of Energy Deposited;",100,0,220,50,0,1.1);
   EnergyDepositZDistance = new TH2D("EnergyDepositZDistance","Deposited Energy on Z vs Distance from Detector Edge;Distance (cm);Fraction of Energy Deposited;",100,0,220,50,0,1.1);
@@ -176,16 +177,17 @@ std::pair<double,double> EMEnergyConversion::MakeFit(int num, TString plane) {
   }
 
   // Make a load of histograms!
-  TH1D* ChargeDist1 = new TH1D(TString("ChargeDist1Plane")+plane,";Total ADC;",200,lCharge[1]-2e6,hCharge[1]+2e6);
-  TH1D* ChargeDist2 = new TH1D(TString("ChargeDist2Plane")+plane,";Total ADC;",200,lCharge[2]-2e6,hCharge[2]+2e6);
-  TH1D* ChargeDist3 = new TH1D(TString("ChargeDist3Plane")+plane,";Total ADC;",200,lCharge[3]-2e6,hCharge[3]+2e6);
-  TH1D* ChargeDist4 = new TH1D(TString("ChargeDist4Plane")+plane,";Total ADC;",200,lCharge[4]-2e6,hCharge[4]+2e6);
-  TH1D* ChargeDist5 = new TH1D(TString("ChargeDist5Plane")+plane,";Total ADC;",200,lCharge[5]-2e6,hCharge[5]+2e6);
-  TH1D* ChargeDist6 = new TH1D(TString("ChargeDist6Plane")+plane,";Total ADC;",200,lCharge[6]-2e6,hCharge[6]+2e6);
-  TH1D* ChargeDist7 = new TH1D(TString("ChargeDist7Plane")+plane,";Total ADC;",200,lCharge[7]-2e6,hCharge[7]+2e6);
-  TH1D* ChargeDist8 = new TH1D(TString("ChargeDist8Plane")+plane,";Total ADC;",200,lCharge[8]-2e6,hCharge[8]+2e6);
-  TH1D* ChargeDist9 = new TH1D(TString("ChargeDist9Plane")+plane,";Total ADC;",200,lCharge[9]-2e6,hCharge[9]+2e6);
-  TH1D* ChargeDist10 = new TH1D(TString("ChargeDist10Plane")+plane,";Total ADC;",200,lCharge[10]-2e6,hCharge[10]+2e6);
+  long dCharge = 100;
+  TH1D* ChargeDist1 = new TH1D(TString("ChargeDist1Plane")+plane,";Total ADC;",200,lCharge[1]-dCharge,hCharge[1]+dCharge);
+  TH1D* ChargeDist2 = new TH1D(TString("ChargeDist2Plane")+plane,";Total ADC;",200,lCharge[2]-dCharge,hCharge[2]+dCharge);
+  TH1D* ChargeDist3 = new TH1D(TString("ChargeDist3Plane")+plane,";Total ADC;",200,lCharge[3]-dCharge,hCharge[3]+dCharge);
+  TH1D* ChargeDist4 = new TH1D(TString("ChargeDist4Plane")+plane,";Total ADC;",200,lCharge[4]-dCharge,hCharge[4]+dCharge);
+  TH1D* ChargeDist5 = new TH1D(TString("ChargeDist5Plane")+plane,";Total ADC;",200,lCharge[5]-dCharge,hCharge[5]+dCharge);
+  TH1D* ChargeDist6 = new TH1D(TString("ChargeDist6Plane")+plane,";Total ADC;",200,lCharge[6]-dCharge,hCharge[6]+dCharge);
+  TH1D* ChargeDist7 = new TH1D(TString("ChargeDist7Plane")+plane,";Total ADC;",200,lCharge[7]-dCharge,hCharge[7]+dCharge);
+  TH1D* ChargeDist8 = new TH1D(TString("ChargeDist8Plane")+plane,";Total ADC;",200,lCharge[8]-dCharge,hCharge[8]+dCharge);
+  TH1D* ChargeDist9 = new TH1D(TString("ChargeDist9Plane")+plane,";Total ADC;",200,lCharge[9]-dCharge,hCharge[9]+dCharge);
+  TH1D* ChargeDist10 = new TH1D(TString("ChargeDist10Plane")+plane,";Total ADC;",200,lCharge[10]-dCharge,hCharge[10]+dCharge);
   TH1D* EnergyDist1 = new TH1D(TString("EnergyDist1Plane")+plane,";Energy (GeV);",100,kEnergy[0]-kdE,kEnergy[0]);
   TH1D* EnergyDist2 = new TH1D(TString("EnergyDist2Plane")+plane,";Energy (GeV);",100,kEnergy[1]-kdE,kEnergy[1]);
   TH1D* EnergyDist3 = new TH1D(TString("EnergyDist3Plane")+plane,";Energy (GeV);",100,kEnergy[2]-kdE,kEnergy[2]);
@@ -254,16 +256,16 @@ std::pair<double,double> EMEnergyConversion::MakeFit(int num, TString plane) {
 
   delete fit;
 
-  TGraph *graph = new TGraph(10, energy, charge);
+  TGraph *graph = new TGraph(10, charge, energy);
   graph->SetName(TString("FitPlane")+plane);
-  graph->GetXaxis()->SetTitle("Deposited Energy (GeV)");
-  graph->GetYaxis()->SetTitle("Charge");
+  graph->GetXaxis()->SetTitle("Charge");
+  graph->GetYaxis()->SetTitle("Deposited Energy (GeV)");
   graph->SetTitle(plane);
   graph->SetMarkerStyle(8);
   graph->SetMarkerSize(1);
   graph->Fit("pol1");
   graph->Write();
-  TF1* fit = graph->GetFunction("pol1");
+  fit = graph->GetFunction("pol1");
   std::pair<double,double> fitParameters = std::make_pair(fit->GetParameter(0), fit->GetParameter(1));
   delete fit;
   delete graph;
@@ -289,7 +291,6 @@ void EMEnergyConversion::Run() {
 
 void EMEnergyConversion::ProcessEvent() {
 
-  double chargeU = 0, chargeV = 0, chargeZ = 0;
   std::map<int,double> clusterChargeU, clusterChargeV, clusterChargeZ;
 
   for (int hit = 0; hit < NHits; ++hit) {
@@ -331,19 +332,23 @@ void EMEnergyConversion::SaveHists() {
 
   outFile->cd();
 
-  TCanvas cChargeDepositEnergyU = TCanvas("cChargeDepositEnergyU","",800,600);
+  TCanvas* cChargeDepositEnergyU = new TCanvas("cChargeDepositEnergyU","",800,600);
   ChargeDepositEnergyU->Draw("colz");
-  cChargeDepositEnergyU.Write("ChargeDepositEnergyU");
-  TCanvas cChargeDepositEnergyV = TCanvas("cChargeDepositEnergyV","",800,600);
+  cChargeDepositEnergyU->Write("ChargeDepositEnergyU");
+  TCanvas* cChargeDepositEnergyV = new TCanvas("cChargeDepositEnergyV","",800,600);
   ChargeDepositEnergyV->Draw("colz");
-  cChargeDepositEnergyV.Write("ChargeDepositEnergyV");
-  TCanvas cChargeDepositEnergyZ = TCanvas("cChargeDepositEnergyZ","",800,600);
+  cChargeDepositEnergyV->Write("ChargeDepositEnergyV");
+  TCanvas* cChargeDepositEnergyZ = new TCanvas("cChargeDepositEnergyZ","",800,600);
   ChargeDepositEnergyZ->Draw("colz");
-  cChargeDepositEnergyZ.Write("ChargeDepositEnergyZ");
+  cChargeDepositEnergyZ->Write("ChargeDepositEnergyZ");
 
   EnergyDepositUDistance->Write("EnergyDepositUDistance");
   EnergyDepositVDistance->Write("EnergyDepositVDistance");
   EnergyDepositZDistance->Write("EnergyDepositZDistance");
+
+  delete cChargeDepositEnergyU;
+  delete cChargeDepositEnergyV;
+  delete cChargeDepositEnergyZ;
 
 }
 

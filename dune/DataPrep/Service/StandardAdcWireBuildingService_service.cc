@@ -66,7 +66,8 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
   bool dataOwnsWire = pwires == nullptr;
   if ( ! dataOwnsWire ) {
     if ( pwires->size() == pwires->capacity() ) {
-      cout << myname << "ERROR: Wire vector capacity is too small. Wire is not recorded." << endl;
+      cout << myname << "ERROR: Wire vector capacity " << pwires->capacity()
+           << " is too small. Wire is not recorded." << endl;
       dataOwnsWire = true;
     } else {
       data.wireIndex = pwires->size();

@@ -1,0 +1,165 @@
+# dataprep_dune.fcl
+#
+# David Adams
+# August 2016
+
+BEGIN_PROLOG
+
+#***********************************************************************
+
+# RawDigitExtractService pulls ADC signals (raw:RawDigit) out of the lar
+# container, converts to float, flags bad channels and subtracts pedestals.
+
+rdx_std: {
+  service_provider: StandardRawDigitExtractService
+  LogLevel: 1
+  PedestalOption: 1
+  FlagStuckOff: true
+  FlagStuckOn: true
+}
+
+#***********************************************************************
+
+# AdcMitigationService is used to mitigate ADC signals, e.g.
+# interpolate between good values to deal with stuck bits.
+
+adcmit_dune35t: {
+  service_provider: InterpolatingAdcMitigationService
+  LogLevel: 1
+  SkipUnderflows:      true
+  SkipOverflows:       true
+  MaxConsecutiveSamples:  5
+  MaxConsecutiveFlag:     0
+}
+
+#***********************************************************************
+
+# AdcSuppressService is used by AdcSuppressSignalFindingService (below).
+
+adcsuppress_legacy35t: {
+  service_provider: Legacy35tZeroSuppressService
+  AdcThreshold: 30.0
+  TickRange: 4
+  MinTickGap: 2
+  SuppressStickyBits: false
+}
+
+#***********************************************************************
+
+# AdcSuppressSignalFindingService is used to remove noise from ADC signals.
+
+# This implementation uses AdcSuppressService.
+adcsigfind_suppress: {
+  service_provider: AdcSuppressSignalFindingService
+}
+
+#***********************************************************************
+
+# AdcNoiseRemovalService is used to remove noise from ADC signals.
+
+adcnr_dune35tlegacy: {
+  service_provider: Dune35tNoiseRemovalService
+  LogLevel:             1
+  GroupingFlag:         1
+  SkipStuckCodes:   false
+  SkipSignals:      false
+  CorrectStuckCodes: true
+  ShowGroups:           2
+  ShowGroupsChannel:    4
+}
+
+#***********************************************************************
+
+# PedestalEvaluationService is used to evaluate pedestals from the
+# ADC signals.
+
+adcped_median: {
+  service_provider: MedianPedestalService
+  LogLevel:              1
+  SkipFlaggedSamples: true
+  SkipSignals:        true
+}
+
+#***********************************************************************
+
+# AdcDeconvolutionService is used to deconvolute the ADC signals.
+
+adcdco_dune35t: {
+  service_provider: DuneDeconvolutionService
+  LogLevel:              1
+}
+
+#***********************************************************************
+
+# AdcRoiBuildingService is used to define ROIs for the ADC signals.
+
+adcroi_dune35t: {
+  service_provider: DuneRoiBuildingService
+  NSigmaStart:        3.0
+  NSigmaEnd:          1.0
+  PadLow:              50
+  PadHigh:             50
+}
+
+#***********************************************************************
+
+# AdcWireBuildingService constructs lar outputs (recob::Wire) from ADC
+# signals.
+
+adcwire_std: {
+  service_provider: StandardAdcWireBuildingService
+  LogLevel:              1
+}
+
+#***********************************************************************
+
+# RawDigitPrepService is the high level service that uses the above
+# services to prepare ADC signals including the conversion of
+# raw::RawDigit to recob::Wire.
+
+# Read raw data and subtract pedestals without any other preparation.
+adcprep_readraw: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:       false
+  DoROI:                 false
+  DoWires:               false
+}
+
+# Process 35-ton data
+adcprep_dune35tdata: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:                true
+  SkipNoisy:             false
+  DoMitigation:           true
+  DoEarlySignalFinding:   true
+  DoNoiseRemoval:         true
+  DoPedestalAdjustment:  false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
+}
+
+#***********************************************************************
+
+# DataPrepModule is the producer that calls RawDigitPrepService
+
+# Process any data.
+producer_adcprep: {
+  module_type: "DataPrepModule"
+  LogLevel:    1
+  DigitLabel:  "daq"
+  WireName:    ""
+  DoAssns:     true
+}
+
+#***********************************************************************
+
+END_PROLOG
