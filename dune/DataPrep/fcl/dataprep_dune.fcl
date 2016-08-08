@@ -117,6 +117,21 @@ adcwire_std: {
 # services to prepare ADC signals including the conversion of
 # raw::RawDigit to recob::Wire.
 
+# Read raw data and subtract pedestals without any other preparation.
+adcprep_readraw: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:       false
+  DoROI:                 false
+  DoWires:               false
+}
+
 # Process 35-ton data
 adcprep_dune35tdata: {
   service_provider: StandardRawDigitPrepService
