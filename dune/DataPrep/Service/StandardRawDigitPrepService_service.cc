@@ -167,6 +167,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
     cout << myname << "    Pedestal: " << datamap[ichan].pedestal << endl;
     cout << myname << "         raw: " << datamap[ichan].raw[isig] << endl;
     cout << myname << "        flag: " << datamap[ichan].flags[isig] << endl;
+    cout << myname << "   After ext: " << datamap[ichan].samples[isig] << endl;
   }
   if ( m_DoNoiseRemoval ) {
     m_pNoiseRemoval->update(datamap);
