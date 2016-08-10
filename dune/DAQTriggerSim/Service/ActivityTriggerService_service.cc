@@ -10,8 +10,8 @@
 // ART and larsoft includes
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/SimpleTypesAndConstants/geo_types.h"
-#include "larcore/SimpleTypesAndConstants/RawTypes.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 
 // DUNETPC specific includes
 #include "dune/DAQTriggerSim/Service/ActivityTriggerService.h"

@@ -24,19 +24,19 @@
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "art/Persistency/Common/Ptr.h" 
+#include "canvas/Persistency/Common/Ptr.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 #include "fhiclcpp/ParameterSet.h" 
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 #include "cetlib/exception.h"
 
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
-#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/Geometry.h"
 #include "larevt/Filters/ChannelFilter.h"
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/raw.h"
-#include "lardata/RecoBase/Hit.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/RecoBase/Hit.h"
 #include "lardata/RecoBaseArt/HitCreator.h"
 #include "lardata/Utilities/LArFFT.h"
 

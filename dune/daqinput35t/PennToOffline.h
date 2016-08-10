@@ -17,7 +17,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
-#include "lardata/RawData/ExternalTrigger.h"
+#include "lardataobj/RawData/ExternalTrigger.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/AuxDetGeo.h"
 
