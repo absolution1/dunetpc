@@ -70,8 +70,9 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool usePedesta
     fout << "}" << endl;
     fout << "services.PedestalEvaluationService: {" << endl;
     fout << "  service_provider: MedianPedestalService" << endl;
-    fout << "  LogLevel:         1" << endl;
-    fout << "  SkipStuckBits: true" << endl;
+    fout << "  LogLevel:           1" << endl;
+    fout << "  SkipFlaggedSamples: true" << endl;
+    fout << "  SkipSignals:        true" << endl;
     fout << "}" << endl;
     fout << "services.RawDigitPrepService: {" << endl;
     fout << "  service_provider: StandardRawDigitPrepService" << endl;

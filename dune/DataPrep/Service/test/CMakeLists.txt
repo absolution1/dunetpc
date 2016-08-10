@@ -36,6 +36,12 @@ cet_test(test_AdcSuppressSignalFindingService SOURCES test_AdcSuppressSignalFind
     dune_ArtSupport
 )
 
+cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
+  LIBRARIES
+    dune_DataPrep_Service_DuneDeconvolutionService_service
+    dune_ArtSupport
+)
+
 cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx
   LIBRARIES
     dune_DataPrep_Service_StandardRawDigitExtractService_service

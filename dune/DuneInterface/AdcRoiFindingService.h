@@ -1,7 +1,7 @@
-// AdcSignalFindingService.h
+// AdcRoiFindingService.h
 
-#ifndef AdcSignalFindingService_H
-#define AdcSignalFindingService_H
+#ifndef AdcRoiFindingService_H
+#define AdcRoiFindingService_H
 
 // David Adams
 // June 2016
@@ -12,11 +12,11 @@
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 
-class AdcSignalFindingService {
+class AdcRoiFindingService {
 
 public:
 
-  // Find signals and set data.signal correspondingly.
+  // Find ROIs and set data.rois correspondingly.
   virtual int find(AdcChannelData& data) const =0;
 
   // Print parameters.
@@ -24,6 +24,6 @@ public:
 
 };
 
-DECLARE_ART_SERVICE_INTERFACE(AdcSignalFindingService, LEGACY)
+DECLARE_ART_SERVICE_INTERFACE(AdcRoiFindingService, LEGACY)
 
 #endif
