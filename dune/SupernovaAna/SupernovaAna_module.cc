@@ -29,7 +29,7 @@
 // DUNETPC specific includes
 #include "dune/DAQTriggerSim/TriggerDataProducts/TriggerTypes.h"
 #include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
-
+#include "SimulationBase/MCTruth.h"
 
 
 class SupernovaAna;
@@ -62,7 +62,10 @@ private:
 
   // a simple histo to be filled
   TH1F *fNMCTruths;
-  
+
+  // theta histo to be filled
+  TH1F *fThetaTruths;
+
 };
 
 
@@ -94,6 +97,10 @@ void SupernovaAna::beginJob()
   fNMCTruths = tfs->make<TH1F>("fNMCTruths","Number of MCTruths per event;N;count",
 			       101,-0.5,100.5);
 
+  fThetaTruths = tfs->make<TH1F>("fThetaTruths","Number of neutrinos detected at angle [#theta];[#theta];count",40,-0.1,6.29);
+
+  // Use these as limits when sure the histogram works 21,-(TMath::Pi())/40.0,41.0*(TMath::Pi())/40.0);
+
 }
 
 
@@ -105,14 +112,29 @@ void SupernovaAna::analyze(art::Event const & e)
   //
   // Get the MCTruths out of the event
   //
-  // art::Handle< std::vector< triggersim::BasicTrigger > > triggers;
-  // e.getByLabel(fTriggerLabel, triggers);
-  std::cout << "\n\n\n" << fTruthLabel << "\n\n\n";
+  art::Handle< std::vector< simb::MCTruth > > truths_list;
+  e.getByLabel(fTruthLabel, truths_list);
+
+  fNMCTruths->Fill(truths_list->size()); // do something like this but looped and for neutrino information
+
+  // Get the neutrino data from the MCTruths 
+  // dont need to get evt data again, but im doing the full process first time
+
+  // simb::MCNeutrino mc_neutrino = truths.GetNeutrino(); // Others have not used simb but it is simb  module?
+
 
   
+  // fThetaTruths->Fill(mc_neutrino.Theta());
+  
+  // Add a for loop such as 
 
-  // do something...
+  for(unsigned int i = 0; i < truths_list->size();i++){
+    simb::MCTruth const& truth = truths_list->at(i);
+    if (truth.NeutrinoSet()){
+      simb::MCNeutrino const& mc_neutrino = truth.GetNeutrino();
+      fThetaTruths->Fill(mc_neutrino.Theta());
+    }
+  }
 
 }
-
 DEFINE_ART_MODULE(SupernovaAna)
