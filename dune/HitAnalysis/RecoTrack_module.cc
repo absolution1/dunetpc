@@ -15,8 +15,8 @@
 #define RecoTrack_Module
 
 // LArSoft includes
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Track.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
@@ -28,7 +28,7 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Core/FindManyP.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 
 // ROOT includes
 #include "TH1.h"

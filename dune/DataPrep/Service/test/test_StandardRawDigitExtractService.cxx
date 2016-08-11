@@ -11,7 +11,7 @@
 #include <fstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/RawDigitExtractService.h"
@@ -143,6 +143,7 @@ int test_StandardRawDigitExtractService() {
   cout << myname << "Output raw vector size: " << sigs.size() << endl;
   cout << myname << "Output prep vector size: " << sigs.size() << endl;
   cout << myname << " Output flags size: " << flags.size() << endl;
+  cout << myname << "          Pedestal: " << pedout << endl;
   assert( raw.size() == nsig );
   assert( sigs.size() == nsig );
   assert( flags.size() == nsig );

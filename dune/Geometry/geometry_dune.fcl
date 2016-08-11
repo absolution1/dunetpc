@@ -123,6 +123,17 @@ dune35t_geo:
 
 }
 
+larnd_geo:
+{
+ Name:     "larnd"
+
+ GDML:     "larnd.gdml"
+ ROOT:     "larnd.gdml"
+
+ SurfaceY:           5578               #183ft in cm, vertical distance to the surface
+ DisableWiresInG4:   true
+}
+
 
 dune_geometry_helper:
 {

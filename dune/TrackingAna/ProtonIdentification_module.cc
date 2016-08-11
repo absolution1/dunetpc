@@ -20,8 +20,8 @@
 #include "art/Framework/Principal/Event.h" 
 #include "fhiclcpp/ParameterSet.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "art/Persistency/Common/Ptr.h" 
-#include "art/Persistency/Common/PtrVector.h" 
+#include "canvas/Persistency/Common/Ptr.h" 
+#include "canvas/Persistency/Common/PtrVector.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 #include "art/Framework/Services/Optional/TFileService.h" 
 #include "art/Framework/Services/Optional/TFileDirectory.h" 
@@ -33,22 +33,22 @@
 #include "larcore/Geometry/TPCGeo.h"
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/WireGeo.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Track.h"
-#include "lardata/RecoBase/SpacePoint.h"
-#include "lardata/RecoBase/OpFlash.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/OpFlash.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
-#include "lardata/RawData/ExternalTrigger.h"
+#include "lardataobj/RawData/ExternalTrigger.h"
 #include "larsim/MCCheater/BackTracker.h"
-#include "lardata/AnalysisBase/Calorimetry.h"
-#include "lardata/AnalysisBase/T0.h"
-#include "lardata/AnalysisBase/ParticleID.h"
+#include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "lardataobj/AnalysisBase/T0.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
 
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -133,10 +133,10 @@ private:
   bool   MCStartInTPC, MCEndInTPC, MCStops;
   int    MCPdgCode, MCTrackId, MatchedTrackID, MCContainment, MCParticleKept;
 
-  double PIDA, PIDA_Plane0, PIDA_Plane1, PIDA_Plane2, TrackDistFromEdge, TrackHits;
+  double PIDA, PIDA_Plane0, PIDA_Plane1, PIDA_Plane2, TrackDistFromEdge, AvdEdx;
   double CorrectedStartX, CorrectedStartY, CorrectedStartZ, CorrectedEndX, CorrectedEndY, CorrectedEndZ;
   bool   startsonboundary, endsonboundary, trackstops;
-  int    RecoContainment;
+  int    RecoContainment, CounterID, TrackHits;
 
   bool AllChargedTrack;
 
@@ -157,6 +157,7 @@ private:
   std::string fTrackModuleLabel;
   std::string fMCTruthT0ModuleLabel;
   std::string fPhotonT0ModuleLabel;
+  std::string fCounterT0ModuleLabel;
   std::string fCalorimetryModuleLabel;
   double PIDApower, fBoundaryEdge;
 
@@ -219,18 +220,20 @@ void ProtonIdentification::ProtonIdentification::beginJob()
   fRecoTree->Branch("PIDA_Plane0"      ,&PIDA_Plane0      ,"PIDA_Plane0/D"      );
   fRecoTree->Branch("PIDA_Plane1"      ,&PIDA_Plane1      ,"PIDA_Plane1/D"      );
   fRecoTree->Branch("PIDA_Plane2"      ,&PIDA_Plane2      ,"PIDA_Plane2/D"      );
+  fRecoTree->Branch("AvdEdx"           ,&AvdEdx           ,"AvdEdx/D"           );
   fRecoTree->Branch("startsonboundary" ,&startsonboundary ,"startsonboundary/B" );
   fRecoTree->Branch("endsonboundary"   ,&endsonboundary   ,"endsonboundary/B"   );
   fRecoTree->Branch("trackstops"       ,&trackstops       ,"trackstops/B"       );
   fRecoTree->Branch("RecoContainment"  ,&RecoContainment  ,"RecoContainment/I"  );
   fRecoTree->Branch("TrackLength"      ,&TrackLength      ,"TrackLength/D"      );
-  fRecoTree->Branch("TrackHits"        ,&TrackHits        ,"TrackHits/D"        );
+  fRecoTree->Branch("TrackHits"        ,&TrackHits        ,"TrackHits/I"        );
   fRecoTree->Branch("CorrectedStartX"  ,&CorrectedStartX  ,"CorrectedStartX/D"  );
   fRecoTree->Branch("CorrectedStartY"  ,&CorrectedStartY  ,"CorrectedStartY/D"  );
   fRecoTree->Branch("CorrectedStartZ"  ,&CorrectedStartZ  ,"CorrectedStartZ/D"  );
   fRecoTree->Branch("CorrectedEndX"    ,&CorrectedEndX    ,"CorrectedEndX/D"    );
   fRecoTree->Branch("CorrectedEndY"    ,&CorrectedEndY    ,"CorrectedEndY/D"    );
   fRecoTree->Branch("CorrectedEndZ"    ,&CorrectedEndZ    ,"CorrectedEndZ/D"    );
+  fRecoTree->Branch("CounterID"        ,&CounterID        ,"CounterID/D"        );
 
   // ----- CHEATED HISTOGRAMS ------- Protons first -----
   Cheat_Proton.dEdx     = tfs->make<TH1D>("Proton_dEdx", "dEdx values for protons in the detector; dEdx (MeV cm); Number", 100, 0, 50);
@@ -317,6 +320,7 @@ ProtonIdentification::ProtonIdentification::ProtonIdentification(fhicl::Paramete
   , fTrackModuleLabel        ( pset.get< std::string >("TrackModuleLabel"))
   , fMCTruthT0ModuleLabel    ( pset.get< std::string >("MCTruthT0ModuleLabel"))
   , fPhotonT0ModuleLabel     ( pset.get< std::string >("PhotonT0ModuleLabel"))
+  , fCounterT0ModuleLabel    ( pset.get< std::string >("CounterT0ModuleLabel"))
   , fCalorimetryModuleLabel  ( pset.get< std::string >("CalorimetryModuleLabel"))
   , PIDApower                ( pset.get< double      >("PIDApower"))
   , fBoundaryEdge            ( pset.get< double      >("BoundaryEdge"))
@@ -338,6 +342,12 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
   std::vector<art::Ptr<recob::Track> > tracklist;
   if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
     art::fill_ptr_vector(tracklist, trackListHandle);
+  
+  art::Handle< std::vector<raw::ExternalTrigger> > trigListHandle;
+  std::vector<art::Ptr<raw::ExternalTrigger> > triglist;
+  if (evt.getByLabel(fCounterT0ModuleLabel,trigListHandle))
+    art::fill_ptr_vector(triglist, trigListHandle);  
+  //std::cout << "There were " << triglist.size() << " counter hits in this event." << std::endl;
   
   const sim::ParticleList& plist = bktrk->ParticleList();
   // Quickly get total number of MC Particles...
@@ -368,10 +378,10 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
   evt.getByLabel(fTrackModuleLabel, trackvh);
 
   if ( trackListHandle.isValid() ) { // Check that trackListHandle is valid.....
-    art::FindManyP<recob::Hit>        fmht  (trackListHandle, evt, fTrackModuleLabel);
-    art::FindMany<anab::T0>           fmt0  (trackListHandle, evt, fMCTruthT0ModuleLabel);
-    art::FindMany<anab::T0>           fmphot(trackListHandle, evt, fPhotonT0ModuleLabel);
-    art::FindMany<anab::Calorimetry>  fmcal (trackListHandle, evt, fCalorimetryModuleLabel);
+    art::FindManyP<recob::Hit>        fmht   (trackListHandle, evt, fTrackModuleLabel);
+    art::FindMany<anab::T0>           fmt0   (trackListHandle, evt, fMCTruthT0ModuleLabel);
+    art::FindMany<anab::T0>           fmphot (trackListHandle, evt, fPhotonT0ModuleLabel);
+    art::FindMany<anab::Calorimetry>  fmcal  (trackListHandle, evt, fCalorimetryModuleLabel);
     int ntracks_reco=tracklist.size();      
     
     for(int Track=0; Track < ntracks_reco; ++Track){
@@ -408,6 +418,14 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       art::Ptr<recob::Track> ptrack(trackh, Track);
       const recob::Track& track = *ptrack;
       
+      CounterID = 0;
+      int EarlyTick = std::min (allHits[0]->StartTick(), allHits[Hit_Size-1]->StartTick());
+      for (size_t CLoop=0; CLoop < triglist.size(); ++CLoop) {
+	if (triglist[CLoop]->GetTrigID() < 105 ) continue;
+	int TickTime = triglist[CLoop]->GetTrigTime() * 15.625 / 500; // Conv from nova ticks ( 15.625 ns ) to TPC ticks ( 500 ns ).
+	int TickDiff = EarlyTick - TickTime;
+	if (TickDiff < 3200 && TickDiff > 0) CounterID = triglist[CLoop]->GetTrigID();
+      }
       // ---- Get lengths and angles.
       TrackLength = track.Length();
       TrackHits = track.NumberTrajectoryPoints();
@@ -495,6 +513,7 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
 	CheatPIDAFiller( &Cheat_Proton, calos, CorrectedLocations[0], CorrectedLocations[TrackHits-1], TrackHits );
       }
       // ******** Fill Tree for each MCParticle **********
+      //std::cout << "Average dEdx " << AvdEdx << std::endl;
       fCheatTree->Fill();
       fRecoTree->Fill();
     } // Loop over Tracks    
@@ -503,11 +522,13 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
 
 // ******************************** Calc PIDA  ****************************************************
 double ProtonIdentification::ProtonIdentification::CalcPIDA ( std::vector<const anab::Calorimetry*> calos ) {
-  double PIDA  = 0;
-  int UsedHits = 0;
+  double PIDA  = 0, dEdxSum = 0;
+  int UsedHits = 0, TotHits = 0;
   for ( int Plane=0; Plane < (int)calos.size(); ++Plane ) { // Loop through planes
     double PlanePIDA=0; int PlaneHits=0;
     for ( int PlaneHit=0; PlaneHit < (int)calos[Plane]->dEdx().size(); ++PlaneHit ) { // loop through hits on each plane
+      dEdxSum += calos[Plane]->dEdx()[PlaneHit];
+      ++TotHits;
       if ( calos[Plane]->ResidualRange()[PlaneHit] < 30 ) { // Only want PIDA for last 30 cm
 	PIDA += calos[Plane]->dEdx()[PlaneHit] * pow(calos[Plane]->ResidualRange()[PlaneHit], PIDApower ); 
 	++UsedHits;
@@ -523,7 +544,7 @@ double ProtonIdentification::ProtonIdentification::CalcPIDA ( std::vector<const 
   
   if ( UsedHits != 0 ) // If had any hits, work out PIDA and calculate
     PIDA = PIDA / UsedHits;
-  
+  AvdEdx = dEdxSum / TotHits;
   return PIDA;
 } // CalcPIDA
 
@@ -631,10 +652,10 @@ void ProtonIdentification::ProtonIdentification::MCTruthInformation ( const simb
       }
     } // TPC.valid	    
   } // MCTrajPoints
-  if(!MCStartInTPC && !MCEndInTPC ) MCContainment = 0;  // contained track
-  if(!MCStartInTPC &&  MCEndInTPC ) MCContainment = 1;  // escaping track
-  if( MCStartInTPC && !MCEndInTPC ) MCContainment = 2;  // entering track
-  if( MCStartInTPC &&  MCEndInTPC ) MCContainment = 3;  // through going track
+  if(!MCStartInTPC && !MCEndInTPC ) MCContainment = 0;  // through track
+  if(!MCStartInTPC &&  MCEndInTPC ) MCContainment = 1;  // entering track
+  if( MCStartInTPC && !MCEndInTPC ) MCContainment = 2;  // escaping track
+  if( MCStartInTPC &&  MCEndInTPC ) MCContainment = 3;  // contained track
   
   MCStops = ( MCContainment == 0 || MCContainment == 2 );
   

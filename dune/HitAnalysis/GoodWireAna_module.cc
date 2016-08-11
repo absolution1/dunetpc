@@ -13,7 +13,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Optional/TFileService.h"
@@ -23,7 +23,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/WireGeo.h"
-#include "lardata/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Hit.h"
 
 
 #include "TGraph.h"
@@ -314,7 +314,7 @@ void GoodWireAna::makeHistoSetForThisRun( int runID )
 //..........ooooooooooooooooooo00000OOOOOOOOO00000oooooooooooooooooooo............
 void GoodWireAna::writeListOfDeadWires()
 {
-  //Create an ofstream object (outfile)
+  //Create an std::ofstream object (outfile)
   std::ofstream outfile;
   outfile.open("deadWireList.txt");
 
@@ -737,7 +737,7 @@ void GoodWireAna::fitHitOccDistHists( std::vector<std::vector<size_t> > & badWir
 //This takes the bad wire info and writes it to a text file
 void GoodWireAna::writeListOfBadWires(std::vector<std::vector<size_t> > badWireVect )
 {
-  //Create an ofstream object (outfile)
+  //Create an std::ofstream object (outfile)
   std::ofstream outfile;
   outfile.open("badChannelList.txt");
 
@@ -896,7 +896,7 @@ void GoodWireAna::runDiagnostics( std::map<size_t,std::map<size_t,bool> > runToB
 //This takes the good wire info and writes it to a text file
 void GoodWireAna::writeListOfGoodWires(std::vector<std::vector<size_t> > goodWireVect )
 {
-  //Create an ofstream object (outfile)
+  //Create an std::ofstream object (outfile)
   std::ofstream outfile;
   outfile.open("goodChannelList.txt");
 

@@ -13,13 +13,13 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "TH1D.h"
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 #include "art/Framework/Services/Optional/TFileService.h" 
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 
 namespace dune {
   class CheckRawDigit;

@@ -18,8 +18,8 @@
 #include "larcore/Geometry/Geometry.h"
 
 // From lardata
-#include "lardata/RawData/raw.h"
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "TTimeStamp.h"
 
 #include <map>
