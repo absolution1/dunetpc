@@ -25,13 +25,13 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 
 // larsoft
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "larcore/Geometry/Geometry.h"
 
 //#include "DetectorInfoServices/DetectorPropertiesService.h"
@@ -80,6 +80,8 @@ private:
   std::string fRawDigitModuleLabel, fRawDigitModuleInstance;
   //std::string fOutputModuleLabel;
   bool fSkipStuckCodes;
+  bool fSkipTicks;
+  unsigned int fLowerSkipTick, fUpperSkipTick;
 
   int  fMethod; //0: group by regulator
                 //1: group by ASIC
@@ -106,6 +108,9 @@ void lbne::FilterWF::reconfigure(fhicl::ParameterSet const& pset) {
   fRawDigitModuleInstance = pset.get<std::string>("RawDigitModuleInstance");
   //fOutputModuleLabel = "filterwf";
   fSkipStuckCodes = pset.get<bool>("SkipStuckCodes",true);
+  fSkipTicks      = pset.get<bool>("SkipTicks",false); // MW: added option to ignore certain tick ranges -- turned off by default
+  fLowerSkipTick  = pset.get<int>("LowerSkipTick",0);
+  fUpperSkipTick  = pset.get<int>("UpperSkipTick",0);
   fMethod         = pset.get<int>("Method",0);  //0: group by regulator
                                                 //1: group by ASIC
 }
@@ -230,6 +235,8 @@ void lbne::FilterWF::produce(art::Event& evt) {
 	  double newAdc = adc - correction;
 	  if ( fSkipStuckCodes && ( (adc & 0x3F) == 0x0 || (adc & 0x3F) == 0x3F ) )
 	    newAdc = adc; //don't do anything about stuck code, will run stuck code removal later
+	  if ( fSkipTicks and s > fLowerSkipTick and s < fUpperSkipTick )
+	    newAdc = adc;
 	  // if the code unsticker is run first, then don't skip the stuck codes.
 	  //	  if( adc < 10  ) //skip "sample dropping" problem
 	  //	    newAdc = 0;

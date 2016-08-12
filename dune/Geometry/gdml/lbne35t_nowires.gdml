@@ -4,7 +4,7 @@
       xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
 <define>
 
-<!-- 
+<!--
 
 
 -->
@@ -32,8 +32,8 @@
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
-   <rotation name="rPlusUAngleAboutX"	unit="deg" x="90-45.7" y="0"   z="0"/>
-   <rotation name="rPlusVAngleAboutX"	unit="deg" x="90+44.3" y="0"   z="0"/>
+   <rotation name="rPlusUAngleAboutX"	unit="deg" x="44.3" y="0"   z="0"/>
+   <rotation name="rPlusVAngleAboutX"	unit="deg" x="134.3" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
 </define>
@@ -154,7 +154,7 @@
     <fraction n="0.0053" ref="Na2O"/>
     <fraction n="0.00070" ref="P2O5"/>
     <fraction n="0.0771" ref="oxygen"/>
-  </material> 
+  </material>
 
   <material name="fibrous_glass">
    <D value="2.74351" unit="g/cm3"/>
@@ -217,7 +217,7 @@
   </material>
 
   <material formula=" " name="ShotRock">
-   <D value="2.7*0.6" unit="g/cm3"/>
+   <D value="1.62" unit="g/cm3"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -282,13 +282,13 @@
 
 </materials>
 <solids>
-    <box name="SmallestLongDrift" lunit="cm" 
-      x="224.443" 
-      y="87.8" 
+    <box name="SmallestLongDrift" lunit="cm"
+      x="224.443"
+      y="87.8"
       z="75.6"/>
-    <box name="SmallestLongDriftPlane" lunit="cm" 
-      x="0.015" 
-      y="87.8" 
+    <box name="SmallestLongDriftPlane" lunit="cm"
+      x="0.015"
+      y="87.8"
       z="75.6"/>
     <box name="SmallestLongDriftActive" lunit="cm"
       x="222.539"
@@ -296,19 +296,19 @@
       z="75.6"/>
 
     <tube name="SmallestLongDriftWireVert"
-      rmax="0.5*0.015"
-      z="87.8"               
+      rmax="0.0075"
+      z="87.8"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 
-    <box name="MidLongDrift" lunit="cm" 
-      x="224.443" 
-      y="115.8" 
+    <box name="MidLongDrift" lunit="cm"
+      x="224.443"
+      y="115.8"
       z="75.6"/>
-    <box name="MidLongDriftPlane" lunit="cm" 
-      x="0.015" 
-      y="115.8" 
+    <box name="MidLongDriftPlane" lunit="cm"
+      x="0.015"
+      y="115.8"
       z="75.6"/>
     <box name="MidLongDriftActive" lunit="cm"
       x="222.539"
@@ -316,19 +316,19 @@
       z="75.6"/>
 
     <tube name="MidLongDriftWireVert"
-      rmax="0.5*0.015"
-      z="115.8"               
+      rmax="0.0075"
+      z="115.8"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 
-    <box name="LargestLongDrift" lunit="cm" 
-      x="224.443" 
-      y="199.8" 
+    <box name="LargestLongDrift" lunit="cm"
+      x="224.443"
+      y="199.8"
       z="75.6"/>
-    <box name="LargestLongDriftPlane" lunit="cm" 
-      x="0.015" 
-      y="199.8" 
+    <box name="LargestLongDriftPlane" lunit="cm"
+      x="0.015"
+      y="199.8"
       z="75.6"/>
     <box name="LargestLongDriftActive" lunit="cm"
       x="222.539"
@@ -336,19 +336,19 @@
       z="75.6"/>
 
     <tube name="LargestLongDriftWireVert"
-      rmax="0.5*0.015"
-      z="199.8"               
+      rmax="0.0075"
+      z="199.8"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 
-    <box name="SmallestShortDrift" lunit="cm" 
-      x="24.443" 
-      y="87.8" 
+    <box name="SmallestShortDrift" lunit="cm"
+      x="24.443"
+      y="87.8"
       z="75.6"/>
-    <box name="SmallestShortDriftPlane" lunit="cm" 
-      x="0.015" 
-      y="87.8" 
+    <box name="SmallestShortDriftPlane" lunit="cm"
+      x="0.015"
+      y="87.8"
       z="75.6"/>
     <box name="SmallestShortDriftActive" lunit="cm"
       x="22.539"
@@ -356,19 +356,19 @@
       z="75.6"/>
 
     <tube name="SmallestShortDriftWireVert"
-      rmax="0.5*0.015"
-      z="87.8"               
+      rmax="0.0075"
+      z="87.8"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 
-    <box name="MidShortDrift" lunit="cm" 
-      x="24.443" 
-      y="115.8" 
+    <box name="MidShortDrift" lunit="cm"
+      x="24.443"
+      y="115.8"
       z="75.6"/>
-    <box name="MidShortDriftPlane" lunit="cm" 
-      x="0.015" 
-      y="115.8" 
+    <box name="MidShortDriftPlane" lunit="cm"
+      x="0.015"
+      y="115.8"
       z="75.6"/>
     <box name="MidShortDriftActive" lunit="cm"
       x="22.539"
@@ -376,19 +376,19 @@
       z="75.6"/>
 
     <tube name="MidShortDriftWireVert"
-      rmax="0.5*0.015"
-      z="115.8"               
+      rmax="0.0075"
+      z="115.8"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 
-    <box name="LargestShortDrift" lunit="cm" 
-      x="24.443" 
-      y="199.8" 
+    <box name="LargestShortDrift" lunit="cm"
+      x="24.443"
+      y="199.8"
       z="75.6"/>
-    <box name="LargestShortDriftPlane" lunit="cm" 
-      x="0.015" 
-      y="199.8" 
+    <box name="LargestShortDriftPlane" lunit="cm"
+      x="0.015"
+      y="199.8"
       z="75.6"/>
     <box name="LargestShortDriftActive" lunit="cm"
       x="22.539"
@@ -396,18 +396,18 @@
       z="75.6"/>
 
     <tube name="LargestShortDriftWireVert"
-      rmax="0.5*0.015"
-      z="199.8"               
+      rmax="0.0075"
+      z="199.8"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 
-    <box name="Cryostat" lunit="cm" 
-      x="306.706" 
-      y="268.64" 
+    <box name="Cryostat" lunit="cm"
+      x="306.706"
+      y="268.64"
       z="195.24"/>
 
-    <box name="ArgonInterior" lunit="cm" 
+    <box name="ArgonInterior" lunit="cm"
       x="304.166"
       y="266.1"
       z="192.7"/>
@@ -425,11 +425,11 @@
     <box name="LightPaddle" lunit="cm"
       x="0.476"
       y="10.16"
-      z="52.74 + 0"/>
+      z="52.74"/>
 
      <box name="APAFrameYSideHollow-0" lunit="cm"
-      x="5.08-2*0.3048"
-      y="179.48-2*0.3048"
+      x="4.4704"
+      y="178.8704"
       z="10.16"/>
      <box name="APAFrameYSideShell-0" lunit="cm"
       x="5.08"
@@ -443,8 +443,8 @@
       </subtraction>
 
      <box name="APAFrameZSideHollow-0" lunit="cm"
-      x="5.08-2*0.3048"
-      y="10.16-2*0.3048"
+      x="4.4704"
+      y="9.5504"
       z="75.6"/>
      <box name="APAFrameZSideShell-0" lunit="cm"
       x="5.08"
@@ -464,8 +464,8 @@
 
 
      <box name="APAFrameYSideHollow-1" lunit="cm"
-      x="5.08-2*0.3048"
-      y="95.48-2*0.3048"
+      x="4.4704"
+      y="94.8704"
       z="10.16"/>
      <box name="APAFrameYSideShell-1" lunit="cm"
       x="5.08"
@@ -479,8 +479,8 @@
       </subtraction>
 
      <box name="APAFrameZSideHollow-1" lunit="cm"
-      x="5.08-2*0.3048"
-      y="10.16-2*0.3048"
+      x="4.4704"
+      y="9.5504"
       z="75.6"/>
      <box name="APAFrameZSideShell-1" lunit="cm"
       x="5.08"
@@ -500,8 +500,8 @@
 
 
      <box name="APAFrameYSideHollow-2" lunit="cm"
-      x="5.08-2*0.3048"
-      y="67.48-2*0.3048"
+      x="4.4704"
+      y="66.8704"
       z="10.16"/>
      <box name="APAFrameYSideShell-2" lunit="cm"
       x="5.08"
@@ -515,8 +515,8 @@
       </subtraction>
 
      <box name="APAFrameZSideHollow-2" lunit="cm"
-      x="5.08-2*0.3048"
-      y="10.16-2*0.3048"
+      x="4.4704"
+      y="9.5504"
       z="75.6"/>
      <box name="APAFrameZSideShell-2" lunit="cm"
       x="5.08"
@@ -537,15 +537,15 @@
 
 
 
-    <box name="DetEnclosure" lunit="cm" 
+    <box name="DetEnclosure" lunit="cm"
       x="566.706"
       y="528.64"
       z="455.24"/>
 
 
-    <box name="World" lunit="cm" 
-      x="9000" 
-      y="9000" 
+    <box name="World" lunit="cm"
+      x="9000"
+      y="9000"
       z="9000"/>
 </solids>
 <structure>
@@ -573,19 +573,19 @@
       <solidref ref="SmallestLongDrift"/>
      <physvol>
        <volumeref ref="volTPCPlaneUSmallestLongDrift"/>
-       <position name="posSmallestLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0"/>
+       <position name="posSmallestLongDriftPlaneU" unit="cm" x="-110.7935" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVSmallestLongDrift"/>
-       <position name="posSmallestLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0"/>
+       <position name="posSmallestLongDriftPlaneV" unit="cm" x="-111.2695" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneXSmallestLongDrift"/>
-       <position name="posSmallestLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0"/>
+       <position name="posSmallestLongDriftPlaneX" unit="cm" x="-111.7455" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveSmallestLongDrift"/>
-       <position name="posSmallestLongDriftActive" unit="cm" x="-(224.443/2)+0.476 + 222.539/2" y="0" z="0"/>
+       <position name="posSmallestLongDriftActive" unit="cm" x="-0.476" y="0" z="0"/>
      </physvol>
     </volume>
 
@@ -613,19 +613,19 @@
       <solidref ref="MidLongDrift"/>
      <physvol>
        <volumeref ref="volTPCPlaneUMidLongDrift"/>
-       <position name="posMidLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0"/>
+       <position name="posMidLongDriftPlaneU" unit="cm" x="-110.7935" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVMidLongDrift"/>
-       <position name="posMidLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0"/>
+       <position name="posMidLongDriftPlaneV" unit="cm" x="-111.2695" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneXMidLongDrift"/>
-       <position name="posMidLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0"/>
+       <position name="posMidLongDriftPlaneX" unit="cm" x="-111.7455" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveMidLongDrift"/>
-       <position name="posMidLongDriftActive" unit="cm" x="-(224.443/2)+0.476 + 222.539/2" y="0" z="0"/>
+       <position name="posMidLongDriftActive" unit="cm" x="-0.476" y="0" z="0"/>
      </physvol>
     </volume>
 
@@ -653,19 +653,19 @@
       <solidref ref="LargestLongDrift"/>
      <physvol>
        <volumeref ref="volTPCPlaneULargestLongDrift"/>
-       <position name="posLargestLongDriftPlaneU" unit="cm" x="-(224.443/2)+3*0.476" y="0" z="0"/>
+       <position name="posLargestLongDriftPlaneU" unit="cm" x="-110.7935" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVLargestLongDrift"/>
-       <position name="posLargestLongDriftPlaneV" unit="cm" x="-(224.443/2)+2*0.476" y="0" z="0"/>
+       <position name="posLargestLongDriftPlaneV" unit="cm" x="-111.2695" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneXLargestLongDrift"/>
-       <position name="posLargestLongDriftPlaneX" unit="cm" x="-(224.443/2)+0.476" y="0" z="0"/>
+       <position name="posLargestLongDriftPlaneX" unit="cm" x="-111.7455" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveLargestLongDrift"/>
-       <position name="posLargestLongDriftActive" unit="cm" x="-(224.443/2)+0.476 + 222.539/2" y="0" z="0"/>
+       <position name="posLargestLongDriftActive" unit="cm" x="-0.476" y="0" z="0"/>
      </physvol>
     </volume>
 
@@ -693,19 +693,19 @@
       <solidref ref="SmallestShortDrift"/>
      <physvol>
        <volumeref ref="volTPCPlaneUSmallestShortDrift"/>
-       <position name="posSmallestShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0"/>
+       <position name="posSmallestShortDriftPlaneU" unit="cm" x="-10.7935" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVSmallestShortDrift"/>
-       <position name="posSmallestShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0"/>
+       <position name="posSmallestShortDriftPlaneV" unit="cm" x="-11.2695" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneXSmallestShortDrift"/>
-       <position name="posSmallestShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0"/>
+       <position name="posSmallestShortDriftPlaneX" unit="cm" x="-11.7455" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveSmallestShortDrift"/>
-       <position name="posSmallestShortDriftActive" unit="cm" x="-(24.443/2)+0.476 + 22.539/2" y="0" z="0"/>
+       <position name="posSmallestShortDriftActive" unit="cm" x="-0.476" y="0" z="0"/>
      </physvol>
     </volume>
 
@@ -733,19 +733,19 @@
       <solidref ref="MidShortDrift"/>
      <physvol>
        <volumeref ref="volTPCPlaneUMidShortDrift"/>
-       <position name="posMidShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0"/>
+       <position name="posMidShortDriftPlaneU" unit="cm" x="-10.7935" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVMidShortDrift"/>
-       <position name="posMidShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0"/>
+       <position name="posMidShortDriftPlaneV" unit="cm" x="-11.2695" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneXMidShortDrift"/>
-       <position name="posMidShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0"/>
+       <position name="posMidShortDriftPlaneX" unit="cm" x="-11.7455" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveMidShortDrift"/>
-       <position name="posMidShortDriftActive" unit="cm" x="-(24.443/2)+0.476 + 22.539/2" y="0" z="0"/>
+       <position name="posMidShortDriftActive" unit="cm" x="-0.476" y="0" z="0"/>
      </physvol>
     </volume>
 
@@ -773,19 +773,19 @@
       <solidref ref="LargestShortDrift"/>
      <physvol>
        <volumeref ref="volTPCPlaneULargestShortDrift"/>
-       <position name="posLargestShortDriftPlaneU" unit="cm" x="-(24.443/2)+3*0.476" y="0" z="0"/>
+       <position name="posLargestShortDriftPlaneU" unit="cm" x="-10.7935" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVLargestShortDrift"/>
-       <position name="posLargestShortDriftPlaneV" unit="cm" x="-(24.443/2)+2*0.476" y="0" z="0"/>
+       <position name="posLargestShortDriftPlaneV" unit="cm" x="-11.2695" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneXLargestShortDrift"/>
-       <position name="posLargestShortDriftPlaneX" unit="cm" x="-(24.443/2)+0.476" y="0" z="0"/>
+       <position name="posLargestShortDriftPlaneX" unit="cm" x="-11.7455" y="0" z="0"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveLargestShortDrift"/>
-       <position name="posLargestShortDriftActive" unit="cm" x="-(24.443/2)+0.476 + 22.539/2" y="0" z="0"/>
+       <position name="posLargestShortDriftActive" unit="cm" x="-0.476" y="0" z="0"/>
      </physvol>
     </volume>
 
@@ -859,7 +859,7 @@
 
       <physvol>
         <volumeref ref="volSteelShell"/>
-        <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/> 
+        <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
       </physvol>
 
 
@@ -912,140 +912,140 @@
 
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-0"/>
-        <position name="posAPAFrameYOuterSupportNeg-0" unit="cm" 
-	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
-	y="-6.84999999999999" 
-	z="-38.55"/> 
+        <position name="posAPAFrameYOuterSupportNeg-0" unit="cm"
+	x="-102.3876"
+	y="-6.84999999999999"
+	z="-38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-0"/>
-        <position name="posAPAFrameYOuterSupportPos-0" unit="cm" 
-	x="-100 + (2.302 + 0.476/2 - 0.3048/2)" 
-	y="-6.84999999999999" 
-	z="-38.55"/> 
+        <position name="posAPAFrameYOuterSupportPos-0" unit="cm"
+	x="-97.6124"
+	y="-6.84999999999999"
+	z="-38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide-0"/>
-        <position name="posAPAFrameYSideNeg-0" unit="cm" 
-	x="-100" 
-	y="-6.84999999999999" 
-	z="-38.55 - 75.6/2 + 10.16/2"/> 
+        <position name="posAPAFrameYSideNeg-0" unit="cm"
+	x="-100"
+	y="-6.84999999999999"
+	z="-71.27"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide-0"/>
-        <position name="posAPAFrameYSidePos-0" unit="cm" 
-	x="-100" 
-	y="-6.84999999999999" 
-	z="-38.55 + 75.6/2 - 10.16/2"/> 
+        <position name="posAPAFrameYSidePos-0" unit="cm"
+	x="-100"
+	y="-6.84999999999999"
+	z="-5.83"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide-0"/>
-        <position name="posAPAFrameZSidePos-0" unit="cm" 
-	x="-100" 
-	y="-6.84999999999999 + 199.8/2 - 10.16/2" 
-	z="-38.55"/> 
+        <position name="posAPAFrameZSidePos-0" unit="cm"
+	x="-100"
+	y="87.97"
+	z="-38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide-0"/>
-        <position name="posAPAFrameZSideNeg-0" unit="cm" 
-	x="-100" 
-	y="-6.84999999999999  - 199.8/2 + 10.16/2" 
-	z="-38.55"/> 
+        <position name="posAPAFrameZSideNeg-0" unit="cm"
+	x="-100"
+	y="-101.67"
+	z="-38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-0-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 20.15" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-0-APA-0" unit="cm"
+         x="-100"
+	 y="-86.6"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-1-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 40.13" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-1-APA-0" unit="cm"
+         x="-100"
+	 y="-66.62"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-2-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 60.11" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-2-APA-0" unit="cm"
+         x="-100"
+	 y="-46.64"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-3-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 80.09" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-3-APA-0" unit="cm"
+         x="-100"
+	 y="-26.66"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-4-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 100.07" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-4-APA-0" unit="cm"
+         x="-100"
+	 y="-6.68"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-5-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 120.05" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-5-APA-0" unit="cm"
+         x="-100"
+	 y="13.3"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-6-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 140.03" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-6-APA-0" unit="cm"
+         x="-100"
+	 y="33.28"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-7-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 160.01" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-7-APA-0" unit="cm"
+         x="-100"
+	 y="53.26"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-8-APA-0" unit="cm" 
-         x="-100" 
-	 y="-6.84999999999999 - 199.8/2 + 179.99" 
-         z="-38.55 + 0/2"/>
+       <position name="posPaddle-8-APA-0" unit="cm"
+         x="-100"
+	 y="73.24"
+         z="-38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
@@ -1063,100 +1063,100 @@
 
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-1"/>
-        <position name="posAPAFrameYOuterSupportNeg-1" unit="cm" 
-	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
-	y="35.15" 
-	z="38.55"/> 
+        <position name="posAPAFrameYOuterSupportNeg-1" unit="cm"
+	x="-102.3876"
+	y="35.15"
+	z="38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-1"/>
-        <position name="posAPAFrameYOuterSupportPos-1" unit="cm" 
-	x="-100 + (2.302 + 0.476/2 - 0.3048/2)" 
-	y="35.15" 
-	z="38.55"/> 
+        <position name="posAPAFrameYOuterSupportPos-1" unit="cm"
+	x="-97.6124"
+	y="35.15"
+	z="38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide-1"/>
-        <position name="posAPAFrameYSideNeg-1" unit="cm" 
-	x="-100" 
-	y="35.15" 
-	z="38.55 - 75.6/2 + 10.16/2"/> 
+        <position name="posAPAFrameYSideNeg-1" unit="cm"
+	x="-100"
+	y="35.15"
+	z="5.83"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide-1"/>
-        <position name="posAPAFrameYSidePos-1" unit="cm" 
-	x="-100" 
-	y="35.15" 
-	z="38.55 + 75.6/2 - 10.16/2"/> 
+        <position name="posAPAFrameYSidePos-1" unit="cm"
+	x="-100"
+	y="35.15"
+	z="71.27"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide-1"/>
-        <position name="posAPAFrameZSidePos-1" unit="cm" 
-	x="-100" 
-	y="35.15 + 115.8/2 - 10.16/2" 
-	z="38.55"/> 
+        <position name="posAPAFrameZSidePos-1" unit="cm"
+	x="-100"
+	y="87.97"
+	z="38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide-1"/>
-        <position name="posAPAFrameZSideNeg-1" unit="cm" 
-	x="-100" 
-	y="35.15  - 115.8/2 + 10.16/2" 
-	z="38.55"/> 
+        <position name="posAPAFrameZSideNeg-1" unit="cm"
+	x="-100"
+	y="-17.67"
+	z="38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-0-APA-1" unit="cm" 
-         x="-100" 
-	 y="35.15 - 115.8/2 + 19.81" 
-         z="38.55 + 0/2"/>
+       <position name="posPaddle-0-APA-1" unit="cm"
+         x="-100"
+	 y="-2.94"
+         z="38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-1-APA-1" unit="cm" 
-         x="-100" 
-	 y="35.15 - 115.8/2 + 39.11" 
-         z="38.55 + 0/2"/>
+       <position name="posPaddle-1-APA-1" unit="cm"
+         x="-100"
+	 y="16.36"
+         z="38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-2-APA-1" unit="cm" 
-         x="-100" 
-	 y="35.15 - 115.8/2 + 58.41" 
-         z="38.55 + 0/2"/>
+       <position name="posPaddle-2-APA-1" unit="cm"
+         x="-100"
+	 y="35.66"
+         z="38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-3-APA-1" unit="cm" 
-         x="-100" 
-	 y="35.15 - 115.8/2 + 77.71" 
-         z="38.55 + 0/2"/>
+       <position name="posPaddle-3-APA-1" unit="cm"
+         x="-100"
+	 y="54.96"
+         z="38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-4-APA-1" unit="cm" 
-         x="-100" 
-	 y="35.15 - 115.8/2 + 97.01" 
-         z="38.55 + 0/2"/>
+       <position name="posPaddle-4-APA-1" unit="cm"
+         x="-100"
+	 y="74.26"
+         z="38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
@@ -1174,70 +1174,70 @@
 
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-2"/>
-        <position name="posAPAFrameYOuterSupportNeg-2" unit="cm" 
-	x="-100 - (2.302 + 0.476/2 - 0.3048/2)" 
-	y="-69.15" 
-	z="38.55"/> 
+        <position name="posAPAFrameYOuterSupportNeg-2" unit="cm"
+	x="-102.3876"
+	y="-69.15"
+	z="38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYOuterSupport-2"/>
-        <position name="posAPAFrameYOuterSupportPos-2" unit="cm" 
-	x="-100 + (2.302 + 0.476/2 - 0.3048/2)" 
-	y="-69.15" 
-	z="38.55"/> 
+        <position name="posAPAFrameYOuterSupportPos-2" unit="cm"
+	x="-97.6124"
+	y="-69.15"
+	z="38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide-2"/>
-        <position name="posAPAFrameYSideNeg-2" unit="cm" 
-	x="-100" 
-	y="-69.15" 
-	z="38.55 - 75.6/2 + 10.16/2"/> 
+        <position name="posAPAFrameYSideNeg-2" unit="cm"
+	x="-100"
+	y="-69.15"
+	z="5.83"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide-2"/>
-        <position name="posAPAFrameYSidePos-2" unit="cm" 
-	x="-100" 
-	y="-69.15" 
-	z="38.55 + 75.6/2 - 10.16/2"/> 
+        <position name="posAPAFrameYSidePos-2" unit="cm"
+	x="-100"
+	y="-69.15"
+	z="71.27"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide-2"/>
-        <position name="posAPAFrameZSidePos-2" unit="cm" 
-	x="-100" 
-	y="-69.15 + 87.8/2 - 10.16/2" 
-	z="38.55"/> 
+        <position name="posAPAFrameZSidePos-2" unit="cm"
+	x="-100"
+	y="-30.33"
+	z="38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide-2"/>
-        <position name="posAPAFrameZSideNeg-2" unit="cm" 
-	x="-100" 
-	y="-69.15  - 87.8/2 + 10.16/2" 
-	z="38.55"/> 
+        <position name="posAPAFrameZSideNeg-2" unit="cm"
+	x="-100"
+	y="-107.97"
+	z="38.55"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-0-APA-2" unit="cm" 
-         x="-100" 
-	 y="-69.15 - 87.8/2 + 24.7933333333333" 
-         z="38.55 + 0/2"/>
+       <position name="posPaddle-0-APA-2" unit="cm"
+         x="-100"
+	 y="-88.2566666667"
+         z="38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 
 
      <physvol>
        <volumeref ref="volOpDetSensitive"/>
-       <position name="posPaddle-1-APA-2" unit="cm" 
-         x="-100" 
-	 y="-69.15 - 87.8/2 + 54.06" 
-         z="38.55 + 0/2"/>
+       <position name="posPaddle-1-APA-2" unit="cm"
+         x="-100"
+	 y="-58.99"
+         z="38.55"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 

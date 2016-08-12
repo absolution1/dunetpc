@@ -68,25 +68,14 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
   if ( ash.serviceStatus() == 0 ) {
 
     cout << myname << line << endl;
-    cout << myname << "Add supporting services." << endl;
-    assert( ash.addService("ExptGeoHelperInterface", fclfile, true) == 0 );
-    assert( ash.addService("Geometry", fclfile, true) == 0 );
-    assert( ash.addService("LArPropertiesService", fclfile, true) == 0 );
-    assert( ash.addService("DetectorClocksService", fclfile, true) == 0 );
-    assert( ash.addService("DetectorPropertiesService", fclfile, true) == 0 );
-    assert( ash.addService("LArFFT", fclfile, true) == 0 );
-    assert( ash.addService("SignalShapingServiceDUNE", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Add deconvolution service." << endl;
-    assert( ash.addService("AdcDeconvolutionService", fclfile, true) == 0 );
-    ash.print();
+    cout << myname << "Add services." << endl;
+    assert( ash.addServices(fclfile, true) == 0 );
 
     cout << myname << line << endl;
     cout << myname << "Load services." << endl;
     assert( ash.loadServices() == 1 );
     ash.print();
+
   }
 
   const unsigned int nsig = 100;
@@ -139,12 +128,17 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
 //**********************************************************************
 
 int main(int argc, char* argv[]) {
-  int a_LogLevel = -1;
+  const string myname = "main: ";
+  int a_LogLevel = 1;
   if ( argc > 1 ) {
     istringstream ssarg(argv[1]);
     ssarg >> a_LogLevel;
   }
-  return test_DuneDeconvolutionService(a_LogLevel);
+  int rstat = test_DuneDeconvolutionService(a_LogLevel);
+  cout << myname << "Closing service helper." << endl;
+  ArtServiceHelper::close();
+  cout << myname << "Exiting." << endl;
+  return rstat;
 }
 
 //**********************************************************************

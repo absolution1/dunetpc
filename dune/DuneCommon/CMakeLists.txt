@@ -4,7 +4,7 @@ ADD_SUBDIRECTORY(test)
 
 art_make(BASENAME_ONLY
         LIB_LIBRARIES
-        ${ART_PERSISTENCY_PROVENANCE}
+        art_Persistency_Provenance canvas_Persistency_Provenance
         NO_PLUGINS
         )
 

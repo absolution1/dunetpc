@@ -15,28 +15,28 @@
 #include "art/Framework/Principal/Event.h" 
 #include "fhiclcpp/ParameterSet.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "art/Persistency/Common/Ptr.h" 
-#include "art/Persistency/Common/PtrVector.h" 
+#include "canvas/Persistency/Common/Ptr.h" 
+#include "canvas/Persistency/Common/PtrVector.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 #include "art/Framework/Services/Optional/TFileService.h" 
 #include "art/Framework/Services/Optional/TFileDirectory.h" 
 #include "messagefacility/MessageLogger/MessageLogger.h" 
-#include "art/Framework/Core/FindManyP.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/WireGeo.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Track.h"
-#include "lardata/RecoBase/SpacePoint.h"
-#include "lardata/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/Shower.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larsim/MCCheater/BackTracker.h"
-#include "lardata/AnalysisBase/ParticleID.h"
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 #include "larsim/MCCheater/BackTracker.h"
 
 // ROOT
@@ -295,14 +295,14 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
     const std::vector<const sim::SimChannel*>& simChannels = bt->SimChannels();
     for (std::vector<const sim::SimChannel*>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
       int plane = geom->View((*channelIt)->Channel());
-      const std::map<unsigned short, std::vector<sim::IDE> >& tdcidemap = (*channelIt)->TDCIDEMap();
-      for (std::map<unsigned short, std::vector<sim::IDE> >::const_iterator tdcIt = tdcidemap.begin(); tdcIt != tdcidemap.end(); ++tdcIt) {
-	const std::vector<sim::IDE>& idevec = tdcIt->second;
-	for (std::vector<sim::IDE>::const_iterator ideIt = idevec.begin(); ideIt != idevec.end(); ++ideIt) {
-	  if (TMath::Abs(ideIt->trackID) != trueParticle->TrackId())
-	    continue;
-	  depositedEnergy[plane] += ideIt->energy / 1000;
-	}
+      auto const & tdcidemap = (*channelIt)->TDCIDEMap();
+      for (auto const& tdcIt : tdcidemap) {
+        auto const& idevec = tdcIt.second;
+        for (auto const& ideIt : idevec) {
+          if (TMath::Abs(ideIt.trackID) != trueParticle->TrackId())
+            continue;
+          depositedEnergy[plane] += ideIt.energy / 1000;
+        }
       }
     }
 

@@ -14,6 +14,8 @@ dunetpc : dunetpc : dune/Daq/Service/Dune35tChannelMappingService.h
 dunetpc : dunetpc : dune/Daq/Service/FileChannelMappingService.h
 dunetpc : dunetpc : dune/DataPrep/Service/AdcSuppressSignalFindingService.h
 dunetpc : dunetpc : dune/DataPrep/Service/Dune35tNoiseRemovalService.h
+dunetpc : dunetpc : dune/DataPrep/Service/DuneDeconvolutionService.h
+dunetpc : dunetpc : dune/DataPrep/Service/DuneRoiBuildingService.h
 dunetpc : dunetpc : dune/DataPrep/Service/InterpolatingAdcMitigationService.h
 dunetpc : dunetpc : dune/DataPrep/Service/MedianPedestalService.h
 dunetpc : dunetpc : dune/DataPrep/Service/StandardRawDigitExtractService.h
@@ -37,9 +39,11 @@ dunetpc : dunetpc : dune/DuneCommon/DuneTimeConverter.h
 dunetpc : dunetpc : dune/DuneInterface/AdcChannelData.h
 dunetpc : dunetpc : dune/DuneInterface/AdcCompressService.h
 dunetpc : dunetpc : dune/DuneInterface/AdcCountSelection.h
+dunetpc : dunetpc : dune/DuneInterface/AdcDeconvolutionService.h
 dunetpc : dunetpc : dune/DuneInterface/AdcDistortionService.h
 dunetpc : dunetpc : dune/DuneInterface/AdcMitigationService.h
 dunetpc : dunetpc : dune/DuneInterface/AdcNoiseRemovalService.h
+dunetpc : dunetpc : dune/DuneInterface/AdcRoiBuildingService.h
 dunetpc : dunetpc : dune/DuneInterface/AdcSignalFindingService.h
 dunetpc : dunetpc : dune/DuneInterface/AdcSuppressService.h
 dunetpc : dunetpc : dune/DuneInterface/AdcTypes.h
@@ -943,6 +947,7 @@ larexamples : larcore : larcore/SimpleTypesAndConstants/RawTypes.h
 larexamples : larcore : larcore/SimpleTypesAndConstants/geo_types.h
 larexamples : larcore : larcore/TestUtils/ProviderList.h
 larexamples : larcore : larcore/TestUtils/ProviderTestHelpers.h
+larexamples : larcore : larcore/TestUtils/StopWatch.h
 larexamples : larcore : larcore/TestUtils/boost_unit_test_base.h
 larexamples : larcore : larcore/TestUtils/unit_test_base.h
 larexamples : lardata : lardata/RecoBase/Cluster.h
@@ -1391,6 +1396,7 @@ larreco : lardata : lardata/MCBase/MCWire.h
 larreco : lardata : lardata/MCBase/MCWireCollection.h
 larreco : lardata : lardata/RawData/ExternalTrigger.h
 larreco : lardata : lardata/RawData/RawDigit.h
+larreco : lardata : lardata/RawData/TriggerData.h
 larreco : lardata : lardata/RawData/raw.h
 larreco : lardata : lardata/RecoBase/Cluster.h
 larreco : lardata : lardata/RecoBase/EndPoint2D.h

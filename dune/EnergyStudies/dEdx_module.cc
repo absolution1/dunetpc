@@ -2,12 +2,12 @@
 #define dEdx_Module
 
 // LArSoft includes
-#include "larsim/Simulation/SimChannel.h"
+#include "larsimobj/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "larcore/Geometry/Geometry.h"
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
-#include "larcore/SimpleTypesAndConstants/geo_types.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -16,7 +16,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
-#include "art/Framework/Core/FindManyP.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 

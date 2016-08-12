@@ -15,7 +15,7 @@ simple_plugin(TemplateTriggerService   "service"
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
                 ${SEEDSERVICE_SERVICE}
                 ${ART_FRAMEWORK_CORE}
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${MF_MESSAGELOGGER}
                 ${MF_UTILITIES}
                 ${ROOT_BASIC_LIB_LIST}
@@ -29,7 +29,7 @@ simple_plugin(ActivityTriggerService   "service"
                 ${ART_FRAMEWORK_SERVICES_REGISTRY}
                 ${SEEDSERVICE_SERVICE}
                 ${ART_FRAMEWORK_CORE}
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
                 ${MF_MESSAGELOGGER}
                 ${MF_UTILITIES}
                 ${ROOT_BASIC_LIB_LIST}

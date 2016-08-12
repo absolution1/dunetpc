@@ -10,7 +10,8 @@
 simple_plugin(FileChannelMappingService  "service")
 simple_plugin(Dune35tChannelMappingService  "service"
                 lbne-raw-data_Services_ChannelMap_ChannelMapService_service
-                ${ART_UTILITIES}
+                art_Utilities canvas_Utilities
+		${ROOT_CORE}
              )
 
 add_subdirectory(test)
