@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+#=======================================================================
+
+#
+# Hardware Mapper Service
+#
+standard_hardwaremapper: {
+  service_provider: HardwareMapperService
+}
+
+END_PROLOG

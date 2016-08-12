@@ -1,0 +1,39 @@
+#include "services_dune.fcl"
+#include "TestHardwareMapper.fcl"
+#include "HardwareMapperServiceConfig.fcl"
+
+
+process_name: TestHardwareMapper
+
+source:
+{
+    module_type: RootInput
+    maxEvents: -1
+}
+
+services:
+{
+#  user:         @local::dune35t_services
+  user:         @local::dunefd_services
+}
+
+#If using dunefd the following two lines are required to get the channel mapping to load
+#FIXME - I think we only need this whilst I am printing out information from the ChannelMap
+#FIXME - Should remove these lines and the channel map long term
+services.user.ChannelMapService:          @local::channelmap35t
+services.user.ChannelMappingService:      @local::dune35t_channelmapping
+
+
+services.user.hardwaremapper: @local::standard_hardwaremapper
+
+physics:
+{
+  analyzers:
+  {
+    testhardwaremapper:     @local::standard_testhardwaremapper
+  }
+
+  ana: [ testhardwaremapper ]
+  end_paths: [ ana ] 
+
+}

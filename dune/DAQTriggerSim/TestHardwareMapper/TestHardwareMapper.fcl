@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_testhardwaremapper:
+{
+  module_type:		TestHardwareMapper
+  #====================
+}
+
+END_PROLOG

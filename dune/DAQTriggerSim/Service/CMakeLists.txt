@@ -36,6 +36,21 @@ simple_plugin(ActivityTriggerService   "service"
 		${ROOT_GEOM}
              )
 
+simple_plugin(HardwareMapperService   "service"
+                lbne-raw-data_Services_ChannelMap_ChannelMapService_service
+                larcore_Geometry
+                dune_Geometry
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+                ${SEEDSERVICE_SERVICE}
+                ${ART_FRAMEWORK_CORE}
+                art_Utilities canvas_Utilities
+                ${MF_MESSAGELOGGER}
+                ${MF_UTILITIES}
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+
 install_fhicl()
 install_headers()
 install_source()
