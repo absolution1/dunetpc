@@ -14,6 +14,14 @@ rdx_std: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
   PedestalOption: 1
+  FlagStuckOff: false
+  FlagStuckOn: false
+}
+
+rdx_35tdata: {
+  service_provider: StandardRawDigitExtractService
+  LogLevel: 1
+  PedestalOption: 1
   FlagStuckOff: true
   FlagStuckOn: true
 }
@@ -116,6 +124,36 @@ adcwire_std: {
 # RawDigitPrepService is the high level service that uses the above
 # services to prepare ADC signals including the conversion of
 # raw::RawDigit to recob::Wire.
+
+# Read raw data and subtract pedestals without any other preparation.
+adcprep_readraw: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:       false
+  DoROI:                 false
+  DoWires:               false
+}
+
+# Process simulation.
+adcprep_sim: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:                true
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
+}
 
 # Process 35-ton data
 adcprep_dune35tdata: {

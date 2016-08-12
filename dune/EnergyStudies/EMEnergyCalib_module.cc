@@ -150,6 +150,11 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
 
   art::FindManyP<recob::Cluster> fmc(hitHandle, evt, fClusterModuleLabel);
 
+  // Lifetime-corrected charge
+  correctedChargeU = 0;
+  correctedChargeV = 0;
+  correctedChargeZ = 0;
+
   // Look at the hits
   for (unsigned int hitIt = 0; hitIt < hits.size(); ++hitIt) {
 
@@ -158,14 +163,17 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
     // Get the hit
     art::Ptr<recob::Hit> hit = hits.at(hitIt);
 
-    // Get the lifetime-corrected charge
+    double correctedHitCharge = ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
     switch (hit->WireID().Plane) {
     case 0:
-      correctedChargeU += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+      correctedChargeU += correctedHitCharge;
+      break;
     case 1:
-      correctedChargeV += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+      correctedChargeV += correctedHitCharge;
+      break;
     case 2:
-      correctedChargeZ += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+      correctedChargeZ += correctedHitCharge;
+      break;
     }
 
     // Fill hit level info
