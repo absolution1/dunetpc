@@ -16,10 +16,13 @@ dunefd_detproperties.TimeOffsetV:       0.
 dunefd_detproperties.TimeOffsetZ:       0.
 
 dunefddphase_detproperties:                   @local::standard_detproperties
-# dunefddphase_detproperties.SamplingRate:    400.         # in ns
-dunefddphase_detproperties.ElectronsToADC:    5.1267e-04   # 
-dunefddphase_detproperties.NumberTimeSamples: 20000        # drift length/drift velocity*sampling rate
-dunefddphase_detproperties.ReadOutWindowSize: 20000        # drift length/drift velocity*sampling rate
+# dunefddphase_detproperties.SamplingRate:    400.          # in ns
+dunefddphase_detproperties.Temperature:       87            # in K
+dunefddphase_detproperties.Electronlifetime:  3.0e3         # in us
+dunefddphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
+dunefddphase_detproperties.ElectronsToADC:    5.1267e-04    # 
+dunefddphase_detproperties.NumberTimeSamples: 20000         # drift length/drift velocity*sampling rate
+dunefddphase_detproperties.ReadOutWindowSize: 20000         # drift length/drift velocity*sampling rate
 dunefddphase_detproperties.TimeOffsetU:       0.
 dunefddphase_detproperties.TimeOffsetV:       0.
 dunefddphase_detproperties.TimeOffsetZ:       0.
@@ -40,5 +43,17 @@ dune35t_detproperties.TimeOffsetZ:       0.
 dune35t_milliblock_detproperties:         @local::dune35t_detproperties
 dune35t_milliblock_detproperties.NumberTimeSamples: 32000
 dune35t_milliblock_detproperties.ReadOutWindowSize: 32000
+
+protodune_detproperties:                   @local::standard_detproperties
+protodune_detproperties.Temperature:       87
+protodune_detproperties.Electronlifetime:  3.0e3
+protodune_detproperties.Efield:           [0.5,0.666,0.8]  #(predicted for microBooNE)
+protodune_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
+protodune_detproperties.NumberTimeSamples: 8000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+protodune_detproperties.ReadOutWindowSize: 8000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+protodune_detproperties.TimeOffsetU:       0.
+protodune_detproperties.TimeOffsetV:       0.
+protodune_detproperties.TimeOffsetZ:       0.
+
 
 END_PROLOG

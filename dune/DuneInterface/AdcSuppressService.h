@@ -14,7 +14,8 @@
 #include <string>
 #include <iostream>
 #include "dune/DuneInterface/AdcTypes.h"
-#include "larcore/SimpleTypesAndConstants/RawTypes.h"
+#include "dune/DuneInterface/AdcCountSelection.h"
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace fhicl {
@@ -44,6 +45,11 @@ public:
 
   // Print the configuration.
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="  ") const =0;
+
+  // Alternate interface.
+  int filter(AdcCountSelection& acs) {
+    return filter(acs.counts, acs.channel, acs.pedestal, acs.filter);
+  }
 
 };
 

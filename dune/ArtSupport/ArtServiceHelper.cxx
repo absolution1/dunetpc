@@ -20,6 +20,7 @@ using std::endl;
 using std::setw;
 using std::find;
 using std::unique_ptr;
+using std::vector;
 using cet::filepath_lookup;
 using fhicl::ParameterSet;
 using fhicl::make_ParameterSet;
@@ -67,28 +68,42 @@ void ArtServiceHelper::close() {
   
 //**********************************************************************
 
+ArtServiceHelper::ArtServiceHelper()
+: m_LogLevel(0) { }
+
+//**********************************************************************
+
+ArtServiceHelper::~ArtServiceHelper() { }
+
+//**********************************************************************
+
 int ArtServiceHelper::addService(string name, string sval, bool isFile) {
-  string myname = "ArtServiceHelper::addService: ";
+  const string myname = "ArtServiceHelper::addService: ";
+  if ( m_LogLevel > 1 ) {
+    cout << myname << "Adding service " << name;
+    if ( isFile ) cout << " from FCL file " << sval << "." << endl;
+    else cout << " from FCL text." << endl;
+  }
   if ( m_load == 1 || m_load == 2 ) {
-    cout << myname << "ERROR: Services may not be added after services are loaded." << endl;
+    cout << myname << myname << "ERROR: Services may not be added after services are loaded." << endl;
     return 1;
   } else if ( m_load == 3 ) {
-    cout << myname << "ERROR: Services may not be added after service hlper is closed." << endl;
+    cout << myname << myname << "ERROR: Services may not be added after service helper is closed." << endl;
     return 3;
   } else if ( m_load != 0 ) {
-    cout << myname << "ERROR: Unexpected load status: " << m_load << "." << endl;
+    cout << myname << myname << "ERROR: Unexpected load status: " << m_load << "." << endl;
     return 4;
   }
   if ( find(m_names.begin(), m_names.end(), name) != m_names.end() ) {
-    cout << myname << "ERROR: Service " << name << " is already registered" << endl;
+    cout << myname << myname << "ERROR: Service " << name << " is already registered" << endl;
     return 5;
   }
   if ( name == "TriggerNamesService" ) {
-    cout << myname << "ERROR: TriggerNamesService is configured automatically." << endl;
+    cout << myname << myname << "ERROR: TriggerNamesService is configured automatically." << endl;
     return 6;
   }
   if ( name == "CurrentModule" ) {
-    cout << myname << "ERROR: CurrentModule service is configured automatically." << endl;
+    cout << myname << myname << "ERROR: CurrentModule service is configured automatically." << endl;
     return 7;
   }
   string scfg;
@@ -97,12 +112,14 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
     string path = getenv("FHICL_FILE_PATH");
     if ( path.size() == 0 ) path = ".";
     filepath_lookup fpm(path); 
-    try { string filepath = fpm(fname); }
+    string filepath;
+    try { filepath = fpm(fname); }
     catch(...) {
       cout << myname << "ERROR: Unable to find file " << fname << endl;
       cout << myname << "Search path is " << path << endl;
       return 8;
     }
+    if ( m_LogLevel > 1 ) cout << myname << "FCL file path: " << filepath << endl;
     // Fetch the cfg for full file.
     ParameterSet cfg_file;
     make_ParameterSet(fname, fpm, cfg_file);
@@ -129,13 +146,13 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
       if ( userHasName ) {
         pcfg = &cfg_user;
         if ( servicesHasName )
-          cout << myname << "WARNING: Service " << name << " found in services.user and services blocks." << endl;
+          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services.user and services blocks." << endl;
         if ( fileHasName )
-          cout << myname << "WARNING: Service " << name << " found in services.user block and at file level." << endl;
+          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services.user block and at file level." << endl;
       } else if ( servicesHasName ) {
         pcfg = &cfg_services;
         if ( fileHasName )
-          cout << myname << "WARNING: Service " << name << " found in services block and at file level." << endl;
+          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services block and at file level." << endl;
       } else if ( fileHasName ) {
         pcfg = &cfg_file;
       } else {
@@ -180,8 +197,10 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
     scfgload += " }";
   } else {
     scfgload += " }";
-    cout << myname << "WARNING: Service " << name << " has predefined value for service_type." << endl;
-    cout << myname << scfgload << endl;
+    if ( m_LogLevel ) {
+      cout << myname << "WARNING: Service " << name << " has predefined value for service_type." << endl;
+      cout << myname << scfgload << endl;
+    }
   }
   m_names.push_back(name);
   m_cfgmap[name] = scfg;
@@ -189,6 +208,98 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
   m_scfgs += scfgload;
   if ( name == "TFileService" ) m_needTriggerNamesService = true;
   if ( name == "RandomNumberGenerator" ) m_needCurrentModuleService = true;
+  return 0;
+}
+
+//**********************************************************************
+
+int ArtServiceHelper::addServices(string sval, bool isFile) {
+  const string myname = "ArtServiceHelper::addServices: ";
+  if ( m_LogLevel > 1 ) {
+    cout << myname << "Adding services";
+    if ( isFile ) cout << " from FCL file " << sval << "." << endl;
+    else cout << " from FCL text." << endl;
+  }
+  if ( m_load == 1 || m_load == 2 ) {
+    cout << myname << myname << "ERROR: Services may not be added after services are loaded." << endl;
+    return 1;
+  } else if ( m_load == 3 ) {
+    cout << myname << myname << "ERROR: Services may not be added after service helper is closed." << endl;
+    return 3;
+  } else if ( m_load != 0 ) {
+    cout << myname << myname << "ERROR: Unexpected load status: " << m_load << "." << endl;
+    return 4;
+  }
+  // Make vector of parameter sets.
+  vector<ParameterSet> psets;
+  psets.reserve(2);
+  if ( isFile ) {
+    string fname = sval;
+    string path = getenv("FHICL_FILE_PATH");
+    if ( path.size() == 0 ) path = ".";
+    filepath_lookup fpm(path); 
+    string filepath;
+    try { filepath = fpm(fname); }
+    catch(...) {
+      cout << myname << "ERROR: Unable to find file " << fname << endl;
+      cout << myname << "Search path is " << path << endl;
+      return 8;
+    }
+    if ( m_LogLevel > 1 ) cout << myname << "FCL file path: " << filepath << endl;
+    // Fetch the cfg for full file.
+    ParameterSet cfg_file;
+    make_ParameterSet(fname, fpm, cfg_file);
+    if ( cfg_file.is_empty() ) {
+      cout << myname << "ERROR: Empty configuration file: " << fname << endl;
+      cout << myname << "ERROR: Resolved file path: " << fpm(fname) << endl;
+      return 5;
+    } else {
+      // Get configuration for services and services.user and determine
+      // where the service configuration is present.
+      psets.push_back(ParameterSet());
+      const ParameterSet& pset_services = psets.back();
+      if ( cfg_file.get_if_present<ParameterSet>("services", psets.back())) {
+        psets.push_back(ParameterSet());
+        pset_services.get_if_present<ParameterSet>("user", psets.back());
+      }
+    }
+    if ( psets.size() == 0 ) {
+      cout << myname << "ERROR: Unable to find service block in file " << fname << endl;
+      cout << myname << "ERROR: Resolved file path: " << fpm(fname) << endl;
+      return 9;
+    }
+  } else {
+    psets.push_back(ParameterSet());
+    make_ParameterSet(sval, psets.back());
+  }
+  // Loop over the service parameter sets and add each service description to m_scfgs.
+  for ( const ParameterSet& pset : psets ) {
+    std::vector<std::string> snames = pset.get_pset_names();
+    for ( string sname : snames ) {
+      if ( sname == "user" ) continue;
+      if ( sname == "message" ) continue;
+      if ( std::find(m_names.begin(), m_names.end(), sname) != m_names.end() ) {
+        cout << myname << "WARNING: Ignoring duplicate service entry: " << sname << endl;
+        continue;
+      }
+      cout << myname << "Adding service " << sname << endl;
+      ParameterSet cfg = pset.get<ParameterSet>(sname);
+      string scfg = cfg.to_string();
+      string scfgload = sname + ": { " + scfg;
+      if ( ! cfg.has_key("service_type") ) {
+        scfgload += " service_type: " + sname;
+      }
+      scfgload += " }";
+      ParameterSet cfgload;
+      make_ParameterSet(scfgload, cfgload);
+      m_names.push_back(sname);
+      m_cfgmap[sname] = scfg;
+      if ( m_scfgs.size() ) m_scfgs += " ";
+      m_scfgs += scfgload;
+      if ( sname == "TFileService" ) m_needTriggerNamesService = true;
+      if ( sname == "RandomNumberGenerator" ) m_needCurrentModuleService = true;
+    }
+  }
   return 0;
 }
 
@@ -229,6 +340,14 @@ int ArtServiceHelper::loadServices() {
   //// m_poperate.reset(new ServiceRegistry::Operate(serviceToken));
   m_poperate = new ServiceRegistry::Operate(serviceToken);
   return m_load = 1;
+}
+
+//**********************************************************************
+
+void ArtServiceHelper::setLogLevel(int lev) {
+  const string myname = "ArtServiceHelper::setLogLevel: ";
+  if ( m_LogLevel > 1 || lev > 1 ) cout << myname << "Setting log level to " << lev << endl;
+  m_LogLevel = lev;
 }
 
 //**********************************************************************

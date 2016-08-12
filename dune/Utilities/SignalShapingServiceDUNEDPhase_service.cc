@@ -44,7 +44,7 @@ void util::SignalShapingServiceDUNEDPhase::reconfigure(const fhicl::ParameterSet
   fColSignalShaping.Reset();
 
   // Fetch fcl parameters.
-  //fDeconNorm            = pset.get<double>("DeconNorm");
+  fDeconNorm            = pset.get<double>("DeconNorm");
   fASICmVperfC          = pset.get<double>("ASICmVperfC");
   fADCpermV             = pset.get<double>("ADCpermV");
   fAmpENC               = pset.get<double>("AmpENC");
@@ -62,6 +62,13 @@ void util::SignalShapingServiceDUNEDPhase::reconfigure(const fhicl::ParameterSet
 						<<";  Amplifier ENC = "<<fAmpENC
 						<<";  Amplifier ENC in ADC = "<<fAmpENCADC;
   
+   mf::LogInfo("SignalShapingServiceDUNE") << "Getting Filter from .fcl file";
+  std::string colFilt = pset.get<std::string>("ColFilter");
+  std::vector<double> colFiltParams =
+  pset.get<std::vector<double> >("ColFilterParams");
+  fColFilterFunc = new TF1("colFilter", colFilt.c_str());
+  for(unsigned int i=0; i<colFiltParams.size(); ++i)
+    fColFilterFunc->SetParameter(i, colFiltParams[i]);
 }
 
 //----------------------------------------------------------------------
@@ -117,9 +124,10 @@ void util::SignalShapingServiceDUNEDPhase::init()
     SetFilters();
 
     // Configure deconvolution kernels.
-    //fColSignalShaping.AddFilterFunction(fColFilter);
-    //fColSignalShaping.CalculateDeconvKernel();
+    fColSignalShaping.AddFilterFunction(fColFilter);
+    fColSignalShaping.CalculateDeconvKernel();
     
+    // std::cout << " fColSignalShaping: " << fColSignalShaping
     //mf::LogInfo("SignalShapingServiceDUNEDPhase")<<"Done Init";
   }
 }
@@ -159,7 +167,7 @@ double util::SignalShapingServiceDUNEDPhase::GetRawNoise(unsigned int const chan
 
 double util::SignalShapingServiceDUNEDPhase::GetDeconNoise(unsigned int const channel) const
 {
-  return fAmpENC; //expected ENC
+  return fAmpENC / fDeconNorm; //expected ENC
 }
 
 
@@ -212,18 +220,30 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
 
 
 //----------------------------------------------------------------------
-// Calculate microboone filter functions.
+// Calculate filter functions.
 void util::SignalShapingServiceDUNEDPhase::SetFilters()
-{
-  // nothing to do for now...
-  
+{ 
   // Get services.
+  
+  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  art::ServiceHandle<util::LArFFT> fft;
 
-  //auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  //art::ServiceHandle<util::LArFFT> fft;
+  double ts = detprop->SamplingRate();
+  int n = fft->FFTSize() / 2;
 
-  //double ts = detprop->SamplingRate();
-  //int n = fft->FFTSize() / 2;
+  // Calculate collection filter.
+
+  fColFilter.resize(n+1);
+
+  fColFilterFunc->SetRange(0, double(n));
+
+  for(int i=0; i<=n; ++i) 
+  {
+    	double freq = 400. * i / (ts * n);      // Cycles / microsecond. 
+    	double f = fColFilterFunc->Eval(freq);
+    	fColFilter[i] = TComplex(f, 0.);
+  }
+
   return;
 }
 

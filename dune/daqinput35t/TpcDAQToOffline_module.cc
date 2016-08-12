@@ -14,7 +14,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -26,10 +26,11 @@
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 #include "artdaq-core/Data/Fragments.hh"
+#include "dune/RunHistory/DetPedestalDUNE.h"
 
 // larsoft includes
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/raw.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/raw.h"
 #include "larcore/Geometry/Geometry.h"
 #include "tpcFragmentToRawDigits.h"
 #include "utilities/UnpackFragment.h"
@@ -171,19 +172,26 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
 
   // Make a flat rce tree.....
   Reset();
-  std::cout << "Digits has size " << digits.size() << " digits[0] has " << digits[0].Samples() << std::endl;
   DigSize = digits.size();
   NSamples = digits[0].Samples();
-  for (int dig=0; dig<DigSize; ++dig ) {
-    int Chan = digits[dig].Channel();
-    Channel[dig]  = Chan;
-    Pedestal[dig] = digits[dig].GetPedestal();
-    for (int tick=0; tick<NSamples; ++tick) {
-      ADCs[dig][tick] = digits[dig].ADC(tick);
-      //std::cout << "Setting ADCs["<<dig<<"]["<<tick<<"] to " << ADCs[dig][tick] << " " << digits[dig].ADC(tick) << std::endl;
+  if (NSamples && fMakeTree) {
+    std::cout << "Digits has size " << digits.size() << " digits[0] has " << digits[0].Samples() << std::endl;
+    dune::DetPedestalDUNE pedestals("dune35t");
+    pedestals.SetDetName("dune35t");
+    pedestals.SetUseDefaults(false);
+    pedestals.SetUseDB(true);
+    pedestals.Update(evt.run());
+    
+    for (int dig=0; dig<DigSize; ++dig ) {
+      int Chan = digits[dig].Channel();
+      Channel[dig]  = Chan;
+      Pedestal[dig] = pedestals.PedMean(Chan);
+      for (int tick=0; tick<NSamples; ++tick) {
+	ADCs[dig][tick] = digits[dig].ADC(tick);
+      }
     }
+    fTree->Fill();
   }
-  if (NSamples) fTree->Fill();
 
   art::Timestamp this_time_stamp = DAQToOffline::make_art_timestamp_from_nova_timestamp(firstTimestamp);
   std::cout << "JPD: this_time_stamp: " << this_time_stamp.value() << std::endl;

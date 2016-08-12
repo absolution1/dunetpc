@@ -27,20 +27,21 @@
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "art/Persistency/Common/Ptr.h" 
+#include "canvas/Persistency/Common/Ptr.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 
 // LArSoft libraries
-#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/Geometry.h"
 #include "larevt/Filters/ChannelFilter.h"
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/raw.h"
-#include "lardata/RecoBase/Wire.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/RecoBase/Wire.h"
 #include "lardata/RecoBaseArt/WireCreator.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 using std::cout;
 using std::endl;
@@ -169,6 +170,11 @@ namespace caldata {
 
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     //std::cout << "Xin " << dataSize << std::endl;
+    int readoutwindowsize = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider()->ReadOutWindowSize();
+    if (int(dataSize) != readoutwindowsize){
+      throw art::Exception(art::errors::Configuration)
+        << "ReadOutWindowSize "<<readoutwindowsize<<" does not match data size "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
+    }
 
     raw::ChannelID_t channel = raw::InvalidChannelID; // channel number
     unsigned int bin(0);     // time bin loop variable

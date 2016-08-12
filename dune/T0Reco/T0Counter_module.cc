@@ -14,12 +14,12 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "lardata/RawData/ExternalTrigger.h"
-#include "lardata/AnalysisBase/T0.h"
+#include "lardataobj/RawData/ExternalTrigger.h"
+#include "lardataobj/AnalysisBase/T0.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
@@ -92,7 +92,7 @@ private:
   double tick2Time(unsigned int t);
 
   // fhicl parameters
-  std::string fSimCounterModuleLabel;
+  std::string fTriggerModuleLabel;
   double fClockSpeedCounter;
   double fCombinedTimeDelay;
   int fCoincidenceTolerance;
@@ -125,10 +125,10 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 
 dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
-  : fSimCounterModuleLabel(p.get<std::string>("SimCounterModuleLabel")),
+  : fTriggerModuleLabel(p.get<std::string>("TriggerModuleLabel")),
     fClockSpeedCounter(p.get<double>("ClockSpeedCounter")), // MHz
-    fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)), // ns
-    fCoincidenceTolerance(p.get<int>("CoincidenceTolerance")), // num PENN board ticks
+    fCombinedTimeDelay(p.get<double>("CombinedTimeDelay")), // ns
+    fCoincidenceTolerance(p.get<int>("CoincidenceTolerance")), // ticks
     fVerbose(p.get<bool>("Verbose",true)),
     fMakeTree(p.get<bool>("MakeTree",false))
 {
@@ -157,71 +157,74 @@ void dune::T0Counter::produce(art::Event & e)
   
   // get raw::ExternalTriggers
   art::Handle< std::vector< raw::ExternalTrigger> > externalTriggerListHandle;
-  if (!e.getByLabel(fSimCounterModuleLabel, externalTriggerListHandle) ) return;
-  std::vector< art::Ptr< raw::ExternalTrigger> > trigs;
-  art::fill_ptr_vector(trigs,externalTriggerListHandle);
+  if (e.getByLabel(fTriggerModuleLabel, externalTriggerListHandle) )
+    {
 
-  ntrigs = externalTriggerListHandle->size();
+      std::vector< art::Ptr< raw::ExternalTrigger> > trigs;
+      art::fill_ptr_vector(trigs,externalTriggerListHandle);
 
-  // this vector will contain t0 objects in a nice, convenient, organised package
-  std::vector<t0> t0vect;
+      ntrigs = externalTriggerListHandle->size();
 
-  // fill t0vect with triggers, group if times are within fCoincidenceTolerance
-  for (auto const& trig : trigs) {
-    auxdetid = trig->GetTrigID();
-    tick = trig->GetTrigTime();
-    time = tick2Time(tick);
-    if (fMakeTree) fTree->Fill();
+      // this vector will contain t0 objects in a nice, convenient, organised package
+      std::vector<t0> t0vect;
+
+      // fill t0vect with triggers, group if times are within fCoincidenceTolerance
+      for (auto const& trig : trigs) {
+	auxdetid = trig->GetTrigID();
+	tick = trig->GetTrigTime();
+	time = tick2Time(tick);
+	if (fMakeTree) fTree->Fill();
     
-    // convert # PENN ticks tolerance to nsec
-    double tol = fCoincidenceTolerance*fSampleTimeCounter;
+	// convert # PENN ticks tolerance to nsec
+	double tol = fCoincidenceTolerance*fSampleTimeCounter;
 
-    // loop over t0vect
-    std::vector<t0>::iterator t0it;
-    for (t0it = t0vect.begin(); t0it != t0vect.end(); ++t0it) {      
-      // get t0 object
-      t0* t = &(*t0it);
-      // test for coincidence with all triggers associated with t0 object
-      if (t->testCoincidence(time,tol)) {
-	// insert trigger into t0
-	t->insert(time,auxdetid,trig);
-	// stop loop after one hit to prevent multiple insertions
-	break;
-      }      
-    }
-    // if the above loop didn't find a coincidence, create a new t0 object
-    if (t0it == t0vect.end()) t0vect.push_back(t0(time,auxdetid,trig));
-  }
-  
-  // print information, if interested
-  if (fVerbose) {
-    int num = 0;
-    for (auto const &i : t0vect) {
-      std::cout << "Trigger " << num << " has " << i.idtime.size() << " triggers associated." << std::endl;
-      for (auto const &tit : i.idtime) {
-	std::cout << "       time=" << std::fixed << std::setprecision(1) << tit.second << "  ID=" << tit.first << std::endl;
+	// loop over t0vect
+	std::vector<t0>::iterator t0it;
+	for (t0it = t0vect.begin(); t0it != t0vect.end(); ++t0it) {      
+	  // get t0 object
+	  t0* t = &(*t0it);
+	  // test for coincidence with all triggers associated with t0 object
+	  if (t->testCoincidence(time,tol)) {
+	    // insert trigger into t0
+	    t->insert(time,auxdetid,trig);
+	    // stop loop after one hit to prevent multiple insertions
+	    break;
+	  }      
+	}
+	// if the above loop didn't find a coincidence, create a new t0 object
+	if (t0it == t0vect.end()) t0vect.push_back(t0(time,auxdetid,trig));
       }
-      ++num;
+  
+      // print information, if interested
+      if (fVerbose) {
+	int num = 0;
+	for (auto const &i : t0vect) {
+	  std::cout << "Trigger " << num << " has " << i.idtime.size() << " triggers associated." << std::endl;
+	  for (auto const &tit : i.idtime) {
+	    std::cout << "       time=" << std::fixed << std::setprecision(1) << tit.second << "  ID=" << tit.first << std::endl;
+	  }
+	  ++num;
+	}
+      }
+
+
+      // make anab::T0 and Assns<anab::T0, raw::ExternalTrigger>
+      for (auto const &i : t0vect) {
+	t0time = i.avgTime(); // calculate average time of triggers, use as T0 time
+	trigtype = 1; // use 1 for counters
+	trigbits = i.idtime.size(); // number of associated triggers
+	t0col->push_back(anab::T0(t0time,
+				  trigtype,
+				  trigbits,
+				  (*t0col).size()
+				  ));
+	util::CreateAssn(*this, e, *t0col, i.trigs, *assn);
+      }			      
+
     }
-  }
-
-  // make anab::T0 and Assns<anab::T0, raw::ExternalTrigger>
-  for (auto const &i : t0vect) {
-    t0time = i.avgTime(); // calculate average time of triggers, use as T0 time
-    trigtype = 1; // use 1 for counters
-    trigbits = i.idtime.size(); // number of associated triggers
-    t0col->push_back(anab::T0(t0time,
-			      trigtype,
-			      trigbits,
-			      (*t0col).size()
-			      ));
-    util::CreateAssn(*this, e, *t0col, i.trigs, *assn);
-  }			      
-
   e.put(std::move(t0col));
   e.put(std::move(assn));
 
-  t0vect.clear();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

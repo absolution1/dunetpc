@@ -168,6 +168,7 @@ void util::SignalShapingServiceDUNE::reconfigure(const fhicl::ParameterSet& pset
       
       fFieldResponseHist[i] = new TH1F( iHistoName, iHistoName, temp->GetNbinsX(), temp->GetBinLowEdge(1), temp->GetBinLowEdge( temp->GetNbinsX() + 1) );
       temp->Copy(*fFieldResponseHist[i]);
+      fFieldResponseHist[i]->SetDirectory(0);
     }
     
     fin->Close();

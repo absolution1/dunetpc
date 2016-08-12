@@ -11,7 +11,7 @@ BEGIN_PROLOG
 dunefd_signalshapingservice: {
 
   DeconNorm: 200
-  ADCPerPCAtLowestASICGain: 11700 #ADC/pC
+  ADCPerPCAtLowestASICGain: 13160 #ADC/pC (2.8 ADC/mV * 4.7 mV/fC * 1000)
   # ASICGains:           [4.7, 7.8, 14, 25]
   ASICGainInMVPerFC:  [ 14, 14, 14 ] #mV/fC for Ind & col planes
   ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peaking time (microseconds)	
@@ -40,14 +40,14 @@ dunefd_signalshapingservice: {
   # cycles/microsecond.  The conversion to frequency bin depends on FFT size
   # samping rate.
 
-  #dla IndUFilter:       "(x>0.0)*gaus*exp(-0.5*pow(x/[3],[4]))"
-  IndUFilter:       "gaus*exp(-0.5*pow(x/[3],[4]))"
+  #dla IndUFilter:       "(x>0.0)*gaus(0)*exp(-0.5*pow(x/[3],[4]))"
+  IndUFilter:       "gaus(0)*exp(-0.5*pow(x/[3],[4]))"
   # IndUFilterParams: [ .454, 0.0, 0.1875, 0.25, 8.0 ]
   #IndUFilterParams: [ 0.05, 0.0, 0.1875, 0.25, 8.0 ]
   IndUFilterParams: [ 1.73, 1.69, 1.55, 0.19, 3.75 ]
 
-  #dla IndVFilter:       "(x>0.0)*gaus*exp(-0.5*pow(x/[3],[4]))"
-  IndVFilter:       "gaus*exp(-0.5*pow(x/[3],[4]))"
+  #dla IndVFilter:       "(x>0.0)*gaus(0)*exp(-0.5*pow(x/[3],[4]))"
+  IndVFilter:       "gaus(0)*exp(-0.5*pow(x/[3],[4]))"
   # IndVFilterParams: [ .454, 0.0, 0.1875, 0.25, 8.0 ]
   #IndVFilterParams: [ 0.05, 0.0, 0.1875, 0.25, 8.0 ]
   #dla IndVFilterParams: [ 1.74, 1.46, 1.33, 0.23, 4.89 ]
@@ -93,11 +93,16 @@ dune35t_signalshapingservice.ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peakin
 #
 dunefddphase_signalshapingservice:
 {
+  DeconNorm: 200
+
   ASICmVperfC: 3.2    # Amplifier gain in mV/fC
   ADCpermV:    1.0    # ADC conversion factor
   AmpENC:      1700.0 # Amplifier ENC e for Cdet=450pF
 
-  RespSamplingPeriod: 100. # in nano second  
+  RespSamplingPeriod: 400. # in nano second  
+  
+  ColFilter:       "[0]*exp(-1.2*(((x-[1])/[2])^2)^[3])"  
+  ColFilterParams: [ 1.0, 0.0, 0.136, 2.5 ]  
 }
 
 END_PROLOG

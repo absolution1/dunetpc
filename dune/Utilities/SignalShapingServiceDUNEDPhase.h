@@ -42,7 +42,7 @@ namespace util {
     double GetRawNoise(unsigned int const channel) const ;
     double GetDeconNoise(unsigned int const channel) const;
 
-    double GetDeconNorm() const {return 1;} //fDeconNorm;};
+    double GetDeconNorm() const {return fDeconNorm;};
 
     // Accessors.
     //int FieldResponseTOffset(unsigned int const channel) const;
@@ -81,16 +81,22 @@ namespace util {
     bool fInit;               ///< Initialization flag.
     
     // Fcl parameters.
+    double fDeconNorm;
     double fASICmVperfC;                        ///< Amplifier gain per 1 fC input
     double fADCpermV;                           ///< Digitizer scale
     double fAmpENC;                             ///< Amplifier noise
     double fAmpENCADC;                          ///  Amplifier noise in ADC
     double fRespSamplingPeriod;                 ///< Sampling period for response in ns
-
+    
+    TF1* fColFilterFunc;      			///< Parameterized collection filter function.
     // Following attributes hold the convolution and deconvolution kernels
     util::SignalShaping fColSignalShaping;
 
     // Field response.
+    
+    // Filters.
+
+    std::vector<TComplex> fColFilter;
   };
 }
 

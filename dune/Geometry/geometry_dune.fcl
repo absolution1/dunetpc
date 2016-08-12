@@ -104,8 +104,8 @@ dune10kt_3mmpitch_1x2x6_geo.ROOT: "dune10kt_v1_3mmpitch_1x2x6.gdml"
 
 protodune_geo: @local::dune10kt_geo
 protodune_geo.Name: "protodune" # will be made lower case anyway
-protodune_geo.GDML: "protodune_v2.gdml"
-protodune_geo.ROOT: "protodune_v2.gdml"
+protodune_geo.GDML: "protodune_v2_2.gdml"
+protodune_geo.ROOT: "protodune_v2_2.gdml"
 
 dune35t_geo:
 {
@@ -121,6 +121,17 @@ dune35t_geo:
  SurfaceY:           0.0e2               #in cm, vertical distance to the surface
  DisableWiresInG4:   true
 
+}
+
+larnd_geo:
+{
+ Name:     "larnd"
+
+ GDML:     "larnd.gdml"
+ ROOT:     "larnd.gdml"
+
+ SurfaceY:           5578               #183ft in cm, vertical distance to the surface
+ DisableWiresInG4:   true
 }
 
 

@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Class:       EMEnergyCalib
 // Module Type: analyzer
 // File:        EMEnergyCalib_module.cc
@@ -6,15 +6,24 @@
 //
 // Analyser module to produce useful information for characterising
 // em showers.
-////////////////////////////////////////////////////////////////////////
+//
+// Usage:
+//   lar -c energyCalib.fcl -s /path/to/files/with/hit/recon/*.root
+//
+// Description of intended use:
+//   Designed to be used to provide information for characterising showers.
+//   Also can be used along with getEnergyConversion.C macro in this directory to find the
+//   conversion between collected charge and total deposited energy for MC showers.
+//   See notes in the getEnergyConversion.C file for a description of this.
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Framework includes:
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Principal/Handle.h"
-#include "art/Persistency/Common/Ptr.h"
-#include "art/Persistency/Common/PtrVector.h"
+#include "canvas/Persistency/Common/Ptr.h"
+#include "canvas/Persistency/Common/PtrVector.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
@@ -22,18 +31,20 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 
 // LArSoft includes
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/CryostatGeo.h"
 #include "larcore/Geometry/TPCGeo.h"
 #include "larcore/Geometry/PlaneGeo.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Hit.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/Filters/ChannelFilter.h"
-#include "SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
 #include "larsim/Simulation/ParticleList.h"
-#include "larsim/Simulation/sim.h"
+#include "larsimobj/Simulation/sim.h"
 
 // ROOT & C++ includes
 #include <string>
@@ -67,6 +78,9 @@ private:
   double depositU;
   double depositV;
   double depositZ;
+  double correctedChargeU;
+  double correctedChargeV;
+  double correctedChargeZ;
   double vertexDetectorDist;
   int    nhits;
   int    hit_tpc        [kMaxHits];
@@ -83,16 +97,21 @@ private:
   art::ServiceHandle<art::TFileService> tfs;
   art::ServiceHandle<cheat::BackTracker> backtracker;
   art::ServiceHandle<geo::Geometry> geom;
+  detinfo::DetectorProperties const* detprop = nullptr;
 
 };
 
-emshower::EMEnergyCalib::EMEnergyCalib(fhicl::ParameterSet const& pset) : EDAnalyzer(pset) {
+emshower::EMEnergyCalib::EMEnergyCalib(fhicl::ParameterSet const& pset) : EDAnalyzer(pset),
+                                                                          detprop(lar::providerFrom<detinfo::DetectorPropertiesService>()) {
   this->reconfigure(pset);
   fTree = tfs->make<TTree>("EMEnergyCalib","EMEnergyCalib");
   fTree->Branch("TrueEnergy",        &trueEnergy);
   fTree->Branch("DepositU",          &depositU);
   fTree->Branch("DepositV",          &depositV);
   fTree->Branch("DepositZ",          &depositZ);
+  fTree->Branch("CorrectedChargeU",  &correctedChargeU);
+  fTree->Branch("CorrectedChargeV",  &correctedChargeV);
+  fTree->Branch("CorrectedChargeZ",  &correctedChargeZ);
   fTree->Branch("VertexDetectorDist",&vertexDetectorDist);
   fTree->Branch("NHits",             &nhits);
   fTree->Branch("Hit_TPC",           hit_tpc,        "hit_tpc[NHits]/I");
@@ -131,6 +150,11 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
 
   art::FindManyP<recob::Cluster> fmc(hitHandle, evt, fClusterModuleLabel);
 
+  // Lifetime-corrected charge
+  correctedChargeU = 0;
+  correctedChargeV = 0;
+  correctedChargeZ = 0;
+
   // Look at the hits
   for (unsigned int hitIt = 0; hitIt < hits.size(); ++hitIt) {
 
@@ -139,13 +163,26 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
     // Get the hit
     art::Ptr<recob::Hit> hit = hits.at(hitIt);
 
+    double correctedHitCharge = ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+    switch (hit->WireID().Plane) {
+    case 0:
+      correctedChargeU += correctedHitCharge;
+      break;
+    case 1:
+      correctedChargeV += correctedHitCharge;
+      break;
+    case 2:
+      correctedChargeZ += correctedHitCharge;
+      break;
+    }
+
     // Fill hit level info
-    hit_tpc    [hitIt] = hit->WireID().TPC;
-    hit_plane  [hitIt] = hit->WireID().Plane;
-    hit_wire   [hitIt] = hit->WireID().Wire;
-    hit_peakT  [hitIt] = hit->PeakTime();
-    hit_charge [hitIt] = hit->Integral();
-    hit_channel[hitIt] = hit->Channel();
+    hit_tpc     [hitIt] = hit->WireID().TPC;
+    hit_plane   [hitIt] = hit->WireID().Plane;
+    hit_wire    [hitIt] = hit->WireID().Wire;
+    hit_peakT   [hitIt] = hit->PeakTime();
+    hit_charge  [hitIt] = hit->Integral();
+    hit_channel [hitIt] = hit->Channel();
 
     // Find the true track this hit is associated with
     hit_truetrackid[hitIt] = this->FindTrackID(hit);
@@ -174,21 +211,19 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
   const std::vector<const sim::SimChannel*>& simChannels = backtracker->SimChannels();
   for (std::vector<const sim::SimChannel*>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
     int plane = geom->View((*channelIt)->Channel());
-    const std::map<unsigned short, std::vector<sim::IDE> >& tdcidemap = (*channelIt)->TDCIDEMap();
-    for (std::map<unsigned short, std::vector<sim::IDE> >::const_iterator tdcIt = tdcidemap.begin(); tdcIt != tdcidemap.end(); ++tdcIt) {
-      const std::vector<sim::IDE>& idevec = tdcIt->second;
-      for (std::vector<sim::IDE>::const_iterator ideIt = idevec.begin(); ideIt != idevec.end(); ++ideIt) {
-	switch (plane) {
-	case 0:
-	  depositU += ideIt->energy;
-	  break;
-	case 1:
-	  depositV += ideIt->energy;
-	  break;
-	case 2:
-	  depositZ += ideIt->energy;
-	  break;
-	}
+    for (auto const& tdcIt : (*channelIt)->TDCIDEMap()) {
+      for (auto const& ideIt : tdcIt.second) {
+        switch (plane) {
+          case geo::kU:
+            depositU += ideIt.energy;
+            break;
+          case geo::kV:
+            depositV += ideIt.energy;
+            break;
+          case geo::kZ:
+            depositZ += ideIt.energy;
+            break;
+        }
       }
     }
   }

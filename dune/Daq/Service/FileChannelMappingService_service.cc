@@ -59,6 +59,7 @@ FileChannelMappingService(fhicl::ParameterSet const& pset)
     ++count;
   }
   if ( m_LogLevel > 0 ) {
+    cout << myname << "Channel map file: " << fullname << endl;
     cout << myname << "    Number of map entries: " << count << endl;
     cout << myname << "   Maximum online channel: " << m_offMap.size()-1 << endl;
     cout << myname << "  Maximum offline channel: " << m_onMap.size()-1 << endl;

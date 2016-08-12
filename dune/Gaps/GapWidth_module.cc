@@ -12,8 +12,8 @@
 #include "art/Framework/Principal/Event.h" 
 #include "fhiclcpp/ParameterSet.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "art/Persistency/Common/Ptr.h" 
-#include "art/Persistency/Common/PtrVector.h" 
+#include "canvas/Persistency/Common/Ptr.h" 
+#include "canvas/Persistency/Common/PtrVector.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 #include "art/Framework/Services/Optional/TFileService.h" 
 #include "art/Framework/Services/Optional/TFileDirectory.h" 
@@ -25,21 +25,21 @@
 #include "larcore/Geometry/TPCGeo.h"
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/WireGeo.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Track.h"
-#include "lardata/RecoBase/SpacePoint.h"
-#include "lardata/RecoBase/OpFlash.h"
-#include "lardata/RecoBaseArt/TrackUtils.h" // lar::utils::TrackPitchInView()
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/OpFlash.h"
+#include "lardata/RecoBaseArt/TrackUtils.h" // lar::util::TrackPitchInView()
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larsim/MCCheater/BackTracker.h"
-#include "lardata/AnalysisBase/Calorimetry.h"
-#include "lardata/AnalysisBase/T0.h"
-#include "lardata/AnalysisBase/ParticleID.h"
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
+#include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "lardataobj/AnalysisBase/T0.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -568,11 +568,11 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
       for (int j = 0; j<3; ++j){
 	try {
 	  if (j==0)
-	    trkpitch[i][j] = lar::utils::TrackPitchInView(*(tracklist[i]), geo::kU);
+	    trkpitch[i][j] = lar::util::TrackPitchInView(*(tracklist[i]), geo::kU);
 	  else if (j==1)
-	    trkpitch[i][j] = lar::utils::TrackPitchInView(*(tracklist[i]), geo::kV);
+	    trkpitch[i][j] = lar::util::TrackPitchInView(*(tracklist[i]), geo::kV);
 	  else if (j==2)
-	    trkpitch[i][j] = lar::utils::TrackPitchInView(*(tracklist[i]), geo::kZ);
+	    trkpitch[i][j] = lar::util::TrackPitchInView(*(tracklist[i]), geo::kZ);
 	}
 	catch( cet::exception &e) {
 	  mf::LogWarning("GapWidth")<<"caught exception "<<e<<"\n setting pitch to 0";

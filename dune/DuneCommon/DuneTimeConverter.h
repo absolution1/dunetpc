@@ -16,7 +16,7 @@
 
 #include <stdint.h>
 #include <string>
-#include "art/Persistency/Provenance/Timestamp.h"
+#include "canvas/Persistency/Provenance/Timestamp.h"
 
 class DuneTimeConverter {
 public:

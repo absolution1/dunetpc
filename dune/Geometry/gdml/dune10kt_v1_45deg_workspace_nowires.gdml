@@ -15,8 +15,8 @@
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
-   <rotation name="rPlusUAngleAboutX"	unit="deg" x="90-45.7" y="0"   z="0"/>
-   <rotation name="rPlusVAngleAboutX"	unit="deg" x="90+44.3" y="0"   z="0"/>
+   <rotation name="rPlusUAngleAboutX"	unit="deg" x="44.3" y="0"   z="0"/>
+   <rotation name="rPlusVAngleAboutX"	unit="deg" x="134.3" y="0"   z="0"/>
    <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
@@ -141,7 +141,14 @@
     <fraction n="0.0053" ref="Na2O"/>
     <fraction n="0.00070" ref="P2O5"/>
     <fraction n="0.0771" ref="oxygen"/>
-  </material> 
+  </material>
+
+  <material formula="Air" name="Air">
+   <D value="0.001205" unit="g/cm3"/>
+   <fraction n="0.781154" ref="nitrogen"/>
+   <fraction n="0.209476" ref="oxygen"/>
+   <fraction n="0.00934" ref="argon"/>
+  </material>
 
   <material name="fibrous_glass">
    <D value="2.74351" unit="g/cm3"/>
@@ -152,6 +159,14 @@
    <fraction n="0.034" ref="MgO"/>
    <fraction n="0.010" ref="Na2O"/>
    <fraction n="0.013" ref="TiO2"/>
+  </material>
+
+  <!-- density referenced from EHN1-Cold Cryostats Technical Requirements:
+       https://edms.cern.ch/document/1543254 -->
+  <material name="FD_foam">
+   <D value="0.09" unit="g/cm3"/>
+   <fraction n="0.95" ref="Air"/>
+   <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
   <material name="FR4">
@@ -184,21 +199,6 @@
    <fraction n="1.0" ref="argon"/>
   </material>
 
-  <material formula="Air" name="Air">
-   <D value="0.001205" unit="g/cm3"/>
-   <fraction n="0.781154" ref="nitrogen"/>
-   <fraction n="0.209476" ref="oxygen"/>
-   <fraction n="0.00934" ref="argon"/>
-  </material>
-
-
-  <!-- preliminary values -->
-  <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cm3"/>
-   <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-   <fraction n="0.5"   ref="Air"/>
-  </material>
-
   <material formula=" " name="G10">
    <D value="1.7" unit="g/cm3"/>
    <fraction n="0.2805" ref="silicon"/>
@@ -218,7 +218,7 @@
   </material>
 
   <material formula=" " name="ShotRock">
-   <D value="2.7*0.6" unit="g/cm3"/>
+   <D value="1.62" unit="g/cm3"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -281,23 +281,30 @@
    <fraction n="0.080" ref="hydrogen"/>
   </material>
 
+  <!-- preliminary values -->
+  <material name="AirSteelMixture" formula="AirSteelMixture">
+   <D value="0.116981067938689" unit="g/cm3"/>
+   <fraction n="0.998" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+   <fraction n="0.002"   ref="Air"/>
+  </material>
+
 </materials>
 <solids>
-    <box name="Inner" lunit="cm" 
-      x="360.843" 
-      y="607.82875" 
+    <box name="Inner" lunit="cm"
+      x="360.843"
+      y="607.82875"
       z="232.39"/>
-    <box name="InnerUPlane" lunit="cm" 
-      x="0.015" 
-      y="599.025 + 0.015" 
-      z="230.6375 + 0.015"/>
-    <box name="InnerVPlane" lunit="cm" 
-      x="0.015" 
-      y="598.7075 + 0.015" 
-      z="230.0025 + 0.015"/>
-    <box name="InnerZPlane" lunit="cm" 
-      x="0.015" 
-      y="598.39" 
+    <box name="InnerUPlane" lunit="cm"
+      x="0.015"
+      y="599.04"
+      z="230.6525"/>
+    <box name="InnerVPlane" lunit="cm"
+      x="0.015"
+      y="598.7225"
+      z="230.0175"/>
+    <box name="InnerZPlane" lunit="cm"
+      x="0.015"
+      y="598.39"
       z="229.456"/>
     <box name="InnerActive" lunit="cm"
       x="359.415"
@@ -305,27 +312,27 @@
       z="232.39"/>
 
     <tube name="InnerWireVert"
-      rmax="0.5*0.015"
-      z="598.39"               
+      rmax="0.0075"
+      z="598.39"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 
-    <box name="Outer" lunit="cm" 
-      x="16.443" 
-      y="607.82875" 
+    <box name="Outer" lunit="cm"
+      x="16.443"
+      y="607.82875"
       z="232.39"/>
-    <box name="OuterUPlane" lunit="cm" 
-      x="0.015" 
-      y="599.025 + 0.015" 
-      z="230.6375 + 0.015"/>
-    <box name="OuterVPlane" lunit="cm" 
-      x="0.015" 
-      y="598.7075 + 0.015" 
-      z="230.0025 + 0.015"/>
-    <box name="OuterZPlane" lunit="cm" 
-      x="0.015" 
-      y="598.39" 
+    <box name="OuterUPlane" lunit="cm"
+      x="0.015"
+      y="599.04"
+      z="230.6525"/>
+    <box name="OuterVPlane" lunit="cm"
+      x="0.015"
+      y="598.7225"
+      z="230.0175"/>
+    <box name="OuterZPlane" lunit="cm"
+      x="0.015"
+      y="598.39"
       z="229.456"/>
     <box name="OuterActive" lunit="cm"
       x="15.015"
@@ -333,21 +340,21 @@
       z="232.39"/>
 
     <tube name="OuterWireVert"
-      rmax="0.5*0.015"
-      z="598.39"               
+      rmax="0.0075"
+      z="598.39"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
 
-    <box name="Cryostat" lunit="cm" 
-      x="759.3241" 
-      y="1357.6975" 
+    <box name="Cryostat" lunit="cm"
+      x="759.3241"
+      y="1357.6975"
       z="816.92"/>
-    <box name="ArgonInterior" lunit="cm" 
+    <box name="ArgonInterior" lunit="cm"
       x="756.7841"
       y="1355.1575"
       z="814.38"/>
-    <box name="GaseousArgon" lunit="cm" 
+    <box name="GaseousArgon" lunit="cm"
       x="756.7841"
       y="50"
       z="814.38"/>
@@ -364,11 +371,11 @@
     <box name="LightPaddle" lunit="cm"
       x="0.476"
       y="10.16"
-      z="209.6825 + 0"/>
+      z="209.6825"/>
 
      <box name="APAFrameYSideHollow" lunit="cm"
-      x="5.0661-2*0.3048"
-      y="585.68-2*0.3048"
+      x="4.4565"
+      y="585.0704"
       z="10.16"/>
      <box name="APAFrameYSideShell" lunit="cm"
       x="5.0661"
@@ -382,8 +389,8 @@
       </subtraction>
 
      <box name="APAFrameZSideHollow" lunit="cm"
-      x="5.0661-2*0.3048"
-      y="10.16-2*0.3048"
+      x="4.4565"
+      y="9.5504"
       z="230.0025"/>
      <box name="APAFrameZSideShell" lunit="cm"
       x="5.0661"
@@ -415,37 +422,47 @@
 
 
     <box name="FoamPadBlock" lunit="cm"
-      x="759.3241 + 2*80"
-      y="1357.6975 + 2*80"
-      z="816.92 + 2*80" />
+      x="919.3241"
+      y="1517.6975"
+      z="976.92" />
+
+    <box name="FoamPadInner" lunit="cm"
+      x="759.3341"
+      y="1357.7075"
+      z="816.93" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
-      <second ref="Cryostat"/>
+      <second ref="FoamPadInner"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="759.3241 + 2*80 + 2*100"
-      y="1357.6975 + 2*80 + 2*50"
-      z="816.92 + 2*80 + 2*100" />
+      x="1119.3241"
+      y="1617.6975"
+      z="1176.92" />
+
+    <box name="SteelSupportInner" lunit="cm"
+      x="919.3341"
+      y="1517.7075"
+      z="976.93" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
-      <second ref="FoamPadding"/>
+      <second ref="SteelSupportInner"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
-    <box name="DetEnclosure" lunit="cm" 
+    <box name="DetEnclosure" lunit="cm"
       x="1219.3241"
       y="1817.6975"
       z="1376.92"/>
 
 
-    <box name="World" lunit="cm" 
-      x="1219.3241+2*3000" 
-      y="1817.6975+2*3000" 
-      z="1376.92+2*3000"/>
+    <box name="World" lunit="cm"
+      x="7219.3241"
+      y="7817.6975"
+      z="7376.92"/>
 </solids>
 <structure>
     <volume name="volTPCActiveInner">
@@ -472,25 +489,25 @@
       <solidref ref="Inner"/>
      <physvol>
        <volumeref ref="volTPCPlaneZInner"/>
-       <position name="posInnerPlaneZ" unit="cm" 
+       <position name="posInnerPlaneZ" unit="cm"
          x="-179.953" y="-3.09062500000005" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVInner"/>
-       <position name="posInnerPlaneV" unit="cm" 
+       <position name="posInnerPlaneV" unit="cm"
          x="-179.477" y="-3.24937500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneUInner"/>
-       <position name="posInnerPlaneU" unit="cm" 
+       <position name="posInnerPlaneU" unit="cm"
          x="-179.001" y="-3.40812500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveInner"/>
-       <position name="posInnerActive" unit="cm" 
+       <position name="posInnerActive" unit="cm"
          x="0.713999999999999" y="-3.90500000000003" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -520,25 +537,25 @@
       <solidref ref="Outer"/>
      <physvol>
        <volumeref ref="volTPCPlaneZOuter"/>
-       <position name="posOuterPlaneZ" unit="cm" 
+       <position name="posOuterPlaneZ" unit="cm"
          x="-7.753" y="-3.09062500000005" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVOuter"/>
-       <position name="posOuterPlaneV" unit="cm" 
+       <position name="posOuterPlaneV" unit="cm"
          x="-7.277" y="-3.24937500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneUOuter"/>
-       <position name="posOuterPlaneU" unit="cm" 
+       <position name="posOuterPlaneU" unit="cm"
          x="-6.801" y="-3.40812500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveOuter"/>
-       <position name="posOuterActive" unit="cm" 
+       <position name="posOuterActive" unit="cm"
          x="0.714" y="-3.90500000000003" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -748,7 +765,7 @@
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="0" y="1355.1575/2-50/2" z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="0" y="652.57875" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
@@ -756,205 +773,205 @@
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="posAPAFrameYSideNeg-0" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="9.80499999999994 - 230.0025/2 + 10.16/2"/> 
+        <position name="posAPAFrameYSideNeg-0" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="-100.11625"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="posAPAFrameYSidePos-0" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="9.80499999999994 + 230.0025/2 - 10.16/2"/> 
+        <position name="posAPAFrameYSidePos-0" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="119.72625"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="posAPAFrameZSidePos-0" unit="cm" 
-	x="0" 
-	y="-325.37875 + 606/2 - 10.16/2" 
-	z="9.80499999999994"/> 
+        <position name="posAPAFrameZSidePos-0" unit="cm"
+	x="0"
+	y="-27.45875"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="posAPAFrameZSideNeg-0" unit="cm" 
-	x="0" 
-	y="-325.37875  - 606/2 + 10.16/2" 
-	z="9.80499999999994"/> 
+        <position name="posAPAFrameZSideNeg-0" unit="cm"
+	x="0"
+	y="-623.29875"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         - Add the *parts* of the G10 boards that exist directly in volCryostat.
-	- There are two boards on each the up and downstream end, 
+	- There are two boards on each the up and downstream end,
 	    one each to wrap the U and V views around the APA frame
 	- There are 4 on the bottom which anchor the U V and Z wires and the grid plane
 	- The rest of the parts of the G10 boards must be placed directly in volTPC   -->
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Vup-0" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="9.80499999999994 - 230.0025/2 - (0+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Vup-0" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="-105.355"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Uup-0" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="9.80499999999994 - 230.0025/2 - (1+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Uup-0" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="-105.6725"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Vdown-0" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="9.80499999999994 + 230.0025/2 + (0+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Vdown-0" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="124.965"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Udown-0" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="9.80499999999994 + 230.0025/2 + (1+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Udown-0" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="125.2825"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-Z-0" unit="cm" 
-	x="0" 
-	y="-22.22" 
-	z="9.80499999999994"/> 
+        <position name="posG10BoardZSideCenterSeg-Z-0" unit="cm"
+	x="0"
+	y="-22.22"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-V-0" unit="cm" 
-	x="0" 
-	y="-21.9025" 
-	z="9.80499999999994"/> 
+        <position name="posG10BoardZSideCenterSeg-V-0" unit="cm"
+	x="0"
+	y="-21.9025"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-U-0" unit="cm" 
-	x="0" 
-	y="-21.585" 
-	z="9.80499999999994"/> 
+        <position name="posG10BoardZSideCenterSeg-U-0" unit="cm"
+	x="0"
+	y="-21.585"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-Grid-0" unit="cm" 
-	x="0" 
+        <position name="posG10BoardZSideCenterSeg-Grid-0" unit="cm"
+	x="0"
 	y="-21.2675"
-	z="9.80499999999994"/> 
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
      <physvol>
        <volumeref ref="volOpDetSensitive_0-0"/>
-       <position name="posPaddle-0-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-613.13875" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-0-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-613.13875"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-1"/>
-       <position name="posPaddle-1-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-550.782039473684" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-1-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-550.782039473684"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-2"/>
-       <position name="posPaddle-2-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-488.425328947368" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-2-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-488.425328947368"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-3"/>
-       <position name="posPaddle-3-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-426.068618421053" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-3-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-426.068618421053"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-4"/>
-       <position name="posPaddle-4-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-363.711907894737" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-4-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-363.711907894737"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-5"/>
-       <position name="posPaddle-5-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-301.355197368421" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-5-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-301.355197368421"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-6"/>
-       <position name="posPaddle-6-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-238.998486842105" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-6-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-238.998486842105"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-7"/>
-       <position name="posPaddle-7-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-176.64177631579" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-7-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-176.64177631579"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-8"/>
-       <position name="posPaddle-8-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-114.285065789474" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-8-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-114.285065789474"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_0-9"/>
-       <position name="posPaddle-9-TPC-4-0-0" unit="cm" 
-         x="0" 
-	 y="-51.928355263158" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-9-TPC-4-0-0" unit="cm"
+         x="0"
+	 y="-51.928355263158"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
         <volumeref ref="volTPCInner"/>
-        <position name="posTPC-0" unit="cm" 
-	  x="0 - 5.0661/2 - 360.843/2" 
-	  y="-324.664375" 
-	  z="9.80499999999994"/> 
+        <position name="posTPC-0" unit="cm"
+	  x="-182.95455"
+	  y="-324.664375"
+	  z="9.80499999999994"/>
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-1" unit="cm"
-	  x="0 + 5.0661/2 + 360.843/2" 
+	  x="182.95455"
 	  y="-324.664375"
 	  z="9.80499999999994"/>
         <rotationref ref="rPlus180AboutX"/>
@@ -962,222 +979,222 @@
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-1-0" unit="cm" 
-	x="-363.38405" 
-	y="-324.664375" 
-	z="9.80499999999994"/> 
+        <position name="posCathode-1-0" unit="cm"
+	x="-363.38405"
+	y="-324.664375"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-1-1" unit="cm" 
-	x="363.38405" 
-	y="-324.664375" 
-	z="9.80499999999994"/> 
+        <position name="posCathode-1-1" unit="cm"
+	x="363.38405"
+	y="-324.664375"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="posAPAFrameYSideNeg-1" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="9.80499999999994 - 230.0025/2 + 10.16/2"/> 
+        <position name="posAPAFrameYSideNeg-1" unit="cm"
+	x="0"
+	y="283.87875"
+	z="-100.11625"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="posAPAFrameYSidePos-1" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="9.80499999999994 + 230.0025/2 - 10.16/2"/> 
+        <position name="posAPAFrameYSidePos-1" unit="cm"
+	x="0"
+	y="283.87875"
+	z="119.72625"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="posAPAFrameZSidePos-1" unit="cm" 
-	x="0" 
-	y="283.87875 + 606/2 - 10.16/2" 
-	z="9.80499999999994"/> 
+        <position name="posAPAFrameZSidePos-1" unit="cm"
+	x="0"
+	y="581.79875"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="posAPAFrameZSideNeg-1" unit="cm" 
-	x="0" 
-	y="283.87875  - 606/2 + 10.16/2" 
-	z="9.80499999999994"/> 
+        <position name="posAPAFrameZSideNeg-1" unit="cm"
+	x="0"
+	y="-14.04125"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         - Add the *parts* of the G10 boards that exist directly in volCryostat.
-	- There are two boards on each the up and downstream end, 
+	- There are two boards on each the up and downstream end,
 	    one each to wrap the U and V views around the APA frame
 	- There are 4 on the bottom which anchor the U V and Z wires and the grid plane
 	- The rest of the parts of the G10 boards must be placed directly in volTPC   -->
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Vup-1" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="9.80499999999994 - 230.0025/2 - (0+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Vup-1" unit="cm"
+	x="0"
+	y="283.87875"
+	z="-105.355"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Uup-1" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="9.80499999999994 - 230.0025/2 - (1+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Uup-1" unit="cm"
+	x="0"
+	y="283.87875"
+	z="-105.6725"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Vdown-1" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="9.80499999999994 + 230.0025/2 + (0+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Vdown-1" unit="cm"
+	x="0"
+	y="283.87875"
+	z="124.965"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Udown-1" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="9.80499999999994 + 230.0025/2 + (1+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Udown-1" unit="cm"
+	x="0"
+	y="283.87875"
+	z="125.2825"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-Z-1" unit="cm" 
-	x="0" 
-	y="-19.2800000000001" 
-	z="9.80499999999994"/> 
+        <position name="posG10BoardZSideCenterSeg-Z-1" unit="cm"
+	x="0"
+	y="-19.2800000000001"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-V-1" unit="cm" 
-	x="0" 
-	y="-19.5975000000001" 
-	z="9.80499999999994"/> 
+        <position name="posG10BoardZSideCenterSeg-V-1" unit="cm"
+	x="0"
+	y="-19.5975000000001"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-U-1" unit="cm" 
-	x="0" 
-	y="-19.9150000000001" 
-	z="9.80499999999994"/> 
+        <position name="posG10BoardZSideCenterSeg-U-1" unit="cm"
+	x="0"
+	y="-19.9150000000001"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-Grid-1" unit="cm" 
-	x="0" 
+        <position name="posG10BoardZSideCenterSeg-Grid-1" unit="cm"
+	x="0"
 	y="-20.2325000000001"
-	z="9.80499999999994"/> 
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
      <physvol>
        <volumeref ref="volOpDetSensitive_1-0"/>
-       <position name="posPaddle-0-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="10.4283552631578" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-0-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="10.4283552631578"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-1"/>
-       <position name="posPaddle-1-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="72.7850657894736" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-1-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="72.7850657894736"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-2"/>
-       <position name="posPaddle-2-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="135.141776315789" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-2-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="135.141776315789"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-3"/>
-       <position name="posPaddle-3-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="197.498486842105" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-3-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="197.498486842105"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-4"/>
-       <position name="posPaddle-4-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="259.855197368421" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-4-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="259.855197368421"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-5"/>
-       <position name="posPaddle-5-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="322.211907894737" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-5-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="322.211907894737"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-6"/>
-       <position name="posPaddle-6-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="384.568618421053" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-6-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="384.568618421053"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-7"/>
-       <position name="posPaddle-7-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="446.925328947368" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-7-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="446.925328947368"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-8"/>
-       <position name="posPaddle-8-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="509.282039473684" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-8-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="509.282039473684"
+         z="9.805"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_1-9"/>
-       <position name="posPaddle-9-TPC-4-1-0" unit="cm" 
-         x="0" 
-	 y="571.63875" 
-         z="9.80499999999994 + 0/2"/>
+       <position name="posPaddle-9-TPC-4-1-0" unit="cm"
+         x="0"
+	 y="571.63875"
+         z="9.805"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
         <volumeref ref="volTPCInner"/>
-        <position name="posTPC-2" unit="cm" 
-	  x="0 - 5.0661/2 - 360.843/2" 
-	  y="283.164375" 
-	  z="9.80499999999994"/> 
+        <position name="posTPC-2" unit="cm"
+	  x="-182.95455"
+	  y="283.164375"
+	  z="9.80499999999994"/>
         <rotationref ref="rPlus180AboutY"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-3" unit="cm"
-	  x="0 + 5.0661/2 + 360.843/2" 
+	  x="182.95455"
 	  y="283.164375"
 	  z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
@@ -1185,222 +1202,222 @@
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-2-0" unit="cm" 
-	x="-363.38405" 
-	y="283.164375" 
-	z="9.80499999999994"/> 
+        <position name="posCathode-2-0" unit="cm"
+	x="-363.38405"
+	y="283.164375"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-2-1" unit="cm" 
-	x="363.38405" 
-	y="283.164375" 
-	z="9.80499999999994"/> 
+        <position name="posCathode-2-1" unit="cm"
+	x="363.38405"
+	y="283.164375"
+	z="9.80499999999994"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="posAPAFrameYSideNeg-2" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="242.195 - 230.0025/2 + 10.16/2"/> 
+        <position name="posAPAFrameYSideNeg-2" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="132.27375"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="posAPAFrameYSidePos-2" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="242.195 + 230.0025/2 - 10.16/2"/> 
+        <position name="posAPAFrameYSidePos-2" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="352.11625"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="posAPAFrameZSidePos-2" unit="cm" 
-	x="0" 
-	y="-325.37875 + 606/2 - 10.16/2" 
-	z="242.195"/> 
+        <position name="posAPAFrameZSidePos-2" unit="cm"
+	x="0"
+	y="-27.45875"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="posAPAFrameZSideNeg-2" unit="cm" 
-	x="0" 
-	y="-325.37875  - 606/2 + 10.16/2" 
-	z="242.195"/> 
+        <position name="posAPAFrameZSideNeg-2" unit="cm"
+	x="0"
+	y="-623.29875"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         - Add the *parts* of the G10 boards that exist directly in volCryostat.
-	- There are two boards on each the up and downstream end, 
+	- There are two boards on each the up and downstream end,
 	    one each to wrap the U and V views around the APA frame
 	- There are 4 on the bottom which anchor the U V and Z wires and the grid plane
 	- The rest of the parts of the G10 boards must be placed directly in volTPC   -->
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Vup-2" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="242.195 - 230.0025/2 - (0+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Vup-2" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="127.035"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Uup-2" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="242.195 - 230.0025/2 - (1+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Uup-2" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="126.7175"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Vdown-2" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="242.195 + 230.0025/2 + (0+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Vdown-2" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="357.355"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Udown-2" unit="cm" 
-	x="0" 
-	y="-325.37875" 
-	z="242.195 + 230.0025/2 + (1+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Udown-2" unit="cm"
+	x="0"
+	y="-325.37875"
+	z="357.6725"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-Z-2" unit="cm" 
-	x="0" 
-	y="-22.22" 
-	z="242.195"/> 
+        <position name="posG10BoardZSideCenterSeg-Z-2" unit="cm"
+	x="0"
+	y="-22.22"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-V-2" unit="cm" 
-	x="0" 
-	y="-21.9025" 
-	z="242.195"/> 
+        <position name="posG10BoardZSideCenterSeg-V-2" unit="cm"
+	x="0"
+	y="-21.9025"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-U-2" unit="cm" 
-	x="0" 
-	y="-21.585" 
-	z="242.195"/> 
+        <position name="posG10BoardZSideCenterSeg-U-2" unit="cm"
+	x="0"
+	y="-21.585"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-Grid-2" unit="cm" 
-	x="0" 
+        <position name="posG10BoardZSideCenterSeg-Grid-2" unit="cm"
+	x="0"
 	y="-21.2675"
-	z="242.195"/> 
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
      <physvol>
        <volumeref ref="volOpDetSensitive_2-0"/>
-       <position name="posPaddle-0-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-613.13875" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-0-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-613.13875"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-1"/>
-       <position name="posPaddle-1-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-550.782039473684" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-1-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-550.782039473684"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-2"/>
-       <position name="posPaddle-2-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-488.425328947368" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-2-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-488.425328947368"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-3"/>
-       <position name="posPaddle-3-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-426.068618421053" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-3-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-426.068618421053"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-4"/>
-       <position name="posPaddle-4-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-363.711907894737" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-4-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-363.711907894737"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-5"/>
-       <position name="posPaddle-5-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-301.355197368421" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-5-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-301.355197368421"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-6"/>
-       <position name="posPaddle-6-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-238.998486842105" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-6-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-238.998486842105"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-7"/>
-       <position name="posPaddle-7-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-176.64177631579" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-7-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-176.64177631579"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-8"/>
-       <position name="posPaddle-8-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-114.285065789474" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-8-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-114.285065789474"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_2-9"/>
-       <position name="posPaddle-9-TPC-4-0-1" unit="cm" 
-         x="0" 
-	 y="-51.928355263158" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-9-TPC-4-0-1" unit="cm"
+         x="0"
+	 y="-51.928355263158"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
         <volumeref ref="volTPCInner"/>
-        <position name="posTPC-4" unit="cm" 
-	  x="0 - 5.0661/2 - 360.843/2" 
-	  y="-324.664375" 
-	  z="242.195"/> 
+        <position name="posTPC-4" unit="cm"
+	  x="-182.95455"
+	  y="-324.664375"
+	  z="242.195"/>
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-5" unit="cm"
-	  x="0 + 5.0661/2 + 360.843/2" 
+	  x="182.95455"
 	  y="-324.664375"
 	  z="242.195"/>
         <rotationref ref="rPlus180AboutX"/>
@@ -1408,222 +1425,222 @@
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-3-0" unit="cm" 
-	x="-363.38405" 
-	y="-324.664375" 
-	z="242.195"/> 
+        <position name="posCathode-3-0" unit="cm"
+	x="-363.38405"
+	y="-324.664375"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-3-1" unit="cm" 
-	x="363.38405" 
-	y="-324.664375" 
-	z="242.195"/> 
+        <position name="posCathode-3-1" unit="cm"
+	x="363.38405"
+	y="-324.664375"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="posAPAFrameYSideNeg-3" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="242.195 - 230.0025/2 + 10.16/2"/> 
+        <position name="posAPAFrameYSideNeg-3" unit="cm"
+	x="0"
+	y="283.87875"
+	z="132.27375"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
-        <position name="posAPAFrameYSidePos-3" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="242.195 + 230.0025/2 - 10.16/2"/> 
+        <position name="posAPAFrameYSidePos-3" unit="cm"
+	x="0"
+	y="283.87875"
+	z="352.11625"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="posAPAFrameZSidePos-3" unit="cm" 
-	x="0" 
-	y="283.87875 + 606/2 - 10.16/2" 
-	z="242.195"/> 
+        <position name="posAPAFrameZSidePos-3" unit="cm"
+	x="0"
+	y="581.79875"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
-        <position name="posAPAFrameZSideNeg-3" unit="cm" 
-	x="0" 
-	y="283.87875  - 606/2 + 10.16/2" 
-	z="242.195"/> 
+        <position name="posAPAFrameZSideNeg-3" unit="cm"
+	x="0"
+	y="-14.04125"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         - Add the *parts* of the G10 boards that exist directly in volCryostat.
-	- There are two boards on each the up and downstream end, 
+	- There are two boards on each the up and downstream end,
 	    one each to wrap the U and V views around the APA frame
 	- There are 4 on the bottom which anchor the U V and Z wires and the grid plane
 	- The rest of the parts of the G10 boards must be placed directly in volTPC   -->
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Vup-3" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="242.195 - 230.0025/2 - (0+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Vup-3" unit="cm"
+	x="0"
+	y="283.87875"
+	z="127.035"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Uup-3" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="242.195 - 230.0025/2 - (1+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Uup-3" unit="cm"
+	x="0"
+	y="283.87875"
+	z="126.7175"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Vdown-3" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="242.195 + 230.0025/2 + (0+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Vdown-3" unit="cm"
+	x="0"
+	y="283.87875"
+	z="357.355"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
-        <position name="posG10BoardYSideCenterSeg-Udown-3" unit="cm" 
-	x="0" 
-	y="283.87875" 
-	z="242.195 + 230.0025/2 + (1+.5)*(0.3175)"/> 
+        <position name="posG10BoardYSideCenterSeg-Udown-3" unit="cm"
+	x="0"
+	y="283.87875"
+	z="357.6725"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-Z-3" unit="cm" 
-	x="0" 
-	y="-19.2800000000001" 
-	z="242.195"/> 
+        <position name="posG10BoardZSideCenterSeg-Z-3" unit="cm"
+	x="0"
+	y="-19.2800000000001"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-V-3" unit="cm" 
-	x="0" 
-	y="-19.5975000000001" 
-	z="242.195"/> 
+        <position name="posG10BoardZSideCenterSeg-V-3" unit="cm"
+	x="0"
+	y="-19.5975000000001"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-U-3" unit="cm" 
-	x="0" 
-	y="-19.9150000000001" 
-	z="242.195"/> 
+        <position name="posG10BoardZSideCenterSeg-U-3" unit="cm"
+	x="0"
+	y="-19.9150000000001"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
-        <position name="posG10BoardZSideCenterSeg-Grid-3" unit="cm" 
-	x="0" 
+        <position name="posG10BoardZSideCenterSeg-Grid-3" unit="cm"
+	x="0"
 	y="-20.2325000000001"
-	z="242.195"/> 
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
      <physvol>
        <volumeref ref="volOpDetSensitive_3-0"/>
-       <position name="posPaddle-0-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="10.4283552631578" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-0-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="10.4283552631578"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-1"/>
-       <position name="posPaddle-1-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="72.7850657894736" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-1-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="72.7850657894736"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-2"/>
-       <position name="posPaddle-2-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="135.141776315789" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-2-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="135.141776315789"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-3"/>
-       <position name="posPaddle-3-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="197.498486842105" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-3-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="197.498486842105"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-4"/>
-       <position name="posPaddle-4-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="259.855197368421" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-4-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="259.855197368421"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-5"/>
-       <position name="posPaddle-5-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="322.211907894737" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-5-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="322.211907894737"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-6"/>
-       <position name="posPaddle-6-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="384.568618421053" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-6-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="384.568618421053"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-7"/>
-       <position name="posPaddle-7-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="446.925328947368" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-7-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="446.925328947368"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-8"/>
-       <position name="posPaddle-8-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="509.282039473684" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-8-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="509.282039473684"
+         z="242.195"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_3-9"/>
-       <position name="posPaddle-9-TPC-4-1-1" unit="cm" 
-         x="0" 
-	 y="571.63875" 
-         z="242.195 + 0/2"/>
+       <position name="posPaddle-9-TPC-4-1-1" unit="cm"
+         x="0"
+	 y="571.63875"
+         z="242.195"/>
        <rotationref ref="rPlus180AboutY"/>
      </physvol>
 
       <physvol>
         <volumeref ref="volTPCInner"/>
-        <position name="posTPC-6" unit="cm" 
-	  x="0 - 5.0661/2 - 360.843/2" 
-	  y="283.164375" 
-	  z="242.195"/> 
+        <position name="posTPC-6" unit="cm"
+	  x="-182.95455"
+	  y="283.164375"
+	  z="242.195"/>
         <rotationref ref="rPlus180AboutY"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC-7" unit="cm"
-	  x="0 + 5.0661/2 + 360.843/2" 
+	  x="182.95455"
 	  y="283.164375"
 	  z="242.195"/>
         <rotationref ref="rIdentity"/>
@@ -1631,25 +1648,25 @@
 
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-4-0" unit="cm" 
-	x="-363.38405" 
-	y="283.164375" 
-	z="242.195"/> 
+        <position name="posCathode-4-0" unit="cm"
+	x="-363.38405"
+	y="283.164375"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
-        <position name="posCathode-4-1" unit="cm" 
-	x="363.38405" 
-	y="283.164375" 
-	z="242.195"/> 
+        <position name="posCathode-4-1" unit="cm"
+	x="363.38405"
+	y="283.164375"
+	z="242.195"/>
         <rotationref ref="rIdentity"/>
       </physvol>
 
     </volume>
 
     <volume name="volFoamPadding">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="FD_foam"/>
       <solidref ref="FoamPadding"/>
     </volume>
 

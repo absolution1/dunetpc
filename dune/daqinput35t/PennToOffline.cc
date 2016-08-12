@@ -272,3 +272,134 @@ void DAQToOffline::BuildPTBChannelMap(std::string MapDir, std::string MapFile, s
     mf::LogVerbatim("DAQToOffline")<< "channelMap has size " << channelMap.size();
   }
 }
+//=======================================================================================
+void DAQToOffline::MakeCounterPositionMap( std::string CounterDir, std::string CounterFile, std::map< unsigned int, std::pair < TVector3, std::vector< TVector3 > > >& CounterPositionMap, double fExtendCountersX, double fExtendCountersY, double fExtendCountersZ ) {
+
+  if ( fExtendCountersY == 0 ) fExtendCountersY = fExtendCountersX;
+  if ( fExtendCountersZ == 0 ) fExtendCountersZ = fExtendCountersX;
+  // A function to make a map of counter corners and their centres.
+  // Until the LArSoft counters are changed this is the preferred way to get their centres.
+  // A text file is loaded in from pardata, though a user defined one can be uploaded instead.
+  // The geometries of the LArSoft counters ( which are correct ) are used to determine the size of the corners
+  //     of the counters from the loaded centres.
+  // NOTE. The counters are assumed to rectangular as this make the maths much simpler.
+  //       In truth the short width is 27.06 cm, whilst the long width is 32.5 cm.
+  //       This means that there an overlap of counter corner produced though is relatively insignificant.
+  // The Map is structured as follows:
+  //     Key             - Counter Index, numbered 0 - 92
+  //     Value           - a pair of TVector3 and vector of TVector3
+  //     Value.first     - The centre position of the counter
+  //     Value.second[0] - The Top Left corner of the counter
+  //     Value.second[1] - The Top Right corner of the counter
+  //     Value.second[2] - The Bottom Left corner of the counter
+  //     Value.second[3] - The Bottom Right corner of the counter
+  CounterPositionMap.clear();
+
+  art::ServiceHandle<geo::Geometry> fGeom;
+  std::vector< geo::AuxDetGeo* > const &Aux = fGeom->AuxDetGeoVec();
+    
+  std::ostringstream CountStream;
+  CountStream << CounterDir << CounterFile;
+  std::string CountPath = CountStream.str();
+
+  std::string CountLoc;
+  cet::search_path sp("FW_SEARCH_PATH");
+  if (sp.find_file(CounterFile, CountLoc)) CountPath = CountLoc;
+
+  if (CountPath.empty()) {
+    mf::LogWarning("DAQToOffline") << "ERROR::Cannot find the counter position map file " << CounterFile << " in FW_SEARCH_PATH or " << CounterDir << std::endl;
+    return;
+  } else {
+    std::cout << "Loading the counter position map from " << CountPath << std::endl;
+    std::ifstream infile(CountPath);
+    while (infile.good()) {
+      int CountInd;
+      double CentreX, CentreY, CentreZ;
+      char Type, Side, Orientation;
+      infile >> CountInd >> CentreX >> CentreY >> CentreZ >> Type >> Side >> Orientation;
+      //std::cout << "Read in new line " << CountInd << " " << CentreX << " " << CentreY << " " << CentreZ << " " << Type << " " << Side << " " << Orientation << std::endl;
+
+      // Make my TVector3's
+      TVector3 Centre( CentreX, CentreY, CentreZ );
+      TVector3 TL, TR, BL, BR;
+
+      // Access the counter dimensions from the geometry
+      double HalfLength = 0.5 * Aux[CountInd]->Length();
+      double HalfWidth1  = Aux[CountInd]->HalfWidth1();
+      double HalfWidth2  = Aux[CountInd]->HalfWidth2();
+      
+      // Call the counter corner alg.
+      MakeCounterCorners( CountInd, HalfLength, HalfWidth1, HalfWidth2, Centre, TL, TR, BL, BR, fExtendCountersX, fExtendCountersY, fExtendCountersZ );
+
+      // Make my vector of TVector3's
+      std::vector<TVector3> Corners;
+      Corners.push_back( TL );
+      Corners.push_back( TR );
+      Corners.push_back( BL );
+      Corners.push_back( BR );
+
+      // Add this counter to my map.
+      CounterPositionMap.insert( std::make_pair( CountInd, std::make_pair( Centre, Corners ) ) );
+    } // Loading in CountPath.
+  } // If found CountPath
+} // MakeCounterPositionMap
+//=======================================================================================
+void DAQToOffline::MakeCounterCorners( int CountInd, double HalfLength, double HalfWidth1, double HalfWidth2, TVector3 Centre, TVector3& TL, TVector3& TR, TVector3& BL, TVector3& BR, double fExtendCountersX, double fExtendCountersY, double fExtendCountersZ ) {
+  // The actual corners are calculated. As above:
+  // NOTE: The corners are calculated as if the counters were rectangular I pass both widths incase somebody wishes to correct this...
+  //       The telescope corners are not yet calculated...
+
+  if ( fExtendCountersY == 0 ) fExtendCountersY = fExtendCountersX;
+  if ( fExtendCountersZ == 0 ) fExtendCountersZ = fExtendCountersX;
+  //std::cout << "Extending counters by " << fExtendCountersX << " " << fExtendCountersY << " " << fExtendCountersZ << std::endl;
+
+  if ( CountInd < 44 ) { 
+    if ( (CountInd >=6 && CountInd <=15) || (CountInd >=28 && CountInd <=37) ) { // For the East / West counters
+      //std::cout << "Looking at an East West counter " << std::endl;
+      // Top Left
+      TL[0] = Centre[0] - fExtendCountersX - HalfWidth1;
+      TL[1] = Centre[1] + fExtendCountersY + HalfLength;
+      TL[2] = Centre[2];
+      // Top Right
+      TR[0] = Centre[0] + fExtendCountersX + HalfWidth1;
+      TR[1] = Centre[1] + fExtendCountersY + HalfLength;
+      TR[2] = Centre[2];
+      // Bottom Left
+      BL[0] = Centre[0] - fExtendCountersX - HalfWidth1;
+      BL[1] = Centre[1] - fExtendCountersY - HalfLength;
+      BL[2] = Centre[2];
+      // Bottom Right
+      BR[0] = Centre[0] + fExtendCountersX + HalfWidth1;
+      BR[1] = Centre[1] - fExtendCountersY - HalfLength;
+      BR[2] = Centre[2];
+    } else { // For the North / South counters
+      //std::cout << "Looking at a North South counter " << std::endl;
+      // Top Left
+      TL[0] = Centre[0];
+      TL[1] = Centre[1] + fExtendCountersY + HalfLength;
+      TL[2] = Centre[2] - fExtendCountersZ - HalfWidth1;
+      // Top Right
+      TR[0] = Centre[0];
+      TR[1] = Centre[1] + fExtendCountersY + HalfLength;
+      TR[2] = Centre[2] + fExtendCountersZ + HalfWidth1;
+      // Bottom Left
+      BL[0] = Centre[0];
+      BL[1] = Centre[1] - fExtendCountersY - HalfLength;
+      BL[2] = Centre[2] - fExtendCountersZ - HalfWidth1;
+      // Bottom Right
+      BR[0] = Centre[0];
+      BR[1] = Centre[1] - fExtendCountersY - HalfLength;
+      BR[2] = Centre[2] + fExtendCountersZ + HalfWidth1;
+    } 
+  } else { // For the telescope counters.
+    if ( (CountInd >= 44 && CountInd <= 56) || (CountInd >= 67 && CountInd <= 82) ) { // For one group of Telescope counters
+      //std::cout << "Looking at a Telescope 1 counter " << std::endl;
+      for (int ww=0; ww<3; ++ww )
+	TL[ww] = TR[ww] = BL[ww] = BR[ww] = Centre[ww];
+    } else {                                                          // For the other group of Telescope counters
+      //std::cout << "Looking at a Telescope 2 counter " << std::endl;
+      for (int ww=0; ww<3; ++ww )
+	TL[ww] = TR[ww] = BL[ww] = BR[ww] = Centre[ww];
+    }
+  }
+}

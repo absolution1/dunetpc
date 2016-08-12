@@ -3,35 +3,49 @@
 // Module Type: analyzer
 // File:        ECalibration_module.cc
 //
-// Generated at Thu Mar 17 12:00:08 2016 by Dorota Stefan using artmod
-// from cetpkgsupport v1_10_01.
+// Module does:
+// - computes energy deposition in an event
+// - selects interesting particle using MC truth
+// - plots dE/dx vs range for particles which stop/decay according to the actual settings.
 //
-// dorota.stefan@cern.ch
+//  
+// it is possible to specify beam window coordinates in fcl file
+// other parameters in fcl file:
+// pdg of particle we want to analyze.
+// we can choose decaying/stopping particles. 
+//
+//If you have some questions you can write to dorota.stefan@cern.ch
+//or robert.sulej@cern.ch  
+//
 ////////////////////////////////////////////////////////////////////////
 
+#include "larsimobj/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/GeometryCore.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Track.h"
-#include "lardata/RecoBase/Vertex.h"
-#include "lardata/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/TrackHitMeta.h"
+#include "lardataobj/RecoBase/Vertex.h"
+#include "lardataobj/RecoBase/Shower.h"
 #include "lardata/AnalysisAlg/CalorimetryAlg.h"
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
-#include "larcore/SimpleTypesAndConstants/PhysicalConstants.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
 #include "lardata/Utilities/DatabaseUtil.h"
+#include "larreco/RecoAlg/PMAlg/Utilities.h"
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -44,8 +58,19 @@
 
 namespace proto
 {
+	struct bHitInfo;
 	class ECalibration;
 }
+
+struct proto::bHitInfo
+{
+	bHitInfo(size_t i, double x, double e, int w) :
+		Index(i), dE(e), dx(x), wire(w)
+	{ }
+	size_t Index;
+	double dE, dx;
+	int wire;
+};
 
 class proto::ECalibration : public art::EDAnalyzer {
 public:
@@ -72,26 +97,61 @@ private:
   // Declare member data here.
 	void ResetVars();
 
-	double GetEkreco(double t0);
-
-	double fEkinreco;
-
 	geo::GeometryCore const * fGeometry;
 	double fElectronsToGeV;
 
-	int fRun;
-	int fEvent;
+	bool Has(std::vector<int> v, int i) const;
+
+	double GetEdepMC(art::Event const & e) const;
+
+	double GetEdepHits() const;
+
+	bool EvMCselect(art::Event const & e);
+
+	void Make_dEdx( std::vector< double > & dEdx, 
+									std::vector< double > & range,
+									const std::vector< proto::bHitInfo > & hits, 
+									double rmax) const;
+
+	int GetClosestBeamTrkId() const;
+	// beam related:
+	void SetBeamWindowEnd();	
+	TVector3 fBeamPos;
+	double fX0; double fX1;
+	double fY0; double fY1;
+	double fZ0; double fZ1;
+	double fThXZ;
+	double fThYZ;
+	//
 	
+	std::vector<int> fPdg;
 	int fSimPdg;
 	int fSimTrackID;
+	int fFlip;
+	int fBestview;
 
 	bool fStopping;
 	bool fDecaying;
 
+	double fMaxRange;
+	double fT0;
+	
+	//////
 	TH1D* fMomentumStartHist;
-	TH1D* fMomentumEndHist;
 
-	TTree *fTree;	
+	TTree *fTree; TTree *fDataTree;
+	int fRun; 
+	int fEvent;
+	double fEdep; 
+	double fEdepMC;
+	double fEkin;
+	int fTrkIdx;
+	double fdEdx; 
+	double fRange;
+	//////
+
+	std::map< size_t, std::vector< proto::bHitInfo >[3] > fTrk2InfoMap; // hits info sorted by views
+	art::Handle< std::vector<recob::Track> > fTrkListHandle;
 
 	std::vector< art::Ptr<simb::MCParticle> > fSimlist;
 	std::vector< art::Ptr<recob::Hit> > fHitlist;
@@ -100,7 +160,7 @@ private:
 	std::vector< art::Ptr<recob::Shower> > fShslist;
 
 	// Module labels to get data products
-	std::string fSimulationProducerLabel;
+	std::string fSimulationLabel;
 	std::string fHitsModuleLabel;
 	std::string fClusterModuleLabel;
 	std::string fTrackModuleLabel;	
@@ -138,65 +198,160 @@ void proto::ECalibration::beginJob()
 	fMomentumStartHist = tfs->make<TH1D>("mom",";particle Momentum (GeV);",100, 0.,    0.);
 
 	fTree = tfs->make<TTree>("calibration","calibration tree");
-	fTree->Branch("fEkinreco", &fEkinreco, "fEkinreco/D");
+	fTree->Branch("fRun", &fRun, "fRun/I");
+	fTree->Branch("fEvent", &fEvent, "fEvent/I");
+	fTree->Branch("fEdep", &fEdep, "fEdep/D");
+	fTree->Branch("fEdepMC", &fEdepMC, "fEdepMC/D");
+	fTree->Branch("fEkin", &fEkin, "fEkin/D");
+
+	fDataTree = tfs->make<TTree>("Data", "dE/dx info");
+	fDataTree->Branch("fRun", &fRun, "fRun/I");
+	fDataTree->Branch("fEvent", &fEvent, "fEvent/I");
+	fDataTree->Branch("fTrkIdx", &fTrkIdx, "fTrkIdx/I");
+	fDataTree->Branch("fdEdx", &fdEdx, "fdEdx/D");
+	fDataTree->Branch("fRange", &fRange, "fRange/D");
 }
 
 void proto::ECalibration::reconfigure(fhicl::ParameterSet const & p)
 {
-	fSimulationProducerLabel = p.get< std::string >("SimulationLabel");
-  fHitsModuleLabel     =   p.get< std::string >("HitsModuleLabel");
-  fTrackModuleLabel    =   p.get< std::string >("TrackModuleLabel");
-  fShowerModuleLabel    =   p.get< std::string >("ShowerModuleLabel");
-  fClusterModuleLabel  =   p.get< std::string >("ClusterModuleLabel");
-  fVertexModuleLabel   =   p.get< std::string >("VertexModuleLabel");	
+	fSimulationLabel = p.get< std::string >("SimulationLabel");
+  fHitsModuleLabel = p.get< std::string >("HitsModuleLabel");
+  fTrackModuleLabel = p.get< std::string >("TrackModuleLabel");
+  fShowerModuleLabel = p.get< std::string >("ShowerModuleLabel");
+  fClusterModuleLabel = p.get< std::string >("ClusterModuleLabel");
+  fVertexModuleLabel = p.get< std::string >("VertexModuleLabel");	
 	fCalorimetryModuleLabel = p.get< std::string >("CalorimetryModuleLabel");
+	fX0	= p.get<double>("BeamPosX");
+	fY0 = p.get<double>("BeamPosY"); 
+	fZ0 = p.get<double>("BeamPosZ");
+	fThXZ = p.get<double>("ThXZ");
+	fThYZ = p.get<double>("ThYZ");
+
+	fStopping = p.get<bool>("Stopping");
+	fDecaying = p.get<bool>("Decaying");
+
+	fMaxRange = p.get<double>("MaxRange");
+	fPdg = p.get< std::vector<int> >("Pdg");
+
+	fBestview = p.get<int>("Bestview");
 }
+
+// selecting particle using MC truth
+// here we are interested in stopping/decaying particles
+// pdg is specified in fcl file
+// decaying/stopping are switch on/off according to needs in fcl file
+bool proto::ECalibration::EvMCselect(art::Event const & e) 
+{
+	std::vector< art::Ptr<simb::MCParticle> > simlist;
+
+	art::Handle< std::vector<simb::MCParticle> > mcparticleHandle;
+	if (e.getByLabel(fSimulationLabel, mcparticleHandle))
+		art::fill_ptr_vector(simlist, mcparticleHandle);
+
+	std::map< int, const simb::MCParticle* > particleMap;
+	for (auto const& particle : simlist)
+	{
+		particleMap[particle->TrackId()] = &*particle;
+	}
+
+	fSimPdg = particleMap.begin()->second->PdgCode();
+	fT0 = particleMap.begin()->second->T();
+
+	if (fStopping)
+	{
+		if ((fSimPdg == 2212) 
+			&& Has(fPdg, fSimPdg) 
+			&& (particleMap.size() == 1) 
+			&& (particleMap.begin()->second->EndProcess() != "ProtonInelastic")) 	
+		{
+			return true; 
+		}
+		else if ((fSimPdg == 13) 
+							&& Has(fPdg, fSimPdg))
+		{
+			return true;
+		}
+		else if ((fSimPdg == 211) 
+							&& (Has(fPdg, fSimPdg)))
+		{	
+			return true; 
+		}	
+	}
+
+	if (fDecaying) 
+	{
+		if ((fSimPdg == 321) 
+			&& Has(fPdg, fSimPdg)
+			&& (particleMap.begin()->second->EndProcess() == "Decay")
+			&& (particleMap.begin()->second->NumberDaughters() == 2)
+			&& (particleMap.size() == 6))
+		{ 
+			bool kaonmodedcy = false;	
+			size_t count = 0;
+			for (auto const & p : particleMap)
+			{
+				if ((p.second->PdgCode() == 321) ||
+						(p.second->PdgCode() == -13) ||
+						(p.second->PdgCode() == 14))
+				{
+					kaonmodedcy = true;
+				}
+
+				count++;
+				if (count == 3) break;
+			}
+			return kaonmodedcy;		
+		}
+		else if ((fSimPdg == 13) 
+							&& Has(fPdg, fSimPdg))
+		{
+			return true;
+		}
+		else if ((fSimPdg == 211) 
+							&& (Has(fPdg, fSimPdg))
+							&& (particleMap.begin()->second->EndProcess() == "Decay"))
+		{	
+			return true; 
+		}	
+	}
+
+	if (!fDecaying 
+			&& !fStopping 
+			&& (fSimPdg == abs(11)) 
+			&& Has(fPdg, fSimPdg))
+	{
+		return true;
+	}
+
+	fMomentumStartHist->Fill(particleMap.begin()->second->Momentum(0).P());
+
+	return false;	
+}
+
 
 void proto::ECalibration::analyze(art::Event const & e)
 {
+	
   // Implementation of required member function here.
 	ResetVars();
+	SetBeamWindowEnd();
 
 	fRun = e.run();
 	fEvent = e.id().event();
 
-	art::Handle< std::vector<simb::MCParticle> > particleHandle;
-	if (e.getByLabel(fSimulationProducerLabel, particleHandle))
-		art::fill_ptr_vector(fSimlist, particleHandle);
-
-	std::map< int, const simb::MCParticle* > particleMap;
-
-	for (auto const& particle : fSimlist)
-	{
-		
-		fSimTrackID = particle->TrackId();	
+	if (!EvMCselect(e)) return;
 	
-		// add the address of the MCParticle to the map, with the track ID as the key
-		particleMap[fSimTrackID] = &*particle;
-	}
-
-	fSimPdg = particleMap.begin()->second->PdgCode();
-	fMomentumStartHist->Fill(particleMap.begin()->second->Momentum(0).P());
-	if ((fSimPdg == 2212) && (particleMap.size() == 1)) 
-		fStopping = true;
-	if ((fSimPdg == 321) && (particleMap.begin()->second->EndProcess() == "Decay"))
-	 	fDecaying = true;
-	if ((fSimPdg == 221) && (particleMap.begin()->second->EndProcess() == "Decay"))
-		fDecaying = true;
-
 	// reco
 	// hits
 	art::Handle< std::vector<recob::Hit> > hitListHandle;
 	if (e.getByLabel(fHitsModuleLabel, hitListHandle))
 		art::fill_ptr_vector(fHitlist, hitListHandle);
 
-	fEkinreco = GetEkreco(0);
-	fTree->Fill();
-
-	// tracks
-	art::Handle< std::vector<recob::Track> > trackListHandle;
-	if (e.getByLabel(fTrackModuleLabel, trackListHandle))
-		art::fill_ptr_vector(fTracklist, trackListHandle);
+	if (fHitlist.size())
+	{
+		fEdep = GetEdepHits();
+		fEdepMC = GetEdepMC(e);
+	}
 
 	// vertices
 	art::Handle< std::vector<recob::Vertex> > vtxListHandle;
@@ -207,9 +362,171 @@ void proto::ECalibration::analyze(art::Event const & e)
 	art::Handle< std::vector<recob::Shower> > shsListHandle;
 	if (e.getByLabel(fShowerModuleLabel, shsListHandle))
 		art::fill_ptr_vector(fShslist, shsListHandle);
+
+	// tracks
+	fTrk2InfoMap.clear();
+	if (e.getByLabel(fTrackModuleLabel, fTrkListHandle))
+	{
+		art::FindManyP< recob::Hit, recob::TrackHitMeta > hitFromTrk(fTrkListHandle, e, fTrackModuleLabel);
+
+		// choose the primary track using information about the beam window position
+		int idt = GetClosestBeamTrkId();
+		if (hitFromTrk.size() && (idt > -1))
+		{			
+			fFlip = 0; // tag track if it is reconstructed in the opposite direction
+			if ((*fTrkListHandle)[idt].End().Z() < (*fTrkListHandle)[idt].Vertex().Z()) 
+			{ fFlip = 1; }
+
+			auto vhit = hitFromTrk.at(idt);
+			auto vmeta = hitFromTrk.data(idt);
+
+			for (size_t h = 0; h < vhit.size(); ++h)
+			{
+				int view = vhit[h]->WireID().Plane;
+
+				if (view != fBestview) continue;					
+
+				size_t idx = vmeta[h]->Index();
+				double tdrift = vhit[h]->PeakTime();
+				double dx = vmeta[h]->Dx();
+				double dqadc = vhit[h]->Integral();
+				int wire = vhit[h]->WireID().Wire;
+
+				double dq = fCalorimetryAlg.dEdx_AREA(dqadc/dx, tdrift, view, fT0) * dx;
+				fEkin += dq;
+
+				fTrk2InfoMap[idt][view].emplace_back(idx, dx, dq, wire);
+			}
+	
+			for (auto const & trkEntry : fTrk2InfoMap)
+			{
+				std::vector< double > dEdx, range;
+				auto const & info = trkEntry.second;
+				Make_dEdx(dEdx, range, info[fBestview], fMaxRange);
+
+				for (size_t i = 0; i < dEdx.size(); ++i)
+				{
+					fTrkIdx = trkEntry.first;
+					fdEdx = dEdx[i];
+					fRange = range[i];
+		
+					fDataTree->Fill();
+				}
+			}
+		}
+	}
+	fTree->Fill();
 }
 
-double proto::ECalibration::GetEkreco(double t0)
+int proto::ECalibration::GetClosestBeamTrkId() const
+{
+	int idt = -1;
+	if (!fTrkListHandle->size()) {return idt;}
+	
+	auto const & trk0 = (*fTrkListHandle)[0];
+	float mindist2 = pma::Dist2(fBeamPos, trk0.Vertex()); 
+	if (trk0.End().Z() < trk0.Vertex().Z()) 
+	{
+		mindist2 = pma::Dist2(fBeamPos, trk0.End()); 
+		idt = 0;
+	}
+	else
+	{
+		mindist2 = pma::Dist2(fBeamPos, trk0.Vertex());
+		idt = 0; 
+	}
+
+	for (size_t t = 1; t < fTrkListHandle->size(); ++t)
+	{
+		auto const & trk = (*fTrkListHandle)[t];
+		
+		float dist2 = pma::Dist2(fBeamPos, trk.Vertex());
+		if (trk.End().Z() < trk.Vertex().Z()) 
+		{ 
+			dist2 = pma::Dist2(fBeamPos, trk.End());
+		}
+		else
+		{
+			dist2 = pma::Dist2(fBeamPos, trk.Vertex());
+		}
+
+		//
+		// idt:
+		// we assumed that primary, incoming particle 
+		// has an index of a track closest to the beam window 
+		// 			
+		if (dist2 < mindist2) {mindist2 = dist2; idt = t;}
+	}
+
+	return idt;
+}
+
+void proto::ECalibration::Make_dEdx(std::vector< double > & dEdx, std::vector< double > & range, const std::vector< proto::bHitInfo > & hits, double rmax) const
+{
+	if (!hits.size()) return;
+
+	dEdx.clear(); range.clear();
+	
+	int i0 = hits.size() - 1; int i1 = -1; int di = -1;
+	if (Has(fPdg, abs(11)) || fFlip) {i0 = 0; i1 = hits.size(); di = 1;}
+
+	double de = 0.0;
+	double dx = 0.0;
+	double r0 = 0.0; double r1 = 0.0; double r = 0.0;
+
+	double minDx = 0.1; // can be a parameter
+
+	while ((i0 != i1) && (r < rmax))
+	{
+		dx = 0.0; de = 0.0; 
+		while ((i0 != i1) && (dx <= minDx))
+		{
+			de += hits[i0].dE;
+			dx += hits[i0].dx;
+			i0 += di;
+		}
+
+		r0 = r1;
+		r1 += dx;
+		r = 0.5 * (r0 + r1);
+
+		if ((de > 0.0) && (dx > 0.0) && (r < rmax))
+		{
+			dEdx.push_back(de/dx);
+			range.push_back(r);
+		}
+	}
+}
+
+double proto::ECalibration::GetEdepMC(art::Event const & e) const
+{
+	double energy = 0.0;
+
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle))
+	{
+			for ( auto const& channel : (*simchannelHandle) )
+			{
+				// for every time slice in this channel:
+				auto const& timeSlices = channel.TDCIDEMap();
+				for ( auto const& timeSlice : timeSlices )
+				{
+						// loop over the energy deposits.
+						auto const& energyDeposits = timeSlice.second;
+		
+						for ( auto const& energyDeposit : energyDeposits )
+						{
+							energy += energyDeposit.numElectrons * fElectronsToGeV * 1000;
+						}
+				}
+			}
+	}
+
+	return energy;
+}
+
+// use best view defined in fcl
+double proto::ECalibration::GetEdepHits() const
 {
 	if (!fHitlist.size()) return 0.0;
 
@@ -225,15 +542,36 @@ double proto::ECalibration::GetEkreco(double t0)
 		double dqel = fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane);
 		
 		double tdrift = fHitlist[h]->PeakTime();
-		double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, t0);
+		double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
 
-		double dq = dqel * correllifetime * fElectronsToGeV;
+		double dq = dqel * correllifetime * fElectronsToGeV * 1000;
 		if (!std::isnormal(dq) || (dq < 0)) continue;
 
 		dqsum += dq; 
 	}
 	
-	return dqsum; // should be corrected by average recombination factor.
+	return dqsum; 
+}
+
+bool proto::ECalibration::Has(std::vector<int> v, int i) const
+{
+	for (auto c : v) if (c == i) return true;
+  return false;
+}
+
+// to compute momenta of particles without distortion due to beam window
+void proto::ECalibration::SetBeamWindowEnd()
+{
+	fZ1 = 0.0;	 
+
+	double dz = fZ1 - fZ0;
+	double dx = dz * tan(fThXZ * (TMath::Pi() / 180.0)); 
+	double dy = dz * tan(fThYZ * (TMath::Pi() / 180.0));
+
+	fX1 = fX0 + dx;
+	fY1 = fY0 + dy;
+
+	fBeamPos.SetXYZ(fX1, fY1, fZ1);
 }
 
 void proto::ECalibration::ResetVars()
@@ -244,9 +582,14 @@ void proto::ECalibration::ResetVars()
 	fVertexlist.clear();
 	fShslist.clear();
 	fSimPdg = 0;
-	fStopping = false;
-	fDecaying = false;
-	fEkinreco = 0.0;
+	fEdep = 0.0;
+	fEdepMC = 0.0;
+	fEkin = 0;
+	fT0 = 0.0;
+	fTrkIdx = 0;
+	fRange = 0.0;
+	fdEdx = 0.0;
+	fFlip = 0;
 }
 
 DEFINE_ART_MODULE(proto::ECalibration)
