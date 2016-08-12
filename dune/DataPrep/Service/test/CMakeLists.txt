@@ -18,6 +18,16 @@ cet_test(test_InterpolatingAdcMitigationService SOURCES test_InterpolatingAdcMit
     dune_ArtSupport
 )
 
+cet_test(test_ThresholdNoiseRemovalService SOURCES test_ThresholdNoiseRemovalService
+  LIBRARIES
+    dune_ArtSupport
+)
+
+cet_test(test_MultiChannelNoiseRemovalService SOURCES test_MultiChannelNoiseRemovalService
+  LIBRARIES
+    dune_ArtSupport
+)
+
 cet_test(test_Dune35tNoiseRemovalService SOURCES test_Dune35tNoiseRemovalService
   LIBRARIES
     dune_ArtSupport
