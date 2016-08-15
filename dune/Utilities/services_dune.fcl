@@ -66,6 +66,14 @@ dunefd_simulation_services: {
  ChannelStatusService:         @local::dunefd_channel_status
 }
 
+# Reco services for 35-ton simulation.
+dunefd_reco_services:                            @local::dunefd_services
+dunefd_reco_services.RawDigitExtractService:     @local::rdx_std
+dunefd_reco_services.RawDigitPrepService:        @local::adcprep_sim
+dunefd_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
+dunefd_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
+dunefd_reco_services.AdcWireBuildingService:     @local::adcwire_std
+
 #
 # for dual-phase implementation
 #
