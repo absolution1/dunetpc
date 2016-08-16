@@ -16,6 +16,16 @@ simple_plugin(StandardRawDigitExtractService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(ThresholdNoiseRemovalService   "service"
+                art_Utilities canvas_Utilities
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(MultiChannelNoiseRemovalService   "service"
+                art_Utilities canvas_Utilities
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(Dune35tNoiseRemovalService   "service"
                 larcore_Geometry
                 lbne-raw-data_Services_ChannelMap_ChannelMapService_service
@@ -54,6 +64,7 @@ simple_plugin(StandardAdcWireBuildingService "service"
 
 simple_plugin(StandardRawDigitPrepService   "service"
                 lardataobj_RawData
+                lardataobj_RecoBase
                 art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )

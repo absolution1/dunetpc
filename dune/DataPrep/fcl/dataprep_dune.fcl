@@ -14,6 +14,14 @@ rdx_std: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
   PedestalOption: 1
+  FlagStuckOff: false
+  FlagStuckOn: false
+}
+
+rdx_35tdata: {
+  service_provider: StandardRawDigitExtractService
+  LogLevel: 1
+  PedestalOption: 1
   FlagStuckOff: true
   FlagStuckOn: true
 }
@@ -57,12 +65,12 @@ adcsigfind_suppress: {
 
 # AdcNoiseRemovalService is used to remove noise from ADC signals.
 
-adcnr_dune35t: {
+adcnr_dune35tlegacy: {
   service_provider: Dune35tNoiseRemovalService
   LogLevel:             1
   GroupingFlag:         1
-  SkipStuckCodes:    true
-  SkipSignals:       true
+  SkipStuckCodes:   false
+  SkipSignals:      false
   CorrectStuckCodes: true
   ShowGroups:           2
   ShowGroupsChannel:    4
@@ -89,6 +97,8 @@ adcdco_dune35t: {
   LogLevel:              1
 }
 
+adcdco_dunefd: @local::adcdco_dune35t
+
 #***********************************************************************
 
 # AdcRoiBuildingService is used to define ROIs for the ADC signals.
@@ -100,6 +110,8 @@ adcroi_dune35t: {
   PadLow:              50
   PadHigh:             50
 }
+
+adcroi_dunefd: @local::adcroi_dune35t
 
 #***********************************************************************
 
@@ -117,9 +129,42 @@ adcwire_std: {
 # services to prepare ADC signals including the conversion of
 # raw::RawDigit to recob::Wire.
 
-adcprep_dune35t: {
+# Read raw data and subtract pedestals without any other preparation.
+adcprep_readraw: {
   service_provider: StandardRawDigitPrepService
   LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:       false
+  DoROI:                 false
+  DoWires:               false
+}
+
+# Process simulation.
+adcprep_sim: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:                true
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
+}
+
+# Process 35-ton data
+adcprep_dune35tdata: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:                true
+  SkipNoisy:             false
   DoMitigation:           true
   DoEarlySignalFinding:   true
   DoNoiseRemoval:         true
@@ -127,6 +172,19 @@ adcprep_dune35t: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
+}
+
+#***********************************************************************
+
+# DataPrepModule is the producer that calls RawDigitPrepService
+
+# Process any data.
+producer_adcprep: {
+  module_type: "DataPrepModule"
+  LogLevel:    1
+  DigitLabel:  "daq"
+  WireName:    ""
+  DoAssns:     true
 }
 
 #***********************************************************************

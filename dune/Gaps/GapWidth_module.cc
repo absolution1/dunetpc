@@ -30,7 +30,7 @@
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/OpFlash.h"
-#include "lardata/RecoBaseArt/TrackUtils.h" // lar::utils::TrackPitchInView()
+#include "lardata/RecoBaseArt/TrackUtils.h" // lar::util::TrackPitchInView()
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
@@ -568,11 +568,11 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
       for (int j = 0; j<3; ++j){
 	try {
 	  if (j==0)
-	    trkpitch[i][j] = lar::utils::TrackPitchInView(*(tracklist[i]), geo::kU);
+	    trkpitch[i][j] = lar::util::TrackPitchInView(*(tracklist[i]), geo::kU);
 	  else if (j==1)
-	    trkpitch[i][j] = lar::utils::TrackPitchInView(*(tracklist[i]), geo::kV);
+	    trkpitch[i][j] = lar::util::TrackPitchInView(*(tracklist[i]), geo::kV);
 	  else if (j==2)
-	    trkpitch[i][j] = lar::utils::TrackPitchInView(*(tracklist[i]), geo::kZ);
+	    trkpitch[i][j] = lar::util::TrackPitchInView(*(tracklist[i]), geo::kZ);
 	}
 	catch( cet::exception &e) {
 	  mf::LogWarning("GapWidth")<<"caught exception "<<e<<"\n setting pitch to 0";

@@ -6,8 +6,9 @@
 // David Adams
 // May 2016
 //
-// Interface for a service that removes coherent noise from a collection
-// of ADC channel signals.
+// Interface for a service that removes noise from a collection of ADC
+// channel samples. A map of samples are passed so that coherent noise
+// may be evaluated and removed.
 
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/AdcChannelData.h"
@@ -17,8 +18,9 @@ class AdcNoiseRemovalService {
 
 public:
 
-  // Extract the channel, signals and flags. All are pointer types so the caller can use null to
-  // indicate any of the fields are not of interest.
+  // Remove the noise for selected channels from datamap[chan].samples and store results
+  // in that same vector.
+  // Return 0 for success.
   virtual int update(AdcChannelDataMap& datamap) const =0;
 
   // Print parameters.
