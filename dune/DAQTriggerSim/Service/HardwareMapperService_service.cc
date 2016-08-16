@@ -13,8 +13,6 @@
 #include <set>
 #include <memory>
 
-static const std::string 
-
 //......................................................
 HardwareMapperService::HardwareMapperService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg){
   INFO_FILE_FUNCTION << std::endl;
