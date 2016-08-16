@@ -10,16 +10,18 @@
 
 //The service declaration macros are defined in here
 #include "art/Framework/Services/Registry/ServiceMacros.h"
-
+//Needed to get a service handle
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
 //Testing
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
+//Not testing
 #include "larcore/Geometry/Geometry.h"
 
 #include <vector>
 #include <set>
 #include <iostream>
+#include <iosfwd>
 
 //Forward Class Declarations
 namespace fhicl {
@@ -36,47 +38,61 @@ namespace art {
 
 
 //......................................................
-struct ASIC{
-public:
-  ASIC(unsigned int ID=fUnset, unsigned int RCE=fUnset, unsigned int COB=fUnset, unsigned int APA=fUnset, unsigned int Volume=fUnset)
-  : fID(ID), fRCE(RCE), fCOB(COB), fAPA(APA), fVolume(Volume){ ;}
+namespace Hardware{
+  typedef unsigned int ID;
 
-  bool addChannelID(unsigned int channel){
-    auto result = fChannelIDSet.insert(channel);
-    if( result.first != fChannelIDSet.end() && result.second) return true;
-    else return false;
-  }
-
-  std::set<unsigned int> const& getChannelIDSet(){ return fChannelIDSet;}
-
-  //FIXME -- need to think about this
-  const bool operator < ( ASIC const & rhs ) const
+  class Element
   {
-    if( fID != rhs.fID ) return fID < rhs.fID;
-    if( fRCE != rhs.fRCE ) return fRCE < rhs.fRCE;
-    return false;
-  }
+  public:
+    Element(ID id, std::string this_type) : fID(id), fType(this_type) {}
+    ID const& getID() const{ return fID;}
+    std::string const& getType() const{ return fType; }
+    std::set<raw::ChannelID_t> const& getChannels() const{ return fChannelIDs;}
+    size_t getNChannels() const{ return fChannelIDs.size();}
 
-  friend std::ostream& operator<< (std::ostream &os, ASIC const &rhs){
-    os << "ASIC"
-       << " ID: " << rhs.fID
-       << " RCE: " << rhs.fRCE
-       << " COB: " << rhs.fCOB
-       << " APA: " << rhs.fAPA
-       << " Volume: " << rhs.fVolume
-       << " Channels: " << rhs.fChannelIDSet.size();
-    return os;
-  }
+    bool addChannel(raw::ChannelID_t this_channel){
+      auto result = fChannelIDs.insert(this_channel);
+      if(result.first != fChannelIDs.end()) return result.second;
+      else return false;
+    }
+    bool operator<( const Element& rhs ) const {
+      return this->getID() < rhs.getID();
+    }
+    friend std::ostream & operator << (std::ostream &os,  Element &rhs){
+      os << rhs.getType() << ": " << rhs.getID() << " - " << rhs.getNChannels() << " channels";
+      std::set<raw::ChannelID_t> channels = rhs.getChannels();
+      unsigned int max_num_channels = 10;
+      unsigned int this_channel_num = 0;
+      for(auto channel : channels){
+        if(this_channel_num==0)  os << ":";
+        if(this_channel_num++ >= max_num_channels) break;
+        os << " " << channel;
+      }
+      return os;
+    }
 
-private:
-  unsigned int fID;
-  unsigned int fRCE;
-  unsigned int fCOB;
-  unsigned int fAPA;
-  unsigned int fVolume;
-  static const unsigned int fUnset = std::numeric_limits<unsigned int>::max();
-  std::set<unsigned int> fChannelIDSet;  
-};
+  private:
+    ID fID;
+    std::string fType;
+    std::set<raw::ChannelID_t> fChannelIDs;
+  };
+  
+  class ASIC : public Element{ public: ASIC(ID id) : Element(id, "ASIC") {} };
+
+  class Board  : public Element{ public: Board(ID id) : Element(id, "Board" ) {} };
+
+  class TPC  : public Element{ public: TPC(ID id) : Element(id, "TPC" ) {} };
+
+  class APA  : public Element{ public: APA(ID id) : Element(id, "APA" ) {} };
+
+  class APAGroup  : public Element{ public: APAGroup(ID id) : Element(id, "APAGroup" ) {} };
+
+  class Cryostat  : public Element{ public: Cryostat(ID id) : Element(id, "Cryostat" ) {} };
+
+  using APAMap =   std::map<ID, std::shared_ptr<APA>>;
+  using TPCMap =   std::map<ID, std::shared_ptr<TPC>>;
+  
+}
 
 //......................................................
 class HardwareMapperService{
@@ -88,12 +104,22 @@ class HardwareMapperService{
   void printHardwareElement(int const& element);
   void printChannelMap();
   void printGeometryInfo();
-  void printGeometryHelperInfo();
+
+  void fillAPAMap();
+  void fillTPCMap();
+
+  void printAPAMap(unsigned int num_apas_to_print=10);
+  void printTPCMap(unsigned int num_tpcs_to_print=10);
+  
+  std::set<raw::ChannelID_t> const& getAPAChannels(Hardware::ID apa_id);
+  std::set<raw::ChannelID_t> const& getTPCChannels(Hardware::ID tpc_id);
 
  private:
-  art::ServiceHandle<lbne::ChannelMapService> channelMapService; //FIXME -- just for testing
-  art::ServiceHandle<geo::Geometry> geometryService; //FIXME -- just for testing
-  //Geometry Helper service handle -- FIXME What the duck does this actually do?
+  art::ServiceHandle<lbne::ChannelMapService> fChannelMapService; //FIXME -- just for testing
+  art::ServiceHandle<geo::Geometry> fGeometryService; //FIXME -- just for testing
+
+  Hardware::APAMap fAPAMap;
+  Hardware::TPCMap fTPCMap;
 
 };
 

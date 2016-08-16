@@ -72,7 +72,6 @@ void TestHardwareMapper::beginJob(){
   INFO_FILE_FUNCTION << std::endl;
   //  mapperService->printChannelMap();
   mapperService->printGeometryInfo();
-  mapperService->printGeometryHelperInfo();
 }
 
 //......................................................
