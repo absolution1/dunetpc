@@ -37,7 +37,6 @@ simple_plugin(ActivityTriggerService   "service"
              )
 
 simple_plugin(HardwareMapperService   "service"
-                lbne-raw-data_Services_ChannelMap_ChannelMapService_service
                 larcore_Geometry
                 dune_Geometry
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL}

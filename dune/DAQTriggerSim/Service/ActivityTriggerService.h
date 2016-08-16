@@ -44,7 +44,7 @@ class ActivityTriggerService : public BaseTriggerService {
   // Reset function used to reset any global variables
   void Reset();
 
-
+  virtual std::string GetName(){ return "ActivityTriggerService";}
 
  private:
 

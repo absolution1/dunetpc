@@ -69,6 +69,8 @@ public:
 			    std::vector<raw::OpDetWaveform> const & rawPD)
   { return false; }
 
+  virtual std::string GetName() = 0;
+
 };
 
 DECLARE_ART_SERVICE_INTERFACE(BaseTriggerService, LEGACY)
