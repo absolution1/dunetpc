@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+standard_triginterfaceprod:
+{
+  module_type:		TrigInterfaceProd
+  #====================
+  AString:		"This is a string..."	# ...just a string...
+  RawDigitLabel:	"daq" 	   		# module label for the process that made the RawDigits
+}
+
+END_PROLOG
