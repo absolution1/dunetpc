@@ -95,23 +95,35 @@ namespace Hardware{
 class HardwareMapperService{
  public:
   HardwareMapperService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
-  //  ~HardwareMapperService() = default;
   
-  int getHardwareElement(int const& element, std::vector<int>& channelVec);
-  void printHardwareElement(int const& element);
-  void printGeometryInfo();
-
-  void fillAPAMap();
   void fillTPCMap();
+  void fillAPAMap();
+  void fillHardwareMaps();
 
-  void printAPAMap(unsigned int num_apas_to_print=10);
   void printTPCMap(unsigned int num_tpcs_to_print=10);
+  void printAPAMap(unsigned int num_apas_to_print=10);
+
+  void printGeometryInfo();
   
-  std::set<raw::ChannelID_t> const& getAPAChannels(Hardware::ID apa_id);
+  unsigned int getNAPAs() const { return fAPAMap.size();}
+  unsigned int getNTPCs() const { return fTPCMap.size();}
+
   std::set<raw::ChannelID_t> const& getTPCChannels(Hardware::ID tpc_id);
+  std::set<raw::ChannelID_t> const& getAPAChannels(Hardware::ID apa_id);
+
+  void setNumChannelsPerBoard(unsigned int N, bool refillMap=true);
+  void setNumChannelsPerASIC(unsigned int N, bool refillMap=true);
+
+
+  const unsigned int getNumChannelsPerBoard() const { return fNumChannelsPerBoard;}
+  const unsigned int getNumChannelsPerASIC() const { return fNumChannelsPerASIC;}
+
 
  private:
-  art::ServiceHandle<geo::Geometry> fGeometryService; //FIXME -- just for testing
+  art::ServiceHandle<geo::Geometry> fGeometryService;
+
+  unsigned int fNumChannelsPerBoard;
+  unsigned int fNumChannelsPerASIC;
 
   Hardware::APAMap fAPAMap;
   Hardware::TPCMap fTPCMap;
