@@ -13,6 +13,8 @@
 #include <set>
 #include <memory>
 
+static const std::string 
+
 //......................................................
 HardwareMapperService::HardwareMapperService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg){
   INFO_FILE_FUNCTION << std::endl;
@@ -190,69 +192,6 @@ void HardwareMapperService::printGeometryInfo(){
 
 
   return;
-}
-
-//......................................................
-void HardwareMapperService::printChannelMap(){
-  INFO_FILE_FUNCTION << std::endl;
-  
-  std::set<unsigned int> offline_set;
-  std::set<unsigned int> online_set;
-  std::set<unsigned int> apa_set;
-  std::set<unsigned int> plane_set;
-  std::set<unsigned int> rce_set;
-  std::set<unsigned int> rceChannel_set;
-  std::set<unsigned int> regulator_set;
-  std::set<unsigned int> asic_set;
-  std::set<unsigned int> asicChannel_set;
-
-  const unsigned int numChans = 2048;
-  for(unsigned int online=0;online<numChans;online++){
-    unsigned int offline       = fChannelMapService->Offline(online);
-    unsigned int apa           = fChannelMapService->APAFromOnlineChannel(online);
-    unsigned int plane         = fChannelMapService->PlaneFromOnlineChannel(online);
-    unsigned int rce           = fChannelMapService->RCEFromOnlineChannel(online);
-    unsigned int rceChannel    = fChannelMapService->RCEChannelFromOnlineChannel(online);
-    unsigned int regulator     = fChannelMapService->RegulatorFromOnlineChannel(online);
-    unsigned int asic          = fChannelMapService->ASICFromOnlineChannel(online);
-    unsigned int asicChannel   = fChannelMapService->ASICChannelFromOnlineChannel(online);
-
-    offline_set       .insert(offline    );
-    apa_set           .insert(apa        );
-    plane_set         .insert(plane      );
-    rce_set           .insert(rce        );
-    rceChannel_set    .insert(rceChannel );
-    regulator_set     .insert(regulator  );
-    asic_set          .insert(asic       );
-    asicChannel_set   .insert(asicChannel);
-
-
-    // ASIC this_asic(asic,rce,0,apa);
-    // INFO << this_asic << std::endl;
-
-
-    INFO << "online: " << online
-         << " offline: " << offline
-         << " apa: " << apa
-         << " plane: " << plane
-         << " rce: " << rce
-         << " rceChannel: " << rceChannel
-         << " regulator: " << regulator
-         << " asic: " << asic
-         << " asicChannel: " << asicChannel 
-         << std::endl;
-  }
-
-  INFO << std::endl;
-  INFO << "offline_set.size():     " << offline_set.size()     << std::endl;
-  INFO << "apa_set.size():         " << apa_set.size()         << std::endl;
-  INFO << "plane_set.size():       " << plane_set.size()       << std::endl;
-  INFO << "rce_set.size():         " << rce_set.size()         << std::endl;
-  INFO << "rceChannel_set.size():  " << rceChannel_set.size()  << std::endl;
-  INFO << "regulator_set.size():   " << regulator_set.size()   << std::endl;
-  INFO << "asic_set.size():        " << asic_set.size()        << std::endl;
-  INFO << "asicChannel_set.size(): " << asicChannel_set.size() << std::endl;
-  INFO << std::endl;
 }
 
 //......................................................

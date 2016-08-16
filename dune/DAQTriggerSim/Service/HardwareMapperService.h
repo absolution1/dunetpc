@@ -13,9 +13,6 @@
 //Needed to get a service handle
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
-//Testing
-#include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
-//Not testing
 #include "larcore/Geometry/Geometry.h"
 
 #include <vector>
@@ -102,7 +99,6 @@ class HardwareMapperService{
   
   int getHardwareElement(int const& element, std::vector<int>& channelVec);
   void printHardwareElement(int const& element);
-  void printChannelMap();
   void printGeometryInfo();
 
   void fillAPAMap();
@@ -115,7 +111,6 @@ class HardwareMapperService{
   std::set<raw::ChannelID_t> const& getTPCChannels(Hardware::ID tpc_id);
 
  private:
-  art::ServiceHandle<lbne::ChannelMapService> fChannelMapService; //FIXME -- just for testing
   art::ServiceHandle<geo::Geometry> fGeometryService; //FIXME -- just for testing
 
   Hardware::APAMap fAPAMap;
