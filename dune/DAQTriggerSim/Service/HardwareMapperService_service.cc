@@ -3,7 +3,7 @@
 // Jonathan Davies j.p.davies@sussex.ac.uk
 // August 2016
 //
-// Description
+// Description: Dish out vectors of raw::ChannelID_t to the user for requested hardware element
 
 #include "dune/DAQTriggerSim/Service/HardwareMapperService.h"
 #include "fhiclcpp/ParameterSet.h"
@@ -14,17 +14,19 @@
 #include <memory>
 
 //......................................................
-HardwareMapperService::HardwareMapperService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg){
-  INFO_FUNCTION << std::endl;
-  std::string detectorName = fGeometryService->DetectorName();
-  //FIXME set the number of channels per ASIC and Board here
+HardwareMapperService::HardwareMapperService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg)
+  : fLogLevel(1) {
+  pset.get_if_present<unsigned int>("LogLevel", fLogLevel);
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
 
+  std::string detectorName = fGeometryService->DetectorName();
+  //FIXME -- jpd -- could do some clever geometry specific setup here using the detectorName to change behaviour
   fillHardwareMaps();
 }
 
 //......................................................
 void HardwareMapperService::fillTPCMap(){
-  INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
   unsigned int Nchannels   = fGeometryService->Nchannels();
   INFO << "Filling TPC Map" << std::endl;
 
@@ -32,18 +34,16 @@ void HardwareMapperService::fillTPCMap(){
     std::vector<geo::WireID> const Wires = fGeometryService->ChannelToWire(channel);
     for(auto wire : Wires){
       auto tpc_id = wire.TPC;
-      //See if we have already created a TPC object for this tpc_id in our map
+      //jpd -- See if we have already created a TPC object for this tpc_id in our map
       auto find_result = fTPCMap.find(tpc_id);
       std::shared_ptr<Hardware::TPC> this_tpc;
       if(find_result != fTPCMap.end()){
-        //We already have one, add this channel
+        //jpd -- We already have one, add this channel
         this_tpc = (*find_result).second;
-        //        INFO << "Found: " << *this_tpc << std::endl;
       }
       else{
-        //We don't have one. Create a new one and add this channel
+        //jpd -- We don't have one. Create a new one and add this channel
         this_tpc = std::shared_ptr<Hardware::TPC>(new Hardware::TPC(tpc_id));
-        //        INFO << "Created: " << *this_tpc << std::endl;
       }
       this_tpc->addChannel(channel);
       fTPCMap[tpc_id] = this_tpc;
@@ -55,25 +55,23 @@ void HardwareMapperService::fillTPCMap(){
 
 //......................................................
 void HardwareMapperService::fillAPAMap(){
-  INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
   unsigned int Nchannels   = fGeometryService->Nchannels();
   INFO << "Filling APA Map" << std::endl;
   for(raw::ChannelID_t channel=0; channel<Nchannels ;channel++){
     std::vector<geo::WireID> const Wires = fGeometryService->ChannelToWire(channel);
     for(auto wire : Wires){
       auto apa_id = wire.TPC / 2;
-      //See if we have already created a APA object for this apa_id in our map
+      //jpd -- See if we have already created a APA object for this apa_id in our map
       auto find_result = fAPAMap.find(apa_id);
       std::shared_ptr<Hardware::APA> this_apa;
       if(find_result != fAPAMap.end()){
-        //We already have one, add this channel
+        //jpd -- We already have one, add this channel
         this_apa = (*find_result).second;
-        //        INFO << "Found: " << *this_apa << std::endl;
       }
       else{
-        //We don't have one. Create a new one and add this channel
+        //jpd -- We don't have one. Create a new one and add this channel
         this_apa = std::shared_ptr<Hardware::APA>(new Hardware::APA(apa_id));
-        //        INFO << "Created: " << *this_apa << std::endl;
       }
       this_apa->addChannel(channel);
       fAPAMap[apa_id] = this_apa;
@@ -85,14 +83,14 @@ void HardwareMapperService::fillAPAMap(){
 
 //......................................................
 void HardwareMapperService::fillHardwareMaps(){
-  INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
   fillTPCMap();
   fillAPAMap();
 }
 
 //......................................................
 void HardwareMapperService::printTPCMap(unsigned int num_tpcs_to_print){
-  INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
   INFO << "Printing the first: " << num_tpcs_to_print << " TPCs" << std::endl;
   unsigned int total_channels = 0;
   unsigned int count = 0;
@@ -109,7 +107,7 @@ void HardwareMapperService::printTPCMap(unsigned int num_tpcs_to_print){
 
 //......................................................
 void HardwareMapperService::printAPAMap(unsigned int num_apas_to_print){
-  INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
   INFO << "Printing the first: " << num_apas_to_print << " APAs" << std::endl;
   unsigned int total_channels = 0;
   unsigned int count = 0;
@@ -126,7 +124,7 @@ void HardwareMapperService::printAPAMap(unsigned int num_apas_to_print){
 
 //......................................................
 void HardwareMapperService::printHardwareMaps(){
-  INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
   INFO << std::endl;
   printTPCMap(getNTPCs());
   INFO << std::endl;
@@ -136,7 +134,7 @@ void HardwareMapperService::printHardwareMaps(){
 
 //......................................................
 void HardwareMapperService::printGeometryInfo(){
-  INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
   INFO << std::endl;
   INFO << "DetectorName: " << fGeometryService->DetectorName() << std::endl;
   INFO << "TotalMass: " << fGeometryService->TotalMass() << std::endl;
@@ -157,8 +155,8 @@ void HardwareMapperService::printGeometryInfo(){
 
 //......................................................
 std::vector<raw::ChannelID_t> const& HardwareMapperService::getTPCChannels(Hardware::ID tpc_id){
-  INFO_FUNCTION << std::endl;
-  INFO << "Finding channels for TPC: " << tpc_id << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO << "Finding channels for TPC: " << tpc_id << std::endl;
 
   auto find_result = fTPCMap.find(tpc_id);
   std::shared_ptr<Hardware::TPC> this_tpc;
@@ -170,15 +168,15 @@ std::vector<raw::ChannelID_t> const& HardwareMapperService::getTPCChannels(Hardw
     return emptyVector;
   }
   this_tpc = (*find_result).second;
-  INFO << "Found " << *this_tpc << std::endl;
-  INFO << std::endl;
+  if(fLogLevel>1) INFO << "Found " << *this_tpc << std::endl;
+  if(fLogLevel>1) INFO << std::endl;
   return this_tpc->getChannels();  
 }
 
 //......................................................
 std::vector<raw::ChannelID_t> const& HardwareMapperService::getAPAChannels(Hardware::ID apa_id){
-  INFO_FUNCTION << std::endl;
-  INFO << "Finding channels for APA: " << apa_id << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO << "Finding channels for APA: " << apa_id << std::endl;
 
   auto find_result = fAPAMap.find(apa_id);
   std::shared_ptr<Hardware::APA> this_apa;
@@ -190,15 +188,15 @@ std::vector<raw::ChannelID_t> const& HardwareMapperService::getAPAChannels(Hardw
     return emptyVector;
   }
   this_apa = (*find_result).second;
-  INFO << "Found " << *this_apa << std::endl;
-  INFO << std::endl;
+  if(fLogLevel>1) INFO << "Found " << *this_apa << std::endl;
+  if(fLogLevel>1) INFO << std::endl;
   return this_apa->getChannels();  
 }
 
 //......................................................
 std::set<raw::ChannelID_t> const& HardwareMapperService::getTPCChannelsSet(Hardware::ID tpc_id){
-  INFO_FUNCTION << std::endl;
-  INFO << "Finding channels for TPC: " << tpc_id << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO << "Finding channels for TPC: " << tpc_id << std::endl;
 
   auto find_result = fTPCMap.find(tpc_id);
   std::shared_ptr<Hardware::TPC> this_tpc;
@@ -210,15 +208,15 @@ std::set<raw::ChannelID_t> const& HardwareMapperService::getTPCChannelsSet(Hardw
     return emptySet;
   }
   this_tpc = (*find_result).second;
-  INFO << "Found " << *this_tpc << std::endl;
-  INFO << std::endl;
+  if(fLogLevel>1) INFO << "Found " << *this_tpc << std::endl;
+  if(fLogLevel>1) INFO << std::endl;
   return this_tpc->getChannelsSet();  
 }
 
 //......................................................
 std::set<raw::ChannelID_t> const& HardwareMapperService::getAPAChannelsSet(Hardware::ID apa_id){
-  INFO_FUNCTION << std::endl;
-  INFO << "Finding channels for APA: " << apa_id << std::endl;
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  if(fLogLevel>1) INFO << "Finding channels for APA: " << apa_id << std::endl;
 
   auto find_result = fAPAMap.find(apa_id);
   std::shared_ptr<Hardware::APA> this_apa;
@@ -230,20 +228,9 @@ std::set<raw::ChannelID_t> const& HardwareMapperService::getAPAChannelsSet(Hardw
     return emptySet;
   }
   this_apa = (*find_result).second;
-  INFO << "Found " << *this_apa << std::endl;
-  INFO << std::endl;
+  if(fLogLevel>1) INFO << "Found " << *this_apa << std::endl;
+  if(fLogLevel>1) INFO << std::endl;
   return this_apa->getChannelsSet();  
-}
-
-//......................................................
-void HardwareMapperService::setNumChannelsPerBoard(unsigned int N, bool refillMap){
-  INFO_FUNCTION << std::endl;
-  fNumChannelsPerBoard = N;
-}
-//......................................................
-void HardwareMapperService::setNumChannelsPerASIC(unsigned int N, bool refillMap){
-  INFO_FUNCTION << std::endl;
-  fNumChannelsPerASIC = N;
 }
 
 //......................................................

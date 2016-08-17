@@ -7,6 +7,7 @@ BEGIN_PROLOG
 #
 standard_hardwaremapper: {
   service_provider: HardwareMapperService
+  LogLevel: 1
 }
 
 END_PROLOG

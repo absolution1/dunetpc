@@ -3,6 +3,7 @@ BEGIN_PROLOG
 standard_testhardwaremapper:
 {
   module_type:		TestHardwareMapper
+  LogLevel: 1
   #====================
 }
 

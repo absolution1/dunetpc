@@ -3,7 +3,7 @@
 // Jonathan Davies j.p.davies@sussex.ac.uk
 // August 2016
 //
-// Description
+// Description: Dish out vectors of raw::ChannelID_t to the user for requested hardware element
 
 #ifndef HARDWAREMAPPERSERVICE_H
 #define HARDWAREMAPPERSERVICE_H
@@ -29,6 +29,8 @@ namespace art {
   class ActivityRegistry;
 }
 
+
+//jpd -- these are useful for now. Should be replaced by message facility type streams later
 #define INFO  std::cerr << "INFO   :   "
 #define ERROR std::cerr << "ERROR  :   "
 #define INFO_FUNCTION std::cerr << "INFO FN: " << __PRETTY_FUNCTION__ << " "
@@ -49,7 +51,7 @@ namespace Hardware{
     size_t getNChannelsSet() const{ return fChannelIDsSet.size();}
 
     void addChannel(raw::ChannelID_t channel){ 
-      //Only add channel to the vector if it is not already in the set
+      //jpd -- Only add channel to the vector if it is not already in the set
       //addChannelToSet returns true if channel was no already in the set and false otherwise
       if(addChannelToSet(channel)) fChannelIDs.push_back(channel);
     }
@@ -76,7 +78,7 @@ namespace Hardware{
     std::vector<raw::ChannelID_t> fChannelIDs;
     std::set<raw::ChannelID_t> fChannelIDsSet;
 
-    //returns true if channel was not already in set and was inserted
+    //jpd -- Returns true if channel was not already in set and was inserted
     //        false if channel was already in set / there was a problem
     bool addChannelToSet(raw::ChannelID_t this_channel){
       auto result = fChannelIDsSet.insert(this_channel);
@@ -105,38 +107,33 @@ class HardwareMapperService{
  public:
   HardwareMapperService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
   
-  void fillTPCMap();
-  void fillAPAMap();
-  void fillHardwareMaps();
-
   void printTPCMap(unsigned int num_tpcs_to_print=10);
   void printAPAMap(unsigned int num_apas_to_print=10);
-  void printHardwareMaps();
+  void printHardwareMaps(); //jpd -- prints both the tpc and apa maps
 
-  void printGeometryInfo();
+  void printGeometryInfo(); //jpd -- testing function to print geometry information once loaded
 
   unsigned int getNAPAs() const { return fAPAMap.size();}
   unsigned int getNTPCs() const { return fTPCMap.size();}
 
+  //jpd -- These are the main user accessible functions - dish out vectors of channel ids
   std::vector<raw::ChannelID_t> const& getTPCChannels(Hardware::ID tpc_id);
   std::vector<raw::ChannelID_t> const& getAPAChannels(Hardware::ID apa_id);
 
+  //jpd -- For users that prefer a std::set
   std::set<raw::ChannelID_t> const& getTPCChannelsSet(Hardware::ID tpc_id);
   std::set<raw::ChannelID_t> const& getAPAChannelsSet(Hardware::ID apa_id);
 
-
-  void setNumChannelsPerBoard(unsigned int N, bool refillMap=true);
-  void setNumChannelsPerASIC(unsigned int N, bool refillMap=true);
-
-  const unsigned int getNumChannelsPerBoard() const { return fNumChannelsPerBoard;}
-  const unsigned int getNumChannelsPerASIC() const { return fNumChannelsPerASIC;}
-
-
  private:
+
+  unsigned int fLogLevel;
+
   art::ServiceHandle<geo::Geometry> fGeometryService;
 
-  unsigned int fNumChannelsPerBoard;
-  unsigned int fNumChannelsPerASIC;
+  //jpd -- these read in the geometry information and fill internal maps of ID->Hardware::Element
+  void fillTPCMap();
+  void fillAPAMap();
+  void fillHardwareMaps();
 
   Hardware::ASICMap fASICMap;
   Hardware::BoardMap fBoardMap;
