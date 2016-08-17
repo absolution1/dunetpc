@@ -15,7 +15,7 @@
 
 //......................................................
 HardwareMapperService::HardwareMapperService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   std::string detectorName = fGeometryService->DetectorName();
   //FIXME set the number of channels per ASIC and Board here
 
@@ -24,10 +24,9 @@ HardwareMapperService::HardwareMapperService(fhicl::ParameterSet const& pset, ar
 
 //......................................................
 void HardwareMapperService::fillTPCMap(){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   unsigned int Nchannels   = fGeometryService->Nchannels();
   INFO << "Filling TPC Map" << std::endl;
-  INFO << "Looping through channels" << std::endl;
 
   for(raw::ChannelID_t channel=0; channel<Nchannels ;channel++){
     std::vector<geo::WireID> const Wires = fGeometryService->ChannelToWire(channel);
@@ -56,9 +55,8 @@ void HardwareMapperService::fillTPCMap(){
 
 //......................................................
 void HardwareMapperService::fillAPAMap(){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   unsigned int Nchannels   = fGeometryService->Nchannels();
-  INFO << "Looping through channels" << std::endl;
   INFO << "Filling APA Map" << std::endl;
   for(raw::ChannelID_t channel=0; channel<Nchannels ;channel++){
     std::vector<geo::WireID> const Wires = fGeometryService->ChannelToWire(channel);
@@ -81,7 +79,7 @@ void HardwareMapperService::fillAPAMap(){
       fAPAMap[apa_id] = this_apa;
     }//loop over wires
   }//loop over channels
-  INFO << "Finished filling TPC Map" << std::endl;
+  INFO << "Finished filling APA Map" << std::endl;
   INFO << std::endl;
 }
 
@@ -93,33 +91,41 @@ void HardwareMapperService::fillHardwareMaps(){
 
 //......................................................
 void HardwareMapperService::printTPCMap(unsigned int num_tpcs_to_print){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   INFO << "Printing the first: " << num_tpcs_to_print << " TPCs" << std::endl;
+  unsigned int total_channels = 0;
   unsigned int count = 0;
   for(auto this_pair : fTPCMap ){
     if(count++ >= num_tpcs_to_print) break;
     std::shared_ptr<Hardware::TPC> this_tpc = this_pair.second;
+    total_channels += this_tpc->getNChannels();
     INFO << *this_tpc << std::endl;
   }
+  INFO << std::endl;
+  INFO << "Total Channels: " << total_channels << std::endl;
   INFO << std::endl;
 }
 
 //......................................................
 void HardwareMapperService::printAPAMap(unsigned int num_apas_to_print){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   INFO << "Printing the first: " << num_apas_to_print << " APAs" << std::endl;
+  unsigned int total_channels = 0;
   unsigned int count = 0;
   for(auto this_pair : fAPAMap ){
     if(count++ >= num_apas_to_print) break;
     std::shared_ptr<Hardware::APA> this_apa = this_pair.second;
+    total_channels += this_apa->getNChannels();
     INFO << *this_apa << std::endl;
   }
+  INFO << std::endl;
+  INFO << "Total Channels: " << total_channels << std::endl;
   INFO << std::endl;
 }
 
 //......................................................
 void HardwareMapperService::printGeometryInfo(){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   INFO << std::endl;
   INFO << "DetectorName: " << fGeometryService->DetectorName() << std::endl;
   INFO << "TotalMass: " << fGeometryService->TotalMass() << std::endl;
@@ -133,14 +139,24 @@ void HardwareMapperService::printGeometryInfo(){
   INFO << "NOpChannels:  " << NOpChannels  << std::endl;
   INFO << std::endl;
 
-  printTPCMap();
-  printAPAMap();
+  INFO << "Filled " << getNTPCs() << " TPCs into TPCMap" << std::endl;
+  printTPCMap(getNTPCs());
+  //  printTPCMap();
+  INFO << std::endl;
+  INFO << std::endl;
+  INFO << "Filled " << getNAPAs() << " APAs into APAMap" << std::endl;
+  printAPAMap(getNAPAs());
+  //  printAPAMap();
+  INFO << std::endl;
+  INFO << std::endl;
 
-  std::set<raw::ChannelID_t> apa_channel_set = getAPAChannels(0);
-  apa_channel_set = getAPAChannels(1e6);
+  
 
-  std::set<raw::ChannelID_t> tpc_channel_set = getTPCChannels(0);
-  tpc_channel_set = getTPCChannels(1e6);
+  // std::set<raw::ChannelID_t> apa_channel_set = getAPAChannels(0);
+  // apa_channel_set = getAPAChannels(1e6);
+
+  // std::set<raw::ChannelID_t> tpc_channel_set = getTPCChannels(0);
+  // tpc_channel_set = getTPCChannels(1e6);
 
 
   return;
@@ -148,7 +164,7 @@ void HardwareMapperService::printGeometryInfo(){
 
 //......................................................
 std::set<raw::ChannelID_t> const& HardwareMapperService::getTPCChannels(Hardware::ID tpc_id){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   INFO << "Finding channels for TPC: " << tpc_id << std::endl;
 
   auto find_result = fTPCMap.find(tpc_id);
@@ -163,12 +179,12 @@ std::set<raw::ChannelID_t> const& HardwareMapperService::getTPCChannels(Hardware
   this_tpc = (*find_result).second;
   INFO << "Found " << *this_tpc << std::endl;
   INFO << std::endl;
-  return this_tpc->getChannels();  
+  return this_tpc->getChannelsSet();  
 }
 
 //......................................................
 std::set<raw::ChannelID_t> const& HardwareMapperService::getAPAChannels(Hardware::ID apa_id){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   INFO << "Finding channels for APA: " << apa_id << std::endl;
 
   auto find_result = fAPAMap.find(apa_id);
@@ -183,17 +199,17 @@ std::set<raw::ChannelID_t> const& HardwareMapperService::getAPAChannels(Hardware
   this_apa = (*find_result).second;
   INFO << "Found " << *this_apa << std::endl;
   INFO << std::endl;
-  return this_apa->getChannels();  
+  return this_apa->getChannelsSet();  
 }
 
 //......................................................
 void HardwareMapperService::setNumChannelsPerBoard(unsigned int N, bool refillMap){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   fNumChannelsPerBoard = N;
 }
 //......................................................
 void HardwareMapperService::setNumChannelsPerASIC(unsigned int N, bool refillMap){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   fNumChannelsPerASIC = N;
 }
 

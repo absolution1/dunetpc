@@ -31,6 +31,7 @@ namespace art {
 
 #define INFO  std::cerr << "INFO   : "
 #define ERROR std::cerr << "ERROR  : "
+#define INFO_FUNCTION std::cerr << "INFO FN: " << __PRETTY_FUNCTION__ << " "
 #define INFO_FILE_FUNCTION  std::cerr << "INFO   : " << __FILE__ << " : " << __FUNCTION__
 
 
@@ -44,20 +45,23 @@ namespace Hardware{
     Element(ID id, std::string this_type) : fID(id), fType(this_type) {}
     ID const& getID() const{ return fID;}
     std::string const& getType() const{ return fType; }
-    std::set<raw::ChannelID_t> const& getChannels() const{ return fChannelIDs;}
+    std::vector<raw::ChannelID_t> const& getChannels() const{ return fChannelIDs;}
+    std::set<raw::ChannelID_t> const& getChannelsSet() const{ return fChannelIDsSet;}
     size_t getNChannels() const{ return fChannelIDs.size();}
+    size_t getNChannelsSet() const{ return fChannelIDsSet.size();}
 
-    bool addChannel(raw::ChannelID_t this_channel){
-      auto result = fChannelIDs.insert(this_channel);
-      if(result.first != fChannelIDs.end()) return result.second;
-      else return false;
+    void addChannel(raw::ChannelID_t channel){ 
+      //Only add channel to the vector if it is not already in the set
+      //addChannelToSet returns true if channel was no already in the set and false otherwise
+      if(addChannelToSet(channel)) fChannelIDs.push_back(channel);
     }
+
     bool operator<( const Element& rhs ) const {
       return this->getID() < rhs.getID();
     }
     friend std::ostream & operator << (std::ostream &os,  Element &rhs){
-      os << rhs.getType() << ": " << rhs.getID() << " - " << rhs.getNChannels() << " channels";
-      std::set<raw::ChannelID_t> channels = rhs.getChannels();
+      os << rhs.getType() << ": " << rhs.getID() << " has " << rhs.getNChannels() << " channels of which " << rhs.getNChannelsSet() << " are unique";
+      std::set<raw::ChannelID_t> channels = rhs.getChannelsSet();
       unsigned int max_num_channels = 10;
       unsigned int this_channel_num = 0;
       for(auto channel : channels){
@@ -71,7 +75,16 @@ namespace Hardware{
   private:
     ID fID;
     std::string fType;
-    std::set<raw::ChannelID_t> fChannelIDs;
+    std::vector<raw::ChannelID_t> fChannelIDs;
+    std::set<raw::ChannelID_t> fChannelIDsSet;
+
+    //returns true if channel was not already in set and was inserted
+    //        false if channel was already in set / there was a problem
+    bool addChannelToSet(raw::ChannelID_t this_channel){
+      auto result = fChannelIDsSet.insert(this_channel);
+      if(result.first != fChannelIDsSet.end()) return result.second;
+      else return false;
+    }
   };
   
   class ASIC : public Element{ public: ASIC(ID id) : Element(id, "ASIC") {} };

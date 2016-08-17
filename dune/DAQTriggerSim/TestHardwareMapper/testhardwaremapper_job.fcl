@@ -13,16 +13,9 @@ source:
 
 services:
 {
-#  user:         @local::dune35t_services
-  user:         @local::dunefd_services
+  user:         @local::dune35t_services
+#  user:         @local::dunefd_services
 }
-
-#If using dunefd the following two lines are required to get the channel mapping to load
-#FIXME - I think we only need this whilst I am printing out information from the ChannelMap
-#FIXME - Should remove these lines and the channel map long term
-services.user.ChannelMapService:          @local::channelmap35t
-services.user.ChannelMappingService:      @local::dune35t_channelmapping
-
 
 services.user.hardwaremapper: @local::standard_hardwaremapper
 
