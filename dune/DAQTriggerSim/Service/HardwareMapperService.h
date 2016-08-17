@@ -29,11 +29,9 @@ namespace art {
   class ActivityRegistry;
 }
 
-#define INFO  std::cerr << "INFO   : "
-#define ERROR std::cerr << "ERROR  : "
+#define INFO  std::cerr << "INFO   :   "
+#define ERROR std::cerr << "ERROR  :   "
 #define INFO_FUNCTION std::cerr << "INFO FN: " << __PRETTY_FUNCTION__ << " "
-#define INFO_FILE_FUNCTION  std::cerr << "INFO   : " << __FILE__ << " : " << __FUNCTION__
-
 
 //......................................................
 namespace Hardware{
@@ -87,20 +85,18 @@ namespace Hardware{
     }
   };
   
-  class ASIC : public Element{ public: ASIC(ID id) : Element(id, "ASIC") {} };
-
-  class Board  : public Element{ public: Board(ID id) : Element(id, "Board" ) {} };
-
-  class TPC  : public Element{ public: TPC(ID id) : Element(id, "TPC" ) {} };
-
-  class APA  : public Element{ public: APA(ID id) : Element(id, "APA" ) {} };
-
+  class ASIC      : public Element{ public: ASIC    (ID id) : Element(id, "ASIC"     ) {} };
+  class Board     : public Element{ public: Board   (ID id) : Element(id, "Board"    ) {} };
+  class TPC       : public Element{ public: TPC     (ID id) : Element(id, "TPC"      ) {} };
+  class APA       : public Element{ public: APA     (ID id) : Element(id, "APA"      ) {} };
   class APAGroup  : public Element{ public: APAGroup(ID id) : Element(id, "APAGroup" ) {} };
-
   class Cryostat  : public Element{ public: Cryostat(ID id) : Element(id, "Cryostat" ) {} };
 
-  using APAMap =   std::map<ID, std::shared_ptr<APA>>;
-  using TPCMap =   std::map<ID, std::shared_ptr<TPC>>;
+  using ASICMap  =   std::map<ID, std::shared_ptr<ASIC >>;
+  using BoardMap =   std::map<ID, std::shared_ptr<Board>>;
+  using TPCMap   =   std::map<ID, std::shared_ptr<TPC  >>;
+  using APAMap   =   std::map<ID, std::shared_ptr<APA  >>;
+
   
 }
 
@@ -115,18 +111,22 @@ class HardwareMapperService{
 
   void printTPCMap(unsigned int num_tpcs_to_print=10);
   void printAPAMap(unsigned int num_apas_to_print=10);
+  void printHardwareMaps();
 
   void printGeometryInfo();
-  
+
   unsigned int getNAPAs() const { return fAPAMap.size();}
   unsigned int getNTPCs() const { return fTPCMap.size();}
 
-  std::set<raw::ChannelID_t> const& getTPCChannels(Hardware::ID tpc_id);
-  std::set<raw::ChannelID_t> const& getAPAChannels(Hardware::ID apa_id);
+  std::vector<raw::ChannelID_t> const& getTPCChannels(Hardware::ID tpc_id);
+  std::vector<raw::ChannelID_t> const& getAPAChannels(Hardware::ID apa_id);
+
+  std::set<raw::ChannelID_t> const& getTPCChannelsSet(Hardware::ID tpc_id);
+  std::set<raw::ChannelID_t> const& getAPAChannelsSet(Hardware::ID apa_id);
+
 
   void setNumChannelsPerBoard(unsigned int N, bool refillMap=true);
   void setNumChannelsPerASIC(unsigned int N, bool refillMap=true);
-
 
   const unsigned int getNumChannelsPerBoard() const { return fNumChannelsPerBoard;}
   const unsigned int getNumChannelsPerASIC() const { return fNumChannelsPerASIC;}
@@ -138,8 +138,10 @@ class HardwareMapperService{
   unsigned int fNumChannelsPerBoard;
   unsigned int fNumChannelsPerASIC;
 
-  Hardware::APAMap fAPAMap;
+  Hardware::ASICMap fASICMap;
+  Hardware::BoardMap fBoardMap;
   Hardware::TPCMap fTPCMap;
+  Hardware::APAMap fAPAMap;
 
 };
 

@@ -53,23 +53,23 @@ private:
 TestHardwareMapper::TestHardwareMapper(fhicl::ParameterSet const & pset)
   : EDAnalyzer(pset)
 {
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   this->reconfigure(pset);
 }
 
 //......................................................
 void TestHardwareMapper::reconfigure(fhicl::ParameterSet const & pset){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
 }
 
 //......................................................
 void TestHardwareMapper::analyze(art::Event const& evt){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
 }
 
 //......................................................
 void TestHardwareMapper::beginJob(){
-  INFO_FILE_FUNCTION << std::endl;
+  INFO_FUNCTION << std::endl;
   mapperService->printGeometryInfo();
 }
 
