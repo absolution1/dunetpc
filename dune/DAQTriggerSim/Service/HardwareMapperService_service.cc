@@ -18,9 +18,12 @@ HardwareMapperService::HardwareMapperService(fhicl::ParameterSet const& pset, ar
   : fLogLevel(1) {
   pset.get_if_present<unsigned int>("LogLevel", fLogLevel);
   if(fLogLevel>1) INFO_FUNCTION << std::endl;
-
-  std::string detectorName = fGeometryService->DetectorName();
-  //FIXME -- jpd -- could do some clever geometry specific setup here using the detectorName to change behaviour
+  INFO << "DetectorName: " << fGeometryService->DetectorName() << std::endl;
+  INFO << "Ncryostats:   " << fGeometryService->Ncryostats()   << std::endl;
+  INFO << "TotalNTPC:    " << fGeometryService->TotalNTPC()    << std::endl;
+  INFO << "Nchannels:    " << fGeometryService->Nchannels()    << std::endl;
+  INFO << "NOpChannels:  " << fGeometryService->NOpChannels()  << std::endl;
+  INFO << std::endl;
   fillHardwareMaps();
 }
 

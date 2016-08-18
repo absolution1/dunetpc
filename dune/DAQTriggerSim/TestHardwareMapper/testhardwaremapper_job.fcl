@@ -13,8 +13,7 @@ source:
 
 services:
 {
-  user:         @local::dune35t_services
-#  user:         @local::dunefd_services
+  user:         @local::dunefd_services
 }
 
 services.user.hardwaremapper: @local::standard_hardwaremapper
@@ -30,3 +29,20 @@ physics:
   end_paths: [ ana ] 
 
 }
+
+#jpd -- here is a list of geometries and how to set them (just uncomment ONE line to override to that geometry)
+#jpd -- they are defined in dunetpc/dune/Geometry/geometry_dune.fcl
+
+#services.user.Geometry: @local::dunefd_geo
+#services.user.Geometry: @local::dune10kt_geo
+#services.user.Geometry: @local::dunedphase10kt_geo
+#services.user.Geometry: @local::dune10kt_workspace_geo
+#services.user.Geometry: @local::dune10kt_1x2x6_geo
+#services.user.Geometry: @local::dunedphase10kt_workspace_geo
+#services.user.Geometry: @local::dune10kt_45deg_workspace_geo
+#services.user.Geometry: @local::dune10kt_45deg_1x2x6_geo
+#services.user.Geometry: @local::dune10kt_3mmpitch_workspace_geo
+#services.user.Geometry: @local::dune10kt_3mmpitch_1x2x6_geo
+#services.user.Geometry: @local::protodune_geo
+#services.user.Geometry: @local::dune35t_geo
+#services.user.Geometry: @local::larnd_geo
