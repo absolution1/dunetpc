@@ -14,3 +14,4 @@
 
 // DUNETPC includes:
 #include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
+#include "dune/DAQTriggerSim/TriggerDataProducts/HardwareElements.h"

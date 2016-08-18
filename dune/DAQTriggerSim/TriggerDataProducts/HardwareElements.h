@@ -7,15 +7,17 @@
 
 #ifndef HARDWAREELEMENTS_H
 #define HARDWAREELEMENTS_H
+
+#ifndef __GCCXML__
+#include <memory>
+#include <map>
 #include <vector>
 #include <set>
 #include <iostream>
-#ifndef __GCCXML__
 #include <iosfwd> // std::ostream
-#endif
+#endif //__GCCXML__
 
-//jpd -- Needed to define things like raw::ChannelID_t
-#include "larcore/Geometry/Geometry.h"
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"//jpd -- needed for raw::ChannelID_t
 //......................................................
 namespace Hardware{
   typedef unsigned int ID;
@@ -24,11 +26,12 @@ namespace Hardware{
 
   class HardwareID{
   public: 
-    //    HardwareID(HardwareID old) : fID(old.getID()), fType(old.getType()) {}
+    HardwareID(): fID(0), fType("Unknown") {}
     HardwareID(ID id, std::string this_type) : fID(id), fType(this_type) {}
     ID const& getID() const{ return fID;}
     std::string const& getType() const{ return fType; }
 
+#ifndef __GCCXML__
     bool operator<( const HardwareID& rhs ) const {
       return this->getID() < rhs.getID();
     }
@@ -37,6 +40,7 @@ namespace Hardware{
       os << rhs.getType() << ": " << rhs.getID();
       return os;
     }
+#endif //__GCCXML__
 
   private:
     ID fID;

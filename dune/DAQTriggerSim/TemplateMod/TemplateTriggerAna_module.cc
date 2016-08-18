@@ -116,10 +116,15 @@ void TemplateTriggerAna::analyze(art::Event const & e)
   for(unsigned int i = 0; i < triggers->size(); ++i) {
 
     std::cout << "\n\nInfo for trigger " << i << ":"
-	      << "\nTrigger Type     = " << (*triggers)[i].TrigType()
-	      << "\nTrigger Sub-Type = " << (*triggers)[i].TrigSubType()
-	      << "\nTrigger Decision = " << (*triggers)[i].TrigDecision()
+	      << "\nTrigger Type       = " << (*triggers)[i].TrigType()
+	      << "\nTrigger Sub-Type   = " << (*triggers)[i].TrigSubType()
+	      << "\nTrigger Decision   = " << (*triggers)[i].TrigDecision()
+	      << "\nTrigger HardwareID = " << (*triggers)[i].TrigHardwareID()
 	      << "\n\n\n";
+
+
+    std::cout << "Another way of printing out a trigger" << std::endl;
+    std::cout << (*triggers)[i] << std::endl;
 
     fTrigTypes->Fill((*triggers)[i].TrigType());
 
