@@ -19,9 +19,9 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-// DUNETPC specific includes
+//We need a hardware mapper service, so we should include the header
 #include "dune/DAQTriggerSim/Service/HardwareMapperService.h"
-
+#include "dune/DAQTriggerSim/TriggerDataProducts/HardwareElements.h"
 
 class TestHardwareMapper;
 
@@ -68,6 +68,17 @@ void TestHardwareMapper::reconfigure(fhicl::ParameterSet const & pset){
 void TestHardwareMapper::analyze(art::Event const& evt){
   if(fLogLevel>1) INFO_FUNCTION << std::endl;
 
+  //jpd -- this is how to loop through TPCs, asking the hardware mapper for the channels associated with each one
+  unsigned int num_tpcs = mapperService->getNTPCs();
+  for(unsigned int tpc_id = 0; tpc_id < num_tpcs; tpc_id++){
+    //jpd -- now get the vector of channels
+    std::vector<raw::ChannelID_t> tpc_channel_vector = mapperService->getTPCChannels(tpc_id);
+    INFO << "Got TPC number: " << tpc_id 
+         << " - it has " << tpc_channel_vector.size() << " channels" 
+         << " - first channel is " << tpc_channel_vector.at(0)
+         << std::endl;
+  }//loop over TPCs
+
 
   //jpd -- this is how to loop through APAs, asking the hardware mapper for the channels associated with each one
   unsigned int num_apas = mapperService->getNAPAs();
@@ -80,16 +91,6 @@ void TestHardwareMapper::analyze(art::Event const& evt){
          << std::endl;
   }//loop over APAs
 
-  //jpd -- this is how to loop through TPCs, asking the hardware mapper for the channels associated with each one
-  unsigned int num_tpcs = mapperService->getNTPCs();
-  for(unsigned int tpc_id = 0; tpc_id < num_tpcs; tpc_id++){
-    //jpd -- now get the vector of channels
-    std::vector<raw::ChannelID_t> tpc_channel_vector = mapperService->getTPCChannels(tpc_id);
-    INFO << "Got TPC number: " << tpc_id 
-         << " - it has " << tpc_channel_vector.size() << " channels" 
-         << " - first channel is " << tpc_channel_vector.at(0)
-         << std::endl;
-  }//loop over TPCs
 }
 
 //......................................................
