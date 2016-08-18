@@ -131,8 +131,7 @@ void DataPrepModule::produce(art::Event& evt) {
       if ( idig == AdcChannelData::badIndex )
         throw art::Exception(art::errors::InsertFailure) << "Digit index is not set.";
       AdcIndex iwir = acd.wireIndex;
-      if ( iwir == AdcChannelData::badIndex )
-        throw art::Exception(art::errors::InsertFailure) << "Wire index is not set.";
+      if ( iwir == AdcChannelData::badIndex ) continue;
       art::Ptr<raw::RawDigit> pdig(hdigits, idig);
       bool success = util::CreateAssn(*this, evt, *pwires, pdig, *passns, m_WireName, iwir);
       if ( !success ) throw art::Exception(art::errors::InsertFailure)

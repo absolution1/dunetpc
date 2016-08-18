@@ -16,6 +16,9 @@
 //        wire - Corresponding wire
 //  digitIndex - Index for the digit in the event digit container
 //   wireIndex - Index for the wire in the event wire container
+//
+// User can compare values against the defaults below to know if a value has been set.
+// For arrays, check if the size in nonzero.
 
 #ifndef AdcChannelData_H
 #define AdcChannelData_H
@@ -34,10 +37,12 @@ class AdcChannelData {
 
 public:
 
-  static const size_t badIndex =-1;
+  static const AdcIndex badIndex =-1;
+  static const AdcChannel badChannel =-1;
+  static const size_t badSignal =-99999;
 
-  AdcChannel channel =-1;
-  AdcSignal pedestal = -99999;
+  AdcChannel channel =badIndex;
+  AdcSignal pedestal =badSignal;
   AdcCountVector raw;
   AdcSignalVector samples;
   AdcFlagVector flags;
@@ -45,8 +50,8 @@ public:
   AdcRoiVector rois;
   const raw::RawDigit* digit =nullptr;
   const recob::Wire* wire =nullptr;
-  AdcIndex digitIndex =-1;
-  AdcIndex wireIndex =-1;
+  AdcIndex digitIndex =badIndex;
+  AdcIndex wireIndex =badIndex;
 
   // Fill rois from signal.
   void roisFromSignal();
