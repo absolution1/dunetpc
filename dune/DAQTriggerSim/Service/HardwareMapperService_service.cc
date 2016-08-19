@@ -7,7 +7,7 @@
 
 #include "dune/DAQTriggerSim/Service/HardwareMapperService.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Principal/Event.h"
+
 
 #include <sstream>
 #include <set>
@@ -18,14 +18,44 @@ HardwareMapperService::HardwareMapperService(fhicl::ParameterSet const& pset, ar
   : fLogLevel(1) {
   pset.get_if_present<unsigned int>("LogLevel", fLogLevel);
   if(fLogLevel>1) INFO_FUNCTION << std::endl;
-  INFO << "DetectorName: " << fGeometryService->DetectorName() << std::endl;
-  INFO << "Ncryostats:   " << fGeometryService->Ncryostats()   << std::endl;
-  INFO << "TotalNTPC:    " << fGeometryService->TotalNTPC()    << std::endl;
-  INFO << "Nchannels:    " << fGeometryService->Nchannels()    << std::endl;
-  INFO << "NOpChannels:  " << fGeometryService->NOpChannels()  << std::endl;
+
+  //jpd -- This is how to register a callback function to the activity registry
+  //    -- This means that upon the preBeginRun (which I assume is immediately before
+  //    -- begin run) this function (HardwareMapperService::preBeginRun) will be called
+
+  reg.sPreBeginRun.watch(this, &HardwareMapperService::checkGeomVsFileDetectorName);
+  INFO << "HardwareMapperService" << std::endl;
   INFO << std::endl;
   fillHardwareMaps();
 }
+
+//......................................................
+void HardwareMapperService::checkGeomVsFileDetectorName(art::Run const& run){
+  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+
+  //jpd -- Check that the Detector Name matches between the Geometry and the File
+  //Inspired by Geometry_service.cc
+  std::vector< art::Handle<sumdata::RunData> > rdcol;
+  run.getManyByType(rdcol);
+  if (rdcol.empty()) {
+    ERROR << "Can't find sumdata::RunData for geometry vs. file detector name checks" << std::endl;
+    return;
+  }
+
+  fDetectorNameFromFile = rdcol.front()->DetName();
+
+  INFO << "This file has the following detector name:   " <<  fDetectorNameFromFile     << std::endl;
+  INFO << "The geometry service has this detector name: " <<  fDetectorNameFromGeometry << std::endl;
+  
+  if(fDetectorNameFromGeometry != fDetectorNameFromFile){
+    throw cet::exception("HardwareMapperService") << "Detector Name missmatch!" << std::endl
+                                                  << "Detector Name from Geometry Service: " << fDetectorNameFromGeometry << std::endl
+                                                  << "Detector Name from File: " << fDetectorNameFromFile << std::endl
+                                                  << "This means that the HardwareMapperService is filled with information for the wrong Geometry" << std::endl
+                                                  << "Throwing an exception as the user should make sure the Geometry in their fcl and that used to produce their file match" << std::endl;
+  }
+}
+
 
 //......................................................
 void HardwareMapperService::fillTPCMap(){
@@ -87,6 +117,15 @@ void HardwareMapperService::fillAPAMap(){
 //......................................................
 void HardwareMapperService::fillHardwareMaps(){
   if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  fDetectorNameFromGeometry = fGeometryService->DetectorName();
+  INFO << "HardwareMapperService" << std::endl;
+  INFO << "Filling Hardware Maps using geometry service" << std::endl;
+  INFO << "DetectorName: " << fGeometryService->DetectorName() << std::endl;
+  INFO << "Ncryostats:   " << fGeometryService->Ncryostats()   << std::endl;
+  INFO << "TotalNTPC:    " << fGeometryService->TotalNTPC()    << std::endl;
+  INFO << "Nchannels:    " << fGeometryService->Nchannels()    << std::endl;
+  INFO << "NOpChannels:  " << fGeometryService->NOpChannels()  << std::endl;
+  INFO << std::endl;
   fillTPCMap();
   fillAPAMap();
 }
@@ -129,6 +168,9 @@ void HardwareMapperService::printAPAMap(unsigned int num_apas_to_print){
 void HardwareMapperService::printHardwareMaps(){
   if(fLogLevel>1) INFO_FUNCTION << std::endl;
   INFO << std::endl;
+  INFO << "fDetectorName: " << fDetectorNameFromGeometry << " taken from Geometry Service at time of fillHardwareMaps()" << std::endl;
+  INFO << "N.B. the geometry service can reload a new geometry on beginRun(), which would be bad" << std::endl;
+  INFO << std::endl;
   printTPCMap(getNTPCs());
   INFO << std::endl;
   printAPAMap(getNAPAs());
@@ -139,6 +181,7 @@ void HardwareMapperService::printHardwareMaps(){
 void HardwareMapperService::printGeometryInfo(){
   if(fLogLevel>1) INFO_FUNCTION << std::endl;
   INFO << std::endl;
+  INFO << "Geometry Information with current Geometry Service" << std::endl;
   INFO << "DetectorName: " << fGeometryService->DetectorName() << std::endl;
   INFO << "TotalMass: " << fGeometryService->TotalMass() << std::endl;
   unsigned int Ncryostats  = fGeometryService->Ncryostats();

@@ -14,6 +14,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 //We need the geometry service for the hardwaremapper to work -- how else would it know what detector it was?!
 #include "larcore/Geometry/Geometry.h"
+//We need this for the preBeginRun thingy
+#include "larcoreobj/SummaryData/RunData.h"
 
 //We define some useful data structures (classes) in here
 #include "dune/DAQTriggerSim/TriggerDataProducts/HardwareElements.h"
@@ -62,11 +64,19 @@ class HardwareMapperService{
   std::set<raw::ChannelID_t> const& getTPCChannelsSet(Hardware::ID tpc_id);
   std::set<raw::ChannelID_t> const& getAPAChannelsSet(Hardware::ID apa_id);
 
+  //jpd -- We register this such that it gets called just before we process a new run
+  //    -- It double checks that the geometry we filled with is the same as that used 
+  //    -- to produce this run
+  void checkGeomVsFileDetectorName(art::Run const& run);  
+
  private:
 
   unsigned int fLogLevel;
 
   art::ServiceHandle<geo::Geometry> fGeometryService;
+
+  std::string fDetectorNameFromGeometry;
+  std::string fDetectorNameFromFile;
 
   //jpd -- these read in the geometry information and fill internal maps of ID->Hardware::Element
   void fillTPCMap();

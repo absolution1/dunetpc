@@ -39,14 +39,14 @@ simple_plugin(ActivityTriggerService   "service"
 simple_plugin(HardwareMapperService   "service"
                 larcore_Geometry
                 dune_Geometry
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                ${SEEDSERVICE_SERVICE}
                 ${ART_FRAMEWORK_CORE}
-                art_Utilities canvas_Utilities
+                ${ART_FRAMEWORK_PRINCIPAL}
+                ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                 ${MF_MESSAGELOGGER}
                 ${MF_UTILITIES}
                 ${ROOT_BASIC_LIB_LIST}
+                art_Utilities canvas_Utilities
              )
 
 
