@@ -23,6 +23,10 @@ dunefd_simdrawingopt:                         @local::standard_simdrawingopt
 dunefd_simdrawingopt.ShowMCTruthText:         false
 dunefd_simdrawingopt.ShowMCTruthVectors:      false
 dunefd_simdrawingopt.ShowMCTruthTrajectories: false
+dunefd_analysisdrawingopt:               @local::standard_analysisdrawingopt
+dunefd_analysisdrawingopt.CalorimetryModuleLabels: ["pmtrackcalodc"]
+dunefd_analysisdrawingopt.ParticleIDModuleLabels:  ["pmtrackpiddc"] 
+
 dunefd_evdlayoutopt:   	                      @local::standard_evdlayoutopt  
 dunefd_scanopt:                               @local::standard_scanopt       
 dunefd_evd:                                   @local::standard_evd           
@@ -38,6 +42,7 @@ dunefd_disp:
  SimulationDrawingOptions: @local::dunefd_simdrawingopt  
  RawDrawingOptions:        @local::dunefd_rawdrawingopt  
  RecoDrawingOptions:       @local::dunefd_recodrawingopt 
+ AnalysisDrawingOptions:   @local::dunefd_analysisdrawingopt
  EvdLayoutOptions:	   @local::dunefd_evdlayoutopt
  EventDisplay:             @local::dunefd_evd            
  ScanOptions:              @local::dunefd_scanopt
