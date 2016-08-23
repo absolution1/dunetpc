@@ -97,6 +97,8 @@ adcdco_dune35t: {
   LogLevel:              1
 }
 
+adcdco_dunefd: @local::adcdco_dune35t
+
 #***********************************************************************
 
 # AdcRoiBuildingService is used to define ROIs for the ADC signals.
@@ -108,6 +110,8 @@ adcroi_dune35t: {
   PadLow:              50
   PadHigh:             50
 }
+
+adcroi_dunefd: @local::adcroi_dune35t
 
 #***********************************************************************
 

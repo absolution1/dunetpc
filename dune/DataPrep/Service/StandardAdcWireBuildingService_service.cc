@@ -62,8 +62,8 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
   }
   // Create recob::Wire.
   recob::WireCreator wc(std::move(recobRois), *data.digit);
-  // Record the new wire.
-  bool dataOwnsWire = pwires == nullptr;
+  // Record the new wire if there is a wire container and if there is at least one ROI.
+  bool dataOwnsWire = (pwires == nullptr) || (data.rois.size() == 0);
   if ( ! dataOwnsWire ) {
     if ( pwires->size() == pwires->capacity() ) {
       cout << myname << "ERROR: Wire vector capacity " << pwires->capacity()
@@ -73,6 +73,8 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
       data.wireIndex = pwires->size();
       pwires->push_back(wc.move());
       data.wire = &pwires->back();
+      if ( m_LogLevel >= 3 )
+        cout << myname << "  Channel " << data.channel << " ROIs stored in container." << endl;
     }
   }
   if ( dataOwnsWire ) {

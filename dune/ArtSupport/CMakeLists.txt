@@ -19,6 +19,7 @@ art_make(
 )
 
 add_subdirectory(test)
+add_subdirectory(exe)
 
 install_headers()
 install_fhicl()
