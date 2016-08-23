@@ -15,6 +15,9 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 
+//jpd -- needed to allow for triggering on triggers
+#include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
+
 namespace fhicl {
   class ParameterSet;
 }
@@ -22,6 +25,7 @@ namespace fhicl {
 namespace art {
   class ActivityRegistry;
 }
+
 
 class BaseTriggerService {
 
@@ -67,6 +71,17 @@ public:
   //            sees fit...
   virtual bool TPCPDTrigger(std::vector<raw::RawDigit>      const & rawTPC,
 			    std::vector<raw::OpDetWaveform> const & rawPD)
+  { return false; }
+
+
+  // Make your trigger decision based on a vector of BasicTrigger objects
+  // The idea is that this method triggers on more basic triggers that were run earlier in the chain
+  // Should be overridden by the inherited class
+  //
+  //    params:
+  //    triggerVec - A vector of BasicTrigger data products, which will have been produced by a lower 
+  //                 level trigger. 
+  virtual bool Trigger(std::vector<triggersim::BasicTrigger> const &triggerVec)
   { return false; }
 
   virtual std::string GetName() = 0;
