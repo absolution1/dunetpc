@@ -61,13 +61,13 @@ private:
   // declare fcl input variables here
   std::string fAString;
   std::string fRawDigitLabel;
-  
+  std::string fModuleName;
 };
 
 
 
 //......................................................
-TrigInterfaceProd::TrigInterfaceProd(fhicl::ParameterSet const & p)
+TrigInterfaceProd::TrigInterfaceProd(fhicl::ParameterSet const & p): fModuleName("TrigInterfaceProd")
 {
   produces< std::vector<triggersim::BasicTrigger> >();
   this->reconfigure(p);
@@ -99,8 +99,8 @@ void TrigInterfaceProd::produce(art::Event& e)
   art::ServiceHandle<BaseTriggerService> trigService;
   
 
-  std::cout << "INFO  : " << "trigService->GetName(): " << trigService->GetName() << std::endl;
-  std::cout << "INFO  : " << "fAString: " << fAString << std::endl;
+  mf::LogInfo(fModuleName) << "trigService->GetName(): " << trigService->GetName() << "\n";
+  mf::LogInfo(fModuleName) << "fAString: " << fAString << "\n";
 
   // make the BasicTrigger object:
   triggersim::BasicTrigger trig(trigService->Trigger(e),triggersim::kNucleon,triggersim::kProtonDecay);

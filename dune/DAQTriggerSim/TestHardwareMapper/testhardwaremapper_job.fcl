@@ -14,9 +14,18 @@ source:
 services:
 {
   user:         @local::dunefd_services
+#jpd -- all messages go to file called "debug.log"
+#    -- messages >= warning go to screen
+
+  message:      @local::dune_message_services_prod_debug
 }
 
-services.user.hardwaremapper: @local::standard_hardwaremapper
+services.hardwaremapper: @local::standard_hardwaremapper
+
+#jpd -- here is how to switch on sending ONLY HardwareMapperService output to a file
+#       uncomment the line below
+
+#services.message.destinations.LogHardwareMapper: @local::HardwareMapperDest.LogHardwareMapperService
 
 physics:
 {
@@ -36,7 +45,7 @@ physics:
 #services.user.Geometry: @local::dunefd_geo
 #services.user.Geometry: @local::dune10kt_geo
 #services.user.Geometry: @local::dunedphase10kt_geo
-#services.user.Geometry: @local::dune10kt_workspace_geo
+services.user.Geometry: @local::dune10kt_workspace_geo
 #services.user.Geometry: @local::dune10kt_1x2x6_geo
 #services.user.Geometry: @local::dunedphase10kt_workspace_geo
 #services.user.Geometry: @local::dune10kt_45deg_workspace_geo

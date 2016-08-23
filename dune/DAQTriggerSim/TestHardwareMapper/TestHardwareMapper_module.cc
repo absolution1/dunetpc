@@ -47,55 +47,63 @@ public:
 private:
   unsigned int fLogLevel;
   art::ServiceHandle<HardwareMapperService> mapperService;
-
+  std::string fModuleName;
 };
 
 //......................................................
 TestHardwareMapper::TestHardwareMapper(fhicl::ParameterSet const & pset)
-  : EDAnalyzer(pset), fLogLevel(1)
+  : EDAnalyzer(pset), fLogLevel(1), fModuleName("TestHardwareMapper")
 {
   pset.get_if_present<unsigned int>("LogLevel", fLogLevel);
-  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  std::string func_name("TestHardwareMapper");
+  if(fLogLevel>1) mf::LogInfo(fModuleName) << " in Function: " << func_name;
   this->reconfigure(pset);
 }
 
 //......................................................
 void TestHardwareMapper::reconfigure(fhicl::ParameterSet const & pset){
-  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  std::string func_name("TestHardwareMapper");
+  if(fLogLevel>1) mf::LogInfo(fModuleName) << " in Function: " << func_name;
 }
 
 //......................................................
 void TestHardwareMapper::analyze(art::Event const& evt){
-  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  std::string func_name("TestHardwareMapper");
+  if(fLogLevel>1) mf::LogInfo(fModuleName) << " in Function: " << func_name;
 
   //jpd -- this is how to loop through TPCs, asking the hardware mapper for the channels associated with each one
   unsigned int num_tpcs = mapperService->getNTPCs();
-  for(unsigned int tpc_id = 0; tpc_id < num_tpcs; tpc_id++){
-    //jpd -- now get the vector of channels
-    std::vector<raw::ChannelID_t> tpc_channel_vector = mapperService->getTPCChannels(tpc_id);
-    INFO << "Got TPC number: " << tpc_id 
-         << " - it has " << tpc_channel_vector.size() << " channels" 
-         << " - first channel is " << tpc_channel_vector.at(0)
-         << std::endl;
-  }//loop over TPCs
-
-
+  {
+    mf::LogInfo loginfo(fModuleName);
+    for(unsigned int tpc_id = 0; tpc_id < num_tpcs; tpc_id++){
+      //jpd -- now get the vector of channels
+      std::vector<raw::ChannelID_t> tpc_channel_vector = mapperService->getTPCChannels(tpc_id);
+      loginfo << "Got TPC number: " << tpc_id 
+              << " - it has " << tpc_channel_vector.size() << " channels" 
+              << " - first channel is " << tpc_channel_vector.at(0)
+              << "\n";
+    }//loop over TPCs
+  }//annonymous to wrap loginfo
+  
   //jpd -- this is how to loop through APAs, asking the hardware mapper for the channels associated with each one
   unsigned int num_apas = mapperService->getNAPAs();
-  for(unsigned int apa_id = 0; apa_id < num_apas; apa_id++){
-    //jpd -- now get the vector of channels
-    std::vector<raw::ChannelID_t> apa_channel_vector = mapperService->getAPAChannels(apa_id);
-    INFO << "Got APA number: " << apa_id 
-         << " - it has " << apa_channel_vector.size() << " channels" 
-         << " - first channel is " << apa_channel_vector.at(0)
-         << std::endl;
-  }//loop over APAs
-
+  {
+    mf::LogInfo loginfo(fModuleName);
+    for(unsigned int apa_id = 0; apa_id < num_apas; apa_id++){
+      //jpd -- now get the vector of channels
+      std::vector<raw::ChannelID_t> apa_channel_vector = mapperService->getAPAChannels(apa_id);
+      loginfo << "Got APA number: " << apa_id 
+              << " - it has " << apa_channel_vector.size() << " channels" 
+              << " - first channel is " << apa_channel_vector.at(0)
+              << "\n";
+    }//loop over APAs
+  }//annonymous to wrap loginfo
 }
 
 //......................................................
 void TestHardwareMapper::beginJob(){
-  if(fLogLevel>1) INFO_FUNCTION << std::endl;
+  std::string func_name("TestHardwareMapper");
+  if(fLogLevel>1) mf::LogInfo(fModuleName) << " in Function: " << func_name;
   mapperService->printGeometryInfo();
 }
 

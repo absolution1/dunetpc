@@ -36,12 +36,6 @@ namespace art {
   class ActivityRegistry;
 }
 
-
-//jpd -- these are useful for now. Should be replaced by message facility type streams later
-#define INFO  std::cerr << "INFO   :   "
-#define ERROR std::cerr << "ERROR  :   "
-#define INFO_FUNCTION std::cerr << "INFO FN: " << __PRETTY_FUNCTION__ << " "
-
 //......................................................
 class HardwareMapperService{
  public:
@@ -72,6 +66,7 @@ class HardwareMapperService{
  private:
 
   unsigned int fLogLevel;
+  std::string fServiceName;
 
   art::ServiceHandle<geo::Geometry> fGeometryService;
 
