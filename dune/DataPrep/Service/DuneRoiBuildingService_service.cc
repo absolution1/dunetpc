@@ -41,28 +41,37 @@ int DuneRoiBuildingService::build(AdcChannelData& data) const {
   art::ServiceHandle<util::SignalShapingServiceDUNE> hsss;
   AdcSignal sigma = hsss->GetDeconNoise(data.channel);
   const AdcSignalVector& sigs = data.samples;
-  // Build ROIS before merging.
-  AdcRoiVector rois;
+  // Build ROIS before padding and merging.
+  AdcFilterVector& signal = data.signal;
+  AdcRoiVector& rois = data.rois;
+  signal.clear();
+  signal.resize(sigs.size(), false);
   bool inroi = false;
-  AdcIndex isig0 = 0;
   AdcSignal siglow = m_NSigmaEnd*sigma;
   AdcSignal sighigh = m_NSigmaStart*sigma;
   AdcIndex nsig = sigs.size();
+  if ( nsig < 1 ) {
+    if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel
+                                << " has no samples." << endl;
+    return 0;
+  }
   for ( AdcIndex isig=0; isig<sigs.size(); ++isig ) {
     AdcSignal sig = sigs[isig];
     if ( inroi ) {
-      if ( sig < siglow || isig == nsig-1 ) {
-        rois.push_back(AdcRoi(isig0, isig-1));
-        isig0 = 0;
+      if ( sig > siglow ) {
+        signal[isig] = true;
+      } else  {
         inroi = false;
       }
     } else {
       if ( sig > sighigh ) {
-        isig0 = isig;
+        signal[isig] = true;
         inroi = true;
       }
     }
   }
+  // Fill the unpadded ROIs.
+  data.roisFromSignal();
   // Display ROIs before padding and merging.
   if ( m_LogLevel >= 3 ) {
     cout << myname << "  ROIs before merge (size = " << rois.size() << "):" << endl;
@@ -70,40 +79,27 @@ int DuneRoiBuildingService::build(AdcChannelData& data) const {
       cout << myname << setw(8) << roi.first << " " << setw(8) << roi.second << endl;
     }
   } else if ( m_LogLevel >= 2 ) {
-    cout << myname << "  ROI count before merge: " << rois.size() << endl;
+    cout << myname << "  ROI count before merge: " << data.rois.size() << endl;
   }
   if ( rois.size() == 0 ) return 0;
-  // Pad and merge ROIs. The current ROI is (lo1, hi1).
-  AdcIndex lo1 = 0;
-  AdcIndex hi1 = 0;
-  // Loop over unpadded and unmerged ROIs.
-  for ( AdcIndex iroi=0; iroi < rois.size(); ++iroi ) {
-    // Pad the new ROI and store it in (lo2, hi2).
-    AdcIndex lo2 = rois[iroi].first;
-    if ( lo2 > m_PadLow ) lo2 -= m_PadLow;
-    else lo2 = 0;
-    AdcIndex hi2 = rois[iroi].second + m_PadHigh;
-    if ( hi2 >= nsig ) hi2 = nsig-1;
-    // First ROI. Make it the current ROI.
-    if ( iroi == 0 ) {
-      lo1 = lo2;
-      hi1 = hi2;
-    // ROI overlaps the current ROI. Merge by extending the current ROI.
-    } else if ( lo2 <= hi1 + 1 ) {
-      hi1 = hi2;
-    // New ROI. Save the current ROI and make the new ROI current.
-    } else {
-      data.rois.push_back(AdcRoi(lo1, hi1));
-      lo1 = lo2;
-      hi1 = hi2;
-    }
+  // Pad ROIs.
+  unsigned int isig1 = 0;
+  unsigned int isig2 = 0;
+  for ( AdcRoi roi : rois ) {
+    isig2 = roi.first;
+    isig1 = isig2 > m_PadLow ? isig2 - m_PadLow : 0;
+    for ( unsigned int isig=isig1; isig<isig2; ++isig ) signal[isig] = true;
+    isig1 = roi.second + 1;
+    isig2 = isig1 + m_PadHigh;
+    if ( isig2 > nsig ) isig2 = nsig;
+    for ( unsigned int isig=isig1; isig<isig2; ++isig ) signal[isig] = true;
   }
-  // Save the last ROI.
-  data.rois.push_back(AdcRoi(lo1, hi1));
+  // Fill the final ROIs.
+  data.roisFromSignal();
   // Display final ROIs.
   if ( m_LogLevel >= 3 ) {
-    cout << myname << "  ROIs after merge (size = " << data.rois.size() << "):" << endl;
-    for ( const AdcRoi& roi : data.rois ) {
+    cout << myname << "  ROIs after merge (size = " << rois.size() << "):" << endl;
+    for ( const AdcRoi& roi : rois ) {
       cout << myname << setw(8) << roi.first << " " << setw(8) << roi.second << endl;
     }
   } else if ( m_LogLevel >= 2 ) {

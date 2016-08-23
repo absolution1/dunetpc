@@ -18,6 +18,9 @@ art_make(
     art_Framework_Services_System_CurrentModule_service
 )
 
+add_subdirectory(test)
+add_subdirectory(exe)
+
 install_headers()
 install_fhicl()
 install_source( README.txt )

@@ -93,13 +93,16 @@ dune35t_signalshapingservice.ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peakin
 #
 dunefddphase_signalshapingservice:
 {
-  DeconNorm: 500
+  DeconNorm: 200
 
   ASICmVperfC: 3.2    # Amplifier gain in mV/fC
   ADCpermV:    1.0    # ADC conversion factor
   AmpENC:      1700.0 # Amplifier ENC e for Cdet=450pF
 
-  RespSamplingPeriod: 100. # in nano second  
+  RespSamplingPeriod: 400. # in nano second  
+  
+  ColFilter:       "[0]*exp(-1.2*(((x-[1])/[2])^2)^[3])"  
+  ColFilterParams: [ 1.0, 0.0, 0.136, 2.5 ]  
 }
 
 END_PROLOG
