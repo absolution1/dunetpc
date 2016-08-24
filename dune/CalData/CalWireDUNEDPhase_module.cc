@@ -150,7 +150,9 @@ namespace caldata {
     art::Handle< std::vector<raw::RawDigit> > digitVecHandle;
     evt.getByLabel(fDigitModuleLabel, fSpillName, digitVecHandle);
 
-    if (!digitVecHandle->size())  return;
+    // if (!digitVecHandle->size()) return;
+    if (digitVecHandle->size())
+    {
     mf::LogInfo("CalWireDUNEDPhase") << "CalWireDUNEDPhase:: digitVecHandle size is " << digitVecHandle->size();
 
     // Use the handle to get a particular (0th) element of collection.
@@ -323,11 +325,13 @@ namespace caldata {
     if(wirecol->size() == 0)
       mf::LogWarning("CalWireDUNEDPhase") << "No wires made for this event.";
 
-    evt.put(std::move(wirecol), fSpillName);
-    evt.put(std::move(WireDigitAssn), fSpillName);
 
 
    	delete chanFilt;
+   }
+    evt.put(std::move(wirecol), fSpillName);
+    evt.put(std::move(WireDigitAssn), fSpillName);
+
     return;
   }
   
