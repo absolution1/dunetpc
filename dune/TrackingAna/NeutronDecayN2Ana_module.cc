@@ -89,6 +89,7 @@ private:
 
   std::map<int, const simb::MCParticle*> truthmap; // A map of the truth particles.
   std::vector<int> AllTrackIDs; // A vector of all of my stored TrackIDs
+  int NEvent;
 
   TTree* fDecayTree;
   int Run;
@@ -146,7 +147,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::ResetVars() {
 }
 // ********************************** Begin Run *******************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::beginRun(art::Run& run) {
-
+  NEvent = 0;
 }
 // *********************************** Begin Job ********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
@@ -267,10 +268,11 @@ NeutronDecayN2Ana::NeutronDecayN2Ana::~NeutronDecayN2Ana()
 // ************************************ Analyse *********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
 {
+  ++NEvent;
   ResetVars();
   Run   = evt.run();
   Event = evt.event();
-  std::cout << "\n\n************* New Event / Module running - Run " << Run << ", Event " << Event << " *************\n\n" << std::endl;
+  std::cout << "\n\n************* New Event / Module running - Run " << Run << ", Event " << Event << ", NEvent " << NEvent << " *************\n\n" << std::endl;
 
   // Any providers I need.
   auto const* geo = lar::providerFrom<geo::Geometry>();
