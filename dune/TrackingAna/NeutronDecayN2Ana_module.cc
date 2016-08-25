@@ -481,6 +481,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVe
       ParentID = truthmap[ ParentID ]->Mother();
     }
     nParents[numParts] = NumParent;
+    partNum = numParts;
     ++numParts;
   } else {  
     partNum = it - TrackIDVec.begin();
