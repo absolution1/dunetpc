@@ -42,8 +42,8 @@ dune35t_detproperties.TimeOffsetV:       0.
 dune35t_detproperties.TimeOffsetZ:       0.
 
 dune35t_milliblock_detproperties:         @local::dune35t_detproperties
-dune35t_milliblock_detproperties.NumberTimeSamples: 32000
-dune35t_milliblock_detproperties.ReadOutWindowSize: 32000
+dune35t_milliblock_detproperties.NumberTimeSamples: 15000
+dune35t_milliblock_detproperties.ReadOutWindowSize: 15000
 
 protodune_detproperties:                   @local::standard_detproperties
 protodune_detproperties.Temperature:       87
