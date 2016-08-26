@@ -23,6 +23,7 @@ namespace geo{
   ChannelMapAPAAlg::ChannelMapAPAAlg(fhicl::ParameterSet const& p)
     : fSorter(geo::GeoObjectSorterAPA(p))
   {
+    fChannelsPerDetector = p.get< unsigned int >("ChannelsPerDetector"      );
   }
 
   //----------------------------------------------------------------------------
@@ -406,33 +407,33 @@ namespace geo{
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::NOpChannels(unsigned int NOpDets) const
   {
-    return 12*NOpDets;
+    return fChannelsPerDetector*NOpDets;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::NOpHardwareChannels(unsigned int opDet) const
   {
-    return 12;
+    return fChannelsPerDetector;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::OpChannel(unsigned int detNum, unsigned int channel) const
   {
-    unsigned int uniqueChannel = (detNum * 12) + channel;
+    unsigned int uniqueChannel = (detNum * fChannelsPerDetector) + channel;
     return uniqueChannel;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::OpDetFromOpChannel(unsigned int opChannel) const
   {
-    unsigned int detectorNum = (unsigned int) opChannel / 12;
+    unsigned int detectorNum = (unsigned int) opChannel / fChannelsPerDetector;
     return detectorNum;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::HardwareChannelFromOpChannel(unsigned int opChannel) const
   {
-    unsigned int channel = opChannel % 12;
+    unsigned int channel = opChannel % fChannelsPerDetector;
     return channel;
   }
 
