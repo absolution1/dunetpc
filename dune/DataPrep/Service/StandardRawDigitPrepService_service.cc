@@ -147,6 +147,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
     AdcChannel& chan = data.channel;
     AdcSignal& ped = data.pedestal;
     m_pExtractSvc->extract(dig, &chan, &ped, &data.raw, &data.samples, &data.flags);
+    if ( chan != chanoff ) cout << myname << "ERROR: Inconsistent channel number!" << endl;
     data.digit = &dig;
     AdcChannelDataMap::const_iterator iacd = datamap.find(chan);
     if ( iacd != datamap.end() ) {
@@ -164,10 +165,24 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
   }
   if ( m_DoDump ) {
     cout << myname << "Dumping channel " << m_DumpChannel << ", Tick " << isig << endl;
-    cout << myname << "    Pedestal: " << datamap[ichan].pedestal << endl;
-    cout << myname << "         raw: " << datamap[ichan].raw[isig] << endl;
-    cout << myname << "        flag: " << datamap[ichan].flags[isig] << endl;
-    cout << myname << "   After ext: " << datamap[ichan].samples[isig] << endl;
+    if ( datamap.find(m_DumpChannel) == datamap.end() ) {
+      if ( datamap.size() == 0 ) {
+        cout << "Prepared data is empty." << endl;
+      } else {
+        cout << "Prepared data does not include channel " << m_DumpChannel << endl;
+        cout << "  First channel is " << datamap.begin()->first << endl;
+        cout << "   Last channel is " << datamap.end()->first << endl;
+      }
+    } else {
+      cout << myname << "    Pedestal: " << datamap[ichan].pedestal << endl;
+      if ( isig >= datamap[ichan].raw.size() ) {
+        cout << myname << "Raw data does not include tick. Size is " << datamap[ichan].raw.size() << "." << endl;
+      } else {
+        cout << myname << "         raw: " << datamap[ichan].raw[isig] << endl;
+        cout << myname << "        flag: " << datamap[ichan].flags[isig] << endl;
+        cout << myname << "   After ext: " << datamap[ichan].samples[isig] << endl;
+      }
+    }
   }
   if ( m_DoNoiseRemoval ) {
     m_pNoiseRemoval->update(datamap);
@@ -190,9 +205,15 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
     for ( auto& chdata : datamap ) {
       AdcChannelData& acd = chdata.second;
       m_pRoiBuildingService->build(acd);
+      if ( m_DoDump && chdata.first == ichan ) {
+        vector<AdcRoi> rois;
+        for ( AdcRoi roi : acd.rois ) if ( isig >= roi.first && isig <= roi.second ) rois.push_back(roi);
+        cout << myname << "   After roi: " << rois.size() << " of " << acd.rois.size() << " match: ";
+        for ( AdcRoi roi : rois ) cout << " (" << roi.first << " , " << roi.second << ")";
+        cout << endl;
+      }
     }
   }
-  if ( m_DoDump ) cout << myname << "   After roi: " << datamap[ichan].samples[isig] << endl;
   if ( m_DoWires ) {
     for ( auto& chdata : datamap ) {
       AdcChannelData& acd = chdata.second;
