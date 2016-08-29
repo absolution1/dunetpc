@@ -179,6 +179,29 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
 	    << "\n\ty: " << ActiveBounds[2] << " to " << ActiveBounds[3]
 	    << "\n\tz: " << ActiveBounds[4] << " to " << ActiveBounds[5]
 	    << std::endl;
+  /*
+  double minx_, maxx_, miny_, maxy_, minz_, maxz_;
+  minx_ = miny_ = minz_ = DBL_MAX;
+  maxx_ = maxy_ = maxz_ = -DBL_MAX;
+  for (unsigned int c=0; c<geom->Ncryostats(); c++) {
+    const geo::CryostatGeo& cryostat=geom->Cryostat(c);
+    for (unsigned int t=0; t<cryostat.NTPC(); t++) {
+      geo::TPCID id;
+      id.Cryostat=c;
+      id.TPC=t;
+      id.isValid=true;
+      const geo::TPCGeo& tpc=cryostat.TPC(id);
+      //std::cout << t << "\t" << (tpc.Length()/2) << ", " << (tpc.ActiveLength()/2) << std::endl;
+      if (tpc.MinX()<minx_) minx_=tpc.MinX();
+      if (tpc.MaxX()>maxx_) maxx_=tpc.MaxX();
+      if (tpc.MinY()<miny_) miny_=tpc.MinY();
+      if (tpc.MaxY()>maxy_) maxy_=tpc.MaxY();
+      if (tpc.MinZ()<minz_) minz_=tpc.MinZ();
+      if (tpc.MaxZ()>maxz_) maxz_=tpc.MaxZ();  
+    }
+  }
+  std::cout << "Using Matt's method " << minx_ << ", " << maxx_ << "\t" <<  miny_ << ", " << maxy_ << "\t" <<  minz_ << ", " << maxz_ << std::endl;
+  */
 
   // Implementation of optional member function here.
   art::ServiceHandle<art::TFileService> tfs;
@@ -245,7 +268,6 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
 }
 // ************************************ End Job *********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::endJob() {
-  
 }
 // ************************************ End Run *********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::endRun() {
@@ -331,16 +353,11 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
 	}
 	//*/
 
-	// ------ Work out if this hit is in a TPC ------
-	bool InTPC = false;
-	if ( idePos[0] > ActiveBounds[0] && idePos[0] < ActiveBounds[1] )
-	  if ( idePos[1] > ActiveBounds[2] && idePos[1] < ActiveBounds[3] )
-	    if ( idePos[2] > ActiveBounds[4] && idePos[2] < ActiveBounds[5] )
-	      InTPC = true;
-	if (! InTPC ) {
-	  //std::cout << "Outside the Active volume I found at the top!" << std::endl;
+	geo::TPCID tpcid=geo->FindTPCAtPosition(idePos);
+	if (!(geo->HasTPC(tpcid)) ) {
+	  std::cout << "Outside the Active volume I found at the top!" << std::endl;
 	  continue;
-	}	  
+	}
 
 	// ------ Add the energy deposition from this IDE to the sum of IDEs
 	TotalEDep += ideEnergy;
@@ -364,7 +381,6 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
 	bool WrittenOut = false;
 	//std::cout << "\nLooking at IDE " << ideIt << ", ideTrackID is " << ideTrackID << ", it was due to a " << truthmap[ abs(ideTrackID) ]->PdgCode() << ", process " << truthmap[ abs(ideTrackID) ]->Process() << std::endl;
 	while ( ideTrackID != 0 && !WrittenOut ) {
-	  //if ( ideTrackID < 0 ) continue; // I can't get the truth information for negative track IDs
 	  const simb::MCParticle& part=*( truthmap[ abs(ideTrackID) ] );
 	  int PdgCode=part.PdgCode();
 	  // ========== Muons ==========
@@ -386,10 +402,17 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
 	  else {
 	    ideTrackID = part.Mother();
 	    PdgCode = truthmap[ abs(ideTrackID) ]->PdgCode();
-	    if ( part.Process() == "Decay" ) {
-	      //std::cout << "This particle was from a decay!" << std::endl;
-	      isDecay = true;
-	    }
+	    // Work out if a decay I care about.
+	    if ( ideTrackID > 0 && part.Process() == "Decay" && 
+		 ( PdgCode == -13  || PdgCode == 13   || PdgCode == -211 || PdgCode == 211 || // muon or pion
+		   PdgCode == 321  || PdgCode == -321 || PdgCode == -11  || PdgCode == 11  || // kaon or elec
+		   PdgCode == 111 // pi0
+		   )
+		 )
+	      {
+		//std::cout << "This particle was from a decay!" << std::endl;
+		isDecay = true;
+	      } // If decay I care about.
 	    //std::cout << "Not something interesting so moving backwards. The parent of that particle had trackID " << ideTrackID << ", was from a " << PdgCode << ", from a decay? " << isDecay << std::endl;
 	  } // If not one of chosen particles.
 	} // While loop
