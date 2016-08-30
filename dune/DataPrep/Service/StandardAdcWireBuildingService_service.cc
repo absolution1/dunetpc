@@ -25,7 +25,6 @@ StandardAdcWireBuildingService(fhicl::ParameterSet const& pset, art::ActivityReg
   if ( m_LogLevel > 0 ) print(cout, myname);
 }
 
-
 //**********************************************************************
 
 int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwires) const {
@@ -46,6 +45,17 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
     cout << myname << "WARNING: Input data channel differs from digit: " << data.channel
          << " != " << data.digit->Channel() << ". No action taken." << endl;
     return 3;
+  }
+  if ( data.samples.size() == 0 ) {
+    cout << myname << "WARNING: Channel " << data.channel << " has no samples." << endl;
+    return 4;
+  }
+  // If the input data has no ROIs, then set the signal and ROIS to include the full range.
+  if ( data.rois.size() == 0 ) {
+    if ( m_LogLevel >= 2 ) cout << myname << "  Creating a ROI for channel " << data.channel << endl;
+    data.signal.clear();
+    data.signal.resize(data.samples.size(), true);
+    data.roisFromSignal();
   }
   if ( m_LogLevel >= 2 ) {
     cout << myname << "  Channel " << data.channel << " has " << data.rois.size() << " ROI"
