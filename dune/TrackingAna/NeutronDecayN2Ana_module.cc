@@ -73,7 +73,7 @@ private:
   // ------ My functions ------
   void ResetVars();
   void FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double DaughtEDep[MaxPart], double DecayEDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
-		 int nParents[MaxPart], int Parent[MaxPart][MaxParent], int PDG[MaxPart],
+		 int nParents[MaxPart], int Parent[MaxPart][MaxParent], int ParTrID[MaxPart][MaxParent], int PDG[MaxPart], int TrID[MaxPart],
 		 int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool Decay, bool &Written );
  
   // Handles
@@ -105,10 +105,14 @@ private:
   int nMuon, nPion, nPi0, nKaon, nElec;
   // PdgCode
   int MuonPDG[MaxPart], PionPDG[MaxPart], Pi0PDG[MaxPart], KaonPDG[MaxPart], ElecPDG[MaxPart];
+  // TrackID
+  int MuonTrID[MaxPart], PionTrID[MaxPart], Pi0TrID[MaxPart], KaonTrID[MaxPart], ElecTrID[MaxPart];
   // NumParents
   int nParentMuon[MaxPart], nParentPion[MaxPart], nParentPi0[MaxPart], nParentKaon[MaxPart], nParentElec[MaxPart];
-  // NumParents
+  // Muon Parent PDGs
   int MuonParents[MaxPart][MaxParent], PionParents[MaxPart][MaxParent], Pi0Parents[MaxPart][MaxParent], KaonParents[MaxPart][MaxParent], ElecParents[MaxPart][MaxParent];
+  // Muon Parent IDs
+  int MuonParTrID[MaxPart][MaxParent], PionParTrID[MaxPart][MaxParent], Pi0ParTrID[MaxPart][MaxParent], KaonParTrID[MaxPart][MaxParent], ElecParTrID[MaxPart][MaxParent];
   // EDep
   double MuonEDep[MaxPart], PionEDep[MaxPart], Pi0EDep[MaxPart], KaonEDep[MaxPart], ElecEDep[MaxPart];
   // Daughter EDep
@@ -133,10 +137,12 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::ResetVars() {
   nMuon = nPion = nPi0 = nKaon = nElec = 0;
   for (int i=0; i<MaxPart; ++i) {
     MuonPDG[i]     = PionPDG[i]     = Pi0PDG[i]     = KaonPDG[i]     = ElecPDG[i]     = 0;
+    MuonTrID[i]    = PionTrID[i]    = Pi0TrID[i]    = KaonTrID[i]    = ElecTrID[i]    = 0;
     MuonEDep[i]    = PionEDep[i]    = Pi0EDep[i]    = KaonEDep[i]    = ElecEDep[i]    = 0;
     nParentMuon[i] = nParentPion[i] = nParentPi0[i] = nParentKaon[i] = nParentElec[i] = 0;
     for (int j=0; j<MaxParent; ++j) {
       MuonParents[i][j] = PionParents[i][j] = Pi0Parents[i][j] = KaonParents[i][j] = ElecParents[i][j] = 0;
+      MuonParTrID[i][j] = PionParTrID[i][j] = Pi0ParTrID[i][j] = KaonParTrID[i][j] = ElecParTrID[i][j] = 0;
     }
     MuonDaughtersEDep[i] = PionDaughtersEDep[i] = Pi0DaughtersEDep[i] = KaonDaughtersEDep[i] = ElecDaughtersEDep[i] = 0;
     MuonDecayEDep[i]     = PionDecayEDep[i]     = Pi0DecayEDep[i]     = KaonDecayEDep[i]     = ElecDecayEDep[i]     = 0;
@@ -219,7 +225,9 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   fDecayTree->Branch("nMuon"            ,&nMuon            ,"nMuon/I"                   );
   fDecayTree->Branch("nParentMuon"      ,&nParentMuon      ,"nParentMuon[nMuon]/I"      );
   fDecayTree->Branch("MuonParents"      ,&MuonParents      ,"MuonParents[nMuon][100]/I" );
+  fDecayTree->Branch("MuonParTrID"      ,&MuonParTrID      ,"MuonParTrID[nMuon][100]/I" );
   fDecayTree->Branch("MuonPDG"          ,&MuonPDG          ,"MuonPDG[nMuon]/I"          );
+  fDecayTree->Branch("MuonTrID"         ,&MuonTrID         ,"MuonTrID[nMuon]/I"         );
   fDecayTree->Branch("MuonEDep"         ,&MuonEDep         ,"MuonEDep[nMuon]/D"         );
   fDecayTree->Branch("MuonStart"        ,&MuonStart        ,"MuonStart[nMuon][4]/D"     );
   fDecayTree->Branch("MuonEnd"          ,&MuonEnd          ,"MuonEnd[nMuon][4]/D"       );
@@ -229,7 +237,9 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   fDecayTree->Branch("nPion"            ,&nPion            ,"nPion/I"                   );
   fDecayTree->Branch("nParentPion"      ,&nParentPion      ,"nParentPion[nPion]/I"      );
   fDecayTree->Branch("PionParents"      ,&PionParents      ,"PionParents[nPion][100]/I" );
+  fDecayTree->Branch("PionParTrID"      ,&PionParTrID      ,"PionParTrID[nPion][100]/I" );
   fDecayTree->Branch("PionPDG"          ,&PionPDG          ,"PionPDG[nPion]/I"          );
+  fDecayTree->Branch("PionTrID"         ,&PionTrID         ,"PionTrID[nPion]/I"         );
   fDecayTree->Branch("PionEDep"         ,&PionEDep         ,"PionEDep[nPion]/D"         );
   fDecayTree->Branch("PionStart"        ,&PionStart        ,"PionStart[nPion][4]/D"     );
   fDecayTree->Branch("PionEnd"          ,&PionEnd          ,"PionEnd[nPion][4]/D"       );
@@ -239,7 +249,9 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   fDecayTree->Branch("nPi0"            ,&nPi0            ,"nPi0/I"                  );
   fDecayTree->Branch("nParentPi0"      ,&nParentPi0      ,"nParentPi0[nPi0]/I"      );
   fDecayTree->Branch("Pi0Parents"      ,&Pi0Parents      ,"Pi0Parents[nPi0][100]/I" );
+  fDecayTree->Branch("Pi0ParTrID"      ,&Pi0ParTrID      ,"Pi0ParTrID[nPi0][100]/I" );
   fDecayTree->Branch("Pi0PDG"          ,&Pi0PDG          ,"Pi0PDG[nPi0]/I"          );
+  fDecayTree->Branch("Pi0TrID"         ,&Pi0TrID         ,"Pi0TrID[nPi0]/I"         );
   fDecayTree->Branch("Pi0EDep"         ,&Pi0EDep         ,"Pi0EDep[nPi0]/D"         );
   fDecayTree->Branch("Pi0Start"        ,&Pi0Start        ,"Pi0Start[nPi0][4]/D"     );
   fDecayTree->Branch("Pi0End"          ,&Pi0End          ,"Pi0End[nPi0][4]/D"       );
@@ -249,7 +261,9 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   fDecayTree->Branch("nKaon"            ,&nKaon            ,"nKaon/I"                   );
   fDecayTree->Branch("nParentKaon"      ,&nParentKaon      ,"nParentKaon[nKaon]/I"      );
   fDecayTree->Branch("KaonParents"      ,&KaonParents      ,"KaonParents[nKaon][100]/I" );
+  fDecayTree->Branch("KaonParTrID"      ,&KaonParTrID      ,"KaonParTrID[nKaon][100]/I" );
   fDecayTree->Branch("KaonPDG"          ,&KaonPDG          ,"KaonPDG[nKaon]/I"          );
+  fDecayTree->Branch("KaonTrID"         ,&KaonTrID         ,"KaonTrID[nKaon]/I"         );
   fDecayTree->Branch("KaonEDep"         ,&KaonEDep         ,"KaonEDep[nKaon]/D"         );
   fDecayTree->Branch("KaonStart"        ,&KaonStart        ,"KaonStart[nKaon][4]/D"     );
   fDecayTree->Branch("KaonEnd"          ,&KaonEnd          ,"KaonEnd[nKaon][4]/D"       );
@@ -259,7 +273,9 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   fDecayTree->Branch("nElec"            ,&nElec            ,"nElec/I"                   );
   fDecayTree->Branch("nParentElec"      ,&nParentElec      ,"nParentElec[nElec]/I"      );
   fDecayTree->Branch("ElecParents"      ,&ElecParents      ,"ElecParents[nElec][100]/I" );
+  fDecayTree->Branch("ElecParTrID"      ,&ElecParTrID      ,"ElecParTrID[nElec][100]/I" );
   fDecayTree->Branch("ElecPDG"          ,&ElecPDG          ,"ElecPDG[nElec]/I"          );
+  fDecayTree->Branch("ElecTrID"         ,&ElecTrID         ,"ElecTrID[nElec]/I"         );
   fDecayTree->Branch("ElecEDep"         ,&ElecEDep         ,"ElecEDep[nElec]/D"         );
   fDecayTree->Branch("ElecStart"        ,&ElecStart        ,"ElecStart[nElec][4]/D"     );
   fDecayTree->Branch("ElecEnd"          ,&ElecEnd          ,"ElecEnd[nElec][4]/D"       );
@@ -289,8 +305,7 @@ NeutronDecayN2Ana::NeutronDecayN2Ana::~NeutronDecayN2Ana()
 
 }
 // ************************************ Analyse *********************************************************
-void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
-{
+void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   ++NEvent;
   ResetVars();
   Run   = evt.run();
@@ -346,11 +361,11 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
 	idePos[1] = ide.y;
 	idePos[2] = ide.z;
 	/*
-	if (ideTrackID == 1) { 
-	float ideNumEl  = ide.numElectrons;
-	std::cout << "      IDE " << ideIt << " of " << idevec.size() << " has TrackId " << ideTrackID << ", energy " << ideEnergy << ", NumEl " << ideNumEl << ", tdc " << tdc << ". ";
-	std::cout << "Position " << idePos[0] << ", " << idePos[1] << ", " << idePos[2] << std::endl;
-	}
+	  if (ideTrackID == 1) {
+	  float ideNumEl  = ide.numElectrons;
+	  std::cout << "      IDE " << ideIt << " of " << idevec.size() << " has TrackId " << ideTrackID << ", energy " << ideEnergy << ", NumEl " << ideNumEl << ", tdc " << tdc << ". ";
+	  std::cout << "Position " << idePos[0] << ", " << idePos[1] << ", " << idePos[2] << std::endl;
+	  }
 	//*/
 
 	geo::TPCID tpcid=geo->FindTPCAtPosition(idePos);
@@ -384,35 +399,41 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
 	  const simb::MCParticle& part=*( truthmap[ abs(ideTrackID) ] );
 	  int PdgCode=part.PdgCode();
 	  // ========== Muons ==========
-	  if      ( PdgCode == -13  || PdgCode == 13  ) FillVars( MuonVec, nMuon, MuonEDep, MuonDaughtersEDep, MuonDecayEDep, MuonStart, MuonEnd, nParentMuon, MuonParents, MuonPDG,
-								  ideTrackID, tdc, ide, part, isDecay, WrittenOut  );
+	  if      ( (PdgCode == -13  || PdgCode == 13)  ) 
+	    FillVars( MuonVec, nMuon, MuonEDep, MuonDaughtersEDep, MuonDecayEDep, MuonStart, MuonEnd, nParentMuon, MuonParents, MuonParTrID, MuonPDG, MuonTrID,
+		      ideTrackID, tdc, ide, part, isDecay, WrittenOut  );
 	  // ========== Pions ==========
-	  else if ( PdgCode == -211 || PdgCode == 211 ) FillVars( PionVec, nPion, PionEDep, PionDaughtersEDep, PionDecayEDep, PionStart, PionEnd, nParentPion, PionParents, PionPDG,
-								  ideTrackID, tdc, ide, part, isDecay, WrittenOut);
+	  else if ( (PdgCode == -211 || PdgCode == 211) && part.Process() != "pi+Inelastic" && part.Process() != "pi-Inelastic" ) 
+	    FillVars( PionVec, nPion, PionEDep, PionDaughtersEDep, PionDecayEDep, PionStart, PionEnd, nParentPion, PionParents, PionParTrID, PionPDG, PionTrID,
+		      ideTrackID, tdc, ide, part, isDecay, WrittenOut);
 	  // ========== Pi0s  ==========
-	  else if ( PdgCode == 111  )                   FillVars( Pi0Vec , nPi0 , Pi0EDep , Pi0DaughtersEDep , Pi0DecayEDep , Pi0Start , Pi0End , nParentPi0 , Pi0Parents , Pi0PDG ,
-								  ideTrackID, tdc, ide, part, isDecay, WrittenOut );
+	  else if ( PdgCode == 111  )
+	    FillVars( Pi0Vec , nPi0 , Pi0EDep , Pi0DaughtersEDep , Pi0DecayEDep , Pi0Start , Pi0End , nParentPi0 , Pi0Parents , Pi0ParTrID , Pi0PDG , Pi0TrID ,
+		      ideTrackID, tdc, ide, part, isDecay, WrittenOut );
 	  // ========== Kaons ===========
-	  else if ( PdgCode == 321 || PdgCode == -321 ) FillVars( KaonVec, nKaon, KaonEDep, KaonDaughtersEDep, KaonDecayEDep, KaonStart, KaonEnd, nParentKaon, KaonParents, KaonPDG,
-								  ideTrackID, tdc, ide, part, isDecay, WrittenOut );
+	  else if ( (PdgCode == 321 || PdgCode == -321) && part.Process() != "kaon+Inelastic" && part.Process() != "kaon-Inelastic" ) 
+	    FillVars( KaonVec, nKaon, KaonEDep, KaonDaughtersEDep, KaonDecayEDep, KaonStart, KaonEnd, nParentKaon, KaonParents, KaonParTrID, KaonPDG, KaonTrID,
+		      ideTrackID, tdc, ide, part, isDecay, WrittenOut );
 	  // ========== Elecs ===========
-	  else if ( PdgCode == -11 || PdgCode == 11   ) FillVars( ElecVec, nElec, ElecEDep, ElecDaughtersEDep, ElecDecayEDep, ElecStart, ElecEnd, nParentElec, ElecParents, ElecPDG,
-								  ideTrackID, tdc, ide, part, isDecay, WrittenOut );
+	  else if ( (PdgCode == -11 || PdgCode == 11)   )
+	    FillVars( ElecVec, nElec, ElecEDep, ElecDaughtersEDep, ElecDecayEDep, ElecStart, ElecEnd, nParentElec, ElecParents, ElecParTrID, ElecPDG, ElecTrID,
+		      ideTrackID, tdc, ide, part, isDecay, WrittenOut );
 	  // ========== If still not one of my intersting particles I need to find this particles parent ==========
 	  else {
 	    ideTrackID = part.Mother();
 	    PdgCode = truthmap[ abs(ideTrackID) ]->PdgCode();
-	    // Work out if a decay I care about.
+	    // === Work out if a decay I care about ===
+	    if ( part.PdgCode() != PdgCode ) isDecay = false; // Only reset to false if not a daughter of the same particle type eg not K+ -> K+
 	    if ( ideTrackID > 0 && part.Process() == "Decay" && 
 		 ( PdgCode == -13  || PdgCode == 13   || PdgCode == -211 || PdgCode == 211 || // muon or pion
 		   PdgCode == 321  || PdgCode == -321 || PdgCode == -11  || PdgCode == 11  || // kaon or elec
 		   PdgCode == 111 // pi0
 		   )
 		 )
-	      {
+	      { // If decay I care about.
 		//std::cout << "This particle was from a decay!" << std::endl;
 		isDecay = true;
-	      } // If decay I care about.
+	      }
 	    //std::cout << "Not something interesting so moving backwards. The parent of that particle had trackID " << ideTrackID << ", was from a " << PdgCode << ", from a decay? " << isDecay << std::endl;
 	  } // If not one of chosen particles.
 	} // While loop
@@ -430,7 +451,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
     std::cout << "There are pi0's in this event!!" << std::endl;
   }
   if (nKaon) {
-    std::cout << "There kaons in this event!!" << std::endl;
+    std::cout << "There are kaons in this event!!" << std::endl;
   }
   if (nElec) {
     std::cout << "There are electrons in this event!!" << std::endl;
@@ -468,16 +489,17 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt)
     }
   }
   // ------ Fill the Tree ------
-  if (!BadEvent)
-    fDecayTree->Fill();
-  else
+  if (BadEvent) {
     std::cout << "Had too many of one particle type, not writing this event." << std::endl;
+  } else if (nKaon) {
+    fDecayTree->Fill();
+  }
+  return;
 } // Analyse
 // ******************************** Fill variables *****************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double DaughtEDep[MaxPart], double DecayEDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
-						     int nParents[MaxPart], int Parent[MaxPart][MaxParent], int PDG[MaxPart],
-						     int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool Decay, bool &Written ) {
-
+						     int nParents[MaxPart], int Parent[MaxPart][MaxParent], int ParTrID[MaxPart][MaxParent], int PDG[MaxPart], int TrID[MaxPart],
+						     int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool Decay, bool &Written ) {  
   if (numParts > MaxPart) {
     BadEvent = true;
     Written=true;
@@ -490,19 +512,33 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVe
   if ( it==TrackIDVec.end() ) {
     TrackIDVec.push_back ( abs(ThisID) ); // Push back this particle type IDVec
     AllTrackIDs.push_back( abs(ThisID) ); // Push back all particle type IDVec
-    PDG[numParts] = MCPart.PdgCode();
-    std::cout << "Pushing back a new ideTrackID " << ThisID << ", it was from a " << MCPart.PdgCode() << " " << PDG[numParts] << ", from a decay? " << Decay << std::endl;
+    PDG[numParts]  = MCPart.PdgCode();
+    TrID[numParts] = MCPart.TrackId();
+    std::cout << "\nPushing back a new ideTrackID " << ThisID << ", it was from a " << MCPart.PdgCode() << ", process " << MCPart.Process() << ", from a decay? " << Decay << std::endl;
     // ---- Work out the particles ancestry ----
     Parent[numParts][0] = MCPart.Mother();
     int NumParent = 0;
     int ParentID  = Parent[numParts][0];
     while ( ParentID > 0 ) {
       int pdg    = truthmap[ ParentID ]->PdgCode();
-      Parent[numParts][NumParent] = pdg;
-      std::cout << "The particles parent was TrackID " << ParentID << ", PdgCode " << Parent[numParts][NumParent] << std::endl;
-      ++NumParent;
+      std::cout << "The particles parent was TrackID " << ParentID << ", PdgCode " << pdg << ", it was from process " << truthmap[ ParentID ]->Process() << std::endl;
+      // If this particle had same parent as previously, then put this TrackID in my array instead
+      if ( pdg == Parent[numParts][NumParent-1] ) {
+	std::cout << "Overwriting what was in ParentID as same particle." << std::endl;
+	ParTrID[numParts][NumParent-1] = ParentID;
+      } else {
+	Parent [numParts][NumParent] = pdg;
+	ParTrID[numParts][NumParent] = ParentID;
+	++NumParent;
+      }
       ParentID = truthmap[ ParentID ]->Mother();
     }
+    
+    std::cout << "There were a total of " << NumParent << " parents of this particle. The parentage was: " << PDG[numParts] << " ("<< TrID[numParts] <<") ";
+    for (int aa=0; aa<NumParent; ++aa)
+      std::cout << " <- " << Parent[numParts][aa] << " ("<<ParTrID[numParts][aa] << ") ";
+    std::cout << "." << std::endl;
+    
     nParents[numParts] = NumParent;
     partNum = numParts;
     ++numParts;
