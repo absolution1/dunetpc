@@ -9,7 +9,7 @@
 //#include "lardata/Utilities/DetectorProperties.h"
 #include "lardata/Utilities/GeometryUtilities.h"
 // #include "Utilities/LArProperties.h"
-#include "larsimobj/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "larsim/Simulation/SimListUtils.h"
 #include "larsim/Simulation/LArG4Parameters.h"

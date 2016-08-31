@@ -8,7 +8,7 @@ simple_plugin(ECalibration "module"
 			larcore_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larsim_Simulation larsimobj_Simulation
+			larsim_Simulation lardataobj_Simulation
 			
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
