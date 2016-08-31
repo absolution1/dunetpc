@@ -125,6 +125,19 @@ dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 # disable cerenkov
 dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
+# custom physics list
+dunefd_simulation_services.LArG4Parameters.UseCustomPhysics: true
+dunefd_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                      "FastOptical",
+                                                      "SynchrotronAndGN",
+                                                      "Ion",
+                                                      "Hadron",
+                                                      "Decay",
+                                                      "HadronElastic",
+                                                      "Stopping",
+                                                      "NeutronTrackingCut" ]
+
+
 # dune10kt and dune34kt consolidated into dunefd,
 # but catch any leftover cases of 10kt...
 #dune10kt_services: @local::dunefd_services
