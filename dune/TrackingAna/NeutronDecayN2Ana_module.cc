@@ -74,7 +74,7 @@ private:
   void ResetVars();
   void FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double DaughtEDep[MaxPart], double DecayEDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
 		 int nParents[MaxPart], int Parent[MaxPart][MaxParent], int ParTrID[MaxPart][MaxParent], int PDG[MaxPart], int TrID[MaxPart],
-		 int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool Decay, bool &Written );
+		 int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool Decay, bool OrigParticle, bool &Written );
  
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
@@ -327,6 +327,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   truthmap.clear();
   for (size_t i=0; i<truth->size(); i++)
     truthmap[truth->at(i).TrackId()]=&((*truth)[i]);
+  std::cout << "The primary muon in this event had an energy of " << truthmap[1]->E() << std::endl;
 
   // Get a vector of sim channels.
   art::Handle<std::vector<sim::SimChannel> > simchannels;
@@ -394,30 +395,35 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	// ------- This means looping back through the IDE's parents until I find an interesting TrackID ------
 	bool isDecay = false;
 	bool WrittenOut = false;
+	const simb::MCParticle& Origpart=*( truthmap[ abs(ideTrackID) ] );
+	int OrigPdgCode = Origpart.PdgCode();
+	bool OrigPart = true;
 	//std::cout << "\nLooking at IDE " << ideIt << ", ideTrackID is " << ideTrackID << ", it was due to a " << truthmap[ abs(ideTrackID) ]->PdgCode() << ", process " << truthmap[ abs(ideTrackID) ]->Process() << std::endl;
 	while ( ideTrackID != 0 && !WrittenOut ) {
 	  const simb::MCParticle& part=*( truthmap[ abs(ideTrackID) ] );
 	  int PdgCode=part.PdgCode();
+	  if ( PdgCode != OrigPdgCode || ideTrackID < 0 )
+	    OrigPart = false;
 	  // ========== Muons ==========
 	  if      ( (PdgCode == -13  || PdgCode == 13)  ) 
 	    FillVars( MuonVec, nMuon, MuonEDep, MuonDaughtersEDep, MuonDecayEDep, MuonStart, MuonEnd, nParentMuon, MuonParents, MuonParTrID, MuonPDG, MuonTrID,
-		      ideTrackID, tdc, ide, part, isDecay, WrittenOut  );
+		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut  );
 	  // ========== Pions ==========
 	  else if ( (PdgCode == -211 || PdgCode == 211) && part.Process() != "pi+Inelastic" && part.Process() != "pi-Inelastic" ) 
 	    FillVars( PionVec, nPion, PionEDep, PionDaughtersEDep, PionDecayEDep, PionStart, PionEnd, nParentPion, PionParents, PionParTrID, PionPDG, PionTrID,
-		      ideTrackID, tdc, ide, part, isDecay, WrittenOut);
+		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut);
 	  // ========== Pi0s  ==========
 	  else if ( PdgCode == 111  )
 	    FillVars( Pi0Vec , nPi0 , Pi0EDep , Pi0DaughtersEDep , Pi0DecayEDep , Pi0Start , Pi0End , nParentPi0 , Pi0Parents , Pi0ParTrID , Pi0PDG , Pi0TrID ,
-		      ideTrackID, tdc, ide, part, isDecay, WrittenOut );
+		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut );
 	  // ========== Kaons ===========
 	  else if ( (PdgCode == 321 || PdgCode == -321) && part.Process() != "kaon+Inelastic" && part.Process() != "kaon-Inelastic" ) 
 	    FillVars( KaonVec, nKaon, KaonEDep, KaonDaughtersEDep, KaonDecayEDep, KaonStart, KaonEnd, nParentKaon, KaonParents, KaonParTrID, KaonPDG, KaonTrID,
-		      ideTrackID, tdc, ide, part, isDecay, WrittenOut );
+		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut );
 	  // ========== Elecs ===========
 	  else if ( (PdgCode == -11 || PdgCode == 11)   )
 	    FillVars( ElecVec, nElec, ElecEDep, ElecDaughtersEDep, ElecDecayEDep, ElecStart, ElecEnd, nParentElec, ElecParents, ElecParTrID, ElecPDG, ElecTrID,
-		      ideTrackID, tdc, ide, part, isDecay, WrittenOut );
+		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut );
 	  // ========== If still not one of my intersting particles I need to find this particles parent ==========
 	  else {
 	    ideTrackID = part.Mother();
@@ -492,6 +498,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   if (BadEvent) {
     std::cout << "Had too many of one particle type, not writing this event." << std::endl;
   } else if (nKaon) {
+    double distance = pow( pow((KaonStart[0][0]-KaonEnd[0][0]),2) + pow((KaonStart[0][1]-KaonEnd[0][1]),2) + pow((KaonStart[0][2]-KaonEnd[0][2]),2) ,0.5 );
+    std::cout << "Kaon0 travelled " << distance << " in the detector." << std::endl;
     fDecayTree->Fill();
   }
   return;
@@ -499,7 +507,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 // ******************************** Fill variables *****************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double DaughtEDep[MaxPart], double DecayEDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
 						     int nParents[MaxPart], int Parent[MaxPart][MaxParent], int ParTrID[MaxPart][MaxParent], int PDG[MaxPart], int TrID[MaxPart],
-						     int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool Decay, bool &Written ) {  
+						     int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool OrigParticle, bool Decay, bool &Written ) {  
   if (numParts > MaxPart) {
     BadEvent = true;
     Written=true;
@@ -513,18 +521,18 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVe
     TrackIDVec.push_back ( abs(ThisID) ); // Push back this particle type IDVec
     AllTrackIDs.push_back( abs(ThisID) ); // Push back all particle type IDVec
     PDG[numParts]  = MCPart.PdgCode();
-    TrID[numParts] = MCPart.TrackId();
-    std::cout << "\nPushing back a new ideTrackID " << ThisID << ", it was from a " << MCPart.PdgCode() << ", process " << MCPart.Process() << ", from a decay? " << Decay << std::endl;
+    TrID[numParts] = abs( MCPart.TrackId() );
+    std::cout << "\nPushing back a new ideTrackID " << abs(ThisID) << ", it was from a " << MCPart.PdgCode() << ", process " << MCPart.Process() << ", from a decay? " << Decay << std::endl;
     // ---- Work out the particles ancestry ----
     Parent[numParts][0] = MCPart.Mother();
     int NumParent = 0;
     int ParentID  = Parent[numParts][0];
     while ( ParentID > 0 ) {
       int pdg    = truthmap[ ParentID ]->PdgCode();
-      std::cout << "The particles parent was TrackID " << ParentID << ", PdgCode " << pdg << ", it was from process " << truthmap[ ParentID ]->Process() << std::endl;
+      //std::cout << "The particles parent was TrackID " << ParentID << ", PdgCode " << pdg << ", it was from process " << truthmap[ ParentID ]->Process() << std::endl;
       // If this particle had same parent as previously, then put this TrackID in my array instead
       if ( pdg == Parent[numParts][NumParent-1] ) {
-	std::cout << "Overwriting what was in ParentID as same particle." << std::endl;
+	//std::cout << "Overwriting what was in ParentID as same particle." << std::endl;
 	ParTrID[numParts][NumParent-1] = ParentID;
       } else {
 	Parent [numParts][NumParent] = pdg;
@@ -545,29 +553,35 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVe
   } else {  
     partNum = it - TrackIDVec.begin();
   }
-
-  // --------- Work out the start / end of this track ----------
-  if ( ThisID > 0 && ( ThisIDE.y < Start[partNum][1] || Start[partNum][1] == HolderVal) ) {
-    Start[partNum][0] = ThisIDE.x;
-    Start[partNum][1] = ThisIDE.y;
-    Start[partNum][2] = ThisIDE.z;
-    Start[partNum][3] = ThisTDC;
-  }
-  if ( ThisID > 0 && ( ThisIDE.y > End[partNum][1] || End[partNum][1] == HolderVal) ) {
-    End[partNum][0] = ThisIDE.x;
-    End[partNum][1] = ThisIDE.y;
-    End[partNum][2] = ThisIDE.z;
-    End[partNum][3] = ThisTDC;
-  }
-
+  
   // ----------- If TrackID is positive add it to the EDep from this track, if negative then it has to be from a daughter --------------
-  if ( ThisID == ThisIDE.trackID ) {
+  //std::cout << "OrigParticle " << OrigParticle << ", TrackID " << ThisID << ", " << ThisIDE.trackID << ", PDgCode " << PDG[numParts-1] << ", " << MCPart.PdgCode() << ", decay " << Decay << std::endl;
+  if ( OrigParticle ) {
     EDep[partNum]       += ThisIDE.energy;
+    // --------- Work out the start / end of this track ----------
+    //std::cout << "This IDEPos is " << ThisIDE.x << " " << ThisIDE.y << " " << ThisIDE.z << ". Stored values are " << Start[partNum][0] << " " << Start[partNum][1] << " " << Start[partNum][1]
+    //	      << "...." << End[partNum][0] << " " << End[partNum][1] << " " << End[partNum][1] << std::endl;
+    if ( ThisIDE.y < Start[partNum][1] || Start[partNum][1] == HolderVal) {
+      //std::cout << "Change start" << std::endl;
+      Start[partNum][0] = ThisIDE.x;
+      Start[partNum][1] = ThisIDE.y;
+      Start[partNum][2] = ThisIDE.z;
+      Start[partNum][3] = ThisTDC;
+    }
+    if ( ThisIDE.y > End[partNum][1] || End[partNum][1] == HolderVal ) {
+      //std::cout << "Change end" << std::endl;
+      End[partNum][0] = ThisIDE.x;
+      End[partNum][1] = ThisIDE.y;
+      End[partNum][2] = ThisIDE.z;
+      End[partNum][3] = ThisTDC;
+    }
+    // --------- Work out the start / end of this track ----------
   } else if (Decay) {
     DecayEDep[partNum]  += ThisIDE.energy;
   } else {
     DaughtEDep[partNum] += ThisIDE.energy;
   }
+
   Written=true;
 } // FillVars
 // ******************************** Define Module *****************************************************
