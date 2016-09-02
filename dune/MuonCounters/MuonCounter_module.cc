@@ -31,7 +31,7 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
-#include "larsimobj/Simulation/AuxDetSimChannel.h"
+#include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
 #include "dune/daqinput35t/PennToOffline.h"
 #include "dune/daqinput35t/tpcFragmentToRawDigits.h"

@@ -34,11 +34,13 @@ void DAQToOffline::GetRCEFirstTimestamp( artdaq::Fragments const& Fragments, int
 	//	    << ", Ext Trig? " << microSlice->extTrig()  << std::endl;
       } // If numNanoSlices.
       if ( fragIndex==0 && i_micro==0 ) {
+	// MWallbank 8/30/16: fixed this bug. The 8 msb need to be masked as they represent the external trigger counter
+	uint64_t timestamp = microSlice->software_message() & (((long int)0x1 << 56) - 1);
 	if ( microSlice->nanoSliceCount() ) { // If this MicroSlice has any NanoSlices
 	  RCETime = microSlice->nanoSlice(0)->nova_timestamp();
 	} // NanoSlice
 	else {
-	  RCETime = microSlice->software_message();
+	  RCETime = timestamp;
 	}
       } // Looking at first MicroSlice of first Fragment
     } // MicroSlice
