@@ -257,7 +257,7 @@ simple_plugin(SplitterInput "source"
  lbne_daqinput35t
  art_Framework_IO_Root
  art_Framework_IO_Sources
- larsim_Simulation larsimobj_Simulation
+ larsim_Simulation lardataobj_Simulation
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
