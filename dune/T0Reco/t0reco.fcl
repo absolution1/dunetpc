@@ -11,10 +11,10 @@ dune35t_t0countersim:
     MakeTree: false
 }
 
-dune35t_t0counterdata: @local::dune35t_t0countersim
-dune35t_t0counterdata.TriggerModuleLabel: "SplitterInput:TRIGGER"
-dune35t_t0counterdata.ClockSpeedCounter: 64 # MHz
-dune35t_t0counterdata.CoincidenceTolerance: 40 # this is so high because the ExternalTrigger timestamp is filled using the nearest TPC tick, which could vary by as much as 32 NOvA ticks. So 40 to be safe.
+dune35t_t0counter: @local::dune35t_t0countersim
+dune35t_t0counter.TriggerModuleLabel: "SplitterInput:TRIGGER"
+dune35t_t0counter.ClockSpeedCounter: 64 # MHz
+dune35t_t0counter.CoincidenceTolerance: 40 # this is so high because the ExternalTrigger timestamp is filled using the nearest TPC tick, which could vary by as much as 32 NOvA ticks. So 40 to be safe.
 
 dune35t_counterfilter:
 {
