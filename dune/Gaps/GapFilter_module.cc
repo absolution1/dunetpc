@@ -33,7 +33,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h" 
 #include "nusimdata/SimulationBase/MCTrajectory.h"
-#include "larsimobj/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/SimChannel.h"
 
 // ROOT includes
 #include "TTree.h"
