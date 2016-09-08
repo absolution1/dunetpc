@@ -50,13 +50,6 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
     cout << myname << "WARNING: Channel " << data.channel << " has no samples." << endl;
     return 4;
   }
-  // If the input data has no ROIs, then set the signal and ROIS to include the full range.
-  if ( data.rois.size() == 0 ) {
-    if ( m_LogLevel >= 2 ) cout << myname << "  Creating a ROI for channel " << data.channel << endl;
-    data.signal.clear();
-    data.signal.resize(data.samples.size(), true);
-    data.roisFromSignal();
-  }
   if ( m_LogLevel >= 2 ) {
     cout << myname << "  Channel " << data.channel << " has " << data.rois.size() << " ROI"
          << (data.rois.size()==1 ? "" : "s") << "." << endl;
