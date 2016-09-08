@@ -32,15 +32,30 @@ namespace Hardware{
     std::string const& getType() const{ return fType; }
 
 #ifndef __GCCXML__
-    bool operator<( const HardwareID& rhs ) const {
-      return this->getID() < rhs.getID();
+    friend bool operator<( const HardwareID& lhs, const HardwareID& rhs ) {
+      if( lhs.getTypeOrder() == rhs.getTypeOrder())
+        return lhs.getID() < rhs.getID();
+      else return lhs.getTypeOrder() < rhs.getTypeOrder();
     }
 
     friend std::ostream & operator << (std::ostream &os, HardwareID const &rhs){
       os << rhs.getType() << ": " << rhs.getID();
       return os;
     }
+
+  protected:
+    //jpd -- Helper for operator< (less than). The ordering is APA->manyTPC->manyBoard->manyASIC
+    int getTypeOrder() const{
+      if(fType == "APA") return 0;
+      if(fType == "TPC") return 1;
+      if(fType == "Board") return 2;
+      if(fType == "ASIC") return 3;
+      else return -1;
+    }
+
+
 #endif //__GCCXML__
+
 
   private:
     ID fID;
@@ -62,36 +77,68 @@ namespace Hardware{
     size_t getNChannels() const{ return fChannelIDs.size();}
     size_t getNChannelsSet() const{ return fChannelIDsSet.size();}
 
+    std::vector<HardwareID> const& getHardwareIDs() const{ return fHardwareIDs;}
+    std::set<HardwareID> const& getHardwareIDsSet() const{ return fHardwareIDsSet;}
+    size_t getNHardwareIDs() const{ return fHardwareIDs.size();}
+    size_t getNHardwareIDsSet() const{ return fHardwareIDsSet.size();}
+
     void addChannel(raw::ChannelID_t channel){ 
       //jpd -- Only add channel to the vector if it is not already in the set
       //addChannelToSet returns true if channel was no already in the set and false otherwise
       if(addChannelToSet(channel)) fChannelIDs.push_back(channel);
     }
 
+    void addHardwareID(HardwareID id){
+      //jpd -- Only add hardwareID to the vector if it is not already in the set
+      //addHardwareIDToSet returns true if hardwareID was no already in the set and false otherwise
+      if(addHardwareIDToSet(id)) fHardwareIDs.push_back(id);
+    }
+
     friend std::ostream & operator << (std::ostream &os,  Element const &rhs){
       HardwareID const& base = rhs;
-      os << base << " has "<< rhs.getNChannels() << " channels of which " << rhs.getNChannelsSet() << " are unique";
+      os << base << " has "<< rhs.getNChannels() << " channels";
 
       std::set<raw::ChannelID_t> channels = rhs.getChannelsSet();
-      unsigned int max_num_channels = 10;
+      unsigned int max_num_channels = 16;
       unsigned int this_channel_num = 0;
       for(auto channel : channels){
         if(this_channel_num==0)  os << ":";
-        if(this_channel_num++ >= max_num_channels) break;
+        if(this_channel_num++ >= max_num_channels) { 
+          os << " ...";
+          break;
+        }
         os << " " << channel;
       }
+
+      os << "\n";
+      os << "Contains: " << rhs.getNHardwareIDs() << " pieces of hardware\n";
+      for(auto hardwareid : rhs.getHardwareIDsSet()){
+        os << hardwareid << "\n";
+      }
+
       return os;
     }
 
   private:
     std::vector<raw::ChannelID_t> fChannelIDs;
     std::set<raw::ChannelID_t> fChannelIDsSet;
+    std::set<HardwareID> fHardwareIDsSet;
+    std::vector<HardwareID> fHardwareIDs;
+
 
     //jpd -- Returns true if channel was not already in set and was inserted
     //        false if channel was already in set / there was a problem
     bool addChannelToSet(raw::ChannelID_t this_channel){
       auto result = fChannelIDsSet.insert(this_channel);
       if(result.first != fChannelIDsSet.end()) return result.second;
+      else return false;
+    }
+
+    //jpd -- Returns true if channel was not already in set and was inserted
+    //        false if channel was already in set / there was a problem
+    bool addHardwareIDToSet(HardwareID this_hardwareid){
+      auto result = fHardwareIDsSet.insert(this_hardwareid);
+      if(result.first != fHardwareIDsSet.end()) return result.second;
       else return false;
     }
   };
