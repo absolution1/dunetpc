@@ -5,7 +5,7 @@
 
 # Add plugin for each service.
 
-simple_plugin(InterpolatingAdcMitigationService   "service"
+simple_plugin(ConfigurableAdcChannelDataCopyService   "service"
                 art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )

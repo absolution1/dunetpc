@@ -161,7 +161,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
     if ( m_DoEarlySignalFinding ) {
       m_pAdcSignalFindingService->find(data);
     }
-    datamap[chan] = data;
+    datamap[chan] = std::move(data);
   }
   if ( m_DoDump ) {
     cout << myname << "Dumping channel " << m_DumpChannel << ", Tick " << isig << endl;
