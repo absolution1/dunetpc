@@ -84,10 +84,13 @@ dunefd_signalshapingservice: {
 # 35t is the same for now
 
 dune35t_signalshapingservice:   @local::dunefd_signalshapingservice
-dune35t_signalshapingservice.ADCPerPCAtLowestASICGain: 11700 #ADC/pC   (For correct Digitization)
-dune35t_signalshapingservice.ASICGainInMVPerFC: [7.8, 7.8, 7.8] #mV/fC for Ind & col planes
-dune35t_signalshapingservice.ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peaking time (microseconds)
-
+### Previous default settings
+#dune35t_signalshapingservice.ADCPerPCAtLowestASICGain: 11700 #ADC/pC   (For correct Digitization)
+#dune35t_signalshapingservice.ASICGainInMVPerFC: [7.8, 7.8, 7.8] #mV/fC for Ind & col planes
+#dune35t_signalshapingservice.ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peaking time (microseconds)
+### Bringing in line with data settings, 8th Sept 2016
+dune35t_signalshapingservice.ASICGainInMVPerFC: [ 14.0, 14.0, 14.0] #mV/fC for Ind & col planes
+dune35t_signalshapingservice.ShapeTimeConst:    [ 3.0 , 3.0 , 3.0 ] #Gain and Peaking time (microseconds)
 #
 # DUNE dual-phase signal service
 #
