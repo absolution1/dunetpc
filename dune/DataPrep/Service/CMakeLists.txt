@@ -49,6 +49,11 @@ simple_plugin(DuneDeconvolutionService "service"
                 SignalShapingServiceDUNE_service
              )
 
+simple_plugin(KeepAllRoiBuildingService "service"
+                art_Utilities canvas_Utilities
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(DuneRoiBuildingService "service"
                 art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
