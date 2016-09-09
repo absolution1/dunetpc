@@ -67,7 +67,7 @@ cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
     ${ROOT_CORE}
 )
 
-cet_test(test_KepAllRoiBuildingService SOURCES test_KeepAllRoiBuildingService
+cet_test(test_KeepAllRoiBuildingService SOURCES test_KeepAllRoiBuildingService
   LIBRARIES
     dune_DataPrep_Service_KeepAllRoiBuildingService_service
     dune_ArtSupport
