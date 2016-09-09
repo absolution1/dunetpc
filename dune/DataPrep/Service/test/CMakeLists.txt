@@ -7,6 +7,13 @@
 
 include(CetTest)
 
+cet_test(test_ConfigurableAdcChannelDataCopyService SOURCES test_ConfigurableAdcChannelDataCopyService.cxx
+  LIBRARIES
+    dune_DataPrep_Service_ConfigurableAdcChannelDataCopyService_service
+    dune_ArtSupport
+    ${ROOT_CORE}
+)
+
 cet_test(test_StandardRawDigitExtractService SOURCES test_StandardRawDigitExtractService.cxx
   LIBRARIES
     dune_DataPrep_Service_StandardRawDigitExtractService_service

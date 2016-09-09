@@ -17,7 +17,7 @@
 #include "canvas/Persistency/Provenance/EventAuxiliary.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "larsimobj/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/SimChannel.h"
 
 //Pedestal stuff...
 #include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
