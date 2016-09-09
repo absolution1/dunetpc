@@ -96,6 +96,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "  DoROI:                false" << endl;
     fout << "  DoWires:              false" << endl;
     fout << "  DoPedestalAdjustment:  true" << endl;
+    fout << "  IntermediateStates:      []" << endl;
     fout << "}" << endl;
     fout.close();
     usePedestalAdjustment = true;

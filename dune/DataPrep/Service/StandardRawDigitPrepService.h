@@ -49,7 +49,7 @@ public:
   StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
   int prepare(const std::vector<raw::RawDigit>& digs, AdcChannelDataMap& prepdigs,
-              std::vector<recob::Wire>* pwires) const;
+              std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const;
 
   std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
 
@@ -68,6 +68,7 @@ private:
   bool m_DoROI;
   bool m_DoWires;
   bool m_DoDump;
+  std::vector<std::string> m_IntermediateStates;
   unsigned int m_DumpChannel;
   unsigned int m_DumpTick;
 
