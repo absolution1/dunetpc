@@ -10,6 +10,11 @@ simple_plugin(ConfigurableAdcChannelDataCopyService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(InterpolatingAdcMitigationService   "service"
+                art_Utilities canvas_Utilities
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(StandardRawDigitExtractService   "service"
                 lardataobj_RawData
                 art_Utilities canvas_Utilities
