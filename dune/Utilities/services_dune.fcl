@@ -125,6 +125,7 @@ dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 # disable cerenkov
 dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
+
 # dune10kt and dune34kt consolidated into dunefd,
 # but catch any leftover cases of 10kt...
 #dune10kt_services: @local::dunefd_services

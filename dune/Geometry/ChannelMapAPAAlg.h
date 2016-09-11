@@ -73,6 +73,7 @@ namespace geo{
     
   private:
     
+    unsigned int                                         fChannelsPerOpDet;
     unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
     unsigned int                                         fNchannels;      ///< number of channels in the detector
     raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #
