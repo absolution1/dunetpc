@@ -52,6 +52,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_DoDeconvolution      = pset.get<bool>("DoDeconvolution");
   m_DoROI                = pset.get<bool>("DoROI");
   m_DoWires              = pset.get<bool>("DoWires");
+  m_IntermediateStates   = pset.get<vector<string>>("IntermediateStates");
   pset.get_if_present<bool>("DoDump", m_DoDump);
   pset.get_if_present<unsigned int>("DumpChannel", m_DumpChannel);
   pset.get_if_present<unsigned int>("DumpTick", m_DumpTick);
@@ -112,7 +113,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
 
 int StandardRawDigitPrepService::
 prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
-        std::vector<recob::Wire>* pwires) const {
+        std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const {
   const string myname = "StandardRawDigitPrepService:prepare: ";
   // Extract digits.
   if ( m_LogLevel >= 2 ) {
@@ -161,7 +162,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
     if ( m_DoEarlySignalFinding ) {
       m_pAdcSignalFindingService->find(data);
     }
-    datamap[chan] = data;
+    datamap[chan] = std::move(data);
   }
   if ( m_DoDump ) {
     cout << myname << "Dumping channel " << m_DumpChannel << ", Tick " << isig << endl;
@@ -243,6 +244,13 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "                DoROI: " << m_DoROI                << endl;
   out << prefix << "              DoWires: " << m_DoWires              << endl;
   out << prefix << "               DoDump: " << m_DoDump               << endl;
+  if ( m_IntermediateStates.size() == 0 ) {
+    out << prefix << "  No intermeidate states." << endl;
+  } else {
+    out << "Intermeidate states:";
+    for ( string stateName : m_IntermediateStates ) cout << " " << stateName;
+    cout << endl;
+  }
   if ( m_DoDump ) {
     out << prefix << "          DumpChannel: " << m_DumpChannel          << endl;
     out << prefix << "             DumpTick: " << m_DumpTick             << endl;

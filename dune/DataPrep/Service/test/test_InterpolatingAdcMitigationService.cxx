@@ -87,9 +87,8 @@ int test_InterpolatingAdcMitigationService(int a_LogLevel =1, int a_MaxConsecuti
   AdcFlagVector& flags = acd.flags;
 
   // Expected results.
-  AdcChannelData acdexp = acd;
-  AdcSignalVector& sigsexp = acdexp.samples;
-  AdcFlagVector& flagsexp = acdexp.flags;
+  AdcSignalVector sigsexp = acd.samples;
+  AdcFlagVector flagsexp = acd.flags;
 
   // Add overflows. These are mitigated.
   IndexVector isigOvers = {5, 6, 9};
@@ -134,9 +133,8 @@ int test_InterpolatingAdcMitigationService(int a_LogLevel =1, int a_MaxConsecuti
   }
 
   // Data before mitigation.
-  AdcChannelData acdin = acd;
-  AdcSignalVector& sigsin = acdin.samples;
-  AdcFlagVector& flagsin = acdin.flags;
+  AdcSignalVector sigsin = acd.samples;
+  AdcFlagVector flagsin = acd.flags;
 
   cout << myname << "Fetch ADC mitigation service." << endl;
   ServiceHandle<AdcMitigationService> hams;

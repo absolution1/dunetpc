@@ -7,6 +7,13 @@
 
 include(CetTest)
 
+cet_test(test_ConfigurableAdcChannelDataCopyService SOURCES test_ConfigurableAdcChannelDataCopyService.cxx
+  LIBRARIES
+    dune_DataPrep_Service_ConfigurableAdcChannelDataCopyService_service
+    dune_ArtSupport
+    ${ROOT_CORE}
+)
+
 cet_test(test_StandardRawDigitExtractService SOURCES test_StandardRawDigitExtractService.cxx
   LIBRARIES
     dune_DataPrep_Service_StandardRawDigitExtractService_service
@@ -56,6 +63,13 @@ cet_test(test_AdcSuppressSignalFindingService SOURCES test_AdcSuppressSignalFind
 cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
   LIBRARIES
     dune_DataPrep_Service_DuneDeconvolutionService_service
+    dune_ArtSupport
+    ${ROOT_CORE}
+)
+
+cet_test(test_KeepAllRoiBuildingService SOURCES test_KeepAllRoiBuildingService
+  LIBRARIES
+    dune_DataPrep_Service_KeepAllRoiBuildingService_service
     dune_ArtSupport
     ${ROOT_CORE}
 )
