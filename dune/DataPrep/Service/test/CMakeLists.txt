@@ -94,6 +94,7 @@ cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepServi
     dune_DataPrep_Service_StandardRawDigitExtractService_service
     dune_DataPrep_Service_MedianPedestalService_service
     dune_ArtSupport
+    lardataobj_RecoBase
     ${ROOT_CORE}
 )
 

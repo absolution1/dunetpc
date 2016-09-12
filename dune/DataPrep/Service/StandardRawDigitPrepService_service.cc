@@ -16,6 +16,7 @@
 #include "dune/DuneInterface/AdcDeconvolutionService.h"
 #include "dune/DuneInterface/AdcRoiBuildingService.h"
 #include "dune/DuneInterface/AdcWireBuildingService.h"
+#include "dune/DuneInterface/AdcChannelDataCopyService.h"
 
 using std::string;
 using std::cout;
@@ -39,7 +40,8 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_pPedestalEvaluation(nullptr),
   m_pDeconvolutionService(nullptr),
   m_pRoiBuildingService(nullptr),
-  m_pWireBuildingService(nullptr) {
+  m_pWireBuildingService(nullptr),
+  m_pAdcChannelDataCopyService(nullptr) {
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_SkipBad        = pset.get<bool>("SkipBad");
@@ -106,6 +108,11 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     m_pWireBuildingService = &*art::ServiceHandle<AdcWireBuildingService>();
     if ( m_LogLevel ) cout << myname << "  Wire building service: @" <<  m_pWireBuildingService << endl;
   }
+  if ( m_IntermediateStates.size() > 0 ) {
+    if ( m_LogLevel ) cout << myname << "Fetching intermediate state copying building service." << endl;
+    m_pAdcChannelDataCopyService = &*art::ServiceHandle<AdcChannelDataCopyService>();
+    if ( m_LogLevel ) cout << myname << "  Intermediate state copying service: @" <<  m_pAdcChannelDataCopyService << endl;
+  }
   if ( m_LogLevel >=1 ) print(cout, myname);
 }
 
@@ -156,8 +163,24 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
       ++nbad;
       continue;
     }
+    string state = "extracted";
+    const std::vector<std::string>& istates = m_IntermediateStates;
+    if ( m_pAdcChannelDataCopyService != nullptr && pintStates != nullptr &&
+         find(istates.begin(), istates.end(), state) != istates.end() ) {
+      WiredAdcChannelDataMap& intStates = *pintStates;
+      if ( m_LogLevel >= 3 ) cout << myname << "Saving intermediate state " << state << "." << endl;
+      m_pAdcChannelDataCopyService->copy(data, intStates.dataMaps[state][chan]);
+    }
     if ( m_DoMitigation ) {
       m_pmitigateSvc->update(data);
+      string state = "mitigated";
+      const std::vector<std::string>& istates = m_IntermediateStates;
+      if ( m_pAdcChannelDataCopyService != nullptr && pintStates != nullptr &&
+           find(istates.begin(), istates.end(), state) != istates.end() ) {
+        WiredAdcChannelDataMap& intStates = *pintStates;
+        if ( m_LogLevel >= 3 ) cout << myname << "Saving intermediate state " << state << "." << endl;
+        m_pAdcChannelDataCopyService->copy(data, intStates.dataMaps[state][chan]);
+      }
     }
     if ( m_DoEarlySignalFinding ) {
       m_pAdcSignalFindingService->find(data);
@@ -187,6 +210,18 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
   }
   if ( m_DoNoiseRemoval ) {
     m_pNoiseRemoval->update(datamap);
+    string state = "noiseRemoved";
+    const std::vector<std::string>& istates = m_IntermediateStates;
+    if ( m_pAdcChannelDataCopyService != nullptr && pintStates != nullptr &&
+         find(istates.begin(), istates.end(), state) != istates.end() ) {
+      WiredAdcChannelDataMap& intStates = *pintStates;
+      if ( m_LogLevel >= 3 ) cout << myname << "Saving intermediate state " << state << "." << endl;
+      for ( const auto& idat : datamap ) {
+        AdcChannel chan = idat.first;
+        const AdcChannelData& data = idat.second;
+        m_pAdcChannelDataCopyService->copy(data, intStates.dataMaps[state][chan]);
+      }
+    }
   }
   if ( m_DoDeconvolution ) {
     for ( AdcChannelDataMap::value_type& chdata : datamap ) {
@@ -245,9 +280,9 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "              DoWires: " << m_DoWires              << endl;
   out << prefix << "               DoDump: " << m_DoDump               << endl;
   if ( m_IntermediateStates.size() == 0 ) {
-    out << prefix << "  No intermeidate states." << endl;
+    out << prefix << "  No intermediate states." << endl;
   } else {
-    out << "Intermeidate states:";
+    out << "Intermediate states:";
     for ( string stateName : m_IntermediateStates ) cout << " " << stateName;
     cout << endl;
   }

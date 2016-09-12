@@ -20,6 +20,10 @@
 //   DoDeconvolution - Deconvolute the signal.
 //   DoROI - Build ROIs.
 //   DoWires - Build wires.
+//   IntermediateStates - Names of intermediate staes to record. Allowed values:
+//                          extracted - After pedestal subtraction
+//                          mitigated - After mitigation (e.g. stuck bit interpolation)
+//                          noiseRemoved - After noise removal
 //   DoDump [false] - If true, the info for one tick is displayed in the log.
 //   DumpChannel [0] - The channel that is dumped.
 //   DumpTick [0] - The tick that is dumped.
@@ -41,6 +45,7 @@ class PedestalEvaluationService;
 class AdcDeconvolutionService;
 class AdcRoiBuildingService;
 class AdcWireBuildingService;
+class AdcChannelDataCopyService;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
@@ -82,6 +87,7 @@ private:
   const AdcDeconvolutionService* m_pDeconvolutionService;
   const AdcRoiBuildingService* m_pRoiBuildingService;
   const AdcWireBuildingService* m_pWireBuildingService;
+  const AdcChannelDataCopyService* m_pAdcChannelDataCopyService;
 
 };
 

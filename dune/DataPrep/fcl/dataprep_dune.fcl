@@ -7,6 +7,25 @@ BEGIN_PROLOG
 
 #***********************************************************************
 
+# AdcChannelDataCopyService copies AdcChannelData.
+
+acdcopy: {
+  service_provider: ConfigurableAdcChannelDataCopyService
+  LogLevel:           1
+  CopyChannel:     true
+  CopyPedestal:    true
+  CopyRaw:        false
+  CopySamples:     true
+  CopyFlags:      false
+  CopyRois:       false
+  CopyDigit:      false
+  CopyWire:       false
+  CopyDigitIndex: false
+  CopyWireIndex:  false
+}
+
+#***********************************************************************
+
 # RawDigitExtractService pulls ADC signals (raw:RawDigit) out of the lar
 # container, converts to float, flags bad channels and subtracts pedestals.
 
