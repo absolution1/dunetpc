@@ -33,6 +33,7 @@ dunefd_geo:
 # GDML:      "lbne4apa36deg.gdml"
 # ROOT:      "lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
 
+ SortingParameters:	{ChannelsPerOpDet:	12}
 
  SurfaceY:         0.0e2               # in cm, vertical distance to the surface
  #SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
@@ -62,6 +63,8 @@ dunedphase10kt_geo:
  
  GDML:      "dunedphase10kt_v2.gdml"
  ROOT:      "dunedphase10kt_v2.gdml"
+
+ SortingParameters:	{ChannelsPerOpDet:	1}
 
  SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
 
@@ -120,7 +123,8 @@ dune35t_geo:
  GDML:         "dune35t4apa_v6.gdml"
  ROOT:         "dune35t4apa_v6.gdml"
  SortingParameters: { 
-   DetectorVersion: "dune35t4apa_v6" 
+    DetectorVersion: "dune35t4apa_v6"
+    ChannelsPerOpDet:	12
  } 
 
  SurfaceY:           0.0e2               #in cm, vertical distance to the surface
@@ -135,6 +139,7 @@ larnd_geo:
  GDML:     "larnd.gdml"
  ROOT:     "larnd.gdml"
 
+ SortingParameters:	{ChannelsPerOpDet:	1}
  SurfaceY:           5578               #183ft in cm, vertical distance to the surface
  DisableWiresInG4:   true
 }
