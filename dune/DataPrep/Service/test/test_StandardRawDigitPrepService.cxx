@@ -70,18 +70,23 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   cout << myname << "Create top-level FCL." << endl;
   string fclfile = "test_StandardRawDigitPrepService.fcl";
   bool usePedestalAdjustment = false;
-  bool checkExtracted = false;
-  bool checkMitigated = false;
-  bool checkNoiseRemoved = false;
+  vector<string> snames;
   if ( useExistingFcl ) {
   } else if ( useFclFile ) {
+    // Use the DUNE fcl for 35-ton reco.
+    // Disable noise removal and deconvolution because these make it difficult
+    // to predict the result.
     ofstream fout(fclfile.c_str());
     fout << "#include \"services_dune.fcl\"" << endl;
     fout << "services: @local::dune35tdata_reco_services" << endl;
-    fout << "services.RawDigitPrepService.DoMitigation: false" << endl;
     fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
     fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
+    fout << "services.RawDigitPrepService.IntermediateStates: [\"extracted\", \"mitigated\"]" << endl;
+    fout << "services.AdcChannelDataCopyService.CopyFlags: true" << endl;
     fout.close();
+    snames.push_back("extracted");
+    snames.push_back("mitigated");
+    
   } else {
     ofstream fout(fclfile.c_str());
     fout << "#include \"services_dune.fcl\"" << endl;
@@ -148,9 +153,9 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "}" << endl;
     fout.close();
     usePedestalAdjustment = false;
-    checkExtracted = true;
-    checkMitigated = true;
-    checkNoiseRemoved = true;
+    snames.push_back("extracted");
+    snames.push_back("mitigated");
+    snames.push_back("NoiseRemoved");
   }
 
   cout << myname << "Fetch art service helper." << endl;
@@ -255,21 +260,22 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   wires.reserve(nchan);
   WiredAdcChannelDataMap intStates;
   assert( hrdp->prepare(digs, prepdigs, &wires, &intStates) == 0 );
-  cout << myname << "      # prepared digits: " << prepdigs.size() << endl;
-  cout << myname << "                # wires: " << wires.size() << endl;
-  cout << myname << "  # intermediate states: " << intStates.dataMaps.size() << endl;
+  cout << myname << "      # prepared digit channels: " << prepdigs.size() << endl;
+  cout << myname << "                # wire channels: " << wires.size() << endl;
+  cout << myname << "  # intermediate state channels: " << intStates.dataMaps.size() << endl;
   for ( const auto& namedadm : intStates.dataMaps ) {
     string sname = namedadm.first;
     const AdcChannelDataMap& adm = namedadm.second;
     auto iwco = intStates.wires.find(sname);
+    const vector<recob::Wire>* pwires = nullptr;
     if ( iwco == intStates.wires.end() ) {
-      cout << myname << "Wires not found for intermediate state " << sname << "." << endl;
-      assert(false);
+      cout << myname << "  Wires not found for intermediate state " << sname << "." << endl;
+      //assert( iwco != intStates.wires.end() );
+    } else {
+      pwires = iwco->second;
     }
-    const vector<recob::Wire>* pwires = iwco->second;
-    assert( pwires != nullptr );
     cout << myname << "  State " << sname << " has " << adm.size() << " ADC channels";
-    cout << " and " << pwires->size() << " wires";
+    if ( pwires != nullptr ) cout << " and " << pwires->size() << " wires";
     cout <<"." << endl;
   }
   cout << myname << "   # intermediate wires: " << intStates.wires.size() << endl;
@@ -281,10 +287,10 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     const raw::RawDigit* pdig = acd.digit;
     AdcSignal ped = acd.pedestal;
     cout << myname << "----- Channel " << chan << endl;
-    cout << myname << "Output vector size: " << sigs.size() << endl;
-    cout << myname << " Output flags size: " << flags.size() << endl;
-    cout << myname << "          Pedestal: " << ped << endl;
-    cout << myname << "        samples[0]: " << sigs[0] << endl;
+    cout << myname << "  Final signal tick count: " << sigs.size() << endl;
+    cout << myname << "    Final flag tick count: " << flags.size() << endl;
+    cout << myname << "                 Pedestal: " << ped << endl;
+    cout << myname << "               samples[0]: " << sigs[0] << endl;
     cout << myname << "Check final data." << endl;
     assert( sigs.size() == nsig );
     assert( flags.size() == nsig );
@@ -301,30 +307,35 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     cout << myname << "  ... bad" << endl;
     auto iacd = intStates.dataMaps.find("bad");
     assert( iacd == intStates.dataMaps.end() );
-    if  ( checkExtracted ) {
-      cout << myname << "  ... extracted" << endl;
-      iacd = intStates.dataMaps.find("extracted");
+    string header = "   ch-tk  raw";
+    unsigned int nintexp = 0;
+    for ( string sname : snames ) {
+      cout << myname << "  ..." << sname << endl;
+      iacd = intStates.dataMaps.find(sname);
       assert( iacd != intStates.dataMaps.end() );
       intSigs.push_back(&iacd->second[chan].samples);
       intFlags.push_back(&iacd->second[chan].flags);
+      for ( unsigned int i=sname.size(); i<12; ++i ) header += " ";
+      header += sname;
+      ++nintexp;
+      cout << myname << "    Checking tick count for state " << sname << endl;
+      assert( intSigs.back() != nullptr );
+      assert( intSigs.back()->size() != 0 );
+      assert( intSigs.back()->size() == nsig );
+      assert( intFlags.back() != nullptr );
+      assert( intFlags.back()->size() != 0 );
+      assert( intFlags.back()->size() == nsig );
     }
-    if ( checkMitigated ) {
-      cout << myname << "  ... mitigated" << endl;
-      iacd = intStates.dataMaps.find("mitigated");
-      assert( iacd != intStates.dataMaps.end() );
-      intSigs.push_back(&iacd->second[chan].samples);
-      intFlags.push_back(&iacd->second[chan].flags);
-    }
-    if ( checkNoiseRemoved ) {
-      cout << myname << "  ... noiseRemoved" << endl;
-      iacd = intStates.dataMaps.find("noiseRemoved");
-      assert( iacd != intStates.dataMaps.end() );
-      intSigs.push_back(&iacd->second[chan].samples);
-      intFlags.push_back(&iacd->second[chan].flags);
-    }
+    header += "       final";
+    assert( intStates.dataMaps.size() == nintexp );
+    //assert( intStates.wires.size() == nintexp );
+    assert( intSigs.size() == nintexp );
+    assert( intFlags.size() == nintexp );
     // Display results.
     cout << myname << "Display intermediate and final samples." << endl;
+    cout << myname << header << endl;
     for ( unsigned int isig=0; isig<nsig; ++isig ) {
+      cout << myname;
       cout << setw(4) << chan << "-" 
            << setw(2) << isig << ": " << setw(4) << adcsmap[chan][isig];
       for ( unsigned int ista=0; ista<intSigs.size(); ++ista ) {
