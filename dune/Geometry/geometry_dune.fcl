@@ -48,6 +48,8 @@ dune10kt_geo:
  GDML:      "dune10kt_v1.gdml"
  ROOT:      "dune10kt_v1.gdml"
 
+ SortingParameters:	{ChannelsPerOpDet:	12}
+
  SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
 
  DisableWiresInG4:   true
@@ -70,6 +72,9 @@ dune10kt_workspace_geo: @local::dune10kt_geo
 dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
 dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
 dune10kt_workspace_geo.ROOT: "dune10kt_v1_workspace.gdml"
+
+dune10kt_ganged_workspace_geo:	     @local::dune10kt_workspace_geo
+dune10kt_ganged_workspace_geo.SortingParameters.ChannelsPerOpDet:	4
 
 dune10kt_1x2x6_geo: @local::dune10kt_geo
 dune10kt_1x2x6_geo.Name: "dune10kt_v1_1x2x6"
