@@ -82,7 +82,6 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "services: @local::dune35tdata_reco_services" << endl;
     fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
     fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
-    fout << "services.RawDigitPrepService.IntermediateStates: [\"extracted\", \"mitigated\"]" << endl;
     fout << "services.AdcChannelDataCopyService.CopyFlags: true" << endl;
     fout.close();
     snames.push_back("extracted");
@@ -151,7 +150,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "  DoROI:                 true" << endl;
     fout << "  DoWires:               true" << endl;
     fout << "  DoPedestalAdjustment: false" << endl;
-    fout << "  IntermediateStates:      [\"extracted\", \"mitigated\", \"noiseRemoved\"]" << endl;
+    fout << "  DoIntermediateStates:  true" << endl;
     fout << "}" << endl;
     fout.close();
     usePedestalAdjustment = false;

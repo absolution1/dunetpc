@@ -161,7 +161,7 @@ adcprep_readraw: {
   DoDeconvolution:       false
   DoROI:                 false
   DoWires:               false
-  IntermediateStates:       []
+  DoIntermediateStates:  false
 }
 
 # Process simulation.
@@ -177,7 +177,7 @@ adcprep_sim: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
-  IntermediateStates:       []
+  DoIntermediateStates:   true
 }
 
 # Process 35-ton data
@@ -193,7 +193,7 @@ adcprep_dune35tdata: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
-  IntermediateStates:       []
+  DoIntermediateStates:   true
 }
 
 #***********************************************************************
@@ -203,10 +203,11 @@ adcprep_dune35tdata: {
 # Process any data.
 producer_adcprep: {
   module_type: "DataPrepModule"
-  LogLevel:    1
-  DigitLabel:  "daq"
-  WireName:    ""
-  DoAssns:     true
+  LogLevel:                   1
+  DigitLabel:             "daq"
+  WireName:                  ""
+  DoAssns:                 true
+  IntermediateStates:        []
 }
 
 #***********************************************************************

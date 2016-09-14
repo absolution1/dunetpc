@@ -25,6 +25,7 @@ public:
   typedef std::vector<Name> NameVector;
   typedef std::vector<recob::Wire> WireContainer;
 
+  // Data and wire maps indexed by state name.
   std::map<Name, AdcChannelDataMap> dataMaps;
   std::map<Name, WireContainer*> wires;
 
@@ -39,6 +40,17 @@ public:
       pwires->reserve(nchmax);
     }
   }
+
+  // Return if this object holds ADC channel data for the given stae name.
+  bool hasData(Name sname) {
+    return dataMaps.find(sname) != dataMaps.end();
+  }
+
+  // Return if this object holds wires for the given state name.
+  bool hasWires(Name sname) {
+    return wires.find(sname) != wires.end();
+  }
+
 };
 
 #endif

@@ -5,6 +5,15 @@
 //
 // Module that reads RawData and writes Wire and their associations.
 // It uses RawDigitPrepService to build the wires.
+//
+// Configuration parameters:
+//             LogLevel - Usual logging level.
+//           DigitLabel - Full label for the input digit container, e.g. daq
+//             WireName - Second field in full label for the output wire container.
+//   IntermediateStates - Names of intermediate states to record. Allowed values:
+//                          extracted - After pedestal subtraction
+//                          mitigated - After mitigation (e.g. stuck bit interpolation)
+//                          noiseRemoved - After noise removal
 
 //#include "canvas/Persistency/Common/Ptr.h"
 #include "art/Framework/Core/ModuleMacros.h" 
@@ -19,6 +28,7 @@
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 using art::ServiceHandle;
 
 //**********************************************************************
@@ -45,6 +55,7 @@ private:
   int m_LogLevel;
   std::string m_DigitLabel;  ///< Full label for the input digit container, e.g. daq:
   std::string m_WireName;    ///< Second field in full label for the output wire container.
+  std::vector<std::string> m_IntermediateStates;
 
   // Split label into producer and name: PRODUCER or PRODUCER:NAME
   std::string m_DigitProducer;
@@ -78,6 +89,8 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_DigitLabel = pset.get<std::string>("DigitLabel", "daq");
   m_WireName   = pset.get<std::string>("WireName", "");
   m_DoAssns    = pset.get<bool >("DoAssns", "");
+  m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
+
                
   size_t ipos = m_DigitLabel.find(":");
   if ( ipos == std::string::npos ) {
