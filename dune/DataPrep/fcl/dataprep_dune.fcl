@@ -91,7 +91,7 @@ adcnr_dune35tlegacy: {
   SkipStuckCodes:   false
   SkipSignals:      false
   CorrectStuckCodes: true
-  ShowGroups:           2
+  ShowGroups:           0  # Use 2 to dump group map
   ShowGroupsChannel:    4
 }
 
