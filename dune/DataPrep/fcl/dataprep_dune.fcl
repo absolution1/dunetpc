@@ -18,9 +18,9 @@ adccopy: {
   CopySamples:     true
   CopyFlags:      false
   CopyRois:       false
-  CopyDigit:      false
+  CopyDigit:       true
   CopyWire:       false
-  CopyDigitIndex: false
+  CopyDigitIndex:  true
   CopyWireIndex:  false
 }
 

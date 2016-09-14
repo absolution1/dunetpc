@@ -258,6 +258,32 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
         cout << myname << "        Wire: " << pwires->back().Signal().at(isig) << endl;
       }
     }
+    if ( pintStates != nullptr ) {
+      WiredAdcChannelDataMap& intStates = *pintStates;
+      for ( auto& namedacdmap : intStates.dataMaps ) {
+        string sname = namedacdmap.first;
+        AdcChannelDataMap& acdmapState = namedacdmap.second;
+        auto inamedwires = intStates.wires.find(sname);
+        if ( inamedwires == intStates.wires.end() ) {
+          cout << myname << "WARNING: State " << sname << " does not have a wire container." << endl;
+          continue;
+        }
+        std::vector<recob::Wire>* pwiresState = inamedwires->second;
+        for ( auto& chdata : acdmapState ) {
+          AdcChannelData& acd = chdata.second;
+          // Create a single ROI.
+          acd.signal.clear();
+          acd.signal.resize(acd.samples.size(), true);
+          acd.roisFromSignal();
+          // Build wires.
+          m_pWireBuildingService->build(acd, pwiresState);
+          if ( m_DoDump && acd.channel==ichan ) {
+            cout << myname << "        State " << sname << " wire: " << pwires->back().Signal().at(isig) << endl;
+          }
+        }
+      }
+    }
+
   }
   return nbad;
 }

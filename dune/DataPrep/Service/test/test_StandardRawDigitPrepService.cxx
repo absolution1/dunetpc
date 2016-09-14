@@ -32,6 +32,7 @@ using std::vector;
 using std::map;
 using art::ServiceHandle;
 using raw::RawDigit;
+using recob::Wire;
 
 //**********************************************************************
 
@@ -86,7 +87,6 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout.close();
     snames.push_back("extracted");
     snames.push_back("mitigated");
-    
   } else {
     ofstream fout(fclfile.c_str());
     fout << "#include \"services_dune.fcl\"" << endl;
@@ -128,6 +128,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "  CopyPedestal:    true" << endl;
     fout << "  CopySamples:     true" << endl;
     fout << "  CopyFlags:       true" << endl;
+    fout << "  CopyDigit:       true" << endl;
+    fout << "  CopyDigitIndex:  true" << endl;
     fout << "}" << endl;
     fout << "services.AdcRoiBuildingService: {" << endl;
     fout << "  service_provider: KeepAllRoiBuildingService" << endl;
@@ -155,7 +157,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     usePedestalAdjustment = false;
     snames.push_back("extracted");
     snames.push_back("mitigated");
-    snames.push_back("NoiseRemoved");
+    snames.push_back("noiseRemoved");
   }
 
   cout << myname << "Fetch art service helper." << endl;
@@ -258,7 +260,9 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   AdcChannelDataMap prepdigs;
   std::vector<recob::Wire> wires;
   wires.reserve(nchan);
-  WiredAdcChannelDataMap intStates;
+  WiredAdcChannelDataMap intStates(snames, nchan);
+  assert( intStates.dataMaps.size() == snames.size() );
+  assert( intStates.wires.size() == snames.size() );
   assert( hrdp->prepare(digs, prepdigs, &wires, &intStates) == 0 );
   cout << myname << "      # prepared digit channels: " << prepdigs.size() << endl;
   cout << myname << "                # wire channels: " << wires.size() << endl;
@@ -267,16 +271,18 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     string sname = namedadm.first;
     const AdcChannelDataMap& adm = namedadm.second;
     auto iwco = intStates.wires.find(sname);
-    const vector<recob::Wire>* pwires = nullptr;
+    const vector<Wire>* pwires = nullptr;
     if ( iwco == intStates.wires.end() ) {
       cout << myname << "  Wires not found for intermediate state " << sname << "." << endl;
-      //assert( iwco != intStates.wires.end() );
+      assert( iwco != intStates.wires.end() );
     } else {
       pwires = iwco->second;
     }
+    assert( pwires != nullptr );
     cout << myname << "  State " << sname << " has " << adm.size() << " ADC channels";
     if ( pwires != nullptr ) cout << " and " << pwires->size() << " wires";
     cout <<"." << endl;
+    assert( pwires->size() == adm.size() );
   }
   cout << myname << "   # intermediate wires: " << intStates.wires.size() << endl;
   for ( AdcChannelDataMap::const_iterator ichdat=prepdigs.begin(); ichdat!=prepdigs.end(); ++ichdat ) {
@@ -285,9 +291,13 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     const AdcSignalVector& sigs = acd.samples;
     const AdcFlagVector& flags = acd.flags;
     const raw::RawDigit* pdig = acd.digit;
+    const Wire* pwire = acd.wire;
     AdcSignal ped = acd.pedestal;
+    assert( pwire != nullptr );
+    assert( pwire->SignalROI().size() > 0 );
     cout << myname << "----- Channel " << chan << endl;
     cout << myname << "  Final signal tick count: " << sigs.size() << endl;
+    cout << myname << "    Final flag tick count: " << flags.size() << endl;
     cout << myname << "    Final flag tick count: " << flags.size() << endl;
     cout << myname << "                 Pedestal: " << ped << endl;
     cout << myname << "               samples[0]: " << sigs[0] << endl;
@@ -304,7 +314,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     cout << myname << "Fetch intermediate data." << endl;
     vector<const AdcSignalVector*> intSigs;
     vector<const AdcFlagVector*> intFlags;
-    cout << myname << "  ... bad" << endl;
+    cout << myname << "  ...bad" << endl;
     auto iacd = intStates.dataMaps.find("bad");
     assert( iacd == intStates.dataMaps.end() );
     string header = "   ch-tk  raw";
@@ -313,18 +323,24 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
       cout << myname << "  ..." << sname << endl;
       iacd = intStates.dataMaps.find(sname);
       assert( iacd != intStates.dataMaps.end() );
-      intSigs.push_back(&iacd->second[chan].samples);
-      intFlags.push_back(&iacd->second[chan].flags);
+      const AdcChannelData& intAcd = iacd->second[chan];
+      intSigs.push_back(&intAcd.samples);
+      intFlags.push_back(&intAcd.flags);
+      assert( intAcd.wire != nullptr );
       for ( unsigned int i=sname.size(); i<12; ++i ) header += " ";
       header += sname;
       ++nintexp;
-      cout << myname << "    Checking tick count for state " << sname << endl;
+      cout << myname << "    Checking sample and flag tick counts." << endl;
       assert( intSigs.back() != nullptr );
       assert( intSigs.back()->size() != 0 );
       assert( intSigs.back()->size() == nsig );
       assert( intFlags.back() != nullptr );
       assert( intFlags.back()->size() != 0 );
       assert( intFlags.back()->size() == nsig );
+      cout << myname << "     Wire ROI count: " << intAcd.wire->SignalROI().n_ranges() << endl;
+      cout << myname << "    Wire Tick count: " << intAcd.wire->SignalROI().size() << endl;
+      assert( intAcd.wire->SignalROI().n_ranges() == 1 );
+      assert( intAcd.wire->SignalROI().size() == nsig );
     }
     header += "       final";
     assert( intStates.dataMaps.size() == nintexp );
