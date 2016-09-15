@@ -177,7 +177,7 @@ adcprep_sim: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
-  DoIntermediateStates:   true
+  DoIntermediateStates:  false
 }
 
 # Process 35-ton data
@@ -193,7 +193,7 @@ adcprep_dune35tdata: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
-  DoIntermediateStates:   true
+  DoIntermediateStates:  false
 }
 
 #***********************************************************************

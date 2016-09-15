@@ -82,6 +82,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "services: @local::dune35tdata_reco_services" << endl;
     fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
     fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
+    fout << "services.RawDigitPrepService.DoIntermediateStates: true" << endl;
     fout << "services.AdcChannelDataCopyService.CopyFlags: true" << endl;
     fout.close();
     snames.push_back("extracted");
