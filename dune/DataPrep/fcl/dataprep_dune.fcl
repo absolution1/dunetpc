@@ -7,6 +7,25 @@ BEGIN_PROLOG
 
 #***********************************************************************
 
+# AdcChannelDataCopyService copies AdcChannelData.
+
+adccopy: {
+  service_provider: ConfigurableAdcChannelDataCopyService
+  LogLevel:           1
+  CopyChannel:     true
+  CopyPedestal:    true
+  CopyRaw:        false
+  CopySamples:     true
+  CopyFlags:      false
+  CopyRois:       false
+  CopyDigit:       true
+  CopyWire:       false
+  CopyDigitIndex:  true
+  CopyWireIndex:  false
+}
+
+#***********************************************************************
+
 # RawDigitExtractService pulls ADC signals (raw:RawDigit) out of the lar
 # container, converts to float, flags bad channels and subtracts pedestals.
 
@@ -72,7 +91,7 @@ adcnr_dune35tlegacy: {
   SkipStuckCodes:   false
   SkipSignals:      false
   CorrectStuckCodes: true
-  ShowGroups:           2
+  ShowGroups:           0  # Use 2 to dump group map
   ShowGroupsChannel:    4
 }
 
@@ -142,7 +161,7 @@ adcprep_readraw: {
   DoDeconvolution:       false
   DoROI:                 false
   DoWires:               false
-  IntermediateStates:       []
+  DoIntermediateStates:  false
 }
 
 # Process simulation.
@@ -158,7 +177,7 @@ adcprep_sim: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
-  IntermediateStates:       []
+  DoIntermediateStates:   true
 }
 
 # Process 35-ton data
@@ -174,7 +193,7 @@ adcprep_dune35tdata: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
-  IntermediateStates:       []
+  DoIntermediateStates:   true
 }
 
 #***********************************************************************
@@ -184,10 +203,11 @@ adcprep_dune35tdata: {
 # Process any data.
 producer_adcprep: {
   module_type: "DataPrepModule"
-  LogLevel:    1
-  DigitLabel:  "daq"
-  WireName:    ""
-  DoAssns:     true
+  LogLevel:                   1
+  DigitLabel:             "daq"
+  WireName:                  ""
+  DoAssns:                 true
+  IntermediateStates:        []
 }
 
 #***********************************************************************

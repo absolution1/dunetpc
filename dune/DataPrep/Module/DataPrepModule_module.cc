@@ -5,8 +5,21 @@
 //
 // Module that reads RawData and writes Wire and their associations.
 // It uses RawDigitPrepService to build the wires.
+//
+// It is possible to also write intermediate states. List the states in the fcl
+// vector IntermediateStates. Supported values are:
+//   extracted - After pedestal subtraction
+//   mitigated - After mitigation (e.g. stuck bit interpolation)
+//   noiseRemoved - After noise removal
+// The states are written to the containers with the same name. To save space
+// and time, e.g. in standard production, this vector should be empty.
+//
+// Configuration parameters:
+//             LogLevel - Usual logging level.
+//           DigitLabel - Full label for the input digit container, e.g. daq
+//             WireName - Name for the output wire container.
+//   IntermediateStates - Names of intermediate states to record.
 
-//#include "canvas/Persistency/Common/Ptr.h"
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h" 
@@ -19,7 +32,9 @@
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 using art::ServiceHandle;
+using recob::Wire;
 
 //**********************************************************************
 
@@ -45,6 +60,7 @@ private:
   int m_LogLevel;
   std::string m_DigitLabel;  ///< Full label for the input digit container, e.g. daq:
   std::string m_WireName;    ///< Second field in full label for the output wire container.
+  std::vector<std::string> m_IntermediateStates;
 
   // Split label into producer and name: PRODUCER or PRODUCER:NAME
   std::string m_DigitProducer;
@@ -60,9 +76,12 @@ DEFINE_ART_MODULE(DataPrepModule)
 
 DataPrepModule::DataPrepModule(fhicl::ParameterSet const& pset) {
   this->reconfigure(pset);
-  produces< std::vector<recob::Wire> >(m_WireName);
+  produces<std::vector<recob::Wire>>(m_WireName);
   if ( m_DoAssns ) {
     produces<art::Assns<raw::RawDigit, recob::Wire>>(m_WireName);
+  }
+  for ( string sname : m_IntermediateStates ) {
+    produces<std::vector<recob::Wire>>(sname);
   }
 }
   
@@ -78,6 +97,8 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_DigitLabel = pset.get<std::string>("DigitLabel", "daq");
   m_WireName   = pset.get<std::string>("WireName", "");
   m_DoAssns    = pset.get<bool >("DoAssns", "");
+  m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
+
                
   size_t ipos = m_DigitLabel.find(":");
   if ( ipos == std::string::npos ) {
@@ -92,6 +113,10 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
                    << ", " << m_DigitName << ")" << endl;
     cout << myname << "    WireName: " << m_WireName << endl;
     cout << myname << "     DoAssns: " << m_DoAssns << endl;
+    cout << myname << "  IntermediateStates: [";
+    int count = 0;
+    for ( string sname : m_IntermediateStates ) cout << (count++ == 0 ? "" : " ") << sname;
+    cout << "]" << endl;
   }
 }
 
@@ -113,12 +138,18 @@ void DataPrepModule::produce(art::Event& evt) {
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
   if ( hdigits->size() == 0 ) mf::LogWarning("DataPrepModule") << "Input digit container is empty";
 
+  // Prepare the intermediate state cache.
+  WiredAdcChannelDataMap* pintStates = nullptr;
+  if ( m_IntermediateStates.size() ) {
+    pintStates = new WiredAdcChannelDataMap(m_IntermediateStates, hdigits->size());
+  }
+
   // Process the digits.
   ServiceHandle<RawDigitPrepService> hrdp;
   AdcChannelDataMap acds;
   std::unique_ptr<std::vector<recob::Wire>> pwires(new std::vector<recob::Wire>);
   pwires->reserve(hdigits->size());
-  int rstat = hrdp->prepare(*hdigits, acds, pwires.get());
+  int rstat = hrdp->prepare(*hdigits, acds, pwires.get(), pintStates);
   if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation srvice returned error " << rstat;
   if ( pwires->size() == 0 ) mf::LogWarning("DataPrepModule") << "No wires made for this event.";
 
@@ -148,5 +179,29 @@ void DataPrepModule::produce(art::Event& evt) {
   if ( m_DoAssns ) {
     evt.put(std::move(passns), m_WireName);
   }
+
+  // Record intermediate state wires.
+  for ( string sname : m_IntermediateStates ) {
+    vector<Wire>* pintWires = pintStates->wires[sname];
+    if ( pintWires == nullptr ) {
+      cout << myname << "WARNING: Wires not found for state " << sname << "." << endl;
+      continue;
+    }
+    if ( m_LogLevel >=2 ) {
+      cout << myname << "Recording intermediate state " << sname << "  with "
+                     << pintWires->size() << " channels." << endl;
+    }
+    if ( m_LogLevel >=3 ) {
+      for ( const Wire& wire : *pintWires ) {
+        cout << myname << "   Channel " << wire.Channel() << " has "
+                       << wire.SignalROI().n_ranges() << " ROI and "
+                       << wire.SignalROI().count() << "/" << wire.SignalROI().size()
+                       << " ticks." << endl;
+      }
+    }
+    std::unique_ptr<std::vector<recob::Wire>> pintWiresWrapped(pintWires);
+    evt.put(std::move(pintWiresWrapped), sname);
+  }
+
   return;
 }

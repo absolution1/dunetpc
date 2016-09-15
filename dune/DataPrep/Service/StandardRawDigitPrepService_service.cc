@@ -2,6 +2,7 @@
 
 #include "StandardRawDigitPrepService.h"
 #include <iostream>
+#include <set>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
@@ -16,11 +17,13 @@
 #include "dune/DuneInterface/AdcDeconvolutionService.h"
 #include "dune/DuneInterface/AdcRoiBuildingService.h"
 #include "dune/DuneInterface/AdcWireBuildingService.h"
+#include "dune/DuneInterface/AdcChannelDataCopyService.h"
 
 using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
+using std::set;
 using raw::RawDigit;
 
 //**********************************************************************
@@ -39,7 +42,8 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_pPedestalEvaluation(nullptr),
   m_pDeconvolutionService(nullptr),
   m_pRoiBuildingService(nullptr),
-  m_pWireBuildingService(nullptr) {
+  m_pWireBuildingService(nullptr),
+  m_pAdcChannelDataCopyService(nullptr) {
   const string myname = "StandardRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_SkipBad        = pset.get<bool>("SkipBad");
@@ -52,7 +56,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_DoDeconvolution      = pset.get<bool>("DoDeconvolution");
   m_DoROI                = pset.get<bool>("DoROI");
   m_DoWires              = pset.get<bool>("DoWires");
-  m_IntermediateStates   = pset.get<vector<string>>("IntermediateStates");
+  m_DoIntermediateStates = pset.get<bool>("DoIntermediateStates");
   pset.get_if_present<bool>("DoDump", m_DoDump);
   pset.get_if_present<unsigned int>("DumpChannel", m_DumpChannel);
   pset.get_if_present<unsigned int>("DumpTick", m_DumpTick);
@@ -106,6 +110,11 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     m_pWireBuildingService = &*art::ServiceHandle<AdcWireBuildingService>();
     if ( m_LogLevel ) cout << myname << "  Wire building service: @" <<  m_pWireBuildingService << endl;
   }
+  if ( m_DoIntermediateStates > 0 ) {
+    if ( m_LogLevel ) cout << myname << "Fetching intermediate state copying building service." << endl;
+    m_pAdcChannelDataCopyService = &*art::ServiceHandle<AdcChannelDataCopyService>();
+    if ( m_LogLevel ) cout << myname << "  Intermediate state copying service: @" <<  m_pAdcChannelDataCopyService << endl;
+  }
   if ( m_LogLevel >=1 ) print(cout, myname);
 }
 
@@ -124,6 +133,7 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
   int nbad = 0;
   unsigned int ichan = m_DumpChannel;
   unsigned int isig = m_DumpTick;
+  set<string> snames;
   for ( size_t idig=0; idig<digs.size(); ++idig ) {
     const RawDigit& dig = digs[idig];
     AdcChannel chanoff = dig.Channel();
@@ -156,8 +166,20 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
       ++nbad;
       continue;
     }
+    string state = "extracted";
+    if ( pintStates != nullptr && pintStates->hasData(state) && m_pAdcChannelDataCopyService != nullptr ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Saving intermediate state " << state << "." << endl;
+      m_pAdcChannelDataCopyService->copy(data, pintStates->dataMaps[state][chan]);
+      snames.insert(state);
+    }
     if ( m_DoMitigation ) {
       m_pmitigateSvc->update(data);
+      string state = "mitigated";
+      if ( pintStates != nullptr && pintStates->hasData(state) && m_pAdcChannelDataCopyService != nullptr ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Saving intermediate state " << state << "." << endl;
+        m_pAdcChannelDataCopyService->copy(data, pintStates->dataMaps[state][chan]);
+        snames.insert(state);
+      }
     }
     if ( m_DoEarlySignalFinding ) {
       m_pAdcSignalFindingService->find(data);
@@ -187,6 +209,16 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
   }
   if ( m_DoNoiseRemoval ) {
     m_pNoiseRemoval->update(datamap);
+    string state = "noiseRemoved";
+    if ( pintStates != nullptr && pintStates->hasData(state) && m_pAdcChannelDataCopyService != nullptr ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Saving intermediate state " << state << "." << endl;
+      for ( const auto& idat : datamap ) {
+        AdcChannel chan = idat.first;
+        const AdcChannelData& data = idat.second;
+        m_pAdcChannelDataCopyService->copy(data, pintStates->dataMaps[state][chan]);
+        snames.insert(state);
+      }
+    }
   }
   if ( m_DoDeconvolution ) {
     for ( AdcChannelDataMap::value_type& chdata : datamap ) {
@@ -223,6 +255,33 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
         cout << myname << "        Wire: " << pwires->back().Signal().at(isig) << endl;
       }
     }
+    for ( string sname : snames ) {
+      WiredAdcChannelDataMap& intStates = *pintStates;
+      auto inamedacdmap = intStates.dataMaps.find(sname);
+      if ( inamedacdmap == intStates.dataMaps.end() ) {
+        cout << myname << "WARNING: State " << sname << " does not have data." << endl;
+        continue;
+      }
+      auto inamedwires = intStates.wires.find(sname);
+      if ( inamedwires == intStates.wires.end() ) {
+        cout << myname << "WARNING: State " << sname << " does not have a wire container." << endl;
+        continue;
+      }
+      AdcChannelDataMap& acdmapState = inamedacdmap->second;
+      std::vector<recob::Wire>* pwiresState = inamedwires->second;
+      for ( auto& chdata : acdmapState ) {
+        AdcChannelData& acd = chdata.second;
+        // Create a single ROI.
+        acd.signal.clear();
+        acd.signal.resize(acd.samples.size(), true);
+        acd.roisFromSignal();
+        // Build wires.
+        m_pWireBuildingService->build(acd, pwiresState);
+        if ( m_DoDump && acd.channel==ichan ) {
+          cout << myname << "        State " << sname << " wire: " << pwires->back().Signal().at(isig) << endl;
+        }
+      }
+    }
   }
   return nbad;
 }
@@ -244,13 +303,7 @@ print(std::ostream& out, std::string prefix) const {
   out << prefix << "                DoROI: " << m_DoROI                << endl;
   out << prefix << "              DoWires: " << m_DoWires              << endl;
   out << prefix << "               DoDump: " << m_DoDump               << endl;
-  if ( m_IntermediateStates.size() == 0 ) {
-    out << prefix << "  No intermeidate states." << endl;
-  } else {
-    out << "Intermeidate states:";
-    for ( string stateName : m_IntermediateStates ) cout << " " << stateName;
-    cout << endl;
-  }
+  out << prefix << " DoIntermediateStates: " << m_DoIntermediateStates << endl;
   if ( m_DoDump ) {
     out << prefix << "          DumpChannel: " << m_DumpChannel          << endl;
     out << prefix << "             DumpTick: " << m_DumpTick             << endl;

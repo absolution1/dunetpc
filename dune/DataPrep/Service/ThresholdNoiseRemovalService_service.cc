@@ -34,14 +34,22 @@ ThresholdNoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegis
 int ThresholdNoiseRemovalService::update(AdcChannelData& data) const {
   const string myname = "ThresholdNoiseRemovalService:update: ";
   AdcSignalVector& sigs = data.samples;
+  AdcFlagVector& flags = data.flags;
   if ( sigs.size() == 0 ) {
     cout << myname << "WARNING: No data found." << endl;
     return 1;
   }
+  if ( flags.size() == 0 ) flags.resize(sigs.size(), AdcGood );
+  if ( flags.size() != sigs.size() ) {
+    cout << myname << "ERROR: samples and flags vectors have different sizes." << endl;
+    return 2;
+  }
   AdcIndex count = 0;
-  for ( AdcSignal& sig : sigs ) {
+  for ( unsigned int isig=0; isig<sigs.size(); ++isig ) {
+    AdcSignal& sig = sigs[isig];
     if ( fabs(sig) < m_Threshold ) {
       sig = 0.0;
+      flags[isig] = AdcSetFixed;
       ++count;
     }
   }
