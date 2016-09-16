@@ -65,7 +65,11 @@ public:
 
 };
 
+//**********************************************************************
+
 typedef std::map<AdcChannel, AdcChannelData> AdcChannelDataMap;
+
+//**********************************************************************
 
 inline void AdcChannelData::roisFromSignal() {
   rois.clear();
@@ -84,4 +88,5 @@ inline void AdcChannelData::roisFromSignal() {
   }
 }
 
+//**********************************************************************
 #endif
