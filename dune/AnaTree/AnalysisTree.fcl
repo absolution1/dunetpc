@@ -64,8 +64,14 @@ protodune_analysistree.FlashMatchAssocLabel: [ "", "", "" ]
 protodune_analysistree.SaveShowerInfo:  false
 
 dune10kt_analysistree: @local::dune35t_analysistree
-dune10kt_analysistree.FlashT0FinderLabel:         [ "","","","" ]
-dune10kt_analysistree.CalorimetryModuleLabel:     ["pmtrackcalo","pmtrackcalodc","pandoracalo","pandoracalodc"]
+dune10kt_analysistree.TrackModuleLabel: [ "pmtrackdc", "pmtracktcdc" ]
+dune10kt_analysistree.CalorimetryModuleLabel: [ "pmtrackcalodc", "pmtracktccalodc" ]
+dune10kt_analysistree.ParticleIDModuleLabel:       [ "pmtrackpiddc", "pmtracktcpiddc" ]
+dune10kt_analysistree.FlashT0FinderLabel: [ "", "" ]
+dune10kt_analysistree.MCT0FinderLabel:   [ "", "" ]
+dune10kt_analysistree.CosmicTaggerAssocLabel:  [ "", "" ]
+dune10kt_analysistree.ContainmentTaggerAssocLabel: [ "", "" ]
+dune10kt_analysistree.FlashMatchAssocLabel: [ "", "" ]
 dune10kt_analysistree.SaveCryInfo:                false
 dune10kt_analysistree.SaveGenieInfo:              false
 dune10kt_analysistree.SaveExternCounterInfo:      false
