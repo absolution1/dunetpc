@@ -27,6 +27,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TGraph.h"
 
 #include <vector>
 
@@ -67,6 +68,8 @@ private:
   TH1D *hsig[8][3][4];
   TH1D *hbkg[8][3][4];
   TH1D *hstb[8][3][4];
+  TH1D *hdx;
+  TH2D *hphx;
 };
 
 
@@ -158,7 +161,26 @@ void dune::SignalToNoise::analyze(art::Event const & e)
       double dc = std::abs(ccosx*larStart[0]+ccosy*larStart[1]+ccosz*larStart[2]);
       dcos->Fill(dc);
       if (dc>0.98){
-        double ctime = (countlist[ci1[0]]->GetTrigTime() + countlist[ci2[0]]->GetTrigTime())/(2*32.);        
+        double ctime = (countlist[ci1[0]]->GetTrigTime() + countlist[ci2[0]]->GetTrigTime())/(2*32.); 
+        double x0 = trackStart[0] + (trackStart[0]>0?-1:1)*ctime*0.5*0.1085;
+        //double y0 = trackStart[1];
+        double z0 = trackStart[2];
+        double x1 = trackEnd[0] + (trackStart[0]>0?-1:1)*ctime*0.5*0.1085;
+        //double y1 = trackEnd[1];
+        double z1 = trackEnd[2];
+
+        double dx1 = 1e10;
+        double dx2 = 1e10;
+        if (c1[0]>=6&&c1[0]<=15){
+          dx1 = std::abs(x0+(cz[c1[0]]-z0)*(x0-x1)/(z0-z1)-cx[c1[0]]);
+        }
+        if (c2[0]>=28&&c2[0]<=37){
+          dx2 = std::abs(x0+(cz[c2[0]]-z0)*(x0-x1)/(z0-z1)-cx[c2[0]]);
+        }
+        //std::cout<<dx1<<" "<<dx2<<std::endl;
+        hdx->Fill(dx1);
+        hdx->Fill(dx2);
+        if (dx1>40||dx2>40) continue;
         for (size_t j = 0; j<tracklist[i]->NumberTrajectoryPoints(); ++j){
           TVector3 loc = tracklist[i]->LocationAtPoint(j);
           hyz->Fill(loc[2],loc[1]);
@@ -169,11 +191,19 @@ void dune::SignalToNoise::analyze(art::Event const & e)
             hxz->Fill(loc[2],loc[0]+ctime*0.5*0.1085);
           }
         }
+        std::map<size_t,art::Ptr<recob::Hit> > hitmap;
+        std::map<size_t,int> indexmap;
+        std::map<size_t,double> xposmap;
         if (fmthm.isValid()){
           auto vhit = fmthm.at(i);
           auto vmeta = fmthm.data(i);
           for (size_t h = 0; h < vhit.size(); ++h){
             TVector3 loc = tracklist[i]->LocationAtPoint(vmeta[h]->Index());
+            if (vhit[h]->WireID().TPC==5&&vhit[h]->WireID().Plane==2){
+              hitmap[vhit[h]->WireID().Wire] = vhit[h];
+              indexmap[vhit[h]->WireID().Wire] = vmeta[h]->Index();
+              xposmap[vhit[h]->WireID().Wire] = loc[0]-ctime*0.5*0.1085;
+            }
             if ((loc[0]>0&&std::abs(loc[0]-ctime*0.5*0.1085)<50)||
                 (loc[0]<0&&std::abs(loc[0]+ctime*0.5*0.1085)<50)){
               int besttime = -1;
@@ -240,11 +270,61 @@ void dune::SignalToNoise::analyze(art::Event const & e)
                   hbkg[vhit[h]->WireID().TPC][vhit[h]->WireID().Plane][1]->Fill(sqrt(mean2-mean*mean));
                 }
               }//loop over rawlist1
-
+            }//within 50 cm of anode
+          }//loop over all associated hits
+        }//fmthm is valid
+        if (hitmap.size()>=10){//found at least 10 hits in TPC5
+          for (size_t h = 0; h<geom->Nwires(2,5,0); ++h){//plane 2, tpc 5, cstat 0
+            double pt = -1;
+            double xpos = -1;
+            if (hitmap.find(h)!=hitmap.end()){//found hit on track
+              pt = hitmap[h]->PeakTime();
+              xpos = xposmap[h];
+            }
+            else{//found hit time through extrapolation
+              std::vector<double> vw;
+              std::vector<double> vt;
+              std::vector<double> vx;
+              for (auto& hv : hitmap){
+                if (std::abs(hv.first-h)<=5){
+                  vw.push_back((hv.second)->WireID().Wire);
+                  vt.push_back((hv.second)->PeakTime());
+                  vx.push_back(xposmap[hv.first]);
+                }
+              }
+              if (vw.size()>=3){
+                TGraph *gr = new TGraph(vw.size(), &vw[0], &vt[0]);
+                pt = gr->Eval(h);
+                delete gr;
+                gr = new TGraph(vw.size(), &vw[0], &vx[0]);
+                xpos = gr->Eval(h);
+                delete gr;
+              }
+            }
+            if (pt>=0){
+              int maxph = -1;
+              for (size_t j = 0; j<rawlist0.size(); ++j){
+                if (rawlist0[j]->Channel() == geom->PlaneWireToChannel(2,h,5)){
+                  double pedestal = rawlist0[j]->GetPedestal();
+                  for (size_t k = 0; k<rawlist0[j]->NADC(); ++k){
+                    if (float(k)>=pt&&float(k)<=pt+20){
+                      if (int(rawlist0[j]->ADC(k)-pedestal)>maxph){
+                        maxph = int(rawlist0[j]->ADC(k)-pedestal);
+                      }
+                    }
+                  }
+                }
+              }
+              double angleToVert = geom->WireAngleToVertical(hitmap.begin()->second->View(), hitmap.begin()->second->WireID().TPC, hitmap.begin()->second->WireID().Cryostat) - 0.5*::util::pi<>();
+              //std::cout<<vhit[h]->View()<<" "<<vhit[h]->WireID().TPC<<" "<<vhit[h]->WireID().Cryostat<<" "<<angleToVert<<std::endl;
+              const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
+              hphx->Fill(xpos,maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View()));
+              //std::cout<<h<<" "<<pt<<" "<<xpos<<" "<<maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View())<<std::endl;
             }
           }
         }
-      }
+      }//matched track
     }
   }
 }
@@ -269,8 +349,10 @@ void dune::SignalToNoise::beginJob()
     }
   }
         
+  hdx = tfs->make<TH1D>("hdx",";#Delta x (cm)",100,0,100);
+  hdx->Sumw2();
+  hphx = tfs->make<TH2D>("hphx",";x (cm); dQ/dx (ADC/cm)",50,0,250,100,0,600);
                            
-
   std::ifstream in;
   in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
   char line[1024];
