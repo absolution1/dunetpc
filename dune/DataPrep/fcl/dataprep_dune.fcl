@@ -128,9 +128,15 @@ adcroi_dune35t: {
   NSigmaEnd:          1.0
   PadLow:              50
   PadHigh:             50
+  LogLevel:             1
 }
 
 adcroi_dunefd: @local::adcroi_dune35t
+
+adcroi_keepall: {
+  service_provider: KeepAllRoiBuildingService
+  LogLevel:              1
+}
 
 #***********************************************************************
 
