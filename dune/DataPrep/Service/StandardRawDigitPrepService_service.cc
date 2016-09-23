@@ -32,6 +32,7 @@ StandardRawDigitPrepService::
 StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1),
   m_ChannelStatusOnline(false),
+  m_WiresWithoutROIFlag(2),
   m_DoDump(false), m_DumpChannel(0), m_DumpTick(0),
   m_pChannelMappingService(0),
   m_pChannelStatusProvider(nullptr),
@@ -58,7 +59,8 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   m_DoWires              = pset.get<bool>("DoWires");
   m_DoIntermediateStates = pset.get<bool>("DoIntermediateStates");
   pset.get_if_present<bool>("DoDump", m_DoDump);
-  pset.get_if_present<unsigned int>("DumpChannel", m_DumpChannel);
+  pset.get_if_present<bool>("DoDump", m_DoDump);
+  pset.get_if_present<unsigned int>("WiresWithoutROIFlag", m_WiresWithoutROIFlag);
   pset.get_if_present<unsigned int>("DumpTick", m_DumpTick);
   if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
   m_pExtractSvc = &*art::ServiceHandle<RawDigitExtractService>();
@@ -114,6 +116,10 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     if ( m_LogLevel ) cout << myname << "Fetching intermediate state copying building service." << endl;
     m_pAdcChannelDataCopyService = &*art::ServiceHandle<AdcChannelDataCopyService>();
     if ( m_LogLevel ) cout << myname << "  Intermediate state copying service: @" <<  m_pAdcChannelDataCopyService << endl;
+  }
+  if ( m_DoWires && !m_DoROI ) {
+    if ( m_WiresWithoutROIFlag >= 1 ) cout << myname << "WARNING: Wire building requested without ROI building." << endl;
+    if ( m_WiresWithoutROIFlag >= 3 ) abort();
   }
   if ( m_LogLevel >=1 ) print(cout, myname);
 }
@@ -248,6 +254,10 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
     }
   }
   if ( m_DoWires ) {
+    if ( ! m_DoROI ) {
+      if ( m_WiresWithoutROIFlag >= 2 ) cout << myname << "WARNING: Wire building requested without ROI building." << endl;
+      if ( m_WiresWithoutROIFlag >= 3 ) abort();
+    }
     for ( auto& chdata : datamap ) {
       AdcChannelData& acd = chdata.second;
       m_pWireBuildingService->build(acd, pwires);
