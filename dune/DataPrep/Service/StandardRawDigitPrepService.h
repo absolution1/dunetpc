@@ -28,6 +28,11 @@
 //   DoWires - Build wires.
 //   DoIntermediateStates - Build intermediate states requested by caller.
 //   DoDump [false] - If true, the info for one tick is displayed in the log.
+//   WiresWithoutROIFlag [2] - How to handle a request for wire building without ROI building.
+//                               0 - Silently ignore
+//                               1 - Warn in ctor only.
+//                               2 - Warn in ctor and every event.
+//                               3 - Abort after message.
 //   DumpChannel [0] - The channel that is dumped.
 //   DumpTick [0] - The tick that is dumped.
 
@@ -75,6 +80,7 @@ private:
   bool m_DoDeconvolution;
   bool m_DoROI;
   bool m_DoWires;
+  unsigned int m_WiresWithoutROIFlag;
   bool m_DoDump;
   bool m_DoIntermediateStates;
   unsigned int m_DumpChannel;

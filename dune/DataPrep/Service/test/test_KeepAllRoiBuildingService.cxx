@@ -33,7 +33,7 @@ typedef vector<unsigned int> IndexVector;
 
 //**********************************************************************
 
-int test_KeepAllRoiBuildingService(int a_LogLevel =1) {
+int test_KeepAllRoiBuildingService(int a_LogLevel =1, bool explicitFcl =true) {
   const string myname = "test_KeepAllRoiBuildingService: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -42,15 +42,24 @@ int test_KeepAllRoiBuildingService(int a_LogLevel =1) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
+  cout << myname << "Arguments: " << endl;
+  cout << myname << "     LogLevel: " << a_LogLevel << endl;
+  cout << myname << "  explicitFcl: " << explicitFcl << endl;
+
+  cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
   string fclfile = "test_KeepAllRoiBuildingService.fcl";
   ofstream fout(fclfile.c_str());
   fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services.user: @local::dune35t_services" << endl;
-  fout << "services.AdcRoiBuildingService: {" << endl;
-  fout << "  service_provider: KeepAllRoiBuildingService" << endl;
-  fout << "  LogLevel:       " << a_LogLevel << endl;
-  fout << "}" << endl;
+  fout << "services: @local::dune35t_services" << endl;
+  if ( explicitFcl ) {
+    fout << "services.AdcRoiBuildingService: {" << endl;
+    fout << "  service_provider: KeepAllRoiBuildingService" << endl;
+    fout << "  LogLevel:       " << a_LogLevel << endl;
+    fout << "}" << endl;
+  } else {
+    fout << "services.AdcRoiBuildingService:  @local::adcroi_keepall" << endl;
+  }
   fout.close();
 
   cout << myname << "Fetch art service helper." << endl;
@@ -130,11 +139,18 @@ int test_KeepAllRoiBuildingService(int a_LogLevel =1) {
 
 int main(int argc, char* argv[]) {
   int a_LogLevel = -1;
+  bool explicitFcl = 1;
   if ( argc > 1 ) {
     istringstream ssarg(argv[1]);
     ssarg >> a_LogLevel;
   }
-  return test_KeepAllRoiBuildingService(a_LogLevel);
+  if ( argc > 2 ) {
+    string sarg(argv[2]);
+    explicitFcl = sarg=="1" || sarg == "true";
+  }
+  cout << "     LogLevel: " << a_LogLevel << endl;
+  cout << "  explicitFcl: " << explicitFcl << endl;
+  return test_KeepAllRoiBuildingService(a_LogLevel, explicitFcl);
 }
 
 //**********************************************************************
