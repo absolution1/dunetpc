@@ -23,7 +23,7 @@ typedef std::vector<std::string> NameList;
 
 int main(int argc, char** argv) {
   const string myname = "listlibs";
-  bool help = argc == 1;
+  bool help = false;
   string libtype = "service";
   string pattern;
   if ( argc > 1 ) {
@@ -53,7 +53,10 @@ int main(int argc, char** argv) {
     }
     libnames = newnames;
   }
-  cout << "Found " << nlib << " libraries." << endl;
+  unsigned int nsel = libnames.size();
+  if ( pattern.size() && nlib > 0 ) cout << "Selected " << nsel << " of ";
+  else cout << "Found ";
+  cout << nlib << " " << libtype << " libraries." << endl;
   for ( string libname : libnames ) {
     cout << "  " << libname << endl;
   }
