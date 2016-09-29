@@ -15,6 +15,7 @@
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/WiredAdcChannelDataMap.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -31,6 +32,7 @@ using std::vector;
 using std::map;
 using art::ServiceHandle;
 using raw::RawDigit;
+using recob::Wire;
 
 //**********************************************************************
 
@@ -41,6 +43,15 @@ bool sigequal(AdcSignal sig1, AdcSignal sig2) {
     return false;
   }
   return true;
+}
+
+bool flagequal(AdcFlag flg1, AdcFlag flg2) {
+  if ( flg1 == flg2 ) return true;
+  if ( flg1 == AdcInterpolated && flg2 == AdcStuckOff ) return true;
+  if ( flg1 == AdcInterpolated && flg2 == AdcStuckOn ) return true;
+  if ( flg1 == AdcSetFixed ) return true;
+  cout << "flagequal: " << flg1 << " != " << flg2 << endl;
+  return false;
 }
 
 //**********************************************************************
@@ -60,17 +71,26 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   cout << myname << "Create top-level FCL." << endl;
   string fclfile = "test_StandardRawDigitPrepService.fcl";
   bool usePedestalAdjustment = false;
+  vector<string> snames;
   if ( useExistingFcl ) {
   } else if ( useFclFile ) {
+    // Use the DUNE fcl for 35-ton reco.
+    // Disable noise removal and deconvolution because these make it difficult
+    // to predict the result.
     ofstream fout(fclfile.c_str());
     fout << "#include \"services_dune.fcl\"" << endl;
     fout << "services: @local::dune35tdata_reco_services" << endl;
-    fout << "services.RawDigitPrepService.DoMitigation: false" << endl;
     fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
     fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
+    fout << "services.RawDigitPrepService.DoIntermediateStates: true" << endl;
+    fout << "services.AdcChannelDataCopyService.CopyFlags: true" << endl;
     fout.close();
+    snames.push_back("extracted");
+    snames.push_back("mitigated");
   } else {
     ofstream fout(fclfile.c_str());
+    fout << "#include \"services_dune.fcl\"" << endl;
+    fout << "services.user: @local::dune35t_services" << endl;
     fout << "services.RawDigitExtractService: {" << endl;
     fout << "  service_provider: StandardRawDigitExtractService" << endl;
     fout << "  LogLevel:        1" << endl;
@@ -78,27 +98,66 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     fout << "  FlagStuckOff: true" << endl;
     fout << "  FlagStuckOn:  true" << endl;
     fout << "}" << endl;
+    fout << "services.AdcMitigationService: {" << endl;
+    fout << "  service_provider: InterpolatingAdcMitigationService" << endl;
+    fout << "  LogLevel:              1" << endl;
+    fout << "  SkipUnderflows:     true" << endl;
+    fout << "  SkipOverflows:      true" << endl;
+    fout << "  MaxConsecutiveSamples: 3" << endl;
+    fout << "  MaxConsecutiveFlag:    0" << endl;
+    fout << "}" << endl;
     fout << "services.PedestalEvaluationService: {" << endl;
     fout << "  service_provider: MedianPedestalService" << endl;
     fout << "  LogLevel:           1" << endl;
     fout << "  SkipFlaggedSamples: true" << endl;
     fout << "  SkipSignals:        true" << endl;
     fout << "}" << endl;
+    fout << "services.AdcChannelNoiseRemovalService: {" << endl;
+    fout << "  service_provider: ThresholdNoiseRemovalService" << endl;
+    fout << "  Threshold:  10.0" <<  endl;
+    fout << "  LogLevel:      1" << endl;
+    fout << "}" << endl;
+    fout << "services.AdcNoiseRemovalService: {" << endl;
+    fout << "  service_provider: MultiChannelNoiseRemovalService" << endl;
+    fout << "  LogLevel:       1" << endl;
+    fout << "}" << endl;
+    fout << "services.AdcChannelDataCopyService: {" << endl;
+    fout << "  service_provider: ConfigurableAdcChannelDataCopyService" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  CopyChannel:     true" << endl;
+    fout << "  CopyPedestal:    true" << endl;
+    fout << "  CopySamples:     true" << endl;
+    fout << "  CopyFlags:       true" << endl;
+    fout << "  CopyDigit:       true" << endl;
+    fout << "  CopyDigitIndex:  true" << endl;
+    fout << "}" << endl;
+    fout << "services.AdcRoiBuildingService: {" << endl;
+    fout << "  service_provider: KeepAllRoiBuildingService" << endl;
+    fout << "  LogLevel:       1" << endl;
+    fout << "}" << endl;
+    fout << "services.AdcWireBuildingService: {" << endl;
+    fout << "  service_provider: StandardAdcWireBuildingService" << endl;
+    fout << "  LogLevel:       1" << endl;
+    fout << "}" << endl;
     fout << "services.RawDigitPrepService: {" << endl;
     fout << "  service_provider: StandardRawDigitPrepService" << endl;
     fout << "  LogLevel:                 1" << endl;
     fout << "  SkipBad:              false" << endl;
     fout << "  SkipNoisy:            false" << endl;
-    fout << "  DoMitigation:         false" << endl;
+    fout << "  DoMitigation:          true" << endl;
     fout << "  DoEarlySignalFinding: false" << endl;
-    fout << "  DoNoiseRemoval:       false" << endl;
+    fout << "  DoNoiseRemoval:        true" << endl;
     fout << "  DoDeconvolution:      false" << endl;
-    fout << "  DoROI:                false" << endl;
-    fout << "  DoWires:              false" << endl;
-    fout << "  DoPedestalAdjustment:  true" << endl;
+    fout << "  DoROI:                 true" << endl;
+    fout << "  DoWires:               true" << endl;
+    fout << "  DoPedestalAdjustment: false" << endl;
+    fout << "  DoIntermediateStates:  true" << endl;
     fout << "}" << endl;
     fout.close();
-    usePedestalAdjustment = true;
+    usePedestalAdjustment = false;
+    snames.push_back("extracted");
+    snames.push_back("mitigated");
+    snames.push_back("noiseRemoved");
   }
 
   cout << myname << "Fetch art service helper." << endl;
@@ -199,20 +258,50 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   AdcSignalVector sigs;
   AdcFlagVector flags;
   AdcChannelDataMap prepdigs;
-  assert( hrdp->prepare(digs, prepdigs) == 0 );
-  cout << myname << "Found number of channels: " << prepdigs.size() << endl;
+  std::vector<recob::Wire> wires;
+  wires.reserve(nchan);
+  WiredAdcChannelDataMap intStates(snames, nchan);
+  assert( intStates.dataMaps.size() == snames.size() );
+  assert( intStates.wires.size() == snames.size() );
+  assert( hrdp->prepare(digs, prepdigs, &wires, &intStates) == 0 );
+  cout << myname << "      # prepared digit channels: " << prepdigs.size() << endl;
+  cout << myname << "                # wire channels: " << wires.size() << endl;
+  cout << myname << "  # intermediate state channels: " << intStates.dataMaps.size() << endl;
+  for ( const auto& namedadm : intStates.dataMaps ) {
+    string sname = namedadm.first;
+    const AdcChannelDataMap& adm = namedadm.second;
+    auto iwco = intStates.wires.find(sname);
+    const vector<Wire>* pwires = nullptr;
+    if ( iwco == intStates.wires.end() ) {
+      cout << myname << "  Wires not found for intermediate state " << sname << "." << endl;
+      assert( iwco != intStates.wires.end() );
+    } else {
+      pwires = iwco->second;
+    }
+    assert( pwires != nullptr );
+    cout << myname << "  State " << sname << " has " << adm.size() << " ADC channels";
+    if ( pwires != nullptr ) cout << " and " << pwires->size() << " wires";
+    cout <<"." << endl;
+    assert( pwires->size() == adm.size() );
+  }
+  cout << myname << "   # intermediate wires: " << intStates.wires.size() << endl;
   for ( AdcChannelDataMap::const_iterator ichdat=prepdigs.begin(); ichdat!=prepdigs.end(); ++ichdat ) {
     AdcChannel chan = ichdat->first;
     const AdcChannelData& acd = ichdat->second;
     const AdcSignalVector& sigs = acd.samples;
     const AdcFlagVector& flags = acd.flags;
     const raw::RawDigit* pdig = acd.digit;
+    const Wire* pwire = acd.wire;
     AdcSignal ped = acd.pedestal;
+    assert( pwire != nullptr );
+    assert( pwire->SignalROI().size() > 0 );
     cout << myname << "----- Channel " << chan << endl;
-    cout << myname << "Output vector size: " << sigs.size() << endl;
-    cout << myname << " Output flags size: " << flags.size() << endl;
-    cout << myname << "          Pedestal: " << ped << endl;
-    cout << myname << "        samples[0]: " << sigs[0] << endl;
+    cout << myname << "  Final signal tick count: " << sigs.size() << endl;
+    cout << myname << "    Final flag tick count: " << flags.size() << endl;
+    cout << myname << "    Final flag tick count: " << flags.size() << endl;
+    cout << myname << "                 Pedestal: " << ped << endl;
+    cout << myname << "               samples[0]: " << sigs[0] << endl;
+    cout << myname << "Check final data." << endl;
     assert( sigs.size() == nsig );
     assert( flags.size() == nsig );
     assert( pdig != nullptr );
@@ -221,14 +310,59 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     assert( ichdat->second.digitIndex == chan );
     const AdcFlagVector& expflags = expflagsmap[chan];
     assert( expflagsmap[chan].size() == nsig );
+    // Fetch intermediate data.
+    cout << myname << "Fetch intermediate data." << endl;
+    vector<const AdcSignalVector*> intSigs;
+    vector<const AdcFlagVector*> intFlags;
+    cout << myname << "  ...bad" << endl;
+    auto iacd = intStates.dataMaps.find("bad");
+    assert( iacd == intStates.dataMaps.end() );
+    string header = "   ch-tk  raw";
+    unsigned int nintexp = 0;
+    for ( string sname : snames ) {
+      cout << myname << "  ..." << sname << endl;
+      iacd = intStates.dataMaps.find(sname);
+      assert( iacd != intStates.dataMaps.end() );
+      const AdcChannelData& intAcd = iacd->second[chan];
+      intSigs.push_back(&intAcd.samples);
+      intFlags.push_back(&intAcd.flags);
+      assert( intAcd.wire != nullptr );
+      for ( unsigned int i=sname.size(); i<12; ++i ) header += " ";
+      header += sname;
+      ++nintexp;
+      cout << myname << "    Checking sample and flag tick counts." << endl;
+      assert( intSigs.back() != nullptr );
+      assert( intSigs.back()->size() != 0 );
+      assert( intSigs.back()->size() == nsig );
+      assert( intFlags.back() != nullptr );
+      assert( intFlags.back()->size() != 0 );
+      assert( intFlags.back()->size() == nsig );
+      cout << myname << "     Wire ROI count: " << intAcd.wire->SignalROI().n_ranges() << endl;
+      cout << myname << "    Wire Tick count: " << intAcd.wire->SignalROI().size() << endl;
+      assert( intAcd.wire->SignalROI().n_ranges() == 1 );
+      assert( intAcd.wire->SignalROI().size() == nsig );
+    }
+    header += "       final";
+    assert( intStates.dataMaps.size() == nintexp );
+    //assert( intStates.wires.size() == nintexp );
+    assert( intSigs.size() == nintexp );
+    assert( intFlags.size() == nintexp );
+    // Display results.
+    cout << myname << "Display intermediate and final samples." << endl;
+    cout << myname << header << endl;
     for ( unsigned int isig=0; isig<nsig; ++isig ) {
+      cout << myname;
       cout << setw(4) << chan << "-" 
-           << setw(2) << isig << ": " << setw(4) << adcsmap[chan][isig]
-           << fixed << setprecision(1) << setw(8) << sigs[isig]
+           << setw(2) << isig << ": " << setw(4) << adcsmap[chan][isig];
+      for ( unsigned int ista=0; ista<intSigs.size(); ++ista ) {
+        cout << fixed << setprecision(1) << setw(8) << intSigs[ista]->at(isig);
+        cout << " [" << intFlags[ista]->at(isig) << "]";
+      }
+      cout << fixed << setprecision(1) << setw(8) << sigs[isig]
            << " [" << flags[isig] << "]" << endl;
       assert( adcsmap[chan][isig] == acd.raw[isig] );
       if ( flags[isig] == AdcGood ) assert( sigequal(sigs[isig], sigsin[chan][isig]) );
-      assert( sigequal(flags[isig], expflags[isig]) );
+      assert( flagequal(flags[isig], expflags[isig]) );
     }
   }
 
@@ -246,8 +380,8 @@ int main(int argc, char* argv[]) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
       cout << "Usage: " << argv[0] << " [UseExisting] [UseFclFile]" << endl;
-      cout << "  If UseExisting = true, existing FCL file is used." << endl;
-      cout << "  If UseFclFile = true, FCL file dataprep_dune." << endl;
+      cout << "  If UseExisting = true, existing FCL file is used [false]." << endl;
+      cout << "  If UseFclFile = true, FCL file dataprep_dune [true]." << endl;
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";

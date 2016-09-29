@@ -22,6 +22,7 @@
 #include "utilities/UnpackFragment.h"
 
 #include <memory>
+#include <bitset>
 #include <iostream>
 #include <fstream>
 #include <sstream>

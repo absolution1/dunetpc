@@ -1,17 +1,17 @@
 BEGIN_PROLOG
 
-dune35t_t0countersimulation:
+dune35t_t0countersim:
 {
     module_type: "T0Counter"
     TriggerModuleLabel: "simcounter"
-    ClockSpeedCounter: 31.25 # MHz
+    ClockSpeedCounter: 64 # MHz
     CombinedTimeDelay: 160 # ns
     CoincidenceTolerance: 5 # num PENN board ticks
     Verbose: false
     MakeTree: false
 }
 
-dune35t_t0counter: @local::dune35t_t0countersimulation
+dune35t_t0counter: @local::dune35t_t0countersim
 dune35t_t0counter.TriggerModuleLabel: "SplitterInput:TRIGGER"
 dune35t_t0counter.ClockSpeedCounter: 64 # MHz
 dune35t_t0counter.CoincidenceTolerance: 40 # this is so high because the ExternalTrigger timestamp is filled using the nearest TPC tick, which could vary by as much as 32 NOvA ticks. So 40 to be safe.

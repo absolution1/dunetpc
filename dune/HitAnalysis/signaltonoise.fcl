@@ -1,0 +1,38 @@
+#include "services_dune.fcl"
+#include "resourcetracking_services.fcl"
+
+process_name: SignalToNoise
+
+services:
+{
+    TFileService: { fileName: "signaltonoise.root" }
+    @table::standard_resourcetrackers
+    @table::dune35tdata_reco_services
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/afs/fnal.gov/files/home/room3/jpdavies/lbne_r000200_sr01_20140807T150347.root" ]
+  maxEvents: -1
+}
+
+physics:
+{
+  analyzers:
+  {
+    signaltonoise: {
+      module_type: SignalToNoise
+      ExternalCounterModuleLabel: "SplitterInput:TRIGGER"
+      TrackModuleLabel: "pmtrack"
+    }
+  }
+
+  ana: [ signaltonoise ]
+#  output: [ out1 ]
+#  trigger_paths: [ produce ]
+  end_paths: [ ana ]
+
+}
+
+

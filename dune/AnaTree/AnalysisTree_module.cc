@@ -43,8 +43,8 @@
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/MCBase/MCStep.h"
 #include "nusimdata/SimulationBase/MCFlux.h"
-#include "larsimobj/Simulation/SimChannel.h"
-#include "larsimobj/Simulation/AuxDetSimChannel.h"
+#include "lardataobj/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardataobj/RawData/RawDigit.h"
@@ -260,7 +260,7 @@ namespace dune {
       TrackData_t<Float_t> trkpidmvamu;   // particle MVA value for muon PID
       TrackData_t<Float_t> trkpidmvae;   // particle MVA value for electron PID
       TrackData_t<Float_t> trkpidmvapich;   // particle MVA value for charged pion PID
-      TrackData_t<Float_t> trkpidmvapi0;   // particle MVA value for neutral pion PID
+      TrackData_t<Float_t> trkpidmvaphoton;   // particle MVA value for photon PID
       TrackData_t<Float_t> trkpidmvapr;   // particle MVA value for proton PID
       TrackData_t<Short_t> trkpidbestplane; // this is defined as the plane with most hits   
 	
@@ -359,7 +359,7 @@ namespace dune {
       ShowerData_t<Float_t> shwr_pidmvamu;   // particle MVA value for muon PID
       ShowerData_t<Float_t> shwr_pidmvae;   // particle MVA value for electron PID
       ShowerData_t<Float_t> shwr_pidmvapich;   // particle MVA value for charged pion PID
-      ShowerData_t<Float_t> shwr_pidmvapi0;   // particle MVA value for neutral pion PID
+      ShowerData_t<Float_t> shwr_pidmvaphoton;   // particle MVA value for photon PID
       ShowerData_t<Float_t> shwr_pidmvapr;   // particle MVA value for proton PID
 	  
       
@@ -1457,7 +1457,7 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkpidmvamu.resize(MaxTracks);
   trkpidmvae.resize(MaxTracks);
   trkpidmvapich.resize(MaxTracks);
-  trkpidmvapi0.resize(MaxTracks);
+  trkpidmvaphoton.resize(MaxTracks);
   trkpidmvapr.resize(MaxTracks);
   
   trkke.resize(MaxTracks);
@@ -1534,7 +1534,7 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
   FillWith(trkpidmvamu  , -99999.);
   FillWith(trkpidmvae   , -99999.);
   FillWith(trkpidmvapich, -99999.);
-  FillWith(trkpidmvapi0 , -99999.);
+  FillWith(trkpidmvaphoton , -99999.);
   FillWith(trkpidmvapr  , -99999.);
   
   FillWith(trkhasPFParticle, -1);
@@ -1766,8 +1766,8 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "trkpidmvapich_" + TrackLabel;
   CreateBranch(BranchName, trkpidmvapich, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkpidmvapi0_" + TrackLabel;
-  CreateBranch(BranchName, trkpidmvapi0, BranchName + NTracksIndexStr + "/F");
+  BranchName = "trkpidmvaphoton_" + TrackLabel;
+  CreateBranch(BranchName, trkpidmvaphoton, BranchName + NTracksIndexStr + "/F");
 
   BranchName = "trkpidmvapr_" + TrackLabel;
   CreateBranch(BranchName, trkpidmvapr, BranchName + NTracksIndexStr + "/F");
@@ -2014,7 +2014,7 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::Resize
   shwr_pidmvamu.resize(MaxShowers);
   shwr_pidmvae.resize(MaxShowers);
   shwr_pidmvapich.resize(MaxShowers);
-  shwr_pidmvapi0.resize(MaxShowers);
+  shwr_pidmvaphoton.resize(MaxShowers);
   shwr_pidmvapr.resize(MaxShowers);
 
   shwr_hasPFParticle.resize(MaxShowers);
@@ -2038,7 +2038,7 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::Clear() {
   FillWith(shwr_pidmvamu,   -99999.);
   FillWith(shwr_pidmvae,    -99999.);
   FillWith(shwr_pidmvapich, -99999.);
-  FillWith(shwr_pidmvapi0,  -99999.);
+  FillWith(shwr_pidmvaphoton,  -99999.);
   FillWith(shwr_pidmvapr,   -99999.);
   
   FillWith(shwr_hasPFParticle, -1);
@@ -2151,8 +2151,8 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::SetAddresses
   BranchName = "shwr_pidmvapich_" + ShowerLabel;
   CreateBranch(BranchName, shwr_pidmvapich, BranchName + NShowerIndexStr + "/F");
 
-  BranchName = "shwr_pidmvapi0_" + ShowerLabel;
-  CreateBranch(BranchName, shwr_pidmvapi0, BranchName + NShowerIndexStr + "/F");
+  BranchName = "shwr_pidmvaphoton_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_pidmvaphoton, BranchName + NShowerIndexStr + "/F");
 
   BranchName = "shwr_pidmvapr_" + ShowerLabel;
   CreateBranch(BranchName, shwr_pidmvapr, BranchName + NShowerIndexStr + "/F");
@@ -4051,11 +4051,11 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	  if(fmvapid.isValid()){
 	    for(unsigned int iShower=0;iShower<showerHandle->size();++iShower){
 	      const art::Ptr<anab::MVAPIDResult> pid = fmvapid.at(iShower);
-	      ShowerData.shwr_pidmvamu[iShower] = pid->mvaOutput.at("mu");
-	      ShowerData.shwr_pidmvae[iShower] = pid->mvaOutput.at("e");
+	      ShowerData.shwr_pidmvamu[iShower] = pid->mvaOutput.at("muon");
+	      ShowerData.shwr_pidmvae[iShower] = pid->mvaOutput.at("electron");
 	      ShowerData.shwr_pidmvapich[iShower] = pid->mvaOutput.at("pich");
-	      ShowerData.shwr_pidmvapi0[iShower] = pid->mvaOutput.at("pi0");
-	      ShowerData.shwr_pidmvapr[iShower] = pid->mvaOutput.at("pr");
+	      ShowerData.shwr_pidmvaphoton[iShower] = pid->mvaOutput.at("photon");
+	      ShowerData.shwr_pidmvapr[iShower] = pid->mvaOutput.at("proton");
 	    }
 	  } // fmvapid.isValid()
 	}
@@ -4319,11 +4319,11 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	  art::FindOneP<anab::MVAPIDResult> fmvapid(trackListHandle[iTracker], evt, fMVAPIDTrackModuleLabel[iTracker]);
 	  if(fmvapid.isValid()) {
 	    const art::Ptr<anab::MVAPIDResult> pid = fmvapid.at(iTrk);
-	    TrackerData.trkpidmvamu[iTrk] = pid->mvaOutput.at("mu");
-	    TrackerData.trkpidmvae[iTrk] = pid->mvaOutput.at("e");
+	    TrackerData.trkpidmvamu[iTrk] = pid->mvaOutput.at("muon");
+	    TrackerData.trkpidmvae[iTrk] = pid->mvaOutput.at("electron");
 	    TrackerData.trkpidmvapich[iTrk] = pid->mvaOutput.at("pich");
-	    TrackerData.trkpidmvapi0[iTrk] = pid->mvaOutput.at("pi0");
-	    TrackerData.trkpidmvapr[iTrk] = pid->mvaOutput.at("pr");
+	    TrackerData.trkpidmvaphoton[iTrk] = pid->mvaOutput.at("photon");
+	    TrackerData.trkpidmvapr[iTrk] = pid->mvaOutput.at("proton");
 	  } // fmvapid.isValid()
 	}
 	art::FindMany<anab::Calorimetry> fmcal(trackListHandle[iTracker], evt, fCalorimetryModuleLabel[iTracker]);

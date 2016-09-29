@@ -10,7 +10,7 @@
 #define MuonOccupancy_Module
 
 // LArSoft includes
-#include "larsimobj/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Hit.h"

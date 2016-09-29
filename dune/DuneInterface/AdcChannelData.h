@@ -56,9 +56,20 @@ public:
   // Fill rois from signal.
   void roisFromSignal();
 
+  // Hide copy and assignment but allow move.
+  AdcChannelData() =default;
+  AdcChannelData(AdcChannelData&&) =default;
+  AdcChannelData(const AdcChannelData&) =delete;
+  AdcChannelData& operator=(AdcChannelData&&) =default;
+  AdcChannelData& operator=(const AdcChannelData&) =delete;
+
 };
 
+//**********************************************************************
+
 typedef std::map<AdcChannel, AdcChannelData> AdcChannelDataMap;
+
+//**********************************************************************
 
 inline void AdcChannelData::roisFromSignal() {
   rois.clear();
@@ -77,4 +88,5 @@ inline void AdcChannelData::roisFromSignal() {
   }
 }
 
+//**********************************************************************
 #endif

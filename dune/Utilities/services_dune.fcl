@@ -125,6 +125,7 @@ dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 # disable cerenkov
 dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
+
 # dune10kt and dune34kt consolidated into dunefd,
 # but catch any leftover cases of 10kt...
 #dune10kt_services: @local::dunefd_services
@@ -280,6 +281,7 @@ dune35tdata_reco_services:                            @local::dune35t_basic_serv
 dune35tdata_reco_services.LArFFT:                     @local::dune35t_larfft
 dune35tdata_reco_services.BackTracker:                @local::dune35t_backtracker
 dune35tdata_reco_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
+dune35tdata_reco_services.AdcChannelDataCopyService:  @local::adccopy
 dune35tdata_reco_services.RawDigitExtractService:     @local::rdx_35tdata
 dune35tdata_reco_services.AdcSuppressonService:       @local::adcmit_dune35t
 dune35tdata_reco_services.AdcSuppressService:         @local::adcsuppress_legacy35t
