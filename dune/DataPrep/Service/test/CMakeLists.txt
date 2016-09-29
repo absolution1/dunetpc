@@ -59,7 +59,7 @@ cet_test(test_AdcSuppressSignalFindingService SOURCES test_AdcSuppressSignalFind
 
 cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
   LIBRARIES
-    SignalShapingServiceDUNE_service     # Why do I need this?
+    SignalShapingServiceDUNE_service
     dune_ArtSupport
     ${ROOT_CORE}
 )
@@ -87,9 +87,6 @@ cet_test(test_StandardAdcWireBuildingService SOURCES test_StandardAdcWireBuildin
 cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx
   LIBRARIES
     dune_ArtSupport
-    lardataobj_RecoBase
+    lardataobj_RawData
     ${ROOT_CORE}
 )
-
-
-
