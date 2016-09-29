@@ -8,7 +8,13 @@
 cet_make_exec(fcldump
   SOURCE fcldump.cxx
   LIBRARIES
-   fhiclcpp
+    fhiclcpp
+    cetlib
+)
+
+cet_make_exec(liblist
+  SOURCE liblist
+  LIBRARIES
     cetlib
 )
 

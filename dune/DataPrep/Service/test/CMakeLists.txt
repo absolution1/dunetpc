@@ -9,15 +9,14 @@ include(CetTest)
 
 cet_test(test_ConfigurableAdcChannelDataCopyService SOURCES test_ConfigurableAdcChannelDataCopyService.cxx
   LIBRARIES
-    dune_DataPrep_Service_ConfigurableAdcChannelDataCopyService_service
     dune_ArtSupport
     ${ROOT_CORE}
 )
 
 cet_test(test_StandardRawDigitExtractService SOURCES test_StandardRawDigitExtractService.cxx
   LIBRARIES
-    dune_DataPrep_Service_StandardRawDigitExtractService_service
     dune_ArtSupport
+    lardataobj_RawData
     ${ROOT_CORE}
 )
 
@@ -48,28 +47,25 @@ cet_test(test_Dune35tNoiseRemovalService SOURCES test_Dune35tNoiseRemovalService
 
 cet_test(test_MedianPedestalService SOURCES test_MedianPedestalService
   LIBRARIES
-    dune_DataPrep_Service_MedianPedestalService_service
     dune_ArtSupport
     ${ROOT_CORE}
 )
 
 cet_test(test_AdcSuppressSignalFindingService SOURCES test_AdcSuppressSignalFindingService
   LIBRARIES
-    dune_DataPrep_Service_AdcSuppressSignalFindingService_service
     dune_ArtSupport
     ${ROOT_CORE}
 )
 
 cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
   LIBRARIES
-    dune_DataPrep_Service_DuneDeconvolutionService_service
+    SignalShapingServiceDUNE_service     # Why do I need this?
     dune_ArtSupport
     ${ROOT_CORE}
 )
 
 cet_test(test_KeepAllRoiBuildingService SOURCES test_KeepAllRoiBuildingService
   LIBRARIES
-    dune_DataPrep_Service_KeepAllRoiBuildingService_service
     dune_ArtSupport
     ${ROOT_CORE}
 )
@@ -83,7 +79,6 @@ cet_test(test_DuneRoiBuildingService SOURCES test_DuneRoiBuildingService
 
 cet_test(test_StandardAdcWireBuildingService SOURCES test_StandardAdcWireBuildingService
   LIBRARIES
-    dune_DataPrep_Service_StandardAdcWireBuildingService_service
     dune_ArtSupport
     lardataobj_RawData
     ${ROOT_CORE}
@@ -91,8 +86,6 @@ cet_test(test_StandardAdcWireBuildingService SOURCES test_StandardAdcWireBuildin
 
 cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx
   LIBRARIES
-    dune_DataPrep_Service_StandardRawDigitExtractService_service
-    dune_DataPrep_Service_MedianPedestalService_service
     dune_ArtSupport
     lardataobj_RecoBase
     ${ROOT_CORE}
