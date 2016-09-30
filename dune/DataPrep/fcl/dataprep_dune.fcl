@@ -128,9 +128,15 @@ adcroi_dune35t: {
   NSigmaEnd:          1.0
   PadLow:              50
   PadHigh:             50
+  LogLevel:             1
 }
 
 adcroi_dunefd: @local::adcroi_dune35t
+
+adcroi_keepall: {
+  service_provider: KeepAllRoiBuildingService
+  LogLevel:              1
+}
 
 #***********************************************************************
 
@@ -177,7 +183,7 @@ adcprep_sim: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
-  DoIntermediateStates:   true
+  DoIntermediateStates:  false
 }
 
 # Process 35-ton data
@@ -193,7 +199,7 @@ adcprep_dune35tdata: {
   DoDeconvolution:        true
   DoROI:                  true
   DoWires:                true
-  DoIntermediateStates:   true
+  DoIntermediateStates:  false
 }
 
 #***********************************************************************

@@ -81,7 +81,9 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
     }
   }
   if ( dataOwnsWire ) {
-    data.wire = new recob::Wire(wc.move());
+    // Data cannot own the wire because it would then have to depend on the Wire class in order
+    // to delete the Wire.
+    //data.wire = new recob::Wire(wc.move());
   }
   return 0;
 }
