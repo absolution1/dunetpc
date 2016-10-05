@@ -16,6 +16,7 @@ art_make(
     ${Boost_SYSTEM_LIBRARY}
     art_Framework_Services_System_TriggerNamesService_service
     art_Framework_Services_System_CurrentModule_service
+    ${ROOT_CORE}
 )
 
 add_subdirectory(test)
