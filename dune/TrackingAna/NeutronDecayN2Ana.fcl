@@ -2,10 +2,8 @@ BEGIN_PROLOG
 
 dunefd_neutrondecayn2:
 {
-   module_type:             "NeutronDecayN2Ana"
-   TrackModuleLabel:        "pmtrack"
-   HitsModuleLabel:         "hitfd"
-   MCTruthT0ModuleLabel:    "mctrutht0pmtrack"
+   module_type: "NeutronDecayN2Ana"
+   Verbosity:   0
 }
 
 END_PROLOG
