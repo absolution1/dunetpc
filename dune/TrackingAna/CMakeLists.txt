@@ -18,6 +18,7 @@ art_make( BASENAME_ONLY
 	  		   ${MF_UTILITIES}
 	  		   ${CETLIB}
 	  		   ${ROOT_BASIC_LIB_LIST}
+			   ${ROOT_EG}
         )
 
 install_headers()

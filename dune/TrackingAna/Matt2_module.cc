@@ -13,18 +13,15 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Utilities/InputTag.h"
+//#include "art/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "art/Framework/Services/Optional/TFileService.h"
 
-#include "larsim/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "larcore/Geometry/Geometry.h"
-#include "SimulationBase/MCTruth.h"
-
-//#include "RawData/RawDigit.h"
-//#include "RawData/raw.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 
 #include <iostream>
 #include <algorithm>
@@ -175,6 +172,8 @@ void Matt2::analyze(art::Event const & event)
   runid_=event.run();
   eventid_=event.event();
 
+  if ( eventid_ != 384012263 ) return;
+
   art::Handle<std::vector<simb::MCParticle> > truth;
   event.getByLabel("largeant", truth);
   std::map<int, const simb::MCParticle*> truthmap;
@@ -305,12 +304,13 @@ void Matt2::analyze(art::Event const & event)
 
 		      int pdgcode=part.PdgCode();                     
 		      TParticlePDG* rpart=pdg_->GetParticle(pdgcode);
-		      if (part.Process()!="KaonPlusInelastic" && part.Process()!="KaonMinusInelastic" && rpart && rpart->GetName()[0]=='K' && (strstr(rpart->GetName(), "+") || strstr(rpart->GetName(), "-")))
+		      if (part.Process()!="kaon+Inelastic" && part.Process()!="kaon-Inelastic" && rpart && rpart->GetName()[0]=='K' && (strstr(rpart->GetName(), "+") || strstr(rpart->GetName(), "-")))
 			{
 			  int kaonnum;
 			  std::vector<int>::iterator it=std::find(kaonids.begin(), kaonids.end(), abs(trackID));
 			  if (it==kaonids.end())
 			    {
+			      std::cout << "Found a new kaon, PDGCode " << pdgcode << ", TrackID " << trackID << ", parent " << part.Mother() << ", process " << part.Process() << std::endl;
 			      kaonids.push_back(abs(trackID));
 			      pdgcode_[nkaon_]=pdgcode;
 			      int parent=part.Mother();

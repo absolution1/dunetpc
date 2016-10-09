@@ -3,7 +3,7 @@ BEGIN_PROLOG
 dunefd_neutrondecayn2:
 {
    module_type: "NeutronDecayN2Ana"
-   Verbosity:   0
+   Verbosity:   1
 }
 
 END_PROLOG
