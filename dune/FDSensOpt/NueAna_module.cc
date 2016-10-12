@@ -14,31 +14,31 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Optional/TFileService.h" 
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
-#include "lardata/RecoBase/Track.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Vertex.h"
-#include "lardata/RecoBase/SpacePoint.h"
-#include "lardata/RecoBase/TrackHitMeta.h"
-#include "lardata/RecoBase/Shower.h"
-#include "lardata/RecoBase/OpFlash.h"
-#include "lardata/RecoBaseArt/TrackUtils.h" // lar::utils::TrackPitchInView()
-#include "lardata/AnalysisBase/Calorimetry.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Vertex.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/TrackHitMeta.h"
+#include "lardataobj/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/OpFlash.h"
+#include "lardata/RecoBaseArt/TrackUtils.h" // lar::util::TrackPitchInView()
+#include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larsim/MCCheater/BackTracker.h"
-#include "SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 #include "larreco/RecoAlg/PMAlg/Utilities.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardata/AnalysisAlg/CalorimetryAlg.h"
-#include "larcore/SummaryData/POTSummary.h"
-#include "SimulationBase/MCFlux.h"
+#include "larcoreobj/SummaryData/POTSummary.h"
+#include "nusimdata/SimulationBase/MCFlux.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -173,7 +173,7 @@ private:
   Float_t shwenergy[kMaxShower][3];  //shower energy measured on the 3 planes (GeV)
   Float_t shwdedx[kMaxShower][3];    //shower dE/dx of the initial track measured on the 3 plane (MeV/cm)
   int shwbestplane[kMaxShower];      //recommended plane for energy and dE/dx information
-  int   shwg4id[kMaxTrack];          //geant track id for the shower
+  int   shwg4id[kMaxShower];          //geant track id for the shower
 
   // flash information
   int    flash_total;                //total number of flashes
@@ -528,7 +528,7 @@ void dunefd::NueAna::analyze(art::Event const & evt)
 			  pow(trkendz[i]-trkg4startz[i],2));
 	if (dis1<dis2){
 	  try{
-	    pitch = lar::utils::TrackPitchInView(*(tracklist[i]),geo::kZ,0);
+	    pitch = lar::util::TrackPitchInView(*(tracklist[i]),geo::kZ,0);
 	  }
 	  catch(...){
 	    pitch = 0;
@@ -536,7 +536,7 @@ void dunefd::NueAna::analyze(art::Event const & evt)
 	}
 	else{
 	  try{
-	    pitch = lar::utils::TrackPitchInView(*(tracklist[i]), geo::kZ,tracklist[i]->NumberTrajectoryPoints()-1);
+	    pitch = lar::util::TrackPitchInView(*(tracklist[i]), geo::kZ,tracklist[i]->NumberTrajectoryPoints()-1);
 	  }
 	  catch(...){
 	    pitch = 0;

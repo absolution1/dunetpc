@@ -22,8 +22,8 @@
 #include "art/Framework/Principal/Event.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Principal/Handle.h"
-#include "art/Persistency/Common/Ptr.h"
-#include "art/Persistency/Common/PtrVector.h"
+#include "canvas/Persistency/Common/Ptr.h"
+#include "canvas/Persistency/Common/PtrVector.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
@@ -37,14 +37,14 @@
 #include "larcore/Geometry/CryostatGeo.h"
 #include "larcore/Geometry/TPCGeo.h"
 #include "larcore/Geometry/PlaneGeo.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Hit.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/Filters/ChannelFilter.h"
-#include "SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
 #include "larsim/Simulation/ParticleList.h"
-#include "larsim/Simulation/sim.h"
+#include "lardataobj/Simulation/sim.h"
 
 // ROOT & C++ includes
 #include <string>
@@ -150,6 +150,11 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
 
   art::FindManyP<recob::Cluster> fmc(hitHandle, evt, fClusterModuleLabel);
 
+  // Lifetime-corrected charge
+  correctedChargeU = 0;
+  correctedChargeV = 0;
+  correctedChargeZ = 0;
+
   // Look at the hits
   for (unsigned int hitIt = 0; hitIt < hits.size(); ++hitIt) {
 
@@ -158,14 +163,17 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
     // Get the hit
     art::Ptr<recob::Hit> hit = hits.at(hitIt);
 
-    // Get the lifetime-corrected charge
+    double correctedHitCharge = ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
     switch (hit->WireID().Plane) {
     case 0:
-      correctedChargeU += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+      correctedChargeU += correctedHitCharge;
+      break;
     case 1:
-      correctedChargeV += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+      correctedChargeV += correctedHitCharge;
+      break;
     case 2:
-      correctedChargeZ += ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+      correctedChargeZ += correctedHitCharge;
+      break;
     }
 
     // Fill hit level info
@@ -203,21 +211,19 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
   const std::vector<const sim::SimChannel*>& simChannels = backtracker->SimChannels();
   for (std::vector<const sim::SimChannel*>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
     int plane = geom->View((*channelIt)->Channel());
-    const std::map<unsigned short, std::vector<sim::IDE> >& tdcidemap = (*channelIt)->TDCIDEMap();
-    for (std::map<unsigned short, std::vector<sim::IDE> >::const_iterator tdcIt = tdcidemap.begin(); tdcIt != tdcidemap.end(); ++tdcIt) {
-      const std::vector<sim::IDE>& idevec = tdcIt->second;
-      for (std::vector<sim::IDE>::const_iterator ideIt = idevec.begin(); ideIt != idevec.end(); ++ideIt) {
-	switch (plane) {
-	case 0:
-	  depositU += ideIt->energy;
-	  break;
-	case 1:
-	  depositV += ideIt->energy;
-	  break;
-	case 2:
-	  depositZ += ideIt->energy;
-	  break;
-	}
+    for (auto const& tdcIt : (*channelIt)->TDCIDEMap()) {
+      for (auto const& ideIt : tdcIt.second) {
+        switch (plane) {
+          case geo::kU:
+            depositU += ideIt.energy;
+            break;
+          case geo::kV:
+            depositV += ideIt.energy;
+            break;
+          case geo::kZ:
+            depositZ += ideIt.energy;
+            break;
+        }
       }
     }
   }

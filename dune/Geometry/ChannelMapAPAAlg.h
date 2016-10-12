@@ -13,8 +13,8 @@
 #include <set>
 
 #include "cetlib/exception.h"
-#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "larcore/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
+#include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
 
@@ -257,6 +257,7 @@ namespace geo{
     
   private:
     
+    unsigned int                                         fChannelsPerOpDet;
     unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
     unsigned int                                         fNchannels;      ///< number of channels in the detector
     raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #

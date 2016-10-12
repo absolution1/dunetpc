@@ -9,25 +9,25 @@
 //#include "lardata/Utilities/DetectorProperties.h"
 #include "lardata/Utilities/GeometryUtilities.h"
 // #include "Utilities/LArProperties.h"
-#include "larsim/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "larsim/Simulation/SimListUtils.h"
 #include "larsim/Simulation/LArG4Parameters.h"
-#include "lardata/RecoBase/Hit.h"
-#include "lardata/RecoBase/Wire.h"
-#include "lardata/RecoBase/Cluster.h"
-#include "lardata/RecoBase/Track.h"
-#include "lardata/RecoBase/OpHit.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Wire.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/OpHit.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/CryostatGeo.h"
 #include "larcore/Geometry/OpDetGeo.h"
-#include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCTruth.h"
-#include "larcore/SimpleTypesAndConstants/geo_types.h"
-#include "lardata/RawData/raw.h"
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/OpDetWaveform.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larsim/PhotonPropagation/PhotonVisibilityService.h"
@@ -40,10 +40,10 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "art/Framework/Core/ModuleMacros.h"
-#include "art/Framework/Core/FindManyP.h"
-#include "art/Persistency/Common/PtrVector.h"
+#include "canvas/Persistency/Common/FindManyP.h"
+#include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 // lbne-artdaq includes
@@ -566,7 +566,7 @@ void CTree35t::beginJob()
     // saveWireGeometry(1, 7);
 
     /*
-    ofstream wireGeoFile;
+    std::ofstream wireGeoFile;
     wireGeoFile.open("WireGeometry.txt");
     for (unsigned int plane=0; plane<(unsigned int)fNplanes; plane++) {
       wireGeoFile << "***************** PLANE " << plane <<" ********************\n";
@@ -598,7 +598,7 @@ void CTree35t::beginJob()
 //-----------------------------------------------------------------------
 void CTree35t::saveChannelWireMap()
 {
-    ofstream mapfile;
+    std::ofstream mapfile;
     mapfile.open("ChannelWireMap.txt");
     mapfile << "# total channels: " << fNchannels << "\n\n";
     for (int i=0; i<fNchannels; i++) {

@@ -11,7 +11,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 
-#include "art/Utilities/Exception.h"
+#include "canvas/Utilities/Exception.h"
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
 #include "artdaq-core/Data/Fragments.hh"
 

@@ -9,11 +9,11 @@
 #define BaseTriggerService_H
 
 #include <memory>
-#include "larcore/SimpleTypesAndConstants/RawTypes.h"
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "art/Framework/Principal/Event.h"
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/OpDetWaveform.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/OpDetWaveform.h"
 
 namespace fhicl {
   class ParameterSet;

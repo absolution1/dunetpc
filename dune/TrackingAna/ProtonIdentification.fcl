@@ -7,6 +7,7 @@ proton_id:
    HitsModuleLabel:         "gaushit"
    MCTruthT0ModuleLabel:    "mctrutht0"
    PhotonT0ModuleLabel:     "photont0costrk"
+   CounterT0ModuleLabel:    "simcounter"
    CalorimetryModuleLabel:  "calo"
    PIDApower:               0.42
    BoundaryEdge:            0

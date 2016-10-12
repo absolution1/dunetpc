@@ -87,7 +87,8 @@ namespace util {
     double fAmpENC;                             ///< Amplifier noise
     double fAmpENCADC;                          ///  Amplifier noise in ADC
     double fRespSamplingPeriod;                 ///< Sampling period for response in ns
-
+    
+    TF1* fColFilterFunc;      			///< Parameterized collection filter function.
     // Following attributes hold the convolution and deconvolution kernels
     util::SignalShaping fColSignalShaping;
 

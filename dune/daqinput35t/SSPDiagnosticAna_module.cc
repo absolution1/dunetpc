@@ -23,7 +23,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -42,8 +42,8 @@
 #include "artdaq-core/Data/Fragments.hh"
 
 //larsoft includes
-#include "lardata/RawData/raw.h"
-#include "lardata/RawData/OpDetWaveform.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/RawData/OpDetWaveform.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 

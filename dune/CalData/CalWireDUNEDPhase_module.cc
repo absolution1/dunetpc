@@ -25,21 +25,21 @@
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Principal/Handle.h" 
-#include "art/Persistency/Common/Ptr.h" 
+#include "canvas/Persistency/Common/Ptr.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 
 // LArSoft libraries
-#include "larcore/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 // #include "larcore/Geometry/Geometry.h"
 #include "larevt/Filters/ChannelFilter.h"
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/RawData/raw.h"
-#include "lardata/RecoBase/Wire.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/RecoBase/Wire.h"
 #include "lardata/RecoBaseArt/WireCreator.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "dune/Utilities/SignalShapingServiceDUNEDPhase.h"
-
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 ///creation of calibrated signals on wires
 namespace caldata {
@@ -150,18 +150,21 @@ namespace caldata {
     art::Handle< std::vector<raw::RawDigit> > digitVecHandle;
     evt.getByLabel(fDigitModuleLabel, fSpillName, digitVecHandle);
 
-    if (!digitVecHandle->size())  return;
+    // if (!digitVecHandle->size()) return;
+    if (digitVecHandle->size())
+    {
     mf::LogInfo("CalWireDUNEDPhase") << "CalWireDUNEDPhase:: digitVecHandle size is " << digitVecHandle->size();
 
     // Use the handle to get a particular (0th) element of collection.
     art::Ptr<raw::RawDigit> digitVec0(digitVecHandle, 0);
         
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
-    if (int(dataSize) != transformSize){
+    int readoutwindowsize = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider()->ReadOutWindowSize();
+    if (int(dataSize) != readoutwindowsize){
       throw art::Exception(art::errors::Configuration)
-        << "FFT size: "<<transformSize<<" != Window size: "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
+        << "ReadOutWindowSize "<<readoutwindowsize<<" does not match data size "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
     }
-    
+     
     raw::ChannelID_t channel = raw::InvalidChannelID; // channel number
     unsigned int bin(0);     // time bin loop variable
     
@@ -322,11 +325,13 @@ namespace caldata {
     if(wirecol->size() == 0)
       mf::LogWarning("CalWireDUNEDPhase") << "No wires made for this event.";
 
-    evt.put(std::move(wirecol), fSpillName);
-    evt.put(std::move(WireDigitAssn), fSpillName);
 
 
    	delete chanFilt;
+   }
+    evt.put(std::move(wirecol), fSpillName);
+    evt.put(std::move(WireDigitAssn), fSpillName);
+
     return;
   }
   

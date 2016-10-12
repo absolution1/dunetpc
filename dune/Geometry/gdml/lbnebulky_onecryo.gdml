@@ -119,7 +119,7 @@
     <fraction n="0.0053" ref="Na2O"/>
     <fraction n="0.00070" ref="P2O5"/>
     <fraction n="0.0771" ref="oxygen"/>
-  </material> 
+  </material>
 
   <material name="fibrous_glass">
    <D value="2.74351" unit="g/cm3"/>
@@ -177,7 +177,7 @@
   </material>
 
   <material formula=" " name="ShotRock">
-   <D value="2.7*0.6" unit="g/cm3"/>
+   <D value="1.62" unit="g/cm3"/>
    <fraction n="0.438" ref="oxygen"/>
    <fraction n="0.257" ref="silicon"/>
    <fraction n="0.222" ref="sodium"/>
@@ -242,67 +242,67 @@
 
 </materials>
  <solids>
-    <box name="World" lunit="cm" 
-      x="1900+2*(15000+151.27)+1800+2400" 
-      y="1700+2*(15000+151.27)" 
-      z="8900+2*(15000+151.27)+6675+2400"/>
-    <box name="LowerRock" lunit="cm" 
-      x="1900+2*(15000+151.27)" 
-      y="1700+15000+151.27" 
-      z="8900+2*(15000+151.27)"/>
-    <box name="RockBottom" lunit="cm" 
-      x="1900+2*151.27" 
-      y="15000" 
-      z="8900+2*151.27"/>
-    <box name="LowerCavern" lunit="cm" 
-      x="1900+2*151.27"
-      y="1700+15000+151.27+2"
-      z="8900+2*151.27"/>
+    <box name="World" lunit="cm"
+      x="36402.54"
+      y="32002.54"
+      z="48277.54"/>
+    <box name="LowerRock" lunit="cm"
+      x="32202.54"
+      y="16851.27"
+      z="39202.54"/>
+    <box name="RockBottom" lunit="cm"
+      x="2202.54"
+      y="15000"
+      z="9202.54"/>
+    <box name="LowerCavern" lunit="cm"
+      x="2202.54"
+      y="16853.27"
+      z="9202.54"/>
     <subtraction name="LowerRockWithCavern">
       <first ref="LowerRock"/>
       <second ref="LowerCavern"/>
     </subtraction>
-    <box name="UpperRock" lunit="cm" 
-      x="1900+2*(15000+151.27)" 
-      y="15000" 
-      z="8900+2*(15000+151.27)"/>
-    <box name="UpperCavern" lunit="cm" 
-      x="1900+2*151.27+1000"
-      y="15000+20"
-      z="8900+2*151.27+1000"/>
-    <box name="RockTop" lunit="cm" 
-      x="1900+2*151.27+1000" 
-      y="15000-500" 
-      z="8900+2*151.27+1000"/>
+    <box name="UpperRock" lunit="cm"
+      x="32202.54"
+      y="15000"
+      z="39202.54"/>
+    <box name="UpperCavern" lunit="cm"
+      x="3202.54"
+      y="15020.0"
+      z="10202.54"/>
+    <box name="RockTop" lunit="cm"
+      x="3202.54"
+      y="14500.0"
+      z="10202.54"/>
     <subtraction name="UpperRockWithCavern">
       <first ref="UpperRock"/>
       <second ref="UpperCavern"/>
     </subtraction>
-    <box name="DetEnclosure" lunit="cm" 
-      x="1900+2*151.27"
-      y="1700+2*151.27"
-      z="8900+2*151.27"/>
-    <box name="ConcreteCylinder" lunit="cm" 
-      x="1900+2*151.27"
-      y="1700+151.27"
-      z="8900+2*151.27"/>
-    <box name="ConcreteBottom" lunit="cm" 
-      x="1900+2*(151.27-50)"
+    <box name="DetEnclosure" lunit="cm"
+      x="2202.54"
+      y="2002.54"
+      z="9202.54"/>
+    <box name="ConcreteCylinder" lunit="cm"
+      x="2202.54"
+      y="1851.27"
+      z="9202.54"/>
+    <box name="ConcreteBottom" lunit="cm"
+      x="2102.54"
       y="50"
-      z="8900+2*(151.27-50)"/>
-    <box name="ConcreteCavern" lunit="cm" 
-      x="1900+2*(151.27-50)"
-      y="1700+151.27+2"
-      z="8900+2*(151.27-50)"/>
+      z="9102.54"/>
+    <box name="ConcreteCavern" lunit="cm"
+      x="2102.54"
+      y="1853.27"
+      z="9102.54"/>
     <subtraction name="ConcreteWithCavern">
       <first ref="ConcreteCylinder"/>
       <second ref="ConcreteCavern"/>
     </subtraction>
-    <box name="Cryostat" lunit="cm" 
-      x="1900" 
-      y="1700" 
+    <box name="Cryostat" lunit="cm"
+      x="1900"
+      y="1700"
       z="8900"/>
-    <box name="ArgonInterior" lunit="cm" 
+    <box name="ArgonInterior" lunit="cm"
       x="1897.46"
       y="1697.46"
       z="8897.46"/>
@@ -310,18 +310,18 @@
       <first ref="Cryostat"/>
       <second ref="ArgonInterior"/>
     </subtraction>
-    <box name="TPC" lunit="cm" 
-      x="1897.45" 
-      y="1697.45" 
+    <box name="TPC" lunit="cm"
+      x="1897.45"
+      y="1697.45"
       z="8897.45"/>
-    <box name="TPCPlane" lunit="cm" 
-      x="0.1" 
-      y="0.9*1275" 
-      z="0.9*6675"/>
+    <box name="TPCPlane" lunit="cm"
+      x="0.1"
+      y="1147.5"
+      z="6007.5"/>
     <tube name="TPCWire"
-      rmax="0.5*0.015"
-      z="0.89*1275"               
-      deltaphi="2*3.14159"
+      rmax="0.0075"
+      z="1134.75"
+      deltaphi="6.28318"
       aunit="rad"
       lunit="cm"/>
   </solids>
@@ -388,11 +388,11 @@
       <solidref ref="TPC" />
       <physvol>
         <volumeref ref="volTPCPlane"/>
-        <position name="posTPCPlane1" unit="cm" x="-0.45*1800" y="0" z="0"/>
+        <position name="posTPCPlane1" unit="cm" x="-810.0" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCPlane"/>
-        <position name="posTPCPlane2" unit="cm" x="-0.475*1800" y="0" z="0"/>
+        <position name="posTPCPlane2" unit="cm" x="-855.0" y="0" z="0"/>
         <rotation name="rTPCPlane2" unit="deg" x="0" y="180" z="0"/>
       </physvol>
     </volume>
@@ -425,11 +425,11 @@
       </physvol>
       <physvol>
         <volumeref ref="volConcreteWithCavern"/>
-        <position name="posConcreteWithCavern" unit="cm" x="0" y="-0.5*(151.27-50)" z="0"/>
+        <position name="posConcreteWithCavern" unit="cm" x="0" y="-50.635" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volConcreteBottom"/>
-        <position name="posConcreteBottom" unit="cm" x="0" y="-0.5*(1700+151.27)" z="0"/>
+        <position name="posConcreteBottom" unit="cm" x="0" y="-925.635" z="0"/>
       </physvol>
     </volume>
     <volume name="volLowerRockWithCavern">
@@ -453,23 +453,23 @@
       <solidref ref="World"/>
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-        <position name="posDetEnclosure" unit="cm" x="0.5*1897.45" y="0" z="0.5*8897.45"/>
+        <position name="posDetEnclosure" unit="cm" x="948.725" y="0" z="4448.725"/>
       </physvol>
       <physvol>
         <volumeref ref="volLowerRockWithCavern"/>
-        <position name="posLowerRockWithCavern" unit="cm" x="0.5*1897.45" y="-0.5*15000" z="0.5*8897.45"/>
+        <position name="posLowerRockWithCavern" unit="cm" x="948.725" y="-7500.0" z="4448.725"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockBottom"/>
-        <position name="posRockBottom" unit="cm" x="0.5*1897.45" y="-0.5*(15000+1700+151.27)" z="0.5*8897.45"/>
+        <position name="posRockBottom" unit="cm" x="948.725" y="-8425.635" z="4448.725"/>
       </physvol>
       <physvol>
         <volumeref ref="volUpperRockWithCavern"/>
-        <position name="posUpperRockWithCavern" unit="cm" x="0.5*1897.45" y="0.5*(15000+1700)" z="0.5*8897.45"/>
+        <position name="posUpperRockWithCavern" unit="cm" x="948.725" y="8350.0" z="4448.725"/>
       </physvol>
       <physvol>
         <volumeref ref="volRockTop"/>
-        <position name="posRockTop" unit="cm" x="0.5*1897.45" y="0.5*(15000-500+1700)+500" z="0.5*8897.45"/>
+        <position name="posRockTop" unit="cm" x="948.725" y="8600.0" z="4448.725"/>
       </physvol>
     </volume>
   </structure>

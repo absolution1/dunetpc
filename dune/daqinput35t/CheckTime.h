@@ -18,10 +18,11 @@
 #include "lbne-raw-data/Overlays/PennMicroSlice.hh"
 #include "lbne-raw-data/Overlays/PennMilliSliceFragment.hh"
 #include "artdaq-core/Data/Fragments.hh"
-#include "lardata/RawData/RawDigit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "utilities/UnpackFragment.h"
 
 #include <memory>
+#include <bitset>
 #include <iostream>
 #include <fstream>
 #include <sstream>
