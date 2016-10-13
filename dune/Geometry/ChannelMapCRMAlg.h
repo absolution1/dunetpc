@@ -212,6 +212,21 @@ namespace geo{
     unsigned int WireCount(geo::PlaneID const& id) const
     { return AccessElement(fWireCounts, id); }
     
+    /// Returns the largest number of TPCs in a single cryostat
+    unsigned int MaxTPCs() const;
+    
+    /// Converts a TPC ID into a TPC set ID using the same numerical indices
+    static readout::TPCsetID ConvertTPCtoTPCset(geo::TPCID const& tpcid);
+    
+    /// Converts a TPC set ID into a TPC ID using the same numerical indices
+    static geo::TPCID ConvertTPCsetToTPC(readout::TPCsetID const& tpcsetid);
+    
+    /// Converts a ROP ID into a wire plane ID using the same numerical indices
+    static readout::ROPID ConvertWirePlaneToROP(geo::PlaneID const& planeid);
+    
+    /// Converts a wire plane ID into a ROP ID using the same numerical indices
+    static geo::PlaneID ConvertROPtoWirePlane(readout::ROPID const& ropid);
+    
   };
 }
 #endif // GEO_CHANNELMAPCRMDALG_H

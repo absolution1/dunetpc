@@ -216,7 +216,9 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapCRMAlg::Nchannels(readout::ROPID const& ropid) const {
-    static_assert(false, "Not implemented (TODO)");
+    if (!HasROP(ropid)) return 0;
+    // The number of channels matches the number of wires. Life is easy.
+    return WireCount(FirstWirePlaneInROP(ropid));
   } // ChannelMapCRMAlg::Nchannels()
   
   
@@ -376,14 +378,16 @@ namespace geo{
   unsigned int ChannelMapCRMAlg::NTPCsets
     (readout::CryostatID const& cryoid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    // return the same number as the number of TPCs
+    return (cryoid.isValid && cryoid.Cryostat < fNTPC.size())?
+      fNTPC[cryoid.Cryostat]: 0;
   } // ChannelMapCRMAlg::NTPCsets()
   
   
   //----------------------------------------------------------------------------
   /// Returns the largest number of TPC sets any cryostat in the detector has
   unsigned int ChannelMapCRMAlg::MaxTPCsets() const {
-    static_assert(false, "Not implemented (TODO)");
+    return MaxTPCs();
   } // ChannelMapCRMAlg::MaxTPCsets()
   
   
@@ -391,7 +395,7 @@ namespace geo{
   /// Returns whether we have the specified TPC set
   /// @return whether the TPC set is valid and exists
   bool ChannelMapCRMAlg::HasTPCset(readout::TPCsetID const& tpcsetid) const {
-    static_assert(false, "Not implemented (TODO)");
+    return tpcsetid.TPCset < NTPCsets(tpcsetid);
   } // ChannelMapCRMAlg::HasTPCset()
   
   
@@ -400,7 +404,7 @@ namespace geo{
   readout::TPCsetID ChannelMapCRMAlg::TPCtoTPCset
     (geo::TPCID const& tpcid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    return ConvertTPCtoTPCset(tpcid);
   } // ChannelMapCRMAlg::TPCtoTPCset()
   
   
@@ -418,7 +422,9 @@ namespace geo{
   std::vector<geo::TPCID> ChannelMapCRMAlg::TPCsetToTPCs
     (readout::TPCsetID const& tpcsetid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    std::vector<geo::TPCID> IDs;
+    if (tpcsetid.isValid) IDs.emplace_back(ConvertTPCsetToTPC(tpcsetid));
+    return IDs;
   } // ChannelMapCRMAlg::TPCsetToTPCs()
   
   
@@ -427,8 +433,17 @@ namespace geo{
   geo::TPCID ChannelMapCRMAlg::FirstTPCinTPCset
     (readout::TPCsetID const& tpcsetid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    return ConvertTPCsetToTPC(tpcsetid);
   } // ChannelMapCRMAlg::FirstTPCinTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapCRMAlg::MaxTPCs() const
+  {
+    unsigned int max = 0;
+    for (unsigned int nTPCs: fNTPC) if (nTPCs > max) max = nTPCs;
+    return max;
+  } // ChannelMapCRMAlg::MaxTPCs()
   
   
   //----------------------------------------------------------------------------
@@ -441,14 +456,19 @@ namespace geo{
    */
   unsigned int ChannelMapCRMAlg::NROPs(readout::TPCsetID const& tpcsetid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    if (!HasTPCset(tpcsetid)) return 0;
+    return AccessElement(fNPlanes, FirstTPCinTPCset(tpcsetid));
   } // ChannelMapCRMAlg::NROPs()
   
   
   //----------------------------------------------------------------------------
   /// Returns the largest number of ROPs a TPC set in the detector has
   unsigned int ChannelMapCRMAlg::MaxROPs() const {
-    static_assert(false, "Not implemented (TODO)");
+    unsigned int max = 0;
+    for (auto const& cryo_tpc: fNPlanes)
+      for (unsigned int nPlanes: cryo_tpc)
+        if (nPlanes > max) max = nPlanes;
+    return max;
   } // ChannelMapCRMAlg::MaxROPs()
   
   
@@ -456,7 +476,7 @@ namespace geo{
   /// Returns whether we have the specified ROP
   /// @return whether the readout plane is valid and exists
   bool ChannelMapCRMAlg::HasROP(readout::ROPID const& ropid) const {
-    static_assert(false, "Not implemented (TODO)");
+    return ropid.ROP < NROPs(ropid);
   } // ChannelMapCRMAlg::HasROP()
   
   
@@ -465,7 +485,7 @@ namespace geo{
   readout::ROPID ChannelMapCRMAlg::WirePlaneToROP
     (geo::PlaneID const& planeid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    return ConvertWirePlaneToROP(planeid);
   } // ChannelMapCRMAlg::WirePlaneToROP()
   
   
@@ -474,7 +494,9 @@ namespace geo{
   std::vector<geo::PlaneID> ChannelMapCRMAlg::ROPtoWirePlanes
     (readout::ROPID const& ropid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    std::vector<geo::PlaneID> IDs;
+    if (ropid.isValid) IDs.emplace_back(FirstWirePlaneInROP(ropid));
+    return IDs;
   } // ChannelMapCRMAlg::ROPtoWirePlanes()
   
   
@@ -483,7 +505,7 @@ namespace geo{
   geo::PlaneID ChannelMapCRMAlg::FirstWirePlaneInROP
     (readout::ROPID const& ropid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    return ConvertROPtoWirePlane(ropid);
   } // ChannelMapCRMAlg::FirstWirePlaneInROP()
   
   
@@ -501,7 +523,10 @@ namespace geo{
   std::vector<geo::TPCID> ChannelMapCRMAlg::ROPtoTPCs
     (readout::ROPID const& ropid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    std::vector<geo::TPCID> IDs;
+    // we take the TPC set of the ROP and convert it straight into a TPC ID
+    if (ropid.isValid) IDs.emplace_back(ConvertTPCsetToTPC(ropid.asTPCsetID()));
+    return IDs;
   } // ChannelMapCRMAlg::ROPtoTPCs()
   
   
@@ -510,7 +535,14 @@ namespace geo{
   /// @throws cet::exception (category: "Geometry") if non-existent channel
   readout::ROPID ChannelMapCRMAlg::ChannelToROP(raw::ChannelID_t channel) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    // which wires does the channel cover?
+    std::vector<geo::WireID> wires = ChannelToWire(channel);
+    
+    // - none:
+    if (wires.empty()) return {}; // default-constructed ID, invalid
+    
+    // - one: maps its plane ID into a ROP ID
+    return WirePlaneToROP(wires[0]);
   } // ChannelMapCRMAlg::ChannelToROP()
   
   
@@ -528,8 +560,61 @@ namespace geo{
   raw::ChannelID_t ChannelMapCRMAlg::FirstChannelInROP
     (readout::ROPID const& ropid) const
   {
-    static_assert(false, "Not implemented (TODO)");
+    if (!ropid.isValid) return raw::InvalidChannelID;
+    return (raw::ChannelID_t)
+      AccessElement(fPlaneBaselines, ConvertROPtoWirePlane(ropid));
   } // ChannelMapCRMAlg::FirstChannelInROP()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::TPCsetID ChannelMapCRMAlg::ConvertTPCtoTPCset
+    (geo::TPCID const& tpcid)
+  {
+    if (!tpcid.isValid) return {}; // invalid ID, default-constructed
+    return {
+      (readout::CryostatID::CryostatID_t) tpcid.Cryostat,
+      (readout::TPCsetID::TPCsetID_t) tpcid.TPC
+      };
+  } // ChannelMapCRMAlg::ConvertTPCtoTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::TPCID ChannelMapCRMAlg::ConvertTPCsetToTPC
+    (readout::TPCsetID const& tpcsetid)
+  {
+    if (!tpcsetid.isValid) return {};
+    return {
+      (geo::CryostatID::CryostatID_t) tpcsetid.Cryostat,
+      (geo::TPCID::TPCID_t) tpcsetid.TPCset
+      };
+  } // ChannelMapCRMAlg::ConvertTPCsetToTPC()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::ROPID ChannelMapCRMAlg::ConvertWirePlaneToROP
+    (geo::PlaneID const& planeid)
+  {
+    if (!planeid.isValid) return {}; // invalid ID, default-constructed
+    return {
+      (readout::CryostatID::CryostatID_t) planeid.Cryostat,
+      (readout::TPCsetID::TPCsetID_t) planeid.TPC,
+      (readout::ROPID::ROPID_t) planeid.Plane
+      };
+    
+  } // ChannelMapCRMAlg::ConvertWirePlaneToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::PlaneID ChannelMapCRMAlg::ConvertROPtoWirePlane
+    (readout::ROPID const& ropid)
+  {
+    if (!ropid.isValid) return {};
+    return {
+      (geo::CryostatID::CryostatID_t) ropid.Cryostat,
+      (geo::TPCID::TPCID_t) ropid.TPCset,
+      (geo::PlaneID::PlaneID_t) ropid.ROP
+      };
+  } // ChannelMapCRMAlg::ConvertROPtoWirePlane()
   
   
   //----------------------------------------------------------------------------
