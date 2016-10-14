@@ -4,12 +4,12 @@ typedef struct _drawopt
   int         color;
 } drawopt;
 
-dunedphase10kt_geo(TString volName="")
+void dunedphase10kt_geo(TString volName="", std::string geofile = "")
 {
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
 
-  std::string geofile = "dunedphase10kt_v2.gdml";
+  if (geofile.empty()) geofile = "dunedphase10kt_v2.gdml";
   TGeoManager::Import(geofile.c_str());
   
   //TList* mat = gGeoManager->GetListOfMaterials();
