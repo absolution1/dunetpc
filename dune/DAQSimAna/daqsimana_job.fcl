@@ -1,0 +1,29 @@
+#include "DAQSimAna.fcl"
+
+process_name: DAQSimAna
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1      # Number of events to create
+}
+
+services:
+{
+  TFileService: { fileName: "DAQSimAna_hist.root" }
+  TimeTracker:       {}
+  RandomNumberGenerator: {} #ART native random number generator
+  user:         @local::dune35t_services
+}
+
+physics:
+{
+  analyzers:
+  {
+    daqsimana:     @local::standard_daqsimana
+  }
+
+  ana: [ daqsimana ]
+  end_paths: [ ana ] 
+
+}
