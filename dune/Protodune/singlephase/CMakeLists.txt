@@ -3,12 +3,12 @@ simple_plugin(ECalibration "module"
 			lardataobj_RawData
 			lardataobj_RecoBase
 			larreco_RecoAlg
-			lardata_AnalysisAlg
+			larreco_Calorimetry
 			larreco_RecoAlg_PMAlg
 			larcore_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larsim_Simulation lardataobj_Simulation
+			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
