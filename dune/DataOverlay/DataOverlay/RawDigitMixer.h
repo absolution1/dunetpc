@@ -21,7 +21,7 @@
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
-#include "RawDigitAdder_HardSaturate.h"
+#include "RawDigitAdder_35t.h"
 
 
 /**
@@ -48,8 +48,8 @@ public:
 
   void FillRawDigitOutput(std::vector<raw::RawDigit> & output);
 
-  void SetSaturationPoint(short x)
-  { fRDAdderAlg.SetSaturationPoint(x); }
+  //void SetSaturationPoint(short x)
+  //{ fRDAdderAlg.SetSaturationPoint(x); }
   
   /// Default destructor
   virtual ~RawDigitMixer(){};
@@ -70,7 +70,7 @@ public:
 
   std::unordered_map<raw::ChannelID_t,size_t> fChannelIndexMap;
 
-  RawDigitAdder_HardSaturate fRDAdderAlg;
+  RawDigitAdder_35t fRDAdderAlg;
 
 };
 

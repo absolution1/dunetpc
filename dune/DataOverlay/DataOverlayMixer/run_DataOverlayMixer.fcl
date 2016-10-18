@@ -30,7 +30,7 @@ outputs: {
 physics: {
 
   producers: {
-    
+        caldata: @local::producer_adcprep
   }
 
   analyzers: {
@@ -39,8 +39,9 @@ physics: {
 
   filters: {
   	    mixer: { module_type : OverlayRawDataDUNE35t
-	    	     fileNames : [ " /pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/00/lbne_r013770_sr01_20160229T022537_20160709T055234_split.root " ]
-		     readMode : sequential
+	    	     #fileNames : [ " /pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/00/lbne_r013770_sr01_20160229T022537_20160709T055234_split.root " ]
+		     fileNames : [ " /dune/app/users/mthiesse/larDev_mix/test/preDataOverlayMixer.root " ]
+                     readMode : sequential
 		     wrapFiles : true
 		     coverageFraction : 1
 		     detail : {
@@ -58,7 +59,7 @@ physics: {
 		   }
   }
 
-  mixer_path : [ mixer ]
+  mixer_path : [ mixer, caldata ]
   trigger_paths : [ mixer_path ]
 
   # ana1: [userana]

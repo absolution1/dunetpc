@@ -7,6 +7,15 @@
 //      EventMixing/src/MixMCEvents_module.cc
 ////////////////////////////////////////////////////////////////////////
 
+/*
+
+  TODO: Make some sort of run/subrun/event selection based on low-noise events, and choose the corresponding file in SAM
+  TODO: Select only ticks 9700-14900 of the real data waveforms (in the same place the length of waveforms is checked, I think)
+  TODO: Implement mixing for OpDetWaveforms in 35t (I have no idea how). What about AuxDet stuff???
+
+ */
+
+
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Modules/MixFilter.h"
 #include "art/Framework/IO/ProductMix/MixHelper.h"
@@ -251,14 +260,14 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
 		       */
     
     //Copies of MCShower and MCTrack
-    if(fDoMCReco){
-      helper.declareMixOp( art::InputTag(fMCRecoInputModuleLabel),
-			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::MCShower>,
-			   *this );
-      helper.declareMixOp( art::InputTag(fMCRecoInputModuleLabel),
-			   &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::MCTrack>,
-			   *this );
-    }
+    //    if(fDoMCReco){
+    //  helper.declareMixOp( art::InputTag(fMCRecoInputModuleLabel),
+    //			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::MCShower>,
+    //			   *this );
+    //  helper.declareMixOp( art::InputTag(fMCRecoInputModuleLabel),
+    //			   &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::MCTrack>,
+    //			   *this );
+    //}
   }//end if file is input data
 
   helper.declareMixOp( art::InputTag(fRawDigitMixerSourceModuleLabel),
@@ -380,7 +389,7 @@ void mix::OverlayRawDataDetailDUNE35t::startEvent(const art::Event& event) {
   event.getByLabel(fRawDigitInputSourceModuleLabel,inputDigitHandle);
   if(!inputDigitHandle.isValid())
     throw cet::exception("OverlayRawDataDUNE35t") << "Bad input digit handle." << std::endl;;
-  fRDMixer.SetSaturationPoint(fDefaultRawDigitSatPoint);
+  //fRDMixer.SetSaturationPoint(fDefaultRawDigitSatPoint);
 
   //event.getByLabel(fOpDetInputSourceModuleLabel,"OpdetBeamLowGain",inputOpDetHandle_LowGain);
   //if(!inputOpDetHandle_LowGain.isValid())

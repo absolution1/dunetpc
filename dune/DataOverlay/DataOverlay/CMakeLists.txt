@@ -10,6 +10,7 @@ art_make_library( LIBRARY_NAME  ub_RawDigitAdderAna
 art_make_library( LIBRARY_NAME  ub_RawDigitAdder
 	SOURCE RawDigitAdder.cxx
 	             RawDigitAdder_HardSaturate.cxx
+		     RawDigitAdder_35t.cxx
 	LIBRARIES
                  ${ROOT_BASIC_LIB_LIST}
 )

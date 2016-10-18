@@ -1,43 +1,43 @@
 /**
- * \file RawDigitAdder_HardSaturate.h
+ * \file RawDigitAdder_35t.h
  *
  * \ingroup DataOverlay
  * 
  * \brief Defintion for a class to add two vectors together,
- *        and give an "added" waveform. Takes in a saturation point.
+ *        and give an "added" waveform.
  *
  *
  * @author wketchum
+ * @author mthiesse
  */
-
 
 /** \addtogroup DataOverlay
 
     @{*/
-#ifndef OVERLAY_DATAOVERLAY_RAWDIGITADDER_HARDSATURATE_H
-#define OVERLAY_DATAOVERLAY_RAWDIGITADDER_HARDSATURATE_H
+#ifndef OVERLAY_DATAOVERLAY_RAWDIGITADDER_35T_H
+#define OVERLAY_DATAOVERLAY_RAWDIGITADDER_35T_H
 
 #include <vector>
 #include <string>
 #include "RawDigitAdder.h"
 
 /**
-   \class RawDigitAdder_HardSaturate
-   Add two vectors together. Needs a saturation point set, where
-   everything above that point is just the max.
+   \class RawDigitAdder_35t
+   Add two vectors together. 
+   Take stuck bits into account -- i.e. do not add when stuck
    Allows for a scale factor to be applied to inputs: defaults to 1.
    
 */
 namespace mix {
-  class RawDigitAdder_HardSaturate;
+  class RawDigitAdder_35t;
 }
 
-class mix::RawDigitAdder_HardSaturate : public mix::RawDigitAdder {
+class mix::RawDigitAdder_35t : public mix::RawDigitAdder {
 
 public:
 
-  RawDigitAdder_HardSaturate(bool t=true);
-  void SetSaturationPoint(short x);
+  RawDigitAdder_35t(bool t=true);
+
   
   void SetScaleFirstInput(float f1)  { SetScaleInput(f1,_scale1); }
   void SetScaleSecondInput(float f2) { SetScaleInput(f2,_scale2); }
@@ -45,11 +45,11 @@ public:
   void SetScaleInputs(float f1, float f2)
   { SetScaleFirstInput(f1); SetScaleSecondInput(f2); }
   
-  std::string Name() { return "RawDigitAdder_HardSaturate"; }
+  std::string Name() { return "RawDigitAdder_35t"; }
   
  private:
 
-  short _max;
+
   float _scale1,_scale2;
   void SetScaleInput(float f, float& _scale);
   void AddRawDigit( short const&, short const&, short&);
