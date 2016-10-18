@@ -48,7 +48,7 @@ physics: {
 		       #OpDetDataModuleLabel : "pmtreadout"
 		       RawDigitMCModuleLabel : "daq"
 		       #OpDetMCModuleLabel : "pmtreadout"
-		       InputFileIsData : false
+		       InputFileIsData : false # the file designated with the lar -s flag, not the files in "fileNames"
 		       G4InputModuleLabel : "largeant"
 		       GeneratorInputModuleLabel : "generator"
 		       EventsToMix: 1

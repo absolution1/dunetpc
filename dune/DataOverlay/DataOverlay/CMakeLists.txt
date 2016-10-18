@@ -13,6 +13,7 @@ art_make_library( LIBRARY_NAME  ub_RawDigitAdder
 		     RawDigitAdder_35t.cxx
 	LIBRARIES
                  ${ROOT_BASIC_LIB_LIST}
+		 larsim_DetSim
 )
 
 art_make_library( LIBRARY_NAME  ub_RawDigitMixer

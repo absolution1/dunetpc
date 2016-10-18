@@ -3,8 +3,8 @@
 // Module Type: producer
 // File:        OverlayRawDataDetailDUNE35t_module.cc
 //
-// This borrows a lot from the Mu2e mixing module:
-//      EventMixing/src/MixMCEvents_module.cc
+// This borrows a lot from the microboone mixing module:
+//      OverlayRawDataMicroBooNE_module.cc
 ////////////////////////////////////////////////////////////////////////
 
 /*
@@ -137,6 +137,8 @@ private:
   size_t               fEventsToMix;
   float                fDefaultMCRawDigitScale;
   //float                fDefaultMCOpDetScale;
+  size_t               fDataTicksOffset;
+  bool                 fForceStuckBitRetention;
 
   std::string          fSamDefname;
   std::string          fSamProject;
@@ -189,6 +191,9 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
   fEventsToMix(fpset.get<size_t>("EventsToMix",1)),
   fDefaultMCRawDigitScale(fpset.get<float>("DefaultMCRawDigitScale",1)),
   //fDefaultMCOpDetScale(fpset.get<float>("DefaultMCOpDetScale",1)),
+
+  fDataTicksOffset(fpset.get<size_t>("DataTicksOffset",9700)),
+  fForceStuckBitRetention(fpset.get<bool>("ForceStuckBitRetention",false)),
 
   // Get sam related parameters.
   // These parameters should normally be set by the work flow.
@@ -390,6 +395,8 @@ void mix::OverlayRawDataDetailDUNE35t::startEvent(const art::Event& event) {
   if(!inputDigitHandle.isValid())
     throw cet::exception("OverlayRawDataDUNE35t") << "Bad input digit handle." << std::endl;;
   //fRDMixer.SetSaturationPoint(fDefaultRawDigitSatPoint);
+  fRDMixer.SetTickOffsetForData(fDataTicksOffset);
+  fRDMixer.SetStuckBitRetentionMethod(fForceStuckBitRetention);
 
   //event.getByLabel(fOpDetInputSourceModuleLabel,"OpdetBeamLowGain",inputOpDetHandle_LowGain);
   //if(!inputOpDetHandle_LowGain.isValid())

@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-
+// "Data" here means the files in the fhicl parameter "fileNames"
 void mix::RawDigitMixer::DeclareData(std::vector<raw::RawDigit> const& dataVector){
 
   fChannelIndexMap.clear();
@@ -23,7 +23,6 @@ void mix::RawDigitMixer::DeclareData(std::vector<raw::RawDigit> const& dataVecto
 			waveform,
 			dataVector[i_rd].GetPedestal(),
 			dataVector[i_rd].Compression());
-	//throw std::runtime_error("Error in RawDigitMixer::DeclareData : Compressed waveforms not yet supported!");
       }
     else 
       {
@@ -48,6 +47,7 @@ void mix::RawDigitMixer::DeclareData(std::vector<raw::RawDigit> const& dataVecto
   
 }
 
+// "mcVector" is the raw digits in the input file given by the lar -s flag
 void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
 			     std::unordered_map<raw::ChannelID_t,float> const& scale_map){
 
@@ -61,7 +61,6 @@ void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
                         waveform,
                         rd.GetPedestal(),
                         rd.Compression());
-        //throw std::runtime_error("Error in RawDigitMixer::DeclareData : Compressed waveforms not yet supported!"); 
       }
     else waveform = rd.ADCs();
 
@@ -75,7 +74,21 @@ void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
 
     fRDAdderAlg.SetPedestalInputs(rd.GetPedestal(),0.0);
     fRDAdderAlg.SetScaleInputs(scale_map.at(rd.Channel()),1.0);
-    
+    fRDAdderAlg.SetStuckBitRetentionMethod(_stuckRetention);
+
+    if (fOutputWaveforms[i_output].waveform.size() == 15000 && waveform.size() == 5200)
+      {
+	std::vector<short> data_trimmed = std::vector<short>(fOutputWaveforms[i_output].waveform.begin()+_offset,
+							     fOutputWaveforms[i_output].waveform.begin()+_offset+waveform.size());
+	std::vector<short> const& mc = std::vector<short>(waveform.begin(),waveform.end());
+	fRDAdderAlg.AddRawDigits(mc,data_trimmed);
+      }
+    else
+      {
+	throw std::runtime_error("Error in RawDigitMixer::Mix : The waveform sizes aren't what they're expected to be. I need real data to be 15000 ticks and MC to be 5200 ticks. If this has changed, then recompile, or come up with a more clever solution than throwing an exception.");
+      }
+
+    /*
     //If the sizes are not the same...
     if(rd.Samples() != fOutputWaveforms[i_output].waveform.size()){
       if(_printWarnings)
@@ -99,6 +112,7 @@ void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
     else{
       fRDAdderAlg.AddRawDigits(waveform,fOutputWaveforms[i_output].waveform);
     }
+    */
 
   }
 

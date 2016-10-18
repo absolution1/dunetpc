@@ -54,10 +54,15 @@ public:
   /// Default destructor
   virtual ~RawDigitMixer(){};
   
-  
+  void SetTickOffsetForData(size_t o) { _offset=o; }
+
+  void SetStuckBitRetentionMethod(bool b) { _stuckRetention = b; }
+
  private:
-  
+
+  bool _stuckRetention;
   bool _printWarnings;
+  size_t _offset;
 
   //this is just to make storing this info easier, for RawDigit construction later
   struct RD_Info{

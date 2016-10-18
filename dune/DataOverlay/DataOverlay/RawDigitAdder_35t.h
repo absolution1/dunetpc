@@ -42,6 +42,8 @@ public:
   void SetScaleFirstInput(float f1)  { SetScaleInput(f1,_scale1); }
   void SetScaleSecondInput(float f2) { SetScaleInput(f2,_scale2); }
 
+  void SetStuckBitRetentionMethod(bool s) { _forceStuckBitRetention = s; }
+
   void SetScaleInputs(float f1, float f2)
   { SetScaleFirstInput(f1); SetScaleSecondInput(f2); }
   
@@ -49,7 +51,7 @@ public:
   
  private:
 
-
+  bool _forceStuckBitRetention;
   float _scale1,_scale2;
   void SetScaleInput(float f, float& _scale);
   void AddRawDigit( short const&, short const&, short&);
