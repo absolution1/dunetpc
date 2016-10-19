@@ -85,7 +85,7 @@ void mix::RawDigitOverlayDUNE35tAna::analyze(art::Event const & e)
   e.getByLabel(fRawDigitModule1,waveform1Handle);
   e.getByLabel(fRawDigitModule2,waveform2Handle);
   e.getByLabel(fRawDigitModuleSum,waveformSumHandle);
-  if(!waveform1Handle.isValid() || !waveform2Handle.isValid() || !waveformSumHandle.isValid()) throw std::exception();
+  if(!waveform1Handle.isValid() || !waveform2Handle.isValid() || !waveformSumHandle.isValid()) throw std::runtime_error("some handle is not valid");
   std::vector<raw::RawDigit> const& waveform1Vector(*waveform1Handle); 
   std::vector<raw::RawDigit> const& waveform2Vector(*waveform2Handle); 
   std::vector<raw::RawDigit> const& waveformSumVector(*waveformSumHandle);

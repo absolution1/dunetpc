@@ -1,5 +1,13 @@
 #include "services_dune.fcl"
 
+mixerana:
+{
+    module_type: RawDigitOverlayDUNE35tAna
+    RawDigitModule1Label: "SplitterInput:TPC"
+    RawDigitModule2Label: "daq"
+    RawDigitModuleSumLabel: "mixer"
+}
+
 process_name : RawDigitMixer      #The process name must NOT contain any underscores
 
 source : {
@@ -33,7 +41,7 @@ physics: {
   }
 
   analyzers: {
-     # ParameterSets for zero or more analyzer modules
+        mixerana: @local::mixerana
   }
 
   filters: {
@@ -61,9 +69,9 @@ physics: {
   mixer_path : [ mixer ]
   trigger_paths : [ mixer_path ]
 
-  # ana1: [userana]
+  ana1: [mixerana]
   output : [ out ]
-  end_paths: [ output ]
+  end_paths: [ output, ana1 ]
 
 }
 
