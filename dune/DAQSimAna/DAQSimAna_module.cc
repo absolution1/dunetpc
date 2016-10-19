@@ -64,13 +64,17 @@ private:
   std::string fRawDigitLabel;
 
   // other variables
-  int fNchannels;
+  int nADC;
 
   // histograms to fill
   TH1F* fNADC_comp;
   TH1F* fNADC_nocomp;
+  TH1F* fNADC_comp_rawcount;
   TH1F* fCompX;
+  TH1F* fCompX_rawcount;
   TH2F* fCompX_vs_channel;
+  TH2F* fCompX_vs_channel_rawcount;
+  TH2F* fCompXr_vs_CompX;
 
   //Services
   art::ServiceHandle<geo::Geometry> geo;
@@ -92,7 +96,7 @@ DAQSimAna::DAQSimAna(fhicl::ParameterSet const & p)
 //......................................................
 void DAQSimAna::reconfigure(fhicl::ParameterSet const & p)
 {
-  fRawDigitLabel = p.get<std::string> ("RawDigitLabel");
+  fRawDigitLabel = p.get<std::string> ("RawDigitLabel");  
 }
 
 
@@ -103,10 +107,14 @@ void DAQSimAna::beginJob()
 
   art::ServiceHandle<art::TFileService> tfs;
 
-  fNADC_comp = tfs->make<TH1F>("fNADC_comp","Number of ADC samples, after compression;Number of ADC samples;Frequency",1000,0,10000);
-  fNADC_nocomp = tfs->make<TH1F>("fNADC_nocomp","Number of ADC samples, without compression;Number of ADC samples;Frequency",1000,0,10000);
+  fNADC_comp = tfs->make<TH1F>("fNADC_comp","Number of ADC samples, after compression;Number of ADC samples;Frequency",5000,0,5000);
+  fNADC_nocomp = tfs->make<TH1F>("fNADC_nocomp","Number of ADC samples, without compression;Number of ADC samples;Frequency",5000,0,5000);
+  fNADC_comp_rawcount = tfs->make<TH1F>("fNADC_comp_rawcount","Number of ADC samples, after compression, by counting non-zero entries; Number of ADC samples; Frequency",5000,0,5000);
   fCompX =  tfs->make<TH1F>("fCompX","Compression Factor;Compression Factor;Frequency",100,0,1);
+  fCompX_rawcount = tfs->make<TH1F>("fCompX_rawcount","Compression Factor, by counting non-zero entries;Compression Factor;Frequency",100,0,1);
   fCompX_vs_channel =  tfs->make<TH2F>("fCompX_vs_channel","Compression Factor vs. Channel No.;Channel No.;Compression Factor",30720,0,30720,100,0,1);
+  fCompX_vs_channel_rawcount =  tfs->make<TH2F>("fCompX_vs_channel_rawcount","Compression Factor vs. Channel No., by counting non-zero entries;Channel No.;Compression Factor",30720,0,30720,100,0,1);
+  fCompXr_vs_CompX = tfs->make<TH2F>("fCompXr_vs_CompX","Compression Factor vs. Compression Factor by counting non-zero entries;Compression Factor by counting non-zero entries;Compression Factor",1000,0,0.1,1000,0,0.1);
 
 }
 
@@ -130,91 +138,46 @@ void DAQSimAna::analyze(art::Event const & e)
   }
 
   std::cout << "\n\n\nrdvec.size() = " << rdvec.size() << "\n\n\n";//6408 is...?
+
+  std::vector<short> uADCs;
+  
   for (unsigned int rd=0; rd<rdvec.size(); ++rd){
+    
+    nADC=0;
+    
+    //print some stuff (for debugging)
     if (rd==0){
       std::cout << "\n\n\nrdvec[rd]->Samples() = " << rdvec[rd]->Samples() << "\n\n\n";//4492 is readout length
       std::cout << "\n\n\nrdvec[rd]->NADC() = " <<rdvec[rd]->NADC() << "\n\n\n";//this is the readout length with compression
       std::cout << "\n\n\nrdvec[rd]->Channel() = " <<rdvec[rd]->Channel() << "\n\n\n";//this is the channel number for this raw digit
+      
+      std::cout << "\n";
+      std::cout << "\nuADCs.size() before Uncompress = " << uADCs.size();
+      raw::Uncompress(rdvec[rd]->ADCs(), uADCs, rdvec[rd]->Compression());
+      std::cout << "\nuADCs.size() after Uncompress = " << uADCs.size() << "\n\n";
     }
-  
+    
+    for (unsigned int a = 0; a < uADCs.size(); a++){
+      if (uADCs[a]!=0){
+	if (rd==0) std::cout << "ATTN:\t" << uADCs[a] << "\n";
+	nADC++;
+      }
+    }
+    if (rd==0) std::cout << "\n";
+    if (rd==0) std::cout << "Found " << nADC << " non-zero ADC words in uncompressed waveform\n";
+
     fNADC_comp->Fill(rdvec[rd]->NADC());
     fNADC_nocomp->Fill(rdvec[rd]->Samples());
     fCompX->Fill(rdvec[rd]->NADC()/rdvec[rd]->Samples());
     fCompX_vs_channel->Fill(rdvec[rd]->Channel(),rdvec[rd]->NADC()/rdvec[rd]->Samples());
 
+    fNADC_comp_rawcount->Fill(nADC);
+    fCompX_rawcount->Fill(nADC/rdvec[rd]->Samples());
+    fCompX_vs_channel_rawcount->Fill(rdvec[rd]->Channel(),nADC/rdvec[rd]->Samples());
+
+    fCompXr_vs_CompX->Fill(rdvec[rd]->NADC()/rdvec[rd]->Samples(),nADC/rdvec[rd]->Samples());
+
   }
-
-
-  //All the code below is garbage tests-->
-  // 
-  // Get Geometry information
-  //
-
-  fNchannels = geo->Nchannels();
-  for (int chan=0; chan<fNchannels; chan++){
-    if (chan==0){
-      //      std::cout << digitsHandle[chan]->fNSamplesReadout() << "\n";
-      //      std::cout << digitsHandle[chan]->fSamples() << "\n";
-    }
-    //    for (unsigned int samp=0; samp<fNSamplesReadout
-    //    const sim::SimChannel* sc = channels[chan];
-    //    const geo::View_t = geo->View(chan);
-    ///    if (sc){
-      
-    //    }
-  }
-
-  // Make a vector of const sim::SimChannel* that has same number
-  // of entries as the number of channels in the detector
-  // and set the entries for the channels that have signal on them
-  // using the chanHandle
-  std::vector<const sim::SimChannel*> chanHandle;
-  std::vector<const sim::SimChannel*> simChannels(geo->Nchannels(), nullptr);
-  //  evt.getView(fSimWireLabel, chanHandle);
-  //  for ( size_t c=0; c<chanHandle.size(); ++c ) {
-  //    simChannels[chanHandle[c]->Channel()] = chanHandle[c];
-  //  }
-
-
-
-  // make a vector of const sim::SimChannel* that has same number
-  // of entries as the number of channels in the detector
-  // and set the entries for the channels that have signal on them
-  // using the chanHandle
-  /**
-  std::vector<const raw::SimChannel*> channels(geo->Nchannels());
-  for(size_t c = 0; c < wireHandle.size(); ++c){
-    //    channels[wireHandle[c]->Channel()] = wireHandle[c];
-  }
-  **/
-  //  std::cout geoc->
-  //  std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
-  /**
-  //WARNING!
-  //this below assumes only one cryostat with at least one APA
-  fNTPC = cgeo[0]-NTPC();
-  fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
-  std::cout << "\n\nI found " << fNTPC << " APA(s) in the cryostat";
-  std::cout << "\nI also found " << fPlanesPerAPA << " planes per APA \n\n";
-  
-  for (unsigned int tpc=0; tpc<fNTPC; tpc++){
-    for (unsigned int plane=0; plane<fPlanesPerAPA; plane++){
-      fWiresInPlane = cgeo[0]->TPC(tpc);
-      for (unsigned int wire=0; wire<fWiresInPlane; wire++){
-	nadc = 100;
-	//	nadc = digitsHandle->
-	if (plane==0)
-	  fNADC_Col->Fill(wire,nadc);
-	else if (plane==1)
-	  fNADC_Ind1->Fill(wire,nadc);
-	else if (plane==2)
-	  fNADC_Ind2->Fill(wire,nadc);
-      }
-    }
-  }
-  **/
-
-  //<---garbage tests end
 
 }
 
