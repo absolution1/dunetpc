@@ -10,7 +10,6 @@
 /*
 
   TODO: Make some sort of run/subrun/event selection based on low-noise events, and choose the corresponding file in SAM
-  TODO: Select only ticks 9700-14900 of the real data waveforms (in the same place the length of waveforms is checked, I think)
   TODO: Implement mixing for OpDetWaveforms in 35t (I have no idea how). What about AuxDet stuff???
 
  */
@@ -247,9 +246,9 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
     helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
 			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<simb::MCParticle>,
 			 *this );
-    helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
-			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::SimPhotons>,
-			 *this );
+    //helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
+    //			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::SimPhotons>,
+    //			 *this );
     helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
 			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::SimChannel>,
 			 *this );
