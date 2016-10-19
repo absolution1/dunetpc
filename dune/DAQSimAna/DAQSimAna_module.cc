@@ -11,10 +11,15 @@
 
 // ROOT includes
 #include "TH1F.h"
+#include "TH2F.h"
 
 // Framework includes
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "larcore/Geometry/Geometry.h"
+#include "lardataobj/RawData/raw.h"
+#include "lardataobj/Simulation/sim.h"
+#include "lardataobj/Simulation/SimChannel.h"
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -28,9 +33,6 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-
-// DUNETPC specific includes
-
 
 
 class DAQSimAna;
@@ -61,7 +63,17 @@ private:
   // label for module that made raw digits
   std::string fRawDigitLabel;
 
-  // a simple histo to be filled
+  // other variables
+  int fNchannels;
+
+  // histograms to fill
+  TH1F* fNADC_comp;
+  TH1F* fNADC_nocomp;
+  TH1F* fCompX;
+  TH2F* fCompX_vs_channel;
+
+  //Services
+  art::ServiceHandle<geo::Geometry> geo;
   
 };
 
@@ -88,12 +100,14 @@ void DAQSimAna::reconfigure(fhicl::ParameterSet const & p)
 //......................................................
 void DAQSimAna::beginJob()
 {
-  /*
+
   art::ServiceHandle<art::TFileService> tfs;
 
-  fTrigTypes = tfs->make<TH1F>("fTrigTypes","Trigger Types;trig type;count",
-			       101,-0.5,100.5);
-  */
+  fNADC_comp = tfs->make<TH1F>("fNADC_comp","Number of ADC samples, after compression;Number of ADC samples;Frequency",1000,0,10000);
+  fNADC_nocomp = tfs->make<TH1F>("fNADC_nocomp","Number of ADC samples, without compression;Number of ADC samples;Frequency",1000,0,10000);
+  fCompX =  tfs->make<TH1F>("fCompX","Compression Factor;Compression Factor;Frequency",100,0,1);
+  fCompX_vs_channel =  tfs->make<TH2F>("fCompX_vs_channel","Compression Factor vs. Channel No.;Channel No.;Compression Factor",30720,0,30720,100,0,1);
+
 }
 
 
@@ -107,8 +121,100 @@ void DAQSimAna::analyze(art::Event const & e)
   //
   art::Handle<std::vector<raw::RawDigit>> digitsHandle;
   e.getByLabel(fRawDigitLabel, digitsHandle);  
-
   std::cout << "\n\n\nraw_digits.size() = " << digitsHandle->size() << "\n\n\n";
+
+  art::PtrVector<raw::RawDigit> rdvec;
+  for (unsigned int i=0; i<digitsHandle->size(); ++i){
+    art::Ptr<raw::RawDigit> r(digitsHandle,i);
+    rdvec.push_back(r);
+  }
+
+  std::cout << "\n\n\nrdvec.size() = " << rdvec.size() << "\n\n\n";//6408 is...?
+  for (unsigned int rd=0; rd<rdvec.size(); ++rd){
+    if (rd==0){
+      std::cout << "\n\n\nrdvec[rd]->Samples() = " << rdvec[rd]->Samples() << "\n\n\n";//4492 is readout length
+      std::cout << "\n\n\nrdvec[rd]->NADC() = " <<rdvec[rd]->NADC() << "\n\n\n";//this is the readout length with compression
+      std::cout << "\n\n\nrdvec[rd]->Channel() = " <<rdvec[rd]->Channel() << "\n\n\n";//this is the channel number for this raw digit
+    }
+  
+    fNADC_comp->Fill(rdvec[rd]->NADC());
+    fNADC_nocomp->Fill(rdvec[rd]->Samples());
+    fCompX->Fill(rdvec[rd]->NADC()/rdvec[rd]->Samples());
+    fCompX_vs_channel->Fill(rdvec[rd]->Channel(),rdvec[rd]->NADC()/rdvec[rd]->Samples());
+
+  }
+
+
+  //All the code below is garbage tests-->
+  // 
+  // Get Geometry information
+  //
+
+  fNchannels = geo->Nchannels();
+  for (int chan=0; chan<fNchannels; chan++){
+    if (chan==0){
+      //      std::cout << digitsHandle[chan]->fNSamplesReadout() << "\n";
+      //      std::cout << digitsHandle[chan]->fSamples() << "\n";
+    }
+    //    for (unsigned int samp=0; samp<fNSamplesReadout
+    //    const sim::SimChannel* sc = channels[chan];
+    //    const geo::View_t = geo->View(chan);
+    ///    if (sc){
+      
+    //    }
+  }
+
+  // Make a vector of const sim::SimChannel* that has same number
+  // of entries as the number of channels in the detector
+  // and set the entries for the channels that have signal on them
+  // using the chanHandle
+  std::vector<const sim::SimChannel*> chanHandle;
+  std::vector<const sim::SimChannel*> simChannels(geo->Nchannels(), nullptr);
+  //  evt.getView(fSimWireLabel, chanHandle);
+  //  for ( size_t c=0; c<chanHandle.size(); ++c ) {
+  //    simChannels[chanHandle[c]->Channel()] = chanHandle[c];
+  //  }
+
+
+
+  // make a vector of const sim::SimChannel* that has same number
+  // of entries as the number of channels in the detector
+  // and set the entries for the channels that have signal on them
+  // using the chanHandle
+  /**
+  std::vector<const raw::SimChannel*> channels(geo->Nchannels());
+  for(size_t c = 0; c < wireHandle.size(); ++c){
+    //    channels[wireHandle[c]->Channel()] = wireHandle[c];
+  }
+  **/
+  //  std::cout geoc->
+  //  std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
+  /**
+  //WARNING!
+  //this below assumes only one cryostat with at least one APA
+  fNTPC = cgeo[0]-NTPC();
+  fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
+  std::cout << "\n\nI found " << fNTPC << " APA(s) in the cryostat";
+  std::cout << "\nI also found " << fPlanesPerAPA << " planes per APA \n\n";
+  
+  for (unsigned int tpc=0; tpc<fNTPC; tpc++){
+    for (unsigned int plane=0; plane<fPlanesPerAPA; plane++){
+      fWiresInPlane = cgeo[0]->TPC(tpc);
+      for (unsigned int wire=0; wire<fWiresInPlane; wire++){
+	nadc = 100;
+	//	nadc = digitsHandle->
+	if (plane==0)
+	  fNADC_Col->Fill(wire,nadc);
+	else if (plane==1)
+	  fNADC_Ind1->Fill(wire,nadc);
+	else if (plane==2)
+	  fNADC_Ind2->Fill(wire,nadc);
+      }
+    }
+  }
+  **/
+
+  //<---garbage tests end
 
 }
 
