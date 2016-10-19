@@ -1,18 +1,10 @@
 #include "services_dune.fcl"
 
-mixerana:
-{
-    module_type: RawDigitOverlayDUNE35tAna
-    RawDigitModule1Label: "SplitterInput:TPC"
-    RawDigitModule2Label: "daq"
-    RawDigitModuleSumLabel: "mixer"
-}
-
 process_name : RawDigitMixer      #The process name must NOT contain any underscores
 
 source : {
   module_type : RootInput
-  maxEvents   : -1
+  maxEvents   : 10
 }
 
 services : {
@@ -41,22 +33,22 @@ physics: {
   }
 
   analyzers: {
-        mixerana: @local::mixerana
+
   }
 
   filters: {
   	    mixer: { module_type : OverlayRawDataDUNE35t
-	    	     fileNames : [ " /pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/00/lbne_r013770_sr01_20160229T022537_20160709T055234_split.root " ]
+	    	     fileNames : [ "/pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/01/lbne_r013772_sr01_20160229T023027_20160709T052939_split.root" ]
 		     #fileNames : [ " /dune/app/users/mthiesse/larDev_mix/test/preDataOverlayMixer.root " ]
                      readMode : sequential
-		     wrapFiles : true
+		     wrapFiles : false
 		     coverageFraction : 1
 		     detail : {
 		       RawDigitDataModuleLabel : "SplitterInput:TPC"
-		       #OpDetDataModuleLabel : "pmtreadout"
+                       #OpDetDataModuleLabel : "pmtreadout"
 		       RawDigitMCModuleLabel : "daq"
-		       #OpDetMCModuleLabel : "pmtreadout"
-		       InputFileIsData : false # the file designated with the lar -s flag, not the files in "fileNames"
+                       #OpDetMCModuleLabel : "pmtreadout"
+		       InputFileIsData : false
 		       G4InputModuleLabel : "largeant"
 		       GeneratorInputModuleLabel : "generator"
 		       EventsToMix: 1
@@ -69,9 +61,9 @@ physics: {
   mixer_path : [ mixer ]
   trigger_paths : [ mixer_path ]
 
-  ana1: [mixerana]
+  #ana1: [mixerana]
   output : [ out ]
-  end_paths: [ output, ana1 ]
+  end_paths: [ output ]
 
 }
 
