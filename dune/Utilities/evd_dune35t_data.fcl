@@ -7,7 +7,7 @@ services.user: @local::dune35t_disp_data
 # Change vertical scale to 15000 ticks
 services.user.RawDrawingOptions.DrawRawDataOrCalibWires:       1
 services.user.RawDrawingOptions.TotalTicks:               15000
-#services.user.RawDrawingOptions.TotalTicks:               3200
+#services.user.RawDrawingOptions.TotalTicks:               5200
 #services.user.RecoDrawingOptions.WireModuleLabels: ["caldata:TPC"]
 services.user.DetPedestalService.DetPedestalDUNE.UseDB: true
 services.user.DetectorPropertiesService.Efield: [0.25, 0.782, 1.734]

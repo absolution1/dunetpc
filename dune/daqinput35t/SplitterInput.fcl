@@ -80,6 +80,6 @@ mcsplit_events.SSPInputTag:          "opdigi::Detsim"
 mcsplit_events.PennInputDataProduct: "raw::ExternalTrigger" 
 mcsplit_events.PennInputTag:         "simcounter::Detsim" 
 mcsplit_events.PreTriggerTicks:      0
-mcsplit_events.PostTriggerTicks:     3200
+mcsplit_events.PostTriggerTicks:     5200
 
 END_PROLOG

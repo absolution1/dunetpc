@@ -98,7 +98,7 @@ dune35t_disp.Geometry:     @local::dune35t_geo
 dune35t_disp.ChannelStatusService: @local::dune35t_channel_status
 dune35t_disp.ChannelMapService: @local::channelmap35t
 dune35t_disp.DetectorClocksService:  @local::dune35t_detectorclocks # defined in detectorclocks_dune.fcl
-dune35t_disp.RawDrawingOptions.TotalTicks:               3200
+dune35t_disp.RawDrawingOptions.TotalTicks:               5200
 dune35t_disp.RawDrawingOptions.MinimumSignal:            10
 dune35t_disp.RawDrawingOptions.UncompressWithPed:        true
 
