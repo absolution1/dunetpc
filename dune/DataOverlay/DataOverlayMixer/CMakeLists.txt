@@ -33,6 +33,9 @@ art_make(
 	LIBRARY_NAME RawDigitOverlayDUNE35tAna_module
 	EXCLUDE OverlayRawDataDUNE35t_module.cc
 	MODULE_LIBRARIES
+   larcore_Geometry_Geometry_service
+   larcore_Geometry
+
 			ub_RawDigitAdderAna
                         lardataobj_RawData
                         ${ART_FRAMEWORK_CORE}

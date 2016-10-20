@@ -7,6 +7,8 @@
 // from cetpkgsupport v1_08_07.
 ////////////////////////////////////////////////////////////////////////
 
+#include <map>
+
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -19,14 +21,25 @@
 
 #include "art/Framework/Services/Optional/TFileService.h"
 
-#include "TH1S.h"
 #include <sstream>
+
+#include "TTree.h"
+
+#include "larcore/Geometry/Geometry.h"
 
 #include "DataOverlay/RawDigitAdderAna.hh"
 
 namespace mix {
+  const int kNMaxADCs = 100000000;
   class RawDigitOverlayDUNE35tAna;
+  enum RawDigitTypes {
+    kRawData = 0,
+    kRawMC,
+    kRawMixed,
+    kNoType = -9999
+  };
 }
+
 
 class mix::RawDigitOverlayDUNE35tAna : public art::EDAnalyzer {
 public:
@@ -42,43 +55,64 @@ public:
 
   // Required functions.
   void analyze(art::Event const & e) override;
+  void beginJob() override;
+
+
 
 private:
 
-  std::string                   fRawDigitModule1;
-  std::string                   fRawDigitModule2;
-  std::string                   fRawDigitModuleSum;
-  size_t                        fChannelSampleInterval;
-  std::vector<raw::ChannelID_t> fChannelsSpecial;  
-  bool                          fPrintBadOverlays;
-  std::string                   fInput1Label;
-  std::string                   fInput2Label;
-  std::string                   fSumLabel;
+  void FillADCVariables(art::Handle<std::vector<raw::RawDigit> > digit_handle, mix::RawDigitTypes type);
+  void Reset();
 
-  mix::RawDigitAdderAna fAnaAlg;
-  
+  std::map<mix::RawDigitTypes, std::string> fRawDigitModuleLabels;
+  std::map<mix::RawDigitTypes, art::Handle<std::vector<raw::RawDigit> > > fRawDigitProducts;
 
+  TTree *fTree;
+  size_t fNADCs;
+  short fADCs[mix::kNMaxADCs];
+  raw::ChannelID_t fChannelIDs[mix::kNMaxADCs];
+  int fTypes[mix::kNMaxADCs];
 };
 
 
 mix::RawDigitOverlayDUNE35tAna::RawDigitOverlayDUNE35tAna(fhicl::ParameterSet const & p)
   :
-  EDAnalyzer(p),
-  fRawDigitModule1(p.get<std::string>("RawDigitModule1Label")),
-  fRawDigitModule2(p.get<std::string>("RawDigitModule2Label")),
-  fRawDigitModuleSum(p.get<std::string>("RawDigitModuleSumLabel")),
-  fChannelSampleInterval(p.get<size_t>("ChannelSampleInterval",100)),
-  fChannelsSpecial(p.get< std::vector<raw::ChannelID_t> >("ChannelsToPrint",std::vector<raw::ChannelID_t>())),
-  fPrintBadOverlays(p.get<bool>("PrintBadOverlays",true)),
-  fInput1Label(p.get<std::string>("Label1",fRawDigitModule1)),
-  fInput2Label(p.get<std::string>("Label2",fRawDigitModule2)),
-  fSumLabel(p.get<std::string>("LabelSum",fRawDigitModuleSum)),
-  fAnaAlg(fChannelSampleInterval,fChannelsSpecial,fPrintBadOverlays,fInput1Label,fInput2Label,fSumLabel)
+  EDAnalyzer(p)
 {
+  fRawDigitModuleLabels[mix::kRawData] = p.get<std::string>("DataRawDigitModuleLabel");
+  fRawDigitModuleLabels[mix::kRawMC] = p.get<std::string>("MCRawDigitModuleLabel");
+  fRawDigitModuleLabels[mix::kRawMixed] = p.get<std::string>("MixedRawDigitModuleLabel");
+}
+
+void mix::RawDigitOverlayDUNE35tAna::beginJob(){
+  art::ServiceHandle<art::TFileService> tfs;
+  fTree = tfs->make<TTree>("MRDT","MixerRawDigitTree");
+
+  fTree->Branch("NADC",&fNADCs,"NADC/i");
+  fTree->Branch("ADC",fADCs,"ADC[NADC]/S");
+  fTree->Branch("ChannelID",fChannelIDs,"ChannelID[NADC]/I");
+  fTree->Branch("Type",fTypes,"Type[NADC]/I");
 }
 
 void mix::RawDigitOverlayDUNE35tAna::analyze(art::Event const & e)
 {
+
+  Reset();
+  art::ServiceHandle<geo::Geometry> geometry;
+  std::cout<<"Num TPC channels is: " << geometry->Nchannels() << std::endl;
+
+  for (int type_num = mix::kRawData; type_num <= mix::kRawMixed; type_num++){
+    mix::RawDigitTypes type = static_cast<mix::RawDigitTypes>(type_num);
+    e.getByLabel(fRawDigitModuleLabels[type],fRawDigitProducts[type]);
+    if (!fRawDigitProducts[type].isValid()){
+      std::cerr<<"Could not find raw digit with label: " << fRawDigitModuleLabels[type] << std::endl;
+    }
+    else{
+      FillADCVariables(fRawDigitProducts[type],type);
+    }
+  }
+
+  /*
   art::ServiceHandle<art::TFileService> tfs;
 
   art::Handle<std::vector<raw::RawDigit> > waveform1Handle,waveform2Handle,waveformSumHandle;
@@ -101,6 +135,42 @@ void mix::RawDigitOverlayDUNE35tAna::analyze(art::Event const & e)
   fAnaAlg.CreateOutputHistograms(histograms,
 				 waveform1Vector,waveform2Vector,waveformSumVector,
 				 e.run(),e.event());
+     */
+
+  fTree->Fill();
+}
+
+void mix::RawDigitOverlayDUNE35tAna::FillADCVariables(art::Handle<std::vector<raw::RawDigit> > digit_handle, mix::RawDigitTypes type){
+  //Check if the handle is valid.  If not, don't do anything :(
+  if (!digit_handle.isValid()){
+    std::cerr<<"Digit handle for type " << type << " not valid!  Don't attempt to fill the tree for this product"<<std::endl;
+    return;
+  }
+  std::vector<raw::RawDigit> const& digitVector(*digit_handle);
+
+  for (unsigned int i_raw = 0; i_raw < digitVector.size(); i_raw++){
+    raw::RawDigit raw_digit = digitVector[i_raw];
+
+    raw::ChannelID_t channel = raw_digit.Channel();
+
+    for (unsigned int i_adc = 0; i_adc < raw_digit.ADCs().size(); i_adc++){
+      fADCs[fNADCs] = raw_digit.ADCs()[i_adc];
+      fChannelIDs[fNADCs] = channel;
+      fTypes[fNADCs] = static_cast<int>(type);
+      fNADCs++;
+    }
+  }
+
+  return;
+}
+
+void mix::RawDigitOverlayDUNE35tAna::Reset(){
+  fNADCs = 0;
+  for (int i = 0; i < mix::kNMaxADCs; i++){
+    fADCs[i] = -9999;
+    fChannelIDs[i] = -9999;
+    fTypes[i] = kNoType;
+  }
 }
 
 DEFINE_ART_MODULE(mix::RawDigitOverlayDUNE35tAna)
