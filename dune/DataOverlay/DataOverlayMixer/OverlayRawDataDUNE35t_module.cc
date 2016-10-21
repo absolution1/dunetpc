@@ -237,24 +237,37 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
     fG4InputModuleLabel = fpset.get<std::string>("G4InputModuleLabel");
     fGeneratorInputModuleLabel = fpset.get<std::string>("GeneratorInputModuleLabel");
     
+    std::string instance = "MC";
+
     //MC generator info is a simple copy
     helper.declareMixOp( art::InputTag(fGeneratorInputModuleLabel),
+			 instance,
 			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<simb::MCTruth>,
 			 *this );
     
     //Simple copies of G4 SimPhotons, MCParticles, SimChannels, and SimAuxDetChannel
     helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
+			 instance,
 			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<simb::MCParticle>,
 			 *this );
     //helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
+    //                   instance,
     //			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::SimPhotons>,
     //			 *this );
     helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
+			 instance,
 			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::SimChannel>,
 			 *this );
     helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
+			 instance,
 			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::AuxDetSimChannel>,
 			 *this );
+
+    helper.declareMixOp( art::InputTag(fRawDigitMCModuleLabel),
+			 instance,
+    			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<raw::RawDigit>,
+    			 *this );
+
     /*
     //Associations of MCParticles to MCTruth...hopefully a simple copy is enough
     helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
@@ -263,18 +276,18 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
 		       *this );
 		       */
     
-    //Copies of MCShower and MCTrack
-    //    if(fDoMCReco){
-    //  helper.declareMixOp( art::InputTag(fMCRecoInputModuleLabel),
-    //			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::MCShower>,
-    //			   *this );
-    //  helper.declareMixOp( art::InputTag(fMCRecoInputModuleLabel),
-    //			   &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::MCTrack>,
-    //			   *this );
-    //}
   }//end if file is input data
 
+  if (!fInputFileIsData)
+    {
+      helper.declareMixOp( art::InputTag(fRawDigitDataModuleLabel),
+			   "DATA",
+			   &OverlayRawDataDetailDUNE35t::MixSimpleCopy<raw::RawDigit>,
+			   *this );
+    }
+
   helper.declareMixOp( art::InputTag(fRawDigitMixerSourceModuleLabel),
+		       "MIXED",
 		       &OverlayRawDataDetailDUNE35t::MixRawDigits,
 		       *this );
   
