@@ -47,7 +47,7 @@ int test_DuneRoiBuildingService(int a_LogLevel =1) {
   string fclfile = "test_DuneRoiBuildingService.fcl";
   ofstream fout(fclfile.c_str());
   fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services.user: @local::dune35t_services" << endl;
+  fout << "services.      @table::dune35t_services" << endl;
   fout << "services.AdcRoiBuildingService: {" << endl;
   fout << "  service_provider: DuneRoiBuildingService" << endl;
   fout << "  NSigmaStart:  4.0" << endl;
