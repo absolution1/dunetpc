@@ -28,7 +28,7 @@
 }
 
 services: {
-  user:         @local::dune35t_simulation_services
+                @table::dune35t_simulation_services
   Timing:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info

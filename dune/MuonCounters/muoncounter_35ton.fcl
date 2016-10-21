@@ -21,7 +21,7 @@ services:
 message:               @local::dune_message_services_prod_debug
 # Timing:       {}
 # SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
-  user: @local::dune35t_services
+        @table::dune35t_services
 }
 
 outputs:

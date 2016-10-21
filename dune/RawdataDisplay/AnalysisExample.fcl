@@ -46,7 +46,7 @@ services:
   # ${SRT_PUBLIC_CONTEXT}/services.fcl (which will lead you to other
   # files in the ${SRT_PUBLIC_CONTEXT}/job directory).
 
-  user:         @local::dunefd_simulation_services
+                @table::dunefd_simulation_services
 }
 
 # The 'source' section tells the script to expect an input file with art::Event records.

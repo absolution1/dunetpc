@@ -11,7 +11,7 @@ process_name: RunDaqToOffline
 
 services: {
   TFileService: { fileName: "daqtooffline_hist.root" }
-  user:         @local::dune35t_services
+                @table::dune35t_services
   TimeTracker:       {}
 
 }
