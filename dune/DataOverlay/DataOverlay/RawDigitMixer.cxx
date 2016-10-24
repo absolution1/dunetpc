@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <algorithm>
 
-// "Data" here means the files in the fhicl parameter "fileNames"
 void mix::RawDigitMixer::DeclareData(std::vector<raw::RawDigit> const& dataVector){
 
   fChannelIndexMap.clear();
@@ -17,7 +16,7 @@ void mix::RawDigitMixer::DeclareData(std::vector<raw::RawDigit> const& dataVecto
   for(size_t i_rd=0; i_rd<dataVector.size(); i_rd++){
     
     std::vector<short> waveform;
-    if(dataVector[i_rd].Compression()!=raw::Compress_t::kNone)
+    if(dataVector[i_rd].Compression()!=raw::kNone)
       {
 	raw::Uncompress(dataVector[i_rd].ADCs(),
 			waveform,
@@ -47,22 +46,16 @@ void mix::RawDigitMixer::DeclareData(std::vector<raw::RawDigit> const& dataVecto
   
 }
 
-// "mcVector" is the raw digits in the input file given by the lar -s flag
 void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
 			     std::unordered_map<raw::ChannelID_t,float> const& scale_map){
 
 
   for( auto const& rd : mcVector){
 
-    std::vector<short> waveform;
-    if(rd.Compression()!=raw::Compress_t::kNone)
+    if(rd.Compression()!=raw::kNone)
       {
-	raw::Uncompress(rd.ADCs(),
-                        waveform,
-                        rd.GetPedestal(),
-                        rd.Compression());
+	throw std::runtime_error("Error in RawDigitMixer::Mix : Compressed MC waveforms not supported. Turn it off and try again."); 
       }
-    else waveform = rd.ADCs();
 
     auto it_ch = fChannelIndexMap.find(rd.Channel());
 
@@ -75,45 +68,21 @@ void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
     fRDAdderAlg.SetPedestalInputs(rd.GetPedestal(),0.0);
     fRDAdderAlg.SetScaleInputs(scale_map.at(rd.Channel()),1.0);
     fRDAdderAlg.SetStuckBitRetentionMethod(_stuckRetention);
-
-    if (fOutputWaveforms[i_output].waveform.size() == 15000 && waveform.size() == 5200)
+    
+    // hard-code 15000 here because the production split/stitched data files should have 15000 ticks exactly
+    if (fOutputWaveforms[i_output].waveform.size() == 15000 && fOutputWaveforms[i_output].waveform.size() > rd.ADCs().size()+1)
       {
-	std::vector<short> data_trimmed = std::vector<short>(fOutputWaveforms[i_output].waveform.begin()+_offset,
-							     fOutputWaveforms[i_output].waveform.begin()+_offset+waveform.size());
-	std::vector<short> const& mc = std::vector<short>(waveform.begin(),waveform.end());
-	fRDAdderAlg.AddRawDigits(mc,data_trimmed);
+	size_t offset = fOutputWaveforms[i_output].waveform.size()-rd.Samples()-1;
+	std::vector<short> const data_trimmed(fOutputWaveforms[i_output].waveform.begin()+offset,
+					fOutputWaveforms[i_output].waveform.begin()+offset+rd.Samples());
+	//std::vector<short> const& mc(rd.ADCs());
+	fRDAdderAlg.AddRawDigits(rd.ADCs(),data_trimmed,fOutputWaveforms[i_output].waveform);
       }
     else
       {
 	throw std::runtime_error("Error in RawDigitMixer::Mix : The waveform sizes aren't what they're expected to be. I need real data to be 15000 ticks and MC to be 5200 ticks. If this has changed, then recompile, or come up with a more clever solution than throwing an exception.");
       }
-
-    /*
-    //If the sizes are not the same...
-    if(rd.Samples() != fOutputWaveforms[i_output].waveform.size()){
-      if(_printWarnings)
-	std::cout << "WARNING! Two collections don't have same number of samples:\t"
-		  << fOutputWaveforms[i_output].waveform.size() << " " << rd.Samples() << std::endl;
-
-      //if the samples is larger, we make a new vector of the right size, trimmed down appropriately
-      if(rd.Samples() > fOutputWaveforms[i_output].waveform.size()){
-	std::vector<short> const& mc_trimmed = std::vector<short>(waveform.begin(),
-								  waveform.begin()+fOutputWaveforms[i_output].waveform.size());
-	fRDAdderAlg.AddRawDigits(mc_trimmed,fOutputWaveforms[i_output].waveform);
-      }
-      //if the samples is shorter, pad it out with the pedestal
-      else if(rd.Samples() < fOutputWaveforms[i_output].waveform.size()){
-	std::vector<short> mc_trimmed(fOutputWaveforms[i_output].waveform.size(),rd.GetPedestal());
-	std::copy(waveform.begin(),waveform.end(),mc_trimmed.begin());
-	fRDAdderAlg.AddRawDigits(mc_trimmed,fOutputWaveforms[i_output].waveform);
-      }
-    }
-    //Sizes are the same? Easy!
-    else{
-      fRDAdderAlg.AddRawDigits(waveform,fOutputWaveforms[i_output].waveform);
-    }
-    */
-
+    
   }
 
 }

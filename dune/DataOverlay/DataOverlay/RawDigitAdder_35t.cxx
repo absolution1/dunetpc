@@ -29,8 +29,8 @@ void mix::RawDigitAdder_35t::AddRawDigit(short const& d1, short const& d2, short
   // d1 ==> MC
   // d2 ==> Real Data
   AdcCodeHelper ach;
-  //if (ach.hasStickyBits(d2) && _forceStuckBitRetention) d_out = (short)(std::round((float)d2 * _scale2)); 
-  /*else*/ d_out = (short)(std::round((float)d1 * _scale1)) + (short)(std::round((float)d2 * _scale2));
+  if (ach.hasStickyBits(d2) && _forceStuckBitRetention) d_out = (short)(std::round((float)d2 * _scale2)); 
+  else d_out = (short)(std::round((float)d1 * _scale1)) + (short)(std::round((float)d2 * _scale2));
   FixOverflow(d_out);
 }
 
