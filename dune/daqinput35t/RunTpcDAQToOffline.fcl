@@ -29,7 +29,7 @@
 
 services: {
                 @table::dune35t_simulation_services
-  Timing:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
   TFileService: { fileName: "FlatDAQTree.root" }

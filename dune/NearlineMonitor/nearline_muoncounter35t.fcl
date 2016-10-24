@@ -14,7 +14,7 @@ services:
 {
   TFileService: { fileName: "ptb_counter_rates.root" }
   TimeTracker:       {}
-  SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
+  MemoryTracker:         { ignoreTotal: 1 } # default is one
   RandomNumberGenerator: {} #ART native random number generator
                 @table::dune35t_services
 }

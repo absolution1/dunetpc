@@ -8,7 +8,7 @@ process_name: NoiseCorrelation
 services: {
   TFileService: { fileName: "correlation.root" }
                 @table::dune35t_simulation_services
-  Timing:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
 }

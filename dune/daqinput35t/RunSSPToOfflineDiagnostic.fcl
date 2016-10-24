@@ -6,7 +6,7 @@ process_name: RunSSPToOffline
 
 services : {
                 @table::dune35t_services
-  #Timing:       {}
+  #TimeTracker:       {}
   #RandomNumberGenerator: {} 
   message:      @local::standard_info
   TFileService: { fileName: "SSPDiagnosticPlots_r%r_sr%s.root" } 
