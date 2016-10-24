@@ -90,7 +90,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   } else {
     ofstream fout(fclfile.c_str());
     fout << "#include \"services_dune.fcl\"" << endl;
-    fout << "services:      @table::dune35t_services" << endl;
+    fout << "services:      @local::dune35t_services" << endl;
     fout << "services.RawDigitExtractService: {" << endl;
     fout << "  service_provider: StandardRawDigitExtractService" << endl;
     fout << "  LogLevel:        1" << endl;

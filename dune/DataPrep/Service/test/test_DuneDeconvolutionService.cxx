@@ -54,7 +54,7 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
   string fclfile = "test_DuneDeconvolutionService.fcl";
   ofstream fout(fclfile.c_str());
   fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services:      @table::dune35t_services" << endl;
+  fout << "services:      @local::dune35t_services" << endl;
   fout << "services.AdcDeconvolutionService: {" << endl;
   fout << "  service_provider: DuneDeconvolutionService" << endl;
   fout << "  LogLevel:              " << a_LogLevel << endl;
