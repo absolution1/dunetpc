@@ -1,4 +1,5 @@
 #include "services_dune.fcl"
+#include "production_split_files.fcl"
 
 process_name : RawDigitMixer      #The process name must NOT contain any underscores
 
@@ -38,7 +39,8 @@ physics: {
 
   filters: {
   	    mixer: { module_type : OverlayRawDataDUNE35t
-	    	     fileNames : [ "/pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/01/lbne_r013772_sr01_20160229T023027_20160709T052939_split.root" ]
+	    	     #fileNames : [ "/pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/01/lbne_r013772_sr01_20160229T023027_20160709T052939_split.root" ]
+                     fileNames : @local::dune35t_mixer_datafiles
 		     #fileNames : [ " /dune/app/users/mthiesse/larDev_mix/test/preDataOverlayMixer.root " ]
                      readMode : sequential
 		     wrapFiles : false

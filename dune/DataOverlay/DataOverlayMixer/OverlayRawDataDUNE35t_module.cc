@@ -9,7 +9,6 @@
 
 /*
 
-  TODO: Make some sort of run/subrun/event selection based on low-noise events, and choose the corresponding file in SAM
   TODO: Implement mixing for OpDetWaveforms in 35t (I have no idea how). What about AuxDet stuff???
 
  */
