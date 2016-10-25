@@ -1,5 +1,4 @@
-# <- hash is the comment tag in the FHiCL language
-# be careful when using "#include another.fcl" statement
+# add "#include another.fcl" statements out of PROLOG block:
 # #include "trackfinderalgorithms.fcl"
 
 BEGIN_PROLOG
