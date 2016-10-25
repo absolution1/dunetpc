@@ -1,0 +1,15 @@
+# <- hash is the comment tag in the FHiCL language
+# be careful when using "#include another.fcl" statement
+# #include "trackfinderalgorithms.fcl"
+
+BEGIN_PROLOG
+
+cluster_counter:
+{
+   module_type:          "ClusterCounter"
+
+   ClusterModuleLabel:   "linecluster"
+   MinSize:              10
+}
+
+END_PROLOG
