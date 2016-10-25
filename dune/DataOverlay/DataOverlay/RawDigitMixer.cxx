@@ -28,6 +28,9 @@ void mix::RawDigitMixer::DeclareData(std::vector<raw::RawDigit> const& dataVecto
 	waveform = dataVector[i_rd].ADCs();
       }    
 
+    if (_datastart > waveform.size() || _dataend > waveform.size())
+      throw std::runtime_error("RawDigitMixer::DeclareData : Input data RawDigit shape does not match what is expected.");
+
     fChannelIndexMap[dataVector[i_rd].Channel()] = i_rd;
     
     //initialize adc vector for output
@@ -49,13 +52,13 @@ void mix::RawDigitMixer::DeclareData(std::vector<raw::RawDigit> const& dataVecto
 void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
 			     std::unordered_map<raw::ChannelID_t,float> const& scale_map){
 
-
   for( auto const& rd : mcVector){
 
     if(rd.Compression()!=raw::kNone)
-      {
-	throw std::runtime_error("Error in RawDigitMixer::Mix : Compressed MC waveforms not supported. Turn it off and try again."); 
-      }
+      throw std::runtime_error("Error in RawDigitMixer::Mix : Compressed MC waveforms not supported. Turn it off and try again."); 
+
+    if (_mcstart > rd.Samples() || _mcend > rd.Samples())
+      throw std::runtime_error("RawDigitMixer::Mix : Input MC RawDigit shape does not match what is expected.");
 
     auto it_ch = fChannelIndexMap.find(rd.Channel());
 
@@ -69,20 +72,11 @@ void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
     fRDAdderAlg.SetScaleInputs(scale_map.at(rd.Channel()),1.0);
     fRDAdderAlg.SetStuckBitRetentionMethod(_stuckRetention);
     
-    // hard-code 15000 here because the production split/stitched data files should have 15000 ticks exactly
-    if (fOutputWaveforms[i_output].waveform.size() == 15000 && fOutputWaveforms[i_output].waveform.size() > rd.ADCs().size()+1)
-      {
-	size_t offset = fOutputWaveforms[i_output].waveform.size()-rd.Samples()-1;
-	std::vector<short> const data_trimmed(fOutputWaveforms[i_output].waveform.begin()+offset,
-					fOutputWaveforms[i_output].waveform.begin()+offset+rd.Samples());
-	//std::vector<short> const& mc(rd.ADCs());
-	fRDAdderAlg.AddRawDigits(rd.ADCs(),data_trimmed,fOutputWaveforms[i_output].waveform);
-      }
-    else
-      {
-	throw std::runtime_error("Error in RawDigitMixer::Mix : The waveform sizes aren't what they're expected to be. I need real data to be 15000 ticks and MC to be 5200 ticks. If this has changed, then recompile, or come up with a more clever solution than throwing an exception.");
-      }
-    
+    std::vector<short> const data_trimmed(fOutputWaveforms[i_output].waveform.begin()+_datastart,
+					  fOutputWaveforms[i_output].waveform.begin()+_dataend);
+    std::vector<short> const mc_trimmed(rd.ADCs().begin()+_mcstart,
+					rd.ADCs().begin()+_mcend);
+    fRDAdderAlg.AddRawDigits(mc_trimmed,data_trimmed,fOutputWaveforms[i_output].waveform);
   }
 
 }

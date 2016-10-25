@@ -136,8 +136,12 @@ private:
   size_t               fEventsToMix;
   float                fDefaultMCRawDigitScale;
   //float                fDefaultMCOpDetScale;
-  size_t               fDataTicksOffset;
+
   bool                 fForceStuckBitRetention;
+  size_t               fDataMixStartTick;
+  size_t               fDataMixEndTick;
+  size_t               fMCMixStartTick;
+  size_t               fMCMixEndTick;
 
   std::string          fSamDefname;
   std::string          fSamProject;
@@ -191,8 +195,11 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
   fDefaultMCRawDigitScale(fpset.get<float>("DefaultMCRawDigitScale",1)),
   //fDefaultMCOpDetScale(fpset.get<float>("DefaultMCOpDetScale",1)),
 
-  fDataTicksOffset(fpset.get<size_t>("DataTicksOffset",9700)),
   fForceStuckBitRetention(fpset.get<bool>("ForceStuckBitRetention",false)),
+  fDataMixStartTick(fpset.get<size_t>("DataMixStartTick",9800)),
+  fDataMixEndTick(fpset.get<size_t>("DataMixEndTick",15000)),
+  fMCMixStartTick(fpset.get<size_t>("MCMixStartTick",0)),
+  fMCMixEndTick(fpset.get<size_t>("MCMixEndTick",5200)),
 
   // Get sam related parameters.
   // These parameters should normally be set by the work flow.
@@ -216,7 +223,7 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
     std::stringstream err_str;
     err_str << "ERROR! Really sorry, but we can only do mixing for one collection right now! ";
     err_str << "\nYep. We're gonna throw an exception now. You should change your fcl to set 'EventsToMix' to 1";
-    throw cet::exception("OverlayRawDataDUNE35t") << err_str.str() << std::endl;;
+    throw cet::exception("OverlayRawDataDUNE35t") << err_str.str() << std::endl;
   }
 
   if(fInputFileIsData){
@@ -407,8 +414,10 @@ void mix::OverlayRawDataDetailDUNE35t::startEvent(const art::Event& event) {
   if(!inputDigitHandle.isValid())
     throw cet::exception("OverlayRawDataDUNE35t") << "Bad input digit handle." << std::endl;;
   //fRDMixer.SetSaturationPoint(fDefaultRawDigitSatPoint);
-  fRDMixer.SetTickOffsetForData(fDataTicksOffset);
+
   fRDMixer.SetStuckBitRetentionMethod(fForceStuckBitRetention);
+  fRDMixer.SetDataMixTicks(fDataMixStartTick,fDataMixEndTick);
+  fRDMixer.SetMCMixTicks(fMCMixStartTick,fMCMixEndTick);
 
   //event.getByLabel(fOpDetInputSourceModuleLabel,"OpdetBeamLowGain",inputOpDetHandle_LowGain);
   //if(!inputOpDetHandle_LowGain.isValid())

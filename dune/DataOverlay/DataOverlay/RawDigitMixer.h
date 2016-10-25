@@ -48,21 +48,21 @@ public:
 
   void FillRawDigitOutput(std::vector<raw::RawDigit> & output);
 
-  //void SetSaturationPoint(short x)
-  //{ fRDAdderAlg.SetSaturationPoint(x); }
-  
   /// Default destructor
   virtual ~RawDigitMixer(){};
   
-  void SetTickOffsetForData(size_t o) { _offset=o; }
-
   void SetStuckBitRetentionMethod(bool b) { _stuckRetention = b; }
+  void SetDataMixTicks(size_t start, size_t end) { _datastart = start; _dataend = end; }
+  void SetMCMixTicks(size_t start, size_t end) { _mcstart = start; _mcend = end; }
 
  private:
 
   bool _stuckRetention;
   bool _printWarnings;
-  size_t _offset;
+  size_t _datastart;
+  size_t _dataend;
+  size_t _mcstart;
+  size_t _mcend;
 
   //this is just to make storing this info easier, for RawDigit construction later
   struct RD_Info{
