@@ -1,5 +1,13 @@
 BEGIN_PROLOG
-dune35t_mixer_datafiles: [
+dune35t_smalldatafiles: [
+"/pnfs/dune/persistent/users/mthiesse/CopyProductionSplitFiles/lbne_r013770_sr01_20160229T022537_20160709T055234_split.root",
+"/pnfs/dune/persistent/users/mthiesse/CopyProductionSplitFiles/lbne_r014240_sr01_20160302T225751_20160705T230608_split.root",
+"/pnfs/dune/persistent/users/mthiesse/CopyProductionSplitFiles/lbne_r015725_sr01_20160311T045946_20160709T062854_split.root",
+"/pnfs/dune/persistent/users/mthiesse/CopyProductionSplitFiles/lbne_r016466_sr01_20160315T061605_20160709T073601_split.root",
+"/pnfs/dune/persistent/users/mthiesse/CopyProductionSplitFiles/lbne_r017182_sr01_20160317T231140_20160709T092407_split.root"
+]
+
+dune35t_fulldatafiles: [
 "/pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/00/lbne_r013770_sr01_20160229T022537_20160709T055234_split.root"
 ,"/pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/30/55/lbne_r013771_sr01_20160229T022735_20160709T052228_split.root"
 ,"/pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/01/lbne_r013772_sr01_20160229T023027_20160709T052939_split.root"

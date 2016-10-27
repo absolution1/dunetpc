@@ -328,13 +328,13 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
       if(c == 0 || *c == 0)
 	c = "dune";
       fSamStation = c;
-      //std::cout << "Mix SAM: Station = " << fSamStation << std::endl;
+      std::cout << "Mix SAM: Station = " << fSamStation << std::endl;
     }
 
     // Find project uri.
 
     fSamProjectURI = ifdh->findProject(fSamProject, fSamStation);
-    //std::cout << "Mix SAM: project uri = " << fSamProjectURI << std::endl;
+    std::cout << "Mix SAM: project uri = " << fSamProjectURI << std::endl;
     if(fSamProjectURI.empty())
       throw cet::exception("OverlayRawDataDUNE35t") << "Failed to find project uri.";
 
@@ -353,10 +353,20 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
 	c = getenv("LOGNAME");
       if(c != 0 && *c != 0)
 	fSamUser = c;
-      //std::cout << "Mix SAM: User = " << fSamUser << std::endl;
+      std::cout << "Mix SAM: User = " << fSamUser << std::endl;
     }
 
     // Join project.
+
+    std::cout << "Mix SAM: fSamProjectURI = " << fSamProjectURI << "\n"
+	      << "Mix SAM: fSamAppName = " << fSamAppName << "\n"
+	      << "Mix SAM: fSamAppVersion = " << fSamAppVersion << "\n"
+	      << "Mix SAM: hostname = " << hostname << "\n"
+	      << "Mix SAM: fSamUser = " << fSamUser << "\n"
+	      << "Mix SAM: fSamAppFamily = " << fSamAppFamily << "\n"
+	      << "Mix SAM: fSamDescription = " << fSamDescription << "\n"
+	      << "Mix SAM: fSamFileLimit = " << fSamFileLimit << "\n"
+	      << "Mix SAM: fSamSchema = " << fSamSchema << "\n";
 
     fSamProcessID = ifdh->establishProcess(fSamProjectURI,
 					   fSamAppName,
@@ -370,7 +380,7 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
     mf::LogInfo("OverlayRawDigitDUNE35t") << "Overlay sam definition: " << fSamDefname << "\n"
 					     << "Overlay sam project: " << fSamProject;
 
-    //std::cout << "Mix SAM: process id = " << fSamProcessID << std::endl;
+    std::cout << "Mix SAM: process id = " << fSamProcessID << std::endl;
     if(fSamProcessID.empty())
       throw cet::exception("OverlayRawDataDUNE35t") << "Failed to start sam process.";
   }
@@ -392,13 +402,13 @@ mix::OverlayRawDataDetailDUNE35t::~OverlayRawDataDetailDUNE35t()
 			     fSamProcessID,
 			     fSamCurrentFileName,
 			     "consumed");
-      //std::cout << "Mix SAM: File " << fSamCurrentFileName << " status changed to consumed." << std::endl;
+      std::cout << "Mix SAM: File " << fSamCurrentFileName << " status changed to consumed." << std::endl;
     }
 
     // Stop process.
 
     ifdh->endProcess(fSamProjectURI, fSamProcessID);
-    //std::cout << "Mix SAM: End process." << std::endl;
+    std::cout << "Mix SAM: End process." << std::endl;
   }
 }
 
@@ -591,7 +601,7 @@ std::string mix::OverlayRawDataDetailDUNE35t::getMixFile()
 			     fSamCurrentFileName,
 			     "consumed");
 
-      //std::cout << "Mix SAM: File " << fSamCurrentFileName << " status changed to consumed." << std::endl;
+      std::cout << "Mix SAM: File " << fSamCurrentFileName << " status changed to consumed." << std::endl;
       fSamCurrentFileURI = std::string();
       fSamCurrentFileName = std::string();
     }
@@ -601,8 +611,8 @@ std::string mix::OverlayRawDataDetailDUNE35t::getMixFile()
     fSamCurrentFileURI = fSamCurrentFileURI = ifdh->getNextFile(fSamProjectURI,	fSamProcessID);
     unsigned int n = fSamCurrentFileURI.find_last_of('/') + 1;
     fSamCurrentFileName = fSamCurrentFileURI.substr(n);
-    //std::cout << "Mix SAM: Next file uri = " << fSamCurrentFileURI << std::endl;
-    //std::cout << "Mix SAM: Next file name = " << fSamCurrentFileName << std::endl;
+    std::cout << "Mix SAM: Next file uri = " << fSamCurrentFileURI << std::endl;
+    std::cout << "Mix SAM: Next file name = " << fSamCurrentFileName << std::endl;
     mf::LogInfo("OverlayRawDigitDUNE35t") << "Next mix file uri: " << fSamCurrentFileURI << "\n"
 					     << "Next mix file name: " << fSamCurrentFileName;
 

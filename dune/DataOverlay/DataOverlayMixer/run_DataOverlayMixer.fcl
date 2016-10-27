@@ -12,19 +12,21 @@ services : {
 
   TFileService: { fileName: "DataOverlayMixer_hist.root" }
   Timing:       {}
-  SimpleMemoryCheck:     { ignoreTotal: 1 }     #default is one
+  ##SimpleMemoryCheck:     { ignoreTotal: 1 }     #default is one
   RandomNumberGenerator: {}                     #ART native random number generator
-
+  
   @table::dune35tsim_reco_services
-
+  FileCatalogMetadata: @local::art_file_catalog_data
   message:      @local::standard_info
-
+  MemoryTracker: {}
+  IFDH: {}
 }
 
 outputs: {
   out: { module_type: RootOutput
   	         fileName: "DataOverlayMixer.root"
 		 fastCloning: false
+                 dataTier: "full-reconstructed"
 		 compressionLevel: 1 }
 }
 
@@ -40,13 +42,16 @@ physics: {
   filters: {
   	    mixer: { module_type : OverlayRawDataDUNE35t
 	    	     #fileNames : [ "/pnfs/lbne//pnfs/fnal.gov/usr/lbne/test-data/lbne/sliced/01/26/35/01/lbne_r013772_sr01_20160229T023027_20160709T052939_split.root" ]
-                     fileNames : @local::dune35t_mixer_datafiles
+                     #fileNames : @local::dune35t_smalldatafiles
 		     #fileNames : [ " /dune/app/users/mthiesse/larDev_mix/test/preDataOverlayMixer.root " ]
                      readMode : sequential
 		     wrapFiles : false
 		     coverageFraction : 1
 		     detail : {
-		       RawDigitDataModuleLabel : "SplitterInput:TPC"
+                       SamDefname: "goodruns_sliced"
+                       SamProject: "mthiesse_testgoodruns"
+                       SamStation: "lbne"
+                       RawDigitDataModuleLabel : "SplitterInput:TPC"
                        #OpDetDataModuleLabel : "pmtreadout"
 		       RawDigitMCModuleLabel : "daq"
                        #OpDetMCModuleLabel : "pmtreadout"
