@@ -1,3 +1,0 @@
-#include "geometry_dune.fcl"
-services.Geometry:                   @local::dune35t_geo
-services.ExptGeoHelperInterface:     @local::dune_geometry_helper
