@@ -7,6 +7,9 @@
  * within LArSoft. Derived from the ExptGeoHelperInterface class.
  */
 
+// Modified Oct 2016 by David Adams.
+// Add param ChannelMapClass to explicitly specify the mapping class.
+
 #ifndef DUNE_ExptGeoHelperInterface_h
 #define DUNE_ExptGeoHelperInterface_h
 
@@ -23,40 +26,42 @@ namespace geo
 
 // Declaration
 //
-namespace dune
-{
-  class DUNEGeometryHelper : public geo::ExptGeoHelperInterface
-  {
-  public:
+namespace dune {
+
+class DUNEGeometryHelper : public geo::ExptGeoHelperInterface {
+
+public:
     
-    DUNEGeometryHelper( fhicl::ParameterSet const & pset, art::ActivityRegistry &reg );
+  DUNEGeometryHelper( fhicl::ParameterSet const & pset, art::ActivityRegistry &reg );
     
-    /*
-      Public interface for ExptGeoHelperInterface (for reference purposes)
+  /*
+    Public interface for ExptGeoHelperInterface (for reference purposes)
+    
+    Configure, initialize and return the channel map:
       
-      Configure, initialize and return the channel map:
+    void ConfigureChannelMapAlg(fhicl::ParameterSet const& sortingParameters, geo::GeometryCore* geom);
       
-      void ConfigureChannelMapAlg
-        (fhicl::ParameterSet const& sortingParameters, geo::GeometryCore* geom);
-      
-      Returns null pointer if the initialization failed:
+    Returns null pointer if the initialization failed:
       
       ChannelMapAlgPtr_t GetChannelMapAlg() const;
-    */
+  */
   
-  private:
+private:
     
-    virtual void doConfigureChannelMapAlg
-      (fhicl::ParameterSet const& sortingParameters, geo::GeometryCore* geom)
-      override;
-    virtual ChannelMapAlgPtr_t doGetChannelMapAlg() const override;
+  virtual void
+  doConfigureChannelMapAlg(fhicl::ParameterSet const& sortingParameters, geo::GeometryCore* geom) override;
+  virtual ChannelMapAlgPtr_t doGetChannelMapAlg() const override;
     
-    fhicl::ParameterSet const & fPset;
-    std::shared_ptr<geo::ChannelMapAlg> fChannelMap;
-    
-  };
+  fhicl::ParameterSet const & fPset;
+  std::shared_ptr<geo::ChannelMapAlg> fChannelMap;
 
-}
+  // FCL params.
+  std::string fChannelMapClass;   // Name of the class that does the channel mapping.
+    
+};
+
+}  // end dune namespace
+
 DECLARE_ART_SERVICE_INTERFACE_IMPL(dune::DUNEGeometryHelper, geo::ExptGeoHelperInterface, LEGACY)
 
 #endif // DUNE_ExptGeoHelperInterface_h
