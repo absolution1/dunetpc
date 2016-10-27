@@ -1,0 +1,6 @@
+#include "services_dune.fcl"
+services: @local::dune35t_basic_services
+services.ExptGeoHelperInterface.ChannelMapClass: Dune35tChannelMapAlg
+services.ChannelGroupService: {
+  service_provider: "GeoRopChannelGroupService"
+}

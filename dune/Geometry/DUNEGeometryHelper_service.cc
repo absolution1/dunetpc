@@ -44,7 +44,7 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& sortingParameters, geo::Geom
     } else if ( fChannelMapClass == "ChannelMap35Alg" ) {
       fChannelMap = std::make_shared<geo::ChannelMap35Alg>(sortingParameters);
     } else if ( fChannelMapClass == "ChannelMap35OptAlg" ) {
-      fChannelMap = std::make_shared<geo::ChannelMap35Alg>(sortingParameters);
+      fChannelMap = std::make_shared<geo::ChannelMap35OptAlg>(sortingParameters);
     } else {
       throw cet::exception("DUNEGeometryHelper") << "Invalid channel map class name:" << fChannelMapClass << "\n";
     }
