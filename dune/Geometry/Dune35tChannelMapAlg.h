@@ -81,19 +81,15 @@ public:
    * @brief Returns the total number of TPC sets in the specified cryostat
    * @param cryoid cryostat ID
    * @return number of TPC sets in the cryostat, or 0 if no cryostat found
-   *
-     * @todo to be completed
-     */
+   */
     virtual unsigned int NTPCsets
       (readout::CryostatID const& cryoid) const override;
     
     /// Returns the largest number of TPC sets any cryostat in the detector has
-    /// @todo to be completed
     virtual unsigned int MaxTPCsets() const override;
     
     /// Returns whether we have the specified TPC set
     /// @return whether the TPC set is valid and exists
-    /// @todo to be completed
     virtual bool HasTPCset(readout::TPCsetID const& tpcsetid) const override;
     
     /**
@@ -105,8 +101,6 @@ public:
      * does not necessarily imply that the TPC set specified by the ID actually
      * exists. Check the existence of the TPC set first (HasTPCset()).
      * Behaviour on valid, non-existent TPC set IDs is undefined.
-     * 
-     * @todo to be completed
      */
     virtual readout::TPCsetID TPCtoTPCset
       (geo::TPCID const& tpcid) const override;
@@ -120,14 +114,11 @@ public:
      * does not necessarily imply that the TPC set specified by the ID actually
      * exists. Check the existence of the TPC set first (HasTPCset()).
      * Behaviour on valid, non-existent TPC set IDs is undefined.
-     *
-     * @todo to be completed
      */
     virtual std::vector<geo::TPCID> TPCsetToTPCs
       (readout::TPCsetID const& tpcsetid) const override;
     
     /// Returns the ID of the first TPC belonging to the specified TPC set
-    /// @todo to be completed
     virtual geo::TPCID FirstTPCinTPCset
       (readout::TPCsetID const& tpcsetid) const override;
     
@@ -147,14 +138,11 @@ public:
      * @return number of readout planes in the TPC set, or 0 if no TPC set found
      * 
      * Note that this methods explicitly check the existence of the TPC set.
-     *
-     * @todo to be completed
      */
     virtual unsigned int NROPs
       (readout::TPCsetID const& tpcsetid) const override;
     
     /// Returns the largest number of ROPs a TPC set in the detector has
-    /// @todo to be completed
     virtual unsigned int MaxROPs() const override;
     
     /// Returns whether we have the specified ROP
@@ -170,8 +158,6 @@ public:
      * ID, that does not necessarily imply that the wire plane specified by
      * the ID actually exists. Check if the wire plane exists with HasPlane().
      * The behaviour on non-existing wire planes is undefined.
-     * 
-     * @todo to be completed
      */
     virtual readout::ROPID WirePlaneToROP
       (geo::PlaneID const& planeid) const override;
@@ -185,8 +171,6 @@ public:
      * ID, that does not necessarily imply that the readout plane specified by
      * the ID actually exists. Check if the ROP exists with HasROP().
      * The behaviour on non-existing readout planes is undefined.
-     * 
-     * @todo to be completed
      */
     virtual std::vector<geo::PlaneID> ROPtoWirePlanes
       (readout::ROPID const& ropid) const override;
@@ -200,8 +184,6 @@ public:
      * ID, that does not necessarily imply that the readout plane specified by
      * the ID actually exists. Check if the ROP exists with HasROP().
      * The behaviour on non-existing readout planes is undefined.
-     *
-     * @todo to be completed
      */
     virtual std::vector<geo::TPCID> ROPtoTPCs
       (readout::ROPID const& ropid) const override;
@@ -220,8 +202,6 @@ public:
      * ID, that does not necessarily imply that the readout plane specified by
      * the ID actually exists. Check if the ROP exists with HasROP().
      * The behaviour for non-existing readout planes is undefined.
-     *
-     * @todo to be completed
      */
     virtual raw::ChannelID_t FirstChannelInROP
       (readout::ROPID const& ropid) const override;
@@ -235,8 +215,6 @@ public:
      * ID, that does not necessarily imply that the readout plane specified by
      * the ID actually exists. Check if the ROP exists with HasROP().
      * The behaviour for non-existing readout planes is undefined.
-     *
-     * @todo to be completed
      */
     virtual geo::PlaneID FirstWirePlaneInROP
       (readout::ROPID const& ropid) const override;
@@ -257,6 +235,7 @@ public:
     unsigned int                                         fNchannels;      ///< number of channels in the detector
     raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #
     std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
+    std::vector<unsigned int>                            fNAPA;           ///< number of APAs in each cryostat
     std::set<View_t>                                     fViews;          ///< vector of the views present in the detector
     std::set<PlaneID>                                    fPlaneIDs;       ///< vector of the PlaneIDs present in the detector
 
