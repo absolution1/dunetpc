@@ -81,7 +81,8 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
   
   std::cout<<"Total number of TPC "<<geo->NTPC()<<std::endl;
 
-  for (size_t t = 0; t<geo->NTPC(); ++t){
+  for (geo::TPCID const& tpcid: geo->IterateTPCIDs()) {
+    size_t const t = tpcid.TPC;
     //if (t%2==0) continue;
     double local[3] = {0.,0.,0.};
     double world[3] = {0.,0.,0.};
@@ -123,16 +124,17 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
     // scan the planes
     for (size_t p = 0; p<geo->Nplanes(t);++p)
       {
-	const geo::PlaneGeo &vPlane = tpc.Plane( p );
+	geo::PlaneID planeID(tpcid, p);
+	const geo::PlaneGeo &vPlane = tpc.Plane( planeID );
 	if( vPlane.View() == geo::kU )
 	  std::cout<<"  View type geo::kU"<<std::endl;
 	if( vPlane.View() == geo::kV )
 	  std::cout<<"  View type geo::kV"<<std::endl;
 	if( vPlane.View() == geo::kZ )
 	  std::cout<<"  View type geo::kZ"<<std::endl;
-	if( vPlane.SignalType() == geo::kCollection )
+	if( geo->SignalType(planeID) == geo::kCollection )
 	  std::cout<<"  View is geo::kCollection"<<std::endl;
-	if( vPlane.SignalType() == geo::kInduction )
+	if( geo->SignalType(planeID) == geo::kInduction )
 	  std::cout<<"  View is geo::kInduction"<<std::endl;
 	std::cout<<"  Number of wires : "<<vPlane.Nwires()<<std::endl;
 	std::cout<<"  Wire pitch      : "<<vPlane.WirePitch()<<std::endl;
