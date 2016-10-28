@@ -1,6 +1,6 @@
 #include "evd_dune.fcl"
 process_name: EVD
 
-#services.      @table::dunefd_disp
-#services.      @table::dune10kt_1x2x6_disp
-services.      @table::dunefd_disp
+#services:      @table::dunefd_disp
+#services:      @table::dune10kt_1x2x6_disp
+services:      @table::dunefd_disp
