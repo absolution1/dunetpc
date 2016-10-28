@@ -1,7 +1,14 @@
 #include "evd_dune.fcl"
 process_name: EVD
 
-services:      @table::dune35t_disp_data
+includedServices: @local::services
+
+services: {
+    @table::includedServices
+    @table::dune35t_disp_data
+}
+
+includedServices: @erase
 
 #services.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"
 # Change vertical scale to 15000 ticks
