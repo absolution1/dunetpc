@@ -1,5 +1,5 @@
 #include "evd_dune.fcl"
 process_name: EVD
 
-#services.user: @local::dunefd3mm_disp
-services.user: @local::dune10kt_3mmpitch_1x2x6_disp
+#services.      @table::dunefd3mm_disp
+services.      @table::dune10kt_3mmpitch_1x2x6_disp

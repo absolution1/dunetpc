@@ -5,8 +5,8 @@
 process_name: RunSSPToOffline
 
 services : {
-  user:         @local::dune35t_services
-  #Timing:       {}
+                @table::dune35t_services
+  #TimeTracker:       {}
   #RandomNumberGenerator: {} 
   message:      @local::standard_info
   TFileService: { fileName: "SSPDiagnosticPlots_r%r_sr%s.root" } 
@@ -52,4 +52,4 @@ outputs:
 }
 
 # temporary fix for DB access issues
-services.user.DetPedestalService.DetPedestalDUNE.CSVFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_9754.csv"
+services.DetPedestalService.DetPedestalDUNE.CSVFile: "/dune/app/users/mstancar/evdisp/offline_databaseRun_9754.csv"

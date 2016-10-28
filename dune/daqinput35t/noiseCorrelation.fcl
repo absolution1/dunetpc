@@ -7,13 +7,13 @@ process_name: NoiseCorrelation
 
 services: {
   TFileService: { fileName: "correlation.root" }
-  user:         @local::dune35t_simulation_services
-  Timing:       {}
+                @table::dune35t_simulation_services
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
 }
 
-services.user.DetPedestalService.DetPedestalDUNE.UseDB: true
+services.DetPedestalService.DetPedestalDUNE.UseDB: true
 
 physics:
 {
