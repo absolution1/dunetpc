@@ -82,7 +82,9 @@ void ClusterCounter::analyze(art::Event const & evt)
     // use auto to make the line shorter when you remember all art types,
     // the type here is: art::ValidHandle< std::vector<recob::Cluster> >
     auto clusterHandle = evt.getValidHandle< std::vector<recob::Cluster> >(fClusterModuleLabel);
-    
+
+    fNClusters = 0;
+
     // if you are old c++ granpa (or need cluster index, which may indeed happen!):
     // for (size_t i = 0; i < clusterHandle->size(); ++i)
     // or:
@@ -90,9 +92,9 @@ void ClusterCounter::analyze(art::Event const & evt)
     {
         fNHits = clu.NHits();
         fClusterTree->Fill();
-    }
 
-    fNClusters = clusterHandle->size();
+        if (fNHits >= fMinSize) { ++fNClusters; }
+    }
     fEventTree->Fill();
 }
 
