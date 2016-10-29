@@ -116,7 +116,7 @@ void ClusterCounter::analyze(art::Event const & evt)
             if (isEM) { mf::LogVerbatim("ClusterCounter") << "matched mother particle PDG: " << p->PdgCode(); }
             else { mf::LogVerbatim("ClusterCounter") << "matched particle PDG: " << p->PdgCode(); }
         }
-         else { mf::LogWarning("ClusterCounter") << "No matcched particle??"; }
+        else { mf::LogWarning("ClusterCounter") << "No matcched particle??"; }
 
         fClusterTree->Fill();
 
