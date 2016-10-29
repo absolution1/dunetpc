@@ -44,7 +44,7 @@ public:
   void endJob() override;
 
 private:
-  float SumAdc(const std::vector< art::Ptr<recob::Hit> > & hits) const;
+  float sumAdc(const std::vector< art::Ptr<recob::Hit> > & hits) const;
 
   size_t fEvNumber;
 
@@ -98,7 +98,7 @@ void ClusterCounter::analyze(art::Event const & evt)
     for (size_t i = 0; i < cluHandle->size(); ++i)
     {
         fNHits = cluHandle->at(i).NHits();
-        fAdcSum = SumAdc(hitsFromClusters.at(i));
+        fAdcSum = sumAdc(hitsFromClusters.at(i));
         fClusterTree->Fill();
 
          mf::LogVerbatim("ClusterCounter")
@@ -110,7 +110,7 @@ void ClusterCounter::analyze(art::Event const & evt)
     fEventTree->Fill();
 }
 
-float ClusterCounter::SumAdc(const std::vector< art::Ptr<recob::Hit> > & hits) const
+float ClusterCounter::sumAdc(const std::vector< art::Ptr<recob::Hit> > & hits) const
 {
     float sum = 0;
     for (auto const & h : hits)

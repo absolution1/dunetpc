@@ -4,6 +4,8 @@ simple_plugin(ClusterCounter "module"
 			larcore_Geometry
 			larcore_Geometry_Geometry_service
 			
+			larsim_MCCheater_BackTracker_service
+			
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
