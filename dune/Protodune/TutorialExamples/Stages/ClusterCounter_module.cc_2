@@ -86,7 +86,7 @@ void ClusterCounter::analyze(art::Event const & evt)
     fNClusters = 0;
 
     // if you are old c++ granpa (or need cluster index, which may indeed happen!):
-    // for (size_t i = 0; i < clusterHandle.size(); ++i)
+    // for (size_t i = 0; i < clusters.size(); ++i)
     // or:
     for (auto const & clu : clusters) // loop over recob::Cluster's stored in the std::vector 
     {
