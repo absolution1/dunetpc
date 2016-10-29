@@ -80,15 +80,15 @@ void ClusterCounter::analyze(art::Event const & evt)
     mf::LogVerbatim("ClusterCounter") << "ClusterCounter module on event #" << fEvNumber;
 
     // use auto to make the line shorter when you remember all art types,
-    // the type here is: art::ValidHandle< std::vector<recob::Cluster> >
-    auto clusterHandle = evt.getValidHandle< std::vector<recob::Cluster> >(fClusterModuleLabel);
+    // the full type being de-referenced here is: art::ValidHandle< std::vector<recob::Cluster> >
+    auto const & clusters = *evt.getValidHandle< std::vector<recob::Cluster> >(fClusterModuleLabel);
 
     fNClusters = 0;
 
     // if you are old c++ granpa (or need cluster index, which may indeed happen!):
-    // for (size_t i = 0; i < clusterHandle->size(); ++i)
+    // for (size_t i = 0; i < clusterHandle.size(); ++i)
     // or:
-    for (auto const & clu : *clusterHandle) // loop over recob::Cluster's stored in the std::vector 
+    for (auto const & clu : clusters) // loop over recob::Cluster's stored in the std::vector 
     {
         fNHits = clu.NHits();
         fClusterTree->Fill();
