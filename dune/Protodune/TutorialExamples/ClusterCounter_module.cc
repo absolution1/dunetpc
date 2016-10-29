@@ -160,9 +160,9 @@ const simb::MCParticle* ClusterCounter::getTruthParticle(const std::vector< art:
 
     if ((max_e > 0) && (tot_e > 0)) // ok, found something reasonable
     {
-        if (best_id < 0)
-        {
-            best_id = -best_id;
+        if (best_id < 0)            // NOTE: negative ID means this is EM activity
+        {                           // caused by track with the same but positive ID
+            best_id = -best_id;     // --> we'll find mother MCParticle of these hits
             foundEmParent = true;
         }
         mcParticle = bt->TrackIDToParticle(best_id); // MCParticle corresponding to track ID
