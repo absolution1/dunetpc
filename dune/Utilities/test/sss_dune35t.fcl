@@ -6,18 +6,17 @@ services:
 {
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "ss_test_dune35t.root" }
-  user: {}
 }
 
-services.user.ExptGeoHelperInterface: @local::dune_geometry_helper
-services.user.Geometry:           @local::dune35t_geo
-services.user.DetectorClocksService:        @local::dune35t_detectorclocks
-services.user.DetectorPropertiesService: @local::dune35t_detproperties
-services.user.LArPropertiesService:      @local::dune35t_properties
-services.user.LArFFT:             @local::dune35t_larfft
-services.user.SignalShapingServiceDUNE35t: @local::dune35t_signalshapingservice
-services.user.DatabaseUtil:       @local::dune35t_database
-services.user.DatabaseUtil.ShouldConnect: false
+services.ExptGeoHelperInterface: @local::dune_geometry_helper
+services.Geometry:           @local::dune35t_geo
+services.DetectorClocksService:        @local::dune35t_detectorclocks
+services.DetectorPropertiesService: @local::dune35t_detproperties
+services.LArPropertiesService:      @local::dune35t_properties
+services.LArFFT:             @local::dune35t_larfft
+services.SignalShapingServiceDUNE35t: @local::dune35t_signalshapingservice
+services.DatabaseUtil:       @local::dune35t_database
+services.DatabaseUtil.ShouldConnect: false
 
 source:
 {
