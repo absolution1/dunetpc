@@ -269,8 +269,7 @@ public:
     std::vector< double > fCosOrientation; // to explore improving speed
 
     template <typename T>
-    T const& AccessAPAelement
-      (PlaneInfoMap_t<T> const& data, geo::PlaneID planeid) const
+    T const& AccessAPAelement(PlaneInfoMap_t<T> const& data, geo::PlaneID planeid) const
       { planeid.TPC /= 2; return AccessElement(data, planeid); }
     unsigned int WiresPerPlane(geo::PlaneID const& planeid) const
       { return AccessAPAelement(fWiresPerPlane, planeid); }

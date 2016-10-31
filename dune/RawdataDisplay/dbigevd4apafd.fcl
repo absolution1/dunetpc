@@ -10,11 +10,11 @@ services:
   TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
-  user:         @local::dunefd_simulation_services
+                @table::dunefd_simulation_services
 }
 
-services.user.Geometry.ROOT: "dune4apa36deg.gdml"
-services.user.Geometry.GDML: "dune4apa36deg.gdml"
+services.Geometry.ROOT: "dune4apa36deg.gdml"
+services.Geometry.GDML: "dune4apa36deg.gdml"
 
 source:
 {

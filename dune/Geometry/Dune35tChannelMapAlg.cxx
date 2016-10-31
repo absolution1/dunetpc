@@ -87,7 +87,7 @@ void Dune35tChannelMapAlg::Initialize( GeometryData_t& geodata ) {
     for(unsigned int a = 0; a != fNAPA[c]; ++a){
       for(unsigned int ap = 0; ap != fPlanesPerAPA; ++ap){
         unsigned int tp = tpcPlaneForApaPlane[ap];
-        unsigned int t = a + tpcOffsetForApaPlane[ap];
+        unsigned int t = 2*a + tpcOffsetForApaPlane[ap];
         fWiresPerPlane[c][a][ap] = cgeo[c]->TPC(t).Plane(tp).Nwires();
         double xyz[3] = {0.};
         double xyz_next[3] = {0.};
@@ -124,21 +124,20 @@ void Dune35tChannelMapAlg::Initialize( GeometryData_t& geodata ) {
 
   raw::ChannelID_t currentChannel = 0;
  
-  for(unsigned int cs = 0; cs != fNcryostat; ++cs){
-    for(unsigned int apa = 0; apa != fNAPA[cs]; ++apa){  
-      for(unsigned int p = 0; p != fPlanesPerAPA; ++p){
-
-        fFirstChannelInThisPlane[cs][apa][p] = currentChannel;
-        unsigned int nchan = nAnchoredWires[cs][apa][p];
-        if ( p < 2 ) nchan += nchan;
+  for ( unsigned int icry = 0; icry!= fNcryostat; ++icry ) {
+    for ( unsigned int iapa = 0; iapa != fNAPA[icry]; ++iapa ) {  
+      for ( unsigned int irop = 0; irop != fPlanesPerAPA; ++irop ) {
+        fFirstChannelInThisPlane[icry][iapa][irop] = currentChannel;
+        unsigned int nchan = nAnchoredWires[icry][iapa][irop];
+        if ( irop < 2 ) nchan += nchan;
         currentChannel += nchan;
-        fFirstChannelInNextPlane[cs][apa][p] = currentChannel;
+        fFirstChannelInNextPlane[icry][iapa][irop] = currentChannel;
         mf::LogVerbatim("Dune35tChannelMapAlg") << "Plane: Nwire NAnchored FIrstThis FirstNext: "
-                      << cs << "-" << apa << "-" << p << ": "
-                      << setw(4) << fWiresPerPlane[cs][apa][p] << " "
-                      << setw(4) << nAnchoredWires[cs][apa][p] << " "
-                      << setw(4) << fFirstChannelInThisPlane[cs][apa][p] << " "
-                      << setw(4) << fFirstChannelInNextPlane[cs][apa][p];
+                      << icry << "-" << iapa << "-" << irop << ": "
+                      << setw(4) << fWiresPerPlane[icry][iapa][irop] << " "
+                      << setw(4) << nAnchoredWires[icry][iapa][irop] << " "
+                      << setw(4) << fFirstChannelInThisPlane[icry][iapa][irop] << " "
+                      << setw(4) << fFirstChannelInNextPlane[icry][iapa][irop];
       }
     }
   }
@@ -150,7 +149,6 @@ void Dune35tChannelMapAlg::Initialize( GeometryData_t& geodata ) {
   // Save the number of channels
   fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerAPA-1];
 
-  
   fWirePitch.resize(fPlanesPerTPC);
   fOrientation.resize(fPlanesPerTPC);
   fSinOrientation.resize(fPlanesPerTPC);
@@ -158,15 +156,15 @@ void Dune35tChannelMapAlg::Initialize( GeometryData_t& geodata ) {
 
   //save data into fFirstWireCenterY, fFirstWireCenterZ and fWireSortingInZ
   fPlaneData.resize(fNcryostat);
-  for (unsigned int cs=0; cs<fNcryostat; cs++){
-    fPlaneData[cs].resize(fNTPC[cs]);
-    for (unsigned int tpc=0; tpc<fNTPC[cs]; tpc++){
-      fPlaneData[cs][tpc].resize(fPlanesPerTPC);
+  for (unsigned int icry=0; icry<fNcryostat; ++icry ){
+    fPlaneData[icry].resize(fNTPC[icry]);
+    for (unsigned int tpc=0; tpc<fNTPC[icry]; tpc++){
+      fPlaneData[icry][tpc].resize(fPlanesPerTPC);
       for (unsigned int plane=0; plane<fPlanesPerTPC; plane++){
-        PlaneData_t& PlaneData = fPlaneData[cs][tpc][plane];
-        fPlaneIDs.emplace(cs, tpc, plane);
+        PlaneData_t& PlaneData = fPlaneData[icry][tpc][plane];
+        fPlaneIDs.emplace(icry, tpc, plane);
         double xyz[3]={0.0, 0.0, 0.0};
-        const geo::PlaneGeo& thePlane = cgeo[cs]->TPC(tpc).Plane(plane);
+        const geo::PlaneGeo& thePlane = cgeo[icry]->TPC(tpc).Plane(plane);
         thePlane.Wire(0).GetCenter(xyz);
         PlaneData.fFirstWireCenterY = xyz[1];
         PlaneData.fFirstWireCenterZ = xyz[2];
@@ -229,71 +227,61 @@ void Dune35tChannelMapAlg::Uninitialize() {
 
 //----------------------------------------------------------------------------
 
-std::vector<geo::WireID> Dune35tChannelMapAlg::ChannelToWire(raw::ChannelID_t channel) const {
+std::vector<geo::WireID> Dune35tChannelMapAlg::ChannelToWire(raw::ChannelID_t icha) const {
 
   // first check if this channel ID is legal
-  if(channel >= fNchannels )
-    throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel << "\n";
-
   std::vector< WireID > AllSegments;
-    
-  static unsigned int cstat;
-  static unsigned int tpc;
-  static unsigned int plane;
-  static unsigned int wireThisPlane;
-  static unsigned int NextPlane;
-  static unsigned int ThisPlane;
-    
-  for(unsigned int csloop = 0; csloop != fNcryostat; ++csloop){
-      
-    bool breakVariable = false;
-      
-    for(unsigned int apaloop = 0; apaloop != fNAPA[csloop]; ++apaloop){
-      for(unsigned int planeloop = 0; planeloop != fPlanesPerTPC; ++planeloop){
-        NextPlane = fFirstChannelInNextPlane[csloop][apaloop][planeloop];
-        ThisPlane = fFirstChannelInThisPlane[csloop][apaloop][planeloop];
-        if(channel < NextPlane){
-          cstat = csloop;
-          tpc   = 2*apaloop;
-          plane = planeloop;
-          wireThisPlane  = channel - ThisPlane;
-          breakVariable = true;
+  if ( icha >= fNchannels ) return AllSegments;
+
+  unsigned int icry = 0;
+  unsigned int iapa = 0;
+  unsigned int irop = 0;
+  unsigned int iwir = 0;
+  bool foundPlane = false;
+  for ( icry=0; icry!=fNcryostat; ++icry ) {
+    for ( iapa=0; iapa!=fNAPA[icry]; ++iapa ) {
+      for ( irop = 0; irop!=fPlanesPerAPA; ++irop ) {
+        unsigned int icha1 = fFirstChannelInThisPlane[icry][iapa][irop];
+        unsigned int icha2 = fFirstChannelInNextPlane[icry][iapa][irop];
+        if ( icha >= icha1 && icha < icha2 ) {
+          iwir = icha - icha1;
+          foundPlane = true;
           break;
         }// end if break          
-        if(breakVariable) break;
+        if ( foundPlane ) break;
       }// end plane loop        
-      if(breakVariable) break;
+      if ( foundPlane ) break;
     }// end apa loop      
-    if(breakVariable) break;
-      
+    if ( foundPlane ) break;
   }// end cryostat loop
-    
+  if ( ! foundPlane ) return AllSegments;
+  unsigned int itpc = 2*iapa;
 
-  int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
+  int WrapDirection = 1; // go from tpc to (itpc+1) or tpc to (itpc-1)
 
   // find the lowest wire
-  raw::ChannelID_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[cstat][tpc/2][plane] );
-  unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[cstat][tpc/2][plane];
-    
-  if(ChannelGroup%2==1){
+  unsigned int ChannelGroup = iwir/nAnchoredWires[icry][iapa][irop];
+  unsigned int bottomwire = iwir - ChannelGroup*nAnchoredWires[icry][iapa][irop];
+  if ( (irop < 2 && ChannelGroup%2 == 1) || irop == 3 ) {
     // start in the other TPC
-    tpc += 1;
-    WrapDirection  = -1;         
+    itpc += 1;
+    WrapDirection = -1;         
   }
-    
-  for(unsigned int WireSegmentCount = 0; WireSegmentCount != 50; ++WireSegmentCount){
+
+  unsigned int ipla = (irop == 3) ? 2 : irop;
+  for ( unsigned int WireSegmentCount=0; WireSegmentCount!=50; ++WireSegmentCount ) {
+    itpc += WrapDirection*(WireSegmentCount%2);
+
+    unsigned int iwir = bottomwire + WireSegmentCount*nAnchoredWires[icry][iapa][irop];
+    geo::WireID wirid(icry, itpc, ipla, iwir);
       
-    tpc += WrapDirection*(WireSegmentCount%2);
-      
-    geo::WireID CodeWire(cstat, tpc, plane, bottomwire + WireSegmentCount*nAnchoredWires[cstat][std::floor(tpc/2)][plane]);
-      
-    AllSegments.push_back(CodeWire);
+    AllSegments.push_back(wirid);
       
     // reset the tcp variable so it doesnt "accumulate value"
-    tpc -= WrapDirection*(WireSegmentCount%2);
+    itpc -= WrapDirection*(WireSegmentCount%2);
       
-    if( bottomwire + (WireSegmentCount+1)*nAnchoredWires[cstat][std::floor(tpc/2)][plane] > 
-      fWiresPerPlane[cstat][std::floor(tpc/2)][plane]-1) break;
+    if( bottomwire + (WireSegmentCount+1)*nAnchoredWires[icry][iapa][irop] > 
+      fWiresPerPlane[icry][iapa][irop]-1) break;
       
   } //end WireSegmentCount loop
     
@@ -387,23 +375,32 @@ NearestWireID(const TVector3& xyz, PlaneID const& planeid) const {
   
 //----------------------------------------------------------------------------
 
-raw::ChannelID_t Dune35tChannelMapAlg::PlaneWireToChannel (geo::WireID const& wireid) const {
+raw::ChannelID_t Dune35tChannelMapAlg::PlaneWireToChannel(geo::WireID const& wireid) const {
+  unsigned int icry = wireid.Cryostat;
+  unsigned int itpc = wireid.TPC;
+  unsigned int ipla = wireid.Plane;
+  unsigned int iwir = wireid.Wire;
+  unsigned int iapa = itpc/2;
+  unsigned int irop = ipla;
+  bool induction = irop < 2;
+  bool collection = !induction;
+  bool otherSide = 2*iapa != itpc;
+  if ( collection && otherSide ) irop = 3;
+  unsigned int nwirAnchored = nAnchoredWires[icry][iapa][irop];
 
-  unsigned int OtherSideWires = 0;
+  // Evaluate the wire number in the ROP. For induction wires in the the second TPC in
+  // the APA, we must offset by the # anchored wires in the first TPC.
+  unsigned int iwirRop = iwir;
+  if ( induction && otherSide ) iwirRop += nwirAnchored;
 
-  raw::ChannelID_t Channel = AccessAPAelement(fFirstChannelInThisPlane, wireid);
+  // Evaluate the channel number in the ROP accounting for the wires wrapping with
+  // a period of 2 time # anchored wires.
+  unsigned int ichaRop = iwirRop % (2*nwirAnchored);
 
-  // get number of wires starting on the first side of the APA if starting
-  // on the other side TPC.
-  if (wireid.TPC % 2 == 1) OtherSideWires += AnchoredWires(wireid);
-  
-  // Lastly, account for the fact that channel number while moving up wire number in one
-  // plane resets after 2 times the number of wires anchored -- one for each APA side.
-  // At the same time, OtherSideWires accounts for the fact that if a channel starts on
-  // the other side, it is offset by the number of wires on the first side.
-  Channel += (OtherSideWires + wireid.Wire)%(2*AnchoredWires(wireid));
+  // Add the ROP channel offset to get the detector channel number.
+  unsigned int icha = ichaRop + fFirstChannelInThisPlane[icry][iapa][irop];
 
-  return Channel;
+  return icha;
 }
 
 

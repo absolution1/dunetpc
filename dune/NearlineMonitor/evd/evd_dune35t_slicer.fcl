@@ -6,7 +6,7 @@ process_name: EVD
 services:
 {
   message:      @local::evd_message
-  user:         @local::dune35t_disp_data
+                @table::dune35t_disp_data
 }
 
 # Define the services
@@ -44,22 +44,22 @@ physics:
  end_paths: [evd]  
 }
 
-services.user.DetPedestalService.DetPedestalDUNE.UseDB: true
+services.DetPedestalService.DetPedestalDUNE.UseDB: true
 
-services.user.ColorDrawingOptions.ColorOrGrayScale:       0    # use color
-services.user.RawDrawingOptions.TotalTicks:               5200
-services.user.RawDrawingOptions.StartTick:               0
+services.ColorDrawingOptions.ColorOrGrayScale:       0    # use color
+services.RawDrawingOptions.TotalTicks:               5200
+services.RawDrawingOptions.StartTick:               0
 
-services.user.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
-services.user.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"    #slicer
+services.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
+services.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"    #slicer
 
-services.user.RecoDrawingOptions.DrawClusters:               0
-services.user.RecoDrawingOptions.DrawTracks:                 0
-services.user.RecoDrawingOptions.DrawTrackSpacePoints:       0
-services.user.RecoDrawingOptions.DrawOpFlashes:              0
-services.user.RawDrawingOptions.RawQHigh: 200
-services.user.RawDrawingOptions.RawQLow: -200
-services.user.ColorDrawingOptions.RawQHigh:[ 200 ]
-services.user.ColorDrawingOptions.RawQLow: [ -200 ]
+services.RecoDrawingOptions.DrawClusters:               0
+services.RecoDrawingOptions.DrawTracks:                 0
+services.RecoDrawingOptions.DrawTrackSpacePoints:       0
+services.RecoDrawingOptions.DrawOpFlashes:              0
+services.RawDrawingOptions.RawQHigh: 200
+services.RawDrawingOptions.RawQLow: -200
+services.ColorDrawingOptions.RawQHigh:[ 200 ]
+services.ColorDrawingOptions.RawQLow: [ -200 ]
 
 
