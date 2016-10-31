@@ -60,6 +60,15 @@ void check(string name, T val, V checkval) {
   }
 }
 
+template<class T, class V>
+void checkval(string name, T val, V chkval) {
+  T eval = chkval;
+  if ( val != eval ) {
+    cout << name << ": " << val << " != " << chkval << endl;
+    assert(false);
+  }
+}
+
 //**********************************************************************
 
 int test_Geometry_Dune35t(string chanmap ="Dune35tChannelMapAlg", bool dorop =true, Index maxchanprint =10) {
@@ -250,6 +259,7 @@ int test_Geometry_Dune35t(string chanmap ="Dune35tChannelMapAlg", bool dorop =tr
       if ( iwir > lastwire[itpc][ipla] ) lastwire[itpc][ipla] = iwir;
       assert( iapa == iapa1 );
       assert( ipla == ipla1 );
+      checkval("\nPlaneWireToChannel", pgeo->PlaneWireToChannel(wirid), icha );
       assert( pgeo->PlaneWireToChannel(wirid) == icha );
     }
     if ( print ) cout << endl;
