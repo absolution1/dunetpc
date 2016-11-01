@@ -289,27 +289,20 @@ WireCoordinate(double YPos, double ZPos, PlaneID const& planeid) const {
   // Returns the wire number corresponding to a (Y,Z) position in the plane
   // with float precision.
   // Core code ripped from original NearestWireID() implementation
-    
   const PlaneData_t& PlaneData = AccessElement(fPlaneData, planeid);
-    
   // the formula used here is geometric:
   // distance = delta_y cos(theta_z) + delta_z sin(theta_z)
   // with a correction for the orientation of the TPC:
   // odd TPCs have supplementary wire angle (pi-theta_z), changing cosine sign
-    
   const bool bSuppl = (planeid.TPC % 2) == 1;
   float distance =
     -(YPos - PlaneData.fFirstWireCenterY) * (bSuppl? -1.: +1.) * fCosOrientation[planeid.Plane]
-    +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[planeid.Plane]
-    ;
-    
+    +(ZPos - PlaneData.fFirstWireCenterZ) * fSinOrientation[planeid.Plane];
   // The sign of this formula is correct if the wire with larger ID is on the
-  // "right" (intuitively, larger z; rigorously, smaller intercept)
-  // than this one.
+  // "right" (intuitively, larger z; rigorously, smaller intercept) than this one.
   // Of course, we are not always that lucky. fWireSortingInZ fixes our luck.
-
   return PlaneData.fWireSortingInZ * distance/fWirePitch[planeid.Plane];
-} // Dune35tChannelMapAlg::WireCoordinate()
+}
   
   
 //----------------------------------------------------------------------------
