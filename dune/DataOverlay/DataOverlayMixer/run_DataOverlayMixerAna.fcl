@@ -1,0 +1,49 @@
+#include "services_dune.fcl"
+
+process_name : RawDigitMixer      #The process name must NOT contain any underscores
+
+source : {
+  module_type : RootInput
+  maxEvents   : 10
+}
+
+services : {
+
+  TFileService: { fileName: "DataOverlayMixer_hist.root" }
+  TimeTracker:       {}
+  MemoryTracker: {}
+  RandomNumberGenerator: {}                     #ART native random number generator
+
+  @table::dune35tsim_reco_services
+
+  message:      @local::standard_info
+
+}
+
+#outputs: {
+#  out: { module_type: RootOutput
+#  	         fileName: "DataOverlayMixer.root"
+#		 fastCloning: false
+#		 compressionLevel: 1 }
+#}
+
+physics: {
+
+  analyzers: {
+         mixerana: {
+                     module_type : RawDigitOverlayDUNE35tAna
+                   }
+  }
+
+
+
+
+  ana: [mixerana]
+  end_paths: [ ana ]
+
+}
+
+physics.analyzers.mixerana.DataRawDigitModuleLabel: "SplitterInput:TPC" 
+physics.analyzers.mixerana.MCRawDigitModuleLabel: "mixer:MC"
+physics.analyzers.mixerana.MixedRawDigitModuleLabel: "mixer:MIXED"
+#services.IChannelStatusService.ChannelStatusProvider.UseDB: false
