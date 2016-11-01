@@ -50,6 +50,7 @@
 
 #include "DataOverlay/RawDigitMixer.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/ExternalTrigger.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 
 //#include "DataOverlay/OpDetWaveformMixer.h"
@@ -128,6 +129,7 @@ private:
 
   std::string          fG4InputModuleLabel;
   std::string          fGeneratorInputModuleLabel;
+  std::string          fTriggerInputModuleLabel;
 
   bool                 fDoMCReco;
   std::string          fMCRecoInputModuleLabel;
@@ -242,6 +244,7 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
     fDoMCReco = fpset.get_if_present<std::string>("MCRecoInputModuleLabel",fMCRecoInputModuleLabel);
     fG4InputModuleLabel = fpset.get<std::string>("G4InputModuleLabel");
     fGeneratorInputModuleLabel = fpset.get<std::string>("GeneratorInputModuleLabel");
+    fTriggerInputModuleLabel = fpset.get<std::string>("TriggerInputModuleLabel");
     
     std::string instance = "MC";
 
@@ -267,6 +270,11 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
     helper.declareMixOp( art::InputTag(fG4InputModuleLabel),
 			 instance,
 			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<sim::AuxDetSimChannel>,
+			 *this );
+
+    helper.declareMixOp( art::InputTag(fTriggerInputModuleLabel),
+			 instance,
+			 &OverlayRawDataDetailDUNE35t::MixSimpleCopy<raw::ExternalTrigger>,
 			 *this );
 
     helper.declareMixOp( art::InputTag(fRawDigitMCModuleLabel),
