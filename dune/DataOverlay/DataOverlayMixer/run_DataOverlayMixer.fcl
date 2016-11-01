@@ -45,12 +45,11 @@ physics: {
                      #fileNames : @local::dune35t_smalldatafiles
 		     #fileNames : [ " /dune/app/users/mthiesse/larDev_mix/test/preDataOverlayMixer.root " ]
                      readMode : sequential
-		     wrapFiles : false
+		     wrapFiles : true
 		     coverageFraction : 1
 		     detail : {
-                       SamDefname: "goodruns_sliced"
-                       SamProject: "mthiesse_testgoodruns"
-                       SamStation: "lbne"
+                       SamDefname: "goodruns_35ton_sliced_mthiesse"
+                       SamProject: "mthiesse_goodruns_35ton_sliced_mthiesse_2016-10-31_09-08-52"
                        RawDigitDataModuleLabel : "SplitterInput:TPC"
                        #OpDetDataModuleLabel : "pmtreadout"
 		       RawDigitMCModuleLabel : "daq"
