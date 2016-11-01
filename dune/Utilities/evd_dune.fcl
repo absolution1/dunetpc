@@ -5,7 +5,7 @@ process_name: EVD
 services:
 {
   message:      @local::evd_message
-  user:         @local::dune10kt_disp
+                @table::dune10kt_disp
 }
 
 # Define the services
@@ -43,7 +43,7 @@ physics:
  end_paths: [evd]  
 }
 
-#services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
-#services.user.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
-services.user.DetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 500
-services.user.DetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 1800
+#services.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultCollMean:  0
+#services.RawDrawingOptions.DetPedestalRetrievalAlg.DefaultIndMean:  0
+services.DetPedestalService.DetPedestalRetrievalAlg.DefaultCollMean: 500
+services.DetPedestalService.DetPedestalRetrievalAlg.DefaultIndMean: 1800

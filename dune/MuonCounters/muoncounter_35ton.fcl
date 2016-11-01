@@ -20,8 +20,8 @@ services:
 #TFileService: { fileName: "reco_hist.root" }
 message:               @local::dune_message_services_prod_debug
 # Timing:       {}
-# SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
-  user: @local::dune35t_services
+# MemoryTracker:         { ignoreTotal: 1 } # default is one
+        @table::dune35t_services
 }
 
 outputs:

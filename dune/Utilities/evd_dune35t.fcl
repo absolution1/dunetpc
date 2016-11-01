@@ -1,7 +1,15 @@
 #include "evd_dune.fcl"
 process_name: EVD
 
-services.user: @local::dune35t_disp
-services.user.RecoDrawingOptions.ClusterModuleLabels: "[cluster3d]"
-services.user.RecoDrawingOptions.HitModuleLabels: "[hitrepeater]"
-services.user.RecoDrawingOptions.TrackModuleLabels: "[pmtrack]"
+includedServices: @local::services
+
+services: {
+    @table::includedServices
+    @table::dune35t_disp
+}
+
+includedServices: @erase
+
+services.RecoDrawingOptions.ClusterModuleLabels: "[cluster3d]"
+services.RecoDrawingOptions.HitModuleLabels: "[hitrepeater]"
+services.RecoDrawingOptions.TrackModuleLabels: "[pmtrack]"

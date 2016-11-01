@@ -132,7 +132,7 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
     if ( cfg_file.is_empty() ) {
       fail = 1;
     } else {
-      // Get configuration for services and services.user and determine
+      // Get configuration for services and determine
       // where the service configuration is present.
       ParameterSet cfg_services;
       ParameterSet cfg_user;
@@ -146,9 +146,9 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
       if ( userHasName ) {
         pcfg = &cfg_user;
         if ( servicesHasName )
-          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services.user and services blocks." << endl;
+          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services blocks." << endl;
         if ( fileHasName )
-          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services.user block and at file level." << endl;
+          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services block and at file level." << endl;
       } else if ( servicesHasName ) {
         pcfg = &cfg_services;
         if ( fileHasName )
@@ -178,7 +178,7 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
       if ( fail == 1 ) {
         cout << "File is empty." << endl;
       } else if ( fail == 2 ) {
-        cout << "Block not found in file, services or services.user: " << name << endl;
+        cout << "Block not found in file, services: " << name << endl;
       } else if ( fail ) {
         cout << "Unexpected error " << fail << endl;
       }
@@ -254,7 +254,7 @@ int ArtServiceHelper::addServices(string sval, bool isFile) {
       cout << myname << "ERROR: Resolved file path: " << fpm(fname) << endl;
       return 5;
     } else {
-      // Get configuration for services and services.user and determine
+      // Get configuration for services and determine
       // where the service configuration is present.
       psets.push_back(ParameterSet());
       const ParameterSet& pset_services = psets.back();
