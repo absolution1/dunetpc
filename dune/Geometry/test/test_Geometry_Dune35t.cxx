@@ -45,9 +45,6 @@ using geo::TPCGeo;
 
 typedef unsigned int Index;
 const Index InvalidIndex = std::numeric_limits<Index>::max();
-typedef vector<Index> IndexVector;
-typedef vector<IndexVector> TwoIndexVector;
-typedef vector<TwoIndexVector> ThreeIndexVector;
 
 template<class T>
 using Vector = vector<T>;
@@ -135,21 +132,24 @@ void checkfloat(double x1, double x2, double tol =1.e-5) {
 struct ExpectedValues {
   typedef void (*FunPtr)(Geometry*);
   string fullname;
-  Index ncry = 1;
-  static const Index ntpc = 8;
-  static const Index npla = 3;
-  static const Index napa = 4;
-  static const Index nrop = 4;
+  Index ncry = 0;
+  Index ntpc = 0;
+  Index npla = 0;
+  Index napa = 0;
+  Index nrop = 0;
   Index nchaPerApa = 0;
   Index nchatot = 0;
   ThreeVector<View_t> view;
   ThreeVector<SigType_t> sigType;
   TwoVector<Index> nwirPerPlane;
+  // For ROP tests.
   Vector<Index> nchaPerRop;
   Vector<Index> chacry;          // Expected cryostat for each channel;
   Vector<Index> chaapa;          // Expected APA for each channel;
   Vector<Index> charop;          // Expected ROP for each channel;
-  ThreeVector<Index> firstchan;  // Fits channel(cry, apa, rop)
+  ThreeVector<Index> firstchan;  // First channel(cry, apa, rop)
+  // For space point tests.
+  FunPtr pfun = nullptr;
   vector<double> xfs;            // x-fractions for space points
   vector<double> yfs;            // y-fractions for space points
   vector<double> zfs;            // z-fractions for space points
@@ -157,7 +157,6 @@ struct ExpectedValues {
   vector<double> posTpc;         // TPCs for space points
   vector<double> posPla;         // TPC planes for space points
   vector<double> posWco;         // Wire coordinates for space points
-  FunPtr pfun = nullptr;
 };
 
 //**********************************************************************
@@ -170,6 +169,10 @@ void set35t(ExpectedValues& ev) {
   ev.fullname = "dune35t4apa_v6";
   // Geometry counts.
   ev.ncry = 1;
+  ev.ntpc = 8;
+  ev.npla = 3;
+  ev.napa = 4;
+  ev.nrop = 4;
   // Signal type and view for each TPC plane.
   resize(ev.view, ev.ncry, ev.ntpc, ev.npla, geo::kUnknown);
   resize(ev.sigType, ev.ncry, ev.ntpc, ev.npla, geo::kMysteryType);
@@ -293,6 +296,10 @@ void setWorkspace(ExpectedValues& ev) {
   ev.fullname = "dune10kt_v1_workspace";
   // Geometry counts.
   ev.ncry = 1;
+  ev.ntpc = 8;
+  ev.npla = 3;
+  ev.napa = 4;
+  ev.nrop = 4;
   // Signal type and view for each TPC plane.
   resize(ev.sigType, ev.ncry, ev.ntpc, ev.npla, geo::kMysteryType);
   resize(ev.view, 1, 8, 3, geo::kUnknown);
@@ -531,7 +538,8 @@ int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, stri
   Index itpc1Last = TPCID::InvalidID;
   Index ipla1Last = WireID::InvalidID;
   Index nprint = 0;
-  Index lastwire[ev.ntpc][ev.npla];
+  TwoVector<Index> lastwire;
+  resize(lastwire, ev.ntpc, ev.npla, 0);
   for ( Index itpc=0; itpc<ev.ntpc; ++itpc ) 
     for ( Index ipla=0; ipla<ev.npla; ++ipla )
       lastwire[itpc][ipla] = 0;
