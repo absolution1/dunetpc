@@ -493,15 +493,15 @@ bool Dune35tChannelMapAlg::HasROP(ROPID const& ropid) const {
   
 //----------------------------------------------------------------------------
 
-ROPID Dune35tChannelMapAlg::WirePlaneToROP (PlaneID const& planeid) const {
+ROPID Dune35tChannelMapAlg::WirePlaneToROP(PlaneID const& planeid) const {
   unsigned int icry = planeid.Cryostat;
   unsigned int ipla = planeid.Plane;
   unsigned int itpc = planeid.TPC;
   unsigned int iapa = itpc/2;
   unsigned int irop = ROPID::InvalidID;
-  if ( itpc < 2 ) {
+  if ( ipla < 2 ) {
     irop = ipla;
-  } else if ( itpc < 4 ) {
+  } else if ( ipla == 2 ) {
     bool tpcIsEven = 2*(itpc/2) == itpc;
     irop = tpcIsEven ? 2 : 3;
   } else {
