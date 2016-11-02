@@ -540,6 +540,7 @@ std::vector<TPCID> Dune35tChannelMapAlg::ROPtoTPCs(ROPID const& ropid) const {
 //----------------------------------------------------------------------------
 
 ROPID Dune35tChannelMapAlg::ChannelToROP(raw::ChannelID_t icha) const {
+  if (!raw::isValidChannelID(icha)) return {}; // invalid channel? invalid ROP!
   for ( unsigned int icry=0; fNcryostat; ++icry ) {
     for ( unsigned int iapa=0; iapa<fNAPA[icry]; ++iapa ) {
       for ( unsigned int irop=0; irop<fPlanesPerAPA; ++irop ) {
