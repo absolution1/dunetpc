@@ -173,7 +173,7 @@ private:
   //void GenerateMCOpDetLowGainScaleMap(std::vector<raw::OpDetWaveform> const&);
   //std::unordered_map<raw::Channel_t,float> fMCOpDetLowGainScaleMap;
 
-  std::unique_ptr< std::vector<mix::EventMixingSummary> > fEventMixingSummary;
+  std::unique_ptr< std::vector<dunemix::EventMixingSummary> > fEventMixingSummary;
   
 };
 
@@ -313,7 +313,7 @@ mix::OverlayRawDataDetailDUNE35t::OverlayRawDataDetailDUNE35t(fhicl::ParameterSe
   //		       *this );
 
   //If it produces something on its own, declare it here
-  helper.produces< std::vector<mix::EventMixingSummary> >();
+  helper.produces< std::vector<dunemix::EventMixingSummary> >();
 
   // Following block handles case of mix input from sam.
 
@@ -448,7 +448,7 @@ void mix::OverlayRawDataDetailDUNE35t::startEvent(const art::Event& event) {
   //fODMixer.SetMinSampleSize(fOpDetMinSampleSize);
 
 
-  fEventMixingSummary.reset(new std::vector<mix::EventMixingSummary>);
+  fEventMixingSummary.reset(new std::vector<dunemix::EventMixingSummary>);
 }
 
 //For each of the mixed in events...bookkepping for event IDs
