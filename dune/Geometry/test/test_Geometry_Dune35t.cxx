@@ -30,6 +30,9 @@ using std::ofstream;
 using std::istringstream;
 using std::setw;
 using std::vector;
+using std::abs;
+using geo::View_t;
+using geo::SigType_t;
 using geo::CryostatID;
 using geo::TPCID;
 using geo::PlaneID;
@@ -65,6 +68,15 @@ void checkval(string name, T val, V chkval) {
   T eval = chkval;
   if ( val != eval ) {
     cout << name << ": " << val << " != " << chkval << endl;
+    assert(false);
+  }
+}
+
+void checkfloat(double x1, double x2) {
+  double den = abs(x1) + abs(x2);
+  double num = abs(x2 - x1);
+  if ( num/den > 1.e-5 ) {
+    cout << "checkfloat: " << x1 << " != " << x2 << endl;
     assert(false);
   }
 }
@@ -127,18 +139,16 @@ int test_Geometry_Dune35t(string chanmap ="Dune35tChannelMapAlg", bool dorop =tr
   cout << myname << "GDML name: " << pgeo->GDMLFile() << endl;
 
   cout << myname << line << endl;
-  if ( 1 ) {
-    cout << myname << "World box"  << endl;
-    double xlo, ylo, zlo;
-    double xhi, yhi, zhi;
-    pgeo->WorldBox(&xlo, &ylo, &zlo, &xhi, &yhi, &zhi);
-    check("  xlo", xlo);
-    check("  ylo", ylo);
-    check("  zlo", zlo);
-    check("  xhi", xhi);
-    check("  yhi", yhi);
-    check("  zhi", zhi);
-  }
+  double xlo, ylo, zlo;
+  double xhi, yhi, zhi;
+  cout << myname << "World box"  << endl;
+  pgeo->WorldBox(&xlo, &ylo, &zlo, &xhi, &yhi, &zhi);
+  check("  xlo", xlo);
+  check("  ylo", ylo);
+  check("  zlo", zlo);
+  check("  xhi", xhi);
+  check("  yhi", yhi);
+  check("  zhi", zhi);
 
   cout << myname << line << endl;
   check("SurfaceY", pgeo->SurfaceY());
@@ -157,6 +167,19 @@ int test_Geometry_Dune35t(string chanmap ="Dune35tChannelMapAlg", bool dorop =tr
   const Index encry = 1;
   const Index entpc = 8;
   const Index enpla = 3;
+  View_t eview[encry][entpc][enpla];
+  SigType_t esigType[encry][entpc][enpla];
+  for ( Index icry=0; icry<encry; ++icry ) {
+    for ( Index itpc=0; itpc<entpc; ++itpc ) {
+      for ( Index ipla=0; ipla<enpla; ++ipla ) {
+        esigType[icry][itpc][ipla] = (ipla < 2) ? geo::kInduction : geo::kCollection;
+      }
+      eview[icry][itpc][0] = geo::kU;
+      eview[icry][itpc][1] = geo::kV;
+      eview[icry][itpc][2] = geo::kZ;
+    }
+  }
+
   Index enwirPerPlane[entpc][enpla];
   enwirPerPlane[0][0] = 359;
   enwirPerPlane[0][1] = 345;
@@ -201,6 +224,50 @@ int test_Geometry_Dune35t(string chanmap ="Dune35tChannelMapAlg", bool dorop =tr
       }
     }
   }
+  //vector<double> eposTpc;
+  //vector<double> eposWco;
+  vector<double> eposTpc = {
+     0, 0, 0, 1, 1, 1, 1, 1, 1,
+     0, 0, 0, 1, 1, 1, 1, 1, 1,
+     0, 0, 0, 1, 1, 1, 1, 1, 1,
+     0, 0, 0, 1, 1, 1, 1, 1, 1,
+     0, 0, 0, 1, 1, 1, 1, 1, 1,
+     0, 0, 0, 1, 1, 1, 1, 1, 1,
+     2, 2, 2, 3, 3, 3, 3, 3, 3,
+     4, 4, 4, 5, 5, 5, 5, 5, 5,
+     4, 4, 4, 5, 5, 5, 5, 5, 5,
+     2, 2, 2, 3, 3, 3, 3, 3, 3,
+     4, 4, 4, 5, 5, 5, 5, 5, 5,
+     4, 4, 4, 5, 5, 5, 5, 5, 5,
+     6, 6, 6, 7, 7, 7, 7, 7, 7,
+     6, 6, 6, 7, 7, 7, 7, 7, 7,
+     6, 6, 6, 7, 7, 7, 7, 7, 7,
+     6, 6, 6, 7, 7, 7, 7, 7, 7,
+     6, 6, 6, 7, 7, 7, 7, 7, 7,
+     6, 6, 6, 7, 7, 7, 7, 7, 7
+  };
+  vector<double> eposWco = {
+     297.735, 271.36, 44.7645, 283.289, 285.806, 44.7645, 283.289, 285.806, 44.7645,
+     178.684, 158.11, 44.7645, 164.238, 172.556, 44.7645, 164.238, 172.556, 44.7645,
+     59.6336, 44.861, 44.7645, 45.1877, 59.3069, 44.7645, 45.1877, 59.3069, 44.7645,
+     259.01, 310.084, 105.001, 322.014, 247.081, 105.001, 322.014, 247.081, 105.001,
+     139.96, 196.835, 105.001, 202.963, 133.832, 105.001, 202.963, 133.832, 105.001,
+     20.9091, 83.5855, 105.001, 83.9122, 20.5824, 105.001, 83.9122, 20.5824, 105.001,
+     64.7808, 71.828, 48.6089, 72.9981, 63.6107, 48.6089, 72.9981, 63.6107, 48.6089,
+     175.484, 161.149, 49.6089, 167.267, 169.366, 49.6089, 167.267, 169.366, 49.6089,
+     56.4331, 47.8996, 49.6089, 48.2159, 56.1169, 49.6089, 48.2159, 56.1169, 49.6089,
+     103.505, 33.1035, 108.846, 34.2735, 102.335, 108.846, 34.2735, 102.335, 108.846,
+     136.759, 199.874, 109.846, 205.991, 130.642, 109.846, 205.991, 130.642, 109.846,
+     17.7086, 86.6242, 109.846, 86.9404, 17.3924, 109.846, 86.9404, 17.3924, 109.846,
+     291.506, 277.589, 54.4533, 289.518, 279.577, 54.4533, 289.518, 279.577, 54.4533,
+     172.456, 164.339, 54.4533, 170.467, 166.328, 54.4533, 170.467, 166.328, 54.4533,
+     53.405, 51.0896, 54.4533, 51.4163, 53.0782, 54.4533, 51.4163, 53.0782, 54.4533,
+     252.782, 316.313, 114.69, 328.242, 240.853, 114.69, 328.242, 240.853, 114.69,
+     133.731, 203.064, 114.69, 209.192, 127.603, 114.69, 209.192, 127.603, 114.69,
+     14.6804, 89.8141, 114.69, 90.1408, 14.3537, 114.69, 90.1408, 14.3537, 114.69
+  };
+
+
 
   cout << myname << line << endl;
   Index ncry = pgeo->Ncryostats();
@@ -226,6 +293,16 @@ int test_Geometry_Dune35t(string chanmap ="Dune35tChannelMapAlg", bool dorop =tr
         assert( nwir == enwirPerPlane[itpc][ipla] );
       }
     }
+  }
+
+  cout << myname << line << endl;
+  cout << "Check wire planes." << endl;
+  for ( PlaneID plaid : pgeo->IteratePlaneIDs() ) {
+    cout << "  Plane " << plaid << endl;
+    cout << "    Signal type: " << pgeo->SignalType(plaid) << endl;
+    cout << "           View: " << pgeo->View(plaid) << endl;
+    assert( pgeo->SignalType(plaid) == esigType[plaid.Cryostat][plaid.TPC][plaid.Plane] );
+    assert( pgeo->View(plaid) == eview[plaid.Cryostat][plaid.TPC][plaid.Plane] );
   }
 
   cout << myname << line << endl;
@@ -261,6 +338,8 @@ int test_Geometry_Dune35t(string chanmap ="Dune35tChannelMapAlg", bool dorop =tr
       assert( ipla == ipla1 );
       checkval("\nPlaneWireToChannel", pgeo->PlaneWireToChannel(wirid), icha );
       assert( pgeo->PlaneWireToChannel(wirid) == icha );
+      assert( pgeo->SignalType(icha) == esigType[wirid.Cryostat][wirid.TPC][wirid.Plane] );
+      assert( pgeo->View(icha) == eview[wirid.Cryostat][wirid.TPC][wirid.Plane] );
     }
     if ( print ) cout << endl;
   }
@@ -319,6 +398,73 @@ int test_Geometry_Dune35t(string chanmap ="Dune35tChannelMapAlg", bool dorop =tr
   }  // end dorop
 
   cout << myname << line << endl;
+  cout << myname << "Check some positions." << endl;
+  const CryostatGeo& crygeo = pgeo->Cryostat(0);
+  double origin[3] = {0.0};
+  double crypos[3] = {0.0};
+  crygeo.LocalToWorld(origin, crypos);
+  double cxlo = crypos[0] - crygeo.HalfWidth();
+  double cxhi = crypos[0] + crygeo.HalfWidth();
+  double cylo = crypos[1] - crygeo.HalfHeight();
+  double cyhi = crypos[1] + crygeo.HalfHeight();
+  double czlo = crypos[2] - 0.5*crygeo.Length();
+  double czhi = crypos[2] + 0.5*crygeo.Length();
+  cout << "Cryostat limits: "
+       << "(" << cxlo << ", " << cylo << ", " << czlo << "), "
+       << "(" << cxhi << ", " << cyhi << ", " << czhi << ")" << endl;
+
+  vector<double> zfs = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7 };
+  vector<double> yfs = {0.2, 0.5, 0.8};
+  vector<double> xfs = {0.1, 0.3, 0.6 };
+  double xyz[3] = {0.0};
+  int w = 9;
+  unsigned int nres = zfs.size()*yfs.size()*xfs.size()*enpla;
+  ofstream foutTpc("test_Geometry_Dune35t_tpc.dat");
+  ofstream foutWco("test_Geometry_Dune35t_wirecoor.dat");
+  foutTpc << "  vector<double> eposTpc = {" << endl;
+  foutWco << "  vector<double> eposWco = {" << endl;
+  string sep = ",";
+  unsigned ires = 0;
+  for ( double zf : zfs ) {
+    xyz[2] = czlo + zf*(czhi-czlo);
+    for ( double yf : yfs ) {
+      xyz[1] = cylo + yf*(cyhi-cylo);
+      foutTpc << "    ";
+      foutWco << "    ";
+      for ( double xf : xfs ) {
+        xyz[0] = cxlo + xf*(cxhi-cxlo);
+        TPCID tpcid = pgeo->FindTPCAtPosition(xyz);
+        cout << "  (" << setw(w) << xyz[0] << "," << setw(w) << xyz[1] << "," << setw(w) << xyz[2] << "): "
+             << tpcid << endl;
+        assert( tpcid.Cryostat != CryostatID::InvalidID );
+        unsigned int itpc = tpcid.TPC;
+        assert( itpc != TPCID::InvalidID );
+        const TPCGeo& tpcgeo = pgeo->TPC(tpcid);
+        unsigned int npla = tpcgeo.Nplanes();
+        assert( npla == enpla );
+        for ( unsigned int ipla=0; ipla<npla; ++ipla ) {
+          PlaneID plaid(tpcid, ipla);
+          WireID wirid = pgeo->NearestWireID(xyz, plaid);
+          double xwire = pgeo->WireCoordinate(xyz[1], xyz[2], plaid);
+          cout << "    TPC " << setw(2) << itpc << " plane " << ipla
+               << " nearest wire is " << setw(3) << wirid.Wire
+               << " and coordinate is " << xwire << endl;
+          if ( ires + 1 == nres ) sep = "";
+          foutTpc << " " << itpc << sep;
+          foutWco << " " << xwire << sep;
+          if ( eposTpc.size() ) assert( itpc == eposTpc[ires] );
+          if ( eposWco.size() ) checkfloat(xwire, eposWco[ires]);
+          ++ires;
+        }  // end loop over planes
+      }  // end loop over x
+      foutTpc << endl;
+      foutWco << endl;
+    }  // end loop over y
+  }  // end loop over z
+  foutTpc << "  };" << endl;
+  foutWco << "  };" << endl;
+
+  cout << myname << line << endl;
   cout << myname << "Done." << endl;
   return 0;
 }
@@ -346,6 +492,8 @@ int main(int argc, const char* argv[]) {
     ssarg >> maxchanprint;
   }
   test_Geometry_Dune35t(chanmap, dorop, maxchanprint);
+  cout << "Tests concluded." << endl;
+  ArtServiceHelper::close();
   return 0;
 }
 
