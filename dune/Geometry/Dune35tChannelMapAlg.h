@@ -220,7 +220,6 @@ private:
     
   unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
   unsigned int                                         fNchannels;      ///< number of channels in the detector
-  raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #
   std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
   std::vector<unsigned int>                            fNAPA;           ///< number of APAs in each cryostat
   std::set<View_t>                                     fViews;          ///< vector of the views present in the detector
