@@ -501,7 +501,7 @@ ROPID Dune35tChannelMapAlg::WirePlaneToROP(PlaneID const& planeid) const {
   unsigned int irop = ROPID::InvalidID;
   if ( ipla < 2 ) {
     irop = ipla;
-  } else if ( ipla < 4 ) {
+  } else if ( ipla == 2 ) {
     bool tpcIsEven = 2*(itpc/2) == itpc;
     irop = tpcIsEven ? 2 : 3;
   } else {
