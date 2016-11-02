@@ -6,8 +6,8 @@ art_make(
 	LIBRARY_NAME OverlayRawDataDUNE35t_module
 	EXCLUDE RawDigitOverlayDUNE35tAna_module.cc
 	MODULE_LIBRARIES
-			ub_RawDigitMixer
-			ub_OpDetWaveformMixer
+			dune_RawDigitMixer
+			dune_OpDetWaveformMixer
                         lardataobj_RawData
 			nusimdata_SimulationBase
 			lardataobj_MCBase
@@ -36,7 +36,7 @@ art_make(
    larcore_Geometry_Geometry_service
    larcore_Geometry
 
-			ub_RawDigitAdderAna
+			dune_RawDigitAdderAna
                         lardataobj_RawData
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_IO_ROOT}
@@ -54,7 +54,7 @@ install_source()
 install_fhicl()
 
 # Libraries I didn't need
-#			ub_RawDigitAdderAna
+#			dune_RawDigitAdderAna
 #
 #			${ART_FRAMEWORK_IO_SOURCES}
 #                        art_Persistency_Provenance canvas_Persistency_Provenance
