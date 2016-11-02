@@ -1,13 +1,13 @@
 # basic source code CMakeLists.txt
 
-art_make_library( LIBRARY_NAME  ub_RawDigitAdderAna
+art_make_library( LIBRARY_NAME  dune_RawDigitAdderAna
 	SOURCE RawDigitAdderAna.cxx
 	LIBRARIES
                  lardataobj_RawData
                  ${ROOT_BASIC_LIB_LIST}
 )
 
-art_make_library( LIBRARY_NAME  ub_RawDigitAdder
+art_make_library( LIBRARY_NAME  dune_RawDigitAdder
 	SOURCE RawDigitAdder.cxx
 	             RawDigitAdder_HardSaturate.cxx
 		     RawDigitAdder_35t.cxx
@@ -16,18 +16,18 @@ art_make_library( LIBRARY_NAME  ub_RawDigitAdder
 		 larsim_DetSim
 )
 
-art_make_library( LIBRARY_NAME  ub_RawDigitMixer
+art_make_library( LIBRARY_NAME  dune_RawDigitMixer
 	SOURCE RawDigitMixer.cxx
 	LIBRARIES
-		ub_RawDigitAdder
+		dune_RawDigitAdder
 		lardataobj_RawData
 		${ROOT_BASIC_LIB_LIST}
 )
 
-art_make_library( LIBRARY_NAME  ub_OpDetWaveformMixer
+art_make_library( LIBRARY_NAME  dune_OpDetWaveformMixer
 	SOURCE OpDetWaveformMixer.cxx
 	LIBRARIES
-		ub_RawDigitAdder
+		dune_RawDigitAdder
 		lardataobj_RawData
 		${ROOT_BASIC_LIB_LIST}
 )
