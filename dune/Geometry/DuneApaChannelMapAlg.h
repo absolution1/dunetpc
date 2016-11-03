@@ -250,24 +250,37 @@ public:
     unsigned int OpDetFromOpChannel(unsigned int opChannel)               const;
     unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const;
     
-  private:
+private:
     
-    unsigned int                                         fChannelsPerOpDet;
-    unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
-    unsigned int                                         fNchannels;      ///< number of channels in the detector
-    raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #
-    std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
-    std::set<View_t>                                     fViews;          ///< vector of the views present in the detector
-    std::set<PlaneID>                                    fPlaneIDs;       ///< vector of the PlaneIDs present in the detector
-    // Assuming all APA's are identical
-    std::vector<unsigned int>                            fWiresInPlane;
-    unsigned int                                         fPlanesPerTPC;   
-    unsigned int                                         fPlanesPerAPA;   
-    unsigned int                                         fChannelsPerAPA;
-    std::vector<unsigned int>                            nAnchoredWires;
-    PlaneInfoMap_t<unsigned int>                         fWiresPerPlane;  ///< The number of wires in this plane 
-                                                                          ///< in the heirachy
-    geo::GeoObjectSorterAPA                              fSorter;         ///< sorts geo::XXXGeo objects
+  template<class T>
+  using Vector = std::vector<T>;
+  template<class T>
+  using TwoVector = Vector<Vector<T>>;
+  template<class T>
+  using ThreeVector = Vector<TwoVector<T>>;
+  template<class T>
+  using FourVector = Vector<ThreeVector<T>>;
+  unsigned int                                         fChannelsPerOpDet;
+  unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
+  unsigned int                                         fNchannels;      ///< number of channels in the detector
+  unsigned int                                         fChannelsPerAPA; ///< number of channels in each APA
+  raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #
+  std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
+  std::vector<unsigned int>                            fNAPA;           ///< number of APAs in each cryostat
+  std::set<View_t>                                     fViews;          ///< vector of the views present in the detector
+  std::set<PlaneID>                                    fPlaneIDs;       ///< vector of the PlaneIDs present in the detector
+  // Assuming all APA's are identical
+  std::vector<unsigned int>                            fWiresInPlane;   ///< # wires/TPC plane assumed the same for all TPCs
+  unsigned int                                         fPlanesPerTPC;   ///< # planes for TPC assumed the same for all TPCs
+  TwoVector<unsigned int>                              fRopsPerApa;     ///< # ROPs for each APA
+  ThreeVector<unsigned int>                            fPlanesPerRop;   ///< # TPC planes for each (cry, apa, rop)
+  FourVector<unsigned int>                             fRopTpc;         ///< # TPC planes for each (cry, apa, rop, rpl)
+  FourVector<unsigned int>                             fRopPlane;       ///< # TPC planes for each (cry, apa, rop, rpl)
+  TwoVector<unsigned int>                              fChannelsPerApa; ///< # channels for each APA
+  Vector<unsigned int>                                 nAnchoredWires;  ///< # anchored wires for each...
+  PlaneInfoMap_t<raw::ChannelID_t>                     fFirstChannelInThisRop;  ///<  (icry, iapa, irop)
+  PlaneInfoMap_t<raw::ChannelID_t>                     fFirstChannelInNextRop;  ///<  (icry, iapa, irop)
+  geo::GeoObjectSorterAPA                              fSorter;         ///< sorts geo::XXXGeo objects
 
     /// all data we need for each APA
     typedef struct {

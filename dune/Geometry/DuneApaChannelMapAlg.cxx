@@ -16,6 +16,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
+using std::vector;
 typedef unsigned int Index;
 
 #include <iostream>
@@ -36,10 +37,11 @@ DuneApaChannelMapAlg::DuneApaChannelMapAlg(fhicl::ParameterSet const& p)
 void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata ) {
   Uninitialize();
     
-  std::vector<geo::CryostatGeo*>& crygeos = geodata.cryostats;
-  std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
-  fNcryostat = crygeos.size();
-  if ( fNcryostat == 0 ) {
+  vector<geo::CryostatGeo*>& crygeos = geodata.cryostats;
+  vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+  Index ncry = crygeos.size();
+  fNcryostat = ncry;
+  if ( ncry == 0 ) {
     mf::LogError("DuneApaChannelMapAlg") << "No cryostats found.";
     return;
   }
@@ -54,21 +56,66 @@ void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata ) {
   }
 
   mf::LogInfo("DuneApaChannelMapAlg") << "Initializing channel map...";
-  fNTPC.resize(fNcryostat);
-  fFirstChannelInNextPlane.resize(1);  // Change 1 to Ncryostat if you want to treat each APA
-  fFirstChannelInThisPlane.resize(1);  // uniquely,and do // the same with the other resizes.
+  fNTPC.resize(ncry);
+  fNAPA.resize(ncry);
+  // The first channel array for each TPC plane assume the cryostats are identical.
   fPlanesPerTPC = crygeo.TPC(0).Nplanes();
-  if ( fPlanesPerTPC != 3 ) {
-    mf::LogError("DuneApaChannelMapAlg") << "# planes/TPC is not 3: " << fPlanesPerTPC;
-    return;
-  }
-  fPlanesPerAPA = fPlanesPerTPC + 1;
-  nAnchoredWires.resize(fPlanesPerTPC);
-  fWiresInPlane.resize(fPlanesPerTPC);
+  fFirstChannelInThisPlane.resize(1);  // uniquely,and do // the same with the other resizes.
+  fFirstChannelInNextPlane.resize(1);  // Change 1 to Ncryostat if you want to treat each APA
   fFirstChannelInThisPlane[0].resize(1);  // remember FirstChannel vectors
   fFirstChannelInNextPlane[0].resize(1);  // for first APA only.
   fFirstChannelInThisPlane[0][0].resize(fPlanesPerTPC);  // Make room for info
   fFirstChannelInNextPlane[0][0].resize(fPlanesPerTPC);  // on each plane.
+  if ( fPlanesPerTPC != 3 ) {
+    mf::LogError("DuneApaChannelMapAlg") << "# planes/TPC is not 3: " << fPlanesPerTPC;
+    return;
+  }
+  // The first channel array for each APA plane allow the cryostats to differ.
+  fFirstChannelInThisRop.resize(ncry);
+  fFirstChannelInNextRop.resize(ncry);
+  fRopsPerApa.resize(ncry);
+  fChannelsPerApa.resize(ncry);
+  fPlanesPerRop.resize(ncry);
+  fRopTpc.resize(ncry);
+  fRopPlane.resize(ncry);
+  Index itpc = 0;
+  for ( Index icry=0; icry<ncry; ++icry ) {
+    Index ntpc = crygeos[icry]->NTPC();
+    Index napa = ntpc/2;  // Assume 1 APA for every two TPCs
+    fRopsPerApa[icry].resize(napa, 4);
+    fChannelsPerApa[icry].resize(napa, 0);
+    fPlanesPerRop[icry].resize(napa);
+    fFirstChannelInThisRop[icry].resize(napa);
+    fFirstChannelInNextRop[icry].resize(napa);
+    fRopTpc[icry].resize(napa);
+    fRopPlane[icry].resize(napa);
+    for ( Index iapa=0; iapa<napa; ++iapa ) {
+      Index nrop = fRopsPerApa[icry][iapa];
+      fFirstChannelInThisRop[icry][iapa].resize(nrop, 0);
+      fFirstChannelInNextRop[icry][iapa].resize(nrop, 0);
+      fPlanesPerRop[icry][iapa].resize(nrop, 0);
+      fRopTpc[icry][iapa].resize(nrop);
+      fRopPlane[icry][iapa].resize(nrop);
+      Index ipla = 0;
+      // Induction planes
+      for ( Index irop=0; irop<2; ++irop ) {
+        fPlanesPerRop[icry][iapa][irop] = 2;
+        fRopTpc[icry][iapa][irop].push_back(itpc);
+        fRopTpc[icry][iapa][irop].push_back(itpc+1);
+        fRopPlane[icry][iapa][irop].push_back(ipla);
+        fRopPlane[icry][iapa][irop].push_back(ipla);
+        ++ipla;
+      }
+      // Collection planes.
+      for ( Index irop=2; irop<4; ++irop ) {
+        fPlanesPerRop[icry][iapa][irop] = 1;
+        fRopTpc[icry][iapa][irop].push_back(++itpc);
+        fRopPlane[icry][iapa][irop].push_back(ipla);
+      }
+    }
+  }
+  nAnchoredWires.resize(fPlanesPerTPC);
+  fWiresInPlane.resize(fPlanesPerTPC);
   fViews.clear();
   fPlaneIDs.clear();
   fTopChannel = 0;
@@ -76,8 +123,9 @@ void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata ) {
   // Size some vectors and initialize the FirstChannel vectors.
   // If making FirstChannel's for every APA uniquely, they also
   // need to be sized here. Not necessary for now
-  for ( unsigned int icry = 0; icry != fNcryostat; ++icry ) {
+  for ( unsigned int icry = 0; icry != ncry; ++icry ) {
     fNTPC[icry] = crygeos[icry]->NTPC();
+    fNAPA[icry] = fNTPC[icry]/2;
   }
 
   // Find the number of wires anchored to the frame
@@ -105,164 +153,160 @@ const PlaneGeo plageo2 = plageo;
     }
   }
 
-    raw::ChannelID_t CurrentChannel = 0;
-   
-    for(unsigned int PCount = 0; PCount != fPlanesPerTPC; ++PCount){
-
-      fFirstChannelInThisPlane[0][0][PCount] = CurrentChannel;
-      CurrentChannel = CurrentChannel + 2*nAnchoredWires[PCount];
-      fFirstChannelInNextPlane[0][0][PCount] = CurrentChannel;
-
-    }// end build loop over planes
-
-    // Save the number of channels
-    fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerTPC-1];
-
-    fNchannels = 0;
-    for(size_t cs = 0; cs < fNcryostat; ++cs){
-      fNchannels = fNchannels + fChannelsPerAPA*fNTPC[cs]/2;
-    }
-
-    //save data into fFirstWireCenterY and fFirstWireCenterZ
-    fPlaneData.resize(fNcryostat);
-    for (unsigned int cs=0; cs<fNcryostat; ++cs){
-      fPlaneData[cs].resize(crygeos[cs]->NTPC());
-      for (unsigned int tpc=0; tpc<crygeos[cs]->NTPC(); ++tpc){
-        fPlaneData[cs][tpc].resize(crygeos[cs]->TPC(tpc).Nplanes());
-        for (unsigned int plane=0; plane<crygeos[cs]->TPC(tpc).Nplanes(); ++plane){
-          PlaneData_t& PlaneData = fPlaneData[cs][tpc][plane];
-          const geo::PlaneGeo& thePlane = crygeos[cs]->TPC(tpc).Plane(plane);
-          double xyz[3];
-          fPlaneIDs.emplace(cs, tpc, plane);
-          thePlane.Wire(0).GetCenter(xyz);
-          PlaneData.fFirstWireCenterY = xyz[1];
-          PlaneData.fFirstWireCenterZ = xyz[2];
-          // we are interested in the ordering of wire numbers: we find that a
-          // point is N wires left of a wire W: is that wire W + N or W - N?
-          // In fact, for TPC #0 it is W + N for V and Z planes, W - N for U
-          // plane; for TPC #0 it is W + N for V and Z planes, W - N for U
-          PlaneData.fWireSortingInZ = thePlane.WireIDincreasesWithZ()? +1.: -1.;
-        } // for plane
-      } // for TPC
-    } // for cryostat
-
-    //initialize fWirePitch and fOrientation
-    Index npla = crygeo.TPC(0).Nplanes();
-    fWirePitch.resize(npla);
-    fOrientation.resize(npla);
-    fSinOrientation.resize(npla);
-    fCosOrientation.resize(npla);
-
-    for ( unsigned int ipla=0; ipla<npla; ++ipla ) {
-      fWirePitch[ipla] = crygeo.TPC(0).WirePitch(0,1,ipla);
-      fOrientation[ipla] = crygeo.TPC(0).Plane(ipla).Wire(0).ThetaZ();
-      fSinOrientation[ipla] = sin(fOrientation[ipla]);
-      fCosOrientation[ipla] = cos(fOrientation[ipla]);
-    }
-
-
-    for(unsigned int c=0; c<fNcryostat; c++){
-
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "Cryostat " << c << ":"; 
-
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "  " << fNchannels << " total channels"; 
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "  " << fNTPC[c]/2 << " APAs";       
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "  For all identical APA:" ; 
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "    Number of channels per APA = " << fChannelsPerAPA ; 
-      
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "    U channels per APA = " << 2*nAnchoredWires[0] ;
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "    V channels per APA = " << 2*nAnchoredWires[1] ;
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "    Z channels per APA = " << 2*nAnchoredWires[2] ;
-      
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "    Pitch in U Plane = " << fWirePitch[0] ;
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "    Pitch in V Plane = " << fWirePitch[1] ;
-      mf::LogVerbatim("DuneApaChannelMapAlg") << "    Pitch in Z Plane = " << fWirePitch[2] ;
-      
-    }
-
-    return;
-
+  // Assign first channels for the TPCs.
+  raw::ChannelID_t icha = 0;
+  for ( Index ipla=0; ipla!=fPlanesPerTPC; ++ipla ) {
+    fFirstChannelInThisPlane[0][0][ipla] = icha;
+    icha += 2*nAnchoredWires[ipla];
+    fFirstChannelInNextPlane[0][0][ipla] = icha;
   }
-   
-  //----------------------------------------------------------------------------
-  void DuneApaChannelMapAlg::Uninitialize()
-  {
-
-    PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInThisPlane);
-    PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInNextPlane);
-
+  Index nchaTpc = fFirstChannelInNextPlane[0][0][fPlanesPerTPC-1];
+  fNchannels = 0;
+  for ( size_t icry=0; icry<ncry; ++icry ) {
+    fNchannels += nchaTpc*fNTPC[icry]/2;
   }
+  fChannelsPerAPA = nchaTpc;
 
-  //----------------------------------------------------------------------------
-  std::vector<geo::WireID> DuneApaChannelMapAlg::ChannelToWire(raw::ChannelID_t channel)  const
-  {
-
-    // first check if this channel ID is legal
-    if(channel >= fNchannels )
-      throw cet::exception("Geometry") << "ILLEGAL CHANNEL ID for channel " << channel << "\n";
-
-    std::vector< WireID > AllSegments;
-    
-    static unsigned int cstat;
-    static unsigned int tpc;
-    static unsigned int plane;
-    static unsigned int wireThisPlane;
-    static unsigned int NextPlane;
-    static unsigned int ThisPlane;
-    
-    raw::ChannelID_t chan       = channel%fChannelsPerAPA;
-    raw::ChannelID_t pureAPAnum = std::floor( channel/fChannelsPerAPA );
-
-    bool breakVariable = false;
-    for(unsigned int planeloop = 0; planeloop != fPlanesPerTPC; ++planeloop){
-          
-      NextPlane = fFirstChannelInNextPlane[0][0][planeloop];
-      ThisPlane = fFirstChannelInThisPlane[0][0][planeloop];
-          
-      if(chan < NextPlane){
-
-        // fNTPC[0] works for now since there are the same number of TPCs per crostat
-        cstat = std::floor( channel / ((fNTPC[0]/2)*fChannelsPerAPA) );
-        tpc   = (2*pureAPAnum) % fNTPC[0];
-        plane = planeloop;
-        wireThisPlane  = chan - ThisPlane;
-            
-        breakVariable = true;
-        break;
+  // Assign first channels for the APAs.
+  icha = 0;
+  for ( Index icry=0; icry!=ncry; ++icry ) {
+    Index napa = fNAPA[icry];
+    for ( Index iapa=0; iapa!=napa; ++iapa ) {
+      Index nrop = fRopsPerApa[icry][iapa];
+      for ( Index irop=0; irop!=nrop; ++irop ) {
+        Index nrpl = fPlanesPerRop[icry][iapa][irop];
+        fFirstChannelInThisRop[icry][iapa][irop] = icha;
+        for ( Index irpl=0; irpl!=nrpl; ++irpl ) {
+          //Index itpc = fRopTpc[icry][iapa][irop][irpl];
+          Index ipla = fRopPlane[icry][iapa][irop][irpl];
+          Index nchaPlane = nAnchoredWires[ipla];
+          icha += nchaPlane;
+        }
+        fFirstChannelInNextRop[icry][iapa][irop] = icha;
       }
-      if(breakVariable) break;          
-    }// end plane loop
-
-    
-
-    int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
-
-    // find the lowest wire
-    raw::ChannelID_t ChannelGroup = std::floor( wireThisPlane/nAnchoredWires[plane] );
-    unsigned int bottomwire = wireThisPlane-ChannelGroup*nAnchoredWires[plane];
-    
-    if(ChannelGroup%2==1){
-      tpc += 1;
-      WrapDirection  = -1;         
     }
-    
-    for(unsigned int SegCount = 0; SegCount != 50; ++SegCount){
-      
-      tpc += WrapDirection*(SegCount%2);
-      geo::WireID CodeWire(cstat, tpc, plane, bottomwire + SegCount*nAnchoredWires[plane]);
-      AllSegments.push_back(CodeWire);
-      
-      // reset the tcp variable so it doesnt "accumulate value"
-      tpc -= WrapDirection*(SegCount%2);
-      
-      if( bottomwire + (SegCount+1)*nAnchoredWires[plane] > fWiresInPlane[plane]-1) break;
-    }
-    
-    return AllSegments;
+  }
+  if ( icha != fNchannels ) {
+    throw cet::exception("DuneApaChannelMapAlg") << __func__ << "TPC and APA channel counts disagree: "
+                                                 << fNchannels << " != " << icha << endl;
   }
 
+  fPlaneData.resize(ncry);
+  for ( Index icry=0; icry<ncry; ++icry ) {
+    fPlaneData[icry].resize(crygeos[icry]->NTPC());
+    for ( Index itpc=0; itpc<crygeos[icry]->NTPC(); ++itpc ) {
+      fPlaneData[icry][itpc].resize(crygeos[icry]->TPC(itpc).Nplanes());
+      for ( Index ipla=0; ipla<crygeos[icry]->TPC(itpc).Nplanes(); ++ipla ) {
+        PlaneData_t& PlaneData = fPlaneData[icry][itpc][ipla];
+        const geo::PlaneGeo& thePlane = crygeos[icry]->TPC(itpc).Plane(ipla);
+        double xyz[3];
+        fPlaneIDs.emplace(icry, itpc, ipla);
+        thePlane.Wire(0).GetCenter(xyz);
+        PlaneData.fFirstWireCenterY = xyz[1];
+        PlaneData.fFirstWireCenterZ = xyz[2];
+        // we are interested in the ordering of wire numbers: we find that a
+        // point is N wires left of a wire W: is that wire W + N or W - N?
+        // In fact, for TPC #0 it is W + N for V and Z planes, W - N for U
+        // plane; for TPC #0 it is W + N for V and Z planes, W - N for U
+        PlaneData.fWireSortingInZ = thePlane.WireIDincreasesWithZ()? +1.: -1.;
+      }
+    }
+  }
 
-  //----------------------------------------------------------------------------
+  Index npla = crygeo.TPC(0).Nplanes();
+  fWirePitch.resize(npla);
+  fOrientation.resize(npla);
+  fSinOrientation.resize(npla);
+  fCosOrientation.resize(npla);
+
+  for ( Index ipla=0; ipla<npla; ++ipla ) {
+    fWirePitch[ipla] = crygeo.TPC(0).WirePitch(0,1,ipla);
+    fOrientation[ipla] = crygeo.TPC(0).Plane(ipla).Wire(0).ThetaZ();
+    fSinOrientation[ipla] = sin(fOrientation[ipla]);
+    fCosOrientation[ipla] = cos(fOrientation[ipla]);
+  }
+
+  for ( Index icry=0; icry<ncry; ++icry ) {
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "Cryostat " << icry << ":"; 
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "  " << fNchannels << " total channels"; 
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "  " << fNTPC[icry]/2 << " APAs";       
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "  For all identical APA:" ; 
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "    Number of channels per APA = " << fChannelsPerAPA ; 
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "    U channels per APA = " << 2*nAnchoredWires[0] ;
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "    V channels per APA = " << 2*nAnchoredWires[1] ;
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "    Z channels per APA = " << 2*nAnchoredWires[2] ;
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "    Pitch in U Plane = " << fWirePitch[0] ;
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "    Pitch in V Plane = " << fWirePitch[1] ;
+    mf::LogVerbatim("DuneApaChannelMapAlg") << "    Pitch in Z Plane = " << fWirePitch[2] ;
+  }
+
+}
+
+//----------------------------------------------------------------------------
+
+void DuneApaChannelMapAlg::Uninitialize() {
+  PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInThisPlane);
+  PlaneInfoMap_t<raw::ChannelID_t>().swap(fFirstChannelInNextPlane);
+}
+
+//----------------------------------------------------------------------------
+
+vector<geo::WireID> DuneApaChannelMapAlg::ChannelToWire(raw::ChannelID_t icha) const {
+  vector< WireID > wirids;
+  if ( icha >= fNchannels ) return wirids;
+
+  // Loop over planes to find the one holding this channel.
+  // We assume all cryostats have the same (offset) wire-channel mapping.
+  // If not, this must be replaced with a loop over cryostats.
+  raw::ChannelID_t ichaApa = icha%fChannelsPerAPA;
+  raw::ChannelID_t iapa = icha/fChannelsPerAPA;
+  Index ntpc = fNTPC[0];
+  Index napa = fNAPA[0];
+  Index icry = icha/(napa*fChannelsPerAPA);
+  Index itpc = (2*iapa) % ntpc;
+
+  Index ipla = 0;
+  Index iwir = 0;
+  for ( ipla=0; ipla!=fPlanesPerTPC; ++ipla ) {
+    Index icha1 = fFirstChannelInThisPlane[0][0][ipla];
+    Index icha2 = fFirstChannelInNextPlane[0][0][ipla];
+    iwir = ichaApa - icha1;
+    if ( ichaApa >= icha1 && ichaApa < icha2 ) break;
+  }
+  if ( ipla >= fPlanesPerTPC ) {
+    mf::LogError("DuneApaChannelMapAlg") << "Unable to find APA plane for channel " << icha;
+    throw cet::exception("DuneApaChannelMapAlg") << __func__ << ": Unable to find APA plane for channel " << icha;
+    return wirids;
+  }
+
+  int WrapDirection = 1; // go from tpc to (tpc+1) or tpc to (tpc-1)
+
+  // find the lowest wire
+  raw::ChannelID_t ChannelGroup = iwir/nAnchoredWires[ipla];
+  unsigned int bottomwire = iwir - ChannelGroup*nAnchoredWires[ipla];
+    
+  if(ChannelGroup%2==1){
+    itpc += 1;
+    WrapDirection  = -1;         
+  }
+    
+  for(unsigned int SegCount = 0; SegCount != 50; ++SegCount){
+      
+    itpc += WrapDirection*(SegCount%2);
+    geo::WireID CodeWire(icry, itpc, ipla, bottomwire + SegCount*nAnchoredWires[ipla]);
+    wirids.push_back(CodeWire);
+      
+    // reset the tcp variable so it doesnt "accumulate value"
+    itpc -= WrapDirection*(SegCount%2);
+      
+    if( bottomwire + (SegCount+1)*nAnchoredWires[ipla] > fWiresInPlane[ipla]-1) break;
+  }
+    
+  return wirids;
+}
+
+//----------------------------------------------------------------------------
+
   unsigned int DuneApaChannelMapAlg::Nchannels() const
   {
     return fNchannels;
@@ -490,7 +534,7 @@ WireCoordinate(double YPos, double ZPos, unsigned int PlaneNo, unsigned int TPCN
   
   
   //----------------------------------------------------------------------------
-  std::vector<geo::TPCID> DuneApaChannelMapAlg::TPCsetToTPCs
+  vector<geo::TPCID> DuneApaChannelMapAlg::TPCsetToTPCs
     (readout::TPCsetID const& tpcsetid) const
   {
     throw cet::exception("DuneApaChannelMapAlg") << __func__ << " not implemented!\n";
@@ -534,7 +578,7 @@ WireCoordinate(double YPos, double ZPos, unsigned int PlaneNo, unsigned int TPCN
   
   
   //----------------------------------------------------------------------------
-  std::vector<geo::PlaneID> DuneApaChannelMapAlg::ROPtoWirePlanes
+  vector<geo::PlaneID> DuneApaChannelMapAlg::ROPtoWirePlanes
     (readout::ROPID const& ropid) const
   {
     throw cet::exception("DuneApaChannelMapAlg") << __func__ << " not implemented!\n";
@@ -542,7 +586,7 @@ WireCoordinate(double YPos, double ZPos, unsigned int PlaneNo, unsigned int TPCN
   
   
   //----------------------------------------------------------------------------
-  std::vector<geo::TPCID> DuneApaChannelMapAlg::ROPtoTPCs
+  vector<geo::TPCID> DuneApaChannelMapAlg::ROPtoTPCs
     (readout::ROPID const& ropid) const
   {
     throw cet::exception("DuneApaChannelMapAlg") << __func__ << " not implemented!\n";

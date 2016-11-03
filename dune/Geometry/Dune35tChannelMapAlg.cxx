@@ -69,7 +69,7 @@ void Dune35tChannelMapAlg::Initialize( GeometryData_t& geodata ) {
     fNTPC[cs] = cgeo[cs]->NTPC();
     fNAPA[cs] = fNTPC[cs]/2;
 
-    nAnchoredWires[cs].resize(fNTPC[cs]);
+    nAnchoredWires[cs].resize(fNAPA[cs]);
     fWiresPerRop[cs].resize(fNTPC[cs]);
     fFirstChannelInThisRop[cs].resize(fNAPA[cs]);
     fFirstChannelInNextRop[cs].resize(fNAPA[cs]);
