@@ -8,51 +8,46 @@
 #ifndef geo_DuneApaChannelMapAlg_H
 #define geo_DuneApaChannelMapAlg_H
 
-
 #include <vector>
 #include <set>
-
 #include "cetlib/exception.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
-
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
 
-  class DuneApaChannelMapAlg : public ChannelMapAlg{
+class DuneApaChannelMapAlg : public ChannelMapAlg{
 
-  public:
+public:
 
-    DuneApaChannelMapAlg(fhicl::ParameterSet const& p);
+  DuneApaChannelMapAlg(fhicl::ParameterSet const& p);
     
-    void                     Initialize( GeometryData_t& geodata ) override;
-    void                     Uninitialize();
+  void Initialize(GeometryData_t& geodata) override;
+  void Uninitialize() override;
     
-    /// Returns a list of TPC wires connected to the specified readout channel ID
-    /// @throws cet::exception (category: "Geometry") if non-existent channel
-    std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel) const;
+  /// Returns a list of TPC wires connected to the specified readout channel ID
+  /// @throws cet::exception (category: "Geometry") if non-existent channel
+  std::vector<WireID> ChannelToWire(raw::ChannelID_t channel) const override;
     
-    unsigned int             Nchannels()                            const;
+  unsigned int Nchannels() const override;
     
-    /// @brief Returns the number of channels in the specified ROP
-    /// @return number of channels in the specified ROP, 0 if non-existent
-    /// @todo to be completed
-    virtual unsigned int     Nchannels(readout::ROPID const& ropid) const override;
+  /// @brief Returns the number of channels in the specified ROP
+  /// @return number of channels in the specified ROP, 0 if non-existent
+  /// @todo to be completed
+  unsigned int Nchannels(readout::ROPID const& ropid) const;
     
-    //@{
-    virtual double WireCoordinate(double YPos,
-                                  double ZPos,
-                                  unsigned int PlaneNo,
-                                  unsigned int TPCNo,
-                                  unsigned int cstat) const override
-      { return WireCoordinate(YPos, ZPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
-    virtual double WireCoordinate(double YPos,
-                                  double ZPos,
-                                  geo::PlaneID const& planeID) const override;
-    //@}
+  double WireCoordinate(double YPos,
+                        double ZPos,
+                        unsigned int PlaneNo,
+                        unsigned int TPCNo,
+                        unsigned int cstat) const override;
+
+  double WireCoordinate(double YPos,
+                        double ZPos,
+                        geo::PlaneID const& planeID) const override;
     
     //@{
     virtual WireID NearestWireID(const TVector3& worldPos,
@@ -266,6 +261,7 @@ namespace geo{
     std::set<PlaneID>                                    fPlaneIDs;       ///< vector of the PlaneIDs present in the detector
     // Assuming all APA's are identical
     std::vector<unsigned int>                            fWiresInPlane;
+    unsigned int                                         fPlanesPerTPC;   
     unsigned int                                         fPlanesPerAPA;   
     unsigned int                                         fChannelsPerAPA;
     std::vector<unsigned int>                            nAnchoredWires;

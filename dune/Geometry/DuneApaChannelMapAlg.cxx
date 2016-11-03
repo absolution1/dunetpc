@@ -13,95 +13,101 @@
 #include "larcore/Geometry/TPCGeo.h"
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/WireGeo.h"
-
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
+typedef unsigned int Index;
+
+#include <iostream>
+using std::cout;
+using std::endl;
+
 namespace geo{
 
-  //----------------------------------------------------------------------------
-  DuneApaChannelMapAlg::DuneApaChannelMapAlg(fhicl::ParameterSet const& p)
-    : fSorter(geo::GeoObjectSorterAPA(p))
-  {
-    fChannelsPerOpDet = p.get< unsigned int >("ChannelsPerOpDet"      );
+//----------------------------------------------------------------------------
+
+DuneApaChannelMapAlg::DuneApaChannelMapAlg(fhicl::ParameterSet const& p)
+: fSorter(geo::GeoObjectSorterAPA(p)) {
+  fChannelsPerOpDet = p.get<unsigned int>("ChannelsPerOpDet");
+}
+
+//----------------------------------------------------------------------------
+
+void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata ) {
+  Uninitialize();
+    
+  std::vector<geo::CryostatGeo*>& crygeos = geodata.cryostats;
+  std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+  fNcryostat = crygeos.size();
+  if ( fNcryostat == 0 ) {
+    mf::LogError("DuneApaChannelMapAlg") << "No cryostats found.";
+    return;
+  }
+  geo::CryostatGeo& crygeo = *crygeos[0];
+    
+  mf::LogInfo("DuneApaChannelMapAlg") << "Sorting volumes...";
+
+  fSorter.SortAuxDets(adgeo);
+  fSorter.SortCryostats(crygeos);
+  for ( Index icry=0; icry<crygeos.size(); ++icry ) {
+    crygeos[icry]->SortSubVolumes(fSorter);
   }
 
-  //----------------------------------------------------------------------------
-  void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata )
-  {
-    // start over:
-    Uninitialize();
-    
-    std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
-    std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
-    
-    fNcryostat = cgeo.size();
-    
-    mf::LogInfo("DuneApaChannelMapAlg") << "Sorting volumes...";
+  mf::LogInfo("DuneApaChannelMapAlg") << "Initializing channel map...";
+  fNTPC.resize(fNcryostat);
+  fFirstChannelInNextPlane.resize(1);  // Change 1 to Ncryostat if you want to treat each APA
+  fFirstChannelInThisPlane.resize(1);  // uniquely,and do // the same with the other resizes.
+  fPlanesPerTPC = crygeo.TPC(0).Nplanes();
+  if ( fPlanesPerTPC != 3 ) {
+    mf::LogError("DuneApaChannelMapAlg") << "# planes/TPC is not 3: " << fPlanesPerTPC;
+    return;
+  }
+  fPlanesPerAPA = fPlanesPerTPC + 1;
+  nAnchoredWires.resize(fPlanesPerTPC);
+  fWiresInPlane.resize(fPlanesPerTPC);
+  fFirstChannelInThisPlane[0].resize(1);  // remember FirstChannel vectors
+  fFirstChannelInNextPlane[0].resize(1);  // for first APA only.
+  fFirstChannelInThisPlane[0][0].resize(fPlanesPerTPC);  // Make room for info
+  fFirstChannelInNextPlane[0][0].resize(fPlanesPerTPC);  // on each plane.
+  fViews.clear();
+  fPlaneIDs.clear();
+  fTopChannel = 0;
 
-    fSorter.SortAuxDets(adgeo);
-    fSorter.SortCryostats(cgeo);
-    for(size_t c = 0; c < cgeo.size(); ++c) 
-      cgeo[c]->SortSubVolumes(fSorter);
+  // Size some vectors and initialize the FirstChannel vectors.
+  // If making FirstChannel's for every APA uniquely, they also
+  // need to be sized here. Not necessary for now
+  for ( unsigned int icry = 0; icry != fNcryostat; ++icry ) {
+    fNTPC[icry] = crygeos[icry]->NTPC();
+  }
 
-    mf::LogInfo("DuneApaChannelMapAlg") << "Initializing channel map...";
-      
-    fNTPC.resize(fNcryostat);
-    fFirstChannelInNextPlane.resize(1);  // Change 1 to Ncryostat if you want
-    fFirstChannelInThisPlane.resize(1);  // to treat each APA uniquely,and do
-                                         // the same with the other resizes.
-    fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
-    nAnchoredWires.resize(fPlanesPerAPA);
-    fWiresInPlane.resize(fPlanesPerAPA);
-    fFirstChannelInThisPlane[0].resize(1);  // remember FirstChannel vectors
-    fFirstChannelInNextPlane[0].resize(1);  // for first APA only.
-    fFirstChannelInThisPlane[0][0].resize(fPlanesPerAPA);  // Make room for info
-    fFirstChannelInNextPlane[0][0].resize(fPlanesPerAPA);  // on each plane.
-    fViews.clear();
-    fPlaneIDs.clear();
-    fTopChannel = 0;
-
-    // Size some vectors and initialize the FirstChannel vectors.
-    // If making FirstChannel's for every APA uniquely, they also
-    // need to be sized here. Not necessary for now
-    for(unsigned int cs = 0; cs != fNcryostat; ++cs){
-      
-      fNTPC[cs] = cgeo[cs]->NTPC();
-
-    }// end sizing loop over cryostats
-
-    // Find the number of wires anchored to the frame
-    for(unsigned int p=0; p!=fPlanesPerAPA; ++p){
-
-      fWiresInPlane[p] = cgeo[0]->TPC(0).Plane(p).Nwires();
-      double xyz[3] = {0.};
-      double xyz_next[3] = {0.};
-
-      fViews.emplace(cgeo[0]->TPC(0).Plane(p).View());
-      
-      for(unsigned int w = 0; w != fWiresInPlane[p]; ++w){
-
-        // for vertical planes
-        if(cgeo[0]->TPC(0).Plane(p).View()==geo::kZ)   { 
-          nAnchoredWires[p] = fWiresInPlane[p];      
-          break;
-        }
-
-        cgeo[0]->TPC(0).Plane(p).Wire(w).GetCenter(xyz);
-        cgeo[0]->TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
-
-	if(xyz[2]==xyz_next[2]){
-	  nAnchoredWires[p] = w;      
-	  break;
-	}
-
-      }// end wire loop
-
-    }// end plane loop
+  // Find the number of wires anchored to the frame
+  for ( unsigned int ipla=0; ipla!=fPlanesPerTPC; ++ipla ) {
+    fWiresInPlane[ipla] = crygeo.TPC(0).Plane(ipla).Nwires();
+    double xyz[3] = {0.};
+    double xyz_next[3] = {0.};
+    const PlaneGeo& plageo = crygeo.TPC(0).Plane(ipla);
+#if 0
+const PlaneGeo plageo2 = plageo;
+#endif
+    fViews.emplace(plageo.View());
+    for ( unsigned int iwir = 0; iwir+1<fWiresInPlane[ipla]; ++iwir ) {
+      // for vertical planes
+      if( plageo.View()==geo::kZ)   { 
+        nAnchoredWires[ipla] = fWiresInPlane[ipla];      
+        break;
+      }
+      plageo.Wire(iwir).GetCenter(xyz);
+      plageo.Wire(iwir+1).GetCenter(xyz_next);
+      if ( xyz[2] == xyz_next[2] ) {
+        nAnchoredWires[ipla] = iwir;      
+        break;
+      }
+    }
+  }
 
     raw::ChannelID_t CurrentChannel = 0;
    
-    for(unsigned int PCount = 0; PCount != fPlanesPerAPA; ++PCount){
+    for(unsigned int PCount = 0; PCount != fPlanesPerTPC; ++PCount){
 
       fFirstChannelInThisPlane[0][0][PCount] = CurrentChannel;
       CurrentChannel = CurrentChannel + 2*nAnchoredWires[PCount];
@@ -110,7 +116,7 @@ namespace geo{
     }// end build loop over planes
 
     // Save the number of channels
-    fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerAPA-1];
+    fChannelsPerAPA = fFirstChannelInNextPlane[0][0][fPlanesPerTPC-1];
 
     fNchannels = 0;
     for(size_t cs = 0; cs < fNcryostat; ++cs){
@@ -120,12 +126,12 @@ namespace geo{
     //save data into fFirstWireCenterY and fFirstWireCenterZ
     fPlaneData.resize(fNcryostat);
     for (unsigned int cs=0; cs<fNcryostat; ++cs){
-      fPlaneData[cs].resize(cgeo[cs]->NTPC());
-      for (unsigned int tpc=0; tpc<cgeo[cs]->NTPC(); ++tpc){
-        fPlaneData[cs][tpc].resize(cgeo[cs]->TPC(tpc).Nplanes());
-        for (unsigned int plane=0; plane<cgeo[cs]->TPC(tpc).Nplanes(); ++plane){
+      fPlaneData[cs].resize(crygeos[cs]->NTPC());
+      for (unsigned int tpc=0; tpc<crygeos[cs]->NTPC(); ++tpc){
+        fPlaneData[cs][tpc].resize(crygeos[cs]->TPC(tpc).Nplanes());
+        for (unsigned int plane=0; plane<crygeos[cs]->TPC(tpc).Nplanes(); ++plane){
           PlaneData_t& PlaneData = fPlaneData[cs][tpc][plane];
-          const geo::PlaneGeo& thePlane = cgeo[cs]->TPC(tpc).Plane(plane);
+          const geo::PlaneGeo& thePlane = crygeos[cs]->TPC(tpc).Plane(plane);
           double xyz[3];
           fPlaneIDs.emplace(cs, tpc, plane);
           thePlane.Wire(0).GetCenter(xyz);
@@ -141,16 +147,17 @@ namespace geo{
     } // for cryostat
 
     //initialize fWirePitch and fOrientation
-    fWirePitch.resize(cgeo[0]->TPC(0).Nplanes());
-    fOrientation.resize(cgeo[0]->TPC(0).Nplanes());
-    fSinOrientation.resize(cgeo[0]->TPC(0).Nplanes());
-    fCosOrientation.resize(cgeo[0]->TPC(0).Nplanes());
+    Index npla = crygeo.TPC(0).Nplanes();
+    fWirePitch.resize(npla);
+    fOrientation.resize(npla);
+    fSinOrientation.resize(npla);
+    fCosOrientation.resize(npla);
 
-    for (unsigned int plane=0; plane<cgeo[0]->TPC(0).Nplanes(); plane++){
-      fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
-      fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
-      fSinOrientation[plane] = sin(fOrientation[plane]);
-      fCosOrientation[plane] = cos(fOrientation[plane]);
+    for ( unsigned int ipla=0; ipla<npla; ++ipla ) {
+      fWirePitch[ipla] = crygeo.TPC(0).WirePitch(0,1,ipla);
+      fOrientation[ipla] = crygeo.TPC(0).Plane(ipla).Wire(0).ThetaZ();
+      fSinOrientation[ipla] = sin(fOrientation[ipla]);
+      fCosOrientation[ipla] = cos(fOrientation[ipla]);
     }
 
 
@@ -207,7 +214,7 @@ namespace geo{
     raw::ChannelID_t pureAPAnum = std::floor( channel/fChannelsPerAPA );
 
     bool breakVariable = false;
-    for(unsigned int planeloop = 0; planeloop != fPlanesPerAPA; ++planeloop){
+    for(unsigned int planeloop = 0; planeloop != fPlanesPerTPC; ++planeloop){
           
       NextPlane = fFirstChannelInNextPlane[0][0][planeloop];
       ThisPlane = fFirstChannelInThisPlane[0][0][planeloop];
@@ -268,7 +275,14 @@ namespace geo{
   {
     throw cet::exception("DuneApaChannelMapAlg") << __func__ << " not implemented!\n";
   }
+
+  //----------------------------------------------------------------------------
   
+double DuneApaChannelMapAlg::
+WireCoordinate(double YPos, double ZPos, unsigned int PlaneNo, unsigned int TPCNo,
+               unsigned int cstat) const {
+  return WireCoordinate(YPos, ZPos, geo::PlaneID(cstat, TPCNo, PlaneNo));
+}
   
   //----------------------------------------------------------------------------
   double DuneApaChannelMapAlg::WireCoordinate
