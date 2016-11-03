@@ -5,12 +5,12 @@
  * 
  * ****************************************************************************/
 
-#ifndef DATAOVERLAYPRODUCTS_EVENTMIXINGSUMMARY_H
-#define DATAOVERLAYPRODUCTS_EVENTMIXINGSUMMARY_H
+#ifndef DATAOVERLAYPRODUCTS_EVENTMIXINGSUMMARY_DUNE_H
+#define DATAOVERLAYPRODUCTS_EVENTMIXINGSUMMARY_DUNE_H
 
 #include <stdint.h>
 
-namespace mix {
+namespace dunemix {
 
   //This is just gonna be a stupid copy of the basic
   //info contained in the art event. Nothing special,
@@ -43,14 +43,14 @@ namespace mix {
   }; // class EventMixingSummary()
   
 #ifndef __GCCXML__
-  inline uint32_t mix::EventMixingSummary::Event()  const { return fEvent;  }
-  inline uint32_t mix::EventMixingSummary::SubRun() const { return fSubrun; }
-  inline uint32_t mix::EventMixingSummary::Run()    const { return fRun;    }
+  inline uint32_t dunemix::EventMixingSummary::Event()  const { return fEvent;  }
+  inline uint32_t dunemix::EventMixingSummary::SubRun() const { return fSubrun; }
+  inline uint32_t dunemix::EventMixingSummary::Run()    const { return fRun;    }
 #endif // !__GCCXML__
   
-} // namespace mix
+} // namespace dunemix
 
 
-#endif // DATAOVERLAYPRODUCTS_EVENTMIXINGSUMMARY_H
+#endif // DATAOVERLAYPRODUCTS_EVENTMIXINGSUMMARY_DUNE_H
 
 ////////////////////////////////////////////////////////////////////////
