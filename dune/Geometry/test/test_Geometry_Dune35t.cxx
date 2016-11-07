@@ -111,7 +111,9 @@ template<class T, class V>
 void checkval(string name, T val, V chkval) {
   T eval = chkval;
   if ( val != eval ) {
+    cout << endl << "---------------------------------" << endl;
     cout << name << ": " << val << " != " << chkval << endl;
+    cout << "---------------------------------" << endl;
     assert(false);
   }
 }
@@ -120,7 +122,9 @@ void checkfloat(double x1, double x2, double tol =1.e-5) {
   double den = abs(x1) + abs(x2);
   double num = abs(x2 - x1);
   if ( num/den > tol ) {
+    cout << endl << "---------------------------------" << endl;
     cout << "checkfloat: " << x1 << " != " << x2 << endl;
+    cout << "---------------------------------" << endl;
     assert(false);
   }
 }
@@ -323,11 +327,38 @@ void setWorkspace(ExpectedValues& ev) {
   }
   // Channel count per ROP.
   resize(ev.nchaPerRop, ev.nrop, 0);
-  ev.nchaPerRop[0] = 1149;
-  ev.nchaPerRop[1] = 144;
-  ev.nchaPerRop[2] = 112;
-  ev.nchaPerRop[3] = 112;
-  ev.nchatot = 10240;
+  ev.nchaPerRop[0] = 800;
+  ev.nchaPerRop[1] = 800;
+  ev.nchaPerRop[2] = 480;
+  ev.nchaPerRop[3] = 480;
+  for ( Index irop=0; irop<ev.nrop; ++irop ) ev.nchaPerApa += ev.nchaPerRop[irop];
+  ev.nchatot = ev.napa*ev.nchaPerApa;
+  resize(ev.chacry, ev.nchatot, InvalidIndex);
+  resize(ev.chaapa, ev.nchatot, InvalidIndex);
+  resize(ev.charop, ev.nchatot, InvalidIndex);
+  Index icha = 0;
+  for ( Index icry=0; icry<ev.ncry; ++icry ) {
+    for ( Index iapa=0; iapa<ev.napa; ++iapa ) {
+      for ( Index irop=0; irop<ev.nrop; ++irop ) {
+        for ( Index kcha=0; kcha<ev.nchaPerRop[irop]; ++kcha ) {
+          ev.chacry[icha] = icry;
+          ev.chaapa[icha] = iapa;
+          ev.charop[icha] = irop;
+          ++icha;
+        }
+      }
+    }
+  }
+  resize(ev.firstchan, ev.ncry, ev.napa, ev.nrop, raw::InvalidChannelID);
+  Index chan = 0;
+  for ( Index icry=0; icry<ev.ncry; ++icry ) {
+    for ( Index iapa=0; iapa<ev.napa; ++iapa ) {
+      for ( Index irop=0; irop<ev.nrop; ++irop ) {
+        ev.firstchan[icry][iapa][irop] = chan;
+        chan += ev.nchaPerRop[irop];
+      }
+    }
+  }
   // Space points.
   ev.pfun = setWorkspaceSpacePoints;
   #include "setWorkspaceSpacePoints.dat"
@@ -566,9 +597,8 @@ int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, stri
       assert( iapa == iapa1 );
       assert( ipla == ipla1 );
       checkval("\nPlaneWireToChannel", pgeo->PlaneWireToChannel(wirid), icha );
-      assert( pgeo->PlaneWireToChannel(wirid) == icha );
       assert( pgeo->SignalType(icha) == ev.sigType[wirid.Cryostat][wirid.TPC][wirid.Plane] );
-      assert( pgeo->View(icha) == ev.view[wirid.Cryostat][wirid.TPC][wirid.Plane] );
+      checkval("View", pgeo->View(icha), ev.view[wirid.Cryostat][wirid.TPC][wirid.Plane]);
     }
     if ( print ) cout << endl;
   }
@@ -612,7 +642,9 @@ int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, stri
     cout << "Check channel-ROP mapping." << endl;
     icry = 0;
     for ( Index icha=0; icha<ev.nchatot; ++icha ) {
+cout << 1 << endl;
       ROPID ropid = pgeo->ChannelToROP(icha);
+cout << 2 << endl;
       Index icry = ropid.Cryostat;
       Index iapa = ropid.TPCset;
       Index irop = ropid.ROP;
@@ -620,6 +652,7 @@ int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, stri
       assert( iapa == ev.chaapa[icha] );
       assert( irop == ev.charop[icha] );
     }
+cout << 3 << endl;
       
   } else {
     cout << myname << line << endl;
