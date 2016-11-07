@@ -12,6 +12,7 @@
 #include "larcore/Geometry/ChannelMapAlg.h"
 #include "larcore/Geometry/ChannelMapStandardAlg.h"
 #include "dune/Geometry/Dune35tChannelMapAlg.h"
+#include "dune/Geometry/DuneApaChannelMapAlg.h"
 #include "dune/Geometry/ChannelMap35Alg.h"
 #include "dune/Geometry/ChannelMap35OptAlg.h"
 #include "dune/Geometry/ChannelMapAPAAlg.h"
@@ -41,10 +42,14 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& sortingParameters, geo::Geom
   if ( fChannelMapClass.size() ) {
     if        ( fChannelMapClass == "Dune35tChannelMapAlg" ) {
       fChannelMap = std::make_shared<geo::Dune35tChannelMapAlg>(sortingParameters);
+    } else if ( fChannelMapClass == "DuneApaChannelMapAlg" ) {
+      fChannelMap = std::make_shared<geo::DuneApaChannelMapAlg>(sortingParameters);
     } else if ( fChannelMapClass == "ChannelMap35Alg" ) {
       fChannelMap = std::make_shared<geo::ChannelMap35Alg>(sortingParameters);
     } else if ( fChannelMapClass == "ChannelMap35OptAlg" ) {
       fChannelMap = std::make_shared<geo::ChannelMap35OptAlg>(sortingParameters);
+    } else if ( fChannelMapClass == "ChannelMapAPAAlg" ) {
+      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(sortingParameters);
     } else {
       throw cet::exception("DUNEGeometryHelper") << "Invalid channel map class name:" << fChannelMapClass << "\n";
     }

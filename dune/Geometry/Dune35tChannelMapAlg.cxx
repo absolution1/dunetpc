@@ -63,8 +63,6 @@ void Dune35tChannelMapAlg::Initialize( GeometryData_t& geodata ) {
   unsigned int tpcPlaneForApaPlane[4] = {0, 1, 2, 2};
   unsigned int tpcOffsetForApaPlane[4] = {0, 0, 0, 1};
 
-  fTopChannel = 0;
-
   // Size some vectors and initialize the FirstChannel vectors.
   for ( unsigned int cs = 0; cs != fNcryostat; ++cs ) {
     
