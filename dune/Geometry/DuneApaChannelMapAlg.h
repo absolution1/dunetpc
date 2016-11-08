@@ -33,17 +33,18 @@
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/ChannelMapAlg.h"
-#include "dune/Geometry/GeoObjectSorterAPA.h"
+#include "larcore/Geometry/GeoObjectSorter.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
 
-class DuneApaChannelMapAlg : public ChannelMapAlg{
+class DuneApaChannelMapAlg : public ChannelMapAlg {
 
 public:
 
-  DuneApaChannelMapAlg(fhicl::ParameterSet const& p);
+  DuneApaChannelMapAlg(const fhicl::ParameterSet& pset);
     
+  void setSorter(const geo::GeoObjectSorter& sort);
   void Initialize(GeometryData_t& geodata) override;
   void Uninitialize() override;
     
@@ -227,7 +228,7 @@ public:
   unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const;
     
 private:
-    
+
   template<class T>
   using Vector = std::vector<T>;
   template<class T>
@@ -265,7 +266,7 @@ private:
   ThreeVector<unsigned int>            fWiresPerRop;           ///< # wires/ROP for each (cry, apa, rop)
   PlaneInfoMap_t<raw::ChannelID_t>     fFirstChannelInThisRop; ///<  (cry, apa, rop)
   PlaneInfoMap_t<raw::ChannelID_t>     fFirstChannelInNextRop; ///<  (cry, apa, rop)
-  geo::GeoObjectSorterAPA              fSorter;                ///< sorts geo::XXXGeo objects
+  const geo::GeoObjectSorter*          fSorter;                ///< sorts geo::XXXGeo objects
 
   /// all data we need for each APA
   typedef struct {

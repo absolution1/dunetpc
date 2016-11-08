@@ -136,6 +136,7 @@ void checkfloat(double x1, double x2, double tol =1.e-5) {
 struct ExpectedValues {
   typedef void (*FunPtr)(Geometry*);
   string fullname;
+  string sorter;
   Index ncry = 0;
   Index ntpc = 0;
   Index npla = 0;
@@ -419,18 +420,20 @@ void setWorkspaceSpacePoints(Geometry* pgeo) {
 
 // Declare test functions.
 
-int test_Geometry_Dune35t(string gname ="dune35t_geo", string chanmap ="Dune35tChannelMapAlg", bool dorop =true,
+int test_Geometry_Dune35t(string gname ="dune35t_geo", string chanmap ="Dune35tChannelMapAlg", 
+                          string sorter ="GeoObjectSorter35", bool dorop =true,
                           Index maxchanprint =10);
 
 int test_GeometryWithExpectedValues(const ExpectedValues& ev,
                                     string gname ="dune35t_geo",
                                     string chanmap ="Dune35tChannelMapAlg",
+                                    string sorter ="GeoObjectSorter35",
                                     bool dorop =true,
                                     Index maxchanprint =10);
 
 //**********************************************************************
 
-int test_Geometry_Dune35t(string gname, string chanmap, bool dorop, Index maxchanprint) {
+int test_Geometry_Dune35t(string gname, string chanmap, string sorter, bool dorop, Index maxchanprint) {
   const string myname = "test_Geometry_Dune35t: ";
   ExpectedValues ev;
   if ( gname == "dune35t_geo" ) set35t(ev);
@@ -440,13 +443,13 @@ int test_Geometry_Dune35t(string gname, string chanmap, bool dorop, Index maxcha
     assert(false);
     return 1;
   }
-  return test_GeometryWithExpectedValues(ev, gname, chanmap, dorop, maxchanprint);
+  return test_GeometryWithExpectedValues(ev, gname, chanmap, sorter, dorop, maxchanprint);
 }
 
 //**********************************************************************
 
 int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, string chanmap,
-                                    bool dorop, Index maxchanprint) {
+                                    string sorter, bool dorop, Index maxchanprint) {
   const string myname = "test_Geometry_Dune35t: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
@@ -458,6 +461,7 @@ int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, stri
   cout << myname << line << endl;
   cout << myname << "   Geometry: " << gname << endl;
   cout << myname << "Channel map: " << chanmap << endl;
+  cout << myname << "     Sorter: " << sorter << endl;
   cout << myname << "     Do ROP: " << dorop << endl;
 
   cout << myname << line << endl;
@@ -473,6 +477,7 @@ int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, stri
     if ( chanmap.size() ) {
       fout << "services.ExptGeoHelperInterface.ChannelMapClass: " << chanmap << endl;
     }
+    fout << "services.ExptGeoHelperInterface.GeoSorterClass: " << sorter << endl;
   }
 
   cout << myname << line << endl;
@@ -713,6 +718,7 @@ cout << 3 << endl;
 
 int main(int argc, const char* argv[]) {
   string gname = "dune35t_geo";
+  string sorter = "GeoObjectSorter35";
   string chanmap = "";
   bool dorop = false;
   Index maxchanprint = 10;
@@ -720,7 +726,7 @@ int main(int argc, const char* argv[]) {
     string sarg = argv[1];
     if ( sarg == "-h" ) {
       cout << argv[0] << ": [ChannelMapClass] [dorop]";
-      cout << argv[0] << ": [Geometry/ChannelMapClass] [dorop]";
+      cout << argv[0] << ": [Geometry/ChannelMapClass/sorter] [dorop]";
       return 0;
     }
     string::size_type ipos = sarg.find("/");
@@ -728,7 +734,13 @@ int main(int argc, const char* argv[]) {
       chanmap = sarg;
     } else {
       gname = sarg.substr(0, ipos);
-      chanmap = sarg.substr(ipos + 1);
+      string::size_type jpos = sarg.find("/", ipos+1);
+      if ( jpos == string::npos ) {
+        chanmap = sarg.substr(ipos+1);
+      } else {
+        chanmap = sarg.substr(ipos+1, jpos-ipos-1);
+        sorter = sarg.substr(jpos+1);
+      }
     }
   }
   if ( argc > 2 ) {
@@ -740,7 +752,7 @@ int main(int argc, const char* argv[]) {
     ssarg >> maxchanprint;
   }
   ExpectedValues ev;
-  test_Geometry_Dune35t(gname, chanmap, dorop, maxchanprint);
+  test_Geometry_Dune35t(gname, chanmap, sorter, dorop, maxchanprint);
   cout << "Tests concluded." << endl;
   ArtServiceHelper::close();
   return 0;

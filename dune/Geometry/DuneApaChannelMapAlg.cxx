@@ -38,14 +38,21 @@ using std::cout;
 using std::endl;
 //----------------------------------------------------------------------------
 
-DuneApaChannelMapAlg::DuneApaChannelMapAlg(fhicl::ParameterSet const& p)
-: fSorter(geo::GeoObjectSorterAPA(p)) {
+DuneApaChannelMapAlg::
+DuneApaChannelMapAlg(const fhicl::ParameterSet& p)
+: fSorter(nullptr) {
   fChannelsPerOpDet = p.get<unsigned int>("ChannelsPerOpDet");
 }
 
 //----------------------------------------------------------------------------
 
-void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata ) {
+void DuneApaChannelMapAlg::setSorter(const geo::GeoObjectSorter& sort) {
+  fSorter = &sort;
+}
+
+//----------------------------------------------------------------------------
+
+void DuneApaChannelMapAlg::Initialize(GeometryData_t& geodata) {
   Uninitialize();
     
   vector<CryostatGeo*>& crygeos = geodata.cryostats;
@@ -60,10 +67,10 @@ void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata ) {
     
   mf::LogInfo("DuneApaChannelMapAlg") << "Sorting volumes...";
 
-  fSorter.SortAuxDets(adgeo);
-  fSorter.SortCryostats(crygeos);
+  fSorter->SortAuxDets(adgeo);
+  fSorter->SortCryostats(crygeos);
   for ( Index icry=0; icry<crygeos.size(); ++icry ) {
-    crygeos[icry]->SortSubVolumes(fSorter);
+    crygeos[icry]->SortSubVolumes(*fSorter);
   }
 
   mf::LogInfo("DuneApaChannelMapAlg") << "Initializing channel map...";
