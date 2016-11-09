@@ -3,7 +3,26 @@
 /// \brief Interface to algorithm class for a specific detector channel mapping
 ///
 /// \version $Id:  $
-/// \author  tylerdalion@gmail.com
+/// \author  David Adams
+///
+/// David Adams
+/// November 2016
+///
+/// Derived from ChannelMapAPAAlg by Tyler Alion.
+///
+/// Maps wires to channels for a DUNE-like APA structure. Each each APA has two
+/// wrapped induction (u and v) ROPs (readout planes) shared by two TPCs and
+/// separate collection (z) planes for each of the TPCs. I.e. the APA has four ROPs.
+///
+/// The number of channels for the induction view is determined by the number of
+/// wires which reach the starting side of each of the TPCs. These are called
+/// anchored wires. For collection planes, the numbers or wires and anchored
+/// wires are the same.
+///
+/// Geometry is indexed by cryostat, TPC, plane and wire: (cry, tpc, pla, wir).
+/// Readout is indexed by cryostat, APA, ROP and ROP plane: (cry, apa, rop, rpl).
+/// All these indices are relative.
+/// Channel numbers (cha) are absolute with ordering following that of the readout.
 ////////////////////////////////////////////////////////////////////////
 #ifndef geo_DuneApaChannelMapAlg_H
 #define geo_DuneApaChannelMapAlg_H
@@ -14,17 +33,18 @@
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/ChannelMapAlg.h"
-#include "dune/Geometry/GeoObjectSorterAPA.h"
+#include "larcore/Geometry/GeoObjectSorter.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
 
-class DuneApaChannelMapAlg : public ChannelMapAlg{
+class DuneApaChannelMapAlg : public ChannelMapAlg {
 
 public:
 
-  DuneApaChannelMapAlg(fhicl::ParameterSet const& p);
+  DuneApaChannelMapAlg(const fhicl::ParameterSet& pset);
     
+  void setSorter(const geo::GeoObjectSorter& sort);
   void Initialize(GeometryData_t& geodata) override;
   void Uninitialize() override;
     
@@ -49,240 +69,219 @@ public:
                         double ZPos,
                         geo::PlaneID const& planeID) const override;
     
-    //@{
-    virtual WireID NearestWireID(const TVector3& worldPos,
-                                 unsigned int    PlaneNo,
-                                 unsigned int    TPCNo,
-                                 unsigned int    cstat) const override
-      { return NearestWireID(worldPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
-    virtual WireID NearestWireID
-      (const TVector3& worldPos, geo::PlaneID const& planeID) const override;
-    //@}
-    //@{
-    virtual raw::ChannelID_t PlaneWireToChannel(unsigned int plane,
-                                                unsigned int wire,
-                                                unsigned int tpc,
-                                                unsigned int cstat) const override
-      { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
-    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
-    //@}
-    View_t                   View( raw::ChannelID_t const channel )      const;
-    SigType_t                SignalType( raw::ChannelID_t const channel) const;
-    std::set<View_t>  const& Views()                                     const;
-    std::set<PlaneID> const& PlaneIDs()                                  const;
+  //@{
+  virtual WireID NearestWireID(const TVector3& worldPos,
+                               unsigned int    PlaneNo,
+                               unsigned int    TPCNo,
+                               unsigned int    cstat) const override
+    { return NearestWireID(worldPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+  virtual WireID
+  NearestWireID(const TVector3& worldPos, geo::PlaneID const& planeID) const override;
+  //@}
+  //@{
+  virtual raw::ChannelID_t PlaneWireToChannel(unsigned int plane,
+                                              unsigned int wire,
+                                              unsigned int tpc,
+                                              unsigned int cstat) const override
+    { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
+  virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
+  //@}
+  View_t                   View( raw::ChannelID_t const channel )      const;
+  SigType_t                SignalType( raw::ChannelID_t const channel) const;
+  std::set<View_t>  const& Views()                                     const;
+  std::set<PlaneID> const& PlaneIDs()                                  const;
 
-    //
-    // TPC set interface
-    //
-    /// @name TPC set mapping
-    /// @{
-    /**
-     * @brief Returns the total number of TPC sets in the specified cryostat
-     * @param cryoid cryostat ID
-     * @return number of TPC sets in the cryostat, or 0 if no cryostat found
-     *
-     * @todo to be completed
-     */
-    virtual unsigned int NTPCsets
-      (readout::CryostatID const& cryoid) const override;
+  //
+  // TPC set interface
+  //
+  /// @name TPC set mapping
+  /// @{
+  /**
+   * @brief Returns the total number of TPC sets in the specified cryostat
+   * @param cryoid cryostat ID
+   * @return number of TPC sets in the cryostat, or 0 if no cryostat found
+   */
+  virtual unsigned int NTPCsets(readout::CryostatID const& cryoid) const override;
     
-    /// Returns the largest number of TPC sets any cryostat in the detector has
-    /// @todo to be completed
-    virtual unsigned int MaxTPCsets() const override;
+  /// Returns the largest number of TPC sets any cryostat in the detector has
+  /// @todo to be completed
+  virtual unsigned int MaxTPCsets() const override;
     
-    /// Returns whether we have the specified TPC set
-    /// @return whether the TPC set is valid and exists
-    /// @todo to be completed
-    virtual bool HasTPCset(readout::TPCsetID const& tpcsetid) const override;
+  /// Returns whether we have the specified TPC set
+  /// @return whether the TPC set is valid and exists
+  /// @todo to be completed
+  virtual bool HasTPCset(readout::TPCsetID const& tpcsetid) const override;
     
-    /**
-     * @brief Returns the ID of the TPC set the specified TPC belongs to
-     * @param tpcid ID of the TPC
-     * @return the ID of the corresponding TPC set
-     *
-     * Note that the check is performed on the validity of the TPC set ID, that
-     * does not necessarily imply that the TPC set specified by the ID actually
-     * exists. Check the existence of the TPC set first (HasTPCset()).
-     * Behaviour on valid, non-existent TPC set IDs is undefined.
-     * 
-     * @todo to be completed
-     */
-    virtual readout::TPCsetID TPCtoTPCset
-      (geo::TPCID const& tpcid) const override;
+  /**
+   * @brief Returns the ID of the TPC set the specified TPC belongs to
+   * @param tpcid ID of the TPC
+   * @return the ID of the corresponding TPC set
+   */
+  virtual readout::TPCsetID TPCtoTPCset(geo::TPCID const& tpcid) const override;
     
-    /**
-     * @brief Returns a list of ID of TPCs belonging to the specified TPC set
-     * @param tpcsetid ID of the TPC set to convert into TPC IDs
-     * @return the list of TPCs, empty if TPC set is invalid
-     *
-     * Note that the check is performed on the validity of the TPC set ID, that
-     * does not necessarily imply that the TPC set specified by the ID actually
-     * exists. Check the existence of the TPC set first (HasTPCset()).
-     * Behaviour on valid, non-existent TPC set IDs is undefined.
-     *
-     * @todo to be completed
-     */
-    virtual std::vector<geo::TPCID> TPCsetToTPCs
-      (readout::TPCsetID const& tpcsetid) const override;
+  /**
+   * @brief Returns a list of ID of TPCs belonging to the specified TPC set
+   * @param tpcsetid ID of the TPC set to convert into TPC IDs
+   * @return the list of TPCs, empty if TPC set is invalid
+   */
+  virtual std::vector<geo::TPCID> TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const override;
     
-    /// Returns the ID of the first TPC belonging to the specified TPC set
-    /// @todo to be completed
-    virtual geo::TPCID FirstTPCinTPCset
-      (readout::TPCsetID const& tpcsetid) const override;
+  /// Returns the ID of the first TPC belonging to the specified TPC set
+  /// @todo to be completed
+  virtual geo::TPCID FirstTPCinTPCset(readout::TPCsetID const& tpcsetid) const override;
     
-    /// @} TPC set mapping
+  /// @} TPC set mapping
     
-    
-    
-    //
-    // Readout plane interface
-    //
-    /// @name Readout plane mapping
-    /// @{
+  //
+  // Readout plane interface
+  //
+  /// @name Readout plane mapping
+  /// @{
 
-    /**
-     * @brief Returns the total number of ROP in the specified TPC set
-     * @param tpcsetid TPC set ID
-     * @return number of readout planes in the TPC set, or 0 if no TPC set found
-     * 
-     * Note that this methods explicitly check the existence of the TPC set.
-     *
-     * @todo to be completed
-     */
-    virtual unsigned int NROPs
-      (readout::TPCsetID const& tpcsetid) const override;
+  /**
+   * @brief Returns the total number of ROP in the specified TPC set
+   * @param tpcsetid TPC set ID
+   * @return number of readout planes in the TPC set, or 0 if no TPC set found
+   * 
+   * Note that this methods explicitly check the existence of the TPC set.
+   */
+  virtual unsigned int NROPs(readout::TPCsetID const& tpcsetid) const override;
     
-    /// Returns the largest number of ROPs a TPC set in the detector has
-    /// @todo to be completed
-    virtual unsigned int MaxROPs() const override;
+  /// Returns the largest number of ROPs a TPC set in the detector has
+  /// @todo to be completed
+  virtual unsigned int MaxROPs() const override;
     
-    /// Returns whether we have the specified ROP
-    /// @return whether the readout plane is valid and exists
-    virtual bool HasROP(readout::ROPID const& ropid) const override;
+  /// Returns whether we have the specified ROP
+  /// @return whether the readout plane is valid and exists
+  virtual bool HasROP(readout::ROPID const& ropid) const override;
     
-    /**
-     * @brief Returns the ID of the ROP planeid belongs to, or invalid if none
-     * @param planeid ID of the wire plane
-     * @return the ID of the corresponding ROP, or invalid ID when planeid is
-     *
-     * Note that this check is performed on the validity of the wire plane
-     * ID, that does not necessarily imply that the wire plane specified by
-     * the ID actually exists. Check if the wire plane exists with HasPlane().
-     * The behaviour on non-existing wire planes is undefined.
-     * 
-     * @todo to be completed
-     */
-    virtual readout::ROPID WirePlaneToROP
-      (geo::PlaneID const& planeid) const override;
+  /**
+   * @brief Returns the ID of the ROP planeid belongs to, or invalid if none
+   * @param planeid ID of the wire plane
+   * @return the ID of the corresponding ROP, or invalid ID when planeid is
+   *
+   * Note that this check is performed on the validity of the wire plane
+   * ID, that does not necessarily imply that the wire plane specified by
+   * the ID actually exists. Check if the wire plane exists with HasPlane().
+   * The behaviour on non-existing wire planes is undefined.
+   */
+  virtual readout::ROPID WirePlaneToROP(geo::PlaneID const& planeid) const override;
     
-    /**
-     * @brief Returns a list of ID of wire planes belonging to the specified ROP
-     * @param ropid ID of the readout plane to convert into wire planes
-     * @return the list of wire plane IDs, empty if readout plane ID is invalid
-     *
-     * Note that this check is performed on the validity of the readout plane
-     * ID, that does not necessarily imply that the readout plane specified by
-     * the ID actually exists. Check if the ROP exists with HasROP().
-     * The behaviour on non-existing readout planes is undefined.
-     * 
-     * @todo to be completed
-     */
-    virtual std::vector<geo::PlaneID> ROPtoWirePlanes
-      (readout::ROPID const& ropid) const override;
+  /**
+   * @brief Returns a list of ID of wire planes belonging to the specified ROP
+   * @param ropid ID of the readout plane to convert into wire planes
+   * @return the list of wire plane IDs, empty if readout plane ID is invalid
+   *
+   * Note that this check is performed on the validity of the readout plane
+   * ID, that does not necessarily imply that the readout plane specified by
+   * the ID actually exists. Check if the ROP exists with HasROP().
+   * The behaviour on non-existing readout planes is undefined.
+   */
+  virtual std::vector<geo::PlaneID> ROPtoWirePlanes(readout::ROPID const& ropid) const override;
     
-    /**
-     * @brief Returns a list of ID of TPCs the specified ROP spans
-     * @param ropid ID of the readout plane
-     * @return the list of TPC IDs, empty if readout plane ID is invalid
-     *
-     * Note that this check is performed on the validity of the readout plane
-     * ID, that does not necessarily imply that the readout plane specified by
-     * the ID actually exists. Check if the ROP exists with HasROP().
-     * The behaviour on non-existing readout planes is undefined.
-     *
-     * @todo to be completed
-     */
-    virtual std::vector<geo::TPCID> ROPtoTPCs
-      (readout::ROPID const& ropid) const override;
+  /**
+   * @brief Returns a list of ID of TPCs the specified ROP spans
+   * @param ropid ID of the readout plane
+   * @return the list of TPC IDs, empty if readout plane ID is invalid
+   *
+   * Note that this check is performed on the validity of the readout plane
+   * ID, that does not necessarily imply that the readout plane specified by
+   * the ID actually exists. Check if the ROP exists with HasROP().
+   * The behaviour on non-existing readout planes is undefined.
+   */
+  virtual std::vector<geo::TPCID> ROPtoTPCs(readout::ROPID const& ropid) const override;
     
-    /// Returns the ID of the ROP the channel belongs to (invalid if none)
-    /// @throws cet::exception (category: "Geometry") if non-existent channel
-    virtual readout::ROPID ChannelToROP
-      (raw::ChannelID_t channel) const override;
+  /// Returns the ID of the ROP the channel belongs to (invalid if none)
+  /// @throws cet::exception (category: "Geometry") if non-existent channel
+  virtual readout::ROPID ChannelToROP(raw::ChannelID_t channel) const override;
     
-    /**
-     * @brief Returns the ID of the first channel in the specified readout plane
-     * @param ropid ID of the readout plane
-     * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
-     * 
-     * Note that this check is performed on the validity of the readout plane
-     * ID, that does not necessarily imply that the readout plane specified by
-     * the ID actually exists. Check if the ROP exists with HasROP().
-     * The behaviour for non-existing readout planes is undefined.
-     *
-     * @todo to be completed
-     */
-    virtual raw::ChannelID_t FirstChannelInROP
-      (readout::ROPID const& ropid) const override;
+  /**
+   * @brief Returns the ID of the first channel in the specified readout plane
+   * @param ropid ID of the readout plane
+   * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
+   * 
+   * Note that this check is performed on the validity of the readout plane
+   * ID, that does not necessarily imply that the readout plane specified by
+   * the ID actually exists. Check if the ROP exists with HasROP().
+   * The behaviour for non-existing readout planes is undefined.
+   */
+  virtual raw::ChannelID_t FirstChannelInROP(readout::ROPID const& ropid) const override;
     
-    /**
-     * @brief Returns the ID of the first plane belonging to the specified ROP
-     * @param ropid ID of the readout plane
-     * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
-     * 
-     * Note that this check is performed on the validity of the readout plane
-     * ID, that does not necessarily imply that the readout plane specified by
-     * the ID actually exists. Check if the ROP exists with HasROP().
-     * The behaviour for non-existing readout planes is undefined.
-     *
-     * @todo to be completed
-     */
-    virtual geo::PlaneID FirstWirePlaneInROP
-      (readout::ROPID const& ropid) const override;
+  /**
+   * @brief Returns the ID of the first plane belonging to the specified ROP
+   * @param ropid ID of the readout plane
+   * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
+   * 
+   * Note that this check is performed on the validity of the readout plane
+   * ID, that does not necessarily imply that the readout plane specified by
+   * the ID actually exists. Check if the ROP exists with HasROP().
+   * The behaviour for non-existing readout planes is undefined.
+   */
+  virtual geo::PlaneID FirstWirePlaneInROP(readout::ROPID const& ropid) const override;
     
-    /// @} readout plane mapping
+  /// @} readout plane mapping
     
+  unsigned int NOpChannels(unsigned int NOpDets)                        const;
+  unsigned int NOpHardwareChannels(unsigned int opDet)                  const;
+  unsigned int OpChannel(unsigned int detNum, unsigned int channel = 0) const;
+  unsigned int OpDetFromOpChannel(unsigned int opChannel)               const;
+  unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const;
     
-    
-    unsigned int NOpChannels(unsigned int NOpDets)                        const;
-    unsigned int NOpHardwareChannels(unsigned int opDet)                  const;
-    unsigned int OpChannel(unsigned int detNum, unsigned int channel = 0) const;
-    unsigned int OpDetFromOpChannel(unsigned int opChannel)               const;
-    unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const;
-    
-  private:
-    
-    unsigned int                                         fChannelsPerOpDet;
-    unsigned int                                         fNcryostat;      ///< number of cryostats in the detector
-    unsigned int                                         fNchannels;      ///< number of channels in the detector
-    raw::ChannelID_t                                     fTopChannel;     ///< book keeping highest channel #
-    std::vector<unsigned int>                            fNTPC;           ///< number of TPCs in each cryostat
-    std::set<View_t>                                     fViews;          ///< vector of the views present in the detector
-    std::set<PlaneID>                                    fPlaneIDs;       ///< vector of the PlaneIDs present in the detector
-    // Assuming all APA's are identical
-    std::vector<unsigned int>                            fWiresInPlane;
-    unsigned int                                         fPlanesPerTPC;   
-    unsigned int                                         fPlanesPerAPA;   
-    unsigned int                                         fChannelsPerAPA;
-    std::vector<unsigned int>                            nAnchoredWires;
-    PlaneInfoMap_t<unsigned int>                         fWiresPerPlane;  ///< The number of wires in this plane 
-                                                                          ///< in the heirachy
-    geo::GeoObjectSorterAPA                              fSorter;         ///< sorts geo::XXXGeo objects
+private:
 
-    /// all data we need for each APA
-    typedef struct {
-      double fFirstWireCenterY;
-      double fFirstWireCenterZ;
-      /// +1 if the wire ID order follow z (larger z, or smaller intercept => larger wire ID); -1 otherwise
-      float fWireSortingInZ;
-    } PlaneData_t;
+  template<class T>
+  using Vector = std::vector<T>;
+  template<class T>
+  using TwoVector = Vector<Vector<T>>;
+  template<class T>
+  using ThreeVector = Vector<TwoVector<T>>;
+  template<class T>
+  using FourVector = Vector<ThreeVector<T>>;
+  unsigned int                         fChannelsPerOpDet;
+  unsigned int                         fNcryostat;             ///< number of cryostats in the detector
+  unsigned int                         fNchannels;             ///< number of channels in the detector
+  unsigned int                         fChannelsPerAPA;        ///< number of channels in each APA
+  raw::ChannelID_t                     fTopChannel;            ///< book keeping highest channel #
+  unsigned int                         fNTpcMax;               ///< Max # TPCs in any cryostat
+  unsigned int                         fNApaMax;               ///< Max # TPCs in any cryostat
+  unsigned int                         fNRopMax;               ///< Max # ROPs in any APA
+  std::vector<unsigned int>            fNTpc;                  ///< number of TPCs in each cryostat
+  std::vector<unsigned int>            fNApa;                  ///< number of APAs in each cryostat
+  std::set<View_t>                     fViews;                 ///< vector of the views present in the detector
+  std::set<PlaneID>                    fPlaneIDs;              ///< vector of the PlaneIDs present in the detector
+  ThreeVector<unsigned int>            fWiresPerPlane;         ///< # wires/TPC plane for each (cry, tpc, pla)
+  TwoVector<unsigned int>              fPlanesPerTpc;          ///< # planes for each (cry, tpc)
+  TwoVector<unsigned int>              fRopsPerApa;            ///< # ROPs for each (cry, apa)
+  ThreeVector<unsigned int>            fApaTpcs;               ///< TPCs for each APA
+  ThreeVector<unsigned int>            fPlanesPerRop;          ///< # TPC planes for each (cry, apa, rop)
+  FourVector<unsigned int>             fRopTpc;                ///< # TPC planes for each (cry, apa, rop, rpl)
+  FourVector<unsigned int>             fRopPlane;              ///< # TPC plane index for each (cry, apa, rop, rpl)
+  TwoVector<unsigned int>              fChannelsPerApa;        ///< # channels for each APA
+  ThreeVector<unsigned int>            fChannelsPerRop;        ///< # channels for each Rop
+  ThreeVector<unsigned int>            fAnchoredWires;         ///< # anchored wires for each (cry, tpc, pla)
+  ThreeVector<unsigned int>            fPlaneApa;              ///< APA for each TPC plane (cry, tpc, pla)
+  ThreeVector<unsigned int>            fPlaneRop;              ///< ROP for each TPC plane (cry, tpc, pla)
+  ThreeVector<unsigned int>            fPlaneRopIndex;         ///< Index in ROP for each TPC plane (cry, tpc, pla)
+  ThreeVector<unsigned int>            fAnchoredPlaneRop;      ///< ROP holding the anchored wires for (cry, tpc, pla)
+  ThreeVector<unsigned int>            fWiresPerRop;           ///< # wires/ROP for each (cry, apa, rop)
+  PlaneInfoMap_t<raw::ChannelID_t>     fFirstChannelInThisRop; ///<  (cry, apa, rop)
+  PlaneInfoMap_t<raw::ChannelID_t>     fFirstChannelInNextRop; ///<  (cry, apa, rop)
+  const geo::GeoObjectSorter*          fSorter;                ///< sorts geo::XXXGeo objects
+
+  /// all data we need for each APA
+  typedef struct {
+    double fFirstWireCenterY;
+    double fFirstWireCenterZ;
+    /// +1 if the wire ID order follow z (larger z, or smaller intercept => larger wire ID); -1 otherwise
+    float fWireSortingInZ;
+  } PlaneData_t;
     
-    ///< collects all data we need for each plane (indices: c t p)
-    PlaneInfoMap_t<PlaneData_t>                          fPlaneData;
+  ///< collects all data we need for each plane (indices: c t p)
+  PlaneInfoMap_t<PlaneData_t>                          fPlaneData;
     
-    std::vector< double > fWirePitch;
-    std::vector< double > fOrientation;
-    std::vector< double > fSinOrientation; // to explore improving speed
+  std::vector< double > fWirePitch;
+  std::vector< double > fOrientation;
+  std::vector< double > fSinOrientation; // to explore improving speed
     std::vector< double > fCosOrientation; // to explore improving speed
 
   };
