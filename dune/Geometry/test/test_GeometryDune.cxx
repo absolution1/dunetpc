@@ -386,9 +386,7 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
     cout << "Check channel-ROP mapping." << endl;
     icry = 0;
     for ( Index icha=0; icha<ev.nchatot; ++icha ) {
-cout << 1 << endl;
       ROPID ropid = pgeo->ChannelToROP(icha);
-cout << 2 << endl;
       Index icry = ropid.Cryostat;
       Index iapa = ropid.TPCset;
       Index irop = ropid.ROP;
@@ -396,8 +394,6 @@ cout << 2 << endl;
       assert( iapa == ev.chaapa[icha] );
       assert( irop == ev.charop[icha] );
     }
-cout << 3 << endl;
-      
   } else {
     cout << myname << line << endl;
     cout << "Skipped APA and ROP tests." << endl;
@@ -461,13 +457,14 @@ int main(int argc, const char* argv[]) {
   if ( argc > 1 ) {
     string sarg = argv[1];
     if ( sarg == "-h" ) {
+      cout << argv[0] << ": . [dorop]";
       cout << argv[0] << ": [ChannelMapClass] [dorop]";
       cout << argv[0] << ": [Geometry/ChannelMapClass/sorter] [dorop]";
       return 0;
     }
     string::size_type ipos = sarg.find("/");
     if ( ipos == string ::npos ) {
-      ev.chanmap = sarg;
+      if ( sarg != "." ) ev.chanmap = sarg;
     } else {
       ev.gname = sarg.substr(0, ipos);
       string::size_type jpos = sarg.find("/", ipos+1);
