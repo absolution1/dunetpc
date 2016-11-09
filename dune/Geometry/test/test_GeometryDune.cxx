@@ -1,9 +1,12 @@
-// test_Geometry_Dune35t.cxx
+// test_GeometryDune.cxx
+
+#ifndef test_GeometryDune_CXX
+#define test_GeometryDune_CXX
 
 // David Adams
-// OCtober 2016
+// November 2016
 //
-// Test the DUNE 35t geometry including channel mapping.
+// Test the DUNE geometry including channel mapping.
 //
 // This test demonstrates how to configure and use the LArSoft Geometry
 // service outside the art framework. DUNE geometry and geometry helper
@@ -11,6 +14,8 @@
 //
 // Note the geometry service requires the experiment-specific geometry
 // helper with the channel map also be loaded. 
+//
+// The functions that set the expected values must be defined externally.
 
 #undef NDEBUG
 
@@ -135,8 +140,10 @@ void checkfloat(double x1, double x2, double tol =1.e-5) {
 
 struct ExpectedValues {
   typedef void (*FunPtr)(Geometry*);
-  string fullname;
+  string gname;
+  string chanmap;
   string sorter;
+  string fullname;
   Index ncry = 0;
   Index ntpc = 0;
   Index npla = 0;
@@ -166,291 +173,25 @@ struct ExpectedValues {
 
 //**********************************************************************
 
-// 35t geometry.
-
-void set35tSpacePoints(Geometry*);
-
-void set35t(ExpectedValues& ev) {
-  ev.fullname = "dune35t4apa_v6";
-  // Geometry counts.
-  ev.ncry = 1;
-  ev.ntpc = 8;
-  ev.npla = 3;
-  ev.napa = 4;
-  ev.nrop = 4;
-  // Signal type and view for each TPC plane.
-  resize(ev.view, ev.ncry, ev.ntpc, ev.npla, geo::kUnknown);
-  resize(ev.sigType, ev.ncry, ev.ntpc, ev.npla, geo::kMysteryType);
-  for ( Index icry=0; icry<ev.ncry; ++icry ) {
-    for ( Index itpc=0; itpc<ev.ntpc; ++itpc ) {
-      for ( Index ipla=0; ipla<ev.npla; ++ipla ) {
-        ev.sigType[icry][itpc][ipla] = (ipla < 2) ? geo::kInduction : geo::kCollection;
-      }
-      ev.view[icry][itpc][0] = geo::kU;
-      ev.view[icry][itpc][1] = geo::kV;
-      ev.view[icry][itpc][2] = geo::kZ;
-    }
-  }
-  // Wire count for each TPC plane.
-  resize(ev.nwirPerPlane, ev.ntpc, ev.npla, 0);
-  ev.nwirPerPlane[0][0] = 359;
-  ev.nwirPerPlane[0][1] = 345;
-  ev.nwirPerPlane[0][2] = 112;
-  ev.nwirPerPlane[2][0] = 194;
-  ev.nwirPerPlane[2][1] = 188;
-  ev.nwirPerPlane[2][2] = 112;
-  ev.nwirPerPlane[4][0] = 236;
-  ev.nwirPerPlane[4][1] = 228;
-  ev.nwirPerPlane[4][2] = 112;
-  for ( Index ipla=0; ipla<ev.npla; ++ipla ) ev.nwirPerPlane[1][ipla] = ev.nwirPerPlane[0][ipla];
-  for ( Index ipla=0; ipla<ev.npla; ++ipla ) ev.nwirPerPlane[3][ipla] = ev.nwirPerPlane[2][ipla];
-  for ( Index ipla=0; ipla<ev.npla; ++ipla ) ev.nwirPerPlane[5][ipla] = ev.nwirPerPlane[4][ipla];
-  for ( Index ipla=0; ipla<ev.npla; ++ipla ) ev.nwirPerPlane[6][ipla] = ev.nwirPerPlane[0][ipla];
-  for ( Index ipla=0; ipla<ev.npla; ++ipla ) ev.nwirPerPlane[7][ipla] = ev.nwirPerPlane[0][ipla];
-  resize(ev.nchaPerRop, ev.nrop, 0);
-  ev.nchaPerRop[0] = 144;
-  ev.nchaPerRop[1] = 144;
-  ev.nchaPerRop[2] = 112;
-  ev.nchaPerRop[3] = 112;
-  for ( Index irop=0; irop<ev.nrop; ++irop ) ev.nchaPerApa += ev.nchaPerRop[irop];
-  ev.nchatot = ev.napa*ev.nchaPerApa;
-  resize(ev.chacry, ev.nchatot, InvalidIndex);
-  resize(ev.chaapa, ev.nchatot, InvalidIndex);
-  resize(ev.charop, ev.nchatot, InvalidIndex);
-  Index icha = 0;
-  for ( Index icry=0; icry<ev.ncry; ++icry ) {
-    for ( Index iapa=0; iapa<ev.napa; ++iapa ) {
-      for ( Index irop=0; irop<ev.nrop; ++irop ) {
-        for ( Index kcha=0; kcha<ev.nchaPerRop[irop]; ++kcha ) {
-          ev.chacry[icha] = icry;
-          ev.chaapa[icha] = iapa;
-          ev.charop[icha] = irop;
-          ++icha;
-        }
-      }
-    }
-  }
-  resize(ev.firstchan, ev.ncry, ev.napa, ev.nrop, raw::InvalidChannelID);
-  Index chan = 0;
-  for ( Index icry=0; icry<ev.ncry; ++icry ) {
-    for ( Index iapa=0; iapa<ev.napa; ++iapa ) {
-      for ( Index irop=0; irop<ev.nrop; ++irop ) {
-        ev.firstchan[icry][iapa][irop] = chan;
-        chan += ev.nchaPerRop[irop];
-      }
-    }
-  }
-  ev.pfun = set35tSpacePoints;
-  #include "set35tSpacePoints.dat"
-}
-
-void set35tSpacePoints(Geometry* pgeo) {
-  const string myname = "set35tSpacePoints: ";
-  string ofname = "set35tSpacePoints.dat";
-  cout << myname << "Writing " << ofname << endl;
-  const CryostatGeo& crygeo = pgeo->Cryostat(0);
-  double origin[3] = {0.0};
-  double crypos[3] = {0.0};
-  crygeo.LocalToWorld(origin, crypos);
-  double cxlo = crypos[0] - crygeo.HalfWidth();
-  double cxhi = crypos[0] + crygeo.HalfWidth();
-  double cylo = crypos[1] - crygeo.HalfHeight();
-  double cyhi = crypos[1] + crygeo.HalfHeight();
-  double czlo = crypos[2] - 0.5*crygeo.Length();
-  double czhi = crypos[2] + 0.5*crygeo.Length();
-  cout << "Cryostat limits: "
-       << "(" << cxlo << ", " << cylo << ", " << czlo << "), "
-       << "(" << cxhi << ", " << cyhi << ", " << czhi << ")" << endl;
-  vector<double> zfs = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7 };
-  vector<double> yfs = {0.2, 0.5, 0.8};
-  vector<double> xfs = {0.1, 0.3, 0.6 };
-  ofstream fout(ofname.c_str());
-  //fout << "void set35tSpacepoints(Geometry* pgeo) {" << endl;
-  for ( double zf : zfs ) {
-    double z = czlo + zf*(czhi-czlo);
-    for ( double yf : yfs ) {
-      double y = cylo + yf*(cyhi-cylo);
-      for ( double xf : xfs ) {
-        double x = cxlo + xf*(cxhi-cxlo);
-        double xyz[3] = {x, y, z};
-        TPCID tpcid = pgeo->FindTPCAtPosition(xyz);
-        unsigned int itpc = tpcid.TPC;
-        const TPCGeo& tpcgeo = pgeo->TPC(tpcid);
-        unsigned int npla = tpcgeo.Nplanes();
-        fout << "  ev.posXyz.push_back(SpacePoint(" << x << ", " << y << ", " << z << "));" << endl;
-        for ( unsigned int ipla=0; ipla<npla; ++ipla ) {
-          PlaneID plaid(tpcid, ipla);
-          double xwire = pgeo->WireCoordinate(x, y, plaid);
-          fout << "  ev.posTpc.push_back(" << itpc << ");" << endl;
-          fout << "  ev.posPla.push_back(" << ipla << ");" << endl;
-          fout << "  ev.posWco.push_back(" << xwire << ");" << endl;
-        }  // end loop over planes
-      }  // end loop over x
-    }  // end loop over y
-  }  // end loop over z
-  //fout << "}" << endl;
-}
-
-//**********************************************************************
-
-// 10kt workspace geometry.
-
-void setWorkspaceSpacePoints(Geometry* pgeo);
-
-void setWorkspace(ExpectedValues& ev) {
-  ev.fullname = "dune10kt_v1_workspace";
-  // Geometry counts.
-  ev.ncry = 1;
-  ev.ntpc = 8;
-  ev.npla = 3;
-  ev.napa = 4;
-  ev.nrop = 4;
-  // Signal type and view for each TPC plane.
-  resize(ev.sigType, ev.ncry, ev.ntpc, ev.npla, geo::kMysteryType);
-  resize(ev.view, 1, 8, 3, geo::kUnknown);
-  for ( Index icry=0; icry<ev.ncry; ++icry ) {
-    for ( Index itpc=0; itpc<ev.ntpc; ++itpc ) {
-      for ( Index ipla=0; ipla<ev.npla; ++ipla ) {
-        ev.sigType[icry][itpc][ipla] = (ipla < 2) ? geo::kInduction : geo::kCollection;
-      }
-      ev.view[icry][itpc][0] = geo::kU;
-      ev.view[icry][itpc][1] = geo::kV;
-      ev.view[icry][itpc][2] = geo::kZ;
-    }
-  }
-  // Wire count for each TPC plane.
-  resize(ev.nwirPerPlane, ev.ntpc, ev.npla, 0);
-  ev.nwirPerPlane[0][0] = 1149;
-  ev.nwirPerPlane[0][1] = 1148;
-  ev.nwirPerPlane[0][2] =  480;
-  for ( Index itpc=1; itpc<ev.ntpc; ++itpc ) {
-    for ( Index ipla=0; ipla<ev.npla; ++ipla ) ev.nwirPerPlane[itpc][ipla] = ev.nwirPerPlane[0][ipla];
-  }
-  // Channel count per ROP.
-  resize(ev.nchaPerRop, ev.nrop, 0);
-  ev.nchaPerRop[0] = 800;
-  ev.nchaPerRop[1] = 800;
-  ev.nchaPerRop[2] = 480;
-  ev.nchaPerRop[3] = 480;
-  for ( Index irop=0; irop<ev.nrop; ++irop ) ev.nchaPerApa += ev.nchaPerRop[irop];
-  ev.nchatot = ev.napa*ev.nchaPerApa;
-  resize(ev.chacry, ev.nchatot, InvalidIndex);
-  resize(ev.chaapa, ev.nchatot, InvalidIndex);
-  resize(ev.charop, ev.nchatot, InvalidIndex);
-  Index icha = 0;
-  for ( Index icry=0; icry<ev.ncry; ++icry ) {
-    for ( Index iapa=0; iapa<ev.napa; ++iapa ) {
-      for ( Index irop=0; irop<ev.nrop; ++irop ) {
-        for ( Index kcha=0; kcha<ev.nchaPerRop[irop]; ++kcha ) {
-          ev.chacry[icha] = icry;
-          ev.chaapa[icha] = iapa;
-          ev.charop[icha] = irop;
-          ++icha;
-        }
-      }
-    }
-  }
-  resize(ev.firstchan, ev.ncry, ev.napa, ev.nrop, raw::InvalidChannelID);
-  Index chan = 0;
-  for ( Index icry=0; icry<ev.ncry; ++icry ) {
-    for ( Index iapa=0; iapa<ev.napa; ++iapa ) {
-      for ( Index irop=0; irop<ev.nrop; ++irop ) {
-        ev.firstchan[icry][iapa][irop] = chan;
-        chan += ev.nchaPerRop[irop];
-      }
-    }
-  }
-  // Space points.
-  ev.pfun = setWorkspaceSpacePoints;
-  #include "setWorkspaceSpacePoints.dat"
-}
-
-void setWorkspaceSpacePoints(Geometry* pgeo) {
-  const string myname = "setWorkspacetSpacePoints: ";
-  string ofname = "setWorkspaceSpacePoints.dat";
-  cout << myname << "Writing " << ofname << endl;
-  const CryostatGeo& crygeo = pgeo->Cryostat(0);
-  double origin[3] = {0.0};
-  double crypos[3] = {0.0};
-  crygeo.LocalToWorld(origin, crypos);
-  double cxlo = crypos[0] - crygeo.HalfWidth();
-  double cxhi = crypos[0] + crygeo.HalfWidth();
-  double cylo = crypos[1] - crygeo.HalfHeight();
-  double cyhi = crypos[1] + crygeo.HalfHeight();
-  double czlo = crypos[2] - 0.5*crygeo.Length();
-  double czhi = crypos[2] + 0.5*crygeo.Length();
-  cout << "Cryostat limits: "
-       << "(" << cxlo << ", " << cylo << ", " << czlo << "), "
-       << "(" << cxhi << ", " << cyhi << ", " << czhi << ")" << endl;
-  vector<double> zfs = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7 };
-  vector<double> yfs = {0.2, 0.5, 0.8};
-  vector<double> xfs = {0.2, 0.3, 0.6 };
-  ofstream fout(ofname.c_str());
-  for ( double zf : zfs ) {
-    double z = czlo + zf*(czhi-czlo);
-    for ( double yf : yfs ) {
-      double y = cylo + yf*(cyhi-cylo);
-      for ( double xf : xfs ) {
-        double x = cxlo + xf*(cxhi-cxlo);
-        double xyz[3] = {x, y, z};
-        cout << "  (" << x << ", " << y << ", " << z << ")" << endl;
-        TPCID tpcid = pgeo->FindTPCAtPosition(xyz);
-        unsigned int itpc = tpcid.TPC;
-        if ( itpc == TPCID::InvalidID ) continue;
-        const TPCGeo& tpcgeo = pgeo->TPC(tpcid);
-        unsigned int npla = tpcgeo.Nplanes();
-        fout << "  ev.posXyz.push_back(SpacePoint(" << x << ", " << y << ", " << z << "));" << endl;
-        for ( unsigned int ipla=0; ipla<npla; ++ipla ) {
-          PlaneID plaid(tpcid, ipla);
-          double xwire = pgeo->WireCoordinate(x, y, plaid);
-          fout << "  ev.posTpc.push_back(" << itpc << ");" << endl;
-          fout << "  ev.posPla.push_back(" << ipla << ");" << endl;
-          fout << "  ev.posWco.push_back(" << xwire << ");" << endl;
-        }  // end loop over planes
-      }  // end loop over x
-    }  // end loop over y
-  }  // end loop over z
-}
-
-//**********************************************************************
-
 }  //end unnamed namespace
 
 //**********************************************************************
 
-// Declare test functions.
+// Functions that set the expected values.
+// These must be defined externally.
 
-int test_Geometry_Dune35t(string gname ="dune35t_geo", string chanmap ="Dune35tChannelMapAlg", 
-                          string sorter ="GeoObjectSorter35", bool dorop =true,
-                          Index maxchanprint =10);
-
-int test_GeometryWithExpectedValues(const ExpectedValues& ev,
-                                    string gname ="dune35t_geo",
-                                    string chanmap ="Dune35tChannelMapAlg",
-                                    string sorter ="GeoObjectSorter35",
-                                    bool dorop =true,
-                                    Index maxchanprint =10);
+void setExpectedValues(ExpectedValues& ev);
+void setExpectedValuesSpacePoints(Geometry*);
 
 //**********************************************************************
 
-int test_Geometry_Dune35t(string gname, string chanmap, string sorter, bool dorop, Index maxchanprint) {
-  const string myname = "test_Geometry_Dune35t: ";
-  ExpectedValues ev;
-  if ( gname == "dune35t_geo" ) set35t(ev);
-  else if ( gname == "dune10kt_workspace_geo" ) setWorkspace(ev);
-  else {
-    cout << myname << "Unknown geometry specifier: " << gname << endl;
-    assert(false);
-    return 1;
-  }
-  return test_GeometryWithExpectedValues(ev, gname, chanmap, sorter, dorop, maxchanprint);
-}
+// Function that carries out the test.
+//            ev - expected results
+//         dorop - If true ROP mapping methods are tested
+//  maxchanprint - Max # channels to display for each ROP
 
-//**********************************************************************
-
-int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, string chanmap,
-                                    string sorter, bool dorop, Index maxchanprint) {
-  const string myname = "test_Geometry_Dune35t: ";
+int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) {
+  const string myname = "test_GeometryDune: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -459,25 +200,23 @@ int test_GeometryWithExpectedValues(const ExpectedValues& ev, string gname, stri
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  cout << myname << "   Geometry: " << gname << endl;
-  cout << myname << "Channel map: " << chanmap << endl;
-  cout << myname << "     Sorter: " << sorter << endl;
+  cout << myname << "   Geometry: " << ev.gname << endl;
+  cout << myname << "Channel map: " << ev.chanmap << endl;
+  cout << myname << "     Sorter: " << ev.sorter << endl;
   cout << myname << "     Do ROP: " << dorop << endl;
 
   cout << myname << line << endl;
   cout << myname << "Create configuration." << endl;
-  cout << myname << gname << endl;
-  cout << myname << chanmap << endl;
-  const char* ofname = "test_Geometry_Dune35t.fcl";
+  const char* ofname = "test_GeometryDune.fcl";
   {
     ofstream fout(ofname);
     fout << "#include \"geometry_dune.fcl\"" << endl;
-    fout << "services.Geometry:                   @local::" + gname << endl;
+    fout << "services.Geometry:                   @local::" + ev.gname << endl;
     fout << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
-    if ( chanmap.size() ) {
-      fout << "services.ExptGeoHelperInterface.ChannelMapClass: " << chanmap << endl;
+    if ( ev.chanmap.size() ) {
+      fout << "services.ExptGeoHelperInterface.ChannelMapClass: " << ev.chanmap << endl;
     }
-    fout << "services.ExptGeoHelperInterface.GeoSorterClass: " << sorter << endl;
+    fout << "services.ExptGeoHelperInterface.GeoSorterClass: " << ev.sorter << endl;
   }
 
   cout << myname << line << endl;
@@ -668,10 +407,8 @@ cout << 3 << endl;
   Index nspt = ev.posXyz.size();
   if ( nspt == 0 ) {
     cout << myname << "No space points found." << endl;
-    if ( ev.pfun ) {
-      cout << myname << "Creating space points." << endl;
-      (*ev.pfun)(&*pgeo);
-    }
+    cout << myname << "Creating space points." << endl;
+    setExpectedValuesSpacePoints(&*pgeo);
   } else {
     cout << myname << "Check " << nspt << " space points." << endl;
     assert( ev.posPla.size() == ev.posTpc.size() );
@@ -717,10 +454,9 @@ cout << 3 << endl;
 //**********************************************************************
 
 int main(int argc, const char* argv[]) {
-  string gname = "dune35t_geo";
-  string sorter = "GeoObjectSorter35";
-  string chanmap = "";
-  bool dorop = false;
+  ExpectedValues ev;
+  setExpectedValues(ev);
+  bool dorop = true;
   Index maxchanprint = 10;
   if ( argc > 1 ) {
     string sarg = argv[1];
@@ -731,15 +467,15 @@ int main(int argc, const char* argv[]) {
     }
     string::size_type ipos = sarg.find("/");
     if ( ipos == string ::npos ) {
-      chanmap = sarg;
+      ev.chanmap = sarg;
     } else {
-      gname = sarg.substr(0, ipos);
+      ev.gname = sarg.substr(0, ipos);
       string::size_type jpos = sarg.find("/", ipos+1);
       if ( jpos == string::npos ) {
-        chanmap = sarg.substr(ipos+1);
+        ev.chanmap = sarg.substr(ipos+1);
       } else {
-        chanmap = sarg.substr(ipos+1, jpos-ipos-1);
-        sorter = sarg.substr(jpos+1);
+        ev.chanmap = sarg.substr(ipos+1, jpos-ipos-1);
+        ev.sorter = sarg.substr(jpos+1);
       }
     }
   }
@@ -751,11 +487,12 @@ int main(int argc, const char* argv[]) {
     istringstream ssarg(argv[3]);
     ssarg >> maxchanprint;
   }
-  ExpectedValues ev;
-  test_Geometry_Dune35t(gname, chanmap, sorter, dorop, maxchanprint);
+  test_GeometryDune(ev, dorop, maxchanprint);
   cout << "Tests concluded." << endl;
   ArtServiceHelper::close();
   return 0;
 }
 
 //**********************************************************************
+
+#endif
