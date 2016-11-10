@@ -40,7 +40,6 @@ int test_GeoRopChannelGroupService() {
   ofstream fout(fname.c_str());
   fout << "#include \"services_dune.fcl\"" << endl;
   fout << "services: @local::dune35t_basic_services" << endl;
-  fout << "services.ExptGeoHelperInterface.ChannelMapClass: Dune35tChannelMapAlg" << endl;
   fout << "services.ChannelGroupService: {" << endl;
   fout << "  service_provider: \"GeoRopChannelGroupService\"" << endl;
   fout << "}" << endl;

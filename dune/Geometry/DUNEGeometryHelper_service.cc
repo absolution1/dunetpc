@@ -11,7 +11,6 @@
 #include "larcore/Geometry/GeometryCore.h"
 #include "larcore/Geometry/ChannelMapAlg.h"
 #include "larcore/Geometry/ChannelMapStandardAlg.h"
-#include "dune/Geometry/Dune35tChannelMapAlg.h"
 #include "dune/Geometry/DuneApaChannelMapAlg.h"
 #include "dune/Geometry/ChannelMap35Alg.h"
 #include "dune/Geometry/ChannelMap35OptAlg.h"
@@ -52,9 +51,7 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
 
   // If class name is given use it.
   if ( fChannelMapClass.size() ) {
-    if        ( fChannelMapClass == "Dune35tChannelMapAlg" ) {
-      fChannelMap = std::make_shared<geo::Dune35tChannelMapAlg>(pset);
-    } else if ( fChannelMapClass == "DuneApaChannelMapAlg" ) {
+    if ( fChannelMapClass == "DuneApaChannelMapAlg" ) {
       useApaMap = true;
     } else if ( fChannelMapClass == "ChannelMap35Alg" ) {
       fChannelMap = std::make_shared<geo::ChannelMap35Alg>(pset);
