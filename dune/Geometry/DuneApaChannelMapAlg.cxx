@@ -73,6 +73,8 @@ void DuneApaChannelMapAlg::Initialize(GeometryData_t& geodata) {
     
   mf::LogInfo("DuneApaChannelMapAlg") << "Sorting volumes...";
 
+  if ( fSorter == nullptr )
+    throw cet::exception("DuneApaChannelMapAlg") << __func__ << ": Sorter is missing.";
   fSorter->SortAuxDets(adgeo);
   fSorter->SortCryostats(crygeos);
   for ( Index icry=0; icry<crygeos.size(); ++icry ) {
@@ -213,7 +215,7 @@ const PlaneGeo plageo2 = plageo;
           const Vector<View_t> eview = {geo::kU, geo::kV, geo::kZ};
           if ( view != eview[ipla] ) {
             throw cet::exception("DuneApaChannelMapAlg") << __func__
-                  << "View " << view << " is not the expected " << eview[ipla];
+                  << ": View " << view << " is not the expected " << eview[ipla];
           }
           double xyz[3] = {0.};
           double xyz_next[3] = {0.};

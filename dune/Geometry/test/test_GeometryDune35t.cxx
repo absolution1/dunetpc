@@ -11,8 +11,6 @@
 
 void setExpectedValues(ExpectedValues& ev) {
   ev.gname ="dune35t_geo";
-  ev.chanmap ="Dune35tChannelMapAlg";
-  ev.sorter ="GeoObjectSorter35";
   ev.fullname = "dune35t4apa_v6";
   // Geometry counts.
   ev.ncry = 1;

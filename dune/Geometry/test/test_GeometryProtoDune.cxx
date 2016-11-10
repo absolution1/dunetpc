@@ -13,8 +13,6 @@
 
 void setExpectedValues(ExpectedValues& ev) {
   ev.gname = "protodune_geo";
-  ev.chanmap = "DuneApaChannelMapAlg";
-  ev.sorter = "GeoObjectSorterAPA";
   ev.fullname = "protodune";
   // Geometry counts.
   ev.ncry = 1;

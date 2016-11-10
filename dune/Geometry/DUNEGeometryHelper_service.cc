@@ -45,26 +45,17 @@ void DUNEGeometryHelper::
 doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geom) {
   fChannelMap.reset();
  
-  // Find the sorter.
-  GeoObjectSorter* psort = nullptr;
-  if ( fGeoSorterClass.size() ) {
-    if ( fGeoSorterClass == "GeoObjectSorterAPA" ) {
-      psort = new GeoObjectSorterAPA(pset);
-    } else if ( fGeoSorterClass == "GeoObjectSorter35" ) {
-      psort = new GeoObjectSorter35(pset);
-    } else {
-      throw cet::exception("DUNEGeometryHelper") << "Invalid sorter class name:" << fGeoSorterClass << "\n";
-    }
-  }
+  // The APA sorting algorithm requires special handling.
+  // This flag is set if that map is used.
+  bool useApaMap = false;
+  bool is35t = false;
 
   // If class name is given use it.
   if ( fChannelMapClass.size() ) {
     if        ( fChannelMapClass == "Dune35tChannelMapAlg" ) {
       fChannelMap = std::make_shared<geo::Dune35tChannelMapAlg>(pset);
     } else if ( fChannelMapClass == "DuneApaChannelMapAlg" ) {
-      geo::DuneApaChannelMapAlg* pmap = new geo::DuneApaChannelMapAlg(pset);
-      pmap->setSorter(*psort);
-      fChannelMap.reset(pmap);
+      useApaMap = true;
     } else if ( fChannelMapClass == "ChannelMap35Alg" ) {
       fChannelMap = std::make_shared<geo::ChannelMap35Alg>(pset);
     } else if ( fChannelMapClass == "ChannelMap35OptAlg" ) {
@@ -87,7 +78,8 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
        || ( detectorVersion.find("v4") != std::string::npos )
        || ( detectorVersion.find("v5") != std::string::npos )
        || ( detectorVersion.find("v6") != std::string::npos )) {
-        fChannelMap = std::make_shared<geo::ChannelMap35OptAlg>(pset);
+        useApaMap = true;
+        is35t = true;
       } else {
         fChannelMap = std::make_shared<geo::ChannelMap35Alg>(pset);
       }
@@ -95,7 +87,7 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
     // DUNE 10kt
     } else if (( detectorName.find("dune10kt") != std::string::npos ) 
           || ( detectorName.find("lbne10kt") != std::string::npos )) {
-      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
+      useApaMap = true;
 
     // DUNE 10kt dual-phase
     } else if ( detectorName.find("dunedphase10kt") != std::string::npos ) {
@@ -109,7 +101,7 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
     // protoDUNE
     } else if ( ( detectorName.find("protodune") != std::string::npos )
              || ( detectorName.find("protolbne") != std::string::npos ) ) {
-      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
+      useApaMap = true;
 
     // LArND
     } else if ( detectorName.find("larnd") != std::string::npos ) {
@@ -120,6 +112,33 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
     }    
   }
   
+  if ( useApaMap ) {
+    // Find the sorter.
+    bool useApaSort = false;
+    bool use35tSort = false;
+    GeoObjectSorter* psort = nullptr;
+    if ( fGeoSorterClass.size() ) {
+      if ( fGeoSorterClass == "GeoObjectSorterAPA" ) {
+        useApaSort = true;
+      } else if ( fGeoSorterClass == "GeoObjectSorter35" ) {
+        use35tSort = true;
+      }
+    } else {
+      if ( is35t ) use35tSort = true;
+      else useApaSort = true;
+    }
+    // Construct the sorter.
+    if ( useApaSort ) {
+      psort = new GeoObjectSorterAPA(pset);
+    } else if ( use35tSort ) {
+      psort = new GeoObjectSorter35(pset);
+    }
+    // Create channel map and set sorter.
+    geo::DuneApaChannelMapAlg* pmap = new geo::DuneApaChannelMapAlg(pset);
+    pmap->setSorter(*psort);
+    fChannelMap.reset(pmap);
+  }
+
   if ( fChannelMap ) {
     geom->ApplyChannelMap(fChannelMap);
   }

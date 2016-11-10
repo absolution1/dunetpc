@@ -13,8 +13,6 @@
 
 void setExpectedValues(ExpectedValues& ev) {
   ev.gname ="dune10kt_workspace_geo";
-  ev.chanmap ="DuneApaChannelMapAlg";
-  ev.sorter ="GeoObjectSorterAPA";
   ev.fullname = "dune10kt_v1_workspace";
   // Geometry counts.
   ev.ncry = 1;

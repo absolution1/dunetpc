@@ -222,7 +222,7 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
     if ( ev.chanmap.size() ) {
       fout << "services.ExptGeoHelperInterface.ChannelMapClass: " << ev.chanmap << endl;
     }
-    fout << "services.ExptGeoHelperInterface.GeoSorterClass: " << ev.sorter << endl;
+    //fout << "services.ExptGeoHelperInterface.GeoSorterClass: " << ev.sorter << endl;
   }
 
   cout << myname << line << endl;
