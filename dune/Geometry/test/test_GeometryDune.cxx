@@ -33,6 +33,7 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 using std::istringstream;
+using std::ostringstream;
 using std::setw;
 using std::vector;
 using std::abs;
@@ -103,8 +104,8 @@ void check(string name, T val) {
 }
 
 template<class T, class V>
-void check(string name, T val, V checkval) {
-  check(name, val);
+void check(string name, T val, V checkval, bool print =true) {
+  if ( print ) check(name, val);
   T eval = checkval;
   if ( val != eval ) {
     cout << val << " != " << checkval << endl;
@@ -169,6 +170,11 @@ struct ExpectedValues {
   vector<double> posTpc;         // TPCs for space points
   vector<double> posPla;         // TPC planes for space points
   vector<double> posWco;         // Wire coordinates for space points
+  // Photon detectors.
+  Index nopdet = 0;
+  Index nopcha = 0;
+  Vector<Index> nopdetcha;
+  TwoVector<Index> opdetcha;
 };
 
 //**********************************************************************
@@ -440,6 +446,33 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
       }  // end loop over planes
     }  // end loop over space points
     cout << "  # checked planes: " << ires << endl;
+  }
+  // Optical detectors.
+  bool dophot = true;
+  if ( dophot ) {
+    Index nopt = pgeo->NOpDets();
+    check("# Optical detectors", nopt, ev.nopdet);
+    check("# Optical channels", pgeo->NOpChannels(), ev.nopcha);
+    cout << " Optical detect channel counts:" << endl;
+    assert( ev.nopdetcha.size() == nopt );
+    for ( Index iopt=0; iopt<nopt; ++iopt ) {
+      ostringstream sslab;
+      sslab << "  # channels for optical detector " << iopt;
+      bool print = iopt < maxchanprint;
+      check(sslab.str(), pgeo->NOpHardwareChannels(iopt), ev.nopdetcha[iopt], print);
+    }
+    cout << " Opdet channels:" << endl;
+    for ( Index iopt=0; iopt<nopt; ++iopt ) {
+      Index noch = pgeo->NOpHardwareChannels(iopt);
+      for ( Index ioch=0; ioch<noch; ++ioch ) {
+        ostringstream sslab;
+        sslab << "  Det " << iopt << ", chan " << ioch;
+        Index icha = pgeo->OpChannel(iopt, ioch);
+        check(sslab.str(), icha, ev.opdetcha[iopt][ioch]);
+        check(sslab.str(), pgeo->OpDetFromOpChannel(icha), iopt, false);
+        check(sslab.str(), pgeo->HardwareChannelFromOpChannel(icha), ioch, false);
+      }
+    }
   }
 
   cout << myname << line << endl;

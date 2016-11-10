@@ -79,6 +79,17 @@ void setExpectedValues(ExpectedValues& ev) {
   }
   // Space points.
   #include "setProtoDuneSpacePoints.dat"
+  // Optical detectors.
+  ev.nopdet = 10*ev.napa;
+  ev.nopdetcha.resize(ev.nopdet, 12);
+  ev.nopcha = ev.nopdet*12;
+  resize(ev.opdetcha, ev.nopdet, 12, 0);
+  for ( Index iopt=0; iopt<ev.nopdet; ++iopt ) {
+    Index icha = 12*iopt;
+    for ( Index ioch=0; ioch<ev.nopdetcha[iopt]; ++ ioch ) {
+      ev.opdetcha[iopt][ioch] = icha++;
+    }
+  }
 }
 
 //**********************************************************************
