@@ -23,6 +23,10 @@
 /// Readout is indexed by cryostat, APA, ROP and ROP plane: (cry, apa, rop, rpl).
 /// All these indices are relative.
 /// Channel numbers (cha) are absolute with ordering following that of the readout.
+///
+/// Optical detector flag determines how optical channel mapping is done:
+//    OpDetFlag = 0 - Simple mapping with ChannelsPerOpDet fore each optical detector
+//    OpDetFlag = 1 - Dune 35t mapping
 ////////////////////////////////////////////////////////////////////////
 #ifndef geo_DuneApaChannelMapAlg_H
 #define geo_DuneApaChannelMapAlg_H
@@ -237,6 +241,7 @@ private:
   using ThreeVector = Vector<TwoVector<T>>;
   template<class T>
   using FourVector = Vector<ThreeVector<T>>;
+  unsigned int                         fOpDetFlag;             /// Flag for OpDet channel map.
   unsigned int                         fChannelsPerOpDet;
   unsigned int                         fNcryostat;             ///< number of cryostats in the detector
   unsigned int                         fNchannels;             ///< number of channels in the detector
