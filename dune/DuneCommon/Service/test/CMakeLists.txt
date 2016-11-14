@@ -11,3 +11,8 @@ cet_test(test_GeoRopChannelGroupService SOURCES test_GeoRopChannelGroupService.c
   LIBRARIES
     dune_ArtSupport
 )
+
+cet_test(test_GeoApaChannelGroupService SOURCES test_GeoApaChannelGroupService.cxx
+  LIBRARIES
+    dune_ArtSupport
+)

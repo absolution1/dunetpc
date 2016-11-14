@@ -16,6 +16,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
+using std::string;
 using std::vector;
 using std::find;
 using raw::ChannelID_t;
@@ -38,14 +39,26 @@ using std::cout;
 using std::endl;
 //----------------------------------------------------------------------------
 
-DuneApaChannelMapAlg::DuneApaChannelMapAlg(fhicl::ParameterSet const& p)
-: fSorter(geo::GeoObjectSorterAPA(p)) {
+DuneApaChannelMapAlg::
+DuneApaChannelMapAlg(const fhicl::ParameterSet& p)
+: fSorter(nullptr) {
   fChannelsPerOpDet = p.get<unsigned int>("ChannelsPerOpDet");
+  fOpDetFlag = 0;
+  // If DetectorVersion is present, then check if this is 35t.
+  string sdet;
+  p.get_if_present<string>("DetectorVersion", sdet);
+  if ( sdet.substr(0,7) == "dune35t" ) fOpDetFlag = 1;
 }
 
 //----------------------------------------------------------------------------
 
-void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata ) {
+void DuneApaChannelMapAlg::setSorter(const geo::GeoObjectSorter& sort) {
+  fSorter = &sort;
+}
+
+//----------------------------------------------------------------------------
+
+void DuneApaChannelMapAlg::Initialize(GeometryData_t& geodata) {
   Uninitialize();
     
   vector<CryostatGeo*>& crygeos = geodata.cryostats;
@@ -60,10 +73,12 @@ void DuneApaChannelMapAlg::Initialize( GeometryData_t& geodata ) {
     
   mf::LogInfo("DuneApaChannelMapAlg") << "Sorting volumes...";
 
-  fSorter.SortAuxDets(adgeo);
-  fSorter.SortCryostats(crygeos);
+  if ( fSorter == nullptr )
+    throw cet::exception("DuneApaChannelMapAlg") << __func__ << ": Sorter is missing.";
+  fSorter->SortAuxDets(adgeo);
+  fSorter->SortCryostats(crygeos);
   for ( Index icry=0; icry<crygeos.size(); ++icry ) {
-    crygeos[icry]->SortSubVolumes(fSorter);
+    crygeos[icry]->SortSubVolumes(*fSorter);
   }
 
   mf::LogInfo("DuneApaChannelMapAlg") << "Initializing channel map...";
@@ -200,7 +215,7 @@ const PlaneGeo plageo2 = plageo;
           const Vector<View_t> eview = {geo::kU, geo::kV, geo::kZ};
           if ( view != eview[ipla] ) {
             throw cet::exception("DuneApaChannelMapAlg") << __func__
-                  << "View " << view << " is not the expected " << eview[ipla];
+                  << ": View " << view << " is not the expected " << eview[ipla];
           }
           double xyz[3] = {0.};
           double xyz_next[3] = {0.};
@@ -520,18 +535,28 @@ std::set<PlaneID> const& DuneApaChannelMapAlg::PlaneIDs() const {
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::NOpChannels(unsigned int NOpDets) const {
+  if ( fOpDetFlag == 1 ) return 12*NOpDets;
   return fChannelsPerOpDet*NOpDets;
 }
 
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::NOpHardwareChannels(unsigned int opDet) const {
-    return fChannelsPerOpDet;
+  if ( fOpDetFlag == 1 ) {
+    // CSU 3-sipm design
+    if (opDet == 0 || opDet == 4 || opDet == 6) return 8;
+    // LSU 2-sipm design
+    if (opDet == 2) return 2;
+    // IU 12-sipm design
+    return 12;
+  }
+  return fChannelsPerOpDet;
 }
 
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::OpChannel(unsigned int detNum, unsigned int channel) const {
+  if ( fOpDetFlag == 1 ) return (detNum * 12) + channel;
   unsigned int uniqueChannel = (detNum * fChannelsPerOpDet) + channel;
   return uniqueChannel;
 }
@@ -539,13 +564,15 @@ Index DuneApaChannelMapAlg::OpChannel(unsigned int detNum, unsigned int channel)
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::OpDetFromOpChannel(unsigned int opChannel) const {
-  unsigned int detectorNum = (unsigned int) opChannel / fChannelsPerOpDet;
+  if ( fOpDetFlag == 1 ) return opChannel/12;
+  unsigned int detectorNum = opChannel/fChannelsPerOpDet;
   return detectorNum;
 }
 
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::HardwareChannelFromOpChannel(unsigned int opChannel) const {
+  if ( fOpDetFlag == 1 ) return opChannel%12;
   unsigned int channel = opChannel % fChannelsPerOpDet;
   return channel;
 }

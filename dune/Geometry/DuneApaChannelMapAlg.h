@@ -23,6 +23,10 @@
 /// Readout is indexed by cryostat, APA, ROP and ROP plane: (cry, apa, rop, rpl).
 /// All these indices are relative.
 /// Channel numbers (cha) are absolute with ordering following that of the readout.
+///
+/// Optical detector flag determines how optical channel mapping is done:
+//    OpDetFlag = 0 - Simple mapping with ChannelsPerOpDet fore each optical detector
+//    OpDetFlag = 1 - Dune 35t mapping
 ////////////////////////////////////////////////////////////////////////
 #ifndef geo_DuneApaChannelMapAlg_H
 #define geo_DuneApaChannelMapAlg_H
@@ -33,17 +37,18 @@
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcore/Geometry/ChannelMapAlg.h"
-#include "dune/Geometry/GeoObjectSorterAPA.h"
+#include "larcore/Geometry/GeoObjectSorter.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
 
-class DuneApaChannelMapAlg : public ChannelMapAlg{
+class DuneApaChannelMapAlg : public ChannelMapAlg {
 
 public:
 
-  DuneApaChannelMapAlg(fhicl::ParameterSet const& p);
+  DuneApaChannelMapAlg(const fhicl::ParameterSet& pset);
     
+  void setSorter(const geo::GeoObjectSorter& sort);
   void Initialize(GeometryData_t& geodata) override;
   void Uninitialize() override;
     
@@ -227,7 +232,7 @@ public:
   unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const;
     
 private:
-    
+
   template<class T>
   using Vector = std::vector<T>;
   template<class T>
@@ -236,6 +241,7 @@ private:
   using ThreeVector = Vector<TwoVector<T>>;
   template<class T>
   using FourVector = Vector<ThreeVector<T>>;
+  unsigned int                         fOpDetFlag;             /// Flag for OpDet channel map.
   unsigned int                         fChannelsPerOpDet;
   unsigned int                         fNcryostat;             ///< number of cryostats in the detector
   unsigned int                         fNchannels;             ///< number of channels in the detector
@@ -265,7 +271,7 @@ private:
   ThreeVector<unsigned int>            fWiresPerRop;           ///< # wires/ROP for each (cry, apa, rop)
   PlaneInfoMap_t<raw::ChannelID_t>     fFirstChannelInThisRop; ///<  (cry, apa, rop)
   PlaneInfoMap_t<raw::ChannelID_t>     fFirstChannelInNextRop; ///<  (cry, apa, rop)
-  geo::GeoObjectSorterAPA              fSorter;                ///< sorts geo::XXXGeo objects
+  const geo::GeoObjectSorter*          fSorter;                ///< sorts geo::XXXGeo objects
 
   /// all data we need for each APA
   typedef struct {

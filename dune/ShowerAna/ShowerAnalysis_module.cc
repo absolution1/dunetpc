@@ -269,9 +269,16 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
   if (evt.getByLabel(fHitsModuleLabel, hitHandle))
     art::fill_ptr_vector(hits, hitHandle);
 
+  // Get space points out of event
+  std::vector<art::Ptr<recob::SpacePoint> > spacePoints;
+  art::Handle<std::vector<recob::SpacePoint> > spacePointHandle;
+  if (evt.getByLabel(fShowerModuleLabel, spacePointHandle))
+    art::fill_ptr_vector(spacePoints, spacePointHandle);
+
   // Get associations out of event
   art::FindManyP<recob::Hit> fmhc(clusterHandle, evt, fClusterModuleLabel);
   art::FindManyP<recob::Hit> fmhs(showerHandle, evt, fShowerModuleLabel);
+  art::FindManyP<recob::Hit> fmhsp(spacePointHandle, evt, fShowerModuleLabel);
 
   // Map all the true and reconstructed information for each particle
   std::map<int,std::shared_ptr<ShowerParticle> > particles;
