@@ -2,6 +2,7 @@
 
 #include "dune/DuneCommon/Service/GeoRopChannelGroupService.h"
 #include <sstream>
+#include <iomanip>
 #include "larcore/Geometry/GeometryCore.h"
 #include "larcore/Geometry/ChannelMapAlg.h"
 
@@ -10,6 +11,8 @@ using std::ostream;
 using std::endl;
 using std::string;
 using std::ostringstream;
+using std::setfill;
+using std::setw;
 using std::vector;
 
 typedef ChannelGroupService::Index Index;
@@ -24,8 +27,14 @@ typedef readout::ROPID ROPID;
 GeoRopChannelGroupService::
 GeoRopChannelGroupService(fhicl::ParameterSet const& pset)
 : m_size(0) {
-  Index krop = 0;
+  // Find the total # APAs and assign width for APA index.
+  Index napatot = 0;
+  for ( const geo::CryostatID& cryid : m_pgeo->IterateCryostatIDs() ) {
+    napatot += m_pgeo->NTPCsets(cryid);
+  }
+  unsigned int w = log10(napatot-1) + 1;
   // Loop over cryostats.
+  Index krop = 0;
   for ( const geo::CryostatID& cryid : m_pgeo->IterateCryostatIDs() ) {
     Index napa = m_pgeo->NTPCsets(cryid);
     // Loop over APAs.
@@ -47,14 +56,14 @@ GeoRopChannelGroupService(fhicl::ParameterSet const& pset)
       unsigned int ivu = 0;
       unsigned int ivv = 0;
       unsigned int ivz = 0;
-      // Loop over ROPs and assigne name and fill channel vector.
+      // Loop over ROPs, assign name and fill channel vector.
       for ( Index irop=0; irop<nrop; ++irop ) {
         ROPID ropid(apaid, irop);
         m_names.resize(krop+1);
         m_chanvecs.resize(krop+1);
         // Build name.
         ostringstream ssname;
-        ssname << "apa" << iapa;
+        ssname << "apa" << setfill('0') << setw(w) << iapa;
         geo::View_t view = m_pgeo->View(ropid);
         if        ( view == geo::kU ) {
           ssname << "u";
