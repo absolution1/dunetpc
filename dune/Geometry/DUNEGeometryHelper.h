@@ -57,6 +57,7 @@ private:
 
   // FCL params.
   std::string fChannelMapClass;   // Name of the class that does the channel mapping.
+  std::string fGeoSorterClass;    // Name of the class that does the sorting.
     
 };
 

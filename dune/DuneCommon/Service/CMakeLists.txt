@@ -11,4 +11,11 @@ simple_plugin(GeoRopChannelGroupService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(GeoApaChannelGroupService   "service"
+                larcore_Geometry
+                art_Utilities canvas_Utilities
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
+

@@ -518,7 +518,7 @@ void CTree35t::beginJob()
     // plane 2( type: 1, Nwires: 111)
     fNplanes = fGeom->Nplanes();
     for (int i=0; i<fNplanes; i++) {
-        fPlane_type[i] = fGeom->Plane(i).SignalType();
+        fPlane_type[i] = fGeom->SignalType(geo::PlaneID(0, 0, i));
         fPlane_view[i] = fGeom->Plane(i).View();
         // fPlane_wirepitch[i] = fGeom->WirePitch(fPlane_view[i]);  // this doesn't seem to return the correct value!
         fPlane_wirepitch[i] = fGeom->WirePitch(0, 1, fPlane_view[i], 1, 0);  // this doesn't seem to return the correct value!
