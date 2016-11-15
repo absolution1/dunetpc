@@ -144,16 +144,30 @@ void DataPrepModule::produce(art::Event& evt) {
     pintStates = new WiredAdcChannelDataMap(m_IntermediateStates, hdigits->size());
   }
 
-  // Process the digits.
+  // Create the transisent data map and copy the digits there.
   ServiceHandle<RawDigitPrepService> hrdp;
   AdcChannelDataMap acds;
+  for ( unsigned int idig=0; idig<hdigits->size(); ++idig ) {
+    const raw::RawDigit& dig = (*hdigits)[idig];
+    AdcChannel chan = dig.Channel();
+    if ( acds.find(chan) != acds.end() ) {
+      mf::LogWarning("DataPrepModule") << "Skipping duplicate channel " << chan << "." << endl;
+      continue;
+    }
+    AdcChannelData& acd = acds[chan];
+    acd.channel = chan;
+    acd.digitIndex = idig;
+    acd.digit = &dig;
+  }
+
+  // Use the data preparation service to build the wires and intermediate states.
   std::unique_ptr<std::vector<recob::Wire>> pwires(new std::vector<recob::Wire>);
-  pwires->reserve(hdigits->size());
-  int rstat = hrdp->prepare(*hdigits, acds, pwires.get(), pintStates);
-  if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation srvice returned error " << rstat;
+  pwires->reserve(acds.size());
+  int rstat = hrdp->prepare(acds, pwires.get(), pintStates);
+  if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation service returned error " << rstat;
   if ( pwires->size() == 0 ) mf::LogWarning("DataPrepModule") << "No wires made for this event.";
 
-  // Build associations.
+  // Build associations between wires and digits.
   std::unique_ptr<art::Assns<raw::RawDigit,recob::Wire>> passns(new art::Assns<raw::RawDigit,recob::Wire>);
   if ( m_DoAssns ) {
     for ( const AdcChannelDataMap::value_type& iacd : acds ) {
