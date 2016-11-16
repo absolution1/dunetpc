@@ -17,5 +17,10 @@ simple_plugin(GeoApaChannelGroupService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(FixedChannelGroupService   "service"
+                art_Utilities canvas_Utilities
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
 

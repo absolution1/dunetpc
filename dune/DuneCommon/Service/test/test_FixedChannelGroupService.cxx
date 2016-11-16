@@ -1,11 +1,11 @@
-// test_GeoApaChannelGroupService.cxx
+// test_FixedChannelGroupService.cxx
 
 // David Adams
 // October 2016
 //
-// Test GeoApaChannelGroupService.
+// Test FixedChannelGroupService.
 
-#include "../GeoApaChannelGroupService.h"
+#include "../FixedChannelGroupService.h"
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -26,8 +26,8 @@ using art::ServiceHandle;
 #undef NDEBUG
 #include <cassert>
 
-int test_GeoApaChannelGroupService(string sgeo) {
-  const string myname = "test_GeoApaChannelGroupService: ";
+int test_FixedChannelGroupService(string sgeo) {
+  const string myname = "test_FixedChannelGroupService: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -36,12 +36,14 @@ int test_GeoApaChannelGroupService(string sgeo) {
 
   cout << myname << line << endl;
   cout << myname << "Create fcl file." << endl;
-  string fname = "test_GeoApaChannelGroupService.fcl";
+  string fname = "test_FixedChannelGroupService.fcl";
   ofstream fout(fname.c_str());
   fout << "#include \"services_dune.fcl\"" << endl;
   fout << "services: @local::" << sgeo << endl;
   fout << "services.ChannelGroupService: {" << endl;
-  fout << "  service_provider: \"GeoApaChannelGroupService\"" << endl;
+  fout << "  service_provider: \"FixedChannelGroupService\"" << endl;
+  fout << "  group1: [1, 2, 3, 4]" << endl;
+  fout << "  group2: [11, 12, 13]" << endl;
   fout << "}" << endl;
 
   cout << myname << line << endl;
@@ -66,24 +68,24 @@ int test_GeoApaChannelGroupService(string sgeo) {
   cout << myname << "Geo fcl: " << sgeo << endl;
 
   cout << myname << line << endl;
-  unsigned int napa = hcgs->size();
-  cout << myname << "Check APA count: " << napa << endl;
+  unsigned int ngrp = hcgs->size();
+  cout << myname << "Check group count: " << ngrp << endl;
   if ( sgeo == "dunefd_services" ) {
-    assert( napa == 150 );
+    assert( ngrp == 150 );
   } else {
-    assert( napa == 4 );
+    assert( ngrp == 2 );
   }
 
   cout << myname << line << endl;
-  cout << myname << "APA names and channels:" << endl;
-  for ( unsigned int iapa=0; iapa<napa; ++iapa ) {
-    string name = hcgs->name(iapa);
-    const vector<ChannelGroupService::Index> chans = hcgs->channels(iapa);
-    cout << myname << "  " << setw(10) << name << ": ["
-         << setw(6) << chans.front() << ", "
-         << setw(6) << chans.back() << "]" << endl;
+  cout << myname << "Group names and channels:" << endl;
+  for ( unsigned int igrp=0; igrp<ngrp; ++igrp ) {
+    string name = hcgs->name(igrp);
+    const vector<ChannelGroupService::Index> chans = hcgs->channels(igrp);
+    cout << myname << "  " << setw(10) << name << ":";
+    for ( ChannelGroupService::Index chan : chans ) cout << setw(6) << chan;
+    cout << endl;
     assert( name.size() );
-    assert( name != "NoSuchApa" );
+    assert( name != "NoSuchGroup" );
     assert( chans.size() );
   }
 
@@ -103,7 +105,7 @@ int main(int argc, char* argv[]) {
       return 0;
     }
   }
-  return test_GeoApaChannelGroupService(sgeo);
+  return test_FixedChannelGroupService(sgeo);
   ArtServiceHelper::close();
   return 0;
 }
