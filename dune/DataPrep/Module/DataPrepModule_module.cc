@@ -227,6 +227,10 @@ void DataPrepModule::produce(art::Event& evt) {
       }
     }
 
+    // Delete the entries from the current channel map.
+    // This is an easy way to clear the transient data.
+    datamap.erase(datamap.begin(), datamap.end());
+
   }  // end loop over groups
 
   if ( m_LogLevel >= 2 ) {

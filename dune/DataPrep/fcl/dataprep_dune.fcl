@@ -204,6 +204,18 @@ adcprep_dune35tdata: {
 
 #***********************************************************************
 
+# Channel groups.
+
+changroup_apa: {
+  service_provider: GeoApaChannelGroupService
+}
+
+changroup_rop: {
+  service_provider: GeoRopChannelGroupService
+}
+
+#***********************************************************************
+
 # DataPrepModule is the producer that calls RawDigitPrepService
 
 # Process any data.
@@ -213,7 +225,7 @@ producer_adcprep: {
   DigitLabel:             "daq"
   WireName:                  ""
   DoAssns:                 true
-  DoGroups:               false
+  DoGroups:                true
   IntermediateStates:        []
 }
 
