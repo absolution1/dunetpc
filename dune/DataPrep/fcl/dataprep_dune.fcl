@@ -213,6 +213,7 @@ producer_adcprep: {
   DigitLabel:             "daq"
   WireName:                  ""
   DoAssns:                 true
+  DoGroups:               false
   IntermediateStates:        []
 }
 
