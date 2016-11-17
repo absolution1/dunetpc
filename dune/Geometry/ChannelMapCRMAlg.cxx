@@ -535,6 +535,8 @@ namespace geo{
   /// @throws cet::exception (category: "Geometry") if non-existent channel
   readout::ROPID ChannelMapCRMAlg::ChannelToROP(raw::ChannelID_t channel) const
   {
+    if (!raw::isValidChannelID(channel)) return {}; // invalid ROP returned
+    
     // which wires does the channel cover?
     std::vector<geo::WireID> wires = ChannelToWire(channel);
     
