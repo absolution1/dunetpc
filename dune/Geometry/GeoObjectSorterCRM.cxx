@@ -14,6 +14,10 @@
 #include "larcore/Geometry/PlaneGeo.h"
 #include "larcore/Geometry/WireGeo.h"
 
+#include <array>
+#include <string>
+#include <cmath> // std::abs()
+
 namespace geo{
 
   //----------------------------------------------------------------------------
@@ -100,30 +104,22 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   bool sortWireCRM(WireGeo* w1, WireGeo* w2){
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-
-    w1->GetCenter(xyz1); w2->GetCenter(xyz2);
+    
+    std::array<double, 3> xyz1, xyz2;
+    w1->GetCenter(xyz1.data()); w2->GetCenter(xyz2.data());
 
     // for dual-phase we have to planes with wires perpendicular to each other
     // sort wires in the increasing coordinate order
 
-    if( fabs(xyz1[2]-xyz2[2]) < 1.0E-6 ) // for wires along y-axis
-      {
-	if(xyz1[1] < xyz2[1]) return true;
-	else return false;
-      }
-    else if( fabs(xyz1[1]-xyz2[1]) < 1.0E-6 ) // for wires along z-axis
-      {
-	if(xyz1[2] < xyz2[2]) return true;
-	else return false;	
-      }
-    else //don't know what to do
-      throw cet::exception("TPCGeo") << "Uknown sorting situation for the wires in a plane\n";
-    
-
-    return false;
-  }
+    if (std::abs(xyz1[2] - xyz2[2]) < 1.0E-4 ) // for wires along z axis
+      return xyz1[0] < xyz2[0]; // they measure x: sort then on x
+    else if (std::abs(xyz1[0] - xyz2[0]) < 1.0E-4 ) // for wires along x axis
+      return xyz1[2] < xyz2[2]; // they measure z: sort then on z
+    else { // don't know what to do
+      throw cet::exception("GeoObjectSorterCRM")
+        << "Uknown sorting situation for the wires in a plane\n";
+    }
+  } // sortWireCRM()
 
   //----------------------------------------------------------------------------
   GeoObjectSorterCRM::GeoObjectSorterCRM(fhicl::ParameterSet const&)
