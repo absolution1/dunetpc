@@ -44,6 +44,7 @@ dunefd_services: {
  LArSeedService:                 @local::dune_seedservice
  SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
  ChannelStatusService:           @local::dunefd_channel_status
+ ChannelGroupService:            @local::changroup_apa
 }
 
 dunefd_simulation_services: {
@@ -148,6 +149,7 @@ protodune_services: {
  LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status 
+ ChannelGroupService:          @local::changroup_apa
 }
 
 protodune_simulation_services: {
@@ -204,6 +206,7 @@ dune35t_basic_services: {
   ChannelStatusService:       @local::dune35t_channel_status
   ChannelMapService:          @local::channelmap35t
   ChannelMappingService:      @local::dune35t_channelmapping
+  ChannelGroupService:        @local::changroup_apa
 }
 
 dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
