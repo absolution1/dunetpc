@@ -1,0 +1,18 @@
+<!--                                                                                  -->
+<!--  Include art::Wrapper lines for objects that we would like to put into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper lines and     -->
+<!--  for all objects that are data members of those objects.                         -->
+<!--                                                                                  -->
+
+
+<lcgdict>
+
+  <class name="dunemix::EventMixingSummary" ClassVersion="11">
+   <version ClassVersion="11" checksum="2904549512"/>
+   <version ClassVersion="10" checksum="338019760"/>
+  </class>
+  
+ <class name="std::vector<dunemix::EventMixingSummary>"/>
+ <class name="art::Wrapper< std::vector<dunemix::EventMixingSummary> >"/>
+ 
+</lcgdict>

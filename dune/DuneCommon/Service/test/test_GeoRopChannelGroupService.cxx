@@ -26,7 +26,7 @@ using art::ServiceHandle;
 #undef NDEBUG
 #include <cassert>
 
-int test_GeoRopChannelGroupService() {
+int test_GeoRopChannelGroupService(string sgeo) {
   const string myname = "test_GeoRopChannelGroupService: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -39,8 +39,7 @@ int test_GeoRopChannelGroupService() {
   string fname = "test_GeoRopChannelGroupService.fcl";
   ofstream fout(fname.c_str());
   fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services: @local::dune35t_basic_services" << endl;
-  fout << "services.ExptGeoHelperInterface.ChannelMapClass: Dune35tChannelMapAlg" << endl;
+  fout << "services: @local::" << sgeo << endl;
   fout << "services.ChannelGroupService: {" << endl;
   fout << "  service_provider: \"GeoRopChannelGroupService\"" << endl;
   fout << "}" << endl;
@@ -64,9 +63,16 @@ int test_GeoRopChannelGroupService() {
   hcgs->print(cout, myname);
 
   cout << myname << line << endl;
+  cout << myname << "Geo fcl: " << sgeo << endl;
+
+  cout << myname << line << endl;
   unsigned int nrop = hcgs->size();
   cout << myname << "Check ROP count: " << nrop << endl;
-  assert( nrop == 16 );
+  if ( sgeo == "dunefd_services" ) {
+    assert( nrop == 600 );
+  } else {
+    assert( nrop == 16 );
+  }
 
   cout << myname << line << endl;
   cout << myname << "ROP names and channels:" << endl;
@@ -74,8 +80,8 @@ int test_GeoRopChannelGroupService() {
     string name = hcgs->name(irop);
     const vector<ChannelGroupService::Index> chans = hcgs->channels(irop);
     cout << myname << "  " << setw(10) << name << ": ["
-         << setw(5) << chans.front() << ", "
-         << setw(5) << chans.back() << "]" << endl;
+         << setw(6) << chans.front() << ", "
+         << setw(6) << chans.back() << "]" << endl;
     assert( name.size() );
     assert( name != "NoSuchRop" );
     assert( chans.size() );
@@ -87,7 +93,17 @@ int test_GeoRopChannelGroupService() {
 }
 
 int main(int argc, char* argv[]) {
-  return test_GeoRopChannelGroupService();
+  string sgeo = "dune35t_basic_services";
+  if ( argc > 1 ) {
+    sgeo = argv[1];
+    if ( sgeo == "-h" ) {
+      cout << "Usage: " << argv[0] << endl;
+      cout << "       " << argv[0] << " dune35t_basic_services" << endl;
+      cout << "       " << argv[0] << " dunefd_services" << endl;
+      return 0;
+    }
+  }
+  return test_GeoRopChannelGroupService(sgeo);
   ArtServiceHelper::close();
   return 0;
 }
