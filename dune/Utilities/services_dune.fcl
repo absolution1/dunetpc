@@ -100,7 +100,6 @@ dunefddphase_simulation_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
- BackTracker:                    @local::dunefd_backtracker
  LArSeedService:                 @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::dunefd_opdetresponse
@@ -123,8 +122,12 @@ dunefddphase_simulation_services: {
 dunefd_simulation_services.LArPropertiesService.ScintYield: 24000
 dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 
+dunefddphase_simulation_services.LArPropertiesService.ScintYield: 24000
+dunefddphase_simulation_services.LArPropertiesService.ScintPreScale: 0.006
+
 # disable cerenkov
 dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+dunefddphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
 
 # dune10kt and dune34kt consolidated into dunefd,
@@ -163,7 +166,6 @@ protodune_simulation_services: {
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
- BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::protodune_spacecharge
  LArSeedService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
