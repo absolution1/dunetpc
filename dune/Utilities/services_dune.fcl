@@ -41,7 +41,7 @@ dunefd_services: {
  DatabaseUtil:                   @local::dunefd_database
  BackTracker:                    @local::dunefd_backtracker
  SpaceCharge:                    @local::dunefd_spacecharge
- LArSeedService:                 @local::dune_seedservice
+ NuRandomService:                 @local::dune_seedservice
  SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
  ChannelStatusService:           @local::dunefd_channel_status
  ChannelGroupService:            @local::changroup_apa
@@ -60,8 +60,8 @@ dunefd_simulation_services: {
  MagneticField:                @local::no_mag_larsoft
  BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::dunefd_spacecharge
- LArSeedService:               @local::dune_seedservice
- LArSeedService:               @local::dune_seedservice
+ NuRandomService:               @local::dune_seedservice
+ NuRandomService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
@@ -84,7 +84,7 @@ dunefddphase_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
- LArSeedService:                 @local::dune_seedservice 
+ NuRandomService:                 @local::dune_seedservice 
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dunefddphase_detproperties
@@ -101,7 +101,7 @@ dunefddphase_simulation_services: {
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  BackTracker:                    @local::dunefd_backtracker
- LArSeedService:                 @local::dune_seedservice
+ NuRandomService:                 @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::dunefd_opdetresponse
  ChannelStatusService:           @local::dunefd_channel_status
@@ -146,7 +146,7 @@ protodune_services: {
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::protodune_spacecharge
- LArSeedService:               @local::dune_seedservice
+ NuRandomService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status 
  ChannelGroupService:          @local::changroup_apa
@@ -165,7 +165,7 @@ protodune_simulation_services: {
  MagneticField:                @local::no_mag_larsoft
  BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::protodune_spacecharge
- LArSeedService:               @local::dune_seedservice
+ NuRandomService:               @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
@@ -202,7 +202,7 @@ dune35t_basic_services: {
   LArPropertiesService:       @local::dune35t_properties
   DatabaseUtil:               @local::dune35t_database
   SpaceCharge:                @local::dune35t_spacecharge
-  LArSeedService:             @local::dune_seedservice
+  NuRandomService:             @local::dune_seedservice
   ChannelStatusService:       @local::dune35t_channel_status
   ChannelMapService:          @local::channelmap35t
   ChannelMappingService:      @local::dune35t_channelmapping
