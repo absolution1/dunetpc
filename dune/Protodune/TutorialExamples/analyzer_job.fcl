@@ -13,7 +13,6 @@ services:
   message:              @local::dune_message_services_prod_debug
   FileCatalogMetadata:  @local::art_file_catalog_mc
                         @table::protodune_services
-                        @table::protodune_simulation_services
 }
 services.message.destinations.LogStandardOut.threshold: "INFO"
 
