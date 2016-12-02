@@ -385,8 +385,29 @@ dune_message_services_prod_debug.destinations.LogDebugFile.categories:{
 dune_message_services_prod: {
   debugModules: ["*"]
   destinations: {
-    LogStandardOut:    @local::dune_message_services.destinations.LogStandardOut
-    LogStandardError:  @local::dune_message_services.destinations.LogStandardError
+    LogDebugFile: { 
+      type:       "file"
+      filename:   "debug.log"
+      append:     false
+      threshold:  "DEBUG"
+      categories:{
+        default:{ limit: 0 }
+      }
+    }
+    LogStandardOut: {
+      type:       "cout"
+      threshold:  "WARNING"
+      categories:{
+        default:{limit: 0}
+      }
+    }
+    LogStandardError: {
+      type:       "cerr"
+      threshold:  "ERROR"
+      categories:{
+        default:{limit: 0}
+      }
+    }
   }
 }
 
