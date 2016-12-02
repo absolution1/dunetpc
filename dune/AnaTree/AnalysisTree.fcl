@@ -47,7 +47,7 @@ dune35t_analysistree:
  SaveClusterInfo:          true
  SaveFlashInfo:            true
  SaveExternCounterInfo:    true
- SaveShowerInfo:           true
+ SaveShowerInfo:           false
  SaveCaloCosmics:          true
  G4minE:                   -1
 }

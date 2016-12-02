@@ -13,7 +13,7 @@
 simple_plugin(TemplateTriggerService   "service"
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                ${SEEDSERVICE_SERVICE}
+                nutools_RandomUtils_NuRandomService_service
                 ${ART_FRAMEWORK_CORE}
                 art_Utilities canvas_Utilities
                 ${MF_MESSAGELOGGER}
@@ -27,7 +27,7 @@ simple_plugin(ActivityTriggerService   "service"
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
                 ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                ${SEEDSERVICE_SERVICE}
+                nutools_RandomUtils_NuRandomService_service
                 ${ART_FRAMEWORK_CORE}
                 art_Utilities canvas_Utilities
                 ${MF_MESSAGELOGGER}
