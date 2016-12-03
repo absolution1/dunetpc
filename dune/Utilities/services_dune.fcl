@@ -149,7 +149,7 @@ protodune_services: {
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::protodune_spacecharge
- NuRandomService:               @local::dune_seedservice
+ NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status 
  ChannelGroupService:          @local::changroup_apa
@@ -167,7 +167,7 @@ protodune_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
  SpaceCharge:                  @local::protodune_spacecharge
- NuRandomService:               @local::dune_seedservice
+ NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
@@ -177,7 +177,7 @@ protodune_simulation_services: {
 
 #
 # Settings for optical simulation. Optical simulation not on by default
-# for FD, turned on by custom physics list and defining a photon visibility
+# for ProtoDUNE, turned on by custom physics list and defining a photon visibility
 # services is workspace g4 fhicl file.
 #
 protodune_simulation_services.LArPropertiesService.ScintYield: 24000
@@ -195,6 +195,15 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                              "HadronElastic",
                                                              "Stopping",
                                                              "NeutronTrackingCut" ]
+
+# Reco services for ProtoDUNE simulation.
+protodune_reco_services:                            @local::protodune_services
+protodune_reco_services.RawDigitExtractService:     @local::rdx_std
+protodune_reco_services.RawDigitPrepService:        @local::adcprep_sim
+protodune_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
+protodune_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
+protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
+
 
 dune35t_basic_services: {
   ExptGeoHelperInterface:     @local::dune_geometry_helper
