@@ -60,8 +60,7 @@ dunefd_simulation_services: {
  MagneticField:                @local::no_mag_larsoft
  BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::dunefd_spacecharge
- NuRandomService:               @local::dune_seedservice
- NuRandomService:               @local::dune_seedservice
+ NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
