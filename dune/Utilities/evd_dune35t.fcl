@@ -10,6 +10,4 @@ services: {
 
 includedServices: @erase
 
-services.RecoDrawingOptions.ClusterModuleLabels: "[cluster3d]"
-services.RecoDrawingOptions.HitModuleLabels: "[hitrepeater]"
-services.RecoDrawingOptions.TrackModuleLabels: "[pmtrack]"
+services.RawDrawingOptions.TotalTicks: 5200
