@@ -110,10 +110,10 @@ private:
 	int fEvent;
 	double fEnGen;
 	double fEdep; 
-	double fEdepShs;
+	double fEdepCl;
 	double fEdepMC;
 	double fEdepMCTotV;
-	double fEdepMCShs;
+	double fEdepMCEM;
 	//////
 
 	//std::vector< art::Ptr<simb::MCParticle> > fSimlist;
@@ -158,10 +158,10 @@ void proto::EdepCal::beginJob()
 	fTree->Branch("fEvent", &fEvent, "fEvent/I");
 	fTree->Branch("fEnGen", &fEnGen, "fEnGen/D");
 	fTree->Branch("fEdep", &fEdep, "fEdep/D");
-	fTree->Branch("fEdepShs", &fEdepShs, "fEdepShs/D");
+	fTree->Branch("fEdepCl", &fEdepCl, "fEdepCl/D");
 	fTree->Branch("fEdepMC", &fEdepMC, "fEdepMC/D");
 	fTree->Branch("fEdepMCTotV", &fEdepMCTotV, "fEdepMCTotV/D");
-	fTree->Branch("fEdepMCShs", &fEdepMCShs, "fEdepMCShs/D");
+	fTree->Branch("fEdepMCEM", &fEdepMCEM, "fEdepMCEM/D");
 
 	fDataTree = tfs->make<TTree>("Data", "dE/dx info");
 	fDataTree->Branch("fRun", &fRun, "fRun/I");
@@ -188,7 +188,7 @@ void proto::EdepCal::analyze(art::Event const & e)
 	// MC
 	fEdepMC = GetEdepMC(e);
 	fEdepMCTotV = GetEdepTotVox(e);
-	fEdepMCShs = GetEdepEM_MC(e);
+	fEdepMCEM = GetEdepEM_MC(e);
 	
 	// MC particle list
 	auto particleHandle = e.getValidHandle< std::vector<simb::MCParticle> >(fSimulationLabel);	
@@ -204,10 +204,6 @@ void proto::EdepCal::analyze(art::Event const & e)
 		}
 	}
 	
-	
-	
-	std::cout << " fEnGen " << fEnGen << std::endl;
-	
 	// hits
 	const auto& hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
 	fEdep = GetEdepHits(hitListHandle);
@@ -218,10 +214,10 @@ void proto::EdepCal::analyze(art::Event const & e)
 	// look for all hits associated to selected cluster
 	art::FindManyP< recob::Hit > hitsFromClusters(clListHandle, e, fClusterModuleLabel);
 
-	fEdepShs = 0.0;
+	fEdepCl = 0.0;
 	for (size_t c = 0; c < clListHandle->size(); ++c)
 	{
-		fEdepShs += GetEdepHits(hitsFromClusters.at(c));
+		fEdepCl += GetEdepHits(hitsFromClusters.at(c));
 	}
 
 	fTree->Fill();
@@ -392,10 +388,10 @@ void proto::EdepCal::ResetVars()
 {
 	fEdep = 0.0;
 	fEnGen = 0.0;
-	fEdepShs = 0.0;
+	fEdepCl = 0.0;
 	fEdepMC = 0.0;
 	fEdepMCTotV = 0.0;
-	fEdepMCShs = 0.0;
+	fEdepMCEM = 0.0;
 	fT0 = 0.0;
 }
 
