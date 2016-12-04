@@ -396,8 +396,9 @@ dune_message_services_prod: {
     }
     LogStandardOut: {
       type:       "cout"
-      threshold:  "WARNING"
+      threshold:  "INFO"
       categories:{
+        ArtReport: {limit: -1}
         default:{limit: 0}
       }
     }
@@ -405,7 +406,7 @@ dune_message_services_prod: {
       type:       "cerr"
       threshold:  "ERROR"
       categories:{
-        default:{limit: 0}
+        default:{}
       }
     }
   }
