@@ -48,7 +48,7 @@ int test_StandardAdcWireBuildingService(int a_LogLevel =1) {
   string fclfile = "test_StandardAdcWireBuildingService.fcl";
   ofstream fout(fclfile.c_str());
   fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services.user: @local::dune35t_services" << endl;
+  fout << "services:      @local::dune35t_services" << endl;
   fout << "services.AdcWireBuildingService: {" << endl;
   fout << "  service_provider: StandardAdcWireBuildingService" << endl;
   fout << "  LogLevel:       " << a_LogLevel << endl;

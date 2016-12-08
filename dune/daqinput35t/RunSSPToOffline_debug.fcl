@@ -5,7 +5,7 @@
 process_name: RunSSPToOffline
 
 services : {
-  user:         @local::dune35t_services
+                @table::dune35t_services
   TimeTracker:     {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info

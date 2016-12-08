@@ -9,10 +9,10 @@ services:
   TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
-  user:         @local::dunefddphase_simulation_services
+                @table::dunefddphase_simulation_services
 }
 
-services.user.Geometry: @local::dunedphase10kt_workspace_geo
+services.Geometry: @local::dunedphase10kt_workspace_geo
 
 source:
 {

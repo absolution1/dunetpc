@@ -1,3 +1,5 @@
+set( IFDH_ART_DIR $ENV{IFDH_ART_DIR} )
+
 add_subdirectory(DuneInterface)
 add_subdirectory(DuneCommon)
 add_subdirectory(Geometry)
@@ -39,6 +41,7 @@ add_subdirectory(Protodune)
 add_subdirectory(DAQTriggerSim)
 add_subdirectory(SpaceCharge)
 add_subdirectory(SpaceChargeServices)
+add_subdirectory(DataOverlay)
 
 # Respect the order specified in lar_build, which is:
 #
@@ -52,10 +55,10 @@ add_subdirectory(SpaceChargeServices)
 #     "lardataobj_OpticalDetectorData",
 #     "lardataobj_AnalysisBase",
 #     "lardata_Utilities",
-#     "larsim_Simulation lardataobj_Simulation",
+#     "larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation",
 #     "larsim_MCCheater",
-#     "lardata_AnalysisAlg",
-#     "lardata_RecoObjects",
+#     "larreco_Calorimetry",
+#     "lardata_RecoObjects larreco_Deprecated",
 #     "larreco_RecoAlg",
 #     "larsim_LArG4",
 #     "larsim_PhotonPropagation",
@@ -71,7 +74,7 @@ add_subdirectory(SpaceChargeServices)
 #     "larreco_EventFinder",
 #     "larsim_TriggerAlgo",
 #     "larana_OpticalDetector",
-#     "larana_Calorimetry", 
+#     "larreco_Calorimetry", 
 #     "larreco_ShowerFinder",
 #     "lareventdisplay_EventDisplay",
 #     "larana_ParticleIdentification",

@@ -83,7 +83,6 @@ extract(const raw::RawDigit& dig, AdcChannel* pchan, AdcSignal* pped,
     else if ( m_FlagStuckOff && adclow == 0 )       flgs[isig] = AdcStuckOff;
     else if ( m_FlagStuckOn  && adclow == lowbits ) flgs[isig] = AdcStuckOn;
   }
-
   return 0;
 }
 

@@ -72,6 +72,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   string fclfile = "test_StandardRawDigitPrepService.fcl";
   bool usePedestalAdjustment = false;
   vector<string> snames;
+  bool noisy = false;
   if ( useExistingFcl ) {
   } else if ( useFclFile ) {
     // Use the DUNE fcl for 35-ton reco.
@@ -80,6 +81,12 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     ofstream fout(fclfile.c_str());
     fout << "#include \"services_dune.fcl\"" << endl;
     fout << "services: @local::dune35tdata_reco_services" << endl;
+    if ( noisy ) {
+      fout << "services.RawDigitExtractService.LogLevel: 3" << endl;
+      fout << "services.RawDigitPrepService.LogLevel: 3" << endl;
+      fout << "services.RawDigitPrepService.DoDump: true" << endl;
+      fout << "services.RawDigitPrepService.DumpChannel: 0" << endl;
+    }
     fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
     fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
     fout << "services.RawDigitPrepService.DoIntermediateStates: true" << endl;
@@ -90,7 +97,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   } else {
     ofstream fout(fclfile.c_str());
     fout << "#include \"services_dune.fcl\"" << endl;
-    fout << "services.user: @local::dune35t_services" << endl;
+    fout << "services:      @local::dune35t_services" << endl;
     fout << "services.RawDigitExtractService: {" << endl;
     fout << "  service_provider: StandardRawDigitExtractService" << endl;
     fout << "  LogLevel:        1" << endl;
@@ -258,12 +265,20 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   AdcSignalVector sigs;
   AdcFlagVector flags;
   AdcChannelDataMap prepdigs;
+  for ( unsigned int idig=0; idig<digs.size(); ++idig ) {
+    const RawDigit& dig = digs[idig];
+    assert( prepdigs.find(dig.Channel()) == prepdigs.end() );
+    AdcChannelData& data = prepdigs[dig.Channel()];
+    data.channel = dig.Channel();
+    data.digitIndex = idig;
+    data.digit = &dig;
+  }
   std::vector<recob::Wire> wires;
   wires.reserve(nchan);
   WiredAdcChannelDataMap intStates(snames, nchan);
   assert( intStates.dataMaps.size() == snames.size() );
   assert( intStates.wires.size() == snames.size() );
-  assert( hrdp->prepare(digs, prepdigs, &wires, &intStates) == 0 );
+  assert( hrdp->prepare(prepdigs, &wires, &intStates) == 0 );
   cout << myname << "      # prepared digit channels: " << prepdigs.size() << endl;
   cout << myname << "                # wire channels: " << wires.size() << endl;
   cout << myname << "  # intermediate state channels: " << intStates.dataMaps.size() << endl;
@@ -293,8 +308,6 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     const raw::RawDigit* pdig = acd.digit;
     const Wire* pwire = acd.wire;
     AdcSignal ped = acd.pedestal;
-    assert( pwire != nullptr );
-    assert( pwire->SignalROI().size() > 0 );
     cout << myname << "----- Channel " << chan << endl;
     cout << myname << "  Final signal tick count: " << sigs.size() << endl;
     cout << myname << "    Final flag tick count: " << flags.size() << endl;
@@ -302,6 +315,8 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     cout << myname << "                 Pedestal: " << ped << endl;
     cout << myname << "               samples[0]: " << sigs[0] << endl;
     cout << myname << "Check final data." << endl;
+    assert( pwire != nullptr );
+    assert( pwire->SignalROI().size() > 0 );
     assert( sigs.size() == nsig );
     assert( flags.size() == nsig );
     assert( pdig != nullptr );
