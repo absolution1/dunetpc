@@ -35,6 +35,7 @@ proto_edepcal:
 	module_type: "EdepCal"
 	SimulationLabel: "largeant"
 	HitsModuleLabel: "linecluster"
+	ClusterModuleLabel: "emtrackid"
 	CalorimetryAlg:  @local::dune35t_calorimetryalgmc
 	Bestview: 2
 }

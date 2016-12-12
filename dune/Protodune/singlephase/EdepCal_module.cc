@@ -105,7 +105,7 @@ private:
 	double fT0;
 	
 	//////
-	TTree *fTree; TTree *fDataTree;
+	TTree *fTree;
 	int fRun; 
 	int fEvent;
 	double fEnGen;
@@ -114,6 +114,8 @@ private:
 	double fEdepMC;
 	double fEdepMCTotV;
 	double fEdepMCEM;
+	double fRatioTot;
+	double fRatioEM;
 	//////
 
 	//std::vector< art::Ptr<simb::MCParticle> > fSimlist;
@@ -162,10 +164,8 @@ void proto::EdepCal::beginJob()
 	fTree->Branch("fEdepMC", &fEdepMC, "fEdepMC/D");
 	fTree->Branch("fEdepMCTotV", &fEdepMCTotV, "fEdepMCTotV/D");
 	fTree->Branch("fEdepMCEM", &fEdepMCEM, "fEdepMCEM/D");
-
-	fDataTree = tfs->make<TTree>("Data", "dE/dx info");
-	fDataTree->Branch("fRun", &fRun, "fRun/I");
-	fDataTree->Branch("fEvent", &fEvent, "fEvent/I");
+	fTree->Branch("fRatioTot", &fRatioTot, "fRatioTot/D");
+	fTree->Branch("fRatioEM", &fRatioEM, "fRatioEM/D");
 }
 
 void proto::EdepCal::reconfigure(fhicl::ParameterSet const & p)
@@ -205,6 +205,7 @@ void proto::EdepCal::analyze(art::Event const & e)
 	}
 	
 	// hits
+	fEdep = 0.0;
 	const auto& hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
 	fEdep = GetEdepHits(hitListHandle);
 
@@ -219,7 +220,16 @@ void proto::EdepCal::analyze(art::Event const & e)
 	{
 		fEdepCl += GetEdepHits(hitsFromClusters.at(c));
 	}
-
+	
+	if (fEdepMCTotV > 0.0)
+	{
+		fRatioTot = fEdep / fEdepMCTotV;
+	}
+	if (fEdepMCEM > 0.0)
+	{
+		fRatioEM = fEdepCl / fEdepMCEM;
+	}
+	
 	fTree->Fill();
 }
 
@@ -242,7 +252,7 @@ double proto::EdepCal::GetEdepMC(art::Event const & e) const
 		
 						for ( auto const& energyDeposit : energyDeposits )
 						{
-							energy += energyDeposit.numElectrons * fElectronsToGeV * 1000;
+							energy += energyDeposit.numElectrons * fElectronsToGeV;
 						}
 				}
 			}
@@ -269,7 +279,7 @@ double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
 		
 						for ( auto const& energyDeposit : energyDeposits )
 						{
-							double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000;
+							double energy = energyDeposit.numElectrons * fElectronsToGeV;
 							int trackID = energyDeposit.trackID;
 							
 							if (trackID < 0)
@@ -341,7 +351,7 @@ double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 		double tdrift = hits[h].PeakTime();
 		double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
 
-		double dq = dqel * correllifetime * fElectronsToGeV * 1000;
+		double dq = dqel * correllifetime * fElectronsToGeV;
 		if (!std::isnormal(dq) || (dq < 0)) continue;
 
 		dqsum += dq; 
@@ -368,7 +378,7 @@ double proto::EdepCal::GetEdepHits(const std::vector< art::Ptr<recob::Hit> > & h
 		double tdrift = hits[h]->PeakTime();
 		double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
 
-		double dq = dqel * correllifetime * fElectronsToGeV * 1000;
+		double dq = dqel * correllifetime * fElectronsToGeV;
 		if (!std::isnormal(dq) || (dq < 0)) continue;
 
 		dqsum += dq; 
@@ -392,6 +402,8 @@ void proto::EdepCal::ResetVars()
 	fEdepMC = 0.0;
 	fEdepMCTotV = 0.0;
 	fEdepMCEM = 0.0;
+	fRatioTot = 0.0;
+	fRatioEM = 0.0;
 	fT0 = 0.0;
 }
 
