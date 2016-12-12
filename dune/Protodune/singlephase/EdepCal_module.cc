@@ -116,6 +116,7 @@ private:
 	double fEdepMCEM;
 	double fRatioTot;
 	double fRatioEM;
+	double fRatioHad;
 	//////
 
 	//std::vector< art::Ptr<simb::MCParticle> > fSimlist;
@@ -166,6 +167,7 @@ void proto::EdepCal::beginJob()
 	fTree->Branch("fEdepMCEM", &fEdepMCEM, "fEdepMCEM/D");
 	fTree->Branch("fRatioTot", &fRatioTot, "fRatioTot/D");
 	fTree->Branch("fRatioEM", &fRatioEM, "fRatioEM/D");
+	fTree->Branch("fRatioHad", &fRatioHad, "fRatioHad/D");
 }
 
 void proto::EdepCal::reconfigure(fhicl::ParameterSet const & p)
@@ -221,6 +223,7 @@ void proto::EdepCal::analyze(art::Event const & e)
 		fEdepCl += GetEdepHits(hitsFromClusters.at(c));
 	}
 	
+	
 	if (fEdepMCTotV > 0.0)
 	{
 		fRatioTot = fEdep / fEdepMCTotV;
@@ -228,6 +231,12 @@ void proto::EdepCal::analyze(art::Event const & e)
 	if (fEdepMCEM > 0.0)
 	{
 		fRatioEM = fEdepCl / fEdepMCEM;
+	}
+	
+	double edephad = fEdepMCTotV - fEdepMCEM;
+	if (edephad > 0)
+	{
+		fRatioHad = (fEdep - fEdepCl) / edephad;
 	}
 	
 	fTree->Fill();
@@ -404,6 +413,7 @@ void proto::EdepCal::ResetVars()
 	fEdepMCEM = 0.0;
 	fRatioTot = 0.0;
 	fRatioEM = 0.0;
+	fRatioHad = 0.0;
 	fT0 = 0.0;
 }
 
