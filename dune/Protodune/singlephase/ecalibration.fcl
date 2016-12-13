@@ -1,5 +1,4 @@
-#include "calorimetry_dune35t.fcl"
-#include "calorimetry_dune10kt.fcl"
+#include "calorimetry.fcl"
 #include "trackfinderalgorithms.fcl"
 
 BEGIN_PROLOG
@@ -14,7 +13,7 @@ proto_ecalibration:
    	ClusterModuleLabel:	"linecluster"
    	VertexModuleLabel:      "linecluster"
    	CalorimetryModuleLabel: "calo"
-   	CalorimetryAlg:          @local::dune35t_calorimetryalgmc
+   	CalorimetryAlg:          @local::standard_calorimetryalgmc
 
 	BeamPosX:		118.106		# starting position of the beam window 
 	BeamPosY:		395.649
@@ -36,7 +35,7 @@ proto_edepcal:
 	SimulationLabel: "largeant"
 	HitsModuleLabel: "linecluster"
 	ClusterModuleLabel: "emtrackid"
-	CalorimetryAlg:  @local::dune35t_calorimetryalgmc
+	CalorimetryAlg:  @local::standard_calorimetryalgmc
 	Bestview: 2
 }
 

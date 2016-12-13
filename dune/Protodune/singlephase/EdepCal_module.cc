@@ -224,9 +224,9 @@ void proto::EdepCal::analyze(art::Event const & e)
 	}
 	
 	
-	if (fEdepMCTotV > 0.0)
+	if (fEdepMC > 0.0)
 	{
-		fRatioTot = fEdep / fEdepMCTotV;
+		fRatioTot = fEdep / fEdepMC;
 	}
 	if (fEdepMCEM > 0.0)
 	{
@@ -261,7 +261,8 @@ double proto::EdepCal::GetEdepMC(art::Event const & e) const
 		
 						for ( auto const& energyDeposit : energyDeposits )
 						{
-							energy += energyDeposit.numElectrons * fElectronsToGeV;
+							energy += energyDeposit.energy;
+						//	energy += energyDeposit.numElectrons * fElectronsToGeV;
 						}
 				}
 			}
@@ -288,7 +289,8 @@ double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
 		
 						for ( auto const& energyDeposit : energyDeposits )
 						{
-							double energy = energyDeposit.numElectrons * fElectronsToGeV;
+							// double energy = energyDeposit.numElectrons * fElectronsToGeV;
+							double energy = energyDeposit.energy;
 							int trackID = energyDeposit.trackID;
 							
 							if (trackID < 0)
@@ -350,7 +352,7 @@ double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 	for (size_t h = 0; h < hits.size(); ++h)
 	{
 		unsigned short plane = hits[h].WireID().Plane;
-		if (plane != geo::kZ) continue;
+		if (plane != fBestview) continue;
 	
 		double dqadc = hits[h].Integral();
 		if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
@@ -377,7 +379,7 @@ double proto::EdepCal::GetEdepHits(const std::vector< art::Ptr<recob::Hit> > & h
 	for (size_t h = 0; h < hits.size(); ++h)
 	{
 		unsigned short plane = hits[h]->WireID().Plane;
-		if (plane != geo::kZ) continue;
+		if (plane != fBestview) continue;
 	
 		double dqadc = hits[h]->Integral();
 		if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
