@@ -9,7 +9,7 @@ services:
   TFileService:           { fileName: "NucleonFilterTree.root" }
   TimeTracker:            {}
   RandomNumberGenerator:  {}
-  SimpleMemoryCheck:      { ignoreTotal: 1 } # default is one
+  MemoryTracker:          {}
   FileCatalogMetadata:    @local::art_file_catalog_mc
   			  @table::dunefd_simulation_services
   ExptGeoHelperInterface: @local::dune_geometry_helper

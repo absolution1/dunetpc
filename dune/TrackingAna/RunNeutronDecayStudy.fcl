@@ -1,7 +1,7 @@
 #include "services_dune.fcl"
 #include "NeutronDecayN2Ana.fcl"
 
-process_name: N2Decay
+process_name: N2DecayAna
 
 services:
 {
@@ -9,7 +9,7 @@ services:
   TFileService:           { fileName: "DecayTree.root" }
   TimeTracker:            {}
   RandomNumberGenerator:  {}
-  SimpleMemoryCheck:      { ignoreTotal: 1 } # default is one
+  MemoryTracker:     {}
   FileCatalogMetadata:    @local::art_file_catalog_mc
   			  @table::dunefd_simulation_services
   ExptGeoHelperInterface: @local::dune_geometry_helper
@@ -53,3 +53,4 @@ outputs: {
         compressionLevel: 1
   }
 }
+#physics.analyzers.n2decay.Verbosity: 2

@@ -48,6 +48,7 @@ struct IDEYLess {
 
 #define MaxPart   100
 #define MaxParent 100
+#define MaxPrim   10
 #define HolderVal 9999
 
 namespace NeutronDecayN2Ana {
@@ -73,7 +74,7 @@ private:
   void FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double DaughtEDep[MaxPart], double DecayEDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
 		 int nParents[MaxPart], int Parent[MaxPart][MaxParent], int ParTrID[MaxPart][MaxParent], int PDG[MaxPart], int TrID[MaxPart], int FromDecay[MaxPart],
 		 int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool Decay, bool OrigParticle, bool &Written );
- 
+  double CalcDist( double X1, double Y1, double Z1, double X2, double Y2, double Z2 );
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
   art::ServiceHandle<cheat::BackTracker> bktrk;
@@ -91,11 +92,12 @@ private:
   TTree* fDecayTree;
   int Run;
   int Event;
-  double PrimMuonRange;
-  double PrimMuonEDep;
-  double PrimMuonShadowEDep;
   double DistEdge[3][2];
   double TotalEDep;
+
+  // Primary particles
+  int    nPrim, PrimPDG[MaxPrim];
+  double PrimEn[MaxPrim], PrimMom[MaxPrim];
 
   // NumParts
   int nMuon, nPion, nPi0, nKaon, nElec;
@@ -126,11 +128,16 @@ private:
 void NeutronDecayN2Ana::NeutronDecayN2Ana::ResetVars() {
   BadEvent = false;
   Run = Event = 0;
-  PrimMuonRange = PrimMuonEDep = PrimMuonShadowEDep = TotalEDep = 0;
+  TotalEDep = 0;
   // DistEdge
   for (int i=0; i<3; i++)
     for (int j=0; j<2; j++)
       DistEdge[i][j]=HolderVal;
+  //Primary particles
+  nPrim = 0;
+  for (int pr=0; pr<MaxPrim; ++pr) {
+    PrimPDG[pr] = PrimEn[pr] = PrimMom[pr] = 0;
+  }
   // Each particle type
   nMuon = nPion = nPi0 = nKaon = nElec = 0;
   for (int i=0; i<MaxPart; ++i) {
@@ -211,14 +218,15 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   art::ServiceHandle<art::TFileService> tfs;
   fDecayTree = tfs->make<TTree>("ReconstructedTree","analysis tree");
 
-  fDecayTree->Branch("Run"               ,&Run               ,"Run/I"               );
-  fDecayTree->Branch("Event"             ,&Event             ,"Event/I"             );
-  fDecayTree->Branch("PrimMuonRange"     ,&PrimMuonRange     ,"PrimMuonRange/D"     );
-  fDecayTree->Branch("PrimMuonEDep"      ,&PrimMuonEDep      ,"PrimMuonEDep/D"      );
-  fDecayTree->Branch("PrimMuonShadowEDep",&PrimMuonShadowEDep,"PrimMuonShadowEDep/D");
-  fDecayTree->Branch("DistEdge"          ,&DistEdge          ,"DistEdge[3][2]/D"    );
-  fDecayTree->Branch("TotalEDep"         ,&TotalEDep         ,"TotalEDep/D"         );
-
+  fDecayTree->Branch("Run"      , &Run       ,"Run/I"            );
+  fDecayTree->Branch("Event"    , &Event    , "Event/I"          );
+  fDecayTree->Branch("DistEdge" , &DistEdge , "DistEdge[3][2]/D" );
+  fDecayTree->Branch("TotalEDep", &TotalEDep, "TotalEDep/D"      );
+  // Primary particles
+  fDecayTree->Branch("nPrim"    , &nPrim    , "nPrim/I"          );
+  fDecayTree->Branch("PrimPDG"  , &PrimPDG  , "PrimPDG[nPrim]/I" );
+  fDecayTree->Branch("PrimEn"   , &PrimEn   , "PrimEn[nPrim]/D" );
+  fDecayTree->Branch("PrimMom"  , &PrimMom  , "PrimMom[nPrim]/D" );
   // Muon
   fDecayTree->Branch("nMuon"            ,&nMuon            ,"nMuon/I"                   );
   fDecayTree->Branch("nParentMuon"      ,&nParentMuon      ,"nParentMuon[nMuon]/I"      );
@@ -311,8 +319,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   ResetVars();
   Run   = evt.run();
   Event = evt.event();
-
-  //if ( Event != 384012263 ) return;
+  
+  //if ( Event != 39 ) return;
 
   if (Verbosity)
     std::cout << "\n\n************* New Event / Module running - Run " << Run << ", Event " << Event << ", NEvent " << NEvent << " *************\n\n" << std::endl;
@@ -330,18 +338,26 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   art::Handle<std::vector<simb::MCParticle> > truth;
   evt.getByLabel("largeant", truth);
   truthmap.clear();
-  for (size_t i=0; i<truth->size(); i++)
+  for (size_t i=0; i<truth->size(); i++) {
     truthmap[truth->at(i).TrackId()]=&((*truth)[i]);
+    if (truth->at(i).Mother() == 0) {
+      PrimPDG[nPrim] = truth->at(i).PdgCode();
+      PrimEn [nPrim] = truth->at(i).E(0);
+      PrimMom[nPrim] = truth->at(i).P(0);
+      ++nPrim;
+      if (Verbosity) {
+	std::cout << "The primary particle in this event was a " << PrimPDG[nPrim-1]<<" with Energy " << PrimEn[nPrim-1] 
+		  << ", momentum " << PrimMom[nPrim-1]<< ", process " << truth->at(i).Process() << std::endl; 
+      }
+    }
+  }
   if (Verbosity)
-    std::cout << "The primary muon in this event had an energy of " << truthmap[1]->E() << std::endl;
+    std::cout << "There were " << nPrim << " primary particles." << std::endl;
 
   // Get a vector of sim channels.
   art::Handle<std::vector<sim::SimChannel> > simchannels;
   evt.getByLabel("largeant", simchannels);
   
-  // Make a vector for primary IDEs to work out total Edep and length of primary muon
-  std::vector<sim::IDE> priides;
-
   // Make vectors to hold all of my particle TrackIDs
   std::vector<int> MuonVec, PionVec, Pi0Vec, KaonVec, ElecVec;
   AllTrackIDs.clear();
@@ -351,6 +367,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   
   for (auto const& simchannel:*simchannels) {
     // ------ Only want to look at collection plane hits ------
+    //std::cout << "Looking at a new SimChannel, it was on channel " << simchannel.Channel() << ", which is plane " << geo->SignalType(simchannel.Channel()) << std::endl;
     if (geo->SignalType(simchannel.Channel()) != geo::kCollection) continue;
     int tdcideIt = 0;
     // ------ Loop through all the IDEs for this channel ------
@@ -385,19 +402,24 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 
 	// ------ Add the energy deposition from this IDE to the sum of IDEs
 	TotalEDep += ideEnergy;
-	if ( ideTrackID == -1 ) PrimMuonShadowEDep += ideEnergy;
-	
-	// ------ I want to make a vector of the IDEs for the primary muon ------
-	if (ideTrackID==1) priides.push_back(ide);
 	  
 	// ------ I want to work the closest IDE to an edge of the active volume ------
+	// If I am writing out the distance to the edge of the active volume
 	if ( DistEdge[0][0] > ( ide.x - ActiveBounds[0]) ) DistEdge[0][0] =  ide.x - ActiveBounds[0];
 	if ( DistEdge[0][1] > (-ide.x + ActiveBounds[1]) ) DistEdge[0][1] = -ide.x + ActiveBounds[1];
 	if ( DistEdge[1][0] > ( ide.y - ActiveBounds[2]) ) DistEdge[1][0] =  ide.y - ActiveBounds[2];
 	if ( DistEdge[1][1] > (-ide.y + ActiveBounds[3]) ) DistEdge[1][1] = -ide.y + ActiveBounds[3];
 	if ( DistEdge[2][0] > ( ide.z - ActiveBounds[4]) ) DistEdge[2][0] =  ide.z - ActiveBounds[4];
 	if ( DistEdge[2][1] > (-ide.z + ActiveBounds[5]) ) DistEdge[2][1] = -ide.z + ActiveBounds[5];
-		
+	// If I am writing out the most +- depositions in X, Y, Z
+	/*
+	if ( DistEdge[0][0] > ide.x ) DistEdge[0][0] = ide.x;
+	if ( DistEdge[0][1] < ide.x ) DistEdge[0][1] = ide.x;
+	if ( DistEdge[1][0] > ide.y ) DistEdge[1][0] = ide.y;
+	if ( DistEdge[1][1] < ide.y ) DistEdge[1][1] = ide.y;
+	if ( DistEdge[2][0] > ide.z ) DistEdge[2][0] = ide.z;
+	if ( DistEdge[2][1] < ide.z ) DistEdge[2][1] = ide.z;
+	*/
 	// ------ Now to work out which particles in particular I want to save more information about... ------
 	// ----------------- I want to write out the IDE to the relevant parent particle type -----------------
 	// ------- This means looping back through the IDE's parents until I find an interesting TrackID ------
@@ -438,6 +460,11 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	  // ========== If still not one of my intersting particles I need to find this particles parent ==========
 	  else {
 	    ideTrackID = part.Mother();
+	    if (ideTrackID==0) {
+	      if (Verbosity > 1)
+		std::cout << "None of the particles in this chain are interesting, so skipping." << std::endl;
+	      break;
+	    }
 	    PdgCode = truthmap[ abs(ideTrackID) ]->PdgCode();
 	    // === Work out if a decay I care about ===
 	    if ( part.PdgCode() != PdgCode ) isDecay = false; // Only reset to false if not a daughter of the same particle type eg not K+ -> K+
@@ -451,7 +478,10 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 		//std::cout << "This particle was from a decay!" << std::endl;
 		isDecay = true;
 	      }
-	    //std::cout << "Not something interesting so moving backwards. The parent of that particle had trackID " << ideTrackID << ", was from a " << PdgCode << ", from a decay? " << isDecay << std::endl;
+	    if (Verbosity > 1) {
+	      std::cout << "Not something interesting so moving backwards. The parent of that particle had trackID " << ideTrackID 
+			<< ", was from a " << PdgCode << ", from a decay? " << isDecay << std::endl;
+	    }
 	  } // If not one of chosen particles.
 	} // While loop
 	ideIt++;
@@ -462,59 +492,32 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   } // Loop through simchannels
   
   if (Verbosity) {
-    for (int KL=0; KL<nKaon; ++KL) {
-      std::cout << "Kaon " << KL << " had properties: PDG " << KaonPDG[KL] << ", TrackID " << KaonTrID[KL] << ", EDep " << KaonEDep[KL] 
-		<< ", DaughtEDep " << KaonDaughtersEDep[KL] << ", DecayEDep " << KaonDecayEDep[KL] << std::endl;
+    if (nKaon) {
+      std::cout << "\nThere are kaons in this event!!" << std::endl;
+      for (int KL=0; KL<nKaon; ++KL) {
+	std::cout << "Kaon " << KL << " had properties: PDG " << KaonPDG[KL] << ", TrackID " << KaonTrID[KL] << ", EDep " << KaonEDep[KL] 
+		  << ", DaughtEDep " << KaonDaughtersEDep[KL] << ", DecayEDep " << KaonDecayEDep[KL] << std::endl;
+      }
     }
-  }
+    if (nElec) {
+      std::cout << "There are electrons in this event!!" << std::endl;
+      for (int EL=0; EL<nElec; ++EL) {
+	std::cout << "Elec " << EL << " had properties: PDG " << ElecPDG[EL] << ", TrackID " << ElecTrID[EL] << ", EDep " << ElecEDep[EL] 
+		  << ", DaughtEDep " << ElecDaughtersEDep[EL] << ", DecayEDep " << ElecDecayEDep[EL] << std::endl;
+      }
 
-  if (Verbosity) {
+    }
+    if (nMuon) {
+      std::cout << "There are muons in this event!!" << std::endl;
+    }
     if (nPion) {
       std::cout << "There are pions in this event!!" << std::endl;
     }
     if (nPi0) {
       std::cout << "There are pi0's in this event!!" << std::endl;
     }
-    if (nKaon) {
-      std::cout << "There are kaons in this event!!" << std::endl;
-    }
-    if (nElec) {
-      std::cout << "There are electrons in this event!!" << std::endl;
-    }
   }
-  // Work out some properties of the primary muon
-  if (priides.size()) {
-    // ------ Sort the IDEs in y ------
-    std::sort(priides.begin(), priides.end(), IDEYLess());
-    // ------ Work out the range ------
-    double dx=priides.front().x-priides.back().x;
-    double dy=priides.front().y-priides.back().y;
-    double dz=priides.front().z-priides.back().z;
-    PrimMuonRange=sqrt(dx*dx+dy*dy+dz*dz);
-    // ------ Work out the energy deposited ------
-    for (unsigned int muIt=0; muIt<priides.size(); ++muIt) PrimMuonEDep += priides[muIt].energy;
-    //PrimMuonEDep = PrimMuonEDep / priides.size();
-  } 
-  if (Verbosity)
-    std::cout << "Primary muon track length = " << PrimMuonRange << " cm, and energy despoited = " << PrimMuonEDep << ", shadow EDep = " << PrimMuonShadowEDep << " and total Edep is " << TotalEDep << ".\n"
-	      << "There were " << nMuon << " muons, " << nPion << " pions, " << nPi0 << " pi0s, " << nKaon << " Kaons, " << nElec << " Electrons.\n"
-	      << std::endl;
-  
-  // If nMuon
-  if (MuonStart[0][0] != HolderVal && priides.size()) {
-    double MyRange = pow( pow((MuonStart[0][0]-MuonEnd[0][0]),2) + pow((MuonStart[0][1]-MuonEnd[0][1]),2) + pow((MuonStart[0][2]-MuonEnd[0][2]),2), 0.5 );
-    if (Verbosity==2)
-      std::cout << "My start " << MuonStart[0][0] << ", " << MuonStart[0][1] << ", " << MuonStart[0][2] << ", My end " << MuonEnd[0][0] << ", " << MuonEnd[0][1] << ", " << MuonEnd[0][2] << ". "
-		<< "Distance of " << MyRange << ". Time range " << MuonStart[0][3] << ", " << MuonEnd[0][3] << ".\n"
-		<< "Matt sta " << priides.front().x << ", " << priides.front().y << ", " << priides.front().z << ", Matt sta " << priides.back().x << ", " << priides.back().y << ", " << priides.back().z
-		<< std::endl;
-    
-    if ( PrimMuonRange - MyRange > 2 ) {
-      if (Verbosity) std::cout << "\n NOT MATCHING!! \n" << std::endl;
-      for (size_t qq=0; qq<priides.size(); ++qq)
-	if (Verbosity) std::cout << "PrimMuon start " << priides[qq].x << ", " << priides[qq].y << ", " << priides[qq].z << std::endl;
-    }
-  }
+
   // ------ Fill the Tree ------
   if (BadEvent) {
     if (Verbosity)
@@ -528,9 +531,12 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   return;
 } // Analyse
 // ******************************** Fill variables *****************************************************
-void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double DaughtEDep[MaxPart], double DecayEDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
-						     int nParents[MaxPart], int Parent[MaxPart][MaxParent], int ParTrID[MaxPart][MaxParent], int PDG[MaxPart], int TrID[MaxPart], int FromDecay[MaxPart],
-						     int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, bool OrigParticle, bool Decay, bool &Written ) {  
+void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVec, int &numParts, double EDep[MaxPart], double DaughtEDep[MaxPart], 
+						     double DecayEDep[MaxPart], double Start[MaxPart][4], double End[MaxPart][4],
+						     int nParents[MaxPart], int Parent[MaxPart][MaxParent], int ParTrID[MaxPart][MaxParent],
+						     int PDG[MaxPart], int TrID[MaxPart], int FromDecay[MaxPart],
+						     int ThisID, unsigned int ThisTDC, sim::IDE ThisIDE, const simb::MCParticle& MCPart, 
+						     bool OrigParticle, bool Decay, bool &Written ) {
   if (numParts > MaxPart) {
     BadEvent = true;
     Written=true;
@@ -586,18 +592,40 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVe
   }
   
   // ----------- If TrackID is positive add it to the EDep from this track, if negative then it has to be from a daughter --------------
-  if ( Verbosity > 1 )
-    std::cout << "OrigParticle " << OrigParticle << ", TrackID " << ThisID << ", " << ThisIDE.trackID << ", PDgCode " << PDG[numParts-1] << ", " << MCPart.PdgCode() << ", decay " << Decay << std::endl;
+  if ( Verbosity > 1 ) {
+    std::cout << "OrigParticle " << OrigParticle << ", TrackID " << ThisID << ", " << ThisIDE.trackID 
+	      << ", PDgCode " << PDG[numParts-1] << ", " << MCPart.PdgCode() << ", decay " << Decay 
+	      << std::endl;
+  }
   if ( OrigParticle ) {
     EDep[partNum]       += ThisIDE.energy;
-    // --------- Work out the start / end of this track ----------
-    if ( ThisIDE.y < Start[partNum][1] || Start[partNum][1] == HolderVal) {
+    
+    bool RepSt = false;
+    if (Start[partNum][1] == HolderVal)
+      RepSt = true;
+    else {
+      double St_Ar = CalcDist( MCPart.Vx(0), MCPart.Vy(0), MCPart.Vz(0), Start[partNum][0], Start[partNum][1], Start[partNum][2] );
+      double St_ID = CalcDist( MCPart.Vx(0), MCPart.Vy(0), MCPart.Vz(0), ThisIDE.x        , ThisIDE.y        , ThisIDE.z         );
+      if ( St_ID < St_Ar )
+	RepSt = true;
+    }
+    if (RepSt) {
       Start[partNum][0] = ThisIDE.x;
       Start[partNum][1] = ThisIDE.y;
       Start[partNum][2] = ThisIDE.z;
       Start[partNum][3] = ThisTDC;
     }
-    if ( ThisIDE.y > End[partNum][1] || End[partNum][1] == HolderVal ) {
+    // ------- Do I want to replace the end array?
+    bool RepEn = false;
+    if (Start[partNum][1] == HolderVal)
+      RepEn = true;
+    else {
+      double En_Ar = CalcDist( MCPart.EndX(), MCPart.EndY(), MCPart.EndZ(), End[partNum][0], End[partNum][1], End[partNum][2] );
+      double En_ID = CalcDist( MCPart.EndX(), MCPart.EndY(), MCPart.EndZ(), ThisIDE.x      , ThisIDE.y      , ThisIDE.z       );
+      if ( En_ID < En_Ar )
+	RepEn = true;
+    }
+    if (RepEn) {
       End[partNum][0] = ThisIDE.x;
       End[partNum][1] = ThisIDE.y;
       End[partNum][2] = ThisIDE.z;
@@ -609,8 +637,14 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVe
   } else {
     DaughtEDep[partNum] += ThisIDE.energy;
   }
-
+  
   Written=true;
 } // FillVars
+// ******************************** Define Module *****************************************************
+double NeutronDecayN2Ana::NeutronDecayN2Ana::CalcDist( double X1, double Y1, double Z1, double X2, double Y2, double Z2 ) {
+  double Sq = TMath::Power( X1-X2 , 2 ) + TMath::Power( Y1-Y2 , 2 ) + TMath::Power( Z1-Z2 , 2 );
+  double Va = TMath::Power( Sq, 0.5 );
+  return Va;
+}
 // ******************************** Define Module *****************************************************
 DEFINE_ART_MODULE(NeutronDecayN2Ana::NeutronDecayN2Ana)
