@@ -94,7 +94,7 @@ private:
 	
 	double GetEdepEM_MC(art::Event const & e) const;
 
-	double GetEdepTotVox(art::Event const & e) const;
+//	double GetEdepTotVox(art::Event const & e) const;
 
 	double GetEdepHits(const std::vector< recob::Hit > & hits) const;
 	
@@ -112,7 +112,7 @@ private:
 	double fEdep; 
 	double fEdepCl;
 	double fEdepMC;
-	double fEdepMCTotV;
+//	double fEdepMCTotV;
 	double fEdepMCEM;
 	double fRatioTot;
 	double fRatioEM;
@@ -163,7 +163,7 @@ void proto::EdepCal::beginJob()
 	fTree->Branch("fEdep", &fEdep, "fEdep/D");
 	fTree->Branch("fEdepCl", &fEdepCl, "fEdepCl/D");
 	fTree->Branch("fEdepMC", &fEdepMC, "fEdepMC/D");
-	fTree->Branch("fEdepMCTotV", &fEdepMCTotV, "fEdepMCTotV/D");
+//	fTree->Branch("fEdepMCTotV", &fEdepMCTotV, "fEdepMCTotV/D");
 	fTree->Branch("fEdepMCEM", &fEdepMCEM, "fEdepMCEM/D");
 	fTree->Branch("fRatioTot", &fRatioTot, "fRatioTot/D");
 	fTree->Branch("fRatioEM", &fRatioEM, "fRatioEM/D");
@@ -189,7 +189,7 @@ void proto::EdepCal::analyze(art::Event const & e)
 
 	// MC
 	fEdepMC = GetEdepMC(e);
-	fEdepMCTotV = GetEdepTotVox(e);
+//	fEdepMCTotV = GetEdepTotVox(e);
 	fEdepMCEM = GetEdepEM_MC(e);
 	
 	// MC particle list
@@ -233,7 +233,7 @@ void proto::EdepCal::analyze(art::Event const & e)
 		fRatioEM = fEdepCl / fEdepMCEM;
 	}
 	
-	double edephad = fEdepMCTotV - fEdepMCEM;
+	double edephad = fEdepMC - fEdepMCEM;
 	if (edephad > 0)
 	{
 		fRatioHad = (fEdep - fEdepCl) / edephad;
@@ -252,6 +252,7 @@ double proto::EdepCal::GetEdepMC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
+				if (fGeometry->View(channel.Channel()) != fBestview) continue;
 				// for every time slice in this channel:
 				auto const& timeSlices = channel.TDCIDEMap();
 				for ( auto const& timeSlice : timeSlices )
@@ -280,6 +281,7 @@ double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
+				if (fGeometry->View(channel.Channel()) != fBestview) continue;
 				// for every time slice in this channel:
 				auto const& timeSlices = channel.TDCIDEMap();
 				for ( auto const& timeSlice : timeSlices )
@@ -325,7 +327,7 @@ double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
 }
 
 // before recombination takes place and other attenuations
-double proto::EdepCal::GetEdepTotVox(art::Event const & e) const
+/*double proto::EdepCal::GetEdepTotVox(art::Event const & e) const
 {
 	double en = 0.0;
 
@@ -342,7 +344,7 @@ double proto::EdepCal::GetEdepTotVox(art::Event const & e) const
 	}
 	
 	return en;
-}
+}*/
 
 double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 {
@@ -353,7 +355,7 @@ double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 	{
 		unsigned short plane = hits[h].WireID().Plane;
 		if (plane != fBestview) continue;
-	
+
 		double dqadc = hits[h].Integral();
 		if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
 	
@@ -362,12 +364,12 @@ double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 		double tdrift = hits[h].PeakTime();
 		double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
 
-		double dq = dqel * correllifetime * fElectronsToGeV;
+		double dq = dqel * correllifetime * fElectronsToGeV * 1000;
 		if (!std::isnormal(dq) || (dq < 0)) continue;
 
 		dqsum += dq; 
 	}
-	
+
 	return dqsum; 
 }
 
@@ -389,7 +391,7 @@ double proto::EdepCal::GetEdepHits(const std::vector< art::Ptr<recob::Hit> > & h
 		double tdrift = hits[h]->PeakTime();
 		double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
 
-		double dq = dqel * correllifetime * fElectronsToGeV;
+		double dq = dqel * correllifetime * fElectronsToGeV * 1000;
 		if (!std::isnormal(dq) || (dq < 0)) continue;
 
 		dqsum += dq; 
@@ -411,7 +413,7 @@ void proto::EdepCal::ResetVars()
 	fEnGen = 0.0;
 	fEdepCl = 0.0;
 	fEdepMC = 0.0;
-	fEdepMCTotV = 0.0;
+//	fEdepMCTotV = 0.0;
 	fEdepMCEM = 0.0;
 	fRatioTot = 0.0;
 	fRatioEM = 0.0;
