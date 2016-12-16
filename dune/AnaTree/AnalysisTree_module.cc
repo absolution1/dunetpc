@@ -4090,7 +4090,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     
       //call the track momentum algorithm that gives you momentum based on track range
       trkf::TrackMomentumCalculator trkm;
-      trkm.SetMinLength(50); //change the minimal track length requirement to 50 cm
+      trkm.SetMinLength(100); //change the minimal track length requirement to 50 cm
 
       for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
       
@@ -4227,8 +4227,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           TrackerData.trkmom[iTrk]		  = mom;
           TrackerData.trklen[iTrk]		  = tlen;
           TrackerData.trkmomrange[iTrk] 	  = trkm.GetTrackMomentum(tlen,13);
-          TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
-          TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
+          //TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
+          //TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
           
           if (fSavePFParticleInfo) {
             auto mapIter = trackIDtoPFParticleIDMap.find(TrackID);

@@ -127,50 +127,50 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
 //**********************************************************************
 
 int StandardRawDigitPrepService::
-prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
+prepare(AdcChannelDataMap& datamap,
         std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const {
   const string myname = "StandardRawDigitPrepService:prepare: ";
   // Extract digits.
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Processing digits..." << endl;
-    cout << myname << "  Input # input digits: " << digs.size() << endl;
-    cout << myname << "  Input # prepared digits: " << datamap.size() << endl;
+    cout << myname << "  # input digits: " << datamap.size() << endl;
   }
   int nbad = 0;
   unsigned int ichan = m_DumpChannel;
   unsigned int isig = m_DumpTick;
   set<string> snames;
-  for ( size_t idig=0; idig<digs.size(); ++idig ) {
-    const RawDigit& dig = digs[idig];
-    AdcChannel chanoff = dig.Channel();
-    if ( m_LogLevel >= 3 ) cout << myname << "Processing digit for channel " << chanoff << endl;
+  vector<AdcChannel> skipChannels;   // Channels to drop from the data map.
+  for ( AdcChannelDataMap::value_type& iacd : datamap ) {
+    AdcChannel chan = iacd.first;
+    AdcChannelData& data = iacd.second;
+    if ( m_LogLevel >= 3 ) cout << myname << "Processing digit for channel " << chan << endl;
+    if ( data.digit == nullptr ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Skipping null digit." << endl;
+      skipChannels.push_back(chan);
+      continue;
+    }
+    m_pExtractSvc->extract(*data.digit, &data.channel, &data.pedestal, &data.raw, &data.samples, &data.flags);
+    if ( chan != data.digit->Channel() || chan != data.channel ) {
+      cout << myname << "ERROR: Inconsistent channel number!" << endl;
+      skipChannels.push_back(chan);
+      continue;
+    }
     if ( m_SkipBad || m_SkipNoisy ) {
-      unsigned int chanstat = chanoff;
+      unsigned int chanstat = chan;
       if ( m_ChannelStatusOnline ) {
-        unsigned int chanon = m_pChannelMappingService->online(chanoff);
+        unsigned int chanon = m_pChannelMappingService->online(chan);
         chanstat = chanon;
       }
       if ( m_SkipBad && m_pChannelStatusProvider->IsBad(chanstat) ) {
         if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << chanstat << endl;
+        skipChannels.push_back(chan);
         continue;
       }
       if ( m_SkipNoisy && m_pChannelStatusProvider->IsNoisy(chanstat) ) {
         if ( m_LogLevel >= 3 ) cout << myname << "Skipping noisy channel " << chanstat << endl;
+        skipChannels.push_back(chan);
         continue;
       }
-    }
-    AdcChannelData data;
-    data.digitIndex = idig;
-    AdcChannel& chan = data.channel;
-    AdcSignal& ped = data.pedestal;
-    m_pExtractSvc->extract(dig, &chan, &ped, &data.raw, &data.samples, &data.flags);
-    if ( chan != chanoff ) cout << myname << "ERROR: Inconsistent channel number!" << endl;
-    data.digit = &dig;
-    AdcChannelDataMap::const_iterator iacd = datamap.find(chan);
-    if ( iacd != datamap.end() ) {
-      cout << myname << "WARNING: Data already exists for channel " << chan << ". Skipping." << endl;
-      ++nbad;
-      continue;
     }
     string state = "extracted";
     if ( pintStates != nullptr && pintStates->hasData(state) && m_pAdcChannelDataCopyService != nullptr ) {
@@ -190,7 +190,10 @@ prepare(const vector<RawDigit>& digs, AdcChannelDataMap& datamap,
     if ( m_DoEarlySignalFinding ) {
       m_pAdcSignalFindingService->find(data);
     }
-    datamap[chan] = std::move(data);
+  }
+  // Remove the skipped channels from the data map.
+  for ( AdcChannel chan : skipChannels ) {
+    datamap.erase(chan);
   }
   if ( m_DoDump ) {
     cout << myname << "Dumping channel " << m_DumpChannel << ", Tick " << isig << endl;
