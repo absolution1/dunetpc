@@ -1,6 +1,5 @@
-#include "calorimetry_dune35t.fcl"
-#include "calorimetry_dune10kt.fcl"
 #include "trackfinderalgorithms.fcl"
+#include "calorimetry_dune35t.fcl"
 
 BEGIN_PROLOG
 
@@ -35,7 +34,8 @@ proto_edepcal:
 	module_type: "EdepCal"
 	SimulationLabel: "largeant"
 	HitsModuleLabel: "linecluster"
-	CalorimetryAlg:  @local::dune35t_calorimetryalgmc
+	ClusterModuleLabel: "emtrackid"
+	CalorimetryAlg: @local::dune35t_calorimetryalgmc
 	Bestview: 2
 }
 

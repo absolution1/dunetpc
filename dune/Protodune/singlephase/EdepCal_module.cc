@@ -92,9 +92,13 @@ private:
 
 	double GetEdepMC(art::Event const & e) const;
 	
+	double GetEdepAttenuatedMC(art::Event const & e) const;
+	
 	double GetEdepEM_MC(art::Event const & e) const;
+	
+	double GetEdepEMAttenuated_MC(art::Event const & e) const;
 
-	double GetEdepTotVox(art::Event const & e) const;
+//	double GetEdepTotVox(art::Event const & e) const;
 
 	double GetEdepHits(const std::vector< recob::Hit > & hits) const;
 	
@@ -105,19 +109,24 @@ private:
 	double fT0;
 	
 	//////
-	TTree *fTree; TTree *fDataTree;
+	TTree *fTree;
 	int fRun; 
 	int fEvent;
 	double fEnGen;
 	double fEdep; 
 	double fEdepCl;
 	double fEdepMC;
-	double fEdepMCTotV;
-	double fEdepMCEM;
+	double fEdepAttMC;
+//	double fEdepMCTotV;
+	double fEdepEMMC;
+	double fEdepEMAttMC;
+	double fRatioTot;
+	double fRatioEM;
+	double fRatioHad;
 	//////
 
 	//std::vector< art::Ptr<simb::MCParticle> > fSimlist;
-	std::vector< art::Ptr<recob::Hit> > fHitlist;
+	//std::vector< art::Ptr<recob::Hit> > fHitlist;
 	//std::vector< art::Ptr<recob::Cluster> > fClusterlist;
 
 	// Module labels to get data products
@@ -160,12 +169,13 @@ void proto::EdepCal::beginJob()
 	fTree->Branch("fEdep", &fEdep, "fEdep/D");
 	fTree->Branch("fEdepCl", &fEdepCl, "fEdepCl/D");
 	fTree->Branch("fEdepMC", &fEdepMC, "fEdepMC/D");
-	fTree->Branch("fEdepMCTotV", &fEdepMCTotV, "fEdepMCTotV/D");
-	fTree->Branch("fEdepMCEM", &fEdepMCEM, "fEdepMCEM/D");
-
-	fDataTree = tfs->make<TTree>("Data", "dE/dx info");
-	fDataTree->Branch("fRun", &fRun, "fRun/I");
-	fDataTree->Branch("fEvent", &fEvent, "fEvent/I");
+	fTree->Branch("fEdepAttMC", &fEdepAttMC, "fEdepAttMC/D");
+//	fTree->Branch("fEdepMCTotV", &fEdepMCTotV, "fEdepMCTotV/D");
+	fTree->Branch("fEdepEMMC", &fEdepEMMC, "fEdepEMMC/D");
+	fTree->Branch("fEdepEMAttMC", &fEdepEMAttMC, "fEdepEMAttMC/D");
+	fTree->Branch("fRatioTot", &fRatioTot, "fRatioTot/D");
+	fTree->Branch("fRatioEM", &fRatioEM, "fRatioEM/D");
+	fTree->Branch("fRatioHad", &fRatioHad, "fRatioHad/D");
 }
 
 void proto::EdepCal::reconfigure(fhicl::ParameterSet const & p)
@@ -184,11 +194,6 @@ void proto::EdepCal::analyze(art::Event const & e)
 
 	fRun = e.run();
 	fEvent = e.id().event();
-
-	// MC
-	fEdepMC = GetEdepMC(e);
-	fEdepMCTotV = GetEdepTotVox(e);
-	fEdepMCEM = GetEdepEM_MC(e);
 	
 	// MC particle list
 	auto particleHandle = e.getValidHandle< std::vector<simb::MCParticle> >(fSimulationLabel);	
@@ -203,8 +208,19 @@ void proto::EdepCal::analyze(art::Event const & e)
 			flag = false;	
 		}
 	}
+
+	// MC
+	fEdepMC = GetEdepMC(e);
+	fEdepAttMC = GetEdepAttenuatedMC(e);
+//	fEdepMCTotV = GetEdepTotVox(e);
+	fEdepEMMC = GetEdepEM_MC(e);
+	fEdepEMAttMC = GetEdepEMAttenuated_MC(e);
+	
+	//sim::IDE
+	//auto simchannel = e.getValidHandle< std::vector<sim::SimChannel> >(fSimulationLabel);
 	
 	// hits
+	fEdep = 0.0;
 	const auto& hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
 	fEdep = GetEdepHits(hitListHandle);
 
@@ -219,11 +235,26 @@ void proto::EdepCal::analyze(art::Event const & e)
 	{
 		fEdepCl += GetEdepHits(hitsFromClusters.at(c));
 	}
+	
+	
+	if (fEdepMC > 0.0)
+	{
+		fRatioTot = fEdep / fEdepMC;
+	}
+	if (fEdepEMMC > 0.0)
+	{
+		fRatioEM = fEdepCl / fEdepEMMC;
+	}
+	
+	double edephad = fEdepMC - fEdepEMMC;
+	if (edephad > 0)
+	{
+		fRatioHad = (fEdep - fEdepCl) / edephad;
+	}
 
 	fTree->Fill();
 }
 
-// after recombination and electron lifetime
 double proto::EdepCal::GetEdepMC(art::Event const & e) const
 {
 	double energy = 0.0;
@@ -233,17 +264,20 @@ double proto::EdepCal::GetEdepMC(art::Event const & e) const
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
-				// for every time slice in this channel:
-				auto const& timeSlices = channel.TDCIDEMap();
-				for ( auto const& timeSlice : timeSlices )
+				if (fGeometry->View(channel.Channel()) == fBestview) 
 				{
+					// for every time slice in this channel:
+					auto const& timeSlices = channel.TDCIDEMap();
+					for ( auto const& timeSlice : timeSlices )
+					{
 						// loop over the energy deposits.
 						auto const& energyDeposits = timeSlice.second;
 		
 						for ( auto const& energyDeposit : energyDeposits )
 						{
-							energy += energyDeposit.numElectrons * fElectronsToGeV * 1000;
+							energy += energyDeposit.energy;
 						}
+					}
 				}
 			}
 	}
@@ -251,19 +285,108 @@ double proto::EdepCal::GetEdepMC(art::Event const & e) const
 	return energy;
 }
 
-double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
+double proto::EdepCal::GetEdepAttenuatedMC(art::Event const & e) const
 {
-	double enEM = 0.0;
+	double energy = 0.0;
 
 	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
 	if (e.getByLabel(fSimulationLabel, simchannelHandle))
 	{
 			for ( auto const& channel : (*simchannelHandle) )
 			{
-				// for every time slice in this channel:
-				auto const& timeSlices = channel.TDCIDEMap();
-				for ( auto const& timeSlice : timeSlices )
+				if (fGeometry->View(channel.Channel()) == fBestview) 
 				{
+					// for every time slice in this channel:
+					auto const& timeSlices = channel.TDCIDEMap();
+					for ( auto const& timeSlice : timeSlices )
+					{
+						// loop over the energy deposits.
+						auto const& energyDeposits = timeSlice.second;
+		
+						for ( auto const& energyDeposit : energyDeposits )
+						{
+							energy += energyDeposit.numElectrons * fElectronsToGeV * 1000;
+						}
+					}
+				}
+			}
+	}
+	
+	return energy;
+		                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+}
+
+double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
+{
+	double enEM = 0.0;
+	
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle))
+	{
+			for ( auto const& channel : (*simchannelHandle) )
+			{
+				if (fGeometry->View(channel.Channel()) == fBestview)
+				{ 
+					// for every time slice in this channel:
+					auto const& timeSlices = channel.TDCIDEMap();
+					for ( auto const& timeSlice : timeSlices )
+					{
+						// loop over the energy deposits.
+						auto const& energyDeposits = timeSlice.second;
+		
+						for ( auto const& energyDeposit : energyDeposits )
+						{
+							double energy = energyDeposit.energy;
+							int trackID = energyDeposit.trackID;
+							
+							if (trackID < 0)
+							{
+								enEM += energy;
+							}
+							else if (trackID > 0)
+							{
+								auto search = fParticleMap.find(trackID);
+								bool found = true;
+								if (search == fParticleMap.end())
+								{
+									mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND";
+									found = false;
+								}
+								
+								int pdg = 0;
+								if (found)
+								{
+									const simb::MCParticle& particle = *((*search).second);
+                                                			if (!pdg) pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+								}
+								
+								if ((pdg == 11) || (pdg == -11) || (pdg == 22)) enEM += energy;
+							}
+							
+						}
+					}
+				}
+			}
+	}
+	return enEM;
+}
+
+double proto::EdepCal::GetEdepEMAttenuated_MC(art::Event const & e) const
+{
+	double enEM = 0.0;
+
+
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle))
+	{
+			for ( auto const& channel : (*simchannelHandle) )
+			{
+				if (fGeometry->View(channel.Channel()) == fBestview)
+				{
+					// for every time slice in this channel:
+					auto const& timeSlices = channel.TDCIDEMap();
+					for ( auto const& timeSlice : timeSlices )
+					{
 						// loop over the energy deposits.
 						auto const& energyDeposits = timeSlice.second;
 		
@@ -282,7 +405,7 @@ double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
 								bool found = true;
 								if (search == fParticleMap.end())
 								{
-									// mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND";
+									mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND";
 									found = false;
 								}
 								
@@ -297,14 +420,14 @@ double proto::EdepCal::GetEdepEM_MC(art::Event const & e) const
 							}
 							
 						}
+					}
 				}
 			}
 	}
 	return enEM;
 }
-
 // before recombination takes place and other attenuations
-double proto::EdepCal::GetEdepTotVox(art::Event const & e) const
+/*double proto::EdepCal::GetEdepTotVox(art::Event const & e) const
 {
 	double en = 0.0;
 
@@ -321,7 +444,7 @@ double proto::EdepCal::GetEdepTotVox(art::Event const & e) const
 	}
 	
 	return en;
-}
+}*/
 
 double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 {
@@ -331,8 +454,8 @@ double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 	for (size_t h = 0; h < hits.size(); ++h)
 	{
 		unsigned short plane = hits[h].WireID().Plane;
-		if (plane != geo::kZ) continue;
-	
+		if (plane != fBestview) continue;
+
 		double dqadc = hits[h].Integral();
 		if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
 	
@@ -346,7 +469,7 @@ double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 
 		dqsum += dq; 
 	}
-	
+
 	return dqsum; 
 }
 
@@ -358,7 +481,7 @@ double proto::EdepCal::GetEdepHits(const std::vector< art::Ptr<recob::Hit> > & h
 	for (size_t h = 0; h < hits.size(); ++h)
 	{
 		unsigned short plane = hits[h]->WireID().Plane;
-		if (plane != geo::kZ) continue;
+		if (plane != fBestview) continue;
 	
 		double dqadc = hits[h]->Integral();
 		if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
@@ -390,9 +513,15 @@ void proto::EdepCal::ResetVars()
 	fEnGen = 0.0;
 	fEdepCl = 0.0;
 	fEdepMC = 0.0;
-	fEdepMCTotV = 0.0;
-	fEdepMCEM = 0.0;
+	fEdepAttMC = 0.0;
+//	fEdepMCTotV = 0.0;
+	fEdepEMMC = 0.0;
+	fEdepEMAttMC = 0.0;
+	fRatioTot = 0.0;
+	fRatioEM = 0.0;
+	fRatioHad = 0.0;
 	fT0 = 0.0;
+	fParticleMap.clear();
 }
 
 DEFINE_ART_MODULE(proto::EdepCal)

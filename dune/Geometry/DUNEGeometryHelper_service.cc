@@ -90,6 +90,10 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
     } else if ( detectorName.find("dunedphase10kt") != std::string::npos ) {
       fChannelMap = std::make_shared<geo::ChannelMapCRMAlg>(pset);
 
+    // protoDUNE 6x6x6 dual-phase
+    } else if ( detectorName.find("protodunedphase") != std::string::npos ) {
+      fChannelMap = std::make_shared<geo::ChannelMapCRMAlg>(pset);
+
     // DUNE 34kt
     } else if ( ( detectorName.find("dune34kt") != std::string::npos )
              || ( detectorName.find("lbne34kt") != std::string::npos ) ) {
