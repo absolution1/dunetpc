@@ -12,9 +12,9 @@ services:
   TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
-  #user:         @local::dune35t_simulation_services
+  #              @table::dune35t_simulation_services
   FileCatalogMetadata:  @local::art_file_catalog_mc
-  user:         @local::dune35t_services
+                @table::dune35t_services
 }
 
 

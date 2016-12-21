@@ -11,7 +11,6 @@
 //   extracted - After pedestal subtraction
 //   mitigated - After mitigation (e.g. stuck bit interpolation)
 //   noiseRemoved - After noise removal
-
 //
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
@@ -61,10 +60,11 @@ public:
 
   StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int prepare(const std::vector<raw::RawDigit>& digs, AdcChannelDataMap& prepdigs,
-              std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const;
+  int prepare(AdcChannelDataMap& prepdigs,
+              std::vector<recob::Wire>* pwires,
+              WiredAdcChannelDataMap* pintStates) const override;
 
-  std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
+  std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const override;
 
 private:
 

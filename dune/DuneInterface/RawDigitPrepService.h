@@ -32,7 +32,7 @@ public:
   // to this method.
   // If not null, the object pwiredData may be filled with intermediate state information as dictated
   // the configuration of the service implementation.
-  virtual int prepare(const std::vector<raw::RawDigit>& digs, AdcChannelDataMap& prepdigs,
+  virtual int prepare(AdcChannelDataMap& prepdigs,
                       std::vector<recob::Wire>* pwires =nullptr,
                       WiredAdcChannelDataMap* pwiredData =nullptr) const =0;
 
