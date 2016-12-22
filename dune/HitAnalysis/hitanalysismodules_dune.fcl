@@ -17,4 +17,12 @@ dune35t_fastgwa:
   Verbosity:           true
 }
 
+dune35t_robustmcana:
+{
+    module_type: "RobustMCAna"
+    HitsModuleLabel: "robusthit"
+    Verbose: false
+    PreviousMCScale: 1.0
+}
+
 END_PROLOG

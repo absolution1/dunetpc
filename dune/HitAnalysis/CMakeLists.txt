@@ -6,6 +6,8 @@ art_make(BASENAME_ONLY
 	 larcore_Geometry_Geometry_service
          larcore_Geometry
          nusimdata_SimulationBase
+	 larsim_MCCheater_BackTracker_service
+	 HitFinderDUNE
          ${ART_FRAMEWORK_CORE}
 	 ${ART_FRAMEWORK_PRINCIPAL}
 	 ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -19,6 +21,7 @@ art_make(BASENAME_ONLY
 	 ${CETLIB}
 	 ${ROOT_BASIC_LIB_LIST}
 	 lbne_daqinput35t
+         ${Boost_SYSTEM_LIBRARY}
 )
 
 install_headers()
