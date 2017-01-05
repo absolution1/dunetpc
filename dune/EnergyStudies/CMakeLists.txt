@@ -25,7 +25,7 @@ simple_plugin(dEdx "module"
                         lardataobj_RawData
                         lardataobj_RecoBase
                         lardata_Utilities
-                        larsim_Simulation lardataobj_Simulation
+                        larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
@@ -48,7 +48,7 @@ simple_plugin(EMEnergyCalib "module"
 		        larcore_Geometry
 			larcore_Geometry_Geometry_service
 			larsim_MCCheater_BackTracker_service
-			larsim_Simulation lardataobj_Simulation
+			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			lardata_Utilities
 			nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
@@ -72,7 +72,7 @@ simple_plugin(EMPi0Energy "module"
 		        larcore_Geometry
 			larcore_Geometry_Geometry_service
 			larsim_MCCheater_BackTracker_service
-			larsim_Simulation lardataobj_Simulation
+			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			lardata_Utilities
 			nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}

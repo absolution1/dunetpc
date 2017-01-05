@@ -14,9 +14,9 @@ services:
   RandomNumberGenerator: {} 
   #message:      @local::standard_info
   message:      @local::dune_message_services_prod_debug
-  #user:         @local::dune35t_simulation_services
+  #              @table::dune35t_simulation_services
   FileCatalogMetadata:  @local::art_file_catalog_mc
-  user:         @local::dune35t_services
+                @table::dune35t_services
 }
 
 
@@ -102,4 +102,4 @@ outputs:{
 
 }
 
-#services.user.DatabaseUtil.ShouldConnect: true
+#services.DatabaseUtil.ShouldConnect: true

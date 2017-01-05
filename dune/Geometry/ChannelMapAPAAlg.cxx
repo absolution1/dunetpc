@@ -23,6 +23,7 @@ namespace geo{
   ChannelMapAPAAlg::ChannelMapAPAAlg(fhicl::ParameterSet const& p)
     : fSorter(geo::GeoObjectSorterAPA(p))
   {
+    fChannelsPerOpDet = p.get< unsigned int >("ChannelsPerOpDet"      );
   }
 
   //----------------------------------------------------------------------------
@@ -262,6 +263,14 @@ namespace geo{
   
   
   //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::Nchannels
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::Nchannels(ROPID)
+  
+  
+  //----------------------------------------------------------------------------
   double ChannelMapAPAAlg::WireCoordinate
     (double YPos, double ZPos, geo::PlaneID const& planeid) const
   {
@@ -406,34 +415,148 @@ namespace geo{
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::NOpChannels(unsigned int NOpDets) const
   {
-    return 12*NOpDets;
+    return fChannelsPerOpDet*NOpDets;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::NOpHardwareChannels(unsigned int opDet) const
   {
-    return 12;
+    return fChannelsPerOpDet;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::OpChannel(unsigned int detNum, unsigned int channel) const
   {
-    unsigned int uniqueChannel = (detNum * 12) + channel;
+    unsigned int uniqueChannel = (detNum * fChannelsPerOpDet) + channel;
     return uniqueChannel;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::OpDetFromOpChannel(unsigned int opChannel) const
   {
-    unsigned int detectorNum = (unsigned int) opChannel / 12;
+    unsigned int detectorNum = (unsigned int) opChannel / fChannelsPerOpDet;
     return detectorNum;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::HardwareChannelFromOpChannel(unsigned int opChannel) const
   {
-    unsigned int channel = opChannel % 12;
+    unsigned int channel = opChannel % fChannelsPerOpDet;
     return channel;
   }
 
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::NTPCsets
+    (readout::CryostatID const& cryoid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::NTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::MaxTPCsets() const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::MaxTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  bool ChannelMapAPAAlg::HasTPCset(readout::TPCsetID const& tpcsetid) const
+  {
+    return tpcsetid.TPCset < NTPCsets(tpcsetid);
+  } // ChannelMapAPAAlg::HasTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::TPCsetID ChannelMapAPAAlg::TPCtoTPCset
+    (geo::TPCID const& tpcid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::TPCtoTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::TPCID> ChannelMapAPAAlg::TPCsetToTPCs
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::TPCsetToTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::TPCID ChannelMapAPAAlg::FirstTPCinTPCset
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::FirstTPCinTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::NROPs
+      (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::NROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::MaxROPs() const {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::MaxROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  bool ChannelMapAPAAlg::HasROP(readout::ROPID const& ropid) const {
+    return ropid.ROP < NROPs(ropid);
+  } // ChannelMapAPAAlg::HasROP()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::ROPID ChannelMapAPAAlg::WirePlaneToROP
+    (geo::PlaneID const& planeid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::WirePlaneToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::PlaneID> ChannelMapAPAAlg::ROPtoWirePlanes
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::ROPtoWirePlanes()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::TPCID> ChannelMapAPAAlg::ROPtoTPCs
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::ROPtoTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::ROPID ChannelMapAPAAlg::ChannelToROP
+    (raw::ChannelID_t channel) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::ROPtoTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  raw::ChannelID_t ChannelMapAPAAlg::FirstChannelInROP
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::FirstChannelInROP()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::PlaneID ChannelMapAPAAlg::FirstWirePlaneInROP
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::FirstWirePlaneInROP()
+  
+  
 } // namespace

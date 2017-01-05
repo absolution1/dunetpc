@@ -35,8 +35,8 @@ dune35t_detproperties.Electronlifetime:  3.0e3
 # dune35t_detproperties.Efield:          [0.5,0.666,0.8]  #(predicted for microBooNE)
 dune35t_detproperties.Efield:            [0.25,0.782,1.734] # Run was at half field
 dune35t_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE 35t
-dune35t_detproperties.NumberTimeSamples: 3200
-dune35t_detproperties.ReadOutWindowSize: 3200
+dune35t_detproperties.NumberTimeSamples: 5200
+dune35t_detproperties.ReadOutWindowSize: 5200
 dune35t_detproperties.TimeOffsetU:       0.
 dune35t_detproperties.TimeOffsetV:       0.
 dune35t_detproperties.TimeOffsetZ:       0.

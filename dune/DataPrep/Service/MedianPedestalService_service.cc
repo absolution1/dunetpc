@@ -56,10 +56,12 @@ evaluate(const AdcChannelData& data, AdcSignal* pped, AdcSignal* prms,
     }
     sigs.push_back(sig);
   }
-  sort(sigs.begin(), sigs.end());
-  unsigned int isig = sigs.size()/2;
-  bool isodd = sigs.size()%2;
-  ped = isodd ? sigs[isig-1] : 0.5*(sigs[isig-1] + sigs[isig]);
+  if ( sigs.size() > 0 ) {
+    sort(sigs.begin(), sigs.end());
+    unsigned int isig = sigs.size()/2;
+    bool isodd = sigs.size()%2;
+    ped = isodd ? sigs[isig-1] : 0.5*(sigs[isig-1] + sigs[isig]);
+  }
   if ( pped != nullptr ) *pped = ped;
   if ( prms != nullptr ) *prms = rms;
   if ( ppederr != nullptr ) *ppederr = pederr;
