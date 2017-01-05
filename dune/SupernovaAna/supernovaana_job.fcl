@@ -14,8 +14,24 @@ services:
   TFileService: { fileName: "SupernovaAna_hist.root" }
   TimeTracker:       {}
   RandomNumberGenerator: {} #ART native random number generator
-  user:         @local::dune35t_services
+#  @table::dunefd_services
+  ExptGeoHelperInterface:         @local::dune_geometry_helper
+  Geometry:                       @local::dune10kt_geo
+  DetectorClocksService:          @local::dunefd_detectorclocks
+  DetectorPropertiesService:      @local::dunefd_detproperties
+  LArPropertiesService:           @local::dunefd_properties
+  LArFFT:                         @local::dunefd_larfft
+  DatabaseUtil:                   @local::dunefd_database
+  BackTracker:                    @local::dunefd_backtracker
+#  PhotonBackTracker:              @local::dunefd_photonbacktracker
+  SpaceCharge:                    @local::dunefd_spacecharge
+  NuRandomService:                @local::dune_seedservice
+  SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
+  ChannelStatusService:           @local::dunefd_channel_status
+  ChannelGroupService:            @local::changroup_apa
 }
+
+
 
 physics:
 {
