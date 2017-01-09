@@ -85,6 +85,8 @@ private:
   TH2D* hChargeComp;
   TH1D* hdT;
   TH1D* hMCC;
+  TH1D* hChgWeightedPurity;
+  TH1D* hChgWeightedEfficiency;
 
   double mcscale;
 
@@ -93,6 +95,8 @@ private:
   double eventefficiency;
   double chargepurity;
   double chargeefficiency;
+  double eventchgweightedpurity;
+  double eventchgweightedefficiency;
   double eventchargeratio;
   double eventdT;
   double eventMCC;
@@ -111,6 +115,8 @@ private:
   double binefficiency;
   double binchargepurity;
   double binchargeefficiency;
+  double binchgweightedpurity;
+  double binchgweightedefficiency;
   int bintp;
   int binfp;
   int binfn;
@@ -156,6 +162,8 @@ hit::RobustMCAna::RobustMCAna(fhicl::ParameterSet const & p)
   hChargeComp = fTfs->make<TH2D>("hChargeComp","Comparison of reco and MC charges; MC Charge (fC); Reco Charge (fC)",400,0,30000,400,0,30000);
   hdT = fTfs->make<TH1D>("hdT","#DeltaT between MC hit and Reco Hit; Reco Hit Time - MC Hit Time (TDC ticks); # Events",200,-30,30);
   hMCC = fTfs->make<TH1D>("hMCC","Matthew's Correlation Coefficient; MCC; # Events",201,-1.1,1.1);
+  hChgWeightedPurity = fTfs->make<TH1D>("hChgWeightedPurity","Charge weighted Purity; Chg Weighted TP/(TP+FP); # Events",200,0,1.1);
+  hChgWeightedEfficiency = fTfs->make<TH1D>("hChgWeightedEfficiency","Charge weighted Efficiency; Chg Weighted TP/(TP+FN); # Events",200,0,1.1);
 
   fBinTree = fTfs->make<TTree>("mcanabins","mcanabins");
   fBinTree->Branch("bin",&bin,"bin/I");
@@ -164,6 +172,8 @@ hit::RobustMCAna::RobustMCAna(fhicl::ParameterSet const & p)
   fBinTree->Branch("efficiency",&binefficiency,"efficiency/D");
   fBinTree->Branch("chargepurity",&binchargepurity,"chargepurity/D");
   fBinTree->Branch("chargeefficiency",&binchargeefficiency,"chargeefficiency/D");
+  fBinTree->Branch("chargeweightedpurity",&binchgweightedpurity,"chargeweightedpurity/D");
+  fBinTree->Branch("chargeweightedefficiency",&binchgweightedefficiency,"chargeweightedefficiency/D");
   fBinTree->Branch("tp",&bintp,"tp/I");
   fBinTree->Branch("fp",&binfp,"fp/I");
   fBinTree->Branch("fn",&binfn,"fn/I");
@@ -179,6 +189,8 @@ hit::RobustMCAna::RobustMCAna(fhicl::ParameterSet const & p)
   fEventTree->Branch("chargepurity",&chargepurity,"chargepurity/D");
   fEventTree->Branch("chargeefficiency",&chargeefficiency,"chargeefficiency/D");
   fEventTree->Branch("chargeratio",&eventchargeratio,"chargeratio/D");
+  fEventTree->Branch("chargeweightedpurity",&eventchgweightedpurity,"chargeweightedpurity");
+  fEventTree->Branch("chargeweightedefficiency",&eventchgweightedefficiency,"chargeweightedefficiency");
   fEventTree->Branch("dT",&eventdT,"dT/D");
   fEventTree->Branch("MCC",&eventMCC,"MCC/D");
   fEventTree->Branch("mcscale",&mcscale,"mcscale/D");
@@ -318,7 +330,6 @@ void hit::RobustMCAna::analyze(art::Event const & e)
 	      hChargeComp->Fill(totalSimCharge,totalRecoCharge);// units of fC
 	      hdT->Fill(hit->second->PeakTime()-meanSimTime);
 	      dTs.push_back(hit->second->PeakTime()-meanSimTime);
-	      hit = recoHitMap.erase(hit);
 	      for (bin = 0; bin < fNbins; ++bin)
 		{
 		  double min = bin*(2012.0/fNbins);
@@ -329,6 +340,7 @@ void hit::RobustMCAna::analyze(art::Event const & e)
 		      chargeratiosbins[bin].push_back(totalRecoCharge / totalSimCharge);
 		    }
 		}
+	      hit = recoHitMap.erase(hit);
 	    }
 	  else
 	    {
@@ -357,6 +369,7 @@ void hit::RobustMCAna::analyze(art::Event const & e)
   tpc = 0;
   for (auto h : recoHits)
     {
+      
       tpc += h->Integral();
     }
   tpc *= (1/ADCtomV);
@@ -380,7 +393,10 @@ void hit::RobustMCAna::analyze(art::Event const & e)
 
   chargepurity = (tpc+fpc==0) ? -1 : tpc/(tpc+fpc);
   chargeefficiency = (tpc+fnc==0) ? -1 : tpc/(tpc+fnc);
+  eventchgweightedpurity = (tpc*tp+fpc*fp==0)?-1:(tpc*tp)/(tpc*tp+fpc*fp);
+  eventchgweightedefficiency = (tpc*tp+fnc*fn==0)?-1:(tpc*tp)/(tpc*tp+fnc*fn);
   std::cout << "TPC: " << tpc << "  FPC: " << fpc << "  FNC: " << fnc << "  CPur: " << chargepurity << "  CEff: " << chargeefficiency << std::endl;
+  std::cout << "ChgWeighted Purity: " << eventchgweightedpurity << " Efficiency: " << eventchgweightedefficiency << std::endl;
   
   fEventTree->Fill();
 
@@ -388,6 +404,8 @@ void hit::RobustMCAna::analyze(art::Event const & e)
   if (tp+fn != 0) hEventEfficiency->Fill(efficiency);
   if (tpc+fpc != 0) hEventChargePurity->Fill(chargepurity);
   if (tpc+fnc != 0) hEventChargeEfficiency->Fill(chargeefficiency);
+  if (tpc*tp+fpc*fp!=0) hChgWeightedPurity->Fill(eventchgweightedpurity);
+  if (tpc*tp+fnc*fn!=0) hChgWeightedEfficiency->Fill(eventchgweightedefficiency);
   if ((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn)!=0) hMCC->Fill(mcc);
 
   for (bin = 0; bin < fNbins; ++bin)
@@ -445,10 +463,13 @@ void hit::RobustMCAna::analyze(art::Event const & e)
       binchargepurity = (bintpc+binfpc<=0) ? -1.0 : bintpc/(bintpc+binfpc);
       binchargeefficiency = (bintpc+binfnc<=0) ? -1.0 : bintpc/(bintpc+binfnc);
       binchargeratio = (chargeratiosbins[bin].size()==0) ? -999 : TMath::Mean(chargeratiosbins[bin].size(),chargeratiosbins[bin].data());
+      binchgweightedpurity = (bintpc*bintp+binfpc*binfp<=0) ? -1.0 : (bintpc*bintp)/(bintpc*bintp+binfpc*binfp);
+      binchgweightedefficiency = (bintpc*bintp+binfnc*binfn<=0) ? -1.0 : (bintpc*bintp)/(bintpc*bintp+binfnc*binfn);
 
       
-      std::cout << "Event " << e.event() << "  bin " << bin << "  fp=" << binfp << " fn=" << binfn << " tp=" << bintp << " pur=" << binpurity << " eff=" << binefficiency << " cpur=" << binchargepurity << " ceff=" << binchargeefficiency << "  cratio=" << binchargeratio << std::endl;
-
+      std::cout << "Event " << e.event() << "  bin " << bin << "  fp=" << binfp << " fn=" << binfn << " tp=" << bintp << " pur=" << binpurity << " eff=" << binefficiency << std::endl;
+      std::cout << "     fpc=" << binfpc << " fnc=" << binfnc << " tpc=" << bintpc << " cpur=" << binchargepurity << " ceff=" << binchargeefficiency << "  cratio=" << binchargeratio << std::endl;
+      std::cout << "   ChgWeighted Efficency=" << binchgweightedefficiency << " Purity=" << binchgweightedpurity << std::endl;
       fBinTree->Fill();
     }
 }
