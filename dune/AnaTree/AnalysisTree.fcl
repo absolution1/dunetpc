@@ -47,7 +47,7 @@ dune35t_analysistree:
  SaveClusterInfo:          true
  SaveFlashInfo:            true
  SaveExternCounterInfo:    true
- SaveShowerInfo:           true
+ SaveShowerInfo:           false
  SaveCaloCosmics:          true
  G4minE:                   -1
 }
@@ -64,19 +64,22 @@ protodune_analysistree.FlashMatchAssocLabel: [ "", "", "" ]
 protodune_analysistree.SaveShowerInfo:  false
 
 dune10kt_analysistree: @local::dune35t_analysistree
-dune10kt_analysistree.TrackModuleLabel: [ "pmtrackdc", "pmtracktcdc" ]
-dune10kt_analysistree.CalorimetryModuleLabel: [ "pmtrackcalodc", "pmtracktccalodc" ]
-dune10kt_analysistree.ParticleIDModuleLabel:       [ "pmtrackpiddc", "pmtracktcpiddc" ]
-dune10kt_analysistree.FlashT0FinderLabel: [ "", "" ]
-dune10kt_analysistree.MCT0FinderLabel:   [ "", "" ]
-dune10kt_analysistree.CosmicTaggerAssocLabel:  [ "", "" ]
-dune10kt_analysistree.ContainmentTaggerAssocLabel: [ "", "" ]
-dune10kt_analysistree.FlashMatchAssocLabel: [ "", "" ]
+dune10kt_analysistree.TrackModuleLabel: [ "pmtrack", "pmtracktc", "pandora", "pmtrajfit" ]
+dune10kt_analysistree.CalorimetryModuleLabel: [ "pmtrackcalo", "pmtracktccalo", "pandoracalo", "pmtrajfitcalo" ]
+dune10kt_analysistree.ParticleIDModuleLabel:       [ "pmtrackpid", "pmtracktcpid", "pandorapid", "pmtrajfitpid" ]
+dune10kt_analysistree.FlashT0FinderLabel: [ "", "", "", "" ]
+dune10kt_analysistree.MCT0FinderLabel:   [ "", "", "", "" ]
+dune10kt_analysistree.CosmicTaggerAssocLabel:  [ "", "", "", "" ]
+dune10kt_analysistree.ContainmentTaggerAssocLabel: [ "", "", "", "" ]
+dune10kt_analysistree.FlashMatchAssocLabel: [ "", "", "", "" ]
+dune10kt_analysistree.VertexModuleLabel: [ "linecluster", "pmtrack", "pandora" ]
+dune10kt_analysistree.ShowerModuleLabel:          ["emshower"]
+dune10kt_analysistree.POTModuleLabel:             "generator"
 dune10kt_analysistree.SaveCryInfo:                false
 dune10kt_analysistree.SaveGenieInfo:              true
 dune10kt_analysistree.SaveExternCounterInfo:      false
 dune10kt_analysistree.SaveFlashInfo:              false
-dune10kt_analysistree.SaveShowerInfo:             false
+dune10kt_analysistree.SaveShowerInfo:             true
 
 fddphase_analysistree: @local::dune35t_analysistree
 fddphase_analysistree.TrackModuleLabel: [ "pmtrack" ]

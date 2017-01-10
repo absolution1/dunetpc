@@ -2,4 +2,4 @@
 
 process_name: EVD
 
-services.user.RawDrawingOptions.TotalTicks: 15000
+services.RawDrawingOptions.TotalTicks: 15000
