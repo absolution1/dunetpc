@@ -60,7 +60,8 @@ dunefd_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
  BackTracker:                  @local::dunefd_backtracker
- PhotonBackTracker:            @local::dunefd_photonbacktracker
+# Disable for now until LArSoft issue 15012 is resolved
+# PhotonBackTracker:            @local::dunefd_photonbacktracker
  SpaceCharge:                  @local::dunefd_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
