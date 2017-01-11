@@ -20,6 +20,7 @@
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/Simulation/sim.h"
 #include "lardataobj/Simulation/SimChannel.h"
+#include "larsim/MCCheater/BackTracker.h"
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -33,6 +34,7 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+
 
 
 class DAQSimAna;
@@ -78,6 +80,7 @@ private:
 
   //Services
   art::ServiceHandle<geo::Geometry> geo;
+  art::ServiceHandle<cheat::BackTracker> backtracker;
   
 };
 

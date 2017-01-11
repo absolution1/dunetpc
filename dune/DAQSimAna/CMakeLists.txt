@@ -4,6 +4,8 @@ simple_plugin(DAQSimAna "module"
                            larcore_Geometry_Geometry_service
                            larcore_Geometry
                            lardataobj_RawData
+			   larsim_MCCheater_BackTracker_service
+			   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
                            nusimdata_SimulationBase	
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
