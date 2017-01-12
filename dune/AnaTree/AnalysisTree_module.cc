@@ -471,7 +471,7 @@ namespace dune {
         tdPandoraNuVertex = 0x2000,
 	tdPFParticle = 0x4000,
 	tdCount = 0x8000,
-  tdProto = 0x10000, // Leigh
+  tdProto = 0x10000,
 	tdDefault = 0
 	}; // DataBits_t
     
@@ -706,7 +706,6 @@ namespace dune {
     std::vector<Int_t>    cry_mother;
 
     // ProtoDUNE Beam generator information
-    size_t MaxProtoPrimaries = 0;
     Int_t proto_no_primaries;
     std::vector<Int_t> proto_isGoodParticle;
     std::vector<Float_t> proto_vx;
