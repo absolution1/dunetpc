@@ -218,7 +218,7 @@ dune35t_basic_services: {
   DatabaseUtil:               @local::dune35t_database
   SpaceCharge:                @local::dune35t_spacecharge
   NuRandomService:             @local::dune_seedservice
-  ChannelStatusService:       @local::dune35t_channel_status
+  ChannelStatusService:       @local::dune35t_channel_status_may2016
   ChannelMapService:          @local::channelmap35t
   ChannelMappingService:      @local::dune35t_channelmapping
   ChannelGroupService:        @local::changroup_apa
