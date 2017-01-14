@@ -29,6 +29,9 @@
 //   PadLow      - Number of ticks to retain before signal above threshold.
 //   PadHigh     - Number of ticks to retain after signal above threshold.
 //
+// R.Sulej: copied from DuneRoiBuildingService.h to substitute signal shaping
+// service for double-phase.
+//
 #ifndef DuneDPhaseRoiBuildingService_H
 #define DuneDPhaseRoiBuildingService_H
 
