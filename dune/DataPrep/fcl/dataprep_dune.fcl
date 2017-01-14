@@ -103,6 +103,15 @@ adcnr_dune35tlegacy: {
 adcped_median: {
   service_provider: MedianPedestalService
   LogLevel:              1
+  UseMean:            false
+  SkipFlaggedSamples: true
+  SkipSignals:        true
+}
+
+adcped_mean: {
+  service_provider: MedianPedestalService
+  LogLevel:              1
+  UseMean:            true
   SkipFlaggedSamples: true
   SkipSignals:        true
 }

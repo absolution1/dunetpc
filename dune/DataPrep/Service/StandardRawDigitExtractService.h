@@ -11,7 +11,11 @@
 //
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
-//   PedestalOption - 1=take from digit, 2=take from service, otherwise no subtraction
+//   PedestalOption
+//     1: take from digit
+//     2: take from service
+//     3: evaluate with PedestalEvaluationService
+//     otherwise no subtraction
 //   FlagStuckOff - flag samples for which the low bits are all 0
 //   FlagStuckOn  - flag samples for which the low bits are all 1
 
@@ -20,6 +24,7 @@
 #define StandardRawDigitExtractService_H
 
 #include "dune/DuneInterface/RawDigitExtractService.h"
+#include "dune/DuneInterface/PedestalEvaluationService.h"
 
 namespace lariov {
   class DetPedestalProvider;
@@ -31,12 +36,7 @@ public:
 
   StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int extract(const raw::RawDigit& rawin,
-              AdcChannel* pchan =nullptr,
-              AdcSignal* pped =nullptr,
-              AdcCountVector* praw =nullptr,
-              AdcSignalVector* psigs =nullptr,
-              AdcFlagVector* pflags =nullptr) const;
+  int extract(AdcChannelData& acd) const;
 
   std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
 
@@ -49,7 +49,7 @@ private:
   bool m_FlagStuckOn;
 
   const lariov::DetPedestalProvider* m_pPedProv;
-
+  PedestalEvaluationService* m_PedestalEvaluationService;
 
 };
 

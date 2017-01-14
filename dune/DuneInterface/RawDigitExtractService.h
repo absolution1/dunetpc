@@ -10,6 +10,7 @@
 // a larsoft raw digit. The latter holds the TPC samples for one channel.
 
 #include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/AdcChannelData.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace raw {
@@ -20,14 +21,9 @@ class RawDigitExtractService {
 
 public:
 
-  // Extract the channel, pedestal, signals and flags. All are pointer types so the caller can use null to
-  // indicate any of the fields are not of interest.
-  virtual int extract(const raw::RawDigit& rawin,
-                      AdcChannel* pchan =nullptr,
-                      AdcSignal* pped =nullptr,
-                      AdcCountVector* praw =nullptr,
-                      AdcSignalVector* psigs =nullptr,
-                      AdcFlagVector* pflags =nullptr) const =0;
+  // Extract the data for a channel.
+  // The digit is assigned to the chanel data before the call.
+  virtual int extract(AdcChannelData& acd) const =0;
 
   // Print parameters.
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;
