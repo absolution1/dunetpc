@@ -155,6 +155,7 @@ sub gen_Materials
    <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
+
   <material name="FR4">
    <D value="1.98281" unit="g/cm3"/>
    <fraction n="0.47" ref="epoxy_resin"/>
@@ -266,6 +267,21 @@ sub gen_Materials
    <fraction n="0.320" ref="oxygen"/>
    <fraction n="0.080" ref="hydrogen"/>
   </material>
+
+  <material name="NiGas">
+   <D value="0.001165" unit="g/cm3"/>
+   <fraction n="1.000" ref="nitrogen"/>
+  </material>
+
+  <material name="PolyurethaneFoam">
+   <D value="0.09" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+
 EOF
 
 my $nStrings = scalar $ARGV + 1;

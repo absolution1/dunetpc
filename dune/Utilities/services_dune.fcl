@@ -81,8 +81,6 @@ dunefd_reco_services.AdcWireBuildingService:     @local::adcwire_std
 # for dual-phase implementation
 #
 dunefddphase_services: {
- BackTracker:                    @local::dunefd_backtracker
- PhotonBackTracker:              @local::dunefd_photonbacktracker
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunefd_channel_status
@@ -98,6 +96,7 @@ dunefddphase_services: {
 }
 
 dunefddphase_simulation_services: {
+ BackTracker:                    @local::dunefd_backtracker
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::dunefd_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
@@ -115,6 +114,14 @@ dunefddphase_simulation_services: {
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
+
+dunefddphase_reco_services:                            @local::dunefddphase_services
+dunefddphase_reco_services.BackTracker:                @local::dunefd_backtracker
+dunefddphase_reco_services.RawDigitExtractService:     @local::rdx_std
+dunefddphase_reco_services.RawDigitPrepService:        @local::adcprep_sim
+dunefddphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
+dunefddphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
+dunefddphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
 
 
 #
@@ -218,7 +225,7 @@ dune35t_basic_services: {
   DatabaseUtil:               @local::dune35t_database
   SpaceCharge:                @local::dune35t_spacecharge
   NuRandomService:             @local::dune_seedservice
-  ChannelStatusService:       @local::dune35t_channel_status
+  ChannelStatusService:       @local::dune35t_channel_status_may2016
   ChannelMapService:          @local::channelmap35t
   ChannelMappingService:      @local::dune35t_channelmapping
   ChannelGroupService:        @local::changroup_apa

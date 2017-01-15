@@ -2,12 +2,14 @@
 //
 // David Adams
 // June 2016
+// Updated Jan 2017 to add UseMean.
 //
 // Implementation of service that evluates a pedestal as the median of
 // an input ADC signal vector.
 //
 // Configuration:
 //             LogLevel - Message logging level: 0=none, 1=initialization, 2+=every event
+//              UseMean - Evaluate pedestal with mean instead of median.
 //   SkipFlaggedSamples - Exclude ticks for which flag != AdcGood
 //          SkipSignals - Exclude ticks identified as signal
 
@@ -41,8 +43,9 @@ private:
 
   // Configuration parameters.
   int m_LogLevel;
-  int m_SkipFlaggedSamples;
-  int m_SkipSignals;
+  bool m_UseMean;
+  bool m_SkipFlaggedSamples;
+  bool m_SkipSignals;
 
   // Services.
   const geo::Geometry* m_pGeometry;

@@ -4,7 +4,7 @@
 #
 BEGIN_PROLOG
 
-dune35t_channel_status: {
+dune35t_channel_status_may2016: {
 # implements IChannelStatusService
 service_provider: SimpleChannelStatusService
 
@@ -399,6 +399,586 @@ service_provider: SimpleChannelStatusService
 #2038, 
 #2047  
 #]		
+
+  NoisyChannels: []
+} 
+
+# Bad channel list from David Adams
+# January 2017
+# Many runs over the course of my dataset list were studied.
+# Channels are typically declared bad if any fail.
+# Notes made when runs look good before or after power failure.
+# Bad channels from the wahl list (above) are retained and have less indentation.
+# Annotation:
+#   SB - Four-consecutive sticky code fraction is greater than 30%
+#   NSB - Four-consectuve non-sticky code repeat fraction is greater than 5%
+#   RMS>X - RMS with 3*RMS truncation is greater than X
+
+dune35t_channel_status_dla: {
+# implements IChannelStatusService
+service_provider: SimpleChannelStatusService
+
+  BadChannels: [
+# APA 0u 0-143
+       2,   # SB
+    4,      # NSB
+       9,   # NSB
+      31,   # SB
+      36,   # RMS>=45
+   39,      # RMS=2
+   51,      # RMS=1
+      65,   # SB
+      80,   # RMS>=40
+   84,      # RMS=2
+      88,   # SB (OK for 2nd half)
+      92,   # SB (OK for 2nd half)
+   92,      # RMS=2
+     100,   # SB
+     101,   # SB
+     102,   # SB
+     103,   # SB
+     104,   # SB
+     105,   # SB
+     106,   # SB
+     111,   # RMS>=40
+  110,      # RMS=5
+     117,   # NSB
+  120,
+# APA 0v 144-287
+  145,      # RMS=3
+  146,      # RMS=1
+     147,   # RMS>=50
+     148,   # NSB
+     183,   # SB
+  204,      # SB, RMS=2
+  213,      # RMS=3
+     215,   # SB, RMS=40
+     216,   # RMS=6
+     217,   # RMS=6
+     218,   # RMS=6
+     219,   # RMS=40
+     238,   # SB (2nd half OK)
+     236,   # SB (2nd half OK)
+  240,      # RMS=3
+     249,   # SB
+     252,   # NSB
+     253,   # SB
+     254,   # SB
+     255,   # SB
+     256,   # NSB
+     257,   # SB
+     258,   # SB
+     259,   # SB
+     260,   # SB
+     280,   # SB
+     287,   # RMS>=45
+# APA 0z1  288-399
+     319,   # SB
+     346,   # SB (intermittent)
+     347,   # SB (intermittent)
+     348,   # SB (intermittent)
+  357,      # NSB
+# APA 0z2  400-511
+     400,   # RMS>35
+     401,   # RMS>35, sticks on 0x1
+     402,   # RMS>35
+     403,   # RMS>35
+     404,   # RMS>35
+     405,   # RMS>35
+     406,   # RMS>35
+     407,   # RMS>35
+     408,   # RMS>35
+     409,   # RMS>35
+     410,   # RMS>35
+     411,   # RMS>35
+  432,      # RMS=5
+  433,      # RMS=3
+     434,   # SB (intermittent)
+     441,   # SB (intermittent)
+     444,   # SB
+  446,      # RMS=5
+  451,      # RMS=2
+     458,   # SB (intermittent)
+     460,   # SB (intermittent)
+     469,   # SB (intermittent)
+     493,   # SB (intermittent)
+  496,      # SB (intermittent), RMS OK
+  500,      # RMS=2
+# APA 1u  512-655
+     513,   # SB
+     517,   # SB
+  520,      # SB, RMS=0
+  524,      # NSB, RMS = 1
+  530,      # RMS=2
+     533,   # SB
+     538,   # SB, RMS=2
+     539,   # SB, RMS=1
+  547,      # RMS=2
+     548,   # SB
+     560,   # SB
+     561,   # SB
+     564,   # SB, RMS>30
+     565,   # RMS>30
+     566,   # NSB, RMS>50,RMS=1
+     567,   # NSB
+     568,   # NSB
+     569,   # NSB
+     560,   # NSB
+     571,   # NSB
+     572,   # NSB
+     573,   # NSB
+  574,      # RMS>50
+  575,      # RMS>50
+  576,      # RMS>50
+  577,      # RMS>50
+  578,      # RMS>50
+  579,      # RMS>50
+  580,      # RMS>50
+  581,      # RMS>50
+  582,      # RMS>50
+  583,      # RMS>50
+  611,      # RMS=3
+     619,   # SB
+     620,   # RMS=6
+     621,   # RMS=6dd
+     622,   # RMS=6
+     623,   # SB
+     626,   # SB
+  632,      # RMS=0
+     649,   # SB
+     650,   # SB
+     651,   # SB
+     652,   # SB
+     653,   # SB
+     654,   # SB
+# APA 1v  656-799
+  656,      # NSB, RMS>50
+  657,      # RMS>50
+  658,      # RMS>50
+  659,      # RMS>50
+  660,      # RMS>50
+  661,      # RMS>50
+  662,      # RMS>50
+  663,      # RMS>50
+  664,      # RMS>50
+  665,      # RMS>50
+  666,      # SB OK, RMS OK
+     669,   # SB
+     675,   # SB
+     692,   # RMS>40
+  693,      # SB OK, RMS OK
+  694,
+     728,   # NSB
+     729,   # SB, RMS=3
+  730,      # SB, RMS=3
+     731,   # SB, RMS=3
+  732,      # NSB
+     736,   # SB
+     738,   # RMS>50 (intermittent)
+  744,      # SB OK, RMS OK
+     760,   # SB
+     771,   # SB (OK for 1st half)
+     776,   # SB (OK for 1st half)
+     788,   # SB
+     792,   # SB
+# APA 1z1 800-911
+     804,   # SB (OK for 1st half)
+  809,      # RMS=1
+     819,   # SB
+     821,   # SB
+     822,   # SB (OK for 1st half)
+     826,   # SB
+  828,      # RMS=2
+  829,      # RMS=2
+  830,      # RMS=2
+  831,      # RMS=2
+  832,      # RMS=2
+  833,      # RMS=2
+  834,      # RMS=2
+  835,      # RMS=2
+  836,      # RMS=2
+  837,      # RMS=2
+  838,      # RMS=2
+  839,      # RMS=2
+  840,      # RMS=2
+  841,      # RMS=2
+  842,      # RMS=2
+  843,      # RMS=2
+  844,      # RMS=2
+  845,      # RMS=2
+  846,      # RMS=2
+  847,      # RMS=2
+  848,      # RMS=2
+  849,      # RMS=2
+  850,      # RMS=2
+  851,      # RMS=2
+  852,      # RMS=2
+  853,      # RMS=2
+  854,      # RMS=2
+  855,      # RMS=2
+     856,   # SB
+     857,   # SB
+     858,   # SB
+     859,   # SB
+     860,   # SB
+     861,   # SB
+     862,   # SB
+     863,   # SB
+     864,   # SB
+     865,   # SB
+     866,   # SB
+     867,   # SB
+     868,   # SB
+     869,   # SB
+     826,   # SB
+     826,   # SB
+     826,   # SB
+     826,   # SB
+     826,   # SB
+     826,   # SB
+     826,   # SB
+  884,      # RMS>50
+     885,   # RMS>50
+  886,      # RMS>50
+  887,      # RMS>50
+  888,      # RMS>50
+  889,      # RMS>50
+  890,      # RMS>50
+  891,      # RMS>50
+  892,      # RMS>50
+  893,      # RMS>50
+  894,      # RMS>50
+  895,      # RMS>50
+  896,      # RMS>50
+  897,      # RMS>50
+  898,      # RMS>50
+  899,      # RMS>50
+  900,      # RMS>50
+  901,      # RMS>50
+  902,      # RMS>50
+  903,      # RMS>50
+  904,      # RMS>50
+  905,      # RMS>50
+  906,      # RMS>50
+  907,      # RMS>50
+  908,      # RMS>50
+  909,      # RMS>50
+  910,      # RMS>50
+  911,      # RMS>50
+# APA 1z2 912-1023
+     940,   # SB (OK for 1st half)
+     943,   # SB
+     948,   # SB
+     952,   # SB
+  965,      # RMS=3
+     978,   # SB
+     980,   # SB
+  992,      # RMS=0
+  993,      # RMS=1
+    1016,   # SB
+  1021,     # RMS=1
+    1023,   # SB (OK for 1st half)
+# APA 2u 1024-1167
+    1025,   # SB
+    1026,   # SB
+    1047,   # SB (OK for 2nd half of run)
+    1051,   # SB (OK for 1st half of run)
+    1055,   # SB
+    1058,   # NSB
+  1062,     # SB OK
+    1063,   # SB (OK for 2nd half of run)
+    1077,   # SB
+    1087,   # SB
+    1088,   # SB
+    1089,   # SB
+    1090,   # SB
+    1091,   # SB
+    1092,   # SB
+    1093,   # SB
+    1094,   # SB
+    1095,   # NSB
+    1097,   # SB OK, RMS=8, missing intermediate freq noise
+    1102,   # SB (OK for 2nd half of run)
+  1105,     # SB OK
+    1122,   # SB (OK for 2nd half of run)
+    1126,   # SB (OK for 1st half of run)
+  1134,     # NSB
+    1141,   # SB
+  1145,     # SB OK
+  1149,     # SB
+    1160,   # SB
+    1161,   # SB
+    1162,   # SB
+    1163,   # SB
+    1164,   # SB
+    1165,   # SB
+    1166,   # SB
+# APA 2v 1168-1311
+    1169,   # SB
+    1170,   # SB
+    1171,   # SB
+    1172,   # SB
+    1173,   # SB
+    1174,   # SB
+    1175,   # SB
+    1176,   # SB
+    1189,   # SB, OK for 1st half of run
+    1194,   # SB
+    1204,   # NSB
+    1205,   # SB
+  1206,     # wahl, NSB, RMS=2
+    1207,   # SB, OK for 1st half of run
+    1208,   # NSB
+  1209,     # wahl, SB, RMS=8 for run 13843
+    1210,   # SB, OK for 2nd half of run
+    1211,   # NSB
+    1216,   # SB, OK for 2nd half of run
+    1217,   # SB, OK for 2nd half of run
+    1226,   # SB
+  1240,     # wahl, SB OK, RMS=0
+    1241,   # SB
+    1242,   # SB
+    1243,   # SB
+    1244,   # SB
+    1245,   # SB
+    1246,   # SB
+    1247,   # SB
+    1254,   # SB, OK for 1st half of run
+    1255,   # SB, OK for 2nd half of run
+  1259,     # wahl, SB OK, RMS=3
+  1272,     # wahl, SB OK, RMS=9
+    1273,   # SB
+    1279,   # SB
+    1295,   # SB
+    1298,   # SB, OK for 1st half of run
+    1299,   # NSB
+    1310,   # SB
+# APA 2z1 1312-1423
+    1312,   # NSB
+    1313,   # NSB
+    1314,   # NSB
+    1315,   # NSB
+    1316,   # NSB
+    1317,   # NSB
+    1318,   # NSB
+    1319,   # NSB
+    1320,   # NSB
+    1321,   # NSB
+    1322,   # NSB
+    1323,   # NSB
+    1324,   # NSB
+    1325,   # NSB
+    1340,   # SB
+    1358,   # SB, OK for 2nd half of run
+    1378,   # SB
+    1382,   # SB
+    1388,   # SB
+    1397,   # SB, OK for 1st half of run
+    1407,   # SB, OK for 1st half of run
+    1413,   # SB, OK for 2nd half of run
+    1421,   # SB
+# APA 2z2 1424-1535
+    1430,   # SB, OK for 1st half of run
+    1439,   # SB
+    1439,   # SB
+  1440,     # wahl, SB
+    1442,   # SB
+    1447,   # SB, OK for 1st half
+    1450,   # SB
+    1458,   # SB
+  1461,
+    1468,   # SB, OK for 1st half of run
+    1472,   # SB, OK for 1st half of run
+    1472,   # SB
+    1478,   # SB
+  1486,     # wahl, SB
+  1494,     # wahl, RMS low and jumpy
+  1495,     # wahl, RMS low and jumpy
+  1496,     # wahl, RMS low and jumpy
+  1497,     # wahl, RMS low and jumpy
+  1498,     # wahl, RMS low and jumpy
+  1499,     # wahl, RMS low and jumpy
+  1500,     # wahl, RMS low and jumpy
+  1501,     # wahl, RMS low and jumpy
+  1502,     # wahl, RMS low and jumpy
+  1503,     # wahl, RMS low and jumpy
+  1504,     # wahl
+  1505,     # wahl, RMS low and jumpy
+  1506,     # wahl, RMS low and jumpy
+  1507,     # wahl, RMS low and jumpy
+  1510,     # wahl, NSB
+    1511,   # SB, OK for 2nd half
+    1520,   # SB, OK for 2nd half
+    1528,   # SB
+# APA 3u 1536-1679
+  1546,     # NSB, RMS=1
+    1547,   # NSB, RMS=5
+    1554,   # RMS=0
+  1555,     # RMS=0
+  1556,     # RMS=0
+  1557,     # RMS=0
+  1558,     # RMS=0
+  1559,     # RMS=0
+  1560,     # RMS=0
+  1561,     # RMS=0
+  1562,     # RMS=0
+  1563,     # RMS=0
+  1564,     # RMS=0
+  1565,     # RMS=0
+  1566,     # RMS=0
+  1567,     # RMS=0
+  1568,     # RMS=0
+  1569,     # RMS=0
+  1570,     # RMS=0
+  1571,     # RMS=0
+    1574,   # RMS=7
+    1575,   # RMS>45
+    1588,   # SB
+    1589,   # RMS>40
+  1599,     # RMS=2
+    1606,   # SB
+  1607,     # RMS=1
+  1617,     # RMS=2
+    1621,   # SB
+  1625,     # RMS=2
+    1637,   # SB (OK for 1st half)
+    1638,   # SB (OK for 1st half)
+    1639,   # SB (OK for 1st half)
+    1640,   # SB (OK for 1st half)
+    1641,   # SB (OK for 1st half)
+    1642,   # SB (OK for 1st half)
+    1643,   # SB (OK for 1st half)
+  1646,     # RMS=5
+    1647,   # RMS>45
+  1660,     # RMS=2
+    1661,   # RMS>45
+  1671,     # NSB, RMS=2
+    1672,   # SB (OK for 2nd half)
+    1673,   # SB (OK for 2nd half)
+    1674,   # SB (OK for 2nd half)
+    1675,   # SB (OK for 2nd half)
+    1676,   # SB (OK for 2nd half)
+    1677,   # SB (OK for 2nd half)
+    1678,   # SB (OK for 2nd half)
+  1679,     # RMS=2
+# APA 3v 1680-1823
+  1694,     # RMS=3
+  1716,     # RMS=0
+  1717,     # RMS=0
+  1718,     # RMS=0
+  1719,     # RMS=0
+  1720,     # RMS=0
+  1721,     # RMS=0
+  1722,     # RMS=0
+  1723,     # RMS=0
+  1724,     # RMS=0
+  1725,     # RMS=0
+  1726,     # RMS=0
+  1727,     # RMS=0
+  1728,     # RMS=0
+  1729,     # RMS=0
+  1730,     # RMS=0
+  1731,     # RMS=0
+  1732,     # RMS=0
+  1733,     # RMS=0
+  1740,     # RMS=2
+  1741,     # RMS=2
+  1742,     # RMS=2
+    1752,   # NSB
+    1753,   # SB, RMS=3
+    1754,   # SB
+    1755,   # SB
+    1756,   # NSB
+    1757,   # SB
+    1758,   # SB
+    1759,   # SB
+    1788,   # NSB (intermittent)
+    1792,   # NSB (intermittent)
+# APA 3z1 1824-1935
+  1824,     # RMS=2
+  1825,     # RMS=2
+  1826,     # RMS=2
+  1827,     # RMS=2
+  1828,     # RMS=2
+  1829,     # RMS=2
+  1830,     # RMS=2
+  1831,     # RMS=2
+  1832,     # RMS=2
+  1833,     # RMS=2
+  1834,     # RMS=2
+  1835,     # RMS=2
+  1836,     # RMS=2
+  1837,     # RMS=2
+    1843,   # SB (OK for 1st half)
+    1866,   # SB
+    1870,   # SB
+  1880,     # RMS=0
+  1881,     # RMS=0
+  1882,     # RMS=0
+  1883,     # RMS=0
+  1884,     # RMS=0
+  1885,     # RMS=0
+  1886,     # RMS=0
+  1887,     # RMS=0
+  1888,     # RMS=0
+  1889,     # RMS=0
+  1890,     # RMS=0
+  1891,     # RMS=0
+  1892,     # RMS=0
+  1893,     # RMS=0
+  1894,     # RMS=0
+  1895,     # RMS=0
+  1896,     # RMS=0
+  1897,     # RMS=0
+  1898,     # RMS=0
+  1899,     # RMS=0
+  1900,     # RMS=0
+  1901,     # RMS=0
+  1902,     # RMS=0
+  1903,     # RMS=0
+  1904,     # RMS=0
+  1905,     # RMS=0
+  1906,     # RMS=0
+  1907,     # RMS=0
+    1909,   # SB (1st half OK)
+# APA 3z2 1936-2047
+  1936,     # RMS=2
+    1946,   # SB
+    1948,   # SB (OK for 2nd half)
+  1950,     # RMS=2
+  1951,     # RMS=2
+  1952,     # RMS=2
+  1953,     # RMS=2
+  1954,     # RMS=2
+  1955,     # RMS=2
+  1956,     # RMS=2
+  1957,     # RMS=2
+  1958,     # RMS=2
+  1959,     # RMS=2
+  1960,     # RMS=2
+  1961,     # RMS=2
+  1962,     # RMS=2
+  1963,     # RMS=2
+    1974,   # SB (OK for 1st half)
+    1992,   # SB
+    1995,   # SB (OK for 2nd half)
+    2004,   # SB
+  2029,     # RMS=3
+  2034,     # RMS=2
+  2035,     # RMS=2
+  2036,     # RMS=2
+  2037,     # RMS=2
+  2038,     # RMS=2
+  2039,     # RMS=2
+  2040,     # RMS=2
+  2041,     # RMS=2
+  2042,     # RMS=2
+  2043,     # RMS=2
+  2044,     # RMS=2
+  2045,     # RMS=2
+  2046,     # RMS=2
+  2047      # RMS=2
+]
 
   NoisyChannels: []
 } 
