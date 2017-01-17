@@ -29,14 +29,21 @@ T* ArtServicePointer() {
 
 #else
 
+#include <iostream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
 // This should not be called directly.
 template<class T>
 T* GenericArtServicePointer() {
-  art::ServiceRegistry& reg = art::ServiceRegistry::instance();
-  if ( ! reg.isAvailable<T>() ) return nullptr;
-  return &reg.get<T>();
+  try {
+    art::ServiceRegistry& reg = art::ServiceRegistry::instance();
+    if ( ! reg.isAvailable<T>() ) return nullptr;
+    return &reg.get<T>();
+  } catch(...) {
+    std::cout << "WARNING: ArtServicePointer: ServiceRegistry not found. Instantiate with" << std::endl;
+    std::cout << "           ArtServiceHelper::instance(\"myfcl.fcl\")" << std::endl;
+  }
+  return nullptr;
 }
 
 template<class T>
