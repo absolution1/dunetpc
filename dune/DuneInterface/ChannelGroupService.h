@@ -10,7 +10,6 @@
 
 #include <vector>
 #include <iostream>
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class ChannelGroupService {
 
@@ -35,7 +34,10 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(ChannelGroupService, LEGACY)
+#endif
 
 #endif
 

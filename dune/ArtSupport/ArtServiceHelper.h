@@ -16,9 +16,6 @@
 #include <map>
 #include <iostream>
 #include <memory>
-#ifndef ACLIC
-#include "art/Framework/Services/Registry/ServiceRegistry.h"
-#endif
 
 class ArtServiceHelper {
 
@@ -102,16 +99,11 @@ private:
   int m_load = 0;
   bool m_needTriggerNamesService = false;
   bool m_needCurrentModuleService = false;
-  art::ServiceRegistry::Operate* m_poperate;
+  void* m_poperate;  // ServiceRegistry::Operate
 
   // Ctors.
-#ifdef ACLIC
-  ArtServiceHelper(const ArtServiceHelper&) { }
-  ArtServiceHelper& operator=(const ArtServiceHelper&) { return *this; }
-#else
   ArtServiceHelper(const ArtServiceHelper&) = delete;
   ArtServiceHelper& operator=(const ArtServiceHelper&) const = delete;
-#endif
 
 };
 

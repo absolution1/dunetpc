@@ -8,9 +8,8 @@
 //
 // Interface for a service that removes noise from an ADC channel.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class AdcChannelNoiseRemovalService {
 
@@ -26,6 +25,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(AdcChannelNoiseRemovalService, LEGACY)
+#endif
 
 #endif

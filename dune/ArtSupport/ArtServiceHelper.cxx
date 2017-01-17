@@ -10,6 +10,7 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceToken.h"
 #include "art/Framework/EventProcessor/ServiceDirector.h"
+#include "art/Framework/Services/Registry/ServiceRegistry.h"
 #include "art/Framework/Services/System/TriggerNamesService.h"
 #include "art/Framework/Services/System/CurrentModule.h"
 
@@ -60,8 +61,9 @@ ArtServiceHelper& ArtServiceHelper::instance() {
 
 void ArtServiceHelper::close() {
   if ( instance().m_load == 3 ) return;
-  delete instance().m_poperate;               // Close existing services and registry.
-  instance().m_poperate = nullptr;            // Reset the old operatre.
+  // Close existing services and registry.
+  delete static_cast<ServiceRegistry::Operate*>(instance().m_poperate);
+  instance().m_poperate = nullptr;            // Reset the old operate.
   instancePtr().reset(new ArtServiceHelper);  // Delete the old service helper.
   instance().m_load = 3;                      // Put new instance in deleted state.
 }
