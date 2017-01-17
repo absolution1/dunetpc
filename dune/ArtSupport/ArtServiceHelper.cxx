@@ -59,6 +59,23 @@ ArtServiceHelper& ArtServiceHelper::instance() {
   
 //**********************************************************************
 
+ArtServiceHelper& ArtServiceHelper::instance(string fname) {
+  const string myname = "ArtServiceHelper::instance: ";
+  ArtServiceHelper& ins = *instancePtr().get();
+  if ( ins.fileNames().size() == 0 ) {
+    if ( fname.size() ) ins.loadServices(fname);
+  } else {
+    if ( ins.fileNames().size() > 1 ||
+         ins.fileNames()[0] != fname ) {
+      cout << myname << "ArtServiceHelper is already configured with different services." << endl;
+      cout << myname << "The existing instance is returned." << endl;
+    }
+  }
+  return ins;
+}
+  
+//**********************************************************************
+
 void ArtServiceHelper::close() {
   if ( instance().m_load == 3 ) return;
   // Close existing services and registry.
@@ -270,9 +287,11 @@ int ArtServiceHelper::addServices(string sval, bool isFile) {
       cout << myname << "ERROR: Resolved file path: " << fpm(fname) << endl;
       return 9;
     }
+    m_fnames.push_back(fname);
   } else {
     psets.push_back(ParameterSet());
     make_ParameterSet(sval, psets.back());
+    m_fnames.push_back("STRING");
   }
   // Loop over the service parameter sets and add each service description to m_scfgs.
   for ( const ParameterSet& pset : psets ) {
@@ -346,6 +365,19 @@ int ArtServiceHelper::loadServices() {
 
 //**********************************************************************
 
+int ArtServiceHelper::loadServices(string fclfile) {
+  string myname = "ArtServiceHelper::loadServices: ";
+  if ( m_fnames.size() ) {
+    cout << myname << "ERROR: Services have already been added." << endl;
+    return 100;
+  }
+  int astat = addServices(fclfile, true);
+  if ( astat != 0 ) return 100 + astat;
+  return loadServices();
+}
+
+//**********************************************************************
+
 void ArtServiceHelper::setLogLevel(int lev) {
   const string myname = "ArtServiceHelper::setLogLevel: ";
   if ( m_LogLevel > 1 || lev > 1 ) cout << myname << "Setting log level to " << lev << endl;
@@ -356,6 +388,12 @@ void ArtServiceHelper::setLogLevel(int lev) {
 
 NameList ArtServiceHelper::serviceNames() const {
   return m_names;
+}
+
+//**********************************************************************
+
+NameList ArtServiceHelper::fileNames() const {
+  return m_fnames;
 }
 
 //**********************************************************************

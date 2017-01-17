@@ -7,6 +7,7 @@
 // August 2016
 //
 // Interface for a service that removes noise from an ADC channel.
+// Note that AdcNoiseRemovalService removes noise for multiple channels.
 
 #include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
