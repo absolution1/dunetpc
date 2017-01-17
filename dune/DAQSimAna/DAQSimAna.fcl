@@ -4,7 +4,8 @@ standard_daqsimana:
 {
   module_type:		DAQSimAna
   #====================
-  RawDigitLabel:	"detsim"	# string for the process that made the raw digits
+  RawDigitLabel:	"daq"		# string for the process that made the raw digits
+  HitLabel:		"gaushit"	# string for the process that made the reco hits
 }
 
 END_PROLOG
