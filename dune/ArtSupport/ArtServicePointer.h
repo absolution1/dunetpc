@@ -31,10 +31,12 @@ T* ArtServicePointer() {
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
-// This should not be used.
+// This should not be called directly.
 template<class T>
 T* GenericArtServicePointer() {
-  return &*art::ServiceHandle<T>();
+  art::ServiceRegistry& reg = art::ServiceRegistry::instance();
+  if ( ! reg.isAvailable<T>() ) return nullptr;
+  return &reg.get<T>();
 }
 
 template<class T>

@@ -3,6 +3,11 @@
 #include "DuneServiceAccess.h"
 
 template<>
+AdcCompressService* ArtServicePointer<AdcCompressService>() {
+  return GenericArtServicePointer<AdcCompressService>();
+}
+
+template<>
 ChannelGroupService* ArtServicePointer<ChannelGroupService>() {
   return GenericArtServicePointer<ChannelGroupService>();
 }
@@ -30,5 +35,10 @@ AdcChannelNoiseRemovalService* ArtServicePointer<AdcChannelNoiseRemovalService>(
 template<>
 AdcDeconvolutionService* ArtServicePointer<AdcDeconvolutionService>() {
   return GenericArtServicePointer<AdcDeconvolutionService>();
+}
+
+template<>
+AdcChannelDataCopyService* ArtServicePointer<AdcChannelDataCopyService>() {
+  return GenericArtServicePointer<AdcChannelDataCopyService>();
 }
 
