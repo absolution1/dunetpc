@@ -327,7 +327,7 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
       MCTruthInformation ( particle, MCEnergy, MCEnergyDeposited, MCTPCLength, 
 			   MCTheta_XZ, MCTheta_YZ, MCEta_XY, MCEta_ZY, MCTheta, MCPhi,
 			   MCPdgCode, MCTrackId );
-      if ( MCTPCLength == 0 ) continue;
+      if ( MCTPCLength < 1. ) continue;
       ++NPart;
       //std::cout << "Looking at MCParticle " << MCTrackId << ", with PdgCode " << MCPdgCode << ", MCTPCLength " << MCTPCLength << std::endl;
       
