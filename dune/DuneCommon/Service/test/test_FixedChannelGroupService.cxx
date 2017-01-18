@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iomanip>
 #include "dune/ArtSupport/ArtServiceHelper.h"
+#include "dune/DuneServiceAccess/DuneServiceAccess.h"
 
 using std::string;
 using std::cout;
@@ -88,6 +89,11 @@ int test_FixedChannelGroupService(string sgeo) {
     assert( name != "NoSuchGroup" );
     assert( chans.size() );
   }
+
+  cout << myname << line << endl;
+  cout << myname << "Fetch ChannelGroupService by pointer." << endl;
+  ChannelGroupService* pcgs = ArtServicePointer<ChannelGroupService>();
+  pcgs->print(cout, myname);
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

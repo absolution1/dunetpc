@@ -45,9 +45,10 @@ int test_MedianPedestalService(bool useExistingFcl) {
     ofstream fout(fclfile.c_str());
     fout << "services.PedestalEvaluationService: {" << endl;
     fout << "  service_provider: MedianPedestalService" << endl;
-    fout << "            LogLevel:    1" << endl;
-    fout << "  SkipFlaggedSamples: true" << endl;
-    fout << "         SkipSignals: true" << endl;
+    fout << "            LogLevel:     1" << endl;
+    fout << "             UseMean: false" << endl;
+    fout << "  SkipFlaggedSamples:  true" << endl;
+    fout << "         SkipSignals:  true" << endl;
     fout << "}" << endl;
     fout.close();
   } else {

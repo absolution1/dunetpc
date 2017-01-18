@@ -20,4 +20,5 @@ cet_test(test_GeoApaChannelGroupService SOURCES test_GeoApaChannelGroupService.c
 cet_test(test_FixedChannelGroupService SOURCES test_FixedChannelGroupService.cxx
   LIBRARIES
     dune_ArtSupport
+    dune_DuneServiceAccess
 )

@@ -11,7 +11,6 @@
 #include <vector>
 #include <iostream>
 #include "dune/DuneInterface/AdcTypes.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class AdcDistortionService {
 
@@ -29,7 +28,10 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(AdcDistortionService, LEGACY)
+#endif
 
 #endif
 

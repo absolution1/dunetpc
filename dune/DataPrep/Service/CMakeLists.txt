@@ -54,6 +54,12 @@ simple_plugin(DuneDeconvolutionService "service"
                 SignalShapingServiceDUNE_service
              )
 
+simple_plugin(DuneDPhaseDeconvolutionService "service"
+                art_Utilities canvas_Utilities
+                ${ROOT_BASIC_LIB_LIST}
+                SignalShapingServiceDUNEDPhase_service
+             )
+
 simple_plugin(KeepAllRoiBuildingService "service"
                 art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
@@ -63,6 +69,12 @@ simple_plugin(DuneRoiBuildingService "service"
                 art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
                 SignalShapingServiceDUNE_service
+             )
+
+simple_plugin(DuneDPhaseRoiBuildingService "service"
+                art_Utilities canvas_Utilities
+                ${ROOT_BASIC_LIB_LIST}
+                SignalShapingServiceDUNEDPhase_service
              )
 
 simple_plugin(StandardAdcWireBuildingService "service"
