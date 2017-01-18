@@ -21,12 +21,21 @@
 
 #include "dune/ArtSupport/ArtServicePointer.h"
 
-#include "dune/DuneInterface/AdcSuppressService.h"
-#include "dune/DuneInterface/AdcDistortionService.h"
-#include "dune/DuneInterface/AdcCompressService.h"
-
-#include "dune/DuneInterface/AdcMitigationService.h"
 #include "dune/DuneInterface/ChannelGroupService.h"
+#include "dune/DuneInterface/ChannelMappingService.h"
+
+#include "dune/DuneInterface/SimChannelExtractService.h"
+#include "dune/DuneInterface/PedestalAdditionService.h"
+#include "dune/DuneInterface/AdcDistortionService.h"
+#include "dune/DuneInterface/ChannelNoiseService.h"
+#include "dune/DuneInterface/AdcSuppressService.h"
+#include "dune/DuneInterface/MultiAdcSuppressService.h"
+#include "dune/DuneInterface/AdcCompressService.h"
+#include "dune/DuneInterface/BaseTriggerService.h"
+
+#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/RawDigitExtractService.h"
+#include "dune/DuneInterface/AdcMitigationService.h"
 #include "dune/DuneInterface/PedestalEvaluationService.h"
 #include "dune/DuneInterface/AdcSignalFindingService.h"
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
@@ -34,15 +43,24 @@
 #include "dune/DuneInterface/AdcDeconvolutionService.h"
 #include "dune/DuneInterface/AdcChannelDataCopyService.h"
 #include "dune/DuneInterface/AdcRoiBuildingService.h"
+#include "dune/DuneInterface/AdcWireBuildingService.h"
 
 template<class T> T* ArtServicePointer();
 
-template<>            AdcCompressService* ArtServicePointer<AdcCompressService>();
-template<>          AdcDistortionService* ArtServicePointer<AdcDistortionService>();
 template<>           ChannelGroupService* ArtServicePointer<ChannelGroupService>();
+template<>         ChannelMappingService* ArtServicePointer<ChannelMappingService>();
 
-template<>          AdcMitigationService* ArtServicePointer<AdcMitigationService>();
+template<>      SimChannelExtractService* ArtServicePointer<SimChannelExtractService>();
+template<>       PedestalAdditionService* ArtServicePointer<PedestalAdditionService>();
+template<>          AdcDistortionService* ArtServicePointer<AdcDistortionService>();
+template<>          ChannelNoiseService* ArtServicePointer<ChannelNoiseService>();
 template<>            AdcSuppressService* ArtServicePointer<AdcSuppressService>();
+template<>            AdcCompressService* ArtServicePointer<AdcCompressService>();
+template<>            BaseTriggerService* ArtServicePointer<BaseTriggerService>();
+
+template<>           RawDigitPrepService* ArtServicePointer<RawDigitPrepService>();
+template<>        RawDigitExtractService* ArtServicePointer<RawDigitExtractService>();
+template<>          AdcMitigationService* ArtServicePointer<AdcMitigationService>();
 template<>     PedestalEvaluationService* ArtServicePointer<PedestalEvaluationService>();
 template<>       AdcSignalFindingService* ArtServicePointer<AdcSignalFindingService>();
 template<>        AdcNoiseRemovalService* ArtServicePointer<AdcNoiseRemovalService>();
@@ -50,5 +68,6 @@ template<> AdcChannelNoiseRemovalService* ArtServicePointer<AdcChannelNoiseRemov
 template<>       AdcDeconvolutionService* ArtServicePointer<AdcDeconvolutionService>();
 template<>     AdcChannelDataCopyService* ArtServicePointer<AdcChannelDataCopyService>();
 template<>         AdcRoiBuildingService* ArtServicePointer<AdcRoiBuildingService>();
+template<>        AdcWireBuildingService* ArtServicePointer<AdcWireBuildingService>();
 
 #endif

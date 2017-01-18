@@ -9,10 +9,9 @@
 // Interface for a service that extracts the ADC signal vector from
 // a larsoft raw digit. The latter holds the TPC samples for one channel.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "dune/DuneInterface/WiredAdcChannelDataMap.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace raw {
 class RawDigit;
@@ -41,6 +40,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(RawDigitPrepService, LEGACY)
+#endif
 
 #endif

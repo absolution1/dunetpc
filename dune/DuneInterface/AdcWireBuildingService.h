@@ -8,9 +8,8 @@
 //
 // Interface for a service that builds a recob::Wire in ADC channel data.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "lardataobj/RecoBase/Wire.h"
 
 class AdcWireBuildingService {
@@ -29,6 +28,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(AdcWireBuildingService, LEGACY)
+#endif
 
 #endif
