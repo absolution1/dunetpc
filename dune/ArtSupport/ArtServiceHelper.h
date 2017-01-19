@@ -17,6 +17,7 @@
 #include <map>
 #include <iostream>
 #include <memory>
+#include "dune/ArtSupport/ArtServicePointer.h"
 
 class ArtServiceHelper {
 
@@ -98,8 +99,18 @@ public:
   //   3 - service helper is closed
   int serviceStatus() const;
 
+  // Return if the services are loaded.
+  bool isReady() const;
+
   // Display the contents and status of a service helper.
   void print(std::ostream& out =std::cout) const;
+
+  // Return a service specified by type.
+  template<class T>
+  T* get() const {
+    if ( ! isReady() ) return nullptr;
+    return ArtServicePointer<T>();
+  }
 
 private:
 

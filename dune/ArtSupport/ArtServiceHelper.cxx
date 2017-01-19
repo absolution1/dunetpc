@@ -431,6 +431,12 @@ int ArtServiceHelper::serviceStatus() const {
 
 //**********************************************************************
 
+bool ArtServiceHelper::isReady() const {
+  return m_load == 1;
+}
+
+//**********************************************************************
+
 void ArtServiceHelper::print(ostream& out) const {
   if ( m_load == 3 ) {
     out << "Service manager is closed" << endl;
