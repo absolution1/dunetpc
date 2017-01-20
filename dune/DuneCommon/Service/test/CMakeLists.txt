@@ -7,17 +7,32 @@
 
 include(CetTest)
 
-cet_test(test_GeoRopChannelGroupService SOURCES test_GeoRopChannelGroupService.cxx
+cet_test(test_GeoRopChannelGroupService
+  SOURCES
+    test_GeoRopChannelGroupService.cxx
   LIBRARIES
     dune_ArtSupport
 )
 
-cet_test(test_GeoApaChannelGroupService SOURCES test_GeoApaChannelGroupService.cxx
+cet_test(test_GeoApaChannelGroupService
+  SOURCES
+    test_GeoApaChannelGroupService.cxx
   LIBRARIES
     dune_ArtSupport
 )
 
-cet_test(test_FixedChannelGroupService SOURCES test_FixedChannelGroupService.cxx
+cet_test(test_FixedChannelGroupService
+  SOURCES
+    test_FixedChannelGroupService.cxx
+  LIBRARIES
+    dune_ArtSupport
+    dune_DuneServiceAccess
+)
+
+cet_test(test_Dune35tChannelGroupService
+  SOURCES
+    test_Dune35tChannelGroupService.cxx
   LIBRARIES
     dune_ArtSupport
 )
+

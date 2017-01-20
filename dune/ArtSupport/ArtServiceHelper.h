@@ -5,6 +5,7 @@
 
 // David Adams
 // September 2015
+// Updated January 2017 to add load(fclfile)
 //
 // This class loads art services outside the art framework.
 //
@@ -16,9 +17,7 @@
 #include <map>
 #include <iostream>
 #include <memory>
-#ifndef ACLIC
-#include "art/Framework/Services/Registry/ServiceRegistry.h"
-#endif
+#include "dune/ArtSupport/ArtServicePointer.h"
 
 class ArtServiceHelper {
 
@@ -29,6 +28,10 @@ public:
 
   // Return the one instance of this (singleton) class.
   static ArtServiceHelper& instance();
+
+  // Read and load all services from a fcl file.
+  // No calls to addService, addServices or loadServices may precede or follow.
+  static ArtServiceHelper& load(std::string fname);
 
   // Close the one instance of this class.
   // Services are not longer available.
@@ -53,7 +56,7 @@ public:
   // Returns 0 for success.
   int addService(std::string name, std::string sval ="", bool isFile =false);
 
-  // Add all services from a istring or file.
+  // Add all services from a string or file.
   //   sval - If not isFile, configuration string for the services.
   //          Note that in contrast to the preceding, the string must hold full named blocks.
   //          If isFile, base file name. Path to locate file is $FHICL_FILE_PATH.
@@ -65,6 +68,11 @@ public:
   // Returns the status: 1 for success, 2 for failure.
   int loadServices();
 
+  // Load the services from a file.
+  // This may not be called after services are added.
+  // Returns the status: 1 for success, 2 for load failure, >=100 for other problems.
+  int loadServices(std::string fclfile);
+
   // Set the log level.
   //    0 - Only log errors.
   //    1 - Log errors and warnings (default).
@@ -73,6 +81,10 @@ public:
 
   // Return the names of added services.
   NameList serviceNames() const;
+
+  // Return the names of the files used to add services.
+  // The value "STRING" is recorded whe services are added from a string.
+  NameList fileNames() const;
 
   // Return the configuration string for a service.
   std::string serviceConfiguration(std::string name) const;
@@ -87,8 +99,18 @@ public:
   //   3 - service helper is closed
   int serviceStatus() const;
 
+  // Return if the services are loaded.
+  bool isReady() const;
+
   // Display the contents and status of a service helper.
   void print(std::ostream& out =std::cout) const;
+
+  // Return a service specified by type.
+  template<class T>
+  T* get() const {
+    if ( ! isReady() ) return nullptr;
+    return ArtServicePointer<T>();
+  }
 
 private:
 
@@ -97,21 +119,17 @@ private:
 
   int m_LogLevel;
   NameList m_names;
+  NameList m_fnames;
   ConfigurationMap m_cfgmap;
   std::string m_scfgs;
   int m_load = 0;
   bool m_needTriggerNamesService = false;
   bool m_needCurrentModuleService = false;
-  art::ServiceRegistry::Operate* m_poperate;
+  void* m_poperate;  // ServiceRegistry::Operate
 
   // Ctors.
-#ifdef ACLIC
-  ArtServiceHelper(const ArtServiceHelper&) { }
-  ArtServiceHelper& operator=(const ArtServiceHelper&) { return *this; }
-#else
   ArtServiceHelper(const ArtServiceHelper&) = delete;
   ArtServiceHelper& operator=(const ArtServiceHelper&) const = delete;
-#endif
 
 };
 

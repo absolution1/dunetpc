@@ -13,7 +13,6 @@
 #include <iostream>
 #include <vector>
 #include "dune/DuneInterface/AdcTypes.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace sim {
 class SimChannel;
@@ -35,10 +34,12 @@ public:
   // Print parameters.
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;
 
-
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(PedestalAdditionService, LEGACY)
+#endif
 
 #endif
 

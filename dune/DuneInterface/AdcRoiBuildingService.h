@@ -8,9 +8,8 @@
 //
 // Interface for a service that builds ROIs in ADC channel data.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class AdcRoiBuildingService {
 
@@ -24,6 +23,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(AdcRoiBuildingService, LEGACY)
+#endif
 
 #endif

@@ -11,6 +11,7 @@
 
 // Framework includes
 #include "fhiclcpp/ParameterSet.h"
+#include "art/Framework/Principal/Event.h"
 
 // C++ includes
 #include <iostream>
