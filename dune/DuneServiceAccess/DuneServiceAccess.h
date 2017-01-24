@@ -45,6 +45,8 @@
 #include "dune/DuneInterface/AdcRoiBuildingService.h"
 #include "dune/DuneInterface/AdcWireBuildingService.h"
 
+#include "dune/DuneInterface/SignalShapingService.h"
+
 template<class T> T* ArtServicePointer();
 
 template<>           ChannelGroupService* ArtServicePointer<ChannelGroupService>();
@@ -53,7 +55,7 @@ template<>         ChannelMappingService* ArtServicePointer<ChannelMappingServic
 template<>      SimChannelExtractService* ArtServicePointer<SimChannelExtractService>();
 template<>       PedestalAdditionService* ArtServicePointer<PedestalAdditionService>();
 template<>          AdcDistortionService* ArtServicePointer<AdcDistortionService>();
-template<>          ChannelNoiseService* ArtServicePointer<ChannelNoiseService>();
+template<>           ChannelNoiseService* ArtServicePointer<ChannelNoiseService>();
 template<>            AdcSuppressService* ArtServicePointer<AdcSuppressService>();
 template<>            AdcCompressService* ArtServicePointer<AdcCompressService>();
 template<>            BaseTriggerService* ArtServicePointer<BaseTriggerService>();
@@ -69,5 +71,7 @@ template<>       AdcDeconvolutionService* ArtServicePointer<AdcDeconvolutionServ
 template<>     AdcChannelDataCopyService* ArtServicePointer<AdcChannelDataCopyService>();
 template<>         AdcRoiBuildingService* ArtServicePointer<AdcRoiBuildingService>();
 template<>        AdcWireBuildingService* ArtServicePointer<AdcWireBuildingService>();
+
+template<>          SignalShapingService* ArtServicePointer<SignalShapingService>();
 
 #endif

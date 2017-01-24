@@ -207,6 +207,10 @@ util::SignalShapingServiceDUNE::SignalShaping(unsigned int channel) const
 return fColSignalShaping;
 }
 
+std::vector<DoubleVec> util::SignalShapingServiceDUNE::GetNoiseFactVec() const {
+  return fNoiseFactVec;
+}
+
 //-----Give Gain Settings to SimWire-----//jyoti
 double util::SignalShapingServiceDUNE::GetASICGain(unsigned int const channel) const
 {
@@ -330,6 +334,9 @@ double util::SignalShapingServiceDUNE::GetDeconNoise(unsigned int const channel)
   return deconNoise;
 }
 
+double util::SignalShapingServiceDUNE::GetDeconNorm() const {
+  return fDeconNorm;
+}
 
 //----------------------------------------------------------------------
 // Initialization method.
@@ -767,6 +774,26 @@ int util::SignalShapingServiceDUNE::FieldResponseTOffset(unsigned int const chan
   auto tpc_clock = lar::providerFrom<detinfo::DetectorClocksService>()->TPCClock();
   return tpc_clock.Ticks(time_offset/1.e3);
   
+}
+
+void util::SignalShapingServiceDUNE::
+Convolute(unsigned int channel, FloatVector& func) const {
+  return Convolute<float>(channel, func);
+}
+
+void util::SignalShapingServiceDUNE::
+Convolute(unsigned int channel, DoubleVector& func) const {
+  return Convolute<double>(channel, func);
+}
+
+void util::SignalShapingServiceDUNE::
+Deconvolute(unsigned int channel, FloatVector& func) const {
+  return Deconvolute<float>(channel, func);
+}
+
+void util::SignalShapingServiceDUNE::
+Deconvolute(unsigned int channel, DoubleVector& func) const {
+  return Deconvolute<double>(channel, func);
 }
 
 
