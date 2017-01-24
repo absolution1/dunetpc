@@ -12,7 +12,7 @@
 //   root> gSystem->AddLinkedLibs(gSystem->ExpandPathName("$DUNETPC_LIB/libdune_DuneServiceAccess.so"));
 //   root> .L $DUNETPC_INC/dune/ArtSupport/ArtServiceHelper.h+
 //   root> .L $DUNETPC_INC/dune/DuneServiceAccess/DuneServiceAccess.h+
-//   root> ArtServiceHelper& ash = ArtServiceHelper::instance("standard_reco_dune35tdata.fcl");
+//   root> ArtServiceHelper& ash = ArtServiceHelper::load("standard_reco_dune35tdata.fcl");
 //   root> ChannelGroupService* pcgs = ArtServicePointer<ChannelGroupService>();
 //   root> pcgs->print();
 

@@ -15,19 +15,22 @@
 //   root> gSystem->AddLinkedLibs(gSystem->ExpandPathName("$DUNETPC_LIB/libdune_LarsoftServiceAccess.so"));
 //   root> .L $DUNETPC_INC/dune/ArtSupport/ArtServiceHelper.h+
 //   root> .L $DUNETPC_INC/dune/LarsoftServiceAccess/LarsoftServiceAccess.h+
-//   root> ArtServiceHelper& ash = ArtServiceHelper::instance("standard_reco_dune35tdata.fcl");
+//   root> ArtServiceHelper& ash = ArtServiceHelper::load("standard_reco_dune35tdata.fcl");
 //   root> ChannelGroupService* pcgs = ArtServicePointer<ChannelGroupService>();
 //   root> pcgs->print();
 
 #ifndef LarsoftServiceAccess_H
 #define LarsoftServiceAccess_H
 
+#include "larcore/Geometry/GeometryCore.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
+using geo::GeometryCore;
 using lariov::ChannelStatusProvider;
 
 template<class P> const P* ArtServiceProvider();
 
+template<>   const GeometryCore*          ArtServiceProvider<GeometryCore>();
 template<>   const ChannelStatusProvider* ArtServiceProvider<ChannelStatusProvider>();
 
 #endif
