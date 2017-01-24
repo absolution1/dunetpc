@@ -5,7 +5,7 @@
 #include <limits>
 #include <stdexcept>
 #include <cmath>
-#include "dune/DetSim/AdcCodeHelper.h"
+#include "dune/DetSim/Utility/AdcCodeHelper.h"
 
 mix::RawDigitAdder_35t::RawDigitAdder_35t(bool t):
   RawDigitAdder(t),
