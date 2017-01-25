@@ -338,6 +338,10 @@ double util::SignalShapingServiceDUNE::GetDeconNorm() const {
   return fDeconNorm;
 }
 
+unsigned int util::SignalShapingServiceDUNE::GetSignalSize() const {
+  return SignalShaping(0).Response().size();
+}
+
 //----------------------------------------------------------------------
 // Initialization method.
 // Here we do initialization that can't be done in the constructor.

@@ -60,6 +60,7 @@ public:
   double GetRawNoise(Channel channel) const override;
   double GetDeconNoise(Channel channel) const override;
   double GetDeconNorm() const override;
+  unsigned int GetSignalSize() const override;
 
   // Accessors.
   int FieldResponseTOffset(Channel const channel) const override;
