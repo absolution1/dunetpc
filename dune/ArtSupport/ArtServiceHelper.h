@@ -5,6 +5,7 @@
 
 // David Adams
 // September 2015
+// Updated January 2017 to add load(fclfile)
 //
 // This class loads art services outside the art framework.
 //
@@ -16,6 +17,7 @@
 #include <map>
 #include <iostream>
 #include <memory>
+#include "dune/ArtSupport/ArtServicePointer.h"
 
 class ArtServiceHelper {
 
@@ -27,11 +29,9 @@ public:
   // Return the one instance of this (singleton) class.
   static ArtServiceHelper& instance();
 
-  // Return the one instance of this (singleton) class.
-  // If no services have yet been added, they are taken from fname and loaded.
-  // If services are already added (loaded or not), a warning message is
-  // displayed and the current instance is returned.
-  static ArtServiceHelper& instance(std::string fname);
+  // Read and load all services from a fcl file.
+  // No calls to addService, addServices or loadServices may precede or follow.
+  static ArtServiceHelper& load(std::string fname);
 
   // Close the one instance of this class.
   // Services are not longer available.
@@ -99,8 +99,18 @@ public:
   //   3 - service helper is closed
   int serviceStatus() const;
 
+  // Return if the services are loaded.
+  bool isReady() const;
+
   // Display the contents and status of a service helper.
   void print(std::ostream& out =std::cout) const;
+
+  // Return a service specified by type.
+  template<class T>
+  T* get() const {
+    if ( ! isReady() ) return nullptr;
+    return ArtServicePointer<T>();
+  }
 
 private:
 

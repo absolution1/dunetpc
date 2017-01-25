@@ -27,6 +27,17 @@ dunefddphase_detproperties.TimeOffsetU:       0.
 dunefddphase_detproperties.TimeOffsetV:       0.
 dunefddphase_detproperties.TimeOffsetZ:       0.
 
+protodunedphase_detproperties:                   @local::standard_detproperties
+# protodunedphase_detproperties.SamplingRate:    400.          # in ns
+protodunedphase_detproperties.Temperature:       87            # in K
+protodunedphase_detproperties.Electronlifetime:  3.0e3         # in us
+protodunedphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
+protodunedphase_detproperties.ElectronsToADC:    5.1267e-04    # 
+protodunedphase_detproperties.NumberTimeSamples: 15000         # 2*(drift length/drift velocity*sampling rate) = (6 m / 1600 m/s ) * 2.0 MHz
+protodunedphase_detproperties.ReadOutWindowSize: 15000         # 2*(drift length/drift velocity*sampling rate) = (6 m / 1600 m/s ) * 2.0 MHz
+protodunedphase_detproperties.TimeOffsetU:       0.
+protodunedphase_detproperties.TimeOffsetV:       0.
+protodunedphase_detproperties.TimeOffsetZ:       0.
 
 dune35t_detproperties:                   @local::standard_detproperties
 # dune35t_detproperties.SamplingRate:      500.         #in ns

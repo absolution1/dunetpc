@@ -47,6 +47,15 @@ ActivityRegistry& ar() {
   return *par.get();
 }
 
+class ArtServiceHelperCloser {
+public:
+  ~ArtServiceHelperCloser() {
+    cout << "ArtServiceHelperCloser::dtor: Closing ArtServiceHelper." << endl;
+    ArtServiceHelper::close();
+    cout << "ArtServiceHelperCloser::dtor: Closed." << endl;
+  }
+};
+
 }  // end unnamed namespace
 
 //**********************************************************************
@@ -59,7 +68,7 @@ ArtServiceHelper& ArtServiceHelper::instance() {
   
 //**********************************************************************
 
-ArtServiceHelper& ArtServiceHelper::instance(string fname) {
+ArtServiceHelper& ArtServiceHelper::load(string fname) {
   const string myname = "ArtServiceHelper::instance: ";
   ArtServiceHelper& ins = *instancePtr().get();
   if ( ins.fileNames().size() == 0 ) {
@@ -78,8 +87,12 @@ ArtServiceHelper& ArtServiceHelper::instance(string fname) {
 
 void ArtServiceHelper::close() {
   if ( instance().m_load == 3 ) return;
+  if ( instance().m_load != 1 ) return;
   // Close existing services and registry.
-  delete static_cast<ServiceRegistry::Operate*>(instance().m_poperate);
+  cout << "ArtServiceHelper::close: Closing art services." << endl;
+  ArtServiceHelper& obj = instance();
+  ServiceRegistry::Operate* pop = static_cast<ServiceRegistry::Operate*>(obj.m_poperate);
+  delete pop;
   instance().m_poperate = nullptr;            // Reset the old operate.
   instancePtr().reset(new ArtServiceHelper);  // Delete the old service helper.
   instance().m_load = 3;                      // Put new instance in deleted state.
@@ -418,6 +431,12 @@ int ArtServiceHelper::serviceStatus() const {
 
 //**********************************************************************
 
+bool ArtServiceHelper::isReady() const {
+  return m_load == 1;
+}
+
+//**********************************************************************
+
 void ArtServiceHelper::print(ostream& out) const {
   if ( m_load == 3 ) {
     out << "Service manager is closed" << endl;
@@ -443,6 +462,9 @@ void ArtServiceHelper::print(ostream& out) const {
 
 std::unique_ptr<ArtServiceHelper>& ArtServiceHelper::instancePtr() {
   static unique_ptr<ArtServiceHelper> psh(new ArtServiceHelper);
+  // DLA Jan 2017: I did a test with Root and this close comes too late.
+  // See https://cdcvs.fnal.gov/redmine/issues/15162#note-9.
+  // static ArtServiceHelperCloser closer;
   return psh;
 }
   
