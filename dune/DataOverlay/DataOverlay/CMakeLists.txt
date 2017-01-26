@@ -13,7 +13,7 @@ art_make_library( LIBRARY_NAME  dune_RawDigitAdder
 		     RawDigitAdder_35t.cxx
 	LIBRARIES
                  ${ROOT_BASIC_LIB_LIST}
-		 larsim_DetSim
+		 dune_DetSim
 )
 
 art_make_library( LIBRARY_NAME  dune_RawDigitMixer
