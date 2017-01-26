@@ -79,7 +79,7 @@ simple_plugin(DuneDPhaseRoiBuildingService "service"
 
 simple_plugin(StandardAdcWireBuildingService "service"
                 lardataobj_RecoBase
-                lardata_RecoBaseArt
+                lardata_ArtDataHelper
                 art_Utilities canvas_Utilities
                 ${ROOT_BASIC_LIB_LIST}
              )
