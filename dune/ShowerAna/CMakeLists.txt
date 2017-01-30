@@ -2,7 +2,7 @@
 simple_plugin(ShowerAnalysis "module"
 			     lardataobj_RawData
 		      	     lardataobj_RecoBase
-		      	     lardata_RecoBaseArt
+		      	     lardata_ArtDataHelper
 		             larcore_Geometry
 			     larcore_Geometry_Geometry_service
 			     lardata_Utilities

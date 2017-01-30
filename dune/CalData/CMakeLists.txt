@@ -7,7 +7,7 @@ art_make( BASENAME_ONLY
 			larevt_Filters
 			lardataobj_RawData
 			lardataobj_RecoBase
-			lardata_RecoBaseArt
+			lardata_ArtDataHelper
 			SignalShapingServiceDUNEDPhase_service
                         SignalShapingServiceDUNE_service
                         ${ART_FRAMEWORK_CORE}

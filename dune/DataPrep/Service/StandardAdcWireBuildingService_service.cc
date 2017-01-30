@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "lardata/RecoBaseArt/WireCreator.h"
+#include "lardata/ArtDataHelper/WireCreator.h"
 
 using std::vector;
 using std::string;

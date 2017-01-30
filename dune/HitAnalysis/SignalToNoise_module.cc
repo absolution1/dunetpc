@@ -23,7 +23,7 @@
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "lardata/RecoBaseArt/TrackUtils.h"
+#include "lardata/ArtDataHelper/TrackUtils.h"
 #include "larcore/Geometry/Geometry.h"
 #include "TH1D.h"
 #include "TH2D.h"
