@@ -479,11 +479,13 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	    FillVars( KaonVec, nKaon, KaonEDep, KaonDaughtersEDep, KaonDecayEDep, KaonStart, KaonEnd, nParentKaon, KaonParents, KaonParTrID, KaonPDG, KaonTrID, KaonFromDecay, 
 		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut );
 	  // ========== Elecs ===========
-	  else if ( (PdgCode == -11 || PdgCode == 11) )
+	  else if ( (PdgCode == -11 || PdgCode == 11) ) {
+	    // Electrons can shower straight away, so I want to treat all deposits as if it was from the electron.
+	    OrigPart = true;
 	    FillVars( ElecVec, nElec, ElecEDep, ElecDaughtersEDep, ElecDecayEDep, ElecStart, ElecEnd, nParentElec, ElecParents, ElecParTrID, ElecPDG, ElecTrID, ElecFromDecay,
 		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut );
 	  // ========== Prots ===========
-	  else if ( (PdgCode == 2212) )
+	  } else if ( (PdgCode == 2212) )
 	    FillVars( ProtVec, nProt, ProtEDep, ProtDaughtersEDep, ProtDecayEDep, ProtStart, ProtEnd, nParentProt, ProtParents, ProtParTrID, ProtPDG, ProtTrID, ProtFromDecay,
 		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut );
 	  // ========== If still not one of my intersting particles I need to find this particles parent ==========
