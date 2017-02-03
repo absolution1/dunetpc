@@ -83,7 +83,7 @@ private:
   // Parameter List
   int Verbosity;
   int NearEDeps;
-  double ActiveBounds[6]; // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
+  float ActiveBounds[6]; // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
 
   std::map<int, const simb::MCParticle*> truthmap; // A map of the truth particles.
   std::vector<int> AllTrackIDs; // A vector of all of my stored TrackIDs
@@ -97,7 +97,7 @@ private:
   float TotalEDep;
 
   // Primary particles
-  int    nPrim, PrimPDG[MaxPrim];
+  int   nPrim, PrimPDG[MaxPrim];
   float PrimEn[MaxPrim], PrimMom[MaxPrim];
   // NumParts
   int nMuon, nPion, nPi0, nKaon, nElec, nProt;
@@ -232,8 +232,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   // Muon
   fDecayTree->Branch("nMuon"            ,&nMuon            ,"nMuon/I"                   );
   fDecayTree->Branch("nParentMuon"      ,&nParentMuon      ,"nParentMuon[nMuon]/I"      );
-  fDecayTree->Branch("MuonParents"      ,&MuonParents      ,"MuonParents[nMuon][100]/I" );
-  fDecayTree->Branch("MuonParTrID"      ,&MuonParTrID      ,"MuonParTrID[nMuon][100]/I" );
+  fDecayTree->Branch("MuonParents"      ,&MuonParents      ,"MuonParents[nMuon][25]/I" );
+  fDecayTree->Branch("MuonParTrID"      ,&MuonParTrID      ,"MuonParTrID[nMuon][25]/I" );
   fDecayTree->Branch("MuonPDG"          ,&MuonPDG          ,"MuonPDG[nMuon]/I"          );
   fDecayTree->Branch("MuonTrID"         ,&MuonTrID         ,"MuonTrID[nMuon]/I"         );
   fDecayTree->Branch("MuonFromDecay"    ,&MuonFromDecay    ,"MuonFromDecay[nMuon]/I"    );
@@ -246,8 +246,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   // Pion
   fDecayTree->Branch("nPion"            ,&nPion            ,"nPion/I"                   );
   fDecayTree->Branch("nParentPion"      ,&nParentPion      ,"nParentPion[nPion]/I"      );
-  fDecayTree->Branch("PionParents"      ,&PionParents      ,"PionParents[nPion][100]/I" );
-  fDecayTree->Branch("PionParTrID"      ,&PionParTrID      ,"PionParTrID[nPion][100]/I" );
+  fDecayTree->Branch("PionParents"      ,&PionParents      ,"PionParents[nPion][25]/I" );
+  fDecayTree->Branch("PionParTrID"      ,&PionParTrID      ,"PionParTrID[nPion][25]/I" );
   fDecayTree->Branch("PionPDG"          ,&PionPDG          ,"PionPDG[nPion]/I"          );
   fDecayTree->Branch("PionTrID"         ,&PionTrID         ,"PionTrID[nPion]/I"         );
   fDecayTree->Branch("PionFromDecay"    ,&PionFromDecay    ,"PionFromDecay[nPion]/I"    );
@@ -260,8 +260,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   // Pi0
   fDecayTree->Branch("nPi0"            ,&nPi0            ,"nPi0/I"                  );
   fDecayTree->Branch("nParentPi0"      ,&nParentPi0      ,"nParentPi0[nPi0]/I"      );
-  fDecayTree->Branch("Pi0Parents"      ,&Pi0Parents      ,"Pi0Parents[nPi0][100]/I" );
-  fDecayTree->Branch("Pi0ParTrID"      ,&Pi0ParTrID      ,"Pi0ParTrID[nPi0][100]/I" );
+  fDecayTree->Branch("Pi0Parents"      ,&Pi0Parents      ,"Pi0Parents[nPi0][25]/I" );
+  fDecayTree->Branch("Pi0ParTrID"      ,&Pi0ParTrID      ,"Pi0ParTrID[nPi0][25]/I" );
   fDecayTree->Branch("Pi0PDG"          ,&Pi0PDG          ,"Pi0PDG[nPi0]/I"          );
   fDecayTree->Branch("Pi0TrID"         ,&Pi0TrID         ,"Pi0TrID[nPi0]/I"         );
   fDecayTree->Branch("Pi0FromDecay"    ,&Pi0FromDecay    ,"Pi0FromDecay[nPi0]/I"    );
@@ -274,8 +274,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   // Kaon
   fDecayTree->Branch("nKaon"            ,&nKaon            ,"nKaon/I"                   );
   fDecayTree->Branch("nParentKaon"      ,&nParentKaon      ,"nParentKaon[nKaon]/I"      );
-  fDecayTree->Branch("KaonParents"      ,&KaonParents      ,"KaonParents[nKaon][100]/I" );
-  fDecayTree->Branch("KaonParTrID"      ,&KaonParTrID      ,"KaonParTrID[nKaon][100]/I" );
+  fDecayTree->Branch("KaonParents"      ,&KaonParents      ,"KaonParents[nKaon][25]/I" );
+  fDecayTree->Branch("KaonParTrID"      ,&KaonParTrID      ,"KaonParTrID[nKaon][25]/I" );
   fDecayTree->Branch("KaonPDG"          ,&KaonPDG          ,"KaonPDG[nKaon]/I"          );
   fDecayTree->Branch("KaonTrID"         ,&KaonTrID         ,"KaonTrID[nKaon]/I"         );
   fDecayTree->Branch("KaonFromDecay"    ,&KaonFromDecay    ,"KaonFromDecay[nKaon]/I"    );
@@ -288,8 +288,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   // Electron
   fDecayTree->Branch("nElec"            ,&nElec            ,"nElec/I"                   );
   fDecayTree->Branch("nParentElec"      ,&nParentElec      ,"nParentElec[nElec]/I"      );
-  fDecayTree->Branch("ElecParents"      ,&ElecParents      ,"ElecParents[nElec][100]/I" );
-  fDecayTree->Branch("ElecParTrID"      ,&ElecParTrID      ,"ElecParTrID[nElec][100]/I" );
+  fDecayTree->Branch("ElecParents"      ,&ElecParents      ,"ElecParents[nElec][25]/I" );
+  fDecayTree->Branch("ElecParTrID"      ,&ElecParTrID      ,"ElecParTrID[nElec][25]/I" );
   fDecayTree->Branch("ElecFromDecay"    ,&ElecFromDecay    ,"ElecFromDecay[nElec]/I"    );
   fDecayTree->Branch("ElecPDG"          ,&ElecPDG          ,"ElecPDG[nElec]/I"          );
   fDecayTree->Branch("ElecTrID"         ,&ElecTrID         ,"ElecTrID[nElec]/I"         );
@@ -302,8 +302,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   // Proton
   fDecayTree->Branch("nProt"            ,&nProt            ,"nProt/I"                   );
   fDecayTree->Branch("nParentProt"      ,&nParentProt      ,"nParentProt[nProt]/I"      );
-  fDecayTree->Branch("ProtParents"      ,&ProtParents      ,"ProtParents[nProt][100]/I" );
-  fDecayTree->Branch("ProtParTrID"      ,&ProtParTrID      ,"ProtParTrID[nProt][100]/I" );
+  fDecayTree->Branch("ProtParents"      ,&ProtParents      ,"ProtParents[nProt][25]/I" );
+  fDecayTree->Branch("ProtParTrID"      ,&ProtParTrID      ,"ProtParTrID[nProt][25]/I" );
   fDecayTree->Branch("ProtFromDecay"    ,&ProtFromDecay    ,"ProtFromDecay[nProt]/I"    );
   fDecayTree->Branch("ProtPDG"          ,&ProtPDG          ,"ProtPDG[nProt]/I"          );
   fDecayTree->Branch("ProtTrID"         ,&ProtTrID         ,"ProtTrID[nProt]/I"         );
@@ -598,9 +598,15 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
       std::cout << "There are electrons in this event!!" << std::endl;
       for (int EL=0; EL<nElec; ++EL) {
 	std::cout << "Elec " << EL << " had properties: PDG " << ElecPDG[EL] << ", TrackID " << ElecTrID[EL] << ", EDep " << ElecEDep[EL] 
-		  << ", DaughtEDep " << ElecDaughtersEDep[EL] << ", DecayEDep " << ElecDecayEDep[EL] << ", NearEDep " << ElecNearEDep[EL] << std::endl;
+		  << ", DaughtEDep " << ElecDaughtersEDep[EL] << ", DecayEDep " << ElecDecayEDep[EL] << ", NearEDep " << ElecNearEDep[EL] 
+		  << "\nStart pos " << ElecStart[EL][0] << ", " << ElecStart[EL][1] << ", " << ElecStart[EL][2]
+		  << ". + End pos " << ElecEnd  [EL][0] << ", " << ElecEnd  [EL][1] << ", " << ElecEnd  [EL][2]
+		  << "\nThe parents of this electron were: ";
+	for (int zz=0; zz<nParentElec[EL]; ++zz) {
+	  std::cout << ElecParents[EL][zz] << " ("<<ElecParTrID[EL][zz]<<"), ";
+	}
+	std::cout << "."<< std::endl;
       }
-
     }
     if (nMuon) {
       std::cout << "There are " << nMuon << " muons in this event!!" << std::endl;
@@ -650,7 +656,10 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVe
     else FromDecay[numParts] = 0;
     if (Verbosity)
       std::cout << "\nPushing back a new ideTrackID " << abs(ThisID) << ", it was from a " << MCPart.PdgCode() << ", process " << MCPart.Process() 
-		<< ", PartDecay? " << FromDecay[numParts] << ", deposition from a decay? " << Decay << std::endl;
+		<< ", PartDecay? " << FromDecay[numParts] << ", deposition from a decay? " << Decay << "\n"
+		<< "Starting location is " << MCPart.Vx(0) << ", " << MCPart.Vy(0) << ", " << MCPart.Vz(0)
+		<< ". Ending location is " << MCPart.EndX()<< ", " << MCPart.EndY()<< ", " << MCPart.EndZ() 
+		<< std::endl;
     // ---- Work out the particles ancestry ----
     Parent[numParts][0] = MCPart.Mother();
     int NumParent = 0;
@@ -712,7 +721,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::FillVars( std::vector<int> &TrackIDVe
     }
     // ------- Do I want to replace the end array?
     bool RepEn = false;
-    if (Start[partNum][1] == HolderVal)
+    if (End[partNum][1] == HolderVal)
       RepEn = true;
     else {
       float En_Ar = CalcDist( MCPart.EndX(), MCPart.EndY(), MCPart.EndZ(), End[partNum][0], End[partNum][1], End[partNum][2] );
