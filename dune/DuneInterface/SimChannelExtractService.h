@@ -10,8 +10,8 @@
 #define SimChannelExtractService_H
 
 #include <vector>
+#include <iostream>
 #include "dune/DuneInterface/AdcTypes.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace sim {
 class SimChannel;
@@ -29,7 +29,10 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(SimChannelExtractService, LEGACY)
+#endif
 
 #endif
 
