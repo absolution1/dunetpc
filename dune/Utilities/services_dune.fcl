@@ -408,7 +408,7 @@ dune_message_services_prod: {
   destinations: {
     LogDebugFile: { 
       type:       "file"
-      filename:   "debug.log"
+      filename:   "debugprod.log"
       append:     false
       threshold:  "DEBUG"
       categories:{
