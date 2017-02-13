@@ -104,6 +104,8 @@ private:
 	
 	double GetEdepHits(const std::vector< art::Ptr<recob::Hit> > & hits) const;
 	
+	double GetEdepHitsMeV(const std::vector< recob::Hit > & hits) const;
+	
 	int fBestview;
 
 	double fT0;
@@ -113,7 +115,8 @@ private:
 	int fRun; 
 	int fEvent;
 	double fEnGen;
-	double fEdep; 
+	double fEdep;
+	double fEdepMeV; 
 	double fEdepCl;
 	double fEdepMC;
 	double fEdepAttMC;
@@ -167,6 +170,7 @@ void proto::EdepCal::beginJob()
 	fTree->Branch("fEvent", &fEvent, "fEvent/I");
 	fTree->Branch("fEnGen", &fEnGen, "fEnGen/D");
 	fTree->Branch("fEdep", &fEdep, "fEdep/D");
+	fTree->Branch("fEdepMeV", &fEdepMeV, "fEdepMeV/D");
 	fTree->Branch("fEdepCl", &fEdepCl, "fEdepCl/D");
 	fTree->Branch("fEdepMC", &fEdepMC, "fEdepMC/D");
 	fTree->Branch("fEdepAttMC", &fEdepAttMC, "fEdepAttMC/D");
@@ -223,6 +227,7 @@ void proto::EdepCal::analyze(art::Event const & e)
 	fEdep = 0.0;
 	const auto& hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
 	fEdep = GetEdepHits(hitListHandle);
+	fEdepMeV = GetEdepHitsMeV(hitListHandle);
 
 	// clusters
 	auto clListHandle = e.getValidHandle< std::vector<recob::Cluster> >(fClusterModuleLabel);
@@ -473,6 +478,30 @@ double proto::EdepCal::GetEdepHits(const std::vector< recob::Hit > & hits) const
 	return dqsum; 
 }
 
+double proto::EdepCal::GetEdepHitsMeV(const std::vector< recob::Hit > & hits) const
+{
+	if (!hits.size()) return 0.0;
+
+	double dqsum = 0.0;
+	for (size_t h = 0; h < hits.size(); ++h)
+	{
+		unsigned short plane = hits[h].WireID().Plane;
+		if (plane != fBestview) continue;
+
+		double dqadc = hits[h].Integral();
+		if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
+	
+		double dqel = fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane);
+
+		double dq = dqel * fElectronsToGeV * 1000;
+		if (!std::isnormal(dq) || (dq < 0)) continue;
+
+		dqsum += dq; 
+	}
+
+	return dqsum; 
+}
+
 double proto::EdepCal::GetEdepHits(const std::vector< art::Ptr<recob::Hit> > & hits) const
 {
 	if (!hits.size()) return 0.0;
@@ -510,6 +539,7 @@ bool proto::EdepCal::Has(std::vector<int> v, int i) const
 void proto::EdepCal::ResetVars()
 {
 	fEdep = 0.0;
+	fEdepMeV = 0.0;
 	fEnGen = 0.0;
 	fEdepCl = 0.0;
 	fEdepMC = 0.0;
