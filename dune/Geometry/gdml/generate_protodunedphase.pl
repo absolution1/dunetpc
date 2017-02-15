@@ -22,7 +22,6 @@ GetOptions( "help|h" => \$help,
 	    "suffix|s:s" => \$suffix,
 	    "output|o:s" => \$output,
 	    "wires|w:s" => \$wires);
-#            "workspace|k:s" => \$workspace); 
 
 if ( defined $help )
 {
@@ -93,16 +92,9 @@ $lengthCRM = $lengthCRM_active + 2 * $borderCRM;
 $nCRM_y   = 2;
 $nCRM_z   = 2;
 
-# create a smaller geometry
-#if( $workspace == 1 )
-#{
-#$nCRM_y = 2;
-#$nCRM_z = 2;
-#}
-
 # calculate tpc area based on number of CRMs and their dimensions
-$widthTPCActive  = $nCRM_y * $widthCRM;  # around 1200
-$lengthTPCActive = $nCRM_z * $lengthCRM; # around 6000
+$widthTPCActive  = $nCRM_y * $widthCRM;  # around 600
+$lengthTPCActive = $nCRM_z * $lengthCRM; # around 600
 
 # active volume dimensions 
 $driftTPCActive  = 600.0;
@@ -120,12 +112,6 @@ $ReadoutPlane = 2 * $padWidth;
 $Argon_x = 789.6;
 $Argon_y = 854.4;
 $Argon_z = 854.4;
-
-#if( $workspace == 1 )
-#{
-#    $Argon_y = 854.4;
-#    $Argon_z = 854.4;
-#}
 
 # width of gas argon layer on top
 $HeightGaseousAr = 81.8;
@@ -346,8 +332,8 @@ EOF
       z="$TPCActive_z"/>
    <box name="CRMActive" lunit="cm"
       x="$TPCActive_x"
-      y="$TPCActive_y"
-      z="$TPCActive_z"/>
+      y="$TPC_y"
+      z="$TPC_z"/>
 EOF
 
 

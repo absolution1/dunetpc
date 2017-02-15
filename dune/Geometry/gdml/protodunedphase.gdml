@@ -318,8 +318,8 @@
       z="300"/>
    <box name="CRMActive" lunit="cm"
       x="600"
-      y="300"
-      z="300"/>
+      y="301"
+      z="301"/>
 
    <tube name="CRMWireV"
      rmax="0.5*0.015"
