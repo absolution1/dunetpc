@@ -82,7 +82,6 @@ private:
   double fHadEnSum;
   
   void ResetVars();
-  double KinEn(recob::Track const & tack);
   
   // Module labels to get data products
   anab::Calorimetry fCalorimetry;
@@ -126,50 +125,72 @@ void proto::HadCal::analyze(art::Event const & e)
   
   fRun = e.run();
   fEvent = e.id().event();
-  
-  auto trkHandle = e.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
-  const art::FindManyP< anab::Calorimetry > tracksFromCal(trkHandle, e, fCalorimetryModuleLabel);
-  
-  std::cout << " number of tracks: " << trkHandle->size() << std::endl;
-  for (size_t t = 0; t < trkHandle->size(); ++t)
-  {
-  	std::cout << " length " << trkHandle->at(t).Length() << std::endl;
-  	std::cout << " vec size: " << tracksFromCal.at(t).size() << std::endl;
-  	std::cout << " kin en: " << std::endl;
-  	for (size_t e = 0; e < tracksFromCal.at(t).size(); ++e)
-  	{
-  		std::cout << tracksFromCal.at(t)[e]->KineticEnergy() << std::endl;
-  	}
-  	
-  }
+  double ekin = 0.0;
   
   // output from cnn's
-  
   auto trkResults = anab::MVAReader< recob::Track, MVA_LENGTH>::create(e, fNNetModuleLabel);
+  
+    
   if (trkResults)
   {
-  	
+  	fNumberOfTracks = trkResults->size();
+  
+  	// use handle and input tag of reco objects associated to cnn output
+  	const art::FindManyP< anab::Calorimetry > calFromTracks(trkResults->dataHandle(), e, fCalorimetryModuleLabel);	
   	
   	for (size_t t = 0; t < trkResults->size(); ++t)
   	{
-  		const recob::Track & trk = trkResults->item(t);
-  		fHadEnSum += KinEn(trk);
-  		// std::array< float, MVA_LENGTH > cnn_out = trkResults->getOutput(t);
+  		int nplanes = calFromTracks.at(t).size(); 	
+  
+  		std::array< float, MVA_LENGTH > cnn_out = trkResults->getOutput(t); 
+  		
+  		if ( (cnn_out[1] / (cnn_out[0] + cnn_out[1])) >= 0.63)
+  		{
+  			if (nplanes == 3)
+  			{
+  				if (calFromTracks.at(t)[2]->KineticEnergy() > 0)
+  				{
+  					ekin = calFromTracks.at(t)[2]->KineticEnergy();
+  				} 
+  				else if (calFromTracks.at(t)[1]->KineticEnergy() > 0)
+  				{
+  					ekin = calFromTracks.at(t)[1]->KineticEnergy();
+  				}
+ 					else if (calFromTracks.at(t)[0]->KineticEnergy() > 0)
+ 					{
+ 						ekin = calFromTracks.at(t)[0]->KineticEnergy();
+  				}
+  				else
+  				{
+  					ekin = 0.0;
+  				}
+  			}
+  			else if (nplanes == 2)
+ 				{
+  				if (calFromTracks.at(t)[1]->KineticEnergy() > 0)
+  				{
+  					ekin = calFromTracks.at(t)[1]->KineticEnergy();
+  				}
+  				else if (calFromTracks.at(t)[0]->KineticEnergy() > 0)
+  				{
+  					ekin = calFromTracks.at(t)[0]->KineticEnergy();
+  				}
+  				else
+  				{
+  					ekin = 0.0;
+ 					}
+ 				}
+ 				else
+  			{
+  				ekin = 0.0;
+  			}
+  					
+  			fHadEnSum += ekin;
+  			
+  		}
   	}
   	
-  	fNumberOfTracks = trkResults->size();
   }
-  
-}
-
-double proto::HadCal::KinEn(recob::Track const & track)
-{
-	double ekin = 0.0;
-	
-	
-	
-	
-	return ekin;
 }
 
 
