@@ -84,7 +84,7 @@ private:
   void ResetVars();
   
   // Module labels to get data products
-  anab::Calorimetry fCalorimetry;
+  //anab::Calorimetry fCalorimetry;
   art::InputTag fNNetModuleLabel;
   std::string fTrackModuleLabel;
   std::string fCalorimetryModuleLabel;
