@@ -61,6 +61,7 @@ simple_plugin(HadCal "module"
                         larreco_RecoAlg_PMAlg
                         larcore_Geometry
                         larcore_Geometry_Geometry_service
+                        lardata_ArtDataHelper
                         lardata_Utilities
                         larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
                         
