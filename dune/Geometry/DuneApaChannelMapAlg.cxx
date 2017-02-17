@@ -269,9 +269,32 @@ const PlaneGeo plageo2 = plageo;
         // In fact, for TPC #0 it is W + N for V and Z planes, W - N for U
         // plane; for TPC #0 it is W + N for V and Z planes, W - N for U
         PlaneData.fWireSortingInZ = thePlane.WireIDincreasesWithZ()? +1.: -1.;
-      }
-    }
-  }
+
+	  // find boundaries of the outside APAs for this plane by looking at endpoints of wires
+
+	  double endpoint[3];
+	  thePlane.Wire(0).GetStart(endpoint);
+	  PlaneData.fYmax = endpoint[1];
+	  PlaneData.fYmin = endpoint[1];
+	  PlaneData.fZmax = endpoint[2];
+	  PlaneData.fZmin = endpoint[2];
+	  unsigned int nwires = thePlane.Nwires(); 
+	  for (unsigned int iwire=0;iwire<nwires;iwire++){
+  	    thePlane.Wire(iwire).GetStart(endpoint);
+	    PlaneData.fYmax = std::max(PlaneData.fYmax,endpoint[1]);
+	    PlaneData.fYmin = std::min(PlaneData.fYmin,endpoint[1]);
+	    PlaneData.fZmax = std::max(PlaneData.fZmax,endpoint[2]);
+	    PlaneData.fZmin = std::min(PlaneData.fZmin,endpoint[2]);
+  	    thePlane.Wire(iwire).GetEnd(endpoint);
+	    PlaneData.fYmax = std::max(PlaneData.fYmax,endpoint[1]);
+	    PlaneData.fYmin = std::min(PlaneData.fYmin,endpoint[1]);
+	    PlaneData.fZmax = std::max(PlaneData.fZmax,endpoint[2]);
+	    PlaneData.fZmin = std::min(PlaneData.fZmin,endpoint[2]);	    
+	  } // loop on wire 
+
+      } // for plane
+    } // for TPC
+  } // for cryostat
 
   Index npla = crygeo.TPC(0).Nplanes();
   fWirePitch.resize(npla);
@@ -434,7 +457,17 @@ WireCoordinate(double YPos, double ZPos, PlaneID const& plaid) const {
 
 WireID DuneApaChannelMapAlg::
 NearestWireID(const TVector3& xyz, PlaneID const& plaid) const {
-  int iwirSigned = 0.5 + WireCoordinate(xyz.Y(), xyz.Z(), plaid);
+
+
+    // cap the position to be within the boundaries of the wire endpoints.
+    // This simulates charge drifting in from outside of the wire frames inwards towards
+    // the first and last collection wires on the side, and towards the right endpoints
+
+  const PlaneData_t& PlaneData = AccessElement(fPlaneData, plaid);
+  double ycap = std::max(PlaneData.fYmin,std::min(PlaneData.fYmax,xyz.Y()));
+  double zcap = std::max(PlaneData.fZmin,std::min(PlaneData.fZmax,xyz.Z()));
+
+  int iwirSigned = 0.5 + WireCoordinate(ycap, zcap, plaid);
   Index iwir = (iwirSigned < 0) ? 0 : iwirSigned;
   Index icry = plaid.Cryostat;
   Index itpc = plaid.TPC;

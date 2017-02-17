@@ -15,11 +15,11 @@ proto_ecalibration:
    	CalorimetryModuleLabel: "calo"
    	CalorimetryAlg:          @local::dune35t_calorimetryalgmc
 
-	BeamPosX:		118.106		# starting position of the beam window 
-	BeamPosY:		395.649
-	BeamPosZ:		-196.113
-	ThXZ:			-8.189		# beam window angle
-	ThYZ:			-11.229
+	BeamPosX:		8.0757		# starting position of the beam window 
+	BeamPosY:		461.06
+	BeamPosZ:		-196.11
+	ThXZ:			-11.844		# beam window angle
+	ThYZ:			-11.107
 
 	Stopping:		false
 	Decaying:		false
@@ -37,6 +37,14 @@ proto_edepcal:
 	ClusterModuleLabel: "emtrackid"
 	CalorimetryAlg: @local::dune35t_calorimetryalgmc
 	Bestview: 2
+}
+
+proto_hadcal:
+{
+	module_type: "HadCal"
+	TrackModuleLabel: "pmtrack"
+	NNetModuleLabel: "emtrackid"
+	CalorimetryModuleLabel: "pmtrackcalo"
 }
 
 END_PROLOG

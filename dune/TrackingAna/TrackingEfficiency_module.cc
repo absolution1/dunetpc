@@ -137,7 +137,6 @@ private:
   double PhotonCounterT0, PhotonCounterTickT0, PhotonCounterID;
   double TrackTheta_XZ, TrackTheta_YZ, TrackEta_XY, TrackEta_ZY, TrackTheta, TrackPhi;
   double TrackLength; 
-  std::vector<double> trackStart, trackEnd;
 
   double MCTheta_XZ, MCTheta_YZ, MCEta_XY, MCEta_ZY, MCTheta, MCPhi;
   double MCTPCLength, MCEnergy, MCEnergyDeposited;
@@ -375,11 +374,10 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
 	std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(Track);
 	double Hit_Size = allHits.size();
 	// ---- Correct X positions and get track positions.
-	trackStart.clear();
-	trackEnd.clear();
-	tracklist[Track]->Extent(trackStart,trackEnd);
-	trackStart[0] = trackStart[0] - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'
-	trackEnd[0]   = trackEnd[0] - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'
+        recob::Track::Point_t trackStart, trackEnd;
+        std::tie(trackStart, trackEnd) = tracklist[Track]->Extent(); 
+	trackStart.SetX( trackStart.X() - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat )); // Correct X, last entry is first 'hit'
+        trackEnd.SetX( trackEnd.X() - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat)); // Correct X, first entry is last 'hit'
 	// ---- Get lengths and angles.
 	art::Ptr<recob::Track> ptrack(trackh, Track);
 	const recob::Track& track = *ptrack;
