@@ -83,20 +83,6 @@ protodunedphase_geo:
  DisableWiresInG4:   true
 } 
 
-dunedphase10kt_normal_geo:
-{
- Name:      "dunedphase10kt_v1"
- 
- GDML:      "dunedphase10kt_v1-normalOrientation.gdml"
- ROOT:      "dunedphase10kt_v1-normalOrientation.gdml"
-
- SortingParameters:	{ChannelsPerOpDet:	1}
-
- SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
-
- DisableWiresInG4:   true
-}
-
 dune10kt_workspace_geo: @local::dune10kt_geo
 dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
 dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
