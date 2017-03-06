@@ -1395,7 +1395,7 @@ for($i=0 ; $i<$nAPAs ; $i++){
 for($p=0 ; $p<10 ; $p++){
 print CRYO <<EOF;
     <volume name="volOpDetSensitive_$i\-$p">
-      <materialref ref="LAr"/>
+      <materialref ref="Acrylic"/>
       <solidref ref="LightPaddle"/>
     </volume>
 EOF
