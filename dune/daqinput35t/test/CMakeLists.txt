@@ -5,5 +5,5 @@ include(CetTest)
 cet_test(test_tpcFragmentToRawDigits SOURCES test_tpcFragmentToRawDigits.cxx
   LIBRARIES
     lbne_daqinput35t
-    art_Persistency_Provenance canvas_Persistency_Provenance
+    art_Persistency_Provenance canvas
 )

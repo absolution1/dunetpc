@@ -7,10 +7,11 @@
 
 # Add plugin for each service.
 
-simple_plugin(FileChannelMappingService  "service")
+simple_plugin(FileChannelMappingService  "service" cetlib_except)
 simple_plugin(Dune35tChannelMappingService  "service"
                 lbne-raw-data_Services_ChannelMap_ChannelMapService_service
-                art_Utilities canvas_Utilities
+                art_Utilities canvas
+                cetlib cetlib_except
 		${ROOT_CORE}
              )
 

@@ -7,8 +7,8 @@ art_make(BASENAME_ONLY
         LIBRARY_NAME lbne_daqinput35t
         LIB_LIBRARIES
         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-        art_Persistency_Provenance canvas_Persistency_Provenance
-        art_Utilities canvas_Utilities
+        art_Persistency_Provenance canvas
+        art_Utilities canvas
         ${ROOT_CORE}
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
@@ -37,12 +37,12 @@ ${ART_FRAMEWORK_SERVICES_REGISTRY}
 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 # ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-# art_Persistency_Common canvas_Persistency_Common
-# art_Persistency_Provenance canvas_Persistency_Provenance
-# art_Utilities canvas_Utilities
+# art_Persistency_Common canvas
+# art_Persistency_Provenance canvas
+# art_Utilities canvas
 # ${MF_MESSAGELOGGER}
 # ${MF_UTILITIES}
-# ${CETLIB}
+# cetlib cetlib_except
 ${ROOT_HIST}
 # ${ROOT_BASIC_LIB_LIST}
 )
@@ -137,12 +137,12 @@ simple_plugin(NoiseCorrelation "module"
 			       ${ART_FRAMEWORK_SERVICES_REGISTRY}
 			       ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			       ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			       art_Persistency_Common canvas_Persistency_Common
-			       art_Persistency_Provenance canvas_Persistency_Provenance
-			       art_Utilities canvas_Utilities
+			       art_Persistency_Common canvas
+			       art_Persistency_Provenance canvas
+			       art_Utilities canvas
 			       ${MF_MESSAGELOGGER}
 			       ${MF_UTILITIES}
-			       ${CETLIB}
+			       cetlib cetlib_except
 			       ${ROOT_BASIC_LIB_LIST}
 )
 

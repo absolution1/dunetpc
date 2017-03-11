@@ -17,8 +17,8 @@ art_make_library(
     art_Framework_Core
     art_Framework_Principal
     art_Utilities
-    canvas_Utilities
-    ${CETLIB}
+    canvas
+    cetlib cetlib_except
 )
 
 install_headers()

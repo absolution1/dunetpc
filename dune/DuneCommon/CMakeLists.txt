@@ -5,7 +5,7 @@ ADD_SUBDIRECTORY(Service)
 
 art_make(BASENAME_ONLY
         LIB_LIBRARIES
-        art_Persistency_Provenance canvas_Persistency_Provenance
+        art_Persistency_Provenance canvas
         NO_PLUGINS
         )
 
