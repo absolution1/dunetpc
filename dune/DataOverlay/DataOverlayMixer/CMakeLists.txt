@@ -47,6 +47,7 @@ art_make(
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 			${BOOST_LIB}
                         ${FHICLCPP}
+                        cetlib cetlib_except
 )							   
 
 install_headers()

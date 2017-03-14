@@ -42,7 +42,7 @@ ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 # art_Utilities canvas
 # ${MF_MESSAGELOGGER}
 # ${MF_UTILITIES}
-# cetlib cetlib_except
+cetlib cetlib_except
 ${ROOT_HIST}
 # ${ROOT_BASIC_LIB_LIST}
 )
@@ -56,6 +56,7 @@ nusimdata_SimulationBase
 art_Framework_Services_Registry
 art_Framework_Services_Optional
 art_Framework_Services_Optional_TFileService_service
+cetlib cetlib_except
 ${ROOT_HIST}
 )
 
@@ -68,6 +69,7 @@ lardataobj_RawData
 lardataobj_RecoBase
 nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
+cetlib cetlib_except
 )
 
 simple_plugin(PTBToOffline "module"
@@ -78,6 +80,7 @@ lbne_daqinput35t
 lardataobj_RawData
 nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
+cetlib cetlib_except
 )
 
 simple_plugin(SSPTriggerAna "module"
@@ -88,6 +91,7 @@ lbne_daqinput35t
 lardataobj_RawData
 nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
+cetlib cetlib_except
 art_Framework_Services_Registry
 art_Framework_Services_Optional
 art_Framework_Services_Optional_TFileService_service
@@ -103,6 +107,7 @@ lbne_daqinput35t
 lardataobj_RawData
 nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
+cetlib cetlib_except
 art_Framework_Services_Registry
 art_Framework_Services_Optional
 art_Framework_Services_Optional_TFileService_service
@@ -122,6 +127,7 @@ art_Framework_Services_Registry
 art_Framework_Services_Optional
 ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 ${FHICLCPP}
+cetlib cetlib_except
 ${ROOT_BASIC_LIB_LIST}
 )
 
@@ -158,6 +164,7 @@ simple_plugin(FilterWF "module"
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
+ cetlib cetlib_except
  art_Framework_Services_Registry
  art_Framework_Services_Optional
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
@@ -175,6 +182,7 @@ simple_plugin(CheckRawDigit "module"
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
+ cetlib cetlib_except
  art_Framework_Services_Registry
  art_Framework_Services_Optional
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
@@ -192,6 +200,7 @@ simple_plugin(Sigmoidfilter "module"
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
+ cetlib cetlib_except
  art_Framework_Services_Registry
  art_Framework_Services_Optional
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
@@ -208,6 +217,7 @@ simple_plugin(FilterAnalyzer "module"
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
+ cetlib cetlib_except
  art_Framework_Services_Registry
  art_Framework_Services_Optional
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
@@ -225,6 +235,7 @@ simple_plugin(FilterAnalyzerRunList "module"
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
  art_Framework_Services_Registry
+ cetlib cetlib_except
  art_Framework_Services_Optional
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 )
@@ -237,6 +248,7 @@ simple_plugin(GoodRun "module"
  ${ART_FRAMEWORK_CORE}
  ${ART_FRAMEWORK_PRINCIPAL}
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ cetlib cetlib_except
  ${ROOT_BASIC_LIB_LIST}
  ${ROOT_CORE}
 )
@@ -249,6 +261,7 @@ simple_plugin(BadTimings "module"
  ${ART_FRAMEWORK_CORE}
  ${ART_FRAMEWORK_PRINCIPAL}
  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ cetlib cetlib_except
  ${ROOT_BASIC_LIB_LIST}
  ${ROOT_CORE}
 )
@@ -261,6 +274,7 @@ simple_plugin(SplitterInput "source"
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}
+ cetlib cetlib_except
  nusimdata_SimulationBase
  ${SIMULATION}
 )
