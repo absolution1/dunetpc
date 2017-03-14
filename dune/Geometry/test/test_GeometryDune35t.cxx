@@ -120,7 +120,7 @@ void setExpectedValuesSpacePoints(Geometry* pgeo) {
   cout << "Cryostat limits: "
        << "(" << cxlo << ", " << cylo << ", " << czlo << "), "
        << "(" << cxhi << ", " << cyhi << ", " << czhi << ")" << endl;
-  vector<double> zfs = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7 };
+  vector<double> zfs = {0.2, 0.3, 0.4, 0.5, 0.6, 0.68 };
   vector<double> yfs = {0.2, 0.5, 0.8};
   vector<double> xfs = {0.1, 0.3, 0.6 };
   ofstream fout(ofname.c_str());
