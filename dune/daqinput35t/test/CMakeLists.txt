@@ -2,6 +2,8 @@
 
 include(CetTest)
 
+cet_enable_asserts()
+
 cet_test(test_tpcFragmentToRawDigits SOURCES test_tpcFragmentToRawDigits.cxx
   LIBRARIES
     lbne_daqinput35t

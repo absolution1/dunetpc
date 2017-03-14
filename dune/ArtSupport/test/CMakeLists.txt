@@ -2,6 +2,8 @@
 
 include(CetTest)
 
+cet_enable_asserts()
+
 cet_test(test_ArtServiceHelper SOURCES test_ArtServiceHelper.cxx
   LIBRARIES
     dune_ArtSupport
