@@ -393,8 +393,6 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
 
   double larStart[3];
   double larEnd[3];
-  std::vector<double> trackStart;
-  std::vector<double> trackEnd;
   
   // Get Cryostat information.....
   int c=0;//only one cryo   
@@ -452,26 +450,25 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
       //*********************************
 
       trkid[i]=i;
-      trackStart.clear();
-      trackEnd.clear();
       memset(larStart, 0, 3);
       memset(larEnd, 0, 3);
-      tracklist[i]->Extent(trackStart,trackEnd);
+      recob::Track::Point_t trackStart, trackEnd;
+      std::tie(trackStart, trackEnd) = tracklist[i]->Extent(); 
       tracklist[i]->Direction(larStart,larEnd);
-      trkstartx[i]      = trackStart[0] - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'
-      trkstarty[i]      = trackStart[1];
-      trkstartz[i]      = trackStart[2];
-      trkendx[i]        = trackEnd[0] - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'
-      trkendy[i]        = trackEnd[1];
-      trkendz[i]        = trackEnd[2];
+      trkstartx[i]      = trackStart.X() - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'
+      trkstarty[i]      = trackStart.Y();
+      trkstartz[i]      = trackStart.Z();
+      trkendx[i]        = trackEnd.X() - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'
+      trkendy[i]        = trackEnd.Y();
+      trkendz[i]        = trackEnd.Z();
       trkstartdcosx[i]  = larStart[0];
       trkstartdcosy[i]  = larStart[1];
       trkstartdcosz[i]  = larStart[2];
       trkenddcosx[i]    = larEnd[0];
       trkenddcosy[i]    = larEnd[1];
       trkenddcosz[i]    = larEnd[2];
-      TLorentzVector v1(trackStart[0],trackStart[1],trackStart[2],0);
-      TLorentzVector v2(trackEnd[0],trackEnd[1],trackEnd[2],0);
+      TLorentzVector v1(trackStart.X(),trackStart.Y(),trackStart.Z(),0);
+      TLorentzVector v2(trackEnd.X(),trackEnd.Y(),trackEnd.Z(),0);
       trklen[i]=(v2-v1).Rho();
 
       art::Ptr<recob::Track> ptrack(trackh, i);
@@ -491,8 +488,8 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
       }
 
       double distance_squared=0;
-      TVector3 V1(trackStart[0],trackStart[1],trackStart[2]);
-      TVector3 V2(trackEnd[0],trackEnd[1],trackEnd[2]);
+      TVector3 V1(trackStart.X(),trackStart.Y(),trackStart.Z());
+      TVector3 V2(trackEnd.X(),trackEnd.Y(),trackEnd.Z());
       TVector3 vOrth=(V2-V1).Orthogonal();
       TVector3 pointVector=V1;
 

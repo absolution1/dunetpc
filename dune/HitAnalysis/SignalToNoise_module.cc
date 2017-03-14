@@ -148,26 +148,23 @@ void dune::SignalToNoise::analyze(art::Event const & e)
 
     double larStart[3];
     double larEnd[3];
-    std::vector<double> trackStart;
-    std::vector<double> trackEnd;
  
     for (size_t i = 0; i<tracklist.size(); ++i){
-      trackStart.clear();
-      trackEnd.clear();
       memset(larStart, 0, 3);
       memset(larEnd, 0, 3);
-      tracklist[i]->Extent(trackStart,trackEnd); 
+      recob::Track::Point_t trackStart, trackEnd;
+      std::tie(trackStart, trackEnd) = tracklist[i]->Extent(); 
       tracklist[i]->Direction(larStart,larEnd);
       double dc = std::abs(ccosx*larStart[0]+ccosy*larStart[1]+ccosz*larStart[2]);
       dcos->Fill(dc);
       if (dc>0.98){
         double ctime = (countlist[ci1[0]]->GetTrigTime() + countlist[ci2[0]]->GetTrigTime())/(2*32.); 
-        double x0 = trackStart[0] + (trackStart[0]>0?-1:1)*ctime*0.5*0.1085;
-        //double y0 = trackStart[1];
-        double z0 = trackStart[2];
-        double x1 = trackEnd[0] + (trackStart[0]>0?-1:1)*ctime*0.5*0.1085;
-        //double y1 = trackEnd[1];
-        double z1 = trackEnd[2];
+        double x0 = trackStart.X() + (trackStart.X()>0?-1:1)*ctime*0.5*0.1085;
+        //double y0 = trackStart.Y();
+        double z0 = trackStart.Z();
+        double x1 = trackEnd.X() + (trackStart.X()>0?-1:1)*ctime*0.5*0.1085;
+        //double y1 = trackEnd.Y();
+        double z1 = trackEnd.Z();
 
         double dx1 = 1e10;
         double dx2 = 1e10;

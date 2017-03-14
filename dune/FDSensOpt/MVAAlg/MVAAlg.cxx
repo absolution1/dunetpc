@@ -457,7 +457,7 @@ void dunemva::MVAAlg::CalculateInputs( ){
       float vtxy = 0;
       float vtxz = 100000;
       if (nvtx>0){
-	for (int i = 0; i<nvtx; ++i){
+	for (int i = 0; i<nvtx&&i<kMaxVertices; ++i){
 	  if (vtx[i][2]<vtxz){
 	    vtxx = vtx[i][0];
 	    vtxy = vtx[i][1];
@@ -954,7 +954,7 @@ void dunemva::MVAAlg::CalculateInputs( ){
       } //in fiducial volume
       else {
 	mf::LogVerbatim("MVASelect") << "  Not found in fiducial volume. nvtx=" << nvtx << " True vtx = ("
-				     << nuvtxx_truth <<", "<< nuvtxy_truth <<", "<< nuvtxz_truth << ")";
+				     << nuvtxx_truth <<", "<< nuvtxy_truth <<", "<< nuvtxz_truth << "), Reco vtx = ("<<vtxx<<", "<<vtxy<<", "<<vtxz<<")";
       }
 
       if(itype == -99999) mf::LogVerbatim("MVASelect") << "  itype not set";
@@ -1233,22 +1233,19 @@ void dunemva::MVAAlg::PrepareEvent(const art::Event& evt){
 
   double larStart[3];
   double larEnd[3];
-  std::vector<double> trackStart;
-  std::vector<double> trackEnd;
   for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
-    trackStart.clear();
-    trackEnd.clear();
     memset(larStart, 0, 3);
     memset(larEnd, 0, 3);
-    tracklist[i]->Extent(trackStart,trackEnd); 
+    recob::Track::Point_t trackStart, trackEnd;
+    std::tie(trackStart, trackEnd) = tracklist[i]->Extent(); 
     tracklist[i]->Direction(larStart,larEnd);
     trkid[i]       = tracklist[i]->ID();
-    trkstartx[i]      = trackStart[0];
-    trkstarty[i]      = trackStart[1];
-    trkstartz[i]      = trackStart[2];
-    trkendx[i]        = trackEnd[0];
-    trkendy[i]        = trackEnd[1];
-    trkendz[i]        = trackEnd[2];
+    trkstartx[i]      = trackStart.X();
+    trkstarty[i]      = trackStart.Y();
+    trkstartz[i]      = trackStart.Z();
+    trkendx[i]        = trackEnd.X();
+    trkendy[i]        = trackEnd.Y();
+    trkendz[i]        = trackEnd.Z();
     trkstartdcosx[i]  = larStart[0];
     trkstartdcosy[i]  = larStart[1];
     trkstartdcosz[i]  = larStart[2];
