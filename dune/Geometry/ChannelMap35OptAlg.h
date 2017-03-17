@@ -39,7 +39,7 @@ namespace geo{
 
     ChannelMap35OptAlg(fhicl::ParameterSet const& p);
     
-    void                     Initialize( GeometryData_t& geodata ) override;
+    void                     Initialize( GeometryData_t const& geodata ) override;
     void                     Uninitialize();
     
     /// Returns a list of TPC wires connected to the specified readout channel ID
@@ -257,6 +257,10 @@ namespace geo{
     
     /// @} readout plane mapping
     
+    
+    /// Returns the object to sort geometry with
+    virtual geo::GeoObjectSorter const& Sorter() const override
+      { return fSorter; }
     
     
     unsigned int NOpChannels(unsigned int NOpDets)                        const;

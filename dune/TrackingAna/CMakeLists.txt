@@ -18,6 +18,7 @@ simple_plugin(TrackingEfficiency "module"
 				  ${MF_UTILITIES}
 				  ${CETLIB}
 				  ${ROOT_BASIC_LIB_LIST}
+                                  ${ROOT_GEOM}
               			  BASENAME_ONLY
 )
 
@@ -40,6 +41,7 @@ simple_plugin(ProtonIdentification "module"
 				  ${MF_UTILITIES}
 				  ${CETLIB}
 				  ${ROOT_BASIC_LIB_LIST}
+                                  ${ROOT_GEOM}
               			  BASENAME_ONLY
 )
 

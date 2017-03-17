@@ -13,6 +13,8 @@ art_make(
 			lardataobj_MCBase
 			larevt_CalibrationDBI_IOVData
 			larevt_CalibrationDBI_Providers
+			larcore_Geometry_Geometry_service
+						larcore_Geometry
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_IO_PRODUCTMIX}
 			${ART_FRAMEWORK_IO_ROOT}
@@ -27,7 +29,9 @@ art_make(
                         ${BOOST_LIB}
                         ${FHICLCPP}
                         ${CETLIB}
-)							   
+												${ROOT_TREEPLAYER}
+												${ROOT_BASIC_LIB_LIST}
+)
 
 art_make(
 	LIBRARY_NAME RawDigitOverlayDUNE35tAna_module
@@ -47,7 +51,7 @@ art_make(
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 			${BOOST_LIB}
                         ${FHICLCPP}
-)							   
+)
 
 install_headers()
 install_source()

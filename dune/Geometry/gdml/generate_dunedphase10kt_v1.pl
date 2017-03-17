@@ -413,7 +413,7 @@ print TPC <<EOF;
     <physvol>
       <volumeref ref="volTPCWireZ"/> 
       <position name="posWireZ$i" unit="cm" x="0" y="0" z="$zpos"/>
-      <rotationref ref="rIdentity"/> 
+      <rotationref ref="rMinus90AboutY"/> 
     </physvol>
 EOF
 }
@@ -438,7 +438,7 @@ print TPC <<EOF;
     <physvol>
      <volumeref ref="volTPCWireX"/>
      <position name="posWireX$i" unit="cm" x="$xpos" y="0" z="0"/>
-     <rotationref ref="rMinus90AboutY"/>
+     <rotationref ref="rIdentity"/>
     </physvol>
 EOF
 }

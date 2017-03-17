@@ -49,7 +49,7 @@ public:
   DuneApaChannelMapAlg(const fhicl::ParameterSet& pset);
     
   void setSorter(const geo::GeoObjectSorter& sort);
-  void Initialize(GeometryData_t& geodata) override;
+  void Initialize(GeometryData_t const& geodata) override;
   void Uninitialize() override;
     
   /// Returns a list of TPC wires connected to the specified readout channel ID
@@ -225,6 +225,9 @@ public:
     
   /// @} readout plane mapping
     
+  /// Returns the object to sort geometry with
+  virtual geo::GeoObjectSorter const& Sorter() const override;
+  
   unsigned int NOpChannels(unsigned int NOpDets)                        const;
   unsigned int NOpHardwareChannels(unsigned int opDet)                  const;
   unsigned int OpChannel(unsigned int detNum, unsigned int channel = 0) const;

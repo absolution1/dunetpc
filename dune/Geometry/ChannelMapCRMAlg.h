@@ -27,7 +27,7 @@ namespace geo{
 
     ChannelMapCRMAlg(fhicl::ParameterSet const& p);
     
-    void                     Initialize( GeometryData_t& geodata ) override;
+    void                     Initialize( GeometryData_t const& geodata ) override;
     void                     Uninitialize();
     std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel)     const;
     unsigned int             Nchannels()                                 const;
@@ -181,6 +181,10 @@ namespace geo{
       (readout::ROPID const& ropid) const override;
     
     /// @} Readout plane mapping
+  
+    /// Returns the object to sort geometry with
+    virtual geo::GeoObjectSorter const& Sorter() const override
+      { return fSorter; }
   
   private:
     
