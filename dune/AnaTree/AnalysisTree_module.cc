@@ -4277,7 +4277,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
             end.SetXYZ(xyz[0],xyz[1],xyz[2]);
 
             tlen = btrack.GetLength();
-            if (btrack.NumberFitMomentum() > 0)
+            if (btrack.NumberTrajectoryPoints() > 0)
               mom = btrack.VertexMomentum();
             // fill bezier track reco branches
             TrackID = iTrk;  //bezier has some screwed up track IDs
@@ -4292,7 +4292,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
             end       = track.End();
 
             tlen        = length(track);
-            if(track.NumberFitMomentum() > 0)
+            if(track.NumberTrajectoryPoints() > 0)
               mom = track.VertexMomentum();
             // fill non-bezier-track reco branches
             TrackID = track.ID();
