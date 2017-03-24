@@ -100,6 +100,8 @@ private:
   float EDepNearEdge5;
   float EDepNearEdge10;
 
+  float TopX, TopY, TopZ, BotX, BotY, BotZ;
+
   // Primary particles
   int   nPrim, PrimPDG[MaxPrim];
   float PrimEn[MaxPrim], PrimMom[MaxPrim];
@@ -178,6 +180,9 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
   ActiveBounds[0] = ActiveBounds[2] = ActiveBounds[4] = DBL_MAX;
   ActiveBounds[1] = ActiveBounds[3] = ActiveBounds[5] = -DBL_MAX;
 
+  TopX = TopY = TopZ = -DBL_MAX;
+  BotX = BotY = BotZ = DBL_MAX;
+
   // ----- FixMe: Assume single cryostats ------
   auto const* geom = lar::providerFrom<geo::Geometry>();
   for (geo::TPCGeo const& TPC: geom->IterateTPCs()) {
@@ -195,16 +200,39 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
     if( center[2] + tpcDim[2] > ActiveBounds[5] ) ActiveBounds[5] = center[2] + tpcDim[2];
   } // for all TPC
 
-  // Use Matt's corrections here...
-  //ActiveBounds[0] += 0.7;
-  //ActiveBounds[1] -= 0.7;
-  ActiveBounds[2] += 7.8;
-  ActiveBounds[3] -= 7.8;
+  // Going from what I see in the event displays...
+  ActiveBounds[0] = -723;
+  ActiveBounds[1] = 723;
+  ActiveBounds[2] = -600;
+  ActiveBounds[3] = 600;
+  ActiveBounds[4] = -1;
+  ActiveBounds[5] = 5809;
   std::cout << "Active Boundaries: "
 	    << "\n\tx: " << ActiveBounds[0] << " to " << ActiveBounds[1]
 	    << "\n\ty: " << ActiveBounds[2] << " to " << ActiveBounds[3]
 	    << "\n\tz: " << ActiveBounds[4] << " to " << ActiveBounds[5]
 	    << std::endl;
+  /*
+  std::cout << "\n\n******Total World*******\n\n" << std::endl;
+  std::cout << "The total mass is " << geom->TotalMass() << std::endl;
+
+  std::cout << "\n\n******vol TPC Active Inner*******\n\n" << std::endl;
+  std::cout << "The total mass is " << geom->TotalMass("volTPCActiveInner") << std::endl;
+
+  std::cout << "\n\n******vol TPC Inner*******\n\n" << std::endl;
+  std::cout << "The total mass is " << geom->TotalMass("volTPCInner") << std::endl;
+
+  std::cout << "\n\n******vol TPC Active Outer*******\n\n" << std::endl;
+  std::cout << "The total mass is " << geom->TotalMass("volTPCActiveOuter") << std::endl;
+
+  std::cout << "\n\n******vol TPC Outer*******\n\n" << std::endl;
+  std::cout << "The total mass is " << geom->TotalMass("volTPCOuter") << std::endl;
+
+  std::cout << "\n\n******vol Cryostat*******\n\n" << std::endl;
+  std::cout << "The total mass is " << geom->TotalMass("volCryostat") << std::endl;
+
+  std::cout << "\n\n*************\n\n" << std::endl;
+  */
   /*
   double minx_, maxx_, miny_, maxy_, minz_, maxz_;
   minx_ = miny_ = minz_ = DBL_MAX;
@@ -339,6 +367,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
 }
 // ************************************ End Job *********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::endJob() {
+  std::cout << "\nAfter all of that Top = " << TopX << ", " << TopY << ", " << TopZ << ". Bot = " << BotX << ", " << BotY << ", " << BotZ << std::endl;
 }
 // ************************************ End Run *********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::endRun() {
@@ -440,6 +469,10 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	  std::cout << "Position " << idePos[0] << ", " << idePos[1] << ", " << idePos[2] << std::endl;
 	  }
 	//*/
+	
+	// ***** Find out what particle the ide is due to...
+	const simb::MCParticle& Origpart=*( truthmap[ abs(ideTrackID) ] );
+	int OrigPdgCode = Origpart.PdgCode();
 
 	geo::TPCID tpcid=geo->FindTPCAtPosition(idePos);
 	if (!(geo->HasTPC(tpcid)) ) {
@@ -447,9 +480,6 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	    std::cout << "Outside the Active volume I found at the top!" << std::endl;
 	  continue;
 	}
-
-	// ------ Add the energy deposition from this IDE to the sum of IDEs
-	TotalEDep += ideEnergy;
 	  
 	// ------ I want to work the closest IDE to an edge of the active volume ------
 	// If I am writing out the distance to the edge of the active volume
@@ -465,7 +495,14 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	float YEDep = std::min( ide.y - ActiveBounds[2], -ide.y + ActiveBounds[3] );
 	float ZEDep = std::min( ide.z - ActiveBounds[4], -ide.z + ActiveBounds[5] );
 	float MEDep = std::min( XEDep, std::min( YEDep, ZEDep ) );
+	// If the deposition was outside my active volume continue...
+	if ( MEDep < 0 ) {
+	  //std::cout << "Deposition outside active vol ("<<ide.x<<", " << ide.y<< ", "<< ide.z<<")." << std::endl;
+	  continue;
+	}
 	if ( MEDep < 2 ) {
+	  //std::cout << "Edep at " << ide.x << ", " << ide.y << " " << ide.z << "..." << MEDep << ", from a " << OrigPdgCode 
+	  //	    << ", Energy = " << ide.energy << " ==>> " << EDepNearEdge2+ide.energy << std::endl;
 	  EDepNearEdge2  += ide.energy;
 	}
 	if ( MEDep < 5 ) {
@@ -474,6 +511,26 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	if ( MEDep < 10 ) {
 	  EDepNearEdge10 += ide.energy;
 	}
+	
+	if (ide.x > TopX) {
+	  TopX = ide.x;
+	  //std::cout << "Changed TopX to " << TopX << std::endl;
+	}
+	if (ide.y > TopY) {
+	  TopY = ide.y;
+	  //std::cout << "Changed TopY to " << TopY << std::endl;
+	}
+	if (ide.z > TopZ) {
+	  TopZ = ide.z;
+	  //std::cout << "Changed TopZ to " << TopZ << std::endl;
+	}
+	if (ide.x < BotX) BotX = ide.x;
+	if (ide.y < BotY) BotY = ide.y;
+	if (ide.z < BotZ) BotZ = ide.z;
+
+	// ------ Add the energy deposition from this IDE to the sum of IDEs
+	TotalEDep += ideEnergy;
+
 	//std::cout << "IDE is at (" << ide.x << ", " << ide.y << ", " << ide.z << "). MinX is " << XEDep << ", MinY is " << YEDep << ", MinZ is " << ZEDep << "===> MinDist is " << MEDep
 	//	  << "...is this less than DistToEdge? " << IsClose << " ====> EDepNearEdge is now " << EDepNearEdge
 	//	  << std::endl;
@@ -492,8 +549,6 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	// ------- This means looping back through the IDE's parents until I find an interesting TrackID ------
 	bool isDecay = false;
 	bool WrittenOut = false;
-	const simb::MCParticle& Origpart=*( truthmap[ abs(ideTrackID) ] );
-	int OrigPdgCode = Origpart.PdgCode();
 	bool OrigPart = true;
 	if (Verbosity>1)
 	  std::cout << "\nLooking at IDE " << ideIt << ", ideTrackID is " << ideTrackID << ", it was due to a " 
@@ -662,6 +717,8 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
     if (nProt) {
       std::cout << "There are " << nProt << " protons in this event!!" << std::endl;
     }
+
+    std::cout << "\nThere was " << EDepNearEdge2 << ", (" << EDepNearEdge5 << "), [" << EDepNearEdge10 << "] MeV EDep within 2, (5), [10] cm of walls" << std::endl;
   }
   // ------------------------------------- Output some information about my particles -------------------------------------
   
