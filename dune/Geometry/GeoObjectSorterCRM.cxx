@@ -111,10 +111,12 @@ namespace geo{
     // for dual-phase we have to planes with wires perpendicular to each other
     // sort wires in the increasing coordinate order
 
-    if (std::abs(xyz1[2] - xyz2[2]) < 1.0E-4 ) // for wires along z axis
-      return xyz1[0] < xyz2[0]; // they measure x: sort then on x
-    else if (std::abs(xyz1[0] - xyz2[0]) < 1.0E-4 ) // for wires along x axis
-      return xyz1[2] < xyz2[2]; // they measure z: sort then on z
+    if (std::abs(xyz1[0] - xyz2[0]) < 1.0E-4 && std::abs(xyz1[1] - xyz2[1]) < 1.0E-4 )
+      return xyz1[2] < xyz2[2]; 
+    else if (std::abs(xyz1[0] - xyz2[0]) < 1.0E-4 && std::abs(xyz1[2] - xyz2[2]) < 1.0E-4 )
+      return xyz1[1] < xyz2[1]; 
+    else if (std::abs(xyz1[1] - xyz2[1]) < 1.0E-4 && std::abs(xyz1[2] - xyz2[2]) < 1.0E-4 )
+      return xyz1[0] < xyz2[0]; 
     else { // don't know what to do
       throw cet::exception("GeoObjectSorterCRM")
         << "Uknown sorting situation for the wires in a plane\n";
