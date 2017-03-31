@@ -2,6 +2,8 @@
 
 include(CetTest)
 
+cet_enable_asserts()
+
 MESSAGE( STATUS "CMAKE_LIBRARY_PATH: " ${CMAKE_LIBRARY_PATH} )
 
 # Comment test out b/c the channel map is not osolete.

@@ -9,13 +9,13 @@ cet_make_exec(fcldump
   SOURCE fcldump.cxx
   LIBRARIES
     fhiclcpp
-    cetlib
+    cetlib cetlib_except
 )
 
 cet_make_exec(liblist
   SOURCE liblist
   LIBRARIES
-    cetlib
+    cetlib cetlib_except
 )
 
 install_source()
