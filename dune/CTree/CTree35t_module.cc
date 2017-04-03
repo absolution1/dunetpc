@@ -1075,11 +1075,11 @@ void CTree35t::processRecoTracks( const art::Event& event )
     reco_nTrack = tracklist.size();
     for (int i=0; i<reco_nTrack; i++) {
         art::Ptr<recob::Track> track = tracklist[i];
-        if (track->NumberFitMomentum() > 0) {
+        if (track->NumberTrajectoryPoints() > 0) {
             // cout << "track momentum: " << track->VertexMomentum() << endl;
         }
         size_t numberTrajectoryPoints = track->NumberTrajectoryPoints();
-        // cout << numberTrajectoryPoints << ", " << track->NumberFitMomentum() << endl;
+        // cout << numberTrajectoryPoints << ", " << track->NumberTrajectoryPoints() << endl;
         
         TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints); 
         // Read the position and momentum along this particle track

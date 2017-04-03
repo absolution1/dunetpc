@@ -58,11 +58,10 @@ void DuneApaChannelMapAlg::setSorter(const geo::GeoObjectSorter& sort) {
 
 //----------------------------------------------------------------------------
 
-void DuneApaChannelMapAlg::Initialize(GeometryData_t& geodata) {
+void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
   Uninitialize();
     
-  vector<CryostatGeo*>& crygeos = geodata.cryostats;
-  vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+  vector<CryostatGeo*> const& crygeos = geodata.cryostats;
   Index ncry = crygeos.size();
   fNcryostat = ncry;
   if ( ncry == 0 ) {
@@ -71,16 +70,6 @@ void DuneApaChannelMapAlg::Initialize(GeometryData_t& geodata) {
   }
   CryostatGeo& crygeo = *crygeos[0];
     
-  mf::LogInfo("DuneApaChannelMapAlg") << "Sorting volumes...";
-
-  if ( fSorter == nullptr )
-    throw cet::exception("DuneApaChannelMapAlg") << __func__ << ": Sorter is missing.";
-  fSorter->SortAuxDets(adgeo);
-  fSorter->SortCryostats(crygeos);
-  for ( Index icry=0; icry<crygeos.size(); ++icry ) {
-    crygeos[icry]->SortSubVolumes(*fSorter);
-  }
-
   mf::LogInfo("DuneApaChannelMapAlg") << "Initializing channel map...";
   fNTpc.resize(ncry);
   fNApa.resize(ncry);
@@ -736,6 +725,13 @@ ROPID DuneApaChannelMapAlg::ChannelToROP(ChannelID_t icha) const {
   return(ROPID(CryostatID::InvalidID, TPCsetID::InvalidID, ROPID::InvalidID));
 }
 
+//----------------------------------------------------------------------------
+geo::GeoObjectSorter const& DuneApaChannelMapAlg::Sorter() const {
+  if ( fSorter == nullptr )
+    throw cet::exception("DuneApaChannelMapAlg") << __func__ << ": Sorter is missing.";
+  return *fSorter;
+} // DuneApaChannelMapAlg::Sorter()
+  
 //----------------------------------------------------------------------------
 
 ChannelID_t DuneApaChannelMapAlg::FirstChannelInROP(ROPID const& ropid) const {
