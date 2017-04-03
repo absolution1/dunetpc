@@ -19,6 +19,7 @@ set( dune_util_lib_list lardata_Utilities_LArFFT_service
 			${MF_UTILITIES}
 			${CETLIB}
 			${ROOT_BASIC_LIB_LIST}
+                        ${ROOT_GEOM}
     )
 
 

@@ -7,6 +7,7 @@ art_make( BASENAME_ONLY
                         ${CETLIB}
                         ${FHICLCPP}
                         ${ROOT_BASIC_LIB_LIST}
+                        ${ROOT_GEOM}
 	  SERVICE_LIBRARIES larcore_Geometry
 	  		dune_Geometry
 			${MF_UTILITIES}
@@ -36,6 +37,8 @@ simple_plugin ( CheckGeometry "module"
                      ${FHICLCPP}
                      ${CETLIB}
                      ${ROOT_BASIC_LIB_LIST}
+                     ${ROOT_GEOM}
+
 
                BASENAME_ONLY
           )
@@ -58,6 +61,7 @@ simple_plugin ( CheckDPhaseGeometry "module"
                      ${FHICLCPP}
                      ${CETLIB}
                      ${ROOT_BASIC_LIB_LIST}
+                     ${ROOT_GEOM}
 
                BASENAME_ONLY
           )

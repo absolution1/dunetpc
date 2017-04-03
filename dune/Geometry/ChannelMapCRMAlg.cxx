@@ -25,23 +25,17 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMapCRMAlg::Initialize( GeometryData_t& geodata )
+  void ChannelMapCRMAlg::Initialize( GeometryData_t const& geodata )
   {
     // start over:
     Uninitialize();
     
-    std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
-    std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+    std::vector<geo::CryostatGeo*> const& cgeo = geodata.cryostats;
     
     fNcryostat = cgeo.size();
     
     mf::LogInfo("ChannelMapCRMAlg") << "Initializing CRM ChannelMap...";
 
-    fSorter.SortCryostats(cgeo);
-    fSorter.SortAuxDets(adgeo);
-    for(size_t c = 0; c < cgeo.size(); ++c) 
-      cgeo[c]->SortSubVolumes(fSorter);
-    
     fNTPC.resize(fNcryostat);
     fWireCounts.resize(fNcryostat);
     fNPlanes.resize(fNcryostat);
@@ -535,6 +529,8 @@ namespace geo{
   /// @throws cet::exception (category: "Geometry") if non-existent channel
   readout::ROPID ChannelMapCRMAlg::ChannelToROP(raw::ChannelID_t channel) const
   {
+    if (!raw::isValidChannelID(channel)) return {}; // invalid ROP returned
+    
     // which wires does the channel cover?
     std::vector<geo::WireID> wires = ChannelToWire(channel);
     
