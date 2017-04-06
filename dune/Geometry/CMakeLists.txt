@@ -4,7 +4,7 @@ art_make( BASENAME_ONLY
 	  LIBRARY_NAME dune_Geometry
 	  LIB_LIBRARIES larcore_Geometry
                         ${MF_MESSAGELOGGER}
-                        ${CETLIB}
+                        cetlib cetlib_except
                         ${FHICLCPP}
                         ${ROOT_BASIC_LIB_LIST}
                         ${ROOT_GEOM}
@@ -12,7 +12,7 @@ art_make( BASENAME_ONLY
 	  		dune_Geometry
 			${MF_UTILITIES}
 	                ${FHICLCPP}
-			${CETLIB}
+			cetlib cetlib_except
                         ${ROOT_GEOM}
                         ${ROOT_XMLIO}
                         ${ROOT_GDML}
@@ -29,13 +29,13 @@ simple_plugin ( CheckGeometry "module"
 		     ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		     ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
              	     ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		     art_Persistency_Common canvas_Persistency_Common
-		     art_Persistency_Provenance canvas_Persistency_Provenance
-		     art_Utilities canvas_Utilities
+		     art_Persistency_Common canvas
+		     art_Persistency_Provenance canvas
+		     art_Utilities canvas
                      ${MF_MESSAGELOGGER}
                      ${MF_UTILITIES}
                      ${FHICLCPP}
-                     ${CETLIB}
+                     cetlib cetlib_except
                      ${ROOT_BASIC_LIB_LIST}
                      ${ROOT_GEOM}
 
@@ -53,13 +53,13 @@ simple_plugin ( CheckDPhaseGeometry "module"
 		     ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		     ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
              	     ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		     art_Persistency_Common canvas_Persistency_Common
-		     art_Persistency_Provenance canvas_Persistency_Provenance
-		     art_Utilities canvas_Utilities
+		     art_Persistency_Common canvas
+		     art_Persistency_Provenance canvas
+		     art_Utilities canvas
                      ${MF_MESSAGELOGGER}
                      ${MF_UTILITIES}
                      ${FHICLCPP}
-                     ${CETLIB}
+                     cetlib cetlib_except
                      ${ROOT_BASIC_LIB_LIST}
                      ${ROOT_GEOM}
 
