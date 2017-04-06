@@ -314,7 +314,7 @@ namespace geo{
 
     TVector3 planeinterpoint(0.,0.,0.);
 
-    if(abs(den) > 0.0001){
+    if(fabs(den) > 0.0001){
 
       // case 1: the track direction is not perpendicular to the plane of the counter
       // so a single intersection point should be found; if num=0 then the track 
