@@ -217,12 +217,12 @@ void DataPrepModule::produce(art::Event& evt) {
         const AdcChannelData& acd = iacd.second;
         AdcIndex idig = acd.digitIndex;
         if ( idig == AdcChannelData::badIndex )
-          throw art::Exception(art::errors::InsertFailure) << "Digit index is not set.";
+          throw art::Exception(art::errors::ProductRegistrationFailure) << "Digit index is not set.";
         AdcIndex iwir = acd.wireIndex;
         if ( iwir == AdcChannelData::badIndex ) continue;
         art::Ptr<raw::RawDigit> pdig(hdigits, idig);
         bool success = util::CreateAssn(*this, evt, *pwires, pdig, *passns, m_WireName, iwir);
-        if ( !success ) throw art::Exception(art::errors::InsertFailure)
+        if ( !success ) throw art::Exception(art::errors::ProductRegistrationFailure)
                               << "Can't associate wire " << iwir << " with raw digit " << idig;
       }
     }

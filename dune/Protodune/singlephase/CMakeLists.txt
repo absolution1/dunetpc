@@ -16,12 +16,12 @@ simple_plugin(ECalibration "module"
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
 			${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
- 			art_Persistency_Common canvas_Persistency_Common
-			art_Persistency_Provenance canvas_Persistency_Provenance
-			art_Utilities canvas_Utilities
+ 			art_Persistency_Common canvas
+			art_Persistency_Provenance canvas
+			art_Utilities canvas
 			${MF_MESSAGELOGGER}
 			${MF_UTILITIES}
-			${CETLIB}
+			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
 )
@@ -43,12 +43,12 @@ simple_plugin(EdepCal "module"
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
 			${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
- 			art_Persistency_Common canvas_Persistency_Common
-			art_Persistency_Provenance canvas_Persistency_Provenance
-			art_Utilities canvas_Utilities
+ 			art_Persistency_Common canvas
+			art_Persistency_Provenance canvas
+			art_Utilities canvas
 			${MF_MESSAGELOGGER}
 			${MF_UTILITIES}
-			${CETLIB}
+			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
 )
@@ -71,12 +71,12 @@ simple_plugin(HadCal "module"
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                        art_Persistency_Common canvas_Persistency_Common
-                        art_Persistency_Provenance canvas_Persistency_Provenance
-                        art_Utilities canvas_Utilities
+                        art_Persistency_Common canvas
+                        art_Persistency_Provenance canvas
+                        art_Utilities canvas
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}
-                        ${CETLIB}
+                        cetlib cetlib_except
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
 )

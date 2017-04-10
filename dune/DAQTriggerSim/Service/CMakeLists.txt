@@ -15,9 +15,10 @@ simple_plugin(TemplateTriggerService   "service"
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
                 nutools_RandomUtils_NuRandomService_service
                 ${ART_FRAMEWORK_CORE}
-                art_Utilities canvas_Utilities
+                art_Utilities canvas
                 ${MF_MESSAGELOGGER}
                 ${MF_UTILITIES}
+                cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
 
@@ -29,9 +30,10 @@ simple_plugin(ActivityTriggerService   "service"
                 ${ART_FRAMEWORK_SERVICES_REGISTRY}
                 nutools_RandomUtils_NuRandomService_service
                 ${ART_FRAMEWORK_CORE}
-                art_Utilities canvas_Utilities
+                art_Utilities canvas
                 ${MF_MESSAGELOGGER}
                 ${MF_UTILITIES}
+                cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
 		${ROOT_GEOM}
              )

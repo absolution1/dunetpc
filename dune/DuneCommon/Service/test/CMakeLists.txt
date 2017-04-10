@@ -7,6 +7,8 @@
 
 include(CetTest)
 
+cet_enable_asserts()
+
 cet_test(test_GeoRopChannelGroupService
   SOURCES
     test_GeoRopChannelGroupService.cxx

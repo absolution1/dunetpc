@@ -7,6 +7,8 @@
 
 include(CetTest)
 
+cet_enable_asserts()
+
 cet_test(test_GeometryDune35t SOURCES test_GeometryDune35t.cxx
   LIBRARIES
     dune_ArtSupport
