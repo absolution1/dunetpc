@@ -4,6 +4,7 @@ art_make( BASENAME_ONLY
 		        	  larcore_Geometry  
 				  larcore_Geometry_Geometry_service
 				  lardata_Utilities
+				  larsim_MCCheater_BackTracker_service
 				  nusimdata_SimulationBase
                         	  ${ART_FRAMEWORK_CORE}
 				  ${ART_FRAMEWORK_PRINCIPAL}
@@ -18,8 +19,7 @@ art_make( BASENAME_ONLY
 				  cetlib cetlib_except
 				  ${ROOT_BASIC_LIB_LIST}
                                   ${ROOT_GEOM}
-              			  BASENAME_ONLY
-)
+	)
 
 install_headers()
 install_fhicl()
