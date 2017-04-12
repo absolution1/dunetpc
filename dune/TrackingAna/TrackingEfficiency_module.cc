@@ -447,7 +447,8 @@ void TrackingEfficiency::TrackingEfficiency::MCTruthInformation ( const simb::MC
 								  double &Theta_XZ, double &Theta_YZ, double &Eta_XY, double &Eta_ZY, double &Theta, double &Phi,
 								  int &MCPdgCode, int &MCTrackId ) {
   int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
-  double TPCLengthHits[numberTrajectoryPoints];
+  //double TPCLengthHits[numberTrajectoryPoints];
+  std::vector<double> TPCLengthHits(numberTrajectoryPoints, 0);
   bool BeenInVolume = false;
   int FirstHit=0, LastHit=0;
   TPCLength = 0;
@@ -455,7 +456,7 @@ void TrackingEfficiency::TrackingEfficiency::MCTruthInformation ( const simb::MC
   MCPdgCode       = particle->PdgCode();
   MCTrackId       = particle->TrackId();
   
-  for(int MCHit=0; MCHit < numberTrajectoryPoints; ++MCHit) {
+  for(unsigned int MCHit=0; MCHit < TPCLengthHits.size(); ++MCHit) {
     const TLorentzVector& tmpPosition=particle->Position(MCHit);
     double const tmpPosArray[]={tmpPosition[0],tmpPosition[1],tmpPosition[2]};
     
