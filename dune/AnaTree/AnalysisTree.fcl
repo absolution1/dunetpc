@@ -9,6 +9,7 @@ dune35t_analysistree:
  CalDataModuleLabel:          "caldata"
  GenieGenModuleLabel:         "generator"
  CryGenModuleLabel:           "generator"
+ ProtoGenModuleLabel:           ""
  G4ModuleLabel:               "largeant"
  TrackModuleLabel:            [ "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
  VertexModuleLabel:           [ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
@@ -35,6 +36,7 @@ dune35t_analysistree:
  IgnoreMissingShowers:     false
  SaveAuxDetInfo:           false
  SaveCryInfo:              true
+ SaveProtoInfo:            false # ProtoDUNE specific
  SaveGenieInfo:            false # Don't have in the 35 ton
  SaveGeantInfo:            true
  SaveMCShowerInfo:         false # Don't have in the 35 ton 
@@ -53,6 +55,9 @@ dune35t_analysistree:
 }
 
 protodune_analysistree:   @local::dune35t_analysistree
+protodune_analysistree.CryGenModuleLabel: "cosmicgenerator"
+protodune_analysistree.ProtoGenModuleLabel: "generator"
+protodune_analysistree.SaveProtoInfo: true
 protodune_analysistree.TrackModuleLabel: [ "pmtrack", "pandora", "pmtrajfit" ]
 protodune_analysistree.CalorimetryModuleLabel: [ "pmtrackcalo", "pandoracalo", "pmtrajfitcalo" ]
 protodune_analysistree.ParticleIDModuleLabel:       [ "pmtrackpid", "pandorapid", "pmtrajfitpid" ]

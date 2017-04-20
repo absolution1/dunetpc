@@ -30,6 +30,7 @@
 
 using std::string;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::ofstream;
 using std::istringstream;
@@ -434,7 +435,13 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
       for ( unsigned int ipla=0; ipla<npla; ++ipla ) {
         assert( ires < ev.posTpc.size() );
         PlaneID plaid(tpcid, ipla);
-        WireID wirid = pgeo->NearestWireID(xyz, plaid);
+        WireID wirid;
+        try { wirid = pgeo->NearestWireID(xyz, plaid); }
+        catch (geo::InvalidWireError const& e) {
+          if (!e.hasSuggestedWire()) throw;
+          cerr << "ERROR (non-fatal):\n" << e;
+          wirid = e.suggestedWireID();
+        }
         double xwire = pgeo->WireCoordinate(x, y, plaid);
         cout << "    TPC " << setw(2) << itpc << " plane " << ipla
              << " nearest wire is " << setw(3) << wirid.Wire

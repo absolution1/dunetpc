@@ -10,7 +10,8 @@ proton_id:
    CounterT0ModuleLabel:    "simcounter"
    CalorimetryModuleLabel:  "calo"
    PIDApower:               0.42
-   BoundaryEdge:            0
+   BoundaryEdge:            5
+   Verbose:                 1
 }
 
 END_PROLOG

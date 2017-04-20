@@ -10,9 +10,8 @@
 // channel samples. A map of samples are passed so that coherent noise
 // may be evaluated and removed.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class AdcNoiseRemovalService {
 
@@ -28,6 +27,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(AdcNoiseRemovalService, LEGACY)
+#endif
 
 #endif

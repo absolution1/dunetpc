@@ -1,7 +1,7 @@
 #include "evd_dune.fcl"
 services.Geometry: @local::protodune_geo
 
-services.RawDrawingOptions.TPC:                   2
+services.RawDrawingOptions.TPC:                   1
 
 services.RawDrawingOptions.TotalTicks: 10000
 services.RecoDrawingOptions.DrawOpFlashes:        0

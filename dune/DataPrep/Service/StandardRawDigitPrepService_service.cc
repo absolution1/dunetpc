@@ -149,7 +149,7 @@ prepare(AdcChannelDataMap& datamap,
       skipChannels.push_back(chan);
       continue;
     }
-    m_pExtractSvc->extract(*data.digit, &data.channel, &data.pedestal, &data.raw, &data.samples, &data.flags);
+    m_pExtractSvc->extract(data);
     if ( chan != data.digit->Channel() || chan != data.channel ) {
       cout << myname << "ERROR: Inconsistent channel number!" << endl;
       skipChannels.push_back(chan);

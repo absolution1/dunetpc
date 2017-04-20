@@ -7,6 +7,8 @@
 
 include(CetTest)
 
+cet_enable_asserts()
+
 cet_test(test_ConfigurableAdcChannelDataCopyService SOURCES test_ConfigurableAdcChannelDataCopyService.cxx
   LIBRARIES
     dune_ArtSupport
