@@ -591,163 +591,163 @@
       <solidref ref="Cathode" />
     </volume>
     <volume name="volOpDetSensitive_0-0">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-1">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-2">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-3">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-4">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-5">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-6">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-7">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-8">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_0-9">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-0">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-1">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-2">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-3">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-4">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-5">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-6">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-7">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-8">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_1-9">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-0">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-1">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-2">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-3">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-4">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-5">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-6">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-7">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-8">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_2-9">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-0">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-1">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-2">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-3">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-4">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-5">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-6">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-7">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-8">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
     <volume name="volOpDetSensitive_3-9">
-      <materialref ref="Acrylic"/>
+      <materialref ref="LAr"/>
       <solidref ref="LightPaddle"/>
     </volume>
 
