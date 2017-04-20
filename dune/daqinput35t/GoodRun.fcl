@@ -9,6 +9,7 @@ dune35t_goodrun:
   WaveformModuleLabel: "SplitterInput:PHOTON"
   RawDigitModuleLabel: "SplitterInput:TPC"
   OpHitModuleLabel:    "SplitterInput:OPHIT" 
+  MaxSamples:          2048
 }
 
 END_PROLOG
