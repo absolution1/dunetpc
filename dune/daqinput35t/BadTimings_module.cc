@@ -39,6 +39,7 @@
 #include "PennToOffline.h"
 
 #include "TH1I.h"
+#include "TTree.h"
 
 namespace DAQToOffline {
   class BadTimings;
@@ -58,9 +59,9 @@ private:
   std::string fPTBLabel, fPTBInstance;
 
   lbne::TpcNanoSlice::Header::nova_timestamp_t fRCETriggerTimestamp;
-  lbne::TpcNanoSlice::Header::nova_timestamp_t fRCENanosliceTimestamp;
   lbne::PennMilliSlice::Header::timestamp_t fPTBTriggerTimestamp;
-  lbne::TpcNanoSlice::Header::nova_timestamp_t fRCEFirstNanosliceTimestamp;
+  // unsigned long long fRCETriggerTimestamp;
+  // unsigned long long fPTBTriggerTimestamp;
 
   art::ServiceHandle<geo::Geometry> fGeometry;
   art::ServiceHandle<art::TFileService> fTFS;
@@ -68,11 +69,14 @@ private:
   std::string fPTBMapFile;
   std::map<int,int> fPTBMap;
 
-  bool fWithinTrigger, fTimestampSet;
-  int fMicrosliceTriggerStart;
+  std::vector<bool> fWithinTrigger;
 
-  TH1I* hRCEDiffTimestamps;
-  TH1I* hPTBRCEDiffTimestamps;
+  TTree* fTree;
+  int fRun, fEvent, fRCE;
+  int fDiffTriggerTimestamps;
+  int fMicrosliceWithTrigger;
+
+  TH1I* hDiffTriggerTimestamps;
   TH1I* hTriggerStart;
 
 };
@@ -84,18 +88,29 @@ DAQToOffline::BadTimings::BadTimings(const fhicl::ParameterSet& pset) : EDAnalyz
   fPTBInstance = pset.get<std::string>("PTBInstance");
   fPTBMapFile = pset.get<std::string>("PTBMapFile");
 
-  fWithinTrigger = false;
+  fWithinTrigger = std::vector<bool>(16,false);
 
-  hRCEDiffTimestamps = fTFS->make<TH1I>("RCEDiffTimestamps",";RCE Trigger Timestamp - RCE Nanoslice Timestamp (NOvA ticks);",100,-200000,200000);
-  hPTBRCEDiffTimestamps = fTFS->make<TH1I>("PTBRCEDiffTimestamps",";RCE Trigger Timestamp - PTB Trigger Timestamp (NOvA ticks);",100,0,2000);
+  hDiffTriggerTimestamps = fTFS->make<TH1I>("PTBRCEDiffTimestamps",";RCE Trigger Timestamp - PTB Trigger Timestamp (NOvA ticks);",100,0,2000);
   hTriggerStart = fTFS->make<TH1I>("TriggerStart",";Microslice number containing trigger;",15,0,15);
   hTriggerStart->GetXaxis()->SetNdivisions(15);
   hTriggerStart->GetXaxis()->CenterLabels();
+
+  fTree = fTFS->make<TTree>("BadTimings","BadTimings");
+  fTree->Branch("Run",                  &fRun);
+  fTree->Branch("Event",                &fEvent);
+  fTree->Branch("RCE",                  &fRCE);
+  // fTree->Branch("RCETriggerTimestamp",  &fRCETriggerTimestamp);
+  // fTree->Branch("PTBTriggerTimestamp",  &fPTBTriggerTimestamp);
+  fTree->Branch("DiffTriggerTimestamps",&fDiffTriggerTimestamps);
+  fTree->Branch("MicrosliceWithTrigger",&fMicrosliceWithTrigger);
 
   DAQToOffline::BuildPTBChannelMap("", fPTBMapFile, fPTBMap);
 }
 
 void DAQToOffline::BadTimings::analyze(const art::Event& evt) {
+
+  fRun = evt.run();
+  fEvent = evt.event();
 
   // Get the TPC data out of the event
   art::Handle<artdaq::Fragments> RCERawFragments;
@@ -170,10 +185,12 @@ void DAQToOffline::BadTimings::analyze(const art::Event& evt) {
     mapFragID.insert(std::pair<unsigned int, unsigned int>(fragmentID,fragIndex));
   }
 
-  int maxRCEs = 1;
+  int maxRCEs = 16;
 
   // Loop over the RCEs
   for (std::map<unsigned int,unsigned int>::iterator rceIt = mapFragID.begin(); rceIt != mapFragID.end() and std::distance(mapFragID.begin(),rceIt) < maxRCEs; ++rceIt) {
+
+    fRCE = rceIt->first - 100;
 
     // Get millislice
     const artdaq::Fragment &singleFragment = (*RCERawFragments)[rceIt->second];
@@ -190,34 +207,30 @@ void DAQToOffline::BadTimings::analyze(const art::Event& evt) {
       // Get nanoslices
       auto numNanoSlices = microSlice->nanoSliceCount();
 
-      if (!fWithinTrigger and numNanoSlices) {
-	// New trigger
-	fWithinTrigger = true;
-	fMicrosliceTriggerStart = i_micro;
-	std::cout << std::endl << "New trigger on microslice " << i_micro << " (event " << evt.event() << ")" << std::endl;
-	uint64_t nanoSliceTimestamp = microSlice->nanoSlice(0)->nova_timestamp();
-	fRCENanosliceTimestamp = nanoSliceTimestamp;
-	fRCETriggerTimestamp = rceTriggerTimestamp;
-	fRCEFirstNanosliceTimestamp = nanoSliceTimestamp - ((i_micro * 1000) * (500/15.625));
-	std::cout << "Timestamps:" << std::endl << "RCE: trigger " << fRCETriggerTimestamp << " and nanoslice " << fRCENanosliceTimestamp << " (first microslice nanoslice timestamp " << fRCEFirstNanosliceTimestamp << ")" << std::endl << "PTB: trigger " << fPTBTriggerTimestamp << std::endl;
-	hRCEDiffTimestamps->Fill(fRCETriggerTimestamp - fRCENanosliceTimestamp);
-	hPTBRCEDiffTimestamps->Fill(fRCETriggerTimestamp - fPTBTriggerTimestamp);
-      }
-      else if (fWithinTrigger and !numNanoSlices) {
-	// End of trigger
-	fWithinTrigger = false;
-	std::cout << "End of trigger on microslice " << i_micro << " (event " << evt.event() << ")" << std::endl;
-      }
+      if (!fWithinTrigger[fRCE] and numNanoSlices) {
 
-      // Find where the trigger occurred
-      if (fWithinTrigger)
-	for (unsigned int i_nano = 0; i_nano < numNanoSlices; ++i_nano)
-	  if (microSlice->nanoSlice(i_nano)->nova_timestamp() - rceTriggerTimestamp < 50) {
-	    int microsliceWithTrigger = i_micro - fMicrosliceTriggerStart < 0 ? 20 + (i_micro - fMicrosliceTriggerStart) : i_micro - fMicrosliceTriggerStart;
-	    hTriggerStart->Fill(microsliceWithTrigger);
-	    if (microsliceWithTrigger != 4)
-	      std::cout << "Microslice with trigger is " << microsliceWithTrigger << std::endl;
-	  }
+	// New trigger
+	fWithinTrigger[fRCE] = true;
+	std::cout << std::endl << "New trigger (RCE " << fRCE << ") on microslice " << i_micro << " (event " << evt.event() << ")" << std::endl;
+	//uint64_t nanoSliceTimestamp = microSlice->nanoSlice(0)->nova_timestamp();
+
+	fRCETriggerTimestamp = rceTriggerTimestamp;
+	fMicrosliceWithTrigger = (rceTriggerTimestamp - microSlice->nanoSlice(0)->nova_timestamp())/*time*/ * (15.625/500)/*nova->tpc tick*/ * 1/1000/* nano->micro*/;
+	fDiffTriggerTimestamps = fRCETriggerTimestamp - fPTBTriggerTimestamp;
+
+	hDiffTriggerTimestamps->Fill(fDiffTriggerTimestamps);
+	hTriggerStart->Fill(fMicrosliceWithTrigger);
+
+	fTree->Fill();
+
+      }
+      else if (fWithinTrigger[fRCE] and !numNanoSlices) {
+
+	// End of trigger
+	fWithinTrigger[fRCE] = false;
+	std::cout << "End of trigger (RCE " << fRCE << ") on microslice " << i_micro << " (event " << evt.event() << ")" << std::endl;
+
+      }
 
     } // microslices
 

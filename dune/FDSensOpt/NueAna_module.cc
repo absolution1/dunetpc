@@ -28,7 +28,7 @@
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/OpFlash.h"
-#include "lardata/RecoBaseArt/TrackUtils.h" // lar::util::TrackPitchInView()
+#include "lardata/ArtDataHelper/TrackUtils.h" // lar::util::TrackPitchInView()
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
@@ -36,7 +36,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "larreco/RecoAlg/PMAlg/Utilities.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
-#include "lardata/AnalysisAlg/CalorimetryAlg.h"
+#include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "nusimdata/SimulationBase/MCFlux.h"
 
@@ -173,7 +173,7 @@ private:
   Float_t shwenergy[kMaxShower][3];  //shower energy measured on the 3 planes (GeV)
   Float_t shwdedx[kMaxShower][3];    //shower dE/dx of the initial track measured on the 3 plane (MeV/cm)
   int shwbestplane[kMaxShower];      //recommended plane for energy and dE/dx information
-  int   shwg4id[kMaxTrack];          //geant track id for the shower
+  int   shwg4id[kMaxShower];          //geant track id for the shower
 
   // flash information
   int    flash_total;                //total number of flashes
@@ -370,23 +370,20 @@ void dunefd::NueAna::analyze(art::Event const & evt)
 
   double larStart[3];
   double larEnd[3];
-  std::vector<double> trackStart;
-  std::vector<double> trackEnd;
   trkf::TrackMomentumCalculator trkm;
   for(int i=0; i<std::min(int(tracklist.size()),kMaxTrack);++i){
-    trackStart.clear();
-    trackEnd.clear();
     memset(larStart, 0, 3);
     memset(larEnd, 0, 3);
-    tracklist[i]->Extent(trackStart,trackEnd); 
+    recob::Track::Point_t trackStart, trackEnd;
+    std::tie(trackStart, trackEnd) = tracklist[i]->Extent(); 
     tracklist[i]->Direction(larStart,larEnd);
     trkid[i]       = tracklist[i]->ID();
-    trkstartx[i]      = trackStart[0];
-    trkstarty[i]      = trackStart[1];
-    trkstartz[i]      = trackStart[2];
-    trkendx[i]        = trackEnd[0];
-    trkendy[i]        = trackEnd[1];
-    trkendz[i]        = trackEnd[2];
+    trkstartx[i]      = trackStart.X();
+    trkstarty[i]      = trackStart.Y();
+    trkstartz[i]      = trackStart.Z();
+    trkendx[i]        = trackEnd.X();
+    trkendy[i]        = trackEnd.Y();
+    trkendz[i]        = trackEnd.Z();
     trkstartdcosx[i]  = larStart[0];
     trkstartdcosy[i]  = larStart[1];
     trkstartdcosz[i]  = larStart[2];
@@ -394,7 +391,7 @@ void dunefd::NueAna::analyze(art::Event const & evt)
     trkenddcosy[i]    = larEnd[1];
     trkenddcosz[i]    = larEnd[2];
     trklen[i]         = tracklist[i]->Length();
-    trkmomrange[i]    = trkm.GetTrackMomentum(trklen[i],13);
+    if (!std::isnan(trklen[i])) trkmomrange[i]    = trkm.GetTrackMomentum(trklen[i],13);
     if (fmthm.isValid()){
       auto vhit = fmthm.at(i);
       auto vmeta = fmthm.data(i);

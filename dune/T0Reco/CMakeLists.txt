@@ -6,7 +6,7 @@ art_make( BASENAME_ONLY
                            larcore_Geometry_Geometry_service
 			   lardataobj_RawData
                            lardata_Utilities
-			   larsim_Simulation lardataobj_Simulation
+			   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			   larsim_MCCheater_BackTracker_service
 			   nusimdata_SimulationBase
  			   ${ART_FRAMEWORK_CORE}
@@ -15,12 +15,12 @@ art_make( BASENAME_ONLY
 			   ${ART_FRAMEWORK_SERVICES_BASIC}
 			   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			   art_Persistency_Common canvas_Persistency_Common
-			   art_Utilities canvas_Utilities
+			   art_Persistency_Common canvas
+			   art_Utilities canvas
 			   ${MF_MESSAGELOGGER}
 			   ${MF_UTILITIES}
 	                   ${FHICLCPP}
-			   ${CETLIB}
+			   cetlib cetlib_except
 			   ${ROOT_BASIC_LIB_LIST}
          )
 

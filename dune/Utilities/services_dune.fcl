@@ -40,10 +40,12 @@ dunefd_services: {
  LArFFT:                         @local::dunefd_larfft
  DatabaseUtil:                   @local::dunefd_database
  BackTracker:                    @local::dunefd_backtracker
+ PhotonBackTracker:              @local::dunefd_photonbacktracker
  SpaceCharge:                    @local::dunefd_spacecharge
- LArSeedService:                 @local::dune_seedservice
+ NuRandomService:                @local::dune_seedservice
  SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
  ChannelStatusService:           @local::dunefd_channel_status
+ ChannelGroupService:            @local::changroup_apa
 }
 
 dunefd_simulation_services: {
@@ -58,9 +60,9 @@ dunefd_simulation_services: {
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
  BackTracker:                  @local::dunefd_backtracker
+ PhotonBackTracker:            @local::dunefd_photonbacktracker
  SpaceCharge:                  @local::dunefd_spacecharge
- LArSeedService:               @local::dune_seedservice
- LArSeedService:               @local::dune_seedservice
+ NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
@@ -78,12 +80,11 @@ dunefd_reco_services.AdcWireBuildingService:     @local::adcwire_std
 # for dual-phase implementation
 #
 dunefddphase_services: {
- BackTracker:                    @local::dunefd_backtracker
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
- LArSeedService:                 @local::dune_seedservice 
+ NuRandomService:                @local::dune_seedservice 
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dunefddphase_detproperties
@@ -94,13 +95,13 @@ dunefddphase_services: {
 }
 
 dunefddphase_simulation_services: {
+ BackTracker:                    @local::dunefd_backtracker
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::dunefd_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
- BackTracker:                    @local::dunefd_backtracker
- LArSeedService:                 @local::dune_seedservice
+ NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::dunefd_opdetresponse
  ChannelStatusService:           @local::dunefd_channel_status
@@ -113,6 +114,14 @@ dunefddphase_simulation_services: {
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
+dunefddphase_reco_services:                            @local::dunefddphase_services
+dunefddphase_reco_services.BackTracker:                @local::dunefd_backtracker
+dunefddphase_reco_services.RawDigitExtractService:     @local::rdx_std
+dunefddphase_reco_services.RawDigitPrepService:        @local::adcprep_sim
+dunefddphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
+dunefddphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
+dunefddphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
+
 
 #
 # Settings for optical simulation. Optical simulation not on by default
@@ -122,8 +131,13 @@ dunefddphase_simulation_services: {
 dunefd_simulation_services.LArPropertiesService.ScintYield: 24000
 dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 
+dunefddphase_simulation_services.LArPropertiesService.ScintYield: 24000
+dunefddphase_simulation_services.LArPropertiesService.ScintPreScale: 0.006
+
 # disable cerenkov
 dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+dunefddphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+
 
 # dune10kt and dune34kt consolidated into dunefd,
 # but catch any leftover cases of 10kt...
@@ -143,10 +157,12 @@ protodune_services: {
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTracker:                  @local::dunefd_backtracker
+ PhotonBackTracker:              @local::dunefd_photonbacktracker
  SpaceCharge:                  @local::protodune_spacecharge
- LArSeedService:               @local::dune_seedservice
+ NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status 
+ ChannelGroupService:          @local::changroup_apa
 }
 
 protodune_simulation_services: {
@@ -160,9 +176,8 @@ protodune_simulation_services: {
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
- BackTracker:                  @local::dunefd_backtracker
  SpaceCharge:                  @local::protodune_spacecharge
- LArSeedService:               @local::dune_seedservice
+ NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
@@ -172,7 +187,7 @@ protodune_simulation_services: {
 
 #
 # Settings for optical simulation. Optical simulation not on by default
-# for FD, turned on by custom physics list and defining a photon visibility
+# for ProtoDUNE, turned on by custom physics list and defining a photon visibility
 # services is workspace g4 fhicl file.
 #
 protodune_simulation_services.LArPropertiesService.ScintYield: 24000
@@ -191,6 +206,15 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                              "Stopping",
                                                              "NeutronTrackingCut" ]
 
+# Reco services for ProtoDUNE simulation.
+protodune_reco_services:                            @local::protodune_services
+protodune_reco_services.RawDigitExtractService:     @local::rdx_std
+protodune_reco_services.RawDigitPrepService:        @local::adcprep_sim
+protodune_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
+protodune_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
+protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
+
+
 dune35t_basic_services: {
   ExptGeoHelperInterface:     @local::dune_geometry_helper
   Geometry:                   @local::dune35t_geo
@@ -199,10 +223,11 @@ dune35t_basic_services: {
   LArPropertiesService:       @local::dune35t_properties
   DatabaseUtil:               @local::dune35t_database
   SpaceCharge:                @local::dune35t_spacecharge
-  LArSeedService:             @local::dune_seedservice
-  ChannelStatusService:       @local::dune35t_channel_status
+  NuRandomService:             @local::dune_seedservice
+  ChannelStatusService:       @local::dune35t_channel_status_may2016
   ChannelMapService:          @local::channelmap35t
   ChannelMappingService:      @local::dune35t_channelmapping
+  ChannelGroupService:        @local::changroup_apa
 }
 
 dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
@@ -212,6 +237,7 @@ dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
 dune35t_services:                            @local::dune35t_basic_services
 dune35t_services.LArFFT:                     @local::dune35t_larfft
 dune35t_services.BackTracker:                @local::dune35t_backtracker
+dune35t_services.PhotonBackTracker:          @local::dune35t_photonbacktracker
 dune35t_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 
 dune35t_gen_services:                        @local::dune35t_basic_services
@@ -274,12 +300,14 @@ dune35t_simulation_services.LArFFT:                               @local::dune35
 dune35t_simulation_services.SignalShapingServiceDUNE:             @local::dune35t_signalshapingservice
 dune35t_simulation_services.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
 dune35t_simulation_services.BackTracker:                          @local::dune35t_backtracker
+dune35t_simulation_services.PhotonBackTracker:                    @local::dune35t_photonbacktracker
 
 # Reco services for 35-ton data.
 dune35tdata_reco_services:                            @local::dune35t_basic_services
 dune35tdata_reco_services.LArFFT:                     @local::dune35t_larfft
 dune35tdata_reco_services.BackTracker:                @local::dune35t_backtracker
 dune35tdata_reco_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
+dune35tdata_reco_services.AdcChannelDataCopyService:  @local::adccopy
 dune35tdata_reco_services.RawDigitExtractService:     @local::rdx_35tdata
 dune35tdata_reco_services.AdcSuppressonService:       @local::adcmit_dune35t
 dune35tdata_reco_services.AdcSuppressService:         @local::adcsuppress_legacy35t
@@ -378,8 +406,30 @@ dune_message_services_prod_debug.destinations.LogDebugFile.categories:{
 dune_message_services_prod: {
   debugModules: ["*"]
   destinations: {
-    LogStandardOut:    @local::dune_message_services.destinations.LogStandardOut
-    LogStandardError:  @local::dune_message_services.destinations.LogStandardError
+    LogDebugFile: { 
+      type:       "file"
+      filename:   "debugprod.log"
+      append:     false
+      threshold:  "DEBUG"
+      categories:{
+        default:{ limit: 0 }
+      }
+    }
+    LogStandardOut: {
+      type:       "cout"
+      threshold:  "INFO"
+      categories:{
+        ArtReport: {limit: -1}
+        default:{limit: 0}
+      }
+    }
+    LogStandardError: {
+      type:       "cerr"
+      threshold:  "ERROR"
+      categories:{
+        default:{}
+      }
+    }
   }
 }
 

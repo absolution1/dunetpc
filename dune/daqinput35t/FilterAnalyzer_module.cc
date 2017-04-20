@@ -233,9 +233,11 @@ void DAQToOffline::FilterAnalyzer::analyze(art::Event const& evt) {
 
     // I want to do an inverse FFT, so need to convert the tranformed FFT into an array....
     int NBins = RawDigitFFT[Channel]->GetNbinsX();
-    double Re[NBins], Im[NBins];
+    //double Re[NADC], Im[NADC];
+    std::unique_ptr<double[]> Re( new double[NADC]);
+    std::unique_ptr<double[]> Im( new double[NADC]);
     TVirtualFFT *fft = TVirtualFFT::GetCurrentTransform();
-    fft->GetPointsComplex(Re,Im);
+    fft->GetPointsComplex(Re.get(),Im.get());
     
     // Set the noisy frequency range bins to zero.
     for (size_t aa=0; aa<ZeroFreq.size(); ++aa) {
@@ -289,7 +291,7 @@ void DAQToOffline::FilterAnalyzer::analyze(art::Event const& evt) {
     
     // I have applied the filter so now transform back....
     TVirtualFFT *fft_back = TVirtualFFT::FFT(1, &NBins, "C2R");
-    fft_back->SetPointsComplex(Re,Im);
+    fft_back->SetPointsComplex(Re.get(),Im.get());
     fft_back->Transform();
     TH1 *hb=0;
     hb = TH1::TransformHisto(fft_back, hb, "Re");

@@ -23,26 +23,19 @@ namespace geo{
   ChannelMapAPAAlg::ChannelMapAPAAlg(fhicl::ParameterSet const& p)
     : fSorter(geo::GeoObjectSorterAPA(p))
   {
+    fChannelsPerOpDet = p.get< unsigned int >("ChannelsPerOpDet"      );
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMapAPAAlg::Initialize( GeometryData_t& geodata )
+  void ChannelMapAPAAlg::Initialize( GeometryData_t const& geodata )
   {
     // start over:
     Uninitialize();
     
-    std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
-    std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+    std::vector<geo::CryostatGeo*> const& cgeo = geodata.cryostats;
     
     fNcryostat = cgeo.size();
     
-    mf::LogInfo("ChannelMapAPAAlg") << "Sorting volumes...";
-
-    fSorter.SortAuxDets(adgeo);
-    fSorter.SortCryostats(cgeo);
-    for(size_t c = 0; c < cgeo.size(); ++c) 
-      cgeo[c]->SortSubVolumes(fSorter);
-
     mf::LogInfo("ChannelMapAPAAlg") << "Initializing channel map...";
       
     fNTPC.resize(fNcryostat);
@@ -135,6 +128,29 @@ namespace geo{
           // In fact, for TPC #0 it is W + N for V and Z planes, W - N for U
           // plane; for TPC #0 it is W + N for V and Z planes, W - N for U
           PlaneData.fWireSortingInZ = thePlane.WireIDincreasesWithZ()? +1.: -1.;
+
+	  // find boundaries of the outside APAs for this plane by looking at endpoints of wires
+
+	  double endpoint[3];
+	  thePlane.Wire(0).GetStart(endpoint);
+	  PlaneData.fYmax = endpoint[1];
+	  PlaneData.fYmin = endpoint[1];
+	  PlaneData.fZmax = endpoint[2];
+	  PlaneData.fZmin = endpoint[2];
+	  unsigned int nwires = thePlane.Nwires(); 
+	  for (unsigned int iwire=0;iwire<nwires;iwire++){
+  	    thePlane.Wire(iwire).GetStart(endpoint);
+	    PlaneData.fYmax = std::max(PlaneData.fYmax,endpoint[1]);
+	    PlaneData.fYmin = std::min(PlaneData.fYmin,endpoint[1]);
+	    PlaneData.fZmax = std::max(PlaneData.fZmax,endpoint[2]);
+	    PlaneData.fZmin = std::min(PlaneData.fZmin,endpoint[2]);
+  	    thePlane.Wire(iwire).GetEnd(endpoint);
+	    PlaneData.fYmax = std::max(PlaneData.fYmax,endpoint[1]);
+	    PlaneData.fYmin = std::min(PlaneData.fYmin,endpoint[1]);
+	    PlaneData.fZmax = std::max(PlaneData.fZmax,endpoint[2]);
+	    PlaneData.fZmin = std::min(PlaneData.fZmin,endpoint[2]);	    
+	  } // loop on wire 
+
         } // for plane
       } // for TPC
     } // for cryostat
@@ -262,6 +278,14 @@ namespace geo{
   
   
   //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::Nchannels
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::Nchannels(ROPID)
+  
+  
+  //----------------------------------------------------------------------------
   double ChannelMapAPAAlg::WireCoordinate
     (double YPos, double ZPos, geo::PlaneID const& planeid) const
   {
@@ -298,9 +322,18 @@ namespace geo{
   WireID ChannelMapAPAAlg::NearestWireID
     (const TVector3& xyz, geo::PlaneID const& planeid) const
   {
+
+    // cap the position to be within the boundaries of the wire endpoints.
+    // This simulates charge drifting in from outside of the wire frames inwards towards
+    // the first and last collection wires on the side, and towards the right endpoints
+
+    const PlaneData_t& PlaneData = AccessElement(fPlaneData, planeid);
+    double ycap = std::max(PlaneData.fYmin,std::min(PlaneData.fYmax,xyz.Y()));
+    double zcap = std::max(PlaneData.fZmin,std::min(PlaneData.fZmax,xyz.Z()));
+
     // add 0.5 to have the correct rounding
     int NearestWireNumber
-      = int (0.5 + WireCoordinate(xyz.Y(), xyz.Z(), planeid));
+      = int (0.5 + WireCoordinate(ycap, zcap, planeid));
     
     // If we are outside of the wireplane range, throw an exception
     // (this response maintains consistency with the previous
@@ -406,34 +439,148 @@ namespace geo{
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::NOpChannels(unsigned int NOpDets) const
   {
-    return 12*NOpDets;
+    return fChannelsPerOpDet*NOpDets;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::NOpHardwareChannels(unsigned int opDet) const
   {
-    return 12;
+    return fChannelsPerOpDet;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::OpChannel(unsigned int detNum, unsigned int channel) const
   {
-    unsigned int uniqueChannel = (detNum * 12) + channel;
+    unsigned int uniqueChannel = (detNum * fChannelsPerOpDet) + channel;
     return uniqueChannel;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::OpDetFromOpChannel(unsigned int opChannel) const
   {
-    unsigned int detectorNum = (unsigned int) opChannel / 12;
+    unsigned int detectorNum = (unsigned int) opChannel / fChannelsPerOpDet;
     return detectorNum;
   }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAPAAlg::HardwareChannelFromOpChannel(unsigned int opChannel) const
   {
-    unsigned int channel = opChannel % 12;
+    unsigned int channel = opChannel % fChannelsPerOpDet;
     return channel;
   }
 
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::NTPCsets
+    (readout::CryostatID const& cryoid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::NTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::MaxTPCsets() const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::MaxTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  bool ChannelMapAPAAlg::HasTPCset(readout::TPCsetID const& tpcsetid) const
+  {
+    return tpcsetid.TPCset < NTPCsets(tpcsetid);
+  } // ChannelMapAPAAlg::HasTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::TPCsetID ChannelMapAPAAlg::TPCtoTPCset
+    (geo::TPCID const& tpcid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::TPCtoTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::TPCID> ChannelMapAPAAlg::TPCsetToTPCs
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::TPCsetToTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::TPCID ChannelMapAPAAlg::FirstTPCinTPCset
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::FirstTPCinTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::NROPs
+      (readout::TPCsetID const& tpcsetid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::NROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapAPAAlg::MaxROPs() const {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::MaxROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  bool ChannelMapAPAAlg::HasROP(readout::ROPID const& ropid) const {
+    return ropid.ROP < NROPs(ropid);
+  } // ChannelMapAPAAlg::HasROP()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::ROPID ChannelMapAPAAlg::WirePlaneToROP
+    (geo::PlaneID const& planeid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::WirePlaneToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::PlaneID> ChannelMapAPAAlg::ROPtoWirePlanes
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::ROPtoWirePlanes()
+  
+  
+  //----------------------------------------------------------------------------
+  std::vector<geo::TPCID> ChannelMapAPAAlg::ROPtoTPCs
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::ROPtoTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::ROPID ChannelMapAPAAlg::ChannelToROP
+    (raw::ChannelID_t channel) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::ROPtoTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  raw::ChannelID_t ChannelMapAPAAlg::FirstChannelInROP
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::FirstChannelInROP()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::PlaneID ChannelMapAPAAlg::FirstWirePlaneInROP
+    (readout::ROPID const& ropid) const
+  {
+    throw cet::exception("ChannelMapAPAAlg") << __func__ << " not implemented!\n";
+  } // ChannelMapAPAAlg::FirstWirePlaneInROP()
+  
+  
 } // namespace

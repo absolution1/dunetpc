@@ -25,23 +25,17 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMapCRMAlg::Initialize( GeometryData_t& geodata )
+  void ChannelMapCRMAlg::Initialize( GeometryData_t const& geodata )
   {
     // start over:
     Uninitialize();
     
-    std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
-    std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+    std::vector<geo::CryostatGeo*> const& cgeo = geodata.cryostats;
     
     fNcryostat = cgeo.size();
     
     mf::LogInfo("ChannelMapCRMAlg") << "Initializing CRM ChannelMap...";
 
-    fSorter.SortCryostats(cgeo);
-    fSorter.SortAuxDets(adgeo);
-    for(size_t c = 0; c < cgeo.size(); ++c) 
-      cgeo[c]->SortSubVolumes(fSorter);
-    
     fNTPC.resize(fNcryostat);
     fWireCounts.resize(fNcryostat);
     fNPlanes.resize(fNcryostat);
@@ -215,6 +209,14 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
+  unsigned int ChannelMapCRMAlg::Nchannels(readout::ROPID const& ropid) const {
+    if (!HasROP(ropid)) return 0;
+    // The number of channels matches the number of wires. Life is easy.
+    return WireCount(FirstWirePlaneInROP(ropid));
+  } // ChannelMapCRMAlg::Nchannels()
+  
+  
+  //----------------------------------------------------------------------------
   double ChannelMapCRMAlg::WireCoordinate
     (double YPos, double ZPos, geo::PlaneID const& planeID) const
   {
@@ -360,4 +362,257 @@ namespace geo{
     return fPlaneIDs;
   }
 
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns the total number of TPC sets in the specified cryostat
+   * @param cryoid cryostat ID
+   * @return number of TPC sets in the cryostat, or 0 if no cryostat found
+   */
+  unsigned int ChannelMapCRMAlg::NTPCsets
+    (readout::CryostatID const& cryoid) const
+  {
+    // return the same number as the number of TPCs
+    return (cryoid.isValid && cryoid.Cryostat < fNTPC.size())?
+      fNTPC[cryoid.Cryostat]: 0;
+  } // ChannelMapCRMAlg::NTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the largest number of TPC sets any cryostat in the detector has
+  unsigned int ChannelMapCRMAlg::MaxTPCsets() const {
+    return MaxTPCs();
+  } // ChannelMapCRMAlg::MaxTPCsets()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns whether we have the specified TPC set
+  /// @return whether the TPC set is valid and exists
+  bool ChannelMapCRMAlg::HasTPCset(readout::TPCsetID const& tpcsetid) const {
+    return tpcsetid.TPCset < NTPCsets(tpcsetid);
+  } // ChannelMapCRMAlg::HasTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the TPC set tpcid belongs to
+  readout::TPCsetID ChannelMapCRMAlg::TPCtoTPCset
+    (geo::TPCID const& tpcid) const
+  {
+    return ConvertTPCtoTPCset(tpcid);
+  } // ChannelMapCRMAlg::TPCtoTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns a list of ID of TPCs belonging to the specified TPC set
+   * @param tpcsetid ID of the TPC set to convert into TPC IDs
+   * @return the list of TPCs, empty if TPC set is invalid
+   *
+   * Note that the check is performed on the validity of the TPC set ID, that
+   * does not necessarily imply that the TPC set specified by the ID actually
+   * exists. Check the existence of the TPC set first (HasTPCset()).
+   * Behaviour on valid, non-existent TPC set IDs is undefined.
+   */
+  std::vector<geo::TPCID> ChannelMapCRMAlg::TPCsetToTPCs
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    std::vector<geo::TPCID> IDs;
+    if (tpcsetid.isValid) IDs.emplace_back(ConvertTPCsetToTPC(tpcsetid));
+    return IDs;
+  } // ChannelMapCRMAlg::TPCsetToTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the first TPC belonging to the specified TPC set
+  geo::TPCID ChannelMapCRMAlg::FirstTPCinTPCset
+    (readout::TPCsetID const& tpcsetid) const
+  {
+    return ConvertTPCsetToTPC(tpcsetid);
+  } // ChannelMapCRMAlg::FirstTPCinTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  unsigned int ChannelMapCRMAlg::MaxTPCs() const
+  {
+    unsigned int max = 0;
+    for (unsigned int nTPCs: fNTPC) if (nTPCs > max) max = nTPCs;
+    return max;
+  } // ChannelMapCRMAlg::MaxTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns the total number of ROP in the specified TPC set
+   * @param tpcsetid TPC set ID
+   * @return number of readout planes in the TPC set, or 0 if no TPC set found
+   * 
+   * Note that this methods explicitly check the existence of the TPC set.
+   */
+  unsigned int ChannelMapCRMAlg::NROPs(readout::TPCsetID const& tpcsetid) const
+  {
+    if (!HasTPCset(tpcsetid)) return 0;
+    return AccessElement(fNPlanes, FirstTPCinTPCset(tpcsetid));
+  } // ChannelMapCRMAlg::NROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the largest number of ROPs a TPC set in the detector has
+  unsigned int ChannelMapCRMAlg::MaxROPs() const {
+    unsigned int max = 0;
+    for (auto const& cryo_tpc: fNPlanes)
+      for (unsigned int nPlanes: cryo_tpc)
+        if (nPlanes > max) max = nPlanes;
+    return max;
+  } // ChannelMapCRMAlg::MaxROPs()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns whether we have the specified ROP
+  /// @return whether the readout plane is valid and exists
+  bool ChannelMapCRMAlg::HasROP(readout::ROPID const& ropid) const {
+    return ropid.ROP < NROPs(ropid);
+  } // ChannelMapCRMAlg::HasROP()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the ROP planeid belongs to
+  readout::ROPID ChannelMapCRMAlg::WirePlaneToROP
+    (geo::PlaneID const& planeid) const
+  {
+    return ConvertWirePlaneToROP(planeid);
+  } // ChannelMapCRMAlg::WirePlaneToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns a list of ID of planes belonging to the specified ROP
+  std::vector<geo::PlaneID> ChannelMapCRMAlg::ROPtoWirePlanes
+    (readout::ROPID const& ropid) const
+  {
+    std::vector<geo::PlaneID> IDs;
+    if (ropid.isValid) IDs.emplace_back(FirstWirePlaneInROP(ropid));
+    return IDs;
+  } // ChannelMapCRMAlg::ROPtoWirePlanes()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the first plane belonging to the specified ROP
+  geo::PlaneID ChannelMapCRMAlg::FirstWirePlaneInROP
+    (readout::ROPID const& ropid) const
+  {
+    return ConvertROPtoWirePlane(ropid);
+  } // ChannelMapCRMAlg::FirstWirePlaneInROP()
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns a list of ID of TPCs the specified ROP spans
+   * @param ropid ID of the readout plane
+   * @return the list of TPC IDs, empty if readout plane ID is invalid
+   *
+   * Note that this check is performed on the validity of the readout plane
+   * ID, that does not necessarily imply that the readout plane specified by
+   * the ID actually exists. Check if the ROP exists with HasROP().
+   * The behaviour on non-existing readout planes is undefined.
+   */
+  std::vector<geo::TPCID> ChannelMapCRMAlg::ROPtoTPCs
+    (readout::ROPID const& ropid) const
+  {
+    std::vector<geo::TPCID> IDs;
+    // we take the TPC set of the ROP and convert it straight into a TPC ID
+    if (ropid.isValid) IDs.emplace_back(ConvertTPCsetToTPC(ropid.asTPCsetID()));
+    return IDs;
+  } // ChannelMapCRMAlg::ROPtoTPCs()
+  
+  
+  //----------------------------------------------------------------------------
+  /// Returns the ID of the ROP the channel belongs to
+  /// @throws cet::exception (category: "Geometry") if non-existent channel
+  readout::ROPID ChannelMapCRMAlg::ChannelToROP(raw::ChannelID_t channel) const
+  {
+    if (!raw::isValidChannelID(channel)) return {}; // invalid ROP returned
+    
+    // which wires does the channel cover?
+    std::vector<geo::WireID> wires = ChannelToWire(channel);
+    
+    // - none:
+    if (wires.empty()) return {}; // default-constructed ID, invalid
+    
+    // - one: maps its plane ID into a ROP ID
+    return WirePlaneToROP(wires[0]);
+  } // ChannelMapCRMAlg::ChannelToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Returns the ID of the first channel in the specified readout plane
+   * @param ropid ID of the readout plane
+   * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
+   * 
+   * Note that this check is performed on the validity of the readout plane
+   * ID, that does not necessarily imply that the readout plane specified by
+   * the ID actually exists. Check if the ROP exists with HasROP().
+   * The behaviour for non-existing readout planes is undefined.
+   */
+  raw::ChannelID_t ChannelMapCRMAlg::FirstChannelInROP
+    (readout::ROPID const& ropid) const
+  {
+    if (!ropid.isValid) return raw::InvalidChannelID;
+    return (raw::ChannelID_t)
+      AccessElement(fPlaneBaselines, ConvertROPtoWirePlane(ropid));
+  } // ChannelMapCRMAlg::FirstChannelInROP()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::TPCsetID ChannelMapCRMAlg::ConvertTPCtoTPCset
+    (geo::TPCID const& tpcid)
+  {
+    if (!tpcid.isValid) return {}; // invalid ID, default-constructed
+    return {
+      (readout::CryostatID::CryostatID_t) tpcid.Cryostat,
+      (readout::TPCsetID::TPCsetID_t) tpcid.TPC
+      };
+  } // ChannelMapCRMAlg::ConvertTPCtoTPCset()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::TPCID ChannelMapCRMAlg::ConvertTPCsetToTPC
+    (readout::TPCsetID const& tpcsetid)
+  {
+    if (!tpcsetid.isValid) return {};
+    return {
+      (geo::CryostatID::CryostatID_t) tpcsetid.Cryostat,
+      (geo::TPCID::TPCID_t) tpcsetid.TPCset
+      };
+  } // ChannelMapCRMAlg::ConvertTPCsetToTPC()
+  
+  
+  //----------------------------------------------------------------------------
+  readout::ROPID ChannelMapCRMAlg::ConvertWirePlaneToROP
+    (geo::PlaneID const& planeid)
+  {
+    if (!planeid.isValid) return {}; // invalid ID, default-constructed
+    return {
+      (readout::CryostatID::CryostatID_t) planeid.Cryostat,
+      (readout::TPCsetID::TPCsetID_t) planeid.TPC,
+      (readout::ROPID::ROPID_t) planeid.Plane
+      };
+    
+  } // ChannelMapCRMAlg::ConvertWirePlaneToROP()
+  
+  
+  //----------------------------------------------------------------------------
+  geo::PlaneID ChannelMapCRMAlg::ConvertROPtoWirePlane
+    (readout::ROPID const& ropid)
+  {
+    if (!ropid.isValid) return {};
+    return {
+      (geo::CryostatID::CryostatID_t) ropid.Cryostat,
+      (geo::TPCID::TPCID_t) ropid.TPCset,
+      (geo::PlaneID::PlaneID_t) ropid.ROP
+      };
+  } // ChannelMapCRMAlg::ConvertROPtoWirePlane()
+  
+  
+  //----------------------------------------------------------------------------
+  
 } // namespace

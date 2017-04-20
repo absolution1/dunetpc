@@ -13,7 +13,7 @@ art_make(
                            lardataobj_RecoBase
                            larcore_Geometry
                            larcore_Geometry_Geometry_service
-                           larsim_RandomUtils_LArSeedService_service
+                           nutools_RandomUtils_NuRandomService_service
                            nusimdata_SimulationBase
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
@@ -21,12 +21,12 @@ art_make(
                            ${ART_FRAMEWORK_SERVICES_BASIC}
                            ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                            ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                           art_Persistency_Common canvas_Persistency_Common
-                           art_Utilities canvas_Utilities
+                           art_Persistency_Common canvas
+                           art_Utilities canvas
                            ${MF_MESSAGELOGGER}
                            ${MF_UTILITIES}
                            ${FHICLCPP}
-                           ${CETLIB}
+                           cetlib cetlib_except
          )
 
 install_headers()

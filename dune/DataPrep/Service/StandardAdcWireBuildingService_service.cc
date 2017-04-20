@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "lardata/RecoBaseArt/WireCreator.h"
+#include "lardata/ArtDataHelper/WireCreator.h"
 
 using std::vector;
 using std::string;
@@ -24,7 +24,6 @@ StandardAdcWireBuildingService(fhicl::ParameterSet const& pset, art::ActivityReg
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   if ( m_LogLevel > 0 ) print(cout, myname);
 }
-
 
 //**********************************************************************
 
@@ -46,6 +45,10 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
     cout << myname << "WARNING: Input data channel differs from digit: " << data.channel
          << " != " << data.digit->Channel() << ". No action taken." << endl;
     return 3;
+  }
+  if ( data.samples.size() == 0 ) {
+    cout << myname << "WARNING: Channel " << data.channel << " has no samples." << endl;
+    return 4;
   }
   if ( m_LogLevel >= 2 ) {
     cout << myname << "  Channel " << data.channel << " has " << data.rois.size() << " ROI"
@@ -78,7 +81,9 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
     }
   }
   if ( dataOwnsWire ) {
-    data.wire = new recob::Wire(wc.move());
+    // Data cannot own the wire because it would then have to depend on the Wire class in order
+    // to delete the Wire.
+    //data.wire = new recob::Wire(wc.move());
   }
   return 0;
 }

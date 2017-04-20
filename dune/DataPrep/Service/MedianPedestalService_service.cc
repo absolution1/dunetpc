@@ -24,6 +24,7 @@ MedianPedestalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
   m_SkipSignals(false) {
   const string myname = "MedianPedestalService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
+  m_UseMean = pset.get<bool>("UseMean");
   m_SkipFlaggedSamples = pset.get<bool>("SkipFlaggedSamples");
   m_SkipSignals = pset.get<bool>("SkipSignals");
   print(cout, myname);
@@ -34,6 +35,7 @@ MedianPedestalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 int MedianPedestalService::
 evaluate(const AdcChannelData& data, AdcSignal* pped, AdcSignal* prms,
          AdcSignal* ppederr, AdcSignal* prmserr) const {
+  const string myname = "MedianPedestalService::evaluate: ";
   AdcSignal ped = 0.0;
   AdcSignal rms = 0.0;
   AdcSignal pederr = 0.0;
@@ -43,7 +45,10 @@ evaluate(const AdcChannelData& data, AdcSignal* pped, AdcSignal* prms,
   const AdcFilterVector signal = data.signal;
   if ( sigsin.size() == 0 ) return 0;
   AdcSignalVector sigs;
-  for ( unsigned int isig=0; isig<sigsin.size(); ++isig ) {
+  unsigned int nsig = sigsin.size();
+  double sigsum = 0.0;
+  unsigned int nsigout = 0;
+  for ( unsigned int isig=0; isig<nsig; ++isig ) {
     AdcSignal sig = sigsin[isig];
     if ( m_SkipFlaggedSamples && flags.size() ) {
       AdcFlag flag = flags[isig];
@@ -54,12 +59,20 @@ evaluate(const AdcChannelData& data, AdcSignal* pped, AdcSignal* prms,
       bool isSignal = signal[isig];
       if ( isSignal ) continue;
     }
-    sigs.push_back(sig);
+    if ( m_UseMean ) sigsum += sig;
+    else sigs.push_back(sig);
+    ++nsigout;
   }
-  sort(sigs.begin(), sigs.end());
-  unsigned int isig = sigs.size()/2;
-  bool isodd = sigs.size()%2;
-  ped = isodd ? sigs[isig-1] : 0.5*(sigs[isig-1] + sigs[isig]);
+  if ( nsigout ) {
+    if ( m_UseMean ) {
+      ped = sigsum/nsigout;
+    } else {
+      sort(sigs.begin(), sigs.end());
+      unsigned int isig = sigs.size()/2;
+      bool isodd = sigs.size()%2;
+      ped = isodd ? sigs[isig-1] : 0.5*(sigs[isig-1] + sigs[isig]);
+    }
+  }
   if ( pped != nullptr ) *pped = ped;
   if ( prms != nullptr ) *prms = rms;
   if ( ppederr != nullptr ) *ppederr = pederr;

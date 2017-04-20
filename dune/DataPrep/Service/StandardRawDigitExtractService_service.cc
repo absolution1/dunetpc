@@ -28,62 +28,69 @@ StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityReg
     m_pPedProv = &art::ServiceHandle<lariov::DetPedestalService>()->GetPedestalProvider();
     if ( m_LogLevel ) cout << myname << "  Pedestal provider: @" <<  m_pPedProv << endl;
   }
+  if ( m_PedestalOption == 3 ) {
+    if ( m_LogLevel ) cout << myname << "Fetching pedestal evaluation service." << endl;
+    m_PedestalEvaluationService = &*art::ServiceHandle<PedestalEvaluationService>();
+    if ( m_LogLevel ) cout << myname << "  Pedestal evaluation service: @"
+                           <<  m_PedestalEvaluationService << endl;
+  }
   print(cout, myname);
 }
 
 //**********************************************************************
 
-int StandardRawDigitExtractService::
-extract(const raw::RawDigit& dig, AdcChannel* pchan, AdcSignal* pped,
-        AdcCountVector* praw, AdcSignalVector* psigs_in, AdcFlagVector* pflgs_in) const {
+int StandardRawDigitExtractService::extract(AdcChannelData& acd) const {
   const string myname = "StandardRawDigitExtractService:extract: ";
+  const raw::RawDigit* pdig = acd.digit;
+  if ( pdig == nullptr ) {
+    cout << myname << "ERROR: ADC channel does not have a larsoft digit." << endl;
+    return 1;
+  }
+  const raw::RawDigit& dig = *pdig;
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Entering..." << endl;
     cout << myname << "Input vector size: " << dig.Samples() << endl;
-    cout << myname << "Signal vector ";
-    if ( psigs_in == nullptr ) cout << "not ";
-    cout << "requested." << endl;
-    cout << myname << "Flags ";
-    if ( pflgs_in == nullptr ) cout << "not ";
-    cout << "requested." << endl;
   }
-  AdcChannel chan = dig.Channel();
-  if ( pchan != nullptr ) *pchan = chan;
+  if ( acd.samples.size() ) {
+    cout << myname << "ERROR: Channel has data." << endl;
+    return 1;
+  }
+  if ( acd.flags.size() ) {
+    cout << myname << "ERROR: Channel has flags." << endl;
+    return 2;
+  }
+  acd.channel = dig.Channel();
   unsigned int nsig = dig.Samples();
-  // Initialize the output signal and flag vectors.
-  AdcSignalVector* psigs_local = nullptr;
-  if ( psigs_in == nullptr ) psigs_local = new AdcSignalVector;
-  AdcSignalVector& sigs = psigs_in == nullptr ? *psigs_local : *psigs_in;
-  sigs.resize(nsig, -999);     // See https://cdcvs.fnal.gov/redmine/issues/11572.
-  AdcFlagVector* pflgs_local = nullptr;
-  if ( pflgs_in == nullptr ) pflgs_local = new AdcFlagVector;
-  AdcFlagVector& flgs = pflgs_in == nullptr ? *pflgs_local : *pflgs_in;
-  flgs.resize(nsig, AdcGood);
-  // Extract the signals from the digit.
-  AdcCountVector locadcs;
-  AdcCountVector& adcs = praw == nullptr ? locadcs : *praw;
-  adcs.resize(nsig, -999);   // See https://cdcvs.fnal.gov/redmine/issues/11572.
-  raw::Uncompress(dig.ADCs(), adcs, dig.GetPedestal(), dig.Compression());
+  acd.raw.resize(nsig, -999);  // See https://cdcvs.fnal.gov/redmine/issues/11572.
+  acd.flags.resize(nsig, AdcGood);
+  acd.samples.resize(nsig, -999);
+  raw::Uncompress(dig.ADCs(), acd.raw, dig.GetPedestal(), dig.Compression());
   // Retrieve pedestal.
   AdcSignal ped = 0.0;
   if ( m_PedestalOption == 1 ) {
     ped = dig.GetPedestal();
   } else if ( m_PedestalOption == 2 ) {
-    ped = m_pPedProv->PedMean(chan);
+    ped = m_pPedProv->PedMean(acd.channel);
   }
-  if ( pped != nullptr ) *pped = ped;
+  acd.pedestal = ped;
   // Convert int -> float, subtract pedestal and set conversion flag.
   const AdcCount lowbits = 0x3f;
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
-    AdcCount adc = adcs[isig];
+    AdcCount adc = acd.raw[isig];
     AdcCount adclow = adc & lowbits;
-    sigs[isig] = adc - ped;
-    if      ( adc == 0 )                            flgs[isig] = AdcUnderflow;
-    else if ( adc >= 4095 )                         flgs[isig] = AdcOverflow;
-    else if ( m_FlagStuckOff && adclow == 0 )       flgs[isig] = AdcStuckOff;
-    else if ( m_FlagStuckOn  && adclow == lowbits ) flgs[isig] = AdcStuckOn;
+    acd.samples[isig] = adc - ped;
+    if      ( adc == 0 )                            acd.flags[isig] = AdcUnderflow;
+    else if ( adc >= 4095 )                         acd.flags[isig] = AdcOverflow;
+    else if ( m_FlagStuckOff && adclow == 0 )       acd.flags[isig] = AdcStuckOff;
+    else if ( m_FlagStuckOn  && adclow == lowbits ) acd.flags[isig] = AdcStuckOn;
   }
-
+  if ( m_PedestalOption == 3 ) {
+    m_PedestalEvaluationService->evaluate(acd, &ped);
+    for ( unsigned int isig=0; isig<nsig; ++isig ) {
+      acd.samples[isig] -= ped;
+    }
+    acd.pedestal += ped;
+  }
   return 0;
 }
 

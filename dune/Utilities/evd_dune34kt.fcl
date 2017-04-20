@@ -5,7 +5,7 @@ process_name: EVD
 services:
 {
   message:      @local::evd_message
-  user:         @local::dune34kt_disp
+                @table::dune34kt_disp
 }
 
 # Define the services

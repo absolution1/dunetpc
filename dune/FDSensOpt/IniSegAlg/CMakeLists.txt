@@ -4,7 +4,7 @@ art_make( BASENAME_ONLY
           LIBRARY_NAME  IniSegAlg
           LIB_LIBRARIES larcore_Geometry
                         larcore_Geometry_Geometry_service
-                        larsim_Simulation lardataobj_Simulation
+                        larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
                         lardataobj_RawData
                         lardataobj_RecoBase
 			larreco_RecoAlg
@@ -13,18 +13,18 @@ art_make( BASENAME_ONLY
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
-                        art_Persistency_Common canvas_Persistency_Common
+                        art_Persistency_Common canvas
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_BASIC}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                        art_Persistency_Common canvas_Persistency_Common
-                        art_Persistency_Provenance canvas_Persistency_Provenance
-                        art_Utilities canvas_Utilities
+                        art_Persistency_Common canvas
+                        art_Persistency_Provenance canvas
+                        art_Utilities canvas
                         ${FHICLCPP}
 			${MF_MESSAGELOGGER}
 			${MF_UTILITIES}
-                        ${CETLIB}
+                        cetlib cetlib_except
                         ${ROOT_BASIC_LIB_LIST}
 			${Boost_SYSTEM_LIBRARY}
           )

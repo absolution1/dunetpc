@@ -33,7 +33,7 @@ extern "C" {
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // art extensions
-#include "larsim/RandomUtils/LArSeedService.h"
+#include "nutools/RandomUtils/NuRandomService.h"
 
 #include "lardata/Utilities/LArFFT.h"
 #include "lardataobj/RawData/raw.h"
@@ -138,9 +138,9 @@ namespace detsim {
     if(compression.Contains("Huffman",TString::kIgnoreCase)) fCompression = raw::kHuffman;    
     if(compression.Contains("ZeroSuppression",TString::kIgnoreCase)) fCompression = raw::kZeroSuppression;      
 
-    // create a default random engine; obtain the random seed from LArSeedService,
+    // create a default random engine; obtain the random seed from NuRandomService,
     // unless overridden in configuration with key "Seed"
-    art::ServiceHandle<sim::LArSeedService>()
+    art::ServiceHandle<rndm::NuRandomService>()
       ->createEngine(*this, pset, "Seed");
     
   }
@@ -455,22 +455,27 @@ namespace detsim {
             if(view==geo::kU)      { tnoisepre = noise_a_Upre[i]; tnoisepost = noise_a_Upost[i];  }
             else if(view==geo::kV) { tnoisepre = noise_a_Vpre[i]; tnoisepost = noise_a_Vpost[i]; }
             else                   { tnoisepre = noise_a_Zpre[i]; tnoisepost = noise_a_Zpost[i]; }
-
+            
             tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
 	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0- ped_mean )
-	    tmpfv = 0- ped_mean;
+            if ( tmpfv > adcsaturation - ped_mean){
+              tmpfv = adcsaturation- ped_mean;
+            }
+            //don't allow for "negative" saturation
+            if ( tmpfv < 0- ped_mean ){
+              tmpfv = 0- ped_mean;
+            }
             adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+
             tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
 	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
+            if ( tmpfv > adcsaturation - ped_mean){
+              tmpfv = adcsaturation- ped_mean;
+            }
+            //don't allow for "negative" saturation
+            if ( tmpfv < 0 - ped_mean){
+              tmpfv = 0- ped_mean;
+            }
             adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
           }
         }
@@ -528,19 +533,24 @@ namespace detsim {
 
 	    tmpfv = tnoisepre + fChargeWorkPreSpill_a[i];
 	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
+            if ( tmpfv > adcsaturation - ped_mean){
+              tmpfv = adcsaturation- ped_mean;
+            }
+            //don't allow for "negative" saturation
+            if ( tmpfv < 0 - ped_mean){
+              tmpfv = 0- ped_mean;
+            }
 	    adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
+
 	    tmpfv = tnoisepost + fChargeWorkPostSpill_a[i];
 	    //allow for ADC saturation
-	  if ( tmpfv > adcsaturation - ped_mean)
-	    tmpfv = adcsaturation- ped_mean;
-	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
+            if ( tmpfv > adcsaturation - ped_mean){
+              tmpfv = adcsaturation- ped_mean;
+            }
+            //don't allow for "negative" saturation
+            if ( tmpfv < 0 - ped_mean){
+              tmpfv = 0- ped_mean;
+            }
 	    adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
 	  }
 	}
@@ -563,16 +573,16 @@ namespace detsim {
 	  if ( tmpfv > adcsaturation - ped_mean)
 	    tmpfv = adcsaturation- ped_mean;
 	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
+	  if ( tmpfv < 0 - ped_mean) {
+	    tmpfv = 0- ped_mean; }
             adcvecPreSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
             tmpfv = fChargeWorkPostSpill_a[i];
 	    //allow for ADC saturation
 	  if ( tmpfv > adcsaturation - ped_mean)
 	    tmpfv = adcsaturation- ped_mean;
 	  //don't allow for "negative" saturation
-	  if ( tmpfv < 0 - ped_mean)
-	    tmpfv = 0- ped_mean;
+	  if ( tmpfv < 0 - ped_mean) {
+	    tmpfv = 0- ped_mean; }
             adcvecPostSpill_a[i] = (tmpfv >=0) ? (short) (tmpfv+0.5) : (short) (tmpfv-0.5); 
           }
         }

@@ -5,7 +5,7 @@
 process_name: CheckTime
 
 services: {
-  user:         @local::dune35t_services
+                @table::dune35t_services
   message:      @local::dune_message_services_prod_debug
   TFileService: { fileName: "GoodRun_hist.root" }
   TimeTracker:       {}

@@ -1,0 +1,36 @@
+HOW TO RUN THIS CODE
+
+    by: m.thiesse@sheffield.ac.uk
+
+## Step 1:
+
+Create a definition for the dataset you wish to sample from
+e.g. $ samweb -e dune create-definition <your-definition-name> "<various-things-you-can-learn-by-reading-the-help-documentation-for-samweb-and/or-ifdh>"
+ 
+  (Definitions live forever until explicitly deleted)
+
+## Step 2:
+
+Start a samweb "project", to which you attach a definition.
+
+  (Projects live forever and cannot be deleted, so create a UNIQUE name! Names with username and date/time, are good places to start.)
+
+e.g. $ samweb -e dune start-project --defname=<definition-name-from-above> <unique-project-name>
+
+## Step 3:
+
+Tell your LArSoft code which project and which definition you want to attach. In the case of OverlayRawDigits, these are in fhicl parameters.
+
+## Step 4: 
+
+Run your grid OR interactive job. SAM should do the work of choosing which files to read, and where they are located, so you don't have to.
+
+
+####### These steps are simplified in the script init_sam.sh. 
+####### Use at your own risk 
+
+
+####### TROUBLESHOOTING #######
+
+You must be a member of the SAM group "dune" for this to work. Check with 
+  $ samweb describe-user <your-username>

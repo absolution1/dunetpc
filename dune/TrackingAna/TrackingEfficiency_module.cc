@@ -137,7 +137,6 @@ private:
   double PhotonCounterT0, PhotonCounterTickT0, PhotonCounterID;
   double TrackTheta_XZ, TrackTheta_YZ, TrackEta_XY, TrackEta_ZY, TrackTheta, TrackPhi;
   double TrackLength; 
-  std::vector<double> trackStart, trackEnd;
 
   double MCTheta_XZ, MCTheta_YZ, MCEta_XY, MCEta_ZY, MCTheta, MCPhi;
   double MCTPCLength, MCEnergy, MCEnergyDeposited;
@@ -327,7 +326,7 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
       MCTruthInformation ( particle, MCEnergy, MCEnergyDeposited, MCTPCLength, 
 			   MCTheta_XZ, MCTheta_YZ, MCEta_XY, MCEta_ZY, MCTheta, MCPhi,
 			   MCPdgCode, MCTrackId );
-      if ( MCTPCLength == 0 ) continue;
+      if ( MCTPCLength < 1. ) continue;
       ++NPart;
       //std::cout << "Looking at MCParticle " << MCTrackId << ", with PdgCode " << MCPdgCode << ", MCTPCLength " << MCTPCLength << std::endl;
       
@@ -375,11 +374,10 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
 	std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(Track);
 	double Hit_Size = allHits.size();
 	// ---- Correct X positions and get track positions.
-	trackStart.clear();
-	trackEnd.clear();
-	tracklist[Track]->Extent(trackStart,trackEnd);
-	trackStart[0] = trackStart[0] - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'
-	trackEnd[0]   = trackEnd[0] - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'
+        recob::Track::Point_t trackStart, trackEnd;
+        std::tie(trackStart, trackEnd) = tracklist[Track]->Extent(); 
+	trackStart.SetX( trackStart.X() - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat )); // Correct X, last entry is first 'hit'
+        trackEnd.SetX( trackEnd.X() - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat)); // Correct X, first entry is last 'hit'
 	// ---- Get lengths and angles.
 	art::Ptr<recob::Track> ptrack(trackh, Track);
 	const recob::Track& track = *ptrack;
@@ -449,7 +447,8 @@ void TrackingEfficiency::TrackingEfficiency::MCTruthInformation ( const simb::MC
 								  double &Theta_XZ, double &Theta_YZ, double &Eta_XY, double &Eta_ZY, double &Theta, double &Phi,
 								  int &MCPdgCode, int &MCTrackId ) {
   int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
-  double TPCLengthHits[numberTrajectoryPoints];
+  //double TPCLengthHits[numberTrajectoryPoints];
+  std::vector<double> TPCLengthHits(numberTrajectoryPoints, 0);
   bool BeenInVolume = false;
   int FirstHit=0, LastHit=0;
   TPCLength = 0;
@@ -457,7 +456,7 @@ void TrackingEfficiency::TrackingEfficiency::MCTruthInformation ( const simb::MC
   MCPdgCode       = particle->PdgCode();
   MCTrackId       = particle->TrackId();
   
-  for(int MCHit=0; MCHit < numberTrajectoryPoints; ++MCHit) {
+  for(unsigned int MCHit=0; MCHit < TPCLengthHits.size(); ++MCHit) {
     const TLorentzVector& tmpPosition=particle->Position(MCHit);
     double const tmpPosArray[]={tmpPosition[0],tmpPosition[1],tmpPosition[2]};
     

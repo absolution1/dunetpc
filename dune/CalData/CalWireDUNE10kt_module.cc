@@ -38,7 +38,7 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RecoBase/Wire.h"
-#include "lardata/RecoBaseArt/WireCreator.h"
+#include "lardata/ArtDataHelper/WireCreator.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
@@ -206,7 +206,7 @@ void CalWireDUNE10kt::produce(art::Event& evt) {
   int readoutwindowsize = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider()->ReadOutWindowSize();
   if (int(dataSize) != readoutwindowsize){
     throw art::Exception(art::errors::Configuration)
-      << "ReadOutWindowSize "<<readoutwindowsize<<" does not match data size "<<dataSize<<". Please set services.user.DetectorPropertiesService.NumberTimeSamples and services.user.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
+      << "ReadOutWindowSize "<<readoutwindowsize<<" does not match data size "<<dataSize<<". Please set services.DetectorPropertiesService.NumberTimeSamples and services.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
   }
   
   raw::ChannelID_t channel = raw::InvalidChannelID; // channel number
@@ -369,7 +369,7 @@ void CalWireDUNE10kt::produce(art::Event& evt) {
     // add an association between the last object in wirecol
     // (that we just inserted) and digitVec
     if ( ! util::CreateAssn(*this, evt, *wirecol, digitVec, *WireDigitAssn, fSpillName) ) {
-      throw art::Exception(art::errors::InsertFailure)
+      throw art::Exception(art::errors::ProductRegistrationFailure)
         << "Can't associate wire #" << (wirecol->size() - 1)
         << " with raw digit #" << digitVec.key();
     } // if failed to add association

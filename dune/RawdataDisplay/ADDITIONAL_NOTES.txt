@@ -87,7 +87,7 @@ it by now). Believe it or not, it's to teach you something useful.
      end of the .fcl script (e.g., prodsingle.fcl) you use to generate
      events:
 
-     services.user.LArG4Parameters.KeepEMShowerDaughters: true
+     services.LArG4Parameters.KeepEMShowerDaughters: true
 
      Why? In LArG4, by default, if a particle is a typical product of
      e-m processes (bremmstrahlung, pair production, etc.) the

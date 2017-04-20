@@ -9,9 +9,9 @@
 // Interface for a service that extracts the ADC signal vector from
 // a larsoft raw digit. The latter holds the TPC samples for one channel.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "dune/DuneInterface/WiredAdcChannelDataMap.h"
 
 namespace raw {
 class RawDigit;
@@ -29,14 +29,20 @@ public:
   // Any increase in the capacity of that container may trigger relocation of the wire objects and
   // thus break the pointers in prepdigs. The capacity should be reserved in advance of any calls
   // to this method.
-  virtual int prepare(const std::vector<raw::RawDigit>& digs, AdcChannelDataMap& prepdigs,
-                      std::vector<recob::Wire>* pwires =nullptr) const =0;
+  // If not null, the object pwiredData may be filled with intermediate state information as dictated
+  // the configuration of the service implementation.
+  virtual int prepare(AdcChannelDataMap& prepdigs,
+                      std::vector<recob::Wire>* pwires =nullptr,
+                      WiredAdcChannelDataMap* pwiredData =nullptr) const =0;
 
   // Print parameters.
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(RawDigitPrepService, LEGACY)
+#endif
 
 #endif

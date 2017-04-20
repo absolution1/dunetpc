@@ -74,6 +74,15 @@ if (defined $wires)
 $tpc_on = 1;
 
 $basename = "dune10ktdphase_v1";
+if ( $wires_on == 0 )
+{
+    $basename = $basename."_nowires";
+}
+
+if ( $workspace == 1 )
+{
+    $basename = $basename."_workspace";
+}
 
 ##################################################################
 ############## Parameters for Charge Readout Plane ###############
@@ -93,6 +102,13 @@ $lengthCRM = $lengthCRM_active + 2 * $borderCRM;
 # number of CRMs in x and z
 $nCRM_x   = 4;
 $nCRM_z   = 20;
+
+# create a smaller geometry
+if( $workspace == 1 )
+{
+    $nCRM_x = 1;
+    $nCRM_z = 2;
+}
 
 # calculate tpc area based on number of CRMs and their dimensions
 $widthTPCActive  = $nCRM_x * $widthCRM;  # around 1200
@@ -397,7 +413,7 @@ print TPC <<EOF;
     <physvol>
       <volumeref ref="volTPCWireZ"/> 
       <position name="posWireZ$i" unit="cm" x="0" y="0" z="$zpos"/>
-      <rotationref ref="rIdentity"/> 
+      <rotationref ref="rMinus90AboutY"/> 
     </physvol>
 EOF
 }
@@ -422,7 +438,7 @@ print TPC <<EOF;
     <physvol>
      <volumeref ref="volTPCWireX"/>
      <position name="posWireX$i" unit="cm" x="$xpos" y="0" z="0"/>
-     <rotationref ref="rMinus90AboutY"/>
+     <rotationref ref="rIdentity"/>
     </physvol>
 EOF
 }
@@ -572,7 +588,7 @@ for($ii=0;$ii<$nCRM_z;$ii++)
 	print CRYO <<EOF;
       <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC$ii_$jj" unit="cm"
+	<position name="posTPC\-$ii\-$jj" unit="cm"
            x="$posX" y="$posY" z="$posZ"/>
       </physvol>
 EOF

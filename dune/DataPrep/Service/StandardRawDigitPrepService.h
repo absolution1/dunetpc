@@ -7,6 +7,11 @@
 // The data is converted to float, pedestals are subtracted and optionally
 // stuck bits are mitigated and coherent noise is removed.
 //
+// There is an option to construct intermediate states with the following names:
+//   extracted - After pedestal subtraction
+//   mitigated - After mitigation (e.g. stuck bit interpolation)
+//   noiseRemoved - After noise removal
+//
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
 //   SkipBad - Skip bad channels as reported by ChannelStatusService.
@@ -20,7 +25,13 @@
 //   DoDeconvolution - Deconvolute the signal.
 //   DoROI - Build ROIs.
 //   DoWires - Build wires.
+//   DoIntermediateStates - Build intermediate states requested by caller.
 //   DoDump [false] - If true, the info for one tick is displayed in the log.
+//   WiresWithoutROIFlag [2] - How to handle a request for wire building without ROI building.
+//                               0 - Silently ignore
+//                               1 - Warn in ctor only.
+//                               2 - Warn in ctor and every event.
+//                               3 - Abort after message.
 //   DumpChannel [0] - The channel that is dumped.
 //   DumpTick [0] - The tick that is dumped.
 
@@ -41,6 +52,7 @@ class PedestalEvaluationService;
 class AdcDeconvolutionService;
 class AdcRoiBuildingService;
 class AdcWireBuildingService;
+class AdcChannelDataCopyService;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
@@ -48,10 +60,11 @@ public:
 
   StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int prepare(const std::vector<raw::RawDigit>& digs, AdcChannelDataMap& prepdigs,
-              std::vector<recob::Wire>* pwires) const;
+  int prepare(AdcChannelDataMap& prepdigs,
+              std::vector<recob::Wire>* pwires,
+              WiredAdcChannelDataMap* pintStates) const override;
 
-  std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
+  std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const override;
 
 private:
 
@@ -67,7 +80,9 @@ private:
   bool m_DoDeconvolution;
   bool m_DoROI;
   bool m_DoWires;
+  unsigned int m_WiresWithoutROIFlag;
   bool m_DoDump;
+  bool m_DoIntermediateStates;
   unsigned int m_DumpChannel;
   unsigned int m_DumpTick;
 
@@ -81,6 +96,7 @@ private:
   const AdcDeconvolutionService* m_pDeconvolutionService;
   const AdcRoiBuildingService* m_pRoiBuildingService;
   const AdcWireBuildingService* m_pWireBuildingService;
+  const AdcChannelDataCopyService* m_pAdcChannelDataCopyService;
 
 };
 

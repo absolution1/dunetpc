@@ -10,6 +10,7 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceToken.h"
 #include "art/Framework/EventProcessor/ServiceDirector.h"
+#include "art/Framework/Services/Registry/ServiceRegistry.h"
 #include "art/Framework/Services/System/TriggerNamesService.h"
 #include "art/Framework/Services/System/CurrentModule.h"
 
@@ -46,6 +47,15 @@ ActivityRegistry& ar() {
   return *par.get();
 }
 
+class ArtServiceHelperCloser {
+public:
+  ~ArtServiceHelperCloser() {
+    cout << "ArtServiceHelperCloser::dtor: Closing ArtServiceHelper." << endl;
+    ArtServiceHelper::close();
+    cout << "ArtServiceHelperCloser::dtor: Closed." << endl;
+  }
+};
+
 }  // end unnamed namespace
 
 //**********************************************************************
@@ -58,10 +68,32 @@ ArtServiceHelper& ArtServiceHelper::instance() {
   
 //**********************************************************************
 
+ArtServiceHelper& ArtServiceHelper::load(string fname) {
+  const string myname = "ArtServiceHelper::instance: ";
+  ArtServiceHelper& ins = *instancePtr().get();
+  if ( ins.fileNames().size() == 0 ) {
+    if ( fname.size() ) ins.loadServices(fname);
+  } else {
+    if ( ins.fileNames().size() > 1 ||
+         ins.fileNames()[0] != fname ) {
+      cout << myname << "ArtServiceHelper is already configured with different services." << endl;
+      cout << myname << "The existing instance is returned." << endl;
+    }
+  }
+  return ins;
+}
+  
+//**********************************************************************
+
 void ArtServiceHelper::close() {
   if ( instance().m_load == 3 ) return;
-  delete instance().m_poperate;               // Close existing services and registry.
-  instance().m_poperate = nullptr;            // Reset the old operatre.
+  if ( instance().m_load != 1 ) return;
+  // Close existing services and registry.
+  cout << "ArtServiceHelper::close: Closing art services." << endl;
+  ArtServiceHelper& obj = instance();
+  ServiceRegistry::Operate* pop = static_cast<ServiceRegistry::Operate*>(obj.m_poperate);
+  delete pop;
+  instance().m_poperate = nullptr;            // Reset the old operate.
   instancePtr().reset(new ArtServiceHelper);  // Delete the old service helper.
   instance().m_load = 3;                      // Put new instance in deleted state.
 }
@@ -132,7 +164,7 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
     if ( cfg_file.is_empty() ) {
       fail = 1;
     } else {
-      // Get configuration for services and services.user and determine
+      // Get configuration for services and determine
       // where the service configuration is present.
       ParameterSet cfg_services;
       ParameterSet cfg_user;
@@ -146,9 +178,9 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
       if ( userHasName ) {
         pcfg = &cfg_user;
         if ( servicesHasName )
-          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services.user and services blocks." << endl;
+          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services blocks." << endl;
         if ( fileHasName )
-          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services.user block and at file level." << endl;
+          if ( m_LogLevel ) cout << myname << "WARNING: Service " << name << " found in services block and at file level." << endl;
       } else if ( servicesHasName ) {
         pcfg = &cfg_services;
         if ( fileHasName )
@@ -178,7 +210,7 @@ int ArtServiceHelper::addService(string name, string sval, bool isFile) {
       if ( fail == 1 ) {
         cout << "File is empty." << endl;
       } else if ( fail == 2 ) {
-        cout << "Block not found in file, services or services.user: " << name << endl;
+        cout << "Block not found in file, services: " << name << endl;
       } else if ( fail ) {
         cout << "Unexpected error " << fail << endl;
       }
@@ -254,7 +286,7 @@ int ArtServiceHelper::addServices(string sval, bool isFile) {
       cout << myname << "ERROR: Resolved file path: " << fpm(fname) << endl;
       return 5;
     } else {
-      // Get configuration for services and services.user and determine
+      // Get configuration for services and determine
       // where the service configuration is present.
       psets.push_back(ParameterSet());
       const ParameterSet& pset_services = psets.back();
@@ -268,9 +300,11 @@ int ArtServiceHelper::addServices(string sval, bool isFile) {
       cout << myname << "ERROR: Resolved file path: " << fpm(fname) << endl;
       return 9;
     }
+    m_fnames.push_back(fname);
   } else {
     psets.push_back(ParameterSet());
     make_ParameterSet(sval, psets.back());
+    m_fnames.push_back("STRING");
   }
   // Loop over the service parameter sets and add each service description to m_scfgs.
   for ( const ParameterSet& pset : psets ) {
@@ -344,6 +378,19 @@ int ArtServiceHelper::loadServices() {
 
 //**********************************************************************
 
+int ArtServiceHelper::loadServices(string fclfile) {
+  string myname = "ArtServiceHelper::loadServices: ";
+  if ( m_fnames.size() ) {
+    cout << myname << "ERROR: Services have already been added." << endl;
+    return 100;
+  }
+  int astat = addServices(fclfile, true);
+  if ( astat != 0 ) return 100 + astat;
+  return loadServices();
+}
+
+//**********************************************************************
+
 void ArtServiceHelper::setLogLevel(int lev) {
   const string myname = "ArtServiceHelper::setLogLevel: ";
   if ( m_LogLevel > 1 || lev > 1 ) cout << myname << "Setting log level to " << lev << endl;
@@ -354,6 +401,12 @@ void ArtServiceHelper::setLogLevel(int lev) {
 
 NameList ArtServiceHelper::serviceNames() const {
   return m_names;
+}
+
+//**********************************************************************
+
+NameList ArtServiceHelper::fileNames() const {
+  return m_fnames;
 }
 
 //**********************************************************************
@@ -374,6 +427,12 @@ string ArtServiceHelper::fullServiceConfiguration() const {
 
 int ArtServiceHelper::serviceStatus() const {
   return m_load;
+}
+
+//**********************************************************************
+
+bool ArtServiceHelper::isReady() const {
+  return m_load == 1;
 }
 
 //**********************************************************************
@@ -403,6 +462,9 @@ void ArtServiceHelper::print(ostream& out) const {
 
 std::unique_ptr<ArtServiceHelper>& ArtServiceHelper::instancePtr() {
   static unique_ptr<ArtServiceHelper> psh(new ArtServiceHelper);
+  // DLA Jan 2017: I did a test with Root and this close comes too late.
+  // See https://cdcvs.fnal.gov/redmine/issues/15162#note-9.
+  // static ArtServiceHelperCloser closer;
   return psh;
 }
   

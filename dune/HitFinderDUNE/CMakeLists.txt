@@ -7,7 +7,7 @@ art_make( BASENAME_ONLY
 			   larevt_Filters
                            larcore_Geometry
                            larcore_Geometry_Geometry_service
-                           lardata_RecoObjects
+                           lardata_RecoObjects larreco_Deprecated
 			   larsim_MCCheater_BackTracker_service
                            lardata_Utilities
 			   lbne_daqinput35t
@@ -19,24 +19,25 @@ art_make( BASENAME_ONLY
 			   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                            ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-			   art_Persistency_Common canvas_Persistency_Common
-		       	   art_Persistency_Provenance canvas_Persistency_Provenance
-			   art_Utilities canvas_Utilities
+			   art_Persistency_Common canvas
+		       	   art_Persistency_Provenance canvas
+			   art_Utilities canvas
 			   ${MF_MESSAGELOGGER}
 			   ${MF_UTILITIES}
 	                   ${FHICLCPP}
-			   ${CETLIB}
+			   cetlib cetlib_except
                            ${CLHEP}
 			   ${Boost_SYSTEM_LIBRARY}
 			   ${ROOT_BASIC_LIB_LIST}
+                           ${ROOT_GEOM}
          MODULE_LIBRARIES HitFinderDUNE
                            lardataobj_RecoBase
-                           lardata_RecoBaseArt
+                           lardata_ArtDataHelper
                            larcore_Geometry
                            larcore_Geometry_Geometry_service
 			   larsim_MCCheater_BackTracker_service
                            lardata_Utilities
-			   larsim_RandomUtils_LArSeedService_service
+			   nutools_RandomUtils_NuRandomService_service
 			   nusimdata_SimulationBase
  			   ${ART_FRAMEWORK_CORE}
 			   ${ART_FRAMEWORK_PRINCIPAL}
@@ -44,13 +45,14 @@ art_make( BASENAME_ONLY
 			   ${ART_FRAMEWORK_SERVICES_BASIC}
 			   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 			   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			   art_Persistency_Common canvas_Persistency_Common
-			   art_Utilities canvas_Utilities
+			   art_Persistency_Common canvas
+			   art_Utilities canvas
 			   ${MF_MESSAGELOGGER}
 			   ${MF_UTILITIES}
 	                   ${FHICLCPP}
-			   ${CETLIB}
+			   cetlib cetlib_except
                            ${ROOT_BASIC_LIB_LIST}
+                           ${ROOT_GEOM}
          )
 
 install_headers()

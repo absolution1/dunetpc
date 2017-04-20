@@ -43,14 +43,14 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
   string fclfile = "test_Dune35tNoiseRemovalService.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
-    string gname = "dune35t4apa_v5";
+    string gname = "dune35t4apa_v6";
     ofstream fout(fclfile.c_str());
     fout << "services.Geometry: {" << endl;
     fout << "  DisableWiresInG4: true" << endl;
     fout << "  GDML: \"" << gname << ".gdml\"" << endl;
     fout << "  Name: \"" << gname << "\"" << endl;
     fout << "  ROOT: \"" << gname << "\"" << endl;
-    fout << "  SortingParameters: { DetectorVersion: \"" << gname << "\" } " << endl;
+    fout << "  SortingParameters: { DetectorVersion: \"" << gname << "\" ChannelsPerOpDet: 12} " << endl;
     fout << "  SurfaceY: 0" << endl;
     fout << "}" << endl;
     fout << "services.ExptGeoHelperInterface: {" << endl;
