@@ -16,7 +16,6 @@
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/AdcCountSelection.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace fhicl {
 class ParameterSet;
@@ -53,6 +52,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(AdcSuppressService, LEGACY)
+#endif
 
 #endif

@@ -9,8 +9,8 @@
 // Interface for a service that uses a vector of ADC signals to estimate
 // the pedestal for a channel.
 
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class PedestalEvaluationService {
 
@@ -34,6 +34,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(PedestalEvaluationService, LEGACY)
+#endif
 
 #endif

@@ -8,9 +8,8 @@
 //
 // Interface for a service that copies AdcChannelData.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class AdcChannelDataCopyService {
 
@@ -25,6 +24,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(AdcChannelDataCopyService, LEGACY)
+#endif
 
 #endif

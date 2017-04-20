@@ -28,7 +28,7 @@ namespace geo{
 
     ChannelMapAPAAlg(fhicl::ParameterSet const& p);
     
-    void                     Initialize( GeometryData_t& geodata ) override;
+    void                     Initialize( GeometryData_t const& geodata ) override;
     void                     Uninitialize();
     
     /// Returns a list of TPC wires connected to the specified readout channel ID
@@ -247,6 +247,10 @@ namespace geo{
     
     /// @} readout plane mapping
     
+    /// Returns the object to sort geometry with
+    virtual geo::GeoObjectSorter const& Sorter() const override
+      { return fSorter; }
+    
     
     
     unsigned int NOpChannels(unsigned int NOpDets)                        const;
@@ -281,6 +285,10 @@ namespace geo{
       double fFirstWireCenterZ;
       /// +1 if the wire ID order follow z (larger z, or smaller intercept => larger wire ID); -1 otherwise
       float fWireSortingInZ;
+      double fYmax;
+      double fYmin;
+      double fZmax;
+      double fZmin;
     } PlaneData_t;
     
     ///< collects all data we need for each plane (indices: c t p)

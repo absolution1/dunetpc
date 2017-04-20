@@ -471,6 +471,7 @@ namespace dune {
         tdPandoraNuVertex = 0x2000,
 	tdPFParticle = 0x4000,
 	tdCount = 0x8000,
+  tdProto = 0x10000,
 	tdDefault = 0
 	}; // DataBits_t
     
@@ -703,6 +704,20 @@ namespace dune {
     std::vector<Int_t>    cry_trackID;
     std::vector<Int_t>    cry_ND;
     std::vector<Int_t>    cry_mother;
+
+    // ProtoDUNE Beam generator information
+    Int_t proto_no_primaries;
+    std::vector<Int_t> proto_isGoodParticle;
+    std::vector<Float_t> proto_vx;
+    std::vector<Float_t> proto_vy;
+    std::vector<Float_t> proto_vz;
+    std::vector<Float_t> proto_t;
+    std::vector<Float_t> proto_px;
+    std::vector<Float_t> proto_py;
+    std::vector<Float_t> proto_pz;
+    std::vector<Float_t> proto_momentum;
+    std::vector<Float_t> proto_energy;
+    std::vector<Int_t> proto_pdg;
     
     //G4 MC Particle information
     size_t MaxGEANTparticles = 0; ///! how many particles there is currently room for
@@ -942,7 +957,10 @@ namespace dune {
 
     /// Returns whether we have External Counter data
     bool hasExternCountInfo() const { return bits & tdCount; }
-    
+   
+    /// Returns whether we have protoDUNE beam primaries
+    bool hasProtoInfo() const {return bits & tdProto; }
+ 
     /// Sets the specified bits
     void SetBits(unsigned int setbits, bool unset = false)
     { if (unset) bits &= ~setbits; else bits |= setbits; }
@@ -997,7 +1015,10 @@ namespace dune {
     
     /// Resize the data strutcure for Cry primaries
     void ResizeCry(int nPrimaries);
-    
+   
+    /// Resize the data structure for ProtoDUNE primaries
+    void ResizeProto(int nPrimaries);
+ 
     /// Resize the data strutcure for  MC Showers
     void ResizeMCShower(int nMCShowers);
     
@@ -1187,6 +1208,7 @@ namespace dune {
     std::string fCalDataModuleLabel;
     std::string fGenieGenModuleLabel;
     std::string fCryGenModuleLabel;
+    std::string fProtoGenModuleLabel;
     std::string fG4ModuleLabel;
     std::string fClusterModuleLabel;
     std::string fPandoraNuVertexModuleLabel;
@@ -1210,6 +1232,7 @@ namespace dune {
     bool fSaveAuxDetInfo; ///< whether to extract and save auxiliary detector data
     bool fSaveCryInfo; ///whether to extract and save CRY particle data
     bool fSaveGenieInfo; ///whether to extract and save Genie information
+    bool fSaveProtoInfo; ///whether to extract and save ProtDUNE beam simulation information
     bool fSaveGeantInfo; ///whether to extract and save Geant information
     bool fSaveMCShowerInfo; ///whether to extract and save MC Shower information
     bool fSaveMCTrackInfo; ///whether to extract and save MC Track information
@@ -1256,6 +1279,7 @@ namespace dune {
 	  (new AnalysisTreeDataStruct(GetNTrackers(), GetNVertexAlgos(), GetShowerAlgos()));
 	fData->SetBits(AnalysisTreeDataStruct::tdCry,    !fSaveCryInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdGenie,  !fSaveGenieInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdProto,  !fSaveProtoInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdGeant,  !fSaveGeantInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdMCshwr, !fSaveMCShowerInfo); 
 	fData->SetBits(AnalysisTreeDataStruct::tdMCtrk,  !fSaveMCTrackInfo); 
@@ -2311,6 +2335,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
 
   genie_no_primaries = 0;
   cry_no_primaries = 0;
+  proto_no_primaries = 0;
   no_primaries = 0;
   geant_list_size=0;
   geant_list_size_in_tpcAV = 0;
@@ -2412,7 +2437,20 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(cry_mass, -99999.);
   FillWith(cry_trackID, -99999);
   FillWith(cry_ND, -99999);
-  FillWith(cry_mother, -99999); 
+  FillWith(cry_mother, -99999);
+  // Start of ProtoDUNE Beam generator section
+  FillWith(proto_isGoodParticle,-99999);
+  FillWith(proto_vx,-99999.);
+  FillWith(proto_vy,-99999.);
+  FillWith(proto_vz,-99999.);
+  FillWith(proto_t,-99999.);
+  FillWith(proto_px,-99999.);
+  FillWith(proto_py,-99999.);
+  FillWith(proto_pz,-99999.);
+  FillWith(proto_momentum,-99999.);
+  FillWith(proto_energy,-99999.);
+  FillWith(proto_pdg,-99999);
+  // End of ProtoDUNE Beam generator section 
   FillWith(mcshwr_origin, -1);   
   FillWith(mcshwr_pdg, -99999);
   FillWith(mcshwr_TrackId, -99999);
@@ -2627,6 +2665,22 @@ void dune::AnalysisTreeDataStruct::ResizeCry(int nPrimaries) {
   cry_mother.resize(nPrimaries);
 
 } // dune::AnalysisTreeDataStruct::ResizeCry()
+
+void dune::AnalysisTreeDataStruct::ResizeProto(int nPrimaries){
+
+  proto_isGoodParticle.resize(nPrimaries);
+  proto_vx.resize(nPrimaries);
+  proto_vy.resize(nPrimaries);
+  proto_vz.resize(nPrimaries);
+  proto_t.resize(nPrimaries);
+  proto_px.resize(nPrimaries);
+  proto_py.resize(nPrimaries);
+  proto_pz.resize(nPrimaries);
+  proto_momentum.resize(nPrimaries);
+  proto_energy.resize(nPrimaries);
+  proto_pdg.resize(nPrimaries);
+
+} // dune::AnalysisTreeDataStruct::ResizeProto()
 
 void dune::AnalysisTreeDataStruct::ResizeMCShower(int nMCShowers) {
   mcshwr_origin.resize(nMCShowers);		
@@ -2951,6 +3005,21 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("cry_mother",cry_mother,"cry_mother[cry_no_primaries]/I");
   }  
 
+  if (hasProtoInfo()) {
+    CreateBranch("proto_no_primaries",&proto_no_primaries,"proto_no_primaries/I");
+    CreateBranch("proto_isGoodParticle",proto_isGoodParticle,"proto_isGoodParticle[proto_no_primaries]/I");
+    CreateBranch("proto_vx",proto_vx,"proto_vx[proto_no_primaries]/F");
+    CreateBranch("proto_vy",proto_vy,"proto_vy[proto_no_primaries]/F");
+    CreateBranch("proto_vz",proto_vz,"proto_vz[proto_no_primaries]/F");
+    CreateBranch("proto_t",proto_t,"proto_t[proto_no_primaries]/F");
+    CreateBranch("proto_px",proto_px,"proto_px[proto_no_primaries]/F");
+    CreateBranch("proto_py",proto_py,"proto_py[proto_no_primaries]/F");
+    CreateBranch("proto_pz",proto_pz,"proto_pz[proto_no_primaries]/F");
+    CreateBranch("proto_momentum",proto_momentum,"proto_momentum[proto_no_primaries]/F");
+    CreateBranch("proto_energy",proto_energy,"proto_energy[proto_no_primaries]/F");
+    CreateBranch("proto_pdg",proto_pdg,"proto_pdg[proto_no_primaries]/I");
+  }
+
   if (hasGeantInfo()){  
     CreateBranch("no_primaries",&no_primaries,"no_primaries/I");
     CreateBranch("geant_list_size",&geant_list_size,"geant_list_size/I");
@@ -3157,6 +3226,7 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fCalDataModuleLabel       (pset.get< std::string >("CalDataModuleLabel")      ),
   fGenieGenModuleLabel      (pset.get< std::string >("GenieGenModuleLabel")     ),
   fCryGenModuleLabel        (pset.get< std::string >("CryGenModuleLabel")       ), 
+  fProtoGenModuleLabel      (pset.get< std::string >("ProtoGenModuleLabel")     ), 
   fG4ModuleLabel            (pset.get< std::string >("G4ModuleLabel")           ),
   fClusterModuleLabel       (pset.get< std::string >("ClusterModuleLabel")     ),
   fPandoraNuVertexModuleLabel (pset.get< std::string >("PandoraNuVertexModuleLabel")     ),
@@ -3179,6 +3249,7 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fSaveAuxDetInfo           (pset.get< bool >("SaveAuxDetInfo", false)),
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),  
   fSaveGenieInfo	    (pset.get< bool >("SaveGenieInfo", false)), 
+  fSaveProtoInfo	    (pset.get< bool >("SaveProtoInfo", false)), 
   fSaveGeantInfo	    (pset.get< bool >("SaveGeantInfo", false)), 
   fSaveMCShowerInfo	    (pset.get< bool >("SaveMCShowerInfo", false)), 
   fSaveMCTrackInfo	    (pset.get< bool >("SaveMCTrackInfo", false)), 
@@ -3400,10 +3471,30 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   art::Handle< std::vector<simb::MCTruth> > mctruthcryListHandle;
   std::vector<art::Ptr<simb::MCTruth> > mclistcry;
   if (isMC && fSaveCryInfo){
-    if (evt.getByLabel(fCryGenModuleLabel,mctruthcryListHandle))
+    if (evt.getByLabel(fCryGenModuleLabel,mctruthcryListHandle)){
       art::fill_ptr_vector(mclistcry, mctruthcryListHandle);
+    }
+    else{
+      // If we requested this info but it doesn't exist, don't use it.
+      fSaveCryInfo = false;
+      mf::LogError("AnalysisTree") << "Requested CRY information but none exists, hence not saving CRY information.";
+    }
   }       
   
+  // ProtoDUNE beam generator information
+  art::Handle< std::vector<simb::MCTruth> > mctruthprotoListHandle;
+  std::vector<art::Ptr<simb::MCTruth> > mclistproto;
+  if(isMC && fSaveProtoInfo){
+    if(evt.getByLabel(fProtoGenModuleLabel,mctruthprotoListHandle)){
+      art::fill_ptr_vector(mclistproto,mctruthprotoListHandle);
+    }
+    else{
+      // If we requested this info but it doesn't exist, don't use it.
+      fSaveProtoInfo = false;
+      mf::LogError("AnalysisTree") << "Requested protoDUNE beam generator information but none exists, hence not saving protoDUNE beam generator information.";
+    }
+  }
+
   // *MC Shower information
   art::Handle< std::vector<sim::MCShower> > mcshowerh;
   if (isMC)
@@ -3428,6 +3519,13 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   if (fSaveCryInfo){
     mctruthcry = mclistcry[0];      
     nCryPrimaries = mctruthcry->NParticles();  
+  }
+
+  art::Ptr<simb::MCTruth> mctruthproto;
+  int nProtoPrimaries = 0;
+  if( fSaveProtoInfo){
+    mctruthproto = mclistproto[0];
+    nProtoPrimaries = mctruthproto->NParticles();
   } 
   
   int nGeniePrimaries = 0, nGEANTparticles = 0;
@@ -3485,6 +3583,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     fData->ResizeGenie(nGeniePrimaries);
   if (fSaveCryInfo)
     fData->ResizeCry(nCryPrimaries);
+  if (fSaveProtoInfo)
+    fData->ResizeProto(nProtoPrimaries);
   if (fSaveGeantInfo)    
     fData->ResizeGEANT(nGEANTparticles);  
   if (fSaveMCShowerInfo)
@@ -4177,7 +4277,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
             end.SetXYZ(xyz[0],xyz[1],xyz[2]);
 
             tlen = btrack.GetLength();
-            if (btrack.NumberFitMomentum() > 0)
+            if (btrack.NumberTrajectoryPoints() > 0)
               mom = btrack.VertexMomentum();
             // fill bezier track reco branches
             TrackID = iTrk;  //bezier has some screwed up track IDs
@@ -4192,7 +4292,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
             end       = track.End();
 
             tlen        = length(track);
-            if(track.NumberFitMomentum() > 0)
+            if(track.NumberTrajectoryPoints() > 0)
               mom = track.VertexMomentum();
             // fill non-bezier-track reco branches
             TrackID = track.ID();
@@ -4533,7 +4633,28 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         fData->cry_ND[iPartc]=partc.NumberDaughters();
         fData->cry_mother[iPartc]=partc.Mother();
       } // for cry particles  
-    }// end fSaveCryInfo   
+    }// end fSaveCryInfo  
+
+    // Save the protoDUNE beam generator information
+    if(fSaveProtoInfo){
+      fData->proto_no_primaries = nProtoPrimaries;
+      for(Int_t iPartp = 0; iPartp < nProtoPrimaries; ++iPartp){
+        const simb::MCParticle& partp(mctruthproto->GetParticle(iPartp));
+
+        fData->proto_isGoodParticle[iPartp] = (partp.Process() == "primary");
+        fData->proto_vx[iPartp] = partp.Vx();
+        fData->proto_vy[iPartp] = partp.Vy();
+        fData->proto_vz[iPartp] = partp.Vz();
+        fData->proto_t[iPartp] = partp.T();
+        fData->proto_px[iPartp] = partp.Px();
+        fData->proto_py[iPartp] = partp.Py();
+        fData->proto_pz[iPartp] = partp.Pz();
+        fData->proto_momentum[iPartp] = partp.P();
+        fData->proto_energy[iPartp] = partp.E();
+        fData->proto_pdg[iPartp] = partp.PdgCode();
+      }
+    }
+ 
     //save neutrino interaction information
     fData->mcevts_truth = mclist.size();
     if (fData->mcevts_truth > 0){//at least one mc record
@@ -4785,7 +4906,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           if (iPart < fData->GetMaxGEANTparticles()) {
 	    if (pPart->E()<fG4minE&&(!isPrimary)) continue;
 	    if (isPrimary) ++primary;
-	    
+ 
 	    TLorentzVector mcstart, mcend, mcstartdrifted, mcenddrifted;
 	    unsigned int pstarti, pendi, pstartdriftedi, penddriftedi; //mcparticle indices for starts and ends in tpc or drifted volumes
 	    double plen = length(*pPart, mcstart, mcend, pstarti, pendi);

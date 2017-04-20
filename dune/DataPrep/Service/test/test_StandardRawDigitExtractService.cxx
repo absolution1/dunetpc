@@ -134,12 +134,14 @@ int test_StandardRawDigitExtractService() {
 
   cout << myname << line << endl;
   cout << myname << "Extract data from digit." << endl;
-  AdcCountVector raw;
-  AdcSignalVector sigs;
-  AdcFlagVector flags;
-  AdcChannel chanout;
-  AdcSignal pedout;
-  assert( hrdx->extract(dig, &chanout, &pedout, &raw, &sigs, &flags) == 0 );
+  AdcChannelData acd;
+  acd.digit = &dig;
+  assert( hrdx->extract(acd) == 0 );
+  const AdcCountVector& raw = acd.raw;
+  const AdcSignalVector& sigs = acd.samples;
+  const AdcFlagVector& flags = acd.flags;
+  AdcChannel chanout = acd.channel;
+  AdcSignal pedout = acd.pedestal;
   cout << myname << "Output raw vector size: " << sigs.size() << endl;
   cout << myname << "Output prep vector size: " << sigs.size() << endl;
   cout << myname << " Output flags size: " << flags.size() << endl;

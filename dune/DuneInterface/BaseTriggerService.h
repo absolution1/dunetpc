@@ -10,10 +10,12 @@
 
 #include <memory>
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
-#include "art/Framework/Principal/Event.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
+
+#ifndef __CLING__
+//#include "art/Framework/Principal/Event.h"
+#endif
 
 namespace fhicl {
   class ParameterSet;
@@ -21,6 +23,7 @@ namespace fhicl {
 
 namespace art {
   class ActivityRegistry;
+  class Event;
 }
 
 class BaseTriggerService {
@@ -36,7 +39,7 @@ public:
   //   params:
   //   evt - The ART event, to be sliced and diced as the trigger algorithm
   //         sees fit...
-  virtual bool Trigger(art::Event const & evt)
+  virtual bool Trigger(const art::Event& evt)
   { return false; }
 
   // Make your trigger decision based on TPC info only.
@@ -45,7 +48,7 @@ public:
   //   params:
   //   rawTPC - A vector of raw digits, to be sliced and diced as the trigger algorithm
   //            sees fit...
-  virtual bool TPCTrigger(std::vector<raw::RawDigit> const & rawTPC)
+  virtual bool TPCTrigger(const std::vector<raw::RawDigit>& rawTPC)
   { return false; }
 
   // Make your trigger decision based on optical (PD) info only.
@@ -54,7 +57,7 @@ public:
   //   params:
   //   rawPD - A vector of optical waveforms, to be sliced and diced as the trigger algorithm
   //           sees fit...
-  virtual bool PDTrigger(std::vector<raw::OpDetWaveform> const & rawPD)
+  virtual bool PDTrigger(const std::vector<raw::OpDetWaveform>& rawPD)
   { return false; }
 
   // Make your trigger decision based on a mixture of TPC and PD info.
@@ -65,12 +68,15 @@ public:
   //            sees fit...
   //   rawPD  - A vector of optical waveforms, to be sliced and diced as the trigger algorithm
   //            sees fit...
-  virtual bool TPCPDTrigger(std::vector<raw::RawDigit>      const & rawTPC,
-			    std::vector<raw::OpDetWaveform> const & rawPD)
+  virtual bool TPCPDTrigger(const std::vector<raw::RawDigit>&      rawTPC,
+			    const std::vector<raw::OpDetWaveform>& rawPD)
   { return false; }
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(BaseTriggerService, LEGACY)
+#endif
 
 #endif

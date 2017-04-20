@@ -22,7 +22,7 @@ namespace art {
   };
 }
 
-#define ACLIC
+#define HideArtServices
 
 #include "dune/ArtSupport/ArtServiceHelper.h"
 

@@ -8,9 +8,8 @@
 //
 // Interface for a service that modifies the signals for an ADC channel.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
 
 class AdcDeconvolutionService {
 
@@ -25,6 +24,9 @@ public:
 
 };
 
+#ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(AdcDeconvolutionService, LEGACY)
+#endif
 
 #endif

@@ -27,23 +27,15 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  void ChannelMapAPAAlg::Initialize( GeometryData_t& geodata )
+  void ChannelMapAPAAlg::Initialize( GeometryData_t const& geodata )
   {
     // start over:
     Uninitialize();
     
-    std::vector<geo::CryostatGeo*>& cgeo = geodata.cryostats;
-    std::vector<geo::AuxDetGeo*>  & adgeo = geodata.auxDets;
+    std::vector<geo::CryostatGeo*> const& cgeo = geodata.cryostats;
     
     fNcryostat = cgeo.size();
     
-    mf::LogInfo("ChannelMapAPAAlg") << "Sorting volumes...";
-
-    fSorter.SortAuxDets(adgeo);
-    fSorter.SortCryostats(cgeo);
-    for(size_t c = 0; c < cgeo.size(); ++c) 
-      cgeo[c]->SortSubVolumes(fSorter);
-
     mf::LogInfo("ChannelMapAPAAlg") << "Initializing channel map...";
       
     fNTPC.resize(fNcryostat);
@@ -136,6 +128,29 @@ namespace geo{
           // In fact, for TPC #0 it is W + N for V and Z planes, W - N for U
           // plane; for TPC #0 it is W + N for V and Z planes, W - N for U
           PlaneData.fWireSortingInZ = thePlane.WireIDincreasesWithZ()? +1.: -1.;
+
+	  // find boundaries of the outside APAs for this plane by looking at endpoints of wires
+
+	  double endpoint[3];
+	  thePlane.Wire(0).GetStart(endpoint);
+	  PlaneData.fYmax = endpoint[1];
+	  PlaneData.fYmin = endpoint[1];
+	  PlaneData.fZmax = endpoint[2];
+	  PlaneData.fZmin = endpoint[2];
+	  unsigned int nwires = thePlane.Nwires(); 
+	  for (unsigned int iwire=0;iwire<nwires;iwire++){
+  	    thePlane.Wire(iwire).GetStart(endpoint);
+	    PlaneData.fYmax = std::max(PlaneData.fYmax,endpoint[1]);
+	    PlaneData.fYmin = std::min(PlaneData.fYmin,endpoint[1]);
+	    PlaneData.fZmax = std::max(PlaneData.fZmax,endpoint[2]);
+	    PlaneData.fZmin = std::min(PlaneData.fZmin,endpoint[2]);
+  	    thePlane.Wire(iwire).GetEnd(endpoint);
+	    PlaneData.fYmax = std::max(PlaneData.fYmax,endpoint[1]);
+	    PlaneData.fYmin = std::min(PlaneData.fYmin,endpoint[1]);
+	    PlaneData.fZmax = std::max(PlaneData.fZmax,endpoint[2]);
+	    PlaneData.fZmin = std::min(PlaneData.fZmin,endpoint[2]);	    
+	  } // loop on wire 
+
         } // for plane
       } // for TPC
     } // for cryostat
@@ -307,9 +322,18 @@ namespace geo{
   WireID ChannelMapAPAAlg::NearestWireID
     (const TVector3& xyz, geo::PlaneID const& planeid) const
   {
+
+    // cap the position to be within the boundaries of the wire endpoints.
+    // This simulates charge drifting in from outside of the wire frames inwards towards
+    // the first and last collection wires on the side, and towards the right endpoints
+
+    const PlaneData_t& PlaneData = AccessElement(fPlaneData, planeid);
+    double ycap = std::max(PlaneData.fYmin,std::min(PlaneData.fYmax,xyz.Y()));
+    double zcap = std::max(PlaneData.fZmin,std::min(PlaneData.fZmax,xyz.Z()));
+
     // add 0.5 to have the correct rounding
     int NearestWireNumber
-      = int (0.5 + WireCoordinate(xyz.Y(), xyz.Z(), planeid));
+      = int (0.5 + WireCoordinate(ycap, zcap, planeid));
     
     // If we are outside of the wireplane range, throw an exception
     // (this response maintains consistency with the previous

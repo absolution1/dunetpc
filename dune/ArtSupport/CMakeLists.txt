@@ -10,9 +10,9 @@ art_make(
   LIB_LIBRARIES
     art_Framework_EventProcessor
     art_Framework_Services_Registry
-    art_Utilities canvas_Utilities
+    art_Utilities canvas
     fhiclcpp
-    ${CETLIB}
+    cetlib cetlib_except
     ${Boost_SYSTEM_LIBRARY}
     art_Framework_Services_System_TriggerNamesService_service
     art_Framework_Services_System_CurrentModule_service

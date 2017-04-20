@@ -448,7 +448,7 @@
   ev.posTpc.push_back(7);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-6.78255);
-  ev.posXyz.push_back(SpacePoint(-17.3352, -61.1726, 155.65));
+  ev.posXyz.push_back(SpacePoint(-17.3352, -61.1726, 150.24));
   ev.posTpc.push_back(6);
   ev.posPla.push_back(0);
   ev.posWco.push_back(498.864);
@@ -458,7 +458,7 @@
   ev.posTpc.push_back(6);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-368.151);
-  ev.posXyz.push_back(SpacePoint(64.1773, -61.1726, 155.65));
+  ev.posXyz.push_back(SpacePoint(64.1773, -61.1726, 150.24));
   ev.posTpc.push_back(7);
   ev.posPla.push_back(0);
   ev.posWco.push_back(-166.085);
@@ -468,7 +468,7 @@
   ev.posTpc.push_back(7);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-368.151);
-  ev.posXyz.push_back(SpacePoint(186.446, -61.1726, 155.65));
+  ev.posXyz.push_back(SpacePoint(186.446, -61.1726, 150.24));
   ev.posTpc.push_back(7);
   ev.posPla.push_back(0);
   ev.posWco.push_back(-345.487);
@@ -478,7 +478,7 @@
   ev.posTpc.push_back(7);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-368.151);
-  ev.posXyz.push_back(SpacePoint(-17.3352, 19.9645, 155.65));
+  ev.posXyz.push_back(SpacePoint(-17.3352, 19.9645, 150.24));
   ev.posTpc.push_back(6);
   ev.posPla.push_back(0);
   ev.posWco.push_back(382.708);
@@ -488,7 +488,7 @@
   ev.posTpc.push_back(6);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-187.467);
-  ev.posXyz.push_back(SpacePoint(64.1773, 19.9645, 155.65));
+  ev.posXyz.push_back(SpacePoint(64.1773, 19.9645, 150.24));
   ev.posTpc.push_back(7);
   ev.posPla.push_back(0);
   ev.posWco.push_back(-49.9286);
@@ -498,7 +498,7 @@
   ev.posTpc.push_back(7);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-187.467);
-  ev.posXyz.push_back(SpacePoint(186.446, 19.9645, 155.65));
+  ev.posXyz.push_back(SpacePoint(186.446, 19.9645, 150.24));
   ev.posTpc.push_back(7);
   ev.posPla.push_back(0);
   ev.posWco.push_back(-229.331);
@@ -508,7 +508,7 @@
   ev.posTpc.push_back(7);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-187.467);
-  ev.posXyz.push_back(SpacePoint(-17.3352, 101.102, 155.65));
+  ev.posXyz.push_back(SpacePoint(-17.3352, 101.102, 150.24));
   ev.posTpc.push_back(6);
   ev.posPla.push_back(0);
   ev.posWco.push_back(266.551);
@@ -518,7 +518,7 @@
   ev.posTpc.push_back(6);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-6.78255);
-  ev.posXyz.push_back(SpacePoint(64.1773, 101.102, 155.65));
+  ev.posXyz.push_back(SpacePoint(64.1773, 101.102, 150.24));
   ev.posTpc.push_back(7);
   ev.posPla.push_back(0);
   ev.posWco.push_back(66.2278);
@@ -528,7 +528,7 @@
   ev.posTpc.push_back(7);
   ev.posPla.push_back(2);
   ev.posWco.push_back(-6.78255);
-  ev.posXyz.push_back(SpacePoint(186.446, 101.102, 155.65));
+  ev.posXyz.push_back(SpacePoint(186.446, 101.102, 150.24));
   ev.posTpc.push_back(7);
   ev.posPla.push_back(0);
   ev.posWco.push_back(-113.174);

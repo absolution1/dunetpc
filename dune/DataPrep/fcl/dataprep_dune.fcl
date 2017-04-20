@@ -103,6 +103,15 @@ adcnr_dune35tlegacy: {
 adcped_median: {
   service_provider: MedianPedestalService
   LogLevel:              1
+  UseMean:            false
+  SkipFlaggedSamples: true
+  SkipSignals:        true
+}
+
+adcped_mean: {
+  service_provider: MedianPedestalService
+  LogLevel:              1
+  UseMean:            true
   SkipFlaggedSamples: true
   SkipSignals:        true
 }
@@ -118,6 +127,11 @@ adcdco_dune35t: {
 
 adcdco_dunefd: @local::adcdco_dune35t
 
+adcdco_dunefddphase: {
+  service_provider: DuneDPhaseDeconvolutionService
+  LogLevel:              1
+}
+
 #***********************************************************************
 
 # AdcRoiBuildingService is used to define ROIs for the ADC signals.
@@ -132,6 +146,15 @@ adcroi_dune35t: {
 }
 
 adcroi_dunefd: @local::adcroi_dune35t
+
+adcroi_dunefddphase: {
+  service_provider: DuneDPhaseRoiBuildingService
+  NSigmaStart:        3.0
+  NSigmaEnd:          1.0
+  PadLow:              50
+  PadHigh:             50
+  LogLevel:             1
+}
 
 adcroi_keepall: {
   service_provider: KeepAllRoiBuildingService
