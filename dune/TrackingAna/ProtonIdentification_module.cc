@@ -804,13 +804,15 @@ void ProtonIdentification::ProtonIdentification::TrackBoundaries ( TVector3 larS
 } // TrackBoundaries
 // *********************************** Monte Carlo Truth Extraction ********************************************************
 void ProtonIdentification::ProtonIdentification::MCTruthInformation ( const simb::MCParticle *particle ) {
-  int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
-  double TPCLengthHits[numberTrajectoryPoints];
-  double TPCEnDepos   [numberTrajectoryPoints];
+  unsigned int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
+  //double TPCLengthHits[numberTrajectoryPoints];
+  //double TPCEnDepos   [numberTrajectoryPoints];
+  std::vector<double> TPCLengthHits(numberTrajectoryPoints, 0);
+  std::vector<double> TPCEnDepos(numberTrajectoryPoints, 0);
   bool BeenInVolume = false;
   int FirstHit=0, LastHit=0;
     
-  for(int MCHit=0; MCHit < numberTrajectoryPoints; ++MCHit) {
+  for(unsigned int MCHit=0; MCHit <  TPCLengthHits.size(); ++MCHit) {
     const TLorentzVector& tmpPosition=particle->Position(MCHit);
     double const tmpPosArray[]={tmpPosition[0],tmpPosition[1],tmpPosition[2]};
     

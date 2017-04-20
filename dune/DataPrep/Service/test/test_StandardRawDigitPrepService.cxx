@@ -192,8 +192,9 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   float fac = 250.0;
   unsigned int isig_stucklo = 15;
   unsigned int isig_stuckhi = 25;
-  AdcSignal peds[nchan] = {2000.2, 2010.1, 2020.3, 1990.4, 1979.6, 1979.2, 1995.0, 2001.3};
-  AdcSignal xpeds[nchan] = {0, 0, 0, 0, 0, 0, 0, 0};  // Need pedestal adju
+  // nchan is 8
+  AdcSignal peds[8] = {2000.2, 2010.1, 2020.3, 1990.4, 1979.6, 1979.2, 1995.0, 2001.3};
+  AdcSignal xpeds[8] = {0, 0, 0, 0, 0, 0, 0, 0};  // Need pedestal adju
   if ( usePedestalAdjustment ) {
     xpeds[4] = 100.0;
     xpeds[5] = 100.0;

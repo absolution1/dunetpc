@@ -199,9 +199,11 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     }
       
     // I want to do an inverse FFT, so need to convert the tranformed FFT into an array....
-    double Re[NADC], Im[NADC];
+    //double Re[NADC], Im[NADC];
+    std::unique_ptr<double[]> Re( new double[NADC]);
+    std::unique_ptr<double[]> Im( new double[NADC]);
     TVirtualFFT *fft = TVirtualFFT::GetCurrentTransform();
-    fft->GetPointsComplex(Re,Im);
+    fft->GetPointsComplex(Re.get(),Im.get());
     delete fft;
     
     // Set the noisy frequency range bins to an average value.
@@ -247,7 +249,7 @@ void lbne::Sigmoidfilter::produce(art::Event& evt) {
     // I have applied the filter so now transform back....
     int NBins = NADC;
     TVirtualFFT *fft_back = TVirtualFFT::FFT(1, &NBins, "C2R");
-    fft_back->SetPointsComplex(Re,Im);
+    fft_back->SetPointsComplex(Re.get(),Im.get());
     fft_back->Transform();
     TH1 *hb=0;
     hb = TH1::TransformHisto(fft_back, hb, "Re");
