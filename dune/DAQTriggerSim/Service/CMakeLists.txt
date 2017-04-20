@@ -48,7 +48,7 @@ simple_plugin(HardwareMapperService   "service"
                 ${MF_MESSAGELOGGER}
                 ${MF_UTILITIES}
                 ${ROOT_BASIC_LIB_LIST}
-                art_Utilities canvas_Utilities
+                art_Utilities canvas
              )
 
 
