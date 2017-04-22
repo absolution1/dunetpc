@@ -115,6 +115,7 @@ private:
 	int fRun; 
 	int fEvent;
 	double fEnGen;
+	double fEkGen;
 	double fEdep;
 	double fEdepMeV; 
 	double fEdepCl;
@@ -169,6 +170,7 @@ void proto::EdepCal::beginJob()
 	fTree->Branch("fRun", &fRun, "fRun/I");
 	fTree->Branch("fEvent", &fEvent, "fEvent/I");
 	fTree->Branch("fEnGen", &fEnGen, "fEnGen/D");
+	fTree->Branch("fEkGen", &fEkGen, "fEkGen/D");
 	fTree->Branch("fEdep", &fEdep, "fEdep/D");
 	fTree->Branch("fEdepMeV", &fEdepMeV, "fEdepMeV/D");
 	fTree->Branch("fEdepCl", &fEdepCl, "fEdepCl/D");
@@ -209,6 +211,8 @@ void proto::EdepCal::analyze(art::Event const & e)
 		if ((p.Process() == "primary") && flag)
 		{
 			fEnGen = p.P();
+			fEkGen = (std::sqrt(p.P()*p.P() + p.Mass()*p.Mass()) - p.Mass()) * 1000; // MeV
+			fT0 = p.T();
 			flag = false;	
 		}
 	}
@@ -541,6 +545,7 @@ void proto::EdepCal::ResetVars()
 	fEdep = 0.0;
 	fEdepMeV = 0.0;
 	fEnGen = 0.0;
+	fEkGen = 0.0;
 	fEdepCl = 0.0;
 	fEdepMC = 0.0;
 	fEdepAttMC = 0.0;

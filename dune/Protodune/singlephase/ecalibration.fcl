@@ -42,8 +42,12 @@ proto_edepcal:
 proto_hadcal:
 {
 	module_type: "HadCal"
+	SimulationLabel: "largeant"
+	HitModuleLabel: "linecluster"
+	ClusterModuleLabel: "emtrackid"
 	TrackModuleLabel: "pmtrack"
-	NNetModuleLabel: "emtrackid"
+	NNetModuleLabel: "emtrackid:emtrack"
+	CalorimetryAlg: @local::dune35t_calorimetryalgmc
 	CalorimetryModuleLabel: "pmtrackcalo"
 }
 
