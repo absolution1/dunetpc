@@ -38,7 +38,6 @@
 #include "TVectorF.h"
 #include "TVectorD.h"
 
-const short unsigned int MaxSamples  = 2048;
 const unsigned int MaxChannels = 2048;
 
 namespace DAQToOffline {
@@ -58,8 +57,6 @@ public:
   void printParameterSet();
 
 private:
-
-  void FillArray( float ADCs[MaxSamples], unsigned int NSamples, raw::RawDigit digit );
 
   // Information for good run list histogram
   TTree* fTree;
@@ -90,6 +87,7 @@ private:
 
   bool fMakeFlatTree;
   std::string fCounterModuleLabel, fWaveformModuleLabel, fRawDigitModuleLabel, fOpHitModuleLabel;
+  short unsigned int fMaxSamples;
   
   std::vector<int> MyUsefulChans;
 };
@@ -102,6 +100,7 @@ DAQToOffline::GoodRun::GoodRun(fhicl::ParameterSet const & pset)
   , fWaveformModuleLabel(pset.get<std::string>("WaveformModuleLabel"))
   , fRawDigitModuleLabel(pset.get<std::string>("RawDigitModuleLabel"))
   , fOpHitModuleLabel   (pset.get<std::string>("OpHitModuleLabel"))
+  , fMaxSamples         (pset.get<short unsigned int>("MaxSamples", 2048))
     //---------------------------SSP--------------------------------------
 //  ,fSSPFragType        ( pset.get<std::string>("SSPFragType"))
 //  ,fSSPRawDataLabel    ( pset.get<std::string>("SSPRawDataLabel"))
@@ -179,13 +178,13 @@ void DAQToOffline::GoodRun::analyze(art::Event const & evt)
   if (fMakeFlatTree) {
     Event    = evt.event();
     DigSize  = digits.size();
-    NSamples = std::min( digits[0]->Samples(), MaxSamples );
+    NSamples = std::min( digits[0]->Samples(), fMaxSamples );
     ADCVec.clear();
     for (unsigned int dig=0; dig<DigSize; ++dig ) {
       unsigned int Samp=0;
-      while ( Samp != NSamples ) {
-	//std::cout << "Looking at digit " << dig << ", sample " << Samp << ", my value is " << digits[dig]->ADC(Samp+1) << std::endl;
-	ADCVec.push_back ( digits[dig]->ADC(Samp+1) );
+      while ( Samp < NSamples ) {
+	//std::cerr << "Looking at digit " << dig << ", sample " << Samp << ", my value is " << digits[dig]->ADC(Samp) << std::endl;
+	ADCVec.push_back ( digits[dig]->ADC(Samp) );
 	++Samp;
       }
     }
