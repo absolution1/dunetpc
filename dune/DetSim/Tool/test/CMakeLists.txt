@@ -1,4 +1,4 @@
-# dunetpc/dune/DataPrep/Tool/test/CMakeLists.txt
+# dunetpc/dune/DetSim/Tool/test/CMakeLists.txt
 
 # David Adams
 # April 2017
