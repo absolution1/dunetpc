@@ -17,6 +17,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardataobj/RecoBase/TrackHitMeta.h"
@@ -109,7 +110,6 @@ private:
   double fT0;
   
   // Module labels to get data products
-  //anab::Calorimetry fCalorimetry;
   art::InputTag fNNetModuleLabel;
   std::string fHitModuleLabel;
   std::string fClusterModuleLabel;
@@ -210,41 +210,42 @@ void proto::HadCal::analyze(art::Event const & e)
 	fEdepHADh_MC = GetEdepHADh_MC(e, hitListHandle);
   
   // clusters
-  auto cluHandle = e.getValidHandle< std::vector<recob::Cluster> >(fClusterModuleLabel);
-  art::FindManyP< recob::Hit > hitsFromCluster(cluHandle, e, fClusterModuleLabel);
-  
+  auto cluResults = anab::MVAReader< recob::Cluster, MVA_LENGTH>::create(e, fNNetModuleLabel);
+
   std::unordered_map<int, bool> hitIDE;
-  for (size_t c = 0; c < cluHandle->size(); ++c)
+  if (cluResults)
   {
-  	for (size_t h = 0; h < hitsFromCluster.at(c).size(); ++h)
+  	const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, fClusterModuleLabel);
+  	
+  	for (size_t c = 0; c < cluResults->size(); ++c)
   	{
-  		if (hitsFromCluster.at(c)[h]->View() == fBestView)
+  		for (size_t h = 0; h < hitsFromCluster.at(c).size(); ++h)
   		{
-  			hitIDE[hitsFromCluster.at(c)[h].key()] = false;
-  		}	
+  			if (hitsFromCluster.at(c)[h]->View() == fBestView)
+  			{
+  				hitIDE[hitsFromCluster.at(c)[h].key()] = false;
+  			}	
+  		}
   	}
   }  
- 
-  // output from cnn's
-  auto trkResults = anab::MVAReader< recob::Track, MVA_LENGTH>::create(e, fNNetModuleLabel);  
+  
+  // tracks
+  fNumberOfTracks = 0;
+  auto trkHandle = e.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  art::FindManyP< recob::PFParticle > pfpFromTrack(trkHandle, e, fTrackModuleLabel);
 
 	fHadEnSum = 0.0;
 	fHadDepSum = 0.0;
 	fEMEnSum = 0.0;
 
-  if (trkResults)
-  {
-  	fNumberOfTracks = 0;
-  
-  	// use handle and input tag of reco objects associated to cnn output
-  	const art::FindManyP< anab::Calorimetry > calFromTracks(trkResults->dataHandle(), e, fCalorimetryModuleLabel);	
-  	const art::FindManyP< recob::Hit > hitsFromTracks(trkResults->dataHandle(), e, fTrackModuleLabel);
-  	const art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trkResults->dataHandle(), e, fTrackModuleLabel);
+  const art::FindManyP< anab::Calorimetry > calFromTracks(trkHandle, e, fCalorimetryModuleLabel);	
+  const art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, e, fTrackModuleLabel);
+  const art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trkHandle, e, fTrackModuleLabel);
   	
   	if (fmthm.isValid())
   	{
   		// loop over tracks
-  		for (size_t t = 0; t < trkResults->size(); ++t)
+  		for (size_t t = 0; t < trkHandle->size(); ++t)
   		{	
   			auto vhit = fmthm.at(t);
   			auto vmeta = fmthm.data(t);
@@ -259,61 +260,75 @@ void proto::HadCal::analyze(art::Event const & e)
   			}	
   	
   			int nplanes = calFromTracks.at(t).size(); 	
-  			std::array< float, MVA_LENGTH > cnn_out = trkResults->getOutput(t); 
-  		
-  			// condition for tracks
-  			if ( (cnn_out[1] / (cnn_out[0] + cnn_out[1])) < 0.63)
+  	
+  			for (size_t p = 0; p < pfpFromTrack.at(t).size(); ++p)
   			{
-					fNumberOfTracks++;
+  				int pdg = pfpFromTrack.at(t)[p]->PdgCode();
+  				// condition for tracks
+  				if ((pdg != 11) && (pdg != -11)) 
+  				{  		
+						fNumberOfTracks++;
 				
-					// for now it work for 3 planes and only collection view
-  				if (nplanes == 3)
-  				{
-  					fHadEnSum += GetEkinMeV(vhit, vmeta);
-  					for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
+						// for now it work for 3 planes and only collection view
+  					if (nplanes == 3)
   					{
-  						if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  						fHadEnSum += GetEkinMeV(vhit, vmeta);
+  						for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
   						{
-  							fHadDepSum += GetEhitMeV(*hitsFromTracks.at(t)[h]);
+  							if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  							{
+  									fHadDepSum += GetEhitMeV(*hitsFromTracks.at(t)[h]);
+  							}
   						}
   					}
   				}
-  			}
-				else // ... and condition for em showers
-				{
-					for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
-  				{
-  					// kinetic energy without correction for recombination, 
-  					// only one view is considered 
-  					if (hitsFromTracks.at(t)[h]->View() == fBestView)
+					else // ... and condition for em showers
+					{
+						for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
   					{
-  						fEMEnSum += GetEhitMeV(*hitsFromTracks.at(t)[h]);  
+  						// kinetic energy without correction for recombination, 
+  						// only one view is considered 
+  						if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  						{
+  							fEMEnSum += GetEhitMeV(*hitsFromTracks.at(t)[h]);  
+  						}
   					}
-  				}
-				}
+					}
+ 				}
  			}
  		}
- }
+ 	
  // output from cnn's
- auto cluResults = anab::MVAReader< recob::Cluster, MVA_LENGTH>::create(e, fNNetModuleLabel);
+
  
  if (cluResults)
  {
- 		const art::FindManyP< recob::Hit > hitsFromClusters(cluResults->dataHandle(), e, fHitModuleLabel);
+ 		const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, fClusterModuleLabel);
  		
  		// loop over clusters
-		for (size_t c = 0; c < cluHandle->size(); ++c)
+		for (size_t c = 0; c < cluResults->size(); ++c)
   	{
-  		if ((*cluHandle)[c].View() == fBestView)
+  		if (cluResults->item(c).View() == fBestView)
   		{ 			
-  			// to think about: condition for EM. 
-  			// now: all unused clusters are classified as EM showers
+  			std::array< float, MVA_LENGTH > cnn_out = cluResults->getOutput(c);
+  			double p_trk_or_sh = cnn_out[0] + cnn_out[1];
+  			double pdg = 1;
+  			if (p_trk_or_sh > 0) pdg = cnn_out[1] / p_trk_or_sh;
+  			
   			for (size_t h = 0; h < hitsFromCluster.at(c).size(); ++h)
   			{  				
   				if (hitIDE[hitsFromCluster.at(c)[h].key()] == false)
   				{
   					hitIDE[hitsFromCluster.at(c)[h].key()] = true;
-  					fEMEnSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);
+  					
+  					if (pdg < 0.63)
+  					{
+  						fHadDepSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);
+  					}
+  					else
+  					{
+  						fEMEnSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);
+  					}
   				}
   				
   				fEdepSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);  
