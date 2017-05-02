@@ -1,7 +1,7 @@
 #ifndef DETPEDESTALDUNE_CXX
 #define DETPEDESTALDUNE_CXX
 
-#include "dunetpc/dune/RunHistory/DetPedestalDUNE.h"
+#include "dune/RunHistory/DetPedestalDUNE.h"
 #include <string>
 #include <iostream>
 #include "nutools/IFDatabase/Table.h"
