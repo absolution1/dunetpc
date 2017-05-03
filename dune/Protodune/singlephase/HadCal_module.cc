@@ -79,7 +79,8 @@ private:
   double GetEhitMeV(const recob::Hit & hit) const;
   double GetEkinMeV(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector < recob::TrackHitMeta const* > & data);
   double GetEdepEM_MC(art::Event const & e) const;
-  double GetEdepHADh_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const;
+  double GetEdepEMAtt_MC(art::Event const & e) const;
+  double GetEdepHADhAtt_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const;
   void ResetVars();
   
   geo::GeometryCore const * fGeometry;
@@ -91,7 +92,8 @@ private:
   int fBestView;
   int fNumberOfTracks;
   double fEdepEM_MC;
-  double fEdepHADh_MC;
+  double fEdepEMAtt_MC;
+  double fEdepHADhAtt_MC;
   double fEMEnSum;
   double fHadEnSum;
   double fHadDepSum;
@@ -147,7 +149,8 @@ void proto::HadCal::beginJob()
 	fTree->Branch("fEnGen", &fEnGen, "fEnGen/D");
 	fTree->Branch("fEkGen", &fEkGen, "fEkGeb/D");
 	fTree->Branch("fEdepEM_MC", &fEdepEM_MC, "fEdepEM_MC/D");
-	fTree->Branch("fEdepHADh_MC", &fEdepHADh_MC, "fEdepHADh_MC/D");
+	fTree->Branch("fEdepEMAtt_MC", &fEdepEMAtt_MC, "fEdepEMAtt_MC/D");
+	fTree->Branch("fEdepHADhAtt_MC", &fEdepHADhAtt_MC, "fEdepHADhAtt_MC/D");
 	fTree->Branch("fNumberOfTracks", &fNumberOfTracks, "fNumberOfTracks/I");
 	fTree->Branch("fHadEnSum", &fHadEnSum, "fHadEnSum/D");
 	fTree->Branch("fHadDepSum", &fHadDepSum, "fHadDepSum/D");
@@ -201,13 +204,14 @@ void proto::HadCal::analyze(art::Event const & e)
 	}
 	
 	fEdepEM_MC = GetEdepEM_MC(e);
+	fEdepEMAtt_MC = GetEdepEMAtt_MC(e);
 	
 	// hits
 	const auto& hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
 	fEdepAllhits = GetEdepHitsMeV(hitListHandle); 
 	
 	// MC associated with a hit
-	fEdepHADh_MC = GetEdepHADh_MC(e, hitListHandle);
+	fEdepHADhAtt_MC = GetEdepHADhAtt_MC(e, hitListHandle);
   
   // clusters
   auto cluResults = anab::MVAReader< recob::Cluster, MVA_LENGTH>::create(e, fNNetModuleLabel);
@@ -454,7 +458,7 @@ double proto::HadCal::GetEdepEM_MC(art::Event const & e) const
 		
 						for ( auto const& energyDeposit : energyDeposits )
 						{
-							double energy = energyDeposit.energy;
+							double energy = energyDeposit.energy; // energy not attenuated
 							int trackID = energyDeposit.trackID;
 							
 							if (trackID < 0)
@@ -491,7 +495,65 @@ double proto::HadCal::GetEdepEM_MC(art::Event const & e) const
 
 /******************************************************************************/
 
-double proto::HadCal::GetEdepHADh_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const
+double proto::HadCal::GetEdepEMAtt_MC(art::Event const & e) const
+{
+	double enEM = 0.0;
+	
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle))
+	{
+			for ( auto const& channel : (*simchannelHandle) )
+			{
+				if (fGeometry->View(channel.Channel()) == fBestView)
+				{ 
+					// for every time slice in this channel:
+					auto const& timeSlices = channel.TDCIDEMap();
+					for ( auto const& timeSlice : timeSlices )
+					{
+						// loop over the energy deposits.
+						auto const& energyDeposits = timeSlice.second;
+		
+						for ( auto const& energyDeposit : energyDeposits )
+						{
+							double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated and corrected for the electron lifetime
+							int trackID = energyDeposit.trackID;
+							
+							if (trackID < 0)
+							{
+								enEM += energy;
+							}
+							else if (trackID > 0)
+							{
+								auto search = fParticleMap.find(trackID);
+								bool found = true;
+								if (search == fParticleMap.end())
+								{
+									mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND";
+									found = false;
+								}
+								
+								int pdg = 0;
+								if (found)
+								{
+									const simb::MCParticle& particle = *((*search).second);
+                  if (!pdg) pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+								}
+								
+								if ((pdg == 11) || (pdg == -11) || (pdg == 22)) enEM += energy;
+							}
+							
+						}
+					}
+				}
+			}
+	}
+	return enEM;
+}
+
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepHADhAtt_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const
 {
 	double tothadhit = 0.0;
 	
@@ -524,7 +586,7 @@ double proto::HadCal::GetEdepHADh_MC(art::Event const & e, const std::vector< re
 					{
 						int trackID = energyDeposit.trackID;
 
-						double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000;
+						double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated and corrected for the electron lifetime
 						hitEn += energy;
 
 						if (trackID < 0) { } // EM activity
@@ -567,7 +629,8 @@ void proto::HadCal::ResetVars()
 	fBestView = 2;
 	fNumberOfTracks = 0;
 	fEdepEM_MC = 0.0;
-	fEdepHADh_MC = 0.0;
+	fEdepEMAtt_MC = 0.0;
+	fEdepHADhAtt_MC = 0.0;
 	fEnGen = 0.0;
 	fEkGen = 0.0;
   fHadEnSum = 0.0;
