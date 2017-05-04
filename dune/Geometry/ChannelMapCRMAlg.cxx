@@ -338,9 +338,9 @@ namespace geo{
     View_t view = geo::kUnknown; 
     
     if(      (channel >= fFirstChannelInThisPlane[0][tpc][0]) &&
-             (channel <  fFirstChannelInNextPlane[0][tpc][0])    ){ view = geo::kU; } 
+             (channel <  fFirstChannelInNextPlane[0][tpc][0])    ){ view = geo::kY; } 
     else if( (channel >= fFirstChannelInThisPlane[0][tpc][1]) &&
-             (channel <  fFirstChannelInNextPlane[0][tpc][1])    ){ view = geo::kV; } 
+             (channel <  fFirstChannelInNextPlane[0][tpc][1])    ){ view = geo::kZ; } 
     //else if( (channel >= fFirstChannelInThisPlane[0][tpc][2]) &&
     //(channel <  fFirstChannelInNextPlane[0][tpc][2])    ){ view = geo::kZ; }
     else
