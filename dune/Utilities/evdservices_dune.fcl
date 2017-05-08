@@ -52,9 +52,9 @@ dunefd_disp:
  DetectorClocksService:              @local::dunefd_detectorclocks # defined in detectorclocks_dune.fcl
 }
 dunefd_disp.DetPedestalService: @local::dune_fixedpeds
-dunefd_disp.DetPedestalService.FixedDetPedestal.PedMeanU: 0
-dunefd_disp.DetPedestalService.FixedDetPedestal.PedMeanV: 0
-dunefd_disp.DetPedestalService.FixedDetPedestal.PedMeanZ: 0
+dunefd_disp.DetPedestalService.FixedDetPedestal.PedMeanU: 1800
+dunefd_disp.DetPedestalService.FixedDetPedestal.PedMeanV: 1800
+dunefd_disp.DetPedestalService.FixedDetPedestal.PedMeanZ: 500
 dunefd_disp.ChannelStatusService: @local::dunefd_channel_status
 dunefd_disp.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
 dunefd_disp.RawDrawingOptions.MinimumSignal:              20
