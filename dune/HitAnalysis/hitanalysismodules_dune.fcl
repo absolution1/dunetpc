@@ -25,4 +25,13 @@ dune35t_robustmcana:
     PreviousMCScale: 1.0
 }
 
+dune35t_signaltonoise:
+{
+    module_type:                "SignalToNoise"
+    ExternalCounterModuleLabel: "SplitterInput:TRIGGER"
+    RawDigitModuleLabel:        "SplitterInput:TPC"
+    CalDataModuleLabel:         "noiserm"
+    TrackModuleLabel:           "pmtrack"
+}
+
 END_PROLOG
