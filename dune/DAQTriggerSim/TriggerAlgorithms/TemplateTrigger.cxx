@@ -9,10 +9,19 @@
 #ifndef TemplateTrigger_CXX
 #define TemplateTrigger_CXX
 
+// Framework includes
+#include "art/Framework/Principal/Event.h"
+#include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "fhiclcpp/ParameterSet.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
+
+#include "larcore/Geometry/Geometry.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
+
 // DUNETPC specific includes
 #include "dune/DAQTriggerSim/TriggerAlgorithms/TemplateTrigger.h"
-
-// Framework includes
 
 // C++ includes
 #include <iomanip>
@@ -52,27 +61,17 @@ bool triggersim::TemplateTrigger::TriggerOnWholeEvent( art::Event& event ) {
   std::cout << "  I have just got into my template trigger for event " << event.event() << ", fMakeTrig is " << fMakeTrig << ", and fNumber is now " << fNumber << std::endl;
   
   // --- Lift out the TPC raw digits:
-  art::Handle< std::vector<raw::RawDigit> > DigHandle;
-  std::vector< art::Ptr<raw::RawDigit> > digits;
-  if (event.getByLabel( fRawDigLabel, DigHandle ) ) {
-    art::fill_ptr_vector( digits , DigHandle );
-  } else {
-    // --- If the RawDigitLabel was incorrect...
+  auto digits = event.getValidHandle<std::vector<raw::RawDigit> >(fRawDigLabel);
+  if ( digits.failedToGet() )
     mf::LogError("TemplateTrigger_Algorithm") << "The raw::RawDigit you gave me " << fRawDigLabel << " is not in the event..." << std::endl;
-  }
   
   // --- Lift out the Photon Detector OpDetWaveforms:
-  art::Handle< std::vector<raw::OpDetWaveform> > WaveHandle;
-  std::vector< art::Ptr<raw::OpDetWaveform> > wave;
-  if (event.getByLabel( fOpWaveLabel, WaveHandle ) ) {
-    art::fill_ptr_vector( wave , WaveHandle );
-  } else {
-    // --- If the RawDigitLabel was incorrect...
+  auto waveforms = event.getValidHandle<std::vector<raw::OpDetWaveform> >(fOpWaveLabel);
+  if ( waveforms.failedToGet() )
     mf::LogError("TemplateTrigger_Algorithm") << "The raw::OpDetWaveform you gave me " << fOpWaveLabel << " is not in the event..." << std::endl;
-  }
   
   // --- We have got the data products here too, look at the functions below to find out how to use them...
-  std::cout << "  The size of digits is " << digits.size() << ", and the size of wave is " << wave.size() << std::endl;
+  std::cout << "  The size of digits is " << digits->size() << ", and the size of wave is " << waveforms->size() << std::endl;
 
   // --- Make a decision based on the event number...
   if (event.event() < 3) {
@@ -88,7 +87,7 @@ bool triggersim::TemplateTrigger::TriggerOnWholeEvent( art::Event& event ) {
 //----------------------------------------------------------------------
 //----------- The trigger algorithm on just the TPC RawDigits ----------
 //----------------------------------------------------------------------
-bool triggersim::TemplateTrigger::TriggerOnTPC( std::vector< art::Ptr<raw::RawDigit> > rawTPC ) {
+bool triggersim::TemplateTrigger::TriggerOnTPC( std::vector< raw::RawDigit> rawTPC ) {
   // --- If for some reason you changed your mind about making this trigger...
   if (!fMakeTrig) return false;
 
@@ -98,8 +97,8 @@ bool triggersim::TemplateTrigger::TriggerOnTPC( std::vector< art::Ptr<raw::RawDi
   // --- Now do stuff...
   fNumber = rawTPC.size();
   for (unsigned int Dig=0; Dig < rawTPC.size(); ++Dig) {
-    raw::RawDigit ThisDig = *rawTPC[Dig]; // Can also use *( rawTPC.at(Dig) );
-    int Chan = rawTPC[Dig]->Channel();    // Alternatively can access stuff by doing rawTPC[Dig]->Channel()
+    raw::RawDigit ThisDig = rawTPC[Dig]; // Can also use rawTPC.at(Dig);
+    int Chan = rawTPC[Dig].Channel();    // Alternatively can access stuff by doing rawTPC[Dig]->Channel()
     if (Dig < 5) {
       std::cout << "    Looking at Dig " << Dig << " of " << rawTPC.size() << ", it has " << ThisDig.Samples() << " samples on Channel " << ThisDig.Channel() << " ("<<Chan<<")" 
 		<< ", and " << ThisDig.NADC() << " ADCs with a pedestal of " << ThisDig.GetPedestal()
@@ -136,7 +135,7 @@ bool triggersim::TemplateTrigger::TriggerOnTPC( std::vector< art::Ptr<raw::RawDi
 //----------------------------------------------------------------------
 //-- The trigger algorithm on just the Photon Detector OpDetWaveforms --
 //----------------------------------------------------------------------
-bool triggersim::TemplateTrigger::TriggerOnPD( std::vector< art::Ptr<raw::OpDetWaveform> > rawPD) {
+bool triggersim::TemplateTrigger::TriggerOnPD( std::vector< raw::OpDetWaveform > rawPD) {
   // --- If for some reason you changed your mind about making this trigger...
   if (!fMakeTrig) return false;
 
@@ -144,7 +143,7 @@ bool triggersim::TemplateTrigger::TriggerOnPD( std::vector< art::Ptr<raw::OpDetW
   fNumber = rawPD.size();
   for (unsigned int Wave=0; Wave < rawPD.size(); ++Wave) {
     if (Wave < 5) {
-      raw::OpDetWaveform ThisWaveform = *( rawPD.at(Wave) );
+      raw::OpDetWaveform ThisWaveform = rawPD[Wave]; // Also, rawPD.at(Wave);
       std::cout << "    Looking at Wave " << Wave << " of " << rawPD.size() << ", it was on channel " << ThisWaveform.ChannelNumber() << ", at time " << ThisWaveform.TimeStamp()
 		<< ", there are " << ThisWaveform.Waveform().size() << " ADCs in this waveform " << std::endl;
       std::vector< short > WaveformVec = ThisWaveform.Waveform();
@@ -170,7 +169,7 @@ bool triggersim::TemplateTrigger::TriggerOnPD( std::vector< art::Ptr<raw::OpDetW
 //----------------------------------------------------------------------
 //----- The trigger algorithm on the RawDigits and OpDetWaveforms ------
 //----------------------------------------------------------------------
-bool triggersim::TemplateTrigger::TriggerOnTPC_PD( std::vector< art::Ptr<raw::RawDigit> > rawTPC, std::vector< art::Ptr<raw::OpDetWaveform> > rawPD) {
+bool triggersim::TemplateTrigger::TriggerOnTPC_PD( std::vector< raw::RawDigit > rawTPC, std::vector< raw::OpDetWaveform> rawPD) {
   // --- If for some reason you changed your mind about making this trigger...
   if (!fMakeTrig) return false;
 

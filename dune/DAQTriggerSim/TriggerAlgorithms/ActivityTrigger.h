@@ -10,20 +10,9 @@
 #define ActivityTrigger_H
 
 // Framework includes
-#include "art/Framework/Principal/Event.h"
-#include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
-
-#include "larcore/Geometry/Geometry.h"
-#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "lardataobj/RawData/raw.h"
+#include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/RawData/RawDigit.h"
-//#include "lardataobj/RawData/OpDetWaveform.h"
-#include "lardataobj/RecoBase/OpHit.h"
 
 // Framework includes for the triggering framework.
 #include "dune/DAQTriggerSim/TriggerDataProducts/BasicTrigger.h"
@@ -56,22 +45,22 @@ class triggersim::ActivityTrigger{
   //    Using this trigger means that you have the whole set of information which you would have
   //     in the art module which you called it from. However, this is useful to separate the 
   //     triggering algorithm from the rest of your code.
-  //bool TriggerOnWholeEvent( art::Event& event );
+  bool TriggerOnWholeEvent( art::Event& event );
   
   // An example function for how you could trigger using information from the TPC Raw Digits.
   //    Using this trigger means that you ony have access to the Raw Digits.
   //      You can find the info on these here: http://nusoft.fnal.gov/larsoft/doxsvn/html/classraw_1_1RawDigit.html
-  bool TriggerOnTPC(std::vector< art::Ptr<raw::RawDigit> > rawTPC);
+  bool TriggerOnTPC(std::vector< raw::RawDigit> rawTPC);
 
   // An example function for how you could trigger using information from the Photon detector OpDetWaveforms
   //    Using this trigger means that you ony have access to the OpDetWaveforms
   //      You can find the info on these here: http://nusoft.fnal.gov/larsoft/doxsvn/html/classraw_1_1OpDetWaveform.html
-//  bool TriggerOnPD( std::vector< art::Ptr<raw::OpDetWaveform> > rawPD );
+  bool TriggerOnPD( std::vector< raw::OpDetWaveform > rawPD );
 
   // An example function for how to trigger using both RawDigits and OpDetWaveforms.
   //    Using this trigger will mean that you have access to both RawDigits and OpDetWaveforms.
   //      The methods to access stuff from these can be found in the documentation of the above functions...
-//  bool TriggerOnTPC_PD( std::vector< art::Ptr<raw::RawDigit> > rawTPC, std::vector< art::Ptr<raw::OpDetWaveform> > rawPD);
+  bool TriggerOnTPC_PD( std::vector< raw::RawDigit> rawTPC, std::vector< raw::OpDetWaveform> rawPD);
 
   // An example function for how to trigger using the output of other triggers.
   //    Using this trigger means that you only have access to what is stored in the triggersim::BasicTrigger data product.

@@ -23,12 +23,14 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Run.h"
-#include "art/Framework/Principal/SubRun.h"
+//#include "art/Framework/Principal/Run.h"
+//#include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "lardataobj/RawData/OpDetWaveform.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -66,6 +68,9 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
     TemplateTrigger TempTrig;
 
   private:
+
+    // --- We want to use backtracker later backtracker.
+    art::ServiceHandle<cheat::BackTracker> bktrk;
 
     // declare fcl input variables here
     std::string fAString;
@@ -112,29 +117,18 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
     std::unique_ptr< std::vector<triggersim::BasicTrigger> > triggers(new std::vector<triggersim::BasicTrigger>);
 
     // --- Lift out the TPC raw digits:
-    art::Handle< std::vector<raw::RawDigit> > DigitsHandle;
-    std::vector< art::Ptr<raw::RawDigit> > rawdigits;
-    if (event.getByLabel( fRawDigitLabel, DigitsHandle ) ) {
-      art::fill_ptr_vector( rawdigits , DigitsHandle );
-    } else {
-      // --- If the RawDigitLabel was incorrect...
+    auto rawdigits = event.getValidHandle<std::vector<raw::RawDigit> >(fRawDigitLabel);
+    if ( rawdigits.failedToGet() )
       mf::LogError("TemplateTrigger_Producer") << "The raw::RawDigit you gave me " << fRawDigitLabel << " is not in the event..." << std::endl;
-    }
-
+    
+    std::cout << "Let's get some rawdigit stuff...Size " << rawdigits->size() << " rawdigits[0]->samples() " << (*rawdigits)[0].Samples() << std::endl;
+    
     // --- Lift out the Photon Detector OpDetWaveforms:
-    art::Handle< std::vector<raw::OpDetWaveform> > WaveformHandle;
-    std::vector< art::Ptr<raw::OpDetWaveform> > waveforms;
-    if (event.getByLabel( fOpDetWaveLabel, WaveformHandle ) ) {
-      art::fill_ptr_vector( waveforms , WaveformHandle );
-    } else {
-      // --- If the RawDigitLabel was incorrect...
+    auto waveforms = event.getValidHandle<std::vector<raw::OpDetWaveform> >(fOpDetWaveLabel);
+    if ( rawdigits.failedToGet() )
       mf::LogError("TemplateTrigger_Producer") << "The raw::OpDetWaveform you gave me " << fOpDetWaveLabel << " is not in the event..." << std::endl;
-    }
-
-    // --- Lets get the MCTruth information out of the event...
-    // --- First make a handle to backtracker.
-    art::ServiceHandle<cheat::BackTracker> bktrk;
-    // --- Then use it to get the particle list.
+    
+    // --- Lets get the MCTruth information out of the event using the backtracker we defined earlier...
     const sim::ParticleList& plist = bktrk->ParticleList();
     // --- Now loop through the particle list.
     for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar) {
@@ -146,7 +140,7 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
 		<< ", " << particle->NumberTrajectoryPoints() << " trajectory points, and " << particle->NumberDaughters() << " daughters. Process - " << particle->Process()
 		<< std::endl;
     }
-
+    
     // **************************************************
     // *********** Trigger on the whole event ***********
     // **************************************************
@@ -167,7 +161,7 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
     std::cout << "\nLet's trigger on the TPC info...." << std::endl;
 
     // --- Now call the class...
-    bool TPCTrigDec = TempTrig.TriggerOnTPC( rawdigits );
+    bool TPCTrigDec = TempTrig.TriggerOnTPC( *rawdigits );
   
     // --- Make my basic trigger and push it back
     triggersim::BasicTrigger my_tpc_trig( TPCTrigDec , triggersim::kNu, triggersim::kNuBeam);
@@ -181,7 +175,7 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
     std::cout << "\nLet's trigger on the OpDetWaveform info...." << std::endl;
 
     // --- Now call the class...
-    bool PDTrigDec = TempTrig.TriggerOnPD( waveforms );
+    bool PDTrigDec = TempTrig.TriggerOnPD( *waveforms );
   
     // --- Make my basic trigger and push it back
     triggersim::BasicTrigger my_pd_trig( PDTrigDec , triggersim::kNu, triggersim::kNuBeam);
@@ -196,7 +190,7 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
     std::cout << "\nLet's trigger on the TPC and OpDetWaveform info...." << std::endl;
 
     // --- Now call the class...
-    bool TPC_PD_TrigDec = TempTrig.TriggerOnTPC_PD( rawdigits, waveforms );
+    bool TPC_PD_TrigDec = TempTrig.TriggerOnTPC_PD( *rawdigits, *waveforms );
   
     // --- Make my basic trigger and push it back
     triggersim::BasicTrigger my_tpc_pd_trig( TPC_PD_TrigDec , triggersim::kNu, triggersim::kNuBeam);
@@ -218,7 +212,7 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
     triggers->push_back( my_trig_trig );
 
     std::cout << "I have now left my trigger, it's decision was " << Trig_TrigDec << ".\n" << std::endl;
-
+    
     // **************************************************
     // ******* Now put all of that into the event *******
     // **************************************************

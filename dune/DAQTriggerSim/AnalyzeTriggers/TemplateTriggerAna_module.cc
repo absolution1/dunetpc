@@ -124,8 +124,7 @@ void TemplateTriggerAna::analyze(art::Event const & evt) {
   ResetVars();
   
   // --- Get trigger data products out of the event...
-  art::Handle< std::vector< triggersim::BasicTrigger > > triggers;
-  evt.getByLabel(fTriggerLabel, triggers);
+  auto triggers = evt.getValidHandle<std::vector<triggersim::BasicTrigger> >(fTriggerLabel);
 
   // --- Loop over trigger objects...
   for(unsigned int i = 0; i < triggers->size(); ++i) {
