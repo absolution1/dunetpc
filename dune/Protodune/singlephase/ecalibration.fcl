@@ -51,4 +51,12 @@ proto_hadcal:
 	CalorimetryModuleLabel: "pmtrackcalo"
 }
 
+proto_recoeff:
+{
+	module_type: "RecoEff"
+	SimulationLabel: "largeant"
+	HitModuleLabel: "linecluster"
+	TrackModuleLabel: "pmtrack"
+}
+
 END_PROLOG
