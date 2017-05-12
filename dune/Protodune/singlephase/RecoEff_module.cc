@@ -79,6 +79,10 @@ private:
 	std::string fTrackModuleLabel;
   
   std::unordered_map< int, const simb::MCParticle* > fParticleMap;
+  std::unordered_map< const simb::MCParticle*, std::vector<recob::Hit> > fHitMap;
+  std::unordered_map< const simb::MCParticle*, std::vector<recob::Hit> > fHitMapFiltered;
+  std::unordered_map< const simb::MCParticle*, int> fMatchMap;
+
 };
 
 proto::RecoEff::RecoEff(fhicl::ParameterSet const & p)
@@ -151,13 +155,13 @@ void proto::RecoEff::analyze(art::Event const & e)
 	for (auto const &h : hitListHandle)
 	{
 		std::map<int, double> particleID_E;
-		/*for (auto const & id : bt->HitToTrackID(h)) // loop over std::vector< sim::TrackIDE >
+		for (auto const & id : bt->HitToTrackID(h)) // loop over std::vector< sim::TrackIDE >
 		{
 			if ((id.trackID > 0) && (abs((bt->TrackIDToParticle(id.trackID))->PdgCode()) != 11)) // we will count only MC tracks
 			{
 				particleID_E[id.trackID] += id.energy;
 			}
-		}*/
+		}
 		
 		int besthit_id = 0; 
 		double maxhit_e = 0.0;
@@ -173,11 +177,13 @@ void proto::RecoEff::analyze(art::Event const & e)
 		
 		if (maxhit_e > 0)
 		{
+			fHitMap[bt->TrackIDToParticle(besthit_id)].push_back(h);
 			trackID_vHitsMap[besthit_id].push_back(h);
 			trackID_sumen[besthit_id] += maxhit_e;
 		}
 	}
 	
+	//for (auto const &p : fHitMap)
 	std::map<int, std::vector< recob::Hit > > trackID_vHitsMapF;
 	for (auto const &p : trackID_vHitsMap)
 	{
@@ -217,19 +223,21 @@ void proto::RecoEff::analyze(art::Event const & e)
 	art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, e, fTrackModuleLabel);
 	
 	fNRecoTracks = trkHandle->size();
-	
+	std::cout << " fNRecoTracks " << fNRecoTracks << std::endl;
 	for (size_t t = 0; t < trkHandle->size(); ++t) // loop over tracks
 	{
 		std::map<int, double> trkID_E;
 		for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h) // loop over hits
 		{
-			/*for (auto const & id : bt->HitToTrackID(hitsFromTracks.at(t)[h])) // loop over std::vector< sim::TrackIDE >, for a hit
+			for (auto const & id : bt->HitToTrackID(hitsFromTracks.at(t)[h])) // loop over std::vector< sim::TrackIDE >, for a hit
 			{
+				// check if mcparticle is in fhitmapfiltered
+				//if (fHitMapFiltered.find(bt->TrackIDToParticle(id.trackID)) != fHitMapFiltered.end())
 				if (trackID_vHitsMapF.find(id.trackID) != trackID_vHitsMapF.end())
 				{ 
 					trkID_E[id.trackID] += id.energy;
 				}
-			}*/
+			}
 		}
 		
 		double max_e = 0.0; double tot_e = 0.0;
@@ -237,7 +245,7 @@ void proto::RecoEff::analyze(art::Event const & e)
 		for (std::map<int, double>::iterator it = trkID_E.begin(); it != trkID_E.end(); ++it)
 		{
 			tot_e += it->second; // sum total energy in these hits
-			if (it->second > max_e) 
+			if (it->second > max_e) //&& (it->second > particleID_E[it->first]*0.5)) // find track ID corresponding to max energy and check if max_e has more than 0.5 energy w.r.t mc truth.
 			{
 				max_e = it->second;
 				best_id = it->first;
@@ -246,11 +254,14 @@ void proto::RecoEff::analyze(art::Event const & e)
 		
 		if ((max_e > 0) && (max_e > 0.5*trackID_sumen[best_id]) && (tot_e > 0.0)) // found something reasonable and it is a track
 		{
+			fMatchMap[bt->TrackIDToParticle(best_id)] = 1;
+			//fNMCHits = fHitMapFiltered[bt->TrackIDToParticle(best_id)].size();
 			fNMCHits = trackID_vHitsMapF[best_id].size();
 			fNRecoHits = hitsFromTracks.at(t).size();
+			//fHist2->Fill(fHitMapFiltered[bt->TrackIDToParticle(best_id)].size());
+			fHist2->Fill(trackID_vHitsMapF[best_id].size());
 			std::cout << " max_e " << max_e << " trackID_sumen[best_id]: " << trackID_sumen[best_id] <<  std::endl;
 			fNominator++;
-			fHist2->Fill(trackID_vHitsMapF[best_id].size());
 		}
 			
 		fTreeTracks->Fill();
@@ -274,6 +285,9 @@ void proto::RecoEff::ResetVars()
 	fNominator = 0.0;
 	fDenominator = 0.0;
 	fParticleMap.clear();
+	fHitMap.clear();
+	fHitMapFiltered.clear();
+	fMatchMap.clear();
 }
 
 DEFINE_ART_MODULE(proto::RecoEff)
