@@ -22,22 +22,6 @@ simple_plugin(TemplateTriggerService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
-simple_plugin(ActivityTriggerService   "service"
-                larcore_Geometry
-                larcore_Geometry_Geometry_service
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                nutools_RandomUtils_NuRandomService_service
-                ${ART_FRAMEWORK_CORE}
-                art_Utilities canvas
-                ${MF_MESSAGELOGGER}
-                ${MF_UTILITIES}
-                cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
-		${ROOT_GEOM}
-             )
-
 simple_plugin(HardwareMapperService   "service"
                 larcore_Geometry
                 dune_Geometry
