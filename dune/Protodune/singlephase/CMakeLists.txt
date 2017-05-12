@@ -91,8 +91,9 @@ simple_plugin(RecoEff "module"
                         larcore_Geometry_Geometry_service
                         lardata_ArtDataHelper
                         lardata_Utilities
-                        larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
-                        
+                        larsim_Simulation nutools_ParticleNavigation 
+                        lardataobj_Simulation
+                        larsim_MCCheater_BackTracker_service
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
