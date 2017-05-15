@@ -17,8 +17,10 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
+#include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
@@ -44,7 +46,7 @@
 #include "TLorentzVector.h"
 #include "TVector3.h"
 
-#define MVA_LENGTH 3
+#define MVA_LENGTH 4
 
 namespace proto
 {
@@ -73,48 +75,107 @@ public:
 private:
 
   // Declare member data here.
+  double GetEdepHitsMeV(const std::vector< recob::Hit > & hits) const;
+  double GetEhitMeV(const recob::Hit & hit) const;
+  double GetEkinMeV(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector < recob::TrackHitMeta const* > & data);
+  double GetEdepEM_MC(art::Event const & e) const;
+  double GetEdepEMAtt_MC(art::Event const & e) const;
+  double GetEdepHADhAtt_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const;
+  void ResetVars();
+  
+  geo::GeometryCore const * fGeometry;
   
   TTree *fTree;
+  TTree *fTreeEntries;
   int fRun;
   int fEvent;
   int fBestView;
   int fNumberOfTracks;
+  double fEdepEM_MC;
+  double fEdepEMAtt_MC;
+  double fEdepHADhAtt_MC;
+  double fEMEnSum;
   double fHadEnSum;
-  
-  void ResetVars();
+  double fHadDepSum;
+  double fTotEdepSum;
+  double fdQdx;
+  double fdEdx;
+  double fdQ;
+  double fdx;
+  double fEdepSum;
+  double fEdepAllhits;
+  double fTotEnkinSum;
+  double fElectronsToGeV;
+  double fResRange;
+  double fEnGen;
+  double fEkGen;
+  double fT0;
   
   // Module labels to get data products
-  //anab::Calorimetry fCalorimetry;
   art::InputTag fNNetModuleLabel;
+  std::string fHitModuleLabel;
+  std::string fClusterModuleLabel;
   std::string fTrackModuleLabel;
   std::string fCalorimetryModuleLabel;
+  std::string fSimulationLabel;
+  calo::CalorimetryAlg fCalorimetryAlg;
+  
+  std::unordered_map< int, const simb::MCParticle* > fParticleMap;
 };
 
 
 proto::HadCal::HadCal(fhicl::ParameterSet const & p)
   :
-  EDAnalyzer(p)
+  EDAnalyzer(p),
+  fCalorimetryAlg(p.get<fhicl::ParameterSet>("CalorimetryAlg"))
  // More initializers here.
 {
 	reconfigure(p);
+	// get a pointer to the geometry service provider
+	fGeometry = &*(art::ServiceHandle<geo::Geometry>());
 }
 
 void proto::HadCal::beginJob()
 {
+	art::ServiceHandle<sim::LArG4Parameters> larParameters;
+  fElectronsToGeV = 1./larParameters->GeVToElectrons();
+
 	// access art's TFileService, which will handle creating and writing hists
 	art::ServiceHandle<art::TFileService> tfs;	
 	
 	fTree = tfs->make<TTree>("calibration","calibration tree");
 	fTree->Branch("fRun", &fRun, "fRun/I");
 	fTree->Branch("fEvent", &fEvent, "fEvent/I");
+	fTree->Branch("fEnGen", &fEnGen, "fEnGen/D");
+	fTree->Branch("fEkGen", &fEkGen, "fEkGeb/D");
+	fTree->Branch("fEdepEM_MC", &fEdepEM_MC, "fEdepEM_MC/D");
+	fTree->Branch("fEdepEMAtt_MC", &fEdepEMAtt_MC, "fEdepEMAtt_MC/D");
+	fTree->Branch("fEdepHADhAtt_MC", &fEdepHADhAtt_MC, "fEdepHADhAtt_MC/D");
 	fTree->Branch("fNumberOfTracks", &fNumberOfTracks, "fNumberOfTracks/I");
 	fTree->Branch("fHadEnSum", &fHadEnSum, "fHadEnSum/D");
+	fTree->Branch("fHadDepSum", &fHadDepSum, "fHadDepSum/D");
+	fTree->Branch("fEMEnSum", &fEMEnSum, "fEMEnSum/D");
+	fTree->Branch("fTotEdepSum", &fTotEdepSum, "fTotEdepSum/D");
+	fTree->Branch("fTotEnkinSum", &fTotEnkinSum, "fTotEnkinSum/D");
+	fTree->Branch("fEdepSum", &fEdepSum, "fEdepSum/D");
+	fTree->Branch("fEdepAllhits", &fEdepAllhits, "fEdepAllhits/D");
+	fTree->Branch("fT0", &fT0, "fT0/D");
+	
+	fTreeEntries = tfs->make<TTree>("entries","entries tree");
+	fTreeEntries->Branch("fdQdx", &fdQdx, "fdQdx/D");
+	fTreeEntries->Branch("fdEdx", &fdEdx, "fdEdx/D");
+	fTreeEntries->Branch("fdQ", &fdQ, "fdQ/D");
+	fTreeEntries->Branch("fdx", &fdx, "fdx/D");
+	
 }
 
 void proto::HadCal::reconfigure(fhicl::ParameterSet const & p)
 {
+	fHitModuleLabel = p.get< std::string >("HitModuleLabel");
+	fClusterModuleLabel = p.get< std::string >("ClusterModuleLabel");
 	fTrackModuleLabel = p.get< std::string >("TrackModuleLabel");
 	fCalorimetryModuleLabel = p.get< std::string >("CalorimetryModuleLabel");
+	fSimulationLabel = p.get< std::string >("SimulationLabel");
 	fNNetModuleLabel = p.get< std::string >("NNetModuleLabel");
 }
 
@@ -125,74 +186,441 @@ void proto::HadCal::analyze(art::Event const & e)
   
   fRun = e.run();
   fEvent = e.id().event();
-  double ekin = 0.0;
   
-  // output from cnn's
-  auto trkResults = anab::MVAReader< recob::Track, MVA_LENGTH>::create(e, fNNetModuleLabel);
+ 	// MC particle list
+	auto particleHandle = e.getValidHandle< std::vector<simb::MCParticle> >(fSimulationLabel);	
+	bool flag = true;
+	
+	for (auto const& p : *particleHandle)
+	{
+		fParticleMap[p.TrackId()] = &p;
+		if ((p.Process() == "primary") && flag)
+		{
+			fEnGen = p.P();
+			fEkGen = (std::sqrt(p.P()*p.P() + p.Mass()*p.Mass()) - p.Mass()) * 1000; // MeV
+			fT0 = p.T();
+			flag = false;	
+		}
+	}
+	
+	fEdepEM_MC = GetEdepEM_MC(e);
+	fEdepEMAtt_MC = GetEdepEMAtt_MC(e);
+	
+	// hits
+	const auto& hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
+	fEdepAllhits = GetEdepHitsMeV(hitListHandle); 
+	
+	// MC associated with a hit
+	fEdepHADhAtt_MC = GetEdepHADhAtt_MC(e, hitListHandle);
   
-    
-  if (trkResults)
+  // clusters
+  auto cluResults = anab::MVAReader< recob::Cluster, MVA_LENGTH>::create(e, fNNetModuleLabel);
+
+  std::unordered_map<int, bool> hitIDE;
+  if (cluResults)
   {
-  	fNumberOfTracks = trkResults->size();
-  
-  	// use handle and input tag of reco objects associated to cnn output
-  	const art::FindManyP< anab::Calorimetry > calFromTracks(trkResults->dataHandle(), e, fCalorimetryModuleLabel);	
+  	const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, fClusterModuleLabel);
   	
-  	for (size_t t = 0; t < trkResults->size(); ++t)
+  	for (size_t c = 0; c < cluResults->size(); ++c)
   	{
-  		int nplanes = calFromTracks.at(t).size(); 	
-  
-  		std::array< float, MVA_LENGTH > cnn_out = trkResults->getOutput(t); 
-  		
-  		if ( (cnn_out[1] / (cnn_out[0] + cnn_out[1])) >= 0.63)
+  		for (size_t h = 0; h < hitsFromCluster.at(c).size(); ++h)
   		{
-  			if (nplanes == 3)
+  			if (hitsFromCluster.at(c)[h]->View() == fBestView)
   			{
-  				if (calFromTracks.at(t)[2]->KineticEnergy() > 0)
-  				{
-  					ekin = calFromTracks.at(t)[2]->KineticEnergy();
-  				} 
-  				else if (calFromTracks.at(t)[1]->KineticEnergy() > 0)
-  				{
-  					ekin = calFromTracks.at(t)[1]->KineticEnergy();
-  				}
- 					else if (calFromTracks.at(t)[0]->KineticEnergy() > 0)
- 					{
- 						ekin = calFromTracks.at(t)[0]->KineticEnergy();
-  				}
-  				else
-  				{
-  					ekin = 0.0;
-  				}
-  			}
-  			else if (nplanes == 2)
- 				{
-  				if (calFromTracks.at(t)[1]->KineticEnergy() > 0)
-  				{
-  					ekin = calFromTracks.at(t)[1]->KineticEnergy();
-  				}
-  				else if (calFromTracks.at(t)[0]->KineticEnergy() > 0)
-  				{
-  					ekin = calFromTracks.at(t)[0]->KineticEnergy();
-  				}
-  				else
-  				{
-  					ekin = 0.0;
- 					}
- 				}
- 				else
-  			{
-  				ekin = 0.0;
-  			}
-  					
-  			fHadEnSum += ekin;
-  			
+  				hitIDE[hitsFromCluster.at(c)[h].key()] = false;
+  			}	
   		}
   	}
+  }  
+  
+  // tracks
+  fNumberOfTracks = 0;
+  auto trkHandle = e.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  art::FindManyP< recob::PFParticle > pfpFromTrack(trkHandle, e, fTrackModuleLabel);
+
+	fHadEnSum = 0.0;
+	fHadDepSum = 0.0;
+	fEMEnSum = 0.0;
+
+  const art::FindManyP< anab::Calorimetry > calFromTracks(trkHandle, e, fCalorimetryModuleLabel);	
+  const art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, e, fTrackModuleLabel);
+  const art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trkHandle, e, fTrackModuleLabel);
   	
-  }
+  	if (fmthm.isValid())
+  	{
+  		// loop over tracks
+  		for (size_t t = 0; t < trkHandle->size(); ++t)
+  		{	
+  			auto vhit = fmthm.at(t);
+  			auto vmeta = fmthm.data(t);
+
+  	  	// mark that hits have been used 
+  			for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
+  			{
+  				if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  				{
+  					hitIDE[hitsFromTracks.at(t)[h].key()] = true;
+  				}
+  			}	
+  	
+  			int nplanes = calFromTracks.at(t).size(); 	
+  	
+  			for (size_t p = 0; p < pfpFromTrack.at(t).size(); ++p)
+  			{
+  				int pdg = pfpFromTrack.at(t)[p]->PdgCode();
+  				// condition for tracks
+  				if ((pdg != 11) && (pdg != -11)) 
+  				{  		
+						fNumberOfTracks++;
+				
+						// for now it work for 3 planes and only collection view
+  					if (nplanes == 3)
+  					{
+  						fHadEnSum += GetEkinMeV(vhit, vmeta);
+  						for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
+  						{
+  							if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  							{
+  									fHadDepSum += GetEhitMeV(*hitsFromTracks.at(t)[h]);
+  							}
+  						}
+  					}
+  				}
+					else // ... and condition for em showers
+					{
+						for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
+  					{
+  						// kinetic energy without correction for recombination, 
+  						// only one view is considered 
+  						if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  						{
+  							fEMEnSum += GetEhitMeV(*hitsFromTracks.at(t)[h]);  
+  						}
+  					}
+					}
+ 				}
+ 			}
+ 		}
+ 	
+ // output from cnn's
+
+ 
+ if (cluResults)
+ {
+ 		const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, fClusterModuleLabel);
+ 		
+ 		// loop over clusters
+		for (size_t c = 0; c < cluResults->size(); ++c)
+  	{
+  		if (cluResults->item(c).View() == fBestView)
+  		{ 			
+  			std::array< float, MVA_LENGTH > cnn_out = cluResults->getOutput(c);
+  			double p_trk_or_sh = cnn_out[0] + cnn_out[1];
+  			double pdg = 1;
+  			if (p_trk_or_sh > 0) pdg = cnn_out[1] / p_trk_or_sh;
+  			
+  			for (size_t h = 0; h < hitsFromCluster.at(c).size(); ++h)
+  			{  				
+  				if (hitIDE[hitsFromCluster.at(c)[h].key()] == false)
+  				{
+  					hitIDE[hitsFromCluster.at(c)[h].key()] = true;
+  					
+  					if (pdg < 0.63)
+  					{
+  						fHadDepSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);
+  					}
+  					else
+  					{
+  						fEMEnSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);
+  					}
+  				}
+  				
+  				fEdepSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);  
+  			}
+  		}
+  	}
+ }
+ 
+ 	fTotEnkinSum = (fEMEnSum / 0.55) + fHadEnSum;
+ 	fTotEdepSum = (fEMEnSum / 0.55) + (fHadDepSum / 0.33);
+  fTree->Fill();	
 }
 
+// kinetic energy of hadronic part: correction for recombination applied according to Birks/Box model
+
+/******************************************************************************/
+
+double proto::HadCal::GetEkinMeV(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector < recob::TrackHitMeta const* > & data) 
+{
+	double ekin = 0.0;
+	
+	if (!hits.size()) return ekin;
+	
+
+	for (size_t h = 0; h < hits.size(); ++h)
+	{
+		double dqadc = hits[h]->Integral();
+		if (!std::isnormal(dqadc) || (dqadc < 0)) dqadc = 0.0;
+		
+		unsigned short plane = hits[h]->WireID().Plane;
+		unsigned short time = hits[h]->PeakTime();
+		double t0 = 0;
+		
+		fdQdx = 0.0;
+		fdQ = dqadc;
+  	fdx = data[h]->Dx();
+  	if ((fdx > 0) && (fdQ > 0))
+  	{
+  		fdQdx = fdQ/fdx;
+  		fdEdx = fCalorimetryAlg.dEdx_AREA(fdQdx, time, plane, t0);
+  		if (fdEdx > 35) fdEdx = 35;
+  		
+  		ekin += ( fdEdx * fdx );
+  	}
+  	else if ((fdx == 0) && (fdQ > 0))
+  	{
+  		
+  	}
+  	
+  	fTreeEntries->Fill();
+	}
+	
+	return ekin;
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepHitsMeV(const std::vector< recob::Hit > & hits) const
+{
+	if (!hits.size()) return 0.0;
+
+	double dqsum = 0.0;
+	for (size_t h = 0; h < hits.size(); ++h)
+	{
+		double dqadc = hits[h].Integral();
+		if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
+	
+		unsigned short plane = hits[h].WireID().Plane;
+		if (plane == fBestView)
+		{
+			double tdrift = hits[h].PeakTime();
+			double dqel = fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane);
+		
+			double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
+			double dq = dqel * correllifetime * fElectronsToGeV * 1000;
+
+			if (!std::isnormal(dq) || (dq < 0)) continue;
+
+			dqsum += dq;
+		} 
+	}
+
+	return dqsum; 
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEhitMeV(const recob::Hit & hit) const
+{
+	double dqadc = hit.Integral();
+	if (!std::isnormal(dqadc) || (dqadc < 0)) dqadc = 0.0;
+
+	unsigned short plane = hit.WireID().Plane;
+	double tdrift = hit.PeakTime();
+	double dqel = fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane);
+
+	double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
+	double dq = dqel * correllifetime * fElectronsToGeV * 1000;
+	if (!std::isnormal(dq) || (dq < 0)) dq = 0.0;	
+
+	return dq; 
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepEM_MC(art::Event const & e) const
+{
+	double enEM = 0.0;
+	
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle))
+	{
+			for ( auto const& channel : (*simchannelHandle) )
+			{
+				if (fGeometry->View(channel.Channel()) == fBestView)
+				{ 
+					// for every time slice in this channel:
+					auto const& timeSlices = channel.TDCIDEMap();
+					for ( auto const& timeSlice : timeSlices )
+					{
+						// loop over the energy deposits.
+						auto const& energyDeposits = timeSlice.second;
+		
+						for ( auto const& energyDeposit : energyDeposits )
+						{
+							double energy = energyDeposit.energy; // energy not attenuated
+							int trackID = energyDeposit.trackID;
+							
+							if (trackID < 0)
+							{
+								enEM += energy;
+							}
+							else if (trackID > 0)
+							{
+								auto search = fParticleMap.find(trackID);
+								bool found = true;
+								if (search == fParticleMap.end())
+								{
+									mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND";
+									found = false;
+								}
+								
+								int pdg = 0;
+								if (found)
+								{
+									const simb::MCParticle& particle = *((*search).second);
+                  if (!pdg) pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+								}
+								
+								if ((pdg == 11) || (pdg == -11) || (pdg == 22)) enEM += energy;
+							}
+							
+						}
+					}
+				}
+			}
+	}
+	return enEM;
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepEMAtt_MC(art::Event const & e) const
+{
+	double enEM = 0.0;
+	
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle))
+	{
+			for ( auto const& channel : (*simchannelHandle) )
+			{
+				if (fGeometry->View(channel.Channel()) == fBestView)
+				{ 
+					// for every time slice in this channel:
+					auto const& timeSlices = channel.TDCIDEMap();
+					for ( auto const& timeSlice : timeSlices )
+					{
+						// loop over the energy deposits.
+						auto const& energyDeposits = timeSlice.second;
+		
+						for ( auto const& energyDeposit : energyDeposits )
+						{
+							double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated and corrected for the electron lifetime
+							int trackID = energyDeposit.trackID;
+							
+							if (trackID < 0)
+							{
+								enEM += energy;
+							}
+							else if (trackID > 0)
+							{
+								auto search = fParticleMap.find(trackID);
+								bool found = true;
+								if (search == fParticleMap.end())
+								{
+									mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND";
+									found = false;
+								}
+								
+								int pdg = 0;
+								if (found)
+								{
+									const simb::MCParticle& particle = *((*search).second);
+                  if (!pdg) pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+								}
+								
+								if ((pdg == 11) || (pdg == -11) || (pdg == 22)) enEM += energy;
+							}
+							
+						}
+					}
+				}
+			}
+	}
+	return enEM;
+}
+
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepHADhAtt_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const
+{
+	double tothadhit = 0.0;
+	
+	auto simChannelHandle = e.getValidHandle< std::vector<sim::SimChannel> >(fSimulationLabel);
+	const std::vector< sim::SimChannel > & channels = *simChannelHandle;
+	
+	for (auto const & hit: hits)
+	{
+		// the channel associated with this hit.
+		auto hitChannelNumber = hit.Channel();
+
+		double hitEn = 0.0; double hitEnTrk = 0;
+       
+		for (auto const & channel : channels)
+		{
+			if (channel.Channel() != hitChannelNumber) continue;
+			if (fGeometry->View(channel.Channel()) != fBestView) continue;
+
+			// for every time slice in this channel:
+			auto const& timeSlices = channel.TDCIDEMap();
+			for (auto const& timeSlice : timeSlices)
+			{
+				int time = timeSlice.first;
+				if (std::abs(hit.TimeDistanceAsRMS(time)) < 1.0)
+				{
+					// loop over the energy deposits.
+					auto const & energyDeposits = timeSlice.second;
+		
+					for (auto const & energyDeposit : energyDeposits)
+					{
+						int trackID = energyDeposit.trackID;
+
+						double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated and corrected for the electron lifetime
+						hitEn += energy;
+
+						if (trackID < 0) { } // EM activity
+						else if (trackID > 0)
+						{
+							auto search = fParticleMap.find(trackID);
+							if (search != fParticleMap.end())
+							{
+								const simb::MCParticle & particle = *((*search).second);
+								int pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+
+							  if ((pdg == 11) || (pdg == -11) || (pdg == 22)) {}
+							  else {hitEnTrk += energy;}
+              }
+							else { mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND"; }
+						}
+					}
+				}
+			}
+		}
+		
+		double ratio = 0.0;
+		if (hitEn > 0) 
+		{
+			ratio = hitEnTrk / hitEn;
+		}
+		double hadhit = GetEhitMeV(hit) * ratio;
+		tothadhit += hadhit;
+	}
+    
+  return tothadhit;
+}
+
+/******************************************************************************/
 
 void proto::HadCal::ResetVars()
 {
@@ -200,7 +628,24 @@ void proto::HadCal::ResetVars()
 	fEvent = 0;
 	fBestView = 2;
 	fNumberOfTracks = 0;
-  fHadEnSum = 0;
+	fEdepEM_MC = 0.0;
+	fEdepEMAtt_MC = 0.0;
+	fEdepHADhAtt_MC = 0.0;
+	fEnGen = 0.0;
+	fEkGen = 0.0;
+  fHadEnSum = 0.0;
+  fEdepSum = 0.0;
+  fEdepAllhits = 0.0;
+	fEMEnSum = 0.0;
+	fTotEdepSum = 0.0;
+	fTotEnkinSum = 0.0;
+	fdQdx = 0.0;
+	fdEdx = 0.0;
+	fdQ = 0.0;
+	fdx = 0.0;
+	fResRange = 0.0;
+	fT0 = 0.0;
+	fParticleMap.clear();
 }
 
 DEFINE_ART_MODULE(proto::HadCal)

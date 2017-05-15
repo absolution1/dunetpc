@@ -253,9 +253,11 @@ void DAQToOffline::FilterAnalyzerRunList::analyze(art::Event const& evt) {
       }
       
       // I want to do an inverse FFT, so need to convert the tranformed FFT into an array....
-      double Re[NADC], Im[NADC];
+      //double Re[NADC], Im[NADC];
+      std::unique_ptr<double[]> Re( new double[NADC]);
+      std::unique_ptr<double[]> Im( new double[NADC]);
       TVirtualFFT *fft = TVirtualFFT::GetCurrentTransform();
-      fft->GetPointsComplex(Re,Im);
+      fft->GetPointsComplex(Re.get(),Im.get());
       
       // Set the noisy frequency range bins to an average value.
       for (size_t aa=0; aa<ZeroFreq.size(); ++aa) {

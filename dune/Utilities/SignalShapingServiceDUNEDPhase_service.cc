@@ -13,6 +13,7 @@
 #include "larcore/Geometry/PlaneGeo.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/LArFFT.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom()
 #include "TSpline.h"
 
 //#include "TFile.h"
@@ -79,21 +80,17 @@ util::SignalShapingServiceDUNEDPhase::SignalShaping(unsigned int channel) const
   if(!fInit)
     init();
 
-  // Figure out view
-  art::ServiceHandle<geo::Geometry> geom;
-
-  // we need to distinguis between the U and V planes
-  geo::View_t view = geom->View(channel); 
-
-  // Return appropriate signal response obj
-  if(view == geo::kU || view == geo::kV || view == geo::kZ )
-    return fColSignalShaping; //always collections in DP detector
-  else
-    throw cet::exception("SignalShapingServiceDUNEDPhase")<< "can't determine"
-                                                          << " View\n";
-
-  return fColSignalShaping;
-}
+  auto const* geom = lar::providerFrom<geo::Geometry>();
+  switch (geom->SignalType(channel)) {
+    case geo::kCollection:
+      return fColSignalShaping; //always collections in DP detector
+    default:
+      throw cet::exception("SignalShapingServiceDUNEDPhase")
+        << "unexpected signal type " << geom->SignalType(channel)
+        << " for channel #" << channel << "\n";
+  } // switch
+  
+} // util::SignalShapingServiceDUNEDPhase::SignalShaping()
 
 //----------------------------------------------------------------------
 // Initialization method.
