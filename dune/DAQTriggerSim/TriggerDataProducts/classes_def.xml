@@ -11,7 +11,9 @@
 
 <lcgdict>
 
-  <class name="triggersim::BasicTrigger"            ClassVersion="15" >
+  <class name="triggersim::BasicTrigger"            ClassVersion="17" >
+   <version ClassVersion="17" checksum="3981004036"/>
+   <version ClassVersion="16" checksum="759591220"/>
    <version ClassVersion="15" checksum="2148964458"/>
    <version ClassVersion="14" checksum="2398709385"/>
    <version ClassVersion="13" checksum="1245963813"/>
@@ -36,5 +38,10 @@
  <!-- art data product wrappers -->
  <class name="art::Wrapper< std::vector< triggersim::BasicTrigger                   > >" />
  <class name="art::Wrapper< std::vector< art::PtrVector< triggersim::BasicTrigger > > >" />
+
+
+  <class name="Hardware::HardwareID"            ClassVersion="11" >
+   <version ClassVersion="11" checksum="363377079"/>
+  </class>
 
 </lcgdict>

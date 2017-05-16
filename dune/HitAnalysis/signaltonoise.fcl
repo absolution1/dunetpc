@@ -1,5 +1,6 @@
 #include "services_dune.fcl"
 #include "resourcetracking_services.fcl"
+#include "hitanalysismodules_dune.fcl"
 
 process_name: SignalToNoise
 
@@ -21,14 +22,10 @@ physics:
 {
   analyzers:
   {
-    signaltonoise: {
-      module_type: SignalToNoise
-      ExternalCounterModuleLabel: "SplitterInput:TRIGGER"
-      TrackModuleLabel: "pmtrack"
-    }
+    stn: @local::dune35t_signaltonoise
   }
 
-  ana: [ signaltonoise ]
+  ana: [ stn ]
 #  output: [ out1 ]
 #  trigger_paths: [ produce ]
   end_paths: [ ana ]

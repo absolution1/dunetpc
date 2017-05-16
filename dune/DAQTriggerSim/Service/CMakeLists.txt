@@ -22,21 +22,19 @@ simple_plugin(TemplateTriggerService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
-simple_plugin(ActivityTriggerService   "service"
+simple_plugin(HardwareMapperService   "service"
                 larcore_Geometry
-                larcore_Geometry_Geometry_service
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                nutools_RandomUtils_NuRandomService_service
+                dune_Geometry
                 ${ART_FRAMEWORK_CORE}
-                art_Utilities canvas
+                ${ART_FRAMEWORK_PRINCIPAL}
+                ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                 ${MF_MESSAGELOGGER}
                 ${MF_UTILITIES}
-                cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
-		${ROOT_GEOM}
+                art_Utilities canvas
              )
+
 
 install_fhicl()
 install_headers()

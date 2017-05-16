@@ -86,11 +86,10 @@ namespace filt{
     //muon conter geometry
     int counters_loaded=-1;
     std::vector<std::vector<double> > countergeometry;
-    geo::MuonCounter35Alg *muon_counter=0;
     //load the muon counter positions from a text file
 
     char  counterfile[]= "/afs/fnal.gov/files/home/room1/melnimr/lr_dev_7/srcs/dunetpc/dune/Geometry/muoncounters.txt";
-    counters_loaded=muon_counter->loadMuonCounterGeometry(counterfile,countergeometry);
+    counters_loaded=geo::MuonCounter35Alg::loadMuonCounterGeometry(counterfile,countergeometry);
     bool keepFlag=0;
 
     //    int icount=0; int trkind;
@@ -133,8 +132,8 @@ namespace filt{
 	    if(counters_loaded){
 	      //unsigned int counters_hit=0;
 	      
-	      muon_counter->testTrackInAllCounters(fTrackID,trackStart,momentumStart.Vect(),
-						   countergeometry,hitcounters);
+	      geo::MuonCounter35Alg::testTrackInAllCounters(fTrackID,trackStart,momentumStart.Vect(),
+                                                            countergeometry,hitcounters);
 	    }
 	    
 
