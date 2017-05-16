@@ -6,6 +6,7 @@ standard_templatetriggerprod:
   #====================
   AString:		"This is a string..."	# ...just a string...
   RawDigitLabel:	"daq" 	   		# module label for the process that made the RawDigits
+  OpDetWaveLabel:       "opdigi"                # module label for the process that made the OpDetWaveforms
 }
 
 END_PROLOG
