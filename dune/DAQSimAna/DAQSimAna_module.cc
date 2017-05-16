@@ -20,6 +20,9 @@
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/Simulation/sim.h"
 #include "lardataobj/Simulation/SimChannel.h"
+#include "lardataobj/RecoBase/Hit.h"
+
+#include "larsim/MCCheater/BackTracker.h"
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -33,6 +36,7 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+
 
 
 class DAQSimAna;
@@ -60,13 +64,14 @@ public:
 
 private:
 
-  // label for module that made raw digits
+  // label for modules that made the data products
   std::string fRawDigitLabel;
+  std::string fHitLabel;
 
   // other variables
   int nADC;
 
-  // histograms to fill
+  // histograms to fill about raw digits
   TH1F* fNADC_comp;
   TH1F* fNADC_nocomp;
   TH1F* fNADC_comp_rawcount;
@@ -76,8 +81,22 @@ private:
   TH2F* fCompX_vs_channel_rawcount;
   TH2F* fCompXr_vs_CompX;
 
+  // histograms to fill about reco hits
+  TH1F* fNHits_tot;
+  TH1F* fHitSize_tot;
+
+  TH1F* fNHits_ind;
+  TH1F* fHitSize_ind;
+
+  TH1F* fNHits_col;
+  TH1F* fHitSize_col;
+
+  TH1F* fEventSize;
+  TH1F* fHitView;
+
   //Services
   art::ServiceHandle<geo::Geometry> geo;
+  art::ServiceHandle<cheat::BackTracker> backtracker;
   
 };
 
@@ -97,6 +116,7 @@ DAQSimAna::DAQSimAna(fhicl::ParameterSet const & p)
 void DAQSimAna::reconfigure(fhicl::ParameterSet const & p)
 {
   fRawDigitLabel = p.get<std::string> ("RawDigitLabel");  
+  fHitLabel      = p.get<std::string> ("HitLabel");
 }
 
 
@@ -116,6 +136,37 @@ void DAQSimAna::beginJob()
   fCompX_vs_channel_rawcount =  tfs->make<TH2F>("fCompX_vs_channel_rawcount","Compression Factor vs. Channel No., by counting non-zero entries;Channel No.;Compression Factor",30720,0,30720,100,0,1);
   fCompXr_vs_CompX = tfs->make<TH2F>("fCompXr_vs_CompX","Compression Factor vs. Compression Factor by counting non-zero entries;Compression Factor by counting non-zero entries;Compression Factor",1000,0,0.1,1000,0,0.1);
 
+  fNHits_tot = tfs->make<TH1F>("fNHits_tot",
+			       "Total number of reco hits per art::event;NHits;",
+			       1000,0.0,5000.0);
+
+  fHitSize_tot = tfs->make<TH1F>("fHitSize_tot",
+				 "Hit Duration (all hits);# of ticks;",
+				 101,-0.5,100.5);
+
+  fNHits_ind = tfs->make<TH1F>("fNHits_ind",
+			       "Number of induction plane reco hits per art::event;NHits;",
+			       1000,0.0,5000.0);
+
+  fHitSize_ind = tfs->make<TH1F>("fHitSize_ind",
+				 "Hit Duration (induction plane hits);# of ticks;",
+				 101,-0.5,100.5);
+
+  fNHits_col = tfs->make<TH1F>("fNHits_col",
+			       "Number of collection reco hits per art::event;NHits;",
+			       1000,0.0,5000.0);
+
+  fHitSize_col = tfs->make<TH1F>("fHitSize_col",
+				 "Hit Duration (collection plane hits);# of ticks;",
+				 101,-0.5,100.5);
+
+  fEventSize = tfs->make<TH1F>("fEventSize",
+			       "Size of event (sum over all hits);# of ticks;",
+			       500,0.0,50000.0);
+
+  fHitView = tfs->make<TH1F>("fHitView",
+			     "Hit view (U,V,Z);view;",
+			     16,-5.5,10.5);
 }
 
 
@@ -124,12 +175,56 @@ void DAQSimAna::beginJob()
 void DAQSimAna::analyze(art::Event const & e)
 {
 
+  // just testing a few backtracker functions...
+
+
+
+  //
+  // Lift out the reco hits:
+  //
+  art::Handle< std::vector< recob::Hit > > hits_list;
+  e.getByLabel(fHitLabel, hits_list);
+
+  // loop over hits to determine the "size" of each hit
+  raw::TDCtick_t totalTicks = 0;
+  unsigned int NHits_ind = 0;
+  unsigned int NHits_col = 0;
+
+  for(unsigned int i = 0; i < hits_list->size(); ++i) {
+    recob::Hit const& hit = hits_list->at(i);  
+    raw::TDCtick_t hitSize = hit.EndTick() - hit.StartTick();
+    
+    totalTicks += hitSize;
+    
+    fHitSize_tot->Fill(hitSize);
+    fHitView->Fill(hit.View());
+
+    if(hit.View() == geo::kU || hit.View() == geo::kV) {
+      NHits_ind++;
+      fHitSize_ind->Fill(hitSize);
+    }
+    if(hit.View() == geo::kW || hit.View() == geo::kZ) {
+      NHits_col++;
+      fHitSize_col->Fill(hitSize);
+    }
+
+    // std::cout << "\nhit size = " << hitSize;
+  }
+
+  fNHits_tot->Fill(NHits_ind + NHits_col);
+  fNHits_ind->Fill(NHits_ind);
+  fNHits_col->Fill(NHits_col);
+
+  fEventSize->Fill(totalTicks);
+
+
+
   //
   // Lift out the TPC raw digits:
   //
   art::Handle<std::vector<raw::RawDigit>> digitsHandle;
   e.getByLabel(fRawDigitLabel, digitsHandle);  
-  std::cout << "\n\n\nraw_digits.size() = " << digitsHandle->size() << "\n\n\n";
+  // std::cout << "\n\n\nraw_digits.size() = " << digitsHandle->size() << "\n\n\n";
 
   art::PtrVector<raw::RawDigit> rdvec;
   for (unsigned int i=0; i<digitsHandle->size(); ++i){
@@ -137,7 +232,7 @@ void DAQSimAna::analyze(art::Event const & e)
     rdvec.push_back(r);
   }
 
-  std::cout << "\n\n\nrdvec.size() = " << rdvec.size() << "\n\n\n";//6408 is...?
+  // std::cout << "\n\n\nrdvec.size() = " << rdvec.size() << "\n\n\n";//6408 is...?
 
   std::vector<short> uADCs;
   
@@ -147,24 +242,24 @@ void DAQSimAna::analyze(art::Event const & e)
     
     //print some stuff (for debugging)
     if (rd==0){
-      std::cout << "\n\n\nrdvec[rd]->Samples() = " << rdvec[rd]->Samples() << "\n\n\n";//4492 is readout length
-      std::cout << "\n\n\nrdvec[rd]->NADC() = " <<rdvec[rd]->NADC() << "\n\n\n";//this is the readout length with compression
-      std::cout << "\n\n\nrdvec[rd]->Channel() = " <<rdvec[rd]->Channel() << "\n\n\n";//this is the channel number for this raw digit
+      // std::cout << "\n\n\nrdvec[rd]->Samples() = " << rdvec[rd]->Samples() << "\n\n\n";//4492 is readout length
+      // std::cout << "\n\n\nrdvec[rd]->NADC() = " <<rdvec[rd]->NADC() << "\n\n\n";//this is the readout length with compression
+      // std::cout << "\n\n\nrdvec[rd]->Channel() = " <<rdvec[rd]->Channel() << "\n\n\n";//this is the channel number for this raw digit
       
-      std::cout << "\n";
-      std::cout << "\nuADCs.size() before Uncompress = " << uADCs.size();
+      // std::cout << "\n";
+      // std::cout << "\nuADCs.size() before Uncompress = " << uADCs.size();
       raw::Uncompress(rdvec[rd]->ADCs(), uADCs, rdvec[rd]->Compression());
-      std::cout << "\nuADCs.size() after Uncompress = " << uADCs.size() << "\n\n";
+      // std::cout << "\nuADCs.size() after Uncompress = " << uADCs.size() << "\n\n";
     }
     
     for (unsigned int a = 0; a < uADCs.size(); a++){
       if (uADCs[a]!=0){
-	if (rd==0) std::cout << "ATTN:\t" << uADCs[a] << "\n";
+	// if (rd==0) std::cout << "ATTN:\t" << uADCs[a] << "\n";
 	nADC++;
       }
     }
-    if (rd==0) std::cout << "\n";
-    if (rd==0) std::cout << "Found " << nADC << " non-zero ADC words in uncompressed waveform\n";
+    // if (rd==0) std::cout << "\n";
+    // if (rd==0) std::cout << "Found " << nADC << " non-zero ADC words in uncompressed waveform\n";
 
     fNADC_comp->Fill(rdvec[rd]->NADC());
     fNADC_nocomp->Fill(rdvec[rd]->Samples());
