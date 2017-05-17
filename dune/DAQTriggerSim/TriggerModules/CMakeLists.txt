@@ -1,11 +1,11 @@
-simple_plugin(ActTrigProd "module"
-			   dune_DAQTriggerSim_Service_ActivityTriggerService_service
-			   dune_DAQTriggerSim_TriggerDataProducts
-                     	   lbne-raw-data_Overlays
+art_make( BASENAME_ONLY
+          MODULE_LIBRARIES dune_DAQTriggerSim_TriggerDataProducts
+                           TriggerAlgorithms
+                           lbne-raw-data_Overlays
                            lbne_daqinput35t       #For online to offline channel map
                            larcore_Geometry_Geometry_service
                            larcore_Geometry
-                           lardataobj_RawData
+                           #lardataobj_RawData
                            nusimdata_SimulationBase	
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
@@ -19,8 +19,7 @@ simple_plugin(ActTrigProd "module"
                            ${MF_UTILITIES}
                            cetlib cetlib_except
                            ${ROOT_BASIC_LIB_LIST}
-                           BASENAME_ONLY
-)
+	 )
 
 install_fhicl()
 install_headers()

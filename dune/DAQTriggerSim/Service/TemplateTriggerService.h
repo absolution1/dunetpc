@@ -46,7 +46,7 @@ class TemplateTriggerService : public BaseTriggerService {
   //         sees fit...
   virtual bool TPCTrigger(std::vector<raw::RawDigit> const & raw);
 
-
+  virtual std::string GetName(){ return "TemplateTriggerService";}
 
  private:
   

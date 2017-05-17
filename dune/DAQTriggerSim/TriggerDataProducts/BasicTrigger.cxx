@@ -19,10 +19,12 @@ namespace triggersim {
   //----------------------------------------------------------------------
   BasicTrigger::BasicTrigger(bool trigdecision,
 			     unsigned int trigtype,
-			     unsigned int trigsubtype):
+			     unsigned int trigsubtype,
+                             Hardware::HardwareID hardwareid):
     fTrigDecision(trigdecision),
     fTrigType(trigtype),
-    fTrigSubType(trigsubtype)
+    fTrigSubType(trigsubtype),
+    fTrigHardwareID(hardwareid)
   {}
 
 
@@ -120,11 +122,13 @@ namespace triggersim {
   //----------------------------------------------------------------------
   // ostream operator.
   //
+#ifndef __GCCXML__
   std::ostream& operator << (std::ostream& o, BasicTrigger const& bt) {
 
-    o << "Trigger Type     = " << bt.TrigType()     << std::endl;
-    o << "Trigger Sub-Type = " << bt.TrigSubType()  << std::endl;
-    o << "Trigger Decision = " << bt.TrigDecision() << std::endl;
+    o << "Trigger Type       = " << bt.TrigType()          << std::endl;
+    o << "Trigger Sub-Type   = " << bt.TrigSubType()       << std::endl;
+    o << "Trigger Decision   = " << bt.TrigDecision()      << std::endl;
+    o << "Trigger HardwareID = " << bt.fTrigHardwareID     << std::endl;
     return o;
 
   }
@@ -139,5 +143,5 @@ namespace triggersim {
     return a.TrigType() < b.TrigType();
 
   }
-  
+#endif //__GCCXML__  
 } // end namespace triggersim
