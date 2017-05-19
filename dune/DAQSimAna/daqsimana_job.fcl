@@ -3,31 +3,37 @@
 
 process_name: DAQSimAna
 
+services:
+{
+  @table::dunefd_services
+  TFileService:          { fileName: "DAQSimAna_hist.root" }
+  TimeTracker:           {}
+  MemoryTracker:         { ignoreTotal: 1 } # default is one
+  RandomNumberGenerator: {} #ART native random number generator
+  FileCatalogMetadata:   @local::art_file_catalog_mc
+  Geometry:              @local::dune10kt_1x2x6_geo
+}
+
+# a temporary fix until the photon back tracker gets fixed...
+#services.PhotonBackTracker:	@erase
+
+physics:
+{
+  analyzers:
+  {
+    daqsimanazero:     @local::standard_daqsimana
+    daqsimananonzero:  @local::standard_daqsimana
+  }
+
+  ana: [ daqsimanazero, daqsimananonzero ]
+  end_paths: [ ana ] 
+
+}
+
 source:
 {
   module_type: RootInput
   maxEvents:  -1      # Number of events to create
 }
 
-services:
-{
-  TFileService: { fileName: "DAQSimAna_hist.root" }
-  TimeTracker:       {}
-  RandomNumberGenerator: {} #ART native random number generator
-  @table::dunefd_services
-}
-
-# a temporary fix until the photon back tracker gets fixed...
-services.PhotonBackTracker:	@erase
-
-physics:
-{
-  analyzers:
-  {
-    daqsimana:     @local::standard_daqsimana
-  }
-
-  ana: [ daqsimana ]
-  end_paths: [ ana ] 
-
-}
+physics.analyzers.daqsimanazero

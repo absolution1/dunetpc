@@ -12,6 +12,7 @@
 // ROOT includes
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TTree.h"
 
 // Framework includes
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
@@ -37,9 +38,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-
-
-class DAQSimAna;
+const int nMaxHits = 1000;
+const int nMaxDigs = 4492;
 
 class DAQSimAna : public art::EDAnalyzer {
 
@@ -54,22 +54,46 @@ public:
   DAQSimAna & operator = (DAQSimAna &&) = delete;
 
   // The main guts...
-  void analyze(art::Event const & e) override;
+  void analyze(art::Event const & evt) override;
 
   void reconfigure(fhicl::ParameterSet const & p);
 
   void beginJob();
 
-
-
 private:
 
-  // label for modules that made the data products
+  // --- Some of our own functions.
+  void ResetVariables();
+
+  // --- Our fcl parameter labels for the modules that made the data products
   std::string fRawDigitLabel;
   std::string fHitLabel;
 
-  // other variables
+  // --- Other variables
   int nADC;
+
+  // --- Our TTree, and its associated variables.
+  TTree* fDAQSimTree;
+  // General event info.
+  int Run;
+  int SubRun;
+  int Event;
+  // Raw digits
+  int NTotDigs;
+
+  // Reconstructed hits
+  int   NTotHits;
+  int   NColHits;
+  int   NIndHits; 
+  int   HitView[nMaxHits]; ///< View i.e Coll, U, V
+  int   HitSize[nMaxHits]; ///< Time width (ticks) Start - End time
+  int   HitChan[nMaxHits]; ///< The channel which the hit occurs on
+  float HitTime[nMaxHits]; ///< The time of the hit (ticks)
+  float HitRMS [nMaxHits]; ///< The RMS of the hit
+  float HitSADC[nMaxHits]; ///< The summed ADC of the hit
+  float HitInt [nMaxHits]; ///< The ADC integral of the hit
+  float HitPeak[nMaxHits]; ///< The peak ADC value of the hit
+  int   TotHitSize;
 
   // histograms to fill about raw digits
   TH1F* fNADC_comp;
@@ -94,13 +118,11 @@ private:
   TH1F* fEventSize;
   TH1F* fHitView;
 
-  //Services
+  // --- Declare our services
   art::ServiceHandle<geo::Geometry> geo;
   art::ServiceHandle<cheat::BackTracker> backtracker;
   
 };
-
-
 
 //......................................................
 DAQSimAna::DAQSimAna(fhicl::ParameterSet const & p)
@@ -110,23 +132,56 @@ DAQSimAna::DAQSimAna(fhicl::ParameterSet const & p)
   this->reconfigure(p);
 }
 
-
-
 //......................................................
 void DAQSimAna::reconfigure(fhicl::ParameterSet const & p)
 {
   fRawDigitLabel = p.get<std::string> ("RawDigitLabel");  
   fHitLabel      = p.get<std::string> ("HitLabel");
-}
+} // Reconfigure
 
-
+//......................................................
+void DAQSimAna::ResetVariables()
+{
+  // General event info.
+  Run = SubRun = Event = -1;
+  // raw digits
+  
+  // reconstructed hits
+  NTotHits = NColHits = NIndHits = 0; 
+  TotHitSize = 0;
+  for (int hh=0; hh<nMaxHits; ++hh) {
+    HitView[hh] = HitSize[hh] = HitChan[hh] = 0;
+    HitTime[hh] = HitRMS [hh] = HitSADC[hh] = 0;
+    HitInt [hh] = HitPeak[hh] = 0;
+  }
+} // ResetVariables
 
 //......................................................
 void DAQSimAna::beginJob()
 {
-
+  // --- Make our handle to the TFileService
   art::ServiceHandle<art::TFileService> tfs;
+  // --- Our TTree
+  fDAQSimTree = tfs->make<TTree>("DAQSimTree","DAQ simulation analysis tree");
+  // General event information...
+  fDAQSimTree -> Branch( "Run"   , &Run   , "Run/I"    );
+  fDAQSimTree -> Branch( "SubRun", &SubRun, "SubRun/I" );
+  fDAQSimTree -> Branch( "Event" , &Event , "Event/I"  );
+  // Reconstructed hits...
+  fDAQSimTree -> Branch( "NTotHits"  , &NTotHits  , "NTotHits/I" );
+  fDAQSimTree -> Branch( "NColHits"  , &NColHits  , "NColHits/I" );
+  fDAQSimTree -> Branch( "NIndHits"  , &NIndHits  , "NIndHits/I" );
+  fDAQSimTree -> Branch( "HitView"   , &HitView   , "HitView[NTotHits]/I" );
+  fDAQSimTree -> Branch( "HitSize"   , &HitSize   , "HitSize[NTotHits]/I" );
+  fDAQSimTree -> Branch( "HitChan"   , &HitChan   , "HitChan[NTotHits]/I" );
+  fDAQSimTree -> Branch( "HitTime"   , &HitTime   , "HitTime[NTotHits]/F" );
+  fDAQSimTree -> Branch( "HitRMS"    , &HitRMS    , "HitRMS[NTotHits]/F"  );
+  fDAQSimTree -> Branch( "HitSADC"   , &HitSADC   , "HitSADC[NTotHits]/F" );
+  fDAQSimTree -> Branch( "HitInt"    , &HitInt    , "HitInt[NTotHits]/F"  );
+  fDAQSimTree -> Branch( "HitPeak"   , &HitPeak   , "HitPeak[NTotHits]/F" );
+  fDAQSimTree -> Branch( "TotHitSize", &TotHitSize, "TotHitSize/I" );
 
+  // --- Our Histograms...
   fNADC_comp = tfs->make<TH1F>("fNADC_comp","Number of ADC samples, after compression;Number of ADC samples;Frequency",5000,0,5000);
   fNADC_nocomp = tfs->make<TH1F>("fNADC_nocomp","Number of ADC samples, without compression;Number of ADC samples;Frequency",5000,0,5000);
   fNADC_comp_rawcount = tfs->make<TH1F>("fNADC_comp_rawcount","Number of ADC samples, after compression, by counting non-zero entries; Number of ADC samples; Frequency",5000,0,5000);
@@ -167,113 +222,108 @@ void DAQSimAna::beginJob()
   fHitView = tfs->make<TH1F>("fHitView",
 			     "Hit view (U,V,Z);view;",
 			     16,-5.5,10.5);
-}
-
-
+} // BeginJob
 
 //......................................................
-void DAQSimAna::analyze(art::Event const & e)
+void DAQSimAna::analyze(art::Event const & evt)
 {
 
-  // just testing a few backtracker functions...
+  // --- We want to reset all of our TTree variables...
+  ResetVariables();
+ 
+  // --- Set all of my general event information...
+  Run    = evt.run();
+  SubRun = evt.subRun();
+  Event  = evt.event();
 
+  // --- Lift out the TPC raw digits:
+  auto rawdigits = evt.getValidHandle<std::vector<raw::RawDigit> >(fRawDigitLabel);
 
+  // --- Lift out the reco hits:
+  auto reco_hits = evt.getValidHandle<std::vector<recob::Hit> >(fHitLabel);
 
-  //
-  // Lift out the reco hits:
-  //
-  art::Handle< std::vector< recob::Hit > > hits_list;
-  e.getByLabel(fHitLabel, hits_list);
-
-  // loop over hits to determine the "size" of each hit
-  raw::TDCtick_t totalTicks = 0;
-  unsigned int NHits_ind = 0;
-  unsigned int NHits_col = 0;
-
-  for(unsigned int i = 0; i < hits_list->size(); ++i) {
-    recob::Hit const& hit = hits_list->at(i);  
-    raw::TDCtick_t hitSize = hit.EndTick() - hit.StartTick();
+  // --- Loop over the reconstructed hits to determine the "size" of each hit 
+  NTotHits = reco_hits->size();
+  for(int hit = 0; hit < NTotHits; ++hit) {
+    // --- Let access this particular hit.
+    recob::Hit const& ThisHit = reco_hits->at(hit);  
     
-    totalTicks += hitSize;
+    // --- Now fill in all of the hit level variables.
+    HitView[hit] = ThisHit.View();
+    HitSize[hit] = ThisHit.EndTick() - ThisHit.StartTick();
+    HitChan[hit] = ThisHit.Channel();
+    HitTime[hit] = ThisHit.PeakTime();
+    HitRMS [hit] = ThisHit.RMS();
+    HitSADC[hit] = ThisHit.SummedADC();
+    HitInt [hit] = ThisHit.Integral();
+    HitPeak[hit] = ThisHit.PeakAmplitude();
+
+    std::cout << " Peak " << HitPeak[hit] << " " << ThisHit.PeakAmplitude() 
+	      << " Time " << HitTime[hit] << " " << ThisHit.PeakTime()
+	      << " SADC " << HitSADC[hit] << " " << ThisHit.SummedADC()
+	      << std::endl;
+
+    // --- Work out the total hit size of the event.
+    TotHitSize += HitSize[hit];
     
-    fHitSize_tot->Fill(hitSize);
-    fHitView->Fill(hit.View());
+    // --- Check which view this hit is on...
+    if(ThisHit.View() == geo::kU || ThisHit.View() == geo::kV) {
+      ++NIndHits;
+    } else { // If not induction then must be collection.
+      ++NColHits;
+    }    
+  } // Loop over reco_hits.
 
-    if(hit.View() == geo::kU || hit.View() == geo::kV) {
-      NHits_ind++;
-      fHitSize_ind->Fill(hitSize);
-    }
-    if(hit.View() == geo::kW || hit.View() == geo::kZ) {
-      NHits_col++;
-      fHitSize_col->Fill(hitSize);
-    }
-
-    // std::cout << "\nhit size = " << hitSize;
-  }
-
-  fNHits_tot->Fill(NHits_ind + NHits_col);
-  fNHits_ind->Fill(NHits_ind);
-  fNHits_col->Fill(NHits_col);
-
-  fEventSize->Fill(totalTicks);
-
-
-
-  //
-  // Lift out the TPC raw digits:
-  //
-  art::Handle<std::vector<raw::RawDigit>> digitsHandle;
-  e.getByLabel(fRawDigitLabel, digitsHandle);  
-  // std::cout << "\n\n\nraw_digits.size() = " << digitsHandle->size() << "\n\n\n";
-
-  art::PtrVector<raw::RawDigit> rdvec;
-  for (unsigned int i=0; i<digitsHandle->size(); ++i){
-    art::Ptr<raw::RawDigit> r(digitsHandle,i);
-    rdvec.push_back(r);
-  }
-
-  // std::cout << "\n\n\nrdvec.size() = " << rdvec.size() << "\n\n\n";//6408 is...?
 
   std::vector<short> uADCs;
   
-  for (unsigned int rd=0; rd<rdvec.size(); ++rd){
+  for (unsigned int dig=0; dig<rawdigits->size(); ++dig){
     
+    // --- Lets access this particular RawDigit
+    raw::RawDigit ThisDig = rawdigits->at(dig);
     nADC=0;
+
+    // --- Uncompress the ADC vector.
+    if (dig==0){
+      std::cout << "uADCs.size() before Uncompress = " << uADCs.size() << std::endl;
+      raw::Uncompress(ThisDig.ADCs(), uADCs, ThisDig.Compression());
+      std::cout << "uADCs.size() after Uncompress = " << uADCs.size() << "\n\n";
+    }
     
     //print some stuff (for debugging)
-    if (rd==0){
-      // std::cout << "\n\n\nrdvec[rd]->Samples() = " << rdvec[rd]->Samples() << "\n\n\n";//4492 is readout length
-      // std::cout << "\n\n\nrdvec[rd]->NADC() = " <<rdvec[rd]->NADC() << "\n\n\n";//this is the readout length with compression
-      // std::cout << "\n\n\nrdvec[rd]->Channel() = " <<rdvec[rd]->Channel() << "\n\n\n";//this is the channel number for this raw digit
-      
-      // std::cout << "\n";
-      // std::cout << "\nuADCs.size() before Uncompress = " << uADCs.size();
-      raw::Uncompress(rdvec[rd]->ADCs(), uADCs, rdvec[rd]->Compression());
-      // std::cout << "\nuADCs.size() after Uncompress = " << uADCs.size() << "\n\n";
+    if (dig==0){
+      std::cout << "\nLooking at rawdigit["<<dig<<"]. It was on channel " << ThisDig.Channel() << ". "
+		<< "It had " << ThisDig.Samples() << " samples. "                                 // The readout length for 1x2x6 is 4492 ticks
+		<< "There were a total of " << ThisDig.NADC() << " ADCs saved with compression " // This is the readout length with compression
+		<< "level " << ThisDig.Compression()
+		<< std::endl;
     }
     
     for (unsigned int a = 0; a < uADCs.size(); a++){
       if (uADCs[a]!=0){
-	// if (rd==0) std::cout << "ATTN:\t" << uADCs[a] << "\n";
+	if (dig==0) std::cout << "ATTN:\t" << uADCs[a] << " - " << ThisDig.GetPedestal() << " = " << uADCs[a]-ThisDig.GetPedestal() << "....Dig " << dig << ", tick " << a << ".\n";
 	nADC++;
       }
     }
-    // if (rd==0) std::cout << "\n";
-    // if (rd==0) std::cout << "Found " << nADC << " non-zero ADC words in uncompressed waveform\n";
+    if (dig==0) std::cout << "\n";
+    if (dig==0) std::cout << "Found " << nADC << " non-zero ADC words in uncompressed waveform\n";
 
-    fNADC_comp->Fill(rdvec[rd]->NADC());
-    fNADC_nocomp->Fill(rdvec[rd]->Samples());
-    fCompX->Fill(rdvec[rd]->NADC()/rdvec[rd]->Samples());
-    fCompX_vs_channel->Fill(rdvec[rd]->Channel(),rdvec[rd]->NADC()/rdvec[rd]->Samples());
+    fNADC_comp->Fill(ThisDig.NADC());
+    fNADC_nocomp->Fill(ThisDig.Samples());
+    fCompX->Fill(ThisDig.NADC()/ThisDig.Samples());
+    fCompX_vs_channel->Fill(ThisDig.Channel(),ThisDig.NADC()/ThisDig.Samples());
 
     fNADC_comp_rawcount->Fill(nADC);
-    fCompX_rawcount->Fill(nADC/rdvec[rd]->Samples());
-    fCompX_vs_channel_rawcount->Fill(rdvec[rd]->Channel(),nADC/rdvec[rd]->Samples());
+    fCompX_rawcount->Fill(nADC/ThisDig.Samples());
+    fCompX_vs_channel_rawcount->Fill(ThisDig.Channel(),nADC/ThisDig.Samples());
 
-    fCompXr_vs_CompX->Fill(rdvec[rd]->NADC()/rdvec[rd]->Samples(),nADC/rdvec[rd]->Samples());
+    fCompXr_vs_CompX->Fill(ThisDig.NADC()/ThisDig.Samples(),nADC/ThisDig.Samples());
 
-  }
+  } // Loop over RawDigits.
+  
+  // --- Finally, fill our TTree once per event.
+  fDAQSimTree -> Fill();
 
-}
+} // Analyze DAQSimAna.
 
 DEFINE_ART_MODULE(DAQSimAna)
