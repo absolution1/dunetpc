@@ -320,15 +320,10 @@ void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
 double util::SignalShapingServiceDUNEDPhase::PreampETHZ(double tval_us) 
 {
   // parameters
-  double dt = 3.5;  //us
   double T1 = 2.83; //us
   double T2 = 0.47; //us
   
-  double fval = 1/(dt*(T1-T2)*(T1-T2)) * 
-    (exp(-(tval_us)/T2)*( (tval_us)*(T1-T2)+(2*T1-T2)*T2-
-		       ((tval_us-dt>=0)?1.:0.) * exp(dt/T2)*((tval_us)*(T1-T2)+2*T1*T2-T2*T2+dt*(T2-T1)) )+
-     exp(-(tval_us)/T1)*( ((dt-tval_us> 0)?1.:0.) * exp((tval_us)/T1)*(T1-T2)*(T1-T2)+
-		       T1*T1*(exp(dt/T1) * ((tval_us-dt>=0)?1:0) -1)));
+  double fval = ( T1*exp(-(tval_us)/T1) - ( T1 + tval_us*((T1-T2)/T2) ) * exp(-(tval_us)/T2)  ) / ((T1-T2)*(T1-T2));
 
   if(fval != fval) fval = 0;
   return fval;  
