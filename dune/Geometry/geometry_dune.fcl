@@ -83,6 +83,18 @@ protodunedphase_geo:
  DisableWiresInG4:   true
 } 
 
+3x1x1dphase_geo:
+{
+ Name:      "3x1x1dphase"
+
+ GDML:      "3x1x1dphase.gdml"
+ ROOT:      "3x1x1dphase.gdml"
+
+ SortingParameters:    {ChannelsPerOpDet:    1}
+ SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
+ DisableWiresInG4:   true
+}
+
 dune10kt_workspace_geo: @local::dune10kt_geo
 dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
 dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
