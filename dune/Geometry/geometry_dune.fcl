@@ -83,7 +83,7 @@ protodunedphase_geo:
  DisableWiresInG4:   true
 } 
 
-3x1x1dphase_geo:
+dphase3x1x1_geo:
 {
  Name:      "3x1x1dphase"
 
