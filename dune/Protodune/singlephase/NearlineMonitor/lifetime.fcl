@@ -1,0 +1,13 @@
+#include "cluster_dune.fcl"
+
+BEGIN_PROLOG
+
+proto_lifetime:
+{
+  module_type:          "Lifetime"
+  HitsModuleLabel:      "trajcluster"
+  ClusterModuleLabel:   "trajcluster"
+}
+
+
+END_PROLOG
