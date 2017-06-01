@@ -5,8 +5,8 @@ BEGIN_PROLOG
 proto_lifetime:
 {
   module_type:          "Lifetime"
-  HitsModuleLabel:      "trajcluster"
   ClusterModuleLabel:   "trajcluster"
+  FiducialCut:          10
 }
 
 
