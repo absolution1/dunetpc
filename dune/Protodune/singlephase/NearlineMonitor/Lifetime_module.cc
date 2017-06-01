@@ -17,6 +17,10 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/DetectorInfoServices/LArPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 
@@ -49,6 +53,9 @@ public:
 private:
 
   std::string fClusterModuleLabel;
+  float fFiducialCut;
+  float fTickLo[12] {0};
+  float fTickHi[12] {0};
 
 };
 
@@ -66,6 +73,7 @@ void nlana::Lifetime::beginJob()
 {
   // Implementation of optional member function here.
   std::cout<<"beginJob: Make ntuples here\n";
+
 } // beginJob
 
 //--------------------------------------------------------------------
@@ -73,6 +81,7 @@ void nlana::Lifetime::reconfigure(fhicl::ParameterSet const & pset)
 {
   // Implementation of optional member function here.
   fClusterModuleLabel         = pset.get<std::string>("ClusterModuleLabel");
+  fFiducialCut                = pset.get<float>("FiducialCut");
 } // reconfigure
 
 //--------------------------------------------------------------------
@@ -89,13 +98,50 @@ void nlana::Lifetime::analyze(art::Event const & evt)
   int run    = evt.run();
   int subrun = evt.subRun();
   std::cout<<"Inside analyze "<<run<<" "<<" subrun "<<subrun<<" event "<<event<<"\n";
+
   
+
+  static bool first = true;
+  if(first) {
+    first = false;
+    // Get the low and high tick range for plane 2 in each TPC
+    const geo::GeometryCore* geom = lar::providerFrom<geo::Geometry>();
+    const detinfo::DetectorProperties* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    double local[3] = {0.,0.,0.};
+    double world[3] = {0.,0.,0.};
+    
+    for (const geo::TPCID& tpcid: geom->IterateTPCIDs()) {
+      geo::TPCGeo const& tpc = geom->TPC(tpcid);
+      unsigned short not03 = (tpcid.TPC % 4);
+      if(not03 == 0 || not03 == 3) continue;
+      tpc.LocalToWorld(local,world);
+      double xx = world[0]-geom->DetHalfWidth(tpcid.TPC, tpcid.Cryostat) + fFiducialCut;
+      fTickLo[tpcid.TPC] = detprop->ConvertXToTicks(xx, 2, tpcid.TPC, tpcid.Cryostat);
+      xx = world[0]+geom->DetHalfWidth(tpcid.TPC, tpcid.Cryostat) - fFiducialCut;
+      fTickHi[tpcid.TPC] = detprop->ConvertXToTicks(xx, 2, tpcid.TPC, tpcid.Cryostat);
+      if(fTickLo[tpcid.TPC] > fTickHi[tpcid.TPC]) std::swap(fTickLo[tpcid.TPC], fTickHi[tpcid.TPC]);
+      std::cout<<"TPC "<<tpcid<<" Lo "<<fTickLo[tpcid.TPC]<<" Hi "<<fTickHi[tpcid.TPC]<<"\n";
+    } // tpcid
+  }
+  
+  const geo::GeometryCore* geom = lar::providerFrom<geo::Geometry>();
+  for (const geo::TPCID& tpcid: geom->IterateTPCIDs()) {
+    unsigned short not03 = (tpcid.TPC % 4);
+    if(not03 == 0 || not03 == 3) continue;
+    std::cout<<"tpc "<<tpcid<<" Lo "<<fTickLo[tpcid.TPC]<<" Hi "<<fTickHi[tpcid.TPC]<<"\n";
+  }
+
   art::ValidHandle<std::vector<recob::Cluster>> clsVecHandle = evt.getValidHandle<std::vector<recob::Cluster>>(fClusterModuleLabel);
   
   for(unsigned int icl = 0; icl < clsVecHandle->size(); ++icl) {
     art::Ptr<recob::Cluster> cls = art::Ptr<recob::Cluster>(clsVecHandle, icl);
-    if(cls->NHits() < 200) continue;
-    std::cout<<"cls "<<icl<<" "<<cls->Plane()<<" "<<cls->NHits()<<"\n";
+    // only consider the collection plane
+    if(cls->Plane().Plane != 2) continue;
+    float sTick = cls->StartTick();
+    float eTick = cls->EndTick();
+    if(sTick > eTick) std::swap(sTick, eTick);
+    if(cls->StartTick() > fTickLo[cls->Plane().TPC] || cls->EndTick() < fTickHi[cls->Plane().TPC]) continue;
+    std::cout<<"cls "<<icl<<" "<<cls->Plane().TPC<<" "<<(int)cls->StartTick()<<" "<<(int)cls->EndTick()<<"\n";
   } // icl
 
 } // analyze
