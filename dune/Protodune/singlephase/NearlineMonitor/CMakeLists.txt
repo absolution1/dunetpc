@@ -14,6 +14,9 @@ simple_plugin(Lifetime "module"
 			${MF_MESSAGELOGGER}
 			${MF_UTILITIES}
 			cetlib cetlib_except
+      ${ROOT_MATHCORE}
+      ${ROOT_GENVECTOR}
+      ${ROOT_GEOM}
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
 )
