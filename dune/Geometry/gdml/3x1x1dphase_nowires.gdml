@@ -10,7 +10,7 @@
 
 -->
 
-   <position name="posCryoInDetEnc"     unit="cm" x="0" y="-50" z="0"/>
+   <position name="posCryoInDetEnc"     unit="cm" x="0" y="1.4210854715202e-14" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
@@ -305,20 +305,20 @@
 </materials>
 <solids>
    <box name="CRM" lunit="cm" 
-      x="600.03" 
-      y="301" 
+      x="100.03" 
+      y="101" 
       z="301"/>
    <box name="CRMVPlane" lunit="cm" 
       x="0.015" 
-      y="300" 
+      y="100" 
       z="300"/>
    <box name="CRMZPlane" lunit="cm" 
       x="0.015"
-      y="300"
+      y="100"
       z="300"/>
    <box name="CRMActive" lunit="cm"
-      x="600"
-      y="300"
+      x="100"
+      y="100"
       z="300"/>
 
    <tube name="CRMWireV"
@@ -329,25 +329,25 @@
      lunit="cm"/>
    <tube name="CRMWireZ"
      rmax="0.5*0.015"
-     z="300"               
+     z="100"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
 
     <box name="Cryostat" lunit="cm" 
-      x="789.84" 
-      y="854.64" 
-      z="854.64"/>
+      x="238.34" 
+      y="202.74" 
+      z="478.44"/>
 
     <box name="ArgonInterior" lunit="cm" 
-      x="789.6"
-      y="854.4"
-      z="854.4"/>
+      x="238.1"
+      y="202.5"
+      z="478.2"/>
 
     <box name="GaseousArgon" lunit="cm" 
-      x="81.8"
-      y="854.4"
-      z="854.4"/>
+      x="50.8"
+      y="202.5"
+      z="478.2"/>
 
     <subtraction name="SteelShell">
       <first ref="Cryostat"/>
@@ -357,9 +357,9 @@
 
 
     <box name="FoamPadBlock" lunit="cm"
-      x="789.84 + 2*80.2"
-      y="854.64 + 2*80.2"
-      z="854.64 + 2*80.2" />
+      x="238.34 + 2*102.3"
+      y="202.74 + 2*102.3"
+      z="478.44 + 2*102.3" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
@@ -368,9 +368,9 @@
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="789.84 + 2*80.2 + 2*100"
-      y="854.64 + 2*80.2 + 2*50"
-      z="854.64 + 2*80.2 + 2*100" />
+      x="238.34 + 2*102.3 + 2*20.3"
+      y="202.74 + 2*102.3 + 2*20.3"
+      z="478.44 + 2*102.3 + 2*20.3" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
@@ -379,15 +379,15 @@
     </subtraction>
 
     <box name="DetEnclosure" lunit="cm" 
-      x="1350.24"
-      y="1215.04"
-      z="1415.04"/>
+      x="483.54"
+      y="447.94"
+      z="723.64"/>
 
 
     <box name="World" lunit="cm" 
-      x="1350.24+2*3000" 
-      y="1215.04+2*3000" 
-      z="1415.04+2*3000"/>
+      x="483.54+2*0" 
+      y="447.94+2*0" 
+      z="723.64+2*0"/>
 </solids>
 <structure>
     <volume name="volTPCActive">
@@ -411,13 +411,13 @@
      <physvol>
        <volumeref ref="volTPCPlaneV"/>
        <position name="posPlaneV" unit="cm" 
-         x="299.9925" y="0" z="0"/>
+         x="49.9925" y="0" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneZ"/>
        <position name="posPlaneZ" unit="cm" 
-         x="300.0075" y="0" z="0"/>
+         x="50.0075" y="0" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -442,7 +442,7 @@
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="789.6/2-81.8/2" y="0" z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="238.1/2-50.8/2" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
@@ -451,22 +451,7 @@
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-0-0" unit="cm"
-           x="12.985" y="-150.5" z="-150.5"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPC"/>
-	<position name="posTPC-0-1" unit="cm"
-           x="12.985" y="150.5" z="-150.5"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPC"/>
-	<position name="posTPC-1-0" unit="cm"
-           x="12.985" y="-150.5" z="150.5"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volTPC"/>
-	<position name="posTPC-1-1" unit="cm"
-           x="12.985" y="150.5" z="150.5"/>
+           x="18.235" y="0" z="0"/>
       </physvol>
     </volume>
 
@@ -504,7 +489,7 @@
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="-12.85" y="50" z="301"/>
+	<position name="posDetEnclosure" unit="cm" x="-18.22" y="-1.4210854715202e-14" z="150.5"/>
       </physvol>
 
     </volume>
