@@ -154,72 +154,139 @@ void HardwareMapperService::fillBoardMap(){
 
   Hardware::ID current_board_id = 0;
   if(fLogLevel>0) loginfo << "Looping over apas" << "\n";
+
+  // --- Lets loop over the APA map
   for(auto id_apa_pair: fAPAMap){
-
+    // --- Get a handle to this APA object.
     std::shared_ptr<Hardware::APA> apa_ptr = id_apa_pair.second;
-
-    if(fLogLevel>0) loginfo << *apa_ptr << "\n";
-
-    unsigned int channels_in_this_board = 0;
+    // --- How many channels should there be per board? 
     unsigned int max_channels_in_board = apa_ptr->getNChannels() / fNBoardsPerAPA;
-    
-    if(fLogLevel>1) loginfo << "current_board_id: " << current_board_id << "\n";
 
-    apa_ptr->addHardwareID(Hardware::Board(current_board_id));
-    std::shared_ptr<Hardware::Board> this_board_ptr = std::shared_ptr<Hardware::Board>(new Hardware::Board(current_board_id));
+    // Karl::Added to only run on the first APA.
+    //if (apa_ptr->getID() > 1) continue;
 
-    if(fLogLevel>1) loginfo << "Creating new board" 
-                            << " registered to APA: " << apa_ptr->getID()
-                            << "- This APA has: " << apa_ptr->getNHardwareIDs()
-                            << " pieces of hardware" 
-                            << "\n\n";
+    // --- Record the id of the current board that we are on.
+    Hardware::ID FirstBoard  = current_board_id;
+    // --- Make an array of boards for this APA, and then create them.
+    std::vector< std::shared_ptr<Hardware::Board> > BoardsFromAPA;
+    std::vector< TVector3 >      ZPosOfColWires;
+    for (unsigned int cb=0; cb<fNBoardsPerAPA; ++cb) {
+      // --- Add a board object to this APA
+      apa_ptr->addHardwareID(Hardware::Board( current_board_id ));
+      // --- Push back objects to my vectors.
+      BoardsFromAPA .push_back( std::shared_ptr<Hardware::Board>(new Hardware::Board( current_board_id )) );
+      ZPosOfColWires.push_back( {DBL_MAX, -DBL_MAX, -1} ); 
+      std::cout << "Creating a new board with id " << FirstBoard+cb << " - " << BoardsFromAPA[ cb ]->getID() << " on APA " << apa_ptr->getID() << std::endl;
+      // --- Incremment the current_board_id number.
+      ++current_board_id;
+    }
     
+    // --- Now that I have a vector of boards for this APA, lets loop over the channels on this APA and assign them to each board! 
     if(fLogLevel>1) loginfo << "Looping over channels" << "\n";
+    // I need to find out the range of z values which this APA covers, and the number of collection plane wires, in order to correctly assign the channels.
+    // --- !!! I am going to explicitly assuming wrapped wires, and that both sides of the TPC are instrumented !!! --- 
+    // --- !!! This is valid in all of the geometries that I am aware of 2nd June 2017                          !!! ---
+    double ThisAPA_MinZ = DBL_MAX;
+    double ThisAPA_MaxZ = -DBL_MAX;
+    int    TotColWires  = 0;
+    for(auto channel : apa_ptr->getChannels()) {
+      if (fGeometryService->View(channel) != 2) continue; // Collection planes wires are view 2.
+      ++TotColWires; // Got a collection plane wire.
+      // Work out the Z position of this wire.
+      double WireSt[3], WireEn[3];
+      fGeometryService->WireEndPoints( fGeometryService->ChannelToWire(channel)[0], WireSt, WireEn );
+      if (WireSt[2] < ThisAPA_MinZ ) ThisAPA_MinZ = WireSt[2];
+      if (WireSt[2] > ThisAPA_MaxZ ) ThisAPA_MaxZ = WireSt[2];
+    }
+    // --- Work out the number of collection plane wires per board.
+    const int NumColWiresPerBoard = TotColWires/fNBoardsPerAPA;
+    if (TotColWires%fNBoardsPerAPA != 0) {
+      throw cet::exception("HardwareMapperService") << "The number of collection plane wires doesn't divide evenly. There are " << TotColWires << " col wires,"
+						    << " and you want " << fNBoardsPerAPA << ", leaving a remainder of " << TotColWires%fNBoardsPerAPA << " wires.";
+    }
+    std::cout << " There are " << TotColWires << " collection plane wires on this APA."
+	      << " Each board will have " << NumColWiresPerBoard << " collection plane wires, and " << max_channels_in_board - TotColWires/fNBoardsPerAPA << " ind wires."
+	      << " The wires go from " << ThisAPA_MinZ << " to " << ThisAPA_MaxZ << ".\n"
+	      << std::endl;
 
-    for(auto channel : apa_ptr->getChannels()){
-      
-      if(channels_in_this_board >= max_channels_in_board){
-        if(fLogLevel>1) loginfo << "Need new board - current_board_id: " << current_board_id
-                                << " channels_in_this_board: " << channels_in_this_board
-                                << "/" << max_channels_in_board
-                                << "\n";
-
-
-        fBoardMap[this_board_ptr->getID()] = this_board_ptr;
-        current_board_id++;
-        channels_in_this_board=0;
-
-        if(fLogLevel>1) loginfo << "Last Board: " << *this_board_ptr << "\n\n";
-
-        this_board_ptr=std::shared_ptr<Hardware::Board>(new Hardware::Board(current_board_id));
-        
-        apa_ptr->addHardwareID(Hardware::Board(current_board_id));
-        if(fLogLevel>1) loginfo << "Creating new board" 
-                                << " registered to APA: " << apa_ptr->getID()
-                                << " .This APA has: " << apa_ptr->getNHardwareIDs()
-                                << " pieces of hardware" 
-                                << "\n\n";
+    // --- Set the collection plane wires on our boards.
+    int NumColPush = 0, PushToBoard = 0;
+    for(auto channel : apa_ptr->getChannels()) {
+      if (fGeometryService->View(channel) != 2) continue; // Collection planes wires are view 2.
+      // Get the start and end points of the first wire segment for this channel.
+      double WireSt[3], WireEn[3];
+      fGeometryService->WireEndPoints( fGeometryService->ChannelToWire(channel)[0], WireSt, WireEn );
+      BoardsFromAPA[ PushToBoard ]->addChannel(channel);
+      ++NumColPush;
+      if( WireSt[2] < ZPosOfColWires[ PushToBoard ][0] ) ZPosOfColWires[ PushToBoard ][0] = WireSt[2];
+      if( WireEn[2] > ZPosOfColWires[ PushToBoard ][1] ) ZPosOfColWires[ PushToBoard ][1] = WireEn[2];
+      ZPosOfColWires[ PushToBoard ][2] = fGeometryService->FindTPCAtPosition( WireSt ).TPC;
+      /*
+      std::cout << "   Looking at channel " << channel << " on plane " << fGeometryService->View(channel) << " TPC [[" << fGeometryService->FindTPCAtPosition( WireSt ) << " ]]."
+		<< " Start pos was (" << WireSt[0] << ", " << WireSt[1] << ", " << WireSt[2] << "). "
+		<< " Endin pos was (" << WireEn[0] << ", " << WireEn[1] << ", " << WireEn[2] << ").\n"
+		<< "        Pushing it back to board " << PushToBoard << ", now pushed back " << NumColPush << " wires."
+		<< " Extremes are " << ZPosOfColWires[ PushToBoard ].first << " - " << ZPosOfColWires[ PushToBoard ].second
+		<< std::endl;
+      */
+      // --- Check that if I want to move to the next board.
+      if ( NumColPush%NumColWiresPerBoard == 0 ) {
+	++PushToBoard;
       }
-      this_board_ptr->addChannel(channel);
-      channels_in_this_board++;
+    }
 
+    for (unsigned int nn=0; nn<fNBoardsPerAPA; ++nn) {
+      std::cout << " Looking at board " << BoardsFromAPA[ nn ]->getID() << ", in TPC " << ZPosOfColWires[ nn ][2]
+		<< " the extremes are " << ZPosOfColWires[ nn ][0] << " - " << ZPosOfColWires[ nn ][1] << std::endl;
+    }
+
+    // --- Now set the induction plane wires on our boards.
+    int NumIndPush = 0;
+    
+    for(auto channel : apa_ptr->getChannels()) {
+      if (fGeometryService->View(channel) == 2) continue; // Collection planes wires are view 2.
+      // --- When looking at induction plane wires whether I look at start or end wire pos depends on APA and TPC number.
+      // --- When looking at even APA number - WireEnd   for even TPCs, WireStart for odd TPCs.
+      // --- When looking at odd  APA number - WireStart for odd TPCs, WireEnd   for even TPCs.
+      // Get the start and end points of the first wire segment for this channel.
+      double WireSt[3], WireEn[3];
+      fGeometryService->WireEndPoints( fGeometryService->ChannelToWire(channel)[0], WireSt, WireEn );
+      /*
+      std::cout << "\nLooking at channel " << channel << " on plane " << fGeometryService->View(channel) << " TPC [[" << fGeometryService->FindTPCAtPosition( WireSt ) << " ]]."
+		<< " Start pos was (" << WireSt[0] << ", " << WireSt[1] << ", " << WireSt[2] << "). "
+		<< " Endin pos was (" << WireEn[0] << ", " << WireEn[1] << ", " << WireEn[2] << ")."
+		<< std::endl;
+      */
+      for (unsigned int nb=0; nb<fNBoardsPerAPA; ++nb) {
+	if ( ZPosOfColWires[nb][2] != fGeometryService->FindTPCAtPosition( WireSt ).TPC ) continue;
+	if ( (abs(WireSt[1]) > 600 && WireSt[2] > ZPosOfColWires[nb][0] && WireSt[2] < ZPosOfColWires[nb][1] ) ||
+	     (abs(WireEn[1]) > 600 && WireEn[2] > ZPosOfColWires[nb][0] && WireEn[2] < ZPosOfColWires[nb][1] ) ) {
+	  BoardsFromAPA[ nb ]->addChannel(channel);
+	  /*
+	  std::cout << "   Pushing this channel onto board: " << BoardsFromAPA[ nb ]->getID()
+		    << ", Extremeities " << ZPosOfColWires[nb][0] << " - " << ZPosOfColWires[nb][1] << " in TPC " << ZPosOfColWires[nb][2]
+		    << ". This board now has " << BoardsFromAPA[ nb ]->getNChannels() << std::endl; 
+	  */
+	  break;
+	}
+      }
+      ++NumIndPush;
     }//channel in this apa
-    if(fLogLevel>1) loginfo << "Finished channel loop\n"
-                            << "current_board_id: " << current_board_id
-                            << " channels_in_this_board: " << channels_in_this_board
-                            << "/" << max_channels_in_board
-                            << "\n";
-    fBoardMap[this_board_ptr->getID()] = this_board_ptr;
-    current_board_id++;//start each APA with a new board 
-    if(fLogLevel>0) loginfo << "Finished this APA\n"
-                            << *apa_ptr << "\n"
-                            << "Total Boards in fBoardMap: " << getNBoards() << "\n"
-                            << "-----------------------\n\n";
+    
+    // --- Now that I have looped over all of the channels, lets update my map!
+    for (unsigned int cb=0; cb<fNBoardsPerAPA; ++cb) {
+      unsigned int ThisID = BoardsFromAPA[ cb ]->getID();
+      fBoardMap[ ThisID ] = BoardsFromAPA[ cb ];
+      std::cout << "Adding board " << BoardsFromAPA[ cb ]->getID() << " to APA " << apa_ptr->getID() 
+		<< ", it has " << BoardsFromAPA[ cb ]->getNChannels() << " - " << fBoardMap[ ThisID ]->getNChannels()
+		<< std::endl;
+    }
+    if(fLogLevel>0) loginfo << "Finished this APA\n" << *apa_ptr << "\n" << "Total Boards in fBoardMap: " << getNBoards() << "\n-----------------------\n\n";
+    // --- Start each APA with a new board
+    //current_board_id++;
   }//id_apa_pair;
-  loginfo<< "Finished filling Board Map\n"
-         << "Filled: " << getNBoards() << " Boards";
-
-
+  
+  loginfo<< "Finished filling Board Map\n Filled: " << getNBoards() << " Boards";
 }
 
 //......................................................
