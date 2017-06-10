@@ -20,7 +20,7 @@ services:
 #TFileService: { fileName: "reco_hist.root" }
 message:               @local::dune_message_services_prod_debug
 # Timing:       {}
-# MemoryTracker:         { ignoreTotal: 1 } # default is one
+# MemoryTracker:         { } # default is one
         @table::dune35t_services
 }
 
