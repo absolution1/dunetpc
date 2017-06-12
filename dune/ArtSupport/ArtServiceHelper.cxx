@@ -356,8 +356,8 @@ int ArtServiceHelper::loadServices() {
   // Register standard services.
   ParameterSet cfgServices;
   make_ParameterSet(fullServiceConfiguration(), cfgServices);
-  ServiceToken serviceToken;
-  ServiceDirector director(cfgServices, ar(), serviceToken);
+  ServiceToken serviceToken = ServiceToken::createInvalid();
+  ServiceDirector director(std::move(cfgServices), ar(), serviceToken);
   // Register special services.
   if ( m_needTriggerNamesService ) {
     ParameterSet cfgTriggerNamesService;

@@ -28,7 +28,7 @@
 #include "cetlib/getenv.h"
 
 // artdaq 
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 
 // lardata

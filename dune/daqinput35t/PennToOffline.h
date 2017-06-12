@@ -12,7 +12,7 @@
 
 #include "art/Framework/Principal/Handle.h"
 #include "lbne-raw-data/Overlays/PennMilliSliceFragment.hh"
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 #include "utilities/UnpackFragment.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
