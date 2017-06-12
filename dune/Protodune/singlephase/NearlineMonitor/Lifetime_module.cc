@@ -58,6 +58,8 @@ public:
 private:
 
   std::string fClusterModuleLabel;
+  float fChiCut;
+  float fLandauCut;
   
   TH1F *fdTick;
 
@@ -87,7 +89,9 @@ void nlana::Lifetime::beginJob()
 void nlana::Lifetime::reconfigure(fhicl::ParameterSet const & pset)
 {
   // Implementation of optional member function here.
-  fClusterModuleLabel         = pset.get<std::string>("ClusterModuleLabel");
+  fClusterModuleLabel  = pset.get<std::string>("ClusterModuleLabel");
+  fLandauCut           = pset.get<float>("LandauCut");
+  fChiCut              = pset.get<float>("ChiCut");
 } // reconfigure
 
 //--------------------------------------------------------------------
@@ -159,7 +163,7 @@ void nlana::Lifetime::analyze(art::Event const & evt)
         for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
           maxChg[ihist] = 0;
           if(cnt[ihist] < 5) continue;
-          maxChg[ihist] = 1.2 * ave[ihist];
+          maxChg[ihist] = fLandauCut * ave[ihist];
         } // ihist
       } else {
         // Calculate the error on the average on the second iteration
@@ -241,7 +245,7 @@ void nlana::Lifetime::analyze(art::Event const & evt)
     }
     chi /= (double)(nhist - 2);
     std::cout<<"life "<<life<<" chi "<<chi<<"\n";
-    if(chi > 5) continue;
+    if(chi > fChiCut) continue;
     ++bigLifeCnt;
     bigLife += life;
     bigLifeErr += life * life;
