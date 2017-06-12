@@ -58,9 +58,6 @@ public:
 private:
 
   std::string fClusterModuleLabel;
-  float fFiducialCut;
-  float fTickLo[12] {0};
-  float fTickHi[12] {0};
   
   TH1F *fdTick;
 
@@ -91,7 +88,6 @@ void nlana::Lifetime::reconfigure(fhicl::ParameterSet const & pset)
 {
   // Implementation of optional member function here.
   fClusterModuleLabel         = pset.get<std::string>("ClusterModuleLabel");
-  fFiducialCut                = pset.get<float>("FiducialCut");
 } // reconfigure
 
 //--------------------------------------------------------------------
