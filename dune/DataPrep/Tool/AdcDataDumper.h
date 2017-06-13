@@ -38,7 +38,9 @@ public:
 
   ~AdcDataDumper() override;
 
-  int view(const AdcChannelDataMap& acds, std::string label ="") const override;
+  int view(const AdcChannelDataMap& acds,
+           std::string label ="",
+           std::string fpat ="") const override;
 
 private:
 

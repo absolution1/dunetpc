@@ -116,9 +116,12 @@ AdcDataDumper::~AdcDataDumper() {
 
 //**********************************************************************
 
-int AdcDataDumper::view(const AdcChannelDataMap& acds, string label) const {
+int AdcDataDumper::view(const AdcChannelDataMap& acds, string label, string fpat) const {
+  string fname = m_FileName;
+  string::size_type ipos = fname.find("%PAT%");
+  if ( ipos != string::npos ) fname.replace(ipos, 5, fpat);
   bool newfile = m_NewFile && m_pout == nullptr;
-  ostream* pout = newfile ? new ofstream(m_FileName.c_str()) : m_pout;
+  ostream* pout = newfile ? new ofstream(fname.c_str()) : m_pout;
   if ( pout == nullptr ) return 1;
   ostream& out = *pout;
   string pre = m_Prefix + label + ":";

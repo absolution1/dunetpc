@@ -17,7 +17,13 @@ public:
 
   virtual ~AdcDataViewer() =default;
 
-  virtual int view(const AdcChannelDataMap& acds, std::string label ="") const =0;
+  // Tool process method.
+  //   acds - Input ADC data map
+  //  label - Label to appear on plots
+  //   fpat - String to be included in output file names
+  virtual int view(const AdcChannelDataMap& acds,
+                   std::string label ="",
+                   std::string fpat ="") const =0;
 
 };
 
