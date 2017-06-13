@@ -4,7 +4,7 @@ BEGIN_PROLOG
 
 proto_lifetime:
 {
-  module_type:          "Lifetime"
+  module_type:          "SPLifetime"
   ClusterModuleLabel:   "trajcluster"
   LandauCut:            1.2
   ChiCut:               5
