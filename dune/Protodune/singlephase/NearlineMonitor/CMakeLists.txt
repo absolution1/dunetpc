@@ -1,5 +1,5 @@
 
-simple_plugin(Lifetime "module"
+simple_plugin(SPLifetime "module"
 			lardataobj_RecoBase
 			larcore_Geometry
 			larcore_Geometry_Geometry_service
