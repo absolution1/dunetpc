@@ -60,8 +60,14 @@ private:
   std::string fClusterModuleLabel;
   float fChiCut;
   float fLandauCut;
+  int lastRun;
+  double bigLife[12];
+  double bigLifeErr[12];
+  double bigLifeCnt[12];
   
-  TH1F *fdTick;
+  TH1F *fLife;
+  TH1F *fFracSelHits;
+  TH1F *fChiDOF;
 
 };
 
@@ -81,7 +87,17 @@ void nlana::Lifetime::beginJob()
   // Implementation of optional member function here.
   
   art::ServiceHandle<art::TFileService> tfs;
-  fdTick = tfs->make<TH1F>("dTick","dTick", 430, 0, 4300);
+  fLife = tfs->make<TH1F>("Lifetime","Lifetime", 100, 0, 10);
+  fFracSelHits = tfs->make<TH1F>("FracSelHits","FracSelHits", 50, 0, 1);
+  fChiDOF = tfs->make<TH1F>("ChiDOF","ChiDOF", 80, 0, 20);
+  
+  // initialize an invalid run number
+  lastRun = -1;
+  for(unsigned short tpc = 0; tpc < 12; ++tpc) {
+    bigLife[tpc] = 0;
+    bigLifeErr[tpc] = 0;
+    bigLifeCnt[tpc] = 0;
+  }
 
 } // beginJob
 
@@ -97,30 +113,42 @@ void nlana::Lifetime::reconfigure(fhicl::ParameterSet const & pset)
 //--------------------------------------------------------------------
 void nlana::Lifetime::endJob()
 {
-  // Implementation of optional member function here.
+  
+  std::cout<<"Run  tpc   lifetime  error count\n";
+  for(unsigned short tpc = 0; tpc < 12; ++tpc) {
+    if(bigLifeCnt[tpc] < 2) continue;
+    bigLife[tpc] /= bigLifeCnt[tpc];
+    bigLifeErr[tpc] = bigLifeErr[tpc] - bigLifeCnt[tpc] * bigLife[tpc] * bigLife[tpc];
+    if(bigLifeErr[tpc] < 0) continue;
+    bigLifeErr[tpc] = sqrt(bigLifeErr[tpc] / (bigLifeCnt[tpc] - 1));
+    // convert to error on the mean
+    bigLifeErr[tpc] /= sqrt(bigLifeCnt[tpc]);
+    std::cout<<lastRun<<" "<<tpc<<" "<<std::fixed<<std::setprecision(3)<<bigLife[tpc]<<" "<<bigLifeErr[tpc]<<" "<<(int)bigLifeCnt[tpc]<<"\n";
+  }
 } // endJob
 
 //--------------------------------------------------------------------
 void nlana::Lifetime::analyze(art::Event const & evt)
 {
   
-  int event  = evt.id().event(); 
+//  int event  = evt.id().event(); 
   int run    = evt.run();
-  int subrun = evt.subRun();
+//  int subrun = evt.subRun();
+  
+  if(lastRun < 0) lastRun = run;
+  
+  if(run != lastRun) mf::LogVerbatim("LIFE")<<"The run number has changed from "<<lastRun<<" to "<<run<<" This might not be good...";
   
   const detinfo::DetectorProperties* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   double msPerTick = 1E-6 * detprop->SamplingRate();
-  std::cout<<"Inside analyze "<<run<<" "<<" subrun "<<subrun<<" event "<<event<<" msPerTick "<<msPerTick<<"\n";
+//  std::cout<<"Inside analyze "<<run<<" "<<" subrun "<<subrun<<" event "<<event<<" msPerTick "<<msPerTick<<"\n";
 
   art::ValidHandle<std::vector<recob::Cluster>> clsVecHandle = evt.getValidHandle<std::vector<recob::Cluster>>(fClusterModuleLabel);
   art::FindManyP<recob::Hit> clsHitsFind(clsVecHandle, evt, fClusterModuleLabel);
   
   // This should be about 10 cm
-  constexpr float ticksPerHist = 200;
+  constexpr float ticksPerHist = 100;
   
-  double bigLife = 0;
-  double bigLifeErr = 0;
-  double bigLifeCnt = 0;
   for(unsigned int icl = 0; icl < clsVecHandle->size(); ++icl) {
     art::Ptr<recob::Cluster> cls = art::Ptr<recob::Cluster>(clsVecHandle, icl);
     // only consider the collection plane
@@ -129,7 +157,6 @@ void nlana::Lifetime::analyze(art::Event const & evt)
     float eTick = cls->EndTick();
     if(sTick > eTick) std::swap(sTick, eTick);
     float dTick = eTick - sTick;
-    fdTick->Fill(dTick);
     unsigned short nhist = dTick / ticksPerHist;
     if(nhist < 5) continue;
     // Get the hits
@@ -137,10 +164,11 @@ void nlana::Lifetime::analyze(art::Event const & evt)
     clsHitsFind.get(icl, clsHits);
     if(clsHits.size() < 100) continue;
     // Find the average and maximum charge of these histograms
-    std::vector<double> ave(nhist), cnt(nhist), err(nhist);
+    std::vector<double> tck(nhist), ave(nhist), cnt(nhist), err(nhist);
     std::vector<float> maxChg(nhist, 10000);
     for(unsigned short nit = 0; nit < 2; ++nit) {
       for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
+        tck[ihist] = 0;
         ave[ihist] = 0;
         cnt[ihist] = 0;
         err[ihist] = 0;
@@ -149,15 +177,20 @@ void nlana::Lifetime::analyze(art::Event const & evt)
       for(auto& pht : clsHits) {
         unsigned short ihist = (pht->PeakTime() - sTick) / ticksPerHist;
         // require single hits
-        if(pht->Multiplicity() != 1) continue;
+//        if(pht->Multiplicity() != 1) continue;
+        if(pht->Multiplicity() > 2) continue;
         if(ihist > nhist - 1) continue;
         float chg = pht->Integral();
         if(chg > maxChg[ihist]) continue;
+        tck[ihist] += pht->PeakTime() - sTick;
         ave[ihist] += chg;
         err[ihist] += chg * chg;
         ++cnt[ihist];
       } // ii
-      for(unsigned short ihist = 0; ihist < nhist; ++ihist) if(cnt[ihist] > 0) ave[ihist] /= cnt[ihist];
+      for(unsigned short ihist = 0; ihist < nhist; ++ihist) if(cnt[ihist] > 0) {
+        tck[ihist] /= cnt[ihist];
+        ave[ihist] /= cnt[ihist];
+      }
       if(nit == 0) {
         // Calculate a max charge cut on the first iteration
         for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
@@ -186,7 +219,7 @@ void nlana::Lifetime::analyze(art::Event const & evt)
     unsigned short nok = 0;
     for(auto& icnt : cnt) if(icnt > 4) ++nok;
     if(nok != cnt.size()) continue;
-    
+/*
     auto& sht = clsHits[0];
     std::cout<<"Cls "<<sht->WireID().TPC<<":"<<sht->WireID().Plane<<":"<<sht->WireID().Wire<<":"<<(int)sht->PeakTime();
     auto& eht = clsHits[clsHits.size()-1];
@@ -196,7 +229,7 @@ void nlana::Lifetime::analyze(art::Event const & evt)
       float xx = (ihist + 0.5) * ticksPerHist + sTick;
       std::cout<<"ihist "<<ihist<<" tick "<<(int)xx<<" ave "<<(int)ave[ihist]<<" +/- "<<(int)err[ihist]<<" cnt "<<(int)cnt[ihist]<<"\n";
     } // ihist
-
+*/
     // fit to find the lifetime
     double sum = 0.;
     double sumx = 0.;
@@ -208,7 +241,8 @@ void nlana::Lifetime::analyze(art::Event const & evt)
     
     for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
       if(err[ihist] == 0) continue;
-      xx = (ihist + 0.5) * ticksPerHist;
+//      xx = (ihist + 0.5) * ticksPerHist;
+      xx = tck[ihist];
       yy = log(ave[ihist]);
       // error on log(x) = dx / x
       arg = ave[ihist] / err[ihist];
@@ -220,14 +254,14 @@ void nlana::Lifetime::analyze(art::Event const & evt)
       sumxy += wght * xx * yy;
       sumy2 += wght * yy * yy;
     } // ihist
-    // calculate coefficients and std dev
+    // calculate coefficients
     double delta = sum * sumx2 - sumx * sumx;
     if(delta == 0.) continue;
     double A = (sumx2 * sumy - sumx * sumxy) / delta;
     // slope = 1 / lifetime
     double B = (sumxy * sum  - sumx * sumy) / delta;
     if(B > 0) {
-      std::cout<<"Positive lifetime "<<B<<"\n";
+//      std::cout<<"Positive lifetime "<<B<<"\n";
       continue;
     }
     B = - 1 / B;
@@ -237,29 +271,28 @@ void nlana::Lifetime::analyze(art::Event const & evt)
     // calculate chisq
     double chi = 0;
     for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
-      xx = (ihist + 0.5) * ticksPerHist;
+//      xx = (ihist + 0.5) * ticksPerHist;
+      xx = tck[ihist];
       yy = exp(A - xx / B);
       arg = (yy - ave[ihist]) / err[ihist];
       chi += arg * arg;
 //      std::cout<<"chk "<<ihist<<" xx "<<xx<<" yy "<<yy<<" ave "<<ave[ihist]<<" arg "<<arg<<"\n";
     }
     chi /= (double)(nhist - 2);
-    std::cout<<"life "<<life<<" chi "<<chi<<"\n";
+    unsigned short tpc = clsHits[0]->WireID().TPC;
+    std::cout<<tpc<<" life "<<life<<" chi "<<chi<<"\n";
+    fChiDOF->Fill(chi);
     if(chi > fChiCut) continue;
-    ++bigLifeCnt;
-    bigLife += life;
-    bigLifeErr += life * life;
-
+    ++bigLifeCnt[tpc];
+    bigLife[tpc] += life;
+    bigLifeErr[tpc] += life * life;
+    fLife->Fill(life);
+    
+    double selHits = 0;
+    for(auto& hcnt : cnt) selHits += hcnt;
+    selHits /= (double)(clsHits.size());
+    fFracSelHits->Fill(selHits);
   } // icl
-  
-  if(bigLifeCnt < 2) return;
-  bigLife /= bigLifeCnt;
-  bigLifeErr = bigLifeErr - bigLifeCnt * bigLife * bigLife;
-  if(bigLifeErr < 0) return;
-  bigLifeErr = sqrt(bigLifeErr / (bigLifeCnt - 1));
-  // convert to error on the mean
-  bigLifeErr /= sqrt(bigLifeCnt);
-  std::cout<<"bigLife "<<bigLife<<" +/- "<<bigLifeErr<<" bigLifeCnt "<<bigLifeCnt<<"\n";
 
 } // analyze
 
