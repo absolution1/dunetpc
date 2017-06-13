@@ -33,7 +33,7 @@ dunefd_geo:
 # GDML:      "lbne4apa36deg.gdml"
 # ROOT:      "lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
 
- SortingParameters:	{ChannelsPerOpDet:	12}
+ SortingParameters:	{ChannelsPerOpDet:	4}
 
  SurfaceY:         0.0e2               # in cm, vertical distance to the surface
  #SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
@@ -49,7 +49,7 @@ dune10kt_geo:
  GDML:      "dune10kt_v1.gdml"
  ROOT:      "dune10kt_v1.gdml"
 
- SortingParameters:	{ChannelsPerOpDet:	12}
+ SortingParameters:	{ChannelsPerOpDet:	4}
 
  SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
 
@@ -78,18 +78,27 @@ protodunedphase_geo:
  GDML:      "protodunedphase.gdml"
  ROOT:      "protodunedphase.gdml"
 
- SortingParameters:    {ChannelsPerOpDet:    12}
+ SortingParameters:    {ChannelsPerOpDet:    1}
  SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
  DisableWiresInG4:   true
 } 
+
+dphase3x1x1_geo:
+{
+ Name:      "3x1x1dphase"
+
+ GDML:      "3x1x1dphase.gdml"
+ ROOT:      "3x1x1dphase.gdml"
+
+ SortingParameters:    {ChannelsPerOpDet:    1}
+ SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
+ DisableWiresInG4:   true
+}
 
 dune10kt_workspace_geo: @local::dune10kt_geo
 dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
 dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
 dune10kt_workspace_geo.ROOT: "dune10kt_v1_workspace.gdml"
-
-dune10kt_ganged_workspace_geo:	     @local::dune10kt_workspace_geo
-dune10kt_ganged_workspace_geo.SortingParameters.ChannelsPerOpDet:	4
 
 dune10kt_1x2x6_geo: @local::dune10kt_geo
 dune10kt_1x2x6_geo.Name: "dune10kt_v1_1x2x6"

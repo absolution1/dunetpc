@@ -61,7 +61,7 @@ if (defined $wires)
 
 $tpc_on = 1;
 
-$basename = "protodunedphase";
+$basename = "3x1x1dphase";
 if ( $wires_on == 0 )
 {
     $basename = $basename."_nowires";
@@ -78,26 +78,27 @@ if ( $wires_on == 0 )
 
 # dune10kt dual-phase
 $wirePitch           = 0.3125;  # channel pitch
-$nChannelsViewPerCRM = 960;     # channels per collection view
+$nChannelsLengthPerCRM = 960;     # channels along the length of the CRM
+$nChannelsWidthPerCRM = 320;   # channels along the width of the CRM
 $borderCRM           = 0.5;     # dead space at the border of each CRM
 
 # dimensions of a single Charge Readout Module (CRM)
-$widthCRM_active  = $wirePitch * $nChannelsViewPerCRM;
-$lengthCRM_active = $wirePitch * $nChannelsViewPerCRM;
+$widthCRM_active  = $wirePitch * $nChannelsWidthPerCRM;
+$lengthCRM_active = $wirePitch * $nChannelsLengthPerCRM;
 
 $widthCRM  = $widthCRM_active + 2 * $borderCRM;
 $lengthCRM = $lengthCRM_active + 2 * $borderCRM;
 
 # number of CRMs in y and z
-$nCRM_y   = 2;
-$nCRM_z   = 2;
+$nCRM_y   = 1;
+$nCRM_z   = 1;
 
 # calculate tpc area based on number of CRMs and their dimensions
-$widthTPCActive  = $nCRM_y * $widthCRM;  # around 600
-$lengthTPCActive = $nCRM_z * $lengthCRM; # around 600
+$widthTPCActive  = $nCRM_y * $widthCRM;  # around 100
+$lengthTPCActive = $nCRM_z * $lengthCRM; # around 300
 
 # active volume dimensions 
-$driftTPCActive  = 600.0;
+$driftTPCActive  = 100.0;
 
 # model anode strips as wires
 $padWidth  = 0.015;
@@ -109,12 +110,12 @@ $ReadoutPlane = 2 * $padWidth;
 ############## Parameters for TPC and inner volume ###############
 
 # inner volume dimensions of the cryostat
-$Argon_x = 789.6;
-$Argon_y = 854.4;
-$Argon_z = 854.4;
+$Argon_x = 238.1;
+$Argon_y = 202.5;
+$Argon_z = 478.2;
 
 # width of gas argon layer on top
-$HeightGaseousAr = 81.8;
+$HeightGaseousAr = 50.8;
 
 # size of liquid argon buffer
 $xLArBuffer = $Argon_x - $driftTPCActive - $HeightGaseousAr - $ReadoutPlane;
@@ -131,16 +132,16 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness;
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
-$SteelSupport_x  =  100;
-$SteelSupport_y  =  50;
-$SteelSupport_z  =  100; 
-$FoamPadding     =  80.2;
+$SteelSupport_x  =  20.3;
+$SteelSupport_y  =  20.3;
+$SteelSupport_z  =  20.3; 
+$FoamPadding     =  102.3;
 $FracMassOfSteel =  0.5; #The steel support is not a solid block, but a mixture of air and steel
 $FracMassOfAir   =  1 - $FracMassOfSteel;
 
 
-$SpaceSteelSupportToWall    = 100;
-$SpaceSteelSupportToCeiling = 100;
+$SpaceSteelSupportToWall    = 0;
+$SpaceSteelSupportToCeiling = 0;
 
 $DetEncWidth   =    $Cryostat_x
                   + 2*($SteelSupport_x + $FoamPadding) + 2*$SpaceSteelSupportToWall;
@@ -151,7 +152,7 @@ $DetEncLength  =    $Cryostat_z
 
 $posCryoInDetEnc_y = - $DetEncHeight/2 + $SteelSupport_y + $FoamPadding + $Cryostat_y/2;
 
-$RockThickness = 3000;
+$RockThickness = 0;
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
@@ -180,7 +181,7 @@ $OriginXSet =  $DetEncWidth/2.0
               -$SpaceSteelSupportToWall
               -$SteelSupport_x
               -$FoamPadding
-              -$SteelThickenss
+              -$SteelThickness
               -$xLArBuffer
               -$driftTPCActive/2.0;
 
@@ -393,7 +394,7 @@ EOF
 
 if ($wires_on==1) # add wires to Z plane
 {
-for($i=0;$i<$nChannelsViewPerCRM;++$i)
+for($i=0;$i<$nChannelsWidthPerCRM;++$i)
 {
 my $ypos = -0.5 * $TPCActive_y + $i*$wirePitch + 0.5*$padWidth;
 
@@ -418,7 +419,7 @@ EOF
 
 if ($wires_on==1) # add wires to X plane
 {
-for($i=0;$i<$nChannelsViewPerCRM;++$i)
+for($i=0;$i<$nChannelsLengthPerCRM;++$i)
 {
 
 my $zpos = -0.5 * $TPCActive_z + $i*$wirePitch + 0.5*$padWidth;
