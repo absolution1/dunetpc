@@ -37,15 +37,15 @@ namespace nlana {
 
 class nlana::SPLifetime : public art::EDAnalyzer {
 public:
-  explicit Lifetime(fhicl::ParameterSet const & p);
+  explicit SPLifetime(fhicl::ParameterSet const & p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
   // Plugins should not be copied or assigned.
-  Lifetime(Lifetime const &) = delete;
-  Lifetime(Lifetime &&) = delete;
-  Lifetime & operator = (Lifetime const &) = delete;
-  Lifetime & operator = (Lifetime &&) = delete;
+  SPLifetime(SPLifetime const &) = delete;
+  SPLifetime(SPLifetime &&) = delete;
+  SPLifetime & operator = (SPLifetime const &) = delete;
+  SPLifetime & operator = (SPLifetime &&) = delete;
 
   // Required functions.
   void analyze(art::Event const & e) override;
@@ -68,7 +68,7 @@ private:
   TH1F *fLife;
   TH1F *fFracSelHits;
   TH1F *fChiDOF;
-  TH1F *fChgHist[11];
+//  TH1F *fChgHist[11];
 
 };
 
@@ -91,7 +91,7 @@ void nlana::SPLifetime::beginJob()
   fLife = tfs->make<TH1F>("Lifetime","Lifetime", 100, 0, 10);
   fFracSelHits = tfs->make<TH1F>("FracSelHits","FracSelHits", 50, 0, 1);
   fChiDOF = tfs->make<TH1F>("ChiDOF","ChiDOF", 80, 0, 800);
-  
+/*
   unsigned short nbins = 40;
   float maxbin = 800;
   fChgHist[0] = tfs->make<TH1F>("Chg0","Chg0", nbins, 0, maxbin);
@@ -105,7 +105,7 @@ void nlana::SPLifetime::beginJob()
   fChgHist[8] = tfs->make<TH1F>("Chg8","Chg0", nbins, 0, maxbin);
   fChgHist[9] = tfs->make<TH1F>("Chg9","Chg0", nbins, 0, maxbin);
   fChgHist[10] = tfs->make<TH1F>("Chg10","Chg0", nbins, 0, maxbin);
-  
+*/
   // initialize an invalid run number
   lastRun = -1;
   for(unsigned short tpc = 0; tpc < 12; ++tpc) {
@@ -161,14 +161,14 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   art::ValidHandle<std::vector<recob::Cluster>> clsVecHandle = evt.getValidHandle<std::vector<recob::Cluster>>(fClusterModuleLabel);
   art::FindManyP<recob::Hit> clsHitsFind(clsVecHandle, evt, fClusterModuleLabel);
   
-  bool prt = true;
+  bool prt = false;
   
   // This corresponds to time bins of size 200 ticks * 0.5 us/tick = 0.1 ms
   constexpr float ticksPerHist = 200;
   
   for(unsigned int icl = 0; icl < clsVecHandle->size(); ++icl) {
     art::Ptr<recob::Cluster> cls = art::Ptr<recob::Cluster>(clsVecHandle, icl);
-    prt = (icl == 4);
+//    prt = (icl == 4);
     // only consider the collection plane
     if(cls->Plane().Plane != 2) continue;
     float sTick = cls->StartTick();
@@ -181,13 +181,13 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     std::vector<art::Ptr<recob::Hit> > clsHits;
     clsHitsFind.get(icl, clsHits);
     if(clsHits.size() < 100) continue;
-//    if(prt) {
+    if(prt) {
       auto& sht = clsHits[0];
       std::cout<<"Cls "<<icl<<" "<<sht->WireID().TPC<<":"<<sht->WireID().Plane<<":"<<sht->WireID().Wire<<":"<<(int)sht->PeakTime();
       auto& eht = clsHits[clsHits.size()-1];
       std::cout<<"  "<<eht->WireID().TPC<<":"<<eht->WireID().Plane<<":"<<eht->WireID().Wire<<":"<<(int)eht->PeakTime();
       std::cout<<" sTick "<<(int)sTick<<" "<<(int)eTick<<" nhits "<<clsHits.size()<<"\n";
-//    }
+    }
     // Find the average and maximum charge of these histograms
     std::vector<double> tck(nhist), ave(nhist), cnt(nhist), err(nhist);
     std::vector<float> maxChg(nhist, 10000);
@@ -207,7 +207,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
         if(ihist > nhist - 1) continue;
         float chg = pht->Integral();
         if(chg > maxChg[ihist]) continue;
-        if(prt && nit == 0) fChgHist[ihist]->Fill(chg);
+//        if(prt && nit == 0) fChgHist[ihist]->Fill(chg);
         tck[ihist] += pht->PeakTime() - sTick;
         ave[ihist] += chg;
         err[ihist] += chg * chg;
