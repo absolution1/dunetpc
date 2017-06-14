@@ -85,6 +85,7 @@ private:
   bool m_DoIntermediateStates;
   unsigned int m_DumpChannel;
   unsigned int m_DumpTick;
+  std::vector<std::string> m_DisplayTools;
 
   const ChannelMappingService* m_pChannelMappingService;
   const lariov::ChannelStatusProvider* m_pChannelStatusProvider;

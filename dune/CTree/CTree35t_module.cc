@@ -50,7 +50,7 @@
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh" 
 #include "lbne-raw-data/Overlays/SSPFragment.hh" 
 #include "lbne-raw-data/Overlays/anlTypes.hh"
-#include "artdaq-core/Data/Fragments.hh" 
+#include "artdaq-core/Data/Fragment.hh" 
 #include "../daqinput35t/tpcFragmentToRawDigits.h"
 #include "../daqinput35t/PennToOffline.h"
 #include "../daqinput35t/SSPReformatterAlgs.h"

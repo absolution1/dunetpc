@@ -1,7 +1,7 @@
 #ifndef UnpackFragment_h
 #define UnpackFragment_h
 
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 
 /*
 
