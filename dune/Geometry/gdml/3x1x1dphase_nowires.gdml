@@ -297,7 +297,7 @@
 
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cm3"/>
+   <D value=" 3.9656025 " unit="g/cm3"/>
    <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="0.5"   ref="Air"/>
   </material>
@@ -322,13 +322,13 @@
       z="300"/>
 
    <tube name="CRMWireV"
-     rmax="0.5*0.015"
+     rmax="0.0075"
      z="300"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
    <tube name="CRMWireZ"
-     rmax="0.5*0.015"
+     rmax="0.0075"
      z="100"               
      deltaphi="360"
      aunit="deg"
@@ -357,9 +357,9 @@
 
 
     <box name="FoamPadBlock" lunit="cm"
-      x="238.34 + 2*102.3"
-      y="202.74 + 2*102.3"
-      z="478.44 + 2*102.3" />
+      x="442.94"
+      y="407.34"
+      z="683.04" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
@@ -368,9 +368,9 @@
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="238.34 + 2*102.3 + 2*20.3"
-      y="202.74 + 2*102.3 + 2*20.3"
-      z="478.44 + 2*102.3 + 2*20.3" />
+      x="483.54"
+      y="447.94"
+      z="723.64" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
@@ -385,9 +385,9 @@
 
 
     <box name="World" lunit="cm" 
-      x="483.54+2*0" 
-      y="447.94+2*0" 
-      z="723.64+2*0"/>
+      x="6483.54" 
+      y="6447.94" 
+      z="6723.64"/>
 </solids>
 <structure>
     <volume name="volTPCActive">
