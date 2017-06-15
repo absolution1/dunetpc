@@ -14,7 +14,7 @@
 #include "canvas/Utilities/Exception.h"
 #include "lbne-raw-data/Overlays/SSPFragment.hh"
 #include "lbne-raw-data/Overlays/anlTypes.hh"
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 
 #include "TH1.h"
 #include "TFile.h"

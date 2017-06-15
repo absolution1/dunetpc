@@ -36,9 +36,14 @@ T* ArtServicePointer() {
 template<class T>
 T* GenericArtServicePointer() {
   try {
+    if ( art::ServiceRegistry::isAvailable<T>() ) {
+      return art::ServiceHandle<T>().get();
+    }
+/*
     art::ServiceRegistry& reg = art::ServiceRegistry::instance();
     if ( ! reg.isAvailable<T>() ) return nullptr;
     return &reg.get<T>();
+*/
   } catch(const art::Exception& exc) {
     std::string msg = exc.explain_self();
     if ( msg.find("no ServiceRegistry has been set") != std::string::npos ) {
