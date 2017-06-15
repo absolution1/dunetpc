@@ -117,12 +117,47 @@ AdcDataDumper::~AdcDataDumper() {
 //**********************************************************************
 
 int AdcDataDumper::view(const AdcChannelDataMap& acds, string label, string fpat) const {
-  string fname = m_FileName;
-  string::size_type ipos = fname.find("%PAT%");
-  if ( ipos != string::npos ) fname.replace(ipos, 5, fpat);
-  bool newfile = m_NewFile && m_pout == nullptr;
-  ostream* pout = newfile ? new ofstream(fname.c_str()) : m_pout;
-  if ( pout == nullptr ) return 1;
+  ostream* pout = m_pout;
+  bool newfile = pout == nullptr;
+  // If file is not already set, build the file name and open it.
+  if ( newfile ) {
+    if ( ! m_NewFile ) return 1;
+    string fname = m_FileName;
+    string::size_type npos = string::npos;
+    string::size_type ipos = fname.find("%PAT%");
+    while ( ipos != npos ) {
+      fname.replace(ipos, 5, fpat);
+      ipos = fname.find("%PAT%", ipos+5);
+    }
+    ipos = fname.find("%CHAN1%");
+    if ( ipos != npos ) {
+      string srep = "NOCHAN";
+      if ( acds.size() ) {
+        ostringstream ssrep;
+        ssrep << acds.begin()->first;
+        srep = ssrep.str();
+      }
+      while ( ipos != npos ) {
+        fname.replace(ipos, 7, srep);
+        ipos = fname.find("%CHAN1%", ipos+7);
+      }
+    }
+    ipos = fname.find("%CHAN2%");
+    if ( ipos != npos ) {
+      string srep = "NOCHAN";
+      if ( acds.size() ) {
+        ostringstream ssrep;
+        ssrep << acds.rbegin()->first;
+        string srep = ssrep.str();
+        while ( ipos != npos ) {
+          fname.replace(ipos, 7, srep);
+          ipos = fname.find("%CHAN2%", ipos+7);
+        }
+      }
+    }
+    pout = new ofstream(fname.c_str());
+  }
+  if ( pout == nullptr ) return 2;
   ostream& out = *pout;
   string pre = m_Prefix + label + ":";
   if ( m_ShowChannelCount ) out << pre << "  Channel count: " << acds.size() << endl;
