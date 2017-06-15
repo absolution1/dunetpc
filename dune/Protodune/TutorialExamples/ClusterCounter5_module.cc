@@ -3,8 +3,8 @@
 // Module Type: analyzer
 // File:        ClusterCounter_module.cc
 //
-// Generated at Tue Oct 25 05:26:55 2016 by Robert using artmod
-// from cetpkgsupport v1_10_02.
+// Same as #4, but use FHiCL parameters validation.
+// Robert Sulej
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -16,7 +16,7 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardataobj/RecoBase/Cluster.h"
@@ -31,7 +31,24 @@ namespace tutorial {
 
 class ClusterCounter : public art::EDAnalyzer {
 public:
-  explicit ClusterCounter(fhicl::ParameterSet const & p);
+
+  struct Config {
+      using Name = fhicl::Name;
+      using Comment = fhicl::Comment;
+
+      fhicl::Atom<art::InputTag> ClusterModuleLabel {
+          Name("ClusterModuleLabel"),
+          Comment("tag of cluster producer")
+      };
+
+      fhicl::Atom<size_t> MinSize {
+          Name("MinSize"),
+          Comment("minimum size of clusters")
+      };
+  };
+  using Parameters = art::EDAnalyzer::Table<Config>;
+
+  explicit ClusterCounter(Parameters const& config);
 
   // Plugins should not be copied or assigned.
   ClusterCounter(ClusterCounter const &) = delete;
@@ -68,10 +85,10 @@ private:
   size_t fMinSize;
 };
 
-ClusterCounter::ClusterCounter(fhicl::ParameterSet const & p) : EDAnalyzer(p)
+ClusterCounter::ClusterCounter(Parameters const& config) : art::EDAnalyzer(config),
+    fClusterModuleLabel(config().ClusterModuleLabel()),
+	fMinSize(config().MinSize())
 {
-    fClusterModuleLabel = p.get< std::string >("ClusterModuleLabel");
-    fMinSize = p.get< size_t >("MinSize");
 }
 
 void ClusterCounter::beginJob()
@@ -116,7 +133,7 @@ void ClusterCounter::analyze(art::Event const & evt)
             if (isEM) { mf::LogVerbatim("ClusterCounter") << "matched mother particle PDG: " << p->PdgCode(); }
             else { mf::LogVerbatim("ClusterCounter") << "matched particle PDG: " << p->PdgCode(); }
         }
-         else { mf::LogWarning("ClusterCounter") << "No matcched particle??"; }
+        else { mf::LogWarning("ClusterCounter") << "No matcched particle??"; }
 
         fClusterTree->Fill();
 
