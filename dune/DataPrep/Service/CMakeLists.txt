@@ -99,6 +99,7 @@ simple_plugin(StandardAdcWireBuildingService "service"
              )
 
 simple_plugin(StandardRawDigitPrepService   "service"
+                dune_ArtSupport
                 lardataobj_RawData
                 lardataobj_RecoBase
                 art_Utilities canvas

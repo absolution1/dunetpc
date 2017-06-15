@@ -1,0 +1,14 @@
+#include "cluster_dune.fcl"
+
+BEGIN_PROLOG
+
+proto_lifetime:
+{
+  module_type:          "SPLifetime"
+  ClusterModuleLabel:   "trajcluster"
+  LandauCut:            1.2
+  ChiCut:               5
+}
+
+
+END_PROLOG

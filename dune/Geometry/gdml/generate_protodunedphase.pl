@@ -332,8 +332,8 @@ EOF
       z="$TPCActive_z"/>
    <box name="CRMActive" lunit="cm"
       x="$TPCActive_x"
-      y="$TPC_y"
-      z="$TPC_z"/>
+      y="$TPCActive_y"
+      z="$TPCActive_z"/>
 EOF
 
 

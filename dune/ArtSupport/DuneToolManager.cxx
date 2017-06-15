@@ -11,8 +11,8 @@ using std::endl;
 
 //**********************************************************************
 
-DuneToolManager& DuneToolManager::instance() {
-  static std::unique_ptr<DuneToolManager> pins(new DuneToolManager("tools_dune.fcl"));
+DuneToolManager& DuneToolManager::instance(string fclname) {
+  static std::unique_ptr<DuneToolManager> pins(new DuneToolManager(fclname));
   return *pins.get();
 }
 
