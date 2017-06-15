@@ -6,8 +6,9 @@ proto_lifetime:
 {
   module_type:          "SPLifetime"
   ClusterModuleLabel:   "trajcluster"
-  LandauCut:            1.2
+  ChgCuts:              [ 0.5, 1.3 ]
   ChiCut:               5
+  MaxLifetime:          100 # in msec
 }
 
 
