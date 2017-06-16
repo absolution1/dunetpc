@@ -25,7 +25,7 @@
 // lbne-artdaq and lbne-raw-data includes
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 #include "dune/RunHistory/DetPedestalDUNE.h"
 
 // larsoft includes

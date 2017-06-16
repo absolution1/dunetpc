@@ -25,7 +25,7 @@
 
 // lbne-artdaq
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 
 // larsoft
 #include "lardataobj/RawData/RawDigit.h"

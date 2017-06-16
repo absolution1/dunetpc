@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+standard_proto_recoeff:
+{
+	module_type:      "RecoEff"
+	SimulationLabel:  "largeant"
+	HitModuleLabel:   "linecluster"
+	TrackModuleLabel: "pmtrack"
+}
+
+END_PROLOG
