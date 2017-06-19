@@ -63,14 +63,17 @@ DuneToolManager* DuneToolManager::instance(string a_fclname) {
           words.back() += ch;
         }
       }
-      // Find the flag "-c".
-      Index iflg = words.size();
+      // Find the flag "-c" and use following text as the fcl name.
       for ( Index iwrd=0; iwrd<words.size(); ++iwrd ) {
-        if ( words[iwrd] == "-c" ) iflg = iwrd;
+        string word = words[iwrd];
+        if ( word == "-c" ) {
+          if ( words.size() > iwrd+1 ) fclname = words[iwrd+1];
+        } else if ( word.substr(0,2) == "-c" ) {
+          fclname = word.substr(2);
+        }
       }
-      Index ifcl = iflg + 1;
-      if ( ifcl < words.size() ) fclname = words[ifcl];
-      else {
+      // If name was not found, switch to a default.
+      if ( fclname.size() == 0 ) {
         cout << myname << "ERROR: unable to retrieve configuration file name from command line." << endl;
         fclname = "tools_dune.fcl";
       }
