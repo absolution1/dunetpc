@@ -3,7 +3,7 @@
 #define SSPReformatterAlgs_h
 
 //artdaq includes
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 
 
 //larsoft includes

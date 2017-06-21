@@ -1,0 +1,31 @@
+BEGIN_PROLOG
+
+data_import:
+{
+  module_type: "ImportSingle311Event"
+  Filename:    "BinaryInput311.dat"
+  Evt_num: 0
+}
+
+dlardaq: 
+{
+  service_provider: dlardaq
+}
+
+EventDecoder: 
+{
+  service_provider: EventDecoder
+}
+
+HuffDataCompressor: 
+{
+  service_provider: HuffDataCompressor
+} 
+
+QScanServices: {
+  dlardaq:		@local::dlardaq
+  EventDecoder: 	@local::EventDecoder
+  HuffDataCompressor:	@local::HuffDataCompressor
+}
+
+END_PROLOG

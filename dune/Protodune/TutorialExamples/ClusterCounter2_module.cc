@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       ClusterCounter
+// Class:       ClusterCounter2
 // Module Type: analyzer
-// File:        ClusterCounter_module.cc
+// File:        ClusterCounter2_module.cc
 //
-// Generated at Tue Oct 25 05:26:55 2016 by Robert using artmod
-// from cetpkgsupport v1_10_02.
+// Access clusters, fill ROOT tree with a simple info from clusters.
+// Robert Sulej
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -24,15 +24,15 @@
 
 namespace tutorial {
 
-class ClusterCounter : public art::EDAnalyzer {
+class ClusterCounter2 : public art::EDAnalyzer {
 public:
-  explicit ClusterCounter(fhicl::ParameterSet const & p);
+  explicit ClusterCounter2(fhicl::ParameterSet const & p);
 
   // Plugins should not be copied or assigned.
-  ClusterCounter(ClusterCounter const &) = delete;
-  ClusterCounter(ClusterCounter &&) = delete;
-  ClusterCounter & operator = (ClusterCounter const &) = delete;
-  ClusterCounter & operator = (ClusterCounter &&) = delete;
+  ClusterCounter2(ClusterCounter2 const &) = delete;
+  ClusterCounter2(ClusterCounter2 &&) = delete;
+  ClusterCounter2 & operator = (ClusterCounter2 const &) = delete;
+  ClusterCounter2 & operator = (ClusterCounter2 &&) = delete;
 
   // Required functions.
   void analyze(art::Event const & e) override;
@@ -55,13 +55,13 @@ private:
   size_t fMinSize;
 };
 
-ClusterCounter::ClusterCounter(fhicl::ParameterSet const & p) : EDAnalyzer(p)
+ClusterCounter2::ClusterCounter2(fhicl::ParameterSet const & p) : EDAnalyzer(p)
 {
     fClusterModuleLabel = p.get< std::string >("ClusterModuleLabel");
     fMinSize = p.get< size_t >("MinSize");
 }
 
-void ClusterCounter::beginJob()
+void ClusterCounter2::beginJob()
 {
     art::ServiceHandle<art::TFileService> tfs; // TTree's are created in the memory managed by ROOT (you don't delete them)
 
@@ -74,10 +74,10 @@ void ClusterCounter::beginJob()
     fClusterTree->Branch("nhits", &fNHits, "fNHits/I");
 }
 
-void ClusterCounter::analyze(art::Event const & evt)
+void ClusterCounter2::analyze(art::Event const & evt)
 {
     fEvNumber = evt.id().event();
-    mf::LogVerbatim("ClusterCounter") << "ClusterCounter module on event #" << fEvNumber;
+    mf::LogVerbatim("ClusterCounter2") << "ClusterCounter2 module on event #" << fEvNumber;
 
     // use auto to make the line shorter when you remember all art types,
     // the full type being de-referenced here is: art::ValidHandle< std::vector<recob::Cluster> >
@@ -98,11 +98,11 @@ void ClusterCounter::analyze(art::Event const & evt)
     fEventTree->Fill();
 }
 
-void ClusterCounter::endJob()
+void ClusterCounter2::endJob()
 {
-    mf::LogVerbatim("ClusterCounter") << "ClusterCounter finished job";
+    mf::LogVerbatim("ClusterCounter2") << "ClusterCounter2 finished job";
 }
 
 } // tutorial namespace
 
-DEFINE_ART_MODULE(tutorial::ClusterCounter)
+DEFINE_ART_MODULE(tutorial::ClusterCounter2)

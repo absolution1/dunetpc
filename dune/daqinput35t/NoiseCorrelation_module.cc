@@ -25,7 +25,7 @@
 
 // lbne-artdaq
 #include "lbne-raw-data/Overlays/TpcMilliSliceFragment.hh"
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 
 // larsoft
 #include "lardataobj/RawData/RawDigit.h"
@@ -96,7 +96,7 @@ DAQToOffline::NoiseCorrelation::NoiseCorrelation(fhicl::ParameterSet const & pse
 
   art::ServiceHandle<art::TFileService> tfs;
   fCorrelationTree = tfs->make<TTree>("Correlations","Correlations");
-  fCorrelationHist = tfs->make<TH2F>("Correlation","Correlation",2048,0,2048,2048,0,2048);
+  fCorrelationHist = tfs->make<TH2F>("Correlation","Correlation;Online channel number;Online channel number;",2048,0,2048,2048,0,2048);
   fCorrelationTree->Branch("Channel1",&fChannel1);
   fCorrelationTree->Branch("Channel2",&fChannel2);
   fCorrelationTree->Branch("Correlation",&fCorrelation);
@@ -191,15 +191,13 @@ void DAQToOffline::NoiseCorrelation::analyze(art::Event const& evt) {
       // Now we have the ADC vectors, we can look at the correlations
       // Use the Pearson Correlation Coefficient
 
-      double n1 = adcvec1.size(), n2 = adcvec2.size();
+      size_t n1 = adcvec1.size(), n2 = adcvec2.size();
       if (n1 != n2)
 	continue;
 
-      double sumxy = 0, sumx = 0, sumy = 0, sumx2 = 0, sumy2 = 0;
+      float sumxy = 0, sumx = 0, sumy = 0, sumx2 = 0, sumy2 = 0;
       for (size_t tick = 0; tick < n1; ++tick) {
 	short adc1 = adcvec1[tick], adc2 = adcvec2[tick];
-	if (adc1 == -999 or adc2 == -999)
-	  continue;
 	sumx += adc1;
 	sumy += adc2;
 	sumxy += adc1*adc2;
@@ -207,7 +205,7 @@ void DAQToOffline::NoiseCorrelation::analyze(art::Event const& evt) {
 	sumy2 += adc2*adc2;
       }
 
-      double denom = ( (n1*sumx2) - (sumx*sumx) ) * ( (n1*sumy2) - (sumy*sumy) );
+      float denom = ( (n1*sumx2) - (sumx*sumx) ) * ( (n1*sumy2) - (sumy*sumy) );
       if (n1 > 0 and denom > 0) {
 	fCorrelation = ( (n1*sumxy) - (sumx*sumy) ) / ( TMath::Sqrt( denom ) );
 	correlationArray[fChannel1][fChannel2] = fCorrelation;
@@ -220,7 +218,7 @@ void DAQToOffline::NoiseCorrelation::analyze(art::Event const& evt) {
 
   for (unsigned int channel1 = 0; channel1 < correlationArray.size(); ++channel1)
     for (unsigned int channel2 = 0; channel2 < correlationArray.size(); ++channel2)
-	fCorrelationHist->SetBinContent(channel1, channel2, correlationArray[channel1][channel2]);
+      fCorrelationHist->SetBinContent(channel1, channel2, correlationArray[channel1][channel2]);
   fCorrelationHist->GetZaxis()->SetRangeUser(-1,1);
 
   return;

@@ -24,8 +24,10 @@ public:
   using NameVector = std::vector<Name>;
 
   // Return the one instance of this class.
-  // For now this looks in dune_tools.fcl.
-  static DuneToolManager& instance();
+  // The name is ignored once the tool manager is set.
+  // if fclname is blank and the tool manager is not yet set, an attempt
+  // is made to find the fcl name on the command line following "-c"..
+  static DuneToolManager* instance(std::string fclname ="");
 
   // Return a private (not shared) copy of a tool.
   template<class T>
