@@ -1,10 +1,11 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       ClusterCounter
+// Class:       ClusterCounter4
 // Module Type: analyzer
-// File:        ClusterCounter_module.cc
+// File:        ClusterCounter4_module.cc
 //
-// Generated at Tue Oct 25 05:26:55 2016 by Robert using artmod
-// from cetpkgsupport v1_10_02.
+// Same as #3, then find best matching MC truth particle and compute how
+// clean is the reco object.
+// Robert Sulej
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -16,7 +17,7 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardataobj/RecoBase/Cluster.h"
@@ -29,32 +30,15 @@
 
 namespace tutorial {
 
-class ClusterCounter : public art::EDAnalyzer {
+class ClusterCounter4 : public art::EDAnalyzer {
 public:
-
-  struct Config {
-      using Name = fhicl::Name;
-      using Comment = fhicl::Comment;
-
-      fhicl::Atom<art::InputTag> ClusterModuleLabel {
-          Name("ClusterModuleLabel"),
-          Comment("tag of cluster producer")
-      };
-
-      fhicl::Atom<size_t> MinSize {
-          Name("MinSize"),
-          Comment("minimum size of clusters")
-      };
-  };
-  using Parameters = art::EDAnalyzer::Table<Config>;
-
-  explicit ClusterCounter(Parameters const& config);
+  explicit ClusterCounter4(fhicl::ParameterSet const & p);
 
   // Plugins should not be copied or assigned.
-  ClusterCounter(ClusterCounter const &) = delete;
-  ClusterCounter(ClusterCounter &&) = delete;
-  ClusterCounter & operator = (ClusterCounter const &) = delete;
-  ClusterCounter & operator = (ClusterCounter &&) = delete;
+  ClusterCounter4(ClusterCounter4 const &) = delete;
+  ClusterCounter4(ClusterCounter4 &&) = delete;
+  ClusterCounter4 & operator = (ClusterCounter4 const &) = delete;
+  ClusterCounter4 & operator = (ClusterCounter4 &&) = delete;
 
   // Required functions.
   void analyze(art::Event const & e) override;
@@ -85,13 +69,13 @@ private:
   size_t fMinSize;
 };
 
-ClusterCounter::ClusterCounter(Parameters const& config) : art::EDAnalyzer(config),
-    fClusterModuleLabel(config().ClusterModuleLabel()),
-	fMinSize(config().MinSize())
+ClusterCounter4::ClusterCounter4(fhicl::ParameterSet const & p) : EDAnalyzer(p)
 {
+    fClusterModuleLabel = p.get< std::string >("ClusterModuleLabel");
+    fMinSize = p.get< size_t >("MinSize");
 }
 
-void ClusterCounter::beginJob()
+void ClusterCounter4::beginJob()
 {
     art::ServiceHandle<art::TFileService> tfs; // TTree's are created in the memory managed by ROOT (you don't delete them)
 
@@ -106,10 +90,10 @@ void ClusterCounter::beginJob()
     fClusterTree->Branch("clean", &fClean, "fClean/F");
 }
 
-void ClusterCounter::analyze(art::Event const & evt)
+void ClusterCounter4::analyze(art::Event const & evt)
 {
     fEvNumber = evt.id().event();
-    mf::LogVerbatim("ClusterCounter") << "ClusterCounter module on event #" << fEvNumber;
+    mf::LogVerbatim("ClusterCounter4") << "ClusterCounter4 module on event #" << fEvNumber;
 
     // use auto to make the line shorter when you remember all art types,
     // the full type of the handle is: art::ValidHandle< std::vector<recob::Cluster> >
@@ -130,14 +114,14 @@ void ClusterCounter::analyze(art::Event const & evt)
         const simb::MCParticle* p = getTruthParticle(hitsFromClusters.at(i), fClean, isEM);
         if (p)
         {
-            if (isEM) { mf::LogVerbatim("ClusterCounter") << "matched mother particle PDG: " << p->PdgCode(); }
-            else { mf::LogVerbatim("ClusterCounter") << "matched particle PDG: " << p->PdgCode(); }
+            if (isEM) { mf::LogVerbatim("ClusterCounter4") << "matched mother particle PDG: " << p->PdgCode(); }
+            else { mf::LogVerbatim("ClusterCounter4") << "matched particle PDG: " << p->PdgCode(); }
         }
-        else { mf::LogWarning("ClusterCounter") << "No matcched particle??"; }
+         else { mf::LogWarning("ClusterCounter4") << "No matcched particle??"; }
 
         fClusterTree->Fill();
 
-        mf::LogVerbatim("ClusterCounter")
+        mf::LogVerbatim("ClusterCounter4")
             << "NHits() = " << fNHits << ", assn size = " << hitsFromClusters.at(i).size()
             << " SummedADC() = " << cluHandle->at(i).SummedADC() << ", sum hits adc = " << fAdcSum;
 
@@ -146,7 +130,7 @@ void ClusterCounter::analyze(art::Event const & evt)
     fEventTree->Fill();
 }
 
-const simb::MCParticle* ClusterCounter::getTruthParticle(const std::vector< art::Ptr<recob::Hit> > & hits,
+const simb::MCParticle* ClusterCounter4::getTruthParticle(const std::vector< art::Ptr<recob::Hit> > & hits,
     float & fraction, bool & foundEmParent) const
 {
     const simb::MCParticle* mcParticle = 0;
@@ -185,12 +169,12 @@ const simb::MCParticle* ClusterCounter::getTruthParticle(const std::vector< art:
         mcParticle = bt->TrackIDToParticle(best_id); // MCParticle corresponding to track ID
         fraction = max_e / tot_e;
     }
-    else { mf::LogWarning("ClusterCounter") << "No energy deposits??"; }
+    else { mf::LogWarning("ClusterCounter4") << "No energy deposits??"; }
 
     return mcParticle;
 }
 
-float ClusterCounter::sumAdc(const std::vector< art::Ptr<recob::Hit> > & hits) const
+float ClusterCounter4::sumAdc(const std::vector< art::Ptr<recob::Hit> > & hits) const
 {
     float sum = 0;
     for (auto const & h : hits)
@@ -200,11 +184,11 @@ float ClusterCounter::sumAdc(const std::vector< art::Ptr<recob::Hit> > & hits) c
     return sum;
 }
 
-void ClusterCounter::endJob()
+void ClusterCounter4::endJob()
 {
-    mf::LogVerbatim("ClusterCounter") << "ClusterCounter finished job";
+    mf::LogVerbatim("ClusterCounter4") << "ClusterCounter4 finished job";
 }
 
 } // tutorial namespace
 
-DEFINE_ART_MODULE(tutorial::ClusterCounter)
+DEFINE_ART_MODULE(tutorial::ClusterCounter4)

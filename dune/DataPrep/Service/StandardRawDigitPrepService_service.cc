@@ -315,10 +315,14 @@ prepare(AdcChannelDataMap& datamap,
     sscall << icall;
     string scall = sscall.str();
     for ( string tname : m_DisplayTools ) {
-      DuneToolManager& tm = DuneToolManager::instance("evdisp.fcl");
-      auto padv = tm.getPrivate<AdcDataViewer>(tname);
-      if ( padv ) padv->view(datamap, "", scall);
-      else cout << myname << "ERROR: Unable to retrieve display tool " << tname << endl;
+      DuneToolManager* ptm = DuneToolManager::instance("");
+      if ( ptm == nullptr ) {
+        cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
+      } else {
+        auto padv = ptm->getPrivate<AdcDataViewer>(tname);
+        if ( padv ) padv->view(datamap, "", scall);
+        else cout << myname << "ERROR: Unable to retrieve display tool " << tname << endl;
+      }
     }
   }
 
