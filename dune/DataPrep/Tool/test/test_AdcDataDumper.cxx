@@ -59,7 +59,9 @@ int test_AdcDataDumper(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool manager." << endl;
-  DuneToolManager& tm = DuneToolManager::instance(fclfile);
+  DuneToolManager* ptm = DuneToolManager::instance(fclfile);
+  assert ( ptm != nullptr );
+  DuneToolManager& tm = *ptm;
   tm.print();
   assert( tm.toolNames().size() == 1 );
 

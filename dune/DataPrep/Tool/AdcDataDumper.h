@@ -7,6 +7,10 @@
 //
 // Configuration:
 //   FileName: Name of the output file. Blank for std out.
+//             The following substitutions are made:
+//               %PAT% --> the pattern passed by the caller
+//               %CHAN1% --> the first channel number
+//               %CHAN2% --> the last channel number
 //   Prefix:   Prefix for each line.
 //   NewFile:  If true, a new file is created for each event.
 //   ShowChannelCount: If true, display channel count
