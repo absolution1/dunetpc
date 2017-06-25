@@ -52,6 +52,10 @@ public:
       fhicl::Atom<art::InputTag> TrackModuleLabel {
           Name("TrackModuleLabel"), Comment("tag of track producer")
       };
+    
+      fhicl::Atom<size_t> MinHitsPerPlane {
+          Name("MinHitsPerPlane"), Comment("min hits per plane for a reconstructable MC particle")
+      };
   };
   using Parameters = art::EDAnalyzer::Table<Config>;
 
@@ -87,12 +91,14 @@ private:
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
   art::InputTag fTrackModuleLabel;
+  size_t fMinHitsPerPlane;
 };
 
 proto::RecoEff::RecoEff(Parameters const& config) : EDAnalyzer(config),
     fSimulationLabel(config().SimulationLabel()),
     fHitModuleLabel(config().HitModuleLabel()),
-    fTrackModuleLabel(config().TrackModuleLabel())
+    fTrackModuleLabel(config().TrackModuleLabel()),
+    fMinHitsPerPlane(config().MinHitsPerPlane())
 {
 }
 
@@ -179,7 +185,7 @@ void proto::RecoEff::analyze(art::Event const & e)
     for (auto const & h : p.second) { hit_count[h.View()]++; }
 
     size_t nviews = 0;
-    for (auto const & n : hit_count) {  if (n.second > 3) { nviews++; } }
+    for (auto const & n : hit_count) {  if (n.second > fMinHitsPerPlane) { nviews++; } }
 
     // *** here more conditions may be applied to select interesting MC particles, eg:
     // - check with BackTracker if this is a primary particle so you can select beam particles
