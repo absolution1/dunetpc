@@ -21,6 +21,7 @@
 #include "dlardaq.h"
 
 #include <iostream>
+#include <ctime>
 
 // ---------------------------------------------------------------------------------------
 // 311 DAQ interface
@@ -91,6 +92,8 @@ namespace lris
     DataDecode.GetEvent(evt_num, event_head, ADCvec311);
     // fill the wires
     std::vector<short> adclist;
+    std::time_t time0 = std::time(0);
+    std::cout << "Before loop: " << time0 << std::endl;
     for(size_t LAr_chan = 0; LAr_chan < (size_t)nchannels; LAr_chan++)
     {
       adclist.clear();
@@ -101,6 +104,8 @@ namespace lris
       raw::Compress_t comp = raw::kNone;
       digitList[LAr_chan] = raw::RawDigit(channel, nTickReadout, adclist, comp);
     }
+    std::time_t time1 = std::time(0);
+    std::cout << "After loop: " << time1 << std::endl;
   }// process_Event311
   
 
