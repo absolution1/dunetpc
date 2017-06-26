@@ -219,7 +219,7 @@ void proto::HadCal::analyze(art::Event const & e)
   std::unordered_map<int, bool> hitIDE;
   if (cluResults)
   {
-  	const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, fClusterModuleLabel);
+  	const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, cluResults->dataTag());
   	
   	for (size_t c = 0; c < cluResults->size(); ++c)
   	{
@@ -232,15 +232,11 @@ void proto::HadCal::analyze(art::Event const & e)
   		}
   	}
   }  
-  
+	
   // tracks
   fNumberOfTracks = 0;
   auto trkHandle = e.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
   art::FindManyP< recob::PFParticle > pfpFromTrack(trkHandle, e, fTrackModuleLabel);
-
-	fHadEnSum = 0.0;
-	fHadDepSum = 0.0;
-	fEMEnSum = 0.0;
 
   const art::FindManyP< anab::Calorimetry > calFromTracks(trkHandle, e, fCalorimetryModuleLabel);	
   const art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, e, fTrackModuleLabel);
@@ -303,11 +299,9 @@ void proto::HadCal::analyze(art::Event const & e)
  		}
  	
  // output from cnn's
-
- 
  if (cluResults)
  {
- 		const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, fClusterModuleLabel);
+ 		const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, cluResults->dataTag());
  		
  		// loop over clusters
 		for (size_t c = 0; c < cluResults->size(); ++c)
@@ -426,10 +420,10 @@ double proto::HadCal::GetEhitMeV(const recob::Hit & hit) const
 	if (!std::isnormal(dqadc) || (dqadc < 0)) dqadc = 0.0;
 
 	unsigned short plane = hit.WireID().Plane;
-	double tdrift = hit.PeakTime();
+	// double tdrift = hit.PeakTime();
 	double dqel = fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane);
 
-	double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
+	double correllifetime = 1; // fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
 	double dq = dqel * correllifetime * fElectronsToGeV * 1000;
 	if (!std::isnormal(dq) || (dq < 0)) dq = 0.0;	
 
@@ -586,7 +580,7 @@ double proto::HadCal::GetEdepHADhAtt_MC(art::Event const & e, const std::vector<
 					{
 						int trackID = energyDeposit.trackID;
 
-						double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated and corrected for the electron lifetime
+						double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated 
 						hitEn += energy;
 
 						if (trackID < 0) { } // EM activity
@@ -634,6 +628,7 @@ void proto::HadCal::ResetVars()
 	fEnGen = 0.0;
 	fEkGen = 0.0;
   fHadEnSum = 0.0;
+  fHadDepSum = 0.0;
   fEdepSum = 0.0;
   fEdepAllhits = 0.0;
 	fEMEnSum = 0.0;
