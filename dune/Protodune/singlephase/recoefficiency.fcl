@@ -3,9 +3,14 @@ BEGIN_PROLOG
 standard_proto_recoeff:
 {
 	module_type:      "RecoEff"
-	SimulationLabel:  "largeant"
-	HitModuleLabel:   "linecluster"
-	TrackModuleLabel: "pmtrack"
+
+	SimulationLabel:  "largeant"      # tag of simulation producer
+	HitModuleLabel:   "linecluster"   # tag of hits producer
+	TrackModuleLabel: "pmtrack"       # tag of track producer
+
+	MinHitsPerPlane:  3               # minimum number of hits associated to MCParticle,
+	                                  # which are requires in at least 2 planes in order
+	                                  # to consider MCParticle as reconstructable
 }
 
 END_PROLOG
