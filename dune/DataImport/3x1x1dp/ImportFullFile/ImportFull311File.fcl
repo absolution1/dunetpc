@@ -9,7 +9,7 @@ services.DetectorPropertiesService:	@local::dphase3x1x1_detproperties
 
 source:
 {
-  fileNames: ["/mnt/nas01/users/chalt/EOSMount/experiment/wa105/data/311/calibrations/288/288-1.pul.cal"]
+  fileNames: ["/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/calibrations/288/288-1.pul.cal"]
   module_type: ImportFull311File
   max_events: -1
 }

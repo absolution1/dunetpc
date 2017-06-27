@@ -21,20 +21,18 @@
 #include "dlardaq.h"
 
 #include <iostream>
-#include <ctime>
 
 // ---------------------------------------------------------------------------------------
 // 311 DAQ interface
 
 namespace lris
 {
-  void SplitAdc(const std::vector<dlardaq::adc16_t> adc, size_t channel, uint32_t num_samples,
+  void SplitAdc(const std::vector<dlardaq::adc16_t> *adc, size_t channel, uint32_t num_samples,
 		 std::vector<short> &adclist)
   {
-    //adclist.resize(num_samples);
     for(uint32_t i = 0; i < num_samples; i++)
     {
-      adclist.push_back(static_cast<short>(adc[channel*num_samples + i]));
+      adclist.emplace_back(adc->at(channel*num_samples + i));
     }
   }// SplitAdc
 
@@ -90,22 +88,20 @@ namespace lris
     // Get the data.
     std::vector<dlardaq::adc16_t> ADCvec311;
     DataDecode.GetEvent(evt_num, event_head, ADCvec311);
+    std::vector<dlardaq::adc16_t> *ADCvec311Pointer = &ADCvec311;
     // fill the wires
     std::vector<short> adclist;
-    std::time_t time0 = std::time(0);
-    std::cout << "Before loop: " << time0 << std::endl;
+
     for(size_t LAr_chan = 0; LAr_chan < (size_t)nchannels; LAr_chan++)
     {
       adclist.clear();
       size_t Chan311 = Get311Chan(LAr_chan);
-      SplitAdc(ADCvec311, Chan311, nsamples, adclist);
+      SplitAdc(ADCvec311Pointer, Chan311, nsamples, adclist);
       short unsigned int nTickReadout = nsamples;
       raw::ChannelID_t channel = LAr_chan;
       raw::Compress_t comp = raw::kNone;
       digitList[LAr_chan] = raw::RawDigit(channel, nTickReadout, adclist, comp);
     }
-    std::time_t time1 = std::time(0);
-    std::cout << "After loop: " << time1 << std::endl;
   }// process_Event311
   
 
