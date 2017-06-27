@@ -181,15 +181,21 @@ void proto::RecoEff::analyze(art::Event const & e)
   std::map<int, std::vector< recob::Hit > > mapTrackIDtoHits_filtered;
   for (auto const & p : mapTrackIDtoHits)
   {
+    // *** here more conditions may be applied to select interesting MC particles, eg:
+    // - check with BackTracker if this is a beam/cosmic particle:
+    //auto origin = bt->TrackIDToMCTruth(p.first)->Origin();
+    //if (origin == simb::kCosmicRay) { std::cout << "cosmic" << std::endl; }
+    //else if (origin == simb::kSingleParticle) { std::cout << "beam" << std::endl; }
+    //else { std::cout << "other" << std::endl; }
+    // - check if this the process name is "primary" to select primary particles:
+    //std::cout << bt->TrackIDToParticle(p.first)->Process() << std::endl;
+    // - check if the mother of this MC particle is primary so you can select secondaries of the primary interaction
+
     std::unordered_map<geo::View_t, size_t> hit_count;
     for (auto const & h : p.second) { hit_count[h.View()]++; }
 
     size_t nviews = 0;
     for (auto const & n : hit_count) {  if (n.second > fMinHitsPerPlane) { nviews++; } }
-
-    // *** here more conditions may be applied to select interesting MC particles, eg:
-    // - check with BackTracker if this is a primary particle so you can select beam particles
-    // - check if the mother of this MC particle is primary so you can select secondaries of the primary interaction
     if (nviews >= 2) { mapTrackIDtoHits_filtered.emplace(p); }
   }
   fReconstructable = mapTrackIDtoHits_filtered.size();
