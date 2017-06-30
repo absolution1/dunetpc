@@ -602,6 +602,7 @@ Index DuneApaChannelMapAlg::HardwareChannelFromOpChannel(unsigned int opChannel)
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::NTPCsets(CryostatID const& cryid) const {
+  if (!HasCryostat(cryid)) return 0;
   Index icry = cryid.Cryostat;
   return fNApa[icry];
 }
@@ -615,7 +616,7 @@ Index DuneApaChannelMapAlg::MaxTPCsets() const {
 //----------------------------------------------------------------------------
 
 bool DuneApaChannelMapAlg::HasTPCset(TPCsetID const& tpcsetid) const {
-  return tpcsetid.TPCset < NTPCsets(tpcsetid);
+  return HasCryostat(tpcsetid) && (tpcsetid.TPCset < NTPCsets(tpcsetid));
 }
   
 //----------------------------------------------------------------------------
@@ -651,6 +652,7 @@ TPCID DuneApaChannelMapAlg::FirstTPCinTPCset (TPCsetID const& apaid) const {
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::NROPs(TPCsetID const& apaid) const {
+  if (!HasTPCset(apaid)) return 0;
   Index icry = apaid.Cryostat;
   Index iapa = apaid.TPCset;
   return fRopsPerApa[icry][iapa];
@@ -665,7 +667,7 @@ Index DuneApaChannelMapAlg::MaxROPs() const {
 //----------------------------------------------------------------------------
 
 bool DuneApaChannelMapAlg::HasROP(ROPID const& ropid) const {
-  return ropid.ROP < NROPs(ropid);
+  return HasTPCset(ropid) && (ropid.ROP < NROPs(ropid));
 }
 
 //----------------------------------------------------------------------------
