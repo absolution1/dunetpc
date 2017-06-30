@@ -42,8 +42,11 @@ namespace lris
     size_t crate = LAr_chan / 320;
     size_t Chan311;
 
+    LAr_chan = 8*(LAr_chan/8+1)-LAr_chan%8 -1;
+
     if(crate == 0)
       {
+	LAr_chan = 32*(LAr_chan/32+1)-LAr_chan%32 -1;
         size_t card = 4 - ((LAr_chan / 32) % 5);
         if(LAr_chan > 159)
           {
