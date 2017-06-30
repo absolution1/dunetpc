@@ -10,6 +10,7 @@
 // C++ includes
 
 // ROOT includes
+#include "TH1I.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TTree.h"
@@ -35,11 +36,15 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Utilities/InputTag.h"
+#include "canvas/Persistency/Common/FindMany.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-const int nMaxHits = 1000;
+const int nMaxHits = 5000;
 const int nMaxDigs = 4492;
+
+enum PType{ kUnknown, kMarl, kAPA, kCPA, kAr39, kNeut, kKryp, kPlon, kRdon };
 
 class DAQSimAna : public art::EDAnalyzer {
 
@@ -64,10 +69,25 @@ private:
 
   // --- Some of our own functions.
   void ResetVariables();
+  void  FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap, art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand );
+  PType WhichParType( int TrID );
+  bool  InMyMap     ( int TrID, std::map< int, simb::MCParticle> ParMap );
+  void  CalcAdjHits ( std::vector< recob::Hit > MyVec, TH1I* MyHist, bool HeavDebug="false" );
+
 
   // --- Our fcl parameter labels for the modules that made the data products
   std::string fRawDigitLabel;
   std::string fHitLabel;
+
+  std::string fGEANTLabel;
+  std::string fMARLLabel; std::map< int, simb::MCParticle > MarlParts;
+  std::string fAPALabel;  std::map< int, simb::MCParticle > APAParts;
+  std::string fCPALabel;  std::map< int, simb::MCParticle > CPAParts;
+  std::string fAr39Label; std::map< int, simb::MCParticle > Ar39Parts;
+  std::string fNeutLabel; std::map< int, simb::MCParticle > NeutParts;
+  std::string fKrypLabel; std::map< int, simb::MCParticle > KrypParts;
+  std::string fPlonLabel; std::map< int, simb::MCParticle > PlonParts;
+  std::string fRdonLabel; std::map< int, simb::MCParticle > RdonParts;
 
   // --- Other variables
   int nADC;
@@ -81,46 +101,43 @@ private:
   // Raw digits
   int NTotDigs;
 
-  // Reconstructed hits
+  // The reconstructed hits
   int   NTotHits;
   int   NColHits;
-  int   NIndHits; 
+  int   NIndHits;
   int   HitView[nMaxHits]; ///< View i.e Coll, U, V
   int   HitSize[nMaxHits]; ///< Time width (ticks) Start - End time
+  int   HitTPC [nMaxHits]; ///< The TPC which the hit occurs in
   int   HitChan[nMaxHits]; ///< The channel which the hit occurs on
   float HitTime[nMaxHits]; ///< The time of the hit (ticks)
   float HitRMS [nMaxHits]; ///< The RMS of the hit
   float HitSADC[nMaxHits]; ///< The summed ADC of the hit
   float HitInt [nMaxHits]; ///< The ADC integral of the hit
   float HitPeak[nMaxHits]; ///< The peak ADC value of the hit
-  int   TotHitSize;
+  int   GenType[nMaxHits]; ///< The generator which generated the particle responsible for the hit
+  int   TotGen_Marl;
+  int   TotGen_APA;
+  int   TotGen_CPA;
+  int   TotGen_Ar39;
+  int   TotGen_Neut;
+  int   TotGen_Kryp;
+  int   TotGen_Plon;
+  int   TotGen_Rdon;
 
-  // histograms to fill about raw digits
-  TH1F* fNADC_comp;
-  TH1F* fNADC_nocomp;
-  TH1F* fNADC_comp_rawcount;
-  TH1F* fCompX;
-  TH1F* fCompX_rawcount;
-  TH2F* fCompX_vs_channel;
-  TH2F* fCompX_vs_channel_rawcount;
-  TH2F* fCompXr_vs_CompX;
-
-  // histograms to fill about reco hits
-  TH1F* fNHits_tot;
-  TH1F* fHitSize_tot;
-
-  TH1F* fNHits_ind;
-  TH1F* fHitSize_ind;
-
-  TH1F* fNHits_col;
-  TH1F* fHitSize_col;
-
-  TH1F* fEventSize;
-  TH1F* fHitView;
+  // histograms to fill about Collection plane hits
+  TH1I* hAdjHits_Marl;
+  TH1I* hAdjHits_APA;
+  TH1I* hAdjHits_CPA;
+  TH1I* hAdjHits_Ar39;
+  TH1I* hAdjHits_Neut;
+  TH1I* hAdjHits_Kryp;
+  TH1I* hAdjHits_Plon;
+  TH1I* hAdjHits_Rdon;
+  TH1I* hAdjHits_Oth;
 
   // --- Declare our services
   art::ServiceHandle<geo::Geometry> geo;
-  art::ServiceHandle<cheat::BackTracker> backtracker;
+  art::ServiceHandle<cheat::BackTracker> bktrk;
   
 };
 
@@ -137,22 +154,39 @@ void DAQSimAna::reconfigure(fhicl::ParameterSet const & p)
 {
   fRawDigitLabel = p.get<std::string> ("RawDigitLabel");  
   fHitLabel      = p.get<std::string> ("HitLabel");
+
+  fGEANTLabel = p.get<std::string> ("GEANT4Label");
+  fMARLLabel = p.get<std::string> ("MARLEYLabel");
+  fAPALabel  = p.get<std::string> ("APALabel");
+  fCPALabel  = p.get<std::string> ("CPALabel");
+  fAr39Label = p.get<std::string> ("Argon39Label");
+  fNeutLabel = p.get<std::string> ("NeutronLabel");
+  fKrypLabel = p.get<std::string> ("KryptonLabel");
+  fPlonLabel = p.get<std::string> ("PoloniumLabel");
+  fRdonLabel = p.get<std::string> ("RadonLabel");
+
 } // Reconfigure
 
 //......................................................
 void DAQSimAna::ResetVariables()
 {
+  // Clear my MCParticle maps.
+  MarlParts.clear(); APAParts .clear(); CPAParts .clear(); Ar39Parts.clear();
+  NeutParts.clear(); KrypParts.clear(); PlonParts.clear(); RdonParts.clear();
+
   // General event info.
   Run = SubRun = Event = -1;
-  // raw digits
   
+  // Set Number of GenParts to 0
+  TotGen_Marl = TotGen_APA  = TotGen_CPA  = TotGen_Ar39 = 0;
+  TotGen_Neut = TotGen_Kryp = TotGen_Plon = TotGen_Rdon = 0;
+
   // reconstructed hits
   NTotHits = NColHits = NIndHits = 0; 
-  TotHitSize = 0;
   for (int hh=0; hh<nMaxHits; ++hh) {
-    HitView[hh] = HitSize[hh] = HitChan[hh] = 0;
+    HitView[hh] = HitSize[hh] = HitChan[hh] = GenType[hh] = 0;
     HitTime[hh] = HitRMS [hh] = HitSADC[hh] = 0;
-    HitInt [hh] = HitPeak[hh] = 0;
+    HitInt [hh] = HitPeak[hh] = HitTPC [hh] = 0;
   }
 } // ResetVariables
 
@@ -173,55 +207,34 @@ void DAQSimAna::beginJob()
   fDAQSimTree -> Branch( "NIndHits"  , &NIndHits  , "NIndHits/I" );
   fDAQSimTree -> Branch( "HitView"   , &HitView   , "HitView[NTotHits]/I" );
   fDAQSimTree -> Branch( "HitSize"   , &HitSize   , "HitSize[NTotHits]/I" );
+  fDAQSimTree -> Branch( "HitTPC"    , &HitTPC    , "HitTPC[NTotHits]/I"  );
   fDAQSimTree -> Branch( "HitChan"   , &HitChan   , "HitChan[NTotHits]/I" );
   fDAQSimTree -> Branch( "HitTime"   , &HitTime   , "HitTime[NTotHits]/F" );
   fDAQSimTree -> Branch( "HitRMS"    , &HitRMS    , "HitRMS[NTotHits]/F"  );
   fDAQSimTree -> Branch( "HitSADC"   , &HitSADC   , "HitSADC[NTotHits]/F" );
   fDAQSimTree -> Branch( "HitInt"    , &HitInt    , "HitInt[NTotHits]/F"  );
   fDAQSimTree -> Branch( "HitPeak"   , &HitPeak   , "HitPeak[NTotHits]/F" );
-  fDAQSimTree -> Branch( "TotHitSize", &TotHitSize, "TotHitSize/I" );
+  fDAQSimTree -> Branch( "GenType"   , &GenType   , "GenType[NTotHits]/I" );
+
+  fDAQSimTree -> Branch( "TotGen_Marl", &TotGen_Marl, "TotGen_Marl/I" );
+  fDAQSimTree -> Branch( "TotGen_APA" , &TotGen_APA , "TotGen_APA/I"  );
+  fDAQSimTree -> Branch( "TotGen_CPA" , &TotGen_CPA , "TotGen_CPA/I"  );
+  fDAQSimTree -> Branch( "TotGen_Ar39", &TotGen_Ar39, "TotGen_Ar39/I" );
+  fDAQSimTree -> Branch( "TotGen_Neut", &TotGen_Neut, "TotGen_Neut/I" );
+  fDAQSimTree -> Branch( "TotGen_Kryp", &TotGen_Kryp, "TotGen_Kryp/I" );
+  fDAQSimTree -> Branch( "TotGen_Plon", &TotGen_Plon, "TotGen_Plon/I" );
+  fDAQSimTree -> Branch( "TotGen_Rdon", &TotGen_Rdon, "TotGen_Rdon/I" );
 
   // --- Our Histograms...
-  fNADC_comp = tfs->make<TH1F>("fNADC_comp","Number of ADC samples, after compression;Number of ADC samples;Frequency",5000,0,5000);
-  fNADC_nocomp = tfs->make<TH1F>("fNADC_nocomp","Number of ADC samples, without compression;Number of ADC samples;Frequency",5000,0,5000);
-  fNADC_comp_rawcount = tfs->make<TH1F>("fNADC_comp_rawcount","Number of ADC samples, after compression, by counting non-zero entries; Number of ADC samples; Frequency",5000,0,5000);
-  fCompX =  tfs->make<TH1F>("fCompX","Compression Factor;Compression Factor;Frequency",100,0,1);
-  fCompX_rawcount = tfs->make<TH1F>("fCompX_rawcount","Compression Factor, by counting non-zero entries;Compression Factor;Frequency",100,0,1);
-  fCompX_vs_channel =  tfs->make<TH2F>("fCompX_vs_channel","Compression Factor vs. Channel No.;Channel No.;Compression Factor",30720,0,30720,100,0,1);
-  fCompX_vs_channel_rawcount =  tfs->make<TH2F>("fCompX_vs_channel_rawcount","Compression Factor vs. Channel No., by counting non-zero entries;Channel No.;Compression Factor",30720,0,30720,100,0,1);
-  fCompXr_vs_CompX = tfs->make<TH2F>("fCompXr_vs_CompX","Compression Factor vs. Compression Factor by counting non-zero entries;Compression Factor by counting non-zero entries;Compression Factor",1000,0,0.1,1000,0,0.1);
-
-  fNHits_tot = tfs->make<TH1F>("fNHits_tot",
-			       "Total number of reco hits per art::event;NHits;",
-			       1000,0.0,5000.0);
-
-  fHitSize_tot = tfs->make<TH1F>("fHitSize_tot",
-				 "Hit Duration (all hits);# of ticks;",
-				 101,-0.5,100.5);
-
-  fNHits_ind = tfs->make<TH1F>("fNHits_ind",
-			       "Number of induction plane reco hits per art::event;NHits;",
-			       1000,0.0,5000.0);
-
-  fHitSize_ind = tfs->make<TH1F>("fHitSize_ind",
-				 "Hit Duration (induction plane hits);# of ticks;",
-				 101,-0.5,100.5);
-
-  fNHits_col = tfs->make<TH1F>("fNHits_col",
-			       "Number of collection reco hits per art::event;NHits;",
-			       1000,0.0,5000.0);
-
-  fHitSize_col = tfs->make<TH1F>("fHitSize_col",
-				 "Hit Duration (collection plane hits);# of ticks;",
-				 101,-0.5,100.5);
-
-  fEventSize = tfs->make<TH1F>("fEventSize",
-			       "Size of event (sum over all hits);# of ticks;",
-			       500,0.0,50000.0);
-
-  fHitView = tfs->make<TH1F>("fHitView",
-			     "Hit view (U,V,Z);view;",
-			     16,-5.5,10.5);
+  hAdjHits_Marl = tfs->make<TH1I>("hAdjHits_Marl", "Number of adjacent collection plane hits for MARLEY; Number of adjacent collection plane hits; Number of events"  , 21, -0.5, 20.5 );
+  hAdjHits_APA  = tfs->make<TH1I>("hAdjHits_APA" , "Number of adjacent collection plane hits for APAs; Number of adjacent collection plane hits; Number of events"    , 21, -0.5, 20.5 );
+  hAdjHits_CPA  = tfs->make<TH1I>("hAdjHits_CPA" , "Number of adjacent collection plane hits for CPAs; Number of adjacent collection plane hits; Number of events"    , 21, -0.5, 20.5 );
+  hAdjHits_Ar39 = tfs->make<TH1I>("hAdjHits_Ar39", "Number of adjacent collection plane hits for Argon39; Number of adjacent collection plane hits; Number of events" , 21, -0.5, 20.5 );
+  hAdjHits_Neut = tfs->make<TH1I>("hAdjHits_Neut", "Number of adjacent collection plane hits for Neutrons; Number of adjacent collection plane hits; Number of events", 21, -0.5, 20.5 );
+  hAdjHits_Kryp = tfs->make<TH1I>("hAdjHits_Kryp", "Number of adjacent collection plane hits for Krypton; Number of adjacent collection plane hits; Number of events" , 21, -0.5, 20.5 );
+  hAdjHits_Plon = tfs->make<TH1I>("hAdjHits_Plon", "Number of adjacent collection plane hits for Polonium; Number of adjacent collection plane hits; Number of events", 21, -0.5, 20.5 );
+  hAdjHits_Rdon = tfs->make<TH1I>("hAdjHits_Rdon", "Number of adjacent collection plane hits for Radon; Number of adjacent collection plane hits; Number of events"   , 21, -0.5, 20.5 );
+  hAdjHits_Oth  = tfs->make<TH1I>("hAdjHits_Oth" , "Number of adjacent collection plane hits for Others; Number of adjacent collection plane hits; Number of events"  , 21, -0.5, 20.5 );
 } // BeginJob
 
 //......................................................
@@ -237,60 +250,194 @@ void DAQSimAna::analyze(art::Event const & evt)
   Event  = evt.event();
 
   // --- Lift out the TPC raw digits:
-  auto rawdigits = evt.getValidHandle<std::vector<raw::RawDigit> >(fRawDigitLabel);
+  //auto rawdigits = evt.getValidHandle<std::vector<raw::RawDigit> >(fRawDigitLabel);
 
   // --- Lift out the reco hits:
   auto reco_hits = evt.getValidHandle<std::vector<recob::Hit> >(fHitLabel);
 
+  // --- Lift out the MARLEY particles.
+  auto MarlTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fMARLLabel);
+  art::FindManyP<simb::MCParticle> MarlAssn(MarlTrue,evt,fGEANTLabel);
+  FillMyMaps( MarlParts, MarlAssn, MarlTrue );
+  TotGen_Marl = MarlParts.size();
+  std::cout << "--- The size of MarleyParts is " << MarlParts.size() << std::endl;
+
+  // --- Lift out the APA particles.
+  auto APATrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fAPALabel);
+  art::FindManyP<simb::MCParticle> APAAssn(APATrue,evt,fGEANTLabel);
+  FillMyMaps( APAParts, APAAssn, APATrue );
+  TotGen_APA = APAParts.size();
+  std::cout << "--- The size of APAParts is " << APAParts.size() << std::endl;
+
+  // --- Lift out the CPA particles.
+  auto CPATrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fCPALabel);
+  art::FindManyP<simb::MCParticle> CPAAssn(CPATrue,evt,fGEANTLabel);
+  FillMyMaps( CPAParts, CPAAssn, CPATrue );
+  TotGen_CPA = CPAParts.size();
+  std::cout << "--- The size of CPAParts is " << CPAParts.size() << std::endl;
+
+  // --- Lift out the Ar39 particles.
+  auto Ar39True = evt.getValidHandle<std::vector<simb::MCTruth> >(fAr39Label);
+  art::FindManyP<simb::MCParticle> Ar39Assn(Ar39True,evt,fGEANTLabel);
+  FillMyMaps( Ar39Parts, Ar39Assn, Ar39True );
+  TotGen_Ar39 = Ar39Parts.size();
+  std::cout << "--- The size of Ar39Parts is " << Ar39Parts.size() << std::endl;
+
+  // --- Lift out the Neut particles.
+  auto NeutTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fNeutLabel);
+  art::FindManyP<simb::MCParticle> NeutAssn(NeutTrue,evt,fGEANTLabel);
+  FillMyMaps( NeutParts, NeutAssn, NeutTrue );
+  TotGen_Neut = NeutParts.size();
+  std::cout << "--- The size of NeutParts is " << NeutParts.size() << std::endl;
+
+  // --- Lift out the Kryp particles.
+  auto KrypTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fKrypLabel);
+  art::FindManyP<simb::MCParticle> KrypAssn(KrypTrue,evt,fGEANTLabel);
+  FillMyMaps( KrypParts, KrypAssn, KrypTrue );
+  TotGen_Kryp = KrypParts.size();
+  std::cout << "--- The size of KrypParts is " << KrypParts.size() << std::endl;
+
+  // --- Lift out the Plon particles.
+  auto PlonTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fPlonLabel);
+  art::FindManyP<simb::MCParticle> PlonAssn(PlonTrue,evt,fGEANTLabel);
+  FillMyMaps( PlonParts, PlonAssn, PlonTrue );
+  TotGen_Plon = PlonParts.size();
+  std::cout << "--- The size of PlonParts is " << PlonParts.size() << std::endl;
+
+  // --- Lift out the Rdon particles.
+  auto RdonTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fRdonLabel);
+  art::FindManyP<simb::MCParticle> RdonAssn(RdonTrue,evt,fGEANTLabel);
+  FillMyMaps( RdonParts, RdonAssn, RdonTrue );
+  TotGen_Rdon = RdonParts.size();
+  std::cout << "--- The size of RdonParts is " << RdonParts.size() << std::endl;
+
+  // --- Finally, get a list of all of my particles in one chunk.
+  const sim::ParticleList& PartList = bktrk->ParticleList();
+  std::cout << "There are a total of " << PartList.size() << " MCParticles in the event " << std::endl;
+
+  std::vector< recob::Hit > ColHits_Marl;
+  std::vector< recob::Hit > ColHits_CPA;
+  std::vector< recob::Hit > ColHits_APA;
+  std::vector< recob::Hit > ColHits_Ar39;
+  std::vector< recob::Hit > ColHits_Neut;
+  std::vector< recob::Hit > ColHits_Kryp;
+  std::vector< recob::Hit > ColHits_Plon;
+  std::vector< recob::Hit > ColHits_Rdon;
+  std::vector< recob::Hit > ColHits_Oth;
+
+  //*
   // --- Loop over the reconstructed hits to determine the "size" of each hit 
   NTotHits = reco_hits->size();
-  for(int hit = 0; hit < NTotHits; ++hit) {
+  int LoopHits = std::min( NTotHits, nMaxHits );
+  std::cout << "---- There are " << NTotHits << " hits in the event, but array is of size " << nMaxHits << ", so looping over first " << LoopHits << " hits." << std::endl;
+  for(int hit = 0; hit < LoopHits; ++hit) {
     // --- Let access this particular hit.
     recob::Hit const& ThisHit = reco_hits->at(hit);  
     
+    // --- Lets figure out which particle contributed the most charge to this hit...
+    int MainTrID    = -1;
+    double TopEFrac = -DBL_MAX;
+    std::vector< sim::TrackIDE > ThisHitIDE = bktrk->HitToTrackID( ThisHit );
+    for (size_t ideL=0; ideL < ThisHitIDE.size(); ++ideL) {
+      if ( ThisHitIDE[ideL].energyFrac > TopEFrac ) {
+	TopEFrac = ThisHitIDE[ideL].energyFrac;
+	MainTrID = ThisHitIDE[ideL].trackID;
+      }
+    }
+    // --- Lets figure out how that particle was generated...
+    PType ThisPType = WhichParType( MainTrID );
+    /*
+    // --- Write out some information about this hit....
+    std::cout << "Looking at hit on channel " << ThisHit.Channel() << " corresponding to TPC " << ThisHit.WireID().TPC << ", wire " << ThisHit.WireID().Wire << ", plane " << ThisHit.WireID().Plane << ".\n"
+	      << "\tIt was at time " << ThisHit.PeakTime() << ", with amplitude " << ThisHit.PeakAmplitude() << ", it was caused by " << ThisHitIDE.size() << " particles, the main one being"
+	      << " TrackID " << MainTrID << " which was generated by " << ThisPType
+	      << std::endl;
+    //*/
+    // --- Check which view this hit is on...
+    if(ThisHit.View() == geo::kU || ThisHit.View() == geo::kV) {
+      ++NIndHits;
+    } else { // If not induction then must be collection.
+      ++NColHits;
+    }
+
     // --- Now fill in all of the hit level variables.
     HitView[hit] = ThisHit.View();
     HitSize[hit] = ThisHit.EndTick() - ThisHit.StartTick();
+    HitTPC [hit] = ThisHit.WireID().TPC;
     HitChan[hit] = ThisHit.Channel();
     HitTime[hit] = ThisHit.PeakTime();
     HitRMS [hit] = ThisHit.RMS();
     HitSADC[hit] = ThisHit.SummedADC();
     HitInt [hit] = ThisHit.Integral();
     HitPeak[hit] = ThisHit.PeakAmplitude();
-
-    std::cout << " Peak " << HitPeak[hit] << " " << ThisHit.PeakAmplitude() 
-	      << " Time " << HitTime[hit] << " " << ThisHit.PeakTime()
-	      << " SADC " << HitSADC[hit] << " " << ThisHit.SummedADC()
-	      << std::endl;
-
-    // --- Work out the total hit size of the event.
-    TotHitSize += HitSize[hit];
-    
-    // --- Check which view this hit is on...
-    if(ThisHit.View() == geo::kU || ThisHit.View() == geo::kV) {
-      ++NIndHits;
-    } else { // If not induction then must be collection.
-      ++NColHits;
-    }    
+    GenType[hit] = ThisPType;
+  
+    // --- I want to fill a vector of coll plane hits, for each of the different kinds of generator.
+    if (ThisHit.View() == 2) {
+      if (ThisPType == 0)      ColHits_Oth .push_back( ThisHit );
+      else if (ThisPType == 1) ColHits_Marl.push_back( ThisHit );
+      else if (ThisPType == 2) ColHits_APA .push_back( ThisHit );
+      else if (ThisPType == 3) ColHits_CPA .push_back( ThisHit );
+      else if (ThisPType == 4) ColHits_Ar39.push_back( ThisHit );
+      else if (ThisPType == 5) ColHits_Neut.push_back( ThisHit );
+      else if (ThisPType == 6) ColHits_Kryp.push_back( ThisHit );
+      else if (ThisPType == 7) ColHits_Plon.push_back( ThisHit );
+      else if (ThisPType == 8) ColHits_Rdon.push_back( ThisHit );
+    }
   } // Loop over reco_hits.
 
+  // ---- Write out the Marley hits....
+  std::cerr << "\n\nAfter all of that I have a total of " << ColHits_Marl.size() << " MARLEY col plane hits." << std::endl;
+  for (size_t hh=0; hh<ColHits_Marl.size(); ++hh) {
+    std::cerr << "\tHit " << hh << " was on chan " << ColHits_Marl[hh].Channel() << " at " << ColHits_Marl[hh].PeakTime() << std::endl;
+  }
+  // --- Now calculate all of the hits...
+  CalcAdjHits( ColHits_Marl, hAdjHits_Marl, true );
+  std::cerr << "\nAnd now for APA hits..." << std::endl;
+  CalcAdjHits( ColHits_APA , hAdjHits_APA , false  );
+  std::cerr << "\nAnd now for CPA hits..." << std::endl;
+  CalcAdjHits( ColHits_CPA , hAdjHits_CPA , false  );
+  std::cerr << "\nAnd now for Ar39 hits..." << std::endl;
+  CalcAdjHits( ColHits_Ar39, hAdjHits_Ar39, false );
+  std::cerr << "\nAnd now for Neuton hits..." << std::endl;
+  CalcAdjHits( ColHits_Neut, hAdjHits_Neut, false );
+  std::cerr << "\nAnd now for Krypton hits..." << std::endl;
+  CalcAdjHits( ColHits_Kryp, hAdjHits_Kryp, false );
+  std::cerr << "\nAnd now for Polonium hits..." << std::endl;
+  CalcAdjHits( ColHits_Plon, hAdjHits_Plon, false );
+  std::cerr << "\nAnd now for Radon hits..." << std::endl;
+  CalcAdjHits( ColHits_Rdon, hAdjHits_Rdon, false );
+  std::cerr << "\nAnd now for Other hits..." << std::endl;
+  CalcAdjHits( ColHits_Oth , hAdjHits_Oth , false  );
 
-  std::vector<short> uADCs;
   
+  //*/
+  // --- Now loop through the particle list.
+  /*
+  std::cout << "\n\nNow to loop through the truth information." << std::endl;
+  for ( sim::ParticleList::const_iterator ipar = PartList.begin(); ipar!=PartList.end(); ++ipar) {
+    // --- Grab this particle.
+    simb::MCParticle *particle = ipar->second;
+    // Let's just write out what our primary particles are...
+    if (particle->Process() != "primary") continue; // Can also check that particle->Mother() != 0.
+    std::cout << "-- Particle with TrackID " << particle->TrackId() << ", which was a " << particle->PdgCode() << " was a primary and had initial energy " << particle->E()
+	      << ", " << particle->NumberTrajectoryPoints() << " trajectory points, and " << particle->NumberDaughters() << " daughters, and Process - " << particle->Process()
+	      << std::endl;
+  }
+  //*/
+  /*
+  std::vector<short> uADCs;
   for (unsigned int dig=0; dig<rawdigits->size(); ++dig){
-    
     // --- Lets access this particular RawDigit
     raw::RawDigit ThisDig = rawdigits->at(dig);
     nADC=0;
-
     // --- Uncompress the ADC vector.
     if (dig==0){
       std::cout << "uADCs.size() before Uncompress = " << uADCs.size() << std::endl;
       raw::Uncompress(ThisDig.ADCs(), uADCs, ThisDig.Compression());
       std::cout << "uADCs.size() after Uncompress = " << uADCs.size() << "\n\n";
     }
-    
-    //print some stuff (for debugging)
+    // --- Print some stuff about the first RawDigit
     if (dig==0){
       std::cout << "\nLooking at rawdigit["<<dig<<"]. It was on channel " << ThisDig.Channel() << ". "
 		<< "It had " << ThisDig.Samples() << " samples. "                                 // The readout length for 1x2x6 is 4492 ticks
@@ -299,31 +446,135 @@ void DAQSimAna::analyze(art::Event const & evt)
 		<< std::endl;
     }
     
-    for (unsigned int a = 0; a < uADCs.size(); a++){
-      if (uADCs[a]!=0){
-	if (dig==0) std::cout << "ATTN:\t" << uADCs[a] << " - " << ThisDig.GetPedestal() << " = " << uADCs[a]-ThisDig.GetPedestal() << "....Dig " << dig << ", tick " << a << ".\n";
-	nADC++;
-      }
-    }
-    if (dig==0) std::cout << "\n";
-    if (dig==0) std::cout << "Found " << nADC << " non-zero ADC words in uncompressed waveform\n";
-
-    fNADC_comp->Fill(ThisDig.NADC());
-    fNADC_nocomp->Fill(ThisDig.Samples());
-    fCompX->Fill(ThisDig.NADC()/ThisDig.Samples());
-    fCompX_vs_channel->Fill(ThisDig.Channel(),ThisDig.NADC()/ThisDig.Samples());
-
-    fNADC_comp_rawcount->Fill(nADC);
-    fCompX_rawcount->Fill(nADC/ThisDig.Samples());
-    fCompX_vs_channel_rawcount->Fill(ThisDig.Channel(),nADC/ThisDig.Samples());
-
-    fCompXr_vs_CompX->Fill(ThisDig.NADC()/ThisDig.Samples(),nADC/ThisDig.Samples());
-
   } // Loop over RawDigits.
-  
+  */
   // --- Finally, fill our TTree once per event.
   fDAQSimTree -> Fill();
 
 } // Analyze DAQSimAna.
 
+
+//......................................................
+void DAQSimAna::FillMyMaps( std::map< int, simb::MCParticle> &MyMap, art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand )
+{
+  for ( size_t L1=0; L1 < Hand->size(); ++L1 ) {
+    for ( size_t L2=0; L2 < Assn.at(L1).size(); ++L2 ) {
+      const simb::MCParticle ThisPar = (*Assn.at(L1).at(L2));
+      MyMap[ThisPar.TrackId()] = ThisPar;
+    }
+  }
+  return;
+}
+
+//......................................................
+PType DAQSimAna::WhichParType( int TrID )
+{
+  // Check if Ar39
+  if ( InMyMap( TrID, Ar39Parts ) ) {
+    return kAr39;
+  // Check if MARLEY
+  } else  if ( InMyMap( TrID, MarlParts ) ) {
+    return kMarl;
+  // Check if APA
+  } else if ( InMyMap( TrID, APAParts  ) ) {
+    return kAPA;
+    // Check if CPA
+  } else if ( InMyMap( TrID, CPAParts  ) ) {
+    return kCPA;
+    // Check if Neut
+  } else if ( InMyMap( TrID, NeutParts ) ) {
+    return kNeut;
+    // Check if Kryp
+  } else if ( InMyMap( TrID, KrypParts ) ) {
+    return kKryp;
+    // Check if Plon
+  } else if ( InMyMap( TrID, PlonParts ) ) {
+    return kPlon;
+    // Check if Rdon
+  } else if ( InMyMap( TrID, RdonParts ) ) {
+    return kRdon;
+  }
+  // If get this far then who knows???
+  return kUnknown;
+}
+
+//......................................................
+bool DAQSimAna::InMyMap( int TrID, std::map< int, simb::MCParticle> ParMap )
+{
+  std::map<int, simb::MCParticle>::iterator ParIt;
+  ParIt = ParMap.find( TrID );
+  if ( ParIt != ParMap.end() ) {
+    return true;
+  } else
+    return false;
+}
+
+//......................................................
+void DAQSimAna::CalcAdjHits( std::vector< recob::Hit > MyVec, TH1I* MyHist, bool HeavDebug ) {
+  const double TimeRange = 20;
+  const int    ChanRange = 2;
+  unsigned int FilledHits = 0;
+  unsigned int NumOriHits = MyVec.size();
+  while( NumOriHits != FilledHits ) {
+    if (HeavDebug) std::cerr << "\nStart of my while loop" << std::endl;
+    std::vector< recob::Hit > AdjHitVec;
+    AdjHitVec.push_back ( MyVec[0] );
+    MyVec.erase( MyVec.begin()+0 );
+    int LastSize = 0;
+    int NewSize  = AdjHitVec.size();
+    while ( LastSize != NewSize ) {
+      std::vector<int> AddNow;
+      for (size_t aL=0; aL < AdjHitVec.size(); ++aL) {
+	for (size_t nL=0; nL < MyVec.size(); ++nL) {
+	  if (HeavDebug) {
+	    std::cerr << "\t\tLooping though AdjVec " << aL << " and  MyVec " << nL
+		      << " AdjHitVec - " << AdjHitVec[aL].Channel() << " & " << AdjHitVec[aL].PeakTime()
+		      << " MVec - " << MyVec[nL].Channel() << " & " << MyVec[nL].PeakTime()
+		      << " Channel " << abs( (int)AdjHitVec[aL].Channel()  - (int)MyVec[nL].Channel()  )  << " bool " << (bool)(abs( (int)AdjHitVec[aL].Channel() - (int)MyVec[nL].Channel()  ) <= ChanRange)
+		      << " Time " << abs( AdjHitVec[aL].PeakTime() - MyVec[nL].PeakTime() ) << " bool " << (bool)(abs( (double)AdjHitVec[aL].PeakTime() - (double)MyVec[nL].PeakTime() ) <= TimeRange)
+		      << std::endl;
+	  }
+	  if ( abs( (int)AdjHitVec[aL].Channel()  - (int)MyVec[nL].Channel()  ) <= ChanRange &&
+	       abs( (double)AdjHitVec[aL].PeakTime() - (double)MyVec[nL].PeakTime() ) <= TimeRange ) {
+	    if (HeavDebug) std::cerr << "\t\t\tFound a new thing!!!" << std::endl;
+	    // --- Check that this element isn't already in AddNow.
+	    bool AlreadyPres = false;
+	    for (size_t zz=0; zz<AddNow.size(); ++zz) {
+	      if (AddNow[zz] == (int)nL) AlreadyPres = true;
+	    }
+	    if (!AlreadyPres)
+	      AddNow.push_back( nL );
+	  } // If this hit is within the window around one of my other hits.
+	} // Loop through my vector of colleciton plane hits.
+      } // Loop through AdjHitVec
+      // --- Now loop through AddNow and remove from Marley whilst adding to AdjHitVec
+      for (size_t aa=0; aa<AddNow.size(); ++aa) {
+	if (HeavDebug) {
+	  std::cerr << "\tRemoving element " << AddNow.size()-1-aa << " from MyVec ===> "
+		    << MyVec[ AddNow[AddNow.size()-1-aa] ].Channel() << " & " << MyVec[ AddNow[AddNow.size()-1-aa] ].PeakTime()
+		    << std::endl;
+	}
+	AdjHitVec.push_back ( MyVec[ AddNow[AddNow.size()-1-aa] ] );
+	MyVec.erase( MyVec.begin() + AddNow[AddNow.size()-1-aa] );
+      }
+      LastSize = NewSize;
+      NewSize  = AdjHitVec.size();
+      if (HeavDebug) {
+	std::cerr << "\t---After that pass, AddNow was size " << AddNow.size() << " ==> LastSize is " << LastSize << ", and NewSize is " << NewSize
+		  << "\nLets see what is in AdjHitVec...." << std::endl;
+	for (size_t aL=0; aL < AdjHitVec.size(); ++aL) {
+	  std::cout << "\tElement " << aL << " is ===> " << AdjHitVec[aL].Channel() << " & " << AdjHitVec[aL].PeakTime() << std::endl;
+	}
+      }
+
+  } // while ( LastSize != NewSize )
+    int NumAdjColHits = AdjHitVec.size();
+    if (HeavDebug) std::cerr << "After that loop, I had " << NumAdjColHits << " adjacent collection plane hits." << std::endl;
+    MyHist -> Fill( NumAdjColHits );
+    FilledHits += NumAdjColHits;
+  }
+  return;
+}
+
+//......................................................
 DEFINE_ART_MODULE(DAQSimAna)

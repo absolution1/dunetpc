@@ -5,7 +5,18 @@ standard_daqsimana:
   module_type:		DAQSimAna
   #====================
   RawDigitLabel:	"daq"		# string for the process that made the raw digits
-  HitLabel:		"gaushit"	# string for the process that made the reco hits
+  HitLabel:		"hitfd" 	# string for the process that made the reco hits
+
+  GEANT4Label:   "largeant"    # The label for the process which ran GEANT4
+  MARLEYLabel:   "generator"   # The label for the process which produced MARLEY events
+  APALabel:      "apaGen"      # The label for the process which produced APA events
+  CPALabel:      "cpaGen"      # The label for the process which produced CPA events
+  Argon39Label:  "ar39Gen"     # The label for the process which produced Argon 39 events
+  NeutronLabel:  "cNeutronGen" # The label for the process which produced Neutron events
+  KryptonLabel:  "kr85Gen"     # The label for the process which produced Krypton events
+  PoloniumLabel: "po210Gen"    # The label for the process which produced Polonium events
+  RadonLabel:    "rn222Gen"    # The label for the process which produced Radon events
+
 }
 
 END_PROLOG
