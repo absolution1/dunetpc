@@ -49,17 +49,17 @@ rm protodunedphase_nowires_*.gdml
 ########################
 
 # with wires for larcore
-perl generate_3x1x1dphase.pl -w 1 -o 3x1x1dphase_geo.xml
-perl make_gdml.pl -i 3x1x1dphase_geo.xml -o 3x1x1dphase.gdml
+#perl generate_3x1x1dphase.pl -w 1 -o 3x1x1dphase_geo.xml
+#perl make_gdml.pl -i 3x1x1dphase_geo.xml -o 3x1x1dphase.gdml
 
 # clean up
-rm 3x1x1dphase_geo.xml
-rm 3x1x1dphase_*.gdml
+#rm 3x1x1dphase_geo.xml
+#rm 3x1x1dphase_*.gdml
 
 # no wires for geant
-perl generate_3x1x1dphase.pl -w 0 -o 3x1x1dphase_geo_nowires.xml
-perl make_gdml.pl -i 3x1x1dphase_geo_nowires.xml -o 3x1x1dphase_nowires.gdml
+#perl generate_3x1x1dphase.pl -w 0 -o 3x1x1dphase_geo_nowires.xml
+#perl make_gdml.pl -i 3x1x1dphase_geo_nowires.xml -o 3x1x1dphase_nowires.gdml
 
 # clean up
-rm 3x1x1dphase_geo_nowires.xml
-rm 3x1x1dphase_nowires_*.gdml
+#rm 3x1x1dphase_geo_nowires.xml
+#rm 3x1x1dphase_nowires_*.gdml
