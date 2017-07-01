@@ -52,6 +52,10 @@ public:
       fhicl::Atom<art::InputTag> TrackModuleLabel {
           Name("TrackModuleLabel"), Comment("tag of track producer")
       };
+    
+      fhicl::Atom<size_t> MinHitsPerPlane {
+          Name("MinHitsPerPlane"), Comment("min hits per plane for a reconstructable MC particle")
+      };
   };
   using Parameters = art::EDAnalyzer::Table<Config>;
 
@@ -87,12 +91,14 @@ private:
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
   art::InputTag fTrackModuleLabel;
+  size_t fMinHitsPerPlane;
 };
 
 proto::RecoEff::RecoEff(Parameters const& config) : EDAnalyzer(config),
     fSimulationLabel(config().SimulationLabel()),
     fHitModuleLabel(config().HitModuleLabel()),
-    fTrackModuleLabel(config().TrackModuleLabel())
+    fTrackModuleLabel(config().TrackModuleLabel()),
+    fMinHitsPerPlane(config().MinHitsPerPlane())
 {
 }
 
@@ -100,8 +106,8 @@ void proto::RecoEff::beginJob()
 {
 	art::ServiceHandle<art::TFileService> tfs;
 	
-	fDenominatorHist = tfs->make<TH1D>("Denominator", "all reconstructable particles", 100., 0., 3500.);
-	fNominatorHist = tfs->make<TH1D>("Nominator", "reconstructed and matched tracks", 100., 0., 3500.);
+	fDenominatorHist = tfs->make<TH1D>("Denominator", "all reconstructable particles", 100., 0., 1500.);
+	fNominatorHist = tfs->make<TH1D>("Nominator", "reconstructed and matched tracks", 100., 0., 1500.);
 
 	fTree = tfs->make<TTree>("events", "summary tree");
 	fTree->Branch("fRun", &fRun, "fRun/I");
@@ -175,26 +181,30 @@ void proto::RecoEff::analyze(art::Event const & e)
   std::map<int, std::vector< recob::Hit > > mapTrackIDtoHits_filtered;
   for (auto const & p : mapTrackIDtoHits)
   {
+    // *** here more conditions may be applied to select interesting MC particles, eg:
+    // - check with BackTracker if this is a beam/cosmic particle:
+    //auto origin = bt->TrackIDToMCTruth(p.first)->Origin();
+    //if (origin == simb::kCosmicRay) { std::cout << "cosmic" << std::endl; }
+    //else if (origin == simb::kSingleParticle) { std::cout << "beam" << std::endl; }
+    //else { std::cout << "other" << std::endl; }
+    // - check if this the process name is "primary" to select primary particles:
+    //std::cout << bt->TrackIDToParticle(p.first)->Process() << std::endl;
+    // - check if the mother of this MC particle is primary so you can select secondaries of the primary interaction
+
     std::unordered_map<geo::View_t, size_t> hit_count;
     for (auto const & h : p.second) { hit_count[h.View()]++; }
 
     size_t nviews = 0;
-    for (auto const & n : hit_count)
-    {
-        if (n.second > 3) { nviews++; }
-    }
-    if (nviews >= 2)
-    {
-        fReconstructable++;                            // count particles that should be reconstructed
-        mapTrackIDtoHits_filtered[p.first] = p.second; // move entry to the filteres particles
-        fDenominatorHist->Fill(p.second.size());
-    }
+    for (auto const & n : hit_count) {  if (n.second > fMinHitsPerPlane) { nviews++; } }
+    if (nviews >= 2) { mapTrackIDtoHits_filtered.emplace(p); }
   }
+  fReconstructable = mapTrackIDtoHits_filtered.size();
 
   std::cout << "------------ event: " << fEvent << " has reconstructable: " << fReconstructable << std::endl;
   for (auto const &p : mapTrackIDtoHits_filtered)
   {
     std::cout << " : id " << p.first << " size " << p.second.size() << " en: " << mapTrackIDtoHitsEnergy[p.first] << std::endl;
+    fDenominatorHist->Fill(p.second.size());
   }
   // ---------------------------------------------------------------------------------------
 
@@ -204,11 +214,15 @@ void proto::RecoEff::analyze(art::Event const & e)
   art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, e, fTrackModuleLabel);
 
   fNRecoTracks = trkHandle->size();
-  for (size_t t = 0; t < trkHandle->size(); ++t) // loop over tracks
+  for (size_t t = 0; t < trkHandle->size(); ++t)     // loop over tracks
   {
-    std::map<int, double> trkID_E;
+    // *** here you should select if the reconstructed track is interesting, eg:
+    // - associated PFParticle has particlular PDG code
+    // - or just the recob::Track has interesting ParticleID
+
+    std::map<int, double> trkID_E;                   // map MC particles to their energy contributed to this track t
     const auto & hits = hitsFromTracks.at(t);
-    for (const auto & h : hits) // loop over hits assigned to track t
+    for (const auto & h : hits)                      // loop over hits assigned to track t
     {
         for (auto const & ide : bt->HitToTrackID(h)) // loop over std::vector< sim::TrackIDE >, for a hit h
         {
@@ -219,11 +233,12 @@ void proto::RecoEff::analyze(art::Event const & e)
         }
     }
 
-    double max_e = 0.0; double tot_e = 0.0;
+    // find MC particle which cotributed maximum energy to track t
     int best_id = 0;
+    double max_e = 0, tot_e = 0;
     for (auto const & entry : trkID_E)
 	{
-        tot_e += entry.second;    // sum total energy in these hits
+        tot_e += entry.second;    // sum total energy in the hits in track t
         if (entry.second > max_e) // find track ID corresponding to max energy
         {
             max_e = entry.second;
@@ -231,8 +246,9 @@ void proto::RecoEff::analyze(art::Event const & e)
         }
     }
 
-    // check if max_e has more than 50% energy deposited by MC particle.
-    if ((max_e > 0.5 * mapTrackIDtoHitsEnergy[best_id]) && (tot_e > 0.0)) // found something reasonable
+    // check if reco track is matching to MC particle:
+    if ((max_e > 0.5 * tot_e) &&                         // MC particle has more than 50% energy contribution to the track
+        (max_e > 0.5 * mapTrackIDtoHitsEnergy[best_id])) // track covers more than 50% of energy deposited by MC particle in hits
     {
         fNominatorHist->Fill(mapTrackIDtoHits_filtered[best_id].size());
         fMatched++;
