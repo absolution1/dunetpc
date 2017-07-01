@@ -110,44 +110,48 @@ namespace EventGen{
     }
   }
   
-
+  //-------------------------------
   size_t ImportSingle311Event::Get311Chan(size_t LAr_chan){
+
     size_t crate = LAr_chan / 320;
     size_t Chan311;
- 
+
+    LAr_chan = 8*(LAr_chan/8+1)-LAr_chan%8 -1;
+
     if(crate == 0)
       {
-	size_t card = 4 - ((LAr_chan / 32) % 5);
-	if(LAr_chan > 159)
-	  {
-	    size_t shift = 31 - (LAr_chan % 32);
-	    Chan311 = (2*card)*32 + shift;
-	  }
-	else
-	  {
-	    size_t shift = 31 - (LAr_chan % 32);
-	    Chan311 = (2*card + 1)*32 + shift;
-	  } 
+	LAr_chan = 32*(LAr_chan/32+1)-LAr_chan%32 -1;
+        size_t card = 4 - ((LAr_chan / 32) % 5);
+        if(LAr_chan > 159)
+          {
+            size_t shift = 31 - (LAr_chan % 32);
+            Chan311 = (2*card)*32 + shift;
+          }
+        else
+          {
+            size_t shift = 31 - (LAr_chan % 32);
+            Chan311 = (2*card + 1)*32 + shift;
+          }
       }
-    else 
+    else
       {
-	size_t new_LAr_chan = LAr_chan - crate*320;
-	size_t card = ((new_LAr_chan / 32) % 5);
-	if(new_LAr_chan > 159)
-	  {
-	    size_t shift = new_LAr_chan % 32;
-	    Chan311 = (2*card)*32 + shift;
-	  }
-	else
-	  {
-	    size_t shift = new_LAr_chan % 32;
-	    Chan311 = (2*card + 1)*32 + shift;
-	  }
-	Chan311 = Chan311 + crate*320;
-      }	// end of if/else statementi
-    
-    return Chan311; 
-  } // end Get311Chan
+        size_t new_LAr_chan = LAr_chan - crate*320;
+        size_t card = ((new_LAr_chan / 32) % 5);
+        if(new_LAr_chan > 159)
+          {
+            size_t shift = new_LAr_chan % 32;
+            Chan311 = (2*card)*32 + shift;
+          }
+        else
+          {
+            size_t shift = new_LAr_chan % 32;
+            Chan311 = (2*card + 1)*32 + shift;
+          }
+        Chan311 = Chan311 + crate*320;
+      } // end of if/else statementi
+
+    return Chan311;
+  } // Get311Chan
 
   void ImportSingle311Event::endJob(){
     DataDecode.Close();
