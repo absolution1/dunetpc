@@ -27,13 +27,12 @@
 
 namespace lris
 {
-  void SplitAdc(const std::vector<dlardaq::adc16_t> adc, size_t channel, uint32_t num_samples,
+  void SplitAdc(const std::vector<dlardaq::adc16_t> *adc, size_t channel, uint32_t num_samples,
 		 std::vector<short> &adclist)
   {
-    //adclist.resize(num_samples);
     for(uint32_t i = 0; i < num_samples; i++)
     {
-      adclist.push_back(static_cast<short>(adc[channel*num_samples + i]));
+      adclist.emplace_back(adc->at(channel*num_samples + i));
     }
   }// SplitAdc
 
@@ -43,8 +42,11 @@ namespace lris
     size_t crate = LAr_chan / 320;
     size_t Chan311;
 
+    LAr_chan = 8*(LAr_chan/8+1)-LAr_chan%8 -1;
+
     if(crate == 0)
       {
+	LAr_chan = 32*(LAr_chan/32+1)-LAr_chan%32 -1;
         size_t card = 4 - ((LAr_chan / 32) % 5);
         if(LAr_chan > 159)
           {
@@ -89,13 +91,15 @@ namespace lris
     // Get the data.
     std::vector<dlardaq::adc16_t> ADCvec311;
     DataDecode.GetEvent(evt_num, event_head, ADCvec311);
+    std::vector<dlardaq::adc16_t> *ADCvec311Pointer = &ADCvec311;
     // fill the wires
     std::vector<short> adclist;
+
     for(size_t LAr_chan = 0; LAr_chan < (size_t)nchannels; LAr_chan++)
     {
       adclist.clear();
       size_t Chan311 = Get311Chan(LAr_chan);
-      SplitAdc(ADCvec311, Chan311, nsamples, adclist);
+      SplitAdc(ADCvec311Pointer, Chan311, nsamples, adclist);
       short unsigned int nTickReadout = nsamples;
       raw::ChannelID_t channel = LAr_chan;
       raw::Compress_t comp = raw::kNone;
