@@ -146,7 +146,7 @@ void proto::RecoEff::analyze(art::Event const & e)
   auto const & hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
   for (auto const & h : hitListHandle)
   {
-    std::map<int, double> particleID_E;
+    std::unordered_map<int, double> particleID_E;
     for (auto const & id : bt->HitToTrackID(h)) // loop over std::vector< sim::TrackIDE > contributing to hit h
 	{
 	    // select only hadronic and muon track, skip EM activity (electron's pdg, negative track id)
@@ -176,20 +176,26 @@ void proto::RecoEff::analyze(art::Event const & e)
   // ---------------------------------------------------------------------------------------
 
 
-  // now lets make map particles to their associated hits, but with some filtering of things
+  // now lets map particles to their associated hits, but with some filtering of things
   // which have a minimal chance to be reconstructed: so at least some hits in two views
-  std::map<int, std::vector< recob::Hit > > mapTrackIDtoHits_filtered;
+  std::unordered_map<int, std::vector< recob::Hit > > mapTrackIDtoHits_filtered;
   for (auto const & p : mapTrackIDtoHits)
   {
+    // *** here more conditions may be applied to select interesting MC particles, eg:
+    // - check with BackTracker if this is a beam/cosmic particle:
+    //auto origin = bt->TrackIDToMCTruth(p.first)->Origin();
+    //if (origin == simb::kCosmicRay) { std::cout << "cosmic" << std::endl; }
+    //else if (origin == simb::kSingleParticle) { std::cout << "beam" << std::endl; }
+    //else { std::cout << "other" << std::endl; }
+    // - check if this the process name is "primary" to select primary particles:
+    //std::cout << bt->TrackIDToParticle(p.first)->Process() << std::endl;
+    // - check if the mother of this MC particle is primary so you can select secondaries of the primary interaction
+
     std::unordered_map<geo::View_t, size_t> hit_count;
     for (auto const & h : p.second) { hit_count[h.View()]++; }
 
     size_t nviews = 0;
     for (auto const & n : hit_count) {  if (n.second > fMinHitsPerPlane) { nviews++; } }
-
-    // *** here more conditions may be applied to select interesting MC particles, eg:
-    // - check with BackTracker if this is a primary particle so you can select beam particles
-    // - check if the mother of this MC particle is primary so you can select secondaries of the primary interaction
     if (nviews >= 2) { mapTrackIDtoHits_filtered.emplace(p); }
   }
   fReconstructable = mapTrackIDtoHits_filtered.size();
@@ -214,7 +220,7 @@ void proto::RecoEff::analyze(art::Event const & e)
     // - associated PFParticle has particlular PDG code
     // - or just the recob::Track has interesting ParticleID
 
-    std::map<int, double> trkID_E;                   // map MC particles to their energy contributed to this track t
+    std::unordered_map<int, double> trkID_E;         // map MC particles to their energy contributed to this track t
     const auto & hits = hitsFromTracks.at(t);
     for (const auto & h : hits)                      // loop over hits assigned to track t
     {
