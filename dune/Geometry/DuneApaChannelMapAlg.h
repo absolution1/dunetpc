@@ -36,8 +36,8 @@
 #include "cetlib/exception.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "larcore/Geometry/ChannelMapAlg.h"
-#include "larcore/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{

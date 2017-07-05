@@ -3,8 +3,8 @@
 #include "dune/DuneCommon/Service/GeoApaChannelGroupService.h"
 #include <sstream>
 #include <iomanip>
-#include "larcore/Geometry/GeometryCore.h"
-#include "larcore/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
 
 using std::cout;
 using std::ostream;

@@ -5,7 +5,7 @@ simple_plugin(ECalibration "module"
 			larreco_RecoAlg
 			larreco_Calorimetry
 			larreco_RecoAlg_PMAlg
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
@@ -32,7 +32,7 @@ simple_plugin(EdepCal "module"
 			larreco_RecoAlg
 			larreco_Calorimetry
 			larreco_RecoAlg_PMAlg
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
@@ -59,7 +59,7 @@ simple_plugin(HadCal "module"
                         larreco_RecoAlg
                         larreco_Calorimetry
                         larreco_RecoAlg_PMAlg
-                        larcore_Geometry
+                        larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         lardata_ArtDataHelper
                         lardata_Utilities
@@ -87,7 +87,7 @@ simple_plugin(RecoEff "module"
                         larreco_RecoAlg
                         larreco_Calorimetry
                         larreco_RecoAlg_PMAlg
-                        larcore_Geometry
+                        larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         lardata_ArtDataHelper
                         lardata_Utilities

@@ -3,7 +3,7 @@ simple_plugin(ShowerAnalysis "module"
 			     lardataobj_RawData
 		      	     lardataobj_RecoBase
 		      	     lardata_ArtDataHelper
-		             larcore_Geometry
+		             larcorealg_Geometry
 			     larcore_Geometry_Geometry_service
 			     lardata_Utilities
 			     larsim_MCCheater_BackTracker_service
@@ -32,7 +32,7 @@ install_scripts()
 # art_make(LIBRARY_NAME  ShowerAna
 # 	 LIB_LIBRARIES lardataobj_RawData
 # 	 	       lardataobj_RecoBase	  
-# 	 	       larcore_Geometry  
+# 	 	       larcorealg_Geometry  
 # 	 	       larcore_Geometry_Geometry_service
 # 	 	       lardata_Utilities
 # 		       larsim_MCCheater_BackTracker_service

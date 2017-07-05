@@ -2,7 +2,7 @@ simple_plugin(DAQSimAna "module"
                      	   lbne-raw-data_Overlays
                            lbne_daqinput35t       #For online to offline channel map
                            larcore_Geometry_Geometry_service
-                           larcore_Geometry
+                           larcorealg_Geometry
                            lardataobj_RawData
                            nusimdata_SimulationBase	
                            ${ART_FRAMEWORK_CORE}

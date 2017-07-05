@@ -6,7 +6,7 @@ simple_plugin(ImportSingle311Event "module"
 			larreco_RecoAlg
 			larreco_Calorimetry
 			larreco_RecoAlg_PMAlg
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation

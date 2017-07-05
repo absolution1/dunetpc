@@ -8,15 +8,15 @@
 #include "dune/Geometry/DUNEGeometryHelper.h"
 
 // LArSoft libraries
-#include "larcore/Geometry/GeometryCore.h"
-#include "larcore/Geometry/ChannelMapAlg.h"
-#include "larcore/Geometry/ChannelMapStandardAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/ChannelMapStandardAlg.h"
 #include "dune/Geometry/DuneApaChannelMapAlg.h"
 #include "dune/Geometry/ChannelMap35Alg.h"
 #include "dune/Geometry/ChannelMap35OptAlg.h"
 #include "dune/Geometry/ChannelMapAPAAlg.h"
 #include "dune/Geometry/ChannelMapCRMAlg.h"
-#include "larcore/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
 #include "dune/Geometry/GeoObjectSorter35.h"
 
