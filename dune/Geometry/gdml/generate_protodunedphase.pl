@@ -275,7 +275,7 @@ sub gen_Materials()
 my $asmix = <<EOF;
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-$FracMassOfSteel) + 7.9300*$FracMassOfSteel " unit="g/cm3"/>
+   <D value=" @{[0.001205*(1-$FracMassOfSteel) + 7.9300*$FracMassOfSteel]} " unit="g/cm3"/>
    <fraction n="$FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="$FracMassOfAir"   ref="Air"/>
   </material>
@@ -344,13 +344,13 @@ EOF
 print TPC <<EOF;
 
    <tube name="CRMWireV"
-     rmax="0.5*$padWidth"
+     rmax="@{[0.5*$padWidth]}"
      z="$TPCActive_z"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
    <tube name="CRMWireZ"
-     rmax="0.5*$padWidth"
+     rmax="@{[0.5*$padWidth]}"
      z="$TPCActive_y"               
      deltaphi="360"
      aunit="deg"
@@ -625,9 +625,9 @@ print ENCL <<EOF;
 <solids>
 
     <box name="FoamPadBlock" lunit="cm"
-      x="$Cryostat_x + 2*$FoamPadding"
-      y="$Cryostat_y + 2*$FoamPadding"
-      z="$Cryostat_z + 2*$FoamPadding" />
+      x="@{[$Cryostat_x + 2*$FoamPadding]}"
+      y="@{[$Cryostat_y + 2*$FoamPadding]}"
+      z="@{[$Cryostat_z + 2*$FoamPadding]}" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
@@ -636,9 +636,9 @@ print ENCL <<EOF;
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="$Cryostat_x + 2*$FoamPadding + 2*$SteelSupport_x"
-      y="$Cryostat_y + 2*$FoamPadding + 2*$SteelSupport_y"
-      z="$Cryostat_z + 2*$FoamPadding + 2*$SteelSupport_z" />
+      x="@{[$Cryostat_x + 2*$FoamPadding + 2*$SteelSupport_x]}"
+      y="@{[$Cryostat_y + 2*$FoamPadding + 2*$SteelSupport_y]}"
+      z="@{[$Cryostat_z + 2*$FoamPadding + 2*$SteelSupport_z]}" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
@@ -728,9 +728,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="$DetEncWidth+2*$RockThickness" 
-      y="$DetEncHeight+2*$RockThickness" 
-      z="$DetEncLength+2*$RockThickness"/>
+      x="@{[$DetEncWidth+2*$RockThickness]}" 
+      y="@{[$DetEncHeight+2*$RockThickness]}" 
+      z="@{[$DetEncLength+2*$RockThickness]}"/>
 </solids>
 EOF
 

@@ -63,10 +63,18 @@ class RawData311InputDriver
     dlardaq::runheader_t 	file_head;
     dlardaq::footer_t 		file_foot;
 
+    std::vector< std::pair<double, double> > fPedMap;
+    std::string 		fPedestalFile;
+
     void process_Event311(std::vector<raw::RawDigit>& digitList,
 			     dlardaq::evheader_t &event_head,
 			     uint16_t evt_num);
 
+    double GetPedMean(size_t LAr_chan, std::vector< std::pair<double, double> > *fPedMap){ return fPedMap->at(LAr_chan).first; }
+
+    double GetPedRMS(size_t LAr_chan, std::vector< std::pair<double, double> > *fPedMap){ return fPedMap->at(LAr_chan).second; }
+
+     
 }; //RawData311InputDriver
 
 } //namespace lris

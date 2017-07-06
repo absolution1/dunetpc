@@ -25,7 +25,9 @@ int test_DuneToolManager() {
 
   cout << line << endl;
   cout << myname << "Retrieve tool manager." << endl;
-  DuneToolManager& dtm = DuneToolManager::instance();
+  DuneToolManager* pdtm = DuneToolManager::instance();
+  assert( pdtm != nullptr );
+  DuneToolManager& dtm = *pdtm;
 
   cout << line << endl;
   cout << myname << "Display tools." << endl;

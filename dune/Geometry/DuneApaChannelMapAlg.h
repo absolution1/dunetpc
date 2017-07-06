@@ -296,8 +296,15 @@ private:
   std::vector< double > fSinOrientation; // to explore improving speed
     std::vector< double > fCosOrientation; // to explore improving speed
 
-  };
-
+    /// Returns whether the specified ID represents a valid cryostat.
+    bool HasCryostat(CryostatID const& cid) const
+      { return cid.Cryostat < fNcryostat; }
+    
+  }; // class DuneApaChannelMapAlg
+  
+  //----------------------------------------------------------------------------
+  
+  
 }
 #endif
 
