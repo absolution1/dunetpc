@@ -40,6 +40,6 @@ outputs: {
   }
 }
 
-physics.producers.daq.Filename: "/mnt/nas01/users/chalt/EOSMount/experiment/wa105/data/311/calibrations/298/298-0.pul.cal"
+physics.producers.daq.Filename: "/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/calibrations/748/748-0.pul.cal"
 physics.producers.daq.Evt_num: 0
-
+physics.producers.daq.PedestalFile: "/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/datafiles/pedestals/pedestal_run729.dat"
