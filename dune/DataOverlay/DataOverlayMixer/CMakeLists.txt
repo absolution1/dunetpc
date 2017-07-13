@@ -14,7 +14,7 @@ art_make(
 			larevt_CalibrationDBI_IOVData
 			larevt_CalibrationDBI_Providers
 			larcore_Geometry_Geometry_service
-						larcore_Geometry
+						larcorealg_Geometry
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_IO_PRODUCTMIX}
 			${ART_FRAMEWORK_IO_ROOT}
@@ -38,7 +38,7 @@ art_make(
 	EXCLUDE OverlayRawDataDUNE35t_module.cc
 	MODULE_LIBRARIES
    larcore_Geometry_Geometry_service
-   larcore_Geometry
+   larcorealg_Geometry
 
 			dune_RawDigitAdderAna
                         lardataobj_RawData

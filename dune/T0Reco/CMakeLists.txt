@@ -2,7 +2,7 @@
 art_make( BASENAME_ONLY
 	  MODULE_LIBRARIES lardataobj_RecoBase
 	  		   lardataobj_AnalysisBase
-                           larcore_Geometry
+                           larcorealg_Geometry
                            larcore_Geometry_Geometry_service
 			   lardataobj_RawData
                            lardata_Utilities
