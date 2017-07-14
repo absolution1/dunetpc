@@ -80,7 +80,39 @@ namespace lris
   } // Get311Chan
 
 
-  // -----------------------------
+  // ----------------------------------------------------------------------
+  //
+  // ----------------------------------------------------------------------
+
+ 
+  void ReadPedestalFile(std::string PedestalFileName, std::vector< std::pair<double, double> > &PedMap){
+  //initialize the channel-ped value map
+    std::ifstream file;
+    file.open(PedestalFileName);
+    if( !file.is_open() )
+    {
+      throw art::Exception( art::errors::FileReadError ) 
+		<< "failed to open input file " << PedestalFileName << "\n";
+    }
+
+    while(!file.eof())
+    {
+      size_t ch, cryo, crate, rawch;
+      double mean, rms;
+      file >> rawch >> cryo >> crate >> ch >> mean >> rms;
+      PedMap.emplace_back(mean, rms);
+    }
+    
+    file.close();
+    return;
+  }//Read Pedestal File()
+
+  
+  // ---------------------------------------------------------------------
+  //
+  // ---------------------------------------------------------------------
+  
+
   void RawData311InputDriver::process_Event311(std::vector<raw::RawDigit>& digitList,
 			   dlardaq::evheader_t &event_head,
 			   uint16_t evt_num)
@@ -103,14 +135,21 @@ namespace lris
       short unsigned int nTickReadout = nsamples;
       raw::ChannelID_t channel = LAr_chan;
       raw::Compress_t comp = raw::kNone;
-      digitList[LAr_chan] = raw::RawDigit(channel, nTickReadout, adclist, comp);
+      raw::RawDigit rd(channel, nTickReadout, adclist, comp);
+
+      double pedval = RawData311InputDriver::GetPedMean(Chan311, &fPedMap);
+      //std::cout << "Pedval: " << pedval << "\n";
+      double pedrms = RawData311InputDriver::GetPedRMS(Chan311, &fPedMap);
+      rd.SetPedestal(pedval, pedrms);
+
+      digitList[LAr_chan] = rd;
     }
   }// process_Event311
   
 
   //------------------------------------------------------------------
   // class c'tor/d'tor
-  RawData311InputDriver::RawData311InputDriver(fhicl::ParameterSet const &, 
+  RawData311InputDriver::RawData311InputDriver(fhicl::ParameterSet const &p, 
 					   art::ProductRegistryHelper &helper,
 					   art::SourceHelper const &pm)
     :
@@ -119,6 +158,7 @@ namespace lris
     fEventCounter(0), 
     DataDecode(nchannels, nsamples)
   {
+    fPedestalFile = p.get<std::string>("PedestalFile");
     helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>("daq");
   }
 
@@ -135,6 +175,9 @@ namespace lris
   void RawData311InputDriver::readFile(std::string const &name,
 				     art::FileBlock* &fb)
   {
+    // Read in the pedestal file 
+    ReadPedestalFile(fPedestalFile, fPedMap);
+
     filename = name;
     // Fill and return a new Fileblock
     fb = new art::FileBlock(art::FileFormatVersion(1, "311 RawInput 2017"), name);

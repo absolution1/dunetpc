@@ -14,7 +14,7 @@
 
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larcore/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/GeoObjectSorterCRM.h"
 #include "fhiclcpp/ParameterSet.h"
 
