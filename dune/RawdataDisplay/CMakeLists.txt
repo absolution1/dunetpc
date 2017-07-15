@@ -1,7 +1,7 @@
 
 simple_plugin(RawEVD "module"
 			larcore_Geometry_Geometry_service
-                        larcore_Geometry
+                        larcorealg_Geometry
 			lardataobj_RawData
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
@@ -21,7 +21,7 @@ simple_plugin(RawEVD "module"
 
 simple_plugin(RawEVD35t "module"
 			larcore_Geometry_Geometry_service
-                        larcore_Geometry
+                        larcorealg_Geometry
 			lardataobj_RawData
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
@@ -41,7 +41,7 @@ simple_plugin(RawEVD35t "module"
 
 simple_plugin(RawEVDDP "module"
 			larcore_Geometry_Geometry_service
-                        larcore_Geometry
+                        larcorealg_Geometry
 			lardataobj_RawData
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
@@ -60,7 +60,7 @@ simple_plugin(RawEVDDP "module"
 )
 simple_plugin(MuonOccupancy "module"
 			larcore_Geometry_Geometry_service
-                        larcore_Geometry
+                        larcorealg_Geometry
 			lardataobj_RawData
 			dune_Geometry
                         nusimdata_SimulationBase

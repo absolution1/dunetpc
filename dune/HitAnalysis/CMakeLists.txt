@@ -4,7 +4,7 @@ art_make(BASENAME_ONLY
          lardataobj_RawData
          lardata_ArtDataHelper
 	 larcore_Geometry_Geometry_service
-         larcore_Geometry
+         larcorealg_Geometry
          nusimdata_SimulationBase
 	 larsim_MCCheater_BackTracker_service
 	 HitFinderDUNE

@@ -9,7 +9,7 @@ standard_hardwaremapper: {
   service_provider: HardwareMapperService
   LogLevel: 0
   NASICsPerBoard: 8
-  NBoardsPerAPA: 20
+  NBoardsPerAPA: 10
 }
 
 #jpd -- define some message facility "destinations"

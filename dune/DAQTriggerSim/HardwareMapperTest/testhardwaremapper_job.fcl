@@ -5,27 +5,25 @@
 
 process_name: TestHardwareMapper
 
+services:
+{
+  @table::dunefd_services
+  TFileService:          { fileName: "TemplateTrigger_hist.root" }
+  TimeTracker:           {}
+  MemoryTracker:         { ignoreTotal: 1 } # default is one
+  RandomNumberGenerator: {} #ART native random number generator
+  FileCatalogMetadata:   @local::art_file_catalog_mc
+  Geometry:              @local::dune10kt_1x2x6_geo
+}
+services.hardwaremapper: @local::standard_hardwaremapper
+#jpd -- here is how to switch on sending ONLY HardwareMapperService output to a file
+services.message.destinations.LogHardwareMapper: @local::HardwareMapperDest.LogHardwareMapperService
+
 source:
 {
     module_type: RootInput
     maxEvents: -1
 }
-
-services:
-{
-  user:         @local::dunefd_services
-#jpd -- all messages go to file called "debug.log"
-#    -- messages >= warning go to screen
-
-  message:      @local::dune_message_services_prod_debug
-}
-
-services.hardwaremapper: @local::standard_hardwaremapper
-
-#jpd -- here is how to switch on sending ONLY HardwareMapperService output to a file
-#       uncomment the line below
-
-#services.message.destinations.LogHardwareMapper: @local::HardwareMapperDest.LogHardwareMapperService
 
 physics:
 {
@@ -38,20 +36,3 @@ physics:
   end_paths: [ ana ] 
 
 }
-
-#jpd -- here is a list of geometries and how to set them (just uncomment ONE line to override to that geometry)
-#jpd -- they are defined in dunetpc/dune/Geometry/geometry_dune.fcl
-
-#services.user.Geometry: @local::dunefd_geo
-#services.user.Geometry: @local::dune10kt_geo
-#services.user.Geometry: @local::dunedphase10kt_geo
-services.user.Geometry: @local::dune10kt_workspace_geo
-#services.user.Geometry: @local::dune10kt_1x2x6_geo
-#services.user.Geometry: @local::dunedphase10kt_workspace_geo
-#services.user.Geometry: @local::dune10kt_45deg_workspace_geo
-#services.user.Geometry: @local::dune10kt_45deg_1x2x6_geo
-#services.user.Geometry: @local::dune10kt_3mmpitch_workspace_geo
-#services.user.Geometry: @local::dune10kt_3mmpitch_1x2x6_geo
-#services.user.Geometry: @local::protodune_geo
-#services.user.Geometry: @local::dune35t_geo
-#services.user.Geometry: @local::larnd_geo

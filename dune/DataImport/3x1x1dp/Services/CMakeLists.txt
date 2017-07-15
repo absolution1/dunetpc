@@ -4,7 +4,7 @@ simple_plugin(RawData311InputDriver "service"
 
 			lardataobj_RawData
 			lardata_Utilities
-			larcore_Geometry
+			larcorealg_Geometry
 			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_IO_SOURCES}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -25,7 +25,7 @@ simple_plugin(dlardaq "service"
 			larreco_RecoAlg
 			larreco_Calorimetry
 			larreco_RecoAlg_PMAlg
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
@@ -56,7 +56,7 @@ simple_plugin(EventDecoder "service"
 			larreco_RecoAlg
 			larreco_Calorimetry
 			larreco_RecoAlg_PMAlg
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
@@ -86,7 +86,7 @@ simple_plugin(HuffDataCompressor "service"
 			larreco_RecoAlg
 			larreco_Calorimetry
 			larreco_RecoAlg_PMAlg
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation

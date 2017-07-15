@@ -31,3 +31,4 @@ physics:
   end_paths: 	[ stream1 ]
 }
 
+source.PedestalFile: "/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/datafiles/pedestals/pedestal_run729_1.ped"

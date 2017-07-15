@@ -42,13 +42,50 @@ namespace EventGen{
     void SplitAdc(const std::vector<adc16_t> adc, size_t channel, uint32_t num_samples, std::vector<short> &adclist, size_t LArchan);
     size_t Get311Chan(size_t LAr_chan);
 
+    double GetPedMean(size_t RawChan, std::vector< std::pair<double, double> > *fPedMap){ return fPedMap->at(RawChan).first; }
+    double GetPedRMS(size_t RawChan, std::vector< std::pair<double, double> > *fPedMap){ return fPedMap->at(RawChan).second; }
+
     EventDecoder DataDecode{1280, 1};
 
     // fcl parameters
     std::string fFilename;
     size_t fEvt_num;
-    
+    std::string fPedestalFile;
+
+    std::vector< std::pair<double, double> > fPedMap; 
   }; // Class ImportSingle311Event    
+
+
+  //////////////////////////////////////////////////////////////////////////
+  // function to read in pedestals from file
+  /////////////////////////////////////////////////////////////////////////
+  void ReadPedestalFile(std::string PedestalFileName, std::vector < std::pair<double, double> > &PedMap)
+  {
+    //initialize the channel-ped value map
+    std::ifstream file;
+    file.open(PedestalFileName);
+    if( !file.is_open() )
+    {
+      throw art::Exception( art::errors::FileReadError )
+      		<< "failed to open input file " << PedestalFileName << "\n";
+    }
+    
+    while(!file.eof())
+    {
+      size_t ch, cryo, crate, rawch;
+      double mean, rms;
+      file >> rawch >> cryo >> crate >> ch >> mean >> rms;
+      PedMap.emplace_back(mean, rms);
+    }
+    
+    file.close();
+    return;
+  } // ReadPedestalFile()
+
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
 
   DEFINE_ART_MODULE(EventGen::ImportSingle311Event)  
 
@@ -56,6 +93,7 @@ namespace EventGen{
   {
     fFilename = p.get<std::string>("Filename");
     fEvt_num = p.get<size_t>("Evt_num");
+    fPedestalFile = p.get<std::string>("PedestalFile");
     produces< std::vector<raw::RawDigit> >();
   }
 
@@ -66,6 +104,8 @@ namespace EventGen{
 
 
   void ImportSingle311Event::produce(art::Event &evt){
+      ReadPedestalFile(fPedestalFile, fPedMap);
+
       //ImportSingle311Event(fhicl::ParameterSet const & p);
       //beginJob();
 
@@ -95,6 +135,10 @@ namespace EventGen{
         raw::Compress_t comp = raw::kNone;
 	
         raw::RawDigit rd(channel, nTickReadout, adclist, comp);
+        double pedval = ImportSingle311Event::GetPedMean(Chan311, &fPedMap);
+        double pedrms = ImportSingle311Event::GetPedRMS(Chan311, &fPedMap);
+        rd.SetPedestal(pedval, pedrms);
+
         digcol->push_back(rd);
 	}
 

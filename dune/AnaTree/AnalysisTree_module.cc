@@ -55,7 +55,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"

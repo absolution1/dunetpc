@@ -5,7 +5,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 art_make( BASENAME_ONLY
           LIBRARY_NAME     TriggerAlgorithms
           LIB_LIBRARIES    nusimdata_SimulationBase
-                           larcore_Geometry
+                           larcorealg_Geometry
                            larcore_Geometry_Geometry_service
                            larsim_MCCheater_BackTracker_service
                            #lardataobj_RecoBase

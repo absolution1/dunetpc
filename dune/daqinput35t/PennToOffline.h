@@ -19,7 +19,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
 
 #include <iostream>
 #include <fstream>
