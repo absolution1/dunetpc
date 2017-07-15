@@ -85,7 +85,7 @@ private:
   
   int fRun, fEvent;
 
-  float fEnGen, fEkGen;
+  float fEkGen, fEkDep; // <- to be filled
 
   // ******** FHiCL parameters: ********
   art::InputTag fEmTrkModuleLabel;
@@ -100,17 +100,17 @@ pdune::RecoStats::RecoStats(Parameters const& config) : EDAnalyzer(config),
 	art::ServiceHandle<sim::LArG4Parameters> larParameters;
     fElectronsToGeV = 1./larParameters->GeVToElectrons();
 
-    mapTPCtoXY[0]  = std::make_pair(-1, -1); // in case something falls into not active tpc
-    mapTPCtoXY[1]  = std::make_pair(0, 0);
-    mapTPCtoXY[2]  = std::make_pair(0, 1);
+    mapTPCtoXY[0]  = std::make_pair(-1, -1); // <- in case something falls into not active tpc
+    mapTPCtoXY[1]  = std::make_pair(0, 1);   // <- make 2D histo bins looking like in evd ortho
+    mapTPCtoXY[2]  = std::make_pair(0, 0);
     mapTPCtoXY[3]  = std::make_pair(-1, -1);
     mapTPCtoXY[4]  = std::make_pair(-1, -1);
-    mapTPCtoXY[5]  = std::make_pair(1, 0);
-    mapTPCtoXY[6]  = std::make_pair(1, 1);
+    mapTPCtoXY[5]  = std::make_pair(1, 1);
+    mapTPCtoXY[6]  = std::make_pair(1, 0);
     mapTPCtoXY[7]  = std::make_pair(-1, -1);
     mapTPCtoXY[8]  = std::make_pair(-1, -1);
-    mapTPCtoXY[9]  = std::make_pair(2, 0);
-    mapTPCtoXY[10] = std::make_pair(2, 1);
+    mapTPCtoXY[9]  = std::make_pair(2, 1);
+    mapTPCtoXY[10] = std::make_pair(2, 0);
     mapTPCtoXY[11] = std::make_pair(-1, -1);
 }
 
@@ -125,8 +125,8 @@ void pdune::RecoStats::beginJob()
 	fTree = tfs->make<TTree>("events", "summary tree");
 	fTree->Branch("fRun", &fRun, "fRun/I");
 	fTree->Branch("fEvent", &fEvent, "fEvent/I");
-	fTree->Branch("fEnGen", &fEnGen, "fEnGen/F");
 	fTree->Branch("fEkGen", &fEkGen, "fEkGen/F");
+	fTree->Branch("fEkDep", &fEkDep, "fEkDep/F");
 }
 
 void pdune::RecoStats::endJob()
@@ -216,8 +216,8 @@ void pdune::RecoStats::ResetVars()
 {
 	fRun = 0;
 	fEvent = 0;
-	fEnGen = 0;
 	fEkGen = 0;
+	fEkDep = 0;
 }
 
 DEFINE_ART_MODULE(pdune::RecoStats)
