@@ -10,7 +10,7 @@ art_make( BASENAME_ONLY
           lardata_RecoObjects larreco_Deprecated
 	  larana_OpticalDetector
 	  larana_OpticalDetector_OpHitFinder
-	  larcore_Geometry
+	  larcorealg_Geometry
 #	  LArProperties_service
 	  RunHistoryDUNE
 	  lbne-raw-data_Overlays

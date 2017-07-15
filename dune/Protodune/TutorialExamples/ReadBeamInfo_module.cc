@@ -18,7 +18,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 

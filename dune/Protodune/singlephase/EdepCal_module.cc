@@ -15,7 +15,7 @@
 #include "larsim/Simulation/LArVoxelList.h"
 #include "larsim/Simulation/SimListUtils.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"

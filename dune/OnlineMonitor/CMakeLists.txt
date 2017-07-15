@@ -2,7 +2,7 @@
 
 simple_plugin(RawEVD35tTree "module"
 			larcore_Geometry_Geometry_service
-                        larcore_Geometry
+                        larcorealg_Geometry
 			lardataobj_RawData
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}

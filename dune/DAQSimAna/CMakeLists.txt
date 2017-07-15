@@ -2,7 +2,7 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
                         lbne-raw-data_Overlays
                         lbne_daqinput35t       #For online to offline channel map
                         larcore_Geometry_Geometry_service
-                        larcore_Geometry
+                        larcorealg_Geometry
                         lardataobj_RawData
 			larsim_MCCheater_BackTracker_service
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation

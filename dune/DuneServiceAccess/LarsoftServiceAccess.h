@@ -22,7 +22,7 @@
 #ifndef LarsoftServiceAccess_H
 #define LarsoftServiceAccess_H
 
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
 using geo::GeometryCore;
