@@ -8,7 +8,7 @@ proto_lifetime:
   ClusterModuleLabel:   "trajcluster"
   ChgCuts:              [ 0.5, 1.3 ]
   ChiCut:               5
-  MaxLifetime:          100 # in msec
+  DebugCluster:         -1
 }
 
 
