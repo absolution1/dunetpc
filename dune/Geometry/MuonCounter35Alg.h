@@ -8,7 +8,7 @@
 #ifndef GEO_MUONCOUNTER35ALG_H
 #define GEO_MUONCOUNTER35ALG_H
 
-#include "larcore/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{

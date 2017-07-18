@@ -25,7 +25,7 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RecoBase/Hit.h"

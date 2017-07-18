@@ -37,7 +37,7 @@ simple_plugin(MultiChannelNoiseRemovalService   "service"
              )
 
 simple_plugin(Dune35tNoiseRemovalService   "service"
-                larcore_Geometry
+                larcorealg_Geometry
                 lbne-raw-data_Services_ChannelMap_ChannelMapService_service
                 art_Utilities canvas
                 cetlib cetlib_except

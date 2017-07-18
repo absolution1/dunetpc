@@ -1,7 +1,7 @@
 
 simple_plugin(SPLifetime "module"
 			lardataobj_RecoBase
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
       larsim_MCCheater_BackTracker_service
       nusimdata_SimulationBase

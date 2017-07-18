@@ -1,6 +1,6 @@
 
 simple_plugin(ClusterCounter "module"
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 
 			${ART_FRAMEWORK_CORE}
@@ -20,7 +20,7 @@ simple_plugin(ClusterCounter "module"
 
 simple_plugin(ClusterCounter2 "module"
 			lardataobj_RecoBase
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 
 			${ART_FRAMEWORK_CORE}
@@ -40,7 +40,7 @@ simple_plugin(ClusterCounter2 "module"
 
 simple_plugin(ClusterCounter3 "module"
 			lardataobj_RecoBase
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 
 			${ART_FRAMEWORK_CORE}
@@ -60,7 +60,7 @@ simple_plugin(ClusterCounter3 "module"
 
 simple_plugin(ClusterCounter4 "module"
 			lardataobj_RecoBase
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 
 			larsim_MCCheater_BackTracker_service
@@ -83,7 +83,7 @@ simple_plugin(ClusterCounter4 "module"
 
 simple_plugin(ClusterCounter5 "module"
 			lardataobj_RecoBase
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 
 			larsim_MCCheater_BackTracker_service

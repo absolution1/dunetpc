@@ -15,7 +15,7 @@ art_make(BASENAME_ONLY
         ${Boost_SYSTEM_LIBRARY}
         RunHistoryDUNE
         larcore_Geometry_Geometry_service
-        larcore_Geometry
+        larcorealg_Geometry
         lbne_daqinput35t_utilities
         lbne-raw-data_Overlays
 	lbne-raw-data_Services_ChannelMap_ChannelMapService_service
@@ -28,7 +28,7 @@ art_make(BASENAME_ONLY
 simple_plugin(TpcMilliSliceDump "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-larcore_Geometry
+larcorealg_Geometry
 lardataobj_RawData
 nusimdata_SimulationBase
 # ${ART_FRAMEWORK_CORE}
@@ -50,7 +50,7 @@ ${ROOT_HIST}
 simple_plugin(SSPDump "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-larcore_Geometry
+larcorealg_Geometry
 lardataobj_RawData
 nusimdata_SimulationBase
 art_Framework_Services_Registry
@@ -63,7 +63,7 @@ ${ROOT_HIST}
 simple_plugin(SSPToOffline "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-larcore_Geometry
+larcorealg_Geometry
 lbne_daqinput35t
 lardataobj_RawData
 lardataobj_RecoBase
@@ -75,7 +75,7 @@ cetlib cetlib_except
 simple_plugin(PTBToOffline "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-larcore_Geometry
+larcorealg_Geometry
 lbne_daqinput35t
 lardataobj_RawData
 nusimdata_SimulationBase
@@ -86,7 +86,7 @@ cetlib cetlib_except
 simple_plugin(SSPTriggerAna "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-larcore_Geometry
+larcorealg_Geometry
 lbne_daqinput35t
 lardataobj_RawData
 nusimdata_SimulationBase
@@ -102,7 +102,7 @@ ${ROOT_HIST}
 simple_plugin(SSPDiagnosticAna "module"
 lbne-raw-data_Overlays
 larcore_Geometry_Geometry_service
-larcore_Geometry
+larcorealg_Geometry
 lbne_daqinput35t
 lardataobj_RawData
 nusimdata_SimulationBase
@@ -121,7 +121,7 @@ lbne-raw-data_Services_ChannelMap_ChannelMapService_service
 lbne_daqinput35t_utilities
 lbne_daqinput35t
 larcore_Geometry_Geometry_service
-larcore_Geometry
+larcorealg_Geometry
 lardataobj_RawData
 art_Framework_Services_Registry
 art_Framework_Services_Optional
@@ -136,7 +136,7 @@ simple_plugin(NoiseCorrelation "module"
 			       lbne_daqinput35t_utilities
 			       lbne_daqinput35t
 			       larcore_Geometry_Geometry_service
-			       larcore_Geometry
+			       larcorealg_Geometry
 			       lardataobj_RawData
 			       ${ART_FRAMEWORK_CORE}
 			       ${ART_FRAMEWORK_PRINCIPAL}

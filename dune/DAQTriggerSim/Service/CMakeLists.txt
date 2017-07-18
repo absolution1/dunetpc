@@ -23,7 +23,7 @@ simple_plugin(TemplateTriggerService   "service"
              )
 
 simple_plugin(HardwareMapperService   "service"
-                larcore_Geometry
+                larcorealg_Geometry
                 dune_Geometry
                 ${ART_FRAMEWORK_CORE}
                 ${ART_FRAMEWORK_PRINCIPAL}
