@@ -2,7 +2,7 @@
 // Class:       RecoEff
 // Module Type: analyzer
 // File:        RecoEff_module.cc
-// Author:      Dorota Stefan
+// Author:      D.Stefan and R.Sulej
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -29,12 +29,12 @@
 #include "TEfficiency.h"
 #include "TTree.h"
 
-namespace proto
+namespace pdune
 {
 	class RecoEff;
 }
 
-class proto::RecoEff : public art::EDAnalyzer {
+class pdune::RecoEff : public art::EDAnalyzer {
 public:
 
   struct Config {
@@ -75,9 +75,9 @@ private:
   
   TH1D* fDenominatorHist;
   TH1D* fNominatorHist;
-  
+
   TTree *fTree;
-  
+
   int fRun;
   int fEvent;
   int fNRecoTracks;
@@ -87,14 +87,14 @@ private:
   double fEnGen;
   double fEkGen;
   double fT0;
-  
+
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
   art::InputTag fTrackModuleLabel;
   size_t fMinHitsPerPlane;
 };
 
-proto::RecoEff::RecoEff(Parameters const& config) : EDAnalyzer(config),
+pdune::RecoEff::RecoEff(Parameters const& config) : EDAnalyzer(config),
     fSimulationLabel(config().SimulationLabel()),
     fHitModuleLabel(config().HitModuleLabel()),
     fTrackModuleLabel(config().TrackModuleLabel()),
@@ -102,7 +102,7 @@ proto::RecoEff::RecoEff(Parameters const& config) : EDAnalyzer(config),
 {
 }
 
-void proto::RecoEff::beginJob()
+void pdune::RecoEff::beginJob()
 {
 	art::ServiceHandle<art::TFileService> tfs;
 	
@@ -120,14 +120,14 @@ void proto::RecoEff::beginJob()
 	fTree->Branch("fMatched", &fMatched, "fMatched/I");
 }
 
-void proto::RecoEff::endJob()
+void pdune::RecoEff::endJob()
 {
     art::ServiceHandle<art::TFileService> tfs;
     TEfficiency* fEfficiency = tfs->makeAndRegister<TEfficiency>("Efficiency", "tracking efficiency", *fNominatorHist, *fDenominatorHist);
     std::cout << "Efficiency created: " << fEfficiency->GetTitle() << std::endl;
 }
 
-void proto::RecoEff::analyze(art::Event const & e)
+void pdune::RecoEff::analyze(art::Event const & e)
 {
   ResetVars();
   
@@ -259,7 +259,7 @@ void proto::RecoEff::analyze(art::Event const & e)
   fTree->Fill();
 }
 
-void proto::RecoEff::ResetVars()
+void pdune::RecoEff::ResetVars()
 {
 	fRun = 0;
 	fEvent = 0;
@@ -271,4 +271,4 @@ void proto::RecoEff::ResetVars()
 	fReconstructable = 0;
 }
 
-DEFINE_ART_MODULE(proto::RecoEff)
+DEFINE_ART_MODULE(pdune::RecoEff)
