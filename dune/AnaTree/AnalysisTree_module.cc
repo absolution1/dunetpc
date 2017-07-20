@@ -120,28 +120,28 @@ struct total_extent {
 namespace dune {
 
   /// Data structure with all the tree information.
-  /// 
+  ///
   /// Can connect to a tree, clear its fields and resize its data.
   class AnalysisTreeDataStruct {
   public:
-    
+
     /// A wrapper to a C array (needed to embed an array into a vector)
     template <typename Array_t>
     class BoxedArray {
     protected:
       Array_t array; // actual data
-      
+
     public:
       using This_t = BoxedArray<Array_t>;
       typedef typename std::remove_all_extents<Array_t>::type Data_t;
-      
+
       BoxedArray() {} // no initialization
       BoxedArray(const This_t& from)
       { std::memcpy((char*) &(data()), (char*) &(from.data()), sizeof(Array_t)); }
-      
+
       Array_t& data() { return array; }
       const Array_t& data() const { return array; }
-      
+
       //@{
       /// begin/end interface
       static constexpr size_t size() { return total_extent<Array_t>::value; }
@@ -150,7 +150,7 @@ namespace dune {
       Data_t* end() { return begin() + size(); }
       const Data_t* end() const { return begin() + size(); }
       //@}
-      
+
       //@{
       /// Array interface
       auto operator[] (size_t index) -> decltype(*array) { return array[index]; }
@@ -161,15 +161,15 @@ namespace dune {
       auto operator- (ptrdiff_t index) const -> decltype(&*array) { return array - index; }
       auto operator* () -> decltype(*array) { return *array; }
       auto operator* () const -> decltype(*array) { return *array; }
-      
+
       operator decltype(&array[0]) () { return &array[0]; }
       operator decltype(&array[0]) () const { return &array[0]; }
       //@}
-      
+
     }; // BoxedArray
-    
+
     /// Tracker algorithm result
-    /// 
+    ///
     /// Can connect to a tree, clear its fields and resize its data.
     class TrackDataStruct {
     public:
@@ -189,9 +189,9 @@ namespace dune {
       using HitData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits]>>;
       template <typename T>
       using HitCoordData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits][3]>>;
-      
+
       size_t MaxTracks; ///< maximum number of storable tracks
-      
+
       Short_t  ntracks;             //number of reconstructed tracks
       PlaneData_t<Float_t>    trkke;
       PlaneData_t<Float_t>    trkrange;
@@ -232,7 +232,7 @@ namespace dune {
       TrackData_t<Float_t> trkpurity;    // track purity based on hit information
       TrackData_t<Float_t> trkcompleteness; //track completeness based on hit information
       TrackData_t<int> trkg4id;        //true g4 track id for the reconstructed track
-      TrackData_t<int> trkorig;        //origin of the track 
+      TrackData_t<int> trkorig;        //origin of the track
       TrackData_t<Float_t> trktheta;      // theta.
       TrackData_t<Float_t> trkphi;        // phi.
       TrackData_t<Float_t> trkstartdcosx;
@@ -262,11 +262,11 @@ namespace dune {
       TrackData_t<Float_t> trkpidmvapich;   // particle MVA value for charged pion PID
       TrackData_t<Float_t> trkpidmvaphoton;   // particle MVA value for photon PID
       TrackData_t<Float_t> trkpidmvapr;   // particle MVA value for proton PID
-      TrackData_t<Short_t> trkpidbestplane; // this is defined as the plane with most hits   
-	
-	  TrackData_t<Short_t> trkhasPFParticle; // whether this belongs to a PFParticle 
+      TrackData_t<Short_t> trkpidbestplane; // this is defined as the plane with most hits
+
+	  TrackData_t<Short_t> trkhasPFParticle; // whether this belongs to a PFParticle
 	  TrackData_t<Short_t> trkPFParticleID;  // if hasPFParticle, its ID
-       
+
       /// Creates an empty tracker data structure
       TrackDataStruct(): MaxTracks(0) { Clear(); }
       /// Creates a tracker data structure allowing up to maxTracks tracks
@@ -276,13 +276,13 @@ namespace dune {
       { MaxTracks = maxTracks; Resize(MaxTracks); }
       void Resize(size_t nTracks);
       void SetAddresses(TTree* pTree, std::string tracker, bool isCosmics);
-      
+
       size_t GetMaxTracks() const { return MaxTracks; }
       size_t GetMaxPlanesPerTrack(int /* iTrack */ = 0) const
       { return (size_t) kNplanes; }
       size_t GetMaxHitsPerTrack(int /* iTrack */ = 0, int /* ipl */ = 0) const
       { return (size_t) kMaxTrackHits; }
-      
+
     }; // class TrackDataStruct
 
     //Vertex data struct
@@ -298,8 +298,8 @@ namespace dune {
       VertexData_t<Float_t> vtxx;     // x position.
       VertexData_t<Float_t> vtxy;     // y position.
       VertexData_t<Float_t> vtxz;     // z position.
-	  
-	  VertexData_t<Short_t> vtxhasPFParticle; // whether this belongs to a PFParticle 
+
+	  VertexData_t<Short_t> vtxhasPFParticle; // whether this belongs to a PFParticle
 	  VertexData_t<Short_t> vtxPFParticleID;  // if hasPFParticle, its ID
 
       VertexDataStruct(): MaxVertices(0) { Clear(); }
@@ -311,11 +311,11 @@ namespace dune {
       void SetAddresses(TTree* pTree, std::string tracker, bool isCosmics);
 
       size_t GetMaxVertices() const { return MaxVertices; }
-    }; // class VertexDataStruct 
+    }; // class VertexDataStruct
 
 
     /// Shower algorithm result
-    /// 
+    ///
     /// Can connect to a tree, clear its fields and resize its data.
     class ShowerDataStruct {
     public:
@@ -335,11 +335,11 @@ namespace dune {
       using HitData_t = std::vector<BoxedArray<T[kNplanes][kMaxShowerHits]>>;
       template <typename T>
       using HitCoordData_t = std::vector<BoxedArray<T[kNplanes][kMaxShowerHits][3]>>;
-      
+
       std::string name; ///< name of the shower algorithm (for branch names)
-      
+
       size_t MaxShowers; ///< maximum number of storable showers
-      
+
       /// @{
       /// @name Branch data structures
       Short_t  nshowers;                      ///< number of showers
@@ -361,20 +361,20 @@ namespace dune {
       ShowerData_t<Float_t> shwr_pidmvapich;   // particle MVA value for charged pion PID
       ShowerData_t<Float_t> shwr_pidmvaphoton;   // particle MVA value for photon PID
       ShowerData_t<Float_t> shwr_pidmvapr;   // particle MVA value for proton PID
-	  
-      
-      ShowerData_t<Short_t>  shwr_hasPFParticle; // whether this belongs to a PFParticle 
+
+
+      ShowerData_t<Short_t>  shwr_hasPFParticle; // whether this belongs to a PFParticle
       ShowerData_t<Short_t>  shwr_PFParticleID;  // if hasPFParticle, its ID
       /// @}
-      
+
       /// Creates a shower data structure allowing up to maxShowers showers
       ShowerDataStruct(std::string new_name = "", size_t maxShowers = 0):
         name(new_name), MaxShowers(maxShowers) { Clear(); }
-      
+
       std::string Name() const { return name; }
-      
+
       void Clear();
-      
+
       /// Applies a special prescription to mark shower information as missing
       void MarkMissing(TTree* pTree);
       void SetName(std::string new_name) { name = new_name; }
@@ -382,15 +382,15 @@ namespace dune {
       { MaxShowers = maxShowers; Resize(MaxShowers); }
       void Resize(size_t nShowers);
       void SetAddresses(TTree* pTree);
-      
+
       size_t GetMaxShowers() const { return MaxShowers; }
       size_t GetMaxPlanesPerShower(int /* iShower */ = 0) const
       { return (size_t) kNplanes; }
       size_t GetMaxHitsPerShower(int /* iShower */ = 0, int /* ipl */ = 0) const
       { return (size_t) kMaxShowerHits; }
-      
+
     }; // class ShowerDataStruct
-    
+
     class PFParticleDataStruct {
     public:
       /* Data structure size:
@@ -407,51 +407,51 @@ namespace dune {
       using DaughterData_t = std::vector<BoxedArray<T[kMaxNDaughtersPerPFP]>>;
       template <typename T>
       using ClusterData_t = std::vector<BoxedArray<T[kMaxNClustersPerPFP]>>;
-      
+
       size_t MaxPFParticles; ///< maximum number of storable PFParticles
-      
+
       /// @{
       /// @name Branch data structures
       Short_t                   nPFParticles;     ///< the total number of PFParticles
       PFParticleData_t<Short_t> pfp_selfID;       ///< the PFParticles' own IDs
       PFParticleData_t<Short_t> pfp_isPrimary;    ///< whether the PFParticle is a primary particle
-      
+
       PFParticleData_t<Short_t> pfp_numDaughters; ///< the number of daughters belonging to this PFParticle
       DaughterData_t<Short_t>   pfp_daughterIDs;  ///< the IDs of the daughter PFParticles
       PFParticleData_t<Short_t> pfp_parentID;     ///< the ID of this PFParticle's immediate parent
-      
+
       PFParticleData_t<Short_t> pfp_vertexID;     ///< the ID of the vertex belonging to this PFParticle
       PFParticleData_t<Short_t> pfp_isShower;     ///< whether this PFParticle corresponds to a shower
       PFParticleData_t<Short_t> pfp_isTrack;      ///< whether this PFParticle corresponds to a track
       PFParticleData_t<Short_t> pfp_trackID;      ///< the ID of the track object corresponding to this PFParticle, if !isShower
       PFParticleData_t<Short_t> pfp_showerID;     ///< the ID of the shower object corresponding to this PFParticle, if isShower
-      
+
       PFParticleData_t<Short_t> pfp_isNeutrino;   ///< whether this PFParticle is a neutrino
       PFParticleData_t<Int_t>   pfp_pdgCode;      ///< the preliminary estimate of the PFParticle type using the PDG code
-      
+
       PFParticleData_t<Short_t> pfp_numClusters;  ///< the number of associated clusters
       ClusterData_t<Short_t>    pfp_clusterIDs;   ///< the IDs of any associated clusters
-      
+
       Short_t                   pfp_numNeutrinos; ///< the number of reconstructed neutrinos
       Short_t pfp_neutrinoIDs[kMaxNPFPNeutrinos]; ///< the PFParticle IDs of the neutrinos
       /// @}
-      
+
       /// Creates a PFParticle data structure allowing up to maxPFParticles PFParticles
       PFParticleDataStruct(size_t maxPFParticles = 0):
         MaxPFParticles(maxPFParticles) { Clear(); }
-      
+
       void Clear();
       void SetMaxPFParticles(size_t maxPFParticles)
         { MaxPFParticles = maxPFParticles; Resize(MaxPFParticles); }
       void Resize(size_t numPFParticles);
       void SetAddresses(TTree* pTree);
-      
+
       size_t GetMaxPFParticles() const { return MaxPFParticles; }
       size_t GetMaxDaughtersPerPFParticle(int /* iPFParticle */ = 0) const
         { return (size_t) kMaxNDaughtersPerPFP; }
       size_t GetMaxClustersPerPFParticle(int /* iPFParticle */ = 0) const
         { return (size_t) kMaxNClustersPerPFP; }
-      
+
     }; // class PFParticleDataStruct
 
     enum DataBits_t: unsigned int {
@@ -474,7 +474,7 @@ namespace dune {
   tdProto = 0x10000,
 	tdDefault = 0
 	}; // DataBits_t
-    
+
     /*    /// information from the run
 	  struct RunData_t {
 	  public:
@@ -485,8 +485,8 @@ namespace dune {
     /// information from the subrun
     struct SubRunData_t {
       SubRunData_t() { Clear(); }
-      void Clear() { 
-        pot = -99999.; 
+      void Clear() {
+        pot = -99999.;
         potbnbETOR860 = -99999.;
         potbnbETOR875 = -99999.;
         potnumiETORTGT = -99999.;
@@ -519,7 +519,7 @@ namespace dune {
 
     // hit information (non-resizeable, 45x kMaxHits = 900k bytes worth)
     Int_t    no_hits;                  //number of hits
-    Int_t    no_hits_stored;                  //number of hits actually stored in the tree    
+    Int_t    no_hits_stored;                  //number of hits actually stored in the tree
     Short_t  hit_tpc[kMaxHits];        //tpc number
     Short_t  hit_plane[kMaxHits];      //plane number
     Short_t  hit_wire[kMaxHits];       //wire number
@@ -530,8 +530,8 @@ namespace dune {
     Float_t  hit_startT[kMaxHits];     //hit start time
     Float_t  hit_endT[kMaxHits];       //hit end time
     Float_t  hit_rms[kMaxHits];       //hit rms from the hit object
-    Float_t  hit_goodnessOfFit[kMaxHits]; //chi2/dof goodness of fit 
-    Short_t  hit_multiplicity[kMaxHits];  //multiplicity of the given hit					 
+    Float_t  hit_goodnessOfFit[kMaxHits]; //chi2/dof goodness of fit
+    Short_t  hit_multiplicity[kMaxHits];  //multiplicity of the given hit
     Float_t  hit_trueX[kMaxHits];      // hit true X (cm)
     Float_t  hit_nelec[kMaxHits];     //hit number of electrons
     Float_t  hit_energy[kMaxHits];       //hit energy
@@ -540,11 +540,11 @@ namespace dune {
     Short_t  hit_clusterid[kMaxHits];  //is this hit associated with a reco cluster?
     Short_t  hit_clusterKey[kMaxHits];  //is this hit associated with a reco cluster, if so associate a unique cluster key ID?
 
-    Float_t rawD_ph[kMaxHits];  
-    Float_t rawD_peakT[kMaxHits];  
-    Float_t rawD_charge[kMaxHits];  
-    Float_t rawD_fwhh[kMaxHits];  
-    Double_t rawD_rms[kMaxHits]; 
+    Float_t rawD_ph[kMaxHits];
+    Float_t rawD_peakT[kMaxHits];
+    Float_t rawD_charge[kMaxHits];
+    Float_t rawD_fwhh[kMaxHits];
+    Double_t rawD_rms[kMaxHits];
 
     //Pandora Nu Vertex information
     Short_t nnuvtx;
@@ -555,8 +555,8 @@ namespace dune {
 
     //Cluster Information
     Short_t nclusters;				      //number of clusters in a given event
-    Short_t clusterId[kMaxClusters];		      //ID of this cluster	 
-    Short_t clusterView[kMaxClusters];		      //which plane this cluster belongs to	      
+    Short_t clusterId[kMaxClusters];		      //ID of this cluster
+    Short_t clusterView[kMaxClusters];		      //which plane this cluster belongs to
     Int_t   cluster_isValid[kMaxClusters];	      //is this cluster valid? will have a value of -1 if it is not valid
     Float_t cluster_StartCharge[kMaxClusters];	       //charge on the first wire of the cluster in ADC
     Float_t cluster_StartAngle[kMaxClusters];	      //starting angle of the cluster
@@ -566,18 +566,18 @@ namespace dune {
     Float_t cluster_IntegralAverage[kMaxClusters];    //average charge of the cluster hits in ADC
     Float_t cluster_SummedADC[kMaxClusters];	      //total charge of the cluster from signal ADC counts
     Float_t cluster_SummedADCaverage[kMaxClusters];   //average signal ADC counts of the cluster hits.
-    Float_t cluster_MultipleHitDensity[kMaxClusters]; //Density of wires in the cluster with more than one hit. 
+    Float_t cluster_MultipleHitDensity[kMaxClusters]; //Density of wires in the cluster with more than one hit.
     Float_t cluster_Width[kMaxClusters];	      //cluster width in ? units
     Short_t cluster_NHits[kMaxClusters];	      //Number of hits in the cluster
-    Short_t cluster_StartWire[kMaxClusters];	      //wire coordinate of the start of the cluster 
+    Short_t cluster_StartWire[kMaxClusters];	      //wire coordinate of the start of the cluster
     Short_t cluster_StartTick[kMaxClusters];	      //tick coordinate of the start of the cluster in time ticks
     Short_t cluster_EndWire[kMaxClusters];	      //wire coordinate of the end of the cluster
-    Short_t cluster_EndTick[kMaxClusters];            //tick coordinate of the end of the cluster in time ticks    
+    Short_t cluster_EndTick[kMaxClusters];            //tick coordinate of the end of the cluster in time ticks
     //Cluster cosmic tagging information
-    Short_t cluncosmictags_tagger[kMaxClusters];      //No. of cosmic tags associated to this cluster    
-    Float_t clucosmicscore_tagger[kMaxClusters];      //Cosmic score associated to this cluster. In the case of more than one tag, the first one is associated.    
-    Short_t clucosmictype_tagger[kMaxClusters];       //Cosmic tag type for this cluster.    
-    
+    Short_t cluncosmictags_tagger[kMaxClusters];      //No. of cosmic tags associated to this cluster
+    Float_t clucosmicscore_tagger[kMaxClusters];      //Cosmic score associated to this cluster. In the case of more than one tag, the first one is associated.
+    Short_t clucosmictype_tagger[kMaxClusters];       //Cosmic tag type for this cluster.
+
     // flash information
     Int_t    no_flashes;                //number of flashes
     Float_t  flash_time[kMaxFlashes];   //flash time
@@ -600,7 +600,7 @@ namespace dune {
     //vertex information
     Char_t   kNVertexAlgos;
     std::vector<VertexDataStruct> VertexData;
-    
+
     // shower information
     Char_t   kNShowerAlgos;
     std::vector<ShowerDataStruct> ShowerData;
@@ -640,7 +640,7 @@ namespace dune {
     Float_t  ppdxdz_flux[kMaxTruth];      //Parent dxdz direction at production
     Float_t  ppdydz_flux[kMaxTruth];      //Parent dydz direction at production
     Float_t  pppz_flux[kMaxTruth];        //Parent Z momentum at production (GeV)
-    
+
     Int_t    ptype_flux[kMaxTruth];        //Parent GEANT code particle ID
     Float_t  ppvx_flux[kMaxTruth];        //Parent production vertex X (cm)
     Float_t  ppvy_flux[kMaxTruth];        //Parent production vertex Y (cm)
@@ -649,28 +649,28 @@ namespace dune {
     Float_t  muparpy_flux[kMaxTruth];     //Muon neutrino parent production vertex Y (cm)
     Float_t  muparpz_flux[kMaxTruth];     //Muon neutrino parent production vertex Z (cm)
     Float_t  mupare_flux[kMaxTruth];      //Muon neutrino parent energy (GeV)
-    
-    Int_t    tgen_flux[kMaxTruth];        //Parent generation in cascade. (1 = primary proton, 
-    					  //2=particles produced by proton interaction, 3 = particles 
+
+    Int_t    tgen_flux[kMaxTruth];        //Parent generation in cascade. (1 = primary proton,
+    					  //2=particles produced by proton interaction, 3 = particles
 					  //produced by interactions of the 2's, ...
-    Int_t    tgptype_flux[kMaxTruth];     //Type of particle that created a particle flying of the target  
-    Float_t  tgppx_flux[kMaxTruth];       //X Momentum of a particle, that created a particle that flies 
+    Int_t    tgptype_flux[kMaxTruth];     //Type of particle that created a particle flying of the target
+    Float_t  tgppx_flux[kMaxTruth];       //X Momentum of a particle, that created a particle that flies
     					  //off the target, at the interaction point. (GeV)
-    Float_t  tgppy_flux[kMaxTruth];       //Y Momentum of a particle, that created a particle that flies  
+    Float_t  tgppy_flux[kMaxTruth];       //Y Momentum of a particle, that created a particle that flies
 					  //off the target, at the interaction point. (GeV)
     Float_t  tgppz_flux[kMaxTruth];       //Z Momentum of a particle, that created a particle that flies
 					  //off the target, at the interaction point. (GeV)
-    Float_t  tprivx_flux[kMaxTruth];      //Primary particle interaction vertex X (cm)  
-    Float_t  tprivy_flux[kMaxTruth];      //Primary particle interaction vertex Y (cm)  
-    Float_t  tprivz_flux[kMaxTruth];      //Primary particle interaction vertex Z (cm) 
-    Float_t  dk2gen_flux[kMaxTruth];      //distance from decay to ray origin (cm) 
+    Float_t  tprivx_flux[kMaxTruth];      //Primary particle interaction vertex X (cm)
+    Float_t  tprivy_flux[kMaxTruth];      //Primary particle interaction vertex Y (cm)
+    Float_t  tprivz_flux[kMaxTruth];      //Primary particle interaction vertex Z (cm)
+    Float_t  dk2gen_flux[kMaxTruth];      //distance from decay to ray origin (cm)
     Float_t  gen2vtx_flux[kMaxTruth];     //distance from ray origin to event vtx (cm)
- 
+
     Float_t  tpx_flux[kMaxTruth];        //Px of parent particle leaving BNB/NuMI target (GeV)
     Float_t  tpy_flux[kMaxTruth];        //Py of parent particle leaving BNB/NuMI target (GeV)
     Float_t  tpz_flux[kMaxTruth];        //Pz of parent particle leaving BNB/NuMI target (GeV)
     Int_t    tptype_flux[kMaxTruth];     //Type of parent particle leaving BNB target
-     
+
     //genie information
     size_t MaxGeniePrimaries = 0;
     Int_t     genie_no_primaries;
@@ -685,7 +685,7 @@ namespace dune {
     std::vector<Int_t>    genie_trackID;
     std::vector<Int_t>    genie_ND;
     std::vector<Int_t>    genie_mother;
-    
+
     //cosmic cry information
     Int_t     mcevts_truthcry;    //number of neutrino Int_teractions in the spill
     Int_t     cry_no_primaries;
@@ -718,14 +718,14 @@ namespace dune {
     std::vector<Float_t> proto_momentum;
     std::vector<Float_t> proto_energy;
     std::vector<Int_t> proto_pdg;
-    
+
     //G4 MC Particle information
     size_t MaxGEANTparticles = 0; ///! how many particles there is currently room for
     Int_t     no_primaries;      //number of primary geant particles
     Int_t     geant_list_size;  //number of all geant particles
     Int_t     geant_list_size_in_tpcAV;
     std::vector<Int_t>    pdg;
-    std::vector<Int_t>    status;    
+    std::vector<Int_t>    status;
     std::vector<Float_t>  Eng;
     std::vector<Float_t>  EndE;
     std::vector<Float_t>  Mass;
@@ -736,17 +736,17 @@ namespace dune {
     std::vector<Float_t>  StartPointx;
     std::vector<Float_t>  StartPointy;
     std::vector<Float_t>  StartPointz;
-    std::vector<Float_t>  StartT;  
-    std::vector<Float_t>  EndT;          
+    std::vector<Float_t>  StartT;
+    std::vector<Float_t>  EndT;
     std::vector<Float_t>  EndPointx;
     std::vector<Float_t>  EndPointy;
     std::vector<Float_t>  EndPointz;
-    std::vector<Float_t>  theta;    
-    std::vector<Float_t>  phi;    
-    std::vector<Float_t>  theta_xz;    
-    std::vector<Float_t>  theta_yz;    
-    std::vector<Float_t>  pathlen;    
-    std::vector<Int_t>    inTPCActive;    
+    std::vector<Float_t>  theta;
+    std::vector<Float_t>  phi;
+    std::vector<Float_t>  theta_xz;
+    std::vector<Float_t>  theta_yz;
+    std::vector<Float_t>  pathlen;
+    std::vector<Int_t>    inTPCActive;
     std::vector<Float_t>  StartPointx_tpcAV;
     std::vector<Float_t>  StartPointy_tpcAV;
     std::vector<Float_t>  StartPointz_tpcAV;
@@ -765,8 +765,8 @@ namespace dune {
     std::vector<Float_t>  EndPx_tpcAV;
     std::vector<Float_t>  EndPy_tpcAV;
     std::vector<Float_t>  EndPz_tpcAV;
-    std::vector<Float_t>  pathlen_drifted;    
-    std::vector<Int_t>    inTPCDrifted;    
+    std::vector<Float_t>  pathlen_drifted;
+    std::vector<Int_t>    inTPCDrifted;
     std::vector<Float_t>  StartPointx_drifted;
     std::vector<Float_t>  StartPointy_drifted;
     std::vector<Float_t>  StartPointz_drifted;
@@ -791,23 +791,23 @@ namespace dune {
     std::vector<Int_t>    process_primary;
     std::vector<std::string> processname;
     std::vector<Int_t>    MergedId; //geant track segments, which belong to the same particle, get the same
-    std::vector<Int_t>    origin;   ////0: unknown, 1: cosmic, 2: neutrino, 3: supernova, 4: singles 
+    std::vector<Int_t>    origin;   ////0: unknown, 1: cosmic, 2: neutrino, 3: supernova, 4: singles
     std::vector<Int_t>    MCTruthIndex; //this geant particle comes from the neutrino interaction of the _truth variables with this index
 
     //MC Shower information
     Int_t     no_mcshowers;                         //number of MC Showers in this event.
     //MC Shower particle information
-    std::vector<Int_t>       mcshwr_origin;	    //MC Shower origin information.  
-    std::vector<Int_t>       mcshwr_pdg;	    //MC Shower particle PDG code.   
+    std::vector<Int_t>       mcshwr_origin;	    //MC Shower origin information.
+    std::vector<Int_t>       mcshwr_pdg;	    //MC Shower particle PDG code.
     std::vector<Int_t>       mcshwr_TrackId;        //MC Shower particle G4 track ID.
-    std::vector<std::string> mcshwr_Process;	    //MC Shower particle's creation process. 
-    std::vector<Float_t>     mcshwr_startX;	    //MC Shower particle G4 startX 
-    std::vector<Float_t>     mcshwr_startY;	    //MC Shower particle G4 startY 
-    std::vector<Float_t>     mcshwr_startZ;	    //MC Shower particle G4 startZ 
-    std::vector<Float_t>     mcshwr_endX;	    //MC Shower particle G4 endX 
-    std::vector<Float_t>     mcshwr_endY;	    //MC Shower particle G4 endY 
-    std::vector<Float_t>     mcshwr_endZ;	    //MC Shower particle G4 endZ 
-    std::vector<Float_t>    mcshwr_CombEngX;	    //MC Shower Combined energy deposition information, Start Point X Position. 
+    std::vector<std::string> mcshwr_Process;	    //MC Shower particle's creation process.
+    std::vector<Float_t>     mcshwr_startX;	    //MC Shower particle G4 startX
+    std::vector<Float_t>     mcshwr_startY;	    //MC Shower particle G4 startY
+    std::vector<Float_t>     mcshwr_startZ;	    //MC Shower particle G4 startZ
+    std::vector<Float_t>     mcshwr_endX;	    //MC Shower particle G4 endX
+    std::vector<Float_t>     mcshwr_endY;	    //MC Shower particle G4 endY
+    std::vector<Float_t>     mcshwr_endZ;	    //MC Shower particle G4 endZ
+    std::vector<Float_t>    mcshwr_CombEngX;	    //MC Shower Combined energy deposition information, Start Point X Position.
     std::vector<Float_t>    mcshwr_CombEngY;	    //MC Shower Combined energy deposition information, Start Point Y Position.
     std::vector<Float_t>    mcshwr_CombEngZ;	    //MC Shower Combined energy deposition information, Start Point Z Position.
     std::vector<Float_t>     mcshwr_CombEngPx;	    //MC Shower Combined energy deposition information, Momentum X direction.
@@ -815,15 +815,15 @@ namespace dune {
     std::vector<Float_t>     mcshwr_CombEngPz;	    //MC Shower Combined energy deposition information, Momentum X direction.
     std::vector<Float_t>     mcshwr_CombEngE;	    //MC Shower Combined energy deposition information, Energy
     std::vector<Float_t>     mcshwr_dEdx;           //MC Shower dEdx, MeV/cm
-    std::vector<Float_t>     mcshwr_StartDirX;      //MC Shower Direction of begining of shower, X direction 
-    std::vector<Float_t>     mcshwr_StartDirY;      //MC Shower Direction of begining of shower, Y direction 
-    std::vector<Float_t>     mcshwr_StartDirZ;      //MC Shower Direction of begining of shower, Z direction 
+    std::vector<Float_t>     mcshwr_StartDirX;      //MC Shower Direction of begining of shower, X direction
+    std::vector<Float_t>     mcshwr_StartDirY;      //MC Shower Direction of begining of shower, Y direction
+    std::vector<Float_t>     mcshwr_StartDirZ;      //MC Shower Direction of begining of shower, Z direction
     std::vector<Int_t>       mcshwr_isEngDeposited;  //tells whether if this shower deposited energy in the detector or not.
-    //yes = 1; no =0;	
+    //yes = 1; no =0;
     //MC Shower mother information
-    std::vector<Int_t>       mcshwr_Motherpdg;       //MC Shower's mother PDG code. 
+    std::vector<Int_t>       mcshwr_Motherpdg;       //MC Shower's mother PDG code.
     std::vector<Int_t>       mcshwr_MotherTrkId;     //MC Shower's mother G4 track ID.
-    std::vector<std::string> mcshwr_MotherProcess;   //MC Shower's mother creation process. 
+    std::vector<std::string> mcshwr_MotherProcess;   //MC Shower's mother creation process.
     std::vector<Float_t>     mcshwr_MotherstartX;    //MC Shower's mother  G4 startX .
     std::vector<Float_t>     mcshwr_MotherstartY;    //MC Shower's mother  G4 startY .
     std::vector<Float_t>     mcshwr_MotherstartZ;    //MC Shower's mother  G4 startZ .
@@ -831,28 +831,28 @@ namespace dune {
     std::vector<Float_t>     mcshwr_MotherendY;	     //MC Shower's mother  G4 endY   .
     std::vector<Float_t>     mcshwr_MotherendZ;	     //MC Shower's mother  G4 endZ   .
     //MC Shower ancestor information
-    std::vector<Int_t>       mcshwr_Ancestorpdg;       //MC Shower's ancestor PDG code. 
+    std::vector<Int_t>       mcshwr_Ancestorpdg;       //MC Shower's ancestor PDG code.
     std::vector<Int_t>       mcshwr_AncestorTrkId;     //MC Shower's ancestor G4 track ID.
-    std::vector<std::string> mcshwr_AncestorProcess;   //MC Shower's ancestor creation process. 
+    std::vector<std::string> mcshwr_AncestorProcess;   //MC Shower's ancestor creation process.
     std::vector<Float_t>     mcshwr_AncestorstartX;    //MC Shower's ancestor  G4 startX
     std::vector<Float_t>     mcshwr_AncestorstartY;    //MC Shower's ancestor  G4 startY
     std::vector<Float_t>     mcshwr_AncestorstartZ;    //MC Shower's ancestor  G4 startZ
-    std::vector<Float_t>     mcshwr_AncestorendX;      //MC Shower's ancestor  G4 endX  
-    std::vector<Float_t>     mcshwr_AncestorendY;      //MC Shower's ancestor  G4 endY  
-    std::vector<Float_t>     mcshwr_AncestorendZ;      //MC Shower's ancestor  G4 endZ  
-    
+    std::vector<Float_t>     mcshwr_AncestorendX;      //MC Shower's ancestor  G4 endX
+    std::vector<Float_t>     mcshwr_AncestorendY;      //MC Shower's ancestor  G4 endY
+    std::vector<Float_t>     mcshwr_AncestorendZ;      //MC Shower's ancestor  G4 endZ
+
     //MC track information
     Int_t     no_mctracks;                         //number of MC tracks in this event.
     //MC track particle information
-    std::vector<Int_t>       mctrk_origin;	    //MC track origin information.  
-    std::vector<Int_t>       mctrk_pdg;	    //MC track particle PDG code.   
+    std::vector<Int_t>       mctrk_origin;	    //MC track origin information.
+    std::vector<Int_t>       mctrk_pdg;	    //MC track particle PDG code.
     std::vector<Int_t>       mctrk_TrackId;        //MC track particle G4 track ID.
-    std::vector<std::string> mctrk_Process;	    //MC track particle's creation process. 
-    std::vector<Float_t>     mctrk_startX;	    //MC track particle G4 startX 
-    std::vector<Float_t>     mctrk_startY;	    //MC track particle G4 startY 
-    std::vector<Float_t>     mctrk_startZ;	    //MC track particle G4 startZ 
-    std::vector<Float_t>     mctrk_endX;		//MC track particle G4 endX 
-    std::vector<Float_t>     mctrk_endY;		//MC track particle G4 endY 
+    std::vector<std::string> mctrk_Process;	    //MC track particle's creation process.
+    std::vector<Float_t>     mctrk_startX;	    //MC track particle G4 startX
+    std::vector<Float_t>     mctrk_startY;	    //MC track particle G4 startY
+    std::vector<Float_t>     mctrk_startZ;	    //MC track particle G4 startZ
+    std::vector<Float_t>     mctrk_endX;		//MC track particle G4 endX
+    std::vector<Float_t>     mctrk_endY;		//MC track particle G4 endY
     std::vector<Float_t>     mctrk_endZ;		//MC track particle G4 endZ
     std::vector<Float_t>     mctrk_startX_drifted;        //MC track particle first step in TPC x
     std::vector<Float_t>     mctrk_startY_drifted;        //MC track particle first step in TPC y
@@ -866,9 +866,9 @@ namespace dune {
     std::vector<Float_t>     mctrk_py_drifted;            //MC track y momentum at start point in TPC
     std::vector<Float_t>     mctrk_pz_drifted;            //MC track z momentum at start point in TPC
     //MC Track mother information
-    std::vector<Int_t>       mctrk_Motherpdg;       //MC Track's mother PDG code. 
+    std::vector<Int_t>       mctrk_Motherpdg;       //MC Track's mother PDG code.
     std::vector<Int_t>       mctrk_MotherTrkId;     //MC Track's mother G4 track ID.
-    std::vector<std::string> mctrk_MotherProcess;   //MC Track's mother creation process. 
+    std::vector<std::string> mctrk_MotherProcess;   //MC Track's mother creation process.
     std::vector<Float_t>     mctrk_MotherstartX;    //MC Track's mother  G4 startX .
     std::vector<Float_t>     mctrk_MotherstartY;    //MC Track's mother  G4 startY .
     std::vector<Float_t>     mctrk_MotherstartZ;    //MC Track's mother  G4 startZ .
@@ -876,23 +876,23 @@ namespace dune {
     std::vector<Float_t>     mctrk_MotherendY;	     //MC Track's mother  G4 endY   .
     std::vector<Float_t>     mctrk_MotherendZ;	     //MC Track's mother  G4 endZ   .
     //MC Track ancestor information
-    std::vector<Int_t>       mctrk_Ancestorpdg;       //MC Track's ancestor PDG code. 
+    std::vector<Int_t>       mctrk_Ancestorpdg;       //MC Track's ancestor PDG code.
     std::vector<Int_t>       mctrk_AncestorTrkId;     //MC Track's ancestor G4 track ID.
-    std::vector<std::string> mctrk_AncestorProcess;   //MC Track's ancestor creation process. 
+    std::vector<std::string> mctrk_AncestorProcess;   //MC Track's ancestor creation process.
     std::vector<Float_t>     mctrk_AncestorstartX;    //MC Track's ancestor  G4 startX
     std::vector<Float_t>     mctrk_AncestorstartY;    //MC Track's ancestor  G4 startY
     std::vector<Float_t>     mctrk_AncestorstartZ;    //MC Track's ancestor  G4 startZ
-    std::vector<Float_t>     mctrk_AncestorendX;      //MC Track's ancestor  G4 endX  
-    std::vector<Float_t>     mctrk_AncestorendY;      //MC Track's ancestor  G4 endY  
-    std::vector<Float_t>     mctrk_AncestorendZ;      //MC Track's ancestor  G4 endZ    
-						      
+    std::vector<Float_t>     mctrk_AncestorendX;      //MC Track's ancestor  G4 endX
+    std::vector<Float_t>     mctrk_AncestorendY;      //MC Track's ancestor  G4 endY
+    std::vector<Float_t>     mctrk_AncestorendZ;      //MC Track's ancestor  G4 endZ
+
     // Auxiliary detector variables saved for each geant track
     // This data is saved as a vector (one item per GEANT particle) of C arrays
     // (wrapped in a BoxedArray for technical reasons), one item for each
     // affected detector cell (which one is saved in AuxDetID
     template <typename T>
     using AuxDetMCData_t = std::vector<BoxedArray<T[kMaxAuxDets]>>;
-    
+
     std::vector<UShort_t> NAuxDets;         ///< Number of AuxDets crossed by this particle
     AuxDetMCData_t<Short_t> AuxDetID;       ///< Which AuxDet this particle went through
     AuxDetMCData_t<Float_t> entryX;         ///< Entry X position of particle into AuxDet
@@ -907,24 +907,24 @@ namespace dune {
     AuxDetMCData_t<Float_t> exitPy;         ///< Exit y momentum of particle out of AuxDet
     AuxDetMCData_t<Float_t> exitPz;         ///< Exit z momentum of particle out of AuxDet
     AuxDetMCData_t<Float_t> CombinedEnergyDep; ///< Sum energy of all particles with this trackID (+ID or -ID) in AuxDet
-    
+
     unsigned int bits; ///< complementary information
- 
+
     /// Returns whether we have auxiliary detector data
     bool hasAuxDetector() const { return bits & tdAuxDet; }
-    
+
     /// Returns whether we have Cry data
     bool hasCryInfo() const { return bits & tdCry; }
-    
+
     /// Returns whether we have Genie data
     bool hasGenieInfo() const { return bits & tdGenie; }
-    
+
     /// Returns whether we have MCShower data
     bool hasMCShowerInfo() const { return bits & tdMCshwr; }
-    
+
     /// Returns whether we have MCTrack data
     bool hasMCTrackInfo() const { return bits & tdMCtrk; }
-    
+
     /// Returns whether we have Hit data
     bool hasHitInfo() const { return bits & tdHit; }
 
@@ -933,22 +933,22 @@ namespace dune {
 
     /// Returns whether we have Track data
     bool hasTrackInfo() const { return bits & tdTrack; }
-    
+
     /// Returns whether we have Shower data
     bool hasShowerInfo() const { return bits & tdShower; }
-    
+
     /// Returns whether we have Vertex data
     bool hasVertexInfo() const { return bits & tdVertex; }
 
     /// Returns whether we have PFParticle data
     bool hasPFParticleInfo() const { return bits & tdPFParticle; }
-    
+
     /// Returns whether we have Cluster data
     bool hasClusterInfo() const { return bits & tdCluster; }
 
     /// Returns whether we have Pandora Nu Vertex data
     bool hasPandoraNuVertexInfo() const { return bits & tdPandoraNuVertex; }
-    
+
     /// Returns whether we have Geant data
     bool hasGeantInfo() const { return bits & tdGeant; }
 
@@ -957,30 +957,30 @@ namespace dune {
 
     /// Returns whether we have External Counter data
     bool hasExternCountInfo() const { return bits & tdCount; }
-   
+
     /// Returns whether we have protoDUNE beam primaries
     bool hasProtoInfo() const {return bits & tdProto; }
- 
+
     /// Sets the specified bits
     void SetBits(unsigned int setbits, bool unset = false)
     { if (unset) bits &= ~setbits; else bits |= setbits; }
-      
+
     /// Constructor; clears all fields
     AnalysisTreeDataStruct(size_t nTrackers = 0, size_t nVertexAlgos = 0,
 			   std::vector<std::string> const& ShowerAlgos = {}):
-      bits(tdDefault) 
+      bits(tdDefault)
     { SetTrackers(nTrackers); SetVertexAlgos(nVertexAlgos); SetShowerAlgos(ShowerAlgos); Clear(); }
 
     TrackDataStruct& GetTrackerData(size_t iTracker)
     { return TrackData.at(iTracker); }
     const TrackDataStruct& GetTrackerData(size_t iTracker) const
     { return TrackData.at(iTracker); }
-    
+
     ShowerDataStruct& GetShowerData(size_t iShower)
     { return ShowerData.at(iShower); }
     ShowerDataStruct const& GetShowerData(size_t iShower) const
     { return ShowerData.at(iShower); }
-    
+
     VertexDataStruct& GetVertexData(size_t iVertex)
     { return VertexData.at(iVertex); }
     const VertexDataStruct& GetVertexData(size_t iVertex) const
@@ -990,41 +990,41 @@ namespace dune {
       { return PFParticleData; }
     const PFParticleDataStruct& GetPFParticleData() const
       { return PFParticleData; }
-    
+
     /// Clear all fields if this object (not the tracker algorithm data)
     void ClearLocalData();
-    
+
     /// Clear all fields
     void Clear();
-    
-    
+
+
     /// Allocates data structures for the given number of trackers (no Clear())
     void SetTrackers(size_t nTrackers) { TrackData.resize(nTrackers); }
 
     /// Allocates data structures for the given number of vertex algos (no Clear())
     void SetVertexAlgos(size_t nVertexAlgos) { VertexData.resize(nVertexAlgos); }
-    
+
     /// Allocates data structures for the given number of trackers (no Clear())
     void SetShowerAlgos(std::vector<std::string> const& ShowerAlgos);
-    
+
     /// Resize the data strutcure for GEANT particles
     void ResizeGEANT(int nParticles);
-    
+
     /// Resize the data strutcure for Genie primaries
     void ResizeGenie(int nPrimaries);
-    
+
     /// Resize the data strutcure for Cry primaries
     void ResizeCry(int nPrimaries);
-   
+
     /// Resize the data structure for ProtoDUNE primaries
     void ResizeProto(int nPrimaries);
- 
+
     /// Resize the data strutcure for  MC Showers
     void ResizeMCShower(int nMCShowers);
-    
+
     /// Resize the data strutcure for  MC Tracks
     void ResizeMCTrack(int nMCTracks);
-    
+
     /// Connect this object with a tree
     void SetAddresses(
 		      TTree* pTree,
@@ -1033,36 +1033,36 @@ namespace dune {
 		      std::vector<std::string> const& showeralgos,
 		      bool isCosmics
 		      );
-    
-    
+
+
     /// Returns the number of trackers for which data structures are allocated
     size_t GetNTrackers() const { return TrackData.size(); }
-   
+
     /// Returns the number of Vertex algos for which data structures are allocated
     size_t GetNVertexAlgos() const { return VertexData.size(); }
 
     /// Returns the number of trackers for which data structures are allocated
     size_t GetNShowerAlgos() const { return ShowerData.size(); }
-    
+
     /// Returns the number of hits for which memory is allocated
     size_t GetMaxHits() const { return kMaxHits; }
-    
+
     /// Returns the number of trackers for which memory is allocated
     size_t GetMaxTrackers() const { return TrackData.capacity(); }
 
     /// Returns the number of trackers for which memory is allocated
     size_t GetMaxVertexAlgos() const { return VertexData.capacity(); }
- 
+
     /// Returns the number of trackers for which memory is allocated
     size_t GetMaxShowers() const { return ShowerData.capacity(); }
-    
+
     /// Returns the number of GEANT particles for which memory is allocated
     size_t GetMaxGEANTparticles() const { return MaxGEANTparticles; }
-        
+
     /// Returns the number of GENIE primaries for which memory is allocated
     size_t GetMaxGeniePrimaries() const { return MaxGeniePrimaries; }
-    
-    
+
+
   private:
     /// Little helper functor class to create or reset branches in a tree
     class BranchCreator {
@@ -1139,31 +1139,31 @@ namespace dune {
     }; // class BranchCreator
 
   }; // class AnalysisTreeDataStruct
-  
-  
+
+
   /// Contains ROOTTreeCode<>::code, ROOT tree character for branch of type T
   template <typename T> struct ROOTTreeCode; // generally undefined
-  
+
   template<> struct ROOTTreeCode<Short_t>  { static constexpr char code = 'S'; };
   template<> struct ROOTTreeCode<Int_t>    { static constexpr char code = 'I'; };
   template<> struct ROOTTreeCode<Double_t> { static constexpr char code = 'D'; };
-  
-  
+
+
   /// Class whose "type" contains the base data type of the container
   template <typename C> struct ContainerValueType; // generally undefined
-  
+
   template <typename A>
   struct ContainerValueType<std::vector<AnalysisTreeDataStruct::BoxedArray<A>>>
   { using type = typename AnalysisTreeDataStruct::BoxedArray<A>::value_type; };
-  
+
   template <typename T>
   struct ContainerValueType<std::vector<T>>
   { using type = typename std::vector<T>::value_type; };
-  
-  
+
+
   /**
    * @brief Creates a simple ROOT tree with tracking and calorimetry information
-   * 
+   *
    * <h2>Configuration parameters</h2>
    * - <b>UseBuffers</b> (default: false): if enabled, memory is allocated for
    *   tree data for all the run; otherwise, it's allocated on each event, used
@@ -1228,7 +1228,7 @@ namespace dune {
     std::vector<std::string> fMCT0FinderLabel;
     std::string fPOTModuleLabel;
     std::string fCosmicClusterTaggerAssocLabel;
-    bool fUseBuffer; ///< whether to use a permanent buffer (faster, huge memory)    
+    bool fUseBuffer; ///< whether to use a permanent buffer (faster, huge memory)
     bool fSaveAuxDetInfo; ///< whether to extract and save auxiliary detector data
     bool fSaveCryInfo; ///whether to extract and save CRY particle data
     bool fSaveGenieInfo; ///whether to extract and save Genie information
@@ -1252,7 +1252,7 @@ namespace dune {
     std::vector<std::string> fFlashMatchAssocLabel;
 
     bool bIgnoreMissingShowers; ///< whether to ignore missing shower information
-    
+
     bool isCosmics;      ///< if it contains cosmics
     bool fSaveCaloCosmics; ///< save calorimetry information for cosmics
     float fG4minE;         ///< Energy threshold to save g4 particle info
@@ -1263,14 +1263,14 @@ namespace dune {
     size_t GetNTrackers() const { return fTrackModuleLabel.size(); }
 
     size_t GetNVertexAlgos() const { return fVertexModuleLabel.size(); }
-       
+
     /// Returns the number of shower algorithms configured
     size_t GetNShowerAlgos() const { return fShowerModuleLabel.size(); }
-    
+
     /// Returns the name of configured shower algorithms (converted to string)
     std::vector<std::string> GetShowerAlgos() const
     { return { fShowerModuleLabel.begin(), fShowerModuleLabel.end() }; }
-    
+
     /// Creates the structure for the tree data; optionally initializes it
     void CreateData(bool bClearData = false)
     {
@@ -1281,8 +1281,8 @@ namespace dune {
 	fData->SetBits(AnalysisTreeDataStruct::tdGenie,  !fSaveGenieInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdProto,  !fSaveProtoInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdGeant,  !fSaveGeantInfo);
-	fData->SetBits(AnalysisTreeDataStruct::tdMCshwr, !fSaveMCShowerInfo); 
-	fData->SetBits(AnalysisTreeDataStruct::tdMCtrk,  !fSaveMCTrackInfo); 
+	fData->SetBits(AnalysisTreeDataStruct::tdMCshwr, !fSaveMCShowerInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdMCtrk,  !fSaveMCTrackInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdHit,    !fSaveHitInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdRawDigit,    !fSaveRawDigitInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdFlash,  !fSaveFlashInfo);
@@ -1303,7 +1303,7 @@ namespace dune {
 	if (bClearData) fData->Clear();
       }
     } // CreateData()
-    
+
     /// Sets the addresses of all the tree branches, creating the missing ones
     void SetAddresses()
     {
@@ -1311,7 +1311,7 @@ namespace dune {
       fData->SetAddresses
 	(fTree, fTrackModuleLabel, fVertexModuleLabel, fShowerModuleLabel, isCosmics);
     } // SetAddresses()
-    
+
     /// Sets the addresses of all the tree branches of the specified tracking algo,
     /// creating the missing ones
     void SetTrackerAddresses(size_t iTracker)
@@ -1338,7 +1338,7 @@ namespace dune {
       fData->GetVertexData(iVertexAlg)
 	.SetAddresses(fTree, fVertexModuleLabel[iVertexAlg], isCosmics);
     } // SetVertexAddresses()
-    
+
     /// Sets the addresses of all the tree branches of the specified shower algo,
     /// creating the missing ones
     void SetShowerAddresses(size_t iShower)
@@ -1359,13 +1359,13 @@ namespace dune {
       CheckData(__func__); CheckTree(__func__);
       fData->GetPFParticleData().SetAddresses(fTree);
     } // SetPFParticleAddress()
-    
+
     /// Create the output tree and the data structures, if needed
     void CreateTree(bool bClearData = false);
-    
+
     /// Destroy the local buffers (existing branches will point to invalid address!)
     void DestroyData() { fData.reset(); }
-    
+
     /// Helper function: throws if no data structure is available
     void CheckData(std::string caller) const
     {
@@ -1380,21 +1380,21 @@ namespace dune {
       throw art::Exception(art::errors::LogicError)
 	<< "AnalysisTree::" << caller << ": no tree";
     } // CheckData()
-    
+
     /// Stores the information of shower in slot iShower of showerData
     void FillShower(
 		    AnalysisTreeDataStruct::ShowerDataStruct& showerData,
-		    size_t iShower, recob::Shower const& showers, const bool fSavePFParticleInfo, 
+		    size_t iShower, recob::Shower const& showers, const bool fSavePFParticleInfo,
             const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
 		    ) const;
-    
+
     /// Stores the information of all showers into showerData
     void FillShowers(
 		     AnalysisTreeDataStruct::ShowerDataStruct& showerData,
-		     std::vector<recob::Shower> const& showers, const bool fSavePFParticleInfo, 
+		     std::vector<recob::Shower> const& showers, const bool fSavePFParticleInfo,
              const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
 		     ) const;
-    
+
   }; // class dune::AnalysisTree
 } // namespace dune
 
@@ -1431,7 +1431,7 @@ namespace { // local namespace
 void dune::AnalysisTreeDataStruct::TrackDataStruct::Resize(size_t nTracks)
 {
   MaxTracks = nTracks;
-  
+
   trkId.resize(MaxTracks);
   trkncosmictags_tagger.resize(MaxTracks);
   trkcosmicscore_tagger.resize(MaxTracks);
@@ -1450,8 +1450,8 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkendy.resize(MaxTracks);
   trkendz.resize(MaxTracks);
   trkendd.resize(MaxTracks);
-  trkflashT0.resize(MaxTracks);  
-  trktrueT0.resize(MaxTracks);  
+  trkflashT0.resize(MaxTracks);
+  trktrueT0.resize(MaxTracks);
   trktheta.resize(MaxTracks);
   trkphi.resize(MaxTracks);
   trkstartdcosx.resize(MaxTracks);
@@ -1465,7 +1465,7 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkmom.resize(MaxTracks);
   trkmomrange.resize(MaxTracks);
   trkmommschi2.resize(MaxTracks);
-  trkmommsllhd.resize(MaxTracks);  
+  trkmommsllhd.resize(MaxTracks);
   trklen.resize(MaxTracks);
   trksvtxid.resize(MaxTracks);
   trkevtxid.resize(MaxTracks);
@@ -1483,7 +1483,7 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkpidmvapich.resize(MaxTracks);
   trkpidmvaphoton.resize(MaxTracks);
   trkpidmvapr.resize(MaxTracks);
-  
+
   trkke.resize(MaxTracks);
   trkrange.resize(MaxTracks);
   trkidtruth.resize(MaxTracks);
@@ -1497,22 +1497,22 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkorig.resize(MaxTracks);
   trkpitchc.resize(MaxTracks);
   ntrkhits.resize(MaxTracks);
-  
+
   trkdedx.resize(MaxTracks);
   trkdqdx.resize(MaxTracks);
   trkresrg.resize(MaxTracks);
   trktpc.resize(MaxTracks);
   trkxyz.resize(MaxTracks);
-  
+
   trkhasPFParticle.resize(MaxTracks);
   trkPFParticleID.resize(MaxTracks);
-  
+
 } // dune::AnalysisTreeDataStruct::TrackDataStruct::Resize()
 
 void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
   Resize(MaxTracks);
   ntracks = 0;
-  
+
   FillWith(trkId        , -9999  );
   FillWith(trkncosmictags_tagger, -9999  );
   FillWith(trkcosmicscore_tagger, -99999.);
@@ -1531,8 +1531,8 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
   FillWith(trkendy      , -99999.);
   FillWith(trkendz      , -99999.);
   FillWith(trkendd      , -99999.);
-  FillWith(trkflashT0   , -99999.);  
-  FillWith(trktrueT0    , -99999.);  
+  FillWith(trkflashT0   , -99999.);
+  FillWith(trktrueT0    , -99999.);
   FillWith(trkg4id      , -99999 );
   FillWith(trkpurity    , -99999.);
   FillWith(trkcompleteness, -99999.);
@@ -1548,24 +1548,24 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
   FillWith(trkthetaxz   , -99999.);
   FillWith(trkthetayz   , -99999.);
   FillWith(trkmom       , -99999.);
-  FillWith(trkmomrange  , -99999.);  
-  FillWith(trkmommschi2 , -99999.);  
-  FillWith(trkmommsllhd , -99999.);  
+  FillWith(trkmomrange  , -99999.);
+  FillWith(trkmommschi2 , -99999.);
+  FillWith(trkmommsllhd , -99999.);
   FillWith(trklen       , -99999.);
   FillWith(trksvtxid    , -1);
   FillWith(trkevtxid    , -1);
-  FillWith(trkpidbestplane, -1); 
+  FillWith(trkpidbestplane, -1);
   FillWith(trkpidmvamu  , -99999.);
   FillWith(trkpidmvae   , -99999.);
   FillWith(trkpidmvapich, -99999.);
   FillWith(trkpidmvaphoton , -99999.);
   FillWith(trkpidmvapr  , -99999.);
-  
+
   FillWith(trkhasPFParticle, -1);
   FillWith(trkPFParticleID , -1);
- 
+
   for (size_t iTrk = 0; iTrk < MaxTracks; ++iTrk){
-    
+
     // the following are BoxedArray's;
     // their iterators traverse all the array dimensions
     FillWith(trkke[iTrk]      , -99999.);
@@ -1577,13 +1577,13 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
     FillWith(trkpurtruth[iTrk], -99999.);
     FillWith(trkpitchc[iTrk]  , -99999.);
     FillWith(ntrkhits[iTrk]   ,  -9999 );
-    
+
     FillWith(trkdedx[iTrk], 0.);
     FillWith(trkdqdx[iTrk], 0.);
     FillWith(trkresrg[iTrk], 0.);
     FillWith(trktpc[iTrk], -1);
     FillWith(trkxyz[iTrk], 0.);
- 
+
     FillWith(trkpidpdg[iTrk]    , -1);
     FillWith(trkpidchi[iTrk]    , -99999.);
     FillWith(trkpidchipr[iTrk]  , -99999.);
@@ -1592,7 +1592,7 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
     FillWith(trkpidchimu[iTrk]  , -99999.);
     FillWith(trkpidpida[iTrk]   , -99999.);
   } // for track
-  
+
 } // dune::AnalysisTreeDataStruct::TrackDataStruct::Clear()
 
 
@@ -1600,29 +1600,29 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
 								       TTree* pTree, std::string tracker, bool isCosmics
 								       ) {
   if (MaxTracks == 0) return; // no tracks, no tree!
-  
+
   dune::AnalysisTreeDataStruct::BranchCreator CreateBranch(pTree);
 
   AutoResettingStringSteam sstr;
   sstr() << kMaxTrackHits;
   std::string MaxTrackHitsIndexStr("[" + sstr.str() + "]");
-  
+
   std::string TrackLabel = tracker;
   std::string BranchName;
 
   BranchName = "ntracks_" + TrackLabel;
   CreateBranch(BranchName, &ntracks, BranchName + "/S");
   std::string NTracksIndexStr = "[" + BranchName + "]";
-  
+
   BranchName = "trkId_" + TrackLabel;
   CreateBranch(BranchName, trkId, BranchName + NTracksIndexStr + "/S");
-  
+
   BranchName = "trkncosmictags_tagger_" + TrackLabel;
   CreateBranch(BranchName, trkncosmictags_tagger, BranchName + NTracksIndexStr + "/S");
-  
+
   BranchName = "trkcosmicscore_tagger_" + TrackLabel;
   CreateBranch(BranchName, trkcosmicscore_tagger, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkcosmictype_tagger_" + TrackLabel;
   CreateBranch(BranchName, trkcosmictype_tagger, BranchName + NTracksIndexStr + "/S");
 
@@ -1637,81 +1637,81 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkncosmictags_flashmatch_" + TrackLabel;
   CreateBranch(BranchName, trkncosmictags_flashmatch, BranchName + NTracksIndexStr + "/S");
-  
+
   BranchName = "trkcosmicscore_flashmatch_" + TrackLabel;
   CreateBranch(BranchName, trkcosmicscore_flashmatch, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkcosmictype_flashmatch_" + TrackLabel;
   CreateBranch(BranchName, trkcosmictype_flashmatch, BranchName + NTracksIndexStr + "/S");
-  
+
   BranchName = "trkke_" + TrackLabel;
   CreateBranch(BranchName, trkke, BranchName + NTracksIndexStr + "[3]/F");
-  
+
   BranchName = "trkrange_" + TrackLabel;
   CreateBranch(BranchName, trkrange, BranchName + NTracksIndexStr + "[3]/F");
-   
+
   BranchName = "trkidtruth_" + TrackLabel;
   CreateBranch(BranchName, trkidtruth, BranchName + NTracksIndexStr + "[3]/I");
 
   BranchName = "trkorigin_" + TrackLabel;
   CreateBranch(BranchName, trkorigin, BranchName + NTracksIndexStr + "[3]/S");
-  
+
   BranchName = "trkpdgtruth_" + TrackLabel;
   CreateBranch(BranchName, trkpdgtruth, BranchName + NTracksIndexStr + "[3]/I");
-  
+
   BranchName = "trkefftruth_" + TrackLabel;
   CreateBranch(BranchName, trkefftruth, BranchName + NTracksIndexStr + "[3]/F");
- 
+
   BranchName = "trkpurtruth_" + TrackLabel;
   CreateBranch(BranchName, trkpurtruth, BranchName + NTracksIndexStr + "[3]/F");
-  
+
   BranchName = "trkpitchc_" + TrackLabel;
   CreateBranch(BranchName, trkpitchc, BranchName + NTracksIndexStr + "[3]/F");
-  
+
   BranchName = "ntrkhits_" + TrackLabel;
   CreateBranch(BranchName, ntrkhits, BranchName + NTracksIndexStr + "[3]/S");
-  
+
   if (!isCosmics){
     BranchName = "trkdedx_" + TrackLabel;
     CreateBranch(BranchName, trkdedx, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/F");
-  
+
     BranchName = "trkdqdx_" + TrackLabel;
     CreateBranch(BranchName, trkdqdx, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/F");
-    
+
     BranchName = "trkresrg_" + TrackLabel;
     CreateBranch(BranchName, trkresrg, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/F");
 
     BranchName = "trktpc_" + TrackLabel;
     CreateBranch(BranchName, trktpc, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/I");
-    
+
     BranchName = "trkxyz_" + TrackLabel;
     CreateBranch(BranchName, trkxyz, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "[3]" + "/F");
   }
 
   BranchName = "trkstartx_" + TrackLabel;
   CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkstarty_" + TrackLabel;
   CreateBranch(BranchName, trkstarty, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkstartz_" + TrackLabel;
   CreateBranch(BranchName, trkstartz, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkstartd_" + TrackLabel;
   CreateBranch(BranchName, trkstartd, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkendx_" + TrackLabel;
   CreateBranch(BranchName, trkendx, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkendy_" + TrackLabel;
   CreateBranch(BranchName, trkendy, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkendz_" + TrackLabel;
   CreateBranch(BranchName, trkendz, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkendd_" + TrackLabel;
   CreateBranch(BranchName, trkendd, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkflashT0_" + TrackLabel;
   CreateBranch(BranchName, trkflashT0, BranchName + NTracksIndexStr + "/F");
 
@@ -1723,46 +1723,46 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkorig_" + TrackLabel;
   CreateBranch(BranchName, trkorig, BranchName + NTracksIndexStr + "/I");
-  
+
   BranchName = "trkpurity_" + TrackLabel;
   CreateBranch(BranchName, trkpurity, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkcompleteness_" + TrackLabel;
   CreateBranch(BranchName, trkcompleteness, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trktheta_" + TrackLabel;
   CreateBranch(BranchName, trktheta, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkphi_" + TrackLabel;
   CreateBranch(BranchName, trkphi, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkstartdcosx_" + TrackLabel;
   CreateBranch(BranchName, trkstartdcosx, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkstartdcosy_" + TrackLabel;
   CreateBranch(BranchName, trkstartdcosy, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkstartdcosz_" + TrackLabel;
   CreateBranch(BranchName, trkstartdcosz, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkenddcosx_" + TrackLabel;
   CreateBranch(BranchName, trkenddcosx, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkenddcosy_" + TrackLabel;
   CreateBranch(BranchName, trkenddcosy, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkenddcosz_" + TrackLabel;
   CreateBranch(BranchName, trkenddcosz, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkthetaxz_" + TrackLabel;
   CreateBranch(BranchName, trkthetaxz, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkthetayz_" + TrackLabel;
   CreateBranch(BranchName, trkthetayz, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkmom_" + TrackLabel;
   CreateBranch(BranchName, trkmom, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trkmomrange_" + TrackLabel;
   CreateBranch(BranchName, trkmomrange, BranchName + NTracksIndexStr + "/F");
 
@@ -1771,13 +1771,13 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkmommsllhd_" + TrackLabel;
   CreateBranch(BranchName, trkmommsllhd, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trklen_" + TrackLabel;
   CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
-  
+
   BranchName = "trksvtxid_" + TrackLabel;
   CreateBranch(BranchName, trksvtxid, BranchName + NTracksIndexStr + "/S");
-  
+
   BranchName = "trkevtxid_" + TrackLabel;
   CreateBranch(BranchName, trkevtxid, BranchName + NTracksIndexStr + "/S");
 
@@ -1819,10 +1819,10 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkpidbestplane_" + TrackLabel;
   CreateBranch(BranchName, trkpidbestplane, BranchName + NTracksIndexStr + "/S");
-  
+
   BranchName = "trkhasPFParticle_" + TrackLabel;
   CreateBranch(BranchName, trkhasPFParticle, BranchName + NTracksIndexStr + "/S");
-  
+
   BranchName = "trkPFParticleID_" + TrackLabel;
   CreateBranch(BranchName, trkPFParticleID, BranchName + NTracksIndexStr + "/S");
 
@@ -1837,7 +1837,7 @@ void dune::AnalysisTreeDataStruct::VertexDataStruct::Resize(size_t nVertices)
   vtxx.resize(MaxVertices);
   vtxy.resize(MaxVertices);
   vtxz.resize(MaxVertices);
-  
+
   vtxhasPFParticle.resize(MaxVertices);
   vtxPFParticleID.resize(MaxVertices);
 }
@@ -1881,10 +1881,10 @@ void dune::AnalysisTreeDataStruct::VertexDataStruct::SetAddresses(
 
   BranchName = "vtxz_" + VertexLabel;
   CreateBranch(BranchName, vtxz, BranchName + NVertexIndexStr + "/F");
-  
+
   BranchName = "vtxhasPFParticle_" + VertexLabel;
   CreateBranch(BranchName, vtxhasPFParticle, BranchName + NVertexIndexStr + "/S");
-  
+
   BranchName = "vtxPFParticleID_" + VertexLabel;
   CreateBranch(BranchName, vtxPFParticleID, BranchName + NVertexIndexStr + "/S");
 }
@@ -1896,7 +1896,7 @@ void dune::AnalysisTreeDataStruct::VertexDataStruct::SetAddresses(
 void dune::AnalysisTreeDataStruct::PFParticleDataStruct::Resize(size_t nPFParticles)
 {
   MaxPFParticles = nPFParticles;
-  
+
   pfp_selfID.resize(MaxPFParticles);
   pfp_isPrimary.resize(MaxPFParticles);
   pfp_numDaughters.resize(MaxPFParticles);
@@ -1915,7 +1915,7 @@ void dune::AnalysisTreeDataStruct::PFParticleDataStruct::Resize(size_t nPFPartic
 
 void dune::AnalysisTreeDataStruct::PFParticleDataStruct::Clear() {
   Resize(MaxPFParticles);
-  
+
   nPFParticles = -9999;
   FillWith(pfp_selfID, -9999);
   FillWith(pfp_isPrimary, -9999);
@@ -1942,7 +1942,7 @@ void dune::AnalysisTreeDataStruct::PFParticleDataStruct::Clear() {
 void dune::AnalysisTreeDataStruct::PFParticleDataStruct::SetAddresses(
   TTree* pTree
 ) {
-    
+
   if (MaxPFParticles == 0) { return; } // no PFParticles, no tree
 
   dune::AnalysisTreeDataStruct::BranchCreator CreateBranch(pTree);
@@ -1950,15 +1950,15 @@ void dune::AnalysisTreeDataStruct::PFParticleDataStruct::SetAddresses(
   AutoResettingStringSteam sstr;
   sstr() << kMaxNDaughtersPerPFP;
   std::string MaxNDaughtersIndexStr("[" + sstr.str() + "]");
-  
+
   sstr.str("");
   sstr() << kMaxNClustersPerPFP;
   std::string MaxNClustersIndexStr("[" + sstr.str() + "]");
-  
+
   sstr.str("");
   sstr() << kMaxNPFPNeutrinos;
   std::string MaxNNeutrinosIndexStr("[" + sstr.str() + "]");
-  
+
   std::string BranchName;
 
   BranchName = "nPFParticles";
@@ -1976,40 +1976,40 @@ void dune::AnalysisTreeDataStruct::PFParticleDataStruct::SetAddresses(
 
   BranchName = "pfp_daughterIDs";
   CreateBranch(BranchName, pfp_daughterIDs, BranchName + NPFParticleIndexStr + MaxNDaughtersIndexStr + "/S");
-  
+
   BranchName = "pfp_parentID";
   CreateBranch(BranchName, pfp_parentID, BranchName + NPFParticleIndexStr + "/S");
-  
+
   BranchName = "pfp_vertexID";
   CreateBranch(BranchName, pfp_vertexID, BranchName + NPFParticleIndexStr + "/S");
-  
+
   BranchName = "pfp_isShower";
   CreateBranch(BranchName, pfp_isShower, BranchName + NPFParticleIndexStr + "/S");
 
   BranchName = "pfp_isTrack";
   CreateBranch(BranchName, pfp_isTrack, BranchName + NPFParticleIndexStr + "/S");
-  
+
   BranchName = "pfp_trackID";
   CreateBranch(BranchName, pfp_trackID, BranchName + NPFParticleIndexStr + "/S");
-  
+
   BranchName = "pfp_showerID";
   CreateBranch(BranchName, pfp_showerID, BranchName + NPFParticleIndexStr + "/S");
-  
+
   BranchName = "pfp_pdgCode";
   CreateBranch(BranchName, pfp_pdgCode, BranchName + NPFParticleIndexStr + "/I");
-  
+
   BranchName = "pfp_numClusters";
   CreateBranch(BranchName, pfp_numClusters, BranchName + NPFParticleIndexStr + "/S");
-  
+
   BranchName = "pfp_clusterIDs";
   CreateBranch(BranchName, pfp_clusterIDs, BranchName + NPFParticleIndexStr + MaxNClustersIndexStr + "/S");
-  
+
   BranchName = "pfp_isNeutrino";
   CreateBranch(BranchName, pfp_isNeutrino, BranchName + NPFParticleIndexStr + "/S");
-  
+
   BranchName = "pfp_numNeutrinos";
   CreateBranch(BranchName, &pfp_numNeutrinos, BranchName + "/S");
-  
+
   BranchName = "pfp_neutrinoIDs";
   CreateBranch(BranchName, pfp_neutrinoIDs, BranchName + MaxNNeutrinosIndexStr + "/S");
 }
@@ -2022,7 +2022,7 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::Resize
 (size_t nShowers)
 {
   MaxShowers = nShowers;
-  
+
   showerID.resize(MaxShowers);
   shwr_bestplane.resize(MaxShowers);
   shwr_length.resize(MaxShowers);
@@ -2043,13 +2043,13 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::Resize
 
   shwr_hasPFParticle.resize(MaxShowers);
   shwr_PFParticleID.resize(MaxShowers);
-  
+
 } // dune::AnalysisTreeDataStruct::ShowerDataStruct::Resize()
 
 void dune::AnalysisTreeDataStruct::ShowerDataStruct::Clear() {
   Resize(MaxShowers);
   nshowers = 0;
-  
+
   FillWith(showerID,         -9999 );
   FillWith(shwr_bestplane,   -9999 );
   FillWith(shwr_length,     -99999.);
@@ -2064,10 +2064,10 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::Clear() {
   FillWith(shwr_pidmvapich, -99999.);
   FillWith(shwr_pidmvaphoton,  -99999.);
   FillWith(shwr_pidmvapr,   -99999.);
-  
+
   FillWith(shwr_hasPFParticle, -1);
   FillWith(shwr_PFParticleID,  -1);
- 
+
   for (size_t iShw = 0; iShw < MaxShowers; ++iShw){
     // the following are BoxedArray's;
     // their iterators traverse all the array dimensions
@@ -2075,7 +2075,7 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::Clear() {
     FillWith(shwr_dedx[iShw],   -99999.);
     FillWith(shwr_mipEng[iShw], -99999.);
   } // for shower
-  
+
 } // dune::AnalysisTreeDataStruct::ShowerDataStruct::Clear()
 
 
@@ -2092,17 +2092,17 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::MarkMissing
   // - have only one shower in the list;
   // - set the ID of that shower as -9999
   //
-  
+
   // first set the data structures to contain one invalid shower:
   SetMaxShowers(1); // includes resize to a set of one shower
   Clear(); // initializes all the showers in the set (one) as invalid
   // now set the tree addresses to the newly allocated memory;
   // this creates the tree branches in case they are not there yet
   SetAddresses(pTree);
-  
+
   // then, set the variables so that ROOT tree knows there is one shower only
   nshowers = 1;
-  
+
 } // dune::AnalysisTreeDataStruct::ShowerDataStruct::MarkMissing()
 
 
@@ -2110,59 +2110,59 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::SetAddresses
 (TTree* pTree)
 {
   if (MaxShowers == 0) return; // no showers, no tree!
-  
+
   dune::AnalysisTreeDataStruct::BranchCreator CreateBranch(pTree);
 
   AutoResettingStringSteam sstr;
   sstr() << kMaxShowerHits;
   std::string MaxShowerHitsIndexStr("[" + sstr.str() + "]");
-  
+
   std::string ShowerLabel = Name();
   std::string BranchName;
 
   BranchName = "nshowers_" + ShowerLabel;
   CreateBranch(BranchName, &nshowers, BranchName + "/S");
   std::string NShowerIndexStr = "[" + BranchName + "]";
-  
+
   BranchName = "showerID_" + ShowerLabel;
   CreateBranch(BranchName, showerID, BranchName + NShowerIndexStr + "/S");
-  
+
   BranchName = "shwr_bestplane_" + ShowerLabel;
   CreateBranch(BranchName, shwr_bestplane, BranchName + NShowerIndexStr + "/S");
-  
+
   BranchName = "shwr_length_" + ShowerLabel;
   CreateBranch(BranchName, shwr_length, BranchName + NShowerIndexStr + "/F");
-  
+
   BranchName = "shwr_startdcosx_" + ShowerLabel;
   CreateBranch(BranchName, shwr_startdcosx, BranchName + NShowerIndexStr + "/F");
-  
+
   BranchName = "shwr_startdcosy_" + ShowerLabel;
   CreateBranch(BranchName, shwr_startdcosy, BranchName + NShowerIndexStr + "/F");
-  
+
   BranchName = "shwr_startdcosz_" + ShowerLabel;
   CreateBranch(BranchName, shwr_startdcosz, BranchName + NShowerIndexStr + "/F");
-  
+
   BranchName = "shwr_startx_" + ShowerLabel;
   CreateBranch(BranchName, shwr_startx, BranchName + NShowerIndexStr + "/F");
-  
+
   BranchName = "shwr_starty_" + ShowerLabel;
   CreateBranch(BranchName, shwr_starty, BranchName + NShowerIndexStr + "/F");
-  
+
   BranchName = "shwr_startz_" + ShowerLabel;
   CreateBranch(BranchName, shwr_startz, BranchName + NShowerIndexStr + "/F");
-  
+
   BranchName = "shwr_totEng_" + ShowerLabel;
   CreateBranch(BranchName, shwr_totEng, BranchName + NShowerIndexStr + "[3]/F");
-  
+
   BranchName = "shwr_dedx_" + ShowerLabel;
   CreateBranch(BranchName, shwr_dedx, BranchName + NShowerIndexStr + "[3]/F");
-  
+
   BranchName = "shwr_mipEng_" + ShowerLabel;
   CreateBranch(BranchName, shwr_mipEng, BranchName + NShowerIndexStr + "[3]/F");
-  
+
   BranchName = "shwr_hasPFParticle_" + ShowerLabel;
   CreateBranch(BranchName, shwr_hasPFParticle, BranchName + NShowerIndexStr + "/S");
-  
+
   BranchName = "shwr_PFParticleID_" + ShowerLabel;
   CreateBranch(BranchName, shwr_PFParticleID, BranchName + NShowerIndexStr + "/S");
 
@@ -2180,7 +2180,7 @@ void dune::AnalysisTreeDataStruct::ShowerDataStruct::SetAddresses
 
   BranchName = "shwr_pidmvapr_" + ShowerLabel;
   CreateBranch(BranchName, shwr_pidmvapr, BranchName + NShowerIndexStr + "/F");
-  
+
 } // dune::AnalysisTreeDataStruct::ShowerDataStruct::SetAddresses()
 
 //------------------------------------------------------------------------------
@@ -2208,8 +2208,8 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   potnumi101 = 0;
 
   no_hits = 0;
-  no_hits_stored = 0;  
-  
+  no_hits_stored = 0;
+
   std::fill(hit_tpc, hit_tpc + sizeof(hit_tpc)/sizeof(hit_tpc[0]), -9999);
   std::fill(hit_plane, hit_plane + sizeof(hit_plane)/sizeof(hit_plane[0]), -9999);
   std::fill(hit_wire, hit_wire + sizeof(hit_wire)/sizeof(hit_wire[0]), -9999);
@@ -2341,7 +2341,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   geant_list_size_in_tpcAV = 0;
   no_mcshowers = 0;
   no_mctracks = 0;
-  
+
   FillWith(pdg, -99999);
   FillWith(status, -99999);
   FillWith(Mass, -99999.);
@@ -2355,7 +2355,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointy, -99999.);
   FillWith(StartPointz, -99999.);
   FillWith(StartT, -99e7);
-  FillWith(EndT, -99999.);    
+  FillWith(EndT, -99999.);
   FillWith(EndPointx, -99999.);
   FillWith(EndPointy, -99999.);
   FillWith(EndPointz, -99999.);
@@ -2397,13 +2397,13 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPz_drifted, -99999.);
   FillWith(EndPointx_drifted, -99999.);
   FillWith(EndPointy_drifted, -99999.);
-  FillWith(EndPointz_drifted, -99999.); 
+  FillWith(EndPointz_drifted, -99999.);
   FillWith(EndT_drifted, -99e7);
   FillWith(EndE_drifted, -99999.);
-  FillWith(EndP_drifted, -99999.); 
-  FillWith(EndPx_drifted, -99999.); 
-  FillWith(EndPy_drifted, -99999.); 
-  FillWith(EndPz_drifted, -99999.); 
+  FillWith(EndP_drifted, -99999.);
+  FillWith(EndPx_drifted, -99999.);
+  FillWith(EndPy_drifted, -99999.);
+  FillWith(EndPz_drifted, -99999.);
   FillWith(NumberDaughters, -99999);
   FillWith(Mother, -99999);
   FillWith(TrackId, -99999);
@@ -2432,7 +2432,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(cry_StartPointx, -99999.);
   FillWith(cry_StartPointy, -99999.);
   FillWith(cry_StartPointz, -99999.);
-  FillWith(cry_StartPointt, -99999.);  
+  FillWith(cry_StartPointt, -99999.);
   FillWith(cry_status_code, -99999);
   FillWith(cry_mass, -99999.);
   FillWith(cry_trackID, -99999);
@@ -2450,8 +2450,8 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(proto_momentum,-99999.);
   FillWith(proto_energy,-99999.);
   FillWith(proto_pdg,-99999);
-  // End of ProtoDUNE Beam generator section 
-  FillWith(mcshwr_origin, -1);   
+  // End of ProtoDUNE Beam generator section
+  FillWith(mcshwr_origin, -1);
   FillWith(mcshwr_pdg, -99999);
   FillWith(mcshwr_TrackId, -99999);
   FillWith(mcshwr_Process, "noname");
@@ -2472,7 +2472,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(mcshwr_StartDirX, -99999.);
   FillWith(mcshwr_StartDirY, -99999.);
   FillWith(mcshwr_StartDirZ, -99999.);
-  FillWith(mcshwr_isEngDeposited, -9999);  
+  FillWith(mcshwr_isEngDeposited, -9999);
   FillWith(mcshwr_Motherpdg, -99999);
   FillWith(mcshwr_MotherTrkId, -99999);
   FillWith(mcshwr_MotherProcess, "noname");
@@ -2483,7 +2483,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(mcshwr_MotherendY, -99999.);
   FillWith(mcshwr_MotherendZ, -99999.);
   FillWith(mcshwr_Ancestorpdg, -99999);
-  FillWith(mcshwr_AncestorTrkId, -99999);  
+  FillWith(mcshwr_AncestorTrkId, -99999);
   FillWith(mcshwr_AncestorProcess, "noname");
   FillWith(mcshwr_AncestorstartX, -99999.);
   FillWith(mcshwr_AncestorstartY, -99999.);
@@ -2491,7 +2491,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(mcshwr_AncestorendX, -99999.);
   FillWith(mcshwr_AncestorendY, -99999.);
   FillWith(mcshwr_AncestorendZ, -99999.);
-  
+
   // auxiliary detector information;
   FillWith(NAuxDets, 0);
   // - set to -9999 all the values of each of the arrays in AuxDetID;
@@ -2508,7 +2508,7 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
       // this auto is BoxedArray<Float_t>
       for (auto& partInfo: *cont) FillWith(partInfo, -99999.);
     } // for container
-  
+
 } // dune::AnalysisTreeDataStruct::ClearLocalData()
 
 
@@ -2526,12 +2526,12 @@ void dune::AnalysisTreeDataStruct::Clear() {
 void dune::AnalysisTreeDataStruct::SetShowerAlgos
 (std::vector<std::string> const& ShowerAlgos)
 {
-  
+
   size_t const nShowerAlgos = ShowerAlgos.size();
   ShowerData.resize(nShowerAlgos);
   for (size_t iAlgo = 0; iAlgo < nShowerAlgos; ++iAlgo)
     ShowerData[iAlgo].SetName(ShowerAlgos[iAlgo]);
-  
+
 } // dune::AnalysisTreeDataStruct::SetShowerAlgos()
 
 
@@ -2539,10 +2539,10 @@ void dune::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
 
   // minimum size is 1, so that we always have an address
   MaxGEANTparticles = (size_t) std::max(nParticles, 1);
-  
+
   pdg.resize(MaxGEANTparticles);
   status.resize(MaxGEANTparticles);
-  Mass.resize(MaxGEANTparticles);  
+  Mass.resize(MaxGEANTparticles);
   Eng.resize(MaxGEANTparticles);
   EndE.resize(MaxGEANTparticles);
   Px.resize(MaxGEANTparticles);
@@ -2552,12 +2552,12 @@ void dune::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   StartPointx.resize(MaxGEANTparticles);
   StartPointy.resize(MaxGEANTparticles);
   StartPointz.resize(MaxGEANTparticles);
-  StartT.resize(MaxGEANTparticles); 
-  EndT.resize(MaxGEANTparticles);    
+  StartT.resize(MaxGEANTparticles);
+  EndT.resize(MaxGEANTparticles);
   EndPointx.resize(MaxGEANTparticles);
   EndPointy.resize(MaxGEANTparticles);
   EndPointz.resize(MaxGEANTparticles);
-  EndT.resize(MaxGEANTparticles);  
+  EndT.resize(MaxGEANTparticles);
   theta.resize(MaxGEANTparticles);
   phi.resize(MaxGEANTparticles);
   theta_xz.resize(MaxGEANTparticles);
@@ -2575,7 +2575,7 @@ void dune::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   StartPz_tpcAV.resize(MaxGEANTparticles);
   EndPointx_tpcAV.resize(MaxGEANTparticles);
   EndPointy_tpcAV.resize(MaxGEANTparticles);
-  EndPointz_tpcAV.resize(MaxGEANTparticles); 
+  EndPointz_tpcAV.resize(MaxGEANTparticles);
   EndT_tpcAV.resize(MaxGEANTparticles);
   EndE_tpcAV.resize(MaxGEANTparticles);
   EndP_tpcAV.resize(MaxGEANTparticles);
@@ -2595,13 +2595,13 @@ void dune::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   StartPz_drifted.resize(MaxGEANTparticles);
   EndPointx_drifted.resize(MaxGEANTparticles);
   EndPointy_drifted.resize(MaxGEANTparticles);
-  EndPointz_drifted.resize(MaxGEANTparticles); 
-  EndT_drifted.resize(MaxGEANTparticles);   
-  EndE_drifted.resize(MaxGEANTparticles);   
-  EndP_drifted.resize(MaxGEANTparticles);   
-  EndPx_drifted.resize(MaxGEANTparticles);   
-  EndPy_drifted.resize(MaxGEANTparticles);   
-  EndPz_drifted.resize(MaxGEANTparticles);   
+  EndPointz_drifted.resize(MaxGEANTparticles);
+  EndT_drifted.resize(MaxGEANTparticles);
+  EndE_drifted.resize(MaxGEANTparticles);
+  EndP_drifted.resize(MaxGEANTparticles);
+  EndPx_drifted.resize(MaxGEANTparticles);
+  EndPy_drifted.resize(MaxGEANTparticles);
+  EndPz_drifted.resize(MaxGEANTparticles);
   NumberDaughters.resize(MaxGEANTparticles);
   Mother.resize(MaxGEANTparticles);
   TrackId.resize(MaxGEANTparticles);
@@ -2609,7 +2609,7 @@ void dune::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   processname.resize(MaxGEANTparticles);
   MergedId.resize(MaxGEANTparticles);
   origin.resize(MaxGEANTparticles);
-  MCTruthIndex.resize(MaxGEANTparticles);  
+  MCTruthIndex.resize(MaxGEANTparticles);
 
   // auxiliary detector structure
   NAuxDets.resize(MaxGEANTparticles);
@@ -2626,11 +2626,11 @@ void dune::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   exitPy.resize(MaxGEANTparticles);
   exitPz.resize(MaxGEANTparticles);
   CombinedEnergyDep.resize(MaxGEANTparticles);
-  
+
 } // dune::AnalysisTreeDataStruct::ResizeGEANT()
 
 void dune::AnalysisTreeDataStruct::ResizeGenie(int nPrimaries) {
-  
+
   // minimum size is 1, so that we always have an address
   MaxGeniePrimaries = (size_t) std::max(nPrimaries, 1);
   genie_primaries_pdg.resize(MaxGeniePrimaries);
@@ -2656,8 +2656,8 @@ void dune::AnalysisTreeDataStruct::ResizeCry(int nPrimaries) {
   cry_P.resize(nPrimaries);
   cry_StartPointx.resize(nPrimaries);
   cry_StartPointy.resize(nPrimaries);
-  cry_StartPointz.resize(nPrimaries); 
-  cry_StartPointt.resize(nPrimaries);  
+  cry_StartPointz.resize(nPrimaries);
+  cry_StartPointt.resize(nPrimaries);
   cry_status_code.resize(nPrimaries);
   cry_mass.resize(nPrimaries);
   cry_trackID.resize(nPrimaries);
@@ -2683,92 +2683,92 @@ void dune::AnalysisTreeDataStruct::ResizeProto(int nPrimaries){
 } // dune::AnalysisTreeDataStruct::ResizeProto()
 
 void dune::AnalysisTreeDataStruct::ResizeMCShower(int nMCShowers) {
-  mcshwr_origin.resize(nMCShowers);		
-  mcshwr_pdg.resize(nMCShowers);		
-  mcshwr_TrackId.resize(nMCShowers); 	
-  mcshwr_Process.resize(nMCShowers); 
-  mcshwr_startX.resize(nMCShowers); 	
-  mcshwr_startY.resize(nMCShowers);	 
-  mcshwr_startZ.resize(nMCShowers);	 
-  mcshwr_endX.resize(nMCShowers);	 
-  mcshwr_endY.resize(nMCShowers);	 
-  mcshwr_endZ.resize(nMCShowers);	 
-  mcshwr_CombEngX.resize(nMCShowers);	 
-  mcshwr_CombEngY.resize(nMCShowers);	 
-  mcshwr_CombEngZ.resize(nMCShowers);	 
-  mcshwr_CombEngPx.resize(nMCShowers);	 
-  mcshwr_CombEngPy.resize(nMCShowers);	 
-  mcshwr_CombEngPz.resize(nMCShowers);	 
+  mcshwr_origin.resize(nMCShowers);
+  mcshwr_pdg.resize(nMCShowers);
+  mcshwr_TrackId.resize(nMCShowers);
+  mcshwr_Process.resize(nMCShowers);
+  mcshwr_startX.resize(nMCShowers);
+  mcshwr_startY.resize(nMCShowers);
+  mcshwr_startZ.resize(nMCShowers);
+  mcshwr_endX.resize(nMCShowers);
+  mcshwr_endY.resize(nMCShowers);
+  mcshwr_endZ.resize(nMCShowers);
+  mcshwr_CombEngX.resize(nMCShowers);
+  mcshwr_CombEngY.resize(nMCShowers);
+  mcshwr_CombEngZ.resize(nMCShowers);
+  mcshwr_CombEngPx.resize(nMCShowers);
+  mcshwr_CombEngPy.resize(nMCShowers);
+  mcshwr_CombEngPz.resize(nMCShowers);
   mcshwr_CombEngE.resize(nMCShowers);
   mcshwr_dEdx.resize(nMCShowers);
   mcshwr_StartDirX.resize(nMCShowers);
   mcshwr_StartDirY.resize(nMCShowers);
   mcshwr_StartDirZ.resize(nMCShowers);
-  mcshwr_isEngDeposited.resize(nMCShowers);	   	
-  mcshwr_Motherpdg.resize(nMCShowers);	
-  mcshwr_MotherTrkId.resize(nMCShowers);	
+  mcshwr_isEngDeposited.resize(nMCShowers);
+  mcshwr_Motherpdg.resize(nMCShowers);
+  mcshwr_MotherTrkId.resize(nMCShowers);
   mcshwr_MotherProcess.resize(nMCShowers);
-  mcshwr_MotherstartX.resize(nMCShowers);	 
-  mcshwr_MotherstartY.resize(nMCShowers);	 
-  mcshwr_MotherstartZ.resize(nMCShowers);	 
-  mcshwr_MotherendX.resize(nMCShowers);	 
-  mcshwr_MotherendY.resize(nMCShowers);	 
-  mcshwr_MotherendZ.resize(nMCShowers);	   	
-  mcshwr_Ancestorpdg.resize(nMCShowers);	
-  mcshwr_AncestorTrkId.resize(nMCShowers);	
-  mcshwr_AncestorProcess.resize(nMCShowers); 
-  mcshwr_AncestorstartX.resize(nMCShowers);	 
-  mcshwr_AncestorstartY.resize(nMCShowers);	 
-  mcshwr_AncestorstartZ.resize(nMCShowers);	 
-  mcshwr_AncestorendX.resize(nMCShowers);	 
-  mcshwr_AncestorendY.resize(nMCShowers);	 
-  mcshwr_AncestorendZ.resize(nMCShowers);	 	
+  mcshwr_MotherstartX.resize(nMCShowers);
+  mcshwr_MotherstartY.resize(nMCShowers);
+  mcshwr_MotherstartZ.resize(nMCShowers);
+  mcshwr_MotherendX.resize(nMCShowers);
+  mcshwr_MotherendY.resize(nMCShowers);
+  mcshwr_MotherendZ.resize(nMCShowers);
+  mcshwr_Ancestorpdg.resize(nMCShowers);
+  mcshwr_AncestorTrkId.resize(nMCShowers);
+  mcshwr_AncestorProcess.resize(nMCShowers);
+  mcshwr_AncestorstartX.resize(nMCShowers);
+  mcshwr_AncestorstartY.resize(nMCShowers);
+  mcshwr_AncestorstartZ.resize(nMCShowers);
+  mcshwr_AncestorendX.resize(nMCShowers);
+  mcshwr_AncestorendY.resize(nMCShowers);
+  mcshwr_AncestorendZ.resize(nMCShowers);
 
 } // dune::AnalysisTreeDataStruct::ResizeMCShower()
 
 void dune::AnalysisTreeDataStruct::ResizeMCTrack(int nMCTracks) {
-  mctrk_origin.resize(nMCTracks);		
-  mctrk_pdg.resize(nMCTracks);		
-  mctrk_TrackId.resize(nMCTracks); 	
-  mctrk_Process.resize(nMCTracks); 
-  mctrk_startX.resize(nMCTracks); 	
-  mctrk_startY.resize(nMCTracks);	 
-  mctrk_startZ.resize(nMCTracks);	 
-  mctrk_endX.resize(nMCTracks);	 
-  mctrk_endY.resize(nMCTracks);	 
+  mctrk_origin.resize(nMCTracks);
+  mctrk_pdg.resize(nMCTracks);
+  mctrk_TrackId.resize(nMCTracks);
+  mctrk_Process.resize(nMCTracks);
+  mctrk_startX.resize(nMCTracks);
+  mctrk_startY.resize(nMCTracks);
+  mctrk_startZ.resize(nMCTracks);
+  mctrk_endX.resize(nMCTracks);
+  mctrk_endY.resize(nMCTracks);
   mctrk_endZ.resize(nMCTracks);
   mctrk_startX_drifted.resize(nMCTracks);
   mctrk_startY_drifted.resize(nMCTracks);
   mctrk_startZ_drifted.resize(nMCTracks);
-  mctrk_endX_drifted.resize(nMCTracks);  
-  mctrk_endY_drifted.resize(nMCTracks);  
-  mctrk_endZ_drifted.resize(nMCTracks);  
+  mctrk_endX_drifted.resize(nMCTracks);
+  mctrk_endY_drifted.resize(nMCTracks);
+  mctrk_endZ_drifted.resize(nMCTracks);
   mctrk_len_drifted.resize(nMCTracks);
   mctrk_p_drifted.resize(nMCTracks);
   mctrk_px_drifted.resize(nMCTracks);
   mctrk_py_drifted.resize(nMCTracks);
   mctrk_pz_drifted.resize(nMCTracks);
-  mctrk_Motherpdg.resize(nMCTracks);	
-  mctrk_MotherTrkId.resize(nMCTracks);	
+  mctrk_Motherpdg.resize(nMCTracks);
+  mctrk_MotherTrkId.resize(nMCTracks);
   mctrk_MotherProcess.resize(nMCTracks);
-  mctrk_MotherstartX.resize(nMCTracks);	 
-  mctrk_MotherstartY.resize(nMCTracks);	 
-  mctrk_MotherstartZ.resize(nMCTracks);	 
-  mctrk_MotherendX.resize(nMCTracks);	 
-  mctrk_MotherendY.resize(nMCTracks);	 
-  mctrk_MotherendZ.resize(nMCTracks);	   	
-  mctrk_Ancestorpdg.resize(nMCTracks);	
-  mctrk_AncestorTrkId.resize(nMCTracks);	
-  mctrk_AncestorProcess.resize(nMCTracks); 
-  mctrk_AncestorstartX.resize(nMCTracks);	 
-  mctrk_AncestorstartY.resize(nMCTracks);	 
-  mctrk_AncestorstartZ.resize(nMCTracks);	 
-  mctrk_AncestorendX.resize(nMCTracks);	 
-  mctrk_AncestorendY.resize(nMCTracks);	 
-  mctrk_AncestorendZ.resize(nMCTracks);	 
-  
+  mctrk_MotherstartX.resize(nMCTracks);
+  mctrk_MotherstartY.resize(nMCTracks);
+  mctrk_MotherstartZ.resize(nMCTracks);
+  mctrk_MotherendX.resize(nMCTracks);
+  mctrk_MotherendY.resize(nMCTracks);
+  mctrk_MotherendZ.resize(nMCTracks);
+  mctrk_Ancestorpdg.resize(nMCTracks);
+  mctrk_AncestorTrkId.resize(nMCTracks);
+  mctrk_AncestorProcess.resize(nMCTracks);
+  mctrk_AncestorstartX.resize(nMCTracks);
+  mctrk_AncestorstartY.resize(nMCTracks);
+  mctrk_AncestorstartZ.resize(nMCTracks);
+  mctrk_AncestorendX.resize(nMCTracks);
+  mctrk_AncestorendY.resize(nMCTracks);
+  mctrk_AncestorendZ.resize(nMCTracks);
+
 } // dune::AnalysisTreeDataStruct::ResizeMCTrack()
-  
+
 
 
 void dune::AnalysisTreeDataStruct::SetAddresses(
@@ -2796,9 +2796,9 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
   CreateBranch("potnumitgt",&potnumitgt,"potnumitgt/D");
   CreateBranch("potnumi101",&potnumi101,"potnumi101/D");
 
-  if (hasHitInfo()){    
+  if (hasHitInfo()){
     CreateBranch("no_hits",&no_hits,"no_hits/I");
-    CreateBranch("no_hits_stored",&no_hits_stored,"no_hits_stored/I");    
+    CreateBranch("no_hits_stored",&no_hits_stored,"no_hits_stored/I");
     CreateBranch("hit_tpc",hit_tpc,"hit_tpc[no_hits_stored]/S");
     CreateBranch("hit_plane",hit_plane,"hit_plane[no_hits_stored]/S");
     CreateBranch("hit_wire",hit_wire,"hit_wire[no_hits_stored]/S");
@@ -2808,12 +2808,12 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("hit_ph",hit_ph,"hit_ph[no_hits_stored]/F");
     CreateBranch("hit_startT",hit_startT,"hit_startT[no_hits_stored]/F");
     CreateBranch("hit_endT",hit_endT,"hit_endT[no_hits_stored]/F");
-    CreateBranch("hit_rms",hit_rms,"hit_rms[no_hits_stored]/F"); 
-    CreateBranch("hit_trueX",hit_trueX,"hit_trueX[no_hits_stored]/F");    
-    CreateBranch("hit_goodnessOfFit",hit_goodnessOfFit,"hit_goodnessOfFit[no_hits_stored]/F");    
-    CreateBranch("hit_multiplicity",hit_multiplicity,"hit_multiplicity[no_hits_stored]/S");    
+    CreateBranch("hit_rms",hit_rms,"hit_rms[no_hits_stored]/F");
+    CreateBranch("hit_trueX",hit_trueX,"hit_trueX[no_hits_stored]/F");
+    CreateBranch("hit_goodnessOfFit",hit_goodnessOfFit,"hit_goodnessOfFit[no_hits_stored]/F");
+    CreateBranch("hit_multiplicity",hit_multiplicity,"hit_multiplicity[no_hits_stored]/S");
     CreateBranch("hit_trkid",hit_trkid,"hit_trkid[no_hits_stored]/S");
-    CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits_stored]/S");   
+    CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits_stored]/S");
     CreateBranch("hit_clusterid",hit_clusterid,"hit_clusterid[no_hits_stored]/S");
     CreateBranch("hit_clusterKey",hit_clusterKey,"hit_clusterKey[no_hits_stored]/S");
     if (!isCosmics){
@@ -2821,12 +2821,12 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
       CreateBranch("hit_energy",hit_energy,"hit_energy[no_hits_stored]/F");
     }
     if (hasRawDigitInfo()){
-      CreateBranch("rawD_ph",rawD_ph,"rawD_ph[no_hits_stored]/F");  
+      CreateBranch("rawD_ph",rawD_ph,"rawD_ph[no_hits_stored]/F");
       CreateBranch("rawD_peakT",rawD_peakT,"rawD_peakT[no_hits_stored]/F");
       CreateBranch("rawD_charge",rawD_charge,"rawD_charge[no_hits_stored]/F");
       CreateBranch("rawD_fwhh",rawD_fwhh,"rawD_fwhh[no_hits_stored]/F");
-      CreateBranch("rawD_rms",rawD_rms,"rawD_rms[no_hits_stored]/D"); 
-    }  
+      CreateBranch("rawD_rms",rawD_rms,"rawD_rms[no_hits_stored]/D");
+    }
   }
 
   if (hasPandoraNuVertexInfo()){
@@ -2855,11 +2855,11 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("cluster_StartWire", cluster_StartWire, "cluster_StartWire[nclusters]/S");
     CreateBranch("cluster_StartTick", cluster_StartTick, "cluster_StartTick[nclusters]/S");
     CreateBranch("cluster_EndWire", cluster_EndWire, "cluster_EndWire[nclusters]/S");
-    CreateBranch("cluster_EndTick", cluster_EndTick, "cluster_EndTick[nclusters]/S");   
-    CreateBranch("cluncosmictags_tagger", cluncosmictags_tagger, "cluncosmictags_tagger[nclusters]/S");   
-    CreateBranch("clucosmicscore_tagger", clucosmicscore_tagger, "clucosmicscore_tagger[nclusters]/F");	 
-    CreateBranch("clucosmictype_tagger", clucosmictype_tagger, "clucosmictype_tagger[nclusters]/S");	 
-  }    
+    CreateBranch("cluster_EndTick", cluster_EndTick, "cluster_EndTick[nclusters]/S");
+    CreateBranch("cluncosmictags_tagger", cluncosmictags_tagger, "cluncosmictags_tagger[nclusters]/S");
+    CreateBranch("clucosmicscore_tagger", clucosmicscore_tagger, "clucosmicscore_tagger[nclusters]/F");
+    CreateBranch("clucosmictype_tagger", clucosmictype_tagger, "clucosmictype_tagger[nclusters]/S");
+  }
 
   if (hasFlashInfo()){
     CreateBranch("no_flashes",&no_flashes,"no_flashes/I");
@@ -2877,7 +2877,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("externcounts_time",externcounts_time,"externcounts_time[no_ExternCounts]/F");
     CreateBranch("externcounts_id",externcounts_id,"externcounts_id[no_ExternCounts]/F");
   }
-  
+
   if (hasTrackInfo()){
     kNTracker = trackers.size();
     CreateBranch("kNTracker",&kNTracker,"kNTracker/B");
@@ -2888,7 +2888,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
       // nothing is initialized (branches are not even created)
       TrackData[i].SetAddresses(pTree, TrackLabel, isCosmics);
     } // for trackers
-  } 
+  }
 
   if (hasVertexInfo()){
     kNVertexAlgos = vertexalgos.size();
@@ -2954,7 +2954,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("ppvz_flux",ppvz_flux,"ppvz_flux[mcevts_truth]/F");
     CreateBranch("muparpx_flux",muparpx_flux,"muparpx_flux[mcevts_truth]/F");
     CreateBranch("muparpy_flux",muparpy_flux,"muparpy_flux[mcevts_truth]/F");
-    CreateBranch("muparpz_flux",muparpz_flux,"muparpz_flux[mcevts_truth]/F");   
+    CreateBranch("muparpz_flux",muparpz_flux,"muparpz_flux[mcevts_truth]/F");
     CreateBranch("mupare_flux",mupare_flux,"mupare_flux[mcevts_truth]/F");
     CreateBranch("tgen_flux",tgen_flux,"tgen_flux[mcevts_truth]/I");
     CreateBranch("tgptype_flux",tgptype_flux,"tgptype_flux[mcevts_truth]/I");
@@ -2986,7 +2986,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
   }
 
   if (hasCryInfo()){
-    CreateBranch("mcevts_truthcry",&mcevts_truthcry,"mcevts_truthcry/I");  
+    CreateBranch("mcevts_truthcry",&mcevts_truthcry,"mcevts_truthcry/I");
     CreateBranch("cry_no_primaries",&cry_no_primaries,"cry_no_primaries/I");
     CreateBranch("cry_primaries_pdg",cry_primaries_pdg,"cry_primaries_pdg[cry_no_primaries]/I");
     CreateBranch("cry_Eng",cry_Eng,"cry_Eng[cry_no_primaries]/F");
@@ -2997,13 +2997,13 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("cry_StartPointx",cry_StartPointx,"cry_StartPointx[cry_no_primaries]/F");
     CreateBranch("cry_StartPointy",cry_StartPointy,"cry_StartPointy[cry_no_primaries]/F");
     CreateBranch("cry_StartPointz",cry_StartPointz,"cry_StartPointz[cry_no_primaries]/F");
-    CreateBranch("cry_StartPointt",cry_StartPointt,"cry_StartPointt[cry_no_primaries]/F");   
+    CreateBranch("cry_StartPointt",cry_StartPointt,"cry_StartPointt[cry_no_primaries]/F");
     CreateBranch("cry_status_code",cry_status_code,"cry_status_code[cry_no_primaries]/I");
     CreateBranch("cry_mass",cry_mass,"cry_mass[cry_no_primaries]/F");
     CreateBranch("cry_trackID",cry_trackID,"cry_trackID[cry_no_primaries]/I");
     CreateBranch("cry_ND",cry_ND,"cry_ND[cry_no_primaries]/I");
     CreateBranch("cry_mother",cry_mother,"cry_mother[cry_no_primaries]/I");
-  }  
+  }
 
   if (hasProtoInfo()) {
     CreateBranch("proto_no_primaries",&proto_no_primaries,"proto_no_primaries/I");
@@ -3020,10 +3020,10 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("proto_pdg",proto_pdg,"proto_pdg[proto_no_primaries]/I");
   }
 
-  if (hasGeantInfo()){  
+  if (hasGeantInfo()){
     CreateBranch("no_primaries",&no_primaries,"no_primaries/I");
     CreateBranch("geant_list_size",&geant_list_size,"geant_list_size/I");
-    CreateBranch("geant_list_size_in_tpcAV",&geant_list_size_in_tpcAV,"geant_list_size_in_tpcAV/I");  
+    CreateBranch("geant_list_size_in_tpcAV",&geant_list_size_in_tpcAV,"geant_list_size_in_tpcAV/I");
     CreateBranch("pdg",pdg,"pdg[geant_list_size]/I");
     CreateBranch("status",status,"status[geant_list_size]/I");
     CreateBranch("Mass",Mass,"Mass[geant_list_size]/F");
@@ -3046,7 +3046,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("theta_xz",theta_xz,"theta_xz[geant_list_size]/F");
     CreateBranch("theta_yz",theta_yz,"theta_yz[geant_list_size]/F");
     CreateBranch("pathlen",pathlen,"pathlen[geant_list_size]/F");
-    CreateBranch("inTPCActive",inTPCActive,"inTPCActive[geant_list_size]/I");  
+    CreateBranch("inTPCActive",inTPCActive,"inTPCActive[geant_list_size]/I");
     CreateBranch("StartPointx_tpcAV",StartPointx_tpcAV,"StartPointx_tpcAV[geant_list_size]/F");
     CreateBranch("StartPointy_tpcAV",StartPointy_tpcAV,"StartPointy_tpcAV[geant_list_size]/F");
     CreateBranch("StartPointz_tpcAV",StartPointz_tpcAV,"StartPointz_tpcAV[geant_list_size]/F");
@@ -3066,7 +3066,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("EndPy_tpcAV",EndPy_tpcAV,"EndPy_tpcAV[geant_list_size]/F");
     CreateBranch("EndPz_tpcAV",EndPz_tpcAV,"EndPz_tpcAV[geant_list_size]/F");
     CreateBranch("pathlen_drifted",pathlen_drifted,"pathlen_drifted[geant_list_size]/F");
-    CreateBranch("inTPCDrifted",inTPCDrifted,"inTPCDrifted[geant_list_size]/I");  
+    CreateBranch("inTPCDrifted",inTPCDrifted,"inTPCDrifted[geant_list_size]/I");
     CreateBranch("StartPointx_drifted",StartPointx_drifted,"StartPointx_drifted[geant_list_size]/F");
     CreateBranch("StartPointy_drifted",StartPointy_drifted,"StartPointy_drifted[geant_list_size]/F");
     CreateBranch("StartPointz_drifted",StartPointz_drifted,"StartPointz_drifted[geant_list_size]/F");
@@ -3096,7 +3096,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
   }
 
   if (hasMCShowerInfo()){
-    CreateBranch("no_mcshowers",&no_mcshowers,"no_mcshowers/I");  
+    CreateBranch("no_mcshowers",&no_mcshowers,"no_mcshowers/I");
     CreateBranch("mcshwr_origin",mcshwr_origin,"mcshwr_origin[no_mcshowers]/I");
     CreateBranch("mcshwr_pdg",mcshwr_pdg,"mcshwr_pdg[no_mcshowers]/I");
     CreateBranch("mcshwr_TrackId",mcshwr_TrackId,"mcshwr_TrackId[no_mcshowers]/I");
@@ -3127,20 +3127,20 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("mcshwr_MotherstartZ",mcshwr_MotherstartZ,"mcshwr_MotherstartZ[no_mcshowers]/F");
     CreateBranch("mcshwr_MotherendX",mcshwr_MotherendX,"mcshwr_MotherendX[no_mcshowers]/F");
     CreateBranch("mcshwr_MotherendY",mcshwr_MotherendY,"mcshwr_MotherendY[no_mcshowers]/F");
-    CreateBranch("mcshwr_MotherendZ",mcshwr_MotherendZ,"mcshwr_MotherendZ[no_mcshowers]/F");    
+    CreateBranch("mcshwr_MotherendZ",mcshwr_MotherendZ,"mcshwr_MotherendZ[no_mcshowers]/F");
     CreateBranch("mcshwr_Ancestorpdg",mcshwr_Ancestorpdg,"mcshwr_Ancestorpdg[no_mcshowers]/I");
     CreateBranch("mcshwr_AncesotorTrkId",mcshwr_AncestorTrkId,"mcshwr_AncestorTrkId[no_mcshowers]/I");
-    CreateBranch("mcshwr_AncesotorProcess",mcshwr_AncestorProcess);   
+    CreateBranch("mcshwr_AncesotorProcess",mcshwr_AncestorProcess);
     CreateBranch("mcshwr_AncestorstartX",mcshwr_AncestorstartX,"mcshwr_AncestorstartX[no_mcshowers]/F");
     CreateBranch("mcshwr_AncestorstartY",mcshwr_AncestorstartY,"mcshwr_AncestorstartY[no_mcshowers]/F");
     CreateBranch("mcshwr_AncestorstartZ",mcshwr_AncestorstartZ,"mcshwr_AncestorstartZ[no_mcshowers]/F");
     CreateBranch("mcshwr_AncestorendX",mcshwr_AncestorendX,"mcshwr_AncestorendX[no_mcshowers]/F");
     CreateBranch("mcshwr_AncestorendY",mcshwr_AncestorendY,"mcshwr_AncestorendY[no_mcshowers]/F");
     CreateBranch("mcshwr_AncestorendZ",mcshwr_AncestorendZ,"mcshwr_AncestorendZ[no_mcshowers]/F");
-  }   
-  
+  }
+
   if (hasMCTrackInfo()){
-    CreateBranch("no_mctracks",&no_mctracks,"no_mctracks/I");  
+    CreateBranch("no_mctracks",&no_mctracks,"no_mctracks/I");
     CreateBranch("mctrk_origin",mctrk_origin,"mctrk_origin[no_mctracks]/I");
     CreateBranch("mctrk_pdg",mctrk_pdg,"mctrk_pdg[no_mctracks]/I");
     CreateBranch("mctrk_TrackId",mctrk_TrackId,"mctrk_TrackId[no_mctracks]/I");
@@ -3154,9 +3154,9 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("mctrk_startX_drifted",mctrk_startX_drifted,"mctrk_startX_drifted[no_mctracks]/F");
     CreateBranch("mctrk_startY_drifted",mctrk_startY_drifted,"mctrk_startY_drifted[no_mctracks]/F");
     CreateBranch("mctrk_startZ_drifted",mctrk_startZ_drifted,"mctrk_startZ_drifted[no_mctracks]/F");
-    CreateBranch("mctrk_endX_drifted",mctrk_endX_drifted,"mctrk_endX_drifted[no_mctracks]/F");      
-    CreateBranch("mctrk_endY_drifted",mctrk_endY_drifted,"mctrk_endY_drifted[no_mctracks]/F");      
-    CreateBranch("mctrk_endZ_drifted",mctrk_endZ_drifted,"mctrk_endZ_drifted[no_mctracks]/F");      
+    CreateBranch("mctrk_endX_drifted",mctrk_endX_drifted,"mctrk_endX_drifted[no_mctracks]/F");
+    CreateBranch("mctrk_endY_drifted",mctrk_endY_drifted,"mctrk_endY_drifted[no_mctracks]/F");
+    CreateBranch("mctrk_endZ_drifted",mctrk_endZ_drifted,"mctrk_endZ_drifted[no_mctracks]/F");
     CreateBranch("mctrk_len_drifted",mctrk_len_drifted,"mctrk_len_drifted[no_mctracks]/F");
     CreateBranch("mctrk_p_drifted",mctrk_p_drifted,"mctrk_p_drifted[no_mctracks]/F");
     CreateBranch("mctrk_px_drifted",mctrk_px_drifted,"mctrk_px_drifted[no_mctracks]/F");
@@ -3170,17 +3170,17 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("mctrk_MotherstartZ",mctrk_MotherstartZ,"mctrk_MotherstartZ[no_mctracks]/F");
     CreateBranch("mctrk_MotherendX",mctrk_MotherendX,"mctrk_MotherendX[no_mctracks]/F");
     CreateBranch("mctrk_MotherendY",mctrk_MotherendY,"mctrk_MotherendY[no_mctracks]/F");
-    CreateBranch("mctrk_MotherendZ",mctrk_MotherendZ,"mctrk_MotherendZ[no_mctracks]/F");    
+    CreateBranch("mctrk_MotherendZ",mctrk_MotherendZ,"mctrk_MotherendZ[no_mctracks]/F");
     CreateBranch("mctrk_Ancestorpdg",mctrk_Ancestorpdg,"mctrk_Ancestorpdg[no_mctracks]/I");
     CreateBranch("mctrk_AncesotorTrkId",mctrk_AncestorTrkId,"mctrk_AncestorTrkId[no_mctracks]/I");
-    CreateBranch("mctrk_AncesotorProcess",mctrk_AncestorProcess);   
+    CreateBranch("mctrk_AncesotorProcess",mctrk_AncestorProcess);
     CreateBranch("mctrk_AncestorstartX",mctrk_AncestorstartX,"mctrk_AncestorstartX[no_mctracks]/F");
     CreateBranch("mctrk_AncestorstartY",mctrk_AncestorstartY,"mctrk_AncestorstartY[no_mctracks]/F");
     CreateBranch("mctrk_AncestorstartZ",mctrk_AncestorstartZ,"mctrk_AncestorstartZ[no_mctracks]/F");
     CreateBranch("mctrk_AncestorendX",mctrk_AncestorendX,"mctrk_AncestorendX[no_mctracks]/F");
     CreateBranch("mctrk_AncestorendY",mctrk_AncestorendY,"mctrk_AncestorendY[no_mctracks]/F");
     CreateBranch("mctrk_AncestorendZ",mctrk_AncestorendZ,"mctrk_AncestorendZ[no_mctracks]/F");
-  }  
+  }
 
   if (hasAuxDetector()) {
     // Geant information is required to fill aux detector information.
@@ -3188,8 +3188,8 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     if (!hasGeantInfo()){
       throw art::Exception(art::errors::Configuration)
 	<< "Saving Auxiliary detector information requies saving GEANT information, "
-	<<"please set fSaveGeantInfo flag to true in your fhicl file and rerun.\n"; 
-    }    
+	<<"please set fSaveGeantInfo flag to true in your fhicl file and rerun.\n";
+    }
     std::ostringstream sstr;
     sstr << "[" << kMaxAuxDets << "]";
     std::string MaxAuxDetIndexStr = sstr.str();
@@ -3209,7 +3209,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("CombinedEnergyDep", CombinedEnergyDep,
 		 "CombinedEnergyDep[geant_list_size]" + MaxAuxDetIndexStr + "/F");
   } // if hasAuxDetector
-  
+
 } // dune::AnalysisTreeDataStruct::SetAddresses()
 
 
@@ -3225,15 +3225,15 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fLArG4ModuleLabel         (pset.get< std::string >("LArGeantModuleLabel")     ),
   fCalDataModuleLabel       (pset.get< std::string >("CalDataModuleLabel")      ),
   fGenieGenModuleLabel      (pset.get< std::string >("GenieGenModuleLabel")     ),
-  fCryGenModuleLabel        (pset.get< std::string >("CryGenModuleLabel")       ), 
-  fProtoGenModuleLabel      (pset.get< std::string >("ProtoGenModuleLabel")     ), 
+  fCryGenModuleLabel        (pset.get< std::string >("CryGenModuleLabel")       ),
+  fProtoGenModuleLabel      (pset.get< std::string >("ProtoGenModuleLabel")     ),
   fG4ModuleLabel            (pset.get< std::string >("G4ModuleLabel")           ),
   fClusterModuleLabel       (pset.get< std::string >("ClusterModuleLabel")     ),
   fPandoraNuVertexModuleLabel (pset.get< std::string >("PandoraNuVertexModuleLabel")     ),
   fOpFlashModuleLabel       (pset.get< std::string >("OpFlashModuleLabel")      ),
   fExternalCounterModuleLabel (pset.get< std::string >("ExternalCounterModuleLabel")      ),
-  fMCShowerModuleLabel      (pset.get< std::string >("MCShowerModuleLabel")     ),  
-  fMCTrackModuleLabel      (pset.get< std::string >("MCTrackModuleLabel")     ),  
+  fMCShowerModuleLabel      (pset.get< std::string >("MCShowerModuleLabel")     ),
+  fMCTrackModuleLabel      (pset.get< std::string >("MCTrackModuleLabel")     ),
   fTrackModuleLabel         (pset.get< std::vector<std::string> >("TrackModuleLabel")),
   fVertexModuleLabel        (pset.get< std::vector<std::string> >("VertexModuleLabel")),
   fShowerModuleLabel        (pset.get< std::vector<std::string> >("ShowerModuleLabel")),
@@ -3243,19 +3243,19 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fMVAPIDTrackModuleLabel   (pset.get< std::vector<std::string> >("MVAPIDTrackModuleLabel")   ),
   fFlashT0FinderLabel       (pset.get< std::vector<std::string> >("FlashT0FinderLabel")   ),
   fMCT0FinderLabel          (pset.get< std::vector<std::string> >("MCT0FinderLabel")   ),
-  fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),   
-  fCosmicClusterTaggerAssocLabel (pset.get< std::string >("CosmicClusterTaggerAssocLabel")), 
+  fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),
+  fCosmicClusterTaggerAssocLabel (pset.get< std::string >("CosmicClusterTaggerAssocLabel")),
   fUseBuffer                (pset.get< bool >("UseBuffers", false)),
   fSaveAuxDetInfo           (pset.get< bool >("SaveAuxDetInfo", false)),
-  fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),  
-  fSaveGenieInfo	    (pset.get< bool >("SaveGenieInfo", false)), 
-  fSaveProtoInfo	    (pset.get< bool >("SaveProtoInfo", false)), 
-  fSaveGeantInfo	    (pset.get< bool >("SaveGeantInfo", false)), 
-  fSaveMCShowerInfo	    (pset.get< bool >("SaveMCShowerInfo", false)), 
-  fSaveMCTrackInfo	    (pset.get< bool >("SaveMCTrackInfo", false)), 
-  fSaveHitInfo	            (pset.get< bool >("SaveHitInfo", false)), 
-  fSaveRawDigitInfo	            (pset.get< bool >("SaveRawDigitInfo", false)), 
-  fSaveTrackInfo	    (pset.get< bool >("SaveTrackInfo", false)), 
+  fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),
+  fSaveGenieInfo	    (pset.get< bool >("SaveGenieInfo", false)),
+  fSaveProtoInfo	    (pset.get< bool >("SaveProtoInfo", false)),
+  fSaveGeantInfo	    (pset.get< bool >("SaveGeantInfo", false)),
+  fSaveMCShowerInfo	    (pset.get< bool >("SaveMCShowerInfo", false)),
+  fSaveMCTrackInfo	    (pset.get< bool >("SaveMCTrackInfo", false)),
+  fSaveHitInfo	            (pset.get< bool >("SaveHitInfo", false)),
+  fSaveRawDigitInfo	            (pset.get< bool >("SaveRawDigitInfo", false)),
+  fSaveTrackInfo	    (pset.get< bool >("SaveTrackInfo", false)),
   fSaveVertexInfo	    (pset.get< bool >("SaveVertexInfo", false)),
   fSaveClusterInfo	    (pset.get< bool >("SaveClusterInfo", false)),
   fSavePandoraNuVertexInfo        (pset.get< bool >("SavePandoraNuVertexInfo", false)),
@@ -3338,7 +3338,7 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
     double center[3] = {0.};
     TPC.LocalToWorld(origin, center);
     double tpcDim[3] = {TPC.HalfWidth(), TPC.HalfHeight(), 0.5*TPC.Length() };
-    
+
     if( center[0] - tpcDim[0] < ActiveBounds[0] ) ActiveBounds[0] = center[0] - tpcDim[0];
     if( center[0] + tpcDim[0] > ActiveBounds[1] ) ActiveBounds[1] = center[0] + tpcDim[0];
     if( center[1] - tpcDim[1] < ActiveBounds[2] ) ActiveBounds[2] = center[1] - tpcDim[1];
@@ -3398,7 +3398,7 @@ void dune::AnalysisTree::endSubRun(const art::SubRun& sr)
     SubRunData.pot=potListHandle->totpot;
   else
     SubRunData.pot=0.;
-  
+
   art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR860;
   if (sr.getByLabel("beamdata","bnbETOR860",potSummaryHandlebnbETOR860)){
     SubRunData.potbnbETOR860 = potSummaryHandlebnbETOR860->totpot;
@@ -3432,7 +3432,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = !evt.isRealData();
-  
+
   // * hits
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
@@ -3445,7 +3445,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   if (fSaveClusterInfo){
     if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
       art::fill_ptr_vector(clusterlist, clusterListHandle);
-  }        
+  }
 
   // * flashes
   art::Handle< std::vector<recob::OpFlash> > flashListHandle;
@@ -3465,7 +3465,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   if (isMC){
     if (evt.getByLabel(fGenieGenModuleLabel,mctruthListHandle))
       art::fill_ptr_vector(mclist, mctruthListHandle);
-  }    
+  }
 
   // *MC truth cosmic generator information
   art::Handle< std::vector<simb::MCTruth> > mctruthcryListHandle;
@@ -3479,8 +3479,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       fSaveCryInfo = false;
       mf::LogError("AnalysisTree") << "Requested CRY information but none exists, hence not saving CRY information.";
     }
-  }       
-  
+  }
+
   // ProtoDUNE beam generator information
   art::Handle< std::vector<simb::MCTruth> > mctruthprotoListHandle;
   std::vector<art::Ptr<simb::MCTruth> > mclistproto;
@@ -3499,26 +3499,26 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   art::Handle< std::vector<sim::MCShower> > mcshowerh;
   if (isMC)
     evt.getByLabel(fMCShowerModuleLabel, mcshowerh);
-  
+
   int nMCShowers = 0;
   if (fSaveMCShowerInfo && mcshowerh.isValid())
     nMCShowers = mcshowerh->size();
-	
+
   // *MC Track information
   art::Handle< std::vector<sim::MCTrack> > mctrackh;
   if (isMC)
     evt.getByLabel(fMCTrackModuleLabel, mctrackh);
-  
+
   int nMCTracks = 0;
   if (fSaveMCTrackInfo && mctrackh.isValid())
-    nMCTracks = mctrackh->size();	
-	
+    nMCTracks = mctrackh->size();
+
   art::Ptr<simb::MCTruth> mctruthcry;
   int nCryPrimaries = 0;
-   
+
   if (fSaveCryInfo){
-    mctruthcry = mclistcry[0];      
-    nCryPrimaries = mctruthcry->NParticles();  
+    mctruthcry = mclistcry[0];
+    nCryPrimaries = mctruthcry->NParticles();
   }
 
   art::Ptr<simb::MCTruth> mctruthproto;
@@ -3526,13 +3526,13 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   if( fSaveProtoInfo){
     mctruthproto = mclistproto[0];
     nProtoPrimaries = mctruthproto->NParticles();
-  } 
-  
+  }
+
   int nGeniePrimaries = 0, nGEANTparticles = 0;
-  
+
   art::Ptr<simb::MCTruth> mctruth;
 
-  
+
   if (isMC) { //is MC
 
     //find origin
@@ -3566,7 +3566,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
       if (mctruth->NeutrinoSet()) nGeniePrimaries = mctruth->NParticles();
       //} //end (fSaveGenieInfo)
-      
+
       const sim::ParticleList& plist = bt->ParticleList();
       nGEANTparticles = plist.size();
 
@@ -3577,7 +3577,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 			      << nGEANTparticles << " GEANT particles, "
 			      << nGeniePrimaries << " GENIE particles";
   } // if MC
-  
+
   CreateData(); // tracker data is created with default constructor
   if (fSaveGenieInfo)
     fData->ResizeGenie(nGeniePrimaries);
@@ -3585,15 +3585,15 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     fData->ResizeCry(nCryPrimaries);
   if (fSaveProtoInfo)
     fData->ResizeProto(nProtoPrimaries);
-  if (fSaveGeantInfo)    
-    fData->ResizeGEANT(nGEANTparticles);  
+  if (fSaveGeantInfo)
+    fData->ResizeGEANT(nGEANTparticles);
   if (fSaveMCShowerInfo)
-    fData->ResizeMCShower(nMCShowers); 
+    fData->ResizeMCShower(nMCShowers);
   if (fSaveMCTrackInfo)
-    fData->ResizeMCTrack(nMCTracks);     
-    
+    fData->ResizeMCTrack(nMCTracks);
+
   fData->ClearLocalData(); // don't bother clearing tracker data yet
-  
+
   const size_t NTrackers = GetNTrackers(); // number of trackers passed into fTrackModuleLabel
   const size_t NShowerAlgos = GetNShowerAlgos(); // number of shower algorithms into fShowerModuleLabel
   const size_t NHits     = hitlist.size(); // number of hits
@@ -3635,7 +3635,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   lar_pandora::PFParticleVector pfparticlelist;
   lar_pandora::PFParticlesToClusters pfParticleToClusterMap;
   lar_pandora::LArPandoraHelper::CollectPFParticles(evt, fPFParticleModuleLabel, pfparticlelist, pfParticleToClusterMap);
-  
+
   // * tracks
   std::vector< art::Handle< std::vector<recob::Track> > > trackListHandle(NTrackers);
   std::vector< std::vector<art::Ptr<recob::Track> > > tracklist(NTrackers);
@@ -3684,10 +3684,11 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   } // for shower input tag
 
 
-  art::Handle< std::vector<simb::MCFlux> > mcfluxListHandle;
-  std::vector<art::Ptr<simb::MCFlux> > fluxlist;
-  if (evt.getByLabel(fGenieGenModuleLabel,mcfluxListHandle))
-    art::fill_ptr_vector(fluxlist, mcfluxListHandle);
+  // Find the simb::MCFlux objects corresponding to
+  // each simb::MCTruth object made by the generator with
+  // the label fGenieGenModuleLabel
+  art::FindOne<simb::MCFlux> find_mcflux(mctruthListHandle,
+    evt, fGenieGenModuleLabel);
 
   std::vector<const sim::AuxDetSimChannel*> fAuxDetSimChannels;
   if (fSaveAuxDetInfo){
@@ -3731,7 +3732,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   //hit information
   if (fSaveHitInfo){
     fData->no_hits = (int) NHits;
-    fData->no_hits_stored = TMath::Min( (int) NHits, (int) kMaxHits);    
+    fData->no_hits_stored = TMath::Min( (int) NHits, (int) kMaxHits);
     if (NHits > kMaxHits) {
       // got this error? consider increasing kMaxHits
       // (or ask for a redesign using vectors)
@@ -3753,7 +3754,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
       //std::vector<double> xyz = bt->HitToXYZ(hitlist[i]);
       //when the size of simIDEs is zero, the above function throws an exception
-      //and crashes, so check that the simIDEs have non-zero size before 
+      //and crashes, so check that the simIDEs have non-zero size before
       //extracting hit true XYZ from simIDEs
       if (isMC){
         std::vector<sim::IDE> ides;
@@ -3765,8 +3766,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           std::vector<double> xyz = bt->SimIDEsToXYZ(ides);
           fData->hit_trueX[i] = xyz[0];
         }
-      }	 
-      
+      }
+
       /*
 	for (unsigned int it=0; it<fTrackModuleLabel.size();++it){
         art::FindManyP<recob::Track> fmtk(hitListHandle,evt,fTrackModuleLabel[it]);
@@ -3777,15 +3778,15 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	hit_trkid[it][i] = 0;
 	}
       */
-      
+
       if (fSaveRawDigitInfo){
-	//Hit to RawDigit information	       
+	//Hit to RawDigit information
 	art::FindManyP<raw::RawDigit> fmrd(hitListHandle,evt,fHitsModuleLabel);
 	if (hitlist[i]->WireID().Plane==2)
 	  {
 	    int dataSize = fmrd.at(i)[0]->Samples();
 	    short ped = fmrd.at(i)[0]->GetPedestal();
-     
+
 	    std::vector<short> rawadc(dataSize);
 	    raw::Uncompress(fmrd.at(i)[0]->ADCs(), rawadc, fmrd.at(i)[0]->Compression());
 	    int t0 = hitlist[i]->PeakTime() - 3*(hitlist[i]->RMS());
@@ -3854,7 +3855,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         }
       }
     }
-    
+
     //In the case of ClusterCrawler or linecluster, use "linecluster or clustercrawler" as HitModuleLabel.
     //using cchit will not make this association. In the case of gaushit, just use gaushit
     //Not initializing clusterID to -1 since some clustering algorithms assign negative IDs!
@@ -3871,30 +3872,30 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
     }
   }// end (fSaveHitInfo)
-  
-  
+
+
   if(fSavePandoraNuVertexInfo) {
     lar_pandora::PFParticleVector particleVector;
     lar_pandora::LArPandoraHelper::CollectPFParticles(evt, fPandoraNuVertexModuleLabel, particleVector);
     lar_pandora::VertexVector vertexVector;
     lar_pandora::PFParticlesToVertices particlesToVertices;
     lar_pandora::LArPandoraHelper::CollectVertices(evt, fPandoraNuVertexModuleLabel, vertexVector, particlesToVertices);
-    
+
     short nprim = 0;
     for (unsigned int n = 0; n < particleVector.size(); ++n) {
       const art::Ptr<recob::PFParticle> particle = particleVector.at(n);
       if(particle->IsPrimary()) nprim++;
     }
-    
+
     if (nprim > kMaxVertices){
       // got this error? consider increasing kMaxClusters
       // (or ask for a redesign using vectors)
       mf::LogError("AnalysisTree:limits") << "event has " << nprim
 					  << " nu neutrino vertices, only kMaxVertices=" << kMaxVertices << " stored in tree";
     }
-    
+
     fData->nnuvtx = nprim;
-    
+
     short iv = 0;
     for (unsigned int n = 0; n < particleVector.size(); ++n) {
       const art::Ptr<recob::PFParticle> particle = particleVector.at(n);
@@ -3918,8 +3919,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
     }
   } // save PandoraNuVertexInfo
-  
-  
+
+
   if (fSaveClusterInfo){
     fData->nclusters = (int) NClusters;
     if (NClusters > kMaxClusters){
@@ -3949,10 +3950,10 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       fData->cluster_StartTick[ic] = cluster.StartTick();
       fData->cluster_EndWire[ic] = cluster.EndWire();
       fData->cluster_EndTick[ic] = cluster.EndTick();
-	 
+
       //Cosmic Tagger information for cluster
       art::FindManyP<anab::CosmicTag> fmcct(clusterListHandle,evt,fCosmicClusterTaggerAssocLabel);
-      if (fmcct.isValid()){          
+      if (fmcct.isValid()){
 	fData->cluncosmictags_tagger[ic]     = fmcct.at(ic).size();
 	if (fmcct.at(ic).size()>0){
 	  if(fmcct.at(ic).size()>1)
@@ -3963,7 +3964,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
     }//end loop over clusters
   }//end fSaveClusterInfo
-	  
+
   if (fSaveFlashInfo){
     fData->no_flashes = (int) NFlashes;
     if (NFlashes > kMaxFlashes) {
@@ -3996,16 +3997,16 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       fData->externcounts_id[i]   = countlist[i]->GetTrigID();
     }
   }
-  
-  
+
+
   // Declare object-ID-to-PFParticleID maps so we can assign hasPFParticle and PFParticleID to the tracks, showers, vertices.
   std::map<Short_t, Short_t> trackIDtoPFParticleIDMap, vertexIDtoPFParticleIDMap, showerIDtoPFParticleIDMap;
-  
+
   //Save PFParticle information
   if (fSavePFParticleInfo){
     AnalysisTreeDataStruct::PFParticleDataStruct& PFParticleData = fData->GetPFParticleData();
     size_t NPFParticles = pfparticlelist.size();
-    
+
     PFParticleData.SetMaxPFParticles(std::max(NPFParticles, (size_t) 1));
     PFParticleData.Clear(); // clear all the data
 
@@ -4014,39 +4015,39 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     // now set the tree addresses to the newly allocated memory;
     // this creates the tree branches in case they are not there yet
     SetPFParticleAddress();
-      
+
     if (NPFParticles > PFParticleData.GetMaxPFParticles()) {
       mf::LogError("AnalysisTree:limits") << "event has " << NPFParticles
                    << " PFParticles, only "
                    << PFParticleData.GetMaxPFParticles() << " stored in tree";
     }
-    
+
     lar_pandora::PFParticleVector neutrinoPFParticles;
     lar_pandora::LArPandoraHelper::SelectNeutrinoPFParticles(pfparticlelist, neutrinoPFParticles);
     PFParticleData.pfp_numNeutrinos = neutrinoPFParticles.size();
-    
+
     for (size_t i = 0; i < std::min(neutrinoPFParticles.size(), (size_t)kMaxNPFPNeutrinos); ++i) {
       PFParticleData.pfp_neutrinoIDs[i] = neutrinoPFParticles[i]->Self();
     }
-    
+
     if (neutrinoPFParticles.size() > kMaxNPFPNeutrinos)
       std::cerr << "Warning: there were " << neutrinoPFParticles.size() << " reconstructed PFParticle neutrinos; only the first " << kMaxNPFPNeutrinos << " being stored in tree" << std::endl;
-    
+
     // Get a PFParticle-to-vertex map.
     lar_pandora::VertexVector allPfParticleVertices;
     lar_pandora::PFParticlesToVertices pfParticleToVertexMap;
     lar_pandora::LArPandoraHelper::CollectVertices(evt, fPFParticleModuleLabel, allPfParticleVertices, pfParticleToVertexMap);
-    
+
     // Get a PFParticle-to-track map.
     lar_pandora::TrackVector allPfParticleTracks;
     lar_pandora::PFParticlesToTracks pfParticleToTrackMap;
     lar_pandora::LArPandoraHelper::CollectTracks(evt, fPFParticleModuleLabel, allPfParticleTracks, pfParticleToTrackMap);
-    
+
     // Get a PFParticle-to-shower map.
     lar_pandora::ShowerVector allPfParticleShowers;
     lar_pandora::PFParticlesToShowers pfParticleToShowerMap;
     lar_pandora::LArPandoraHelper::CollectShowers(evt, fPFParticleModuleLabel, allPfParticleShowers, pfParticleToShowerMap);
-    
+
     for (size_t i = 0; i < NPFParticles && i < PFParticleData.GetMaxPFParticles() ; ++i){
       PFParticleData.pfp_selfID[i] = pfparticlelist[i]->Self();
       PFParticleData.pfp_isPrimary[i] = (Short_t)pfparticlelist[i]->IsPrimary();
@@ -4054,21 +4055,21 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       PFParticleData.pfp_parentID[i] = pfparticlelist[i]->Parent();
       PFParticleData.pfp_pdgCode[i] = pfparticlelist[i]->PdgCode();
       PFParticleData.pfp_isNeutrino[i] = lar_pandora::LArPandoraHelper::IsNeutrino(pfparticlelist[i]);
-         
+
       // Set the daughter IDs.
       std::vector<size_t> daughterIDs = pfparticlelist[i]->Daughters();
-      
+
       for (size_t j = 0; j < daughterIDs.size(); ++j)
         PFParticleData.pfp_daughterIDs[i][j] = daughterIDs[j];
-         
+
       // Set the vertex ID.
       auto vertexMapIter = pfParticleToVertexMap.find(pfparticlelist[i]);
       if (vertexMapIter != pfParticleToVertexMap.end()) {
           lar_pandora::VertexVector pfParticleVertices = vertexMapIter->second;
-          
+
           if (pfParticleVertices.size() > 1)
             std::cerr << "Warning: there was more than one vertex found for PFParticle with ID " << pfparticlelist[i]->Self() << ", storing only one" << std::endl;
-          
+
           if (pfParticleVertices.size() > 0) {
             PFParticleData.pfp_vertexID[i] = pfParticleVertices.at(0)->ID();
             vertexIDtoPFParticleIDMap.insert(std::make_pair(pfParticleVertices.at(0)->ID(), pfparticlelist[i]->Self()));
@@ -4076,18 +4077,18 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
       else
         std::cerr << "Warning: there was no vertex found for PFParticle with ID " << pfparticlelist[i]->Self() << std::endl;
-      
+
       if (lar_pandora::LArPandoraHelper::IsTrack(pfparticlelist[i])){
         PFParticleData.pfp_isTrack[i] = 1;
-        
+
         // Set the track ID.
         auto trackMapIter = pfParticleToTrackMap.find(pfparticlelist[i]);
         if (trackMapIter != pfParticleToTrackMap.end()) {
             lar_pandora::TrackVector pfParticleTracks = trackMapIter->second;
-            
+
             if (pfParticleTracks.size() > 1)
               std::cerr << "Warning: there was more than one track found for PFParticle with ID " << pfparticlelist[i]->Self() << std::endl;
-            
+
             if (pfParticleTracks.size() > 0) {
               PFParticleData.pfp_trackID[i] = pfParticleTracks.at(0)->ID();
               trackIDtoPFParticleIDMap.insert(std::make_pair(pfParticleTracks.at(0)->ID(), pfparticlelist[i]->Self()));
@@ -4098,17 +4099,17 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
       else
         PFParticleData.pfp_isTrack[i] = 0;
-      
+
       if (lar_pandora::LArPandoraHelper::IsShower(pfparticlelist[i])) {
         PFParticleData.pfp_isShower[i] = 1;
         // Set the shower ID.
         auto showerMapIter = pfParticleToShowerMap.find(pfparticlelist[i]);
         if (showerMapIter != pfParticleToShowerMap.end()) {
           lar_pandora::ShowerVector pfParticleShowers = showerMapIter->second;
-          
+
           if (pfParticleShowers.size() > 1)
             std::cerr << "Warning: there was more than one shower found for PFParticle with ID " << pfparticlelist[i]->Self() << std::endl;
-          
+
           if (pfParticleShowers.size() > 0) {
             PFParticleData.pfp_showerID[i] = pfParticleShowers.at(0)->ID();
             showerIDtoPFParticleIDMap.insert(std::make_pair(pfParticleShowers.at(0)->ID(), pfparticlelist[i]->Self()));
@@ -4119,23 +4120,23 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
       else
         PFParticleData.pfp_isShower[i] = 0;
-      
+
       // Set the cluster IDs.
       auto clusterMapIter = pfParticleToClusterMap.find(pfparticlelist[i]);
       if (clusterMapIter != pfParticleToClusterMap.end()) {
           lar_pandora::ClusterVector pfParticleClusters = clusterMapIter->second;
           PFParticleData.pfp_numClusters[i] = pfParticleClusters.size();
-          
-          for (size_t j = 0; j < pfParticleClusters.size(); ++j) 
+
+          for (size_t j = 0; j < pfParticleClusters.size(); ++j)
             PFParticleData.pfp_clusterIDs[i][j] = pfParticleClusters[j]->ID();
       }
       //else
       //  std::cerr << "Warning: there were no clusters found for PFParticle with ID " << pfparticlelist[i]->Self() << std::endl;
     }
   } // if fSavePFParticleInfo
-  
+
   if (fSaveShowerInfo){
-    
+
     // fill data from all the shower algorithms
     for (size_t iShowerAlgo = 0; iShowerAlgo < NShowerAlgos; ++iShowerAlgo) {
       AnalysisTreeDataStruct::ShowerDataStruct& ShowerData
@@ -4145,7 +4146,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
       if (pShowers){
 	FillShowers(ShowerData, *pShowers, fSavePFParticleInfo, showerIDtoPFParticleIDMap);
-	
+
 	if(fMVAPIDShowerModuleLabel[iShowerAlgo].size()){
 	  art::FindOneP<anab::MVAPIDResult> fmvapid(showerHandle, evt, fMVAPIDShowerModuleLabel[iShowerAlgo]);
 	  if(fmvapid.isValid()){
@@ -4162,21 +4163,21 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
       else ShowerData.MarkMissing(fTree); // tree should reflect lack of data
     } // for iShowerAlgo
-    
+
   } // if fSaveShowerInfo
 
   //track information for multiple trackers
   if (fSaveTrackInfo) {
     for (unsigned int iTracker=0; iTracker < NTrackers; ++iTracker){
       AnalysisTreeDataStruct::TrackDataStruct& TrackerData = fData->GetTrackerData(iTracker);
-    
+
       size_t NTracks = tracklist[iTracker].size();
       // allocate enough space for this number of tracks (but at least for one of them!)
       TrackerData.SetMaxTracks(std::max(NTracks, (size_t) 1));
       TrackerData.Clear(); // clear all the data
-    
+
       TrackerData.ntracks = (int) NTracks;
-    
+
       // now set the tree addresses to the newly allocated memory;
       // this creates the tree branches in case they are not there yet
       SetTrackerAddresses(iTracker);
@@ -4187,36 +4188,36 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 					    << " " << fTrackModuleLabel[iTracker] << " tracks, only "
 					    << TrackerData.GetMaxTracks() << " stored in tree";
       }
-    
+
       //call the track momentum algorithm that gives you momentum based on track range
       trkf::TrackMomentumCalculator trkm;
       trkm.SetMinLength(100); //change the minimal track length requirement to 50 cm
 
       for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
-      
+
         //save t0 from reconstructed flash track matching for every track
         art::FindManyP<anab::T0> fmt0(trackListHandle[iTracker],evt,fFlashT0FinderLabel[iTracker]);
-        if (fmt0.isValid()){          
+        if (fmt0.isValid()){
 	  if(fmt0.at(iTrk).size()>0){
 	    if(fmt0.at(iTrk).size()>1)
 	      std::cerr << "\n Warning : more than one cosmic tag per track in module! assigning the first tag to the track" << fFlashT0FinderLabel[iTracker];
 	    TrackerData.trkflashT0[iTrk] = fmt0.at(iTrk).at(0)->Time();
-	  }   
+	  }
         }
-	
+
 	//save t0 from reconstructed flash track matching for every track
         art::FindManyP<anab::T0> fmmct0(trackListHandle[iTracker],evt,fMCT0FinderLabel[iTracker]);
-        if (fmmct0.isValid()){          
+        if (fmmct0.isValid()){
 	  if(fmmct0.at(iTrk).size()>0){
 	    if(fmmct0.at(iTrk).size()>1)
 	      std::cerr << "\n Warning : more than one cosmic tag per track in module! assigning the first tag to the cluster" << fMCT0FinderLabel[iTracker];
 	    TrackerData.trktrueT0[iTrk] = fmmct0.at(iTrk).at(0)->Time();
-	  }   
+	  }
         }
-        
+
         //Cosmic Tagger information
         art::FindManyP<anab::CosmicTag> fmct(trackListHandle[iTracker],evt,fCosmicTaggerAssocLabel[iTracker]);
-        if (fmct.isValid()){          
+        if (fmct.isValid()){
           TrackerData.trkncosmictags_tagger[iTrk]     = fmct.at(iTrk).size();
           if (fmct.at(iTrk).size()>0){
             if(fmct.at(iTrk).size()>1)
@@ -4241,25 +4242,25 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         //Flash match compatibility information
         //Unlike CosmicTagger, Flash match doesn't assign a cosmic tag for every track. For those tracks, AnalysisTree initializes them with -9999 or -99999
         art::FindManyP<anab::CosmicTag> fmbfm(trackListHandle[iTracker],evt,fFlashMatchAssocLabel[iTracker]);
-        if (fmbfm.isValid()){  
+        if (fmbfm.isValid()){
           TrackerData.trkncosmictags_flashmatch[iTrk] = fmbfm.at(iTrk).size();
           if (fmbfm.at(iTrk).size()>0){
-            if(fmbfm.at(iTrk).size()>1) 
+            if(fmbfm.at(iTrk).size()>1)
               std::cerr << "\n Warning : more than one cosmic tag per track in module! assigning the first tag to the track" << fFlashMatchAssocLabel[iTracker];
 	    TrackerData.trkcosmicscore_flashmatch[iTrk] = fmbfm.at(iTrk).at(0)->CosmicScore();
 	    TrackerData.trkcosmictype_flashmatch[iTrk] = fmbfm.at(iTrk).at(0)->CosmicType();
 	    //std::cout<<"\n"<<evt.event()<<"\t"<<iTrk<<"\t"<<fmbfm.at(iTrk).at(0)->CosmicScore()<<"\t"<<fmbfm.at(iTrk).at(0)->CosmicType();
           }
         }
-     			 	   
+
         art::Ptr<recob::Track> ptrack(trackListHandle[iTracker], iTrk);
         const recob::Track& track = *ptrack;
-      
-        TVector3 pos, dir_start, dir_end, end;        
+
+        TVector3 pos, dir_start, dir_end, end;
 
         double tlen = 0., mom = 0.;
         int TrackID = -1;
-      
+
         int ntraj = 0;
         //we need to use Bezier methods for Bezier tracks
         if (fTrackModuleLabel[iTracker].find("beziertracker")!=std::string::npos) {
@@ -4298,13 +4299,13 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
             TrackID = track.ID();
           }
         }
-      
+
         if (ntraj > 0) {
           double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
           double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
           double dpos = bdist(pos);  // FIXME - Passing an uncorrected position....
           double dend = bdist(end);  // FIXME - Passing an uncorrected position....
-        
+
           TrackerData.trkId[iTrk]                 = TrackID;
           TrackerData.trkstartx[iTrk]             = pos.X();
           TrackerData.trkstarty[iTrk]             = pos.Y();
@@ -4329,7 +4330,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           TrackerData.trkmomrange[iTrk] 	  = trkm.GetTrackMomentum(tlen,13);
           //TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
           //TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
-          
+
           if (fSavePFParticleInfo) {
             auto mapIter = trackIDtoPFParticleIDMap.find(TrackID);
             if (mapIter != trackIDtoPFParticleIDMap.end()) {
@@ -4337,10 +4338,10 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
                 TrackerData.trkhasPFParticle[iTrk] = 1;
                 TrackerData.trkPFParticleID[iTrk] = mapIter->second;
             }
-            else 
+            else
                 TrackerData.trkhasPFParticle[iTrk] = 0;
           }
-          
+
         } // if we have trajectory
 
 	// find vertices associated with this track
@@ -4361,7 +4362,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           } // jvx
           // decide if it should be assigned to the track Start or End.
           // A simple dz test should suffice
-          if(fabs(xyz[2] - TrackerData.trkstartz[iTrk]) < 
+          if(fabs(xyz[2] - TrackerData.trkstartz[iTrk]) <
 	  fabs(xyz[2] - TrackerData.trkendz[iTrk])) {
 	  TrackerData.trksvtxid[iTrk] = theVtx;
           } else {
@@ -4399,7 +4400,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	  //if(pids.size() > 1) {
           //mf::LogError("AnalysisTree:limits")
 	  //<< "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
-	  //<< " has " << pids.size() 
+	  //<< " has " << pids.size()
 	  //<< " set of ParticleID variables. Only one stored in the tree";
 	  //}
 	  for (size_t ipid = 0; ipid < pids.size(); ++ipid){
@@ -4444,7 +4445,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	    if (planenum<0||planenum>2) continue;
 	    TrackerData.trkke[iTrk][planenum]    = calos[ical]->KineticEnergy();
 	    TrackerData.trkrange[iTrk][planenum] = calos[ical]->Range();
-	    //For now make the second argument as 13 for muons. 
+	    //For now make the second argument as 13 for muons.
 	    TrackerData.trkpitchc[iTrk][planenum]= calos[ical] -> TrkPitchC();
 	    const size_t NHits = calos[ical] -> dEdx().size();
 	    TrackerData.ntrkhits[iTrk][planenum] = (int) NHits;
@@ -4531,21 +4532,21 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 		std::vector<sim::IDE> ides;
 		//bt->HitToSimIDEs(hit,ides);
 		std::vector<sim::TrackIDE> eveIDs = bt->HitToEveID(hit);
-		
+
 		for(size_t e = 0; e < eveIDs.size(); ++e){
 		  //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
 		  if (eveIDs[e].trackID==TrackerData.trkg4id[iTrk]) totenergy += eveIDs[e].energy;
 		}
-	      }	      
+	      }
 	    }
 	    if (totenergy) TrackerData.trkcompleteness[iTrk] = maxe/totenergy;
 	  }
 	}//end if (isMC)
       }//end loop over track
     }//end loop over track module labels
-  }// end (fSaveTrackInfo) 
-  
-  /*trkf::TrackMomentumCalculator trkm;  
+  }// end (fSaveTrackInfo)
+
+  /*trkf::TrackMomentumCalculator trkm;
     std::cout<<"\t"<<trkm.GetTrackMomentum(200,2212)<<"\t"<<trkm.GetTrackMomentum(-10, 13)<<"\t"<<trkm.GetTrackMomentum(300,-19)<<"\n";
   */
 
@@ -4579,7 +4580,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         VertexData.vtxx[i] = xyz[0];
         VertexData.vtxy[i] = xyz[1];
         VertexData.vtxz[i] = xyz[2];
-        
+
         if (fSavePFParticleInfo) {
           auto mapIter = vertexIDtoPFParticleIDMap.find(vertexlist[iVertexAlg][i]->ID());
           if (mapIter != vertexIDtoPFParticleIDMap.end()) {
@@ -4587,10 +4588,10 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
             VertexData.vtxhasPFParticle[i] = 1;
             VertexData.vtxPFParticleID[i] = mapIter->second;
           }
-          else 
+          else
             VertexData.vtxhasPFParticle[i] = 0;
         }
-        
+
         // find PFParticle ID info
         art::FindMany<recob::PFParticle> fmPFParticle(vertexListHandle[iVertexAlg], evt, fPFParticleModuleLabel);
         if(fmPFParticle.isValid()) {
@@ -4610,8 +4611,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
   //mc truth information
   if (isMC){
-    if (fSaveCryInfo){ 
-      //store cry (cosmic generator information) 
+    if (fSaveCryInfo){
+      //store cry (cosmic generator information)
       fData->mcevts_truthcry = mclistcry.size();
       fData->cry_no_primaries = nCryPrimaries;
       //fData->cry_no_primaries;
@@ -4626,14 +4627,14 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	fData->cry_StartPointx[iPartc] = partc.Vx();
 	fData->cry_StartPointy[iPartc] = partc.Vy();
 	fData->cry_StartPointz[iPartc] = partc.Vz();
-	fData->cry_StartPointt[iPartc] = partc.T();	
+	fData->cry_StartPointt[iPartc] = partc.T();
         fData->cry_status_code[iPartc]=partc.StatusCode();
         fData->cry_mass[iPartc]=partc.Mass();
         fData->cry_trackID[iPartc]=partc.TrackId();
         fData->cry_ND[iPartc]=partc.NumberDaughters();
         fData->cry_mother[iPartc]=partc.Mother();
-      } // for cry particles  
-    }// end fSaveCryInfo  
+      } // for cry particles
+    }// end fSaveCryInfo
 
     // Save the protoDUNE beam generator information
     if(fSaveProtoInfo){
@@ -4654,7 +4655,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         fData->proto_pdg[iPartp] = partp.PdgCode();
       }
     }
- 
+
     //save neutrino interaction information
     fData->mcevts_truth = mclist.size();
     if (fData->mcevts_truth > 0){//at least one mc record
@@ -4687,41 +4688,53 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	    }
 
 	    //flux information
-	    fData->vx_flux[neutrino_i]        = fluxlist[iList]->fvx;
-	    fData->vy_flux[neutrino_i]        = fluxlist[iList]->fvy;
-	    fData->vz_flux[neutrino_i]        = fluxlist[iList]->fvz;
-	    fData->pdpx_flux[neutrino_i]      = fluxlist[iList]->fpdpx;
-	    fData->pdpy_flux[neutrino_i]      = fluxlist[iList]->fpdpy;
-	    fData->pdpz_flux[neutrino_i]      = fluxlist[iList]->fpdpz;
-	    fData->ppdxdz_flux[neutrino_i]    = fluxlist[iList]->fppdxdz;
-	    fData->ppdydz_flux[neutrino_i]    = fluxlist[iList]->fppdydz;
-	    fData->pppz_flux[neutrino_i]      = fluxlist[iList]->fpppz;
-	  
-	    fData->ptype_flux[neutrino_i]      = fluxlist[iList]->fptype;
-	    fData->ppvx_flux[neutrino_i]       = fluxlist[iList]->fppvx;
-	    fData->ppvy_flux[neutrino_i]       = fluxlist[iList]->fppvy;
-	    fData->ppvz_flux[neutrino_i]       = fluxlist[iList]->fppvz;
-	    fData->muparpx_flux[neutrino_i]    = fluxlist[iList]->fmuparpx;
-	    fData->muparpy_flux[neutrino_i]    = fluxlist[iList]->fmuparpy;
-	    fData->muparpz_flux[neutrino_i]    = fluxlist[iList]->fmuparpz;
-	    fData->mupare_flux[neutrino_i]     = fluxlist[iList]->fmupare;
-	  
-	    fData->tgen_flux[neutrino_i]     = fluxlist[iList]->ftgen;
-	    fData->tgptype_flux[neutrino_i]  = fluxlist[iList]->ftgptype;
-	    fData->tgppx_flux[neutrino_i]    = fluxlist[iList]->ftgppx;
-	    fData->tgppy_flux[neutrino_i]    = fluxlist[iList]->ftgppy;
-	    fData->tgppz_flux[neutrino_i]    = fluxlist[iList]->ftgppz;
-	    fData->tprivx_flux[neutrino_i]   = fluxlist[iList]->ftprivx;
-	    fData->tprivy_flux[neutrino_i]   = fluxlist[iList]->ftprivy;
-	    fData->tprivz_flux[neutrino_i]   = fluxlist[iList]->ftprivz;
+	    //
+            // Double-check that a simb::MCFlux object is associated with the
+            // current simb::MCTruth object. For GENIE events, these should
+            // always accompany each other. Other generators (e.g., MARLEY) may
+            // create simb::MCTruth objects without corresponding simb::MCFlux
+            // objects. -- S. Gardiner
+	    if (find_mcflux.isValid()) {
+              auto flux_maybe_ref = find_mcflux.at(iList);
+              if (flux_maybe_ref.isValid()) {
+                auto flux_ref = flux_maybe_ref.ref();
+	        fData->vx_flux[neutrino_i]        = flux_ref.fvx;
+	        fData->vy_flux[neutrino_i]        = flux_ref.fvy;
+	        fData->vz_flux[neutrino_i]        = flux_ref.fvz;
+	        fData->pdpx_flux[neutrino_i]      = flux_ref.fpdpx;
+	        fData->pdpy_flux[neutrino_i]      = flux_ref.fpdpy;
+	        fData->pdpz_flux[neutrino_i]      = flux_ref.fpdpz;
+	        fData->ppdxdz_flux[neutrino_i]    = flux_ref.fppdxdz;
+	        fData->ppdydz_flux[neutrino_i]    = flux_ref.fppdydz;
+	        fData->pppz_flux[neutrino_i]      = flux_ref.fpppz;
 
-	    fData->dk2gen_flux[neutrino_i]   = fluxlist[iList]->fdk2gen;
-	    fData->gen2vtx_flux[neutrino_i]   = fluxlist[iList]->fgen2vtx;
+	        fData->ptype_flux[neutrino_i]      = flux_ref.fptype;
+	        fData->ppvx_flux[neutrino_i]       = flux_ref.fppvx;
+	        fData->ppvy_flux[neutrino_i]       = flux_ref.fppvy;
+	        fData->ppvz_flux[neutrino_i]       = flux_ref.fppvz;
+	        fData->muparpx_flux[neutrino_i]    = flux_ref.fmuparpx;
+	        fData->muparpy_flux[neutrino_i]    = flux_ref.fmuparpy;
+	        fData->muparpz_flux[neutrino_i]    = flux_ref.fmuparpz;
+	        fData->mupare_flux[neutrino_i]     = flux_ref.fmupare;
 
-	    fData->tpx_flux[neutrino_i]    = fluxlist[iList]->ftpx;
-	    fData->tpy_flux[neutrino_i]    = fluxlist[iList]->ftpy;
-	    fData->tpz_flux[neutrino_i]    = fluxlist[iList]->ftpz;
-	    fData->tptype_flux[neutrino_i] = fluxlist[iList]->ftptype;
+	        fData->tgen_flux[neutrino_i]     = flux_ref.ftgen;
+	        fData->tgptype_flux[neutrino_i]  = flux_ref.ftgptype;
+	        fData->tgppx_flux[neutrino_i]    = flux_ref.ftgppx;
+	        fData->tgppy_flux[neutrino_i]    = flux_ref.ftgppy;
+	        fData->tgppz_flux[neutrino_i]    = flux_ref.ftgppz;
+	        fData->tprivx_flux[neutrino_i]   = flux_ref.ftprivx;
+	        fData->tprivy_flux[neutrino_i]   = flux_ref.ftprivy;
+	        fData->tprivz_flux[neutrino_i]   = flux_ref.ftprivz;
+
+	        fData->dk2gen_flux[neutrino_i]   = flux_ref.fdk2gen;
+	        fData->gen2vtx_flux[neutrino_i]   = flux_ref.fgen2vtx;
+
+	        fData->tpx_flux[neutrino_i]    = flux_ref.ftpx;
+	        fData->tpy_flux[neutrino_i]    = flux_ref.ftpy;
+	        fData->tpz_flux[neutrino_i]    = flux_ref.ftpz;
+	        fData->tptype_flux[neutrino_i] = flux_ref.ftptype;
+              } // flux_maybe_ref.isValid()
+            } // find_mcflux.isValid()
 	    neutrino_i++;
 	  }//mclist is NeutrinoSet()
 	}//loop over mclist
@@ -4754,33 +4767,33 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	  } // for particle
 	  //const simb::MCNeutrino& nu(mctruth->GetNeutrino());
 	} //if neutrino set
-      }// end (fSaveGenieInfo)  
+      }// end (fSaveGenieInfo)
 
       //Extract MC Shower information and fill the Shower branches
       if (fSaveMCShowerInfo){
-	fData->no_mcshowers = nMCShowers;       
+	fData->no_mcshowers = nMCShowers;
 	size_t shwr = 0;
-	for(std::vector<sim::MCShower>::const_iterator imcshwr = mcshowerh->begin();    
+	for(std::vector<sim::MCShower>::const_iterator imcshwr = mcshowerh->begin();
 	    imcshwr != mcshowerh->end(); ++imcshwr) {
     	  const sim::MCShower& mcshwr = *imcshwr;
 	  fData->mcshwr_origin[shwr]          = mcshwr.Origin();
-    	  fData->mcshwr_pdg[shwr]	      = mcshwr.PdgCode();	   
-    	  fData->mcshwr_TrackId[shwr]	      = mcshwr.TrackID();	   
-    	  fData->mcshwr_Process[shwr]	      = mcshwr.Process();	   
-    	  fData->mcshwr_startX[shwr]          = mcshwr.Start().X();	    
-    	  fData->mcshwr_startY[shwr]          = mcshwr.Start().Y();      	 
-    	  fData->mcshwr_startZ[shwr]          = mcshwr.Start().Z();      	 
-    	  fData->mcshwr_endX[shwr]            = mcshwr.End().X();      	 
-    	  fData->mcshwr_endY[shwr]            = mcshwr.End().Y();      	 
+    	  fData->mcshwr_pdg[shwr]	      = mcshwr.PdgCode();
+    	  fData->mcshwr_TrackId[shwr]	      = mcshwr.TrackID();
+    	  fData->mcshwr_Process[shwr]	      = mcshwr.Process();
+    	  fData->mcshwr_startX[shwr]          = mcshwr.Start().X();
+    	  fData->mcshwr_startY[shwr]          = mcshwr.Start().Y();
+    	  fData->mcshwr_startZ[shwr]          = mcshwr.Start().Z();
+    	  fData->mcshwr_endX[shwr]            = mcshwr.End().X();
+    	  fData->mcshwr_endY[shwr]            = mcshwr.End().Y();
     	  fData->mcshwr_endZ[shwr]            = mcshwr.End().Z();
-	  if (mcshwr.DetProfile().E()!= 0){   
-	    fData->mcshwr_isEngDeposited[shwr] = 1;	
-	    fData->mcshwr_CombEngX[shwr]        = mcshwr.DetProfile().X();      	 
-	    fData->mcshwr_CombEngY[shwr]        = mcshwr.DetProfile().Y();       	 
-	    fData->mcshwr_CombEngZ[shwr]        = mcshwr.DetProfile().Z();      	 
-	    fData->mcshwr_CombEngPx[shwr]       = mcshwr.DetProfile().Px();     	 
-	    fData->mcshwr_CombEngPy[shwr]       = mcshwr.DetProfile().Py();       	 
-	    fData->mcshwr_CombEngPz[shwr]       = mcshwr.DetProfile().Pz();       	 
+	  if (mcshwr.DetProfile().E()!= 0){
+	    fData->mcshwr_isEngDeposited[shwr] = 1;
+	    fData->mcshwr_CombEngX[shwr]        = mcshwr.DetProfile().X();
+	    fData->mcshwr_CombEngY[shwr]        = mcshwr.DetProfile().Y();
+	    fData->mcshwr_CombEngZ[shwr]        = mcshwr.DetProfile().Z();
+	    fData->mcshwr_CombEngPx[shwr]       = mcshwr.DetProfile().Px();
+	    fData->mcshwr_CombEngPy[shwr]       = mcshwr.DetProfile().Py();
+	    fData->mcshwr_CombEngPz[shwr]       = mcshwr.DetProfile().Pz();
 	    fData->mcshwr_CombEngE[shwr]        = mcshwr.DetProfile().E();
 	    fData->mcshwr_dEdx[shwr]            = mcshwr.dEdx();
 	    fData->mcshwr_StartDirX[shwr]       = mcshwr.StartDir().X();
@@ -4789,71 +4802,71 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	  }
 	  else
 	    fData->mcshwr_isEngDeposited[shwr] = 0;
-    	  fData->mcshwr_Motherpdg[shwr]       = mcshwr.MotherPdgCode(); 
-    	  fData->mcshwr_MotherTrkId[shwr]     = mcshwr.MotherTrackID();    
-    	  fData->mcshwr_MotherProcess[shwr]   = mcshwr.MotherProcess(); 
-	  fData->mcshwr_MotherstartX[shwr]    = mcshwr.MotherStart().X();     
-    	  fData->mcshwr_MotherstartY[shwr]    = mcshwr.MotherStart().Y();	  
-    	  fData->mcshwr_MotherstartZ[shwr]    = mcshwr.MotherStart().Z();	  
-    	  fData->mcshwr_MotherendX[shwr]      = mcshwr.MotherEnd().X(); 	  
-    	  fData->mcshwr_MotherendY[shwr]      = mcshwr.MotherEnd().Y(); 	  
-    	  fData->mcshwr_MotherendZ[shwr]      = mcshwr.MotherEnd().Z();  
-    	  fData->mcshwr_Ancestorpdg[shwr]     = mcshwr.AncestorPdgCode();  
-    	  fData->mcshwr_AncestorTrkId[shwr]   = mcshwr.AncestorTrackID();  
+    	  fData->mcshwr_Motherpdg[shwr]       = mcshwr.MotherPdgCode();
+    	  fData->mcshwr_MotherTrkId[shwr]     = mcshwr.MotherTrackID();
+    	  fData->mcshwr_MotherProcess[shwr]   = mcshwr.MotherProcess();
+	  fData->mcshwr_MotherstartX[shwr]    = mcshwr.MotherStart().X();
+    	  fData->mcshwr_MotherstartY[shwr]    = mcshwr.MotherStart().Y();
+    	  fData->mcshwr_MotherstartZ[shwr]    = mcshwr.MotherStart().Z();
+    	  fData->mcshwr_MotherendX[shwr]      = mcshwr.MotherEnd().X();
+    	  fData->mcshwr_MotherendY[shwr]      = mcshwr.MotherEnd().Y();
+    	  fData->mcshwr_MotherendZ[shwr]      = mcshwr.MotherEnd().Z();
+    	  fData->mcshwr_Ancestorpdg[shwr]     = mcshwr.AncestorPdgCode();
+    	  fData->mcshwr_AncestorTrkId[shwr]   = mcshwr.AncestorTrackID();
     	  fData->mcshwr_AncestorProcess[shwr] = mcshwr.AncestorProcess();
-	  fData->mcshwr_AncestorstartX[shwr]  = mcshwr.AncestorStart().X();	  
-    	  fData->mcshwr_AncestorstartY[shwr]  = mcshwr.AncestorStart().Y();		 
-    	  fData->mcshwr_AncestorstartZ[shwr]  = mcshwr.AncestorStart().Z();		 
-    	  fData->mcshwr_AncestorendX[shwr]    = mcshwr.AncestorEnd().X();	 
-    	  fData->mcshwr_AncestorendY[shwr]    = mcshwr.AncestorEnd().Y();	 
+	  fData->mcshwr_AncestorstartX[shwr]  = mcshwr.AncestorStart().X();
+    	  fData->mcshwr_AncestorstartY[shwr]  = mcshwr.AncestorStart().Y();
+    	  fData->mcshwr_AncestorstartZ[shwr]  = mcshwr.AncestorStart().Z();
+    	  fData->mcshwr_AncestorendX[shwr]    = mcshwr.AncestorEnd().X();
+    	  fData->mcshwr_AncestorendY[shwr]    = mcshwr.AncestorEnd().Y();
     	  fData->mcshwr_AncestorendZ[shwr]    = mcshwr.AncestorEnd().Z();
-    	  ++shwr; 
+    	  ++shwr;
 	}
 	fData->mcshwr_Process.resize(shwr);
 	fData->mcshwr_MotherProcess.resize(shwr);
 	fData->mcshwr_AncestorProcess.resize(shwr);
-      }//End if (fSaveMCShowerInfo){  
-    
+      }//End if (fSaveMCShowerInfo){
+
       //Extract MC Track information and fill the Shower branches
       if (fSaveMCTrackInfo){
-	fData->no_mctracks = nMCTracks;       
+	fData->no_mctracks = nMCTracks;
 	size_t trk = 0;
 	for(std::vector<sim::MCTrack>::const_iterator imctrk = mctrackh->begin();imctrk != mctrackh->end(); ++imctrk) {
     	  const sim::MCTrack& mctrk = *imctrk;
 	  TLorentzVector tpcstart, tpcend, tpcmom;
 	  double plen = driftedLength(mctrk, tpcstart, tpcend, tpcmom);
 	  fData->mctrk_origin[trk]          = mctrk.Origin();
-    	  fData->mctrk_pdg[trk]	            = mctrk.PdgCode();	   
-    	  fData->mctrk_TrackId[trk]	    = mctrk.TrackID();	   
-    	  fData->mctrk_Process[trk]	    = mctrk.Process();	   
-    	  fData->mctrk_startX[trk]          = mctrk.Start().X();	    
-    	  fData->mctrk_startY[trk]          = mctrk.Start().Y();      	 
-    	  fData->mctrk_startZ[trk]          = mctrk.Start().Z();      	 
-    	  fData->mctrk_endX[trk]            = mctrk.End().X();      	 
-    	  fData->mctrk_endY[trk]            = mctrk.End().Y();      	 
-    	  fData->mctrk_endZ[trk]            = mctrk.End().Z(); 
-	  fData->mctrk_Motherpdg[trk]       = mctrk.MotherPdgCode(); 
-    	  fData->mctrk_MotherTrkId[trk]     = mctrk.MotherTrackID();    
-    	  fData->mctrk_MotherProcess[trk]   = mctrk.MotherProcess(); 
-	  fData->mctrk_MotherstartX[trk]    = mctrk.MotherStart().X();     
-    	  fData->mctrk_MotherstartY[trk]    = mctrk.MotherStart().Y();	  
-    	  fData->mctrk_MotherstartZ[trk]    = mctrk.MotherStart().Z();	  
-    	  fData->mctrk_MotherendX[trk]      = mctrk.MotherEnd().X(); 	  
-    	  fData->mctrk_MotherendY[trk]      = mctrk.MotherEnd().Y(); 	  
-    	  fData->mctrk_MotherendZ[trk]      = mctrk.MotherEnd().Z();  
-    	  fData->mctrk_Ancestorpdg[trk]     = mctrk.AncestorPdgCode();  
-    	  fData->mctrk_AncestorTrkId[trk]   = mctrk.AncestorTrackID();  
+    	  fData->mctrk_pdg[trk]	            = mctrk.PdgCode();
+    	  fData->mctrk_TrackId[trk]	    = mctrk.TrackID();
+    	  fData->mctrk_Process[trk]	    = mctrk.Process();
+    	  fData->mctrk_startX[trk]          = mctrk.Start().X();
+    	  fData->mctrk_startY[trk]          = mctrk.Start().Y();
+    	  fData->mctrk_startZ[trk]          = mctrk.Start().Z();
+    	  fData->mctrk_endX[trk]            = mctrk.End().X();
+    	  fData->mctrk_endY[trk]            = mctrk.End().Y();
+    	  fData->mctrk_endZ[trk]            = mctrk.End().Z();
+	  fData->mctrk_Motherpdg[trk]       = mctrk.MotherPdgCode();
+    	  fData->mctrk_MotherTrkId[trk]     = mctrk.MotherTrackID();
+    	  fData->mctrk_MotherProcess[trk]   = mctrk.MotherProcess();
+	  fData->mctrk_MotherstartX[trk]    = mctrk.MotherStart().X();
+    	  fData->mctrk_MotherstartY[trk]    = mctrk.MotherStart().Y();
+    	  fData->mctrk_MotherstartZ[trk]    = mctrk.MotherStart().Z();
+    	  fData->mctrk_MotherendX[trk]      = mctrk.MotherEnd().X();
+    	  fData->mctrk_MotherendY[trk]      = mctrk.MotherEnd().Y();
+    	  fData->mctrk_MotherendZ[trk]      = mctrk.MotherEnd().Z();
+    	  fData->mctrk_Ancestorpdg[trk]     = mctrk.AncestorPdgCode();
+    	  fData->mctrk_AncestorTrkId[trk]   = mctrk.AncestorTrackID();
     	  fData->mctrk_AncestorProcess[trk] = mctrk.AncestorProcess();
-	  fData->mctrk_AncestorstartX[trk]  = mctrk.AncestorStart().X();	  
-    	  fData->mctrk_AncestorstartY[trk]  = mctrk.AncestorStart().Y();		 
-    	  fData->mctrk_AncestorstartZ[trk]  = mctrk.AncestorStart().Z();		 
-    	  fData->mctrk_AncestorendX[trk]    = mctrk.AncestorEnd().X();	 
-    	  fData->mctrk_AncestorendY[trk]    = mctrk.AncestorEnd().Y();	 
+	  fData->mctrk_AncestorstartX[trk]  = mctrk.AncestorStart().X();
+    	  fData->mctrk_AncestorstartY[trk]  = mctrk.AncestorStart().Y();
+    	  fData->mctrk_AncestorstartZ[trk]  = mctrk.AncestorStart().Z();
+    	  fData->mctrk_AncestorendX[trk]    = mctrk.AncestorEnd().X();
+    	  fData->mctrk_AncestorendY[trk]    = mctrk.AncestorEnd().Y();
     	  fData->mctrk_AncestorendZ[trk]    = mctrk.AncestorEnd().Z();
-        
+
 	  fData->mctrk_len_drifted[trk]       = plen;
 
-	  if (plen != 0){	  
+	  if (plen != 0){
 	    fData->mctrk_startX_drifted[trk] = tpcstart.X();
 	    fData->mctrk_startY_drifted[trk] = tpcstart.Y();
 	    fData->mctrk_startZ_drifted[trk] = tpcstart.Z();
@@ -4865,27 +4878,27 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	    fData->mctrk_py_drifted[trk]     = tpcmom.Y();
 	    fData->mctrk_pz_drifted[trk]     = tpcmom.Z();
 	  }
-    	  ++trk; 
+    	  ++trk;
 	}
-       
+
 	fData->mctrk_Process.resize(trk);
 	fData->mctrk_MotherProcess.resize(trk);
 	fData->mctrk_AncestorProcess.resize(trk);
-      }//End if (fSaveMCTrackInfo){  
-	  
+      }//End if (fSaveMCTrackInfo){
+
 
       //GEANT particles information
-      if (fSaveGeantInfo){ 
+      if (fSaveGeantInfo){
 
         const sim::ParticleList& plist = bt->ParticleList();
-        
+
         std::string pri("primary");
         int primary=0;
         int active = 0;
         size_t geant_particle=0;
         sim::ParticleList::const_iterator itPart = plist.begin(),
           pend = plist.end(); // iterator to pairs (track id, particle)
-        	  
+
 	// helper map track ID => index
 	std::map<int, size_t> TrackIDtoIndex;
 	std::vector<int> gpdg;
@@ -4896,7 +4909,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
             throw art::Exception(art::errors::LogicError)
               << "GEANT particle #" << iPart << " returned a null pointer";
           }
-          
+
           //++geant_particle;
 	  bool isPrimary = pPart->Process() == pri;
 	  int TrackID = pPart->TrackId();
@@ -4906,12 +4919,12 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           if (iPart < fData->GetMaxGEANTparticles()) {
 	    if (pPart->E()<fG4minE&&(!isPrimary)) continue;
 	    if (isPrimary) ++primary;
- 
+
 	    TLorentzVector mcstart, mcend, mcstartdrifted, mcenddrifted;
 	    unsigned int pstarti, pendi, pstartdriftedi, penddriftedi; //mcparticle indices for starts and ends in tpc or drifted volumes
 	    double plen = length(*pPart, mcstart, mcend, pstarti, pendi);
 	    double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
-	    
+
 	    bool isActive = plen != 0;
 	    bool isDrifted = plendrifted!= 0;
 	    if (plen) ++active;
@@ -4951,7 +4964,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	      fData->origin[geant_particle] = mc_truth->Origin();
 	      fData->MCTruthIndex[geant_particle] = mc_truth.key();
 	    }
-	    if (isActive){	  
+	    if (isActive){
 	      fData->StartPointx_tpcAV[geant_particle] = mcstart.X();
 	      fData->StartPointy_tpcAV[geant_particle] = mcstart.Y();
 	      fData->StartPointz_tpcAV[geant_particle] = mcstart.Z();
@@ -4971,7 +4984,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPy_tpcAV[geant_particle] = pPart->Py(pendi);
 	      fData->EndPz_tpcAV[geant_particle] = pPart->Pz(pendi);
 	    }
-	    if (isDrifted){	  
+	    if (isDrifted){
 	      fData->StartPointx_drifted[geant_particle] = mcstartdrifted.X();
 	      fData->StartPointy_drifted[geant_particle] = mcstartdrifted.Y();
 	      fData->StartPointz_drifted[geant_particle] = mcstartdrifted.Z();
@@ -4990,14 +5003,14 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPx_drifted[geant_particle] = pPart->Px(penddriftedi);
 	      fData->EndPy_drifted[geant_particle] = pPart->Py(penddriftedi);
 	      fData->EndPz_drifted[geant_particle] = pPart->Pz(penddriftedi);
-	    }	            
+	    }
 	    //access auxiliary detector parameters
             if (fSaveAuxDetInfo) {
               unsigned short nAD = 0; // number of cells that particle hit
-              
+
               // find deposit of this particle in each of the detector cells
               for (const sim::AuxDetSimChannel* c: fAuxDetSimChannels) {
-		
+
         	// find if this cell has a contribution (IDE) from this particle,
         	// and which one
         	const std::vector<sim::AuxDetIDE>& setOfIDEs = c->AuxDetIDEs();
@@ -5011,9 +5024,9 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 				 [TrackID](const sim::AuxDetIDE& IDE){ return IDE.trackID == TrackID; }
 				 );
         	if (iIDE == setOfIDEs.end()) continue;
-        	
+
         	// now iIDE points to the energy released by the track #i (TrackID)
-		
+
 		// look for IDE with matching trackID
 		// find trackIDs stored in setOfIDEs with the same trackID, but negative,
 		// this is an untracked particle who's energy should be added as deposited by this original trackID
@@ -5022,7 +5035,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 		  if( fabs(adtracks.trackID) == TrackID )
 		    totalE += adtracks.energyDeposited;
 		} // for
-		
+
 		// fill the structure
 		if (nAD < kMaxAuxDets) {
 		  fData->AuxDetID[geant_particle][nAD] = c->AuxDetID();
@@ -5041,17 +5054,17 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 		}
 		++nAD;
 	      } // for aux det sim channels
-	      fData->NAuxDets[geant_particle] = nAD; 
-	      
+	      fData->NAuxDets[geant_particle] = nAD;
+
 	      if (nAD > kMaxAuxDets) {
 		// got this error? consider increasing kMaxAuxDets
-		mf::LogError("AnalysisTree:limits") 
+		mf::LogError("AnalysisTree:limits")
 		  << "particle #" << iPart
 		  << " touches " << nAD << " auxiliary detector cells, only "
 		  << kMaxAuxDets << " of them are saved in the tree";
 	      } // if too many detector cells
-	    } // if (fSaveAuxDetInfo) 
-	    	    
+	    } // if (fSaveAuxDetInfo)
+
 	    ++geant_particle;
 	  }
 	  else if (iPart == fData->GetMaxGEANTparticles()) {
@@ -5060,14 +5073,14 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	    mf::LogError("AnalysisTree:limits") << "event has "
 						<< plist.size() << " MC particles, only "
 						<< fData->GetMaxGEANTparticles() << " will be stored in tree";
-	  }     
+	  }
 	} // for particles
-	
+
 	fData->geant_list_size_in_tpcAV = active;
 	fData->no_primaries = primary;
 	fData->geant_list_size = geant_particle;
 	fData->processname.resize(geant_particle);
-	LOG_DEBUG("AnalysisTree") 
+	LOG_DEBUG("AnalysisTree")
 	  << "Counted "
 	  << fData->geant_list_size << " GEANT particles ("
 	  << fData->geant_list_size_in_tpcAV << " in AV), "
@@ -5105,12 +5118,12 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	   ++currentMergedId;
 	   }// for merging check
 	*/
-      } // if (fSaveGeantInfo) 
+      } // if (fSaveGeantInfo)
     }//if (mcevts_truth)
   }//if (isMC){
   fData->taulife = detprop->ElectronLifetime();
   fTree->Fill();
-  
+
   if (mf::isDebugEnabled()) {
     // use mf::LogDebug instead of LOG_DEBUG because we reuse it in many lines;
     // thus, we protect this part of the code with the line above
@@ -5124,7 +5137,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       << "\n - " << fData->geant_list_size_in_tpcAV << " GEANT particles in AV "
       << "\n - " << ((int) fData->kNTracker) << " trackers:"
       ;
-    
+
     size_t iTracker = 0;
     for (auto tracker = fData->TrackData.cbegin();
 	 tracker != fData->TrackData.cend(); ++tracker, ++iTracker
@@ -5145,7 +5158,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     } // for trackers
   } // if logging enabled
 
-  
+
   // if we don't use a permanent buffer (which can be huge),
   // delete the current buffer, and we'll create a new one on the next event
   if (!fUseBuffer) {
@@ -5156,24 +5169,24 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
 
 void dune::AnalysisTree::FillShower( AnalysisTreeDataStruct::ShowerDataStruct& showerData, size_t iShower,
-				     recob::Shower const& shower, const bool fSavePFParticleInfo, 
+				     recob::Shower const& shower, const bool fSavePFParticleInfo,
 				     const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
 				     ) const {
-  
+
   showerData.showerID[iShower]        = shower.ID();
   showerData.shwr_bestplane[iShower]  = shower.best_plane();
   showerData.shwr_length[iShower]     = shower.Length();
-  
+
   TVector3 const& dir_start = shower.Direction();
   showerData.shwr_startdcosx[iShower] = dir_start.X();
   showerData.shwr_startdcosy[iShower] = dir_start.Y();
   showerData.shwr_startdcosz[iShower] = dir_start.Z();
-  
+
   TVector3 const& pos_start = shower.ShowerStart();
   showerData.shwr_startx[iShower]     = pos_start.X();
   showerData.shwr_starty[iShower]     = pos_start.Y();
   showerData.shwr_startz[iShower]     = pos_start.Z();
-  
+
   if (fSavePFParticleInfo) {
     auto mapIter = showerIDtoPFParticleIDMap.find(shower.ID());
     if (mapIter != showerIDtoPFParticleIDMap.end()) {
@@ -5181,10 +5194,10 @@ void dune::AnalysisTree::FillShower( AnalysisTreeDataStruct::ShowerDataStruct& s
       showerData.shwr_hasPFParticle[iShower] = 1;
       showerData.shwr_PFParticleID[iShower] = mapIter->second;
     }
-    else 
+    else
       showerData.shwr_hasPFParticle[iShower] = 0;
   }
-  
+
   if (shower.Energy().size() == kNplanes)
     std::copy_n
       (shower.Energy().begin(),    kNplanes, &showerData.shwr_totEng[iShower][0]);
@@ -5194,26 +5207,26 @@ void dune::AnalysisTree::FillShower( AnalysisTreeDataStruct::ShowerDataStruct& s
   if (shower.MIPEnergy().size() == kNplanes)
     std::copy_n
       (shower.MIPEnergy().begin(), kNplanes, &showerData.shwr_mipEng[iShower][0]);
-  
+
 } // dune::AnalysisTree::FillShower()
 
 
 void dune::AnalysisTree::FillShowers( AnalysisTreeDataStruct::ShowerDataStruct& showerData,
-				      std::vector<recob::Shower> const& showers, const bool fSavePFParticleInfo, 
+				      std::vector<recob::Shower> const& showers, const bool fSavePFParticleInfo,
 				      const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
 				      ) const {
-  
+
   const size_t NShowers = showers.size();
-  
+
   //
   // prepare the data structures, the tree and the connection between them
   //
-  
+
   // allocate enough space for this number of showers
   // (but at least for one of them!)
   showerData.SetMaxShowers(std::max(NShowers, (size_t) 1));
   showerData.Clear(); // clear all the data
-  
+
   // now set the tree addresses to the newly allocated memory;
   // this creates the tree branches in case they are not there yet
   showerData.SetAddresses(fTree);
@@ -5224,17 +5237,17 @@ void dune::AnalysisTree::FillShowers( AnalysisTreeDataStruct::ShowerDataStruct& 
 					<< " " << showerData.Name() << " showers, only "
 					<< showerData.GetMaxShowers() << " stored in tree";
   }
-  
+
   //
   // now set the data
   //
   // set the record of the number of showers
   // (data structures are already properly resized)
   showerData.nshowers = (Short_t) NShowers;
-  
+
   // set all the showers one by one
   for (size_t i = 0; i < NShowers; ++i) FillShower(showerData, i, showers[i], fSavePFParticleInfo, showerIDtoPFParticleIDMap);
-  
+
 } // dune::AnalysisTree::FillShowers()
 
 
@@ -5287,7 +5300,7 @@ double dune::AnalysisTree::bdist(const TVector3& pos)
   double d4 =  ActiveBounds[3] - pos.Y();
   double d5 = -ActiveBounds[4] + pos.Z();
   double d6 =  ActiveBounds[5] - pos.Z();
-  
+
   double Xmin = std::min(d1, d2);
   double result = 0;
   if (Xmin<0) result = std::min(std::min(std::min( d3, d4), d5), d6);         // - FIXME Passing uncorrected hits means X positions are very wrong ( outside of ActiveVolume )
@@ -5331,7 +5344,7 @@ double dune::AnalysisTree::driftedLength(const sim::MCTrack& mctrack, TLorentzVe
   double vDrift = detprop->DriftVelocity()*1e-3; //cm/ns
   double xrange[2] = {DBL_MAX, -DBL_MAX };
   for (unsigned int c=0; c<geom->Ncryostats(); ++c) {
-    for (unsigned int t=0; t<geom->NTPC(c); ++t) { 
+    for (unsigned int t=0; t<geom->NTPC(c); ++t) {
       double Xat0 = detprop->ConvertTicksToX(0,0,t,c);
       double XatT = detprop->ConvertTicksToX(detprop->NumberTimeSamples(),0,t,c);
       xrange[0] = std::min(std::min(Xat0, XatT), xrange[0]);
@@ -5345,8 +5358,8 @@ double dune::AnalysisTree::driftedLength(const sim::MCTrack& mctrack, TLorentzVe
 
   for(auto step: mctrack) {
     // check if the particle is inside a TPC
-    if (step.X() >= ActiveBounds[0] && step.X() <= ActiveBounds[1] && 
-	step.Y() >= ActiveBounds[2] && step.Y() <= ActiveBounds[3] && 
+    if (step.X() >= ActiveBounds[0] && step.X() <= ActiveBounds[1] &&
+	step.Y() >= ActiveBounds[2] && step.Y() <= ActiveBounds[3] &&
 	step.Z() >= ActiveBounds[4] && step.Z() <= ActiveBounds[5] ){
       // Doing some manual shifting to account for
       // an interaction not occuring with the beam dump
@@ -5355,7 +5368,7 @@ double dune::AnalysisTree::driftedLength(const sim::MCTrack& mctrack, TLorentzVe
       // being different from in-spill interactions
       double newX = step.X()+(step.T()*vDrift);
       if (newX < xrange[0] || newX > xrange[1]) continue;
-     
+
       TLorentzVector pos(newX,step.Y(),step.Z(),step.T());
       if(first){
 	tpcstart = pos;
@@ -5383,7 +5396,7 @@ double dune::AnalysisTree::driftedLength(const simb::MCParticle& p, TLorentzVect
   double vDrift = detprop->DriftVelocity()*1e-3; //cm/ns
   double xrange[2] = {DBL_MAX, -DBL_MAX };
   for (unsigned int c=0; c<geom->Ncryostats(); ++c) {
-    for (unsigned int t=0; t<geom->NTPC(c); ++t) { 
+    for (unsigned int t=0; t<geom->NTPC(c); ++t) {
       double Xat0 = detprop->ConvertTicksToX(0,0,t,c);
       double XatT = detprop->ConvertTicksToX(detprop->NumberTimeSamples(),0,t,c);
       xrange[0] = std::min(std::min(Xat0, XatT), xrange[0]);
@@ -5397,15 +5410,15 @@ double dune::AnalysisTree::driftedLength(const simb::MCParticle& p, TLorentzVect
 
   for(unsigned int i = 0; i < p.NumberTrajectoryPoints(); ++i) {
     // check if the particle is inside a TPC
-    if (p.Vx(i) >= ActiveBounds[0] && p.Vx(i) <= ActiveBounds[1] && 
-	p.Vy(i) >= ActiveBounds[2] && p.Vy(i) <= ActiveBounds[3] && 
+    if (p.Vx(i) >= ActiveBounds[0] && p.Vx(i) <= ActiveBounds[1] &&
+	p.Vy(i) >= ActiveBounds[2] && p.Vy(i) <= ActiveBounds[3] &&
 	p.Vz(i) >= ActiveBounds[4] && p.Vz(i) <= ActiveBounds[5]){
       // Doing some manual shifting to account for
       // an interaction not occuring with the beam dump
       // we will reconstruct an x distance different from
       // where the particle actually passed to to the time
       // being different from in-spill interactions
-      double newX = p.Vx(i)+(p.T(i)*vDrift);   
+      double newX = p.Vx(i)+(p.T(i)*vDrift);
       if (newX < xrange[0] || newX > xrange[1]) continue;
       TLorentzVector pos(newX,p.Vy(i),p.Vz(i),p.T());
       if(first){

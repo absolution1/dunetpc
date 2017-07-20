@@ -27,7 +27,13 @@
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
+#include <fstream>
+
+//#include "larsim/MCCheater/BackTracker.h"
+
+
 #include "TH1F.h"
+#include "TProfile.h"
 
 
 namespace nlana {
@@ -58,17 +64,22 @@ public:
 private:
 
   std::string fClusterModuleLabel;
-  float fChiCut;
-  float fLandauCut;
+  double fChiCut;
+  std::vector<float> fChgCuts;
   int lastRun;
-  double bigLife[12];
-  double bigLifeErr[12];
-  double bigLifeCnt[12];
+  int fDebugCluster;
+  double bigLifeInv[12];
+  double bigLifeInvErr[12];
+  double bigLifeInvCnt[12];
   
-  TH1F *fLife;
+  TH1F *fLifeInv;
   TH1F *fFracSelHits;
   TH1F *fChiDOF;
-//  TH1F *fChgHist[11];
+  TH1F *fLifeInvCA;
+  TH1F *fLifeInvAC;
+  
+  TProfile *fLifeInv_E;
+  TProfile *fLifeInv_Angle;
 
 };
 
@@ -88,30 +99,21 @@ void nlana::SPLifetime::beginJob()
   // Implementation of optional member function here.
   
   art::ServiceHandle<art::TFileService> tfs;
-  fLife = tfs->make<TH1F>("Lifetime","Lifetime", 100, 0, 10);
+  fLifeInv = tfs->make<TH1F>("LifeInv","LifeInv", 50, 0, 1);
   fFracSelHits = tfs->make<TH1F>("FracSelHits","FracSelHits", 50, 0, 1);
-  fChiDOF = tfs->make<TH1F>("ChiDOF","ChiDOF", 80, 0, 800);
-/*
-  unsigned short nbins = 40;
-  float maxbin = 800;
-  fChgHist[0] = tfs->make<TH1F>("Chg0","Chg0", nbins, 0, maxbin);
-  fChgHist[1] = tfs->make<TH1F>("Chg1","Chg0", nbins, 0, maxbin);
-  fChgHist[2] = tfs->make<TH1F>("Chg2","Chg0", nbins, 0, maxbin);
-  fChgHist[3] = tfs->make<TH1F>("Chg3","Chg0", nbins, 0, maxbin);
-  fChgHist[4] = tfs->make<TH1F>("Chg4","Chg0", nbins, 0, maxbin);
-  fChgHist[5] = tfs->make<TH1F>("Chg5","Chg0", nbins, 0, maxbin);
-  fChgHist[6] = tfs->make<TH1F>("Chg6","Chg0", nbins, 0, maxbin);
-  fChgHist[7] = tfs->make<TH1F>("Chg7","Chg0", nbins, 0, maxbin);
-  fChgHist[8] = tfs->make<TH1F>("Chg8","Chg0", nbins, 0, maxbin);
-  fChgHist[9] = tfs->make<TH1F>("Chg9","Chg0", nbins, 0, maxbin);
-  fChgHist[10] = tfs->make<TH1F>("Chg10","Chg0", nbins, 0, maxbin);
-*/
+  fChiDOF = tfs->make<TH1F>("ChiDOF","ChiDOF", 80, 0, 80);
+  fLifeInvCA = tfs->make<TH1F>("LifeInvCA","LifeInv C to A", 50, 0, 1);
+  fLifeInvAC = tfs->make<TH1F>("LifeInvAC","LifeInv A to C", 50, 0, 1);
+  
+  fLifeInv_E = tfs->make<TProfile>("LifeInv_E","LifeInv_E", 20, 0, 40);
+  fLifeInv_Angle = tfs->make<TProfile>("LifeInv_Angle","LifeInv_Angle", 15, -1.5, 1.5);
+  
   // initialize an invalid run number
   lastRun = -1;
   for(unsigned short tpc = 0; tpc < 12; ++tpc) {
-    bigLife[tpc] = 0;
-    bigLifeErr[tpc] = 0;
-    bigLifeCnt[tpc] = 0;
+    bigLifeInv[tpc] = 0;
+    bigLifeInvErr[tpc] = 0;
+    bigLifeInvCnt[tpc] = 0;
   }
 
 } // beginJob
@@ -121,25 +123,32 @@ void nlana::SPLifetime::reconfigure(fhicl::ParameterSet const & pset)
 {
   // Implementation of optional member function here.
   fClusterModuleLabel  = pset.get<std::string>("ClusterModuleLabel");
-  fLandauCut           = pset.get<float>("LandauCut");
-  fChiCut              = pset.get<float>("ChiCut");
+  fChgCuts             = pset.get<std::vector<float>>("ChgCuts", {0, 5});
+  fChiCut              = pset.get<double>("ChiCut", 3);
+  fDebugCluster        = pset.get<int>("DebugCluster");
 } // reconfigure
 
 //--------------------------------------------------------------------
 void nlana::SPLifetime::endJob()
 {
-  
-  std::cout<<"Run  tpc   lifetime  error count\n";
+  std::ofstream purfile;
+  purfile.open("Lifetime_Run" + std::to_string(lastRun) + ".txt");
+  purfile<<"Run, tpc, lifetime, error, count\n";
   for(unsigned short tpc = 0; tpc < 12; ++tpc) {
-    if(bigLifeCnt[tpc] < 2) continue;
-    bigLife[tpc] /= bigLifeCnt[tpc];
-    bigLifeErr[tpc] = bigLifeErr[tpc] - bigLifeCnt[tpc] * bigLife[tpc] * bigLife[tpc];
-    if(bigLifeErr[tpc] < 0) continue;
-    bigLifeErr[tpc] = sqrt(bigLifeErr[tpc] / (bigLifeCnt[tpc] - 1));
+    if(bigLifeInvCnt[tpc] < 2) continue;
+    if(bigLifeInv[tpc] <= 0) continue;
+    bigLifeInv[tpc] /= bigLifeInvCnt[tpc];
+    bigLifeInvErr[tpc] = bigLifeInvErr[tpc] - bigLifeInvCnt[tpc] * bigLifeInv[tpc] * bigLifeInv[tpc];
+    if(bigLifeInvErr[tpc] < 0) continue;
+    bigLifeInvErr[tpc] = sqrt(bigLifeInvErr[tpc] / (bigLifeInvCnt[tpc] - 1));
     // convert to error on the mean
-    bigLifeErr[tpc] /= sqrt(bigLifeCnt[tpc]);
-    std::cout<<lastRun<<" "<<tpc<<" "<<std::fixed<<std::setprecision(3)<<bigLife[tpc]<<" "<<bigLifeErr[tpc]<<" "<<(int)bigLifeCnt[tpc]<<"\n";
+    bigLifeInvErr[tpc] /= sqrt(bigLifeInvCnt[tpc]);
+    float life = 0;
+    if(1/bigLifeInv[tpc] != 0) life = 1 / bigLifeInv[tpc];
+    float lifeErr = life * bigLifeInvErr[tpc] / bigLifeInv[tpc];
+    purfile<<lastRun<<", "<<tpc<<", "<<std::fixed<<std::setprecision(2)<<life<<", "<<lifeErr<<", "<<(int)bigLifeInvCnt[tpc]<<"\n";
   }
+  purfile.close();
 } // endJob
 
 //--------------------------------------------------------------------
@@ -161,6 +170,8 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   art::ValidHandle<std::vector<recob::Cluster>> clsVecHandle = evt.getValidHandle<std::vector<recob::Cluster>>(fClusterModuleLabel);
   art::FindManyP<recob::Hit> clsHitsFind(clsVecHandle, evt, fClusterModuleLabel);
   
+//  art::ServiceHandle<cheat::BackTracker> bt;
+  
   bool prt = false;
   
   // This corresponds to time bins of size 200 ticks * 0.5 us/tick = 0.1 ms
@@ -168,14 +179,14 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   
   for(unsigned int icl = 0; icl < clsVecHandle->size(); ++icl) {
     art::Ptr<recob::Cluster> cls = art::Ptr<recob::Cluster>(clsVecHandle, icl);
-//    prt = (icl == 4);
     // only consider the collection plane
     if(cls->Plane().Plane != 2) continue;
+    prt = (fDebugCluster >= 0 && icl == (unsigned int)fDebugCluster);
     float sTick = cls->StartTick();
     float eTick = cls->EndTick();
     if(sTick > eTick) std::swap(sTick, eTick);
     float dTick = eTick - sTick;
-    unsigned short nhist = 1 + dTick / ticksPerHist;
+    unsigned short nhist = 1 + (unsigned short)(dTick / ticksPerHist);
     if(nhist < 5) continue;
     // Get the hits
     std::vector<art::Ptr<recob::Hit> > clsHits;
@@ -186,10 +197,12 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       std::cout<<"Cls "<<icl<<" "<<sht->WireID().TPC<<":"<<sht->WireID().Plane<<":"<<sht->WireID().Wire<<":"<<(int)sht->PeakTime();
       auto& eht = clsHits[clsHits.size()-1];
       std::cout<<"  "<<eht->WireID().TPC<<":"<<eht->WireID().Plane<<":"<<eht->WireID().Wire<<":"<<(int)eht->PeakTime();
-      std::cout<<" sTick "<<(int)sTick<<" "<<(int)eTick<<" nhits "<<clsHits.size()<<"\n";
+      std::cout<<" sTick "<<(int)sTick<<" "<<(int)eTick<<" nhits "<<clsHits.size()<<" nhist "<<nhist<<"\n";
     }
+    
     // Find the average and maximum charge of these histograms
     std::vector<double> tck(nhist), ave(nhist), cnt(nhist), err(nhist);
+    std::vector<float> minChg(nhist, 0);
     std::vector<float> maxChg(nhist, 10000);
     for(unsigned short nit = 0; nit < 2; ++nit) {
       for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
@@ -201,13 +214,9 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       // Sum to get the (truncated) average
       for(auto& pht : clsHits) {
         unsigned short ihist = (pht->PeakTime() - sTick) / ticksPerHist;
-        // require single hits
-        if(prt && nit == 0) std::cout<<"Hit "<<pht->WireID().Wire<<":"<<(int)pht->PeakTime()<<" Mult "<<pht->Multiplicity()<<" Q "<<pht->Integral()<<" ihist "<<ihist<<"\n";
-        if(pht->Multiplicity() > 2) continue;
         if(ihist > nhist - 1) continue;
         float chg = pht->Integral();
-        if(chg > maxChg[ihist]) continue;
-//        if(prt && nit == 0) fChgHist[ihist]->Fill(chg);
+        if(chg < minChg[ihist] || chg > maxChg[ihist]) continue;
         tck[ihist] += pht->PeakTime() - sTick;
         ave[ihist] += chg;
         err[ihist] += chg * chg;
@@ -222,7 +231,9 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
         for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
           maxChg[ihist] = 0;
           if(cnt[ihist] < 5) continue;
-          maxChg[ihist] = fLandauCut * ave[ihist];
+          maxChg[ihist] = fChgCuts[1] * ave[ihist];
+          minChg[ihist] = fChgCuts[0] * ave[ihist];
+          if(prt) std::cout<<ihist<<" Min "<<(int)minChg[ihist]<<" max "<<(int)maxChg[ihist]<<"\n";
         } // ihist
       } else {
         // Calculate the error on the average on the second iteration
@@ -256,7 +267,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       } // ihist
     }
 
-    // fit to find the lifetime
+    // fit to find the 1/lifetime
     double sum = 0.;
     double sumx = 0.;
     double sumy = 0.;
@@ -269,7 +280,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
       if(cnt[ihist] < 3) continue;
       if(err[ihist] == 0) continue;
-      xx = tck[ihist];
+      xx = (tck[ihist] - tck[0]) * msPerTick;
       yy = log(ave[ihist]);
       // error on log(x) = dx / x
       arg = ave[ihist] / err[ihist];
@@ -288,39 +299,72 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     double A = (sumx2 * sumy - sumx * sumxy) / delta;
     // slope = 1 / lifetime
     double B = (sumxy * sum  - sumx * sumy) / delta;
-    if(B > 0) {
-//      std::cout<<"Positive lifetime "<<B<<"\n";
-      continue;
-    }
-    B = - 1 / B;
-//    std::cout<<"B "<<B;
-    double life = B * msPerTick;
+    if(B > 0) continue;
+    // calculate the error
+    double ndof = fitcnt - 2;
+    double varnce = (sumy2 + A*A*sum + B*B*sumx2 - 2 * (A*sumy + B*sumxy - A*B*sumx)) / ndof;
+    if(varnce == 0) continue;
+    double BErr = sqrt(varnce * sum / delta);
+    if(prt) std::cout<<"B "<<B<<" "<<BErr;
+    
+    double lifeInv = -B;
+    double lifeInvErr = BErr / (B * B) ;
     
     // calculate chisq
     double chi = 0;
     for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
       if(cnt[ihist] < 3) continue;
       if(err[ihist] == 0) continue;
-      xx = tck[ihist];
-      yy = exp(A - xx / B);
+      xx = (tck[ihist] - tck[0]) * msPerTick;
+      yy = exp(A - xx * lifeInv);
       arg = (yy - ave[ihist]) / err[ihist];
       chi += arg * arg;
       if(prt) std::cout<<"chk "<<ihist<<" xx "<<xx<<" yy "<<yy<<" ave "<<ave[ihist]<<" arg "<<arg<<"\n";
     }
-    chi /= (double)(fitcnt - 2);
+    chi /= ndof;
     unsigned short tpc = clsHits[0]->WireID().TPC;
-    if(prt) std::cout<<tpc<<" life "<<life<<" chi "<<chi<<"\n";
+    if(prt) std::cout<<tpc<<" lifeInv "<<lifeInv<<" +/- "<<lifeInvErr<<" chi "<<chi<<"\n";
     fChiDOF->Fill(chi);
     if(chi > fChiCut) continue;
-    ++bigLifeCnt[tpc];
-    bigLife[tpc] += life;
-    bigLifeErr[tpc] += life * life;
-    fLife->Fill(life);
+    ++bigLifeInvCnt[tpc];
+    bigLifeInv[tpc] += lifeInv;
+    bigLifeInvErr[tpc] += lifeInv * lifeInv;
+    fLifeInv->Fill(lifeInv);
+//    std::cout<<"icl "<<icl<<" tpc "<<tpc<<" lifeInv "<<lifeInv<<" chi "<<chi<<"\n";
     
     double selHits = 0;
     for(auto& hcnt : cnt) selHits += hcnt;
     selHits /= (double)(clsHits.size());
     fFracSelHits->Fill(selHits);
+
+/*
+    // temp study MC truth
+    art::Ptr<recob::Hit> pht = clsHits[0];
+    raw::ChannelID_t channel = geom->PlaneWireToChannel((int)pht->WireID().Plane, (int)pht->WireID().Wire, (int)pht->WireID().TPC, (int)pht->WireID().Cryostat);
+    double startTick = pht->PeakTime() - pht->RMS();
+    double endTick = pht->PeakTime() + pht->RMS();
+    std::vector<sim::TrackIDE> tides;
+    bt->ChannelToTrackIDEs(tides, channel, startTick, endTick);
+    if(tides.size() != 1) continue;
+    int trackID = tides[0].trackID;
+    auto part = bt->TrackIDToParticle(trackID);
+    if(abs(part->PdgCode()) != 13) std::cout<<"Not a muon "<<part->PdgCode()<<"\n";
+//    std::cout<<"TPC "<<tpc<<" start E "<<part->E()<<" Pos "<<(int)part->Vx()<<" "<<(int)part->Vy()<<" "<<(int)part->Vz();
+//    std::cout<<" end "<<part->EndE()<<" Pos "<<(int)part->EndX()<<" "<<(int)part->EndY()<<" "<<(int)part->EndZ();
+    if(part->Vy() < part->EndY()) std::cout<<" CR going UP!! \n";
+    bool goingPosX = (part->Vx() < part->EndX());
+    bool posTPC = (tpc == 2 || tpc == 6 || tpc ==10);
+    bool CtoA = goingPosX && posTPC;
+    if(CtoA) {
+//      std::cout<<" C -> A\n";
+      fLifeInvCA->Fill(lifeInv);
+    } else {
+//      std::cout<<" A -> C\n";
+      fLifeInvAC->Fill(lifeInv);
+    }
+    fLifeInv_E->Fill(part->E(), lifeInv);
+ */
+    fLifeInv_Angle->Fill(cls->StartAngle(), lifeInv);
   } // icl
 
 } // analyze

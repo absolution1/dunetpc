@@ -121,7 +121,9 @@ bool triggersim::TemplateTrigger::TriggerOnTPC( std::vector< raw::RawDigit> rawT
 
   std::cout << "  I have just got into my template TPC trigger , fMakeTrig is " << fMakeTrig << ", and (size) fNumber is now " << fNumber << std::endl;
   
-  // --- For now just trigger on how raw::RawDigits there are in this event...
+  // --- For now just trigger on how many raw::RawDigits there are in this event...
+  // --- This number for triggering in the trigger has ABSOLUTELY NO PHYSICS CONSIDERATIONS 
+  // --- - Do not read even the slightest bit into this. This just ensures that not every event is triggered.
   if (fNumber > 3700) {
     fTrigDecision = true;
   } else {
