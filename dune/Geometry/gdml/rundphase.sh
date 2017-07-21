@@ -63,3 +63,23 @@ rm protodunedphase_nowires_*.gdml
 # clean up
 #rm 3x1x1dphase_geo_nowires.xml
 #rm 3x1x1dphase_nowires_*.gdml
+
+#########################################
+### protoDUNE-DP rotated (drift in Y) ###
+#########################################
+
+# with wires for larcore
+perl generate_protodunedphase_rot.pl -w 1 -o protodunedphase_rot_geo.xml
+perl make_gdml.pl -i protodunedphase_rot_geo.xml -o protodunedphase_rot.gdml
+
+# clean up
+rm protodunedphase_rot_geo.xml
+rm protodunedphase_rot_*.gdml
+
+# no wires for geant
+perl generate_protodunedphase_rot.pl -w 0 -o protodunedphase_rot_nowires_geo.xml
+perl make_gdml.pl -i protodunedphase_rot_nowires_geo.xml -o protodunedphase_rot_nowires.gdml
+
+# clean up
+rm protodunedphase_rot_nowires_geo.xml
+rm protodunedphase_rot_nowires_*.gdml
