@@ -1,6 +1,6 @@
 BEGIN_PROLOG
 
-standard_proto_recoeff:
+standard_pdune_recoeff:
 {
 	module_type:      "RecoEff"
 
