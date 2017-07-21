@@ -106,8 +106,8 @@ void pdune::RecoEff::beginJob()
 {
 	art::ServiceHandle<art::TFileService> tfs;
 	
-	fDenominatorHist = tfs->make<TH1D>("Denominator", "all reconstructable particles", 100., 0., 1500.);
-	fNominatorHist = tfs->make<TH1D>("Nominator", "reconstructed and matched tracks", 100., 0., 1500.);
+	fDenominatorHist = tfs->make<TH1D>("Denominator", "all reconstructable particles", 150., 0., 1500.);
+	fNominatorHist = tfs->make<TH1D>("Nominator", "reconstructed and matched tracks", 150., 0., 1500.);
 
 	fTree = tfs->make<TTree>("events", "summary tree");
 	fTree->Branch("fRun", &fRun, "fRun/I");
@@ -122,6 +122,13 @@ void pdune::RecoEff::beginJob()
 
 void pdune::RecoEff::endJob()
 {
+    for (int i = 0; i < fDenominatorHist->GetNbinsX(); ++i)
+    {
+        double nom = fNominatorHist->GetBinContent(i);
+        double den = fDenominatorHist->GetBinContent(i);
+        std::cout << "nhits: " << i << " nom:" << nom << " den:" << den << std::endl;
+        if (nom > den) { fNominatorHist->SetBinContent(i, den); }
+    }
     art::ServiceHandle<art::TFileService> tfs;
     TEfficiency* fEfficiency = tfs->makeAndRegister<TEfficiency>("Efficiency", "tracking efficiency", *fNominatorHist, *fDenominatorHist);
     std::cout << "Efficiency created: " << fEfficiency->GetTitle() << std::endl;
@@ -255,7 +262,13 @@ void pdune::RecoEff::analyze(art::Event const & e)
     }
   }
 
-  std::cout << "------------ reconstructed: " << fNRecoTracks << " and then matched to MC particles: " << fMatched << std::endl;
+  if (fMatched > fReconstructable)
+  {
+    std::cout << "WARNING: matched more reco tracks than selected MC particles: " << fMatched << " > " << fReconstructable << std::endl;
+  }
+
+  std::cout << "------------ reconstructed: " << fNRecoTracks << " and then matched to MC particles: " << fMatched
+    << " (reconstructable: " << fReconstructable << ")" << std::endl;
   fTree->Fill();
 }
 
