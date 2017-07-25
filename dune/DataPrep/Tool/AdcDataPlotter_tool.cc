@@ -19,8 +19,7 @@ using Tick = AdcSignalVector::size_type;
 //**********************************************************************
 
 AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
-: m_FileName(ps.get<string>("FileName")),
-  m_FirstTick(ps.get<unsigned long>("FirstTick")),
+: m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
   m_MaxSignal(ps.get<unsigned long>("MaxSignal")) { }
 
