@@ -13,4 +13,12 @@ standard_pdune_recoeff:
 	                                  # to consider MCParticle as reconstructable
 }
 
+standard_pdune_hiteff:
+{
+	module_type:	"RecoHitsEff"
+	HitModuleLabel: "hitfd"
+	HitDCheatLabel: "dcheat"
+	Plane: 1
+}
+
 END_PROLOG
