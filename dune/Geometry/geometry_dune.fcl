@@ -83,6 +83,18 @@ protodunedphase_geo:
  DisableWiresInG4:   true
 } 
 
+protodunedphase_rot_geo:
+{
+ Name:      "protodunedphase_rot"
+
+ GDML:      "protodunedphase_rot.gdml"
+ ROOT:      "protodunedphase_rot.gdml"
+
+ SortingParameters:    {ChannelsPerOpDet:    1}
+ SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
+ DisableWiresInG4:   true
+} 
+
 dphase3x1x1_geo:
 {
  Name:      "3x1x1dphase"
