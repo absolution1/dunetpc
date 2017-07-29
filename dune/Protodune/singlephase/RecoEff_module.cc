@@ -37,25 +37,34 @@ namespace pdune
 class pdune::RecoEff : public art::EDAnalyzer {
 public:
 
+  enum EFilterMode { kCosmic, kBeam, kPrimary, kSecondary };
+
   struct Config {
       using Name = fhicl::Name;
       using Comment = fhicl::Comment;
 
       fhicl::Atom<art::InputTag> SimulationLabel {
-          Name("SimulationLabel"), Comment("tag of simulation producer")
-      };
+          Name("SimulationLabel"), Comment("tag of simulation producer") };
 
       fhicl::Atom<art::InputTag> HitModuleLabel {
-          Name("HitModuleLabel"), Comment("tag of hits producer")
-      };
+          Name("HitModuleLabel"), Comment("tag of hits producer") };
 
       fhicl::Atom<art::InputTag> TrackModuleLabel {
-          Name("TrackModuleLabel"), Comment("tag of track producer")
-      };
+          Name("TrackModuleLabel"), Comment("tag of track producer") };
     
       fhicl::Atom<size_t> MinHitsPerPlane {
-          Name("MinHitsPerPlane"), Comment("min hits per plane for a reconstructable MC particle")
-      };
+          Name("MinHitsPerPlane"), Comment("min hits per plane for a reconstructable MC particle") };
+
+      fhicl::Sequence<std::string> Filters {
+          Name("Filters"), Comment("on which particles the efficiency is calculated") };
+
+      fhicl::Sequence<int> Pdg {
+          Name("Pdg"), Comment("which PDG code, or 0 for all particles") };
+      
+      fhicl::Atom<size_t> EffHitMax {
+          Name("EffHitMax"), Comment("max hits per MC particle in the track efficiency") };
+      fhicl::Atom<size_t> EffHitBins {
+          Name("EffHitBins"), Comment("number of bins in the track efficiency") };
   };
   using Parameters = art::EDAnalyzer::Table<Config>;
 
@@ -78,36 +87,51 @@ private:
 
   TTree *fTree;
 
-  int fRun;
-  int fEvent;
+  int fRun, fEvent;
   int fNRecoTracks;
   int fReconstructable;
   int fMatched;
 
-  double fEnGen;
-  double fEkGen;
+  double fEnGen, fEkGen;
   double fT0;
 
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
   art::InputTag fTrackModuleLabel;
   size_t fMinHitsPerPlane;
+
+  std::vector< EFilterMode > fFilters;
+  std::vector< int > fPdg;
+
+  size_t fEffHitMax, fEffHitBins;
 };
 
 pdune::RecoEff::RecoEff(Parameters const& config) : EDAnalyzer(config),
     fSimulationLabel(config().SimulationLabel()),
     fHitModuleLabel(config().HitModuleLabel()),
     fTrackModuleLabel(config().TrackModuleLabel()),
-    fMinHitsPerPlane(config().MinHitsPerPlane())
+    fMinHitsPerPlane(config().MinHitsPerPlane()),
+    fPdg(config().Pdg()),
+    fEffHitMax(config().EffHitMax()),
+    fEffHitBins(config().EffHitBins())
 {
+    auto flt = config().Filters();
+    for (const auto & s : flt)
+    {
+        if (s == "cosmic")       { fFilters.push_back(pdune::RecoEff::kCosmic);  }
+        else if (s == "beam")    { fFilters.push_back(pdune::RecoEff::kBeam);    }
+        else if (s == "primary") { fFilters.push_back(pdune::RecoEff::kPrimary); }
+        else if (s == "second")  { fFilters.push_back(pdune::RecoEff::kSecondary); }
+        else { std::cout << "unsupported filter name: " << s << std::endl; }
+    }
 }
 
 void pdune::RecoEff::beginJob()
 {
 	art::ServiceHandle<art::TFileService> tfs;
 	
-	fDenominatorHist = tfs->make<TH1D>("Denominator", "all reconstructable particles", 150., 0., 1500.);
-	fNominatorHist = tfs->make<TH1D>("Nominator", "reconstructed and matched tracks", 150., 0., 1500.);
+	fDenominatorHist = tfs->make<TH1D>("Denominator", "all reconstructable particles", fEffHitBins, 0., fEffHitMax);
+	fNominatorHist = tfs->make<TH1D>("Nominator", "reconstructed and matched tracks", fEffHitBins, 0., fEffHitMax);
 
 	fTree = tfs->make<TTree>("events", "summary tree");
 	fTree->Branch("fRun", &fRun, "fRun/I");
@@ -185,18 +209,41 @@ void pdune::RecoEff::analyze(art::Event const & e)
 
   // now lets map particles to their associated hits, but with some filtering of things
   // which have a minimal chance to be reconstructed: so at least some hits in two views
-  std::unordered_map<int, std::vector< recob::Hit > > mapTrackIDtoHits_filtered;
+  std::unordered_map<int, std::vector< recob::Hit >> mapTrackIDtoHits_filtered;
   for (auto const & p : mapTrackIDtoHits)
   {
-    // *** here more conditions may be applied to select interesting MC particles, eg:
-    // - check with BackTracker if this is a beam/cosmic particle:
-    //auto origin = bt->TrackIDToMCTruth(p.first)->Origin();
-    //if (origin == simb::kCosmicRay) { std::cout << "cosmic" << std::endl; }
-    //else if (origin == simb::kSingleParticle) { std::cout << "beam" << std::endl; }
-    //else { std::cout << "other" << std::endl; }
-    // - check if this the process name is "primary" to select primary particles:
-    //std::cout << bt->TrackIDToParticle(p.first)->Process() << std::endl;
-    // - check if the mother of this MC particle is primary so you can select secondaries of the primary interaction
+    bool skip = false;
+    auto origin = bt->TrackIDToMCTruth(p.first)->Origin();
+    for (auto f : fFilters)
+    {
+        switch (f)
+        {
+            case pdune::RecoEff::kCosmic:  if (origin != simb::kCosmicRay) { skip = true; } break;
+            case pdune::RecoEff::kBeam:    if (origin != simb::kSingleParticle) { skip = true; } break;
+
+            case pdune::RecoEff::kPrimary:
+                if (bt->TrackIDToParticle(p.first)->Process() != "primary") { skip = true; }
+                break;
+
+            case pdune::RecoEff::kSecondary:
+                {
+                    int mId = bt->TrackIDToParticle(p.first)->Mother();
+                    const simb::MCParticle * mother = bt->TrackIDToParticle(mId);
+                    if ((mother == 0) || (mother->Process() != "primary")) { skip = true; }
+                    break;
+                }
+
+            default: break;
+        }
+    }
+    if (skip) { continue; } // skip if any condition failed
+
+    if (!fPdg.empty())
+    {
+        skip = true;
+        for (int code : fPdg) { if (bt->TrackIDToParticle(p.first)->PdgCode() == code) { skip = false; break; } }
+        if (skip) { continue; } // skip only if no PDG is matching
+    }
 
     std::unordered_map<geo::View_t, size_t> hit_count;
     for (auto const & h : p.second) { hit_count[h.View()]++; }
