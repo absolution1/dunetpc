@@ -7,7 +7,6 @@
 
 include(CetTest)
 
-cet_enable_asserts()
 
 cet_test(test_AdcDataDumper SOURCES test_AdcDataDumper.cxx
   LIBRARIES
@@ -20,3 +19,17 @@ cet_test(test_AdcDataDumper SOURCES test_AdcDataDumper.cxx
     ${SQLITE3}
     ${Boost_FILESYSTEM_LIBRARY}
 )
+
+cet_test(test_AdcDataPlotter SOURCES test_AdcDataPlotter.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_enable_asserts()

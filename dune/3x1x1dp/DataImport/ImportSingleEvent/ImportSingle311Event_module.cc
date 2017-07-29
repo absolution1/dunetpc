@@ -16,7 +16,7 @@
 #include "art/Framework/Principal/Event.h"
 
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DataImport/3x1x1dp/Services/EventDecoder.h"
+#include "dune/3x1x1dp/DataImport/Services/EventDecoder.h"
 
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RawData/RawDigit.h"

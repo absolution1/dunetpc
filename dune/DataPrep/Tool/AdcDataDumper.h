@@ -24,7 +24,7 @@
 //   ShowMax - Maximum # values to display
 //   ShowThreshold - Threshold for ShowOpt = 2
 //   ShowOpt - if 2, then symbols are displayed instead of values
-//             * for above threhold, - for below -threshold, . otherwise
+//             * for above threshold, - for below -threshold, . otherwise
 
 #ifndef AdcDataDumper_H
 #define AdcDataDumper_H
