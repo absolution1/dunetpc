@@ -1,13 +1,14 @@
-// test_AdcDataDumper.cxx
+// test_AdcDataPlotter.cxx
 //
 // David Adams
 // April 2017
 //
-// Test AdcDataDumper.
+// Test AdcDataPlotter.
 
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include "dune/DuneInterface/Tool/AdcDataViewer.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
@@ -17,13 +18,14 @@
 using std::string;
 using std::cout;
 using std::endl;
+using std::ostringstream;
 using std::ofstream;
 using fhicl::ParameterSet;
 
 //**********************************************************************
 
-int test_AdcDataDumper(bool useExistingFcl =false) {
-  const string myname = "test_AdcDataDumper: ";
+int test_AdcDataPlotter(bool useExistingFcl =false) {
+  const string myname = "test_AdcDataPlotter: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -31,25 +33,17 @@ int test_AdcDataDumper(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_AdcDataDumper.fcl";
+  string fclfile = "test_AdcDataPlotter.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcDataDumper" << endl;
+    fout << "    tool_type: AdcDataPlotter" << endl;
     fout << "    FileName: \"\"" << endl;
-    fout << "    Prefix: \"ADC dump for \"" << endl;
-    fout << "    NewFile: false" << endl;
-    fout << "    ShowChannelCount: true" << endl;
-    fout << "    ShowTickCounts: true" << endl;
-    fout << "    ShowRaw: true" << endl;
-    fout << "    ShowPrepared: true" << endl;
-    fout << "    ShowFirst: 10" << endl;
-    fout << "    ShowRebin: 5" << endl;
-    fout << "    ShowMax: 16" << endl;
-    fout << "    ShowThreshold: 20" << endl;
-    fout << "    ShowOpt: 1" << endl;
+    fout << "    FirstTick: 0" << endl;
+    fout << "    LastTick: 0" << endl;
+    fout << "   MaxSignal: 200" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -73,7 +67,6 @@ int test_AdcDataDumper(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data and call too." << endl;
   AdcIndex nevt = 2;
-  string lab = "plane 3u";
   float peds[20] = {701, 711, 733, 690, 688, 703, 720, 720, 695, 702,
                     410, 404, 388, 389, 400, 401, 410, 404, 395, 396};
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
@@ -101,7 +94,12 @@ int test_AdcDataDumper(bool useExistingFcl =false) {
       data.raw[tm] -= 100;
       data.samples[tm] -= 100;
     }
-    assert( padv->view(datamap, lab) == 0 );
+    ostringstream sslab;
+    sslab << "event " << ievt << " plane 3u";
+    string slab = sslab.str();
+    string fpat = slab;
+    for ( char& ch : fpat ) if ( ch == ' ' ) ch = '-';
+    assert( padv->view(datamap, slab, fpat) == 0 );
   }
 
   cout << myname << line << endl;
@@ -122,7 +120,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_AdcDataDumper(useExistingFcl);
+  return test_AdcDataPlotter(useExistingFcl);
 }
 
 //**********************************************************************

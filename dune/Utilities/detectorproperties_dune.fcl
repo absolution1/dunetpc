@@ -32,8 +32,8 @@ protodunedphase_detproperties.Temperature:       87            # in K
 protodunedphase_detproperties.Electronlifetime:  3.0e3         # in us
 protodunedphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
 protodunedphase_detproperties.ElectronsToADC:    5.1267e-04    # 
-protodunedphase_detproperties.NumberTimeSamples: 18750         # 2*(drift length/drift velocity*sampling rate) = 2*(6 m / 1600 m/s * 2.5 MHz)
-protodunedphase_detproperties.ReadOutWindowSize: 18750         # 2*(drift length/drift velocity*sampling rate) = 2*(6 m / 1600 m/s * 2.5 MHz)
+protodunedphase_detproperties.NumberTimeSamples: 20000         # 10000 before beam + 10000 after beam
+protodunedphase_detproperties.ReadOutWindowSize: 20000         # 10000 before beam + 10000 after beam
 #protodunedphase_detproperties.TimeOffsetX:       0.
 protodunedphase_detproperties.TimeOffsetY:       0.
 protodunedphase_detproperties.TimeOffsetZ:       0.

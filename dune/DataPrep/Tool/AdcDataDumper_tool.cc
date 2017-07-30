@@ -202,7 +202,7 @@ int AdcDataDumper::view(const AdcChannelDataMap& acds, string label, string fpat
     }
     if ( m_ShowPrepared ) {
       DisplayVector<AdcSignalVector> dvec(m_ShowFirst, m_ShowRebin, m_ShowMax, acd.samples);
-      out << chanpre << " Pre:";
+      out << chanpre << " Prp:";
       if ( m_ShowOpt == 2 ) {
         out << " |";
         for ( AdcCount val : dvec.vout ) out << setw(1) << charThresh(val, m_ShowThreshold);
