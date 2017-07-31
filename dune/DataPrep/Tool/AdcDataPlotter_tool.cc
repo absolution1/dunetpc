@@ -19,9 +19,19 @@ using Tick = AdcSignalVector::size_type;
 //**********************************************************************
 
 AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
-: m_FirstTick(ps.get<unsigned long>("FirstTick")),
+: m_LogLevel(ps.get<int>("LogLevel")), 
+  m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
-  m_MaxSignal(ps.get<unsigned long>("MaxSignal")) { }
+  m_MaxSignal(ps.get<unsigned long>("MaxSignal")) {
+  const string myname = "AdcDataPlotter::ctor: ";
+  if ( m_LogLevel ) {
+    cout << myname << "Configuration: " << endl;
+    cout << myname << "   LogLevel: " << m_LogLevel << endl;
+    cout << myname << "  FirstTick: " << m_FirstTick << endl;
+    cout << myname << "   LastTick: " << m_LastTick << endl;
+    cout << myname << "  MaxSignal: " << m_MaxSignal << endl;
+  }
+}
 
 //**********************************************************************
 
@@ -76,7 +86,6 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     Double_t blue[nRGBs]  = { 0.48, 0.93, 1.00, 1.00, 0.00, 0.00, 0.10, 0.00};
     //colout = 40;
     TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, 255, alpha);
-    cout << TColor::GetColorPalette(0) << endl;
   }
   TCanvas* pcan = new TCanvas;;
   pcan->SetRightMargin(0.12);
@@ -92,6 +101,13 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     cout << myname;
     cout.flush();
     std::getline(cin, line);
+  }
+  if ( m_LogLevel > 1 ) {
+    cout << myname << "Created plot ";
+    if ( label.size() ) cout << label << " ";
+    cout << "for channels " << acds.begin()->first << " - "
+                            << acds.rbegin()->first
+         << ": " << ofname << endl;
   }
   delete ph;
   delete pcan;

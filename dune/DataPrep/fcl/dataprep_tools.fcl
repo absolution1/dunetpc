@@ -1,0 +1,41 @@
+# dataprep_tools.fcl
+
+# David Adams
+# July 2017
+
+# Some example tools for use in data prep.
+
+################################################################################
+# Tools to display ADC data.
+#
+# Add them to the dataprep service to display contents, e.g.
+#  services.RawDigitPrepService.DisplayTools = ["adcPlotter"]
+################################################################################
+
+# Dump ADC contents to the log file.
+tools.adcDumper: {
+  tool_type: AdcDataDumper
+  FileName: ""
+  Prefix: "ADC dump for "
+  NewFile: false
+  ShowChannelCount: true
+  ShowTickCounts: false
+  ShowRaw: false
+  ShowPrepared: true
+  ShowFirst: 10
+  ShowRebin: 5
+  ShowMax: 30
+  ShowThreshold: 10
+  ShowOpt: 2
+}
+
+# Create png files show ADC contents (ADC vs. channel vs. time).
+tools.adcPlotter: {
+  tool_type: AdcDataPlotter
+  LogLevel: 1
+  FileName: ""
+  FirstTick: 0
+  LastTick: 0
+ MaxSignal: 200
+}
+

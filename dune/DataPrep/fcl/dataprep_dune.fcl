@@ -191,6 +191,7 @@ adcprep_readraw: {
   DoROI:                 false
   DoWires:               false
   DoIntermediateStates:  false
+  DisplayTools:             []
 }
 
 # Process simulation.
@@ -207,6 +208,7 @@ adcprep_sim: {
   DoROI:                  true
   DoWires:                true
   DoIntermediateStates:  false
+  DisplayTools:             []
 }
 
 # Process 35-ton data
@@ -223,6 +225,7 @@ adcprep_dune35tdata: {
   DoROI:                  true
   DoWires:                true
   DoIntermediateStates:  false
+  DisplayTools:             []
 }
 
 #***********************************************************************
