@@ -33,7 +33,7 @@ tools.adcDumper: {
 tools.adcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
-  FileName: ""
+  FileName: "adcplot_%PAT%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
   FirstTick: 0
   LastTick: 0
  MaxSignal: 200

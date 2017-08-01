@@ -320,16 +320,8 @@ prepare(AdcChannelDataMap& datamap,
     }
   }
   if ( m_DisplayToolPtrs.size() ) {
-    static int icall = 0;
-    ++icall;
-    ostringstream sscall;
-    if ( icall < 1000 ) sscall << "0";
-    if ( icall < 100  ) sscall << "0";
-    if ( icall < 10   ) sscall << "0";
-    sscall << icall;
-    string scall = sscall.str();
     for ( const AdcDataViewerPtr& padv : m_DisplayToolPtrs ) {
-      padv->view(datamap, "", scall);
+      padv->view(datamap, "Prepared ADC data", "prepared");
     }
   }
 
