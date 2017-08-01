@@ -2,6 +2,7 @@
 
 #include "AdcDataPlotter.h"
 #include <iostream>
+#include <sstream>
 #include "dune/DuneCommon/TH1Manipulator.h"
 #include "TH2F.h"
 #include "TCanvas.h"
@@ -11,6 +12,7 @@ using std::string;
 using std::cout;
 using std::cin;
 using std::endl;
+using std::ostringstream;
 
 using Tick = AdcSignalVector::size_type;
 
@@ -41,6 +43,7 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
     return 1;
   }
+  const AdcChannelData& acd0 = acds.begin()->second;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( iacd.first == AdcChannelData::badChannel ) {
@@ -74,7 +77,7 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     const AdcSignalVector& sams = iacd.second.samples;
     unsigned int ibin = ph->GetBin(1, chan-chan1+1);
     for ( Tick isam=0; isam<sams.size(); ++isam, ++ibin ) {
-      ph->SetBinContent(ibin, sams[isam]);
+      ph->SetBinContent(ibin, sams[isam + m_FirstTick]);
     }
   }
   if ( 1 ) {
@@ -93,6 +96,12 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   TH1Manipulator::fixFrameFillColor();
   TH1Manipulator::addaxis(ph);
   string ofname = "adc-prepared";
+  if ( 1 ) {
+    ostringstream ssevt;
+    if ( acd0.event != AdcChannelData::badIndex ) ssevt << acd0.event;
+    else ssevt << "EventNotFound";
+    ofname += "_evt" + ssevt.str();
+  }
   if ( fpat.size() ) ofname += "_" + fpat;
   ofname += ".png";
   pcan->Print(ofname.c_str());
