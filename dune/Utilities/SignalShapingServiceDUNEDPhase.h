@@ -8,7 +8,7 @@
 /// \author V. Galymov vgalymov@ipnl.in2p3.fr
 ///
 /// This service inherits from SignalShaping and supplies
-/// DUNE dual-phase specific configuration.  
+/// DUNE dual-phase specific configuration.
 /// It is intended that SimWire and CalWire modules will access this service.
 ///
 ///
@@ -35,9 +35,9 @@ namespace util {
 
     // Update configuration parameters.
     void reconfigure(const fhicl::ParameterSet& pset);
-    
+
     double GetASICGain(unsigned int const channel) const;
-    double GetShapingTime(unsigned int const channel) const; 
+    double GetShapingTime(unsigned int const channel) const;
 
     double GetRawNoise(unsigned int const channel) const ;
     double GetDeconNoise(unsigned int const channel) const;
@@ -54,7 +54,7 @@ namespace util {
 
     // Do deconvolution calcution (for reconstruction).
     template <class T> void Deconvolute(unsigned int channel, std::vector<T>& func) const;
-    
+
   private:
 
     // Private configuration methods.
@@ -66,11 +66,12 @@ namespace util {
 
     // Calculate response functions.
     void SetElectResponse(std::vector<double> &eresp);
-    //void SetFieldResponse(std::vector<double> &fresp); //<- could be added later
+    void SetFieldResponse(std::vector<double> &fresp); //<- could be added later
+    double FieldResponse(double tval_us); //harcoded function to calcuate the field response
 
     // Calculate filter functions.
     void SetFilters();
-    
+
     // Sample the response function, including a configurable drift velocity of electrons
     void SetResponseSampling();
 
@@ -79,7 +80,7 @@ namespace util {
 
     // Attributes.
     bool fInit;               ///< Initialization flag.
-    
+
     // Fcl parameters.
     double fDeconNorm;
     double fASICmVperfC;                        ///< Amplifier gain per 1 fC input
@@ -87,16 +88,22 @@ namespace util {
     double fAmpENC;                             ///< Amplifier noise
     double fAmpENCADC;                          ///  Amplifier noise in ADC
     double fRespSamplingPeriod;                 ///< Sampling period for response in ns
-    
+
+    TF1* fColFieldFunc;             ///<Parameterized collection field function.
+    double fColFieldRespAmp;  			///< amplitude of response to field
+    bool fAddFieldFunction;         ///< Enable the filed function
+
     TF1* fColFilterFunc;      			///< Parameterized collection filter function.
     // Following attributes hold the convolution and deconvolution kernels
     util::SignalShaping fColSignalShaping;
 
     // Field response.
-    
+
     // Filters.
 
     std::vector<TComplex> fColFilter;
+
+    std::vector<double>fParArray;
   };
 }
 
@@ -111,7 +118,7 @@ template <class T> inline void util::SignalShapingServiceDUNEDPhase::Convolute(u
 
 //----------------------------------------------------------------------
 // Do deconvolution.
-template <class T> inline void util::SignalShapingServiceDUNEDPhase::Deconvolute(unsigned int channel, 
+template <class T> inline void util::SignalShapingServiceDUNEDPhase::Deconvolute(unsigned int channel,
 std::vector<T>& func) const
 {
   SignalShaping(channel).Deconvolute(func);
