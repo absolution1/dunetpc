@@ -44,6 +44,13 @@ simple_plugin(Dune35tNoiseRemovalService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(DuneDPhase3x1x1NoiseRemovalService   "service"
+                larcorealg_Geometry
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(MedianPedestalService   "service"
                 art_Utilities canvas
                 cetlib cetlib_except

@@ -95,6 +95,10 @@ adcnr_dune35tlegacy: {
   ShowGroupsChannel:    4
 }
 
+adcnr_dunedphase3x1x1: {
+  service_provider: DuneDPhase3x1x1NoiseRemovalService
+}
+
 #***********************************************************************
 
 # PedestalEvaluationService is used to evaluate pedestals from the
