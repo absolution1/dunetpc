@@ -6,6 +6,7 @@
 // Tool to make event displays of prepared data from an ADC channel data map.
 //
 // Configuration:
+//   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
@@ -33,6 +34,7 @@ public:
 private:
 
   // Configuration data.
+  int m_LogLevel;
   unsigned long m_FirstTick;
   unsigned long m_LastTick;
   double m_MaxSignal;

@@ -126,9 +126,23 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
     if ( m_WiresWithoutROIFlag >= 1 ) cout << myname << "WARNING: Wire building requested without ROI building." << endl;
     if ( m_WiresWithoutROIFlag >= 3 ) abort();
   }
-  cout << myname << "Display tools: " << endl;
-  for ( string tname : m_DisplayTools ) {
-    cout << myname << "  " << tname << endl;
+  if ( m_DisplayTools.size() ) {
+    DuneToolManager* ptm = DuneToolManager::instance("");
+    if ( ptm == nullptr ) {
+      cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
+    } else {
+      cout << myname << "  Fetching display tools: " << endl;
+      for ( string tname : m_DisplayTools ) {
+        if ( m_LogLevel ) cout << myname << "     Fetching " << tname << endl;
+        auto padv = ptm->getPrivate<AdcDataViewer>(tname);
+        if ( padv ) {
+          if ( m_LogLevel ) cout << myname << "    Display tool " << tname << ": @" << padv.get() << endl;
+          m_DisplayToolPtrs.push_back(std::move(padv));
+        } else {
+          cout << myname << "ERROR: Unable to retrieve display tool " << tname << endl;
+        }
+      }
+    }
   }
   if ( m_LogLevel >=1 ) print(cout, myname);
 }
@@ -305,7 +319,7 @@ prepare(AdcChannelDataMap& datamap,
       }
     }
   }
-  if ( m_DisplayTools.size() ) {
+  if ( m_DisplayToolPtrs.size() ) {
     static int icall = 0;
     ++icall;
     ostringstream sscall;
@@ -314,15 +328,8 @@ prepare(AdcChannelDataMap& datamap,
     if ( icall < 10   ) sscall << "0";
     sscall << icall;
     string scall = sscall.str();
-    for ( string tname : m_DisplayTools ) {
-      DuneToolManager* ptm = DuneToolManager::instance("");
-      if ( ptm == nullptr ) {
-        cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
-      } else {
-        auto padv = ptm->getPrivate<AdcDataViewer>(tname);
-        if ( padv ) padv->view(datamap, "", scall);
-        else cout << myname << "ERROR: Unable to retrieve display tool " << tname << endl;
-      }
+    for ( const AdcDataViewerPtr& padv : m_DisplayToolPtrs ) {
+      padv->view(datamap, "", scall);
     }
   }
 
@@ -350,6 +357,14 @@ print(std::ostream& out, std::string prefix) const {
   if ( m_DoDump ) {
     out << prefix << "          DumpChannel: " << m_DumpChannel          << endl;
     out << prefix << "             DumpTick: " << m_DumpTick             << endl;
+  }
+  if ( m_DisplayTools.size() ) {
+    cout << prefix << "        Display tools:";
+    for ( string tname : m_DisplayTools ) {
+       cout << " " << tname << endl;
+    }
+  } else {
+    cout << prefix << "No display tools." << endl;
   }
   return out;
 }

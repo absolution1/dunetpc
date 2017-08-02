@@ -2,6 +2,7 @@
 
 #include "AdcDataPlotter.h"
 #include <iostream>
+#include <sstream>
 #include "dune/DuneCommon/TH1Manipulator.h"
 #include "TH2F.h"
 #include "TCanvas.h"
@@ -11,6 +12,7 @@ using std::string;
 using std::cout;
 using std::cin;
 using std::endl;
+using std::ostringstream;
 
 using Tick = AdcSignalVector::size_type;
 
@@ -19,9 +21,19 @@ using Tick = AdcSignalVector::size_type;
 //**********************************************************************
 
 AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
-: m_FirstTick(ps.get<unsigned long>("FirstTick")),
+: m_LogLevel(ps.get<int>("LogLevel")), 
+  m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
-  m_MaxSignal(ps.get<unsigned long>("MaxSignal")) { }
+  m_MaxSignal(ps.get<unsigned long>("MaxSignal")) {
+  const string myname = "AdcDataPlotter::ctor: ";
+  if ( m_LogLevel ) {
+    cout << myname << "Configuration: " << endl;
+    cout << myname << "   LogLevel: " << m_LogLevel << endl;
+    cout << myname << "  FirstTick: " << m_FirstTick << endl;
+    cout << myname << "   LastTick: " << m_LastTick << endl;
+    cout << myname << "  MaxSignal: " << m_MaxSignal << endl;
+  }
+}
 
 //**********************************************************************
 
@@ -31,6 +43,7 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
     return 1;
   }
+  const AdcChannelData& acd0 = acds.begin()->second;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( iacd.first == AdcChannelData::badChannel ) {
@@ -64,7 +77,7 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     const AdcSignalVector& sams = iacd.second.samples;
     unsigned int ibin = ph->GetBin(1, chan-chan1+1);
     for ( Tick isam=0; isam<sams.size(); ++isam, ++ibin ) {
-      ph->SetBinContent(ibin, sams[isam]);
+      ph->SetBinContent(ibin, sams[isam + m_FirstTick]);
     }
   }
   if ( 1 ) {
@@ -76,7 +89,6 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     Double_t blue[nRGBs]  = { 0.48, 0.93, 1.00, 1.00, 0.00, 0.00, 0.10, 0.00};
     //colout = 40;
     TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, 255, alpha);
-    cout << TColor::GetColorPalette(0) << endl;
   }
   TCanvas* pcan = new TCanvas;;
   pcan->SetRightMargin(0.12);
@@ -84,6 +96,12 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   TH1Manipulator::fixFrameFillColor();
   TH1Manipulator::addaxis(ph);
   string ofname = "adc-prepared";
+  if ( 1 ) {
+    ostringstream ssevt;
+    if ( acd0.event != AdcChannelData::badIndex ) ssevt << acd0.event;
+    else ssevt << "EventNotFound";
+    ofname += "_evt" + ssevt.str();
+  }
   if ( fpat.size() ) ofname += "_" + fpat;
   ofname += ".png";
   pcan->Print(ofname.c_str());
@@ -92,6 +110,13 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     cout << myname;
     cout.flush();
     std::getline(cin, line);
+  }
+  if ( m_LogLevel > 1 ) {
+    cout << myname << "Created plot ";
+    if ( label.size() ) cout << label << " ";
+    cout << "for channels " << acds.begin()->first << " - "
+                            << acds.rbegin()->first
+         << ": " << ofname << endl;
   }
   delete ph;
   delete pcan;
