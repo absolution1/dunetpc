@@ -20,6 +20,7 @@
 
 #include "canvas/Persistency/Common/FindManyP.h"
 
+//#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "larsim/MCCheater/BackTracker.h"
@@ -43,28 +44,20 @@ public:
       using Name = fhicl::Name;
       using Comment = fhicl::Comment;
 
-      fhicl::Atom<art::InputTag> SimulationLabel {
-          Name("SimulationLabel"), Comment("tag of simulation producer") };
+      fhicl::Atom<art::InputTag> SimulationLabel { Name("SimulationLabel"), Comment("tag of simulation producer") };
 
-      fhicl::Atom<art::InputTag> HitModuleLabel {
-          Name("HitModuleLabel"), Comment("tag of hits producer") };
+      fhicl::Atom<art::InputTag> HitModuleLabel { Name("HitModuleLabel"), Comment("tag of hits producer") };
 
-      fhicl::Atom<art::InputTag> TrackModuleLabel {
-          Name("TrackModuleLabel"), Comment("tag of track producer") };
+      fhicl::Atom<art::InputTag> TrackModuleLabel { Name("TrackModuleLabel"), Comment("tag of track producer") };
     
-      fhicl::Atom<size_t> MinHitsPerPlane {
-          Name("MinHitsPerPlane"), Comment("min hits per plane for a reconstructable MC particle") };
+      fhicl::Atom<size_t> MinHitsPerPlane { Name("MinHitsPerPlane"), Comment("min hits per plane for a reconstructable MC particle") };
 
-      fhicl::Sequence<std::string> Filters {
-          Name("Filters"), Comment("on which particles the efficiency is calculated") };
+      fhicl::Sequence<std::string> Filters { Name("Filters"), Comment("on which particles the efficiency is calculated") };
 
-      fhicl::Sequence<int> Pdg {
-          Name("Pdg"), Comment("which PDG code, or 0 for all particles") };
+      fhicl::Sequence<int> Pdg { Name("Pdg"), Comment("which PDG code, or 0 for all particles") };
       
-      fhicl::Atom<size_t> EffHitMax {
-          Name("EffHitMax"), Comment("max hits per MC particle in the track efficiency") };
-      fhicl::Atom<size_t> EffHitBins {
-          Name("EffHitBins"), Comment("number of bins in the track efficiency") };
+      fhicl::Atom<size_t> EffHitMax { Name("EffHitMax"), Comment("max hits per MC particle in the track efficiency") };
+      fhicl::Atom<size_t> EffHitBins { Name("EffHitBins"), Comment("number of bins in the track efficiency") };
   };
   using Parameters = art::EDAnalyzer::Table<Config>;
 
@@ -75,7 +68,7 @@ public:
   RecoEff & operator = (RecoEff const &) = delete;
   RecoEff & operator = (RecoEff &&) = delete;
 
-  void analyze(art::Event const & e) override;
+  void analyze(art::Event const & evt) override;
   void beginJob() override;
   void endJob() override;
 
@@ -85,15 +78,20 @@ private:
   TH1D* fDenominatorHist;
   TH1D* fNominatorHist;
 
-  TTree *fTree;
+  TTree *fEventTree;
+  TTree *fTrkTree;
 
   int fRun, fEvent;
   int fNRecoTracks;
   int fReconstructable;
   int fMatched;
 
-  double fEnGen, fEkGen;
-  double fT0;
+  float fEnGen, fEkGen;
+  float fT0;
+
+  float fTrkPurityPerPlane[3], fTrkCompletnessPerPlane[3]; // fixed size, don't expect more than 3 planes, less is OK
+  float fTrkPurity, fTrkCompletness; // all planes together
+  int fTrkPid, fTrkSize, fTrkMatched;
 
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
@@ -104,6 +102,8 @@ private:
   std::vector< int > fPdg;
 
   size_t fEffHitMax, fEffHitBins;
+
+  //geo::GeometryCore const* fGeometry;
 };
 
 pdune::RecoEff::RecoEff(Parameters const& config) : EDAnalyzer(config),
@@ -114,6 +114,7 @@ pdune::RecoEff::RecoEff(Parameters const& config) : EDAnalyzer(config),
     fPdg(config().Pdg()),
     fEffHitMax(config().EffHitMax()),
     fEffHitBins(config().EffHitBins())
+    //fGeometry( &*(art::ServiceHandle<geo::Geometry>()) )
 {
     auto flt = config().Filters();
     for (const auto & s : flt)
@@ -133,15 +134,24 @@ void pdune::RecoEff::beginJob()
 	fDenominatorHist = tfs->make<TH1D>("Denominator", "all reconstructable particles", fEffHitBins, 0., fEffHitMax);
 	fNominatorHist = tfs->make<TH1D>("Nominator", "reconstructed and matched tracks", fEffHitBins, 0., fEffHitMax);
 
-	fTree = tfs->make<TTree>("events", "summary tree");
-	fTree->Branch("fRun", &fRun, "fRun/I");
-	fTree->Branch("fEvent", &fEvent, "fEvent/I");
-	fTree->Branch("fEnGen", &fEnGen, "fEnGen/D");
-	fTree->Branch("fEkGen", &fEkGen, "fEkGen/D");
-	fTree->Branch("fT0", &fT0, "fT0/D");
-	fTree->Branch("fNRecoTracks", &fNRecoTracks, "fNRecoTracks/I");
-	fTree->Branch("fReconstructable", &fReconstructable, "fReconstructable/I");
-	fTree->Branch("fMatched", &fMatched, "fMatched/I");
+	fEventTree = tfs->make<TTree>("events", "summary tree");
+	fEventTree->Branch("fRun", &fRun, "fRun/I");
+	fEventTree->Branch("fEvent", &fEvent, "fEvent/I");
+	fEventTree->Branch("fEnGen", &fEnGen, "fEnGen/F");
+	fEventTree->Branch("fEkGen", &fEkGen, "fEkGen/F");
+	fEventTree->Branch("fT0", &fT0, "fT0/F");
+	fEventTree->Branch("fNRecoTracks", &fNRecoTracks, "fNRecoTracks/I");
+	fEventTree->Branch("fReconstructable", &fReconstructable, "fReconstructable/I");
+	fEventTree->Branch("fMatched", &fMatched, "fMatched/I");
+
+	fTrkTree = tfs->make<TTree>("tracks", "track metricks");
+	fTrkTree->Branch("fTrkPurity", &fTrkPurity, "fTrkPurity/F");
+	fTrkTree->Branch("fTrkCompletness", &fTrkCompletness, "fTrkCompletness/F");
+	fTrkTree->Branch("fTrkPurityPerPlane", &fTrkPurityPerPlane, "fTrkPurityPerPlane[3]/F");
+	fTrkTree->Branch("fTrkCompletnessPerPlane", &fTrkCompletnessPerPlane, "fTrkCompletnessPerPlane[3]/F");
+	fTrkTree->Branch("fTrkPid", &fTrkPid, "fTrkPid/I");
+	fTrkTree->Branch("fTrkSize", &fTrkSize, "fTrkSize/I");
+	fTrkTree->Branch("fTrkMatched", &fTrkMatched, "fTrkMatched/I");
 }
 
 void pdune::RecoEff::endJob()
@@ -158,12 +168,12 @@ void pdune::RecoEff::endJob()
     std::cout << "Efficiency created: " << fEfficiency->GetTitle() << std::endl;
 }
 
-void pdune::RecoEff::analyze(art::Event const & e)
+void pdune::RecoEff::analyze(art::Event const & evt)
 {
   ResetVars();
   
-  fRun = e.run();
-  fEvent = e.id().event();
+  fRun = evt.run();
+  fEvent = evt.id().event();
 
   art::ServiceHandle<cheat::BackTracker> bt;
   
@@ -172,9 +182,10 @@ void pdune::RecoEff::analyze(art::Event const & e)
   // - need a vector of hits associated to these MC particles,
   // - need the energy deposit corresponding to the particle part seen in these hits.
   std::unordered_map<int, std::vector<recob::Hit> > mapTrackIDtoHits;
+  std::unordered_map<int, double> mapTrackIDtoHitsEnergyPerPlane[3];
   std::unordered_map<int, double> mapTrackIDtoHitsEnergy;
 
-  auto const & hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
+  auto const & hitListHandle = *evt.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
   for (auto const & h : hitListHandle)
   {
     std::unordered_map<int, double> particleID_E;
@@ -188,7 +199,7 @@ void pdune::RecoEff::analyze(art::Event const & e)
     }
 
     int best_id = 0;
-    double max_e = 0.0;
+    double max_e = 0;
     for (auto const & contrib : particleID_E)
     {
         if (contrib.second > max_e) // find particle TrackID corresponding to max energy contribution
@@ -201,6 +212,7 @@ void pdune::RecoEff::analyze(art::Event const & e)
     if (max_e > 0)
     {
         mapTrackIDtoHits[best_id].push_back(h);
+        mapTrackIDtoHitsEnergyPerPlane[h.WireID().Plane][best_id] += max_e;
         mapTrackIDtoHitsEnergy[best_id] += max_e;
     }
   }
@@ -250,7 +262,11 @@ void pdune::RecoEff::analyze(art::Event const & e)
 
     size_t nviews = 0;
     for (auto const & n : hit_count) {  if (n.second > fMinHitsPerPlane) { nviews++; } }
-    if (nviews >= 2) { mapTrackIDtoHits_filtered.emplace(p); }
+    if (nviews >= 2)
+    {
+        // passed all conditions, move to filtered maps
+        mapTrackIDtoHits_filtered.emplace(p);
+    }
   }
   fReconstructable = mapTrackIDtoHits_filtered.size();
 
@@ -264,8 +280,8 @@ void pdune::RecoEff::analyze(art::Event const & e)
 
 
   // match reconstructed tracks to MC particles
-  const auto trkHandle = e.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
-  art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, e, fTrackModuleLabel);
+  const auto trkHandle = evt.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, evt, fTrackModuleLabel);
 
   fNRecoTracks = trkHandle->size();
   for (size_t t = 0; t < trkHandle->size(); ++t)     // loop over tracks
@@ -274,29 +290,43 @@ void pdune::RecoEff::analyze(art::Event const & e)
     // - associated PFParticle has particlular PDG code
     // - or just the recob::Track has interesting ParticleID
 
+    std::unordered_map<int, double> trkID_E_perPlane[3];
     std::unordered_map<int, double> trkID_E;         // map MC particles to their energy contributed to this track t
     const auto & hits = hitsFromTracks.at(t);
     for (const auto & h : hits)                      // loop over hits assigned to track t
     {
+        size_t plane = h->WireID().Plane;
         for (auto const & ide : bt->HitToTrackID(h)) // loop over std::vector< sim::TrackIDE >, for a hit h
         {
             if (mapTrackIDtoHits_filtered.find(ide.trackID) != mapTrackIDtoHits_filtered.end())
-            { 
-                trkID_E[ide.trackID] += ide.energy;  // ...and sum energies contributed to this reco track
-            }                                        // by MC particles which we considered as reconstructable
+            {
+                trkID_E_perPlane[plane][ide.trackID] += ide.energy; // ...and sum energies contributed to this reco track
+                trkID_E[ide.trackID] += ide.energy;                 // by MC particles which we considered as reconstructable
+            }
         }
     }
 
     // find MC particle which cotributed maximum energy to track t
     int best_id = 0;
     double max_e = 0, tot_e = 0;
+    double e_inPlane[3], tot_e_inPlane[3];
     for (auto const & entry : trkID_E)
 	{
         tot_e += entry.second;    // sum total energy in the hits in track t
+        for (size_t i = 0; i < 3; ++i)
+        {
+            tot_e_inPlane[i] += trkID_E_perPlane[i][entry.first];
+        }
+
         if (entry.second > max_e) // find track ID corresponding to max energy
         {
             max_e = entry.second;
             best_id = entry.first;
+
+            for (size_t i = 0; i < 3; ++i)
+            {
+                e_inPlane[i] = trkID_E_perPlane[i][entry.first];
+            }
         }
     }
 
@@ -305,7 +335,23 @@ void pdune::RecoEff::analyze(art::Event const & e)
         (max_e > 0.5 * mapTrackIDtoHitsEnergy[best_id])) // track covers more than 50% of energy deposited by MC particle in hits
     {
         fNominatorHist->Fill(mapTrackIDtoHits_filtered[best_id].size());
-        fMatched++;
+        fTrkMatched = 1; fMatched++;
+    }
+    else { fTrkMatched = 0; }
+
+    if (tot_e > 0)
+    {
+        fTrkPurity = max_e / tot_e;
+        fTrkCompletness = max_e /  mapTrackIDtoHitsEnergy[best_id];
+        for (size_t i = 0; i < 3; ++i)
+        {
+            if (tot_e_inPlane[i] > 0) { fTrkPurityPerPlane[i] = e_inPlane[i] / tot_e_inPlane[i]; }
+            if (mapTrackIDtoHitsEnergyPerPlane[i][best_id] > 0) { fTrkCompletnessPerPlane[i] = e_inPlane[i] / mapTrackIDtoHitsEnergyPerPlane[i][best_id]; }
+        }
+
+        fTrkPid = (*trkHandle)[t].ParticleId();
+        fTrkSize = hits.size();
+        fTrkTree->Fill();
     }
   }
 
@@ -316,16 +362,25 @@ void pdune::RecoEff::analyze(art::Event const & e)
 
   std::cout << "------------ reconstructed: " << fNRecoTracks << " and then matched to MC particles: " << fMatched
     << " (reconstructable: " << fReconstructable << ")" << std::endl;
-  fTree->Fill();
+  fEventTree->Fill();
 }
 
 void pdune::RecoEff::ResetVars()
 {
-	fRun = 0;
-	fEvent = 0;
-	fEnGen = 0.0;
-	fEkGen = 0.0;
-	fT0 = 0.0;
+	fRun = 0; fEvent = 0;
+
+	fEnGen = 0; fEkGen = 0;
+	fT0 = 0;
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+        fTrkPurityPerPlane[i] = 0;
+        fTrkCompletnessPerPlane[i] = 0;
+    }
+
+	fTrkPurity = 0; fTrkCompletness = 0;
+	fTrkPid = 0; fTrkSize = 0; fTrkMatched = 0;
+
 	fMatched = 0;
 	fNRecoTracks = 0;
 	fReconstructable = 0;
