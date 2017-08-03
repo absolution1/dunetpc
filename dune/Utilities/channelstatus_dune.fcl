@@ -988,7 +988,9 @@ dunedphase3x1x1_channel_status: {
 service_provider: SimpleChannelStatusService
 
 # list of bad channels:
-                    BadChannels:   []
+                    BadChannels:   [
+
+]
 
 # list of bad noisy channels:
                     NoisyChannels: []
@@ -1001,6 +1003,41 @@ service_provider: SimpleChannelStatusService
 
 # list of bad channels:
                     BadChannels:   [
+#view 0
+0,    #blind
+49,
+77, 
+122,
+159,  #blind
+160,  #blind
+172,
+178,
+183,
+184,
+216,
+218,
+288,
+319,  #blind
+#view 1
+320,  #blind
+477,
+479,  #blind
+480,  #blind
+550,
+569,
+639,  #blind
+640,  #blind
+674,
+799,  #blind
+800,  #blind
+828,
+959,  #blind
+960,  #blind
+1144,
+1119, #blind
+1120, #blind
+1275,
+1279  #blind
 ]
 
 # list of bad noisy channels:
