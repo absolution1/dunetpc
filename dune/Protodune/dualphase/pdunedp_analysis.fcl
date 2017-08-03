@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+pdunedp_purity:
+{
+  module_type: "Purity"
+  CalWireModuleLabel:   "caldata"
+  HitModuleLabel:       "dprawhit"
+  ClusterModuleLabel:   "trajcluster"
+  TrackModuleLabel:     "pmtrack"
+}
+END_PROLOG
