@@ -40,6 +40,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
     fout << "    tool_type: AdcDataPlotter" << endl;
+    fout << "    LogLevel: 2" << endl;
     fout << "    FileName: \"\"" << endl;
     fout << "    FirstTick: 0" << endl;
     fout << "    LastTick: 0" << endl;

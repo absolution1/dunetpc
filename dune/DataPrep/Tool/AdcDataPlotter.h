@@ -6,6 +6,13 @@
 // Tool to make event displays of prepared data from an ADC channel data map.
 //
 // Configuration:
+//   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   FileName - Name for output file. The following sustitutions are made:
+//                 %EVENT% --> event number
+//                 %PAT%   --> pattern passed in call to view
+//                 %CHAN1% --> First channel number 
+//                 %CHAN2% --> Last channel number 
+//              If blank, the following is used: "adcplot_%PAT%evt%EVENT%.png"
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
@@ -33,6 +40,8 @@ public:
 private:
 
   // Configuration data.
+  int m_LogLevel;
+  std::string m_FileName;
   unsigned long m_FirstTick;
   unsigned long m_LastTick;
   double m_MaxSignal;

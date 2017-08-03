@@ -5,6 +5,9 @@
 //
 // Struct to hold the prepared time samples for a single TPC channel.
 //
+//         run - Run number
+//      subRun - Sub-run number
+//       event - Event number
 //     channel - Offline channel number
 //    pedestal - Pedestal subtracted from the raw count
 //         raw - Uncompressed array holding the raw ADC count for each tick
@@ -41,6 +44,9 @@ public:
   static const AdcChannel badChannel =-1;
   static const size_t badSignal =-99999;
 
+  AdcIndex run =badIndex;
+  AdcIndex subRun =badIndex;
+  AdcIndex event =badIndex;
   AdcChannel channel =badIndex;
   AdcSignal pedestal =badSignal;
   AdcCountVector raw;
