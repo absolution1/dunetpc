@@ -1,5 +1,6 @@
 simple_plugin(
 												Purity "module"
+												dune_DetSim
                         lardataobj_RecoBase
                         larreco_Calorimetry
                         larcorealg_Geometry

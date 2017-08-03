@@ -3,8 +3,10 @@
 // Module Type: analyzer
 // File:        Purity_module.cc
 //
-// Generated at Wed Aug  2 13:55:30 2017 by Andrea Scarpelli,,, using artmod
+// Generated at Wed Aug  2 13:55:30 2017 by Andrea Scarpelli andrea.scarpelli@cern.ch using artmod
 // from cetpkgsupport v1_11_00.
+// Analyzer for purity measurements in protodunedp (and 3x1x1 prototype)
+//TODO: GainView to be configured from service  
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -27,6 +29,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "dune/DetSim/Service/DPhaseSimChannelExtractService.h"
 
 #include "TTree.h"
 #include "TH1F.h"
@@ -36,6 +39,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 #include <fstream>
 #include <stdio.h>
 
@@ -66,6 +70,22 @@ public:
     fhicl::Atom<art::InputTag> TrackModuleLabel{
       Name ("TrackModuleLabel"), Comment("Track data product name")
     };
+
+    fhicl::Atom<double> TotalGain{
+      Name ("TotalGain"), Comment("Total Gain of the detector") //<---TODO insert it form service
+    };
+
+    fhicl::Atom<double> EnergyCut{
+      Name ("EnergyCut"), Comment("Cut over the event energy")
+    };
+
+    fhicl::Atom<double> DriftGap{
+      Name ("DriftGap"), Comment("Gap the mip track start can be found in")
+    };
+
+    fhicl::Atom<double> Length{
+      Name ("Length"), Comment("minimal length to define a mip")
+    };
   }; // end struct
 
   using Parameters = art::EDAnalyzer::Table<Config>;
@@ -81,11 +101,11 @@ public:
   void analyze(art::Event const & e) override;
   void beginJob();
   void endJob();
+  void Clear();
 
 private:
-  art::ServiceHandle<sim::LArG4Parameters> larParameters;
+  //art::ServiceHandle<sim::LArG4Parameters> larParameters;
   detinfo::DetectorProperties const *detProperties = nullptr;
-
 
   art::InputTag fCalWireModuleLabel;
   art::InputTag fHitModuleLabel;
@@ -98,8 +118,17 @@ private:
 
   double fTrackLength; double fChi2Ndof;
 
-  double fElectronsToGeV;
+  //double fElectronsToGeV;
   double fADCToElectrons;
+  double fElectronCharge = 1.60217662e-19/1e-15; //in fC
+  double fMipChargeCm = 10; //in fC/cm
+
+  double fTotalGain;
+  double fECut;
+  double fDriftGap;
+  double fLength;
+
+  std::map<size_t, recob::Track > fTrackList;
 
   TTree *fTree;
 };//end class
@@ -108,12 +137,18 @@ pdunedp::Purity::Purity(Parameters const & config) : EDAnalyzer(config),
   fCalWireModuleLabel(config().CalWireModuleLabel()),
   fHitModuleLabel(config().HitModuleLabel()),
   fClusterModuleLabel(config().ClusterModuleLabel()),
-  fTrackModuleLabel(config().TrackModuleLabel())
+  fTrackModuleLabel(config().TrackModuleLabel()),
+  fTotalGain(config().TotalGain()),
+  fECut(config().EnergyCut()),
+  fDriftGap(config().DriftGap()),
+  fLength(config().Length())
 {}
 
 void pdunedp::Purity::beginJob(){
-  fElectronsToGeV = 1./larParameters->GeVToElectrons();
+  //fElectronsToGeV = 1./larParameters->GeVToElectrons();
   fADCToElectrons = 1./detProperties->ElectronsToADC();
+  //auto simChannelExtract = &*art::ServiceHandle<detsim::DPhaseSimChannelExtractService>();
+  //fTotalGain = simChannelExtract->GainPerView()*2;
 
   //Tfile Services
   art::ServiceHandle<art::TFileService> tfs;
@@ -131,6 +166,8 @@ void pdunedp::Purity::beginJob(){
 void pdunedp::Purity::analyze(art::Event const & e){
   fRun = e.run();
   fEvent = e.id().event();   Events++;
+
+  Clear();
 
   //Require data product handles
   auto CalwireHandle = e.getValidHandle<std::vector<recob::Wire> >(fCalWireModuleLabel);
@@ -151,9 +188,9 @@ void pdunedp::Purity::analyze(art::Event const & e){
       SumWireADC += ADC;
     }
   }
-  float Edep = SumWireADC*fADCToElectrons*fElectronsToGeV;
-  mf::LogVerbatim("pdunedp::Purity") << "Non cal energy deposit: " << Edep;
-  if(Edep > 5.0){
+  float Edep = SumWireADC*fADCToElectrons*fElectronCharge;
+  float Efrac = Edep/(fMipChargeCm*350*fTotalGain);
+  if(Efrac > fECut){
     SkipEvents++;
     return;
   }
@@ -162,18 +199,36 @@ void pdunedp::Purity::analyze(art::Event const & e){
   fNtotTracks = TrackHandle->size();
 
   art::FindManyP< recob::Hit > HitsFromTrack(TrackHandle, e, fTrackModuleLabel);
+  int skippedTracks=0;
   for(size_t t=0; t<(size_t)fNtotTracks; t++){
     //caracteristics of tracks
     auto track = TrackHandle->at(t);
     fTrackLength = track.Length();
     fChi2Ndof = track.Chi2PerNdof();
 
+//selecting mips
+    if( track.Start().X() > fDriftGap ){ fTrackList[t]= track; }
+    else if( track.End().X() > fDriftGap ){ fTrackList[t]= track; }
+    else if( (TrackHandle->size() ==1) && (track.Length() < fLength) ){ fTrackList[t]= track; }
+    else{ skippedTracks++;}
+
     //hits track
     fNHitsTrack = HitsFromTrack.at(t).size();
+  }//end loop tracks
+
+  if(skippedTracks - fNtotTracks){
+    SkipEvents++;
+    return;
   }
+
+  //do more analysis here
 
   //Select only interesting events()
   fTree->Fill();
+}
+
+void pdunedp::Purity::Clear(){
+  fTrackList.clear();
 }
 
 void pdunedp::Purity::endJob(){
