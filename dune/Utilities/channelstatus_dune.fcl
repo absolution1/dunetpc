@@ -983,7 +983,7 @@ service_provider: SimpleChannelStatusService
   NoisyChannels: []
 } 
 
-dunefd_channel_status: {
+dunedphase3x1x1_channel_status: {
 # implements IChannelStatusService
 service_provider: SimpleChannelStatusService
 
@@ -992,6 +992,20 @@ service_provider: SimpleChannelStatusService
 
 # list of bad noisy channels:
                     NoisyChannels: []
+
+                       } 
+
+dunefd_channel_status: {
+# implements IChannelStatusService
+service_provider: SimpleChannelStatusService
+
+# list of bad channels:
+                    BadChannels:   [
+]
+
+# list of bad noisy channels:
+                    NoisyChannels: [
+]
 
                        } 
 

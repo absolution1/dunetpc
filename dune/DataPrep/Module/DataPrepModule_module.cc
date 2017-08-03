@@ -180,6 +180,9 @@ void DataPrepModule::produce(art::Event& evt) {
       continue;
     }
     AdcChannelData& acd = fulldatamap[chan];
+    acd.run = evt.run();
+    acd.subRun = evt.subRun();
+    acd.event = evt.event();
     acd.channel = chan;
     acd.digitIndex = idig;
     acd.digit = &dig;
