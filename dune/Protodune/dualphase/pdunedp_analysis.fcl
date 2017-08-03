@@ -1,0 +1,14 @@
+BEGIN_PROLOG
+pdunedp_purity:
+{
+  module_type: "Purity"
+  CalWireModuleLabel:   "caldata"
+  HitModuleLabel:       "dprawhit"
+  ClusterModuleLabel:   "trajcluster"
+  TrackModuleLabel:     "pmtrack"
+  GainPerView:           5                    #total gain of the run
+  EnergyCut:             10                   #cut on the value Energy/(Average mip * 350cm)
+  DriftGap:              30                   #Gap the mip track start can be found in (in cm)
+  Length:                100                  #minimal Length to define a crossing mip (in cm)
+}
+END_PROLOG
