@@ -6,7 +6,10 @@
 // Generated at Wed Aug  2 13:55:30 2017 by Andrea Scarpelli andrea.scarpelli@cern.ch using artmod
 // from cetpkgsupport v1_11_00.
 // Analyzer for purity measurements in protodunedp (and 3x1x1 prototype)
-//TODO: GainView to be configured from service  
+//TODO: GainView to be configured from service
+//TODO: Add energy of hits and tracks
+//TODO: Add trackstitching
+//TODO: Add Code for the purity
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -25,6 +28,7 @@
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -86,6 +90,10 @@ public:
     fhicl::Atom<double> Length{
       Name ("Length"), Comment("minimal length to define a mip")
     };
+
+    fhicl::Sequence<double>VolCut{
+      Name("VolCut"), Comment("Volume Cut to select a going trougth muon")
+    };
   }; // end struct
 
   using Parameters = art::EDAnalyzer::Table<Config>;
@@ -102,10 +110,9 @@ public:
   void beginJob();
   void endJob();
   void Clear();
+  bool IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList, size_t t);
 
 private:
-  //art::ServiceHandle<sim::LArG4Parameters> larParameters;
-  detinfo::DetectorProperties const *detProperties = nullptr;
 
   art::InputTag fCalWireModuleLabel;
   art::InputTag fHitModuleLabel;
@@ -127,8 +134,10 @@ private:
   double fECut;
   double fDriftGap;
   double fLength;
+  std::vector<double> fVolCut;
 
   std::map<size_t, recob::Track > fTrackList;
+  std::vector<double> goodevents;
 
   TTree *fTree;
 };//end class
@@ -141,12 +150,13 @@ pdunedp::Purity::Purity(Parameters const & config) : EDAnalyzer(config),
   fTotalGain(config().TotalGain()),
   fECut(config().EnergyCut()),
   fDriftGap(config().DriftGap()),
-  fLength(config().Length())
+  fLength(config().Length()),
+  fVolCut(config().VolCut())
 {}
 
 void pdunedp::Purity::beginJob(){
-  //fElectronsToGeV = 1./larParameters->GeVToElectrons();
-  fADCToElectrons = 1./detProperties->ElectronsToADC();
+  auto const* dp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  fADCToElectrons = 1./dp->ElectronsToADC();
   //auto simChannelExtract = &*art::ServiceHandle<detsim::DPhaseSimChannelExtractService>();
   //fTotalGain = simChannelExtract->GainPerView()*2;
 
@@ -207,15 +217,16 @@ void pdunedp::Purity::analyze(art::Event const & e){
     fChi2Ndof = track.Chi2PerNdof();
 
 //selecting mips
-    if( track.Start().X() > fDriftGap ){ fTrackList[t]= track; }
-    else if( track.End().X() > fDriftGap ){ fTrackList[t]= track; }
-    else if( (TrackHandle->size() ==1) && (track.Length() < fLength) ){ fTrackList[t]= track; }
-    else{ skippedTracks++;}
+    if( !IsMip(track, fTrackList, t) ){
+      skippedTracks++;
+      //stitching can go somewhere here?
+    }
 
     //hits track
     fNHitsTrack = HitsFromTrack.at(t).size();
   }//end loop tracks
 
+  goodevents.push_back(fEvent);
   if(skippedTracks - fNtotTracks){
     SkipEvents++;
     return;
@@ -227,6 +238,45 @@ void pdunedp::Purity::analyze(art::Event const & e){
   fTree->Fill();
 }
 
+bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList, size_t t){
+  bool isMip = false;
+  art::ServiceHandle<geo::Geometry> geom;
+
+  //check start and end position of the track
+  double StartPos[3] = {track.Start().X(), track.Start().Y(), track.Start().Z()};
+  double EndPos[3] = {track.End().X(), track.End().Y(), track.End().Z()};
+
+
+//All the tracks starting close to the anode and with a length above a certain safe length can be used for the purity analysis
+//Single tracks going trougth the detector can be used as well (check fraction of energy on that track)
+  if( (StartPos[0] > fDriftGap) && (track.Length() > fLength)){
+    TrackList[t] = track;
+    isMip = true;
+  }
+  else if( (EndPos[0] > fDriftGap) && (track.Length() > fLength)){
+    TrackList[t] = track;
+    isMip = true;
+  }else if(fNtotTracks ==1){ //<----check fraction of energy in the track instead of track itself
+    geo::TPCID idtpc = geom->FindTPCAtPosition(StartPos);
+
+    if (geom->HasTPC(idtpc)) // <----Assuming there is only one TPC
+	  {
+		  const geo::TPCGeo& tpcgeo = geom->GetElement(idtpc);
+		  double minx = tpcgeo.MinX(); double maxx = tpcgeo.MaxX();
+		  double miny = tpcgeo.MinY(); double maxy = tpcgeo.MaxY();
+		  double minz = tpcgeo.MinZ(); double maxz = tpcgeo.MaxZ();
+
+		  if( ((fabs(EndPos[0] - StartPos[0]) - fabs(maxx -minx)) > 2*fVolCut[0])
+        || ((fabs(EndPos[1] - StartPos[1]) - fabs(maxy -miny)) > 2*fVolCut[1])
+        || ((fabs(EndPos[2] - StartPos[2]) - fabs(maxz -minz)) > 2*fVolCut[2])){
+          TrackList[t] = track;
+          isMip = true;
+      }
+	  }
+  }
+  return isMip;
+}
+
 void pdunedp::Purity::Clear(){
   fTrackList.clear();
 }
@@ -235,6 +285,10 @@ void pdunedp::Purity::endJob(){
   mf::LogVerbatim("pdunedp::Purity") << "Total Events: " << Events;
   mf::LogVerbatim("pdunedp::Purity") << "Bad Events: " << BadEvents;
   mf::LogVerbatim("pdunedp::Purity") << "Skipped Events: " << SkipEvents;
+  mf::LogVerbatim("pdunedp::Purity") << "selected Event List: ";
+  for(int goodevent : goodevents){
+      mf::LogVerbatim("pdunedp::Purity") << ".. " << goodevent ; //<----write this list on file (?)
+  }
 }
 
 DEFINE_ART_MODULE(pdunedp::Purity)
