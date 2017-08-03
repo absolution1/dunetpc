@@ -3,13 +3,14 @@
 // Module Type: analyzer
 // File:        Purity_module.cc
 //
-// Generated at Wed Aug  2 13:55:30 2017 by Andrea Scarpelli andrea.scarpelli@cern.ch using artmod
+// Generated at Wed Aug  2 13:55:30 2017 by Andrea Scarpelli
+//(andrea.scarpelli@cern.ch) using artmod
 // from cetpkgsupport v1_11_00.
 // Analyzer for purity measurements in protodunedp (and 3x1x1 prototype)
 //TODO: GainView to be configured from service
-//TODO: Add energy of hits and tracks
-//TODO: Add trackstitching
+//TODO: Add energy of tracks
 //TODO: Add Code for the purity
+//TODO: Add track stitching
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -33,6 +34,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "dune/DetSim/Service/DPhaseSimChannelExtractService.h"
 
 #include "TTree.h"
@@ -58,6 +60,10 @@ public:
   struct Config{
     using Name = fhicl::Name;
     using Comment = fhicl::Comment;
+
+    fhicl::Table<calo::CalorimetryAlg::Config> CalorimetryAlg {
+        Name("CalorimetryAlg"), Comment("Used to calculate electrons from ADC area.")
+    };
 
     fhicl::Atom<art::InputTag> CalWireModuleLabel{
       Name ("CalWireModuleLabel"), Comment("Calwire data product name")
@@ -111,8 +117,12 @@ public:
   void endJob();
   void Clear();
   bool IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList, size_t t);
+  double GetCharge(std::vector<recob::Hit> hits);
+  double GetCharge(const std::vector<art::Ptr<recob::Hit> >  hits);
+
 
 private:
+  calo::CalorimetryAlg fCalorimetryAlg;
 
   art::InputTag fCalWireModuleLabel;
   art::InputTag fHitModuleLabel;
@@ -124,6 +134,8 @@ private:
   int fNtotHits, fNtotTracks, fNHitsTrack;
 
   double fTrackLength; double fChi2Ndof;
+  double fHitsCharge; //in fC
+  double fHitsTrackCharge; //in fC
 
   //double fElectronsToGeV;
   double fADCToElectrons;
@@ -143,6 +155,7 @@ private:
 };//end class
 
 pdunedp::Purity::Purity(Parameters const & config) : EDAnalyzer(config),
+  fCalorimetryAlg(config().CalorimetryAlg()),
   fCalWireModuleLabel(config().CalWireModuleLabel()),
   fHitModuleLabel(config().HitModuleLabel()),
   fClusterModuleLabel(config().ClusterModuleLabel()),
@@ -171,6 +184,9 @@ void pdunedp::Purity::beginJob(){
   fTree->Branch("fNHitsTrack", &fNHitsTrack, "fNHitsTrack/I");
   fTree->Branch("fTrackLength", &fTrackLength, "fTrackLength/D");
   fTree->Branch("fChi2Ndof", &fChi2Ndof, "fChi2Ndof/D");
+  fTree->Branch("fHitsCharge", &fHitsCharge, "fHitsCharge/D");
+  fTree->Branch("fHitsTrackCharge", &fHitsTrackCharge, "fHitsTrackCharge/D");
+
 }
 
 void pdunedp::Purity::analyze(art::Event const & e){
@@ -200,42 +216,86 @@ void pdunedp::Purity::analyze(art::Event const & e){
   }
   float Edep = SumWireADC*fADCToElectrons*fElectronCharge;
   float Efrac = Edep/(fMipChargeCm*350*fTotalGain);
+  mf::LogVerbatim("pdunedp::Purity")<< "Energy: " << Edep << " " << Efrac;
   if(Efrac > fECut){
     SkipEvents++;
     return;
   }
 
+  //Get Hits charge
   fNtotHits = HitHandle->size();
+  fHitsCharge = GetCharge(*HitHandle);
+
   fNtotTracks = TrackHandle->size();
-
-  art::FindManyP< recob::Hit > HitsFromTrack(TrackHandle, e, fTrackModuleLabel);
-  int skippedTracks=0;
-  for(size_t t=0; t<(size_t)fNtotTracks; t++){
-    //caracteristics of tracks
-    auto track = TrackHandle->at(t);
-    fTrackLength = track.Length();
-    fChi2Ndof = track.Chi2PerNdof();
-
-//selecting mips
-    if( !IsMip(track, fTrackList, t) ){
-      skippedTracks++;
-      //stitching can go somewhere here?
-    }
-
-    //hits track
-    fNHitsTrack = HitsFromTrack.at(t).size();
-  }//end loop tracks
-
-  goodevents.push_back(fEvent);
-  if(skippedTracks - fNtotTracks){
+  if(fNtotTracks == 0){
     SkipEvents++;
     return;
   }
 
+  art::FindManyP< recob::Hit > HitsFromTrack(TrackHandle, e, fTrackModuleLabel);
+  int skippedTracks=0;
+  double ChargeTrk=0;
+  for(size_t t=0; t<(size_t)fNtotTracks; t++){
+    //caracteristics of tracks
+    auto track = TrackHandle->at(t);
+
+    mf::LogVerbatim("pdunedp::Purity") << "track length"  << track.Length();
+
+//selecting mips
+    if( !IsMip(track, fTrackList, t) ){
+      skippedTracks++;
+    }else{
+      //get track info of mips candidate only
+      fTrackLength = track.Length();
+      fChi2Ndof = track.Chi2PerNdof();
+      fNHitsTrack = HitsFromTrack.at(t).size();
+      ChargeTrk+= GetCharge(HitsFromTrack.at(t));
+    }
+  }//end loop tracks
+
+  mf::LogVerbatim("pdunedp::Purity") << "skippedTracks - fNtotTracks "  << skippedTracks - fNtotTracks;
+
+  if( skippedTracks == fNtotTracks){
+    SkipEvents++;
+    return;
+  }
+
+  //include stitching here
+
   //do more analysis here
 
   //Select only interesting events()
+  fHitsTrackCharge = ChargeTrk; //<-- charge from selected events only
+  goodevents.push_back(fEvent);
   fTree->Fill();
+}
+
+double pdunedp::Purity::GetCharge(const std::vector<art::Ptr<recob::Hit> >  hits){
+  //It returns the uncalibrated charge in the detector given a list of hits (summed on both views)
+  if(!hits.size()){ return 0.0;}
+
+  double charge=0;
+  for(auto const  hit : hits){
+    unsigned short plane = hit->WireID().Plane;
+    double dqadc = hit->SummedADC();
+    if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
+    charge += dqadc*fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
+  }
+    return charge;
+}
+
+double pdunedp::Purity::GetCharge(std::vector<recob::Hit> hits){
+  //It returns the uncalibrated charge in the detector given a list of hits (summed on both views)
+  if(!hits.size()){ return 0.0;}
+
+  double charge=0;
+  for(auto hit : hits){
+    unsigned short plane = hit.WireID().Plane;
+    double dqadc = hit.SummedADC();
+    if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
+    charge += dqadc*fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
+  }
+    return charge;
 }
 
 bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList, size_t t){
@@ -249,14 +309,15 @@ bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > 
 
 //All the tracks starting close to the anode and with a length above a certain safe length can be used for the purity analysis
 //Single tracks going trougth the detector can be used as well (check fraction of energy on that track)
-  if( (StartPos[0] > fDriftGap) && (track.Length() > fLength)){
+  if( (StartPos[0] > fDriftGap) ){
     TrackList[t] = track;
-    isMip = true;
+    return isMip = true;
   }
-  else if( (EndPos[0] > fDriftGap) && (track.Length() > fLength)){
+  else if( (EndPos[0] > fDriftGap) ){
     TrackList[t] = track;
-    isMip = true;
-  }else if(fNtotTracks ==1){ //<----check fraction of energy in the track instead of track itself
+    return isMip = true;
+  }else if((fNtotTracks ==1) && (track.Length() > fLength)){ //<----check fraction of energy in the track instead of track itself
+
     geo::TPCID idtpc = geom->FindTPCAtPosition(StartPos);
 
     if (geom->HasTPC(idtpc)) // <----Assuming there is only one TPC
@@ -266,13 +327,17 @@ bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > 
 		  double miny = tpcgeo.MinY(); double maxy = tpcgeo.MaxY();
 		  double minz = tpcgeo.MinZ(); double maxz = tpcgeo.MaxZ();
 
-		  if( ((fabs(EndPos[0] - StartPos[0]) - fabs(maxx -minx)) > 2*fVolCut[0])
-        || ((fabs(EndPos[1] - StartPos[1]) - fabs(maxy -miny)) > 2*fVolCut[1])
-        || ((fabs(EndPos[2] - StartPos[2]) - fabs(maxz -minz)) > 2*fVolCut[2])){
+		  if( (fabs(fabs(EndPos[0]  - StartPos[0]) - fabs(maxx -minx)) > 2*fVolCut[0])
+        || (fabs(fabs(EndPos[1] - StartPos[1]) - fabs(maxy -miny)) > 2*fVolCut[1])
+        || (fabs(fabs(EndPos[2] - StartPos[2]) - fabs(maxz -minz)) > 2*fVolCut[2])){
           TrackList[t] = track;
-          isMip = true;
+          return isMip = true;
+      }else{
+        return isMip = false;
       }
 	  }
+  }else{
+    return isMip = false;
   }
   return isMip;
 }
