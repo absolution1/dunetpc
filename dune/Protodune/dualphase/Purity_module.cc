@@ -250,8 +250,6 @@ void pdunedp::Purity::analyze(art::Event const & e){
     //caracteristics of tracks
     auto track = TrackHandle->at(t);
 
-    mf::LogVerbatim("pdunedp::Purity") << "track length"  << track.Length();
-
 //selecting mips
     if( !IsMip(track, fTrackList, t, HitsFromTrack.at(t), fHitsCharge) ){
       skippedTracks++;
@@ -265,8 +263,6 @@ void pdunedp::Purity::analyze(art::Event const & e){
       ChargeTrk+= GetCharge(HitsFromTrack.at(t));
     }
   }//end loop tracks
-
-  mf::LogVerbatim("pdunedp::Purity") << "skippedTracks - fNtotTracks "  << skippedTracks - fNtotTracks;
 
   if( skippedTracks == fNtotTracks){
     SkipEvents++;
@@ -291,7 +287,7 @@ double pdunedp::Purity::GetCharge(const std::vector<art::Ptr<recob::Hit> >  hits
   double charge=0;
   for(auto const  hit : hits){
     unsigned short plane = hit->WireID().Plane;
-    double dqadc = hit->SummedADC();
+    double dqadc = hit->Integral();
     if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
     charge += dqadc*fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
   }
@@ -305,11 +301,15 @@ double pdunedp::Purity::GetCharge(std::vector<recob::Hit> hits){
   double charge=0;
   for(auto hit : hits){
     unsigned short plane = hit.WireID().Plane;
-    double dqadc = hit.SummedADC();
+    double dqadc = hit.Integral();
     if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
     charge += dqadc*fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
   }
     return charge;
+}
+
+void pdunedp::Purity::StitchTracks(){
+
 }
 
 bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList,
