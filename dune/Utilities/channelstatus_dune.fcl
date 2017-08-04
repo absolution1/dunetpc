@@ -989,20 +989,6 @@ service_provider: SimpleChannelStatusService
 
 # list of bad channels:
                     BadChannels:   [
-
-]
-
-# list of bad noisy channels:
-                    NoisyChannels: []
-
-                       } 
-
-dunefd_channel_status: {
-# implements IChannelStatusService
-service_provider: SimpleChannelStatusService
-
-# list of bad channels:
-                    BadChannels:   [
 #view 0
 0,    #blind
 49,
@@ -1038,6 +1024,19 @@ service_provider: SimpleChannelStatusService
 1120, #blind
 1275,
 1279  #blind
+]
+
+# list of bad noisy channels:
+                    NoisyChannels: []
+
+                       } 
+
+dunefd_channel_status: {
+# implements IChannelStatusService
+service_provider: SimpleChannelStatusService
+
+# list of bad channels:
+                    BadChannels:   [
 ]
 
 # list of bad noisy channels:
