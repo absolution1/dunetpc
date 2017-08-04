@@ -116,7 +116,8 @@ public:
   void beginJob();
   void endJob();
   void Clear();
-  bool IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList, size_t t);
+  bool IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList,
+          size_t t, const std::vector<art::Ptr<recob::Hit> >  HitsTrk  , double ChargeDep);
   double GetCharge(std::vector<recob::Hit> hits);
   double GetCharge(const std::vector<art::Ptr<recob::Hit> >  hits);
 
@@ -132,9 +133,11 @@ private:
   int Events=0; int SkipEvents=0; int BadEvents=0;
   int fRun; int fEvent;
   int fNtotHits, fNtotTracks, fNHitsTrack;
+  int fTrkNum; int fNumOfMips;
 
   double fTrackLength; double fChi2Ndof;
   double fHitsCharge; //in fC
+  double fTrackCharge; //in fC
   double fHitsTrackCharge; //in fC
 
   //double fElectronsToGeV;
@@ -151,7 +154,7 @@ private:
   std::map<size_t, recob::Track > fTrackList;
   std::vector<double> goodevents;
 
-  TTree *fTree;
+  TTree *fTree; TTree *fTreeTrk;
 };//end class
 
 pdunedp::Purity::Purity(Parameters const & config) : EDAnalyzer(config),
@@ -181,11 +184,19 @@ void pdunedp::Purity::beginJob(){
   fTree->Branch("fEvent", &fEvent, "fEvent/I");
   fTree->Branch("fNtotHits", &fNtotHits, "fNtotHits/I");
   fTree->Branch("fNtotTracks", &fNtotTracks, "fNtotTracks/I");
+  fTree->Branch("fNumOfMips", &fNumOfMips, "fNumOfMips/I");
   fTree->Branch("fNHitsTrack", &fNHitsTrack, "fNHitsTrack/I");
   fTree->Branch("fTrackLength", &fTrackLength, "fTrackLength/D");
   fTree->Branch("fChi2Ndof", &fChi2Ndof, "fChi2Ndof/D");
   fTree->Branch("fHitsCharge", &fHitsCharge, "fHitsCharge/D");
   fTree->Branch("fHitsTrackCharge", &fHitsTrackCharge, "fHitsTrackCharge/D");
+
+  fTreeTrk = tfs->make<TTree>("TrkInfo", "Information on tracks");
+  fTreeTrk->Branch("fRun", &fRun,"fRun/I");
+  fTreeTrk->Branch("fEvent", &fEvent, "fEvent/I");
+  fTreeTrk->Branch("fTrkNum", &fTrkNum, "fTrkNum/I");
+  fTreeTrk->Branch("fTrackCharge", &fTrackCharge, "fTrackCharge/D");
+
 
 }
 
@@ -226,7 +237,7 @@ void pdunedp::Purity::analyze(art::Event const & e){
   fNtotHits = HitHandle->size();
   fHitsCharge = GetCharge(*HitHandle);
 
-  fNtotTracks = TrackHandle->size();
+  fNtotTracks = (int)TrackHandle->size();
   if(fNtotTracks == 0){
     SkipEvents++;
     return;
@@ -242,13 +253,15 @@ void pdunedp::Purity::analyze(art::Event const & e){
     mf::LogVerbatim("pdunedp::Purity") << "track length"  << track.Length();
 
 //selecting mips
-    if( !IsMip(track, fTrackList, t) ){
+    if( !IsMip(track, fTrackList, t, HitsFromTrack.at(t), fHitsCharge) ){
       skippedTracks++;
     }else{
       //get track info of mips candidate only
       fTrackLength = track.Length();
       fChi2Ndof = track.Chi2PerNdof();
       fNHitsTrack = HitsFromTrack.at(t).size();
+      fTrkNum = (int)t;
+      fTrackCharge = GetCharge(HitsFromTrack.at(t));
       ChargeTrk+= GetCharge(HitsFromTrack.at(t));
     }
   }//end loop tracks
@@ -265,6 +278,7 @@ void pdunedp::Purity::analyze(art::Event const & e){
   //do more analysis here
 
   //Select only interesting events()
+  fNumOfMips = fabs(skippedTracks-fNtotTracks);
   fHitsTrackCharge = ChargeTrk; //<-- charge from selected events only
   goodevents.push_back(fEvent);
   fTree->Fill();
@@ -298,7 +312,8 @@ double pdunedp::Purity::GetCharge(std::vector<recob::Hit> hits){
     return charge;
 }
 
-bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList, size_t t){
+bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList,
+              size_t t, const std::vector<art::Ptr<recob::Hit> >  HitsTrk  , double ChargeDep){
   bool isMip = false;
   art::ServiceHandle<geo::Geometry> geom;
 
@@ -309,15 +324,17 @@ bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > 
 
 //All the tracks starting close to the anode and with a length above a certain safe length can be used for the purity analysis
 //Single tracks going trougth the detector can be used as well (check fraction of energy on that track)
-  if( (StartPos[0] > fDriftGap) ){
+  if( (StartPos[0] > fDriftGap) && (track.Length() > fLength) ){
     TrackList[t] = track;
     return isMip = true;
   }
-  else if( (EndPos[0] > fDriftGap) ){
+  else if( (EndPos[0] > fDriftGap) && (track.Length() > fLength)){
     TrackList[t] = track;
     return isMip = true;
-  }else if((fNtotTracks ==1) && (track.Length() > fLength)){ //<----check fraction of energy in the track instead of track itself
-
+  }else if( (GetCharge(HitsTrk)/ChargeDep > 0.30) && (track.Length() > fLength)){
+    TrackList[t] = track;
+    return isMip = true;
+  /*
     geo::TPCID idtpc = geom->FindTPCAtPosition(StartPos);
 
     if (geom->HasTPC(idtpc)) // <----Assuming there is only one TPC
@@ -336,6 +353,7 @@ bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > 
         return isMip = false;
       }
 	  }
+  */
   }else{
     return isMip = false;
   }
