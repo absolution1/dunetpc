@@ -17,18 +17,43 @@ using std::ostringstream;
 using Tick = AdcSignalVector::size_type;
 
 //**********************************************************************
+// Helper.
+//**********************************************************************
+
+// Substitute xsubin for string subout in a string.
+template<typename T>
+void replace(string& str, string ssubout, const T& xsubin) {
+  string ssubin;
+  bool havesub = false;
+  string::size_type ipos = str.find(ssubout);
+  while ( ipos != string::npos ) {
+    if ( ! havesub ) {
+      ostringstream sssubin;
+      sssubin << xsubin;
+      ssubin = sssubin.str();
+    }
+    string::size_type lout = ssubout.size();
+    str.replace(ipos, lout, ssubin);
+    ipos = str.find(ssubout, ipos+lout);
+  }
+}
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
 AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
+  m_FileName(ps.get<string>("FileName")),
   m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
-  m_MaxSignal(ps.get<unsigned long>("MaxSignal")) {
+  m_MaxSignal(ps.get<double>("MaxSignal")) {
   const string myname = "AdcDataPlotter::ctor: ";
+  if ( m_FileName == "" ) m_FileName = "adcplot_%PAT%evt%EVENT%.png";
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
     cout << myname << "   LogLevel: " << m_LogLevel << endl;
+    cout << myname << "   FileName: " << m_FileName << endl;
     cout << myname << "  FirstTick: " << m_FirstTick << endl;
     cout << myname << "   LastTick: " << m_LastTick << endl;
     cout << myname << "  MaxSignal: " << m_MaxSignal << endl;
@@ -43,7 +68,8 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
     return 1;
   }
-  const AdcChannelData& acd0 = acds.begin()->second;
+  const AdcChannelData& acdFirst = acds.begin()->second;
+  const AdcChannelData& acdLast = acds.rbegin()->second;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( iacd.first == AdcChannelData::badChannel ) {
@@ -52,8 +78,8 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     Tick ntick = iacd.second.samples.size();
     if ( ntick > maxtick ) maxtick = ntick;
   }
-  AdcIndex chan1 = acds.cbegin()->first;
-  AdcIndex chan2 = acds.crbegin()->first + 1;
+  AdcIndex chanFirst = acdFirst.channel;
+  AdcIndex chanLast = acdLast.channel;
   unsigned long tick1 = m_FirstTick;
   unsigned long tick2 = m_LastTick;
   if ( tick2 <= tick1 ) {
@@ -61,11 +87,10 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     tick2 = maxtick;
   }
   Tick ntick = tick2 - tick1;
-  AdcIndex nchan = chan2 - chan1;
-  string htitl = "Prepared ADC data";
-  if ( label.size() ) htitl += " for " + label;
+  AdcIndex nchan = chanLast + 1 - chanFirst;
+  string htitl = label;
   htitl += "; Tick; Channel";
-  TH2* ph = new TH2F("hadp", htitl.c_str(), ntick, tick1, tick2, nchan, chan1, chan2);
+  TH2* ph = new TH2F("hadp", htitl.c_str(), ntick, tick1, tick2, nchan, chanFirst, chanLast+1);
   ph->SetDirectory(nullptr);
   ph->SetStats(0);
   double zmax = m_MaxSignal;
@@ -75,7 +100,7 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     AdcChannel chan = iacd.first;
     const AdcSignalVector& sams = iacd.second.samples;
-    unsigned int ibin = ph->GetBin(1, chan-chan1+1);
+    unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
     for ( Tick isam=0; isam<sams.size(); ++isam, ++ibin ) {
       ph->SetBinContent(ibin, sams[isam + m_FirstTick]);
     }
@@ -95,15 +120,12 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   ph->Draw("colz");
   TH1Manipulator::fixFrameFillColor();
   TH1Manipulator::addaxis(ph);
-  string ofname = "adc-prepared";
-  if ( 1 ) {
-    ostringstream ssevt;
-    if ( acd0.event != AdcChannelData::badIndex ) ssevt << acd0.event;
-    else ssevt << "EventNotFound";
-    ofname += "_evt" + ssevt.str();
-  }
-  if ( fpat.size() ) ofname += "_" + fpat;
-  ofname += ".png";
+  string ofname = m_FileName;
+  replace(ofname, "%PAT%", fpat);
+  if ( acdFirst.event != AdcChannelData::badIndex ) replace(ofname, "%EVENT%", acdFirst.event);
+  else replace(ofname, "%EVENT%", "EventNotFound");
+  replace(ofname, "%CHAN1%", chanFirst);
+  replace(ofname, "%CHAN2%", chanLast);
   pcan->Print(ofname.c_str());
   if ( 0 ) {
     string line;
