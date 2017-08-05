@@ -116,6 +116,8 @@ public:
   void beginJob();
   void endJob();
   void Clear();
+  void StitchTracks(std::map<size_t, recob::Track > TrackList,
+        std::vector<std::map<size_t, recob::Track > > & MipCandidate);
   bool IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList,
           size_t t, const std::vector<art::Ptr<recob::Hit> >  HitsTrk  , double ChargeDep);
   double GetCharge(std::vector<recob::Hit> hits);
@@ -196,8 +198,6 @@ void pdunedp::Purity::beginJob(){
   fTreeTrk->Branch("fEvent", &fEvent, "fEvent/I");
   fTreeTrk->Branch("fTrkNum", &fTrkNum, "fTrkNum/I");
   fTreeTrk->Branch("fTrackCharge", &fTrackCharge, "fTrackCharge/D");
-
-
 }
 
 void pdunedp::Purity::analyze(art::Event const & e){
@@ -244,38 +244,32 @@ void pdunedp::Purity::analyze(art::Event const & e){
   }
 
   art::FindManyP< recob::Hit > HitsFromTrack(TrackHandle, e, fTrackModuleLabel);
-  int skippedTracks=0;
   double ChargeTrk=0;
   for(size_t t=0; t<(size_t)fNtotTracks; t++){
-    //caracteristics of tracks
+    //retrive information for every track (not mip selected yet)
     auto track = TrackHandle->at(t);
-
-//selecting mips
-    if( !IsMip(track, fTrackList, t, HitsFromTrack.at(t), fHitsCharge) ){
-      skippedTracks++;
-    }else{
-      //get track info of mips candidate only
-      fTrackLength = track.Length();
-      fChi2Ndof = track.Chi2PerNdof();
-      fNHitsTrack = HitsFromTrack.at(t).size();
-      fTrkNum = (int)t;
-      fTrackCharge = GetCharge(HitsFromTrack.at(t));
-      ChargeTrk+= GetCharge(HitsFromTrack.at(t));
-    }
-  }//end loop tracks
-
-  if( skippedTracks == fNtotTracks){
-    SkipEvents++;
-    return;
+    fTrackList[t] = track;
+    fTrackLength = track.Length();
+    fChi2Ndof = track.Chi2PerNdof();
+    fNHitsTrack = HitsFromTrack.at(t).size();
+    fTrkNum = (int)t;
+    fTrackCharge = GetCharge(HitsFromTrack.at(t));
+    ChargeTrk+= GetCharge(HitsFromTrack.at(t));
+    fTreeTrk->Fill();
   }
+    fHitsTrackCharge = ChargeTrk; //<-- Sum charge from all event
 
-  //include stitching here
+  std::vector<std::map<size_t, recob::Track > >  fMipCandidate;
+  StitchTracks(fTrackList, fMipCandidate);
 
-  //do more analysis here
+  //is mip
 
-  //Select only interesting events()
-  fNumOfMips = fabs(skippedTracks-fNtotTracks);
-  fHitsTrackCharge = ChargeTrk; //<-- charge from selected events only
+
+
+  //purity stuff goes here
+
+
+
   goodevents.push_back(fEvent);
   fTree->Fill();
 }
@@ -308,8 +302,15 @@ double pdunedp::Purity::GetCharge(std::vector<recob::Hit> hits){
     return charge;
 }
 
-void pdunedp::Purity::StitchTracks(){
+void pdunedp::Purity::StitchTracks(std::map<size_t, recob::Track > TrackList,
+    std::vector<std::map<size_t, recob::Track > > & MipCandidate){
+  //Attempt to stitch tracks together
+  if(TrackList.size()==0){ return; }
+  //std::vector<size_t> StitchList;
 
+
+
+  return;
 }
 
 bool pdunedp::Purity::IsMip(recob::Track track, std::map<size_t, recob::Track > & TrackList,
