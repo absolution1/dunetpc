@@ -97,7 +97,8 @@ adcnr_dune35tlegacy: {
 
 adcnr_dunedphase3x1x1: {
   service_provider: DuneDPhase3x1x1NoiseRemovalService
-  RoiThreshold:         8
+  RoiStartThreshold:    8
+  RoiEndThreshold:      6
   RoiPadLow:            8
   RoiPadHigh:          25
 }
@@ -210,6 +211,23 @@ adcprep_sim: {
   DoMitigation:          false
   DoEarlySignalFinding:  false
   DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
+  DoIntermediateStates:  false
+  DisplayTools:             []
+}
+
+# Process DP 3x1x1 data.
+adcprep_dunedphase3x1x1: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:              true
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:         true
   DoPedestalAdjustment:  false
   DoDeconvolution:        true
   DoROI:                  true

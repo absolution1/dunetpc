@@ -162,7 +162,7 @@ dunedphase3x1x1_simulation_services: {
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
 dunedphase3x1x1_reco_services.BackTracker:                @local::dunefd_backtracker
 dunedphase3x1x1_reco_services.RawDigitExtractService:     @local::rdx_std
-dunedphase3x1x1_reco_services.RawDigitPrepService:        @local::adcprep_sim
+dunedphase3x1x1_reco_services.RawDigitPrepService:        @local::adcprep_dunedphase3x1x1
 dunedphase3x1x1_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
 dunedphase3x1x1_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
 dunedphase3x1x1_reco_services.AdcWireBuildingService:     @local::adcwire_std

@@ -15,7 +15,8 @@
 
 DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
-    fRoiThreshold( pset.get<float>("RoiThreshold") ),
+    fRoiStartThreshold( pset.get<float>("RoiStartThreshold") ),
+    fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
     fRoiPadLow( pset.get<int>("RoiPadLow") ),
     fRoiPadHigh( pset.get<int>("RoiPadHigh") ),
     fGeometry( &*art::ServiceHandle<geo::Geometry>() )
@@ -80,7 +81,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
         if (iacd == datamap.end()) continue;
 
         const AdcChannelData & adc = iacd->second;
-        auto mask = roiMask(adc, fRoiThreshold);
+        auto mask = roiMask(adc);
 
         for (size_t s = 0; s < n_samples; ++s)
         {
@@ -118,7 +119,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
 }
 //**********************************************************************
 
-std::vector<bool> DuneDPhase3x1x1NoiseRemovalService::roiMask(const AdcChannelData & adc, AdcSignal thr) const
+std::vector<bool> DuneDPhase3x1x1NoiseRemovalService::roiMask(const AdcChannelData & adc) const
 {
   std::vector<bool> mask(adc.samples.size(), true);
 
@@ -128,19 +129,18 @@ std::vector<bool> DuneDPhase3x1x1NoiseRemovalService::roiMask(const AdcChannelDa
     AdcSignal sig = adc.samples[i];
     if (inroi)
     {
-      if (sig > thr) { mask[i] = false; }
+      if (sig > fRoiEndThreshold) { mask[i] = false; }
       else
       {
-        for (int p = 1; p <= fRoiPadHigh; ++p) { if (i + p < (int)mask.size()) { mask[i + p] = false; } }
+        for (int p = 0; p <= fRoiPadHigh; ++p) { if (i + p < (int)mask.size()) { mask[i + p] = false; } }
         inroi = false;
       }
     }
     else
     {
-      if (sig > thr )
+      if (sig > fRoiStartThreshold )
       {
-        for (int p = 0; p < fRoiPadLow; ++p) { if (i - p >= 0) { mask[i + p] = false; } }
-        mask[i] = false;
+        for (int p = fRoiPadLow; p >= 0; --p) { if (i - p >= 0) { mask[i + p] = false; } }
         inroi = true;
       }
     }

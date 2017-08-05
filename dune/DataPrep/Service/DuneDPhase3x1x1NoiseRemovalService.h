@@ -31,7 +31,7 @@ private:
 
   void removeCoherent(const GroupChannelMap & ch_groups, AdcChannelDataMap& datamap) const;
 
-  std::vector<bool> roiMask(const AdcChannelData & adc, AdcSignal thr) const;
+  std::vector<bool> roiMask(const AdcChannelData & adc) const;
 
   /// Make groups of channels using 3x1x1 DAQ numbering. Channels tagged as noisy are excluded at this stage.
   GroupChannelMap makeDaqGroups(size_t gsize) const;
@@ -42,7 +42,8 @@ private:
   static size_t get311Chan(size_t LAr_chan);
 
   // Configuration parameters.
-  float fRoiThreshold;
+  float fRoiStartThreshold;
+  float fRoiEndThreshold;
   int fRoiPadLow;
   int fRoiPadHigh;
 
