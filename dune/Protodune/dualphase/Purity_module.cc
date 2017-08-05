@@ -245,6 +245,7 @@ void pdunedp::Purity::analyze(art::Event const & e){
 
   art::FindManyP< recob::Hit > HitsFromTrack(TrackHandle, e, fTrackModuleLabel);
   double ChargeTrk=0;
+  int skippedTrk=0;
   for(size_t t=0; t<(size_t)fNtotTracks; t++){
     //retrive information for every track (not mip selected yet)
     auto track = TrackHandle->at(t);
@@ -256,19 +257,24 @@ void pdunedp::Purity::analyze(art::Event const & e){
     fTrackCharge = GetCharge(HitsFromTrack.at(t));
     ChargeTrk+= GetCharge(HitsFromTrack.at(t));
     fTreeTrk->Fill();
+    if(!IsMip(track, fTrackList, t, HitsFromTrack.at(t) ,fHitsCharge)){
+      skippedTrk++;
+    }
   }
-    fHitsTrackCharge = ChargeTrk; //<-- Sum charge from all event
+  fHitsTrackCharge = ChargeTrk; //<-- Sum charge from all event
 
   std::vector<std::map<size_t, recob::Track > >  fMipCandidate;
   StitchTracks(fTrackList, fMipCandidate);
 
+  if((int)fNtotTracks==skippedTrk){
+    SkipEvents++;
+    return;
+  }
   //is mip
 
 
 
   //purity stuff goes here
-
-
 
   goodevents.push_back(fEvent);
   fTree->Fill();
@@ -305,11 +311,22 @@ double pdunedp::Purity::GetCharge(std::vector<recob::Hit> hits){
 void pdunedp::Purity::StitchTracks(std::map<size_t, recob::Track > TrackList,
     std::vector<std::map<size_t, recob::Track > > & MipCandidate){
   //Attempt to stitch tracks together
+  /*
   if(TrackList.size()==0){ return; }
-  //std::vector<size_t> StitchList;
+  if(TrackList.size()==1){
+    MipCandidate.push_back(TrackList); //<<---no stich if there is only one track
+    return;
+  }
+  std::vector<size_t> StitchList;
+  std::map<size_t, recob::Track >::Iterator TrackListIt;
+  for(TrackListIt = TrackList.begin(); TrackListIt != TrackList.end(); TrackListIt++){
+    for(TrackListIt = TrackList.begin(); TrackListIt != TrackList.end(); TrackListIt++){
+
+    }
+  }
 
 
-
+*/
   return;
 }
 
