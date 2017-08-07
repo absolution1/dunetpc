@@ -82,8 +82,8 @@ void nlana::PlotTrackT0::beginJob()
   // Implementation of optional member function here.
   
   art::ServiceHandle<art::TFileService> tfs;
-  fT0Hist = tfs->make<TH1F>("TrackT0",";T0 (ns)",100,-4000,4000);
-  fT0HistHiRes = tfs->make<TH1F>("TrackT0HiRes",";T0 (ns)",1000,-4000,4000);
+  fT0Hist = tfs->make<TH1F>("TrackT0",";T0 (us)",100,-4000,4000);
+  fT0HistHiRes = tfs->make<TH1F>("TrackT0HiRes",";T0 (us)",1000,-4000,4000);
 
 } // beginJob
 
