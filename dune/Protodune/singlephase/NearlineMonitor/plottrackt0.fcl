@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+proto_plottrackt0:
+{
+  module_type:          "PlotTrackT0"
+  TrackProducerLabel:   "pmtrack"
+}
+
+END_PROLOG
