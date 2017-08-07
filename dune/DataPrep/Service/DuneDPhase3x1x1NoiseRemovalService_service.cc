@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
+#include "lardata/Utilities/LArFFT.h"
 
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
@@ -15,6 +16,8 @@
 
 DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
+    fCoherent( pset.get<bool>("Coherent") ),
+    fLowFreq( pset.get<bool>("LowFreq") ),
     fRoiStartThreshold( pset.get<float>("RoiStartThreshold") ),
     fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
     fRoiPadLow( pset.get<int>("RoiPadLow") ),
@@ -52,8 +55,16 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
 
   std::cout << myname << "Processing noise removal..." << std::endl;
 
-  auto ch_groups = makeDaqGroups(32);
-  removeCoherent(ch_groups, datamap);
+  if (fCoherent)
+  {
+    auto ch_groups = makeDaqGroups(32);
+    removeCoherent(ch_groups, datamap);
+  }
+
+  if (fLowFreq)
+  {
+    removeLowFreq(datamap);
+  }
 
   std::cout << myname << "...done." << std::endl;
 
@@ -109,11 +120,51 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
         AdcChannelData & adc = iacd->second;
         for (size_t s = 0; s < n_samples; ++s)
         {
-            if (ch_averaged[s] > 0)
-            {
-                adc.samples[s] -= correction[s];
-            }
+            adc.samples[s] -= correction[s];
         }
+
+        if (adc.samples[2] - adc.samples[1] > 30) // ugly fix of the two ticks in plane0
+        {
+            adc.samples[0] = adc.samples[2];
+            adc.samples[1] = adc.samples[2];
+        }
+    }
+  }
+}
+//**********************************************************************
+
+void DuneDPhase3x1x1NoiseRemovalService::removeLowFreq(AdcChannelDataMap& datamap) const
+{
+  art::ServiceHandle<util::LArFFT> fft;
+  std::vector< TComplex > ch_spectrum(fft->FFTSize() / 2 + 1);
+  std::vector< float > ch_waveform(fft->FFTSize(), 0);
+
+  auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
+
+  for (auto & entry : datamap)
+  {
+    if (!chStatus.IsGood(entry.first)) { continue; }
+
+    auto & adc = entry.second.samples;
+    size_t n_samples = adc.size();
+
+    for (size_t s = 0; s < n_samples; ++s)
+    {
+        ch_waveform[s] = adc[s];
+    }
+    for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+    {
+        ch_waveform[s] = ch_waveform[s-1];
+    }
+    fft->DoFFT(ch_waveform, ch_spectrum);
+    ch_spectrum[0] = TComplex(0, 0);
+    ch_spectrum[1] = TComplex(0, 0);
+    ch_spectrum[2] *= 0.5;
+    fft->DoInvFFT(ch_spectrum, ch_waveform);
+
+    for (size_t s = 0; s < n_samples; ++s)
+    {
+        adc[s] = ch_waveform[s];
     }
   }
 }
