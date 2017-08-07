@@ -97,6 +97,8 @@ adcnr_dune35tlegacy: {
 
 adcnr_dunedphase3x1x1: {
   service_provider: DuneDPhase3x1x1NoiseRemovalService
+  Coherent:          true
+  LowFreq:          false
   RoiStartThreshold:    8
   RoiEndThreshold:      6
   RoiPadLow:            8

@@ -30,6 +30,7 @@ public:
 private:
 
   void removeCoherent(const GroupChannelMap & ch_groups, AdcChannelDataMap& datamap) const;
+  void removeLowFreq(AdcChannelDataMap& datamap) const;
 
   std::vector<bool> roiMask(const AdcChannelData & adc) const;
 
@@ -42,6 +43,7 @@ private:
   static size_t get311Chan(size_t LAr_chan);
 
   // Configuration parameters.
+  bool fCoherent, fLowFreq;
   float fRoiStartThreshold;
   float fRoiEndThreshold;
   int fRoiPadLow;
