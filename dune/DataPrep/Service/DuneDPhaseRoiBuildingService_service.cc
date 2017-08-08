@@ -6,6 +6,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/Utilities/SignalShapingServiceDUNEDPhase.h"
+#include "lardata/Utilities/LArFFT.h"
 
 using std::vector;
 using std::string;
@@ -18,8 +19,11 @@ using art::ServiceHandle;
 //**********************************************************************
 
 DuneDPhaseRoiBuildingService::
-DuneDPhaseRoiBuildingService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
-: m_LogLevel(1) {
+DuneDPhaseRoiBuildingService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
+    m_UseFilter( pset.get<bool>("UseFilter") ),
+    m_FltCoeffs( pset.get<std::vector<float>>("FltCoeffs") ),
+    m_LogLevel(1)
+{
   const string myname = "DuneDPhaseRoiBuildingService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   m_NSigmaStart = pset.get<AdcSignal>("NSigmaStart");
@@ -40,7 +44,12 @@ int DuneDPhaseRoiBuildingService::build(AdcChannelData& data) const {
   // Get signal shaping service.
   art::ServiceHandle<util::SignalShapingServiceDUNEDPhase> hsss;
   AdcSignal sigma = hsss->GetDeconNoise(data.channel);
-  const AdcSignalVector& sigs = data.samples;
+  
+  // Use filtered or raw ADC.
+  AdcSignalVector sigs;
+  if (m_UseFilter) { sigs = getLowFreqFiltered(data.samples); }
+  else { sigs = data.samples; }
+
   // Build ROIS before padding and merging.
   AdcFilterVector& signal = data.signal;
   AdcRoiVector& rois = data.rois;
@@ -107,20 +116,46 @@ int DuneDPhaseRoiBuildingService::build(AdcChannelData& data) const {
   }
   return 0;
 }
+//**********************************************************************
 
+AdcSignalVector DuneDPhaseRoiBuildingService::
+getLowFreqFiltered(const AdcSignalVector& adc) const
+{
+  art::ServiceHandle<util::LArFFT> fft;
+  std::vector< TComplex > ch_spectrum(fft->FFTSize() / 2 + 1);
+  std::vector< float > ch_waveform(fft->FFTSize(), 0);
+
+  size_t n_samples = adc.size();
+
+  std::copy(adc.begin(), adc.end(), ch_waveform.begin());
+  for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+  {
+      ch_waveform[s] = ch_waveform[s-1];
+  }
+  fft->DoFFT(ch_waveform, ch_spectrum);
+  for (size_t c = 0; c < m_FltCoeffs.size(); ++c)
+  {
+      ch_spectrum[c] *= m_FltCoeffs[c];
+  }
+  fft->DoInvFFT(ch_spectrum, ch_waveform);
+
+  AdcSignalVector flt_out(n_samples);
+  std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, flt_out.begin());
+  return flt_out;
+}
 //**********************************************************************
 
 ostream& DuneDPhaseRoiBuildingService::
 print(ostream& out, string prefix) const {
   out << prefix << "DuneDPhaseRoiBuildingService:" << endl;
-  out << prefix << "    LogLevel: " << m_LogLevel << endl;
-  out << prefix << " NSigmaStart: " << m_NSigmaStart << endl;
-  out << prefix << "   NSigmaEnd: " << m_NSigmaEnd << endl;
-  out << prefix << "      PadLow: " << m_PadLow << endl;
-  out << prefix << "     PadHigh: " << m_PadHigh << endl;
+  out << prefix << "     LogLevel: " << m_LogLevel << endl;
+  out << prefix << "  NSigmaStart: " << m_NSigmaStart << endl;
+  out << prefix << "    NSigmaEnd: " << m_NSigmaEnd << endl;
+  out << prefix << "       PadLow: " << m_PadLow << endl;
+  out << prefix << "      PadHigh: " << m_PadHigh << endl;
+  out << prefix << "    UseFilter: " << m_UseFilter << endl;
   return out;
 }
-
 //**********************************************************************
 
 DEFINE_ART_SERVICE_INTERFACE_IMPL(DuneDPhaseRoiBuildingService, AdcRoiBuildingService)

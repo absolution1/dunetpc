@@ -106,7 +106,7 @@ adcnr_dunedphase3x1x1: {
   RoiPadLow:                               8
   RoiPadHigh:                             25
   LowFreq:                             false
-  FltCoeffs:                 [0, 0.05, 0.95]
+  FltCoeffs:               [0.1, 0.75, 0.95]
 }
 
 #***********************************************************************
@@ -163,11 +163,13 @@ adcroi_dunefd: @local::adcroi_dune35t
 
 adcroi_dunefddphase: {
   service_provider: DuneDPhaseRoiBuildingService
-  NSigmaStart:        3.0
-  NSigmaEnd:          1.0
-  PadLow:              50
-  PadHigh:             50
-  LogLevel:             1
+  UseFilter:                 false
+  FltCoeffs:     [0.1, 0.75, 0.95]
+  NSigmaStart:                 3.0
+  NSigmaEnd:                   1.0
+  PadLow:                       50
+  PadHigh:                      50
+  LogLevel:                      1
 }
 
 adcroi_keepall: {
