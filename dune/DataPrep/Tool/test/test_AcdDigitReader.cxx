@@ -1,20 +1,18 @@
-// test_StandardRawDigitExtractService.cxx
+// test_AcdDigitReader.cxx
 //
 // David Adams
-// May 2016
+// April 2017
 //
-// Test StandardRawDigitExtractService.
+// Test AcdDigitReader.
 
 #include <string>
 #include <iostream>
-#include <sstream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
-#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/ArtSupport/DuneToolManager.h"
 #include "lardataobj/RawData/RawDigit.h"
-#include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/RawDigitExtractService.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -22,12 +20,12 @@
 using std::string;
 using std::cout;
 using std::endl;
-using std::istringstream;
+using std::ostringstream;
 using std::ofstream;
 using std::setw;
 using std::setprecision;
 using std::fixed;
-using art::ServiceHandle;
+using fhicl::ParameterSet;
 
 //**********************************************************************
 
@@ -40,8 +38,8 @@ bool sigequal(AdcSignal sig1, AdcSignal sig2) {
 
 //**********************************************************************
 
-int test_StandardRawDigitExtractService() {
-  const string myname = "test_StandardRawDigitExtractService: ";
+int test_AcdDigitReader(bool useExistingFcl =false) {
+  const string myname = "test_AcdDigitReader: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -49,34 +47,33 @@ int test_StandardRawDigitExtractService() {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_StandardRawDigitExtractService.fcl";
-  ofstream fout(fclfile.c_str());
-  int loglevel = 1;
-  fout << "#include \"dataprep_tools.fcl\"" << endl;
-  fout << "services.RawDigitExtractService: {" << endl;
-  fout << "  service_provider: StandardRawDigitExtractService" << endl;
-  fout << "  LogLevel: " << loglevel << endl;
-  fout << "  DigitReadTool: digitReader" << endl;
-  fout << "  PedestalOption: 1" << endl;
-  fout << "  FlagStuckOff: true" << endl;
-  fout << "  FlagStuckOn: true" << endl;
-  fout << "}" << endl;
-  fout.close();
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
+  string fclfile = "test_AcdDigitReader.fcl";
+  if ( ! useExistingFcl ) {
+    cout << myname << "Creating top-level FCL." << endl;
+    ofstream fout(fclfile.c_str());
+    fout << "tools: {" << endl;
+    fout << "  mytool: {" << endl;
+    fout << "    tool_type: AcdDigitReader" << endl;
+    fout << "    LogLevel: 2" << endl;
+    fout << "  }" << endl;
+    fout << "}" << endl;
+    fout.close();
+  } else {
+    cout << myname << "Using existing top-level FCL." << endl;
+  }
 
   cout << myname << line << endl;
-  cout << myname << "Add raw digit extract service." << endl;
-  assert( ash.addService("RawDigitExtractService", fclfile, true) == 0 );
-  ash.print();
+  cout << myname << "Fetching tool manager." << endl;
+  DuneToolManager* ptm = DuneToolManager::instance(fclfile);
+  assert ( ptm != nullptr );
+  DuneToolManager& tm = *ptm;
+  tm.print();
+  assert( tm.toolNames().size() == 1 );
 
   cout << myname << line << endl;
-  cout << myname << "Load services." << endl;
-  assert( ash.loadServices() == 1 );
-  ash.print();
+  cout << myname << "Fetching tool." << endl;
+  auto prdr = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  assert( prdr != nullptr );
 
   AdcCount lowbits = 63;
   AdcCount highbits = 4095 - 63;
@@ -129,16 +126,10 @@ int test_StandardRawDigitExtractService() {
   }
 
   cout << myname << line << endl;
-  cout << myname << "Fetch raw digit extract service." << endl;
-  ServiceHandle<RawDigitExtractService> hrdx;
-  hrdx->print();
-  ash.print();
-
-  cout << myname << line << endl;
   cout << myname << "Extract data from digit." << endl;
   AdcChannelData acd;
   acd.digit = &dig;
-  assert( hrdx->extract(acd) == 0 );
+  assert( prdr->update(acd) == 0 );
   const AdcCountVector& raw = acd.raw;
   const AdcSignalVector& sigs = acd.samples;
   const AdcFlagVector& flags = acd.flags;
@@ -149,30 +140,37 @@ int test_StandardRawDigitExtractService() {
   cout << myname << " Output flags size: " << flags.size() << endl;
   cout << myname << "          Pedestal: " << pedout << endl;
   assert( raw.size() == nsig );
-  assert( sigs.size() == nsig );
-  assert( flags.size() == nsig );
+  //assert( sigs.size() == nsig );
+  //assert( flags.size() == nsig );
   assert( chanout == chan );
   assert( pedout == ped );
-  for ( unsigned int isig=0; isig<nsig; ++isig ) {
-    cout << setw(4) << isig << ": " << setw(4) << adcsin[isig]
-         << fixed << setprecision(1) << setw(8) << sigs[isig]
-         << " [" << flags[isig] << "]" << endl;
-    if ( flags[isig] == AdcGood ) assert( sigequal(sigs[isig], sigsin[isig]) );
-    assert( flags[isig] == expflags[isig] );
-  }
+  //for ( unsigned int isig=0; isig<nsig; ++isig ) {
+  //  cout << setw(4) << isig << ": " << setw(4) << adcsin[isig]
+  //       << fixed << setprecision(1) << setw(8) << sigs[isig]
+  //       << " [" << flags[isig] << "]" << endl;
+  //  if ( flags[isig] == AdcGood ) assert( sigequal(sigs[isig], sigsin[isig]) );
+  //  assert( flags[isig] == expflags[isig] );
+  //}
 
+  cout << myname << line << endl;
+  cout << myname << "Done." << endl;
   return 0;
 }
 
 //**********************************************************************
 
 int main(int argc, char* argv[]) {
-  int logLevel = 1;
+  bool useExistingFcl = false;
   if ( argc > 1 ) {
-    istringstream ssarg(argv[1]);
-    ssarg >> logLevel;
+    string sarg(argv[1]);
+    if ( sarg == "-h" ) {
+      cout << "Usage: " << argv[0] << " [ARG]" << endl;
+      cout << "  If ARG = true, existing FCL file is used." << endl;
+      return 0;
+    }
+    useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_StandardRawDigitExtractService();
+  return test_AcdDigitReader(useExistingFcl);
 }
 
 //**********************************************************************

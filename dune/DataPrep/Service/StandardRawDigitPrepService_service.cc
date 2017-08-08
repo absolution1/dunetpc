@@ -353,8 +353,9 @@ print(std::ostream& out, std::string prefix) const {
   if ( m_DisplayTools.size() ) {
     cout << prefix << "        Display tools:";
     for ( string tname : m_DisplayTools ) {
-       cout << " " << tname << endl;
+       cout << " " << tname;
     }
+    cout << endl;
   } else {
     cout << prefix << "No display tools." << endl;
   }

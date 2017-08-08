@@ -32,6 +32,7 @@ adccopy: {
 rdx_std: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
+  DigitReadTool: digitReader
   PedestalOption: 1
   FlagStuckOff: false
   FlagStuckOn: false
@@ -40,6 +41,7 @@ rdx_std: {
 rdx_35tdata: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
+  DigitReadTool: digitReader
   PedestalOption: 1
   FlagStuckOff: true
   FlagStuckOn: true
@@ -97,10 +99,16 @@ adcnr_dune35tlegacy: {
 
 adcnr_dunedphase3x1x1: {
   service_provider: DuneDPhase3x1x1NoiseRemovalService
-  RoiStartThreshold:    8
-  RoiEndThreshold:      6
-  RoiPadLow:            8
-  RoiPadHigh:          25
+  Coherent32:                           true
+  Coherent32Groups:                       []
+  Coherent16:                           true
+  Coherent16Groups:   [6, 7, 16, 17, 18, 19]
+  RoiStartThreshold:                       8
+  RoiEndThreshold:                         6
+  RoiPadLow:                               8
+  RoiPadHigh:                             25
+  LowFreq:                             false
+  FltCoeffs:               [0.1, 0.75, 0.95]
 }
 
 #***********************************************************************
@@ -157,11 +165,13 @@ adcroi_dunefd: @local::adcroi_dune35t
 
 adcroi_dunefddphase: {
   service_provider: DuneDPhaseRoiBuildingService
-  NSigmaStart:        3.0
-  NSigmaEnd:          1.0
-  PadLow:              50
-  PadHigh:             50
-  LogLevel:             1
+  UseFilter:                 false
+  FltCoeffs:     [0.1, 0.75, 0.95]
+  NSigmaStart:                 3.0
+  NSigmaEnd:                   1.0
+  PadLow:                       50
+  PadHigh:                      50
+  LogLevel:                      1
 }
 
 adcroi_keepall: {

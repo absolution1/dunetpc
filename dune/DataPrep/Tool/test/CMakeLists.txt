@@ -32,4 +32,17 @@ cet_test(test_AdcDataPlotter SOURCES test_AdcDataPlotter.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AcdDigitReader SOURCES test_AcdDigitReader.cxx
+  LIBRARIES
+    lardataobj_RawData
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_enable_asserts()
