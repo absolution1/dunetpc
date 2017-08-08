@@ -35,15 +35,23 @@ private:
   std::vector<bool> roiMask(const AdcChannelData & adc) const;
 
   /// Make groups of channels using 3x1x1 DAQ numbering. Channels tagged as noisy are excluded at this stage.
-  GroupChannelMap makeDaqGroups(size_t gsize) const;
+  GroupChannelMap makeDaqGroups(size_t gsize, const std::vector< size_t > & gidx) const;
   /// Make groups of channels using LArSoft numbering. Channels tagged as noisy are excluded at this stage.
-  GroupChannelMap makeGroups(size_t gsize) const;
-  
+  GroupChannelMap makeGroups(size_t gsize, const std::vector< size_t > & gidx) const;
+
+  bool has(const std::vector<size_t> & v, size_t idx) const
+  {
+    for (auto c : v) if (c == idx) return true;
+    return false;
+  }
+
   /// Get 3x1x1 DAQ channel number from the LArSoft's channel index.
   static size_t get311Chan(size_t LAr_chan);
 
   // Configuration parameters.
-  bool fCoherent, fLowFreq;
+  bool fCoherent32, fCoherent16, fLowFreq;
+  std::vector< size_t > fCoherent32Groups;
+  std::vector< size_t > fCoherent16Groups;
   std::vector< float > fFltCoeffs;
   float fRoiStartThreshold;
   float fRoiEndThreshold;
