@@ -55,3 +55,8 @@ tools.rawAdcPlotter: {
   RootFileName: "adc_evt%EVENT%.root"
 }
 
+# Extract raw data from a digit.
+tools.digitReader: {
+  tool_type: AcdDigitReader
+  LogLevel: 1
+}
