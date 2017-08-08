@@ -32,6 +32,7 @@ adccopy: {
 rdx_std: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
+  DigitReadTool: digitReader
   PedestalOption: 1
   FlagStuckOff: false
   FlagStuckOn: false
@@ -40,6 +41,7 @@ rdx_std: {
 rdx_35tdata: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
+  DigitReadTool: digitReader
   PedestalOption: 1
   FlagStuckOff: true
   FlagStuckOn: true

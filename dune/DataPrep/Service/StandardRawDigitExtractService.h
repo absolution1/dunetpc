@@ -11,6 +11,7 @@
 //
 // Configuration:
 //   LogLevel - message logging level: 0=none, 1=initialization, 2+=every event
+//   DigitReadTool name for the tool that reads digits into ADC channel data
 //   PedestalOption
 //     1: take from digit
 //     2: take from service
@@ -26,6 +27,7 @@
 #include "dune/DuneInterface/RawDigitExtractService.h"
 #include "dune/DuneInterface/PedestalEvaluationService.h"
 
+class AdcChannelDataModifier;
 namespace lariov {
   class DetPedestalProvider;
 }
@@ -42,11 +44,16 @@ public:
 
 private:
 
+  using AcdModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
+
   // Configuration parameters.
-  int m_LogLevel;
-  int m_PedestalOption;
-  bool m_FlagStuckOff;
-  bool m_FlagStuckOn;
+  int         m_LogLevel;
+  std::string m_DigitReadTool;
+  int         m_PedestalOption;
+  bool        m_FlagStuckOff;
+  bool        m_FlagStuckOn;
+
+  AcdModifierPtr m_pDigitReadTool;
 
   const lariov::DetPedestalProvider* m_pPedProv;
   PedestalEvaluationService* m_PedestalEvaluationService;
