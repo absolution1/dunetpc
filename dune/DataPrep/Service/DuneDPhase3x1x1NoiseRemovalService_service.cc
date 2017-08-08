@@ -18,6 +18,7 @@ DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
     fCoherent( pset.get<bool>("Coherent") ),
     fLowFreq( pset.get<bool>("LowFreq") ),
+    fFltCoeffs( pset.get<std::vector<float>>("FltCoeffs") ),
     fRoiStartThreshold( pset.get<float>("RoiStartThreshold") ),
     fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
     fRoiPadLow( pset.get<int>("RoiPadLow") ),
@@ -148,24 +149,18 @@ void DuneDPhase3x1x1NoiseRemovalService::removeLowFreq(AdcChannelDataMap& datama
     auto & adc = entry.second.samples;
     size_t n_samples = adc.size();
 
-    for (size_t s = 0; s < n_samples; ++s)
-    {
-        ch_waveform[s] = adc[s];
-    }
+    std::copy(adc.begin(), adc.end(), ch_waveform.begin());
     for (size_t s = n_samples; s < ch_waveform.size(); ++s)
     {
         ch_waveform[s] = ch_waveform[s-1];
     }
     fft->DoFFT(ch_waveform, ch_spectrum);
-    ch_spectrum[0] = TComplex(0, 0);
-    ch_spectrum[1] = TComplex(0, 0);
-    ch_spectrum[2] *= 0.5;
-    fft->DoInvFFT(ch_spectrum, ch_waveform);
-
-    for (size_t s = 0; s < n_samples; ++s)
+    for (size_t c = 0; c < fFltCoeffs.size(); ++c)
     {
-        adc[s] = ch_waveform[s];
+        ch_spectrum[c] *= fFltCoeffs[c];
     }
+    fft->DoInvFFT(ch_spectrum, ch_waveform);
+    std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, adc.begin());
   }
 }
 //**********************************************************************

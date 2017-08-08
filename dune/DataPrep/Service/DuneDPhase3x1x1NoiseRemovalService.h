@@ -44,6 +44,7 @@ private:
 
   // Configuration parameters.
   bool fCoherent, fLowFreq;
+  std::vector< float > fFltCoeffs;
   float fRoiStartThreshold;
   float fRoiEndThreshold;
   int fRoiPadLow;
