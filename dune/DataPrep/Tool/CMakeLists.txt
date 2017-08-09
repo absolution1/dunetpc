@@ -26,4 +26,12 @@ simple_plugin(AcdDigitReader   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AcdWireReader   "tool"
+                dune_DuneCommon
+                lardataobj_RecoBase
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
