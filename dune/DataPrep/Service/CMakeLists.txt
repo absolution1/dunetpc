@@ -18,6 +18,7 @@ simple_plugin(InterpolatingAdcMitigationService   "service"
              )
 
 simple_plugin(StandardRawDigitExtractService   "service"
+                dune_ArtSupport
                 lardataobj_RawData
                 art_Utilities canvas
                 cetlib cetlib_except
