@@ -97,7 +97,6 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
     std::fill(correction.begin(), correction.end(), 0);
     for (unsigned int ch : channels)
     {
-        //std::cout << "  ch:" << ch;
         auto iacd = datamap.find(ch);
         if (iacd == datamap.end()) continue;
 
@@ -115,13 +114,10 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
             ch_averaged[s]++;
         }
     }
-    //std::cout << std::endl;
     for (size_t s = 0; s < n_samples; ++s)
     {
         if (ch_averaged[s] > 0) { correction[s] /= ch_averaged[s]; }
-        //std::cout << " " << correction[s];
     }
-    //std::cout << std::endl << std::endl;
     for (unsigned int ch : channels)
     {
         auto iacd = datamap.find(ch);
@@ -133,7 +129,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
             adc.samples[s] -= correction[s];
         }
 
-        if (adc.samples[2] - adc.samples[1] > 30) // ugly fix of the two ticks in plane0
+        if (adc.samples[2] - adc.samples[1] > 20) // ugly fix of the two ticks in plane0
         {
             adc.samples[0] = adc.samples[2];
             adc.samples[1] = adc.samples[2];
