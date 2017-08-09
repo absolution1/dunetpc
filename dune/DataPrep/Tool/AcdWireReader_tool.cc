@@ -70,7 +70,7 @@ int AcdWireReader::update(AdcChannelData& acd) const {
     unsigned int isig1 = range.begin_index();
     unsigned int isig2 = isig1 + range.size();
     for ( unsigned int isig=isig1; isig<isig2; ++isig ) {
-      acd.samples[isig] = range[isig] + 10000;
+      acd.samples[isig] = inRois[isig];
       acd.signal[isig] = true;
     }
   }

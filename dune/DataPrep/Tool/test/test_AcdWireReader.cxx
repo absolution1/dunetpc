@@ -99,7 +99,7 @@ int test_AcdWireReader(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Construct test digit." << endl;
-  TestDigit tdig(0);
+  TestDigit tdig(2);
   AdcIndex nsig = tdig.nsig;
   const raw::RawDigit* pdig = tdig.pdig;
 
@@ -134,12 +134,17 @@ int test_AcdWireReader(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Check samples." << endl;
+  int dbg = 1;
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
-    cout << myname << isig << ": " << acd.samples[isig]
-         << " ?= " << newacd.samples[isig]
-         << " (" << acd.signal[isig] << " " << newacd.signal[isig] << ")" << endl;
-    //assert(sigequal(acd.samples[isig], newacd.samples[isig]));
+    if ( dbg ) cout << myname << isig << ": " << acd.samples[isig]
+                    << " ?= " << newacd.samples[isig]
+                    << " (" << acd.signal[isig] << " "
+                    << newacd.signal[isig] << ")" << endl;
+    assert(sigequal(acd.samples[isig], newacd.samples[isig]));
   }
+  cout << myname << "NROI: " << wires[0].SignalROI().size() << " " 
+                 << acd.rois.size() << " " << newacd.rois.size() << endl;
+  assert( newacd.rois.size() == acd.rois.size() );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
