@@ -11,7 +11,7 @@
 //TODO: GainView to be configured from service
 //TODO: Stitch to multiple tracks (more than 2)
 //TODO: generalization to multiple TPCs
-//TODO: Add Code for the purity
+//TODO: calibration factor!
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -46,6 +46,8 @@
 #include "TROOT.h"
 #include "TMath.h"
 
+#include <cstring>
+#include <string>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -121,6 +123,15 @@ public:
     fhicl::Sequence<double>VolCut{
       Name("VolCut"), Comment("Volume Cut to select a going trougth muon")
     };
+
+    fhicl::Atom<int>NumOfBins{
+      Name("NumOfBins"), Comment("Number of histogram for the purity analysis")
+    };
+
+    fhicl::Atom<int>ADCtoCharge{
+      Name("ADCtoCharge"), Comment("Coverstion between ADC integral and charge") //<<---TODO Introduce it using the correct function
+    };
+
   }; // end struct
 
   using Parameters = art::EDAnalyzer::Table<Config>;
@@ -134,9 +145,11 @@ public:
 
   // Required functions.
   void analyze(art::Event const & e) override;
+  void MakeDataProduct();
   void beginJob();
   void endJob();
   void Clear();
+  void FillEventHitsTree(std::vector<recob::Hit> hits);
   double GetCharge(std::vector<recob::Hit> hits);
   double GetCharge(const std::vector<art::Ptr<recob::Hit> >  hits);
   bool IsCrossing(TVector3 Start, TVector3 End);
@@ -145,8 +158,11 @@ public:
                             const std::vector< pdunedp::bHitInfo > & hits, double rmax, int Flip);
   void FillTajectoryGraph(std::map<size_t, recob::Track > MipCandidate,
                                                              art::FindManyP<recob::Hit>  HitsTrk);
+  void FillPurityHist(recob::Track track, std::vector<art::Ptr<recob::Hit>> hits);
   void FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::Hit>> vhits,
     const std::vector<const recob::TrackHitMeta*, std::allocator<const recob::TrackHitMeta*> > vmeta);
+  double GetCorrectedCharge(recob::Track trk, double charge, unsigned int plane);
+
 
 private:
   calo::CalorimetryAlg fCalorimetryAlg;
@@ -156,6 +172,13 @@ private:
   art::InputTag fHitModuleLabel;
   art::InputTag fClusterModuleLabel;
   art::InputTag fTrackModuleLabel;
+
+  double fTotalGain;
+  double fECut;
+  double fLength;
+  double fStitchAngle; double fStitchDistance;
+  std::vector<double> fVolCut; int fNumOfBins;
+  double fADCtoCharge;
 
   int Events=0; int SkipEvents=0; int BadEvents=0;
   int fRun; int fEvent;
@@ -168,28 +191,25 @@ private:
   double fHitsCharge; //in fC
   double fTrackCharge; //in fC
   double fHitsTrackCharge; //in fC
-  double fMipCharge, fMipLength, fMipPhi, fMipTheta;
+  double fMipCharge, fMipLength, fMipPhi, fMipTheta; int fNHitsMip;
   double fCosX; double fCosY; double fCosZ;
-  double fADC; double fCorrectedChargeX; double fCharge;
-  double fDrift;
+  double fADC; double fCorrectedCharge; double fCharge;
+  double fDrift; int fWire;
   double fdEdx; double fRange;
+  int fBin;
 
   //double fElectronsToGeV;
   double fADCToElectrons;
-  double fElectronCharge = 1.60217662e-19/1e-15; //in fC
+  double fElectronCharge = 1.60217662e-4; //in fC
   double fMipChargeCm = 10; //in fC/cm
-
-  double fTotalGain;
-  double fECut;
-  double fLength;
-  double fStitchAngle; double fStitchDistance;
-  std::vector<double> fVolCut;
 
   std::map< size_t, std::vector< pdunedp::bHitInfo >[3] > fTrk2InfoMap; // hits info sorted by views
   std::map<size_t, recob::Track > TrackList;
   std::vector<double> goodevents;
 
-  TTree *fTree; TTree *fTreeTrk; TTree *fTreeMip; TTree *fTreePurity; TTree *fTreeCalib;
+  TTree *fTree; TTree *fTreeTrk; TTree *fTreeMip; TTree *fTreeHitsMip; TTree *fTreeCalib;
+  TTree *fTreeHits; TTree *fTreePurity;
+  TH1D *htbin[3][100]; TH1D *htbin_singlehits[3][100]; TH1D *htbin_num[3][100];
   TH2D *hTrkTrajectory_0; TH2D *hTrkTrajectory_1;
 };//end class
 
@@ -204,20 +224,27 @@ pdunedp::Purity::Purity(Parameters const & config) : EDAnalyzer(config),
   fLength(config().Length()),
   fStitchAngle(config().StitchAngle()),
   fStitchDistance(config().StitchDistance()),
-  fVolCut(config().VolCut())
-{}
+  fVolCut(config().VolCut()),
+  fNumOfBins(config().NumOfBins()),
+  fADCtoCharge(config().NumOfBins())
+{
+  this->MakeDataProduct();
+}
 
 void pdunedp::Purity::beginJob(){
   auto const* dp = lar::providerFrom<detinfo::DetectorPropertiesService>();
   fADCToElectrons = 1./dp->ElectronsToADC();
   //auto simChannelExtract = &*art::ServiceHandle<detsim::DPhaseSimChannelExtractService>();
   //fTotalGain = simChannelExtract->GainPerView()*2;
+}
+
+void pdunedp::Purity::MakeDataProduct(){
 
   //Tfile Services
   art::ServiceHandle<art::TFileService> tfs;
 
   //one entry for every event
-  fTree = tfs->make<TTree>("purity", "LAr purity analysis information");
+  fTree = tfs->make<TTree>("Event", "LAr purity analysis information");
   fTree->Branch("fRun", &fRun,"fRun/I");
   fTree->Branch("fEvent", &fEvent, "fEvent/I");
   fTree->Branch("fNtotHits", &fNtotHits, "fNtotHits/I");
@@ -225,6 +252,16 @@ void pdunedp::Purity::beginJob(){
   fTree->Branch("fNumOfMips", &fNumOfMips, "fNumOfMips/I");
   fTree->Branch("fHitsCharge", &fHitsCharge, "fHitsCharge/D");
   fTree->Branch("fHitsTrackCharge", &fHitsTrackCharge, "fHitsTrackCharge/D");
+
+  //branch for purity measuremtns usign mips: one entry per mip
+  fTreeHits =tfs->make<TTree>("HitsEvent","Info on hits in event");
+  fTreeHits->Branch("fRun", &fRun,"fRun/I");
+  fTreeHits->Branch("fEvent", &fEvent, "fEvent/I");
+  fTreeHits->Branch("fPlane", &fPlane, "fPlane/I");
+  fTreeHits->Branch("fADC", &fADC, "fADC/D");
+  fTreeHits->Branch("fCharge", &fCharge, "fCharge/D");
+  fTreeHits->Branch("fDrift", &fDrift, "fDrift/D");
+  fTreeHits->Branch("fWire", &fWire, "fWire/I");
 
   //one entry for every track
   fTreeTrk = tfs->make<TTree>("TrkInfo", "Information on tracks");
@@ -247,23 +284,26 @@ void pdunedp::Purity::beginJob(){
   fTreeMip->Branch("fMipLength", &fMipLength, "fMipLength/D");
   fTreeMip->Branch("fMipPhi", &fMipPhi, "fMipPhi/D");
   fTreeMip->Branch("fMipTheta", &fMipTheta, "fMipTheta/D");
+  fTreeMip->Branch("fNHitsMip", &fNHitsMip, "fNHitsMip/I");
 
   //branch for purity measuremtns usign mips: one entry per mip
-  fTreePurity =tfs->make<TTree>("Purity","Corrected charge for purity analysis");
-  fTreePurity->Branch("fRun", &fRun,"fRun/I");
-  fTreePurity->Branch("fEvent", &fEvent, "fEvent/I");
-  fTreePurity->Branch("fMipIndex", &fMipIndex, "fMipIndex/I");
-  fTreePurity->Branch("fMipNum", &fMipNum, "fMipNum/I");
-  fTreePurity->Branch("fPlane", &fPlane, "fPlane/I");
-  fTreePurity->Branch("fCosX", &fCosX, "fCosX/D");
-  fTreePurity->Branch("fCosY", &fCosY, "fCosY/D");
-  fTreePurity->Branch("fCosZ", &fCosZ, "fCosZ/D");
-  fTreePurity->Branch("fADC", &fADC, "fADC/D");
-  fTreePurity->Branch("fCharge", &fCharge, "fCharge/D");
-  fTreePurity->Branch("fCorrectedChargeX", &fCorrectedChargeX, "fCorrectedChargeX/D");
-  fTreePurity->Branch("fDrift", &fDrift, "fDrift/D");
+  fTreeHitsMip =tfs->make<TTree>("HitsMip","Info hits in mips");
+  fTreeHitsMip->Branch("fRun", &fRun,"fRun/I");
+  fTreeHitsMip->Branch("fEvent", &fEvent, "fEvent/I");
+  fTreeHitsMip->Branch("fMipIndex", &fMipIndex, "fMipIndex/I");
+  fTreeHitsMip->Branch("fMipNum", &fMipNum, "fMipNum/I");
+  fTreeHitsMip->Branch("fPlane", &fPlane, "fPlane/I");
+  fTreeHitsMip->Branch("fCosX", &fCosX, "fCosX/D");
+  fTreeHitsMip->Branch("fCosY", &fCosY, "fCosY/D");
+  fTreeHitsMip->Branch("fCosZ", &fCosZ, "fCosZ/D");
+  fTreeHitsMip->Branch("fADC", &fADC, "fADC/D");
+  fTreeHitsMip->Branch("fCharge", &fCharge, "fCharge/D");
+  fTreeHitsMip->Branch("fCorrectedCharge", &fCorrectedCharge, "fCorrectedCharge/D");
+  fTreeHitsMip->Branch("fDrift", &fDrift, "fDrift/D");
+  fTreeHitsMip->Branch("fWire", &fWire, "fWire/I");
 
-  fTreeCalib = tfs->make<TTree>("calibration", "dE/dx info");
+
+  fTreeCalib = tfs->make<TTree>("Calibration", "dE/dx info");
   fTreeCalib->Branch("fRun", &fRun, "fRun/I");
   fTreeCalib->Branch("fEvent", &fEvent, "fEvent/I");
   fTreeCalib->Branch("fIndex", &fIndex, "fIndex/I");
@@ -271,10 +311,32 @@ void pdunedp::Purity::beginJob(){
   fTreeCalib->Branch("fRange", &fRange, "fRange/D");
   fTreeCalib->Branch("fPlane", &fPlane, "fPlane/I");
 
+  //fill branch with purity measurements
+  fTreePurity =tfs->make<TTree>("Purity","Corrected charge for purity analysis");
+  fTreePurity->Branch("fRun", &fRun,"fRun/I");
+  fTreePurity->Branch("fEvent", &fEvent, "fEvent/I");
+  fTreePurity->Branch("fPlane", &fPlane, "fPlane/I");
+  fTreePurity->Branch("fCharge", &fCharge, "fCharge/D");
+  fTreePurity->Branch("fDrift", &fDrift, "fDrift/D");
+  fTreePurity->Branch("fBin", &fBin, "fBin/I");
+  fTreePurity->Branch("fMipIndex", &fMipIndex, "fMipIndex/I");
+
 
   //TODO<<--Generalize these histograms to different geometries
   hTrkTrajectory_0 = tfs->make<TH2D>("hTrkTrajectory_0", "Selected mips hit position view 0;Channel;Ticks", 320, 0, 319, 1667, 0, 1666);
   hTrkTrajectory_1 = tfs->make<TH2D>("hTrkTrajectory_1", "Selected mips hit position view 1;Channel;Ticks", 960, 0, 959, 1667, 0, 1666);
+
+  for(int plane = 0; plane < (int)geom->Nplanes(0); plane++){
+    for (int nb=0; nb <fNumOfBins; nb++){
+      std::string histname_singlehits = "histname_singlehits"+std::to_string(nb)+"_view"+std::to_string(plane);
+      std::string histname_average = "histname_average"+std::to_string(nb)+"_view"+std::to_string(plane);
+      std::string histname_num = "histname_numhits"+std::to_string(nb)+"_view"+std::to_string(plane);
+
+      htbin_singlehits[plane][nb] = tfs->make<TH1D>(histname_singlehits.c_str(), ";Single hits charge distribution (fC)", 100, 0, 200);
+      htbin[plane][nb] = tfs->make<TH1D>(histname_average.c_str(), ";Average charge (fC)", 100, 0, 200);
+      htbin_num[plane][nb] = tfs->make<TH1D>(histname_num.c_str(), ";Number of bins per track", 100, 0, 200);
+    }
+  }
 }
 
 void pdunedp::Purity::analyze(art::Event const & e){
@@ -314,6 +376,8 @@ void pdunedp::Purity::analyze(art::Event const & e){
   //Get Hits charge
   fNtotHits = HitHandle->size();
   fHitsCharge = GetCharge(*HitHandle);
+
+  FillEventHitsTree(*HitHandle);
 
   fNtotTracks = (int)TrackHandle->size();
   if(fNtotTracks == 0){
@@ -390,15 +454,16 @@ void pdunedp::Purity::analyze(art::Event const & e){
   for(std::map<size_t, recob::Track >::iterator mip = fMipCandidate.begin(); mip !=fMipCandidate.end(); mip++){
     mf::LogVerbatim("pdunedp::Purity") << "Track: " << mip->first;
     fMipNum = (int)num++;
-    fMipIndex = mip->first;
+    fMipIndex = (int)mip->first;
     fMipCharge = GetCharge(HitsFromTrack.at(mip->first));
     fMipLength = (mip->second).Length();
     fMipPhi = (mip->second).Phi();      //polar angle
     fMipTheta = (mip->second).Theta();  //Azimutal angle
+    fNHitsMip = (int)HitsFromTrack.at(mip->first).size();
     auto vhit = TrackHitMeta.at(mip->first);
     auto vmeta = TrackHitMeta.data(mip->first);
     FindMipInfo(mip->second, vhit, vmeta);
-
+    FillPurityHist(mip->second, HitsFromTrack.at(mip->first));
     fTreeMip->Fill();
   }
 
@@ -436,10 +501,11 @@ double pdunedp::Purity::GetCharge(const std::vector<art::Ptr<recob::Hit> >  hits
 
   double charge=0;
   for(auto const  hit : hits){
-    unsigned short plane = hit->WireID().Plane;
+    //unsigned short plane = hit->WireID().Plane;
     double dqadc = hit->Integral();
     if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
-    charge += dqadc*fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
+    //charge += dqadc*fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
+    charge+= dqadc*fADCtoCharge;
   }
     return charge;
 }
@@ -450,12 +516,35 @@ double pdunedp::Purity::GetCharge(std::vector<recob::Hit> hits){
 
   double charge=0;
   for(auto hit : hits){
-    unsigned short plane = hit.WireID().Plane;
+    //unsigned short plane = hit.WireID().Plane;
     double dqadc = hit.Integral();
     if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
-    charge += dqadc*fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
+    //charge += dqadc*fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
+    charge+= dqadc*fADCtoCharge;
   }
     return charge;
+}
+
+void pdunedp::Purity::FillEventHitsTree(std::vector<recob::Hit> hits){
+  //Fill a tree with additionals informations about the Event
+  if(!hits.size()){ return;}
+
+  for(auto hit : hits){
+    unsigned short plane = hit.WireID().Plane;
+    int wire = hit.WireID().Wire;
+    double dqadc = hit.Integral();
+    double tdrift = hit.PeakTime();
+    if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
+    double dq = dqadc*fADCtoCharge;
+
+    fPlane = (int)plane;
+    fADC = dqadc;
+    fCharge = dq;
+    fDrift = tdrift;
+    fWire = wire;
+    fTreeHits->Fill();
+  }
+    return;
 }
 
 bool pdunedp::Purity::StitchTracks(recob::Track Track1, recob::Track Track2, TVector3 & Edge1, TVector3 & Edge2){
@@ -595,15 +684,16 @@ void pdunedp::Purity::FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::
   if(!vhits.size()){return;}
   for(size_t h =0; h< vhits.size(); h++){
     unsigned int plane= vhits[h]->WireID().Plane;
-    int wire = vhits[h]->WireID().Wire;
+    int wire= vhits[h]->WireID().Wire;
     //double pitch = geom->WirePitch(vhits[h]->View());
     double dQadc = vhits[h]->Integral();
     if (!std::isnormal(dQadc) || (dQadc < 0)) continue;
     size_t idx = vmeta[h]->Index();
     double dx =  vmeta[h]->Dx();
-    mf::LogVerbatim("pdunedp::Purity") << "dx: " << dx << " idx " << idx;
+    //ßmf::LogVerbatim("pdunedp::Purity") << "dx: " << dx << " idx " << idx;
 
-    double dQ = dQadc*fCalorimetryAlg.ElectronsFromADCArea(dQadc, plane)*fElectronCharge;
+    //double dQ = dQadc*fCalorimetryAlg.ElectronsFromADCArea(dQadc, plane)*fElectronCharge;
+    double dQ = dQadc*fADCtoCharge;
     fTrk2InfoMap[fMipIndex][plane].emplace_back(idx, dx, dQ, wire);
 
     TVector3 Dir = mip.Vertex() - mip.End();
@@ -612,20 +702,21 @@ void pdunedp::Purity::FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::
     double CosY = 1./Dir.Unit().Y();
     double CosZ = 1./Dir.Unit().Z();
 
-    double dQ_corrX = dQ*fabs(1/CosX) ;//charge corrected over the effective pitch
+    double dQ_corr = GetCorrectedCharge(mip, dQ, plane);
     double PeakTime = vhits[h]->PeakTime();
 
     //Fill Purity tree
+    fWire   = wire;
     fPlane  = plane;
     fCosX   = CosX;
     fCosY   = CosY;
     fCosZ   = CosZ;
     fADC    = dQadc;
     fCharge = dQ;
-    fCorrectedChargeX = dQ_corrX;
+    fCorrectedCharge = dQ_corr;
     fDrift = PeakTime;
     //fHitX = //drift coordinate of my hit expressed in
-    fTreePurity->Fill();
+    fTreeHitsMip->Fill();
   }
   return;
 }
@@ -666,6 +757,120 @@ void pdunedp::Purity::Make_dEdx(std::vector< double > & dEdx, std::vector< doubl
 		}
 	}
   return;
+}
+
+void pdunedp::Purity::FillPurityHist(recob::Track track, std::vector<art::Ptr<recob::Hit>> hits){
+  /*Function intended to read the hits from a track and fill the histograms that can be
+  used for further purity analysis*/
+  mf::LogVerbatim("pdunedp::Purity") << "Start purity for track: " << fMipIndex;
+
+  //determine the size (in ticks of each bin)
+ auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+ for(int pl=0; pl<(int)geom->Nplanes(0); pl++){
+  int TicksPerBin = detprop->NumberTimeSamples()/fNumOfBins;
+
+  double charge[100]; double num[100];
+  for (int nb=0; nb<fNumOfBins; nb++){ charge[nb]=0; num[nb] =0; } //init the charge bins to 0
+
+  if(!hits.size()){
+    mf::LogError("pdunedp::Purity") << "The track has no hit associated!";
+    return;
+  }
+  int nfound =0; int nstart; int nstop;
+
+  for (size_t nh=0; nh<hits.size(); nh++){
+
+      double dqadc = hits[nh]->Integral(); //ADCxticks
+      double htime = hits[nh]->PeakTime(); //ticks
+      unsigned short plane = hits[nh]->WireID().Plane;
+      if(plane != pl) {continue;}
+      //double conv = fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane)*fElectronCharge;
+      double conv = fADCtoCharge;
+      double dq = dqadc*conv;
+      dq = GetCorrectedCharge(track, dq, plane);
+
+      //dq = GetCorrectedCharge(track, dq, plane); //corrected charge wrt to the track angle
+
+      if (nh==0){
+        nstart=0;
+        nstop=fNumOfBins;
+      }
+      if (nh>0){
+        nstart=std::max(0,nfound-5);
+        nstop =std::min(nfound+5,fNumOfBins);
+      }
+
+      for(int nb=nstart; nb<nstop; nb++) {
+        double tmin=TicksPerBin*nb;
+        double tmax=TicksPerBin*(nb+1);
+        //mf::LogVerbatim("pdunedp::Purity") << "nb " << nb << " " << tmin << " " <<tmax;
+
+        if ( (htime>=tmin) && (htime<tmax) ){
+          htbin_singlehits[pl][nb]->Fill (dq);
+          fBin = nb;
+          fCharge = dq;
+          fPlane = pl;
+          fTreePurity->Fill();
+          charge[nb]+=dq;
+          num[nb]++;
+          //mf::LogVerbatim("pdunedp::Purity") << "charge" << charge[nb];
+          nfound=nb;
+          //mf::LogVerbatim("pdunedp::Purity") << "nfound" << nb;
+
+       }
+     } //close loop on time bins
+  } //close loop on hit on tracks
+
+  // fill histograms for fit
+  //select first and last time interval with charge deposition >0
+  int ilast=-1000;
+  int ifirst=1000;
+
+  for (int nb=0; nb<fNumOfBins; nb++) {
+    if (charge[nb]>0 && num[nb] >0) {
+      //mf::LogVerbatim("pdunedp::Purity") << "nb " << nb << " Norm: " << charge[nb];
+   	  if (nb<ifirst) ifirst=nb;
+   		if (nb>ilast)  ilast=nb;
+   	}
+  }
+
+  //mf::LogVerbatim("pdunedp::Purity") << "first: " << ifirst << " last " << ilast;
+
+  for (int nb=0; nb<ilast-ifirst-1; nb++){
+      mf::LogVerbatim("pdunedp::Purity") << "plane " << pl << " nb " << nb+ifirst+1<< " charge bin " << charge[nb+ifirst+1]/num[nb+ifirst+1];
+      //htbin_norm[nb]->Fill(charge[nb+ifirst+1]/charge[ifirst+1]); //fill the bin with charge normalized to first bin
+      htbin[pl][nb]->Fill( charge[nb+ifirst+1]/num[nb+ifirst+1] );
+      htbin_num[pl][nb]->Fill( num[nb+ifirst+1] );
+  }
+
+  /*
+  for (int nb=0; nb<ilast-ifirst; nb++){
+      //mf::LogVerbatim("pdunedp::Purity") << "nb " << nb+ifirst+1<< " Norm: " << charge[ifirst+1] << " charge bin " << charge[nb+ifirst+1];
+      htbin_corr[nb]->Fill( charge[nb+ifirst]*angle_corr ); //fill the bin with charge normalized to first bin
+  }
+  */
+ }
+ return;
+}
+
+double pdunedp::Purity::GetCorrectedCharge(recob::Track trk, double charge, unsigned int plane){
+  /*Returns the corrected charge value corrected for the angle between the track direction and the wire pitch*/
+  double angle =0.;
+  double charge_corr =0.;
+
+  switch (plane) {
+    case 0:
+      angle = atan( fabs( (trk.End().X()-trk.Vertex().X())/(trk.End().Y()-trk.Vertex().Y()) ) );
+      break;
+    case 1:
+      angle = atan( fabs( (trk.End().X()-trk.Vertex().X())/(trk.End().Z()-trk.Vertex().Z()) ) );
+      break;
+    default:
+      mf::LogError("pdunedp::Purity") << "Invalid plane number!";
+      break;
+  }
+  if(fabs(cos(angle))>0.){ charge_corr = charge*fabs(cos(angle)); }
+  return charge_corr;
 }
 
 void pdunedp::Purity::Clear(){
