@@ -29,8 +29,13 @@
 //   PadLow      - Number of ticks to retain before signal above threshold.
 //   PadHigh     - Number of ticks to retain after signal above threshold.
 //
-// R.Sulej: copied from DuneRoiBuildingService.h to substitute signal shaping
-// service for double-phase.
+// R.Sulej:
+//  - copied from DuneRoiBuildingService.h to substitute signal shaping
+//    service for double-phase;
+//  - added option to look for ROI's in the filtered signal, so one can
+//    remove slow fluctuations of pedestal; this is identical filter as
+//    in the noise removal and one can easyli inspect the filter output
+//    in the event display if it is applied at noise removal step.
 //
 #ifndef DuneDPhaseRoiBuildingService_H
 #define DuneDPhaseRoiBuildingService_H
@@ -50,8 +55,12 @@ public:
   std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
 
 private:
+  AdcSignalVector getLowFreqFiltered(const AdcSignalVector& adc) const;
 
   // Parameters.
+  bool m_UseFilter;
+  std::vector< float > m_FltCoeffs;
+
   int m_LogLevel;
   AdcSignal m_NSigmaStart;
   AdcSignal m_NSigmaEnd;

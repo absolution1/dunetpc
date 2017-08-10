@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
+#include "lardata/Utilities/LArFFT.h"
 
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
@@ -15,6 +16,12 @@
 
 DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
+    fCoherent32( pset.get<bool>("Coherent32") ),
+    fCoherent16( pset.get<bool>("Coherent16") ),
+    fLowFreq( pset.get<bool>("LowFreq") ),
+    fCoherent32Groups( pset.get<std::vector<size_t>>("Coherent32Groups") ),
+    fCoherent16Groups( pset.get<std::vector<size_t>>("Coherent16Groups") ),
+    fFltCoeffs( pset.get<std::vector<float>>("FltCoeffs") ),
     fRoiStartThreshold( pset.get<float>("RoiStartThreshold") ),
     fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
     fRoiPadLow( pset.get<int>("RoiPadLow") ),
@@ -52,8 +59,22 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
 
   std::cout << myname << "Processing noise removal..." << std::endl;
 
-  auto ch_groups = makeDaqGroups(32);
-  removeCoherent(ch_groups, datamap);
+  if (fCoherent32)
+  {
+    auto ch_groups = makeDaqGroups(32, fCoherent32Groups);
+    removeCoherent(ch_groups, datamap);
+  }
+
+  if (fCoherent16)
+  {
+    auto ch_groups = makeDaqGroups(16, fCoherent16Groups);
+    removeCoherent(ch_groups, datamap);
+  }
+
+  if (fLowFreq)
+  {
+    removeLowFreq(datamap);
+  }
 
   std::cout << myname << "...done." << std::endl;
 
@@ -109,12 +130,46 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
         AdcChannelData & adc = iacd->second;
         for (size_t s = 0; s < n_samples; ++s)
         {
-            if (ch_averaged[s] > 0)
-            {
-                adc.samples[s] -= correction[s];
-            }
+            adc.samples[s] -= correction[s];
+        }
+
+        if (adc.samples[2] - adc.samples[1] > 30) // ugly fix of the two ticks in plane0
+        {
+            adc.samples[0] = adc.samples[2];
+            adc.samples[1] = adc.samples[2];
         }
     }
+  }
+}
+//**********************************************************************
+
+void DuneDPhase3x1x1NoiseRemovalService::removeLowFreq(AdcChannelDataMap& datamap) const
+{
+  art::ServiceHandle<util::LArFFT> fft;
+  std::vector< TComplex > ch_spectrum(fft->FFTSize() / 2 + 1);
+  std::vector< float > ch_waveform(fft->FFTSize(), 0);
+
+  auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
+
+  for (auto & entry : datamap)
+  {
+    if (!chStatus.IsGood(entry.first)) { continue; }
+
+    auto & adc = entry.second.samples;
+    size_t n_samples = adc.size();
+
+    std::copy(adc.begin(), adc.end(), ch_waveform.begin());
+    for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+    {
+        ch_waveform[s] = ch_waveform[s-1];
+    }
+    fft->DoFFT(ch_waveform, ch_spectrum);
+    for (size_t c = 0; c < fFltCoeffs.size(); ++c)
+    {
+        ch_spectrum[c] *= fFltCoeffs[c];
+    }
+    fft->DoInvFFT(ch_spectrum, ch_waveform);
+    std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, adc.begin());
   }
 }
 //**********************************************************************
@@ -147,8 +202,9 @@ std::vector<bool> DuneDPhase3x1x1NoiseRemovalService::roiMask(const AdcChannelDa
   }
   return mask;
 }
+//**********************************************************************
 
-GroupChannelMap DuneDPhase3x1x1NoiseRemovalService::makeDaqGroups(size_t gsize) const
+GroupChannelMap DuneDPhase3x1x1NoiseRemovalService::makeDaqGroups(size_t gsize, const std::vector< size_t > & gidx) const
 {
   GroupChannelMap groups;
 
@@ -157,15 +213,19 @@ GroupChannelMap DuneDPhase3x1x1NoiseRemovalService::makeDaqGroups(size_t gsize) 
   const unsigned int nchan = fGeometry->Nchannels();
   for (unsigned int ch = 0; ch < nchan; ++ch)
   {
-    if (chStatus.IsPresent(ch) && !chStatus.IsNoisy(ch)) { groups[get311Chan(ch) / gsize].push_back(ch); }
-    else { std::cout << "skip channel " << ch << std::endl; } // can remove once verified it is working ok
+    size_t g = get311Chan(ch) / gsize;
+    //std::cout << "p:" << fGeometry->View(raw::ChannelID_t(ch)) << " g:" << g << " ch:" << ch << std::endl;
+    if (gidx.empty() || has(gidx, g))
+    {
+        if (chStatus.IsPresent(ch) && !chStatus.IsNoisy(ch)) { groups[g].push_back(ch); }
+    }
   }
 
   return groups;
 }
 //**********************************************************************
 
-GroupChannelMap DuneDPhase3x1x1NoiseRemovalService::makeGroups(size_t gsize) const
+GroupChannelMap DuneDPhase3x1x1NoiseRemovalService::makeGroups(size_t gsize, const std::vector< size_t > & gidx) const
 {
   GroupChannelMap groups;
 
@@ -174,8 +234,12 @@ GroupChannelMap DuneDPhase3x1x1NoiseRemovalService::makeGroups(size_t gsize) con
   const unsigned int nchan = fGeometry->Nchannels();
   for (unsigned int ch = 0; ch < nchan; ++ch)
   {
-    if (chStatus.IsPresent(ch) && !chStatus.IsNoisy(ch)) { groups[ch / gsize].push_back(ch); }
-    else { std::cout << "skip channel " << ch << std::endl; } // can remove once verified it is working ok
+    size_t g = ch / gsize;
+    //std::cout << "p:" << fGeometry->View(raw::ChannelID_t(ch)) << " g:" << g << " ch:" << ch << std::endl;
+    if (gidx.empty() || has(gidx, g))
+    {
+        if (chStatus.IsPresent(ch) && !chStatus.IsNoisy(ch)) { groups[g].push_back(ch); }
+    }
   }
 
   return groups;
