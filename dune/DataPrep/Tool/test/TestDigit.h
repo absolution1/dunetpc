@@ -42,7 +42,15 @@ TestDigit::TestDigit(int idig) {
   for ( int i=0; i<10; ++i ) sigsin.push_back(fac*i);
   for ( int i=10; i>=0; --i ) sigsin.push_back(fac*i);
   for ( int i=19; i>=0; --i ) sigsin.push_back(-sigsin[i]);
-  nsig = 41;
+  if ( idig == 2 ) {   // Add a gap and then repeat the waveform.
+    for ( unsigned int ksig = 0; ksig<30; ++ksig ) {
+      sigsin.push_back(pedestal);
+    }
+    for ( unsigned int isig=0; isig<nsig; ++isig) {
+      sigsin.push_back(sigsin[isig]);
+    }
+  }
+  nsig = sigsin.size();
   assert(sigsin.size() == nsig);
   AdcCountVector adcsin;
   unsigned int isig_stucklo = 5;

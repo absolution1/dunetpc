@@ -29,6 +29,14 @@ public:
 
 private:
 
+  std::vector<float> getMeanCorrection(
+    const std::vector<unsigned int> & channels,
+    const AdcChannelDataMap & datamap) const;
+
+  std::vector<float> getMedianCorrection(
+    const std::vector<unsigned int> & channels,
+    const AdcChannelDataMap & datamap) const;
+
   void removeCoherent(const GroupChannelMap & ch_groups, AdcChannelDataMap& datamap) const;
   void removeLowFreq(AdcChannelDataMap& datamap) const;
 
@@ -57,6 +65,7 @@ private:
   float fRoiEndThreshold;
   int fRoiPadLow;
   int fRoiPadHigh;
+  int fMode;
 
   // Services.
   const geo::Geometry* fGeometry;

@@ -28,6 +28,13 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     fRoiPadHigh( pset.get<int>("RoiPadHigh") ),
     fGeometry( &*art::ServiceHandle<geo::Geometry>() )
 {
+    if (pset.get<std::string>("CorrMode") == "mean") { fMode = 1; }
+    else if (pset.get<std::string>("CorrMode") == "median") { fMode = 2; }
+    else
+    {
+        std::cout << "DuneDPhase3x1x1NoiseRemovalService WARNING: correction set to mean value." << std::endl;
+        fMode = 1;
+    }
 }
 //**********************************************************************
 
@@ -82,46 +89,100 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
 }
 //**********************************************************************
 
+std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMeanCorrection(
+    const std::vector<unsigned int> & channels,
+    const AdcChannelDataMap & datamap) const
+{
+  size_t n_samples = datamap.begin()->second.samples.size();
+  std::vector<size_t> ch_averaged(n_samples, 0);
+  std::vector<float> correction(n_samples, 0);
+
+  for (unsigned int ch : channels)
+  {
+      auto iacd = datamap.find(ch);
+      if (iacd == datamap.end()) continue;
+
+      const AdcChannelData & adc = iacd->second;
+      auto mask = roiMask(adc);
+
+      for (size_t s = 0; s < n_samples; ++s)
+      {
+          if (!mask[s]) { continue; }
+
+          AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+          if (flag != AdcGood) { continue; }
+
+          correction[s] += adc.samples[s];
+          ch_averaged[s]++;
+      }
+  }
+  for (size_t s = 0; s < n_samples; ++s)
+  {
+      if (ch_averaged[s] > 0) { correction[s] /= ch_averaged[s]; }
+  }
+  return correction;
+}
+
+std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMedianCorrection(
+    const std::vector<unsigned int> & channels,
+    const AdcChannelDataMap & datamap) const
+{
+  size_t n_samples = datamap.begin()->second.samples.size();
+  std::vector< std::vector<float> > samples(n_samples);
+
+  for (unsigned int ch : channels)
+  {
+      auto iacd = datamap.find(ch);
+      if (iacd == datamap.end()) continue;
+
+      const AdcChannelData & adc = iacd->second;
+      auto mask = roiMask(adc);
+
+      for (size_t s = 0; s < n_samples; ++s)
+      {
+          if (!mask[s]) { continue; }
+
+          AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+          if (flag != AdcGood) { continue; }
+
+          samples[s].push_back(adc.samples[s]);
+      }
+  }
+
+  std::vector<float> correction(n_samples);
+  for (size_t s = 0; s < n_samples; ++s)
+  {
+      std::sort(samples[s].begin(), samples[s].end());
+
+      size_t n = samples[s].size();
+      if (n < 2)             { correction[s] = 0; }
+      else if ((n % 2) == 0) { correction[s] = 0.5 * (samples[s][n/2] + samples[s][(n/2)-1]); }
+      else                   { correction[s] = samples[s][(n-1)/2]; }
+  }
+  return correction;
+}
+
 void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & ch_groups, AdcChannelDataMap& datamap) const
 {
   if (datamap.empty()) return;
 
   size_t n_samples = datamap.begin()->second.samples.size();
-  std::vector<size_t> ch_averaged(n_samples);
   std::vector<double> correction(n_samples);
 
   for (const auto & entry : ch_groups)
   {
     const auto & channels = entry.second;
-    std::fill(ch_averaged.begin(), ch_averaged.end(), 0);
-    std::fill(correction.begin(), correction.end(), 0);
-    for (unsigned int ch : channels)
+    std::vector<float> correction;
+
+    if (fMode == 1) // mean
     {
-        //std::cout << "  ch:" << ch;
-        auto iacd = datamap.find(ch);
-        if (iacd == datamap.end()) continue;
-
-        const AdcChannelData & adc = iacd->second;
-        auto mask = roiMask(adc);
-
-        for (size_t s = 0; s < n_samples; ++s)
-        {
-            if (!mask[s]) { continue; }
-
-            AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
-            if (flag != AdcGood) { continue; }
-
-            correction[s] += adc.samples[s];
-            ch_averaged[s]++;
-        }
+        correction = getMeanCorrection(channels, datamap);
     }
-    //std::cout << std::endl;
-    for (size_t s = 0; s < n_samples; ++s)
+    else if (fMode == 2) // median
     {
-        if (ch_averaged[s] > 0) { correction[s] /= ch_averaged[s]; }
-        //std::cout << " " << correction[s];
+        correction = getMedianCorrection(channels, datamap);
     }
-    //std::cout << std::endl << std::endl;
+
     for (unsigned int ch : channels)
     {
         auto iacd = datamap.find(ch);
@@ -133,7 +194,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
             adc.samples[s] -= correction[s];
         }
 
-        if (adc.samples[2] - adc.samples[1] > 30) // ugly fix of the two ticks in plane0
+        if (adc.samples[2] - adc.samples[1] > 20) // ugly fix of the two ticks in plane0
         {
             adc.samples[0] = adc.samples[2];
             adc.samples[1] = adc.samples[2];

@@ -2,10 +2,8 @@
 
 process_name: ImportFull311FileProcess
 
-services: 				@local::dunefddphase_services
-services.RandomNumberGenerator: 	{} 
-services.Geometry: 			@local::dphase3x1x1_geo
-services.DetectorPropertiesService:	@local::dphase3x1x1_detproperties
+services: 				@local::dunedphase3x1x1_services
+services.RandomNumberGenerator: 	{}
 
 source:
 {
