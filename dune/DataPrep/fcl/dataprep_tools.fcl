@@ -29,13 +29,34 @@ tools.adcDumper: {
   ShowOpt: 2
 }
 
-# Create png files show ADC contents (ADC vs. channel vs. time).
-tools.adcPlotter: {
+# Create png files showing ADC contents (ADC vs. channel vs. time).
+tools.preparedAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
-  FileName: "adcplot_%PAT%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  DataType: 0      # 0 for prepared, 1 for raw-pedestal
   FirstTick: 0
-  LastTick: 0
- MaxSignal: 200
+  LastTick:  0
+  MaxSignal: 200
+  HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
+  HistTitle: "Prepared ADC for event %EVENT%"
+  PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  RootFileName: "adc_evt%EVENT%.root"
+}
+tools.rawAdcPlotter: {
+  tool_type: AdcDataPlotter
+  LogLevel: 1
+  DataType: 1      # 0 for prepared, 1 for raw-pedestal
+  FirstTick: 0
+  LastTick:  0
+  MaxSignal: 200
+  HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
+  HistTitle: "Raw ADC for event %EVENT%"
+  PlotFileName: "adcraw_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  RootFileName: "adc_evt%EVENT%.root"
 }
 
+# Extract raw data from a digit.
+tools.digitReader: {
+  tool_type: AcdDigitReader
+  LogLevel: 1
+}

@@ -18,6 +18,7 @@ simple_plugin(InterpolatingAdcMitigationService   "service"
              )
 
 simple_plugin(StandardRawDigitExtractService   "service"
+                dune_ArtSupport
                 lardataobj_RawData
                 art_Utilities canvas
                 cetlib cetlib_except
@@ -39,6 +40,13 @@ simple_plugin(MultiChannelNoiseRemovalService   "service"
 simple_plugin(Dune35tNoiseRemovalService   "service"
                 larcorealg_Geometry
                 lbne-raw-data_Services_ChannelMap_ChannelMapService_service
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(DuneDPhase3x1x1NoiseRemovalService   "service"
+                larcorealg_Geometry
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
