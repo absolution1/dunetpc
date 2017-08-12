@@ -63,17 +63,26 @@ public:
   void roisFromSignal();
 
   // Hide copy and assignment but allow move.
+  // Root dictionary (6.08/06) requires we keep copy.
   AdcChannelData() =default;
   AdcChannelData(AdcChannelData&&) =default;
-  AdcChannelData(const AdcChannelData&) =delete;
   AdcChannelData& operator=(AdcChannelData&&) =default;
   AdcChannelData& operator=(const AdcChannelData&) =delete;
+#if 0
+  AdcChannelData(const AdcChannelData&) =delete;
+#else
+  AdcChannelData(const AdcChannelData&) =default;
+#endif
 
 };
 
 //**********************************************************************
 
 typedef std::map<AdcChannel, AdcChannelData> AdcChannelDataMap;
+
+#ifdef __ROOTCLING__
+#pragma link C++ class AdcChannelDataMap;
+#endif
 
 //**********************************************************************
 
