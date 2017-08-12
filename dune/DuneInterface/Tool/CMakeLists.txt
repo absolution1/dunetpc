@@ -1,11 +1,9 @@
-# dunetpc/dune/DuneInterface/CMakeLists.txt
+# dunetpc/dune/DuneInterface/ToolCMakeLists.txt
 #
 # David Adams
-# December 2015
+# August 2017
 #
 # CMake instructions for DUNE service interface classes.
-
-add_subdirectory(Tool)
 
 install_headers()
 install_source( README.txt )
