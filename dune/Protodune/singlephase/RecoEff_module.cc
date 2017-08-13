@@ -290,34 +290,32 @@ void pdune::RecoEff::analyze(art::Event const & evt)
     // - associated PFParticle has particlular PDG code
     // - or just the recob::Track has interesting ParticleID
 
-    std::unordered_map<int, double> trkID_E_perPlane[3];
-    std::unordered_map<int, double> trkID_E;         // map MC particles to their energy contributed to this track t
+    std::unordered_map<int, double> trkID_E_perPlane[3]; // map filtered MC particles to their energy contributed to track t in each plane
+    std::unordered_map<int, double> trkID_E;             // map filtered MC particles to their energy contributed to track t
+    double totE_anyMC_inPlane[3] = { 0, 0, 0 };
+    double totE_anyMC = 0;
     const auto & hits = hitsFromTracks.at(t);
-    for (const auto & h : hits)                      // loop over hits assigned to track t
+    for (const auto & h : hits)                          // loop over hits assigned to track t
     {
         size_t plane = h->WireID().Plane;
-        for (auto const & ide : bt->HitToTrackID(h)) // loop over std::vector< sim::TrackIDE >, for a hit h
+        for (auto const & ide : bt->HitToTrackID(h))     // loop over std::vector< sim::TrackIDE >, for a hit h
         {
             if (mapTrackIDtoHits_filtered.find(ide.trackID) != mapTrackIDtoHits_filtered.end())
             {
                 trkID_E_perPlane[plane][ide.trackID] += ide.energy; // ...and sum energies contributed to this reco track
                 trkID_E[ide.trackID] += ide.energy;                 // by MC particles which we considered as reconstructable
             }
+            totE_anyMC_inPlane[plane] += ide.energy;
+            totE_anyMC += ide.energy;
         }
     }
 
     // find MC particle which cotributed maximum energy to track t
     int best_id = 0;
-    double max_e = 0, tot_e = 0;
-    double e_inPlane[3], tot_e_inPlane[3];
+    double max_e = 0;
+    double e_inPlane[3] = { 0, 0, 0 };
     for (auto const & entry : trkID_E)
 	{
-        tot_e += entry.second;    // sum total energy in the hits in track t
-        for (size_t i = 0; i < 3; ++i)
-        {
-            tot_e_inPlane[i] += trkID_E_perPlane[i][entry.first];
-        }
-
         if (entry.second > max_e) // find track ID corresponding to max energy
         {
             max_e = entry.second;
@@ -331,7 +329,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
     }
 
     // check if reco track is matching to MC particle:
-    if ((max_e > 0.5 * tot_e) &&                         // MC particle has more than 50% energy contribution to the track
+    if ((max_e > 0.5 * totE_anyMC) &&                    // MC particle has more than 50% energy contribution to the track
         (max_e > 0.5 * mapTrackIDtoHitsEnergy[best_id])) // track covers more than 50% of energy deposited by MC particle in hits
     {
         fNominatorHist->Fill(mapTrackIDtoHits_filtered[best_id].size());
@@ -339,14 +337,17 @@ void pdune::RecoEff::analyze(art::Event const & evt)
     }
     else { fTrkMatched = 0; }
 
-    if (tot_e > 0)
+    if (totE_anyMC > 0)
     {
-        fTrkPurity = max_e / tot_e;
+        fTrkPurity = max_e / totE_anyMC;
         fTrkCompletness = max_e /  mapTrackIDtoHitsEnergy[best_id];
         for (size_t i = 0; i < 3; ++i)
         {
-            if (tot_e_inPlane[i] > 0) { fTrkPurityPerPlane[i] = e_inPlane[i] / tot_e_inPlane[i]; }
+            if (totE_anyMC_inPlane[i] > 0) { fTrkPurityPerPlane[i] = e_inPlane[i] / totE_anyMC_inPlane[i]; }
+            else { fTrkPurityPerPlane[i] = 0; }
+
             if (mapTrackIDtoHitsEnergyPerPlane[i][best_id] > 0) { fTrkCompletnessPerPlane[i] = e_inPlane[i] / mapTrackIDtoHitsEnergyPerPlane[i][best_id]; }
+            else fTrkCompletnessPerPlane[i] = 0;
         }
 
         fTrkPid = (*trkHandle)[t].ParticleId();
