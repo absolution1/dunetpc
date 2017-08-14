@@ -12,7 +12,16 @@
 #  services.RawDigitPrepService.DisplayTools = ["adcPlotter"]
 ################################################################################
 
-# Dump ADC contents to the log file.
+# Dump ADC channel contents to the log file.
+tools.adcChannelDumper: {
+  tool_type: AdcChannelDumper
+  FileName: ""
+  Prefix: "ADC dump: "
+  NewFile: false
+  MaxSample: 100
+}
+
+# Dump ADC map contents to the log file.
 tools.adcDumper: {
   tool_type: AdcDataDumper
   FileName: ""
