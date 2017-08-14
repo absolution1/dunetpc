@@ -22,6 +22,7 @@
 
 //#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -80,18 +81,25 @@ private:
 
   TTree *fEventTree;
   TTree *fTrkTree;
+  TTree *fHitTree;
 
   int fRun, fEvent;
-  int fNRecoTracks;
-  int fReconstructable;
-  int fMatched;
+  short fNRecoTracks;
+  short fReconstructable;
+  short fMatched;
 
   float fEnGen, fEkGen;
   float fT0;
 
   float fTrkPurityPerPlane[3], fTrkCompletnessPerPlane[3]; // fixed size, don't expect more than 3 planes, less is OK
   float fTrkPurity, fTrkCompletness; // all planes together
-  int fTrkPid, fTrkSize, fTrkMatched;
+  int fTrkPid;
+  short fTrkSize;
+  short fTrkMatched;
+
+  short fHitPlane;
+  float fHitDx, fHitDy, fHitDz;
+  float fHitDist3D;
 
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
@@ -140,18 +148,25 @@ void pdune::RecoEff::beginJob()
 	fEventTree->Branch("fEnGen", &fEnGen, "fEnGen/F");
 	fEventTree->Branch("fEkGen", &fEkGen, "fEkGen/F");
 	fEventTree->Branch("fT0", &fT0, "fT0/F");
-	fEventTree->Branch("fNRecoTracks", &fNRecoTracks, "fNRecoTracks/I");
-	fEventTree->Branch("fReconstructable", &fReconstructable, "fReconstructable/I");
-	fEventTree->Branch("fMatched", &fMatched, "fMatched/I");
+	fEventTree->Branch("fNRecoTracks", &fNRecoTracks, "fNRecoTracks/S");
+	fEventTree->Branch("fReconstructable", &fReconstructable, "fReconstructable/S");
+	fEventTree->Branch("fMatched", &fMatched, "fMatched/S");
 
-	fTrkTree = tfs->make<TTree>("tracks", "track metricks");
+	fTrkTree = tfs->make<TTree>("tracks", "track metrics");
 	fTrkTree->Branch("fTrkPurity", &fTrkPurity, "fTrkPurity/F");
 	fTrkTree->Branch("fTrkCompletness", &fTrkCompletness, "fTrkCompletness/F");
 	fTrkTree->Branch("fTrkPurityPerPlane", &fTrkPurityPerPlane, "fTrkPurityPerPlane[3]/F");
 	fTrkTree->Branch("fTrkCompletnessPerPlane", &fTrkCompletnessPerPlane, "fTrkCompletnessPerPlane[3]/F");
 	fTrkTree->Branch("fTrkPid", &fTrkPid, "fTrkPid/I");
-	fTrkTree->Branch("fTrkSize", &fTrkSize, "fTrkSize/I");
-	fTrkTree->Branch("fTrkMatched", &fTrkMatched, "fTrkMatched/I");
+	fTrkTree->Branch("fTrkSize", &fTrkSize, "fTrkSize/S");
+	fTrkTree->Branch("fTrkMatched", &fTrkMatched, "fTrkMatched/S");
+
+	fHitTree = tfs->make<TTree>("hits", "hit metrics");
+	fHitTree->Branch("fHitPlane", &fHitPlane, "fHitPlane/S");
+	fHitTree->Branch("fHitDx", &fHitDx, "fHitDx/F");
+	fHitTree->Branch("fHitDy", &fHitDy, "fHitDy/F");
+	fHitTree->Branch("fHitDz", &fHitDz, "fHitDz/F");
+	fHitTree->Branch("fHitDist3D", &fHitDist3D, "fHitDist3D/F");
 }
 
 void pdune::RecoEff::endJob()
@@ -185,8 +200,8 @@ void pdune::RecoEff::analyze(art::Event const & evt)
   std::unordered_map<int, double> mapTrackIDtoHitsEnergyPerPlane[3];
   std::unordered_map<int, double> mapTrackIDtoHitsEnergy;
 
-  auto const & hitListHandle = *evt.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
-  for (auto const & h : hitListHandle)
+  const auto hitListHandle = evt.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
+  for (auto const & h : *hitListHandle)
   {
     std::unordered_map<int, double> particleID_E;
     for (auto const & id : bt->HitToTrackID(h)) // loop over std::vector< sim::TrackIDE > contributing to hit h
@@ -282,6 +297,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
   // match reconstructed tracks to MC particles
   const auto trkHandle = evt.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
   art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, evt, fTrackModuleLabel);
+  art::FindManyP< recob::SpacePoint > spFromHits(hitListHandle, evt, fTrackModuleLabel);
 
   fNRecoTracks = trkHandle->size();
   for (size_t t = 0; t < trkHandle->size(); ++t)     // loop over tracks
@@ -313,7 +329,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
     // find MC particle which cotributed maximum energy to track t
     int best_id = 0;
     double max_e = 0;
-    double e_inPlane[3] = { 0, 0, 0 };
+    std::array< double, 3 > e_inPlane = { 0, 0, 0 };
     for (auto const & entry : trkID_E)
 	{
         if (entry.second > max_e) // find track ID corresponding to max energy
@@ -353,6 +369,44 @@ void pdune::RecoEff::analyze(art::Event const & evt)
         fTrkPid = (*trkHandle)[t].ParticleId();
         fTrkSize = hits.size();
         fTrkTree->Fill();
+    }
+
+    if (fTrkMatched == 1)
+    {
+        for (const auto & h : hits) // loop over hits assigned to matched track
+        {
+            fHitPlane = h->WireID().Plane;
+
+            const auto & sps = spFromHits.at(h.key());
+            if (sps.empty()) { continue; }
+            const auto & sp = *sps.front();
+
+            std::vector< sim::IDE > ides;
+            bt->HitToSimIDEs(*h, ides);
+
+            std::array< double, 3 > hitpos = {0, 0, 0};
+            double hitE = 0;
+            for (auto const & ide : ides)
+            {
+                if (ide.trackID == best_id)
+                {
+                    hitpos[0] += ide.x * ide.energy;
+                    hitpos[1] += ide.y * ide.energy;
+                    hitpos[2] += ide.z * ide.energy;
+                    hitE += ide.energy;
+                }
+            }
+            if (hitE > 0)
+            {
+                hitpos[0] /= hitE; hitpos[1] /= hitE; hitpos[2] /= hitE;
+                fHitDx = 0; // --- need t0 correction --- sp.XYZ()[0] - hitpos[0];
+                fHitDy = sp.XYZ()[1] - hitpos[1];
+                fHitDz = sp.XYZ()[2] - hitpos[2];
+                fHitDist3D = sqrt(fHitDx*fHitDx + fHitDy*fHitDy + fHitDz*fHitDz);
+
+                fHitTree->Fill();
+            }
+        }
     }
   }
 
