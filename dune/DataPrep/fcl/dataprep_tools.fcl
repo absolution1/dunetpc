@@ -21,6 +21,16 @@ tools.adcChannelDumper: {
   MaxSample: 100
 }
 
+# Dump ADC channel contents to a histogram.
+tools.adcChannelPlotter: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["raw", "prepared"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+}
+
 # Dump ADC map contents to the log file.
 tools.adcDumper: {
   tool_type: AdcDataDumper
