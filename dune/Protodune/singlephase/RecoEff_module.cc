@@ -97,9 +97,10 @@ private:
   short fTrkSize;
   short fTrkMatched;
 
-  short fHitPlane;
-  float fHitDx, fHitDy, fHitDz;
-  float fHitDist3D;
+  TH1F* fHitDx;
+  TH1F* fHitDy;
+  TH1F* fHitDz;
+  TH1F* fHitDist3D;
 
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
@@ -161,12 +162,10 @@ void pdune::RecoEff::beginJob()
 	fTrkTree->Branch("fTrkSize", &fTrkSize, "fTrkSize/S");
 	fTrkTree->Branch("fTrkMatched", &fTrkMatched, "fTrkMatched/S");
 
-	fHitTree = tfs->make<TTree>("hits", "hit metrics");
-	fHitTree->Branch("fHitPlane", &fHitPlane, "fHitPlane/S");
-	fHitTree->Branch("fHitDx", &fHitDx, "fHitDx/F");
-	fHitTree->Branch("fHitDy", &fHitDy, "fHitDy/F");
-	fHitTree->Branch("fHitDz", &fHitDz, "fHitDz/F");
-	fHitTree->Branch("fHitDist3D", &fHitDist3D, "fHitDist3D/F");
+    fHitDist3D = tfs->make<TH1F>("HitD3D", "MC-reco 3D distance", 200, 0., 10.0);
+    fHitDx = tfs->make<TH1F>("HitDx", "MC-reco X distance", 200, 0., 10.0);
+    fHitDy = tfs->make<TH1F>("HitDy", "MC-reco Y distance", 200, 0., 10.0);
+    fHitDz = tfs->make<TH1F>("HitDz", "MC-reco Z distance", 200, 0., 10.0);
 }
 
 void pdune::RecoEff::endJob()
@@ -375,8 +374,6 @@ void pdune::RecoEff::analyze(art::Event const & evt)
     {
         for (const auto & h : hits) // loop over hits assigned to matched track
         {
-            fHitPlane = h->WireID().Plane;
-
             const auto & sps = spFromHits.at(h.key());
             if (sps.empty()) { continue; }
             const auto & sp = *sps.front();
@@ -399,12 +396,13 @@ void pdune::RecoEff::analyze(art::Event const & evt)
             if (hitE > 0)
             {
                 hitpos[0] /= hitE; hitpos[1] /= hitE; hitpos[2] /= hitE;
-                fHitDx = 0; // --- need t0 correction --- sp.XYZ()[0] - hitpos[0];
-                fHitDy = sp.XYZ()[1] - hitpos[1];
-                fHitDz = sp.XYZ()[2] - hitpos[2];
-                fHitDist3D = sqrt(fHitDx*fHitDx + fHitDy*fHitDy + fHitDz*fHitDz);
-
-                fHitTree->Fill();
+                double dx = 0; // sp.XYZ()[0] - hitpos[0]; // --- need t0 correction
+                double dy = sp.XYZ()[1] - hitpos[1];
+                double dz = sp.XYZ()[2] - hitpos[2];
+                //fHitDx->Fill(dx); // --- need t0 correction
+                fHitDy->Fill(dy);
+                fHitDz->Fill(dz);
+                fHitDist3D->Fill(sqrt(dx*dx + dy*dy + dz*dz));
             }
         }
     }
