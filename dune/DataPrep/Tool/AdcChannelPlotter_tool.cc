@@ -110,6 +110,7 @@ int AdcChannelPlotter::view(const AdcChannelData& acd) const {
   for ( TH1* ph : hists ) {
     ph->SetStats(0);
     ph->SetLineWidth(2);
+    ph->DrawCopy();
   }
   if ( pfile != nullptr ) {
     pfile->Write();
