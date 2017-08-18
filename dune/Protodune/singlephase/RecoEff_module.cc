@@ -97,10 +97,10 @@ private:
   short fTrkSize;
   short fTrkMatched;
 
-  TH1F* fHitDx;
-  TH1F* fHitDy;
-  TH1F* fHitDz;
-  TH1F* fHitDist3D;
+  TH1D* fHitDx;
+  TH1D* fHitDy;
+  TH1D* fHitDz;
+  TH1D* fHitDist3D;
 
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
@@ -162,10 +162,10 @@ void pdune::RecoEff::beginJob()
 	fTrkTree->Branch("fTrkSize", &fTrkSize, "fTrkSize/S");
 	fTrkTree->Branch("fTrkMatched", &fTrkMatched, "fTrkMatched/S");
 
-    fHitDist3D = tfs->make<TH1F>("HitD3D", "MC-reco 3D distance", 200, 0., 10.0);
-    fHitDx = tfs->make<TH1F>("HitDx", "MC-reco X distance", 200, 0., 10.0);
-    fHitDy = tfs->make<TH1F>("HitDy", "MC-reco Y distance", 200, 0., 10.0);
-    fHitDz = tfs->make<TH1F>("HitDz", "MC-reco Z distance", 200, 0., 10.0);
+    fHitDist3D = tfs->make<TH1D>("HitD3D", "MC-reco 3D distance", 400, 0., 10.0);
+    fHitDx = tfs->make<TH1D>("HitDx", "MC-reco X distance", 400, 0., 10.0);
+    fHitDy = tfs->make<TH1D>("HitDy", "MC-reco Y distance", 400, 0., 10.0);
+    fHitDz = tfs->make<TH1D>("HitDz", "MC-reco Z distance", 400, 0., 10.0);
 }
 
 void pdune::RecoEff::endJob()
