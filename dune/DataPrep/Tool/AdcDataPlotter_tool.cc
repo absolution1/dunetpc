@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include "dune/DuneCommon/TH1Manipulator.h"
+#include "dune/DuneCommon/StringManipulator.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -15,32 +16,9 @@ using std::string;
 using std::cout;
 using std::cin;
 using std::endl;
-using std::ostringstream;
 
 using Tick = AdcSignalVector::size_type;
 using std::vector;
-
-//**********************************************************************
-// Helper.
-//**********************************************************************
-
-// Substitute xsubin for string subout in a string.
-template<typename T>
-void replace(string& str, string ssubout, const T& xsubin) {
-  string ssubin;
-  bool havesub = false;
-  string::size_type ipos = str.find(ssubout);
-  while ( ipos != string::npos ) {
-    if ( ! havesub ) {
-      ostringstream sssubin;
-      sssubin << xsubin;
-      ssubin = sssubin.str();
-    }
-    string::size_type lout = ssubout.size();
-    str.replace(ipos, lout, ssubin);
-    ipos = str.find(ssubout, ipos+lout);
-  }
-}
 
 //**********************************************************************
 // Class methods.
@@ -106,11 +84,12 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   vector<string*> strs = {&hname, &htitl, &ofname, &ofrname};
   for ( string* pstr : strs ) {
     string& str = *pstr;
-    replace(str, "%PAT%", fpat);
-    if ( acdFirst.event != AdcChannelData::badIndex ) replace(str, "%EVENT%", acdFirst.event);
-    else replace(str, "%EVENT%", "EventNotFound");
-    replace(str, "%CHAN1%", chanFirst);
-    replace(str, "%CHAN2%", chanLast);
+    StringManipulator sman(str);
+    sman.replace("%PAT%", fpat);
+    if ( acdFirst.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acdFirst.event);
+    else sman.replace("%EVENT%", "EventNotFound");
+    sman.replace("%CHAN1%", chanFirst);
+    sman.replace("%CHAN2%", chanLast);
   }
   htitl += "; Tick; Channel";
   // Create histogram.

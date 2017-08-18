@@ -5,6 +5,18 @@
 
 # Add plugin for each tool.
 
+simple_plugin(AdcChannelDumper   "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelPlotter  "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcDataDumper   "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
