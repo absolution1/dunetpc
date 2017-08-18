@@ -39,7 +39,7 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: AdcChannelPlotter" << endl;
     fout << "    LogLevel: 1" << endl;
-    fout << "    HistTypes: [\"raw\", \"prepared\"]" << endl;
+    fout << "    HistTypes: [\"raw\", \"rawdist\", \"prepared\"]" << endl;
     fout << "    HistName: \"adc%TYPE%_%EVENT%_%CHAN%\"" << endl;
     fout << "    HistTitle: \"ADC %TYPE% event %EVENT% channel %CHAN%\"" << endl;
     fout << "    RootFileName: \"adcplot.root\"" << endl;
