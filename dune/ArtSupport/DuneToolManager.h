@@ -18,10 +18,31 @@
 
 class DuneToolManager {
 
-public:
+public:  // Type aliases and subclasses.
 
   using Name = std::string;
   using NameVector = std::vector<Name>;
+
+  class SharedToolEntry {
+  public:
+    virtual ~SharedToolEntry() =default;
+  };
+
+  template<class T>
+  class TSharedToolEntry : public SharedToolEntry {
+  public:
+    using ToolPtr = std::unique_ptr<T>;
+    TSharedToolEntry(ToolPtr& a_ptr) : m_ptr(std::move(a_ptr)) { }
+    ~TSharedToolEntry() =default;
+    T* get() { return m_ptr.get(); }
+  private:
+    ToolPtr m_ptr;
+  };
+
+  using SharedToolPtr = std::unique_ptr<SharedToolEntry>;
+  using SharedToolMap = std::map<Name, SharedToolPtr>;
+
+public:
 
   // Return the one instance of this class.
   // The name is ignored once the tool manager is set.
@@ -34,6 +55,24 @@ public:
   std::unique_ptr<T> getPrivate(std::string name) {
     fhicl::ParameterSet psTool = m_pstools.get<fhicl::ParameterSet>(name);
     return art::make_tool<T>(psTool);
+  }
+
+  // Return a shared tool.
+  template<class T>
+  T* getShared(std::string name) {
+    SharedToolMap::iterator itoo = m_sharedTools.find(name);
+    if ( itoo != m_sharedTools.end() ) {
+      SharedToolPtr& pent = itoo->second;
+      TSharedToolEntry<T>* ptent = dynamic_cast<TSharedToolEntry<T>*>(pent.get());
+      return ptent->get();
+    }
+    fhicl::ParameterSet psTool = m_pstools.get<fhicl::ParameterSet>(name);
+    std::unique_ptr<T> ptoo = art::make_tool<T>(psTool);
+    TSharedToolEntry<T>* ptent(new TSharedToolEntry<T>(ptoo));
+    SharedToolEntry* pent = ptent;
+    //m_sharedTools[name] = pent;
+    m_sharedTools.emplace(name, pent);
+    return ptent->get();
   }
 
   // Return the list of available tool names.
@@ -50,6 +89,7 @@ private:
   std::string m_fclname;
   fhicl::ParameterSet m_pstools;
   NameVector m_toolNames;
+  SharedToolMap m_sharedTools;
 
 };
 
