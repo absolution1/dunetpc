@@ -12,6 +12,12 @@
 #  services.RawDigitPrepService.DisplayTools = ["adcPlotter"]
 ################################################################################
 
+# Destination for data prep histograms.
+tools.adcHists: {
+  tool_type: SimpleHistogramManager
+  LogLevel: 1
+}
+
 # Dump ADC channel contents to the log file.
 tools.adcChannelDumper: {
   tool_type: AdcChannelDumper
@@ -29,6 +35,7 @@ tools.adcPlotRaw: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
+  HistManager: "adcHists"
 }
 
 # Dump ADC channel distribution to a histogram.
@@ -39,6 +46,7 @@ tools.adcPlotRawDist: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
+  HistManager: "adcHists"
 }
 
 # Dump ADC map contents to the log file.

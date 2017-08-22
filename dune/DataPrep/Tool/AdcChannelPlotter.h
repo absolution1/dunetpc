@@ -14,6 +14,8 @@
 //   HistTitle: Title for the histogram.
 //   RootFileName: If non-blank, histograms are written to this file.
 //                 File is opened in UPDATE mode.
+//   HistManager: Name of the tool that manages the histograms.
+//                If blank, they are owned by the file or the current Root directory.
 // The following subsitutions are made in the names:
 //    %RUN% - run number
 //    %SUBRUN% - event number
@@ -29,6 +31,8 @@
 #include "dune/DuneInterface/Tool/AdcChannelViewer.h"
 #include <string>
 #include <vector>
+
+class HistogramManager;
 
 class AdcChannelPlotter : AdcChannelViewer {
 
@@ -49,9 +53,10 @@ private:
   Name m_HistName;
   Name m_HistTitle;
   Name m_RootFileName;
+  Name m_HistManager;
 
-  // Output stream.
-  std::ostream* m_pout;
+  // Histogram manager.
+  HistogramManager* m_phm;
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, Name type) const;
