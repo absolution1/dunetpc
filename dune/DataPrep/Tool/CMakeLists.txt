@@ -18,6 +18,13 @@ simple_plugin(AdcChannelPlotter  "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcPedestalFitter  "tool"
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcDataDumper   "tool"
                 art_Utilities canvas
                 cetlib cetlib_except

@@ -49,6 +49,16 @@ tools.adcPlotRawDist: {
   HistManager: "adcHists"
 }
 
+# Fit ADC distribution to get pedestal.
+tools.adcPedestalFit: {
+  tool_type: AdcPedestalFitter
+  LogLevel: 1
+  HistName: "adcped_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC pedestal fit for event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  HistManager: "adcHists"
+}
+
 # Dump ADC map contents to the log file.
 tools.adcDumper: {
   tool_type: AdcDataDumper
