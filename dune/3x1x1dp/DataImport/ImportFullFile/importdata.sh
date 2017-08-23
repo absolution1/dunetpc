@@ -23,7 +23,7 @@ do
         tmp=${file#*-}
         num=${tmp%.*}
         sed -i -e 12c'fileNames: [ "'$file'" ]' $importfile
-        sed -i -e 34c'source.PedestalFile: "'$file'"'  $importfile
+  	sed -i -e 32c'source.PedestalFile: “ ‘$path_to_pedestal’ “ '  $importfile
         lar -c $importfile -o $path_to_output/raw_$run-$num.root
 
 done
