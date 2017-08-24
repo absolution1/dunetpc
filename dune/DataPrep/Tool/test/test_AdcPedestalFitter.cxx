@@ -1,9 +1,9 @@
-// test_AdcChannelPlotter.cxx
+// test_AdcPedestalFitter.cxx
 //
 // David Adams
 // April 2017
 //
-// Test AdcChannelPlotter.
+// Test AdcPedestalFitter.
 
 #include <string>
 #include <iostream>
@@ -22,8 +22,8 @@ using fhicl::ParameterSet;
 
 //**********************************************************************
 
-int test_AdcChannelPlotter(bool useExistingFcl =false) {
-  const string myname = "test_AdcChannelPlotter: ";
+int test_AdcPedestalFitter(bool useExistingFcl =false) {
+  const string myname = "test_AdcPedestalFitter: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -31,19 +31,21 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_AdcChannelPlotter.fcl";
+  string fclfile = "test_AdcPedestalFitter.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcChannelPlotter" << endl;
+    fout << "  adcHists: {" << endl;
+    fout << "    tool_type: SimpleHistogramManager" << endl;
     fout << "    LogLevel: 1" << endl;
-    fout << "    HistTypes: [\"raw\", \"rawdist\", \"prepared\"]" << endl;
-    fout << "    HistName: \"adc%TYPE%_%EVENT%_%CHAN%\"" << endl;
-    fout << "    HistTitle: \"ADC %TYPE% event %EVENT% channel %CHAN%\"" << endl;
-    fout << "    RootFileName: \"adcplot.root\"" << endl;
-    fout << "    HistManager: \"\"" << endl;
+    fout << "  }" << endl;
+    fout << "  mytool: {" << endl;
+    fout << "    tool_type: AdcPedestalFitter" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
+    fout << "    HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
+    fout << "    HistManager: \"adcHists\"" << endl;
     fout << "    MaxSample: 80" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
@@ -58,7 +60,12 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() == 2 );
+
+  cout << myname << line << endl;
+  cout << myname << "Fetching histogram manaager." << endl;
+  auto phm = tm.getShared<AdcChannelViewer>("mytool");
+  assert( phm != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -66,7 +73,7 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
   assert( padv != nullptr );
 
   cout << myname << line << endl;
-  cout << myname << "Create data and call too." << endl;
+  cout << myname << "Create data and call tool." << endl;
   AdcIndex nevt = 2;
   string lab = "plane 3u";
   float peds[10] = {701.1, 711.2, 733.3, 690.4, 688.5, 703.6, 720.7, 720.8, 695.9, 702.0};
@@ -125,7 +132,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_AdcChannelPlotter(useExistingFcl);
+  return test_AdcPedestalFitter(useExistingFcl);
 }
 
 //**********************************************************************

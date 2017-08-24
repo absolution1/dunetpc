@@ -22,6 +22,12 @@ SimpleHistogramManager::SimpleHistogramManager(fhicl::ParameterSet const& ps)
 
 //**********************************************************************
 
+SimpleHistogramManager::~SimpleHistogramManager() {
+  release("*");
+}
+
+//**********************************************************************
+
 int SimpleHistogramManager::manage(TH1* ph) {
   const string myname = "SimpleHistogramManager::manage: ";
   if ( ph == nullptr ) {

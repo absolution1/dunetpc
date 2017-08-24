@@ -15,6 +15,7 @@ cet_test(test_ArtServiceHelper SOURCES test_ArtServiceHelper.cxx
 cet_test(test_DuneToolManager SOURCES test_DuneToolManager.cxx
   LIBRARIES
     dune_ArtSupport
+    dune_ArtSupport_Tool_TestTool_tool
 )
 
 install_source()
