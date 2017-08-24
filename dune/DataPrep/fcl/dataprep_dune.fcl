@@ -104,12 +104,13 @@ adcnr_dunedphase3x1x1: {
   Coherent32Groups:                       [] # do all groups if empty list
   Coherent16:                           true
   Coherent16Groups:   [6, 7, 16, 17, 18, 19] # do all groups if empty list
-  RoiStartThreshold:                       9
+  RoiStartThreshold:                       7
   RoiEndThreshold:                         6
   RoiPadLow:                               8
-  RoiPadHigh:                             25
-  LowFreq:                             false
-  FltCoeffs:               [0.1, 0.75, 0.95]
+  RoiPadHigh:                             40
+  LowPassFlt:                          false
+  FlattenLowFreq:                      false
+  FlattenCoeffs:                 [0, 0, 0.5]
 }
 
 #***********************************************************************
