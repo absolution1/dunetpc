@@ -2,6 +2,8 @@
 
 #include "AdcChannelPlotter.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneInterface/Tool/HistogramManager.h"
+#include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -32,11 +34,19 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_HistTypes(ps.get<NameVector>("HistTypes")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
-  m_RootFileName(ps.get<string>("RootFileName")) {
+  m_RootFileName(ps.get<string>("RootFileName")),
+  m_HistManager(ps.get<string>("HistManager")) {
   const string myname = "AdcChannelPlotter::ctor: ";
   if ( m_HistTypes.size() == 0 ) {
     cout << myname << "WARNING: No histogram types are specified." << endl;
     return;
+  }
+  if ( m_HistManager.size() ) {
+    DuneToolManager* ptm = DuneToolManager::instance();
+    m_phm = ptm->getShared<HistogramManager>(m_HistManager);
+    if ( m_phm == nullptr ) {
+      cout << myname << "WARNING: Histoggram manager not found: " << m_HistManager << endl;
+    }
   }
   if ( m_LogLevel > 0 ) {
     cout << myname << "      LogLevel: [" << m_LogLevel << endl;
@@ -51,6 +61,7 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "      HistName: " << m_HistName << endl;
     cout << myname << "     HistTitle: " << m_HistTitle << endl;
     cout << myname << "  RootFileName: " << m_RootFileName << endl;
+    cout << myname << "   HistManager: " << m_HistManager << endl;
   }
 }
 
@@ -111,6 +122,13 @@ int AdcChannelPlotter::view(const AdcChannelData& acd) const {
     ph->SetStats(0);
     ph->SetLineWidth(2);
     ph->DrawCopy();
+    int rstat = m_phm != nullptr;
+    if ( rstat != 0 ) {
+      if ( m_phm->manage(ph) ) {
+        cout << myname << "WARNING: Attempt to manage histogram " << ph->GetName()
+             << " returned error " << rstat << endl;
+      }
+    }
   }
   if ( pfile != nullptr ) {
     pfile->Write();

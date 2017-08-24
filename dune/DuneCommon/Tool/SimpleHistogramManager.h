@@ -20,6 +20,9 @@ public:
   // Ctor from FCL.
   SimpleHistogramManager(fhicl::ParameterSet const& ps);
 
+  // Dtor.
+  ~SimpleHistogramManager() override;
+
   int manage(TH1* ph) override;
 
   NameVector names() const override;
