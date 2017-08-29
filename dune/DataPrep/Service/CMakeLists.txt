@@ -50,6 +50,7 @@ simple_plugin(DuneDPhase3x1x1NoiseRemovalService   "service"
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
+                ${ROOT_FFTW}
              )
 
 simple_plugin(MedianPedestalService   "service"
