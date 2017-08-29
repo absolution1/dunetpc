@@ -190,6 +190,12 @@ private:
   int fMipNum; int fMipIndex;
   int fPlane; int fIndex;
 
+  int fStartTick;
+  int fEndTick;
+  double fGodnessOfFit;
+  double fChargeIntegral;
+  double fPeakAmplitude;
+
   double fTrackLength; double fChi2Ndof;
   double fHitsCharge; //in fC
   double fTrackCharge; //in fC
@@ -198,7 +204,7 @@ private:
   double fCosX; double fCosY; double fCosZ;
   double fSpacePointX; double fSpacePointY; double fSpacePointZ;
   double fSummedADC; double fSummedADC_corrected;
-  double fADC; double fADCIntegral; double fADCPeak; double fCorrectedCharge; double fCharge;
+  double fADCIntegral_corrected; double fADCIntegral; double fADCPeak; double fADCPeak_corrected; double fCorrectedCharge; double fCharge;
   double fDrift; int fWire; double fCorrection; double fdQds;
   double fdEdx; double fRange;
   int fBin;
@@ -270,10 +276,15 @@ void pdunedp::Purity::MakeDataProduct(){
   fTreeHits->Branch("fSubRun", &fSubRun,"fSubRun/I");
   fTreeHits->Branch("fEvent", &fEvent, "fEvent/I");
   fTreeHits->Branch("fPlane", &fPlane, "fPlane/I");
-  fTreeHits->Branch("fADC", &fADC, "fADC/D");
-  fTreeHits->Branch("fCharge", &fCharge, "fCharge/D");
+  fTreeHits->Branch("fADCIntegral", &fADCIntegral, "fADCIntegral/D");
+  fTreeHits->Branch("fChargeIntegral", &fChargeIntegral, "fChargeIntegral/D");
+  fTreeHits->Branch("fPeakAmplitude", &fPeakAmplitude, "fPeakAmplitude/D");
+  fTreeHits->Branch("fSummedADC", &fSummedADC, "fSummedADC/D");
+  fTreeHits->Branch("fGodnessOfFit", &fGodnessOfFit, "fGodnessOfFit/D");
   fTreeHits->Branch("fDrift", &fDrift, "fDrift/D");
   fTreeHits->Branch("fWire", &fWire, "fWire/I");
+  fTreeHits->Branch("fStartTick", &fStartTick, "fStartTick/I");
+  fTreeHits->Branch("fEndTick", &fEndTick, "fEndTick/I");
 
   //one entry for every track
   fTreeTrk = tfs->make<TTree>("TrkInfo", "Information on tracks");
@@ -312,14 +323,17 @@ void pdunedp::Purity::MakeDataProduct(){
   fTreeHitsMip->Branch("fCosY", &fCosY, "fCosY/D");
   fTreeHitsMip->Branch("fCosZ", &fCosZ, "fCosZ/D");
   fTreeHitsMip->Branch("fADCIntegral", &fADCIntegral, "fADCIntegral/D");
+  fTreeHitsMip->Branch("fADCIntegral_corrected", &fADCIntegral_corrected, "fADCIntegral_corrected/D");
   fTreeHitsMip->Branch("fADCPeak", &fADCPeak, "fADCPeak/D");
+  fTreeHitsMip->Branch("fADCPeak_corrected", &fADCPeak_corrected, "fADCPeak_corrected/D");
   fTreeHitsMip->Branch("fCorrection", &fCorrection, "fCorrection/D");
-  fTreeHitsMip->Branch("fADC", &fADC, "fADC/D");
   fTreeHitsMip->Branch("fSummedADC", &fSummedADC, "fSummedADC/D");
   fTreeHitsMip->Branch("fSummedADC_corrected", &fSummedADC_corrected, "fSummedADC_corrected/D");
   fTreeHitsMip->Branch("fCharge", &fCharge, "fCharge/D");
   fTreeHitsMip->Branch("fCorrectedCharge", &fCorrectedCharge, "fCorrectedCharge/D");
   fTreeHitsMip->Branch("fDrift", &fDrift, "fDrift/D");
+  fTreeHitsMip->Branch("fStartTick", &fStartTick, "fStartTick/I");
+  fTreeHitsMip->Branch("fEndTick", &fEndTick, "fEndTick/I");
   fTreeHitsMip->Branch("fWire", &fWire, "fWire/I");
   fTreeHitsMip->Branch("fSpacePointX", &fSpacePointX, "fSpacePointX/D");
   fTreeHitsMip->Branch("fSpacePointY", &fSpacePointY, "fSpacePointY/D");
@@ -568,9 +582,14 @@ void pdunedp::Purity::FillEventHitsTree(std::vector<recob::Hit> hits){
     if (!std::isnormal(dqadc) || (dqadc < 0)) continue;
     double dq = dqadc*fADCtoCharge;
 
-    fPlane = (int)plane;
-    fADC = dqadc;
-    fCharge = dq;
+    fPlane = plane;
+    fStartTick = hit.StartTick();
+    fEndTick = hit.EndTick();
+    fADCIntegral = dqadc;
+    fPeakAmplitude = hit.PeakAmplitude();
+    fSummedADC = hit.SummedADC();
+    fGodnessOfFit= hit.GoodnessOfFit();
+    fChargeIntegral = dq;
     fDrift = tdrift;
     fWire = wire;
     fTreeHits->Fill();
@@ -787,22 +806,24 @@ void pdunedp::Purity::FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::
     fCosX   = CosX;
     fCosY   = CosY;
     fCosZ   = CosZ;
-    fADCIntegral = GetCorrectedCharge(mip, dQadc, plane); //corrected value
-    fADCPeak = GetCorrectedCharge(mip, vhits[h]->PeakAmplitude(), plane);//corrected value
-
+    fADCIntegral_corrected = GetCorrectedCharge(mip, dQadc, plane); //corrected value
+    fADCPeak = vhits[h]->PeakAmplitude();
+    fADCPeak_corrected = GetCorrectedCharge(mip, vhits[h]->PeakAmplitude(), plane);//corrected value
     fSummedADC = vhits[h]->SummedADC();
     fSummedADC_corrected = GetCorrectedCharge(mip, fSummedADC, plane);//corrected value
-    fADC    = dQadc;
+    fADCIntegral    = dQadc;
     fCharge = dQ;
     fCorrectedCharge = dQ_corr;
     fCorrection = dQ_corr/dQ;
     fSpacePointX = TrajPoint3D.position.X();
     fSpacePointY = TrajPoint3D.position.Y();
     fSpacePointZ = TrajPoint3D.position.Z();
-    if(dx>0)
+    if(dx>0){
     	fdQds = dQ/dx;
+    }
     fDrift = PeakTime;
-    //fHitX = //drift coordinate of my hit expressed in
+    fStartTick = vhits[h]->StartTick();
+    fEndTick = vhits[h]->EndTick();
     fTreeHitsMip->Fill();
   }
   return;
