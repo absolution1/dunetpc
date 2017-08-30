@@ -19,6 +19,7 @@ art_make(
     ${ROOT_CORE}
 )
 
+add_subdirectory(Tool)
 add_subdirectory(test)
 add_subdirectory(exe)
 

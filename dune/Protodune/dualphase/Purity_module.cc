@@ -1,4 +1,3 @@
-
 ////////////////////////////////////////////////////////////////////////
 // Class:       Purity
 // Module Type: analyzer
@@ -128,10 +127,12 @@ public:
       Name("NumOfBins"), Comment("Number of histogram for the purity analysis")
     };
 
-    fhicl::Atom<int>ADCtoCharge{
-      Name("ADCtoCharge"), Comment("Coverstion between ADC integral and charge") //<<---TODO Introduce it using the correct function
+    fhicl::Atom<double>ADCtoCharge{
+      Name("ADCtoCharge"), Comment("...")
     };
-
+    fhicl::Atom<double>MinDx{
+      Name("MinDx"), Comment("...")
+    };
   }; // end struct
 
   using Parameters = art::EDAnalyzer::Table<Config>;
@@ -155,13 +156,14 @@ public:
   bool IsCrossing(TVector3 Start, TVector3 End);
   bool StitchTracks(recob::Track Track1, recob::Track Track2, TVector3 & Edge1, TVector3 & Edge2);
   void Make_dEdx(std::vector< double > & dEdx, std::vector< double > & range,
-                            const std::vector< pdunedp::bHitInfo > & hits, double rmax, int Flip);
+                            const std::vector< pdunedp::bHitInfo > & hits, recob::Track mip, int Flip, unsigned int plane);
   void FillTajectoryGraph(std::map<size_t, recob::Track > MipCandidate,
                                                              art::FindManyP<recob::Hit>  HitsTrk);
   void FillPurityHist(recob::Track track, std::vector<art::Ptr<recob::Hit>> hits);
   void FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::Hit>> vhits,
     const std::vector<const recob::TrackHitMeta*, std::allocator<const recob::TrackHitMeta*> > vmeta);
   double GetCorrectedCharge(recob::Track trk, double charge, unsigned int plane);
+  double GetCorrection(recob::Track trk, unsigned int plane);
 
 
 private:
@@ -179,9 +181,10 @@ private:
   double fStitchAngle; double fStitchDistance;
   std::vector<double> fVolCut; int fNumOfBins;
   double fADCtoCharge;
+  double fMinDx;
 
   int Events=0; int SkipEvents=0; int BadEvents=0;
-  int fRun; int fEvent;
+  int fRun; int fSubRun; int fEvent;
   int fNtotHits, fNtotTracks, fNHitsTrack;
   int fTrkNum; int fNumOfMips;
   int fMipNum; int fMipIndex;
@@ -193,10 +196,14 @@ private:
   double fHitsTrackCharge; //in fC
   double fMipCharge, fMipLength, fMipPhi, fMipTheta; int fNHitsMip;
   double fCosX; double fCosY; double fCosZ;
-  double fADC; double fCorrectedCharge; double fCharge;
-  double fDrift; int fWire;
+  double fSpacePointX; double fSpacePointY; double fSpacePointZ;
+  double fSummedADC; double fSummedADC_corrected;
+  double fADC; double fADCIntegral; double fADCPeak; double fCorrectedCharge; double fCharge;
+  double fDrift; int fWire; double fCorrection; double fdQds;
   double fdEdx; double fRange;
   int fBin;
+
+  double fSummedCharge; int fEntries;
 
   //double fElectronsToGeV;
   double fADCToElectrons;
@@ -205,10 +212,12 @@ private:
 
   std::map< size_t, std::vector< pdunedp::bHitInfo >[3] > fTrk2InfoMap; // hits info sorted by views
   std::map<size_t, recob::Track > TrackList;
-  std::vector<double> goodevents;
+
+  std::map<int, int> goodevents;
 
   TTree *fTree; TTree *fTreeTrk; TTree *fTreeMip; TTree *fTreeHitsMip; TTree *fTreeCalib;
-  TTree *fTreeHits; TTree *fTreePurity;
+  TTree *fTreeHits; TTree *fTreePurity; TTree *fTreePurityMean;
+
   TH1D *htbin[3][100]; TH1D *htbin_singlehits[3][100]; TH1D *htbin_num[3][100];
   TH2D *hTrkTrajectory_0; TH2D *hTrkTrajectory_1;
 };//end class
@@ -226,7 +235,8 @@ pdunedp::Purity::Purity(Parameters const & config) : EDAnalyzer(config),
   fStitchDistance(config().StitchDistance()),
   fVolCut(config().VolCut()),
   fNumOfBins(config().NumOfBins()),
-  fADCtoCharge(config().NumOfBins())
+  fADCtoCharge(config().ADCtoCharge()),
+  fMinDx(config().MinDx())
 {
   this->MakeDataProduct();
 }
@@ -246,6 +256,7 @@ void pdunedp::Purity::MakeDataProduct(){
   //one entry for every event
   fTree = tfs->make<TTree>("Event", "LAr purity analysis information");
   fTree->Branch("fRun", &fRun,"fRun/I");
+  fTree->Branch("fSubRun", &fSubRun,"fSubRun/I");
   fTree->Branch("fEvent", &fEvent, "fEvent/I");
   fTree->Branch("fNtotHits", &fNtotHits, "fNtotHits/I");
   fTree->Branch("fNtotTracks", &fNtotTracks, "fNtotTracks/I");
@@ -256,6 +267,7 @@ void pdunedp::Purity::MakeDataProduct(){
   //branch for purity measuremtns usign mips: one entry per mip
   fTreeHits =tfs->make<TTree>("HitsEvent","Info on hits in event");
   fTreeHits->Branch("fRun", &fRun,"fRun/I");
+  fTreeHits->Branch("fSubRun", &fSubRun,"fSubRun/I");
   fTreeHits->Branch("fEvent", &fEvent, "fEvent/I");
   fTreeHits->Branch("fPlane", &fPlane, "fPlane/I");
   fTreeHits->Branch("fADC", &fADC, "fADC/D");
@@ -266,6 +278,7 @@ void pdunedp::Purity::MakeDataProduct(){
   //one entry for every track
   fTreeTrk = tfs->make<TTree>("TrkInfo", "Information on tracks");
   fTreeTrk->Branch("fRun", &fRun,"fRun/I");
+  fTreeTrk->Branch("fSubRun", &fSubRun,"fSubRun/I");
   fTreeTrk->Branch("fEvent", &fEvent, "fEvent/I");
   fTreeTrk->Branch("fTrkNum", &fTrkNum, "fTrkNum/I");
   fTreeTrk->Branch("fChi2Ndof", &fChi2Ndof, "fChi2Ndof/D");
@@ -276,6 +289,7 @@ void pdunedp::Purity::MakeDataProduct(){
   //one entry for every selected mip (stitched mips are considered separately)
   fTreeMip = tfs->make<TTree>("MipInfo", "Information on mips");
   fTreeMip->Branch("fRun", &fRun,"fRun/I");
+  fTreeMip->Branch("fSubRun", &fSubRun,"fSubRun/I");
   fTreeMip->Branch("fEvent", &fEvent, "fEvent/I");
   fTreeMip->Branch("fMipIndex", &fMipIndex, "fMipIndex/I");
   fTreeMip->Branch("fMipNum", &fMipNum, "fMipNum/I");
@@ -289,6 +303,7 @@ void pdunedp::Purity::MakeDataProduct(){
   //branch for purity measuremtns usign mips: one entry per mip
   fTreeHitsMip =tfs->make<TTree>("HitsMip","Info hits in mips");
   fTreeHitsMip->Branch("fRun", &fRun,"fRun/I");
+  fTreeHitsMip->Branch("fSubRun", &fSubRun,"fSubRun/I");
   fTreeHitsMip->Branch("fEvent", &fEvent, "fEvent/I");
   fTreeHitsMip->Branch("fMipIndex", &fMipIndex, "fMipIndex/I");
   fTreeHitsMip->Branch("fMipNum", &fMipNum, "fMipNum/I");
@@ -296,24 +311,34 @@ void pdunedp::Purity::MakeDataProduct(){
   fTreeHitsMip->Branch("fCosX", &fCosX, "fCosX/D");
   fTreeHitsMip->Branch("fCosY", &fCosY, "fCosY/D");
   fTreeHitsMip->Branch("fCosZ", &fCosZ, "fCosZ/D");
+  fTreeHitsMip->Branch("fADCIntegral", &fADCIntegral, "fADCIntegral/D");
+  fTreeHitsMip->Branch("fADCPeak", &fADCPeak, "fADCPeak/D");
+  fTreeHitsMip->Branch("fCorrection", &fCorrection, "fCorrection/D");
   fTreeHitsMip->Branch("fADC", &fADC, "fADC/D");
+  fTreeHitsMip->Branch("fSummedADC", &fSummedADC, "fSummedADC/D");
+  fTreeHitsMip->Branch("fSummedADC_corrected", &fSummedADC_corrected, "fSummedADC_corrected/D");
   fTreeHitsMip->Branch("fCharge", &fCharge, "fCharge/D");
   fTreeHitsMip->Branch("fCorrectedCharge", &fCorrectedCharge, "fCorrectedCharge/D");
   fTreeHitsMip->Branch("fDrift", &fDrift, "fDrift/D");
   fTreeHitsMip->Branch("fWire", &fWire, "fWire/I");
-
+  fTreeHitsMip->Branch("fSpacePointX", &fSpacePointX, "fSpacePointX/D");
+  fTreeHitsMip->Branch("fSpacePointY", &fSpacePointY, "fSpacePointY/D");
+  fTreeHitsMip->Branch("fSpacePointZ", &fSpacePointZ, "fSpacePointZ/D");
+  fTreeHitsMip->Branch("fdQds", &fdQds, "fdQds/D");
 
   fTreeCalib = tfs->make<TTree>("Calibration", "dE/dx info");
   fTreeCalib->Branch("fRun", &fRun, "fRun/I");
+  fTreeCalib->Branch("fSubRun", &fSubRun,"fSubRun/I");
   fTreeCalib->Branch("fEvent", &fEvent, "fEvent/I");
-  fTreeCalib->Branch("fIndex", &fIndex, "fIndex/I");
+  fTreeCalib->Branch("fIndex", &fIndex, "fIndex/I");//
   fTreeCalib->Branch("fdEdx", &fdEdx, "fdEdx/D");
   fTreeCalib->Branch("fRange", &fRange, "fRange/D");
   fTreeCalib->Branch("fPlane", &fPlane, "fPlane/I");
 
   //fill branch with purity measurements
-  fTreePurity =tfs->make<TTree>("Purity","Corrected charge for purity analysis");
+  fTreePurity =tfs->make<TTree>("PurityHit","Corrected charge for purity analysis");
   fTreePurity->Branch("fRun", &fRun,"fRun/I");
+  fTreePurity->Branch("fSubRun", &fSubRun,"fSubRun/I");
   fTreePurity->Branch("fEvent", &fEvent, "fEvent/I");
   fTreePurity->Branch("fPlane", &fPlane, "fPlane/I");
   fTreePurity->Branch("fCharge", &fCharge, "fCharge/D");
@@ -321,6 +346,14 @@ void pdunedp::Purity::MakeDataProduct(){
   fTreePurity->Branch("fBin", &fBin, "fBin/I");
   fTreePurity->Branch("fMipIndex", &fMipIndex, "fMipIndex/I");
 
+  fTreePurityMean =tfs->make<TTree>("PurityMean","Summed values for every drift bin");
+  fTreePurityMean->Branch("fRun", &fRun,"fRun/I");
+  fTreePurityMean->Branch("fSubRun", &fSubRun,"fSubRun/I");
+  fTreePurityMean->Branch("fEvent", &fEvent, "fEvent/I");
+  fTreePurityMean->Branch("fPlane", &fPlane, "fPlane/I");
+  fTreePurityMean->Branch("fBin", &fBin, "fBin/I");
+  fTreePurityMean->Branch("fSummedCharge", &fSummedCharge, "fSummedCharge/D");
+  fTreePurityMean->Branch("fEntries", &fEntries, "fEntries/I");
 
   //TODO<<--Generalize these histograms to different geometries
   hTrkTrajectory_0 = tfs->make<TH2D>("hTrkTrajectory_0", "Selected mips hit position view 0;Channel;Ticks", 320, 0, 319, 1667, 0, 1666);
@@ -341,6 +374,7 @@ void pdunedp::Purity::MakeDataProduct(){
 
 void pdunedp::Purity::analyze(art::Event const & e){
   fRun = e.run();
+  fSubRun = e.subRun();
   fEvent = e.id().event();   Events++;
 
   Clear();
@@ -417,7 +451,7 @@ void pdunedp::Purity::analyze(art::Event const & e){
     //first check if the track is already inside the candidate vector
     if (fMipCandidate.find(It->first) != fMipCandidate.end()){
       continue;
-    };
+    }
 
     TVector3 Start = (It->second).Vertex(); TVector3 End = (It->second).End();
     if(!IsCrossing(Start, End) && (TrackList.size() > 1)){
@@ -476,7 +510,7 @@ void pdunedp::Purity::analyze(art::Event const & e){
     for(unsigned int plane=0; plane < geom->Nplanes(0); plane++){ //TODO<<--Extend to different geometries
       std::vector< double > dEdx, range;
       auto const & info = trkEntry.second;
-      Make_dEdx(dEdx, range, info[plane], fMipCandidate[trkEntry.first].Length(), Flip);
+      Make_dEdx(dEdx, range, info[plane], fMipCandidate[trkEntry.first], Flip, plane);
       for (size_t i = 0; i < dEdx.size(); ++i){
         fdEdx = dEdx[i];
         fPlane = plane;
@@ -488,10 +522,7 @@ void pdunedp::Purity::analyze(art::Event const & e){
   }
 
   FillTajectoryGraph(fMipCandidate, HitsFromTrack);
-
-
-
-  goodevents.push_back(fEvent);
+  goodevents[fSubRun]=fEvent;
   fTree->Fill();
 }//end analyzer
 
@@ -609,6 +640,7 @@ bool pdunedp::Purity::IsCrossing(TVector3 Start, TVector3 End){
   geo::TPCID idtpc = geom->FindTPCAtPosition(vtx);
   if (geom->HasTPC(idtpc)) // <----Assuming there is only one TPC
   {
+    /*
     const geo::TPCGeo& tpcgeo = geom->GetElement(idtpc);
     double minx = tpcgeo.MinX() + fVolCut[0]; double maxx = tpcgeo.MaxX() - fVolCut[1];
     double miny = tpcgeo.MinY() + fVolCut[2]; double maxy = tpcgeo.MaxY() - fVolCut[3];
@@ -644,7 +676,51 @@ bool pdunedp::Purity::IsCrossing(TVector3 Start, TVector3 End){
     if( (Diff).Mag() < fLength){
       isCrossing=false;
     }
-  }
+    */
+
+    //Cuts used for the purity analysis: vertical track, from anode to cathode contained within some fiducial volume in z
+    //boundaries are minx -50 maxx +50
+    //               miny -50 maxy +50
+    //               minz 0   maxz +300
+    const geo::TPCGeo& tpcgeo = geom->GetElement(idtpc);
+    double minx = tpcgeo.MinX() + fVolCut[0]; double maxx = tpcgeo.MaxX() - fVolCut[1];
+    double minz = tpcgeo.MinZ() + fVolCut[4]; double maxz = tpcgeo.MaxZ() - fVolCut[5];
+
+    //first cut is applied on the length
+    if( (End-Start).Mag() > fLength ){
+
+      //check if the track is flipped on Z
+      if( (End.Z() - Start.Z()) > 0 ){
+        if( Start.Z() > minz && End.Z() < maxz){
+          //check if the track is flipped on X
+          if(End.X() > Start.X()){
+            if((Start.X() <= minx && End.X() >= maxx)){
+              isCrossing = true;
+            }
+          }else if(End.X() < Start.X()){
+            if((End.X() <= minx && Start.X() >= maxx)){
+              isCrossing = true;
+            }
+          }
+        }
+      }else if((End.Z() - Start.Z()) < 0){
+        if( End.Z() > minz && Start.Z() < maxz){
+          //check if the track is flipped on X
+          if(End.X() > Start.X()){
+            if((Start.X() <= minx && End.X() >= maxx)){
+              isCrossing = true;
+            }
+          }else if(End.X() < Start.X()){
+            if((End.X() <= minx && Start.X() >= maxx)){
+              isCrossing = true;
+            }
+          }
+        }
+      }else{
+        mf::LogError("pdunedp::Purity") << "Track starts and ends in the same Z coordinate";
+      }
+    }//end fLength
+  }//end has tpc
   return isCrossing;
 }
 
@@ -690,9 +766,9 @@ void pdunedp::Purity::FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::
     if (!std::isnormal(dQadc) || (dQadc < 0)) continue;
     size_t idx = vmeta[h]->Index();
     double dx =  vmeta[h]->Dx();
-    //ßmf::LogVerbatim("pdunedp::Purity") << "dx: " << dx << " idx " << idx;
 
-    //double dQ = dQadc*fCalorimetryAlg.ElectronsFromADCArea(dQadc, plane)*fElectronCharge;
+    auto TrajPoint3D = mip.TrajectoryPoint(idx);
+
     double dQ = dQadc*fADCtoCharge;
     fTrk2InfoMap[fMipIndex][plane].emplace_back(idx, dx, dQ, wire);
 
@@ -711,9 +787,20 @@ void pdunedp::Purity::FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::
     fCosX   = CosX;
     fCosY   = CosY;
     fCosZ   = CosZ;
+    fADCIntegral = GetCorrectedCharge(mip, dQadc, plane); //corrected value
+    fADCPeak = GetCorrectedCharge(mip, vhits[h]->PeakAmplitude(), plane);//corrected value
+
+    fSummedADC = vhits[h]->SummedADC();
+    fSummedADC_corrected = GetCorrectedCharge(mip, fSummedADC, plane);//corrected value
     fADC    = dQadc;
     fCharge = dQ;
     fCorrectedCharge = dQ_corr;
+    fCorrection = dQ_corr/dQ;
+    fSpacePointX = TrajPoint3D.position.X();
+    fSpacePointY = TrajPoint3D.position.Y();
+    fSpacePointZ = TrajPoint3D.position.Z();
+    if(dx>0)
+    	fdQds = dQ/dx;
     fDrift = PeakTime;
     //fHitX = //drift coordinate of my hit expressed in
     fTreeHitsMip->Fill();
@@ -722,10 +809,12 @@ void pdunedp::Purity::FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::
 }
 
 void pdunedp::Purity::Make_dEdx(std::vector< double > & dEdx, std::vector< double > & range,
-                                        const std::vector< pdunedp::bHitInfo > & hits, double rmax, int Flip){
+                            const std::vector< pdunedp::bHitInfo > & hits, recob::Track mip, int Flip, unsigned int plane){
   if (!hits.size()) return;
 
 	dEdx.clear(); range.clear();
+
+	double rmax = mip.Length();
 
 	int i0 = hits.size() - 1; int i1 = -1; int di = -1;
 	if (Flip) {i0 = 0; i1 = hits.size(); di = 1;}
@@ -753,7 +842,7 @@ void pdunedp::Purity::Make_dEdx(std::vector< double > & dEdx, std::vector< doubl
 		if ((de > 0.0) && (dx > 0.0) && (r < rmax))
 		{
 			dEdx.push_back(de/dx);
-			range.push_back(r);
+			range.push_back(r*GetCorrection(mip, plane));
 		}
 	}
   return;
@@ -873,6 +962,26 @@ double pdunedp::Purity::GetCorrectedCharge(recob::Track trk, double charge, unsi
   return charge_corr;
 }
 
+double pdunedp::Purity::GetCorrection(recob::Track trk, unsigned int plane){
+  /*Returns the corrected charge value corrected for the angle between the track direction and the wire pitch*/
+  double angle =0.;
+  double correction =0.;
+
+  switch (plane) {
+    case 0:
+      angle = atan( fabs( (trk.End().X()-trk.Vertex().X())/(trk.End().Y()-trk.Vertex().Y()) ) );
+      break;
+    case 1:
+      angle = atan( fabs( (trk.End().X()-trk.Vertex().X())/(trk.End().Z()-trk.Vertex().Z()) ) );
+      break;
+    default:
+      mf::LogError("pdunedp::Purity") << "Invalid plane number!";
+      break;
+  }
+  if(fabs(cos(angle))>0.){ correction = fabs(cos(angle)); }
+  return correction;
+}
+
 void pdunedp::Purity::Clear(){
   TrackList.clear();
   fTrk2InfoMap.clear();
@@ -884,8 +993,8 @@ void pdunedp::Purity::endJob(){
   mf::LogVerbatim("pdunedp::Purity") << "Bad Events: " << BadEvents;
   mf::LogVerbatim("pdunedp::Purity") << "Skipped Events: " << SkipEvents;
   mf::LogVerbatim("pdunedp::Purity") << "selected Events: " << Events-BadEvents-SkipEvents <<" \nList: ";
-  for(int goodevent : goodevents){
-      mf::LogVerbatim("pdunedp::Purity") << ".. " << goodevent ; //<----write this list on file (?)
+  for(std::map<int, int>::iterator goodevent = goodevents.begin(); goodevent != goodevents.end(); goodevent++){
+      mf::LogVerbatim("pdunedp::Purity") << "SubRun: " << goodevent->first << " Event: " << goodevent->second ; //<----write this list on file (?)
   }
   mf::LogVerbatim("pdunedp::Purity") << "===========================";
 
