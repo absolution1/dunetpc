@@ -32,6 +32,7 @@ data_3x1x1_anarootparser:
  FlashMatchAssocLabel:        [ "" ]
  POTModuleLabel:              ""
 
+ IsRealData:               true
  UseBuffers:               false
  IgnoreMissingShowers:     false
  SaveAuxDetInfo:           false

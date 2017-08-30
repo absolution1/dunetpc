@@ -69,7 +69,7 @@
 #include "TTree.h"
 #include "TTimeStamp.h"
 
-constexpr int kNplanes       = 3;     //number of wire planes
+constexpr int kNplanes       = 2;     //number of wire planes
 constexpr int kMaxHits       = 40000; //maximum number of hits;
 constexpr int kMaxTrackHits  = 2000;  //maximum number of hits on a track
 constexpr int kMaxTrackers   = 15;    //number of trackers passed into fTrackModuleLabel
@@ -166,7 +166,7 @@ namespace dune {
       template <typename T>
       using HitData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits]>>;
       template <typename T>
-      using HitCoordData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits][3]>>;
+      using HitCoordData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits][2]>>;
 
       size_t MaxTracks; ///< maximum number of storable tracks
 
@@ -185,6 +185,13 @@ namespace dune {
       HitData_t<Float_t>      trkresrg;
       HitData_t<Int_t>        trktpc;
       HitCoordData_t<Float_t> trkxyz;
+
+      Float_t trkdedx2[10000];
+      Float_t trkdqdx2[10000];
+      Float_t trktpc2[10000];
+      Float_t trkx2[10000];
+      Float_t trky2[10000];
+      Float_t trkz2[10000];
 
       // more track info
       TrackData_t<Short_t> trkId;
@@ -484,7 +491,7 @@ namespace dune {
     Int_t      event;                //event number
     Double_t   evttime;              //event time in sec
     Double_t   beamtime;             //beam time
-    //  Double_t   pot;                  //protons on target moved in subrun data
+    Double_t   pot;                  //protons on target moved in subrun data
     Double_t   taulife;              //electron lifetime
     Char_t     isdata;               //flag, 0=MC 1=data
     unsigned int triggernumber;      //trigger counter
@@ -497,26 +504,28 @@ namespace dune {
 
     // hit information (non-resizeable, 45x kMaxHits = 900k bytes worth)
     Int_t    no_hits;                  //number of hits
-    Int_t    no_hits_stored;                  //number of hits actually stored in the tree
+    Int_t    NHitsInAllTracks;        //number of hits in all tracks
+    Int_t    no_hits_stored;           //number of hits actually stored in the tree
     Short_t  hit_tpc[kMaxHits];        //tpc number
-    Short_t  hit_plane[kMaxHits];      //plane number
+    Short_t  hit_view[kMaxHits];      //plane number
     Short_t  hit_wire[kMaxHits];       //wire number
     Short_t  hit_channel[kMaxHits];    //channel ID
     Float_t  hit_peakT[kMaxHits];      //peak time
-    Float_t  hit_charge[kMaxHits];     //charge (area)
+    Float_t  hit_chargesum[kMaxHits];     //charge (sum)
+    Float_t  hit_chargeintegral[kMaxHits];     //charge (integral)
     Float_t  hit_ph[kMaxHits];         //amplitude
     Float_t  hit_startT[kMaxHits];     //hit start time
     Float_t  hit_endT[kMaxHits];       //hit end time
     Float_t  hit_rms[kMaxHits];       //hit rms from the hit object
     Float_t  hit_goodnessOfFit[kMaxHits]; //chi2/dof goodness of fit
     Short_t  hit_multiplicity[kMaxHits];  //multiplicity of the given hit
-    Float_t  hit_trueX[kMaxHits];      // hit true X (cm)
-    Float_t  hit_nelec[kMaxHits];     //hit number of electrons
-    Float_t  hit_energy[kMaxHits];       //hit energy
+//    Float_t  hit_trueX[kMaxHits];      // hit true X (cm)
+//    Float_t  hit_nelec[kMaxHits];     //hit number of electrons
+//    Float_t  hit_energy[kMaxHits];       //hit energy
     Short_t  hit_trkid[kMaxHits];      //is this hit associated with a reco track?
-    Short_t  hit_trkKey[kMaxHits];      //is this hit associated with a reco track,  if so associate a unique track key ID?
+//    Short_t  hit_trkKey[kMaxHits];      //is this hit associated with a reco track,  if so associate a unique track key ID?
     Short_t  hit_clusterid[kMaxHits];  //is this hit associated with a reco cluster?
-    Short_t  hit_clusterKey[kMaxHits];  //is this hit associated with a reco cluster, if so associate a unique cluster key ID?
+//    Short_t  hit_clusterKey[kMaxHits];  //is this hit associated with a reco cluster, if so associate a unique cluster key ID?
 
     Float_t rawD_ph[kMaxHits];
     Float_t rawD_peakT[kMaxHits];
@@ -534,7 +543,7 @@ namespace dune {
     //Cluster Information
     Short_t nclusters;				      //number of clusters in a given event
     Short_t clusterId[kMaxClusters];		      //ID of this cluster
-    Short_t clusterView[kMaxClusters];		      //which plane this cluster belongs to
+    Short_t clusterView[kMaxClusters];	      //which plane this cluster belongs to
     Int_t   cluster_isValid[kMaxClusters];	      //is this cluster valid? will have a value of -1 if it is not valid
     Float_t cluster_StartCharge[kMaxClusters];	       //charge on the first wire of the cluster in ADC
     Float_t cluster_StartAngle[kMaxClusters];	      //starting angle of the cluster
@@ -552,9 +561,9 @@ namespace dune {
     Short_t cluster_EndWire[kMaxClusters];	      //wire coordinate of the end of the cluster
     Short_t cluster_EndTick[kMaxClusters];            //tick coordinate of the end of the cluster in time ticks
     //Cluster cosmic tagging information
-    Short_t cluncosmictags_tagger[kMaxClusters];      //No. of cosmic tags associated to this cluster
-    Float_t clucosmicscore_tagger[kMaxClusters];      //Cosmic score associated to this cluster. In the case of more than one tag, the first one is associated.
-    Short_t clucosmictype_tagger[kMaxClusters];       //Cosmic tag type for this cluster.
+//    Short_t cluncosmictags_tagger[kMaxClusters];      //No. of cosmic tags associated to this cluster
+//    Float_t clucosmicscore_tagger[kMaxClusters];      //Cosmic score associated to this cluster. In the case of more than one tag, the first one is associated.
+//    Short_t clucosmictype_tagger[kMaxClusters];       //Cosmic tag type for this cluster.
 
     // flash information
     Int_t    no_flashes;                //number of flashes
@@ -1053,12 +1062,16 @@ namespace dune {
       void operator()
       (std::string name, void* address, std::string leaflist /*, int bufsize = 32000 */)
       {
+
 	if (!pTree) return;
 	TBranch* pBranch = pTree->GetBranch(name.c_str());
+
 	if (!pBranch) {
 	  pTree->Branch(name.c_str(), address, leaflist.c_str() /*, bufsize */);
+
 	  LOG_DEBUG("AnaRootParserStructure")
 	    << "Creating branch '" << name << " with leaf '" << leaflist << "'";
+
 	}
 	else if (pBranch->GetAddress() != address) {
 	  pBranch->SetAddress(address);
@@ -1172,7 +1185,7 @@ namespace dune {
     double bdist(const TVector3& pos);
 
     TTree* fTree;
-    TTree* fPOT;
+//    TTree* fPOT;
     // event information is huge and dynamic;
     // run information is much smaller and we still store it statically
     // in the event
@@ -1491,6 +1504,13 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   Resize(MaxTracks);
   ntracks = 0;
 
+  std::fill(trkdedx2, trkdedx2 + sizeof(trkdedx2)/sizeof(trkdedx2[0]), 0);
+  std::fill(trkdqdx2, trkdqdx2 + sizeof(trkdqdx2)/sizeof(trkdqdx2[0]), 0);
+  std::fill(trktpc2, trktpc2 + sizeof(trktpc2)/sizeof(trktpc2[0]), 0);
+  std::fill(trkx2, trkx2 + sizeof(trkx2)/sizeof(trkx2[0]), 0);
+  std::fill(trky2, trky2 + sizeof(trky2)/sizeof(trky2[0]), 0);
+  std::fill(trkz2, trkz2 + sizeof(trkz2)/sizeof(trkz2[0]), 0);
+
   FillWith(trkId        , -9999  );
   FillWith(trkncosmictags_tagger, -9999  );
   FillWith(trkcosmicscore_tagger, -99999.);
@@ -1588,13 +1608,13 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   std::string TrackLabel = tracker;
   std::string BranchName;
 
-  BranchName = "ntracks_" + TrackLabel;
+  BranchName = "NumberOfTracks_" + TrackLabel;
   CreateBranch(BranchName, &ntracks, BranchName + "/S");
   std::string NTracksIndexStr = "[" + BranchName + "]";
 
-  BranchName = "trkId_" + TrackLabel;
+  BranchName = "TrackID_" + TrackLabel;
   CreateBranch(BranchName, trkId, BranchName + NTracksIndexStr + "/S");
-
+/*
   BranchName = "trkncosmictags_tagger_" + TrackLabel;
   CreateBranch(BranchName, trkncosmictags_tagger, BranchName + NTracksIndexStr + "/S");
 
@@ -1621,75 +1641,101 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkcosmictype_flashmatch_" + TrackLabel;
   CreateBranch(BranchName, trkcosmictype_flashmatch, BranchName + NTracksIndexStr + "/S");
+*/
+/*
+  BranchName = "Track_KineticEnergy_" + TrackLabel;
+  CreateBranch(BranchName, trkke, BranchName + NTracksIndexStr + "[2]/F");
 
-  BranchName = "trkke_" + TrackLabel;
-  CreateBranch(BranchName, trkke, BranchName + NTracksIndexStr + "[3]/F");
-
-  BranchName = "trkrange_" + TrackLabel;
-  CreateBranch(BranchName, trkrange, BranchName + NTracksIndexStr + "[3]/F");
-
+  BranchName = "Track_Range_" + TrackLabel;
+  CreateBranch(BranchName, trkrange, BranchName + NTracksIndexStr + "[2]/F");
+*/
+/*
   BranchName = "trkidtruth_" + TrackLabel;
-  CreateBranch(BranchName, trkidtruth, BranchName + NTracksIndexStr + "[3]/I");
+  CreateBranch(BranchName, trkidtruth, BranchName + NTracksIndexStr + "[2]/I");
 
   BranchName = "trkorigin_" + TrackLabel;
-  CreateBranch(BranchName, trkorigin, BranchName + NTracksIndexStr + "[3]/S");
+  CreateBranch(BranchName, trkorigin, BranchName + NTracksIndexStr + "[2]/S");
 
   BranchName = "trkpdgtruth_" + TrackLabel;
-  CreateBranch(BranchName, trkpdgtruth, BranchName + NTracksIndexStr + "[3]/I");
+  CreateBranch(BranchName, trkpdgtruth, BranchName + NTracksIndexStr + "[2]/I");
 
   BranchName = "trkefftruth_" + TrackLabel;
-  CreateBranch(BranchName, trkefftruth, BranchName + NTracksIndexStr + "[3]/F");
+  CreateBranch(BranchName, trkefftruth, BranchName + NTracksIndexStr + "[2]/F");
 
   BranchName = "trkpurtruth_" + TrackLabel;
-  CreateBranch(BranchName, trkpurtruth, BranchName + NTracksIndexStr + "[3]/F");
+  CreateBranch(BranchName, trkpurtruth, BranchName + NTracksIndexStr + "[2]/F");
+*/
+  BranchName = "Track_PitchInViews_" + TrackLabel;
+  CreateBranch(BranchName, trkpitchc, BranchName + NTracksIndexStr + "[2]/F");
 
-  BranchName = "trkpitchc_" + TrackLabel;
-  CreateBranch(BranchName, trkpitchc, BranchName + NTracksIndexStr + "[3]/F");
+  BranchName = "Track_NumberOfHitsPerView_" + TrackLabel;
+  CreateBranch(BranchName, ntrkhits, BranchName + NTracksIndexStr + "[2]/S");
 
-  BranchName = "ntrkhits_" + TrackLabel;
-  CreateBranch(BranchName, ntrkhits, BranchName + NTracksIndexStr + "[3]/S");
+  BranchName = "Track_dEdx_" + TrackLabel;
+  CreateBranch(BranchName, trkdedx2, BranchName + "[no_hits]/F");
 
+  BranchName = "Track_dQdx_" + TrackLabel;
+  CreateBranch(BranchName, trkdqdx2, BranchName + "[no_hits]/F");
+/*
+  BranchName = "trkresrg_" + TrackLabel;
+  CreateBranch(BranchName, trkresrg, BranchName + "[no_hits]/F");
+*/
+
+  BranchName = "Track_TPC_" + TrackLabel;
+  CreateBranch(BranchName, trktpc2, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_HitX_" + TrackLabel;
+  CreateBranch(BranchName, trkx2, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_HitY_" + TrackLabel;
+  CreateBranch(BranchName, trky2, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_HitZ_" + TrackLabel;
+  CreateBranch(BranchName, trkz2, BranchName + "[no_hits]/F");
+
+
+/*
   if (!isCosmics){
-    BranchName = "trkdedx_" + TrackLabel;
-    CreateBranch(BranchName, trkdedx, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/F");
+    BranchName = "Track_dEdx_" + TrackLabel;
+    CreateBranch(BranchName, trkdedx, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "/F");
 
-    BranchName = "trkdqdx_" + TrackLabel;
-    CreateBranch(BranchName, trkdqdx, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/F");
+    BranchName = "Track_dQdx_" + TrackLabel;
+    CreateBranch(BranchName, trkdqdx, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "/F");
 
     BranchName = "trkresrg_" + TrackLabel;
-    CreateBranch(BranchName, trkresrg, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/F");
+    CreateBranch(BranchName, trkresrg, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "/F");
 
-    BranchName = "trktpc_" + TrackLabel;
-    CreateBranch(BranchName, trktpc, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "/I");
+    BranchName = "Track_TPC_" + TrackLabel;
+    CreateBranch(BranchName, trktpc, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "/I");
 
-    BranchName = "trkxyz_" + TrackLabel;
-    CreateBranch(BranchName, trkxyz, BranchName + NTracksIndexStr + "[3]" + MaxTrackHitsIndexStr + "[3]" + "/F");
+    BranchName = "Track_XYZ_" + TrackLabel;
+    CreateBranch(BranchName, trkxyz, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "[3]" + "/F");
   }
-
-  BranchName = "trkstartx_" + TrackLabel;
+*/
+  BranchName = "Track_StartX_" + TrackLabel;
   CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkstarty_" + TrackLabel;
+  BranchName = "Track_StartY_" + TrackLabel;
   CreateBranch(BranchName, trkstarty, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkstartz_" + TrackLabel;
+  BranchName = "Track_StartZ_" + TrackLabel;
   CreateBranch(BranchName, trkstartz, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkstartd_" + TrackLabel;
+  BranchName = "Track_StartDistanceToBoundary_" + TrackLabel;
   CreateBranch(BranchName, trkstartd, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkendx_" + TrackLabel;
+  BranchName = "Track_EndX_" + TrackLabel;
   CreateBranch(BranchName, trkendx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkendy_" + TrackLabel;
+  BranchName = "Track_EndY_" + TrackLabel;
   CreateBranch(BranchName, trkendy, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkendz_" + TrackLabel;
+  BranchName = "Track_EndZ_" + TrackLabel;
   CreateBranch(BranchName, trkendz, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkendd_" + TrackLabel;
+  BranchName = "Track_EndDistanceToBoundary_" + TrackLabel;
   CreateBranch(BranchName, trkendd, BranchName + NTracksIndexStr + "/F");
-
+/*
   BranchName = "trkflashT0_" + TrackLabel;
   CreateBranch(BranchName, trkflashT0, BranchName + NTracksIndexStr + "/F");
 
@@ -1707,13 +1753,13 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkcompleteness_" + TrackLabel;
   CreateBranch(BranchName, trkcompleteness, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "trktheta_" + TrackLabel;
+*/
+  BranchName = "Track_Theta_" + TrackLabel;
   CreateBranch(BranchName, trktheta, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "trkphi_" + TrackLabel;
+  BranchName = "Track_Phi_" + TrackLabel;
   CreateBranch(BranchName, trkphi, BranchName + NTracksIndexStr + "/F");
-
+/*
   BranchName = "trkstartdcosx_" + TrackLabel;
   CreateBranch(BranchName, trkstartdcosx, BranchName + NTracksIndexStr + "/F");
 
@@ -1743,16 +1789,17 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkmomrange_" + TrackLabel;
   CreateBranch(BranchName, trkmomrange, BranchName + NTracksIndexStr + "/F");
-
+*/
+/*
   BranchName = "trkmommschi2_" + TrackLabel;
   CreateBranch(BranchName, trkmommschi2, BranchName + NTracksIndexStr + "/F");
 
   BranchName = "trkmommsllhd_" + TrackLabel;
   CreateBranch(BranchName, trkmommsllhd, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "trklen_" + TrackLabel;
+*/
+  BranchName = "Track_Length_" + TrackLabel;
   CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
-
+/*
   BranchName = "trksvtxid_" + TrackLabel;
   CreateBranch(BranchName, trksvtxid, BranchName + NTracksIndexStr + "/S");
 
@@ -1775,27 +1822,27 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   CreateBranch(BranchName, trkpidmvapr, BranchName + NTracksIndexStr + "/F");
 
   BranchName = "trkpidpdg_" + TrackLabel;
-  CreateBranch(BranchName, trkpidpdg, BranchName + NTracksIndexStr + "[3]/I");
+  CreateBranch(BranchName, trkpidpdg, BranchName + NTracksIndexStr + "[2]/I");
 
   BranchName = "trkpidchi_" + TrackLabel;
-  CreateBranch(BranchName, trkpidchi, BranchName + NTracksIndexStr + "[3]/F");
+  CreateBranch(BranchName, trkpidchi, BranchName + NTracksIndexStr + "[2]/F");
 
   BranchName = "trkpidchipr_" + TrackLabel;
-  CreateBranch(BranchName, trkpidchipr, BranchName + NTracksIndexStr + "[3]/F");
+  CreateBranch(BranchName, trkpidchipr, BranchName + NTracksIndexStr + "[2]/F");
 
   BranchName = "trkpidchika_" + TrackLabel;
-  CreateBranch(BranchName, trkpidchika, BranchName + NTracksIndexStr + "[3]/F");
+  CreateBranch(BranchName, trkpidchika, BranchName + NTracksIndexStr + "[2]/F");
 
   BranchName = "trkpidchipi_" + TrackLabel;
-  CreateBranch(BranchName, trkpidchipi, BranchName + NTracksIndexStr + "[3]/F");
+  CreateBranch(BranchName, trkpidchipi, BranchName + NTracksIndexStr + "[2]/F");
 
   BranchName = "trkpidchimu_" + TrackLabel;
-  CreateBranch(BranchName, trkpidchimu, BranchName + NTracksIndexStr + "[3]/F");
+  CreateBranch(BranchName, trkpidchimu, BranchName + NTracksIndexStr + "[2]/F");
 
   BranchName = "trkpidpida_" + TrackLabel;
-  CreateBranch(BranchName, trkpidpida, BranchName + NTracksIndexStr + "[3]/F");
+  CreateBranch(BranchName, trkpidpida, BranchName + NTracksIndexStr + "[2]/F");
 
-  BranchName = "trkpidbestplane_" + TrackLabel;
+  BranchName = "trkpidbestview_" + TrackLabel;
   CreateBranch(BranchName, trkpidbestplane, BranchName + NTracksIndexStr + "/S");
 
   BranchName = "trkhasPFParticle_" + TrackLabel;
@@ -1803,7 +1850,7 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkPFParticleID_" + TrackLabel;
   CreateBranch(BranchName, trkPFParticleID, BranchName + NTracksIndexStr + "/S");
-
+*/
 } // dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses()
 
 
@@ -1843,7 +1890,7 @@ void dune::AnaRootParserDataStruct::VertexDataStruct::SetAddresses(
 
   std::string VertexLabel = alg;
   std::string BranchName;
-
+/*
   BranchName = "nvtx_" + VertexLabel;
   CreateBranch(BranchName, &nvtx, BranchName + "/S");
   std::string NVertexIndexStr = "[" + BranchName + "]";
@@ -1865,6 +1912,7 @@ void dune::AnaRootParserDataStruct::VertexDataStruct::SetAddresses(
 
   BranchName = "vtxPFParticleID_" + VertexLabel;
   CreateBranch(BranchName, vtxPFParticleID, BranchName + NVertexIndexStr + "/S");
+*/
 }
 
 //------------------------------------------------------------------------------
@@ -2187,26 +2235,28 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
 
   no_hits = 0;
   no_hits_stored = 0;
+  NHitsInAllTracks = 0;
 
   std::fill(hit_tpc, hit_tpc + sizeof(hit_tpc)/sizeof(hit_tpc[0]), -9999);
-  std::fill(hit_plane, hit_plane + sizeof(hit_plane)/sizeof(hit_plane[0]), -9999);
+  std::fill(hit_view, hit_view + sizeof(hit_view)/sizeof(hit_view[0]), -9999);
   std::fill(hit_wire, hit_wire + sizeof(hit_wire)/sizeof(hit_wire[0]), -9999);
   std::fill(hit_channel, hit_channel + sizeof(hit_channel)/sizeof(hit_channel[0]), -9999);
   std::fill(hit_peakT, hit_peakT + sizeof(hit_peakT)/sizeof(hit_peakT[0]), -99999.);
-  std::fill(hit_charge, hit_charge + sizeof(hit_charge)/sizeof(hit_charge[0]), -99999.);
+  std::fill(hit_chargesum, hit_chargesum + sizeof(hit_chargesum)/sizeof(hit_chargesum[0]), -99999.);
+  std::fill(hit_chargeintegral, hit_chargeintegral + sizeof(hit_chargeintegral)/sizeof(hit_chargeintegral[0]), -99999.);
   std::fill(hit_ph, hit_ph + sizeof(hit_ph)/sizeof(hit_ph[0]), -99999.);
   std::fill(hit_startT, hit_startT + sizeof(hit_startT)/sizeof(hit_startT[0]), -99999.);
   std::fill(hit_endT, hit_endT + sizeof(hit_endT)/sizeof(hit_endT[0]), -99999.);
   std::fill(hit_rms, hit_rms + sizeof(hit_rms)/sizeof(hit_rms[0]), -99999.);
-  std::fill(hit_trueX, hit_trueX + sizeof(hit_trueX)/sizeof(hit_trueX[0]), -99999.);
+//  std::fill(hit_trueX, hit_trueX + sizeof(hit_trueX)/sizeof(hit_trueX[0]), -99999.);
   std::fill(hit_goodnessOfFit, hit_goodnessOfFit + sizeof(hit_goodnessOfFit)/sizeof(hit_goodnessOfFit[0]), -99999.);
   std::fill(hit_multiplicity, hit_multiplicity + sizeof(hit_multiplicity)/sizeof(hit_multiplicity[0]), -99999.);
   std::fill(hit_trkid, hit_trkid + sizeof(hit_trkid)/sizeof(hit_trkid[0]), -9999);
-  std::fill(hit_trkKey, hit_trkKey + sizeof(hit_trkKey)/sizeof(hit_trkKey[0]), -9999);
+//  std::fill(hit_trkKey, hit_trkKey + sizeof(hit_trkKey)/sizeof(hit_trkKey[0]), -9999);
   std::fill(hit_clusterid, hit_clusterid + sizeof(hit_clusterid)/sizeof(hit_clusterid[0]), -99999);
-  std::fill(hit_clusterKey, hit_clusterKey + sizeof(hit_clusterKey)/sizeof(hit_clusterKey[0]), -9999);
-  std::fill(hit_nelec, hit_nelec + sizeof(hit_nelec)/sizeof(hit_nelec[0]), -99999.);
-  std::fill(hit_energy, hit_energy + sizeof(hit_energy)/sizeof(hit_energy[0]), -99999.);
+//  std::fill(hit_clusterKey, hit_clusterKey + sizeof(hit_clusterKey)/sizeof(hit_clusterKey[0]), -9999);
+//  std::fill(hit_nelec, hit_nelec + sizeof(hit_nelec)/sizeof(hit_nelec[0]), -99999.);
+//  std::fill(hit_energy, hit_energy + sizeof(hit_energy)/sizeof(hit_energy[0]), -99999.);
   //raw digit information
   std::fill(rawD_ph, rawD_ph + sizeof(rawD_ph)/sizeof(rawD_ph[0]), -99999.);
   std::fill(rawD_peakT, rawD_peakT + sizeof(rawD_peakT)/sizeof(rawD_peakT[0]), -99999.);
@@ -2246,9 +2296,9 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   std::fill(cluster_StartTick, cluster_StartTick + sizeof(cluster_StartTick)/sizeof(cluster_StartTick[0]), -9999);
   std::fill(cluster_EndWire, cluster_EndWire + sizeof(cluster_EndWire)/sizeof(cluster_EndWire[0]), -9999);
   std::fill(cluster_EndTick, cluster_EndTick + sizeof(cluster_EndTick)/sizeof(cluster_EndTick[0]), -9999);
-  std::fill(cluncosmictags_tagger, cluncosmictags_tagger + sizeof(cluncosmictags_tagger)/sizeof(cluncosmictags_tagger[0]), -9999);
-  std::fill(clucosmicscore_tagger, clucosmicscore_tagger + sizeof(clucosmicscore_tagger)/sizeof(clucosmicscore_tagger[0]), -99999.);
-  std::fill(clucosmictype_tagger , clucosmictype_tagger  + sizeof(clucosmictype_tagger )/sizeof(clucosmictype_tagger [0]), -9999);
+//  std::fill(cluncosmictags_tagger, cluncosmictags_tagger + sizeof(cluncosmictags_tagger)/sizeof(cluncosmictags_tagger[0]), -9999);
+//  std::fill(clucosmicscore_tagger, clucosmicscore_tagger + sizeof(clucosmicscore_tagger)/sizeof(clucosmicscore_tagger[0]), -99999.);
+//  std::fill(clucosmictype_tagger , clucosmictype_tagger  + sizeof(clucosmictype_tagger )/sizeof(clucosmictype_tagger [0]), -9999);
 
   nnuvtx = 0;
   std::fill(nuvtxx, nuvtxx + sizeof(nuvtxx)/sizeof(nuvtxx[0]), -99999.);
@@ -2758,55 +2808,56 @@ void dune::AnaRootParserDataStruct::SetAddresses(
 						      ) {
   BranchCreator CreateBranch(pTree);
 
-  CreateBranch("run",&run,"run/I");
-  CreateBranch("subrun",&subrun,"subrun/I");
-  CreateBranch("event",&event,"event/I");
-  CreateBranch("evttime",&evttime,"evttime/D");
-  CreateBranch("beamtime",&beamtime,"beamtime/D");
-  CreateBranch("pot",&SubRunData.pot,"pot/D");
-  CreateBranch("isdata",&isdata,"isdata/B");
-  CreateBranch("taulife",&taulife,"taulife/D");
-  CreateBranch("triggernumber",&triggernumber,"triggernumber/i");
-  CreateBranch("triggertime",&triggertime,"triggertime/D");
-  CreateBranch("beamgatetime",&beamgatetime,"beamgatetime/D");
-  CreateBranch("triggerbits",&triggerbits,"triggerbits/i");
-  CreateBranch("potbnb",&potbnb,"potbnb/D");
-  CreateBranch("potnumitgt",&potnumitgt,"potnumitgt/D");
-  CreateBranch("potnumi101",&potnumi101,"potnumi101/D");
+  CreateBranch("Run",&run,"run/I");
+  CreateBranch("Subrun",&subrun,"subrun/I");
+  CreateBranch("Event",&event,"event/I");
+  CreateBranch("EventTime",&evttime,"evttime/D");
+//  CreateBranch("beamtime",&beamtime,"beamtime/D");
+//  CreateBranch("pot",&SubRunData.pot,"pot/D");
+  CreateBranch("IsData",&isdata,"isdata/B");
+//  CreateBranch("taulife",&taulife,"taulife/D");
+//  CreateBranch("triggernumber",&triggernumber,"triggernumber/i");
+//  CreateBranch("triggertime",&triggertime,"triggertime/D");
+//  CreateBranch("beamgatetime",&beamgatetime,"beamgatetime/D");
+//  CreateBranch("triggerbits",&triggerbits,"triggerbits/i");
+//  CreateBranch("potbnb",&potbnb,"potbnb/D");
+//  CreateBranch("potnumitgt",&potnumitgt,"potnumitgt/D");
+//  CreateBranch("potnumi101",&potnumi101,"potnumi101/D");
 
   if (hasHitInfo()){
-    CreateBranch("no_hits",&no_hits,"no_hits/I");
-    CreateBranch("no_hits_stored",&no_hits_stored,"no_hits_stored/I");
-    CreateBranch("hit_tpc",hit_tpc,"hit_tpc[no_hits_stored]/S");
-    CreateBranch("hit_plane",hit_plane,"hit_plane[no_hits_stored]/S");
-    CreateBranch("hit_wire",hit_wire,"hit_wire[no_hits_stored]/S");
-    CreateBranch("hit_channel",hit_channel,"hit_channel[no_hits_stored]/S");
-    CreateBranch("hit_peakT",hit_peakT,"hit_peakT[no_hits_stored]/F");
-    CreateBranch("hit_charge",hit_charge,"hit_charge[no_hits_stored]/F");
-    CreateBranch("hit_ph",hit_ph,"hit_ph[no_hits_stored]/F");
-    CreateBranch("hit_startT",hit_startT,"hit_startT[no_hits_stored]/F");
-    CreateBranch("hit_endT",hit_endT,"hit_endT[no_hits_stored]/F");
-    CreateBranch("hit_rms",hit_rms,"hit_rms[no_hits_stored]/F");
-    CreateBranch("hit_trueX",hit_trueX,"hit_trueX[no_hits_stored]/F");
-    CreateBranch("hit_goodnessOfFit",hit_goodnessOfFit,"hit_goodnessOfFit[no_hits_stored]/F");
-    CreateBranch("hit_multiplicity",hit_multiplicity,"hit_multiplicity[no_hits_stored]/S");
-    CreateBranch("hit_trkid",hit_trkid,"hit_trkid[no_hits_stored]/S");
-    CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits_stored]/S");
-    CreateBranch("hit_clusterid",hit_clusterid,"hit_clusterid[no_hits_stored]/S");
-    CreateBranch("hit_clusterKey",hit_clusterKey,"hit_clusterKey[no_hits_stored]/S");
-    if (!isCosmics){
-      CreateBranch("hit_nelec",hit_nelec,"hit_nelec[no_hits_stored]/F");
-      CreateBranch("hit_energy",hit_energy,"hit_energy[no_hits_stored]/F");
+    CreateBranch("NumberOfHits",&no_hits,"no_hits/I");
+    //CreateBranch("NumberOfHits_Stored,&no_hits_stored,"no_hits_stored/I");
+    CreateBranch("Hit_TPC",hit_tpc,"hit_tpc[no_hits]/S");
+    CreateBranch("Hit_View",hit_view,"hit_view[no_hits]/S");
+//    CreateBranch("hit_wire",hit_wire,"hit_wire[no_hits]/S");
+    CreateBranch("Hit_Channel",hit_channel,"hit_channel[no_hits]/S");
+    CreateBranch("Hit_PeakTime",hit_peakT,"hit_peakT[no_hits]/F");
+    CreateBranch("Hit_ChargeSummedADC",hit_chargesum,"hit_chargesum[no_hits]/F");
+    CreateBranch("Hit_ChargeIntegral",hit_chargeintegral,"hit_chargeintegral[no_hits]/F");
+    CreateBranch("Hit_PeakHeight",hit_ph,"hit_ph[no_hits]/F");
+    CreateBranch("Hit_StartTime",hit_startT,"hit_startT[no_hits]/F");
+    CreateBranch("Hit_EndTime",hit_endT,"hit_endT[no_hits]/F");
+    CreateBranch("Hit_Width",hit_rms,"hit_rms[no_hits]/F");
+//    CreateBranch("hit_trueX",hit_trueX,"hit_trueX[no_hits]/F");
+    CreateBranch("Hit_GoodnessOfFit",hit_goodnessOfFit,"hit_goodnessOfFit[no_hits]/F");
+    CreateBranch("Hit_Multiplicity",hit_multiplicity,"hit_multiplicity[no_hits]/S");
+    CreateBranch("Hit_TrackID",hit_trkid,"hit_trkid[no_hits]/S");
+//    CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits]/S");
+    CreateBranch("Hit_ClusterID",hit_clusterid,"hit_clusterid[no_hits]/S");
+//    CreateBranch("hit_clusterKey",hit_clusterKey,"hit_clusterKey[no_hits]/S");
+/*    if (!isCosmics){
+      CreateBranch("hit_nelec",hit_nelec,"hit_nelec[no_hits]/F");
+      CreateBranch("hit_energy",hit_energy,"hit_energy[no_hits]/F");
     }
-    if (hasRawDigitInfo()){
-      CreateBranch("rawD_ph",rawD_ph,"rawD_ph[no_hits_stored]/F");
-      CreateBranch("rawD_peakT",rawD_peakT,"rawD_peakT[no_hits_stored]/F");
-      CreateBranch("rawD_charge",rawD_charge,"rawD_charge[no_hits_stored]/F");
-      CreateBranch("rawD_fwhh",rawD_fwhh,"rawD_fwhh[no_hits_stored]/F");
-      CreateBranch("rawD_rms",rawD_rms,"rawD_rms[no_hits_stored]/D");
+*/    if (hasRawDigitInfo()){
+      CreateBranch("rawD_ph",rawD_ph,"rawD_ph[no_hits]/F");
+      CreateBranch("rawD_peakT",rawD_peakT,"rawD_peakT[no_hits]/F");
+      CreateBranch("rawD_charge",rawD_charge,"rawD_charge[no_hits]/F");
+      CreateBranch("rawD_fwhh",rawD_fwhh,"rawD_fwhh[no_hits]/F");
+      CreateBranch("rawD_rms",rawD_rms,"rawD_rms[no_hits]/D");
     }
   }
-
+/*
   if (hasPandoraNuVertexInfo()){
     CreateBranch("nnuvtx", &nnuvtx, "nnuvtx/S");
     CreateBranch("nuvtxx", nuvtxx, "nuvtxx[nnuvtx]/F");
@@ -2814,32 +2865,33 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("nuvtxz", nuvtxz, "nuvtxz[nnuvtx]/F");
     CreateBranch("nuvtxpdg", nuvtxpdg, "nuvtxpdg[nnuvtx]/S");
   }
-
+*/
   if (hasClusterInfo()){
-    CreateBranch("nclusters",&nclusters,"nclusters/S");
-    CreateBranch("clusterId", clusterId, "clusterId[nclusters]/S");
-    CreateBranch("clusterView", clusterView, "clusterView[nclusters]/S");
-    CreateBranch("cluster_StartCharge", cluster_StartCharge, "cluster_StartCharge[nclusters]/F");
-    CreateBranch("cluster_StartAngle", cluster_StartAngle, "cluster_StartAngle[nclusters]/F");
-    CreateBranch("cluster_EndCharge", cluster_EndCharge, "cluster_EndCharge[nclusters]/F");
-    CreateBranch("cluster_EndAngle", cluster_EndAngle, "cluster_EndAngle[nclusters]/F");
-    CreateBranch("cluster_Integral", cluster_Integral, "cluster_Integral[nclusters]/F");
-    CreateBranch("cluster_IntegralAverage", cluster_IntegralAverage, "cluster_IntegralAverage[nclusters]/F");
-    CreateBranch("cluster_SummedADC", cluster_SummedADC, "cluster_SummedADC[nclusters]/F");
-    CreateBranch("cluster_SummedADCaverage", cluster_SummedADCaverage, "cluster_SummedADCaverage[nclusters]/F");
-    CreateBranch("cluster_MultipleHitDensity", cluster_MultipleHitDensity, "cluster_MultipleHitDensity[nclusters]/F");
-    CreateBranch("cluster_Width", cluster_Width, "cluster_Width[nclusters]/F");
-    CreateBranch("cluster_NHits", cluster_NHits, "cluster_NHits[nclusters]/S");
-    CreateBranch("cluster_StartWire", cluster_StartWire, "cluster_StartWire[nclusters]/S");
-    CreateBranch("cluster_StartTick", cluster_StartTick, "cluster_StartTick[nclusters]/S");
-    CreateBranch("cluster_EndWire", cluster_EndWire, "cluster_EndWire[nclusters]/S");
+    CreateBranch("NumberOfClusters",&nclusters,"nclusters/S");
+    CreateBranch("ClusterID", clusterId, "clusterId[nclusters]/S");
+    CreateBranch("Cluster_NumberOfHits", cluster_NHits, "cluster_NHits[nclusters]/S");
+    CreateBranch("Cluster_View", clusterView, "clusterView[nclusters]/S");
+    CreateBranch("Cluster_ChargeIntegral", cluster_Integral, "cluster_Integral[nclusters]/F");
+    CreateBranch("Cluster_ChargeIntegralAveragePerHit", cluster_IntegralAverage, "cluster_IntegralAverage[nclusters]/F");
+//    CreateBranch("Cluster_SummedADC", cluster_SummedADC, "cluster_SummedADC[nclusters]/F");
+//    CreateBranch("Cluster_SummedADCAveragePerHit", cluster_SummedADCaverage, "cluster_SummedADCaverage[nclusters]/F");
+//    CreateBranch("Cluster_MultipleHitDensity", cluster_MultipleHitDensity, "cluster_MultipleHitDensity[nclusters]/F");
+//    CreateBranch("Cluster_Width", cluster_Width, "cluster_Width[nclusters]/F");
+    CreateBranch("Cluster_StartChannel", cluster_StartWire, "cluster_StartWire[nclusters]/S");
+    CreateBranch("Cluster_StartTick", cluster_StartTick, "cluster_StartTick[nclusters]/S");
+    CreateBranch("Cluster_EndChannel", cluster_EndWire, "cluster_EndWire[nclusters]/S");
     CreateBranch("cluster_EndTick", cluster_EndTick, "cluster_EndTick[nclusters]/S");
-    CreateBranch("cluncosmictags_tagger", cluncosmictags_tagger, "cluncosmictags_tagger[nclusters]/S");
-    CreateBranch("clucosmicscore_tagger", clucosmicscore_tagger, "clucosmicscore_tagger[nclusters]/F");
-    CreateBranch("clucosmictype_tagger", clucosmictype_tagger, "clucosmictype_tagger[nclusters]/S");
+    CreateBranch("Cluster_StartCharge", cluster_StartCharge, "cluster_StartCharge[nclusters]/F");
+    CreateBranch("Cluster_StartAngle", cluster_StartAngle, "cluster_StartAngle[nclusters]/F");
+    CreateBranch("Cluster_EndCharge", cluster_EndCharge, "cluster_EndCharge[nclusters]/F");
+    CreateBranch("Cluster_EndAngle", cluster_EndAngle, "cluster_EndAngle[nclusters]/F");
+
+//    CreateBranch("cluncosmictags_tagger", cluncosmictags_tagger, "cluncosmictags_tagger[nclusters]/S");
+//    CreateBranch("clucosmicscore_tagger", clucosmicscore_tagger, "clucosmicscore_tagger[nclusters]/F");
+//    CreateBranch("clucosmictype_tagger", clucosmictype_tagger, "clucosmictype_tagger[nclusters]/S");
   }
 
-  if (hasFlashInfo()){
+/*  if (hasFlashInfo()){
     CreateBranch("no_flashes",&no_flashes,"no_flashes/I");
     CreateBranch("flash_time",flash_time,"flash_time[no_flashes]/F");
     CreateBranch("flash_pe",flash_pe,"flash_pe[no_flashes]/F");
@@ -2849,14 +2901,14 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("flash_zwidth",flash_zwidth,"flash_zwidth[no_flashes]/F");
     CreateBranch("flash_timewidth",flash_timewidth,"flash_timewidth[no_flashes]/F");
   }
-
-  if (hasExternCountInfo()){
+*/
+/*  if (hasExternCountInfo()){
     CreateBranch("no_ExternCounts",&no_ExternCounts,"no_ExternCounts/I");
     CreateBranch("externcounts_time",externcounts_time,"externcounts_time[no_ExternCounts]/F");
     CreateBranch("externcounts_id",externcounts_id,"externcounts_id[no_ExternCounts]/F");
   }
-
-  if (hasTrackInfo()){
+*/
+/*  if (hasTrackInfo()){
     kNTracker = trackers.size();
     CreateBranch("kNTracker",&kNTracker,"kNTracker/B");
     for(int i=0; i<kNTracker; i++){
@@ -2867,8 +2919,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
       TrackData[i].SetAddresses(pTree, TrackLabel, isCosmics);
     } // for trackers
   }
-
-  if (hasVertexInfo()){
+*/
+/*  if (hasVertexInfo()){
     kNVertexAlgos = vertexalgos.size();
     CreateBranch("kNVertexAlgos",&kNVertexAlgos,"kNVertexAlgos/B");
     for(int i=0; i<kNVertexAlgos; i++){
@@ -2879,7 +2931,7 @@ void dune::AnaRootParserDataStruct::SetAddresses(
       VertexData[i].SetAddresses(pTree, VertexLabel, isCosmics);
     } // for trackers
   }
-
+*/
   if (hasShowerInfo()){
     kNShowerAlgos = showeralgos.size();
     CreateBranch("kNShowerAlgos",&kNShowerAlgos,"kNShowerAlgos/B");
@@ -2894,7 +2946,7 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     //CreateBranch("kNVertexAlgos",&kNVertexAlgos,"kNVertexAlgos/B"); // What would be the PFParticle equivalent of this? There's only 1 algo!
     PFParticleData.SetAddresses(pTree);
   }
-
+/*
   if (hasGenieInfo()){
     CreateBranch("mcevts_truth",&mcevts_truth,"mcevts_truth/I");
     CreateBranch("nuPDG_truth",nuPDG_truth,"nuPDG_truth[mcevts_truth]/I");
@@ -2962,7 +3014,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("genie_ND",genie_ND,"genie_ND[genie_no_primaries]/I");
     CreateBranch("genie_mother",genie_mother,"genie_mother[genie_no_primaries]/I");
   }
-
+*/
+/*
   if (hasCryInfo()){
     CreateBranch("mcevts_truthcry",&mcevts_truthcry,"mcevts_truthcry/I");
     CreateBranch("cry_no_primaries",&cry_no_primaries,"cry_no_primaries/I");
@@ -2982,7 +3035,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("cry_ND",cry_ND,"cry_ND[cry_no_primaries]/I");
     CreateBranch("cry_mother",cry_mother,"cry_mother[cry_no_primaries]/I");
   }
-
+*/
+/*
   if (hasProtoInfo()) {
     CreateBranch("proto_no_primaries",&proto_no_primaries,"proto_no_primaries/I");
     CreateBranch("proto_isGoodParticle",proto_isGoodParticle,"proto_isGoodParticle[proto_no_primaries]/I");
@@ -2997,7 +3051,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("proto_energy",proto_energy,"proto_energy[proto_no_primaries]/F");
     CreateBranch("proto_pdg",proto_pdg,"proto_pdg[proto_no_primaries]/I");
   }
-
+*/
+/*
   if (hasGeantInfo()){
     CreateBranch("no_primaries",&no_primaries,"no_primaries/I");
     CreateBranch("geant_list_size",&geant_list_size,"geant_list_size/I");
@@ -3072,7 +3127,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("process_primary",process_primary,"process_primary[geant_list_size]/I");
     CreateBranch("processname", processname);
   }
-
+*/
+/*
   if (hasMCShowerInfo()){
     CreateBranch("no_mcshowers",&no_mcshowers,"no_mcshowers/I");
     CreateBranch("mcshwr_origin",mcshwr_origin,"mcshwr_origin[no_mcshowers]/I");
@@ -3116,7 +3172,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("mcshwr_AncestorendY",mcshwr_AncestorendY,"mcshwr_AncestorendY[no_mcshowers]/F");
     CreateBranch("mcshwr_AncestorendZ",mcshwr_AncestorendZ,"mcshwr_AncestorendZ[no_mcshowers]/F");
   }
-
+*/
+/*
   if (hasMCTrackInfo()){
     CreateBranch("no_mctracks",&no_mctracks,"no_mctracks/I");
     CreateBranch("mctrk_origin",mctrk_origin,"mctrk_origin[no_mctracks]/I");
@@ -3159,7 +3216,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("mctrk_AncestorendY",mctrk_AncestorendY,"mctrk_AncestorendY[no_mctracks]/F");
     CreateBranch("mctrk_AncestorendZ",mctrk_AncestorendZ,"mctrk_AncestorendZ[no_mctracks]/F");
   }
-
+*/
+/*
   if (hasAuxDetector()) {
     // Geant information is required to fill aux detector information.
     // if fSaveGeantInfo is not set to true, show an error message and quit!
@@ -3187,7 +3245,7 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("CombinedEnergyDep", CombinedEnergyDep,
 		 "CombinedEnergyDep[geant_list_size]" + MaxAuxDetIndexStr + "/F");
   } // if hasAuxDetector
-
+*/
 } // dune::AnaRootParserDataStruct::SetAddresses()
 
 
@@ -3197,7 +3255,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
 
 dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   EDAnalyzer(pset),
-  fTree(nullptr), fPOT(nullptr),
+  fTree(nullptr), 
+//  fPOT(nullptr),
   fDigitModuleLabel         (pset.get< std::string >("DigitModuleLabel")        ),
   fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel")         ),
   fLArG4ModuleLabel         (pset.get< std::string >("LArGeantModuleLabel")     ),
@@ -3342,14 +3401,14 @@ void dune::AnaRootParser::CreateTree(bool bClearData /* = false */) {
     art::ServiceHandle<art::TFileService> tfs;
     fTree = tfs->make<TTree>("anatree","analysis tree");
   }
-  if (!fPOT) {
+/*  if (!fPOT) {
     art::ServiceHandle<art::TFileService> tfs;
     fPOT = tfs->make<TTree>("pottree","pot tree");
     fPOT->Branch("pot",&SubRunData.pot,"pot/D");
     fPOT->Branch("potbnbETOR860",&SubRunData.potbnbETOR860,"potbnbETOR860/D");
     fPOT->Branch("potbnbETOR875",&SubRunData.potbnbETOR875,"potbnbETOR875/D");
     fPOT->Branch("potnumiETORTGT",&SubRunData.potnumiETORTGT,"potnumiETORTGT/D");
-  }
+  }*/
   CreateData(bClearData);
   SetAddresses();
 } // dune::AnaRootParser::CreateTree()
@@ -3371,7 +3430,7 @@ void dune::AnaRootParser::beginSubRun(const art::SubRun& sr)
 void dune::AnaRootParser::endSubRun(const art::SubRun& sr)
 {
 
-  art::Handle< sumdata::POTSummary > potListHandle;
+/*  art::Handle< sumdata::POTSummary > potListHandle;
   if(sr.getByLabel(fPOTModuleLabel,potListHandle))
     SubRunData.pot=potListHandle->totpot;
   else
@@ -3399,7 +3458,7 @@ void dune::AnaRootParser::endSubRun(const art::SubRun& sr)
     SubRunData.potnumiETORTGT = 0;
 
   if (fPOT) fPOT->Fill();
-
+*/
 }
 
 void dune::AnaRootParser::analyze(const art::Event& evt)
@@ -3710,6 +3769,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   //hit information
   if (fSaveHitInfo){
     fData->no_hits = (int) NHits;
+    fData->NHitsInAllTracks = (int) NHits;
     fData->no_hits_stored = TMath::Min( (int) NHits, (int) kMaxHits);
     if (NHits > kMaxHits) {
       // got this error? consider increasing kMaxHits
@@ -3720,13 +3780,14 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
     for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits
       fData->hit_channel[i] = hitlist[i]->Channel();
       fData->hit_tpc[i]   = hitlist[i]->WireID().TPC;
-      fData->hit_plane[i]   = hitlist[i]->WireID().Plane;
+      fData->hit_view[i]   = hitlist[i]->WireID().Plane;
       fData->hit_wire[i]    = hitlist[i]->WireID().Wire;
       fData->hit_peakT[i]   = hitlist[i]->PeakTime();
-      fData->hit_charge[i]  = hitlist[i]->Integral();
+      fData->hit_chargesum[i]  = hitlist[i]->SummedADC();
+      fData->hit_chargeintegral[i]  = hitlist[i]->Integral();
       fData->hit_ph[i]  = hitlist[i]->PeakAmplitude();
-      fData->hit_startT[i] = hitlist[i]->PeakTimeMinusRMS();
-      fData->hit_endT[i] = hitlist[i]->PeakTimePlusRMS();
+      fData->hit_startT[i] = hitlist[i]->StartTick();
+      fData->hit_endT[i] = hitlist[i]->EndTick();
       fData->hit_rms[i] = hitlist[i]->RMS();
       fData->hit_goodnessOfFit[i] = hitlist[i]->GoodnessOfFit();
       fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
@@ -3734,7 +3795,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       //when the size of simIDEs is zero, the above function throws an exception
       //and crashes, so check that the simIDEs have non-zero size before
       //extracting hit true XYZ from simIDEs
-      if (isMC){
+/*      if (isMC){
         std::vector<sim::IDE> ides;
 	try{
 	  bt->HitToSimIDEs(hitlist[i], ides);
@@ -3745,7 +3806,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
           fData->hit_trueX[i] = xyz[0];
         }
       }
-
+*/
       /*
 	for (unsigned int it=0; it<fTrackModuleLabel.size();++it){
         art::FindManyP<recob::Track> fmtk(hitListHandle,evt,fTrackModuleLabel[it]);
@@ -3799,7 +3860,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 	  }
       } // Save RawDigitInfo
 
-      if (!evt.isRealData()&&!isCosmics){
+/*      if (!evt.isRealData()&&!isCosmics){
 	fData -> hit_nelec[i] = 0;
 	fData -> hit_energy[i] = 0;
 	const sim::SimChannel* chan = 0;
@@ -3815,7 +3876,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 	    }
 	  }
 	}
-      }
+      }*/
     } // Loop over hits
 
     if (evt.getByLabel(fHitsModuleLabel,hitListHandle)){
@@ -3825,7 +3886,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
         if (fmtk.isValid()){
 	  if (fmtk.at(i).size()!=0){
 	    fData->hit_trkid[i] = fmtk.at(i)[0]->ID();
-	    fData->hit_trkKey[i] = fmtk.at(i)[0].key();
+//	    fData->hit_trkKey[i] = fmtk.at(i)[0].key();
 
 	  }
 	  else
@@ -3844,7 +3905,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
         if (fmcl.isValid()){
       	  if (fmcl.at(i).size()!=0){
 	    fData->hit_clusterid[i] = fmcl.at(i)[0]->ID();
-	    fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
+//	    fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
   	  }
 	  else
 	  fData->hit_clusterid[i] = -1;
@@ -3913,7 +3974,10 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       art::Ptr<recob::Cluster> clusterholder(clusterListHandle, ic);
       const recob::Cluster& cluster = *clusterholder;
       fData->clusterId[ic] = cluster.ID();
-      fData->clusterView[ic] = cluster.View();
+      fData->clusterView[ic] = cluster.View(); 
+	 // View 3 in LArSoft corresponds to View 0 in real life (3m long channels). View 2 in LArSoft corresponds to View 1 in real life (1m long channels).
+	 if(fData->clusterView[ic] == 3) {fData->clusterView[ic] = 0;} 
+	 if(fData->clusterView[ic] == 2) {fData->clusterView[ic] = 1;} 
       fData->cluster_isValid[ic] = cluster.isValid();
       fData->cluster_StartCharge[ic] = cluster.StartCharge();
       fData->cluster_StartAngle[ic] = cluster.StartAngle();
@@ -3931,8 +3995,11 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       fData->cluster_EndWire[ic] = cluster.EndWire();
       fData->cluster_EndTick[ic] = cluster.EndTick();
 
+	// Transform StartWire and EndWire to channels
+	if(fData->clusterView[ic] == 1){fData->cluster_StartWire[ic]+=320; fData->cluster_EndWire[ic] += 320;}
+
       //Cosmic Tagger information for cluster
-      art::FindManyP<anab::CosmicTag> fmcct(clusterListHandle,evt,fCosmicClusterTaggerAssocLabel);
+/*      art::FindManyP<anab::CosmicTag> fmcct(clusterListHandle,evt,fCosmicClusterTaggerAssocLabel);
       if (fmcct.isValid()){
 	fData->cluncosmictags_tagger[ic]     = fmcct.at(ic).size();
 	if (fmcct.at(ic).size()>0){
@@ -3941,7 +4008,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 	  fData->clucosmicscore_tagger[ic] = fmcct.at(ic).at(0)->CosmicScore();
 	  fData->clucosmictype_tagger[ic] = fmcct.at(ic).at(0)->CosmicType();
 	}
-      }
+      } */
     }//end loop over clusters
   }//end fSaveClusterInfo
 
@@ -4152,11 +4219,31 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       AnaRootParserDataStruct::TrackDataStruct& TrackerData = fData->GetTrackerData(iTracker);
 
       size_t NTracks = tracklist[iTracker].size();
+
       // allocate enough space for this number of tracks (but at least for one of them!)
       TrackerData.SetMaxTracks(std::max(NTracks, (size_t) 1));
       TrackerData.Clear(); // clear all the data
 
       TrackerData.ntracks = (int) NTracks;
+/*
+      //First loop over tracks to get array sizes (number of hits in each track)
+      for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
+	art::FindMany<anab::Calorimetry> fmcaltemp(trackListHandle[iTracker], evt, fCalorimetryModuleLabel[iTracker]);
+	if (fmcaltemp.isValid()){
+	  std::vector<const anab::Calorimetry*> calostemp = fmcaltemp.at(iTrk);
+	  for (size_t ical = 0; ical<calostemp.size(); ++ical){
+	    if (!calostemp[ical]) continue;
+	    if (!calostemp[ical]->PlaneID().isValid) continue;
+	    int planenumtemp = calostemp[ical]->PlaneID().Plane;
+	    if (planenumtemp<0||planenumtemp>2) continue;
+	    //For now make the second argument as 13 for muons.
+//	    const size_t NHitsTemp = calostemp[ical] -> dEdx().size();
+//	    TrackerData.NHitsInAllTracks+=(int) NHitsTemp;
+//	    fData->NHitsInAllTracks+=(int) NHitsTemp;
+	  } // for calorimetry info
+	} // if has calorimetry info
+      }//loop over tracks
+*/
 
       // now set the tree addresses to the newly allocated memory;
       // this creates the tree branches in case they are not there yet
@@ -4172,6 +4259,8 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       //call the track momentum algorithm that gives you momentum based on track range
       trkf::TrackMomentumCalculator trkm;
       trkm.SetMinLength(100); //change the minimal track length requirement to 50 cm
+
+      int HitIterator=0;
 
       for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
 
@@ -4418,11 +4507,13 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 	      << " has " << calos.size() << " planes for calorimetry , only "
 	      << TrackerData.GetMaxPlanesPerTrack(iTrk) << " stored in tree";
 	  }
-	  for (size_t ical = 0; ical<calos.size(); ++ical){
+
+//	  for (size_t ical = 0; ical<calos.size(); ++ical){
+	  for (size_t ical = calos.size() - 1; ical>=0 && ical <= 1 ; --ical){  //reverse order so that we access info on plane 0 (which is view 0 in real life) first
 	    if (!calos[ical]) continue;
 	    if (!calos[ical]->PlaneID().isValid) continue;
 	    int planenum = calos[ical]->PlaneID().Plane;
-	    if (planenum<0||planenum>2) continue;
+	    if (planenum<0||planenum>1) continue; //only two planes (0 and 1) in dual phase
 	    TrackerData.trkke[iTrk][planenum]    = calos[ical]->KineticEnergy();
 	    TrackerData.trkrange[iTrk][planenum] = calos[ical]->Range();
 	    //For now make the second argument as 13 for muons.
@@ -4448,9 +4539,18 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 		TrkXYZ[0] = TrkPos.X();
 		TrkXYZ[1] = TrkPos.Y();
 		TrkXYZ[2] = TrkPos.Z();
+		//TrackerData.trkdedx2.push_back((calos[ical] -> dEdx())[iTrkHit]);
+		TrackerData.trkdedx2[HitIterator] = (calos[ical] -> dEdx())[iTrkHit];
+		TrackerData.trkdqdx2[HitIterator] = (calos[ical] -> dQdx())[iTrkHit];
+		TrackerData.trktpc2[HitIterator] = (calos[ical] -> PlaneID()).TPC;
+		TrackerData.trkx2[HitIterator] = TrkPos.X();
+		TrackerData.trky2[HitIterator] = TrkPos.Y();
+		TrackerData.trkz2[HitIterator] = TrkPos.Z();
+		HitIterator++;
 	      } // for track hits
 	    }
 	  } // for calorimetry info
+
 	  if(TrackerData.ntrkhits[iTrk][0] > TrackerData.ntrkhits[iTrk][1] && TrackerData.ntrkhits[iTrk][0] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
 	  else if(TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 1;
 	  else if(TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
@@ -4522,7 +4622,9 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 	    if (totenergy) TrackerData.trkcompleteness[iTrk] = maxe/totenergy;
 	  }
 	}//end if (isMC)
+
       }//end loop over track
+	//std::cout << "HitIterator: " << HitIterator << std::endl; 
     }//end loop over track module labels
   }// end (fSaveTrackInfo)
 
@@ -4591,7 +4693,9 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
   //mc truth information
   if (isMC){
+
     if (fSaveCryInfo){
+
       //store cry (cosmic generator information)
       fData->mcevts_truthcry = mclistcry.size();
       fData->cry_no_primaries = nCryPrimaries;
@@ -5101,7 +5205,9 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       } // if (fSaveGeantInfo)
     }//if (mcevts_truth)
   }//if (isMC){
+
   fData->taulife = detprop->ElectronLifetime();
+
   fTree->Fill();
 
   if (mf::isDebugEnabled()) {
@@ -5111,6 +5217,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
     logStream
       << "Tree data structure contains:"
       << "\n - " << fData->no_hits << " hits (" << fData->GetMaxHits() << ")"
+      << "\n - " << fData->NHitsInAllTracks << " hits (" << fData->GetMaxHits() << ")"
       << "\n - " << fData->genie_no_primaries << " genie primaries (" << fData->GetMaxGeniePrimaries() << ")"
       << "\n - " << fData->geant_list_size << " GEANT particles (" << fData->GetMaxGEANTparticles() << "), "
       << fData->no_primaries << " primaries"
@@ -5145,6 +5252,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
     LOG_DEBUG("AnaRootParserStructure") << "Freeing the tree data structure";
     DestroyData();
   }
+
 } // dune::AnaRootParser::analyze()
 
 
