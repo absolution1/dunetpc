@@ -18,15 +18,17 @@ DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
     fCoherent32( pset.get<bool>("Coherent32") ),
     fCoherent16( pset.get<bool>("Coherent16") ),
-    fLowFreq( pset.get<bool>("LowFreq") ),
+    fLowPassFlt( pset.get<bool>("LowPassFlt") ),
+    fFlattenLowFreq( pset.get<bool>("FlattenLowFreq") ),
     fCoherent32Groups( pset.get<std::vector<size_t>>("Coherent32Groups") ),
     fCoherent16Groups( pset.get<std::vector<size_t>>("Coherent16Groups") ),
-    fFltCoeffs( pset.get<std::vector<float>>("FltCoeffs") ),
+    fFlattenCoeffs( pset.get<std::vector<float>>("FlattenCoeffs") ),
     fRoiStartThreshold( pset.get<float>("RoiStartThreshold") ),
     fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
     fRoiPadLow( pset.get<int>("RoiPadLow") ),
     fRoiPadHigh( pset.get<int>("RoiPadHigh") ),
-    fGeometry( &*art::ServiceHandle<geo::Geometry>() )
+    fGeometry( &*art::ServiceHandle<geo::Geometry>() ),
+    fFFT( &*art::ServiceHandle<util::LArFFT>() )
 {
     if (pset.get<std::string>("CorrMode") == "mean") { fMode = 1; }
     else if (pset.get<std::string>("CorrMode") == "median") { fMode = 2; }
@@ -35,6 +37,32 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
         std::cout << "DuneDPhase3x1x1NoiseRemovalService WARNING: correction set to mean value." << std::endl;
         fMode = 1;
     }
+
+    fLowPassCoeffs.resize(fFFT->FFTSize() / 2 + 1);
+
+    const float fcut = 0.5; // [MHz]
+    for (size_t i = 0; i < fLowPassCoeffs.size(); ++i)
+    {
+        float f = 0.0015 * i; // [MHz]
+        fLowPassCoeffs[i] = 1.0 / sqrt(1.0 + pow(f/fcut, 8));
+    }
+
+    fSize_2     = 2 * fFFT->FFTSize();
+    fFreqSize_2 = fSize_2 / 2 + 1;
+    fFFT_2      = new TFFTRealComplex(fSize_2, false);
+    fInvFFT_2   = new TFFTComplexReal(fSize_2, false);
+
+    int dummy[1] = {0};
+    fFFT_2->Init("", -1, dummy);  
+    fInvFFT_2->Init("", 1, dummy);  
+}
+//**********************************************************************
+
+DuneDPhase3x1x1NoiseRemovalService::
+~DuneDPhase3x1x1NoiseRemovalService()
+{
+  delete fFFT_2;
+  delete fInvFFT_2;  
 }
 //**********************************************************************
 
@@ -78,7 +106,12 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     removeCoherent(ch_groups, datamap);
   }
 
-  if (fLowFreq)
+  if (fLowPassFlt)
+  {
+    removeHighFreq(datamap);
+  }
+
+  if (fFlattenLowFreq)
   {
     removeLowFreq(datamap);
   }
@@ -152,12 +185,13 @@ std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMedianCorrection(
   std::vector<float> correction(n_samples);
   for (size_t s = 0; s < n_samples; ++s)
   {
+      size_t n = samples[s].size();
+      if (n < 2) { correction[s] = 0; continue; }
+
       std::sort(samples[s].begin(), samples[s].end());
 
-      size_t n = samples[s].size();
-      if (n < 2)             { correction[s] = 0; }
-      else if ((n % 2) == 0) { correction[s] = 0.5 * (samples[s][n/2] + samples[s][(n/2)-1]); }
-      else                   { correction[s] = samples[s][(n-1)/2]; }
+      if ((n % 2) == 0) { correction[s] = 0.5 * (samples[s][n/2] + samples[s][(n/2)-1]); }
+      else              { correction[s] = samples[s][(n-1)/2]; }
   }
   return correction;
 }
@@ -204,11 +238,46 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
 }
 //**********************************************************************
 
+void DuneDPhase3x1x1NoiseRemovalService::doFFT_2(std::vector< float > & input, std::vector< TComplex > & output) const
+{
+  for (size_t p = 0; p < input.size(); ++p) { fFFT_2->SetPoint(p, input[p]); }
+  
+  fFFT_2->Transform();
+  double real = 0., img = 0.;
+  for (size_t i = 0; i < fFreqSize_2; ++i)
+  {
+    fFFT_2->GetPointComplex(i, real, img);
+    output[i] = TComplex(real, img);
+  }
+  return;
+}
+void DuneDPhase3x1x1NoiseRemovalService::doInvFFT_2(std::vector< TComplex > & input, std::vector< float > & output) const
+{
+  for (size_t i = 0; i < fFreqSize_2; ++i) { fInvFFT_2->SetPointComplex(i, input[i]); }
+
+  fInvFFT_2->Transform();  
+  double factor = 1.0/(double)fSize_2;
+  for (size_t i = 0; i < fSize_2; ++i)
+  {
+    output[i] = factor*fInvFFT_2->GetPointReal(i, false);
+  }
+  return;
+}
+
+void DuneDPhase3x1x1NoiseRemovalService::removeHighFreq(AdcChannelDataMap& datamap) const
+{
+    auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
+
+    for (auto & entry : datamap)
+    {
+        if (chStatus.IsGood(entry.first)) { fftFltInPlace(entry.second.samples, fLowPassCoeffs); }
+    }
+}
+
 void DuneDPhase3x1x1NoiseRemovalService::removeLowFreq(AdcChannelDataMap& datamap) const
 {
-  art::ServiceHandle<util::LArFFT> fft;
-  std::vector< TComplex > ch_spectrum(fft->FFTSize() / 2 + 1);
-  std::vector< float > ch_waveform(fft->FFTSize(), 0);
+  std::vector< TComplex > ch_spectrum(fFreqSize_2);
+  std::vector< float > ch_waveform(fSize_2, 0);
 
   auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
 
@@ -217,21 +286,104 @@ void DuneDPhase3x1x1NoiseRemovalService::removeLowFreq(AdcChannelDataMap& datama
     if (!chStatus.IsGood(entry.first)) { continue; }
 
     auto & adc = entry.second.samples;
+    auto mask = roiMask(entry.second);
     size_t n_samples = adc.size();
 
-    std::copy(adc.begin(), adc.end(), ch_waveform.begin());
-    for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+    float i = 0, s0 = 0, s1 = 0;
+    while (i < n_samples)
     {
-        ch_waveform[s] = ch_waveform[s-1];
+        if (mask[i]) { s0 = adc[i]; ch_waveform[i] = s0; ++i; }
+        else
+        {
+            size_t j = i;
+            while ((j < n_samples) && !mask[j]) { ++j; }
+            if (j < n_samples) { s1 = adc[j]; }
+            else { s1 = s0; }
+
+            float ds = (s1 - s0) / (j - i + 1);
+
+            j = i;
+            while ((j < n_samples) && !mask[j])
+            {
+                ch_waveform[j] = s0 + (j - i + 1) * ds;
+                ++j;
+            }
+            i = j;
+        }
     }
-    fft->DoFFT(ch_waveform, ch_spectrum);
-    for (size_t c = 0; c < fFltCoeffs.size(); ++c)
+
+    float shift = 2 * adc.back();
+    for (size_t s = n_samples; s < 2*n_samples; ++s)
     {
-        ch_spectrum[c] *= fFltCoeffs[c];
+        ch_waveform[s] = -ch_waveform[2*n_samples - s - 1] + shift;
     }
-    fft->DoInvFFT(ch_spectrum, ch_waveform);
-    std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, adc.begin());
+    shift = 2 * ch_waveform[2*n_samples-1];
+    for (size_t s = 2*n_samples; s < ch_waveform.size(); ++s)
+    {
+        ch_waveform[s] = -ch_waveform[4*n_samples - s - 1];
+    }
+    doFFT_2(ch_waveform, ch_spectrum);
+
+    for (size_t c = 0; c < fFlattenCoeffs.size(); ++c)
+    {
+        ch_spectrum[c] *= 1.0 - fFlattenCoeffs[c];
+    }
+    for (size_t c = fFlattenCoeffs.size(); c < ch_spectrum.size(); ++c)
+    {
+        ch_spectrum[c] = 0;
+    }
+    doInvFFT_2(ch_spectrum, ch_waveform);
+
+    for (size_t s = 0; s < n_samples; ++s) { adc[s] -= ch_waveform[s]; }
   }
+}
+//**********************************************************************
+
+void DuneDPhase3x1x1NoiseRemovalService::fftFltInPlace(std::vector< float > & adc, const std::vector< float > & coeffs) const
+{
+  std::vector< TComplex > ch_spectrum(fFFT->FFTSize() / 2 + 1);
+  std::vector< float > ch_waveform(fFFT->FFTSize(), 0);
+
+  size_t n_samples = adc.size();
+
+  std::copy(adc.begin(), adc.end(), ch_waveform.begin());
+  for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+  {
+      ch_waveform[s] = ch_waveform[2*n_samples - s - 1];
+  }
+  fFFT->DoFFT(ch_waveform, ch_spectrum);
+  for (size_t c = 0; c < coeffs.size(); ++c)
+  {
+      ch_spectrum[c] *= coeffs[c];
+  }
+  fFFT->DoInvFFT(ch_spectrum, ch_waveform);
+
+  std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, adc.begin());
+}
+//**********************************************************************
+
+std::vector< float > DuneDPhase3x1x1NoiseRemovalService::fftFlt(const std::vector< float > & adc, const std::vector< float > & coeffs) const
+{
+  std::vector< TComplex > ch_spectrum(fFFT->FFTSize() / 2 + 1);
+  std::vector< float > ch_waveform(fFFT->FFTSize(), 0);
+
+  size_t n_samples = adc.size();
+
+  std::copy(adc.begin(), adc.end(), ch_waveform.begin());
+  for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+  {
+      ch_waveform[s] = ch_waveform[2*n_samples - s - 1];
+  }
+  fFFT->DoFFT(ch_waveform, ch_spectrum);
+  for (size_t c = 0; c < coeffs.size(); ++c)
+  {
+      ch_spectrum[c] *= coeffs[c];
+  }
+  fFFT->DoInvFFT(ch_spectrum, ch_waveform);
+
+  std::vector< float > flt_adc(n_samples);
+  std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, flt_adc.begin());
+  return flt_adc;
 }
 //**********************************************************************
 
@@ -239,16 +391,18 @@ std::vector<bool> DuneDPhase3x1x1NoiseRemovalService::roiMask(const AdcChannelDa
 {
   std::vector<bool> mask(adc.samples.size(), true);
 
+  auto adc_flt = fftFlt(adc.samples, fLowPassCoeffs);
+
   bool inroi = false;
-  for (int i = 0; i < (int)adc.samples.size(); ++i)
+  for (int i = 0; i < (int)adc_flt.size(); ++i)
   {
-    AdcSignal sig = adc.samples[i];
+    auto sig = adc_flt[i];
     if (inroi)
     {
       if (sig > fRoiEndThreshold) { mask[i] = false; }
       else
       {
-        for (int p = 0; p <= fRoiPadHigh; ++p) { if (i + p < (int)mask.size()) { mask[i + p] = false; } }
+        for (int p = 0; p <= fRoiPadHigh; ++p) { if ((i + p) < (int)mask.size()) { mask[i + p] = false; } }
         inroi = false;
       }
     }
@@ -256,7 +410,7 @@ std::vector<bool> DuneDPhase3x1x1NoiseRemovalService::roiMask(const AdcChannelDa
     {
       if (sig > fRoiStartThreshold )
       {
-        for (int p = fRoiPadLow; p >= 0; --p) { if (i - p >= 0) { mask[i + p] = false; } }
+        for (int p = fRoiPadLow; p >= 0; --p) { if (i - p >= 0) { mask[i - p] = false; } }
         inroi = true;
       }
     }
