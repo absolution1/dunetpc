@@ -7,9 +7,15 @@ services.RandomNumberGenerator: 	{}
 
 source:
 {
+<<<<<<< HEAD
 fileNames: ["/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/calibrations/748/748-0.pul.cal"]
 module_type: ImportFull311File
 max_events: -1
+=======
+  fileNames: ["/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/calibrations/748/748-0.pul.cal"]
+  module_type: ImportFull311File
+fileNames: [ "/eos/experiment/wa105/data/311/rawdata/840/840-103.dat" ]
+>>>>>>> 82350b32a07376e99b27bcab842e11bd9b2e6dae
 }
 
 outputs:
@@ -28,3 +34,7 @@ physics:
   stream1: 	[ out1 ]
   end_paths: 	[ stream1 ]
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 82350b32a07376e99b27bcab842e11bd9b2e6dae
