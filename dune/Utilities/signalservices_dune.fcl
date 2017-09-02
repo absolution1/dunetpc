@@ -104,7 +104,7 @@ dunefddphase_signalshapingservice:
 
   RespSamplingPeriod: 400. # in nano second
 
-  AddFieldFunction: true
+  AddFieldFunction: false
   ColFieldFunction: "x*[0]"
   ColFieldFunctionParams: [1.0]
   ColFieldRespAmp: 1.0
