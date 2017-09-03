@@ -11,6 +11,8 @@
 #include "TDirectory.h"
 #include "TFile.h"
 #include "TH1F.h"
+#include "TF1.h"
+#include "TROOT.h"
 
 using std::string;
 using std::cout;
@@ -74,10 +76,20 @@ int AdcPedestalFitter::view(const AdcChannelData& acd) const {
   for ( Index isam=0; isam<nsam; ++isam ) {
     phr->Fill(acd.raw[isam]);
   }
-  int binmax = phr->GetMaximumBin();
-  double adcmax = phr->GetBinCenter(binmax);
+  int binmax1 = phr->GetMaximumBin();
   double adcmean = phr->GetMean();
-  //double adcrms = phr->GetRMS();
+  // Max may just be a sticky code. Reduce it and find the next maximum.
+  double ntic1 = phr->GetBinContent(binmax1);
+  phr->SetBinContent(binmax1, 0.01*ntic1);
+  int binmax2 = phr->GetMaximumBin();
+  // Define the max to be the first value if the two maxima are close or the
+  // average if they are far part.
+  int binmax = binmax1;
+  if ( abs(binmax2-binmax1) > 1 ) {
+    binmax = (binmax1 + binmax2)/2;
+    adcmean = phr->GetMean();
+  }
+  double adcmax = phr->GetBinCenter(binmax);
   delete phr;
   double wadc = 100.0;
   double adc1 = adcmax - 0.5*wadc;
@@ -90,7 +102,13 @@ int AdcPedestalFitter::view(const AdcChannelData& acd) const {
   }
   phf->SetStats(0);
   phf->SetLineWidth(2);
-  phf->Fit("gaus");
+  TF1 fitter("pedgaus", "gaus", adc1, adc2, TF1::EAddToList::kNo);
+  fitter.SetParameters(phf->Integral(), adcmean, 5.0);
+  fitter.SetParLimits(1, adc1, adc2);
+  fitter.SetParLimits(2, 1.0, 30.0);
+  string fopt;
+  if ( m_LogLevel < 2 ) fopt += "Q";
+  phf->Fit(&fitter, fopt.c_str());
   int rstat = m_phm != nullptr;
   if ( rstat != 0 ) {
     if ( m_phm->manage(phf) ) {
