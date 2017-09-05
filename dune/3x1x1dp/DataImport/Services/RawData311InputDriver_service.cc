@@ -262,7 +262,11 @@ namespace lris
     // Prepare some stuff
     art::RunNumber_t rn;
     rn = file_head.run_num;
-    art::Timestamp tstamp = event_head.trig_info.ts.tv_sec;
+
+    std::uint64_t tthi = event_head.trig_info.ts.tv_sec;
+    std::uint64_t thilo = (tthi << 32) + event_head.trig_info.ts.tv_nsec;
+    art::Timestamp tstamp(thilo);
+
     size_t pos = filename.find("-");
 		size_t end = filename.find(".");
     std::string str_subrn = filename.substr(pos+1, end-1);
