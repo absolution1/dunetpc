@@ -489,7 +489,8 @@ namespace dune {
     Int_t      run;                  //run number
     Int_t      subrun;               //subrun number
     Int_t      event;                //event number
-    Double_t   evttime;              //event time in sec
+    Int_t   evttime_seconds;              //event time in seconds
+    Int_t   evttime_nanoseconds;              //event time in nanoseconcds
     Double_t   beamtime;             //beam time
     Double_t   pot;                  //protons on target moved in subrun data
     Double_t   taulife;              //electron lifetime
@@ -2221,7 +2222,8 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   run = -99999;
   subrun = -99999;
   event = -99999;
-  evttime = -99999;
+  evttime_seconds = -99999;
+  evttime_nanoseconds = -99999;
   beamtime = -99999;
   isdata = -99;
   taulife = -99999;
@@ -2811,7 +2813,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
   CreateBranch("Run",&run,"run/I");
   CreateBranch("Subrun",&subrun,"subrun/I");
   CreateBranch("Event",&event,"event/I");
-  CreateBranch("EventTime",&evttime,"evttime/D");
+  CreateBranch("EventTimeSeconds",&evttime_seconds,"evttime_seconds/I");
+  CreateBranch("EventTimeNanoseconds",&evttime_nanoseconds,"evttime_nanoseconds/I");
 //  CreateBranch("beamtime",&beamtime,"beamtime/D");
 //  CreateBranch("pot",&SubRunData.pot,"pot/D");
   CreateBranch("IsData",&isdata,"isdata/B");
@@ -3741,8 +3744,8 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   fData->event = evt.id().event();
 
   art::Timestamp ts = evt.time();
-  TTimeStamp tts(ts.timeHigh(), ts.timeLow());
-  fData->evttime = tts.AsDouble();
+  fData->evttime_seconds = ts.timeHigh();
+  fData->evttime_nanoseconds = ts.timeLow();
 
   //copied from MergeDataPaddles.cxx
   art::Handle< raw::BeamInfo > beam;
