@@ -6,21 +6,23 @@
 # be resubmitted and it will pick up where it left off.  If we need to parallelize this, then the logic will have
 # to be redone a bit.
 
+# set testmode to 1 to test interactively
+testmode=0
 
 source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
-setup dunetpc v06_47_00 -q e14:prof
-
-# for testing _CONDOR_SCRATCH_DIR=/dune/data2/users/trj/wa105testprod/
-
-path_to_working_dir=$_CONDOR_SCRATCH_DIR
+setup dunetpc v06_49_00 -q e14:prof
 
 # change this when we install pedestals in dune_pardata:
-
 data_path_to_pedestal=/pnfs/dune/persistent/users/trj/wa105pedestals/pedestal_run729_1.ped
-
-# for testing: path_to_dropbox=/pnfs/dune/scratch/users/trj/batchtest/
-
 path_to_dropbox=/pnfs/dune/scratch/dunepro/dropbox/data
+
+# Tom's interactive testing
+
+if [[ $testmode = 1 ]]; then
+ _CONDOR_SCRATCH_DIR=/dune/data2/users/trj/wa105testprod/
+ path_to_dropbox=/pnfs/dune/scratch/users/trj/batchtest/
+fi
+path_to_working_dir=$_CONDOR_SCRATCH_DIR
 
 mkdir -p $path_to_working_dir
 cd $path_to_working_dir
@@ -33,7 +35,7 @@ ifdh ls ${path_to_dropbox} > dropboxlist.txt
 
 touch alreadyinsamlist.txt
 rm alreadyinsamlist.txt
-samweb list-files file_name=wa105%.root and data_tier=raw and lbne_data.name=wa105_testdata_2017 > alreadyinsamlist.txt
+samweb list-files file_name=wa105%.root and data_tier=raw and lbne_data.name=wa105_testdata_2017 and version=v06_49_00 > alreadyinsamlist.txt
 
 for file in `samweb list-files file_name="wa105%.dat"`
 do
@@ -42,7 +44,7 @@ do
 # check to see if we already have this file, either in SAM or waiting in the dropbox
 
   filebase=`basename $file .dat`
-  outputfile=${filebase}.root
+  outputfile=${filebase}_importpass2.root
   if [[ x`grep ${outputfile} dropboxlist.txt` != x ]]; then
     continue
   fi
@@ -74,6 +76,7 @@ do
 cat > tmpfcl.fcl <<EOF
 #include "ImportFull311File.fcl"
 source.PedestalFile: "$path_to_pedestal"
+outputs.out1.compressionLevel: 1
 EOF
 
   lar -c tmpfcl.fcl $tmpfilename -o $outputfile
@@ -120,7 +123,10 @@ cat >> $jsonfile <<EOF
 }
 EOF
 
-  samweb declare-file $jsonfile
+  if [[ $testmode = 0 ]]; then
+    samweb declare-file $jsonfile
+  fi
+
   if [[ x`ifdh ls ${path_to_dropbox}/${outputfile}` = x ]]; then
     ifdh cp -D ${outputfile} ${path_to_dropbox}
   fi
@@ -135,6 +141,10 @@ EOF
   rm $jsonfile
   rm tmpfcl.fcl
 
-done
+  if [[ $testmode = 1 ]]; then
+    echo "Test mode. Just running one file"
+    exit
+  fi
 
+done
 
