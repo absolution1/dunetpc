@@ -19,10 +19,9 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     fCoherent32( pset.get<bool>("Coherent32") ),
     fCoherent16( pset.get<bool>("Coherent16") ),
     fLowPassFlt( pset.get<bool>("LowPassFlt") ),
-    fFlattenLowFreq( pset.get<bool>("FlattenLowFreq") ),
+    fFlatten( pset.get<bool>("Flatten") ),
     fCoherent32Groups( pset.get<std::vector<size_t>>("Coherent32Groups") ),
     fCoherent16Groups( pset.get<std::vector<size_t>>("Coherent16Groups") ),
-    fFlattenCoeffs( pset.get<std::vector<float>>("FlattenCoeffs") ),
     fRoiStartThreshold( pset.get<float>("RoiStartThreshold") ),
     fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
     fRoiPadLow( pset.get<int>("RoiPadLow") ),
@@ -46,27 +45,11 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
         float f = 0.0015 * i; // [MHz]
         fLowPassCoeffs[i] = 1.0 / sqrt(1.0 + pow(f/fcut, 8));
     }
-
-    fSize_2     = 2 * fFFT->FFTSize();
-    fFreqSize_2 = fSize_2 / 2 + 1;
-    fFFT_2      = new TFFTRealComplex(fSize_2, false);
-    fInvFFT_2   = new TFFTComplexReal(fSize_2, false);
-
-    int dummy[1] = {0};
-    fFFT_2->Init("", -1, dummy);  
-    fInvFFT_2->Init("", 1, dummy);  
 }
 //**********************************************************************
 
-DuneDPhase3x1x1NoiseRemovalService::
-~DuneDPhase3x1x1NoiseRemovalService()
+int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
 {
-  delete fFFT_2;
-  delete fInvFFT_2;  
-}
-//**********************************************************************
-
-int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const {
   const std::string myname = "DuneDPhase3x1x1NoiseRemovalService:update: ";
   if ( datamap.size() == 0 ) {
     std::cout << myname << "WARNING: No channels found." << std::endl;
@@ -111,9 +94,9 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     removeHighFreq(datamap);
   }
 
-  if (fFlattenLowFreq)
+  if (fFlatten)
   {
-    removeLowFreq(datamap);
+    removeSlope(datamap);
   }
 
   std::cout << myname << "...done." << std::endl;
@@ -238,66 +221,56 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
 }
 //**********************************************************************
 
-void DuneDPhase3x1x1NoiseRemovalService::doFFT_2(std::vector< float > & input, std::vector< TComplex > & output) const
-{
-  for (size_t p = 0; p < input.size(); ++p) { fFFT_2->SetPoint(p, input[p]); }
-  
-  fFFT_2->Transform();
-  double real = 0., img = 0.;
-  for (size_t i = 0; i < fFreqSize_2; ++i)
-  {
-    fFFT_2->GetPointComplex(i, real, img);
-    output[i] = TComplex(real, img);
-  }
-  return;
-}
-void DuneDPhase3x1x1NoiseRemovalService::doInvFFT_2(std::vector< TComplex > & input, std::vector< float > & output) const
-{
-  for (size_t i = 0; i < fFreqSize_2; ++i) { fInvFFT_2->SetPointComplex(i, input[i]); }
-
-  fInvFFT_2->Transform();  
-  double factor = 1.0/(double)fSize_2;
-  for (size_t i = 0; i < fSize_2; ++i)
-  {
-    output[i] = factor*fInvFFT_2->GetPointReal(i, false);
-  }
-  return;
-}
-
 void DuneDPhase3x1x1NoiseRemovalService::removeHighFreq(AdcChannelDataMap& datamap) const
 {
     auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
 
     for (auto & entry : datamap)
     {
-        if (chStatus.IsGood(entry.first)) { fftFltInPlace(entry.second.samples, fLowPassCoeffs); }
+        if (chStatus.IsPresent(entry.first) && !chStatus.IsNoisy(entry.first)) { fftFltInPlace(entry.second.samples, fLowPassCoeffs); }
     }
 }
+//**********************************************************************
 
-void DuneDPhase3x1x1NoiseRemovalService::removeLowFreq(AdcChannelDataMap& datamap) const
+void DuneDPhase3x1x1NoiseRemovalService::removeSlope(AdcChannelDataMap& datamap) const
 {
-  std::vector< TComplex > ch_spectrum(fFreqSize_2);
-  std::vector< float > ch_waveform(fSize_2, 0);
+  size_t n_samples = datamap.begin()->second.samples.size();
+  std::vector< float > slope(n_samples);
 
   auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
 
   for (auto & entry : datamap)
   {
-    if (!chStatus.IsGood(entry.first)) { continue; }
+    if (!chStatus.IsPresent(entry.first) || chStatus.IsNoisy(entry.first)) { continue; }
 
     auto & adc = entry.second.samples;
     auto mask = roiMask(entry.second);
-    size_t n_samples = adc.size();
 
+    bool start = true;
     float i = 0, s0 = 0, s1 = 0;
     while (i < n_samples)
     {
-        if (mask[i]) { s0 = adc[i]; ch_waveform[i] = s0; ++i; }
+        if (mask[i])
+        {
+            if (start) { s0 = adc[i]; start = false; }
+            else { s0 = 0.8 * s0 + 0.2 * adc[i]; } // average over some past adc
+            slope[i] = adc[i]; ++i;
+        }
         else
         {
             size_t j = i;
             while ((j < n_samples) && !mask[j]) { ++j; }
-            if (j < n_samples) { s1 = adc[j]; }
+            if (j < n_samples)
+            {
+                size_t k = 1;
+                float f = 1, g = f;
+                s1 = adc[j];
+                while ((k < 25) && (j+k < n_samples) && mask[j+k])
+                {
+                    f *= 0.8; g += f; s1 += f * adc[j+k]; ++k;
+                }
+                s1 /= g; // average ofer following adc
+            }
             else { s1 = s0; }
 
             float ds = (s1 - s0) / (j - i + 1);
@@ -305,36 +278,27 @@ void DuneDPhase3x1x1NoiseRemovalService::removeLowFreq(AdcChannelDataMap& datama
             j = i;
             while ((j < n_samples) && !mask[j])
             {
-                ch_waveform[j] = s0 + (j - i + 1) * ds;
+                slope[j] = s0 + (j - i + 1) * ds;
                 ++j;
             }
+            start = true;
             i = j;
         }
     }
 
-    float shift = 2 * adc.back();
-    for (size_t s = n_samples; s < 2*n_samples; ++s)
+    double y, sx = 0, sy = 0, sxy = 0, sx2 = 0, sy2 = 0;
+    for (size_t s = 0; s < n_samples; ++s)
     {
-        ch_waveform[s] = -ch_waveform[2*n_samples - s - 1] + shift;
+        y = slope[s]; sx += s; sy += y; sxy += s*y; sx2 += s*s; sy2 += y*y;
     }
-    shift = 2 * ch_waveform[2*n_samples-1];
-    for (size_t s = 2*n_samples; s < ch_waveform.size(); ++s)
-    {
-        ch_waveform[s] = -ch_waveform[4*n_samples - s - 1];
-    }
-    doFFT_2(ch_waveform, ch_spectrum);
 
-    for (size_t c = 0; c < fFlattenCoeffs.size(); ++c)
-    {
-        ch_spectrum[c] *= 1.0 - fFlattenCoeffs[c];
-    }
-    for (size_t c = fFlattenCoeffs.size(); c < ch_spectrum.size(); ++c)
-    {
-        ch_spectrum[c] = 0;
-    }
-    doInvFFT_2(ch_spectrum, ch_waveform);
-
-    for (size_t s = 0; s < n_samples; ++s) { adc[s] -= ch_waveform[s]; }
+    double ssx = sx2 - ((sx * sx) / n_samples);
+    double c = sxy - ((sx * sy) / n_samples);
+    double mx = sx / n_samples;
+    double my = sy / n_samples;
+    double b = my - ((c / ssx) * mx);
+    double a = c / ssx;
+    for (size_t s = 0; s < n_samples; ++s) { adc[s] -= (a*s + b); }
   }
 }
 //**********************************************************************

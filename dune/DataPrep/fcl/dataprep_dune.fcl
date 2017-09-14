@@ -108,9 +108,8 @@ adcnr_dunedphase3x1x1: {
   RoiEndThreshold:                         6
   RoiPadLow:                               8
   RoiPadHigh:                             40
+  Flatten:                              true
   LowPassFlt:                          false
-  FlattenLowFreq:                      false
-  FlattenCoeffs:                 [0, 0, 0.5]
 }
 
 #***********************************************************************

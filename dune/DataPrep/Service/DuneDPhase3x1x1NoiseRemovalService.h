@@ -24,7 +24,6 @@ class DuneDPhase3x1x1NoiseRemovalService : public AdcNoiseRemovalService {
 public:
 
   DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
-  ~DuneDPhase3x1x1NoiseRemovalService();
 
   int update(AdcChannelDataMap& datamap) const;
 
@@ -43,15 +42,9 @@ private:
   void fftFltInPlace(std::vector< float > & adc, const std::vector< float > & coeffs) const;
   std::vector< float > fftFlt(const std::vector< float > & adc, const std::vector< float > & coeffs) const;
 
-  size_t fSize_2, fFreqSize_2;
-  mutable TFFTRealComplex* fFFT_2;
-  mutable TFFTComplexReal* fInvFFT_2;
-  void doFFT_2(std::vector< float > & input, std::vector< TComplex > & output) const;
-  void doInvFFT_2(std::vector< TComplex > & input, std::vector< float > & output) const;
-
   void removeCoherent(const GroupChannelMap & ch_groups, AdcChannelDataMap& datamap) const;
   void removeHighFreq(AdcChannelDataMap& datamap) const;
-  void removeLowFreq(AdcChannelDataMap& datamap) const;
+  void removeSlope(AdcChannelDataMap& datamap) const;
 
   std::vector<bool> roiMask(const AdcChannelData & adc) const;
 
@@ -70,10 +63,10 @@ private:
   static size_t get311Chan(size_t LAr_chan);
 
   // Configuration parameters.
-  bool fCoherent32, fCoherent16, fLowPassFlt, fFlattenLowFreq;
+  bool fCoherent32, fCoherent16, fLowPassFlt, fFlatten;
   std::vector< size_t > fCoherent32Groups;
   std::vector< size_t > fCoherent16Groups;
-  std::vector< float > fFlattenCoeffs, fLowPassCoeffs;
+  std::vector< float > fLowPassCoeffs;
   float fRoiStartThreshold;
   float fRoiEndThreshold;
   int fRoiPadLow;
