@@ -62552,7 +62552,7 @@
       </physvol>
       <physvol>
         <volumeref ref="volLiquidArgon"/>
-        <position name="posLiquidArgon" unit="cm" x="0" y="1355.1575/2-50/2-1305.1575/2" z="0"/>
+        <position name="posLiquidArgon" unit="cm" x="0" y="1355.1575/2-50-1305.1575/2" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
