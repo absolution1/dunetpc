@@ -7,13 +7,27 @@
 #include "TList.h"
 #include "TStyle.h"
 #include "TH1.h"
+#include "TLine.h"
+#include <iostream>
 
 using std::string;
+using std::cout;
+using std::endl;
 
 //**********************************************************************
 
 TPadManipulator::TPadManipulator(TVirtualPad* ppad) : m_ppad(ppad) {
   if ( m_ppad == 0 ) m_ppad = gPad;
+  update();
+}
+
+//**********************************************************************
+
+TPadManipulator::~TPadManipulator() {
+  for ( TLine* pline : m_lines ) {
+    delete pline;
+  }
+  m_lines.clear();
 }
 
 //**********************************************************************
@@ -42,7 +56,8 @@ int TPadManipulator::update() {
     m_ymin = pow(10.0, m_ymin);
     m_ymax = pow(10.0, m_ymax);
   }
-  auto prims = gPad->GetListOfPrimitives();
+  const TList* prims = gPad->GetListOfPrimitives();
+  m_ph = nullptr;
   for ( int iprm=0; iprm<prims->GetEntries(); ++iprm ) {
     TObject* pobj = prims->At(iprm);
     m_ph = dynamic_cast<TH1*>(pobj);
@@ -54,13 +69,13 @@ int TPadManipulator::update() {
 
 //**********************************************************************
 
-int TPadManipulator::addaxis() {
-  return addaxistop() + addaxisright();
+int TPadManipulator::addAxis() {
+  return addAxisTop() + addAxisRight();
 }
 
 //**********************************************************************
 
-int TPadManipulator::addaxistop() {
+int TPadManipulator::addAxisTop() {
   if ( m_ph == nullptr ) return 1;
   double ticksize = 0;
   int ndiv = 0;
@@ -68,12 +83,13 @@ int TPadManipulator::addaxistop() {
   if ( paxold == nullptr ) return 2;
   ticksize = paxold->GetTickLength();
   ndiv = paxold->GetNdivisions();
-  return addaxistop(ticksize, ndiv);
+  return addAxisTop(ticksize, ndiv);
 }
 
 //**********************************************************************
 
-int TPadManipulator::addaxistop(double ticksize, int ndiv) {
+int TPadManipulator::addAxisTop(double ticksize, int ndiv) {
+  if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = m_ppad == gPad ? nullptr : gPad;
   if ( pPadSave != nullptr ) m_ppad->cd();
   string sopt = "-US";
@@ -85,9 +101,9 @@ int TPadManipulator::addaxistop(double ticksize, int ndiv) {
   string name = "TopAxis";
   paxnew->SetName(name.c_str());
   TList* pobjs = gPad->GetListOfPrimitives();
-  for ( int iobj=0; iobj<pobjs->GetEntries(); ++iobj ) {
+  for ( int iobj=pobjs->GetEntries()-1; iobj>=0; --iobj ) {
     TGaxis* paxold = dynamic_cast<TGaxis*>(pobjs->At(iobj));
-    if ( paxold != nullptr ) continue;
+    if ( paxold == nullptr ) continue;
     if ( paxold->GetName() == name ) {
       pobjs->RemoveAt(iobj);
       break;
@@ -100,7 +116,7 @@ int TPadManipulator::addaxistop(double ticksize, int ndiv) {
 
 //**********************************************************************
 
-int TPadManipulator::addaxisright() {
+int TPadManipulator::addAxisRight() {
   if ( m_ph == nullptr ) return 1;
   double ticksize = 0;
   int ndiv = 0;
@@ -108,15 +124,16 @@ int TPadManipulator::addaxisright() {
   if ( paxold == nullptr ) return 2;
   ticksize = paxold->GetTickLength();
   ndiv = paxold->GetNdivisions();
-  return addaxisright(ticksize, ndiv);
+  return addAxisRight(ticksize, ndiv);
 }
 
 //**********************************************************************
 
-int TPadManipulator::addaxisright(double ticksize, int ndiv) {
+int TPadManipulator::addAxisRight(double ticksize, int ndiv) {
+  if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = m_ppad == gPad ? nullptr : gPad;
   if ( pPadSave != nullptr ) m_ppad->cd();
-  if ( gPad == 0 ) return 1;
+  if ( gPad == 0 ) return 2;
   gPad->Update();
   string sopt = "+US";
   if ( gPad->GetLogy() ) sopt += "G";
@@ -127,9 +144,9 @@ int TPadManipulator::addaxisright(double ticksize, int ndiv) {
   string name = "RightAxis";
   paxnew->SetName(name.c_str());
   TList* pobjs = gPad->GetListOfPrimitives();
-  for ( int iobj=0; iobj<pobjs->GetEntries(); ++iobj ) {
+  for ( int iobj=pobjs->GetEntries()-1; iobj>=0; --iobj ) {
     TGaxis* paxold = dynamic_cast<TGaxis*>(pobjs->At(iobj));
-    if ( paxold != nullptr ) continue;
+    if ( paxold == nullptr ) continue;
     if ( paxold->GetName() == name ) {
       pobjs->RemoveAt(iobj);
       break;
@@ -137,6 +154,23 @@ int TPadManipulator::addaxisright(double ticksize, int ndiv) {
   }
   paxnew->Draw("");
   if ( pPadSave != nullptr ) pPadSave->cd();
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::addVerticalModLines(double xmod, double xoff) {
+  if ( xmod <= 0.0 ) return 1;
+  double x = xoff;
+  while ( x >= xmin() ) x -= xmod;
+  x += xmod;
+  while ( x <= xmax() ) {
+    TLine* pline = new TLine(x, ymin(), x, ymax());
+    pline->SetLineStyle(3);
+    m_lines.push_back(pline);
+    pline->Draw();
+    x += xmod;
+  }
   return 0;
 }
 
