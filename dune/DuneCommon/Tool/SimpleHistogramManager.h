@@ -29,6 +29,8 @@ public:
 
   TH1* get(Name hname) const override;
 
+  TH1* last() const override;
+
   int release(Name hname) override;
 
 private:
