@@ -32,3 +32,6 @@ perl make_gdml.pl -i dune10kt_v2_1x2x6_nowires.gdml -o dune10kt_v2_1x2x6_nowires
 # 1x2x6 geometry v2, with wires
 perl generate_dune10kt_v2.pl -o dune10kt_v2_1x2x6.gdml -k=2
 perl make_gdml.pl -i dune10kt_v2_1x2x6.gdml -o dune10kt_v2_1x2x6.gdml
+
+#This should also run deacrylify to make sure new geometries are consistent.
+. deacrylify10kt.sh
