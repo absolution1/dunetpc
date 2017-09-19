@@ -71,6 +71,13 @@ TH1* SimpleHistogramManager::get(Name hname) const {
   
 //**********************************************************************
 
+TH1* SimpleHistogramManager::last() const {
+  if ( m_hists.size() == 0 ) return nullptr;
+  return get(names().back());
+}
+
+//**********************************************************************
+
 int SimpleHistogramManager::release(Name hname) {
   if ( hname == "*" ) {
     for ( auto ent : m_hists ) delete ent.second;
