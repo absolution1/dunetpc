@@ -16,7 +16,10 @@ using std::endl;
 
 //**********************************************************************
 
-TPadManipulator::TPadManipulator(TVirtualPad* ppad) : m_ppad(ppad) {
+TPadManipulator::TPadManipulator(TVirtualPad* ppad)
+: m_ppad(ppad),
+  m_top(false), m_right(false),
+  m_vmlXmod(0.0), m_vmlXoff(0.0) {
   if ( m_ppad == 0 ) m_ppad = gPad;
   update();
 }
@@ -24,10 +27,10 @@ TPadManipulator::TPadManipulator(TVirtualPad* ppad) : m_ppad(ppad) {
 //**********************************************************************
 
 TPadManipulator::~TPadManipulator() {
-  for ( TLine* pline : m_lines ) {
+  for ( TLine* pline : m_vmlLines ) {
     delete pline;
   }
-  m_lines.clear();
+  m_vmlLines.clear();
 }
 
 //**********************************************************************
@@ -63,8 +66,46 @@ int TPadManipulator::update() {
     m_ph = dynamic_cast<TH1*>(pobj);
     if ( m_ph != nullptr ) break;
   }
+  if ( m_top ) drawAxisTop();
+  if ( m_right ) drawAxisRight();
+  if ( m_vmlXmod >= 0.0 ) drawVerticalModLines();
   if ( pPadSave != nullptr ) pPadSave->cd();
   return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setRangeX(double x1, double x2) {
+  TH1* ph = hist();
+  if ( ph == nullptr ) return 1;
+  if ( x2 <= x1 ) return 2;
+  ph->GetXaxis()->SetRangeUser(x1, x2);
+  ph->Draw();
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::setRangeY(double y1, double y2) {
+  TH1* ph = hist();
+  if ( ph == nullptr ) return 1;
+  if ( y2 <= y1 ) return 2;
+  ph->GetYaxis()->SetRangeUser(y1, y2);
+  ph->Draw();
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::setRanges(double x1, double x2, double y1, double y2) {
+  TH1* ph = hist();
+  if ( ph == nullptr ) return 1;
+  if ( x2 <= x1 ) return 2;
+  if ( y2 <= y1 ) return 2;
+  ph->GetXaxis()->SetRangeUser(x1, x2);
+  ph->GetYaxis()->SetRangeUser(y1, y2);
+  ph->Draw();
+  return update();
 }
 
 //**********************************************************************
@@ -89,15 +130,26 @@ int TPadManipulator::addAxisTop() {
 //**********************************************************************
 
 int TPadManipulator::addAxisTop(double ticksize, int ndiv) {
+  m_top = true;
+  m_topTicksize = ticksize;
+  m_topNdiv = ndiv;
+  return drawAxisTop();
+}
+
+//**********************************************************************
+
+int TPadManipulator::drawAxisTop() {
+  if ( ! m_top ) return 0;
   if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = m_ppad == gPad ? nullptr : gPad;
   if ( pPadSave != nullptr ) m_ppad->cd();
   string sopt = "-US";
   if ( gPad->GetLogx() ) sopt += "G";
+  double ticksize = m_topTicksize;
+  int ndiv = m_topNdiv;
   TGaxis* paxnew = new TGaxis(m_xminPad, m_ymaxPad, m_xmaxPad, m_ymaxPad,
-                              m_xmin, m_xmax, 510, sopt.c_str());
-  if ( ticksize > 0 ) paxnew->SetTickSize(ticksize);
-  if ( ndiv > 0 ) paxnew->SetNdivisions(ndiv);
+                              m_xmin, m_xmax, ndiv, sopt.c_str());
+  if ( ticksize > 0 ) paxnew->SetTickLength(ticksize);
   string name = "TopAxis";
   paxnew->SetName(name.c_str());
   TList* pobjs = gPad->GetListOfPrimitives();
@@ -130,6 +182,16 @@ int TPadManipulator::addAxisRight() {
 //**********************************************************************
 
 int TPadManipulator::addAxisRight(double ticksize, int ndiv) {
+  m_right = true;
+  m_rightTicksize = ticksize;
+  m_rightNdiv = ndiv;
+  return drawAxisRight();
+}
+
+//**********************************************************************
+
+int TPadManipulator::drawAxisRight() {
+  if ( ! m_right ) return 0;
   if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = m_ppad == gPad ? nullptr : gPad;
   if ( pPadSave != nullptr ) m_ppad->cd();
@@ -137,10 +199,11 @@ int TPadManipulator::addAxisRight(double ticksize, int ndiv) {
   gPad->Update();
   string sopt = "+US";
   if ( gPad->GetLogy() ) sopt += "G";
+  double ticksize = m_rightTicksize;
+  int ndiv = m_rightNdiv;
   TGaxis* paxnew = new TGaxis(m_xmaxPad, m_yminPad, m_xmaxPad, m_ymaxPad,
-                              m_ymin, m_ymax, 510, sopt.c_str());
+                              m_ymin, m_ymax, ndiv, sopt.c_str());
   if ( ticksize > 0 ) paxnew->SetTickLength(ticksize);
-  if ( ndiv > 0 ) paxnew->SetNdivisions(ndiv);
   string name = "RightAxis";
   paxnew->SetName(name.c_str());
   TList* pobjs = gPad->GetListOfPrimitives();
@@ -160,14 +223,27 @@ int TPadManipulator::addAxisRight(double ticksize, int ndiv) {
 //**********************************************************************
 
 int TPadManipulator::addVerticalModLines(double xmod, double xoff) {
+  m_vmlXmod = xmod;
+  m_vmlXoff = xoff;
+  drawVerticalModLines();
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::drawVerticalModLines() {
+  double xmod = m_vmlXmod;
+  double xoff = m_vmlXoff;
   if ( xmod <= 0.0 ) return 1;
   double x = xoff;
   while ( x >= xmin() ) x -= xmod;
-  x += xmod;
+  while ( x < xmin() ) x += xmod;
+  for ( TLine* pline : m_vmlLines ) delete pline;
+  m_vmlLines.clear();
   while ( x <= xmax() ) {
     TLine* pline = new TLine(x, ymin(), x, ymax());
     pline->SetLineStyle(3);
-    m_lines.push_back(pline);
+    m_vmlLines.push_back(pline);
     pline->Draw();
     x += xmod;
   }

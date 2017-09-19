@@ -38,6 +38,7 @@ int test_TPadManipulator() {
   cout << myname << line << endl;
   cout << myname << "Create histogram." << endl;
   TH1* ph = new TH1F("h1", "My histo", 100, 0, 100);
+  ph->SetStats(0);
   for ( unsigned int ibin=1; ibin<=100; ++ ibin ) {
     ph->SetBinContent(ibin, ibin-1);
   }
