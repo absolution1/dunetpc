@@ -117,17 +117,12 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
       double ped0 = datamap[icha].pedestal;
       //assert( padv->view(datamap[icha]) == 0 );
       double ped1 = datamap[icha].pedestal;
-cout << " 000000" << endl;
-cout << padv->view(datamap[icha]) << endl;
-cout << " 111111" << endl;
-cout << padvmod->update(datamap[icha]) << endl;
-cout << " 222222" << endl;
       assert( padvmod->update(datamap[icha]) == 0 );
       double ped2 = datamap[icha].pedestal;
       cout << "Old pedestal: " << ped0 << endl;
       cout << "New pedestal: " << ped2 << endl;
       assert( ped1 == ped0 );
-      //assert( ped2 != ped0 );
+      assert( ped2 != ped0 );
       //assert( fabs(ped2-ped) < 0.01 );
     }
   }

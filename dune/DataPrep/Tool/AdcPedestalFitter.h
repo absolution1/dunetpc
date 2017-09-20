@@ -31,8 +31,7 @@ class HistogramManager;
 class TH1;
 
 class AdcPedestalFitter
-: public AdcChannelViewer,
-  public AdcChannelDataModifier {
+: public AdcChannelDataModifier {
 
 public:
 
