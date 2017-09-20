@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include "dune/DuneInterface/Tool/AdcChannelViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -71,6 +72,8 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   cout << myname << "Fetching tool." << endl;
   auto padv = tm.getPrivate<AdcChannelViewer>("mytool");
   assert( padv != nullptr );
+  auto padvmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  assert( padvmod != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
@@ -102,6 +105,7 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
         data.samples.push_back(iadc - ped);
         data.signal.push_back(xadc - ped > 300.0 );
       }
+      data.pedestal += 10.0;
       AdcIndex tp = 10*ievt + 60 - 2.3*icha;
       AdcIndex tm = tp - 8;
       data.raw[tp] += 100;
@@ -110,7 +114,21 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
       data.samples[tm] -= 100;
       data.flags[tm] = 4;
       data.roisFromSignal();
-      assert( padv->view(datamap[icha]) == 0 );
+      double ped0 = datamap[icha].pedestal;
+      //assert( padv->view(datamap[icha]) == 0 );
+      double ped1 = datamap[icha].pedestal;
+cout << " 000000" << endl;
+cout << padv->view(datamap[icha]) << endl;
+cout << " 111111" << endl;
+cout << padvmod->update(datamap[icha]) << endl;
+cout << " 222222" << endl;
+      assert( padvmod->update(datamap[icha]) == 0 );
+      double ped2 = datamap[icha].pedestal;
+      cout << "Old pedestal: " << ped0 << endl;
+      cout << "New pedestal: " << ped2 << endl;
+      assert( ped1 == ped0 );
+      //assert( ped2 != ped0 );
+      //assert( fabs(ped2-ped) < 0.01 );
     }
   }
 
