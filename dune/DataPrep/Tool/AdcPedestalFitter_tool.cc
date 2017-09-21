@@ -56,12 +56,71 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 
 int AdcPedestalFitter::view(const AdcChannelData& acd) const {
   const string myname = "AdcPedestalFitter::view: ";
+  cout << myname << "Calling " << endl;
+  Result res = getPedestal(acd);
+  if ( res.stat != 0 ) {
+    delete res.ph;
+    return res.stat;
+  }
+  if ( m_phm != nullptr ) {
+    delete res.ph;
+  } else {
+    int rstat = m_phm->manage(res.ph);
+    if ( rstat != 0 ) {
+      cout << myname << "WARNING: Attempt to manage histogram " << res.ph->GetName()
+           << " returned error " << rstat << endl;
+      delete res.ph;
+      return 11;
+    }
+  }
+  cout << myname << "Exiting" << endl;
+  return 0;
+}
+
+//**********************************************************************
+
+int AdcPedestalFitter::update(AdcChannelData& acd) const {
+  const string myname = "AdcPedestalFitter::update: ";
+  cout << myname << "Calling " << endl;
+  Result res = getPedestal(acd);
+  cout << myname << "Called " << endl;
+  delete res.ph;
+  if ( res.stat != 0 ) return res.stat;
+  cout << myname << "Old pedestal: " << acd.pedestal << endl;
+  acd.pedestal = res.pedestal;
+  cout << myname << "New pedestal: " << acd.pedestal << endl;
+  return 0;
+}
+
+//**********************************************************************
+
+string AdcPedestalFitter::
+nameReplace(string name, const AdcChannelData& acd) const {
+  string nameout = name;
+  StringManipulator sman(nameout);
+  if ( acd.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acd.run);
+  else sman.replace("%RUN%", "RunNotFound");
+  if ( acd.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acd.subRun);
+  else sman.replace("%SUBRUN%", "SubRunNotFound");
+  if ( acd.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acd.event);
+  else sman.replace("%EVENT%", "EventNotFound");
+  if ( acd.channel != AdcChannelData::badChannel ) sman.replace("%CHAN%", acd.channel);
+  else sman.replace("%CHAN%", "ChannelNotFound");
+  return nameout;
+}
+
+//**********************************************************************
+
+AdcPedestalFitter::Result
+AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
+  const string myname = "AdcPedestalFitter::getResult: ";
+  if ( m_LogLevel >= 0 ) cout << myname << "Entering..." << endl;
   string hnameBase = m_HistName;
   string htitlBase = m_HistTitle;
   Index nsam = acd.raw.size();
   if ( nsam == 0 ) {
     cout << myname << "WARNING: Raw data is empty." << endl;
-    return 1;
+    return Result(1);
   }
   string hname = nameReplace(hnameBase, acd);
   string htitl = nameReplace(htitlBase, acd);
@@ -97,6 +156,7 @@ int AdcPedestalFitter::view(const AdcChannelData& acd) const {
   if ( adcmean > adcmax + 10) adc1 += 10;
   double adc2 = adc1 + wadc;
   TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
+  phf->SetDirectory(nullptr);
   for ( Index isam=0; isam<nsam; ++isam ) {
     phf->Fill(acd.raw[isam]);
   }
@@ -109,33 +169,11 @@ int AdcPedestalFitter::view(const AdcChannelData& acd) const {
   string fopt;
   if ( m_LogLevel < 2 ) fopt += "Q";
   phf->Fit(&fitter, fopt.c_str());
-  int rstat = m_phm != nullptr;
-  if ( rstat != 0 ) {
-    if ( m_phm->manage(phf) ) {
-      cout << myname << "WARNING: Attempt to manage histogram " << phf->GetName()
-           << " returned error " << rstat << endl;
-      phf->SetDirectory(nullptr);
-      delete phf;
-    }
-  }
-  return 0;
-}
-
-//**********************************************************************
-
-string AdcPedestalFitter::
-nameReplace(string name, const AdcChannelData& acd) const {
-  string nameout = name;
-  StringManipulator sman(nameout);
-  if ( acd.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acd.run);
-  else sman.replace("%RUN%", "RunNotFound");
-  if ( acd.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acd.subRun);
-  else sman.replace("%SUBRUN%", "SubRunNotFound");
-  if ( acd.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acd.event);
-  else sman.replace("%EVENT%", "EventNotFound");
-  if ( acd.channel != AdcChannelData::badChannel ) sman.replace("%CHAN%", acd.channel);
-  else sman.replace("%CHAN%", "ChannelNotFound");
-  return nameout;
+  Result res(0);
+  res.ph = phf;
+  res.pedestal = fitter.GetParameter(1);
+  if ( m_LogLevel >= 0 ) cout << myname << "Exiting..." << endl;
+  return res;
 }
 
 //**********************************************************************
