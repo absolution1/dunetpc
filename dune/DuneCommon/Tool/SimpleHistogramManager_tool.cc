@@ -37,12 +37,12 @@ int SimpleHistogramManager::manage(TH1* ph) {
     return 1;
   }
   string hname = ph->GetName();
-  if ( ph->GetDirectory() == nullptr ) {
-    if ( m_LogLevel > 1 ) {
-      cout << myname << "Histogram " << hname << " is not in a directory." << endl;
-    }
-    return 2;
-  }
+  //if ( ph->GetDirectory() == nullptr ) {
+  //  if ( m_LogLevel > 1 ) {
+  //    cout << myname << "Histogram " << hname << " is not in a directory." << endl;
+  //  }
+  //  return 2;
+  //}
   if ( m_hists.find(hname) != m_hists.end() ) {
     if ( m_LogLevel > 1 ) {
       cout << myname << "Histogram  with name " << hname << " is already managed here." << endl;
@@ -69,6 +69,13 @@ TH1* SimpleHistogramManager::get(Name hname) const {
   return ihst->second;
 }
   
+//**********************************************************************
+
+TH1* SimpleHistogramManager::last() const {
+  if ( m_hists.size() == 0 ) return nullptr;
+  return get(names().back());
+}
+
 //**********************************************************************
 
 int SimpleHistogramManager::release(Name hname) {
