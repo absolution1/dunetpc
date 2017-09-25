@@ -9,6 +9,7 @@
 #ifndef AdcChannelViewer_H
 #define AdcChannelViewer_H
 
+#include "dune/DuneInterface/Data/DataMap.h"
 #include "dune/DuneInterface/AdcChannelData.h"
 
 class AdcChannelViewer {
@@ -21,7 +22,7 @@ public:
   //   acds - Input ADC data map
   //  label - Label to appear on plots
   //   fpat - String to be included in output file names
-  virtual int view(const AdcChannelData& acd) const =0;
+  virtual DataMap view(const AdcChannelData& acd) const =0;
 
 };
 

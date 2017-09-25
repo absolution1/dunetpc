@@ -27,7 +27,7 @@ public:
 
   ~AdcChannelDumper() override;
 
-  int view(const AdcChannelData& acd) const override;
+  DataMap view(const AdcChannelData& acd) const override;
 
 private:
 

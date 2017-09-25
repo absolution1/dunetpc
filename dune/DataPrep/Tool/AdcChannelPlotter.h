@@ -40,7 +40,7 @@ public:
 
   AdcChannelPlotter(fhicl::ParameterSet const& ps);
 
-  int view(const AdcChannelData& acd) const override;
+  DataMap view(const AdcChannelData& acd) const override;
 
 private:
 
