@@ -12,13 +12,18 @@
 #ifndef AdcChannelDataModifier_H
 #define AdcChannelDataModifier_H
 
+#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
 #include "dune/DuneInterface/AdcChannelData.h"
 
-class AdcChannelDataModifier {
+class AdcChannelDataModifier : public AdcChannelViewer {
 
 public:
 
   virtual ~AdcChannelDataModifier() =default;
+
+  // Inherited method.
+  // Default implementation does nothing and returns success.
+  int view(const AdcChannelData&) const override {return 0;}
 
   // Tool process method.
   //   acd - ADC channel data
