@@ -23,7 +23,7 @@ public:
 
   // Inherited method.
   // Default implementation does nothing and returns success.
-  int view(const AdcChannelData&) const override {return 0;}
+  DataMap view(const AdcChannelData&) const override {return DataMap(0);}
 
   // Tool process method.
   //   acd - ADC channel data
