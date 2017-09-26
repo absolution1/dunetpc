@@ -20,7 +20,7 @@ dunefddphase_detproperties:                   @local::standard_detproperties
 dunefddphase_detproperties.Temperature:       87            # in K
 dunefddphase_detproperties.Electronlifetime:  3.0e3         # in us
 dunefddphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
-dunefddphase_detproperties.ElectronsToADC:    5.1267e-04    # 
+dunefddphase_detproperties.ElectronsToADC:    1.02534e-03   # 
 dunefddphase_detproperties.NumberTimeSamples: 20000         # drift length/drift velocity*sampling rate
 dunefddphase_detproperties.ReadOutWindowSize: 20000         # drift length/drift velocity*sampling rate
 dunefddphase_detproperties.TimeOffsetU:       0.
@@ -31,7 +31,7 @@ protodunedphase_detproperties:                   @local::standard_detproperties
 protodunedphase_detproperties.Temperature:       87            # in K
 protodunedphase_detproperties.Electronlifetime:  3.0e3         # in us
 protodunedphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
-protodunedphase_detproperties.ElectronsToADC:    5.1267e-04    # 
+protodunedphase_detproperties.ElectronsToADC:    1.02534e-03   # 
 protodunedphase_detproperties.NumberTimeSamples: 20000         # 10000 before beam + 10000 after beam
 protodunedphase_detproperties.ReadOutWindowSize: 20000         # 10000 before beam + 10000 after beam
 #protodunedphase_detproperties.TimeOffsetX:       0.
@@ -42,7 +42,7 @@ dphase3x1x1_detproperties: 		@local::standard_detproperties
 dphase3x1x1_detproperties.Temperature:       87            # in K
 dphase3x1x1_detproperties.Electronlifetime:  3.0e3         # in us
 dphase3x1x1_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
-dphase3x1x1_detproperties.ElectronsToADC:    5.1267e-04    # 
+dphase3x1x1_detproperties.ElectronsToADC:    1.02534e-03   # 
 dphase3x1x1_detproperties.NumberTimeSamples: 1667
 dphase3x1x1_detproperties.ReadOutWindowSize: 1667
 #dphase3x1x1_detproperties.TimeOffsetX:       0.

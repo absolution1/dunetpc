@@ -117,6 +117,11 @@ dune10kt_1x2x6_geo.Name: "dune10kt_v2_1x2x6"
 dune10kt_1x2x6_geo.GDML: "dune10kt_v2_1x2x6.gdml"
 dune10kt_1x2x6_geo.ROOT: "dune10kt_v2_1x2x6.gdml"
 
+dune10kt_1x2x6_v1_geo: @local::dune10kt_geo
+dune10kt_1x2x6_v1_geo.Name: "dune10kt_v1_1x2x6"
+dune10kt_1x2x6_v1_geo.GDML: "dune10kt_v1_1x2x6.gdml"
+dune10kt_1x2x6_v1_geo.ROOT: "dune10kt_v1_1x2x6.gdml"
+
 dunedphase10kt_workspace_geo: @local::dunedphase10kt_geo
 dunedphase10kt_workspace_geo.Name: "dunedphase10kt_v2_workspace"
 dunedphase10kt_workspace_geo.GDML: "dunedphase10kt_v2_workspace.gdml"
