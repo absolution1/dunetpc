@@ -179,6 +179,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   phf->Fit(&fitter, fopt.c_str());
   res.setHist("pedestal", phf);
   res.setFloat("pedestal", fitter.GetParameter(1));
+  res.setFloat("pedrms", fitter.GetParameter(2));
   if ( m_LogLevel >= 3 ) cout << myname << "Exiting..." << endl;
   return res;
 }
