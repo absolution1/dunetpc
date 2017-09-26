@@ -27,6 +27,7 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 
 class TH1;
 
@@ -55,6 +56,7 @@ public:
     mapextend<double>(m_flts, rhs.m_flts);
     mapextend<TH1*>(m_hsts, rhs.m_hsts);
   }
+  DataMap& operator+=(const DataMap& rhs) { extend(rhs); return *this; }
 
   // Status.
   // Typically 0 indicates success.
@@ -78,6 +80,39 @@ public:
   const FloatMap& getFloatMap() const { return m_flts; }
   const HistMap& getHistMap() const { return m_hsts; }
   
+  // Display contents.
+  void print() const {
+    using std::cout;
+    using std::endl;
+    cout << "Status: " << status() << endl;
+    if ( m_ints.size() ) {
+      cout << "Integers:" << endl;
+      for ( typename IntMap::value_type ient : m_ints ) {
+        cout << "  " << ient.first << ": " << ient.second << endl;
+      }
+    } else {
+      cout << "No integers." << endl;
+    }
+    if ( m_flts.size() ) {
+      cout << "Floats:" << endl;
+      for ( typename FloatMap::value_type ient : m_flts ) {
+        cout << "  " << ient.first << ": " << ient.second << endl;
+      }
+    } else {
+      cout << "No floats." << endl;
+    }
+    if ( m_hsts.size() ) {
+      cout << "Histograms:" << endl;
+      for ( typename HistMap::value_type ient : m_hsts ) {
+        TH1* ph = ient.second;
+        //Name hnam = ph == nullptr ? "NULL" : ph->GetName();
+        cout << "  " << ient.first << ": " << ph << endl;
+      }
+    } else {
+      cout << "No histograms." << endl;
+    }
+  }
+
 private:
 
   int m_stat;
