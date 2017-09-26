@@ -98,7 +98,7 @@ dunefddphase_signalshapingservice:
 {
   DeconNorm: 200
 
-  ASICmVperfC: 3.2    # Amplifier gain in mV/fC
+  ASICmVperfC: 6.4    # Amplifier gain in mV/fC
   ADCpermV:    1.0    # ADC conversion factor
   AmpENC:      1700.0 # Amplifier ENC e for Cdet=450pF
 
