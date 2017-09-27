@@ -44,11 +44,12 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
       cout << myname << "WARNING: Histogram manager not found: " << m_HistManager << endl;
     }
   }
-  if ( m_LogLevel > 0 ) {
-    cout << myname << "      LogLevel: [" << m_LogLevel << endl;
-    cout << myname << "      HistName: " << m_HistName << endl;
-    cout << myname << "     HistTitle: " << m_HistTitle << endl;
-    cout << myname << "   HistManager: " << m_HistManager << endl;
+  if ( m_LogLevel >= 1 ) {
+    cout << myname << "Configuration parameters:" << endl;
+    cout << myname << "    LogLevel: " << m_LogLevel << endl;
+    cout << myname << "    HistName: " << m_HistName << endl;
+    cout << myname << "   HistTitle: " << m_HistTitle << endl;
+    cout << myname << " HistManager: " << m_HistManager << endl;
   }
 }
 
@@ -56,14 +57,15 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 
 DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
   const string myname = "AdcPedestalFitter::view: ";
-  cout << myname << "Calling " << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "Calling " << endl;
   DataMap res = getPedestal(acd);
   TH1* phped = res.getHist("pedestal");
+  if ( m_LogLevel >= 3 ) cout << myname << "Viewing " << endl;
   if ( res.status() != 0 ) {
     delete phped;
     return res;
   }
-  if ( m_phm != nullptr ) {
+  if ( m_phm == nullptr ) {
     delete phped;
     res.setHist("pedestal", nullptr);
   } else {
@@ -76,7 +78,7 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
       return res.setStatus(11);
     }
   }
-  cout << myname << "Exiting" << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "Exiting" << endl;
   return res;
 }
 
@@ -84,16 +86,16 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
 
 int AdcPedestalFitter::update(AdcChannelData& acd) const {
   const string myname = "AdcPedestalFitter::update: ";
-  cout << myname << "Calling " << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "Calling " << endl;
   DataMap res = getPedestal(acd);
-  cout << myname << "Called " << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "Called " << endl;
   TH1* phped = res.getHist("pedestal");
   delete phped;
   res.setHist("pedestal", nullptr);
   if ( res.status() != 0 ) return res;
-  cout << myname << "Old pedestal: " << acd.pedestal << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "Old pedestal: " << acd.pedestal << endl;
   acd.pedestal = res.getFloat("pedestal");
-  cout << myname << "New pedestal: " << acd.pedestal << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "New pedestal: " << acd.pedestal << endl;
   return res;
 }
 
@@ -120,12 +122,12 @@ DataMap
 AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   const string myname = "AdcPedestalFitter::getPedestal: ";
   DataMap res;
-  if ( m_LogLevel >= 0 ) cout << myname << "Entering..." << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "Entering..." << endl;
   string hnameBase = m_HistName;
   string htitlBase = m_HistTitle;
   Index nsam = acd.raw.size();
   if ( nsam == 0 ) {
-    cout << myname << "WARNING: Raw data is empty." << endl;
+    if ( m_LogLevel >= 2 ) cout << myname << "WARNING: Raw data is empty." << endl;
     return res.setStatus(1);
   }
   string hname = nameReplace(hnameBase, acd);
@@ -172,12 +174,13 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   fitter.SetParameters(phf->Integral(), adcmean, 5.0);
   fitter.SetParLimits(1, adc1, adc2);
   fitter.SetParLimits(2, 1.0, 30.0);
-  string fopt;
+  string fopt = "0";
   if ( m_LogLevel < 2 ) fopt += "Q";
   phf->Fit(&fitter, fopt.c_str());
   res.setHist("pedestal", phf);
   res.setFloat("pedestal", fitter.GetParameter(1));
-  if ( m_LogLevel >= 0 ) cout << myname << "Exiting..." << endl;
+  res.setFloat("pedrms", fitter.GetParameter(2));
+  if ( m_LogLevel >= 3 ) cout << myname << "Exiting..." << endl;
   return res;
 }
 
