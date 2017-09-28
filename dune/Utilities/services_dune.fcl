@@ -134,7 +134,7 @@ dunedphase3x1x1_services: {
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
- SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
@@ -154,7 +154,7 @@ dunedphase3x1x1_simulation_services: {
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
- SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
