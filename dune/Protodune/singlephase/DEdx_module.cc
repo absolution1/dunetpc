@@ -4,10 +4,10 @@
 // File:        DEdx_module.cc                  
 //                                            
 // This is a simple module that makes plot of dE/dx using 3D reconstructed tracks.
-// It is supposed to be run before each MC production on the sample of generated muon tracks.
+// It cab be run before each MC production on the sample of generated muon tracks.
 // It can be also used on the data with reconstructed 3D tracks tagged as cosmic muons. 
 //
-// Authors: Casandra Hazel Morris and Dorota Stefan (CERN/NCBJ)
+// Authors: Casandra Hazel Morris (University of Houston) and Dorota Stefan (CERN/NCBJ)
 //                                                                                                                                                     
 ////////////////////////////////////////////////////////////////////////                    
 
@@ -20,6 +20,8 @@
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
 #include "lardata/Utilities/DatabaseUtil.h"
+
+#include "lardataobj/AnalysisBase/CosmicTag.h"
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -68,6 +70,8 @@ private:
   // void CountdEdx(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector < recob::TrackHitMeta const* > & data); // MeV/cm
   void CountdEdx(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector< recob::TrackHitMeta const* > & data);
   void ResetVars();
+
+  bool fCosmics;
 
   TTree *fTree;
   int fRun;
@@ -119,6 +123,7 @@ void proto::DEdx::endJob()
 void proto::DEdx::reconfigure(fhicl::ParameterSet const & p)
 {
   fChosenView = p.get<int>("ChosenView");
+  fCosmics = p.get<bool>("Cosmics");
   fHitModuleLabel = p.get< std::string >("HitModuleLabel");
   fTrackModuleLabel = p.get< std::string >("TrackModuleLabel");
 }
@@ -134,8 +139,31 @@ void proto::DEdx::analyze(art::Event const & e)
   auto trkHandle = e.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
   const art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trkHandle, e, fTrackModuleLabel);
 
-  if (fmthm.isValid())
-    {
+  // Find the tagged tracks as cosmic muons
+  const art::FindManyP<anab::CosmicTag> ct(trkHandle, e, fTrackModuleLabel);
+
+  if (fCosmics)
+  {
+    if (ct.isValid())
+    {	
+     	// loop over tracks
+      	fNumberOfTracks = trkHandle->size();
+     	 for (size_t t = 0; t < trkHandle->size(); ++t)
+     	 { 
+		if (ct.at(t).size())
+		{ 
+		                        
+			auto vhit = fmthm.at(t);
+			auto vmeta = fmthm.data(t);
+	
+			CountdEdx(vhit, vmeta);
+		}
+      	 }
+    }
+  }	
+  else if (fmthm.isValid())
+  {
+	
       // loop over tracks
       fNumberOfTracks = trkHandle->size();
       for (size_t t = 0; t < trkHandle->size(); ++t)
@@ -145,7 +173,7 @@ void proto::DEdx::analyze(art::Event const & e)
 	
 	CountdEdx(vhit, vmeta);
       }
-    }
+  }
 }
 
 void proto::DEdx::CountdEdx(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector< recob::TrackHitMeta const* > & data) // MeV/cm

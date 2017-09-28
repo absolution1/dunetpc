@@ -55,6 +55,7 @@ proto_dedx:
 {
 	module_type: "DEdx"
 	ChosenView: 2
+	Cosmics: true
 	CalorimetryAlg: @local::dune35t_calorimetryalgmc
 	HitModuleLabel: "linecluster"
 	TrackModuleLabel: "pmtrack"
