@@ -92,10 +92,10 @@ dune35t_signalshapingservice:   @local::dunefd_signalshapingservice
 dune35t_signalshapingservice.ASICGainInMVPerFC: [ 14.0, 14.0, 14.0] #mV/fC for Ind & col planes
 dune35t_signalshapingservice.ShapeTimeConst:    [ 3.0 , 3.0 , 3.0 ] #Gain and Peaking time (microseconds)
 #
-# DUNE dual-phase signal service
+# 3x1x1, protoDUNE and DUNE dual-phase signal service
 #
-dunefddphase_signalshapingservice:
-{
+
+dunedphase3x1x1_signalshapingservice: {
   DeconNorm: 200
 
   ASICmVperfC: 6.4    # Amplifier gain in mV/fC
@@ -113,5 +113,11 @@ dunefddphase_signalshapingservice:
   ColFilterParams: [ 1.0, 0.0, 0.136, 2.5 ]
   #FieldFunctionParameters: [1.0, 1.0, 1.0, 1.0] #0 step width #1 step height #2 slow/fast (could be taken from E field) #Tau (could be taken from field and temperature). 0 and Tau in us
 }
+
+protodunedphase_signalshapingservice: @local::dunedphase3x1x1_signalshapingservice
+
+dunefddphase_signalshapingservice: @local::dunedphase3x1x1_signalshapingservice
+dunefddphase_signalshapingservice.ASICmVperfC: 3.2
+
 
 END_PROLOG
