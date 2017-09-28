@@ -20,7 +20,7 @@ dunefddphase_detproperties:                   @local::standard_detproperties
 dunefddphase_detproperties.Temperature:       87            # in K
 dunefddphase_detproperties.Electronlifetime:  3.0e3         # in us
 dunefddphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
-dunefddphase_detproperties.ElectronsToADC:    1.02534e-03   # 
+dunefddphase_detproperties.ElectronsToADC:    5.1267e-04    # 
 dunefddphase_detproperties.NumberTimeSamples: 20000         # drift length/drift velocity*sampling rate
 dunefddphase_detproperties.ReadOutWindowSize: 20000         # drift length/drift velocity*sampling rate
 dunefddphase_detproperties.TimeOffsetU:       0.
