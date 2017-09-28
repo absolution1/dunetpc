@@ -37,7 +37,7 @@ public:
 
   AdcPedestalFitter(fhicl::ParameterSet const& ps);
 
-  int view(const AdcChannelData& acd) const override;
+  DataMap view(const AdcChannelData& acd) const override;
 
   int update(AdcChannelData& acd) const override;
 
@@ -59,13 +59,7 @@ private:
   Name nameReplace(Name name, const AdcChannelData& acd) const;
 
   // Find and return pedestal.
-  struct Result {
-    Result(int rstat) : stat(rstat) { }
-    int stat = -99;
-    double pedestal = 0.0;
-    TH1* ph = nullptr;
-  };
-  Result getPedestal(const AdcChannelData& acd) const;
+  DataMap getPedestal(const AdcChannelData& acd) const;
 
 };
 

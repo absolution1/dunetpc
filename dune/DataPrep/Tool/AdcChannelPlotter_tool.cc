@@ -67,11 +67,12 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
 
 //**********************************************************************
 
-int AdcChannelPlotter::view(const AdcChannelData& acd) const {
+DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelPlotter::view: ";
+  DataMap res;
   if ( m_HistTypes.size() == 0 ) {
     cout << myname << "WARNING: No histogram types are specified." << endl;
-    return 1;
+    return res.setStatus(1);
   }
   string hnameBase = m_HistName;
   if ( hnameBase == "" ) hnameBase = "%TYPE%";
@@ -136,7 +137,7 @@ int AdcChannelPlotter::view(const AdcChannelData& acd) const {
     delete pfile;
     gDirectory = polddir;
   }
-  return 0;
+  return res;
 }
 
 //**********************************************************************
