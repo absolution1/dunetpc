@@ -295,8 +295,7 @@ void DAQToOffline::MakeCounterPositionMap( std::string CounterDir, std::string C
   //     Value.second[3] - The Bottom Right corner of the counter
   CounterPositionMap.clear();
 
-  art::ServiceHandle<geo::Geometry> fGeom;
-  std::vector< geo::AuxDetGeo* > const &Aux = fGeom->AuxDetGeoVec();
+  auto fGeom = lar::providerFrom<geo::Geometry>();
     
   std::ostringstream CountStream;
   CountStream << CounterDir << CounterFile;
@@ -318,15 +317,17 @@ void DAQToOffline::MakeCounterPositionMap( std::string CounterDir, std::string C
       char Type, Side, Orientation;
       infile >> CountInd >> CentreX >> CentreY >> CentreZ >> Type >> Side >> Orientation;
       //std::cout << "Read in new line " << CountInd << " " << CentreX << " " << CentreY << " " << CentreZ << " " << Type << " " << Side << " " << Orientation << std::endl;
+      
+      geo::AuxDetGeo const& auxDet = fGeom->AuxDet(CountInd);
 
       // Make my TVector3's
       TVector3 Centre( CentreX, CentreY, CentreZ );
       TVector3 TL, TR, BL, BR;
 
       // Access the counter dimensions from the geometry
-      double HalfLength = 0.5 * Aux[CountInd]->Length();
-      double HalfWidth1  = Aux[CountInd]->HalfWidth1();
-      double HalfWidth2  = Aux[CountInd]->HalfWidth2();
+      double HalfLength = 0.5 * auxDet.Length();
+      double HalfWidth1  = auxDet.HalfWidth1();
+      double HalfWidth2  = auxDet.HalfWidth2();
       
       // Call the counter corner alg.
       MakeCounterCorners( CountInd, HalfLength, HalfWidth1, HalfWidth2, Centre, TL, TR, BL, BR, fExtendCountersX, fExtendCountersY, fExtendCountersZ );
