@@ -30,7 +30,7 @@ namespace geo{
     // start over:
     Uninitialize();
     
-    std::vector<geo::CryostatGeo*> const& cgeo = geodata.cryostats;
+    std::vector<geo::CryostatGeo> const& cgeo = geodata.cryostats;
     
     fNcryostat = cgeo.size();
     
@@ -54,7 +54,7 @@ namespace geo{
 
     for(unsigned int cs = 0; cs != fNcryostat; ++cs){
       
-      fNTPC[cs] = cgeo[cs]->NTPC();
+      fNTPC[cs] = cgeo[cs].NTPC();
       
       // Size up all the vectors 
       fWireCounts[cs]             .resize(fNTPC[cs]);
@@ -69,7 +69,7 @@ namespace geo{
 
       for(unsigned int TPCCount = 0; TPCCount != fNTPC[cs]; ++TPCCount)
 	{
-	  unsigned int PlanesThisTPC = cgeo[cs]->TPC(TPCCount).Nplanes();
+	  unsigned int PlanesThisTPC = cgeo[cs].TPC(TPCCount).Nplanes();
 	  fWireCounts[cs][TPCCount]   .resize(PlanesThisTPC);
 	  fFirstWireProj[cs][TPCCount].resize(PlanesThisTPC);
 	  fOrthVectorsY[cs][TPCCount] .resize(PlanesThisTPC);
@@ -82,32 +82,32 @@ namespace geo{
 	      throw cet::exception("Geometry") <<"CANNOT HAVE more than two readout planes for dual-phase" 
 					       << "\n";
 	    /*
-	    if(cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).View() == geo::kU)
+	    if(cgeo[cs].TPC(TPCCount).Plane(PlaneCount).View() == geo::kU)
 	      std::cout<<" View is kU "<<std::endl;
-	    else if(cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).View() == geo::kV)
+	    else if(cgeo[cs].TPC(TPCCount).Plane(PlaneCount).View() == geo::kV)
 	      std::cout<<" View is kV "<<std::endl;
-	    else if(cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).View() == geo::kZ)
+	    else if(cgeo[cs].TPC(TPCCount).Plane(PlaneCount).View() == geo::kZ)
 	      std::cout<<" View is kZ "<<std::endl;
 
-	    if(cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).SignalType() == geo::kInduction)
+	    if(cgeo[cs].TPC(TPCCount).Plane(PlaneCount).SignalType() == geo::kInduction)
 	      std::cout<<" View is kInduction "<<std::endl;
-	    if(cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).SignalType() == geo::kCollection)
+	    if(cgeo[cs].TPC(TPCCount).Plane(PlaneCount).SignalType() == geo::kCollection)
 	      std::cout<<" View is kCollection "<<std::endl;
 	    */
 
-	    fViews.emplace(cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).View());
+	    fViews.emplace(cgeo[cs].TPC(TPCCount).Plane(PlaneCount).View());
 	    fPlaneIDs.emplace(PlaneID(cs, TPCCount, PlaneCount));
-	    double ThisWirePitch = cgeo[cs]->TPC(TPCCount).WirePitch(0, 1, PlaneCount);
-	    fWireCounts[cs][TPCCount][PlaneCount] = cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).Nwires();
+	    double ThisWirePitch = cgeo[cs].TPC(TPCCount).WirePitch(0, 1, PlaneCount);
+	    fWireCounts[cs][TPCCount][PlaneCount] = cgeo[cs].TPC(TPCCount).Plane(PlaneCount).Nwires();
 	    
 	    double  WireCentre1[3] = {0.,0.,0.};
 	    double  WireCentre2[3] = {0.,0.,0.};
 	  
-	    const geo::WireGeo& firstWire = cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).Wire(0);
+	    const geo::WireGeo& firstWire = cgeo[cs].TPC(TPCCount).Plane(PlaneCount).Wire(0);
 	    const double sth = firstWire.SinThetaZ(), cth = firstWire.CosThetaZ();
 
 	    firstWire.GetCenter(WireCentre1,0);
-	    cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).Wire(1).GetCenter(WireCentre2,0);
+	    cgeo[cs].TPC(TPCCount).Plane(PlaneCount).Wire(1).GetCenter(WireCentre2,0);
 	    
 	    // figure out if we need to flip the orthogonal vector 
 	    // (should point from wire n -> n+1)
@@ -131,7 +131,7 @@ namespace geo{
           fFirstWireProj[cs][TPCCount][PlaneCount] /= ThisWirePitch;
           
           // now to count up wires in each plane and get first channel in each plane
-          int WiresThisPlane = cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).Nwires();        
+          int WiresThisPlane = cgeo[cs].TPC(TPCCount).Plane(PlaneCount).Nwires();        
           fWiresPerPlane[cs] .at(TPCCount).push_back(WiresThisPlane);
           fPlaneBaselines[cs].at(TPCCount).push_back(RunningTotal);
           
