@@ -61,14 +61,14 @@ void DuneApaChannelMapAlg::setSorter(const geo::GeoObjectSorter& sort) {
 void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
   Uninitialize();
     
-  vector<CryostatGeo*> const& crygeos = geodata.cryostats;
+  vector<CryostatGeo> const& crygeos = geodata.cryostats;
   Index ncry = crygeos.size();
   fNcryostat = ncry;
   if ( ncry == 0 ) {
     mf::LogError("DuneApaChannelMapAlg") << "No cryostats found.";
     return;
   }
-  CryostatGeo& crygeo = *crygeos[0];
+  CryostatGeo const& crygeo = crygeos[0];
     
   mf::LogInfo("DuneApaChannelMapAlg") << "Initializing channel map...";
   fNTpc.resize(ncry);
@@ -96,7 +96,7 @@ void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
   fNApaMax = 0;
   fNRopMax = 0;
   for ( Index icry=0; icry<ncry; ++icry ) {
-    Index ntpc = crygeos[icry]->NTPC();
+    Index ntpc = crygeos[icry].NTPC();
     Index napa = ntpc/2;  // Assume 1 APA for every two TPCs
     fNTpc[icry] = ntpc;
     fNApa[icry] = napa;
@@ -196,7 +196,7 @@ void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
           fPlaneApa[icry][itpc][ipla] = iapa;
           fPlaneRop[icry][itpc][ipla] = irop;
           fPlaneRopIndex[icry][itpc][ipla] = irpl;
-          const PlaneGeo& plageo = crygeos[icry]->TPC(itpc).Plane(ipla);
+          const PlaneGeo& plageo = crygeos[icry].TPC(itpc).Plane(ipla);
 #if 0
 const PlaneGeo plageo2 = plageo;
 #endif
@@ -244,10 +244,10 @@ const PlaneGeo plageo2 = plageo;
     Index ntpc = fNTpc[icry];
     fPlaneData[icry].resize(ntpc);
     for ( Index itpc=0; itpc<ntpc; ++itpc ) {
-      fPlaneData[icry][itpc].resize(crygeos[icry]->TPC(itpc).Nplanes());
-      for ( Index ipla=0; ipla<crygeos[icry]->TPC(itpc).Nplanes(); ++ipla ) {
+      fPlaneData[icry][itpc].resize(crygeos[icry].TPC(itpc).Nplanes());
+      for ( Index ipla=0; ipla<crygeos[icry].TPC(itpc).Nplanes(); ++ipla ) {
         PlaneData_t& PlaneData = fPlaneData[icry][itpc][ipla];
-        const PlaneGeo& thePlane = crygeos[icry]->TPC(itpc).Plane(ipla);
+        const PlaneGeo& thePlane = crygeos[icry].TPC(itpc).Plane(ipla);
         double xyz[3];
         fPlaneIDs.emplace(icry, itpc, ipla);
         thePlane.Wire(0).GetCenter(xyz);
