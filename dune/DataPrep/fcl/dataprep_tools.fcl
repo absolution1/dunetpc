@@ -35,7 +35,7 @@ tools.adcPlotRaw: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
-  HistManager: "adcHists"
+  HistManager: ""
 }
 
 # Dump ADC channel distribution to a histogram.
@@ -46,7 +46,7 @@ tools.adcPlotRawDist: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
-  HistManager: "adcHists"
+  HistManager: ""
 }
 
 # Fit ADC distribution to get pedestal.
