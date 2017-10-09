@@ -23,13 +23,14 @@
 //   if ( res.hasHist("myhist") ) res.getHist("myhist")->Draw();
 //
 // This class does not manage (i.e. delete histograms). Its filler should ensure
-// tha any stored histograms have appropriate lifetime.
+// that any stored histograms have appropriate lifetime.
 
+#include <vector>
 #include <map>
 #include <string>
 #include <iostream>
 
-class TH1;
+#include "TH1.h"
 
 class DataMap {
 
@@ -39,15 +40,26 @@ public:
   using IntMap = std::map<Name,int>;
   using FloatMap = std::map<Name,double>;
   using HistMap = std::map<Name,TH1*>;
+  using HistVector = std::vector<TH1*>;
+  using SharedHistVector = std::vector<std::shared_ptr<TH1>>;
 
   // Ctor from status flag.
   explicit DataMap(int stat =0) : m_stat(stat) { }
 
   // Setters.
+  // If own is true, the result owns the histogram,
+  // i.e. the histogram is deleted when the last result sharing 
+  // management is deleted.
   DataMap& setStatus(int stat) { m_stat = stat; return *this; }
   void setInt(Name name, int val) { m_ints[name] = val; }
   void setFloat(Name name, double val) { m_flts[name] = val; }
-  void setHist(Name name, TH1* ph) { m_hsts[name] = ph; }
+  void setHist(Name name, TH1* ph, bool own =false) {
+    m_hsts[name] = ph;
+    if ( own ) {
+      ph->SetDirectory(nullptr);
+      m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
+    }
+  }
 
   // Extend this map with another.
   void extend(const DataMap& rhs) {
@@ -55,6 +67,7 @@ public:
     mapextend<int>(m_ints, rhs.m_ints);
     mapextend<double>(m_flts, rhs.m_flts);
     mapextend<TH1*>(m_hsts, rhs.m_hsts);
+    m_sharedHsts.insert(m_sharedHsts.end(), rhs.m_sharedHsts.begin(), rhs.m_sharedHsts.end());
   }
   DataMap& operator+=(const DataMap& rhs) { extend(rhs); return *this; }
 
@@ -79,6 +92,13 @@ public:
   const IntMap& getIntMap() const { return m_ints; }
   const FloatMap& getFloatMap() const { return m_flts; }
   const HistMap& getHistMap() const { return m_hsts; }
+
+  // Return the histograms in a vector.
+  HistVector getHists() const {
+    HistVector hsts;
+    for ( HistMap::value_type ihst : m_hsts ) hsts.push_back(ihst.second);
+    return hsts;
+  }
   
   // Display contents.
   void print() const {
@@ -119,6 +139,7 @@ private:
   IntMap m_ints;
   FloatMap m_flts;
   HistMap m_hsts;
+  SharedHistVector m_sharedHsts;
 
   // Return if a map has key.
   template<typename T>
