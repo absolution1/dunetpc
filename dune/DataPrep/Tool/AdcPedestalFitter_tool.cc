@@ -50,7 +50,7 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
     cout << myname << "    LogLevel: " << m_LogLevel << endl;
     cout << myname << "    HistName: " << m_HistName << endl;
     cout << myname << "   HistTitle: " << m_HistTitle << endl;
-    cout << myname << " HistManager: \"" << m_HistManager << "\"" << endl;
+    cout << myname << " HistManager: " << m_HistManager << endl;
   }
 }
 
