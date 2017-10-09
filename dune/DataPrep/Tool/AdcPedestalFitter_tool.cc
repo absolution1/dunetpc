@@ -66,13 +66,9 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
     delete phped;
     return res;
   }
-cout << 0 << endl;
   if ( m_phm == nullptr ) {
-cout << 1 << endl;
     res.setHist("pedestal", phped, true);
-cout << 2 << endl;
   } else {
-cout << 3 << endl;
     int rstat = m_phm->manage(phped);
     if ( rstat != 0 ) {
       cout << myname << "WARNING: Attempt to manage histogram " << phped->GetName()
