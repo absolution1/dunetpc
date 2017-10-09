@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Utilities/make_tool.h"
 
@@ -53,6 +54,11 @@ public:
   // Return a private (not shared) copy of a tool.
   template<class T>
   std::unique_ptr<T> getPrivate(std::string name) {
+    std::string myname = "DuneToolManager::getPrivate: ";
+    if ( std::find(m_toolNames.begin(), m_toolNames.end(), name) == m_toolNames.end() ) {
+      std::cout << myname << "No such tool name: " << name << std::endl;
+      return nullptr;
+    }
     fhicl::ParameterSet psTool = m_pstools.get<fhicl::ParameterSet>(name);
     return art::make_tool<T>(psTool);
   }
