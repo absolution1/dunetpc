@@ -7,6 +7,9 @@
 
 include(CetTest)
 
-cet_test(test_DataMap SOURCES test_DataMap.cxx)
+cet_test(test_DataMap SOURCES test_DataMap.cxx
+  LIBRARIES
+    ${ROOT_BASIC_LIB_LIST}
+)
 
 cet_enable_asserts()

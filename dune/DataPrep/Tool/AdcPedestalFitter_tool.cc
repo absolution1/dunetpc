@@ -35,7 +35,8 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
-  m_HistManager(ps.get<string>("HistManager")) {
+  m_HistManager(ps.get<string>("HistManager")),
+  m_phm(nullptr) {
   const string myname = "AdcPedestalFitter::ctor: ";
   if ( m_HistManager.size() ) {
     DuneToolManager* ptm = DuneToolManager::instance();
@@ -49,7 +50,7 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
     cout << myname << "    LogLevel: " << m_LogLevel << endl;
     cout << myname << "    HistName: " << m_HistName << endl;
     cout << myname << "   HistTitle: " << m_HistTitle << endl;
-    cout << myname << " HistManager: " << m_HistManager << endl;
+    cout << myname << " HistManager: \"" << m_HistManager << "\"" << endl;
   }
 }
 
@@ -65,10 +66,13 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
     delete phped;
     return res;
   }
+cout << 0 << endl;
   if ( m_phm == nullptr ) {
-    delete phped;
-    res.setHist("pedestal", nullptr);
+cout << 1 << endl;
+    res.setHist("pedestal", phped, true);
+cout << 2 << endl;
   } else {
+cout << 3 << endl;
     int rstat = m_phm->manage(phped);
     if ( rstat != 0 ) {
       cout << myname << "WARNING: Attempt to manage histogram " << phped->GetName()

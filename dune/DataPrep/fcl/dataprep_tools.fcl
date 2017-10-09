@@ -56,7 +56,7 @@ tools.adcPedestalFit: {
   HistName: "adcped_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC pedestal fit for event %EVENT% channel %CHAN%"
   RootFileName: ""
-  HistManager: "adcHists"
+  HistManager: ""
 }
 
 # Dump ADC map contents to the log file.
