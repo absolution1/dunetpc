@@ -7,6 +7,7 @@
 #include "TList.h"
 #include "TStyle.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TLine.h"
 #include "TF1.h"
 #include <iostream>
@@ -19,17 +20,18 @@ using std::endl;
 
 TPadManipulator::TPadManipulator(TVirtualPad* ppad)
 : m_ppad(ppad),
+  m_ph(nullptr),
   m_top(false), m_right(false),
   m_vmlXmod(0.0), m_vmlXoff(0.0) {
   if ( m_ppad == 0 ) m_ppad = gPad;
   update();
-  cout << "Constructed @" << this << endl;
+  //cout << "Constructed @" << this << endl;
 }
 
 //**********************************************************************
 
 TPadManipulator::~TPadManipulator() {
-  cout << "Deleting " << m_vmlLines.size() << " lines @" << this << endl;
+  //cout << "Destructed @" << this << endl;
 }
 
 //**********************************************************************
@@ -59,11 +61,20 @@ int TPadManipulator::update() {
     m_ymax = pow(10.0, m_ymax);
   }
   const TList* prims = gPad->GetListOfPrimitives();
+  bool firstHist = m_ph == nullptr;
   m_ph = nullptr;
   for ( int iprm=0; iprm<prims->GetEntries(); ++iprm ) {
     TObject* pobj = prims->At(iprm);
     m_ph = dynamic_cast<TH1*>(pobj);
     if ( m_ph != nullptr ) break;
+  }
+  firstHist = firstHist && m_ph != nullptr;
+  // Set right margin the first time the histogram is found.
+  // After this, allow user to override with pad()->SetRightMargin(...)
+  if ( firstHist ) {
+    bool isTH2 = dynamic_cast<TH2*>(m_ph) != nullptr;
+    if ( isTH2 ) m_ppad->SetRightMargin(0.10);
+    else m_ppad->SetRightMargin(0.04);
   }
   if ( m_top ) drawAxisTop();
   if ( m_right ) drawAxisRight();
