@@ -243,9 +243,10 @@ int TPadManipulator::drawHistFuns() {
 
 //**********************************************************************
 
-int TPadManipulator::addVerticalModLines(double xmod, double xoff) {
+int TPadManipulator::addVerticalModLines(double xmod, double xoff, double lenfrac) {
   m_vmlXmod = xmod;
   m_vmlXoff = xoff;
+  m_vmlXLength = lenfrac;
   drawVerticalModLines();
   return 0;
 }
@@ -260,8 +261,9 @@ int TPadManipulator::drawVerticalModLines() {
   while ( x >= xmin() ) x -= xmod;
   while ( x < xmin() ) x += xmod;
   m_vmlLines.clear();
+  double ytop = ymax() + (m_vmlXLength - 1.0)*(ymax() - ymin());
   while ( x <= xmax() ) {
-    std::shared_ptr<TLine> pline(new TLine(x, ymin(), x, ymax()));
+    std::shared_ptr<TLine> pline(new TLine(x, ymin(), x, ytop));
     pline->SetLineStyle(3);
     m_vmlLines.push_back(pline);
     pline->Draw();

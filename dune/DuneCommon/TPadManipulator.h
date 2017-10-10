@@ -81,7 +81,8 @@ public:
 
   // Add vertical modulus lines.
   // I.e at x = xoff, xoff+/-xmod, xoff+/-2*xmod, ...
-  int addVerticalModLines(double xmod, double xoff =0.0);
+  // The lines are draw from the bottom to lenfrac*height
+  int addVerticalModLines(double xmod, double xoff =0.0, double lenfrac =1.0);
 
   // Add histogram function ifun to the pad.
   int addHistFun(unsigned int ifun =0);
@@ -114,9 +115,10 @@ private:
   bool m_right;
   double m_rightTicksize;
   double m_rightNdiv;
+  std::vector<unsigned int> m_histFuns;
   double m_vmlXmod;
   double m_vmlXoff;
-  std::vector<unsigned int> m_histFuns;
+  double m_vmlXLength;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
 
 };
