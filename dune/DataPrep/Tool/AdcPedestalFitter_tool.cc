@@ -179,7 +179,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   double valmax = phf->GetBinContent(binmax);
   double rangeIntegral = phf->Integral(1, phf->GetNbinsX());
   double peakBinFraction = valmax/rangeIntegral;
-  bool allBin = valmax > 0.99*rangeIntegral;
+  bool allBin = peakBinFraction > 0.99;
   bool dropBin = valmax > 0.2*phf->Integral() && !allBin;
   int nbinsRemoved = 0;
   if ( dropBin ) {
@@ -188,14 +188,14 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     rangeIntegral = phf->Integral(1, phf->GetNbinsX());
     ++nbinsRemoved;
   }
-  double amean = phf->GetMean();
+  double amean = phf->GetMean() + 0.5;
   double alim1 = amean - 25.0;
   double alim2 = amean + 25.0;
   TF1 fitter("pedgaus", "gaus", adc1, adc2, TF1::EAddToList::kNo);
   fitter.SetParameters(0.1*rangeIntegral, amean, 5.0);
   fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
   fitter.SetParLimits(1, alim1, alim2);
-  if ( allBin ) fitter.SetParLimits(1, 1, 0);  // Fix posn.
+  if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
   fitter.SetParLimits(2, 3.0, 10.0);
   TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
   pfinit->SetLineColor(3);
@@ -207,8 +207,9 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
   if ( dropBin ) phf->SetBinContent(binmax, valmax);
   res.setHist("pedestal", phf);
-  res.setFloat("fitPedestal", fitter.GetParameter(1));
+  res.setFloat("fitPedestal", fitter.GetParameter(1) - 0.5);
   res.setFloat("fitPedestalRms", fitter.GetParameter(2));
+  res.setFloat("fitChiSquare", fitter.GetChisquare());
   res.setFloat("fitPeakBinFraction", peakBinFraction);
   res.setInt("fitChannel", acd.channel);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
