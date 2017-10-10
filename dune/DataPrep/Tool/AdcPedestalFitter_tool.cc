@@ -84,7 +84,7 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
 
 //**********************************************************************
 
-int AdcPedestalFitter::update(AdcChannelData& acd) const {
+DataMap AdcPedestalFitter::update(AdcChannelData& acd) const {
   const string myname = "AdcPedestalFitter::update: ";
   if ( m_LogLevel >= 3 ) cout << myname << "Calling " << endl;
   DataMap res = getPedestal(acd);

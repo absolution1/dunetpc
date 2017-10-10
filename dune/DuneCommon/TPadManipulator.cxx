@@ -22,15 +22,13 @@ TPadManipulator::TPadManipulator(TVirtualPad* ppad)
   m_vmlXmod(0.0), m_vmlXoff(0.0) {
   if ( m_ppad == 0 ) m_ppad = gPad;
   update();
+  cout << "Constructed @" << this << endl;
 }
 
 //**********************************************************************
 
 TPadManipulator::~TPadManipulator() {
-  for ( TLine* pline : m_vmlLines ) {
-    delete pline;
-  }
-  m_vmlLines.clear();
+  cout << "Deleting " << m_vmlLines.size() << " lines @" << this << endl;
 }
 
 //**********************************************************************
@@ -238,10 +236,9 @@ int TPadManipulator::drawVerticalModLines() {
   double x = xoff;
   while ( x >= xmin() ) x -= xmod;
   while ( x < xmin() ) x += xmod;
-  for ( TLine* pline : m_vmlLines ) delete pline;
   m_vmlLines.clear();
   while ( x <= xmax() ) {
-    TLine* pline = new TLine(x, ymin(), x, ymax());
+    std::shared_ptr<TLine> pline(new TLine(x, ymin(), x, ymax()));
     pline->SetLineStyle(3);
     m_vmlLines.push_back(pline);
     pline->Draw();

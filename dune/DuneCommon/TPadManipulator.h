@@ -10,14 +10,17 @@
 #define TPadManipulator_H
 
 #include <vector>
+#include <memory>
+#include "TLine.h"
 
 class TVirtualPad;
 class TH1;
-class TLine;
 
 class TPadManipulator {
 
 public:
+
+  using TLinePtr = std::shared_ptr<TLine>;
 
   // Ctor from a pad. If null the current pad is used.
   TPadManipulator(TVirtualPad* ppad =nullptr);
@@ -45,7 +48,7 @@ public:
   TH1* hist() const { return m_ph; }
 
   // Return the vertical mod lines associated with this pad.
-  const std::vector<TLine*>& verticalModLines() const { return m_vmlLines; }
+  const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
 
   // Update the coordinates and histogram for this pad.
   int update();
@@ -107,7 +110,7 @@ private:
   double m_rightNdiv;
   double m_vmlXmod;
   double m_vmlXoff;
-  std::vector<TLine*> m_vmlLines;
+  std::vector<std::shared_ptr<TLine>> m_vmlLines;
 
 };
 
