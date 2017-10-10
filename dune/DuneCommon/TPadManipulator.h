@@ -73,7 +73,7 @@ public:
   // Add right y-axis with attributes from the first histogram on the pad.
   int addAxisRight();
 
-  // Draw right y-axis with specified attributes.
+  // Add right y-axis with specified attributes.
   int addAxisRight(double ticksize, int ndiv);
 
   // Draw right y-axis.
@@ -82,6 +82,12 @@ public:
   // Add vertical modulus lines.
   // I.e at x = xoff, xoff+/-xmod, xoff+/-2*xmod, ...
   int addVerticalModLines(double xmod, double xoff =0.0);
+
+  // Add histogram function ifun to the pad.
+  int addHistFun(unsigned int ifun =0);
+
+  // Draw the hist functions.
+  int drawHistFuns();
 
   // Draw the current mod lines.
   int drawVerticalModLines();
@@ -110,6 +116,7 @@ private:
   double m_rightNdiv;
   double m_vmlXmod;
   double m_vmlXoff;
+  std::vector<unsigned int> m_histFuns;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
 
 };

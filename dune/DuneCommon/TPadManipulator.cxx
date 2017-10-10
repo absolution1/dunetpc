@@ -8,6 +8,7 @@
 #include "TStyle.h"
 #include "TH1.h"
 #include "TLine.h"
+#include "TF1.h"
 #include <iostream>
 
 using std::string;
@@ -215,6 +216,28 @@ int TPadManipulator::drawAxisRight() {
   }
   paxnew->Draw("");
   if ( pPadSave != nullptr ) pPadSave->cd();
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::addHistFun(unsigned int ifun) {
+  m_histFuns.push_back(ifun);
+  drawHistFuns();
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::drawHistFuns() {
+  if ( m_ph == nullptr ) return 0;
+  const TList& funs =  *m_ph->GetListOfFunctions();
+  unsigned int nfun = funs.GetEntries();
+  for ( unsigned int ifun : m_histFuns ) {
+    if ( ifun >= nfun ) continue;
+    TF1* pfun = dynamic_cast<TF1*>(funs.At(ifun));
+    pfun->Draw("same");
+  }
   return 0;
 }
 
