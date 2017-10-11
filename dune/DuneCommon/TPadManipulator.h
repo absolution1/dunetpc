@@ -45,7 +45,7 @@ public:
   TVirtualPad* pad() const { return m_ppad; }
 
   // Return the first histogram for this pad.
-  TH1* hist() const { return m_ph; }
+  TH1* hist() const { return m_ph.get(); }
 
   // Return the vertical mod lines associated with this pad.
   const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
@@ -79,6 +79,13 @@ public:
   // Draw right y-axis.
   int drawAxisRight();
 
+  // Add underflow bin to the plot (false to remove it).
+  int showUnderflow(bool show =true);
+  int showOverflow(bool show =true);
+
+  // Return the under/overflow histogram.
+  TH1* flowHistogram() { return m_flowHist.get(); }
+
   // Add vertical modulus lines.
   // I.e at x = xoff, xoff+/-xmod, xoff+/-2*xmod, ...
   // The lines are draw from the bottom to lenfrac*height
@@ -108,7 +115,10 @@ private:
   double m_xmax;
   double m_ymin;
   double m_ymax;
-  TH1* m_ph;
+  std::shared_ptr<TH1> m_ph;
+  std::shared_ptr<TH1> m_flowHist;
+  bool m_showUnderflow;
+  bool m_showOverflow;
   bool m_top;
   double m_topTicksize;
   double m_topNdiv;
