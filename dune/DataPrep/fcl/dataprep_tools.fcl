@@ -108,6 +108,14 @@ tools.digitReader: {
   LogLevel: 1
 }
 
+# Fill sample from 12-bit ADC data.
+tools.adcSampleFiller: {
+  tool_type: AdcSampleFiller
+  LogLevel: 1
+  AdcUnderflow: 0
+  AdcOverflow: 4095
+}
+
 # Find ADC signals with simple threshold algorithm.
 tools.adcThresholdSignalFinder: {
   tool_type: AdcThresholdSignalFinder

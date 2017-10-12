@@ -53,8 +53,12 @@ simple_plugin(AcdWireReader   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcSampleFiller   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcThresholdSignalFinder   "tool"
-                dune_DuneCommon
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )

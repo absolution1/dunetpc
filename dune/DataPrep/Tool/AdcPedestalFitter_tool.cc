@@ -94,7 +94,7 @@ DataMap AdcPedestalFitter::update(AdcChannelData& acd) const {
   res.setHist("pedestal", nullptr);
   if ( res.status() != 0 ) return res;
   if ( m_LogLevel >= 3 ) cout << myname << "Old pedestal: " << acd.pedestal << endl;
-  acd.pedestal = res.getFloat("pedestal");
+  acd.pedestal = res.getFloat("fitPedestal");
   if ( m_LogLevel >= 3 ) cout << myname << "New pedestal: " << acd.pedestal << endl;
   return res;
 }
