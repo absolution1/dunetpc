@@ -107,3 +107,12 @@ tools.digitReader: {
   tool_type: AcdDigitReader
   LogLevel: 1
 }
+
+# Find ADC signals with simple threshold algorithm.
+tools.adcThresholdSignalFinder: {
+  tool_type: AdcThresholdSignalFinder
+  LogLevel: 1
+  Threshold: 100
+  BinsBefore: 10
+  BinsAfter: 20
+}
