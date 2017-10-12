@@ -1,10 +1,17 @@
 // TPadManipulator.h
 //
 // David Adams
-// November 2015
+// Octobe 2017
 //
-// Root macros to manipulate a root drawing pad.
+// Root macro to manipulate a root drawing pad.
 //
+// The first histogram in the pad is cloned and the pad is updated
+// using the clone. Caller then has the options to
+//  change X and Y range
+//  add top and bottom axis
+//  display underflow and overflow
+//  add vertical lines at regular intervals
+//  display any of the functions (e.g. the fit) associated with the histogram
 
 #ifndef TPadManipulator_H
 #define TPadManipulator_H
