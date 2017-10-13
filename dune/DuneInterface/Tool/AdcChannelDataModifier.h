@@ -3,8 +3,7 @@
 // David Adams
 // August 2017
 //
-// Interface for tools that modify ADC channel data
-// independently for each channel.
+// Interface for tools that modify the data for an ADC channel.
 //
 // E.g. read or write LarSoft digits or wires, add or remove
 // noise or convert raw to/from prepared.
@@ -27,7 +26,7 @@ public:
 
   // Tool process method.
   //   acd - ADC channel data
-  virtual int update(AdcChannelData& acd) const =0;
+  virtual DataMap update(AdcChannelData& acd) const =0;
 
 };
 

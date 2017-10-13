@@ -35,7 +35,8 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_RootFileName(ps.get<string>("RootFileName")),
-  m_HistManager(ps.get<string>("HistManager")) {
+  m_HistManager(ps.get<string>("HistManager")),
+  m_phm(nullptr) {
   const string myname = "AdcChannelPlotter::ctor: ";
   if ( m_HistTypes.size() == 0 ) {
     cout << myname << "WARNING: No histogram types are specified." << endl;
@@ -49,13 +50,13 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     }
   }
   if ( m_LogLevel > 0 ) {
-    cout << myname << "      LogLevel: [" << m_LogLevel << endl;
+    cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "     HistTypes: [";
     bool first = true;
     for ( string name : m_HistTypes ) {
       if ( ! first ) cout << ", ";
       first = false;
-      cout << " " << name;
+      cout << name;
     }
     cout << "]" << endl;
     cout << myname << "      HistName: " << m_HistName << endl;
@@ -86,6 +87,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
   }
   vector<TH1*> hists;
   for ( string type : m_HistTypes ) {
+    TH1* ph = nullptr;
     if ( type == "raw" ) {
       Index nsam = acd.raw.size();
       if ( nsam == 0 ) {
@@ -95,7 +97,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       string hname = nameReplace(hnameBase, acd, type);
       string htitl = nameReplace(htitlBase, acd, type);
       htitl += "; Tick; ADC count";
-      TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
+      ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
       hists.push_back(ph);
       for ( Index isam=0; isam<nsam; ++isam ) {
         ph->SetBinContent(isam+1, acd.raw[isam]);
@@ -110,7 +112,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       string htitl = nameReplace(htitlBase, acd, type);
       htitl += "; ADC count; # samples";
       unsigned int nadc = 4096;
-      TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
+      ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
       hists.push_back(ph);
       for ( Index isam=0; isam<nsam; ++isam ) {
         ph->Fill(acd.raw[isam]);
@@ -118,18 +120,19 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     } else {
       cout << myname << "WARNING: Unknown type: " << type << endl;
     }
-  }
-  for ( TH1* ph : hists ) {
+    if ( ph == nullptr ) continue;
     ph->SetStats(0);
     ph->SetLineWidth(2);
-    ph->DrawCopy();
-    int rstat = m_phm != nullptr;
-    if ( rstat != 0 ) {
-      if ( m_phm->manage(ph) ) {
+    bool resManage = m_phm == nullptr;
+    if ( ! resManage ) {
+      int rstat = m_phm->manage(ph);
+      if ( rstat ) {
         cout << myname << "WARNING: Attempt to manage histogram " << ph->GetName()
-             << " returned error " << rstat << endl;
+             << " with manager " << m_HistManager << " returned error " << rstat << endl;
+        resManage = true;
       }
     }
+    res.setHist(type, ph, resManage);
   }
   if ( pfile != nullptr ) {
     pfile->Write();

@@ -7,7 +7,9 @@
 #include "TList.h"
 #include "TStyle.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TLine.h"
+#include "TF1.h"
 #include <iostream>
 
 using std::string;
@@ -18,24 +20,24 @@ using std::endl;
 
 TPadManipulator::TPadManipulator(TVirtualPad* ppad)
 : m_ppad(ppad),
+  m_showUnderflow(false), m_showOverflow(false),
   m_top(false), m_right(false),
   m_vmlXmod(0.0), m_vmlXoff(0.0) {
   if ( m_ppad == 0 ) m_ppad = gPad;
   update();
+  //cout << "Constructed @" << this << endl;
 }
 
 //**********************************************************************
 
 TPadManipulator::~TPadManipulator() {
-  for ( TLine* pline : m_vmlLines ) {
-    delete pline;
-  }
-  m_vmlLines.clear();
+  //cout << "Destructed @" << this << endl;
 }
 
 //**********************************************************************
 
 int TPadManipulator::update() {
+  const string myname = "TPadManipulator::update: ";
   if ( m_ppad == nullptr ) m_ppad = gPad;
   if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = m_ppad == gPad ? nullptr : gPad;
@@ -60,12 +62,50 @@ int TPadManipulator::update() {
     m_ymax = pow(10.0, m_ymax);
   }
   const TList* prims = gPad->GetListOfPrimitives();
-  m_ph = nullptr;
-  for ( int iprm=0; iprm<prims->GetEntries(); ++iprm ) {
-    TObject* pobj = prims->At(iprm);
-    m_ph = dynamic_cast<TH1*>(pobj);
-    if ( m_ph != nullptr ) break;
+  bool noHist = m_ph == nullptr;
+  if ( noHist ) {
+    for ( int iprm=0; iprm<prims->GetEntries(); ++iprm ) {
+      TObject* pobj = prims->At(iprm);
+      TH1* ph = dynamic_cast<TH1*>(pobj);
+      if ( ph == nullptr ) continue;
+      m_ph.reset(dynamic_cast<TH1*>(ph->Clone("hmanip0")));
+      m_ph->SetDirectory(nullptr);
+    }
   }
+  if ( m_ph == nullptr ) {
+    cout << myname << "Pad does not have a histogram." << endl;
+    return 2;
+  }
+  // Set right margin the first time the histogram is found.
+  // After this, allow user to override with pad()->SetRightMargin(...)
+  bool isTH2 = dynamic_cast<TH2*>(m_ph.get()) != nullptr;
+  if ( noHist ) {
+    if ( isTH2 ) m_ppad->SetRightMargin(0.10);
+    else m_ppad->SetRightMargin(0.04);
+  }
+  bool isTH1 = m_ph != nullptr && !isTH2;
+  int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
+  int flowcol = kAzure - 9;
+  // Redraw everything.
+  gPad->Clear();
+  m_ph->Draw();
+  if ( (m_showUnderflow || m_showOverflow) && nbin > 0 ) {
+    if ( m_flowHist == nullptr ) {
+      m_flowHist.reset((TH1*) m_ph->Clone("hmaniptmp"));
+      m_flowHist->SetDirectory(nullptr);
+      m_flowHist->SetStats(0);
+      m_flowHist->SetLineColor(flowcol);
+      m_flowHist->SetFillColor(flowcol);
+      m_flowHist->SetLineWidth(1);
+    }
+    m_flowHist->Reset();
+    if ( m_showUnderflow ) m_flowHist->SetBinContent(1, m_ph->GetBinContent(0));
+    if ( m_showOverflow ) m_flowHist->SetBinContent(nbin, m_ph->GetBinContent(nbin+1));
+    m_flowHist->DrawCopy("same");
+    m_ph->Draw("same");
+    m_ph->Draw("axis same");
+  }
+  drawHistFuns();
   if ( m_top ) drawAxisTop();
   if ( m_right ) drawAxisRight();
   if ( m_vmlXmod >= 0.0 ) drawVerticalModLines();
@@ -222,9 +262,48 @@ int TPadManipulator::drawAxisRight() {
 
 //**********************************************************************
 
-int TPadManipulator::addVerticalModLines(double xmod, double xoff) {
+int TPadManipulator::addHistFun(unsigned int ifun) {
+  m_histFuns.push_back(ifun);
+  drawHistFuns();
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::drawHistFuns() {
+  if ( m_ph == nullptr ) return 0;
+  const TList& funs =  *m_ph->GetListOfFunctions();
+  unsigned int nfun = funs.GetEntries();
+  for ( unsigned int ifun : m_histFuns ) {
+    if ( ifun >= nfun ) continue;
+    TF1* pfun = dynamic_cast<TF1*>(funs.At(ifun));
+    pfun->Draw("same");
+  }
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::showUnderflow(bool show) {
+  if ( show == m_showUnderflow ) return 0;
+  m_showUnderflow = show;
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::showOverflow(bool show) {
+  if ( show == m_showOverflow ) return 0;
+  m_showOverflow = show;
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::addVerticalModLines(double xmod, double xoff, double lenfrac) {
   m_vmlXmod = xmod;
   m_vmlXoff = xoff;
+  m_vmlXLength = lenfrac;
   drawVerticalModLines();
   return 0;
 }
@@ -238,10 +317,10 @@ int TPadManipulator::drawVerticalModLines() {
   double x = xoff;
   while ( x >= xmin() ) x -= xmod;
   while ( x < xmin() ) x += xmod;
-  for ( TLine* pline : m_vmlLines ) delete pline;
   m_vmlLines.clear();
+  double ytop = ymax() + (m_vmlXLength - 1.0)*(ymax() - ymin());
   while ( x <= xmax() ) {
-    TLine* pline = new TLine(x, ymin(), x, ymax());
+    std::shared_ptr<TLine> pline(new TLine(x, ymin(), x, ytop));
     pline->SetLineStyle(3);
     m_vmlLines.push_back(pline);
     pline->Draw();

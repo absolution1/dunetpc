@@ -49,7 +49,7 @@ int test_TPadManipulator() {
   ph->Draw();
   TPadManipulator man(pcan);
   assert( man.pad() == pcan );
-  assert( man.hist() == ph );
+  assert( man.hist() != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Add axis." << endl;
