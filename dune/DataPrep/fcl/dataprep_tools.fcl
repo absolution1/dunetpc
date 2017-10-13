@@ -27,11 +27,22 @@ tools.adcChannelDumper: {
   MaxSample: 100
 }
 
-# Dump ADC channel waveform to a histogram.
+# Dump raw ADC channel waveform to a histogram.
 tools.adcPlotRaw: {
   tool_type: AdcChannelPlotter
   LogLevel: 1
   HistTypes: ["raw"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  HistManager: ""
+}
+
+# Dump prepared ADC channel waveform to a histogram.
+tools.adcPlotPrepared: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["prepared"]
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""

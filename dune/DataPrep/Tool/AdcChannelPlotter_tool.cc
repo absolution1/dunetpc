@@ -88,14 +88,14 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
   vector<TH1*> hists;
   for ( string type : m_HistTypes ) {
     TH1* ph = nullptr;
+    string hname = nameReplace(hnameBase, acd, type);
+    string htitl = nameReplace(htitlBase, acd, type);
     if ( type == "raw" ) {
       Index nsam = acd.raw.size();
       if ( nsam == 0 ) {
         cout << myname << "WARNING: Raw data is empty." << endl;
         continue;
       }
-      string hname = nameReplace(hnameBase, acd, type);
-      string htitl = nameReplace(htitlBase, acd, type);
       htitl += "; Tick; ADC count";
       ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
       hists.push_back(ph);
@@ -108,14 +108,24 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
         cout << myname << "WARNING: Raw data is empty." << endl;
         continue;
       }
-      string hname = nameReplace(hnameBase, acd, type);
-      string htitl = nameReplace(htitlBase, acd, type);
       htitl += "; ADC count; # samples";
       unsigned int nadc = 4096;
       ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
       hists.push_back(ph);
       for ( Index isam=0; isam<nsam; ++isam ) {
         ph->Fill(acd.raw[isam]);
+      }
+    } else if ( type == "prepared" ) {
+      Index nsam = acd.samples.size();
+      if ( nsam == 0 ) {
+        cout << myname << "WARNING: Prepared data is empty." << endl;
+        continue;
+      }
+      htitl += "; Tick; Signal";
+      ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
+      hists.push_back(ph);
+      for ( Index isam=0; isam<nsam; ++isam ) {
+        ph->SetBinContent(isam+1, acd.samples[isam]);
       }
     } else {
       cout << myname << "WARNING: Unknown type: " << type << endl;
