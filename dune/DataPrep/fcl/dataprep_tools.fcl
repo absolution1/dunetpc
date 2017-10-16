@@ -134,4 +134,6 @@ tools.adcThresholdSignalFinder: {
   Threshold: 100
   BinsBefore: 10
   BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
 }
