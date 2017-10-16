@@ -53,8 +53,10 @@ int test_DataMap(bool useExistingFcl =false) {
   res.setInt("myint", 456);
   assert( res.getIntMap().size() == 1 );
   assert( res.getFloatMap().size() == 0 );
+  assert( res.getFloatVectorMap().size() == 0 );
   assert( res.getHistMap().size() == 0 );
   assert( res.getInt("myint") == 456 );
+  res.print();
 
   cout << myname << line << endl;
   cout << myname << "Add float." << endl;
@@ -65,7 +67,29 @@ int test_DataMap(bool useExistingFcl =false) {
   assert( res.getFloat("myflt") == 1.23 );
   assert( res.getIntMap().size() == 1 );
   assert( res.getFloatMap().size() == 1 );
+  assert( res.getFloatVectorMap().size() == 0 );
   assert( res.getHistMap().size() == 0 );
+  assert( res.getHistVectorMap().size() == 0 );
+  res.print();
+
+  cout << myname << line << endl;
+  cout << myname << line << endl;
+  cout << myname << "Add float vector." << endl;
+  std::vector<float> flts;
+  flts.push_back(1.234);
+  flts.push_back(12.34);
+  flts.push_back(123.4);
+  assert( res.getFloatVectorMap().size() == 0 );
+  assert( ! res.haveFloatVector("myflt") );
+  res.setFloatVector("myfltvec", flts);
+  assert( res.haveFloatVector("myfltvec") );
+  assert( res.getFloatVector("myfltvec") == flts );
+  assert( res.getIntMap().size() == 1 );
+  assert( res.getFloatMap().size() == 1 );
+  assert( res.getFloatVectorMap().size() == 1 );
+  assert( res.getHistMap().size() == 0 );
+  assert( res.getHistVectorMap().size() == 0 );
+  res.print();
 
   cout << myname << line << endl;
   cout << myname << "Add histogram." << endl;
@@ -77,27 +101,53 @@ int test_DataMap(bool useExistingFcl =false) {
   assert( res.getHist("myhst") == ph );
   assert( res.getIntMap().size() == 1 );
   assert( res.getFloatMap().size() == 1 );
+  assert( res.getFloatVectorMap().size() == 1 );
   assert( res.getHistMap().size() == 1 );
+  assert( res.getHistVectorMap().size() == 0 );
+  res.print();
+
+  cout << myname << line << endl;
+  cout << myname << "Add histogram vector." << endl;
+  std::vector<TH1*> hsts = { (TH1*) 0xdeadbee1, (TH1*) 0xdeadbee2, (TH1*) 0xdeadbee3 };
+  assert( res.getHistVectorMap().size() == 0 );
+  assert( ! res.haveHistVector("myhstvec") );
+  res.setHistVector("myhstvec", hsts);
+  assert( res.haveHistVector("myhstvec") );
+  assert( res.getHistVector("myhstvec") == hsts );
+  assert( ! res.haveHist("nosuch") );
+  assert( res.getHistVector("nosuch").size() == 0 );
+  assert( res.getIntMap().size() == 1 );
+  assert( res.getFloatMap().size() == 1 );
+  assert( res.getFloatVectorMap().size() == 1 );
+  assert( res.getHistMap().size() == 1 );
+  assert( res.getHistVectorMap().size() == 1 );
+  res.print();
 
   cout << myname << line << endl;
   cout << myname << "Extend data map." << endl;
   DataMap res2;
+  TH1* ph2 = (TH1*) 0xdeadbee5;
+  std::vector<TH1*> hsts2 = { (TH1*) 0xdeadbee6, (TH1*) 0xdeadbee7 };
   res2.setInt("myint", 135);
   res2.setInt("myint2", 578);
   res2.setFloat("myflt2", 5.78);
-  res2.setHist("myhst2", ph);
+  res2.setHist("myhst2", ph2);
+  res2.setHistVector("myhstvec2", hsts2);
   res.extend(res2);
   assert( res == 0 );
   assert( res.getIntMap().size() == 2 );
   assert( res.getFloatMap().size() == 2 );
+  assert( res.getFloatVectorMap().size() == 1 );
   assert( res.getHistMap().size() == 2 );
   assert( res.getInt("myint") == 135 );
   assert( res.getInt("myint2") == 578 );
   assert( res.getFloat("myflt") == 1.23 );
   assert( res.getFloat("myflt2") == 5.78 );
   assert( res.getHist("myhst") == ph );
-  assert( res.getHist("myhst2") == ph );
-
+  assert( res.getHist("myhst2") == ph2 );
+  assert( res.getHistVector("myhstvec") == hsts );
+  assert( res.getHistVector("myhstvec2") == hsts2 );
+  res2.print();
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
