@@ -43,6 +43,8 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
     fout << "    Threshold: 100" << endl;
     fout << "    BinsAfter: 10" << endl;
     fout << "    BinsBefore: 5" << endl;
+    fout << "    FlagPositive: true" << endl;
+    fout << "    FlagNegative: true" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
