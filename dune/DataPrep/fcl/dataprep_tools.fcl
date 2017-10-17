@@ -137,3 +137,9 @@ tools.adcThresholdSignalFinder: {
   FlagPositive: true
   FlagNegative: true
 }
+
+# Fetch ROI info and hists.
+tools.adcRoiViewer: {
+  tool_type: AdcRoiViewer
+  LogLevel: 1
+}
