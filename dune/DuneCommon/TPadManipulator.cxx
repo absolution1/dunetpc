@@ -76,12 +76,15 @@ int TPadManipulator::update() {
     cout << myname << "Pad does not have a histogram." << endl;
     return 2;
   }
-  // Set right margin the first time the histogram is found.
-  // After this, allow user to override with pad()->SetRightMargin(...)
+  // Set margins the first time the histogram is found.
+  // After this, user can override with pad()->SetRightMargin(...), ...
   bool isTH2 = dynamic_cast<TH2*>(m_ph.get()) != nullptr;
   if ( noHist ) {
     if ( isTH2 ) m_ppad->SetRightMargin(0.10);
-    else m_ppad->SetRightMargin(0.04);
+    else m_ppad->SetRightMargin(0.03);
+    m_ppad->SetLeftMargin(0.12);
+    m_ppad->SetTopMargin(0.07);
+    m_ph->SetTitleOffset(1.20);
   }
   bool isTH1 = m_ph != nullptr && !isTH2;
   int nbin = isTH1 ? m_ph->GetNbinsX() : 0;

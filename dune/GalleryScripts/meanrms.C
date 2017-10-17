@@ -24,13 +24,14 @@ using namespace std;
 
 //  ROOT script using gallery to make mean, rms, and drms plots using raw::RawDigits for the ievcount'th event in the file
 // Tom Junk, Fermilab, Sep. 2017
+// Oct 2017 -- update to use the channel number from the rawdigit and not just the index of the rawdigit
 // Example invocation for a 3x1x1 imported rootfile, make a correlation plot for the first event in the file.
 // root [0] .L meanrms.C++
 // root [1] meanrms("/pnfs/dune/tape_backed/dunepro/test-data/dune/raw/01/85/12/09/wa105_r842_s32_1501156823.root");
 
 // arguments:  filename -- input file, larsoft formatted
-// ievcount:  which event to display the FFT for.  This is the tree index in the file and not the event number
-// tickmin, tickmax -- to truncate the part of the event to run the FFT on.  Set to big and small numbers for no truncation.
+// ievcount:  which event to display the mean and RMS for.  This is the tree index in the file and not the event number
+// tickmin, tickmax -- to truncate the part of the event run on.  Set to big and small numbers for no truncation.
 // inputtag: use "daq" for MC and 3x1x1 imported data.  It's SplitterInput:TPC for split 35t data
 
 
@@ -59,7 +60,15 @@ void meanrms(std::string const& filename,
 	auto const& rawdigits = *ev.getValidHandle<vector<raw::RawDigit>>(rawdigit_tag);
 	if (!rawdigits.empty())
 	  {
-	    const size_t nchans = rawdigits.size();
+	    const size_t nrawdigits = rawdigits.size();
+	    size_t nchans=0;
+	    for (size_t i=0; i<nrawdigits; ++i)
+	      {
+		size_t ic = rawdigits[i].Channel();
+		if (nchans<ic) nchans=ic;
+	      }
+	    nchans++;  // set plots to go from channel 0 to the maximum channel we find.
+
 	    size_t tlow = TMath::Max(tickmin, (size_t) 0);
 	    size_t thigh = TMath::Min(tickmax, (size_t) rawdigits[0].Samples()-1); // assume uncompressed; all channels have the same number of samples
 	    size_t nticks = thigh - tlow + 1;
@@ -79,8 +88,15 @@ void meanrms(std::string const& filename,
 
             for (size_t itick=tlow;itick<=thigh;++itick)
 	      {
-	         for (size_t ichan=0;ichan<nchans; ++ichan) x[ichan] = rawdigits[ichan].ADC(itick); 
-		 for (size_t ichan=1;ichan<nchans; ++ichan) dx[ichan] = (x[ichan]-x[ichan-1])*s2i;
+		for (size_t ichan=0;ichan<nrawdigits; ++ichan) 
+		  { 
+		    size_t ic = rawdigits[ichan].Channel();
+		    x[ic] = rawdigits[ichan].ADC(itick);
+		  } 
+		 for (size_t ichan=1;ichan<nchans; ++ichan) 
+		   {
+		     dx[ichan] = (x[ichan]-x[ichan-1])*s2i;
+		   }
 		 dx[0] = 0;
 		 sumx += x;
 		 sumdx += dx;
@@ -97,14 +113,18 @@ void meanrms(std::string const& filename,
 		    double avgsquare = sumxx[ichan]/nticks;
 		    mean->SetBinContent(ichan+1,avg);
 		    mean2->SetBinContent(ichan+1,avg);
-		    double rms = TMath::Sqrt( avgsquare - avg*avg );
+		    double rms = 0;
+		    double tval = avgsquare - avg*avg;
+		    if (tval>0) rms = TMath::Sqrt(tval);
 		    mean->SetBinError(ichan+1,rms);
 		    rmshist->SetBinContent(ichan+1,rms);
 
 		    avg = sumdx[ichan]/nticks;
 		    avgsquare = sumdxx[ichan]/nticks;
-		    rms = TMath::Sqrt( avgsquare - avg*avg );
-		    mean2->SetBinError(ichan+1,rms);
+		    tval = avgsquare - avg*avg;
+		    rms = 0;
+		    if (tval>0) rms = TMath::Sqrt(tval);
+		    mean2->SetBinError(ichan+1,avg);
 		    drmshist->SetBinContent(ichan+1,rms);
 
 		  }

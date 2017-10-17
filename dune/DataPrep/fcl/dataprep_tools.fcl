@@ -27,11 +27,22 @@ tools.adcChannelDumper: {
   MaxSample: 100
 }
 
-# Dump ADC channel waveform to a histogram.
+# Dump raw ADC channel waveform to a histogram.
 tools.adcPlotRaw: {
   tool_type: AdcChannelPlotter
   LogLevel: 1
   HistTypes: ["raw"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  HistManager: ""
+}
+
+# Dump prepared ADC channel waveform to a histogram.
+tools.adcPlotPrepared: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["prepared"]
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
@@ -123,4 +134,13 @@ tools.adcThresholdSignalFinder: {
   Threshold: 100
   BinsBefore: 10
   BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+
+# Fetch ROI info and hists.
+tools.adcRoiViewer: {
+  tool_type: AdcRoiViewer
+  LogLevel: 1
+  HistOpt:  1
 }
