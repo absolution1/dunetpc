@@ -17,20 +17,43 @@ using std::ostringstream;
 //**********************************************************************
 
 AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
-: m_LogLevel(ps.get<int>("LogLevel")) {
+: m_LogLevel(ps.get<int>("LogLevel")),
+  m_HistOpt(ps.get<int>("HistOpt")) {
   const string myname = "AdcRoiViewer::ctor: ";
   if ( m_LogLevel>= 1 ) {
     cout << myname << "  LogLevel: " << m_LogLevel << endl;
+    cout << myname << "   HistOpt: " << m_HistOpt << endl;
   }
 }
 
 //**********************************************************************
 
 DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
+  const string myname = "AdcRoiViewer::view: ";
   DataMap res;
+  unsigned int nraw = acd.raw.size();
   unsigned int nsam = acd.samples.size();
   unsigned int nroi = acd.rois.size();
-  res.setInt("nROI", nroi);
+  res.setInt("roiCount", nroi);
+  bool doHist = m_HistOpt != 0;
+  bool histRelativeTick = false;
+  int histType = 0;
+  if ( doHist ) {
+    if        ( m_HistOpt ==  1 ) {
+      histType = 1;
+    } else if ( m_HistOpt ==  2 ) {
+      histType = 2;
+    } else if ( m_HistOpt == 11 ) {
+      histType = 1;
+      histRelativeTick = true;
+    } else if ( m_HistOpt == 12 ) {
+      histType = 2;
+      histRelativeTick = true;
+    } else {
+      cout << myname << "Invalid value for HistOpt: " << m_HistOpt << endl;
+      return res.setStatus(1);
+    }
+  }
   DataMap::HistVector roiHists;
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
@@ -49,7 +72,9 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     string httl = sshttl.str();
     unsigned int isam1 = roi.first;
     unsigned int isam2 = roi.second + 1;
-    TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), isam2-isam1, isam1, isam2);
+    float x1 = histRelativeTick ? 0.0 : isam1;
+    float x2 = histRelativeTick ? isam2 - isam1 : isam2;
+    TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), isam2-isam1, x1, x2);
     ph->SetDirectory(nullptr);
     ph->SetStats(0);
     ph->SetLineWidth(2);
@@ -58,16 +83,18 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     float sigmax = 0.0;
     float sigarea = 0.0;
     for ( unsigned int isam=isam1; isam<isam2; ++isam ) {
-      float sam = isam<nsam ? acd.samples[isam] : 0.0;
+      float sig = 0.0;
+      if ( histType == 1 && isam<nsam ) sig = acd.samples[isam];
+      if ( histType == 2 && isam<nraw ) sig = isam<nraw ? acd.raw[isam] : 0.0;
       if ( ibin == 0 ) {
-        sigmin = sam;
-        sigmax = sam;
+        sigmin = sig;
+        sigmax = sig;
       } else {
-        if ( sam < sigmin ) sigmin = sam;
-        if ( sam > sigmax ) sigmax = sam;
+        if ( sig < sigmin ) sigmin = sig;
+        if ( sig > sigmax ) sigmax = sig;
       }
-      sigarea += sam;
-      ph->SetBinContent(++ibin, sam);
+      sigarea += sig;
+      ph->SetBinContent(++ibin, sig);
     }
     roiHists.push_back(ph);
     roiSigMins.push_back(sigmin);

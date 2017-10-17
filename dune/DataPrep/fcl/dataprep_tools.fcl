@@ -142,4 +142,5 @@ tools.adcThresholdSignalFinder: {
 tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
+  HistOpt:  1
 }
