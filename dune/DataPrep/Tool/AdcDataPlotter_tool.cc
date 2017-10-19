@@ -31,6 +31,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_LastTick(ps.get<unsigned long>("LastTick")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
   m_HistName(ps.get<string>("HistName")),
+  m_HistTitle(ps.get<string>("HistTitle")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")) {
   const string myname = "AdcDataPlotter::ctor: ";
@@ -86,6 +87,10 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     string& str = *pstr;
     StringManipulator sman(str);
     sman.replace("%PAT%", fpat);
+    if ( acdFirst.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acdFirst.run);
+    else sman.replace("%RUN%", "RunNotFound");
+    if ( acdFirst.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acdFirst.subRun);
+    else sman.replace("%SUBRUN%", "SubRunNotFound");
     if ( acdFirst.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acdFirst.event);
     else sman.replace("%EVENT%", "EventNotFound");
     sman.replace("%CHAN1%", chanFirst);

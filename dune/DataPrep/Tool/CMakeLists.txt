@@ -63,5 +63,10 @@ simple_plugin(AdcThresholdSignalFinder   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcRoiViewer   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
 

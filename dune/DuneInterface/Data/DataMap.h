@@ -50,6 +50,12 @@ public:
   // Ctor from status flag.
   explicit DataMap(int stat =0) : m_stat(stat) { }
 
+  // Dtor.
+  ~DataMap() {
+    const std::string myname = "DataMap::dtor: ";
+    //std::cout << myname << "@" << this << std::endl;
+  }
+
   // Setters.
   // If own is true, the result has owns the histogram(s).
   // If reults are copied to other results, then this ownership
@@ -69,11 +75,22 @@ public:
     }
   }
   void setHistVector(Name name, const HistVector& hsts, bool own =false) {
+    const std::string myname = "DataMap::setHistVector: ";
     m_hstvecs[name] = hsts;
     if ( own ) {
       for ( TH1* ph : hsts ) {
-        ph->SetDirectory(nullptr);
-        m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
+        bool manage = true;
+        for ( std::shared_ptr<TH1>& phShared : m_sharedHsts ) {
+          if ( phShared.get() == ph ) {
+            std::cout << myname << "Ignoring duplicate attempt to manage a histogram." << std::endl;
+            manage = false;
+            break;
+          }
+        }
+        if ( manage ) {
+          ph->SetDirectory(nullptr);
+          m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
+        }
       }
     }
   }
