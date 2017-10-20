@@ -5,14 +5,17 @@
 //
 // Tool to find and flag signal regions in ADC data.
 //
-// For each bin above Threshold, then region [bin-BinsBefore, bin+binsAfter] is
-// flagged as signal.
+// For each tick with smaple above Threshold and/or below -Threshold, the region
+// [bin-BinsBefore, bin+binsAfter] is flagged as signal.
+// An ROI is created for each range of contiguous signals.
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   Threshold  - HistName:  Name for the histogram.
 //   BinsBefore - lower limit for signal range
 //   BinsAfter  - upper limit for signal range
+//   FlagPositive - Flag signals above Threshold
+//   FlagNegative - Flag signals below Threshold
 //
 // The output results holds:
 //   int nThresholdBins - # bins above threshold
@@ -49,6 +52,8 @@ private:
   float m_Threshold;
   unsigned int m_BinsBefore;
   unsigned int m_BinsAfter;
+  bool m_FlagPositive;
+  bool m_FlagNegative;
 
 };
 

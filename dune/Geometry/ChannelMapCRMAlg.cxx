@@ -46,7 +46,6 @@ namespace geo{
     fWiresPerPlane.resize(fNcryostat);
     fFirstChannelInNextPlane.resize(fNcryostat);
     fFirstChannelInThisPlane.resize(fNcryostat);
-    fViews.clear();
     fPlaneIDs.clear();
     fTopChannel = 0;
 
@@ -95,7 +94,6 @@ namespace geo{
 	      std::cout<<" View is kCollection "<<std::endl;
 	    */
 
-	    fViews.emplace(cgeo[cs].TPC(TPCCount).Plane(PlaneCount).View());
 	    fPlaneIDs.emplace(PlaneID(cs, TPCCount, PlaneCount));
 	    double ThisWirePitch = cgeo[cs].TPC(TPCCount).WirePitch(0, 1, PlaneCount);
 	    fWireCounts[cs][TPCCount][PlaneCount] = cgeo[cs].TPC(TPCCount).Plane(PlaneCount).Nwires();
@@ -326,6 +324,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
+  /* // this code should be equivalent to the logic implemented in geo::PlaneGeo::UpdateView()
   View_t ChannelMapCRMAlg::View(raw::ChannelID_t const channel) const
   {
 
@@ -349,12 +348,7 @@ namespace geo{
 
     return view;
   }  
-
-  //----------------------------------------------------------------------------
-  std::set<View_t> const& ChannelMapCRMAlg::Views() const
-  {
-    return fViews;
-  }
+  */
 
   //----------------------------------------------------------------------------
   std::set<PlaneID> const& ChannelMapCRMAlg::PlaneIDs() const

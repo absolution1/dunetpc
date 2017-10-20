@@ -23,6 +23,7 @@ using namespace std;
 
 // ROOT script using gallery to make a FFT plot by channel the ievtcount'th event in the input file using raw::RawDigits.  Produces the plot interactively on a TCanvas
 // Tom Junk, Sep. 2017
+// Oct 2017 -- use the channel index from raw::RawDigits instead of the index of which rawdigit it is.
 // Example invocation for a 3x1x1 imported rootfile, make an FFT plot for the first event in the file.
 // root [0] .L chanfft.C++
 // root [1] chanfft("/pnfs/dune/tape_backed/dunepro/test-data/dune/raw/01/85/12/09/wa105_r842_s32_1501156823.root",0,0,10000000,"daq",2.5);
@@ -67,7 +68,14 @@ void chanfft(std::string const& filename,
 	auto const& rawdigits = *ev.getValidHandle<vector<raw::RawDigit>>(rawdigit_tag);
 	if (!rawdigits.empty())
 	  {
-	    size_t nchans = rawdigits.size();
+	    size_t nrawdigits = rawdigits.size();
+	    size_t nchans=0;
+	    for (size_t i=0; i<nrawdigits; ++i)
+	      {
+		size_t ic = rawdigits[i].Channel();
+		if (nchans<ic) nchans=ic;
+	      }
+	    nchans++;
 
 	    size_t tlow = TMath::Max(tickmin, (size_t) 0);
 	    size_t thigh = TMath::Min(tickmax, (size_t) rawdigits[0].Samples()-1); // assume uncompressed; all channels have the same number of samples
@@ -82,18 +90,19 @@ void chanfft(std::string const& filename,
 
 	    Int_t nti = nticks;
 	    TVirtualFFT *fftr2c = TVirtualFFT::FFT(1,&nti,"R2C ES K");
-            for (size_t ichan=0;ichan<nchans;++ichan)
+            for (size_t ichan=0;ichan<nrawdigits;++ichan)
 	      {
 		for (size_t itick=tlow; itick <= thigh; ++itick) x[itick-tlow] = rawdigits[ichan].ADC(itick); 
 		//cout << x[0] << " " << x[1] << " " << x[2] << endl;
 		fftr2c->SetPoints(x);
 		fftr2c->Transform();
+		size_t ic = rawdigits[ichan].Channel(); 
 		for (size_t i=0;i<nticks/2;++i)
 		  {
 		    fftr2c->GetPointComplex(i, re, im);
 		    mag = TMath::Sqrt(re*re + im*im);
 		    // cout << mag << endl;
-		    cf->SetBinContent(ichan+1,i,mag);
+		    cf->SetBinContent(ic+1,i,mag);
 		  }
 	      }
 	    

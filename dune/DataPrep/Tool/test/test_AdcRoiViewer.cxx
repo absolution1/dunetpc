@@ -1,15 +1,14 @@
-// test_AdcThresholdSignalFinder.cxx
+// test_AdcRoiViewer.cxx
 //
 // David Adams
-// April 2017
+// October 2017
 //
-// Test AdcThresholdSignalFinder.
+// Test AdcRoiViewer.
 
 #include <string>
 #include <iostream>
 #include <fstream>
 #include "dune/DuneInterface/Tool/AdcChannelViewer.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -19,12 +18,13 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::ofstream;
+using std::vector;
 using fhicl::ParameterSet;
 
 //**********************************************************************
 
-int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
-  const string myname = "test_AdcThresholdSignalFinder: ";
+int test_AdcRoiViewer(bool useExistingFcl =false) {
+  const string myname = "test_AdcRoiViewer: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -32,19 +32,15 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_AdcThresholdSignalFinder.fcl";
+  string fclfile = "test_AdcRoiViewer.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcThresholdSignalFinder" << endl;
+    fout << "    tool_type: AdcRoiViewer" << endl;
     fout << "    LogLevel: 1" << endl;
-    fout << "    Threshold: 100" << endl;
-    fout << "    BinsAfter: 10" << endl;
-    fout << "    BinsBefore: 5" << endl;
-    fout << "    FlagPositive: true" << endl;
-    fout << "    FlagNegative: true" << endl;
+    fout << "    HistOpt: 1" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -62,36 +58,41 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto psgf = tm.getPrivate<AdcChannelViewer>("mytool");
-  assert( psgf != nullptr );
-  auto psgfmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
-  assert( psgfmod != nullptr );
+  auto ptoo = tm.getPrivate<AdcChannelViewer>("mytool");
+  assert( ptoo != nullptr );
 
   cout << myname << line << endl;
-  cout << myname << "Create data and call tool." << endl;
-  AdcChannelData data;
-  for ( AdcIndex itic=0; itic<100; ++itic ) {
-    float xadc = rand()%20 - 10.0;
-    data.samples.push_back(xadc);
+  cout << myname << "Create test data." << endl;
+  AdcChannelData acd;
+  unsigned int nsam = 80;
+  vector<float> pulse = { 2.0, -3.0, 0.0, 5.0, 24.0, 56.0, 123.0, 71.0, 52.1, 26.3,
+                         12.5,  8.1, 4.5, 2.0, -1.0,  3.2,   1.1, -2.2,  0.1, -0.1};
+  acd.samples.resize(nsam);
+  for ( unsigned int ismp=0; ismp<pulse.size(); ++ismp ) {
+    float smp = pulse[ismp];
+    acd.samples[ismp] = smp;
+    acd.samples[20+ismp] = -smp;
+    acd.samples[ismp] = 2*smp;
+    acd.samples[ismp] = -2*smp;
   }
-  data.samples[30] = 150.0;
-  assert( data.signal.size() == 0 );
-  assert( data.rois.size() == 0 );
-  assert( data.samples[30] = 150 );
+  acd.rois.emplace_back( 0, 17);
+  acd.rois.emplace_back(20, 37);
+  acd.rois.emplace_back(40, 57);
+  acd.rois.emplace_back(60, 77);
+  assert( acd.rois.size() == 4 );
 
   cout << myname << line << endl;
-  cout << myname << "Running tool." << endl;
-  DataMap resmod = psgfmod->update(data);
-  resmod.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Checking results." << endl;
-  assert( resmod == 0 );
-  assert( resmod.getInt("nThresholdBins") == 1 );
-  assert( data.signal.size() == 100 );
-  assert( data.rois.size() == 1 );
-  assert( data.rois[0].first == 25 );
-  assert( data.rois[0].second == 40 );
+  cout << myname << "Call tool." << endl;
+  DataMap res = ptoo->view(acd);
+  res.print();
+  cout << myname << "roiCount: " << res.getInt("roiCount") << endl;
+  cout << myname << "roiHists:" << endl;
+  for ( TH1* ph : res.getHistVector("roiHists") ) {
+    cout << myname << "  " << ph->GetName() << endl;
+  }
+  assert( res == 0 );
+  assert( res.getInt("roiCount") == 4 );
+  assert( res.getHistVector("roiHists").size() == 4 );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
@@ -111,7 +112,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_AdcThresholdSignalFinder(useExistingFcl);
+  return test_AdcRoiViewer(useExistingFcl);
 }
 
 //**********************************************************************
