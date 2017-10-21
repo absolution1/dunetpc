@@ -75,8 +75,9 @@ namespace util {
     // Sample the response function, including a configurable drift velocity of electrons
     void SetResponseSampling();
 
-    // response function for ETHZ pre-amplifier
+    // response function for ETHZ and Lyon pre-amplifier
     double PreampETHZ(double tval_us);
+    double PreampIPNL(double tval_us);
 
     // Attributes.
     bool fInit;               ///< Initialization flag.

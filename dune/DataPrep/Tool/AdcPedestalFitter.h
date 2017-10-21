@@ -9,7 +9,7 @@
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
-//   HistManager: Name of the tool that manages the histogram.
+//   HistManager: Name of the tool that manages the output histogram.
 //                Right now this is the only way to retrive the fit result.
 // The following subsitutions are made in the names:
 //    %RUN% - run number
@@ -23,18 +23,23 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
 #include <string>
 #include <vector>
 
 class HistogramManager;
+class TH1;
 
-class AdcPedestalFitter : AdcChannelViewer {
+class AdcPedestalFitter
+: public AdcChannelDataModifier {
 
 public:
 
   AdcPedestalFitter(fhicl::ParameterSet const& ps);
 
-  int view(const AdcChannelData& acd) const override;
+  DataMap view(const AdcChannelData& acd) const override;
+
+  DataMap update(AdcChannelData& acd) const override;
 
 private:
 
@@ -52,6 +57,9 @@ private:
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd) const;
+
+  // Find and return pedestal.
+  DataMap getPedestal(const AdcChannelData& acd) const;
 
 };
 

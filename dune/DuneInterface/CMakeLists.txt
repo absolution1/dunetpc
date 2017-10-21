@@ -5,6 +5,7 @@
 #
 # CMake instructions for DUNE service interface classes.
 
+add_subdirectory(Data)
 add_subdirectory(Tool)
 
 install_headers()

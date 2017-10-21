@@ -718,6 +718,8 @@ namespace dune {
     std::vector<Float_t> proto_momentum;
     std::vector<Float_t> proto_energy;
     std::vector<Int_t> proto_pdg;
+    std::vector<Int_t> proto_geantTrackID; // The TrackID assigned by GEANT
+    std::vector<Int_t> proto_geantIndex;   // The index of this particle in the truth array
 
     //G4 MC Particle information
     size_t MaxGEANTparticles = 0; ///! how many particles there is currently room for
@@ -2450,6 +2452,8 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(proto_momentum,-99999.);
   FillWith(proto_energy,-99999.);
   FillWith(proto_pdg,-99999);
+  FillWith(proto_geantTrackID,-99999);
+  FillWith(proto_geantIndex,-99999);
   // End of ProtoDUNE Beam generator section
   FillWith(mcshwr_origin, -1);
   FillWith(mcshwr_pdg, -99999);
@@ -2679,6 +2683,8 @@ void dune::AnalysisTreeDataStruct::ResizeProto(int nPrimaries){
   proto_momentum.resize(nPrimaries);
   proto_energy.resize(nPrimaries);
   proto_pdg.resize(nPrimaries);
+  proto_geantTrackID.resize(nPrimaries);
+  proto_geantIndex.resize(nPrimaries);
 
 } // dune::AnalysisTreeDataStruct::ResizeProto()
 
@@ -3018,6 +3024,8 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("proto_momentum",proto_momentum,"proto_momentum[proto_no_primaries]/F");
     CreateBranch("proto_energy",proto_energy,"proto_energy[proto_no_primaries]/F");
     CreateBranch("proto_pdg",proto_pdg,"proto_pdg[proto_no_primaries]/I");
+    CreateBranch("proto_geantTrackID",proto_geantTrackID,"proto_geantTrackID[proto_no_primaries]/I");
+    CreateBranch("proto_geantIndex",proto_geantIndex,"proto_geantIndex[proto_no_primaries]/I");
   }
 
   if (hasGeantInfo()){
@@ -4653,6 +4661,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         fData->proto_momentum[iPartp] = partp.P();
         fData->proto_energy[iPartp] = partp.E();
         fData->proto_pdg[iPartp] = partp.PdgCode();
+        // We will deal with the matching to GEANT later
       }
     }
 
@@ -5004,6 +5013,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPy_drifted[geant_particle] = pPart->Py(penddriftedi);
 	      fData->EndPz_drifted[geant_particle] = pPart->Pz(penddriftedi);
 	    }
+
 	    //access auxiliary detector parameters
             if (fSaveAuxDetInfo) {
               unsigned short nAD = 0; // number of cells that particle hit
@@ -5119,6 +5129,20 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 	   }// for merging check
 	*/
       } // if (fSaveGeantInfo)
+
+      // Now we have the GEANT info, see if we can match the protoDUNE generator particles
+      if(fSaveProtoInfo){
+        for(Int_t prt = 0; prt < nProtoPrimaries; ++prt){
+          for(Int_t gnt = 0; gnt < fData->geant_list_size; ++gnt){
+            if(fData->proto_pdg[prt] == fData->pdg[gnt] && fData->proto_px[prt] == fData->Px[gnt]){
+              fData->proto_geantTrackID[prt] = fData->TrackId[gnt];
+              fData->proto_geantIndex[prt] = gnt;
+              break;
+            }
+          } // End GEANT loop
+        } // End protoDUNE generator loop
+      } // End ProtoDUNE generator if statement
+      
     }//if (mcevts_truth)
   }//if (isMC){
   fData->taulife = detprop->ElectronLifetime();

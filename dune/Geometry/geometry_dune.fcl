@@ -113,14 +113,24 @@ dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
 dune10kt_workspace_geo.ROOT: "dune10kt_v1_workspace.gdml"
 
 dune10kt_1x2x6_geo: @local::dune10kt_geo
-dune10kt_1x2x6_geo.Name: "dune10kt_v1_1x2x6"
-dune10kt_1x2x6_geo.GDML: "dune10kt_v1_1x2x6.gdml"
-dune10kt_1x2x6_geo.ROOT: "dune10kt_v1_1x2x6.gdml"
+dune10kt_1x2x6_geo.Name: "dune10kt_v2_1x2x6"
+dune10kt_1x2x6_geo.GDML: "dune10kt_v2_1x2x6.gdml"
+dune10kt_1x2x6_geo.ROOT: "dune10kt_v2_1x2x6.gdml"
+
+dune10kt_1x2x6_v1_geo: @local::dune10kt_geo
+dune10kt_1x2x6_v1_geo.Name: "dune10kt_v1_1x2x6"
+dune10kt_1x2x6_v1_geo.GDML: "dune10kt_v1_1x2x6.gdml"
+dune10kt_1x2x6_v1_geo.ROOT: "dune10kt_v1_1x2x6.gdml"
 
 dunedphase10kt_workspace_geo: @local::dunedphase10kt_geo
 dunedphase10kt_workspace_geo.Name: "dunedphase10kt_v2_workspace"
 dunedphase10kt_workspace_geo.GDML: "dunedphase10kt_v2_workspace.gdml"
 dunedphase10kt_workspace_geo.ROOT: "dunedphase10kt_v2_workspace.gdml"
+
+dunedphase10kt_workspace4x2_geo: @local::dunedphase10kt_geo
+dunedphase10kt_workspace4x2_geo.Name: "dunedphase10kt_v2_workspace4x2"
+dunedphase10kt_workspace4x2_geo.GDML: "dunedphase10kt_v2_workspace4x2.gdml"
+dunedphase10kt_workspace4x2_geo.ROOT: "dunedphase10kt_v2_workspace4x2.gdml"
 
 dune10kt_45deg_workspace_geo: @local::dune10kt_geo
 dune10kt_45deg_workspace_geo.Name: "dune10kt_v1_45deg_workspace"

@@ -35,6 +35,9 @@ public:
   // Return a histogram.
   virtual TH1* get(Name hname) const =0;
 
+  // Return the last histogram managed here.
+  virtual TH1* last() const =0;
+
   // Delete the named histogram.
   // Defult argument "* releases all histograms.
   virtual int release(Name hname ="*") =0;

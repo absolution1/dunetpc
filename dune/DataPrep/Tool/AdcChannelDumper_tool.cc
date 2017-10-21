@@ -43,16 +43,17 @@ AdcChannelDumper::~AdcChannelDumper() {
 
 //**********************************************************************
 
-int AdcChannelDumper::view(const AdcChannelData& acd) const {
+DataMap AdcChannelDumper::view(const AdcChannelData& acd) const {
+  DataMap res;
   ostream* pout = m_pout;
   bool newfile = pout == nullptr;
   // If file is not already set, build the file name and open it.
   if ( newfile ) {
-    if ( ! m_NewFile ) return 1;
+    if ( ! m_NewFile ) return res.setStatus(1);
     string fname = m_FileName;
     pout = new ofstream(fname.c_str());
   }
-  if ( pout == nullptr ) return 2;
+  if ( pout == nullptr ) return res.setStatus(2);
   ostream& out = *pout;
   string pre = m_Prefix;
   string sbad = "<Unknown>";
@@ -117,7 +118,7 @@ int AdcChannelDumper::view(const AdcChannelData& acd) const {
     out << pre << ssline.str() << endl;
   }
   if ( newfile ) delete pout;
-  return 0;
+  return res;
 }
 
 //**********************************************************************

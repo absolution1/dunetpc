@@ -76,9 +76,9 @@ dunefd_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
 dunefd_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
 dunefd_reco_services.AdcWireBuildingService:     @local::adcwire_std
 
-#
-# for dual-phase implementation
-#
+####################################
+### DUNE far detector dual phase ###
+####################################
 dunefddphase_services: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
@@ -124,6 +124,9 @@ dunefddphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
 dunefddphase_reco_services.PedestalEvaluationService:  @local::adcped_median
 #dunefddphase_reco_services.AdcNoiseRemovalService:     @local::adcnr_dunedphase3x1x1
 
+########################
+### 3x1x1 dual phase ###
+########################
 dunedphase3x1x1_services: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
@@ -134,7 +137,7 @@ dunedphase3x1x1_services: {
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
- SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
@@ -154,7 +157,7 @@ dunedphase3x1x1_simulation_services: {
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
- SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
@@ -168,6 +171,56 @@ dunedphase3x1x1_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefdd
 dunedphase3x1x1_reco_services.AdcWireBuildingService:     @local::adcwire_std
 dunedphase3x1x1_reco_services.PedestalEvaluationService:  @local::adcped_median
 dunedphase3x1x1_reco_services.AdcNoiseRemovalService:     @local::adcnr_dunedphase3x1x1
+
+############################
+### protoDUNE dual phase ###
+############################
+protodunedphase_services: {
+ DatabaseUtil:                   @local::dunefd_database
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ ChannelStatusService:           @local::dunefd_channel_status
+ LArFFT:                         @local::dunefd_larfft
+ NuRandomService:                @local::dune_seedservice 
+ Geometry: 			 @local::protodunedphase_geo
+ DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorPropertiesService: 	 @local::protodunedphase_detproperties
+ LArPropertiesService:           @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ SpaceCharge:                    @local::dunefddphase_spacecharge
+}
+
+
+protodunedphase_simulation_services: {
+ BackTracker:                    @local::dunefd_backtracker
+ LArFFT:                         @local::dunefd_larfft
+ LArG4Parameters:                @local::dunefd_largeantparameters
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
+ MagneticField:                  @local::no_mag_larsoft
+ NuRandomService:                @local::dune_seedservice
+ DatabaseUtil:                   @local::dunefd_database
+ OpDetResponseInterface:         @local::dunefd_opdetresponse
+ ChannelStatusService:           @local::dunefd_channel_status
+ Geometry: 			 @local::protodunedphase_geo
+ DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorPropertiesService: 	 @local::protodunedphase_detproperties
+ LArPropertiesService:           @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ SpaceCharge:                    @local::dunefddphase_spacecharge
+}
+
+
+protodunedphase_reco_services:                         	  @local::protodunedphase_services
+protodunedphase_reco_services.BackTracker:                @local::dunefd_backtracker
+protodunedphase_reco_services.RawDigitExtractService:     @local::rdx_std
+protodunedphase_reco_services.RawDigitPrepService:        @local::adcprep_sim
+protodunedphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
+protodunedphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
+protodunedphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
+protodunedphase_reco_services.PedestalEvaluationService:  @local::adcped_median
+#protodunedphase_reco_services.AdcNoiseRemovalService:    @local::adcnr_dunedphase3x1x1
 
 
 #
@@ -184,10 +237,15 @@ dunefddphase_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 24000
 dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 
+protodunedphase_simulation_services.LArPropertiesService.ScintYield: 24000
+protodunedphase_simulation_services.LArPropertiesService.ScintPreScale: 0.006
+
 # disable cerenkov
 dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 dunefddphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+protodunedphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+
 
 
 # dune10kt and dune34kt consolidated into dunefd,

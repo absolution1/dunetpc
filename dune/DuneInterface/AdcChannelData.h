@@ -10,6 +10,7 @@
 //       event - Event number
 //     channel - Offline channel number
 //    pedestal - Pedestal subtracted from the raw count
+// pedestalRms - Pedestal RMS or sigma
 //         raw - Uncompressed array holding the raw ADC count for each tick
 //     samples - Array holding the prepared signal value for each tick
 //       flags - Array holding the status flag for each tick
@@ -49,6 +50,7 @@ public:
   AdcIndex event =badIndex;
   AdcChannel channel =badIndex;
   AdcSignal pedestal =badSignal;
+  AdcSignal pedestalRms =0.0;
   AdcCountVector raw;
   AdcSignalVector samples;
   AdcFlagVector flags;
@@ -58,9 +60,6 @@ public:
   const recob::Wire* wire =nullptr;
   AdcIndex digitIndex =badIndex;
   AdcIndex wireIndex =badIndex;
-
-  // Fill rois from signal.
-  void roisFromSignal();
 
   // Hide copy and assignment but allow move.
   // Root dictionary (6.08/06) requires we keep copy.
@@ -74,6 +73,12 @@ public:
   AdcChannelData(const AdcChannelData&) =default;
 #endif
 
+  // Clear the data.
+  void clear();
+
+  // Fill rois from signal.
+  void roisFromSignal();
+
 };
 
 //**********************************************************************
@@ -83,6 +88,26 @@ typedef std::map<AdcChannel, AdcChannelData> AdcChannelDataMap;
 #ifdef __ROOTCLING__
 #pragma link C++ class AdcChannelDataMap;
 #endif
+
+//**********************************************************************
+
+inline void AdcChannelData::clear() {
+  run = badIndex;
+  subRun = badIndex;
+  event = badIndex;
+  channel = badIndex;
+  pedestal = badSignal;
+  pedestalRms = 0.0;
+  raw.clear();
+  samples.clear();
+  flags.clear();
+  signal.clear();
+  rois.clear();
+  digit = nullptr;
+  wire = nullptr;
+  digitIndex = badIndex;
+  wireIndex = badIndex;
+}
 
 //**********************************************************************
 

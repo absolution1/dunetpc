@@ -240,8 +240,8 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
     {
       //convert time to microseconds, to match response function definition
       time[i]     = (1.*i)*fRespSamplingPeriod*1e-3;
-      ElecResp[i] = PreampETHZ(time[i]);
-
+//      ElecResp[i] = PreampETHZ(time[i]);
+      ElecResp[i] = PreampIPNL(time[i]);
       if(ElecResp[i] > max) max = ElecResp[i];
     }// end loop over time buckets
 
@@ -371,6 +371,20 @@ double util::SignalShapingServiceDUNEDPhase::PreampETHZ(double tval_us)
   double T2 = 0.47; //us
 
   double fval = ( T1*exp(-(tval_us)/T1) - ( T1 + tval_us*((T1-T2)/T2) ) * exp(-(tval_us)/T2)  ) / ((T1-T2)*(T1-T2));
+
+  if(fval != fval) fval = 0;
+  return fval;
+}
+
+//----------------------------------------------------------------------
+// response of IPNL pre-amplifier
+double util::SignalShapingServiceDUNEDPhase::PreampIPNL(double tval_us)
+{
+  // parameters
+  double T1 = 2.83; //us
+  double T2 = 0.47; //us
+
+  double fval = T1/(T1-T2) * ( exp(-(tval_us)/T1) - exp(-(tval_us)/T2) );
 
   if(fval != fval) fval = 0;
   return fval;
