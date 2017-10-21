@@ -121,8 +121,25 @@ int test_DataMap(bool useExistingFcl =false) {
   assert( res.getFloatVectorMap().size() == 1 );
   assert( res.getHistMap().size() == 1 );
   assert( res.getHistVectorMap().size() == 1 );
+  assert( res.getGraphMap().size() == 0 );
   res.print();
 
+  cout << myname << line << endl;
+  cout << myname << "Add graph." << endl;
+  TGraph* pg = new TGraph;
+  assert( ! res.haveGraph("mygrf") );
+  res.setGraph("mygrf", pg);
+  assert( res.haveGraph("mygrf") );
+  assert( res.getGraph("mygrf") == pg );
+  assert( res.getIntMap().size() == 1 );
+  assert( res.getFloatMap().size() == 1 );
+  assert( res.getFloatVectorMap().size() == 1 );
+  assert( res.getHistMap().size() == 1 );
+  assert( res.getHistVectorMap().size() == 1 );
+  assert( res.getGraphMap().size() == 1 );
+  res.print();
+
+  cout << myname << line << endl;
   cout << myname << line << endl;
   cout << myname << "Extend data map." << endl;
   DataMap res2;
