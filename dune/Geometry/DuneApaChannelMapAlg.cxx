@@ -172,7 +172,6 @@ void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
       }
     }
   }
-  fViews.clear();
   fPlaneIDs.clear();
   fTopChannel = 0;
 
@@ -208,7 +207,6 @@ const PlaneGeo plageo2 = plageo;
           }
           double xyz[3] = {0.};
           double xyz_next[3] = {0.};
-          fViews.emplace(view);
           Index nAnchoredWires = 0;  // # wires from this TPC plane contributing to the ROP
           // Collection plane.
           Index nwir = fWiresPerPlane[icry][itpc][ipla];
@@ -519,7 +517,7 @@ SigType_t DuneApaChannelMapAlg::SignalType(ChannelID_t const icha) const {
 }
 
 //----------------------------------------------------------------------------
-
+/* // this code should be equivalent to the logic implemented in geo::PlaneGeo::UpdateView()
 View_t DuneApaChannelMapAlg::View(ChannelID_t const icha) const {
   Index ncry = fNcryostat;
   for ( Index icry=0; icry<ncry; ++icry ) {
@@ -541,12 +539,7 @@ View_t DuneApaChannelMapAlg::View(ChannelID_t const icha) const {
   }
   return geo::kUnknown;
 }
-
-//----------------------------------------------------------------------------
-
-std::set<View_t> const& DuneApaChannelMapAlg::Views() const {
-  return fViews;
-}
+*/
 
 //----------------------------------------------------------------------------
 
