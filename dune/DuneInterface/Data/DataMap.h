@@ -112,6 +112,7 @@ public:
     mapextend<TH1*>(m_hsts, rhs.m_hsts);
     mapextend<HistVector>(m_hstvecs, rhs.m_hstvecs);
     m_sharedHsts.insert(m_sharedHsts.end(), rhs.m_sharedHsts.begin(), rhs.m_sharedHsts.end());
+    mapextend<GraphPtr>(m_grfs, rhs.m_grfs);
   }
   DataMap& operator+=(const DataMap& rhs) { extend(rhs); return *this; }
 
