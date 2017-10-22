@@ -9,6 +9,7 @@
 //         Float: double
 //   FloatVector: vector<float>
 //          Hist: TH1*
+//         Graph: TGraph*
 //
 // Supports automatic conversion from int:
 //   DataMap myfun() { return 3; }
@@ -32,6 +33,7 @@
 #include <iostream>
 
 #include "TH1.h"
+#include "TGraph.h"
 
 class DataMap {
 
@@ -45,6 +47,8 @@ public:
   using HistVector = std::vector<TH1*>;
   using HistMap = std::map<Name,TH1*>;
   using HistVectorMap = std::map<Name,HistVector>;
+  using GraphPtr = std::shared_ptr<TGraph>;
+  using GraphMap = std::map<Name,GraphPtr>;
   using SharedHistVector = std::vector<std::shared_ptr<TH1>>;
 
   // Ctor from status flag.
@@ -58,11 +62,12 @@ public:
 
   // Setters.
   // If own is true, the result has owns the histogram(s).
-  // If reults are copied to other results, then this ownership
+  // If results are copied to other results, then this ownership
   // is shared so that the histogram is deleted when the last of
   // these results is deleted.
   // NOTE: Code should be fixed to remove shared pointers when a
   // histogram is overwritten (i.e. another added with the same name).
+  // Graphs are always owned in this same sense.
   DataMap& setStatus(int stat) { m_stat = stat; return *this; }
   void setInt(Name name, int val) { m_ints[name] = val; }
   void setFloat(Name name, double val) { m_flts[name] = val; }
@@ -94,6 +99,9 @@ public:
       }
     }
   }
+  void setGraph(Name name, TGraph* pg) {
+    m_grfs[name] = GraphPtr(pg);
+  }
 
   // Extend this map with another.
   void extend(const DataMap& rhs) {
@@ -104,6 +112,7 @@ public:
     mapextend<TH1*>(m_hsts, rhs.m_hsts);
     mapextend<HistVector>(m_hstvecs, rhs.m_hstvecs);
     m_sharedHsts.insert(m_sharedHsts.end(), rhs.m_sharedHsts.begin(), rhs.m_sharedHsts.end());
+    mapextend<GraphPtr>(m_grfs, rhs.m_grfs);
   }
   DataMap& operator+=(const DataMap& rhs) { extend(rhs); return *this; }
 
@@ -119,14 +128,16 @@ public:
   bool haveFloatVector(Name name) const { return maphas<FloatVector>(m_fltvecs, name); }
   bool haveHist(Name name)  const { return maphas<TH1*>(m_hsts, name); }
   bool haveHistVector(Name name)  const { return maphas<HistVector>(m_hstvecs, name); }
+  bool haveGraph(Name name)  const { return maphas<GraphPtr>(m_grfs, name); }
 
   // Return a result for a given name.
   // The indicated default is returned if a value is not stored.
   int getInt(Name name, int def =0) const { return mapget<int>(m_ints, name, def); }
   double getFloat(Name name, double def =0.0) const { return mapget<double>(m_flts, name, def); }
-  const FloatVector& getFloatVector(Name name) const { return mapgetvec<FloatVector>(m_fltvecs, name); }
+  const FloatVector& getFloatVector(Name name) const { return mapgetobj<FloatVector>(m_fltvecs, name); }
   TH1* getHist(Name name, TH1* def =nullptr) const { return mapget<TH1*>(m_hsts, name, def); }
-  const HistVector& getHistVector(Name name) const { return mapgetvec<HistVector>(m_hstvecs, name); }
+  const HistVector& getHistVector(Name name) const { return mapgetobj<HistVector>(m_hstvecs, name); }
+  TGraph* getGraph(Name name) const { return mapgetobj<GraphPtr>(m_grfs, name).get(); }
 
   // Return the maps holding the results.
   const IntMap& getIntMap() const { return m_ints; }
@@ -134,6 +145,7 @@ public:
   const FloatVectorMap& getFloatVectorMap() const { return m_fltvecs; }
   const HistMap& getHistMap() const { return m_hsts; }
   const HistVectorMap& getHistVectorMap() const { return m_hstvecs; }
+  const GraphMap& getGraphMap() const { return m_grfs; }
 
   // Return the named histograms in a vector.
   HistVector getHists() const {
@@ -191,6 +203,14 @@ public:
         cout << "  " << ient.first << "[" << nhst << "]" << endl;
       }
     }
+    if ( m_grfs.size() ) {
+      cout << "Graphs:" << endl;
+      for ( typename GraphMap::value_type ient : m_grfs ) {
+        GraphPtr pg = ient.second;
+        //Name hnam = ph == nullptr ? "NULL" : ph->GetName();
+        cout << "  " << ient.first << ": " << pg.get() << endl;
+      }
+    }
   }
 
 private:
@@ -202,6 +222,7 @@ private:
   HistMap m_hsts;
   HistVectorMap m_hstvecs;
   SharedHistVector m_sharedHsts;
+  GraphMap m_grfs;
 
   // Return if a map has key.
   template<typename T>
@@ -210,7 +231,7 @@ private:
     return ival != vals.end();
   }
 
-  // Return a map's value for a key or default if they is not present.
+  // Return a map's value for a key or default if key is not present.
   template<typename T>
   T mapget(const std::map<Name,T>& vals, Name name, T def) const {
     typename std::map<Name,T>::const_iterator ival = vals.find(name);
@@ -218,12 +239,13 @@ private:
     return ival->second;
   }
 
-  // Return a map's value for a key or default if they is not present.
+  // Return a map's value for a key or default ctor object if key is not present.
+
   template<typename T>
-  const T& mapgetvec(const std::map<Name,T>& vals, Name name) const {
-    static T emptyVector;
+  const T& mapgetobj(const std::map<Name,T>& vals, Name name) const {
+    static T def;
     typename std::map<Name,T>::const_iterator ival = vals.find(name);
-    if ( ival == vals.end() ) return emptyVector;
+    if ( ival == vals.end() ) return def;
     return ival->second;
   }
 
