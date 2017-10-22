@@ -1,6 +1,7 @@
 // TPadManipulator.cxx
 
 #include "TPadManipulator.h"
+#include <iostream>
 #include "TPad.h"
 #include "TAxis.h"
 #include "TGaxis.h"
@@ -8,9 +9,9 @@
 #include "TStyle.h"
 #include "TH1.h"
 #include "TH2.h"
+#include "TGraph.h"
 #include "TLine.h"
 #include "TF1.h"
-#include <iostream>
 
 using std::string;
 using std::cout;
@@ -63,35 +64,48 @@ int TPadManipulator::update() {
   }
   const TList* prims = gPad->GetListOfPrimitives();
   bool noHist = m_ph == nullptr;
-  if ( noHist ) {
+  bool noGraph = m_pg == nullptr;
+  bool firstDraw = noHist && noGraph;
+  if ( noHist && noGraph ) {
     for ( int iprm=0; iprm<prims->GetEntries(); ++iprm ) {
       TObject* pobj = prims->At(iprm);
       TH1* ph = dynamic_cast<TH1*>(pobj);
-      if ( ph == nullptr ) continue;
-      m_ph.reset(dynamic_cast<TH1*>(ph->Clone("hmanip0")));
-      m_ph->SetDirectory(nullptr);
+      if ( ph != nullptr )  {
+        m_ph.reset(dynamic_cast<TH1*>(ph->Clone("hmanip0")));
+        m_ph->SetDirectory(nullptr);
+        noHist = false;
+        break;
+      }
+      TGraph* pg = dynamic_cast<TGraph*>(pobj);
+      if ( pg != nullptr )  {
+        m_pg.reset(dynamic_cast<TGraph*>(pg->Clone("gmanip0")));
+        noGraph = false;
+        break;
+      }
     }
   }
-  if ( m_ph == nullptr ) {
-    cout << myname << "Pad does not have a histogram." << endl;
+  if ( noHist && noGraph ) {
+    cout << myname << "Pad does not have a histogram or graph." << endl;
     return 2;
   }
   // Set margins the first time the histogram is found.
   // After this, user can override with pad()->SetRightMargin(...), ...
+  bool isTH = m_ph != nullptr;
   bool isTH2 = dynamic_cast<TH2*>(m_ph.get()) != nullptr;
-  if ( noHist ) {
+  bool isTH1 = isTH && !isTH2;
+  if ( firstDraw ) {
     if ( isTH2 ) m_ppad->SetRightMargin(0.10);
     else m_ppad->SetRightMargin(0.03);
     m_ppad->SetLeftMargin(0.12);
     m_ppad->SetTopMargin(0.07);
-    m_ph->SetTitleOffset(1.20);
+    if ( isTH ) m_ph->SetTitleOffset(1.20);
   }
-  bool isTH1 = m_ph != nullptr && !isTH2;
   int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
   int flowcol = kAzure - 9;
   // Redraw everything.
   gPad->Clear();
-  m_ph->Draw();
+  if ( isTH ) m_ph->Draw();
+  else m_pg->Draw("AP");
   if ( (m_showUnderflow || m_showOverflow) && nbin > 0 ) {
     if ( m_flowHist == nullptr ) {
       m_flowHist.reset((TH1*) m_ph->Clone("hmaniptmp"));
@@ -118,36 +132,50 @@ int TPadManipulator::update() {
 
 //**********************************************************************
 
+TAxis* TPadManipulator::getXaxis() {
+  if ( m_ph != nullptr ) return m_ph->GetXaxis();
+  if ( m_pg != nullptr ) return m_pg->GetXaxis();
+  return nullptr;
+}
+
+//**********************************************************************
+
+TAxis* TPadManipulator::getYaxis() {
+  if ( m_ph != nullptr ) return m_ph->GetYaxis();
+  if ( m_pg != nullptr ) return m_pg->GetYaxis();
+  return nullptr;
+}
+
+//**********************************************************************
+
 int TPadManipulator::setRangeX(double x1, double x2) {
-  TH1* ph = hist();
-  if ( ph == nullptr ) return 1;
+  TAxis* pax = getXaxis();
+  if ( pax == nullptr ) return 1;
   if ( x2 <= x1 ) return 2;
-  ph->GetXaxis()->SetRangeUser(x1, x2);
-  ph->Draw();
+  pax->SetRangeUser(x1, x2);
   return update();
 }
 
 //**********************************************************************
 
-int TPadManipulator::setRangeY(double y1, double y2) {
-  TH1* ph = hist();
-  if ( ph == nullptr ) return 1;
-  if ( y2 <= y1 ) return 2;
-  ph->GetYaxis()->SetRangeUser(y1, y2);
-  ph->Draw();
+int TPadManipulator::setRangeY(double x1, double x2) {
+  TAxis* pax = getYaxis();
+  if ( pax == nullptr ) return 1;
+  if ( x2 <= x1 ) return 2;
+  pax->SetRangeUser(x1, x2);
   return update();
 }
 
 //**********************************************************************
 
 int TPadManipulator::setRanges(double x1, double x2, double y1, double y2) {
-  TH1* ph = hist();
-  if ( ph == nullptr ) return 1;
+  TAxis* pax = getXaxis();
+  TAxis* pay = getYaxis();
+  if ( pax == nullptr || pay == nullptr ) return 1;
   if ( x2 <= x1 ) return 2;
   if ( y2 <= y1 ) return 2;
-  ph->GetXaxis()->SetRangeUser(x1, x2);
-  ph->GetYaxis()->SetRangeUser(y1, y2);
-  ph->Draw();
+  pax->SetRangeUser(x1, x2);
+  pay->SetRangeUser(y1, y2);
   return update();
 }
 
@@ -160,10 +188,9 @@ int TPadManipulator::addAxis() {
 //**********************************************************************
 
 int TPadManipulator::addAxisTop() {
-  if ( m_ph == nullptr ) return 1;
   double ticksize = 0;
   int ndiv = 0;
-  TAxis* paxold = m_ph->GetXaxis();
+  TAxis* paxold = getXaxis();
   if ( paxold == nullptr ) return 2;
   ticksize = paxold->GetTickLength();
   ndiv = paxold->GetNdivisions();
@@ -212,10 +239,9 @@ int TPadManipulator::drawAxisTop() {
 //**********************************************************************
 
 int TPadManipulator::addAxisRight() {
-  if ( m_ph == nullptr ) return 1;
   double ticksize = 0;
   int ndiv = 0;
-  TAxis* paxold = m_ph->GetYaxis();
+  TAxis* paxold = getYaxis();
   if ( paxold == nullptr ) return 2;
   ticksize = paxold->GetTickLength();
   ndiv = paxold->GetNdivisions();
@@ -274,8 +300,11 @@ int TPadManipulator::addHistFun(unsigned int ifun) {
 //**********************************************************************
 
 int TPadManipulator::drawHistFuns() {
-  if ( m_ph == nullptr ) return 0;
-  const TList& funs =  *m_ph->GetListOfFunctions();
+  const TList* pfuns = nullptr;
+  if      ( m_ph != nullptr ) pfuns = m_ph->GetListOfFunctions();
+  else if ( m_pg != nullptr ) pfuns = m_pg->GetListOfFunctions();
+  else    return 1;
+  const TList& funs = *pfuns;
   unsigned int nfun = funs.GetEntries();
   for ( unsigned int ifun : m_histFuns ) {
     if ( ifun >= nfun ) continue;
