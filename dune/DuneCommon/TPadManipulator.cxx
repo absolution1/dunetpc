@@ -98,6 +98,7 @@ int TPadManipulator::update() {
     else m_ppad->SetRightMargin(0.03);
     m_ppad->SetLeftMargin(0.12);
     m_ppad->SetTopMargin(0.07);
+    getXaxis()->SetTitleOffset(1.20);
     if ( isTH ) m_ph->SetTitleOffset(1.20);
   }
   int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
