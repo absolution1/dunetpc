@@ -270,6 +270,8 @@ adcprep_dune35tdata: {
 
 changroup_apa: {
   service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: []
 }
 
 changroup_rop: {
