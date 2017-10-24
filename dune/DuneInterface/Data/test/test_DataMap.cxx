@@ -59,6 +59,27 @@ int test_DataMap(bool useExistingFcl =false) {
   res.print();
 
   cout << myname << line << endl;
+  cout << myname << "Add int vector." << endl;
+  assert( res.getIntVectorMap().size() == 0 );
+  assert( ! res.haveIntVector("myintvec") );
+  DataMap::IntVector myintvec;
+  myintvec.push_back(1);
+  myintvec.push_back(2);
+  myintvec.push_back(3);
+  res.setIntVector("myintvec", myintvec);
+  assert( res.getIntVectorMap().size() == 1 );
+  assert( ! res.haveIntVector("nosuch") );
+  assert( res.haveIntVector("myintvec") );
+  assert( ! res.haveFloat("myint") );
+  res.setInt("myint", 456);
+  assert( res.getIntMap().size() == 1 );
+  assert( res.getFloatMap().size() == 0 );
+  assert( res.getFloatVectorMap().size() == 0 );
+  assert( res.getHistMap().size() == 0 );
+  assert( res.getIntVector("myintvec") == myintvec );
+  res.print();
+
+  cout << myname << line << endl;
   cout << myname << "Add float." << endl;
   assert( res.getFloatMap().size() == 0 );
   assert( ! res.haveFloat("myflt") );
