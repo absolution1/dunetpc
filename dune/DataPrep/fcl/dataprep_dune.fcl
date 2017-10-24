@@ -268,10 +268,18 @@ adcprep_dune35tdata: {
 
 # Channel groups.
 
-changroup_apa: {
+# Process by APA keeping all ROPs.
+changroup_apa_keepall: {
   service_provider: GeoApaChannelGroupService
   LogLevel: 1
   ApaRops: []
+}
+
+# Process by APA dropping the protoDUNE outer collection plane.
+changroup_apa_pd_drop_outer: {
+  service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: [11, 7]
 }
 
 changroup_rop: {
