@@ -6,7 +6,7 @@ simple_plugin(ShowerAnalysis "module"
 		             larcorealg_Geometry
 			     larcore_Geometry_Geometry_service
 			     lardata_Utilities
-			     larsim_MCCheater_BackTracker_service
+			     larsim_MCCheater_BackTrackerService_service
 			     nusimdata_SimulationBase
                              ${ART_FRAMEWORK_CORE}
 			     ${ART_FRAMEWORK_PRINCIPAL}
@@ -35,7 +35,7 @@ install_scripts()
 # 	 	       larcorealg_Geometry  
 # 	 	       larcore_Geometry_Geometry_service
 # 	 	       lardata_Utilities
-# 		       larsim_MCCheater_BackTracker_service
+# 		       larsim_MCCheater_BackTrackerService_service
 # 	 	       nusimdata_SimulationBase
 #          	       ${ART_FRAMEWORK_CORE}
 # 	 	       ${ART_FRAMEWORK_PRINCIPAL}
