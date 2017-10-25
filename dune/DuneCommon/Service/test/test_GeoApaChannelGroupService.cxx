@@ -42,6 +42,8 @@ int test_GeoApaChannelGroupService(string sgeo) {
   fout << "services: @local::" << sgeo << endl;
   fout << "services.ChannelGroupService: {" << endl;
   fout << "  service_provider: \"GeoApaChannelGroupService\"" << endl;
+  fout << "  LogLevel: 1" << endl;
+  fout << "  ApaRops: []" << endl;
   fout << "}" << endl;
 
   cout << myname << line << endl;

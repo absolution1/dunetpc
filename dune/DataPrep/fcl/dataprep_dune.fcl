@@ -32,6 +32,7 @@ adccopy: {
 rdx_std: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
+  DigitReadTool: digitReader
   PedestalOption: 1
   FlagStuckOff: false
   FlagStuckOn: false
@@ -40,6 +41,7 @@ rdx_std: {
 rdx_35tdata: {
   service_provider: StandardRawDigitExtractService
   LogLevel: 1
+  DigitReadTool: digitReader
   PedestalOption: 1
   FlagStuckOff: true
   FlagStuckOn: true
@@ -93,6 +95,21 @@ adcnr_dune35tlegacy: {
   CorrectStuckCodes: true
   ShowGroups:           0  # Use 2 to dump group map
   ShowGroupsChannel:    4
+}
+
+adcnr_dunedphase3x1x1: {
+  service_provider: DuneDPhase3x1x1NoiseRemovalService
+  CorrMode:                         "median" # mean or median
+  Coherent32:                           true
+  Coherent32Groups:                       [] # do all groups if empty list
+  Coherent16:                           true
+  Coherent16Groups:   [6, 7, 16, 17, 18, 19] # do all groups if empty list
+  RoiStartThreshold:                       7
+  RoiEndThreshold:                         6
+  RoiPadLow:                               8
+  RoiPadHigh:                             40
+  Flatten:                              true
+  LowPassFlt:                          false
 }
 
 #***********************************************************************
@@ -149,11 +166,13 @@ adcroi_dunefd: @local::adcroi_dune35t
 
 adcroi_dunefddphase: {
   service_provider: DuneDPhaseRoiBuildingService
-  NSigmaStart:        3.0
-  NSigmaEnd:          1.0
-  PadLow:              50
-  PadHigh:             50
-  LogLevel:             1
+  UseFilter:                 false
+  FltCoeffs:     [0.1, 0.75, 0.95]
+  NSigmaStart:                 3.0
+  NSigmaEnd:                   1.0
+  PadLow:                       50
+  PadHigh:                      50
+  LogLevel:                      1
 }
 
 adcroi_keepall: {
@@ -211,6 +230,23 @@ adcprep_sim: {
   DisplayTools:             []
 }
 
+# Process DP 3x1x1 data.
+adcprep_dunedphase3x1x1: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:              true
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:         true
+  DoPedestalAdjustment:  false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
+  DoIntermediateStates:  false
+  DisplayTools:             []
+}
+
 # Process 35-ton data
 adcprep_dune35tdata: {
   service_provider: StandardRawDigitPrepService
@@ -232,8 +268,18 @@ adcprep_dune35tdata: {
 
 # Channel groups.
 
-changroup_apa: {
+# Process by APA keeping all ROPs.
+changroup_apa_keepall: {
   service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: []
+}
+
+# Process by APA dropping the protoDUNE outer collection plane.
+changroup_apa_pd_drop_outer: {
+  service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: [11, 7]
 }
 
 changroup_rop: {

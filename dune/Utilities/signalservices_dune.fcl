@@ -14,8 +14,8 @@ dunefd_signalshapingservice: {
   ADCPerPCAtLowestASICGain: 13160 #ADC/pC (2.8 ADC/mV * 4.7 mV/fC * 1000)
   # ASICGains:           [4.7, 7.8, 14, 25]
   ASICGainInMVPerFC:  [ 14, 14, 14 ] #mV/fC for Ind & col planes
-  ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peaking time (microseconds)	
-  
+  ShapeTimeConst:  [ 2.0, 2.0, 2.0 ] #Gain and Peaking time (microseconds)
+
   # Noise Factor - rms ADCs @ lowest ASIC Gain (4.7 mV/fC)
   NoiseFactVec:         [[ 1.12, 0.86, 0.60, 0.55 ], [ 1.12, 0.86, 0.60, 0.55 ], [ 0.89, 0.66, 0.48, 0.43 ]]
   # to turn off noise
@@ -33,7 +33,7 @@ dunefd_signalshapingservice: {
   IndVFieldRespAmp:  1.0
 
   FieldResponseTOffset: [-32.5e3, -32.5e3, -32.5e3] # in ns, time offset of field response shape
-  CalibResponseTOffset: [0.0, 0.0, 0.0] # in ns time offset to align all three planes  
+  CalibResponseTOffset: [0.0, 0.0, 0.0] # in ns time offset to align all three planes
 
 
   # For IndFilter and ColFilter, frequency (x) is measured in
@@ -58,27 +58,27 @@ dunefd_signalshapingservice: {
   ColFilter:       "[0]*exp(-0.5*(((x-[1])/[2])^2)^[3])"
   # ColFilterParams: [ 79258.0, 0.0, 0.1875, 1.5 ]
   #ColFilterParams: [ 0.0792580, 0.0, 0.1875, 1.5 ]
-  ColFilterParams: [ 1.03, 0.08, 0.15, 2.17 ]  
+  ColFilterParams: [ 1.03, 0.08, 0.15, 2.17 ]
 
-  GetFilterFromHisto:   false  
+  GetFilterFromHisto:   false
 
   FilterFunctionFname:  "uboone_filters_v0.1.root"
-  FilterHistoName:	"noisefilter_%d"       
-  
+  FilterHistoName:	"noisefilter_%d"
+
 
   UseFunctionFieldShape: false
   UseHistogramFieldShape: true
   FieldResponseFname:     "FieldResponse/dune35t_response_v1.0.root"
   FieldResponseHistoName: "FieldResponse"
- 
+
   IndUFieldShape: "[0]*(1.0+[3]*tanh(x-[4]))*([4]-x)*exp(-0.5*((x-[4])/[2])^2.0)"
   IndUFieldParams:  [.00843,.1534,1.77,0.,0.5]    #last parameter needs to be half of FFT vector, correct for in code
   IndVFieldShape: "[0]*(1.0+[3]*tanh(x-[4]))*([4]-x)*exp(-0.5*((x-[4])/[2])^2.0)"
   IndVFieldParams:  [.00843,.1534,1.77,0.,0.5]    #last parameter needs to be half of FFT vector, correct for in code
   ColFieldShape: "x^[2]/(1.0+(x/[0])^[1])"
-  ColFieldParams: [ 8.0,16.0,.75 ] 
+  ColFieldParams: [ 8.0,16.0,.75 ]
 
-  DebugFieldShape: false 
+  DebugFieldShape: false
 }
 
 # 35t is the same for now
@@ -92,20 +92,32 @@ dune35t_signalshapingservice:   @local::dunefd_signalshapingservice
 dune35t_signalshapingservice.ASICGainInMVPerFC: [ 14.0, 14.0, 14.0] #mV/fC for Ind & col planes
 dune35t_signalshapingservice.ShapeTimeConst:    [ 3.0 , 3.0 , 3.0 ] #Gain and Peaking time (microseconds)
 #
-# DUNE dual-phase signal service
+# 3x1x1, protoDUNE and DUNE dual-phase signal service
 #
-dunefddphase_signalshapingservice:
-{
+
+dunedphase3x1x1_signalshapingservice: {
   DeconNorm: 200
 
-  ASICmVperfC: 3.2    # Amplifier gain in mV/fC
+  ASICmVperfC: 6.4    # Amplifier gain in mV/fC
   ADCpermV:    1.0    # ADC conversion factor
   AmpENC:      1700.0 # Amplifier ENC e for Cdet=450pF
 
-  RespSamplingPeriod: 400. # in nano second  
-  
-  ColFilter:       "[0]*exp(-1.2*(((x-[1])/[2])^2)^[3])"  
-  ColFilterParams: [ 1.0, 0.0, 0.136, 2.5 ]  
+  RespSamplingPeriod: 400. # in nano second
+
+  AddFieldFunction: false
+  ColFieldFunction: "x*[0]"
+  ColFieldFunctionParams: [1.0]
+  ColFieldRespAmp: 1.0
+
+  ColFilter:       "[0]*exp(-1.2*(((x-[1])/[2])^2)^[3])"
+  ColFilterParams: [ 1.0, 0.0, 0.136, 2.5 ]
+  #FieldFunctionParameters: [1.0, 1.0, 1.0, 1.0] #0 step width #1 step height #2 slow/fast (could be taken from E field) #Tau (could be taken from field and temperature). 0 and Tau in us
 }
+
+protodunedphase_signalshapingservice: @local::dunedphase3x1x1_signalshapingservice
+
+dunefddphase_signalshapingservice: @local::dunedphase3x1x1_signalshapingservice
+dunefddphase_signalshapingservice.ASICmVperfC: 3.2
+
 
 END_PROLOG

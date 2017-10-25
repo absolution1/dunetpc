@@ -7,15 +7,25 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   FileName - Name for output file. The following sustitutions are made:
-//                 %EVENT% --> event number
-//                 %PAT%   --> pattern passed in call to view
-//                 %CHAN1% --> First channel number 
-//                 %CHAN2% --> Last channel number 
-//              If blank, the following is used: "adcplot_%PAT%evt%EVENT%.png"
+//   DataType - Which data to plot: 0=prepared, 1=raw-pedestal
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
+//   HistName - Histogram name (should be unique within Root file)
+//   HistTitle - Histogram title
+//   PlotFileName - Name for output plot file.
+//                  If blank, no file is written.
+//                  Existing file with the same name is replaced.
+//   RootFileName - Name for the output root file.
+//                  If blank, histograms are not written out.
+//                  Existing file with the same is updated.
+// For the title and file names, the following sustitutions are made:
+//     %RUN%    --> run number
+//     %SUBRUN% --> subrun number
+//     %EVENT%  --> event number
+//     %PAT%    --> pattern passed in call to view
+//     %CHAN1%  --> First channel number 
+//     %CHAN2%  --> Last channel number 
 
 #ifndef AdcDataPlotter_H
 #define AdcDataPlotter_H
@@ -23,7 +33,6 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcDataViewer.h"
-#include <iostream>
 
 class AdcDataPlotter : AdcDataViewer {
 
@@ -40,14 +49,15 @@ public:
 private:
 
   // Configuration data.
-  int m_LogLevel;
-  std::string m_FileName;
-  unsigned long m_FirstTick;
-  unsigned long m_LastTick;
-  double m_MaxSignal;
-
-  // Output stream.
-  std::ostream* m_pout;
+  int            m_LogLevel;
+  int            m_DataType;
+  unsigned long  m_FirstTick;
+  unsigned long  m_LastTick;
+  double         m_MaxSignal;
+  std::string    m_HistName;
+  std::string    m_HistTitle;
+  std::string    m_PlotFileName;
+  std::string    m_RootFileName;
 
 };
 

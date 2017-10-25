@@ -2,16 +2,14 @@
 
 process_name: ImportFull311FileProcess
 
-services: 				@local::dunefddphase_services
-services.RandomNumberGenerator: 	{} 
-services.Geometry: 			@local::dphase3x1x1_geo
-services.DetectorPropertiesService:	@local::dphase3x1x1_detproperties
+services: 				@local::dunedphase3x1x1_services
+services.RandomNumberGenerator: 	{}
 
 source:
 {
   fileNames: ["/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/calibrations/748/748-0.pul.cal"]
   module_type: ImportFull311File
-  max_events: -1
+fileNames: [ "/eos/experiment/wa105/data/311/rawdata/840/840-103.dat" ]
 }
 
 outputs:
@@ -31,4 +29,3 @@ physics:
   end_paths: 	[ stream1 ]
 }
 
-source.PedestalFile: "/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/datafiles/pedestals/pedestal_run729_1.ped"
