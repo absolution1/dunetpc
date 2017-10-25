@@ -195,6 +195,23 @@ public:
         cout << "  " << ient.first << ": " << ient.second << endl;
       }
     }
+    if ( m_fltvecs.size() ) {
+      cout << "Float vectors:" << endl;
+      unsigned int maxval = 20;
+      for ( typename FloatVectorMap::value_type ient : m_fltvecs ) {
+        unsigned nval = ient.second.size();
+        cout << "  " << ient.first << "[" << nval << "]:";
+        for ( unsigned int ival=0; ival<nval; ++ival ) {
+          if ( ival ) cout << ",";
+          cout << " " << ient.second[ival];
+          if ( ival > maxval ) {
+            cout << ", ..." << endl;
+            break;
+          }
+        }
+        cout << endl;
+      }
+    }
     if ( m_hsts.size() ) {
       cout << "Histograms:" << endl;
       for ( typename HistMap::value_type ient : m_hsts ) {
