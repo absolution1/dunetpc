@@ -7,7 +7,7 @@
 #include "signalservices_dune.fcl"
 #include "magfield_larsoft.fcl"
 #include "databaseutil_dune.fcl"
-#include "backtracker.fcl"
+#include "backtrackerservice.fcl"
 #include "seedservice_dune.fcl"
 #include "detectorclocks_dune.fcl"
 #include "photpropservices_dune.fcl"
