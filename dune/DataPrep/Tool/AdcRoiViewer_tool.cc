@@ -58,6 +58,8 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
   DataMap::FloatVector roiSigAreas;
+  DataMap::IntVector nUnderflow(nroi, 0);
+  DataMap::IntVector nOverflow(nroi, 0);
   for ( unsigned int iroi=0; iroi<nroi; ++iroi ) {
     AdcRoi roi = acd.rois[iroi];
     ostringstream sshnam;
@@ -95,6 +97,9 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       }
       sigarea += sig;
       ph->SetBinContent(++ibin, sig);
+      AdcFlag flag = acd.flags.size() > isam ? acd.flags[isam] : 0;
+      if ( flag == AdcUnderflow ) ++nUnderflow[iroi];
+      if ( flag == AdcOverflow ) ++nOverflow[iroi];
     }
     roiHists.push_back(ph);
     roiSigMins.push_back(sigmin);
@@ -105,6 +110,8 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   res.setFloatVector("roiSigMins", roiSigMins);
   res.setFloatVector("roiSigMaxs", roiSigMaxs);
   res.setFloatVector("roiSigAreas", roiSigAreas);
+  res.setIntVector("roiNUnderflow", nUnderflow);
+  res.setIntVector("roiNOverflow", nOverflow);
   return res;
 }
 

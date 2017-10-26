@@ -40,8 +40,10 @@ class DataMap {
 public:
 
   using Name = std::string;
-  using FloatVector = std::vector<float>;
+  using IntVector = std::vector<int>;
   using IntMap = std::map<Name,int>;
+  using IntVectorMap = std::map<Name,IntVector>;
+  using FloatVector = std::vector<float>;
   using FloatMap = std::map<Name,double>;
   using FloatVectorMap = std::map<Name,FloatVector>;
   using HistVector = std::vector<TH1*>;
@@ -70,6 +72,7 @@ public:
   // Graphs are always owned in this same sense.
   DataMap& setStatus(int stat) { m_stat = stat; return *this; }
   void setInt(Name name, int val) { m_ints[name] = val; }
+  void setIntVector(Name name, const IntVector& val) { m_intvecs[name] = val; }
   void setFloat(Name name, double val) { m_flts[name] = val; }
   void setFloatVector(Name name, const FloatVector& val) { m_fltvecs[name] = val; }
   void setHist(Name name, TH1* ph, bool own =false) {
@@ -107,6 +110,7 @@ public:
   void extend(const DataMap& rhs) {
     m_stat += rhs.status();
     mapextend<int>(m_ints, rhs.m_ints);
+    mapextend<IntVector>(m_intvecs, rhs.m_intvecs);
     mapextend<double>(m_flts, rhs.m_flts);
     mapextend<FloatVector>(m_fltvecs, rhs.m_fltvecs);
     mapextend<TH1*>(m_hsts, rhs.m_hsts);
@@ -124,6 +128,7 @@ public:
 
   // Return if a result is stored for a given name.
   bool haveInt(Name name)   const { return maphas<int>(m_ints, name); }
+  bool haveIntVector(Name name) const { return maphas<IntVector>(m_intvecs, name); }
   bool haveFloat(Name name) const { return maphas<double>(m_flts, name); }
   bool haveFloatVector(Name name) const { return maphas<FloatVector>(m_fltvecs, name); }
   bool haveHist(Name name)  const { return maphas<TH1*>(m_hsts, name); }
@@ -133,6 +138,7 @@ public:
   // Return a result for a given name.
   // The indicated default is returned if a value is not stored.
   int getInt(Name name, int def =0) const { return mapget<int>(m_ints, name, def); }
+  const IntVector& getIntVector(Name name) const { return mapgetobj<IntVector>(m_intvecs, name); }
   double getFloat(Name name, double def =0.0) const { return mapget<double>(m_flts, name, def); }
   const FloatVector& getFloatVector(Name name) const { return mapgetobj<FloatVector>(m_fltvecs, name); }
   TH1* getHist(Name name, TH1* def =nullptr) const { return mapget<TH1*>(m_hsts, name, def); }
@@ -141,6 +147,7 @@ public:
 
   // Return the maps holding the results.
   const IntMap& getIntMap() const { return m_ints; }
+  const IntVectorMap& getIntVectorMap() const { return m_intvecs; }
   const FloatMap& getFloatMap() const { return m_flts; }
   const FloatVectorMap& getFloatVectorMap() const { return m_fltvecs; }
   const HistMap& getHistMap() const { return m_hsts; }
@@ -165,27 +172,27 @@ public:
         cout << "  " << ient.first << ": " << ient.second << endl;
       }
     }
-    if ( m_flts.size() ) {
-      cout << "Floats:" << endl;
-      for ( typename FloatMap::value_type ient : m_flts ) {
-        cout << "  " << ient.first << ": " << ient.second << endl;
-      }
-    }
-    if ( m_fltvecs.size() ) {
-      cout << "Float vectors:" << endl;
-      unsigned int maxflt = 20;
-      for ( typename FloatVectorMap::value_type ient : m_fltvecs ) {
-        unsigned nflt = ient.second.size();
-        cout << "  " << ient.first << "[" << nflt << "]:";
-        for ( unsigned int iflt=0; iflt<nflt; ++iflt ) {
-          if ( iflt ) cout << ",";
-          cout << " " << ient.second[iflt];
-          if ( iflt > maxflt ) {
+    if ( m_intvecs.size() ) {
+      cout << "Int vectors:" << endl;
+      unsigned int maxval = 20;
+      for ( typename IntVectorMap::value_type ient : m_intvecs ) {
+        unsigned nval = ient.second.size();
+        cout << "  " << ient.first << "[" << nval << "]:";
+        for ( unsigned int ival=0; ival<nval; ++ival ) {
+          if ( ival ) cout << ",";
+          cout << " " << ient.second[ival];
+          if ( ival > maxval ) {
             cout << ", ..." << endl;
             break;
           }
         }
         cout << endl;
+      }
+    }
+    if ( m_flts.size() ) {
+      cout << "Floats:" << endl;
+      for ( typename FloatMap::value_type ient : m_flts ) {
+        cout << "  " << ient.first << ": " << ient.second << endl;
       }
     }
     if ( m_hsts.size() ) {
@@ -217,6 +224,7 @@ private:
 
   int m_stat;
   IntMap m_ints;
+  IntVectorMap m_intvecs;
   FloatMap m_flts;
   FloatVectorMap m_fltvecs;
   HistMap m_hsts;
