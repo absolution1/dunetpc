@@ -5,13 +5,13 @@
 //
 // Root macro to manipulate a root drawing pad.
 //
-// The first histogram in the pad is cloned and the pad is updated
+// The first histogram or graph in the pad is cloned and the pad is updated
 // using the clone. Caller then has the options to
 //  change X and Y range
 //  add top and bottom axis
-//  display underflow and overflow
+//  display underflow and overflow (histograms only)
 //  add vertical lines at regular intervals
-//  display any of the functions (e.g. the fit) associated with the histogram
+//  display any of the functions (e.g. the fit) associated with the histogram or graph
 
 #ifndef TPadManipulator_H
 #define TPadManipulator_H
@@ -22,6 +22,8 @@
 
 class TVirtualPad;
 class TH1;
+class TGraph;
+class TAxis;
 
 class TPadManipulator {
 
@@ -59,6 +61,10 @@ public:
 
   // Update the coordinates and histogram for this pad.
   int update();
+
+  // Get the axes of the histogram or graph.
+  TAxis* getXaxis();
+  TAxis* getYaxis();
 
   // Set the histogram range
   int setRangeX(double x1, double x2);
@@ -123,6 +129,7 @@ private:
   double m_ymin;
   double m_ymax;
   std::shared_ptr<TH1> m_ph;
+  std::shared_ptr<TGraph> m_pg;
   std::shared_ptr<TH1> m_flowHist;
   bool m_showUnderflow;
   bool m_showOverflow;

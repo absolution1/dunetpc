@@ -59,6 +59,27 @@ int test_DataMap(bool useExistingFcl =false) {
   res.print();
 
   cout << myname << line << endl;
+  cout << myname << "Add int vector." << endl;
+  assert( res.getIntVectorMap().size() == 0 );
+  assert( ! res.haveIntVector("myintvec") );
+  DataMap::IntVector myintvec;
+  myintvec.push_back(1);
+  myintvec.push_back(2);
+  myintvec.push_back(3);
+  res.setIntVector("myintvec", myintvec);
+  assert( res.getIntVectorMap().size() == 1 );
+  assert( ! res.haveIntVector("nosuch") );
+  assert( res.haveIntVector("myintvec") );
+  assert( ! res.haveFloat("myint") );
+  res.setInt("myint", 456);
+  assert( res.getIntMap().size() == 1 );
+  assert( res.getFloatMap().size() == 0 );
+  assert( res.getFloatVectorMap().size() == 0 );
+  assert( res.getHistMap().size() == 0 );
+  assert( res.getIntVector("myintvec") == myintvec );
+  res.print();
+
+  cout << myname << line << endl;
   cout << myname << "Add float." << endl;
   assert( res.getFloatMap().size() == 0 );
   assert( ! res.haveFloat("myflt") );
@@ -121,8 +142,25 @@ int test_DataMap(bool useExistingFcl =false) {
   assert( res.getFloatVectorMap().size() == 1 );
   assert( res.getHistMap().size() == 1 );
   assert( res.getHistVectorMap().size() == 1 );
+  assert( res.getGraphMap().size() == 0 );
   res.print();
 
+  cout << myname << line << endl;
+  cout << myname << "Add graph." << endl;
+  TGraph* pg = new TGraph;
+  assert( ! res.haveGraph("mygrf") );
+  res.setGraph("mygrf", pg);
+  assert( res.haveGraph("mygrf") );
+  assert( res.getGraph("mygrf") == pg );
+  assert( res.getIntMap().size() == 1 );
+  assert( res.getFloatMap().size() == 1 );
+  assert( res.getFloatVectorMap().size() == 1 );
+  assert( res.getHistMap().size() == 1 );
+  assert( res.getHistVectorMap().size() == 1 );
+  assert( res.getGraphMap().size() == 1 );
+  res.print();
+
+  cout << myname << line << endl;
   cout << myname << line << endl;
   cout << myname << "Extend data map." << endl;
   DataMap res2;

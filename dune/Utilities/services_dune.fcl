@@ -45,7 +45,7 @@ dunefd_services: {
  NuRandomService:                @local::dune_seedservice
  SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
  ChannelStatusService:           @local::dunefd_channel_status
- ChannelGroupService:            @local::changroup_apa
+ ChannelGroupService:            @local::changroup_apa_keepall
 }
 
 dunefd_simulation_services: {
@@ -271,7 +271,7 @@ protodune_services: {
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status 
- ChannelGroupService:          @local::changroup_apa
+ ChannelGroupService:          @local::changroup_apa_pd_drop_outer
 }
 
 protodune_simulation_services: {
@@ -336,7 +336,7 @@ dune35t_basic_services: {
   ChannelStatusService:       @local::dune35t_channel_status_may2016
   ChannelMapService:          @local::channelmap35t
   ChannelMappingService:      @local::dune35t_channelmapping
-  ChannelGroupService:        @local::changroup_apa
+  ChannelGroupService:        @local::changroup_apa_keepall
 }
 
 dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
