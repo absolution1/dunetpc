@@ -13,11 +13,16 @@
 //                           10 + i - As above for i except vs. tick - tick0
 //
 // Output data map:
-//           int    roiCount - # ROI
-//   float[nROI]  roiSigMins - Signal minimum for each ROI
-//   float[nROI]  roiSigMaxs - Signal minimum for each ROI
-//   float[nROI] roiSigAreas - Signal area for each ROI
-//    TH1*[nROI]    roiHists - Histogram of samples or roi for each ROI
+//           int        roiCount - # ROI (nROI)
+//           int roiNTickChannel - # ticks in the ADC channel
+//     int[nROI]       roiTick0s - First tick for each ROI
+//     int[nROI]       roiNTicks - # ticks for each ROI
+//     int[nROI]  roiNUnderflows - # bins with ADC underflow in each ROI
+//     int[nROI]   roiNOverflows - # bins with ADC overflow in each ROI
+//   float[nROI]      roiSigMins - Signal minimum for each ROI
+//   float[nROI]      roiSigMaxs - Signal minimum for each ROI
+//   float[nROI]     roiSigAreas - Signal area for each ROI
+//    TH1*[nROI]        roiHists - Histogram of samples or raw for each ROI
 
 #ifndef AdcRoiViewer_H
 #define AdcRoiViewer_H
