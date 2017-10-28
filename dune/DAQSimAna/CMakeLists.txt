@@ -4,7 +4,7 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
                         larcore_Geometry_Geometry_service
                         larcorealg_Geometry
                         lardataobj_RawData
-			larsim_MCCheater_BackTrackerService_service
+			larsim_MCCheater_BackTracker_service
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
                         nusimdata_SimulationBase	
                         ${ART_FRAMEWORK_CORE}

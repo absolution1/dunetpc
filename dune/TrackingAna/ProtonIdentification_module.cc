@@ -42,7 +42,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
-#include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larsim/MCCheater/BackTracker.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
@@ -138,7 +138,7 @@ private:
 
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  art::ServiceHandle<cheat::BackTracker> bktrk;
   detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
   
@@ -298,7 +298,7 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
   if (evt.getByLabel(fCounterT0ModuleLabel,trigListHandle))
     art::fill_ptr_vector(triglist, trigListHandle);  
   
-  const sim::ParticleList& plist = pi_serv->ParticleList();
+  const sim::ParticleList& plist = bktrk->ParticleList();
   True_Particles = 0;
   for (int qq=0; qq<1000; ++qq) {
     True_PdgCode  [ qq ] = True_Contained[ qq ] = True_Length   [ qq ] = True_ID[qq] = 0;

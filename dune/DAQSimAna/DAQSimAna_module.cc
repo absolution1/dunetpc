@@ -24,8 +24,7 @@
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RecoBase/Hit.h"
 
-#include "larsim/MCCheater/BackTrackerService.h"
-#include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larsim/MCCheater/BackTracker.h"
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -138,8 +137,7 @@ private:
 
   // --- Declare our services
   art::ServiceHandle<geo::Geometry> geo;
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  art::ServiceHandle<cheat::BackTracker> bktrk;
   
 };
 
@@ -314,7 +312,7 @@ void DAQSimAna::analyze(art::Event const & evt)
   std::cout << "--- The size of RdonParts is " << RdonParts.size() << std::endl;
 
   // --- Finally, get a list of all of my particles in one chunk.
-  const sim::ParticleList& PartList = pi_serv->ParticleList();
+  const sim::ParticleList& PartList = bktrk->ParticleList();
   std::cout << "There are a total of " << PartList.size() << " MCParticles in the event " << std::endl;
 
   std::vector< recob::Hit > ColHits_Marl;
@@ -339,7 +337,7 @@ void DAQSimAna::analyze(art::Event const & evt)
     // --- Lets figure out which particle contributed the most charge to this hit...
     int MainTrID    = -1;
     double TopEFrac = -DBL_MAX;
-    std::vector< sim::TrackIDE > ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
+    std::vector< sim::TrackIDE > ThisHitIDE = bktrk->HitToTrackID( ThisHit );
     for (size_t ideL=0; ideL < ThisHitIDE.size(); ++ideL) {
       if ( ThisHitIDE[ideL].energyFrac > TopEFrac ) {
 	TopEFrac = ThisHitIDE[ideL].energyFrac;

@@ -33,11 +33,11 @@
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "larsim/MCCheater/BackTrackerService.h"
-#include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larsim/MCCheater/BackTracker.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
+#include "larsim/MCCheater/BackTracker.h"
 
 // ROOT
 #include "TTree.h"
@@ -211,8 +211,7 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
 
   double fElectrondEdx, fPhotondEdx, fElectrondEdxWidth, fPhotondEdxWidth;
 
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  art::ServiceHandle<cheat::BackTracker> bt;
   art::ServiceHandle<art::TFileService> tfs;
   art::ServiceHandle<geo::Geometry> geom;
 
@@ -289,7 +288,7 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
   std::vector<int> pi0Decays;
 
   // Fill true properties
-  const sim::ParticleList& trueParticles = pi_serv->ParticleList();
+  const sim::ParticleList& trueParticles = bt->ParticleList();
   for (sim::ParticleList::const_iterator particleIt = trueParticles.begin(); particleIt != trueParticles.end(); ++particleIt) {
 
     const simb::MCParticle* trueParticle = particleIt->second;
@@ -300,8 +299,8 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
     }
 
     std::map<int,double> depositedEnergy;
-    const std::vector<art::Ptr< sim::SimChannel >>& simChannels = bt_serv->SimChannels();
-    for (std::vector<art::Ptr< sim::SimChannel >>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
+    const std::vector<const sim::SimChannel*>& simChannels = bt->SimChannels();
+    for (std::vector<const sim::SimChannel*>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
       int plane = geom->View((*channelIt)->Channel());
       auto const & tdcidemap = (*channelIt)->TDCIDEMap();
       for (auto const& tdcIt : tdcidemap) {
@@ -494,7 +493,7 @@ int showerAna::ShowerAnalysis::FindParticleID(const art::Ptr<recob::Hit>& hit) {
 
   double particleEnergy = 0;
   int likelyTrackID = 0;
-  std::vector<sim::TrackIDE> trackIDs = bt_serv->HitToTrackIDEs(hit);
+  std::vector<sim::TrackIDE> trackIDs = bt->HitToTrackID(hit);
   for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
     if (trackIDs.at(idIt).energy > particleEnergy) {
       particleEnergy = trackIDs.at(idIt).energy;
