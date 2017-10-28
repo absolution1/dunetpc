@@ -87,7 +87,7 @@ simple_plugin(RecoEff "module"
                         larcore_Geometry_Geometry_service
                         lardata_Utilities
                         lardataobj_Simulation
-                        larsim_MCCheater_BackTracker_service
+                        larsim_MCCheater_BackTrackerService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -111,7 +111,7 @@ simple_plugin(RecoStats "module"
                         lardata_ArtDataHelper
                         lardata_Utilities
                         lardataobj_Simulation
-                        larsim_MCCheater_BackTracker_service
+                        larsim_MCCheater_BackTrackerService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -135,7 +135,7 @@ simple_plugin(RecoHitsEff "module"
                         lardata_ArtDataHelper
                         lardata_Utilities
                         lardataobj_Simulation
-                        larsim_MCCheater_BackTracker_service
+                        larsim_MCCheater_BackTrackerService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -159,7 +159,7 @@ simple_plugin(DEdx "module"
                         lardata_ArtDataHelper
                         lardata_Utilities
                         lardataobj_Simulation
-                        larsim_MCCheater_BackTracker_service
+                        larsim_MCCheater_BackTrackerService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}

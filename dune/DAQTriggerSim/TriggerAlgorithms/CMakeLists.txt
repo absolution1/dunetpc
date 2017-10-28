@@ -7,7 +7,7 @@ art_make( BASENAME_ONLY
           LIB_LIBRARIES    nusimdata_SimulationBase
                            larcorealg_Geometry
                            larcore_Geometry_Geometry_service
-                           larsim_MCCheater_BackTracker_service
+                           larsim_MCCheater_BackTrackerService_service
                            #lardataobj_RecoBase
                            #lardataobj_RawData
                            ${ART_FRAMEWORK_CORE}

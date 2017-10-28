@@ -63,7 +63,7 @@ simple_plugin(ClusterCounter4 "module"
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 
-			larsim_MCCheater_BackTracker_service
+			larsim_MCCheater_BackTrackerService_service
 
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
@@ -86,7 +86,7 @@ simple_plugin(ClusterCounter5 "module"
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 
-			larsim_MCCheater_BackTracker_service
+			larsim_MCCheater_BackTrackerService_service
 
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
