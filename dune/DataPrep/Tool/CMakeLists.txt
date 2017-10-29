@@ -45,7 +45,6 @@ simple_plugin(AcdDigitReader   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
-
 simple_plugin(AcdWireReader   "tool"
                 dune_DuneCommon
                 lardataobj_RecoBase
@@ -54,4 +53,20 @@ simple_plugin(AcdWireReader   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcSampleFiller   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcThresholdSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcRoiViewer   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
+

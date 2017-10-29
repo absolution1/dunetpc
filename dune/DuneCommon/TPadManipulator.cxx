@@ -1,14 +1,17 @@
 // TPadManipulator.cxx
 
 #include "TPadManipulator.h"
+#include <iostream>
 #include "TPad.h"
 #include "TAxis.h"
 #include "TGaxis.h"
 #include "TList.h"
 #include "TStyle.h"
 #include "TH1.h"
+#include "TH2.h"
+#include "TGraph.h"
 #include "TLine.h"
-#include <iostream>
+#include "TF1.h"
 
 using std::string;
 using std::cout;
@@ -18,24 +21,24 @@ using std::endl;
 
 TPadManipulator::TPadManipulator(TVirtualPad* ppad)
 : m_ppad(ppad),
+  m_showUnderflow(false), m_showOverflow(false),
   m_top(false), m_right(false),
   m_vmlXmod(0.0), m_vmlXoff(0.0) {
   if ( m_ppad == 0 ) m_ppad = gPad;
   update();
+  //cout << "Constructed @" << this << endl;
 }
 
 //**********************************************************************
 
 TPadManipulator::~TPadManipulator() {
-  for ( TLine* pline : m_vmlLines ) {
-    delete pline;
-  }
-  m_vmlLines.clear();
+  //cout << "Destructed @" << this << endl;
 }
 
 //**********************************************************************
 
 int TPadManipulator::update() {
+  const string myname = "TPadManipulator::update: ";
   if ( m_ppad == nullptr ) m_ppad = gPad;
   if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = m_ppad == gPad ? nullptr : gPad;
@@ -60,12 +63,67 @@ int TPadManipulator::update() {
     m_ymax = pow(10.0, m_ymax);
   }
   const TList* prims = gPad->GetListOfPrimitives();
-  m_ph = nullptr;
-  for ( int iprm=0; iprm<prims->GetEntries(); ++iprm ) {
-    TObject* pobj = prims->At(iprm);
-    m_ph = dynamic_cast<TH1*>(pobj);
-    if ( m_ph != nullptr ) break;
+  bool noHist = m_ph == nullptr;
+  bool noGraph = m_pg == nullptr;
+  bool firstDraw = noHist && noGraph;
+  if ( noHist && noGraph ) {
+    for ( int iprm=0; iprm<prims->GetEntries(); ++iprm ) {
+      TObject* pobj = prims->At(iprm);
+      TH1* ph = dynamic_cast<TH1*>(pobj);
+      if ( ph != nullptr )  {
+        m_ph.reset(dynamic_cast<TH1*>(ph->Clone("hmanip0")));
+        m_ph->SetDirectory(nullptr);
+        noHist = false;
+        break;
+      }
+      TGraph* pg = dynamic_cast<TGraph*>(pobj);
+      if ( pg != nullptr )  {
+        m_pg.reset(dynamic_cast<TGraph*>(pg->Clone("gmanip0")));
+        noGraph = false;
+        break;
+      }
+    }
   }
+  if ( noHist && noGraph ) {
+    cout << myname << "Pad does not have a histogram or graph." << endl;
+    return 2;
+  }
+  // Set margins the first time the histogram is found.
+  // After this, user can override with pad()->SetRightMargin(...), ...
+  bool isTH = m_ph != nullptr;
+  bool isTH2 = dynamic_cast<TH2*>(m_ph.get()) != nullptr;
+  bool isTH1 = isTH && !isTH2;
+  if ( firstDraw ) {
+    if ( isTH2 ) m_ppad->SetRightMargin(0.10);
+    else m_ppad->SetRightMargin(0.03);
+    m_ppad->SetLeftMargin(0.12);
+    m_ppad->SetTopMargin(0.07);
+    getXaxis()->SetTitleOffset(1.20);
+    if ( isTH ) m_ph->SetTitleOffset(1.20);
+  }
+  int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
+  int flowcol = kAzure - 9;
+  // Redraw everything.
+  gPad->Clear();
+  if ( isTH ) m_ph->Draw();
+  else m_pg->Draw("AP");
+  if ( (m_showUnderflow || m_showOverflow) && nbin > 0 ) {
+    if ( m_flowHist == nullptr ) {
+      m_flowHist.reset((TH1*) m_ph->Clone("hmaniptmp"));
+      m_flowHist->SetDirectory(nullptr);
+      m_flowHist->SetStats(0);
+      m_flowHist->SetLineColor(flowcol);
+      m_flowHist->SetFillColor(flowcol);
+      m_flowHist->SetLineWidth(1);
+    }
+    m_flowHist->Reset();
+    if ( m_showUnderflow ) m_flowHist->SetBinContent(1, m_ph->GetBinContent(0));
+    if ( m_showOverflow ) m_flowHist->SetBinContent(nbin, m_ph->GetBinContent(nbin+1));
+    m_flowHist->DrawCopy("same");
+    m_ph->Draw("same");
+    m_ph->Draw("axis same");
+  }
+  drawHistFuns();
   if ( m_top ) drawAxisTop();
   if ( m_right ) drawAxisRight();
   if ( m_vmlXmod >= 0.0 ) drawVerticalModLines();
@@ -75,36 +133,50 @@ int TPadManipulator::update() {
 
 //**********************************************************************
 
+TAxis* TPadManipulator::getXaxis() {
+  if ( m_ph != nullptr ) return m_ph->GetXaxis();
+  if ( m_pg != nullptr ) return m_pg->GetXaxis();
+  return nullptr;
+}
+
+//**********************************************************************
+
+TAxis* TPadManipulator::getYaxis() {
+  if ( m_ph != nullptr ) return m_ph->GetYaxis();
+  if ( m_pg != nullptr ) return m_pg->GetYaxis();
+  return nullptr;
+}
+
+//**********************************************************************
+
 int TPadManipulator::setRangeX(double x1, double x2) {
-  TH1* ph = hist();
-  if ( ph == nullptr ) return 1;
+  TAxis* pax = getXaxis();
+  if ( pax == nullptr ) return 1;
   if ( x2 <= x1 ) return 2;
-  ph->GetXaxis()->SetRangeUser(x1, x2);
-  ph->Draw();
+  pax->SetRangeUser(x1, x2);
   return update();
 }
 
 //**********************************************************************
 
-int TPadManipulator::setRangeY(double y1, double y2) {
-  TH1* ph = hist();
-  if ( ph == nullptr ) return 1;
-  if ( y2 <= y1 ) return 2;
-  ph->GetYaxis()->SetRangeUser(y1, y2);
-  ph->Draw();
+int TPadManipulator::setRangeY(double x1, double x2) {
+  TAxis* pax = getYaxis();
+  if ( pax == nullptr ) return 1;
+  if ( x2 <= x1 ) return 2;
+  pax->SetRangeUser(x1, x2);
   return update();
 }
 
 //**********************************************************************
 
 int TPadManipulator::setRanges(double x1, double x2, double y1, double y2) {
-  TH1* ph = hist();
-  if ( ph == nullptr ) return 1;
+  TAxis* pax = getXaxis();
+  TAxis* pay = getYaxis();
+  if ( pax == nullptr || pay == nullptr ) return 1;
   if ( x2 <= x1 ) return 2;
   if ( y2 <= y1 ) return 2;
-  ph->GetXaxis()->SetRangeUser(x1, x2);
-  ph->GetYaxis()->SetRangeUser(y1, y2);
-  ph->Draw();
+  pax->SetRangeUser(x1, x2);
+  pay->SetRangeUser(y1, y2);
   return update();
 }
 
@@ -117,10 +189,9 @@ int TPadManipulator::addAxis() {
 //**********************************************************************
 
 int TPadManipulator::addAxisTop() {
-  if ( m_ph == nullptr ) return 1;
   double ticksize = 0;
   int ndiv = 0;
-  TAxis* paxold = m_ph->GetXaxis();
+  TAxis* paxold = getXaxis();
   if ( paxold == nullptr ) return 2;
   ticksize = paxold->GetTickLength();
   ndiv = paxold->GetNdivisions();
@@ -169,10 +240,9 @@ int TPadManipulator::drawAxisTop() {
 //**********************************************************************
 
 int TPadManipulator::addAxisRight() {
-  if ( m_ph == nullptr ) return 1;
   double ticksize = 0;
   int ndiv = 0;
-  TAxis* paxold = m_ph->GetYaxis();
+  TAxis* paxold = getYaxis();
   if ( paxold == nullptr ) return 2;
   ticksize = paxold->GetTickLength();
   ndiv = paxold->GetNdivisions();
@@ -222,9 +292,51 @@ int TPadManipulator::drawAxisRight() {
 
 //**********************************************************************
 
-int TPadManipulator::addVerticalModLines(double xmod, double xoff) {
+int TPadManipulator::addHistFun(unsigned int ifun) {
+  m_histFuns.push_back(ifun);
+  drawHistFuns();
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::drawHistFuns() {
+  const TList* pfuns = nullptr;
+  if      ( m_ph != nullptr ) pfuns = m_ph->GetListOfFunctions();
+  else if ( m_pg != nullptr ) pfuns = m_pg->GetListOfFunctions();
+  else    return 1;
+  const TList& funs = *pfuns;
+  unsigned int nfun = funs.GetEntries();
+  for ( unsigned int ifun : m_histFuns ) {
+    if ( ifun >= nfun ) continue;
+    TF1* pfun = dynamic_cast<TF1*>(funs.At(ifun));
+    pfun->Draw("same");
+  }
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::showUnderflow(bool show) {
+  if ( show == m_showUnderflow ) return 0;
+  m_showUnderflow = show;
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::showOverflow(bool show) {
+  if ( show == m_showOverflow ) return 0;
+  m_showOverflow = show;
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::addVerticalModLines(double xmod, double xoff, double lenfrac) {
   m_vmlXmod = xmod;
   m_vmlXoff = xoff;
+  m_vmlXLength = lenfrac;
   drawVerticalModLines();
   return 0;
 }
@@ -238,10 +350,10 @@ int TPadManipulator::drawVerticalModLines() {
   double x = xoff;
   while ( x >= xmin() ) x -= xmod;
   while ( x < xmin() ) x += xmod;
-  for ( TLine* pline : m_vmlLines ) delete pline;
   m_vmlLines.clear();
+  double ytop = ymax() + (m_vmlXLength - 1.0)*(ymax() - ymin());
   while ( x <= xmax() ) {
-    TLine* pline = new TLine(x, ymin(), x, ymax());
+    std::shared_ptr<TLine> pline(new TLine(x, ymin(), x, ytop));
     pline->SetLineStyle(3);
     m_vmlLines.push_back(pline);
     pline->Draw();

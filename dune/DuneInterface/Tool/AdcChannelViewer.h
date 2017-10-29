@@ -3,7 +3,7 @@
 // David Adams
 // August 2017
 //
-// Interface for tools that provide a view of an ADC channel.
+// Interface for tools that provide a view of the data for an ADC channel.
 // E.g. dump information to text stream or create plots.
 
 #ifndef AdcChannelViewer_H
@@ -19,9 +19,7 @@ public:
   virtual ~AdcChannelViewer() =default;
 
   // Tool process method.
-  //   acds - Input ADC data map
-  //  label - Label to appear on plots
-  //   fpat - String to be included in output file names
+  //   acd - Input ADC channel data
   virtual DataMap view(const AdcChannelData& acd) const =0;
 
 };

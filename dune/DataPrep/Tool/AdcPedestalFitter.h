@@ -39,7 +39,7 @@ public:
 
   DataMap view(const AdcChannelData& acd) const override;
 
-  int update(AdcChannelData& acd) const override;
+  DataMap update(AdcChannelData& acd) const override;
 
 private:
 

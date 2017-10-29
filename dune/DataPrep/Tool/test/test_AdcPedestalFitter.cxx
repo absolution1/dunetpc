@@ -123,6 +123,7 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
       cout << "New pedestal: " << ped2 << endl;
       assert( ped1 == ped0 );
       assert( ped2 != ped0 );
+      assert( ped2 != 0.0 );
       //assert( fabs(ped2-ped) < 0.01 );
     }
   }

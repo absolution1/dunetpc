@@ -20,10 +20,12 @@
 //                  If blank, histograms are not written out.
 //                  Existing file with the same is updated.
 // For the title and file names, the following sustitutions are made:
-//     %EVENT% --> event number
-//     %PAT%   --> pattern passed in call to view
-//     %CHAN1% --> First channel number 
-//     %CHAN2% --> Last channel number 
+//     %RUN%    --> run number
+//     %SUBRUN% --> subrun number
+//     %EVENT%  --> event number
+//     %PAT%    --> pattern passed in call to view
+//     %CHAN1%  --> First channel number 
+//     %CHAN2%  --> Last channel number 
 
 #ifndef AdcDataPlotter_H
 #define AdcDataPlotter_H
