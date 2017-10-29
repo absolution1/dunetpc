@@ -299,7 +299,16 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
       assert( npla == 3 );
       for ( Index ipla=0; ipla<npla; ++ipla ) {
         Index nwir = pgeo->Nwires(ipla, itpc, icry);
-        cout << "      Plane " << ipla << " has " << nwir << " wires" << endl;
+        Index ich1 = pgeo->Nchannels();
+        Index ich2 = 0;
+        for ( Index iwir=0; iwir<nwir; ++iwir ) {
+          Index ich = pgeo->PlaneWireToChannel(ipla, iwir, itpc, icry);
+          if ( ich < ich1 ) ich1 = ich;
+          if ( ich > ich2 ) ich2 = ich;
+        }
+        cout << "      Plane " << ipla << " has " << setw(4) << nwir << " wires"
+             << " readout on channels [" << ich1 << ", " << ich2 << "]"
+             << endl;
         assert( nwir == ev.nwirPerPlane[itpc][ipla] );
       }
     }
@@ -400,6 +409,31 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
       assert( icry == ev.chacry[icha] );
       assert( iapa == ev.chaapa[icha] );
       assert( irop == ev.charop[icha] );
+    }
+    cout << myname << line << endl;
+    cout << "Check ROP-TPC mapping." << endl;
+    for ( CryostatID cryid: pgeo->IterateCryostatIDs() ) {
+      Index napa = pgeo->NTPCsets(cryid);
+      cout << "  Cryostat " << icry << " has " << napa << " APAs" << endl;
+      assert( napa == ev.napa );
+      for ( Index iapa=0; iapa<napa; ++iapa ) {
+        APAID apaid(cryid, iapa);
+        Index nrop = pgeo->NROPs(apaid);
+        cout << "    APA " << iapa << " has " << nrop << " ROPs" << endl;
+        assert( nrop == ev.nrop );
+        for ( Index irop=0; irop<nrop; ++irop ) {
+          ROPID ropid(apaid, irop);
+          std::vector<geo::TPCID> rtpcs = pgeo->ROPtoTPCs(ropid);
+          Index nrtpc = rtpcs.size();
+          assert( nrtpc > 0 );
+          cout << "      ROP " << irop << " TPCs:";
+          for ( Index irtpc=0; irtpc<nrtpc; ++irtpc ) {
+            assert(rtpcs[irtpc].Cryostat == icry);
+            cout << (irtpc > 0  ? "," : "") << " " << rtpcs[irtpc].TPC;
+          }
+          cout << endl;
+        }
+      }
     }
   } else {
     cout << myname << line << endl;
