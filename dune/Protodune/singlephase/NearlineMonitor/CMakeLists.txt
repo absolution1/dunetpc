@@ -4,6 +4,7 @@ simple_plugin(SPLifetime "module"
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
       larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
       nusimdata_SimulationBase
       ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -28,6 +29,7 @@ simple_plugin(PlotTrackT0 "module"
       larcorealg_Geometry
       larcore_Geometry_Geometry_service
       larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
       nusimdata_SimulationBase
       ${ART_FRAMEWORK_CORE}
       ${ART_FRAMEWORK_PRINCIPAL}

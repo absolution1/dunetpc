@@ -9,6 +9,7 @@ simple_plugin(
                         lardata_Utilities
                         lardataobj_Simulation
                         larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -29,6 +30,7 @@ simple_plugin(
 	  larcore_Geometry_Geometry_service
 	  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 	  larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
 	  lardata_Utilities
 	  larevt_Filters
 	  lardataobj_RawData
