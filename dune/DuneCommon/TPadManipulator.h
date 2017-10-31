@@ -12,6 +12,9 @@
 //  display underflow and overflow (histograms only)
 //  add vertical lines at regular intervals
 //  display any of the functions (e.g. the fit) associated with the histogram or graph
+//
+// It is also posssible to and multiple subpads and draw into those instead of the
+// top-level pad. There is a manipulator for each subpad.
 
 #ifndef TPadManipulator_H
 #define TPadManipulator_H
@@ -29,10 +32,17 @@ class TPadManipulator {
 
 public:
 
+  using Index = unsigned int;
   using TLinePtr = std::shared_ptr<TLine>;
 
   // Ctor from a pad. If null the current pad is used.
   TPadManipulator(TVirtualPad* ppad =nullptr);
+
+  // Ctors that creates a new canvas.
+  // The canvas size is wx x wy.
+  // If nPadX > 0, calls split(nPadX, nPadY) if nPadY > 0
+  //                  or split(nPadX, nPadX) if nPadY == 0
+  TPadManipulator(Index wx, Index wy, Index nPadX =0, Index nPadY =0);
 
   // Dtor.
   // This removes the lines.
@@ -50,14 +60,41 @@ public:
   double ymin() const { return m_ymin; }
   double ymax() const { return m_ymax; }
 
-  // Return the pad.
+  // Return the top-level pad.
   TVirtualPad* pad() const { return m_ppad; }
 
-  // Return the first histogram for this pad.
+  // Return the number of subpads.
+  unsigned int npad() const { return m_subMans.size(); }
+
+  // Return the manipulator for a subpad.
+  // If there are no subpads and ipad=0,  the top manipulator is returned.
+  TPadManipulator* man(unsigned int ipad =0) {
+    if ( npad() == 0 && ipad == 0 ) return this;
+    return ipad<npad() ? &m_subMans[ipad] : nullptr;
+  }
+
+  // Return the histogram or graph for this pad.
   TH1* hist() const { return m_ph.get(); }
+  TGraph* graph() const { return m_pg.get(); }
 
   // Return the vertical mod lines associated with this pad.
   const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
+
+  // Add a subpad covering (x1, y1) to (x2, y2) in NDC units, i.e. 0 < x,y < 1.
+  int addPad(double x1, double y1, double x2, double y2, int icol =-1);
+
+  // Tile the top pad with nx x ny  or nx x nx subpads.
+  int split(Index nx, Index ny);
+  int split(Index nx);
+
+  // Add an object (histogram or graph) to the pad.
+  // For now there can only be one object/pad. If replace is true, the old object is
+  // removed, otherwise this methd fails.
+  int add(unsigned int ipad, TObject* pobj, std::string sopt, bool replace =false);
+  int add(TObject* pobj, std::string sopt, bool replace =false);
+
+  // Remove histograms and graphs from top and subpads.
+  int clear();
 
   // Update the coordinates and histogram for this pad.
   int update();
@@ -144,6 +181,7 @@ private:
   double m_vmlXoff;
   double m_vmlXLength;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
+  std::vector<TPadManipulator> m_subMans;
 
 };
 
