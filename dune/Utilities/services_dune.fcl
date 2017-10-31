@@ -356,7 +356,7 @@ dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
 dune35t_services:                            @local::dune35t_basic_services
 dune35t_services.LArFFT:                     @local::dune35t_larfft
 dune35t_services.BackTrackerService:                @local::dune35t_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
+dune35t_services.ParticleInventoryService:      @local::standard_particleinventoryservice
 dune35t_services.PhotonBackTracker:          @local::dune35t_photonbacktracker
 dune35t_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 
@@ -420,14 +420,14 @@ dune35t_simulation_services.LArFFT:                               @local::dune35
 dune35t_simulation_services.SignalShapingServiceDUNE:             @local::dune35t_signalshapingservice
 dune35t_simulation_services.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
 dune35t_simulation_services.BackTrackerService:                          @local::dune35t_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
+dune35t_simulation_services.ParticleInventoryService:      @local::standard_particleinventoryservice
 dune35t_simulation_services.PhotonBackTracker:                    @local::dune35t_photonbacktracker
 
 # Reco services for 35-ton data.
 dune35tdata_reco_services:                            @local::dune35t_basic_services
 dune35tdata_reco_services.LArFFT:                     @local::dune35t_larfft
-dune35tdata_reco_services.BackTrackerService:                @local::dune35t_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
+dune35tdata_reco_services.BackTrackerService:         @local::dune35t_backtrackerservice
+dune35tdata_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
 dune35tdata_reco_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 dune35tdata_reco_services.AdcChannelDataCopyService:  @local::adccopy
 dune35tdata_reco_services.RawDigitExtractService:     @local::rdx_35tdata
