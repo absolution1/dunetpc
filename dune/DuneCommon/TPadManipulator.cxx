@@ -3,6 +3,7 @@
 #include "TPadManipulator.h"
 #include <iostream>
 #include "TPad.h"
+#include "TCanvas.h"
 #include "TAxis.h"
 #include "TGaxis.h"
 #include "TList.h"
@@ -16,17 +17,29 @@
 using std::string;
 using std::cout;
 using std::endl;
+using Index = unsigned int;
 
 //**********************************************************************
 
 TPadManipulator::TPadManipulator(TVirtualPad* ppad)
-: m_ppad(ppad),
+: m_ppad(ppad == nullptr ? gPad : ppad),
   m_showUnderflow(false), m_showOverflow(false),
   m_top(false), m_right(false),
   m_vmlXmod(0.0), m_vmlXoff(0.0) {
-  if ( m_ppad == 0 ) m_ppad = gPad;
   update();
   //cout << "Constructed @" << this << endl;
+}
+
+//**********************************************************************
+
+TPadManipulator::TPadManipulator(Index wx, Index wy, Index nPadX, Index nPadY)
+: m_ppad(new TCanvas("mycan", "mycan", wx, wy)),
+  m_showUnderflow(false), m_showOverflow(false),
+  m_top(false), m_right(false),
+  m_vmlXmod(0.0), m_vmlXoff(0.0) {
+  Index nx = nPadX;
+  Index ny = nPadY > 0 ? nPadY : nx;
+  if ( nx ) split(nx, ny);
 }
 
 //**********************************************************************
@@ -37,8 +50,97 @@ TPadManipulator::~TPadManipulator() {
 
 //**********************************************************************
 
+int TPadManipulator::addPad(double x1, double y1, double x2, double y2, int icol) {
+  if ( x2 <= x1 ) return 1;
+  if ( y2 <= y1 ) return 2;
+  if ( x1 < 0.0 ) return 3;
+  if ( x2 > 1.0 ) return 4;
+  if ( y1 < 0.0 ) return 5;
+  if ( y2 > 1.0 ) return 6;
+  string snam = "pad";
+  string sttl = "pad";
+  TPad* ppad = new TPad(snam.c_str(), sttl.c_str(), x1, y1, x2, y2, icol);
+  m_ppad->cd();
+  ppad->Draw();
+  m_subMans.emplace_back(ppad);
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::split(Index nx, Index ny) {
+  if ( nx < 1 ) return 1;
+  if ( ny < 1 ) return 2;
+  double dx = 1.0/nx;
+  double dy = 1.0/ny;
+  double y2 = 1.0;
+  for ( Index iy=0; iy<ny; ++iy ) {
+    double y1 = y2 - dy;
+    double x1 = 0.0;
+    for ( Index ix=0; ix<nx; ++ix ) {
+      double x2 = x1 + dx;
+      int rstat = addPad(x1, y1, x2, y2);
+      if ( rstat ) return 100 + rstat;
+      x1 = x2;
+    }
+    y2 = y1;
+  }
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::split(Index nx) {
+  return split(nx, nx);
+}
+
+//**********************************************************************
+
+int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
+  const string myname = "TPadManipulator::update: ";
+  TH1* ph = dynamic_cast<TH1*>(pobj);
+  TGraph* pg = dynamic_cast<TGraph*>(pobj);
+  if ( ph == nullptr && pg == nullptr ) return 1;
+  TPadManipulator* pman = man(ipad);
+  if ( pman == nullptr ) return 2;
+  if ( pman->hist() != nullptr ) {
+    if ( replace ) pman->m_ph.reset();
+    else return 3;
+  }
+  if ( pman->graph() != nullptr ) {
+    if ( replace ) pman->m_pg.reset();
+    else return 4;
+  }
+  pman->pad()->cd();
+  pobj->Draw(sopt.c_str());
+  return update();
+} 
+
+//**********************************************************************
+
+int TPadManipulator::add(TObject* pobj, string sopt, bool replace) {
+  return add(0, pobj, sopt, replace);
+}
+
+//**********************************************************************
+
+int TPadManipulator::clear() {
+  m_ph.reset();
+  m_pg.reset();
+  if ( pad() != nullptr && npad() == 0 ) pad()->Clear();
+  for ( TPadManipulator& man : m_subMans ) man.clear();
+  return 0;
+}
+
+//**********************************************************************
+
 int TPadManipulator::update() {
   const string myname = "TPadManipulator::update: ";
+  if ( m_subMans.size() ) {
+    int rstat = 0;
+    for ( TPadManipulator& man : m_subMans ) rstat += man.update();
+    return rstat;
+  }
   if ( m_ppad == nullptr ) m_ppad = gPad;
   if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = m_ppad == gPad ? nullptr : gPad;
@@ -85,8 +187,8 @@ int TPadManipulator::update() {
     }
   }
   if ( noHist && noGraph ) {
-    cout << myname << "Pad does not have a histogram or graph." << endl;
-    return 2;
+    //cout << myname << "Pad does not have a histogram or graph." << endl;
+    return 0;
   }
   // Set margins the first time the histogram is found.
   // After this, user can override with pad()->SetRightMargin(...), ...

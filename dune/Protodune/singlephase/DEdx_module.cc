@@ -78,6 +78,7 @@ private:
   int fEvent;
   int fChosenView;
   int fNumberOfTracks;
+  int fNumberOfTaggedTracks;
 
   double fdQdx;
   double fdEdx;
@@ -110,6 +111,7 @@ void proto::DEdx::beginJob()
   fTree->Branch("fEvent", &fEvent, "fEvent/I");
   fTree->Branch("fChosenView", &fChosenView, "fChosenView/I");
   fTree->Branch("fNumberOfTracks", &fNumberOfTracks, "fNumberOfTracks/I");
+  fTree->Branch("fNumberOfTaggedTracks", &fNumberOfTaggedTracks, "fNumberOfTaggedTracks");
   fTree->Branch("fdQdx", &fdQdx, "fdQdx/D");
   fTree->Branch("fdEdx", &fdEdx, "fdEdx/D");
   fTree->Branch("fdQ", &fdQ, "fdQ/D");
@@ -152,6 +154,7 @@ void proto::DEdx::analyze(art::Event const & e)
      	 { 
 		if (ct.at(t).size())
 		{ 
+			fNumberOfTaggedTracks++;
 		                        
 			auto vhit = fmthm.at(t);
 			auto vmeta = fmthm.data(t);
@@ -216,6 +219,7 @@ void proto::DEdx::ResetVars()
   fdQ = 0.0;
   fdx = 0.0;
   fNumberOfTracks = 0;
+  fNumberOfTaggedTracks = 0;
 }
 
 
