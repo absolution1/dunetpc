@@ -58,6 +58,11 @@ simple_plugin(AdcSampleFiller   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcUnderflowFlagger   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcThresholdSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
