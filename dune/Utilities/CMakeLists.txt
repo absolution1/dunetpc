@@ -60,6 +60,11 @@ simple_plugin( FileCatalogMetadataDUNE "service"
 	       BASENAME_ONLY
 	)
 
+simple_plugin( TFileMetadataDUNE "service"
+               ${dune_util_lib_list}
+	       BASENAME_ONLY
+	)
+
 install_headers()
 install_fhicl()
 install_source()
