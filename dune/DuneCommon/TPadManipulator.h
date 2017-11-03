@@ -61,6 +61,8 @@ public:
   double ymax() const { return m_ymax; }
 
   // Return the top-level pad.
+  // Use pad()->SetFillColor(...), etc. to change the appearance of the pad.
+  // and pad()->SetFrameFillColor(...), etc. to change the appearance of the frame in the pad.
   TVirtualPad* pad() const { return m_ppad; }
 
   // Return the number of subpads.

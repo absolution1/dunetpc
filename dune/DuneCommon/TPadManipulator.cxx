@@ -111,6 +111,7 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
     if ( replace ) pman->m_pg.reset();
     else return 4;
   }
+  if ( m_ppad == nullptr ) m_ppad = new TCanvas;
   pman->pad()->cd();
   pobj->Draw(sopt.c_str());
   return update();
@@ -229,6 +230,7 @@ int TPadManipulator::update() {
   if ( m_top ) drawAxisTop();
   if ( m_right ) drawAxisRight();
   if ( m_vmlXmod >= 0.0 ) drawVerticalModLines();
+  pad()->RedrawAxis();  // In case they are covered
   if ( pPadSave != nullptr ) pPadSave->cd();
   return 0;
 }
