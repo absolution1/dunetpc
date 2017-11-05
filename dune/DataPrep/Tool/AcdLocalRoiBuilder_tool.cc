@@ -79,9 +79,8 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
                               << data.channel << "." << endl;
   data.rois.clear();
   
-  // Use filtered or raw ADC.
+  //Raw ADC.
   AdcSignalVector sigs;
-
   sigs = data.samples;
 
   // Build ROIS before padding and merging.
@@ -115,7 +114,6 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
   double SumADCMinusPedestalSquared=0.;
   double StandardDeviationPedestal=0.;
   AdcIndex FirstEntryInPedestalSum=0;
-
 
   //Calculate pedestal for first m_BinsToAverageForPedestal ticks
   for ( AdcIndex isig=m_BinsToSkip; isig<m_BinsToAverageForPedestal+m_BinsToSkip; ++isig ) 
@@ -254,6 +252,12 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
     }
   }
 
+//removal isolated signal at the end of the waveform
+if(signal[sigs.size()-1] && !signal[sigs.size()-2])
+{
+signal[sigs.size()-1] = false;
+}
+
   //******************************************
   //  SECOND ITERATION: LAST BIN TO BIN 0  ***
   //******************************************
@@ -321,7 +325,6 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
       {
 	ROIEnd.push_back(isig+1);
         ROICount++;
-
 
 	//check second criterion in this temporary ROI.
 	bool KeepThisROI = false;
@@ -396,7 +399,7 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
     else 
     {
       bool ROIStartIsHere = true;
-      for(AdcIndex isignext = isig; isignext >= std::max((AdcIndex)0,isig-m_NConsecBinsAboveThreshold1+1) && isignext <= PedestalIndex  ; isignext--)
+      for(AdcIndex isignext = isig; isignext >= (AdcIndex)std::max((int)m_BinsToSkip,(int)isig-(int)m_NConsecBinsAboveThreshold1+1) && isignext <= PedestalIndex ; isignext--)
       {
 	if(sigs[isignext] < sighigh1 + SumPedestal/m_BinsToAverageForPedestal)
 	{
@@ -422,11 +425,14 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
 	}
 	SumPedestal += sigs[isig]; //add current ADC count to sum
       }
-
     }
-
   }
 
+//removal isolated signal at the beginning of the waveform
+if(signal[m_BinsToSkip] && !signal[m_BinsToSkip+1])
+{
+signal[m_BinsToSkip] = false;
+}
 
   // Fill the unpadded ROIs.
   data.roisFromSignal();
