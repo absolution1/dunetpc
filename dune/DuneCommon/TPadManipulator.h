@@ -102,8 +102,8 @@ public:
 
   // Add an object (histogram or graph) to the pad.
   // The first object must be a histogram or graph.
-  int add(unsigned int ipad, TObject* pobj, std::string sopt, bool replace =false);
-  int add(TObject* pobj, std::string sopt, bool replace =false);
+  int add(unsigned int ipad, TObject* pobj, std::string sopt ="", bool replace =false);
+  int add(TObject* pobj, std::string sopt ="", bool replace =false);
 
   // Remove histograms and graphs from top and subpads.
   int clear();

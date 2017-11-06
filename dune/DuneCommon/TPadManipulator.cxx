@@ -136,7 +136,7 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
     TObject* pobjc = pobj->Clone();
     TH1* phc = dynamic_cast<TH1*>(pobjc);
     if ( phc != nullptr ) phc->SetDirectory(nullptr);
-    m_objs.emplace_back(phc);
+    m_objs.emplace_back(pobjc);
     m_opts.push_back(sopt);
   // Otherwise, the passed object becomes the primary object and must be
   // a histogram or graph.
