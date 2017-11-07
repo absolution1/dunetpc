@@ -16,6 +16,7 @@
 
 DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
+    fDoTwoPassFilter( pset.get<bool>("DoTwoPassFilter") ),
     fCoherent32( pset.get<bool>("Coherent32") ),
     fCoherent16( pset.get<bool>("Coherent16") ),
     fLowPassFlt( pset.get<bool>("LowPassFlt") ),
@@ -26,6 +27,7 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
     fRoiPadLow( pset.get<int>("RoiPadLow") ),
     fRoiPadHigh( pset.get<int>("RoiPadHigh") ),
+    fBinsToSkip( pset.get<int>("BinsToSkip") ),
     fGeometry( &*art::ServiceHandle<geo::Geometry>() ),
     fFFT( &*art::ServiceHandle<util::LArFFT>() )
 {
@@ -77,28 +79,54 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
 
   std::cout << myname << "Processing noise removal..." << std::endl;
 
-  if (fCoherent32)
+  if(fDoTwoPassFilter)
   {
-    auto ch_groups = makeDaqGroups(32, fCoherent32Groups);
-    removeCoherent(ch_groups, datamap);
-  }
+    if (fFlatten)
+    {
+      removeSlopePolynomial(datamap);
+    }
 
-  if (fCoherent16)
+    if (fCoherent16)
+    {
+      auto ch_groups = makeDaqGroups(16, fCoherent16Groups);
+      removeCoherent(ch_groups, datamap);
+    }
+
+    if (fCoherent32)
+    {
+      auto ch_groups = makeDaqGroups(32, fCoherent32Groups);
+      removeCoherent(ch_groups, datamap);
+    }
+
+    if (fLowPassFlt)
+    {
+      removeHighFreq(datamap);
+    }
+  }
+  else
   {
-    auto ch_groups = makeDaqGroups(16, fCoherent16Groups);
-    removeCoherent(ch_groups, datamap);
-  }
+    if (fCoherent32)
+    {
+      auto ch_groups = makeDaqGroups(32, fCoherent32Groups);
+      removeCoherent(ch_groups, datamap);
+    }
 
-  if (fLowPassFlt)
-  {
-    removeHighFreq(datamap);
-  }
+    if (fCoherent16)
+    {
+      auto ch_groups = makeDaqGroups(16, fCoherent16Groups);
+      removeCoherent(ch_groups, datamap);
+    }
 
-  if (fFlatten)
-  {
-    removeSlope(datamap);
-  }
+    if (fLowPassFlt)
+    {
+      removeHighFreq(datamap);
+    }
 
+    if (fFlatten)
+    {
+      removeSlope(datamap);
+    }
+  }
   std::cout << myname << "...done." << std::endl;
 
   return 0;
@@ -234,7 +262,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeHighFreq(AdcChannelDataMap& datam
 
 void DuneDPhase3x1x1NoiseRemovalService::removeSlope(AdcChannelDataMap& datamap) const
 {
-  size_t n_samples = datamap.begin()->second.samples.size();
+  size_t n_samples = datamap.begin()->second.samples.size(); 
   std::vector< float > slope(n_samples);
 
   auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
@@ -302,6 +330,94 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlope(AdcChannelDataMap& datamap)
   }
 }
 //**********************************************************************
+
+void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap& datamap) const
+{
+  size_t n_samples = datamap.begin()->second.samples.size();  //1667
+  std::vector< float > slope(n_samples);
+
+  auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
+
+  for (auto & entry : datamap)
+  {
+    if (!chStatus.IsPresent(entry.first) || chStatus.IsNoisy(entry.first)) { continue; }
+
+    auto & adc = entry.second.samples;
+    auto & signal = entry.second.signal;
+
+    //preparation for plynomial fit
+    int fOrder = 3; //order of the polynomial to be fitted to baseline
+    std::vector<long double> line(fOrder+2,0.);
+    std::vector< std::vector< long double> > matrix(fOrder+1,line);
+
+    for(int i = 0; i < fOrder+1; i++)
+    {
+      for(int j = 0; j < fOrder+2; j++)
+      {
+        matrix[i][j] = 0.;
+      }
+    }
+
+    double x, y;
+    AdcIndex np = 0;
+    std::vector<double> sol;
+    sol.resize(fOrder+1, 0.);
+
+
+    for(AdcIndex i = fBinsToSkip; i < n_samples; i++)
+    {
+      if(signal[i])
+      { 
+	continue;
+      }
+
+      x = i;
+      y = adc[i];
+
+      int j = 0;
+      for( int l = 1; l <= fOrder+1; l++)
+      {
+        long double wt = pow(x, l-1);
+        int k = 0;
+
+        for(int m=1; m <= l; m++)
+        {
+          matrix[j][k] += wt*pow(x,m-1);
+          k++;
+        }
+
+        matrix[j][fOrder+1] += y*wt;
+        j++;
+      }
+      np++;
+    }
+
+    for(int i = 1; i < fOrder+1; i++){
+      for(int j = 0; j<i; j++){
+        matrix[j][i] = matrix[i][j];
+      }
+    }   
+
+    //get parameters for polynomial with Gauss-Jordan
+    if(np > n_samples/10) //need minimum number of bins for fit
+    {
+      sol = GaussJordanSolv(matrix);
+
+       //subtract fit from waveform
+      for(AdcIndex i = 0; i < n_samples; i++)
+      {
+        double corr = 0.;
+        for(size_t a = 0; a < sol.size(); a++)
+	{
+          corr += sol[a]*pow(i,a);
+	}
+        adc[i] -= corr;
+      }
+    }
+  }
+}
+//**********************************************************************
+
 
 void DuneDPhase3x1x1NoiseRemovalService::fftFltInPlace(std::vector< float > & adc, const std::vector< float > & coeffs) const
 {
@@ -465,6 +581,54 @@ size_t DuneDPhase3x1x1NoiseRemovalService::get311Chan(size_t LAr_chan)
   } // end of if/else statementi
 
   return Chan311;
+}
+//**********************************************************************
+
+std::vector<double> DuneDPhase3x1x1NoiseRemovalService::GaussJordanSolv(std::vector< std::vector<long double> > matrix) const
+{
+
+  int n = matrix.size();
+  
+  for (int i=0; i<n; i++) {
+    // Search for maximum in this column
+    double maxEl = std::abs(matrix[i][i]);
+    int maxRow = i;
+    for (int k=i+1; k<n; k++) {
+      if (std::abs(matrix[k][i]) > maxEl) {
+        maxEl = std::abs(matrix[k][i]);
+        maxRow = k;
+      }
+    }
+
+       // Swap maximum row with current row (column by column)
+    for (int k=i; k<n+1;k++) {
+      double tmp = matrix[maxRow][k];
+      matrix[maxRow][k] = matrix[i][k];
+      matrix[i][k] = tmp;
+    }
+
+    // Make all rows below this one 0 in current column
+    for (int k=i+1; k<n; k++) {
+      double c = -matrix[k][i]/matrix[i][i];
+      for (int j=i; j<n+1; j++) {
+        if (i==j) {
+          matrix[k][j] = 0;
+        } else {
+          matrix[k][j] += c * matrix[i][j];
+        }
+      }
+    }
+  }
+
+  // Solve equation Ax=b for an upper triangular matrix A
+  std::vector<double> x(n);
+  for (int i=n-1; i>=0; i--) {
+    x[i] = matrix[i][n]/matrix[i][i];
+    for (int k=i-1;k>=0; k--) {
+      matrix[k][n] -= matrix[k][i] * x[i];
+    }
+  }
+  return x;  
 }
 //**********************************************************************
 
