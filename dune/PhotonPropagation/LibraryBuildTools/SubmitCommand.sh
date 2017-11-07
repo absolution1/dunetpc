@@ -33,7 +33,7 @@ HELPFILE=SubmitCommand.hlp
 #    -t | --tar      : Pass a tarfile of a larsoft installation to be setup on the cluster.
 #                        User full path to file.
 #    -u | --user     : Over ride the user directory to write to on dCache *NOT RECOMENDED
-#    -s | --test     : run the test fcl file and a single job with short run time instead of building a new library
+#       | --test     : run the test fcl file and a single job with short run time instead of building a new library
 #    -c | --check    : Preform a dry run, returning the jobsub command, but not actually running any grid jobs.
 #    -l | --lifetime : The amount of time a job should be expected to run on the cluster. 
 #    -s | --script   : The script to run on the grid for each job (By default OpticalLibraryBuild_Grid_dune.sh)
@@ -147,7 +147,7 @@ while :; do
       checkVar=1
       printf "\nSetting check mode ON.\n"
       ;;
-    --test|-s)
+    --test)
       testVar=1
       printf "\nSetting test mode ON.\n"
       ;;
@@ -256,32 +256,32 @@ else
   clientargs="$clientargs --expected-lifetime=$expectedlifetime "
   #  thisjob="-N $njobs file://$script $njobs $nphotons"
   if [ 0 -ne $makeupJobs ]; then
-    echo "thisjob=\"-N $makeupJobs file://$script $njobs $nphotons $(basename $fcl)\""
-    thisjob="-N $makeupJobs file://$script $njobs $nphotons $(basename $fcl)"
+    echo "thisjob=\"-N $makeupJobs file://$script $njobs $nphotons $(basename $fcl) true\""
+    thisjob="-N $makeupJobs file://$script $njobs $nphotons $(basename $fcl) true"
   else
     thisjob="-N $njobs file://$script $njobs $nphotons $(basename $fcl)"
   fi
 fi
 
 if [ x$tarfile != x ]; then
-  printf "jobsub_submit $environmentVars $clientargs $fileargs $thisjob \n"
+  printf "\n\njobsub_submit $environmentVars $clientargs $fileargs $thisjob \n\n\n"
   if [ $checkVar -ne 0 ]; then
     printf "CHECK Mode is set. The jobsub command will be printed, but will not be executed. Please check the command and run again without check mode. If you are trying to submit test jobs instead, the correct flag is -s or --test.\n"
   else
     jobsub_submit $environmentVars $clientargs $fileargs $thisjob 
   fi
   ret=$?
-  printf "Exiting with status $ret\n"
+  printf "\nExiting with status $ret\n"
   exit $ret
 else
   printf "jobsub_submit $environmentVars $larsoft $clientargs $fileargs $thisjob\n"
   if [ $checkVar -ne 0 ]; then
-    printf "CHECK Mode is set. The jobsub command will be printed, but will not be executed. Please check the command and run again without check mode. If you are trying to submit test jobs instead, the correct flag is -s or --test.\n"
+    printf "\n\nCHECK Mode is set. The jobsub command will be printed, but will not be executed. Please check the command and run again without check mode. If you are trying to submit test jobs instead, the correct flag is -s or --test.\n\n\n"
   else
     jobsub_submit $environmentVars $larsoft $clientargs $fileargs $thisjob 
   fi
   ret=$?
-  printf "Exiting with status $ret\n"
+  printf "\nExiting with status $ret\n"
   exit $ret
 fi
 

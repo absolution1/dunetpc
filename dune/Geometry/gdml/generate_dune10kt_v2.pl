@@ -1502,9 +1502,6 @@ print CRYO <<EOF;
       </physvol>
 EOF
 
-#y="-$Argon_y/2+$SpaceAPAToFloor+$APAphys_y+$APAGap_y/2" 
-#          z="-$Argon_z/2+$UpstreamLArPadding+($APAphys_z/2+($nAPALong-1)*($APAphys_z+$APAGap_z))"/>
-#<position name="posFieldCage" unit="cm" x="0" y="$Argon_y/2-$HeightGaseousAr-$LArgon_y/2+2*$FC_b" z="$TPC_z/2+$APAGap_z+2*$FC_b+5"/>
 # nested for loops to place the non-rotated AND rotated volTPC
    # x loop rotation: There are six drift volumes. Looking into the 
    # detector from incident direction, and counting from right (-x) to
