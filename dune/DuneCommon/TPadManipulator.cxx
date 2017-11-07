@@ -320,7 +320,8 @@ int TPadManipulator::setRangeX(double x1, double x2) {
   TAxis* pax = getXaxis();
   if ( pax == nullptr ) return 1;
   if ( x2 <= x1 ) return 2;
-  pax->SetRangeUser(x1, x2);
+  if ( graph() != nullptr ) pax->SetLimits(x1, x2);
+  else pax->SetRangeUser(x1, x2);
   return update();
 }
 
@@ -342,7 +343,8 @@ int TPadManipulator::setRanges(double x1, double x2, double y1, double y2) {
   if ( pax == nullptr || pay == nullptr ) return 1;
   if ( x2 <= x1 ) return 2;
   if ( y2 <= y1 ) return 2;
-  pax->SetRangeUser(x1, x2);
+  if ( graph() != nullptr ) pax->SetLimits(x1, x2);
+  else pax->SetRangeUser(x1, x2);
   pay->SetRangeUser(y1, y2);
   return update();
 }
