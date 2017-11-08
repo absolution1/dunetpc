@@ -47,7 +47,8 @@ simple_plugin(EMEnergyCalib "module"
 		        lardataobj_RecoBase
 		        larcorealg_Geometry
 			larcore_Geometry_Geometry_service
-			larsim_MCCheater_BackTracker_service
+			larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			lardata_Utilities
 			nusimdata_SimulationBase
@@ -71,7 +72,8 @@ simple_plugin(EMPi0Energy "module"
 		        lardataobj_RecoBase
 		        larcorealg_Geometry
 			larcore_Geometry_Geometry_service
-			larsim_MCCheater_BackTracker_service
+			larsim_MCCheater_BackTrackerService_service
+      larsim_MCCheater_ParticleInventoryService_service
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			lardata_Utilities
 			nusimdata_SimulationBase
