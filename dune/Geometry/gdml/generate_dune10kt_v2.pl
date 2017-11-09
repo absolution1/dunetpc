@@ -278,7 +278,6 @@ $LArgon_y              =      $nAPAHigh*$APAphys_y
                                 + $SpaceAPAToFloor + $SpaceAPAToTopLAr;
 $Argon_y               =      $LArgon_y                        
                                 + $HeightGaseousAr; 
-                                    # both liquid AND gaseous argon
                
 $Argon_z               =      $nAPALong*$APAphys_z 
                                 + ($nAPALong-1)*$APAGap_z
@@ -436,13 +435,13 @@ print DEF <<EOF;
 
 -->
 
-   <position name="posCryoInDetEnc"     unit="cm" x="0" y="$posCryoInDetEnc_y" z="0"/>
+   <position name="posCryoInDetEnc"     unit="cm" x="0" y="@{[$posCryoInDetEnc_y]}" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
-   <rotation name="rPlusUAngleAboutX"      unit="deg" x="90-$UAngle" y="0"   z="0"/>
-   <rotation name="rPlusVAngleAboutX"      unit="deg" x="90+$VAngle" y="0"   z="0"/>
+   <rotation name="rPlusUAngleAboutX"      unit="deg" x="@{[90-$UAngle]}" y="0"   z="0"/>
+   <rotation name="rPlusVAngleAboutX"      unit="deg" x="@{[90+$VAngle]}" y="0"   z="0"/>
    <rotation name="rPlus180AboutX"      unit="deg" x="180" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"      unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rPlus180AboutXPlus180AboutY"      unit="deg" x="180" y="180"   z="0"/>
@@ -538,25 +537,25 @@ EOF
 print TPC <<EOF;
 <solids>
     <box name="$_[3]" lunit="cm" 
-      x="$_[0]" 
-      y="$_[1]" 
-      z="$_[2]"/>
+      x="@{[$_[0]]}" 
+      y="@{[$_[1]]}" 
+      z="@{[$_[2]]}"/>
     <box name="${_[3]}UPlane" lunit="cm" 
-      x="$TPCWirePlaneThickness" 
-      y="$Uactive_y + $UVPlaneBoundNudge" 
-      z="$Uactive_z + $UVPlaneBoundNudge"/>
+      x="@{[$TPCWirePlaneThickness]}" 
+      y="@{[$Uactive_y + $UVPlaneBoundNudge]}" 
+      z="@{[$Uactive_z + $UVPlaneBoundNudge]}"/>
     <box name="${_[3]}VPlane" lunit="cm" 
-      x="$TPCWirePlaneThickness" 
-      y="$Vactive_y + $UVPlaneBoundNudge" 
-      z="$Vactive_z + $UVPlaneBoundNudge"/>
+      x="@{[$TPCWirePlaneThickness]}" 
+      y="@{[$Vactive_y + $UVPlaneBoundNudge]}" 
+      z="@{[$Vactive_z + $UVPlaneBoundNudge]}"/>
     <box name="${_[3]}ZPlane" lunit="cm" 
-      x="$TPCWirePlaneThickness" 
-      y="$Zactive_y" 
-      z="$Zactive_z"/>
+      x="@{[$TPCWirePlaneThickness]}" 
+      y="@{[$Zactive_y]}" 
+      z="@{[$Zactive_z]}"/>
     <box name="${_[3]}Active" lunit="cm"
-      x="$TPCActive_x"
-      y="$TPCActive_y"
-      z="$TPCActive_z"/>
+      x="@{[$TPCActive_x]}"
+      y="@{[$TPCActive_y]}"
+      z="@{[$TPCActive_z]}"/>
 EOF
 
 
@@ -565,8 +564,8 @@ EOF
 print TPC <<EOF;
 
     <tube name="${_[3]}WireVert"
-      rmax="0.5*$TPCWireThickness"
-      z="$Zactive_y"               
+      rmax="@{[0.5*$TPCWireThickness]}"
+      z="@{[$Zactive_y]}"               
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
@@ -665,8 +664,8 @@ if ($wires_on==1)
 
    print TPC <<EOF;
     <tube name="${_[3]}WireU$i"
-      rmax="0.5*$TPCWireThickness"
-      z="$CornerUWireLength[$i]"
+      rmax="@{[0.5*$TPCWireThickness]}"
+      z="@{[$CornerUWireLength[$i]]}"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
@@ -678,8 +677,8 @@ EOF
 
    print TPC <<EOF;
     <tube name="${_[3]}WireUCommon"
-      rmax="0.5*$TPCWireThickness"
-      z="$CommonUWireLength"
+      rmax="@{[0.5*$TPCWireThickness]}"
+      z="@{[$CommonUWireLength]}"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
@@ -694,8 +693,8 @@ EOF
 
    print TPC <<EOF;
     <tube name="${_[3]}WireU$j"
-      rmax="0.5*$TPCWireThickness"
-      z="$TopCornerUWireLength[$i]"
+      rmax="@{[0.5*$TPCWireThickness]}"
+      z="@{[$TopCornerUWireLength[$i]]}"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
@@ -716,8 +715,8 @@ if ($wires_on==1)
       print TPC <<EOF;
 
     <tube name="${_[3]}WireV$i"
-      rmax="0.5*$TPCWireThickness"
-      z="$CornerVWireLength[$i]"
+      rmax="@{[0.5*$TPCWireThickness]}"
+      z="@{[$CornerVWireLength[$i]]}"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
@@ -733,8 +732,8 @@ EOF
 
    print TPC <<EOF;
     <tube name="${_[3]}WireVCommon"
-      rmax="0.5*$TPCWireThickness"
-      z="$CommonVWireLength"
+      rmax="@{[0.5*$TPCWireThickness]}"
+      z="@{[$CommonVWireLength]}"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
@@ -749,8 +748,8 @@ EOF
 
    print TPC <<EOF;
     <tube name="${_[3]}WireV$j"
-      rmax="0.5*$TPCWireThickness"
-      z="$TopCornerVWireLength[$i]"
+      rmax="@{[0.5*$TPCWireThickness]}"
+      z="@{[$TopCornerVWireLength[$i]]}"
       deltaphi="360"
       aunit="deg"
       lunit="cm"/>
@@ -897,8 +896,8 @@ $pitch  =  ($ypos - $lastYpos) * $SinUAngle
 print TPC <<EOF;
       <physvol>
         <volumeref ref="volTPCWireU$i${_[3]}"/>
-        <position name="pos${_[3]}WireU$i" unit="cm" x="0" y="$ypos " z="$zpos"/>
-        <rotation name="rUAngle$i"   unit="deg" x="90-$UAngle" y="0"   z="0"/>
+        <position name="pos${_[3]}WireU$i" unit="cm" x="0" y="@{[$ypos ]}" z="@{[$zpos]}"/>
+        <rotation name="rUAngle$i"   unit="deg" x="@{[90-$UAngle]}" y="0"   z="0"/>
       </physvol>
 EOF
 
@@ -943,8 +942,8 @@ $pitch  =   ($ypos - $lastYpos) * $SinUAngle - ($zpos - $lastZpos) * $CosUAngle 
 print TPC <<EOF;
       <physvol>
         <volumeref ref="volTPCWireUCommon${_[3]}"/>
-        <position name="pos${_[3]}WireU$i" unit="cm" x="0" y="$ypos " z="0"/>
-      <rotation name="rUAngle$i"   unit="deg" x="90-$UAngle" y="0"   z="0"/>
+        <position name="pos${_[3]}WireU$i" unit="cm" x="0" y="@{[$ypos ]}" z="0"/>
+      <rotation name="rUAngle$i"   unit="deg" x="@{[90-$UAngle]}" y="0"   z="0"/>
       </physvol>
 EOF
 
@@ -990,8 +989,8 @@ $pitch  =   ($ypos - $lastYpos) * $SinUAngle - ($zpos - $lastZpos) * $CosUAngle 
 print TPC <<EOF;
       <physvol>
         <volumeref ref="volTPCWireU$j${_[3]}"/>
-        <position name="pos${_[3]}WireU$j" unit="cm" x="0" y="$ypos " z="$zpos"/>
-        <rotation name="rUAngle$j"   unit="deg" x="90-$UAngle" y="0"   z="0"/>
+        <position name="pos${_[3]}WireU$j" unit="cm" x="0" y="@{[$ypos ]}" z="@{[$zpos]}"/>
+        <rotation name="rUAngle$j"   unit="deg" x="@{[90-$UAngle]}" y="0"   z="0"/>
       </physvol>
 EOF
 
@@ -1050,8 +1049,8 @@ my $zpos = $FirstV_zpos + ($i)*0.5*$VWire_zint;
 print TPC <<EOF;
       <physvol>
         <volumeref ref="volTPCWireV$i${_[3]}"/>
-        <position name="pos${_[3]}WireV$i" unit="cm" x="0" y="$ypos " z="$zpos"/>
-        <rotation name="rVAngle$i"   unit="deg" x="90+$VAngle" y="0"   z="0"/>
+        <position name="pos${_[3]}WireV$i" unit="cm" x="0" y="@{[$ypos ]}" z="@{[$zpos]}"/>
+        <rotation name="rVAngle$i"   unit="deg" x="@{[90+$VAngle]}" y="0"   z="0"/>
       </physvol>
 EOF
 
@@ -1086,8 +1085,8 @@ for ($i = $NumberCornerVWires; $i < $NumberSideVWires; ++$i)
 print TPC <<EOF;
       <physvol>
         <volumeref ref="volTPCWireVCommon${_[3]}"/>
-        <position name="pos${_[3]}WireV$i" unit="cm" x="0" y="$ypos " z="0"/>
-        <rotation name="rVAngle$i"   unit="deg" x="90+$VAngle" y="0"   z="0"/>
+        <position name="pos${_[3]}WireV$i" unit="cm" x="0" y="@{[$ypos ]}" z="0"/>
+        <rotation name="rVAngle$i"   unit="deg" x="@{[90+$VAngle]}" y="0"   z="0"/>
       </physvol>
 EOF
 
@@ -1126,8 +1125,8 @@ my $zpos = $StartTopVWires_zpos + ($i)*0.5*$VWire_zint;
 print TPC <<EOF;
       <physvol>
         <volumeref ref="volTPCWireV$j${_[3]}"/>
-        <position name="pos${_[3]}WireV$j" unit="cm" x="0" y="$ypos " z="$zpos"/>
-        <rotation name="rVAngle$j"   unit="deg" x="90+$VAngle" y="0"   z="0"/>
+        <position name="pos${_[3]}WireV$j" unit="cm" x="0" y="@{[$ypos ]}" z="@{[$zpos]}"/>
+        <rotation name="rVAngle$j"   unit="deg" x="@{[90+$VAngle]}" y="0"   z="0"/>
       </physvol>
 EOF
 
@@ -1176,7 +1175,7 @@ my $zpos = (-0.5*$Zactive_z) + $i*$XWirePitch + $TPCWireThickness/2;
 print TPC <<EOF;
       <physvol>/
         <volumeref ref="volTPCWireVert${_[3]}"/>
-        <position name="pos${_[3]}WireZ$i" unit="cm" x="0" y="0 " z="$zpos"/>
+        <position name="pos${_[3]}WireZ$i" unit="cm" x="0" y="0 " z="@{[$zpos]}"/>
         <rotationref ref="rPlus90AboutX"/>
       </physvol>
 EOF
@@ -1220,19 +1219,19 @@ print TPC <<EOF;
      <physvol>
        <volumeref ref="volTPCPlaneZ${_[3]}"/>
        <position name="pos${_[3]}PlaneZ" unit="cm" 
-         x="$posZplane[0]" y="$posZplane[1]" z="$posZplane[2]"/>
+         x="@{[$posZplane[0]]}" y="@{[$posZplane[1]]}" z="@{[$posZplane[2]]}"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneV${_[3]}"/>
        <position name="pos${_[3]}PlaneV" unit="cm" 
-         x="$posVplane[0]" y="$posVplane[1]" z="$posVplane[2]"/>
+         x="@{[$posVplane[0]]}" y="@{[$posVplane[1]]}" z="@{[$posVplane[2]]}"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneU${_[3]}"/>
        <position name="pos${_[3]}PlaneU" unit="cm" 
-         x="$posUplane[0]" y="$posUplane[1]" z="$posUplane[2]"/>
+         x="@{[$posUplane[0]]}" y="@{[$posUplane[1]]}" z="@{[$posUplane[2]]}"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 EOF
@@ -1243,7 +1242,7 @@ print TPC <<EOF;
      <physvol>
        <volumeref ref="volTPCActive${_[3]}"/>
        <position name="pos${_[3]}Active" unit="cm" 
-         x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
+         x="@{[$posTPCActive[0]]}" y="@{[$posTPCActive[1]]}" z="@{[$posTPCActive[2]]}"/>
        <rotationref ref="rIdentity"/>
      </physvol>
 EOF
@@ -1337,55 +1336,51 @@ $FC_y_center = $FC_y_center / $nAPAHigh;
 print CRYO <<EOF;
 <solids>
     <box name="Cryostat" lunit="cm" 
-      x="$Cryostat_x" 
-      y="$Cryostat_y" 
-      z="$Cryostat_z"/>
+      x="@{[$Cryostat_x]}" 
+      y="@{[$Cryostat_y]}" 
+      z="@{[$Cryostat_z]}"/>
     <box name="ArgonInterior" lunit="cm" 
-      x="$Argon_x"
-      y="$Argon_y"
-      z="$Argon_z"/>
+      x="@{[$Argon_x]}"
+      y="@{[$Argon_y]}"
+      z="@{[$Argon_z]}"/>
     <box name="FieldCageOut" lunit="cm"
-      x="$FC_x"
-      y="$FCO_y"
-      z="$FCO_z"/>
+      x="@{[$FC_x]}"
+      y="@{[$FCO_y]}"
+      z="@{[$FCO_z]}"/>
     <box name="FieldCageIn" lunit="cm"
-      x="$FC_x+1"
-      y="$FCI_y"
-      z="$FCI_z"/>
+      x="@{[$FC_x+1]}"
+      y="@{[$FCI_y]}"
+      z="@{[$FCI_z]}"/>
     <subtraction name="FieldCage">
       <first ref="FieldCageOut"/>
       <second ref="FieldCageIn"/>
     </subtraction>
     <box name="GaseousArgon" lunit="cm" 
-      x="$Argon_x"
-      y="$HeightGaseousAr"
-      z="$Argon_z"/>
+      x="@{[$Argon_x]}"
+      y="@{[$HeightGaseousAr]}"
+      z="@{[$Argon_z]}"/>
     <subtraction name="SteelShell">
       <first ref="Cryostat"/>
       <second ref="ArgonInterior"/>
     </subtraction>
-    <box name="LiquidArgon" lunit="cm"
-      x="$Argon_x"
-      y="$LArgon_y"
-      z="$Argon_z"/>
     <box name="Cathode" lunit="cm"
-      x="$Cathode_x"
-      y="$Cathode_y"
-      z="$Cathode_z"/>
+      x="@{[$Cathode_x]}"
+      y="@{[$Cathode_y]}"
+      z="@{[$Cathode_z]}"/>
 
     <box name="LightPaddle" lunit="cm"
-      x="$LightPaddle_x"
-      y="$LightPaddle_y"
-      z="$LightPaddle_z + $SiPM_z"/>
+      x="@{[$LightPaddle_x]}"
+      y="@{[$LightPaddle_y]}"
+      z="@{[$LightPaddle_z + $SiPM_z]}"/>
 
      <box name="APAFrameYSideHollow" lunit="cm"
-      x="$APAFrameYSide_x-2*$EdgeFrameSteelThickness"
-      y="$APAFrameYSide_y-2*$EdgeFrameSteelThickness"
-      z="$APAFrameYSide_z"/>
+      x="@{[$APAFrameYSide_x-2*$EdgeFrameSteelThickness]}"
+      y="@{[$APAFrameYSide_y-2*$EdgeFrameSteelThickness]}"
+      z="@{[$APAFrameYSide_z]}"/>
      <box name="APAFrameYSideShell" lunit="cm"
-      x="$APAFrameYSide_x"
-      y="$APAFrameYSide_y"
-      z="$APAFrameYSide_z"/>
+      x="@{[$APAFrameYSide_x]}"
+      y="@{[$APAFrameYSide_y]}"
+      z="@{[$APAFrameYSide_z]}"/>
      <subtraction name="APAFrameYSide">
       <first  ref="APAFrameYSideShell"/>
       <second ref="APAFrameYSideHollow"/>
@@ -1394,13 +1389,13 @@ print CRYO <<EOF;
       </subtraction>
 
      <box name="APAFrameZSideHollow" lunit="cm"
-      x="$APAFrameZSide_x-2*$EdgeFrameSteelThickness"
-      y="$APAFrameZSide_y-2*$EdgeFrameSteelThickness"
-      z="$APAFrameZSide_z"/>
+      x="@{[$APAFrameZSide_x-2*$EdgeFrameSteelThickness]}"
+      y="@{[$APAFrameZSide_y-2*$EdgeFrameSteelThickness]}"
+      z="@{[$APAFrameZSide_z]}"/>
      <box name="APAFrameZSideShell" lunit="cm"
-      x="$APAFrameZSide_x"
-      y="$APAFrameZSide_y"
-      z="$APAFrameZSide_z"/>
+      x="@{[$APAFrameZSide_x]}"
+      y="@{[$APAFrameZSide_y]}"
+      z="@{[$APAFrameZSide_z]}"/>
      <subtraction name="APAFrameZSide">
       <first  ref="APAFrameZSideShell"/>
       <second ref="APAFrameZSideHollow"/>
@@ -1409,20 +1404,20 @@ print CRYO <<EOF;
       </subtraction>
 
      <box name="APAFrameYOuterSupport" lunit="cm"
-      x="$EdgeFrameSteelThickness"
-      y="$APAFrameYOuterSupport_y"
-      z="$APAFrameYOuterSupport_z"/>
+      x="@{[$EdgeFrameSteelThickness]}"
+      y="@{[$APAFrameYOuterSupport_y]}"
+      z="@{[$APAFrameYOuterSupport_z]}"/>
 
 
      <box name="G10BoardYSideCenterSeg" lunit="cm"
-      x="$G10BoardYSide_x"
-      y="$G10BoardYSide_y"
-      z="$G10BoardYSide_z"/>
+      x="@{[$G10BoardYSide_x]}"
+      y="@{[$G10BoardYSide_y]}"
+      z="@{[$G10BoardYSide_z]}"/>
 
      <box name="G10BoardZSideCenterSeg" lunit="cm"
-      x="$G10BoardZSide_x"
-      y="$G10BoardZSide_y"
-      z="$G10BoardZSide_z"/>
+      x="@{[$G10BoardZSide_x]}"
+      y="@{[$G10BoardZSide_y]}"
+      z="@{[$G10BoardZSide_z]}"/>
 
 </solids>
 EOF
@@ -1441,10 +1436,6 @@ print CRYO <<EOF;
     <volume name="volGaseousArgon">
       <materialref ref="ArGas"/>
       <solidref ref="GaseousArgon"/>
-    </volume>
-    <volume name="volLiquidArgon">
-      <materialref ref="LAr"/>
-      <solidref ref="LiquidArgon"/>
     </volume>
     <volume name="volCathode">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
@@ -1496,18 +1487,14 @@ print CRYO <<EOF;
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="0" y="$Argon_y/2-$HeightGaseousAr/2" z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="0" y="@{[$Argon_y/2-$HeightGaseousAr/2]}" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volFieldCage"/>
         <position name="posFieldCage" unit="cm" 
           x="0"
-	  y="$FC_y_center"
-	  z="$FC_z_center"/>
-      </physvol>
-      <physvol>
-        <volumeref ref="volLiquidArgon"/>
-        <position name="posLiquidArgon" unit="cm" x="0" y="$Argon_y/2-$HeightGaseousAr/2-$LArgon_y/2" z="0"/>
+	  y="@{[$FC_y_center]}"
+	  z="@{[$FC_z_center]}"/>
       </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
@@ -1515,9 +1502,6 @@ print CRYO <<EOF;
       </physvol>
 EOF
 
-#y="-$Argon_y/2+$SpaceAPAToFloor+$APAphys_y+$APAGap_y/2" 
-#          z="-$Argon_z/2+$UpstreamLArPadding+($APAphys_z/2+($nAPALong-1)*($APAphys_z+$APAGap_z))"/>
-#<position name="posFieldCage" unit="cm" x="0" y="$Argon_y/2-$HeightGaseousAr-$LArgon_y/2+2*$FC_b" z="$TPC_z/2+$APAGap_z+2*$FC_b+5"/>
 # nested for loops to place the non-rotated AND rotated volTPC
    # x loop rotation: There are six drift volumes. Looking into the 
    # detector from incident direction, and counting from right (-x) to
@@ -1583,17 +1567,17 @@ print CRYO <<EOF;
       <physvol>
         <volumeref ref="volTPC$SelectTPC_0"/>
         <position name="posTPC\-$tpc_0" unit="cm" 
-        x="$APACenter_x - $APAFrame_x/2 - $TPC_0_x/2" 
-        y="$APACenter_y" 
-        z="$APACenter_z"/> 
+        x="@{[$APACenter_x - $APAFrame_x/2 - $TPC_0_x/2]}" 
+        y="@{[$APACenter_y]}" 
+        z="@{[$APACenter_z]}"/> 
         <rotationref ref="$rot_0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC$SelectTPC_1"/>
         <position name="posTPC\-$tpc_1" unit="cm" 
-        x="$APACenter_x + $APAFrame_x/2 + $TPC_1_x/2" 
-        y="$APACenter_y" 
-        z="$APACenter_z"/> 
+        x="@{[$APACenter_x + $APAFrame_x/2 + $TPC_1_x/2]}" 
+        y="@{[$APACenter_y]}" 
+        z="@{[$APACenter_z]}"/> 
         <rotationref ref="$rot_1"/>
       </physvol>
 
@@ -1607,9 +1591,9 @@ print CRYO <<EOF;
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode\-$cpa_i" unit="cm" 
-      x="$CPA_x" 
-      y="$APACenter_y" 
-      z="$APACenter_z"/> 
+      x="@{[$CPA_x]}" 
+      y="@{[$APACenter_y]}" 
+      z="@{[$APACenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
 
@@ -1648,34 +1632,34 @@ print CRYO <<EOF;
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC\-$tpc_0" unit="cm" 
-        x="$APACenter_x - $APAFrame_x/2 - $TPCInner_x/2" 
-        y="$APACenter_y" 
-        z="$APACenter_z"/> 
+        x="@{[$APACenter_x - $APAFrame_x/2 - $TPCInner_x/2]}" 
+        y="@{[$APACenter_y]}" 
+        z="@{[$APACenter_z]}"/> 
         <rotationref ref="$rot_0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCInner"/>
         <position name="posTPC\-$tpc_1" unit="cm"
-        x="$APACenter_x + $APAFrame_x/2 + $TPCInner_x/2" 
-        y="$APACenter_y"
-        z="$APACenter_z"/>
+        x="@{[$APACenter_x + $APAFrame_x/2 + $TPCInner_x/2]}" 
+        y="@{[$APACenter_y]}"
+        z="@{[$APACenter_z]}"/>
         <rotationref ref="$rot_1"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode\-$apa_i-0" unit="cm" 
-      x="$CPA_0_x" 
-      y="$APACenter_y" 
-      z="$APACenter_z"/> 
+      x="@{[$CPA_0_x]}" 
+      y="@{[$APACenter_y]}" 
+      z="@{[$APACenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volCathode"/>
         <position name="posCathode\-$apa_i-1" unit="cm" 
-      x="$CPA_1_x" 
-      y="$APACenter_y" 
-      z="$APACenter_z"/> 
+      x="@{[$CPA_1_x]}" 
+      y="@{[$APACenter_y]}" 
+      z="@{[$APACenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
 
@@ -1737,9 +1721,9 @@ for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
      <physvol>
        <volumeref ref="volOpDetSensitive_$apa_i\-$paddle"/>
        <position name="posPaddle\-$paddle\-TPC\-$i\-$j\-$k" unit="cm" 
-         x="$APACenter_x" 
-       y="$Paddle_Y" 
-         z="$APACenter_z + $SiPM_z/2"/>
+         x="@{[$APACenter_x]}" 
+       y="@{[$Paddle_Y]}" 
+         z="@{[$APACenter_z + $SiPM_z/2]}"/>
        <rotationref ref="$rot"/>
      </physvol>
 EOF
@@ -1867,33 +1851,33 @@ else{ print "APA not labeled as top or bottom"; }
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
         <position name="posAPAFrameYSideNeg\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$APAFrameCenter_y" 
-      z="$APAFrameCenter_z - $APAFrame_z/2 + $APAFrameYSide_z/2"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$APAFrameCenter_y]}" 
+      z="@{[$APAFrameCenter_z - $APAFrame_z/2 + $APAFrameYSide_z/2]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameYSide"/>
         <position name="posAPAFrameYSidePos\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$APAFrameCenter_y" 
-      z="$APAFrameCenter_z + $APAFrame_z/2 - $APAFrameYSide_z/2"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$APAFrameCenter_y]}" 
+      z="@{[$APAFrameCenter_z + $APAFrame_z/2 - $APAFrameYSide_z/2]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
         <position name="posAPAFrameZSidePos\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$APAFrameCenter_y + $APAFrame_y/2 - $APAFrameZSide_y/2" 
-      z="$APAFrameCenter_z"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$APAFrameCenter_y + $APAFrame_y/2 - $APAFrameZSide_y/2]}" 
+      z="@{[$APAFrameCenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volAPAFrameZSide"/>
         <position name="posAPAFrameZSideNeg\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$APAFrameCenter_y  - $APAFrame_y/2 + $APAFrameZSide_y/2" 
-      z="$APAFrameCenter_z"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$APAFrameCenter_y  - $APAFrame_y/2 + $APAFrameZSide_y/2]}" 
+      z="@{[$APAFrameCenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
 
@@ -1908,67 +1892,67 @@ else{ print "APA not labeled as top or bottom"; }
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
         <position name="posG10BoardYSideCenterSeg\-Vup\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$APAFrameCenter_y" 
-      z="$APAFrameCenter_z - $APAFrame_z/2 - (0+.5)*($G10BoardYSide_z)"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$APAFrameCenter_y]}" 
+      z="@{[$APAFrameCenter_z - $APAFrame_z/2 - (0+.5)*($G10BoardYSide_z)]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
         <position name="posG10BoardYSideCenterSeg\-Uup\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$APAFrameCenter_y" 
-      z="$APAFrameCenter_z - $APAFrame_z/2 - (1+.5)*($G10BoardYSide_z)"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$APAFrameCenter_y]}" 
+      z="@{[$APAFrameCenter_z - $APAFrame_z/2 - (1+.5)*($G10BoardYSide_z)]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
         <position name="posG10BoardYSideCenterSeg\-Vdown\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$APAFrameCenter_y" 
-      z="$APAFrameCenter_z + $APAFrame_z/2 + (0+.5)*($G10BoardYSide_z)"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$APAFrameCenter_y]}" 
+      z="@{[$APAFrameCenter_z + $APAFrame_z/2 + (0+.5)*($G10BoardYSide_z)]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardYSideCenterSeg"/>
         <position name="posG10BoardYSideCenterSeg\-Udown\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$APAFrameCenter_y" 
-      z="$APAFrameCenter_z + $APAFrame_z/2 + (1+.5)*($G10BoardYSide_z)"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$APAFrameCenter_y]}" 
+      z="@{[$APAFrameCenter_z + $APAFrame_z/2 + (1+.5)*($G10BoardYSide_z)]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
         <position name="posG10BoardZSideCenterSeg\-Z\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$posG10ZSideZ_y" 
-      z="$APAFrameCenter_z"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$posG10ZSideZ_y]}" 
+      z="@{[$APAFrameCenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
         <position name="posG10BoardZSideCenterSeg\-V\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$posG10ZSideV_y" 
-      z="$APAFrameCenter_z"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$posG10ZSideV_y]}" 
+      z="@{[$APAFrameCenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
         <position name="posG10BoardZSideCenterSeg\-U\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$posG10ZSideU_y" 
-      z="$APAFrameCenter_z"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$posG10ZSideU_y]}" 
+      z="@{[$APAFrameCenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
       <physvol>
         <volumeref ref="volG10BoardZSideCenterSeg"/>
         <position name="posG10BoardZSideCenterSeg\-Grid\-$APA_i" unit="cm" 
-      x="$APAFrameCenter_x" 
-      y="$posG10ZSideGrid_y"
-      z="$APAFrameCenter_z"/> 
+      x="@{[$APAFrameCenter_x]}" 
+      y="@{[$posG10ZSideGrid_y]}"
+      z="@{[$APAFrameCenter_z]}"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
 
@@ -2008,14 +1992,14 @@ print ENCL <<EOF;
 <solids>
 
     <box name="FoamPadBlock" lunit="cm"
-      x="$Cryostat_x + 2*$FoamPadding"
-      y="$Cryostat_y + 2*$FoamPadding"
-      z="$Cryostat_z + 2*$FoamPadding" />
+      x="@{[$Cryostat_x + 2*$FoamPadding]}"
+      y="@{[$Cryostat_y + 2*$FoamPadding]}"
+      z="@{[$Cryostat_z + 2*$FoamPadding]}" />
 
     <box name="FoamPadInner" lunit="cm"
-      x="$Cryostat_x + 0.01"
-      y="$Cryostat_y + 0.01"
-      z="$Cryostat_z + 0.01" />
+      x="@{[$Cryostat_x + 0.01]}"
+      y="@{[$Cryostat_y + 0.01]}"
+      z="@{[$Cryostat_z + 0.01]}" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
@@ -2024,14 +2008,14 @@ print ENCL <<EOF;
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="$Cryostat_x + 2*$FoamPadding + 2*$SteelSupport_x"
-      y="$Cryostat_y + 2*$FoamPadding + 2*$SteelSupport_y"
-      z="$Cryostat_z + 2*$FoamPadding + 2*$SteelSupport_z" />
+      x="@{[$Cryostat_x + 2*$FoamPadding + 2*$SteelSupport_x]}"
+      y="@{[$Cryostat_y + 2*$FoamPadding + 2*$SteelSupport_y]}"
+      z="@{[$Cryostat_z + 2*$FoamPadding + 2*$SteelSupport_z]}" />
 
     <box name="SteelSupportInner" lunit="cm"
-      x="$Cryostat_x + 2*$FoamPadding + 0.01"
-      y="$Cryostat_y + 2*$FoamPadding + 0.01"
-      z="$Cryostat_z + 2*$FoamPadding + 0.01" />
+      x="@{[$Cryostat_x + 2*$FoamPadding + 0.01]}"
+      y="@{[$Cryostat_y + 2*$FoamPadding + 0.01]}"
+      z="@{[$Cryostat_z + 2*$FoamPadding + 0.01]}" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
@@ -2040,9 +2024,9 @@ print ENCL <<EOF;
     </subtraction>
 
     <box name="DetEnclosure" lunit="cm" 
-      x="$DetEncWidth"
-      y="$DetEncHeight"
-      z="$DetEncLength"/>
+      x="@{[$DetEncWidth]}"
+      y="@{[$DetEncHeight]}"
+      z="@{[$DetEncLength]}"/>
 
 </solids>
 EOF
@@ -2122,9 +2106,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="$DetEncWidth+2*$RockThickness" 
-      y="$DetEncHeight+2*$RockThickness" 
-      z="$DetEncLength+2*$RockThickness"/>
+      x="@{[$DetEncWidth+2*$RockThickness]}" 
+      y="@{[$DetEncHeight+2*$RockThickness]}" 
+      z="@{[$DetEncLength+2*$RockThickness]}"/>
 </solids>
 EOF
 
@@ -2137,7 +2121,7 @@ print WORLD <<EOF;
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-      <position name="posDetEnclosure" unit="cm" x="$OriginXSet" y="$OriginYSet" z="$OriginZSet"/>
+      <position name="posDetEnclosure" unit="cm" x="@{[$OriginXSet]}" y="@{[$OriginYSet]}" z="@{[$OriginZSet]}"/>
       </physvol>
 
     </volume>

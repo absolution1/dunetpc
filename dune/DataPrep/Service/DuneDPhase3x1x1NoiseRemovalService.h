@@ -45,6 +45,7 @@ private:
   void removeCoherent(const GroupChannelMap & ch_groups, AdcChannelDataMap& datamap) const;
   void removeHighFreq(AdcChannelDataMap& datamap) const;
   void removeSlope(AdcChannelDataMap& datamap) const;
+  void removeSlopePolynomial(AdcChannelDataMap& datamap) const;
 
   std::vector<bool> roiMask(const AdcChannelData & adc) const;
 
@@ -62,8 +63,10 @@ private:
   /// Get 3x1x1 DAQ channel number from the LArSoft's channel index.
   static size_t get311Chan(size_t LAr_chan);
 
+  std::vector<double> GaussJordanSolv(std::vector< std::vector<long double> > matrix) const;
+
   // Configuration parameters.
-  bool fCoherent32, fCoherent16, fLowPassFlt, fFlatten;
+  bool fDoTwoPassFilter, fCoherent32, fCoherent16, fLowPassFlt, fFlatten;
   std::vector< size_t > fCoherent32Groups;
   std::vector< size_t > fCoherent16Groups;
   std::vector< float > fLowPassCoeffs;
@@ -72,6 +75,7 @@ private:
   int fRoiPadLow;
   int fRoiPadHigh;
   int fMode;
+  int fBinsToSkip;
 
   // Services.
   const geo::Geometry* fGeometry;

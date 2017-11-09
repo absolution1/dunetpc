@@ -34,9 +34,15 @@ public:
 
   using Index = unsigned int;
   using TLinePtr = std::shared_ptr<TLine>;
+  using TObjPtr = std::shared_ptr<TObject>;
+  using TObjVector = std::vector<TObjPtr>;
 
-  // Ctor from a pad. If null the current pad is used.
-  TPadManipulator(TVirtualPad* ppad =nullptr);
+  // Default ctor.
+  // Creates a new canvas.
+  TPadManipulator();
+
+  // Ctor from a pad. Use ppad = gPad to grab the current pad.
+  TPadManipulator(TVirtualPad* ppad);
 
   // Ctors that creates a new canvas.
   // The canvas size is wx x wy.
@@ -61,6 +67,8 @@ public:
   double ymax() const { return m_ymax; }
 
   // Return the top-level pad.
+  // Use pad()->SetFillColor(...), etc. to change the appearance of the pad.
+  // and pad()->SetFrameFillColor(...), etc. to change the appearance of the frame in the pad.
   TVirtualPad* pad() const { return m_ppad; }
 
   // Return the number of subpads.
@@ -73,9 +81,14 @@ public:
     return ipad<npad() ? &m_subMans[ipad] : nullptr;
   }
 
-  // Return the histogram or graph for this pad.
+  // Return the primary histogram or graph for this pad.
   TH1* hist() const { return m_ph.get(); }
   TGraph* graph() const { return m_pg.get(); }
+  std::string drawOpt() const { return m_dopt; }
+
+  // Return the overlaid objects and options.
+  const TObjVector& objects() const { return m_objs; }
+  const std::vector<std::string>& objOpts() const { return m_opts; }
 
   // Return the vertical mod lines associated with this pad.
   const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
@@ -88,10 +101,9 @@ public:
   int split(Index nx);
 
   // Add an object (histogram or graph) to the pad.
-  // For now there can only be one object/pad. If replace is true, the old object is
-  // removed, otherwise this methd fails.
-  int add(unsigned int ipad, TObject* pobj, std::string sopt, bool replace =false);
-  int add(TObject* pobj, std::string sopt, bool replace =false);
+  // The first object must be a histogram or graph.
+  int add(unsigned int ipad, TObject* pobj, std::string sopt ="", bool replace =false);
+  int add(TObject* pobj, std::string sopt ="", bool replace =false);
 
   // Remove histograms and graphs from top and subpads.
   int clear();
@@ -167,6 +179,7 @@ private:
   double m_ymax;
   std::shared_ptr<TH1> m_ph;
   std::shared_ptr<TGraph> m_pg;
+  std::string m_dopt;
   std::shared_ptr<TH1> m_flowHist;
   bool m_showUnderflow;
   bool m_showOverflow;
@@ -182,6 +195,8 @@ private:
   double m_vmlXLength;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
   std::vector<TPadManipulator> m_subMans;
+  TObjVector m_objs;
+  std::vector<std::string> m_opts;
 
 };
 

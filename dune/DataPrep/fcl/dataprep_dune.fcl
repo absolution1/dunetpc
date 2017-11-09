@@ -100,6 +100,8 @@ adcnr_dune35tlegacy: {
 adcnr_dunedphase3x1x1: {
   service_provider: DuneDPhase3x1x1NoiseRemovalService
   CorrMode:                         "median" # mean or median
+  DoTwoPassFilter:                      true
+  BinsToSkip: 				2
   Coherent32:                           true
   Coherent32Groups:                       [] # do all groups if empty list
   Coherent16:                           true
