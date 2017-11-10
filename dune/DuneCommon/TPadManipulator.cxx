@@ -100,11 +100,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_showUnderflow = rhs.m_showUnderflow;
   m_showOverflow = rhs.m_showOverflow;
   m_top = rhs.m_top;
-  m_topTicksize = rhs.m_topTicksize;
-  m_topNdiv = rhs.m_topNdiv;
   m_right = rhs.m_right;
-  m_rightTicksize = rhs.m_rightTicksize;
-  m_rightNdiv = rhs.m_rightNdiv;
   m_histFuns = rhs.m_histFuns;
   m_hmlXmod = rhs.m_hmlXmod;
   m_hmlXoff = rhs.m_hmlXoff;
@@ -219,7 +215,7 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
   bool haveHistOrGraph = m_ph != nullptr || m_pg != nullptr;
   TH1* ph = dynamic_cast<TH1*>(pobj);
   TGraph* pg = dynamic_cast<TGraph*>(pobj);
-  bool isNotHistOrGraph = ph==nullptr && ph==nullptr;
+  bool isNotHistOrGraph = ph==nullptr && pg==nullptr;
   // If we already have the primary histogram or graph, or this is not one of those,
   // this is an overlaid object.
   if ( (!replace && haveHistOrGraph) || isNotHistOrGraph ) {
@@ -452,58 +448,29 @@ int TPadManipulator::setRanges(double x1, double x2, double y1, double y2) {
 
 //**********************************************************************
 
-int TPadManipulator::addAxis() {
-  return addAxisTop() + addAxisRight();
+int TPadManipulator::addAxis(bool flag) {
+  return addAxisTop(flag) + addAxisRight(flag);
 }
 
 //**********************************************************************
 
-int TPadManipulator::addAxisTop() {
-  double ticksize = 0;
-  int ndiv = 0;
-  TAxis* paxold = getXaxis();
-  if ( paxold == nullptr ) return 2;
-  ticksize = paxold->GetTickLength();
-  ndiv = paxold->GetNdivisions();
-  return addAxisTop(ticksize, ndiv);
+int TPadManipulator::addAxisTop(bool flag) {
+  m_top = flag;
+  return update();
 }
 
 //**********************************************************************
 
-int TPadManipulator::addAxisTop(double ticksize, int ndiv) {
-  m_top = true;
-  m_topTicksize = ticksize;
-  m_topNdiv = ndiv;
-  return drawAxisTop();
-}
-
-//**********************************************************************
-
-int TPadManipulator::addAxisRight() {
-  double ticksize = 0;
-  int ndiv = 0;
-  TAxis* paxold = getYaxis();
-  if ( paxold == nullptr ) return 2;
-  ticksize = paxold->GetTickLength();
-  ndiv = paxold->GetNdivisions();
-  return addAxisRight(ticksize, ndiv);
-}
-
-//**********************************************************************
-
-int TPadManipulator::addAxisRight(double ticksize, int ndiv) {
-  m_right = true;
-  m_rightTicksize = ticksize;
-  m_rightNdiv = ndiv;
-  return drawAxisRight();
+int TPadManipulator::addAxisRight(bool flag) {
+  m_right = flag;
+  return update();
 }
 
 //**********************************************************************
 
 int TPadManipulator::addHistFun(unsigned int ifun) {
   m_histFuns.push_back(ifun);
-  drawHistFuns();
-  return 0;
+  return update();
 }
 
 //**********************************************************************
@@ -533,8 +500,7 @@ int TPadManipulator::clearLines() {
   m_hmlXoff.clear();
   m_hmlXStyle.clear();
   m_hmlXLength.clear();
-  update();
-  return 0;
+  return update();
 }
 
 //**********************************************************************
@@ -544,8 +510,7 @@ int TPadManipulator::addVerticalLine(double xoff, double lenfrac, int isty) {
   m_vmlXoff.push_back(xoff);
   m_vmlXStyle.push_back(isty);
   m_vmlXLength.push_back(lenfrac);
-  drawLines();
-  return 0;
+  return update();
 }
 //**********************************************************************
 
@@ -625,8 +590,10 @@ int TPadManipulator::drawAxisTop() {
     yminPad = pow(10.0, yminPad);
     ymaxPad = pow(10.0, ymaxPad);
   }
-  double ticksize = m_topTicksize;
-  int ndiv = m_topNdiv;
+  TAxis* paxold = getXaxis();
+  if ( paxold == 0 ) return 2;
+  double ticksize = paxold->GetTickLength();
+  int ndiv = paxold->GetNdivisions();
   TGaxis* paxnew = new TGaxis(xminPad, ymaxPad, xmaxPad, ymaxPad,
                               x1, x2, ndiv, sopt.c_str());
   if ( ticksize > 0 ) paxnew->SetTickLength(ticksize);
@@ -670,8 +637,10 @@ int TPadManipulator::drawAxisRight() {
     y2 = pow(10.0, y2);
     sopt += "G";
   }
-  double ticksize = m_rightTicksize;
-  int ndiv = m_rightNdiv;
+  TAxis* paxold = getYaxis();
+  if ( paxold == 0 ) return 2;
+  double ticksize = paxold->GetTickLength();
+  int ndiv = paxold->GetNdivisions();
   TGaxis* paxnew = new TGaxis(xmaxPad, yminPad, xmaxPad, ymaxPad,
                               y1, y2, ndiv, sopt.c_str());
   if ( ticksize > 0 ) paxnew->SetTickLength(ticksize);

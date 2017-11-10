@@ -150,20 +150,14 @@ public:
   int setRangeY(double y1, double y2);
   int setRanges(double x1, double x2, double y1, double y2);
 
-  // Add top and right axis using attributes of the first histogram on the pad.
-  int addAxis();
+  // Add or remove top and right axis using attributes of the first histogram on the pad.
+  int addAxis(bool flag =true);
 
-  // Add top x-axis with attributes taken from the first histogram on the pad.
-  int addAxisTop();
+  // Add or remove top x-axis with attributes taken from the first histogram on the pad.
+  int addAxisTop(bool flag =true);
 
-  // Add top x-axis with specified attributes.
-  int addAxisTop(double ticksize, int ndiv);
-
-  // Add right y-axis with attributes from the first histogram on the pad.
-  int addAxisRight();
-
-  // Add right y-axis with specified attributes.
-  int addAxisRight(double ticksize, int ndiv);
+  // Add or remove right y-axis with attributes from the first histogram on the pad.
+  int addAxisRight(bool flag =true);
 
   // Add underflow bin to the plot (false to remove it).
   int showUnderflow(bool show =true);
@@ -231,11 +225,7 @@ private:
   bool m_showUnderflow;
   bool m_showOverflow;
   bool m_top;
-  double m_topTicksize;
-  double m_topNdiv;
   bool m_right;
-  double m_rightTicksize;
-  double m_rightNdiv;
   std::vector<unsigned int> m_histFuns;
   std::vector<double> m_hmlXmod;
   std::vector<double> m_hmlXoff;
