@@ -32,16 +32,28 @@ class TPadManipulator {
 
 public:
 
+  struct Bounds {
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    Bounds() : x1(0.0), y1(0.0), x2(0.0), y2(0.0) { }
+    Bounds(double ax1, double ay1, double ax2, double ay2)
+    : x1(ax1), y1(ay1), x2(ax2), y2(ay2) { }
+  };
+
   using Index = unsigned int;
   using TLinePtr = std::shared_ptr<TLine>;
   using TObjPtr = std::shared_ptr<TObject>;
   using TObjVector = std::vector<TObjPtr>;
+  using BoundsVector = std::vector<Bounds>;
 
   // Default ctor.
-  // Creates a new canvas.
+  // Creates an empty top-level object.
   TPadManipulator();
 
   // Ctor from a pad. Use ppad = gPad to grab the current pad.
+  // Copies the objects from the pad.
   TPadManipulator(TVirtualPad* ppad);
 
   // Ctors that creates a new canvas.
@@ -50,21 +62,28 @@ public:
   //                  or split(nPadX, nPadX) if nPadY == 0
   TPadManipulator(Index wx, Index wy, Index nPadX =0, Index nPadY =0);
 
+  // Copy and assignment.
+  // Objects from the RHS are cloned so that mods in one pad don't affect the other.
+  // These can be used to copy an existing pad into a subpad of another.
+  // In assignement, the original objects belonging to this pad are deleted.
+  TPadManipulator(const TPadManipulator& rhs);
+  TPadManipulator& operator=(const TPadManipulator& rhs);
+
   // Dtor.
   // This removes the lines.
   ~TPadManipulator();
 
   // Return the axis coordinates in pad units (pixels).
-  double xminPad() const { return m_xminPad; }
-  double xmaxPad() const { return m_xmaxPad; }
-  double yminPad() const { return m_yminPad; }
-  double ymaxPad() const { return m_ymaxPad; }
+  //double xminPad() const { return m_xminPad; }
+  //double xmaxPad() const { return m_xmaxPad; }
+  //double yminPad() const { return m_yminPad; }
+  //double ymaxPad() const { return m_ymaxPad; }
 
-  // Return the axis coordinates in drawn units.
-  double xmin() const { return m_xmin; }
-  double xmax() const { return m_xmax; }
-  double ymin() const { return m_ymin; }
-  double ymax() const { return m_ymax; }
+  // Return the axis limits in drawn units.
+  double xmin() const;
+  double xmax() const;
+  double ymin() const;
+  double ymax() const;
 
   // Return the top-level pad.
   // Use pad()->SetFillColor(...), etc. to change the appearance of the pad.
@@ -112,10 +131,20 @@ public:
   int update();
 
   // Get the axes of the histogram or graph.
-  TAxis* getXaxis();
-  TAxis* getYaxis();
+  TAxis* getXaxis() const;
+  TAxis* getYaxis() const;
+
+  // Set the TPad attibutes.
+  int setFillColor(int col) { m_fillColor = col; return 0; }
+  int setFrameFillColor(int col) { m_frameFillColor = col; return 0; }
+  int setGridX(bool flag =true) { m_gridX = flag; return 0; }
+  int setGridY(bool flag =true) { m_gridY = flag; return 0; }
+  int setGrid(bool flag =true) { m_gridX = flag; m_gridY=flag; return 0; }
+  int setLogX(bool flag =true) { m_logX = flag; return 0; }
+  int setLogY(bool flag =true) { m_logY = flag; return 0; }
 
   // Set the histogram range
+  // For histograms, the range is restricted to that of the binning.
   int setRangeX(double x1, double x2);
   int setRangeY(double y1, double y2);
   int setRanges(double x1, double x2, double y1, double y2);
@@ -129,17 +158,11 @@ public:
   // Add top x-axis with specified attributes.
   int addAxisTop(double ticksize, int ndiv);
 
-  // Draw the top axis.
-  int drawAxisTop();
-
   // Add right y-axis with attributes from the first histogram on the pad.
   int addAxisRight();
 
   // Add right y-axis with specified attributes.
   int addAxisRight(double ticksize, int ndiv);
-
-  // Draw right y-axis.
-  int drawAxisRight();
 
   // Add underflow bin to the plot (false to remove it).
   int showUnderflow(bool show =true);
@@ -148,38 +171,61 @@ public:
   // Return the under/overflow histogram.
   TH1* flowHistogram() { return m_flowHist.get(); }
 
+  // Remove all lines.
+  int clearLines();
+
+  // Add a vertical line at x=xoff or horizonatl at y=yoff.
+  // The lines are draw with style isty from the low edge to lenfrac*width
+  int addVerticalLine(double xoff =0.0, double lenfrac =1.0, int isty =1);
+  int addHorizontalLine(double yoff =0.0, double lenfrac =1.0, int isty =1);
+
   // Add vertical modulus lines.
   // I.e at x = xoff, xoff+/-xmod, xoff+/-2*xmod, ...
-  // The lines are draw from the bottom to lenfrac*height
-  int addVerticalModLines(double xmod, double xoff =0.0, double lenfrac =1.0);
+  // The lines are draw with style isty from the low edge to lenfrac*width
+  int addVerticalModLines(double xmod, double xoff =0.0, double lenfrac =1.0, int isty =3);
+  int addHorizontalModLines(double ymod, double yoff =0.0, double lenfrac =1.0, int isty =3);
 
   // Add histogram function ifun to the pad.
   int addHistFun(unsigned int ifun =0);
-
-  // Draw the hist functions.
-  int drawHistFuns();
-
-  // Draw the current mod lines.
-  int drawVerticalModLines();
 
   // Fix the BG color for 2D histos to be the same as the lowest color.
   // Otherwise underflows have the color of zeros.
   int fixFrameFillColor();
 
+  // Draw the canvas.
+  // Until this is called, nothing will apear on the screen.
+  // If this is a subpad, then the parent is drawn.
+  int draw();
+
+  // Draw the top axis.
+  int drawAxisTop();
+
+  // Draw right y-axis.
+  int drawAxisRight();
+
+  // Draw the hist functions.
+  int drawHistFuns();
+
+  // Draw the current lines.
+  int drawLines();
+
 private:
 
+  TPadManipulator* m_parent;
   TVirtualPad* m_ppad;
-  double m_xminPad;
-  double m_xmaxPad;
-  double m_yminPad;
-  double m_ymaxPad;
-  double m_xmin;
-  double m_xmax;
-  double m_ymin;
-  double m_ymax;
+  int m_canvasWidth;
+  int m_canvasHeight;
   std::shared_ptr<TH1> m_ph;
   std::shared_ptr<TGraph> m_pg;
   std::string m_dopt;
+  TObjVector m_objs;
+  std::vector<std::string> m_opts;
+  int m_fillColor;
+  int m_frameFillColor;
+  bool m_gridX;
+  bool m_gridY;
+  bool m_logX;
+  bool m_logY;
   std::shared_ptr<TH1> m_flowHist;
   bool m_showUnderflow;
   bool m_showOverflow;
@@ -190,13 +236,17 @@ private:
   double m_rightTicksize;
   double m_rightNdiv;
   std::vector<unsigned int> m_histFuns;
-  double m_vmlXmod;
-  double m_vmlXoff;
-  double m_vmlXLength;
+  std::vector<double> m_hmlXmod;
+  std::vector<double> m_hmlXoff;
+  std::vector<int> m_hmlXStyle;
+  std::vector<double> m_hmlXLength;
+  std::vector<double> m_vmlXmod;
+  std::vector<double> m_vmlXoff;
+  std::vector<int> m_vmlXStyle;
+  std::vector<double> m_vmlXLength;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
+  BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;
-  TObjVector m_objs;
-  std::vector<std::string> m_opts;
 
 };
 

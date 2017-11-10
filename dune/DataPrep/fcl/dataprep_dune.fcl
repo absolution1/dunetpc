@@ -111,7 +111,8 @@ adcnr_dunedphase3x1x1: {
   RoiPadLow:                               8
   RoiPadHigh:                             40
   Flatten:                              true
-  LowPassFlt:                          false
+  FlattenExtrapolate:			false
+  LowPassFlt:                           false
 }
 
 #***********************************************************************

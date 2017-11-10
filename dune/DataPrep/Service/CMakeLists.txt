@@ -51,6 +51,8 @@ simple_plugin(DuneDPhase3x1x1NoiseRemovalService   "service"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
                 ${ROOT_FFTW}
+                dune_ArtSupport
+                lardataobj_RawData
              )
 
 simple_plugin(MedianPedestalService   "service"
