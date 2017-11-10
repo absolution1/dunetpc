@@ -219,13 +219,24 @@ if [ -e $fcl ]; then
   rm -f $fcl
 fi
 printf "\nPreparing fcl for transfer to the grid.\ncp $fclIn $fcl\n"
-cp $fclIn $fcl
+if [ -e $fclIn ]; then
+  cp $fclIn $fcl
+else
+  printf "\nExiting with error. Source file for fcl not found. \nPlease make sure the fcl \n$fclIn \nexists.\n"
+  exit 10
+fi
+
 if [ -e $script ]; then
   printf "\n$script already exists. Removing old file and replacing with new.\n"
   rm -f $script
 fi
 printf "\nPreparing script for transfer to the grid.\ncp $scriptIn $script\n"
-cp $scriptIn $script
+if [ -e $scriptIn ]; then
+  cp $scriptIn $script
+else
+  printf "\nExiting with error. Source file for Script not found. \nPlease make sure the script \n$scriptIn \nexists.\n"
+  exit 10
+fi
 
 environmentVars="-e IFDH_CP_MAXRETRIES=5"
 clientargs="--resource-provides=usage_model=DEDICATED,OPPORTUNISTIC --OS=SL6 --group=dune -f $fcl --role=Analysis --memory=$memory "
@@ -264,24 +275,24 @@ else
 fi
 
 if [ x$tarfile != x ]; then
-  printf "jobsub_submit $environmentVars $clientargs $fileargs $thisjob \n"
+  printf "\n\njobsub_submit $environmentVars $clientargs $fileargs $thisjob \n\n\n"
   if [ $checkVar -ne 0 ]; then
     printf "CHECK Mode is set. The jobsub command will be printed, but will not be executed. Please check the command and run again without check mode. If you are trying to submit test jobs instead, the correct flag is -s or --test.\n"
   else
     jobsub_submit $environmentVars $clientargs $fileargs $thisjob 
   fi
   ret=$?
-  printf "Exiting with status $ret\n"
+  printf "\nExiting with status $ret\n"
   exit $ret
 else
   printf "jobsub_submit $environmentVars $larsoft $clientargs $fileargs $thisjob\n"
   if [ $checkVar -ne 0 ]; then
-    printf "CHECK Mode is set. The jobsub command will be printed, but will not be executed. Please check the command and run again without check mode. If you are trying to submit test jobs instead, the correct flag is -s or --test.\n"
+    printf "\n\nCHECK Mode is set. The jobsub command will be printed, but will not be executed. Please check the command and run again without check mode. If you are trying to submit test jobs instead, the correct flag is -s or --test.\n\n\n"
   else
     jobsub_submit $environmentVars $larsoft $clientargs $fileargs $thisjob 
   fi
   ret=$?
-  printf "Exiting with status $ret\n"
+  printf "\nExiting with status $ret\n"
   exit $ret
 fi
 
