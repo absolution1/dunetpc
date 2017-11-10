@@ -217,8 +217,12 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
   TPadManipulator* pman = man(ipad);
   if ( pman == nullptr ) return 102;
   bool haveHistOrGraph = m_ph != nullptr || m_pg != nullptr;
-  // If we already have the primary histogram or graph, this is an overlaid object.
-  if ( !replace && haveHistOrGraph ) {
+  TH1* ph = dynamic_cast<TH1*>(pobj);
+  TGraph* pg = dynamic_cast<TGraph*>(pobj);
+  bool isNotHistOrGraph = ph==nullptr && ph==nullptr;
+  // If we already have the primary histogram or graph, or this is not one of those,
+  // this is an overlaid object.
+  if ( (!replace && haveHistOrGraph) || isNotHistOrGraph ) {
     TObject* pobjc = pobj->Clone();
     TH1* phc = dynamic_cast<TH1*>(pobjc);
     if ( phc != nullptr ) phc->SetDirectory(nullptr);
@@ -227,8 +231,6 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
   // Otherwise, the passed object becomes the primary object and must be
   // a histogram or graph.
   } else {
-    TH1* ph = dynamic_cast<TH1*>(pobj);
-    TGraph* pg = dynamic_cast<TGraph*>(pobj);
     if ( ph == nullptr && pg == nullptr ) return 103;
     if ( pman->hist() != nullptr ) {
       if ( replace ) pman->m_ph.reset();
@@ -314,7 +316,7 @@ int TPadManipulator::update() {
   // Make sure the axis range are up to date before fetching them.
   if ( m_ph != nullptr ) m_ph->Draw("AXIS");
   else if ( m_pg != nullptr ) m_pg->Draw("A");
-  gPad->Update();
+  //gPad->Update();
   string sopt = "-US";
   const TList* prims = gPad->GetListOfPrimitives();
   bool noHist = m_ph == nullptr;
@@ -592,7 +594,8 @@ int TPadManipulator::draw() {
   if ( m_ppad == nullptr ) {
     TCanvas* pcan = new TCanvas;
     if ( m_canvasWidth > 0 && m_canvasHeight > 0 ) {
-      pcan->SetCanvasSize(m_canvasWidth, m_canvasHeight);
+      //pcan->SetCanvasSize(m_canvasWidth, m_canvasHeight);
+      pcan->SetWindowSize(m_canvasWidth, m_canvasHeight);
     }
     m_ppad = pcan;
   }
@@ -650,7 +653,7 @@ int TPadManipulator::drawAxisRight() {
   if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = gPad;
   m_ppad->cd();
-  gPad->Update();
+  //gPad->Update();
   double xminPad, yminPad, xmaxPad, ymaxPad;
   gPad->GetRangeAxis(xminPad, yminPad, xmaxPad, ymaxPad);
   double y1 = ymin();

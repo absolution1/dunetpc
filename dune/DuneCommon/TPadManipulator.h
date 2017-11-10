@@ -135,6 +135,7 @@ public:
   TAxis* getYaxis() const;
 
   // Set the TPad attibutes.
+  int setCanvasSize(int wx, int wy) { m_canvasWidth = wx; m_canvasHeight = wy; return 0; }
   int setFillColor(int col) { m_fillColor = col; return 0; }
   int setFrameFillColor(int col) { m_frameFillColor = col; return 0; }
   int setGridX(bool flag =true) { m_gridX = flag; return 0; }
