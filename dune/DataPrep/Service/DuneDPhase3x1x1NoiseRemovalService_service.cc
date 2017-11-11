@@ -16,22 +16,42 @@
 
 DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
+    fDoTwoPassFilter( pset.get<bool>("DoTwoPassFilter") ),
     fCoherent32( pset.get<bool>("Coherent32") ),
     fCoherent16( pset.get<bool>("Coherent16") ),
-    fLowFreq( pset.get<bool>("LowFreq") ),
+    fLowPassFlt( pset.get<bool>("LowPassFlt") ),
+    fFlatten( pset.get<bool>("Flatten") ),
     fCoherent32Groups( pset.get<std::vector<size_t>>("Coherent32Groups") ),
     fCoherent16Groups( pset.get<std::vector<size_t>>("Coherent16Groups") ),
-    fFltCoeffs( pset.get<std::vector<float>>("FltCoeffs") ),
     fRoiStartThreshold( pset.get<float>("RoiStartThreshold") ),
     fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
     fRoiPadLow( pset.get<int>("RoiPadLow") ),
     fRoiPadHigh( pset.get<int>("RoiPadHigh") ),
-    fGeometry( &*art::ServiceHandle<geo::Geometry>() )
+    fBinsToSkip( pset.get<int>("BinsToSkip") ),
+    fGeometry( &*art::ServiceHandle<geo::Geometry>() ),
+    fFFT( &*art::ServiceHandle<util::LArFFT>() )
 {
+    if (pset.get<std::string>("CorrMode") == "mean") { fMode = 1; }
+    else if (pset.get<std::string>("CorrMode") == "median") { fMode = 2; }
+    else
+    {
+        std::cout << "DuneDPhase3x1x1NoiseRemovalService WARNING: correction set to mean value." << std::endl;
+        fMode = 1;
+    }
+
+    fLowPassCoeffs.resize(fFFT->FFTSize() / 2 + 1);
+
+    const float fcut = 0.5; // [MHz]
+    for (size_t i = 0; i < fLowPassCoeffs.size(); ++i)
+    {
+        float f = 0.0015 * i; // [MHz]
+        fLowPassCoeffs[i] = 1.0 / sqrt(1.0 + pow(f/fcut, 8));
+    }
 }
 //**********************************************************************
 
-int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const {
+int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
+{
   const std::string myname = "DuneDPhase3x1x1NoiseRemovalService:update: ";
   if ( datamap.size() == 0 ) {
     std::cout << myname << "WARNING: No channels found." << std::endl;
@@ -59,69 +79,155 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
 
   std::cout << myname << "Processing noise removal..." << std::endl;
 
-  if (fCoherent32)
+  if(fDoTwoPassFilter)
   {
-    auto ch_groups = makeDaqGroups(32, fCoherent32Groups);
-    removeCoherent(ch_groups, datamap);
-  }
+    if (fFlatten)
+    {
+      removeSlopePolynomial(datamap);
+    }
 
-  if (fCoherent16)
+    if (fCoherent16)
+    {
+      auto ch_groups = makeDaqGroups(16, fCoherent16Groups);
+      removeCoherent(ch_groups, datamap);
+    }
+
+    if (fCoherent32)
+    {
+      auto ch_groups = makeDaqGroups(32, fCoherent32Groups);
+      removeCoherent(ch_groups, datamap);
+    }
+
+    if (fLowPassFlt)
+    {
+      removeHighFreq(datamap);
+    }
+  }
+  else
   {
-    auto ch_groups = makeDaqGroups(16, fCoherent16Groups);
-    removeCoherent(ch_groups, datamap);
-  }
+    if (fCoherent32)
+    {
+      auto ch_groups = makeDaqGroups(32, fCoherent32Groups);
+      removeCoherent(ch_groups, datamap);
+    }
 
-  if (fLowFreq)
-  {
-    removeLowFreq(datamap);
-  }
+    if (fCoherent16)
+    {
+      auto ch_groups = makeDaqGroups(16, fCoherent16Groups);
+      removeCoherent(ch_groups, datamap);
+    }
 
+    if (fLowPassFlt)
+    {
+      removeHighFreq(datamap);
+    }
+
+    if (fFlatten)
+    {
+      removeSlope(datamap);
+    }
+  }
   std::cout << myname << "...done." << std::endl;
 
   return 0;
 }
 //**********************************************************************
 
+std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMeanCorrection(
+    const std::vector<unsigned int> & channels,
+    const AdcChannelDataMap & datamap) const
+{
+  size_t n_samples = datamap.begin()->second.samples.size();
+  std::vector<size_t> ch_averaged(n_samples, 0);
+  std::vector<float> correction(n_samples, 0);
+
+  for (unsigned int ch : channels)
+  {
+      auto iacd = datamap.find(ch);
+      if (iacd == datamap.end()) continue;
+
+      const AdcChannelData & adc = iacd->second;
+      auto mask = roiMask(adc);
+
+      for (size_t s = 0; s < n_samples; ++s)
+      {
+          if (!mask[s]) { continue; }
+
+          AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+          if (flag != AdcGood) { continue; }
+
+          correction[s] += adc.samples[s];
+          ch_averaged[s]++;
+      }
+  }
+  for (size_t s = 0; s < n_samples; ++s)
+  {
+      if (ch_averaged[s] > 0) { correction[s] /= ch_averaged[s]; }
+  }
+  return correction;
+}
+
+std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMedianCorrection(
+    const std::vector<unsigned int> & channels,
+    const AdcChannelDataMap & datamap) const
+{
+  size_t n_samples = datamap.begin()->second.samples.size();
+  std::vector< std::vector<float> > samples(n_samples);
+
+  for (unsigned int ch : channels)
+  {
+      auto iacd = datamap.find(ch);
+      if (iacd == datamap.end()) continue;
+
+      const AdcChannelData & adc = iacd->second;
+      auto mask = roiMask(adc);
+
+      for (size_t s = 0; s < n_samples; ++s)
+      {
+          if (!mask[s]) { continue; }
+
+          AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+          if (flag != AdcGood) { continue; }
+
+          samples[s].push_back(adc.samples[s]);
+      }
+  }
+
+  std::vector<float> correction(n_samples);
+  for (size_t s = 0; s < n_samples; ++s)
+  {
+      size_t n = samples[s].size();
+      if (n < 2) { correction[s] = 0; continue; }
+
+      std::sort(samples[s].begin(), samples[s].end());
+
+      if ((n % 2) == 0) { correction[s] = 0.5 * (samples[s][n/2] + samples[s][(n/2)-1]); }
+      else              { correction[s] = samples[s][(n-1)/2]; }
+  }
+  return correction;
+}
+
 void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & ch_groups, AdcChannelDataMap& datamap) const
 {
   if (datamap.empty()) return;
 
   size_t n_samples = datamap.begin()->second.samples.size();
-  std::vector<size_t> ch_averaged(n_samples);
   std::vector<double> correction(n_samples);
 
   for (const auto & entry : ch_groups)
   {
     const auto & channels = entry.second;
-    std::fill(ch_averaged.begin(), ch_averaged.end(), 0);
-    std::fill(correction.begin(), correction.end(), 0);
-    for (unsigned int ch : channels)
+    std::vector<float> correction;
+
+    if (fMode == 1) // mean
     {
-        //std::cout << "  ch:" << ch;
-        auto iacd = datamap.find(ch);
-        if (iacd == datamap.end()) continue;
-
-        const AdcChannelData & adc = iacd->second;
-        auto mask = roiMask(adc);
-
-        for (size_t s = 0; s < n_samples; ++s)
-        {
-            if (!mask[s]) { continue; }
-
-            AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
-            if (flag != AdcGood) { continue; }
-
-            correction[s] += adc.samples[s];
-            ch_averaged[s]++;
-        }
+        correction = getMeanCorrection(channels, datamap);
     }
-    //std::cout << std::endl;
-    for (size_t s = 0; s < n_samples; ++s)
+    else if (fMode == 2) // median
     {
-        if (ch_averaged[s] > 0) { correction[s] /= ch_averaged[s]; }
-        //std::cout << " " << correction[s];
+        correction = getMedianCorrection(channels, datamap);
     }
-    //std::cout << std::endl << std::endl;
+
     for (unsigned int ch : channels)
     {
         auto iacd = datamap.find(ch);
@@ -133,7 +239,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
             adc.samples[s] -= correction[s];
         }
 
-        if (adc.samples[2] - adc.samples[1] > 30) // ugly fix of the two ticks in plane0
+        if (adc.samples[2] - adc.samples[1] > 20) // ugly fix of the two ticks in plane0
         {
             adc.samples[0] = adc.samples[2];
             adc.samples[1] = adc.samples[2];
@@ -143,34 +249,221 @@ void DuneDPhase3x1x1NoiseRemovalService::removeCoherent(const GroupChannelMap & 
 }
 //**********************************************************************
 
-void DuneDPhase3x1x1NoiseRemovalService::removeLowFreq(AdcChannelDataMap& datamap) const
+void DuneDPhase3x1x1NoiseRemovalService::removeHighFreq(AdcChannelDataMap& datamap) const
 {
-  art::ServiceHandle<util::LArFFT> fft;
-  std::vector< TComplex > ch_spectrum(fft->FFTSize() / 2 + 1);
-  std::vector< float > ch_waveform(fft->FFTSize(), 0);
+    auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
+
+    for (auto & entry : datamap)
+    {
+        if (chStatus.IsPresent(entry.first) && !chStatus.IsNoisy(entry.first)) { fftFltInPlace(entry.second.samples, fLowPassCoeffs); }
+    }
+}
+//**********************************************************************
+
+void DuneDPhase3x1x1NoiseRemovalService::removeSlope(AdcChannelDataMap& datamap) const
+{
+  size_t n_samples = datamap.begin()->second.samples.size(); 
+  std::vector< float > slope(n_samples);
 
   auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
 
   for (auto & entry : datamap)
   {
-    if (!chStatus.IsGood(entry.first)) { continue; }
+    if (!chStatus.IsPresent(entry.first) || chStatus.IsNoisy(entry.first)) { continue; }
 
     auto & adc = entry.second.samples;
-    size_t n_samples = adc.size();
+    auto mask = roiMask(entry.second);
 
-    std::copy(adc.begin(), adc.end(), ch_waveform.begin());
-    for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+    bool start = true;
+    float i = 0, s0 = 0, s1 = 0;
+    while (i < n_samples)
     {
-        ch_waveform[s] = ch_waveform[s-1];
+        if (mask[i])
+        {
+            if (start) { s0 = adc[i]; start = false; }
+            else { s0 = 0.8 * s0 + 0.2 * adc[i]; } // average over some past adc
+            slope[i] = adc[i]; ++i;
+        }
+        else
+        {
+            size_t j = i;
+            while ((j < n_samples) && !mask[j]) { ++j; }
+            if (j < n_samples)
+            {
+                size_t k = 1;
+                float f = 1, g = f;
+                s1 = adc[j];
+                while ((k < 25) && (j+k < n_samples) && mask[j+k])
+                {
+                    f *= 0.8; g += f; s1 += f * adc[j+k]; ++k;
+                }
+                s1 /= g; // average ofer following adc
+            }
+            else { s1 = s0; }
+
+            float ds = (s1 - s0) / (j - i + 1);
+
+            j = i;
+            while ((j < n_samples) && !mask[j])
+            {
+                slope[j] = s0 + (j - i + 1) * ds;
+                ++j;
+            }
+            start = true;
+            i = j;
+        }
     }
-    fft->DoFFT(ch_waveform, ch_spectrum);
-    for (size_t c = 0; c < fFltCoeffs.size(); ++c)
+
+    double y, sx = 0, sy = 0, sxy = 0, sx2 = 0, sy2 = 0;
+    for (size_t s = 0; s < n_samples; ++s)
     {
-        ch_spectrum[c] *= fFltCoeffs[c];
+        y = slope[s]; sx += s; sy += y; sxy += s*y; sx2 += s*s; sy2 += y*y;
     }
-    fft->DoInvFFT(ch_spectrum, ch_waveform);
-    std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, adc.begin());
+
+    double ssx = sx2 - ((sx * sx) / n_samples);
+    double c = sxy - ((sx * sy) / n_samples);
+    double mx = sx / n_samples;
+    double my = sy / n_samples;
+    double b = my - ((c / ssx) * mx);
+    double a = c / ssx;
+    for (size_t s = 0; s < n_samples; ++s) { adc[s] -= (a*s + b); }
   }
+}
+//**********************************************************************
+
+void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap& datamap) const
+{
+  size_t n_samples = datamap.begin()->second.samples.size();  //1667
+  std::vector< float > slope(n_samples);
+
+  auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
+
+  for (auto & entry : datamap)
+  {
+    if (!chStatus.IsPresent(entry.first) || chStatus.IsNoisy(entry.first)) { continue; }
+
+    auto & adc = entry.second.samples;
+    auto & signal = entry.second.signal;
+
+    //preparation for plynomial fit
+    int fOrder = 3; //order of the polynomial to be fitted to baseline
+    std::vector<long double> line(fOrder+2,0.);
+    std::vector< std::vector< long double> > matrix(fOrder+1,line);
+
+    for(int i = 0; i < fOrder+1; i++)
+    {
+      for(int j = 0; j < fOrder+2; j++)
+      {
+        matrix[i][j] = 0.;
+      }
+    }
+
+    double x, y;
+    AdcIndex np = 0;
+    std::vector<double> sol;
+    sol.resize(fOrder+1, 0.);
+
+
+    for(AdcIndex i = fBinsToSkip; i < n_samples; i++)
+    {
+      if(signal[i])
+      { 
+	continue;
+      }
+
+      x = i;
+      y = adc[i];
+
+      int j = 0;
+      for( int l = 1; l <= fOrder+1; l++)
+      {
+        long double wt = pow(x, l-1);
+        int k = 0;
+
+        for(int m=1; m <= l; m++)
+        {
+          matrix[j][k] += wt*pow(x,m-1);
+          k++;
+        }
+
+        matrix[j][fOrder+1] += y*wt;
+        j++;
+      }
+      np++;
+    }
+
+    for(int i = 1; i < fOrder+1; i++){
+      for(int j = 0; j<i; j++){
+        matrix[j][i] = matrix[i][j];
+      }
+    }   
+
+    //get parameters for polynomial with Gauss-Jordan
+    if(np > n_samples/10) //need minimum number of bins for fit
+    {
+      sol = GaussJordanSolv(matrix);
+
+       //subtract fit from waveform
+      for(AdcIndex i = 0; i < n_samples; i++)
+      {
+        double corr = 0.;
+        for(size_t a = 0; a < sol.size(); a++)
+	{
+          corr += sol[a]*pow(i,a);
+	}
+        adc[i] -= corr;
+      }
+    }
+  }
+}
+//**********************************************************************
+
+
+void DuneDPhase3x1x1NoiseRemovalService::fftFltInPlace(std::vector< float > & adc, const std::vector< float > & coeffs) const
+{
+  std::vector< TComplex > ch_spectrum(fFFT->FFTSize() / 2 + 1);
+  std::vector< float > ch_waveform(fFFT->FFTSize(), 0);
+
+  size_t n_samples = adc.size();
+
+  std::copy(adc.begin(), adc.end(), ch_waveform.begin());
+  for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+  {
+      ch_waveform[s] = ch_waveform[2*n_samples - s - 1];
+  }
+  fFFT->DoFFT(ch_waveform, ch_spectrum);
+  for (size_t c = 0; c < coeffs.size(); ++c)
+  {
+      ch_spectrum[c] *= coeffs[c];
+  }
+  fFFT->DoInvFFT(ch_spectrum, ch_waveform);
+
+  std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, adc.begin());
+}
+//**********************************************************************
+
+std::vector< float > DuneDPhase3x1x1NoiseRemovalService::fftFlt(const std::vector< float > & adc, const std::vector< float > & coeffs) const
+{
+  std::vector< TComplex > ch_spectrum(fFFT->FFTSize() / 2 + 1);
+  std::vector< float > ch_waveform(fFFT->FFTSize(), 0);
+
+  size_t n_samples = adc.size();
+
+  std::copy(adc.begin(), adc.end(), ch_waveform.begin());
+  for (size_t s = n_samples; s < ch_waveform.size(); ++s)
+  {
+      ch_waveform[s] = ch_waveform[2*n_samples - s - 1];
+  }
+  fFFT->DoFFT(ch_waveform, ch_spectrum);
+  for (size_t c = 0; c < coeffs.size(); ++c)
+  {
+      ch_spectrum[c] *= coeffs[c];
+  }
+  fFFT->DoInvFFT(ch_spectrum, ch_waveform);
+
+  std::vector< float > flt_adc(n_samples);
+  std::copy(ch_waveform.begin(), ch_waveform.begin()+n_samples, flt_adc.begin());
+  return flt_adc;
 }
 //**********************************************************************
 
@@ -178,16 +471,18 @@ std::vector<bool> DuneDPhase3x1x1NoiseRemovalService::roiMask(const AdcChannelDa
 {
   std::vector<bool> mask(adc.samples.size(), true);
 
+  auto adc_flt = fftFlt(adc.samples, fLowPassCoeffs);
+
   bool inroi = false;
-  for (int i = 0; i < (int)adc.samples.size(); ++i)
+  for (int i = 0; i < (int)adc_flt.size(); ++i)
   {
-    AdcSignal sig = adc.samples[i];
+    auto sig = adc_flt[i];
     if (inroi)
     {
       if (sig > fRoiEndThreshold) { mask[i] = false; }
       else
       {
-        for (int p = 0; p <= fRoiPadHigh; ++p) { if (i + p < (int)mask.size()) { mask[i + p] = false; } }
+        for (int p = 0; p <= fRoiPadHigh; ++p) { if ((i + p) < (int)mask.size()) { mask[i + p] = false; } }
         inroi = false;
       }
     }
@@ -195,7 +490,7 @@ std::vector<bool> DuneDPhase3x1x1NoiseRemovalService::roiMask(const AdcChannelDa
     {
       if (sig > fRoiStartThreshold )
       {
-        for (int p = fRoiPadLow; p >= 0; --p) { if (i - p >= 0) { mask[i + p] = false; } }
+        for (int p = fRoiPadLow; p >= 0; --p) { if (i - p >= 0) { mask[i - p] = false; } }
         inroi = true;
       }
     }
@@ -286,6 +581,54 @@ size_t DuneDPhase3x1x1NoiseRemovalService::get311Chan(size_t LAr_chan)
   } // end of if/else statementi
 
   return Chan311;
+}
+//**********************************************************************
+
+std::vector<double> DuneDPhase3x1x1NoiseRemovalService::GaussJordanSolv(std::vector< std::vector<long double> > matrix) const
+{
+
+  int n = matrix.size();
+  
+  for (int i=0; i<n; i++) {
+    // Search for maximum in this column
+    double maxEl = std::abs(matrix[i][i]);
+    int maxRow = i;
+    for (int k=i+1; k<n; k++) {
+      if (std::abs(matrix[k][i]) > maxEl) {
+        maxEl = std::abs(matrix[k][i]);
+        maxRow = k;
+      }
+    }
+
+       // Swap maximum row with current row (column by column)
+    for (int k=i; k<n+1;k++) {
+      double tmp = matrix[maxRow][k];
+      matrix[maxRow][k] = matrix[i][k];
+      matrix[i][k] = tmp;
+    }
+
+    // Make all rows below this one 0 in current column
+    for (int k=i+1; k<n; k++) {
+      double c = -matrix[k][i]/matrix[i][i];
+      for (int j=i; j<n+1; j++) {
+        if (i==j) {
+          matrix[k][j] = 0;
+        } else {
+          matrix[k][j] += c * matrix[i][j];
+        }
+      }
+    }
+  }
+
+  // Solve equation Ax=b for an upper triangular matrix A
+  std::vector<double> x(n);
+  for (int i=n-1; i>=0; i--) {
+    x[i] = matrix[i][n]/matrix[i][i];
+    for (int k=i-1;k>=0; k--) {
+      matrix[k][n] -= matrix[k][i] * x[i];
+    }
+  }
+  return x;  
 }
 //**********************************************************************
 

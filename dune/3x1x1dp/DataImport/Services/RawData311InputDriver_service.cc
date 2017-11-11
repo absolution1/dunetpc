@@ -4,14 +4,14 @@
 // brief Source to convert raw binary file from 3x1x1 to root file useful to LArSoft
 // Adapted from LarRawInputDriverShortBo.cc
 //
-// Created: April 20th 2017, Last Modified: 
+// Created: April 20th 2017, Last Modified:
 // Author: Kevin Fusshoeller, kevin.fusshoeller@cern.ch
 ////////////////////////////////////////////////////////////////////////////
 
 #include "RawData311InputDriver.h"
 
-#include "larcore/Geometry/Geometry.h"	
-	
+#include "larcore/Geometry/Geometry.h"
+
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
 #include "art/Framework/Core/EDProducer.h"
 #include "canvas/Utilities/Exception.h"
@@ -84,14 +84,14 @@ namespace lris
   //
   // ----------------------------------------------------------------------
 
- 
+
   void ReadPedestalFile(std::string PedestalFileName, std::vector< std::pair<double, double> > &PedMap){
   //initialize the channel-ped value map
     std::ifstream file;
     file.open(PedestalFileName);
     if( !file.is_open() )
     {
-      throw art::Exception( art::errors::FileReadError ) 
+      throw art::Exception( art::errors::FileReadError )
 		<< "failed to open input file " << PedestalFileName << "\n";
     }
 
@@ -102,16 +102,16 @@ namespace lris
       file >> rawch >> cryo >> crate >> ch >> mean >> rms;
       PedMap.emplace_back(mean, rms);
     }
-    
+
     file.close();
     return;
   }//Read Pedestal File()
 
-  
+
   // ---------------------------------------------------------------------
   //
   // ---------------------------------------------------------------------
-  
+
 
   void RawData311InputDriver::process_Event311(std::vector<raw::RawDigit>& digitList,
 			   dlardaq::evheader_t &event_head,
@@ -145,17 +145,17 @@ namespace lris
       digitList[LAr_chan] = rd;
     }
   }// process_Event311
-  
+
 
   //------------------------------------------------------------------
   // class c'tor/d'tor
-  RawData311InputDriver::RawData311InputDriver(fhicl::ParameterSet const &p, 
+  RawData311InputDriver::RawData311InputDriver(fhicl::ParameterSet const &p,
 					   art::ProductRegistryHelper &helper,
 					   art::SourceHelper const &pm)
     :
     fSourceHelper(pm),
     fCurrentSubRunID(),
-    fEventCounter(0), 
+    fEventCounter(0),
     DataDecode(nchannels, nsamples)
   {
     fPedestalFile = p.get<std::string>("PedestalFile");
@@ -169,13 +169,13 @@ namespace lris
     mf::LogInfo(__FUNCTION__)<<"File boundary: processed " <<fEventCounter <<" events out of " <<fNEvents <<"\n";
     DataDecode.m_file.close();
   }
-  
+
 
   // Read File.
   void RawData311InputDriver::readFile(std::string const &name,
 				     art::FileBlock* &fb)
   {
-    // Read in the pedestal file 
+    // Read in the pedestal file
     ReadPedestalFile(fPedestalFile, fPedMap);
 
     filename = name;
@@ -185,7 +185,7 @@ namespace lris
     // Prepare the EventDecoder
     //short nchannels_Vplane = 320;
     //short nchannels_Zplane = 960;
-    //short nchannels = nchannels_Vplane + nchannels_Zplane; 
+    //short nchannels = nchannels_Vplane + nchannels_Zplane;
     //uint32_t nsamples = 1667;
     //DataDecode(nchannels, nsamples);
 
@@ -195,17 +195,17 @@ namespace lris
       throw art::Exception( art::errors::FileReadError )
 	<< "failed to open input file " << name << "\n";
     }
-    
+
     // Read in the file header.
-    std::vector<dlardaq::BYTE> head_buf; 
+    std::vector<dlardaq::BYTE> head_buf;
     head_buf.resize(dlardaq::RunHeadSz);
- 
+
     DataDecode.m_file.read(&head_buf[0], head_buf.size());
     dlardaq::decode_runhead(&head_buf[0], file_head);
- 
+
     // Define start of event data.
     std::streampos data_start = DataDecode.m_file.tellg();
-  
+
     // Read in the file footer.
     std::vector<dlardaq::BYTE> foot_buf;
     foot_buf.resize(dlardaq::FileFootSz);
@@ -219,7 +219,7 @@ namespace lris
     if(fNEvents > 0 && fNEvents < 1000) //There should be 335 events at most in one file.
     {
       mf::LogInfo("")<<"Opened file " <<name <<" with " << fNEvents <<" events." <<"\n";
-    } else 
+    } else
     {
       throw art::Exception( art::errors::FileReadError )
 	<<"File " <<name <<" seems to have too many events: " <<fNEvents <<"\n";
@@ -242,17 +242,17 @@ namespace lris
       std::ios::streampos file_length = DataDecode.m_file.tellg();
       if( ((uint8_t)file_length - (uint8_t)current_position) > (uint8_t)100 )
       {
-	throw art::Exception( art::errors::FileReadError ) 
-	  <<"Processed " <<fEventCounter <<" events out of " <<fNEvents <<" but there are still " 
+	throw art::Exception( art::errors::FileReadError )
+	  <<"Processed " <<fEventCounter <<" events out of " <<fNEvents <<" but there are still "
 	  <<(file_length - current_position) <<" bits left." <<"\n";
       }
       mf::LogInfo(__FUNCTION__)<<"Completed reading file and closing output file." <<"\n";
       return false; //Tells readNext that all events have been read.
-    } 
+    }
 
     mf::LogInfo(__FUNCTION__)<<"Reading event " << fEventCounter << " from " << fNEvents <<"\n";
-    
-    // Create empty result, then fill it from current file 
+
+    // Create empty result, then fill it from current file
     dlardaq::evheader_t event_head;
     std::unique_ptr< std::vector<raw::RawDigit> > tpc_raw_digits( new std::vector<raw::RawDigit> );
     process_Event311(*tpc_raw_digits, event_head, fEventCounter++);
@@ -262,23 +262,28 @@ namespace lris
     // Prepare some stuff
     art::RunNumber_t rn;
     rn = file_head.run_num;
-    art::Timestamp tstamp = event_head.trig_info.ts.tv_sec;
+
+    std::uint64_t tthi = event_head.trig_info.ts.tv_sec;
+    std::uint64_t thilo = (tthi << 32) + event_head.trig_info.ts.tv_nsec;
+    art::Timestamp tstamp(thilo);
+
     size_t pos = filename.find("-");
-    std::string str_subrn = filename.substr(pos+1, 1);
+		size_t end = filename.find(".");
+    std::string str_subrn = filename.substr(pos+1, end-1);
     int int_subrn = std::stoi(str_subrn);
     art::SubRunNumber_t subrn = int_subrn;
     art::SubRunID newID(rn, subrn);
-    if( fCurrentSubRunID.runID() != newID.runID() ) 
+    if( fCurrentSubRunID.runID() != newID.runID() )
     {
       outR = fSourceHelper.makeRunPrincipal(rn, tstamp);
     }
-    if( fCurrentSubRunID != newID ) 
+    if( fCurrentSubRunID != newID )
     {
       outSR = fSourceHelper.makeSubRunPrincipal(rn, subrn, tstamp);
       fCurrentSubRunID = newID;
     }
 
-    outE = fSourceHelper.makeEventPrincipal(fCurrentSubRunID.run(), fCurrentSubRunID.subRun(), 
+    outE = fSourceHelper.makeEventPrincipal(fCurrentSubRunID.run(), fCurrentSubRunID.subRun(),
 					    fEventCounter - 1, tstamp);
 
     // Put products in the event.
@@ -289,4 +294,3 @@ namespace lris
 
 
 } // namespace lris
-

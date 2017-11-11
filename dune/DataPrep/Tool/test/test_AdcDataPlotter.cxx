@@ -46,8 +46,8 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "    LastTick: 0" << endl;
     fout << "    MaxSignal: 200" << endl;
     fout << "    HistName: \"hadc\"" << endl;
-    fout << "    HistTitle: \"Prepared ADC\"" << endl;
-    fout << "    PlotFileName: \"myplot.png\"" << endl;
+    fout << "    HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
+    fout << "    PlotFileName: \"myplot-run%RUN%-evt%EVENT%.png\"" << endl;
     fout << "    RootFileName: \"adc.root\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
@@ -83,6 +83,8 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
       assert(kdat.second);
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
+      data.run = 123;
+      data.event = ievt;
       float ped = peds[icha];
       data.channel = icha;
       data.pedestal = ped;

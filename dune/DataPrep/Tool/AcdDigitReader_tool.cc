@@ -22,27 +22,27 @@ AcdDigitReader::AcdDigitReader(fhicl::ParameterSet const& ps)
 
 //**********************************************************************
 
-int AcdDigitReader::update(AdcChannelData& acd) const {
+DataMap AcdDigitReader::update(AdcChannelData& acd) const {
   const string myname = "AcdDigitReader::update: ";
   // Take the digit from the channel data.
   const RawDigit* pdig = acd.digit;
   if ( pdig == nullptr ) {
     cout << myname << "ERROR: Digit is null." << endl;
-    return 1;
+    return DataMap(1);
   }
   const RawDigit& dig = *pdig;
   // Check the input data is empty.
   if ( acd.raw.size() ) {
     cout << myname << "ERROR: ADC channel has raw data." << endl;
-    return 2;
+    return DataMap(2);
   }
   if ( acd.flags.size() ) {
     cout << myname << "ERROR: ADC channel has flag data." << endl;
-    return 3;
+    return DataMap(3);
   }
   if ( acd.pedestal != AdcChannelData::badSignal ) {
     cout << myname << "ERROR: ADC channel has a pedestal." << endl;
-    return 4;
+    return DataMap(4);
   }
   // Set or check the channel number.
   if ( acd.channel == AdcChannelData::badChannel ) {
@@ -50,7 +50,7 @@ int AcdDigitReader::update(AdcChannelData& acd) const {
   } else {
     if ( acd.channel != dig.Channel() ) {
       cout << myname << "ERROR: Raw digit has inconsistent channel number." << endl;
-      return 5;
+      return DataMap(5);
     }
   }
   // Copy pedestal.
@@ -59,7 +59,7 @@ int AcdDigitReader::update(AdcChannelData& acd) const {
   unsigned int nsig = dig.Samples();
   acd.raw.resize(nsig, -999);  // See https://cdcvs.fnal.gov/redmine/issues/11572.
   raw::Uncompress(dig.ADCs(), acd.raw, dig.GetPedestal(), dig.Compression());
-  return 0;
+  return DataMap(0);
 }
 
 //**********************************************************************

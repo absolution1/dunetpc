@@ -99,16 +99,19 @@ adcnr_dune35tlegacy: {
 
 adcnr_dunedphase3x1x1: {
   service_provider: DuneDPhase3x1x1NoiseRemovalService
+  CorrMode:                         "median" # mean or median
+  DoTwoPassFilter:                      true
+  BinsToSkip: 				2
   Coherent32:                           true
-  Coherent32Groups:                       []
+  Coherent32Groups:                       [] # do all groups if empty list
   Coherent16:                           true
-  Coherent16Groups:   [6, 7, 16, 17, 18, 19]
-  RoiStartThreshold:                       8
+  Coherent16Groups:   [6, 7, 16, 17, 18, 19] # do all groups if empty list
+  RoiStartThreshold:                       7
   RoiEndThreshold:                         6
   RoiPadLow:                               8
-  RoiPadHigh:                             25
-  LowFreq:                             false
-  FltCoeffs:               [0.1, 0.75, 0.95]
+  RoiPadHigh:                             40
+  Flatten:                              true
+  LowPassFlt:                          false
 }
 
 #***********************************************************************
@@ -267,8 +270,18 @@ adcprep_dune35tdata: {
 
 # Channel groups.
 
-changroup_apa: {
+# Process by APA keeping all ROPs.
+changroup_apa_keepall: {
   service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: []
+}
+
+# Process by APA dropping the protoDUNE outer collection plane.
+changroup_apa_pd_drop_outer: {
+  service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: [11, 7]
 }
 
 changroup_rop: {

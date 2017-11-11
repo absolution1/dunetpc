@@ -69,6 +69,7 @@ protodune_analysistree.FlashMatchAssocLabel: [ "", "", "" ]
 protodune_analysistree.SaveShowerInfo:  false
 
 dune10kt_analysistree: @local::dune35t_analysistree
+dune10kt_analysistree.PandoraNuVertexModuleLabel: "pandora"
 dune10kt_analysistree.TrackModuleLabel: [ "pmtrack", "pmtracktc", "pandora", "pmtrajfit" ]
 dune10kt_analysistree.CalorimetryModuleLabel: [ "pmtrackcalo", "pmtracktccalo", "pandoracalo", "pmtrajfitcalo" ]
 dune10kt_analysistree.ParticleIDModuleLabel:       [ "pmtrackpid", "pmtracktcpid", "pandorapid", "pmtrajfitpid" ]
@@ -85,6 +86,7 @@ dune10kt_analysistree.SaveGenieInfo:              true
 dune10kt_analysistree.SaveExternCounterInfo:      false
 dune10kt_analysistree.SaveFlashInfo:              false
 dune10kt_analysistree.SaveShowerInfo:             true
+dune10kt_analysistree.SavePandoraNuVertexInfo:    true
 
 fddphase_analysistree: @local::dune35t_analysistree
 fddphase_analysistree.TrackModuleLabel: [ "pmtrack" ]

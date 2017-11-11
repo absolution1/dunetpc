@@ -12,7 +12,65 @@
 #  services.RawDigitPrepService.DisplayTools = ["adcPlotter"]
 ################################################################################
 
-# Dump ADC contents to the log file.
+# Destination for data prep histograms.
+tools.adcHists: {
+  tool_type: SimpleHistogramManager
+  LogLevel: 1
+}
+
+# Dump ADC channel contents to the log file.
+tools.adcChannelDumper: {
+  tool_type: AdcChannelDumper
+  FileName: ""
+  Prefix: "ADC dump: "
+  NewFile: false
+  MaxSample: 100
+}
+
+# Dump raw ADC channel waveform to a histogram.
+tools.adcPlotRaw: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["raw"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  HistManager: ""
+}
+
+# Dump prepared ADC channel waveform to a histogram.
+tools.adcPlotPrepared: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["prepared"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  HistManager: ""
+}
+
+# Dump ADC channel distribution to a histogram.
+tools.adcPlotRawDist: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["rawdist"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  HistManager: ""
+}
+
+# Fit ADC distribution to get pedestal.
+tools.adcPedestalFit: {
+  tool_type: AdcPedestalFitter
+  LogLevel: 1
+  HistName: "adcped_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC pedestal fit for event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  HistManager: ""
+}
+
+# Dump ADC map contents to the log file.
 tools.adcDumper: {
   tool_type: AdcDataDumper
   FileName: ""
@@ -59,4 +117,47 @@ tools.rawAdcPlotter: {
 tools.digitReader: {
   tool_type: AcdDigitReader
   LogLevel: 1
+}
+
+# Fill sample from 12-bit ADC data.
+tools.adcSampleFiller: {
+  tool_type: AdcSampleFiller
+  LogLevel: 1
+  AdcUnderflow: 0
+  AdcOverflow: 4095
+}
+
+# Find ADC signals with simple threshold algorithm.
+tools.adcThresholdSignalFinder: {
+  tool_type: AdcThresholdSignalFinder
+  LogLevel: 1
+  Threshold: 100
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+
+# Fetch ROI info and hists.
+tools.adcRoiViewer: {
+  tool_type: AdcRoiViewer
+  LogLevel: 1
+  HistOpt:  1
+}
+
+# Build ROI with respect to local basline
+tools.AcdLocalRoiBuilder: {
+  tool_type: AcdLocalRoiBuilder
+  LogLevel: 1
+  BinsToAverageForPedestal: 100
+  BinsToSkip: 2
+  UseStandardDeviation: true
+  NConsecBinsAboveThreshold1: 9
+  NSigmaStart1: 0.5
+  NSigmaEnd1: 0.0
+  NConsecBinsAboveThreshold2: 4
+  NSigmaStart2: 1.8
+  NSigmaMax: 5
+  PadLow: 10
+  PadHigh: 30
 }
