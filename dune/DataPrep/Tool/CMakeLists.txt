@@ -83,5 +83,15 @@ simple_plugin(AcdLocalRoiBuilder   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AcdDPhase3x1x1RoiBuilder   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                lardataobj_RawData
+                lardataobj_RecoBase
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
 
