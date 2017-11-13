@@ -22,13 +22,11 @@ simple_plugin(MichelHitCounter "module"
 )
 
 simple_plugin(MichelEventSelection "module"
+              larcorealg_Geometry
               lardataobj_RecoBase
-
               larreco_Calorimetry
               larreco_RecoAlg_PMAlg
-
               larsim_MCCheater_BackTracker_service
-
               nusimdata_SimulationBase
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
@@ -40,7 +38,6 @@ simple_plugin(MichelEventSelection "module"
               ${CETLIB}
               ${ROOT_BASIC_LIB_LIST}
               BASENAME_ONLY
-
 )
 
 install_headers()
