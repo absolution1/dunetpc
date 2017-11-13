@@ -1,12 +1,10 @@
 
 simple_plugin(MichelHitCounter "module"
-              lardataobj_RecoBase
-
               larreco_Calorimetry
               larreco_RecoAlg_PMAlg
-
               larsim_MCCheater_BackTracker_service
-
+              lardataobj_RecoBase
+              lardata_ArtDataHelper
               nusimdata_SimulationBase
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
@@ -18,15 +16,15 @@ simple_plugin(MichelHitCounter "module"
               ${CETLIB}
               ${ROOT_BASIC_LIB_LIST}
               BASENAME_ONLY
-
 )
 
 simple_plugin(MichelEventSelection "module"
               larcorealg_Geometry
-              lardataobj_RecoBase
               larreco_Calorimetry
               larreco_RecoAlg_PMAlg
               larsim_MCCheater_BackTracker_service
+              lardataobj_RecoBase
+              lardata_ArtDataHelper
               nusimdata_SimulationBase
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
