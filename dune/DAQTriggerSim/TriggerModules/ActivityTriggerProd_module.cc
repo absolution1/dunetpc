@@ -70,7 +70,7 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
   private:
 
     // --- We want to use backtracker later backtracker.
-    art::ServiceHandle<cheat::ParticleInventoryService> bt_serv;
+    art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
     // declare fcl input variables here
     std::string fAString;
@@ -127,7 +127,7 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
       mf::LogError("ActivityTrigger_Producer") << "The raw::OpDetWaveform you gave me " << fOpDetWaveLabel << " is not in the event..." << std::endl;
 
     // --- Lets get the MCTruth information out of the event using the backtracker we defined earlier...
-    const sim::ParticleList& plist = bt_serv->ParticleList();
+    const sim::ParticleList& plist = pi_serv->ParticleList();
     // --- Now loop through the particle list.
     for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar) {
       // --- Grab this particle.
