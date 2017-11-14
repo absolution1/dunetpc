@@ -109,6 +109,11 @@ public:
   const TObjVector& objects() const { return m_objs; }
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
+  // Return a histogram (primary or secondary) by name.
+  // This is the drawn hist and may be used to changes its visible properties
+  // or reference those in a legend.
+  TH1* getHist(std::string hnam);
+
   // Return the vertical mod lines associated with this pad.
   const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
 

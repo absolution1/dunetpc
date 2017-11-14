@@ -163,6 +163,18 @@ double TPadManipulator::ymax() const {
 
 //**********************************************************************
 
+TH1* TPadManipulator::getHist(string hnam) {
+  if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
+  for ( const TObjPtr& pobj : objects() ) {
+    TH1* ph = dynamic_cast<TH1*>(pobj.get());
+    if ( ph == nullptr ) continue;
+    if ( ph->GetName() == hnam ) return ph;
+  }
+  return nullptr;
+}
+
+//**********************************************************************
+
 int TPadManipulator::addPad(double x1, double y1, double x2, double y2, int icol) {
   if ( x2 <= x1 ) return 1;
   if ( y2 <= y1 ) return 2;
