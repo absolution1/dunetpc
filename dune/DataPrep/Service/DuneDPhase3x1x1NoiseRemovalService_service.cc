@@ -12,25 +12,42 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
+#include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneInterface/Tool/AcdRoiBuilder.h"
+
 //**********************************************************************
 
 DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
-    fDoTwoPassFilter( pset.get<bool>("DoTwoPassFilter") ),
-    fCoherent32( pset.get<bool>("Coherent32") ),
-    fCoherent16( pset.get<bool>("Coherent16") ),
-    fLowPassFlt( pset.get<bool>("LowPassFlt") ),
-    fFlatten( pset.get<bool>("Flatten") ),
-    fCoherent32Groups( pset.get<std::vector<size_t>>("Coherent32Groups") ),
-    fCoherent16Groups( pset.get<std::vector<size_t>>("Coherent16Groups") ),
-    fRoiStartThreshold( pset.get<float>("RoiStartThreshold") ),
-    fRoiEndThreshold( pset.get<float>("RoiEndThreshold") ),
-    fRoiPadLow( pset.get<int>("RoiPadLow") ),
-    fRoiPadHigh( pset.get<int>("RoiPadHigh") ),
-    fBinsToSkip( pset.get<int>("BinsToSkip") ),
-    fGeometry( &*art::ServiceHandle<geo::Geometry>() ),
-    fFFT( &*art::ServiceHandle<util::LArFFT>() )
-{
+    m_pROIBuilderTool(nullptr) {
+
+  fDoTwoPassFilter  = pset.get<bool>("DoTwoPassFilter");
+
+
+    fCoherent32 = pset.get<bool>("Coherent32");
+    fCoherent16 = pset.get<bool>("Coherent16");
+    fLowPassFlt = pset.get<bool>("LowPassFlt");
+    fFlatten = pset.get<bool>("Flatten");
+    fFlattenExtrapolate = pset.get<bool>("FlattenExtrapolate");
+    fCoherent32Groups = pset.get<std::vector<size_t>>("Coherent32Groups");
+    fCoherent16Groups = pset.get<std::vector<size_t>>("Coherent16Groups");
+    fRoiStartThreshold = pset.get<float>("RoiStartThreshold");
+    fRoiEndThreshold = pset.get<float>("RoiEndThreshold");
+    fRoiPadLow = pset.get<int>("RoiPadLow");
+    fRoiPadHigh = pset.get<int>("RoiPadHigh");
+    fBinsToSkip = pset.get<AdcIndex>("BinsToSkip");
+    fGeometry = &*art::ServiceHandle<geo::Geometry>();
+    fFFT = &*art::ServiceHandle<util::LArFFT>();
+
+    // Retrieve tools
+    pset.get_if_present<std::string>("ROIBuilderTool", m_ROIBuilderTool);
+    DuneToolManager* ptm = DuneToolManager::instance("");
+    if ( ptm == nullptr ) {
+    std::cout << "ERROR: Unable to retrieve tool manaager." << std::endl;
+    } else {
+    m_pROIBuilderTool = ptm->getPrivate<AcdRoiBuilder>(m_ROIBuilderTool);
+    }
+
     if (pset.get<std::string>("CorrMode") == "mean") { fMode = 1; }
     else if (pset.get<std::string>("CorrMode") == "median") { fMode = 2; }
     else
@@ -77,13 +94,20 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     return 3;
   }
 
-  std::cout << myname << "Processing noise removal..." << std::endl;
+//  std::cout << myname << "Processing noise removal..." << std::endl;
 
   if(fDoTwoPassFilter)
   {
     if (fFlatten)
     {
       removeSlopePolynomial(datamap);
+    }
+
+    //Rebuild ROI after flattening
+    for (auto & entry : datamap)
+    {
+    auto & acd = entry.second;
+    m_pROIBuilderTool->build(acd);
     }
 
     if (fCoherent16)
@@ -127,7 +151,7 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
       removeSlope(datamap);
     }
   }
-  std::cout << myname << "...done." << std::endl;
+//  std::cout << myname << "...done." << std::endl;
 
   return 0;
 }
@@ -147,11 +171,14 @@ std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMeanCorrection(
       if (iacd == datamap.end()) continue;
 
       const AdcChannelData & adc = iacd->second;
-      auto mask = roiMask(adc);
-
+//      auto mask = roiMask(adc);
       for (size_t s = 0; s < n_samples; ++s)
       {
-          if (!mask[s]) { continue; }
+//          if (!mask[s]) { continue; }
+	  if (adc.signal[s]) 
+	  {
+	    continue; 
+	  }
 
           AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
           if (flag != AdcGood) { continue; }
@@ -333,8 +360,8 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlope(AdcChannelDataMap& datamap)
 
 void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap& datamap) const
 {
-  size_t n_samples = datamap.begin()->second.samples.size();  //1667
-  std::vector< float > slope(n_samples);
+  AdcIndex n_samples = datamap.begin()->second.samples.size();  //1667
+//  std::vector< float > slope(n_samples);
 
   auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
 
@@ -344,6 +371,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
 
     auto & adc = entry.second.samples;
     auto & signal = entry.second.signal;
+//    auto & channel = entry.second.channel;
 
     //preparation for plynomial fit
     int fOrder = 3; //order of the polynomial to be fitted to baseline
@@ -358,11 +386,118 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
       }
     }
 
-    double x, y;
+//    double x, y;
+    std::vector<double> x, y;
+    x.resize(n_samples, 0.);
+    y.resize(n_samples, 0.);
     AdcIndex np = 0;
     std::vector<double> sol;
     sol.resize(fOrder+1, 0.);
 
+  if(fFlattenExtrapolate)
+  {
+    // check if ROI at beginning of waveform
+    if(signal[fBinsToSkip])
+    { 
+//      std::cout << "ROI at fBinsToSkip. Channel: " << channel << std::endl;
+      AdcIndex ROIStart = fBinsToSkip;
+      AdcIndex ROIEnd = fBinsToSkip;
+      for( AdcIndex a = ROIStart; a < n_samples; a++)
+      {
+	if(!signal[a])
+	{
+	  ROIEnd = a-1;
+	  break;
+	}
+      }
+
+//      std::cout << "ROIStart: " << ROIStart << std::endl;
+//      std::cout << "ROIEnd: " << ROIEnd << std::endl;
+
+      // do linear regression for following 200 bins
+      double sx = 0., sy = 0., sxy = 0., sx2 = 0.;
+      AdcIndex a = ROIEnd+1;
+      AdcIndex aCount = 0;
+      while( aCount < 200 && a < n_samples )
+      {
+	if(!signal[a])
+	{
+	sx += a; sy += adc[a]; sxy += a*adc[a]; sx2 += a*a;
+	aCount++;
+	}
+      a++;
+      }
+      double c = (sy*sx2 - sx*sxy)/((double)aCount*sx2 - sx*sx);
+      double d = ((double)aCount*sxy - sx*sy)/((double)aCount*sx2 - sx*sx);
+
+/*
+	std::cout << "sx: " << sx << std::endl;	
+	std::cout << "sy: " << sy << std::endl;
+	std::cout << "sxy: " << sxy << std::endl;	
+	std::cout << "sx2: " << sx2 << std::endl;
+	std::cout << "c: " << c << std::endl;	
+	std::cout << "d: " << d << std::endl;	
+	std::cout << std::endl;	
+*/
+      for( AdcIndex a = ROIStart; a <= ROIEnd; a++)
+      {
+	x[a] = a;
+	y[a] = c + d*a;
+//	std::cout << "x: " << x[a] << "\t" << "y: " << y[a] << std::endl;
+      }
+    }
+
+    // check if ROI at end of waveform
+    if(signal[n_samples-1])
+    {
+//      std::cout << "ROI at n_samples-1. Channel: " << channel << std::endl;
+      AdcIndex ROIStart = n_samples-1;
+      AdcIndex ROIEnd = n_samples-1;
+      for( AdcIndex a = ROIStart; a >= fBinsToSkip; a--)
+      {
+	if(!signal[a])
+	{
+	  ROIStart = a+1;
+	  break;
+	}
+      }
+//      std::cout << "ROIStart: " << ROIStart << std::endl;
+//      std::cout << "ROIEnd: " << ROIEnd << std::endl;
+
+      // do linear regression for previous 200 bins
+      double sx = 0., sy = 0., sxy = 0., sx2 = 0.;
+      AdcIndex a = ROIEnd-1;
+      AdcIndex aCount = 0;
+      while( aCount < 200 && a >= fBinsToSkip)
+      {
+	if(!signal[a])
+	{
+	sx += a; sy += adc[a]; sxy += a*adc[a]; sx2 += a*a;
+	aCount++;
+	}
+      a--;
+      }
+//      std::cout << "aCount: " << aCount << std::endl;
+
+      double c = (sy*sx2 - sx*sxy)/((double)aCount*sx2 - sx*sx);
+      double d = ((double)aCount*sxy - sx*sy)/((double)aCount*sx2 - sx*sx);
+/*
+	std::cout << "sx: " << sx << std::endl;	
+	std::cout << "sy: " << sy << std::endl;
+	std::cout << "sxy: " << sxy << std::endl;	
+	std::cout << "sx2: " << sx2 << std::endl;
+	std::cout << "c: " << c << std::endl;	
+	std::cout << "d: " << d << std::endl;	
+	std::cout << std::endl;	
+*/
+      for( AdcIndex a = ROIEnd; a >= ROIStart; a--)
+      {
+	x[a] = a;
+	y[a] = c + d*a;
+//	std::cout << "x: " << x[a] << "\t" << "y: " << y[a] << std::endl;
+      }
+    }
+  } //if fFlattenExtrapolate
 
     for(AdcIndex i = fBinsToSkip; i < n_samples; i++)
     {
@@ -371,26 +506,27 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
 	continue;
       }
 
-      x = i;
-      y = adc[i];
+      x[i] = i;
+      y[i] = adc[i];
 
       int j = 0;
       for( int l = 1; l <= fOrder+1; l++)
       {
-        long double wt = pow(x, l-1);
+        long double wt = pow(x[i], l-1);
         int k = 0;
 
         for(int m=1; m <= l; m++)
         {
-          matrix[j][k] += wt*pow(x,m-1);
+          matrix[j][k] += wt*pow(x[i],m-1);
           k++;
         }
 
-        matrix[j][fOrder+1] += y*wt;
+        matrix[j][fOrder+1] += y[i]*wt;
         j++;
       }
       np++;
     }
+
 
     for(int i = 1; i < fOrder+1; i++){
       for(int j = 0; j<i; j++){
@@ -404,7 +540,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
       sol = GaussJordanSolv(matrix);
 
        //subtract fit from waveform
-      for(AdcIndex i = 0; i < n_samples; i++)
+      for(AdcIndex i = fBinsToSkip; i < n_samples; i++)
       {
         double corr = 0.;
         for(size_t a = 0; a < sol.size(); a++)
@@ -630,7 +766,6 @@ std::vector<double> DuneDPhase3x1x1NoiseRemovalService::GaussJordanSolv(std::vec
   }
   return x;  
 }
-//**********************************************************************
 
 std::ostream& DuneDPhase3x1x1NoiseRemovalService::print(std::ostream& out, std::string prefix) const
 {

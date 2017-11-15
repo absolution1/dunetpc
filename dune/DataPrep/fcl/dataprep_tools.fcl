@@ -161,3 +161,20 @@ tools.AcdLocalRoiBuilder: {
   PadLow: 10
   PadHigh: 30
 }
+
+# Build ROI with respect to local basline
+tools.AcdDPhase3x1x1RoiBuilder: {
+  tool_type: AcdLocalRoiBuilder
+  LogLevel: 1
+  BinsToAverageForRMS: 100
+  BinsToSkip: 0
+  UseStandardDeviation: false
+  NConsecBinsAboveThreshold1: 40
+  NSigmaStart1: 1.0
+  NSigmaEnd1: 0.0
+  NConsecBinsAboveThreshold2: 10
+  NSigmaStart2: 2.0
+  NSigmaMax: 3.0
+  PadLow: 20
+  PadHigh: 150
+}
