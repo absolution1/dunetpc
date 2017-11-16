@@ -444,7 +444,7 @@ int MichelReco::trackMatching( int trackIndex, art::FindManyP<recob::Hit> hitsFr
 
   for (size_t h = 0; h < hitsFromTracks.at(trackIndex).size(); ++h)
   { 
-    for (auto const & id : bt_serv->HitToTrackIDE(hitsFromTracks.at(trackIndex)[h]))
+    for (auto const & id : bt_serv->HitToTrackIDEs(hitsFromTracks.at(trackIndex)[h]))
     { 
       trackID_E[id.trackID] += id.energy;
     }
@@ -572,7 +572,7 @@ bool MichelReco::areHitsMichel( const std::vector< recob::Hit > & hits ) {
   art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
   std::unordered_map< int, double > trkIDE;
   for ( auto const & hit : hits ) {
-    for ( auto const & ide : bt_serv->HitToTrackIDE(hit) ) { trkIDE[ide.trackID] += ide.energy; }
+    for ( auto const & ide : bt_serv->HitToTrackIDEs(hit) ) { trkIDE[ide.trackID] += ide.energy; }
   }
   
   int best_id(0);
