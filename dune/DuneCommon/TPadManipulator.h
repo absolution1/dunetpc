@@ -29,6 +29,7 @@ class TH1;
 class TGraph;
 class TAxis;
 class TLegend;
+class TFrame;
 
 class TPadManipulator {
 
@@ -91,6 +92,7 @@ public:
   // Use pad()->SetFillColor(...), etc. to change the appearance of the pad.
   // and pad()->SetFrameFillColor(...), etc. to change the appearance of the frame in the pad.
   TVirtualPad* pad() const { return m_ppad; }
+  bool havePad() const { return pad() != nullptr; }
 
   // Return the canvas holding this pad. It may be held by an ancestor.
   // If doDraw is true, a draw is done if the canvas does not yet exist.
@@ -111,7 +113,11 @@ public:
 
   // Return the primary histogram or graph for this pad.
   TH1* hist() const { return m_ph.get(); }
+  bool haveHist() const { return hist() != nullptr; }
   TGraph* graph() const { return m_pg.get(); }
+  bool haveGraph() const { return graph() != nullptr; }
+  TObject* object() const;
+  bool haveHistOrGraph() const { return object() != nullptr; }
   std::string drawOpt() const { return m_dopt; }
 
   // Return the overlaid objects and options.
@@ -122,6 +128,13 @@ public:
   // This is the drawn hist and may be used to changes its visible properties
   // or reference those in a legend.
   TH1* getHist(std::string hnam);
+
+  // Return info about the frame that holds the histogram or graph.
+  // The frame does not exist until draw() is called..
+  TFrame* frame() const;
+  bool haveFrame() const { return frame() != nullptr; }
+  int framePixelsX() const;
+  int framePixelsY() const;
 
   // Return the vertical mod lines associated with this pad.
   const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
@@ -161,6 +174,13 @@ public:
   int setGrid(bool flag =true) { m_gridX = flag; m_gridY=flag; return 0; }
   int setLogX(bool flag =true) { m_logX = flag; return 0; }
   int setLogY(bool flag =true) { m_logY = flag; return 0; }
+
+  // Set the tick lengths. This is a fraction of the axis length.
+  // If the X length is zero, those ticks are not drawn.
+  // If the Y length is zero, those ticks are drawn with the same pixel length as the X-axis.
+  int setTickLength(double len) { m_tickLengthX = len; m_tickLengthY = 0.0; return update(); }
+  int setTickLengthX(double len) { m_tickLengthX = len; return update(); }
+  int setTickLengthY(double len) { m_tickLengthY = len; return update(); }
 
   // Set the histogram range
   // For histograms, the range is restricted to that of the binning.
@@ -239,6 +259,8 @@ private:
   bool m_gridY;
   bool m_logX;
   bool m_logY;
+  double m_tickLengthX;
+  double m_tickLengthY;
   std::shared_ptr<TH1> m_flowHist;
   bool m_showUnderflow;
   bool m_showOverflow;

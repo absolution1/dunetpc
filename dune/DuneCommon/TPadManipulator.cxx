@@ -12,6 +12,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TGraph.h"
+#include "TFrame.h"
 #include "TLine.h"
 #include "TF1.h"
 #include "TLegend.h"
@@ -32,6 +33,7 @@ TPadManipulator::TPadManipulator()
   m_fillColor(0), m_frameFillColor(0),
   m_gridX(false), m_gridY(false),
   m_logX(false), m_logY(false),
+  m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_showUnderflow(false), m_showOverflow(false),
   m_top(false), m_right(false) {
   const string myname = "TPadManipulator::ctor: ";
@@ -98,6 +100,8 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_gridY = rhs.m_gridY;
   m_logX = rhs.m_logX;
   m_logY = rhs.m_logY;
+  m_tickLengthX = rhs.m_tickLengthX;
+  m_tickLengthY = rhs.m_tickLengthY;
   m_showUnderflow = rhs.m_showUnderflow;
   m_showOverflow = rhs.m_showOverflow;
   m_top = rhs.m_top;
@@ -129,7 +133,7 @@ TPadManipulator::~TPadManipulator() {
 //**********************************************************************
 
 double TPadManipulator::xmin() const {
-  if ( m_ppad != nullptr ) return m_ppad->GetUxmin();
+  if ( ! havePad() ) return pad()->GetUxmin();
   TAxis* pax = getXaxis();
   if ( pax == nullptr ) return 0.0;
   return pax->GetXmin();
@@ -138,7 +142,7 @@ double TPadManipulator::xmin() const {
 //**********************************************************************
 
 double TPadManipulator::xmax() const {
-  if ( m_ppad != nullptr ) return m_ppad->GetUxmax();
+  if ( havePad() ) return pad()->GetUxmax();
   TAxis* pax = getXaxis();
   if ( pax == nullptr ) return 0.0;
   return pax->GetXmax();
@@ -181,6 +185,13 @@ int TPadManipulator::print(string fname) {
 
 //**********************************************************************
 
+TObject* TPadManipulator::object() const {
+  if ( haveHist() ) return hist();
+  return graph();
+}
+
+//**********************************************************************
+
 TH1* TPadManipulator::getHist(string hnam) {
   if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
   for ( const TObjPtr& pobj : objects() ) {
@@ -189,6 +200,24 @@ TH1* TPadManipulator::getHist(string hnam) {
     if ( ph->GetName() == hnam ) return ph;
   }
   return nullptr;
+}
+
+//**********************************************************************
+
+TFrame* TPadManipulator::frame() const {
+  return havePad() ? pad()->GetFrame() : nullptr;
+}
+
+//**********************************************************************
+
+int TPadManipulator::framePixelsX() const {
+  return haveFrame() ? frame()->GetBBox().fWidth : 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::framePixelsY() const {
+  return haveFrame() ? frame()->GetBBox().fHeight : 0;
 }
 
 //**********************************************************************
@@ -313,8 +342,9 @@ int TPadManipulator::update() {
   const string myname = "TPadManipulator::update: ";
   if ( dbg ) cout << myname << this << endl;
   int rstat = 0;
-  // No action if cavas/pad is not yet created.
-  if ( m_ppad == nullptr ) return 0;
+  // No action if canvas/pad is not yet created.
+  // Call draw() to create the pad.
+  if ( ! havePad() ) return 0;
   // Update the subpads.
   // If needed, create the TPad for each subpad.
   TVirtualPad* pPadSave = gPad;
@@ -350,10 +380,10 @@ int TPadManipulator::update() {
   m_ppad->SetGridy(m_gridY);
   m_ppad->SetLogx(m_logX);
   m_ppad->SetLogy(m_logY);
-  // Make sure the axis range are up to date before fetching them.
+  // Draw axis so their ranges are up to date and the frame is available.
+  m_ppad->Clear();
   if ( m_ph != nullptr ) m_ph->Draw("AXIS");
   else if ( m_pg != nullptr ) m_pg->Draw("A");
-  //gPad->Update();
   string sopt = "-US";
   const TList* prims = m_ppad->GetListOfPrimitives();
   bool noHist = m_ph == nullptr;
@@ -382,7 +412,7 @@ int TPadManipulator::update() {
     }
   }
   if ( noHist && noGraph ) {
-    //cout << myname << "Pad does not have a histogram or graph." << endl;
+    cout << myname << "Pad does not have a histogram or graph!" << endl;
     gPad = pPadSave;
     return 0;
   }
@@ -399,6 +429,21 @@ int TPadManipulator::update() {
     getXaxis()->SetTitleOffset(1.20);
     if ( isTH ) m_ph->SetTitleOffset(1.20);
   }
+  // Set the axis tick lengths.
+  // If the Y-size is zero, then they are drawn to have the same pixel length as the X-axis.
+  m_ppad->Update();
+  double ticklenx = m_tickLengthX;
+  double tickleny = m_tickLengthY;
+  if ( ticklenx < 0.0 ) ticklenx = 0.0;
+  if ( tickleny <= 0.0 ) {
+    if ( framePixelsY() ) {
+      double wx = framePixelsX();
+      double wy = framePixelsY();
+      tickleny = (wy/wx)*ticklenx;
+    }
+  }
+  getXaxis()->SetTickLength(ticklenx);
+  getYaxis()->SetTickLength(tickleny);
   int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
   int flowcol = kAzure - 9;
   // Redraw everything.
@@ -598,6 +643,7 @@ int TPadManipulator::fixFrameFillColor() {
 int TPadManipulator::draw() {
   if ( m_parent != nullptr ) return m_parent->draw();
   if ( m_ppad == nullptr ) {
+    if ( ! haveHistOrGraph() && npad() == 0 ) return 1;
     TCanvas* pcan = new TCanvas;
     if ( m_canvasWidth > 0 && m_canvasHeight > 0 ) {
       string snam = pcan->GetName();
