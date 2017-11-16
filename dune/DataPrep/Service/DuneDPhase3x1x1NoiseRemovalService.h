@@ -14,6 +14,7 @@
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
 #include "dune/DuneInterface/AdcTypes.h"
 
+class AcdRoiBuilder;
 namespace geo { class Geometry; }
 namespace util { class LArFFT; }
 
@@ -66,7 +67,7 @@ private:
   std::vector<double> GaussJordanSolv(std::vector< std::vector<long double> > matrix) const;
 
   // Configuration parameters.
-  bool fDoTwoPassFilter, fCoherent32, fCoherent16, fLowPassFlt, fFlatten;
+  bool fDoTwoPassFilter, fCoherent32, fCoherent16, fLowPassFlt, fFlatten, fFlattenExtrapolate;
   std::vector< size_t > fCoherent32Groups;
   std::vector< size_t > fCoherent16Groups;
   std::vector< float > fLowPassCoeffs;
@@ -75,7 +76,12 @@ private:
   int fRoiPadLow;
   int fRoiPadHigh;
   int fMode;
-  int fBinsToSkip;
+  AdcIndex fBinsToSkip;
+
+  //Tools
+  using AcdRoiBuilderPtr = std::unique_ptr<const AcdRoiBuilder>;
+  std::string m_ROIBuilderTool;
+  AcdRoiBuilderPtr m_pROIBuilderTool;
 
   // Services.
   const geo::Geometry* fGeometry;

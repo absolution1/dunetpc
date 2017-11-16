@@ -46,11 +46,13 @@ simple_plugin(Dune35tNoiseRemovalService   "service"
              )
 
 simple_plugin(DuneDPhase3x1x1NoiseRemovalService   "service"
+                dune_ArtSupport
                 larcorealg_Geometry
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
                 ${ROOT_FFTW}
+                lardataobj_RawData
              )
 
 simple_plugin(MedianPedestalService   "service"
