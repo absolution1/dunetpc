@@ -14,6 +14,7 @@
 #include "TGraph.h"
 #include "TLine.h"
 #include "TF1.h"
+#include "TLegend.h"
 
 using std::string;
 using std::cout;
@@ -163,6 +164,35 @@ double TPadManipulator::ymax() const {
 
 //**********************************************************************
 
+TCanvas* TPadManipulator::canvas(bool doDraw) {
+  if ( m_parent ) return m_parent->canvas();
+  if ( m_ppad == nullptr ) draw();
+  return dynamic_cast<TCanvas*>(m_ppad);
+}
+
+//**********************************************************************
+
+int TPadManipulator::print(string fname) {
+  TCanvas* pcan = canvas(true);
+  if ( pcan == nullptr ) return 1;
+  pcan->Print(fname.c_str());
+  return 0;
+}
+
+//**********************************************************************
+
+TH1* TPadManipulator::getHist(string hnam) {
+  if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
+  for ( const TObjPtr& pobj : objects() ) {
+    TH1* ph = dynamic_cast<TH1*>(pobj.get());
+    if ( ph == nullptr ) continue;
+    if ( ph->GetName() == hnam ) return ph;
+  }
+  return nullptr;
+}
+
+//**********************************************************************
+
 int TPadManipulator::addPad(double x1, double y1, double x2, double y2, int icol) {
   if ( x2 <= x1 ) return 1;
   if ( y2 <= y1 ) return 2;
@@ -256,6 +286,17 @@ int TPadManipulator::add(TObject* pobj, string sopt, bool replace) {
   return add(0, pobj, sopt, replace);
 }
 
+//**********************************************************************
+
+TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) {
+  TLegend leg(x1, y1, x2, y2);
+  add(0, &leg, "");
+  TLegend* pleg = dynamic_cast<TLegend*>(objects().back().get());
+  pleg->SetBorderSize(0);
+  pleg->SetFillStyle(0);
+  return pleg;
+}
+  
 //**********************************************************************
 
 int TPadManipulator::clear() {
