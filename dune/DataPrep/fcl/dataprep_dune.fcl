@@ -100,12 +100,13 @@ adcnr_dune35tlegacy: {
 adcnr_dunedphase3x1x1: {
   service_provider: DuneDPhase3x1x1NoiseRemovalService
   CorrMode:                         "median" # mean or median
-  DoTwoPassFilter:                      true
+  DoTwoPassFilter:                      false
   BinsToSkip: 				2
   Coherent32:                           true
   Coherent32Groups:                       [] # do all groups if empty list
   Coherent16:                           true
   Coherent16Groups:   [6, 7, 16, 17, 18, 19] # do all groups if empty list
+  UseBasicROIForCNR:			 true
   RoiStartThreshold:                       7
   RoiEndThreshold:                         6
   RoiPadLow:                               8
