@@ -16,6 +16,7 @@
 #include "TLine.h"
 #include "TF1.h"
 #include "TLegend.h"
+#include "TPaletteAxis.h"
 
 using std::string;
 using std::cout;
@@ -32,7 +33,7 @@ TPadManipulator::TPadManipulator()
   m_canvasWidth(0), m_canvasHeight(0),
   m_fillColor(0), m_frameFillColor(0),
   m_gridX(false), m_gridY(false),
-  m_logX(false), m_logY(false),
+  m_logX(false), m_logY(false), m_logZ(false),
   m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_showUnderflow(false), m_showOverflow(false),
   m_top(false), m_right(false) {
@@ -93,6 +94,8 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   }
   m_opts = rhs.m_opts;
   TH1::AddDirectory(saveAddDirectory);
+  m_setBounds = rhs.m_setBounds;
+  m_setBoundsLog = rhs.m_setBoundsLog;
   // Copy decoration instructions.
   m_fillColor = rhs.m_fillColor;
   m_frameFillColor = rhs.m_frameFillColor;
@@ -100,6 +103,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_gridY = rhs.m_gridY;
   m_logX = rhs.m_logX;
   m_logY = rhs.m_logY;
+  m_logZ = rhs.m_logZ;
   m_tickLengthX = rhs.m_tickLengthX;
   m_tickLengthY = rhs.m_tickLengthY;
   m_showUnderflow = rhs.m_showUnderflow;
@@ -133,44 +137,83 @@ TPadManipulator::~TPadManipulator() {
 //**********************************************************************
 
 double TPadManipulator::xmin() const {
-  if ( ! havePad() ) return pad()->GetUxmin();
-  TAxis* pax = getXaxis();
-  if ( pax == nullptr ) return 0.0;
-  return pax->GetXmin();
+  if ( m_logX &&
+       m_setBoundsLog.x1 > 0.0 && m_setBoundsLog.x2 > 0.0 &&
+       m_setBoundsLog.x1 <= m_setBoundsLog.x2 ) return m_setBoundsLog.x1;
+  if ( m_setBounds.x2 > m_setBounds.x1 ) return m_setBounds.x1;
+  if ( ! havePad() ) return 0.0;
+  double val = pad()->GetUxmin();
+  return pad()->GetLogx() ? pow(10,val) : val;
 }
 
 //**********************************************************************
 
 double TPadManipulator::xmax() const {
-  if ( havePad() ) return pad()->GetUxmax();
-  TAxis* pax = getXaxis();
-  if ( pax == nullptr ) return 0.0;
-  return pax->GetXmax();
+  if ( m_logX &&
+       m_setBoundsLog.x1 > 0.0 && m_setBoundsLog.x2 > 0.0 &&
+       m_setBoundsLog.x1 <= m_setBoundsLog.x2 ) return m_setBoundsLog.x2;
+  if ( m_setBounds.x2 > m_setBounds.x1 ) return m_setBounds.x2;
+  if ( ! havePad() ) return 0.0;
+  double val = pad()->GetUxmax();
+  return pad()->GetLogx() ? pow(10,val) : val;
 }
 
 //**********************************************************************
 
 double TPadManipulator::ymin() const {
-  if ( m_ppad != nullptr ) return m_ppad->GetUymin();
-  TAxis* pax = getYaxis();
-  if ( pax == nullptr ) return 0.0;
-  return pax->GetXmin();
+  if ( m_logY &&
+       m_setBoundsLog.y1 > 0.0 && m_setBoundsLog.y2 > 0.0 &&
+       m_setBoundsLog.y1 <= m_setBoundsLog.y2 ) return m_setBoundsLog.y1;
+  if ( m_setBounds.y2 > m_setBounds.y1 ) return m_setBounds.y1;
+  if ( ! havePad() ) return 0.0;
+  double val = pad()->GetUymin();
+  return pad()->GetLogy() ? pow(10,val) : val;
 }
 
 //**********************************************************************
 
 double TPadManipulator::ymax() const {
-  if ( m_ppad != nullptr ) return m_ppad->GetUymax();
-  TAxis* pax = getYaxis();
-  if ( pax == nullptr ) return 0.0;
-  return pax->GetXmax();
+  if ( m_logY &&
+       m_setBoundsLog.y1 > 0.0 && m_setBoundsLog.y2 > 0.0 &&
+       m_setBoundsLog.y1 <= m_setBoundsLog.y2 ) return m_setBoundsLog.y2;
+  if ( m_setBounds.y2 > m_setBounds.y1 ) return m_setBounds.y2;
+  if ( ! havePad() ) return 0.0;
+  double val = pad()->GetUymax();
+  return pad()->GetLogy() ? pow(10,val) : val;
+}
+
+//**********************************************************************
+
+double TPadManipulator::zmin() const {
+  if ( m_logZ &&
+       m_setBoundsLog.z1 > 0.0 && m_setBoundsLog.z2 > 0.0 &&
+       m_setBoundsLog.z1 <= m_setBoundsLog.z2 ) return m_setBoundsLog.z1;
+  if ( m_setBounds.z2 > m_setBounds.z1 ) return m_setBounds.z1;
+  return 0.0;
+}
+
+//**********************************************************************
+
+double TPadManipulator::zmax() const {
+  if ( m_logZ &&
+       m_setBoundsLog.z1 > 0.0 && m_setBoundsLog.z2 > 0.0 &&
+       m_setBoundsLog.z1 <= m_setBoundsLog.z2 ) return m_setBoundsLog.z2;
+  if ( m_setBounds.z2 > m_setBounds.z1 ) return m_setBounds.z2;
+  return 0.0;
+}
+
+//**********************************************************************
+
+TCanvas* TPadManipulator::canvas() const {
+  if ( m_parent ) return m_parent->canvas();
+  return dynamic_cast<TCanvas*>(m_ppad);
 }
 
 //**********************************************************************
 
 TCanvas* TPadManipulator::canvas(bool doDraw) {
-  if ( m_parent ) return m_parent->canvas();
-  if ( m_ppad == nullptr ) draw();
+  if ( m_parent ) return m_parent->canvas(doDraw);
+  if ( m_ppad == nullptr && doDraw ) draw();
   return dynamic_cast<TCanvas*>(m_ppad);
 }
 
@@ -181,6 +224,13 @@ int TPadManipulator::print(string fname) {
   if ( pcan == nullptr ) return 1;
   pcan->Print(fname.c_str());
   return 0;
+}
+
+//**********************************************************************
+
+TPadManipulator* TPadManipulator::progenitor() {
+  if ( haveParent() ) return parent()->progenitor();
+  return this;
 }
 
 //**********************************************************************
@@ -204,6 +254,36 @@ TH1* TPadManipulator::getHist(string hnam) {
 
 //**********************************************************************
 
+int TPadManipulator::canvasPixelsX() const {
+  if ( ! haveCanvas() ) return 0;
+  return canvas()->GetWw();
+}
+
+//**********************************************************************
+
+int TPadManipulator::canvasPixelsY() const {
+  if ( ! haveCanvas() ) return 0;
+  return canvas()->GetWh();
+}
+
+//**********************************************************************
+
+double TPadManipulator::padPixelsX() const {
+  if ( ! havePad() ) return 0.0;
+  double frac = pad()->GetAbsWNDC();
+  return frac*canvasPixelsX();
+}
+
+//**********************************************************************
+
+double TPadManipulator::padPixelsY() const {
+  if ( ! havePad() ) return 0.0;
+  double frac = pad()->GetAbsHNDC();
+  return frac*canvasPixelsY();
+}
+
+//**********************************************************************
+
 TFrame* TPadManipulator::frame() const {
   return havePad() ? pad()->GetFrame() : nullptr;
 }
@@ -218,6 +298,13 @@ int TPadManipulator::framePixelsX() const {
 
 int TPadManipulator::framePixelsY() const {
   return haveFrame() ? frame()->GetBBox().fHeight : 0;
+}
+
+//**********************************************************************
+
+TH1* TPadManipulator::frameHist() const {
+  if ( ! havePad() ) return nullptr;
+  return dynamic_cast<TH1*>(pad()->FindObject("hframe"));
 }
 
 //**********************************************************************
@@ -271,13 +358,12 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
   if ( pobj == nullptr ) return 101;
   TPadManipulator* pman = man(ipad);
   if ( pman == nullptr ) return 102;
-  bool haveHistOrGraph = m_ph != nullptr || m_pg != nullptr;
   TH1* ph = dynamic_cast<TH1*>(pobj);
   TGraph* pg = dynamic_cast<TGraph*>(pobj);
   bool isNotHistOrGraph = ph==nullptr && pg==nullptr;
   // If we already have the primary histogram or graph, or this is not one of those,
   // this is an overlaid object.
-  if ( (!replace && haveHistOrGraph) || isNotHistOrGraph ) {
+  if ( (!replace && haveHistOrGraph()) || isNotHistOrGraph ) {
     TObject* pobjc = pobj->Clone();
     TH1* phc = dynamic_cast<TH1*>(pobjc);
     if ( phc != nullptr ) phc->SetDirectory(nullptr);
@@ -296,12 +382,21 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
       else return 105;
     }
     //if ( m_ppad == nullptr ) return 106;
+    // Transfer the hist/graph title to the pad title.
+    pman->m_title.SetNDC();
+    pman->m_title.SetTextAlign(22);
+    pman->m_title.SetTextFont(42);
+    pman->m_title.SetTextSize(0.035);
+    pman->m_title.SetText(0.5, 0.95, pobj->GetTitle());
+    // Clone the primary object.
     if ( ph != nullptr ) {
       TH1* phc = (TH1*) ph->Clone();
       phc->SetDirectory(nullptr);
+      phc->SetTitle("");
       pman->m_ph.reset(phc);
     } else {
       TGraph* pgc = (TGraph*) pg->Clone();
+      pgc->SetTitle("");
       pman->m_pg.reset(pgc);
     }
     pman->m_dopt = sopt;
@@ -326,6 +421,13 @@ TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) 
   return pleg;
 }
   
+//**********************************************************************
+
+int TPadManipulator::setTitle(string sttl) {
+  m_title.SetTitle(sttl.c_str());
+  return 0;
+}
+
 //**********************************************************************
 
 int TPadManipulator::clear() {
@@ -365,6 +467,7 @@ int TPadManipulator::update() {
         TPad* ppad = new TPad(spnam.c_str(), spttl.c_str(), bnd.x1, bnd.y1, bnd.x2, bnd.y2);
         ppad->Draw();
         man.m_ppad = ppad;
+        man.m_parent = this;
       }
       int srstat = man.update();
       if ( srstat ) {
@@ -373,24 +476,14 @@ int TPadManipulator::update() {
       }
     }
   }
-  // Set the TPad attributes.
-  m_ppad->SetFillColor(m_fillColor);
-  m_ppad->SetFrameFillColor(m_frameFillColor);
-  m_ppad->SetGridx(m_gridX);
-  m_ppad->SetGridy(m_gridY);
-  m_ppad->SetLogx(m_logX);
-  m_ppad->SetLogy(m_logY);
-  // Draw axis so their ranges are up to date and the frame is available.
-  m_ppad->Clear();
-  if ( m_ph != nullptr ) m_ph->Draw("AXIS");
-  else if ( m_pg != nullptr ) m_pg->Draw("A");
-  string sopt = "-US";
-  const TList* prims = m_ppad->GetListOfPrimitives();
-  bool noHist = m_ph == nullptr;
-  bool noGraph = m_pg == nullptr;
-  bool setMargins = noHist && noGraph;
-  setMargins = true;  // Do this always so it is also called when primary is added
-  if ( noHist && noGraph ) {
+  // If frame is not yet drawn, use the primary object to draw it.
+  if ( ! haveFrameHist() ) {
+    if ( m_ph != nullptr ) m_ph->Draw(m_dopt.c_str());
+    else if ( m_pg != nullptr ) m_pg->Draw(m_dopt.c_str());
+  }
+/*
+  if ( ! haveHistOrGraph() ) {
+    const TList* prims = m_ppad->GetListOfPrimitives();
     for ( TObjLink* plnk=prims->FirstLink(); plnk; plnk=plnk->Next() ) {
       TObject* pobj = plnk->GetObject();
       string sopt = plnk->GetOption();
@@ -398,40 +491,72 @@ int TPadManipulator::update() {
       if ( ph != nullptr )  {
         m_ph.reset(dynamic_cast<TH1*>(ph->Clone("hmanip0")));
         m_ph->SetDirectory(nullptr);
-        noHist = false;
         m_dopt = sopt;
         break;
       }
       TGraph* pg = dynamic_cast<TGraph*>(pobj);
       if ( pg != nullptr )  {
         m_pg.reset(dynamic_cast<TGraph*>(pg->Clone("gmanip0")));
-        noGraph = false;
         m_dopt = sopt;
         break;
       }
     }
   }
-  if ( noHist && noGraph ) {
-    cout << myname << "Pad does not have a histogram or graph!" << endl;
+*/
+  if ( ! haveHistOrGraph() ) {
+    if ( npad() == 0 ) cout << myname << "Pad does not have a histogram or graph or subpads!" << endl;
     gPad = pPadSave;
     return 0;
   }
   // Set margins the first time the histogram is found.
   // After this, user can override with pad()->SetRightMargin(...), ...
-  bool isTH = m_ph != nullptr;
+  m_ppad->Update();    // This is needed to get color palette for 2D hists.
+  bool isTH = haveHist();
   bool isTH2 = dynamic_cast<TH2*>(m_ph.get()) != nullptr;
   bool isTH1 = isTH && !isTH2;
-  if ( setMargins ) {
-    if ( isTH2 ) m_ppad->SetRightMargin(0.10);
-    else m_ppad->SetRightMargin(0.03);
-    m_ppad->SetLeftMargin(0.12);
-    m_ppad->SetTopMargin(0.07);
-    getXaxis()->SetTitleOffset(1.20);
-    if ( isTH ) m_ph->SetTitleOffset(1.20);
+  double xm0 = 0.015;
+  double wx = padPixelsX();
+  double wy = padPixelsY();
+  double asp = wx > 0 ? wy/wx : 1.0;
+  double aspx = asp < 1.0 ? asp : 1.0;        // Font is proportional to this for asp < 1.0
+  double aspy = asp > 1.0 ? 1.0/asp : 1.0;    // Font is proportional to this for asp > 1.0
+  double xml = xm0 + 0.100*aspx;
+  double xmr = xm0;
+  double xmb =       0.100*aspy;
+  double xmt =       0.070*aspy;
+  double xlb = -0.028 + 0.038*aspy;
+  double xlz = 0.005*aspx;
+  double xttl = 1.2*aspy;
+  double yttl = 0.15 + 1.5*aspx;
+  double httl = 1.0 - 0.5*xmt;
+  if ( isTH2 ) {
+    TPaletteAxis* pax = dynamic_cast<TPaletteAxis*>(hist()->GetListOfFunctions()->FindObject("palette"));
+    if ( pax != nullptr ) {
+      xmr = xm0 + 0.120*aspx;
+      double xp1 = 1.0 - 1.00*xmr;
+      double xp2 = 1.0 - 0.65*xmr;
+      double yp1 = xmb;
+      double yp2 = 1.0 - xmt;
+      double tlen = 0.25*(xp2 - xp1);
+      //cout << myname << "Palette axis found." << endl;
+      pax->SetX1NDC(xp1);
+      pax->SetX2NDC(xp2);
+      pax->SetY1NDC(yp1);
+      pax->SetY2NDC(yp2);
+      hist()->GetZaxis()->SetTickLength(tlen);
+    //} else {
+    //  cout << myname << "Palette axis not found." << endl;
+    //  hist()->GetListOfFunctions()->Print();
+    }
   }
+  m_ppad->SetRightMargin(xmr);
+  m_ppad->SetLeftMargin(xml);
+  m_ppad->SetTopMargin(xmt);
+  m_ppad->SetBottomMargin(xmb);
+  m_title.SetX(0.5);
+  m_title.SetY(httl);
   // Set the axis tick lengths.
   // If the Y-size is zero, then they are drawn to have the same pixel length as the X-axis.
-  m_ppad->Update();
   double ticklenx = m_tickLengthX;
   double tickleny = m_tickLengthY;
   if ( ticklenx < 0.0 ) ticklenx = 0.0;
@@ -439,17 +564,17 @@ int TPadManipulator::update() {
     if ( framePixelsY() ) {
       double wx = framePixelsX();
       double wy = framePixelsY();
-      tickleny = (wy/wx)*ticklenx;
+      if ( wy > wx ) {
+        tickleny = ticklenx;
+        ticklenx = (wx/wy)*tickleny;
+      } else {
+        tickleny = (wy/wx)*ticklenx;
+      }
     }
   }
-  getXaxis()->SetTickLength(ticklenx);
-  getYaxis()->SetTickLength(tickleny);
   int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
   int flowcol = kAzure - 9;
-  // Redraw everything.
-  m_ppad->Clear();
-  if ( isTH ) m_ph->Draw(m_dopt.c_str());
-  else m_pg->Draw(m_dopt.c_str());
+  // Build over/underflow histogram.
   if ( (m_showUnderflow || m_showOverflow) && nbin > 0 ) {
     if ( m_flowHist == nullptr ) {
       m_flowHist.reset((TH1*) m_ph->Clone("hmaniptmp"));
@@ -462,21 +587,88 @@ int TPadManipulator::update() {
     m_flowHist->Reset();
     if ( m_showUnderflow ) m_flowHist->SetBinContent(1, m_ph->GetBinContent(0));
     if ( m_showOverflow ) m_flowHist->SetBinContent(nbin, m_ph->GetBinContent(nbin+1));
-    m_flowHist->DrawCopy("same");
-    m_ph->Draw("same");
-    m_ph->Draw("axis same");
   }
-  drawHistFuns();
+  // Make frame so we have clean axis to overlay.
+  double xa1 = xmin();
+  double xa2 = xmax();
+  bool doLogx = m_logX;
+  if ( doLogx && xa1 <= 0.0 ) {
+    cout << myname << "WARNING: Must have range above 0.0 for logarithmic x-axis." << endl;
+    cout << myname << "WARNING: Use setLogRangeX(x1, x2) to set range." << endl;
+    cout << myname << "WARNING: Plot is displayed with linear axis." << endl;
+    doLogx = false;
+  }
+  double ya1 = ymin();
+  double ya2 = ymax();
+  bool doLogy = m_logY;
+  if ( doLogy && ya1 <= 0.0 ) {
+    cout << myname << "WARNING: Must have range above 0.0 for logarithmic y-axis." << endl;
+    cout << myname << "WARNING: Use setLogRangeY(y1, y2) to set range." << endl;
+    cout << myname << "WARNING: Plot is displayed with linear axis." << endl;
+    doLogy = false;
+  }
+  double za1 = zmin();
+  double za2 = zmax();
+  bool doLogz = m_logZ;
+  if ( doLogz && za1 <= 0.0 ) {
+    cout << myname << "WARNING: Must have range above 0.0 for logarithmic z-axis." << endl;
+    cout << myname << "WARNING: Use setLogRangeY(z1, z2) to set range." << endl;
+    cout << myname << "WARNING: Plot is displayed with linear axis." << endl;
+    doLogy = false;
+  }
+  string sattl = ";";
+  sattl += getXaxis()->GetTitle();
+  sattl += ";";
+  sattl += getYaxis()->GetTitle();
+  sattl += ";";
+  // Redraw everything.
+  m_ppad->Clear();
+  // Set the TPad attributes.
+  m_ppad->SetFillColor(m_fillColor);
+  m_ppad->SetFrameFillColor(m_frameFillColor);
+  m_ppad->SetGridx(m_gridX);
+  m_ppad->SetGridy(m_gridY);
+  m_ppad->SetLogx(doLogx);
+  m_ppad->SetLogy(doLogy);
+  m_ppad->SetLogz(doLogz);
+  // Draw frame and set axis parameters.
+  m_ppad->DrawFrame(xa1, ya1, xa2, ya2, sattl.c_str());
+  getXaxis()->SetLabelOffset(xlb);
+  getXaxis()->SetTitleOffset(xttl);
+  getYaxis()->SetTitleOffset(yttl);
+  getXaxis()->SetTickLength(ticklenx);
+  getYaxis()->SetTickLength(tickleny);
+  // Primary object.
+  if ( haveHist() ) {
+    if ( m_flowHist != nullptr ) {
+      m_ph->Draw("axis");
+      m_flowHist->Draw("same");
+    }
+    string dopt = m_dopt + " same";
+    TAxis* paz = m_ph->GetZaxis();
+    if ( paz != nullptr && za2 > za1 ) {
+      paz->SetRangeUser(za1, za2);
+      paz->SetLabelOffset(xlz);
+    }
+    m_ph->Draw(dopt.c_str());
+    drawHistFuns();
+  } else {
+    m_pg->Draw(m_dopt.c_str());
+  }
+  // Secondary objects.
   for ( Index iobj=0; iobj<m_objs.size(); ++iobj ) {
     TObject* pobj = m_objs[iobj].get();
     string sopt = m_opts[iobj];
     if ( pobj != nullptr ) pobj->Draw(sopt.c_str());
   }
-  m_ppad->Update();   // Need an update here to get correct results for xmin, ymin, xmax, ymax
+  // no longer needed?  m_ppad->Update();   // Need an update here to get correct results for xmin, ymin, xmax, ymax
   drawLines();
   if ( m_top ) drawAxisTop();
   if ( m_right ) drawAxisRight();
   pad()->RedrawAxis();  // In case they are covered
+  pad()->RedrawAxis("G");  // In case they are covered
+  // Add the title and labels.
+  m_title.Draw();
   gPad = pPadSave;
   return rstat;
 }
@@ -484,6 +676,7 @@ int TPadManipulator::update() {
 //**********************************************************************
 
 TAxis* TPadManipulator::getXaxis() const {
+  if ( haveFrameHist() ) return frameHist()->GetXaxis();
   if ( m_ph != nullptr ) return m_ph->GetXaxis();
   if ( m_pg != nullptr ) return m_pg->GetXaxis();
   return nullptr;
@@ -492,6 +685,7 @@ TAxis* TPadManipulator::getXaxis() const {
 //**********************************************************************
 
 TAxis* TPadManipulator::getYaxis() const {
+  if ( haveFrameHist() ) return frameHist()->GetYaxis();
   if ( m_ph != nullptr ) return m_ph->GetYaxis();
   if ( m_pg != nullptr ) return m_pg->GetYaxis();
   return nullptr;
@@ -499,36 +693,72 @@ TAxis* TPadManipulator::getYaxis() const {
 
 //**********************************************************************
 
+int TPadManipulator::setCanvasSize(int wx, int wy) {
+  if ( haveParent() ) return parent()->setCanvasSize(wx, wy);
+  m_canvasWidth = wx;
+  m_canvasHeight = wy;
+  if ( haveCanvas() ) {
+    canvas()->SetWindowSize(wx, wy);
+    return update();
+  }
+  return 0;
+}
+
+//**********************************************************************
+
 int TPadManipulator::setRangeX(double x1, double x2) {
-  TAxis* pax = getXaxis();
-  if ( pax == nullptr ) return 1;
-  if ( x2 <= x1 ) return 2;
-  if ( graph() != nullptr ) pax->SetLimits(x1, x2);
-  else pax->SetRangeUser(x1, x2);
+  m_setBounds.x1 = x1;
+  m_setBounds.x2 = x2;
   return update();
 }
 
 //**********************************************************************
 
-int TPadManipulator::setRangeY(double x1, double x2) {
-  TAxis* pax = getYaxis();
-  if ( pax == nullptr ) return 1;
-  if ( x2 <= x1 ) return 2;
-  pax->SetRangeUser(x1, x2);
+int TPadManipulator::setRangeY(double y1, double y2) {
+  m_setBounds.y1 = y1;
+  m_setBounds.y2 = y2;
   return update();
 }
 
 //**********************************************************************
 
-int TPadManipulator::setRanges(double x1, double x2, double y1, double y2) {
-  TAxis* pax = getXaxis();
-  TAxis* pay = getYaxis();
-  if ( pax == nullptr || pay == nullptr ) return 1;
-  if ( x2 <= x1 ) return 2;
-  if ( y2 <= y1 ) return 2;
-  if ( graph() != nullptr ) pax->SetLimits(x1, x2);
-  else pax->SetRangeUser(x1, x2);
-  pay->SetRangeUser(y1, y2);
+int TPadManipulator::setRangeZ(double z1, double z2) {
+  m_setBounds.z1 = z1;
+  m_setBounds.z2 = z2;
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::setRangeXY(double x1, double x2, double y1, double y2) {
+  m_setBounds.x1 = x1;
+  m_setBounds.x2 = x2;
+  m_setBounds.y1 = y1;
+  m_setBounds.y2 = y2;
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::setLogRangeX(double x1, double x2) {
+  m_setBoundsLog.x1 = x1;
+  m_setBoundsLog.x2 = x2;
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::setLogRangeY(double y1, double y2) {
+  m_setBoundsLog.y1 = y1;
+  m_setBoundsLog.y2 = y2;
+  return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::setLogRangeZ(double z1, double z2) {
+  m_setBoundsLog.z1 = z1;
+  m_setBoundsLog.z2 = z2;
   return update();
 }
 
@@ -641,7 +871,7 @@ int TPadManipulator::fixFrameFillColor() {
 //**********************************************************************
 
 int TPadManipulator::draw() {
-  if ( m_parent != nullptr ) return m_parent->draw();
+  if ( haveParent() ) return parent()->draw();
   if ( m_ppad == nullptr ) {
     if ( ! haveHistOrGraph() && npad() == 0 ) return 1;
     TCanvas* pcan = new TCanvas;

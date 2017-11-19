@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <memory>
+#include "TLatex.h"
 #include "TLine.h"
 
 class TVirtualPad;
@@ -43,6 +44,14 @@ public:
     Bounds() : x1(0.0), y1(0.0), x2(0.0), y2(0.0) { }
     Bounds(double ax1, double ay1, double ax2, double ay2)
     : x1(ax1), y1(ay1), x2(ax2), y2(ay2) { }
+  };
+
+  struct Bounds3 : public Bounds {
+    double z1;
+    double z2;
+    Bounds3() : z1(0.0), z2(0.0) { }
+    Bounds3(double ax1, double ay1, double ax2, double ay2, double az1, double az2)
+    : Bounds(ax1, ay1, ax2, ay2), z1(az1), z2(az2) { }
   };
 
   using Index = unsigned int;
@@ -68,7 +77,7 @@ public:
   // Copy and assignment.
   // Objects from the RHS are cloned so that mods in one pad don't affect the other.
   // These can be used to copy an existing pad into a subpad of another.
-  // In assignement, the original objects belonging to this pad are deleted.
+  // In assignment, the original objects belonging to this pad are deleted.
   TPadManipulator(const TPadManipulator& rhs);
   TPadManipulator& operator=(const TPadManipulator& rhs);
 
@@ -83,10 +92,13 @@ public:
   //double ymaxPad() const { return m_ymaxPad; }
 
   // Return the axis limits in drawn units.
+  // These will be the user-specified range if valid or, for X and Y, the drawn pad.
   double xmin() const;
   double xmax() const;
   double ymin() const;
   double ymax() const;
+  double zmin() const;
+  double zmax() const;
 
   // Return the pad.
   // Use pad()->SetFillColor(...), etc. to change the appearance of the pad.
@@ -96,10 +108,16 @@ public:
 
   // Return the canvas holding this pad. It may be held by an ancestor.
   // If doDraw is true, a draw is done if the canvas does not yet exist.
+  TCanvas* canvas() const;
   TCanvas* canvas(bool doDraw =false);
+  bool haveCanvas() const { return canvas() != nullptr; }
 
   // Save the canvas holding this pad to the specified file.
   int print(std::string fname);
+
+  // Return the top-level manipulator, i.e. the ancestor that holds (or would hold)
+  // the canvas for this pad.
+  TPadManipulator* progenitor();
 
   // Return the number of subpads.
   unsigned int npad() const { return m_subMans.size(); }
@@ -110,6 +128,10 @@ public:
     if ( npad() == 0 && ipad == 0 ) return this;
     return ipad<npad() ? &m_subMans[ipad] : nullptr;
   }
+
+  // Return the parent pad.
+  TPadManipulator* parent() { return m_parent; }
+  bool haveParent() const { return m_parent != nullptr; }
 
   // Return the primary histogram or graph for this pad.
   TH1* hist() const { return m_ph.get(); }
@@ -129,12 +151,23 @@ public:
   // or reference those in a legend.
   TH1* getHist(std::string hnam);
 
+  // Return information about the canvas holding this pad.
+  int canvasPixelsX() const;
+  int canvasPixelsY() const;
+
+  // Return information about the full drawing area for this pad.
+  double padPixelsX() const;
+  double padPixelsY() const;
+
   // Return info about the frame that holds the histogram or graph.
   // The frame does not exist until draw() is called..
+  // The frame histogram has the drawn axis.
   TFrame* frame() const;
   bool haveFrame() const { return frame() != nullptr; }
   int framePixelsX() const;
   int framePixelsY() const;
+  TH1* frameHist() const;
+  bool haveFrameHist() const { return frameHist() != nullptr; }
 
   // Return the vertical mod lines associated with this pad.
   const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
@@ -155,6 +188,11 @@ public:
   // This is added to the list of objects.
   TLegend* addLegend(double x1, double y1, double x2, double y2);
 
+  // Set and get the title associated with this pad.
+  // The initial value for this is taken from the primary object.
+  int setTitle(std::string sttl);
+  std::string getTitle() const { return m_title.GetTitle(); }
+
   // Remove histograms and graphs from top and subpads.
   int clear();
 
@@ -165,36 +203,45 @@ public:
   TAxis* getXaxis() const;
   TAxis* getYaxis() const;
 
-  // Set the TPad attibutes.
-  int setCanvasSize(int wx, int wy) { m_canvasWidth = wx; m_canvasHeight = wy; return 0; }
-  int setFillColor(int col) { m_fillColor = col; return 0; }
-  int setFrameFillColor(int col) { m_frameFillColor = col; return 0; }
-  int setGridX(bool flag =true) { m_gridX = flag; return 0; }
-  int setGridY(bool flag =true) { m_gridY = flag; return 0; }
-  int setGrid(bool flag =true) { m_gridX = flag; m_gridY=flag; return 0; }
-  int setLogX(bool flag =true) { m_logX = flag; return 0; }
-  int setLogY(bool flag =true) { m_logY = flag; return 0; }
+  // Set drawing attributes.
+  int setCanvasSize(int wx, int wy);
+  int setFillColor(int col) { m_fillColor = col; return update(); }
+  int setFrameFillColor(int col) { m_frameFillColor = col; return update(); }
+  int setGridX(bool flag =true) { m_gridX = flag; return update(); }
+  int setGridY(bool flag =true) { m_gridY = flag; return update(); }
+  int setGrid(bool flag =true) { m_gridX = flag; m_gridY=flag; return update(); }
+  int setLogX(bool flag =true) { m_logX = flag; return update(); }
+  int setLogY(bool flag =true) { m_logY = flag; return update(); }
+  int setLogZ(bool flag =true) { m_logZ = flag; return update(); }
 
   // Set the tick lengths. This is a fraction of the axis length.
   // If the X length is zero, those ticks are not drawn.
-  // If the Y length is zero, those ticks are drawn with the same pixel length as the X-axis.
+  // If the Y length is zero, those ticks on both axis have the same pixel lengths and
+  // that length is detemined by the shorter axis.
   int setTickLength(double len) { m_tickLengthX = len; m_tickLengthY = 0.0; return update(); }
   int setTickLengthX(double len) { m_tickLengthX = len; return update(); }
   int setTickLengthY(double len) { m_tickLengthY = len; return update(); }
 
-  // Set the histogram range
-  // For histograms, the range is restricted to that of the binning.
+  // Set the displayed ranges.
+  // If x1 >= x2 (default), then the range is that of the primary object.
   int setRangeX(double x1, double x2);
   int setRangeY(double y1, double y2);
-  int setRanges(double x1, double x2, double y1, double y2);
+  int setRangeZ(double y1, double y2);
+  int setRangeXY(double x1, double x2, double y1, double y2);
 
-  // Add or remove top and right axis using attributes of the first histogram on the pad.
+  // Set the displayed ranges for logarithmic axes.
+  // If x1 >= x2 or either <=0, then the standard range is used.
+  int setLogRangeX(double x1, double x2);
+  int setLogRangeY(double y1, double y2);
+  int setLogRangeZ(double y1, double y2);
+
+  // Add or remove top and right axis.
   int addAxis(bool flag =true);
 
-  // Add or remove top x-axis with attributes taken from the first histogram on the pad.
+  // Add or remove top x-axis.
   int addAxisTop(bool flag =true);
 
-  // Add or remove right y-axis with attributes from the first histogram on the pad.
+  // Add or remove right y-axis.
   int addAxisRight(bool flag =true);
 
   // Add underflow bin to the plot (false to remove it).
@@ -253,12 +300,15 @@ private:
   std::string m_dopt;
   TObjVector m_objs;
   std::vector<std::string> m_opts;
+  Bounds3 m_setBounds;
+  Bounds3 m_setBoundsLog;
   int m_fillColor;
   int m_frameFillColor;
   bool m_gridX;
   bool m_gridY;
   bool m_logX;
   bool m_logY;
+  bool m_logZ;
   double m_tickLengthX;
   double m_tickLengthY;
   std::shared_ptr<TH1> m_flowHist;
@@ -266,6 +316,7 @@ private:
   bool m_showOverflow;
   bool m_top;
   bool m_right;
+  TLatex m_title;
   std::vector<unsigned int> m_histFuns;
   std::vector<double> m_hmlXmod;
   std::vector<double> m_hmlXoff;
