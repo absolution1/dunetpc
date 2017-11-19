@@ -106,6 +106,7 @@ adcnr_dunedphase3x1x1: {
   Coherent32Groups:                       [] # do all groups if empty list
   Coherent16:                           true
   Coherent16Groups:   [6, 7, 16, 17, 18, 19] # do all groups if empty list
+  UseBasicROIForCNR:			 true
   RoiStartThreshold:                       7
   RoiEndThreshold:                         6
   RoiPadLow:                               8

@@ -71,6 +71,7 @@ private:
   std::vector< size_t > fCoherent32Groups;
   std::vector< size_t > fCoherent16Groups;
   std::vector< float > fLowPassCoeffs;
+  bool fUseBasicROIForCNR;
   float fRoiStartThreshold;
   float fRoiEndThreshold;
   int fRoiPadLow;
@@ -80,8 +81,15 @@ private:
 
   //Tools
   using AcdRoiBuilderPtr = std::unique_ptr<const AcdRoiBuilder>;
-  std::string m_ROIBuilderTool;
-  AcdRoiBuilderPtr m_pROIBuilderTool;
+
+  std::string m_ROIBuilderToolFlattening;
+  AcdRoiBuilderPtr m_pROIBuilderToolFlattening;
+
+  std::string m_ROIBuilderToolCNR;
+  AcdRoiBuilderPtr m_pROIBuilderToolCNR;
+
+  std::string m_ROIBuilderToolFinal;
+  AcdRoiBuilderPtr m_pROIBuilderToolFinal;
 
   // Services.
   const geo::Geometry* fGeometry;
