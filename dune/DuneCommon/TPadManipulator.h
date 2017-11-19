@@ -24,9 +24,11 @@
 #include "TLine.h"
 
 class TVirtualPad;
+class TCanvas;
 class TH1;
 class TGraph;
 class TAxis;
+class TLegend;
 
 class TPadManipulator {
 
@@ -85,10 +87,17 @@ public:
   double ymin() const;
   double ymax() const;
 
-  // Return the top-level pad.
+  // Return the pad.
   // Use pad()->SetFillColor(...), etc. to change the appearance of the pad.
   // and pad()->SetFrameFillColor(...), etc. to change the appearance of the frame in the pad.
   TVirtualPad* pad() const { return m_ppad; }
+
+  // Return the canvas holding this pad. It may be held by an ancestor.
+  // If doDraw is true, a draw is done if the canvas does not yet exist.
+  TCanvas* canvas(bool doDraw =false);
+
+  // Save the canvas holding this pad to the specified file.
+  int print(std::string fname);
 
   // Return the number of subpads.
   unsigned int npad() const { return m_subMans.size(); }
@@ -109,6 +118,11 @@ public:
   const TObjVector& objects() const { return m_objs; }
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
+  // Return a histogram (primary or secondary) by name.
+  // This is the drawn hist and may be used to changes its visible properties
+  // or reference those in a legend.
+  TH1* getHist(std::string hnam);
+
   // Return the vertical mod lines associated with this pad.
   const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
 
@@ -123,6 +137,10 @@ public:
   // The first object must be a histogram or graph.
   int add(unsigned int ipad, TObject* pobj, std::string sopt ="", bool replace =false);
   int add(TObject* pobj, std::string sopt ="", bool replace =false);
+
+  // Add a legend.
+  // This is added to the list of objects.
+  TLegend* addLegend(double x1, double y1, double x2, double y2);
 
   // Remove histograms and graphs from top and subpads.
   int clear();

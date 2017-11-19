@@ -14,6 +14,7 @@
 #include "TGraph.h"
 #include "TLine.h"
 #include "TF1.h"
+#include "TLegend.h"
 
 using std::string;
 using std::cout;
@@ -163,6 +164,35 @@ double TPadManipulator::ymax() const {
 
 //**********************************************************************
 
+TCanvas* TPadManipulator::canvas(bool doDraw) {
+  if ( m_parent ) return m_parent->canvas();
+  if ( m_ppad == nullptr ) draw();
+  return dynamic_cast<TCanvas*>(m_ppad);
+}
+
+//**********************************************************************
+
+int TPadManipulator::print(string fname) {
+  TCanvas* pcan = canvas(true);
+  if ( pcan == nullptr ) return 1;
+  pcan->Print(fname.c_str());
+  return 0;
+}
+
+//**********************************************************************
+
+TH1* TPadManipulator::getHist(string hnam) {
+  if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
+  for ( const TObjPtr& pobj : objects() ) {
+    TH1* ph = dynamic_cast<TH1*>(pobj.get());
+    if ( ph == nullptr ) continue;
+    if ( ph->GetName() == hnam ) return ph;
+  }
+  return nullptr;
+}
+
+//**********************************************************************
+
 int TPadManipulator::addPad(double x1, double y1, double x2, double y2, int icol) {
   if ( x2 <= x1 ) return 1;
   if ( y2 <= y1 ) return 2;
@@ -258,6 +288,17 @@ int TPadManipulator::add(TObject* pobj, string sopt, bool replace) {
 
 //**********************************************************************
 
+TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) {
+  TLegend leg(x1, y1, x2, y2);
+  add(0, &leg, "");
+  TLegend* pleg = dynamic_cast<TLegend*>(objects().back().get());
+  pleg->SetBorderSize(0);
+  pleg->SetFillStyle(0);
+  return pleg;
+}
+  
+//**********************************************************************
+
 int TPadManipulator::clear() {
   m_ph.reset();
   m_pg.reset();
@@ -288,7 +329,7 @@ int TPadManipulator::update() {
         }
         const Bounds& bnd = m_subBounds[isub];
         ostringstream ssnam;
-        ssnam << gPad->GetName() << "_sub" << isub;
+        ssnam << m_ppad->GetName() << "_sub" << isub;
         string spnam = ssnam.str();
         string spttl = spnam;
         TPad* ppad = new TPad(spnam.c_str(), spttl.c_str(), bnd.x1, bnd.y1, bnd.x2, bnd.y2);
@@ -314,7 +355,7 @@ int TPadManipulator::update() {
   else if ( m_pg != nullptr ) m_pg->Draw("A");
   //gPad->Update();
   string sopt = "-US";
-  const TList* prims = gPad->GetListOfPrimitives();
+  const TList* prims = m_ppad->GetListOfPrimitives();
   bool noHist = m_ph == nullptr;
   bool noGraph = m_pg == nullptr;
   bool setMargins = noHist && noGraph;
@@ -361,7 +402,7 @@ int TPadManipulator::update() {
   int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
   int flowcol = kAzure - 9;
   // Redraw everything.
-  gPad->Clear();
+  m_ppad->Clear();
   if ( isTH ) m_ph->Draw(m_dopt.c_str());
   else m_pg->Draw(m_dopt.c_str());
   if ( (m_showUnderflow || m_showOverflow) && nbin > 0 ) {
@@ -386,7 +427,7 @@ int TPadManipulator::update() {
     string sopt = m_opts[iobj];
     if ( pobj != nullptr ) pobj->Draw(sopt.c_str());
   }
-  gPad->Update();   // Need an update here to get correct results for xmin, ymin, xmax, ymax
+  m_ppad->Update();   // Need an update here to get correct results for xmin, ymin, xmax, ymax
   drawLines();
   if ( m_top ) drawAxisTop();
   if ( m_right ) drawAxisRight();
@@ -559,8 +600,12 @@ int TPadManipulator::draw() {
   if ( m_ppad == nullptr ) {
     TCanvas* pcan = new TCanvas;
     if ( m_canvasWidth > 0 && m_canvasHeight > 0 ) {
+      string snam = pcan->GetName();
+      string sttl = pcan->GetTitle();
+      delete pcan;
+      pcan = new TCanvas(snam.c_str(), sttl.c_str(), m_canvasWidth, m_canvasHeight);
       //pcan->SetCanvasSize(m_canvasWidth, m_canvasHeight);
-      pcan->SetWindowSize(m_canvasWidth, m_canvasHeight);
+      //pcan->SetWindowSize(m_canvasWidth, m_canvasHeight);
     }
     m_ppad = pcan;
   }
@@ -575,18 +620,18 @@ int TPadManipulator::drawAxisTop() {
   TVirtualPad* pPadSave = gPad;
   m_ppad->cd();
   double xminPad, yminPad, xmaxPad, ymaxPad;
-  gPad->GetRangeAxis(xminPad, yminPad, xmaxPad, ymaxPad);
+  m_ppad->GetRangeAxis(xminPad, yminPad, xmaxPad, ymaxPad);
   string sopt = "-US";
   double x1 = xmin();
   double x2 = xmax();
-  if ( gPad->GetLogx() ) {
+  if ( m_ppad->GetLogx() ) {
     xminPad = pow(10.0, xminPad);
     xmaxPad = pow(10.0, xmaxPad);
     x1 = pow(10.0, x1);
     x2 = pow(10.0, x2);
     sopt += "G";
   }
-  if ( gPad->GetLogy() ) {
+  if ( m_ppad->GetLogy() ) {
     yminPad = pow(10.0, yminPad);
     ymaxPad = pow(10.0, ymaxPad);
   }
@@ -599,7 +644,7 @@ int TPadManipulator::drawAxisTop() {
   if ( ticksize > 0 ) paxnew->SetTickLength(ticksize);
   string name = "TopAxis";
   paxnew->SetName(name.c_str());
-  TList* pobjs = gPad->GetListOfPrimitives();
+  TList* pobjs = m_ppad->GetListOfPrimitives();
   for ( int iobj=pobjs->GetEntries()-1; iobj>=0; --iobj ) {
     TGaxis* paxold = dynamic_cast<TGaxis*>(pobjs->At(iobj));
     if ( paxold == nullptr ) continue;
@@ -620,17 +665,16 @@ int TPadManipulator::drawAxisRight() {
   if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = gPad;
   m_ppad->cd();
-  //gPad->Update();
   double xminPad, yminPad, xmaxPad, ymaxPad;
-  gPad->GetRangeAxis(xminPad, yminPad, xmaxPad, ymaxPad);
+  m_ppad->GetRangeAxis(xminPad, yminPad, xmaxPad, ymaxPad);
   double y1 = ymin();
   double y2 = ymax();
   string sopt = "+US";
-  if ( gPad->GetLogx() ) {
+  if ( m_ppad->GetLogx() ) {
     xminPad = pow(10.0, xminPad);
     xmaxPad = pow(10.0, xmaxPad);
   }
-  if ( gPad->GetLogy() ) {
+  if ( m_ppad->GetLogy() ) {
     yminPad = pow(10.0, yminPad);
     ymaxPad = pow(10.0, ymaxPad);
     y1 = pow(10.0, y1);
@@ -646,7 +690,7 @@ int TPadManipulator::drawAxisRight() {
   if ( ticksize > 0 ) paxnew->SetTickLength(ticksize);
   string name = "RightAxis";
   paxnew->SetName(name.c_str());
-  TList* pobjs = gPad->GetListOfPrimitives();
+  TList* pobjs = m_ppad->GetListOfPrimitives();
   for ( int iobj=pobjs->GetEntries()-1; iobj>=0; --iobj ) {
     TGaxis* paxold = dynamic_cast<TGaxis*>(pobjs->At(iobj));
     if ( paxold == nullptr ) continue;
