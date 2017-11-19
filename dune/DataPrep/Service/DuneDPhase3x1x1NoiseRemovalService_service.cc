@@ -225,7 +225,7 @@ std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMeanCorrection(
 
       const AdcChannelData & adc = iacd->second;
 
-      if(!fUseBasicROIForCNR)
+      if(fUseBasicROIForCNR)
       {
         auto mask = roiMask(adc);
         for (size_t s = 0; s < n_samples; ++s)
@@ -274,7 +274,7 @@ std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMedianCorrection(
 
       const AdcChannelData & adc = iacd->second;
 
-      if(!fUseBasicROIForCNR)
+      if(fUseBasicROIForCNR)
       {
         auto mask = roiMask(adc);
         for (size_t s = 0; s < n_samples; ++s)
