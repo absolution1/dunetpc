@@ -78,7 +78,7 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
   if ( m_LogLevel >= 2 ) cout << myname << "Building ROIs for channel "
                               << data.channel << "." << endl;
   data.rois.clear();
-  
+
   //Raw ADC.
   AdcSignalVector sigs;
   sigs = data.samples;
