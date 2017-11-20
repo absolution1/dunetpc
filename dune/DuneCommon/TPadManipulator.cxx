@@ -520,14 +520,14 @@ int TPadManipulator::update() {
   double asp = wx > 0 ? wy/wx : 1.0;
   double aspx = asp < 1.0 ? asp : 1.0;        // Font is proportional to this for asp < 1.0
   double aspy = asp > 1.0 ? 1.0/asp : 1.0;    // Font is proportional to this for asp > 1.0
-  double xml = xm0 + 0.100*aspx;
+  double xml = xm0 + 0.110*aspx;
   double xmr = 0.03*aspx;
   double xmb =       0.100*aspy;
   double xmt =       0.070*aspy;
   double xlb = -0.028 + 0.038*aspy;
   double xlz = 0.005*aspx;
   double xttl = 1.2*aspy;
-  double yttl = 0.15 + 1.5*aspx;
+  double yttl = 0.15 + 1.6*aspx;
   double httl = 1.0 - 0.5*xmt;
   if ( isTH2 ) {
     TPaletteAxis* pax = dynamic_cast<TPaletteAxis*>(hist()->GetListOfFunctions()->FindObject("palette"));
@@ -575,6 +575,7 @@ int TPadManipulator::update() {
   int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
   int flowcol = kAzure - 9;
   // Build over/underflow histogram.
+  m_flowHist.reset();
   if ( (m_showUnderflow || m_showOverflow) && nbin > 0 ) {
     if ( m_flowHist == nullptr ) {
       m_flowHist.reset((TH1*) m_ph->Clone("hmaniptmp"));
@@ -641,15 +642,14 @@ int TPadManipulator::update() {
   // Primary object.
   if ( haveHist() ) {
     if ( m_flowHist != nullptr ) {
-      m_ph->Draw("axis");
       m_flowHist->Draw("same");
     }
-    string dopt = m_dopt + " same";
     TAxis* paz = m_ph->GetZaxis();
     if ( paz != nullptr && za2 > za1 ) {
       paz->SetRangeUser(za1, za2);
       paz->SetLabelOffset(xlz);
     }
+    string dopt = m_dopt.size() ? m_dopt + " same" : "same";
     m_ph->Draw(dopt.c_str());
     drawHistFuns();
   } else {
