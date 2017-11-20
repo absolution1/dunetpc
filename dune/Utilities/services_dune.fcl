@@ -84,7 +84,7 @@ dunefddphase_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
- NuRandomService:                @local::dune_seedservice 
+ NuRandomService:                @local::dune_seedservice
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dunefddphase_detproperties
@@ -122,7 +122,7 @@ dunefddphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddpha
 dunefddphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
 dunefddphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
 dunefddphase_reco_services.PedestalEvaluationService:  @local::adcped_median
-#dunefddphase_reco_services.AdcNoiseRemovalService:     @local::adcnr_dunedphase3x1x1
+dunefddphase_reco_services.AdcNoiseRemovalService:     @local::adcnr_dunedphase3x1x1
 
 ########################
 ### 3x1x1 dual phase ###
@@ -132,7 +132,7 @@ dunedphase3x1x1_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  LArFFT:                         @local::dunefd_larfft
- NuRandomService:                @local::dune_seedservice 
+ NuRandomService:                @local::dune_seedservice
  Geometry:                       @local::dphase3x1x1_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
@@ -180,7 +180,7 @@ protodunedphase_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
- NuRandomService:                @local::dune_seedservice 
+ NuRandomService:                @local::dune_seedservice
  Geometry: 			 @local::protodunedphase_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService: 	 @local::protodunedphase_detproperties
@@ -270,7 +270,7 @@ protodune_services: {
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
- ChannelStatusService:         @local::dunefd_channel_status 
+ ChannelStatusService:         @local::dunefd_channel_status
  ChannelGroupService:          @local::changroup_apa_pd_drop_outer
 }
 
@@ -300,7 +300,7 @@ protodune_simulation_services: {
 # services is workspace g4 fhicl file.
 #
 protodune_simulation_services.LArPropertiesService.ScintYield: 24000
-protodune_simulation_services.LArPropertiesService.ScintPreScale: 0.006 
+protodune_simulation_services.LArPropertiesService.ScintPreScale: 0.006
 
 # disable cerenkov
 protodune_simulation_services.LArPropertiesService.EnableCerenkovLight: false
@@ -356,16 +356,16 @@ dune35t_g4_services:                         @local::dune35t_gen_services
 dune35t_g4_services.LArG4Parameters:         @local::dune35t_largeantparameters
 dune35t_g4_services.LArVoxelCalculator:      @local::dune35t_larvoxelcalculator
 dune35t_g4_services.PhotonVisibilityService: @local::dune35t_photonvisibilityservice
-dune35t_g4_services.OpDetResponseInterface:  @local::dune35t_opdetresponse  
+dune35t_g4_services.OpDetResponseInterface:  @local::dune35t_opdetresponse
 
 ##
 # Settings to turn on and configure photon simulation
-## 
+##
 
 # Pre-scale the scintillation yield to save memory (correct when applying QE)
 # MUST match between g4 and detsim steps
 dune35t_g4_services.LArPropertiesService.ScintYield:    24000
-dune35t_g4_services.LArPropertiesService.ScintPreScale: 0.0023 
+dune35t_g4_services.LArPropertiesService.ScintPreScale: 0.0023
 
 # disable cerenkov
 dune35t_g4_services.LArPropertiesService.EnableCerenkovLight: false
@@ -445,7 +445,7 @@ dune35t_milliblock_simulation_services.DetectorPropertiesService: @local::dune35
 dune_message_services: {
   debugModules: ["*"]
   destinations: {
-    LogDebugFile: { 
+    LogDebugFile: {
       type:       "file"
       filename:   "debug.log"
       append:     false
@@ -515,7 +515,7 @@ dune_message_services_prod_debug.destinations.LogDebugFile.categories:{
 dune_message_services_prod: {
   debugModules: ["*"]
   destinations: {
-    LogDebugFile: { 
+    LogDebugFile: {
       type:       "file"
       filename:   "debugprod.log"
       append:     false
