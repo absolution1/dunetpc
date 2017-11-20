@@ -39,16 +39,20 @@ int test_TPadManipulator() {
   cout << myname << "Create histogram." << endl;
   TH1* ph = new TH1F("h1", "My histo", 100, 0, 100);
   ph->SetStats(0);
+  ph->SetFillColor(2);
   for ( unsigned int ibin=1; ibin<=100; ++ ibin ) {
     ph->SetBinContent(ibin, ibin-1);
   }
 
   cout << myname << line << endl;
-  cout << myname << "Create canvas and manipulator" << endl;
-  TCanvas* pcan = new TCanvas;
-  ph->Draw();
-  TPadManipulator man(pcan);
-  assert( man.pad() == pcan );
+  cout << myname << "Create manipulator" << endl;
+  TPadManipulator man;
+  assert( man.pad() == nullptr );
+  assert( man.hist() == nullptr );
+
+  cout << myname << line << endl;
+  cout << myname << "Add histogram." << endl;
+  man.add(ph, "H");
   assert( man.hist() != nullptr );
 
   cout << myname << line << endl;
@@ -59,7 +63,13 @@ int test_TPadManipulator() {
   cout << myname << "Add vertical mod lines." << endl;
   man.addVerticalModLines(20, 10);
 
-  pcan->Print("test_TPadManipulator.png");
+  cout << myname << line << endl;
+  cout << myname << "Draw." << endl;
+  assert( man.pad() == nullptr );
+  man.draw();
+  assert( man.pad() != nullptr );
+
+  man.pad()->Print("test_TPadManipulator.png");
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
