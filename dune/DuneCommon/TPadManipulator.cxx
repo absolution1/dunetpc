@@ -479,7 +479,7 @@ int TPadManipulator::update() {
   // If frame is not yet drawn, use the primary object to draw it.
   if ( ! haveFrameHist() ) {
     if ( m_ph != nullptr ) m_ph->Draw(m_dopt.c_str());
-    else if ( m_pg != nullptr ) m_pg->Draw(m_dopt.c_str());
+    else if ( m_pg != nullptr ) m_pg->Draw("AP");
   }
 /*
   if ( ! haveHistOrGraph() ) {
@@ -521,7 +521,7 @@ int TPadManipulator::update() {
   double aspx = asp < 1.0 ? asp : 1.0;        // Font is proportional to this for asp < 1.0
   double aspy = asp > 1.0 ? 1.0/asp : 1.0;    // Font is proportional to this for asp > 1.0
   double xml = xm0 + 0.100*aspx;
-  double xmr = xm0;
+  double xmr = 0.03*aspx;
   double xmb =       0.100*aspy;
   double xmt =       0.070*aspy;
   double xlb = -0.028 + 0.038*aspy;
