@@ -45,6 +45,7 @@ simple_plugin(AcdDigitReader   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
+
 simple_plugin(AcdWireReader   "tool"
                 dune_DuneCommon
                 lardataobj_RecoBase
@@ -79,6 +80,11 @@ simple_plugin(AcdLocalRoiBuilder   "tool"
                 lardataobj_RawData
                 lardataobj_RecoBase
                 art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(FembLinearCalibration   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
