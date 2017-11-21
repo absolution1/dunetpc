@@ -20,6 +20,7 @@
 //        wire - Corresponding wire
 //  digitIndex - Index for the digit in the event digit container
 //   wireIndex - Index for the wire in the event wire container
+//  sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
@@ -49,9 +50,6 @@ public:
   AdcIndex subRun =badIndex;
   AdcIndex event =badIndex;
   AdcChannel channel =badIndex;
-  AdcIndex fembID = badIndex;
-  AdcIndex adcID = badIndex;
-  AdcIndex preampID = badIndex;
   AdcSignal pedestal =badSignal;
   AdcSignal pedestalRms =0.0;
   AdcCountVector raw;
