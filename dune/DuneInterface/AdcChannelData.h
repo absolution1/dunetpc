@@ -49,6 +49,9 @@ public:
   AdcIndex subRun =badIndex;
   AdcIndex event =badIndex;
   AdcChannel channel =badIndex;
+  AdcIndex fembID = badIndex;
+  AdcIndex adcID = badIndex;
+  AdcIndex preampID = badIndex;
   AdcSignal pedestal =badSignal;
   AdcSignal pedestalRms =0.0;
   AdcCountVector raw;
