@@ -44,7 +44,10 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
     fout << "    tool_type: FembLinearCalibration" << endl;
     fout << "    LogLevel: 1" << endl;
     fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
+    fout << "    AdcMin: 0" << endl;
     fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
+    fout << "    AdcMax: 1800" << endl;
+    fout << "    AdcMaxs: []" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -100,6 +103,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
     res.print();
     Index nsamRes = res.getInt("nSample");
     Index nunder = res.getInt("nUnderflow");
+    Index nover = res.getInt("nOverflow");
     assert( res.status() == 0 );
     assert( nsamRes == nsam );
     cout << myname << "  Raw:";
@@ -118,11 +122,19 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
     for ( Index isam=0; isam<nsam; ++isam ) {
       assert( acd.samples[isam] == sigchk[isam] );
     }
-    cout << myname << "Check underflows." << endl;
+    cout << myname << "Check under and overflows." << endl;
     Index nunderExp = 2;
+    Index noverExp = icha > 2 ? icha - 2 : 0;
     assert ( nunder == nunderExp );
+    assert ( nover == noverExp );
     for ( Index isam=0; isam<nsam; ++isam ) {
-      AdcFlag flgExp = isam < nunderExp ? AdcUnderflow : AdcGood;
+      AdcFlag flgExp = isam < nunderExp ? AdcUnderflow :
+                       isam >= nsam-noverExp ? AdcOverflow :
+                       AdcGood;
+      if ( acd.flags[isam] != flgExp ) {
+         cout << myname << "Sample " << isam << ": " << acd.flags[isam]
+              << " != " << flgExp << endl;
+      }
       assert( acd.flags[isam] == flgExp  );
     }
   }
