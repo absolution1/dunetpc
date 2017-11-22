@@ -57,6 +57,7 @@ public:
   AdcFlagVector flags;
   AdcFilterVector signal;
   AdcRoiVector rois;
+  std::string sampleUnit;
   const raw::RawDigit* digit =nullptr;
   const recob::Wire* wire =nullptr;
   AdcIndex digitIndex =badIndex;
