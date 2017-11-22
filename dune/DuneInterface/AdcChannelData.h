@@ -9,6 +9,7 @@
 //      subRun - Sub-run number
 //       event - Event number
 //     channel - Offline channel number
+//      fembID - FEMB ID
 //    pedestal - Pedestal subtracted from the raw count
 // pedestalRms - Pedestal RMS or sigma
 //         raw - Uncompressed array holding the raw ADC count for each tick
@@ -50,6 +51,7 @@ public:
   AdcIndex subRun =badIndex;
   AdcIndex event =badIndex;
   AdcChannel channel =badIndex;
+  AdcIndex fembID =badIndex;
   AdcSignal pedestal =badSignal;
   AdcSignal pedestalRms =0.0;
   AdcCountVector raw;
