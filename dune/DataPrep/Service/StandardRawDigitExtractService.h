@@ -28,7 +28,6 @@
 #include "dune/DuneInterface/PedestalEvaluationService.h"
 
 class AdcChannelDataModifier;
-class AcdRoiBuilder;
 namespace lariov {
   class DetPedestalProvider;
 }
@@ -46,7 +45,7 @@ public:
 private:
 
   using AcdModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
-  using AcdRoiBuilderPtr = std::unique_ptr<const AcdRoiBuilder>;
+//  using AdcChannelDataModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
 
   // Configuration parameters.
   int         m_LogLevel;
@@ -57,7 +56,9 @@ private:
   bool        m_FlagStuckOn;
 
   AcdModifierPtr m_pDigitReadTool;
-  AcdRoiBuilderPtr m_pROIBuilderTool;
+  AcdModifierPtr m_pROIBuilderTool;
+// AdcChannelDataModifierPtr m_pDigitReadTool;
+// AdcChannelDataModifierPtr m_pROIBuilderTool;
 
   const lariov::DetPedestalProvider* m_pPedProv;
   PedestalEvaluationService* m_PedestalEvaluationService;

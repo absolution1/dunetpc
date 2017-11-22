@@ -146,8 +146,8 @@ tools.adcRoiViewer: {
 }
 
 # Build ROI w.r.t. local baseline
-tools.AcdLocalRoiBuilder: {
-  tool_type: AcdLocalRoiBuilder
+tools.adcDPhase3x1x1LocalRoiBuilder: {
+  tool_type: AdcDPhase3x1x1LocalRoiBuilder
   LogLevel: 1
   BinsToAverageForPedestal: 100
   BinsToSkip: 2
@@ -163,8 +163,8 @@ tools.AcdLocalRoiBuilder: {
 }
 
 # Build ROI w.r.t 0
-tools.AcdDPhase3x1x1RoiBuilder: {
-  tool_type: AcdDPhase3x1x1RoiBuilder
+tools.adcDPhase3x1x1RoiBuilder: {
+  tool_type: AdcDPhase3x1x1RoiBuilder
   LogLevel: 1
   BinsToAverageForRMS: 100
   BinsToSkip: 0

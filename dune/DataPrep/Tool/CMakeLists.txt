@@ -74,7 +74,7 @@ simple_plugin(AdcRoiViewer   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
-simple_plugin(AcdLocalRoiBuilder   "tool"
+simple_plugin(AdcDPhase3x1x1LocalRoiBuilder   "tool"
                 dune_ArtSupport
                 dune_DuneCommon
                 lardataobj_RawData
@@ -89,7 +89,7 @@ simple_plugin(FembLinearCalibration   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
-simple_plugin(AcdDPhase3x1x1RoiBuilder   "tool"
+simple_plugin(AdcDPhase3x1x1RoiBuilder   "tool"
                 dune_ArtSupport
                 dune_DuneCommon
                 lardataobj_RawData
