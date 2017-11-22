@@ -103,7 +103,7 @@ int test_FembMappedAdcModifier(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 4 );
+  assert( tm.toolNames().size() == 6 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
