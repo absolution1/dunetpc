@@ -13,17 +13,16 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/Tool/AcdRoiBuilder.h"
+#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
 
 //**********************************************************************
 
 DuneDPhase3x1x1NoiseRemovalService::
 DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) :
-    m_pROIBuilderTool(nullptr) {
-
-  fDoTwoPassFilter  = pset.get<bool>("DoTwoPassFilter");
-
-
+    m_pROIBuilderToolFlattening(nullptr),
+    m_pROIBuilderToolCNR(nullptr),
+    m_pROIBuilderToolFinal(nullptr) {
+    fDoTwoPassFilter  = pset.get<bool>("DoTwoPassFilter");
     fCoherent32 = pset.get<bool>("Coherent32");
     fCoherent16 = pset.get<bool>("Coherent16");
     fLowPassFlt = pset.get<bool>("LowPassFlt");
@@ -31,6 +30,7 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     fFlattenExtrapolate = pset.get<bool>("FlattenExtrapolate");
     fCoherent32Groups = pset.get<std::vector<size_t>>("Coherent32Groups");
     fCoherent16Groups = pset.get<std::vector<size_t>>("Coherent16Groups");
+    fUseBasicROIForCNR = pset.get<bool>("UseBasicROIForCNR");
     fRoiStartThreshold = pset.get<float>("RoiStartThreshold");
     fRoiEndThreshold = pset.get<float>("RoiEndThreshold");
     fRoiPadLow = pset.get<int>("RoiPadLow");
@@ -40,14 +40,17 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     fFFT = &*art::ServiceHandle<util::LArFFT>();
 
     // Retrieve tools
-    pset.get_if_present<std::string>("ROIBuilderTool", m_ROIBuilderTool);
+    pset.get_if_present<std::string>("ROIBuilderToolFlattening", m_ROIBuilderToolFlattening);
+    pset.get_if_present<std::string>("ROIBuilderToolCNR", m_ROIBuilderToolCNR);
+    pset.get_if_present<std::string>("ROIBuilderToolFinal", m_ROIBuilderToolFinal);
     DuneToolManager* ptm = DuneToolManager::instance("");
     if ( ptm == nullptr ) {
     std::cout << "ERROR: Unable to retrieve tool manaager." << std::endl;
     } else {
-    m_pROIBuilderTool = ptm->getPrivate<AcdRoiBuilder>(m_ROIBuilderTool);
+    m_pROIBuilderToolFlattening = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolFlattening);
+    m_pROIBuilderToolCNR = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolCNR);
+    m_pROIBuilderToolFinal = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolFinal);
     }
-
     if (pset.get<std::string>("CorrMode") == "mean") { fMode = 1; }
     else if (pset.get<std::string>("CorrMode") == "median") { fMode = 2; }
     else
@@ -94,20 +97,67 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     return 3;
   }
 
-//  std::cout << myname << "Processing noise removal..." << std::endl;
-
   if(fDoTwoPassFilter)
   {
-    if (fFlatten)
+    //First pass
+
+    //Use a copy of the data map to determine ROI. Actual datamap is gonna be used in second pass.
+    AdcChannelDataMap tempdatamap = datamap;
+
+    if (fLowPassFlt)
     {
-      removeSlopePolynomial(datamap);
+      removeHighFreq(tempdatamap);
     }
 
-    //Rebuild ROI after flattening
+    if (fFlatten)
+    {
+      removeSlopePolynomial(tempdatamap);
+    }
+
+    //Rebuild ROI after low pass and flattening
+    for (auto & entry : tempdatamap)
+    {
+    auto & acd = entry.second;
+    m_pROIBuilderToolFlattening->update(acd);
+    }
+
+    if (fCoherent16)
+    {
+      auto ch_groups = makeDaqGroups(16, fCoherent16Groups);
+      removeCoherent(ch_groups, tempdatamap);
+    }
+
+    if (fCoherent32)
+    {
+      auto ch_groups = makeDaqGroups(32, fCoherent32Groups);
+      removeCoherent(ch_groups, tempdatamap);
+    }
+
+    //Rebuild ROI after CNR
+    for (auto & entry : tempdatamap)
+    {
+    auto & acd = entry.second;
+    m_pROIBuilderToolCNR->update(acd);
+    }
+
+
+
+    //copy the ROI found in tempdatampa to datamap
+    AdcChannelDataMap::iterator ittempdatamap = tempdatamap.begin();
     for (auto & entry : datamap)
     {
     auto & acd = entry.second;
-    m_pROIBuilderTool->build(acd);
+    auto acdtemp = ittempdatamap->second;
+    acd.signal = acdtemp.signal;
+    acd.rois = acdtemp.rois;
+    ittempdatamap++;
+    }
+
+    //Second pass
+
+    if (fFlatten)
+    {
+      removeSlopePolynomial(datamap);
     }
 
     if (fCoherent16)
@@ -122,10 +172,13 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
       removeCoherent(ch_groups, datamap);
     }
 
-    if (fLowPassFlt)
+    //Rebuild ROI after second pass (final ROI)
+    for (auto & entry : datamap)
     {
-      removeHighFreq(datamap);
+    auto & acd = entry.second;
+    m_pROIBuilderToolFinal->update(acd);
     }
+
   }
   else
   {
@@ -171,20 +224,33 @@ std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMeanCorrection(
       if (iacd == datamap.end()) continue;
 
       const AdcChannelData & adc = iacd->second;
-//      auto mask = roiMask(adc);
-      for (size_t s = 0; s < n_samples; ++s)
+
+      if(fUseBasicROIForCNR)
       {
-//          if (!mask[s]) { continue; }
-	  if (adc.signal[s]) 
-	  {
-	    continue; 
-	  }
+        auto mask = roiMask(adc);
+        for (size_t s = 0; s < n_samples; ++s)
+        {
+            if (!mask[s]) { continue; }
 
-          AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
-          if (flag != AdcGood) { continue; }
+            AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+            if (flag != AdcGood) { continue; }
 
-          correction[s] += adc.samples[s];
-          ch_averaged[s]++;
+            correction[s] += adc.samples[s];
+            ch_averaged[s]++;
+        }
+      }
+      else
+      {
+        for (size_t s = 0; s < n_samples; ++s)
+        {
+	    if (adc.signal[s]) { continue; }
+
+            AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+            if (flag != AdcGood) { continue; }
+
+            correction[s] += adc.samples[s];
+            ch_averaged[s]++;
+        }
       }
   }
   for (size_t s = 0; s < n_samples; ++s)
@@ -207,17 +273,34 @@ std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMedianCorrection(
       if (iacd == datamap.end()) continue;
 
       const AdcChannelData & adc = iacd->second;
-      auto mask = roiMask(adc);
 
-      for (size_t s = 0; s < n_samples; ++s)
+      if(fUseBasicROIForCNR)
       {
-          if (!mask[s]) { continue; }
+        auto mask = roiMask(adc);
+        for (size_t s = 0; s < n_samples; ++s)
+        {
+            if (!mask[s]) { continue; }
 
-          AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
-          if (flag != AdcGood) { continue; }
+            AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+            if (flag != AdcGood) { continue; }
 
-          samples[s].push_back(adc.samples[s]);
+            samples[s].push_back(adc.samples[s]);
+        }
       }
+      else
+      {
+        for (size_t s = 0; s < n_samples; ++s)
+        {
+	    if (adc.signal[s]) { continue; }
+
+            AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+            if (flag != AdcGood) { continue; }
+
+            samples[s].push_back(adc.samples[s]);
+        }
+      }
+
+
   }
 
   std::vector<float> correction(n_samples);
@@ -373,7 +456,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
     auto & signal = entry.second.signal;
 //    auto & channel = entry.second.channel;
 
-    //preparation for plynomial fit
+    //preparation for polynomial fit
     int fOrder = 3; //order of the polynomial to be fitted to baseline
     std::vector<long double> line(fOrder+2,0.);
     std::vector< std::vector< long double> > matrix(fOrder+1,line);

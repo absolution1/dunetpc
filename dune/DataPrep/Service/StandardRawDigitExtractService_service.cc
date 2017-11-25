@@ -8,7 +8,6 @@
 #include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
-#include "dune/DuneInterface/Tool/AcdRoiBuilder.h"
 
 using std::string;
 using std::cout;
@@ -35,7 +34,7 @@ StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityReg
     cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
   } else {
     m_pDigitReadTool = ptm->getPrivate<AdcChannelDataModifier>(m_DigitReadTool);
-    m_pROIBuilderTool = ptm->getPrivate<AcdRoiBuilder>(m_ROIBuilderTool);
+    m_pROIBuilderTool = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderTool);
     if ( m_pDigitReadTool == nullptr ) {
       cout << myname << "ERROR: Unable to retrieve digit reader " << m_DigitReadTool << endl;
     } else {
@@ -111,7 +110,7 @@ int StandardRawDigitExtractService::extract(AdcChannelData& acd) const {
     //optional: build ROI and exclude ROI from pedestal calculation
     if( m_ROIBuilderTool.size() )
     {
-      m_pROIBuilderTool->build(acd);
+      m_pROIBuilderTool->update(acd);
     }
 
     m_PedestalEvaluationService->evaluate(acd, &ped);
