@@ -73,6 +73,7 @@ dunetpc : dunetpc : dune/DetSim/Service/DPhaseSimChannelExtractService.h
 dunetpc : dunetpc : dune/DetSim/Service/Dune35tSimChannelExtractService.h
 dunetpc : dunetpc : dune/DetSim/Service/Dune35tZeroSuppressService.h
 dunetpc : dunetpc : dune/DetSim/Service/ExponentialChannelNoiseService.h
+dunetpc : dunetpc : dune/DetSim/Service/DPhaseRealisticNoiseService.h
 dunetpc : dunetpc : dune/DetSim/Service/FixedDetPedestalService.h
 dunetpc : dunetpc : dune/DetSim/Service/FixedZeroSuppressService.h
 dunetpc : dunetpc : dune/DetSim/Service/GenericSimChannelExtractService.h

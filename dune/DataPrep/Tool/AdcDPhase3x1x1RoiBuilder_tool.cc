@@ -1,21 +1,21 @@
-// AcdLocalRoiBuilder_tool.cc
+// AdcDPhase3x1x1RoiBuilder_tool.cc
 // christoph.alt@cern.ch
 
 //********************************
-// This code is intended to be used on raw data. It determines ROI that should be excluded from pedestal and noise pattern calculation.
+// This code determines ROI that should be excluded from coherent noise removal
 //
-// Thode calculates a local pedestal in a sliding window and looks for ROI in the bins that follow this window.
 // A ROI is defined when three criteria are met:
 // 1. a minimum number of consecutive bins above a relatively low threhsold -> temporary ROI
 // 2. inside temporary ROI: a minimum number of consecutive bins above a medium threshold
 // 3. inside temporary ROI: at least one bin above a high threshold
-// All thresholds are relative to the local pedestal of the sliding window. Threshold 1 and 2 can be expressed
+//
+// All thresholds are relative to 0. Threshold 1 and 2 can be expressed
 // both in absolute ADC counts or as multiples of the standard deviation. 
-// The standard deviation is only calculated for the first window while the pedestal is re-calculated for each window.
+// The standard deviation is calculated once for the first "BinsToAverageForRMS" ticks
 //
 //********************************
 
-#include "AcdLocalRoiBuilder.h"
+#include "AdcDPhase3x1x1RoiBuilder.h"
 #include <iostream>
 #include <algorithm>
 #include <sstream>
@@ -34,9 +34,9 @@ using art::ServiceHandle;
 // Class methods.
 //**********************************************************************
 
-AcdLocalRoiBuilder::AcdLocalRoiBuilder(fhicl::ParameterSet const& ps): 
+AdcDPhase3x1x1RoiBuilder::AdcDPhase3x1x1RoiBuilder(fhicl::ParameterSet const& ps): 
   m_LogLevel(ps.get<int>("LogLevel")), 
-  m_BinsToAverageForPedestal(ps.get<AdcIndex>("BinsToAverageForPedestal")),
+  m_BinsToAverageForRMS(ps.get<AdcIndex>("BinsToAverageForRMS")),
   m_BinsToSkip(ps.get<AdcIndex>("BinsToSkip")),
   m_UseStandardDeviation(ps.get<bool>("UseStandardDeviation")),
   m_NConsecBinsAboveThreshold1(ps.get<AdcIndex>("NConsecBinsAboveThreshold1")),
@@ -47,11 +47,11 @@ AcdLocalRoiBuilder::AcdLocalRoiBuilder(fhicl::ParameterSet const& ps):
   m_NSigmaMax(ps.get<AdcSignal>("NSigmaMax")),
   m_PadLow(ps.get<AdcIndex>("PadLow")),
   m_PadHigh(ps.get<AdcIndex>("PadHigh")) {
-  const string myname = "AcdLocalRoiBuilder::ctor: ";
+  const string myname = "AdcDPhase3x1x1RoiBuilder::ctor: ";
   if ( m_LogLevel > 0 ) {
     cout << myname << "              Configuration: " << endl;
     cout << myname << "                   LogLevel: " << m_LogLevel << endl;
-    cout << myname << "   BinsToAverageForPedestal: " << m_BinsToAverageForPedestal << endl;
+    cout << myname << "   BinsToAverageForRMS: " << m_BinsToAverageForRMS << endl;
     cout << myname << "                 BinsToSkip: " << m_BinsToSkip << endl;
     cout << myname << "       UseStandardDeviation: " << m_UseStandardDeviation << endl;
     cout << myname << " NConsecBinsAboveThreshold1: " << m_NConsecBinsAboveThreshold1 << endl;
@@ -68,16 +68,20 @@ AcdLocalRoiBuilder::AcdLocalRoiBuilder(fhicl::ParameterSet const& ps):
 //**********************************************************************
 
 
-AcdLocalRoiBuilder::~AcdLocalRoiBuilder() {
+AdcDPhase3x1x1RoiBuilder::~AdcDPhase3x1x1RoiBuilder() {
 }
 
 //**********************************************************************
 
-int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
-  const string myname = "AcdLocalRoiBuilder:build: ";
+DataMap AdcDPhase3x1x1RoiBuilder::update(AdcChannelData& data) const {
+  const string myname = "AdcDPhase3x1x1RoiBuilder:build: ";
   if ( m_LogLevel >= 2 ) cout << myname << "Building ROIs for channel "
                               << data.channel << "." << endl;
   data.rois.clear();
+  
+  //Create dummy DataMap to return
+  DataMap res(0);
+  res.setInt("Test", 0);
 
   //Raw ADC.
   AdcSignalVector sigs;
@@ -104,43 +108,34 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
   if ( nsig < 1 ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel
                                 << " has no samples." << endl;
-    return 0;
+    return res;
   }
 
   //*****************************************
   //  FIRST ITERATION: BIN 0 TO LAST BIN  ***
   //*****************************************
-  double SumPedestal=0.;
   double SumADCMinusPedestalSquared=0.;
   double StandardDeviationPedestal=0.;
-  AdcIndex FirstEntryInPedestalSum=0;
 
-  //Calculate pedestal for first m_BinsToAverageForPedestal ticks
-  for ( AdcIndex isig=m_BinsToSkip; isig<m_BinsToAverageForPedestal+m_BinsToSkip; ++isig ) 
-  {
-    SumPedestal+=sigs[isig];
-  }
-  FirstEntryInPedestalSum=m_BinsToSkip;
-
-  //Calculate standard deviation for first m_BinsToAverageForPedestal ticks
+  //Calculate standard deviation for first m_BinsToAverageForRMS ticks
   if(m_UseStandardDeviation)
   {
-    for ( AdcIndex isig=m_BinsToSkip; isig<m_BinsToAverageForPedestal+m_BinsToSkip; ++isig ) 
+    for ( AdcIndex isig=m_BinsToSkip; isig<m_BinsToAverageForRMS+m_BinsToSkip; ++isig ) 
     {
-      SumADCMinusPedestalSquared+=pow(sigs[isig]-SumPedestal/m_BinsToAverageForPedestal,2);
+      SumADCMinusPedestalSquared+=pow(sigs[isig],2);
     }
-  StandardDeviationPedestal = sqrt(SumADCMinusPedestalSquared/(m_BinsToAverageForPedestal-1));
+  StandardDeviationPedestal = sqrt(SumADCMinusPedestalSquared/(m_BinsToAverageForRMS-1));
   siglow1 = m_NSigmaEnd1*StandardDeviationPedestal;
   sighigh1 = m_NSigmaStart1*StandardDeviationPedestal;
   sighigh2 = m_NSigmaStart2*StandardDeviationPedestal;
   }
 
-  for ( AdcIndex isig = m_BinsToAverageForPedestal+m_BinsToSkip; isig<sigs.size(); ++isig ) 
+  for ( AdcIndex isig = m_BinsToAverageForRMS+m_BinsToSkip; isig<sigs.size(); ++isig ) 
   {
     AdcSignal sig = sigs[isig];
     if ( inroi ) 
     {
-      if ( sig > siglow1 + SumPedestal/m_BinsToAverageForPedestal &&  isig < sigs.size()-1)
+      if ( sig > siglow1  &&  isig < sigs.size()-1)
       {
         signal[isig] = true;
       } 
@@ -156,7 +151,7 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
 
 	for(AdcIndex isigroi = ROIStart[ROICount-1]; isigroi <= ROIEnd[ROICount-1]; isigroi++)
 	{
-	  if( sigs[isigroi] >= sighigh2 + SumPedestal/m_BinsToAverageForPedestal ) 
+	  if( sigs[isigroi] >= sighigh2 ) 
 	  {
 	    NConsecBinsAboveThreshold2Count++;
 	    if(NConsecBinsAboveThreshold2Count == m_NConsecBinsAboveThreshold2Temp)
@@ -177,7 +172,7 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
 	  KeepThisROI = false;
 	  for(AdcIndex isigroi = ROIStart[ROICount-1]; isigroi <= ROIEnd[ROICount-1]; isigroi++)
 	  {
-	    if( sigs[isigroi] >= sigmax + SumPedestal/m_BinsToAverageForPedestal) 
+	    if( sigs[isigroi] >= sigmax ) 
 	    {
 	      KeepThisROI = true;
 	      break;
@@ -191,14 +186,6 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
 	  for(AdcIndex isigroi = ROIStart[ROICount-1]; isigroi <= ROIEnd[ROICount-1]; isigroi++)
 	  {
 	    signal[isigroi] = false;
-	    //recalculate pedesta, including the ones in the deleted ROI
-	    SumPedestal -= sigs[FirstEntryInPedestalSum]; //remove last entry in pedestal sum
-	    FirstEntryInPedestalSum++; //increase index for last entry in pedestal sum by 1
-	    while(signal[FirstEntryInPedestalSum]) //check if the increased index was a signal. if yes, increase until index with no signal was found.
-	    {
-	      FirstEntryInPedestalSum++;
-	    }
-	    SumPedestal += sigs[isigroi]; //add current ADC count to pedestal sum
 	  }
 
 	  ROIStart.pop_back();
@@ -207,16 +194,6 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
 	}
 
         inroi = false;
-
-	SumPedestal -= sigs[FirstEntryInPedestalSum];//remove last entry in pedestal sum
-
-	FirstEntryInPedestalSum++; //increase index for last entry in pedestal sum by 1
-	while(signal[FirstEntryInPedestalSum]) //check if the increased index was a signal. if yes, increase until index with no signal was found.
-	{
-	  FirstEntryInPedestalSum++;
-	}
-
-	SumPedestal += sigs[isig]; //add current ADC count to sum
       }
     } 
     else 
@@ -224,7 +201,7 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
       bool ROIStartIsHere = true;
       for(AdcIndex isignext = isig; isignext < std::min((AdcIndex)sigs.size(),isig+m_NConsecBinsAboveThreshold1); isignext++)
       {
-	if(sigs[isignext] < sighigh1 + SumPedestal/m_BinsToAverageForPedestal)
+	if(sigs[isignext] < sighigh1 )
 	{
 	  ROIStartIsHere = false;
 	  break;
@@ -236,18 +213,6 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
         ROIStart.push_back(isig);
         signal[isig] = true; 
         inroi = true;
-      }
-      else
-      {
-	SumPedestal -= sigs[FirstEntryInPedestalSum]; //remove last entry in pedestal sum
-
-	FirstEntryInPedestalSum++; //increase index for last entry in pedestal sum by 1
-	while(signal[FirstEntryInPedestalSum]) //check if the increased index was a signal. if yes, increase until index with no signal was found.
-	{
-	  FirstEntryInPedestalSum++;
-	}
-
-	SumPedestal += sigs[isig]; //add current ADC count to sum
       }
     }
   }
@@ -261,63 +226,49 @@ signal[sigs.size()-1] = false;
   //******************************************
   //  SECOND ITERATION: LAST BIN TO BIN 0  ***
   //******************************************
-  AdcIndex PedestalIndex=sigs.size()-1;
-  AdcIndex PedestalCounter=0;
+  AdcIndex StandardDeviationIndex=sigs.size()-1;
+  AdcIndex StandardDeviationCounter=0;
   inroi = false;
   siglow1 = m_NSigmaEnd1;
   sighigh1 = m_NSigmaStart1;
   sighigh2 = m_NSigmaStart2;
 
-  SumPedestal=0.;
   SumADCMinusPedestalSquared=0.;
   StandardDeviationPedestal=0.;
-
-  FirstEntryInPedestalSum=0;
 
   ROIStart.clear();
   ROIEnd.clear();
   ROICount=0;
 
-  //Calculate pedestal for last m_BinsToAverageForPedestal ticks
-  while(PedestalCounter < m_BinsToAverageForPedestal)
-  {
-    if(!signal[PedestalIndex])
-    {
-       if(PedestalCounter == 0) FirstEntryInPedestalSum=PedestalIndex; //remember first enntry of pedestal sum
-       SumPedestal+=sigs[PedestalIndex];
-       PedestalCounter++;
-    }
-    PedestalIndex--;
-  }
 
-  //Calculate standard deviation for last m_BinsToAverageForPedestal ticks
+  //Calculate standard deviation for last m_BinsToAverageForRMS ticks
   if(m_UseStandardDeviation)
   {
-    PedestalCounter=0;
-    PedestalIndex=sigs.size()-1;
-    while(PedestalCounter < m_BinsToAverageForPedestal)
+    StandardDeviationCounter=0;
+    StandardDeviationIndex=sigs.size()-1;
+    while(StandardDeviationCounter < m_BinsToAverageForRMS)
     {
-      if(!signal[PedestalIndex])
+      if(!signal[StandardDeviationIndex])
       {
-        SumADCMinusPedestalSquared+=pow(sigs[PedestalIndex]-SumPedestal/m_BinsToAverageForPedestal,2);
-        PedestalCounter++;
+        SumADCMinusPedestalSquared+=pow(sigs[StandardDeviationIndex],2);
+        StandardDeviationCounter++;
       }
-    PedestalIndex--;
+    StandardDeviationIndex--;
     }
-  StandardDeviationPedestal = sqrt(SumADCMinusPedestalSquared/(m_BinsToAverageForPedestal-1));
+  StandardDeviationPedestal = sqrt(SumADCMinusPedestalSquared/(m_BinsToAverageForRMS-1));
   siglow1 = m_NSigmaEnd1*StandardDeviationPedestal;
   sighigh1 = m_NSigmaStart1*StandardDeviationPedestal;
   sighigh2 = m_NSigmaStart2*StandardDeviationPedestal;
   }
 
 
-  for ( AdcIndex isig = PedestalIndex; isig >= m_BinsToSkip && isig <= PedestalIndex; --isig ) 
+  for ( AdcIndex isig = StandardDeviationIndex; isig >= m_BinsToSkip && isig <= StandardDeviationIndex; --isig ) 
   {
     if(signal[isig]) continue;
     AdcSignal sig = sigs[isig];
     if ( inroi ) 
     {
-      if ( sig > siglow1 + SumPedestal/m_BinsToAverageForPedestal && isig > m_BinsToSkip)
+      if ( sig > siglow1 && isig > m_BinsToSkip)
       {
         signal[isig] = true;
       } 
@@ -333,7 +284,7 @@ signal[sigs.size()-1] = false;
 
 	for(AdcIndex isigroi = ROIStart[ROICount-1]; isigroi >= ROIEnd[ROICount-1]; isigroi--)
 	{
-	  if( sigs[isigroi] >= sighigh2 + SumPedestal/m_BinsToAverageForPedestal ) 
+	  if( sigs[isigroi] >= sighigh2 ) 
 	  {
 	    NConsecBinsAboveThreshold2Count++;
 	    if(NConsecBinsAboveThreshold2Count == m_NConsecBinsAboveThreshold2Temp)
@@ -354,7 +305,7 @@ signal[sigs.size()-1] = false;
 	  KeepThisROI = false;
 	  for(AdcIndex isigroi = ROIStart[ROICount-1]; isigroi >= ROIEnd[ROICount-1]; isigroi--)
 	  {
-	    if( sigs[isigroi] >= sigmax + SumPedestal/m_BinsToAverageForPedestal ) 
+	    if( sigs[isigroi] >= sigmax ) 
 	    {
 	      KeepThisROI = true;
 	      break;
@@ -368,14 +319,6 @@ signal[sigs.size()-1] = false;
 	  for(AdcIndex isigroi = ROIStart[ROICount-1]; isigroi >= ROIEnd[ROICount-1]; isigroi--)
 	  {
 	    signal[isigroi] = false;
-	    //recalculate pedestal, including the ones in the deleted ROI
-	    SumPedestal -= sigs[FirstEntryInPedestalSum]; //remove last entry in pedestal sum
-	    FirstEntryInPedestalSum--; //decreas index for last entry in pedestal sum by 1
-	    while(signal[FirstEntryInPedestalSum]) //check if the decreased index was a signal. if yes, increase until index with no signal was found.
-	    {
-	      FirstEntryInPedestalSum--;
-	    }
-	    SumPedestal += sigs[isigroi]; //add current ADC count to sum
 	  }
 
 	  ROIStart.pop_back();
@@ -384,24 +327,14 @@ signal[sigs.size()-1] = false;
 	}
 
         inroi = false;
-	SumPedestal -= sigs[FirstEntryInPedestalSum];//remove last entry in pedestal sum
-
-	FirstEntryInPedestalSum--; //increase index for last entry in pedestal sum by 1
-	while(signal[FirstEntryInPedestalSum]) //check if the increased index was a signal. if yes, increase until index with no signal was found.
-	{
-	  FirstEntryInPedestalSum--;
-	}
-
-	SumPedestal += sigs[isig]; //add current ADC count to sum
-
       }
     } 
     else 
     {
       bool ROIStartIsHere = true;
-      for(AdcIndex isignext = isig; isignext >= (AdcIndex)std::max((int)m_BinsToSkip,(int)isig-(int)m_NConsecBinsAboveThreshold1+1) && isignext <= PedestalIndex ; isignext--)
+      for(AdcIndex isignext = isig; isignext >= (AdcIndex)std::max((int)m_BinsToSkip,(int)isig-(int)m_NConsecBinsAboveThreshold1+1) && isignext <= StandardDeviationIndex ; isignext--)
       {
-	if(sigs[isignext] < sighigh1 + SumPedestal/m_BinsToAverageForPedestal)
+	if(sigs[isignext] < sighigh1 )
 	{
 	  ROIStartIsHere = false;
 	  break;
@@ -413,17 +346,6 @@ signal[sigs.size()-1] = false;
         ROIStart.push_back(isig);
         signal[isig] = true; 
         inroi = true;
-      }
-      else
-      {
-	SumPedestal -= sigs[FirstEntryInPedestalSum]; //remove first entry in pedestal sum
-	FirstEntryInPedestalSum--; //decrease index for last entry in pedestal sum by 1
-
-	while(signal[FirstEntryInPedestalSum]) //check if the increased index was a signal. if yes, increase until index with no signal was found.
-	{
-	  FirstEntryInPedestalSum--;
-	}
-	SumPedestal += sigs[isig]; //add current ADC count to sum
       }
     }
   }
@@ -445,7 +367,7 @@ signal[m_BinsToSkip] = false;
   } else if ( m_LogLevel >= 2 ) {
     cout << myname << "  ROI count before merge: " << data.rois.size() << endl;
   }
-  if ( rois.size() == 0 ) return 0;
+  if ( rois.size() == 0 ) return res;
   // Pad ROIs.
   unsigned int isig1 = 0;
   unsigned int isig2 = 0;
@@ -469,26 +391,7 @@ signal[m_BinsToSkip] = false;
   } else if ( m_LogLevel >= 2 ) {
     cout << myname << "  ROI count after merge: " << data.rois.size() << endl;
   }
-  return 0;
-}
-//**********************************************************************
 
-ostream& AcdLocalRoiBuilder::
-print(ostream& out, string prefix) const {
-  out << prefix << "         AcdLocalRoiBuilder:" << endl;
-  out << prefix << "                   LogLevel: " << m_LogLevel << endl;
-  out << prefix << "   BinsToAverageForPedestal: " << m_BinsToAverageForPedestal << endl;
-  out << prefix << "                 BinsToSkip: " << m_BinsToSkip << endl;
-  out << prefix << "       UseStandardDeviation: " << m_UseStandardDeviation << endl;
-  out << prefix << " NConsecBinsAboveThreshold1: " << m_NConsecBinsAboveThreshold1 << endl;
-  out << prefix << "               NSigmaStart1: " << m_NSigmaStart1 << endl;
-  out << prefix << "                 NSigmaEnd1: " << m_NSigmaEnd1 << endl;
-  out << prefix << " NConsecBinsAboveThreshold2: " << m_NConsecBinsAboveThreshold2 << endl;
-  out << prefix << "               NSigmaStart2: " << m_NSigmaStart2 << endl;
-  out << prefix << "                  NSigmaMax: " << m_NSigmaMax << endl;
-  out << prefix << "                     PadLow: " << m_PadLow << endl;
-  out << prefix << "                    PadHigh: " << m_PadHigh << endl;
-
-  return out;
+  return res;
 }
 //**********************************************************************

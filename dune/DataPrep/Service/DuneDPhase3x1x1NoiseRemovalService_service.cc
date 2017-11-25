@@ -13,7 +13,7 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/Tool/AcdRoiBuilder.h"
+#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
 
 //**********************************************************************
 
@@ -47,9 +47,9 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     if ( ptm == nullptr ) {
     std::cout << "ERROR: Unable to retrieve tool manaager." << std::endl;
     } else {
-    m_pROIBuilderToolFlattening = ptm->getPrivate<AcdRoiBuilder>(m_ROIBuilderToolFlattening);
-    m_pROIBuilderToolCNR = ptm->getPrivate<AcdRoiBuilder>(m_ROIBuilderToolCNR);
-    m_pROIBuilderToolFinal = ptm->getPrivate<AcdRoiBuilder>(m_ROIBuilderToolFinal);
+    m_pROIBuilderToolFlattening = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolFlattening);
+    m_pROIBuilderToolCNR = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolCNR);
+    m_pROIBuilderToolFinal = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolFinal);
     }
     if (pset.get<std::string>("CorrMode") == "mean") { fMode = 1; }
     else if (pset.get<std::string>("CorrMode") == "median") { fMode = 2; }
@@ -118,7 +118,7 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     for (auto & entry : tempdatamap)
     {
     auto & acd = entry.second;
-    m_pROIBuilderToolFlattening->build(acd);
+    m_pROIBuilderToolFlattening->update(acd);
     }
 
     if (fCoherent16)
@@ -137,7 +137,7 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     for (auto & entry : tempdatamap)
     {
     auto & acd = entry.second;
-    m_pROIBuilderToolCNR->build(acd);
+    m_pROIBuilderToolCNR->update(acd);
     }
 
 
@@ -176,7 +176,7 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     for (auto & entry : datamap)
     {
     auto & acd = entry.second;
-    m_pROIBuilderToolFinal->build(acd);
+    m_pROIBuilderToolFinal->update(acd);
     }
 
   }
