@@ -2,10 +2,14 @@
 
 #include "FembLinearCalibration.h"
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 using std::string;
 using std::cout;
 using std::endl;
+using std::ostringstream;
+using std::setw;
 
 using Index = unsigned int;
 
@@ -19,11 +23,38 @@ FembLinearCalibration::FembLinearCalibration(fhicl::ParameterSet const& ps)
   m_AdcMax(ps.get<AdcCount>("AdcMax")),
   m_AdcMaxs(ps.get<AdcCountVector>("AdcMaxs")) {
   const string myname = "FembLinearCalibration::ctor: ";
+  int w = 28;
   if ( m_LogLevel >= 1 ) {
-    cout << myname << "      Log level: " << m_LogLevel << endl;
-    cout << myname << "     Gain count: " << m_Gains.size() << endl;
-    cout << myname << "  ADC min count: " << m_AdcMins.size() << endl;
-    cout << myname << "        ADC max: " << m_AdcMax << endl;
+    cout << myname << setw(w) << "Log level: " << m_LogLevel << endl;
+    ostringstream sslab;
+    sslab << "Gains[" << m_Gains.size() << "]" << (m_Gains.size() ? ": " : "  ");;
+    cout << myname << setw(w) << sslab.str();
+    for ( Index icha=0; icha<m_Gains.size(); ++icha ) {
+      if ( icha > 0 ) cout << ", ";
+      if ( icha >= 10 ) { cout << "..."; break; }
+      cout << m_Gains[icha];
+    }
+    cout << endl;
+    cout << myname << setw(w) << "Default ADC min: " << m_AdcMin << endl;
+    sslab.str("");
+    sslab << "Channel ADC min[" << m_AdcMins.size() << "]" << (m_AdcMins.size() ? ": " : "  ");;
+    cout << myname << setw(w) << sslab.str();
+    for ( Index icha=0; icha<m_AdcMins.size(); ++icha ) {
+      if ( icha > 0 ) cout << ", ";
+      if ( icha >= 10 ) { cout << "..."; break; }
+      cout << m_AdcMins[icha];
+    }
+    cout << endl;
+    cout << myname << setw(w) << "Default ADC max: " << m_AdcMax << endl;
+    sslab.str("");
+    sslab << "Channel ADC max[" << m_AdcMaxs.size() << "]" << (m_AdcMaxs.size() ? ": " : "  ");
+    cout << myname << setw(w) << sslab.str();
+    for ( Index icha=0; icha<m_AdcMaxs.size(); ++icha ) {
+      if ( icha > 0 ) cout << ", ";
+      if ( icha >= 10 ) { cout << "..."; break; }
+      cout << m_AdcMaxs[icha];
+    }
+    cout << endl;
   }
 }
 
