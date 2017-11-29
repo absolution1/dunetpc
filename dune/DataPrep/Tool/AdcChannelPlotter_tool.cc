@@ -122,6 +122,9 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
         continue;
       }
       htitl += "; Tick; Signal";
+      if ( acd.sampleUnit.size() ) {
+        htitl += " [" + acd.sampleUnit + "]";
+      }
       ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
       hists.push_back(ph);
       for ( Index isam=0; isam<nsam; ++isam ) {
