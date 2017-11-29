@@ -33,8 +33,8 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   DataMap res;
   unsigned int nraw = acd.raw.size();
   unsigned int nsam = acd.samples.size();
+  unsigned int ntickChannel = nsam > nraw ? nsam : nraw;
   unsigned int nroi = acd.rois.size();
-  res.setInt("roiCount", nroi);
   bool doHist = m_HistOpt != 0;
   bool histRelativeTick = false;
   int histType = 0;
@@ -58,6 +58,10 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
   DataMap::FloatVector roiSigAreas;
+  DataMap::IntVector nUnderflow(nroi, 0);
+  DataMap::IntVector nOverflow(nroi, 0);
+  DataMap::IntVector tick1(nroi, 0);
+  DataMap::IntVector ntick(nroi, 0);
   for ( unsigned int iroi=0; iroi<nroi; ++iroi ) {
     AdcRoi roi = acd.rois[iroi];
     ostringstream sshnam;
@@ -72,6 +76,8 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     string httl = sshttl.str();
     unsigned int isam1 = roi.first;
     unsigned int isam2 = roi.second + 1;
+    tick1[iroi] = isam1;
+    ntick[iroi] = isam2 - isam1;
     float x1 = histRelativeTick ? 0.0 : isam1;
     float x2 = histRelativeTick ? isam2 - isam1 : isam2;
     TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), isam2-isam1, x1, x2);
@@ -95,16 +101,25 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       }
       sigarea += sig;
       ph->SetBinContent(++ibin, sig);
+      AdcFlag flag = acd.flags.size() > isam ? acd.flags[isam] : 0;
+      if ( flag == AdcUnderflow ) ++nUnderflow[iroi];
+      if ( flag == AdcOverflow ) ++nOverflow[iroi];
     }
     roiHists.push_back(ph);
     roiSigMins.push_back(sigmin);
     roiSigMaxs.push_back(sigmax);
     roiSigAreas.push_back(sigarea);
   }
-  res.setHistVector("roiHists", roiHists, true);
+  res.setInt("roiCount", nroi);
+  res.setInt("roiNTickChannel", ntickChannel);
+  res.setIntVector("roiTick0s", tick1);
+  res.setIntVector("roiNTicks", ntick);
+  res.setIntVector("roiNUnderflows", nUnderflow);
+  res.setIntVector("roiNOverflows", nOverflow);
   res.setFloatVector("roiSigMins", roiSigMins);
   res.setFloatVector("roiSigMaxs", roiSigMaxs);
   res.setFloatVector("roiSigAreas", roiSigAreas);
+  res.setHistVector("roiHists", roiHists, true);
   return res;
 }
 

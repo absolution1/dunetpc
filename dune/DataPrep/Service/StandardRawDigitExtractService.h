@@ -45,15 +45,20 @@ public:
 private:
 
   using AcdModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
+//  using AdcChannelDataModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
 
   // Configuration parameters.
   int         m_LogLevel;
+  std::string m_ROIBuilderTool;
   std::string m_DigitReadTool;
   int         m_PedestalOption;
   bool        m_FlagStuckOff;
   bool        m_FlagStuckOn;
 
   AcdModifierPtr m_pDigitReadTool;
+  AcdModifierPtr m_pROIBuilderTool;
+// AdcChannelDataModifierPtr m_pDigitReadTool;
+// AdcChannelDataModifierPtr m_pROIBuilderTool;
 
   const lariov::DetPedestalProvider* m_pPedProv;
   PedestalEvaluationService* m_PedestalEvaluationService;

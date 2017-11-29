@@ -9,6 +9,7 @@
 //      subRun - Sub-run number
 //       event - Event number
 //     channel - Offline channel number
+//      fembID - FEMB ID
 //    pedestal - Pedestal subtracted from the raw count
 // pedestalRms - Pedestal RMS or sigma
 //         raw - Uncompressed array holding the raw ADC count for each tick
@@ -20,6 +21,7 @@
 //        wire - Corresponding wire
 //  digitIndex - Index for the digit in the event digit container
 //   wireIndex - Index for the wire in the event wire container
+//  sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
@@ -49,6 +51,7 @@ public:
   AdcIndex subRun =badIndex;
   AdcIndex event =badIndex;
   AdcChannel channel =badIndex;
+  AdcIndex fembID =badIndex;
   AdcSignal pedestal =badSignal;
   AdcSignal pedestalRms =0.0;
   AdcCountVector raw;
@@ -56,6 +59,7 @@ public:
   AdcFlagVector flags;
   AdcFilterVector signal;
   AdcRoiVector rois;
+  std::string sampleUnit;
   const raw::RawDigit* digit =nullptr;
   const recob::Wire* wire =nullptr;
   AdcIndex digitIndex =badIndex;

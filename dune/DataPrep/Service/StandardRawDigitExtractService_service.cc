@@ -19,9 +19,11 @@ StandardRawDigitExtractService::
 StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(1),
   m_pDigitReadTool(nullptr),
+  m_pROIBuilderTool(nullptr),
   m_pPedProv(nullptr) {
   const string myname = "StandardRawDigitExtractService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
+  pset.get_if_present<string>("ROIBuilderTool", m_ROIBuilderTool);
   m_DigitReadTool  = pset.get<string>("DigitReadTool");
   m_PedestalOption = pset.get<int>("PedestalOption");
   m_FlagStuckOff   = pset.get<bool>("FlagStuckOff");
@@ -32,6 +34,7 @@ StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityReg
     cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
   } else {
     m_pDigitReadTool = ptm->getPrivate<AdcChannelDataModifier>(m_DigitReadTool);
+    m_pROIBuilderTool = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderTool);
     if ( m_pDigitReadTool == nullptr ) {
       cout << myname << "ERROR: Unable to retrieve digit reader " << m_DigitReadTool << endl;
     } else {
@@ -103,6 +106,13 @@ int StandardRawDigitExtractService::extract(AdcChannelData& acd) const {
     else if ( m_FlagStuckOn  && adclow == lowbits ) acd.flags[isig] = AdcStuckOn;
   }
   if ( m_PedestalOption == 3 ) {
+
+    //optional: build ROI and exclude ROI from pedestal calculation
+    if( m_ROIBuilderTool.size() )
+    {
+      m_pROIBuilderTool->update(acd);
+    }
+
     m_PedestalEvaluationService->evaluate(acd, &ped);
     for ( unsigned int isig=0; isig<nsig; ++isig ) {
       acd.samples[isig] -= ped;

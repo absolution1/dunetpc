@@ -74,10 +74,12 @@ private:
   bool fCosmics;
 
   TTree *fTree;
+  TTree *fTreere;
   int fRun;
   int fEvent;
   int fChosenView;
-  int fNumberOfTracks;
+  size_t fNumberOfTracks;
+  size_t fNumberOfTaggedTracks;
 
   double fdQdx;
   double fdEdx;
@@ -104,12 +106,15 @@ proto::DEdx::DEdx(fhicl::ParameterSet const & p)
 void proto::DEdx::beginJob()
 {
   art::ServiceHandle<art::TFileService> tfs;
-  fTree = tfs->make<TTree>("entries","entries tree");
+  fTreere = tfs->make<TTree>("entries","entries tree");
+  fTree = tfs->make<TTree>("dedx","dedx tree");
 
-  fTree->Branch("fRun", &fRun, "fRun/I");
-  fTree->Branch("fEvent", &fEvent, "fEvent/I");
-  fTree->Branch("fChosenView", &fChosenView, "fChosenView/I");
-  fTree->Branch("fNumberOfTracks", &fNumberOfTracks, "fNumberOfTracks/I");
+  fTreere->Branch("fRun", &fRun, "fRun/I");
+  fTreere->Branch("fEvent", &fEvent, "fEvent/I");
+  fTreere->Branch("fChosenView", &fChosenView, "fChosenView/I");
+  fTreere->Branch("fNumberOfTracks", &fNumberOfTracks, "fNumberOfTracks/I");
+  fTreere->Branch("fNumberOfTaggedTracks", &fNumberOfTaggedTracks, "fNumberOfTaggedTracks/I");
+
   fTree->Branch("fdQdx", &fdQdx, "fdQdx/D");
   fTree->Branch("fdEdx", &fdEdx, "fdEdx/D");
   fTree->Branch("fdQ", &fdQ, "fdQ/D");
@@ -137,6 +142,8 @@ void proto::DEdx::analyze(art::Event const & e)
 
   // tracks                                                                                             
   auto trkHandle = e.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  fNumberOfTracks = trkHandle->size();
+
   const art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trkHandle, e, fTrackModuleLabel);
 
   // Find the tagged tracks as cosmic muons
@@ -147,12 +154,12 @@ void proto::DEdx::analyze(art::Event const & e)
     if (ct.isValid())
     {	
      	// loop over tracks
-      	fNumberOfTracks = trkHandle->size();
      	 for (size_t t = 0; t < trkHandle->size(); ++t)
      	 { 
 		if (ct.at(t).size())
 		{ 
-		                        
+			fNumberOfTaggedTracks++;
+					                        
 			auto vhit = fmthm.at(t);
 			auto vmeta = fmthm.data(t);
 	
@@ -165,7 +172,6 @@ void proto::DEdx::analyze(art::Event const & e)
   {
 	
       // loop over tracks
-      fNumberOfTracks = trkHandle->size();
       for (size_t t = 0; t < trkHandle->size(); ++t)
       {                           
 	auto vhit = fmthm.at(t);
@@ -174,6 +180,8 @@ void proto::DEdx::analyze(art::Event const & e)
 	CountdEdx(vhit, vmeta);
       }
   }
+
+  fTreere->Fill();
 }
 
 void proto::DEdx::CountdEdx(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector< recob::TrackHitMeta const* > & data) // MeV/cm
@@ -201,7 +209,7 @@ void proto::DEdx::CountdEdx(const std::vector < art::Ptr< recob::Hit > > & hits,
         	}
       		else if ((fdx == 0) && (fdQ > 0))
        	 	{
-	  		std::cout << " the charge is positive but dx is equal zero " << std::endl;
+//	  		std::cout << " the charge is positive but dx is equal zero " << std::endl;
         	}
 
       		fTree->Fill();
@@ -216,6 +224,7 @@ void proto::DEdx::ResetVars()
   fdQ = 0.0;
   fdx = 0.0;
   fNumberOfTracks = 0;
+  fNumberOfTaggedTracks = 0;
 }
 
 
