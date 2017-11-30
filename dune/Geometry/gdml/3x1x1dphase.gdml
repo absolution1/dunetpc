@@ -304,6 +304,52 @@
 
 </materials>
 <solids>
+ <tube name="PMTVolume"
+  rmax="(6.5*2.54)"
+  z="(11.1*2.54)"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+ <tube name="PMT_AcrylicPlate"
+  rmax="11.4"
+  z="0.4"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+ <tube name="PMT_plate_coat"
+  rmax="11.4"
+  z="0.02"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtMiddleCylinder" rmax="102.351822048586" rmin="100.351822048586" startphi="0" z="54"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="sphPartTop" rmax="133" rmin="131" startphi="0" starttheta="0"/>
+    <union name="pmt0x7fb8f489dfe0">
+      <first ref="pmtMiddleCylinder"/>
+      <second ref="sphPartTop"/>
+      <position name="pmt0x7fb8f489dfe0_pos" unit="mm" x="0" y="0" z="-57.2051768689367"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="31.477975238527" lunit="mm" name="sphPartBtm" rmax="133" rmin="131" startphi="0" starttheta="130"/>
+    <union name="pmt0x7fb8f48a0d50">
+      <first ref="pmt0x7fb8f489dfe0"/>
+      <second ref="sphPartBtm"/>
+      <position name="pmt0x7fb8f48a0d50_pos" unit="mm" x="0" y="0" z="57.2051768689367"/>
+    </union>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtBtmTube" rmax="44.25" rmin="42.25" startphi="0" z="72"/>
+    <union name="solidpmt">
+      <first ref="pmt0x7fb8f48a0d50"/>
+      <second ref="pmtBtmTube"/>
+      <position name="solidpmt_pos" unit="mm" x="0" y="0" z="-104.905637496842"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="pmt0x7fb8f48a1eb0" rmax="133.2" rmin="133" startphi="0" starttheta="0"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="46.5" lunit="mm" name="pmt0x7fb8f48a4860" rmax="131" rmin="130.999" startphi="0" starttheta="0"/>
+
+
+
    <box name="CRM" lunit="cm" 
       x="100.03" 
       y="101" 
@@ -390,6 +436,66 @@
       z="6723.64"/>
 </solids>
 <structure>
+
+ <volume name="volPMTplatecoat">
+  <materialref ref="TPB"/>
+  <solidref ref="PMT_plate_coat"/>
+ </volume>
+
+ <volume name="vol_PMT_AcrylicPlate">
+  <materialref ref="Acrylic"/>
+  <solidref ref="PMT_AcrylicPlate"/>
+ </volume>
+
+ <volume name="pmtCoatVol">
+  <materialref ref="TPB"/>
+  <solidref ref="pmt0x7fb8f48a1eb0"/>
+  </volume>
+
+ <volume name="allpmt">
+  <materialref ref="Glass"/>
+  <solidref ref="solidpmt"/>
+  </volume>
+
+
+
+ <volume name="volPMT_plate">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+  </physvol>
+
+  <physvol name="volOpDetSensitive">
+   <volumeref ref="volPMTplatecoat"/>
+   <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.7"/>
+  </physvol>
+
+  <physvol>
+   <volumeref ref="vol_PMT_AcrylicPlate"/>
+   <position name="pos_PMT_AcrylicPlate" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.5"/>
+  </physvol>
+ </volume>
+
+<volume name="volPMT_coated">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+  </physvol>
+
+ <physvol name="volOpDetSensitive">
+  <volumeref ref="pmtCoatVol"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  </physvol>
+
+ </volume>
+
+
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
@@ -6858,11 +6964,36 @@
         <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
       </physvol>
       <physvol>
-        <volumeref ref="volTPC"/>
+	<volumeref ref="volTPC"/>
 	<position name="posTPC-0-0" unit="cm"
-           x="18.235" y="0" z="0"/>
+	   x="18.235" y="0" z="0"/>
       </physvol>
-    </volume>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   <position name="posPMT0" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="-92.246"/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   <position name="posPMT2" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="0"/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   <position name="posPMT4" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="92.246"/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_plate"/>
+   <position name="posPMT1" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="-46.123"/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_plate"/>
+   <position name="posPMT3" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="46.123"/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+ </volume>
 
     <volume name="volFoamPadding">
       <materialref ref="fibrous_glass"/>
@@ -6893,7 +7024,7 @@
     </volume>
 
     <volume name="volWorld" >
-      <materialref ref="DUSEL_Rock"/>
+      <materialref ref="Air"/>
       <solidref ref="World"/>
 
       <physvol>

@@ -20,6 +20,7 @@
 //
 // Parameters:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   Units - units for the calibrated samples ("fC", "ke", "mV", ...)
 //   Gains - gain for each channel
 //   AdcMin - min ADC if AdcMins is empty
 //   AdcMins - min ADC for each channel
@@ -53,6 +54,7 @@ private:
 
   // Parameters.
   int m_LogLevel;
+  std::string m_Units;
   AdcSignalVector m_Gains;
   AdcCount m_AdcMin;
   AdcCountVector m_AdcMins;

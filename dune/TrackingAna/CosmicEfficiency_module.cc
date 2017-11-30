@@ -19,7 +19,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -173,7 +174,7 @@ void cosmic::CosmicEfficiency::analyze(art::Event const & evt)
   const art::FindManyP<anab::CosmicTag> findCosmicTags(recoTracks,evt,fTrackerTag);
 
   // Finally, get the backtracker
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
   // Since we will make plots of efficiency per event, we need local versions of the class variables
   unsigned int local_TrueCosmicMuon = 0; 
@@ -210,7 +211,7 @@ void cosmic::CosmicEfficiency::analyze(art::Event const & evt)
     // We need to use the backtracker to find if this true particle is cosmic or not
     bool isCosmic = false;
     bool isCosmicMuon = false;
-    const art::Ptr<simb::MCTruth> mc = bt->TrackIDToMCTruth(trueMatch->TrackId());
+    const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(trueMatch->TrackId());
 
     // Check if we have a cosmic muon (or anti-muon) and set the true counting variables
     if(mc->Origin() == simb::kCosmicRay){
@@ -367,11 +368,12 @@ const simb::MCParticle* cosmic::CosmicEfficiency::GetTruthParticle(const std::ve
 {
   const simb::MCParticle* mcParticle = 0;
 
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   std::unordered_map<int, double> trkIDE;
   for (auto const & h : hits)
   {
-    for (auto const & ide : bt->HitToTrackID(h)) // loop over std::vector<sim::TrackIDE>
+    for (auto const & ide : bt_serv->HitToTrackIDEs(h)) // loop over std::vector<sim::TrackIDE>
     {
         trkIDE[ide.trackID] += ide.energy; // sum energy contribution by each track ID
     }
@@ -396,7 +398,7 @@ const simb::MCParticle* cosmic::CosmicEfficiency::GetTruthParticle(const std::ve
 //        best_id = -best_id;     // --> we'll find mother MCParticle of these hits
       return mcParticle;
     }
-    mcParticle = bt->TrackIDToParticle(best_id); // MCParticle corresponding to track ID
+    mcParticle = pi_serv->TrackIdToParticle_P(best_id); // MCParticle corresponding to track ID
   }
 
   return mcParticle;
