@@ -43,6 +43,7 @@ int test_FembMappedAdcModifier(bool useExistingFcl =false) {
     fout << "  modtool100: {" << endl;
     fout << "    tool_type: FembLinearCalibration" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
     fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
     fout << "    AdcMin: 0" << endl;
     fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
@@ -52,6 +53,7 @@ int test_FembMappedAdcModifier(bool useExistingFcl =false) {
     fout << "  modtool101: {" << endl;
     fout << "    tool_type: FembLinearCalibration" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
     fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
     fout << "    AdcMin: 0" << endl;
     fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
@@ -61,6 +63,7 @@ int test_FembMappedAdcModifier(bool useExistingFcl =false) {
     fout << "  modtool102: {" << endl;
     fout << "    tool_type: FembLinearCalibration" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
     fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
     fout << "    AdcMin: 0" << endl;
     fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
@@ -70,6 +73,7 @@ int test_FembMappedAdcModifier(bool useExistingFcl =false) {
     fout << "  modtool103: {" << endl;
     fout << "    tool_type: FembLinearCalibration" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
     fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
     fout << "    AdcMin: 0" << endl;
     fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
@@ -79,6 +83,7 @@ int test_FembMappedAdcModifier(bool useExistingFcl =false) {
     fout << "  modtool104: {" << endl;
     fout << "    tool_type: FembLinearCalibration" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
     fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
     fout << "    AdcMin: 0" << endl;
     fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;

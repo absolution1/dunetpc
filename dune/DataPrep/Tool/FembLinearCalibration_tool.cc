@@ -17,6 +17,7 @@ using Index = unsigned int;
 
 FembLinearCalibration::FembLinearCalibration(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_Units(ps.get<string>("Units")),
   m_Gains(ps.get<AdcSignalVector>("Gains")),
   m_AdcMin(ps.get<AdcCount>("AdcMin")),
   m_AdcMins(ps.get<AdcCountVector>("AdcMins")),
@@ -114,6 +115,7 @@ DataMap FembLinearCalibration::update(AdcChannelData& acd) const {
       ++nover;
     }
   }
+  acd.sampleUnit = m_Units;
   res.setInt("nSample", nsam);
   res.setInt("nUnderflow", nunder);
   res.setInt("nOverflow", nover);
