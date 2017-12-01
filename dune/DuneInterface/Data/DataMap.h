@@ -24,8 +24,10 @@
 // Example draw of histogram:
 //   if ( res.hasHist("myhist") ) res.getHist("myhist")->Draw();
 //
-// This class does not manage (i.e. delete histograms). Its filler should ensure
-// that any stored histograms have appropriate lifetime.
+// This class manages (i.e. deletes) its graphs and optionally manages
+// its histograms. Any copies of the result share in that management.
+// If a histogram is not managed, the caller should ensure that it has
+// appropriate lifetime.
 
 #include <vector>
 #include <map>
