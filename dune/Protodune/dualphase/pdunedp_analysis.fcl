@@ -1,6 +1,7 @@
 #include "calorimetry.fcl"
 
 BEGIN_PROLOG
+
 pdunedp_purity:
 {
   module_type: "Purity"
@@ -19,5 +20,14 @@ pdunedp_purity:
   NumOfBins:             10                                #Num of bins for the purity analysis
   ADCtoCharge:           0.15                              #Conversion between ADC to Charge
   MinDx:                 0.1                               #Min distance gathering the dx of the single hits
+}
+
+pdunedp_dedx:
+{
+  module_type: 	    "DEdxdp"
+  CalorimetryAlg:   @local::standard_calorimetryalgmc
+  HitModuleLabel:   "dprawhit"
+  TrackModuleLabel: "trajcluster" 
+  GainPerView: 	    10
 }
 END_PROLOG
