@@ -182,7 +182,7 @@ public:
           if ( ival ) cout << ",";
           cout << " " << ient.second[ival];
           if ( ival > maxval ) {
-            cout << ", ..." << endl;
+            cout << ", ...";
             break;
           }
         }
@@ -205,7 +205,7 @@ public:
           if ( ival ) cout << ",";
           cout << " " << ient.second[ival];
           if ( ival > maxval ) {
-            cout << ", ..." << endl;
+            cout << ", ...";
             break;
           }
         }

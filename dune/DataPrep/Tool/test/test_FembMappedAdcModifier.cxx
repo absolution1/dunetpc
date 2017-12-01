@@ -1,9 +1,9 @@
-// test_FembLinearCalibration.cxx
+// test_FembMappedAdcModifier.cxx
 //
 // David Adams
 // November 2017
 //
-// Test FembLinearCalibration.
+// Test FembMappedAdcModifier.
 
 #include <string>
 #include <iostream>
@@ -26,8 +26,8 @@ using Index = unsigned int;
 
 //**********************************************************************
 
-int test_FembLinearCalibration(bool useExistingFcl =false) {
-  const string myname = "test_FembLinearCalibration: ";
+int test_FembMappedAdcModifier(bool useExistingFcl =false) {
+  const string myname = "test_FembMappedAdcModifier: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -35,20 +35,66 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_FembLinearCalibration.fcl";
+  string fclfile = "test_FembMappedAdcModifier.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
+    fout << "  modtool100: {" << endl;
     fout << "    tool_type: FembLinearCalibration" << endl;
     fout << "    LogLevel: 1" << endl;
-    fout << "    Units: Coulombs" << endl;
+    fout << "    Units: fC" << endl;
     fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
     fout << "    AdcMin: 0" << endl;
     fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
     fout << "    AdcMax: 1800" << endl;
     fout << "    AdcMaxs: []" << endl;
+    fout << "  }" << endl;
+    fout << "  modtool101: {" << endl;
+    fout << "    tool_type: FembLinearCalibration" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
+    fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
+    fout << "    AdcMin: 0" << endl;
+    fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
+    fout << "    AdcMax: 1800" << endl;
+    fout << "    AdcMaxs: []" << endl;
+    fout << "  }" << endl;
+    fout << "  modtool102: {" << endl;
+    fout << "    tool_type: FembLinearCalibration" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
+    fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
+    fout << "    AdcMin: 0" << endl;
+    fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
+    fout << "    AdcMax: 1800" << endl;
+    fout << "    AdcMaxs: []" << endl;
+    fout << "  }" << endl;
+    fout << "  modtool103: {" << endl;
+    fout << "    tool_type: FembLinearCalibration" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
+    fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
+    fout << "    AdcMin: 0" << endl;
+    fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
+    fout << "    AdcMax: 1800" << endl;
+    fout << "    AdcMaxs: []" << endl;
+    fout << "  }" << endl;
+    fout << "  modtool104: {" << endl;
+    fout << "    tool_type: FembLinearCalibration" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    Units: fC" << endl;
+    fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
+    fout << "    AdcMin: 0" << endl;
+    fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
+    fout << "    AdcMax: 1800" << endl;
+    fout << "    AdcMaxs: []" << endl;
+    fout << "  }" << endl;
+    fout << "  mytool: {" << endl;
+    fout << "    tool_type: FembMappedAdcModifier" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    ToolBase: modtool" << endl;
+    fout << "    DirName: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -62,7 +108,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() == 6 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -73,6 +119,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
   cout << myname << "Create data." << endl;
   AdcChannelData acd0;
   acd0.pedestal = 1000.0;
+  acd0.fembID = 101;
   acd0.raw.push_back(1100);
   acd0.raw.push_back(1200);
   acd0.raw.push_back(1300);
@@ -86,6 +133,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
     acd.channel = icha;
     for ( AdcCount& adc : acd0.raw ) acd.raw.push_back(adc+dped);
     acd.pedestal = acd0.pedestal + dped;
+    acd.fembID = 100 + icha;
     dped += 100.0;
   }
   int w = 8;
@@ -98,7 +146,6 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
       sigchk[isam] = (icha+1)*(acd0.raw[isam] - acd0.pedestal);
     }
     cout << myname << line << endl;
-    assert( acd.sampleUnit == "" );
     cout << myname << "Channel " << icha << endl;
     DataMap res = pmod->update(acd);
     cout << myname << "Modify:" << endl;
@@ -139,7 +186,6 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
       }
       assert( acd.flags[isam] == flgExp  );
     }
-    assert( acd.sampleUnit == "Coulombs" );
   }
 
   cout << myname << line << endl;
@@ -160,7 +206,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_FembLinearCalibration(useExistingFcl);
+  return test_FembMappedAdcModifier(useExistingFcl);
 }
 
 //**********************************************************************
