@@ -110,6 +110,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_showOverflow = rhs.m_showOverflow;
   m_top = rhs.m_top;
   m_right = rhs.m_right;
+  rhs.m_title.Copy(m_title);
   m_histFuns = rhs.m_histFuns;
   m_hmlXmod = rhs.m_hmlXmod;
   m_hmlXoff = rhs.m_hmlXoff;
