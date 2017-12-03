@@ -7,7 +7,8 @@
 #include "signalservices_dune.fcl"
 #include "magfield_larsoft.fcl"
 #include "databaseutil_dune.fcl"
-#include "backtracker.fcl"
+#include "backtrackerservice.fcl"
+#include "particleinventoryservice.fcl"
 #include "seedservice_dune.fcl"
 #include "detectorclocks_dune.fcl"
 #include "photpropservices_dune.fcl"
@@ -39,7 +40,8 @@ dunefd_services: {
  LArPropertiesService:           @local::dunefd_properties
  LArFFT:                         @local::dunefd_larfft
  DatabaseUtil:                   @local::dunefd_database
- BackTracker:                    @local::dunefd_backtracker
+ BackTrackerService:                    @local::dunefd_backtrackerservice
+ ParticleInventoryService:      @local::standard_particleinventoryservice
  PhotonBackTracker:              @local::dunefd_photonbacktracker
  SpaceCharge:                    @local::dunefd_spacecharge
  NuRandomService:                @local::dune_seedservice
@@ -59,7 +61,8 @@ dunefd_simulation_services: {
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
- BackTracker:                  @local::dunefd_backtracker
+ BackTrackerService:                  @local::dunefd_backtrackerservice
+ ParticleInventoryService:      @local::standard_particleinventoryservice
  PhotonBackTracker:            @local::dunefd_photonbacktracker
  SpaceCharge:                  @local::dunefd_spacecharge
  NuRandomService:              @local::dune_seedservice
@@ -95,7 +98,8 @@ dunefddphase_services: {
 }
 
 dunefddphase_simulation_services: {
- BackTracker:                    @local::dunefd_backtracker
+ BackTrackerService:                    @local::dunefd_backtrackerservice
+ ParticleInventoryService:      @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::dunefd_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
@@ -115,7 +119,8 @@ dunefddphase_simulation_services: {
 }
 
 dunefddphase_reco_services:                            @local::dunefddphase_services
-dunefddphase_reco_services.BackTracker:                @local::dunefd_backtracker
+dunefddphase_reco_services.BackTrackerService:                @local::dunefd_backtrackerservice
+dunefddphase_reco_services.ParticleInventoryService:      @local::standard_particleinventoryservice
 dunefddphase_reco_services.RawDigitExtractService:     @local::rdx_std
 dunefddphase_reco_services.RawDigitPrepService:        @local::adcprep_sim
 dunefddphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
@@ -143,7 +148,8 @@ dunedphase3x1x1_services: {
 }
 
 dunedphase3x1x1_simulation_services: {
- BackTracker:                    @local::dunefd_backtracker
+ BackTrackerService:                    @local::dunefd_backtrackerservice
+ ParticleInventoryService:      @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::dunefd_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
@@ -163,7 +169,8 @@ dunedphase3x1x1_simulation_services: {
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
-dunedphase3x1x1_reco_services.BackTracker:                @local::dunefd_backtracker
+dunedphase3x1x1_reco_services.BackTrackerService:                @local::dunefd_backtrackerservice
+dunedphase3x1x1_reco_services.ParticleInventoryService:      @local::standard_particleinventoryservice
 dunedphase3x1x1_reco_services.RawDigitExtractService:     @local::rdx_std
 dunedphase3x1x1_reco_services.RawDigitPrepService:        @local::adcprep_dunedphase3x1x1
 dunedphase3x1x1_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
@@ -192,7 +199,8 @@ protodunedphase_services: {
 
 
 protodunedphase_simulation_services: {
- BackTracker:                    @local::dunefd_backtracker
+ BackTrackerService:                    @local::dunefd_backtrackerservice
+ ParticleInventoryService:      @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::dunefd_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
@@ -213,7 +221,8 @@ protodunedphase_simulation_services: {
 
 
 protodunedphase_reco_services:                         	  @local::protodunedphase_services
-protodunedphase_reco_services.BackTracker:                @local::dunefd_backtracker
+protodunedphase_reco_services.BackTrackerService:                @local::dunefd_backtrackerservice
+protodunedphase_reco_services.ParticleInventoryService:      @local::standard_particleinventoryservice
 protodunedphase_reco_services.RawDigitExtractService:     @local::rdx_std
 protodunedphase_reco_services.RawDigitPrepService:        @local::adcprep_sim
 protodunedphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
@@ -265,7 +274,8 @@ protodune_services: {
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
- BackTracker:                  @local::dunefd_backtracker
+ BackTrackerService:                  @local::dunefd_backtrackerservice
+ ParticleInventoryService:      @local::standard_particleinventoryservice
  PhotonBackTracker:              @local::dunefd_photonbacktracker
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
@@ -365,7 +375,8 @@ dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
 # For now, keep for use with the old reco.
 dune35t_services:                            @local::dune35t_basic_services
 dune35t_services.LArFFT:                     @local::dune35t_larfft
-dune35t_services.BackTracker:                @local::dune35t_backtracker
+dune35t_services.BackTrackerService:                @local::dune35t_backtrackerservice
+dune35t_services.ParticleInventoryService:      @local::standard_particleinventoryservice
 dune35t_services.PhotonBackTracker:          @local::dune35t_photonbacktracker
 dune35t_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 
@@ -428,13 +439,15 @@ dune35t_simulation_services:                                      @local::dune35
 dune35t_simulation_services.LArFFT:                               @local::dune35t_larfft
 dune35t_simulation_services.SignalShapingServiceDUNE:             @local::dune35t_signalshapingservice
 dune35t_simulation_services.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
-dune35t_simulation_services.BackTracker:                          @local::dune35t_backtracker
+dune35t_simulation_services.BackTrackerService:                          @local::dune35t_backtrackerservice
+dune35t_simulation_services.ParticleInventoryService:      @local::standard_particleinventoryservice
 dune35t_simulation_services.PhotonBackTracker:                    @local::dune35t_photonbacktracker
 
 # Reco services for 35-ton data.
 dune35tdata_reco_services:                            @local::dune35t_basic_services
 dune35tdata_reco_services.LArFFT:                     @local::dune35t_larfft
-dune35tdata_reco_services.BackTracker:                @local::dune35t_backtracker
+dune35tdata_reco_services.BackTrackerService:         @local::dune35t_backtrackerservice
+dune35tdata_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
 dune35tdata_reco_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 dune35tdata_reco_services.AdcChannelDataCopyService:  @local::adccopy
 dune35tdata_reco_services.RawDigitExtractService:     @local::rdx_35tdata
@@ -523,7 +536,7 @@ dune_message_services_prod_debug.destinations.LogDebugFile.categories:{
   ClusterCrawlerAlg: {limit: 0}
   CaloPrtTrk: {limit: 0}
   CaloPrtHit: {limit: 0}
-  BackTracker: {limit: 0}
+  BackTrackerService: {limit: 0}
   DisambigCheat: {limit: 0}
   Summary: {limit: 0}
   CosmicTracker: {limit: 0}

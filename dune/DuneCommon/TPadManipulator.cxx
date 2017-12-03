@@ -586,8 +586,27 @@ int TPadManipulator::update() {
       m_flowHist->SetLineWidth(1);
     }
     m_flowHist->Reset();
-    if ( m_showUnderflow ) m_flowHist->SetBinContent(1, m_ph->GetBinContent(0));
-    if ( m_showOverflow ) m_flowHist->SetBinContent(nbin, m_ph->GetBinContent(nbin+1));
+    if ( m_showUnderflow ) {
+      if ( haveHist() ) {
+        double binWidth = hist()->GetBinWidth(1);
+        double xmin = m_setBounds.x1;
+        int binDisp1 = m_ph->FindBin(xmin+0.499*binWidth);  // First displayed bin.
+        int binUnder2 = binDisp1 ? binDisp1 - 1 : 0;    // Last bin below display.
+        double yunder = hist()->Integral(0, binUnder2);
+        m_flowHist->SetBinContent(binDisp1, yunder);
+      }
+    }
+    if ( m_showOverflow ) {
+      if ( haveHist() ) {
+        int binOver2 = hist()->GetNbinsX() + 1;  // Last bin above display
+        double binWidth = hist()->GetBinWidth(1);
+        double xmax = m_setBounds.x2;
+        int binOver1 = m_ph->FindBin(xmax+0.501*binWidth);  // First bin above display.
+        int binDisp2 = binOver1 - 1;                        // Last displayed bin.
+        double yover = hist()->Integral(binOver1, binOver2);
+        m_flowHist->SetBinContent(binDisp2, yover);
+      }
+    }
   }
   // Make frame so we have clean axis to overlay.
   double xa1 = xmin();

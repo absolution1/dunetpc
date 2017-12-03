@@ -22,7 +22,8 @@
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Hit.h"
 
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 
 #include "TTree.h"
@@ -149,15 +150,16 @@ void ClusterCounter::analyze(art::Event const & evt)
 const simb::MCParticle* ClusterCounter::getTruthParticle(const std::vector< art::Ptr<recob::Hit> > & hits,
     float & fraction, bool & foundEmParent) const
 {
-    const simb::MCParticle* mcParticle = 0;
+  const simb::MCParticle* mcParticle =0;
     fraction = 0;
     foundEmParent = false;
 
-    art::ServiceHandle<cheat::BackTracker> bt;
+    art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+    art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
     std::unordered_map<int, double> trkIDE;
     for (auto const & h : hits)
     {
-        for (auto const & ide : bt->HitToTrackID(h)) // loop over std::vector<sim::TrackIDE>
+        for (auto const & ide : bt_serv->HitToTrackIDEs(h)) // loop over std::vector<sim::TrackIDE>
         {
             trkIDE[ide.trackID] += ide.energy; // sum energy contribution by each track ID
         }
@@ -182,7 +184,7 @@ const simb::MCParticle* ClusterCounter::getTruthParticle(const std::vector< art:
             best_id = -best_id;     // --> we'll find mother MCParticle of these hits
             foundEmParent = true;
         }
-        mcParticle = bt->TrackIDToParticle(best_id); // MCParticle corresponding to track ID
+        mcParticle = pi_serv->TrackIdToParticle_P(best_id); // MCParticle corresponding to track ID
         fraction = max_e / tot_e;
     }
     else { mf::LogWarning("ClusterCounter") << "No energy deposits??"; }
