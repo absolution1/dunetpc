@@ -75,6 +75,7 @@
 #include "lardataobj/AnalysisBase/MVAPIDResult.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
+#include "dune/OpticalDetector/OpFlashSort.h"
 
 #include <cstddef> // std::ptrdiff_t
 #include <cstring> // std::memcpy()
@@ -3983,6 +3984,9 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       mf::LogError("AnalysisTree:limits") << "event has " << NFlashes
 					  << " flashes, only kMaxFlashes=" << kMaxFlashes << " stored in tree";
     }
+
+    std::sort(flashlist.begin(), flashlist.end(), recob::OpFlashPtrSortByPE);
+    
     for (size_t i = 0; i < NFlashes && i < kMaxFlashes ; ++i){//loop over hits
       fData->flash_time[i]       = flashlist[i]->Time();
       fData->flash_pe[i]         = flashlist[i]->TotalPE();
