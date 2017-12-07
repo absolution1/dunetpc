@@ -131,42 +131,42 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness; # 854.64
  $pmt_pos_y  =  -300+5.115 - 1.27*2.54 + 22 -107.8;  #8.8cm from the bottom volTPCActive
 
 #pmts not equally spaced:
- @pmt_pos = ( ' x="-238" z="-170" ', #pmt1
-		' x="-238" z="-34" ', #pmt2
-		' x="-238" z="34" ', #pmt3
-		' x="-238" z="170" ', #pmt4
-		' x="-170" z="-238" ', #pmt5
-		' x="-170" z="-102" ', #pmt6
-		' x="-170" z="102" ', #pmt7
-		' x="-170" z="238" ', #pmt8
-		' x="-102" z="-170" ', #pmt9
-		' x="-102" z="-34" ', #pmt10
-		' x="-102" z="34" ', #pmt11
-		' x="-102" z="170" ', #pmt12
-		' x="-34" z="-238" ', #pmt13
-		' x="-34" z="-102" ', #pmt14
-		' x="-34" z="-34" ', #pmt15
-		' x="-34" z="34" ', #pmt16
-		' x="-34" z="102" ', #pmt17
-		' x="-34" z="238" ', #pmt18
-		' x="34" z="-238" ', #pmt19
-		' x="34" z="-102" ', #pmt20
-		' x="34" z="-34" ', #pmt21
-		' x="34" z="34" ', #pmt22
-		' x="34" z="102" ', #pmt23
-		' x="34" z="238" ', #pmt24
-		' x="102" z="-170" ', #pmt25
-		' x="102" z="-34" ', #pmt26
-		' x="102" z="34" ', #pmt27
-		' x="102" z="170" ', #pmt28
-		' x="170" z="-238" ', #pmt29
-		' x="170" z="-102" ', #pmt30
-		' x="170" z="102" ', #pmt31
-		' x="170" z="238" ', #pmt32
-		' x="238" z="-170" ', #pmt33
-		' x="238" z="-34" ', #pmt34
-		' x="238" z="34" ', #pmt35
-		' x="238" z="170" '); #PMT36
+ @pmt_pos = ( ' z="-238" x="-170" ', #pmt1
+		' z="-238" x="-34" ', #pmt2
+		' z="-238" x="34" ', #pmt3
+		' z="-238" x="170" ', #pmt4
+		' z="-170" x="-238" ', #pmt5
+		' z="-170" x="-102" ', #pmt6
+		' z="-170" x="102" ', #pmt7
+		' z="-170" x="238" ', #pmt8
+		' z="-102" x="-170" ', #pmt9
+		' z="-102" x="-34" ', #pmt10
+		' z="-102" x="34" ', #pmt11
+		' z="-102" x="170" ', #pmt12
+		' z="-34" x="-238" ', #pmt13
+		' z="-34" x="-102" ', #pmt14
+		' z="-34" x="-34" ', #pmt15
+		' z="-34" x="34" ', #pmt16
+		' z="-34" x="102" ', #pmt17
+		' z="-34" x="238" ', #pmt18
+		' z="34" x="-238" ', #pmt19
+		' z="34" x="-102" ', #pmt20
+		' z="34" x="-34" ', #pmt21
+		' z="34" x="34" ', #pmt22
+		' z="34" x="102" ', #pmt23
+		' z="34" x="238" ', #pmt24
+		' z="102" x="-170" ', #pmt25
+		' z="102" x="-34" ', #pmt26
+		' z="102" x="34" ', #pmt27
+		' z="102" x="170" ', #pmt28
+		' z="170" x="-238" ', #pmt29
+		' z="170" x="-102" ', #pmt30
+		' z="170" x="102" ', #pmt31
+		' z="170" x="238" ', #pmt32
+		' z="238" x="-170" ', #pmt33
+		' z="238" x="-34" ', #pmt34
+		' z="238" x="34" ', #pmt35
+		' z="238" x="170" '); #PMT36
 
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
@@ -552,10 +552,11 @@ sub gen_pmt {
 
 	print PMT <<EOF;
 
+
 <solids>
  <tube name="PMTVolume"
-  rmax="(6.5*2.54)"
-  z="(11.1*2.54)"
+  rmax="@{[(6.5*2.54)]}"
+  z="@{[(11.1*2.54)]}"
   deltaphi="360"
   aunit="deg"
   lunit="cm"/>
@@ -602,12 +603,12 @@ sub gen_pmt {
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
  <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54 - (2.23*2.54)"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="@{[1.27*2.54 - (2.23*2.54)]}"/>
   </physvol>
 
  </volume>
