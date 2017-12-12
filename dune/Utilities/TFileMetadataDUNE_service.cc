@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 // Name:  TFileMetadataDUNE_service.cc.  
 //
-// Purpose:  generate microboone-specific sam metadata for root Tfiles (histogram or ntuple files).
+// Purpose:  generate DUNE-specific sam metadata for root Tfiles (histogram or ntuple files).
 //
 // FCL parameters: GenerateTFileMetadata: This needs to be set to "true" in the fcl file
 //				    to generate metadata (default value: false)
