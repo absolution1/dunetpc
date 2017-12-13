@@ -20,7 +20,7 @@
 //		FileCatalogMetadata:  @local::art_file_catalog_mc
 //	
 //              2. When you call FileCatalogMetadata service in your fcl file, and if 
-//		you have (art) root Output section in your fcl file, and if you do not 
+//		you have (art) root Output section in your fcl file, and if you do not  
 //		have "dataTier" specified in that section, then this service will throw
 //		an exception. To avoid this, either remove the entire root Output section
 //		in your fcl file (and remove art stream output from your end_paths) or 
