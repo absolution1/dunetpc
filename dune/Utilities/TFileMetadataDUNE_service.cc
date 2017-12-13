@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 // Name:  TFileMetadataDUNE_service.cc.  
 //
-// Purpose:  generate microboone-specific sam metadata for root Tfiles (histogram or ntuple files).
+// Purpose:  generate DUNE-specific sam metadata for root Tfiles (histogram or ntuple files).
 //
 // FCL parameters: GenerateTFileMetadata: This needs to be set to "true" in the fcl file
 //				    to generate metadata (default value: false)
@@ -281,25 +281,28 @@ void util::TFileMetadataDUNE::postEndJob()
     if (md.fruns.size()==1 || c==md.fruns.size()) jsonfile<<"\n";
     else jsonfile<<",\n"; 
   }
-  jsonfile<<"  ],";          
-  jsonfile<<"\n  \"start_time\": \""<<startbuf<<"\",\n";
+  jsonfile<<"  ],\n";          
 
-  if (md.fMCGenerators!="") jsonfile << "\"lbne_MC.Generators\": \"" << md.fMCGenerators << "\"\n";
-  if (md.fMCOscillationP!="") jsonfile << "\"lbne_MC.OscillationP\": \"" << md.fMCOscillationP << "\"\n";
-  if (md.fMCTriggerListVersion!="") jsonfile << "\"lbne_MC.TriggerListVersion\": \"" << md.fMCTriggerListVersion << "\"\n";
-  if (md.fMCBeamEnergy!="") jsonfile << "\"lbne_MC.BeamEnergy\": \"" << md.fMCBeamEnergy << "\"\n";
-  if (md.fMCBeamFluxID!="") jsonfile << "\"lbne_MC.BeamFluxID\": \"" << md.fMCBeamFluxID << "\"\n";
-  if (md.fMCName!="") jsonfile << "\"lbne_MC.Name\": \"" << md.fMCName << "\"\n";
-  if (md.fMCDetectorType!="") jsonfile << "\"lbne_MC.DetectorType\": \"" << md.fMCDetectorType << "\"\n";
-  if (md.fMCNeutrinoFlavors!="") jsonfile << "\"lbne_MC.NeutrinoFlavors\": \"" << md.fMCNeutrinoFlavors << "\"\n";
-  if (md.fMCMassHierarchy!="") jsonfile << "\"lbne_MC.MassHierarchy\": \"" << md.fMCMassHierarchy << "\"\n";
-  if (md.fMCMiscellaneous!="") jsonfile << "\"lbne_MC.Miscellaneous\": \"" << md.fMCMiscellaneous << "\"\n";
-  if (md.fMCGeometryVersion!="") jsonfile << "\"lbne_MC.GeometryVersion\": \"" << md.fMCGeometryVersion << "\"\n";
-  if (md.fMCOverlay!="") jsonfile << "\"lbne_MC.Overlay\": \"" << md.fMCOverlay << "\"\n";
-  if (md.fDataRunMode!="") jsonfile << "\"lbne_data.run_mode\": \"" << md.fDataRunMode << "\"\n";
-  if (md.fDataDetectorType!="") jsonfile << "\"lbne_data.detector_type\": \"" << md.fDataDetectorType << "\"\n";
-  if (md.fDataName!="") jsonfile << "\"lbne_data.name\": \"" << md.fDataName << "\"\n";
+  if (md.fMCGenerators!="") jsonfile << "\"lbne_MC.Generators\": \"" << md.fMCGenerators << "\",\n";
+  if (md.fMCOscillationP!="") jsonfile << "\"lbne_MC.OscillationP\": \"" << md.fMCOscillationP << "\",\n";
+  if (md.fMCTriggerListVersion!="") jsonfile << "\"lbne_MC.TriggerListVersion\": \"" << md.fMCTriggerListVersion << "\",\n";
+  if (md.fMCBeamEnergy!="") jsonfile << "\"lbne_MC.BeamEnergy\": \"" << md.fMCBeamEnergy << "\",\n";
+  if (md.fMCBeamFluxID!="") jsonfile << "\"lbne_MC.BeamFluxID\": \"" << md.fMCBeamFluxID << "\",\n";
+  if (md.fMCName!="") jsonfile << "\"lbne_MC.Name\": \"" << md.fMCName << "\",\n";
+  if (md.fMCDetectorType!="") jsonfile << "\"lbne_MC.DetectorType\": \"" << md.fMCDetectorType << "\",\n";
+  if (md.fMCNeutrinoFlavors!="") jsonfile << "\"lbne_MC.NeutrinoFlavors\": \"" << md.fMCNeutrinoFlavors << "\",\n";
+  if (md.fMCMassHierarchy!="") jsonfile << "\"lbne_MC.MassHierarchy\": \"" << md.fMCMassHierarchy << "\",\n";
+  if (md.fMCMiscellaneous!="") jsonfile << "\"lbne_MC.Miscellaneous\": \"" << md.fMCMiscellaneous << "\",\n";
+  if (md.fMCGeometryVersion!="") jsonfile << "\"lbne_MC.GeometryVersion\": \"" << md.fMCGeometryVersion << "\",\n";
+  if (md.fMCOverlay!="") jsonfile << "\"lbne_MC.Overlay\": \"" << md.fMCOverlay << "\",\n";
+  if (md.fDataRunMode!="") jsonfile << "\"lbne_data.run_mode\": \"" << md.fDataRunMode << "\",\n";
+  if (md.fDataDetectorType!="") jsonfile << "\"lbne_data.detector_type\": \"" << md.fDataDetectorType << "\",\n";
+  if (md.fDataName!="") jsonfile << "\"lbne_data.name\": \"" << md.fDataName << "\",\n";
   // fStageName appears not to be in our metadata spec
+
+  // put this one at the end because we know it'll be there and it therefore doesn't have a comma
+
+  jsonfile<<"\"start_time\": \""<<startbuf<<"\"\n";
   
   //jsonfile<<"  \"ub_project.name\": \""<<md.fproject_name<<"\",\n  ";
   //jsonfile<<"\"ub_project.stage\": \""<<md.fproject_stage;
