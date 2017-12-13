@@ -1,4 +1,4 @@
-// AcdLocalRoiBuilder_tool.cc
+// AdcDPhase3x1x1LocalRoiBuilder_tool.cc
 // christoph.alt@cern.ch
 
 //********************************
@@ -15,7 +15,7 @@
 //
 //********************************
 
-#include "AcdLocalRoiBuilder.h"
+#include "AdcDPhase3x1x1LocalRoiBuilder.h"
 #include <iostream>
 #include <algorithm>
 #include <sstream>
@@ -34,7 +34,7 @@ using art::ServiceHandle;
 // Class methods.
 //**********************************************************************
 
-AcdLocalRoiBuilder::AcdLocalRoiBuilder(fhicl::ParameterSet const& ps): 
+AdcDPhase3x1x1LocalRoiBuilder::AdcDPhase3x1x1LocalRoiBuilder(fhicl::ParameterSet const& ps): 
   m_LogLevel(ps.get<int>("LogLevel")), 
   m_BinsToAverageForPedestal(ps.get<AdcIndex>("BinsToAverageForPedestal")),
   m_BinsToSkip(ps.get<AdcIndex>("BinsToSkip")),
@@ -47,7 +47,7 @@ AcdLocalRoiBuilder::AcdLocalRoiBuilder(fhicl::ParameterSet const& ps):
   m_NSigmaMax(ps.get<AdcSignal>("NSigmaMax")),
   m_PadLow(ps.get<AdcIndex>("PadLow")),
   m_PadHigh(ps.get<AdcIndex>("PadHigh")) {
-  const string myname = "AcdLocalRoiBuilder::ctor: ";
+  const string myname = "AdcDPhase3x1x1LocalRoiBuilder::ctor: ";
   if ( m_LogLevel > 0 ) {
     cout << myname << "              Configuration: " << endl;
     cout << myname << "                   LogLevel: " << m_LogLevel << endl;
@@ -68,17 +68,21 @@ AcdLocalRoiBuilder::AcdLocalRoiBuilder(fhicl::ParameterSet const& ps):
 //**********************************************************************
 
 
-AcdLocalRoiBuilder::~AcdLocalRoiBuilder() {
+AdcDPhase3x1x1LocalRoiBuilder::~AdcDPhase3x1x1LocalRoiBuilder() {
 }
 
 //**********************************************************************
 
-int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
-  const string myname = "AcdLocalRoiBuilder:build: ";
+DataMap AdcDPhase3x1x1LocalRoiBuilder::update(AdcChannelData& data) const {
+  const string myname = "AdcDPhase3x1x1LocalRoiBuilder:build: ";
   if ( m_LogLevel >= 2 ) cout << myname << "Building ROIs for channel "
                               << data.channel << "." << endl;
   data.rois.clear();
-  
+
+  //Create dummy DataMap to return
+  DataMap res(0);
+  res.setInt("Test", 0);
+
   //Raw ADC.
   AdcSignalVector sigs;
   sigs = data.samples;
@@ -104,7 +108,7 @@ int AcdLocalRoiBuilder::build(AdcChannelData& data) const {
   if ( nsig < 1 ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel
                                 << " has no samples." << endl;
-    return 0;
+    return res;
   }
 
   //*****************************************
@@ -445,7 +449,7 @@ signal[m_BinsToSkip] = false;
   } else if ( m_LogLevel >= 2 ) {
     cout << myname << "  ROI count before merge: " << data.rois.size() << endl;
   }
-  if ( rois.size() == 0 ) return 0;
+  if ( rois.size() == 0 ) return res;
   // Pad ROIs.
   unsigned int isig1 = 0;
   unsigned int isig2 = 0;
@@ -469,26 +473,6 @@ signal[m_BinsToSkip] = false;
   } else if ( m_LogLevel >= 2 ) {
     cout << myname << "  ROI count after merge: " << data.rois.size() << endl;
   }
-  return 0;
-}
-//**********************************************************************
-
-ostream& AcdLocalRoiBuilder::
-print(ostream& out, string prefix) const {
-  out << prefix << "         AcdLocalRoiBuilder:" << endl;
-  out << prefix << "                   LogLevel: " << m_LogLevel << endl;
-  out << prefix << "   BinsToAverageForPedestal: " << m_BinsToAverageForPedestal << endl;
-  out << prefix << "                 BinsToSkip: " << m_BinsToSkip << endl;
-  out << prefix << "       UseStandardDeviation: " << m_UseStandardDeviation << endl;
-  out << prefix << " NConsecBinsAboveThreshold1: " << m_NConsecBinsAboveThreshold1 << endl;
-  out << prefix << "               NSigmaStart1: " << m_NSigmaStart1 << endl;
-  out << prefix << "                 NSigmaEnd1: " << m_NSigmaEnd1 << endl;
-  out << prefix << " NConsecBinsAboveThreshold2: " << m_NConsecBinsAboveThreshold2 << endl;
-  out << prefix << "               NSigmaStart2: " << m_NSigmaStart2 << endl;
-  out << prefix << "                  NSigmaMax: " << m_NSigmaMax << endl;
-  out << prefix << "                     PadLow: " << m_PadLow << endl;
-  out << prefix << "                    PadHigh: " << m_PadHigh << endl;
-
-  return out;
+  return res;
 }
 //**********************************************************************

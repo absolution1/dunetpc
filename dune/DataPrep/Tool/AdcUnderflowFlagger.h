@@ -15,7 +15,7 @@
 //
 // Output in DataMap:
 //   status: 0 - success
-//           1 - channel not set iin ADC data
+//           1 - channel not set in ADC data
 //           2,3 - threshold not set for the requested channel
 //   int channel - channel number
 //   int nUnderflow - # ticks flagged as underflow

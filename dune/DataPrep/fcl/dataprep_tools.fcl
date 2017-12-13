@@ -145,9 +145,9 @@ tools.adcRoiViewer: {
   HistOpt:  1
 }
 
-# Build ROI with respect to local basline
-tools.AcdLocalRoiBuilder: {
-  tool_type: AcdLocalRoiBuilder
+# Build ROI w.r.t. local baseline
+tools.adcDPhase3x1x1LocalRoiBuilder: {
+  tool_type: AdcDPhase3x1x1LocalRoiBuilder
   LogLevel: 1
   BinsToAverageForPedestal: 100
   BinsToSkip: 2
@@ -160,4 +160,21 @@ tools.AcdLocalRoiBuilder: {
   NSigmaMax: 5
   PadLow: 10
   PadHigh: 30
+}
+
+# Build ROI w.r.t 0
+tools.adcDPhase3x1x1RoiBuilder: {
+  tool_type: AdcDPhase3x1x1RoiBuilder
+  LogLevel: 1
+  BinsToAverageForRMS: 100
+  BinsToSkip: 0
+  UseStandardDeviation: false
+  NConsecBinsAboveThreshold1: 30
+  NSigmaStart1: 1.0
+  NSigmaEnd1: 0.0
+  NConsecBinsAboveThreshold2: 10
+  NSigmaStart2: 2.0
+  NSigmaMax: 7.0
+  PadLow: 20
+  PadHigh: 50
 }

@@ -23,6 +23,8 @@ GetOptions( "help|h" => \$help,
 	    "output|o:s" => \$output,
 	    "wires|w:s" => \$wires);
 
+my $pmt_switch="on";
+
 if ( defined $help )
 {
     # If the user requested help, print the usage notes and exit.
@@ -128,6 +130,17 @@ $SteelThickness = 0.12; # membrane
 $Cryostat_x = $Argon_x + 2*$SteelThickness;
 $Cryostat_y = $Argon_y + 2*$SteelThickness;
 $Cryostat_z = $Argon_z + 2*$SteelThickness;
+
+##################################################################
+############## Parameters for PMTs ###############
+
+#pos in cm inside the cryostat X coordinate: 2.3cm from the ground grid
+ @pmt_pos = ( ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="-92.246"', #-92.246"', #PMT1 - negative base - direct coating
+              ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="-46.123"', #-46.123"', #PMT2- negative base - plate
+              ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="0"', #PMT3 - positive base - direct coating
+              ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="46.123"', #46.123"', #PMT4 - positive base -  plate
+              ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="92.246"'); #92.246"'); #PMT5 - negative base - direct coating
+
 
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
@@ -487,6 +500,139 @@ EOF
 
 close(TPC);
 }
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_pmt +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_pmt {
+
+
+#PMTs
+
+#$PMT_COATING_THICKNESS=0.2;
+#$PMT_PLATE_THICKNESS=0.4;
+#$PMT_GLASS_THICKNESS=0.2;
+
+    $PMT = $basename."_PMT" . $suffix . ".gdml";
+    push (@gdmlFiles, $PMT);
+    $PMT = ">" . $PMT;
+    open(PMT) or die("Could not open file $PMT for writing");
+
+
+	print PMT <<EOF;
+
+<solids>
+ <tube name="PMTVolume"
+  rmax="(6.5*2.54)"
+  z="(11.1*2.54)"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+ <tube name="PMT_AcrylicPlate"
+  rmax="11.4"
+  z="0.4"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+ <tube name="PMT_plate_coat"
+  rmax="11.4"
+  z="0.02"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtMiddleCylinder" rmax="102.351822048586" rmin="100.351822048586" startphi="0" z="54"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="sphPartTop" rmax="133" rmin="131" startphi="0" starttheta="0"/>
+    <union name="pmt0x7fb8f489dfe0">
+      <first ref="pmtMiddleCylinder"/>
+      <second ref="sphPartTop"/>
+      <position name="pmt0x7fb8f489dfe0_pos" unit="mm" x="0" y="0" z="-57.2051768689367"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="31.477975238527" lunit="mm" name="sphPartBtm" rmax="133" rmin="131" startphi="0" starttheta="130"/>
+    <union name="pmt0x7fb8f48a0d50">
+      <first ref="pmt0x7fb8f489dfe0"/>
+      <second ref="sphPartBtm"/>
+      <position name="pmt0x7fb8f48a0d50_pos" unit="mm" x="0" y="0" z="57.2051768689367"/>
+    </union>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtBtmTube" rmax="44.25" rmin="42.25" startphi="0" z="72"/>
+    <union name="solidpmt">
+      <first ref="pmt0x7fb8f48a0d50"/>
+      <second ref="pmtBtmTube"/>
+      <position name="solidpmt_pos" unit="mm" x="0" y="0" z="-104.905637496842"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="pmt0x7fb8f48a1eb0" rmax="133.2" rmin="133" startphi="0" starttheta="0"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="46.5" lunit="mm" name="pmt0x7fb8f48a4860" rmax="131" rmin="130.999" startphi="0" starttheta="0"/>
+
+
+</solids>
+
+<structure>
+
+ <volume name="volPMTplatecoat">
+  <materialref ref="TPB"/>
+  <solidref ref="PMT_plate_coat"/>
+ </volume>
+
+ <volume name="vol_PMT_AcrylicPlate">
+  <materialref ref="Acrylic"/>
+  <solidref ref="PMT_AcrylicPlate"/>
+ </volume>
+
+ <volume name="pmtCoatVol">
+  <materialref ref="TPB"/>
+  <solidref ref="pmt0x7fb8f48a1eb0"/>
+  </volume>
+
+ <volume name="allpmt">
+  <materialref ref="Glass"/>
+  <solidref ref="solidpmt"/>
+  </volume>
+
+
+
+ <volume name="volPMT_plate">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+  </physvol>
+
+  <physvol name="volOpDetSensitive">
+   <volumeref ref="volPMTplatecoat"/>
+   <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.7"/>
+  </physvol>
+
+  <physvol>
+   <volumeref ref="vol_PMT_AcrylicPlate"/>
+   <position name="pos_PMT_AcrylicPlate" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.5"/>
+  </physvol>
+ </volume>
+
+<volume name="volPMT_coated">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+  </physvol>
+
+ <physvol name="volOpDetSensitive">
+  <volumeref ref="pmtCoatVol"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  </physvol>
+
+ </volume>
+
+</structure>
+
+EOF
+}
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -576,9 +722,9 @@ for($ii=0;$ii<$nCRM_z;$ii++)
 	$posY = -0.5*$Argon_y + $yLArBuffer + ($jj+0.5)*$widthCRM;
 	print CRYO <<EOF;
       <physvol>
-        <volumeref ref="volTPC"/>
+	<volumeref ref="volTPC"/>
 	<position name="posTPC\-$ii\-$jj" unit="cm"
-           x="$posX" y="$posY" z="$posZ"/>
+	   x="$posX" y="$posY" z="$posZ"/>
       </physvol>
 EOF
     }
@@ -587,11 +733,34 @@ EOF
 }
 
 
-print CRYO <<EOF;
-    </volume>
+  if ( $pmt_switch eq "on" ) {
+    for ( $i=0; $i<5; $i=$i+2 ) { # pmts with coating
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   <position name="posPMT$i" unit="cm" @pmt_pos[$i]/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+EOF
+    }
+    for ( $i=1; $i<4; $i=$i+2) { # pmts with acrylic plate
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volPMT_plate"/>
+   <position name="posPMT$i" unit="cm" @pmt_pos[$i]/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+EOF
+    }
+
+
+  }
+	print CRYO <<EOF;
+ </volume>
 </structure>
 </gdml>
 EOF
+
 
 close(CRYO);
 }
@@ -739,7 +908,7 @@ EOF
 print WORLD <<EOF;
 <structure>
     <volume name="volWorld" >
-      <materialref ref="DUSEL_Rock"/>
+      <materialref ref="Air"/>
       <solidref ref="World"/>
 
       <physvol>
@@ -842,8 +1011,11 @@ print "TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive
 print "Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 
 print "Detector enclosure : $DetEncWidth x $DetEncHeight x $DetEncLength\n";
 print "TPC Origin         : ($OriginXSet, $OriginYSet, $OriginZSet) \n";
+print "PMTs               : $pmt_switch \n";
 
 # run the sub routines that generate the fragments
+if ( $pmt_switch eq "on" ) {  gen_pmt();	}
+
 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used
