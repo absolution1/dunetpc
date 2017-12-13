@@ -151,13 +151,13 @@ dunedphase3x1x1_simulation_services: {
  BackTrackerService:                    @local::dunefd_backtrackerservice
  ParticleInventoryService:      @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
- LArG4Parameters:                @local::dunefd_largeantparameters
+ LArG4Parameters:                @local::protodune_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
- OpDetResponseInterface:         @local::dunefd_opdetresponse
+ OpDetResponseInterface:         @local::standard_opdetresponse
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  Geometry:                       @local::dphase3x1x1_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
@@ -202,13 +202,13 @@ protodunedphase_simulation_services: {
  BackTrackerService:                    @local::dunefd_backtrackerservice
  ParticleInventoryService:      @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
- LArG4Parameters:                @local::dunefd_largeantparameters
+ LArG4Parameters:                @local::protodune_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
- OpDetResponseInterface:         @local::dunefd_opdetresponse
+ OpDetResponseInterface:         @local::standard_opdetresponse
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry: 			 @local::protodunedphase_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
@@ -326,19 +326,8 @@ protodune_simulation_services: {
 #
 protodune_simulation_services.LArPropertiesService.ScintYield: 24000
 protodune_simulation_services.LArPropertiesService.ScintPreScale: 0.006
-
 # disable cerenkov
 protodune_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-protodune_simulation_services.LArG4Parameters.UseCustomPhysics: true
-protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
-                                                             "FastOptical",
-                                                             "SynchrotronAndGN",
-                                                             "Ion",
-                                                             "Hadron",
-                                                             "Decay",
-                                                             "HadronElastic",
-                                                             "Stopping",
-                                                             "NeutronTrackingCut" ]
 
 # Reco services for ProtoDUNE simulation.
 protodune_reco_services:                            @local::protodune_services
