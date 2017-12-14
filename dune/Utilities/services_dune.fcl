@@ -314,7 +314,7 @@ protodune_simulation_services: {
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
- OpDetResponseInterface:       @local::dunefd_opdetresponse
+ OpDetResponseInterface:       @local::protodune_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
 }
 

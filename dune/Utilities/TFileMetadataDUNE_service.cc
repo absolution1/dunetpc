@@ -20,7 +20,7 @@
 //		FileCatalogMetadata:  @local::art_file_catalog_mc
 //	
 //              2. When you call FileCatalogMetadata service in your fcl file, and if 
-//		you have (art) root Output section in your fcl file, and if you do not 
+//		you have (art) root Output section in your fcl file, and if you do not  
 //		have "dataTier" specified in that section, then this service will throw
 //		an exception. To avoid this, either remove the entire root Output section
 //		in your fcl file (and remove art stream output from your end_paths) or 
@@ -251,7 +251,6 @@ void util::TFileMetadataDUNE::postEndJob()
   jsonfile<<"{\n  \"application\": {\n    \"family\": "<<std::get<0>(md.fapplication)<<",\n    \"name\": ";
   jsonfile<<std::get<1>(md.fapplication)<<",\n    \"version\": "<<std::get<2>(md.fapplication)<<"\n  },\n  ";
   jsonfile<<"\"data_tier\": \""<<md.fdata_tier<<"\",\n  ";
-  jsonfile<<"\"end_time\": \""<<endbuf<<"\",\n  ";
   jsonfile<<"\"event_count\": "<<md.fevent_count<<",\n  ";
   //jsonfile<<"\"fcl.name\": \""<<md.ffcl_name<<"\",\n  ";
   //jsonfile<<"\"fcl.version\":  \""<<md.ffcl_version<<"\",\n  ";
@@ -300,15 +299,16 @@ void util::TFileMetadataDUNE::postEndJob()
   if (md.fDataName!="") jsonfile << "\"lbne_data.name\": \"" << md.fDataName << "\",\n";
   // fStageName appears not to be in our metadata spec
 
-  // put this one at the end because we know it'll be there and it therefore doesn't have a comma
+  // put these at the end because we know they'll be there and the last one needs to not have a comma
 
-  jsonfile<<"\"start_time\": \""<<startbuf<<"\"\n";
+  jsonfile<<"\"start_time\": \""<<startbuf<<"\",\n";
+  jsonfile<<"\"end_time\": \""<<endbuf<<"\"\n";
   
   //jsonfile<<"  \"ub_project.name\": \""<<md.fproject_name<<"\",\n  ";
   //jsonfile<<"\"ub_project.stage\": \""<<md.fproject_stage;
   //jsonfile<<"\",\n  \"ub_project.version\": \""<<md.fproject_version<<"\"\n";
   
-  jsonfile<<"}";
+  jsonfile<<"}\n";
   jsonfile.close();  
 }
 
