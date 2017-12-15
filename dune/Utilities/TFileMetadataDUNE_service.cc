@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 // Name:  TFileMetadataDUNE_service.cc.  
 //
-// Purpose:  generate microboone-specific sam metadata for root Tfiles (histogram or ntuple files).
+// Purpose:  generate DUNE-specific sam metadata for root Tfiles (histogram or ntuple files).
 //
 // FCL parameters: GenerateTFileMetadata: This needs to be set to "true" in the fcl file
 //				    to generate metadata (default value: false)
@@ -20,7 +20,7 @@
 //		FileCatalogMetadata:  @local::art_file_catalog_mc
 //	
 //              2. When you call FileCatalogMetadata service in your fcl file, and if 
-//		you have (art) root Output section in your fcl file, and if you do not 
+//		you have (art) root Output section in your fcl file, and if you do not  
 //		have "dataTier" specified in that section, then this service will throw
 //		an exception. To avoid this, either remove the entire root Output section
 //		in your fcl file (and remove art stream output from your end_paths) or 
@@ -251,7 +251,6 @@ void util::TFileMetadataDUNE::postEndJob()
   jsonfile<<"{\n  \"application\": {\n    \"family\": "<<std::get<0>(md.fapplication)<<",\n    \"name\": ";
   jsonfile<<std::get<1>(md.fapplication)<<",\n    \"version\": "<<std::get<2>(md.fapplication)<<"\n  },\n  ";
   jsonfile<<"\"data_tier\": \""<<md.fdata_tier<<"\",\n  ";
-  jsonfile<<"\"end_time\": \""<<endbuf<<"\",\n  ";
   jsonfile<<"\"event_count\": "<<md.fevent_count<<",\n  ";
   //jsonfile<<"\"fcl.name\": \""<<md.ffcl_name<<"\",\n  ";
   //jsonfile<<"\"fcl.version\":  \""<<md.ffcl_version<<"\",\n  ";
@@ -281,31 +280,35 @@ void util::TFileMetadataDUNE::postEndJob()
     if (md.fruns.size()==1 || c==md.fruns.size()) jsonfile<<"\n";
     else jsonfile<<",\n"; 
   }
-  jsonfile<<"  ],";          
-  jsonfile<<"\n  \"start_time\": \""<<startbuf<<"\",\n";
+  jsonfile<<"  ],\n";          
 
-  if (md.fMCGenerators!="") jsonfile << "\"lbne_MC.Generators\": \"" << md.fMCGenerators << "\"\n";
-  if (md.fMCOscillationP!="") jsonfile << "\"lbne_MC.OscillationP\": \"" << md.fMCOscillationP << "\"\n";
-  if (md.fMCTriggerListVersion!="") jsonfile << "\"lbne_MC.TriggerListVersion\": \"" << md.fMCTriggerListVersion << "\"\n";
-  if (md.fMCBeamEnergy!="") jsonfile << "\"lbne_MC.BeamEnergy\": \"" << md.fMCBeamEnergy << "\"\n";
-  if (md.fMCBeamFluxID!="") jsonfile << "\"lbne_MC.BeamFluxID\": \"" << md.fMCBeamFluxID << "\"\n";
-  if (md.fMCName!="") jsonfile << "\"lbne_MC.Name\": \"" << md.fMCName << "\"\n";
-  if (md.fMCDetectorType!="") jsonfile << "\"lbne_MC.DetectorType\": \"" << md.fMCDetectorType << "\"\n";
-  if (md.fMCNeutrinoFlavors!="") jsonfile << "\"lbne_MC.NeutrinoFlavors\": \"" << md.fMCNeutrinoFlavors << "\"\n";
-  if (md.fMCMassHierarchy!="") jsonfile << "\"lbne_MC.MassHierarchy\": \"" << md.fMCMassHierarchy << "\"\n";
-  if (md.fMCMiscellaneous!="") jsonfile << "\"lbne_MC.Miscellaneous\": \"" << md.fMCMiscellaneous << "\"\n";
-  if (md.fMCGeometryVersion!="") jsonfile << "\"lbne_MC.GeometryVersion\": \"" << md.fMCGeometryVersion << "\"\n";
-  if (md.fMCOverlay!="") jsonfile << "\"lbne_MC.Overlay\": \"" << md.fMCOverlay << "\"\n";
-  if (md.fDataRunMode!="") jsonfile << "\"lbne_data.run_mode\": \"" << md.fDataRunMode << "\"\n";
-  if (md.fDataDetectorType!="") jsonfile << "\"lbne_data.detector_type\": \"" << md.fDataDetectorType << "\"\n";
-  if (md.fDataName!="") jsonfile << "\"lbne_data.name\": \"" << md.fDataName << "\"\n";
+  if (md.fMCGenerators!="") jsonfile << "\"lbne_MC.Generators\": \"" << md.fMCGenerators << "\",\n";
+  if (md.fMCOscillationP!="") jsonfile << "\"lbne_MC.OscillationP\": \"" << md.fMCOscillationP << "\",\n";
+  if (md.fMCTriggerListVersion!="") jsonfile << "\"lbne_MC.TriggerListVersion\": \"" << md.fMCTriggerListVersion << "\",\n";
+  if (md.fMCBeamEnergy!="") jsonfile << "\"lbne_MC.BeamEnergy\": \"" << md.fMCBeamEnergy << "\",\n";
+  if (md.fMCBeamFluxID!="") jsonfile << "\"lbne_MC.BeamFluxID\": \"" << md.fMCBeamFluxID << "\",\n";
+  if (md.fMCName!="") jsonfile << "\"lbne_MC.Name\": \"" << md.fMCName << "\",\n";
+  if (md.fMCDetectorType!="") jsonfile << "\"lbne_MC.DetectorType\": \"" << md.fMCDetectorType << "\",\n";
+  if (md.fMCNeutrinoFlavors!="") jsonfile << "\"lbne_MC.NeutrinoFlavors\": \"" << md.fMCNeutrinoFlavors << "\",\n";
+  if (md.fMCMassHierarchy!="") jsonfile << "\"lbne_MC.MassHierarchy\": \"" << md.fMCMassHierarchy << "\",\n";
+  if (md.fMCMiscellaneous!="") jsonfile << "\"lbne_MC.Miscellaneous\": \"" << md.fMCMiscellaneous << "\",\n";
+  if (md.fMCGeometryVersion!="") jsonfile << "\"lbne_MC.GeometryVersion\": \"" << md.fMCGeometryVersion << "\",\n";
+  if (md.fMCOverlay!="") jsonfile << "\"lbne_MC.Overlay\": \"" << md.fMCOverlay << "\",\n";
+  if (md.fDataRunMode!="") jsonfile << "\"lbne_data.run_mode\": \"" << md.fDataRunMode << "\",\n";
+  if (md.fDataDetectorType!="") jsonfile << "\"lbne_data.detector_type\": \"" << md.fDataDetectorType << "\",\n";
+  if (md.fDataName!="") jsonfile << "\"lbne_data.name\": \"" << md.fDataName << "\",\n";
   // fStageName appears not to be in our metadata spec
+
+  // put these at the end because we know they'll be there and the last one needs to not have a comma
+
+  jsonfile<<"\"start_time\": \""<<startbuf<<"\",\n";
+  jsonfile<<"\"end_time\": \""<<endbuf<<"\"\n";
   
   //jsonfile<<"  \"ub_project.name\": \""<<md.fproject_name<<"\",\n  ";
   //jsonfile<<"\"ub_project.stage\": \""<<md.fproject_stage;
   //jsonfile<<"\",\n  \"ub_project.version\": \""<<md.fproject_version<<"\"\n";
   
-  jsonfile<<"}";
+  jsonfile<<"}\n";
   jsonfile.close();  
 }
 
