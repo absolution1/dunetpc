@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 // Name:  FileCatalogMetadataDUNE_service.cc.  
 //
-// Purpose:  Art service adds microboone-specific per-job sam metadata.
+// Purpose:  Art service adds DUNE-specific per-job sam metadata.
 //
 //           This service does not have user-callable methods.  Simply
 //           add to an art configuration in services.user block of job
