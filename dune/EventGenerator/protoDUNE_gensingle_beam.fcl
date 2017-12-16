@@ -54,8 +54,9 @@ physics.producers.generator.AllParticlesTreeName: "VirtualDetector/Lag_ENTRY"
 physics.producers.generator.StartEvent: 0
 # Set the beam position and direction to fire the particles in the desired way
 physics.producers.generator.BeamX: 7.966 # In cm, taken from protoDUNE_gensingle.fcl
-physics.producers.generator.BeamY: 460.8 
-physics.producers.generator.BeamZ: -191.6
+physics.producers.generator.BeamY: 460.84
+physics.producers.generator.BeamZ: -191.60
+
 physics.producers.generator.RotateXZ: -11.844 # In degrees, taken from protoDUNE_gensingle.fcl
 physics.producers.generator.RotateYZ: 11.107
 

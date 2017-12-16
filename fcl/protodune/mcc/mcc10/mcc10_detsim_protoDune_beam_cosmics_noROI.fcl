@@ -29,7 +29,7 @@ physics:
  producers:
  {
    daq:            @local::dune_detsim
-   opdigi:         @local::dune35t_opdigi # the configuration from 35t experiment. 						  # When ready it will be replaced with DUNE conf.  						  
+   opdigi:         @local::protodune_opdigi  
    rns:            { module_type: "RandomNumberSaver" }
  }
  
@@ -52,6 +52,8 @@ outputs:
    compressionLevel: 1
  }
 }
+
+outputs.out1.outputCommands: ["keep *_*_*_*", "drop *_*_*_SinglesGen", "drop *_*_*_G4"]
 
 # Use fixed values instead of DB for pedestals.
 services.DetPedestalService: @local::dune_fixedpeds
