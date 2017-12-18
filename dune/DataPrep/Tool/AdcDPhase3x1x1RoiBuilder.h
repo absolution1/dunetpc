@@ -1,4 +1,4 @@
-// AcdDPhase3x1x1RoiBuilder.h
+// AdcDPhase3x1x1RoiBuilder.h
 
 // Christoph Alt
 // October 2017
@@ -8,27 +8,24 @@
 //
 
 
-#ifndef AcdDPhase3x1x1RoiBuilder_H
-#define AcdDPhase3x1x1RoiBuilder_H
+#ifndef AdcDPhase3x1x1RoiBuilder_H
+#define AdcDPhase3x1x1RoiBuilder_H
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AcdRoiBuilder.h"
+#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
 #include "dune/DuneInterface/AdcTypes.h"
 
-class AcdDPhase3x1x1RoiBuilder : AcdRoiBuilder {
+class AdcDPhase3x1x1RoiBuilder : AdcChannelDataModifier {
 
 public:
 
-  AcdDPhase3x1x1RoiBuilder(fhicl::ParameterSet const& ps);
+  AdcDPhase3x1x1RoiBuilder(fhicl::ParameterSet const& ps);
 
-  ~AcdDPhase3x1x1RoiBuilder() override;
+  ~AdcDPhase3x1x1RoiBuilder() override;
 
-  // Build ROIs and set data.rois correspondingly.
-  int build(AdcChannelData& data) const override;
-
-  // Print parameters.
-  std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const override;
+  // Build ROIs
+  DataMap update(AdcChannelData& acd) const override;
 
 private:
 
@@ -47,6 +44,6 @@ private:
   AdcIndex m_PadHigh;
 };
 
-DEFINE_ART_CLASS_TOOL(AcdDPhase3x1x1RoiBuilder)
+DEFINE_ART_CLASS_TOOL(AdcDPhase3x1x1RoiBuilder)
 
 #endif

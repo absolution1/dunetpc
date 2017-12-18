@@ -172,22 +172,22 @@ function data_production
         fi
 
         echo -e "\nNumber of events for ${STAGE_NAME} stage: $NEVENTS\n"
-        echo ${EXECUTABLE_NAME} --rethrow-all -n ${NEVENTS} ${EXTRA_OPTIONS} -o ${OUTPUT_STREAM} --config ${FHiCL_FILE} ${INPUT_FILE}
+        echo ${EXECUTABLE_NAME} --rethrow-all -n ${NEVENTS} ${EXTRA_OPTIONS} ${OUTPUT_STREAM:+-o "$OUTPUT_STREAM"} --config ${FHiCL_FILE} ${INPUT_FILE}
         echo
 
         (
             local counter=0
             local expcode_exitcode=20
             until [[ ${expcode_exitcode} -ne 20 || ${counter} -gt 5 ]]; do
-                ${EXECUTABLE_NAME} --rethrow-all -n ${NEVENTS} ${EXTRA_OPTIONS} -o ${OUTPUT_STREAM} --config ${FHiCL_FILE} ${INPUT_FILE}
+                ${EXECUTABLE_NAME} --rethrow-all -n ${NEVENTS} ${EXTRA_OPTIONS} ${OUTPUT_STREAM:+-o "$OUTPUT_STREAM"} --config ${FHiCL_FILE} ${INPUT_FILE}
                 expcode_exitcode=$?
-                if [[ ${expcode_exitcode} -ne 0 ]]; then
+                if [[ ${expcode_exitcode} -eq 20 ]]; then
                     let $((counter++))
                     echo -e "\n\n*** ${EXECUTABLE_NAME} can not access the input file, wait 30 s, then retry #${counter}\n\n"
                     sleep 30
                 fi
             done
- 	    exitstatus $expcode_exitcode
+ 	    exit $expcode_exitcode
         )
 
     else
@@ -240,7 +240,7 @@ function generate_data_dump
         until [[ ${expcode_exitcode} -ne 20 || ${counter} -gt 5 ]]; do
             ${EXECUTABLE_NAME} --rethrow-all -n ${NEVENTS} --config eventdump.fcl "${reference_file}" 2>&1 | tee ${REF_DUMP_FILE}
             expcode_exitcode=$?
-            if [[ ${expcode_exitcode} -ne 0 ]]; then
+            if [[ ${expcode_exitcode} -eq 20 ]]; then
                 let $((counter++))
                 echo -e "\n\n*** ${EXECUTABLE_NAME} can not access the input file, wait 30 s, then retry #${counter}\n\n"
                 sleep 30
@@ -264,7 +264,7 @@ function generate_data_dump
         until [[ ${expcode_exitcode} -ne 20 || ${counter} -gt 5 ]]; do
             ${EXECUTABLE_NAME} --rethrow-all -n ${NEVENTS} --config eventdump.fcl "${current_file}" 2>&1 | tee "${current_file//.root}".dump
             expcode_exitcode=$?
-            if [[ ${expcode_exitcode} -ne 0 ]]; then
+            if [[ ${expcode_exitcode} -eq 20 ]]; then
                 let $((counter++))
                 echo -e "\n\n*** ${EXECUTABLE_NAME} can not access the input file, wait 30 s, then retry #${counter}\n\n"
                 sleep 30
@@ -304,7 +304,7 @@ function compare_products_names
         if [[ "${STATUS}" -ne 0  ]]; then
             echo "${DIFF}"
             ERRORSTRING="W~Differences in products names~Request new reference files"
-            exitstatus 201
+            exitstatus 201 defer
         else
             echo -e "none\n\n"
         fi
@@ -360,7 +360,14 @@ function exitstatus
         if [[ -n "$ERRORSTRING" ]];then
             echo "`basename $PWD`~${EXITSTATUS}~$ERRORSTRING" >> $WORKSPACE/data_production_stats${ci_cur_exp_name}.log
         fi
-        exit "${EXITSTATUS}"
+        if [ "$2" == "defer" ];then
+            PREVSTATUS=${EXITSTATUS}
+        else
+            exit "${EXITSTATUS}"
+        fi
+    fi
+    if [[ -n "${PREVSTATUS}" && "$2" != "defer" ]]; then
+        exit "${PREVSTATUS}"
     fi
 }
 
@@ -432,7 +439,8 @@ do
         ###     reference_file=$(echo "${current_file}")
         ### fi
         ### reference_file="${reference_file//Current/Reference}"
-        reference_file=$(echo ${current_file//Current/Reference} | sed -e 's#'${build_identifier}'##' )
+        reference_file="${current_file//Current/Reference}"
+        [[ -n "$build_identifier" ]] && reference_file="$(sed -e 's#'${build_identifier}'##' <<< "$reference_file" )"
     fi
 
     if [[ "${check_compare_names}" -eq 1  || "${check_compare_size}" -eq 1 ]]; then
@@ -444,6 +452,10 @@ do
     compare_products_names "${check_compare_names}"
 
     compare_products_sizes "${check_compare_size}"
+
+    if [[ -n ${PREVSTATE} ]]; then
+        exit ${PREVSTATE}
+    fi
 
 done
 

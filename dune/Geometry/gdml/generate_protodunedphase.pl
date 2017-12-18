@@ -23,6 +23,8 @@ GetOptions( "help|h" => \$help,
 	    "output|o:s" => \$output,
 	    "wires|w:s" => \$wires);
 
+my $pmt_switch="on";
+
 if ( defined $help )
 {
     # If the user requested help, print the usage notes and exit.
@@ -127,6 +129,90 @@ $SteelThickness = 0.12; # membrane
 $Cryostat_x = $Argon_x + 2*$SteelThickness;
 $Cryostat_y = $Argon_y + 2*$SteelThickness;
 $Cryostat_z = $Argon_z + 2*$SteelThickness;
+
+##################################################################
+############## Parameters for PMTs ###############
+
+#pos in cm inside the cryostat
+ #$pmt_pos_x  =  -300-(5.5 * 2.54)+5.115; #just below the active volume
+ #$pmt_pos_x  =  -300-(5.5 * 2.54)+5.115 + 22 -141.5; just on the top of the cryostat (new version)
+ $pmt_pos_x  =  -300 + 5.115 - 1.27*2.54 + 22 -107.8;  #8.4cm from the bottom volTPCActive
+
+#pmts not equally spaced:
+ @pmt_pos = ( ' y="-238" z="-170" ', #pmt1
+	' y="-238" z="-34" ', #pmt2
+	' y="-238" z="34" ', #pmt3
+	' y="-238" z="170" ', #pmt4
+	' y="-170" z="-238" ', #pmt5
+	' y="-170" z="-102" ', #pmt6
+	' y="-170" z="102" ', #pmt7
+	' y="-170" z="238" ', #pmt8
+	' y="-102" z="-170" ', #pmt9
+	' y="-102" z="-34" ', #pmt10
+	' y="-102" z="34" ', #pmt11
+	' y="-102" z="170" ', #pmt12
+	' y="-34" z="-238" ', #pmt13
+	' y="-34" z="-102" ', #pmt14
+	' y="-34" z="-34" ', #pmt15
+	' y="-34" z="34" ', #pmt16
+	' y="-34" z="102" ', #pmt17
+	' y="-34" z="238" ', #pmt18
+	' y="34" z="-238" ', #pmt19
+	' y="34" z="-102" ', #pmt20
+	' y="34" z="-34" ', #pmt21
+	' y="34" z="34" ', #pmt22
+	' y="34" z="102" ', #pmt23
+	' y="34" z="238" ', #pmt24
+	' y="102" z="-170" ', #pmt25
+	' y="102" z="-34" ', #pmt26
+	' y="102" z="34" ', #pmt27
+	' y="102" z="170" ', #pmt28
+	' y="170" z="-238" ', #pmt29
+	' y="170" z="-102" ', #pmt30
+	' y="170" z="102" ', #pmt31
+	' y="170" z="238" ', #pmt32
+	' y="238" z="-170" ', #pmt33
+	' y="238" z="-34" ', #pmt34
+	' y="238" z="34" ', #pmt35
+	' y="238" z="170" '); #PMT36
+
+#pmts equally spaced:
+# @pmt_pos = ( ' y="-162.5" z="-162.5"', #PMT1
+#             ' y="-162.5" z="-97.5"', #PMT2
+#             ' y="-162.5" z="-32.5"', #PMT3
+#             ' y="-162.5" z="32.5"', #PMT4
+#              ' y="-162.5" z="97.5"', #PMT5
+#              ' y="-162.5" z="162.5"', #PMT6
+#              ' y="-97.5" z="-162.5"', #PMT7
+#              ' y="-97.5" z="-97.5"', #PMT8
+#              ' y="-97.5" z="-32.5"', #PMT9
+#              ' y="-97.5" z="32.5"', #PMT10#
+#	      ' y="-97.5" z="97.5"', #PMT11
+#              ' y="-97.5" z="162.5"', #PMT12
+#              ' y="-32.5" z="-162.5"', #PMT13
+#              ' y="-32.5" z="-97.5"', #PMT14
+#              ' y="-32.5" z="-32.5"', #PMT15
+#              ' y="-32.5" z="32.5"', #PMT16
+#              ' y="-32.5" z="97.5"', #PMT17
+#              ' y="-32.5" z="162.5"', #PMT18
+#              ' y="32.5" z="-162.5"', #PMT19
+#              ' y="32.5" z="-97.5"', #PMT20
+#              ' y="32.5" z="-32.5"', #PMT21
+#              ' y="32.5" z="32.5"', #PMT22
+#              ' y="32.5" z="97.5"', #PMT23
+#              ' y="32.5" z="162.5"', #PMT24
+#              ' y="97.5" z="-162.5"', #PMT25
+#              ' y="97.5" z="-97.5"', #PMT26
+#              ' y="97.5" z="-32.5"', #PMT27
+#              ' y="97.5" z="32.5"', #PMT27
+#              ' y="97.5" z="97.5"', #PMT29
+#              ' y="97.5" z="162.5"', #PMT30
+#              ' y="162.5" z="-162.5"', #PMT31
+#              ' y="162.5" z="-97.5"', #PMT32
+#              ' y="162.5" z="-32.5"', #PMT33
+#              ' y="162.5" z="32.5"', #PMT34
+#              ' y="162.5" z="97.5"', #PMT35
+#              ' y="162.5" z="162.5"'); #PMT36
 
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
@@ -363,6 +449,7 @@ EOF
 # Begin structure and create wire logical volumes
 print TPC <<EOF;
 <structure>
+
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
@@ -487,7 +574,96 @@ EOF
 close(TPC);
 }
 
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_pmt +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+sub gen_pmt {
+
+
+#PMTs
+
+#$PMT_COATING_THICKNESS=0.2;#
+#$PMT_PLATE_THICKNESS=0.4;
+#$PMT_GLASS_THICKNESS=0.2;
+
+    $PMT = $basename."_PMT" . $suffix . ".gdml";
+    push (@gdmlFiles, $PMT);
+    $PMT = ">" . $PMT;
+    open(PMT) or die("Could not open file $PMT for writing");
+
+
+	print PMT <<EOF;
+
+<solids>
+ <tube name="PMTVolume"
+  rmax="(6.5*2.54)"
+  z="(11.1*2.54)"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtMiddleCylinder" rmax="102.351822048586" rmin="100.351822048586" startphi="0" z="54"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="sphPartTop" rmax="133" rmin="131" startphi="0" starttheta="0"/>
+    <union name="pmt0x7fb8f489dfe0">
+      <first ref="pmtMiddleCylinder"/>
+      <second ref="sphPartTop"/>
+      <position name="pmt0x7fb8f489dfe0_pos" unit="mm" x="0" y="0" z="-57.2051768689367"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="31.477975238527" lunit="mm" name="sphPartBtm" rmax="133" rmin="131" startphi="0" starttheta="130"/>
+    <union name="pmt0x7fb8f48a0d50">
+      <first ref="pmt0x7fb8f489dfe0"/>
+      <second ref="sphPartBtm"/>
+      <position name="pmt0x7fb8f48a0d50_pos" unit="mm" x="0" y="0" z="57.2051768689367"/>
+    </union>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtBtmTube" rmax="44.25" rmin="42.25" startphi="0" z="72"/>
+    <union name="solidpmt">
+      <first ref="pmt0x7fb8f48a0d50"/>
+      <second ref="pmtBtmTube"/>
+      <position name="solidpmt_pos" unit="mm" x="0" y="0" z="-104.905637496842"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="pmt0x7fb8f48a1eb0" rmax="133.2" rmin="133" startphi="0" starttheta="0"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="46.5" lunit="mm" name="pmt0x7fb8f48a4860" rmax="131" rmin="130.999" startphi="0" starttheta="0"/>
+
+
+</solids>
+
+<structure>
+ <volume name="pmtCoatVol">
+  <materialref ref="TPB"/>
+  <solidref ref="pmt0x7fb8f48a1eb0"/>
+  </volume>
+
+ <volume name="allpmt">
+  <materialref ref="Glass"/>
+  <solidref ref="solidpmt"/>
+  </volume>
+
+<volume name="volPMT_coated">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+  </physvol>
+
+ <physvol name="volOpDetSensitive">
+  <volumeref ref="pmtCoatVol"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  </physvol>
+
+ </volume>
+
+</structure>
+
+EOF
+}
+
+  #<physvol>
+  #<volumeref ref="pmtCathVol"/>
+  # <position name="pmtCath_pos" unit="cm" x="0" y="0" z="0"/>#8*2.54 + 0.9"/>
+  #</physvol>
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++ gen_Cryostat +++++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -585,6 +761,20 @@ EOF
 
 }
 
+
+
+  if ( $pmt_switch eq "on" ) {
+    for ( $i=0; $i<36; $i=$i+1 ) { # pmts with coating
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   <position name="posPMT$i" unit="cm" x="$pmt_pos_x" @pmt_pos[$i]/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+EOF
+    }
+
+  }
 
 print CRYO <<EOF;
     </volume>
@@ -738,7 +928,7 @@ EOF
 print WORLD <<EOF;
 <structure>
     <volume name="volWorld" >
-      <materialref ref="DUSEL_Rock"/>
+      <materialref ref="Air"/>
       <solidref ref="World"/>
 
       <physvol>
@@ -841,8 +1031,10 @@ print "TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive
 print "Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 
 print "Detector enclosure : $DetEncWidth x $DetEncHeight x $DetEncLength\n";
 print "TPC Origin         : ($OriginXSet, $OriginYSet, $OriginZSet) \n";
+print "PMTs               : $pmt_switch \n";
 
 # run the sub routines that generate the fragments
+if ( $pmt_switch eq "on" ) {  gen_pmt();	}
 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used

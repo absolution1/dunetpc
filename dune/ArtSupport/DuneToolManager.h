@@ -3,9 +3,23 @@
 // David Adams
 // April 2017
 //
-// This singleton provides access to DUNE tools. It is a quick and dirty
+// This class provides access to DUNE tools. It is a quick and dirty
 // implementation of a tool manager intended for use until we get something
 // better from larsoft or art.
+//
+// Tools are typically obtained from the primary instance of this class which
+// is accessed via DuneToolManager::instance(). The first call to this method
+// locates the top-level fcl file and loads all the tool definitions. Tools
+// are constructed when getPrivate or getPublic is called.
+//
+// This first call typically occurs during job initialization. The fcl file
+// name may be provided or, if not, it is obtained from the command line
+// (option -c). If that is also absent, the default tools_dune.fcl is used.
+//
+// It is also possible to directly additional tool managers from fcl file names.
+// Tool instances are not shared between different tool managers. These
+// managers might be assigned to different threads or used to locate tools
+// that are not defined in the primary fcl file.
 
 #ifndef DuneToolManager_H
 #define DuneToolManager_H
@@ -51,6 +65,9 @@ public:
   // is made to find the fcl name on the command line following "-c"..
   static DuneToolManager* instance(std::string fclname ="");
 
+  // Ctor from FCL file name.
+  explicit DuneToolManager(std::string fclname);
+
   // Return a private (not shared) copy of a tool.
   template<class T>
   std::unique_ptr<T> getPrivate(std::string name) {
@@ -88,9 +105,6 @@ public:
   void print() const;
 
 private:
-
-  // Ctor from FCL file name.
-  explicit DuneToolManager(std::string fclname);
 
   std::string m_fclname;
   fhicl::ParameterSet m_pstools;

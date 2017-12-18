@@ -1,6 +1,7 @@
 // DuneDPhase3x1x1NoiseRemovalService.h
 //
 // Robert Sulej, Aug 2017
+// Christoph Alt, Nov 2017 (update)
 //
 // Remove coherent noise from 3x1x1 data.
 //
@@ -14,7 +15,8 @@
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
 #include "dune/DuneInterface/AdcTypes.h"
 
-class AcdRoiBuilder;
+class AdcChannelDataModifier;
+
 namespace geo { class Geometry; }
 namespace util { class LArFFT; }
 
@@ -71,6 +73,7 @@ private:
   std::vector< size_t > fCoherent32Groups;
   std::vector< size_t > fCoherent16Groups;
   std::vector< float > fLowPassCoeffs;
+  bool fUseBasicROIForCNR;
   float fRoiStartThreshold;
   float fRoiEndThreshold;
   int fRoiPadLow;
@@ -79,9 +82,16 @@ private:
   AdcIndex fBinsToSkip;
 
   //Tools
-  using AcdRoiBuilderPtr = std::unique_ptr<const AcdRoiBuilder>;
-  std::string m_ROIBuilderTool;
-  AcdRoiBuilderPtr m_pROIBuilderTool;
+  using AdcChannelDataModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
+
+  std::string m_ROIBuilderToolFlattening;
+  AdcChannelDataModifierPtr m_pROIBuilderToolFlattening;
+
+  std::string m_ROIBuilderToolCNR;
+  AdcChannelDataModifierPtr m_pROIBuilderToolCNR;
+
+  std::string m_ROIBuilderToolFinal;
+  AdcChannelDataModifierPtr m_pROIBuilderToolFinal;
 
   // Services.
   const geo::Geometry* fGeometry;

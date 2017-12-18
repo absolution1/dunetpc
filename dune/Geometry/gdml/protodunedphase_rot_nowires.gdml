@@ -15,6 +15,7 @@
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rPlus90AboutY"       unit="deg" x="90" y="90" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
+   <rotation name="rPlus90AboutX"      unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
    <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
@@ -305,6 +306,37 @@
 
 </materials>
 <solids>
+ <tube name="PMTVolume"
+  rmax="16.51"
+  z="28.194"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtMiddleCylinder" rmax="102.351822048586" rmin="100.351822048586" startphi="0" z="54"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="sphPartTop" rmax="133" rmin="131" startphi="0" starttheta="0"/>
+    <union name="pmt0x7fb8f489dfe0">
+      <first ref="pmtMiddleCylinder"/>
+      <second ref="sphPartTop"/>
+      <position name="pmt0x7fb8f489dfe0_pos" unit="mm" x="0" y="0" z="-57.2051768689367"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="31.477975238527" lunit="mm" name="sphPartBtm" rmax="133" rmin="131" startphi="0" starttheta="130"/>
+    <union name="pmt0x7fb8f48a0d50">
+      <first ref="pmt0x7fb8f489dfe0"/>
+      <second ref="sphPartBtm"/>
+      <position name="pmt0x7fb8f48a0d50_pos" unit="mm" x="0" y="0" z="57.2051768689367"/>
+    </union>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtBtmTube" rmax="44.25" rmin="42.25" startphi="0" z="72"/>
+    <union name="solidpmt">
+      <first ref="pmt0x7fb8f48a0d50"/>
+      <second ref="pmtBtmTube"/>
+      <position name="solidpmt_pos" unit="mm" x="0" y="0" z="-104.905637496842"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="pmt0x7fb8f48a1eb0" rmax="133.2" rmin="133" startphi="0" starttheta="0"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="46.5" lunit="mm" name="pmt0x7fb8f48a4860" rmax="131" rmin="130.999" startphi="0" starttheta="0"/>
+
+
+
    <box name="CRM" lunit="cm" 
       x="301" 
       y="600.03" 
@@ -391,6 +423,33 @@
       z="7415.04"/>
 </solids>
 <structure>
+ <volume name="pmtCoatVol">
+  <materialref ref="TPB"/>
+  <solidref ref="pmt0x7fb8f48a1eb0"/>
+  </volume>
+
+ <volume name="allpmt">
+  <materialref ref="Glass"/>
+  <solidref ref="solidpmt"/>
+  </volume>
+
+<volume name="volPMT_coated">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="3.2258"/>
+  </physvol>
+
+ <physvol name="volOpDetSensitive">
+  <volumeref ref="pmtCoatVol"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="-2.4384"/>
+  </physvol>
+
+ </volume>
+
+
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
@@ -469,6 +528,222 @@
 	<position name="posTPC-1-1" unit="cm"
            x="150.5" y="12.985" z="150.5"/>
       </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT0" unit="cm" y="-383.9108"  z="-238" x="-170" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT1" unit="cm" y="-383.9108"  z="-238" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT2" unit="cm" y="-383.9108"  z="-238" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT3" unit="cm" y="-383.9108"  z="-238" x="170" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT4" unit="cm" y="-383.9108"  z="-170" x="-238" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT5" unit="cm" y="-383.9108"  z="-170" x="-102" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT6" unit="cm" y="-383.9108"  z="-170" x="102" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT7" unit="cm" y="-383.9108"  z="-170" x="238" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT8" unit="cm" y="-383.9108"  z="-102" x="-170" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT9" unit="cm" y="-383.9108"  z="-102" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT10" unit="cm" y="-383.9108"  z="-102" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT11" unit="cm" y="-383.9108"  z="-102" x="170" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT12" unit="cm" y="-383.9108"  z="-34" x="-238" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT13" unit="cm" y="-383.9108"  z="-34" x="-102" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT14" unit="cm" y="-383.9108"  z="-34" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT15" unit="cm" y="-383.9108"  z="-34" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT16" unit="cm" y="-383.9108"  z="-34" x="102" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT17" unit="cm" y="-383.9108"  z="-34" x="238" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT18" unit="cm" y="-383.9108"  z="34" x="-238" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT19" unit="cm" y="-383.9108"  z="34" x="-102" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT20" unit="cm" y="-383.9108"  z="34" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT21" unit="cm" y="-383.9108"  z="34" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT22" unit="cm" y="-383.9108"  z="34" x="102" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT23" unit="cm" y="-383.9108"  z="34" x="238" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT24" unit="cm" y="-383.9108"  z="102" x="-170" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT25" unit="cm" y="-383.9108"  z="102" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT26" unit="cm" y="-383.9108"  z="102" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT27" unit="cm" y="-383.9108"  z="102" x="170" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT28" unit="cm" y="-383.9108"  z="170" x="-238" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT29" unit="cm" y="-383.9108"  z="170" x="-102" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT30" unit="cm" y="-383.9108"  z="170" x="102" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT31" unit="cm" y="-383.9108"  z="170" x="238" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT32" unit="cm" y="-383.9108"  z="238" x="-170" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT33" unit="cm" y="-383.9108"  z="238" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT34" unit="cm" y="-383.9108"  z="238" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volPMT_coated"/>
+   
+   <position name="posPMT35" unit="cm" y="-383.9108"  z="238" x="170" />
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
     </volume>
 
     <volume name="volFoamPadding">
@@ -500,7 +775,7 @@
     </volume>
 
     <volume name="volWorld" >
-      <materialref ref="DUSEL_Rock"/>
+      <materialref ref="Air"/>
       <solidref ref="World"/>
 
       <physvol>

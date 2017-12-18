@@ -24,8 +24,10 @@
 // Example draw of histogram:
 //   if ( res.hasHist("myhist") ) res.getHist("myhist")->Draw();
 //
-// This class does not manage (i.e. delete histograms). Its filler should ensure
-// that any stored histograms have appropriate lifetime.
+// This class manages (i.e. deletes) its graphs and optionally manages
+// its histograms. Any copies of the result share in that management.
+// If a histogram is not managed, the caller should ensure that it has
+// appropriate lifetime.
 
 #include <vector>
 #include <map>
@@ -82,6 +84,9 @@ public:
       m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
     }
   }
+  void setHist(TH1* ph, bool own =false) {
+    if ( ph != nullptr ) setHist(ph->GetName(), ph, own);
+  }
   void setHistVector(Name name, const HistVector& hsts, bool own =false) {
     const std::string myname = "DataMap::setHistVector: ";
     m_hstvecs[name] = hsts;
@@ -104,6 +109,9 @@ public:
   }
   void setGraph(Name name, TGraph* pg) {
     m_grfs[name] = GraphPtr(pg);
+  }
+  void setGraph(TGraph* pg) {
+    if ( pg != nullptr ) setGraph(pg->GetName(), pg);
   }
 
   // Extend this map with another.
@@ -182,7 +190,7 @@ public:
           if ( ival ) cout << ",";
           cout << " " << ient.second[ival];
           if ( ival > maxval ) {
-            cout << ", ..." << endl;
+            cout << ", ...";
             break;
           }
         }
@@ -205,7 +213,7 @@ public:
           if ( ival ) cout << ",";
           cout << " " << ient.second[ival];
           if ( ival > maxval ) {
-            cout << ", ..." << endl;
+            cout << ", ...";
             break;
           }
         }

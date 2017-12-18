@@ -6,6 +6,7 @@
 
 #include  <iostream>
 #include  <string>
+#include "cetlib/getenv.h"
 
 #include "dune/CVN/art/CaffeNetHandler.h"
 
@@ -25,7 +26,7 @@ namespace cvn
                                     const std::string& deployProto,
                                     const std::string& modelFile,
 				    const std::string& featureMap):
-  fLibPath(libPath),
+  fLibPath(cet::getenv(libPath)+"/duneCVNNetwork/"),
   fDeployProto(fLibPath + deployProto),
   fModelFile  (fLibPath + modelFile),
   fFeatureMap     (featureMap),
@@ -92,11 +93,47 @@ namespace cvn
   caffe::Datum PixelMapToDatum(const PixelMap& pm)
   {
 
+
+    // caffe::Datum datum;
+    // char* pixels = NULL;
+    // int channels(3), planes(0), cells(0);
+    // datum.set_channels(channels);
+    // planes = pm.fNWire;
+    // cells  = pm.fNTdc;
+    // datum.set_height(planes);
+    // datum.set_width(cells);
+    // pixels = new char[channels*planes*cells];
+    // for (int iChan = 0; iChan < channels; ++iChan)
+    // {
+    //   for (int iPlane = 0; iPlane < planes; ++iPlane)
+    //   {
+    //     for (int iCell = 0; iCell < cells; ++iCell)
+    //     {
+    //       int i = iCell + cells*(iPlane + planes*iChan);
+    //       float val =0.;
+    //       if(iChan == 0 ){
+    //         val=pm.fPEX.at(iCell + cells*iPlane);
+    //       }
+    //       if(iChan == 1 ){
+    //         val=pm.fPEY.at(iCell + cells*iPlane);
+    //       }
+    //       if(iChan == 2 ){
+    //         val=pm.fPEZ.at(iCell + cells*iPlane);
+    //       }
+    //       char pix = ConvertToChar(val);
+    //       pixels[i] = pix;
+    //     }
+    //   }
+    // }
+    // datum.set_data(pixels, channels*planes*cells);
+    // delete[] pixels;
+    // return datum;
+  
     caffe::Datum datum;
     char* pixels = NULL;
     int channels(3), planes(0), cells(0);
     datum.set_channels(channels);
-    planes = pm.fNWire;
+    planes = 500; //pm.fNWire; TODO Make fcl parameter
     cells  = pm.fNTdc;
     datum.set_height(planes);
     datum.set_width(cells);
@@ -112,9 +149,6 @@ namespace cvn
           if(iChan == 0 ){
             val=pm.fPEX.at(iCell + cells*iPlane);
           }
-          if(iChan == 1 ){
-            val=pm.fPEY.at(iCell + cells*iPlane);
-          }
           if(iChan == 2 ){
             val=pm.fPEZ.at(iCell + cells*iPlane);
           }
@@ -123,6 +157,49 @@ namespace cvn
         }
       }
     }
+
+    //work out where to flip the second induction view, so they point the same way
+    int maxPlaneWithCharge=0;
+    for (int iChan = 0; iChan < channels; ++iChan)
+    {
+      for (int iPlane = 0; iPlane < planes; ++iPlane)
+        {
+          for (int iCell = 0; iCell < cells; ++iCell)
+            {
+              float val =0.;
+              if(iChan == 1 ){
+                val=pm.fPEY.at(iCell + cells*iPlane);
+                if(val>0){
+                  maxPlaneWithCharge=iPlane;
+                }
+              }
+            }
+        }
+    }
+    int newMapEdge=planes;
+    if(maxPlaneWithCharge>planes){
+      newMapEdge=maxPlaneWithCharge+1;
+    }
+    
+    //fill the second induction view
+    for (int iChan = 0; iChan < channels; ++iChan)
+      {
+        for (int iPlane = newMapEdge; iPlane > (newMapEdge-planes); --iPlane)
+          {
+            for (int iCell = 0; iCell < cells; ++iCell)
+              {
+                int planeCount=planes-iPlane;
+                int i = iCell + cells*(planeCount + planes*iChan);
+                float val =0.;
+                if(iChan == 1 ){
+                  val=pm.fPEY.at(iCell + cells*iPlane);
+                  char pix = ConvertToChar(val);
+                  pixels[i] = pix;
+                }
+              }
+          }
+      }
+
     datum.set_data(pixels, channels*planes*cells);
     delete[] pixels;
     return datum;
