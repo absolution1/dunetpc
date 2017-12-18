@@ -282,18 +282,18 @@ void util::TFileMetadataDUNE::postEndJob()
   }
   jsonfile<<"  ],\n";          
 
-  if (md.fMCGenerators!="") jsonfile << "\"lbne_MC.Generators\": \"" << md.fMCGenerators << "\",\n";
-  if (md.fMCOscillationP!="") jsonfile << "\"lbne_MC.OscillationP\": \"" << md.fMCOscillationP << "\",\n";
-  if (md.fMCTriggerListVersion!="") jsonfile << "\"lbne_MC.TriggerListVersion\": \"" << md.fMCTriggerListVersion << "\",\n";
-  if (md.fMCBeamEnergy!="") jsonfile << "\"lbne_MC.BeamEnergy\": \"" << md.fMCBeamEnergy << "\",\n";
-  if (md.fMCBeamFluxID!="") jsonfile << "\"lbne_MC.BeamFluxID\": \"" << md.fMCBeamFluxID << "\",\n";
-  if (md.fMCName!="") jsonfile << "\"lbne_MC.Name\": \"" << md.fMCName << "\",\n";
-  if (md.fMCDetectorType!="") jsonfile << "\"lbne_MC.DetectorType\": \"" << md.fMCDetectorType << "\",\n";
-  if (md.fMCNeutrinoFlavors!="") jsonfile << "\"lbne_MC.NeutrinoFlavors\": \"" << md.fMCNeutrinoFlavors << "\",\n";
-  if (md.fMCMassHierarchy!="") jsonfile << "\"lbne_MC.MassHierarchy\": \"" << md.fMCMassHierarchy << "\",\n";
-  if (md.fMCMiscellaneous!="") jsonfile << "\"lbne_MC.Miscellaneous\": \"" << md.fMCMiscellaneous << "\",\n";
-  if (md.fMCGeometryVersion!="") jsonfile << "\"lbne_MC.GeometryVersion\": \"" << md.fMCGeometryVersion << "\",\n";
-  if (md.fMCOverlay!="") jsonfile << "\"lbne_MC.Overlay\": \"" << md.fMCOverlay << "\",\n";
+  if (md.fMCGenerators!="") jsonfile << "\"lbne_MC.generators\": \"" << md.fMCGenerators << "\",\n";
+  if (md.fMCOscillationP!="") jsonfile << "\"lbne_MC.oscillationP\": \"" << md.fMCOscillationP << "\",\n";
+  if (md.fMCTriggerListVersion!="") jsonfile << "\"lbne_MC.trigger-list-version\": \"" << md.fMCTriggerListVersion << "\",\n";
+  if (md.fMCBeamEnergy!="") jsonfile << "\"lbne_MC.beam_energy\": \"" << md.fMCBeamEnergy << "\",\n";
+  if (md.fMCBeamFluxID!="") jsonfile << "\"lbne_MC.beam_flux_ID\": \"" << md.fMCBeamFluxID << "\",\n";
+  if (md.fMCName!="") jsonfile << "\"lbne_MC.name\": \"" << md.fMCName << "\",\n";
+  if (md.fMCDetectorType!="") jsonfile << "\"lbne_MC.detector_type\": \"" << md.fMCDetectorType << "\",\n";
+  if (md.fMCNeutrinoFlavors!="") jsonfile << "\"lbne_MC.neutrino_flavors\": \"" << md.fMCNeutrinoFlavors << "\",\n";
+  if (md.fMCMassHierarchy!="") jsonfile << "\"lbne_MC.mass_hierarchy\": \"" << md.fMCMassHierarchy << "\",\n";
+  if (md.fMCMiscellaneous!="") jsonfile << "\"lbne_MC.miscellaneous\": \"" << md.fMCMiscellaneous << "\",\n";
+  if (md.fMCGeometryVersion!="") jsonfile << "\"lbne_MC.geometry_version\": \"" << md.fMCGeometryVersion << "\",\n";
+  if (md.fMCOverlay!="") jsonfile << "\"lbne_MC.overlay\": \"" << md.fMCOverlay << "\",\n";
   if (md.fDataRunMode!="") jsonfile << "\"lbne_data.run_mode\": \"" << md.fDataRunMode << "\",\n";
   if (md.fDataDetectorType!="") jsonfile << "\"lbne_data.detector_type\": \"" << md.fDataDetectorType << "\",\n";
   if (md.fDataName!="") jsonfile << "\"lbne_data.name\": \"" << md.fDataName << "\",\n";
