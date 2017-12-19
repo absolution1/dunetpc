@@ -78,6 +78,13 @@ sub gen_Materials
    <composite n="1" ref="oxygen"/>
   </material>
 
+  <material name="Delrin" formula="CH2O">
+    <D value="1.41" unit="g/cm3"/>
+    <composite n="1" ref="carbon"/>
+    <composite n="2" ref="hydrogen"/>
+    <composite n="1" ref="oxygen"/>
+  </material>
+
   <material name="MgO" formula="MgO">
    <D value="3.58" unit="g/cm3"/>
    <composite n="1" ref="magnesium"/>
