@@ -12,7 +12,10 @@
 # suffix command to help organize your work.
 
 #use warnings;
+#use lib "gdmlMaterials";
+use lib '.';
 use gdmlMaterials;
+#use gdmlMaterials::gen_Materials;
 use Math::Trig;
 use Getopt::Long;
 use Math::BigFloat;
@@ -297,8 +300,8 @@ $Cryostat_z            =      $Argon_z + 2*$SteelThickness;
 
 ### Add dimensions for the source cylinder.
 $Source_x_center              =        $FC_x_center + 220; # 220 cm past the center plane of the TPCs.
-$Source_y_center              =        $FC_y_center + 300; # 300 cm above the center of the active volume
-$Source_z_center              =        $FC_z_center - $FCO_z/2 - 40; # 40 cm outside the field cage in Z. 
+$Source_y_center              =        $FC_y_center + 300 -20 ; # 300 cm above the center of the active volume (-20 unexplained correction taken from viewer.
+$Source_z_center              =        $FC_z_center - ($FCO_z/2) - 40+ 130; # 40 cm outside the field cage in Z. (+130 unexplained correction from viewer.
 $SourceModerator_d              =      20; #20 cm diameter cylinder
 $SourceModerator_z              =      20; # 20 cm tall cylinder  
 
@@ -429,7 +432,7 @@ sub gen_Define()
 # Create the <define> fragment file name, 
 # add file to list of fragments,
 # and open it
-    $DEF = "dune10kt_v2_Def" . $suffix . ".gdml";
+    $DEF = "dune10kt_v3_Def" . $suffix . ".gdml";
     push (@gdmlFiles, $DEF);
     $DEF = ">" . $DEF;
     open(DEF) or die("Could not open file $DEF for writing");
@@ -473,7 +476,7 @@ sub gen_Materials()
 # Create the <materials> fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $MAT = "dune10kt_v2_Materials" . $suffix . ".gdml";
+    $MAT = "dune10kt_v3_Materials" . $suffix . ".gdml";
     push (@gdmlFiles, $MAT);
     $MAT = ">" . $MAT;
 
@@ -528,7 +531,7 @@ sub gen_TPC
 # Create the TPC fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $TPC = "dune10kt_v2_TPC_${_[3]}" . $suffix . ".gdml";
+    $TPC = "dune10kt_v3_TPC_${_[3]}" . $suffix . ".gdml";
     push (@gdmlFiles, $TPC);
     $TPC = ">" . $TPC;
     open(TPC) or die("Could not open file $TPC for writing");
@@ -1281,7 +1284,7 @@ sub gen_Cryostat()
 # Create the cryostat fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $CRYO = "dune10kt_v2_Cryostat" . $suffix . ".gdml";
+    $CRYO = "dune10kt_v3_Cryostat" . $suffix . ".gdml";
     push (@gdmlFiles, $CRYO);
     $CRYO = ">" . $CRYO;
     open(CRYO) or die("Could not open file $CRYO for writing");
@@ -1513,11 +1516,11 @@ print CRYO <<EOF;
       </physvol>
       <physvol>
         <volumeref ref="volSourceModerator"/>
-        <position name=posSourceModerator" unit="cm"
+        <position name="posSourceModerator" unit="cm"
           x="@{[$Source_x_center]}"
 	        y="@{[$Source_y_center]}"
 	        z="@{[$Source_z_center]}"/>
-       <rotationref ref="rIdentity"/>
+        <rotationref ref="rPlus90AboutX"/>
       </physvol>    
       <physvol>
         <volumeref ref="volFieldCage"/>
@@ -2004,7 +2007,7 @@ sub gen_Enclosure()
 # Create the detector enclosure fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $ENCL = "dune10kt_v2_DetEnclosure" . $suffix . ".gdml";
+    $ENCL = "dune10kt_v3_DetEnclosure" . $suffix . ".gdml";
     push (@gdmlFiles, $ENCL);
     $ENCL = ">" . $ENCL;
     open(ENCL) or die("Could not open file $ENCL for writing");
@@ -2119,7 +2122,7 @@ sub gen_World()
 # Create the WORLD fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $WORLD = "dune10kt_v2_World" . $suffix . ".gdml";
+    $WORLD = "dune10kt_v3_World" . $suffix . ".gdml";
     push (@gdmlFiles, $WORLD);
     $WORLD = ">" . $WORLD;
     open(WORLD) or die("Could not open file $WORLD for writing");
