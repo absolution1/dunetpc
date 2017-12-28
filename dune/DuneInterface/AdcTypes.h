@@ -39,6 +39,7 @@ const AdcFlag AdcExtrapolated = 7; // ADC sample is extrapolated
 typedef unsigned int AdcChannel;
 typedef std::vector<AdcChannel> AdcChannelVector;
 
+// A ROI includes all ticks from roi.first through roi.second.
 typedef std::pair<AdcIndex, AdcIndex> AdcRoi;
 typedef std::vector<AdcRoi> AdcRoiVector;
 

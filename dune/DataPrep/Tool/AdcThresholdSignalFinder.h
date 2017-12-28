@@ -5,7 +5,7 @@
 //
 // Tool to find and flag signal regions in ADC data.
 //
-// For each tick with smaple above Threshold and/or below -Threshold, the region
+// For each tick with sample above Threshold and/or below -Threshold, the region
 // [bin-BinsBefore, bin+binsAfter] is flagged as signal.
 // An ROI is created for each range of contiguous signals.
 //
