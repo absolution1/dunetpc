@@ -44,12 +44,26 @@ DataMap AdcRegularSignalFinder::update(AdcChannelData& acd) const {
   Index nsam = acd.samples.size();
   Index nper = m_Period;
   Index nlen = m_Length == 0 ? m_Period : m_Length;
+  if ( nper == 0 ) {
+    if ( acd.rois.size() > 0 ) {
+      AdcRoi roi = acd.rois[0];
+      AdcIndex itck1 = roi.first;
+      AdcIndex itck2 = roi.second + 1;
+      nper = itck2 > itck1 ? itck2 - itck1 : 0;
+      nlen = nper;
+      if ( acd.rois.size() > 1 ) {
+        roi = acd.rois[0];
+        itck1 = roi.first;
+        itck2 = roi.second + 1;
+        if ( itck2 > itck1 ) nlen = itck2 - itck1;
+      }
+    }
+  }
   Index nroi = 0;
   if ( nsam > 0 && nper > 0 ) {
     acd.signal.resize(nsam, true);
     Index nrem = nsam % nper;
     nroi = nsam/nper + (nrem>0);
-cout << myname << "nsam=" << nsam << ", nper=" << nper << ", nroi=" << nroi << endl;
     for ( Index iroi=0; iroi<nroi; ++iroi ) {
       Index isam1 = nper*iroi;
       Index isam2 = isam1 + nlen;

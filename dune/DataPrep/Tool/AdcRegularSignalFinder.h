@@ -10,10 +10,20 @@
 //   Period - Period for ROIs, i.e. one ROI is found every Period ticks
 //   Length - # ticks in each ROI (0 means same as Period)
 //
+// If Period is zero, then the period and length are obtained from the
+// data passed in each call to update (or view). The period is the
+// length of the first ROI (roi.second + 1 - roi.first).
+// The configured length is the length of the second ROI, if present,
+// or otherwise is the same as the period.
+//
+// The first ROI starts at tick 0. We may later add a parameter "Offset" to
+// start at a later tick. The last ROI ends at the last tick and may be
+// shorter than the others.
+//
 // The output results holds:
-//   roiPeriod - Period
-//   roiLength - period
-//   roiCount - # ROIs found
+//   int roiPeriod - period (actual)
+//   int roiLength - length (actual)
+//   int roiCount  - # ROIs found
 
 #ifndef AdcRegularSignalFinder_H
 #define AdcRegularSignalFinder_H
