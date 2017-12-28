@@ -32,6 +32,7 @@ class AdcRegularSignalFinder
 
 public:
 
+  AdcRegularSignalFinder(AdcIndex per, AdcIndex len, int lev);
   AdcRegularSignalFinder(fhicl::ParameterSet const& ps);
 
   DataMap view(const AdcChannelData& acd) const override;

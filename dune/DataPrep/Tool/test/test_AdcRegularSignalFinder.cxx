@@ -43,7 +43,7 @@ int test_AdcRegularSignalFinder(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: AdcRegularSignalFinder" << endl;
     fout << "    LogLevel: 1" << endl;
-    fout << "    Period: 25" << endl;
+    fout << "    Period: 30" << endl;
     fout << "    Length: 20" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
@@ -70,14 +70,15 @@ int test_AdcRegularSignalFinder(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
   AdcChannelData data;
-  for ( AdcIndex itic=0; itic<100; ++itic ) {
+  Index nsam = 100;
+  for ( AdcIndex itic=0; itic<nsam; ++itic ) {
     float xadc = rand()%20 - 10.0;
     data.samples.push_back(xadc);
   }
   data.samples[30] = 150.0;
   assert( data.signal.size() == 0 );
   assert( data.rois.size() == 0 );
-  assert( data.samples.size() == 100 );
+  assert( data.samples.size() == nsam );
   assert( data.samples[30] = 150 );
 
   cout << myname << line << endl;
@@ -87,7 +88,7 @@ int test_AdcRegularSignalFinder(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Checking results." << endl;
-  Index per = 25;
+  Index per = 30;
   Index len = 20;
   Index nroi = 4;
   
@@ -95,7 +96,7 @@ int test_AdcRegularSignalFinder(bool useExistingFcl =false) {
   assert( resmod.getInt("roiPeriod") == int(per) );
   assert( resmod.getInt("roiLength") == int(len) );
   assert( resmod.getInt("roiCount") == int(nroi) );
-  assert( data.signal.size() == 100 );
+  assert( data.signal.size() == nsam );
   assert( data.rois.size() == nroi );
   for ( Index iroi=0; iroi<nroi; ++iroi ) {
     AdcRoi roi = data.rois[iroi];
@@ -104,7 +105,9 @@ int test_AdcRegularSignalFinder(bool useExistingFcl =false) {
          << roi.second << "]" << endl;
     Index isam1 = iroi*per;
     Index isam2 = isam1 + len;
+    if ( isam2 > nsam ) isam2 = nsam;
     Index isam3 = isam1 + per;
+    if ( isam3 > nsam ) isam3 = nsam;
     for ( Index isam=isam1; isam<isam3; ++isam ) {
       bool sig = data.signal[isam];
       string ssig = sig ? "true" : "false";

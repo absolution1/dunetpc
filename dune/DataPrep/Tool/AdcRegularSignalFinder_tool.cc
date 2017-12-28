@@ -13,10 +13,11 @@ using Index = AdcIndex;
 // Class methods.
 //**********************************************************************
 
-AdcRegularSignalFinder::AdcRegularSignalFinder(fhicl::ParameterSet const& ps)
-: m_LogLevel(ps.get<int>("LogLevel")),
-  m_Period(ps.get<unsigned int>("Period")),
-  m_Length(ps.get<unsigned int>("Length")) {
+AdcRegularSignalFinder::
+AdcRegularSignalFinder(AdcIndex per, AdcIndex len, int lev)
+: m_LogLevel(lev),
+  m_Period(per),
+  m_Length(len) {
   const string myname = "AdcRegularSignalFinder::ctor: ";
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
@@ -25,6 +26,16 @@ AdcRegularSignalFinder::AdcRegularSignalFinder(fhicl::ParameterSet const& ps)
     cout << myname << "    Length: " << m_Length << endl;
   }
 }
+
+//**********************************************************************
+
+AdcRegularSignalFinder::
+AdcRegularSignalFinder(fhicl::ParameterSet const& ps)
+: AdcRegularSignalFinder(
+   ps.get<unsigned int>("Period"),
+   ps.get<unsigned int>("Length"),
+   ps.get<int>("LogLevel")
+  ) { }
 
 //**********************************************************************
 
