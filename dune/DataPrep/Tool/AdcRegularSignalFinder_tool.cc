@@ -49,17 +49,24 @@ DataMap AdcRegularSignalFinder::update(AdcChannelData& acd) const {
       AdcRoi roi = acd.rois[0];
       AdcIndex itck1 = roi.first;
       AdcIndex itck2 = roi.second + 1;
-      nper = itck2 > itck1 ? itck2 - itck1 : 0;
-      nlen = nper;
-      if ( acd.rois.size() > 1 ) {
-        roi = acd.rois[0];
-        itck1 = roi.first;
-        itck2 = roi.second + 1;
-        if ( itck2 > itck1 ) nlen = itck2 - itck1;
+      if ( itck2 > itck1 ) {
+        nper = itck2 - itck1;
+        nlen = nper;
+        if ( acd.rois.size() > 1 ) {
+          roi = acd.rois[1];
+          itck1 = roi.first;
+          itck2 = roi.second + 1;
+          if ( itck2 > itck1 ) nlen = itck2 - itck1;
+        }
+      } else {
+        cout << myname << "WARNING: Input ROI does not specify a valid period." << endl;
       }
+    } else {
+      cout << myname << "WARNING: Input ROI to specify period is not present." << endl;
     }
   }
   Index nroi = 0;
+  acd.rois.clear();
   if ( nsam > 0 && nper > 0 ) {
     acd.signal.resize(nsam, true);
     Index nrem = nsam % nper;
@@ -69,7 +76,7 @@ DataMap AdcRegularSignalFinder::update(AdcChannelData& acd) const {
       Index isam2 = isam1 + nlen;
       Index isam3 = isam1 + nper;
       if ( isam2 > nsam ) isam2 = nsam;
-      if ( isam3 > nsam ) isam2 = nsam;
+      if ( isam3 > nsam ) isam3 = nsam;
       for ( Index isam=isam2; isam<isam3; ++isam ) {
         acd.signal[isam] = false;
       }
@@ -77,7 +84,6 @@ DataMap AdcRegularSignalFinder::update(AdcChannelData& acd) const {
     }
   } else {
     acd.signal.resize(nsam, false);
-    acd.rois.clear();
   }
   DataMap res(0);
   res.setInt("roiPeriod", nper);
