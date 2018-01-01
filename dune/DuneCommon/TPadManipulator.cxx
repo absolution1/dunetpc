@@ -971,8 +971,6 @@ int TPadManipulator::drawAxisRight() {
   if ( m_ppad->GetLogy() ) {
     yminPad = pow(10.0, yminPad);
     ymaxPad = pow(10.0, ymaxPad);
-    y1 = pow(10.0, y1);
-    y2 = pow(10.0, y2);
     sopt += "G";
   }
   TAxis* paxold = getYaxis();
