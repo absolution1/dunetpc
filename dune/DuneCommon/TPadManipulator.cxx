@@ -243,6 +243,13 @@ TObject* TPadManipulator::object() const {
 
 //**********************************************************************
 
+TH1* TPadManipulator::getHist(unsigned int iobj) {
+  if ( iobj >= objects().size() ) return nullptr;
+  return dynamic_cast<TH1*>(objects()[iobj].get());
+}
+
+//**********************************************************************
+
 TH1* TPadManipulator::getHist(string hnam) {
   if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
   for ( const TObjPtr& pobj : objects() ) {
@@ -971,8 +978,6 @@ int TPadManipulator::drawAxisRight() {
   if ( m_ppad->GetLogy() ) {
     yminPad = pow(10.0, yminPad);
     ymaxPad = pow(10.0, ymaxPad);
-    y1 = pow(10.0, y1);
-    y2 = pow(10.0, y2);
     sopt += "G";
   }
   TAxis* paxold = getYaxis();
