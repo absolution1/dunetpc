@@ -243,6 +243,13 @@ TObject* TPadManipulator::object() const {
 
 //**********************************************************************
 
+TH1* TPadManipulator::getHist(unsigned int iobj) {
+  if ( iobj >= objects().size() ) return nullptr;
+  return dynamic_cast<TH1*>(objects()[iobj].get());
+}
+
+//**********************************************************************
+
 TH1* TPadManipulator::getHist(string hnam) {
   if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
   for ( const TObjPtr& pobj : objects() ) {
