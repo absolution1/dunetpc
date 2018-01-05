@@ -113,7 +113,7 @@ physics.producers.generator.SigmaP: [0.05]   # Width of momentum distribution (5
 # physics.producers.generator.SigmaX: [0.0]
 # physics.producers.generator.SigmaY: [0.0]
 # physics.producers.generator.SigmaZ: [0.0]
-#
+
 
 # This block defines starting parameters for beam window 3 ( with beam plug) in protodune_v4.gdml geometry
 physics.producers.generator.PosDist: 0   # Position distribution (0=uniform, 1=gaussian)

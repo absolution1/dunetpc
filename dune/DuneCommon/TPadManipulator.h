@@ -144,6 +144,7 @@ public:
 
   // Return the overlaid objects and options.
   const TObjVector& objects() const { return m_objs; }
+  TH1* getHist(unsigned int iobj);
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
   // Return a histogram (primary or secondary) by name.
