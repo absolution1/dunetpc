@@ -9,7 +9,7 @@
 //
 
 #include "canvas/Persistency/Common/Wrapper.h"
-#include "EventMixingSummary.h"
+#include "dune/DataOverlay/DataOverlayProducts/EventMixingSummary.h"
 #include <vector>
 
 //
