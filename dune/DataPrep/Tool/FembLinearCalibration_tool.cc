@@ -116,9 +116,11 @@ DataMap FembLinearCalibration::update(AdcChannelData& acd) const {
     }
   }
   acd.sampleUnit = m_Units;
-  res.setInt("nSample", nsam);
-  res.setInt("nUnderflow", nunder);
-  res.setInt("nOverflow", nover);
+  res.setInt("calibSampleCount", nsam);
+  res.setInt("calibUnderflowCount", nunder);
+  res.setInt("calibOverflowCount", nover);
+  res.setInt("calibAdcMin", adcmin);
+  res.setInt("calibAdcMax", adcmax);
   return res;
 }
 
