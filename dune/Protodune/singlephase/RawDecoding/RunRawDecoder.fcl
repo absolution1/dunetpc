@@ -9,13 +9,14 @@ services:
   TFileService: { 
    closeFileFast: true  # default
 
-   fileName:  "/scratch/OMoutput/np04_hist_run%06r_%#.root"
+#   fileName:  "/scratch/OMoutput/np04_hist_run%06r_%#.root"
+   fileName:  "RunRawDecoderTFile.root"
 
    tmpDir: "<parent-path-of-filename>"  # default
 
-   fileProperties: {
+ #  fileProperties: {
  #
-      maxEvents: 100
+ #    maxEvents: 100
  #
  #    maxSubRuns: 4294967295  # default
  #
@@ -50,7 +51,7 @@ services:
  #    ## there are no more Events/SubRuns/Runs to process).
  #
  #    granularity: "Event"  # default
-   }
+ #  }
 
   }
 
@@ -76,7 +77,7 @@ services:
   #produce: [ timingrawdecoder, rcerawdecoder, felixrawdecoder ] 
   output: [ out1 ]
   trigger_paths : [ produce ]
-  end_paths: [ ]
+  end_paths: [ output ]
 }
 
 #services: {
