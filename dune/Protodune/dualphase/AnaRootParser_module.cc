@@ -1799,10 +1799,10 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "Track_Hit_Z_" + TrackLabel;
   CreateBranch(BranchName, hittrkz, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_dx_CorrectedPitch_" + TrackLabel;
+  BranchName = "Track_Hit_dx_LocalTrackDirection_" + TrackLabel;
   CreateBranch(BranchName, hittrkpitchC, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_dx_Local_" + TrackLabel;
+  BranchName = "Track_Hit_dx_3DPosition_" + TrackLabel;
   CreateBranch(BranchName, hittrkdx, BranchName + "[no_hits]/F");
 
   BranchName = "Track_Hit_Channel_" + TrackLabel;
