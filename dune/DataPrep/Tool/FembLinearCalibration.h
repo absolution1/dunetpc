@@ -28,8 +28,11 @@
 //   AdcMaxs - max ADC for each channel
 //
 // Output:
-//   nSample    - # of samples calibrated (size of raw data)
-//   nUnderflow - # samples flagged as underflow (ADC <= AdcMin)
+//   calibSampleCount    - # of samples calibrated (size of raw data)
+//   calibUnderflowCount - # samples flagged as underflow (ADC <= AdcMin)
+//   calibOverflowCount  - # samples flagged as underflow (ADC >= AdcMax)
+//   calibAdcMin         - min ADC for the channel
+//   calibAdcMax         - max ADC for the channel
 //   
 
 #ifndef FembLinearCalibration_H

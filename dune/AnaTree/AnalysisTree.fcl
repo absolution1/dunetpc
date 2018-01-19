@@ -4,7 +4,7 @@ dune35t_analysistree:
 { 
  module_type:                 "dune/AnaTree/AnalysisTree"
  DigitModuleLabel:            "daq"
- HitsModuleLabel:             "gaushit"
+ HitsModuleLabel:             "linecluster"
  LArGeantModuleLabel:         "largeant"
  CalDataModuleLabel:          "caldata"
  GenieGenModuleLabel:         "generator"
