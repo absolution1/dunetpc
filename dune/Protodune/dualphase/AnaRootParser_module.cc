@@ -1799,14 +1799,11 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "Track_Hit_Z_" + TrackLabel;
   CreateBranch(BranchName, hittrkz, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_dx_CorrectedPitch_" + TrackLabel;
+  BranchName = "Track_Hit_dx_LocalTrackDirection_" + TrackLabel;
   CreateBranch(BranchName, hittrkpitchC, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_dx_Local_" + TrackLabel;
+  BranchName = "Track_Hit_dx_3DPosition_" + TrackLabel;
   CreateBranch(BranchName, hittrkdx, BranchName + "[no_hits]/F");
-
-  BranchName = "Track_Hit_Channel_" + TrackLabel;
-  CreateBranch(BranchName, hittrkchannel, BranchName + "[no_hits]/S");
 
   BranchName = "Track_Hit_TPC_" + TrackLabel;
   CreateBranch(BranchName, hittrktpc, BranchName + "[no_hits]/S");
@@ -1814,17 +1811,20 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "Track_Hit_View_" + TrackLabel;
   CreateBranch(BranchName, hittrkview, BranchName + "[no_hits]/S");
 
-  BranchName = "Track_Hit_Wire_" + TrackLabel;
-  CreateBranch(BranchName, hittrkwire, BranchName + "[no_hits]/S");
+  BranchName = "Track_Hit_Channel_" + TrackLabel;
+  CreateBranch(BranchName, hittrkchannel, BranchName + "[no_hits]/S");
+
+//  BranchName = "Track_Hit_Wire_" + TrackLabel;
+//  CreateBranch(BranchName, hittrkwire, BranchName + "[no_hits]/S");
 
   BranchName = "Track_Hit_PeakTime_" + TrackLabel;
   CreateBranch(BranchName, hittrkpeakT, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_ChargeIntegral_" + TrackLabel;
-  CreateBranch(BranchName, hittrkchargeintegral, BranchName + "[no_hits]/F");
-
   BranchName = "Track_Hit_ChargeSummedADC_" + TrackLabel;
   CreateBranch(BranchName, hittrkchargesum, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_ChargeIntegral_" + TrackLabel;
+  CreateBranch(BranchName, hittrkchargeintegral, BranchName + "[no_hits]/F");
 
   BranchName = "Track_Hit_PeakHeight_" + TrackLabel;
   CreateBranch(BranchName, hittrkph, BranchName + "[no_hits]/F");
@@ -4662,16 +4662,16 @@ if (fSaveTrackInfo) {
         } // fmvapid.isValid()
       }
 
-      art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trackListHandle[iTracker], evt, "pmtrack");
+
+        art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trackListHandle[iTracker], evt, "pmtrack");
 
 //      if (fmthm.isValid()){
 	auto vhit = fmthm.at(iTrk);
 	auto vmeta = fmthm.data(iTrk);
 
         TrackerData.NHitsPerTrack[iTrk] = vhit.size();
-
-
       	art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
+
   	  for (size_t h = 0; h < vhit.size(); ++h)
   	  {
 	    //corrected pitch
