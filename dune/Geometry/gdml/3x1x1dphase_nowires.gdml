@@ -560,28 +560,33 @@
 	   x="18.235" y="0" z="0"/>
       </physvol>
   <physvol>
-   <volumeref ref="volPMT_coated"/>
-   <position name="posPMT0" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="-92.246"/>
+     <volumeref ref="volPMT_coated"/>
+
+   <position name="posPMT0" unit="cm"  x="-46.06"  y="0" z="-92.246"/>
    <rotationref ref="rMinus90AboutY"/>
   </physvol>
   <physvol>
-   <volumeref ref="volPMT_coated"/>
-   <position name="posPMT2" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="0"/>
+     <volumeref ref="volPMT_plate"/>
+
+   <position name="posPMT1" unit="cm"  x="-46.06"  y="0" z="-46.123"/>
    <rotationref ref="rMinus90AboutY"/>
   </physvol>
   <physvol>
-   <volumeref ref="volPMT_coated"/>
-   <position name="posPMT4" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="92.246"/>
+     <volumeref ref="volPMT_coated"/>
+
+   <position name="posPMT2" unit="cm"  x="-46.06"  y="0" z="0"/>
    <rotationref ref="rMinus90AboutY"/>
   </physvol>
   <physvol>
-   <volumeref ref="volPMT_plate"/>
-   <position name="posPMT1" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="-46.123"/>
+     <volumeref ref="volPMT_plate"/>
+
+   <position name="posPMT3" unit="cm"  x="-46.06"  y="0" z="46.123"/>
    <rotationref ref="rMinus90AboutY"/>
   </physvol>
   <physvol>
-   <volumeref ref="volPMT_plate"/>
-   <position name="posPMT3" unit="cm"  x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="46.123"/>
+     <volumeref ref="volPMT_coated"/>
+
+   <position name="posPMT4" unit="cm"  x="-46.06"  y="0" z="92.246"/>
    <rotationref ref="rMinus90AboutY"/>
   </physvol>
  </volume>

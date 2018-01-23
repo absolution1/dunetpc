@@ -135,11 +135,11 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness;
 ############## Parameters for PMTs ###############
 
 #pos in cm inside the cryostat X coordinate: 2.3cm from the ground grid
- @pmt_pos = ( ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="-92.246"', #-92.246"', #PMT1 - negative base - direct coating
-              ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="-46.123"', #-46.123"', #PMT2- negative base - plate
-              ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="0"', #PMT3 - positive base - direct coating
-              ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="46.123"', #46.123"', #PMT4 - positive base -  plate
-              ' x="-50-4.5+5.5*2.54-1.27*2.54-2.3"  y="0" z="92.246"'); #92.246"'); #PMT5 - negative base - direct coating
+ @pmt_pos = ( ' x="-46.06"  y="0" z="-92.246"', #-92.246"', #PMT1 - negative base - direct coating #x="-50-4.5+5.5*2.54-1.27*2.54-2.3"
+              ' x="-46.06"  y="0" z="-46.123"', #-46.123"', #PMT2- negative base - plate
+              ' x="-46.06"  y="0" z="0"', #PMT3 - positive base - direct coating
+              ' x="-46.06"  y="0" z="46.123"', #46.123"', #PMT4 - positive base -  plate
+              ' x="-46.06"  y="0" z="92.246"'); #92.246"'); #PMT5 - negative base - direct coating
 
 
 ##################################################################
@@ -734,19 +734,22 @@ EOF
 
 
   if ( $pmt_switch eq "on" ) {
-    for ( $i=0; $i<5; $i=$i+2 ) { # pmts with coating
-      print CRYO <<EOF;
+    for ( $i=0; $i<5; $i=$i+1 ) { # pmts with coating
+	print CRYO <<EOF;
   <physvol>
-   <volumeref ref="volPMT_coated"/>
-   <position name="posPMT$i" unit="cm" @pmt_pos[$i]/>
-   <rotationref ref="rMinus90AboutY"/>
-  </physvol>
 EOF
-    }
-    for ( $i=1; $i<4; $i=$i+2) { # pmts with acrylic plate
-      print CRYO <<EOF;
-  <physvol>
-   <volumeref ref="volPMT_plate"/>
+      if (  $i eq "1" || $i eq "3") {
+	print CRYO <<EOF;
+     <volumeref ref="volPMT_plate"/>
+EOF
+	}
+      else {
+	print CRYO <<EOF;
+     <volumeref ref="volPMT_coated"/>
+EOF
+	}
+	print CRYO <<EOF;
+
    <position name="posPMT$i" unit="cm" @pmt_pos[$i]/>
    <rotationref ref="rMinus90AboutY"/>
   </physvol>
