@@ -131,12 +131,12 @@ void dune::FelixRawDecoder::produce(art::Event & evt){
       artdaq::ContainerFragment cont_frag(cont);
       for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 	{
-	  artdaq::Fragment frag;
-          size_t frag_size = cont_frag.fragSize(ii);
-	  frag.resizeBytes(frag_size);
-
-	  memcpy(frag.headerAddress(), cont_frag.at(ii), frag_size);
-          if (_process(frag, raw_digits)) ++n_felix_frags;
+	  //artdaq::Fragment frag;
+          //size_t frag_size = cont_frag.fragSize(ii);
+	  //frag.resizeBytes(frag_size);
+	  //memcpy(frag.headerAddress(), cont_frag.at(ii), frag_size);
+          //if (_process(frag, raw_digits)) ++n_felix_frags;
+          if (_process(*cont_frag[ii], raw_digits)) ++n_felix_frags;
 	}
     }
   }

@@ -348,6 +348,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   art::Handle<artdaq::Fragments> rawFragments;
   art::Handle<artdaq::Fragments> containerFragments;
   int waveform_counter = 0;
+  //artdaq::FragmentPtrs cf2;
 
   if (_expect_container_fragments) {
     evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
@@ -380,12 +381,15 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
         artdaq::ContainerFragment contf(cont);
         for (size_t ii = 0; ii < contf.block_count(); ++ii)
           {
-            size_t fragSize = contf.fragSize(ii);
-            artdaq::Fragment thisfrag;
-            thisfrag.resizeBytes(fragSize);
+            //size_t fragSize = contf.fragSize(ii);
+            //artdaq::Fragment thisfrag;
+            //thisfrag.resizeBytes(fragSize);
+            //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
+            //fragments.emplace_back(thisfrag);
 
-            memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
-            fragments.emplace_back(thisfrag);
+            //cf2.push_back(contf[ii]);
+            //fragments.push_back(*cf2.back());
+	    fragments.push_back( *contf[ii] );
           }
       }
 
