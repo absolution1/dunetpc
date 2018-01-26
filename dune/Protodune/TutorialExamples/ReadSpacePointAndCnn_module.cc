@@ -70,9 +70,17 @@ private:
   size_t fEvNumber;
 
   TTree *fEventTree;
+
+  // just some summary info
   size_t fNHits[3];
   size_t fNPoints;
 
+  // let's sort hits by planes already now, it really makes
+  // any downstream work easier
+  std::vector<unsigned char> fHitTpc[3];
+  std::vector<float> fHitWire[3], fHitTime[3], fHitCharge[3];
+
+  // SpacePoint 3D positions, charge (uncalibrated!) and EM-like score
   std::vector<float> fPointX, fPointY, fPointZ;
   std::vector<float> fPointCharge;
   std::vector<float> fPointEmScore;
@@ -99,6 +107,21 @@ void ReadSpacePointAndCnn::beginJob()
     fEventTree->Branch("nhits", &fNHits, "fNHits[3]/I");
     fEventTree->Branch("npoints", &fNPoints, "fNPoints/I");
 
+    fEventTree->Branch("hit0tpc", &fHitTpc[0]);
+    fEventTree->Branch("hit0w", &fHitWire[0]);
+    fEventTree->Branch("hit0t", &fHitTime[0]);
+    fEventTree->Branch("hit0q", &fHitCharge[0]);
+
+    fEventTree->Branch("hit1tpc", &fHitTpc[1]);
+    fEventTree->Branch("hit1w", &fHitWire[1]);
+    fEventTree->Branch("hit1t", &fHitTime[1]);
+    fEventTree->Branch("hit1q", &fHitCharge[1]);
+
+    fEventTree->Branch("hit2tpc", &fHitTpc[2]);
+    fEventTree->Branch("hit2w", &fHitWire[2]);
+    fEventTree->Branch("hit2t", &fHitTime[2]);
+    fEventTree->Branch("hit2q", &fHitCharge[2]);
+
     fEventTree->Branch("pointx", &fPointX);
     fEventTree->Branch("pointy", &fPointY);
     fEventTree->Branch("pointz", &fPointZ);
@@ -111,6 +134,21 @@ void ReadSpacePointAndCnn::analyze(art::Event const & evt)
     fEvNumber = evt.id().event();
     mf::LogVerbatim("ReadSpacePointAndCnn") << "ReadSpacePointAndCnn module on event #" << fEvNumber;
 
+    // store 2D hits info, sorted by plane (but not by TPC, you need to select
+    // on that later in your analysis)
+    auto hitsHandle = evt.getValidHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
+    fNHits[0] = 0; fNHits[1] = 0; fNHits[2] = 0;
+    for (const auto & h : *hitsHandle)
+    {
+        size_t p = h.WireID().Plane;
+        fHitTpc[p].push_back(h.WireID().TPC);
+        fHitWire[p].push_back(h.WireID().Wire);
+        fHitTime[p].push_back(h.PeakTime());
+        fHitCharge[p].push_back(h.Integral());
+        fNHits[p]++;
+    }
+
+    // store SpacePoints basic info
     auto spHandle = evt.getValidHandle< std::vector<recob::SpacePoint> >(fSpacePointModuleLabel);
     auto qHandle = evt.getValidHandle< std::vector<recob::PointCharge> >(fSpacePointModuleLabel);
     if (spHandle->size() != qHandle->size())
@@ -133,33 +171,32 @@ void ReadSpacePointAndCnn::analyze(art::Event const & evt)
         fPointEmScore[i] = 0.5; // neutral P(EM-like) value
     }
 
-    fNHits[0] = 0; fNHits[1] = 0; fNHits[2] = 0;
-
+    // and tag SpacePoints with EM-like scores calculated by CNN on the cluster level
+    // connect these scores to SpacePoints throuh hits, and choose the score of the
+    // largest cluster containing the hit associated to SpacePoint;
+    // other option could be e.g.: use CNN scores on the hit level, multiplying scores
+    // from hits in all planes
     auto cluResults = anab::MVAReader<recob::Cluster, MVA_LENGTH>::create(evt, fCnnModuleLabel);
     if (cluResults)
     {
         size_t emLikeIdx = cluResults->getIndex("em"); // at which index EM-like is stored in CNN output vector
 
         const art::FindManyP<recob::Hit> hitsFromClusters(cluResults->dataHandle(), evt, cluResults->dataTag());
-
-        auto hitsHandle = evt.getValidHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
         const art::FindManyP<recob::SpacePoint> spFromHits(hitsHandle, evt, fSpacePointModuleLabel);
 
         std::vector<size_t> sizeScore(fNPoints, 0); // keep track of the max size of a cluster containing hit associated to spacepoint
 
         for (size_t c = 0; c < cluResults->size(); ++c)
         {
-            const recob::Cluster & clu = cluResults->item(c);
+            //const recob::Cluster & clu = cluResults->item(c); // one can get the cluster object in this way, here not really used
 
-            size_t plane = clu.Plane().Plane;
-
-    	    const std::vector< art::Ptr<recob::Hit> > & hits = hitsFromClusters.at(c);
+     	    const std::vector< art::Ptr<recob::Hit> > & hits = hitsFromClusters.at(c);
     	    std::array<float, MVA_LENGTH> cnn_out = cluResults->getOutput(c);
 
             for (const auto & hptr : hits)
             {
                 const std::vector< art::Ptr<recob::SpacePoint> > & sp = spFromHits.at(hptr.key());
-                for (const auto & spptr : sp)
+                for (const auto & spptr : sp) // with SpacePointSolver should be just 1 hit, but be prepared for any other algorithm
                 {
                     if (hits.size() > sizeScore[spptr.key()])
                     {
@@ -167,8 +204,7 @@ void ReadSpacePointAndCnn::analyze(art::Event const & evt)
                         fPointEmScore[spptr.key()] = cnn_out[emLikeIdx];
                     }
                 }
-                fNHits[plane]++;
-            }
+             }
     	}
     }
 
