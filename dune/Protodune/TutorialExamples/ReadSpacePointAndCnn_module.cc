@@ -67,6 +67,8 @@ public:
   void endJob() override;
 
 private:
+  void clear();
+
   size_t fEvNumber;
 
   TTree *fEventTree;
@@ -129,8 +131,21 @@ void ReadSpacePointAndCnn::beginJob()
     fEventTree->Branch("emscore", &fPointEmScore);
 }
 
+void ReadSpacePointAndCnn::clear()
+{
+    for (size_t p = 0; p < 3; ++p)
+    {
+        fHitTpc[p].clear();
+        fHitWire[p].clear();
+        fHitTime[p].clear();
+        fHitCharge[p].clear();
+    }
+}
+
 void ReadSpacePointAndCnn::analyze(art::Event const & evt)
 {
+    clear();
+
     fEvNumber = evt.id().event();
     mf::LogVerbatim("ReadSpacePointAndCnn") << "ReadSpacePointAndCnn module on event #" << fEvNumber;
 
@@ -138,6 +153,7 @@ void ReadSpacePointAndCnn::analyze(art::Event const & evt)
     // on that later in your analysis)
     auto hitsHandle = evt.getValidHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
     fNHits[0] = 0; fNHits[1] = 0; fNHits[2] = 0;
+
     for (const auto & h : *hitsHandle)
     {
         size_t p = h.WireID().Plane;
@@ -209,6 +225,8 @@ void ReadSpacePointAndCnn::analyze(art::Event const & evt)
     }
 
     fEventTree->Fill();
+
+    clear();
 }
 
 void ReadSpacePointAndCnn::endJob()
