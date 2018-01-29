@@ -19,6 +19,7 @@ dune35t_analysistree:
  ExternalCounterModuleLabel:    "simcounter"
  MCShowerModuleLabel:         ""          # Don't have in the 35 ton....
  MCTrackModuleLabel:          ""          # Don't have in the 35 ton....
+ SpacePointSolverModuleLabel: "reco3d"
  CalorimetryModuleLabel:      [ "pmtrackcalo", "pmtrackcalodc", "pandoracalo", "pandoracalodc" ]
  ParticleIDModuleLabel:       [ "", "", "", "" ]
  MVAPIDTrackModuleLabel:      [ "", "", "", "" ]
@@ -51,6 +52,7 @@ dune35t_analysistree:
  SaveExternCounterInfo:    true
  SaveShowerInfo:           false
  SaveCaloCosmics:          true
+ SaveSpacePointSolverInfo: true
  G4minE:                   -1
 }
 
