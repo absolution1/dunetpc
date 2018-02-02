@@ -278,6 +278,14 @@ public:
   // If this is a subpad, then the parent is drawn.
   int draw();
 
+  // Delete the canvas holding this pad.
+  int erase();
+
+  // Redraw a canvas.
+  // The current canvas is deleted and a new one created.
+  // This is useful if the batch mode has changed or to bring a window to the top.
+  int redraw();
+
   // Draw the top axis.
   int drawAxisTop();
 
