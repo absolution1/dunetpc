@@ -49,7 +49,7 @@ class RawData311InputDriver
 		  art::EventPrincipal* &outE);
 
   private: 
-    art::SourceHelper 		fSourceHelper;
+    art::SourceHelper const&	fSourceHelper;
     art::SubRunID 		fCurrentSubRunID;
     //std::ifstream		infile;
     uint16_t 			fEventCounter;
