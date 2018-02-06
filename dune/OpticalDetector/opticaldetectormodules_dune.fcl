@@ -60,6 +60,7 @@ dunefd_opdigi_threegang.BackTime:	0.386
 
 dunefd_opdigi: @local::dunefd_opdigi_threegang
 
+protodune_opdigi: @local::dunefd_opdigi_threegang
 
 
 dunefd_simphotoncounter:
@@ -71,9 +72,6 @@ dunefd_simphotoncounter:
   MakeDetectedPhotonsTree: true
   MakeOpDetsTree:          true
   MakeOpDetEventsTree:     true
-  QuantumEfficiency:       1
-  WavelengthCutLow:        0
-  WavelengthCutHigh:       10000
 }
 
 dunefd_tracktimeassoc:           @local::standard_tracktimeassoc
@@ -85,13 +83,17 @@ dunefd_ophit_single.SPEArea:     1106
 dunefd_ophit_single.SPEShift:    0.304
 
 dunefd_ophit_threegang:          @local::dunefd_ophit_single
-dunefd_ophit_threegang.SPEArea:  1035
-dunefd_ophit_threegang.SPEShift: 0.603
+dunefd_ophit_threegang.SPEArea:  410
+dunefd_ophit_threegang.SPEShift: 0.451
 
 dunefd_ophit: @local::dunefd_ophit_threegang
 
 dunefd_opflash:                 @local::standard_opflash
 dunefd_opflash.FlashThreshold:  3.5
+
+protodune_ophit: @local::dunefd_ophit
+protodune_opflash: @local::dunefd_opflash
+
 
 dunefd_opdigiana:
 {

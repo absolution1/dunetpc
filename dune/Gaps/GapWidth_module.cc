@@ -21,20 +21,23 @@
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/OpFlash.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "lardata/ArtDataHelper/TrackUtils.h" // lar::util::TrackPitchInView()
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
-#include "larsim/MCCheater/BackTracker.h"
+//Commenting this out since it doesn't appear to be used.
+//#include "larsim/MCCheater/BackTrackerService.h"
+//#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
@@ -321,7 +324,8 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
 
   art::ServiceHandle<geo::Geometry> geom;
   auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  art::ServiceHandle<cheat::BackTracker> bktrk;
+//  art::ServiceHandle<cheat::BackTrackerService> bktrk;
+//  Commenting this out since it does not appear to be used anywhere.
 
   art::ServiceHandle<art::TFileService> tfs;
   art::TFileDirectory topdir = tfs->mkdir("trkgaps", "Gap histograms");

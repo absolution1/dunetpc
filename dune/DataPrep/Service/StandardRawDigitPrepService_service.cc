@@ -2,6 +2,7 @@
 
 #include "StandardRawDigitPrepService.h"
 #include <iostream>
+#include <sstream>
 #include <set>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lardataobj/RawData/RawDigit.h"
@@ -18,12 +19,15 @@
 #include "dune/DuneInterface/AdcRoiBuildingService.h"
 #include "dune/DuneInterface/AdcWireBuildingService.h"
 #include "dune/DuneInterface/AdcChannelDataCopyService.h"
+#include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneInterface/Tool/AdcDataViewer.h"
 
 using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
 using std::set;
+using std::ostringstream;
 using raw::RawDigit;
 
 //**********************************************************************
@@ -62,6 +66,7 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   pset.get_if_present<bool>("DoDump", m_DoDump);
   pset.get_if_present<unsigned int>("WiresWithoutROIFlag", m_WiresWithoutROIFlag);
   pset.get_if_present<unsigned int>("DumpTick", m_DumpTick);
+  pset.get_if_present<vector<string>>("DisplayTools", m_DisplayTools);
   if ( m_LogLevel ) cout << myname << "Fetching extract service." << endl;
   m_pExtractSvc = &*art::ServiceHandle<RawDigitExtractService>();
   if ( m_SkipBad || m_SkipNoisy ) {
@@ -120,6 +125,24 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
   if ( m_DoWires && !m_DoROI ) {
     if ( m_WiresWithoutROIFlag >= 1 ) cout << myname << "WARNING: Wire building requested without ROI building." << endl;
     if ( m_WiresWithoutROIFlag >= 3 ) abort();
+  }
+  if ( m_DisplayTools.size() ) {
+    DuneToolManager* ptm = DuneToolManager::instance("");
+    if ( ptm == nullptr ) {
+      cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
+    } else {
+      cout << myname << "  Fetching display tools: " << endl;
+      for ( string tname : m_DisplayTools ) {
+        if ( m_LogLevel ) cout << myname << "     Fetching " << tname << endl;
+        auto padv = ptm->getPrivate<AdcDataViewer>(tname);
+        if ( padv ) {
+          if ( m_LogLevel ) cout << myname << "    Display tool " << tname << ": @" << padv.get() << endl;
+          m_DisplayToolPtrs.push_back(std::move(padv));
+        } else {
+          cout << myname << "ERROR: Unable to retrieve display tool " << tname << endl;
+        }
+      }
+    }
   }
   if ( m_LogLevel >=1 ) print(cout, myname);
 }
@@ -296,6 +319,12 @@ prepare(AdcChannelDataMap& datamap,
       }
     }
   }
+  if ( m_DisplayToolPtrs.size() ) {
+    for ( const AdcDataViewerPtr& padv : m_DisplayToolPtrs ) {
+      padv->view(datamap, "Prepared ADC data", "prepared");
+    }
+  }
+
   return nbad;
 }
 
@@ -320,6 +349,15 @@ print(std::ostream& out, std::string prefix) const {
   if ( m_DoDump ) {
     out << prefix << "          DumpChannel: " << m_DumpChannel          << endl;
     out << prefix << "             DumpTick: " << m_DumpTick             << endl;
+  }
+  if ( m_DisplayTools.size() ) {
+    cout << prefix << "        Display tools:";
+    for ( string tname : m_DisplayTools ) {
+       cout << " " << tname;
+    }
+    cout << endl;
+  } else {
+    cout << prefix << "No display tools." << endl;
   }
   return out;
 }

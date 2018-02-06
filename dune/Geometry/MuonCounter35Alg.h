@@ -8,7 +8,7 @@
 #ifndef GEO_MUONCOUNTER35ALG_H
 #define GEO_MUONCOUNTER35ALG_H
 
-#include "larcore/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
@@ -25,23 +25,23 @@ namespace geo{
     
     // read in muon counter geometry
 
-    int loadMuonCounterGeometry(char* filename, std::vector< std::vector<double> > &geometry);
+    static int loadMuonCounterGeometry(char* filename, std::vector< std::vector<double> > &geometry);
 
     // test if a track intersects any counter
 
-    int testTrackInAllCounters(int trackID, TVector3 trackpoint, TVector3 trackvector, 
+    static int testTrackInAllCounters(int trackID, TVector3 trackpoint, TVector3 trackvector, 
 			       std::vector< std::vector<double> > &geometry,
 			       std::vector< std::vector<double> > &hitcounters);
 
     // test if a track intersects a single counter
 
-    int testTrackInCounter(TVector3 trackpoint, TVector3 trackvector,
+    static int testTrackInCounter(TVector3 trackpoint, TVector3 trackvector,
 			   std::vector<double> &singlecountergeometry,
 			   TVector3 &intersectionpoint);
 
     // function to test if a point is inside a 2D polygon
 
-    int testPointInPolygon(int nvert, double *vertx, double *verty, double testx, double testy);
+    static int testPointInPolygon(int nvert, double *vertx, double *verty, double testx, double testy);
 
   private:
     

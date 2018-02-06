@@ -1,16 +1,17 @@
 art_make( BASENAME_ONLY
-          MODULE_LIBRARIES 
+    MODULE_LIBRARIES 
 	  dune_Geometry
-          larcore_Geometry_Geometry_service
-          larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
-	  larsim_MCCheater_BackTracker_service
-          lardata_Utilities
-          lardataobj_RawData
-          lardataobj_RecoBase
-          lardata_RecoObjects larreco_Deprecated
+    larcore_Geometry_Geometry_service
+    larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+	  larsim_MCCheater_BackTrackerService_service
+    larsim_MCCheater_ParticleInventoryService_service
+    lardata_Utilities
+    lardataobj_RawData
+    lardataobj_RecoBase
+    lardata_RecoObjects larreco_Deprecated
 	  larana_OpticalDetector
 	  larana_OpticalDetector_OpHitFinder
-	  larcore_Geometry
+	  larcorealg_Geometry
 #	  LArProperties_service
 	  RunHistoryDUNE
 	  lbne-raw-data_Overlays

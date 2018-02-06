@@ -1,12 +1,13 @@
 
 art_make(
 	  LIBRARY_NAME  dune_RecoAlgDUNE
-          LIB_LIBRARIES larsim_MCCheater_BackTracker_service
+          LIB_LIBRARIES larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
                         lardataobj_RecoBase
                         lardata_ArtDataHelper
                         larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
                         larevt_Filters
-                        larcore_Geometry
+                        larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         lardata_RecoObjects larreco_Deprecated
                         lardataobj_AnalysisBase
@@ -42,7 +43,7 @@ art_make(
                         ${Boost_SYSTEM_LIBRARY}
         )
 
-add_subdirectory(Cluster3DAlgs)
+#add_subdirectory(Cluster3DAlgs)
 
 install_headers()
 install_fhicl()

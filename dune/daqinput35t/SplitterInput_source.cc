@@ -28,7 +28,7 @@
 #include "cetlib/getenv.h"
 
 // artdaq 
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 
 // lardata
@@ -609,7 +609,7 @@ namespace DAQToOffline {
   public:
     Splitter(fhicl::ParameterSet const& ps,
              art::ProductRegistryHelper& prh,
-             art::SourceHelper& sh);
+             art::SourceHelper const& sh);
     
     // See art/Framework/IO/Sources/Source.h for a description of each of the public member functions of Splitter.
     bool readFile(string const& filename, art::FileBlock*& fb);
@@ -655,7 +655,7 @@ namespace DAQToOffline {
     SSPReformatterAlgs     sspReform;
     string                 fPTBMapFile;
     string                 fPTBMapDir;
-    art::SourceHelper      sh_;
+    art::SourceHelper const& sh_;
     TBranch*               TPCinputBranch_;
     TBranch*               SparseinputBranch_;
     TBranch*               SSPinputBranch_;
@@ -794,7 +794,7 @@ namespace DAQToOffline {
 //=======================================================================================
 DAQToOffline::Splitter::Splitter(fhicl::ParameterSet const& ps,
                                  art::ProductRegistryHelper& prh,
-                                 art::SourceHelper& sh) :
+                                 art::SourceHelper const& sh) :
   sourceName_("SplitterInput"),
   lastFileName_(ps.get<vector<string>>("fileNames",{}).back()),
   file_(),

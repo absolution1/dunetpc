@@ -1,0 +1,31 @@
+#include "services_dune.fcl"
+
+process_name: ImportFull311FileProcess
+
+services: 				@local::dunedphase3x1x1_services
+services.RandomNumberGenerator: 	{}
+
+source:
+{
+  fileNames: ["/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/calibrations/748/748-0.pul.cal"]
+  module_type: ImportFull311File
+fileNames: [ "/eos/experiment/wa105/data/311/rawdata/840/840-103.dat" ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: 	RootOutput
+    fileName: 	 	"RawData311FullFile.root"
+    compressionLevel: 	0
+    dataTier: 		"raw"
+  }
+}
+
+physics:
+{
+  stream1: 	[ out1 ]
+  end_paths: 	[ stream1 ]
+}
+

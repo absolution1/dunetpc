@@ -7,12 +7,12 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "dune/Geometry/DuneApaChannelMapAlg.h"
-#include "larcore/Geometry/GeometryCore.h"
-#include "larcore/Geometry/AuxDetGeo.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
@@ -61,14 +61,14 @@ void DuneApaChannelMapAlg::setSorter(const geo::GeoObjectSorter& sort) {
 void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
   Uninitialize();
     
-  vector<CryostatGeo*> const& crygeos = geodata.cryostats;
+  vector<CryostatGeo> const& crygeos = geodata.cryostats;
   Index ncry = crygeos.size();
   fNcryostat = ncry;
   if ( ncry == 0 ) {
     mf::LogError("DuneApaChannelMapAlg") << "No cryostats found.";
     return;
   }
-  CryostatGeo& crygeo = *crygeos[0];
+  CryostatGeo const& crygeo = crygeos[0];
     
   mf::LogInfo("DuneApaChannelMapAlg") << "Initializing channel map...";
   fNTpc.resize(ncry);
@@ -96,7 +96,7 @@ void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
   fNApaMax = 0;
   fNRopMax = 0;
   for ( Index icry=0; icry<ncry; ++icry ) {
-    Index ntpc = crygeos[icry]->NTPC();
+    Index ntpc = crygeos[icry].NTPC();
     Index napa = ntpc/2;  // Assume 1 APA for every two TPCs
     fNTpc[icry] = ntpc;
     fNApa[icry] = napa;
@@ -172,7 +172,6 @@ void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
       }
     }
   }
-  fViews.clear();
   fPlaneIDs.clear();
   fTopChannel = 0;
 
@@ -196,7 +195,7 @@ void DuneApaChannelMapAlg::Initialize(GeometryData_t const& geodata) {
           fPlaneApa[icry][itpc][ipla] = iapa;
           fPlaneRop[icry][itpc][ipla] = irop;
           fPlaneRopIndex[icry][itpc][ipla] = irpl;
-          const PlaneGeo& plageo = crygeos[icry]->TPC(itpc).Plane(ipla);
+          const PlaneGeo& plageo = crygeos[icry].TPC(itpc).Plane(ipla);
 #if 0
 const PlaneGeo plageo2 = plageo;
 #endif
@@ -208,7 +207,6 @@ const PlaneGeo plageo2 = plageo;
           }
           double xyz[3] = {0.};
           double xyz_next[3] = {0.};
-          fViews.emplace(view);
           Index nAnchoredWires = 0;  // # wires from this TPC plane contributing to the ROP
           // Collection plane.
           Index nwir = fWiresPerPlane[icry][itpc][ipla];
@@ -244,10 +242,10 @@ const PlaneGeo plageo2 = plageo;
     Index ntpc = fNTpc[icry];
     fPlaneData[icry].resize(ntpc);
     for ( Index itpc=0; itpc<ntpc; ++itpc ) {
-      fPlaneData[icry][itpc].resize(crygeos[icry]->TPC(itpc).Nplanes());
-      for ( Index ipla=0; ipla<crygeos[icry]->TPC(itpc).Nplanes(); ++ipla ) {
+      fPlaneData[icry][itpc].resize(crygeos[icry].TPC(itpc).Nplanes());
+      for ( Index ipla=0; ipla<crygeos[icry].TPC(itpc).Nplanes(); ++ipla ) {
         PlaneData_t& PlaneData = fPlaneData[icry][itpc][ipla];
-        const PlaneGeo& thePlane = crygeos[icry]->TPC(itpc).Plane(ipla);
+        const PlaneGeo& thePlane = crygeos[icry].TPC(itpc).Plane(ipla);
         double xyz[3];
         fPlaneIDs.emplace(icry, itpc, ipla);
         thePlane.Wire(0).GetCenter(xyz);
@@ -519,7 +517,7 @@ SigType_t DuneApaChannelMapAlg::SignalType(ChannelID_t const icha) const {
 }
 
 //----------------------------------------------------------------------------
-
+/* // this code should be equivalent to the logic implemented in geo::PlaneGeo::UpdateView()
 View_t DuneApaChannelMapAlg::View(ChannelID_t const icha) const {
   Index ncry = fNcryostat;
   for ( Index icry=0; icry<ncry; ++icry ) {
@@ -541,12 +539,7 @@ View_t DuneApaChannelMapAlg::View(ChannelID_t const icha) const {
   }
   return geo::kUnknown;
 }
-
-//----------------------------------------------------------------------------
-
-std::set<View_t> const& DuneApaChannelMapAlg::Views() const {
-  return fViews;
-}
+*/
 
 //----------------------------------------------------------------------------
 
@@ -602,6 +595,7 @@ Index DuneApaChannelMapAlg::HardwareChannelFromOpChannel(unsigned int opChannel)
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::NTPCsets(CryostatID const& cryid) const {
+  if (!HasCryostat(cryid)) return 0;
   Index icry = cryid.Cryostat;
   return fNApa[icry];
 }
@@ -615,7 +609,7 @@ Index DuneApaChannelMapAlg::MaxTPCsets() const {
 //----------------------------------------------------------------------------
 
 bool DuneApaChannelMapAlg::HasTPCset(TPCsetID const& tpcsetid) const {
-  return tpcsetid.TPCset < NTPCsets(tpcsetid);
+  return HasCryostat(tpcsetid) && (tpcsetid.TPCset < NTPCsets(tpcsetid));
 }
   
 //----------------------------------------------------------------------------
@@ -651,6 +645,7 @@ TPCID DuneApaChannelMapAlg::FirstTPCinTPCset (TPCsetID const& apaid) const {
 //----------------------------------------------------------------------------
 
 Index DuneApaChannelMapAlg::NROPs(TPCsetID const& apaid) const {
+  if (!HasTPCset(apaid)) return 0;
   Index icry = apaid.Cryostat;
   Index iapa = apaid.TPCset;
   return fRopsPerApa[icry][iapa];
@@ -665,7 +660,7 @@ Index DuneApaChannelMapAlg::MaxROPs() const {
 //----------------------------------------------------------------------------
 
 bool DuneApaChannelMapAlg::HasROP(ROPID const& ropid) const {
-  return ropid.ROP < NROPs(ropid);
+  return HasTPCset(ropid) && (ropid.ROP < NROPs(ropid));
 }
 
 //----------------------------------------------------------------------------

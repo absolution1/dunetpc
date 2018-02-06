@@ -15,7 +15,7 @@
 #include "cetlib/exception.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "larcore/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
 
 #include "fhiclcpp/ParameterSet.h"

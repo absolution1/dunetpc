@@ -9,10 +9,11 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib/exception.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/LArFFT.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom()
 #include "TSpline.h"
 
 //#include "TFile.h"
@@ -20,7 +21,7 @@
 //----------------------------------------------------------------------
 // Constructor.
 util::SignalShapingServiceDUNEDPhase::SignalShapingServiceDUNEDPhase(const fhicl::ParameterSet& pset,
-								    art::ActivityRegistry& /* reg */) 
+								    art::ActivityRegistry& /* reg */)
   : fInit(false)
 {
   reconfigure(pset);
@@ -48,27 +49,40 @@ void util::SignalShapingServiceDUNEDPhase::reconfigure(const fhicl::ParameterSet
   fASICmVperfC          = pset.get<double>("ASICmVperfC");
   fADCpermV             = pset.get<double>("ADCpermV");
   fAmpENC               = pset.get<double>("AmpENC");
-  
+
   fRespSamplingPeriod   = pset.get<double>("RespSamplingPeriod");
 
   // amplifier noise in ADC
   fAmpENCADC            = fAmpENC * 1.60217657e-4 * fASICmVperfC * fADCpermV;
 
   // Construct parameterized collection filter function.
-  
+
   //LOG_DEBUG("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC = "<<fASICmVperfC;
   mf::LogInfo("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC = "<<fASICmVperfC
 						<<";  ADC conversion = "<<fADCpermV
 						<<";  Amplifier ENC = "<<fAmpENC
 						<<";  Amplifier ENC in ADC = "<<fAmpENCADC;
-  
-   mf::LogInfo("SignalShapingServiceDUNE") << "Getting Filter from .fcl file";
+
+
+	mf::LogInfo("SignalShapingServiceDUNE") << "Getting Field response from .fcl file"; //<<< to be changed if we keep the harcoded function
+	std::string colField = pset.get<std::string>("ColFieldFunction");
+	std::vector<double> colFieldParams =
+  pset.get<std::vector<double> >("ColFieldFunctionParams");
+	fColFieldFunc = new TF1("colFieldFunction", colField.c_str());
+	for(unsigned int i=0; i<colFieldParams.size(); ++i)
+		fColFieldFunc->SetParameter(i, colFieldParams[i]);
+
+  mf::LogInfo("SignalShapingServiceDUNE") << "Getting Filter from .fcl file";
+	fAddFieldFunction = pset.get<bool>("AddFieldFunction");
   std::string colFilt = pset.get<std::string>("ColFilter");
   std::vector<double> colFiltParams =
-  pset.get<std::vector<double> >("ColFilterParams");
+  	pset.get<std::vector<double> >("ColFilterParams");
   fColFilterFunc = new TF1("colFilter", colFilt.c_str());
   for(unsigned int i=0; i<colFiltParams.size(); ++i)
     fColFilterFunc->SetParameter(i, colFiltParams[i]);
+	fColFieldRespAmp = pset.get<double>("ColFieldRespAmp");
+
+	//fParArray = pset.get< std::vector<double> >("FieldFunctionParameters");
 }
 
 //----------------------------------------------------------------------
@@ -79,21 +93,17 @@ util::SignalShapingServiceDUNEDPhase::SignalShaping(unsigned int channel) const
   if(!fInit)
     init();
 
-  // Figure out view
-  art::ServiceHandle<geo::Geometry> geom;
+  auto const* geom = lar::providerFrom<geo::Geometry>();
+  switch (geom->SignalType(channel)) {
+    case geo::kCollection:
+      return fColSignalShaping; //always collections in DP detector
+    default:
+      throw cet::exception("SignalShapingServiceDUNEDPhase")
+        << "unexpected signal type " << geom->SignalType(channel)
+        << " for channel #" << channel << "\n";
+  } // switch
 
-  // we need to distinguis between the U and V planes
-  geo::View_t view = geom->View(channel); 
-
-  // Return appropriate signal response obj
-  if(view == geo::kU || view == geo::kV || view == geo::kZ )
-    return fColSignalShaping; //always collections in DP detector
-  else
-    throw cet::exception("SignalShapingServiceDUNEDPhase")<< "can't determine"
-                                                          << " View\n";
-
-  return fColSignalShaping;
-}
+} // util::SignalShapingServiceDUNEDPhase::SignalShaping()
 
 //----------------------------------------------------------------------
 // Initialization method.
@@ -103,17 +113,23 @@ void util::SignalShapingServiceDUNEDPhase::init()
 {
   if(!fInit) {
     fInit = true;
-    
+
     // Calculate field and electronics response functions.
-    std::vector<double> eresp;
+		if(fAddFieldFunction){
+			std::vector<double> fresp;
+			SetFieldResponse(fresp);
+			fColSignalShaping.AddResponseFunction(fresp);
+		}
+
+		std::vector<double> eresp;
     SetElectResponse(eresp);
+		fColSignalShaping.AddResponseFunction(eresp);
 
     // Configure convolution kernels.
-    fColSignalShaping.AddResponseFunction(eresp);
     fColSignalShaping.save_response();
     fColSignalShaping.set_normflag(false);
-    
-    
+
+
     // rebin to appropriate sampling rate of readout
     // NOTE: could have done it from the start in the eresp calculation
     //       but implemented it like this for future flexibility
@@ -126,7 +142,7 @@ void util::SignalShapingServiceDUNEDPhase::init()
     // Configure deconvolution kernels.
     fColSignalShaping.AddFilterFunction(fColFilter);
     fColSignalShaping.CalculateDeconvKernel();
-    
+
     // std::cout << " fColSignalShaping: " << fColSignalShaping
     //mf::LogInfo("SignalShapingServiceDUNEDPhase")<<"Done Init";
   }
@@ -139,8 +155,8 @@ double util::SignalShapingServiceDUNEDPhase::GetASICGain(unsigned int const chan
   //geo::SigType_t sigtype = geom->SignalType(channel);
 
    // we need to distinguis between the U and V planes
-  geo::View_t view = geom->View(channel); 
-  
+  geo::View_t view = geom->View(channel);
+
   double gain = 0;
   if(view == geo::kU || view == geo::kV || view == geo::kZ )
     gain = fASICmVperfC;
@@ -155,14 +171,14 @@ double util::SignalShapingServiceDUNEDPhase::GetASICGain(unsigned int const chan
 double util::SignalShapingServiceDUNEDPhase::GetShapingTime(unsigned int const channel) const
 {
   //art::ServiceHandle<geo::Geometry> geom;
-  //geo::View_t view = geom->View(channel); 
+  //geo::View_t view = geom->View(channel);
 
   return 0.0; //not sure what this does in simwire
 }
 
 double util::SignalShapingServiceDUNEDPhase::GetRawNoise(unsigned int const channel) const
 {
-  return fAmpENCADC; 
+  return fAmpENCADC;
 }
 
 double util::SignalShapingServiceDUNEDPhase::GetDeconNoise(unsigned int const channel) const
@@ -174,8 +190,36 @@ double util::SignalShapingServiceDUNEDPhase::GetDeconNoise(unsigned int const ch
 
 //----------------------------------------------------------------------
 // Calculate field response. Maybe implemented at some point
-//void util::SignalShapingServiceDUNEDPhase::SetFieldResponse()
-//{}
+void util::SignalShapingServiceDUNEDPhase::SetFieldResponse(std::vector<double> &fresp)
+{
+  // set the response for the collection plane first
+  // the first entry is 0
+
+	//double integral = 0;
+	art::ServiceHandle<util::LArFFT> fft;
+	LOG_DEBUG("SignalShapingDUNEDPhase") << "Setting DUNEDPhase field response function...";
+
+	int nticks = fft->FFTSize();
+	std::vector<double> time(nticks,0.);
+	fresp.resize(nticks, 0.);
+
+	double integral =0;
+	for(size_t i = 0; i < fresp.size(); ++i)
+		{
+			//convert time to microseconds, to match response function definition
+			time[i]     = (1.*i)*fRespSamplingPeriod*1e-3;
+			fresp[i] = FieldResponse(time[i]);
+			integral +=fresp[i];
+		}// end loop over time buckets
+
+		//insert normalization
+		for(size_t i = 0; i < fresp.size(); ++i)
+       fresp[i] *= fColFieldRespAmp/integral;
+
+	LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
+
+   return;
+}
 
 //----------------------------------------------------------------------
 // Calculate electronics response
@@ -186,7 +230,7 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
   art::ServiceHandle<util::LArFFT> fft;
 
   LOG_DEBUG("SignalShapingDUNEDPhase") << "Setting DUNEDPhase electronics response function...";
-  
+
   int nticks = fft->FFTSize();
   std::vector<double> time(nticks,0.);
   ElecResp.resize(nticks, 0.);
@@ -195,23 +239,23 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
   for(size_t i = 0; i < ElecResp.size(); ++i)
     {
       //convert time to microseconds, to match response function definition
-      time[i]     = (1.*i)*fRespSamplingPeriod*1e-3; 
-      ElecResp[i] = PreampETHZ(time[i]);
- 
+      time[i]     = (1.*i)*fRespSamplingPeriod*1e-3;
+//      ElecResp[i] = PreampETHZ(time[i]);
+      ElecResp[i] = PreampIPNL(time[i]);
       if(ElecResp[i] > max) max = ElecResp[i];
     }// end loop over time buckets
-    
+
 
   LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
-  
-  //normalize to 1e charge before the convolution   
+
+  //normalize to 1e charge before the convolution
   for(auto& element : ElecResp)
     {
       element /= max;
       element *= fASICmVperfC * 1.60217657e-4; //mV
       element *= fADCpermV;                    //ADC
     }
-  
+
   return;
 
 }
@@ -222,9 +266,9 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
 //----------------------------------------------------------------------
 // Calculate filter functions.
 void util::SignalShapingServiceDUNEDPhase::SetFilters()
-{ 
+{
   // Get services.
-  
+
   auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
@@ -237,9 +281,9 @@ void util::SignalShapingServiceDUNEDPhase::SetFilters()
 
   fColFilterFunc->SetRange(0, double(n));
 
-  for(int i=0; i<=n; ++i) 
+  for(int i=0; i<=n; ++i)
   {
-    	double freq = 400. * i / (ts * n);      // Cycles / microsecond. 
+    	double freq = 400. * i / (ts * n);      // Cycles / microsecond.
     	double f = fColFilterFunc->Eval(freq);
     	fColFilter[i] = TComplex(f, 0.);
   }
@@ -249,7 +293,7 @@ void util::SignalShapingServiceDUNEDPhase::SetFilters()
 
 
 //----------------------------------------------------------------------
-// (Re)sample electronics (+field?) response 
+// (Re)sample electronics (+field?) response
 void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
 {
   // Get services
@@ -267,19 +311,19 @@ void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
     {
       return;
     }
-  
+
   ///
   // make a new response vector with different time sampling
-  
+
   // default number of time ticks
   int nticks = fft->FFTSize();
-  
+
   // resampling vectors
   std::vector<double> SamplingTime( nticks, 0. );
   std::vector<double> SamplingResp(nticks , 0. );
-  for ( int itime = 0; itime < nticks; itime++ ) 
+  for ( int itime = 0; itime < nticks; itime++ )
     SamplingTime[itime] = (1.*itime) * detprop->SamplingRate();
-  
+
   // get response our old response vector
   const std::vector<double>* pResp = &(fColSignalShaping.Response_save());
 
@@ -294,8 +338,8 @@ void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
       InputResp[itime] = (*pResp)[itime];
       InputTime[itime] = (1.*itime) * fRespSamplingPeriod;
     }
-  
-  
+
+
   // build a spline for interpolation
   TSpline3 ispl("ispl", &InputTime[0], &InputResp[0], nticks_input);
 
@@ -306,12 +350,12 @@ void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
     {
       // don't go past max t value from old response
       if(SamplingTime[itime] > maxtime) break;
-      
+
       SamplingResp[itime] = ispl.Eval(SamplingTime[itime]);
       SamplingCount++;
     }
-  SamplingResp.resize( SamplingCount, 0.);    
-  
+  SamplingResp.resize( SamplingCount, 0.);
+
   // set new response
   fColSignalShaping.AddResponseFunction( SamplingResp, true );
 
@@ -320,24 +364,55 @@ void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
 
 //----------------------------------------------------------------------
 // response of ETHZ pre-amplifier
-double util::SignalShapingServiceDUNEDPhase::PreampETHZ(double tval_us) 
+double util::SignalShapingServiceDUNEDPhase::PreampETHZ(double tval_us)
 {
   // parameters
-  double dt = 3.5;  //us
   double T1 = 2.83; //us
   double T2 = 0.47; //us
-  
-  double fval = 1/(dt*(T1-T2)*(T1-T2)) * 
-    (exp(-(tval_us)/T2)*( (tval_us)*(T1-T2)+(2*T1-T2)*T2-
-		       ((tval_us-dt>=0)?1.:0.) * exp(dt/T2)*((tval_us)*(T1-T2)+2*T1*T2-T2*T2+dt*(T2-T1)) )+
-     exp(-(tval_us)/T1)*( ((dt-tval_us> 0)?1.:0.) * exp((tval_us)/T1)*(T1-T2)*(T1-T2)+
-		       T1*T1*(exp(dt/T1) * ((tval_us-dt>=0)?1:0) -1)));
+
+  double fval = ( T1*exp(-(tval_us)/T1) - ( T1 + tval_us*((T1-T2)/T2) ) * exp(-(tval_us)/T2)  ) / ((T1-T2)*(T1-T2));
 
   if(fval != fval) fval = 0;
-  return fval;  
+  return fval;
 }
 
+//----------------------------------------------------------------------
+// response of IPNL pre-amplifier
+double util::SignalShapingServiceDUNEDPhase::PreampIPNL(double tval_us)
+{
+  // parameters
+  double T1 = 2.83; //us
+  double T2 = 0.47; //us
 
+  double fval = T1/(T1-T2) * ( exp(-(tval_us)/T1) - exp(-(tval_us)/T2) );
+
+  if(fval != fval) fval = 0;
+  return fval;
+}
+
+//----------------------------------------------------------------------
+// Field response function (Harcoded, but it shouldn't)
+double util::SignalShapingServiceDUNEDPhase::FieldResponse(double tval_us)
+{
+		/*
+		//Studies for the Slow component function
+		//reaad parameters from configuration
+		double fWidth  = fParArray[0]; //Fast component time width
+		double fHeight = fParArray[1]; //Qfast/Qextract
+		double fNorm   = fParArray[2]; //Qextract/Qall
+		double fTau 	 = fParArray[3]; //Trapping time slow component
+		double f1=0;
+		double f2=0;
+		if(tval_us >= 0 && tval_us < fWidth) {f1 = 1/fWidth;}
+
+	 	//f1 = (1/fWidth)*exp(-tval_us/fWidth);
+		//f1 = TMath::Gaus(0, fWidth, true);
+		//f1 = 1;
+		f2 = (1/fTau)*exp(-tval_us/fTau);
+		return fNorm*(fHeight*f1+(1-fHeight)*f2); //normalized field response
+		*/
+		return fColFieldFunc->Eval(tval_us);
+}
 
 namespace util {
 

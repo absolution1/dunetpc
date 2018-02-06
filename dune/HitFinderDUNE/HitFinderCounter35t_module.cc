@@ -32,11 +32,11 @@
 
 // LArSoft Includes
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
 #include "lardataobj/RawData/RawDigit.h"
@@ -643,7 +643,7 @@ namespace dune{
       // Want to fit to Z on X, and X on Y
       X[HitLoop][0] = WireStart[2];
       X[HitLoop][1] = 1;
-      Y[HitLoop]    = DriftDist + WireStart[0];
+      Y[HitLoop].Assign(DriftDist + WireStart[0]);
       TwoDLineHist->Fill(WireStart[2], DriftDist + WireStart[0]);
     } // HitLoop
     MatrixGradient( X, Y, HitVector.size(), Gradient, Intercept );

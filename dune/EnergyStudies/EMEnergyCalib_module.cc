@@ -34,12 +34,13 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Hit.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/Filters/ChannelFilter.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -95,7 +96,8 @@ private:
   std::string fHitsModuleLabel;
   std::string fClusterModuleLabel;
   art::ServiceHandle<art::TFileService> tfs;
-  art::ServiceHandle<cheat::BackTracker> backtracker;
+  art::ServiceHandle<cheat::BackTrackerService> backtracker;
+  art::ServiceHandle<cheat::ParticleInventoryService> particleinventory;
   art::ServiceHandle<geo::Geometry> geom;
   detinfo::DetectorProperties const* detprop = nullptr;
 
@@ -202,14 +204,14 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
 
   nhits = hits.size();
 
-  const sim::ParticleList& trueParticles = backtracker->ParticleList();
+  const sim::ParticleList& trueParticles = particleinventory->ParticleList();
   const simb::MCParticle* trueParticle = trueParticles.Primary(0);
 
   trueEnergy = trueParticle->Momentum().E();
 
   // Find the energy deposited on each plane in the TPC
-  const std::vector<const sim::SimChannel*>& simChannels = backtracker->SimChannels();
-  for (std::vector<const sim::SimChannel*>::const_iterator channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
+  const std::vector<art::Ptr< sim::SimChannel > >& simChannels = backtracker->SimChannels();
+  for (auto channelIt = simChannels.begin(); channelIt != simChannels.end(); ++channelIt) {
     int plane = geom->View((*channelIt)->Channel());
     for (auto const& tdcIt : (*channelIt)->TDCIDEMap()) {
       for (auto const& ideIt : tdcIt.second) {
@@ -259,7 +261,7 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
 int emshower::EMEnergyCalib::FindTrackID(art::Ptr<recob::Hit> const& hit) {
   double particleEnergy = 0;
   int likelyTrackID = 0;
-  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackID(hit);
+  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackIDEs(hit);
   for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
     if (trackIDs.at(idIt).energy > particleEnergy) {
       particleEnergy = trackIDs.at(idIt).energy;

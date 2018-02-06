@@ -1,0 +1,59 @@
+BEGIN_PROLOG
+
+#=======================================================================
+
+#
+# Hardware Mapper Service
+#
+standard_hardwaremapper: {
+  service_provider: HardwareMapperService
+  LogLevel: 0
+  NASICsPerBoard: 8
+  NBoardsPerAPA: 10
+}
+
+#jpd -- define some message facility "destinations"
+#    -- LogHardwareMapperService will create a file with ONLY messages from HardwareMapperService
+#    -- LogNotHardwareMapperService is the opposite
+
+#jpd -- To use these add these two lines to your fcl:
+# '''
+#    services.message: @local::dune_message_services_prod_debug
+#    services.message.destinations.LogHardwareMapper: @local::HardwareMapperDest.LogHardwareMapperService
+# '''
+
+HardwareMapperDest: {
+
+    LogHardwareMapperService: {
+        type: "file"
+        filename: "LogHardwareMapperService.txt"
+        append: false
+        threshold: "INFO"
+        categories: {
+            default: {
+                limit: 0
+            }
+            HardwareMapperService: {
+                limit: -1
+            }#HardwareMapperService
+        }#categories
+    }#LogHardwareMapperService
+
+    LogNotHardwareMapperService: {
+        type: "file"
+        filename: "LogNotHardwareMapperService.txt"
+        append: false
+        threshold: "INFO"
+        categories: {
+            default: {
+                limit: -1
+            }
+            HardwareMapperService: {
+                limit: 0
+                
+            }#HardwareMapperService
+        }#categories
+    }#LogNotHardwareMapperService
+}#HardwareMapperDest
+
+END_PROLOG

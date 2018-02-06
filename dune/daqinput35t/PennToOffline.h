@@ -12,14 +12,14 @@
 
 #include "art/Framework/Principal/Handle.h"
 #include "lbne-raw-data/Overlays/PennMilliSliceFragment.hh"
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 #include "utilities/UnpackFragment.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
 
 #include <iostream>
 #include <fstream>

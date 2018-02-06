@@ -2,7 +2,7 @@
 simple_plugin(MuonCounterTimes "module"
 			lardataobj_RawData
                         lardataobj_RecoBase
-	                larcore_Geometry
+	                larcorealg_Geometry
 	                larcore_Geometry_Geometry_service
                         lardata_Utilities    
 			

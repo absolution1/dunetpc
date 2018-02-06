@@ -1,4 +1,6 @@
 #include "services_dune.fcl"
+#include "backtrackerservice.fcl"
+#include "particleinventoryservice.fcl"
 #include "singles.fcl"
 #include "largeantmodules.fcl"
 #include "detsimmodules.fcl"
@@ -23,6 +25,8 @@ services:
   RandomNumberGenerator: {} #ART native random number generator
                  @table::dunefd_photolibbuild_services 
   message:       @local::standard_info
+  BackTrackerService:   @local::dunefd_backtrackerservice # defined in backtrackerservice.fcl
+  ParticleInventoryService:   @local::dunefd_particleinventoryservice # defined in backtrackerservice.fcl
 }
 
 

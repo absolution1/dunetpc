@@ -17,7 +17,7 @@
 #include "lbne-raw-data/Overlays/PennMilliSlice.hh"
 #include "lbne-raw-data/Overlays/PennMicroSlice.hh"
 #include "lbne-raw-data/Overlays/PennMilliSliceFragment.hh"
-#include "artdaq-core/Data/Fragments.hh"
+#include "artdaq-core/Data/Fragment.hh"
 #include "lardataobj/RawData/RawDigit.h"
 #include "utilities/UnpackFragment.h"
 

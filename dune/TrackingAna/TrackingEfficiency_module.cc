@@ -29,10 +29,10 @@
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -42,7 +42,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
@@ -146,7 +146,7 @@ private:
   bool MCMatched, AllChargedTrack;
   // Handles
   art::ServiceHandle<geo::Geometry> geom;  
-  art::ServiceHandle<cheat::BackTracker> bktrk;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
   detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
@@ -286,7 +286,7 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
   if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
     art::fill_ptr_vector(tracklist, trackListHandle);
   
-  const sim::ParticleList& plist = bktrk->ParticleList();
+  const sim::ParticleList& plist = pi_serv->ParticleList();
   
   art::Handle< std::vector<recob::Track> > trackh;
   evt.getByLabel(fTrackModuleLabel, trackh);

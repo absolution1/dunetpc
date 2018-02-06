@@ -53,9 +53,11 @@ int test_StandardRawDigitExtractService() {
   string fclfile = "test_StandardRawDigitExtractService.fcl";
   ofstream fout(fclfile.c_str());
   int loglevel = 1;
+  fout << "#include \"dataprep_tools.fcl\"" << endl;
   fout << "services.RawDigitExtractService: {" << endl;
   fout << "  service_provider: StandardRawDigitExtractService" << endl;
   fout << "  LogLevel: " << loglevel << endl;
+  fout << "  DigitReadTool: digitReader" << endl;
   fout << "  PedestalOption: 1" << endl;
   fout << "  FlagStuckOff: true" << endl;
   fout << "  FlagStuckOn: true" << endl;

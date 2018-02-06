@@ -8,7 +8,7 @@
  */
 
 // The main include
-#include "dunetpc/dune/RecoAlgDUNE/Cluster3DAlgs/PCASeedFinderAlg.h"
+#include "dune/RecoAlgDUNE/Cluster3DAlgs/PCASeedFinderAlg.h"
 // Framework Includes
 
 // LArSoft includes
@@ -16,8 +16,8 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Seed.h"
 #include "lardata/RecoObjects/Cluster3D.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 
 // ROOT includes
 #include "TTree.h"

@@ -25,13 +25,14 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "larsim/Simulation/SimListUtils.h"
 #include "lardataobj/Simulation/sim.h"
 #include "lardataobj/AnalysisBase/T0.h"
@@ -227,7 +228,8 @@ hit::RobustMCAna::RobustMCAna(fhicl::ParameterSet const & p)
 void hit::RobustMCAna::analyze(art::Event const & e)
 {
   // Get Services
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   art::ServiceHandle<geo::Geometry> fGeom;
 
   // Get recob::Wire objects to check for dead channels
@@ -287,7 +289,7 @@ void hit::RobustMCAna::analyze(art::Event const & e)
           if (cit != absentChannels.end()) absentChannels.erase(cit);
         }
 
-      for (auto sc : bt->SimChannels())
+      for (auto sc : bt_serv->SimChannels())
         {
           bool channelexists = false;
           for (size_t i_wire = 0; i_wire < wireHandle->size(); ++i_wire)
@@ -332,7 +334,7 @@ void hit::RobustMCAna::analyze(art::Event const & e)
                   // Don't include deltas and other secondary particles because we want to
                   // see how well the reconstruction discounts these other tracks
                   if (abs(ideIt.trackID) != 1) continue;
-                  const simb::MCParticle * part = bt->TrackIDToParticle(abs(ideIt.trackID));
+                  const simb::MCParticle * part = pi_serv->TrackIdToParticle_P(abs(ideIt.trackID));
                   if (part->Mother() != 0) continue;
 
                   // If the track is a primary muon, then collect this IDE for this channel

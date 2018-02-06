@@ -42,6 +42,8 @@ int test_GeoApaChannelGroupService(string sgeo) {
   fout << "services: @local::" << sgeo << endl;
   fout << "services.ChannelGroupService: {" << endl;
   fout << "  service_provider: \"GeoApaChannelGroupService\"" << endl;
+  fout << "  LogLevel: 1" << endl;
+  fout << "  ApaRops: []" << endl;
   fout << "}" << endl;
 
   cout << myname << line << endl;
@@ -205,5 +207,7 @@ ReadOutWindowSize: 4492         # drift length/drift velocity*sampling rate = (3
 TimeOffsetU:       0.
 TimeOffsetV:       0.
 TimeOffsetZ:       0.
+
+SimpleBoundaryProcess: true  #enable opticalBoundaryProcessSimple instead of G4 default
 
 )cfg"};

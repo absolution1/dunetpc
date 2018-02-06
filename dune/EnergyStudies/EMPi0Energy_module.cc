@@ -23,12 +23,13 @@
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Hit.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/Filters/ChannelFilter.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -87,7 +88,8 @@ private:
   std::string fHitsModuleLabel;
   std::string fClusterModuleLabel;
   art::ServiceHandle<art::TFileService> tfs;
-  art::ServiceHandle<cheat::BackTracker> backtracker;
+  art::ServiceHandle<cheat::BackTrackerService> backtracker;
+  art::ServiceHandle<cheat::ParticleInventoryService> particleinventory;
   art::ServiceHandle<geo::Geometry> geom;
 
   // For converting charge to energy
@@ -173,11 +175,11 @@ void emshower::EMPi0Energy::analyze(art::Event const& evt) {
   nclusters = clusters.size();
 
   // Get the pi0 and the decay photons
-  const sim::ParticleList& trueParticles = backtracker->ParticleList();
+  const sim::ParticleList& trueParticles = particleinventory->ParticleList();
   const simb::MCParticle* truePi0 = trueParticles.Primary(0);
   if (truePi0->NumberDaughters() != 2) return;
-  const simb::MCParticle* truePhoton1 = backtracker->TrackIDToParticle(truePi0->Daughter(0));
-  const simb::MCParticle* truePhoton2 = backtracker->TrackIDToParticle(truePi0->Daughter(1));
+  const simb::MCParticle* truePhoton1 = particleinventory->TrackIdToParticle_P(truePi0->Daughter(0));
+  const simb::MCParticle* truePhoton2 = particleinventory->TrackIdToParticle_P(truePi0->Daughter(1));
 
   // Make sure photon 1 energy > photon 2 energy
   if (truePhoton1->Momentum().E() < truePhoton2->Momentum().E()) {
@@ -232,7 +234,10 @@ double emshower::EMPi0Energy::ConvertChargeToEnergy(double charge, int plane) {
 
 double emshower::EMPi0Energy::FindDepositedEnergy(int trackID) {
 
-  std::vector<sim::IDE> ides = backtracker->TrackIDToSimIDE(trackID);
+      std::vector<sim::IDE> ides;
+    for( auto ide_P : backtracker->TrackIdToSimIDEs_Ps(trackID) ){
+      ides.push_back(*ide_P);
+    }
 
   double deposit = 0;
 
@@ -252,7 +257,7 @@ int emshower::EMPi0Energy::FindTrackID(art::Ptr<recob::Hit> const& hit) {
 
   double particleEnergy = 0;
   int likelyTrackID = 0;
-  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackID(hit);
+  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackIDEs(hit);
   for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
     if (trackIDs.at(idIt).energy > particleEnergy) {
       particleEnergy = trackIDs.at(idIt).energy;

@@ -1,0 +1,32 @@
+#for classes_def.xml
+
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
+
+art_make( BASENAME_ONLY
+  LIBRARY_NAME     TriggerAlgorithms
+  LIB_LIBRARIES    nusimdata_SimulationBase
+  larcorealg_Geometry
+  larcore_Geometry_Geometry_service
+  larsim_MCCheater_BackTrackerService_service
+  larsim_MCCheater_ParticleInventoryService_service
+  #lardataobj_RecoBase
+  #lardataobj_RawData
+  ${ART_FRAMEWORK_CORE}
+  ${ART_FRAMEWORK_PRINCIPAL}
+  ${ART_FRAMEWORK_SERVICES_REGISTRY}
+  art_Persistency_Common canvas
+  art_Persistency_Provenance canvas
+  art_Utilities canvas
+  cetlib cetlib_except
+  ${Boost_FILESYSTEM_LIBRARY}            
+  ${Boost_SYSTEM_LIBRARY}
+  ${ROOT_BASIC_LIB_LIST}
+  ${MF_MESSAGELOGGER}
+  ${FHICLCPP}
+  dune_DAQTriggerSim_TriggerDataProducts
+  #          DICT_LIBRARIES   lardataobj_RawData
+  )
+
+
+install_headers()
+install_source()

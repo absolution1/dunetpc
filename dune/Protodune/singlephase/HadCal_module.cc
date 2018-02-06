@@ -13,10 +13,11 @@
 #include "larsim/Simulation/LArVoxelList.h"
 #include "larsim/Simulation/SimListUtils.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardataobj/RecoBase/TrackHitMeta.h"
@@ -45,6 +46,8 @@
 #include "TLorentzVector.h"
 #include "TVector3.h"
 
+#include <fstream>
+
 #define MVA_LENGTH 4
 
 namespace proto
@@ -68,6 +71,7 @@ public:
   void analyze(art::Event const & e) override;
   
   void beginJob() override;
+  void endJob() override;
 
 	void reconfigure(fhicl::ParameterSet const& p) override;
 
@@ -76,9 +80,35 @@ private:
   // Declare member data here.
   double GetEdepHitsMeV(const std::vector< recob::Hit > & hits) const;
   double GetEhitMeV(const recob::Hit & hit) const;
+  double GetEhitMeVcorrel(const recob::Hit & hit) const;
   double GetEkinMeV(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector < recob::TrackHitMeta const* > & data);
+  // EM
   double GetEdepEM_MC(art::Event const & e) const;
-  double GetEdepHADh_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const;
+  double GetEdepEMAtt_MC(art::Event const & e) const;
+  double GetEdepEMhAtt_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const;
+  
+  double fEdepEM_MC;
+  double fEdepEMAtt_MC;
+  double fEdepEMhAtt_MC; // new
+  
+  double fEdepEM_reco;
+  double fEdepEMcorr_ellifetime_reco;
+  
+  // HAD
+  double GetEdepHAD_MC(art::Event const & e) const;
+  double GetEdepHADAtt_MC(art::Event const & e) const;
+  double GetEdepHADhAtt_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const;
+  
+  double fEdepHAD_MC; // new
+  double fEdepHADAtt_MC; // new
+  double fEdepHADhAtt_MC;
+  
+  double fEdepHAD_reco;
+  double fEdepHADcorr_ellifetime_reco;
+  
+  // MISSING ENERGY
+  double fMissEn_MC;
+  
   void ResetVars();
   
   geo::GeometryCore const * fGeometry;
@@ -89,27 +119,23 @@ private:
   int fEvent;
   int fBestView;
   int fNumberOfTracks;
-  double fEdepEM_MC;
-  double fEdepHADh_MC;
-  double fEMEnSum;
-  double fHadEnSum;
-  double fHadDepSum;
-  double fTotEdepSum;
+  
+ 
   double fdQdx;
   double fdEdx;
   double fdQ;
   double fdx;
   double fEdepSum;
   double fEdepAllhits;
-  double fTotEnkinSum;
   double fElectronsToGeV;
   double fResRange;
   double fEnGen;
   double fEkGen;
   double fT0;
   
+  std::ofstream file;
+  
   // Module labels to get data products
-  //anab::Calorimetry fCalorimetry;
   art::InputTag fNNetModuleLabel;
   std::string fHitModuleLabel;
   std::string fClusterModuleLabel;
@@ -131,6 +157,7 @@ proto::HadCal::HadCal(fhicl::ParameterSet const & p)
 	reconfigure(p);
 	// get a pointer to the geometry service provider
 	fGeometry = &*(art::ServiceHandle<geo::Geometry>());
+	file.open("dump.txt");
 }
 
 void proto::HadCal::beginJob()
@@ -146,14 +173,25 @@ void proto::HadCal::beginJob()
 	fTree->Branch("fEvent", &fEvent, "fEvent/I");
 	fTree->Branch("fEnGen", &fEnGen, "fEnGen/D");
 	fTree->Branch("fEkGen", &fEkGen, "fEkGeb/D");
+	
 	fTree->Branch("fEdepEM_MC", &fEdepEM_MC, "fEdepEM_MC/D");
-	fTree->Branch("fEdepHADh_MC", &fEdepHADh_MC, "fEdepHADh_MC/D");
+	fTree->Branch("fEdepEMAtt_MC", &fEdepEMAtt_MC, "fEdepEMAtt_MC/D");
+	fTree->Branch("fEdepEMhAtt_MC", &fEdepEMhAtt_MC, "fEdepEMhAtt_MC/D");
+	
+	fTree->Branch("fEdepEM_reco", &fEdepEM_reco, "fEdepEM_reco/D");
+	fTree->Branch("fEdepEMcorr_ellifetime_reco", &fEdepEMcorr_ellifetime_reco, "fEdepEMcorr_ellifetime_reco/D");
+	
+	fTree->Branch("fEdepHAD_MC", &fEdepHAD_MC, "fEdepHAD_MC/D");
+	fTree->Branch("fEdepHADAtt_MC", &fEdepHADAtt_MC, "fEdepHADAtt_MC/D");
+  fTree->Branch("fEdepHADhAtt_MC", &fEdepHADhAtt_MC, "fEdepHADhAtt_MC/D");
+  
+  fTree->Branch("fEdepHAD_reco", &fEdepHAD_reco, "fEdepHAD_reco/D");
+	fTree->Branch("fEdepHADcorr_ellifetime_reco", &fEdepHADcorr_ellifetime_reco, "fEdepHADcorr_ellifetime_reco/D");
+	
+	fTree->Branch("fMissEn_MC", &fMissEn_MC, "fMissEn_MC/D");
+	
 	fTree->Branch("fNumberOfTracks", &fNumberOfTracks, "fNumberOfTracks/I");
-	fTree->Branch("fHadEnSum", &fHadEnSum, "fHadEnSum/D");
-	fTree->Branch("fHadDepSum", &fHadDepSum, "fHadDepSum/D");
-	fTree->Branch("fEMEnSum", &fEMEnSum, "fEMEnSum/D");
-	fTree->Branch("fTotEdepSum", &fTotEdepSum, "fTotEdepSum/D");
-	fTree->Branch("fTotEnkinSum", &fTotEnkinSum, "fTotEnkinSum/D");
+	
 	fTree->Branch("fEdepSum", &fEdepSum, "fEdepSum/D");
 	fTree->Branch("fEdepAllhits", &fEdepAllhits, "fEdepAllhits/D");
 	fTree->Branch("fT0", &fT0, "fT0/D");
@@ -164,6 +202,11 @@ void proto::HadCal::beginJob()
 	fTreeEntries->Branch("fdQ", &fdQ, "fdQ/D");
 	fTreeEntries->Branch("fdx", &fdx, "fdx/D");
 	
+}
+
+void proto::HadCal::endJob()
+{
+	file.close();
 }
 
 void proto::HadCal::reconfigure(fhicl::ParameterSet const & p)
@@ -188,6 +231,7 @@ void proto::HadCal::analyze(art::Event const & e)
 	auto particleHandle = e.getValidHandle< std::vector<simb::MCParticle> >(fSimulationLabel);	
 	bool flag = true;
 	
+	
 	for (auto const& p : *particleHandle)
 	{
 		fParticleMap[p.TrackId()] = &p;
@@ -199,52 +243,57 @@ void proto::HadCal::analyze(art::Event const & e)
 			flag = false;	
 		}
 	}
-	
+
 	fEdepEM_MC = GetEdepEM_MC(e);
+	fEdepEMAtt_MC = GetEdepEMAtt_MC(e);
+	
+	fEdepHAD_MC = GetEdepHAD_MC(e);
+	fEdepHADAtt_MC = GetEdepHADAtt_MC(e);
 	
 	// hits
 	const auto& hitListHandle = *e.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
 	fEdepAllhits = GetEdepHitsMeV(hitListHandle); 
 	
 	// MC associated with a hit
-	fEdepHADh_MC = GetEdepHADh_MC(e, hitListHandle);
+	fEdepEMhAtt_MC = GetEdepEMhAtt_MC(e, hitListHandle);
+	fEdepHADhAtt_MC = GetEdepHADhAtt_MC(e, hitListHandle);
+	
+	// MC missing energy
+	fMissEn_MC = fEkGen - (fEdepEM_MC + fEdepHAD_MC);
   
   // clusters
-  auto cluHandle = e.getValidHandle< std::vector<recob::Cluster> >(fClusterModuleLabel);
-  art::FindManyP< recob::Hit > hitsFromCluster(cluHandle, e, fClusterModuleLabel);
-  
+  auto cluResults = anab::MVAReader< recob::Cluster, MVA_LENGTH>::create(e, fNNetModuleLabel);
+
   std::unordered_map<int, bool> hitIDE;
-  for (size_t c = 0; c < cluHandle->size(); ++c)
+  if (cluResults)
   {
-  	for (size_t h = 0; h < hitsFromCluster.at(c).size(); ++h)
+  	const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, cluResults->dataTag());
+  	
+  	for (size_t c = 0; c < cluResults->size(); ++c)
   	{
-  		if (hitsFromCluster.at(c)[h]->View() == fBestView)
+  		for (size_t h = 0; h < hitsFromCluster.at(c).size(); ++h)
   		{
-  			hitIDE[hitsFromCluster.at(c)[h].key()] = false;
-  		}	
+  			if (hitsFromCluster.at(c)[h]->View() == fBestView)
+  			{
+  				hitIDE[hitsFromCluster.at(c)[h].key()] = false;
+  			}	
+  		}
   	}
   }  
- 
-  // output from cnn's
-  auto trkResults = anab::MVAReader< recob::Track, MVA_LENGTH>::create(e, fNNetModuleLabel);  
+	
+  // tracks
+  fNumberOfTracks = 0;
+  auto trkHandle = e.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  art::FindManyP< recob::PFParticle > pfpFromTrack(trkHandle, e, fTrackModuleLabel);
 
-	fHadEnSum = 0.0;
-	fHadDepSum = 0.0;
-	fEMEnSum = 0.0;
-
-  if (trkResults)
-  {
-  	fNumberOfTracks = 0;
-  
-  	// use handle and input tag of reco objects associated to cnn output
-  	const art::FindManyP< anab::Calorimetry > calFromTracks(trkResults->dataHandle(), e, fCalorimetryModuleLabel);	
-  	const art::FindManyP< recob::Hit > hitsFromTracks(trkResults->dataHandle(), e, fTrackModuleLabel);
-  	const art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trkResults->dataHandle(), e, fTrackModuleLabel);
+  const art::FindManyP< anab::Calorimetry > calFromTracks(trkHandle, e, fCalorimetryModuleLabel);	
+  const art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, e, fTrackModuleLabel);
+  const art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trkHandle, e, fTrackModuleLabel);
   	
   	if (fmthm.isValid())
   	{
   		// loop over tracks
-  		for (size_t t = 0; t < trkResults->size(); ++t)
+  		for (size_t t = 0; t < trkHandle->size(); ++t)
   		{	
   			auto vhit = fmthm.at(t);
   			auto vmeta = fmthm.data(t);
@@ -259,61 +308,77 @@ void proto::HadCal::analyze(art::Event const & e)
   			}	
   	
   			int nplanes = calFromTracks.at(t).size(); 	
-  			std::array< float, MVA_LENGTH > cnn_out = trkResults->getOutput(t); 
-  		
-  			// condition for tracks
-  			if ( (cnn_out[1] / (cnn_out[0] + cnn_out[1])) < 0.63)
+  	
+  			for (size_t p = 0; p < pfpFromTrack.at(t).size(); ++p)
   			{
-					fNumberOfTracks++;
+  				int pdg = pfpFromTrack.at(t)[p]->PdgCode();
+  				// condition for tracks
+  				if ((pdg != 11) && (pdg != -11)) 
+  				{  		
+						fNumberOfTracks++;
 				
-					// for now it work for 3 planes and only collection view
-  				if (nplanes == 3)
-  				{
-  					fHadEnSum += GetEkinMeV(vhit, vmeta);
-  					for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
+						// for now it work for 3 planes and only collection view
+  					if (nplanes == 3)
   					{
-  						if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  						// fHadEnSum += GetEkinMeV(vhit, vmeta);
+  						for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
   						{
-  							fHadDepSum += GetEhitMeV(*hitsFromTracks.at(t)[h]);
+  							if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  							{
+  									fEdepHAD_reco += GetEhitMeV(*hitsFromTracks.at(t)[h]);
+  									fEdepHADcorr_ellifetime_reco += GetEhitMeVcorrel(*hitsFromTracks.at(t)[h]);
+  							}
   						}
   					}
   				}
-  			}
-				else // ... and condition for em showers
-				{
-					for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
-  				{
-  					// kinetic energy without correction for recombination, 
-  					// only one view is considered 
-  					if (hitsFromTracks.at(t)[h]->View() == fBestView)
+					else // ... and condition for em showers
+					{
+						for (size_t h = 0; h < hitsFromTracks.at(t).size(); ++h)
   					{
-  						fEMEnSum += GetEhitMeV(*hitsFromTracks.at(t)[h]);  
+  						// kinetic energy without correction for recombination, 
+  						// only one view is considered 
+  						if (hitsFromTracks.at(t)[h]->View() == fBestView)
+  						{
+  							fEdepEM_reco += GetEhitMeV(*hitsFromTracks.at(t)[h]);
+  							fEdepEMcorr_ellifetime_reco += GetEhitMeVcorrel(*hitsFromTracks.at(t)[h]);
+  						}
   					}
-  				}
-				}
+					}
+ 				}
  			}
  		}
- }
+ 	
  // output from cnn's
- auto cluResults = anab::MVAReader< recob::Cluster, MVA_LENGTH>::create(e, fNNetModuleLabel);
- 
  if (cluResults)
  {
- 		const art::FindManyP< recob::Hit > hitsFromClusters(cluResults->dataHandle(), e, fHitModuleLabel);
+ 		const art::FindManyP< recob::Hit > hitsFromCluster(cluResults->dataHandle(), e, cluResults->dataTag());
  		
  		// loop over clusters
-		for (size_t c = 0; c < cluHandle->size(); ++c)
+		for (size_t c = 0; c < cluResults->size(); ++c)
   	{
-  		if ((*cluHandle)[c].View() == fBestView)
+  		if (cluResults->item(c).View() == fBestView)
   		{ 			
-  			// to think about: condition for EM. 
-  			// now: all unused clusters are classified as EM showers
+  			std::array< float, MVA_LENGTH > cnn_out = cluResults->getOutput(c);
+  			double p_trk_or_sh = cnn_out[0] + cnn_out[1];
+  			double pdg = 1;
+  			if (p_trk_or_sh > 0) pdg = cnn_out[1] / p_trk_or_sh;
+  			
   			for (size_t h = 0; h < hitsFromCluster.at(c).size(); ++h)
   			{  				
   				if (hitIDE[hitsFromCluster.at(c)[h].key()] == false)
   				{
   					hitIDE[hitsFromCluster.at(c)[h].key()] = true;
-  					fEMEnSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);
+  					
+  					if (pdg < 0.63)
+  					{
+  						fEdepHAD_reco += GetEhitMeV(*hitsFromCluster.at(c)[h]);
+  						fEdepHADcorr_ellifetime_reco += GetEhitMeVcorrel(*hitsFromCluster.at(c)[h]);
+  					}
+  					else
+  					{
+  						fEdepEM_reco += GetEhitMeV(*hitsFromCluster.at(c)[h]);
+  						fEdepEMcorr_ellifetime_reco += GetEhitMeVcorrel(*hitsFromCluster.at(c)[h]);
+  					}
   				}
   				
   				fEdepSum += GetEhitMeV(*hitsFromCluster.at(c)[h]);  
@@ -322,8 +387,10 @@ void proto::HadCal::analyze(art::Event const & e)
   	}
  }
  
- 	fTotEnkinSum = (fEMEnSum / 0.55) + fHadEnSum;
- 	fTotEdepSum = (fEMEnSum / 0.55) + (fHadDepSum / 0.33);
+ 	/*file << fEvent << " " << fEkGen << " " << fEdepEM_MC << " " << fEdepHAD_MC << " " << fMissEn_MC 
+ 			<< " " << fEdepEMAtt_MC << " " << fEdepEMhAtt_MC
+ 			<< " " << fEdepHADAtt_MC << " " << fEdepHADhAtt_MC
+ 			<< " " << fEdepHADcorr_ellifetime_reco << " " << fEdepEMcorr_ellifetime_reco << std::endl;*/ 
   fTree->Fill();	
 }
 
@@ -401,7 +468,7 @@ double proto::HadCal::GetEdepHitsMeV(const std::vector< recob::Hit > & hits) con
 
 /******************************************************************************/
 
-double proto::HadCal::GetEhitMeV(const recob::Hit & hit) const
+double proto::HadCal::GetEhitMeVcorrel(const recob::Hit & hit) const
 {
 	double dqadc = hit.Integral();
 	if (!std::isnormal(dqadc) || (dqadc < 0)) dqadc = 0.0;
@@ -411,6 +478,24 @@ double proto::HadCal::GetEhitMeV(const recob::Hit & hit) const
 	double dqel = fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane);
 
 	double correllifetime = fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
+	double dq = dqel * correllifetime * fElectronsToGeV * 1000;
+	if (!std::isnormal(dq) || (dq < 0)) dq = 0.0;	
+
+	return dq; 
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEhitMeV(const recob::Hit & hit) const
+{
+	double dqadc = hit.Integral();
+	if (!std::isnormal(dqadc) || (dqadc < 0)) dqadc = 0.0;
+
+	unsigned short plane = hit.WireID().Plane;
+	// double tdrift = hit.PeakTime();
+	double dqel = fCalorimetryAlg.ElectronsFromADCArea(dqadc, plane);
+
+	double correllifetime = 1; // fCalorimetryAlg.LifetimeCorrection(tdrift, fT0);
 	double dq = dqel * correllifetime * fElectronsToGeV * 1000;
 	if (!std::isnormal(dq) || (dq < 0)) dq = 0.0;	
 
@@ -439,7 +524,65 @@ double proto::HadCal::GetEdepEM_MC(art::Event const & e) const
 		
 						for ( auto const& energyDeposit : energyDeposits )
 						{
-							double energy = energyDeposit.energy;
+							double energy = energyDeposit.energy; // energy not attenuated
+							int trackID = energyDeposit.trackID;
+							
+							if (trackID < 0)
+							{
+								enEM += energy;
+							}
+							else if (trackID > 0)
+							{
+								auto search = fParticleMap.find(trackID);
+								bool found = true;
+								if (search == fParticleMap.end())
+								{
+									mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND";
+									found = false;
+								}
+								
+								int pdg = 0;
+								if (found)
+								{
+									const simb::MCParticle& particle = *((*search).second);
+                  if (!pdg) pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+								}
+								
+								if ((pdg == 11) || (pdg == -11) || (pdg == 22)) enEM += energy;
+							}
+							
+						}
+					}
+				}
+			}
+	}
+	
+	return enEM;
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepEMAtt_MC(art::Event const & e) const
+{
+	double enEM = 0.0;
+	
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle))
+	{
+			for ( auto const& channel : (*simchannelHandle) )
+			{
+				if (fGeometry->View(channel.Channel()) == fBestView)
+				{ 
+					// for every time slice in this channel:
+					auto const& timeSlices = channel.TDCIDEMap();
+					for ( auto const& timeSlice : timeSlices )
+					{
+						// loop over the energy deposits.
+						auto const& energyDeposits = timeSlice.second;
+		
+						for ( auto const& energyDeposit : energyDeposits )
+						{
+							double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated 
 							int trackID = energyDeposit.trackID;
 							
 							if (trackID < 0)
@@ -474,9 +617,195 @@ double proto::HadCal::GetEdepEM_MC(art::Event const & e) const
 	return enEM;
 }
 
+
 /******************************************************************************/
 
-double proto::HadCal::GetEdepHADh_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const
+double proto::HadCal::GetEdepEMhAtt_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const
+{
+	double totemhit = 0.0;
+	
+	auto simChannelHandle = e.getValidHandle< std::vector<sim::SimChannel> >(fSimulationLabel);
+	const std::vector< sim::SimChannel > & channels = *simChannelHandle;
+	
+	for (auto const & hit: hits)
+	{
+		// the channel associate with this hit.
+		auto hitChannelNumber = hit.Channel();
+		
+		double hitEn = 0.0; double hitEnSh = 0;
+		
+		for (auto const & channel: channels)
+		{
+			if (channel.Channel() != hitChannelNumber) continue;
+			if (fGeometry->View(channel.Channel()) != fBestView) continue;
+	
+			// for every time slice in this channel:
+			auto const& timeSlices = channel.TDCIDEMap();
+			for ( auto const& timeSlice : timeSlices )
+			{
+					int time = timeSlice.first;
+					if (std::abs(hit.TimeDistanceAsRMS(time)) < 1.0)
+					{
+						// loop over the energy deposits.
+						auto const& energyDeposits = timeSlice.second;
+		
+						for ( auto const& energyDeposit : energyDeposits )
+						{
+							int trackID = energyDeposit.trackID;
+							double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated 
+							hitEn += energy;
+							
+							if (trackID < 0)
+							{
+								hitEnSh += energy;
+							}
+							else if (trackID > 0)
+							{
+								auto search = fParticleMap.find(trackID);
+								bool found = true;
+								if (search == fParticleMap.end())
+								{
+									mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND";
+									found = false;
+								}
+								
+								int pdg = 0;
+								if (found)
+								{
+									const simb::MCParticle& particle = *((*search).second);
+                  if (!pdg) pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+								}
+								
+								if ((pdg == 11) || (pdg == -11) || (pdg == 22)) hitEnSh += energy;
+							}	
+						}
+					}
+				}
+			}
+		
+			double ratio = 0.0;
+			if (hitEn > 0)
+			{
+				ratio = hitEnSh / hitEn;
+			}
+		
+			// use energy of hit corrected for electron lifetime
+			if (ratio > 0.5)
+			{
+				totemhit += GetEhitMeVcorrel(hit);
+			}
+		}
+	
+	return totemhit;
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepHAD_MC(art::Event const & e) const
+{
+	double enHAD = 0.0;
+	   
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle)) 
+	{  
+	     
+		for (auto const & channel : (*simchannelHandle) )
+		{
+			if (fGeometry->View(channel.Channel()) != fBestView) continue;
+
+			// for every time slice in this channel:
+			auto const& timeSlices = channel.TDCIDEMap();
+			for (auto const& timeSlice : timeSlices)
+			{
+				// loop over the energy deposits.
+				auto const & energyDeposits = timeSlice.second;
+		
+				for (auto const & energyDeposit : energyDeposits)
+				{
+						double energy = energyDeposit.energy; // energy not attenuated 
+						int trackID = energyDeposit.trackID;
+
+						if (trackID < 0) { } // EM activity
+						else if (trackID > 0)
+						{
+								auto search = fParticleMap.find(trackID);
+								
+								if (search != fParticleMap.end())
+								{
+									const simb::MCParticle & particle = *((*search).second);
+									int pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+
+								  if ((pdg == 11) || (pdg == -11) || (pdg == 22)) {}
+								  else 
+								  {
+								  	enHAD += energy;
+								  }
+    	          }
+								else { mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND"; }
+						}
+				 }	
+			 }
+		}
+	}
+    
+  return enHAD;
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepHADAtt_MC(art::Event const & e) const
+{
+	double enHAD = 0.0;
+	   
+	art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+	if (e.getByLabel(fSimulationLabel, simchannelHandle)) 
+	{  
+	     
+		for (auto const & channel : (*simchannelHandle) )
+		{
+			if (fGeometry->View(channel.Channel()) != fBestView) continue;
+
+			// for every time slice in this channel:
+			auto const& timeSlices = channel.TDCIDEMap();
+			for (auto const& timeSlice : timeSlices)
+			{
+				// loop over the energy deposits.
+				auto const & energyDeposits = timeSlice.second;
+		
+				for (auto const & energyDeposit : energyDeposits)
+				{
+						double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated 
+						int trackID = energyDeposit.trackID;
+
+						if (trackID < 0) { } // EM activity
+						else if (trackID > 0)
+						{
+								auto search = fParticleMap.find(trackID);
+								
+								if (search != fParticleMap.end())
+								{
+									const simb::MCParticle & particle = *((*search).second);
+									int pdg = particle.PdgCode(); // not EM activity so read what PDG it is
+
+								  if ((pdg == 11) || (pdg == -11) || (pdg == 22)) {}
+								  else 
+								  {
+								  	enHAD += energy;
+								  }
+    	          }
+								else { mf::LogWarning("TrainingDataAlg") << "PARTICLE NOT FOUND"; }
+						}
+				 }	
+			 }
+		}
+	}
+    
+  return enHAD;
+}
+
+/******************************************************************************/
+
+double proto::HadCal::GetEdepHADhAtt_MC(art::Event const & e, const std::vector< recob::Hit > & hits) const
 {
 	double tothadhit = 0.0;
 	
@@ -509,7 +838,7 @@ double proto::HadCal::GetEdepHADh_MC(art::Event const & e, const std::vector< re
 					{
 						int trackID = energyDeposit.trackID;
 
-						double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000;
+						double energy = energyDeposit.numElectrons * fElectronsToGeV * 1000; // attenuated 
 						hitEn += energy;
 
 						if (trackID < 0) { } // EM activity
@@ -536,8 +865,11 @@ double proto::HadCal::GetEdepHADh_MC(art::Event const & e, const std::vector< re
 		{
 			ratio = hitEnTrk / hitEn;
 		}
-		double hadhit = GetEhitMeV(hit) * ratio;
-		tothadhit += hadhit;
+		// use energy of hit corrected for electron lifetime
+		if (ratio > 0.5)
+		{
+			tothadhit += GetEhitMeVcorrel(hit);
+		}
 	}
     
   return tothadhit;
@@ -551,16 +883,28 @@ void proto::HadCal::ResetVars()
 	fEvent = 0;
 	fBestView = 2;
 	fNumberOfTracks = 0;
+	
 	fEdepEM_MC = 0.0;
-	fEdepHADh_MC = 0.0;
+	fEdepEMAtt_MC = 0.0;
+	fEdepEMhAtt_MC = 0.0; 
+	
+	fEdepHAD_MC = 0.0;
+	fEdepHADAtt_MC = 0.0;
+	fEdepHADhAtt_MC = 0.0;
+	
+	fMissEn_MC = 0.0;
+	
+	fEdepEM_reco = 0.0;
+  fEdepEMcorr_ellifetime_reco = 0.0;
+  fEdepHAD_reco = 0.0;
+  fEdepHADcorr_ellifetime_reco = 0.0;
+	
 	fEnGen = 0.0;
 	fEkGen = 0.0;
-  fHadEnSum = 0.0;
+ 
   fEdepSum = 0.0;
   fEdepAllhits = 0.0;
-	fEMEnSum = 0.0;
-	fTotEdepSum = 0.0;
-	fTotEnkinSum = 0.0;
+
 	fdQdx = 0.0;
 	fdEdx = 0.0;
 	fdQ = 0.0;

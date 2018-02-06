@@ -1,5 +1,6 @@
 add_subdirectory(IniSegAlg)
 add_subdirectory(MVAAlg)
+add_subdirectory(FDSensOptData)
 
 include_directories ( $ENV{GENIE_INC}/GENIE )
 
@@ -56,6 +57,7 @@ endif ( ${VMAJ} EQUAL 2 AND ${VMIN} LESS 9 )
 message(STATUS "GENIE version ${GENIE_VERSION} major ${VMAJ} minor ${VMIN} ${GRSSPELLING}")
 cet_find_library( GREINSEHGAL NAMES ${GRSSPELLING} PATHS ENV GENIE_LIB NO_DEFAULT_PATH )
 
+
 simple_plugin(NueAna   "module"
 		        lardataobj_RawData
 		        lardataobj_RecoBase
@@ -63,11 +65,12 @@ simple_plugin(NueAna   "module"
 			larreco_Calorimetry
 		        larreco_RecoAlg_PMAlg
 		        IniSegAlg
-		        larcore_Geometry
+		        larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
-			larsim_MCCheater_BackTracker_service
+			larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
 			nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -148,17 +151,81 @@ simple_plugin(MVASelect   "module"
               BASENAME_ONLY
 )
 
+simple_plugin(CAFMaker   "module"
+                        nutools_NuReweight
+                        nutools_NuReweight_art
+			nusimdata_SimulationBase
+                        ${GHEP}
+                        ${GEVGCORE}
+			${GPDG}
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        art_Persistency_Common canvas
+                        art_Persistency_Provenance canvas
+                        art_Utilities canvas
+                        ${MF_MESSAGELOGGER}
+                        ${MF_UTILITIES}
+                        cetlib cetlib_except
+                        ${ROOT_BASIC_LIB_LIST}
+			${GALGORITHM}		
+			${GBARYONRESONANCE}
+			${GBASE}
+			${GBODEKYANG}
+			${GCHARM}
+			${GCOH}
+			${GDFRC}
+			${GDIS}
+			${GCROSSSECTIONS}
+			${GDECAY}
+			${GELAS}
+			${GELFF}
+			${GHEP}
+			${GEVGCORE}
+			${GEVGMODULES}
+			${GEVGDRIVERS}
+			${GGIBUU}
+			${GHADRONTRANSP}
+			${GFRAGMENTATION}
+			${GINTERACTION}
+			${GLLEWELLYNSMITH}
+			${GMEC}
+			${GNUGAMMA}
+			${GNUE}
+			${GNTUPLE}
+			${GNUCLEAR}
+			${GNUMERICAL}
+			${GQPM}
+			${GPDG}
+			${GPDF}
+			${GQEL}
+			${GRES}
+			${GREGISTRY}
+			${GREINSEHGAL}
+			${GUTILS}
+			${GGEO}
+			${GFLUXDRIVERS}
+			${GMUELOSS}
+			${GREWEIGHT}
+			${GNUCLEONDECAY}
+			${GMESSENGER}
+              BASENAME_ONLY
+)
+
 simple_plugin(IniSegReco "module"
 		      lardataobj_RawData
 		      lardataobj_RecoBase
 		      larreco_RecoAlg
 		      larreco_RecoAlg_PMAlg
 		      IniSegAlg
-		      larcore_Geometry
+		      larcorealg_Geometry
 		      larcore_Geometry_Geometry_service
 		      lardata_Utilities
 		      larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
-		      larsim_MCCheater_BackTracker_service
+		      larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
 		      nusimdata_SimulationBase
       		      ${ART_FRAMEWORK_CORE}
 		      ${ART_FRAMEWORK_PRINCIPAL}
@@ -182,13 +249,14 @@ simple_plugin(ShSeg   "module"
 			larreco_Calorimetry
 			larreco_RecoAlg_PMAlg
 			IniSegAlg
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			
 			
-			larsim_MCCheater_BackTracker_service
+			larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
@@ -205,7 +273,137 @@ simple_plugin(ShSeg   "module"
 			BASENAME_ONLY
 )
 
+simple_plugin(EnergyReco   "module"
+                        MVAAlg
+                        nutools_NuReweight
+                        nutools_NuReweight_art
+                        nusimdata_SimulationBase
+                        larcore_Geometry_Geometry_service
+                        larreco_Calorimetry
+                        larreco_RecoAlg
+                        lardataobj_RecoBase
+                        larsim_MCCheater_BackTrackerService_service
+                        ${GHEP}
+                        ${GEVGCORE}
+                        ${GPDG}
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        art_Persistency_Common canvas
+                        art_Persistency_Provenance canvas
+                        art_Utilities canvas
+                        ${MF_MESSAGELOGGER}
+                        ${MF_UTILITIES}
+                        ${CETLIB}
+                        ${ROOT_BASIC_LIB_LIST}
+                        ${GALGORITHM}
+                        ${GBARYONRESONANCE}
+                        ${GBASE}
+                        ${GBODEKYANG}
+                        ${GCHARM}
+                        ${GCOH}
+                        ${GDFRC}
+                        ${GDIS}
+                        ${GCROSSSECTIONS}
+                        ${GDECAY}
+                        ${GELAS}
+                        ${GELFF}
+                        ${GHEP}
+                        ${GEVGCORE}
+                        ${GEVGMODULES}
+                        ${GEVGDRIVERS}
+                        ${GGIBUU}
+                        ${GHADRONTRANSP}
+                        ${GFRAGMENTATION}
+                        ${GINTERACTION}
+                        ${GLLEWELLYNSMITH}
+                        ${GMEC}
+                        ${GNUGAMMA}
+                        ${GNUE}
+                        ${GNTUPLE}
+                        ${GNUCLEAR}
+                        ${GNUMERICAL}
+                        ${GQPM}
+                        ${GPDG}
+                        ${GPDF}
+                        ${GQEL}
+                        ${GRES}
+                        ${GREGISTRY}
+                        ${GREINSEHGAL}
+                        ${GUTILS}
+                        ${GGEO}
+                        ${GFLUXDRIVERS}
+                        ${GMUELOSS}
+                        ${GREWEIGHT}
+                        ${GNUCLEONDECAY}
+                        ${GMESSENGER}
+              BASENAME_ONLY
+)
 
+simple_plugin(CheckRecoEnergy   "module"
+                        nutools_NuReweight
+                        nutools_NuReweight_art
+                        nusimdata_SimulationBase
+                        ${GHEP}
+                        ${GEVGCORE}
+                        ${GPDG}
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        art_Persistency_Common canvas
+                        art_Persistency_Provenance canvas
+                        art_Utilities canvas
+                        ${MF_MESSAGELOGGER}
+                        ${MF_UTILITIES}
+                        cetlib cetlib_except
+                        ${ROOT_BASIC_LIB_LIST}
+                        ${GALGORITHM}           
+                        ${GBARYONRESONANCE}
+                        ${GBASE}
+                        ${GBODEKYANG}
+                        ${GCHARM}
+                        ${GCOH}
+                        ${GDFRC}
+                        ${GDIS}
+                        ${GCROSSSECTIONS}
+                        ${GDECAY}
+                        ${GELAS}
+                        ${GELFF}
+                        ${GHEP}
+                        ${GEVGCORE}
+                        ${GEVGMODULES}
+                        ${GEVGDRIVERS}
+                        ${GGIBUU}
+                        ${GHADRONTRANSP}
+                        ${GFRAGMENTATION}
+                        ${GINTERACTION}
+                        ${GLLEWELLYNSMITH}
+                        ${GMEC}
+                        ${GNUGAMMA}
+                        ${GNUE}
+                        ${GNTUPLE}
+                        ${GNUCLEAR}
+                        ${GNUMERICAL}
+                        ${GQPM}
+                        ${GPDG}
+                        ${GPDF}
+                        ${GQEL}
+                        ${GRES}
+                        ${GREGISTRY}
+                        ${GREINSEHGAL}
+                        ${GUTILS}
+                        ${GGEO}
+                        ${GFLUXDRIVERS}
+                        ${GMUELOSS}
+                        ${GREWEIGHT}
+                        ${GNUCLEONDECAY}
+                        ${GMESSENGER}
+              BASENAME_ONLY
+)
 
 install_headers()
 install_fhicl()

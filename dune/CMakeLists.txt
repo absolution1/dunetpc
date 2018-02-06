@@ -11,6 +11,7 @@ add_subdirectory(LArG4)
 add_subdirectory(PhotonPropagation)
 add_subdirectory(OpticalDetector)  
 add_subdirectory(DetSim)
+add_subdirectory(DetectorVariations)
 add_subdirectory(EventGenerator)
 add_subdirectory(Daq)
 add_subdirectory(CalData)
@@ -42,15 +43,19 @@ add_subdirectory(Protodune)
 add_subdirectory(DAQTriggerSim)
 add_subdirectory(SpaceCharge)
 add_subdirectory(SpaceChargeServices)
+add_subdirectory(SupernovaAna)
 add_subdirectory(DataOverlay)
 add_subdirectory(DAQSimAna)
+add_subdirectory(3x1x1dp)
+
+add_subdirectory(CVN)
 
 # Respect the order specified in lar_build, which is:
 #
 #     "SoftRelTools",
 #     "SRT_LAR",
 #     "SimpleTypesAndConstants",
-#     "larcore_Geometry",
+#     "larcorealg_Geometry",
 #     "larcoreobj_SummaryData",
 #     "lardataobj_RawData",
 #     "lardataobj_RecoBase",

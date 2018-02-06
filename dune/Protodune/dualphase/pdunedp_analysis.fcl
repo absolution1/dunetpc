@@ -1,0 +1,33 @@
+#include "calorimetry.fcl"
+
+BEGIN_PROLOG
+
+pdunedp_purity:
+{
+  module_type: "Purity"
+
+  CalorimetryAlg:        @local::standard_calorimetryalgmc
+  CalWireModuleLabel:   "caldata"
+  HitModuleLabel:       "dprawhit"
+  ClusterModuleLabel:   "trajcluster"
+  TrackModuleLabel:     "pmtrack"
+  TotalGain:             5                                 #total Gain of the run
+  EnergyCut:             10                                #cut on the value Energy/(Average mip * 350cm)
+  Length:                60                                #minimal Length to define a crossing mip (in cm)
+  StitchAngle:           30                                #Maximal stitching angle between two tracks
+  StitchDistance:        5                                 #Maximal stitching distance between two tracks
+  VolCut:                [10, 10, 5, 5, 5, 5 ]             #Volume cut for mips going through the TPC in cm [minx, maxx, miny, maxy , minz, maxz]
+  NumOfBins:             10                                #Num of bins for the purity analysis
+  ADCtoCharge:           0.15                              #Conversion between ADC to Charge
+  MinDx:                 0.1                               #Min distance gathering the dx of the single hits
+}
+
+pdunedp_dedx:
+{
+  module_type: 	    "DEdxdp"
+  CalorimetryAlg:   @local::standard_calorimetryalgmc
+  HitModuleLabel:   "dprawhit"
+  TrackModuleLabel: "trajcluster" 
+  GainPerView: 	    10
+}
+END_PROLOG

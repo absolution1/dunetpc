@@ -1,0 +1,62 @@
+BEGIN_PROLOG
+
+data_3x1x1_anarootparser:
+{ 
+ module_type:                 "dune/Protodune/dualphase/AnaRootParser"
+
+ EventsPerSubrun:             335
+
+ DigitModuleLabel:            "daq"
+ HitsModuleLabel:             "trajcluster"
+ LArGeantModuleLabel:         "largeant"
+ CalDataModuleLabel:          "caldata"
+ GenieGenModuleLabel:         "generator"
+ CryGenModuleLabel:           "generator"
+ ProtoGenModuleLabel:           ""
+ G4ModuleLabel:               "largeant"
+ TrackModuleLabel:            [ "pmtrack" ]
+ VertexModuleLabel:           [ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
+ PandoraNuVertexModuleLabel:  ""
+ ClusterModuleLabel:          "trajcluster"
+ OpFlashModuleLabel:          "opflash"
+ ExternalCounterModuleLabel:    "simcounter"
+ MCShowerModuleLabel:         ""          # Don't have in the 35 ton....
+ MCTrackModuleLabel:          ""          # Don't have in the 35 ton....
+ CalorimetryModuleLabel:      [ "pmtrackcalo" ]
+ ParticleIDModuleLabel:       [ "pmtrackpid" ]
+ MVAPIDTrackModuleLabel:      [ "", "", "", "" ]
+ MVAPIDShowerModuleLabel:     [ "", "", "", "" ]
+ FlashT0FinderLabel:          [ "" ]
+ MCT0FinderLabel:             [ "" ]
+ ShowerModuleLabel:           [ "emshower", "emshowerdc" ] ### , "mergeemshower3d", "mergeemshower3ddc" ] ## When we want to add back Dorota's showering.
+ CosmicClusterTaggerAssocLabel: ""
+ CosmicTaggerAssocLabel:      [ "" ]
+ ContainmentTaggerAssocLabel: [ "" ]
+ FlashMatchAssocLabel:        [ "" ]
+ POTModuleLabel:              ""
+
+ IsRealData:               true
+ UseBuffers:               false
+ IgnoreMissingShowers:     false
+ SaveAuxDetInfo:           false
+ SaveCryInfo:              false
+ SaveProtoInfo:            false # ProtoDUNE specific
+ SaveGenieInfo:            false
+ SaveGeantInfo:            true
+ SaveMCShowerInfo:         false # Don't have in the 35 ton 
+ SaveMCTrackInfo:          false # Don't have in the 35 ton
+ SaveHitInfo:              true
+ SaveRawDigitInfo:         false #set this to false by default since not everyone want rawdigits.
+ SaveTrackInfo:            true
+ SaveVertexInfo:           true 
+ SavePandoraNuVertexInfo:  false # Don't have in the 35 ton
+ SaveClusterInfo:          true
+ SaveFlashInfo:            true
+ SaveExternCounterInfo:    true
+ SaveShowerInfo:  	   false
+ SaveCaloCosmics:          true
+ G4minE:                   -1
+}
+
+
+END_PROLOG

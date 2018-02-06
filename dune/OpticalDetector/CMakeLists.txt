@@ -2,7 +2,7 @@ art_make( BASENAME_ONLY
           LIBRARY_NAME larana_OpticalDetector
           LIB_LIBRARIES 
                         lardataobj_RecoBase
-                        larcore_Geometry
+                        larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
@@ -19,11 +19,14 @@ art_make( BASENAME_ONLY
 	                      ${FHICLCPP}
 			                  cetlib cetlib_except
                         ${ROOT_BASIC_LIB_LIST}
-          MODULE_LIBRARIES 
+          MODULE_LIBRARIES
+                        lardataobj_RecoBase
 	                larana_OpticalDetector
 	  		larana_OpticalDetector_OpHitFinder
-                        larcore_Geometry
+                        larcorealg_Geometry
                         larcore_Geometry_Geometry_service
+                        larsim_MCCheater_PhotonBackTracker_service 
+                        larsim_MCCheater_ParticleInventoryService_service
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
 			                  ${ART_FRAMEWORK_PRINCIPAL}
@@ -41,7 +44,7 @@ art_make( BASENAME_ONLY
                         ${CLHEP}
                         ${ROOT_BASIC_LIB_LIST}
           SERVICE_LIBRARIES
-                        larcore_Geometry
+                        larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         ${ART_FRAMEWORK_CORE}
 			                  ${ART_FRAMEWORK_PRINCIPAL}

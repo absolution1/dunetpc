@@ -7,7 +7,7 @@
 
 // Framework Includes
 
-#include "dunetpc/dune/RecoAlgDUNE/Cluster3DAlgs/PrincipalComponentsAlg.h"
+#include "dune/RecoAlgDUNE/Cluster3DAlgs/PrincipalComponentsAlg.h"
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
@@ -17,8 +17,8 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardata/RecoObjects/Cluster3D.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 
 // ROOT includes
 #include "TVector3.h"

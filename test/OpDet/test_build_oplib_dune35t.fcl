@@ -1,4 +1,6 @@
 #include "services_dune.fcl"
+#include "backtrackerservice.fcl"
+#include "particleinventoryservice.fcl"
 #include "singles.fcl"
 #include "largeantmodules.fcl"
 #include "detsimmodules.fcl"
@@ -21,7 +23,9 @@ services:
   TFileService: { fileName: "test_PhotonLibraryFile_dune35ton.root" }
   TimeTracker:       {}
   RandomNumberGenerator: {} #ART native random number generator
-                 @table::dune35t_photolibbuild_services 
+                 @table::dune35t_photolibbuild_services
+  BackTrackerService:   @local::dune35t_backtrackerservice # defined in backtrackerservice.fcl
+  ParticleInventoryService:   @local::standard_particleinventoryservice # defined in backtrackerservice.fcl
   message:       @local::standard_info
 }
 

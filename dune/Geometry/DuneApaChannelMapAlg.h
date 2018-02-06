@@ -36,8 +36,8 @@
 #include "cetlib/exception.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "larcore/Geometry/ChannelMapAlg.h"
-#include "larcore/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
@@ -90,9 +90,7 @@ public:
     { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
   virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
   //@}
-  View_t                   View( raw::ChannelID_t const channel )      const;
   SigType_t                SignalType( raw::ChannelID_t const channel) const;
-  std::set<View_t>  const& Views()                                     const;
   std::set<PlaneID> const& PlaneIDs()                                  const;
 
   //
@@ -296,8 +294,15 @@ private:
   std::vector< double > fSinOrientation; // to explore improving speed
     std::vector< double > fCosOrientation; // to explore improving speed
 
-  };
-
+    /// Returns whether the specified ID represents a valid cryostat.
+    bool HasCryostat(CryostatID const& cid) const
+      { return cid.Cryostat < fNcryostat; }
+    
+  }; // class DuneApaChannelMapAlg
+  
+  //----------------------------------------------------------------------------
+  
+  
 }
 #endif
 

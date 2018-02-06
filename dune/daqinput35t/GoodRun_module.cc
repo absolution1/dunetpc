@@ -83,6 +83,7 @@ private:
   int Event;
   unsigned int DigSize;
   unsigned int NSamples;
+  std::vector<int  > ChanNum;
   std::vector<float> ADCVec;
 
   bool fMakeFlatTree;
@@ -150,6 +151,7 @@ void DAQToOffline::GoodRun::beginJob() {
     FlatTree->Branch("Event"   ,&Event   ,"Event/I"   );
     FlatTree->Branch("NSamples",&NSamples,"NSamples/I");
     FlatTree->Branch("DigSize" ,&DigSize ,"DigSize/I" );
+    FlatTree->Branch("ChanNum" ,&ChanNum);
     FlatTree->Branch("ADCVec"  ,&ADCVec );
   }
 }
@@ -181,12 +183,14 @@ void DAQToOffline::GoodRun::analyze(art::Event const & evt)
     NSamples = std::min( digits[0]->Samples(), fMaxSamples );
     ADCVec.clear();
     for (unsigned int dig=0; dig<DigSize; ++dig ) {
+      ChanNum.push_back( digits[dig]->Channel() );
       unsigned int Samp=0;
       while ( Samp < NSamples ) {
 	//std::cerr << "Looking at digit " << dig << ", sample " << Samp << ", my value is " << digits[dig]->ADC(Samp) << std::endl;
 	ADCVec.push_back ( digits[dig]->ADC(Samp) );
 	++Samp;
       }
+      //std::cout << "Looking at Event " << Event << ", DigSize " << DigSize << ", ChanNum " << ChanNum[dig] << ", NSamples " << NSamples << ", ADCVec.size() " << ADCVec.size() << std::endl;
     }
     FlatTree->Fill();
   } else {

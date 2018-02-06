@@ -8,21 +8,19 @@ services:
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "single_hist_dune.root" }
   TimeTracker:       {}
-  MemoryTracker:         { ignoreTotal: 1 } # default is one
+  MemoryTracker:         { } # default is one
   RandomNumberGenerator: {} #ART native random number generator
   FileCatalogMetadata:  @local::art_file_catalog_mc
-                        @table::dunefddphase_simulation_services
+                        @table::protodunedphase_simulation_services
 }
 
-services.Geometry: @local::protodunedphase_geo
-services.DetectorPropertiesService: @local::protodunedphase_detproperties
 
 #Start each new event with an empty event.
 source:
 {
   module_type: EmptyEvent
   timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
-  maxEvents:   10          # Number of events to create
+  maxEvents:   -1          # Number of events to create
   firstRun:    1           # Run number to use for this file
   firstEvent:  1           # number of first event in the file
 }
@@ -68,10 +66,6 @@ outputs:
    compressionLevel: 1
  }
 }
-
-outputs.out1.fileName: "prodsingle_protodunedp.root" 
-
-source.firstRun: 20000011
 
 physics.producers.generator.PDG: [ 13 ]
 physics.producers.generator.P0:  [ 10.0 ]

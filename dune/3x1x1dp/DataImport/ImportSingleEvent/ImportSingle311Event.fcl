@@ -1,0 +1,40 @@
+#include "services_dune.fcl"
+#include "data_import_services.fcl"
+
+process_name: ImportSingle311EventProcess
+
+services: 				@local::dunedphase3x1x1_services
+#services.TimeTracker:       {}
+#services.MemoryTracker:         { } # default is one
+services.RandomNumberGenerator: {} #ART native random number generator
+#services.FileCatalogMetadata:  @local::art_file_catalog_mc
+services.NuRandomService:       @local::random_NuRandomService  # seedservice.fcl
+
+source: 
+{
+  module_type: EmptyEvent
+  maxEvents: 1
+}
+
+physics: {
+  producers: {
+    daq: 	@local::data_import
+    rns: 	{ module_type: "RandomNumberSaver" }
+  }
+  import: [ rns, daq ]
+  stream1: [ out1 ]
+  trigger_paths: [ import ]
+  end_paths: [ stream1 ]
+}
+
+outputs: {
+  out1: {
+    module_type: RootOutput
+    fileName: "RawData311SingleEvent.root"
+    compressionLevel: 0 
+  }
+}
+
+physics.producers.daq.Filename: "/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/calibrations/748/748-0.pul.cal"
+physics.producers.daq.Evt_num: 0
+physics.producers.daq.PedestalFile: "/mnt/nas01/users/chalt/EOSExperiment/experiment/wa105/data/311/datafiles/pedestals/pedestal_run729.dat"

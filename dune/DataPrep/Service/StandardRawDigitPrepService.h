@@ -54,9 +54,13 @@ class AdcRoiBuildingService;
 class AdcWireBuildingService;
 class AdcChannelDataCopyService;
 
+class AdcDataViewer;
+
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
 public:
+
+  using AdcDataViewerPtr = std::unique_ptr<AdcDataViewer>;
 
   StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
@@ -85,6 +89,7 @@ private:
   bool m_DoIntermediateStates;
   unsigned int m_DumpChannel;
   unsigned int m_DumpTick;
+  std::vector<std::string> m_DisplayTools;
 
   const ChannelMappingService* m_pChannelMappingService;
   const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
@@ -97,6 +102,8 @@ private:
   const AdcRoiBuildingService* m_pRoiBuildingService;
   const AdcWireBuildingService* m_pWireBuildingService;
   const AdcChannelDataCopyService* m_pAdcChannelDataCopyService;
+
+  std::vector<AdcDataViewerPtr> m_DisplayToolPtrs;
 
 };
 

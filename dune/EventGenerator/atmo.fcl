@@ -21,7 +21,7 @@ services:
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "ndk_hist_atmo.root" }
   TimeTracker:       {}
-  MemoryTracker:         { ignoreTotal: 1 } # default is one
+  MemoryTracker:         { } # default is one
   RandomNumberGenerator: {} #ART native random number generator
                 @table::dunefd_simulation_services
 }
@@ -74,7 +74,7 @@ physics:
 
  #define the producer and filter modules for this path, order matters, 
 
- #simulate: [ generator, largeant, daq, backtrack, caldata, gaushit, hitcheat, apahit, rns ] 
+ #simulate: [ generator, largeant, daq, backtrack,  caldata, gaushit, hitcheat, apahit, rns ] 
 
   mode0: [ generator, largeant, daq, backtrack, caldata, gaushit, hitcheat, apahit, rns ] 
   mode1: [ generator, largeant, daq, backtrack, caldata, gaushit, hitcheat, apahit, rns, selectMode1 ] # 

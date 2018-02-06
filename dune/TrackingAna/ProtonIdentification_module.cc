@@ -29,17 +29,17 @@
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
-
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
@@ -141,7 +141,7 @@ private:
 
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<cheat::BackTracker> bktrk;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
   
@@ -308,7 +308,7 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
   if (evt.getByLabel(fCounterT0ModuleLabel,trigListHandle))
     art::fill_ptr_vector(triglist, trigListHandle);  
   
-  const sim::ParticleList& plist = bktrk->ParticleList();
+  const sim::ParticleList& plist = pi_serv->ParticleList();
   True_Particles = 0;
   for (int qq=0; qq<1000; ++qq) {
     True_PdgCode  [ qq ] = True_Contained[ qq ] = True_Length   [ qq ] = True_ID[qq] = True_Primary[qq] = 0;

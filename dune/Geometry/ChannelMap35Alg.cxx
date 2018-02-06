@@ -12,12 +12,12 @@
 /// in the SortingParameters pset.
 ///
 #include "dune/Geometry/ChannelMap35Alg.h"
-#include "larcore/Geometry/GeometryCore.h"
-#include "larcore/Geometry/AuxDetGeo.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
@@ -36,7 +36,7 @@ namespace geo{
     // start over:
     Uninitialize();
     
-    std::vector<geo::CryostatGeo*> const& cgeo = geodata.cryostats;
+    std::vector<geo::CryostatGeo> const& cgeo = geodata.cryostats;
     
     fNcryostat = cgeo.size();
     
@@ -49,14 +49,14 @@ namespace geo{
     nAnchoredWires.resize(fNcryostat);
     fViews.clear();
     fPlaneIDs.clear();
-    fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
+    fPlanesPerAPA = cgeo[0].TPC(0).Nplanes();
 
     fTopChannel = 0;
 
     // Size some vectors and initialize the FirstChannel vectors.
     for(unsigned int cs = 0; cs != fNcryostat; ++cs){
       
-      fNTPC[cs] = cgeo[cs]->NTPC();
+      fNTPC[cs] = cgeo[cs].NTPC();
 
       nAnchoredWires[cs].resize(fNTPC[cs]);
       fWiresPerPlane[cs].resize(fNTPC[cs]);
@@ -79,22 +79,22 @@ namespace geo{
         for(unsigned int p = 0; p != fPlanesPerAPA; ++p){
 
           unsigned int t = 2*a;
-          fWiresPerPlane[c][a][p] = cgeo[c]->TPC(t).Plane(p).Nwires();
+          fWiresPerPlane[c][a][p] = cgeo[c].TPC(t).Plane(p).Nwires();
           double xyz[3] = {0.};
           double xyz_next[3] = {0.};
 
-          fViews.emplace(cgeo[c]->TPC(t).Plane(p).View());
+          fViews.emplace(cgeo[c].TPC(t).Plane(p).View());
 
           for(unsigned int w = 0; w != fWiresPerPlane[c][a][p]; ++w){
 
             // for vertical planes
-            if(cgeo[c]->TPC(t).Plane(p).View() == geo::kZ)   { 
+            if(cgeo[c].TPC(t).Plane(p).View() == geo::kZ)   { 
               nAnchoredWires[c][a][p] = fWiresPerPlane[c][a][p];      
               break;
             }
 
-            cgeo[c]->TPC(t).Plane(p).Wire(w).GetCenter(xyz);
-            cgeo[c]->TPC(t).Plane(p).Wire(w+1).GetCenter(xyz_next);
+            cgeo[c].TPC(t).Plane(p).Wire(w).GetCenter(xyz);
+            cgeo[c].TPC(t).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
                 if(xyz[2]==xyz_next[2]){
               nAnchoredWires[c][a][p] = w-1; // this is a known bug, should be w
@@ -145,7 +145,7 @@ namespace geo{
           PlaneData_t& PlaneData = fPlaneData[cs][tpc][plane];
           fPlaneIDs.emplace(cs, tpc, plane);
           double xyz[3]={0.0, 0.0, 0.0};
-          const geo::PlaneGeo& thePlane = cgeo[cs]->TPC(tpc).Plane(plane);
+          const geo::PlaneGeo& thePlane = cgeo[cs].TPC(tpc).Plane(plane);
           thePlane.Wire(0).GetCenter(xyz);
           PlaneData.fFirstWireCenterY = xyz[1];
           PlaneData.fFirstWireCenterZ = xyz[2];
@@ -182,8 +182,8 @@ namespace geo{
 
     //initialize fWirePitch and fOrientation
     for (unsigned int plane=0; plane<fPlanesPerAPA; plane++){
-      fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
-      fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
+      fWirePitch[plane]=cgeo[0].TPC(0).WirePitch(0,1,plane);
+      fOrientation[plane]=cgeo[0].TPC(0).Plane(plane).Wire(0).ThetaZ();
       fSinOrientation[plane] = sin(fOrientation[plane]);
       fCosOrientation[plane] = cos(fOrientation[plane]);
 

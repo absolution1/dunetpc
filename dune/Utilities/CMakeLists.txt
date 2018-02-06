@@ -1,7 +1,7 @@
 #include_directories("${CMAKE_SOURCE_DIR/")
 
 set( dune_util_lib_list lardata_Utilities_LArFFT_service
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
 			RunHistoryDUNE
@@ -56,6 +56,11 @@ simple_plugin( SignalShapingServiceDUNE35t  "service"
         )
 
 simple_plugin( FileCatalogMetadataDUNE "service"
+               ${dune_util_lib_list}
+	       BASENAME_ONLY
+	)
+
+simple_plugin( TFileMetadataDUNE "service"
                ${dune_util_lib_list}
 	       BASENAME_ONLY
 	)

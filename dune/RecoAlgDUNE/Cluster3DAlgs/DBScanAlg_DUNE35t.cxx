@@ -9,17 +9,17 @@
 #include "cetlib/search_path.h"
 #include "cetlib/cpu_timer.h"
 
-#include "dunetpc/dune/RecoAlgDUNE/Cluster3DAlgs/DBScanAlg_DUNE35t.h"
+#include "dune/RecoAlgDUNE/Cluster3DAlgs/DBScanAlg_DUNE35t.h"
 
 // LArSoft includes
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardata/RecoObjects/Cluster3D.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 
 // std includes
 #include <string>

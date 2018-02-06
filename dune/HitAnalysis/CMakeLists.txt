@@ -4,9 +4,10 @@ art_make(BASENAME_ONLY
          lardataobj_RawData
          lardata_ArtDataHelper
 	 larcore_Geometry_Geometry_service
-         larcore_Geometry
+         larcorealg_Geometry
          nusimdata_SimulationBase
-	 larsim_MCCheater_BackTracker_service
+	 larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
 	 HitFinderDUNE
          ${ART_FRAMEWORK_CORE}
 	 ${ART_FRAMEWORK_PRINCIPAL}

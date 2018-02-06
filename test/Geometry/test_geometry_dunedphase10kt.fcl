@@ -75,7 +75,7 @@ physics: {
       # ExpectedWirePitches: [ 0.487811, 0.500144, 0.449055 ]
       ExpectedWirePitches: [  ]
       # plane pitches (#0 -> #1, #1 -> #2)
-      ExpectedPlanePitch: [ 0.5, 0.5 ]
+      ExpectedPlanePitches: [ 0.015 ]
       
       # The test feeds a out-of-world coordinate to NearestWire() and expects
       # an exception to be thrown; DUNE currently prefers to cap the wire ID to

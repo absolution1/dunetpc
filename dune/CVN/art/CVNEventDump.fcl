@@ -1,0 +1,16 @@
+BEGIN_PROLOG
+
+#   This file defines the configuration for the CVNEventDump module 
+ 
+standard_cvneventdump:
+{
+  module_type:        CVNEventDump
+  #==================
+  PixelMapInput: "cvnmap"
+  GenieGenModuleLabel: "generator"
+  WriteMapTH2: true
+  ApplyFidVol: true
+}
+
+
+END_PROLOG

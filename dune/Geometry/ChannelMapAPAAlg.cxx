@@ -7,12 +7,12 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "dune/Geometry/ChannelMapAPAAlg.h"
-#include "larcore/Geometry/GeometryCore.h"
-#include "larcore/Geometry/AuxDetGeo.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
@@ -32,7 +32,7 @@ namespace geo{
     // start over:
     Uninitialize();
     
-    std::vector<geo::CryostatGeo*> const& cgeo = geodata.cryostats;
+    std::vector<geo::CryostatGeo> const& cgeo = geodata.cryostats;
     
     fNcryostat = cgeo.size();
     
@@ -42,7 +42,7 @@ namespace geo{
     fFirstChannelInNextPlane.resize(1);  // Change 1 to Ncryostat if you want
     fFirstChannelInThisPlane.resize(1);  // to treat each APA uniquely,and do
                                          // the same with the other resizes.
-    fPlanesPerAPA = cgeo[0]->TPC(0).Nplanes();
+    fPlanesPerAPA = cgeo[0].TPC(0).Nplanes();
     nAnchoredWires.resize(fPlanesPerAPA);
     fWiresInPlane.resize(fPlanesPerAPA);
     fFirstChannelInThisPlane[0].resize(1);  // remember FirstChannel vectors
@@ -58,29 +58,29 @@ namespace geo{
     // need to be sized here. Not necessary for now
     for(unsigned int cs = 0; cs != fNcryostat; ++cs){
       
-      fNTPC[cs] = cgeo[cs]->NTPC();
+      fNTPC[cs] = cgeo[cs].NTPC();
 
     }// end sizing loop over cryostats
 
     // Find the number of wires anchored to the frame
     for(unsigned int p=0; p!=fPlanesPerAPA; ++p){
 
-      fWiresInPlane[p] = cgeo[0]->TPC(0).Plane(p).Nwires();
+      fWiresInPlane[p] = cgeo[0].TPC(0).Plane(p).Nwires();
       double xyz[3] = {0.};
       double xyz_next[3] = {0.};
 
-      fViews.emplace(cgeo[0]->TPC(0).Plane(p).View());
+      fViews.emplace(cgeo[0].TPC(0).Plane(p).View());
       
       for(unsigned int w = 0; w != fWiresInPlane[p]; ++w){
 
         // for vertical planes
-        if(cgeo[0]->TPC(0).Plane(p).View()==geo::kZ)   { 
+        if(cgeo[0].TPC(0).Plane(p).View()==geo::kZ)   { 
           nAnchoredWires[p] = fWiresInPlane[p];      
           break;
         }
 
-        cgeo[0]->TPC(0).Plane(p).Wire(w).GetCenter(xyz);
-        cgeo[0]->TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
+        cgeo[0].TPC(0).Plane(p).Wire(w).GetCenter(xyz);
+        cgeo[0].TPC(0).Plane(p).Wire(w+1).GetCenter(xyz_next);
 
 	if(xyz[2]==xyz_next[2]){
 	  nAnchoredWires[p] = w;      
@@ -112,12 +112,12 @@ namespace geo{
     //save data into fFirstWireCenterY and fFirstWireCenterZ
     fPlaneData.resize(fNcryostat);
     for (unsigned int cs=0; cs<fNcryostat; ++cs){
-      fPlaneData[cs].resize(cgeo[cs]->NTPC());
-      for (unsigned int tpc=0; tpc<cgeo[cs]->NTPC(); ++tpc){
-        fPlaneData[cs][tpc].resize(cgeo[cs]->TPC(tpc).Nplanes());
-        for (unsigned int plane=0; plane<cgeo[cs]->TPC(tpc).Nplanes(); ++plane){
+      fPlaneData[cs].resize(cgeo[cs].NTPC());
+      for (unsigned int tpc=0; tpc<cgeo[cs].NTPC(); ++tpc){
+        fPlaneData[cs][tpc].resize(cgeo[cs].TPC(tpc).Nplanes());
+        for (unsigned int plane=0; plane<cgeo[cs].TPC(tpc).Nplanes(); ++plane){
           PlaneData_t& PlaneData = fPlaneData[cs][tpc][plane];
-          const geo::PlaneGeo& thePlane = cgeo[cs]->TPC(tpc).Plane(plane);
+          const geo::PlaneGeo& thePlane = cgeo[cs].TPC(tpc).Plane(plane);
           double xyz[3];
           fPlaneIDs.emplace(cs, tpc, plane);
           thePlane.Wire(0).GetCenter(xyz);
@@ -156,14 +156,14 @@ namespace geo{
     } // for cryostat
 
     //initialize fWirePitch and fOrientation
-    fWirePitch.resize(cgeo[0]->TPC(0).Nplanes());
-    fOrientation.resize(cgeo[0]->TPC(0).Nplanes());
-    fSinOrientation.resize(cgeo[0]->TPC(0).Nplanes());
-    fCosOrientation.resize(cgeo[0]->TPC(0).Nplanes());
+    fWirePitch.resize(cgeo[0].TPC(0).Nplanes());
+    fOrientation.resize(cgeo[0].TPC(0).Nplanes());
+    fSinOrientation.resize(cgeo[0].TPC(0).Nplanes());
+    fCosOrientation.resize(cgeo[0].TPC(0).Nplanes());
 
-    for (unsigned int plane=0; plane<cgeo[0]->TPC(0).Nplanes(); plane++){
-      fWirePitch[plane]=cgeo[0]->TPC(0).WirePitch(0,1,plane);
-      fOrientation[plane]=cgeo[0]->TPC(0).Plane(plane).Wire(0).ThetaZ();
+    for (unsigned int plane=0; plane<cgeo[0].TPC(0).Nplanes(); plane++){
+      fWirePitch[plane]=cgeo[0].TPC(0).WirePitch(0,1,plane);
+      fOrientation[plane]=cgeo[0].TPC(0).Plane(plane).Wire(0).ThetaZ();
       fSinOrientation[plane] = sin(fOrientation[plane]);
       fCosOrientation[plane] = cos(fOrientation[plane]);
     }

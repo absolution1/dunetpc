@@ -29,9 +29,28 @@ cet_test(geometry_dune35t HANDBUILT
   TEST_ARGS --rethrow-all --config ./test_geometry_dune35t.fcl
 )
 
+cet_test(geometry_dunedphase10kt HANDBUILT
+  DATAFILES test_geometry_dunedphase10kt.fcl
+  TEST_EXEC lar
+  TEST_ARGS --rethrow-all --config ./test_geometry_dunedphase10kt.fcl
+)
+
+cet_test(geometry_dunedphase10kt_workspace HANDBUILT
+  DATAFILES test_geometry_dunedphase10kt_workspace.fcl
+  TEST_EXEC lar
+  TEST_ARGS --rethrow-all --config ./test_geometry_dunedphase10kt_workspace.fcl
+)
+
+
+cet_test(geometry_iterator_loop_dunefd HANDBUILT
+  DATAFILES test_geometry_iterator_loop_dunefd.fcl
+  TEST_EXEC lar
+  TEST_ARGS --rethrow-all --config ./test_geometry_iterator_loop_dunefd.fcl
+)
+
 
 simple_plugin ( GeometryTest35 "module"
-                     larcore_Geometry
+                     larcorealg_Geometry
                      larcore_Geometry_Geometry_service
 		     ${ART_FRAMEWORK_CORE}
    		     ${ART_FRAMEWORK_PRINCIPAL}
@@ -48,6 +67,7 @@ simple_plugin ( GeometryTest35 "module"
                      ${FHICLCPP}
                      cetlib cetlib_except
                      ${ROOT_BASIC_LIB_LIST}
+		     ${ROOT_GEOM}
 
                BASENAME_ONLY
           )
@@ -60,7 +80,7 @@ simple_plugin ( GeometryTest35 "module"
 # test for CRM channel mapping (BOOST unit test)
 cet_test(geometry_crmchannelmapping_test
   SOURCES geometry_crmchannelmapping_test.cxx
-  LIBRARIES larcore_Geometry
+  LIBRARIES larcorealg_Geometry
             GeometryTestLib
             dune_Geometry
             ${MF_MESSAGELOGGER}
@@ -84,5 +104,17 @@ cet_test(dump_channel_map_dunefd_test HANDBUILT
   DATAFILES dump_dunefd_channelmap.fcl
   TEST_EXEC lar
   TEST_ARGS --rethrow-all --config ./dump_dunefd_channelmap.fcl
+)
+
+cet_test(dump_channel_map_dunedphase10kt_test HANDBUILT
+  DATAFILES dump_dunedphase10kt_channelmap.fcl
+  TEST_EXEC lar
+  TEST_ARGS --rethrow-all --config ./dump_dunedphase10kt_channelmap.fcl
+)
+
+cet_test(dump_channel_map_dunedphase10kt_workspace_test HANDBUILT
+  DATAFILES dump_dunedphase10kt_workspace_channelmap.fcl
+  TEST_EXEC lar
+  TEST_ARGS --rethrow-all --config ./dump_dunedphase10kt_workspace_channelmap.fcl
 )
 

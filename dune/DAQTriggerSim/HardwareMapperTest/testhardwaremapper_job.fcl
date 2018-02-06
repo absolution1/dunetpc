@@ -1,0 +1,38 @@
+#include "services_dune.fcl"
+#include "TestHardwareMapper.fcl"
+#include "HardwareMapperServiceConfig.fcl"
+
+
+process_name: TestHardwareMapper
+
+services:
+{
+  @table::dunefd_services
+  TFileService:          { fileName: "TemplateTrigger_hist.root" }
+  TimeTracker:           {}
+  MemoryTracker:         { ignoreTotal: 1 } # default is one
+  RandomNumberGenerator: {} #ART native random number generator
+  FileCatalogMetadata:   @local::art_file_catalog_mc
+  Geometry:              @local::dune10kt_1x2x6_geo
+}
+services.hardwaremapper: @local::standard_hardwaremapper
+#jpd -- here is how to switch on sending ONLY HardwareMapperService output to a file
+services.message.destinations.LogHardwareMapper: @local::HardwareMapperDest.LogHardwareMapperService
+
+source:
+{
+    module_type: RootInput
+    maxEvents: -1
+}
+
+physics:
+{
+  analyzers:
+  {
+    testhardwaremapper:     @local::standard_testhardwaremapper
+  }
+
+  ana: [ testhardwaremapper ]
+  end_paths: [ ana ] 
+
+}

@@ -27,7 +27,7 @@
 
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "larcore/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
 #include "dune/Geometry/GeoObjectSorter35.h"
 #include "fhiclcpp/ParameterSet.h"
 

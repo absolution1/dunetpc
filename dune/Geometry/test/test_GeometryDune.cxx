@@ -197,7 +197,8 @@ void setExpectedValuesSpacePoints(Geometry*);
 //         dorop - If true ROP mapping methods are tested
 //  maxchanprint - Max # channels to display for each ROP
 
-int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) {
+int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
+                      bool useExistingFcl) {
   const string myname = "test_GeometryDune: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
@@ -215,7 +216,7 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
   cout << myname << line << endl;
   cout << myname << "Create configuration." << endl;
   const char* ofname = "test_GeometryDune.fcl";
-  {
+  if ( ! useExistingFcl ) {
     ofstream fout(ofname);
     fout << "#include \"geometry_dune.fcl\"" << endl;
     fout << "services.Geometry:                   @local::" + ev.gname << endl;
@@ -299,7 +300,16 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
       assert( npla == 3 );
       for ( Index ipla=0; ipla<npla; ++ipla ) {
         Index nwir = pgeo->Nwires(ipla, itpc, icry);
-        cout << "      Plane " << ipla << " has " << nwir << " wires" << endl;
+        Index ich1 = pgeo->Nchannels();
+        Index ich2 = 0;
+        for ( Index iwir=0; iwir<nwir; ++iwir ) {
+          Index ich = pgeo->PlaneWireToChannel(ipla, iwir, itpc, icry);
+          if ( ich < ich1 ) ich1 = ich;
+          if ( ich > ich2 ) ich2 = ich;
+        }
+        cout << "      Plane " << ipla << " has " << setw(4) << nwir << " wires"
+             << " readout on channels [" << ich1 << ", " << ich2 << "]"
+             << endl;
         assert( nwir == ev.nwirPerPlane[itpc][ipla] );
       }
     }
@@ -401,6 +411,31 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
       assert( iapa == ev.chaapa[icha] );
       assert( irop == ev.charop[icha] );
     }
+    cout << myname << line << endl;
+    cout << "Check ROP-TPC mapping." << endl;
+    for ( CryostatID cryid: pgeo->IterateCryostatIDs() ) {
+      Index napa = pgeo->NTPCsets(cryid);
+      cout << "  Cryostat " << icry << " has " << napa << " APAs" << endl;
+      assert( napa == ev.napa );
+      for ( Index iapa=0; iapa<napa; ++iapa ) {
+        APAID apaid(cryid, iapa);
+        Index nrop = pgeo->NROPs(apaid);
+        cout << "    APA " << iapa << " has " << nrop << " ROPs" << endl;
+        assert( nrop == ev.nrop );
+        for ( Index irop=0; irop<nrop; ++irop ) {
+          ROPID ropid(apaid, irop);
+          std::vector<geo::TPCID> rtpcs = pgeo->ROPtoTPCs(ropid);
+          Index nrtpc = rtpcs.size();
+          assert( nrtpc > 0 );
+          cout << "      ROP " << irop << " TPCs:";
+          for ( Index irtpc=0; irtpc<nrtpc; ++irtpc ) {
+            assert(rtpcs[irtpc].Cryostat == icry);
+            cout << (irtpc > 0  ? "," : "") << " " << rtpcs[irtpc].TPC;
+          }
+          cout << endl;
+        }
+      }
+    }
   } else {
     cout << myname << line << endl;
     cout << "Skipped APA and ROP tests." << endl;
@@ -494,12 +529,16 @@ int main(int argc, const char* argv[]) {
   setExpectedValues(ev);
   bool dorop = true;
   Index maxchanprint = 10;
+  bool useExistingFcl = false;
   if ( argc > 1 ) {
     string sarg = argv[1];
     if ( sarg == "-h" ) {
-      cout << argv[0] << ": . [dorop]";
-      cout << argv[0] << ": [ChannelMapClass] [dorop]";
-      cout << argv[0] << ": [Geometry/ChannelMapClass/sorter] [dorop]";
+      cout << argv[0] << ": . [dorop] [maxchan] [usefcl]" << endl;
+      cout << argv[0] << ": [ChannelMapClass] [dorop] [maxchan] [usefcl]" << endl;
+      cout << argv[0] << ": [Geometry/ChannelMapClass/sorter] [dorop] [maxchan] [usefcl]" << endl;
+      cout << "    dorop: If true ROP mapping methods are tested [true]" << endl;
+      cout << "  maxchan: Max # channels displayed for each ROP [10]" << endl;
+      cout << "   usefcl: Take top-level fcl from current directory [false]" << endl;
       return 0;
     }
     string::size_type ipos = sarg.find("/");
@@ -518,13 +557,17 @@ int main(int argc, const char* argv[]) {
   }
   if ( argc > 2 ) {
     string sarg = argv[2];
-    dorop = sarg == "1" || sarg == "true";
+    dorop = sarg == "1" || sarg == "true" || sarg == ".";
   }
   if ( argc > 3 ) {
     istringstream ssarg(argv[3]);
     ssarg >> maxchanprint;
   }
-  test_GeometryDune(ev, dorop, maxchanprint);
+  if ( argc > 4 ) {
+    string sarg = argv[4];
+    useExistingFcl = sarg == "1" || sarg == "true";
+  }
+  test_GeometryDune(ev, dorop, maxchanprint, useExistingFcl);
   cout << "Tests concluded." << endl;
   ArtServiceHelper::close();
   return 0;

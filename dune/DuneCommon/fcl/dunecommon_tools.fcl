@@ -1,0 +1,12 @@
+# dunecommon_tools.fcl
+
+# David Adams
+# August 2017
+
+# Dune common tools.
+
+# Histogram manager.
+tools.histMgr: {
+  tool_type: SimpleHistogramManager
+  LogLevel: 1
+}

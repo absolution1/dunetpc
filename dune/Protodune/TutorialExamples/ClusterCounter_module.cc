@@ -3,8 +3,8 @@
 // Module Type: analyzer
 // File:        ClusterCounter_module.cc
 //
-// Generated at Tue Oct 25 05:26:55 2016 by Robert using artmod
-// from cetpkgsupport v1_10_02.
+// Just an empty module, outputs the event number.
+// Robert Sulej
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -13,7 +13,6 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 

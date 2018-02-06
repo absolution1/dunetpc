@@ -4,14 +4,14 @@ dune35t_analysistree:
 { 
  module_type:                 "dune/AnaTree/AnalysisTree"
  DigitModuleLabel:            "daq"
- HitsModuleLabel:             "gaushit"
+ HitsModuleLabel:             "linecluster"
  LArGeantModuleLabel:         "largeant"
  CalDataModuleLabel:          "caldata"
  GenieGenModuleLabel:         "generator"
  CryGenModuleLabel:           "generator"
  ProtoGenModuleLabel:           ""
  G4ModuleLabel:               "largeant"
- TrackModuleLabel:            [ "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
+ TrackModuleLabel:            [ "pmtrack", "pmtrackdc", "pandoraTrack", "pandoraTrackdc" ]
  VertexModuleLabel:           [ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
  PandoraNuVertexModuleLabel:  ""
  ClusterModuleLabel:          "linecluster"
@@ -58,7 +58,7 @@ protodune_analysistree:   @local::dune35t_analysistree
 protodune_analysistree.CryGenModuleLabel: "cosmicgenerator"
 protodune_analysistree.ProtoGenModuleLabel: "generator"
 protodune_analysistree.SaveProtoInfo: true
-protodune_analysistree.TrackModuleLabel: [ "pmtrack", "pandora", "pmtrajfit" ]
+protodune_analysistree.TrackModuleLabel: [ "pmtrack", "pandoraTrack", "pmtrajfit" ]
 protodune_analysistree.CalorimetryModuleLabel: [ "pmtrackcalo", "pandoracalo", "pmtrajfitcalo" ]
 protodune_analysistree.ParticleIDModuleLabel:       [ "pmtrackpid", "pandorapid", "pmtrajfitpid" ]
 protodune_analysistree.FlashT0FinderLabel: [ "", "", "" ]
@@ -69,7 +69,8 @@ protodune_analysistree.FlashMatchAssocLabel: [ "", "", "" ]
 protodune_analysistree.SaveShowerInfo:  false
 
 dune10kt_analysistree: @local::dune35t_analysistree
-dune10kt_analysistree.TrackModuleLabel: [ "pmtrack", "pmtracktc", "pandora", "pmtrajfit" ]
+dune10kt_analysistree.PandoraNuVertexModuleLabel: "pandora"
+dune10kt_analysistree.TrackModuleLabel: [ "pmtrack", "pmtracktc", "pandoraTrack", "pmtrajfit" ]
 dune10kt_analysistree.CalorimetryModuleLabel: [ "pmtrackcalo", "pmtracktccalo", "pandoracalo", "pmtrajfitcalo" ]
 dune10kt_analysistree.ParticleIDModuleLabel:       [ "pmtrackpid", "pmtracktcpid", "pandorapid", "pmtrajfitpid" ]
 dune10kt_analysistree.FlashT0FinderLabel: [ "", "", "", "" ]
@@ -85,6 +86,7 @@ dune10kt_analysistree.SaveGenieInfo:              true
 dune10kt_analysistree.SaveExternCounterInfo:      false
 dune10kt_analysistree.SaveFlashInfo:              false
 dune10kt_analysistree.SaveShowerInfo:             true
+dune10kt_analysistree.SavePandoraNuVertexInfo:    true
 
 fddphase_analysistree: @local::dune35t_analysistree
 fddphase_analysistree.TrackModuleLabel: [ "pmtrack" ]
