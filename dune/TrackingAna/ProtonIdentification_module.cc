@@ -48,7 +48,8 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -141,6 +142,7 @@ private:
 
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
@@ -447,7 +449,7 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       for(size_t h = 0; h < allHits.size(); ++h){
 	art::Ptr<recob::Hit> hit = allHits[h];
 	std::vector<sim::IDE> ides;
-	std::vector<sim::TrackIDE> TrackIDs = bktrk->HitToTrackID(hit);
+	std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToTrackIDEs(hit);
 	for(size_t e = 0; e < TrackIDs.size(); ++e){
 	  trkide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 	}

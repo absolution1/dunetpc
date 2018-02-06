@@ -24,7 +24,9 @@
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
+
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 
@@ -79,7 +81,6 @@ private:
   bool  IsInTPC( float X1, float Y1, float Z1 , float Bound[6]);
   // Handles
   art::ServiceHandle<geo::Geometry> geom;
-  art::ServiceHandle<cheat::BackTracker> bktrk;
 
   // Parameter List
   int   Verbosity;
