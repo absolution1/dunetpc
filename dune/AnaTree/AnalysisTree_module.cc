@@ -61,6 +61,8 @@
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/PointCharge.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/EndPoint2D.h"
 #include "lardataobj/RecoBase/Vertex.h"
@@ -73,9 +75,12 @@
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/MVAPIDResult.h"
+#include "larreco/SpacePointSolver/Solver.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "dune/OpticalDetector/OpFlashSort.h"
+
+#include "lardata/ArtDataHelper/MVAReader.h"
 
 #include <cstddef> // std::ptrdiff_t
 #include <cstring> // std::memcpy()
@@ -92,6 +97,8 @@
 
 #include "TTree.h"
 #include "TTimeStamp.h"
+
+#define MVA_LENGTH 4
 
 constexpr int kNplanes       = 3;     //number of wire planes
 constexpr int kMaxHits       = 40000; //maximum number of hits;
@@ -474,6 +481,8 @@ namespace dune {
 	tdPFParticle = 0x4000,
 	tdCount = 0x8000,
   tdProto = 0x10000,
+  tdSpacePoint = 0x20000,
+  tdCnn = 0x40000,
 	tdDefault = 0
 	}; // DataBits_t
 
@@ -541,6 +550,8 @@ namespace dune {
     Short_t  hit_trkKey[kMaxHits];      //is this hit associated with a reco track,  if so associate a unique track key ID?
     Short_t  hit_clusterid[kMaxHits];  //is this hit associated with a reco cluster?
     Short_t  hit_clusterKey[kMaxHits];  //is this hit associated with a reco cluster, if so associate a unique cluster key ID?
+    Short_t  hit_spacepointid[kMaxHits];
+    Short_t  hit_spacepointKey[kMaxHits];
 
     Float_t rawD_ph[kMaxHits];
     Float_t rawD_peakT[kMaxHits];
@@ -579,6 +590,21 @@ namespace dune {
     Short_t cluncosmictags_tagger[kMaxClusters];      //No. of cosmic tags associated to this cluster
     Float_t clucosmicscore_tagger[kMaxClusters];      //Cosmic score associated to this cluster. In the case of more than one tag, the first one is associated.
     Short_t clucosmictype_tagger[kMaxClusters];       //Cosmic tag type for this cluster.
+
+    // SpacePointSolver data
+    Short_t nspacepoints;
+    std::vector<Float_t> SpacePointX;   // X position of this SpacePoint
+    std::vector<Float_t> SpacePointY;   // Y position of this SpacePoint
+    std::vector<Float_t> SpacePointZ;   // Z position of this SpacePoint
+    std::vector<Float_t> SpacePointQ;   // charge of this SpacePoint
+    std::vector<Float_t> SpacePointErrX;   // X error of this SpacePoint
+    std::vector<Float_t> SpacePointErrY;   // Y error of this SpacePoint
+    std::vector<Float_t> SpacePointErrZ;   // Z error of this SpacePoint
+    std::vector<Int_t> SpacePointID;
+    std::vector<Float_t> SpacePointChisq;
+
+    // CNN data
+    std::vector<Float_t> SpacePointEmScore;
 
     // flash information
     Int_t    no_flashes;                //number of flashes
@@ -963,7 +989,13 @@ namespace dune {
     bool hasExternCountInfo() const { return bits & tdCount; }
 
     /// Returns whether we have protoDUNE beam primaries
-    bool hasProtoInfo() const {return bits & tdProto; }
+    bool hasProtoInfo() const { return bits & tdProto; }
+
+    /// Returns whether we have SpacePointSolver data
+    bool hasSpacePointSolverInfo() const { return bits & tdSpacePoint; }
+
+    /// Returns whether we have CNN data
+    bool hasCnnInfo() const { return bits & tdCnn; }
 
     /// Sets the specified bits
     void SetBits(unsigned int setbits, bool unset = false)
@@ -1028,6 +1060,9 @@ namespace dune {
 
     /// Resize the data strutcure for  MC Tracks
     void ResizeMCTrack(int nMCTracks);
+
+    /// Resize the data structure for SpacePointSolver
+    void ResizeSpacePointSolver(int nSpacePoints);
 
     /// Connect this object with a tree
     void SetAddresses(
@@ -1220,6 +1255,8 @@ namespace dune {
     std::string fExternalCounterModuleLabel;
     std::string fMCShowerModuleLabel;
     std::string fMCTrackModuleLabel;
+    std::string fSpacePointSolverModuleLabel;
+    std::string fCnnModuleLabel;
     std::vector<std::string> fTrackModuleLabel;
     std::string fPFParticleModuleLabel;
     std::vector<std::string> fVertexModuleLabel;
@@ -1250,6 +1287,8 @@ namespace dune {
     bool fSaveExternCounterInfo;  ///whether to extract and save External Counter information
     bool fSaveShowerInfo;  ///whether to extract and save Shower information
     bool fSavePFParticleInfo; ///whether to extract and save PFParticle information
+    bool fSaveSpacePointSolverInfo; ///whether to extract and save SpacePointSolver information
+    bool fSaveCnnInfo; ///whether to extract and save CNN information
 
     std::vector<std::string> fCosmicTaggerAssocLabel;
     std::vector<std::string> fContainmentTaggerAssocLabel;
@@ -1298,6 +1337,8 @@ namespace dune {
 	fData->SetBits(AnalysisTreeDataStruct::tdVertex, !fSaveVertexInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdAuxDet, !fSaveAuxDetInfo);
         fData->SetBits(AnalysisTreeDataStruct::tdPFParticle, !fSavePFParticleInfo);
+  fData->SetBits(AnalysisTreeDataStruct::tdSpacePoint, !fSaveSpacePointSolverInfo);
+  fData->SetBits(AnalysisTreeDataStruct::tdCnn, !fSaveCnnInfo);
       }
       else {
 	fData->SetTrackers(GetNTrackers());
@@ -2231,6 +2272,8 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   std::fill(hit_trkKey, hit_trkKey + sizeof(hit_trkKey)/sizeof(hit_trkKey[0]), -9999);
   std::fill(hit_clusterid, hit_clusterid + sizeof(hit_clusterid)/sizeof(hit_clusterid[0]), -99999);
   std::fill(hit_clusterKey, hit_clusterKey + sizeof(hit_clusterKey)/sizeof(hit_clusterKey[0]), -9999);
+  std::fill(hit_spacepointid, hit_spacepointid + sizeof(hit_spacepointid)/sizeof(hit_spacepointid[0]), -99999);
+  std::fill(hit_spacepointKey, hit_spacepointKey + sizeof(hit_spacepointKey)/sizeof(hit_spacepointKey[0]), -9999);
   std::fill(hit_nelec, hit_nelec + sizeof(hit_nelec)/sizeof(hit_nelec[0]), -99999.);
   std::fill(hit_energy, hit_energy + sizeof(hit_energy)/sizeof(hit_energy[0]), -99999.);
   //raw digit information
@@ -2275,6 +2318,21 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   std::fill(cluncosmictags_tagger, cluncosmictags_tagger + sizeof(cluncosmictags_tagger)/sizeof(cluncosmictags_tagger[0]), -9999);
   std::fill(clucosmicscore_tagger, clucosmicscore_tagger + sizeof(clucosmicscore_tagger)/sizeof(clucosmicscore_tagger[0]), -99999.);
   std::fill(clucosmictype_tagger , clucosmictype_tagger  + sizeof(clucosmictype_tagger )/sizeof(clucosmictype_tagger [0]), -9999);
+
+  // SpacePointSolver information
+  nspacepoints = 0;
+  FillWith(SpacePointX, -99999.);
+  FillWith(SpacePointY, -99999.);
+  FillWith(SpacePointZ, -99999.);
+  FillWith(SpacePointQ, -99999.);
+  FillWith(SpacePointErrX, -99999.);
+  FillWith(SpacePointErrY, -99999.);
+  FillWith(SpacePointErrZ, -99999.);
+  FillWith(SpacePointID, -99999);
+  FillWith(SpacePointChisq, -99999.);
+
+  // CNN information
+  FillWith(SpacePointEmScore, -99999.);
 
   nnuvtx = 0;
   std::fill(nuvtxx, nuvtxx + sizeof(nuvtxx)/sizeof(nuvtxx[0]), -99999.);
@@ -2777,6 +2835,20 @@ void dune::AnalysisTreeDataStruct::ResizeMCTrack(int nMCTracks) {
 
 } // dune::AnalysisTreeDataStruct::ResizeMCTrack()
 
+void dune::AnalysisTreeDataStruct::ResizeSpacePointSolver(int nSpacePoints) {
+  SpacePointX.resize(nSpacePoints);
+  SpacePointY.resize(nSpacePoints);
+  SpacePointZ.resize(nSpacePoints);
+  SpacePointQ.resize(nSpacePoints);
+  SpacePointErrX.resize(nSpacePoints);
+  SpacePointErrY.resize(nSpacePoints);
+  SpacePointErrZ.resize(nSpacePoints);
+  SpacePointID.resize(nSpacePoints);
+  SpacePointChisq.resize(nSpacePoints);
+
+  SpacePointEmScore.resize(nSpacePoints);
+} // dune::AnalysisTreeDataStruct::ResizeSpacePointSolver()
+
 
 
 void dune::AnalysisTreeDataStruct::SetAddresses(
@@ -2824,6 +2896,8 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits_stored]/S");
     CreateBranch("hit_clusterid",hit_clusterid,"hit_clusterid[no_hits_stored]/S");
     CreateBranch("hit_clusterKey",hit_clusterKey,"hit_clusterKey[no_hits_stored]/S");
+    CreateBranch("hit_spacepointid",hit_spacepointid,"hit_spacepointid[no_hits_stored]/S");
+    CreateBranch("hit_spacepointKey",hit_spacepointKey,"hit_spacepointKey[no_hits_stored]/S");
     if (!isCosmics){
       CreateBranch("hit_nelec",hit_nelec,"hit_nelec[no_hits_stored]/F");
       CreateBranch("hit_energy",hit_energy,"hit_energy[no_hits_stored]/F");
@@ -3220,6 +3294,25 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
 		 "CombinedEnergyDep[geant_list_size]" + MaxAuxDetIndexStr + "/F");
   } // if hasAuxDetector
 
+  if(hasSpacePointSolverInfo()) {
+    std::cout << "Creating branches.\n\n";
+    CreateBranch("nspacepoints",    &nspacepoints,    "nspacepoints/S");
+    CreateBranch("SpacePointX",     SpacePointX,      "SpacePointX[nspacepoints]/F");
+    CreateBranch("SpacePointY",     SpacePointY,      "SpacePointY[nspacepoints]/F");
+    CreateBranch("SpacePointZ",     SpacePointZ,      "SpacePointZ[nspacepoints]/F");
+    CreateBranch("SpacePointQ",     SpacePointQ,      "SpacePointQ[nspacepoints]/F");
+    CreateBranch("SpacePointErrX",  SpacePointErrX,   "SpacePointErrX[nspacepoints]/F");
+    CreateBranch("SpacePointErrY",  SpacePointErrY,   "SpacePointErrY[nspacepoints]/F");
+    CreateBranch("SpacePointErrZ",  SpacePointErrZ,   "SpacePointErrZ[nspacepoints]/F");
+    CreateBranch("SpacePointID",    SpacePointID,     "SpacePointID[nspacepoints]/I");
+    CreateBranch("SpacePointChisq", SpacePointChisq,  "SpacePointChisq[nspacepoints]/F");
+
+    if(hasCnnInfo()) {
+      CreateBranch("SpacePointEmScore", SpacePointEmScore, "SpacePointEmScore[nspacepoints]/F");
+    } // if hasCnnInfo
+  } // if hasSpacePointSolverInfo
+
+
 } // dune::AnalysisTreeDataStruct::SetAddresses()
 
 
@@ -3244,6 +3337,8 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fExternalCounterModuleLabel (pset.get< std::string >("ExternalCounterModuleLabel")      ),
   fMCShowerModuleLabel      (pset.get< std::string >("MCShowerModuleLabel")     ),
   fMCTrackModuleLabel      (pset.get< std::string >("MCTrackModuleLabel")     ),
+  fSpacePointSolverModuleLabel (pset.get< std::string >("SpacePointSolverModuleLabel")),
+  fCnnModuleLabel           (pset.get< std::string >("CnnModuleLabel")),
   fTrackModuleLabel         (pset.get< std::vector<std::string> >("TrackModuleLabel")),
   fVertexModuleLabel        (pset.get< std::vector<std::string> >("VertexModuleLabel")),
   fShowerModuleLabel        (pset.get< std::vector<std::string> >("ShowerModuleLabel")),
@@ -3273,6 +3368,8 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fSaveExternCounterInfo            (pset.get< bool >("SaveExternCounterInfo", false)),
   fSaveShowerInfo            (pset.get< bool >("SaveShowerInfo", false)),
   fSavePFParticleInfo	    (pset.get< bool >("SavePFParticleInfo", false)),
+  fSaveSpacePointSolverInfo (pset.get< bool >("SaveSpacePointSolverInfo", false)),
+  fSaveCnnInfo              (pset.get< bool >("SaveCnnInfo", false)),
   fCosmicTaggerAssocLabel  (pset.get<std::vector< std::string > >("CosmicTaggerAssocLabel") ),
   fContainmentTaggerAssocLabel  (pset.get<std::vector< std::string > >("ContainmentTaggerAssocLabel") ),
   fFlashMatchAssocLabel (pset.get<std::vector< std::string > >("FlashMatchAssocLabel") ),
@@ -3436,6 +3533,7 @@ void dune::AnalysisTree::endSubRun(const art::SubRun& sr)
 
 void dune::AnalysisTree::analyze(const art::Event& evt)
 {
+  std::cout << "Analysing.\n\n";
   //services
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
@@ -3456,6 +3554,19 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   if (fSaveClusterInfo){
     if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
       art::fill_ptr_vector(clusterlist, clusterListHandle);
+  }
+
+  // * spacepoints
+  art::Handle<std::vector<recob::SpacePoint>> spacepointListHandle;
+  art::Handle<std::vector<recob::PointCharge>> pointchargeListHandle;
+  if (fSaveSpacePointSolverInfo) {
+    std::cout << "Saving SpacepointSolver info.";
+    evt.getByLabel(fSpacePointSolverModuleLabel, spacepointListHandle);
+    evt.getByLabel(fSpacePointSolverModuleLabel, pointchargeListHandle);
+    if (spacepointListHandle->size() != pointchargeListHandle->size()) {
+      throw cet::exception("tutorial::ReadSpacePointAndCnn")
+          << "size of point and charge containers must be equal" << std::endl;
+    }
   }
 
   // * flashes
@@ -3589,6 +3700,11 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 			      << nGeniePrimaries << " GENIE particles";
   } // if MC
 
+  // SpacePointSolver information
+  int nSpacePoints = 0;
+  if (fSaveSpacePointSolverInfo && spacepointListHandle.isValid())
+    nSpacePoints = spacepointListHandle->size();
+
   CreateData(); // tracker data is created with default constructor
   if (fSaveGenieInfo)
     fData->ResizeGenie(nGeniePrimaries);
@@ -3602,6 +3718,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     fData->ResizeMCShower(nMCShowers);
   if (fSaveMCTrackInfo)
     fData->ResizeMCTrack(nMCTracks);
+  if (fSaveSpacePointSolverInfo)
+    fData->ResizeSpacePointSolver(nSpacePoints);
 
   fData->ClearLocalData(); // don't bother clearing tracker data yet
 
@@ -3871,14 +3989,18 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     //using cchit will not make this association. In the case of gaushit, just use gaushit
     //Not initializing clusterID to -1 since some clustering algorithms assign negative IDs!
     if (evt.getByLabel(fHitsModuleLabel,hitListHandle)){
-      //Find clusters associated with hits
+      //Find clusters and spacepoints associated with hits
       art::FindManyP<recob::Cluster> fmcl(hitListHandle,evt,fClusterModuleLabel);
+      art::FindManyP<recob::SpacePoint> fmsp(hitListHandle,evt,fSpacePointSolverModuleLabel);
       for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits
-        if (fmcl.isValid()){
-      	  if (fmcl.at(i).size()!=0){
-	    fData->hit_clusterid[i] = fmcl.at(i)[0]->ID();
-	    fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
-  	  }
+        if (fmcl.isValid() && fmcl.at(i).size()!=0){
+          fData->hit_clusterid[i] = fmcl.at(i)[0]->ID();
+          fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
+          // std::cout << "ClusterID " << 
+        }
+        if(fmsp.isValid() && fmsp.at(i).size()!=0){
+          fData->hit_spacepointid[i] = fmsp.at(i)[0]->ID();
+          fData->hit_spacepointKey[i] = fmsp.at(i)[0].key();
         }
       }
     }
@@ -3975,6 +4097,55 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
     }//end loop over clusters
   }//end fSaveClusterInfo
+
+  if (fSaveSpacePointSolverInfo){
+    fData->nspacepoints = (unsigned int) nSpacePoints;
+
+    // Largely copied from Robert Sulej's ReadSpacePointAndCnn_module.cc
+    if(fSaveCnnInfo) {
+      auto cluResults = anab::MVAReader<recob::Cluster, MVA_LENGTH>::create(evt, fCnnModuleLabel);
+      if(cluResults) {
+        size_t emLikeIdx = cluResults->getIndex("em"); // at which index EM-like is stored in CNN output vector
+
+        const art::FindManyP<recob::Hit> hitsFromClusters(cluResults->dataHandle(), evt, cluResults->dataTag());
+        const art::FindManyP<recob::SpacePoint> spFromHits(hitListHandle, evt, fSpacePointSolverModuleLabel);
+
+        std::vector<size_t> sizeScore(nSpacePoints, 0); // keep track of the max size of a cluster containing hit associated to spacepoint
+
+        for(size_t c = 0; c < cluResults->size(); ++c) {
+          const std::vector< art::Ptr<recob::Hit> > & hits = hitsFromClusters.at(c);
+          std::array<float, MVA_LENGTH> cnn_out = cluResults->getOutput(c);
+
+          for (auto& hptr : hits) {
+            const std::vector< art::Ptr<recob::SpacePoint> > & sp = spFromHits.at(hptr.key());
+            for(const auto & spptr : sp) { // Should always be just one associated spacepoint
+              if(hits.size() > sizeScore[spptr.key()]) {
+                sizeScore[spptr.key()] = hits.size();
+                fData->SpacePointEmScore[spptr.key()] = cnn_out[emLikeIdx];
+              }
+            } // Loop over associated spacepoints
+          } // Loop over hits
+        } // Loop over cluResults
+      } // If cluResults
+    }
+
+    for (unsigned int is = 0; is < (unsigned int)nSpacePoints;
+         ++is) {  // loop over spacepoints
+      fData->SpacePointX[is] = (*spacepointListHandle)[is].XYZ()[0];
+      fData->SpacePointY[is] = (*spacepointListHandle)[is].XYZ()[1];
+      fData->SpacePointZ[is] = (*spacepointListHandle)[is].XYZ()[2];
+
+      fData->SpacePointQ[is] = (*pointchargeListHandle)[is].charge();
+
+      fData->SpacePointErrX[is] = (*spacepointListHandle)[is].ErrXYZ()[0];
+      fData->SpacePointErrY[is] = (*spacepointListHandle)[is].ErrXYZ()[1];
+      fData->SpacePointErrZ[is] = (*spacepointListHandle)[is].ErrXYZ()[2];
+
+      fData->SpacePointID[is] = (*spacepointListHandle)[is].ID();
+
+      fData->SpacePointID[is] = (*spacepointListHandle)[is].Chisq();
+    }//end loop over spacepoints
+  }//end fSpacePointSolverInfo
 
   if (fSaveFlashInfo){
     fData->no_flashes = (int) NFlashes;

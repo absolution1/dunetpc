@@ -9,16 +9,18 @@ dune35t_analysistree:
  CalDataModuleLabel:          "caldata"
  GenieGenModuleLabel:         "generator"
  CryGenModuleLabel:           "generator"
- ProtoGenModuleLabel:           ""
+ ProtoGenModuleLabel:         ""
  G4ModuleLabel:               "largeant"
  TrackModuleLabel:            [ "pmtrack", "pmtrackdc", "pandoraTrack", "pandoraTrackdc" ]
  VertexModuleLabel:           [ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
  PandoraNuVertexModuleLabel:  ""
  ClusterModuleLabel:          "linecluster"
  OpFlashModuleLabel:          "opflash"
- ExternalCounterModuleLabel:    "simcounter"
+ ExternalCounterModuleLabel:  "simcounter"
  MCShowerModuleLabel:         ""          # Don't have in the 35 ton....
  MCTrackModuleLabel:          ""          # Don't have in the 35 ton....
+ SpacePointSolverModuleLabel: "reco3d" ## Use reco3d1 for CNN results
+ CnnModuleLabel:              "emtrkmichelid:emtrkmichel"
  CalorimetryModuleLabel:      [ "pmtrackcalo", "pmtrackcalodc", "pandoracalo", "pandoracalodc" ]
  ParticleIDModuleLabel:       [ "", "", "", "" ]
  MVAPIDTrackModuleLabel:      [ "", "", "", "" ]
@@ -51,6 +53,8 @@ dune35t_analysistree:
  SaveExternCounterInfo:    true
  SaveShowerInfo:           false
  SaveCaloCosmics:          true
+ SaveSpacePointSolverInfo: false
+ SaveCnnInfo:              false
  G4minE:                   -1
 }
 

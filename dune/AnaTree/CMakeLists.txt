@@ -7,7 +7,9 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 	  larevt_Filters
 	  lardataobj_RawData
 	  lardataobj_RecoBase
+	  lardataobj_AnalysisBase
 	  lardata_RecoObjects larreco_Deprecated
+    lardata_ArtDataHelper
 	  larreco_RecoAlg
 	  larpandora_LArPandoraInterface
 	  SignalShapingServiceDUNE10kt_service
