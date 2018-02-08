@@ -98,29 +98,34 @@ DataMap FembLinearCalibration::update(AdcChannelData& acd) const {
     return res.setStatus(6);
   }
   AdcSignal gain = m_Gains[icha];
-  acd.samples.resize(acd.raw.size(), 0.0);
-  acd.flags.resize(acd.raw.size(), AdcGood);
-  AdcCount adcmin = m_AdcMins.size() ? m_AdcMins[icha] : m_AdcMin;
-  AdcCount adcmax = m_AdcMaxs.size() ? m_AdcMaxs[icha] : m_AdcMax;
-  Index nunder = 0;
-  Index nover = 0;
-  Index nsam = acd.raw.size();
-  for ( Index isam=0; isam<nsam; ++isam ) {
-    acd.samples[isam] = gain*(acd.raw[isam] - acd.pedestal);
-    if ( acd.raw[isam] <= adcmin ) {
-      acd.flags[isam] = AdcUnderflow;
-      ++nunder;
-    } else if ( acd.raw[isam] >= adcmax ) {
-      acd.flags[isam] = AdcOverflow;
-      ++nover;
+  if ( gain > 0.0 ) {
+    acd.samples.resize(acd.raw.size(), 0.0);
+    acd.flags.resize(acd.raw.size(), AdcGood);
+    AdcCount adcmin = m_AdcMins.size() ? m_AdcMins[icha] : m_AdcMin;
+    AdcCount adcmax = m_AdcMaxs.size() ? m_AdcMaxs[icha] : m_AdcMax;
+    Index nunder = 0;
+    Index nover = 0;
+    Index nsam = acd.raw.size();
+    for ( Index isam=0; isam<nsam; ++isam ) {
+      acd.samples[isam] = gain*(acd.raw[isam] - acd.pedestal);
+      if ( acd.raw[isam] <= adcmin ) {
+        acd.flags[isam] = AdcUnderflow;
+        ++nunder;
+      } else if ( acd.raw[isam] >= adcmax ) {
+        acd.flags[isam] = AdcOverflow;
+        ++nover;
+      }
     }
+    acd.sampleUnit = m_Units;
+    res.setInt("calibSampleCount", nsam);
+    res.setInt("calibUnderflowCount", nunder);
+    res.setInt("calibOverflowCount", nover);
+    res.setInt("calibAdcMin", adcmin);
+    res.setInt("calibAdcMax", adcmax);
+  } else {
+    acd.samples.resize(0);
   }
-  acd.sampleUnit = m_Units;
-  res.setInt("calibSampleCount", nsam);
-  res.setInt("calibUnderflowCount", nunder);
-  res.setInt("calibOverflowCount", nover);
-  res.setInt("calibAdcMin", adcmin);
-  res.setInt("calibAdcMax", adcmax);
+  res.setFloat("calibGain", gain);
   return res;
 }
 

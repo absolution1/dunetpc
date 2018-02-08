@@ -90,7 +90,7 @@ $widthTPCActive  = $nCRM_x * $widthCRM;  # 602
 $lengthTPCActive = $nCRM_z * $lengthCRM; # 602
 
 # active volume dimensions 
-$driftTPCActive  = 600.0;
+$driftTPCActive  = 597.0;
 
 # model anode strips as wires
 $padWidth  = 0.015;
@@ -102,12 +102,12 @@ $ReadoutPlane = 2 * $padWidth; # 0.03
 ############## Parameters for TPC and inner volume ###############
 
 # inner volume dimensions of the cryostat
-$Argon_x = 854.4;
-$Argon_y = 789.6;
-$Argon_z = 854.4;
+$Argon_x = 854.8;
+$Argon_y = 790.0;
+$Argon_z = 854.8;
 
 # width of gas argon layer on top
-$HeightGaseousAr = 81.8;
+$HeightGaseousAr = 51.5;
 
 # size of liquid argon buffer
 $xLArBuffer = 0.5 * ($Argon_x - $widthTPCActive); # 126.2
@@ -115,7 +115,7 @@ $yLArBuffer = $Argon_y - $driftTPCActive - $HeightGaseousAr - $ReadoutPlane; #10
 $zLArBuffer = 0.5 * ($Argon_z - $lengthTPCActive); # 126.2
 
 # cryostat 
-$SteelThickness = 0.12; # membrane
+$SteelThickness = 0.2; # membrane
 
 $Cryostat_x = $Argon_x + 2*$SteelThickness; # 854.64
 $Cryostat_y = $Argon_y + 2*$SteelThickness; # 789.84
@@ -128,7 +128,8 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness; # 854.64
 #pos in cm inside the cryostat
  #$pmt_pos_y  =  -300-(5.5 * 2.54)+5.115; just below the active volume
  #$pmt_pos_y  =  -300-(5.5 * 2.54)+5.115 + 22 -141.5; just on the top of the cryostat (new version)
- $pmt_pos_y  =  -300+5.115 - 1.27*2.54 + 22 -107.8;  #8.8cm from the bottom volTPCActive
+# $pmt_pos_y  =  -300+5.115 - 1.27*2.54 + 22 -107.8;  #8.8cm from the bottom volTPCActive
+ $HeightPMT = 37.0;
 
 #pmts not equally spaced:
  @pmt_pos = ( ' z="-238" x="-170" ', #pmt1
@@ -171,10 +172,12 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness; # 854.64
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
+
 $SteelSupport_x  =  1;
 $SteelSupport_y  =  1;
 $SteelSupport_z  =  1;
-$FoamPadding     =  80.2;
+$FoamPadding     =  80;
+
 $FracMassOfSteel =  0.5; #The steel support is not a solid block, but a mixture of air and steel
 $FracMassOfAir   =  1 - $FracMassOfSteel;
 
@@ -724,6 +727,7 @@ EOF
 }
 
   if ( $pmt_switch eq "on" ) {
+    $pmt_pos_y =  -$Argon_y/2 + 0.5*($HeightPMT);
     for ( $i=0; $i<36; $i=$i+1 ) { # pmts with coating
       print CRYO <<EOF;
   <physvol>
