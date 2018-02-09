@@ -248,14 +248,16 @@ namespace dune {
           TrackData_t<Float_t> trkcompleteness; //track completeness based on hit information
           TrackData_t<int> trkg4id;        //true g4 track id for the reconstructed track
           TrackData_t<int> trkorig;        //origin of the track
-          TrackData_t<Float_t> trktheta;      // theta.
-          TrackData_t<Float_t> trkphi;        // phi.
-          TrackData_t<Float_t> trkstartdcosx;
-          TrackData_t<Float_t> trkstartdcosy;
-          TrackData_t<Float_t> trkstartdcosz;
-          TrackData_t<Float_t> trkenddcosx;
-          TrackData_t<Float_t> trkenddcosy;
-          TrackData_t<Float_t> trkenddcosz;
+          TrackData_t<Float_t> trkstarttheta;      // theta.
+          TrackData_t<Float_t> trkstartphi;        // phi.
+          TrackData_t<Float_t> trkendtheta;      // theta.
+          TrackData_t<Float_t> trkendphi;        // phi.
+          TrackData_t<Float_t> trkstartdirectionx;
+          TrackData_t<Float_t> trkstartdirectiony;
+          TrackData_t<Float_t> trkstartdirectionz;
+          TrackData_t<Float_t> trkenddirectionx;
+          TrackData_t<Float_t> trkenddirectiony;
+          TrackData_t<Float_t> trkenddirectionz;
           TrackData_t<Float_t> trkthetaxz;    // theta_xz.
           TrackData_t<Float_t> trkthetayz;    // theta_yz.
           TrackData_t<Float_t> trkmom;        // momentum.
@@ -1477,14 +1479,16 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkendd.resize(MaxTracks);
   trkflashT0.resize(MaxTracks);
   trktrueT0.resize(MaxTracks);
-  trktheta.resize(MaxTracks);
-  trkphi.resize(MaxTracks);
-  trkstartdcosx.resize(MaxTracks);
-  trkstartdcosy.resize(MaxTracks);
-  trkstartdcosz.resize(MaxTracks);
-  trkenddcosx.resize(MaxTracks);
-  trkenddcosy.resize(MaxTracks);
-  trkenddcosz.resize(MaxTracks);
+  trkstarttheta.resize(MaxTracks);
+  trkstartphi.resize(MaxTracks);
+  trkendtheta.resize(MaxTracks);
+  trkendphi.resize(MaxTracks);
+  trkstartdirectionx.resize(MaxTracks);
+  trkstartdirectiony.resize(MaxTracks);
+  trkstartdirectionz.resize(MaxTracks);
+  trkenddirectionx.resize(MaxTracks);
+  trkenddirectiony.resize(MaxTracks);
+  trkenddirectionz.resize(MaxTracks);
   trkthetaxz.resize(MaxTracks);
   trkthetayz.resize(MaxTracks);
   trkmom.resize(MaxTracks);
@@ -1591,14 +1595,16 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   FillWith(trkpurity    , -999.);
   FillWith(trkcompleteness, -999.);
   FillWith(trkorig      , -9999 );
-  FillWith(trktheta     , -999.);
-  FillWith(trkphi       , -999.);
-  FillWith(trkstartdcosx, -999.);
-  FillWith(trkstartdcosy, -999.);
-  FillWith(trkstartdcosz, -999.);
-  FillWith(trkenddcosx  , -999.);
-  FillWith(trkenddcosy  , -999.);
-  FillWith(trkenddcosz  , -999.);
+  FillWith(trkstarttheta     , -999.);
+  FillWith(trkstartphi       , -999.);
+  FillWith(trkendtheta     , -999.);
+  FillWith(trkendphi       , -999.);
+  FillWith(trkstartdirectionx, -999.);
+  FillWith(trkstartdirectiony, -999.);
+  FillWith(trkstartdirectionz, -999.);
+  FillWith(trkenddirectionx  , -999.);
+  FillWith(trkenddirectiony  , -999.);
+  FillWith(trkenddirectionz  , -999.);
   FillWith(trkthetaxz   , -999.);
   FillWith(trkthetayz   , -999.);
   FillWith(trkmom       , -999.);
@@ -1674,38 +1680,63 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "Track_NumberOfHits_" + TrackLabel;
   CreateBranch(BranchName, NHitsPerTrack, BranchName + NTracksIndexStr + "/S");
 
-  BranchName = "Track_StartX_" + TrackLabel;
-  CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_StartY_" + TrackLabel;
-  CreateBranch(BranchName, trkstarty, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_StartZ_" + TrackLabel;
-  CreateBranch(BranchName, trkstartz, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_StartDistanceToBoundary_" + TrackLabel;
-  CreateBranch(BranchName, trkstartd, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_EndX_" + TrackLabel;
-  CreateBranch(BranchName, trkendx, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_EndY_" + TrackLabel;
-  CreateBranch(BranchName, trkendy, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_EndZ_" + TrackLabel;
-  CreateBranch(BranchName, trkendz, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_EndDistanceToBoundary_" + TrackLabel;
-  CreateBranch(BranchName, trkendd, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_Theta_" + TrackLabel;
-  CreateBranch(BranchName, trktheta, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_Phi_" + TrackLabel;
-  CreateBranch(BranchName, trkphi, BranchName + NTracksIndexStr + "/F");
-
   BranchName = "Track_Length_" + TrackLabel;
   CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartPosition_X_" + TrackLabel;
+  CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartPosition_Y_" + TrackLabel;
+  CreateBranch(BranchName, trkstarty, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartPosition_Z_" + TrackLabel;
+  CreateBranch(BranchName, trkstartz, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartPosition_DistanceToBoundary_" + TrackLabel;
+  CreateBranch(BranchName, trkstartd, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndPosition_X_" + TrackLabel;
+  CreateBranch(BranchName, trkendx, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndPosition_Y_" + TrackLabel;
+  CreateBranch(BranchName, trkendy, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndPosition_Z_" + TrackLabel;
+  CreateBranch(BranchName, trkendz, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndPosition_DistanceToBoundary_" + TrackLabel;
+  CreateBranch(BranchName, trkendd, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_Theta_" + TrackLabel;
+  CreateBranch(BranchName, trkstarttheta, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_Phi_" + TrackLabel;
+  CreateBranch(BranchName, trkstartphi, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_X_" + TrackLabel;
+  CreateBranch(BranchName, trkstartdirectionx, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_Y_" + TrackLabel;
+  CreateBranch(BranchName, trkstartdirectiony, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_Z_" + TrackLabel;
+  CreateBranch(BranchName, trkstartdirectionz, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_Theta_" + TrackLabel;
+  CreateBranch(BranchName, trkendtheta, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_Phi_" + TrackLabel;
+  CreateBranch(BranchName, trkendphi, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_X_" + TrackLabel;
+  CreateBranch(BranchName, trkenddirectionx, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_Y_" + TrackLabel;
+  CreateBranch(BranchName, trkenddirectiony, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_Z_" + TrackLabel;
+  CreateBranch(BranchName, trkenddirectionz, BranchName + NTracksIndexStr + "/F");
+
 
   /*
      BranchName = "trkncosmictags_tagger_" + TrackLabel;
@@ -1890,23 +1921,7 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
      */
 
   /*
-     BranchName = "trkstartdcosx_" + TrackLabel;
-     CreateBranch(BranchName, trkstartdcosx, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkstartdcosy_" + TrackLabel;
-     CreateBranch(BranchName, trkstartdcosy, BranchName + NTracksIndexStr + "/F");
-
-     BranchName = "trkstartdcosz_" + TrackLabel;
-     CreateBranch(BranchName, trkstartdcosz, BranchName + NTracksIndexStr + "/F");
-
-     BranchName = "trkenddcosx_" + TrackLabel;
-     CreateBranch(BranchName, trkenddcosx, BranchName + NTracksIndexStr + "/F");
-
-     BranchName = "trkenddcosy_" + TrackLabel;
-     CreateBranch(BranchName, trkenddcosy, BranchName + NTracksIndexStr + "/F");
-
-     BranchName = "trkenddcosz_" + TrackLabel;
-     CreateBranch(BranchName, trkenddcosz, BranchName + NTracksIndexStr + "/F");
 
      BranchName = "trkthetaxz_" + TrackLabel;
      CreateBranch(BranchName, trkthetaxz, BranchName + NTracksIndexStr + "/F");
@@ -4491,7 +4506,7 @@ if (fSaveTrackInfo) {
       const recob::Track& track = *ptrack;
 
       TVector3 pos, dir_start, dir_end, end;
-
+      TVector3 dir_start_flipped, dir_end_flipped;
       double tlen = 0., mom = 0.;
       int TrackID = -1;
 
@@ -4526,6 +4541,9 @@ if (fSaveTrackInfo) {
           dir_end   = track.EndDirection();
           end       = track.End();
 
+          dir_start_flipped.SetXYZ(dir_start.Z(), dir_start.Y(), dir_start.X());
+          dir_end_flipped.SetXYZ(dir_end.Z(), dir_end.Y(), dir_end.X());
+
           tlen        = length(track);
           if(track.NumberTrajectoryPoints() > 0)
             mom = track.VertexMomentum();
@@ -4549,14 +4567,18 @@ if (fSaveTrackInfo) {
         TrackerData.trkendy[iTrk]		  = end.Y();
         TrackerData.trkendz[iTrk]		  = end.Z();
         TrackerData.trkendd[iTrk]		  = dend;
-        TrackerData.trktheta[iTrk]		  = dir_start.Theta();
-        TrackerData.trkphi[iTrk]		  = dir_start.Phi();
-        TrackerData.trkstartdcosx[iTrk]	  = dir_start.X();
-        TrackerData.trkstartdcosy[iTrk]	  = dir_start.Y();
-        TrackerData.trkstartdcosz[iTrk]	  = dir_start.Z();
-        TrackerData.trkenddcosx[iTrk] 	  = dir_end.X();
-        TrackerData.trkenddcosy[iTrk] 	  = dir_end.Y();
-        TrackerData.trkenddcosz[iTrk] 	  = dir_end.Z();
+        TrackerData.trkstarttheta[iTrk]		  = (180.0/3.14159)*dir_start_flipped.Theta();
+        TrackerData.trkstartphi[iTrk]		  = (180.0/3.14159)*dir_start_flipped.Phi();
+        TrackerData.trkstartdirectionx[iTrk]	  = dir_start.X();
+        TrackerData.trkstartdirectiony[iTrk]	  = dir_start.Y();
+        TrackerData.trkstartdirectionz[iTrk]	  = dir_start.Z();
+
+        TrackerData.trkendtheta[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Theta();
+        TrackerData.trkendphi[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Phi();
+        TrackerData.trkenddirectionx[iTrk] 	  = dir_end.X();
+        TrackerData.trkenddirectiony[iTrk] 	  = dir_end.Y();
+        TrackerData.trkenddirectionz[iTrk] 	  = dir_end.Z();
+
         TrackerData.trkthetaxz[iTrk]  	  = theta_xz;
         TrackerData.trkthetayz[iTrk]  	  = theta_yz;
         TrackerData.trkmom[iTrk]		  = mom;

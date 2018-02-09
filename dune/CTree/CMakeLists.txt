@@ -1,4 +1,4 @@
-art_make( BASENAME_ONLY
+art_make(
     MODULE_LIBRARIES 
 	  dune_Geometry
     larcore_Geometry_Geometry_service

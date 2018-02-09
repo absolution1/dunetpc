@@ -915,6 +915,24 @@ int TPadManipulator::draw() {
 
 //**********************************************************************
 
+int TPadManipulator::erase() {
+  if ( haveParent() ) return parent()->erase();
+  if ( m_ppad == nullptr ) return 0;
+  delete m_ppad;
+  m_ppad = nullptr;
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::redraw() {
+  if ( haveParent() ) return parent()->redraw();
+  erase();
+  return draw();
+}
+
+//**********************************************************************
+
 int TPadManipulator::drawAxisTop() {
   if ( ! m_top ) return 0;
   if ( m_ppad == nullptr ) return 1;
