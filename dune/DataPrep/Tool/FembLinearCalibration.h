@@ -15,6 +15,9 @@
 // If AdcMins has length zero, then AdcMin is used for all channels.
 // If AdcMaxs has length zero, then AdcMax is used for all channels.
 //
+// If the gain is zero or negative, then no calibration is performed and the
+// prepared data vector is emtied..
+//
 // Calibration parameters are read from fcl files with the name FclNameBaseFFF
 // where FFF is the FEMB ID.
 //
@@ -28,8 +31,14 @@
 //   AdcMaxs - max ADC for each channel
 //
 // Output:
-//   nSample    - # of samples calibrated (size of raw data)
-//   nUnderflow - # samples flagged as underflow (ADC <= AdcMin)
+//   calibSampleCount    - # of samples calibrated (size of raw data)
+//   calibUnderflowCount - # samples flagged as underflow (ADC <= AdcMin)
+//   calibOverflowCount  - # samples flagged as underflow (ADC >= AdcMax)
+//   calibAdcMin         - min ADC for the channel
+//   calibAdcMax         - max ADC for the channel
+//   calibGain           - applied gain
+//
+// Int he case of zero or negative gain, only the last is returned.
 //   
 
 #ifndef FembLinearCalibration_H

@@ -2,6 +2,7 @@
 
 #include "FembMappedAdcModifier.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "TSystem.h"
 #include <iostream>
 #include <sstream>
 
@@ -50,6 +51,10 @@ DataMap FembMappedAdcModifier::update(AdcChannelData& acd) const {
   std::unique_ptr<DuneToolManager> pdtmManaged;
   if ( m_DirName.size() ) {
     Name fclfile = m_DirName + "/" + toolName + ".fcl";
+    if ( gSystem->AccessPathName(fclfile.c_str()) ) {
+      cout << myname << "ERROR: No such file: " << fclfile << endl;
+      return res.setStatus(2000);
+    }
     pdtmManaged.reset(new DuneToolManager(fclfile));
     pdtm = pdtmManaged.get();
   } else {

@@ -368,7 +368,7 @@
     <box name="InnerZPlane" lunit="cm" 
       x="0.015" 
       y="598.39" 
-      z="229.441"/>
+      z="229.5368"/>
     <box name="InnerActive" lunit="cm"
       x="358.4475"
       y="599.88875"
@@ -396,7 +396,7 @@
     <box name="OuterZPlane" lunit="cm" 
       x="0.015" 
       y="598.39" 
-      z="229.441"/>
+      z="229.5368"/>
     <box name="OuterActive" lunit="cm"
       x="11.50125"
       y="599.88875"
@@ -533,85 +533,13 @@
       <first ref="Cryostat"/>
       <second ref="ArgonInterior"/>
     </subtraction>
-    
-    <box name="CathFrame" lunit="cm"
-      x="6.35"
+
+    <box name="Cathode" lunit="cm"
+      x="0.016"
       y="603.2754"
       z="231.4956"/>
 
-    <box name="CathTop" lunit="cm"
-      x="3.0099"
-      y="194.1068"
-      z="110.4138"/>
 
-    <box name="CathMid" lunit="cm"
-      x="3.0099"
-      y="194.7418"
-      z="110.4138"/>
-
-    <subtraction name="Cath-1">
-      <first ref="CathFrame"/>
-      <second ref="CathTop"/>
-      <position name="posCath-1" x="1.67105" y="196.9643" z="58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-2">
-      <first ref="Cath-1"/>
-      <second ref="CathTop"/>
-      <position name="posCath-2" x="-1.67105" y="196.9643" z="58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-3">
-      <first ref="Cath-2"/>
-      <second ref="CathTop"/>
-      <position name="posCath-3" x="1.67105" y="196.9643" z="-58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-4">
-      <first ref="Cath-3"/>
-      <second ref="CathTop"/>
-      <position name="posCath-4" x="-1.67105" y="196.9643" z="-58.0009" unit="cm"/>
-    </subtraction>
-
-    <subtraction name="Cath-5">
-      <first ref="Cath-4"/>
-      <second ref="CathMid"/>
-      <position name="posCath-5" x="1.67105" y="0" z="58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-6">
-      <first ref="Cath-5"/>
-      <second ref="CathMid"/>
-      <position name="posCath-6" x="-1.67105" y="0" z="58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-7">
-      <first ref="Cath-6"/>
-      <second ref="CathMid"/>
-      <position name="posCath-7" x="1.67105" y="0" z="-58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-8">
-      <first ref="Cath-7"/>
-      <second ref="CathMid"/>
-      <position name="posCath-8" x="-1.67105" y="0" z="-58.0009" unit="cm"/>
-    </subtraction>
-
-
-    <subtraction name="Cath-9">
-      <first ref="Cath-8"/>
-      <second ref="CathTop"/>
-      <position name="posCath-9" x="1.67105" y="-196.9643" z="58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-10">
-      <first ref="Cath-9"/>
-      <second ref="CathTop"/>
-      <position name="posCath-10" x="-1.67105" y="-196.9643" z="58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-11">
-      <first ref="Cath-10"/>
-      <second ref="CathTop"/>
-      <position name="posCath-11" x="1.67105" y="-196.9643" z="-58.0009" unit="cm"/>
-    </subtraction>
-    <subtraction name="Cath-12">
-      <first ref="Cath-11"/>
-      <second ref="CathTop"/>
-      <position name="posCath-12" x="-1.67105" y="-196.9643" z="-58.0009" unit="cm"/>
-    </subtraction>
     <box name="boxFCEWmod" x="354.3" y="151.2" z="12.8" lunit="cm"/>
     <box name="boxFCEWHorSuppOut" x="354.3" y="15.2" z="10.2" lunit="cm"/>
     <box name="boxFCEWHorSuppInn" x="354.301" y="14.0" z="9.0" lunit="cm"/>
@@ -1159,7 +1087,7 @@
     </volume>
     <volume name="volCathode">
       <materialref ref="G10" />
-      <solidref ref="Cath-12" />
+      <solidref ref="Cathode" />
     </volume>
     <volume name="volOpDetSensitive_0-0">
       <materialref ref="LAr"/>
@@ -1827,7 +1755,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModTopRight-0" unit="cm"
          x="142.99425"
-         y="296.622"
+         y="298.452"
          z="-263.26"/>
         <rotationref ref="rPlus180AboutY"/>
       </physvol>
@@ -1835,7 +1763,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModTopLeft-0" unit="cm"
          x="-215.00575"
-         y="296.622"
+         y="298.452"
          z="-263.26"/>
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -1843,7 +1771,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModBottomRight-0" unit="cm"
          x="142.99425"
-         y="-334.622"
+         y="-336.452"
          z="-263.26"/>
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
       </physvol>
@@ -1851,7 +1779,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModBottomLeft-0" unit="cm"
          x="-215.00575"
-         y="-334.622"
+         y="-336.452"
          z="-263.26"/>
         <rotationref ref="rPlus180AboutX"/>
       </physvol>
@@ -2280,7 +2208,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModTopRight-1" unit="cm"
          x="142.99425"
-         y="296.622"
+         y="298.452"
          z="-31.2"/>
         <rotationref ref="rPlus180AboutY"/>
       </physvol>
@@ -2288,7 +2216,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModTopLeft-1" unit="cm"
          x="-215.00575"
-         y="296.622"
+         y="298.452"
          z="-31.2"/>
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -2296,7 +2224,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModBottomRight-1" unit="cm"
          x="142.99425"
-         y="-334.622"
+         y="-336.452"
          z="-31.2"/>
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
       </physvol>
@@ -2304,7 +2232,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModBottomLeft-1" unit="cm"
          x="-215.00575"
-         y="-334.622"
+         y="-336.452"
          z="-31.2"/>
         <rotationref ref="rPlus180AboutX"/>
       </physvol>
@@ -2733,7 +2661,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModTopRight-2" unit="cm"
          x="142.99425"
-         y="296.622"
+         y="298.452"
          z="200.86"/>
         <rotationref ref="rPlus180AboutY"/>
       </physvol>
@@ -2741,7 +2669,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModTopLeft-2" unit="cm"
          x="-215.00575"
-         y="296.622"
+         y="298.452"
          z="200.86"/>
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -2749,7 +2677,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModBottomRight-2" unit="cm"
          x="142.99425"
-         y="-334.622"
+         y="-336.452"
          z="200.86"/>
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
       </physvol>
@@ -2757,7 +2685,7 @@
         <volumeref ref="volFCMod"/>
         <position name="posFCModBottomLeft-2" unit="cm"
          x="-215.00575"
-         y="-334.622"
+         y="-336.452"
          z="200.86"/>
         <rotationref ref="rPlus180AboutX"/>
       </physvol>
@@ -10327,7 +10255,7 @@
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="36.00575" y="422.749375" z="374.08625"/>
+	<position name="posDetEnclosure" unit="cm" x="36.00575" y="422.749375" z="378.59625"/>
       </physvol>
 
     </volume>

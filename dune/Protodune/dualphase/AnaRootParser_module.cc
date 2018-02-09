@@ -34,8 +34,8 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "larsim/MCCheater/BackTrackerService.h"
-#include "larsim/MCCheater/ParticleInventoryService.h"
+//#include "larsim/MCCheater/BackTrackerService.h"
+//#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -44,6 +44,8 @@
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/PFParticle.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
@@ -180,7 +182,7 @@ namespace dune {
           PlaneData_t<Float_t>    trkefftruth; //completeness
           PlaneData_t<Float_t>    trkpurtruth; //purity of track
           PlaneData_t<Float_t>    trkpitchc;
-          PlaneData_t<Short_t>    ntrkhits;
+          PlaneData_t<Short_t>    ntrkhitsperview;
           HitData_t<Float_t>      trkdedx;
           HitData_t<Float_t>      trkdqdx;
           HitData_t<Float_t>      trkresrg;
@@ -194,8 +196,35 @@ namespace dune {
           Float_t trky2[10000];
           Float_t trkz2[10000];
 
+
+          Float_t hittrkx[10000];
+          Float_t hittrky[10000];
+          Float_t hittrkz[10000];
+
+          Float_t hittrkpitchC[10000];
+          Float_t hittrkdx[10000];
+
+          Short_t hittrkchannel[10000];
+          Short_t hittrktpc[10000];
+          Short_t hittrkview[10000];
+          Short_t hittrkwire[10000];
+          Float_t hittrkpeakT[10000];
+          Float_t hittrkchargeintegral[10000];
+          Float_t hittrkchargesum[10000];
+          Float_t hittrkph[10000];
+          Float_t hittrkstarT[10000];
+          Float_t hittrkendT[10000];
+          Float_t hittrkrms[10000];
+          Float_t hittrkgoddnessofFit[10000];
+          Short_t hittrkmultiplicity[10000];
+
+
+
+
+
           // more track info
           TrackData_t<Short_t> trkId;
+          TrackData_t<Short_t> NHitsPerTrack;
           TrackData_t<Short_t> trkncosmictags_tagger;
           TrackData_t<Float_t> trkcosmicscore_tagger;
           TrackData_t<Short_t> trkcosmictype_tagger;
@@ -219,14 +248,16 @@ namespace dune {
           TrackData_t<Float_t> trkcompleteness; //track completeness based on hit information
           TrackData_t<int> trkg4id;        //true g4 track id for the reconstructed track
           TrackData_t<int> trkorig;        //origin of the track
-          TrackData_t<Float_t> trktheta;      // theta.
-          TrackData_t<Float_t> trkphi;        // phi.
-          TrackData_t<Float_t> trkstartdcosx;
-          TrackData_t<Float_t> trkstartdcosy;
-          TrackData_t<Float_t> trkstartdcosz;
-          TrackData_t<Float_t> trkenddcosx;
-          TrackData_t<Float_t> trkenddcosy;
-          TrackData_t<Float_t> trkenddcosz;
+          TrackData_t<Float_t> trkstarttheta;      // theta.
+          TrackData_t<Float_t> trkstartphi;        // phi.
+          TrackData_t<Float_t> trkendtheta;      // theta.
+          TrackData_t<Float_t> trkendphi;        // phi.
+          TrackData_t<Float_t> trkstartdirectionx;
+          TrackData_t<Float_t> trkstartdirectiony;
+          TrackData_t<Float_t> trkstartdirectionz;
+          TrackData_t<Float_t> trkenddirectionx;
+          TrackData_t<Float_t> trkenddirectiony;
+          TrackData_t<Float_t> trkenddirectionz;
           TrackData_t<Float_t> trkthetaxz;    // theta_xz.
           TrackData_t<Float_t> trkthetayz;    // theta_yz.
           TrackData_t<Float_t> trkmom;        // momentum.
@@ -472,10 +503,10 @@ namespace dune {
       struct SubRunData_t {
         SubRunData_t() { Clear(); }
         void Clear() {
-          pot = -99999.;
-          potbnbETOR860 = -99999.;
-          potbnbETOR875 = -99999.;
-          potnumiETORTGT = -99999.;
+          pot = -999.;
+          potbnbETOR860 = -999.;
+          potbnbETOR875 = -999.;
+          potnumiETORTGT = -999.;
         }
         Double_t pot; //protons on target
         Double_t potbnbETOR860;
@@ -1195,6 +1226,8 @@ namespace dune {
       //    AnaRootParserDataStruct::RunData_t RunData;
       AnaRootParserDataStruct::SubRunData_t SubRunData;
 
+      short fEventsPerSubrun;
+
       std::string fDigitModuleLabel;
       std::string fHitsModuleLabel;
       std::string fLArG4ModuleLabel;
@@ -1426,6 +1459,7 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Resize(size_t nTracks)
   MaxTracks = nTracks;
 
   trkId.resize(MaxTracks);
+  NHitsPerTrack.resize(MaxTracks);
   trkncosmictags_tagger.resize(MaxTracks);
   trkcosmicscore_tagger.resize(MaxTracks);
   trkcosmictype_tagger.resize(MaxTracks);
@@ -1445,14 +1479,16 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkendd.resize(MaxTracks);
   trkflashT0.resize(MaxTracks);
   trktrueT0.resize(MaxTracks);
-  trktheta.resize(MaxTracks);
-  trkphi.resize(MaxTracks);
-  trkstartdcosx.resize(MaxTracks);
-  trkstartdcosy.resize(MaxTracks);
-  trkstartdcosz.resize(MaxTracks);
-  trkenddcosx.resize(MaxTracks);
-  trkenddcosy.resize(MaxTracks);
-  trkenddcosz.resize(MaxTracks);
+  trkstarttheta.resize(MaxTracks);
+  trkstartphi.resize(MaxTracks);
+  trkendtheta.resize(MaxTracks);
+  trkendphi.resize(MaxTracks);
+  trkstartdirectionx.resize(MaxTracks);
+  trkstartdirectiony.resize(MaxTracks);
+  trkstartdirectionz.resize(MaxTracks);
+  trkenddirectionx.resize(MaxTracks);
+  trkenddirectiony.resize(MaxTracks);
+  trkenddirectionz.resize(MaxTracks);
   trkthetaxz.resize(MaxTracks);
   trkthetayz.resize(MaxTracks);
   trkmom.resize(MaxTracks);
@@ -1489,7 +1525,7 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkg4id.resize(MaxTracks);
   trkorig.resize(MaxTracks);
   trkpitchc.resize(MaxTracks);
-  ntrkhits.resize(MaxTracks);
+  ntrkhitsperview.resize(MaxTracks);
 
   trkdedx.resize(MaxTracks);
   trkdqdx.resize(MaxTracks);
@@ -1506,60 +1542,84 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   Resize(MaxTracks);
   ntracks = 0;
 
-  std::fill(trkdedx2, trkdedx2 + sizeof(trkdedx2)/sizeof(trkdedx2[0]), 0);
-  std::fill(trkdqdx2, trkdqdx2 + sizeof(trkdqdx2)/sizeof(trkdqdx2[0]), 0);
-  std::fill(trktpc2, trktpc2 + sizeof(trktpc2)/sizeof(trktpc2[0]), 0);
-  std::fill(trkx2, trkx2 + sizeof(trkx2)/sizeof(trkx2[0]), 0);
-  std::fill(trky2, trky2 + sizeof(trky2)/sizeof(trky2[0]), 0);
-  std::fill(trkz2, trkz2 + sizeof(trkz2)/sizeof(trkz2[0]), 0);
+  std::fill(trkdedx2, trkdedx2 + sizeof(trkdedx2)/sizeof(trkdedx2[0]), -999.);
+  std::fill(trkdqdx2, trkdqdx2 + sizeof(trkdqdx2)/sizeof(trkdqdx2[0]), -999.);
+  std::fill(trktpc2, trktpc2 + sizeof(trktpc2)/sizeof(trktpc2[0]), -999.);
+  std::fill(trkx2, trkx2 + sizeof(trkx2)/sizeof(trkx2[0]), -999.);
+  std::fill(trky2, trky2 + sizeof(trky2)/sizeof(trky2[0]), -999.);
+  std::fill(trkz2, trkz2 + sizeof(trkz2)/sizeof(trkz2[0]), -999.);
 
-  FillWith(trkId        , -9999  );
-  FillWith(trkncosmictags_tagger, -9999  );
-  FillWith(trkcosmicscore_tagger, -99999.);
-  FillWith(trkcosmictype_tagger, -9999  );
-  FillWith(trkncosmictags_containmenttagger, -9999  );
-  FillWith(trkcosmicscore_containmenttagger, -99999.);
-  FillWith(trkcosmictype_containmenttagger, -9999  );
-  FillWith(trkncosmictags_flashmatch, -9999  );
-  FillWith(trkcosmicscore_flashmatch, -99999.);
-  FillWith(trkcosmictype_flashmatch, -9999  );
-  FillWith(trkstartx    , -99999.);
-  FillWith(trkstarty    , -99999.);
-  FillWith(trkstartz    , -99999.);
-  FillWith(trkstartd    , -99999.);
-  FillWith(trkendx      , -99999.);
-  FillWith(trkendy      , -99999.);
-  FillWith(trkendz      , -99999.);
-  FillWith(trkendd      , -99999.);
-  FillWith(trkflashT0   , -99999.);
-  FillWith(trktrueT0    , -99999.);
-  FillWith(trkg4id      , -99999 );
-  FillWith(trkpurity    , -99999.);
-  FillWith(trkcompleteness, -99999.);
-  FillWith(trkorig      , -99999 );
-  FillWith(trktheta     , -99999.);
-  FillWith(trkphi       , -99999.);
-  FillWith(trkstartdcosx, -99999.);
-  FillWith(trkstartdcosy, -99999.);
-  FillWith(trkstartdcosz, -99999.);
-  FillWith(trkenddcosx  , -99999.);
-  FillWith(trkenddcosy  , -99999.);
-  FillWith(trkenddcosz  , -99999.);
-  FillWith(trkthetaxz   , -99999.);
-  FillWith(trkthetayz   , -99999.);
-  FillWith(trkmom       , -99999.);
-  FillWith(trkmomrange  , -99999.);
-  FillWith(trkmommschi2 , -99999.);
-  FillWith(trkmommsllhd , -99999.);
-  FillWith(trklen       , -99999.);
+  std::fill(hittrkx, hittrkx + sizeof(hittrkx)/sizeof(hittrkx[0]), -999.);
+  std::fill(hittrky, hittrky + sizeof(hittrky)/sizeof(hittrky[0]), -999.);
+  std::fill(hittrkz, hittrkz + sizeof(hittrkz)/sizeof(hittrkz[0]), -999.);
+
+  std::fill(hittrkpitchC, hittrkpitchC + sizeof(hittrkpitchC)/sizeof(hittrkpitchC[0]), -999.);
+  std::fill(hittrkdx, hittrkdx + sizeof(hittrkdx)/sizeof(hittrkdx[0]), -999.);
+
+  std::fill(hittrkchannel, hittrkchannel + sizeof(hittrkchannel)/sizeof(hittrkchannel[0]), -999);
+  std::fill(hittrktpc, hittrktpc + sizeof(hittrktpc)/sizeof(hittrktpc[0]), -999);
+  std::fill(hittrkview, hittrkview + sizeof(hittrkview)/sizeof(hittrkview[0]), -999);
+  std::fill(hittrkwire, hittrkwire + sizeof(hittrkwire)/sizeof(hittrkwire[0]), -999);
+  std::fill(hittrkpeakT, hittrkpeakT + sizeof(hittrkpeakT)/sizeof(hittrkpeakT[0]), -999.);
+  std::fill(hittrkchargeintegral, hittrkchargeintegral + sizeof(hittrkchargeintegral)/sizeof(hittrkchargeintegral[0]), -999.);
+  std::fill(hittrkchargesum, hittrkchargesum + sizeof(hittrkchargesum)/sizeof(hittrkchargesum[0]), -999.);
+  std::fill(hittrkstarT, hittrkstarT + sizeof(hittrkstarT)/sizeof(hittrkstarT[0]), -999.);
+  std::fill(hittrkendT, hittrkendT + sizeof(hittrkendT)/sizeof(hittrkendT[0]), -999.);
+  std::fill(hittrkrms, hittrkrms + sizeof(hittrkrms)/sizeof(hittrkrms[0]), -999.);
+  std::fill(hittrkgoddnessofFit, hittrkgoddnessofFit + sizeof(hittrkgoddnessofFit)/sizeof(hittrkgoddnessofFit[0]), -999.);
+  std::fill(hittrkmultiplicity, hittrkmultiplicity + sizeof(hittrkmultiplicity)/sizeof(hittrkmultiplicity[0]), -999);
+
+
+  FillWith(trkId        , -999  );
+  FillWith(NHitsPerTrack        , -999  );
+  FillWith(trkncosmictags_tagger, -999  );
+  FillWith(trkcosmicscore_tagger, -999.);
+  FillWith(trkcosmictype_tagger, -999  );
+  FillWith(trkncosmictags_containmenttagger, -999  );
+  FillWith(trkcosmicscore_containmenttagger, -999.);
+  FillWith(trkcosmictype_containmenttagger, -999  );
+  FillWith(trkncosmictags_flashmatch, -999  );
+  FillWith(trkcosmicscore_flashmatch, -999.);
+  FillWith(trkcosmictype_flashmatch, -999  );
+  FillWith(trkstartx    , -999.);
+  FillWith(trkstarty    , -999.);
+  FillWith(trkstartz    , -999.);
+  FillWith(trkstartd    , -999.);
+  FillWith(trkendx      , -999.);
+  FillWith(trkendy      , -999.);
+  FillWith(trkendz      , -999.);
+  FillWith(trkendd      , -999.);
+  FillWith(trkflashT0   , -999.);
+  FillWith(trktrueT0    , -999.);
+  FillWith(trkg4id      , -9999 );
+  FillWith(trkpurity    , -999.);
+  FillWith(trkcompleteness, -999.);
+  FillWith(trkorig      , -9999 );
+  FillWith(trkstarttheta     , -999.);
+  FillWith(trkstartphi       , -999.);
+  FillWith(trkendtheta     , -999.);
+  FillWith(trkendphi       , -999.);
+  FillWith(trkstartdirectionx, -999.);
+  FillWith(trkstartdirectiony, -999.);
+  FillWith(trkstartdirectionz, -999.);
+  FillWith(trkenddirectionx  , -999.);
+  FillWith(trkenddirectiony  , -999.);
+  FillWith(trkenddirectionz  , -999.);
+  FillWith(trkthetaxz   , -999.);
+  FillWith(trkthetayz   , -999.);
+  FillWith(trkmom       , -999.);
+  FillWith(trkmomrange  , -999.);
+  FillWith(trkmommschi2 , -999.);
+  FillWith(trkmommsllhd , -999.);
+  FillWith(trklen       , -999.);
   FillWith(trksvtxid    , -1);
   FillWith(trkevtxid    , -1);
   FillWith(trkpidbestplane, -1);
-  FillWith(trkpidmvamu  , -99999.);
-  FillWith(trkpidmvae   , -99999.);
-  FillWith(trkpidmvapich, -99999.);
-  FillWith(trkpidmvaphoton , -99999.);
-  FillWith(trkpidmvapr  , -99999.);
+  FillWith(trkpidmvamu  , -999.);
+  FillWith(trkpidmvae   , -999.);
+  FillWith(trkpidmvapich, -999.);
+  FillWith(trkpidmvaphoton , -999.);
+  FillWith(trkpidmvapr  , -999.);
 
   FillWith(trkhasPFParticle, -1);
   FillWith(trkPFParticleID , -1);
@@ -1568,15 +1628,15 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
 
     // the following are BoxedArray's;
     // their iterators traverse all the array dimensions
-    FillWith(trkke[iTrk]      , -99999.);
-    FillWith(trkrange[iTrk]   , -99999.);
-    FillWith(trkidtruth[iTrk] , -99999 );
+    FillWith(trkke[iTrk]      , -999.);
+    FillWith(trkrange[iTrk]   , -999.);
+    FillWith(trkidtruth[iTrk] , -9999 );
     FillWith(trkorigin[iTrk]  , -1 );
-    FillWith(trkpdgtruth[iTrk], -99999 );
-    FillWith(trkefftruth[iTrk], -99999.);
-    FillWith(trkpurtruth[iTrk], -99999.);
-    FillWith(trkpitchc[iTrk]  , -99999.);
-    FillWith(ntrkhits[iTrk]   ,  -9999 );
+    FillWith(trkpdgtruth[iTrk], -9999 );
+    FillWith(trkefftruth[iTrk], -999.);
+    FillWith(trkpurtruth[iTrk], -999.);
+    FillWith(trkpitchc[iTrk]  , -999.);
+    FillWith(ntrkhitsperview[iTrk]   ,  -999 );
 
     FillWith(trkdedx[iTrk], 0.);
     FillWith(trkdqdx[iTrk], 0.);
@@ -1585,12 +1645,12 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
     FillWith(trkxyz[iTrk], 0.);
 
     FillWith(trkpidpdg[iTrk]    , -1);
-    FillWith(trkpidchi[iTrk]    , -99999.);
-    FillWith(trkpidchipr[iTrk]  , -99999.);
-    FillWith(trkpidchika[iTrk]  , -99999.);
-    FillWith(trkpidchipi[iTrk]  , -99999.);
-    FillWith(trkpidchimu[iTrk]  , -99999.);
-    FillWith(trkpidpida[iTrk]   , -99999.);
+    FillWith(trkpidchi[iTrk]    , -999.);
+    FillWith(trkpidchipr[iTrk]  , -999.);
+    FillWith(trkpidchika[iTrk]  , -999.);
+    FillWith(trkpidchipi[iTrk]  , -999.);
+    FillWith(trkpidchimu[iTrk]  , -999.);
+    FillWith(trkpidpida[iTrk]   , -999.);
   } // for track
 
 } // dune::AnaRootParserDataStruct::TrackDataStruct::Clear()
@@ -1616,6 +1676,68 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "TrackID_" + TrackLabel;
   CreateBranch(BranchName, trkId, BranchName + NTracksIndexStr + "/S");
+
+  BranchName = "Track_NumberOfHits_" + TrackLabel;
+  CreateBranch(BranchName, NHitsPerTrack, BranchName + NTracksIndexStr + "/S");
+
+  BranchName = "Track_Length_" + TrackLabel;
+  CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartPosition_X_" + TrackLabel;
+  CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartPosition_Y_" + TrackLabel;
+  CreateBranch(BranchName, trkstarty, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartPosition_Z_" + TrackLabel;
+  CreateBranch(BranchName, trkstartz, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartPosition_DistanceToBoundary_" + TrackLabel;
+  CreateBranch(BranchName, trkstartd, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndPosition_X_" + TrackLabel;
+  CreateBranch(BranchName, trkendx, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndPosition_Y_" + TrackLabel;
+  CreateBranch(BranchName, trkendy, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndPosition_Z_" + TrackLabel;
+  CreateBranch(BranchName, trkendz, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndPosition_DistanceToBoundary_" + TrackLabel;
+  CreateBranch(BranchName, trkendd, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_Theta_" + TrackLabel;
+  CreateBranch(BranchName, trkstarttheta, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_Phi_" + TrackLabel;
+  CreateBranch(BranchName, trkstartphi, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_X_" + TrackLabel;
+  CreateBranch(BranchName, trkstartdirectionx, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_Y_" + TrackLabel;
+  CreateBranch(BranchName, trkstartdirectiony, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_StartDirection_Z_" + TrackLabel;
+  CreateBranch(BranchName, trkstartdirectionz, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_Theta_" + TrackLabel;
+  CreateBranch(BranchName, trkendtheta, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_Phi_" + TrackLabel;
+  CreateBranch(BranchName, trkendphi, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_X_" + TrackLabel;
+  CreateBranch(BranchName, trkenddirectionx, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_Y_" + TrackLabel;
+  CreateBranch(BranchName, trkenddirectiony, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_EndDirection_Z_" + TrackLabel;
+  CreateBranch(BranchName, trkenddirectionz, BranchName + NTracksIndexStr + "/F");
+
+
   /*
      BranchName = "trkncosmictags_tagger_" + TrackLabel;
      CreateBranch(BranchName, trkncosmictags_tagger, BranchName + NTracksIndexStr + "/S");
@@ -1671,20 +1793,22 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   CreateBranch(BranchName, trkpitchc, BranchName + NTracksIndexStr + "[2]/F");
 
   BranchName = "Track_NumberOfHitsPerView_" + TrackLabel;
-  CreateBranch(BranchName, ntrkhits, BranchName + NTracksIndexStr + "[2]/S");
+  CreateBranch(BranchName, ntrkhitsperview, BranchName + NTracksIndexStr + "[2]/S");
+
+
+  /*
+     BranchName = "trkresrg_" + TrackLabel;
+     CreateBranch(BranchName, trkresrg, BranchName + "[no_hits]/F");
+     */
+/*
+  BranchName = "Track_TPC_" + TrackLabel;
+  CreateBranch(BranchName, trktpc2, BranchName + "[no_hits]/F");
 
   BranchName = "Track_dEdx_" + TrackLabel;
   CreateBranch(BranchName, trkdedx2, BranchName + "[no_hits]/F");
 
   BranchName = "Track_dQdx_" + TrackLabel;
   CreateBranch(BranchName, trkdqdx2, BranchName + "[no_hits]/F");
-  /*
-     BranchName = "trkresrg_" + TrackLabel;
-     CreateBranch(BranchName, trkresrg, BranchName + "[no_hits]/F");
-     */
-
-  BranchName = "Track_TPC_" + TrackLabel;
-  CreateBranch(BranchName, trktpc2, BranchName + "[no_hits]/F");
 
   BranchName = "Track_HitX_" + TrackLabel;
   CreateBranch(BranchName, trkx2, BranchName + "[no_hits]/F");
@@ -1694,6 +1818,67 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "Track_HitZ_" + TrackLabel;
   CreateBranch(BranchName, trkz2, BranchName + "[no_hits]/F");
+*/
+//////////// new arrays ///////////////////////////
+
+  BranchName = "Track_Hit_X_" + TrackLabel;
+  CreateBranch(BranchName, hittrkx, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_Y_" + TrackLabel;
+  CreateBranch(BranchName, hittrky, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_Z_" + TrackLabel;
+  CreateBranch(BranchName, hittrkz, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_dx_LocalTrackDirection_" + TrackLabel;
+  CreateBranch(BranchName, hittrkpitchC, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_dx_3DPosition_" + TrackLabel;
+  CreateBranch(BranchName, hittrkdx, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_TPC_" + TrackLabel;
+  CreateBranch(BranchName, hittrktpc, BranchName + "[no_hits]/S");
+
+  BranchName = "Track_Hit_View_" + TrackLabel;
+  CreateBranch(BranchName, hittrkview, BranchName + "[no_hits]/S");
+
+  BranchName = "Track_Hit_Channel_" + TrackLabel;
+  CreateBranch(BranchName, hittrkchannel, BranchName + "[no_hits]/S");
+
+//  BranchName = "Track_Hit_Wire_" + TrackLabel;
+//  CreateBranch(BranchName, hittrkwire, BranchName + "[no_hits]/S");
+
+  BranchName = "Track_Hit_PeakTime_" + TrackLabel;
+  CreateBranch(BranchName, hittrkpeakT, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_ChargeSummedADC_" + TrackLabel;
+  CreateBranch(BranchName, hittrkchargesum, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_ChargeIntegral_" + TrackLabel;
+  CreateBranch(BranchName, hittrkchargeintegral, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_PeakHeight_" + TrackLabel;
+  CreateBranch(BranchName, hittrkph, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_StartTime_" + TrackLabel;
+  CreateBranch(BranchName, hittrkstarT, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_EndTime_" + TrackLabel;
+  CreateBranch(BranchName, hittrkendT, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_Width_" + TrackLabel;
+  CreateBranch(BranchName, hittrkrms, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_GoodnessOfFit_" + TrackLabel;
+  CreateBranch(BranchName, hittrkgoddnessofFit, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_Multiplicity_" + TrackLabel;
+  CreateBranch(BranchName, hittrkmultiplicity, BranchName + "[no_hits]/S");
+
+
+
+//////////// end new arrays ///////////////////////////
+
 
 
   /*
@@ -1714,29 +1899,7 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
      CreateBranch(BranchName, trkxyz, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "[3]" + "/F");
      }
      */
-  BranchName = "Track_StartX_" + TrackLabel;
-  CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartY_" + TrackLabel;
-  CreateBranch(BranchName, trkstarty, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_StartZ_" + TrackLabel;
-  CreateBranch(BranchName, trkstartz, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_StartDistanceToBoundary_" + TrackLabel;
-  CreateBranch(BranchName, trkstartd, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_EndX_" + TrackLabel;
-  CreateBranch(BranchName, trkendx, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_EndY_" + TrackLabel;
-  CreateBranch(BranchName, trkendy, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_EndZ_" + TrackLabel;
-  CreateBranch(BranchName, trkendz, BranchName + NTracksIndexStr + "/F");
-
-  BranchName = "Track_EndDistanceToBoundary_" + TrackLabel;
-  CreateBranch(BranchName, trkendd, BranchName + NTracksIndexStr + "/F");
   /*
      BranchName = "trkflashT0_" + TrackLabel;
      CreateBranch(BranchName, trkflashT0, BranchName + NTracksIndexStr + "/F");
@@ -1756,29 +1919,9 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
      BranchName = "trkcompleteness_" + TrackLabel;
      CreateBranch(BranchName, trkcompleteness, BranchName + NTracksIndexStr + "/F");
      */
-  BranchName = "Track_Theta_" + TrackLabel;
-  CreateBranch(BranchName, trktheta, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_Phi_" + TrackLabel;
-  CreateBranch(BranchName, trkphi, BranchName + NTracksIndexStr + "/F");
   /*
-     BranchName = "trkstartdcosx_" + TrackLabel;
-     CreateBranch(BranchName, trkstartdcosx, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkstartdcosy_" + TrackLabel;
-     CreateBranch(BranchName, trkstartdcosy, BranchName + NTracksIndexStr + "/F");
-
-     BranchName = "trkstartdcosz_" + TrackLabel;
-     CreateBranch(BranchName, trkstartdcosz, BranchName + NTracksIndexStr + "/F");
-
-     BranchName = "trkenddcosx_" + TrackLabel;
-     CreateBranch(BranchName, trkenddcosx, BranchName + NTracksIndexStr + "/F");
-
-     BranchName = "trkenddcosy_" + TrackLabel;
-     CreateBranch(BranchName, trkenddcosy, BranchName + NTracksIndexStr + "/F");
-
-     BranchName = "trkenddcosz_" + TrackLabel;
-     CreateBranch(BranchName, trkenddcosz, BranchName + NTracksIndexStr + "/F");
 
      BranchName = "trkthetaxz_" + TrackLabel;
      CreateBranch(BranchName, trkthetaxz, BranchName + NTracksIndexStr + "/F");
@@ -1799,8 +1942,7 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
      BranchName = "trkmommsllhd_" + TrackLabel;
      CreateBranch(BranchName, trkmommsllhd, BranchName + NTracksIndexStr + "/F");
      */
-  BranchName = "Track_Length_" + TrackLabel;
-  CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
+
   /*
      BranchName = "trksvtxid_" + TrackLabel;
      CreateBranch(BranchName, trksvtxid, BranchName + NTracksIndexStr + "/S");
@@ -1871,12 +2013,12 @@ void dune::AnaRootParserDataStruct::VertexDataStruct::Resize(size_t nVertices)
 
 void dune::AnaRootParserDataStruct::VertexDataStruct::Clear() {
   Resize(MaxVertices);
-  nvtx = -9999;
+  nvtx = -999;
 
-  FillWith(vtxId       , -9999  );
-  FillWith(vtxx        , -9999  );
-  FillWith(vtxy        , -9999  );
-  FillWith(vtxz        , -9999  );
+  FillWith(vtxId       , -999  );
+  FillWith(vtxx        , -999  );
+  FillWith(vtxy        , -999  );
+  FillWith(vtxz        , -999  );
   FillWith(vtxhasPFParticle, -1  );
   FillWith(vtxPFParticleID , -1  );
 }
@@ -1944,26 +2086,26 @@ void dune::AnaRootParserDataStruct::PFParticleDataStruct::Resize(size_t nPFParti
 void dune::AnaRootParserDataStruct::PFParticleDataStruct::Clear() {
   Resize(MaxPFParticles);
 
-  nPFParticles = -9999;
-  FillWith(pfp_selfID, -9999);
-  FillWith(pfp_isPrimary, -9999);
-  FillWith(pfp_numDaughters, -9999);
-  FillWith(pfp_parentID, -9999);
-  FillWith(pfp_vertexID, -9999);
-  FillWith(pfp_isShower, -9999);
-  FillWith(pfp_isTrack, -9999);
-  FillWith(pfp_trackID, -9999);
-  FillWith(pfp_showerID, -9999);
-  FillWith(pfp_pdgCode, -9999);
-  FillWith(pfp_isNeutrino, -9999);
-  pfp_numNeutrinos = -9999;
-  FillWith(pfp_neutrinoIDs, -9999);
+  nPFParticles = -999;
+  FillWith(pfp_selfID, -999);
+  FillWith(pfp_isPrimary, -999);
+  FillWith(pfp_numDaughters, -999);
+  FillWith(pfp_parentID, -999);
+  FillWith(pfp_vertexID, -999);
+  FillWith(pfp_isShower, -999);
+  FillWith(pfp_isTrack, -999);
+  FillWith(pfp_trackID, -999);
+  FillWith(pfp_showerID, -999);
+  FillWith(pfp_pdgCode, -999);
+  FillWith(pfp_isNeutrino, -999);
+  pfp_numNeutrinos = -999;
+  FillWith(pfp_neutrinoIDs, -999);
 
   for (size_t iPFParticle = 0; iPFParticle < MaxPFParticles; ++iPFParticle){
     // the following are BoxedArrays;
     // their iterators traverse all the array dimensions
-    FillWith(pfp_daughterIDs[iPFParticle], -9999);
-    FillWith(pfp_clusterIDs[iPFParticle], -9999);
+    FillWith(pfp_daughterIDs[iPFParticle], -999);
+    FillWith(pfp_clusterIDs[iPFParticle], -999);
   }
 }
 
@@ -2078,20 +2220,20 @@ void dune::AnaRootParserDataStruct::ShowerDataStruct::Clear() {
   Resize(MaxShowers);
   nshowers = 0;
 
-  FillWith(showerID,         -9999 );
-  FillWith(shwr_bestplane,   -9999 );
-  FillWith(shwr_length,     -99999.);
-  FillWith(shwr_startdcosx, -99999.);
-  FillWith(shwr_startdcosy, -99999.);
-  FillWith(shwr_startdcosz, -99999.);
-  FillWith(shwr_startx,     -99999.);
-  FillWith(shwr_starty,     -99999.);
-  FillWith(shwr_startz,     -99999.);
-  FillWith(shwr_pidmvamu,   -99999.);
-  FillWith(shwr_pidmvae,    -99999.);
-  FillWith(shwr_pidmvapich, -99999.);
-  FillWith(shwr_pidmvaphoton,  -99999.);
-  FillWith(shwr_pidmvapr,   -99999.);
+  FillWith(showerID,         -999 );
+  FillWith(shwr_bestplane,   -999 );
+  FillWith(shwr_length,     -999.);
+  FillWith(shwr_startdcosx, -999.);
+  FillWith(shwr_startdcosy, -999.);
+  FillWith(shwr_startdcosz, -999.);
+  FillWith(shwr_startx,     -999.);
+  FillWith(shwr_starty,     -999.);
+  FillWith(shwr_startz,     -999.);
+  FillWith(shwr_pidmvamu,   -999.);
+  FillWith(shwr_pidmvae,    -999.);
+  FillWith(shwr_pidmvapich, -999.);
+  FillWith(shwr_pidmvaphoton,  -999.);
+  FillWith(shwr_pidmvapr,   -999.);
 
   FillWith(shwr_hasPFParticle, -1);
   FillWith(shwr_PFParticleID,  -1);
@@ -2099,9 +2241,9 @@ void dune::AnaRootParserDataStruct::ShowerDataStruct::Clear() {
   for (size_t iShw = 0; iShw < MaxShowers; ++iShw){
     // the following are BoxedArray's;
     // their iterators traverse all the array dimensions
-    FillWith(shwr_totEng[iShw], -99999.);
-    FillWith(shwr_dedx[iShw],   -99999.);
-    FillWith(shwr_mipEng[iShw], -99999.);
+    FillWith(shwr_totEng[iShw], -999.);
+    FillWith(shwr_dedx[iShw],   -999.);
+    FillWith(shwr_mipEng[iShw], -999.);
   } // for shower
 
 } // dune::AnaRootParserDataStruct::ShowerDataStruct::Clear()
@@ -2118,7 +2260,7 @@ void dune::AnaRootParserDataStruct::ShowerDataStruct::Clear() {
   // were reconstructed, not as a list of valid showers.
   // The prescription currently implemented is:
   // - have only one shower in the list;
-  // - set the ID of that shower as -9999
+  // - set the ID of that shower as -999
   //
 
   // first set the data structures to contain one invalid shower:
@@ -2220,17 +2362,17 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   //  RunData.Clear();
   SubRunData.Clear();
 
-  run = -99999;
-  subrun = -99999;
-  event = -99999;
-  evttime_seconds = -99999;
-  evttime_nanoseconds = -99999;
-  beamtime = -99999;
+  run = -9999;
+  subrun = -9999;
+  event = -9999;
+  evttime_seconds = -9999;
+  evttime_nanoseconds = -9999;
+  beamtime = -9999;
   isdata = -99;
-  taulife = -99999;
+  taulife = -9999;
   triggernumber = 0;
-  triggertime = -99999;
-  beamgatetime = -99999;
+  triggertime = -9999;
+  beamgatetime = -9999;
   triggerbits = 0;
   potbnb = 0;
   potnumitgt = 0;
@@ -2240,129 +2382,129 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   no_hits_stored = 0;
   NHitsInAllTracks = 0;
 
-  std::fill(hit_tpc, hit_tpc + sizeof(hit_tpc)/sizeof(hit_tpc[0]), -9999);
-  std::fill(hit_view, hit_view + sizeof(hit_view)/sizeof(hit_view[0]), -9999);
-  std::fill(hit_wire, hit_wire + sizeof(hit_wire)/sizeof(hit_wire[0]), -9999);
-  std::fill(hit_channel, hit_channel + sizeof(hit_channel)/sizeof(hit_channel[0]), -9999);
-  std::fill(hit_peakT, hit_peakT + sizeof(hit_peakT)/sizeof(hit_peakT[0]), -99999.);
-  std::fill(hit_chargesum, hit_chargesum + sizeof(hit_chargesum)/sizeof(hit_chargesum[0]), -99999.);
-  std::fill(hit_chargeintegral, hit_chargeintegral + sizeof(hit_chargeintegral)/sizeof(hit_chargeintegral[0]), -99999.);
-  std::fill(hit_ph, hit_ph + sizeof(hit_ph)/sizeof(hit_ph[0]), -99999.);
-  std::fill(hit_startT, hit_startT + sizeof(hit_startT)/sizeof(hit_startT[0]), -99999.);
-  std::fill(hit_endT, hit_endT + sizeof(hit_endT)/sizeof(hit_endT[0]), -99999.);
-  std::fill(hit_rms, hit_rms + sizeof(hit_rms)/sizeof(hit_rms[0]), -99999.);
-  //  std::fill(hit_trueX, hit_trueX + sizeof(hit_trueX)/sizeof(hit_trueX[0]), -99999.);
-  std::fill(hit_goodnessOfFit, hit_goodnessOfFit + sizeof(hit_goodnessOfFit)/sizeof(hit_goodnessOfFit[0]), -99999.);
-  std::fill(hit_multiplicity, hit_multiplicity + sizeof(hit_multiplicity)/sizeof(hit_multiplicity[0]), -99999.);
-  std::fill(hit_trkid, hit_trkid + sizeof(hit_trkid)/sizeof(hit_trkid[0]), -9999);
-  //  std::fill(hit_trkKey, hit_trkKey + sizeof(hit_trkKey)/sizeof(hit_trkKey[0]), -9999);
-  std::fill(hit_clusterid, hit_clusterid + sizeof(hit_clusterid)/sizeof(hit_clusterid[0]), -99999);
-  //  std::fill(hit_clusterKey, hit_clusterKey + sizeof(hit_clusterKey)/sizeof(hit_clusterKey[0]), -9999);
-  //  std::fill(hit_nelec, hit_nelec + sizeof(hit_nelec)/sizeof(hit_nelec[0]), -99999.);
-  //  std::fill(hit_energy, hit_energy + sizeof(hit_energy)/sizeof(hit_energy[0]), -99999.);
+  std::fill(hit_tpc, hit_tpc + sizeof(hit_tpc)/sizeof(hit_tpc[0]), -999);
+  std::fill(hit_view, hit_view + sizeof(hit_view)/sizeof(hit_view[0]), -999);
+  std::fill(hit_wire, hit_wire + sizeof(hit_wire)/sizeof(hit_wire[0]), -999);
+  std::fill(hit_channel, hit_channel + sizeof(hit_channel)/sizeof(hit_channel[0]), -999);
+  std::fill(hit_peakT, hit_peakT + sizeof(hit_peakT)/sizeof(hit_peakT[0]), -999.);
+  std::fill(hit_chargesum, hit_chargesum + sizeof(hit_chargesum)/sizeof(hit_chargesum[0]), -999.);
+  std::fill(hit_chargeintegral, hit_chargeintegral + sizeof(hit_chargeintegral)/sizeof(hit_chargeintegral[0]), -999.);
+  std::fill(hit_ph, hit_ph + sizeof(hit_ph)/sizeof(hit_ph[0]), -999.);
+  std::fill(hit_startT, hit_startT + sizeof(hit_startT)/sizeof(hit_startT[0]), -999.);
+  std::fill(hit_endT, hit_endT + sizeof(hit_endT)/sizeof(hit_endT[0]), -999.);
+  std::fill(hit_rms, hit_rms + sizeof(hit_rms)/sizeof(hit_rms[0]), -999.);
+  //  std::fill(hit_trueX, hit_trueX + sizeof(hit_trueX)/sizeof(hit_trueX[0]), -999.);
+  std::fill(hit_goodnessOfFit, hit_goodnessOfFit + sizeof(hit_goodnessOfFit)/sizeof(hit_goodnessOfFit[0]), -999.);
+  std::fill(hit_multiplicity, hit_multiplicity + sizeof(hit_multiplicity)/sizeof(hit_multiplicity[0]), -999.);
+  std::fill(hit_trkid, hit_trkid + sizeof(hit_trkid)/sizeof(hit_trkid[0]), -999);
+  //  std::fill(hit_trkKey, hit_trkKey + sizeof(hit_trkKey)/sizeof(hit_trkKey[0]), -999);
+  std::fill(hit_clusterid, hit_clusterid + sizeof(hit_clusterid)/sizeof(hit_clusterid[0]), -9999);
+  //  std::fill(hit_clusterKey, hit_clusterKey + sizeof(hit_clusterKey)/sizeof(hit_clusterKey[0]), -999);
+  //  std::fill(hit_nelec, hit_nelec + sizeof(hit_nelec)/sizeof(hit_nelec[0]), -999.);
+  //  std::fill(hit_energy, hit_energy + sizeof(hit_energy)/sizeof(hit_energy[0]), -999.);
   //raw digit information
-  std::fill(rawD_ph, rawD_ph + sizeof(rawD_ph)/sizeof(rawD_ph[0]), -99999.);
-  std::fill(rawD_peakT, rawD_peakT + sizeof(rawD_peakT)/sizeof(rawD_peakT[0]), -99999.);
-  std::fill(rawD_charge, rawD_charge + sizeof(rawD_charge)/sizeof(rawD_charge[0]), -99999.);
-  std::fill(rawD_fwhh, rawD_fwhh + sizeof(rawD_fwhh)/sizeof(rawD_fwhh[0]), -99999.);
-  std::fill(rawD_rms, rawD_rms + sizeof(rawD_rms)/sizeof(rawD_rms[0]), -99999.);
+  std::fill(rawD_ph, rawD_ph + sizeof(rawD_ph)/sizeof(rawD_ph[0]), -999.);
+  std::fill(rawD_peakT, rawD_peakT + sizeof(rawD_peakT)/sizeof(rawD_peakT[0]), -999.);
+  std::fill(rawD_charge, rawD_charge + sizeof(rawD_charge)/sizeof(rawD_charge[0]), -999.);
+  std::fill(rawD_fwhh, rawD_fwhh + sizeof(rawD_fwhh)/sizeof(rawD_fwhh[0]), -999.);
+  std::fill(rawD_rms, rawD_rms + sizeof(rawD_rms)/sizeof(rawD_rms[0]), -999.);
 
   no_flashes = 0;
-  std::fill(flash_time, flash_time + sizeof(flash_time)/sizeof(flash_time[0]), -9999);
-  std::fill(flash_pe, flash_pe + sizeof(flash_pe)/sizeof(flash_pe[0]), -9999);
-  std::fill(flash_ycenter, flash_ycenter + sizeof(flash_ycenter)/sizeof(flash_ycenter[0]), -9999);
-  std::fill(flash_zcenter, flash_zcenter + sizeof(flash_zcenter)/sizeof(flash_zcenter[0]), -9999);
-  std::fill(flash_ywidth, flash_ywidth + sizeof(flash_ywidth)/sizeof(flash_ywidth[0]), -9999);
-  std::fill(flash_zwidth, flash_zwidth + sizeof(flash_zwidth)/sizeof(flash_zwidth[0]), -9999);
-  std::fill(flash_timewidth, flash_timewidth + sizeof(flash_timewidth)/sizeof(flash_timewidth[0]), -9999);
+  std::fill(flash_time, flash_time + sizeof(flash_time)/sizeof(flash_time[0]), -999);
+  std::fill(flash_pe, flash_pe + sizeof(flash_pe)/sizeof(flash_pe[0]), -999);
+  std::fill(flash_ycenter, flash_ycenter + sizeof(flash_ycenter)/sizeof(flash_ycenter[0]), -999);
+  std::fill(flash_zcenter, flash_zcenter + sizeof(flash_zcenter)/sizeof(flash_zcenter[0]), -999);
+  std::fill(flash_ywidth, flash_ywidth + sizeof(flash_ywidth)/sizeof(flash_ywidth[0]), -999);
+  std::fill(flash_zwidth, flash_zwidth + sizeof(flash_zwidth)/sizeof(flash_zwidth[0]), -999);
+  std::fill(flash_timewidth, flash_timewidth + sizeof(flash_timewidth)/sizeof(flash_timewidth[0]), -999);
 
   no_ExternCounts = 0;
-  std::fill(externcounts_time, externcounts_time + sizeof(externcounts_time)/sizeof(externcounts_time[0]), -9999);
-  std::fill(externcounts_id, externcounts_id + sizeof(externcounts_id)/sizeof(externcounts_id[0]), -9999);
+  std::fill(externcounts_time, externcounts_time + sizeof(externcounts_time)/sizeof(externcounts_time[0]), -999);
+  std::fill(externcounts_id, externcounts_id + sizeof(externcounts_id)/sizeof(externcounts_id[0]), -999);
 
   nclusters = 0;
-  std::fill(clusterId, clusterId + sizeof(clusterId)/sizeof(clusterId[0]), -9999);
-  std::fill(clusterView, clusterView + sizeof(clusterView)/sizeof(clusterView[0]), -9999);
+  std::fill(clusterId, clusterId + sizeof(clusterId)/sizeof(clusterId[0]), -999);
+  std::fill(clusterView, clusterView + sizeof(clusterView)/sizeof(clusterView[0]), -999);
   std::fill(cluster_isValid, cluster_isValid + sizeof(cluster_isValid)/sizeof(cluster_isValid[0]), -1);
-  std::fill(cluster_StartCharge, cluster_StartCharge +  sizeof(cluster_StartCharge)/sizeof(cluster_StartCharge[0]), -99999.);
-  std::fill(cluster_StartAngle, cluster_StartAngle + sizeof(cluster_StartAngle)/sizeof(cluster_StartAngle[0]), -99999.);
-  std::fill(cluster_EndCharge, cluster_EndCharge + sizeof(cluster_EndCharge)/sizeof(cluster_EndCharge[0]), -99999.);
-  std::fill(cluster_EndAngle , cluster_EndAngle + sizeof(cluster_EndAngle)/sizeof(cluster_EndAngle[0]), -99999.);
-  std::fill(cluster_Integral , cluster_Integral + sizeof(cluster_Integral)/sizeof(cluster_Integral[0]), -99999.);
-  std::fill(cluster_IntegralAverage, cluster_IntegralAverage + sizeof(cluster_IntegralAverage)/sizeof(cluster_IntegralAverage[0]), -99999.);
-  std::fill(cluster_SummedADC, cluster_SummedADC + sizeof(cluster_SummedADC)/sizeof(cluster_SummedADC[0]), -99999.);
-  std::fill(cluster_SummedADCaverage, cluster_SummedADCaverage + sizeof(cluster_SummedADCaverage)/sizeof(cluster_SummedADCaverage[0]), -99999.);
-  std::fill(cluster_MultipleHitDensity, cluster_MultipleHitDensity + sizeof(cluster_MultipleHitDensity)/sizeof(cluster_MultipleHitDensity[0]), -99999.);
-  std::fill(cluster_Width, cluster_Width + sizeof(cluster_Width)/sizeof(cluster_Width[0]), -99999.);
-  std::fill(cluster_NHits, cluster_NHits + sizeof(cluster_NHits)/sizeof(cluster_NHits[0]), -9999);
-  std::fill(cluster_StartWire, cluster_StartWire + sizeof(cluster_StartWire)/sizeof(cluster_StartWire[0]), -9999);
-  std::fill(cluster_StartTick, cluster_StartTick + sizeof(cluster_StartTick)/sizeof(cluster_StartTick[0]), -9999);
-  std::fill(cluster_EndWire, cluster_EndWire + sizeof(cluster_EndWire)/sizeof(cluster_EndWire[0]), -9999);
-  std::fill(cluster_EndTick, cluster_EndTick + sizeof(cluster_EndTick)/sizeof(cluster_EndTick[0]), -9999);
-  //  std::fill(cluncosmictags_tagger, cluncosmictags_tagger + sizeof(cluncosmictags_tagger)/sizeof(cluncosmictags_tagger[0]), -9999);
-  //  std::fill(clucosmicscore_tagger, clucosmicscore_tagger + sizeof(clucosmicscore_tagger)/sizeof(clucosmicscore_tagger[0]), -99999.);
-  //  std::fill(clucosmictype_tagger , clucosmictype_tagger  + sizeof(clucosmictype_tagger )/sizeof(clucosmictype_tagger [0]), -9999);
+  std::fill(cluster_StartCharge, cluster_StartCharge +  sizeof(cluster_StartCharge)/sizeof(cluster_StartCharge[0]), -999.);
+  std::fill(cluster_StartAngle, cluster_StartAngle + sizeof(cluster_StartAngle)/sizeof(cluster_StartAngle[0]), -999.);
+  std::fill(cluster_EndCharge, cluster_EndCharge + sizeof(cluster_EndCharge)/sizeof(cluster_EndCharge[0]), -999.);
+  std::fill(cluster_EndAngle , cluster_EndAngle + sizeof(cluster_EndAngle)/sizeof(cluster_EndAngle[0]), -999.);
+  std::fill(cluster_Integral , cluster_Integral + sizeof(cluster_Integral)/sizeof(cluster_Integral[0]), -999.);
+  std::fill(cluster_IntegralAverage, cluster_IntegralAverage + sizeof(cluster_IntegralAverage)/sizeof(cluster_IntegralAverage[0]), -999.);
+  std::fill(cluster_SummedADC, cluster_SummedADC + sizeof(cluster_SummedADC)/sizeof(cluster_SummedADC[0]), -999.);
+  std::fill(cluster_SummedADCaverage, cluster_SummedADCaverage + sizeof(cluster_SummedADCaverage)/sizeof(cluster_SummedADCaverage[0]), -999.);
+  std::fill(cluster_MultipleHitDensity, cluster_MultipleHitDensity + sizeof(cluster_MultipleHitDensity)/sizeof(cluster_MultipleHitDensity[0]), -999.);
+  std::fill(cluster_Width, cluster_Width + sizeof(cluster_Width)/sizeof(cluster_Width[0]), -999.);
+  std::fill(cluster_NHits, cluster_NHits + sizeof(cluster_NHits)/sizeof(cluster_NHits[0]), -999);
+  std::fill(cluster_StartWire, cluster_StartWire + sizeof(cluster_StartWire)/sizeof(cluster_StartWire[0]), -999);
+  std::fill(cluster_StartTick, cluster_StartTick + sizeof(cluster_StartTick)/sizeof(cluster_StartTick[0]), -999);
+  std::fill(cluster_EndWire, cluster_EndWire + sizeof(cluster_EndWire)/sizeof(cluster_EndWire[0]), -999);
+  std::fill(cluster_EndTick, cluster_EndTick + sizeof(cluster_EndTick)/sizeof(cluster_EndTick[0]), -999);
+  //  std::fill(cluncosmictags_tagger, cluncosmictags_tagger + sizeof(cluncosmictags_tagger)/sizeof(cluncosmictags_tagger[0]), -999);
+  //  std::fill(clucosmicscore_tagger, clucosmicscore_tagger + sizeof(clucosmicscore_tagger)/sizeof(clucosmicscore_tagger[0]), -999.);
+  //  std::fill(clucosmictype_tagger , clucosmictype_tagger  + sizeof(clucosmictype_tagger )/sizeof(clucosmictype_tagger [0]), -999);
 
   nnuvtx = 0;
-  std::fill(nuvtxx, nuvtxx + sizeof(nuvtxx)/sizeof(nuvtxx[0]), -99999.);
-  std::fill(nuvtxy, nuvtxy + sizeof(nuvtxy)/sizeof(nuvtxy[0]), -99999.);
-  std::fill(nuvtxz, nuvtxz + sizeof(nuvtxz)/sizeof(nuvtxz[0]), -99999.);
-  std::fill(nuvtxpdg, nuvtxpdg + sizeof(nuvtxpdg)/sizeof(nuvtxpdg[0]), -99999);
+  std::fill(nuvtxx, nuvtxx + sizeof(nuvtxx)/sizeof(nuvtxx[0]), -999.);
+  std::fill(nuvtxy, nuvtxy + sizeof(nuvtxy)/sizeof(nuvtxy[0]), -999.);
+  std::fill(nuvtxz, nuvtxz + sizeof(nuvtxz)/sizeof(nuvtxz[0]), -999.);
+  std::fill(nuvtxpdg, nuvtxpdg + sizeof(nuvtxpdg)/sizeof(nuvtxpdg[0]), -9999);
 
-  mcevts_truth = -99999;
-  mcevts_truthcry = -99999;
-  std::fill(nuPDG_truth, nuPDG_truth + sizeof(nuPDG_truth)/sizeof(nuPDG_truth[0]), -99999.);
-  std::fill(ccnc_truth, ccnc_truth + sizeof(ccnc_truth)/sizeof(ccnc_truth[0]), -99999.);
-  std::fill(mode_truth, mode_truth + sizeof(mode_truth)/sizeof(mode_truth[0]), -99999.);
-  std::fill(enu_truth, enu_truth + sizeof(enu_truth)/sizeof(enu_truth[0]), -99999.);
-  std::fill(Q2_truth, Q2_truth + sizeof(Q2_truth)/sizeof(Q2_truth[0]), -99999.);
-  std::fill(W_truth, W_truth + sizeof(W_truth)/sizeof(W_truth[0]), -99999.);
-  std::fill(X_truth, X_truth + sizeof(X_truth)/sizeof(X_truth[0]), -99999.);
-  std::fill(Y_truth, Y_truth + sizeof(Y_truth)/sizeof(Y_truth[0]), -99999.);
-  std::fill(hitnuc_truth, hitnuc_truth + sizeof(hitnuc_truth)/sizeof(hitnuc_truth[0]), -99999.);
-  std::fill(nuvtxx_truth, nuvtxx_truth + sizeof(nuvtxx_truth)/sizeof(nuvtxx_truth[0]), -99999.);
-  std::fill(nuvtxy_truth, nuvtxy_truth + sizeof(nuvtxy_truth)/sizeof(nuvtxy_truth[0]), -99999.);
-  std::fill(nuvtxz_truth, nuvtxz_truth + sizeof(nuvtxz_truth)/sizeof(nuvtxz_truth[0]), -99999.);
-  std::fill(nu_dcosx_truth, nu_dcosx_truth + sizeof(nu_dcosx_truth)/sizeof(nu_dcosx_truth[0]), -99999.);
-  std::fill(nu_dcosy_truth, nu_dcosy_truth + sizeof(nu_dcosy_truth)/sizeof(nu_dcosy_truth[0]), -99999.);
-  std::fill(nu_dcosz_truth, nu_dcosz_truth + sizeof(nu_dcosz_truth)/sizeof(nu_dcosz_truth[0]), -99999.);
-  std::fill(lep_mom_truth, lep_mom_truth + sizeof(lep_mom_truth)/sizeof(lep_mom_truth[0]), -99999.);
-  std::fill(lep_dcosx_truth, lep_dcosx_truth + sizeof(lep_dcosx_truth)/sizeof(lep_dcosx_truth[0]), -99999.);
-  std::fill(lep_dcosy_truth, lep_dcosy_truth + sizeof(lep_dcosy_truth)/sizeof(lep_dcosy_truth[0]), -99999.);
-  std::fill(lep_dcosz_truth, lep_dcosz_truth + sizeof(lep_dcosz_truth)/sizeof(lep_dcosz_truth[0]), -99999.);
+  mcevts_truth = -9999;
+  mcevts_truthcry = -9999;
+  std::fill(nuPDG_truth, nuPDG_truth + sizeof(nuPDG_truth)/sizeof(nuPDG_truth[0]), -999.);
+  std::fill(ccnc_truth, ccnc_truth + sizeof(ccnc_truth)/sizeof(ccnc_truth[0]), -999.);
+  std::fill(mode_truth, mode_truth + sizeof(mode_truth)/sizeof(mode_truth[0]), -999.);
+  std::fill(enu_truth, enu_truth + sizeof(enu_truth)/sizeof(enu_truth[0]), -999.);
+  std::fill(Q2_truth, Q2_truth + sizeof(Q2_truth)/sizeof(Q2_truth[0]), -999.);
+  std::fill(W_truth, W_truth + sizeof(W_truth)/sizeof(W_truth[0]), -999.);
+  std::fill(X_truth, X_truth + sizeof(X_truth)/sizeof(X_truth[0]), -999.);
+  std::fill(Y_truth, Y_truth + sizeof(Y_truth)/sizeof(Y_truth[0]), -999.);
+  std::fill(hitnuc_truth, hitnuc_truth + sizeof(hitnuc_truth)/sizeof(hitnuc_truth[0]), -999.);
+  std::fill(nuvtxx_truth, nuvtxx_truth + sizeof(nuvtxx_truth)/sizeof(nuvtxx_truth[0]), -999.);
+  std::fill(nuvtxy_truth, nuvtxy_truth + sizeof(nuvtxy_truth)/sizeof(nuvtxy_truth[0]), -999.);
+  std::fill(nuvtxz_truth, nuvtxz_truth + sizeof(nuvtxz_truth)/sizeof(nuvtxz_truth[0]), -999.);
+  std::fill(nu_dcosx_truth, nu_dcosx_truth + sizeof(nu_dcosx_truth)/sizeof(nu_dcosx_truth[0]), -999.);
+  std::fill(nu_dcosy_truth, nu_dcosy_truth + sizeof(nu_dcosy_truth)/sizeof(nu_dcosy_truth[0]), -999.);
+  std::fill(nu_dcosz_truth, nu_dcosz_truth + sizeof(nu_dcosz_truth)/sizeof(nu_dcosz_truth[0]), -999.);
+  std::fill(lep_mom_truth, lep_mom_truth + sizeof(lep_mom_truth)/sizeof(lep_mom_truth[0]), -999.);
+  std::fill(lep_dcosx_truth, lep_dcosx_truth + sizeof(lep_dcosx_truth)/sizeof(lep_dcosx_truth[0]), -999.);
+  std::fill(lep_dcosy_truth, lep_dcosy_truth + sizeof(lep_dcosy_truth)/sizeof(lep_dcosy_truth[0]), -999.);
+  std::fill(lep_dcosz_truth, lep_dcosz_truth + sizeof(lep_dcosz_truth)/sizeof(lep_dcosz_truth[0]), -999.);
 
   //Flux information
-  std::fill(vx_flux, vx_flux + sizeof(vx_flux)/sizeof(vx_flux[0]), -99999.);
-  std::fill(vy_flux, vy_flux + sizeof(vy_flux)/sizeof(vy_flux[0]), -99999.);
-  std::fill(vz_flux, vz_flux + sizeof(vz_flux)/sizeof(vz_flux[0]), -99999.);
-  std::fill(pdpx_flux, pdpx_flux + sizeof(pdpx_flux)/sizeof(pdpx_flux[0]), -99999.);
-  std::fill(pdpy_flux, pdpy_flux + sizeof(pdpy_flux)/sizeof(pdpy_flux[0]), -99999.);
-  std::fill(pdpz_flux, pdpz_flux + sizeof(pdpz_flux)/sizeof(pdpz_flux[0]), -99999.);
-  std::fill(ppdxdz_flux, ppdxdz_flux + sizeof(ppdxdz_flux)/sizeof(ppdxdz_flux[0]), -99999.);
-  std::fill(ppdydz_flux, ppdydz_flux + sizeof(ppdydz_flux)/sizeof(ppdydz_flux[0]), -99999.);
-  std::fill(pppz_flux, pppz_flux + sizeof(pppz_flux)/sizeof(pppz_flux[0]), -99999.);
-  std::fill(ptype_flux, ptype_flux + sizeof(ptype_flux)/sizeof(ptype_flux[0]), -9999);
-  std::fill(ppvx_flux, ppvx_flux + sizeof(ppvx_flux)/sizeof(ppvx_flux[0]), -99999.);
-  std::fill(ppvy_flux, ppvy_flux + sizeof(ppvy_flux)/sizeof(ppvy_flux[0]), -99999.);
-  std::fill(ppvz_flux, ppvz_flux + sizeof(ppvz_flux)/sizeof(ppvz_flux[0]), -99999.);
-  std::fill(muparpx_flux, muparpx_flux + sizeof(muparpx_flux)/sizeof(muparpx_flux[0]), -99999.);
-  std::fill(muparpy_flux, muparpy_flux + sizeof(muparpy_flux)/sizeof(muparpy_flux[0]), -99999.);
-  std::fill(muparpz_flux, muparpz_flux + sizeof(muparpz_flux)/sizeof(muparpz_flux[0]), -99999.);
-  std::fill(mupare_flux, mupare_flux + sizeof(mupare_flux)/sizeof(mupare_flux[0]), -99999.);
-  std::fill(tgen_flux, tgen_flux + sizeof(tgen_flux)/sizeof(tgen_flux[0]), -9999);
-  std::fill(tgptype_flux, tgptype_flux + sizeof(tgptype_flux)/sizeof(tgptype_flux[0]), -9999);
-  std::fill(tgppx_flux, tgppx_flux + sizeof(tgppx_flux)/sizeof(tgppx_flux[0]), -99999.);
-  std::fill(tgppy_flux, tgppy_flux + sizeof(tgppy_flux)/sizeof(tgppy_flux[0]), -99999.);
-  std::fill(tgppz_flux, tgppz_flux + sizeof(tgppz_flux)/sizeof(tgppz_flux[0]), -99999.);
-  std::fill(tprivx_flux, tprivx_flux + sizeof(tprivx_flux)/sizeof(tprivx_flux[0]), -99999.);
-  std::fill(tprivy_flux, tprivy_flux + sizeof(tprivy_flux)/sizeof(tprivy_flux[0]), -99999.);
-  std::fill(tprivz_flux, tprivz_flux + sizeof(tprivz_flux)/sizeof(tprivz_flux[0]), -99999.);
-  std::fill(dk2gen_flux, dk2gen_flux + sizeof(dk2gen_flux)/sizeof(dk2gen_flux[0]), -99999.);
-  std::fill(gen2vtx_flux, gen2vtx_flux + sizeof(gen2vtx_flux)/sizeof(gen2vtx_flux[0]), -99999.);
-  std::fill(tpx_flux, tpx_flux + sizeof(tpx_flux)/sizeof(tpx_flux[0]), -99999.);
-  std::fill(tpy_flux, tpy_flux + sizeof(tpy_flux)/sizeof(tpy_flux[0]), -99999.);
-  std::fill(tpz_flux, tpz_flux + sizeof(tpz_flux)/sizeof(tpz_flux[0]), -99999.);
-  std::fill(tptype_flux, tptype_flux + sizeof(tptype_flux)/sizeof(tptype_flux[0]), -99999.);
+  std::fill(vx_flux, vx_flux + sizeof(vx_flux)/sizeof(vx_flux[0]), -999.);
+  std::fill(vy_flux, vy_flux + sizeof(vy_flux)/sizeof(vy_flux[0]), -999.);
+  std::fill(vz_flux, vz_flux + sizeof(vz_flux)/sizeof(vz_flux[0]), -999.);
+  std::fill(pdpx_flux, pdpx_flux + sizeof(pdpx_flux)/sizeof(pdpx_flux[0]), -999.);
+  std::fill(pdpy_flux, pdpy_flux + sizeof(pdpy_flux)/sizeof(pdpy_flux[0]), -999.);
+  std::fill(pdpz_flux, pdpz_flux + sizeof(pdpz_flux)/sizeof(pdpz_flux[0]), -999.);
+  std::fill(ppdxdz_flux, ppdxdz_flux + sizeof(ppdxdz_flux)/sizeof(ppdxdz_flux[0]), -999.);
+  std::fill(ppdydz_flux, ppdydz_flux + sizeof(ppdydz_flux)/sizeof(ppdydz_flux[0]), -999.);
+  std::fill(pppz_flux, pppz_flux + sizeof(pppz_flux)/sizeof(pppz_flux[0]), -999.);
+  std::fill(ptype_flux, ptype_flux + sizeof(ptype_flux)/sizeof(ptype_flux[0]), -999);
+  std::fill(ppvx_flux, ppvx_flux + sizeof(ppvx_flux)/sizeof(ppvx_flux[0]), -999.);
+  std::fill(ppvy_flux, ppvy_flux + sizeof(ppvy_flux)/sizeof(ppvy_flux[0]), -999.);
+  std::fill(ppvz_flux, ppvz_flux + sizeof(ppvz_flux)/sizeof(ppvz_flux[0]), -999.);
+  std::fill(muparpx_flux, muparpx_flux + sizeof(muparpx_flux)/sizeof(muparpx_flux[0]), -999.);
+  std::fill(muparpy_flux, muparpy_flux + sizeof(muparpy_flux)/sizeof(muparpy_flux[0]), -999.);
+  std::fill(muparpz_flux, muparpz_flux + sizeof(muparpz_flux)/sizeof(muparpz_flux[0]), -999.);
+  std::fill(mupare_flux, mupare_flux + sizeof(mupare_flux)/sizeof(mupare_flux[0]), -999.);
+  std::fill(tgen_flux, tgen_flux + sizeof(tgen_flux)/sizeof(tgen_flux[0]), -999);
+  std::fill(tgptype_flux, tgptype_flux + sizeof(tgptype_flux)/sizeof(tgptype_flux[0]), -999);
+  std::fill(tgppx_flux, tgppx_flux + sizeof(tgppx_flux)/sizeof(tgppx_flux[0]), -999.);
+  std::fill(tgppy_flux, tgppy_flux + sizeof(tgppy_flux)/sizeof(tgppy_flux[0]), -999.);
+  std::fill(tgppz_flux, tgppz_flux + sizeof(tgppz_flux)/sizeof(tgppz_flux[0]), -999.);
+  std::fill(tprivx_flux, tprivx_flux + sizeof(tprivx_flux)/sizeof(tprivx_flux[0]), -999.);
+  std::fill(tprivy_flux, tprivy_flux + sizeof(tprivy_flux)/sizeof(tprivy_flux[0]), -999.);
+  std::fill(tprivz_flux, tprivz_flux + sizeof(tprivz_flux)/sizeof(tprivz_flux[0]), -999.);
+  std::fill(dk2gen_flux, dk2gen_flux + sizeof(dk2gen_flux)/sizeof(dk2gen_flux[0]), -999.);
+  std::fill(gen2vtx_flux, gen2vtx_flux + sizeof(gen2vtx_flux)/sizeof(gen2vtx_flux[0]), -999.);
+  std::fill(tpx_flux, tpx_flux + sizeof(tpx_flux)/sizeof(tpx_flux[0]), -999.);
+  std::fill(tpy_flux, tpy_flux + sizeof(tpy_flux)/sizeof(tpy_flux[0]), -999.);
+  std::fill(tpz_flux, tpz_flux + sizeof(tpz_flux)/sizeof(tpz_flux[0]), -999.);
+  std::fill(tptype_flux, tptype_flux + sizeof(tptype_flux)/sizeof(tptype_flux[0]), -999.);
 
   genie_no_primaries = 0;
   cry_no_primaries = 0;
@@ -2373,161 +2515,161 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   no_mcshowers = 0;
   no_mctracks = 0;
 
-  FillWith(pdg, -99999);
-  FillWith(status, -99999);
-  FillWith(Mass, -99999.);
-  FillWith(Eng, -99999.);
-  FillWith(EndE, -99999.);
-  FillWith(Px, -99999.);
-  FillWith(Py, -99999.);
-  FillWith(Pz, -99999.);
-  FillWith(P, -99999.);
-  FillWith(StartPointx, -99999.);
-  FillWith(StartPointy, -99999.);
-  FillWith(StartPointz, -99999.);
+  FillWith(pdg, -9999);
+  FillWith(status, -9999);
+  FillWith(Mass, -999.);
+  FillWith(Eng, -999.);
+  FillWith(EndE, -999.);
+  FillWith(Px, -999.);
+  FillWith(Py, -999.);
+  FillWith(Pz, -999.);
+  FillWith(P, -999.);
+  FillWith(StartPointx, -999.);
+  FillWith(StartPointy, -999.);
+  FillWith(StartPointz, -999.);
   FillWith(StartT, -99e7);
-  FillWith(EndT, -99999.);
-  FillWith(EndPointx, -99999.);
-  FillWith(EndPointy, -99999.);
-  FillWith(EndPointz, -99999.);
+  FillWith(EndT, -999.);
+  FillWith(EndPointx, -999.);
+  FillWith(EndPointy, -999.);
+  FillWith(EndPointz, -999.);
   FillWith(EndT, -99e7);
-  FillWith(theta, -99999.);
-  FillWith(phi, -99999.);
-  FillWith(theta_xz, -99999.);
-  FillWith(theta_yz, -99999.);
-  FillWith(pathlen, -99999.);
-  FillWith(inTPCActive, -99999);
-  FillWith(StartPointx_tpcAV, -99999.);
-  FillWith(StartPointy_tpcAV, -99999.);
-  FillWith(StartPointz_tpcAV, -99999.);
+  FillWith(theta, -999.);
+  FillWith(phi, -999.);
+  FillWith(theta_xz, -999.);
+  FillWith(theta_yz, -999.);
+  FillWith(pathlen, -999.);
+  FillWith(inTPCActive, -9999);
+  FillWith(StartPointx_tpcAV, -999.);
+  FillWith(StartPointy_tpcAV, -999.);
+  FillWith(StartPointz_tpcAV, -999.);
   FillWith(StartT_tpcAV, -99e7);
-  FillWith(StartE_tpcAV, -99999.);
-  FillWith(StartP_tpcAV, -99999.);
-  FillWith(StartPx_tpcAV, -99999.);
-  FillWith(StartPy_tpcAV, -99999.);
-  FillWith(StartPz_tpcAV, -99999.);
-  FillWith(EndPointx_tpcAV, -99999.);
-  FillWith(EndPointy_tpcAV, -99999.);
-  FillWith(EndPointz_tpcAV, -99999.);
+  FillWith(StartE_tpcAV, -999.);
+  FillWith(StartP_tpcAV, -999.);
+  FillWith(StartPx_tpcAV, -999.);
+  FillWith(StartPy_tpcAV, -999.);
+  FillWith(StartPz_tpcAV, -999.);
+  FillWith(EndPointx_tpcAV, -999.);
+  FillWith(EndPointy_tpcAV, -999.);
+  FillWith(EndPointz_tpcAV, -999.);
   FillWith(EndT_tpcAV, -99e7);
-  FillWith(EndE_tpcAV, -99999.);
-  FillWith(EndP_tpcAV, -99999.);
-  FillWith(EndPx_tpcAV, -99999.);
-  FillWith(EndPy_tpcAV, -99999.);
-  FillWith(EndPz_tpcAV, -99999.);
-  FillWith(pathlen_drifted, -99999.);
-  FillWith(inTPCDrifted, -99999);
-  FillWith(StartPointx_drifted, -99999.);
-  FillWith(StartPointy_drifted, -99999.);
-  FillWith(StartPointz_drifted, -99999.);
+  FillWith(EndE_tpcAV, -999.);
+  FillWith(EndP_tpcAV, -999.);
+  FillWith(EndPx_tpcAV, -999.);
+  FillWith(EndPy_tpcAV, -999.);
+  FillWith(EndPz_tpcAV, -999.);
+  FillWith(pathlen_drifted, -999.);
+  FillWith(inTPCDrifted, -9999);
+  FillWith(StartPointx_drifted, -999.);
+  FillWith(StartPointy_drifted, -999.);
+  FillWith(StartPointz_drifted, -999.);
   FillWith(StartT_drifted, -99e7);
-  FillWith(StartE_drifted, -99999.);
-  FillWith(StartP_drifted, -99999.);
-  FillWith(StartPx_drifted, -99999.);
-  FillWith(StartPy_drifted, -99999.);
-  FillWith(StartPz_drifted, -99999.);
-  FillWith(EndPointx_drifted, -99999.);
-  FillWith(EndPointy_drifted, -99999.);
-  FillWith(EndPointz_drifted, -99999.);
+  FillWith(StartE_drifted, -999.);
+  FillWith(StartP_drifted, -999.);
+  FillWith(StartPx_drifted, -999.);
+  FillWith(StartPy_drifted, -999.);
+  FillWith(StartPz_drifted, -999.);
+  FillWith(EndPointx_drifted, -999.);
+  FillWith(EndPointy_drifted, -999.);
+  FillWith(EndPointz_drifted, -999.);
   FillWith(EndT_drifted, -99e7);
-  FillWith(EndE_drifted, -99999.);
-  FillWith(EndP_drifted, -99999.);
-  FillWith(EndPx_drifted, -99999.);
-  FillWith(EndPy_drifted, -99999.);
-  FillWith(EndPz_drifted, -99999.);
-  FillWith(NumberDaughters, -99999);
-  FillWith(Mother, -99999);
-  FillWith(TrackId, -99999);
-  FillWith(process_primary, -99999);
+  FillWith(EndE_drifted, -999.);
+  FillWith(EndP_drifted, -999.);
+  FillWith(EndPx_drifted, -999.);
+  FillWith(EndPy_drifted, -999.);
+  FillWith(EndPz_drifted, -999.);
+  FillWith(NumberDaughters, -9999);
+  FillWith(Mother, -9999);
+  FillWith(TrackId, -9999);
+  FillWith(process_primary, -9999);
   FillWith(processname, "noname");
-  FillWith(MergedId, -99999);
-  FillWith(origin, -99999);
-  FillWith(MCTruthIndex, -99999);
-  FillWith(genie_primaries_pdg, -99999);
-  FillWith(genie_Eng, -99999.);
-  FillWith(genie_Px, -99999.);
-  FillWith(genie_Py, -99999.);
-  FillWith(genie_Pz, -99999.);
-  FillWith(genie_P, -99999.);
-  FillWith(genie_status_code, -99999);
-  FillWith(genie_mass, -99999.);
-  FillWith(genie_trackID, -99999);
-  FillWith(genie_ND, -99999);
-  FillWith(genie_mother, -99999);
-  FillWith(cry_primaries_pdg, -99999);
-  FillWith(cry_Eng, -99999.);
-  FillWith(cry_Px, -99999.);
-  FillWith(cry_Py, -99999.);
-  FillWith(cry_Pz, -99999.);
-  FillWith(cry_P, -99999.);
-  FillWith(cry_StartPointx, -99999.);
-  FillWith(cry_StartPointy, -99999.);
-  FillWith(cry_StartPointz, -99999.);
-  FillWith(cry_StartPointt, -99999.);
-  FillWith(cry_status_code, -99999);
-  FillWith(cry_mass, -99999.);
-  FillWith(cry_trackID, -99999);
-  FillWith(cry_ND, -99999);
-  FillWith(cry_mother, -99999);
+  FillWith(MergedId, -9999);
+  FillWith(origin, -9999);
+  FillWith(MCTruthIndex, -9999);
+  FillWith(genie_primaries_pdg, -9999);
+  FillWith(genie_Eng, -999.);
+  FillWith(genie_Px, -999.);
+  FillWith(genie_Py, -999.);
+  FillWith(genie_Pz, -999.);
+  FillWith(genie_P, -999.);
+  FillWith(genie_status_code, -9999);
+  FillWith(genie_mass, -999.);
+  FillWith(genie_trackID, -9999);
+  FillWith(genie_ND, -9999);
+  FillWith(genie_mother, -9999);
+  FillWith(cry_primaries_pdg, -9999);
+  FillWith(cry_Eng, -999.);
+  FillWith(cry_Px, -999.);
+  FillWith(cry_Py, -999.);
+  FillWith(cry_Pz, -999.);
+  FillWith(cry_P, -999.);
+  FillWith(cry_StartPointx, -999.);
+  FillWith(cry_StartPointy, -999.);
+  FillWith(cry_StartPointz, -999.);
+  FillWith(cry_StartPointt, -999.);
+  FillWith(cry_status_code, -9999);
+  FillWith(cry_mass, -999.);
+  FillWith(cry_trackID, -9999);
+  FillWith(cry_ND, -9999);
+  FillWith(cry_mother, -9999);
   // Start of ProtoDUNE Beam generator section
-  FillWith(proto_isGoodParticle,-99999);
-  FillWith(proto_vx,-99999.);
-  FillWith(proto_vy,-99999.);
-  FillWith(proto_vz,-99999.);
-  FillWith(proto_t,-99999.);
-  FillWith(proto_px,-99999.);
-  FillWith(proto_py,-99999.);
-  FillWith(proto_pz,-99999.);
-  FillWith(proto_momentum,-99999.);
-  FillWith(proto_energy,-99999.);
-  FillWith(proto_pdg,-99999);
+  FillWith(proto_isGoodParticle,-9999);
+  FillWith(proto_vx,-999.);
+  FillWith(proto_vy,-999.);
+  FillWith(proto_vz,-999.);
+  FillWith(proto_t,-999.);
+  FillWith(proto_px,-999.);
+  FillWith(proto_py,-999.);
+  FillWith(proto_pz,-999.);
+  FillWith(proto_momentum,-999.);
+  FillWith(proto_energy,-999.);
+  FillWith(proto_pdg,-9999);
   // End of ProtoDUNE Beam generator section
   FillWith(mcshwr_origin, -1);
-  FillWith(mcshwr_pdg, -99999);
-  FillWith(mcshwr_TrackId, -99999);
+  FillWith(mcshwr_pdg, -9999);
+  FillWith(mcshwr_TrackId, -9999);
   FillWith(mcshwr_Process, "noname");
-  FillWith(mcshwr_startX, -99999.);
-  FillWith(mcshwr_startY, -99999.);
-  FillWith(mcshwr_startZ, -99999.);
-  FillWith(mcshwr_endX, -99999.);
-  FillWith(mcshwr_endY, -99999.);
-  FillWith(mcshwr_endZ, -99999.);
-  FillWith(mcshwr_CombEngX, -99999.);
-  FillWith(mcshwr_CombEngY, -99999.);
-  FillWith(mcshwr_CombEngZ, -99999.);
-  FillWith(mcshwr_CombEngPx, -99999.);
-  FillWith(mcshwr_CombEngPy, -99999.);
-  FillWith(mcshwr_CombEngPz, -99999.);
-  FillWith(mcshwr_CombEngE, -99999.);
-  FillWith(mcshwr_dEdx, -99999.);
-  FillWith(mcshwr_StartDirX, -99999.);
-  FillWith(mcshwr_StartDirY, -99999.);
-  FillWith(mcshwr_StartDirZ, -99999.);
-  FillWith(mcshwr_isEngDeposited, -9999);
-  FillWith(mcshwr_Motherpdg, -99999);
-  FillWith(mcshwr_MotherTrkId, -99999);
+  FillWith(mcshwr_startX, -999.);
+  FillWith(mcshwr_startY, -999.);
+  FillWith(mcshwr_startZ, -999.);
+  FillWith(mcshwr_endX, -999.);
+  FillWith(mcshwr_endY, -999.);
+  FillWith(mcshwr_endZ, -999.);
+  FillWith(mcshwr_CombEngX, -999.);
+  FillWith(mcshwr_CombEngY, -999.);
+  FillWith(mcshwr_CombEngZ, -999.);
+  FillWith(mcshwr_CombEngPx, -999.);
+  FillWith(mcshwr_CombEngPy, -999.);
+  FillWith(mcshwr_CombEngPz, -999.);
+  FillWith(mcshwr_CombEngE, -999.);
+  FillWith(mcshwr_dEdx, -999.);
+  FillWith(mcshwr_StartDirX, -999.);
+  FillWith(mcshwr_StartDirY, -999.);
+  FillWith(mcshwr_StartDirZ, -999.);
+  FillWith(mcshwr_isEngDeposited, -999);
+  FillWith(mcshwr_Motherpdg, -9999);
+  FillWith(mcshwr_MotherTrkId, -9999);
   FillWith(mcshwr_MotherProcess, "noname");
-  FillWith(mcshwr_MotherstartX, -99999.);
-  FillWith(mcshwr_MotherstartY, -99999.);
-  FillWith(mcshwr_MotherstartZ, -99999.);
-  FillWith(mcshwr_MotherendX, -99999.);
-  FillWith(mcshwr_MotherendY, -99999.);
-  FillWith(mcshwr_MotherendZ, -99999.);
-  FillWith(mcshwr_Ancestorpdg, -99999);
-  FillWith(mcshwr_AncestorTrkId, -99999);
+  FillWith(mcshwr_MotherstartX, -999.);
+  FillWith(mcshwr_MotherstartY, -999.);
+  FillWith(mcshwr_MotherstartZ, -999.);
+  FillWith(mcshwr_MotherendX, -999.);
+  FillWith(mcshwr_MotherendY, -999.);
+  FillWith(mcshwr_MotherendZ, -999.);
+  FillWith(mcshwr_Ancestorpdg, -9999);
+  FillWith(mcshwr_AncestorTrkId, -9999);
   FillWith(mcshwr_AncestorProcess, "noname");
-  FillWith(mcshwr_AncestorstartX, -99999.);
-  FillWith(mcshwr_AncestorstartY, -99999.);
-  FillWith(mcshwr_AncestorstartZ, -99999.);
-  FillWith(mcshwr_AncestorendX, -99999.);
-  FillWith(mcshwr_AncestorendY, -99999.);
-  FillWith(mcshwr_AncestorendZ, -99999.);
+  FillWith(mcshwr_AncestorstartX, -999.);
+  FillWith(mcshwr_AncestorstartY, -999.);
+  FillWith(mcshwr_AncestorstartZ, -999.);
+  FillWith(mcshwr_AncestorendX, -999.);
+  FillWith(mcshwr_AncestorendY, -999.);
+  FillWith(mcshwr_AncestorendZ, -999.);
 
   // auxiliary detector information;
   FillWith(NAuxDets, 0);
-  // - set to -9999 all the values of each of the arrays in AuxDetID;
+  // - set to -999 all the values of each of the arrays in AuxDetID;
   //   this auto is BoxedArray<Short_t>
-  for (auto& partInfo: AuxDetID) FillWith(partInfo, -9999);
+  for (auto& partInfo: AuxDetID) FillWith(partInfo, -999);
   // - pythonish C++: as the previous line, for each one in a list of containers
   //   of the same type (C++ is not python yet), using pointers to avoid copy;
   for (AuxDetMCData_t<Float_t>* cont: {
@@ -2537,7 +2679,7 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
       })
   {
     // this auto is BoxedArray<Float_t>
-    for (auto& partInfo: *cont) FillWith(partInfo, -99999.);
+    for (auto& partInfo: *cont) FillWith(partInfo, -999.);
   } // for container
 
 } // dune::AnaRootParserDataStruct::ClearLocalData()
@@ -2813,7 +2955,8 @@ void dune::AnaRootParserDataStruct::SetAddresses(
 
   CreateBranch("Run",&run,"run/I");
   CreateBranch("Subrun",&subrun,"subrun/I");
-  CreateBranch("Event",&event,"event/I");
+//  CreateBranch("EventNumberInSubrun",&event,"event/I");
+  CreateBranch("EventNumberInRun",&event,"event/I");
   CreateBranch("EventTimeSeconds",&evttime_seconds,"evttime_seconds/I");
   CreateBranch("EventTimeNanoseconds",&evttime_nanoseconds,"evttime_nanoseconds/I");
   //  CreateBranch("beamtime",&beamtime,"beamtime/D");
@@ -2884,7 +3027,7 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("Cluster_StartChannel", cluster_StartWire, "cluster_StartWire[nclusters]/S");
     CreateBranch("Cluster_StartTick", cluster_StartTick, "cluster_StartTick[nclusters]/S");
     CreateBranch("Cluster_EndChannel", cluster_EndWire, "cluster_EndWire[nclusters]/S");
-    CreateBranch("cluster_EndTick", cluster_EndTick, "cluster_EndTick[nclusters]/S");
+    CreateBranch("Cluster_EndTick", cluster_EndTick, "cluster_EndTick[nclusters]/S");
     CreateBranch("Cluster_StartCharge", cluster_StartCharge, "cluster_StartCharge[nclusters]/F");
     CreateBranch("Cluster_StartAngle", cluster_StartAngle, "cluster_StartAngle[nclusters]/F");
     CreateBranch("Cluster_EndCharge", cluster_EndCharge, "cluster_EndCharge[nclusters]/F");
@@ -3261,6 +3404,8 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   EDAnalyzer(pset),
   fTree(nullptr), 
   //  fPOT(nullptr),
+
+  fEventsPerSubrun          (pset.get< short >("EventsPerSubrun")        ),
   fDigitModuleLabel         (pset.get< std::string >("DigitModuleLabel")        ),
   fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel")         ),
   fLArG4ModuleLabel         (pset.get< std::string >("LArGeantModuleLabel")     ),
@@ -3467,10 +3612,11 @@ void dune::AnaRootParser::endSubRun(const art::SubRun& sr)
 
 void dune::AnaRootParser::analyze(const art::Event& evt)
 {
+
   //services
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+//  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+//  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = false;
@@ -3609,8 +3755,8 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       if (mctruth->NeutrinoSet()) nGeniePrimaries = mctruth->NParticles();
       //} //end (fSaveGenieInfo)
 
-      const sim::ParticleList& plist = pi_serv->ParticleList();
-      nGEANTparticles = plist.size();
+//      const sim::ParticleList& plist = pi_serv->ParticleList();
+//      nGEANTparticles = plist.size();
 
       // to know the number of particles in AV would require
       // looking at all of them; so we waste some memory here
@@ -3734,7 +3880,7 @@ if (isMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
 
   fData->run = evt.run();
   fData->subrun = evt.subRun();
-  fData->event = evt.id().event();
+  fData->event = evt.id().event() + fEventsPerSubrun*evt.subRun();
 
   art::Timestamp ts = evt.time();
   fData->evttime_seconds = ts.timeHigh();
@@ -3773,6 +3919,11 @@ if (fSaveHitInfo){
     mf::LogError("AnaRootParser:limits") << "event has " << NHits
       << " hits, only kMaxHits=" << kMaxHits << " stored in tree";
   }
+
+// trying to assign a space point to those recob::Hits t hat were assigned to a track, checking for every hit. Not really working yet.
+//    art::FindManyP<recob::SpacePoint> fmsp(hitlist,evt,"pmtrack");
+
+
   for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits
     fData->hit_channel[i] = hitlist[i]->Channel();
     fData->hit_tpc[i]   = hitlist[i]->WireID().TPC;
@@ -3787,6 +3938,37 @@ if (fSaveHitInfo){
     fData->hit_rms[i] = hitlist[i]->RMS();
     fData->hit_goodnessOfFit[i] = hitlist[i]->GoodnessOfFit();
     fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
+
+
+/*
+    std::vector< art::Ptr<recob::SpacePoint> > sptv = fmsp.at(i);
+        if (fmsp.at(i).size()!=0){
+    std::cout << "sptv[i]->XYZ()[0]: " << sptv[i]->XYZ()[0] << std::endl; 
+    std::cout << "sptv[i]->XYZ()[1]: " << sptv[i]->XYZ()[1] << std::endl; 
+    std::cout << "sptv[i]->XYZ()[2]: " << sptv[i]->XYZ()[2] << std::endl; 
+      }
+    std::cout << "test3" << std::endl; 
+//    std::cout << "test" << std::endl;
+//    art::FindManyP<recob::SpacePoint> fmsp(hitListHandle,evt,"pmtrack");
+//    art::FindManyP<recob::SpacePoint> fmsp(allHits, evt, fSpacePointModuleLabel);
+//    art::FindManyP<recob::SpacePoint> fmsp(hitlist,evt,"pmtrack");
+    for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits
+      if (fmsp.isValid()){
+        if (fmsp.at(i).size()!=0){
+
+        std::cout << "Spacepoint in x for hit" << i << ": " << fmsp.at(i)[0]->XYZ()[0] << std::endl;
+        //  fData->hit_clusterid[i] = fmcl.at(i)[0]->ID();
+          //	    fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
+        }
+        else std::cout << "No spacepoint for this hit" << std::endl;
+      }
+    }
+    //Get space points associated with the hit
+    std::vector< art::Ptr<recob::SpacePoint> > sptv = fmsp.at(hits[ipl][i]);
+*/
+
+
+
     //std::vector<double> xyz = bt_serv->HitToXYZ(hitlist[i]);
     //when the size of simIDEs is zero, the above function throws an exception
     //and crashes, so check that the simIDEs have non-zero size before
@@ -4208,6 +4390,10 @@ if (fSaveShowerInfo){
 
 //track information for multiple trackers
 if (fSaveTrackInfo) {
+
+  // Get Geometry
+  art::ServiceHandle<geo::Geometry> geomhandle;
+
   for (unsigned int iTracker=0; iTracker < NTrackers; ++iTracker){
     AnaRootParserDataStruct::TrackDataStruct& TrackerData = fData->GetTrackerData(iTracker);
 
@@ -4254,6 +4440,7 @@ if (fSaveTrackInfo) {
     trkm.SetMinLength(100); //change the minimal track length requirement to 50 cm
 
     int HitIterator=0;
+    int HitIterator2=0;
 
     for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
 
@@ -4302,7 +4489,7 @@ if (fSaveTrackInfo) {
       }
 
       //Flash match compatibility information
-      //Unlike CosmicTagger, Flash match doesn't assign a cosmic tag for every track. For those tracks, AnaRootParser initializes them with -9999 or -99999
+      //Unlike CosmicTagger, Flash match doesn't assign a cosmic tag for every track. For those tracks, AnaRootParser initializes them with -999 or -9999
       art::FindManyP<anab::CosmicTag> fmbfm(trackListHandle[iTracker],evt,fFlashMatchAssocLabel[iTracker]);
       if (fmbfm.isValid()){
         TrackerData.trkncosmictags_flashmatch[iTrk] = fmbfm.at(iTrk).size();
@@ -4319,7 +4506,7 @@ if (fSaveTrackInfo) {
       const recob::Track& track = *ptrack;
 
       TVector3 pos, dir_start, dir_end, end;
-
+      TVector3 dir_start_flipped, dir_end_flipped;
       double tlen = 0., mom = 0.;
       int TrackID = -1;
 
@@ -4340,8 +4527,8 @@ if (fSaveTrackInfo) {
           end.SetXYZ(xyz[0],xyz[1],xyz[2]);
 
           tlen = btrack.GetLength();
-          if (btrack.NumberTrajectoryPoints() > 0)
-            mom = btrack.VertexMomentum();
+          if (btrack.GetTrajectory().NPoints() > 0)
+            mom = btrack.GetTrajectory().StartMomentum();
           // fill bezier track reco branches
           TrackID = iTrk;  //bezier has some screwed up track IDs
         }
@@ -4353,6 +4540,9 @@ if (fSaveTrackInfo) {
           dir_start = track.VertexDirection();
           dir_end   = track.EndDirection();
           end       = track.End();
+
+          dir_start_flipped.SetXYZ(dir_start.Z(), dir_start.Y(), dir_start.X());
+          dir_end_flipped.SetXYZ(dir_end.Z(), dir_end.Y(), dir_end.X());
 
           tlen        = length(track);
           if(track.NumberTrajectoryPoints() > 0)
@@ -4377,14 +4567,18 @@ if (fSaveTrackInfo) {
         TrackerData.trkendy[iTrk]		  = end.Y();
         TrackerData.trkendz[iTrk]		  = end.Z();
         TrackerData.trkendd[iTrk]		  = dend;
-        TrackerData.trktheta[iTrk]		  = dir_start.Theta();
-        TrackerData.trkphi[iTrk]		  = dir_start.Phi();
-        TrackerData.trkstartdcosx[iTrk]	  = dir_start.X();
-        TrackerData.trkstartdcosy[iTrk]	  = dir_start.Y();
-        TrackerData.trkstartdcosz[iTrk]	  = dir_start.Z();
-        TrackerData.trkenddcosx[iTrk] 	  = dir_end.X();
-        TrackerData.trkenddcosy[iTrk] 	  = dir_end.Y();
-        TrackerData.trkenddcosz[iTrk] 	  = dir_end.Z();
+        TrackerData.trkstarttheta[iTrk]		  = (180.0/3.14159)*dir_start_flipped.Theta();
+        TrackerData.trkstartphi[iTrk]		  = (180.0/3.14159)*dir_start_flipped.Phi();
+        TrackerData.trkstartdirectionx[iTrk]	  = dir_start.X();
+        TrackerData.trkstartdirectiony[iTrk]	  = dir_start.Y();
+        TrackerData.trkstartdirectionz[iTrk]	  = dir_start.Z();
+
+        TrackerData.trkendtheta[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Theta();
+        TrackerData.trkendphi[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Phi();
+        TrackerData.trkenddirectionx[iTrk] 	  = dir_end.X();
+        TrackerData.trkenddirectiony[iTrk] 	  = dir_end.Y();
+        TrackerData.trkenddirectionz[iTrk] 	  = dir_end.Z();
+
         TrackerData.trkthetaxz[iTrk]  	  = theta_xz;
         TrackerData.trkthetayz[iTrk]  	  = theta_yz;
         TrackerData.trkmom[iTrk]		  = mom;
@@ -4489,6 +4683,97 @@ if (fSaveTrackInfo) {
           TrackerData.trkpidmvapr[iTrk] = pid->mvaOutput.at("proton");
         } // fmvapid.isValid()
       }
+
+
+        art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trackListHandle[iTracker], evt, "pmtrack");
+
+//      if (fmthm.isValid()){
+	auto vhit = fmthm.at(iTrk);
+	auto vmeta = fmthm.data(iTrk);
+
+        TrackerData.NHitsPerTrack[iTrk] = vhit.size();
+      	art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
+
+  	  for (size_t h = 0; h < vhit.size(); ++h)
+  	  {
+	    //corrected pitch
+  	    double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
+  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint(vmeta[h]->Index());
+  	    double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
+  	    if (cosgamma)
+  	    {
+    	      TrackerData.hittrkpitchC[HitIterator2] = geomhandle->WirePitch(0,1,0)/cosgamma;
+  	    }
+  	    else
+  	    {
+    	      TrackerData.hittrkpitchC[HitIterator2] = -999.;
+  	    }
+	
+	    //XYZ
+	    std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
+	    for (size_t j = 0; j < sptv.size(); ++j)
+	    {
+	      TrackerData.hittrkx[HitIterator2] = sptv[j]->XYZ()[0];
+	      TrackerData.hittrky[HitIterator2] = sptv[j]->XYZ()[1];
+	      TrackerData.hittrkz[HitIterator2] = sptv[j]->XYZ()[2];
+	    }
+
+	    //dx
+	    TrackerData.hittrkdx[HitIterator2] = vmeta[h]->Dx();
+
+	    //hit variables
+	    TrackerData.hittrkchannel[HitIterator2] = vhit[h]->Channel();
+	    TrackerData.hittrktpc[HitIterator2] = vhit[h]->WireID().TPC;
+	    TrackerData.hittrkview[HitIterator2] = vhit[h]->WireID().Plane;
+	    TrackerData.hittrkwire[HitIterator2] = vhit[h]->WireID().Wire;
+	    TrackerData.hittrkpeakT[HitIterator2] = vhit[h]->PeakTime();
+	    TrackerData.hittrkchargeintegral[HitIterator2] = vhit[h]->Integral();
+	    TrackerData.hittrkchargesum[HitIterator2] = vhit[h]->SummedADC();
+	    TrackerData.hittrkstarT[HitIterator2] = vhit[h]->StartTick();
+	    TrackerData.hittrkendT[HitIterator2] = vhit[h]->EndTick();
+	    TrackerData.hittrkrms[HitIterator2] = vhit[h]->RMS();
+	    TrackerData.hittrkgoddnessofFit[HitIterator2] = vhit[h]->GoodnessOfFit();
+	    TrackerData.hittrkmultiplicity[HitIterator2] = vhit[h]->Multiplicity();
+
+            HitIterator2++;
+	  }
+
+//      }
+
+
+/*
+	std::cout << "tracklist[iTracker][iTrk]->NumberTrajectoryPoints(): " << tracklist[iTracker][iTrk]->NumberTrajectoryPoints() << std::endl;
+      for(size_t itp = 0; itp < tracklist[iTracker][iTrk]->NumberTrajectoryPoints(); ++itp)
+      {
+        const TVector3& pos = tracklist[iTracker][iTrk]->LocationAtPoint(itp);
+      }
+*/
+//
+//      art::FindManyP<recob::Hit> fmht(trackListHandle[iTracker], evt, fTrackModuleLabel);
+//      std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(trkIter);
+//      art::FindManyP<recob::SpacePoint> fmspts(allHits, evt, fSpacePointModuleLabel);
+//
+/*
+      art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
+	for (size_t h = 0; h < vhit.size(); ++h)
+	{
+	  std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
+
+	  for (size_t j = 0; j < sptv.size(); ++j)
+	  {
+	    std::cout << "sptv[j]->XYZ()[0]: " << sptv[j]->XYZ()[0] << std::endl;
+	    std::cout << "sptv[j]->XYZ()[1]: " << sptv[j]->XYZ()[1] << std::endl;
+	    std::cout << "sptv[j]->XYZ()[2]: " << sptv[j]->XYZ()[2] << std::endl;
+	    std::cout << "sptv[j]->ErrXYZ()[0]: " << sptv[j]->ErrXYZ()[0] << std::endl;
+	    std::cout << "sptv[j]->ErrXYZ()[1]: " << sptv[j]->ErrXYZ()[1] << std::endl;
+	    std::cout << "sptv[j]->ErrXYZ()[2]: " << sptv[j]->ErrXYZ()[2] << std::endl;
+	  }
+	}
+*/
+//
+
+
+/////////////////////
       art::FindMany<anab::Calorimetry> fmcal(trackListHandle[iTracker], evt, fCalorimetryModuleLabel[iTracker]);
       if (fmcal.isValid()){
         std::vector<const anab::Calorimetry*> calos = fmcal.at(iTrk);
@@ -4512,7 +4797,7 @@ if (fSaveTrackInfo) {
           //For now make the second argument as 13 for muons.
           TrackerData.trkpitchc[iTrk][planenum]= calos[ical] -> TrkPitchC();
           const size_t NHits = calos[ical] -> dEdx().size();
-          TrackerData.ntrkhits[iTrk][planenum] = (int) NHits;
+          TrackerData.ntrkhitsperview[iTrk][planenum] = (int) NHits;
           if (NHits > TrackerData.GetMaxHitsPerTrack(iTrk, planenum)) {
             // if you get this error, you'll have to increase kMaxTrackHits
             mf::LogError("AnaRootParser:limits")
@@ -4544,17 +4829,19 @@ if (fSaveTrackInfo) {
           }
         } // for calorimetry info
 
-        if(TrackerData.ntrkhits[iTrk][0] > TrackerData.ntrkhits[iTrk][1] && TrackerData.ntrkhits[iTrk][0] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
-        else if(TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 1;
-        else if(TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
-        else if(TrackerData.ntrkhits[iTrk][2] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
-        else if(TrackerData.ntrkhits[iTrk][2] == TrackerData.ntrkhits[iTrk][1] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][0]) TrackerData.trkpidbestplane[iTrk] = 2;
-        else if(TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
-        else if(TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 2;
+
+	//best plane
+        if(TrackerData.ntrkhitsperview[iTrk][0] > TrackerData.ntrkhitsperview[iTrk][1] && TrackerData.ntrkhitsperview[iTrk][0] > TrackerData.ntrkhitsperview[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
+        else if(TrackerData.ntrkhitsperview[iTrk][1] > TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][1] > TrackerData.ntrkhitsperview[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 1;
+        else if(TrackerData.ntrkhitsperview[iTrk][2] > TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][2] > TrackerData.ntrkhitsperview[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
+        else if(TrackerData.ntrkhitsperview[iTrk][2] == TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][2] > TrackerData.ntrkhitsperview[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
+        else if(TrackerData.ntrkhitsperview[iTrk][2] == TrackerData.ntrkhitsperview[iTrk][1] && TrackerData.ntrkhitsperview[iTrk][2] > TrackerData.ntrkhitsperview[iTrk][0]) TrackerData.trkpidbestplane[iTrk] = 2;
+        else if(TrackerData.ntrkhitsperview[iTrk][1] == TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][1] > TrackerData.ntrkhitsperview[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
+        else if(TrackerData.ntrkhitsperview[iTrk][1] == TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][1] == TrackerData.ntrkhitsperview[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 2;
 
         // FIXME - Do i want to add someway to work out the best TPC???....
       } // if has calorimetry info
-
+/*
       //track truth information
       if (isMC){
         //get the hits on each plane
@@ -4563,8 +4850,8 @@ if (fSaveTrackInfo) {
         std::vector< art::Ptr<recob::Hit> > hits[kNplanes];
 
         for(size_t ah = 0; ah < allHits.size(); ++ah){
-          if (/* allHits[ah]->WireID().Plane >= 0 && */ // always true
-              allHits[ah]->WireID().Plane <  3){
+//          if ( allHits[ah]->WireID().Plane >= 0 &&  // always true
+             if( allHits[ah]->WireID().Plane <  3){
             hits[allHits[ah]->WireID().Plane].push_back(allHits[ah]);
           }
         }
@@ -4615,11 +4902,11 @@ if (fSaveTrackInfo) {
           if (totenergy) TrackerData.trkcompleteness[iTrk] = maxe/totenergy;
         }
       }//end if (isMC)
-
-      }//end loop over track
+*/
+    }//end loop over track
       //std::cout << "HitIterator: " << HitIterator << std::endl; 
-    }//end loop over track module labels
-  }// end (fSaveTrackInfo)
+  }//end loop over track module labels
+}// end (fSaveTrackInfo)
 
   /*trkf::TrackMomentumCalculator trkm;
     std::cout<<"\t"<<trkm.GetTrackMomentum(200,2212)<<"\t"<<trkm.GetTrackMomentum(-10, 13)<<"\t"<<trkm.GetTrackMomentum(300,-19)<<"\n";
@@ -4963,7 +5250,7 @@ if (fSaveTrackInfo) {
         fData->mctrk_AncestorProcess.resize(trk);
       }//End if (fSaveMCTrackInfo){
 
-
+/*
       //GEANT particles information
       if (fSaveGeantInfo){
 
@@ -5169,7 +5456,8 @@ if (fSaveTrackInfo) {
         // for each particle, consider all the direct ancestors with the same
         // PDG ID, and mark them as belonging to the same "group"
         // (having the same MergedId)
-        /* turn off for now
+	
+	 turn off for now
            int currentMergedId = 1;
            for(size_t iPart = 0; iPart < geant_particle; ++iPart){
         // if the particle already belongs to a group, don't bother
@@ -5194,8 +5482,9 @@ if (fSaveTrackInfo) {
         }
         ++currentMergedId;
         }// for merging check
-        */
+        
       } // if (fSaveGeantInfo)
+*/
     }//if (mcevts_truth)
     }//if (isMC){
 
@@ -5227,9 +5516,9 @@ if (fSaveTrackInfo) {
           << " tracks (" << tracker->GetMaxTracks() << ")"
           ;
         for (int iTrk = 0; iTrk < tracker->ntracks; ++iTrk) {
-          logStream << "\n    [" << iTrk << "] "<< tracker->ntrkhits[iTrk][0];
+          logStream << "\n    [" << iTrk << "] "<< tracker->ntrkhitsperview[iTrk][0];
           for (size_t ipl = 1; ipl < tracker->GetMaxPlanesPerTrack(iTrk); ++ipl)
-            logStream << " + " << tracker->ntrkhits[iTrk][ipl];
+            logStream << " + " << tracker->ntrkhitsperview[iTrk][ipl];
           logStream << " hits (" << tracker->GetMaxHitsPerTrack(iTrk, 0);
           for (size_t ipl = 1; ipl < tracker->GetMaxPlanesPerTrack(iTrk); ++ipl)
             logStream << " + " << tracker->GetMaxHitsPerTrack(iTrk, ipl);
@@ -5338,7 +5627,7 @@ if (fSaveTrackInfo) {
       trackid = -1;
       purity = -1;
 
-      art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+/*      art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
       std::map<int,double> trkide;
 
@@ -5370,6 +5659,7 @@ if (fSaveTrackInfo) {
       if (tote>0){
         purity = maxe/tote;
       }
+*/
     }
 
     // Calculate distance to boundary.
