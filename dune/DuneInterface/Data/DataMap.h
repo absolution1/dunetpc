@@ -128,7 +128,7 @@ public:
   void setFloatVector(Name name, const FloatVector& val) { m_fltvecs[name] = val; }
   void setHist(Name name, TH1* ph, bool own =false) {
     m_hsts[name] = ph;
-    if ( own ) {
+    if ( own && ph != nullptr ) {
       ph->SetDirectory(nullptr);
       m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
     }
