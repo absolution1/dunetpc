@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+proto_plotopticaldetails:
+{
+  module_type:          "PlotOpticalDetails"
+  OpFlashLabel:         "opflash"
+}
+
+END_PROLOG
