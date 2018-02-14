@@ -1683,28 +1683,28 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "Track_Length_" + TrackLabel;
   CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartPosition_X_" + TrackLabel;
+  BranchName = "Track_StartPoint_X_" + TrackLabel;
   CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartPosition_Y_" + TrackLabel;
+  BranchName = "Track_StartPoint_Y_" + TrackLabel;
   CreateBranch(BranchName, trkstarty, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartPosition_Z_" + TrackLabel;
+  BranchName = "Track_StartPoint_Z_" + TrackLabel;
   CreateBranch(BranchName, trkstartz, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartPosition_DistanceToBoundary_" + TrackLabel;
+  BranchName = "Track_StartPoint_DistanceToBoundary_" + TrackLabel;
   CreateBranch(BranchName, trkstartd, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndPosition_X_" + TrackLabel;
+  BranchName = "Track_EndPoint_X_" + TrackLabel;
   CreateBranch(BranchName, trkendx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndPosition_Y_" + TrackLabel;
+  BranchName = "Track_EndPoint_Y_" + TrackLabel;
   CreateBranch(BranchName, trkendy, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndPosition_Z_" + TrackLabel;
+  BranchName = "Track_EndPoint_Z_" + TrackLabel;
   CreateBranch(BranchName, trkendz, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndPosition_DistanceToBoundary_" + TrackLabel;
+  BranchName = "Track_EndPoint_DistanceToBoundary_" + TrackLabel;
   CreateBranch(BranchName, trkendd, BranchName + NTracksIndexStr + "/F");
 
   BranchName = "Track_StartDirection_Theta_" + TrackLabel;
