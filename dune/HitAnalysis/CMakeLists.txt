@@ -6,7 +6,8 @@ art_make(BASENAME_ONLY
 	 larcore_Geometry_Geometry_service
          larcorealg_Geometry
          nusimdata_SimulationBase
-	 larsim_MCCheater_BackTracker_service
+	 larsim_MCCheater_BackTrackerService_service
+           larsim_MCCheater_ParticleInventoryService_service
 	 HitFinderDUNE
          ${ART_FRAMEWORK_CORE}
 	 ${ART_FRAMEWORK_PRINCIPAL}

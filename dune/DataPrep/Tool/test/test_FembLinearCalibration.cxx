@@ -1,7 +1,7 @@
 // test_FembLinearCalibration.cxx
 //
 // David Adams
-// April 2017
+// November 2017
 //
 // Test FembLinearCalibration.
 
@@ -43,6 +43,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: FembLinearCalibration" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    Units: Coulombs" << endl;
     fout << "    Gains: [1.0, 2.0, 3.0, 4.0, 5.0]" << endl;
     fout << "    AdcMin: 0" << endl;
     fout << "    AdcMins: [1200, 1300, 1400, 1500, 1600]" << endl;
@@ -97,13 +98,14 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
       sigchk[isam] = (icha+1)*(acd0.raw[isam] - acd0.pedestal);
     }
     cout << myname << line << endl;
+    assert( acd.sampleUnit == "" );
     cout << myname << "Channel " << icha << endl;
     DataMap res = pmod->update(acd);
     cout << myname << "Modify:" << endl;
     res.print();
-    Index nsamRes = res.getInt("nSample");
-    Index nunder = res.getInt("nUnderflow");
-    Index nover = res.getInt("nOverflow");
+    Index nsamRes = res.getInt("calibSampleCount");
+    Index nunder = res.getInt("calibUnderflowCount");
+    Index nover = res.getInt("calibOverflowCount");
     assert( res.status() == 0 );
     assert( nsamRes == nsam );
     cout << myname << "  Raw:";
@@ -137,6 +139,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
       }
       assert( acd.flags[isam] == flgExp  );
     }
+    assert( acd.sampleUnit == "Coulombs" );
   }
 
   cout << myname << line << endl;

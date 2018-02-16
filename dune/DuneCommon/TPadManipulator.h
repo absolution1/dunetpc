@@ -144,6 +144,7 @@ public:
 
   // Return the overlaid objects and options.
   const TObjVector& objects() const { return m_objs; }
+  TH1* getHist(unsigned int iobj);
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
   // Return a histogram (primary or secondary) by name.
@@ -276,6 +277,14 @@ public:
   // Until this is called, nothing will apear on the screen.
   // If this is a subpad, then the parent is drawn.
   int draw();
+
+  // Delete the canvas holding this pad.
+  int erase();
+
+  // Redraw a canvas.
+  // The current canvas is deleted and a new one created.
+  // This is useful if the batch mode has changed or to bring a window to the top.
+  int redraw();
 
   // Draw the top axis.
   int drawAxisTop();

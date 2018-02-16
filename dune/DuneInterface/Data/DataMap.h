@@ -24,13 +24,16 @@
 // Example draw of histogram:
 //   if ( res.hasHist("myhist") ) res.getHist("myhist")->Draw();
 //
-// This class does not manage (i.e. delete histograms). Its filler should ensure
-// that any stored histograms have appropriate lifetime.
+// This class manages (i.e. deletes) its graphs and optionally manages
+// its histograms. Any copies of the result share in that management.
+// If a histogram is not managed, the caller should ensure that it has
+// appropriate lifetime.
 
 #include <vector>
 #include <map>
 #include <string>
 #include <iostream>
+#include <sstream>
 
 #include "TH1.h"
 #include "TGraph.h"
@@ -52,6 +55,54 @@ public:
   using GraphPtr = std::shared_ptr<TGraph>;
   using GraphMap = std::map<Name,GraphPtr>;
   using SharedHistVector = std::vector<std::shared_ptr<TH1>>;
+
+public:
+
+  // Set/fetch debug level.
+  //   0 - silent
+  //   1 - report when a non-existent name is requested
+  //   2 - report all access
+  static int dbg(int setDbg =-1) {
+    static int val = 0;
+    if ( setDbg >= 0 ) {
+      val = setDbg;
+    }
+    return val;
+  }
+
+  // Class to manage map entry objects.
+  template<typename T>
+  struct MapEntry {
+    using Value    = T;
+    using Map      = typename std::map<Name,Value>;
+    using Iterator = typename Map::const_iterator;
+    using Entry    = typename Map::value_type;
+    const Entry& m_ent;
+    MapEntry(Iterator ient) : m_ent(*ient) { }
+    std::string toString() const {
+      std::ostringstream sout;
+      sout << m_ent.first << ": " << m_ent.second;
+      return sout.str();
+    }
+  };
+
+  // Specialization to handle vectors.
+  template<typename T>
+  struct MapEntry<std::vector<T>> {
+    using Value    = typename std::vector<T>;
+    using Map      = typename std::map<Name,Value>;
+    using Iterator = typename Map::const_iterator;
+    using Entry    = typename Map::value_type;
+    const Entry& m_ent;
+    MapEntry(Iterator ient) : m_ent(*ient) { }
+    std::string toString() const {
+      std::ostringstream sout;
+      sout << m_ent.first << "[" << m_ent.second.size() << "]";
+      return sout.str();
+    }
+  };
+
+public:
 
   // Ctor from status flag.
   explicit DataMap(int stat =0) : m_stat(stat) { }
@@ -77,10 +128,13 @@ public:
   void setFloatVector(Name name, const FloatVector& val) { m_fltvecs[name] = val; }
   void setHist(Name name, TH1* ph, bool own =false) {
     m_hsts[name] = ph;
-    if ( own ) {
+    if ( own && ph != nullptr ) {
       ph->SetDirectory(nullptr);
       m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
     }
+  }
+  void setHist(TH1* ph, bool own =false) {
+    if ( ph != nullptr ) setHist(ph->GetName(), ph, own);
   }
   void setHistVector(Name name, const HistVector& hsts, bool own =false) {
     const std::string myname = "DataMap::setHistVector: ";
@@ -104,6 +158,9 @@ public:
   }
   void setGraph(Name name, TGraph* pg) {
     m_grfs[name] = GraphPtr(pg);
+  }
+  void setGraph(TGraph* pg) {
+    if ( pg != nullptr ) setGraph(pg->GetName(), pg);
   }
 
   // Extend this map with another.
@@ -182,7 +239,7 @@ public:
           if ( ival ) cout << ",";
           cout << " " << ient.second[ival];
           if ( ival > maxval ) {
-            cout << ", ..." << endl;
+            cout << ", ...";
             break;
           }
         }
@@ -205,7 +262,7 @@ public:
           if ( ival ) cout << ",";
           cout << " " << ient.second[ival];
           if ( ival > maxval ) {
-            cout << ", ..." << endl;
+            cout << ", ...";
             break;
           }
         }
@@ -259,18 +316,29 @@ private:
   // Return a map's value for a key or default if key is not present.
   template<typename T>
   T mapget(const std::map<Name,T>& vals, Name name, T def) const {
+    const std::string myname = "DataMap::mapget: ";
     typename std::map<Name,T>::const_iterator ival = vals.find(name);
-    if ( ival == vals.end() ) return def;
+    if ( ival == vals.end() ) {
+      if ( dbg() ) std::cout << myname << "Unknown entry: " << name << std::endl;
+      return def;
+    }
+    //if ( dbg() == 2 ) std::cout << myname << ient->first << std::endl;
+    if ( dbg() == 2 ) std::cout << myname << MapEntry<T>(ival).toString() << std::endl;
     return ival->second;
   }
 
   // Return a map's value for a key or default ctor object if key is not present.
-
   template<typename T>
   const T& mapgetobj(const std::map<Name,T>& vals, Name name) const {
+    const std::string myname = "DataMap::mapgetobj: ";
     static T def;
     typename std::map<Name,T>::const_iterator ival = vals.find(name);
-    if ( ival == vals.end() ) return def;
+    if ( ival == vals.end() ) {
+      if ( dbg() ) std::cout << myname << "Unknown entry: " << name << std::endl;
+      return def;
+    }
+    //if ( dbg() == 2 ) std::cout << myname << ient->first << std::endl;
+    if ( dbg() == 2 ) std::cout << myname << MapEntry<T>(ival).toString() << std::endl;
     return ival->second;
   }
 

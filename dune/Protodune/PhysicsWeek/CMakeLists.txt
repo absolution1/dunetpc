@@ -2,7 +2,8 @@
 simple_plugin(MichelHitCounter "module"
               larreco_Calorimetry
               larreco_RecoAlg_PMAlg
-              larsim_MCCheater_BackTracker_service
+              larsim_MCCheater_BackTrackerService_service
+              larsim_MCCheater_ParticleInventoryService_service
               lardataobj_RecoBase
               lardata_ArtDataHelper
               nusimdata_SimulationBase
@@ -22,7 +23,8 @@ simple_plugin(MichelEventSelection "module"
               larcorealg_Geometry
               larreco_Calorimetry
               larreco_RecoAlg_PMAlg
-              larsim_MCCheater_BackTracker_service
+              larsim_MCCheater_BackTrackerService_service
+              larsim_MCCheater_ParticleInventoryService_service
               lardataobj_RecoBase
               lardata_ArtDataHelper
               nusimdata_SimulationBase

@@ -19,6 +19,8 @@
 //     int[nROI]       roiNTicks - # ticks for each ROI
 //     int[nROI]  roiNUnderflows - # bins with ADC underflow in each ROI
 //     int[nROI]   roiNOverflows - # bins with ADC overflow in each ROI
+//     int[nROI]     roiTickMins - tick-tick0 for signal minimum for each ROI
+//     int[nROI]     roiTickMaxs - tick-tick0 for signal maximum for each ROI
 //   float[nROI]      roiSigMins - Signal minimum for each ROI
 //   float[nROI]      roiSigMaxs - Signal minimum for each ROI
 //   float[nROI]     roiSigAreas - Signal area for each ROI

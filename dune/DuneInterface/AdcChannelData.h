@@ -9,13 +9,14 @@
 //      subRun - Sub-run number
 //       event - Event number
 //     channel - Offline channel number
+//      fembID - FEMB ID
 //    pedestal - Pedestal subtracted from the raw count
 // pedestalRms - Pedestal RMS or sigma
 //         raw - Uncompressed array holding the raw ADC count for each tick
 //     samples - Array holding the prepared signal value for each tick
 //       flags - Array holding the status flag for each tick
 //      signal - Array holding bools indicating which ticks have signals
-//        rois - Array of ROIs indicating which ticks have signals
+//        rois - Array of ROIs indicating ticks of interest (e.g. have signals)
 //       digit - Corresponding raw digit
 //        wire - Corresponding wire
 //  digitIndex - Index for the digit in the event digit container
@@ -50,6 +51,7 @@ public:
   AdcIndex subRun =badIndex;
   AdcIndex event =badIndex;
   AdcChannel channel =badIndex;
+  AdcIndex fembID =badIndex;
   AdcSignal pedestal =badSignal;
   AdcSignal pedestalRms =0.0;
   AdcCountVector raw;

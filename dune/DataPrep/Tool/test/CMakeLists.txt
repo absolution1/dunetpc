@@ -94,9 +94,23 @@ cet_test(test_AdcSampleFiller
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
-cet_test(test_AdcThresholdSignalFinderAcdWireReader
+cet_test(test_AdcThresholdSignalFinder
   SOURCES
     test_AdcThresholdSignalFinder.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_test(test_AdcRegularSignalFinder
+  SOURCES
+    test_AdcRegularSignalFinder.cxx
   LIBRARIES
     dune_ArtSupport
     art_Utilities
@@ -139,6 +153,20 @@ cet_test(test_AdcRoiViewer
 cet_test(test_FembLinearCalibration
   SOURCES
     test_FembLinearCalibration.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_test(test_FembMappedAdcModifier
+  SOURCES
+    test_FembMappedAdcModifier.cxx
   LIBRARIES
     dune_ArtSupport
     art_Utilities

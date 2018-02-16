@@ -10,7 +10,7 @@ void dune10kt_v1_geo(TString volName="")
   gSystem->Load("libGdml");
 
 //  TGeoManager::Import("dune10kt_v1_workspace.gdml");
-  TGeoManager::Import("protodune_v3.gdml");
+  TGeoManager::Import("protodune_v4.gdml");
 //  TGeoManager::Import("dune10kt_v1_3mmPitch.gdml");
 //  TGeoManager::Import("dune10kt_v1_45deg.gdml");
 //  TGeoManager::Import("dune10kt_v1_workspace_nowires.gdml");
@@ -107,7 +107,7 @@ void dune10kt_v1_geo(TString volName="")
 //  gGeoManager->FindVolumeFast("volCryostat")->Draw("X3D");
 
 
-  TFile *tf = new TFile("protodune_v3.root", "RECREATE");
+  TFile *tf = new TFile("protodune_v4.root", "RECREATE");
  
   gGeoManager->Write();
 

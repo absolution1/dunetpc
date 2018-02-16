@@ -24,7 +24,8 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/Track.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 
 #include "TH1.h"
@@ -189,7 +190,8 @@ void pdune::RecoEff::analyze(art::Event const & evt)
   fRun = evt.run();
   fEvent = evt.id().event();
 
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   
   // we are going to look only for these MC truth particles, which contributed to hits
   // and normalize efficiency to things which indeed generated activity and hits in TPC's:
@@ -203,10 +205,10 @@ void pdune::RecoEff::analyze(art::Event const & evt)
   for (auto const & h : *hitListHandle)
   {
     std::unordered_map<int, double> particleID_E;
-    for (auto const & id : bt->HitToTrackID(h)) // loop over std::vector< sim::TrackIDE > contributing to hit h
+    for (auto const & id : bt_serv->HitToTrackIDEs(h)) // loop over std::vector< sim::TrackIDE > contributing to hit h
 	{
 	    // select only hadronic and muon track, skip EM activity (electron's pdg, negative track id)
-        if ((id.trackID > 0) && (abs((bt->TrackIDToParticle(id.trackID))->PdgCode()) != 11))
+        if ((id.trackID > 0) && (abs((pi_serv->TrackIdToParticle_P(id.trackID))->PdgCode()) != 11))
         {
             particleID_E[id.trackID] += id.energy;
         }
@@ -239,7 +241,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
   for (auto const & p : mapTrackIDtoHits)
   {
     bool skip = false;
-    auto origin = bt->TrackIDToMCTruth(p.first)->Origin();
+    auto origin = pi_serv->TrackIdToMCTruth_P(p.first)->Origin();
     for (auto f : fFilters)
     {
         switch (f)
@@ -248,13 +250,13 @@ void pdune::RecoEff::analyze(art::Event const & evt)
             case pdune::RecoEff::kBeam:    if (origin != simb::kSingleParticle) { skip = true; } break;
 
             case pdune::RecoEff::kPrimary:
-                if (bt->TrackIDToParticle(p.first)->Process() != "primary") { skip = true; }
+                if (pi_serv->TrackIdToParticle_P(p.first)->Process() != "primary") { skip = true; }
                 break;
 
             case pdune::RecoEff::kSecondary:
                 {
-                    int mId = bt->TrackIDToParticle(p.first)->Mother();
-                    const simb::MCParticle * mother = bt->TrackIDToParticle(mId);
+                    int mId = pi_serv->TrackIdToParticle_P(p.first)->Mother();
+                    const simb::MCParticle * mother = pi_serv->TrackIdToParticle_P(mId);
                     if ((mother == 0) || (mother->Process() != "primary")) { skip = true; }
                     break;
                 }
@@ -267,7 +269,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
     if (!fPdg.empty())
     {
         skip = true;
-        for (int code : fPdg) { if (bt->TrackIDToParticle(p.first)->PdgCode() == code) { skip = false; break; } }
+        for (int code : fPdg) { if (pi_serv->TrackIdToParticle_P(p.first)->PdgCode() == code) { skip = false; break; } }
         if (skip) { continue; } // skip only if no PDG is matching
     }
 
@@ -313,7 +315,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
     for (const auto & h : hits)                          // loop over hits assigned to track t
     {
         size_t plane = h->WireID().Plane;
-        for (auto const & ide : bt->HitToTrackID(h))     // loop over std::vector< sim::TrackIDE >, for a hit h
+        for (auto const & ide : bt_serv->HitToTrackIDEs(h))     // loop over std::vector< sim::TrackIDE >, for a hit h
         {
             if (mapTrackIDtoHits_filtered.find(ide.trackID) != mapTrackIDtoHits_filtered.end())
             {
@@ -378,8 +380,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
             if (sps.empty()) { continue; }
             const auto & sp = *sps.front();
 
-            std::vector< sim::IDE > ides;
-            bt->HitToSimIDEs(*h, ides);
+            std::vector< sim::IDE > ides = bt_serv->HitToAvgSimIDEs(*h);
 
             std::array< double, 3 > hitpos = {0, 0, 0};
             double hitE = 0;

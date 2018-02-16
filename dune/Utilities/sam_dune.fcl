@@ -19,4 +19,14 @@ art_file_catalog_mc.fileType:  "mc"
 art_file_catalog_data:           @local::art_file_catalog
 art_file_catalog_data.fileType:  "data"
 
+# standard configurations for the TFileMetadataDUNE service
+
+dune_tfile_metadata:
+{
+  JSONFileName:          "ana_hist.root.json"
+  GenerateTFileMetadata: true
+  dataTier:              "root-tuple"
+  fileFormat:            "root"
+}
+
 END_PROLOG

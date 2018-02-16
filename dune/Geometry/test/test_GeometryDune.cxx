@@ -197,7 +197,8 @@ void setExpectedValuesSpacePoints(Geometry*);
 //         dorop - If true ROP mapping methods are tested
 //  maxchanprint - Max # channels to display for each ROP
 
-int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) {
+int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
+                      bool useExistingFcl) {
   const string myname = "test_GeometryDune: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
@@ -215,7 +216,7 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint) 
   cout << myname << line << endl;
   cout << myname << "Create configuration." << endl;
   const char* ofname = "test_GeometryDune.fcl";
-  {
+  if ( ! useExistingFcl ) {
     ofstream fout(ofname);
     fout << "#include \"geometry_dune.fcl\"" << endl;
     fout << "services.Geometry:                   @local::" + ev.gname << endl;
@@ -528,12 +529,16 @@ int main(int argc, const char* argv[]) {
   setExpectedValues(ev);
   bool dorop = true;
   Index maxchanprint = 10;
+  bool useExistingFcl = false;
   if ( argc > 1 ) {
     string sarg = argv[1];
     if ( sarg == "-h" ) {
-      cout << argv[0] << ": . [dorop]";
-      cout << argv[0] << ": [ChannelMapClass] [dorop]";
-      cout << argv[0] << ": [Geometry/ChannelMapClass/sorter] [dorop]";
+      cout << argv[0] << ": . [dorop] [maxchan] [usefcl]" << endl;
+      cout << argv[0] << ": [ChannelMapClass] [dorop] [maxchan] [usefcl]" << endl;
+      cout << argv[0] << ": [Geometry/ChannelMapClass/sorter] [dorop] [maxchan] [usefcl]" << endl;
+      cout << "    dorop: If true ROP mapping methods are tested [true]" << endl;
+      cout << "  maxchan: Max # channels displayed for each ROP [10]" << endl;
+      cout << "   usefcl: Take top-level fcl from current directory [false]" << endl;
       return 0;
     }
     string::size_type ipos = sarg.find("/");
@@ -552,13 +557,17 @@ int main(int argc, const char* argv[]) {
   }
   if ( argc > 2 ) {
     string sarg = argv[2];
-    dorop = sarg == "1" || sarg == "true";
+    dorop = sarg == "1" || sarg == "true" || sarg == ".";
   }
   if ( argc > 3 ) {
     istringstream ssarg(argv[3]);
     ssarg >> maxchanprint;
   }
-  test_GeometryDune(ev, dorop, maxchanprint);
+  if ( argc > 4 ) {
+    string sarg = argv[4];
+    useExistingFcl = sarg == "1" || sarg == "true";
+  }
+  test_GeometryDune(ev, dorop, maxchanprint, useExistingFcl);
   cout << "Tests concluded." << endl;
   ArtServiceHelper::close();
   return 0;

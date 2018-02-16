@@ -17,7 +17,8 @@
 #include "larsim/Simulation/LArVoxelData.h"
 #include "larsim/Simulation/LArVoxelList.h"
 #include "larsim/Simulation/SimListUtils.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larsim/MCCheater/BackTrackerService.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -439,11 +440,11 @@ void MichelReco::analyze(art::Event const & evt)
 int MichelReco::trackMatching( int trackIndex, art::FindManyP<recob::Hit> hitsFromTracks )
 {
   std::map<int,double> trackID_E;
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
   for (size_t h = 0; h < hitsFromTracks.at(trackIndex).size(); ++h)
   { 
-    for (auto const & id : bt->HitToTrackID(hitsFromTracks.at(trackIndex)[h]))
+    for (auto const & id : bt_serv->HitToTrackIDEs(hitsFromTracks.at(trackIndex)[h]))
     { 
       trackID_E[id.trackID] += id.energy;
     }
@@ -567,10 +568,11 @@ bool MichelReco::areHitsMichel( const std::vector< recob::Hit > & hits ) {
 
   const simb::MCParticle *  mcParticle = 0;
 
-  art::ServiceHandle< cheat::BackTracker > bt;
+  art::ServiceHandle< cheat::BackTrackerService > bt_serv;
+  art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
   std::unordered_map< int, double > trkIDE;
   for ( auto const & hit : hits ) {
-    for ( auto const & ide : bt->HitToTrackID(hit) ) { trkIDE[ide.trackID] += ide.energy; }
+    for ( auto const & ide : bt_serv->HitToTrackIDEs(hit) ) { trkIDE[ide.trackID] += ide.energy; }
   }
   
   int best_id(0);
@@ -588,7 +590,7 @@ bool MichelReco::areHitsMichel( const std::vector< recob::Hit > & hits ) {
     if ( best_id < 0 ) {
       best_id = -best_id;
     }
-    mcParticle = bt->TrackIDToParticle( best_id );
+    mcParticle = pi_serv->TrackIdToParticle_P( best_id );
   }
  
   if (mcParticle != 0) { 

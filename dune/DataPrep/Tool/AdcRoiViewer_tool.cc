@@ -30,6 +30,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 
 DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   const string myname = "AdcRoiViewer::view: ";
+  int dbg = m_LogLevel;
   DataMap res;
   unsigned int nraw = acd.raw.size();
   unsigned int nsam = acd.samples.size();
@@ -54,16 +55,21 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       return res.setStatus(1);
     }
   }
+  if ( dbg >=2 ) cout << myname << "Processing " << nroi << " ROIs." << endl;
   DataMap::HistVector roiHists;
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
   DataMap::FloatVector roiSigAreas;
+  DataMap::IntVector roiTickMins;
+  DataMap::IntVector roiTickMaxs;
   DataMap::IntVector nUnderflow(nroi, 0);
   DataMap::IntVector nOverflow(nroi, 0);
   DataMap::IntVector tick1(nroi, 0);
   DataMap::IntVector ntick(nroi, 0);
   for ( unsigned int iroi=0; iroi<nroi; ++iroi ) {
     AdcRoi roi = acd.rois[iroi];
+    if ( dbg >=3 ) cout << myname << "  ROI " << iroi << ": ["
+                        << roi.first << ", " << roi.second << "]" << endl;
     ostringstream sshnam;
     sshnam << "hroi";
     if ( iroi < 100 ) sshnam << "0";
@@ -88,6 +94,8 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     float sigmin = 0.0;
     float sigmax = 0.0;
     float sigarea = 0.0;
+    int roiTickMin = 0;
+    int roiTickMax = 0;
     for ( unsigned int isam=isam1; isam<isam2; ++isam ) {
       float sig = 0.0;
       if ( histType == 1 && isam<nsam ) sig = acd.samples[isam];
@@ -96,8 +104,14 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
         sigmin = sig;
         sigmax = sig;
       } else {
-        if ( sig < sigmin ) sigmin = sig;
-        if ( sig > sigmax ) sigmax = sig;
+        if ( sig < sigmin ) {
+          sigmin = sig;
+          roiTickMin = ibin;
+        }
+        if ( sig > sigmax ) {
+          sigmax = sig;
+          roiTickMax = ibin;
+        }
       }
       sigarea += sig;
       ph->SetBinContent(++ibin, sig);
@@ -106,6 +120,8 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       if ( flag == AdcOverflow ) ++nOverflow[iroi];
     }
     roiHists.push_back(ph);
+    roiTickMins.push_back(roiTickMin);
+    roiTickMaxs.push_back(roiTickMax);
     roiSigMins.push_back(sigmin);
     roiSigMaxs.push_back(sigmax);
     roiSigAreas.push_back(sigarea);
@@ -116,6 +132,8 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   res.setIntVector("roiNTicks", ntick);
   res.setIntVector("roiNUnderflows", nUnderflow);
   res.setIntVector("roiNOverflows", nOverflow);
+  res.setIntVector("roiTickMins", roiTickMins);
+  res.setIntVector("roiTickMaxs", roiTickMaxs);
   res.setFloatVector("roiSigMins", roiSigMins);
   res.setFloatVector("roiSigMaxs", roiSigMaxs);
   res.setFloatVector("roiSigAreas", roiSigAreas);
