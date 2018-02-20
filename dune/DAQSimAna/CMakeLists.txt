@@ -6,6 +6,7 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   lardataobj_RawData
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
+  larsim_MCCheater_PhotonBackTrackerService_service
   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
   nusimdata_SimulationBase	
   ${ART_FRAMEWORK_CORE}

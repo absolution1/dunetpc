@@ -20,7 +20,7 @@
 #include "larsim/MCCheater/PhotonBackTrackerService.h"
 
 //FrameworkIncludes
-#include "art/Framework/Core/EDAnalyser.h"
+#include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
@@ -45,12 +45,13 @@ namespace{}//
 
 namespace CalibrationTree {
 
+
   class CalibrationTree : public art::EDAnalyzer
   {
     public:
-      
+
       //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-      struct fhiclConfig{
+/*      struct fhiclConfig{
         fhicl::Atom<art::InputTag> HitLabel{
           fhicl::Name("HitLabel"),
             fhicl::Comment("The module label to be used for reading Hits."),
@@ -67,7 +68,7 @@ namespace CalibrationTree {
             "pmtrack"
         };//end TrackLabel
       };//end fhiclConfig
-
+*/
       //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
       struct jointHitRecord{ //To be used in a map with Particles
         const simb::MCParticle* particle;
@@ -75,7 +76,7 @@ namespace CalibrationTree {
         int eveIndex;
         std::vector<std::tuple<art::Ptr<recob::Hit>, unsigned int, double>> hitsRec;
         std::vector<std::tuple<art::Ptr<recob::OpHit>, unsigned int, double>> ohitsRec;
-        jointHitRecord::jointHitRecord(simb::MCParticle* part )
+        jointHitRecord(const simb::MCParticle* part )
           :particle(part)
         {}
         void AddHit(art::Ptr<recob::Hit> hit, unsigned int hitIndex, double split=1.0 ){ 
@@ -90,12 +91,12 @@ namespace CalibrationTree {
           hitsRec.clear();
           ohitsRec.clear();
         }
-        bool operator<(const jointHitRecord& rhs) const{ return particle<rhs.particle; }
-        bool operator>(const jointHitRecord& rhs) const{ return rhs<this; }
-        bool operator<=(const jointHitRecord& rhs) const{ return !(this>rhs);}
-        bool operator>=(const jointHitRecord& rhs) const{ return !(this<rhs);}
-        bool operator==(const jointHitRecord& rhs) const{ return particle==rhs.particle;}
-        bool operator!=(const jointHitRecords& rhs) const{ return ! this==rhs; }
+        friend bool operator<( jointHitRecord const& lhs, jointHitRecord const& rhs) { return lhs.particle<rhs.particle; }
+        friend bool operator>(  jointHitRecord const& lhs,jointHitRecord const& rhs) { return rhs<lhs; }
+        friend bool operator<=( jointHitRecord const& lhs, jointHitRecord const& rhs) { return !(lhs>rhs);}
+        friend bool operator>=( jointHitRecord const& lhs, jointHitRecord const& rhs) { return !(lhs<rhs);}
+        friend bool operator==( jointHitRecord const& lhs, jointHitRecord const& rhs) { return lhs.particle==rhs.particle;}
+        friend bool operator!=( jointHitRecord const& lhs, jointHitRecord const& rhs) { return ! (lhs==rhs); }
       };
 
       //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -114,9 +115,9 @@ namespace CalibrationTree {
           :pnum(mpnum), pid(mpid), eveIndex(meveIndex), event(mevent), subrun(msubrun), run(mrun)
         { }
         //buffer update
-        update(int mpnum, int mpid, int meveIndex, int mevent, int msubrun, int mrun)
-          :pnum(mpnum), pid(mpid), eveIndex(meveIndex), event(mevent), subrun(msubrun), run(mrun)
-        { }
+        void update(int mpnum, int mpid, int meveIndex, int mevent, int msubrun, int mrun){
+          pnum=mpnum; pid=mpid; eveIndex=meveIndex; event=mevent; subrun=msubrun; run=mrun;
+        }
       };
 
       //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -131,12 +132,12 @@ namespace CalibrationTree {
         hitBuffer()
           :charge(0),time(0), width(0), split(0), wire(0), hitIndex(0), pnum(0)
         { }
-        hitBuffer(double mcharge, double mtime, double mwidth, double msplit, int mwire, int mhitIndex, mpnum)
+        hitBuffer(double mcharge, double mtime, double mwidth, double msplit, int mwire, int mhitIndex, int mpnum)
           :charge(mcharge), time(mtime), width(mwidth), split(msplit), wire(mwire), hitIndex(mhitIndex), pnum(mpnum)
         {}
-        update(double mcharge, double mtime, double mwidth, double msplit, int mwire, int mhitIndex, int mpnum)
-          :charge(mcharge), time(mtime), width(mwidth), split(msplit), wire(mwire), hitIndex(mhitIndex), pnum(mpnum)
-        { }
+        void update(double mcharge, double mtime, double mwidth, double msplit, int mwire, int mhitIndex, int mpnum){
+          charge=mcharge; time=mtime; width=mwidth; split=msplit; wire=mwire; hitIndex=mhitIndex; pnum=mpnum;
+        }
       };
 
       //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -144,29 +145,43 @@ namespace CalibrationTree {
         double PEs;
         double time;
         double width;
+        double split;
         int opChannel;
         int opHitIndex;
+        int pnum;
         lightBuffer()
-          :PEs(0),time(0),width(0), split(0),opChannel(0), opDet(0), opHitIndex(0), pnum(0)
+          :PEs(0),time(0),width(0), split(0),opChannel(0),  opHitIndex(0), pnum(0)
         {}
         lightBuffer(double mpes, double mtime, double mwidth, double msplit, int mopchan,  int mopindex, int mpnum)
           :PEs(mpes), time(mtime), width(mwidth), split(msplit), opChannel(mopchan),  opHitIndex(mopindex), pnum(mpnum)
         {}
-        update(double mpes, double mtime, double mwidth, double msplit, int mopchan,  int mopindex, int mpnum)
-          :PEs(mpes), time(mtime), width(mwidth), split(msplit), opChannel(mopchan),  opHitIndex(mopindex), pnum(mpnum)
-        {}
+        void update(double mpes, double mtime, double mwidth, double msplit, int mopchan,  int mopindex, int mpnum) {
+          PEs=mpes; time=mtime; width=mwidth; split=msplit; opChannel=mopchan; opHitIndex=mopindex; pnum=mpnum;
+        }
       };
 
-      explicit CalibrationTree(fhicl::ParameterSet const& parameterSet);
-      explicit CalibrationTree(fhiclConfig const& config);
+      CalibrationTree(fhicl::ParameterSet const& pSet);
+      // CalibrationTree(fhiclConfig const& config); //commented out because of EDAnalyzer (too much work to make another table for now
+      //CalibrationTree(fhicl::ParameterSet const& parameterSet);
+      //CalibrationTree(fhiclConfig const& config);
 
       virtual void beginJob();
-      virtual void analyse(const art::Event& evt) override;
+      virtual void analyze(const art::Event& evt) override;
       virtual void endJob();
 
+        void FillJHRV(int trackId, art::Ptr<recob::Hit> hit, int hitIndex, double split);
+        void FillJHRV(int trackId, art::Ptr<recob::OpHit> hit, int hitIndex, double split);
+
+
     private:
+  art::ServiceHandle<cheat::ParticleInventoryService> PIS;
+  art::ServiceHandle<cheat::BackTrackerService> BTS;
+  art::ServiceHandle<cheat::PhotonBackTrackerService> PBS;
 
       std::vector<jointHitRecord> jhrV;
+
+      art::InputTag private_HitLabel;
+      art::InputTag private_OpHitLabel;
 
       void FillJHRV(int trackId, art::Ptr<recob::Hit> hit, double split=1.0);
       void FillJHRV(int trackId, art::Ptr<recob::OpHit> hit, double split=1.0);
@@ -179,7 +194,9 @@ namespace CalibrationTree {
 
       particleBuffer private_particleBuffer;
       hitBuffer      private_hitBuffer;
-      opticalBuffer  private_lightBuffer;
+      lightBuffer  private_lightBuffer;
+
+
 
       //Also need buffers
 
