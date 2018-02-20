@@ -150,9 +150,9 @@ int test_FembMappedAdcModifier(bool useExistingFcl =false) {
     DataMap res = pmod->update(acd);
     cout << myname << "Modify:" << endl;
     res.print();
-    Index nsamRes = res.getInt("nSample");
-    Index nunder = res.getInt("nUnderflow");
-    Index nover = res.getInt("nOverflow");
+    Index nsamRes = res.getInt("calibSampleCount");
+    Index nunder = res.getInt("calibUnderflowCount");
+    Index nover = res.getInt("calibOverflowCount");
     assert( res.status() == 0 );
     assert( nsamRes == nsam );
     cout << myname << "  Raw:";

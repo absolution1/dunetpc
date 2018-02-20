@@ -185,4 +185,4 @@ install_fhicl()
 install_source()
 install_scripts()
 add_subdirectory(NearlineMonitor)
-
+add_subdirectory(RawDecoding)

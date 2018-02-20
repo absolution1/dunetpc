@@ -3,6 +3,9 @@ BEGIN_PROLOG
 data_3x1x1_anarootparser:
 { 
  module_type:                 "dune/Protodune/dualphase/AnaRootParser"
+
+ EventsPerSubrun:             335
+
  DigitModuleLabel:            "daq"
  HitsModuleLabel:             "trajcluster"
  LArGeantModuleLabel:         "largeant"

@@ -16,7 +16,7 @@
 //     samples - Array holding the prepared signal value for each tick
 //       flags - Array holding the status flag for each tick
 //      signal - Array holding bools indicating which ticks have signals
-//        rois - Array of ROIs indicating which ticks have signals
+//        rois - Array of ROIs indicating ticks of interest (e.g. have signals)
 //       digit - Corresponding raw digit
 //        wire - Corresponding wire
 //  digitIndex - Index for the digit in the event digit container
