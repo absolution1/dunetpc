@@ -174,6 +174,8 @@ private:
   double fPartLength;
   std::string fProcess;
   std::string fEndProcess;
+  std::vector<int> fDaughters;
+  std::vector<int> fDaughtersPID;
  
   //More options for bins
 
@@ -258,6 +260,8 @@ void pdune::calcuttjRecoEff::beginJob()
         fParticleTree->Branch("fEvent",&fEvent);
         fParticleTree->Branch("fProcess",&fProcess);
         fParticleTree->Branch("fEndProcess",&fEndProcess);
+        fParticleTree->Branch("fDaughters",&fDaughters);
+        fParticleTree->Branch("fDaughtersPID",&fDaughtersPID);
         //Used for debugging -> Huge file size
         fTrkIDETree = tfs->make<TTree>("trackIDEs","trackIDE metrics");
         fTrkIDETree->Branch("fTrkE", &fTrueTrkE, "fTrkE/D");
@@ -327,16 +331,24 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   //Going through list of particles in event. Getting length.
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){                                           
 
-      //Put in a check (as well as object) for good particles
 
       simb::MCParticle * part = ipar->second;
       fPartStatus = part->StatusCode();
       fPartPID = part->PdgCode();
+      if(fPartPID > 2212) {continue;}
+
       fPartID = part->TrackId();
       fPartLength = part->Trajectory().TotalLength();
       fProcess = part->Process();
       fEndProcess = part->EndProcess();
-      std::cout << fPartID << " " << fPartPID << " " << fProcess << " " << fEndProcess << std::endl;
+      fDaughters.clear();
+      fDaughtersPID.clear();
+      for(int d = 0; d < part->NumberDaughters(); ++d){
+        std::cout << part->Daughter(d) << " " << pi_serv->TrackIdToParticle_P(part->Daughter(d))->PdgCode() << std::endl;
+        fDaughters.push_back(part->Daughter(d));
+        fDaughtersPID.push_back(pi_serv->TrackIdToParticle_P(part->Daughter(d))->PdgCode());
+      }
+      if(fPartID == -13) std::cout << fPartID << " " << fPartPID << " " << fProcess << " " << fEndProcess << std::endl;
       const simb::MCParticle * parent = pi_serv->TrackIdToMotherParticle_P(fPartID);
       fPartParID = parent->TrackId();
       if(fPartParID == 0){
