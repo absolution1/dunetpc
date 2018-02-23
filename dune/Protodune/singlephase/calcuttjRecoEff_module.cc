@@ -105,6 +105,7 @@ private:
   TTree *fTrkTree;
   TTree *fHitTree;
   TTree *fTrkIDETree;
+  TTree *fParticleTree;
 
   int fRun, fEvent;
   short fNRecoTracks;
@@ -164,6 +165,15 @@ private:
   size_t fEffDepMax, fEffDepBins;
   size_t fEffLengthMax, fEffLengthBins;
 
+  //Particles
+  int fPartStatus;
+  int fPartPID;
+  int fPartID;
+  int fPartParPID;
+  int fPartParID;
+  double fPartLength;
+  std::string fProcess;
+  std::string fEndProcess;
  
   //More options for bins
 
@@ -238,6 +248,16 @@ void pdune::calcuttjRecoEff::beginJob()
 	fTrkTree->Branch("fTrkMatched", &fTrkMatched, "fTrkMatched/S");
         fTrkTree->Branch("fTrkLength", &fTrkLength, "fTrkLength/D");
 
+        fParticleTree = tfs->make<TTree>("particles","Particles");
+        fParticleTree->Branch("fPID",&fPartPID);
+        fParticleTree->Branch("fStatus",&fPartStatus);
+        fParticleTree->Branch("fID",&fPartID);
+        fParticleTree->Branch("fParentID",&fPartParID);
+        fParticleTree->Branch("fParentPID",&fPartParPID);
+        fParticleTree->Branch("fLength",&fPartLength);
+        fParticleTree->Branch("fEvent",&fEvent);
+        fParticleTree->Branch("fProcess",&fProcess);
+        fParticleTree->Branch("fEndProcess",&fEndProcess);
         //Used for debugging -> Huge file size
         fTrkIDETree = tfs->make<TTree>("trackIDEs","trackIDE metrics");
         fTrkIDETree->Branch("fTrkE", &fTrueTrkE, "fTrkE/D");
@@ -301,11 +321,38 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  
+  const sim::ParticleList& plist = pi_serv->ParticleList();  
+
+  //Going through list of particles in event. Getting length.
+  for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){                                           
+
+      //Put in a check (as well as object) for good particles
+
+      simb::MCParticle * part = ipar->second;
+      fPartStatus = part->StatusCode();
+      fPartPID = part->PdgCode();
+      fPartID = part->TrackId();
+      fPartLength = part->Trajectory().TotalLength();
+      fProcess = part->Process();
+      fEndProcess = part->EndProcess();
+      std::cout << fPartID << " " << fPartPID << " " << fProcess << " " << fEndProcess << std::endl;
+      const simb::MCParticle * parent = pi_serv->TrackIdToMotherParticle_P(fPartID);
+      fPartParID = parent->TrackId();
+      if(fPartParID == 0){
+        fPartParPID = -1;
+      }
+      else{
+        fPartParPID = parent->PdgCode();
+      }
+
+      fParticleTree->Fill();
+  }
 
   // we are going to look only for these MC truth particles, which contributed to hits
   // and normalize efficiency to things which indeed generated activity and hits in TPC's:
   // - need a vector of hits associated to these MC particles,
-  // - need the energy deposit corresponding to the particle part seen in these hits.
+  // - need the energy deposit corresponding to the particle part seen i  these hits.
   std::unordered_map<int, std::vector<recob::Hit> > mapTrackIDtoHits;
   std::unordered_map<int, double> mapTrackIDtoHitsEnergyPerPlane[3];
   std::unordered_map<int, double> mapTrackIDtoHitsEnergy;
@@ -318,6 +365,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   {
     std::unordered_map<int, double> particleID_E;
 
+//    std::cout << "Number of IDEs associated to this hit: " << bt_serv->HitToTrackIDEs(h).size() << std::endl;
     for (auto const & id : bt_serv->HitToTrackIDEs(h)) // loop over std::vector< sim::TrackIDE > contributing to hit h
 	{
 	// select only hadronic and muon track, skip EM activity (electron's pdg, negative track id)
@@ -676,6 +724,15 @@ void pdune::calcuttjRecoEff::ResetVars()
         fTrueTrkOrigin = -1;
         fTrueTrkRescatter = -1;
         fTrueTrkEndProcess = "";
+
+        fPartStatus = 0;
+        fPartPID = 0;
+        fPartID = 0;
+        fPartParPID = 0;
+        fPartParID = 0;
+        fPartLength = 0;
+        fProcess = "";
+        fEndProcess = "";
 }
 
 DEFINE_ART_MODULE(pdune::calcuttjRecoEff)
