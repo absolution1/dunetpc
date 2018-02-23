@@ -320,7 +320,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
 
     for (auto const & id : bt_serv->HitToTrackIDEs(h)) // loop over std::vector< sim::TrackIDE > contributing to hit h
 	{
-	    // select only hadronic and muon track, skip EM activity (electron's pdg, negative track id)
+	// select only hadronic and muon track, skip EM activity (electron's pdg, negative track id)
         if ((id.trackID > 0) && (abs((pi_serv->TrackIdToParticle_P(id.trackID))->PdgCode()) != 11))
         {
             particleID_E[id.trackID] += id.energy;
@@ -616,12 +616,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
     }
     fTrueTrkDaughters.clear();
   }
-
-  const auto trkIDEHandle = evt.getValidHandle< std::vector<sim::TrackIDE> >(fSimulationLabel);
-  for (auto const & tIDE : *trkIDEHandle){
-    std::cout <<  tIDE.trackID << std::endl; 
-  }
-
+  
   if (fMatched > fReconstructable)
   {
     std::cout << "WARNING: matched more reco tracks than selected MC particles: " << fMatched << " > " << fReconstructable << std::endl;
