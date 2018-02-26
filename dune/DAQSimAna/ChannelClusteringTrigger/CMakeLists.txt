@@ -1,5 +1,3 @@
-add_subdirectory(ChannelClusteringTrigger)
-
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   lbne-raw-data_Overlays
   lbne_daqinput35t       #For online to offline channel map
@@ -11,8 +9,8 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
   nusimdata_SimulationBase	
   ${ART_FRAMEWORK_CORE}
- ${ART_FRAMEWORK_PRINCIPAL}
- ${ART_FRAMEWORK_SERVICES_BASIC}
+  ${ART_FRAMEWORK_PRINCIPAL}
+  ${ART_FRAMEWORK_SERVICES_BASIC}
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
