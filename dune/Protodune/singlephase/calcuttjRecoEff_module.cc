@@ -169,6 +169,7 @@ private:
   int fPartStatus;
   int fPartPID;
   int fPartID;
+  int fOrigin;
   int fPartParPID;
   int fPartParID;
   double fPartLength;
@@ -258,6 +259,7 @@ void pdune::calcuttjRecoEff::beginJob()
         fParticleTree->Branch("fParentPID",&fPartParPID);
         fParticleTree->Branch("fLength",&fPartLength);
         fParticleTree->Branch("fEvent",&fEvent);
+        fParticleTree->Branch("fOrigin",&fOrigin);
         fParticleTree->Branch("fProcess",&fProcess);
         fParticleTree->Branch("fEndProcess",&fEndProcess);
         fParticleTree->Branch("fDaughters",&fDaughters);
@@ -327,7 +329,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   
   const sim::ParticleList& plist = pi_serv->ParticleList();  
-
+  std::vector<int> MCParticleIDs;
   //Going through list of particles in event. Getting length.
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){                                           
 
@@ -344,7 +346,6 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
       fDaughters.clear();
       fDaughtersPID.clear();
       for(int d = 0; d < part->NumberDaughters(); ++d){
-        std::cout << part->Daughter(d) << " " << pi_serv->TrackIdToParticle_P(part->Daughter(d))->PdgCode() << std::endl;
         fDaughters.push_back(part->Daughter(d));
         fDaughtersPID.push_back(pi_serv->TrackIdToParticle_P(part->Daughter(d))->PdgCode());
       }
@@ -358,8 +359,14 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
         fPartParPID = parent->PdgCode();
       }
 
+      fOrigin = pi_serv->ParticleToMCTruth_P(part)->Origin();
+
       fParticleTree->Fill();
+      if(abs(fPartPID) == 13){ MCParticleIDs.push_back(fPartID);}
+      //std::vector<const sim::IDE*> IDEList = bt_serv->TrackIdToSimIDEs_Ps(fPartID);
+     // std::cout << "Track: " << fPartID << " NIDEs: "  << IDEList.size() << std::endl;       
   }
+  std::cout << "# MCParticles (muons): " << MCParticleIDs.size() << std::endl;
 
   // we are going to look only for these MC truth particles, which contributed to hits
   // and normalize efficiency to things which indeed generated activity and hits in TPC's:
@@ -409,6 +416,16 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
         mapTrackIDtoHitsEnergy[best_id] += max_e;
     }
   }
+
+  for(size_t i = 0; i < MCParticleIDs.size(); ++i){
+    if(mapTrackIDtoLength.find(MCParticleIDs[i]) == mapTrackIDtoLength.end()){
+      std::cout << "MCParticle " << MCParticleIDs[i] << " not in length map" <<std::endl;
+    }
+    if(mapTrackIDtoHits.find(MCParticleIDs[i]) == mapTrackIDtoHits.end()){
+      std::cout << "MCParticle " << MCParticleIDs[i] << " not in hit map" <<std::endl;
+    }
+  }
+
   // ---------------------------------------------------------------------------------------
 
 
