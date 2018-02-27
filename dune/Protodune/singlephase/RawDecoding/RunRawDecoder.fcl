@@ -55,8 +55,8 @@ services:
 
   }
 
-  PdChannelMapService: {
-    FileName:         "protoDUNETPCChannelMap_v1.txt"
+  PdspChannelMapService: {
+    FileName:         "protoDUNETPCChannelMap_v2.txt"
     LogLevel:         1
   }
 }
