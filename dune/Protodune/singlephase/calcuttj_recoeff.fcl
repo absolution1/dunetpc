@@ -31,7 +31,7 @@ standard_pdune_calcuttj_recoeff:
         EffDepMax:        5000
         EffDepBins:       50
 
-        EffLengthMax:     8500
+        EffLengthMax:     1000
         EffLengthBins:    50
 }
 

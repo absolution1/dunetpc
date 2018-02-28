@@ -18,10 +18,15 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/types/Atom.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 #include "canvas/Persistency/Common/FindManyP.h"
 
-//#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -33,6 +38,10 @@
 #include "TH2.h"
 #include "TEfficiency.h"
 #include "TTree.h"
+
+#ifndef DEBUG
+  #define DEBUG
+#endif 
 
 namespace pdune
 {
@@ -88,6 +97,7 @@ public:
 
 private:
   void ResetVars();
+  double GetLengthInTPC(simb::MCParticle part);
   
   TH1D* fDenominatorHist;
   TH1D* fNominatorHist;
@@ -173,12 +183,18 @@ private:
   int fPartParPID;
   int fPartParID;
   double fPartLength;
+  double TPCLength;
   std::string fProcess;
   std::string fEndProcess;
   std::vector<int> fDaughters;
   std::vector<int> fDaughtersPID;
- 
-  //More options for bins
+
+  art::ServiceHandle<geo::Geometry> geom;  
+  detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
+  double WindowSize          = detprop->NumberTimeSamples() * ts->TPCClock().TickPeriod() * 1e3;
+
 
   //geo::GeometryCore const* fGeometry;
 };
@@ -200,8 +216,6 @@ pdune::calcuttjRecoEff::calcuttjRecoEff(Parameters const& config) : EDAnalyzer(c
 
     fEffLengthMax(config().EffLengthMax()),
     fEffLengthBins(config().EffLengthBins())
-    //More otpions for bins
-    //fGeometry( &*(art::ServiceHandle<geo::Geometry>()) )
 {
     auto flt = config().Filters();
     for (const auto & s : flt)
@@ -258,6 +272,7 @@ void pdune::calcuttjRecoEff::beginJob()
         fParticleTree->Branch("fParentID",&fPartParID);
         fParticleTree->Branch("fParentPID",&fPartParPID);
         fParticleTree->Branch("fLength",&fPartLength);
+        fParticleTree->Branch("fTPCLength",&TPCLength);
         fParticleTree->Branch("fEvent",&fEvent);
         fParticleTree->Branch("fOrigin",&fOrigin);
         fParticleTree->Branch("fProcess",&fProcess);
@@ -296,6 +311,12 @@ void pdune::calcuttjRecoEff::beginJob()
     fHitDx = tfs->make<TH1D>("HitDx", "MC-reco X distance", 400, 0., 10.0);
     fHitDy = tfs->make<TH1D>("HitDy", "MC-reco Y distance", 400, 0., 10.0);
     fHitDz = tfs->make<TH1D>("HitDz", "MC-reco Z distance", 400, 0., 10.0);
+
+
+    std::cout << "X DRIFT VELOCITY: " << XDriftVelocity << std::endl;
+    std::cout << "TIME: "<<std::endl;
+    std::cout << "\t" << ts->TPCClock().TickPeriod() << std::endl;
+
 }
 
 void pdune::calcuttjRecoEff::endJob()
@@ -329,9 +350,8 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   
   const sim::ParticleList& plist = pi_serv->ParticleList();  
-  std::vector<int> MCParticleIDs;
   //Going through list of particles in event. Getting length.
-  for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){                                           
+  for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){ 
 
 
       simb::MCParticle * part = ipar->second;
@@ -341,6 +361,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
 
       fPartID = part->TrackId();
       fPartLength = part->Trajectory().TotalLength();
+      TPCLength = GetLengthInTPC(*part);
       fProcess = part->Process();
       fEndProcess = part->EndProcess();
       fDaughters.clear();
@@ -362,11 +383,9 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
       fOrigin = pi_serv->ParticleToMCTruth_P(part)->Origin();
 
       fParticleTree->Fill();
-      if(abs(fPartPID) == 13){ MCParticleIDs.push_back(fPartID);}
       //std::vector<const sim::IDE*> IDEList = bt_serv->TrackIdToSimIDEs_Ps(fPartID);
      // std::cout << "Track: " << fPartID << " NIDEs: "  << IDEList.size() << std::endl;       
   }
-  std::cout << "# MCParticles (muons): " << MCParticleIDs.size() << std::endl;
 
   // we are going to look only for these MC truth particles, which contributed to hits
   // and normalize efficiency to things which indeed generated activity and hits in TPC's:
@@ -380,22 +399,21 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   std::vector<int> FilteredTrackID;
   std::vector<int> RecoTrackID;
   const auto hitListHandle = evt.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
+  std::vector<int> allTrackIDs;
   for (auto const & h : *hitListHandle)
   {
     std::unordered_map<int, double> particleID_E;
 
-//    std::cout << "Number of IDEs associated to this hit: " << bt_serv->HitToTrackIDEs(h).size() << std::endl;
     for (auto const & id : bt_serv->HitToTrackIDEs(h)) // loop over std::vector< sim::TrackIDE > contributing to hit h
 	{
-	// select only hadronic and muon track, skip EM activity (electron's pdg, negative track id)
+
+        // select only hadronic and muon track, skip EM activity (electron's pdg, negative track id)
         if ((id.trackID > 0) && (abs((pi_serv->TrackIdToParticle_P(id.trackID))->PdgCode()) != 11))
         {
             particleID_E[id.trackID] += id.energy;
             const simb::MCParticle * part = pi_serv->TrackIdToParticle_P(id.trackID);
-            double this_length = part->Trajectory().TotalLength();
-            mapTrackIDtoLength[id.trackID] = this_length;
-        }
-        
+            mapTrackIDtoLength[id.trackID] = GetLengthInTPC(*part);
+        }        
     }
 
     int best_id = 0;
@@ -414,15 +432,6 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
         mapTrackIDtoHits[best_id].push_back(h);
         mapTrackIDtoHitsEnergyPerPlane[h.WireID().Plane][best_id] += max_e;
         mapTrackIDtoHitsEnergy[best_id] += max_e;
-    }
-  }
-
-  for(size_t i = 0; i < MCParticleIDs.size(); ++i){
-    if(mapTrackIDtoLength.find(MCParticleIDs[i]) == mapTrackIDtoLength.end()){
-      std::cout << "MCParticle " << MCParticleIDs[i] << " not in length map" <<std::endl;
-    }
-    if(mapTrackIDtoHits.find(MCParticleIDs[i]) == mapTrackIDtoHits.end()){
-      std::cout << "MCParticle " << MCParticleIDs[i] << " not in hit map" <<std::endl;
     }
   }
 
@@ -477,8 +486,6 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
         // passed all conditions, move to filtered maps
         mapTrackIDtoHits_filtered.emplace(p);
         FilteredTrackID.push_back(p.first);
-        //Want to check the length of the tracks -> distance between 'end' hits
-
     }
   }
   fReconstructable = mapTrackIDtoHits_filtered.size();
@@ -764,4 +771,44 @@ void pdune::calcuttjRecoEff::ResetVars()
         fEndProcess = "";
 }
 
+double pdune::calcuttjRecoEff::GetLengthInTPC(const simb::MCParticle part) {
+
+  unsigned int nTrajectoryPoints = part.NumberTrajectoryPoints();
+  std::vector<double> TPCLengthHits(nTrajectoryPoints,0);
+
+  bool BeenInVolume = false;
+  int FirstHit = 0, LastHit = 0;
+  double TPCLength = 0;
+
+  for(unsigned int MCHit=0; MCHit < nTrajectoryPoints; ++MCHit) {
+    const TLorentzVector& tmpPosition = part.Position(MCHit);
+    double const tmpPosArray[] = {tmpPosition[0], tmpPosition[1], tmpPosition[2]};
+
+    if (MCHit!=0) TPCLengthHits[MCHit] = pow ( pow( (part.Vx(MCHit-1)-part.Vx(MCHit)),2)
+                                             + pow( (part.Vy(MCHit-1)-part.Vy(MCHit)),2)
+    				         + pow( (part.Vz(MCHit-1)-part.Vz(MCHit)),2)
+    				         , 0.5 );
+    // check if in TPC
+    geo::TPCID tpcid = geom->FindTPCAtPosition(tmpPosArray);
+    if(tpcid.isValid){
+      geo::CryostatGeo const & cryo = geom->Cryostat(tpcid.Cryostat);
+      geo::TPCGeo const & tpc = cryo.TPC(tpcid.TPC);
+      double XPlanePosition = tpc.PlaneLocation(0)[0];
+      double DriftTimeCorrection = fabs( tmpPosition[0] - XPlanePosition )/ XDriftVelocity;
+      double TimeAtPlane = part.T() + DriftTimeCorrection;
+      if( TimeAtPlane < detprop->TriggerOffset() || TimeAtPlane > detprop->TriggerOffset() + WindowSize){
+        continue;}
+      //Good hit in TPC
+      LastHit = MCHit;
+      if( !BeenInVolume ){
+        BeenInVolume = true;
+        FirstHit = MCHit;
+      } 
+    }
+  }
+  for (int Hit = FirstHit+1; Hit <= LastHit; ++Hit ) {
+    TPCLength += TPCLengthHits[Hit];
+  }
+  return TPCLength;
+}
 DEFINE_ART_MODULE(pdune::calcuttjRecoEff)
