@@ -6,62 +6,36 @@
 services:
 {
   #message:              @local::dune_message_services_prod_debug
+
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  ExptGeoHelperInterface:       @local::dune_geometry_helper
+  Geometry:                     @local::protodune_geo
+  DetectorClocksService:        @local::dunefd_detectorclocks
+  DetectorPropertiesService:    @local::protodune_detproperties
+  LArPropertiesService:         @local::dunefd_properties
+  LArFFT:                       @local::dunefd_larfft  
+  DatabaseUtil:                 @local::dunefd_database
+  ChannelStatusService:         @local::dunefd_channel_status
+  ChannelGroupService:          @local::changroup_apa
+
   TFileService: { 
    closeFileFast: true  # default
-
-#   fileName:  "/scratch/OMoutput/np04_hist_run%06r_%#.root"
    fileName:  "RunRawDecoderTFile.root"
-
    tmpDir: "<parent-path-of-filename>"  # default
-
- #  fileProperties: {
- #
- #    maxEvents: 100
- #
- #    maxSubRuns: 4294967295  # default
- #
- #    maxRuns: 4294967295  # default
- #
- #    maxInputFiles: 4294967295  # default
- #
- #    ## Maximum size of file (in KiB)
- #
- #    maxSize: 2130706432  # default
- #
- #    ## Maximum age of output file (in seconds)
- #
- #    maxAge: 4294967295  # default
- #
- #    ## The 'granularity' parameter specifies the level at which
- #    ## an output file may be closed, and thereby the granularity
- #    ## of the file.  The following values are possible:
- #    ##
- #    ##     Value        Meaning
- #    ##    =======================================================
- #    ##    "Event"       Allow file switch at next Event
- #    ##    "SubRun"      Allow file switch at next SubRun
- #    ##    "Run"         Allow file switch at next Run
- #    ##    "InputFile"   Allow file switch at next InputFile
- #    ##    "Job"         File closes at the end of Job
- #    ##
- #    ## For example, if a granularity of "SubRun" is specified, but the
- #    ## output-module has reached the maximum events written to disk (as
- #    ## specified by the 'maxEvents' parameter), the output module will NOT
- #    ## switch to a new file until a new SubRun has been reached (or
- #    ## there are no more Events/SubRuns/Runs to process).
- #
- #    granularity: "Event"  # default
- #  }
-
   }
 
-  PdChannelMapService: {
-    FileName:         "protoDUNETPCChannelMap_v1.txt"
+  PdspChannelMapService: {
+    FileName:         "protoDUNETPCChannelMap_v3.txt"
     LogLevel:         1
   }
 }
 
- physics:
+services.DetectorPropertiesService.NumberTimeSamples: 10000
+services.DetectorPropertiesService.ReadOutWindowSize: 10000
+
+physics:
 {
   producers:
   {
