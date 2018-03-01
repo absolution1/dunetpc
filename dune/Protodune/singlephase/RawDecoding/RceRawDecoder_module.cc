@@ -15,13 +15,15 @@
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
-#include "dune-raw-data/Services/ChannelMap/PdChannelMapService.h"
+#include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
 
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
 
 // ROOT includes
 #include "TH1.h"
+#include "TH2F.h"
+#include "TProfile.h"
 
 // C++ Includes
 #include <memory>
@@ -63,10 +65,22 @@ private:
   bool _expect_container_fragments;
 
   TH1D* _h_nticks;
-  TH1I * _h_all_adc_values;
+  TH1I* _h_all_adc_values;
+  TH1I* _h_crate_numbers;
+  TH1I* _h_slot_IDs;
+  TH1I* _h_fiber_IDs;
   TH1I* _h_online_channels;
   TH1I* _h_offline_channels;
+  std::vector<TH2F*> _h_mean_slot_channels;
+  std::vector<TH2F*> _h_rms_slot_channels;	
+  std::vector<TProfile*> _h_mean_slot_channels_pfx;
+  std::vector<TProfile*> _h_rms_slot_channels_pfx;	
+  std::vector<TH2I*> _h_fiber_persistent_wav;
   std::vector<uint16_t> _buffer;
+  	
+  // define my rms and mean functions
+  float rmsADC(raw::RawDigit::ADCvector_t & wav);
+  float meanADC(raw::RawDigit::ADCvector_t & wav);
 };
 
 
@@ -92,12 +106,41 @@ void dune::RceRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
 }
 
 void dune::RceRawDecoder::setRootObjects(){
+	//clear vectors
+	_h_mean_slot_channels.clear();
+	_h_rms_slot_channels.clear();
+	_h_mean_slot_channels_pfx.clear();
+	_h_rms_slot_channels_pfx.clear();
+	_h_fiber_persistent_wav.clear();
+	// place to define the histograms
   art::ServiceHandle<art::TFileService> file_srv;
   _h_nticks = file_srv->make<TH1D>("rce_NTicks","TPC: Number of ticks",  100, 0, 20000);
   _h_nticks->SetXTitle("NTicks");
   _h_all_adc_values = file_srv->make<TH1I>("rce_All_ADC_values","TPC: All_ADC_values",  5000, 0, 5000);
+  _h_all_adc_values->SetXTitle("ADC");
+  _h_crate_numbers = file_srv->make<TH1I>("rce_All_crate_numbers","TPC: Crate Numbers",  6, 0, 6);
+  _h_crate_numbers->SetXTitle("Crate Number");
+  _h_slot_IDs = file_srv->make<TH1I>("rce_All_slot_IDs","TPC: Slot IDs",  30, 0, 30);
+  _h_slot_IDs->SetXTitle("Slot ID");
+  _h_fiber_IDs = file_srv->make<TH1I>("rce_All_fiber_IDs","TPC: Fiber IDs",  120, 0, 120);
+  _h_fiber_IDs->SetXTitle("Fiber ID");
   _h_online_channels = file_srv->make<TH1I>("rce_Online_Channels", "TPC: Online Channel ID", 5000, 0, 5000);
   _h_offline_channels = file_srv->make<TH1I>("rce_Offline_Channels", "TPC: Offline Channel ID", 5000, 0, 5000);
+  for(int i=0;i<30;i++) {
+  	_h_mean_slot_channels.push_back(file_srv->make<TH2F>(Form("Slot%d_Mean", i), Form("Slot%d:Mean_vs_SlotChannel", i), 512, 0, 512, 5000, .0, 5000)); //hard-coded for now. Will be moved to the analyzer module. Feb 7, 2018
+  	_h_rms_slot_channels.push_back(file_srv->make<TH2F>(Form("Slot%d_RMS", i), Form("Slot%d:RMS_vs_SlotChannel", i), 512, 0, 512, 5000, .0, 5000)); //hard-coded for now. Will be moved to the analyzer module. Feb 7, 2018
+  	_h_mean_slot_channels_pfx.push_back(file_srv->make<TProfile>(Form("Slot%d_Mean_pfx", i), Form("Slot%d:Mean_vs_SlotChannel_pfx", i), 512, 0, 512)); //hard-coded for now. Will be moved to the analyzer module. Feb 7, 2018
+  	_h_rms_slot_channels_pfx.push_back(file_srv->make<TProfile>(Form("Slot%d_RMS_pfx", i), Form("Slot%d:RMS_vs_SlotChannel_pfx", i), 512, 0, 512)); //hard-coded for now. Will be moved to the analyzer module. Feb 7, 2018
+  	
+  	_h_mean_slot_channels[i]->GetXaxis()->SetTitle("Slot Channel"); _h_mean_slot_channels[i]->GetYaxis()->SetTitle("Raw Mean"); 
+  	_h_rms_slot_channels[i]->GetXaxis()->SetTitle("Slot Channel"); _h_rms_slot_channels[i]->GetYaxis()->SetTitle("Raw RMS"); 
+  	_h_mean_slot_channels_pfx[i]->GetXaxis()->SetTitle("Slot Channel"); _h_mean_slot_channels_pfx[i]->GetYaxis()->SetTitle("Profiled Mean"); 
+  	_h_rms_slot_channels_pfx[i]->GetXaxis()->SetTitle("Slot Channel"); _h_rms_slot_channels_pfx[i]->GetYaxis()->SetTitle("Profiled RMS"); 
+  }
+  for(int i=0;i<120;i++) {
+    _h_fiber_persistent_wav.push_back(file_srv->make<TH2I>(Form("Persistent_Waveform_Fiber#%d", i), Form("Persistent_Waveform_Fiber#%d", i), 10000, 0, 10000, 500, 0, 5000));
+  }
+  
 }
 void dune::RceRawDecoder::beginJob(){
 }
@@ -198,17 +241,22 @@ bool dune::RceRawDecoder::_process(
       << "   fragmentID = " << frag.fragmentID()
       << "   fragmentType = " << (unsigned)frag.type()
       << "   Timestamp =  " << frag.timestamp();
-  art::ServiceHandle<dune::PdChannelMapService> channelMap;
+  art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   dune::RceFragment rce(frag);
   
   uint32_t ch_counter = 0;
   for (int i = 0; i < rce.size(); ++i)
   {
      auto const * rce_stream = rce.get_stream(i);
-
      int n_ch = rce_stream->getNChannels();
      int n_ticks = rce_stream->getNTicks();
-
+     auto const identifier = rce_stream->getIdentifier();
+     uint32_t crateNumber = identifier.getCrate();
+     uint32_t slotNumber = identifier.getSlot();
+     uint32_t fiberNumber = identifier.getFiber();
+     std::cout<<"crate, slot, fiber = "<<crateNumber<<", "<<slotNumber<<", "<<fiberNumber<<std::endl;
+     uint32_t fiberID = (crateNumber*5+slotNumber)*4 + fiberNumber;
+     _h_fiber_IDs->Fill(fiberID);
      LOG_INFO("RceRawDecoder")
          << "RceFragment timestamp: " << rce_stream->getTimeStamp()
          << ", NChannels: " << n_ch
@@ -243,24 +291,67 @@ bool dune::RceRawDecoder::_process(
             }
             v_adc.push_back(adcs[i_tick]);
             _h_all_adc_values->Fill(adcs[i_tick]);
+            //save the 1st waveform in a fiber
+            _h_fiber_persistent_wav.at(fiberID)->Fill(i_tick, adcs[i_tick]);
         }
         adcs += n_ticks;
 
-        // FIXME Modify channel ID
-        //int onlineChannel = frag.fragmentID() * 128 + i_ch; // 128 channels per RCE?
-        int onlineChannel = channelMap->OnlineFromRCE(frag.fragmentID(), i_ch);
         ch_counter++;
-        _h_online_channels->Fill(onlineChannel);
         int offlineChannel = -1;
-        offlineChannel = channelMap->Offline(onlineChannel); // to get offline from online
+        offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch);
         _h_offline_channels->Fill(offlineChannel);
         raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
-
         raw_digits.push_back(raw_digit);
+        
+        //=========== fill Mean and RMS with slotchannel number=====================
+        uint32_t slotID = crateNumber*5 + slotNumber; //0 - 29
+        _h_slot_IDs->Fill(slotID);
+        uint32_t slotchannel = 0; // 0 - 127
+        slotchannel = fiberNumber*128 + i_ch; //hard-coded. will be moved to analyzer module. Feb 7, 2018
+        float mean = meanADC(v_adc);
+        float rms = rmsADC(v_adc);
+        _h_mean_slot_channels.at(slotID)->Fill(slotchannel, mean);
+        _h_rms_slot_channels.at(slotID)->Fill(slotchannel, rms);
+        _h_mean_slot_channels_pfx.at(slotID)->Fill(slotchannel, mean, 1);
+        _h_rms_slot_channels_pfx.at(slotID)->Fill(slotchannel, rms, 1);
+        //==========================================================================
+        
+        
      }
   }
 
   return true;
 }
+
+//-----------------------------------------------------------------------   
+  // define RMS
+  float dune::RceRawDecoder::rmsADC(raw::RawDigit::ADCvector_t &wav)
+  {
+    int n = wav.size();
+    float sum = 0.;
+    for(int i = 0; i < n; i++){
+      if(wav[i]!=0) sum += wav[i];
+    }
+    float mean = sum / n;
+    sum = 0;
+    for(int i = 0; i < n; i++)
+      {
+	if (wav[i]!=0)     sum += (wav[i]-mean)*(wav[i]-mean);
+      }
+    return sqrt(sum / n);
+  }
+
+  //-----------------------------------------------------------------------  
+  //define Mean
+  float dune::RceRawDecoder::meanADC(raw::RawDigit::ADCvector_t &wav)
+  {
+    int n = wav.size();
+    float sum = 0.;
+    for(int i = 0; i < n; i++)
+      {
+	if (wav[i]!=0) sum += abs(wav[i]);
+      }
+    return sum / n;
+  }
 
 DEFINE_ART_MODULE(dune::RceRawDecoder)

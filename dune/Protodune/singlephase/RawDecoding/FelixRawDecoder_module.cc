@@ -15,7 +15,7 @@
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
-#include "dune-raw-data/Services/ChannelMap/PdChannelMapService.h"
+#include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
 
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
@@ -61,10 +61,9 @@ private:
   std::string _input_label; 
   std::string _output_label;
   bool _expect_container_fragments;
-  TH1D* _h_nticks;
+  TH1D* _h_nframes;
 
   std::vector<uint16_t> _buffer;
-
 };
 
 
@@ -91,7 +90,7 @@ void dune::FelixRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
 
 void dune::FelixRawDecoder::setRootObjects(){
   art::ServiceHandle<art::TFileService> file_srv;
-  _h_nticks = file_srv->make<TH1D>("felix_NTicks","FELIX: Number of ticks",  1000, 0, 1000);
+  _h_nframes = file_srv->make<TH1D>("felix_NFrames","FELIX: Number of frames",  1000, 0, 1000);
 }
 void dune::FelixRawDecoder::beginJob(){
 }
@@ -194,34 +193,37 @@ bool dune::FelixRawDecoder::_process(
       << "   fragmentID = " << frag.fragmentID()
       << "   fragmentType = " << (unsigned)frag.type()
       << "   Timestamp =  " << frag.timestamp();
-  art::ServiceHandle<dune::PdChannelMapService> channelMap;
+  art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   //Load overlay class.
   dune::FelixFragment felix(frag);
-  const unsigned n_ticks = felix.total_frames();
-  std::cout<<" Nticks = "<<n_ticks<<std::endl;
-  _h_nticks->Fill(n_ticks);
-  const unsigned n_channels = felix.num_ch_per_frame;
+  //Get detector elemen number
+  uint8_t crate = felix.crate_no(0);
+  uint8_t slot = felix.slot_no(0);
+  uint8_t fiber = felix.fiber_no(0); // two numbers? 
+  const unsigned n_frames = felix.total_frames(); // One frame contains 20 ticks.
+  std::cout<<" Nframes = "<<n_frames<<std::endl;
+  _h_nframes->Fill(n_frames);
+  const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// 256
   raw::RawDigit::ADCvector_t v_adc;
-  //v_adc.reserve(n_ticks*n_channels);
+  //v_adc.reserve(n_frames*n_channels);
   // Fill the adc vector.
+  typedef std::tuple<uint8_t, uint8_t, uint8_t, unsigned> WireInfo_tuple;
   for(unsigned ch = 0; ch < n_channels; ++ch) {
     v_adc.clear();
-    std::vector<dune::FelixFragment::adc_t> waveform(
-      felix.get_ADCs_by_channel(ch) );
-    for(unsigned int ntick=0;ntick<waveform.size();ntick++){
-      if(ch==0 && ntick<100) {
-        if(ntick==0) std::cout<<"Print the first 100 ADCs of Channel#1"<<std::endl;  
-        std::cout<<waveform.at(ntick)<<"  ";
-        if(ntick==99) std::cout<<std::endl;
+    std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;
+    std::vector<dune::adc_t> waveform( felix.get_ADCs_by_channel(ch) );
+    for(unsigned int nframe=0;nframe<waveform.size();nframe++){
+      if(ch==0 && nframe<100) {
+        if(nframe==0) std::cout<<"Print the first 100 ADCs of Channel#1"<<std::endl;  
+        std::cout<<waveform.at(nframe)<<"  ";
+        if(nframe==99) std::cout<<std::endl;
       }
-      v_adc.push_back(waveform.at(ntick));  
+      v_adc.push_back(waveform.at(nframe));  
     }
-    //v_adc.insert(v_adc.end(), waveform.begin(), waveform.end());
-    // FIXME Modify channel ID
-    int onlineChannel = channelMap->OnlineFromRCE(frag.fragmentID(), ch);
-    int offlineChannel = channelMap->Offline(onlineChannel); // to get offline from online
+    int offlineChannel = -1;
+    offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crate, slot, fiber, ch); // FIXME
     // Push to raw_digits.
-    raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
+    raw::RawDigit raw_digit(offlineChannel, n_frames, v_adc);
     raw_digits.push_back(raw_digit);
   }
   return true;
