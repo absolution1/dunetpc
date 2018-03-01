@@ -38,10 +38,16 @@
 #include "TH2.h"
 #include "TEfficiency.h"
 #include "TTree.h"
+#include "TVector3.h"
 
-#ifndef DEBUG
-  #define DEBUG
-#endif 
+
+#ifndef PARTTREE
+  #define PARTTREE
+#endif
+
+#ifndef IDETREE
+  #define IDETREE
+#endif
 
 namespace pdune
 {
@@ -71,7 +77,7 @@ public:
       
       fhicl::Atom<size_t> EffHitMax { Name("EffHitMax"), Comment("max hits per MC particle in the track efficiency") };
       fhicl::Atom<size_t> EffHitBins { Name("EffHitBins"), Comment("number of bins in the track efficiency") };
-      //Add in more options for bins in other projections
+
       fhicl::Atom<size_t> EffEMax { Name("EffEMax"), Comment("max hits per MC particle in the track efficiency") };
       fhicl::Atom<size_t> EffEBins { Name("EffEBins"), Comment("number of bins in the track efficiency") };
 
@@ -98,6 +104,7 @@ public:
 private:
   void ResetVars();
   double GetLengthInTPC(simb::MCParticle part);
+  TVector3 GetPositionInTPC(simb::MCParticle part, int MCHit);
   
   TH1D* fDenominatorHist;
   TH1D* fNominatorHist;
@@ -114,8 +121,12 @@ private:
   TTree *fEventTree;
   TTree *fTrkTree;
   TTree *fHitTree;
+  
   TTree *fTrkIDETree;
+
+  #ifdef PARTTREE
   TTree *fParticleTree;
+  #endif
 
   int fRun, fEvent;
   short fNRecoTracks;
@@ -135,27 +146,14 @@ private:
 
   double fTrueTrkE;
   double fTrueTrkLength;
-  double fRecoTrkLength;
   double fTrueTrkDep;
   int fTrueTrkPID;
   int fTrueTrkID;
-  TLorentzVector fTrueTrkStart;
-  TLorentzVector fTrueTrkEnd;
   double fTrueTrkX[10000];
   double fTrueTrkY[10000]; 
   double fTrueTrkZ[10000];
-  double fTrueFilteredTrkX[10000];
-  double fTrueFilteredTrkY[10000]; 
-  double fTrueFilteredTrkZ[10000];
-  double fTrueRecoTrkX[10000];
-  double fTrueRecoTrkY[10000]; 
-  double fTrueRecoTrkZ[10000];
-  int fRecoIDs; 
-  std::string fTrueTrkProcess;
-  std::string fTrueTrkEndProcess;
   int fTrueTrkOrigin;
-  int fTrueTrkRescatter;
-  std::vector<int> fTrueTrkDaughters;
+
 
   TH1D* fHitDx;
   TH1D* fHitDy;
@@ -165,6 +163,8 @@ private:
   art::InputTag fSimulationLabel;
   art::InputTag fHitModuleLabel;
   art::InputTag fTrackModuleLabel;
+  art::InputTag fTempTrackModuleLabel;
+
   size_t fMinHitsPerPlane;
 
   std::vector< EFilterMode > fFilters;
@@ -175,34 +175,30 @@ private:
   size_t fEffDepMax, fEffDepBins;
   size_t fEffLengthMax, fEffLengthBins;
 
-  //Particles
+  #ifdef PARTTREE
   int fPartStatus;
   int fPartPID;
   int fPartID;
   int fOrigin;
-  int fPartParPID;
-  int fPartParID;
   double fPartLength;
-  double TPCLength;
+  double fTotLength;
   std::string fProcess;
   std::string fEndProcess;
-  std::vector<int> fDaughters;
-  std::vector<int> fDaughtersPID;
+  #endif
 
   art::ServiceHandle<geo::Geometry> geom;  
   detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
   double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
   double WindowSize          = detprop->NumberTimeSamples() * ts->TPCClock().TickPeriod() * 1e3;
-
-
-  //geo::GeometryCore const* fGeometry;
 };
 
 pdune::calcuttjRecoEff::calcuttjRecoEff(Parameters const& config) : EDAnalyzer(config),
     fSimulationLabel(config().SimulationLabel()),
     fHitModuleLabel(config().HitModuleLabel()),
     fTrackModuleLabel(config().TrackModuleLabel()),
+
+
     fMinHitsPerPlane(config().MinHitsPerPlane()),
     fPdg(config().Pdg()),
     fEffHitMax(config().EffHitMax()),
@@ -243,7 +239,7 @@ void pdune::calcuttjRecoEff::beginJob()
 
 	fDepDenominatorHist = tfs->make<TH1D>("DepDenominator", "all reconstructable particles", fEffDepBins, 0., fEffDepMax);
 	fDepNominatorHist = tfs->make<TH1D>("DepNominator", "reconstructed and matched tracks",  fEffDepBins, 0., fEffDepMax);
-        //fTrackLengthEHist = tfs->make<TH2D>()"TrackLengthE","track length vs. energy", 10000,0.,10000.,25,0.,25.;
+
 	fEventTree = tfs->make<TTree>("events", "summary tree");
 	fEventTree->Branch("fRun", &fRun, "fRun/I");
 	fEventTree->Branch("fEvent", &fEvent, "fEvent/I");
@@ -265,58 +261,45 @@ void pdune::calcuttjRecoEff::beginJob()
 	fTrkTree->Branch("fTrkMatched", &fTrkMatched, "fTrkMatched/S");
         fTrkTree->Branch("fTrkLength", &fTrkLength, "fTrkLength/D");
 
+        #ifdef PARTTREE
         fParticleTree = tfs->make<TTree>("particles","Particles");
+
         fParticleTree->Branch("fPID",&fPartPID);
         fParticleTree->Branch("fStatus",&fPartStatus);
         fParticleTree->Branch("fID",&fPartID);
-        fParticleTree->Branch("fParentID",&fPartParID);
-        fParticleTree->Branch("fParentPID",&fPartParPID);
         fParticleTree->Branch("fLength",&fPartLength);
-        fParticleTree->Branch("fTPCLength",&TPCLength);
+        fParticleTree->Branch("fTotLength",&fTotLength);
         fParticleTree->Branch("fEvent",&fEvent);
         fParticleTree->Branch("fOrigin",&fOrigin);
         fParticleTree->Branch("fProcess",&fProcess);
         fParticleTree->Branch("fEndProcess",&fEndProcess);
-        fParticleTree->Branch("fDaughters",&fDaughters);
-        fParticleTree->Branch("fDaughtersPID",&fDaughtersPID);
-        //Used for debugging -> Huge file size
+        #endif
+
         fTrkIDETree = tfs->make<TTree>("trackIDEs","trackIDE metrics");
+
         fTrkIDETree->Branch("fTrkE", &fTrueTrkE, "fTrkE/D");
         fTrkIDETree->Branch("fTrkLength", &fTrueTrkLength, "fTrkLength/D");
-        fTrkIDETree->Branch("fRecoTrkLength", &fRecoTrkLength, "fRecoTrkLength/D");
         fTrkIDETree->Branch("fTrkDep", &fTrueTrkDep, "fTrkDep/D");
         fTrkIDETree->Branch("fTrkPID", &fTrueTrkPID, "fTrkPID/I");
         fTrkIDETree->Branch("fTrkID", &fTrueTrkID, "fTrkID/I");
-        fTrkIDETree->Branch("fTrkStart", &fTrueTrkStart);
-        fTrkIDETree->Branch("fTrkEnd", &fTrueTrkEnd);
         fTrkIDETree->Branch("fTrkX", &fTrueTrkX, "fTrkX[10000]/D");
         fTrkIDETree->Branch("fTrkY", &fTrueTrkY, "fTrkY[10000]/D");
         fTrkIDETree->Branch("fTrkZ", &fTrueTrkZ, "fTrkZ[10000]/D");
-        fTrkIDETree->Branch("fFilteredTrkX", &fTrueFilteredTrkX, "fFilteredTrkX[10000]/D");
-        fTrkIDETree->Branch("fFilteredTrkY", &fTrueFilteredTrkY, "fFilteredTrkY[10000]/D");
-        fTrkIDETree->Branch("fFilteredTrkZ", &fTrueFilteredTrkZ, "fFilteredTrkZ[10000]/D");
-        fTrkIDETree->Branch("fRecoTrkX", &fTrueRecoTrkX, "fRecoTrkX[10000]/D");
-        fTrkIDETree->Branch("fRecoTrkY", &fTrueRecoTrkY, "fRecoTrkY[10000]/D");
-        fTrkIDETree->Branch("fRecoTrkZ", &fTrueRecoTrkZ, "fRecoTrkZ[10000]/D");
 	fTrkIDETree->Branch("fEvent", &fEvent, "fEvent/I");
-        fTrkIDETree->Branch("fTrkProcess",&fTrueTrkProcess);
         fTrkIDETree->Branch("fTrkOrigin",&fTrueTrkOrigin);
-        fTrkIDETree->Branch("fTrkRescatter",&fTrueTrkRescatter);
-        fTrkIDETree->Branch("fTrkDaughters",&fTrueTrkDaughters);
-        fTrkIDETree->Branch("fTrkEndProcess",&fTrueTrkEndProcess);
-        //
-        fTrkIDETree->Branch("fRecoIDs", &fRecoIDs);
 
     fHitDist3D = tfs->make<TH1D>("HitD3D", "MC-reco 3D distance", 400, 0., 10.0);
     fHitDx = tfs->make<TH1D>("HitDx", "MC-reco X distance", 400, 0., 10.0);
     fHitDy = tfs->make<TH1D>("HitDy", "MC-reco Y distance", 400, 0., 10.0);
     fHitDz = tfs->make<TH1D>("HitDz", "MC-reco Z distance", 400, 0., 10.0);
 
-
-    std::cout << "X DRIFT VELOCITY: " << XDriftVelocity << std::endl;
-    std::cout << "TIME: "<<std::endl;
-    std::cout << "\t" << ts->TPCClock().TickPeriod() << std::endl;
-
+    //Need to correct for name in space point branch
+    if(fTrackModuleLabel == "pandoraTrack"){
+      fTempTrackModuleLabel = "pandora";
+    }
+    else{
+       fTempTrackModuleLabel = fTrackModuleLabel; 
+    }
 }
 
 void pdune::calcuttjRecoEff::endJob()
@@ -349,43 +332,27 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   
+  #ifdef PARTTREE 
+  //Particle List diagnostics
   const sim::ParticleList& plist = pi_serv->ParticleList();  
-  //Going through list of particles in event. Getting length.
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){ 
 
-
       simb::MCParticle * part = ipar->second;
-      fPartStatus = part->StatusCode();
+
       fPartPID = part->PdgCode();
       if(fPartPID > 2212) {continue;}
 
-      fPartID = part->TrackId();
-      fPartLength = part->Trajectory().TotalLength();
-      TPCLength = GetLengthInTPC(*part);
-      fProcess = part->Process();
+      fPartStatus = part->StatusCode();
+      fPartID     = part->TrackId();
+      fPartLength = GetLengthInTPC(*part);
+      fTotLength  = part->Trajectory().TotalLength();
+      fProcess    = part->Process();
       fEndProcess = part->EndProcess();
-      fDaughters.clear();
-      fDaughtersPID.clear();
-      for(int d = 0; d < part->NumberDaughters(); ++d){
-        fDaughters.push_back(part->Daughter(d));
-        fDaughtersPID.push_back(pi_serv->TrackIdToParticle_P(part->Daughter(d))->PdgCode());
-      }
-      if(fPartID == -13) std::cout << fPartID << " " << fPartPID << " " << fProcess << " " << fEndProcess << std::endl;
-      const simb::MCParticle * parent = pi_serv->TrackIdToMotherParticle_P(fPartID);
-      fPartParID = parent->TrackId();
-      if(fPartParID == 0){
-        fPartParPID = -1;
-      }
-      else{
-        fPartParPID = parent->PdgCode();
-      }
-
-      fOrigin = pi_serv->ParticleToMCTruth_P(part)->Origin();
+      fOrigin     = pi_serv->ParticleToMCTruth_P(part)->Origin();
 
       fParticleTree->Fill();
-      //std::vector<const sim::IDE*> IDEList = bt_serv->TrackIdToSimIDEs_Ps(fPartID);
-     // std::cout << "Track: " << fPartID << " NIDEs: "  << IDEList.size() << std::endl;       
   }
+  #endif
 
   // we are going to look only for these MC truth particles, which contributed to hits
   // and normalize efficiency to things which indeed generated activity and hits in TPC's:
@@ -396,10 +363,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   std::unordered_map<int, double> mapTrackIDtoHitsEnergy;
 
   std::unordered_map<int, double> mapTrackIDtoLength;
-  std::vector<int> FilteredTrackID;
-  std::vector<int> RecoTrackID;
   const auto hitListHandle = evt.getValidHandle< std::vector<recob::Hit> >(fHitModuleLabel);
-  std::vector<int> allTrackIDs;
   for (auto const & h : *hitListHandle)
   {
     std::unordered_map<int, double> particleID_E;
@@ -485,7 +449,6 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
     {
         // passed all conditions, move to filtered maps
         mapTrackIDtoHits_filtered.emplace(p);
-        FilteredTrackID.push_back(p.first);
     }
   }
   fReconstructable = mapTrackIDtoHits_filtered.size();
@@ -497,9 +460,10 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
     //Want to get the initial energy of the particle
     int this_code = pi_serv->TrackIdToParticle_P(p.first)->PdgCode();
     double this_energy = pi_serv->TrackIdToParticle_P(p.first)->E(0);
-    //Put track length here
     double this_length = mapTrackIDtoLength[p.first];
+
     std::cout << " : id " << p.first << " size " << p.second.size() << " en: " << mapTrackIDtoHitsEnergy[p.first] << " init en: " << this_energy << " PDG: " << this_code << " Length: " << this_length << std::endl;
+
     fDenominatorHist->Fill(p.second.size());
     fEnergyDenominatorHist->Fill(this_energy);
     fLengthDenominatorHist->Fill(this_length);
@@ -511,21 +475,10 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
    // match reconstructed tracks to MC particles
   const auto trkHandle = evt.getValidHandle< std::vector<recob::Track> >(fTrackModuleLabel);
   fNRecoTracks = trkHandle->size();
-  art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, evt, fTrackModuleLabel);
-  art::InputTag fTempTrackModuleLabel;
-  if(fTrackModuleLabel == "pandoraTrack"){
-    fTempTrackModuleLabel = "pandora";
-  }
-  else{
-     fTempTrackModuleLabel = fTrackModuleLabel; 
-  }
 
+  art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, evt, fTrackModuleLabel);
   art::FindManyP< recob::SpacePoint > spFromHits(hitListHandle, evt, fTempTrackModuleLabel);
   
-
-  // Map of True ID -> Vector<Reco ID>
-  std::unordered_map<int, int> mapTrueIDtoRecoID;
-
   for (size_t t = 0; t < trkHandle->size(); ++t)     // loop over tracks
   {
     // *** here you should select if the reconstructed track is interesting, eg:
@@ -583,12 +536,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
         fEnergyNominatorHist->Fill(pi_serv->TrackIdToParticle_P(best_id)->E(0));
         fLengthNominatorHist->Fill(this_length);
         fDepNominatorHist->Fill(mapTrackIDtoHitsEnergy[best_id]);
-
-        RecoTrackID.push_back(best_id);
-
         fTrkMatched = 1; fMatched++;
-
-        mapTrueIDtoRecoID[best_id] = t;
     }
     else { fTrkMatched = 0; }
 
@@ -649,57 +597,36 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
     }
   }
 
+  #ifdef IDETREE
+  std::cout << "IDE Tree"<< std::endl;
   for (auto const & p : mapTrackIDtoHits)
   {
     double this_energy = pi_serv->TrackIdToParticle_P(p.first)->E(0);
     fTrueTrkE = this_energy;  
     fTrueTrkLength = mapTrackIDtoLength[p.first];   
-    fRecoTrkLength = (*trkHandle)[mapTrueIDtoRecoID[p.first]].Length(); 
     fTrueTrkDep = mapTrackIDtoHitsEnergy[p.first];
     fTrueTrkPID = pi_serv->TrackIdToParticle_P(p.first)->PdgCode();
-    fTrueTrkStart = pi_serv->TrackIdToParticle_P(p.first)->Position(0);
-    fTrueTrkEnd = pi_serv->TrackIdToParticle_P(p.first)->EndPosition();
     fTrueTrkID = p.first;
+    fTrueTrkOrigin = pi_serv->TrackIdToMCTruth_P(p.first)->Origin();
     auto const traj = pi_serv->TrackIdToParticle_P(p.first)->Trajectory();
       for(size_t step = 0; step < traj.size(); ++step){
+        std:: cout << step << " " << traj.size()<< std::endl;
         if (step > 9999) break;
-
-        fTrueTrkX[step] = traj.X(step);
-        fTrueTrkY[step] = traj.Y(step);
-        fTrueTrkZ[step] = traj.Z(step);  
-        std::vector<int>::iterator it;
-        std::vector<int>::iterator it2;
-
-        it = find(FilteredTrackID.begin(),FilteredTrackID.end(),p.first);
-        if(it != FilteredTrackID.end()){
-          fTrueFilteredTrkX[step] = traj.X(step);
-          fTrueFilteredTrkY[step] = traj.Y(step);
-          fTrueFilteredTrkZ[step] = traj.Z(step);  
-        }
-        it2 = find(RecoTrackID.begin(),RecoTrackID.end(),p.first);
-        if(it2 != RecoTrackID.end()){
-          fTrueRecoTrkX[step] = traj.X(step);
-          fTrueRecoTrkY[step] = traj.Y(step);
-          fTrueRecoTrkZ[step] = traj.Z(step);          
+        TVector3 traj = GetPositionInTPC(*(pi_serv->TrackIdToParticle_P(p.first)), step);
+        if( (traj != TVector3(-1,-1,-1)) && (traj != TVector3(0,0,0))){
+          fTrueTrkX[step] = traj.X();
+          fTrueTrkY[step] = traj.Y();
+          fTrueTrkZ[step] = traj.Z();  
         }
       }
-    fRecoIDs = mapTrueIDtoRecoID[p.first]; 
-
-    fTrueTrkProcess = pi_serv->TrackIdToParticle_P(p.first)->Process();
-    fTrueTrkEndProcess = pi_serv->TrackIdToParticle_P(p.first)->EndProcess();
-    fTrueTrkOrigin = pi_serv->TrackIdToMCTruth_P(p.first)->Origin();
-    fTrueTrkRescatter = pi_serv->TrackIdToParticle_P(p.first)->Rescatter();
-    for(int d = 0; d < pi_serv->TrackIdToParticle_P(p.first)->NumberDaughters(); d++){
-      fTrueTrkDaughters.push_back(pi_serv->TrackIdToParticle_P(p.first)->Daughter(d));      
-    }
     fTrkIDETree->Fill(); 
-    for(size_t step = 0; step < traj.size(); ++step){
+    for(size_t step = 0; step < 10000; ++step){
       fTrueTrkX[step] = 0;
       fTrueTrkY[step] = 0;
       fTrueTrkZ[step] = 0;
     }
-    fTrueTrkDaughters.clear();
   }
+  #endif
   
   if (fMatched > fReconstructable)
   {
@@ -728,47 +655,36 @@ void pdune::calcuttjRecoEff::ResetVars()
 	fTrkPurity = 0; fTrkCompletness = 0;
 	fTrkPid = 0; fTrkSize = 0; fTrkMatched = 0;
         fTrkLength = 0;
+	fMatched = 0;
+	fNRecoTracks = 0;
+	fReconstructable = 0;
         fTrkID = 0;
 
-        //TrackIDEs
+        #ifdef IDETREE
         fTrueTrkE      = 0; 
         fTrueTrkID     = 0;
         fTrueTrkLength = 0; 
-        fRecoTrkLength = 0;
         fTrueTrkDep    = 0; 
         fTrueTrkPID    = 0; 
-        fTrueTrkStart  = TLorentzVector(); 
-        fTrueTrkEnd    = TLorentzVector(); 
+        fTrueTrkOrigin = -1;
         for(size_t i = 0; i < 10000; ++i){
           fTrueTrkX[i] = 0;
           fTrueTrkY[i] = 0;
           fTrueTrkZ[i] = 0;
-
-          fTrueFilteredTrkX[i] = 0;
-          fTrueFilteredTrkY[i] = 0;
-          fTrueFilteredTrkZ[i] = 0;
-
-          fTrueRecoTrkX[i] = 0;
-          fTrueRecoTrkY[i] = 0;
-          fTrueRecoTrkZ[i] = 0;
         }
-        fRecoIDs = 0;
-	fMatched = 0;
-	fNRecoTracks = 0;
-	fReconstructable = 0;
-        fTrueTrkProcess = "";
-        fTrueTrkOrigin = -1;
-        fTrueTrkRescatter = -1;
-        fTrueTrkEndProcess = "";
+        #endif
 
+
+        #ifdef PARTTREE
         fPartStatus = 0;
         fPartPID = 0;
         fPartID = 0;
-        fPartParPID = 0;
-        fPartParID = 0;
         fPartLength = 0;
+        fTotLength = 0;
+        fOrigin = -1;
         fProcess = "";
         fEndProcess = "";
+        #endif  
 }
 
 double pdune::calcuttjRecoEff::GetLengthInTPC(const simb::MCParticle part) {
@@ -811,4 +727,29 @@ double pdune::calcuttjRecoEff::GetLengthInTPC(const simb::MCParticle part) {
   }
   return TPCLength;
 }
+
+TVector3 pdune::calcuttjRecoEff::GetPositionInTPC(const simb::MCParticle part, int MCHit) {
+
+  const TLorentzVector& tmpPosition = part.Position(MCHit);
+  double const tmpPosArray[] = {tmpPosition[0], tmpPosition[1], tmpPosition[2]};
+
+  // check if in TPC
+  geo::TPCID tpcid = geom->FindTPCAtPosition(tmpPosArray);
+  if(tpcid.isValid){
+    geo::CryostatGeo const & cryo = geom->Cryostat(tpcid.Cryostat);
+    geo::TPCGeo const & tpc = cryo.TPC(tpcid.TPC);
+    double XPlanePosition = tpc.PlaneLocation(0)[0];
+    double DriftTimeCorrection = fabs( tmpPosition[0] - XPlanePosition )/ XDriftVelocity;
+    double TimeAtPlane = part.T() + DriftTimeCorrection;
+    if( TimeAtPlane < detprop->TriggerOffset() || TimeAtPlane > detprop->TriggerOffset() + WindowSize){
+      return TVector3(-1,-1,-1);}
+  }     
+  else{
+    return TVector3(-1,-1,-1);
+  }
+  
+  TVector3 posInTPC(tmpPosArray);
+  return posInTPC;
+}
+
 DEFINE_ART_MODULE(pdune::calcuttjRecoEff)
