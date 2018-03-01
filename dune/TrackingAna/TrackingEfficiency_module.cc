@@ -83,7 +83,7 @@ public:
   void beginJob() override;
   void endJob();
   void endRun();
-  //void reconfigure(fhicl::ParameterSet const & p) override;
+  //void reconfigure(fhicl::ParameterSet const & p) ;
   
   // ----------- Declare my structs ----------
   struct EfficHists {
