@@ -60,7 +60,7 @@ public:
   void beginJob() override;
   void endJob() override;
   void beginRun(const art::Run& run) override;
-  void reconfigure(fhicl::ParameterSet const& p) override;
+  void reconfigure(fhicl::ParameterSet const& p) ;
 
 private:
   // My parameters

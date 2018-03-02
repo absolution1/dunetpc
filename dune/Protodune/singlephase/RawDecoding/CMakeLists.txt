@@ -58,7 +58,7 @@ simple_plugin(RceRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
 			artdaq-core_Data
-                        dune-raw-data_Services_ChannelMap_PdChannelMapService_service
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -79,7 +79,7 @@ simple_plugin(FelixRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
                         artdaq-core_Data
-                        dune-raw-data_Services_ChannelMap_PdChannelMapService_service
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
