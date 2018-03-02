@@ -105,6 +105,7 @@ private:
   void ResetVars();
   double GetLengthInTPC(simb::MCParticle part);
   TVector3 GetPositionInTPC(simb::MCParticle part, int MCHit);
+  double GetdEdX(simb::MCTrajectory traj, size_t this_step);
   
   TH1D* fDenominatorHist;
   TH1D* fNominatorHist;
@@ -149,6 +150,9 @@ private:
   double fTrueTrkDep;
   int fTrueTrkPID;
   int fTrueTrkID;
+  int track_step;
+  double fTrueTrkdEdX[10000];
+  double fTrueTrkStepE[10000];
   double fTrueTrkX[10000];
   double fTrueTrkY[10000]; 
   double fTrueTrkZ[10000];
@@ -285,6 +289,9 @@ void pdune::calcuttjRecoEff::beginJob()
         fTrkIDETree->Branch("fTrkX", &fTrueTrkX, "fTrkX[10000]/D");
         fTrkIDETree->Branch("fTrkY", &fTrueTrkY, "fTrkY[10000]/D");
         fTrkIDETree->Branch("fTrkZ", &fTrueTrkZ, "fTrkZ[10000]/D");
+        fTrkIDETree->Branch("fTrkdEdX", &fTrueTrkdEdX, "fTrkdEdX[10000]/D");
+        fTrkIDETree->Branch("fTrkStepE", &fTrueTrkStepE, "fTrkStepE[10000]/D");
+        fTrkIDETree->Branch("fTrkSteps", &track_step, "fTrkSteps/D");
 	fTrkIDETree->Branch("fEvent", &fEvent, "fEvent/I");
         fTrkIDETree->Branch("fTrkOrigin",&fTrueTrkOrigin);
 
@@ -601,29 +608,43 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   std::cout << "IDE Tree"<< std::endl;
   for (auto const & p : mapTrackIDtoHits)
   {
-    double this_energy = pi_serv->TrackIdToParticle_P(p.first)->E(0);
-    fTrueTrkE = this_energy;  
-    fTrueTrkLength = mapTrackIDtoLength[p.first];   
-    fTrueTrkDep = mapTrackIDtoHitsEnergy[p.first];
-    fTrueTrkPID = pi_serv->TrackIdToParticle_P(p.first)->PdgCode();
     fTrueTrkID = p.first;
-    fTrueTrkOrigin = pi_serv->TrackIdToMCTruth_P(p.first)->Origin();
-    auto const traj = pi_serv->TrackIdToParticle_P(p.first)->Trajectory();
-      for(size_t step = 0; step < traj.size(); ++step){
-        std:: cout << step << " " << traj.size()<< std::endl;
-        if (step > 9999) break;
-        TVector3 traj = GetPositionInTPC(*(pi_serv->TrackIdToParticle_P(p.first)), step);
-        if( (traj != TVector3(-1,-1,-1)) && (traj != TVector3(0,0,0))){
-          fTrueTrkX[step] = traj.X();
-          fTrueTrkY[step] = traj.Y();
-          fTrueTrkZ[step] = traj.Z();  
+    const simb::MCParticle * part = pi_serv->TrackIdToParticle_P(fTrueTrkID);
+    fTrueTrkE = part->E(0);  
+    fTrueTrkLength = mapTrackIDtoLength[fTrueTrkID];   
+    fTrueTrkDep = mapTrackIDtoHitsEnergy[fTrueTrkID];
+    fTrueTrkPID = part->PdgCode();
+
+    fTrueTrkOrigin = pi_serv->TrackIdToMCTruth_P(fTrueTrkID)->Origin();
+
+    auto const traj = part->Trajectory();
+
+    track_step = 0;
+    for(size_t step = 0; step < traj.size(); ++step){
+      //Don't know if I need this break, but just to be sure...
+      if (track_step > 9999) break;
+
+      TVector3 pos = GetPositionInTPC(*part, step);
+
+      if( (pos != TVector3(-1,-1,-1)) && (pos != TVector3(0,0,0))){       
+        fTrueTrkX[track_step] = pos.X();
+        fTrueTrkY[track_step] = pos.Y();
+        fTrueTrkZ[track_step] = pos.Z();  
+        fTrueTrkStepE[track_step] = part->E(step); 
+        if(track_step > 0){
+          fTrueTrkdEdX[track_step] = GetdEdX(traj, step); 
         }
+        track_step++;
       }
+    }
+    
     fTrkIDETree->Fill(); 
     for(size_t step = 0; step < 10000; ++step){
       fTrueTrkX[step] = 0;
       fTrueTrkY[step] = 0;
       fTrueTrkZ[step] = 0;
+      fTrueTrkStepE[step] = 0;
+      fTrueTrkdEdX[step] = 0;
     }
   }
   #endif
@@ -750,6 +771,23 @@ TVector3 pdune::calcuttjRecoEff::GetPositionInTPC(const simb::MCParticle part, i
   
   TVector3 posInTPC(tmpPosArray);
   return posInTPC;
+}
+
+double pdune::calcuttjRecoEff::GetdEdX(const simb::MCTrajectory traj, size_t this_step){
+ size_t prev_step = this_step - 1;
+ size_t next_step = this_step + 1;
+
+ double dE_prev = fabs( traj.E(this_step) - traj.E(prev_step) );
+ double dE_next = fabs( traj.E(this_step) - traj.E(next_step) );
+
+ double dX_prev = sqrt( pow( (traj.X(this_step) - traj.X(prev_step)), 2 ) 
+                 + pow( (traj.X(this_step) - traj.X(prev_step)), 2 )
+                 + pow( (traj.X(this_step) - traj.X(prev_step)), 2 ));
+                
+ double dX_next = sqrt( pow( (traj.X(this_step) - traj.X(next_step)), 2 ) 
+                 + pow( (traj.X(this_step) - traj.X(next_step)), 2 )
+                 + pow( (traj.X(this_step) - traj.X(next_step)), 2 ));
+ return (dE_prev + dE_next)/(dX_prev + dX_next);
 }
 
 DEFINE_ART_MODULE(pdune::calcuttjRecoEff)
