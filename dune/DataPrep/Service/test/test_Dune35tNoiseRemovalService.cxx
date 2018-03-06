@@ -202,6 +202,10 @@ int main(int argc, char* argv[]) {
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";
+  } else {
+    cout << "Skipping test_Dune35tNoiseRemovalService to avoid hang." << endl;
+    cout << "See https://cdcvs.fnal.gov/redmine/issues/19206" << endl;
+    return 0;
   }
   return test_Dune35tNoiseRemovalService(useExistingFcl);
 }
