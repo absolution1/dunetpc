@@ -151,8 +151,14 @@ void DataPrepModule::produce(art::Event& evt) {
   const string myname = "DataPrepModule::produce: ";
 
   // Read in the digits. 
+  if ( m_LogLevel > 1 ) {
+    cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
+  }
   art::Handle< std::vector<raw::RawDigit> > hdigits;
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
+  if ( m_LogLevel > 1 ) {
+    cout << myname << "# digits read: " << hdigits->size() << endl;
+  }
   if ( hdigits->size() == 0 ) mf::LogWarning("DataPrepModule") << "Input digit container is empty";
 
   // Create the container to hold the output wires.
