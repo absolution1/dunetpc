@@ -36,10 +36,16 @@ pdsp_tpc_raw_decoder:
   RCERawDataLabel: "daq"
   ExpectRCEContainerFragments: true
   DropRCEDamagedData: true
+  RCERawDataContainerInstance: "ContainerTPC"
+  RCERawDataNonContainerInstance: "TPC"
+  RCEFragmentType: 2
 
   FELIXRawDataLabel: "daq"
   ExpectFELIXContainerFragments: false
   DropFELIXDamagedData: true
+  FELIXRawDataContainerInstance: "ContainerFELIX"
+  FELIXRawDataNonContainerInstance: "FELIX"
+  FELIXFragmentType: 2    # not used in code
 }
 
 ssp_raw_decoder:

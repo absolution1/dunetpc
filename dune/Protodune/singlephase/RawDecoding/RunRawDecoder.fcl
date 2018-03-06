@@ -61,6 +61,7 @@ outputs:
 {
   out1:
   {
+    compressionLevel: 1
     module_type: RootOutput
     fileName: "RawDecoder.root"
   }

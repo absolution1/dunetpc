@@ -47,7 +47,14 @@ private:
   typedef std::vector<raw::RawDigit> RawDigits;
 
   std::string _rce_input_label; 
+  std::string _rce_input_container_instance;
+  std::string _rce_input_noncontainer_instance;
   std::string _felix_input_label; 
+  std::string _felix_input_container_instance;
+  std::string _felix_input_noncontainer_instance;
+  int _rce_fragment_type;
+  int _felix_fragment_type;
+
   std::string _output_label;
   bool _expect_rce_container_fragments;  
   bool _expect_felix_container_fragments;
@@ -65,8 +72,16 @@ private:
 
 PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
 {
-  _rce_input_label = p.get<std::string>("RCERawDataLabel");
+  _rce_input_label = p.get<std::string>("RCERawDataLabel","daq");
+  _rce_input_container_instance = p.get<std::string>("RCERawDataContainerInstance","ContainerTPC");
+  _rce_input_noncontainer_instance = p.get<std::string>("RCERawDataNonContainerInstance","TPC");
+  _rce_fragment_type = p.get<int>("RCEFragmentType",2);
+
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
+  _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
+  _felix_input_noncontainer_instance = p.get<std::string>("FELIXRawDataNonContainerInstance","FELIX");
+  _rce_fragment_type = p.get<int>("FELIXFragmentType",2);
+
   _output_label = p.get<std::string>("OutputDataLabel");
   _expect_rce_container_fragments = p.get<bool>("ExpectRCEContainerFragments", true);
   _expect_felix_container_fragments = p.get<bool>("ExpectFELIXContainerFragments", false);
@@ -90,7 +105,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
   size_t n_rce_frags = 0;
   if (_expect_rce_container_fragments) {
     art::Handle<artdaq::Fragments> cont_frags;
-    evt.getByLabel(_rce_input_label, "ContainerTPC", cont_frags);  // hardcoded label .. maybe fix
+    evt.getByLabel(_rce_input_label, _rce_input_container_instance, cont_frags);  // hardcoded label .. maybe fix
     try { cont_frags->size(); }
     catch(std::exception e) {
       LOG_DEBUG("_processRCE") << "Container TPC/RCE data not found " 
@@ -120,7 +135,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
   else
     {
       art::Handle<artdaq::Fragments> frags;
-      evt.getByLabel(_rce_input_label, "TPC", frags);  // hardcoded label?
+      evt.getByLabel(_rce_input_label, _rce_input_noncontainer_instance, frags);  // hardcoded label?
       try { frags->size(); }
       catch(std::exception e) {
 	LOG_DEBUG("_process_RCE_AUX") << "TPC/RCE fragment data not found " 
@@ -233,7 +248,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
 
   if (_expect_felix_container_fragments) {
     art::Handle<artdaq::Fragments> cont_frags;
-    evt.getByLabel(_felix_input_label, "ContainerFELIX", cont_frags);  // TODO -- un-hardwire this label
+    evt.getByLabel(_felix_input_label, _felix_input_container_instance, cont_frags);  // TODO -- un-hardwire this label
 
     try { cont_frags->size(); }
     catch(std::exception e) {
@@ -264,7 +279,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
   else
   {
     art::Handle<artdaq::Fragments> frags;
-    evt.getByLabel(_felix_input_label, "FELIX", frags);
+    evt.getByLabel(_felix_input_label, _felix_input_noncontainer_instance, frags);
     try { frags->size(); }
     catch(std::exception e) {
 	LOG_DEBUG("_process_FELIX_AUX") << "TPC/FELIX fragment data not found " 
