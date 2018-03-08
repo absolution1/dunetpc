@@ -7,7 +7,7 @@ services:
 {
   #message:              @local::dune_message_services_prod_debug
 
-  TimeTracker:       {}
+#  TimeTracker:       {}
   RandomNumberGenerator: {} 
 #  FileCatalogMetadata:  @local::art_file_catalog_mc
   ExptGeoHelperInterface:       @local::dune_geometry_helper
@@ -42,13 +42,13 @@ physics:
 
     timingrawdecoder: @local::timing_raw_decoder   
     ssprawdecoder: @local::ssp_raw_decoder  
-    rcerawdecoder: @local::rce_raw_decoder 
-    felixrawdecoder: @local::felix_raw_decoder
+#    rcerawdecoder: @local::rce_raw_decoder 
+#    felixrawdecoder: @local::felix_raw_decoder
+    tpcrawdecoder: @local::pdsp_tpc_raw_decoder
   }
 
   #Create path to run module
-  produce: [ timingrawdecoder, ssprawdecoder, rcerawdecoder, felixrawdecoder ] 
-  #produce: [ timingrawdecoder, rcerawdecoder, felixrawdecoder ] 
+  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder ] 
   output: [ out1 ]
   trigger_paths : [ produce ]
   end_paths: [ output ]
@@ -61,6 +61,7 @@ outputs:
 {
   out1:
   {
+    compressionLevel: 1
     module_type: RootOutput
     fileName: "RawDecoder.root"
   }

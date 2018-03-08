@@ -186,6 +186,10 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
   }
 
   cout << myname << line << endl;
+  cout << myname << "Close service helper." << endl;
+  ArtServiceHelper::close();
+
+  cout << myname << line << endl;
   cout << myname << "Done." << endl;
   return 0;
 }
@@ -194,6 +198,7 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
+  bool skipTest = true;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
@@ -202,7 +207,7 @@ int main(int argc, char* argv[]) {
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";
-  } else {
+  } else if ( skipTest ) {
     cout << "Skipping test_Dune35tNoiseRemovalService to avoid hang." << endl;
     cout << "See https://cdcvs.fnal.gov/redmine/issues/19206" << endl;
     return 0;
