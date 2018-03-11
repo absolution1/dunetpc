@@ -41,13 +41,14 @@
 #include "TVector3.h"
 
 
-#ifndef PARTTREE
+/*#ifndef PARTTREE
   #define PARTTREE
 #endif
 
 #ifndef IDETREE
   #define IDETREE
 #endif
+*/
 
 namespace pdune
 {
@@ -87,6 +88,9 @@ public:
       fhicl::Atom<size_t> EffLengthMax { Name("EffLengthMax"), Comment("max hits per MC particle in the track efficiency") };
       fhicl::Atom<size_t> EffLengthBins { Name("EffLengthBins"), Comment("number of bins in the track efficiency") };
 
+      fhicl::Atom<size_t> EnableParticleTree { Name("EnableParticleTree"), Comment("Turn on saving Particle Tree") };
+      fhicl::Atom<size_t> EnableIDETree { Name("EnableIDETree"), Comment("Turn on saving IDE Tree") };
+
   };
   using Parameters = art::EDAnalyzer::Table<Config>;
 
@@ -124,10 +128,7 @@ private:
   TTree *fHitTree;
   
   TTree *fTrkIDETree;
-
-  #ifdef PARTTREE
   TTree *fParticleTree;
-  #endif
 
   int fRun, fEvent;
   short fNRecoTracks;
@@ -178,8 +179,9 @@ private:
   size_t fEffEMax, fEffEBins;
   size_t fEffDepMax, fEffDepBins;
   size_t fEffLengthMax, fEffLengthBins;
+  bool  fEnableParticleTree, fEnableIDETree;
 
-  #ifdef PARTTREE
+  
   int fPartStatus;
   int fPartPID;
   int fPartID;
@@ -188,7 +190,6 @@ private:
   double fTotLength;
   std::string fProcess;
   std::string fEndProcess;
-  #endif
 
   art::ServiceHandle<geo::Geometry> geom;  
   detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -215,7 +216,13 @@ pdune::calcuttjRecoEff::calcuttjRecoEff(Parameters const& config) : EDAnalyzer(c
     fEffDepBins(config().EffDepBins()),
 
     fEffLengthMax(config().EffLengthMax()),
-    fEffLengthBins(config().EffLengthBins())
+    fEffLengthBins(config().EffLengthBins()),
+
+    fEnableParticleTree(config().EnableParticleTree()),
+    fEnableIDETree(config().EnableIDETree())
+//    fEnableParticleTree(config().EnableParticleTree),
+//    fEnableIDETree(config().EnableIDETree)
+
 {
     auto flt = config().Filters();
     for (const auto & s : flt)
@@ -265,7 +272,8 @@ void pdune::calcuttjRecoEff::beginJob()
 	fTrkTree->Branch("fTrkMatched", &fTrkMatched, "fTrkMatched/S");
         fTrkTree->Branch("fTrkLength", &fTrkLength, "fTrkLength/D");
 
-        #ifdef PARTTREE
+//        #ifdef PARTTREE
+        if(fEnableParticleTree){
         fParticleTree = tfs->make<TTree>("particles","Particles");
 
         fParticleTree->Branch("fPID",&fPartPID);
@@ -277,8 +285,10 @@ void pdune::calcuttjRecoEff::beginJob()
         fParticleTree->Branch("fOrigin",&fOrigin);
         fParticleTree->Branch("fProcess",&fProcess);
         fParticleTree->Branch("fEndProcess",&fEndProcess);
-        #endif
-
+        }
+ //       #endif
+ 
+        if(fEnableIDETree){
         fTrkIDETree = tfs->make<TTree>("trackIDEs","trackIDE metrics");
 
         fTrkIDETree->Branch("fTrkE", &fTrueTrkE, "fTrkE/D");
@@ -294,6 +304,7 @@ void pdune::calcuttjRecoEff::beginJob()
         fTrkIDETree->Branch("fTrkSteps", &track_step, "fTrkSteps/D");
 	fTrkIDETree->Branch("fEvent", &fEvent, "fEvent/I");
         fTrkIDETree->Branch("fTrkOrigin",&fTrueTrkOrigin);
+        }
 
     fHitDist3D = tfs->make<TH1D>("HitD3D", "MC-reco 3D distance", 400, 0., 10.0);
     fHitDx = tfs->make<TH1D>("HitDx", "MC-reco X distance", 400, 0., 10.0);
@@ -339,7 +350,8 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   
-  #ifdef PARTTREE 
+//  #ifdef PARTTREE 
+  if(fEnableParticleTree){
   //Particle List diagnostics
   const sim::ParticleList& plist = pi_serv->ParticleList();  
   for ( sim::ParticleList::const_iterator ipar = plist.begin(); ipar!=plist.end(); ++ipar){ 
@@ -359,7 +371,8 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
 
       fParticleTree->Fill();
   }
-  #endif
+  }
+  //#endif
 
   // we are going to look only for these MC truth particles, which contributed to hits
   // and normalize efficiency to things which indeed generated activity and hits in TPC's:
@@ -604,7 +617,8 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
     }
   }
 
-  #ifdef IDETREE
+//  #ifdef IDETREE
+  if(fEnableIDETree){
   std::cout << "IDE Tree"<< std::endl;
   for (auto const & p : mapTrackIDtoHits)
   {
@@ -647,7 +661,8 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
       fTrueTrkdEdX[step] = 0;
     }
   }
-  #endif
+  }
+ // #endif
   
   if (fMatched > fReconstructable)
   {
@@ -680,8 +695,9 @@ void pdune::calcuttjRecoEff::ResetVars()
 	fNRecoTracks = 0;
 	fReconstructable = 0;
         fTrkID = 0;
-
-        #ifdef IDETREE
+        
+//        #ifdef IDETREE
+        if(fEnableIDETree){
         fTrueTrkE      = 0; 
         fTrueTrkID     = 0;
         fTrueTrkLength = 0; 
@@ -693,10 +709,12 @@ void pdune::calcuttjRecoEff::ResetVars()
           fTrueTrkY[i] = 0;
           fTrueTrkZ[i] = 0;
         }
-        #endif
+        }
+  //      #endif
 
 
-        #ifdef PARTTREE
+  //      #ifdef PARTTREE
+        if(fEnableParticleTree){
         fPartStatus = 0;
         fPartPID = 0;
         fPartID = 0;
@@ -705,7 +723,8 @@ void pdune::calcuttjRecoEff::ResetVars()
         fOrigin = -1;
         fProcess = "";
         fEndProcess = "";
-        #endif  
+        }
+ //       #endif  
 }
 
 double pdune::calcuttjRecoEff::GetLengthInTPC(const simb::MCParticle part) {

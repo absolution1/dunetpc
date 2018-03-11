@@ -33,6 +33,9 @@ standard_pdune_calcuttj_recoeff:
 
         EffLengthMax:     1000
         EffLengthBins:    50
+
+        EnableParticleTree: 0 
+        EnableIDETree:      0 
 }
 
 END_PROLOG
