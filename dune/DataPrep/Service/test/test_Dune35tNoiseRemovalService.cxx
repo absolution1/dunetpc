@@ -198,7 +198,7 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
-  bool skipTest = true;
+  bool skipTest = false;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
