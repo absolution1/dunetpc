@@ -3,7 +3,7 @@
 #include "AdcDataPlotter.h"
 #include <iostream>
 #include <sstream>
-#include "dune/DuneCommon/TH1Manipulator.h"
+#include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/RootPalette.h"
 #include "TH2F.h"
@@ -62,6 +62,8 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   }
   const AdcChannelData& acdFirst = acds.begin()->second;
   const AdcChannelData& acdLast = acds.rbegin()->second;
+  bool isPrep = m_DataType == 0;
+  bool isRaw = m_DataType == 1;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( iacd.first == AdcChannelData::badChannel ) {
@@ -99,7 +101,8 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     sman.replace("%CHAN1%", chanFirst);
     sman.replace("%CHAN2%", chanLast);
   }
-  htitl += "; Tick; Channel";
+  string szunits =  isRaw ? "(ADC counts)" : acdFirst.sampleUnit;
+  htitl += "; Tick; Channel; Signal [" + szunits + "/Tick/Channel]";
   // Create histogram.
   TH2* ph = new TH2F(hname.c_str(), htitl.c_str(), ntick, tick1, tick2, nchan, chanFirst, chanLast+1);
   ph->SetDirectory(nullptr);
@@ -109,8 +112,6 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   ph->GetZaxis()->SetRangeUser(-zmax, zmax);
   ph->SetContour(40);
   // Fill histogram.
-  bool isPrep = m_DataType == 0;
-  bool isRaw = m_DataType == 1;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     AdcChannel chan = iacd.first;
     const AdcChannelData& acd = iacd.second;
@@ -137,12 +138,10 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   // Save the original color map.
   RootPalette oldPalette;
   RootPalette::set(m_Palette);
-  TCanvas* pcan = new TCanvas;;
-  pcan->SetRightMargin(0.12);
-  ph->Draw("colz");
-  TH1Manipulator::fixFrameFillColor();
-  TH1Manipulator::addaxis(ph);
-  pcan->Print(ofname.c_str());
+  TPadManipulator man;
+  man.add(ph, "colz");
+  man.addAxis();
+  man.print(ofname);
   if ( 0 ) {
     string line;
     cout << myname;
@@ -163,8 +162,6 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     delete pfile;
   }
   oldPalette.setRootPalette();
-  delete ph;
-  delete pcan;
   return 0;
 }
 

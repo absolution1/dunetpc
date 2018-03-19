@@ -85,14 +85,16 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     cout << myname << "Event " << ievt << endl;
     AdcChannelDataMap datamap;
     AdcIndex ncha = 20;
-    for ( AdcIndex icha=0; icha<ncha; ++icha ) {
+    AdcIndex icha1 = 10000;
+    AdcIndex icha2 = icha1 + ncha;
+    for ( AdcIndex icha=icha1; icha<icha2; ++icha ) {
       std::pair<AdcChannelDataMap::iterator, bool> kdat = datamap.emplace(icha, AdcChannelData());
       assert(kdat.second);
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
       data.run = 123;
       data.event = ievt;
-      float ped = peds[icha];
+      float ped = peds[icha-icha1];
       data.channel = icha;
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
@@ -101,7 +103,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
         data.raw.push_back(iadc);
         data.samples.push_back(iadc - ped);
       }
-      AdcIndex tp = 10*ievt + 60 - 2.3*icha;
+      AdcIndex tp = 10*ievt + 60 - 2.3*(icha-icha1);
       for ( unsigned int iwf=0; iwf<wf.size(); ++iwf ) {
         unsigned int isam = tp+iwf;
         if ( isam < data.samples.size() ) {
