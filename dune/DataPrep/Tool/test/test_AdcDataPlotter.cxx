@@ -47,7 +47,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "    LogLevel: 2" << endl;
     fout << "    FirstTick: 0" << endl;
     fout << "    LastTick: 0" << endl;
-    fout << "    MaxSignal: 200" << endl;
+    fout << "    MaxSignal: 10" << endl;
     fout << "    Palette: 1026" << endl;
     fout << "    HistName: \"hadc\"" << endl;
     fout << "    HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
@@ -109,6 +109,10 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
           data.samples[isam] += wf[iwf];
         }
       }
+      for ( unsigned int isam=0; isam<data.samples.size(); ++isam ) {
+        data.samples[isam] *= 0.04;
+      }
+      data.sampleUnit = "ke";
     }
     ostringstream sslab;
     sslab << "event " << ievt << " plane 3u";
