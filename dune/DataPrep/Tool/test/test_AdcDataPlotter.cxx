@@ -9,8 +9,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "dune/DuneInterface/Tool/AdcDataViewer.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include <TRandom.h>
 
 #undef NDEBUG
 #include <cassert>
@@ -21,6 +23,7 @@ using std::endl;
 using std::ostringstream;
 using std::ofstream;
 using fhicl::ParameterSet;
+using std::vector;
 
 //**********************************************************************
 
@@ -75,6 +78,9 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
   AdcIndex nevt = 2;
   float peds[20] = {701, 711, 733, 690, 688, 703, 720, 720, 695, 702,
                     410, 404, 388, 389, 400, 401, 410, 404, 395, 396};
+  vector<double> wf = {5.0, 20.1, 53.2, 80.6, 130.2, 160.1, 150.4, 125.7, 72.5, 41.3, 18.4,
+                       -6.5, -34.9, -56.6, -88.9, -132.6, -170.8, -172.9, -144.6, -112.6,
+                        -79.4, -44.9, -22.1, -12.6, -4.7};
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
     cout << myname << "Event " << ievt << endl;
     AdcChannelDataMap datamap;
@@ -90,17 +96,19 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
       data.channel = icha;
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
-        float xadc = ped + rand()%20 - 10.0;
+        float xadc = ped + gRandom->Gaus(0.0, 10.0);
         AdcCount iadc = xadc;
         data.raw.push_back(iadc);
         data.samples.push_back(iadc - ped);
       }
       AdcIndex tp = 10*ievt + 60 - 2.3*icha;
-      AdcIndex tm = tp - 8;
-      data.raw[tp] += 100;
-      data.samples[tp] += 100;
-      data.raw[tm] -= 100;
-      data.samples[tm] -= 100;
+      for ( unsigned int iwf=0; iwf<wf.size(); ++iwf ) {
+        unsigned int isam = tp+iwf;
+        if ( isam < data.samples.size() ) {
+          data.raw[isam] += wf[iwf];
+          data.samples[isam] += wf[iwf];
+        }
+      }
     }
     ostringstream sslab;
     sslab << "event " << ievt << " plane 3u";
