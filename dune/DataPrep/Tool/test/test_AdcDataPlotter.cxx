@@ -45,6 +45,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "    FirstTick: 0" << endl;
     fout << "    LastTick: 0" << endl;
     fout << "    MaxSignal: 200" << endl;
+    fout << "    Palette: 1026" << endl;
     fout << "    HistName: \"hadc\"" << endl;
     fout << "    HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
     fout << "    PlotFileName: \"myplot-run%RUN%-evt%EVENT%.png\"" << endl;

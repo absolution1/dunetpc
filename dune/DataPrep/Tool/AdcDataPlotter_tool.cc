@@ -5,6 +5,7 @@
 #include <sstream>
 #include "dune/DuneCommon/TH1Manipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneCommon/RootPalette.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -30,6 +31,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
+  m_Palette(ps.get<int>("Palette")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
@@ -42,6 +44,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "     FirstTick: " << m_FirstTick << endl;
     cout << myname << "      LastTick: " << m_LastTick << endl;
     cout << myname << "     MaxSignal: " << m_MaxSignal << endl;
+    cout << myname << "       Palette: " << m_Palette << endl;
     cout << myname << "      HistName: " << m_HistName << endl;
     cout << myname << "     HistTitle: " << m_HistTitle << endl;
     cout << myname << "  PlotFileName: " << m_PlotFileName << endl;
@@ -132,35 +135,8 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     }
   }
   // Save the original color map.
-  vector<int> saveColors;
-  if ( saveColors.size() == 0 ) {
-    for ( int icol=0; icol<gStyle->GetNumberOfColors(); ++icol ) {
-      saveColors.push_back(gStyle->GetColorPalette(icol));
-    }
-  }
-  TStyle* poldstyle = gStyle;
-  string styleName = "adcstyle";
-  TStyle* pnewstyle = dynamic_cast<TStyle*>(gStyle->Clone(styleName.c_str()));
-  pnewstyle->cd();
-  if ( 1 ) {
-    const double alpha = 1.0;
-    const int nRGBs = 8;
-    const int ncol = 255;
-    Double_t stops[nRGBs] = { 0.00, 0.48, 0.50, 0.53, 0.56, 0.62, 0.80, 1.00};
-    Double_t red[nRGBs]   = { 0.09, 0.75, 1.00, 1.00, 1.00, 1.00, 0.70, 0.00};
-    Double_t green[nRGBs] = { 0.60, 0.80, 1.00, 1.00, 0.75, 0.55, 0.20, 0.00};
-    Double_t blue[nRGBs]  = { 0.48, 0.93, 1.00, 1.00, 0.00, 0.00, 0.10, 0.00};
-    static vector<int> colors;
-    colors.reserve(ncol);
-    // First pass we define the color table (which also sets the palette).
-    // On subsequent passes, we set the palette with that table.
-    if ( colors.size() == 0 ) {
-      int coloff = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, 255, alpha);
-      for ( unsigned int icol=0; icol<ncol; ++icol ) colors.push_back(coloff + icol);
-    } else {
-      gStyle->SetPalette(ncol, &colors[0]);
-    }
-  }
+  RootPalette oldPalette;
+  RootPalette::set(m_Palette);
   TCanvas* pcan = new TCanvas;;
   pcan->SetRightMargin(0.12);
   ph->Draw("colz");
@@ -186,10 +162,7 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     if ( m_LogLevel > 1 ) cout << myname << "Wrote " << ph->GetName() << " to " << ofrname << endl;
     delete pfile;
   }
-  poldstyle->cd();
-  // Restore the original color map.
-  gStyle->SetPalette(saveColors.size(), &saveColors[0]);
-  delete pnewstyle;
+  oldPalette.setRootPalette();
   delete ph;
   delete pcan;
   return 0;
