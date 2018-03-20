@@ -54,6 +54,7 @@ private:
   unsigned long  m_FirstTick;
   unsigned long  m_LastTick;
   double         m_MaxSignal;
+  int            m_Palette;
   std::string    m_HistName;
   std::string    m_HistTitle;
   std::string    m_PlotFileName;

@@ -48,7 +48,7 @@ public:
   void analyze(art::Event const & e) override;
 
   // Selected optional functions.
-  void reconfigure(fhicl::ParameterSet const & p) override;
+  void reconfigure(fhicl::ParameterSet const & p) ;
 
 private:
 
