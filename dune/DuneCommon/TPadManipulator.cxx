@@ -528,19 +528,19 @@ int TPadManipulator::update() {
   double asp = wx > 0 ? wy/wx : 1.0;
   double aspx = asp < 1.0 ? asp : 1.0;        // Font is proportional to this for asp < 1.0
   double aspy = asp > 1.0 ? 1.0/asp : 1.0;    // Font is proportional to this for asp > 1.0
-  double xml = xm0 + 0.110*aspx;
-  double xmr = 0.03*aspx;
+  double xml = xm0 + 0.120*aspx;
+  double xmr = 0.05*aspx;
   double xmb =       0.100*aspy;
   double xmt =       0.070*aspy;
   double xlb = -0.028 + 0.038*aspy;
   double xlz = 0.005*aspx;
   double xttl = 1.2*aspy;
-  double yttl = 0.15 + 1.6*aspx;
+  double yttl = 0.17 + 1.8*aspx;
   double httl = 1.0 - 0.5*xmt;
   if ( isTH2 ) {
     TPaletteAxis* pax = dynamic_cast<TPaletteAxis*>(hist()->GetListOfFunctions()->FindObject("palette"));
     if ( pax != nullptr ) {
-      xmr = xm0 + 0.120*aspx;
+      xmr = xm0 + 0.150*aspx;
       double xp1 = 1.0 - 1.00*xmr;
       double xp2 = 1.0 - 0.65*xmr;
       double yp1 = xmb;
