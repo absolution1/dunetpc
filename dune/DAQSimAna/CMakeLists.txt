@@ -1,4 +1,4 @@
-add_subdirectory(ChannelClusteringTrigger)
+add_subdirectory(SNAnaClustering)
 
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   lbne-raw-data_Overlays

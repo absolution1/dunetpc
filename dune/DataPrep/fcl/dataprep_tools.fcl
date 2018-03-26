@@ -95,6 +95,7 @@ tools.preparedAdcPlotter: {
   FirstTick: 0
   LastTick:  0
   MaxSignal: 200
+  Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
@@ -107,6 +108,7 @@ tools.rawAdcPlotter: {
   FirstTick: 0
   LastTick:  0
   MaxSignal: 200
+  Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
   PlotFileName: "adcraw_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"

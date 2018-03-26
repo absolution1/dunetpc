@@ -10,16 +10,25 @@ process_name: CosmicsDP
 
 services: @local::protodunedphase_simulation_services
 
-  # Load the service that manages root files for histograms.
-services.TFileService: { fileName: "cosmics_corsika_rotation_hist.root" }
-services.TimeTracker:  {}
-services.RandomNumberGenerator: {} #ART native random number generator
-                @table::dunefddphase_simulation_services
-services.FileCatalogMetadata:  @local::art_file_catalog_mc
-services.NuRandomService:       @local::random_NuRandomService  # seedservice.fcl
-services.Geometry: @local::protodunedphase_geo
-services.DetectorPropertiesService: @local::protodunedphase_detproperties
+#Load the service that manages root files for histograms.
+services.TFileService: 			{ fileName: "cosmics_corsika_rotation_hist.root" }
+services.TimeTracker:  			{}
+services.RandomNumberGenerator: 	{} #ART native random number generator
+services.FileCatalogMetadata:  		@local::art_file_catalog_mc
+services.NuRandomService:       	@local::random_NuRandomService  # seedservice.fcl
+services.Geometry: 			@local::protodunedphase_geo
+services.DetectorPropertiesService: 	@local::protodunedphase_detproperties
 
+#we activate light simulation
+services.LArG4Parameters.UseCustomPhysics: true
+services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                           "FastOptical",
+                                           "SynchrotronAndGN",
+                                           "Ion",
+                                           "Hadron",
+                                           "Decay",
+                                           "HadronElastic",
+                                           "Stopping"]
 
 
 #Start each new event with an empty event.
@@ -27,7 +36,7 @@ source:
 {
   module_type: EmptyEvent
   timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
-  maxEvents:   10          # Number of events to create
+  maxEvents:   20          # Number of events to create
   firstRun:    1           # Run number to use for this file
   firstEvent:  1           # number of first event in the file
 }
@@ -40,7 +49,7 @@ physics:
 
  producers:
  {
-   rns:       { module_type: "RandomNumberSaver" }
+   rns:       		{ module_type: "RandomNumberSaver" }
    generator:           @local::standard_CORSIKAGendp_CMC
    largeant:            @local::dunefd_largeant
    daq:                 @local::dune_detsim
@@ -83,14 +92,12 @@ outputs:
 
 #specific to cosmic sim
 physics.producers.generator.DoRotation:          true
-
 physics.producers.generator.SampleTime:          8e-3
 physics.producers.generator.TimeOffset:          -4e-3 #4.0 ms readout should start at -0.875 ms to match data
 physics.producers.generator.BufferBox:           [ -300.0, 300.0, -300.0, 300.0, -300.0, 300.0 ]   #in cm
 physics.producers.generator.ShowerAreaExtension: 2000
 physics.producers.generator.RandomXZShift:       2000     #amount to randomly shift shower start point in x & z [cm] (default is 1000)
 physics.producers.generator.ProjectToHeight:     856  #height to which particles are projected in cm
-
 physics.producers.generator.ShowerInputFiles:     [
                                                     "/pnfs/larsoft/persistent/physics/cosmics/CERN/CORSIKA/standard/p_showers_*",
                                                    "/pnfs/larsoft/persistent/physics/cosmics/CERN/CORSIKA/standard/He_showers_*",
@@ -100,16 +107,13 @@ physics.producers.generator.ShowerInputFiles:     [
                                                ] #list of sqlite dbs with corsika showers
 
 
-#standard DP sim
 
-#services.NuRandomService:       @local::random_NuRandomService  # seedservice.fcl
+services.DetectorPropertiesService.Electronlifetime:  1000.0e3         #in us
 
 services.LArG4Parameters.MinNumberOfElCluster: 20
-#PhotonVisibilityService in photoproservices_dune.fcl. Has to be adapted to protodunedp?
-services.PhotonVisibilityService: @local::dune10kt_workspace_photonvisibilityservice
 
-# Use fixed values instead of DB for pedestals.
-services.DetPedestalService: @local::dunedp_fixedpeds
+services.PhotonVisibilityService: @local::protodunedp_photonvisibilityservice
+services.PhotonVisibilityService.Interpolate: true
 
 # DetSim flags.
 physics.producers.daq.NoiseOn:           true
@@ -119,7 +123,6 @@ physics.producers.daq.SuppressOn:        false #false when noise on!
 physics.producers.daq.KeepEmptyChannels: true
 
 # DetSim services.
-#services.SimChannelExtractService:      @local::scxgeneric
 services.ChannelNoiseService:            @local::chnoiseold
 services.PedestalAdditionService:        @local::padprovided
 
@@ -134,45 +137,8 @@ services.DetPedestalService.FixedDetPedestal.PedRmsY: 0
 services.DetPedestalService.FixedDetPedestal.PedRmsZ: 0
 
 services.AdcDistortService:              @local::stuckbits
-#services.AdcSuppressService:            @local::zslegacy
 services.AdcSuppressService:             @local::zsonline
-#services.AdcCompressService:            @local::cmpblock
 services.AdcCompressService:             @local::cmpreplace
-
-services.SignalShapingServiceDUNEDPhase.ADCpermV: 0.48
-services.DetectorPropertiesService.Electronlifetime:  1000.0e3         #in us
-
-services.RawDigitExtractService:     @local::rdx_std
-services.RawDigitExtractService.PedestalOption:    1
-
-services.RawDigitPrepService:        @local::adcprep_sim
-services.RawDigitPrepService.DoNoiseRemoval:       false
-services.RawDigitPrepService.DoDeconvolution:      false
-services.RawDigitPrepService.DoROI:                true
-
-services.AdcNoiseRemovalService:    @local::adcnr_dunedphase3x1x1
-services.AdcNoiseRemovalService.LowPassFlt:        false
-services.AdcNoiseRemovalService.Flatten:           false
-services.AdcNoiseRemovalService.CorrMode:          "median"
-services.AdcNoiseRemovalService.Coherent32:        true
-services.AdcNoiseRemovalService.Coherent16:        true
-services.AdcNoiseRemovalService.Coherent16Groups:  [6, 7, 16, 17, 18, 19]
-services.AdcNoiseRemovalService.RoiStartThreshold: 7
-services.AdcNoiseRemovalService.RoiEndThreshold:   6
-services.AdcNoiseRemovalService.RoiPadLow:         8
-services.AdcNoiseRemovalService.RoiPadHigh:       40
-
-services.AdcWireBuildingService:     @local::adcwire_std
-#
-services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
-services.AdcRoiBuildingService.NSigmaStart:       -20  # 1.25: only pulses with ADC >= NSigmaStart*8
-services.AdcRoiBuildingService.NSigmaEnd:         -20  # 1.25: only pulses with ADC >= NSigmaStart*8
-#services.AdcRoiBuildingService.UseFilter:      true
-
-#services.AdcRoiBuildingService.NSigmaStart:       0.5
-#services.AdcRoiBuildingService.NSigmaEnd:         0.0
-
-# services.message.destinations.LogStandardOut.threshold: "INFO"
 
 
 #===================New noise module ===========================================
