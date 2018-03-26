@@ -69,7 +69,8 @@ void WireSelector::selectPlanes() {
       // Check drift.
       if ( driftMin() > 0.0 || driftMax() < 1.e20 ) {
         const geo::TPCGeo& gtpc = geometry()->TPC(tid);
-        double driftSize = gtpc.ActiveWidth();
+        //double driftSize = gtpc.ActiveWidth();
+        double driftSize = gtpc.DriftDistance(); // good for the last anode plane
         if ( driftSize < driftMin() ) continue;
         if ( driftSize >= driftMax() ) continue;
       }
@@ -101,6 +102,10 @@ const WireSelector::WireInfoVector& WireSelector::fillData() {
   for ( geo::PlaneID pid : planeIDs() ) {
     const geo::PlaneGeo& gpla = geometry()->Plane(pid);
     const geo::TPCGeo& gtpc = geometry()->TPC(pid);
+    const geo::PlaneGeo& gplaLast = gtpc.LastPlane();  // Plane furthest from TPC center.
+    double xLastPlane = gplaLast.MiddleWire().GetCenter<TVector3>().x();
+    double xThisPlane = gpla.MiddleWire().GetCenter<TVector3>().x();
+    double driftOffset = fabs(xThisPlane - xLastPlane);
     for ( Index iwir=0; iwir<gpla.Nwires(); ++iwir ) {
       geo::WireID wid(pid, iwir);
       const geo::WireGeo* pgwir = gpla.WirePtr(wid);
@@ -112,8 +117,9 @@ const WireSelector::WireInfoVector& WireSelector::fillData() {
         cout << myname << "ERROR: Plane normal is not along x." << endl;
         continue;
       }
+      double driftDist = gtpc.DriftDistance() - driftOffset;
       m_data.emplace_back(xyzWire.x(), xyzWire.y(), xyzWire.z(),
-                          driftSign*gtpc.Width(),
+                          driftSign*driftDist,
                           pgwir->Length(),
                           gpla.WirePitch(),
                           geometry()->PlaneWireToChannel(wid));

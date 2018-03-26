@@ -29,6 +29,11 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "../WireSelector.h"
 
+#include "TGraph.h"
+#include "TH2F.h"
+#include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/LineColors.h"
+
 using std::string;
 using std::cout;
 using std::cerr;
@@ -258,10 +263,53 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   cout << myname << "  Expected wire count: " << nwirSel << endl;
   cout << myname << "  Reported wire count: " << ws.data().size() << endl;
   Index iwir = 0;
+  double xmin = 1000.0;
+  double ymin = 1000.0;
+  double zmin = 1000.0;
+  double xmax = -1000.0;
+  double ymax = -1000.0;
+  double zmax = -1000.0;
+  Index ndat = ws.data().size();
+  vector<float> xw(ndat);
+  vector<float> xwd(ndat);
+  vector<float> zw(ndat);
   for ( const WireSelector::WireInfo& dat : ws.data() ) {
-    if ( iwir++ < nShowWires ) cout << setw(6) << iwir << ": " << toString(dat) << endl;
+    if ( iwir < nShowWires ) cout << setw(6) << iwir << ": " << toString(dat) << endl;
+    if ( dat.x1() < xmin ) xmin = dat.x1();
+    if ( dat.y1() < ymin ) ymin = dat.y1();
+    if ( dat.z1() < zmin ) zmin = dat.z1();
+    if ( dat.x2() > xmax ) xmax = dat.x2();
+    if ( dat.y2() > ymax ) ymax = dat.y2();
+    if ( dat.z2() > zmax ) zmax = dat.z2();
+    xw[iwir] = dat.x;
+    xwd[iwir] = dat.x + dat.driftMax;
+    zw[iwir] = dat.z;
+    ++iwir;
   }
   assert( ws.data().size() == nwirSel );
+
+  bool drawWires = true;
+  LineColors lc;
+  if ( drawWires ) {
+    double b = 20;
+    double xpmin = xmin;
+    double xpmax = xmin;
+    if ( gname == "protodune_geo" ) {
+      xpmin = -400.0;
+      xpmax = 400.0;
+    }
+    TH2* pha = new TH2F("pha", "; z [cm]; x [cm]", 1, zmin-b, zmax+b, 1, xpmin, xpmax);
+    pha->SetStats(0);
+    TGraph gxz(ndat, &zw[0], &xw[0]);
+    gxz.SetMarkerColor(lc.red());
+    TGraph gxzd(ndat, &zw[0], &xwd[0]);
+    gxzd.SetMarkerColor(lc.green());
+    TPadManipulator pad(1500, 1000);
+    pad.add(pha, "axis");
+    pad.add(&gxz, "P");
+    pad.add(&gxzd, "P");
+    pad.print("test_WireSelector.png");
+  }
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

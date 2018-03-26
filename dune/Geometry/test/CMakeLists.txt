@@ -34,6 +34,7 @@ cet_test(test_WireSelector SOURCES test_WireSelector.cxx
   LIBRARIES
     dune_ArtSupport
     dune_Geometry
+    dune_DuneCommon
     larcorealg_Geometry
     ${ROOT_GEOM}
 )
