@@ -298,7 +298,19 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
       xpmin = -400.0;
       xpmax = 400.0;
     }
-    TH2* pha = new TH2F("pha", "; z [cm]; x [cm]", 1, zmin-b, zmax+b, 1, xpmin, xpmax);
+    ostringstream ssttl;
+    ssttl << gname << " ";
+    if ( useView ) {
+      ssttl << "view=" << view;
+    } else {
+      ssttl << "wireAngle=" << std::setprecision(3) << std::fixed << wireAngle;
+    }
+    if ( minDrift > 0.0 ) {
+      ssttl << ", TPCs with drift > " << std::setprecision(0) << std::fixed << minDrift << " cm";
+    }
+    ssttl << "; z [cm]; x [cm]";
+    string sttl = ssttl.str();
+    TH2* pha = new TH2F("pha", sttl.c_str(), 1, zmin-b, zmax+b, 1, xpmin, xpmax);
     pha->SetStats(0);
     TGraph gxz(ndat, &zw[0], &xw[0]);
     gxz.SetMarkerColor(lc.red());
@@ -308,6 +320,7 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
     pad.add(pha, "axis");
     pad.add(&gxz, "P");
     pad.add(&gxzd, "P");
+    pad.addAxis();
     pad.print("test_WireSelector.png");
   }
 
