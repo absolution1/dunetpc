@@ -93,7 +93,7 @@ string toString(const WireSelector::WireInfo& dat, int w =9) {
        << ")";
   return sout.str();
 }
-int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned int  nShowWires) {
+int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned int nShow, int sigopt) {
   const string myname = "test_WireSelector: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
@@ -148,7 +148,8 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   cout << myname << "      gname: " << gname << endl;
   cout << myname << "  wireAngle: " << wireAngle << endl;
   cout << myname << "   minDrift: " << minDrift << endl;
-  cout << myname << " nShowWires: " << nShowWires << endl;
+  cout << myname << "      nShow: " << nShow << endl;
+  cout << myname << "     sigopt: " << sigopt << endl;
 
   cout << myname << line << endl;
   cout << myname << "Construct selector." << endl;
@@ -176,7 +177,11 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   cout << myname << "  Wire angle tol: " << ws.wireAngleTolerance() << endl;
   cout << myname << "       Drift min: " << ws.driftMin() << endl;
   cout << myname << "        # planes: " << ws.planeIDs().size() << endl;
+
+  cout << myname << line << endl;
+  cout << myname << "Geometry properties:" << endl;
   Index ncha = pgeo->Nchannels();
+  cout << myname << "        # channels: " << ncha << endl;
   const double piOver2 = 0.5*acos(-1.0);
   Index nwirSel = 0;
   for ( WireSelector::PlaneID pid : ws.planeIDs() ) {
@@ -203,7 +208,7 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
     if ( ! usePlane ) continue;
     nwirSel += nwir;
     for ( Index iwir=0; iwir<=nwir; ++iwir ) {
-      bool showWire = iwir < nShowWires;
+      bool showWire = iwir < nShow;
       bool endPlane = iwir == nwir;
       bool endBlock = endPlane;
       ostringstream wout;
@@ -260,8 +265,10 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   cout << myname << line << endl;
   cout << myname << "Check data" << endl;
   ws.fillData();
+  ws.fillDataMap();
   cout << myname << "  Expected wire count: " << nwirSel << endl;
   cout << myname << "  Reported wire count: " << ws.data().size() << endl;
+  cout << myname << "    Mapped wire count: " << ws.dataMap().size() << endl;
   Index iwir = 0;
   double xmin = 1000.0;
   double ymin = 1000.0;
@@ -274,7 +281,7 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   vector<float> xwd(ndat);
   vector<float> zw(ndat);
   for ( const WireSelector::WireInfo& dat : ws.data() ) {
-    if ( iwir < nShowWires ) cout << setw(6) << iwir << ": " << toString(dat) << endl;
+    if ( iwir < nShow ) cout << setw(6) << iwir << ": " << toString(dat) << endl;
     if ( dat.x1() < xmin ) xmin = dat.x1();
     if ( dat.y1() < ymin ) ymin = dat.y1();
     if ( dat.z1() < zmin ) zmin = dat.z1();
@@ -287,9 +294,68 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
     ++iwir;
   }
   assert( ws.data().size() == nwirSel );
+  assert( ws.dataMap().size() == nwirSel );
 
+  // Build discriminated adcdata as a vector of x-values for each channel.
+  cout << myname << line << endl;
+  cout << myname << "Build ADC data." << endl;
+  vector<vector<float>> adcdata(ncha);
+  if ( sigopt == 2 ) {
+    cout << myname << "  Strumming selected wires." << endl;
+    Index nwir = ws.data().size();
+    float dx = (xmax-xmin)/nwir;
+    float xval = xmin + 0.5*dx;
+    for ( Index iwir=0; iwir<nwir; ++iwir ) {
+      const WireSelector::WireInfo& dat = ws.data()[iwir];
+      adcdata[dat.channel].push_back(xval);
+      xval += dx;
+    }
+  } else if ( sigopt == 1 ) {
+    cout << myname << "  Strumming channels." << endl;
+    float dx = (xmax-xmin)/ncha;
+    float xval = xmin + 0.5*dx;
+    for ( Index icha=0; icha<ncha; ++icha ) {
+      adcdata[icha].push_back(xval);
+      xval += dx;
+    }
+  }
+
+  // Build a graph of z vs. x using adcdata.
+  cout << myname << line << endl;
+  cout << myname << "Build signal data." << endl;
+  vector<float> xsigs;
+  vector<float> zsigs;
+  for ( Index icha=0; icha<ncha; ++icha ) {
+    // Loop over the wires read out by this channel.
+    auto range = ws.dataMap().equal_range(icha);
+    for ( auto ient=range.first; ient!=range.second; ++ient ) {
+      const WireSelector::WireInfo* pdat = ient->second;
+      float zsig = pdat->z;
+      // Loop over the ticks hit for this channel.
+      for ( float xsig : adcdata[icha] ) {
+         // Create a space point for wire and tick.
+         xsigs.push_back(xsig);
+         zsigs.push_back(zsig);
+      }
+    }
+  }
+  Index nsig = xsigs.size();
+  TGraph gsigxz(nsig, &zsigs[0], &xsigs[0]);
+  TGraph gsigzx(nsig, &xsigs[0], &zsigs[0]);
+  cout << myname << "  # signals: " << nsig << endl;
+  Index nShowSig = nShow < nsig ? nShow : nsig;
+  for ( Index isig=0; isig<nShowSig; ++isig ) {
+    ostringstream sout;
+    sout.precision(3);
+    sout << myname << setw(10) << std::fixed << xsigs[isig] << "," << setw(9) << std::fixed << zsigs[isig];
+    cout << sout.str() << endl;
+  }
+    
   bool drawWires = true;
   LineColors lc;
+  double ticklen = 0.015;
+  Index wpadx = 1200;
+  Index wpady = 1000;
   if ( drawWires ) {
     double b = 20;
     double xpmin = xmin;
@@ -308,20 +374,36 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
     if ( minDrift > 0.0 ) {
       ssttl << ", TPCs with drift > " << std::setprecision(0) << std::fixed << minDrift << " cm";
     }
-    ssttl << "; z [cm]; x [cm]";
-    string sttl = ssttl.str();
-    TH2* pha = new TH2F("pha", sttl.c_str(), 1, zmin-b, zmax+b, 1, xpmin, xpmax);
-    pha->SetStats(0);
+    string sttlxz = ssttl.str() + "; z [cm]; x [cm]";
+    string sttlzx = ssttl.str() + "; x [cm]; z [cm]";
+    TH2* phaxz = new TH2F("phaxz", sttlxz.c_str(), 1, zmin-b, zmax+b, 1, xpmin, xpmax);
+    TH2* phazx = new TH2F("phazx", sttlzx.c_str(), 1, xpmin, xpmax, 1, zmin-b, zmax+b);
+    phaxz->SetStats(0);
+    phazx->SetStats(0);
     TGraph gxz(ndat, &zw[0], &xw[0]);
+    TGraph gzx(ndat, &xw[0], &zw[0]);
     gxz.SetMarkerColor(lc.red());
+    gzx.SetMarkerColor(lc.red());
     TGraph gxzd(ndat, &zw[0], &xwd[0]);
+    TGraph gzxd(ndat, &xwd[0], &zw[0]);
     gxzd.SetMarkerColor(lc.green());
-    TPadManipulator pad(1500, 1000);
-    pad.add(pha, "axis");
-    pad.add(&gxz, "P");
-    pad.add(&gxzd, "P");
-    pad.addAxis();
-    pad.print("test_WireSelector.png");
+    gzxd.SetMarkerColor(lc.green());
+    TPadManipulator padxz(wpadx, wpady);
+    padxz.add(phaxz);
+    padxz.add(&gxz, "P");
+    padxz.add(&gxzd, "P");
+    if ( sigopt ) padxz.add(&gsigxz, "P");
+    padxz.addAxis();
+    padxz.setTickLength(ticklen);
+    padxz.print("test_WireSelector_xz.png");
+    TPadManipulator padzx(wpadx, wpady);
+    padzx.add(phazx);
+    padzx.add(&gzx, "P");
+    padzx.add(&gzxd, "P");
+    if ( sigopt ) padzx.add(&gsigzx, "P");
+    padzx.addAxis();
+    padzx.setTickLength(ticklen);
+    padzx.print("test_WireSelector_zx.png");
   }
 
   cout << myname << line << endl;
@@ -335,11 +417,21 @@ int main(int argc, const char* argv[]) {
   string gname = "protodune_geo";
   double thtx = 102;
   double minDrift = 0.0;
-  unsigned int nShowWires = 0;
+  unsigned int nShow = 0;
+  int sigopt = 0;
   if ( argc > 1 ) {
     string sarg = argv[1];
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [gname] [thtx] [minDrift] [nShowWires]" << endl;
+      cout << "Usage: " << argv[0] << " [gname] [thtx] [minDrift] [nShow] [sigopt]" << endl;
+      cout << "  gname: Geometry name, e.g. protodune_geo" << endl;
+      cout << "  thtx: Wire angle, e.g. 0 for vertical" << endl;
+      cout << "        >= 100 means use view thtx-100, e.g. 2 for kZ" << endl;
+      cout << "  minDrift: select TPC with drift > midDrift cm" << endl;
+      cout << "  nShow: # wires, signals to print" << endl;
+      cout << "  sigopt: Option to add signals to the displays" << endl;
+      cout << "          0 for no signal" << endl;
+      cout << "          1 for strum of detector channels" << endl;
+      cout << "          2 for strum of selected wires" << endl;
       return 0;
     }
     gname = sarg;
@@ -351,12 +443,16 @@ int main(int argc, const char* argv[]) {
         ssarg >> minDrift;
         if ( argc > 4 ) {
           istringstream ssarg(argv[4]);
-          ssarg >> nShowWires;
+          ssarg >> nShow;
+          if ( argc > 5 ) {
+            istringstream ssarg(argv[5]);
+            ssarg >> sigopt;
+          }
         }
       }
     }
   }
-  test_WireSelector(gname, thtx, minDrift, nShowWires);
+  test_WireSelector(gname, thtx, minDrift, nShow, sigopt);
   cout << "Tests concluded." << endl;
   ArtServiceHelper::close();
   return 0;

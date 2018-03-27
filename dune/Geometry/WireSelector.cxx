@@ -131,6 +131,16 @@ const WireSelector::WireInfoVector& WireSelector::fillData() {
 
 //**********************************************************************
 
+const WireSelector::WireInfoMap& WireSelector::fillDataMap() {
+  if ( haveData() && m_datamap.size() == m_data.size() ) return m_datamap;
+  for ( const WireInfo& dat : fillData() ) {
+    m_datamap.emplace(dat.channel, &dat);
+  }
+  return m_datamap;
+}
+
+//**********************************************************************
+
 void WireSelector::clearData() {
   m_data.clear();
   m_haveData = false;

@@ -15,6 +15,7 @@
 
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include <vector>
+#include <map>
 
 namespace geo {
 class GeometryCore;
@@ -57,6 +58,7 @@ public:
   };
 
   using WireInfoVector = std::vector<WireInfo>;
+  using WireInfoMap = std::multimap<Index, const WireInfo*>;
 
   // Ctor from a cryostat.
   explicit WireSelector(Index icry =0);
@@ -86,6 +88,7 @@ public:
   // Return the wire data.
   bool haveData() const { return m_haveData; };
   const WireInfoVector& data() const { return m_data; }
+  const WireInfoMap& dataMap() const { return m_datamap; }
 
   // Non-const methods.
 
@@ -117,6 +120,9 @@ public:
   // Returns the wire data after building it if it is not already present.
   const WireInfoVector& fillData();
 
+  // Returns the channel-mapped wire data after building it if it is not already present.
+  const WireInfoMap& fillDataMap();
+
   // Clear the wire data.
   void clearData();
 
@@ -132,6 +138,7 @@ private:
   PlaneIDVector m_pids;
   bool m_haveData =false;
   WireInfoVector m_data;
+  WireInfoMap m_datamap;
 
 };
 
