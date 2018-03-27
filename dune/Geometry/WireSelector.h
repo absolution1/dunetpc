@@ -33,14 +33,14 @@ public:
   using PlaneIDVector = std::vector<PlaneID>;
   
   // Class that describes a wire and its associated drift volume.
-  // x is the position of the wire in the drift direction, i.e. perpendicular to the plane
+  // x is the coordinate in the drift direction, i.e. perpendicular to the plane
   // y is the global coordinate along the wire
   // z is the global coordinate the wire number measures, i.e. perpendicular to the wire in the wire plane.
   struct WireInfo {
     float x;
     float y;
     float z;
-    float driftMax;  // < 0 if TPC volume is x < w_wire
+    float driftMax;  // < 0 if TPC volume has x < x_wire
     float length;
     float pitch;
     Index channel;    // Channel that reads out this wire.
@@ -55,6 +55,35 @@ public:
     float y2() const { return y + 0.5*length; }
     float z1() const { return z - 0.5*pitch; }
     float z2() const { return z + 0.5*pitch; }
+  };
+
+  // Class that describes the full set of wires for this selection.
+  // It includes the x and z coordinates of all wires and the corresponding
+  // x coordinate on the cathode plane.
+  // It also has the (x,y,z) limits.
+  class WireSummary {
+  public:
+    float xmin =0.0;
+    float ymin =0.0;
+    float zmin =0.0;
+    float xmax =0.0;
+    float ymax =0.0;
+    float zmax =0.0;
+    std::vector<float> xWire;
+    std::vector<float> xCathode;
+    std::vector<float> zWire;
+    Index size() const { return xWire.size(); }
+    void clear() {
+      xmin =0.0;
+      ymin =0.0;
+      zmin =0.0;
+      xmax =0.0;
+      ymax =0.0;
+      zmax =0.0;
+      xWire.clear();
+      xCathode.clear();
+      zWire.clear();
+    }
   };
 
   using WireInfoVector = std::vector<WireInfo>;
@@ -89,6 +118,7 @@ public:
   bool haveData() const { return m_haveData; };
   const WireInfoVector& data() const { return m_data; }
   const WireInfoMap& dataMap() const { return m_datamap; }
+  const WireSummary& wireSummary() const { return m_wireSummary; }
 
   // Non-const methods.
 
@@ -123,6 +153,9 @@ public:
   // Returns the channel-mapped wire data after building it if it is not already present.
   const WireInfoMap& fillDataMap();
 
+  // Returns the wire summary data after building if needed.
+  const WireSummary& fillWireSummary();
+
   // Clear the wire data.
   void clearData();
 
@@ -139,6 +172,7 @@ private:
   bool m_haveData =false;
   WireInfoVector m_data;
   WireInfoMap m_datamap;
+  WireSummary m_wireSummary;
 
 };
 

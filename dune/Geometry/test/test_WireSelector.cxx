@@ -269,32 +269,10 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   cout << myname << "  Expected wire count: " << nwirSel << endl;
   cout << myname << "  Reported wire count: " << ws.data().size() << endl;
   cout << myname << "    Mapped wire count: " << ws.dataMap().size() << endl;
-  Index iwir = 0;
-  double xmin = 1000.0;
-  double ymin = 1000.0;
-  double zmin = 1000.0;
-  double xmax = -1000.0;
-  double ymax = -1000.0;
-  double zmax = -1000.0;
-  Index ndat = ws.data().size();
-  vector<float> xw(ndat);
-  vector<float> xwd(ndat);
-  vector<float> zw(ndat);
-  for ( const WireSelector::WireInfo& dat : ws.data() ) {
-    if ( iwir < nShow ) cout << setw(6) << iwir << ": " << toString(dat) << endl;
-    if ( dat.x1() < xmin ) xmin = dat.x1();
-    if ( dat.y1() < ymin ) ymin = dat.y1();
-    if ( dat.z1() < zmin ) zmin = dat.z1();
-    if ( dat.x2() > xmax ) xmax = dat.x2();
-    if ( dat.y2() > ymax ) ymax = dat.y2();
-    if ( dat.z2() > zmax ) zmax = dat.z2();
-    xw[iwir] = dat.x;
-    xwd[iwir] = dat.x + dat.driftMax;
-    zw[iwir] = dat.z;
-    ++iwir;
-  }
+  const WireSelector::WireSummary& wsum = ws.fillWireSummary();
   assert( ws.data().size() == nwirSel );
   assert( ws.dataMap().size() == nwirSel );
+  assert( wsum.size() == nwirSel );
 
   // Build discriminated adcdata as a vector of x-values for each channel.
   cout << myname << line << endl;
@@ -303,8 +281,8 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   if ( sigopt == 2 ) {
     cout << myname << "  Strumming selected wires." << endl;
     Index nwir = ws.data().size();
-    float dx = (xmax-xmin)/nwir;
-    float xval = xmin + 0.5*dx;
+    float dx = (wsum.xmax-wsum.xmin)/nwir;
+    float xval = wsum.xmin + 0.5*dx;
     for ( Index iwir=0; iwir<nwir; ++iwir ) {
       const WireSelector::WireInfo& dat = ws.data()[iwir];
       adcdata[dat.channel].push_back(xval);
@@ -312,8 +290,8 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
     }
   } else if ( sigopt == 1 ) {
     cout << myname << "  Strumming channels." << endl;
-    float dx = (xmax-xmin)/ncha;
-    float xval = xmin + 0.5*dx;
+    float dx = (wsum.xmax-wsum.xmin)/ncha;
+    float xval = wsum.xmin + 0.5*dx;
     for ( Index icha=0; icha<ncha; ++icha ) {
       adcdata[icha].push_back(xval);
       xval += dx;
@@ -358,8 +336,8 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   Index wpady = 1000;
   if ( drawWires ) {
     double b = 20;
-    double xpmin = xmin;
-    double xpmax = xmin;
+    double xpmin = wsum.xmin;
+    double xpmax = wsum.xmin;
     if ( gname == "protodune_geo" ) {
       xpmin = -400.0;
       xpmax = 400.0;
@@ -376,16 +354,16 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
     }
     string sttlxz = ssttl.str() + "; z [cm]; x [cm]";
     string sttlzx = ssttl.str() + "; x [cm]; z [cm]";
-    TH2* phaxz = new TH2F("phaxz", sttlxz.c_str(), 1, zmin-b, zmax+b, 1, xpmin, xpmax);
-    TH2* phazx = new TH2F("phazx", sttlzx.c_str(), 1, xpmin, xpmax, 1, zmin-b, zmax+b);
+    TH2* phaxz = new TH2F("phaxz", sttlxz.c_str(), 1, wsum.zmin-b, wsum.zmax+b, 1, xpmin, xpmax);
+    TH2* phazx = new TH2F("phazx", sttlzx.c_str(), 1, xpmin, xpmax, 1, wsum.zmin-b, wsum.zmax+b);
     phaxz->SetStats(0);
     phazx->SetStats(0);
-    TGraph gxz(ndat, &zw[0], &xw[0]);
-    TGraph gzx(ndat, &xw[0], &zw[0]);
+    TGraph gxz(wsum.size(), &wsum.zWire[0], &wsum.xWire[0]);
+    TGraph gzx(wsum.size(), &wsum.xWire[0], &wsum.zWire[0]);
     gxz.SetMarkerColor(lc.red());
     gzx.SetMarkerColor(lc.red());
-    TGraph gxzd(ndat, &zw[0], &xwd[0]);
-    TGraph gzxd(ndat, &xwd[0], &zw[0]);
+    TGraph gxzd(wsum.size(), &wsum.zWire[0], &wsum.xCathode[0]);
+    TGraph gzxd(wsum.size(), &wsum.xCathode[0], &wsum.zWire[0]);
     gxzd.SetMarkerColor(lc.green());
     gzxd.SetMarkerColor(lc.green());
     TPadManipulator padxz(wpadx, wpady);

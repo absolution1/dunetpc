@@ -141,8 +141,40 @@ const WireSelector::WireInfoMap& WireSelector::fillDataMap() {
 
 //**********************************************************************
 
+const WireSelector::WireSummary& WireSelector::fillWireSummary() {
+  if ( haveData() && m_wireSummary.size() == m_data.size() ) return m_wireSummary;
+  WireSummary& ws = m_wireSummary;
+  Index nwir = data().size();
+  ws.xmin = 1000.0;
+  ws.ymin = 1000.0;
+  ws.zmin = 1000.0;
+  ws.xmax = -1000.0;
+  ws.ymax = -1000.0;
+  ws.zmax = -1000.0;
+  ws.xWire.resize(nwir);
+  ws.xCathode.resize(nwir);
+  ws.zWire.resize(nwir);
+  for ( Index iwir=0; iwir<nwir; ++iwir ) {
+    const WireInfo& dat = data()[iwir];
+    if ( dat.x1() < ws.xmin ) ws.xmin = dat.x1();
+    if ( dat.y1() < ws.ymin ) ws.ymin = dat.y1();
+    if ( dat.z1() < ws.zmin ) ws.zmin = dat.z1();
+    if ( dat.x2() > ws.xmax ) ws.xmax = dat.x2();
+    if ( dat.y2() > ws.ymax ) ws.ymax = dat.y2();
+    if ( dat.z2() > ws.zmax ) ws.zmax = dat.z2();
+    ws.xWire[iwir] = dat.x;
+    ws.xCathode[iwir] = dat.x + dat.driftMax;
+    ws.zWire[iwir] = dat.z;
+  }
+  return ws;
+}
+
+//**********************************************************************
+
 void WireSelector::clearData() {
   m_data.clear();
+  m_datamap.clear();
+  m_wireSummary.clear();
   m_haveData = false;
 }
 
