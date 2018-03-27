@@ -33,6 +33,8 @@ public:
   using PlaneIDVector = std::vector<PlaneID>;
   
   // Class that describes a wire and its associated drift volume.
+  // The coordinate system is a rotation (no translation or inversion) of the
+  // global coordinate system such that
   // x is the coordinate in the drift direction, i.e. perpendicular to the plane
   // y is the global coordinate along the wire
   // z is the global coordinate the wire number measures, i.e. perpendicular to the wire in the wire plane.
