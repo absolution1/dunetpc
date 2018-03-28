@@ -326,9 +326,10 @@ void dune::SSPRawDecoder::beginEvent(art::EventNumber_t /*eventNumber*/)
 
 void dune::SSPRawDecoder::endEvent(art::EventNumber_t eventNumber)
 {
+  // don't write these to the art rootfile -- they're in the TFileService output
   //write the ADC histogram for the given event
-  if(n_adc_counter_)
-    adc_values_->Write(Form("adc_values:event_%d", eventNumber));
+  //if(n_adc_counter_)
+  //  adc_values_->Write(Form("adc_values:event_%d", eventNumber));
 
 }
  
