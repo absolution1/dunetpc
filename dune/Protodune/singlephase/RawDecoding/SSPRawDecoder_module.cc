@@ -589,7 +589,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
 	  startTime = time;
 	
 	packets_frequency_->Fill(time - startTime, n_packets);
-	std::cout << "Time [s]: " << time - startTime << std::endl;
+	//std::cout << "Time [s]: " << time - startTime << std::endl;
 
 	// pedestal, area and peak
 	double pedestal = trig_prerise / ((double)i1);
@@ -723,7 +723,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
 	hist->Delete();
 
 	++packetsProcessed;
-	std::cout<<std::endl<<"Packets processed: "<<packetsProcessed<<std::endl<<std::endl;
+	//std::cout<<std::endl<<"Packets processed: "<<packetsProcessed<<std::endl<<std::endl;
       }//packets
 
       packets_per_fragment[frag.fragmentID()] = packetsProcessed;
