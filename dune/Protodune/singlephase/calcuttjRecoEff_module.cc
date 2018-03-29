@@ -536,7 +536,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
  
   art::FindManyP< recob::Hit > hitsFromTracks(trkHandle, evt, fTrackModuleLabel);
   art::FindManyP< recob::SpacePoint > spFromHits(hitListHandle, evt, fTempTrackModuleLabel);
-  art::FindMany< anab::T0 > t0sFromTracks(trkHandle, evt, fTempTrackModuleLabel ); 
+//  art::FindMany< anab::T0 > t0sFromTracks(trkHandle, evt, fTempTrackModuleLabel ); 
 
 
   //Make map from G4Track (IDE) ID to track index
@@ -634,7 +634,8 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
     fTrkEnergy = totE_anyMC;
 
     //T0 stuff
-    std::vector<const anab::T0*> T0s = t0sFromTracks.at(t);       
+//    std::vector<const anab::T0*> T0s = t0sFromTracks.at(t);       
+    std::vector<const anab::T0*> T0s;    
     nT0s = T0s.size();
     std::cout << "Got " << nT0s << " T0s" <<std::endl;
 
