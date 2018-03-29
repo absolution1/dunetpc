@@ -58,7 +58,7 @@ namespace RecoTrack {
     explicit RecoTrack(fhicl::ParameterSet const& parameterSet);
 
     virtual void beginJob();
-    virtual void reconfigure(fhicl::ParameterSet const& parameterSet) override;
+    virtual void reconfigure(fhicl::ParameterSet const& parameterSet) ;
     virtual void analyze (const art::Event& event) override;
 
   private:

@@ -26,6 +26,28 @@ felix_raw_decoder:
   ExpectContainerFragments: false
 }
 
+# configuration for combined TPC Raw Decoder module
+
+pdsp_tpc_raw_decoder:
+{
+  module_type: "PDSPTPCRawDecoder"
+  OutputDataLabel: "daq"
+
+  RCERawDataLabel: "daq"
+  ExpectRCEContainerFragments: true
+  DropRCEDamagedData: true
+  RCERawDataContainerInstance: "ContainerTPC"
+  RCERawDataNonContainerInstance: "TPC"
+  RCEFragmentType: 2
+
+  FELIXRawDataLabel: "daq"
+  ExpectFELIXContainerFragments: false
+  DropFELIXDamagedData: true
+  FELIXRawDataContainerInstance: "ContainerFELIX"
+  FELIXRawDataNonContainerInstance: "FELIX"
+  FELIXFragmentType: 2    # not used in code
+}
+
 ssp_raw_decoder:
 {
 
@@ -35,8 +57,8 @@ ssp_raw_decoder:
   UseChannelMap: "true"
   Debug: "false"
   MakeTree: "false"
-  verbose_metadata: true
-  verbose_adcs: 2048
+  verbose_metadata: false
+  verbose_adcs: 0
   ExpectContainerFragments: true
 
   number_of_fragments: 4

@@ -1,3 +1,4 @@
+#MESSAGE( STATUS "Boost_SYSTEM_LIBRARY:         " ${Boost_SYSTEM_LIBRARY} )
 
 art_make( BASENAME_ONLY
 	  EXCLUDE CheckGeometry_module.cc CheckDPhaseGeometry_module.cc
@@ -6,8 +7,12 @@ art_make( BASENAME_ONLY
                         ${MF_MESSAGELOGGER}
                         cetlib cetlib_except
                         ${FHICLCPP}
+                        art_Framework_Services_Registry
+                        art_Utilities
+                        canvas
                         ${ROOT_BASIC_LIB_LIST}
                         ${ROOT_GEOM}
+                        ${Boost_SYSTEM_LIBRARY}
 	  SERVICE_LIBRARIES larcorealg_Geometry
 	  		dune_Geometry
 			${MF_UTILITIES}
