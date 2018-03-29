@@ -45,6 +45,8 @@ physics:
   producers:
   {
     tpcrawdecoder: @local::pdsp_tpc_raw_decoder
+    timingrawdecoder: @local::timing_raw_decoder
+    ssprawdecoder: @local::ssp_raw_decoder
   }
 
   analyzers:
@@ -59,7 +61,7 @@ physics:
     }
   }
 
-  produce: [ tpcrawdecoder ]
+  produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
   analysis: [ rawdraw ] //Directory for histograms
   trigger_paths : [ produce ]
   end_paths: [ analysis ]
