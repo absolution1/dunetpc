@@ -7,7 +7,7 @@ services:
 {
   #message:              @local::dune_message_services_prod_debug
 
-#  TimeTracker:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
 #  FileCatalogMetadata:  @local::art_file_catalog_mc
   ExptGeoHelperInterface:       @local::dune_geometry_helper

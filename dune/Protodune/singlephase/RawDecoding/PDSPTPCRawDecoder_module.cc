@@ -217,7 +217,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       raw::RawDigit::ADCvector_t v_adc;
       for (int i_ch = 0; i_ch < n_ch; i_ch++)
 	{
-	  if(i==0 && i_ch ==0) std::cout<<" ADCs for the the 100 ticks in the 1st channel of the 1st RCE "<<std::endl;
+	  //if(i==0 && i_ch ==0) std::cout<<" ADCs for the the 100 ticks in the 1st channel of the 1st RCE "<<std::endl;
 	  v_adc.clear();
 	  for (int i_tick = 0; i_tick < n_ticks; i_tick++)
 	    {

@@ -57,8 +57,8 @@ ssp_raw_decoder:
   UseChannelMap: "true"
   Debug: "false"
   MakeTree: "false"
-  verbose_metadata: true
-  verbose_adcs: 2048
+  verbose_metadata: false
+  verbose_adcs: 0
   ExpectContainerFragments: true
 
   number_of_fragments: 4
