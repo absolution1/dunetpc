@@ -85,7 +85,7 @@ namespace tpc_monitor{
     unsigned int fRun;
     unsigned int fSubRun;
 
-    int NumberOfRCEs;
+    //int NumberOfRCEs; // unused
 
     // TPC
     unsigned int fNUCh;
