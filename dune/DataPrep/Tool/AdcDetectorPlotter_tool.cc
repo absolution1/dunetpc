@@ -150,18 +150,42 @@ int AdcDetectorPlotter::view(const AdcChannelDataMap& acds, string label, string
   }
   const AdcChannelData& acdFirst = acds.begin()->second;
   const AdcChannelData& acdLast = acds.rbegin()->second;
-  if ( state.jobCount == 0 ||
-       acdFirst.run != state.run || acdFirst.subRun != state.subrun || acdFirst.event != state.event ) {
-     initializeState(state, acdFirst);
-  }
-  ++state.jobCount;
-  ++state.reportCount;
-  bool isPrep = m_DataType == 0;
   bool isRaw = m_DataType == 1;
+  bool isPrep = m_DataType == 0;
   if ( !isRaw && !isPrep ) {
     cout << myname << "ERROR: Invalid data type: " << m_DataType << endl;
     return 2;
   }
+  string hname = "hdet";
+  if ( state.jobCount == 0 ||
+       acdFirst.run != state.run || acdFirst.subRun != state.subrun || acdFirst.event != state.event ) {
+    initializeState(state, acdFirst);
+    string htitl = m_Title;
+    state.ofname = m_FileName;
+    vector<string*> strs = {&htitl, &state.ofname};
+    for ( string* pstr : strs ) {
+      string& str = *pstr;
+      StringManipulator sman(str);
+      sman.replace("%PAT%", fpat);
+      if ( acdFirst.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acdFirst.run);
+      else sman.replace("%RUN%", "RunNotFound");
+      if ( acdFirst.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acdFirst.subRun);
+      else sman.replace("%SUBRUN%", "SubRunNotFound");
+      if ( acdFirst.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acdFirst.event);
+      else sman.replace("%EVENT%", "EventNotFound");
+    }
+    //string szunits =  isRaw ? "(ADC counts)" : acdFirst.sampleUnit;
+    //htitl += "; Tick; Channel; Signal [" + szunits + "/Tick/Channel]";
+    htitl += "; Tick; Channel";
+    // Create histogram.
+    TH2* ph = new TH2F(hname.c_str(), htitl.c_str(), 10, m_ZMin, m_ZMax, 10, m_XMin, m_XMax);
+    ph->SetDirectory(nullptr);
+    ph->SetStats(0);
+    state.ppad->add(ph);
+    delete ph;
+  }
+  ++state.jobCount;
+  ++state.reportCount;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( iacd.first == AdcChannelData::badChannel ) {
@@ -200,6 +224,7 @@ int AdcDetectorPlotter::view(const AdcChannelDataMap& acds, string label, string
     }
   }
 */
+  state.ppad->print(state.ofname);
   return 0;
 }
 

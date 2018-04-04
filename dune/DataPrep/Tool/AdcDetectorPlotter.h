@@ -66,6 +66,7 @@ public:
     Index event =0;
     WireSelector sel;
     TPadManipulatorPtr ppad;
+    std::string ofname;
   };
 
   using StatePtr = std::shared_ptr<State>;
