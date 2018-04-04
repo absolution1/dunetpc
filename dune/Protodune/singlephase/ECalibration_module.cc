@@ -126,7 +126,7 @@ private:
 	
 	std::vector<int> fPdg;
 	int fSimPdg;
-	int fSimTrackID;
+	//int fSimTrackID; // unused
 	int fFlip;
 	int fBestview;
 
