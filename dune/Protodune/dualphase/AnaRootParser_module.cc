@@ -72,6 +72,12 @@
 #include "TTree.h"
 #include "TTimeStamp.h"
 
+// FIXME: This pragma hides a bug in the code!!
+#if defined __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 constexpr int kNplanes       = 2;     //number of wire planes
 constexpr int kMaxHits       = 40000; //maximum number of hits;
 constexpr int kMaxTrackHits  = 2000;  //maximum number of hits on a track
@@ -4787,7 +4793,7 @@ if (fSaveTrackInfo) {
         }
 
         //	  for (size_t ical = 0; ical<calos.size(); ++ical){
-        for (size_t ical = calos.size() - 1; ical>=0 && ical <= 1 ; --ical){  //reverse order so that we access info on plane 0 (which is view 0 in real life) first
+        for (size_t ical = calos.size() - 1; ical <= 1 ; --ical){  //reverse order so that we access info on plane 0 (which is view 0 in real life) first
           if (!calos[ical]) continue;
           if (!calos[ical]->PlaneID().isValid) continue;
           int planenum = calos[ical]->PlaneID().Plane;
@@ -5836,6 +5842,9 @@ if (fSaveTrackInfo) {
     }
 
 
+#if defined __clang__
+  #pragma clang diagnostic pop
+#endif
 
     namespace dune{
 
