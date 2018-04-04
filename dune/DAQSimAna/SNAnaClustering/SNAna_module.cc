@@ -32,8 +32,8 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 const int nMaxHits    = 500000;
-const int nMaxSimIDEs = 1000000;
-const int nMaxDigs = 4492;
+//const int nMaxSimIDEs = 1000000; // unused
+//const int nMaxDigs = 4492; // unused
 
 enum PType{ kUnknown, kMarl, kAPA, kCPA, kAr39, kNeut, kKryp, kPlon, kRdon , kAr42};
 
@@ -50,8 +50,8 @@ public:
 
   void analyze(art::Event const & evt) override;
   void reconfigure(fhicl::ParameterSet const & p);
-  void beginJob();
-  void endJob();
+  void beginJob() override;
+  void endJob() override;
 
 private:
 

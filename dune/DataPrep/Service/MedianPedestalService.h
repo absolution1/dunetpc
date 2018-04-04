@@ -48,8 +48,8 @@ private:
   bool m_SkipSignals;
 
   // Services.
-  const geo::Geometry* m_pGeometry;
-  const lbne::ChannelMapService* m_pChannelMap;
+  //const geo::Geometry* m_pGeometry;	// unused
+  //const lbne::ChannelMapService* m_pChannelMap; // unused
 
   // List of channels for each orientation and group.
   std::vector<std::vector<AdcChannelVector>> m_GroupChannels;

@@ -3,7 +3,7 @@
 //Mar. 2015: Added functionality for photon detectors, M Wallbank (wallbank@fnal.gov)
 
 #ifndef RawEVD35tTree_module
-#define RawEVD35t_module
+#define RawEVD35tTree_module
 
 // LArSoft includes
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"

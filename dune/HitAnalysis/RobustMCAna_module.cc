@@ -600,7 +600,9 @@ bool hit::RobustMCAna::ValidTrigger(std::vector<unsigned int> evtTriggers, unsig
   for (size_t i_c = 0; i_c < evtTriggers.size(); i_c++)
     {
       unsigned int trigID = evtTriggers[i_c];
-      if (trigID >= 0 && trigID <= 5) contains_SL++;
+      // for c2: trigID is an unsigned int and always >= 0
+      //if (trigID >= 0 && trigID <= 5) contains_SL++;
+      if (trigID <= 5) contains_SL++;
       if (trigID >= 6 && trigID <= 15) contains_EL++;
       if (trigID >= 16 && trigID <= 21) contains_NL++;
       if (trigID >= 22 && trigID <= 27) contains_NU++;
