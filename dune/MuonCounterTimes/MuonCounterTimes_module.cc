@@ -44,8 +44,8 @@
 //PTB online to offline converter alg
 
 
-const int kMaxHits       = 10000; //maximum number of hits
-const int kMaxAuxDets = 100;
+//const int kMaxHits       = 10000; //maximum number of hits // unused
+//const int kMaxAuxDets = 100; // unused
 //const unsigned short kMaxTkIDs = 100;
 namespace MyMuoncountertimes {
 
@@ -77,12 +77,12 @@ private:
 
   void ResetVars();
   
-  int total_Hits;
+  //int total_Hits; // unused
   int run;
   int subrun;
   int event;
   int event_Count = 0;
-  double event_Length = 10e-3;
+  //double event_Length = 10e-3; // unused
 
   std::vector<TH1D*> fHist_Vec;
 
