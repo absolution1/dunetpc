@@ -113,16 +113,8 @@ namespace tpc_monitor{
     float fBinWidth;
 
     // Mean/RMS by offline channel
-    std::vector<TH2F*> fChanRMSU;
-    std::vector<TH2F*> fChanMeanU;
     std::vector<TH2F*> fChanFFTU;
-
-    std::vector<TH2F*> fChanRMSV;
-    std::vector<TH2F*> fChanMeanV;
     std::vector<TH2F*> fChanFFTV;
-
-    std::vector<TH2F*> fChanRMSZ;
-    std::vector<TH2F*> fChanMeanZ;
     std::vector<TH2F*> fChanFFTZ;
     	
     // profiled Mean/RMS by offline channel
@@ -133,17 +125,14 @@ namespace tpc_monitor{
     std::vector<TProfile*> fChanRMSZ_pfx;
     std::vector<TProfile*> fChanMeanZ_pfx;
     	
-    // Mean/RMS by slot number
-    std::vector<TH2F*> fSlotChanMean;
-    std::vector<TH2F*> fSlotChanRMS;	
+    // profiled over events Mean/RMS by slot number
     std::vector<TProfile*> fSlotChanMean_pfx;
     std::vector<TProfile*> fSlotChanRMS_pfx;	
     
     // FFT by slot number
-    std::vector<TH2F*> fSlotChanFFT;
+    //std::vector<TH2F*> fSlotChanFFT;
     
     // Persistent and overlay wavefroms by fiber
-    //std::vector<TH2I*> fPersistentWav_by_Fiber;
     std::vector<TH2F*> fPersistentFFT_by_Fiber;
     
     // Profiled fft by fiber
@@ -255,38 +244,26 @@ namespace tpc_monitor{
       std::cout<<"ZCh:"<<ZChMin<<" - "<<ZChMax<<std::endl;
       
       // U view
-      fChanRMSU.push_back(tfs->make<TH2F>(Form("fChanRMSU%d", i),Form("raw-ped RMS vs Channel(Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin, UChMax, 625,0,5000));      
-      fChanRMSU_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSU%d_pfx", i),Form("Profiled raw-ped RMS vs Channel(Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin, UChMax)); 
-      fChanMeanU.push_back(tfs->make<TH2F>(Form("fChanMeanU%d",i),Form("raw-ped MEAN vs Channel(Plane U, APA%d)",i),  UChMax - UChMin + 1, UChMin, UChMax, 625,0,5000));  
-      fChanMeanU_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanU%d_pfx",i),Form("Profiled raw-ped MEAN vs Channel(Plane U, APA%d)",i),  UChMax - UChMin + 1, UChMin, UChMax)); 
+      fChanRMSU_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSU%d_pfx", i),Form("Profiled raw-ped RMS vs Channel(Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin, UChMax, "s")); 
+      fChanMeanU_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanU%d_pfx",i),Form("Profiled raw-ped MEAN vs Channel(Plane U, APA%d)",i),  UChMax - UChMin + 1, UChMin, UChMax, "s")); 
       fChanFFTU.push_back(tfs->make<TH2F>(Form("fChanFFTU%d", i),Form("fChanFFT (Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin, UChMax, fNticks/2,0,fNticks/2*fBinWidth));
       
       // V view
-      fChanRMSV.push_back(tfs->make<TH2F>(Form("fChanRMSV%d",i),Form("raw-ped RMS vs Channel(Plane V, APA%d)",i), VChMax - VChMin + 1, VChMin, VChMax, 625,0,5000));
-      fChanRMSV_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSV%d_pfx",i),Form("Profiled raw-ped RMS vs Channel(Plane V, APA%d)",i),  VChMax - VChMin + 1, VChMin, VChMax)); 
-      fChanMeanV.push_back(tfs->make<TH2F>(Form("fChanMeanV%d",i),Form("raw-ped Mean vs Channel(Plane V, APA%d)",i),  VChMax - VChMin + 1, VChMin, VChMax, 625,0,5000));
-      fChanMeanV_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanV%d_pfx",i),Form("Profiled raw-ped Mean vs Channel(Plane V, APA%d)",i),  VChMax - VChMin + 1, VChMin, VChMax));   
+      fChanRMSV_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSV%d_pfx",i),Form("Profiled raw-ped RMS vs Channel(Plane V, APA%d)",i),  VChMax - VChMin + 1, VChMin, VChMax, "s")); 
+      fChanMeanV_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanV%d_pfx",i),Form("Profiled raw-ped Mean vs Channel(Plane V, APA%d)",i),  VChMax - VChMin + 1, VChMin, VChMax, "s"));   
       fChanFFTV.push_back(tfs->make<TH2F>(Form("fChanFFTV%d", i),Form("fChanFFT (Plane V, APA%d)", i),  VChMax - VChMin + 1, VChMin, VChMax, fNticks/2,0,fNticks/2*fBinWidth));
       
       // Z view                                                                                                                                                           
-      fChanRMSZ.push_back(tfs->make<TH2F>(Form("fChanRMSZ%d",i),Form("raw-ped RMS vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin, ZChMax, 625,0,5000));
-      fChanRMSZ_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSZ%d_pfx",i),Form("Profiled raw-ped RMS vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin, ZChMax)); 
-      fChanMeanZ.push_back(tfs->make<TH2F>(Form("fChanMeanZ%d",i),Form("raw-ped Mean vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin, ZChMax, 625,0,5000));
-      fChanMeanZ_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanZ%d_pfx",i),Form("Profiled raw-ped Mean vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin, ZChMax)); 
+      fChanRMSZ_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSZ%d_pfx",i),Form("Profiled raw-ped RMS vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin, ZChMax, "s")); 
+      fChanMeanZ_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanZ%d_pfx",i),Form("Profiled raw-ped Mean vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin, ZChMax, "s")); 
       fChanFFTZ.push_back(tfs->make<TH2F>(Form("fChanFFTZ%d", i),Form("fChanFFT (Plane Z, APA%d)", i),  ZChMax - ZChMin + 1, ZChMin, ZChMax, fNticks/2,0,fNticks/2*fBinWidth));
       
       // Set titles
-      fChanRMSU[i]->GetXaxis()->SetTitle("Chan"); fChanRMSU[i]->GetYaxis()->SetTitle("raw RMS"); 
       fChanRMSU_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSU_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
-      fChanMeanU[i]->GetXaxis()->SetTitle("Chan"); fChanMeanU[i]->GetYaxis()->SetTitle("raw Mean");
       fChanMeanU_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanU_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
-      fChanRMSV[i]->GetXaxis()->SetTitle("Chan"); fChanRMSV[i]->GetYaxis()->SetTitle("raw RMS"); 
       fChanRMSV_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSV_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
-      fChanMeanV[i]->GetXaxis()->SetTitle("Chan"); fChanMeanV[i]->GetYaxis()->SetTitle("raw Mean");
       fChanMeanV_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanV_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
-      fChanRMSZ[i]->GetXaxis()->SetTitle("Chan"); fChanRMSZ[i]->GetYaxis()->SetTitle("raw RMS"); 
       fChanRMSZ_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSZ_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
-      fChanMeanZ[i]->GetXaxis()->SetTitle("Chan"); fChanMeanZ[i]->GetYaxis()->SetTitle("raw Mean"); 
       fChanMeanZ_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanZ_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
       fChanFFTU[i]->GetXaxis()->SetTitle("Chan"); fChanFFTU[i]->GetYaxis()->SetTitle("kHz"); 
       fChanFFTV[i]->GetXaxis()->SetTitle("Chan"); fChanFFTV[i]->GetYaxis()->SetTitle("kHz"); 
@@ -294,11 +271,6 @@ namespace tpc_monitor{
       
       //  Rebin histograms
       //std::cout<<"RebinX = "<<fRebinX<<"  RebinY = "<<fRebinY<<std::endl;
-      fChanRMSU[i]->Rebin2D(fRebinX, fRebinY);
-      fChanMeanU[i]->Rebin2D(fRebinX, fRebinY);
-      fChanRMSV[i]->Rebin2D(fRebinX, fRebinY);
-      fChanRMSZ[i]->Rebin2D(fRebinX, fRebinY);
-      fChanMeanZ[i]->Rebin2D(fRebinX, fRebinY);
       fChanFFTU[i]->Rebin2D(fRebinX, fRebinY);
       fChanFFTV[i]->Rebin2D(fRebinX, fRebinY);
       fChanFFTZ[i]->Rebin2D(fRebinX, fRebinY);
@@ -306,22 +278,17 @@ namespace tpc_monitor{
     
     // Mean/RMS by slot channel number for each slot
     for(int i=0;i<30;i++) {
-  	  fSlotChanMean.push_back(tfs->make<TH2F>(Form("Slot%d_Mean", i), Form("Slot%d:Mean_vs_SlotChannel", i), 512, 0, 512, 625, .0, 5000)); 
-  	  fSlotChanRMS.push_back(tfs->make<TH2F>(Form("Slot%d_RMS", i), Form("Slot%d:RMS_vs_SlotChannel", i), 512, 0, 512, 625, .0, 5000)); 
-  	  fSlotChanMean_pfx.push_back(tfs->make<TProfile>(Form("Slot%d_Mean_pfx", i), Form("Slot%d:Mean_vs_SlotChannel_pfx", i), 512, 0, 512)); 
-  	  fSlotChanRMS_pfx.push_back(tfs->make<TProfile>(Form("Slot%d_RMS_pfx", i), Form("Slot%d:RMS_vs_SlotChannel_pfx", i), 512, 0, 512)); 
-  	  fSlotChanFFT.push_back(tfs->make<TH2F>(Form("Slot%d_FFT", i), Form("Slot%d:FFT_vs_SlotChannel", i), 512, 0, 512, fNticks/2, 0, fNticks/2*fBinWidth));
+  	  fSlotChanMean_pfx.push_back(tfs->make<TProfile>(Form("Slot%d_Mean_pfx", i), Form("Slot%d:Mean_vs_SlotChannel_pfx", i), 512, 0, 512, "s")); 
+  	  fSlotChanRMS_pfx.push_back(tfs->make<TProfile>(Form("Slot%d_RMS_pfx", i), Form("Slot%d:RMS_vs_SlotChannel_pfx", i), 512, 0, 512, "s")); 
+  	  //fSlotChanFFT.push_back(tfs->make<TH2F>(Form("Slot%d_FFT", i), Form("Slot%d:FFT_vs_SlotChannel", i), 512, 0, 512, fNticks/2, 0, fNticks/2*fBinWidth));
   	  
-  	  fSlotChanMean[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanMean[i]->GetYaxis()->SetTitle("Raw Mean"); 
-  	  fSlotChanRMS[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanRMS[i]->GetYaxis()->SetTitle("Raw RMS"); 
   	  fSlotChanMean_pfx[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanMean_pfx[i]->GetYaxis()->SetTitle("Profiled Mean"); 
   	  fSlotChanRMS_pfx[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanRMS_pfx[i]->GetYaxis()->SetTitle("Profiled RMS"); 
-  	  fSlotChanFFT[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanFFT[i]->GetYaxis()->SetTitle("kHz");
+  	  //fSlotChanFFT[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanFFT[i]->GetYaxis()->SetTitle("kHz");
     }
   
     // Persistent waveform for each fiber
     for(int i=0;i<120;i++) {
-      // Takes too much RAM: fPersistentWav_by_Fiber.push_back(tfs->make<TH2I>(Form("Persistent_Waveform_Fiber#%d", i), Form("Persistent_Waveform_Fiber#%d", i), fNticks, 0, fNticks, 5000, 0, 5000));
       fPersistentFFT_by_Fiber.push_back(tfs->make<TH2F>(Form("Persistent_FFT_Fiber#%d", i), Form("Persistent_FFT_Fiber#%d", i), fNticks/2, 0, fNticks/2*fBinWidth, 150, -100, 50));
       fFFT_by_Fiber_pfx.push_back(tfs->make<TProfile>(Form("Profiled_FFT_Fiber#%d", i), Form("Profiled_FFT_Fiber#%d", i), fNticks/2, 0, fNticks/2*fBinWidth, -100, 50));
       //fPersistentWav_by_Fiber[i]->GetXaxis()->SetTitle("Tick"); fPersistentWav_by_Fiber[i]->GetYaxis()->SetTitle("ADC"); 
@@ -459,8 +426,6 @@ namespace tpc_monitor{
 	        maxRMS_U[apa]=fRMSadc_U[apa];
 	      }
 
-	      fChanRMSU[apa]->Fill(chan,fRMSadc_U[apa]);
-	      fChanMeanU[apa]->Fill(chan,fMEANadc_U[apa]);
 	      fChanRMSU_pfx[apa]->Fill(chan, fRMSadc_U[apa], 1);
 	      fChanMeanU_pfx[apa]->Fill(chan, fMEANadc_U[apa], 1);
 	      
@@ -490,8 +455,6 @@ namespace tpc_monitor{
             maxRMS_V[apa]=fRMSadc_V[apa];
         }
 
-        fChanRMSV[apa]->Fill(chan,fRMSadc_V[apa]);
-        fChanMeanV[apa]->Fill(chan,fMEANadc_V[apa]);
         fChanRMSV_pfx[apa]->Fill(chan, fRMSadc_V[apa], 1);
 	      fChanMeanV_pfx[apa]->Fill(chan, fMEANadc_V[apa], 1);
 	      
@@ -518,8 +481,6 @@ namespace tpc_monitor{
             maxRMS_Z[apa]=fRMSadc_Z[apa];
         }
 
-        fChanRMSZ[apa]->Fill(chan,fRMSadc_Z[apa]);
-	      fChanMeanZ[apa]->Fill(chan,fMEANadc_Z[apa]);
 	      fChanRMSZ_pfx[apa]->Fill(chan, fRMSadc_Z[apa], 1);
 	      fChanMeanZ_pfx[apa]->Fill(chan, fMEANadc_Z[apa], 1);
 	      
@@ -535,15 +496,13 @@ namespace tpc_monitor{
       int FiberNumber = channelMap->FEMBFromOfflineChannel(chan);
       int FiberChannelNumber = channelMap->FEMBChannelFromOfflineChannel(chan);
       uint32_t SlotChannelNumber = FiberNumber*128 + FiberChannelNumber; //128 channels per fiber
-      fSlotChanMean.at(SlotID)->Fill(SlotChannelNumber, mean);
-      fSlotChanRMS.at(SlotID)->Fill(SlotChannelNumber, rms);
       fSlotChanMean_pfx.at(SlotID)->Fill(SlotChannelNumber, mean, 1);
       fSlotChanRMS_pfx.at(SlotID)->Fill(SlotChannelNumber, rms, 1);
       
       // FFT by slot
       for(int l=0;l<nSamples/2;l++) {
 	      //for the 2D histos
-	      fSlotChanFFT.at(SlotID)->Fill(SlotChannelNumber, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
+	// fSlotChanFFT.at(SlotID)->Fill(SlotChannelNumber, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
 	    }
       
       histwav->Delete(); 

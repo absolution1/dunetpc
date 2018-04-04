@@ -57,7 +57,7 @@ physics:
       TPCInputModule:  "tpcrawdecoder"
       TPCInstanceName: "daq"
       RebinFactorX:     1
-      RebinFactorY:     1
+      RebinFactorY:     10
     }
   }
 
