@@ -99,7 +99,7 @@ namespace dunezsanalysis {
     std::string fRawProducerLabel; // The name of the producer that tracked simulated particles through the detector
 
     // The n-tuples we'll create.
-    TTree* fSimulationNtuple;
+    //TTree* fSimulationNtuple; // unused
     TTree* fReconstructionNtuple;
 
     // The variables that will go into the n-tuple.
