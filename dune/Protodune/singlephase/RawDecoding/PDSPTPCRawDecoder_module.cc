@@ -53,7 +53,7 @@ private:
   std::string _felix_input_container_instance;
   std::string _felix_input_noncontainer_instance;
   int _rce_fragment_type;
-  int _felix_fragment_type;
+  //int _felix_fragment_type; // unused
 
   std::string _output_label;
   bool _expect_rce_container_fragments;  
@@ -342,7 +342,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   //v_adc.reserve(n_frames*n_channels);
   // Fill the adc vector.  
 
-  typedef std::tuple<uint8_t, uint8_t, uint8_t, unsigned> WireInfo_tuple;
+  //typedef std::tuple<uint8_t, uint8_t, uint8_t, unsigned> WireInfo_tuple; // unused
   for(unsigned ch = 0; ch < n_channels; ++ch) {
     v_adc.clear();
     //std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;

@@ -51,7 +51,7 @@ public:
   void produce(art::Event & e) override;
   void reconfigure(const fhicl::ParameterSet &pset);
   void printParameterSet();
-  void beginJob();
+  void beginJob() override;
 
   void setRootObjects();
 

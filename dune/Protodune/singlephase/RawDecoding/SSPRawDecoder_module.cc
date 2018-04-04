@@ -101,7 +101,7 @@ private:
 
   int number_of_packets = 12;  // 12 channels per SSP
   int number_of_fragments = 4; // 4 SSPs
-  const int number_of_channels = 48;
+  //const int number_of_channels = 48; // unused
 
   TGraph** pedestal_event_ = new TGraph*[number_of_packets*number_of_fragments]; // pedestal vs event number 
   TGraph** area_event_     = new TGraph*[number_of_packets*number_of_fragments]; // area vs event number                             
