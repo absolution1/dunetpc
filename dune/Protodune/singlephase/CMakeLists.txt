@@ -29,9 +29,11 @@ art_make( MODULE_LIBRARIES
 			${ROOT_BASIC_LIB_LIST}
 )
 
+
 install_headers()
 install_fhicl()
 install_source()
 install_scripts()
 add_subdirectory(NearlineMonitor)
 add_subdirectory(RawDecoding)
+#add_subdirectory(calcuttjRecoEff)
