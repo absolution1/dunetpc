@@ -25,8 +25,8 @@
 
 #include <iostream>
 
-constexpr unsigned short kMaxAuxDets = 100;
-constexpr unsigned short kMaxTkIDs = 100;
+//constexpr unsigned short kMaxAuxDets = 100; // unused
+//constexpr unsigned short kMaxTkIDs = 100; // unused
 
 namespace dune {
   class CheckGeometry;
