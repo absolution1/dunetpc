@@ -1,0 +1,69 @@
+#include "services_dune.fcl"
+#include "RawDecoder.fcl"
+
+process_name: DecodeRawTPCMonitor
+
+services:
+{
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  message:              @local::dune_message_services_prod_debug
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+#                        @table::protodune_services
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ Geometry:                     @local::protodune_geo
+ DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorPropertiesService:    @local::protodune_detproperties
+ LArPropertiesService:         @local::dunefd_properties
+ DatabaseUtil:                 @local::dunefd_database
+ ChannelStatusService:         @local::dunefd_channel_status
+ PdspChannelMapService: {
+    FileName:         "protoDUNETPCChannelMap_v3.txt"
+    LogLevel:         1
+  }
+ TFileService: { fileName: "rawtpcmonitor.root" }
+
+}
+
+services.DetectorPropertiesService.NumberTimeSamples: 10000
+services.DetectorPropertiesService.ReadOutWindowSize: 10000
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+  fileNames: ["input_file.root"]
+}
+
+
+
+outputs:{}
+
+physics:
+{
+  producers:
+  {
+    tpcrawdecoder: @local::pdsp_tpc_raw_decoder
+    timingrawdecoder: @local::timing_raw_decoder
+    ssprawdecoder: @local::ssp_raw_decoder
+  }
+
+  analyzers:
+  {
+    tpcmonitor: 
+    {
+      module_type:     "TpcMonitor"
+      TPCInputModule:  "tpcrawdecoder"
+      TPCInstanceName: "daq"
+      RebinFactorX:     1
+      RebinFactorY:     10
+    }
+  }
+
+  produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
+  analysis: [ tpcmonitor ] //Directory for histograms
+  trigger_paths : [ produce ]
+  end_paths: [ analysis ]
+}
+

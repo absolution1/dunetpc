@@ -5311,7 +5311,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       if(fSaveProtoInfo){
         for(Int_t prt = 0; prt < nProtoPrimaries; ++prt){
           for(Int_t gnt = 0; gnt < fData->geant_list_size; ++gnt){
-            if(fData->proto_pdg[prt] == fData->pdg[gnt] && fData->proto_px[prt] == fData->Px[gnt]){
+//            if(fData->proto_pdg[prt] == fData->pdg[gnt] && fData->proto_px[prt] == fData->Px[gnt]){
+             if(fData->proto_pdg[prt] == fData->pdg[gnt] && std::fabs(fData->proto_px[prt] - fData->Px[gnt]) < 0.0001){
               fData->proto_geantTrackID[prt] = fData->TrackId[gnt];
               fData->proto_geantIndex[prt] = gnt;
               break;
