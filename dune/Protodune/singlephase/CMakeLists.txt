@@ -1,3 +1,12 @@
+include_directories( $ENV{LIBWDA_FQ_DIR}/include )
+include_directories( $ENV{IFDH_ART_INC} )
+include_directories( $ENV{IFDHC_FQ_DIR}/inc )
+include_directories( $ENV{IFBEAM_FQ_DIR}/include )
+
+cet_find_library( WDALIB NAMES wda PATHS ENV LIBWDA_LIB NO_DEFAULT_PATH )
+cet_find_library( IFBEAMSERVICE NAMES IFBeam_service PATHS ENV IFDH_ART_LIB NO_DEFAULT_PATH )
+cet_find_library( IFBEAM NAMES ifbeam PATHS ENV IFBEAM_LIB   NO_DEFAULT_PATH )
+
 
 simple_plugin(ECalibration "module"
 			lardataobj_RawData
@@ -151,16 +160,12 @@ simple_plugin(RecoHitsEff "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(DEdx "module"
-                        lardataobj_RecoBase
-                        larreco_Calorimetry
-                        larcorealg_Geometry
-                        larcore_Geometry_Geometry_service
-                        lardata_ArtDataHelper
-                        lardata_Utilities
-                        lardataobj_Simulation
-                        larsim_MCCheater_BackTracker_service
-                        ${ART_FRAMEWORK_CORE}
+simple_plugin(BeamAna "module"                        
+#			${IFDHC}
+#			${IFHC_ART}
+			${IFBEAM}
+			${IFBEAMSERVICE}
+			${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
@@ -174,7 +179,6 @@ simple_plugin(DEdx "module"
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
 )
-
 
 install_headers()
 install_fhicl()
