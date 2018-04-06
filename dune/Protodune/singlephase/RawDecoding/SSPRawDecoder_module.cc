@@ -756,7 +756,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   std::cout << std::endl
 	    << "ADC total is (from counter):           " << (double)adc_cumulative_
             << std::endl
-	    << "Event ADC average is (from counter):   " << (n_adc_counter_ == 0) ? 0 : (double)adc_cumulative_/(double)n_adc_counter_
+	    << "Event ADC average is (from counter):   " << ((n_adc_counter_ == 0) ? 0 : (double)adc_cumulative_/(double)n_adc_counter_)
 	    << std::endl
 	    << "Event ADC average is (from histogram): " << adc_values_->GetMean()
 	    << std::endl;
