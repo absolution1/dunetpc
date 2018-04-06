@@ -76,6 +76,8 @@ ssp_raw_decoder:
   SSP_ADC_min: 1500  # max ADC value
   SSP_ADC_max: 1650  # max ADC value
 
+  NOvAClockFrequency: 64.0 # MHz
+  SPESize: 25
 }
 
 online_monitor:
