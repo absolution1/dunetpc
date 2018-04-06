@@ -51,18 +51,18 @@ physics:
 
   analyzers:
   {
-    rawdraw: 
+    tpcmonitor: 
     {
       module_type:     "TpcMonitor"
       TPCInputModule:  "tpcrawdecoder"
       TPCInstanceName: "daq"
       RebinFactorX:     1
-      RebinFactorY:     1
+      RebinFactorY:     10
     }
   }
 
   produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
-  analysis: [ rawdraw ] //Directory for histograms
+  analysis: [ tpcmonitor ] //Directory for histograms
   trigger_paths : [ produce ]
   end_paths: [ analysis ]
 }

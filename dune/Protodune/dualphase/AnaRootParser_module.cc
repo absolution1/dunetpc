@@ -158,36 +158,36 @@ namespace dune {
            *
            * TrackData_t<Short_t>                    :  2  bytes/track
            * TrackData_t<Float_t>                    :  4  bytes/track
-           * PlaneData_t<Float_t>, PlaneData_t<Int_t>: 12  bytes/track
-           * HitData_t<Float_t>                      : 24k bytes/track
-           * HitCoordData_t<Float_t>                 : 72k bytes/track
+           * TrackPlaneData_t<Float_t>, TrackPlaneData_t<Int_t>: 12  bytes/track
+           * TrackHitData_t<Float_t>                      : 24k bytes/track
+           * TrackHitCoordData_t<Float_t>                 : 72k bytes/track
            */
           template <typename T>
             using TrackData_t = std::vector<T>;
           template <typename T>
-            using PlaneData_t = std::vector<BoxedArray<T[kNplanes]>>;
+            using TrackPlaneData_t = std::vector<BoxedArray<T[kNplanes]>>;
           template <typename T>
-            using HitData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits]>>;
+            using TrackHitData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits]>>;
           template <typename T>
-            using HitCoordData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits][2]>>;
+            using TrackHitCoordData_t = std::vector<BoxedArray<T[kNplanes][kMaxTrackHits][3]>>;
 
           size_t MaxTracks; ///< maximum number of storable tracks
 
           Short_t  ntracks;             //number of reconstructed tracks
-          PlaneData_t<Float_t>    trkke;
-          PlaneData_t<Float_t>    trkrange;
-          PlaneData_t<Int_t>      trkidtruth;  //true geant trackid
-          PlaneData_t<Short_t>    trkorigin;   //_ev_origin 0: unknown, 1: neutrino, 2: cosmic, 3: supernova, 4: singles
-          PlaneData_t<Int_t>      trkpdgtruth; //true pdg code
-          PlaneData_t<Float_t>    trkefftruth; //completeness
-          PlaneData_t<Float_t>    trkpurtruth; //purity of track
-          PlaneData_t<Float_t>    trkpitchc;
-          PlaneData_t<Short_t>    ntrkhitsperview;
-          HitData_t<Float_t>      trkdedx;
-          HitData_t<Float_t>      trkdqdx;
-          HitData_t<Float_t>      trkresrg;
-          HitData_t<Int_t>        trktpc;
-          HitCoordData_t<Float_t> trkxyz;
+          TrackPlaneData_t<Float_t>    trkke;
+          TrackPlaneData_t<Float_t>    trkrange;
+          TrackPlaneData_t<Int_t>      trkidtruth;  //true geant trackid
+          TrackPlaneData_t<Short_t>    trkorigin;   //_ev_origin 0: unknown, 1: neutrino, 2: cosmic, 3: supernova, 4: singles
+          TrackPlaneData_t<Int_t>      trkpdgtruth; //true pdg code
+          TrackPlaneData_t<Float_t>    trkefftruth; //completeness
+          TrackPlaneData_t<Float_t>    trkpurtruth; //purity of track
+          TrackPlaneData_t<Float_t>    trkpitchc;
+          TrackPlaneData_t<Short_t>    ntrkhitsperview;
+          TrackHitData_t<Float_t>      trkdedx;
+          TrackHitData_t<Float_t>      trkdqdx;
+          TrackHitData_t<Float_t>      trkresrg;
+          TrackHitData_t<Int_t>        trktpc;
+          TrackHitCoordData_t<Float_t> trkxyz;
 
           Float_t trkdedx2[10000];
           Float_t trkdqdx2[10000];
@@ -267,13 +267,13 @@ namespace dune {
           TrackData_t<Float_t> trkmommsllhd;   // track momentum from multiple scattering LLHD method
           TrackData_t<Short_t> trksvtxid;     // Vertex ID associated with the track start
           TrackData_t<Short_t> trkevtxid;     // Vertex ID associated with the track end
-          PlaneData_t<Int_t> trkpidpdg;       // particle PID pdg code
-          PlaneData_t<Float_t> trkpidchi;
-          PlaneData_t<Float_t> trkpidchipr;   // particle PID chisq for proton
-          PlaneData_t<Float_t> trkpidchika;   // particle PID chisq for kaon
-          PlaneData_t<Float_t> trkpidchipi;   // particle PID chisq for pion
-          PlaneData_t<Float_t> trkpidchimu;   // particle PID chisq for muon
-          PlaneData_t<Float_t> trkpidpida;    // particle PIDA
+          TrackPlaneData_t<Int_t> trkpidpdg;       // particle PID pdg code
+          TrackPlaneData_t<Float_t> trkpidchi;
+          TrackPlaneData_t<Float_t> trkpidchipr;   // particle PID chisq for proton
+          TrackPlaneData_t<Float_t> trkpidchika;   // particle PID chisq for kaon
+          TrackPlaneData_t<Float_t> trkpidchipi;   // particle PID chisq for pion
+          TrackPlaneData_t<Float_t> trkpidchimu;   // particle PID chisq for muon
+          TrackPlaneData_t<Float_t> trkpidpida;    // particle PIDA
           TrackData_t<Float_t> trkpidmvamu;   // particle MVA value for muon PID
           TrackData_t<Float_t> trkpidmvae;   // particle MVA value for electron PID
           TrackData_t<Float_t> trkpidmvapich;   // particle MVA value for charged pion PID
@@ -340,18 +340,18 @@ namespace dune {
            *
            * ShowerData_t<Short_t>                   :  2  bytes/shower
            * ShowerData_t<Float_t>                   :  4  bytes/shower
-           * PlaneData_t<Float_t>, PlaneData_t<Int_t>: 12  bytes/shower
-           * HitData_t<Float_t>                      : 24k bytes/shower
-           * HitCoordData_t<Float_t>                 : 72k bytes/shower
+           * ShowerPlaneData_t<Float_t>, ShowerPlaneData_t<Int_t>: 12  bytes/shower
+           * ShowerHitData_t<Float_t>                      : 24k bytes/shower
+           * ShowerHitCoordData_t<Float_t>                 : 72k bytes/shower
            */
           template <typename T>
             using ShowerData_t = std::vector<T>;
           template <typename T>
-            using PlaneData_t = std::vector<BoxedArray<T[kNplanes]>>;
+            using ShowerPlaneData_t = std::vector<BoxedArray<T[kNplanes]>>;
           template <typename T>
-            using HitData_t = std::vector<BoxedArray<T[kNplanes][kMaxShowerHits]>>;
+            using ShowerHitData_t = std::vector<BoxedArray<T[kNplanes][kMaxShowerHits]>>;
           template <typename T>
-            using HitCoordData_t = std::vector<BoxedArray<T[kNplanes][kMaxShowerHits][3]>>;
+            using ShowerHitCoordData_t = std::vector<BoxedArray<T[kNplanes][kMaxShowerHits][3]>>;
 
           std::string name; ///< name of the shower algorithm (for branch names)
 
@@ -369,9 +369,9 @@ namespace dune {
           ShowerData_t<Float_t>  shwr_startx;     ///< startx of shower
           ShowerData_t<Float_t>  shwr_starty;     ///< starty of shower
           ShowerData_t<Float_t>  shwr_startz;     ///< startz of shower
-          PlaneData_t<Float_t>   shwr_totEng;     ///< Total energy of the shower per plane
-          PlaneData_t<Float_t>   shwr_dedx;       ///< dE/dx of the shower per plane
-          PlaneData_t<Float_t>   shwr_mipEng;     ///< Total MIP energy of the shower per plane
+          ShowerPlaneData_t<Float_t>   shwr_totEng;     ///< Total energy of the shower per plane
+          ShowerPlaneData_t<Float_t>   shwr_dedx;       ///< dE/dx of the shower per plane
+          ShowerPlaneData_t<Float_t>   shwr_mipEng;     ///< Total MIP energy of the shower per plane
 
           ShowerData_t<Float_t> shwr_pidmvamu;   // particle MVA value for muon PID
           ShowerData_t<Float_t> shwr_pidmvae;   // particle MVA value for electron PID
