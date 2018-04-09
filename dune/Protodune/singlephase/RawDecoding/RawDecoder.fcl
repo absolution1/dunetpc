@@ -61,8 +61,7 @@ ssp_raw_decoder:
   verbose_adcs: 0
   ExpectContainerFragments: true
 
-  number_of_fragments: 4
-  number_of_packets: 12
+  number_of_packets: 12  # number of channels per SSP
 
   SSP_m1: 10   # samples used to calculate peak height
   SSP_m2: 10   # (unused in the code)

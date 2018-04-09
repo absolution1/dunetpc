@@ -9,8 +9,6 @@
 //   
 ////////////////////////////////////////////////////////////////////////
 
-//TO KEEP -- trigger type, packet count histograms
-
 // art includes
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -40,7 +38,7 @@
 
 // C++ Includes
 #include <memory>
-
+#include <map>
 
 namespace dune {
   class SSPRawDecoder;
@@ -115,7 +113,7 @@ private:
   bool _expect_container_fragments;
 
   TH1D * n_event_packets_;
-  //TH1D * frag_sizes_;
+  TH1D * frag_sizes_;
 
   // m1, i1, i2
   double m1,i1,i2;
@@ -126,9 +124,8 @@ private:
   //Graphs and vectors                                                                                                                                      
 
   int number_of_packets = 12;  // 12 channels per SSP
-  int number_of_fragments = 4; // 4 SSPs
 
-  TH1D** trigger_type_     = new TH1D*[number_of_packets*number_of_fragments];   // trigger type: 16 internal, 48 external
+  std::map<size_t,TH1D*> trigger_type_; // internal vs. external  (16 internal, 48 external)
 
   // more parameters from the FCL file
   int fragment;
@@ -142,7 +139,6 @@ private:
 dune::SSPRawDecoder::SSPRawDecoder(fhicl::ParameterSet const & pset)
 // :
 {
-  art::ServiceHandle<art::TFileService> fs;
   reconfigure(pset);
   produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);
   produces< std::vector<recob::OpHit> > (fOutputDataLabel);
@@ -153,6 +149,7 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   fRawDataLabel = pset.get<std::string>("RawDataLabel");
   fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
   fUseChannelMap = pset.get<bool>("UseChannelMap");
+  number_of_packets=pset.get<int>("number_of_packets");
   fDebug = pset.get<bool>("Debug");
   _expect_container_fragments = pset.get<bool>("ExpectContainerFragments",true);
   fZeroThreshold=0;
@@ -172,15 +169,10 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   NOvAClockFrequency=pset.get<double>("NOvAClockFrequency"); // in MHz
   SPESize=pset.get<double>("SPESize");
                                                        
-  number_of_packets=pset.get<int>("number_of_packets");
-  number_of_fragments=pset.get<int>("number_of_fragments");
-  
   std::cout << "Parameters from the fcl file" << std::endl;
   std::cout << "m1: " << m1 << std::endl;
   std::cout << "i1: " << i1 << std::endl;
   std::cout << "i2: " << i2 << std::endl;
-  std::cout << "Number of packets: " << number_of_packets << std::endl;
-  std::cout << "Number of fragments: " << number_of_fragments << std::endl;
   std::cout << "Fragment: " << fragment << std::endl;
   std::cout << "NOvAClockFrequency: " << NOvAClockFrequency << std::endl; 
   std::cout << "SPESize: " << SPESize << std::endl;
@@ -212,16 +204,7 @@ void dune::SSPRawDecoder::setRootObjects(){
   art::ServiceHandle<art::TFileService> tFileService;
 
   n_event_packets_ = tFileService->make<TH1D>("ssp_n_event_packets","SSP: n_event_packets",960,-0.5,959.5);  
-  //frag_sizes_ = tFileService->make<TH1D>("ssp_frag_sizes","SSP: frag_sizes",960,0,2e6);  
-
-  for (int i=0;i<number_of_packets*number_of_fragments;i++) {
-
-    trigger_type_[i] = tFileService->make<TH1D>(Form("trigger_type_channel_%d",i),Form("trigger_type_channel_%d",i),4,0,3);
-    trigger_type_[i]->SetTitle(Form("Trigger type - Channel %d",i));
-    trigger_type_[i]->GetXaxis()->SetTitle("Trigger type");
-    trigger_type_[i]->GetXaxis()->SetBinLabel(2,"Internal (16)");
-    trigger_type_[i]->GetXaxis()->SetBinLabel(3,"External (48)");
-  }
+  frag_sizes_ = tFileService->make<TH1D>("ssp_frag_sizes","SSP: frag_sizes",960,0,2e6);  
 
 }
 
@@ -297,8 +280,8 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
         artdaq::ContainerFragment contf(cont);
         for (size_t ii = 0; ii < contf.block_count(); ++ii)
           {
-            //size_t fragSize = contf.fragSize(ii);
-            //frag_sizes_->Fill(fragSize);
+            size_t fragSize = contf.fragSize(ii);
+            frag_sizes_->Fill(fragSize);
             //artdaq::Fragment thisfrag;
             //thisfrag.resizeBytes(fragSize);
 	    
@@ -359,7 +342,10 @@ void dune::SSPRawDecoder::endJob(){
 }
 
 void dune::SSPRawDecoder::produce(art::Event & evt){
-  LOG_INFO("SSPRawDecoder") << "-------------------- SSP RawDecoder -------------------";
+
+  art::ServiceHandle<art::TFileService> tFileService;
+
+  //LOG_INFO("SSPRawDecoder") << "-------------------- SSP RawDecoder -------------------";
   // Implementation of required member function here.
 
   art::EventNumber_t eventNumber = evt.event();  
@@ -496,6 +482,16 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       }
       
       ///> Trigger type histogram
+      if (trigger_type_.find(channel) == trigger_type_.end())
+	{
+	  TH1D* tth = tFileService->make<TH1D>(Form("trigger_type_channel_%d",channel),Form("trigger_type_channel_%d",channel),4,0,3);
+          tth->SetTitle(Form("Trigger type - Channel %d",channel));
+          tth->GetXaxis()->SetTitle("Trigger type");
+          tth->GetXaxis()->SetBinLabel(2,"Internal (16)");
+          tth->GetXaxis()->SetBinLabel(3,"External (48)");
+	  trigger_type_[channel] = tth;
+	}
+
       if ( trig.type == 16 ) trigger_type_[channel]->Fill(1);
       if ( trig.type == 48 ) trigger_type_[channel]->Fill(2);
       
