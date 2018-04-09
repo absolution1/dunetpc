@@ -69,13 +69,6 @@ ssp_raw_decoder:
   SSP_i1: 500  # samples used to calculate pedestal
   SSP_i2: 500  # samples used to calculate peak height
 
-  SSP_min_time: 0    # min time of the run
-  SSP_max_time: 336  # max time of the run
-  SSP_triggers: 12   # number of triggers
-  SSP_ADC: 1000      # number of ADC sample
-  SSP_ADC_min: 1500  # max ADC value
-  SSP_ADC_max: 1650  # max ADC value
-
   NOvAClockFrequency: 64.0 # MHz
   SPESize: 25
 }
