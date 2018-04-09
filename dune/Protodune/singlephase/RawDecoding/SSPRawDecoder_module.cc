@@ -6,9 +6,10 @@
 // Generated at Thu Jul  6 18:31:48 2017 by Antonino Sergi,32 1-A14,+41227678738, using artmod
 // from cetpkgsupport v1_11_00.
 //
-// P.F.: implemented OM plots
 //   
 ////////////////////////////////////////////////////////////////////////
+
+//TO KEEP -- trigger type, packet count histograms
 
 // art includes
 #include "art/Framework/Core/EDProducer.h"
