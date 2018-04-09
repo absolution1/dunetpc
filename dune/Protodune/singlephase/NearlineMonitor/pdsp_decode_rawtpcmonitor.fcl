@@ -51,7 +51,7 @@ physics:
 
   analyzers:
   {
-    rawdraw: 
+    tpcmonitor: 
     {
       module_type:     "TpcMonitor"
       TPCInputModule:  "tpcrawdecoder"
@@ -62,7 +62,7 @@ physics:
   }
 
   produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
-  analysis: [ rawdraw ] //Directory for histograms
+  analysis: [ tpcmonitor ] //Directory for histograms
   trigger_paths : [ produce ]
   end_paths: [ analysis ]
 }
