@@ -20,6 +20,7 @@ simple_plugin(TimingRawDecoder "module"
 
 simple_plugin(SSPRawDecoder "module"
                         lardataobj_RawData
+			lardataobj_RecoBase
                         dune-raw-data_Overlays
 			artdaq-core_Data
                         ${ART_FRAMEWORK_CORE}

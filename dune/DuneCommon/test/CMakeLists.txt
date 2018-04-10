@@ -21,3 +21,9 @@ cet_test(test_TPadManipulator SOURCES test_TPadManipulator.cxx
     dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}
 )
+
+cet_test(test_RootPalette SOURCES test_RootPalette.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
