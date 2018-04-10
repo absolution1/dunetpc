@@ -72,6 +72,8 @@ cet_test(test_AdcDataPlotter SOURCES test_AdcDataPlotter.cxx
 cet_test(test_AdcDetectorPlotter SOURCES test_AdcDetectorPlotter.cxx
   LIBRARIES
     dune_ArtSupport
+    dune_Geometry
+    larcorealg_Geometry
     art_Utilities
     canvas
     fhiclcpp

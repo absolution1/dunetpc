@@ -9,9 +9,13 @@
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   WireAngle - Include wires with this angle (for protoDUNE, 0, +/-0.623)
 //   DataType - Which data to plot: 0=prepared, 1=raw-pedestal
+//   Tick0 - Tick used ast t = 0 for drift calculations.
+//   DriftSpeed - Drift speed in cm/tick.
 //   XMin, XMax - Limits for the drift coordinate
 //   ZMin, ZMax - Limits for the wire coordinate
 //   SignalThreshold - Signals in a channel-tick bin above this value are plotted
+//   ShowWires - Also show anode wires on the plot.
+//   ShowCathode - Also show cathode planes (one point for each wire) on the plot.
 //   Title - Title for the plot.
 //   FileName - Name for output plot file.
 //              If blank, no file is written.
@@ -48,7 +52,7 @@ namespace geo {
   class GeometryCore;
 }
 
-class AdcDetectorPlotter : AdcDataViewer {
+class AdcDetectorPlotter : public AdcDataViewer {
 
 public:
 
@@ -80,6 +84,8 @@ public:
            std::string label ="",
            std::string fpat ="") const override;
 
+  int addChannel(const AdcChannelData& acd) const;
+
   // Return the state.
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr getState() const { return m_state; }
@@ -94,11 +100,15 @@ private:
   int            m_LogLevel;
   float          m_WireAngle;
   int            m_DataType;
+  float          m_Tick0;
+  float          m_DriftSpeed;
   float          m_XMin;
   float          m_XMax;
   float          m_ZMin;
   float          m_ZMax;
   float          m_SignalThreshold;
+  bool           m_ShowWires;
+  bool           m_ShowCathode;
   std::string    m_Title;
   std::string    m_FileName;
 
