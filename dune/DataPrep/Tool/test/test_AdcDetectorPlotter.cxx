@@ -65,6 +65,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "    SignalThreshold: 10" << endl;
     fout << "    ShowWires: true" << endl;
     fout << "    ShowCathode: true" << endl;
+    fout << "    ShowGrid: true" << endl;
     fout << "    Title: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
     fout << "    FileName: \"test_AdcDetectorPlotter-run%RUN%-evt%EVENT%.png\"" << endl;
     fout << "  }" << endl;
