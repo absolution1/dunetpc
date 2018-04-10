@@ -16,6 +16,7 @@
 //   SignalThreshold - Signals in a channel-tick bin above this value are plotted
 //   ShowWires - Also show anode wires on the plot.
 //   ShowCathode - Also show cathode planes (one point for each wire) on the plot.
+//   ShowGrid - Also show (Root default) grid.
 //   Title - Title for the plot.
 //   FileName - Name for output plot file.
 //              If blank, no file is written.
@@ -109,6 +110,7 @@ private:
   float          m_SignalThreshold;
   bool           m_ShowWires;
   bool           m_ShowCathode;
+  bool           m_ShowGrid;
   std::string    m_Title;
   std::string    m_FileName;
 

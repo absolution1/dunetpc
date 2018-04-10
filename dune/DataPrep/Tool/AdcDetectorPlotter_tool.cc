@@ -60,6 +60,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_SignalThreshold(ps.get<float>("SignalThreshold")),
   m_ShowWires(ps.get<bool>("ShowWires")),
   m_ShowCathode(ps.get<bool>("ShowCathode")),
+  m_ShowGrid(ps.get<bool>("ShowGrid")),
   m_Title(ps.get<string>("Title")),
   m_FileName(ps.get<string>("FileName")),
   m_state(new State) {
@@ -78,6 +79,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "  SignalThreshold: " << m_SignalThreshold << endl;
     cout << myname << "        ShowWires: " << m_ShowWires << endl;
     cout << myname << "      ShowCathode: " << m_ShowCathode << endl;
+    cout << myname << "         ShowGrid: " << m_ShowGrid << endl;
     cout << myname << "            Title: " << m_Title << endl;
     cout << myname << "         FileName: " << m_FileName << endl;
   }
@@ -149,6 +151,7 @@ int AdcDetectorPlotter::view(const AdcChannelDataMap& acds, string, string) cons
     state.ppad->graph()->Expand(512);  // Allocate 1024 points.
     state.ppad->setRangeX(m_XMin, m_XMax);
     state.ppad->setRangeY(m_ZMin, m_ZMax);
+    if ( m_ShowGrid ) state.ppad->setGrid();
     LineColors cols;
     const WireSelector::WireInfoVector& wins = state.sel.fillData();
     if ( m_ShowWires ) {
