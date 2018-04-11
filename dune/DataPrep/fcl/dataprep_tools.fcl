@@ -99,7 +99,7 @@ tools.preparedAdcPlotter: {
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
-  RootFileName: "adc_evt%EVENT%.root"
+  RootFileName: ""    # or "adc_evt%EVENT%.root"
 }
 tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
@@ -112,7 +112,7 @@ tools.rawAdcPlotter: {
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
   PlotFileName: "adcraw_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
-  RootFileName: "adc_evt%EVENT%.root"
+  RootFileName: ""   # or "adc_evt%EVENT%.root"
 }
 
 # Event display: wire coodinate vs. drift coordinate.
