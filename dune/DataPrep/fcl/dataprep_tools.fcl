@@ -99,7 +99,7 @@ tools.preparedAdcPlotter: {
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
-  RootFileName: "adc_evt%EVENT%.root"
+  RootFileName: ""    # or "adc_evt%EVENT%.root"
 }
 tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
@@ -112,7 +112,63 @@ tools.rawAdcPlotter: {
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
   PlotFileName: "adcraw_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
-  RootFileName: "adc_evt%EVENT%.root"
+  RootFileName: ""   # or "adc_evt%EVENT%.root"
+}
+
+# Event display: wire coodinate vs. drift coordinate.
+tools.preparedAdcDetectorPlotColl: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: 0.0
+  DataType: 0
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin:  -20.0
+  ZMax:  720.0
+  SignalThreshold: 5
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-coll.png"
+}
+tools.preparedAdcDetectorPlotInd1: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: 0.623
+  DataType: 0
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin:  -20.0
+  ZMax:  940.0
+  SignalThreshold: 5
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-ind1.png"
+}
+tools.preparedAdcDetectorPlotInd2: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: -0.623
+  DataType: 0
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin: -380.0
+  ZMax:  580.0
+  SignalThreshold: 5
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-ind2.png"
 }
 
 # Extract raw data from a digit.

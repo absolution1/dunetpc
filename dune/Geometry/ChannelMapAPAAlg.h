@@ -29,13 +29,13 @@ namespace geo{
     ChannelMapAPAAlg(fhicl::ParameterSet const& p);
     
     void                     Initialize( GeometryData_t const& geodata ) override;
-    void                     Uninitialize();
+    void                     Uninitialize() override;
     
     /// Returns a list of TPC wires connected to the specified readout channel ID
     /// @throws cet::exception (category: "Geometry") if non-existent channel
-    std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel) const;
+    std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel) const override;
     
-    unsigned int             Nchannels()                            const;
+    unsigned int             Nchannels()                            const override;
     
     /// @brief Returns the number of channels in the specified ROP
     /// @return number of channels in the specified ROP, 0 if non-existent
@@ -72,9 +72,9 @@ namespace geo{
     virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
     //@}
     View_t                   View( raw::ChannelID_t const channel )      const;
-    SigType_t                SignalType( raw::ChannelID_t const channel) const;
+    SigType_t                SignalType( raw::ChannelID_t const channel) const override;
     std::set<View_t>  const& Views()                                     const;
-    std::set<PlaneID> const& PlaneIDs()                                  const;
+    std::set<PlaneID> const& PlaneIDs()                                  const override;
 
     //
     // TPC set interface
@@ -253,11 +253,11 @@ namespace geo{
     
     
     
-    unsigned int NOpChannels(unsigned int NOpDets)                        const;
-    unsigned int NOpHardwareChannels(unsigned int opDet)                  const;
-    unsigned int OpChannel(unsigned int detNum, unsigned int channel = 0) const;
-    unsigned int OpDetFromOpChannel(unsigned int opChannel)               const;
-    unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const;
+    unsigned int NOpChannels(unsigned int NOpDets)                        const override;
+    unsigned int NOpHardwareChannels(unsigned int opDet)                  const override;
+    unsigned int OpChannel(unsigned int detNum, unsigned int channel = 0) const override;
+    unsigned int OpDetFromOpChannel(unsigned int opChannel)               const override;
+    unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const override;
     
   private:
     

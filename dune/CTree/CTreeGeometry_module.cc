@@ -102,12 +102,12 @@ private:
     vector<double> fPlane_wireangle;  // wire angle (to vertical) of each plane
     vector<int> fPlane_wires;  // number of wires in each plane
     int fNchannels;
-    int fNOpDets;
+    //int fNOpDets; // unused
 
     // Event Tree Leafs
-    int fEvent;
-    int fRun;
-    int fSubRun;
+    //int fEvent; // unused
+    //int fRun; // unused
+    //int fSubRun; // unused
 
    }; // class CTreeGeometry
 

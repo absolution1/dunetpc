@@ -79,10 +79,10 @@ public:
 
   void analyze(art::Event const & e) override;
 
-  void beginRun(art::Run& run);
+  void beginRun(art::Run const& run) override;
   void beginJob() override;
-  void endJob();
-  void endRun();
+  void endJob() override;
+  void endRun(art::Run const&) override;
   //void reconfigure(fhicl::ParameterSet const & p) ;
   
   // ----------- Declare my structs ----------
@@ -160,7 +160,7 @@ private:
 
  };
 // ********************************** Begin Run *******************************************************
-void TrackingEfficiency::TrackingEfficiency::beginRun(art::Run& run) {
+void TrackingEfficiency::TrackingEfficiency::beginRun(art::Run const& run) {
 
 }
 // *********************************** Begin Job ********************************************************
@@ -257,7 +257,7 @@ void TrackingEfficiency::TrackingEfficiency::beginJob()
 void TrackingEfficiency::TrackingEfficiency::endJob() {
 }
 // ************************************ End Run *********************************************************
-void TrackingEfficiency::TrackingEfficiency::endRun() {
+void TrackingEfficiency::TrackingEfficiency::endRun(art::Run const&) {
 }
 
 // ********************************** pset param *******************************************************

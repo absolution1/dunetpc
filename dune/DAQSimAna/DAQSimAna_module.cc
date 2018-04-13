@@ -43,7 +43,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 const int nMaxHits = 5000;
-const int nMaxDigs = 4492;
+//const int nMaxDigs = 4492; // unused
 
 enum PType{ kUnknown, kMarl, kAPA, kCPA, kAr39, kNeut, kKryp, kPlon, kRdon };
 
@@ -64,7 +64,7 @@ public:
 
   void reconfigure(fhicl::ParameterSet const & p);
 
-  void beginJob();
+  void beginJob() override;
 
 private:
 
@@ -91,7 +91,7 @@ private:
   std::string fRdonLabel; std::map< int, simb::MCParticle > RdonParts;
 
   // --- Other variables
-  int nADC;
+  //int nADC; // no longer used
 
   // --- Our TTree, and its associated variables.
   TTree* fDAQSimTree;
@@ -100,7 +100,7 @@ private:
   int SubRun;
   int Event;
   // Raw digits
-  int NTotDigs;
+  //int NTotDigs; // unused
 
   // The reconstructed hits
   int   NTotHits;

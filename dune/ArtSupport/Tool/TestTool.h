@@ -11,20 +11,23 @@
 #ifndef TestTool_H
 #define TestTool_H
 
+#include "ITestTool.h"
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelViewer.h"
 #include <iostream>
 
-class TestTool {
+class TestTool : public ITestTool {
 
 public:
 
   TestTool(fhicl::ParameterSet const& ps);
 
-  ~TestTool();
+  ~TestTool() override;
 
-  std::string label() { ++m_count; return m_Label; }
+  std::string mytype() const override { return "TestTool"; }
+
+  std::string label() override { ++m_count; return m_Label; }
 
 private:
 

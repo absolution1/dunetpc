@@ -9,6 +9,11 @@
 // The planes are selected automatically when the this object is constructed
 // and after calls to any of the plane selection methods. Call fillData()
 // to construct the vector of wires.
+//
+// To fetch all the wires for a channel with selelector sel:
+//   auto rng = sel.dataMap().equal_range(icha);
+//   for ( auto ient=rng.first; ient!=rng.secon; ++ient) {
+//     const WireSelector::WireInfo& win = *(ient->second);
 
 #ifndef WireSelector_H
 #define WireSelector_H
@@ -57,6 +62,7 @@ public:
     float y2() const { return y + 0.5*length; }
     float z1() const { return z - 0.5*pitch; }
     float z2() const { return z + 0.5*pitch; }
+    float driftSign() const { return driftMax > 0.0 ? 1.0 : -1.0; }
   };
 
   // Class that describes the full set of wires for this selection.

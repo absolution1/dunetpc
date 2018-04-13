@@ -46,7 +46,7 @@ public:
   // Required functions.
   void produce(art::Event & e) override;
   void reconfigure(const fhicl::ParameterSet &pset);
-  void beginJob();
+  void beginJob() override;
 
   void setRootObjects();
 
@@ -207,7 +207,7 @@ bool dune::FelixRawDecoder::_process(
   raw::RawDigit::ADCvector_t v_adc;
   //v_adc.reserve(n_frames*n_channels);
   // Fill the adc vector.
-  typedef std::tuple<uint8_t, uint8_t, uint8_t, unsigned> WireInfo_tuple;
+  //typedef std::tuple<uint8_t, uint8_t, uint8_t, unsigned> WireInfo_tuple; // unused
   for(unsigned ch = 0; ch < n_channels; ++ch) {
     v_adc.clear();
     std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;

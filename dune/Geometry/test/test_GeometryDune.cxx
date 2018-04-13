@@ -317,10 +317,13 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
 
   cout << myname << line << endl;
   cout << "Check wire planes." << endl;
+  const double piOver2 = 0.5*acos(-1.0);
   for ( PlaneID plaid : pgeo->IteratePlaneIDs() ) {
+    const geo::PlaneGeo& gpla = pgeo->Plane(plaid);
     cout << "  Plane " << plaid << endl;
     cout << "    Signal type: " << pgeo->SignalType(plaid) << endl;
     cout << "           View: " << pgeo->View(plaid) << endl;
+    cout << "     Wire angle: " << gpla.ThetaZ() - piOver2 << endl;
     assert( pgeo->SignalType(plaid) == ev.sigType[plaid.Cryostat][plaid.TPC][plaid.Plane] );
     assert( pgeo->View(plaid) == ev.view[plaid.Cryostat][plaid.TPC][plaid.Plane] );
   }

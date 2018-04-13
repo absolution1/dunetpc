@@ -1,5 +1,7 @@
 #include "services_dune.fcl"
 #include "RawDecoder.fcl"
+#include "TPCMonitor.fcl"
+#include "SSPMonitor.fcl"
 
 process_name: DecodeRawTPCMonitor
 
@@ -51,18 +53,12 @@ physics:
 
   analyzers:
   {
-    tpcmonitor: 
-    {
-      module_type:     "TpcMonitor"
-      TPCInputModule:  "tpcrawdecoder"
-      TPCInstanceName: "daq"
-      RebinFactorX:     1
-      RebinFactorY:     10
-    }
+    tpcmonitor: @local::TPCMonitor_params
+    sspmonitor: @local::SSPMonitor_params
   }
 
   produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
-  analysis: [ tpcmonitor ] //Directory for histograms
+  analysis: [ tpcmonitor, sspmonitor ] 
   trigger_paths : [ produce ]
   end_paths: [ analysis ]
 }
