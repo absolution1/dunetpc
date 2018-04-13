@@ -41,7 +41,7 @@ private:
   typedef std::vector<Name> NameVector;
   typedef std::vector<ChannelVector> ChannelVectorVector;
  
-  Index m_size;
+  //Index m_size; // unused
   NameVector m_names;
   ChannelVectorVector m_chanvecs;
 

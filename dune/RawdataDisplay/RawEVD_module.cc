@@ -82,7 +82,7 @@ namespace AnalysisExample{
 
     // the parameters we'll read from the .fcl
     std::string fRawDigitLabel;
-    unsigned int fEvent;
+    //unsigned int fEvent; // unused
 
     // number of time bins for histogram ranges
     unsigned int fNticks;
@@ -99,12 +99,12 @@ namespace AnalysisExample{
 
     unsigned int fNofAPA;
     unsigned int fChansPerAPA;
-    unsigned int fUWireMax;
-    unsigned int fVWireMax;
-    unsigned int fZ0WireMax;
-    unsigned int fZ1WireMax;
+    //unsigned int fUWireMax; // unused
+    //unsigned int fVWireMax; // unused
+    //unsigned int fZ0WireMax; // unused
+    //unsigned int fZ1WireMax; // unused
 
-    unsigned int fMinT, fMaxT, fMaxTimeRange;
+    //unsigned int fMinT, fMaxT, fMaxTimeRange; // unused
 
     art::ServiceHandle<geo::Geometry> fGeom;
 

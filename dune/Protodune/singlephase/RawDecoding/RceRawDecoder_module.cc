@@ -48,7 +48,7 @@ public:
   // Required functions.
   void produce(art::Event & e) override;
   void reconfigure(const fhicl::ParameterSet &pset);
-  void beginJob();
+  void beginJob() override;
 
   void setRootObjects();
 

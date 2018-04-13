@@ -52,7 +52,7 @@
 #include <fstream>
 
 // Maximum number of tracks
-constexpr int kMaxTrack = 1000;
+//constexpr int kMaxTrack = 1000; // unused
 
 namespace MichelReco {
 

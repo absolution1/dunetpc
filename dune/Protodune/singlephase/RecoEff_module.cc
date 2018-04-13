@@ -82,7 +82,7 @@ private:
 
   TTree *fEventTree;
   TTree *fTrkTree;
-  TTree *fHitTree;
+  //TTree *fHitTree; // unused
 
   int fRun, fEvent;
   short fNRecoTracks;
@@ -330,7 +330,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
     // find MC particle which cotributed maximum energy to track t
     int best_id = 0;
     double max_e = 0;
-    std::array< double, 3 > e_inPlane = { 0, 0, 0 };
+    std::array< double, 3 > e_inPlane = {{ 0, 0, 0 }};
     for (auto const & entry : trkID_E)
 	{
         if (entry.second > max_e) // find track ID corresponding to max energy
@@ -382,7 +382,7 @@ void pdune::RecoEff::analyze(art::Event const & evt)
 
             std::vector< sim::IDE > ides = bt_serv->HitToAvgSimIDEs(*h);
 
-            std::array< double, 3 > hitpos = {0, 0, 0};
+            std::array< double, 3 > hitpos = {{0, 0, 0}};
             double hitE = 0;
             for (auto const & ide : ides)
             {

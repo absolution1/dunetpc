@@ -4787,7 +4787,7 @@ if (fSaveTrackInfo) {
         }
 
         //	  for (size_t ical = 0; ical<calos.size(); ++ical){
-        for (size_t ical = calos.size() - 1; ical>=0 && ical <= 1 ; --ical){  //reverse order so that we access info on plane 0 (which is view 0 in real life) first
+        for (size_t ical = calos.size() - 1; ical <= 1 ; --ical){  //reverse order so that we access info on plane 0 (which is view 0 in real life) first
           if (!calos[ical]) continue;
           if (!calos[ical]->PlaneID().isValid) continue;
           int planenum = calos[ical]->PlaneID().Plane;
@@ -5834,8 +5834,6 @@ if (fSaveTrackInfo) {
       }
       return result;
     }
-
-
 
     namespace dune{
 

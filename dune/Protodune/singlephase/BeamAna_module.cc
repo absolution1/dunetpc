@@ -51,7 +51,7 @@ public:
 private:
 
   // Declare member data here.
-  bool fLoadFromDB;
+  //bool fLoadFromDB; // unused
   double  fTimeWindow;
   std::string fCSVFileName;
   std::string fBundleName;

@@ -57,7 +57,7 @@ namespace RecoTrack {
  
     explicit RecoTrack(fhicl::ParameterSet const& parameterSet);
 
-    virtual void beginJob();
+    virtual void beginJob() override;
     virtual void reconfigure(fhicl::ParameterSet const& parameterSet) ;
     virtual void analyze (const art::Event& event) override;
 
@@ -116,7 +116,9 @@ namespace RecoTrack {
     TF1 *f38;
     TF1 *f4;
 
-    TF1 *g31,*g32,*g33,*g34,*g35,*g36,*g37;
+    // for c2: remove unused variables
+    //TF1 *g31,*g32,*g33,*g34,*g35,*g36,*g37;
+    TF1 *g31,*g32;
 
     TH1D* fXHist;
     TH1D* fYHist;
@@ -158,11 +160,15 @@ namespace RecoTrack {
     std::vector<double> hittest8,timetest8;
     std::vector<int> wiretest,timevec;
 
-    double hittimemin;
-    double hittimemax;
+    // for c2: these variables are not currently used
+    //double hittimemin;
+    //double hittimemax;
 
-    double min1,min2,min3,min4,min5,min6,min7;
-    double max1,max2,max3,max4,max5,max6,max7;
+    // for c2: remove unused variables
+    //double min1,min2,min3,min4,min5,min6,min7;
+    //double max1,max2,max3,max4,max5,max6,max7;
+    double min3;
+    double max3;
 
     std::ofstream myfile;
 
