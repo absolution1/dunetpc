@@ -73,7 +73,7 @@ namespace nlana {
     TH1D *peaks_;
     TH1D *areas_;
     TH1D *hit_times_;
-    TH1D *channels_;
+//    TH1D *channels_;  //not used
 
     // histograms, one per channel.  Create them as we discover channels as we read in the data.
 
