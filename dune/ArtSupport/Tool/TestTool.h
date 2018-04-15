@@ -14,7 +14,6 @@
 #include "ITestTool.h"
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
 #include <iostream>
 
 class TestTool : public ITestTool {

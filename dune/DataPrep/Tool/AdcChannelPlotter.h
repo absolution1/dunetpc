@@ -28,13 +28,13 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
 
 class HistogramManager;
 
-class AdcChannelPlotter : AdcChannelViewer {
+class AdcChannelPlotter : AdcChannelTool {
 
 public:
 
