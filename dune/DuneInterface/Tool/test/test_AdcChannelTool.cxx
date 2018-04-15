@@ -41,13 +41,13 @@ AdcChannelDataMap makeAdcData(Index ncha =10) {
 // Tool that modfies data.
 // Sets femb = 100+channel.
 
-class AdcChannelTool_modify : public AdcChannelTool {
+class AdcChannelTool_update : public AdcChannelTool {
 public:
-  DataMap modify(AdcChannelData& acd) const override;
+  DataMap update(AdcChannelData& acd) const override;
 };
   
-DataMap AdcChannelTool_modify::modify(AdcChannelData& acd) const {
-  cout << "AdcChannelTool_modify::modify: Modifying channel " << acd.channel << endl;
+DataMap AdcChannelTool_update::update(AdcChannelData& acd) const {
+  cout << "AdcChannelTool_update::update: Modifying channel " << acd.channel << endl;
   acd.fembID = 100 + acd.channel;
   int fembchan = 1000*acd.fembID + acd.channel;
   std::vector<int> fembchans(1, fembchan);
@@ -80,8 +80,8 @@ int test_AdcChannelTool_default() {
   DataMap ret(111);
 
   cout << myname << line << endl;
-  cout << myname << "Call modify." << endl;
-  ret = act.modify(acd);
+  cout << myname << "Call update." << endl;
+  ret = act.update(acd);
   assert( ret == act.interfaceNotImplemented() );
   ret.print();
 
@@ -92,8 +92,8 @@ int test_AdcChannelTool_default() {
   ret.print();
 
   cout << myname << line << endl;
-  cout << myname << "Call modifyMap." << endl;
-  ret = act.modifyMap(acds);
+  cout << myname << "Call updateMap." << endl;
+  ret = act.updateMap(acds);
   assert( ret == act.interfaceNotImplemented() );
   ret.print();
 
@@ -111,10 +111,10 @@ int test_AdcChannelTool_default() {
 
 //**********************************************************************
 
-// Test with modify.
+// Test with update.
 
-int test_AdcChannelTool_modify() {
-  const string myname = "test_AdcChannelTool_modify: ";
+int test_AdcChannelTool_update() {
+  const string myname = "test_AdcChannelTool_update: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -124,7 +124,7 @@ int test_AdcChannelTool_modify() {
   cout << endl;
   cout << myname << line << endl;
   cout << myname << "Instantiate tool." << endl;
-  AdcChannelTool_modify act;
+  AdcChannelTool_update act;
   Index ncha = 10;
   AdcChannelDataMap acds = makeAdcData(ncha);
   AdcChannelData acd1 = acds[1];
@@ -132,10 +132,10 @@ int test_AdcChannelTool_modify() {
   DataMap ret(111);
 
   cout << myname << line << endl;
-  cout << myname << "Call modify." << endl;
+  cout << myname << "Call update." << endl;
   acd1.channel = 1;
   acd1.fembID = -1;
-  ret = act.modify(acd1);
+  ret = act.update(acd1);
   ret.print();
   assert( ret == 0 );
   assert( acd1.channel == 1 );
@@ -152,8 +152,8 @@ int test_AdcChannelTool_modify() {
   assert( acd1.fembID == 200 );
 
   cout << myname << line << endl;
-  cout << myname << "Call modifyMap." << endl;
-  ret = act.modifyMap(acds);
+  cout << myname << "Call updateMap." << endl;
+  ret = act.updateMap(acds);
   ret.print();
   assert( ! ret );
   for ( const auto& iacd : acds ) {
@@ -186,7 +186,7 @@ int test_AdcChannelTool_modify() {
 
 int main(int argc, char* argv[]) {
   test_AdcChannelTool_default();
-  test_AdcChannelTool_modify();
+  test_AdcChannelTool_update();
   return 0;
 }
 

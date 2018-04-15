@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include "dune/DuneInterface/Tool/AdcChannelViewer.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -61,7 +61,7 @@ int test_AdcSampleFiller(bool useExistingFcl =false) {
   cout << myname << "Fetching tool." << endl;
   auto pasf = tm.getPrivate<AdcChannelViewer>("mytool");
   assert( pasf != nullptr );
-  auto pasfmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  auto pasfmod = tm.getPrivate<AdcChannelTool>("mytool");
   assert( pasfmod != nullptr );
 
   cout << myname << line << endl;

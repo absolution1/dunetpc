@@ -10,7 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include "dune/DuneInterface/Tool/AdcChannelViewer.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -64,7 +64,7 @@ int test_AdcRegularSignalFinder(bool useExistingFcl =false) {
   cout << myname << "Fetching tool." << endl;
   auto psgf = tm.getPrivate<AdcChannelViewer>("mytool");
   assert( psgf != nullptr );
-  auto psgfmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  auto psgfmod = tm.getPrivate<AdcChannelTool>("mytool");
   assert( psgfmod != nullptr );
 
   cout << myname << line << endl;

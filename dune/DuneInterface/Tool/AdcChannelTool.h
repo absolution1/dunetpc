@@ -3,7 +3,7 @@
 // David Adams
 // April 2018
 //
-// Interface for tools that view or modify single objects or
+// Interface for tools that view or update single objects or
 // maps of ADC channel data.
 //
 // All methods return a DataMap object including a status that should be set
@@ -39,17 +39,17 @@ public:
 
   // Modify data for one channel.
   // Default returns error.
-  virtual DataMap modify(AdcChannelData&) const;
+  virtual DataMap update(AdcChannelData&) const;
 
   // View data for one channel.
-  // Default calls modify with a copy of the data and returns the
+  // Default calls update with a copy of the data and returns the
   // DataMap from that call.
   virtual DataMap view(const AdcChannelData& acd) const;
 
   // Modify data for multiple channels.
-  // Default calls modify for each channel and appends the result for each success.
+  // Default calls update for each channel and appends the result for each success.
   // The status is set to the number of failures.
-  virtual DataMap modifyMap(AdcChannelDataMap& acds) const;
+  virtual DataMap updateMap(AdcChannelDataMap& acds) const;
 
   // View data for multiple channels.
   // Default call view for each channel and appends the result for each success.
@@ -63,7 +63,7 @@ public:
 //**********************************************************************
 
 inline
-DataMap AdcChannelTool::modify(AdcChannelData&) const {
+DataMap AdcChannelTool::update(AdcChannelData&) const {
   return DataMap(interfaceNotImplemented());
 }
 
@@ -72,17 +72,17 @@ DataMap AdcChannelTool::modify(AdcChannelData&) const {
 inline
 DataMap AdcChannelTool::view(const AdcChannelData& acd) const {
   AdcChannelData adctmp(acd);
-  return modify(adctmp);
+  return update(adctmp);
 }
 
 //**********************************************************************
 
 inline
-DataMap AdcChannelTool::modifyMap(AdcChannelDataMap& acds) const {
+DataMap AdcChannelTool::updateMap(AdcChannelDataMap& acds) const {
   DataMap ret;
   int nfail = 0;
   for ( AdcChannelDataMap::value_type& iacd : acds ) {
-    DataMap dm = modify(iacd.second);
+    DataMap dm = update(iacd.second);
     if ( dm.status() == interfaceNotImplemented() ) return DataMap(interfaceNotImplemented());
     else if ( dm.status() ) ++nfail;
     else ret += dm;
