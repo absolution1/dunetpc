@@ -54,11 +54,12 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 
 //**********************************************************************
 
-int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpat) const {
+DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   const string myname = "AdcDataPlotter::view: ";
+  DataMap ret;
   if ( acds.size() == 0 ) {
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
-    return 1;
+    return ret.setStatus(1);
   }
   const AdcChannelData& acdFirst = acds.begin()->second;
   const AdcChannelData& acdLast = acds.rbegin()->second;
@@ -91,7 +92,6 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   for ( string* pstr : strs ) {
     string& str = *pstr;
     StringManipulator sman(str);
-    sman.replace("%PAT%", fpat);
     if ( acdFirst.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acdFirst.run);
     else sman.replace("%RUN%", "RunNotFound");
     if ( acdFirst.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acdFirst.subRun);
@@ -150,7 +150,6 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   }
   if ( m_LogLevel > 1 ) {
     cout << myname << "Created plot ";
-    if ( label.size() ) cout << label << " ";
     cout << "for channels " << acds.begin()->first << " - "
                             << acds.rbegin()->first
          << ": " << ofname << endl;
@@ -162,7 +161,7 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     delete pfile;
   }
   oldPalette.setRootPalette();
-  return 0;
+  return ret;
 }
 
 //**********************************************************************

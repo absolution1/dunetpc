@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcDataViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -70,7 +70,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcDataViewer>("mytool");
+  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padv != nullptr );
 
   cout << myname << line << endl;
@@ -116,12 +116,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
       }
       data.sampleUnit = "ke";
     }
-    ostringstream sslab;
-    sslab << "event " << ievt << " plane 3u";
-    string slab = sslab.str();
-    string fpat = slab;
-    for ( char& ch : fpat ) if ( ch == ' ' ) ch = '-';
-    assert( padv->view(datamap, slab, fpat) == 0 );
+    assert( padv->viewMap(datamap) == 0 );
   }
 
   cout << myname << line << endl;

@@ -54,7 +54,7 @@ public:
   // View data for multiple channels.
   // Default call view for each channel and appends the result for each success.
   // The status is set to the number of failures.
-  virtual DataMap viewMap(AdcChannelDataMap& acds) const;
+  virtual DataMap viewMap(const AdcChannelDataMap& acds) const;
 
 };
 
@@ -94,10 +94,10 @@ DataMap AdcChannelTool::modifyMap(AdcChannelDataMap& acds) const {
 //**********************************************************************
 
 inline
-DataMap AdcChannelTool::viewMap(AdcChannelDataMap& acds) const {
+DataMap AdcChannelTool::viewMap(const AdcChannelDataMap& acds) const {
   DataMap ret;
   int nfail = 0;
-  for ( AdcChannelDataMap::value_type& iacd : acds ) {
+  for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     DataMap dm = view(iacd.second);
     if ( dm.status() == interfaceNotImplemented() ) return DataMap(interfaceNotImplemented());
     else if ( dm.status() ) ++nfail;

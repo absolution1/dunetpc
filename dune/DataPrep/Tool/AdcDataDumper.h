@@ -31,10 +31,10 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcDataViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <iostream>
 
-class AdcDataDumper : AdcDataViewer {
+class AdcDataDumper : AdcChannelTool {
 
 public:
 
@@ -42,9 +42,7 @@ public:
 
   ~AdcDataDumper() override;
 
-  int view(const AdcChannelDataMap& acds,
-           std::string label ="",
-           std::string fpat ="") const override;
+  DataMap viewMap(const AdcChannelDataMap& acds) const override;
 
 private:
 

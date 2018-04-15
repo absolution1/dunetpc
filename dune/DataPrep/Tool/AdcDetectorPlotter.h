@@ -44,7 +44,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcDataViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/Geometry/WireSelector.h"
 #include <memory>
@@ -53,7 +53,7 @@ namespace geo {
   class GeometryCore;
 }
 
-class AdcDetectorPlotter : public AdcDataViewer {
+class AdcDetectorPlotter : public AdcChannelTool {
 
 public:
 
@@ -80,10 +80,8 @@ public:
 
   ~AdcDetectorPlotter() override =default;
 
-  // AdcDataViewer tool interface.
-  int view(const AdcChannelDataMap& acds,
-           std::string label ="",
-           std::string fpat ="") const override;
+  // AdcChannelTool interface.
+  DataMap viewMap(const AdcChannelDataMap& acds) const override;
 
   int addChannel(const AdcChannelData& acd) const;
 

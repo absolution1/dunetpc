@@ -23,7 +23,6 @@
 //     %RUN%    --> run number
 //     %SUBRUN% --> subrun number
 //     %EVENT%  --> event number
-//     %PAT%    --> pattern passed in call to view
 //     %CHAN1%  --> First channel number 
 //     %CHAN2%  --> Last channel number 
 
@@ -32,9 +31,9 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcDataViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 
-class AdcDataPlotter : AdcDataViewer {
+class AdcDataPlotter : AdcChannelTool {
 
 public:
 
@@ -42,9 +41,7 @@ public:
 
   ~AdcDataPlotter() override =default;
 
-  int view(const AdcChannelDataMap& acds,
-           std::string label ="",
-           std::string fpat ="") const override;
+  DataMap viewMap(const AdcChannelDataMap& acds) const override;
 
 private:
 
