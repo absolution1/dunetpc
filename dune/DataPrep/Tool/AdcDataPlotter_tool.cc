@@ -57,6 +57,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   const string myname = "AdcDataPlotter::view: ";
   DataMap ret;
+  if ( m_LogLevel >= 2 ) cout << myname << "Creating plot for " << acds.size() << " channels." << endl;
   if ( acds.size() == 0 ) {
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
     return ret.setStatus(1);
