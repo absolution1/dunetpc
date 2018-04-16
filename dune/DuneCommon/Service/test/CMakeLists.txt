@@ -13,6 +13,7 @@ cet_test(test_GeoRopChannelGroupService
   SOURCES
     test_GeoRopChannelGroupService.cxx
   LIBRARIES
+    larcorealg_Geometry
     dune_ArtSupport
 )
 
@@ -20,6 +21,7 @@ cet_test(test_GeoApaChannelGroupService
   SOURCES
     test_GeoApaChannelGroupService.cxx
   LIBRARIES
+    larcorealg_Geometry
     dune_ArtSupport
 )
 
