@@ -21,6 +21,7 @@ services:
  ChannelStatusService:         @local::dunefd_channel_status
  PdspChannelMapService: {
     FileName:         "protoDUNETPCChannelMap_v3.txt"
+    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
     LogLevel:         1
   }
  TFileService: { fileName: "rawtpcmonitor.root" }
