@@ -42,6 +42,7 @@ public:
   ~AdcDataPlotter() override =default;
 
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
+  bool updateWithView() const override { return true; }
 
 private:
 

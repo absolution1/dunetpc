@@ -13,6 +13,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
+#include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/RawDigitPrepService.h"
 #include "dune/DuneInterface/WiredAdcChannelDataMap.h"
@@ -70,7 +71,9 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
   vector<string> snames;
   if ( ! useExistingFcl ) {
     ofstream fout(fclfile.c_str());
-    //fout << "#include \"services_dune.fcl\"" << endl;
+    fout << "#include \"services_dune.fcl\"" << endl;
+    fout << "services:      @local::dune35t_services" << endl;    // Need geometry for wire building.
+    fout << "#include \"tools_dune.fcl\"" << endl;
     fout << "services.AdcWireBuildingService: {" << endl;
     fout << "  service_provider: StandardAdcWireBuildingService" << endl;
     fout << "  LogLevel:       1" << endl;
@@ -78,8 +81,16 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     fout << "services.RawDigitPrepService: {" << endl;
     fout << "  service_provider: ToolBasedRawDigitPrepService" << endl;
     fout << "  LogLevel: 3" << endl;
-    fout << "  DoWires: false" << endl;
-    fout << "  AdcChannelToolNames: [\"digitReader\"]" << endl;
+    fout << "  DoWires: true" << endl;
+    fout << "  AdcChannelToolNames: [" << endl;
+    fout << "    \"digitReader\"," << endl;
+    //fout << "    \"adcChannelDumper\"," << endl;
+    fout << "    \"rawAdcPlotter\"," << endl;
+    fout << "    \"adcSampleFiller\"," << endl;
+    fout << "    \"preparedAdcPlotter\"," << endl;
+    fout << "    \"adcThresholdSignalFinder\"" << endl;
+    //fout << ",    \"adcRoiViewer\"" << endl;
+    fout << "  ]" << endl;
     fout << "}" << endl;
     fout.close();
   }
@@ -98,6 +109,14 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
   assert( ash.loadServices() == 1 );
   ash.print();
 
+  cout << myname << line << endl;
+  cout << myname << "Fetching tool manager." << endl;
+  DuneToolManager* ptm = DuneToolManager::instance(fclfile);
+  assert ( ptm != nullptr );
+  DuneToolManager& tm = *ptm;
+  tm.print();
+  assert( tm.toolNames().size() > 10 );
+
   AdcCount lowbits = 63;
   AdcCount highbits = 4095 - 63;
 
@@ -106,9 +125,10 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
   AdcChannel nchan = 8;
   unsigned int nsig = 64;
   AdcSignalVectorVector sigsin(nchan);
-  float fac = 250.0;
+  float fac = 25.0;
   unsigned int isig_stucklo = 15;
   unsigned int isig_stuckhi = 25;
+  bool doSticky = false;
   // nchan is 8
   AdcSignal peds[8] = {2000.2, 2010.1, 2020.3, 1990.4, 1979.6, 1979.2, 1995.0, 2001.3};
   vector<RawDigit> digs;
@@ -131,8 +151,10 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
       if ( sig > 0.0 ) adc = int(sig+0.5);
       if ( adc > 4095 ) adc = 4095;
       AdcCount adchigh = adc & highbits;
-      if ( isig == isig_stucklo ) adc = adchigh;           // Stuck low bits to zero.
-      if ( isig == isig_stuckhi ) adc = adchigh + lowbits; // Stuck low bits to one.
+      if ( doSticky ) {
+        if ( isig == isig_stucklo ) adc = adchigh;           // Stuck low bits to zero.
+        if ( isig == isig_stuckhi ) adc = adchigh + lowbits; // Stuck low bits to one.
+      }
       adcsin.push_back(adc);
     }
     assert(adcsin.size() == nsig);
@@ -159,8 +181,10 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
       AdcCount adclow = adc & lowbits;
       if ( adc <= 0 ) expflags[isig] = AdcUnderflow;
       else if ( adc >= 4095 ) expflags[isig] = AdcOverflow;
-      else if ( adclow == 0 ) expflags[isig] = AdcStuckOff;
-      else if ( adclow == lowbits ) expflags[isig] = AdcStuckOn;
+      else if ( doSticky ) {
+        if      ( adclow == 0 ) expflags[isig] = AdcStuckOff;
+        else if ( adclow == lowbits ) expflags[isig] = AdcStuckOn;
+      }
     }
     expflagsmap[chan] = expflags;
   }
@@ -183,6 +207,9 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     data.channel = dig.Channel();
     data.digitIndex = idig;
     data.digit = &dig;
+    data.event = 1;
+    data.run = 123;
+    data.subRun = 0;
   }
   std::vector<recob::Wire> wires;
   wires.reserve(nchan);

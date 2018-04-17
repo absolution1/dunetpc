@@ -62,7 +62,13 @@ prepare(AdcChannelDataMap& datamap,
   if ( m_AdcChannelNamedTools.size() ) {
     for ( NamedTool nt : m_AdcChannelNamedTools ) {
       if ( m_LogLevel >= 3 ) cout << myname << "Running tool " << nt.name << endl;
-      nt.tool->updateMap(datamap);
+      DataMap ret = nt.tool->updateMap(datamap);
+      if ( ret ) cout << myname << "WARNING: Tool " << nt.name << " failed with error " << ret.status() << endl;
+      if ( m_LogLevel >= 4 ) {
+        cout << myname << "----------------------------" << endl;
+        ret.print();
+        cout << myname << "----------------------------" << endl;
+      }
     }
   }
   if ( m_DoWires ) {
@@ -84,10 +90,10 @@ print(std::ostream& out, std::string prefix) const {
   if ( m_AdcChannelNamedTools.size() ) {
     cout << prefix << "     ADC channel tools:";
     for ( const NamedTool& nm : m_AdcChannelNamedTools ) {
-       cout << "           " << nm.name << endl;
+       out << prefix << "           " << nm.name << endl;
     }
   } else {
-    cout << prefix << "    No ADC channel tools." << endl;
+    out << prefix << "    No ADC channel tools." << endl;
   }
   return out;
 }

@@ -6,6 +6,14 @@
 // Implementation of service that prepares TPC raw digits for reconstruction.
 // It receives an ADC channel data map, applies a sequence of ADC channel
 // tools and then constructs wires.
+//
+// Confguration parameters.
+//   LogLevel - logging level
+//              0 - errors only
+//              1 - initilization information including configuration
+//              2 - one line per processed map
+//              3 - one line for each step (tool call)
+//              4 - display result from each step
 
 #ifndef ToolBasedRawDigitPrepService_H
 #define ToolBasedRawDigitPrepService_H

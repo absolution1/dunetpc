@@ -71,7 +71,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( iacd.first == AdcChannelData::badChannel ) {
       cout << myname << "WARNING: Channel map has invalid channels. No plot is created." << endl;
     }
-    Tick ntick = iacd.second.samples.size();
+    Tick ntick = isRaw ? iacd.second.raw.size() : iacd.second.samples.size();
     if ( ntick > maxtick ) maxtick = ntick;
   }
   AdcIndex chanFirst = acdFirst.channel;
@@ -81,6 +81,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   if ( tick2 <= tick1 ) {
     tick1 = 0;
     tick2 = maxtick;
+  }
+  if ( tick2 <= tick1 ) {
+    cout << myname << "WARNING: Invalid tick range: (" << tick1 << ", " << tick2 << ")." << endl;
+    cout << myname << "           Configured range: (" << m_FirstTick << ", " << m_LastTick << ")." << endl;
+    cout << myname << "Data size: " << maxtick << " ticks" << endl;
+    return ret.setStatus(2);
   }
   Tick ntick = tick2 - tick1;
   AdcIndex nchan = chanLast + 1 - chanFirst;
@@ -102,9 +108,15 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     sman.replace("%CHAN1%", chanFirst);
     sman.replace("%CHAN2%", chanLast);
   }
-  string szunits =  isRaw ? "(ADC counts)" : acdFirst.sampleUnit;
+  string szunits = "(ADC counts)";
+  if ( ! isRaw ) {
+    szunits = acdFirst.sampleUnit;
+    if ( szunits.find(" ") != string::npos ) szunits = "(" + szunits + ")";
+  }
   htitl += "; Tick; Channel; Signal [" + szunits + "/Tick/Channel]";
   // Create histogram.
+  ret.setInt("ntick", ntick);
+  ret.setInt("nchan", nchan);
   TH2* ph = new TH2F(hname.c_str(), htitl.c_str(), ntick, tick1, tick2, nchan, chanFirst, chanLast+1);
   ph->SetDirectory(nullptr);
   ph->SetStats(0);
@@ -124,8 +136,9 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       ped = acd.pedestal;
       isRawPed = ped != AdcChannelData::badSignal;
     }
+    Tick nsam = isRaw ? raw.size() : sams.size();
     unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
-    for ( Tick isam=0; isam<sams.size(); ++isam, ++ibin ) {
+    for ( Tick isam=0; isam<nsam; ++isam, ++ibin ) {
       unsigned int isig = isam + m_FirstTick;
       if ( isPrep ) {
         if ( isig < sams.size() ) ph->SetBinContent(ibin, sams[isig]);
@@ -139,9 +152,15 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   // Save the original color map.
   RootPalette oldPalette;
   RootPalette::set(m_Palette);
+  const RootPalette* ppal = RootPalette::find(m_Palette);
+  if ( ppal == nullptr ) {
+    cout << myname << "ERROR: Unable to find palette " << m_Palette << endl;
+    return ret.setStatus(3);
+  }
   TPadManipulator man;
   man.add(ph, "colz");
   man.addAxis();
+  man.setFrameFillColor(ppal->colorVector()[0]);
   man.print(ofname);
   if ( 0 ) {
     string line;

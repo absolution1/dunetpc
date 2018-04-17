@@ -43,6 +43,7 @@ public:
   ~AdcRoiViewer() override =default;
 
   DataMap view(const AdcChannelData& acd) const override;
+  bool updateWithView() const override { return true; }
 
 private:
 
