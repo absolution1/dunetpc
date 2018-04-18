@@ -36,6 +36,7 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_HistManager(ps.get<string>("HistManager")),
+  m_RootFileName(ps.get<string>("RootFileName")),
   m_phm(nullptr) {
   const string myname = "AdcPedestalFitter::ctor: ";
   if ( m_HistManager.size() ) {
@@ -47,10 +48,11 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
-    cout << myname << "    LogLevel: " << m_LogLevel << endl;
-    cout << myname << "    HistName: " << m_HistName << endl;
-    cout << myname << "   HistTitle: " << m_HistTitle << endl;
-    cout << myname << " HistManager: " << m_HistManager << endl;
+    cout << myname << "     LogLevel: " << m_LogLevel << endl;
+    cout << myname << "     HistName: " << m_HistName << endl;
+    cout << myname << "    HistTitle: " << m_HistTitle << endl;
+    cout << myname << " RootFileName: " << m_RootFileName << endl;
+    cout << myname << "  HistManager: " << m_HistManager << endl;
   }
 }
 
@@ -131,6 +133,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   string hname = nameReplace(hnameBase, acd);
   string htitl = nameReplace(htitlBase, acd);
+  string fname = nameReplace(m_RootFileName, acd);
   htitl += "; ADC count; # samples";
   unsigned int nadc = 4096;
   unsigned int rebin = 10;
@@ -212,6 +215,13 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   res.setFloat("fitPeakBinFraction", peakBinFraction);
   res.setInt("fitChannel", acd.channel);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
+  if ( fname.size() ) {
+    if ( m_LogLevel >=2 ) cout << myname << "Write histogram " << phf->GetName() << " to " << fname << endl;
+    TFile* pf = TFile::Open(fname.c_str(), "UPDATE");
+    TH1* phfCopy = (TH1*) phf->Clone();
+    phfCopy->Write();
+    delete pf;
+  }
   if ( m_LogLevel >= 3 ) cout << myname << "Exiting..." << endl;
   return res;
 }

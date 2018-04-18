@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+proto_beamana:
+{
+  module_type:          "BeamAna"
+  LoadFromDB: true
+  TimeWindow: 25  # width of time window in seconds
+  CSVFileName: ""
+  BundleName: "DUNE_MC"
+  FixedTime: 100000 # a non-zero value here forces all queries to use the same time
+}
+
+END_PROLOG

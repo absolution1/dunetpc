@@ -10,7 +10,8 @@
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
 //   HistManager: Name of the tool that manages the output histogram.
-//                Right now this is the only way to retrive the fit result.
+//                This is obsolete.
+//   RootFileNmame: If nonblank, histogram is copied to this file.
 // The following subsitutions are made in the names:
 //    %RUN% - run number
 //    %SUBRUN% - event number
@@ -51,6 +52,7 @@ private:
   Name m_HistName;
   Name m_HistTitle;
   Name m_HistManager;
+  Name m_RootFileName;
 
   // Histogram manager.
   HistogramManager* m_phm;

@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+TPCMonitor_params:
+{
+      module_type:     "TpcMonitor"
+      TPCInputModule:  "tpcrawdecoder"
+      TPCInstanceName: "daq"
+      RebinFactorX:     1
+      RebinFactorY:     10
+}
+
+END_PROLOG

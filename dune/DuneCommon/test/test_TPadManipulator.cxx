@@ -37,7 +37,8 @@ int test_TPadManipulator() {
 
   cout << myname << line << endl;
   cout << myname << "Create histogram." << endl;
-  TH1* ph = new TH1F("h1", "My histo", 100, 0, 100);
+  double xmax = 10000;
+  TH1* ph = new TH1F("h1", "My histo; X values; Y value [units]", 100, 0, xmax);
   ph->SetStats(0);
   ph->SetFillColor(2);
   for ( unsigned int ibin=1; ibin<=100; ++ ibin ) {
@@ -61,7 +62,7 @@ int test_TPadManipulator() {
 
   cout << myname << line << endl;
   cout << myname << "Add vertical mod lines." << endl;
-  man.addVerticalModLines(20, 10);
+  man.addVerticalModLines(0.2*xmax, 0.1*xmax);
 
   cout << myname << line << endl;
   cout << myname << "Draw." << endl;

@@ -32,8 +32,8 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 const int nMaxHits    = 500000;
-const int nMaxSimIDEs = 1000000;
-const int nMaxDigs = 4492;
+//const int nMaxSimIDEs = 1000000; // unused
+//const int nMaxDigs = 4492; // unused
 
 enum PType{ kUnknown, kMarl, kAPA, kCPA, kAr39, kNeut, kKryp, kPlon, kRdon , kAr42};
 
@@ -50,8 +50,8 @@ public:
 
   void analyze(art::Event const & evt) override;
   void reconfigure(fhicl::ParameterSet const & p);
-  void beginJob();
-  void endJob();
+  void beginJob() override;
+  void endJob() override;
 
 private:
 
@@ -123,9 +123,9 @@ private:
   int    CCNC;
   int    HitNucleon;
   int    Target;
-  int    MarlSample;
-  double MarlTime;
-  double MarlWeight;
+  std::vector<int>    MarlSample;
+  std::vector<double> MarlTime;
+  std::vector<double> MarlWeight;
   double ENu;
   double ENu_Lep;
   double VertX;
@@ -193,9 +193,9 @@ void SNAna::ResetVariables()
     Hit_NumElectrons[hh] = 0;
   } 
 
-  MarlSample = 0;
-  MarlTime = 0;
-  MarlWeight = 0;
+  MarlSample.clear();
+  MarlTime.clear();
+  MarlWeight.clear();
   ENu = 0;
   ENu_Lep = 0;
   VertX = 0;
@@ -257,9 +257,9 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("CCNC", &CCNC, "CCNC/I");
   fSNAnaTree->Branch("HitNucleon", &HitNucleon, "HitNucleon/I");
   fSNAnaTree->Branch("Target", &Target, "Target/I");
-  fSNAnaTree->Branch("MarlSample", &MarlSample, "MarlSample/I");
-  fSNAnaTree->Branch("MarlTime", &MarlTime, "MarlTime/D");
-  fSNAnaTree->Branch("MarlWeight",  &MarlWeight,  "MarlWeight/D");
+  fSNAnaTree->Branch("MarlSample", &MarlSample);
+  fSNAnaTree->Branch("MarlTime", &MarlTime);
+  fSNAnaTree->Branch("MarlWeight",  &MarlWeight);
   fSNAnaTree->Branch("ENu", &ENu, "ENu/D");
   fSNAnaTree->Branch("Px",  &Px,  "Px/D");
   fSNAnaTree->Branch("Py",  &Py,  "Py/D");
@@ -317,9 +317,9 @@ void SNAna::analyze(art::Event const & evt)
     for (unsigned int j = 0; j < SNTruth.at(i).size(); j++) 
     {
       const sim::SupernovaTruth ThisTr = (*SNTruth.at(i).at(j));
-      MarlTime   = ThisTr.SupernovaTime;
-      MarlWeight = ThisTr.Weight;
-      MarlSample = ThisTr.SamplingMode;
+      MarlTime.push_back(ThisTr.SupernovaTime);
+      MarlWeight.push_back(ThisTr.Weight);
+      MarlSample.push_back(ThisTr.SamplingMode);
     }
   }
   Pnorm = std::sqrt(Px_*Px_+Py_*Py_+Pz_*Pz_);
