@@ -30,6 +30,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_DataType(ps.get<int>("DataType")),
   m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
+  m_FirstChannel(ps.get<unsigned int>("FirstChannel")),
+  m_LastChannel(ps.get<unsigned int>("LastChannel")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
   m_Palette(ps.get<int>("Palette")),
   m_HistName(ps.get<string>("HistName")),
@@ -43,6 +45,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "      DataType: " << m_DataType << endl;
     cout << myname << "     FirstTick: " << m_FirstTick << endl;
     cout << myname << "      LastTick: " << m_LastTick << endl;
+    cout << myname << "  FirstChannel: " << m_FirstChannel << endl;
+    cout << myname << "   LastChannel: " << m_LastChannel << endl;
     cout << myname << "     MaxSignal: " << m_MaxSignal << endl;
     cout << myname << "       Palette: " << m_Palette << endl;
     cout << myname << "      HistName: " << m_HistName << endl;
@@ -74,8 +78,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     Tick ntick = isRaw ? iacd.second.raw.size() : iacd.second.samples.size();
     if ( ntick > maxtick ) maxtick = ntick;
   }
-  AdcIndex chanFirst = acdFirst.channel;
-  AdcIndex chanLast = acdLast.channel;
+  AdcIndex chanFirst = m_FirstChannel;
+  AdcIndex chanLast = m_LastChannel;
+  if ( chanLast <= chanFirst ) {
+    chanFirst = acdFirst.channel;
+    chanLast = acdLast.channel;
+  }
   unsigned long tick1 = m_FirstTick;
   unsigned long tick2 = m_LastTick;
   if ( tick2 <= tick1 ) {
@@ -140,13 +148,15 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
     for ( Tick isam=0; isam<nsam; ++isam, ++ibin ) {
       unsigned int isig = isam + m_FirstTick;
+      float sig = 0.0;
       if ( isPrep ) {
-        if ( isig < sams.size() ) ph->SetBinContent(ibin, sams[isig]);
+        if ( isig < sams.size() ) sig = sams[isig];
       } else if ( isRawPed ) {
-        if ( isig < raw.size() ) ph->SetBinContent(ibin, raw[isig] - ped);
+        if ( isig < raw.size() ) sig = raw[isig] - ped;
       } else {
         cout << myname << "Fill failed for bin " << ibin << endl;
       }
+      ph->SetBinContent(ibin, sig);
     }
   }
   // Save the original color map.

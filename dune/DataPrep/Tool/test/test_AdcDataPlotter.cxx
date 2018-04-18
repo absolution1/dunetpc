@@ -47,6 +47,8 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "    LogLevel: 2" << endl;
     fout << "    FirstTick: 0" << endl;
     fout << "    LastTick: 0" << endl;
+    fout << "    FirstChannel: 0" << endl;
+    fout << "    LastChannel: 0" << endl;
     fout << "    MaxSignal: 10" << endl;
     fout << "    Palette: 1026" << endl;
     fout << "    HistName: \"hadc\"" << endl;

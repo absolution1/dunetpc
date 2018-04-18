@@ -10,6 +10,8 @@
 //   DataType - Which data to plot: 0=prepared, 1=raw-pedestal
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
+//   FirstChannel - First channel to display
+//   LastChannel - Last+1 channel to display
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
 //   HistName - Histogram name (should be unique within Root file)
 //   HistTitle - Histogram title
@@ -51,6 +53,8 @@ private:
   int            m_DataType;
   unsigned long  m_FirstTick;
   unsigned long  m_LastTick;
+  unsigned int   m_FirstChannel;
+  unsigned int   m_LastChannel;
   double         m_MaxSignal;
   int            m_Palette;
   std::string    m_HistName;
