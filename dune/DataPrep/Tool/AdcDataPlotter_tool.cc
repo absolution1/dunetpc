@@ -33,6 +33,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_FirstChannel(ps.get<unsigned int>("FirstChannel")),
   m_LastChannel(ps.get<unsigned int>("LastChannel")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
+  m_ChannelLineSpacing(ps.get<unsigned int>("ChannelLineSpacing")),
   m_Palette(ps.get<int>("Palette")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
@@ -41,18 +42,19 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   const string myname = "AdcDataPlotter::ctor: ";
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
-    cout << myname << "      LogLevel: " << m_LogLevel << endl;
-    cout << myname << "      DataType: " << m_DataType << endl;
-    cout << myname << "     FirstTick: " << m_FirstTick << endl;
-    cout << myname << "      LastTick: " << m_LastTick << endl;
-    cout << myname << "  FirstChannel: " << m_FirstChannel << endl;
-    cout << myname << "   LastChannel: " << m_LastChannel << endl;
-    cout << myname << "     MaxSignal: " << m_MaxSignal << endl;
-    cout << myname << "       Palette: " << m_Palette << endl;
-    cout << myname << "      HistName: " << m_HistName << endl;
-    cout << myname << "     HistTitle: " << m_HistTitle << endl;
-    cout << myname << "  PlotFileName: " << m_PlotFileName << endl;
-    cout << myname << "  RootFileName: " << m_RootFileName << endl;
+    cout << myname << "            LogLevel: " << m_LogLevel << endl;
+    cout << myname << "            DataType: " << m_DataType << endl;
+    cout << myname << "           FirstTick: " << m_FirstTick << endl;
+    cout << myname << "            LastTick: " << m_LastTick << endl;
+    cout << myname << "        FirstChannel: " << m_FirstChannel << endl;
+    cout << myname << "         LastChannel: " << m_LastChannel << endl;
+    cout << myname << "           MaxSignal: " << m_MaxSignal << endl;
+    cout << myname << "  ChannelLineSpacing: " << m_ChannelLineSpacing << endl;
+    cout << myname << "             Palette: " << m_Palette << endl;
+    cout << myname << "            HistName: " << m_HistName << endl;
+    cout << myname << "           HistTitle: " << m_HistTitle << endl;
+    cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "        RootFileName: " << m_RootFileName << endl;
   }
 }
 
@@ -171,6 +173,9 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   man.add(ph, "colz");
   man.addAxis();
   man.setFrameFillColor(ppal->colorVector()[0]);
+  if ( m_ChannelLineSpacing ) {
+    man.addHorizontalModLines(m_ChannelLineSpacing);
+  }
   man.print(ofname);
   if ( 0 ) {
     string line;

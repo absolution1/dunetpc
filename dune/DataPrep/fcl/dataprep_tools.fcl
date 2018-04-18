@@ -97,6 +97,7 @@ tools.preparedAdcPlotter: {
   FirstChannel: 0
   LastChannel:  0
   MaxSignal: 200
+  ChannelLineSpacing: 0
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
@@ -112,6 +113,7 @@ tools.rawAdcPlotter: {
   FirstChannel: 0
   LastChannel:  0
   MaxSignal: 200
+  ChannelLineSpacing: 0
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"

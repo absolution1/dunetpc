@@ -13,6 +13,7 @@
 //   FirstChannel - First channel to display
 //   LastChannel - Last+1 channel to display
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
+//   ChannelLineSpacing - Spacing between horizontal lines (start at 0)
 //   HistName - Histogram name (should be unique within Root file)
 //   HistTitle - Histogram title
 //   PlotFileName - Name for output plot file.
@@ -56,6 +57,7 @@ private:
   unsigned int   m_FirstChannel;
   unsigned int   m_LastChannel;
   double         m_MaxSignal;
+  unsigned int   m_ChannelLineSpacing;
   int            m_Palette;
   std::string    m_HistName;
   std::string    m_HistTitle;
