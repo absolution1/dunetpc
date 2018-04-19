@@ -33,7 +33,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_FirstChannel(ps.get<unsigned int>("FirstChannel")),
   m_LastChannel(ps.get<unsigned int>("LastChannel")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
-  m_ChannelLineSpacing(ps.get<unsigned int>("ChannelLineSpacing")),
+  m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
+  m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
   m_Palette(ps.get<int>("Palette")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
@@ -49,7 +50,15 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "        FirstChannel: " << m_FirstChannel << endl;
     cout << myname << "         LastChannel: " << m_LastChannel << endl;
     cout << myname << "           MaxSignal: " << m_MaxSignal << endl;
-    cout << myname << "  ChannelLineSpacing: " << m_ChannelLineSpacing << endl;
+    cout << myname << "  ChannelLineModulus: " << m_ChannelLineModulus << endl;
+    cout << myname << "  ChannelLinePattern: {";
+    bool first = true;
+    for ( Index icha : m_ChannelLinePattern ) {
+      if ( ! first ) cout << ", ";
+      first = false;
+      cout << icha;
+    }
+    cout << "}" << endl;
     cout << myname << "             Palette: " << m_Palette << endl;
     cout << myname << "            HistName: " << m_HistName << endl;
     cout << myname << "           HistTitle: " << m_HistTitle << endl;
@@ -173,8 +182,16 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   man.add(ph, "colz");
   man.addAxis();
   man.setFrameFillColor(ppal->colorVector()[0]);
-  if ( m_ChannelLineSpacing ) {
-    man.addHorizontalModLines(m_ChannelLineSpacing);
+  if ( m_ChannelLineModulus ) {
+    for ( Index icha : m_ChannelLinePattern ) {
+      man.addHorizontalModLines(m_ChannelLineModulus, icha);
+    }
+  } else {
+    for ( Index icha : m_ChannelLinePattern ) {
+      if ( icha > chanFirst && icha < chanLast ) {
+        man.addHorizontalLine(icha, 1.0, 3);
+      }
+    }
   }
   man.print(ofname);
   if ( 0 ) {

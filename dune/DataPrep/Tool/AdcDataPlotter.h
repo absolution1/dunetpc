@@ -13,7 +13,8 @@
 //   FirstChannel - First channel to display
 //   LastChannel - Last+1 channel to display
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
-//   ChannelLineSpacing - Spacing between horizontal lines (start at 0)
+//   ChannelLineModulus - Repeat spacing for horizontal lines
+//   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
 //   HistTitle - Histogram title
 //   PlotFileName - Name for output plot file.
@@ -28,6 +29,14 @@
 //     %EVENT%  --> event number
 //     %CHAN1%  --> First channel number 
 //     %CHAN2%  --> Last channel number 
+// Drawings may include horizontal lines intended to show boundaries of APAs,
+// FEMBs, wire planes, etc.
+//
+// Lines are draw at N*ChannelLineModulus + ChannelLinePattern[i] for any
+// integer N and any value if i in range of the array which are within
+// the drawn channel range.
+// If ChannelLineModulus is zero, then lines are drawn for the channels in
+// ChannelLinePattern.
 
 #ifndef AdcDataPlotter_H
 #define AdcDataPlotter_H
@@ -35,10 +44,14 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include <vector>
 
 class AdcDataPlotter : AdcChannelTool {
 
 public:
+
+  using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
 
   AdcDataPlotter(fhicl::ParameterSet const& ps);
 
@@ -54,10 +67,11 @@ private:
   int            m_DataType;
   unsigned long  m_FirstTick;
   unsigned long  m_LastTick;
-  unsigned int   m_FirstChannel;
-  unsigned int   m_LastChannel;
+  Index          m_FirstChannel;
+  Index          m_LastChannel;
   double         m_MaxSignal;
-  unsigned int   m_ChannelLineSpacing;
+  Index          m_ChannelLineModulus;
+  IndexVector    m_ChannelLinePattern;
   int            m_Palette;
   std::string    m_HistName;
   std::string    m_HistTitle;

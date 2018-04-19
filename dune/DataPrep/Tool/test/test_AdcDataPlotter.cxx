@@ -50,7 +50,8 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "        FirstChannel: 0" << endl;
     fout << "         LastChannel: 0" << endl;
     fout << "          MaxSignal: 10" << endl;
-    fout << " ChannelLineSpacing:  0" << endl;
+    fout << " ChannelLineModulus:  4" << endl;
+    fout << " ChannelLinePattern:  [1]" << endl;
     fout << "          Palette: 1026" << endl;
     fout << "          HistName: \"hadc\"" << endl;
     fout << "          HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
