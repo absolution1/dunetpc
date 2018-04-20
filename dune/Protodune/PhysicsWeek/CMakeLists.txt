@@ -1,5 +1,6 @@
 
 simple_plugin(MichelHitCounter "module"
+	      larcorealg_Geometry
               larreco_Calorimetry
               larreco_RecoAlg_PMAlg
               larsim_MCCheater_BackTrackerService_service

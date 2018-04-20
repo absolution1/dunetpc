@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcDataViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/Geometry/AdcChannelDataTester.h"
@@ -108,7 +108,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcDataViewer>("mytool");
+  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padv != nullptr );
 
   cout << myname << line << endl;
@@ -150,8 +150,6 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Call tool." << endl;
-  string slab = "my data";
-  string fpat = "mydata";
   assert( nevt == 2 );
   // Loop over events.
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
@@ -166,7 +164,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
       assert( datamap.begin()->second.run == tester.run );
       cout << myname << "Calling tool for event " << ievt << ", group " << igrp
            << ", Nchan = " << datamap.size() << endl;
-      assert( padv->view(datamap, slab, fpat) == 0 );
+      assert( padv->viewMap(datamap) == 0 );
     }
   }
 

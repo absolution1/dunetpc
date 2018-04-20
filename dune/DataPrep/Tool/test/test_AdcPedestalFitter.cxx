@@ -8,8 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -66,14 +65,14 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching histogram manaager." << endl;
-  auto phm = tm.getShared<AdcChannelViewer>("mytool");
+  auto phm = tm.getShared<AdcChannelTool>("mytool");
   assert( phm != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcChannelViewer>("mytool");
+  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padv != nullptr );
-  auto padvmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  auto padvmod = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padvmod != nullptr );
 
   cout << myname << line << endl;

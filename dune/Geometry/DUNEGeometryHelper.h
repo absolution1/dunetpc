@@ -24,6 +24,11 @@ namespace geo
   class GeometryCore;
 }
 
+#if defined __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 // Declaration
 //
 namespace dune {
@@ -52,7 +57,7 @@ private:
   doConfigureChannelMapAlg(fhicl::ParameterSet const& sortingParameters, geo::GeometryCore* geom) override;
   virtual ChannelMapAlgPtr_t doGetChannelMapAlg() const override;
     
-  fhicl::ParameterSet const & fPset;
+  fhicl::ParameterSet const & fPset; 
   std::shared_ptr<geo::ChannelMapAlg> fChannelMap;
 
   // FCL params.
@@ -62,6 +67,9 @@ private:
 };
 
 }  // end dune namespace
+#if defined __clang__
+  #pragma clang diagnostic pop
+#endif
 
 DECLARE_ART_SERVICE_INTERFACE_IMPL(dune::DUNEGeometryHelper, geo::ExptGeoHelperInterface, LEGACY)
 

@@ -45,7 +45,6 @@
 #include "TProfile.h"
 
 // C++ Includes
-#include <map>
 #include <vector>
 #include <algorithm>
 #include <fstream>
@@ -85,7 +84,7 @@ namespace tpc_monitor{
     unsigned int fRun;
     unsigned int fSubRun;
 
-    int NumberOfRCEs;
+    //int NumberOfRCEs; // unused
 
     // TPC
     unsigned int fNUCh;

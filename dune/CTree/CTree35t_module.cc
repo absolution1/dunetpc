@@ -242,9 +242,9 @@ private:
     bool fProcessHits;
     bool fProcessReco;
     bool fProcessOpDet;
-    float fQE;
-    float fWavelengthCutLow;
-    float fWavelengthCutHigh;
+    //float fQE; // unused
+    //float fWavelengthCutLow; // unused
+    //float fWavelengthCutHigh; // unused
     Float_t fWavelength;
     Float_t fTime;
     Int_t fCount;

@@ -28,9 +28,9 @@ namespace geo{
     ChannelMapCRMAlg(fhicl::ParameterSet const& p);
     
     void                     Initialize( GeometryData_t const& geodata ) override;
-    void                     Uninitialize();
-    std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel)     const;
-    unsigned int             Nchannels()                                 const;
+    void                     Uninitialize() override;
+    std::vector<WireID>      ChannelToWire(raw::ChannelID_t channel)     const override;
+    unsigned int             Nchannels()                                 const override;
     /// @brief Returns the number of channels in the specified ROP
     /// @return number of channels in the specified ROP, 0 if non-existent
     /// @todo Needs to be implemented
@@ -44,7 +44,7 @@ namespace geo{
     virtual double WireCoordinate(double YPos, double ZPos,
                                  unsigned int PlaneNo,
                                  unsigned int TPCNo,
-                                 unsigned int cstat) const
+                                 unsigned int cstat) const override
       { return WireCoordinate(YPos, ZPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
     //@}
     

@@ -15,9 +15,9 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 
-class AcdWireReader : AdcChannelDataModifier {
+class AcdWireReader : AdcChannelTool {
 
 public:
 

@@ -107,14 +107,15 @@ void AdcDetectorPlotter::initialize() {
 
 //**********************************************************************
 
-int AdcDetectorPlotter::view(const AdcChannelDataMap& acds, string, string) const {
+DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
   const string myname = "AdcDetectorPlotter::view: ";
+  DataMap ret;
   State& state = *getState();
   if ( m_LogLevel >= 2 ) cout << myname << "Begin call " << state.reportCount
                               << "/" << state.jobCount << "." << endl;
   if ( acds.size() == 0 ) {
     cout << myname << "WARNING: Channel map is empty. No data extracted." << endl;
-    return 1;
+    return ret.setStatus(1);
   }
   const AdcChannelData& acdFirst = acds.begin()->second;
   const AdcChannelData& acdLast = acds.rbegin()->second;
@@ -196,7 +197,7 @@ int AdcDetectorPlotter::view(const AdcChannelDataMap& acds, string, string) cons
   }
   if ( m_LogLevel >= 2 ) cout << myname << "  Printing plot " << state.ofname << endl;
   state.ppad->print(state.ofname);
-  return 0;
+  return ret;
 }
 
 //**********************************************************************
