@@ -46,27 +46,43 @@ public:
 private:
   typedef std::vector<raw::RawDigit> RawDigits;
 
-  std::string _rce_input_label; 
-  std::string _rce_input_container_instance;
-  std::string _rce_input_noncontainer_instance;
-  std::string _felix_input_label; 
-  std::string _felix_input_container_instance;
-  std::string _felix_input_noncontainer_instance;
-  int _rce_fragment_type;
-  //int _felix_fragment_type; // unused
+  // configuration parameters
 
-  std::string _output_label;
-  bool _expect_rce_container_fragments;  
-  bool _expect_felix_container_fragments;
-  bool _drop_RCE_damaged_data;  
-  bool _drop_FELIX_damaged_data;
+  std::string   _rce_input_label; 
+  std::string   _rce_input_container_instance;
+  std::string   _rce_input_noncontainer_instance;
+  std::string   _felix_input_label; 
+  std::string   _felix_input_container_instance;
+  std::string   _felix_input_noncontainer_instance;
+  int           _rce_fragment_type;
+  int           _felix_fragment_type;
+  std::string   _output_label;
+  bool          _expect_rce_container_fragments;  
+  bool          _expect_felix_container_fragments;
+  bool          _enforce_full_channel_count;
+  unsigned int  _full_channel_count;
+  bool          _enforce_same_tick_count;
+  bool          _enforce_full_tick_count;
+  unsigned int  _full_tick_count;
+  bool          _enforce_error_free;
+  bool          _enforce_no_duplicate_channels;
+
+  // flags and state needed for the data integrity enforcement mechanisms
+
+  unsigned int  _tick_count_this_event; // for use in comparing tick counts for all channels
+  bool          _initialized_tick_count_this_event;
+  bool          _discard_data;
+  const unsigned int  _duplicate_channel_checklist_size=15360;
+  bool          _duplicate_channel_checklist[15360]; 
+
+  // internal methods
 
   bool _processRCE(art::Event &evt, RawDigits& raw_digits);
   bool _processFELIX(art::Event &evt, RawDigits& raw_digits);
   bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits);
   bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits);
 
- std::vector<uint16_t> _buffer;
+  std::vector<uint16_t> _buffer;
 };
 
 
@@ -85,8 +101,14 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _output_label = p.get<std::string>("OutputDataLabel");
   _expect_rce_container_fragments = p.get<bool>("ExpectRCEContainerFragments", true);
   _expect_felix_container_fragments = p.get<bool>("ExpectFELIXContainerFragments", false);
-  _drop_RCE_damaged_data = p.get<bool>("DropRCEDamagedData", true);
-  _drop_FELIX_damaged_data = p.get<bool>("DropFELIXDamagedData", true);
+
+  _enforce_full_channel_count = p.get<bool>("EnforceFullChannelCount", false);
+  _full_channel_count = p.get<unsigned int>("FullChannelCount", 15360);
+  _enforce_same_tick_count = p.get<bool>("EnforceSameTickCount",false);
+  _enforce_full_tick_count = p.get<bool>("EnforceFullTickCount",false);
+  _full_tick_count = p.get<unsigned int>("FullTickCount",10000);
+  _enforce_error_free = p.get<bool>("EnforceErrorFree",false);
+  _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
 
   produces<RawDigits>( _output_label ); 
 }
@@ -94,10 +116,33 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
 void PDSPTPCRawDecoder::produce(art::Event &e)
 {
   RawDigits raw_digits;
+
+  _initialized_tick_count_this_event = false;
+  _discard_data = false;
+  if (_enforce_no_duplicate_channels)
+    {
+      for (size_t i=0; i<_duplicate_channel_checklist_size; ++i) _duplicate_channel_checklist[i] = false;
+    }
+  
   _processRCE(e,raw_digits);
   _processFELIX(e,raw_digits);
-  e.put(std::make_unique<decltype(raw_digits)>(std::move(raw_digits)),
-          _output_label);
+
+  if (_enforce_full_channel_count && raw_digits.size() != _full_channel_count) 
+    {
+      LOG_WARNING("PDSPTPCRawDecoder:") << "Wrong Total number of Channels " << raw_digits.size()  
+					<< " which is not " << _full_channel_count << ". Discarding Data";
+      _discard_data = true;
+    }
+
+  if (_discard_data)
+    {
+      RawDigits empty_raw_digits;
+      e.put(std::make_unique<decltype(empty_raw_digits)>(std::move(empty_raw_digits)),_output_label);
+    }
+  else
+    {
+      e.put(std::make_unique<decltype(raw_digits)>(std::move(raw_digits)),_output_label);
+    }
 }
 
 bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
@@ -109,17 +154,17 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
     try { cont_frags->size(); }
     catch(std::exception e) {
       LOG_DEBUG("_processRCE") << "Container TPC/RCE data not found " 
-                                       << "Run: " << evt.run()
-		                       << ", SubRun: " << evt.subRun()
-				       << ", Event: " << evt.event();
+			       << "Run: " << evt.run()
+			       << ", SubRun: " << evt.subRun()
+			       << ", Event: " << evt.event();
       return false;
     }
     //Check that the data is valid
     if(!cont_frags.isValid()){
       LOG_ERROR("_processRCE") << "Container TPC/RCE fragments Not Valid " 
-                                       << "Run: " << evt.run()
-		                       << ", SubRun: " << evt.subRun()
-				       << ", Event: " << evt.event();
+			       << "Run: " << evt.run()
+			       << ", SubRun: " << evt.subRun()
+			       << ", Event: " << evt.event();
       return false;
     }
     
@@ -139,17 +184,17 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
       try { frags->size(); }
       catch(std::exception e) {
 	LOG_DEBUG("_process_RCE_AUX") << "TPC/RCE fragment data not found " 
-					 << "Run: " << evt.run()
-					 << ", SubRun: " << evt.subRun()
-					 << ", Event: " << evt.event();
+				      << "Run: " << evt.run()
+				      << ", SubRun: " << evt.subRun()
+				      << ", Event: " << evt.event();
 	return false;
       }
 
       if(!frags.isValid()){
 	LOG_ERROR("_process_RCE_AUX") << "TPC/RCE fragments Not Valid " 
-					 << "Run: " << evt.run()
-					 << ", SubRun: " << evt.subRun()
-					 << ", Event: " << evt.event();
+				      << "Run: " << evt.run()
+				      << ", SubRun: " << evt.subRun()
+				      << ", Event: " << evt.event();
 	return false;
       }
 
@@ -167,10 +212,13 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
   return true;
 }
 
+// returns true if we want to add to the number of fragments processed.  Separate flag used
+// for data error conditions (_discard_data).
+
 bool PDSPTPCRawDecoder::_process_RCE_AUX(
-					   const artdaq::Fragment& frag, 
-					   RawDigits& raw_digits
-					   )
+					 const artdaq::Fragment& frag, 
+					 RawDigits& raw_digits
+					 )
 {
   // FIXME: Remove hard-coded fragment type
   if((unsigned)frag.type() != 2) return false;
@@ -187,8 +235,34 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
   for (int i = 0; i < rce.size(); ++i)
     {
       auto const * rce_stream = rce.get_stream(i);
-      int n_ch = rce_stream->getNChannels();
-      int n_ticks = rce_stream->getNTicks();
+      size_t n_ch = rce_stream->getNChannels();
+      size_t n_ticks = rce_stream->getNTicks();
+      if (_enforce_full_tick_count && n_ticks != _full_tick_count)
+	{
+	  LOG_WARNING("_process_RCE_AUX:") << "Nticks not the required value: " << n_ticks << " " 
+					   << _full_tick_count << " Discarding Data";
+	  _discard_data = true;
+	  return true; 
+	}
+      if (_enforce_same_tick_count)
+	{
+	  if (!_initialized_tick_count_this_event)
+	    {
+	      _initialized_tick_count_this_event = true;
+	      _tick_count_this_event = n_ticks;
+	    }
+	  else
+	    {
+	      if (n_ticks != _tick_count_this_event)
+		{
+	          LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
+						   << " vs " << _tick_count_this_event << " Discarding Data";
+		  _discard_data = true;
+		  return true;
+		}
+	    }
+	}
+
       auto const identifier = rce_stream->getIdentifier();
       uint32_t crateNumber = identifier.getCrate();
       uint32_t slotNumber = identifier.getSlot();
@@ -212,25 +286,43 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	}
 
       uint16_t* adcs = _buffer.data();
-      rce_stream->getMultiChannelData(adcs);
+      bool sgmcdretcode = rce_stream->getMultiChannelData(adcs);
+      if (_enforce_error_free && !sgmcdretcode)
+	{
+	  LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
+	       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
+	  _discard_data = true;
+	  return true;
+	}
 
       raw::RawDigit::ADCvector_t v_adc;
-      for (int i_ch = 0; i_ch < n_ch; i_ch++)
+      for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
 	  //if(i==0 && i_ch ==0) std::cout<<" ADCs for the the 100 ticks in the 1st channel of the 1st RCE "<<std::endl;
 	  v_adc.clear();
-	  for (int i_tick = 0; i_tick < n_ticks; i_tick++)
+	  for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
 	    {
 	      v_adc.push_back(adcs[i_tick]);
 	    }
 	  adcs += n_ticks;
 
 	  ch_counter++;
-	  int offlineChannel = -1;
-	  offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch);
+	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch);
+	  if (_enforce_no_duplicate_channels)
+	    {
+	      if (offlineChannel < _duplicate_channel_checklist_size)
+		{
+		  if (_duplicate_channel_checklist[offlineChannel])
+		    {
+		      LOG_WARNING("_process_RCE_AUX:") << "Duplicate Channel: " << offlineChannel
+						       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << i_ch << " Discarding Data";
+		      _discard_data = true;
+		      return true;
+		    }
+		}
+	    }
 	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
-	  raw_digits.push_back(raw_digit);
-                
+	  raw_digits.push_back(raw_digit);                
 	}
     }
 
@@ -240,9 +332,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
 {
 
-    // TODO Use LOG_DEBUG
-    LOG_INFO("_processFELIX")
-      << "-------------------- FELIX RawDecoder -------------------";
+  // TODO Use LOG_DEBUG
+  LOG_INFO("_processFELIX")
+    << "-------------------- FELIX RawDecoder -------------------";
 
   unsigned int n_felix_frags = 0;  
 
@@ -253,63 +345,63 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
     try { cont_frags->size(); }
     catch(std::exception e) {
       LOG_DEBUG("_processFELIX") << "Container TPC/FELIX data not found " 
-                                       << "Run: " << evt.run()
-		                       << ", SubRun: " << evt.subRun()
-				       << ", Event: " << evt.event();
+				 << "Run: " << evt.run()
+				 << ", SubRun: " << evt.subRun()
+				 << ", Event: " << evt.event();
       return false;
     }
     //Check that the data is valid
     if(!cont_frags.isValid()){
       LOG_ERROR("_processFELIX") << "Container TPC/FELIX fragments Not Valid " 
-                                       << "Run: " << evt.run()
-		                       << ", SubRun: " << evt.subRun()
-				       << ", Event: " << evt.event();
+				 << "Run: " << evt.run()
+				 << ", SubRun: " << evt.subRun()
+				 << ", Event: " << evt.event();
       return false;
     }
     
     for (auto const& cont : *cont_frags)
-    {
-      artdaq::ContainerFragment cont_frag(cont);
-      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
-	{
-          if (_process_FELIX_AUX(*cont_frag[ii], raw_digits)) ++n_felix_frags;
-	}
-    }
+      {
+	artdaq::ContainerFragment cont_frag(cont);
+	for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+	  {
+	    if (_process_FELIX_AUX(*cont_frag[ii], raw_digits)) ++n_felix_frags;
+	  }
+      }
   }
   else
-  {
-    art::Handle<artdaq::Fragments> frags;
-    evt.getByLabel(_felix_input_label, _felix_input_noncontainer_instance, frags);
-    try { frags->size(); }
-    catch(std::exception e) {
-	LOG_DEBUG("_process_FELIX_AUX") << "TPC/FELIX fragment data not found " 
-					 << "Run: " << evt.run()
-					 << ", SubRun: " << evt.subRun()
-					 << ", Event: " << evt.event();
-	return false;
-
-    }
-
-    //Check that the data is valid
-    if(!frags.isValid()){
-	LOG_ERROR("_process_FELIX_AUX") << "TPC/FELIX fragments Not Valid " 
-					 << "Run: " << evt.run()
-					 << ", SubRun: " << evt.subRun()
-					 << ", Event: " << evt.event();
-	return false;
-    }
-
-    for(auto const& frag: *frags)
     {
-      if (_process_FELIX_AUX(frag, raw_digits)) ++n_felix_frags;
+      art::Handle<artdaq::Fragments> frags;
+      evt.getByLabel(_felix_input_label, _felix_input_noncontainer_instance, frags);
+      try { frags->size(); }
+      catch(std::exception e) {
+	LOG_DEBUG("_process_FELIX_AUX") << "TPC/FELIX fragment data not found " 
+					<< "Run: " << evt.run()
+					<< ", SubRun: " << evt.subRun()
+					<< ", Event: " << evt.event();
+	return false;
+
+      }
+
+      //Check that the data is valid
+      if(!frags.isValid()){
+	LOG_ERROR("_process_FELIX_AUX") << "TPC/FELIX fragments Not Valid " 
+					<< "Run: " << evt.run()
+					<< ", SubRun: " << evt.subRun()
+					<< ", Event: " << evt.event();
+	return false;
+      }
+
+      for(auto const& frag: *frags)
+	{
+	  if (_process_FELIX_AUX(frag, raw_digits)) ++n_felix_frags;
+	}
     }
-  }
 
   LOG_INFO("_processFELIX")
-      << " Processed " << n_felix_frags
-      << " FELIX Fragments, total size of raw digits is now "
-      << raw_digits.size()
-      << " RawDigits.";
+    << " Processed " << n_felix_frags
+    << " FELIX Fragments, total size of raw digits is now "
+    << raw_digits.size()
+    << " RawDigits.";
 
   return true;
 }
@@ -320,10 +412,10 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   //if((unsigned)frag.type() != 2) return false;
 
   LOG_INFO("_process_FELIX_AUX")
-      << "   SequenceID = " << frag.sequenceID()
-      << "   fragmentID = " << frag.fragmentID()
-      << "   fragmentType = " << (unsigned)frag.type()
-      << "   Timestamp =  " << frag.timestamp();
+    << "   SequenceID = " << frag.sequenceID()
+    << "   fragmentID = " << frag.fragmentID()
+    << "   fragmentType = " << (unsigned)frag.type()
+    << "   Timestamp =  " << frag.timestamp();
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   //Load overlay class.
   dune::FelixFragment felix(frag);
@@ -336,13 +428,24 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   //_h_nframes->Fill(n_frames);
   const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// 256
 
+  for (unsigned int iframe=0; iframe<n_frames; ++iframe)
+    {
+      if (_enforce_error_free && ( felix.wib_errors(iframe) != 0) )
+	{
+	  LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felix.wib_errors(iframe)
+					     << " Discarding Data";
+	  _discard_data = true;
+	  return true;
+	}      
+    }
+
   // check optimization of this -- size not reserved
 
   raw::RawDigit::ADCvector_t v_adc;
   //v_adc.reserve(n_frames*n_channels);
   // Fill the adc vector.  
 
-  //typedef std::tuple<uint8_t, uint8_t, uint8_t, unsigned> WireInfo_tuple; // unused
+  typedef std::tuple<uint8_t, uint8_t, uint8_t, unsigned> WireInfo_tuple;
   for(unsigned ch = 0; ch < n_channels; ++ch) {
     v_adc.clear();
     //std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;
@@ -355,10 +458,49 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       // }
       v_adc.push_back(waveform.at(nframe));  
     }
-    int offlineChannel = -1;
-    offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crate, slot, fiber, ch); // FIXME
+    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crate, slot, fiber, ch); 
+
+    if (_enforce_full_tick_count && v_adc.size() != _full_tick_count)
+      {
+	LOG_WARNING("_process_FELIX_AUX:") << "Nticks not the required value: " << v_adc.size() << " " 
+					   << _full_tick_count << " Discarding Data";
+	_discard_data = true;
+	return true; 
+      }
+    if (_enforce_same_tick_count)
+      {
+	if (!_initialized_tick_count_this_event)
+	  {
+	    _initialized_tick_count_this_event = true;
+	    _tick_count_this_event = v_adc.size();
+	  }
+	else
+	  {
+	    if (v_adc.size() != _tick_count_this_event)
+	      {
+		LOG_WARNING("_process_FELIX_AUX:") << "Nticks different for two channel streams: " << v_adc.size() 
+						   << " vs " << _tick_count_this_event << " Discarding Data";
+		_discard_data = true;
+		return true;
+	      }
+	  }
+      }
+    if (_enforce_no_duplicate_channels)
+      {
+	if (offlineChannel < _duplicate_channel_checklist_size)
+	  {
+	    if (_duplicate_channel_checklist[offlineChannel])
+	      {
+		LOG_WARNING("_process_FELIX_AUX:") << "Duplicate Channel: " << offlineChannel
+						   << " c:s:f:ich: " << crate << " " << slot << " " << fiber << " " << ch << " Discarding Data";
+		_discard_data = true;
+		return true;
+	      }
+	  }
+      }
+
     // Push to raw_digits.
-    raw::RawDigit raw_digit(offlineChannel, n_frames, v_adc);
+    raw::RawDigit raw_digit(offlineChannel, v_adc.size(), v_adc);
     raw_digits.push_back(raw_digit);
   }
   return true;

@@ -20,7 +20,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
-
+#include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
 
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/SSPFragment.hh"
@@ -344,6 +344,7 @@ void dune::SSPRawDecoder::endJob(){
 void dune::SSPRawDecoder::produce(art::Event & evt){
 
   art::ServiceHandle<art::TFileService> tFileService;
+  art::ServiceHandle<dune::PdspChannelMapService> channelMap;
 
   //LOG_INFO("SSPRawDecoder") << "-------------------- SSP RawDecoder -------------------";
   // Implementation of required member function here.
@@ -512,12 +513,18 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       
       TH1D* hist=new TH1D("hist","hist",nADC,0,nADC);
       
-      // Get basic information from the header, //added by Jingbo
-      unsigned short     OpChannel   =  (unsigned short)channel;   ///< Derived Optical channel, arbitray number
-      // Initialize the waveform
+      // map the channel number to offline if requested
+
+      unsigned int mappedchannel = channel;
+      if (fUseChannelMap) mappedchannel = channelMap->SSPOfflineChannelFromOnlineChannel(channel);
+
+      // Get information from the header, //added by Jingbo
+            
+      unsigned short     OpChannel   =  (unsigned short) mappedchannel;   ///< Derived Optical channel
       raw::OpDetWaveform Waveform(time, OpChannel, nADC);
       
-      ///> increment over the ADC values
+      ///> copy the waveforms
+
       for(size_t idata = 0; idata < nADC; idata++) {
 	///> get the 'idata-th' ADC value
 	const unsigned short* adc = adcPointer + idata;
@@ -549,7 +556,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       waveforms.emplace_back( Waveform );
       
       // fill the ophit and put it in hits
-      hits.emplace_back( ConstructOpHit(trig, channel) );
+      hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
       
       hist->Delete();
       

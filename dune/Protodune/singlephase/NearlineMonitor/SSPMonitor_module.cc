@@ -32,6 +32,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
 
 // C++ Includes
 #include <memory>
@@ -73,7 +74,7 @@ namespace nlana {
     TH1D *peaks_;
     TH1D *areas_;
     TH1D *hit_times_;
-//    TH1D *channels_;  //not used
+    //TH1D *channels_;
 
     // histograms, one per channel.  Create them as we discover channels as we read in the data.
 
@@ -94,6 +95,9 @@ namespace nlana {
 nlana::SSPMonitor::SSPMonitor(fhicl::ParameterSet const& pset)
   : EDAnalyzer(pset)
 {
+
+  // Get channel map
+  art::ServiceHandle<dune::PdspChannelMapService> channelMap;
 
   fOpDetWaveformModuleLabel = pset.get<std::string>("OpDetWaveformLabel");
   fOpHitModuleLabel = pset.get<std::string>("OpHitLabel");
