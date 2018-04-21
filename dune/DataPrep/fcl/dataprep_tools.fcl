@@ -94,7 +94,11 @@ tools.preparedAdcPlotter: {
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
   FirstTick: 0
   LastTick:  0
+  FirstChannel: 0
+  LastChannel:  0
   MaxSignal: 200
+  ChannelLineModulus: 0
+  ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
@@ -107,7 +111,11 @@ tools.rawAdcPlotter: {
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
   FirstTick: 0
   LastTick:  0
+  FirstChannel: 0
+  LastChannel:  0
   MaxSignal: 200
+  ChannelLineModulus: 0
+  ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"

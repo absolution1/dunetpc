@@ -26,6 +26,7 @@ simple_plugin(StandardRawDigitExtractService   "service"
              )
 
 simple_plugin(ThresholdNoiseRemovalService   "service"
+		larcorealg_Geometry
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -109,6 +110,15 @@ simple_plugin(StandardAdcWireBuildingService "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(ToolBasedRawDigitPrepService   "service"
+                dune_ArtSupport
+                lardataobj_RawData
+                lardataobj_RecoBase
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(StandardRawDigitPrepService   "service"
                 dune_ArtSupport
                 lardataobj_RawData
@@ -119,3 +129,4 @@ simple_plugin(StandardRawDigitPrepService   "service"
              )
 
 add_subdirectory(test)
+

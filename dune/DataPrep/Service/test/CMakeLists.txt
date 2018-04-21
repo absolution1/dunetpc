@@ -79,3 +79,9 @@ cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepServi
     dune_ArtSupport
     lardataobj_RawData
 )
+
+cet_test(test_ToolBasedRawDigitPrepService SOURCES test_ToolBasedRawDigitPrepService.cxx
+  LIBRARIES
+    dune_ArtSupport
+    lardataobj_RawData
+)

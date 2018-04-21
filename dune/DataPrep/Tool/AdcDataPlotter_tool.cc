@@ -30,7 +30,11 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_DataType(ps.get<int>("DataType")),
   m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
+  m_FirstChannel(ps.get<unsigned int>("FirstChannel")),
+  m_LastChannel(ps.get<unsigned int>("LastChannel")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
+  m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
+  m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
   m_Palette(ps.get<int>("Palette")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
@@ -39,26 +43,39 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   const string myname = "AdcDataPlotter::ctor: ";
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
-    cout << myname << "      LogLevel: " << m_LogLevel << endl;
-    cout << myname << "      DataType: " << m_DataType << endl;
-    cout << myname << "     FirstTick: " << m_FirstTick << endl;
-    cout << myname << "      LastTick: " << m_LastTick << endl;
-    cout << myname << "     MaxSignal: " << m_MaxSignal << endl;
-    cout << myname << "       Palette: " << m_Palette << endl;
-    cout << myname << "      HistName: " << m_HistName << endl;
-    cout << myname << "     HistTitle: " << m_HistTitle << endl;
-    cout << myname << "  PlotFileName: " << m_PlotFileName << endl;
-    cout << myname << "  RootFileName: " << m_RootFileName << endl;
+    cout << myname << "            LogLevel: " << m_LogLevel << endl;
+    cout << myname << "            DataType: " << m_DataType << endl;
+    cout << myname << "           FirstTick: " << m_FirstTick << endl;
+    cout << myname << "            LastTick: " << m_LastTick << endl;
+    cout << myname << "        FirstChannel: " << m_FirstChannel << endl;
+    cout << myname << "         LastChannel: " << m_LastChannel << endl;
+    cout << myname << "           MaxSignal: " << m_MaxSignal << endl;
+    cout << myname << "  ChannelLineModulus: " << m_ChannelLineModulus << endl;
+    cout << myname << "  ChannelLinePattern: {";
+    bool first = true;
+    for ( Index icha : m_ChannelLinePattern ) {
+      if ( ! first ) cout << ", ";
+      first = false;
+      cout << icha;
+    }
+    cout << "}" << endl;
+    cout << myname << "             Palette: " << m_Palette << endl;
+    cout << myname << "            HistName: " << m_HistName << endl;
+    cout << myname << "           HistTitle: " << m_HistTitle << endl;
+    cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "        RootFileName: " << m_RootFileName << endl;
   }
 }
 
 //**********************************************************************
 
-int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpat) const {
+DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   const string myname = "AdcDataPlotter::view: ";
+  DataMap ret;
+  if ( m_LogLevel >= 2 ) cout << myname << "Creating plot for " << acds.size() << " channels." << endl;
   if ( acds.size() == 0 ) {
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
-    return 1;
+    return ret.setStatus(1);
   }
   const AdcChannelData& acdFirst = acds.begin()->second;
   const AdcChannelData& acdLast = acds.rbegin()->second;
@@ -69,16 +86,26 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     if ( iacd.first == AdcChannelData::badChannel ) {
       cout << myname << "WARNING: Channel map has invalid channels. No plot is created." << endl;
     }
-    Tick ntick = iacd.second.samples.size();
+    Tick ntick = isRaw ? iacd.second.raw.size() : iacd.second.samples.size();
     if ( ntick > maxtick ) maxtick = ntick;
   }
-  AdcIndex chanFirst = acdFirst.channel;
-  AdcIndex chanLast = acdLast.channel;
+  AdcIndex chanFirst = m_FirstChannel;
+  AdcIndex chanLast = m_LastChannel;
+  if ( chanLast <= chanFirst ) {
+    chanFirst = acdFirst.channel;
+    chanLast = acdLast.channel;
+  }
   unsigned long tick1 = m_FirstTick;
   unsigned long tick2 = m_LastTick;
   if ( tick2 <= tick1 ) {
     tick1 = 0;
     tick2 = maxtick;
+  }
+  if ( tick2 <= tick1 ) {
+    cout << myname << "WARNING: Invalid tick range: (" << tick1 << ", " << tick2 << ")." << endl;
+    cout << myname << "           Configured range: (" << m_FirstTick << ", " << m_LastTick << ")." << endl;
+    cout << myname << "Data size: " << maxtick << " ticks" << endl;
+    return ret.setStatus(2);
   }
   Tick ntick = tick2 - tick1;
   AdcIndex nchan = chanLast + 1 - chanFirst;
@@ -91,7 +118,6 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   for ( string* pstr : strs ) {
     string& str = *pstr;
     StringManipulator sman(str);
-    sman.replace("%PAT%", fpat);
     if ( acdFirst.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acdFirst.run);
     else sman.replace("%RUN%", "RunNotFound");
     if ( acdFirst.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acdFirst.subRun);
@@ -101,9 +127,15 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     sman.replace("%CHAN1%", chanFirst);
     sman.replace("%CHAN2%", chanLast);
   }
-  string szunits =  isRaw ? "(ADC counts)" : acdFirst.sampleUnit;
+  string szunits = "(ADC counts)";
+  if ( ! isRaw ) {
+    szunits = acdFirst.sampleUnit;
+    if ( szunits.find(" ") != string::npos ) szunits = "(" + szunits + ")";
+  }
   htitl += "; Tick; Channel; Signal [" + szunits + "/Tick/Channel]";
   // Create histogram.
+  ret.setInt("ntick", ntick);
+  ret.setInt("nchan", nchan);
   TH2* ph = new TH2F(hname.c_str(), htitl.c_str(), ntick, tick1, tick2, nchan, chanFirst, chanLast+1);
   ph->SetDirectory(nullptr);
   ph->SetStats(0);
@@ -123,24 +155,44 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
       ped = acd.pedestal;
       isRawPed = ped != AdcChannelData::badSignal;
     }
+    Tick nsam = isRaw ? raw.size() : sams.size();
     unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
-    for ( Tick isam=0; isam<sams.size(); ++isam, ++ibin ) {
+    for ( Tick isam=0; isam<nsam; ++isam, ++ibin ) {
       unsigned int isig = isam + m_FirstTick;
+      float sig = 0.0;
       if ( isPrep ) {
-        if ( isig < sams.size() ) ph->SetBinContent(ibin, sams[isig]);
+        if ( isig < sams.size() ) sig = sams[isig];
       } else if ( isRawPed ) {
-        if ( isig < raw.size() ) ph->SetBinContent(ibin, raw[isig] - ped);
+        if ( isig < raw.size() ) sig = raw[isig] - ped;
       } else {
         cout << myname << "Fill failed for bin " << ibin << endl;
       }
+      ph->SetBinContent(ibin, sig);
     }
   }
   // Save the original color map.
   RootPalette oldPalette;
   RootPalette::set(m_Palette);
+  const RootPalette* ppal = RootPalette::find(m_Palette);
+  if ( ppal == nullptr ) {
+    cout << myname << "ERROR: Unable to find palette " << m_Palette << endl;
+    return ret.setStatus(3);
+  }
   TPadManipulator man;
   man.add(ph, "colz");
   man.addAxis();
+  man.setFrameFillColor(ppal->colorVector()[0]);
+  if ( m_ChannelLineModulus ) {
+    for ( Index icha : m_ChannelLinePattern ) {
+      man.addHorizontalModLines(m_ChannelLineModulus, icha);
+    }
+  } else {
+    for ( Index icha : m_ChannelLinePattern ) {
+      if ( icha > chanFirst && icha < chanLast ) {
+        man.addHorizontalLine(icha, 1.0, 3);
+      }
+    }
+  }
   man.print(ofname);
   if ( 0 ) {
     string line;
@@ -150,7 +202,6 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
   }
   if ( m_LogLevel > 1 ) {
     cout << myname << "Created plot ";
-    if ( label.size() ) cout << label << " ";
     cout << "for channels " << acds.begin()->first << " - "
                             << acds.rbegin()->first
          << ": " << ofname << endl;
@@ -162,7 +213,7 @@ int AdcDataPlotter::view(const AdcChannelDataMap& acds, string label, string fpa
     delete pfile;
   }
   oldPalette.setRootPalette();
-  return 0;
+  return ret;
 }
 
 //**********************************************************************

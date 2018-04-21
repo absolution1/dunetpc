@@ -26,8 +26,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
 
@@ -35,7 +34,7 @@ class HistogramManager;
 class TH1;
 
 class AdcUnderflowFlagger
-: public AdcChannelDataModifier {
+: public AdcChannelTool {
 
 public:
 
