@@ -46,6 +46,13 @@ simple_plugin(AdcDetectorPlotter   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcChannelMetric   "tool"
+                dune_DuneCommon
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AcdDigitReader   "tool"
                 dune_DuneCommon
                 lardataobj_RawData
