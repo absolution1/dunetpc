@@ -7,7 +7,7 @@ data_3x1x1_anarootparser:
  EventsPerSubrun:             335
 
  DigitModuleLabel:            "daq"
- HitsModuleLabel:             "trajcluster"
+ HitsModuleLabel:             "dprawhit"
  LArGeantModuleLabel:         "largeant"
  CalDataModuleLabel:          "caldata"
  GenieGenModuleLabel:         "generator"
@@ -17,7 +17,7 @@ data_3x1x1_anarootparser:
  TrackModuleLabel:            [ "pmtrack" ]
  VertexModuleLabel:           [ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
  PandoraNuVertexModuleLabel:  ""
- ClusterModuleLabel:          "trajcluster"
+ ClusterModuleLabel:          "linecluster"
  OpFlashModuleLabel:          "opflash"
  ExternalCounterModuleLabel:    "simcounter"
  MCShowerModuleLabel:         ""          # Don't have in the 35 ton....
