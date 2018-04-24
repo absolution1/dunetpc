@@ -414,9 +414,9 @@
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="483.54"
-      y="447.94"
-      z="723.64" />
+      x="444.14"
+      y="408.54"
+      z="684.24" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
@@ -425,15 +425,15 @@
     </subtraction>
 
     <box name="DetEnclosure" lunit="cm" 
-      x="483.54"
-      y="447.94"
-      z="723.64"/>
+      x="444.14"
+      y="408.54"
+      z="684.24"/>
 
 
     <box name="World" lunit="cm" 
-      x="6483.54" 
-      y="6447.94" 
-      z="6723.64"/>
+      x="6444.14" 
+      y="6408.54" 
+      z="6684.24"/>
 </solids>
 <structure>
 
@@ -597,7 +597,7 @@
     </volume>
 
     <volume name="volSteelSupport">
-      <materialref ref="AirSteelMixture"/>
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
       <solidref ref="SteelSupport"/>
     </volume>
 
