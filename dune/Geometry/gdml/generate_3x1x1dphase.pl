@@ -145,9 +145,9 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness;
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
-$SteelSupport_x  =  20.3;
-$SteelSupport_y  =  20.3;
-$SteelSupport_z  =  20.3; 
+$SteelSupport_x  =  0.6;
+$SteelSupport_y  =  0.6;
+$SteelSupport_z  =  0.6; 
 $FoamPadding     =  102.3;
 $FracMassOfSteel =  0.5; #The steel support is not a solid block, but a mixture of air and steel
 $FracMassOfAir   =  1 - $FracMassOfSteel;
@@ -837,7 +837,7 @@ EOF
     </volume>
 
     <volume name="volSteelSupport">
-      <materialref ref="AirSteelMixture"/>
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
       <solidref ref="SteelSupport"/>
     </volume>
 

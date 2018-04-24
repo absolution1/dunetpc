@@ -123,7 +123,7 @@ DataMap
 AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   const string myname = "AdcPedestalFitter::getPedestal: ";
   DataMap res;
-  if ( m_LogLevel >= 3 ) cout << myname << "Entering..." << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Fitting pedestal for channel " << acd.channel << endl;
   string hnameBase = m_HistName;
   string htitlBase = m_HistTitle;
   Index nsam = acd.raw.size();
@@ -203,7 +203,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   pfinit->SetLineColor(3);
   pfinit->SetLineStyle(2);
   string fopt = "0";
-  if ( m_LogLevel < 2 ) fopt += "WWQB";
+  fopt = "WWB";
+  if ( m_LogLevel < 3 ) fopt += "Q";
   phf->Fit(&fitter, fopt.c_str());
   phf->GetListOfFunctions()->AddLast(pfinit, "0");
   phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);

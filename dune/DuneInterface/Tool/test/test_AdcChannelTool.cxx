@@ -44,6 +44,7 @@ AdcChannelDataMap makeAdcData(Index ncha =10) {
 class AdcChannelTool_update : public AdcChannelTool {
 public:
   DataMap update(AdcChannelData& acd) const override;
+  bool viewWithUpdate() const override { return true; }
 };
   
 DataMap AdcChannelTool_update::update(AdcChannelData& acd) const {
