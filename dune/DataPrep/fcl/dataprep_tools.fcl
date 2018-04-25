@@ -13,10 +13,15 @@
 ################################################################################
 
 # Destination for data prep histograms.
+# This is now (April 2018) obsolete.
 tools.adcHists: {
   tool_type: SimpleHistogramManager
   LogLevel: 1
 }
+
+################################################################################
+# Dumpers.
+################################################################################
 
 # Dump ADC channel contents to the log file.
 tools.adcChannelDumper: {
@@ -26,6 +31,10 @@ tools.adcChannelDumper: {
   NewFile: false
   MaxSample: 100
 }
+
+################################################################################
+# Event displays.
+################################################################################
 
 # Dump raw ADC channel waveform to a histogram.
 tools.adcPlotRaw: {
@@ -178,6 +187,48 @@ tools.preparedAdcDetectorPlotInd2: {
   Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%RUN%-evt%EVENT%-ind2.png"
 }
+
+################################################################################
+# Metric plotters.
+################################################################################
+
+# Pedestal for each channel.
+tools.adcChannelPedestalPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestal
+  FirstChannel: 0
+  LastChannel: 0
+  MetricMin: 0
+  MetricMax: 4096
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  HistName: "hchped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+  PlotFileName: "hchped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+# Pedestal RMS for each channel.
+tools.adcChannelPedestalRmsPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestalRms
+  FirstChannel: 0
+  LastChannel: 0
+  MetricMin: 0
+  MetricMax: 50
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+  PlotFileName: "hchpedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+################################################################################
+# Data prep reconstruction tools.
+################################################################################
 
 # Extract raw data from a digit.
 tools.digitReader: {
