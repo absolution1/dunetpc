@@ -37,6 +37,9 @@
 // the drawn channel range.
 // If ChannelLineModulus is zero, then lines are drawn for the channels in
 // ChannelLinePattern.
+//
+// If FirstChannel < LastChannel, then only channels in that range are displayed
+// and no histogram is produced the passed data has no channels in the range.
 
 #ifndef AdcDataPlotter_H
 #define AdcDataPlotter_H

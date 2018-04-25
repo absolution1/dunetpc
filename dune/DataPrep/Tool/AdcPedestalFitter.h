@@ -7,6 +7,8 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   FitRmsMin: Lower limit for RMS fit range.
+//   FitRmsMax: Upper limit for RMS fit range.
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
 //   HistManager: Name of the tool that manages the output histogram.
@@ -17,6 +19,9 @@
 //    %SUBRUN% - event number
 //    %EVENT% - event number
 //    %CHAN% - channel number
+//
+// If FitRmsMin < FitRmsMax, the the RMS is constrained to the range
+// (FitRmsMin, FitRmsMax) in the fit.
 
 #ifndef AdcPedestalFitter_H
 #define AdcPedestalFitter_H
@@ -48,6 +53,8 @@ private:
 
   // Configuration data.
   int m_LogLevel;
+  float m_FitRmsMin;
+  float m_FitRmsMax;
   Name m_HistName;
   Name m_HistTitle;
   Name m_HistManager;

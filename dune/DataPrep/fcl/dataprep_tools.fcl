@@ -73,6 +73,8 @@ tools.adcPlotRawDist: {
 tools.adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  FitRmsMin:  1.0
+  FitRmsMax: 10.0
   HistName: "adcped_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC pedestal fit for event %EVENT% channel %CHAN%"
   RootFileName: ""
@@ -217,7 +219,7 @@ tools.adcChannelPedestalRmsPlotter: {
   FirstChannel: 0
   LastChannel: 0
   MetricMin: 0
-  MetricMax: 50
+  MetricMax: 11
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
   HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"

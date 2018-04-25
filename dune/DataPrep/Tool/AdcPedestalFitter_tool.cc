@@ -33,6 +33,8 @@ using Index = unsigned int;
 
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_FitRmsMin(ps.get<float>("FitRmsMin")),
+  m_FitRmsMax(ps.get<float>("FitRmsMax")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_HistManager(ps.get<string>("HistManager")),
@@ -199,7 +201,9 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
   fitter.SetParLimits(1, alim1, alim2);
   if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
-  fitter.SetParLimits(2, 3.0, 10.0);
+  if ( m_FitRmsMin < m_FitRmsMax ) {
+    fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
+  }
   TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
   pfinit->SetLineColor(3);
   pfinit->SetLineStyle(2);
@@ -221,6 +225,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( m_LogLevel >=2 ) cout << myname << "Write histogram " << phf->GetName() << " to " << fname << endl;
     TFile* pf = TFile::Open(fname.c_str(), "UPDATE");
     TH1* phfCopy = (TH1*) phf->Clone();
+    phfCopy->GetListOfFunctions()->Clear();
     phfCopy->Write();
     delete pf;
   }

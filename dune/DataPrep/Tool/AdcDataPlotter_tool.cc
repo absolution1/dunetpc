@@ -89,11 +89,18 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     Tick ntick = isRaw ? iacd.second.raw.size() : iacd.second.samples.size();
     if ( ntick > maxtick ) maxtick = ntick;
   }
-  AdcIndex chanFirst = m_FirstChannel;
-  AdcIndex chanLast = m_LastChannel;
-  if ( chanLast <= chanFirst ) {
-    chanFirst = acdFirst.channel;
-    chanLast = acdLast.channel;
+  AdcIndex acdChanFirst = acdFirst.channel;
+  AdcIndex acdChanLast = acdLast.channel;
+  AdcIndex chanFirst = acdChanFirst;
+  AdcIndex chanLast = acdChanLast;
+  if ( m_LastChannel > m_FirstChannel ) {
+    if ( m_FirstChannel > chanFirst ) chanFirst = m_FirstChannel;
+    if ( m_LastChannel <= chanLast ) chanLast = m_LastChannel - 1;
+  }
+  if ( chanLast < chanFirst ) {
+    if ( m_LogLevel >= 3 ) cout << myname << "No channels in view range for data range ("
+                                << acdChanFirst << ", " << acdChanLast << ")" << endl;
+    return ret;
   }
   unsigned long tick1 = m_FirstTick;
   unsigned long tick2 = m_LastTick;
@@ -124,8 +131,8 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     else sman.replace("%SUBRUN%", "SubRunNotFound");
     if ( acdFirst.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acdFirst.event);
     else sman.replace("%EVENT%", "EventNotFound");
-    sman.replace("%CHAN1%", chanFirst);
-    sman.replace("%CHAN2%", chanLast);
+    sman.replace("%CHAN1%", acdChanFirst);
+    sman.replace("%CHAN2%", acdChanLast);
   }
   string szunits = "(ADC counts)";
   if ( ! isRaw ) {
