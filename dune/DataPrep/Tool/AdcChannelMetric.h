@@ -83,7 +83,6 @@ private:
   float          m_MetricMax;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
-  int            m_Palette;
   Name           m_HistName;
   Name           m_HistTitle;
   Name           m_PlotFileName;
