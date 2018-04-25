@@ -43,6 +43,8 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: AdcPedestalFitter" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    FitRmsMin: 1.0" << endl;
+    fout << "    FitRmsMax: 20.0" << endl;
     fout << "    HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
     fout << "    HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
     fout << "    RootFileName: \"adcped.root\"" << endl;
