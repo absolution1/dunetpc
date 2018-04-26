@@ -3,6 +3,7 @@
 #include "AdcPedestalFitter.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
@@ -43,21 +44,26 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   m_RootFileName(ps.get<string>("RootFileName")),
   m_phm(nullptr) {
   const string myname = "AdcPedestalFitter::ctor: ";
+  DuneToolManager* ptm = DuneToolManager::instance();
   if ( m_HistManager.size() ) {
-    DuneToolManager* ptm = DuneToolManager::instance();
     m_phm = ptm->getShared<HistogramManager>(m_HistManager);
     if ( m_phm == nullptr ) {
       cout << myname << "WARNING: Histogram manager not found: " << m_HistManager << endl;
     }
   }
+  string sAdcChannelStringTool = "adcNameManipulator";
+  m_adcChannelStringTool = ptm->getShared<AdcChannelStringTool>(sAdcChannelStringTool);
+  if ( m_adcChannelStringTool == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << sAdcChannelStringTool << endl;
+  }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
-    cout << myname << "     LogLevel: " << m_LogLevel << endl;
-    cout << myname << "     HistName: " << m_HistName << endl;
-    cout << myname << "    HistTitle: " << m_HistTitle << endl;
-    cout << myname << " PlotFileName: " << m_PlotFileName << endl;
-    cout << myname << " RootFileName: " << m_RootFileName << endl;
-    cout << myname << "  HistManager: " << m_HistManager << endl;
+    cout << myname << "       LogLevel: " << m_LogLevel << endl;
+    cout << myname << "       HistName: " << m_HistName << endl;
+    cout << myname << "      HistTitle: " << m_HistTitle << endl;
+    cout << myname << "   PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "   RootFileName: " << m_RootFileName << endl;
+    cout << myname << "    HistManager: " << m_HistManager << endl;
   }
 }
 

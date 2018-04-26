@@ -6,8 +6,8 @@
 // Interface for a tool that builds a string from AdcChannelData and
 // a string pattern and a count.
 
-#ifndef AdcChannelTool_H
-#define AdcChannelTool_H
+#ifndef AdcChannelStringTool_H
+#define AdcChannelStringTool_H
 
 #include "dune/DuneInterface/AdcChannelData.h"
 
