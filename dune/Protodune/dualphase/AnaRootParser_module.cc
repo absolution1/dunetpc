@@ -35,7 +35,7 @@
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 //#include "larsim/MCCheater/BackTrackerService.h"
-//#include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -49,6 +49,7 @@
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
+#include "larreco/RecoAlg/TrajectoryMCSFitter.h" //uBoone fitter
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/T0.h"
@@ -201,8 +202,13 @@ namespace dune {
           Float_t hittrky[10000];
           Float_t hittrkz[10000];
 
+	  Float_t hittrklocaltrackdirectionx[10000];
+	  Float_t hittrklocaltrackdirectiony[10000];
+	  Float_t hittrklocaltrackdirectionz[10000];
+
           Float_t hittrkpitchC[10000];
-          Float_t hittrkdx[10000];
+
+          Float_t hittrkds[10000];
 
           Short_t hittrkchannel[10000];
           Short_t hittrktpc[10000];
@@ -210,8 +216,8 @@ namespace dune {
           Short_t hittrkwire[10000];
           Float_t hittrkpeakT[10000];
           Float_t hittrkchargeintegral[10000];
+	  Float_t hittrkph[10000];
           Float_t hittrkchargesum[10000];
-          Float_t hittrkph[10000];
           Float_t hittrkstarT[10000];
           Float_t hittrkendT[10000];
           Float_t hittrkrms[10000];
@@ -265,6 +271,11 @@ namespace dune {
           TrackData_t<Float_t> trkmomrange;    // track momentum from range using CSDA tables
           TrackData_t<Float_t> trkmommschi2;   // track momentum from multiple scattering Chi2 method
           TrackData_t<Float_t> trkmommsllhd;   // track momentum from multiple scattering LLHD method
+          TrackData_t<Float_t> trkmommscmic;    //TODO comment here
+          TrackData_t<Float_t> trkmommscfwd;    //TODO comment here
+          TrackData_t<Float_t> trkmommscbwd;    //TODO comment here
+          TrackData_t<Float_t> trkmommscllfwd;  //TODO comment here
+          TrackData_t<Float_t> trkmommscllbwd;  //TODO comment here
           TrackData_t<Short_t> trksvtxid;     // Vertex ID associated with the track start
           TrackData_t<Short_t> trkevtxid;     // Vertex ID associated with the track end
           TrackPlaneData_t<Int_t> trkpidpdg;       // particle PID pdg code
@@ -765,6 +776,7 @@ namespace dune {
       std::vector<Float_t>  phi;
       std::vector<Float_t>  theta_xz;
       std::vector<Float_t>  theta_yz;
+
       std::vector<Float_t>  pathlen;
       std::vector<Int_t>    inTPCActive;
       std::vector<Float_t>  StartPointx_tpcAV;
@@ -776,6 +788,8 @@ namespace dune {
       std::vector<Float_t>  StartPx_tpcAV;
       std::vector<Float_t>  StartPy_tpcAV;
       std::vector<Float_t>  StartPz_tpcAV;
+      std::vector<Float_t>  thetastart_tpcAV;
+      std::vector<Float_t>  phistart_tpcAV;
       std::vector<Float_t>  EndPointx_tpcAV;
       std::vector<Float_t>  EndPointy_tpcAV;
       std::vector<Float_t>  EndPointz_tpcAV;
@@ -785,6 +799,9 @@ namespace dune {
       std::vector<Float_t>  EndPx_tpcAV;
       std::vector<Float_t>  EndPy_tpcAV;
       std::vector<Float_t>  EndPz_tpcAV;
+      std::vector<Float_t>  thetaend_tpcAV;
+      std::vector<Float_t>  phiend_tpcAV;
+
       std::vector<Float_t>  pathlen_drifted;
       std::vector<Int_t>    inTPCDrifted;
       std::vector<Float_t>  StartPointx_drifted;
@@ -1226,6 +1243,7 @@ namespace dune {
       //    AnaRootParserDataStruct::RunData_t RunData;
       AnaRootParserDataStruct::SubRunData_t SubRunData;
 
+      int fLogLevel;
       short fEventsPerSubrun;
 
       std::string fDigitModuleLabel;
@@ -1254,6 +1272,7 @@ namespace dune {
       std::vector<std::string> fMCT0FinderLabel;
       std::string fPOTModuleLabel;
       std::string fCosmicClusterTaggerAssocLabel;
+      bool fIsMC; ///< whether to use a permanent buffer (faster, huge memory)
       bool fUseBuffer; ///< whether to use a permanent buffer (faster, huge memory)
       bool fSaveAuxDetInfo; ///< whether to extract and save auxiliary detector data
       bool fSaveCryInfo; ///whether to extract and save CRY particle data
@@ -1282,6 +1301,8 @@ namespace dune {
       bool isCosmics;      ///< if it contains cosmics
       bool fSaveCaloCosmics; ///< save calorimetry information for cosmics
       float fG4minE;         ///< Energy threshold to save g4 particle info
+
+      trkf::TrajectoryMCSFitter fMCSFitter; /// objet holding the configuration of the uBoone MCS fitting alg
 
       double ActiveBounds[6]; // Cryostat boundaries ( neg x, pos x, neg y, pos y, neg z, pos z )
 
@@ -1495,6 +1516,11 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkmomrange.resize(MaxTracks);
   trkmommschi2.resize(MaxTracks);
   trkmommsllhd.resize(MaxTracks);
+  trkmommscmic.resize(MaxTracks);
+  trkmommscfwd.resize(MaxTracks);
+  trkmommscbwd.resize(MaxTracks);
+  trkmommscllfwd.resize(MaxTracks);
+  trkmommscllbwd.resize(MaxTracks);
   trklen.resize(MaxTracks);
   trksvtxid.resize(MaxTracks);
   trkevtxid.resize(MaxTracks);
@@ -1553,8 +1579,12 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   std::fill(hittrky, hittrky + sizeof(hittrky)/sizeof(hittrky[0]), -999.);
   std::fill(hittrkz, hittrkz + sizeof(hittrkz)/sizeof(hittrkz[0]), -999.);
 
+  std::fill(hittrklocaltrackdirectionx, hittrklocaltrackdirectionx + sizeof(hittrklocaltrackdirectionx)/sizeof(hittrklocaltrackdirectionx[0]), -999.);
+  std::fill(hittrklocaltrackdirectiony, hittrklocaltrackdirectiony + sizeof(hittrklocaltrackdirectiony)/sizeof(hittrklocaltrackdirectiony[0]), -999.);
+  std::fill(hittrklocaltrackdirectionz, hittrklocaltrackdirectionz + sizeof(hittrklocaltrackdirectionz)/sizeof(hittrklocaltrackdirectionz[0]), -999.);
   std::fill(hittrkpitchC, hittrkpitchC + sizeof(hittrkpitchC)/sizeof(hittrkpitchC[0]), -999.);
-  std::fill(hittrkdx, hittrkdx + sizeof(hittrkdx)/sizeof(hittrkdx[0]), -999.);
+
+  std::fill(hittrkds, hittrkds + sizeof(hittrkds)/sizeof(hittrkds[0]), -999.);
 
   std::fill(hittrkchannel, hittrkchannel + sizeof(hittrkchannel)/sizeof(hittrkchannel[0]), -999);
   std::fill(hittrktpc, hittrktpc + sizeof(hittrktpc)/sizeof(hittrktpc[0]), -999);
@@ -1562,6 +1592,7 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   std::fill(hittrkwire, hittrkwire + sizeof(hittrkwire)/sizeof(hittrkwire[0]), -999);
   std::fill(hittrkpeakT, hittrkpeakT + sizeof(hittrkpeakT)/sizeof(hittrkpeakT[0]), -999.);
   std::fill(hittrkchargeintegral, hittrkchargeintegral + sizeof(hittrkchargeintegral)/sizeof(hittrkchargeintegral[0]), -999.);
+  std::fill(hittrkph, hittrkph + sizeof(hittrkph)/sizeof(hittrkph[0]), -999.);
   std::fill(hittrkchargesum, hittrkchargesum + sizeof(hittrkchargesum)/sizeof(hittrkchargesum[0]), -999.);
   std::fill(hittrkstarT, hittrkstarT + sizeof(hittrkstarT)/sizeof(hittrkstarT[0]), -999.);
   std::fill(hittrkendT, hittrkendT + sizeof(hittrkendT)/sizeof(hittrkendT[0]), -999.);
@@ -1611,6 +1642,11 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   FillWith(trkmomrange  , -999.);
   FillWith(trkmommschi2 , -999.);
   FillWith(trkmommsllhd , -999.);
+  FillWith(trkmommscmic , -999.);
+  FillWith(trkmommscfwd , -999.);
+  FillWith(trkmommscbwd , -999.);
+  FillWith(trkmommscllfwd , -999.);
+  FillWith(trkmommscllbwd , -999.);
   FillWith(trklen       , -999.);
   FillWith(trksvtxid    , -1);
   FillWith(trkevtxid    , -1);
@@ -1670,209 +1706,245 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   std::string TrackLabel = tracker;
   std::string BranchName;
 
-  BranchName = "NumberOfTracks_" + TrackLabel;
+  BranchName = "NumberOfTracks";
   CreateBranch(BranchName, &ntracks, BranchName + "/S");
   std::string NTracksIndexStr = "[" + BranchName + "]";
 
-  BranchName = "TrackID_" + TrackLabel;
+  BranchName = "TrackID";
   CreateBranch(BranchName, trkId, BranchName + NTracksIndexStr + "/S");
 
-  BranchName = "Track_NumberOfHits_" + TrackLabel;
+  BranchName = "Track_NumberOfHits";
   CreateBranch(BranchName, NHitsPerTrack, BranchName + NTracksIndexStr + "/S");
 
-  BranchName = "Track_Length_" + TrackLabel;
+  BranchName = "Track_Length";
   CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartPoint_X_" + TrackLabel;
+  BranchName = "Track_StartPoint_X";
   CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartPoint_Y_" + TrackLabel;
+  BranchName = "Track_StartPoint_Y";
   CreateBranch(BranchName, trkstarty, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartPoint_Z_" + TrackLabel;
+  BranchName = "Track_StartPoint_Z";
   CreateBranch(BranchName, trkstartz, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartPoint_DistanceToBoundary_" + TrackLabel;
+  BranchName = "Track_StartPoint_DistanceToBoundary";
   CreateBranch(BranchName, trkstartd, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndPoint_X_" + TrackLabel;
+  BranchName = "Track_EndPoint_X";
   CreateBranch(BranchName, trkendx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndPoint_Y_" + TrackLabel;
+  BranchName = "Track_EndPoint_Y";
   CreateBranch(BranchName, trkendy, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndPoint_Z_" + TrackLabel;
+  BranchName = "Track_EndPoint_Z";
   CreateBranch(BranchName, trkendz, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndPoint_DistanceToBoundary_" + TrackLabel;
+  BranchName = "Track_EndPoint_DistanceToBoundary";
   CreateBranch(BranchName, trkendd, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartDirection_Theta_" + TrackLabel;
+  BranchName = "Track_StartDirection_Theta";
   CreateBranch(BranchName, trkstarttheta, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartDirection_Phi_" + TrackLabel;
+  BranchName = "Track_StartDirection_Phi";
   CreateBranch(BranchName, trkstartphi, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartDirection_X_" + TrackLabel;
+  BranchName = "Track_StartDirection_X";
   CreateBranch(BranchName, trkstartdirectionx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartDirection_Y_" + TrackLabel;
+  BranchName = "Track_StartDirection_Y";
   CreateBranch(BranchName, trkstartdirectiony, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_StartDirection_Z_" + TrackLabel;
+  BranchName = "Track_StartDirection_Z";
   CreateBranch(BranchName, trkstartdirectionz, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndDirection_Theta_" + TrackLabel;
+  BranchName = "Track_EndDirection_Theta";
   CreateBranch(BranchName, trkendtheta, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndDirection_Phi_" + TrackLabel;
+  BranchName = "Track_EndDirection_Phi";
   CreateBranch(BranchName, trkendphi, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndDirection_X_" + TrackLabel;
+  BranchName = "Track_EndDirection_X";
   CreateBranch(BranchName, trkenddirectionx, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndDirection_Y_" + TrackLabel;
+  BranchName = "Track_EndDirection_Y";
   CreateBranch(BranchName, trkenddirectiony, BranchName + NTracksIndexStr + "/F");
 
-  BranchName = "Track_EndDirection_Z_" + TrackLabel;
+  BranchName = "Track_EndDirection_Z";
   CreateBranch(BranchName, trkenddirectionz, BranchName + NTracksIndexStr + "/F");
 
 
+
+  //Branches for calculated momentum
+  BranchName = "Track_Momentum";
+  CreateBranch(BranchName, trkmom, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Momentum_Range";
+  CreateBranch(BranchName, trkmomrange, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Momentum_mschi";
+  CreateBranch(BranchName, trkmommschi2, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Momentum_mscmic";
+  CreateBranch(BranchName, trkmommscmic, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Momentum_mscfwd";
+  CreateBranch(BranchName, trkmommscfwd, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Momentum_mscbwd";
+  CreateBranch(BranchName, trkmommscbwd, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Momentum_mscllfwd";
+  CreateBranch(BranchName, trkmommscllfwd, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Momentum_mscllbwd";
+  CreateBranch(BranchName, trkmommscllbwd, BranchName + NTracksIndexStr + "/F");
+
+
   /*
-     BranchName = "trkncosmictags_tagger_" + TrackLabel;
+     BranchName = "trkncosmictags_tagger";
      CreateBranch(BranchName, trkncosmictags_tagger, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkcosmicscore_tagger_" + TrackLabel;
+     BranchName = "trkcosmicscore_tagger";
      CreateBranch(BranchName, trkcosmicscore_tagger, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkcosmictype_tagger_" + TrackLabel;
+     BranchName = "trkcosmictype_tagger";
      CreateBranch(BranchName, trkcosmictype_tagger, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkncosmictags_containmenttagger_" + TrackLabel;
+     BranchName = "trkncosmictags_containmenttagger";
      CreateBranch(BranchName, trkncosmictags_containmenttagger, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkcosmicscore_containmenttagger_" + TrackLabel;
+     BranchName = "trkcosmicscore_containmenttagger";
      CreateBranch(BranchName, trkcosmicscore_containmenttagger, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkcosmictype_containmenttagger_" + TrackLabel;
+     BranchName = "trkcosmictype_containmenttagger";
      CreateBranch(BranchName, trkcosmictype_containmenttagger, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkncosmictags_flashmatch_" + TrackLabel;
+     BranchName = "trkncosmictags_flashmatch";
      CreateBranch(BranchName, trkncosmictags_flashmatch, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkcosmicscore_flashmatch_" + TrackLabel;
+     BranchName = "trkcosmicscore_flashmatch";
      CreateBranch(BranchName, trkcosmicscore_flashmatch, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkcosmictype_flashmatch_" + TrackLabel;
+     BranchName = "trkcosmictype_flashmatch";
      CreateBranch(BranchName, trkcosmictype_flashmatch, BranchName + NTracksIndexStr + "/S");
      */
   /*
-     BranchName = "Track_KineticEnergy_" + TrackLabel;
+     BranchName = "Track_KineticEnergy";
      CreateBranch(BranchName, trkke, BranchName + NTracksIndexStr + "[2]/F");
 
-     BranchName = "Track_Range_" + TrackLabel;
+     BranchName = "Track_Range";
      CreateBranch(BranchName, trkrange, BranchName + NTracksIndexStr + "[2]/F");
      */
   /*
-     BranchName = "trkidtruth_" + TrackLabel;
+     BranchName = "trkidtruth";
      CreateBranch(BranchName, trkidtruth, BranchName + NTracksIndexStr + "[2]/I");
 
-     BranchName = "trkorigin_" + TrackLabel;
+     BranchName = "trkorigin";
      CreateBranch(BranchName, trkorigin, BranchName + NTracksIndexStr + "[2]/S");
 
-     BranchName = "trkpdgtruth_" + TrackLabel;
+     BranchName = "trkpdgtruth";
      CreateBranch(BranchName, trkpdgtruth, BranchName + NTracksIndexStr + "[2]/I");
 
-     BranchName = "trkefftruth_" + TrackLabel;
+     BranchName = "trkefftruth";
      CreateBranch(BranchName, trkefftruth, BranchName + NTracksIndexStr + "[2]/F");
 
-     BranchName = "trkpurtruth_" + TrackLabel;
+     BranchName = "trkpurtruth";
      CreateBranch(BranchName, trkpurtruth, BranchName + NTracksIndexStr + "[2]/F");
      */
-  BranchName = "Track_PitchInViews_" + TrackLabel;
+  BranchName = "Track_PitchInViews";
   CreateBranch(BranchName, trkpitchc, BranchName + NTracksIndexStr + "[2]/F");
 
-  BranchName = "Track_NumberOfHitsPerView_" + TrackLabel;
+  BranchName = "Track_NumberOfHitsPerView";
   CreateBranch(BranchName, ntrkhitsperview, BranchName + NTracksIndexStr + "[2]/S");
 
 
   /*
-     BranchName = "trkresrg_" + TrackLabel;
+     BranchName = "trkresrg";
      CreateBranch(BranchName, trkresrg, BranchName + "[no_hits]/F");
      */
 /*
-  BranchName = "Track_TPC_" + TrackLabel;
+  BranchName = "Track_TPC";
   CreateBranch(BranchName, trktpc2, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_dEdx_" + TrackLabel;
+  BranchName = "Track_dEdx";
   CreateBranch(BranchName, trkdedx2, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_dQdx_" + TrackLabel;
+  BranchName = "Track_dQdx";
   CreateBranch(BranchName, trkdqdx2, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_HitX_" + TrackLabel;
+  BranchName = "Track_HitX";
   CreateBranch(BranchName, trkx2, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_HitY_" + TrackLabel;
+  BranchName = "Track_HitY";
   CreateBranch(BranchName, trky2, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_HitZ_" + TrackLabel;
+  BranchName = "Track_HitZ";
   CreateBranch(BranchName, trkz2, BranchName + "[no_hits]/F");
 */
 //////////// new arrays ///////////////////////////
 
-  BranchName = "Track_Hit_X_" + TrackLabel;
+  BranchName = "Track_Hit_X";
   CreateBranch(BranchName, hittrkx, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_Y_" + TrackLabel;
+  BranchName = "Track_Hit_Y";
   CreateBranch(BranchName, hittrky, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_Z_" + TrackLabel;
+  BranchName = "Track_Hit_Z";
   CreateBranch(BranchName, hittrkz, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_dx_LocalTrackDirection_" + TrackLabel;
+  BranchName = "Track_Hit_LocalTrackDirection_X";
+  CreateBranch(BranchName, hittrklocaltrackdirectionx, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_LocalTrackDirection_Y";
+  CreateBranch(BranchName, hittrklocaltrackdirectiony, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_LocalTrackDirection_Z";
+  CreateBranch(BranchName, hittrklocaltrackdirectionz, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_ds_LocalTrackDirection";
   CreateBranch(BranchName, hittrkpitchC, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_dx_3DPosition_" + TrackLabel;
-  CreateBranch(BranchName, hittrkdx, BranchName + "[no_hits]/F");
+  BranchName = "Track_Hit_ds_3DPosition";
+  CreateBranch(BranchName, hittrkds, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_TPC_" + TrackLabel;
+  BranchName = "Track_Hit_TPC";
   CreateBranch(BranchName, hittrktpc, BranchName + "[no_hits]/S");
 
-  BranchName = "Track_Hit_View_" + TrackLabel;
+  BranchName = "Track_Hit_View";
   CreateBranch(BranchName, hittrkview, BranchName + "[no_hits]/S");
 
-  BranchName = "Track_Hit_Channel_" + TrackLabel;
+  BranchName = "Track_Hit_Channel";
   CreateBranch(BranchName, hittrkchannel, BranchName + "[no_hits]/S");
 
-//  BranchName = "Track_Hit_Wire_" + TrackLabel;
+//  BranchName = "Track_Hit_Wire";
 //  CreateBranch(BranchName, hittrkwire, BranchName + "[no_hits]/S");
 
-  BranchName = "Track_Hit_PeakTime_" + TrackLabel;
+  BranchName = "Track_Hit_PeakTime";
   CreateBranch(BranchName, hittrkpeakT, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_ChargeSummedADC_" + TrackLabel;
+  BranchName = "Track_Hit_ChargeSummedADC";
   CreateBranch(BranchName, hittrkchargesum, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_ChargeIntegral_" + TrackLabel;
+  BranchName = "Track_Hit_ChargeIntegral";
   CreateBranch(BranchName, hittrkchargeintegral, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_PeakHeight_" + TrackLabel;
+  BranchName = "Track_Hit_Amplitude";
   CreateBranch(BranchName, hittrkph, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_StartTime_" + TrackLabel;
+  BranchName = "Track_Hit_StartTime";
   CreateBranch(BranchName, hittrkstarT, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_EndTime_" + TrackLabel;
+  BranchName = "Track_Hit_EndTime";
   CreateBranch(BranchName, hittrkendT, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_Width_" + TrackLabel;
+  BranchName = "Track_Hit_Width";
   CreateBranch(BranchName, hittrkrms, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_GoodnessOfFit_" + TrackLabel;
+  BranchName = "Track_Hit_GoodnessOfFit";
   CreateBranch(BranchName, hittrkgoddnessofFit, BranchName + "[no_hits]/F");
 
-  BranchName = "Track_Hit_Multiplicity_" + TrackLabel;
+  BranchName = "Track_Hit_Multiplicity";
   CreateBranch(BranchName, hittrkmultiplicity, BranchName + "[no_hits]/S");
 
 
@@ -1883,116 +1955,116 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
 
   /*
      if (!isCosmics){
-     BranchName = "Track_dEdx_" + TrackLabel;
+     BranchName = "Track_dEdx";
      CreateBranch(BranchName, trkdedx, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "/F");
 
-     BranchName = "Track_dQdx_" + TrackLabel;
+     BranchName = "Track_dQdx";
      CreateBranch(BranchName, trkdqdx, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "/F");
 
-     BranchName = "trkresrg_" + TrackLabel;
+     BranchName = "trkresrg";
      CreateBranch(BranchName, trkresrg, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "/F");
 
-     BranchName = "Track_TPC_" + TrackLabel;
+     BranchName = "Track_TPC";
      CreateBranch(BranchName, trktpc, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "/I");
 
-     BranchName = "Track_XYZ_" + TrackLabel;
+     BranchName = "Track_XYZ";
      CreateBranch(BranchName, trkxyz, BranchName + NTracksIndexStr + "[2]" + MaxTrackHitsIndexStr + "[3]" + "/F");
      }
      */
 
   /*
-     BranchName = "trkflashT0_" + TrackLabel;
+     BranchName = "trkflashT0";
      CreateBranch(BranchName, trkflashT0, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trktrueT0_" + TrackLabel;
+     BranchName = "trktrueT0";
      CreateBranch(BranchName, trktrueT0, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkg4id_" + TrackLabel;
+     BranchName = "trkg4id";
      CreateBranch(BranchName, trkg4id, BranchName + NTracksIndexStr + "/I");
 
-     BranchName = "trkorig_" + TrackLabel;
+     BranchName = "trkorig";
      CreateBranch(BranchName, trkorig, BranchName + NTracksIndexStr + "/I");
 
-     BranchName = "trkpurity_" + TrackLabel;
+     BranchName = "trkpurity";
      CreateBranch(BranchName, trkpurity, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkcompleteness_" + TrackLabel;
+     BranchName = "trkcompleteness";
      CreateBranch(BranchName, trkcompleteness, BranchName + NTracksIndexStr + "/F");
      */
 
   /*
 
 
-     BranchName = "trkthetaxz_" + TrackLabel;
+     BranchName = "trkthetaxz";
      CreateBranch(BranchName, trkthetaxz, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkthetayz_" + TrackLabel;
+     BranchName = "trkthetayz";
      CreateBranch(BranchName, trkthetayz, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkmom_" + TrackLabel;
+     BranchName = "trkmom";
      CreateBranch(BranchName, trkmom, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkmomrange_" + TrackLabel;
+     BranchName = "trkmomrange";
      CreateBranch(BranchName, trkmomrange, BranchName + NTracksIndexStr + "/F");
      */
   /*
-     BranchName = "trkmommschi2_" + TrackLabel;
+     BranchName = "trkmommschi2";
      CreateBranch(BranchName, trkmommschi2, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkmommsllhd_" + TrackLabel;
+     BranchName = "trkmommsllhd";
      CreateBranch(BranchName, trkmommsllhd, BranchName + NTracksIndexStr + "/F");
      */
 
   /*
-     BranchName = "trksvtxid_" + TrackLabel;
+     BranchName = "trksvtxid";
      CreateBranch(BranchName, trksvtxid, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkevtxid_" + TrackLabel;
+     BranchName = "trkevtxid";
      CreateBranch(BranchName, trkevtxid, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkpidmvamu_" + TrackLabel;
+     BranchName = "trkpidmvamu";
      CreateBranch(BranchName, trkpidmvamu, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkpidmvae_" + TrackLabel;
+     BranchName = "trkpidmvae";
      CreateBranch(BranchName, trkpidmvae, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkpidmvapich_" + TrackLabel;
+     BranchName = "trkpidmvapich";
      CreateBranch(BranchName, trkpidmvapich, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkpidmvaphoton_" + TrackLabel;
+     BranchName = "trkpidmvaphoton";
      CreateBranch(BranchName, trkpidmvaphoton, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkpidmvapr_" + TrackLabel;
+     BranchName = "trkpidmvapr";
      CreateBranch(BranchName, trkpidmvapr, BranchName + NTracksIndexStr + "/F");
 
-     BranchName = "trkpidpdg_" + TrackLabel;
+     BranchName = "trkpidpdg";
      CreateBranch(BranchName, trkpidpdg, BranchName + NTracksIndexStr + "[2]/I");
 
-     BranchName = "trkpidchi_" + TrackLabel;
+     BranchName = "trkpidchi";
      CreateBranch(BranchName, trkpidchi, BranchName + NTracksIndexStr + "[2]/F");
 
-     BranchName = "trkpidchipr_" + TrackLabel;
+     BranchName = "trkpidchipr";
      CreateBranch(BranchName, trkpidchipr, BranchName + NTracksIndexStr + "[2]/F");
 
-     BranchName = "trkpidchika_" + TrackLabel;
+     BranchName = "trkpidchika";
      CreateBranch(BranchName, trkpidchika, BranchName + NTracksIndexStr + "[2]/F");
 
-     BranchName = "trkpidchipi_" + TrackLabel;
+     BranchName = "trkpidchipi";
      CreateBranch(BranchName, trkpidchipi, BranchName + NTracksIndexStr + "[2]/F");
 
-     BranchName = "trkpidchimu_" + TrackLabel;
+     BranchName = "trkpidchimu";
      CreateBranch(BranchName, trkpidchimu, BranchName + NTracksIndexStr + "[2]/F");
 
-     BranchName = "trkpidpida_" + TrackLabel;
+     BranchName = "trkpidpida";
      CreateBranch(BranchName, trkpidpida, BranchName + NTracksIndexStr + "[2]/F");
 
-     BranchName = "trkpidbestview_" + TrackLabel;
+     BranchName = "trkpidbestview";
      CreateBranch(BranchName, trkpidbestplane, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkhasPFParticle_" + TrackLabel;
+     BranchName = "trkhasPFParticle";
      CreateBranch(BranchName, trkhasPFParticle, BranchName + NTracksIndexStr + "/S");
 
-     BranchName = "trkPFParticleID_" + TrackLabel;
+     BranchName = "trkPFParticleID";
      CreateBranch(BranchName, trkPFParticleID, BranchName + NTracksIndexStr + "/S");
      */
 } // dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses()
@@ -2537,6 +2609,7 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   FillWith(phi, -999.);
   FillWith(theta_xz, -999.);
   FillWith(theta_yz, -999.);
+
   FillWith(pathlen, -999.);
   FillWith(inTPCActive, -9999);
   FillWith(StartPointx_tpcAV, -999.);
@@ -2548,6 +2621,8 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   FillWith(StartPx_tpcAV, -999.);
   FillWith(StartPy_tpcAV, -999.);
   FillWith(StartPz_tpcAV, -999.);
+  FillWith(thetastart_tpcAV, -999.);
+  FillWith(phistart_tpcAV, -999.);
   FillWith(EndPointx_tpcAV, -999.);
   FillWith(EndPointy_tpcAV, -999.);
   FillWith(EndPointz_tpcAV, -999.);
@@ -2557,6 +2632,9 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   FillWith(EndPx_tpcAV, -999.);
   FillWith(EndPy_tpcAV, -999.);
   FillWith(EndPz_tpcAV, -999.);
+  FillWith(thetaend_tpcAV, -999.);
+  FillWith(phiend_tpcAV, -999.);
+
   FillWith(pathlen_drifted, -999.);
   FillWith(inTPCDrifted, -9999);
   FillWith(StartPointx_drifted, -999.);
@@ -2735,6 +2813,7 @@ void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
   phi.resize(MaxGEANTparticles);
   theta_xz.resize(MaxGEANTparticles);
   theta_yz.resize(MaxGEANTparticles);
+
   pathlen.resize(MaxGEANTparticles);
   inTPCActive.resize(MaxGEANTparticles);
   StartPointx_tpcAV.resize(MaxGEANTparticles);
@@ -2746,6 +2825,8 @@ void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
   StartPx_tpcAV.resize(MaxGEANTparticles);
   StartPy_tpcAV.resize(MaxGEANTparticles);
   StartPz_tpcAV.resize(MaxGEANTparticles);
+  thetastart_tpcAV.resize(MaxGEANTparticles);
+  phistart_tpcAV.resize(MaxGEANTparticles);
   EndPointx_tpcAV.resize(MaxGEANTparticles);
   EndPointy_tpcAV.resize(MaxGEANTparticles);
   EndPointz_tpcAV.resize(MaxGEANTparticles);
@@ -2755,6 +2836,9 @@ void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
   EndPx_tpcAV.resize(MaxGEANTparticles);
   EndPy_tpcAV.resize(MaxGEANTparticles);
   EndPz_tpcAV.resize(MaxGEANTparticles);
+  thetaend_tpcAV.resize(MaxGEANTparticles);
+  phiend_tpcAV.resize(MaxGEANTparticles);
+
   pathlen_drifted.resize(MaxGEANTparticles);
   inTPCDrifted.resize(MaxGEANTparticles);
   StartPointx_drifted.resize(MaxGEANTparticles);
@@ -2981,7 +3065,7 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("Hit_PeakTime",hit_peakT,"hit_peakT[no_hits]/F");
     CreateBranch("Hit_ChargeSummedADC",hit_chargesum,"hit_chargesum[no_hits]/F");
     CreateBranch("Hit_ChargeIntegral",hit_chargeintegral,"hit_chargeintegral[no_hits]/F");
-    CreateBranch("Hit_PeakHeight",hit_ph,"hit_ph[no_hits]/F");
+    CreateBranch("Hit_Amplitude",hit_ph,"hit_ph[no_hits]/F");
     CreateBranch("Hit_StartTime",hit_startT,"hit_startT[no_hits]/F");
     CreateBranch("Hit_EndTime",hit_endT,"hit_endT[no_hits]/F");
     CreateBranch("Hit_Width",hit_rms,"hit_rms[no_hits]/F");
@@ -3199,52 +3283,64 @@ if (hasPFParticleInfo()){
    CreateBranch("proto_pdg",proto_pdg,"proto_pdg[proto_no_primaries]/I");
    }
    */
-/*
+
    if (hasGeantInfo()){
-   CreateBranch("no_primaries",&no_primaries,"no_primaries/I");
-   CreateBranch("geant_list_size",&geant_list_size,"geant_list_size/I");
-   CreateBranch("geant_list_size_in_tpcAV",&geant_list_size_in_tpcAV,"geant_list_size_in_tpcAV/I");
-   CreateBranch("pdg",pdg,"pdg[geant_list_size]/I");
-   CreateBranch("status",status,"status[geant_list_size]/I");
-   CreateBranch("Mass",Mass,"Mass[geant_list_size]/F");
-   CreateBranch("Eng",Eng,"Eng[geant_list_size]/F");
-   CreateBranch("EndE",EndE,"EndE[geant_list_size]/F");
-   CreateBranch("Px",Px,"Px[geant_list_size]/F");
-   CreateBranch("Py",Py,"Py[geant_list_size]/F");
-   CreateBranch("Pz",Pz,"Pz[geant_list_size]/F");
-   CreateBranch("P",P,"P[geant_list_size]/F");
-   CreateBranch("StartPointx",StartPointx,"StartPointx[geant_list_size]/F");
-   CreateBranch("StartPointy",StartPointy,"StartPointy[geant_list_size]/F");
-   CreateBranch("StartPointz",StartPointz,"StartPointz[geant_list_size]/F");
-   CreateBranch("StartT",StartT,"StartT[geant_list_size]/F");
-   CreateBranch("EndPointx",EndPointx,"EndPointx[geant_list_size]/F");
-   CreateBranch("EndPointy",EndPointy,"EndPointy[geant_list_size]/F");
-   CreateBranch("EndPointz",EndPointz,"EndPointz[geant_list_size]/F");
-   CreateBranch("EndT",EndT,"EndT[geant_list_size]/F");
-   CreateBranch("theta",theta,"theta[geant_list_size]/F");
-   CreateBranch("phi",phi,"phi[geant_list_size]/F");
-   CreateBranch("theta_xz",theta_xz,"theta_xz[geant_list_size]/F");
-   CreateBranch("theta_yz",theta_yz,"theta_yz[geant_list_size]/F");
-   CreateBranch("pathlen",pathlen,"pathlen[geant_list_size]/F");
-   CreateBranch("inTPCActive",inTPCActive,"inTPCActive[geant_list_size]/I");
-   CreateBranch("StartPointx_tpcAV",StartPointx_tpcAV,"StartPointx_tpcAV[geant_list_size]/F");
-   CreateBranch("StartPointy_tpcAV",StartPointy_tpcAV,"StartPointy_tpcAV[geant_list_size]/F");
-   CreateBranch("StartPointz_tpcAV",StartPointz_tpcAV,"StartPointz_tpcAV[geant_list_size]/F");
-   CreateBranch("StartT_tpcAV",StartT_tpcAV,"StartT_tpcAV[geant_list_size]/F");
-   CreateBranch("StartE_tpcAV",StartE_tpcAV,"StartE_tpcAV[geant_list_size]/F");
-   CreateBranch("StartP_tpcAV",StartP_tpcAV,"StartP_tpcAV[geant_list_size]/F");
-   CreateBranch("StartPx_tpcAV",StartPx_tpcAV,"StartPx_tpcAV[geant_list_size]/F");
-   CreateBranch("StartPy_tpcAV",StartPy_tpcAV,"StartPy_tpcAV[geant_list_size]/F");
-   CreateBranch("StartPz_tpcAV",StartPz_tpcAV,"StartPz_tpcAV[geant_list_size]/F");
-   CreateBranch("EndPointx_tpcAV",EndPointx_tpcAV,"EndPointx_tpcAV[geant_list_size]/F");
-   CreateBranch("EndPointy_tpcAV",EndPointy_tpcAV,"EndPointy_tpcAV[geant_list_size]/F");
-   CreateBranch("EndPointz_tpcAV",EndPointz_tpcAV,"EndPointz_tpcAV[geant_list_size]/F");
-   CreateBranch("EndT_tpcAV",EndT_tpcAV,"EndT_tpcAV[geant_list_size]/F");
-   CreateBranch("EndE_tpcAV",EndE_tpcAV,"EndE_tpcAV[geant_list_size]/F");
-   CreateBranch("EndP_tpcAV",EndP_tpcAV,"EndP_tpcAV[geant_list_size]/F");
-   CreateBranch("EndPx_tpcAV",EndPx_tpcAV,"EndPx_tpcAV[geant_list_size]/F");
-   CreateBranch("EndPy_tpcAV",EndPy_tpcAV,"EndPy_tpcAV[geant_list_size]/F");
-   CreateBranch("EndPz_tpcAV",EndPz_tpcAV,"EndPz_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_NumberOfParticles",&geant_list_size,"geant_list_size/I");
+   CreateBranch("MCTruth_NumberOfParticles_TPCAV",&geant_list_size_in_tpcAV,"geant_list_size_in_tpcAV/I");
+   CreateBranch("MCTruth_NumberOfParticles_Primaries",&no_primaries,"no_primaries/I");
+   CreateBranch("MCTruth_PDGCode",pdg,"pdg[geant_list_size]/I");
+   CreateBranch("MCTruth_Status",status,"status[geant_list_size]/I");
+   CreateBranch("MCTruth_NumberOfDaughterParticles",NumberDaughters,"NumberDaughters[geant_list_size]/I");
+   CreateBranch("MCTruth_HasMotherParticle",Mother,"Mother[geant_list_size]/I");
+   CreateBranch("MCTruth_Mass",Mass,"Mass[geant_list_size]/F");
+   CreateBranch("MCTruth_StartPoint_X",StartPointx,"StartPointx[geant_list_size]/F");
+   CreateBranch("MCTruth_StartPoint_Y",StartPointy,"StartPointy[geant_list_size]/F");
+   CreateBranch("MCTruth_StartPoint_Z",StartPointz,"StartPointz[geant_list_size]/F");
+   CreateBranch("MCTruth_StartTime",StartT,"StartT[geant_list_size]/F");
+   CreateBranch("MCTruth_StartEnergy",Eng,"Eng[geant_list_size]/F");
+   CreateBranch("MCTruth_StartMomentum",P,"P[geant_list_size]/F");
+   CreateBranch("MCTruth_StartMomentum_X",Px,"Px[geant_list_size]/F");
+   CreateBranch("MCTruth_StartMomentum_Y",Py,"Py[geant_list_size]/F");
+   CreateBranch("MCTruth_StartMomentum_Z",Pz,"Pz[geant_list_size]/F");
+   CreateBranch("MCTruth_StartDirection_Theta",theta,"theta[geant_list_size]/F");
+   CreateBranch("MCTruth_StartDirection_Phi",phi,"phi[geant_list_size]/F");
+//   CreateBranch("MCTruth_EndEnergy",EndE,"EndE[geant_list_size]/F");
+//   CreateBranch("MCTruth_EndPoint_X",EndPointx,"EndPointx[geant_list_size]/F");
+//   CreateBranch("MCTruth_EndPoint_Y",EndPointy,"EndPointy[geant_list_size]/F");
+//   CreateBranch("MCTruth_EndPoint_Z",EndPointz,"EndPointz[geant_list_size]/F");
+//   CreateBranch("MCTruth_EndTime",EndT,"EndT[geant_list_size]/F");
+
+//   CreateBranch("theta_xz",theta_xz,"theta_xz[geant_list_size]/F");
+//   CreateBranch("theta_yz",theta_yz,"theta_yz[geant_list_size]/F");
+
+   CreateBranch("MCTruth_IsInTPCAV",inTPCActive,"inTPCActive[geant_list_size]/I");
+   CreateBranch("MCTruth_Pathlength_TPCAV",pathlen,"pathlen[geant_list_size]/F");
+   CreateBranch("MCTruth_StartPoint_X_TPCAV",StartPointx_tpcAV,"StartPointx_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartPoint_Y_TPCAV",StartPointy_tpcAV,"StartPointy_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartPoint_Z_TPCAV",StartPointz_tpcAV,"StartPointz_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartTime_TPCAV",StartT_tpcAV,"StartT_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartEnergy_TPCAV",StartE_tpcAV,"StartE_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartMomentum_TPCAV",StartP_tpcAV,"StartP_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartMomentum_X_TPCAV",StartPx_tpcAV,"StartPx_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartMomentum_Y_TPCAV",StartPy_tpcAV,"StartPy_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartMomentum_Z_TPCAV",StartPz_tpcAV,"StartPz_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartDirection_Theta_TPCAV",thetastart_tpcAV,"thetastart_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_StartDirection_Phi_TPCAV",phistart_tpcAV,"phistart_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndPoint_X_TPCAV",EndPointx_tpcAV,"EndPointx_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndPoint_Y_TPCAV",EndPointy_tpcAV,"EndPointy_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndPoint_Z_TPCAV",EndPointz_tpcAV,"EndPointz_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndTtime_TPCAV",EndT_tpcAV,"EndT_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndEnergy_TPCAV",EndE_tpcAV,"EndE_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndMomentum_TPCAV",EndP_tpcAV,"EndP_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndMomentum_X_TPCAV",EndPx_tpcAV,"EndPx_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndMomentum_Y_TPCAV",EndPy_tpcAV,"EndPy_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndMomentum_Z_TPCAV",EndPz_tpcAV,"EndPz_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndDirection_Theta_TPCAV",thetaend_tpcAV,"thetaend_tpcAV[geant_list_size]/F");
+   CreateBranch("MCTruth_EndDirection_Phi_TPCAV",phiend_tpcAV,"phiend_tpcAV[geant_list_size]/F");
+
+
+
+/*
    CreateBranch("pathlen_drifted",pathlen_drifted,"pathlen_drifted[geant_list_size]/F");
    CreateBranch("inTPCDrifted",inTPCDrifted,"inTPCDrifted[geant_list_size]/I");
    CreateBranch("StartPointx_drifted",StartPointx_drifted,"StartPointx_drifted[geant_list_size]/F");
@@ -3265,16 +3361,18 @@ if (hasPFParticleInfo()){
    CreateBranch("EndPx_drifted",EndPx_drifted,"EndPx_drifted[geant_list_size]/F");
    CreateBranch("EndPy_drifted",EndPy_drifted,"EndPy_drifted[geant_list_size]/F");
    CreateBranch("EndPz_drifted",EndPz_drifted,"EndPz_drifted[geant_list_size]/F");
-   CreateBranch("NumberDaughters",NumberDaughters,"NumberDaughters[geant_list_size]/I");
-   CreateBranch("Mother",Mother,"Mother[geant_list_size]/I");
+*/
+
+/*
    CreateBranch("TrackId",TrackId,"TrackId[geant_list_size]/I");
    CreateBranch("MergedId", MergedId, "MergedId[geant_list_size]/I");
    CreateBranch("origin", origin, "origin[geant_list_size]/I");
-CreateBranch("MCTruthIndex", MCTruthIndex, "MCTruthIndex[geant_list_size]/I");
-CreateBranch("process_primary",process_primary,"process_primary[geant_list_size]/I");
-CreateBranch("processname", processname);
-}
+   CreateBranch("MCTruthIndex", MCTruthIndex, "MCTruthIndex[geant_list_size]/I");
+   CreateBranch("process_primary",process_primary,"process_primary[geant_list_size]/I");
+   CreateBranch("processname", processname);
 */
+}
+
 /*
    if (hasMCShowerInfo()){
    CreateBranch("no_mcshowers",&no_mcshowers,"no_mcshowers/I");
@@ -3405,6 +3503,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fTree(nullptr), 
   //  fPOT(nullptr),
 
+  fLogLevel	            (pset.get< short >("LogLevel")        ),
   fEventsPerSubrun          (pset.get< short >("EventsPerSubrun")        ),
   fDigitModuleLabel         (pset.get< std::string >("DigitModuleLabel")        ),
   fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel")         ),
@@ -3431,6 +3530,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fMCT0FinderLabel          (pset.get< std::vector<std::string> >("MCT0FinderLabel")   ),
   fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),
   fCosmicClusterTaggerAssocLabel (pset.get< std::string >("CosmicClusterTaggerAssocLabel")),
+  fIsMC                	    (pset.get< bool >("IsMC", false)),
   fUseBuffer                (pset.get< bool >("UseBuffers", false)),
   fSaveAuxDetInfo           (pset.get< bool >("SaveAuxDetInfo", false)),
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),
@@ -3455,7 +3555,9 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   bIgnoreMissingShowers     (pset.get< bool >("IgnoreMissingShowers", false)),
   isCosmics(false),
   fSaveCaloCosmics          (pset.get< bool >("SaveCaloCosmics",false)),
-  fG4minE                   (pset.get< float>("G4minE",0.01))
+  fG4minE                   (pset.get< float>("G4minE",0.01)),
+  fMCSFitter( pset.get<fhicl::ParameterSet>("TrajMCSFitter") )
+
 {
 
   if (fSavePFParticleInfo) fPFParticleModuleLabel = pset.get<std::string>("PFParticleModuleLabel");
@@ -3616,10 +3718,9 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   //services
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 //  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-//  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
-  // collect the sizes which might me needed to resize the tree data structure:
-  bool isMC = false;
+  // collect the sizes which might be needed to resize the tree data structure:
 
   // * hits
   art::Handle< std::vector<recob::Hit> > hitListHandle;
@@ -3650,7 +3751,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   // * MC truth information
   art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
   std::vector<art::Ptr<simb::MCTruth> > mclist;
-  if (isMC){
+  if (fIsMC){
     if (evt.getByLabel(fGenieGenModuleLabel,mctruthListHandle))
       art::fill_ptr_vector(mclist, mctruthListHandle);
   }
@@ -3658,7 +3759,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   // *MC truth cosmic generator information
   art::Handle< std::vector<simb::MCTruth> > mctruthcryListHandle;
   std::vector<art::Ptr<simb::MCTruth> > mclistcry;
-  if (isMC && fSaveCryInfo){
+  if (fIsMC && fSaveCryInfo){
     if (evt.getByLabel(fCryGenModuleLabel,mctruthcryListHandle)){
       art::fill_ptr_vector(mclistcry, mctruthcryListHandle);
     }
@@ -3672,7 +3773,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   // ProtoDUNE beam generator information
   art::Handle< std::vector<simb::MCTruth> > mctruthprotoListHandle;
   std::vector<art::Ptr<simb::MCTruth> > mclistproto;
-  if(isMC && fSaveProtoInfo){
+  if(fIsMC && fSaveProtoInfo){
     if(evt.getByLabel(fProtoGenModuleLabel,mctruthprotoListHandle)){
       art::fill_ptr_vector(mclistproto,mctruthprotoListHandle);
     }
@@ -3685,7 +3786,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
   // *MC Shower information
   art::Handle< std::vector<sim::MCShower> > mcshowerh;
-  if (isMC)
+  if (fIsMC)
     evt.getByLabel(fMCShowerModuleLabel, mcshowerh);
 
   int nMCShowers = 0;
@@ -3694,7 +3795,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
   // *MC Track information
   art::Handle< std::vector<sim::MCTrack> > mctrackh;
-  if (isMC)
+  if (fIsMC)
     evt.getByLabel(fMCTrackModuleLabel, mctrackh);
 
   int nMCTracks = 0;
@@ -3721,7 +3822,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   art::Ptr<simb::MCTruth> mctruth;
 
 
-  if (isMC) { //is MC
+  if (fIsMC) { //is MC
 
     //find origin
     std::vector< art::Handle< std::vector<simb::MCTruth> > > allmclists;
@@ -3755,8 +3856,8 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       if (mctruth->NeutrinoSet()) nGeniePrimaries = mctruth->NParticles();
       //} //end (fSaveGenieInfo)
 
-//      const sim::ParticleList& plist = pi_serv->ParticleList();
-//      nGEANTparticles = plist.size();
+      const sim::ParticleList& plist = pi_serv->ParticleList();
+      nGEANTparticles = plist.size();
 
       // to know the number of particles in AV would require
       // looking at all of them; so we waste some memory here
@@ -3790,7 +3891,7 @@ if (fSaveMCTrackInfo){  fData->ResizeMCTrack(nMCTracks);}
   //  fData->RunData = RunData;
   fData->SubRunData = SubRunData;
 
-  fData->isdata = int(!isMC);
+  fData->isdata = int(!fIsMC);
 
   //  raw trigger
   art::Handle< std::vector<raw::Trigger>> triggerListHandle;
@@ -3876,7 +3977,7 @@ if (fSaveAuxDetInfo){
 }
 
 std::vector<const sim::SimChannel*> fSimChannels;
-if (isMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}  
+if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}  
 
   fData->run = evt.run();
   fData->subrun = evt.subRun();
@@ -3973,7 +4074,7 @@ if (fSaveHitInfo){
     //when the size of simIDEs is zero, the above function throws an exception
     //and crashes, so check that the simIDEs have non-zero size before
     //extracting hit true XYZ from simIDEs
-    //      if (isMC){
+    //      if (fIsMC){
     //        std::vector<sim::IDE> ides;
     //        try{bt_serv->HitToSimIDEs(hitlist[i], ides); }
     //        catch(...){}
@@ -4439,6 +4540,8 @@ if (fSaveTrackInfo) {
     trkf::TrackMomentumCalculator trkm;
     trkm.SetMinLength(100); //change the minimal track length requirement to 50 cm
 
+    recob::MCSFitResult res;
+
     int HitIterator=0;
     int HitIterator2=0;
 
@@ -4562,16 +4665,28 @@ if (fSaveTrackInfo) {
         TrackerData.trkstartx[iTrk]             = pos.X();
         TrackerData.trkstarty[iTrk]             = pos.Y();
         TrackerData.trkstartz[iTrk]             = pos.Z();
-        TrackerData.trkstartd[iTrk]		  = dpos;
-        TrackerData.trkendx[iTrk]		  = end.X();
-        TrackerData.trkendy[iTrk]		  = end.Y();
-        TrackerData.trkendz[iTrk]		  = end.Z();
-        TrackerData.trkendd[iTrk]		  = dend;
-        TrackerData.trkstarttheta[iTrk]		  = (180.0/3.14159)*dir_start_flipped.Theta();
-        TrackerData.trkstartphi[iTrk]		  = (180.0/3.14159)*dir_start_flipped.Phi();
-        TrackerData.trkstartdirectionx[iTrk]	  = dir_start.X();
-        TrackerData.trkstartdirectiony[iTrk]	  = dir_start.Y();
-        TrackerData.trkstartdirectionz[iTrk]	  = dir_start.Z();
+        TrackerData.trkstartd[iTrk]		= dpos;
+        TrackerData.trkendx[iTrk]		= end.X();
+        TrackerData.trkendy[iTrk]		= end.Y();
+        TrackerData.trkendz[iTrk]		= end.Z();
+        TrackerData.trkendd[iTrk]		= dend;
+        TrackerData.trkstarttheta[iTrk]		= (180.0/3.14159)*dir_start_flipped.Theta();
+        TrackerData.trkstartphi[iTrk]		= (180.0/3.14159)*dir_start_flipped.Phi();
+        TrackerData.trkstartdirectionx[iTrk]	= dir_start.X();
+        TrackerData.trkstartdirectiony[iTrk]	= dir_start.Y();
+        TrackerData.trkstartdirectionz[iTrk]	= dir_start.Z();
+
+	if(fLogLevel >= 1)
+	{
+	  std::cout << std::endl;
+	  std::cout << "start.X(): " << pos.X() << "\t" << "start.Y(): " << pos.Y() << "\t" << "start.Z(): " << pos.Z() << std::endl;
+	  std::cout << "end.X(): " << end.X() << "\t" << "end.Y(): " << end.Y() << "\t" << "end.Z(): " << end.Z() << std::endl;
+	  std::cout << "dir_start.X(): " << dir_start.X() << "\t" << "dir_start.Y(): " << dir_start.Y() << "\t" << "dir_start.Z(): " << dir_start.Z() << std::endl;
+	  std::cout << "dir_end.X(): " << dir_end.X() << "\t" << "dir_end.Y(): " << dir_end.Y() << "\t" << "dir_end.Z(): " << dir_end.Z() << std::endl;
+	  std::cout << "dir_start_flipped.Theta(): " << (180.0/3.14159)*dir_start_flipped.Theta() << "\t" << "dir_start_flipped.Phi(): " << (180.0/3.14159)*dir_start_flipped.Phi() << std::endl;
+	  std::cout << "dir_end_flipped.Theta(): " << (180.0/3.14159)*dir_end_flipped.Theta() << "\t" << "dir_end_flipped.Phi(): " << (180.0/3.14159)*dir_end_flipped.Phi() << std::endl;
+	  std::cout << std::endl;
+	}
 
         TrackerData.trkendtheta[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Theta();
         TrackerData.trkendphi[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Phi();
@@ -4579,13 +4694,24 @@ if (fSaveTrackInfo) {
         TrackerData.trkenddirectiony[iTrk] 	  = dir_end.Y();
         TrackerData.trkenddirectionz[iTrk] 	  = dir_end.Z();
 
+
+
         TrackerData.trkthetaxz[iTrk]  	  = theta_xz;
         TrackerData.trkthetayz[iTrk]  	  = theta_yz;
-        TrackerData.trkmom[iTrk]		  = mom;
-        TrackerData.trklen[iTrk]		  = tlen;
+        TrackerData.trkmom[iTrk]	  = mom;
+        TrackerData.trklen[iTrk]	  = tlen;
         TrackerData.trkmomrange[iTrk] 	  = trkm.GetTrackMomentum(tlen,13);
-        //TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
-        //TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
+        TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
+        TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
+
+        //uBoone MCS
+        res = fMCSFitter.fitMcs(*ptrack);
+        TrackerData.trkmommscmic[iTrk]	  = res.bestMomentum();
+        TrackerData.trkmommscfwd[iTrk]	  = res.fwdMomentum();
+        TrackerData.trkmommscbwd[iTrk]	  = res.bwdMomentum();
+        TrackerData.trkmommscllfwd[iTrk]  = res.fwdLogLikelihood();
+        TrackerData.trkmommscllbwd[iTrk]  = res.bwdLogLikelihood();
+
 
         if (fSavePFParticleInfo) {
           auto mapIter = trackIDtoPFParticleIDMap.find(TrackID);
@@ -4694,12 +4820,19 @@ if (fSaveTrackInfo) {
         TrackerData.NHitsPerTrack[iTrk] = vhit.size();
       	art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
 
-  	  for (size_t h = 0; h < vhit.size(); ++h)
+	  // hits in vhit and vmeta are sorted from end of track to start of track. Revert this ordering.
+  	  for (int h = vhit.size()-1; h >= 0; h--)
   	  {
 	    //corrected pitch
   	    double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
   	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint(vmeta[h]->Index());
   	    double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
+
+
+	    TrackerData.hittrklocaltrackdirectionx[HitIterator2] = dir.X();
+	    TrackerData.hittrklocaltrackdirectiony[HitIterator2] = dir.Y();
+	    TrackerData.hittrklocaltrackdirectionz[HitIterator2] = dir.Z();
+
   	    if (cosgamma)
   	    {
     	      TrackerData.hittrkpitchC[HitIterator2] = geomhandle->WirePitch(0,1,0)/cosgamma;
@@ -4711,15 +4844,22 @@ if (fSaveTrackInfo) {
 	
 	    //XYZ
 	    std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
-	    for (size_t j = 0; j < sptv.size(); ++j)
+	    TrackerData.hittrkx[HitIterator2] = sptv[0]->XYZ()[0];
+	    TrackerData.hittrky[HitIterator2] = sptv[0]->XYZ()[1];
+	    TrackerData.hittrkz[HitIterator2] = sptv[0]->XYZ()[2];
+
+      	    TVector3 dir_hit_flipped;
+            dir_hit_flipped.SetXYZ(dir.Z(), dir.Y(), dir.X());
+
+	    if(fLogLevel >= 1)
 	    {
-	      TrackerData.hittrkx[HitIterator2] = sptv[j]->XYZ()[0];
-	      TrackerData.hittrky[HitIterator2] = sptv[j]->XYZ()[1];
-	      TrackerData.hittrkz[HitIterator2] = sptv[j]->XYZ()[2];
+	      std::cout << "pos.X(): " << sptv[0]->XYZ()[0] << "\t" << "pos.Y(): " << sptv[0]->XYZ()[1] << "\t" << "pos.Z(): " << sptv[0]->XYZ()[2] << std::endl;
+	      std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
+	      std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
 	    }
 
 	    //dx
-	    TrackerData.hittrkdx[HitIterator2] = vmeta[h]->Dx();
+	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
 	    //hit variables
 	    TrackerData.hittrkchannel[HitIterator2] = vhit[h]->Channel();
@@ -4728,6 +4868,7 @@ if (fSaveTrackInfo) {
 	    TrackerData.hittrkwire[HitIterator2] = vhit[h]->WireID().Wire;
 	    TrackerData.hittrkpeakT[HitIterator2] = vhit[h]->PeakTime();
 	    TrackerData.hittrkchargeintegral[HitIterator2] = vhit[h]->Integral();
+	    TrackerData.hittrkph[HitIterator2] = vhit[h]->PeakAmplitude();
 	    TrackerData.hittrkchargesum[HitIterator2] = vhit[h]->SummedADC();
 	    TrackerData.hittrkstarT[HitIterator2] = vhit[h]->StartTick();
 	    TrackerData.hittrkendT[HitIterator2] = vhit[h]->EndTick();
@@ -4843,7 +4984,7 @@ if (fSaveTrackInfo) {
       } // if has calorimetry info
 /*
       //track truth information
-      if (isMC){
+      if (fIsMC){
         //get the hits on each plane
         art::FindManyP<recob::Hit>      fmht(trackListHandle[iTracker], evt, fTrackModuleLabel[iTracker]);
         std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(iTrk);
@@ -4901,7 +5042,7 @@ if (fSaveTrackInfo) {
           }
           if (totenergy) TrackerData.trkcompleteness[iTrk] = maxe/totenergy;
         }
-      }//end if (isMC)
+      }//end if (fIsMC)
 */
     }//end loop over track
       //std::cout << "HitIterator: " << HitIterator << std::endl; 
@@ -4971,8 +5112,9 @@ if (fSaveTrackInfo) {
     }
   }
 
+
   //mc truth information
-  if (isMC){
+  if (fIsMC){
 
     if (fSaveCryInfo){
 
@@ -5250,7 +5392,7 @@ if (fSaveTrackInfo) {
         fData->mctrk_AncestorProcess.resize(trk);
       }//End if (fSaveMCTrackInfo){
 
-/*
+
       //GEANT particles information
       if (fSaveGeantInfo){
 
@@ -5274,7 +5416,6 @@ if (fSaveTrackInfo) {
               << "GEANT particle #" << iPart << " returned a null pointer";
           }
 
-          //++geant_particle;
           bool isPrimary = pPart->Process() == pri;
           int TrackID = pPart->TrackId();
           TrackIDtoIndex.emplace(TrackID, iPart);
@@ -5284,13 +5425,16 @@ if (fSaveTrackInfo) {
             if (pPart->E()<fG4minE&&(!isPrimary)) continue;
             if (isPrimary) ++primary;
 
-            TLorentzVector mcstart, mcend, mcstartdrifted, mcenddrifted;
-            unsigned int pstarti, pendi, pstartdriftedi, penddriftedi; //mcparticle indices for starts and ends in tpc or drifted volumes
+            TLorentzVector mcstart, mcend;
+            unsigned int pstarti, pendi;
             double plen = length(*pPart, mcstart, mcend, pstarti, pendi);
-            double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
-
             bool isActive = plen != 0;
-            bool isDrifted = plendrifted!= 0;
+
+//            TLorentzVector mcstartdrifted, mcenddrifted;
+//	      unsigned int pstartdriftedi, penddriftedi;
+//            double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
+//            bool isDrifted = plendrifted!= 0;
+
             if (plen) ++active;
 
             fData->process_primary[geant_particle] = int(isPrimary);
@@ -5314,15 +5458,23 @@ if (fSaveTrackInfo) {
             fData->EndPointy[geant_particle]=pPart->EndPosition()[1];
             fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
             fData->EndT[geant_particle] = pPart->EndT();
-            fData->theta[geant_particle] = pPart->Momentum().Theta();
-            fData->phi[geant_particle] = pPart->Momentum().Phi();
+
+	    //fData->theta[geant_particle] = pPart->Momentum().Theta();
+	    //fData->phi[geant_particle] = pPart->Momentum().Phi();
+	    //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
+      	    TVector3 momentum_start_flipped;
+            momentum_start_flipped.SetXYZ(pPart->Pz(), pPart->Py(), pPart->Px());
+
+	    fData->theta[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
+	    fData->phi[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
+
             fData->theta_xz[geant_particle] = std::atan2(pPart->Px(), pPart->Pz());
             fData->theta_yz[geant_particle] = std::atan2(pPart->Py(), pPart->Pz());
             fData->pathlen[geant_particle]  = plen;
-            fData->pathlen_drifted[geant_particle]  = plendrifted;
+//            fData->pathlen_drifted[geant_particle]  = plendrifted;
             fData->NumberDaughters[geant_particle]=pPart->NumberDaughters();
             fData->inTPCActive[geant_particle] = int(isActive);
-            fData->inTPCDrifted[geant_particle] = int(isDrifted);
+//            fData->inTPCDrifted[geant_particle] = int(isDrifted);
             art::Ptr<simb::MCTruth> const& mc_truth = pi_serv->ParticleToMCTruth_P(pPart);
             if (mc_truth){
               fData->origin[geant_particle] = mc_truth->Origin();
@@ -5347,7 +5499,20 @@ if (fSaveTrackInfo) {
               fData->EndPx_tpcAV[geant_particle] = pPart->Px(pendi);
               fData->EndPy_tpcAV[geant_particle] = pPart->Py(pendi);
               fData->EndPz_tpcAV[geant_particle] = pPart->Pz(pendi);
+
+	      //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
+      	      TVector3 momentum_start_tpcAv_flipped;
+              momentum_start_tpcAv_flipped.SetXYZ(pPart->Pz(pstarti), pPart->Py(pstarti), pPart->Px(pstarti));
+      	      TVector3 momentum_end_tpcAv_flipped;
+              momentum_end_tpcAv_flipped.SetXYZ(pPart->Pz(pendi), pPart->Py(pendi), pPart->Px(pendi));
+
+              fData->thetastart_tpcAV[geant_particle] = (180.0/3.14159)*momentum_start_tpcAv_flipped.Theta();
+              fData->phistart_tpcAV[geant_particle] = (180.0/3.14159)*momentum_start_tpcAv_flipped.Phi();
+
+              fData->thetaend_tpcAV[geant_particle] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Theta();
+              fData->phiend_tpcAV[geant_particle] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Phi();
             }
+/*
             if (isDrifted){
               fData->StartPointx_drifted[geant_particle] = mcstartdrifted.X();
               fData->StartPointy_drifted[geant_particle] = mcstartdrifted.Y();
@@ -5368,6 +5533,7 @@ if (fSaveTrackInfo) {
               fData->EndPy_drifted[geant_particle] = pPart->Py(penddriftedi);
               fData->EndPz_drifted[geant_particle] = pPart->Pz(penddriftedi);
             }
+*/
             //access auxiliary detector parameters
             if (fSaveAuxDetInfo) {
               unsigned short nAD = 0; // number of cells that particle hit
@@ -5457,7 +5623,7 @@ if (fSaveTrackInfo) {
         // PDG ID, and mark them as belonging to the same "group"
         // (having the same MergedId)
 	
-	 turn off for now
+//	 turn off for now
            int currentMergedId = 1;
            for(size_t iPart = 0; iPart < geant_particle; ++iPart){
         // if the particle already belongs to a group, don't bother
@@ -5467,13 +5633,13 @@ if (fSaveTrackInfo) {
         int currentMotherTrackId = fData->Mother[iPart];
         while (currentMotherTrackId > 0) {
         if (TrackIDtoIndex.find(currentMotherTrackId)==TrackIDtoIndex.end()) break;
-        size_t gindex = TrackIDtoIndex[currentMotherTrackId];
+        int gindex = TrackIDtoIndex[currentMotherTrackId];
         if (gindex<0||gindex>=plist.size()) break;
         // if the mother particle is of a different type,
         // don't bother with iPart ancestry any further
         if (gpdg[gindex]!=fData->pdg[iPart]) break;
         if (TrackIDtoIndex.find(currentMotherTrackId)!=TrackIDtoIndex.end()){
-        size_t igeantMother = TrackIDtoIndex[currentMotherTrackId];
+        int igeantMother = TrackIDtoIndex[currentMotherTrackId];
         if (igeantMother>=0&&igeantMother<geant_particle){
         fData->MergedId[igeantMother] = currentMergedId;
         }
@@ -5484,9 +5650,9 @@ if (fSaveTrackInfo) {
         }// for merging check
         
       } // if (fSaveGeantInfo)
-*/
+
     }//if (mcevts_truth)
-    }//if (isMC){
+    }//if (fIsMC){
 
     fData->taulife = detprop->ElectronLifetime();
 
