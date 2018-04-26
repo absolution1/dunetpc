@@ -286,8 +286,8 @@ protodunedphase_reco_services.PedestalEvaluationService:  @local::adcped_median
 # turned on by custom physics list and defining a photon visibility
 # services is workspace g4 fhicl file.
 
-protodunedphase_simulation_services.UseCustomPhysics: true
-protodunedphase_simulation_services.EnabledPhysics: [ "Em",
+protodunedphase_simulation_services.LArG4Parameters.UseCustomPhysics: true
+protodunedphase_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                            "FastOptical",
                                            "SynchrotronAndGN",
                                            "Ion",
