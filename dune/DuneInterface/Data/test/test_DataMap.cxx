@@ -83,15 +83,16 @@ int test_DataMap(bool useExistingFcl =false) {
   cout << myname << "Add float." << endl;
   assert( res.getFloatMap().size() == 0 );
   assert( ! res.haveFloat("myflt") );
-  res.setFloat("myflt", 1.23);
+  float fltval = 1.23;
+  res.setFloat("myflt", fltval);
+  res.print();
   assert( res.haveFloat("myflt") );
-  assert( res.getFloat("myflt") == 1.23 );
+  assert( res.getFloat("myflt") == fltval );
   assert( res.getIntMap().size() == 1 );
   assert( res.getFloatMap().size() == 1 );
   assert( res.getFloatVectorMap().size() == 0 );
   assert( res.getHistMap().size() == 0 );
   assert( res.getHistVectorMap().size() == 0 );
-  res.print();
 
   cout << myname << line << endl;
   cout << myname << line << endl;
@@ -168,7 +169,8 @@ int test_DataMap(bool useExistingFcl =false) {
   std::vector<TH1*> hsts2 = { (TH1*) 0xdeadbee6, (TH1*) 0xdeadbee7 };
   res2.setInt("myint", 135);
   res2.setInt("myint2", 578);
-  res2.setFloat("myflt2", 5.78);
+  float fltval2 = 5.78;
+  res2.setFloat("myflt2", fltval2);
   res2.setHist("myhst2", ph2);
   res2.setHistVector("myhstvec2", hsts2);
   res.extend(res2);
@@ -179,8 +181,8 @@ int test_DataMap(bool useExistingFcl =false) {
   assert( res.getHistMap().size() == 2 );
   assert( res.getInt("myint") == 135 );
   assert( res.getInt("myint2") == 578 );
-  assert( res.getFloat("myflt") == 1.23 );
-  assert( res.getFloat("myflt2") == 5.78 );
+  assert( res.getFloat("myflt") == fltval );
+  assert( res.getFloat("myflt2") == fltval2 );
   assert( res.getHist("myhst") == ph );
   assert( res.getHist("myhst2") == ph2 );
   assert( res.getHistVector("myhstvec") == hsts );

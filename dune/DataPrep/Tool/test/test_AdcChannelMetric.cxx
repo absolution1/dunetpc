@@ -1,15 +1,18 @@
-// test_AdcPedestalFitter.cxx
+// test_AdcChannelMetric.cxx
 //
 // David Adams
 // April 2017
 //
-// Test AdcPedestalFitter.
+// Test AdcChannelMetric.
 
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <vector>
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include <TRandom.h>
 
 #undef NDEBUG
 #include <cassert>
@@ -17,13 +20,15 @@
 using std::string;
 using std::cout;
 using std::endl;
+using std::ostringstream;
 using std::ofstream;
 using fhicl::ParameterSet;
+using std::vector;
 
 //**********************************************************************
 
-int test_AdcPedestalFitter(bool useExistingFcl =false) {
-  const string myname = "test_AdcPedestalFitter: ";
+int test_AdcChannelMetric(bool useExistingFcl =false) {
+  const string myname = "test_AdcChannelMetric: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -31,25 +36,26 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_AdcPedestalFitter.fcl";
+  string fclfile = "test_AdcChannelMetric.fcl";
+  string hname = "hchped";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "tools: {" << endl;
-    fout << "  adcHists: {" << endl;
-    fout << "    tool_type: SimpleHistogramManager" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "  }" << endl;
     fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcPedestalFitter" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "    FitRmsMin: 1.0" << endl;
-    fout << "    FitRmsMax: 20.0" << endl;
-    fout << "    HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
-    fout << "    HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
-    fout << "    RootFileName: \"adcped.root\"" << endl;
-    fout << "    HistManager: \"adcHists\"" << endl;
-    fout << "    MaxSample: 80" << endl;
+    fout << "           tool_type: AdcChannelMetric" << endl;
+    fout << "            LogLevel: 3" << endl;
+    fout << "              Metric: \"pedestal\"" << endl;
+    fout << "        FirstChannel: 0" << endl;
+    fout << "         LastChannel: 0" << endl;
+    fout << "          MetricMin: 0.0" << endl;
+    fout << "          MetricMax: 2000.0" << endl;
+    fout << " ChannelLineModulus:  4" << endl;
+    fout << " ChannelLinePattern:  [1]" << endl;
+    fout << "          HistName: \"" << hname << "\"" << endl;
+    fout << "          HistTitle: \"ADC pedestals for run %RUN% event %EVENT%\"" << endl;
+    fout << "          PlotFileName: \"mypeds-run%RUN%-evt%EVENT%.png\"" << endl;
+    fout << "          RootFileName: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -63,71 +69,62 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 2 );
-
-  cout << myname << line << endl;
-  cout << myname << "Fetching histogram manaager." << endl;
-  auto phm = tm.getShared<AdcChannelTool>("mytool");
-  assert( phm != nullptr );
+  assert( tm.toolNames().size() == 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
   auto padv = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padv != nullptr );
-  auto padvmod = tm.getPrivate<AdcChannelTool>("mytool");
-  assert( padvmod != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
   AdcIndex nevt = 2;
-  string lab = "plane 3u";
-  float peds[10] = {701.1, 711.2, 733.3, 690.4, 688.5, 703.6, 720.7, 720.8, 695.9, 702.0};
+  float peds[20] = {701, 711, 733, 690, 688, 703, 720, 720, 695, 702,
+                    410, 404, 388, 389, 400, 401, 410, 404, 395, 396};
+  vector<double> wf = {5.0, 20.1, 53.2, 80.6, 130.2, 160.1, 150.4, 125.7, 72.5, 41.3, 18.4,
+                       -6.5, -34.9, -56.6, -88.9, -132.6, -170.8, -172.9, -144.6, -112.6,
+                        -79.4, -44.9, -22.1, -12.6, -4.7};
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
     cout << myname << "Event " << ievt << endl;
     AdcChannelDataMap datamap;
-    AdcIndex ncha = 10;
-    for ( AdcIndex icha=0; icha<ncha; ++icha ) {
+    AdcIndex ncha = 20;
+    AdcIndex icha1 = 10000;
+    AdcIndex icha2 = icha1 + ncha;
+    for ( AdcIndex icha=icha1; icha<icha2; ++icha ) {
       std::pair<AdcChannelDataMap::iterator, bool> kdat = datamap.emplace(icha, AdcChannelData());
       assert(kdat.second);
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
-      float ped = peds[icha];
-      data.run = 101;
-      data.subRun = 23;
+      data.run = 123;
       data.event = ievt;
+      float ped = peds[icha-icha1];
       data.channel = icha;
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
-        float xadc = ped + rand()%20 - 10.0;
-        AdcIndex iticeff = itic - 3*icha;
-        if ( iticeff > 20 && iticeff < 40 ) xadc +=600;
+        float xadc = ped + gRandom->Gaus(0.0, 10.0);
         AdcCount iadc = xadc;
         data.raw.push_back(iadc);
-        data.flags.push_back(0);
         data.samples.push_back(iadc - ped);
-        data.signal.push_back(xadc - ped > 300.0 );
       }
-      data.pedestal += 10.0;
-      AdcIndex tp = 10*ievt + 60 - 2.3*icha;
-      AdcIndex tm = tp - 8;
-      data.raw[tp] += 100;
-      data.samples[tp] += 100;
-      data.raw[tm] -= 100;
-      data.samples[tm] -= 100;
-      data.flags[tm] = 4;
-      data.roisFromSignal();
-      double ped0 = datamap[icha].pedestal;
-      //assert( padv->view(datamap[icha]) == 0 );
-      double ped1 = datamap[icha].pedestal;
-      assert( padvmod->update(datamap[icha]) == 0 );
-      double ped2 = datamap[icha].pedestal;
-      cout << "Old pedestal: " << ped0 << endl;
-      cout << "New pedestal: " << ped2 << endl;
-      assert( ped1 == ped0 );
-      assert( ped2 != ped0 );
-      assert( ped2 != 0.0 );
-      //assert( fabs(ped2-ped) < 0.01 );
+      AdcIndex tp = 10*ievt + 60 - 2.3*(icha-icha1);
+      for ( unsigned int iwf=0; iwf<wf.size(); ++iwf ) {
+        unsigned int isam = tp+iwf;
+        if ( isam < data.samples.size() ) {
+          data.raw[isam] += wf[iwf];
+          data.samples[isam] += wf[iwf];
+        }
+      }
+      for ( unsigned int isam=0; isam<data.samples.size(); ++isam ) {
+        data.samples[isam] *= 0.04;
+      }
+      data.sampleUnit = "ke";
     }
+    DataMap ret = padv->viewMap(datamap);
+    assert( ret == 0 );
+    TH1* phout = ret.getHist(hname);
+    assert( phout != nullptr );
+    assert( phout->GetName() == hname );
+    assert( phout->GetEntries() == ncha );
   }
 
   cout << myname << line << endl;
@@ -148,7 +145,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_AdcPedestalFitter(useExistingFcl);
+  return test_AdcChannelMetric(useExistingFcl);
 }
 
 //**********************************************************************
