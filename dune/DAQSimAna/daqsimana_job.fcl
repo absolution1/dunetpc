@@ -15,7 +15,7 @@ services:
 }
 
 # a temporary fix until the photon back tracker gets fixed...
-#services.PhotonBackTracker:	@erase
+#services.PhotonBackTrackerService:	@erase
 
 physics:
 {
