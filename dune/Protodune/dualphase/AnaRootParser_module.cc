@@ -5623,9 +5623,9 @@ if (fSaveTrackInfo) {
         // PDG ID, and mark them as belonging to the same "group"
         // (having the same MergedId)
 	
-//	 turn off for now
-           int currentMergedId = 1;
-           for(size_t iPart = 0; iPart < geant_particle; ++iPart){
+
+        int currentMergedId = 1;
+        for(size_t iPart = 0; iPart < geant_particle; ++iPart){
         // if the particle already belongs to a group, don't bother
         if (fData->MergedId[iPart]) continue;
         // the particle starts its own group
@@ -5633,14 +5633,14 @@ if (fSaveTrackInfo) {
         int currentMotherTrackId = fData->Mother[iPart];
         while (currentMotherTrackId > 0) {
         if (TrackIDtoIndex.find(currentMotherTrackId)==TrackIDtoIndex.end()) break;
-        int gindex = TrackIDtoIndex[currentMotherTrackId];
-        if (gindex<0||gindex>=plist.size()) break;
+        unsigned int gindex = TrackIDtoIndex[currentMotherTrackId];
+        if (gindex>=plist.size()) break;
         // if the mother particle is of a different type,
         // don't bother with iPart ancestry any further
         if (gpdg[gindex]!=fData->pdg[iPart]) break;
         if (TrackIDtoIndex.find(currentMotherTrackId)!=TrackIDtoIndex.end()){
-        int igeantMother = TrackIDtoIndex[currentMotherTrackId];
-        if (igeantMother>=0&&igeantMother<geant_particle){
+        unsigned int igeantMother = TrackIDtoIndex[currentMotherTrackId];
+        if (igeantMother<geant_particle){
         fData->MergedId[igeantMother] = currentMergedId;
         }
         }
