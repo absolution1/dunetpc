@@ -5,6 +5,9 @@
 //
 // Tool to fit ADC data and extract a pedestal.
 //
+// If FitRmsMin < FitRmsMax, the the RMS is constrained to the range
+// (FitRmsMin, FitRmsMax) in the fit.
+//
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   FitRmsMin: Lower limit for RMS fit range.
@@ -15,14 +18,14 @@
 //                This is obsolete.
 //   PlotFileName: If nonblank, histograms are displayed in this file.
 //   RootFileName: If nonblank, histogram is copied to this file.
-// The following subsitutions are made in the names:
-//    %RUN% - run number
-//    %SUBRUN% - event number
-//    %EVENT% - event number
-//    %CHAN% - channel number
 //
-// If FitRmsMin < FitRmsMax, the the RMS is constrained to the range
-// (FitRmsMin, FitRmsMax) in the fit.
+// Tools:
+//   adcNameManipulator is used to make the following substitioutions:
+//      %RUN% - run number
+//      %SUBRUN% - event number
+//      %EVENT% - event number
+//      %CHAN% - channel number
+
 
 #ifndef AdcPedestalFitter_H
 #define AdcPedestalFitter_H
@@ -34,6 +37,7 @@
 #include <vector>
 
 class HistogramManager;
+class AdcChannelStringTool;
 class TH1;
 
 class AdcPedestalFitter
@@ -63,6 +67,9 @@ private:
   Name m_HistManager;
   Name m_PlotFileName;
   Name m_RootFileName;
+
+  // ADC string tool.
+  const AdcChannelStringTool* m_adcChannelStringTool;
 
   // Histogram manager.
   HistogramManager* m_phm;

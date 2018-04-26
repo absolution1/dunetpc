@@ -35,23 +35,18 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  adcHists: {" << endl;
-    fout << "    tool_type: SimpleHistogramManager" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "  }" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcPedestalFitter" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "    FitRmsMin: 1.0" << endl;
-    fout << "    FitRmsMax: 20.0" << endl;
-    fout << "    HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
-    fout << "    HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
-    fout << "    PlotFileName: \"adcped_chan%CHAN%.png\"" << endl;
-    fout << "    RootFileName: \"adcped.root\"" << endl;
-    fout << "    HistManager: \"adcHists\"" << endl;
-    fout << "    MaxSample: 80" << endl;
-    fout << "  }" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
+    fout << "tools.mytool: {" << endl;
+    fout << "  tool_type: AdcPedestalFitter" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  FitRmsMin: 1.0" << endl;
+    fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
+    fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
+    fout << "  PlotFileName: \"adcped_chan%CHAN%.png\"" << endl;
+    fout << "  RootFileName: \"adcped.root\"" << endl;
+    fout << "  HistManager: \"adcHists\"" << endl;
+    fout << "  MaxSample: 80" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -64,7 +59,7 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 2 );
+  assert( tm.toolNames().size() > 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching histogram manaager." << endl;

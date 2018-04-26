@@ -36,6 +36,28 @@ tools.adcChannelDumper: {
 # Event displays.
 ################################################################################
 
+# Add ADC info to titles (variable width, no padding).
+tools.adcTitleManipulator: {
+  tool_type: StandardAdcChannelStringTool
+  LogLevel: 1
+  RunWidth: 0
+  SubRunWidth: 0
+  EventWidth: 0
+  ChannelWidth: 0
+  CountWidth: 0
+}
+
+# Add ADC info to names (fixed width with padding).
+tools.adcNameManipulator: {
+  tool_type: StandardAdcChannelStringTool
+  LogLevel: 1
+  RunWidth: 6
+  SubRunWidth: 4
+  EventWidth: 6
+  ChannelWidth: 5
+  CountWidth: 4
+}
+
 # Dump raw ADC channel waveform to a histogram.
 tools.adcPlotRaw: {
   tool_type: AdcChannelPlotter

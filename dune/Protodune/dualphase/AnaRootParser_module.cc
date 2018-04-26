@@ -5633,13 +5633,13 @@ if (fSaveTrackInfo) {
         int currentMotherTrackId = fData->Mother[iPart];
         while (currentMotherTrackId > 0) {
         if (TrackIDtoIndex.find(currentMotherTrackId)==TrackIDtoIndex.end()) break;
-        int gindex = TrackIDtoIndex[currentMotherTrackId];
+        unsigned int gindex = TrackIDtoIndex[currentMotherTrackId];
         if (gindex<0||gindex>=plist.size()) break;
         // if the mother particle is of a different type,
         // don't bother with iPart ancestry any further
         if (gpdg[gindex]!=fData->pdg[iPart]) break;
         if (TrackIDtoIndex.find(currentMotherTrackId)!=TrackIDtoIndex.end()){
-        int igeantMother = TrackIDtoIndex[currentMotherTrackId];
+        unsigned int igeantMother = TrackIDtoIndex[currentMotherTrackId];
         if (igeantMother>=0&&igeantMother<geant_particle){
         fData->MergedId[igeantMother] = currentMergedId;
         }
