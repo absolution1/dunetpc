@@ -47,6 +47,7 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
     fout << "    FitRmsMax: 20.0" << endl;
     fout << "    HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
     fout << "    HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
+    fout << "    PlotFileName: \"adcped_chan%CHAN%.png\"" << endl;
     fout << "    RootFileName: \"adcped.root\"" << endl;
     fout << "    HistManager: \"adcHists\"" << endl;
     fout << "    MaxSample: 80" << endl;

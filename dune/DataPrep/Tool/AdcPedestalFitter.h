@@ -13,7 +13,8 @@
 //   HistTitle: Title for the histogram.
 //   HistManager: Name of the tool that manages the output histogram.
 //                This is obsolete.
-//   RootFileNmame: If nonblank, histogram is copied to this file.
+//   PlotFileName: If nonblank, histograms are displayed in this file.
+//   RootFileName: If nonblank, histogram is copied to this file.
 // The following subsitutions are made in the names:
 //    %RUN% - run number
 //    %SUBRUN% - event number
@@ -46,6 +47,8 @@ public:
 
   DataMap update(AdcChannelData& acd) const override;
 
+  //DataMap updateMap(AdcChannelDataMap& acds) const override;
+
 private:
 
   using Name = std::string;
@@ -58,6 +61,7 @@ private:
   Name m_HistName;
   Name m_HistTitle;
   Name m_HistManager;
+  Name m_PlotFileName;
   Name m_RootFileName;
 
   // Histogram manager.
