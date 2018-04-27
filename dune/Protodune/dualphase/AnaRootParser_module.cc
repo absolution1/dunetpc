@@ -4888,7 +4888,7 @@ if (fSaveTrackInfo) {
 	  std::cout << "fmspts.size(): " << fmspts.size() << std::endl;
 	}
 
-  	  for (int h = 0; h < vhit.size(); h++)
+  	  for (unsigned int h = 0; h < vhit.size(); h++)
   	  {
 	    //corrected pitch
   	    double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();

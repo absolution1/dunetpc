@@ -17,6 +17,15 @@ public:
 
   using Index = unsigned int;
 
+  // Helper function that calls tool from a pointer and returns the
+  // input string if that pointer is null.
+  static std::string
+  build(const AdcChannelStringTool* ptool,
+        const AdcChannelData& acd, std::string spat,
+        Index count =AdcChannelData::badIndex) {
+    return ptool == nullptr ? spat : ptool->build(acd, spat, count);
+  }
+                        
   virtual ~AdcChannelStringTool() =default;
 
   virtual std::string

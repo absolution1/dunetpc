@@ -37,7 +37,7 @@ tools.adcChannelDumper: {
 ################################################################################
 
 # Add ADC info to titles (variable width, no padding).
-tools.adcTitleManipulator: {
+tools.adcTitleBuilder: {
   tool_type: StandardAdcChannelStringTool
   LogLevel: 1
   RunWidth: 0
@@ -48,7 +48,7 @@ tools.adcTitleManipulator: {
 }
 
 # Add ADC info to names (fixed width with padding).
-tools.adcNameManipulator: {
+tools.adcNameBuilder: {
   tool_type: StandardAdcChannelStringTool
   LogLevel: 1
   RunWidth: 6
@@ -102,6 +102,11 @@ tools.adcPedestalFit: {
   PlotFileName: ""
   RootFileName: ""
   HistManager: ""
+  PlotSizeX: 0
+  PlotSizeY: 0
+  PlotSplit: 0
+  PlotSplit: 0
+  PlotShowFit: 1
 }
 
 # Dump ADC map contents to the log file.
