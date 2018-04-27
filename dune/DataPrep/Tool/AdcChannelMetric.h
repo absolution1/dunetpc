@@ -1,18 +1,21 @@
-// AdcDataPlotter.h
+// AdcChannelMetric.h
 
 // David Adams
-// July 2017
+// April 2018
 //
-// Tool to make event displays of prepared data from an ADC channel data map.
+// Tool to evalute metrics for single ADC channel and make histograms
+// for multiple channels. Subclasses may be used to extend the list of
+// metrics (names and algorithms).
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   DataType - Which data to plot: 0=prepared, 1=raw-pedestal
-//   FirstTick - First tick number to display
-//   LastTick - Last+1 tick number to display
+//   Metric - Name of the metric to plot:
+//              pedestal 
+//              pedestalRms
 //   FirstChannel - First channel to display
 //   LastChannel - Last+1 channel to display
-//   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
+//   MetricMin - Minimum for the metric axis.
+//   MetricMax - Maximum for the metric axis.
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
@@ -29,7 +32,7 @@
 //     %EVENT%  --> event number
 //     %CHAN1%  --> First channel number 
 //     %CHAN2%  --> Last channel number 
-// Drawings may include horizontal lines intended to show boundaries of APAs,
+// Drawings may include vertical lines intended to show boundaries of APAs,
 // FEMBs, wire planes, etc.
 //
 // Lines are draw at N*ChannelLineModulus + ChannelLinePattern[i] for any
@@ -37,52 +40,56 @@
 // the drawn channel range.
 // If ChannelLineModulus is zero, then lines are drawn for the channels in
 // ChannelLinePattern.
-//
-// If FirstChannel < LastChannel, then only channels in that range are displayed
-// and no histogram is produced the passed data has no channels in the range.
 
-#ifndef AdcDataPlotter_H
-#define AdcDataPlotter_H
+#ifndef AdcChannelMetric_H
+#define AdcChannelMetric_H
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <vector>
 
-class AdcDataPlotter : AdcChannelTool {
+class AdcChannelMetric : AdcChannelTool {
 
 public:
 
+  using Name = std::string;
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
 
-  AdcDataPlotter(fhicl::ParameterSet const& ps);
+  AdcChannelMetric(fhicl::ParameterSet const& ps);
 
-  ~AdcDataPlotter() override =default;
+  ~AdcChannelMetric() override =default;
 
+  // Tool interface.
+  DataMap view(const AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
+
+  // Local method that directly returns the metric value and units.
+  // Subclasse may overrride this to add metrics. They are expected to
+  // call the fcl ctor of this class.
+  virtual int
+  getMetric(const AdcChannelData& acd, float& metricValue, Name& metricUnits) const;
 
 private:
 
   // Configuration data.
   int            m_LogLevel;
-  int            m_DataType;
-  unsigned long  m_FirstTick;
-  unsigned long  m_LastTick;
+  Name           m_Metric;
   Index          m_FirstChannel;
   Index          m_LastChannel;
-  double         m_MaxSignal;
+  float          m_MetricMin;
+  float          m_MetricMax;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
-  int            m_Palette;
-  std::string    m_HistName;
-  std::string    m_HistTitle;
-  std::string    m_PlotFileName;
-  std::string    m_RootFileName;
+  Name           m_HistName;
+  Name           m_HistTitle;
+  Name           m_PlotFileName;
+  Name           m_RootFileName;
 
 };
 
-DEFINE_ART_CLASS_TOOL(AdcDataPlotter)
+DEFINE_ART_CLASS_TOOL(AdcChannelMetric)
 
 #endif

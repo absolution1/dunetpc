@@ -1,7 +1,9 @@
 // AdcPedestalFitter_tool.cc
 
 #include "AdcPedestalFitter.h"
+#include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
@@ -33,26 +35,35 @@ using Index = unsigned int;
 
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_FitRmsMin(ps.get<float>("FitRmsMin")),
+  m_FitRmsMax(ps.get<float>("FitRmsMax")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_HistManager(ps.get<string>("HistManager")),
+  m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")),
   m_phm(nullptr) {
   const string myname = "AdcPedestalFitter::ctor: ";
+  DuneToolManager* ptm = DuneToolManager::instance();
   if ( m_HistManager.size() ) {
-    DuneToolManager* ptm = DuneToolManager::instance();
     m_phm = ptm->getShared<HistogramManager>(m_HistManager);
     if ( m_phm == nullptr ) {
       cout << myname << "WARNING: Histogram manager not found: " << m_HistManager << endl;
     }
   }
+  string sAdcChannelStringTool = "adcNameManipulator";
+  m_adcChannelStringTool = ptm->getShared<AdcChannelStringTool>(sAdcChannelStringTool);
+  if ( m_adcChannelStringTool == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << sAdcChannelStringTool << endl;
+  }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
-    cout << myname << "     LogLevel: " << m_LogLevel << endl;
-    cout << myname << "     HistName: " << m_HistName << endl;
-    cout << myname << "    HistTitle: " << m_HistTitle << endl;
-    cout << myname << " RootFileName: " << m_RootFileName << endl;
-    cout << myname << "  HistManager: " << m_HistManager << endl;
+    cout << myname << "       LogLevel: " << m_LogLevel << endl;
+    cout << myname << "       HistName: " << m_HistName << endl;
+    cout << myname << "      HistTitle: " << m_HistTitle << endl;
+    cout << myname << "   PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "   RootFileName: " << m_RootFileName << endl;
+    cout << myname << "    HistManager: " << m_HistManager << endl;
   }
 }
 
@@ -96,6 +107,7 @@ DataMap AdcPedestalFitter::update(AdcChannelData& acd) const {
   if ( res.status() != 0 ) return res;
   if ( m_LogLevel >= 3 ) cout << myname << "Old pedestal: " << acd.pedestal << endl;
   acd.pedestal = res.getFloat("fitPedestal");
+  acd.pedestalRms = res.getFloat("fitPedestalRms");
   if ( m_LogLevel >= 3 ) cout << myname << "New pedestal: " << acd.pedestal << endl;
   return res;
 }
@@ -133,7 +145,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   string hname = nameReplace(hnameBase, acd);
   string htitl = nameReplace(htitlBase, acd);
-  string fname = nameReplace(m_RootFileName, acd);
+  string pfname = nameReplace(m_PlotFileName, acd);
+  string rfname = nameReplace(m_RootFileName, acd);
   htitl += "; ADC count; # samples";
   unsigned int nadc = 4096;
   unsigned int rebin = 10;
@@ -198,7 +211,9 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
   fitter.SetParLimits(1, alim1, alim2);
   if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
-  fitter.SetParLimits(2, 3.0, 10.0);
+  if ( m_FitRmsMin < m_FitRmsMax ) {
+    fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
+  }
   TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
   pfinit->SetLineColor(3);
   pfinit->SetLineStyle(2);
@@ -216,10 +231,17 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   res.setFloat("fitPeakBinFraction", peakBinFraction);
   res.setInt("fitChannel", acd.channel);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
-  if ( fname.size() ) {
-    if ( m_LogLevel >=2 ) cout << myname << "Write histogram " << phf->GetName() << " to " << fname << endl;
-    TFile* pf = TFile::Open(fname.c_str(), "UPDATE");
+  if ( pfname.size() ) {
+    TPadManipulator man;
+    man.add(phf, "hist", false);
+    man.addVerticalModLines(64);
+    man.print(pfname);
+  }
+  if ( rfname.size() ) {
+    if ( m_LogLevel >=2 ) cout << myname << "Write histogram " << phf->GetName() << " to " << rfname << endl;
+    TFile* pf = TFile::Open(rfname.c_str(), "UPDATE");
     TH1* phfCopy = (TH1*) phf->Clone();
+    phfCopy->GetListOfFunctions()->Clear();
     phfCopy->Write();
     delete pf;
   }
