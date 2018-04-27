@@ -157,11 +157,17 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
     TPadManipulator* pman = pmantop == nullptr ? nullptr : pmantop->man(ipad);
     DataMap tmpres = getPedestal(acd, pman);
     fitStats[iacd] = tmpres.status();
+    float fitPedestal = 0.0;
+    float fitPedestalRms = 0.0;
     if ( tmpres.status() == 0 ) {
       ++nPedFitGood;
-      fitPedestals[iacd] = tmpres.getFloat("fitPedestal");
-      fitPedestalRmss[iacd] = tmpres.getFloat("fitPedestalRms");
-    } else ++nPedFitFail;
+      fitPedestal = tmpres.getFloat("fitPedestal");
+      fitPedestalRms = tmpres.getFloat("fitPedestalRms");
+    } else {
+      ++nPedFitFail;
+    }
+    fitPedestals[iacd] = fitPedestal;
+    fitPedestalRmss[iacd] = fitPedestalRms;
     // If needed, print and delete the canvas.
     ++iacd;
     bool lastpad = (++ipad == npad) || (iacd == nacd);
@@ -171,6 +177,13 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
       delete pmantop;
       pmantop = nullptr;
     }
+  }
+  iacd = 0;
+  for ( auto& acdPair : acds ) {
+    AdcChannelData& acd = acdPair.second;
+    acd.pedestal = fitPedestals[iacd];
+    acd.pedestalRms = fitPedestalRmss[iacd];
+    ++iacd;
   }
   if ( m_LogLevel >= 2 ) {
     cout << myname <<   " # good pedestal fits: " << nPedFitGood << endl;
