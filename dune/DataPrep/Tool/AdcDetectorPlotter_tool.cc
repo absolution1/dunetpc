@@ -58,6 +58,8 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_ZMin(ps.get<float>("ZMin")),
   m_ZMax(ps.get<float>("ZMax")),
   m_SignalThreshold(ps.get<float>("SignalThreshold")),
+  m_FirstTick(ps.get<unsigned long>("FirstTick")),
+  m_LastTick(ps.get<unsigned long>("LastTick")),
   m_ShowWires(ps.get<bool>("ShowWires")),
   m_ShowCathode(ps.get<bool>("ShowCathode")),
   m_ShowGrid(ps.get<bool>("ShowGrid")),
@@ -77,6 +79,8 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "             ZMin: " << m_ZMin << " cm" << endl;
     cout << myname << "             ZMax: " << m_ZMax << " cm" << endl;
     cout << myname << "  SignalThreshold: " << m_SignalThreshold << endl;
+    cout << myname << "        FirstTick: " << m_FirstTick << endl;
+    cout << myname << "         LastTick: " << m_LastTick << endl;
     cout << myname << "        ShowWires: " << m_ShowWires << endl;
     cout << myname << "      ShowCathode: " << m_ShowCathode << endl;
     cout << myname << "         ShowGrid: " << m_ShowGrid << endl;
@@ -195,6 +199,11 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_LogLevel >= 3 ) cout << myname << "    Filling with channel " << iacd.first << endl;
     addChannel(iacd.second);
   }
+  if ( state.ppad->graph()->GetN() == 0 ) {
+    cout << myname << "Graph has no points. Adding one to avoid root exception." << endl;
+    state.ppad->graph()->SetPoint(0, m_XMin, m_ZMin);
+  }
+  if ( m_LogLevel >= 2 ) cout << myname << "  Graph point count: " << state.ppad->graph()->GetN() << endl;
   if ( m_LogLevel >= 2 ) cout << myname << "  Printing plot " << state.ofname << endl;
   state.ppad->print(state.ofname);
   return ret;
@@ -215,24 +224,28 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd) const {
   if ( pg == nullptr ) return 1;
   AdcChannel icha = acd.channel;
   auto rng = state.sel.dataMap().equal_range(icha);
+  Index nsam = isRaw ? acd.raw.size() : acd.samples.size();
   for ( auto ient=rng.first; ient!=rng.second; ++ient) {
     const WireSelector::WireInfo& win = *(ient->second);
     float z = win.z;
     float driftVelocity = win.driftSign()*m_DriftSpeed;
-    if ( isRaw ) {
-    } else {
-      for ( Index isam=0; isam<acd.samples.size(); ++isam ) {
-        float sig = acd.samples[isam];
-        if ( sig > m_SignalThreshold ) {
-          float x = win.x + driftVelocity*(isam - m_Tick0);
-          Index ipt = pg->GetN();
-          pg->SetPoint(ipt, x, z);
-          if ( m_LogLevel >= 4 ) {
-            ostringstream sout;
-            sout.precision(2);
-            sout << myname << "Added point " << ipt << " (" << x << ", " << z << ")";
-            cout << sout.str() << endl;
-          }
+    Index isam1 = 0;
+    Index isam2 = nsam;
+    if ( m_LastTick > m_FirstTick ) {
+      if ( m_FirstTick > isam1 ) isam1 = m_FirstTick;
+      if ( m_LastTick < isam2 ) isam2 = m_LastTick;
+    }
+    for ( Index isam=isam1; isam<isam2; ++isam ) {
+      float sig = isRaw ? acd.raw[isam] - acd.pedestal : acd.samples[isam];
+      if ( sig > m_SignalThreshold ) {
+        float x = win.x + driftVelocity*(isam - m_Tick0);
+        Index ipt = pg->GetN();
+        pg->SetPoint(ipt, x, z);
+        if ( m_LogLevel >= 4 ) {
+          ostringstream sout;
+          sout.precision(2);
+          sout << myname << "Added point " << ipt << " (" << x << ", " << z << ")";
+          cout << sout.str() << endl;
         }
       }
     }

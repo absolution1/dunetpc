@@ -63,6 +63,8 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "    ZMin:  -20.0" << endl;
     fout << "    ZMax:  720.0" << endl;
     fout << "    SignalThreshold: 10" << endl;
+    fout << "    FirstTick: 0" << endl;
+    fout << "     LastTick: 0" << endl;
     fout << "    ShowWires: true" << endl;
     fout << "    ShowCathode: true" << endl;
     fout << "    ShowGrid: true" << endl;
