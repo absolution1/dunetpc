@@ -1,0 +1,87 @@
+#include "dataprep_tools.fcl"
+
+################################################################################
+# Metric plotters.
+################################################################################
+
+# Pedestal for each channel.
+tools.pdapa_adcChannelPedestalPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestal
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: []
+  MetricMin: 0
+  MetricMax: 4096
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  HistName: "hchped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+# Pedestal RMS for each channel.
+tools.pdapa_adcChannelPedestalRmsPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestalRms
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: []
+  MetricMin: 0
+  MetricMax: 11
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchpedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+# Pedestal for each channel.
+tools.pdwp_adcChannelPedestalPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestal
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: [800, 800, 480, 480]
+  MetricMin: 0
+  MetricMax: 4096
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
+  HistName: "hchpdwp_ped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchpdwp_ped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+# Pedestal RMS for each channel.
+tools.pdwp_adcChannelPedestalRmsPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestalRms
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: [800, 800, 480, 480]
+  MetricMin: 0
+  MetricMax: 11
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
+  HistName: "hchpdwp_pedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchpdwp_pedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+

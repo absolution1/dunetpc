@@ -229,12 +229,15 @@ tools.adcChannelPedestalPlotter: {
   Metric: pedestal
   FirstChannel: 0
   LastChannel: 0
+  ChannelCounts: []
   MetricMin: 0
   MetricMax: 4096
-  ChannelLineModulus: 2560
-  ChannelLinePattern: [0, 800, 1600, 2080]
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   HistName: "hchped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
   HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
   PlotFileName: "hchped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
   RootFileName: ""
 }
@@ -246,12 +249,15 @@ tools.adcChannelPedestalRmsPlotter: {
   Metric: pedestalRms
   FirstChannel: 0
   LastChannel: 0
+  ChannelCounts: []
   MetricMin: 0
   MetricMax: 11
-  ChannelLineModulus: 2560
-  ChannelLinePattern: [0, 800, 1600, 2080]
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
   HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
   PlotFileName: "hchpedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
   RootFileName: ""
 }

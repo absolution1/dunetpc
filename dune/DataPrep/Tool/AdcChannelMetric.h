@@ -13,13 +13,21 @@
 //              pedestal 
 //              pedestalRms
 //   FirstChannel - First channel to display
-//   LastChannel - Last+1 channel to display
+//   LastChannel - Last channel + 1 to display
+//                 If LastChannel <= FirstChannel, the input range is used
+//   ChannelCounts - If not empty, the # channels in each histogram
+//                   repeated until all channels are covered.
+//                   E.g. [0, 200, 300] ==>
+//                   (0,200), (200,300), (300,500), ...
+//                   If empty, one histogram is made.
 //   MetricMin - Minimum for the metric axis.
 //   MetricMax - Maximum for the metric axis.
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
 //   HistTitle - Histogram title
+//   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
+//                         Root default (700x500?) is used if either is zero.
 //   PlotFileName - Name for output plot file.
 //                  If blank, no file is written.
 //                  Existing file with the same name is replaced.
@@ -79,12 +87,15 @@ private:
   Name           m_Metric;
   Index          m_FirstChannel;
   Index          m_LastChannel;
+  IndexVector    m_ChannelCounts;
   float          m_MetricMin;
   float          m_MetricMax;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
   Name           m_HistName;
   Name           m_HistTitle;
+  Index          m_PlotSizeX;
+  Index          m_PlotSizeY;
   Name           m_PlotFileName;
   Name           m_RootFileName;
 

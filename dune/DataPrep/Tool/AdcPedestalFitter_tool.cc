@@ -143,6 +143,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
   vector<int> fitStats(nacd, 999);
   vector<float> fitPedestals(nacd, 0.0);
   vector<float> fitPedestalRmss(nacd, 0.0);
+  string plotFileName = "";
   for ( const auto& acdPair : acds ) {
     const AdcChannelData& acd = acdPair.second;
     if ( m_LogLevel >= 3 ) cout << myname << "  " << iacd << ": Processing channel " << acd.channel << endl;
@@ -152,6 +153,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
       pmantop = new TPadManipulator;
       if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
       if ( npad > 1 ) pmantop->split(npady, npady);
+      plotFileName = nameReplace(m_PlotFileName, acd, false);
     }
     Index ipad = npad == 0 ? 0 : iacd % npad;
     TPadManipulator* pman = pmantop == nullptr ? nullptr : pmantop->man(ipad);
@@ -172,8 +174,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
     ++iacd;
     bool lastpad = (++ipad == npad) || (iacd == nacd);
     if ( lastpad && pmantop != nullptr ) {
-      string pfname = nameReplace(m_PlotFileName, acd, false);
-      pmantop->print(pfname);
+      pmantop->print(plotFileName);
       delete pmantop;
       pmantop = nullptr;
     }

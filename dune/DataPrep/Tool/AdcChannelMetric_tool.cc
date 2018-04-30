@@ -19,20 +19,27 @@ using std::endl;
 using std::vector;
 
 //**********************************************************************
+// local definitiions.
+//**********************************************************************
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
 AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
-: m_LogLevel(ps.get<int>("LogLevel")) , 
+: m_LogLevel(ps.get<int>("LogLevel")), 
   m_Metric(ps.get<Name>("Metric")),
   m_FirstChannel(ps.get<unsigned int>("FirstChannel")),
   m_LastChannel(ps.get<unsigned int>("LastChannel")),
+  m_ChannelCounts(ps.get<IndexVector>("ChannelCounts")),
   m_MetricMin(ps.get<float>("MetricMin")),
   m_MetricMax(ps.get<float>("MetricMax")),
   m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
   m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
   m_HistName(ps.get<Name>("HistName")),
   m_HistTitle(ps.get<Name>("HistTitle")),
+  m_PlotSizeX(ps.get<Index>("PlotSizeX")),
+  m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<Name>("PlotFileName")),
   m_RootFileName(ps.get<Name>("RootFileName"))
   {
@@ -55,6 +62,16 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
       cout << icha;
     }
     cout << "}" << endl;
+    cout << myname << "  ChannelCounts: {";
+    first = true;
+    for ( Index icha : m_ChannelCounts ) {
+      if ( ! first ) cout << ", ";
+      first = false;
+      cout << icha;
+    }
+    cout << "}" << endl;
+    cout << myname << "           PlotSizeX: " << m_PlotSizeX << endl;
+    cout << myname << "           PlotSizeY: " << m_PlotSizeY << endl;
     cout << myname << "            HistName: " << m_HistName << endl;
     cout << myname << "           HistTitle: " << m_HistTitle << endl;
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
@@ -87,15 +104,34 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
     return ret.setStatus(1);
   }
   const AdcChannelData& acdFirst = acds.begin()->second;
-  const AdcChannelData& acdLast = acds.rbegin()->second;
+  //const AdcChannelData& acdLast = acds.rbegin()->second;
+  Index acdChannelFirst = acds.begin()->first;
+  Index acdChannelLast = acds.rbegin()->first;
   AdcIndex chanFirst = m_FirstChannel;
   AdcIndex chanLast = m_LastChannel;
   if ( chanLast <= chanFirst ) {
-    chanFirst = acdFirst.channel;
-    chanLast = acdLast.channel;
+    chanFirst = acdChannelFirst;
+    chanLast = acdChannelLast + 1;
   }
   if ( m_LogLevel >= 2 ) cout << "Processing " << acds.size() << " channels in the range ("
                               << chanFirst << ", " << chanLast << ")" << endl;
+  // If channel limits are defined, then we process each channel range separately.
+  Index ncl = m_ChannelCounts.size();
+  if ( ncl ) {
+    Index icl = 0;
+    Index ich1 = 0;
+    while ( ich1 <= acdChannelLast ) {
+      Index ich2 = ich1 + m_ChannelCounts[icl];
+      icl = (icl + 1) % ncl;
+      AdcChannelMetric acd(*this);
+      acd.m_ChannelCounts.clear();
+      acd.m_FirstChannel = ich1;
+      acd.m_LastChannel = ich2;
+      ret = acd.viewMap(acds);
+      ich1 = ich2;
+    }
+    return ret;
+  }
   // Create title and file names.
   string hname = m_HistName;
   string htitl = m_HistTitle;
@@ -114,7 +150,7 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
     sman.replace("%CHAN1%", chanFirst);
     sman.replace("%CHAN2%", chanLast);
   }
-  Index nchan = chanLast - chanFirst + 1;
+  Index nchan = chanLast - chanFirst;
   string sttl;
   string slaby;
   if ( m_Metric == "pedestal" ) {
@@ -128,7 +164,7 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
     return ret.setStatus(1);
   }
   if ( htitl == "AUTO" ) htitl = sttl;
-  TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), nchan, chanFirst, chanLast+1);
+  TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), nchan, chanFirst, chanLast);
   ph->SetDirectory(nullptr);
   ph->SetLineWidth(2);
   ph->SetStats(0);
@@ -159,6 +195,7 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
   if ( m_LogLevel >= 3 ) cout << myname << "Filled " << nfill << " channels." << endl;
   if ( ofname.size() ) {
     TPadManipulator man;
+    if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     man.add(ph, "hist");
     man.addAxis();
     if ( m_ChannelLineModulus ) {
