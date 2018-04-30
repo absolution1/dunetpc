@@ -27,7 +27,7 @@ tools.rawAdcDetectorPlotColl: {
   Title: "Raw ADC collection view. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%RUN%-evt%EVENT%-coll.png"
 }
-tools.preparedAdcDetectorPlotInd1: {
+tools.rawAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter
   LogLevel: 1
   WireAngle: 0.623
@@ -47,7 +47,7 @@ tools.preparedAdcDetectorPlotInd1: {
   Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%RUN%-evt%EVENT%-ind1.png"
 }
-tools.preparedAdcDetectorPlotInd2: {
+tools.rawAdcDetectorPlotInd2: {
   tool_type: AdcDetectorPlotter
   LogLevel: 1
   WireAngle: -0.623
