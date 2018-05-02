@@ -23,6 +23,8 @@ StandardAdcWireBuildingService(fhicl::ParameterSet const& pset, art::ActivityReg
   const string myname = "StandardAdcWireBuildingService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   if ( m_LogLevel > 0 ) print(cout, myname);
+  m_SaveChanPedRMS = false;
+  pset.get_if_present<bool>("SaveChanPedRMS", m_SaveChanPedRMS);
 }
 
 //**********************************************************************
@@ -54,15 +56,32 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
     cout << myname << "  Channel " << data.channel << " has " << data.rois.size() << " ROI"
          << (data.rois.size()==1 ? "" : "s") << "." << endl;
   }
+  
+  // testing
+  if(data.channel < 50) {
+    std::cout<<"chan "<<data.channel<<" pedRMS "<<std::fixed<<std::setprecision(2)<<data.pedestalRms<<"\n";
+  }
+  
   // Create recob ROIs.
   recob::Wire::RegionsOfInterest_t recobRois;
+  unsigned int lastROI = 0;
   for ( const AdcRoi& roi : data.rois ) {
     AdcSignalVector sigs;
+    lastROI = roi.second;
     for ( unsigned int isig=roi.first; isig<=roi.second; ++isig ) {
       sigs.push_back(data.samples[isig]);
     }
     recobRois.add_range(roi.first, std::move(sigs));
   }
+  if(m_SaveChanPedRMS) {
+    // save a short ROI that only has the pedestal rms
+    AdcSignalVector sig1;
+//    sigs.push_back(data.pedestalRms);
+    sig1.push_back(1);
+    lastROI += 10;
+    recobRois.add_range(lastROI, std::move(sig1));
+  }
+
   // Create recob::Wire.
   recob::WireCreator wc(std::move(recobRois), *data.digit);
   // Record the new wire if there is a wire container and if there is at least one ROI.
