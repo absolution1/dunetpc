@@ -22,6 +22,7 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
@@ -71,6 +72,9 @@ private:
   double bigLifeInv[12];
   double bigLifeInvErr[12];
   double bigLifeInvCnt[12];
+  double signalToNoise[12];
+  double signalToNoiseCnt[12];
+  unsigned int signalToNoiseClsCnt[12];
   
   TH1F *fLifeInv;
   TH1F *fFracSelHits;
@@ -114,6 +118,9 @@ void nlana::SPLifetime::beginJob()
     bigLifeInv[tpc] = 0;
     bigLifeInvErr[tpc] = 0;
     bigLifeInvCnt[tpc] = 0;
+    signalToNoise[tpc] = 0;
+    signalToNoiseCnt[tpc] = 0;
+    signalToNoiseClsCnt[tpc] = 0;
   }
 
 } // beginJob
@@ -133,7 +140,7 @@ void nlana::SPLifetime::endJob()
 {
   std::ofstream purfile;
   purfile.open("Lifetime_Run" + std::to_string(lastRun) + ".txt");
-  purfile<<"Run, tpc, lifetime, error, count\n";
+  purfile<<"Run, tpc, lifetime, error, count, S/N, num S/N clusters\n";
   for(unsigned short tpc = 0; tpc < 12; ++tpc) {
     if(bigLifeInvCnt[tpc] < 2) continue;
     if(bigLifeInv[tpc] <= 0) continue;
@@ -146,7 +153,11 @@ void nlana::SPLifetime::endJob()
     float life = 0;
     if(1/bigLifeInv[tpc] != 0) life = 1 / bigLifeInv[tpc];
     float lifeErr = life * bigLifeInvErr[tpc] / bigLifeInv[tpc];
-    purfile<<lastRun<<", "<<tpc<<", "<<std::fixed<<std::setprecision(2)<<life<<", "<<lifeErr<<", "<<(int)bigLifeInvCnt[tpc]<<"\n";
+    float sn = -1;
+    if(signalToNoiseCnt[tpc] > 100) sn = signalToNoise[tpc] / signalToNoiseCnt[tpc];
+    purfile<<lastRun<<", "<<tpc<<", "<<std::fixed<<std::setprecision(2)<<life<<", "<<lifeErr<<", "<<(int)bigLifeInvCnt[tpc];
+    purfile<<", "<<std::setprecision(1)<<sn<<", "<<signalToNoiseClsCnt[tpc];
+    purfile<<"\n";
   }
   purfile.close();
 } // endJob
@@ -165,14 +176,13 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   
   const detinfo::DetectorProperties* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   double msPerTick = 1E-6 * detprop->SamplingRate();
-//  std::cout<<"Inside analyze "<<run<<" "<<" subrun "<<subrun<<" event "<<event<<" msPerTick "<<msPerTick<<"\n";
+
 
   art::ValidHandle<std::vector<recob::Cluster>> clsVecHandle = evt.getValidHandle<std::vector<recob::Cluster>>(fClusterModuleLabel);
   art::FindManyP<recob::Hit> clsHitsFind(clsVecHandle, evt, fClusterModuleLabel);
+  art::ValidHandle<std::vector<recob::Wire>> wireVecHandle = evt.getValidHandle<std::vector<recob::Wire>>("caldata");
   
-//  art::ServiceHandle<cheat::BackTracker> bt;
-  
-  bool prt = false;
+//  bool prt = false;
   
   // This corresponds to time bins of size 200 ticks * 0.5 us/tick = 0.1 ms
   constexpr float ticksPerHist = 200;
@@ -181,7 +191,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     art::Ptr<recob::Cluster> cls = art::Ptr<recob::Cluster>(clsVecHandle, icl);
     // only consider the collection plane
     if(cls->Plane().Plane != 2) continue;
-    prt = (fDebugCluster >= 0 && icl == (unsigned int)fDebugCluster);
+//    prt = (fDebugCluster >= 0 && icl == (unsigned int)fDebugCluster);
     float sTick = cls->StartTick();
     float eTick = cls->EndTick();
     if(sTick > eTick) std::swap(sTick, eTick);
@@ -192,6 +202,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     std::vector<art::Ptr<recob::Hit> > clsHits;
     clsHitsFind.get(icl, clsHits);
     if(clsHits.size() < 100) continue;
+/*
     if(prt) {
       auto& sht = clsHits[0];
       std::cout<<"Cls "<<icl<<" "<<sht->WireID().TPC<<":"<<sht->WireID().Plane<<":"<<sht->WireID().Wire<<":"<<(int)sht->PeakTime();
@@ -199,7 +210,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       std::cout<<"  "<<eht->WireID().TPC<<":"<<eht->WireID().Plane<<":"<<eht->WireID().Wire<<":"<<(int)eht->PeakTime();
       std::cout<<" sTick "<<(int)sTick<<" "<<(int)eTick<<" nhits "<<clsHits.size()<<" nhist "<<nhist<<"\n";
     }
-    
+*/
     // Find the average and maximum charge of these histograms
     std::vector<double> tck(nhist), ave(nhist), cnt(nhist), err(nhist);
     std::vector<float> minChg(nhist, 0);
@@ -233,7 +244,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
           if(cnt[ihist] < 5) continue;
           maxChg[ihist] = fChgCuts[1] * ave[ihist];
           minChg[ihist] = fChgCuts[0] * ave[ihist];
-          if(prt) std::cout<<ihist<<" Min "<<(int)minChg[ihist]<<" max "<<(int)maxChg[ihist]<<"\n";
+//          if(prt) std::cout<<ihist<<" Min "<<(int)minChg[ihist]<<" max "<<(int)maxChg[ihist]<<"\n";
         } // ihist
       } else {
         // Calculate the error on the average on the second iteration
@@ -256,17 +267,17 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     unsigned short nok = 0;
     for(auto& icnt : cnt) if(icnt > 4) ++nok;
     if(nok < 5) {
-      if(prt) std::cout<<" failed nok cut "<<nok<<" Need at least 4 \n";
+//      if(prt) std::cout<<" failed nok cut "<<nok<<" Need at least 4 \n";
       continue;
     }
-
+/*
     if(prt) {
       for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
         float xx = (ihist + 0.5) * ticksPerHist + sTick;
         std::cout<<"ihist "<<ihist<<" tick "<<(int)xx<<" ave "<<(int)ave[ihist]<<" +/- "<<(int)err[ihist]<<" cnt "<<(int)cnt[ihist]<<"\n";
       } // ihist
     }
-
+*/
     // fit to find the 1/lifetime
     double sum = 0.;
     double sumx = 0.;
@@ -304,11 +315,11 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     double ndof = fitcnt - 2;
     double varnce = (sumy2 + A*A*sum + B*B*sumx2 - 2 * (A*sumy + B*sumxy - A*B*sumx)) / ndof;
     if(varnce == 0) continue;
-    double BErr = sqrt(varnce * sum / delta);
-    if(prt) std::cout<<"B "<<B<<" "<<BErr;
+//    double BErr = sqrt(varnce * sum / delta);
+//    if(prt) std::cout<<"B "<<B<<" "<<BErr;
     
     double lifeInv = -B;
-    double lifeInvErr = BErr / (B * B) ;
+//    double lifeInvErr = BErr / (B * B) ;
     
     // calculate chisq
     double chi = 0;
@@ -319,52 +330,75 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       yy = exp(A - xx * lifeInv);
       arg = (yy - ave[ihist]) / err[ihist];
       chi += arg * arg;
-      if(prt) std::cout<<"chk "<<ihist<<" xx "<<xx<<" yy "<<yy<<" ave "<<ave[ihist]<<" arg "<<arg<<"\n";
+//      if(prt) std::cout<<"chk "<<ihist<<" xx "<<xx<<" yy "<<yy<<" ave "<<ave[ihist]<<" arg "<<arg<<"\n";
     }
     chi /= ndof;
     unsigned short tpc = clsHits[0]->WireID().TPC;
-    if(prt) std::cout<<tpc<<" lifeInv "<<lifeInv<<" +/- "<<lifeInvErr<<" chi "<<chi<<"\n";
+//    if(prt) std::cout<<tpc<<" lifeInv "<<lifeInv<<" +/- "<<lifeInvErr<<" chi "<<chi<<"\n";
     fChiDOF->Fill(chi);
     if(chi > fChiCut) continue;
     ++bigLifeInvCnt[tpc];
     bigLifeInv[tpc] += lifeInv;
     bigLifeInvErr[tpc] += lifeInv * lifeInv;
     fLifeInv->Fill(lifeInv);
-//    std::cout<<"icl "<<icl<<" tpc "<<tpc<<" lifeInv "<<lifeInv<<" chi "<<chi<<"\n";
     
     double selHits = 0;
     for(auto& hcnt : cnt) selHits += hcnt;
     selHits /= (double)(clsHits.size());
     fFracSelHits->Fill(selHits);
 
-/*
-    // temp study MC truth
-    art::Ptr<recob::Hit> pht = clsHits[0];
-    raw::ChannelID_t channel = geom->PlaneWireToChannel((int)pht->WireID().Plane, (int)pht->WireID().Wire, (int)pht->WireID().TPC, (int)pht->WireID().Cryostat);
-    double startTick = pht->PeakTime() - pht->RMS();
-    double endTick = pht->PeakTime() + pht->RMS();
-    std::vector<sim::TrackIDE> tides;
-    bt->ChannelToTrackIDEs(tides, channel, startTick, endTick);
-    if(tides.size() != 1) continue;
-    int trackID = tides[0].trackID;
-    auto part = bt->TrackIDToParticle(trackID);
-    if(abs(part->PdgCode()) != 13) std::cout<<"Not a muon "<<part->PdgCode()<<"\n";
-//    std::cout<<"TPC "<<tpc<<" start E "<<part->E()<<" Pos "<<(int)part->Vx()<<" "<<(int)part->Vy()<<" "<<(int)part->Vz();
-//    std::cout<<" end "<<part->EndE()<<" Pos "<<(int)part->EndX()<<" "<<(int)part->EndY()<<" "<<(int)part->EndZ();
-    if(part->Vy() < part->EndY()) std::cout<<" CR going UP!! \n";
-    bool goingPosX = (part->Vx() < part->EndX());
-    bool posTPC = (tpc == 2 || tpc == 6 || tpc ==10);
-    bool CtoA = goingPosX && posTPC;
-    if(CtoA) {
-//      std::cout<<" C -> A\n";
-      fLifeInvCA->Fill(lifeInv);
-    } else {
-//      std::cout<<" A -> C\n";
-      fLifeInvAC->Fill(lifeInv);
-    }
-    fLifeInv_E->Fill(part->E(), lifeInv);
- */
     fLifeInv_Angle->Fill(cls->StartAngle(), lifeInv);
+  } // icl
+  
+  std::vector<std::pair<unsigned int, float>> chanPedRMS;
+  for(unsigned int witer = 0; witer < wireVecHandle->size(); ++witer) {
+    art::Ptr<recob::Wire> thisWire(wireVecHandle, witer);
+    const recob::Wire::RegionsOfInterest_t& signalROI = thisWire->SignalROI();
+    for(const auto& range : signalROI.get_ranges()) {
+      const std::vector<float>& signal = range.data();
+      if(signal.size() != 1) continue;
+      // protect against unrealistic values
+      if(signal[0] < 0.1) continue;
+      chanPedRMS.push_back(std::make_pair(thisWire->Channel(), signal[0]));
+    }
+  }// witer
+
+  // calculate S/N using shallow angle clusters
+  for(unsigned int icl = 0; icl < clsVecHandle->size(); ++icl) {
+    art::Ptr<recob::Cluster> cls = art::Ptr<recob::Cluster>(clsVecHandle, icl);
+    // only consider the collection plane
+    if(cls->Plane().Plane != 2) continue;
+    float dTick = std::abs(cls->StartTick() - cls->EndTick());
+    if(dTick < 500) continue;
+    float dWire = std::abs(cls->StartWire() - cls->EndWire());
+    if(dWire < 300) continue;
+    // Get the hits
+    std::vector<art::Ptr<recob::Hit> > clsHits;
+    clsHitsFind.get(icl, clsHits);
+    if(clsHits.size() < 300) continue;
+    unsigned short tpc = clsHits[0]->WireID().TPC;
+    ++signalToNoiseClsCnt[tpc];
+//    float aveSN = 0;
+//    float cnt = 0;
+    for(auto& hit : clsHits) {
+      float pedRMS = -1;
+      for(auto& chrms : chanPedRMS) {
+        if(chrms.first != hit->Channel()) continue;
+        pedRMS = chrms.second;
+        break;
+      } // chrms
+      if(pedRMS < 0) continue;
+      float sn = hit->PeakAmplitude() / pedRMS;
+      signalToNoise[tpc] += sn;
+      ++signalToNoiseCnt[tpc];
+//      aveSN += sn;
+//      ++cnt;
+    } // hit
+/*
+    if(cnt == 0) continue;
+    aveSN /= cnt;
+    std::cout<<" aveSN "<<aveSN<<" cnt "<<(int)cnt<<"\n";
+*/
   } // icl
 
 } // analyze
