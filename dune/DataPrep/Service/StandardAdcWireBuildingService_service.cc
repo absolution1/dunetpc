@@ -57,11 +57,6 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
          << (data.rois.size()==1 ? "" : "s") << "." << endl;
   }
   
-  // testing
-  if(data.channel < 50) {
-    std::cout<<"chan "<<data.channel<<" pedRMS "<<std::fixed<<std::setprecision(2)<<data.pedestalRms<<"\n";
-  }
-  
   // Create recob ROIs.
   recob::Wire::RegionsOfInterest_t recobRois;
   unsigned int lastROI = 0;
