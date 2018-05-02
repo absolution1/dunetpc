@@ -30,6 +30,22 @@ using std::vector;
 using Index = unsigned int;
 
 //**********************************************************************
+// Local definitions.
+//**********************************************************************
+
+namespace {
+
+void copyMetadata(const DataMap& res, AdcChannelData& acd) {
+  acd.metadata["fitPedestal"] = res.getFloat("fitPedestal");
+  acd.metadata["fitPedRms"] = res.getFloat("fitPedestalRms");
+  acd.metadata["fitPedChiSquare"] = res.getFloat("fitChiSquare");
+  acd.metadata["fitPedPeakBinFraction"] = res.getFloat("fitPeakBinFraction");
+  acd.metadata["fitPedNBinsRemoved"] = res.getFloat("fitNBinsRemoved");
+}
+
+}  // end unnamed namespace
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
@@ -113,6 +129,7 @@ DataMap AdcPedestalFitter::update(AdcChannelData& acd) const {
   if ( m_LogLevel >= 3 ) cout << myname << "Old pedestal: " << acd.pedestal << endl;
   acd.pedestal = res.getFloat("fitPedestal");
   acd.pedestalRms = res.getFloat("fitPedestalRms");
+  copyMetadata(res, acd);
   if ( m_LogLevel >= 3 ) cout << myname << "New pedestal: " << acd.pedestal << endl;
   return res;
 }
@@ -144,8 +161,9 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
   vector<float> fitPedestals(nacd, 0.0);
   vector<float> fitPedestalRmss(nacd, 0.0);
   string plotFileName = "";
-  for ( const auto& acdPair : acds ) {
+  for ( auto& acdPair : acds ) {
     const AdcChannelData& acd = acdPair.second;
+    AdcChannelData& acdMutable = acdPair.second;
     if ( m_LogLevel >= 3 ) cout << myname << "  " << iacd << ": Processing channel " << acd.channel << endl;
     // If needed, create a new canvas.
     if ( npad > 0 && pmantop == nullptr ) {
@@ -165,6 +183,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
       ++nPedFitGood;
       fitPedestal = tmpres.getFloat("fitPedestal");
       fitPedestalRms = tmpres.getFloat("fitPedestalRms");
+      copyMetadata(tmpres, acdMutable);
     } else {
       ++nPedFitFail;
     }
@@ -209,7 +228,8 @@ nameReplace(string name, const AdcChannelData& acd, bool isTitle) const {
     pnbl = m_adcNameBuilder == nullptr ? m_adcTitleBuilder : m_adcNameBuilder;
   }
   if ( pnbl == nullptr ) return name;
-  return pnbl->build(acd, name);
+  DataMap dm;
+  return pnbl->build(acd, dm, name);
 }
 
 //**********************************************************************

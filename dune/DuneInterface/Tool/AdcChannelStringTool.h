@@ -3,13 +3,14 @@
 // David Adams
 // April 2018
 //
-// Interface for a tool that builds a string from AdcChannelData and
-// a string pattern and a count.
+// Interface for a tool that builds a string from AdcChannelData, 
+// a DataMap and a string pattern.
 
 #ifndef AdcChannelStringTool_H
 #define AdcChannelStringTool_H
 
 #include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/DataMap.h"
 
 class AdcChannelStringTool {
 
@@ -21,16 +22,15 @@ public:
   // input string if that pointer is null.
   static std::string
   build(const AdcChannelStringTool* ptool,
-        const AdcChannelData& acd, std::string spat,
+        const AdcChannelData& acd,  const DataMap& dm, std::string spat,
         Index count =AdcChannelData::badIndex) {
-    return ptool == nullptr ? spat : ptool->build(acd, spat, count);
+    return ptool == nullptr ? spat : ptool->build(acd, dm, spat);
   }
                         
   virtual ~AdcChannelStringTool() =default;
 
   virtual std::string
-  build(const AdcChannelData& acd, std::string spat,
-        Index count =AdcChannelData::badIndex) const =0;
+  build(const AdcChannelData& acd, const DataMap& dm, std::string spat) const =0;
 
 };
 

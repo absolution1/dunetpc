@@ -10,8 +10,13 @@
 //   %SUBRUN% --> acd.subRun
 //   %EVENT% --> acd.event
 //   %CHAN% --> acd.channel
-//   %CHAN% --> acd.channel
-//   %COUNT% --> count passed in call to build
+//   %SUNIT% --> "sunit" where sunit = acd.sampleUnit
+//   % SUNIT% --> " sunit" or "" if sunit is empty
+//   %(SUNIT)% --> "(sunit)" or "" if sunit is empty
+//   % (SUNIT)% --> " (sunit)" or "" if sunit is empty
+//   %COUNT% --> dm.getInt("count") passed in call to build
+//   %CHAN1% --> dm.getInt("chan1") passed in call to build
+//   %CHAN2% --> dm.getInt("chan2") passed in call to build
 // where w can be absent or any unsigned int.
 // If w is 0 or blank, the value is written with its natural width.
 // Otherwise it is written with that with padded with leading zeroes.
@@ -40,7 +45,7 @@ public:
 
   StandardAdcChannelStringTool(fhicl::ParameterSet const& ps);
 
-  std::string build(const AdcChannelData& acd, std::string sfmt, Index count) const override;
+  std::string build(const AdcChannelData& acd, const DataMap& dm, std::string spat) const override;
 
 private:
 
@@ -52,7 +57,7 @@ private:
   Index m_ChannelWidth;
   Index m_CountWidth;
 
-  static const Index m_nrep = 5;
+  static const Index m_nrep = 7;
   Index m_wids[m_nrep];
   std::string m_reps[m_nrep];
   std::string m_bads[m_nrep];

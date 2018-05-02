@@ -9,7 +9,8 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   Metric - Name of the metric to plot:
+//   Metric - Name of the plotted metric. This can be the name of any
+//            metadata field or any of the following:
 //              pedestal 
 //              pedestalRms
 //   FirstChannel - First channel to display
@@ -26,6 +27,7 @@
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
 //   HistTitle - Histogram title
+//   MetricLabel - Histogram lable for the metric axis
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
 //                         Root default (700x500?) is used if either is zero.
 //   PlotFileName - Name for output plot file.
@@ -56,6 +58,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <vector>
+
+class AdcChannelStringTool;
 
 class AdcChannelMetric : AdcChannelTool {
 
@@ -94,10 +98,19 @@ private:
   IndexVector    m_ChannelLinePattern;
   Name           m_HistName;
   Name           m_HistTitle;
+  Name           m_MetricLabel;
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
   Name           m_PlotFileName;
   Name           m_RootFileName;
+
+  // ADC string tools.
+  const AdcChannelStringTool* m_adcNameBuilder;
+  const AdcChannelStringTool* m_adcTitleBuilder;
+
+  // Make replacements in a name.
+  Name nameReplace(Name name, const AdcChannelData& acd,
+                   Index chan1, Index chan2, bool isTitle) const;
 
 };
 

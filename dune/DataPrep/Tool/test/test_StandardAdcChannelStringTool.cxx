@@ -76,7 +76,10 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
   cout << myname << "Call tool." << endl;
   string rawName = "data_run%RUN%-%SUBRUN%_ev%EVENT%_ch%CHAN%_%COUNT%.dat";
   string expName = "data_run0123-045_ev000246_ch01357_000023.dat";
-  string outName = past->build(acd, rawName, 23);
+  DataMap dm;
+  dm.setInt("count", 23);
+  assert( dm.haveInt("count") );
+  string outName = past->build(acd, dm, rawName);
   cout << myname << "  Raw name: " << rawName << endl;
   cout << myname << "  Out name: " << outName << endl;
   assert( outName == expName );

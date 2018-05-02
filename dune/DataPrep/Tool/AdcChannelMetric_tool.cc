@@ -3,8 +3,10 @@
 #include "AdcChannelMetric.h"
 #include <iostream>
 #include <sstream>
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/ArtSupport/DuneToolManager.h"
 #include "TH1F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -38,13 +40,23 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
   m_HistName(ps.get<Name>("HistName")),
   m_HistTitle(ps.get<Name>("HistTitle")),
+  m_MetricLabel(ps.get<Name>("MetricLabel")),
   m_PlotSizeX(ps.get<Index>("PlotSizeX")),
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<Name>("PlotFileName")),
-  m_RootFileName(ps.get<Name>("RootFileName"))
-  {
-
+  m_RootFileName(ps.get<Name>("RootFileName")) {
   const string myname = "AdcChannelMetric::ctor: ";
+  string snameBuilder = "adcNameBuilder";
+  DuneToolManager* ptm = DuneToolManager::instance();
+  m_adcNameBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
+  if ( m_adcNameBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
+  }
+  string stitlBuilder = "adcTitleBuilder";
+  m_adcTitleBuilder = ptm->getShared<AdcChannelStringTool>(stitlBuilder);
+  if ( m_adcTitleBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stitlBuilder << endl;
+  }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
@@ -74,6 +86,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "           PlotSizeY: " << m_PlotSizeY << endl;
     cout << myname << "            HistName: " << m_HistName << endl;
     cout << myname << "           HistTitle: " << m_HistTitle << endl;
+    cout << myname << "         MetricLabel: " << m_MetricLabel << endl;
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
     cout << myname << "        RootFileName: " << m_RootFileName << endl;
   }
@@ -132,47 +145,24 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
     }
     return ret;
   }
-  // Create title and file names.
-  string hname = m_HistName;
-  string htitl = m_HistTitle;
-  string ofname = m_PlotFileName;
-  string ofrname = m_RootFileName;
-  vector<string*> strs = {&hname, &htitl, &ofname, &ofrname};
-  for ( string* pstr : strs ) {
-    string& str = *pstr;
-    StringManipulator sman(str);
-    if ( acdFirst.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acdFirst.run);
-    else sman.replace("%RUN%", "RunNotFound");
-    if ( acdFirst.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acdFirst.subRun);
-    else sman.replace("%SUBRUN%", "SubRunNotFound");
-    if ( acdFirst.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acdFirst.event);
-    else sman.replace("%EVENT%", "EventNotFound");
-    sman.replace("%CHAN1%", chanFirst);
-    sman.replace("%CHAN2%", chanLast);
-  }
+  // At this point, there is only one range to plot.
+  string hname = nameReplace(m_HistName, acdFirst, chanFirst, chanLast, false);
+  string htitl = nameReplace(m_HistTitle, acdFirst, chanFirst, chanLast, true);
+  string slaby = nameReplace(m_MetricLabel, acdFirst, chanFirst, chanLast, true);
+  string ofname = nameReplace(m_PlotFileName, acdFirst, chanFirst, chanLast, false);
+  string ofrname = nameReplace(m_RootFileName, acdFirst, chanFirst, chanLast, false);
   Index nchan = chanLast - chanFirst;
-  string sttl;
-  string slaby;
-  if ( m_Metric == "pedestal" ) {
-    sttl = "ADC pedestal";
-    slaby = "Pedestal";
-  } else if ( m_Metric == "pedestalRms" ) {
-    sttl = "ADC pedestal RMS";
-    slaby = "Pedestal RMS";
-  } else {
-    cout << myname << "ERROR: Invalid metric name: " << m_Metric << endl;
-    return ret.setStatus(1);
-  }
-  if ( htitl == "AUTO" ) htitl = sttl;
   TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), nchan, chanFirst, chanLast);
   ph->SetDirectory(nullptr);
   ph->SetLineWidth(2);
   ph->SetStats(0);
+  ph->GetXaxis()->SetTitle("Channel");
+  ph->GetYaxis()->SetTitle(slaby.c_str());
   Index nfill = 0;
-  AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(chanFirst);
-  AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(chanLast);
   float val = 0.0;
   Name sunits;
+  AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(chanFirst);
+  AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(chanLast);
   for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
     const AdcChannelData& acd = iacd->second;
     int rstat = getMetric(acd, val, sunits);
@@ -183,13 +173,6 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
     Index icha = iacd->first;
     Index bin = icha - chanFirst + 1;
     ph->SetBinContent(bin, val);
-    if ( nfill == 0 ) {
-      if ( sunits.size() ) {
-        slaby = slaby + " [" + sunits + "]";
-      }
-      ph->GetXaxis()->SetTitle("Channel");
-      ph->GetYaxis()->SetTitle(slaby.c_str());
-    }
     ++nfill;
   }
   if ( m_LogLevel >= 3 ) cout << myname << "Filled " << nfill << " channels." << endl;
@@ -239,11 +222,29 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
   } else if ( m_Metric == "pedestalRms" ) {
     val = acd.pedestalRms;
     sunits = "ADC counts";
+  } else if ( acd.hasMetadata(m_Metric) ) {
+    val = acd.metadata.find(m_Metric)->second;
   } else {
     cout << myname << "ERROR: Invalid metric name: " << m_Metric << endl;
     return 1;
   }
   return 0;
+}
+
+//**********************************************************************
+
+string AdcChannelMetric::
+nameReplace(string name, const AdcChannelData& acd, Index chan1, Index chan2, bool isTitle) const {
+  const AdcChannelStringTool* pnbl = nullptr;
+  if ( isTitle ) pnbl = m_adcTitleBuilder;
+  else {
+    pnbl = m_adcNameBuilder == nullptr ? m_adcTitleBuilder : m_adcNameBuilder;
+  }
+  if ( pnbl == nullptr ) return name;
+  DataMap dm;
+  dm.setInt("chan1", chan1);
+  dm.setInt("chan2", chan2);
+  return pnbl->build(acd, dm, name);
 }
 
 //**********************************************************************

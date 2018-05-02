@@ -38,8 +38,21 @@
 //      %EVENT%  --> event number
 //      %CHAN%   --> channel number
 //
-// The AdcChannelTool methods all return a data map.
-
+// The updating methods add metadata to the ADC channel data:
+//
+//   fitPedestal           - fitted pedestal (same as the assigned value)
+//   fitPedRms             - Fit sigma of the pedestal
+//   fitPedChiSquare       - Chi-square of the fit
+//   fitPedPeakBinFraction - Fraction of the pedestal distribution in the peak channel
+//   fitPedNBinsRemoved    - Number of sticky bins removed before fit
+//
+// The AdcChannelTool methods all return a data map with the following:
+//
+//   nPedFitGood       - # channels with a successful pedestalfit
+//   nPedFitFail       - # channels with a failed pedestal fit
+//   fitStats          - fit status for each channel
+//   fitPedestals      - fitted pecdestal for each channel
+//   fitPedestalRmss   - fittend pedestal RMS (sigma) for each channel
 
 #ifndef AdcPedestalFitter_H
 #define AdcPedestalFitter_H

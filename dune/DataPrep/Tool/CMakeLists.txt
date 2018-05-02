@@ -55,6 +55,7 @@ simple_plugin(AdcDetectorPlotter   "tool"
 
 simple_plugin(AdcChannelMetric   "tool"
                 dune_DuneCommon
+                dune_ArtSupport
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
