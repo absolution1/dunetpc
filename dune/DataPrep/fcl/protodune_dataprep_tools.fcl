@@ -219,6 +219,16 @@ tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.HistTitle: "Pedestal peak bi
 tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.MetricLabel: "Peak bin fraction"
 tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.PlotFileName: "hchpdwp_pedpeakfrac_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
 
+# Pedestal peak bin excess for each channel.
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter: @local::pdwp_template
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.Metric: fitPedPeakBinExcess
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.MetricMin: 0
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.MetricMax: 1.0
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpdwp_pedpeakexc_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "Pedestal peak bin fraction excess for run %RUN% event %EVENT%"
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak bin fraction excess"
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "hchpdwp_pedpeakexc_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+
 #fitPedChiSquare       - Chi-square of the fit
 #//   fitPedNBinsRemoved    - N
 

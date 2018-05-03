@@ -22,10 +22,16 @@
 //  digitIndex - Index for the digit in the event digit container
 //   wireIndex - Index for the wire in the event wire container
 //  sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
+//     dftmags - Magnitudes for the DFT of the samples.
+//   dftphases - Corresponding phases for the DFT of the samples.
 //    metadata - Extra attributes
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
+//
+// The DFT fields typically have length nsam/2 + 1 with the first phase zero and the last
+// phase zero if nsam is even.
+//
 
 #ifndef AdcChannelData_H
 #define AdcChannelData_H
@@ -68,6 +74,8 @@ public:
   const recob::Wire* wire =nullptr;
   AdcIndex digitIndex =badIndex;
   AdcIndex wireIndex =badIndex;
+  AdcSignalVector fftmags;
+  AdcSignalVector fftphases;
   FloatMap metadata;
 
   // Hide copy and assignment but allow move.

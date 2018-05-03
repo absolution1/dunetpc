@@ -123,6 +123,12 @@ simple_plugin(FembMappedAdcModifier   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcChannelFFT   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcDPhase3x1x1RoiBuilder   "tool"
                 dune_ArtSupport
                 dune_DuneCommon
