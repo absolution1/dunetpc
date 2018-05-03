@@ -22,6 +22,7 @@
 //  digitIndex - Index for the digit in the event digit container
 //   wireIndex - Index for the wire in the event wire container
 //  sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
+//    metadata - Extra attributes
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
@@ -44,6 +45,8 @@ class AdcChannelData {
 
 public:
 
+  using FloatMap = std::map<std::string, float>;
+
   static const AdcIndex badIndex =-1;
   static const AdcChannel badChannel =-1;
   static const size_t badSignal =-99999;
@@ -65,6 +68,7 @@ public:
   const recob::Wire* wire =nullptr;
   AdcIndex digitIndex =badIndex;
   AdcIndex wireIndex =badIndex;
+  FloatMap metadata;
 
   // Hide copy and assignment but allow move.
   // Root dictionary (6.08/06) requires we keep copy.
@@ -77,6 +81,11 @@ public:
 #else
   AdcChannelData(const AdcChannelData&) =default;
 #endif
+
+  // Check if a metadata field is defined.
+  bool hasMetadata(std::string mname) const {
+    return metadata.find(mname) != metadata.end();
+  }
 
   // Clear the data.
   void clear();
@@ -112,6 +121,7 @@ inline void AdcChannelData::clear() {
   wire = nullptr;
   digitIndex = badIndex;
   wireIndex = badIndex;
+  metadata.clear();
 }
 
 //**********************************************************************

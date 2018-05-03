@@ -41,22 +41,25 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
+    fout << "tools.mytool: {" << endl;
     fout << "           tool_type: AdcChannelMetric" << endl;
     fout << "            LogLevel: 3" << endl;
     fout << "              Metric: \"pedestal\"" << endl;
     fout << "        FirstChannel: 0" << endl;
     fout << "         LastChannel: 0" << endl;
-    fout << "          MetricMin: 0.0" << endl;
-    fout << "          MetricMax: 2000.0" << endl;
-    fout << " ChannelLineModulus:  4" << endl;
-    fout << " ChannelLinePattern:  [1]" << endl;
-    fout << "          HistName: \"" << hname << "\"" << endl;
-    fout << "          HistTitle: \"ADC pedestals for run %RUN% event %EVENT%\"" << endl;
-    fout << "          PlotFileName: \"mypeds-run%RUN%-evt%EVENT%.png\"" << endl;
-    fout << "          RootFileName: \"\"" << endl;
-    fout << "  }" << endl;
+    fout << "       ChannelCounts: []" << endl;
+    fout << "           MetricMin: 0.0" << endl;
+    fout << "           MetricMax: 2000.0" << endl;
+    fout << "  ChannelLineModulus:  4" << endl;
+    fout << "  ChannelLinePattern:  [1]" << endl;
+    fout << "            HistName: \"" << hname << "\"" << endl;
+    fout << "           HistTitle: \"ADC pedestals for run %RUN% event %EVENT%\"" << endl;
+    fout << "         MetricLabel: \"Pedestal [ADC counts]\"" << endl;
+    fout << "           PlotSizeX: 0" << endl;
+    fout << "           PlotSizeY: 0" << endl;
+    fout << "        PlotFileName: \"mypeds-run%RUN%-evt%EVENT%.png\"" << endl;
+    fout << "        RootFileName: \"\"" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -69,7 +72,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() >= 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;

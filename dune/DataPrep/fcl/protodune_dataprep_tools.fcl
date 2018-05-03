@@ -1,0 +1,224 @@
+#include "dataprep_tools.fcl"
+
+################################################################################
+# Detector event display.
+################################################################################
+
+# Event display: wire coodinate vs. drift coordinate.
+
+# Raw data.
+tools.rawAdcDetectorPlotColl: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: 0.0
+  DataType: 1
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin:  -20.0
+  ZMax:  720.0
+  SignalThreshold: 5
+  FirstTick: 0
+  LastTick: 0
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Raw ADC collection view. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-coll.png"
+}
+tools.rawAdcDetectorPlotInd1: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: 0.623
+  DataType: 1
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin:  -20.0
+  ZMax:  940.0
+  SignalThreshold: 5
+  FirstTick: 0
+  LastTick: 0
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-ind1.png"
+}
+tools.rawAdcDetectorPlotInd2: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: -0.623
+  DataType: 1
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin: -380.0
+  ZMax:  580.0
+  SignalThreshold: 5
+  FirstTick: 0
+  LastTick: 0
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-ind2.png"
+}
+
+# Prepared data.
+tools.preparedAdcDetectorPlotColl: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: 0.0
+  DataType: 0
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin:  -20.0
+  ZMax:  720.0
+  SignalThreshold: 5
+  FirstTick: 0
+  LastTick: 0
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-coll.png"
+}
+tools.preparedAdcDetectorPlotInd1: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: 0.623
+  DataType: 0
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin:  -20.0
+  ZMax:  940.0
+  SignalThreshold: 5
+  FirstTick: 0
+  LastTick: 0
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-ind1.png"
+}
+tools.preparedAdcDetectorPlotInd2: {
+  tool_type: AdcDetectorPlotter
+  LogLevel: 1
+  WireAngle: -0.623
+  DataType: 0
+  Tick0: 0
+  DriftSpeed: 0.08
+  XMin: -400.0
+  XMax:  400.0
+  ZMin: -380.0
+  ZMax:  580.0
+  SignalThreshold: 5
+  FirstTick: 0
+  LastTick: 0
+  ShowWires: true
+  ShowCathode: true
+  ShowGrid: true
+  Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
+  FileName: "detprep-run%RUN%-evt%EVENT%-ind2.png"
+}
+
+################################################################################
+# ADC channel metric plotters.
+################################################################################
+
+pdwp_template: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: [800, 800, 480, 480]
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  RootFileName: ""
+}
+
+# Pedestal for each channel.
+tools.pdapa_adcChannelPedestalPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestal
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: []
+  MetricMin: 0
+  MetricMax: 4096
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  HistName: "hchped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+  MetricLabel: "Pedestal [ADC counts]"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+# Pedestal RMS for each channel.
+tools.pdapa_adcChannelPedestalRmsPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestalRms
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: []
+  MetricMin: 0
+  MetricMax: 11
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+  MetricLabel: "Pedestal RMS [ADC counts]"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchpedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+# Pedestal for each channel.
+tools.pdwp_adcChannelPedestalPlotter: @local::pdwp_template
+tools.pdwp_adcChannelPedestalPlotter.Metric: pedestal
+tools.pdwp_adcChannelPedestalPlotter.MetricMin: 0
+tools.pdwp_adcChannelPedestalPlotter.MetricMax: 4096
+tools.pdwp_adcChannelPedestalPlotter.HistName: "hchpdwp_ped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+tools.pdwp_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+tools.pdwp_adcChannelPedestalPlotter.MetricLabel: "Pedestal [ADC counts]"
+tools.pdwp_adcChannelPedestalPlotter.PlotFileName: "hchpdwp_ped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+
+# Pedestal RMS for each channel.
+tools.pdwp_adcChannelPedestalRmsPlotter: @local::pdwp_template
+tools.pdwp_adcChannelPedestalRmsPlotter.Metric: pedestalRms
+tools.pdwp_adcChannelPedestalRmsPlotter.MetricMin: 0
+tools.pdwp_adcChannelPedestalRmsPlotter.MetricMax: 11
+tools.pdwp_adcChannelPedestalRmsPlotter.HistName: "hchpdwp_pedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+tools.pdwp_adcChannelPedestalRmsPlotter.HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+tools.pdwp_adcChannelPedestalRmsPlotter.MetricLabel: "Pedestal RMS [ADC counts]"
+tools.pdwp_adcChannelPedestalRmsPlotter.PlotFileName: "hchpdwp_pedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+
+# Pedestal peak bin fraction for each channel.
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter: @local::pdwp_template
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.Metric: fitPedPeakBinFraction
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.MetricMin: 0
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.MetricMax: 1.0
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.HistName: "hchpdwp_pedpeakfrac_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.HistTitle: "Pedestal peak bin fraction for run %RUN% event %EVENT%"
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.MetricLabel: "Peak bin fraction"
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.PlotFileName: "hchpdwp_pedpeakfrac_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+
+#fitPedChiSquare       - Chi-square of the fit
+#//   fitPedNBinsRemoved    - N
+
