@@ -4,6 +4,8 @@
 # July 2017
 
 # Some example tools for use in data prep.
+#
+# April 2018. Some protoDUNE-specific tools are moved to protodune_dataprep_tools.fcl
 
 ################################################################################
 # Tools to display ADC data.
@@ -141,6 +143,8 @@ tools.preparedAdcPlotter: {
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
   RootFileName: ""    # or "adc_evt%EVENT%.root"
 }
@@ -158,64 +162,10 @@ tools.rawAdcPlotter: {
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
   PlotFileName: "adcraw_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
   RootFileName: ""   # or "adc_evt%EVENT%.root"
-}
-
-# Event display: wire coodinate vs. drift coordinate.
-tools.preparedAdcDetectorPlotColl: {
-  tool_type: AdcDetectorPlotter
-  LogLevel: 1
-  WireAngle: 0.0
-  DataType: 0
-  Tick0: 0
-  DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
-  ZMin:  -20.0
-  ZMax:  720.0
-  SignalThreshold: 5
-  ShowWires: true
-  ShowCathode: true
-  ShowGrid: true
-  Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-coll.png"
-}
-tools.preparedAdcDetectorPlotInd1: {
-  tool_type: AdcDetectorPlotter
-  LogLevel: 1
-  WireAngle: 0.623
-  DataType: 0
-  Tick0: 0
-  DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
-  ZMin:  -20.0
-  ZMax:  940.0
-  SignalThreshold: 5
-  ShowWires: true
-  ShowCathode: true
-  ShowGrid: true
-  Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-ind1.png"
-}
-tools.preparedAdcDetectorPlotInd2: {
-  tool_type: AdcDetectorPlotter
-  LogLevel: 1
-  WireAngle: -0.623
-  DataType: 0
-  Tick0: 0
-  DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
-  ZMin: -380.0
-  ZMax:  580.0
-  SignalThreshold: 5
-  ShowWires: true
-  ShowCathode: true
-  ShowGrid: true
-  Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-ind2.png"
 }
 
 ################################################################################
@@ -229,12 +179,15 @@ tools.adcChannelPedestalPlotter: {
   Metric: pedestal
   FirstChannel: 0
   LastChannel: 0
+  ChannelCounts: []
   MetricMin: 0
   MetricMax: 4096
-  ChannelLineModulus: 2560
-  ChannelLinePattern: [0, 800, 1600, 2080]
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   HistName: "hchped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
   HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
   PlotFileName: "hchped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
   RootFileName: ""
 }
@@ -246,12 +199,15 @@ tools.adcChannelPedestalRmsPlotter: {
   Metric: pedestalRms
   FirstChannel: 0
   LastChannel: 0
+  ChannelCounts: []
   MetricMin: 0
   MetricMax: 11
-  ChannelLineModulus: 2560
-  ChannelLinePattern: [0, 800, 1600, 2080]
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
   HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
   PlotFileName: "hchpedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
   RootFileName: ""
 }

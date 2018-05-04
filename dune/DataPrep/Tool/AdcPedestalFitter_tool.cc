@@ -30,6 +30,23 @@ using std::vector;
 using Index = unsigned int;
 
 //**********************************************************************
+// Local definitions.
+//**********************************************************************
+
+namespace {
+
+void copyMetadata(const DataMap& res, AdcChannelData& acd) {
+  acd.metadata["fitPedestal"] = res.getFloat("fitPedestal");
+  acd.metadata["fitPedRms"] = res.getFloat("fitPedestalRms");
+  acd.metadata["fitPedChiSquare"] = res.getFloat("fitChiSquare");
+  acd.metadata["fitPedPeakBinFraction"] = res.getFloat("fitPeakBinFraction");
+  acd.metadata["fitPedPeakBinExcess"] = res.getFloat("fitPeakBinExcess");
+  acd.metadata["fitPedNBinsRemoved"] = res.getFloat("fitNBinsRemoved");
+}
+
+}  // end unnamed namespace
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
@@ -113,6 +130,7 @@ DataMap AdcPedestalFitter::update(AdcChannelData& acd) const {
   if ( m_LogLevel >= 3 ) cout << myname << "Old pedestal: " << acd.pedestal << endl;
   acd.pedestal = res.getFloat("fitPedestal");
   acd.pedestalRms = res.getFloat("fitPedestalRms");
+  copyMetadata(res, acd);
   if ( m_LogLevel >= 3 ) cout << myname << "New pedestal: " << acd.pedestal << endl;
   return res;
 }
@@ -143,8 +161,10 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
   vector<int> fitStats(nacd, 999);
   vector<float> fitPedestals(nacd, 0.0);
   vector<float> fitPedestalRmss(nacd, 0.0);
-  for ( const auto& acdPair : acds ) {
+  string plotFileName = "";
+  for ( auto& acdPair : acds ) {
     const AdcChannelData& acd = acdPair.second;
+    AdcChannelData& acdMutable = acdPair.second;
     if ( m_LogLevel >= 3 ) cout << myname << "  " << iacd << ": Processing channel " << acd.channel << endl;
     // If needed, create a new canvas.
     if ( npad > 0 && pmantop == nullptr ) {
@@ -152,6 +172,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
       pmantop = new TPadManipulator;
       if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
       if ( npad > 1 ) pmantop->split(npady, npady);
+      plotFileName = nameReplace(m_PlotFileName, acd, false);
     }
     Index ipad = npad == 0 ? 0 : iacd % npad;
     TPadManipulator* pman = pmantop == nullptr ? nullptr : pmantop->man(ipad);
@@ -163,6 +184,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
       ++nPedFitGood;
       fitPedestal = tmpres.getFloat("fitPedestal");
       fitPedestalRms = tmpres.getFloat("fitPedestalRms");
+      copyMetadata(tmpres, acdMutable);
     } else {
       ++nPedFitFail;
     }
@@ -172,8 +194,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
     ++iacd;
     bool lastpad = (++ipad == npad) || (iacd == nacd);
     if ( lastpad && pmantop != nullptr ) {
-      string pfname = nameReplace(m_PlotFileName, acd, false);
-      pmantop->print(pfname);
+      pmantop->print(plotFileName);
       delete pmantop;
       pmantop = nullptr;
     }
@@ -208,7 +229,8 @@ nameReplace(string name, const AdcChannelData& acd, bool isTitle) const {
     pnbl = m_adcNameBuilder == nullptr ? m_adcTitleBuilder : m_adcNameBuilder;
   }
   if ( pnbl == nullptr ) return name;
-  return pnbl->build(acd, name);
+  DataMap dm;
+  return pnbl->build(acd, dm, name);
 }
 
 //**********************************************************************
@@ -274,6 +296,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman)
   // all) the data is in it.
   int binmax = phf->GetMaximumBin();
   double valmax = phf->GetBinContent(binmax);
+  double xcomax = phf->GetBinLowEdge(binmax);
   double rangeIntegral = phf->Integral(1, phf->GetNbinsX());
   double peakBinFraction = valmax/rangeIntegral;
   bool allBin = peakBinFraction > 0.99;
@@ -305,12 +328,15 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman)
   phf->Fit(&fitter, fopt.c_str());
   phf->GetListOfFunctions()->AddLast(pfinit, "0");
   phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
+  double valEval = fitter.Eval(xcomax);
+  double peakBinExcess = (valmax - valEval)/rangeIntegral;
   if ( dropBin ) phf->SetBinContent(binmax, valmax);
   res.setHist("pedestal", phf, true);
   res.setFloat("fitPedestal", fitter.GetParameter(1) - 0.5);
   res.setFloat("fitPedestalRms", fitter.GetParameter(2));
   res.setFloat("fitChiSquare", fitter.GetChisquare());
   res.setFloat("fitPeakBinFraction", peakBinFraction);
+  res.setFloat("fitPeakBinExcess", peakBinExcess);
   res.setInt("fitChannel", acd.channel);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
   if ( pman != nullptr ) {

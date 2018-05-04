@@ -131,6 +131,7 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
         double ped0 = datamap[icha].pedestal;
         //assert( padv->view(datamap[icha]) == 0 );
         double ped1 = datamap[icha].pedestal;
+        assert( ! datamap[icha].hasMetadata("fitPedPeakBinFraction") );
         assert( padvsin->update(datamap[icha]) == 0 );
         double ped2 = datamap[icha].pedestal;
         cout << "Old pedestal: " << ped0 << endl;
@@ -138,11 +139,22 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
         assert( ped1 == ped0 );
         assert( ped2 != ped0 );
         assert( ped2 != 0.0 );
+        assert( datamap[icha].hasMetadata("fitPedPeakBinFraction") );
+        
         //assert( fabs(ped2-ped) < 0.01 );
       }
     }
     if ( padvmap != nullptr ) {
+      for ( AdcIndex icha=0; icha<ncha; ++icha ) datamap[icha].metadata.clear();
+      assert( ! datamap[0].hasMetadata("fitPedPeakBinFraction") );
       assert( padvmap->updateMap(datamap) == 0 );
+      string mname = "fitPedPeakBinFraction";
+      for ( AdcIndex icha=0; icha<ncha; ++icha ) {
+        cout << myname << "Checking channel " << icha << endl;
+        cout << myname << "  Metadata size: " << datamap[icha].metadata.size() << endl;
+        cout << myname << "  " << mname << " = " << datamap[icha].metadata[mname] << endl;
+        assert( datamap[icha].hasMetadata(mname) );
+      }
     }
   }
 
