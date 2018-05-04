@@ -69,6 +69,38 @@ cet_test(test_AdcDataPlotter SOURCES test_AdcDataPlotter.cxx
 
 )
 
+cet_test(test_AdcDetectorPlotter SOURCES test_AdcDetectorPlotter.cxx
+  LIBRARIES
+    dune_ArtSupport
+    dune_Geometry
+    larcorealg_Geometry
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${ROOT_BASIC_LIB_LIST}
+
+)
+
+cet_test(test_AdcChannelMetric SOURCES test_AdcChannelMetric.cxx
+  LIBRARIES
+    dune_ArtSupport
+    dune_Geometry
+    larcorealg_Geometry
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${ROOT_BASIC_LIB_LIST}
+
+)
+
 cet_test(test_AcdDigitReader SOURCES test_AcdDigitReader.cxx
   LIBRARIES
     lardataobj_RawData

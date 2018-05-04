@@ -1,7 +1,7 @@
 // FembLinearCalibration.h
 
 // David Adams
-// November, 2017
+// November 2017
 //
 // Applies a linear FEMB-based calibration to ADC channel data.
 // The sample charge is
@@ -16,7 +16,7 @@
 // If AdcMaxs has length zero, then AdcMax is used for all channels.
 //
 // If the gain is zero or negative, then no calibration is performed and the
-// prepared data vector is emtied..
+// prepared data vector is cleared.
 //
 // Calibration parameters are read from fcl files with the name FclNameBaseFFF
 // where FFF is the FEMB ID.
@@ -46,10 +46,10 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 
 class FembLinearCalibration
-: public AdcChannelDataModifier {
+: public AdcChannelTool {
 
 public:
 

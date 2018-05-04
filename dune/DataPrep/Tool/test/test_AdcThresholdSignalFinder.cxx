@@ -8,8 +8,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -62,9 +62,9 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto psgf = tm.getPrivate<AdcChannelViewer>("mytool");
+  auto psgf = tm.getPrivate<AdcChannelTool>("mytool");
   assert( psgf != nullptr );
-  auto psgfmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  auto psgfmod = tm.getPrivate<AdcChannelTool>("mytool");
   assert( psgfmod != nullptr );
 
   cout << myname << line << endl;

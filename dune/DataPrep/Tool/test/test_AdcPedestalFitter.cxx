@@ -8,8 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -36,19 +35,18 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  adcHists: {" << endl;
-    fout << "    tool_type: SimpleHistogramManager" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "  }" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcPedestalFitter" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "    HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
-    fout << "    HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
-    fout << "    HistManager: \"adcHists\"" << endl;
-    fout << "    MaxSample: 80" << endl;
-    fout << "  }" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
+    fout << "tools.mytool: {" << endl;
+    fout << "  tool_type: AdcPedestalFitter" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  FitRmsMin: 1.0" << endl;
+    fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
+    fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
+    fout << "  PlotFileName: \"adcped_chan%CHAN%.png\"" << endl;
+    fout << "  RootFileName: \"adcped.root\"" << endl;
+    fout << "  HistManager: \"adcHists\"" << endl;
+    fout << "  MaxSample: 80" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -61,18 +59,18 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 2 );
+  assert( tm.toolNames().size() > 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching histogram manaager." << endl;
-  auto phm = tm.getShared<AdcChannelViewer>("mytool");
+  auto phm = tm.getShared<AdcChannelTool>("mytool");
   assert( phm != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcChannelViewer>("mytool");
+  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padv != nullptr );
-  auto padvmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  auto padvmod = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padvmod != nullptr );
 
   cout << myname << line << endl;

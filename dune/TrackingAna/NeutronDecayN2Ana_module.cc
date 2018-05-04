@@ -64,10 +64,10 @@ public:
 
   void analyze(art::Event const & e) override;
 
-  void beginRun(art::Run& run);
+  void beginRun(art::Run const& run) override;
   void beginJob() override;
-  void endJob();
-  void endRun();
+  void endJob() override;
+  void endRun(art::Run const&) override;
   //void reconfigure(fhicl::ParameterSet const & p) ;
   
 private:
@@ -171,7 +171,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::ResetVars() {
   }
 }
 // ********************************** Begin Run *******************************************************
-void NeutronDecayN2Ana::NeutronDecayN2Ana::beginRun(art::Run& run) {
+void NeutronDecayN2Ana::NeutronDecayN2Ana::beginRun(art::Run const& run) {
 }
 // *********************************** Begin Job ********************************************************
 void NeutronDecayN2Ana::NeutronDecayN2Ana::beginJob()
@@ -371,7 +371,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::endJob() {
   std::cout << "\nAfter all of that Top = " << TopX << ", " << TopY << ", " << TopZ << ". Bot = " << BotX << ", " << BotY << ", " << BotZ << std::endl;
 }
 // ************************************ End Run *********************************************************
-void NeutronDecayN2Ana::NeutronDecayN2Ana::endRun() {
+void NeutronDecayN2Ana::NeutronDecayN2Ana::endRun(art::Run const&) {
 }
 
 // ********************************** pset param *******************************************************
@@ -583,7 +583,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
 	    FillVars( ElecVec, nElec, ElecEDep, ElecDaughtersEDep, ElecDecayEDep, ElecStart, ElecEnd, nParentElec, ElecParents, ElecParTrID, ElecPDG, ElecTrID, ElecCont, ElecFromDecay,
 		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut );
 	  // ========== Prots ===========
-	  } else if ( (PdgCode == 2212) )
+	  } else if ( PdgCode == 2212 )
 	    FillVars( ProtVec, nProt, ProtEDep, ProtDaughtersEDep, ProtDecayEDep, ProtStart, ProtEnd, nParentProt, ProtParents, ProtParTrID, ProtPDG, ProtTrID, ProtCont, ProtFromDecay,
 		      ideTrackID, tdc, ide, part, OrigPart, isDecay, WrittenOut );
 	  // ========== If still not one of my intersting particles I need to find this particles parent ==========

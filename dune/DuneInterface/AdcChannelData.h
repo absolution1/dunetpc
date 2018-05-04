@@ -29,6 +29,7 @@
 #ifndef AdcChannelData_H
 #define AdcChannelData_H
 
+#include <string>
 #include <map>
 #include "dune/DuneInterface/AdcTypes.h"
 

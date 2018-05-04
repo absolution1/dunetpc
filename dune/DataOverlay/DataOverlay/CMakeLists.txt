@@ -19,6 +19,7 @@ art_make_library( LIBRARY_NAME  dune_RawDigitAdder
 art_make_library( LIBRARY_NAME  dune_RawDigitMixer
 	SOURCE RawDigitMixer.cxx
 	LIBRARIES
+                larcorealg_Geometry
 		dune_RawDigitAdder
 		lardataobj_RawData
 		${ROOT_BASIC_LIB_LIST}

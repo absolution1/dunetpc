@@ -59,6 +59,7 @@ DataMap AdcSampleFiller::update(AdcChannelData& acd) const {
   }
   acd.sampleUnit = "ADC counts";
   DataMap res(0);
+  res.setInt("nSample",  nsam);
   res.setInt("nUnderflow",  nlo);
   res.setInt("nOverflow",   nhi);
   res.setInt("nOutOfRange", nbad);

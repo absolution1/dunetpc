@@ -11,7 +11,7 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   Threshold  - HistName:  Name for the histogram.
+//   Threshold  - threshold for signal finding
 //   BinsBefore - lower limit for signal range
 //   BinsAfter  - upper limit for signal range
 //   FlagPositive - Flag signals above Threshold
@@ -25,15 +25,12 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
 
-class HistogramManager;
-class TH1;
-
 class AdcThresholdSignalFinder
-: public AdcChannelDataModifier {
+: public AdcChannelTool {
 
 public:
 

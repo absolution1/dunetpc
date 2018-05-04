@@ -7,7 +7,7 @@ services:
 {
   #message:              @local::dune_message_services_prod_debug
 
-#  TimeTracker:       {}
+  TimeTracker:       {}
   RandomNumberGenerator: {} 
 #  FileCatalogMetadata:  @local::art_file_catalog_mc
   ExptGeoHelperInterface:       @local::dune_geometry_helper
@@ -28,6 +28,7 @@ services:
 
   PdspChannelMapService: {
     FileName:         "protoDUNETPCChannelMap_v3.txt"
+    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
     LogLevel:         1
   }
 }

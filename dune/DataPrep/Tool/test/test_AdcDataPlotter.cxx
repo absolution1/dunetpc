@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcDataViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -42,17 +42,21 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     ofstream fout(fclfile.c_str());
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcDataPlotter" << endl;
-    fout << "    DataType: 0" << endl;
-    fout << "    LogLevel: 2" << endl;
-    fout << "    FirstTick: 0" << endl;
-    fout << "    LastTick: 0" << endl;
-    fout << "    MaxSignal: 10" << endl;
-    fout << "    Palette: 1026" << endl;
-    fout << "    HistName: \"hadc\"" << endl;
-    fout << "    HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
-    fout << "    PlotFileName: \"myplot-run%RUN%-evt%EVENT%.png\"" << endl;
-    fout << "    RootFileName: \"adc.root\"" << endl;
+    fout << "           tool_type: AdcDataPlotter" << endl;
+    fout << "            DataType: 0" << endl;
+    fout << "            LogLevel: 2" << endl;
+    fout << "           FirstTick: 0" << endl;
+    fout << "            LastTick: 0" << endl;
+    fout << "        FirstChannel: 0" << endl;
+    fout << "         LastChannel: 0" << endl;
+    fout << "          MaxSignal: 10" << endl;
+    fout << " ChannelLineModulus:  4" << endl;
+    fout << " ChannelLinePattern:  [1]" << endl;
+    fout << "          Palette: 1026" << endl;
+    fout << "          HistName: \"hadc\"" << endl;
+    fout << "          HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
+    fout << "          PlotFileName: \"myplot-run%RUN%-evt%EVENT%.png\"" << endl;
+    fout << "          RootFileName: \"adc.root\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -70,7 +74,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcDataViewer>("mytool");
+  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padv != nullptr );
 
   cout << myname << line << endl;
@@ -116,12 +120,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
       }
       data.sampleUnit = "ke";
     }
-    ostringstream sslab;
-    sslab << "event " << ievt << " plane 3u";
-    string slab = sslab.str();
-    string fpat = slab;
-    for ( char& ch : fpat ) if ( ch == ' ' ) ch = '-';
-    assert( padv->view(datamap, slab, fpat) == 0 );
+    assert( padv->viewMap(datamap) == 0 );
   }
 
   cout << myname << line << endl;

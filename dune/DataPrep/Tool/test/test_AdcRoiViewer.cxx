@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -58,7 +58,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo = tm.getPrivate<AdcChannelViewer>("mytool");
+  auto ptoo = tm.getPrivate<AdcChannelTool>("mytool");
   assert( ptoo != nullptr );
 
   cout << myname << line << endl;

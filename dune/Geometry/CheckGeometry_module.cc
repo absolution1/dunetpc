@@ -25,8 +25,8 @@
 
 #include <iostream>
 
-constexpr unsigned short kMaxAuxDets = 100;
-constexpr unsigned short kMaxTkIDs = 100;
+//constexpr unsigned short kMaxAuxDets = 100; // unused
+//constexpr unsigned short kMaxTkIDs = 100; // unused
 
 namespace dune {
   class CheckGeometry;
@@ -67,6 +67,8 @@ dune::CheckGeometry::CheckGeometry(fhicl::ParameterSet const & p)
 void dune::CheckGeometry::analyze(art::Event const & evt)
 {
 
+  art::ServiceHandle<geo::Geometry> geo;
+
   TCanvas *can = new TCanvas("c1","c1");
   can->cd();
   std::vector<TBox*> TPCBox;
@@ -80,9 +82,8 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   double maxz = -1e9;
   
   int nwires = 0;
-  int nwires_tpc[8];
-  for (int i = 0; i<8; ++i) nwires_tpc[i] = 0;
-  art::ServiceHandle<geo::Geometry> geo;
+  std::vector<int> nwires_tpc(geo->NTPC());
+  for (size_t i = 0; i<geo->NTPC(); ++i) nwires_tpc[i] = 0;
   for (size_t t = 0; t<geo->NTPC(); ++t){
     //if (t%2==0) continue;
     double local[3] = {0.,0.,0.};
@@ -127,7 +128,8 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
 //	if ((t==7&&p==0&&w==192)||
 //	    (t==7&&p==1&&w==112)||
 //	    (t==7&&p==2&&w==0)){
-	if (true){
+//	if (true){
+        if (t%2==0&&p==0&&w%10==0){
 	  geo->WireEndPoints(c,t,p,w,xyz0,xyz1);
 	  Wires.push_back(new TLine(xyz0[2],xyz0[1],xyz1[2],xyz1[1]));
 	}
@@ -143,7 +145,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   for (auto wire: Wires) wire->Draw();
   can->Print("wires.pdf");
   std::cout<<"N wires = "<<nwires<<std::endl;
-  for (int i = 0; i<8; ++i){
+  for (size_t i = 0; i<geo->NTPC(); ++i){
     std::cout<<"TPC "<<i<<" has "<<nwires_tpc[i]<<" wires"<<std::endl;
   }
 }
