@@ -40,6 +40,7 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
   acd.metadata["fitPedRms"] = res.getFloat("fitPedestalRms");
   acd.metadata["fitPedChiSquare"] = res.getFloat("fitChiSquare");
   acd.metadata["fitPedPeakBinFraction"] = res.getFloat("fitPeakBinFraction");
+  acd.metadata["fitPedPeakBinExcess"] = res.getFloat("fitPeakBinExcess");
   acd.metadata["fitPedNBinsRemoved"] = res.getFloat("fitNBinsRemoved");
 }
 
@@ -295,6 +296,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman)
   // all) the data is in it.
   int binmax = phf->GetMaximumBin();
   double valmax = phf->GetBinContent(binmax);
+  double xcomax = phf->GetBinLowEdge(binmax);
   double rangeIntegral = phf->Integral(1, phf->GetNbinsX());
   double peakBinFraction = valmax/rangeIntegral;
   bool allBin = peakBinFraction > 0.99;
@@ -326,12 +328,15 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman)
   phf->Fit(&fitter, fopt.c_str());
   phf->GetListOfFunctions()->AddLast(pfinit, "0");
   phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
+  double valEval = fitter.Eval(xcomax);
+  double peakBinExcess = (valmax - valEval)/rangeIntegral;
   if ( dropBin ) phf->SetBinContent(binmax, valmax);
   res.setHist("pedestal", phf, true);
   res.setFloat("fitPedestal", fitter.GetParameter(1) - 0.5);
   res.setFloat("fitPedestalRms", fitter.GetParameter(2));
   res.setFloat("fitChiSquare", fitter.GetChisquare());
   res.setFloat("fitPeakBinFraction", peakBinFraction);
+  res.setFloat("fitPeakBinExcess", peakBinExcess);
   res.setInt("fitChannel", acd.channel);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
   if ( pman != nullptr ) {

@@ -2,6 +2,7 @@
 #include "RawDecoder.fcl"
 #include "TPCMonitor.fcl"
 #include "SSPMonitor.fcl"
+#include "Header.fcl"
 
 process_name: DecodeRawTPCMonitor
 
@@ -56,10 +57,11 @@ physics:
   {
     tpcmonitor: @local::TPCMonitor_params
     sspmonitor: @local::SSPMonitor_params
+    header: @local::Header_params
   }
 
   produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
-  analysis: [ tpcmonitor, sspmonitor ] 
+  analysis: [ header, tpcmonitor, sspmonitor ] 
   trigger_paths : [ produce ]
   end_paths: [ analysis ]
 }

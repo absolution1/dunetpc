@@ -44,8 +44,19 @@
 //   fitPedRms             - Fit sigma of the pedestal
 //   fitPedChiSquare       - Chi-square of the fit
 //   fitPedPeakBinFraction - Fraction of the pedestal distribution in the peak channel
+//   fitPedPeakBinExcess   - Fraction above fit the peak channel
 //   fitPedNBinsRemoved    - Number of sticky bins removed before fit
 //
+// The single-channel methods return a data map with the following:
+//   pedestal           - pedestal histogram
+//   fitPedestal        - mean from the pedestal fit
+//   fitPedestalRms     - sigma from the pedestal
+//   fitChiSquare       - chi-square from the pedestal fit
+//   fitPeakBinFraction - Fraction of the pedestal distribution in the peak channel
+//   fitPeakBinExcess   - Fraction above fit the peak channel
+//   fitChannel         - ADC channel number
+//   fitNBinsRemoved    - # bins removed before the fit
+
 // The AdcChannelTool methods all return a data map with the following:
 //
 //   nPedFitGood       - # channels with a successful pedestalfit
