@@ -61,7 +61,7 @@ public:
   /// @brief Returns the number of channels in the specified ROP
   /// @return number of channels in the specified ROP, 0 if non-existent
   /// @todo to be completed
-  unsigned int Nchannels(readout::ROPID const& ropid) const;
+  unsigned int Nchannels(readout::ROPID const& ropid) const override;
     
   double WireCoordinate(double YPos,
                         double ZPos,
@@ -90,8 +90,8 @@ public:
     { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
   virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
   //@}
-  SigType_t                SignalType( raw::ChannelID_t const channel) const;
-  std::set<PlaneID> const& PlaneIDs()                                  const;
+  SigType_t                SignalType( raw::ChannelID_t const channel) const override;
+  std::set<PlaneID> const& PlaneIDs()                                  const override;
 
   //
   // TPC set interface
@@ -226,11 +226,11 @@ public:
   /// Returns the object to sort geometry with
   virtual geo::GeoObjectSorter const& Sorter() const override;
   
-  unsigned int NOpChannels(unsigned int NOpDets)                        const;
-  unsigned int NOpHardwareChannels(unsigned int opDet)                  const;
-  unsigned int OpChannel(unsigned int detNum, unsigned int channel = 0) const;
-  unsigned int OpDetFromOpChannel(unsigned int opChannel)               const;
-  unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const;
+  unsigned int NOpChannels(unsigned int NOpDets)                        const override;
+  unsigned int NOpHardwareChannels(unsigned int opDet)                  const override;
+  unsigned int OpChannel(unsigned int detNum, unsigned int channel = 0) const override;
+  unsigned int OpDetFromOpChannel(unsigned int opChannel)               const override;
+  unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const override;
     
 private:
 

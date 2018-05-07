@@ -61,24 +61,24 @@ namespace AnalysisExample{
 
     // the parameters we'll read from the .fcl
     std::string fRawDigitLabel;
-    unsigned int fEvent;
+    //unsigned int fEvent; // unused
 
     // number of time bins for histogram ranges
     unsigned int fNticks;   
     unsigned int fChPerView; // total number of channels in given view
 
     // find channel boundaries for each view
-    unsigned int fV0ChanMin;
-    unsigned int fV0ChanMax;
-    unsigned int fV1ChanMin;
-    unsigned int fV1ChanMax;
+    //unsigned int fV0ChanMin; // unused
+    //unsigned int fV0ChanMax; // unused
+    //unsigned int fV1ChanMin; // unused
+    //unsigned int fV1ChanMax; // unused
 
-    unsigned int fNofAPA;
-    unsigned int fChansPerAPA;
-    unsigned int fUWireMax;
-    unsigned int fVWireMax;
-    unsigned int fZ0WireMax;
-    unsigned int fZ1WireMax;
+    //unsigned int fNofAPA; // unused
+    //unsigned int fChansPerAPA; // unused
+    //unsigned int fUWireMax; // unused
+    //unsigned int fVWireMax; // unused
+    //unsigned int fZ0WireMax; // unused
+    //unsigned int fZ1WireMax; // unused
 
     
 

@@ -13,7 +13,7 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 
 //**********************************************************************
 
@@ -47,9 +47,9 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     if ( ptm == nullptr ) {
     std::cout << "ERROR: Unable to retrieve tool manaager." << std::endl;
     } else {
-    m_pROIBuilderToolFlattening = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolFlattening);
-    m_pROIBuilderToolCNR = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolCNR);
-    m_pROIBuilderToolFinal = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderToolFinal);
+    m_pROIBuilderToolFlattening = ptm->getPrivate<AdcChannelTool>(m_ROIBuilderToolFlattening);
+    m_pROIBuilderToolCNR = ptm->getPrivate<AdcChannelTool>(m_ROIBuilderToolCNR);
+    m_pROIBuilderToolFinal = ptm->getPrivate<AdcChannelTool>(m_ROIBuilderToolFinal);
     }
     if (pset.get<std::string>("CorrMode") == "mean") { fMode = 1; }
     else if (pset.get<std::string>("CorrMode") == "median") { fMode = 2; }
