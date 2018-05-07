@@ -22,9 +22,13 @@ public:
   // input string if that pointer is null.
   static std::string
   build(const AdcChannelStringTool* ptool,
-        const AdcChannelData& acd,  const DataMap& dm, std::string spat,
-        Index count =AdcChannelData::badIndex) {
+        const AdcChannelData& acd,  const DataMap& dm, std::string spat) {
     return ptool == nullptr ? spat : ptool->build(acd, dm, spat);
+  }
+  static std::string
+  build(const AdcChannelStringTool* ptool,
+        const AdcChannelData& acd, std::string spat) {
+    return ptool == nullptr ? spat : ptool->build(acd, DataMap(), spat);
   }
                         
   virtual ~AdcChannelStringTool() =default;
