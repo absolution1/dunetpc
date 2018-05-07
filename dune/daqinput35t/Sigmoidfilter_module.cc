@@ -62,11 +62,11 @@ public:
   explicit Sigmoidfilter(fhicl::ParameterSet const& pset);
   virtual ~Sigmoidfilter();
 
-  virtual void produce(art::Event& evt);
+  virtual void produce(art::Event& evt) override;
   void reconfigure(fhicl::ParameterSet const& pset);
-  void beginRun(art::Run const& run);
-  void beginJob();
-  void endRun(art::Run const& run);
+  void beginRun(art::Run & run) override;
+  void beginJob() override;
+  void endRun(art::Run & run) override;
 
 private:
 
@@ -133,7 +133,7 @@ void lbne::Sigmoidfilter::reconfigure(fhicl::ParameterSet const& pset) {
 }
 
 //-------------------------------------------------------------------
-void lbne::Sigmoidfilter::beginRun(art::Run const& run) {
+void lbne::Sigmoidfilter::beginRun(art::Run & run) {
   return;
 }
 //-------------------------------------------------------------------
@@ -146,7 +146,7 @@ void lbne::Sigmoidfilter::beginJob() {
 }
 
 //-------------------------------------------------------------------
-void lbne::Sigmoidfilter::endRun(art::Run const& run) {
+void lbne::Sigmoidfilter::endRun(art::Run & run) {
   return;
 }
   

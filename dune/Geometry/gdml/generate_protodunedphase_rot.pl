@@ -202,7 +202,8 @@ $posZFrontSteelStruct = -$Argon_z/2-$FoamPadding-$SteelSupport_z;
 $posLeftSteelStruct = $Argon_x/2+$FoamPadding+$SteelSupport_x;
 $posRightSteelStruct = -$Argon_x/2-$FoamPadding-$SteelSupport_x;
 
-$RockThickness = 3000;
+# 2*AirThickness is added to the world volume in x, y and z
+$AirThickness = 3000;
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
@@ -1971,9 +1972,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="@{[$DetEncWidth+2*$RockThickness]}" 
-      y="@{[$DetEncHeight+2*$RockThickness]}" 
-      z="@{[$DetEncLength+2*$RockThickness]}"/>
+      x="@{[$DetEncWidth+2*$AirThickness]}" 
+      y="@{[$DetEncHeight+2*$AirThickness]}" 
+      z="@{[$DetEncLength+2*$AirThickness]}"/>
 </solids>
 EOF
 

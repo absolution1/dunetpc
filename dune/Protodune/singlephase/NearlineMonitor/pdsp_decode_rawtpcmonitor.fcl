@@ -1,5 +1,8 @@
 #include "services_dune.fcl"
 #include "RawDecoder.fcl"
+#include "TPCMonitor.fcl"
+#include "SSPMonitor.fcl"
+#include "Header.fcl"
 
 process_name: DecodeRawTPCMonitor
 
@@ -19,6 +22,7 @@ services:
  ChannelStatusService:         @local::dunefd_channel_status
  PdspChannelMapService: {
     FileName:         "protoDUNETPCChannelMap_v3.txt"
+    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
     LogLevel:         1
   }
  TFileService: { fileName: "rawtpcmonitor.root" }
@@ -51,18 +55,13 @@ physics:
 
   analyzers:
   {
-    tpcmonitor: 
-    {
-      module_type:     "TpcMonitor"
-      TPCInputModule:  "tpcrawdecoder"
-      TPCInstanceName: "daq"
-      RebinFactorX:     1
-      RebinFactorY:     10
-    }
+    tpcmonitor: @local::TPCMonitor_params
+    sspmonitor: @local::SSPMonitor_params
+    header: @local::Header_params
   }
 
   produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
-  analysis: [ tpcmonitor ] //Directory for histograms
+  analysis: [ header, tpcmonitor, sspmonitor ] 
   trigger_paths : [ produce ]
   end_paths: [ analysis ]
 }

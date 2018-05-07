@@ -76,7 +76,7 @@
 
 const int kMaxTrack      =  1000; //maximum number of tracks
 const int kMaxHits       = 10000; //maximum number of hits
-const int kMaxClust      = 10000; //maximum number of clusters
+//const int kMaxClust      = 10000; //maximum number of clusters // unused
 const int kMaxTrackHits  =  1000; //maximum number of space points
 const int kMaxEvent      = 10000; //maximum number of events
 
@@ -140,7 +140,7 @@ public:
 
   void analyze(art::Event const & e) override;
   void beginJob() override;
-  void endJob();
+  void endJob() override;
 
 
 private:
@@ -229,7 +229,7 @@ private:
   std::string fCalorimetryModuleLabel; 
   std::string fMCTruthT0ModuleLabel;
 
-  double fElectronsToGeV; // conversion factor
+  //double fElectronsToGeV; // conversion factor // unused
   art::ServiceHandle<geo::Geometry> fGeometry;       // pointer to Geometry service
 
   double tracklengthXZ[kMaxTrack];

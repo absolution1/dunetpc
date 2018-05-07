@@ -35,17 +35,43 @@ pdsp_tpc_raw_decoder:
 
   RCERawDataLabel: "daq"
   ExpectRCEContainerFragments: true
-  DropRCEDamagedData: true
   RCERawDataContainerInstance: "ContainerTPC"
   RCERawDataNonContainerInstance: "TPC"
   RCEFragmentType: 2
 
   FELIXRawDataLabel: "daq"
   ExpectFELIXContainerFragments: false
-  DropFELIXDamagedData: true
   FELIXRawDataContainerInstance: "ContainerFELIX"
   FELIXRawDataNonContainerInstance: "FELIX"
   FELIXFragmentType: 2    # not used in code
+
+# enforcement flags.  If these are set to true and the data completeness 
+# conditions are not met, then an emtpy collection of raw::RawDigits is 
+# put in the event
+
+# if set to true, the number of channels present in the fragments must be
+# the FullChannelCount below.
+
+  EnforceFullChannelCount: false
+  FullChannelCount: 15360
+
+# requires that we don't see the same channel twice in in an event
+
+  EnforceNoDuplicateChannels: true
+
+# requires that all channels have the same number of ticks (on each event separately)
+
+  EnforceSameTickCount: false
+
+# requires that all channels have the specified number of ticks
+
+  EnforceFullTickCount: false
+  FullTickCount: 10000
+
+# requires that no errors are reported by the unpacker (checksum or capture errors)
+
+  EnforceErrorFree: false
+
 }
 
 ssp_raw_decoder:
@@ -61,21 +87,15 @@ ssp_raw_decoder:
   verbose_adcs: 0
   ExpectContainerFragments: true
 
-  number_of_fragments: 4
-  number_of_packets: 12
+  number_of_packets: 12  # number of channels per SSP
 
   SSP_m1: 10   # samples used to calculate peak height
   SSP_m2: 10   # (unused in the code)
   SSP_i1: 500  # samples used to calculate pedestal
   SSP_i2: 500  # samples used to calculate peak height
 
-  SSP_min_time: 0    # min time of the run
-  SSP_max_time: 336  # max time of the run
-  SSP_triggers: 12   # number of triggers
-  SSP_ADC: 1000      # number of ADC sample
-  SSP_ADC_min: 1500  # max ADC value
-  SSP_ADC_max: 1650  # max ADC value
-
+  NOvAClockFrequency: 64.0 # MHz
+  SPESize: 25
 }
 
 online_monitor:

@@ -1,0 +1,16 @@
+BEGIN_PROLOG
+
+SSPMonitor_params:
+{
+  module_type: "SSPMonitor"
+  OpDetWaveformLabel: "ssprawdecoder:daq"
+  OpHitLabel: "ssprawdecoder:daq"
+
+  SSP_min_time: 0    # min time of the run
+  SSP_max_time: 30   # max time of the run (seconds)
+  SSP_TIMESAMPLES: 1000      # number of ADC time samples for the persistent waveform plots
+  SSP_ADC_min: 1500  # max ADC value
+  SSP_ADC_max: 1650  # max ADC value
+}
+
+END_PROLOG

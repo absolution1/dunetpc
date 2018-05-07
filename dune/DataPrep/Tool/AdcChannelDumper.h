@@ -16,10 +16,10 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <iostream>
 
-class AdcChannelDumper : AdcChannelViewer {
+class AdcChannelDumper : AdcChannelTool {
 
 public:
 
@@ -28,6 +28,7 @@ public:
   ~AdcChannelDumper() override;
 
   DataMap view(const AdcChannelData& acd) const override;
+  bool updateWithView() const override { return true; }
 
 private:
 

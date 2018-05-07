@@ -129,7 +129,7 @@ private:
 
   TTree *fEventTree;
   TTree *fTrkTree;
-  TTree *fHitTree;
+  //TTree *fHitTree; // unused
   
   TTree *fTrkIDETree;
   TTree *fParticleTree;
@@ -573,7 +573,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
     // find MC particle which cotributed maximum energy to track t
     int best_id = 0;
     double max_e = 0;
-    std::array< double, 3 > e_inPlane = { 0, 0, 0 };
+    std::array< double, 3 > e_inPlane = {{ 0, 0, 0 }};
     for (auto const & entry : trkID_E)
 	{
         mapIDEtoTrackContribs[entry.first].push_back(std::make_pair(t, entry.second));
@@ -686,7 +686,7 @@ void pdune::calcuttjRecoEff::analyze(art::Event const & evt)
 
             std::vector< sim::IDE > ides = bt_serv->HitToAvgSimIDEs(*h);
 
-            std::array< double, 3 > hitpos = {0, 0, 0};
+            std::array< double, 3 > hitpos = {{0, 0, 0}};
             double hitE = 0;
             for (auto const & ide : ides)
             {

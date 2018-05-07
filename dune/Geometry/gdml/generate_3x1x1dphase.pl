@@ -78,8 +78,8 @@ if ( $wires_on == 0 )
 ##################################################################
 ############## Parameters for Charge Readout Plane ###############
 
-# dune10kt dual-phase
-$wirePitch           = 0.3125;  # channel pitch
+# 3x1x1 dual-phase
+$wirePitch           = 0.3;  # channel pitch
 $nChannelsLengthPerCRM = 960;     # channels along the length of the CRM
 $nChannelsWidthPerCRM = 320;   # channels along the width of the CRM
 $borderCRM           = 0.5;     # dead space at the border of each CRM
@@ -116,7 +116,7 @@ $Argon_x = 238.1;
 $Argon_y = 202.5;
 $Argon_z = 478.2;
 
-# width of gas argon layer on top
+# height of gas argon layer on top
 $HeightGaseousAr = 50.8;
 
 # size of liquid argon buffer
@@ -145,9 +145,9 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness;
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
-$SteelSupport_x  =  20.3;
-$SteelSupport_y  =  20.3;
-$SteelSupport_z  =  20.3; 
+$SteelSupport_x  =  0.6;
+$SteelSupport_y  =  0.6;
+$SteelSupport_z  =  0.6; 
 $FoamPadding     =  102.3;
 $FracMassOfSteel =  0.5; #The steel support is not a solid block, but a mixture of air and steel
 $FracMassOfAir   =  1 - $FracMassOfSteel;
@@ -165,7 +165,9 @@ $DetEncLength  =    $Cryostat_z
 
 $posCryoInDetEnc_y = - $DetEncHeight/2 + $SteelSupport_y + $FoamPadding + $Cryostat_y/2;
 
-$RockThickness = 3000;
+
+# 2*AirThickness is added to the world volume in x, y and z
+$AirThickness = 3000;
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
@@ -178,7 +180,8 @@ $OriginZSet =   $DetEncLength/2.0
               - $SteelSupport_z
               - $FoamPadding
               - $SteelThickness
-              - $zLArBuffer;
+              - $zLArBuffer
+	      - $borderCRM;
 
   # We want the world origin to be vertically centered on active TPC
   # This is to be added to the y position of every volume in volWorld
@@ -409,7 +412,7 @@ if ($wires_on==1) # add wires to Z plane
 {
 for($i=0;$i<$nChannelsWidthPerCRM;++$i)
 {
-my $ypos = -0.5 * $TPCActive_y + $i*$wirePitch + 0.5*$padWidth;
+my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitch + 0.5*$padWidth;
 
 print TPC <<EOF;
     <physvol>
@@ -435,7 +438,7 @@ if ($wires_on==1) # add wires to X plane
 for($i=0;$i<$nChannelsLengthPerCRM;++$i)
 {
 
-my $zpos = -0.5 * $TPCActive_z + $i*$wirePitch + 0.5*$padWidth;
+my $zpos = -0.5 * $TPCActive_z + ($i+0.5)*$wirePitch + 0.5*$padWidth;
 print TPC <<EOF;
     <physvol>
      <volumeref ref="volTPCWireZ"/>
@@ -837,7 +840,7 @@ EOF
     </volume>
 
     <volume name="volSteelSupport">
-      <materialref ref="AirSteelMixture"/>
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
       <solidref ref="SteelSupport"/>
     </volume>
 
@@ -901,9 +904,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="@{[$DetEncWidth+2*$RockThickness]}" 
-      y="@{[$DetEncHeight+2*$RockThickness]}" 
-      z="@{[$DetEncLength+2*$RockThickness]}"/>
+      x="@{[$DetEncWidth+2*$AirThickness]}" 
+      y="@{[$DetEncHeight+2*$AirThickness]}" 
+      z="@{[$DetEncLength+2*$AirThickness]}"/>
 </solids>
 EOF
 

@@ -21,6 +21,7 @@
 #include "dlardaq.h"
 
 #include <iostream>
+#include <ios>
 
 // ---------------------------------------------------------------------------------------
 // 311 DAQ interface
@@ -237,9 +238,9 @@ namespace lris
     if(fEventCounter == fNEvents)
     {
       mf::LogInfo(__FUNCTION__)<<"All the files have been read in. Checking end of file..." <<"\n";
-      std::ios::streampos current_position = DataDecode.m_file.tellg();
+      std::streampos current_position = DataDecode.m_file.tellg();
       DataDecode.m_file.seekg(0, std::ios::end);
-      std::ios::streampos file_length = DataDecode.m_file.tellg();
+      std::streampos file_length = DataDecode.m_file.tellg();
       if( ((uint8_t)file_length - (uint8_t)current_position) > (uint8_t)100 )
       {
 	throw art::Exception( art::errors::FileReadError )
