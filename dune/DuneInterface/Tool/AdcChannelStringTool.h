@@ -25,6 +25,8 @@ public:
         const AdcChannelData& acd,  const DataMap& dm, std::string spat) {
     return ptool == nullptr ? spat : ptool->build(acd, dm, spat);
   }
+
+  // Same without data map.
   static std::string
   build(const AdcChannelStringTool* ptool,
         const AdcChannelData& acd, std::string spat) {

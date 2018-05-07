@@ -212,6 +212,26 @@ tools.adcChannelPedestalRmsPlotter: {
   RootFileName: ""
 }
 
+# DFT amplitudes
+tools.adcPlotDftMag: {
+    tool_type: AdcChannelDftPlotter
+     LogLevel: 2
+     Variable: magnitude
+     HistName: "hdftmags_run%RUN%_evt%EVENT_ch%CHAN%%"
+    HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
+     PlotName: "dftmag_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+}
+
+# DFT Phases
+tools.adcPlotDftPhase: {
+    tool_type: AdcChannelDftPlotter
+     LogLevel: 2
+     Variable: phase
+     HistName: "hdftphas_run%RUN%_evt%EVENT%_ch%CHAN%"
+    HistTitle: "DFT phases for run %RUN% event %EVENT channel %CHAN%"
+     PlotName: "dftpha_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+}
+
 ################################################################################
 # Data prep reconstruction tools.
 ################################################################################

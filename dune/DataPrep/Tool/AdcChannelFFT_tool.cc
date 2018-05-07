@@ -73,10 +73,7 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xmgs, Fl
   const string myname = "AdcChannelFFT::internalView: ";
   bool doForward = false;
   bool doInverse = false;
-  bool returnForward = false;
-  bool returnInverse = false;
   if ( m_Action <= 4 ) {
-    returnForward = true;
     if ( m_Action > 0 ) {
       if ( m_Action == 2 || m_Action == 4 ) {
         doForward = acd.dftmags.size() == 0;
@@ -85,7 +82,6 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xmgs, Fl
       }
     }
   } else if ( m_Action >= 10  && m_Action <= 14 ) {
-    returnInverse = true;
     if ( m_Action != 10 ) {
       if ( m_Action == 2 || m_Action == 4 ) {
         doForward = acd.dftmags.size() == 0;
