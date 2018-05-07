@@ -49,6 +49,8 @@ int test_AdcChannelFFT(bool useExistingFcl =false) {
     fout << "           FirstTick: 0" << endl;
     fout << "               NTick: 0" << endl;
     fout << "             NormOpt: 1" << endl;
+    fout << "              Action: 3" << endl;
+    fout << "           ReturnOpt: 3" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -81,9 +83,12 @@ int test_AdcChannelFFT(bool useExistingFcl =false) {
   for ( float sam : sams ) samsum += sam;
   cout << myname << "Sample mean: " << samsum/nsam << endl;
   acd.samples = sams;
-  Index ndft = nsam/2 + 1;
+  Index nmag = (nsam+2)/2;
+  Index npha = (nsam+1)/2;
   cout << myname << "        # samples: " << nsam << endl;
-  cout << myname << "Expected DFT size: " << ndft << endl;
+  cout << myname << "Expected mag size: " << nmag << endl;
+  cout << myname << "Expected mag size: " << nmag << endl;
+  cout << myname << "Expected pha size: " << npha << endl;
 
   cout << myname << line << endl;
   cout << myname << "Call tool." << endl;
@@ -92,11 +97,12 @@ int test_AdcChannelFFT(bool useExistingFcl =false) {
   assert( dm == 0 );
   assert( Index(dm.getInt("fftNTick")) == nsam );
   assert( Index(dm.getInt("fftTick0")) == 0 );
-  assert( Index(dm.getInt("fftNFreq")) == ndft );
+  assert( Index(dm.getInt("fftNMag")) == nmag );
+  assert( Index(dm.getInt("fftNPhase")) == npha );
   assert( dm.haveFloatVector("fftMags") );
-  assert( dm.getFloatVector("fftMags").size() == ndft );
+  assert( dm.getFloatVector("fftMags").size() == nmag );
   assert( dm.haveFloatVector("fftPhases") );
-  assert( dm.getFloatVector("fftPhases").size() == ndft );
+  assert( dm.getFloatVector("fftPhases").size() == npha );
   assert( dm.haveFloatVector("fftReals") );
   assert( dm.getFloatVector("fftReals").size() == nsam );
   assert( dm.haveFloatVector("fftImags") );
