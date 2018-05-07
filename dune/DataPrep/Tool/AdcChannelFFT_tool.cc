@@ -39,6 +39,38 @@ AdcChannelFFT::AdcChannelFFT(fhicl::ParameterSet const& ps)
 DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelFFT::view: ";
   DataMap ret;
+  DataMap::FloatVector sams;
+  DataMap::FloatVector mags;
+  DataMap::FloatVector phas;
+  internalView(acd, sams, mags, phas, ret);
+  return ret;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
+  const string myname = "AdcChannelFFT::update: ";
+  DataMap ret;
+  DataMap::FloatVector sams;
+  DataMap::FloatVector mags;
+  DataMap::FloatVector phas;
+  internalView(acd, sams, mags, phas, ret);
+  if ( ret ) return ret;
+  if ( m_Action == 3 || m_Action == 4 ) {
+    if ( mags.size() ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Saving DFT." << endl;
+      acd.dftmags = mags;
+      acd.dftphases = phas;
+    }
+  }
+  return ret;
+}
+
+//**********************************************************************
+
+void AdcChannelFFT::
+internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xmgs, FloatVector& xphs, DataMap& ret) const {
+  const string myname = "AdcChannelFFT::internalView: ";
   bool doForward = false;
   bool doInverse = false;
   bool returnForward = false;
@@ -63,28 +95,31 @@ DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
     }
   } else {
     cout << myname << "ERROR: Invalid action: " << m_Action << endl;
-    return ret.setStatus(1);
+    ret.setStatus(1);
+    return;
   }
-  DataMap::FloatVector sams;
   DataMap::FloatVector xres;
   DataMap::FloatVector xims;
-  DataMap::FloatVector xmgs;
-  DataMap::FloatVector xphs;
   Index isam0 = 0;
   Index nsam = 0;
   if ( doForward ) {
     isam0 = m_FirstTick;
     if ( isam0 >= acd.samples.size() ) {
       cout << myname << "No data in range." << endl;
-      return ret.setStatus(11);
+      ret.setStatus(11);
+      return;
     }
     nsam = acd.samples.size() - isam0;
     if ( m_NTick > 0 && m_NTick < nsam ) nsam = m_NTick;
     int rstat = fftForward(m_NormOpt, nsam, &acd.samples[isam0], xres, xims, xmgs, xphs);
-    if ( rstat ) return ret.setStatus(ret);
+    if ( rstat ) {
+      ret.setStatus(10+rstat);
+      return;
+    }
   } else if ( doInverse ) {
     cout << myname << "Inverse transform is not yet supported." << endl;
-    return ret.setStatus(2);
+    ret.setStatus(2);
+    return;
   }
   if ( m_ReturnOpt >= 1 ) {
     ret.setInt("fftTick0", isam0);
@@ -107,7 +142,7 @@ DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
     if ( sams.size() ) ret.setFloatVector("fftSamples", sams);
     else ret.setFloatVector("fftSamples", acd.samples);
   }
-  return ret;
+  return;
 }
 
 //**********************************************************************

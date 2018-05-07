@@ -75,14 +75,21 @@ public:
 
   ~AdcChannelFFT() override =default;
 
+  // AdcChannelTool methods.
   DataMap view(const AdcChannelData& acd) const override;
-  bool updateWithView() const override { return true; }
+  DataMap update(AdcChannelData& acd) const override;
 
   // These methods do the work of calling Root interface to FFTW and converting to conventions here.
   // They could be moved to a utility class.
   int fftForward(Index normOpt, Index ntick, const float* psam,
                  FloatVector& xres, FloatVector& xims, FloatVector& mags, FloatVector& phases) const;
   int fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases, FloatVector& sams) const;
+
+  // This does all the work of view:
+  //   deciding what action to take
+  //   calling one of the above  to carry out the action
+  //   constructing the result
+  void internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& mags, FloatVector& phas, DataMap& ret) const;
 
 private:
 

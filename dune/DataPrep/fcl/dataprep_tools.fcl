@@ -31,7 +31,7 @@ tools.adcChannelDumper: {
   FileName: ""
   Prefix: "ADC dump: "
   NewFile: false
-  MaxSample: 100
+  MaxSample: 0
 }
 
 ################################################################################
@@ -239,6 +239,17 @@ tools.adcThresholdSignalFinder: {
   BinsAfter: 20
   FlagPositive: true
   FlagNegative: true
+}
+
+# Do FFT.
+tools.adcFFT: {
+  tool_type: AdcChannelFFT
+  LogLevel:  1
+  FirstTick: 0
+  NTick:     0
+  NormOpt:   1
+  Action:    3
+  ReturnOpt: 1
 }
 
 # Fetch ROI info and hists.
