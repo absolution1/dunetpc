@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcDataViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -67,13 +67,12 @@ int test_AdcDataDumper(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcDataViewer>("mytool");
+  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padv != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Create data and call too." << endl;
   AdcIndex nevt = 2;
-  string lab = "plane 3u";
   float peds[20] = {701, 711, 733, 690, 688, 703, 720, 720, 695, 702,
                     410, 404, 388, 389, 400, 401, 410, 404, 395, 396};
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
@@ -101,7 +100,7 @@ int test_AdcDataDumper(bool useExistingFcl =false) {
       data.raw[tm] -= 100;
       data.samples[tm] -= 100;
     }
-    assert( padv->view(datamap, lab) == 0 );
+    assert( padv->viewMap(datamap) == 0 );
   }
 
   cout << myname << line << endl;

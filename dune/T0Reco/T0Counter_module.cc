@@ -107,7 +107,7 @@ private:
   double t0time;
   unsigned int trigtype;
   int trigbits;
-  int t0id;
+  //int t0id; // unused
 
   // output TTree
   TTree *fTree;

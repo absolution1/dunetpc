@@ -27,7 +27,7 @@
 #include "dune/DuneInterface/RawDigitExtractService.h"
 #include "dune/DuneInterface/PedestalEvaluationService.h"
 
-class AdcChannelDataModifier;
+class AdcChannelTool;
 namespace lariov {
   class DetPedestalProvider;
 }
@@ -44,8 +44,7 @@ public:
 
 private:
 
-  using AcdModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
-//  using AdcChannelDataModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
+  using AcdModifierPtr = std::unique_ptr<const AdcChannelTool>;
 
   // Configuration parameters.
   int         m_LogLevel;
@@ -57,8 +56,6 @@ private:
 
   AcdModifierPtr m_pDigitReadTool;
   AcdModifierPtr m_pROIBuilderTool;
-// AdcChannelDataModifierPtr m_pDigitReadTool;
-// AdcChannelDataModifierPtr m_pROIBuilderTool;
 
   const lariov::DetPedestalProvider* m_pPedProv;
   PedestalEvaluationService* m_PedestalEvaluationService;

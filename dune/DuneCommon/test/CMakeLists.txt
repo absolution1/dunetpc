@@ -16,6 +16,11 @@ cet_test(test_DuneTimeConverter SOURCES test_DuneTimeConverter.cxx
     art_Persistency_Provenance canvas
 )
 
+cet_test(test_StringManipulator SOURCES test_StringManipulator.cxx
+  LIBRARIES
+    ${ROOT_BASIC_LIB_LIST}
+  )
+
 cet_test(test_TPadManipulator SOURCES test_TPadManipulator.cxx
   LIBRARIES
     dune_DuneCommon

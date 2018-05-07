@@ -74,7 +74,7 @@ namespace dune {
     RunHistoryDUNE(RunHistoryDUNE const&) = delete;
     virtual ~RunHistoryDUNE();
       
-    virtual bool Update(uint64_t ts=0);
+    virtual bool Update(uint64_t ts=0) override;
        
     virtual int RunNumber() const override{ return fRun; }
     int DetId() const { return fDetId; }

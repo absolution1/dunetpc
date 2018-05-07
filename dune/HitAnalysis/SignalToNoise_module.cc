@@ -23,6 +23,7 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "larcorealg/CoreUtils/NumericUtils.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/ArtDataHelper/TrackUtils.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -136,8 +137,12 @@ void dune::SignalToNoise::analyze(art::Event const & e)
     for (size_t j = 0; j<countlist.size(); ++j){
       if (i==j) continue;
       if (std::abs(countlist[i]->GetTrigTime()-countlist[j]->GetTrigTime()) < 2){
+        // for c2: GetTrigID() is an unsigned int and always >= 0
+        //if ( (    countlist[i]->GetTrigID() >= 6  && countlist[i]->GetTrigID() <= 15 && countlist[j]->GetTrigID() >= 28 && countlist[j]->GetTrigID() <= 37 ) // East Lower, West Upper 
+         //    || ( countlist[i]->GetTrigID() >= 0  && countlist[i]->GetTrigID() <= 5  && countlist[j]->GetTrigID() >= 22 && countlist[j]->GetTrigID() <= 27 ) // South Lower, North Upper
+         //    || ( countlist[i]->GetTrigID() >= 16 && countlist[i]->GetTrigID() <= 21 && countlist[j]->GetTrigID() >= 38 && countlist[j]->GetTrigID() <= 43 ) // North Lower, South Upper
         if ( (    countlist[i]->GetTrigID() >= 6  && countlist[i]->GetTrigID() <= 15 && countlist[j]->GetTrigID() >= 28 && countlist[j]->GetTrigID() <= 37 ) // East Lower, West Upper 
-             || ( countlist[i]->GetTrigID() >= 0  && countlist[i]->GetTrigID() <= 5  && countlist[j]->GetTrigID() >= 22 && countlist[j]->GetTrigID() <= 27 ) // South Lower, North Upper
+             || ( countlist[i]->GetTrigID() <= 5  && countlist[j]->GetTrigID() >= 22 && countlist[j]->GetTrigID() <= 27 ) // South Lower, North Upper
              || ( countlist[i]->GetTrigID() >= 16 && countlist[i]->GetTrigID() <= 21 && countlist[j]->GetTrigID() >= 38 && countlist[j]->GetTrigID() <= 43 ) // North Lower, South Upper
              ) {
           //              std::cout << "I have a match..."
@@ -346,7 +351,9 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               std::vector<double> vt;
               std::vector<double> vx;
               for (auto& hv : hitmap){
-                if (std::abs(hv.first-h)<=5){
+                // for c2: fix ambiguous call to abs
+                //if (std::abs(hv.first-h)<=5){
+                if (util::absDiff(hv.first,h)<=5){
                   vw.push_back((hv.second)->WireID().Wire);
                   vt.push_back((hv.second)->PeakTime());
                   vx.push_back(xposmap[hv.first]);

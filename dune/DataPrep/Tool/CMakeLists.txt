@@ -5,6 +5,12 @@
 
 # Add plugin for each tool.
 
+simple_plugin(StandardAdcChannelStringTool   "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcChannelDumper   "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
@@ -20,6 +26,7 @@ simple_plugin(AdcChannelPlotter  "tool"
 
 simple_plugin(AdcPedestalFitter  "tool"
                 dune_ArtSupport
+                dune_DuneCommon
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -41,6 +48,14 @@ simple_plugin(AdcDataPlotter   "tool"
 simple_plugin(AdcDetectorPlotter   "tool"
                 dune_DuneCommon
                 dune_Geometry
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelMetric   "tool"
+                dune_DuneCommon
+                dune_ArtSupport
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -103,6 +118,12 @@ simple_plugin(FembLinearCalibration   "tool"
              )
 
 simple_plugin(FembMappedAdcModifier   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelFFT   "tool"
                 dune_ArtSupport
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

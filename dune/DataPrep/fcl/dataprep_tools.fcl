@@ -4,6 +4,8 @@
 # July 2017
 
 # Some example tools for use in data prep.
+#
+# April 2018. Some protoDUNE-specific tools are moved to protodune_dataprep_tools.fcl
 
 ################################################################################
 # Tools to display ADC data.
@@ -13,10 +15,15 @@
 ################################################################################
 
 # Destination for data prep histograms.
+# This is now (April 2018) obsolete.
 tools.adcHists: {
   tool_type: SimpleHistogramManager
   LogLevel: 1
 }
+
+################################################################################
+# Dumpers.
+################################################################################
 
 # Dump ADC channel contents to the log file.
 tools.adcChannelDumper: {
@@ -25,6 +32,32 @@ tools.adcChannelDumper: {
   Prefix: "ADC dump: "
   NewFile: false
   MaxSample: 100
+}
+
+################################################################################
+# Event displays.
+################################################################################
+
+# Add ADC info to titles (variable width, no padding).
+tools.adcTitleBuilder: {
+  tool_type: StandardAdcChannelStringTool
+  LogLevel: 1
+  RunWidth: 0
+  SubRunWidth: 0
+  EventWidth: 0
+  ChannelWidth: 0
+  CountWidth: 0
+}
+
+# Add ADC info to names (fixed width with padding).
+tools.adcNameBuilder: {
+  tool_type: StandardAdcChannelStringTool
+  LogLevel: 1
+  RunWidth: 6
+  SubRunWidth: 4
+  EventWidth: 6
+  ChannelWidth: 5
+  CountWidth: 4
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -64,10 +97,18 @@ tools.adcPlotRawDist: {
 tools.adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  FitRmsMin:  1.0
+  FitRmsMax: 10.0
   HistName: "adcped_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC pedestal fit for event %EVENT% channel %CHAN%"
+  PlotFileName: ""
   RootFileName: ""
   HistManager: ""
+  PlotSizeX: 0
+  PlotSizeY: 0
+  PlotSplit: 0
+  PlotSplit: 0
+  PlotShowFit: 1
 }
 
 # Dump ADC map contents to the log file.
@@ -94,12 +135,18 @@ tools.preparedAdcPlotter: {
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
   FirstTick: 0
   LastTick:  0
+  FirstChannel: 0
+  LastChannel:  0
   MaxSignal: 200
+  ChannelLineModulus: 0
+  ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
-  RootFileName: "adc_evt%EVENT%.root"
+  RootFileName: ""    # or "adc_evt%EVENT%.root"
 }
 tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
@@ -107,13 +154,67 @@ tools.rawAdcPlotter: {
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
   FirstTick: 0
   LastTick:  0
+  FirstChannel: 0
+  LastChannel:  0
   MaxSignal: 200
+  ChannelLineModulus: 0
+  ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
   PlotFileName: "adcraw_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
-  RootFileName: "adc_evt%EVENT%.root"
+  RootFileName: ""   # or "adc_evt%EVENT%.root"
 }
+
+################################################################################
+# Metric plotters.
+################################################################################
+
+# Pedestal for each channel.
+tools.adcChannelPedestalPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestal
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: []
+  MetricMin: 0
+  MetricMax: 4096
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
+  HistName: "hchped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+# Pedestal RMS for each channel.
+tools.adcChannelPedestalRmsPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestalRms
+  FirstChannel: 0
+  LastChannel: 0
+  ChannelCounts: []
+  MetricMin: 0
+  MetricMax: 11
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
+  HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchpedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  RootFileName: ""
+}
+
+################################################################################
+# Data prep reconstruction tools.
+################################################################################
 
 # Extract raw data from a digit.
 tools.digitReader: {

@@ -38,7 +38,7 @@
 #include "TVectorF.h"
 #include "TVectorD.h"
 
-const unsigned int MaxChannels = 2048;
+//const unsigned int MaxChannels = 2048; // unused
 
 namespace DAQToOffline {
   class GoodRun;
@@ -50,10 +50,10 @@ public:
   virtual ~GoodRun();
 
   void analyze(art::Event const & evt) override;
-  void beginJob();
-  void beginRun(const art::Run& r);
-  void endRun(const art::Run& r);
-  void endJob();
+  void beginJob() override;
+  void beginRun(const art::Run& r) override;
+  void endRun(const art::Run& r) override;
+  void endJob() override;
   void printParameterSet();
 
 private:

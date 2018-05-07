@@ -352,30 +352,30 @@
 
    <box name="CRM" lunit="cm" 
       x="100.03" 
-      y="101" 
-      z="301"/>
+      y="97" 
+      z="289"/>
    <box name="CRMVPlane" lunit="cm" 
       x="0.015" 
-      y="100" 
-      z="300"/>
+      y="96" 
+      z="288"/>
    <box name="CRMZPlane" lunit="cm" 
       x="0.015"
-      y="100"
-      z="300"/>
+      y="96"
+      z="288"/>
    <box name="CRMActive" lunit="cm"
       x="100"
-      y="100"
-      z="300"/>
+      y="96"
+      z="288"/>
 
    <tube name="CRMWireV"
      rmax="0.0075"
-     z="300"               
+     z="288"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
    <tube name="CRMWireZ"
      rmax="0.0075"
-     z="100"               
+     z="96"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
@@ -414,9 +414,9 @@
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="483.54"
-      y="447.94"
-      z="723.64" />
+      x="444.14"
+      y="408.54"
+      z="684.24" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
@@ -425,15 +425,15 @@
     </subtraction>
 
     <box name="DetEnclosure" lunit="cm" 
-      x="483.54"
-      y="447.94"
-      z="723.64"/>
+      x="444.14"
+      y="408.54"
+      z="684.24"/>
 
 
     <box name="World" lunit="cm" 
-      x="6483.54" 
-      y="6447.94" 
-      z="6723.64"/>
+      x="6444.14" 
+      y="6408.54" 
+      z="6684.24"/>
 </solids>
 <structure>
 
@@ -597,7 +597,7 @@
     </volume>
 
     <volume name="volSteelSupport">
-      <materialref ref="AirSteelMixture"/>
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
       <solidref ref="SteelSupport"/>
     </volume>
 
@@ -625,7 +625,7 @@
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="-18.22" y="-1.4210854715202e-14" z="150.5"/>
+	<position name="posDetEnclosure" unit="cm" x="-18.22" y="-1.4210854715202e-14" z="144"/>
       </physvol>
 
     </volume>

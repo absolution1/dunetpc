@@ -56,7 +56,7 @@ public:
 
   void reconfigure(fhicl::ParameterSet const & p);
 
-  void beginJob();
+  void beginJob() override;
 
 
 

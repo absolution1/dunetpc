@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "lardataobj/RawData/RawDigit.h"
 
@@ -74,7 +74,7 @@ int test_AcdDigitReader(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto prdr = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  auto prdr = tm.getPrivate<AdcChannelTool>("mytool");
   assert( prdr != nullptr );
 
   cout << myname << line << endl;

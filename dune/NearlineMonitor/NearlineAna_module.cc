@@ -52,8 +52,8 @@ public:
   void reconfigure(fhicl::ParameterSet const & p);
   void printConfig();
   void analyze(art::Event const & e) override;
-  void beginJob();
-  void endJob();
+  void beginJob() override;
+  void endJob() override;
 
   size_t getRawDigits(art::Event const & e, art::Handle<std::vector<raw::RawDigit>> & digitHandle);
   size_t getHits(art::Event const & e, art::Handle<std::vector<recob::Hit>> & hitsHandle);
