@@ -166,6 +166,8 @@ namespace tpc_monitor{
     unsigned int nADC_uncomp;
     unsigned int nADC_uncompPed;
 
+    TH1F *fNTicksTPC;
+
     // define functions
     float rmsADC(std::vector< short > & uncompressed);
     float meanADC(std::vector< short > & uncompressed);
@@ -327,6 +329,8 @@ namespace tpc_monitor{
       fPersistentFFT_by_Fiber[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fPersistentFFT_by_Fiber[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
       fFFT_by_Fiber_pfx[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fFFT_by_Fiber_pfx[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
     }
+
+    fNTicksTPC = tfs->make<TH1F>("NTicksTPC","NTicks in TPC Channels",100,0,20000);
   }
 
   //-----------------------------------------------------------------------
@@ -391,6 +395,7 @@ namespace tpc_monitor{
       uint32_t chan = digit.Channel();
       // number of samples in uncompressed ADC
       int nSamples = digit.Samples();
+      fNTicksTPC->Fill(nSamples);
       unsigned int apa = std::floor( chan/fChansPerAPA );	  
       int pedestal = (int)digit.GetPedestal();
       
