@@ -25,16 +25,24 @@ using std::vector;
 AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_Variable(ps.get<Name>("Variable")),
+  m_SampleFreq(ps.get<float>("SampleFreq")),
+  m_YMax(0.0),
+  m_NBinX(0),
   m_HistName(ps.get<Name>("HistName")),
   m_HistTitle(ps.get<Name>("HistTitle")),
   m_PlotName(ps.get<Name>("PlotName")) {
   const string myname = "AdcChannelDftPlotter::ctor: ";
-  // Fetch optional vlaues and check Variable.
-  if ( m_Variable == "power" ) {
-    m_SampleFreq = ps.get<float>("SampleFreq");
-    m_Rebin = ps.get<Index>("Rebin");
-  } else if ( m_Variable == "magnitude" ) {
-  } else if ( m_Variable == "phase" ) {
+  bool doMag = m_Variable == "magnitude";
+  bool doPha = m_Variable == "phase";
+  bool doPwr = m_Variable == "power";
+  bool doPwt = m_Variable == "power/tick";
+  // Check variable and get optional fields.
+  if ( doPwr || doPwt ) {
+    m_YMax = ps.get<float>("YMax");
+    m_NBinX = ps.get<Index>("NBinX");
+  } else if ( doMag ) {
+    m_YMax = ps.get<float>("YMax");
+  } else if ( doPha ) {
   } else {
     cout << myname << "Invalid Variable: " << m_Variable << endl;
     throw art::Exception(art::errors::Configuration, "InvalidFclValue");
@@ -51,12 +59,14 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   if ( m_adcTitleBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stitlBuilder << endl;
   }
+  // Display the configuration.
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
     cout << myname << "         LogLevel: " << m_LogLevel << endl;
     cout << myname << "         Variable: " << m_Variable << endl;
     cout << myname << "       SampleFreq: " << m_SampleFreq << endl;
-    cout << myname << "            Rebin: " << m_Rebin << endl;
+    if ( doMag || doPwr || doPwt ) cout << myname << "             YMax: " << m_YMax << endl;
+    if ( doPwr || doPwt )          cout << myname << "            NBinX: " << m_NBinX << endl;
     cout << myname << "         HistName: " << m_HistName << endl;
     cout << myname << "        HistTitle: " << m_HistTitle << endl;
     cout << myname << "         PlotName: " << m_PlotName << endl;
@@ -71,12 +81,15 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
   bool doMag = m_Variable == "magnitude";
   bool doPha = m_Variable == "phase";
   bool doPwr = m_Variable == "power";
-  if ( ! doMag && !doPha && !doPwr ) {
+  bool doPwt = m_Variable == "power/tick";
+  bool haveFreq = m_SampleFreq > 0.0;
+  if ( ! doMag && !doPha && !doPwr && !doPwt ) {
     cout << myname << "Invalid plot variable: " << m_Variable << endl;
     return ret.setStatus(1);
   }
   Index nmag = acd.dftmags.size();
   Index npha = acd.dftphases.size();
+  Index nsam = nmag + npha - 1;
   if ( nmag == 0 ) {
     cout << myname << "DFT is not present." << endl;
     return ret.setStatus(2);
@@ -91,11 +104,12 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
   string htitl = nameReplace(m_HistTitle, acd, true);
   string pname = nameReplace(m_PlotName,  acd, false);
   float pi = acos(-1.0);
+  double xFac = haveFreq ? m_SampleFreq/nsam : 1.0;
   double xmin = 0.0;
-  double xmax = 0.0;
-  double ymin = 0.0;
-  double ymax = 0.0;
+  double xmax = (nmag-1)*xFac;
+  float yValMax = 0.0;
   string dopt;
+  string xtitl = haveFreq ? "Frequency [kHz]" : "Frequency index";
   if ( doMag || doPha ) {  
     string ytitl = "Phase";
     if ( doMag ) {
@@ -109,9 +123,9 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
     //ph = new TH1F(hname.c_str(), htitl.c_str(), nbin, 0, nbin);
     //ph->SetDirectory(nullptr);
     //ph->SetLineWidth(2);
-    pg->GetXaxis()->SetTitle("Frequency index");
+    string xtitl = haveFreq ? "Frequency [kHz]" : "Frequency index";
+    pg->GetXaxis()->SetTitle(xtitl.c_str());
     pg->GetYaxis()->SetTitle(ytitl.c_str());
-    float magMax = 0.0;
     for ( Index ipha=0; ipha<nmag; ++ipha ) {
       float mag = acd.dftmags[ipha];
       float pha = ipha < npha ? acd.dftphases[ipha] : 0.0;
@@ -119,29 +133,71 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
         pha += ( pha > 0 ? -pi : pi);
         mag = -mag;
       }
-      if ( mag > magMax ) magMax = mag;
-      if ( doPha ) pg->SetPoint(ipha, ipha, pha);
-      else pg->SetPoint(ipha, ipha, mag);
+      float x = ipha*xFac;
+      float y = doPha ? pha : mag;
+      if ( y > yValMax ) yValMax = y;
+      pg->SetPoint(ipha, x, y);
     }
-    float delx = 0.02*nmag;
-    xmin = -delx;
-    xmax = nmag -1 + delx;
-    ymax =  3.2;
-    ymin = -ymax;
-    if ( doMag ) {
-      ymin = 0.0;
-      ymax = magMax*1.03;
-    }
+    xmin = -0.02*xmax;
+    xmax *= 1.02;
     pobj = pg;
     dopt = "P";
+  } else if ( doPwr || doPwt ) {
+    string ytitl = doPwr ? "Power" : "Power/tick";
+    if ( acd.sampleUnit.size() ) {
+      ytitl = AdcChannelStringTool::build(m_adcTitleBuilder, acd, ytitl + " [(%SUNIT%)^{2}]");
+    }
+    if ( m_NBinX == 0 ) {
+      cout << myname << "Invalid bin count: " << m_NBinX << endl;
+      return ret.setStatus(2);
+    }
+    // Shift bins sightly so f=0 is an underflow and last frequency is not an overflow.
+    double delx = 1.e-5*xmax;
+    double x1 = xmin + delx;
+    double x2 = xmax + delx;
+    xmax = xmin;
+    TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), m_NBinX, x1, x2);
+    ph->SetDirectory(nullptr);
+    ph->SetLineWidth(2);
+    ph->GetXaxis()->SetTitle(xtitl.c_str());
+    ph->GetYaxis()->SetTitle(ytitl.c_str());
+    float pwrFac = doPwr ? 1.0 : 1.0/nsam;
+    for ( Index ipha=0; ipha<nmag; ++ipha ) {
+      float mag = acd.dftmags[ipha];
+      float x = ipha*xFac;
+      float y = pwrFac*mag*mag;
+      ph->Fill(x, y);
+    }
+    if ( ph->GetBinContent(m_NBinX+1) ) {
+      cout << myname << "WARNING: Power histogram has overflow." << endl;
+    }
+    for ( Index ibin=0; ibin<m_NBinX+2; ++ibin ) {
+      double y = ph->GetBinContent(ibin);
+      if ( y > yValMax ) yValMax = y;
+    }
+    pobj = ph;
+    dopt = "hist";
   }
   if ( pname.size() ) {
+    // Assign y limits.
+    double ymin = 0.0;
+    double ymax = 0.0;
+    if ( doPha ) {
+      ymax =  3.2;
+      ymin = -ymax;
+    } else {
+      ymin = 0.0;
+      if ( m_YMax > 0 ) ymax = m_YMax;
+      else if ( m_YMax < 0 && -m_YMax > yValMax ) ymax = -m_YMax;
+      else ymax = yValMax*1.02;
+    }
     TPadManipulator man;
     //if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     man.add(pobj, dopt);
     man.addAxis();
     if ( xmax > xmin ) man.setRangeX(xmin, xmax);
     if ( ymax > ymin ) man.setRangeY(ymin, ymax);
+    if ( doPwr || doPwt ) man.showUnderflow();
     man.print(pname);
   }
   return ret;

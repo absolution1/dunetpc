@@ -50,7 +50,7 @@ int test_AdcChannelFFT(bool useExistingFcl =false) {
     fout << "               NTick: 0" << endl;
     fout << "             NormOpt: 1" << endl;
     fout << "              Action: 3" << endl;
-    fout << "           ReturnOpt: 3" << endl;
+    fout << "           ReturnOpt: 13" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

@@ -47,6 +47,7 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "    tool_type: AdcChannelDftPlotter" << endl;
     fout << "     LogLevel: 2" << endl;
     fout << "     Variable: phase" << endl;
+    fout << "   SampleFreq: 0" << endl;
     fout << "     HistName: \"hdftphase_run%RUN%_evt%EVENT%\"" << endl;
     fout << "    HistTitle: \"DFT phases for run %RUN% event %EVENT%\"" << endl;
     fout << "     PlotName: \"dftphase_run%RUN%_evt%EVENT%.png\"" << endl;
@@ -56,10 +57,32 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "     LogLevel: 2" << endl;
     fout << "     Variable: magnitude" << endl;
     fout << "   SampleFreq: 0" << endl;
-    fout << "        Rebin: 0" << endl;
+    fout << "         YMax: 0.0" << endl;
     fout << "     HistName: \"hdftmags_run%RUN%_evt%EVENT%\"" << endl;
     fout << "    HistTitle: \"DFT amplitudes for run %RUN% event %EVENT%\"" << endl;
     fout << "     PlotName: \"dftmag_run%RUN%_evt%EVENT%.png\"" << endl;
+    fout << "}" << endl;
+    fout << "tools.mypwr: {" << endl;
+    fout << "    tool_type: AdcChannelDftPlotter" << endl;
+    fout << "     LogLevel: 2" << endl;
+    fout << "     Variable: power" << endl;
+    fout << "   SampleFreq: 2000" << endl;
+    fout << "         YMax: 50.0" << endl;
+    fout << "        NBinX: 5" << endl;
+    fout << "     HistName: \"hdftpower_run%RUN%_evt%EVENT%\"" << endl;
+    fout << "    HistTitle: \"DFT power for run %RUN% event %EVENT%\"" << endl;
+    fout << "     PlotName: \"dftpower_run%RUN%_evt%EVENT%.png\"" << endl;
+    fout << "}" << endl;
+    fout << "tools.mypwt: {" << endl;
+    fout << "    tool_type: AdcChannelDftPlotter" << endl;
+    fout << "     LogLevel: 2" << endl;
+    fout << "     Variable: \"power/tick\"" << endl;
+    fout << "   SampleFreq: 2000" << endl;
+    fout << "         YMax: 5.0" << endl;
+    fout << "        NBinX: 5" << endl;
+    fout << "     HistName: \"hdftpowt_run%RUN%_evt%EVENT%\"" << endl;
+    fout << "    HistTitle: \"DFT power for run %RUN% event %EVENT%\"" << endl;
+    fout << "     PlotName: \"dftpowt_run%RUN%_evt%EVENT%.png\"" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -78,8 +101,12 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   cout << myname << "Fetching tools." << endl;
   auto ppha = tm.getPrivate<AdcChannelTool>("myphases");
   auto pmag = tm.getPrivate<AdcChannelTool>("mymags");
+  auto ppwr = tm.getPrivate<AdcChannelTool>("mypwr");
+  auto ppwt = tm.getPrivate<AdcChannelTool>("mypwt");
   assert( ppha != nullptr );
   assert( pmag != nullptr );
+  assert( ppwr != nullptr );
+  assert( ppwt != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
@@ -89,10 +116,12 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   acd.subRun = 45;
   acd.event = 2468;
   acd.sampleUnit = "fC";
-  vector<float> mags = {  1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 2.0,  1.0,  0.5, 0.25, 0.125 };
-  vector<float> phas = {  0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, -2.0, -1.5, -1.0, -0.5 };
+  vector<float> mags = {  1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 2.0,  1.0,  1.0,  1.0,  1.0 };
+  vector<float> phas = {  0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, -2.0, -1.5, -1.0 };
   acd.dftmags = mags;
   acd.dftphases = phas;
+  cout << myname << "  Mag size: " << mags.size() << endl;
+  cout << myname << "Phase size: " << phas.size() << endl;
 
   cout << myname << line << endl;
   cout << myname << "Call phase tool." << endl;
@@ -103,6 +132,18 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Call mag tool." << endl;
   dm = pmag->view(acd);
+  dm.print();
+  assert( dm == 0 );
+
+  cout << myname << line << endl;
+  cout << myname << "Call power tool." << endl;
+  dm = ppwr->view(acd);
+  dm.print();
+  assert( dm == 0 );
+
+  cout << myname << line << endl;
+  cout << myname << "Call tick power tool." << endl;
+  dm = ppwt->view(acd);
   dm.print();
   assert( dm == 0 );
 

@@ -212,11 +212,15 @@ tools.adcChannelPedestalRmsPlotter: {
   RootFileName: ""
 }
 
+adcSampleFreq: 2000
+
 # DFT amplitudes
 tools.adcPlotDftMag: {
     tool_type: AdcChannelDftPlotter
-     LogLevel: 2
+     LogLevel: 1
      Variable: magnitude
+   SampleFreq: @local::adcSampleFreq
+         YMax: 50
      HistName: "hdftmags_run%RUN%_evt%EVENT_ch%CHAN%%"
     HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
      PlotName: "dftmag_run%RUN%_evt%EVENT%_ch%CHAN%.png"
@@ -225,11 +229,38 @@ tools.adcPlotDftMag: {
 # DFT Phases
 tools.adcPlotDftPhase: {
     tool_type: AdcChannelDftPlotter
-     LogLevel: 2
+     LogLevel: 1
      Variable: phase
+   SampleFreq: @local::adcSampleFreq
      HistName: "hdftphas_run%RUN%_evt%EVENT%_ch%CHAN%"
-    HistTitle: "DFT phases for run %RUN% event %EVENT channel %CHAN%"
+    HistTitle: "DFT phases for run %RUN% event %EVENT% channel %CHAN%"
      PlotName: "dftpha_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+}
+
+# DFT power
+tools.adcPlotDftPower: {
+    tool_type: AdcChannelDftPlotter
+     LogLevel: 1
+     Variable: power
+   SampleFreq: @local::adcSampleFreq
+         YMax: 10000
+        NBinX: 50
+     HistName: "hdftpower_run%RUN%_evt%EVENT_ch%CHAN%%"
+    HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
+     PlotName: "dftpower_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+}
+
+# DFT power/tick
+tools.adcPlotDftTickPower: {
+    tool_type: AdcChannelDftPlotter
+     LogLevel: 1
+     Variable: "power/tick"
+   SampleFreq: @local::adcSampleFreq
+         YMax: -2.0
+        NBinX: 50
+     HistName: "hdftpower_run%RUN%_evt%EVENT_ch%CHAN%%"
+    HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
+     PlotName: "dftpower_run%RUN%_evt%EVENT%_ch%CHAN%.png"
 }
 
 ################################################################################
