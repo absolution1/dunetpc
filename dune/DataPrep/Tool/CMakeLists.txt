@@ -130,8 +130,9 @@ simple_plugin(AdcChannelFFT   "tool"
              )
 
 simple_plugin(AdcChannelDftPlotter   "tool"
-                dune_ArtSupport
+                dune_DataPrep_Utility
                 dune_DuneCommon
+                dune_ArtSupport
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )

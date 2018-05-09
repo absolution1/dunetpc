@@ -23,7 +23,8 @@ using std::vector;
 //**********************************************************************
 
 AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
-: m_LogLevel(ps.get<int>("LogLevel")), 
+: AdcMultiChannelPlotter(ps, "Plot"),
+  m_LogLevel(ps.get<int>("LogLevel")), 
   m_Variable(ps.get<Name>("Variable")),
   m_SampleFreq(ps.get<float>("SampleFreq")),
   m_YMax(0.0),
@@ -73,10 +74,35 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   }
 }
 
+
+//**********************************************************************
+
+int AdcChannelDftPlotter::
+viewMapChannel(const AdcChannelData& acd, DataMap&, TPadManipulator& man) const {
+  const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
+  DataMap chret = viewLocal(acd);
+  fillChannelPad(chret, man);
+  return 0;
+}
+
 //**********************************************************************
 
 DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelDftPlotter::view: ";
+  DataMap chret = viewLocal(acd);
+  if ( getPlotName().size() ) {
+    string pname = AdcChannelStringTool::build(m_adcNameBuilder, acd, getPlotName());
+    TPadManipulator man;
+    fillChannelPad(chret, man);
+    man.print(pname);
+  }
+  return chret;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
+  const string myname = "AdcChannelDftPlotter::viewLocal: ";
   DataMap ret;
   bool doMag = m_Variable == "magnitude";
   bool doPha = m_Variable == "phase";
@@ -99,10 +125,8 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
     return ret.setStatus(3);
   }
   TObject* pobj = nullptr;
-  //string hname = nameReplace(m_HistName,  acd, false);
   string hname = AdcChannelStringTool::build(m_adcNameBuilder, acd, m_HistName);
-  string htitl = nameReplace(m_HistTitle, acd, true);
-  string pname = nameReplace(m_PlotName,  acd, false);
+  string htitl = AdcChannelStringTool::build(m_adcTitleBuilder, acd, m_HistTitle);
   float pi = acos(-1.0);
   double xFac = haveFreq ? m_SampleFreq/nsam : 1.0;
   double xmin = 0.0;
@@ -138,10 +162,8 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
       if ( y > yValMax ) yValMax = y;
       pg->SetPoint(ipha, x, y);
     }
-    xmin = -0.02*xmax;
-    xmax *= 1.02;
-    pobj = pg;
-    dopt = "P";
+    ret.setGraph("dftGraph", pg);
+    ret.setString("dftDopt", "P");
   } else if ( doPwr || doPwt ) {
     string ytitl = doPwr ? "Power" : "Power/tick";
     if ( acd.sampleUnit.size() ) {
@@ -177,44 +199,54 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
     }
     pobj = ph;
     dopt = "hist";
+    ret.setHist("dftHist", ph, true);
+    ret.setString("dftDopt", "hist");
   }
-  if ( pname.size() ) {
-    // Assign y limits.
-    double ymin = 0.0;
-    double ymax = 0.0;
-    if ( doPha ) {
-      ymax =  3.2;
-      ymin = -ymax;
-    } else {
-      ymin = 0.0;
-      if ( m_YMax > 0 ) ymax = m_YMax;
-      else if ( m_YMax < 0 && -m_YMax > yValMax ) ymax = -m_YMax;
-      else ymax = yValMax*1.02;
-    }
-    TPadManipulator man;
-    //if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
-    man.add(pobj, dopt);
-    man.addAxis();
-    if ( xmax > xmin ) man.setRangeX(xmin, xmax);
-    if ( ymax > ymin ) man.setRangeY(ymin, ymax);
-    if ( doPwr || doPwt ) man.showUnderflow();
-    man.print(pname);
-  }
+  ret.setFloat("dftYValMax", yValMax);
   return ret;
 }
 
 //**********************************************************************
 
-string AdcChannelDftPlotter::
-nameReplace(string name, const AdcChannelData& acd, bool isTitle) const {
-  const AdcChannelStringTool* pnbl = nullptr;
-  if ( isTitle ) pnbl = m_adcTitleBuilder;
-  else {
-    pnbl = m_adcNameBuilder == nullptr ? m_adcTitleBuilder : m_adcNameBuilder;
+int AdcChannelDftPlotter::fillChannelPad(DataMap& dm, TPadManipulator& man) const {
+  const string myname = "AdcChannelDftPlotter::fillChannelPad: ";
+  TGraph* pg = dm.getGraph("dftGraph");
+  TH1* ph = dm.getHist("dftHist");
+  float yValMax = dm.getFloat("dftYValMax");
+  bool doPha = m_Variable == "phase";
+  bool doPwr = m_Variable == "power";
+  bool doPwt = m_Variable == "power/tick";
+  string dopt = dm.getString("dftDopt");
+  // Assign y limits.
+  double ymin = 0.0;
+  double ymax = 0.0;
+  if ( doPha ) {
+    ymax =  3.2;
+    ymin = -ymax;
+  } else {
+    ymin = 0.0;
+    if ( m_YMax > 0 ) ymax = m_YMax;
+    else if ( m_YMax < 0 && -m_YMax > yValMax ) ymax = -m_YMax;
+    else ymax = yValMax*1.02;
   }
-  if ( pnbl == nullptr ) return name;
-  DataMap dm;
-  return pnbl->build(acd, dm, name);
+  double xmin = 0.0;
+  double xmax = 0.0;
+  if ( pg != nullptr ) {
+    xmax = pg->GetXaxis()->GetXmax();
+    xmin = -0.02*xmax;
+    xmax *= 1.02;
+    man.add(pg, dopt);
+  } else if ( ph != nullptr ) {
+    man.add(ph, dopt);
+  } else {
+    cout << myname << "ERROR: Neither hist or graph is defined." << endl;
+    return 1;
+  }
+  man.addAxis();
+  if ( xmax > xmin ) man.setRangeX(xmin, xmax);
+  if ( ymax > ymin ) man.setRangeY(ymin, ymax);
+  if ( doPwr || doPwt ) man.showUnderflow();
+  return 0;
 }
 
 //**********************************************************************

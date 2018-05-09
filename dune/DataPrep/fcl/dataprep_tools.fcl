@@ -213,55 +213,49 @@ tools.adcChannelPedestalRmsPlotter: {
 }
 
 adcSampleFreq: 2000
+adcPlotDftTemplate: {
+    tool_type: AdcChannelDftPlotter
+     LogLevel: 1
+   SampleFreq: @local::adcSampleFreq
+    PlotSizeX: 1400
+    PlotSizeY: 1000
+   PlotSplitX: 4
+   PlotSplitY: 4
+}
 
 # DFT amplitudes
-tools.adcPlotDftMag: {
-    tool_type: AdcChannelDftPlotter
-     LogLevel: 1
-     Variable: magnitude
-   SampleFreq: @local::adcSampleFreq
-         YMax: 50
-     HistName: "hdftmags_run%RUN%_evt%EVENT_ch%CHAN%%"
-    HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
-     PlotName: "dftmag_run%RUN%_evt%EVENT%_ch%CHAN%.png"
-}
+tools.adcPlotDftMag: @local::adcPlotDftTemplate
+tools.adcPlotDftMag.Variable: magnitude
+tools.adcPlotDftMag.SampleFreq: @local::adcSampleFreq
+tools.adcPlotDftMag.YMax: 50
+tools.adcPlotDftMag.HistName: "hdftmags_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftMag.HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftMag.PlotName: "dftmag_run%RUN%_evt%EVENT%_ch%CHAN%.png"
 
 # DFT Phases
-tools.adcPlotDftPhase: {
-    tool_type: AdcChannelDftPlotter
-     LogLevel: 1
-     Variable: phase
-   SampleFreq: @local::adcSampleFreq
-     HistName: "hdftphas_run%RUN%_evt%EVENT%_ch%CHAN%"
-    HistTitle: "DFT phases for run %RUN% event %EVENT% channel %CHAN%"
-     PlotName: "dftpha_run%RUN%_evt%EVENT%_ch%CHAN%.png"
-}
+tools.adcPlotDftPhase: @local::adcPlotDftTemplate
+tools.adcPlotDftPhase.Variable: phase
+tools.adcPlotDftPhase.HistName: "hdftphas_run%RUN%_evt%EVENT%_ch%CHAN%"
+tools.adcPlotDftPhase.HistTitle: "DFT phases for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftPhase.PlotName: "dftpha_run%RUN%_evt%EVENT%_ch%CHAN%.png"
 
 # DFT power
-tools.adcPlotDftPower: {
-    tool_type: AdcChannelDftPlotter
-     LogLevel: 1
-     Variable: power
-   SampleFreq: @local::adcSampleFreq
-         YMax: 10000
-        NBinX: 50
-     HistName: "hdftpower_run%RUN%_evt%EVENT_ch%CHAN%%"
-    HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
-     PlotName: "dftpower_run%RUN%_evt%EVENT%_ch%CHAN%.png"
-}
+tools.adcPlotDftPower: @local::adcPlotDftTemplate
+tools.adcPlotDftPower.Variable: power
+tools.adcPlotDftPower.YMax: 10000
+tools.adcPlotDftPower.NBinX: 50
+tools.adcPlotDftPower.HistName: "hdftpower_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftPower.PlotName: "dftpower_run%RUN%_evt%EVENT%_ch%CHAN%.png"
 
 # DFT power/tick
-tools.adcPlotDftTickPower: {
-    tool_type: AdcChannelDftPlotter
-     LogLevel: 1
-     Variable: "power/tick"
-   SampleFreq: @local::adcSampleFreq
-         YMax: -2.0
-        NBinX: 50
-     HistName: "hdftpower_run%RUN%_evt%EVENT_ch%CHAN%%"
-    HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
-     PlotName: "dftpower_run%RUN%_evt%EVENT%_ch%CHAN%.png"
-}
+tools.adcPlotDftTickPower: @local::adcPlotDftTemplate
+tools.adcPlotDftTickPower.Variable: "power/tick"
+tools.adcPlotDftTickPower.YMax: -2.0
+tools.adcPlotDftTickPower.NBinX: 50
+tools.adcPlotDftTickPower.HistName: "hdftpowt_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftTickPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftTickPower.PlotName: "dftpowt_run%RUN%_evt%EVENT%_ch%CHAN%.png"
 
 ################################################################################
 # Data prep reconstruction tools.

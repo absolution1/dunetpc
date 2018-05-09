@@ -125,8 +125,11 @@ private:
   Name nameReplace(Name name, const AdcChannelData& acd, bool isTitle) const;
 
   // Find and return pedestal.
-  // if pman is not null, the histogram is drawn there.
-  DataMap getPedestal(const AdcChannelData& acd, TPadManipulator* pman) const;
+  DataMap getPedestal(const AdcChannelData& acd) const;
+
+  // Fill the pad for a channel.
+  // Histogram "pedestal" from dm is drawn.
+  int fillChannelPad(DataMap& dm, TPadManipulator* pman) const;
 
 };
 
