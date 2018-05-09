@@ -7,6 +7,7 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   larcorealg_Geometry
   lardataobj_RawData
   lardataobj_AnalysisBase
+  dune_DuneObjBase
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
   larsim_MCCheater_PhotonBackTrackerService_service
