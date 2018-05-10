@@ -124,7 +124,6 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
     cout << myname << "DFT is not valid." << endl;
     return ret.setStatus(3);
   }
-  TObject* pobj = nullptr;
   string hname = AdcChannelStringTool::build(m_adcNameBuilder, acd, m_HistName);
   string htitl = AdcChannelStringTool::build(m_adcTitleBuilder, acd, m_HistTitle);
   float pi = acos(-1.0);
@@ -197,7 +196,6 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
       double y = ph->GetBinContent(ibin);
       if ( y > yValMax ) yValMax = y;
     }
-    pobj = ph;
     dopt = "hist";
     ret.setHist("dftHist", ph, true);
     ret.setString("dftDopt", "hist");
