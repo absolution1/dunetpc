@@ -46,17 +46,22 @@ namespace EventRecord {
       {}
   };
 
-  class PartialOpHit  {
-    /*ClassDef(EventRecord::PartialOpHit,10);*/
+  class PartialPDOpHit {
     public:
       Double_t pes;
+      Double_t num_photons;
       Double_t time;
       Double_t width;
       Double_t energy;
-      Double_t split;//fraction of track energy in this hit.
-      UInt_t opchan;
+      Double_t split;//fraction of hit energy in this partial.
       UInt_t opdet;
       int64_t index;
+  };
+
+  class PartialOpHit : public PartialPDOpHit {
+    /*ClassDef(EventRecord::PartialOpHit,10);*/
+    public:
+      UInt_t opchan;
   };
 
   //class Hit : public TObject{
@@ -64,7 +69,7 @@ namespace EventRecord {
     /*ClassDef(EventRecord::PartialHit,10);*/
     public:
       Double_t charge;
-      //Double_t num_electrons;
+      Double_t num_electrons;
       Double_t energy;
       Double_t time;
       Double_t width;

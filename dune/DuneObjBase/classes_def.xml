@@ -11,12 +11,14 @@
 <!-- support classes (e.g., elements of data product classes) -->
 
  <!--JStock Classes that aren't good-->
- <class name="EventRecord::PartialOpHit" ClassVersion="12">
+ <class name="EventRecord::PartialOpHit" ClassVersion="13">
+  <version ClassVersion="13" checksum="3073689731"/>
   <version ClassVersion="12" checksum="1478576091"/>
   <version ClassVersion="11" checksum="4050960930"/>
   <version ClassVersion="10" checksum="2378973873"/>
  </class>
- <class name="EventRecord::PartialHit" ClassVersion="12">
+ <class name="EventRecord::PartialHit" ClassVersion="13">
+  <version ClassVersion="13" checksum="474482815"/>
   <version ClassVersion="12" checksum="1493617752"/>
   <version ClassVersion="11" checksum="1374773"/>
   <version ClassVersion="10" checksum="2362630748"/>
