@@ -332,9 +332,10 @@ int TPadManipulator::addPad(double x1, double y1, double x2, double y2, int icol
 
 //**********************************************************************
 
-int TPadManipulator::split(Index nx, Index ny) {
+int TPadManipulator::split(Index nx, Index nyin) {
+  Index ny = nyin;
   if ( nx < 1 ) return 1;
-  if ( ny < 1 ) return 2;
+  if ( ny < 1 ) ny = nx;
   double dx = 1.0/nx;
   double dy = 1.0/ny;
   double y2 = 1.0;

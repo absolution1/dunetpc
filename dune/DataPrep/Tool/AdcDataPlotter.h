@@ -17,6 +17,8 @@
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
 //   HistTitle - Histogram title
+//   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
+//                         Root default (700x500?) is used if either is zero.
 //   PlotFileName - Name for output plot file.
 //                  If blank, no file is written.
 //                  Existing file with the same name is replaced.
@@ -78,6 +80,8 @@ private:
   int            m_Palette;
   std::string    m_HistName;
   std::string    m_HistTitle;
+  Index          m_PlotSizeX;
+  Index          m_PlotSizeY;
   std::string    m_PlotFileName;
   std::string    m_RootFileName;
 

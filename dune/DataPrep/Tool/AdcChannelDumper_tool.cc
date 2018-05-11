@@ -80,10 +80,11 @@ DataMap AdcChannelDumper::view(const AdcChannelData& acd) const {
   Index nflg = acd.flags.size();
   Index nprp = acd.samples.size();
   Index nsig = acd.signal.size();
-  Index nroi = acd.rois.size();
+  Index nkeep = 0;
+  for ( bool keep : acd.signal ) if ( keep ) ++nkeep;
   Index nsam = nraw;
   if ( nprp > nsam ) nsam = nprp;
-  if ( m_MaxSample > 0 ) {
+  if ( m_MaxSample >= 0 ) {
     Index maxsam = m_MaxSample;
     if ( maxsam < nsam ) nsam = maxsam;
   }
@@ -93,9 +94,14 @@ DataMap AdcChannelDumper::view(const AdcChannelData& acd) const {
   Index wflg = 4;
   Index wprp = 9;
   Index wsig = 2;
-  out << pre << "     Nraw: " << nraw << endl;
-  out << pre << "    Nprep: " << nprp << endl;
-  out << pre << "     Nroi: " << nroi << endl;
+  Index wcnt = wprp;
+  out << pre << "     Nraw: " << setw(wcnt) << nraw << endl;
+  out << pre << "    Nprep: " << setw(wcnt) << nprp << endl;
+  out << pre << "     Nsig: " << setw(wcnt) << acd.signal.size() << endl;
+  out << pre << "    Nkeep: " << setw(wcnt) << nkeep << endl;
+  out << pre << "     Nroi: " << setw(wcnt) << acd.rois.size() << endl;
+  out << pre << "    Ndftm: " << setw(wcnt) << acd.dftmags.size() << endl;
+  out << pre << "    Ndftp: " << setw(wcnt) << acd.dftphases.size() << endl;
   if ( nsam > 0 ) {
     out << pre
         << setw(widx) << "Data:"

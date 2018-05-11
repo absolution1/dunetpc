@@ -18,14 +18,52 @@
 //                This is obsolete.
 //   PlotFileName: If nonblank, histograms are displayed in this file.
 //   RootFileName: If nonblank, histogram is copied to this file.
+//   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
+//                         Root default (700x500?) is used if either is zero.
+//   PlotShowFit: Flag indicating how fit should be displayed.
+//                  >= 1: Show final fit
+//                  >= 2: Show starting fit function
+//   PlotSplitX: If this is nonzero, plots are created in updateMap (not update)
+//               and the drawing canvas is split NY x NX where NX = PlotSplitX.
+//               If PlotSplitX == 0, one canvas/plot is created in update.
+//   PlotSplitY: If PlotSplitY > 0, then the above NY = PlotSplitY. Otherwise
+//               NY = PlotSplitX. No effect if PlotSplitX == 0.
+//               and up to that many plots are shown on the screen.
 //
 // Tools:
-//   adcNameManipulator is used to make the following substitioutions:
-//      %RUN% - run number
-//      %SUBRUN% - event number
-//      %EVENT% - event number
-//      %CHAN% - channel number
+//   adcNameBuilder and adcTitleBuilder are used to make the following
+// substitutions in the names and title:
+//      %RUN%    --> run number
+//      %SUBRUN% --> subrun number
+//      %EVENT%  --> event number
+//      %CHAN%   --> channel number
+//
+// The updating methods add metadata to the ADC channel data:
+//
+//   fitPedestal           - fitted pedestal (same as the assigned value)
+//   fitPedRms             - Fit sigma of the pedestal
+//   fitPedChiSquare       - Chi-square of the fit
+//   fitPedPeakBinFraction - Fraction of the pedestal distribution in the peak channel
+//   fitPedPeakBinExcess   - Fraction above fit the peak channel
+//   fitPedNBinsRemoved    - Number of sticky bins removed before fit
+//
+// The single-channel methods return a data map with the following:
+//   pedestal           - pedestal histogram
+//   fitPedestal        - mean from the pedestal fit
+//   fitPedestalRms     - sigma from the pedestal
+//   fitChiSquare       - chi-square from the pedestal fit
+//   fitPeakBinFraction - Fraction of the pedestal distribution in the peak channel
+//   fitPeakBinExcess   - Fraction above fit the peak channel
+//   fitChannel         - ADC channel number
+//   fitNBinsRemoved    - # bins removed before the fit
 
+// The AdcChannelTool methods all return a data map with the following:
+//
+//   nPedFitGood       - # channels with a successful pedestalfit
+//   nPedFitFail       - # channels with a failed pedestal fit
+//   fitStats          - fit status for each channel
+//   fitPedestals      - fitted pecdestal for each channel
+//   fitPedestalRmss   - fittend pedestal RMS (sigma) for each channel
 
 #ifndef AdcPedestalFitter_H
 #define AdcPedestalFitter_H
@@ -39,11 +77,14 @@
 class HistogramManager;
 class AdcChannelStringTool;
 class TH1;
+class TPadManipulator;
 
 class AdcPedestalFitter
 : public AdcChannelTool {
 
 public:
+
+  using Index = unsigned int;
 
   AdcPedestalFitter(fhicl::ParameterSet const& ps);
 
@@ -51,7 +92,7 @@ public:
 
   DataMap update(AdcChannelData& acd) const override;
 
-  //DataMap updateMap(AdcChannelDataMap& acds) const override;
+  DataMap updateMap(AdcChannelDataMap& acds) const override;
 
 private:
 
@@ -67,18 +108,28 @@ private:
   Name m_HistManager;
   Name m_PlotFileName;
   Name m_RootFileName;
+  Index m_PlotSizeX;
+  Index m_PlotSizeY;
+  Index m_PlotShowFit;
+  Index m_PlotSplitX;
+  Index m_PlotSplitY;
 
   // ADC string tool.
-  const AdcChannelStringTool* m_adcChannelStringTool;
+  const AdcChannelStringTool* m_adcNameBuilder;
+  const AdcChannelStringTool* m_adcTitleBuilder;
 
   // Histogram manager.
   HistogramManager* m_phm;
 
   // Make replacements in a name.
-  Name nameReplace(Name name, const AdcChannelData& acd) const;
+  Name nameReplace(Name name, const AdcChannelData& acd, bool isTitle) const;
 
   // Find and return pedestal.
   DataMap getPedestal(const AdcChannelData& acd) const;
+
+  // Fill the pad for a channel.
+  // Histogram "pedestal" from dm is drawn.
+  int fillChannelPad(DataMap& dm, TPadManipulator* pman) const;
 
 };
 

@@ -57,6 +57,8 @@
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
+#include "lardata/ArtDataHelper/MVAReader.h"
+
 #include <cstddef> // std::ptrdiff_t
 #include <cstring> // std::memcpy()
 #include <vector>
@@ -205,6 +207,8 @@ namespace dune {
 	  Float_t hittrklocaltrackdirectionx[10000];
 	  Float_t hittrklocaltrackdirectiony[10000];
 	  Float_t hittrklocaltrackdirectionz[10000];
+	  Float_t hittrklocaltrackdirectiontheta[10000];
+	  Float_t hittrklocaltrackdirectionphi[10000];
 
           Float_t hittrkpitchC[10000];
 
@@ -267,7 +271,10 @@ namespace dune {
           TrackData_t<Float_t> trkthetaxz;    // theta_xz.
           TrackData_t<Float_t> trkthetayz;    // theta_yz.
           TrackData_t<Float_t> trkmom;        // momentum.
-          TrackData_t<Float_t> trklen;        // length.
+          TrackData_t<Float_t> trkchi2PerNDF;        // length along trajectory.
+          TrackData_t<Float_t> trkNDF;        // length along trajectory.
+          TrackData_t<Float_t> trklen;        // length along trajectory.
+	  TrackData_t<Float_t> trklenstraightline; // shortest distance betweem start and end point of track
           TrackData_t<Float_t> trkmomrange;    // track momentum from range using CSDA tables
           TrackData_t<Float_t> trkmommschi2;   // track momentum from multiple scattering Chi2 method
           TrackData_t<Float_t> trkmommsllhd;   // track momentum from multiple scattering LLHD method
@@ -562,6 +569,10 @@ namespace dune {
       Float_t  hit_endT[kMaxHits];       //hit end time
       Float_t  hit_rms[kMaxHits];       //hit rms from the hit object
       Float_t  hit_goodnessOfFit[kMaxHits]; //chi2/dof goodness of fit
+      Float_t  hit_fitparamampl[kMaxHits]; //dual phase hit fit
+      Float_t  hit_fitparamt0[kMaxHits]; //dual phase hit fit
+      Float_t  hit_fitparamtau1[kMaxHits]; //dual phase hit fit
+      Float_t  hit_fitparamtau2[kMaxHits]; //dual phase hit fit
       Short_t  hit_multiplicity[kMaxHits];  //multiplicity of the given hit
       //    Float_t  hit_trueX[kMaxHits];      // hit true X (cm)
       //    Float_t  hit_nelec[kMaxHits];     //hit number of electrons
@@ -1233,6 +1244,7 @@ namespace dune {
       double driftedLength(const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom);
       double length(const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
       double bdist(const TVector3& pos);
+      int    CountHits(const art::Event& evt, const art::InputTag& which, unsigned int cryostat, unsigned int tpc, unsigned int plane);
 
       TTree* fTree;
       //    TTree* fPOT;
@@ -1521,7 +1533,10 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkmommscbwd.resize(MaxTracks);
   trkmommscllfwd.resize(MaxTracks);
   trkmommscllbwd.resize(MaxTracks);
+  trkchi2PerNDF.resize(MaxTracks);
+  trkNDF.resize(MaxTracks);
   trklen.resize(MaxTracks);
+  trklenstraightline.resize(MaxTracks);
   trksvtxid.resize(MaxTracks);
   trkevtxid.resize(MaxTracks);
   // PID variables
@@ -1582,6 +1597,10 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   std::fill(hittrklocaltrackdirectionx, hittrklocaltrackdirectionx + sizeof(hittrklocaltrackdirectionx)/sizeof(hittrklocaltrackdirectionx[0]), -999.);
   std::fill(hittrklocaltrackdirectiony, hittrklocaltrackdirectiony + sizeof(hittrklocaltrackdirectiony)/sizeof(hittrklocaltrackdirectiony[0]), -999.);
   std::fill(hittrklocaltrackdirectionz, hittrklocaltrackdirectionz + sizeof(hittrklocaltrackdirectionz)/sizeof(hittrklocaltrackdirectionz[0]), -999.);
+  std::fill(hittrklocaltrackdirectiontheta, hittrklocaltrackdirectiontheta + sizeof(hittrklocaltrackdirectiontheta)/sizeof(hittrklocaltrackdirectiontheta[0]), -999.);
+  std::fill(hittrklocaltrackdirectionphi, hittrklocaltrackdirectionphi + sizeof(hittrklocaltrackdirectionphi)/sizeof(hittrklocaltrackdirectionphi[0]), -999.);
+
+
   std::fill(hittrkpitchC, hittrkpitchC + sizeof(hittrkpitchC)/sizeof(hittrkpitchC[0]), -999.);
 
   std::fill(hittrkds, hittrkds + sizeof(hittrkds)/sizeof(hittrkds[0]), -999.);
@@ -1647,7 +1666,10 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   FillWith(trkmommscbwd , -999.);
   FillWith(trkmommscllfwd , -999.);
   FillWith(trkmommscllbwd , -999.);
+  FillWith(trkchi2PerNDF, -999.);
+  FillWith(trkNDF, -999.);
   FillWith(trklen       , -999.);
+  FillWith(trklenstraightline, -999.);
   FillWith(trksvtxid    , -1);
   FillWith(trkevtxid    , -1);
   FillWith(trkpidbestplane, -1);
@@ -1716,8 +1738,17 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "Track_NumberOfHits";
   CreateBranch(BranchName, NHitsPerTrack, BranchName + NTracksIndexStr + "/S");
 
-  BranchName = "Track_Length";
+  BranchName = "Track_Length_Trajectory";
   CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Length_StraightLine";
+  CreateBranch(BranchName, trklenstraightline, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_Chi2PerNDF";
+  CreateBranch(BranchName, trkchi2PerNDF, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "Track_NDF";
+  CreateBranch(BranchName, trkNDF, BranchName + NTracksIndexStr + "/F");
 
   BranchName = "Track_StartPoint_X";
   CreateBranch(BranchName, trkstartx, BranchName + NTracksIndexStr + "/F");
@@ -1901,6 +1932,12 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "Track_Hit_LocalTrackDirection_Z";
   CreateBranch(BranchName, hittrklocaltrackdirectionz, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_LocalTrackDirection_Theta";
+  CreateBranch(BranchName, hittrklocaltrackdirectiontheta, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_LocalTrackDirection_Phi";
+  CreateBranch(BranchName, hittrklocaltrackdirectionphi, BranchName + "[no_hits]/F");
 
   BranchName = "Track_Hit_ds_LocalTrackDirection";
   CreateBranch(BranchName, hittrkpitchC, BranchName + "[no_hits]/F");
@@ -2467,6 +2504,10 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   std::fill(hit_rms, hit_rms + sizeof(hit_rms)/sizeof(hit_rms[0]), -999.);
   //  std::fill(hit_trueX, hit_trueX + sizeof(hit_trueX)/sizeof(hit_trueX[0]), -999.);
   std::fill(hit_goodnessOfFit, hit_goodnessOfFit + sizeof(hit_goodnessOfFit)/sizeof(hit_goodnessOfFit[0]), -999.);
+  std::fill(hit_fitparamampl, hit_fitparamampl + sizeof(hit_fitparamampl)/sizeof(hit_fitparamampl[0]), -999.);
+  std::fill(hit_fitparamt0, hit_fitparamt0 + sizeof(hit_fitparamt0)/sizeof(hit_fitparamt0[0]), -999.);
+  std::fill(hit_fitparamtau1, hit_fitparamtau1 + sizeof(hit_fitparamtau1)/sizeof(hit_fitparamtau1[0]), -999.);
+  std::fill(hit_fitparamtau2, hit_fitparamtau2 + sizeof(hit_fitparamtau2)/sizeof(hit_fitparamtau2[0]), -999.);
   std::fill(hit_multiplicity, hit_multiplicity + sizeof(hit_multiplicity)/sizeof(hit_multiplicity[0]), -999.);
   std::fill(hit_trkid, hit_trkid + sizeof(hit_trkid)/sizeof(hit_trkid[0]), -999);
   //  std::fill(hit_trkKey, hit_trkKey + sizeof(hit_trkKey)/sizeof(hit_trkKey[0]), -999);
@@ -3060,7 +3101,7 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     //CreateBranch("NumberOfHits_Stored,&no_hits_stored,"no_hits_stored/I");
     CreateBranch("Hit_TPC",hit_tpc,"hit_tpc[no_hits]/S");
     CreateBranch("Hit_View",hit_view,"hit_view[no_hits]/S");
-    //    CreateBranch("hit_wire",hit_wire,"hit_wire[no_hits]/S");
+    //CreateBranch("hit_wire",hit_wire,"hit_wire[no_hits]/S");
     CreateBranch("Hit_Channel",hit_channel,"hit_channel[no_hits]/S");
     CreateBranch("Hit_PeakTime",hit_peakT,"hit_peakT[no_hits]/F");
     CreateBranch("Hit_ChargeSummedADC",hit_chargesum,"hit_chargesum[no_hits]/F");
@@ -3069,13 +3110,19 @@ void dune::AnaRootParserDataStruct::SetAddresses(
     CreateBranch("Hit_StartTime",hit_startT,"hit_startT[no_hits]/F");
     CreateBranch("Hit_EndTime",hit_endT,"hit_endT[no_hits]/F");
     CreateBranch("Hit_Width",hit_rms,"hit_rms[no_hits]/F");
-    //    CreateBranch("hit_trueX",hit_trueX,"hit_trueX[no_hits]/F");
+    //CreateBranch("hit_trueX",hit_trueX,"hit_trueX[no_hits]/F");
     CreateBranch("Hit_GoodnessOfFit",hit_goodnessOfFit,"hit_goodnessOfFit[no_hits]/F");
+
+    CreateBranch("Hit_FitParameter_Amplitude", hit_fitparamampl, "hit_fitparamamp[no_hits]/F");
+    CreateBranch("Hit_FitParameter_Offset", hit_fitparamt0, "hit_fitparamt0[no_hits]/F");
+    CreateBranch("Hit_FitParameter_Tau1", hit_fitparamtau1, "hit_fitparamtau1[no_hits]/F");
+    CreateBranch("Hit_FitParameter_Tau2", hit_fitparamtau2, "hit_fitparamtau2[no_hits]/F");
+
     CreateBranch("Hit_Multiplicity",hit_multiplicity,"hit_multiplicity[no_hits]/S");
     CreateBranch("Hit_TrackID",hit_trkid,"hit_trkid[no_hits]/S");
-    //    CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits]/S");
+    //CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits]/S");
     CreateBranch("Hit_ClusterID",hit_clusterid,"hit_clusterid[no_hits]/S");
-    //    CreateBranch("hit_clusterKey",hit_clusterKey,"hit_clusterKey[no_hits]/S");
+    //CreateBranch("hit_clusterKey",hit_clusterKey,"hit_clusterKey[no_hits]/S");
     /*    if (!isCosmics){
           CreateBranch("hit_nelec",hit_nelec,"hit_nelec[no_hits]/F");
           CreateBranch("hit_energy",hit_energy,"hit_energy[no_hits]/F");
@@ -4024,6 +4071,8 @@ if (fSaveHitInfo){
 // trying to assign a space point to those recob::Hits t hat were assigned to a track, checking for every hit. Not really working yet.
 //    art::FindManyP<recob::SpacePoint> fmsp(hitlist,evt,"pmtrack");
 
+  auto hitResults = anab::FVectorReader<recob::Hit, 4>::create(evt, "dprawhit");
+  const auto & fitParams = hitResults->vectors();
 
   for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits
     fData->hit_channel[i] = hitlist[i]->Channel();
@@ -4038,6 +4087,12 @@ if (fSaveHitInfo){
     fData->hit_endT[i] = hitlist[i]->EndTick();
     fData->hit_rms[i] = hitlist[i]->RMS();
     fData->hit_goodnessOfFit[i] = hitlist[i]->GoodnessOfFit();
+
+    fData->hit_fitparamt0[i] = fitParams[i][0];
+    fData->hit_fitparamtau1[i] = fitParams[i][1];
+    fData->hit_fitparamtau2[i] = fitParams[i][2];
+    fData->hit_fitparamampl[i] = fitParams[i][3];
+
     fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
 
 
@@ -4694,15 +4749,16 @@ if (fSaveTrackInfo) {
         TrackerData.trkenddirectiony[iTrk] 	  = dir_end.Y();
         TrackerData.trkenddirectionz[iTrk] 	  = dir_end.Z();
 
-
-
-        TrackerData.trkthetaxz[iTrk]  	  = theta_xz;
-        TrackerData.trkthetayz[iTrk]  	  = theta_yz;
-        TrackerData.trkmom[iTrk]	  = mom;
-        TrackerData.trklen[iTrk]	  = tlen;
-        TrackerData.trkmomrange[iTrk] 	  = trkm.GetTrackMomentum(tlen,13);
-        TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
-        TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
+        TrackerData.trkthetaxz[iTrk]  	     = theta_xz;
+        TrackerData.trkthetayz[iTrk]  	     = theta_yz;
+        TrackerData.trkmom[iTrk]	     = mom;
+	TrackerData.trkchi2PerNDF[iTrk]	     = track.Chi2PerNdof();
+	TrackerData.trkNDF[iTrk]	     = track.Ndof();
+        TrackerData.trklen[iTrk]	     = tlen;
+        TrackerData.trklenstraightline[iTrk] = sqrt(pow(pos.X()-end.X(),2) + pow(pos.Y()-end.Y(),2) + pow(pos.Z()-end.Z(),2));
+        TrackerData.trkmomrange[iTrk] 	     = trkm.GetTrackMomentum(tlen,13);
+        TrackerData.trkmommschi2[iTrk]	     = trkm.GetMomentumMultiScatterChi2(ptrack);
+        TrackerData.trkmommsllhd[iTrk]	     = trkm.GetMomentumMultiScatterLLHD(ptrack);
 
         //uBoone MCS
         res = fMCSFitter.fitMcs(*ptrack);
@@ -4820,12 +4876,24 @@ if (fSaveTrackInfo) {
         TrackerData.NHitsPerTrack[iTrk] = vhit.size();
       	art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
 
-	  // hits in vhit and vmeta are sorted from end of track to start of track. Revert this ordering.
-  	  for (int h = vhit.size()-1; h >= 0; h--)
+	int NHitsView0 = 0;
+	int NHitsView1 = 0;
+
+	if(fLogLevel >= 1)
+	{
+	  std::cout << "track.NumberTrajectoryPoints(): " << track.NumberTrajectoryPoints() << std::endl;
+	  std::cout << "track.NPoints(): " << track.NPoints() << std::endl;
+	  std::cout << "vhit.size(): " << vhit.size() << std::endl;
+	  std::cout << "vmeta.size(): " << vmeta.size() << std::endl;
+	  std::cout << "fmspts.size(): " << fmspts.size() << std::endl;
+	}
+
+  	  for (unsigned int h = 0; h < vhit.size(); h++)
   	  {
 	    //corrected pitch
   	    double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
-  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint(vmeta[h]->Index());
+  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint(h);
+  	    const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint(h);
   	    double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
 
 
@@ -4833,15 +4901,7 @@ if (fSaveTrackInfo) {
 	    TrackerData.hittrklocaltrackdirectiony[HitIterator2] = dir.Y();
 	    TrackerData.hittrklocaltrackdirectionz[HitIterator2] = dir.Z();
 
-  	    if (cosgamma)
-  	    {
-    	      TrackerData.hittrkpitchC[HitIterator2] = geomhandle->WirePitch(0,1,0)/cosgamma;
-  	    }
-  	    else
-  	    {
-    	      TrackerData.hittrkpitchC[HitIterator2] = -999.;
-  	    }
-	
+
 	    //XYZ
 	    std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
 	    TrackerData.hittrkx[HitIterator2] = sptv[0]->XYZ()[0];
@@ -4851,15 +4911,26 @@ if (fSaveTrackInfo) {
       	    TVector3 dir_hit_flipped;
             dir_hit_flipped.SetXYZ(dir.Z(), dir.Y(), dir.X());
 
+	    TrackerData.hittrklocaltrackdirectiontheta[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Theta();
+	    TrackerData.hittrklocaltrackdirectionphi[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Phi();
+
+	    //dx
+    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch(1,0,0)/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
+    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch(1,0,0)/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
+
+	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
+
 	    if(fLogLevel >= 1)
 	    {
 	      std::cout << "pos.X(): " << sptv[0]->XYZ()[0] << "\t" << "pos.Y(): " << sptv[0]->XYZ()[1] << "\t" << "pos.Z(): " << sptv[0]->XYZ()[2] << std::endl;
+	      std::cout << "pos2.X(): " << loc.X() << "\t" << "pos2.Y(): " << loc.Y() << "\t" << "pos2.Z(): " << loc.Z() << std::endl;
 	      std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
 	      std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
+	      std::cout << "vmeta[h]->Dx(): " << vmeta[h]->Dx() << std::endl;
+	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch(1,0,0)/cosgamma << std::endl;
+	      std::cout << "Dx corrected pitch new: " << TrackerData.hittrkpitchC[HitIterator2] << std::endl;
+	      std::cout << "view: " << vhit[h]->WireID().Plane << std::endl;
 	    }
-
-	    //dx
-	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
 	    //hit variables
 	    TrackerData.hittrkchannel[HitIterator2] = vhit[h]->Channel();
@@ -4877,7 +4948,12 @@ if (fSaveTrackInfo) {
 	    TrackerData.hittrkmultiplicity[HitIterator2] = vhit[h]->Multiplicity();
 
             HitIterator2++;
+
+	    if(vhit[h]->WireID().Plane == 0) NHitsView0++;
+	    if(vhit[h]->WireID().Plane == 1) NHitsView1++;
 	  }
+        TrackerData.ntrkhitsperview[iTrk][0] = NHitsView0;
+        TrackerData.ntrkhitsperview[iTrk][1] = NHitsView1;
 
 //      }
 
@@ -4938,7 +5014,7 @@ if (fSaveTrackInfo) {
           //For now make the second argument as 13 for muons.
           TrackerData.trkpitchc[iTrk][planenum]= calos[ical] -> TrkPitchC();
           const size_t NHits = calos[ical] -> dEdx().size();
-          TrackerData.ntrkhitsperview[iTrk][planenum] = (int) NHits;
+//          TrackerData.ntrkhitsperview[iTrk][planenum] = (int) NHits;
           if (NHits > TrackerData.GetMaxHitsPerTrack(iTrk, planenum)) {
             // if you get this error, you'll have to increase kMaxTrackHits
             mf::LogError("AnaRootParser:limits")
@@ -5999,6 +6075,23 @@ if (fSaveTrackInfo) {
         }
       }
       return result;
+    }
+
+    //......................................................................
+    int dune::AnaRootParser::CountHits(const art::Event&    evt,
+                              	       const art::InputTag& which,
+                                       unsigned int         cryostat,
+                              	       unsigned int         tpc,
+                              	       unsigned int         plane)
+    {
+      std::vector<const recob::Hit*> temp;
+      int NumberOfHitsBeforeThisPlane=0;
+      evt.getView(which, temp);   //temp.size() = total number of hits for this event (number of all hits in all Cryostats, TPC's, planes and wires)
+      for(size_t t = 0; t < temp.size(); ++t){
+	if( temp[t]->WireID().Cryostat == cryostat&& temp[t]->WireID().TPC == tpc && temp[t]->WireID().Plane == plane ) break;
+	NumberOfHitsBeforeThisPlane++;
+      }
+      return NumberOfHitsBeforeThisPlane;
     }
 
     namespace dune{

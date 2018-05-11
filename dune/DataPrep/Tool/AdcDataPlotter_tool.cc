@@ -38,6 +38,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_Palette(ps.get<int>("Palette")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
+  m_PlotSizeX(ps.get<Index>("PlotSizeX")),
+  m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")) {
   const string myname = "AdcDataPlotter::ctor: ";
@@ -62,6 +64,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "             Palette: " << m_Palette << endl;
     cout << myname << "            HistName: " << m_HistName << endl;
     cout << myname << "           HistTitle: " << m_HistTitle << endl;
+    cout << myname << "           PlotSizeX: " << m_PlotSizeX << endl;
+    cout << myname << "           PlotSizeY: " << m_PlotSizeY << endl;
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
     cout << myname << "        RootFileName: " << m_RootFileName << endl;
   }
@@ -186,6 +190,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     return ret.setStatus(3);
   }
   TPadManipulator man;
+  if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
   man.add(ph, "colz");
   man.addAxis();
   man.setFrameFillColor(ppal->colorVector()[0]);

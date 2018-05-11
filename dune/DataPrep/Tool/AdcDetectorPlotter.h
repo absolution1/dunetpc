@@ -14,6 +14,8 @@
 //   XMin, XMax - Limits for the drift coordinate
 //   ZMin, ZMax - Limits for the wire coordinate
 //   SignalThreshold - Signals in a channel-tick bin above this value are plotted
+//   FirstTick - First tick number to display
+//   LastTick - Last+1 tick number to display
 //   ShowWires - Also show anode wires on the plot.
 //   ShowCathode - Also show cathode planes (one point for each wire) on the plot.
 //   ShowGrid - Also show (Root default) grid.
@@ -82,6 +84,7 @@ public:
 
   // AdcChannelTool interface.
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
+  bool updateWithView() const override { return true; }
 
   int addChannel(const AdcChannelData& acd) const;
 
@@ -106,6 +109,8 @@ private:
   float          m_ZMin;
   float          m_ZMax;
   float          m_SignalThreshold;
+  Index          m_FirstTick;
+  Index          m_LastTick;
   bool           m_ShowWires;
   bool           m_ShowCathode;
   bool           m_ShowGrid;

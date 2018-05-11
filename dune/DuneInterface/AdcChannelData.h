@@ -17,14 +17,21 @@
 //       flags - Array holding the status flag for each tick
 //      signal - Array holding bools indicating which ticks have signals
 //        rois - Array of ROIs indicating ticks of interest (e.g. have signals)
+//     dftmags - Array of magnitudes for the DFT of the samples.
+//   dftphases - Array of phases for the DFT of the samples.
 //       digit - Corresponding raw digit
 //        wire - Corresponding wire
 //  digitIndex - Index for the digit in the event digit container
 //   wireIndex - Index for the wire in the event wire container
 //  sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
+//    metadata - Extra attributes
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
+//
+// If filled, the DFT fields should have lengths (nsam+2)/2 for the magnitudes and
+// (nsam+1)/2 for the phases with the first phase zero or pi.
+//
 
 #ifndef AdcChannelData_H
 #define AdcChannelData_H
@@ -43,6 +50,8 @@ namespace recob {
 class AdcChannelData {
 
 public:
+
+  using FloatMap = std::map<std::string, float>;
 
   static const AdcIndex badIndex =-1;
   static const AdcChannel badChannel =-1;
@@ -65,6 +74,9 @@ public:
   const recob::Wire* wire =nullptr;
   AdcIndex digitIndex =badIndex;
   AdcIndex wireIndex =badIndex;
+  AdcSignalVector dftmags;
+  AdcSignalVector dftphases;
+  FloatMap metadata;
 
   // Hide copy and assignment but allow move.
   // Root dictionary (6.08/06) requires we keep copy.
@@ -77,6 +89,11 @@ public:
 #else
   AdcChannelData(const AdcChannelData&) =default;
 #endif
+
+  // Check if a metadata field is defined.
+  bool hasMetadata(std::string mname) const {
+    return metadata.find(mname) != metadata.end();
+  }
 
   // Clear the data.
   void clear();
@@ -108,10 +125,13 @@ inline void AdcChannelData::clear() {
   flags.clear();
   signal.clear();
   rois.clear();
+  dftmags.clear();
+  dftphases.clear();
   digit = nullptr;
   wire = nullptr;
   digitIndex = badIndex;
   wireIndex = badIndex;
+  metadata.clear();
 }
 
 //**********************************************************************
