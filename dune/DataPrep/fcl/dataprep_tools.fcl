@@ -31,7 +31,7 @@ tools.adcChannelDumper: {
   FileName: ""
   Prefix: "ADC dump: "
   NewFile: false
-  MaxSample: 100
+  MaxSample: 0
 }
 
 ################################################################################
@@ -212,6 +212,51 @@ tools.adcChannelPedestalRmsPlotter: {
   RootFileName: ""
 }
 
+adcSampleFreq: 2000
+adcPlotDftTemplate: {
+    tool_type: AdcChannelDftPlotter
+     LogLevel: 1
+   SampleFreq: @local::adcSampleFreq
+    PlotSizeX: 1400
+    PlotSizeY: 1000
+   PlotSplitX: 4
+   PlotSplitY: 4
+}
+
+# DFT amplitudes
+tools.adcPlotDftMag: @local::adcPlotDftTemplate
+tools.adcPlotDftMag.Variable: magnitude
+tools.adcPlotDftMag.SampleFreq: @local::adcSampleFreq
+tools.adcPlotDftMag.YMax: 50
+tools.adcPlotDftMag.HistName: "hdftmags_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftMag.HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftMag.PlotName: "dftmag_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+
+# DFT Phases
+tools.adcPlotDftPhase: @local::adcPlotDftTemplate
+tools.adcPlotDftPhase.Variable: phase
+tools.adcPlotDftPhase.HistName: "hdftphas_run%RUN%_evt%EVENT%_ch%CHAN%"
+tools.adcPlotDftPhase.HistTitle: "DFT phases for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftPhase.PlotName: "dftpha_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+
+# DFT power
+tools.adcPlotDftPower: @local::adcPlotDftTemplate
+tools.adcPlotDftPower.Variable: power
+tools.adcPlotDftPower.YMax: 10000
+tools.adcPlotDftPower.NBinX: 50
+tools.adcPlotDftPower.HistName: "hdftpower_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftPower.PlotName: "dftpower_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+
+# DFT power/tick
+tools.adcPlotDftTickPower: @local::adcPlotDftTemplate
+tools.adcPlotDftTickPower.Variable: "power/tick"
+tools.adcPlotDftTickPower.YMax: -2.0
+tools.adcPlotDftTickPower.NBinX: 50
+tools.adcPlotDftTickPower.HistName: "hdftpowt_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftTickPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftTickPower.PlotName: "dftpowt_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+
 ################################################################################
 # Data prep reconstruction tools.
 ################################################################################
@@ -239,6 +284,17 @@ tools.adcThresholdSignalFinder: {
   BinsAfter: 20
   FlagPositive: true
   FlagNegative: true
+}
+
+# Do FFT.
+tools.adcFFT: {
+  tool_type: AdcChannelFFT
+  LogLevel:  1
+  FirstTick: 0
+  NTick:     0
+  NormOpt:   1
+  Action:    3
+  ReturnOpt: 1
 }
 
 # Fetch ROI info and hists.

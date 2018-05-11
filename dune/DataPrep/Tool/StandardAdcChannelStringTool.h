@@ -14,6 +14,8 @@
 //   % SUNIT% --> " sunit" or "" if sunit is empty
 //   %(SUNIT)% --> "(sunit)" or "" if sunit is empty
 //   % (SUNIT)% --> " (sunit)" or "" if sunit is empty
+//   %[SUNIT]% --> "[sunit]" or "" if sunit is empty
+//   % [SUNIT]% --> " [sunit]" or "" if sunit is empty
 //   %COUNT% --> dm.getInt("count") passed in call to build
 //   %CHAN1% --> dm.getInt("chan1") passed in call to build
 //   %CHAN2% --> dm.getInt("chan2") passed in call to build
