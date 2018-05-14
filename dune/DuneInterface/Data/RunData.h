@@ -55,6 +55,16 @@ public:
   void setHvfrac(float val) { m_hvfrac = val; }
   void setPulserAmplitude(Index val) { m_pulserAmplitude = val; }
 
+  // Accessors.
+  Index&       accessRun()             { return m_run; }
+  Name&        accessCryostat()        { return m_cryostat; }
+  IndexVector& accessApas()            { return m_apas; }
+  float&       accessGain()            { return m_gain; }
+  float&       accessShaping()         { return m_shaping; }
+  float&       accessLeakage()         { return m_leakage; }
+  float&       accessHvfrac()          { return m_hvfrac; }
+  Index&       accessPulserAmplitude() { return m_pulserAmplitude; }
+
   std::ostream& print(std::ostream& lhs =std::cout) const {
     const std::string sep = "\n";
     if ( ! isValid() ) {
