@@ -17,8 +17,14 @@ using std::endl;
 VintageDeconvoluter::VintageDeconvoluter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")) {
   const string myname = "VintageDeconvoluter::ctor: ";
-  cout << myname << "Parameters:" << endl;
-  cout << myname << "  LogLevel: " << m_LogLevel << endl;
+  if ( m_LogLevel >= 1 ) {
+    cout << myname << "Parameters:" << endl;
+    cout << myname << "  LogLevel: " << m_LogLevel << endl;
+    art::ServiceHandle<util::SignalShapingServiceDUNE> hsss;
+    float dnorm = hsss->GetDeconNorm();
+    float norm = dnorm > 0.0 ? 1.0/dnorm : 1.0;
+    cout << myname << "Normalization factor: " << norm << endl;
+  }
 }
 
 //**********************************************************************
@@ -54,9 +60,11 @@ DataMap VintageDeconvoluter::update(AdcChannelData& acd) const {
   hsss->Deconvolute(chan, samples);
   if ( pad ) samples.resize(nsam);
   if ( m_LogLevel >= 3 ) cout << myname << "  Normalizing." << endl;
-  float norm = 1.0/hsss->GetDeconNorm();
+  float dnorm = hsss->GetDeconNorm();
+  float norm = dnorm > 0.0 ? 1.0/dnorm : 1.0;
   if ( m_LogLevel >= 3 ) cout << myname << "  Scale factor: " << norm << endl;
   for ( float& sam : samples ) sam *= norm;
+  acd.sampleUnit = "Q_{dco}";
   // Done.
   return ret;
 }

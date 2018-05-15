@@ -106,8 +106,8 @@ tools.adcPedestalFit: {
   HistManager: ""
   PlotSizeX: 0
   PlotSizeY: 0
-  PlotSplit: 0
-  PlotSplit: 0
+  PlotSplitX: 0
+  PlotSplitY: 0
   PlotShowFit: 1
 }
 
@@ -273,6 +273,12 @@ tools.adcSampleFiller: {
   LogLevel: 1
   AdcUnderflow: 0
   AdcOverflow: 4095
+}
+
+# Perform deconvolution with SignalShapingService.
+tools.adcVintageDeconvoluter: {
+  tool_type: VintageDeconvoluter
+  LogLevel: 1
 }
 
 # Find ADC signals with simple threshold algorithm.
