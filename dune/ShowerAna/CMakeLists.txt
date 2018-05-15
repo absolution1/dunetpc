@@ -18,7 +18,7 @@ simple_plugin(ShowerAnalysis "module"
 			     art_Persistency_Provenance canvas
 			     art_Utilities canvas
 			     ${MF_MESSAGELOGGER}
-			     ${MF_UTILITIES}
+			     
 			     cetlib cetlib_except
 			     ${ROOT_BASIC_LIB_LIST}
 )
@@ -48,7 +48,7 @@ install_scripts()
 # 	 	       art_Persistency_Provenance canvas
 # 	 	       art_Utilities canvas
 # 	 	       ${MF_MESSAGELOGGER}
-# 	 	       ${MF_UTILITIES}
+# 	 	       
 # 	 	       cetlib cetlib_except
 # 	 	       ${ROOT_BASIC_LIB_LIST}
 # 		       ShowerAna
