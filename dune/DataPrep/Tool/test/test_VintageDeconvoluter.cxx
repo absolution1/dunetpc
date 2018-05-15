@@ -1,15 +1,17 @@
-// test_AdcThresholdSignalFinder.cxx
+// test_VintageDeconvoluter.cxx
 //
 // David Adams
-// April 2017
+// May 2018
 //
-// Test AdcThresholdSignalFinder.
+// Test VintageDeconvoluter.
 
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/ArtSupport/ArtServiceHelper.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -19,11 +21,12 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 using fhicl::ParameterSet;
+using Index = unsigned int;
 
 //**********************************************************************
 
-int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
-  const string myname = "test_AdcThresholdSignalFinder: ";
+int test_VintageDeconvoluter(bool useExistingFcl =false) {
+  const string myname = "test_VintageDeconvoluter: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -31,25 +34,30 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_AdcThresholdSignalFinder.fcl";
+  string fclfile = "test_VintageDeconvoluter.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
+    fout << "#include \"services_dune.fcl\"" << endl;
+    //fout << "services: @local::protodune_reco_services" << endl;
+    fout << "services: @local::dune35t_services" << endl;
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcThresholdSignalFinder" << endl;
+    fout << "    tool_type: VintageDeconvoluter" << endl;
     fout << "    LogLevel: 1" << endl;
-    fout << "    Threshold: 100" << endl;
-    fout << "    BinsAfter: 10" << endl;
-    fout << "    BinsBefore: 5" << endl;
-    fout << "    FlagPositive: true" << endl;
-    fout << "    FlagNegative: true" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
   }
+
+  cout << myname << line << endl;
+  cout << myname << "Fetch art service helper." << endl;
+  ArtServiceHelper& ash = ArtServiceHelper::instance();
+  assert( ash.addServices(fclfile, true) == 0 );
+  assert( ash.loadServices() == 1 );
+  ash.print();
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool manager." << endl;
@@ -69,6 +77,7 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
   AdcChannelData data;
+  data.channel = 123;
   for ( AdcIndex itic=0; itic<100; ++itic ) {
     float xadc = rand()%20 - 10.0;
     data.samples.push_back(xadc);
@@ -77,6 +86,7 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
   assert( data.signal.size() == 0 );
   assert( data.rois.size() == 0 );
   assert( data.samples[30] = 150 );
+  AdcChannelData data0 = data;
 
   cout << myname << line << endl;
   cout << myname << "Running tool." << endl;
@@ -85,12 +95,14 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Checking results." << endl;
-  assert( resmod == 0 );
-  assert( resmod.getInt("nThresholdBins") == 1 );
-  assert( data.signal.size() == 100 );
-  assert( data.rois.size() == 1 );
-  assert( data.rois[0].first == 25 );
-  assert( data.rois[0].second == 40 );
+  assert( data.samples.size() == data0.samples.size() );
+  for ( Index isam=0; isam<data0.samples.size(); ++isam ) {
+    cout << isam << ": " << data0.samples[isam] << "  " << data.samples[isam] << endl;
+  }
+
+  cout << myname << line << endl;
+  cout << "Closing service helper." << endl;
+  ArtServiceHelper::close();    // See https://cdcvs.fnal.gov/redmine/issues/10618
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
@@ -110,7 +122,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_AdcThresholdSignalFinder(useExistingFcl);
+  return test_VintageDeconvoluter(useExistingFcl);
 }
 
 //**********************************************************************
