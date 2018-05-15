@@ -27,7 +27,7 @@ int parseFcl(string path, string fclname, RunData& rdat) {
   if ( pfname.size() == 0 ) return 1;
   fhicl::intermediate_table tbl;
   cet::filepath_maker policy;
-  fhicl::parse_document(fclname, policy, tbl);
+  fhicl::parse_document(pfname, policy, tbl);
   fhicl::ParameterSet ps;
   fhicl::make_ParameterSet(tbl, ps);
   ps.get_if_present<Index>("run", rdat.accessRun());
