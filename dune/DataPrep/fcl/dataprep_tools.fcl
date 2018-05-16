@@ -100,7 +100,7 @@ tools.adcPedestalFit: {
   FitRmsMin:  1.0
   FitRmsMax: 10.0
   HistName: "adcped_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC pedestal fit for event %EVENT% channel %CHAN%"
+  HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
   RootFileName: ""
   HistManager: ""
