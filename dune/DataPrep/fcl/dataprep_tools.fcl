@@ -285,7 +285,7 @@ tools.adcVintageDeconvoluter: {
 tools.adcThresholdSignalFinder: {
   tool_type: AdcThresholdSignalFinder
   LogLevel: 1
-  Threshold: 100
+  Threshold: 3.0   # Works for MC may2018
   BinsBefore: 10
   BinsAfter: 20
   FlagPositive: true
