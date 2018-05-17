@@ -180,6 +180,20 @@ cet_test(test_AdcRegularSignalFinder
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_DuneAdcSignalFinder
+  SOURCES
+    test_DuneAdcSignalFinder.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AcdWireReader SOURCES test_AcdWireReader.cxx
   LIBRARIES
     lardataobj_RawData
