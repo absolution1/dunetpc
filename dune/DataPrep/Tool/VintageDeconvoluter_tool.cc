@@ -65,6 +65,7 @@ DataMap VintageDeconvoluter::update(AdcChannelData& acd) const {
   if ( m_LogLevel >= 3 ) cout << myname << "  Scale factor: " << norm << endl;
   for ( float& sam : samples ) sam *= norm;
   acd.sampleUnit = "Q_{dco}";
+  acd.sampleNoise = hsss->GetDeconNoise(chan);
   // Done.
   return ret;
 }
