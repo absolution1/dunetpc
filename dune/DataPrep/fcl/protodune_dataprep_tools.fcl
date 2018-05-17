@@ -131,6 +131,51 @@ tools.preparedAdcDetectorPlotInd2: {
 }
 
 ################################################################################
+# ADC channel-tick plots.
+################################################################################
+
+pdwp_template: {
+  tool_type: AdcDataPlotter
+  LogLevel: 1
+  DataType: 0      # 0 for prepared, 1 for raw-pedestal
+  FirstTick: 0
+  LastTick:  0
+  FirstChannel: 0
+  LastChannel:  0
+  MaxSignal: 50
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
+  Palette: 1026
+  HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
+  HistTitle: "Prepared ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  RootFileName: ""    # or "adc_evt%EVENT%.root"
+}
+
+tools.pdwp_channelTickPlotApa1z: @local::pdwp_template
+tools.pdwp_channelTickPlotApa1z.FirstChannel:  2080
+tools.pdwp_channelTickPlotApa1z.LastChannel:   2560
+tools.pdwp_channelTickPlotApa1z.HistName: "hadcprp_evt%EVENT%_apa1x"
+tools.pdwp_channelTickPlotApa1z.HistTitle: "Prepared ADC for plane 1x run %RUN% event %EVENT%"
+tools.pdwp_channelTickPlotApa1z.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1x.png"
+
+tools.pdwp_channelTickPlotApa1u: @local::pdwp_template
+tools.pdwp_channelTickPlotApa1u.FirstChannel:     0
+tools.pdwp_channelTickPlotApa1u.LastChannel:    800
+tools.pdwp_channelTickPlotApa1u.HistName: "hadcprp_evt%EVENT%_apa1u"
+tools.pdwp_channelTickPlotApa1u.HistTitle: "Prepared ADC for plane 1u run %RUN% event %EVENT%"
+tools.pdwp_channelTickPlotApa1u.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1u.png"
+
+tools.pdwp_channelTickPlotApa1v: @local::pdwp_template
+tools.pdwp_channelTickPlotApa1v.FirstChannel:   800
+tools.pdwp_channelTickPlotApa1v.LastChannel:   1600
+tools.pdwp_channelTickPlotApa1v.HistName: "hadcprp_evt%EVENT%_apa1v"
+tools.pdwp_channelTickPlotApa1v.HistTitle: "Prepared ADC for plane 1v run %RUN% event %EVENT%"
+tools.pdwp_channelTickPlotApa1v.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1v.png"
+
+################################################################################
 # ADC channel metric plotters.
 ################################################################################
 

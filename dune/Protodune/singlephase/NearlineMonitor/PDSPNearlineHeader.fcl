@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+PDSPNearlineHeader_params:
+{
+      module_type:     "PDSPNearlineHeader"
+}
+
+END_PROLOG

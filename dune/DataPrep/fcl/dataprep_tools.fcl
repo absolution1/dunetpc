@@ -100,14 +100,14 @@ tools.adcPedestalFit: {
   FitRmsMin:  1.0
   FitRmsMax: 10.0
   HistName: "adcped_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC pedestal fit for event %EVENT% channel %CHAN%"
+  HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
   RootFileName: ""
   HistManager: ""
   PlotSizeX: 0
   PlotSizeY: 0
-  PlotSplit: 0
-  PlotSplit: 0
+  PlotSplitX: 0
+  PlotSplitY: 0
   PlotShowFit: 1
 }
 
@@ -275,15 +275,32 @@ tools.adcSampleFiller: {
   AdcOverflow: 4095
 }
 
+# Perform deconvolution with SignalShapingService.
+tools.adcVintageDeconvoluter: {
+  tool_type: VintageDeconvoluter
+  LogLevel: 1
+}
+
 # Find ADC signals with simple threshold algorithm.
 tools.adcThresholdSignalFinder: {
   tool_type: AdcThresholdSignalFinder
   LogLevel: 1
-  Threshold: 100
+  Threshold: 3.0   # Works for MC may2018
   BinsBefore: 10
   BinsAfter: 20
   FlagPositive: true
   FlagNegative: true
+}
+
+# Find ADC signals with Dune 35t algorithm.
+tools.adcDuneSignalFinder: {
+  tool_type: DuneAdcSignalFinder
+  LogLevel: 1
+  NoiseSigma:  0.0
+  NSigmaStart: 3.0
+  NSigmaEnd:   1.0
+  TicksBefore: 50
+  TicksAfter:  50
 }
 
 # Do FFT.
