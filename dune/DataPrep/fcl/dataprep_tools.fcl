@@ -292,6 +292,17 @@ tools.adcThresholdSignalFinder: {
   FlagNegative: true
 }
 
+# Find ADC signals with Dune 35t algorithm.
+tools.adcDuneSignalFinder: {
+  tool_type: DuneAdcSignalFinder
+  LogLevel: 1
+  NoiseSigma:  0.0
+  NSigmaStart: 3.0
+  NSigmaEnd:   1.0
+  TicksBefore: 50
+  TicksAfter:  50
+}
+
 # Do FFT.
 tools.adcFFT: {
   tool_type: AdcChannelFFT
