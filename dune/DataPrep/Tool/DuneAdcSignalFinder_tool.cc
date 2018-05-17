@@ -42,9 +42,8 @@ DataMap DuneAdcSignalFinder::update(AdcChannelData& acd) const {
     cout << myname << "Finding ROIs for channel " << acd.channel << endl;
   }
   AdcIndex nsam = acd.samples.size();
-  if ( nsam < 1 ) {
-    if ( m_LogLevel >= 2 ) cout << myname << "Channel " << acd.channel
-                                << " has no samples." << endl;
+  if ( nsam == 0 ) {
+    cout << myname << "ERROR: No samples found in channel " << acd.channel << endl;
     acd.signal.clear();
     acd.rois.clear();
     return ret.setStatus(1);
