@@ -69,10 +69,34 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
     recobRois.add_range(roi.first, std::move(sigs));
   }
   if(m_SaveChanPedRMS) {
-    // save a short ROI that only has the pedestal rms
-    AdcSignalVector sig1;
-//    sigs.push_back(data.pedestalRms);
-    sig1.push_back(1);
+    // save a short ROI that only has the noise rms outside of the ROIs
+    double sum = 0;
+    double sum2 = 0;
+    double cnt = 0;
+    for(unsigned int isig = 0; isig < data.samples.size(); ++isig) {
+      bool inROI = false;
+      for(const auto& roi : data.rois) {
+        if(isig >= roi.first && isig <= roi.second) {
+          inROI = true;
+          break;
+        } // inside ROI?
+      }  // roi
+      if(inROI) continue;
+      if(data.samples[isig] == 0) continue;
+      sum += data.samples[isig];
+      sum2 += data.samples[isig] * data.samples[isig];
+      ++cnt;
+//      if(cnt == 100) break;
+    } // isig
+    double rms = 1;
+    double ped = 0;
+    if(cnt > 0) {
+      ped = sum / cnt;
+      double arg = sum2 - cnt * ped * ped;
+      if(arg > 0) rms = sqrt(arg / (cnt - 1));
+    }
+    AdcSignalVector sig1(1);
+    sig1[0] = rms;
     lastROI += 10;
     recobRois.add_range(lastROI, std::move(sig1));
   }

@@ -358,8 +358,9 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       const std::vector<float>& signal = range.data();
       if(signal.size() != 1) continue;
       // protect against unrealistic values
-      if(signal[0] < 0.1) continue;
-      chanPedRMS.push_back(std::make_pair(thisWire->Channel(), signal[0]));
+      float rms = signal[0];
+      if(rms < 0.001) rms = 0.001;
+      chanPedRMS.push_back(std::make_pair(thisWire->Channel(), rms));
     }
   }// witer
 
@@ -388,8 +389,9 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
         break;
       } // chrms
       if(pedRMS < 0) continue;
-      float sn = hit->PeakAmplitude() / pedRMS;
-      signalToNoise[tpc] += sn;
+      float snr = hit->PeakAmplitude() / pedRMS;
+      std::cout<<"SNR "<<(int)snr<<"\n";
+      signalToNoise[tpc] += snr;
       ++signalToNoiseCnt[tpc];
 //      aveSN += sn;
 //      ++cnt;
