@@ -9,7 +9,6 @@
 #include <iostream>
 #include <fstream>
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG

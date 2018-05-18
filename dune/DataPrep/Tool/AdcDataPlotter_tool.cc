@@ -85,6 +85,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   const AdcChannelData& acdLast = acds.rbegin()->second;
   bool isPrep = m_DataType == 0;
   bool isRaw = m_DataType == 1;
+  bool isSig = m_DataType == 2;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( iacd.first == AdcChannelData::badChannel ) {
@@ -159,6 +160,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     AdcChannel chan = iacd.first;
     const AdcChannelData& acd = iacd.second;
     const AdcSignalVector& sams = acd.samples;
+    const AdcFilterVector& keep = acd.signal;
     const AdcCountVector& raw = acd.raw;
     AdcSignal ped = 0.0;
     bool isRawPed = false;
@@ -170,11 +172,14 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
     for ( Tick isam=0; isam<nsam; ++isam, ++ibin ) {
       unsigned int isig = isam + m_FirstTick;
+      if ( isSig && isig >= acd.signal.size() ) break;
       float sig = 0.0;
       if ( isPrep ) {
         if ( isig < sams.size() ) sig = sams[isig];
       } else if ( isRawPed ) {
         if ( isig < raw.size() ) sig = raw[isig] - ped;
+      } else if ( isSig ) {
+        if ( isig < sams.size() && isig < keep.size() && keep[isig] ) sig = sams[isig];
       } else {
         cout << myname << "Fill failed for bin " << ibin << endl;
       }

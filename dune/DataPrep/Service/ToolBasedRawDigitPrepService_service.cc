@@ -59,9 +59,11 @@ prepare(AdcChannelDataMap& datamap,
         std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const {
   const string myname = "ToolBasedRawDigitPrepService:prepare: ";
   // Loop over tools.
+  if ( m_LogLevel >= 2 ) cout << myname << "Processing " << datamap.size() << " channels with "
+                              << m_AdcChannelNamedTools.size() << " tools." << endl;
   if ( m_AdcChannelNamedTools.size() ) {
     for ( NamedTool nt : m_AdcChannelNamedTools ) {
-      if ( m_LogLevel >= 3 ) cout << myname << "Running tool " << nt.name << endl;
+      if ( m_LogLevel >= 3 ) cout << myname << "  Running tool " << nt.name << endl;
       DataMap ret = nt.tool->updateMap(datamap);
       if ( ret ) cout << myname << "WARNING: Tool " << nt.name << " failed with error " << ret.status() << endl;
       if ( m_LogLevel >= 4 ) {

@@ -384,7 +384,8 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               }
               double angleToVert = geom->WireAngleToVertical(hitmap.begin()->second->View(), hitmap.begin()->second->WireID().TPC, hitmap.begin()->second->WireID().Cryostat) - 0.5*::util::pi<>();
               //std::cout<<vhit[h]->View()<<" "<<vhit[h]->WireID().TPC<<" "<<vhit[h]->WireID().Cryostat<<" "<<angleToVert<<std::endl;
-              const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              //const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              const TVector3& dir = tracklist[i]->VertexDirection();
               double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
               hphx->Fill(xpos,maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View()));
               //std::cout<<h<<" "<<pt<<" "<<xpos<<" "<<maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View())<<std::endl;
@@ -423,7 +424,8 @@ void dune::SignalToNoise::beginJob()
   hdt = tfs->make<TH1D>("hdt",";#Delta t (ticks);",1000,-1000,1000);
                            
   std::ifstream in;
-  in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
+  //in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
+  in.open("counterInformation.txt");
   char line[1024];
   while(1){
     in.getline(line,1024);

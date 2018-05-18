@@ -28,7 +28,7 @@
 ####################
 
 # with wires for larcore
-perl generate_protodunedphase.pl -w 1 -o protodunedphase_geo.xml
+perl generate_protodunedphase.pl -w 1 -opt 0 -o protodunedphase_geo.xml
 perl make_gdml.pl -i protodunedphase_geo.xml -o protodunedphase.gdml
 
 # clean up
@@ -36,12 +36,29 @@ rm protodunedphase_geo.xml
 rm protodunedphase_*.gdml
 
 # no wires for geant
-perl generate_protodunedphase.pl -w 0 -o protodunedphase_geo_nowires.xml
+perl generate_protodunedphase.pl -w 0 -opt 0 -o protodunedphase_geo_nowires.xml
 perl make_gdml.pl -i protodunedphase_geo_nowires.xml -o protodunedphase_nowires.gdml
 
 # clean up
 rm protodunedphase_geo_nowires.xml
 rm protodunedphase_nowires_*.gdml
+
+
+# all detail to generate photon libraries
+perl generate_protodunedphase.pl -w 1 -opt 1 -o protodunedphase_geo_optical.xml
+perl make_gdml.pl -i protodunedphase_geo_optical.xml -o protodunedphase_optical.gdml
+
+# clean up
+rm protodunedphase_geo_optical.xml
+rm protodunedphase_optical_*.gdml
+
+# no wires for geant
+perl generate_protodunedphase.pl -w 0 -opt 1 -o protodunedphase_geo_optical_nowires.xml
+perl make_gdml.pl -i protodunedphase_geo_optical_nowires.xml -o protodunedphase_optical_nowires.gdml
+
+# clean up
+rm protodunedphase_geo_optical_nowires.xml
+rm protodunedphase_optical_nowires_*.gdml
 
 
 ########################

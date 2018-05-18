@@ -21,9 +21,8 @@ Math::BigFloat->precision(-16);
 GetOptions( "help|h" => \$help,
 	    "suffix|s:s" => \$suffix,
 	    "output|o:s" => \$output,
-	    "wires|w:s" => \$wires);
-
-my $pmt_switch="on";
+	    "wires|w:s" => \$wires,
+	    "optical|opt:s" => \$optical);
 
 if ( defined $help )
 {
@@ -53,8 +52,31 @@ else
 #{
 #    print "\t\tCreating smaller workspace geometry.\n";
 #}
+$basename = "protodunedphase";
+
+
+my $pmt_switch="on";
+my $FieldCage_switch="on";
+$GroundGrid_switch="off";
+$Cathode_switch="off";
+$ExtractionGrid_switch="off";
+$LEMs_switch="off";
+
+if (defined $optical)
+{
+    if ($optical==1)
+    {
+      $GroundGrid_switch="on";
+      $Cathode_switch="on";
+      $ExtractionGrid_switch="on";
+      $basename = $basename."_optical";
+      $LEMs_switch="on";	
+    }
+}
+
 
 # set wires on to be the default, unless given an input by the user
+
 $wires_on = 1; # 1=on, 0=off
 if (defined $wires)
 {
@@ -63,7 +85,7 @@ if (defined $wires)
 
 $tpc_on = 1;
 
-$basename = "protodunedphase";
+
 if ( $wires_on == 0 )
 {
     $basename = $basename."_nowires";
@@ -132,6 +154,25 @@ $SteelThickness = 0.2; # membrane
 $Cryostat_x = $Argon_x + 2*$SteelThickness;
 $Cryostat_y = $Argon_y + 2*$SteelThickness;
 $Cryostat_z = $Argon_z + 2*$SteelThickness;
+
+##################################################################
+############## Field Cage Parameters ###############
+
+$FieldShaperSizeX = 304.9;
+$FieldShaperSizeY = 5.999;
+$FieldShaperSizeZ = 4.603;
+
+$NFieldShapers = 100.0;
+$FFSSeparation = 6.0;
+
+$FieldCageSizeX = $FieldShaperSizeX+2;
+$FieldCageSizeY = $FieldShaperSizeY+2;
+$FieldCageSizeZ = $NFieldShapers*$FFSSeparation;
+
+$FFSPositionX = 277.5;
+$FFSPositionY = 153.521;
+$FFSPositionZ = 309.593;
+
 
 ##################################################################
 ############## Parameters for PMTs ###############
@@ -252,8 +293,7 @@ $posZFrontSteelStruct = -$Argon_z/2-$FoamPadding-$SteelSupport_z;
 $posLeftSteelStruct = -$Argon_y/2-$FoamPadding-$SteelSupport_y;
 $posRightSteelStruct = $Argon_y/2+$FoamPadding+$SteelSupport_y;
 
-# 2*AirThickness is added to the world volume in x, y and z
-$AirThickness = 3000;
+$RockThickness = 3000;
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
@@ -346,14 +386,40 @@ print DEF <<EOF;
    <position name="posCryoInDetEnc"     unit="cm" x="0" y="$posCryoInDetEnc_y" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
-   <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
+   <rotation name="rMinus90AboutX"       unit="deg" x="270" y="0" z="0"/>
+
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
-   <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
-   <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
    <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
+
+   <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
+   <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
+   <rotation name="rPlus180AboutZ"	unit="deg" x="0" y="0"   z="180"/>
+
+   <rotation name="rPlus90AboutY"       unit="deg" x="0" y="90" z="0"/>
+   <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
+
+
+   <rotation name="rot04"      unit="deg" x="0" y="270" z="90"/>
+   <rotation name="rot07"      unit="deg" x="0" y="90" z="90"/>
+
+   <rotation name="rot03"      unit="deg" x="0" y="90" z="270"/>
+   <rotation name="rot08"      unit="deg" x="0" y="270" z="270"/>
+
+   <rotation name="rot06"      unit="deg" x="180" y="270" z="0"/>
+   <rotation name="rot05"      unit="deg" x="180" y="90" z="0"/>
+
+   <rotation name="rPlus90AboutZ"      unit="deg" x="0" y="0" z="90"/>
+   <rotation name="rMinus90AboutZ"      unit="deg" x="0" y="0" z="270"/>
+
     
     <rotation name="rBeamW3"             unit="deg" x="0" y="-16.1824077173347" z="43.7252002244654"/>
+
+
+
+EOF
+
+print DEF <<EOF;
 </define>
 </gdml>
 EOF
@@ -595,14 +661,1043 @@ close(TPC);
 }
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_FieldCage +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_FieldCage {
+
+
+#FieldCage
+
+
+    $FieldCage = $basename."_FieldCage" . $suffix . ".gdml";
+    push (@gdmlFiles, $FieldCage);
+    $FieldCage = ">" . $FieldCage;
+    open(FieldCage) or die("Could not open file $FieldCage for writing");
+
+# Create the <define> fragment file name, 
+# add file to list of fragments,
+# and open it
+
+
+
+
+# The standard XML prefix and starting the gdml
+print FieldCage <<EOF;
+   <?xml version='1.0'?>
+   <gdml>
+EOF
+# The printing solids used in the Field Cage
+print FieldCage <<EOF;
+
+    <solids>
+        
+	<xtru name="FIELD_SHAPER-SOL" lunit="mm">
+	<twoDimVertex x="3.174889" y="4.182078"/>
+	<twoDimVertex x="3.287192" y="4.163508"/>
+	<twoDimVertex x="3.392385" y="4.120019"/>
+	<twoDimVertex x="3.485016" y="4.053866"/>
+	<twoDimVertex x="3.560284" y="3.968476"/>
+	<twoDimVertex x="3.614289" y="3.868273"/>
+	<twoDimVertex x="3.640993" y="3.777188"/>
+	<twoDimVertex x="3.650003" y="3.682696"/>
+	<twoDimVertex x="3.650003" y="0.765841000000002"/>
+	<twoDimVertex x="3.635299" y="0.645475999999999"/>
+	<twoDimVertex x="3.59205" y="0.532188999999999"/>
+	<twoDimVertex x="3.522803" y="0.432644"/>
+	<twoDimVertex x="3.431628" y="0.352698"/>
+	<twoDimVertex x="3.323888" y="0.297053000000002"/>
+	<twoDimVertex x="3.226003" y="0.271650999999999"/>
+	<twoDimVertex x="3.125008" y="0.266466999999999"/>
+	<twoDimVertex x="3.044094" y="0.263959"/>
+	<twoDimVertex x="2.964646" y="0.248422999999999"/>
+	<twoDimVertex x="2.852753" y="0.201684"/>
+	<twoDimVertex x="2.755402" y="0.129382"/>
+	<twoDimVertex x="2.67832" y="0.0357690000000019"/>
+	<twoDimVertex x="2.626041" y="-0.0736460000000001"/>
+	<twoDimVertex x="2.60164" y="-0.192428"/>
+	<twoDimVertex x="2.606552" y="-0.313592"/>
+	<twoDimVertex x="2.640488" y="-0.430011"/>
+	<twoDimVertex x="2.701452" y="-0.534835000000001"/>
+	<twoDimVertex x="2.785858" y="-0.6219"/>
+	<twoDimVertex x="2.888742" y="-0.686086"/>
+	<twoDimVertex x="3.004052" y="-0.723614999999999"/>
+	<twoDimVertex x="3.125005" y="-0.732282000000001"/>
+	<twoDimVertex x="3.245956" y="-0.740949000000001"/>
+	<twoDimVertex x="3.361264" y="-0.778479999999998"/>
+	<twoDimVertex x="3.464146" y="-0.842666000000001"/>
+	<twoDimVertex x="3.548551" y="-0.929731"/>
+	<twoDimVertex x="3.609514" y="-1.034553"/>
+	<twoDimVertex x="3.639776" y="-1.131048"/>
+	<twoDimVertex x="3.650003" y="-1.231656"/>
+	<twoDimVertex x="3.650003" y="-4.051359"/>
+	<twoDimVertex x="3.636188" y="-4.168081"/>
+	<twoDimVertex x="3.595506" y="-4.278353"/>
+	<twoDimVertex x="3.530206" y="-4.376082"/>
+	<twoDimVertex x="3.443895" y="-4.455866"/>
+	<twoDimVertex x="3.341345" y="-4.513298"/>
+	<twoDimVertex x="3.247548" y="-4.54175"/>
+	<twoDimVertex x="3.150003" y="-4.551358"/>
+	<twoDimVertex x="2.599999" y="-4.551358"/>
+	<twoDimVertex x="2.521782" y="-4.557514"/>
+	<twoDimVertex x="2.44549" y="-4.57583"/>
+	<twoDimVertex x="2.338749" y="-4.625038"/>
+	<twoDimVertex x="2.246446" y="-4.697805"/>
+	<twoDimVertex x="2.173679" y="-4.790109"/>
+	<twoDimVertex x="2.124471" y="-4.89685"/>
+	<twoDimVertex x="2.10154" y="-5.012128"/>
+	<twoDimVertex x="2.106155" y="-5.129575"/>
+	<twoDimVertex x="2.138059" y="-5.2427"/>
+	<twoDimVertex x="2.19549" y="-5.345251"/>
+	<twoDimVertex x="2.275275" y="-5.431561"/>
+	<twoDimVertex x="2.373003" y="-5.496861"/>
+	<twoDimVertex x="2.483276" y="-5.537543"/>
+	<twoDimVertex x="2.599999" y="-5.551358"/>
+	<twoDimVertex x="4.449998" y="-5.551358"/>
+	<twoDimVertex x="4.547543" y="-5.54175"/>
+	<twoDimVertex x="4.64134" y="-5.513298"/>
+	<twoDimVertex x="4.743891" y="-5.455866"/>
+	<twoDimVertex x="4.830201" y="-5.376082"/>
+	<twoDimVertex x="4.895501" y="-5.278353"/>
+	<twoDimVertex x="4.936183" y="-5.168081"/>
+	<twoDimVertex x="4.949998" y="-5.051358"/>
+	<twoDimVertex x="4.949998" y="3.827153"/>
+	<twoDimVertex x="4.965356" y="3.950123"/>
+	<twoDimVertex x="5.010485" y="4.065541"/>
+	<twoDimVertex x="5.082615" y="4.166314"/>
+	<twoDimVertex x="5.177314" y="4.246251"/>
+	<twoDimVertex x="5.288764" y="4.300442"/>
+	<twoDimVertex x="5.389517" y="4.323481"/>
+	<twoDimVertex x="5.492853" y="4.325318"/>
+	<twoDimVertex x="9.961787" y="3.782179"/>
+	<twoDimVertex x="13.85859" y="2.875176"/>
+	<twoDimVertex x="17.583122" y="1.413806"/>
+	<twoDimVertex x="21.056972" y="-0.571162999999999"/>
+	<twoDimVertex x="21.410387" y="-0.867622000000001"/>
+	<twoDimVertex x="21.693333" y="-1.231946"/>
+	<twoDimVertex x="21.893082" y="-1.647748"/>
+	<twoDimVertex x="22.000649" y="-2.096324"/>
+	<twoDimVertex x="22.011195" y="-2.557496"/>
+	<twoDimVertex x="21.924246" y="-3.01052"/>
+	<twoDimVertex x="21.743713" y="-3.435018"/>
+	<twoDimVertex x="21.477717" y="-3.811897"/>
+	<twoDimVertex x="21.138223" y="-4.124202"/>
+	<twoDimVertex x="20.740501" y="-4.357886"/>
+	<twoDimVertex x="20.302442" y="-4.502438"/>
+	<twoDimVertex x="19.84375" y="-4.551358"/>
+	<twoDimVertex x="14.900003" y="-4.551358"/>
+	<twoDimVertex x="14.821786" y="-4.557514"/>
+	<twoDimVertex x="14.745494" y="-4.57583"/>
+	<twoDimVertex x="14.638754" y="-4.625038"/>
+	<twoDimVertex x="14.54645" y="-4.697805"/>
+	<twoDimVertex x="14.473683" y="-4.790109"/>
+	<twoDimVertex x="14.424475" y="-4.89685"/>
+	<twoDimVertex x="14.401544" y="-5.012128"/>
+	<twoDimVertex x="14.406159" y="-5.129575"/>
+	<twoDimVertex x="14.438063" y="-5.2427"/>
+	<twoDimVertex x="14.495494" y="-5.345251"/>
+	<twoDimVertex x="14.575279" y="-5.431561"/>
+	<twoDimVertex x="14.673007" y="-5.496862"/>
+	<twoDimVertex x="14.78328" y="-5.537543"/>
+	<twoDimVertex x="14.900003" y="-5.551358"/>
+	<twoDimVertex x="19.843727" y="-5.551355"/>
+	<twoDimVertex x="20.513314" y="-5.479951"/>
+	<twoDimVertex x="21.152782" y="-5.268942"/>
+	<twoDimVertex x="21.733367" y="-4.927821"/>
+	<twoDimVertex x="22.228955" y="-4.471929"/>
+	<twoDimVertex x="22.617251" y="-3.921775"/>
+	<twoDimVertex x="22.880791" y="-3.302104"/>
+	<twoDimVertex x="23.007719" y="-2.640792"/>
+	<twoDimVertex x="22.992327" y="-1.967586"/>
+	<twoDimVertex x="22.835306" y="-1.312766"/>
+	<twoDimVertex x="22.543721" y="-0.705788999999999"/>
+	<twoDimVertex x="22.130685" y="-0.173957000000001"/>
+	<twoDimVertex x="21.614779" y="0.258807000000001"/>
+	<twoDimVertex x="18.014949" y="2.315762"/>
+	<twoDimVertex x="14.155346" y="3.830128"/>
+	<twoDimVertex x="10.117223" y="4.770024"/>
+	<twoDimVertex x="4.51123" y="5.404618"/>
+	<twoDimVertex x="-1.128658" y="5.551358"/>
+	<twoDimVertex x="-10.117225" y="4.770024"/>
+	<twoDimVertex x="-14.155346" y="3.830128"/>
+	<twoDimVertex x="-18.014946" y="2.315762"/>
+	<twoDimVertex x="-21.614774" y="0.258808999999999"/>
+	<twoDimVertex x="-22.130682" y="-0.173954999999999"/>
+	<twoDimVertex x="-22.543718" y="-0.705787000000001"/>
+	<twoDimVertex x="-22.835302" y="-1.312765"/>
+	<twoDimVertex x="-22.992326" y="-1.967584"/>
+	<twoDimVertex x="-23.007719" y="-2.64079"/>
+	<twoDimVertex x="-22.880788" y="-3.302103"/>
+	<twoDimVertex x="-22.61725" y="-3.921773"/>
+	<twoDimVertex x="-22.228952" y="-4.471928"/>
+	<twoDimVertex x="-21.733366" y="-4.92782"/>
+	<twoDimVertex x="-21.15278" y="-5.268942"/>
+	<twoDimVertex x="-20.513313" y="-5.479951"/>
+	<twoDimVertex x="-19.843727" y="-5.551358"/>
+	<twoDimVertex x="-14.900001" y="-5.551358"/>
+	<twoDimVertex x="-14.821785" y="-5.545203"/>
+	<twoDimVertex x="-14.745493" y="-5.526886"/>
+	<twoDimVertex x="-14.638752" y="-5.477678"/>
+	<twoDimVertex x="-14.546447" y="-5.404911"/>
+	<twoDimVertex x="-14.47368" y="-5.312607"/>
+	<twoDimVertex x="-14.424472" y="-5.205866"/>
+	<twoDimVertex x="-14.401542" y="-5.090588"/>
+	<twoDimVertex x="-14.406156" y="-4.973141"/>
+	<twoDimVertex x="-14.438062" y="-4.860016"/>
+	<twoDimVertex x="-14.495493" y="-4.757466"/>
+	<twoDimVertex x="-14.575277" y="-4.671155"/>
+	<twoDimVertex x="-14.673006" y="-4.605854"/>
+	<twoDimVertex x="-14.783279" y="-4.565174"/>
+	<twoDimVertex x="-14.900001" y="-4.551358"/>
+	<twoDimVertex x="-19.84375" y="-4.551355"/>
+	<twoDimVertex x="-20.30244" y="-4.502438"/>
+	<twoDimVertex x="-20.740499" y="-4.357886"/>
+	<twoDimVertex x="-21.13822" y="-4.124202"/>
+	<twoDimVertex x="-21.477714" y="-3.811899"/>
+	<twoDimVertex x="-21.743711" y="-3.43502"/>
+	<twoDimVertex x="-21.924244" y="-3.010522"/>
+	<twoDimVertex x="-22.011194" y="-2.557498"/>
+	<twoDimVertex x="-22.000646" y="-2.096328"/>
+	<twoDimVertex x="-21.893081" y="-1.647752"/>
+	<twoDimVertex x="-21.693334" y="-1.23195"/>
+	<twoDimVertex x="-21.410389" y="-0.867626000000001"/>
+	<twoDimVertex x="-21.056972" y="-0.571165999999998"/>
+	<twoDimVertex x="-17.583122" y="1.413806"/>
+	<twoDimVertex x="-13.858589" y="2.875176"/>
+	<twoDimVertex x="-9.961782" y="3.782178"/>
+	<twoDimVertex x="-5.492853" y="4.325312"/>
+	<twoDimVertex x="-5.369017" y="4.320551"/>
+	<twoDimVertex x="-5.250157" y="4.285479"/>
+	<twoDimVertex x="-5.143572" y="4.222252"/>
+	<twoDimVertex x="-5.055813" y="4.134755"/>
+	<twoDimVertex x="-4.992267" y="4.028359"/>
+	<twoDimVertex x="-4.960678" y="3.929951"/>
+	<twoDimVertex x="-4.949997" y="3.827153"/>
+	<twoDimVertex x="-4.949997" y="-5.051358"/>
+	<twoDimVertex x="-4.940388" y="-5.148903"/>
+	<twoDimVertex x="-4.911935" y="-5.2427"/>
+	<twoDimVertex x="-4.854504" y="-5.345251"/>
+	<twoDimVertex x="-4.77472" y="-5.431561"/>
+	<twoDimVertex x="-4.676991" y="-5.496861"/>
+	<twoDimVertex x="-4.566719" y="-5.537543"/>
+	<twoDimVertex x="-4.449997" y="-5.551358"/>
+	<twoDimVertex x="-2.599997" y="-5.551358"/>
+	<twoDimVertex x="-2.52178" y="-5.545203"/>
+	<twoDimVertex x="-2.445489" y="-5.526886"/>
+	<twoDimVertex x="-2.338748" y="-5.477678"/>
+	<twoDimVertex x="-2.246443" y="-5.404911"/>
+	<twoDimVertex x="-2.173677" y="-5.312607"/>
+	<twoDimVertex x="-2.124468" y="-5.205866"/>
+	<twoDimVertex x="-2.101538" y="-5.090588"/>
+	<twoDimVertex x="-2.106153" y="-4.973141"/>
+	<twoDimVertex x="-2.138057" y="-4.860016"/>
+	<twoDimVertex x="-2.195489" y="-4.757466"/>
+	<twoDimVertex x="-2.275273" y="-4.671155"/>
+	<twoDimVertex x="-2.373002" y="-4.605854"/>
+	<twoDimVertex x="-2.483274" y="-4.565174"/>
+	<twoDimVertex x="-2.599997" y="-4.551358"/>
+	<twoDimVertex x="-3.150001" y="-4.551358"/>
+	<twoDimVertex x="-3.266724" y="-4.537543"/>
+	<twoDimVertex x="-3.376997" y="-4.496862"/>
+	<twoDimVertex x="-3.474725" y="-4.431561"/>
+	<twoDimVertex x="-3.55451" y="-4.345251"/>
+	<twoDimVertex x="-3.611941" y="-4.2427"/>
+	<twoDimVertex x="-3.640394" y="-4.148904"/>
+	<twoDimVertex x="-3.650001" y="-4.051359"/>
+	<twoDimVertex x="-3.650001" y="-1.231656"/>
+	<twoDimVertex x="-3.635296" y="-1.111289"/>
+	<twoDimVertex x="-3.592049" y="-0.998002"/>
+	<twoDimVertex x="-3.522801" y="-0.89846"/>
+	<twoDimVertex x="-3.431626" y="-0.818512999999999"/>
+	<twoDimVertex x="-3.323887" y="-0.762865999999999"/>
+	<twoDimVertex x="-3.226001" y="-0.737466000000001"/>
+	<twoDimVertex x="-3.125007" y="-0.732282000000001"/>
+	<twoDimVertex x="-3.049645" y="-0.722729999999999"/>
+	<twoDimVertex x="-2.976599" y="-0.701872999999999"/>
+	<twoDimVertex x="-2.875039" y="-0.650507999999999"/>
+	<twoDimVertex x="-2.787724" y="-0.577507999999998"/>
+	<twoDimVertex x="-2.719181" y="-0.486654000000002"/>
+	<twoDimVertex x="-2.672959" y="-0.382652"/>
+	<twoDimVertex x="-2.651454" y="-0.270893000000001"/>
+	<twoDimVertex x="-2.65578" y="-0.157163000000001"/>
+	<twoDimVertex x="-2.685712" y="-0.0473590000000002"/>
+	<twoDimVertex x="-2.739699" y="0.0528300000000002"/>
+	<twoDimVertex x="-2.814946" y="0.138217000000001"/>
+	<twoDimVertex x="-2.907552" y="0.204374999999999"/>
+	<twoDimVertex x="-3.012722" y="0.247876000000002"/>
+	<twoDimVertex x="-3.125003" y="0.266466999999999"/>
+	<twoDimVertex x="-3.245954" y="0.275136"/>
+	<twoDimVertex x="-3.361263" y="0.312666"/>
+	<twoDimVertex x="-3.464144" y="0.376850999999998"/>
+	<twoDimVertex x="-3.548549" y="0.463915"/>
+	<twoDimVertex x="-3.609512" y="0.568739000000001"/>
+	<twoDimVertex x="-3.639774" y="0.665232"/>
+	<twoDimVertex x="-3.650001" y="0.765841000000002"/>
+	<twoDimVertex x="-3.650001" y="3.682696"/>
+	<twoDimVertex x="-3.637045" y="3.795785"/>
+	<twoDimVertex x="-3.598845" y="3.903012"/>
+	<twoDimVertex x="-3.537384" y="3.998822"/>
+	<twoDimVertex x="-3.455846" y="4.078246"/>
+	<twoDimVertex x="-3.358455" y="4.137171"/>
+	<twoDimVertex x="-3.268812" y="4.168376"/>
+	<twoDimVertex x="-3.174888" y="4.182084"/>
+	
+	
+	<section zOrder="0" zPosition="-1523.5077" xOffset="0" yOffset="0" scalingFactor="1"/>
+	<section zOrder="1" zPosition="1431.2323" xOffset="0" yOffset="0" scalingFactor="1"/>
+	<section zOrder="2" zPosition="1523.5077" xOffset="0" yOffset="-48.2" scalingFactor="1"/>
+
+
+	</xtru>
+	
+   <box name="FieldCageModule" lunit="cm"
+      x="$FieldCageSizeX"
+      y="$FieldCageSizeY"
+      z="$FieldCageSizeZ"/>
+
+    </solids>
+
+EOF
+
+print FieldCage <<EOF;
+
+<structure>
+
+
+
+  <volume name="volFIELDSHAPER">
+  <materialref ref="ALUMINUM_Al"/>
+  <solidref ref="FIELD_SHAPER-SOL"/>
+  </volume>
+
+
+  <volume name="volFieldCageModule">
+  <materialref ref="LAr"/>
+  <solidref ref="FieldCageModule"/>
+
+EOF
+    for ( $i=0; $i<$NFieldShapers; $i=$i+1 ) { # pmts with coating
+   
+      $position = +0.5*$FieldCageSizeZ-0.5*$FFSSeparation-$i*$FFSSeparation;
+      print FieldCage <<EOF;
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper$i" unit="cm" x="0" y="0" z="$position"/>
+   <rotation name="FShaperRot$i" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+EOF
+    }
+
+print FieldCage <<EOF;
+
+</volume>
+</structure>
+</gdml>
+EOF
+close(FieldCage);
+}
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_ExtractionGrid +++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_ExtractionGrid {
+
+    $ExtractionGrid = $basename."_ExtractionGrid" . $suffix . ".gdml";
+    push (@gdmlFiles, $ExtractionGrid);
+    $ExtractionGrid = ">" . $ExtractionGrid;
+    open(ExtractionGrid) or die("Could not open file $ExtractionGrid for writing");
+
+# The standard XML prefix and starting the gdml
+print ExtractionGrid <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
+
+#GroundGrid SOLIDS
+$ExtractionGridRadious = 0.05;
+$ExtractionGridPitch = 0.3;
+
+$ExtractionGridSizeX = 2*$ExtractionGridRadious;
+$ExtractionGridSizeY = 600;
+$ExtractionGridSizeZ = 600;
+
+
+print ExtractionGrid <<EOF;
+
+<solids>
+      <tube name="solExtractionGridCable" rmin="0" rmax="$ExtractionGridRadious" z="$ExtractionGridSizeZ" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <box name="solExtractionGrid" x="@{[$ExtractionGridSizeX]}" y="$ExtractionGridSizeY" z="@{[$ExtractionGridSizeZ]}" lunit="cm"/>
+</solids>
+
+EOF
+
+
+print ExtractionGrid <<EOF;
+
+<structure>
+
+<volume name="volExtractionGridCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="solExtractionGridCable"/>
+</volume>
+
+<volume name="volExtractionGrid">
+  <materialref ref="LAr"/>
+  <solidref ref="solExtractionGrid"/>
+EOF
+
+for($ii=0;$ii<$$ExtractionGridSizeY;$ii=$ii+$ExtractionGridPitch)
+{
+	print ExtractionGrid <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGridCable"/>
+   <position name="posExtractionGridCable$ii" unit="cm" x="0" y="@{[$ii-0.5*$ExtractionGridSizeY]}" z="0"/>
+   <rotation name="GGrot$aux2" unit="deg" x="0" y="90" z="0" /> 
+   </physvol>
+EOF
+ 
+}
+
+for($jj=0;$jj<$$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
+{
+	print ExtractionGrid <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGridCable"/>
+   <position name="posExtractionGridCableLat$jj" unit="cm" x="0" y="0" z="@{[$jj-0.5*$ExtractionGridSizeZ]}"/>
+   <rotation name="GGrot$aux2" unit="deg" x="90" y="0" z="0" /> 
+   </physvol>
+EOF
+ 
+}
+
+	print ExtractionGrid <<EOF;
+  
+  </volume>
+</structure>
+</gdml>
+EOF
+close(ExtractionGrid);
+}
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_GroundGrid +++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_GroundGrid {
+
+    $GroundGrid = $basename."_GroundGrid" . $suffix . ".gdml";
+    push (@gdmlFiles, $GroundGrid);
+    $GroundGrid = ">" . $GroundGrid;
+    open(GroundGrid) or die("Could not open file $GroundGrid for writing");
+
+# The standard XML prefix and starting the gdml
+print GroundGrid <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
+
+#GroundGrid SOLIDS
+$GroundGridTubeLength = 297.5;
+$GroundGridInnerRadious = 1.85;
+$GroundGridOuterRadious = 2.0;
+$GroundGridTorRad = 16;
+
+$GroundGridInnerStructureLength = 313.5;
+$GroundGridInnerStructureWidth = 2;
+$GroundGridInnerStructureHeight = 4;
+$GroundGridInnerStructureSeparation = 65.0;
+$GroundGridInnerStructureNumberOfBars = 4;
+
+$GroundGridInnerStructureNumberOfCablesPerInnerSquare = 5.0;
+$GroundGridInnerStructureCableRadious = 0.1;
+$GroundGridInnerStructureCableSeparation = $GroundGridInnerStructureSeparation/($GroundGridInnerStructureNumberOfCablesPerInnerSquare+1);
+
+print GroundGrid <<EOF;
+
+<solids>
+     <torus name="GroundGridCorner" rmin="$GroundGridInnerRadious" rmax="$GroundGridOuterRadious" rtor="$GroundGridTorRad" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="GroundGridtube" rmin="$GroundGridInnerRadious" rmax="$GroundGridOuterRadious" z="$GroundGridTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <box name="GroundGridInnerBoxBorder" x="@{[0.5*$GroundGridInnerStructureWidth]}" y="$GroundGridInnerStructureHeight" z="@{[$GroundGridInnerStructureLength]}" lunit="cm"/>
+     <box name="GroundGridInnerBox" x="@{[$GroundGridInnerStructureWidth]}" y="$GroundGridInnerStructureHeight" z="@{[$GroundGridInnerStructureLength]}" lunit="cm"/>
+    <box name="GroundGridModule" x="@{[$GroundGridInnerStructureLength+2+$GroundGridOuterRadious]}" y="$GroundGridInnerStructureHeight"    z="@{[$GroundGridInnerStructureLength+2+$GroundGridOuterRadious]}" lunit="cm"/>
+     <tube name="GroundGridCable" rmin="0" rmax="$GroundGridInnerStructureCableRadious" z="@{[$GroundGridInnerStructureLength]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+
+
+
+    <union name="GGunion1">
+      <first ref="GroundGridtube"/>
+      <second ref="GroundGridCorner"/>
+   		<position name="GGcorner1" unit="cm" x="@{[-$GroundGridTorRad]}" y="0" z="@{[0.5*$GroundGridTubeLength]}"/>
+		<rotation name="GGrot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="GGunion2">
+      <first ref="GGunion1"/>
+      <second ref="GroundGridtube"/>
+   		<position name="GGcorner2" unit="cm" x="@{[-0.5*$GroundGridTubeLength-$GroundGridTorRad]}" y="0" z="@{[+0.5*$GroundGridTubeLength+$GroundGridTorRad]}"/>
+   		<rotation name="GGrot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="GGunion3">
+      <first ref="GGunion2"/>
+      <second ref="GroundGridInnerBoxBorder"/>
+   		<position name="GGcorner3" unit="cm" x="@{[-$GroundGridTubeLength-$GroundGridTorRad+0.25*$GroundGridInnerStructureWidth]}" y="0" z="@{[$GroundGridTorRad-0.5*($GroundGridInnerStructureLength-$GroundGridTubeLength)]}"/>
+    </union>
+
+
+    <union name="GGunion4">
+      <first ref="GGunion3"/>
+      <second ref="GroundGridInnerBoxBorder"/>
+   		<position name="GGcorner4" unit="cm" x="@{[-0.5*$GroundGridTubeLength-$GroundGridTorRad+0.5*($GroundGridInnerStructureLength-$GroundGridTubeLength)]}" y="0" z="@{[-0.5*$GroundGridTubeLength+0.25*$GroundGridInnerStructureWidth]}"/>
+		<rotation name="GGrot4" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+</solids>
+
+EOF
+
+$xGGorigin=0.5*($GroundGridInnerStructureLength+2+$GroundGridOuterRadious)-$GroundGridOuterRadious-2;
+$zGGoriging=-0.5*($GroundGridInnerStructureLength+2+$GroundGridOuterRadious)+0.5*$GroundGridTubeLength;
+
+
+print GroundGrid <<EOF;
+
+<structure>
+
+<volume name="volGroundGridCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="GroundGridCable"/>
+</volume>
+
+<volume name="volGroundGridInnerBox">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="GroundGridInnerBox"/>
+</volume>
+
+<volume name="volGGunion">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="GGunion4"/>
+</volume>
+
+ <volume name="volGroundGrid">
+  <materialref ref="LAr"/>
+  <solidref ref="GroundGridModule"/>
+
+  <physvol>
+   <volumeref ref="volGGunion"/>
+   <position name="posGG18" unit="cm" x="@{[$xGGorigin]}" y="0" z="@{[$zGGoriging]}"/>
+  </physvol>
+
+EOF
+
+$aux=4;
+$aux2=$aux+1;
+for($ii=0;$ii<$GroundGridInnerStructureNumberOfBars;$ii++)
+{
+	$aux2=$aux+1;
+	print GroundGrid <<EOF;
+  <physvol>
+   <volumeref ref="volGroundGridInnerBox"/>
+   <position name="posGGInnerBox$ii" unit="cm" x="@{[$xGGorigin-$GroundGridTubeLength-$GroundGridTorRad+$GroundGridInnerStructureWidth+($ii+1)*$GroundGridInnerStructureSeparation]}" y="0" z="@{[zGGoriging+$GroundGridTorRad-0.5*($GroundGridInnerStructureLength-$GroundGridTubeLength)-0.5*$GroundGridTorRad- 0.5*$GroundGridOuterRadious]}"/>
+  </physvol>
+EOF
+   $aux++; 
+}
+
+for($ii=0;$ii<=$GroundGridInnerStructureNumberOfBars;$ii++)
+{
+ for($jj=0;$jj<$GroundGridInnerStructureNumberOfCablesPerInnerSquare;$jj++)
+ {
+	print GroundGrid <<EOF;
+  <physvol>
+   <volumeref ref="volGroundGridCable"/>
+   <position name="posGGCable$ii$jj" unit="cm" x="@{[$xGGorigin-$GroundGridTubeLength-$GroundGridTorRad+$GroundGridInnerStructureWidth+($ii)*$GroundGridInnerStructureSeparation + ($jj+1)*$GroundGridInnerStructureCableSeparation]}" y="0" z="@{[zGGoriging+$GroundGridTorRad-0.5*($GroundGridInnerStructureLength-$GroundGridTubeLength)-0.5*$GroundGridTorRad- 0.5*$GroundGridOuterRadious]}"/>
+  </physvol>
+EOF
+   if($ii ==$GroundGridInnerStructureNumberOfBars) { if($jj == 3){ $jj=$GroundGridInnerStructureNumberOfCablesPerInnerSquare;}}
+ }
+   
+}
+
+for($ii=0;$ii<$GroundGridInnerStructureNumberOfBars;$ii++)
+{
+	$aux2=$aux+1;
+	print GroundGrid <<EOF;
+  <physvol>
+   <volumeref ref="volGroundGridInnerBox"/>
+   <position name="posGGInnerBoxLat$ii" unit="cm" x="@{[$xGGorigin-0.5*$GroundGridTubeLength-$GroundGridTorRad+0.5*($GroundGridInnerStructureLength-$GroundGridTubeLength)]}" y="0" z="@{[zGGoriging-0.5*$GroundGridTubeLength+$GroundGridInnerStructureWidth +($ii+1)*$GroundGridInnerStructureSeparation - 0.5*$GroundGridTorRad- 0.5*$GroundGridOuterRadious]}"/>
+   <rotation name="GGrot$aux2" unit="deg" x="0" y="90" z="0" /> 
+   </physvol>
+EOF
+    $aux++;   
+}
+	print GroundGrid <<EOF;
+  
+  </volume>
+</structure>
+</gdml>
+EOF
+close(GroundGrid);
+}
+
+
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_Cathode +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_Cathode {
+
+    $Cathode = $basename."_Cathode" . $suffix . ".gdml";
+    push (@gdmlFiles, $Cathode);
+    $Cathode = ">" . $Cathode;
+    open(Cathode) or die("Could not open file $Cathode for writing");
+
+# The standard XML prefix and starting the gdml
+print Cathode <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
+
+#Cathode SOLIDS
+$CathodeTubeLength = 297.5;
+$CathodeInnerRadious = 1.85;
+$CathodeOuterRadious = 2.0;
+$CathodeTorRad = 16;
+
+$CathodeInnerStructureLength = 313.5;
+$CathodeInnerStructureWidth = 2;
+$CathodeInnerStructureHeight = 4;
+$CathodeInnerStructureSeparation = 65.0;
+$CathodeInnerStructureNumberOfBars = 4;
+
+$CathodeInnerStructureNumberOfCablesPerInnerSquare = 5.0;
+$CathodeInnerStructureCableRadious = 0.5;
+$CathodeInnerStructureCableSeparation = $CathodeInnerStructureSeparation/($CathodeInnerStructureNumberOfCablesPerInnerSquare+1);
+$CathodeInnerCableLength = 128.0;
+$CathodeInnerCableLengthShort = 48.5;
+
+$CathodeSupportTubeLength = 252.0;
+$CathodeSupportInnerRadious = 1.85;
+$CathodeSupportOuterRadious = 2.0;
+$CathodeSupportTorRad = 12;
+
+$CathodeSupportInnerStructureLength = 264.0;
+$CathodeSupportInnerStructureWidth = 2;
+$CathodeSupportInnerStructureHeight = 4;
+$CathodeSupportInnerStructureSeparation = 65.0;
+$CathodeSupportInnerStructureNumberOfBars = 3;
+
+$CathodeSupportDistance =20;
+$CathodeModuleX =$CathodeInnerStructureLength+2+$CathodeOuterRadious;
+$CathodeModuleY =$CathodeInnerStructureHeight + $CathodeSupportDistance;
+$CathodeModuleZ =$CathodeInnerStructureLength+2+$CathodeOuterRadious;
+
+print Cathode <<EOF;
+
+<solids>
+     <torus name="CathodeCorner" rmin="$CathodeInnerRadious" rmax="$CathodeOuterRadious" rtor="$CathodeTorRad" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="Cathodetube" rmin="$CathodeInnerRadious" rmax="$CathodeOuterRadious" z="$CathodeTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <box name="CathodeInnerBoxBorder" x="@{[0.5*$CathodeInnerStructureWidth]}" y="$CathodeInnerStructureHeight" z="@{[$CathodeInnerStructureLength]}" lunit="cm"/>
+     <box name="CathodeInnerBox" x="@{[$CathodeInnerStructureWidth]}" y="$CathodeInnerStructureHeight" z="@{[$CathodeInnerStructureLength]}" lunit="cm"/>
+    <box name="CathodeModule" x="@{[$CathodeModuleX]}" y="$CathodeModuleY"    z="@{[$CathodeModuleZ]}" lunit="cm"/>
+    <box name="CathodeSupportSeparators" x="@{[$CathodeSupportInnerStructureWidth]}" y="$CathodeSupportDistance"    z="@{[$CathodeSupportInnerStructureHeight]}" lunit="cm"/>
+    <box name="CathodeSupportSeparatorsBorder" x="@{[$CathodeSupportInnerStructureWidth]}" y="53.39"    z="@{[$CathodeSupportInnerStructureHeight]}" lunit="cm"/>
+     <tube name="CathodeCable" rmin="0" rmax="$CathodeInnerStructureCableRadious" z="@{[$CathodeInnerCableLength]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+     <tube name="CathodeCableShort" rmin="0" rmax="$CathodeInnerStructureCableRadious" z="@{[$CathodeInnerCableLengthShort]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+
+
+
+    <union name="Cathunion1">
+      <first ref="Cathodetube"/>
+      <second ref="CathodeCorner"/>
+   		<position name="Cathcorner1" unit="cm" x="@{[-$CathodeTorRad]}" y="0" z="@{[0.5*$CathodeTubeLength]}"/>
+		<rotation name="Cathrot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="Cathunion2">
+      <first ref="Cathunion1"/>
+      <second ref="Cathodetube"/>
+   		<position name="Cathcorner2" unit="cm" x="@{[-0.5*$CathodeTubeLength-$CathodeTorRad]}" y="0" z="@{[+0.5*$CathodeTubeLength+$CathodeTorRad]}"/>
+   		<rotation name="Cathrot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="Cathunion3">
+      <first ref="Cathunion2"/>
+      <second ref="CathodeInnerBoxBorder"/>
+   		<position name="Cathcorner3" unit="cm" x="@{[-$CathodeTubeLength-$CathodeTorRad+0.25*$CathodeInnerStructureWidth]}" y="0" z="@{[$CathodeTorRad-0.5*($CathodeInnerStructureLength-$CathodeTubeLength)]}"/>
+    </union>
+
+
+    <union name="Cathunion4">
+      <first ref="Cathunion3"/>
+      <second ref="CathodeInnerBoxBorder"/>
+   		<position name="Cathcorner4" unit="cm" x="@{[-0.5*$CathodeTubeLength-$CathodeTorRad+0.5*($CathodeInnerStructureLength-$CathodeTubeLength)]}" y="0" z="@{[-0.5*$CathodeTubeLength+0.25*$CathodeInnerStructureWidth]}"/>
+		<rotation name="Cathrot4" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+
+     <torus name="CathodeSupportCorner" rmin="$CathodeSupportInnerRadious" rmax="$CathodeSupportOuterRadious" rtor="$CathodeSupportTorRad" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="CathodeSupporttube" rmin="$CathodeSupportInnerRadious" rmax="$CathodeSupportOuterRadious" z="$CathodeSupportTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <box name="CathodeSupportInnerBoxBorder" x="@{[0.5*$CathodeSupportInnerStructureWidth]}" y="$CathodeSupportInnerStructureHeight" z="@{[$CathodeSupportInnerStructureLength]}" lunit="cm"/>
+     <box name="CathodeSupportInnerBox" x="@{[$CathodeSupportInnerStructureWidth]}" y="$CathodeSupportInnerStructureHeight" z="@{[$CathodeSupportInnerStructureLength]}" lunit="cm"/>
+    <box name="CathodeSupportModule" x="@{[$CathodeSupportInnerStructureLength+2+$CathodeSupportOuterRadious]}" y="$CathodeSupportInnerStructureHeight"    z="@{[$CathodeSupportInnerStructureLength+2+$CathodeSupportOuterRadious]}" lunit="cm"/>
+
+
+
+    <union name="CathSupunion1">
+      <first ref="CathodeSupporttube"/>
+      <second ref="CathodeSupportCorner"/>
+   		<position name="CathSupcorner1" unit="cm" x="@{[-$CathodeSupportTorRad]}" y="0" z="@{[0.5*$CathodeSupportTubeLength]}"/>
+		<rotation name="CathSuprot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="CathSupunion2">
+      <first ref="CathSupunion1"/>
+      <second ref="CathodeSupporttube"/>
+   		<position name="CathSupcorner2" unit="cm" x="@{[-0.5*$CathodeSupportTubeLength-$CathodeSupportTorRad]}" y="0" z="@{[+0.5*$CathodeSupportTubeLength+$CathodeSupportTorRad]}"/>
+   		<rotation name="CathSuprot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="CathSupunion3">
+      <first ref="CathSupunion2"/>
+      <second ref="CathodeSupportInnerBoxBorder"/>
+   		<position name="CathSupcorner3" unit="cm" x="@{[-$CathodeSupportTubeLength-$CathodeSupportTorRad+0.25*$CathodeSupportInnerStructureWidth]}" y="0" z="@{[$CathodeSupportTorRad-0.5*($CathodeSupportInnerStructureLength-$CathodeSupportTubeLength)]}"/>
+    </union>
+
+
+    <union name="CathSupunion4">
+      <first ref="CathSupunion3"/>
+      <second ref="CathodeSupportInnerBoxBorder"/>
+   		<position name="CathSupcorner4" unit="cm" x="@{[-0.5*$CathodeSupportTubeLength-$CathodeSupportTorRad+0.5*($CathodeSupportInnerStructureLength-$CathodeSupportTubeLength)]}" y="0" z="@{[-0.5*$CathodeSupportTubeLength+0.25*$CathodeSupportInnerStructureWidth]}"/>
+		<rotation name="CathSuprot4" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+</solids>
+
+EOF
+
+
+$xCathorigin=0.5*($CathodeModuleX)-$CathodeOuterRadious-2;
+$yCathorigin=0.5*$CathodeModuleY - 0.5*$CathodeInnerStructureHeight;
+$zCathoriging=-0.5*($CathodeModuleX)+0.5*$CathodeTubeLength;
+$xCathSuporigin=$xCathorigin+($CathodeSupportInnerStructureLength-$CathodeInnerStructureLength);
+$zCathSuporigin=-$zCathoriging-($CathodeInnerStructureLength+$CathodeOuterRadious-$CathodeSupportInnerStructureLength-$CathodeSupportOuterRadious)+7;
+
+$xCathSuporigin=$xCathorigin+($CathodeSupportInnerStructureLength-$CathodeInnerStructureLength);
+$zCathSuporigin=-0.5*($CathodeModuleZ)+0.5*$CathodeSupportTubeLength;
+$yCathSuporigin=$yCathorigin-$CathodeSupportDistance;
+
+
+print Cathode <<EOF;
+
+<structure>
+
+
+
+<volume name="volCathodeSupportSeparators">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathodeSupportSeparators"/>
+</volume>
+
+<volume name="volCathodeSupportSeparatorsBorder">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathodeSupportSeparatorsBorder"/>
+</volume>
+
+
+
+
+<volume name="volCathodeCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathodeCable"/>
+</volume>
+
+<volume name="volCathodeCableShort">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathodeCableShort"/>
+</volume>
+
+<volume name="volCathodeInnerBox">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathodeInnerBox"/>
+</volume>
+
+<volume name="volCathodeSupportInnerBox">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathodeSupportInnerBox"/>
+</volume>
+
+
+<volume name="volCathunion">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="Cathunion4"/>
+</volume>
+
+<volume name="volCathSupunion">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathSupunion4"/>
+</volume>
+
+ <volume name="volCathode">
+  <materialref ref="LAr"/>
+  <solidref ref="CathodeModule"/>
+
+  <physvol>
+   <volumeref ref="volCathunion"/>
+   <position name="posCath18" unit="cm" x="@{[$xCathorigin]}" y="$yCathorigin" z="@{[$zCathoriging]}"/>
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volCathSupunion"/>
+   <position name="posCathSup" unit="cm" x="@{[$xCathSuporigin]}" y="$yCathSuporigin" z="@{[$zCathSuporigin]}"/>
+  </physvol>
+
+EOF
+
+$aux=4;
+$aux2=$aux+1;
+for($ii=0;$ii<$CathodeInnerStructureNumberOfBars;$ii++)
+{
+	$aux2=$aux+1;
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeInnerBox"/>
+   <position name="posCathInnerBox$ii" unit="cm" x="@{[$xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii+1)*$CathodeInnerStructureSeparation]}" y="$yCathorigin" z="@{[zCathoriging+$CathodeTorRad-0.5*($CathodeInnerStructureLength-$CathodeTubeLength)-0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
+  </physvol>
+EOF
+   $aux++; 
+}
+
+
+
+for($ii=0;$ii<$CathodeInnerStructureNumberOfBars;$ii++)
+{
+	$aux2=$aux+1;
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeInnerBox"/>
+   <position name="posCathInnerBoxLat$ii" unit="cm" x="@{[$xCathorigin-0.5*$CathodeTubeLength-$CathodeTorRad+0.5*($CathodeInnerStructureLength-$CathodeTubeLength)]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($ii+1)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
+   <rotation name="Cathrot$aux2" unit="deg" x="0" y="90" z="0" /> 
+   </physvol>
+EOF
+    $aux++;   
+}
+
+
+for($kk=0;$kk<$CathodeInnerStructureNumberOfBars;$kk=$kk+2)
+{
+for($ii=0;$ii<=$CathodeInnerStructureNumberOfBars;$ii=$ii+2)
+{
+if ($kk==2) {$ii=$ii+2;};
+
+ for($jj=0;$jj<2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;$jj++)
+ {
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathCable$ii$jj$kk" unit="cm" x="@{[($xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+($jj+1)*$CathodeInnerStructureCableSeparation)]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk+1)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
+ </physvol>
+EOF
+   if($ii ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1 && $jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-2) {$jj=2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;}
+   if($jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1) {$jj++;}
+
+ }
+if ($kk==2) {$ii=$ii+2;};
+if ($kk==0) {$ii=$ii+2;};
+
+}
+}
+
+
+$kk=4;
+for($ii=0;$ii<=$CathodeInnerStructureNumberOfBars;$ii=$ii+4)
+{
+ for($jj=0;$jj<2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;$jj++)
+ {
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeCableShort"/>
+   <position name="posCathCableShort$ii$jj$kk" unit="cm" x="@{[($xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+($jj+1)*$CathodeInnerStructureCableSeparation)]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious+0.5*$CathodeInnerCableLengthShort]}"/>
+ </physvol>
+EOF
+   if($ii ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1 && $jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-2) {$jj=2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;}
+   if($jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1) {$jj++;}
+
+ }
+}
+
+
+for($ii=0;$ii<$CathodeInnerStructureNumberOfBars;$ii=$ii+2)
+{
+for($kk=0;$kk<=$CathodeInnerStructureNumberOfBars;$kk=$kk+2)
+{
+if ($ii==0) {$kk=$kk+2;};
+
+ for($jj=0;$jj<2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;$jj++)
+ {
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathCable$ii$jj$kk" unit="cm" x="@{[$xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii+1)*$CathodeInnerStructureSeparation]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious +($jj+1)*$CathodeInnerStructureCableSeparation]}"/>
+   <rotation name="CathCablerot$ii$jj$kk" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+EOF
+   if($kk ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1 && $jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-2) {$jj=2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;}
+   if($jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1) {$jj++;}
+
+ }
+if ($ii==2) {$kk=$kk+2;};
+if ($ii==0) {$kk=$kk+2;};
+
+}
+}
+
+$ii=4;
+$kk=2;
+ for($jj=0;$jj<2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;$jj++)
+ {
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeCableShort"/>
+   <position name="posCathCableShort$ii$jj$kk" unit="cm" x="@{[$xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+0.5*$CathodeInnerCableLengthShort]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious +($jj+1)*$CathodeInnerStructureCableSeparation]}"/>
+   <rotation name="CathCablerot$ii$jj$kk" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+EOF
+   if($jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1) {$jj++;}
+
+ }
+
+
+for($ii=0;$ii<$CathodeSupportInnerStructureNumberOfBars;$ii++)
+{
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeSupportInnerBox"/>
+   <position name="posCathSupInnerBoxLat$ii" unit="cm" x="@{[$xCathSuporigin-0.5*$CathodeSupportTubeLength-$CathodeSupportTorRad+0.5*($CathodeSupportInnerStructureLength-$CathodeSupportTubeLength)]}" y="$yCathSuporigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($ii+1)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
+   <rotation name="CathSupInnerBoxLatrot$ii" unit="deg" x="0" y="90" z="0" /> 
+   </physvol>
+EOF
+}
+
+for($ii=0;$ii<$CathodeSupportInnerStructureNumberOfBars;$ii++)
+{
+	$aux2=$aux+1;
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeSupportInnerBox"/>
+   <position name="posCathSupInnerBox$ii" unit="cm" x="@{[$xCathSuporigin-$CathodeSupportTubeLength-$CathodeSupportTorRad+$CathodeSupportInnerStructureWidth+($ii+1)*$CathodeSupportInnerStructureSeparation]}" y="$yCathSuporigin" z="@{[$zCathSuporigin+$CathodeSupportTorRad-$CathodeSupportOuterRadious-4]}"/>
+  </physvol>
+EOF
+   $aux++; 
+}
+
+for($ii=0;$ii<=$CathodeSupportInnerStructureNumberOfBars+1;$ii++)
+{
+   for($jj=0;$jj<=$CathodeSupportInnerStructureNumberOfBars+1;$jj++)
+   {	print Cathode <<EOF;
+    <physvol>
+   <volumeref ref="volCathodeSupportSeparators"/>
+   <position name="posCathodeSupportSeparators$ii$jj" unit="cm" x="@{[$xCathSuporigin-$CathodeSupportTubeLength-$CathodeSupportTorRad+$CathodeSupportInnerStructureWidth+($ii)*$CathodeSupportInnerStructureSeparation]}" y="@{[0.5*$CathodeSupportDistance+$yCathSuporigin]}" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($jj)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
+  </physvol>
+EOF
+	if(($jj==$CathodeSupportInnerStructureNumberOfBars+1 )&& $jj!=$ii)
+	{
+		
+	print Cathode <<EOF;
+    <physvol>
+   <volumeref ref="volCathodeSupportSeparatorsBorder"/>
+   <position name="posCathodeSupportSeparatorsBorder$ii$jj" unit="cm" x="@{[$xCathSuporigin-$CathodeSupportTubeLength-$CathodeSupportTorRad+$CathodeSupportInnerStructureWidth+($ii)*$CathodeSupportInnerStructureSeparation]}" y="@{[0.5*$CathodeSupportDistance+$yCathSuporigin]}" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($jj)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious+0.5*49.5]}"/>
+   <rotation name="CathSupSepRot$ii$jj" unit="deg" x="292" y="0" z="0" /> 
+  </physvol>
+EOF
+		
+	}
+
+	if(($ii==$CathodeSupportInnerStructureNumberOfBars+1)&& $jj!=$ii)
+	{
+		
+	print Cathode <<EOF;
+    <physvol>
+   <volumeref ref="volCathodeSupportSeparatorsBorder"/>
+   <position name="posCathodeSupportSeparatorsBorder$ii$jj" unit="cm" x="@{[$xCathSuporigin-$CathodeSupportTubeLength-$CathodeSupportTorRad+$CathodeSupportInnerStructureWidth+($ii)*$CathodeSupportInnerStructureSeparation+0.5*49.5]}" y="@{[0.5*$CathodeSupportDistance+$yCathSuporigin]}" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($jj)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
+   <rotation name="CathSupSepRot$ii$jj" unit="deg" x="0" y="0" z="68" /> 
+
+  </physvol>
+EOF
+		
+	}
+
+
+	if($ii==$CathodeSupportInnerStructureNumberOfBars+1){if($jj==$CathodeSupportInnerStructureNumberOfBars) {$j++;}}
+   }
+}
+
+	print Cathode <<EOF;
+  
+  </volume>
+</structure>
+</gdml>
+EOF
+close(Cathode);
+}
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_LEMs +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_LEMs {
+
+
+    $LEMs = $basename."_LEMs" . $suffix . ".gdml";
+    push (@gdmlFiles, $LEMs);
+    $LEMs = ">" . $LEMs;
+    open(LEMs) or die("Could not open file $LEMs for writing");
+
+# The standard XML prefix and starting the gdml
+print LEMs <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
+
+$LEMsSizeX=0.1;
+$LEMsSizeY=600.64;
+$LEMsSizeZ=600.64;
+
+print LEMs <<EOF;
+
+<solids>
+     <box name="solLEMs" x="@{[$LEMsSizeX]}" y="$LEMsSizeY" z="@{[$LEMsSizeZ]}" lunit="cm"/>
+
+</solids>
+
+EOF
+print LEMs <<EOF;
+
+
+<structure>
+ <volume name="volLEMs">
+  <materialref ref="Copper_Beryllium_alloy25"/>
+  <solidref ref="solLEMs"/>
+ </volume>
+</structure>
+</gdml>
+EOF
+close(LEMs);
+}
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++ gen_pmt +++++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 sub gen_pmt {
 
-
 #PMTs
-
 #$PMT_COATING_THICKNESS=0.2;#
 #$PMT_PLATE_THICKNESS=0.4;
 #$PMT_GLASS_THICKNESS=0.2;
@@ -612,8 +1707,14 @@ sub gen_pmt {
     $PMT = ">" . $PMT;
     open(PMT) or die("Could not open file $PMT for writing");
 
+# The standard XML prefix and starting the gdml
+print PMT <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
 
-	print PMT <<EOF;
+#PMT SOLIDS
+print PMT <<EOF;
 
 <solids>
  <tube name="PMTVolume"
@@ -648,6 +1749,10 @@ sub gen_pmt {
 
 </solids>
 
+EOF
+print PMT <<EOF;
+
+
 <structure>
  <volume name="pmtCoatVol">
   <materialref ref="TPB"/>
@@ -674,10 +1779,10 @@ sub gen_pmt {
   </physvol>
 
  </volume>
-
 </structure>
-
+</gdml>
 EOF
+close(PMT);
 }
 
   #<physvol>
@@ -760,8 +1865,8 @@ EOF
 
 if ($tpc_on==1) # place TPC inside croysotat
 {
-
 $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
+
 for($ii=0;$ii<$nCRM_z;$ii++)
 {
     $posZ = -0.5*$Argon_z + $zLArBuffer + ($ii+0.5)*$lengthCRM;
@@ -794,6 +1899,199 @@ EOF
   </physvol>
 EOF
     }
+
+  }
+
+$GroundGridPosX=-$Argon_x/2 + 47.5;
+$GroundGridPosY=0.5*($GroundGridInnerStructureLength+2+$GroundGridOuterRadious);
+
+  if ( $GroundGrid_switch eq "on" )
+  {
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volGroundGrid"/>
+   <position name="posGroundGrid01" unit="cm" x="$GroundGridPosX" y="@{[-$GroundGridPosY]}" z="@{[$GroundGridPosY]}"/>
+   <rotation name="rotGG01" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volGroundGrid"/>
+   <position name="posGroundGrid02" unit="cm" x="$GroundGridPosX" y="@{[-$GroundGridPosY]}" z="@{[-$GroundGridPosY]}"/>
+   <rotation name="rotGG02" unit="deg" x="0" y="180" z="90"  />
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volGroundGrid"/>
+   <position name="posGroundGrid03" unit="cm" x="$GroundGridPosX" y="@{[$GroundGridPosY]}" z="@{[-$GroundGridPosY]}"/>
+   <rotation name="rotGG03" unit="deg" x="180" y="0" z="90" />
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volGroundGrid"/>
+   <position name="posGroundGrid04" unit="cm" x="$GroundGridPosX" y="@{[$GroundGridPosY]}" z="@{[$GroundGridPosY]}"/>
+   <rotation name="rotGG04" unit="deg" x="180" y="180" z="90"/>
+  </physvol>
+EOF
+
+  }
+
+$CathodePosX=-$Argon_x/2 + 47.5 + 94.0 - 0.5*$CathodeSupportDistance;
+$CathodePosY=0.5*($CathodeInnerStructureLength+2+$CathodeOuterRadious);
+
+  if ( $Cathode_switch eq "on" )
+  {
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volCathode"/>
+   <position name="posCathode01" unit="cm" x="$CathodePosX" y="@{[-$CathodePosY]}" z="@{[$CathodePosY]}"/>
+   <rotation name="rotCath01" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volCathode"/>
+   <position name="posCathode02" unit="cm" x="$CathodePosX" y="@{[-$CathodePosY]}" z="@{[-$CathodePosY]}"/>
+   <rotation name="rotCath02" unit="deg" x="270" y="0" z="90"  />
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volCathode"/>
+   <position name="posCathode03" unit="cm" x="$CathodePosX" y="@{[$CathodePosY]}" z="@{[-$CathodePosY]}"/>
+   <rotation name="rotCath03" unit="deg" x="180" y="0" z="90" />
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volCathode"/>
+   <position name="posCathode04" unit="cm" x="$CathodePosX" y="@{[$CathodePosY]}" z="@{[$CathodePosY]}"/>
+   <rotation name="rotCath04" unit="deg" x="90" y="0" z="90"/>
+  </physvol>
+EOF
+
+  }
+
+  if ( $FieldCage_switch eq "on" )
+  {
+
+$FFSPositionX = -$OriginXSet;
+$FFSPositionY = 309.593;
+$FFSPositionZ = 153.521;
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule01" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
+   <rotationref ref="rPlus90AboutY"/>
+  </physvol>
+EOF
+$FFSPositionX = -$OriginXSet;
+$FFSPositionY = 309.593;
+$FFSPositionZ = -153.521;
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule02" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
+   <rotationref ref="rMinus90AboutY"/>
+  </physvol>
+EOF
+$FFSPositionX = -$OriginXSet;
+$FFSPositionY = -309.593;
+$FFSPositionZ = -153.521;
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule05" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
+   <rotationref ref="rot05"/>
+
+  </physvol>
+EOF
+$FFSPositionX = -$OriginXSet;
+$FFSPositionY = -309.593;
+$FFSPositionZ = 153.521;
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule06" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
+   <rotationref ref="rot06"/>
+
+  </physvol>
+EOF
+
+$FFSPositionX = -$OriginXSet;
+$FFSPositionY = 153.521;
+$FFSPositionZ = -309.593;
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule03" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
+   <rotationref ref="rot03"/>
+
+  </physvol>
+EOF
+$FFSPositionX = -$OriginXSet;
+$FFSPositionY = -153.521;
+$FFSPositionZ = -309.593;
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule04" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
+   <rotationref ref="rot04"/>
+
+  </physvol>
+EOF
+$FFSPositionX = -$OriginXSet;
+$FFSPositionY = -153.521;
+$FFSPositionZ = 309.593;
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule07" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
+   <rotationref ref="rot07"/>
+
+  </physvol>
+EOF
+$FFSPositionX = -$OriginXSet;
+$FFSPositionY = 153.521;
+$FFSPositionZ = 309.593;
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule08" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
+   <rotationref ref="rot08"/>
+
+  </physvol>
+EOF
+
+  }
+
+  if ( $ExtractionGrid_switch eq "on" )
+  {
+
+$ExtractionGridX = 0.5*$Argon_x-$HeightGaseousAr-0.5-0.5*$ExtractionGridSizeX;
+$ExtractionGridY = 0;
+$ExtractionGridZ = 0;
+
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGrid"/>
+   <position name="posExtractionGrid" unit="cm" x="$ExtractionGridX" y="$ExtractionGridY" z="$ExtractionGridZ"/>
+
+  </physvol>
+EOF
+
+  }
+
+  if ( $LEMs_switch eq "on" )
+  {
+
+$posLEMsX = 0.5*$Argon_x-$HeightGaseousAr+0.5+0.5*$LEMsSizeX;
+$posLEMsY = 0;
+$posLEMsZ = 0;
+
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volLEMs"/>
+   <position name="posLEMs" unit="cm" x="$posLEMsX" y="$posLEMsY" z="$posLEMsZ"/>
+
+  </physvol>
+EOF
 
   }
 
@@ -2023,9 +3321,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="@{[$DetEncWidth+2*$AirThickness]}" 
-      y="@{[$DetEncHeight+2*$AirThickness]}" 
-      z="@{[$DetEncLength+2*$AirThickness]}"/>
+      x="@{[$DetEncWidth+2*$RockThickness]}" 
+      y="@{[$DetEncHeight+2*$RockThickness]}" 
+      z="@{[$DetEncLength+2*$RockThickness]}"/>
 </solids>
 EOF
 
@@ -2136,19 +3434,28 @@ print "TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive
 print "Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 
 print "Detector enclosure : $DetEncWidth x $DetEncHeight x $DetEncLength\n";
 print "TPC Origin         : ($OriginXSet, $OriginYSet, $OriginZSet) \n";
+print "Field Cage         : $FieldCage_switch \n";
+print "Cathode            : $Cathode_switch \n";;
+print "GroundGrid         : $GroundGrid_switch \n";
+print "ExtractionGrid     : $ExtractionGrid_switch \n";
+print "LEMs               : $LEMs_switch \n";
 print "PMTs               : $pmt_switch \n";
-
 # run the sub routines that generate the fragments
+
 if ( $pmt_switch eq "on" ) {  gen_pmt();	}
+if ( $FieldCage_switch eq "on" ) {  gen_FieldCage();	}
+if ( $GroundGrid_switch eq "on" ) {  gen_GroundGrid();	}
+if ( $Cathode_switch eq "on" ) {  gen_Cathode();	}
+if ( $ExtractionGrid_switch eq "on" ) {  gen_ExtractionGrid();	}
+if ( $LEMs_switch eq "on" ) {  gen_LEMs();	}
+
 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used
 gen_TPC();       # generate TPC for a given unit CRM
 gen_Cryostat();  # 
 gen_Enclosure(); # 
-gen_World();	 # places the enclosure among DUSEL Rock
-
-
+gen_World();	 # places the enclosure among DUSEL Rockk
 write_fragments(); # writes the XML input for make_gdml.pl
 		   # which zips together the final GDML
 exit;

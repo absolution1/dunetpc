@@ -218,7 +218,6 @@ void DataPrepModule::produce(art::Event& evt) {
     // Use the data preparation service to build the wires and intermediate states.
     int rstat = m_pRawDigitPrepService->prepare(datamap, pwires.get(), pintStates);
     if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation service returned error " << rstat;
-    if ( pwires->size() == 0 ) mf::LogWarning("DataPrepModule") << "No wires made for this event.";
 
     // Build associations between wires and digits.
     if ( m_DoAssns ) {
@@ -245,6 +244,7 @@ void DataPrepModule::produce(art::Event& evt) {
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Created wire count: " << pwires->size() << endl;
   }
+  if ( pwires->size() == 0 ) mf::LogWarning("DataPrepModule") << "No wires made for this event.";
 
   // Record wires and associations in the event.
   evt.put(std::move(pwires), m_WireName);

@@ -40,6 +40,9 @@ int DuneRoiBuildingService::build(AdcChannelData& data) const {
   // Get signal shaping service.
   art::ServiceHandle<util::SignalShapingServiceDUNE> hsss;
   AdcSignal sigma = hsss->GetDeconNoise(data.channel);
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "  Noise level: " << sigma << " " << data.sampleUnit << endl;
+  }
   const AdcSignalVector& sigs = data.samples;
   // Build ROIS before padding and merging.
   AdcFilterVector& signal = data.signal;

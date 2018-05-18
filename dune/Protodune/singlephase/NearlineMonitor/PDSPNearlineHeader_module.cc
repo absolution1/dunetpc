@@ -1,7 +1,7 @@
 // Header module file. For now saves the run and subrun ids of the input file into a TTree
 
-#ifndef Header_module
-#define Header_module
+#ifndef PDSPNearlineHeader_module
+#define PDSPNearlineHeader_module
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -26,13 +26,13 @@
 #include <iostream>
 #include <vector>
 
-namespace header_module{
+namespace PDSPNearlineheader_module{
   
-  class HeaderModule : public art::EDAnalyzer{
+  class PDSPNearlineHeaderModule : public art::EDAnalyzer{
   public:
     
-    explicit HeaderModule(fhicl::ParameterSet const& pset);
-    virtual ~HeaderModule();
+    explicit PDSPNearlineHeaderModule(fhicl::ParameterSet const& pset);
+    virtual ~PDSPNearlineHeaderModule();
     
     void beginJob();
     void analyze(const art::Event& evt);
@@ -41,8 +41,9 @@ namespace header_module{
     
     int fRun;
     int fSubRun;
+    double fTimeStamp;
     
-    TTree *fHeaderTree;
+    TTree *fPDSPNearlineHeaderTree;
     
     std::vector<TString> runset;
     
@@ -50,38 +51,40 @@ namespace header_module{
   
 
   //-----------------------------------------------------------------------
-  HeaderModule::HeaderModule(fhicl::ParameterSet const& pset) : EDAnalyzer(pset){
+  PDSPNearlineHeaderModule::PDSPNearlineHeaderModule(fhicl::ParameterSet const& pset) : EDAnalyzer(pset){
     
     art::ServiceHandle<art::TFileService> tfs;
     
     // Define output tree
-    fHeaderTree = tfs->make<TTree>("Header", "header tree");
-    fHeaderTree->Branch("fRun",    &fRun,    "fRun/I");
-    fHeaderTree->Branch("fSubRun", &fSubRun, "fSubRun/I");
+    fPDSPNearlineHeaderTree = tfs->make<TTree>("PDSPNearlineHeader", "PDSP Nearline header tree");
+    fPDSPNearlineHeaderTree->Branch("fRun",       &fRun,       "fRun/I");
+    fPDSPNearlineHeaderTree->Branch("fSubRun",    &fSubRun,    "fSubRun/I");
+    fPDSPNearlineHeaderTree->Branch("fTimeStamp", &fTimeStamp, "fTimeStamp/D");
   }
   
   //-----------------------------------------------------------------------
-  HeaderModule::~HeaderModule(){}
+  PDSPNearlineHeaderModule::~PDSPNearlineHeaderModule(){}
   
   //-----------------------------------------------------------------------
-  void HeaderModule::beginJob() {}
+  void PDSPNearlineHeaderModule::beginJob() {}
   
   //-----------------------------------------------------------------------
-  void HeaderModule::analyze(const art::Event& evt){
+  void PDSPNearlineHeaderModule::analyze(const art::Event& evt){
     
     fRun = evt.run();
     fSubRun = evt.subRun();
+    fTimeStamp = evt.time().value();
     
     TString tempstring = Form("%i-%i",fRun,fSubRun);
     
     int num_items = std::count(runset.begin(), runset.end(), tempstring);
-    if(num_items == 0){ // run-subrun not in vector - add it and save in output
+    if(num_items == 0){ // run-subrun not in vector - add it and save
       runset.push_back(tempstring);
-      fHeaderTree->Fill();
+      fPDSPNearlineHeaderTree->Fill();
     }
   } 
 } // namespace
 
-DEFINE_ART_MODULE(header_module::HeaderModule)
+DEFINE_ART_MODULE(PDSPNearlineheader_module::PDSPNearlineHeaderModule)
 
 #endif
