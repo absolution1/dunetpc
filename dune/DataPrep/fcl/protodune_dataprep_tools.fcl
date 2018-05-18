@@ -157,9 +157,16 @@ pdwp_template: {
 tools.pdwp_channelTickPlotApa1z: @local::pdwp_template
 tools.pdwp_channelTickPlotApa1z.FirstChannel:  2080
 tools.pdwp_channelTickPlotApa1z.LastChannel:   2560
-tools.pdwp_channelTickPlotApa1z.HistName: "hadcprp_evt%EVENT%_apa1x"
-tools.pdwp_channelTickPlotApa1z.HistTitle: "Prepared ADC for plane 1x run %RUN% event %EVENT%"
-tools.pdwp_channelTickPlotApa1z.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1x.png"
+tools.pdwp_channelTickPlotApa1z.HistName: "hadcprp_evt%EVENT%_apa1z"
+tools.pdwp_channelTickPlotApa1z.HistTitle: "Prepared ADC for plane 1z run %RUN% event %EVENT%"
+tools.pdwp_channelTickPlotApa1z.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1z.png"
+
+tools.pdwp_channelTickPlotApa1c: @local::pdwp_template
+tools.pdwp_channelTickPlotApa1c.FirstChannel:  1600
+tools.pdwp_channelTickPlotApa1c.LastChannel:   2080
+tools.pdwp_channelTickPlotApa1c.HistName: "hadcprp_evt%EVENT%_apa1c"
+tools.pdwp_channelTickPlotApa1c.HistTitle: "Prepared ADC for plane 1c run %RUN% event %EVENT%"
+tools.pdwp_channelTickPlotApa1c.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1c.png"
 
 tools.pdwp_channelTickPlotApa1u: @local::pdwp_template
 tools.pdwp_channelTickPlotApa1u.FirstChannel:     0
