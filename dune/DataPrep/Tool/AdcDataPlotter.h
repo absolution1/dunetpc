@@ -41,7 +41,7 @@
 // ChannelLinePattern.
 //
 // If FirstChannel < LastChannel, then only channels in that range are displayed
-// and no histogram is produced the passed data has no channels in the range.
+// and no histogram is produced if the passed data has no channels in the range.
 
 #ifndef AdcDataPlotter_H
 #define AdcDataPlotter_H
