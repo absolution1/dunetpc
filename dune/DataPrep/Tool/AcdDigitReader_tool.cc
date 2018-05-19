@@ -59,6 +59,7 @@ DataMap AcdDigitReader::update(AdcChannelData& acd) const {
   unsigned int nsig = dig.Samples();
   acd.raw.resize(nsig, -999);  // See https://cdcvs.fnal.gov/redmine/issues/11572.
   raw::Uncompress(dig.ADCs(), acd.raw, dig.GetPedestal(), dig.Compression());
+  if ( m_LogLevel >= 3 ) cout << myname << "Channel " << acd.channel << " raw count: " << acd.raw.size() << endl;
   return DataMap(0);
 }
 

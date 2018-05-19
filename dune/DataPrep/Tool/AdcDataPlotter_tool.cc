@@ -85,6 +85,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   const AdcChannelData& acdLast = acds.rbegin()->second;
   bool isPrep = m_DataType == 0;
   bool isRaw = m_DataType == 1;
+  bool isSig = m_DataType == 2;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( iacd.first == AdcChannelData::badChannel ) {
@@ -98,8 +99,8 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   AdcIndex chanFirst = acdChanFirst;
   AdcIndex chanLast = acdChanLast;
   if ( m_LastChannel > m_FirstChannel ) {
-    if ( m_FirstChannel > chanFirst ) chanFirst = m_FirstChannel;
-    if ( m_LastChannel <= chanLast ) chanLast = m_LastChannel - 1;
+    chanFirst = m_FirstChannel;
+    chanLast = m_LastChannel - 1;
   }
   if ( chanLast < chanFirst ) {
     if ( m_LogLevel >= 3 ) cout << myname << "No channels in view range for data range ("
@@ -155,10 +156,23 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   ph->GetZaxis()->SetRangeUser(-zmax, zmax);
   ph->SetContour(40);
   // Fill histogram.
-  for ( const AdcChannelDataMap::value_type& iacd : acds ) {
-    AdcChannel chan = iacd.first;
-    const AdcChannelData& acd = iacd.second;
+  const bool doZero = false;
+  for ( AdcChannel chan=chanFirst; chan<chanLast; ++chan ) {
+    unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
+    AdcChannelDataMap::const_iterator iacd = acds.find(chan);
+    if ( iacd == acds.end() ) {
+      if ( doZero ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Filling channel-tick histogram with zero for channel " << chan << endl;
+        unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
+        for ( Tick isam=tick1; isam<tick2; ++isam, ++ibin ) ph->SetBinContent(ibin, 0.0);
+      } else {
+        if ( m_LogLevel >= 3 ) cout << myname << "Not filling channel-tick histogram for channel " << chan << endl;
+      }
+      continue;
+    }
+    const AdcChannelData& acd = iacd->second;
     const AdcSignalVector& sams = acd.samples;
+    const AdcFilterVector& keep = acd.signal;
     const AdcCountVector& raw = acd.raw;
     AdcSignal ped = 0.0;
     bool isRawPed = false;
@@ -167,14 +181,18 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       isRawPed = ped != AdcChannelData::badSignal;
     }
     Tick nsam = isRaw ? raw.size() : sams.size();
-    unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
-    for ( Tick isam=0; isam<nsam; ++isam, ++ibin ) {
-      unsigned int isig = isam + m_FirstTick;
+    if ( m_LogLevel >= 3 ) {
+      cout << myname << "Filling channel-tick histogram with " << nsam << " samples for channel " << chan << endl;
+    }
+    for ( Tick isam=tick1; isam<tick2; ++isam, ++ibin ) {
+      if ( isSig && isam >= acd.signal.size() ) break;
       float sig = 0.0;
       if ( isPrep ) {
-        if ( isig < sams.size() ) sig = sams[isig];
+        if ( isam < sams.size() ) sig = sams[isam];
       } else if ( isRawPed ) {
-        if ( isig < raw.size() ) sig = raw[isig] - ped;
+        if ( isam < raw.size() ) sig = raw[isam] - ped;
+      } else if ( isSig ) {
+        if ( isam < sams.size() && isam < keep.size() && keep[isam] ) sig = sams[isam];
       } else {
         cout << myname << "Fill failed for bin " << ibin << endl;
       }

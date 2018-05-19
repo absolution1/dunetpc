@@ -1,8 +1,8 @@
 #ifndef CLASS_CHANNELCLUSTER_H
 #define CLASS_CHANNELCLUSTER_H
 
-#include "/Users/alexanderbooth/Documents/Work/Year1/SNTrigger/EndCode_1802/Clustering/class_RecoHit.h"
-#include "/Users/alexanderbooth/Documents/Work/Year1/SNTrigger/EndCode_1802/Clustering/class_Cluster.h"
+#include "class_RecoHit.h"
+#include "class_Cluster.h"
 
 class channelCluster
 {
