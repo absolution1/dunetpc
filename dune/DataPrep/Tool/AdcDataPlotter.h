@@ -7,7 +7,7 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   DataType - Which data to plot: 0=prepared, 1=raw-pedestal
+//   DataType - Which data to plot: 0=prepared, 1=raw-pedestal, 2=signal
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
 //   FirstChannel - First channel to display
@@ -41,7 +41,7 @@
 // ChannelLinePattern.
 //
 // If FirstChannel < LastChannel, then only channels in that range are displayed
-// and no histogram is produced the passed data has no channels in the range.
+// and no histogram is produced if the passed data has no channels in the range.
 
 #ifndef AdcDataPlotter_H
 #define AdcDataPlotter_H

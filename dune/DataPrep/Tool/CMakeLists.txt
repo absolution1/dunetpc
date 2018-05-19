@@ -82,12 +82,25 @@ simple_plugin(AdcSampleFiller   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(VintageDeconvoluter   "tool"
+                SignalShapingServiceDUNE_service
+                art_Framework_Services_Registry
+                art_Utilities
+                canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcUnderflowFlagger   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(AdcThresholdSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+simple_plugin(DuneAdcSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
@@ -124,6 +137,14 @@ simple_plugin(FembMappedAdcModifier   "tool"
              )
 
 simple_plugin(AdcChannelFFT   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelDftPlotter   "tool"
+                dune_DataPrep_Utility
+                dune_DuneCommon
                 dune_ArtSupport
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

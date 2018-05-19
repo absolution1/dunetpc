@@ -15,6 +15,7 @@
 #include "TH1F.h"
 #include "TF1.h"
 #include "TROOT.h"
+#include "TError.h"
 
 using std::string;
 using std::cout;
@@ -109,7 +110,8 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
     pman = new TPadManipulator;
     if ( m_PlotSizeX && m_PlotSizeY ) pman->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
   }
-  DataMap res = getPedestal(acd, pman);
+  DataMap res = getPedestal(acd);
+  fillChannelPad(res, pman);
   if ( pman != nullptr ) {
     string pfname = nameReplace(m_PlotFileName, acd, false);
     pman->print(pfname);
@@ -176,7 +178,8 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
     }
     Index ipad = npad == 0 ? 0 : iacd % npad;
     TPadManipulator* pman = pmantop == nullptr ? nullptr : pmantop->man(ipad);
-    DataMap tmpres = getPedestal(acd, pman);
+    DataMap tmpres = getPedestal(acd);
+    fillChannelPad(tmpres, pman);
     fitStats[iacd] = tmpres.status();
     float fitPedestal = 0.0;
     float fitPedestalRms = 0.0;
@@ -236,7 +239,7 @@ nameReplace(string name, const AdcChannelData& acd, bool isTitle) const {
 //**********************************************************************
 
 DataMap
-AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman) const {
+AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   const string myname = "AdcPedestalFitter::getPedestal: ";
   DataMap res;
   if ( m_LogLevel >= 2 ) cout << myname << "Fitting pedestal for channel " << acd.channel << endl;
@@ -325,7 +328,19 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman)
   string fopt = "0";
   fopt = "WWB";
   if ( m_LogLevel < 3 ) fopt += "Q";
+  // Block Root info message for new Canvas produced in fit.
+  int levelSave = gErrorIgnoreLevel;
+  gErrorIgnoreLevel = 1001;
+  // Block non-default (e.g. art) from handling the Root "error".
+  // We switch to the Root default handler while making the call to Print.
+  ErrorHandlerFunc_t pehSave = nullptr;
+  ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
+  if ( GetErrorHandler() != pehDefault ) {
+    pehSave = SetErrorHandler(pehDefault);
+  }
   phf->Fit(&fitter, fopt.c_str());
+  if ( pehSave != nullptr ) SetErrorHandler(pehSave);
+  gErrorIgnoreLevel = levelSave;
   phf->GetListOfFunctions()->AddLast(pfinit, "0");
   phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
   double valEval = fitter.Eval(xcomax);
@@ -339,6 +354,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman)
   res.setFloat("fitPeakBinExcess", peakBinExcess);
   res.setInt("fitChannel", acd.channel);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
+/*
   if ( pman != nullptr ) {
     pman->add(phf, "hist", false);
     if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
@@ -347,6 +363,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman)
     pman->showUnderflow();
     pman->showOverflow();
   }
+*/
   if ( rfname.size() ) {
     if ( m_LogLevel >=2 ) cout << myname << "Write histogram " << phf->GetName() << " to " << rfname << endl;
     TFile* pf = TFile::Open(rfname.c_str(), "UPDATE");
@@ -357,6 +374,20 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd, TPadManipulator* pman)
   }
   if ( m_LogLevel >= 3 ) cout << myname << "Exiting..." << endl;
   return res;
+}
+
+//**********************************************************************
+
+int AdcPedestalFitter::fillChannelPad(DataMap& dm, TPadManipulator* pman) const {
+  if ( pman == nullptr ) return 1;
+  TH1* phf = dm.getHist("pedestal");
+  pman->add(phf, "hist", false);
+  if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
+  if ( m_PlotShowFit ) pman->addHistFun(0);
+  pman->addVerticalModLines(64);
+  pman->showUnderflow();
+  pman->showOverflow();
+  return 0;
 }
 
 //**********************************************************************

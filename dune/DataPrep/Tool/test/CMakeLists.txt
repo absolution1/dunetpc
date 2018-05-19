@@ -55,6 +55,18 @@ cet_test(test_AdcPedestalFitter SOURCES test_AdcPedestalFitter.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_VintageDeconvoluter SOURCES test_VintageDeconvoluter.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcDataDumper SOURCES test_AdcDataDumper.cxx
   LIBRARIES
     dune_ArtSupport
@@ -168,6 +180,20 @@ cet_test(test_AdcRegularSignalFinder
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_DuneAdcSignalFinder
+  SOURCES
+    test_DuneAdcSignalFinder.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AcdWireReader SOURCES test_AcdWireReader.cxx
   LIBRARIES
     lardataobj_RawData
@@ -213,6 +239,20 @@ cet_test(test_FembLinearCalibration
 cet_test(test_AdcChannelFFT
   SOURCES
     test_AdcChannelFFT.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_test(test_AdcChannelDftPlotter
+  SOURCES
+    test_AdcChannelDftPlotter.cxx
   LIBRARIES
     dune_ArtSupport
     art_Utilities
