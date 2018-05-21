@@ -36,12 +36,12 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcRoiViewer" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "    HistOpt: 1" << endl;
-    fout << "  }" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;
+    fout << "tools.mytool: {" << endl;
+    fout << "  tool_type: AdcRoiViewer" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  HistOpt: 1" << endl;
+    fout << "  RootFileName: \"\"" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -54,7 +54,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() >= 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;

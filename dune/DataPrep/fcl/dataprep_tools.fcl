@@ -164,7 +164,7 @@ tools.rawAdcPlotter: {
   HistTitle: "Raw ADC for event %EVENT%"
   PlotSizeX: 1400
   PlotSizeY: 1000
-  PlotFileName: "adcraw_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  PlotFileName: "adcraw_run%RUN%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
   RootFileName: ""   # or "adc_evt%EVENT%.root"
 }
 
