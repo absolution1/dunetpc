@@ -319,6 +319,7 @@ tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
   HistOpt:  1
+  RootFileName: ""
 }
 
 # Build ROI w.r.t. local baseline

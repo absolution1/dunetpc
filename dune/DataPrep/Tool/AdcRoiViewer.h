@@ -11,6 +11,7 @@
 //                            1 - sample vs. tick
 //                            2 - raw vs. tick
 //                           10 + i - As above for i except vs. tick - tick0
+//   RootFileName - Name of file to which histograms are copied.
 //
 // Output data map:
 //           int        roiCount - # ROI (nROI)
@@ -34,6 +35,8 @@
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <iostream>
 
+class AdcChannelStringTool;
+
 class AdcRoiViewer : AdcChannelTool {
 
 public:
@@ -50,6 +53,11 @@ private:
   // Configuration data.
   int m_LogLevel;
   int m_HistOpt;
+  std::string m_RootFileName;
+
+  // ADC string tools.
+  const AdcChannelStringTool* m_adcNameBuilder;
+  const AdcChannelStringTool* m_adcTitleBuilder;
 
 };
 

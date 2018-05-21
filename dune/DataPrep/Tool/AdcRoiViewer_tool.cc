@@ -1,11 +1,15 @@
 // AdcRoiViewer_tool.cc
 
 #include "AdcRoiViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
+#include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include "TH1F.h"
+#include "TDirectory.h"
+#include "TFile.h"
 
 using std::string;
 using std::cout;
@@ -18,11 +22,26 @@ using std::ostringstream;
 
 AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
-  m_HistOpt(ps.get<int>("HistOpt")) {
+  m_HistOpt(ps.get<int>("HistOpt")),
+  m_RootFileName(ps.get<string>("RootFileName"))
+{
   const string myname = "AdcRoiViewer::ctor: ";
+  string snameBuilder = "adcNameBuilder";
+  DuneToolManager* ptm = DuneToolManager::instance();
+  m_adcNameBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
+  if ( m_adcNameBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
+  }
+  string stitlBuilder = "adcTitleBuilder";
+  m_adcTitleBuilder = ptm->getShared<AdcChannelStringTool>(stitlBuilder);
+  if ( m_adcTitleBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stitlBuilder << endl;
+  }
+
   if ( m_LogLevel>= 1 ) {
-    cout << myname << "  LogLevel: " << m_LogLevel << endl;
-    cout << myname << "   HistOpt: " << m_HistOpt << endl;
+    cout << myname << "      LogLevel: " << m_LogLevel << endl;
+    cout << myname << "       HistOpt: " << m_HistOpt << endl;
+    cout << myname << "  RootFileName: " << m_RootFileName << endl;
   }
 }
 
@@ -55,7 +74,7 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       return res.setStatus(1);
     }
   }
-  if ( dbg >=2 ) cout << myname << "Processing " << nroi << " ROIs." << endl;
+  if ( dbg >=2 ) cout << myname << "Processing channel " << acd.channel << ". ROI count is " << nroi << endl;
   DataMap::HistVector roiHists;
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
@@ -70,16 +89,19 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     AdcRoi roi = acd.rois[iroi];
     if ( dbg >=3 ) cout << myname << "  ROI " << iroi << ": ["
                         << roi.first << ", " << roi.second << "]" << endl;
+    
     ostringstream sshnam;
-    sshnam << "hroi";
+    sshnam << "hroi_evt%EVENT%_chan%CHAN%_roi";
     if ( iroi < 100 ) sshnam << "0";
     if ( iroi <  10 ) sshnam << "0";
     sshnam << iroi;
-    string hnam = sshnam.str();
+    string hnam = AdcChannelStringTool::AdcChannelStringTool::build(m_adcNameBuilder, acd, sshnam.str());
     ostringstream sshttl;
-    sshttl << "ROI " << iroi;
-    sshttl << " ;Tick ;Signal";
-    string httl = sshttl.str();
+    sshttl << "Run %RUN% event %EVENT% channel %CHAN% ROI " << iroi;
+    sshttl << " ;Tick ;";
+    if ( histType == 1 ) sshttl << "Signal% [SUNIT]%";
+    if ( histType == 2 ) sshttl << "ADC count";
+    string httl = AdcChannelStringTool::build(m_adcTitleBuilder, acd, sshttl.str());
     unsigned int isam1 = roi.first;
     unsigned int isam2 = roi.second + 1;
     tick1[iroi] = isam1;
@@ -138,6 +160,20 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   res.setFloatVector("roiSigMaxs", roiSigMaxs);
   res.setFloatVector("roiSigAreas", roiSigAreas);
   res.setHistVector("roiHists", roiHists, true);
+  if ( m_RootFileName.size () ) {
+    TDirectory* savdir = gDirectory;
+    string ofrname = AdcChannelStringTool::build(m_adcNameBuilder, acd, m_RootFileName);
+    if ( m_LogLevel >= 2 ) cout << myname << "Writing histograms to " << ofrname << endl;
+    TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
+    for ( TH1* ph : roiHists ) {
+      TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
+      phnew->Write();
+      if ( m_LogLevel >= 3 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
+    }
+    delete pfile;
+    savdir->cd();
+  }
+
   return res;
 }
 
