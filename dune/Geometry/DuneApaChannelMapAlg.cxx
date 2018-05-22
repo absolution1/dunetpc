@@ -496,7 +496,7 @@ ChannelID_t DuneApaChannelMapAlg::PlaneWireToChannel(WireID const& wirid) const 
 
 //----------------------------------------------------------------------------
 
-SigType_t DuneApaChannelMapAlg::SignalType(ChannelID_t const icha) const {
+SigType_t DuneApaChannelMapAlg::SignalTypeForChannelImpl(ChannelID_t const icha) const {
   Index ncry = fNcryostat;
   for ( Index icry=0; icry<ncry; ++icry ) {
     Index napa=fNApa[icry];
