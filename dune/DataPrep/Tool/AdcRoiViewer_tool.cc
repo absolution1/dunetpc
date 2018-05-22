@@ -3,6 +3,7 @@
 #include "AdcRoiViewer.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneCommon/coldelecResponse.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -10,6 +11,7 @@
 #include "TH1F.h"
 #include "TDirectory.h"
 #include "TFile.h"
+#include "TF1.h"
 
 using std::string;
 using std::cout;
@@ -23,6 +25,7 @@ using std::ostringstream;
 AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_HistOpt(ps.get<int>("HistOpt")),
+  m_FitOpt(ps.get<int>("FitOpt")),
   m_RootFileName(ps.get<string>("RootFileName"))
 {
   const string myname = "AdcRoiViewer::ctor: ";
@@ -41,6 +44,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   if ( m_LogLevel>= 1 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "       HistOpt: " << m_HistOpt << endl;
+    cout << myname << "        FitOpt: " << m_FitOpt << endl;
     cout << myname << "  RootFileName: " << m_RootFileName << endl;
   }
 }
@@ -79,6 +83,9 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
   DataMap::FloatVector roiSigAreas;
+  DataMap::FloatVector roiFitHeights;
+  DataMap::FloatVector roiFitWidths;
+  DataMap::FloatVector roiFitPositions;
   DataMap::IntVector roiTickMins;
   DataMap::IntVector roiTickMaxs;
   DataMap::IntVector nUnderflow(nroi, 0);
@@ -147,6 +154,39 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     roiSigMins.push_back(sigmin);
     roiSigMaxs.push_back(sigmax);
     roiSigAreas.push_back(sigarea);
+    if ( m_FitOpt == 1 ) {
+      if ( m_LogLevel >= 3 ) cout << "  Fitting with coldelecResponse" << endl;
+      bool isNeg = fabs(sigmin) > sigmax;
+      double h = isNeg ? sigmin : sigmax;
+      double shap = 2.5*ph->GetRMS();
+      double t0 = x1 + (isNeg ? roiTickMin : roiTickMax) - shap;
+      TF1* pf = coldelecResponseTF1(h, shap, t0, "coldlec");
+      TF1* pfinit = dynamic_cast<TF1*>(pf->Clone("coldelec0"));
+      pfinit->SetLineColor(3);
+      pfinit->SetLineStyle(2);
+      string fopt = "0";
+      fopt = "WWB";
+      if ( m_LogLevel < 3 ) fopt += "Q";
+      // Block Root info message for new Canvas produced in fit.
+      int levelSave = gErrorIgnoreLevel;
+      gErrorIgnoreLevel = 1001;
+      // Block non-default (e.g. art) from handling the Root "error".
+      // We switch to the Root default handler while making the call to Print.
+      ErrorHandlerFunc_t pehSave = nullptr;
+      ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
+      if ( GetErrorHandler() != pehDefault ) {
+        pehSave = SetErrorHandler(pehDefault);
+      }
+      ph->Fit(pf, fopt.c_str());
+      if ( pehSave != nullptr ) SetErrorHandler(pehSave);
+      gErrorIgnoreLevel = levelSave;
+      ph->GetListOfFunctions()->AddLast(pfinit, "0");
+      ph->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
+      roiFitHeights.push_back(pf->GetParameter(0));
+      roiFitWidths.push_back(pf->GetParameter(1));
+      roiFitPositions.push_back(pf->GetParameter(2));
+      delete pf;
+    }
   }
   res.setInt("roiCount", nroi);
   res.setInt("roiNTickChannel", ntickChannel);
@@ -160,6 +200,11 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   res.setFloatVector("roiSigMaxs", roiSigMaxs);
   res.setFloatVector("roiSigAreas", roiSigAreas);
   res.setHistVector("roiHists", roiHists, true);
+  if ( roiFitHeights.size() ) {
+    res.setFloatVector("roiFitHeights", roiFitHeights);
+    res.setFloatVector("roiFitWidths", roiFitWidths);
+    res.setFloatVector("roiFitPositions", roiFitPositions);
+  }
   if ( m_RootFileName.size () ) {
     TDirectory* savdir = gDirectory;
     string ofrname = AdcChannelStringTool::build(m_adcNameBuilder, acd, m_RootFileName);
