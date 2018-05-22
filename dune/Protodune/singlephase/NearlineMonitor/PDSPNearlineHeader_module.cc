@@ -41,7 +41,7 @@ namespace PDSPNearlineheader_module{
     
     int fRun;
     int fSubRun;
-    double fTimeStamp;
+    int fTimeStamp;
     
     TTree *fPDSPNearlineHeaderTree;
     
@@ -59,7 +59,7 @@ namespace PDSPNearlineheader_module{
     fPDSPNearlineHeaderTree = tfs->make<TTree>("PDSPNearlineHeader", "PDSP Nearline header tree");
     fPDSPNearlineHeaderTree->Branch("fRun",       &fRun,       "fRun/I");
     fPDSPNearlineHeaderTree->Branch("fSubRun",    &fSubRun,    "fSubRun/I");
-    fPDSPNearlineHeaderTree->Branch("fTimeStamp", &fTimeStamp, "fTimeStamp/D");
+    fPDSPNearlineHeaderTree->Branch("fTimeStamp", &fTimeStamp, "fTimeStamp/I");
   }
   
   //-----------------------------------------------------------------------
