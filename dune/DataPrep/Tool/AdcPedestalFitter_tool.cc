@@ -74,15 +74,10 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
       cout << myname << "WARNING: Histogram manager not found: " << m_HistManager << endl;
     }
   }
-  string snameBuilder = "adcNameBuilder";
-  m_adcNameBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
-  if ( m_adcNameBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
-  }
-  string stitlBuilder = "adcTitleBuilder";
-  m_adcTitleBuilder = ptm->getShared<AdcChannelStringTool>(stitlBuilder);
-  if ( m_adcTitleBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << stitlBuilder << endl;
+  string stringBuilder = "adcStringBuilder";
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
@@ -226,11 +221,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
 
 string AdcPedestalFitter::
 nameReplace(string name, const AdcChannelData& acd, bool isTitle) const {
-  const AdcChannelStringTool* pnbl = nullptr;
-  if ( isTitle ) pnbl = m_adcTitleBuilder;
-  else {
-    pnbl = m_adcNameBuilder == nullptr ? m_adcTitleBuilder : m_adcNameBuilder;
-  }
+  const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   if ( pnbl == nullptr ) return name;
   DataMap dm;
   return pnbl->build(acd, dm, name);

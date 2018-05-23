@@ -64,8 +64,7 @@ private:
   std::string m_RootFileName;
 
   // ADC string tools.
-  const AdcChannelStringTool* m_adcNameBuilder;
-  const AdcChannelStringTool* m_adcTitleBuilder;
+  const AdcChannelStringTool* m_adcStringBuilder;
 
 };
 

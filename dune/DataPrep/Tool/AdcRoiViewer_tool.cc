@@ -29,18 +29,12 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_RootFileName(ps.get<string>("RootFileName"))
 {
   const string myname = "AdcRoiViewer::ctor: ";
-  string snameBuilder = "adcNameBuilder";
+  string stringBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
-  m_adcNameBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
-  if ( m_adcNameBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
-  string stitlBuilder = "adcTitleBuilder";
-  m_adcTitleBuilder = ptm->getShared<AdcChannelStringTool>(stitlBuilder);
-  if ( m_adcTitleBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << stitlBuilder << endl;
-  }
-
   if ( m_LogLevel>= 1 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "       HistOpt: " << m_HistOpt << endl;
@@ -102,13 +96,13 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     if ( iroi < 100 ) sshnam << "0";
     if ( iroi <  10 ) sshnam << "0";
     sshnam << iroi;
-    string hnam = AdcChannelStringTool::AdcChannelStringTool::build(m_adcNameBuilder, acd, sshnam.str());
+    string hnam = AdcChannelStringTool::AdcChannelStringTool::build(m_adcStringBuilder, acd, sshnam.str());
     ostringstream sshttl;
     sshttl << "Run %RUN% event %EVENT% channel %CHAN% ROI " << iroi;
     sshttl << " ;Tick ;";
     if ( histType == 1 ) sshttl << "Signal% [SUNIT]%";
     if ( histType == 2 ) sshttl << "ADC count";
-    string httl = AdcChannelStringTool::build(m_adcTitleBuilder, acd, sshttl.str());
+    string httl = AdcChannelStringTool::build(m_adcStringBuilder, acd, sshttl.str());
     unsigned int isam1 = roi.first;
     unsigned int isam2 = roi.second + 1;
     tick1[iroi] = isam1;
@@ -207,7 +201,7 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   }
   if ( m_RootFileName.size () ) {
     TDirectory* savdir = gDirectory;
-    string ofrname = AdcChannelStringTool::build(m_adcNameBuilder, acd, m_RootFileName);
+    string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_RootFileName);
     if ( m_LogLevel >= 2 ) cout << myname << "Writing histograms to " << ofrname << endl;
     TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
     for ( TH1* ph : roiHists ) {
