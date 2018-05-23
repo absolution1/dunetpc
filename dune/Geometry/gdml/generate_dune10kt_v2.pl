@@ -22,10 +22,10 @@ open(my $wout, '>', 'gdmlWireCenters.txt');
 
 GetOptions( "help|h" => \$help,
           "suffix|s:s" => \$suffix,
+          "workspace|k:s" => \$workspace,
           "output|o:s" => \$output,
           "wires|w:s" => \$wires,  
-          "protoDune|p:s" => \$protoDune,  
-            "workspace|k:s" => \$workspace); 
+          "protoDune|p:s" => \$protoDune); 
 
 if ( defined $help )
 {
