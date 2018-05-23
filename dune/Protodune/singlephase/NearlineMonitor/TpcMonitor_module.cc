@@ -166,10 +166,25 @@ namespace tpc_monitor{
     unsigned int nADC_uncomp;
     unsigned int nADC_uncompPed;
 
+    TH1F *fNTicksTPC;
+
+    // Noise level cut parameters
+    int fNoiseLevelMinNCounts;
+    double fNoiseLevelNSigma;
+
+    // Histograms to save dead/noisy channels
+    TH1F* fNDeadChannelsHisto;
+    TH1F* fNNoisyChannelsHistoFromNSigma;
+    TH1F* fNNoisyChannelsHistoFromNCounts;
+    TH1F* fNDeadChannelsList;
+    TH1F* fNNoisyChannelsListFromNSigma;
+    TH1F* fNNoisyChannelsListFromNCounts;
+
     // define functions
     float rmsADC(std::vector< short > & uncompressed);
     float meanADC(std::vector< short > & uncompressed);
     void calculateFFT(TH1D* hist_waveform, TH1D* graph_frequency);
+    void FillChannelHistos(TProfile* h1, double mean, double sigma, int& ndeadchannels, int& nnoisychannels_sigma, int& nnoisychannels_counts);
     geo::GeometryCore const * fGeom = &*(art::ServiceHandle<geo::Geometry>());
 
 
@@ -327,6 +342,31 @@ namespace tpc_monitor{
       fPersistentFFT_by_Fiber[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fPersistentFFT_by_Fiber[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
       fFFT_by_Fiber_pfx[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fFFT_by_Fiber_pfx[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
     }
+
+    fNTicksTPC = tfs->make<TH1F>("NTicksTPC","NTicks in TPC Channels",100,0,20000);
+
+    // Dead/noisy channels
+    fNDeadChannelsHisto = tfs->make<TH1F>("fNDeadChannelsHisto","Number of dead channels",fNofAPA+1,0,fNofAPA+1);
+    fNDeadChannelsHisto->GetYaxis()->SetTitle("Number of dead channels");
+    fNNoisyChannelsHistoFromNSigma = tfs->make<TH1F>("fNNoisyChannelsHistoFromNSigma","Number of noisy channels",fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNSigma->GetYaxis()->SetTitle("Number of noisy channels");
+    fNNoisyChannelsHistoFromNCounts = tfs->make<TH1F>("fNNoisyChannelsHistoFromNCounts",Form("Number of noisy channels above %i counts", fNoiseLevelMinNCounts), fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNCounts->GetYaxis()->SetTitle("Number of noisy channels");
+
+    fNDeadChannelsList = tfs->make<TH1F>("fNDeadChannelsList","List of dead channels",fGeom->Nchannels()+1,fUChanMin,fGeom->Nchannels()+1);
+    fNDeadChannelsList->GetXaxis()->SetTitle("Channel ID");
+    fNNoisyChannelsListFromNSigma = tfs->make<TH1F>("fNNoisyChannelsListFromNSigma","List of noisy channels",fGeom->Nchannels()+1,fUChanMin,fGeom->Nchannels()+1);
+    fNNoisyChannelsListFromNSigma->GetXaxis()->SetTitle("Channel ID");
+    fNNoisyChannelsListFromNCounts = tfs->make<TH1F>("fNNoisyChannelsListFromNCounts",Form("Number of noisy channels above %i counts", fNoiseLevelMinNCounts),fGeom->Nchannels()+1,fUChanMin,fGeom->Nchannels()+1);
+    fNNoisyChannelsListFromNCounts->GetXaxis()->SetTitle("Channel ID");
+
+    for(unsigned int i=0;i<fNofAPA;i++){
+      TString apastring = Form("APA %i", i);
+      fNDeadChannelsHisto->GetXaxis()->SetBinLabel(i+1, apastring.Data());
+      fNNoisyChannelsHistoFromNSigma->GetXaxis()->SetBinLabel(i+1, apastring.Data());
+      fNNoisyChannelsHistoFromNCounts->GetXaxis()->SetBinLabel(i+1, apastring.Data());
+    }
+
   }
 
   //-----------------------------------------------------------------------
@@ -345,6 +385,8 @@ namespace tpc_monitor{
     fTPCInstance    = p.get< std::string >("TPCInstanceName");
     fRebinX         = p.get<int>("RebinFactorX");
     fRebinY         = p.get<int>("RebinFactorY");
+    fNoiseLevelMinNCounts = p.get<int>("NoiseLevelMinNCounts");
+    fNoiseLevelNSigma     = p.get<double>("NoiseLevelNSigma");
     auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fNticks         = fDetProp->NumberTimeSamples();
     
@@ -391,6 +433,7 @@ namespace tpc_monitor{
       uint32_t chan = digit.Channel();
       // number of samples in uncompressed ADC
       int nSamples = digit.Samples();
+      fNTicksTPC->Fill(nSamples);
       unsigned int apa = std::floor( chan/fChansPerAPA );	  
       int pedestal = (int)digit.GetPedestal();
       
@@ -579,9 +622,99 @@ namespace tpc_monitor{
   
   }
   
- 
+  //-----------------------------------------------------------------------
+  // Fill dead/noisy channels tree
+  void TpcMonitor::FillChannelHistos(TProfile* h1, double mean, double sigma, int& ndeadchannels, int& nnoisychannels_sigma, int& nnoisychannels_counts){
+
+    double rms_threshold = mean + fNoiseLevelNSigma*sigma;
+
+    for(Int_t j=1; j <= h1->GetNbinsX(); j++){
+
+      int fChannelID = h1->GetBinCenter(j);
+      double fChannelValue = h1->GetBinContent(j);
+
+      if(fChannelValue == 0){ // dead channel
+        ndeadchannels++;
+        fNDeadChannelsList->SetBinContent(fChannelID, 1.0);
+      }
+      else{
+        if(fChannelValue > rms_threshold){ // noisy channel far away from mean
+          nnoisychannels_sigma++;
+          fNNoisyChannelsListFromNSigma->SetBinContent(fChannelID, 1.0);
+        }
+        if(fChannelValue > fNoiseLevelMinNCounts){ // noisy channel above count threshold
+          nnoisychannels_counts++;
+          fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
+        }
+      }
+    }
+
+    return;
+  }
+
   //-----------------------------------------------------------------------  
   void TpcMonitor::endJob() {
+
+    // Find dead/noisy channels. Do this separately for each APA and for each view.
+    std::vector<double> fURMS_mean; std::vector<double> fURMS_sigma;
+    std::vector<double> fVRMS_mean; std::vector<double> fVRMS_sigma;
+    std::vector<double> fZRMS_mean; std::vector<double> fZRMS_sigma;
+    for(unsigned int i = 0; i < fNofAPA; i++){
+      // U plane
+      TH1F* h1 = (TH1F*)fChanRMSDistU.at(i);
+      fURMS_mean.push_back(h1->GetMean());
+      fURMS_sigma.push_back(h1->GetRMS());
+      // V plane
+      TH1F* h2 = (TH1F*)fChanRMSDistV.at(i);
+      fVRMS_mean.push_back(h2->GetMean());
+      fVRMS_sigma.push_back(h2->GetRMS());
+      // Z plane
+      TH1F* h3 = (TH1F*)fChanRMSDistZ.at(i);
+      fZRMS_mean.push_back(h3->GetMean());
+      fZRMS_sigma.push_back(h3->GetRMS());
+    }
+
+    std::vector<int> fUdch_vec; std::vector<int> fUnch_vec; std::vector<int> fUcch_vec;
+    std::vector<int> fVdch_vec; std::vector<int> fVnch_vec; std::vector<int> fVcch_vec;
+    std::vector<int> fZdch_vec; std::vector<int> fZnch_vec; std::vector<int> fZcch_vec;
+
+    for(unsigned int i = 0; i < fNofAPA; i++){
+      int ndeadchannels = 0; int nnoisychannels = 0; int nnoisychannels_counts = 0;
+
+      // U plane
+      TProfile* h1 = (TProfile*)fChanRMSU_pfx.at(i);
+      FillChannelHistos(h1, fURMS_mean.at(i), fURMS_sigma.at(i), ndeadchannels, nnoisychannels, nnoisychannels_counts);
+      fUdch_vec.push_back(ndeadchannels);
+      fUnch_vec.push_back(nnoisychannels);
+      fUcch_vec.push_back(nnoisychannels_counts);
+
+      // V plane
+      ndeadchannels = 0; nnoisychannels = 0; nnoisychannels_counts = 0;
+      TProfile* h2 = (TProfile*)fChanRMSV_pfx.at(i);
+      FillChannelHistos(h2, fVRMS_mean.at(i), fVRMS_sigma.at(i), ndeadchannels, nnoisychannels, nnoisychannels_counts);
+      fVdch_vec.push_back(ndeadchannels);
+      fVnch_vec.push_back(nnoisychannels);
+      fVcch_vec.push_back(nnoisychannels_counts);
+
+      // Z plane
+      ndeadchannels = 0; nnoisychannels = 0; nnoisychannels_counts = 0;
+      TProfile* h3 = (TProfile*)fChanRMSZ_pfx.at(i);
+      FillChannelHistos(h3, fZRMS_mean.at(i), fZRMS_sigma.at(i), ndeadchannels, nnoisychannels, nnoisychannels_counts);
+      fZdch_vec.push_back(ndeadchannels);
+      fZnch_vec.push_back(nnoisychannels);
+      fZcch_vec.push_back(nnoisychannels_counts);
+    }
+
+    // Fill summary histograms
+    // Fill summary histograms
+    for(unsigned int i = 0; i < fNofAPA; i++){
+      int nch = fUdch_vec.at(i) + fVdch_vec.at(i) + fZdch_vec.at(i);
+      fNDeadChannelsHisto->SetBinContent(i+1, nch);
+      nch = fUnch_vec.at(i) + fVnch_vec.at(i) + fZnch_vec.at(i);
+      fNNoisyChannelsHistoFromNSigma->SetBinContent(i+1, nch);
+      nch = fUcch_vec.at(i) + fVcch_vec.at(i) + fZcch_vec.at(i);
+      fNNoisyChannelsHistoFromNCounts->SetBinContent(i+1, nch);
+    }
 
     //    myfileU.close();
     //    myfileV.close();

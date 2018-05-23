@@ -82,12 +82,25 @@ simple_plugin(AdcSampleFiller   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(VintageDeconvoluter   "tool"
+                SignalShapingServiceDUNE_service
+                art_Framework_Services_Registry
+                art_Utilities
+                canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcUnderflowFlagger   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(AdcThresholdSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+simple_plugin(DuneAdcSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
@@ -98,12 +111,12 @@ simple_plugin(AdcRegularSignalFinder   "tool"
              )
 
 simple_plugin(AdcRoiViewer   "tool"
+                dune_ArtSupport
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(AdcDPhase3x1x1LocalRoiBuilder   "tool"
-                dune_ArtSupport
                 dune_DuneCommon
                 lardataobj_RawData
                 lardataobj_RecoBase
@@ -118,6 +131,20 @@ simple_plugin(FembLinearCalibration   "tool"
              )
 
 simple_plugin(FembMappedAdcModifier   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelFFT   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelDftPlotter   "tool"
+                dune_DataPrep_Utility
+                dune_DuneCommon
                 dune_ArtSupport
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

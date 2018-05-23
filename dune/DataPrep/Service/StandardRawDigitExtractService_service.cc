@@ -88,12 +88,15 @@ int StandardRawDigitExtractService::extract(AdcChannelData& acd) const {
   acd.samples.resize(nsig, -999);
   // Retrieve pedestal.
   AdcSignal ped = 0.0;
+  AdcSignal pedrms = 0.0;
   if ( m_PedestalOption == 1 ) {
     ped = dig.GetPedestal();
+    pedrms = dig.GetSigma();
   } else if ( m_PedestalOption == 2 ) {
     ped = m_pPedProv->PedMean(acd.channel);
   }
   acd.pedestal = ped;
+  acd.pedestalRms = pedrms;
   // Convert int -> float, subtract pedestal and set conversion flag.
   const AdcCount lowbits = 0x3f;
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
