@@ -147,8 +147,8 @@ int main()
   double ENu_Lep;
   std::vector<double> *MarlTime = 0;
 
-  int nEvents = 5000;
-  //int nEvents = t_Input->GetEntries();
+  //int nEvents = 5000;
+  int nEvents = t_Input->GetEntries();
   TH1I *hNEvents = new TH1I("hNEvents", "hNEvents", 100,0,10e6);
   hNEvents->Fill(nEvents);
   hNEvents->Write();
@@ -222,17 +222,17 @@ int main()
   TH1D *h_TimeElapsed = new TH1D("h_TimeElapsed", "h_TimeElapsed", 50,0,0.5);
   for(unsigned int i = 0; i < nEvents; i++)
   {
-    h_ENu_MC->Fill(1000*ENu);
-    for(unsigned int j = 0; j < MarlTime->size(); j++)
-    {
-      h_MarlTime_MC->Fill(MarlTime->at(j));
-    }
-
     if(i % 500 == 0)
     {
       std::cout << "WORKING ON EVENT: " << i << std::endl;
     }
     t_Input->GetEntry(i);
+
+    h_ENu_MC->Fill(1000*ENu);
+    for(unsigned int j = 0; j < MarlTime->size(); j++)
+    {
+      h_MarlTime_MC->Fill(MarlTime->at(j));
+    }
 
     map_EventToMC[Event] = {ENu, ENu_Lep, MarlTime};
 
