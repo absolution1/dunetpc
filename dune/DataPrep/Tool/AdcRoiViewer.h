@@ -26,7 +26,7 @@
 //     int[nROI]     roiTickMins - tick-tick0 for signal minimum for each ROI
 //     int[nROI]     roiTickMaxs - tick-tick0 for signal maximum for each ROI
 //   float[nROI]      roiSigMins - Signal minimum for each ROI
-//   float[nROI]      roiSigMaxs - Signal minimum for each ROI
+//   float[nROI]      roiSigMaxs - Signal maximum for each ROI
 //   float[nROI]     roiSigAreas - Signal area for each ROI
 //    TH1*[nROI]        roiHists - Histogram of samples or raw for each ROI
 // If fit is done:

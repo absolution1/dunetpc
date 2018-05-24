@@ -47,7 +47,10 @@ int main(int argc, char** argv) {
     help = true;
   } 
   if ( help ) {
-    cout << "Usage: duneRunData [-h] [-c FCLFILE] RUN" << endl;
+    cout << "Usage: duneRunData [-h] [-v] [-c FCLFILE] RUN" << endl;
+    cout << "  Displays the run info for a run." << endl;
+    cout << "  -h - Display this message." << endl;
+    cout << "  -v - Verbose display including info about fcl file and run data tool." << endl;
     return 0;
   }
   string tname = "protoduneRunDataTool";

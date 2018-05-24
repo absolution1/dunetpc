@@ -95,6 +95,15 @@ int test_DuneToolManager(bool useExistingFcl =false) {
   assert( pts3->label() == "Tool 2" );
 
   cout << myname << line << endl;
+  cout << myname << "Fetch a private tool with config." << endl;
+  string scfgTool = "{ tool_type:TestTool Label:\"Tool C\" }";
+  cout << myname << "Config: " << scfgTool << endl;
+  auto ptpc = ptm->getPrivate<TestTool>(scfgTool);
+  assert( ptpc != nullptr );
+  assert( ptpc != ptp1 );
+  assert( ptpc->label() == "Tool C" );
+
+  cout << myname << line << endl;
   cout << myname << "Done." << endl;
   return 0;
 }
