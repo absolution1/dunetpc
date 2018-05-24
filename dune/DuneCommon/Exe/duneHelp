@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# duneHelp
+#
+# David Adams
+# May 2018
+#
+# Command to display information about dunetpc
+HELP=
+VERS=
+LOCA=
+while getopts hvl OPT; do
+  case $OPT in
+  h) HELP=true;;
+  v) VERS=true;;
+  l) LOCA=true;;
+  esac
+done
+shift $(( OPTIND-1 ))
+
+if [ -n "$HELP" ]; then
+  echo Usage: duneHelp [-h] [-v] [-l]
+  echo "  Displays information about the current setup of dunetpc."
+  echo "  -h: Only this message is displayed"
+  echo "  -v: Only the dunetpc version is displayed"
+  echo "  -l: Only the dunetpc product location is displayed"
+  exit 0
+fi
+
+if [ -n "$VERS" ]; then
+  echo $DUNETPC_VERSION
+  exit 0
+fi
+
+if [ -n "$LOCA" ]; then
+  echo $DUNETPC_DIR
+  exit 0
+fi
+
+echo "Welcome to dunetpc $DUNETPC_VERSION"
+echo "Some available commands:"
+echo "  duneHelp - Display information about the current setup of dunetpc."
+echo "       lar - Run the art/larsoft event looop e.g. to process event data."
+echo "   fcldump - Display the resolved configuration for a fcl file."
+echo "   liblist - List available plugin libraries."
+echo "Use option \"-h\" with any of these for more information."
