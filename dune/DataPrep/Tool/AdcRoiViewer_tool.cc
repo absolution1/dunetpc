@@ -1,11 +1,17 @@
 // AdcRoiViewer_tool.cc
 
 #include "AdcRoiViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
+#include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneCommon/coldelecResponse.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include "TH1F.h"
+#include "TDirectory.h"
+#include "TFile.h"
+#include "TF1.h"
 
 using std::string;
 using std::cout;
@@ -18,11 +24,22 @@ using std::ostringstream;
 
 AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
-  m_HistOpt(ps.get<int>("HistOpt")) {
+  m_HistOpt(ps.get<int>("HistOpt")),
+  m_FitOpt(ps.get<int>("FitOpt")),
+  m_RootFileName(ps.get<string>("RootFileName"))
+{
   const string myname = "AdcRoiViewer::ctor: ";
+  string stringBuilder = "adcStringBuilder";
+  DuneToolManager* ptm = DuneToolManager::instance();
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
   if ( m_LogLevel>= 1 ) {
-    cout << myname << "  LogLevel: " << m_LogLevel << endl;
-    cout << myname << "   HistOpt: " << m_HistOpt << endl;
+    cout << myname << "      LogLevel: " << m_LogLevel << endl;
+    cout << myname << "       HistOpt: " << m_HistOpt << endl;
+    cout << myname << "        FitOpt: " << m_FitOpt << endl;
+    cout << myname << "  RootFileName: " << m_RootFileName << endl;
   }
 }
 
@@ -55,11 +72,14 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       return res.setStatus(1);
     }
   }
-  if ( dbg >=2 ) cout << myname << "Processing " << nroi << " ROIs." << endl;
+  if ( dbg >=2 ) cout << myname << "Processing channel " << acd.channel << ". ROI count is " << nroi << endl;
   DataMap::HistVector roiHists;
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
   DataMap::FloatVector roiSigAreas;
+  DataMap::FloatVector roiFitHeights;
+  DataMap::FloatVector roiFitWidths;
+  DataMap::FloatVector roiFitPositions;
   DataMap::IntVector roiTickMins;
   DataMap::IntVector roiTickMaxs;
   DataMap::IntVector nUnderflow(nroi, 0);
@@ -70,16 +90,19 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     AdcRoi roi = acd.rois[iroi];
     if ( dbg >=3 ) cout << myname << "  ROI " << iroi << ": ["
                         << roi.first << ", " << roi.second << "]" << endl;
+    
     ostringstream sshnam;
-    sshnam << "hroi";
+    sshnam << "hroi_evt%EVENT%_chan%CHAN%_roi";
     if ( iroi < 100 ) sshnam << "0";
     if ( iroi <  10 ) sshnam << "0";
     sshnam << iroi;
-    string hnam = sshnam.str();
+    string hnam = AdcChannelStringTool::AdcChannelStringTool::build(m_adcStringBuilder, acd, sshnam.str());
     ostringstream sshttl;
-    sshttl << "ROI " << iroi;
-    sshttl << " ;Tick ;Signal";
-    string httl = sshttl.str();
+    sshttl << "Run %RUN% event %EVENT% channel %CHAN% ROI " << iroi;
+    sshttl << " ;Tick ;";
+    if ( histType == 1 ) sshttl << "Signal% [SUNIT]%";
+    if ( histType == 2 ) sshttl << "ADC count";
+    string httl = AdcChannelStringTool::build(m_adcStringBuilder, acd, sshttl.str());
     unsigned int isam1 = roi.first;
     unsigned int isam2 = roi.second + 1;
     tick1[iroi] = isam1;
@@ -125,6 +148,39 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     roiSigMins.push_back(sigmin);
     roiSigMaxs.push_back(sigmax);
     roiSigAreas.push_back(sigarea);
+    if ( m_FitOpt == 1 ) {
+      if ( m_LogLevel >= 3 ) cout << "  Fitting with coldelecResponse" << endl;
+      bool isNeg = fabs(sigmin) > sigmax;
+      double h = isNeg ? sigmin : sigmax;
+      double shap = 2.5*ph->GetRMS();
+      double t0 = x1 + (isNeg ? roiTickMin : roiTickMax) - shap;
+      TF1* pf = coldelecResponseTF1(h, shap, t0, "coldlec");
+      TF1* pfinit = dynamic_cast<TF1*>(pf->Clone("coldelec0"));
+      pfinit->SetLineColor(3);
+      pfinit->SetLineStyle(2);
+      string fopt = "0";
+      fopt = "WWB";
+      if ( m_LogLevel < 3 ) fopt += "Q";
+      // Block Root info message for new Canvas produced in fit.
+      int levelSave = gErrorIgnoreLevel;
+      gErrorIgnoreLevel = 1001;
+      // Block non-default (e.g. art) from handling the Root "error".
+      // We switch to the Root default handler while making the call to Print.
+      ErrorHandlerFunc_t pehSave = nullptr;
+      ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
+      if ( GetErrorHandler() != pehDefault ) {
+        pehSave = SetErrorHandler(pehDefault);
+      }
+      ph->Fit(pf, fopt.c_str());
+      if ( pehSave != nullptr ) SetErrorHandler(pehSave);
+      gErrorIgnoreLevel = levelSave;
+      ph->GetListOfFunctions()->AddLast(pfinit, "0");
+      ph->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
+      roiFitHeights.push_back(pf->GetParameter(0));
+      roiFitWidths.push_back(pf->GetParameter(1));
+      roiFitPositions.push_back(pf->GetParameter(2));
+      delete pf;
+    }
   }
   res.setInt("roiCount", nroi);
   res.setInt("roiNTickChannel", ntickChannel);
@@ -138,6 +194,25 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   res.setFloatVector("roiSigMaxs", roiSigMaxs);
   res.setFloatVector("roiSigAreas", roiSigAreas);
   res.setHistVector("roiHists", roiHists, true);
+  if ( roiFitHeights.size() ) {
+    res.setFloatVector("roiFitHeights", roiFitHeights);
+    res.setFloatVector("roiFitWidths", roiFitWidths);
+    res.setFloatVector("roiFitPositions", roiFitPositions);
+  }
+  if ( m_RootFileName.size () ) {
+    TDirectory* savdir = gDirectory;
+    string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_RootFileName);
+    if ( m_LogLevel >= 2 ) cout << myname << "Writing histograms to " << ofrname << endl;
+    TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
+    for ( TH1* ph : roiHists ) {
+      TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
+      phnew->Write();
+      if ( m_LogLevel >= 3 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
+    }
+    delete pfile;
+    savdir->cd();
+  }
+
   return res;
 }
 

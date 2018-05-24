@@ -8,6 +8,7 @@
 using std::string;
 using std::cout;
 using std::endl;
+using std::istringstream;
 using std::ostringstream;
 using std::setw;
 
@@ -61,6 +62,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
 string StandardAdcChannelStringTool::
 build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   const string myname = "StandardAdcChannelStringTool::build: ";
+  // First replace the indices (run, event, ....)
   Index vals[m_nrep] = {acd.run, acd.subRun, acd.event, acd.channel,
                         Index(dm.getInt("count")),
                         Index(dm.getInt("chan1")),
@@ -75,19 +77,47 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
     !dm.haveInt("chan2")
   };
   string sout = spat;
-  StringManipulator sman(sout);
   for ( Index irep=0; irep<m_nrep; ++irep ) {
-    string srep = "%" + m_reps[irep] + "%";
-    Index w = m_wids[irep];
-    Index val = vals[irep];
-    if ( isBad[irep] ) {
-      sman.replace(srep, m_bads[irep]);
-    } else if ( w == 0 ) {
-      sman.replace(srep, val);
-    } else {
-      sman.replaceFixedWidth(srep, val, w);
+    string smat = m_reps[irep] + "%";
+    string::size_type ipos = 1;  // Current index in string
+    Index wNew = 0;  // Width of the replacement field.
+    while ( (ipos = sout.find(smat, ipos)) != string::npos ) {
+      // Check for replacement with natural width.
+      string::size_type iposRep = ipos;  // The position where we make the replacement.
+      string::size_type wOld = 0;  // Width of the field to be replaced
+      if ( sout[--iposRep] == '%' ) {
+        wOld = smat.size() + 1;
+      // Check for replacement with padded width.
+      } else if ( iposRep > 0 && sout[--iposRep] == '%' ) {
+        istringstream sswid(sout.substr(iposRep+1, 1));
+        wNew = 999;
+        sswid >> wNew;
+        if ( wNew == 0 ) wNew = m_wids[irep];
+        if ( wNew == 999 ) wNew = 0;
+        wOld = smat.size() + 2;
+      } else {
+        // If we get here we found "XXX%" but not the preceding "%'.
+        // Continue to the later part of the string.
+        ++ipos;
+      }
+      if ( wOld > 0 ) {
+        string sval;  // replacement field
+        if ( isBad[irep] ) {
+          sval = m_bads[irep];
+        } else {
+          Index ival = vals[irep];
+          ostringstream ssval;
+          ssval << ival;
+          sval = ssval.str();
+          while ( wNew > sval.size() ) sval = "0" + sval;
+        }
+        sout.replace(iposRep, wOld, sval);
+        ipos = iposRep + sval.size();
+      }
     }
   }
+  // Next replace the units strings.
+  StringManipulator sman(sout);
   string sunit = acd.sampleUnit;
   string sunitSpaced = sunit.size() ? " " + sunit : "";
   string sunitWrapped = sunit.size() ? "(" + sunit + ")" : "";
