@@ -11,6 +11,13 @@ simple_plugin(StandardAdcChannelStringTool   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcResultDumper   "tool"
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcChannelDumper   "tool"
                 art_Utilities canvas
                 cetlib cetlib_except

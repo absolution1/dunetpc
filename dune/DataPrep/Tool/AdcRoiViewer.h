@@ -16,7 +16,7 @@
 //              1 - fit with coldelecReponse
 //   RootFileName - Name of file to which histograms are copied.
 //
-// Output data map:
+// Output data map for view:
 //           int        roiCount - # ROI (nROI)
 //           int roiNTickChannel - # ticks in the ADC channel
 //     int[nROI]       roiTick0s - First tick for each ROI
@@ -33,6 +33,12 @@
 //   float[nROI]   roiFitHeights - Height in signal units from fit
 //   float[nROI]    roiFitWidths - Shaping time in ticks from fit
 //   float[nROI] roiFitPositions - T0 in ticks from fit
+//
+// Output data map for viewMap:
+//           int        roiCount - # ROI (nROI)
+//           int roiChannelCount - # channels
+//     int roiFailedChannelCount - # failed channels
+//   int[nfail]   failedChannels - List of failed channels
 
 #ifndef AdcRoiViewer_H
 #define AdcRoiViewer_H
@@ -52,8 +58,13 @@ public:
 
   ~AdcRoiViewer() override =default;
 
+  // AdcChannelTool methods.
   DataMap view(const AdcChannelData& acd) const override;
+  DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
+
+  // Internal method where most of the work is done.
+  int doView(const AdcChannelData& acd, int dbg, DataMap& dm) const;
 
 private:
 

@@ -18,6 +18,8 @@ using std::cout;
 using std::endl;
 using std::ostringstream;
 
+using Index = unsigned int;
+
 //**********************************************************************
 // Class methods.
 //**********************************************************************
@@ -46,9 +48,44 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 //**********************************************************************
 
 DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
-  const string myname = "AdcRoiViewer::view: ";
-  int dbg = m_LogLevel;
   DataMap res;
+  doView(acd, m_LogLevel, res);
+  return res;
+}
+
+//**********************************************************************
+
+DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
+  const string myname = "AdcRoiViewer::viewMap: ";
+  DataMap ret;
+  Index ncha = 0;
+  Index nroi = 0;
+  Index nfail = 0;
+  DataMap::IntVector failedChannels;
+  for ( AdcChannelDataMap::value_type iacd : acds ) {
+    const AdcChannelData acd = iacd.second;
+    if ( m_LogLevel >= 3 ) cout << myname << "Processing channel " << acd.channel << endl;
+    DataMap dm;
+    int dbg = m_LogLevel > 3 ? m_LogLevel - 2 : 0;
+    doView(acd, dbg, dm);
+    if ( dm.status() ) {
+      ++nfail;
+      failedChannels.push_back(acd.channel);
+    }
+    ++ncha;
+     nroi += dm.getInt("roiCount");
+  }
+  ret.setInt("roiChannelCount", ncha);
+  ret.setInt("roiFailedChannelCount", nfail);
+  ret.setIntVector("roiFailedChannels", failedChannels);
+  ret.setInt("roiCount", nroi);
+  return ret;
+}
+
+//**********************************************************************
+
+int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const {
+  const string myname = "AdcRoiViewer::view: ";
   unsigned int nraw = acd.raw.size();
   unsigned int nsam = acd.samples.size();
   unsigned int ntickChannel = nsam > nraw ? nsam : nraw;
@@ -69,7 +106,7 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       histRelativeTick = true;
     } else {
       cout << myname << "Invalid value for HistOpt: " << m_HistOpt << endl;
-      return res.setStatus(1);
+      return res.setStatus(1).status();
     }
   }
   if ( dbg >=2 ) cout << myname << "Processing channel " << acd.channel << ". ROI count is " << nroi << endl;
@@ -149,7 +186,7 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
     roiSigMaxs.push_back(sigmax);
     roiSigAreas.push_back(sigarea);
     if ( m_FitOpt == 1 ) {
-      if ( m_LogLevel >= 3 ) cout << "  Fitting with coldelecResponse" << endl;
+      if ( dbg >= 3 ) cout << "  Fitting with coldelecResponse" << endl;
       bool isNeg = fabs(sigmin) > sigmax;
       double h = isNeg ? sigmin : sigmax;
       double shap = 2.5*ph->GetRMS();
@@ -160,7 +197,7 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       pfinit->SetLineStyle(2);
       string fopt = "0";
       fopt = "WWB";
-      if ( m_LogLevel < 3 ) fopt += "Q";
+      if ( dbg < 3 ) fopt += "Q";
       // Block Root info message for new Canvas produced in fit.
       int levelSave = gErrorIgnoreLevel;
       gErrorIgnoreLevel = 1001;
@@ -202,18 +239,17 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   if ( m_RootFileName.size () ) {
     TDirectory* savdir = gDirectory;
     string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_RootFileName);
-    if ( m_LogLevel >= 2 ) cout << myname << "Writing histograms to " << ofrname << endl;
+    if ( dbg >= 2 ) cout << myname << "Writing histograms to " << ofrname << endl;
     TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
     for ( TH1* ph : roiHists ) {
       TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
       phnew->Write();
-      if ( m_LogLevel >= 3 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
+      if ( dbg >= 3 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
     }
     delete pfile;
     savdir->cd();
   }
-
-  return res;
+  return res.status();
 }
 
 //**********************************************************************
