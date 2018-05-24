@@ -68,8 +68,7 @@ private:
   Name   m_PlotName;
 
   // ADC string tools.
-  const AdcChannelStringTool* m_adcNameBuilder;
-  const AdcChannelStringTool* m_adcTitleBuilder;
+  const AdcChannelStringTool* m_adcStringBuilder;
 
   // Internal method to view a channel and put hist/graph in result.
   DataMap viewLocal(const AdcChannelData& acd) const;

@@ -279,11 +279,18 @@ changroup_apa_keepall: {
   ApaRops: []
 }
 
-# Process by APA dropping the protoDUNE outer collection plane.
+# Process by APA dropping the protoDUNE cryostat-side collection plane.
 changroup_apa_pd_drop_outer: {
   service_provider: GeoApaChannelGroupService
   LogLevel: 1
   ApaRops: [11, 7]
+}
+
+# Process by APA keeping only the protoDUNE TPC-side collection plane.
+changroup_apa_pd_tpccoll: {
+  service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: [ 8, 4]
 }
 
 changroup_rop: {

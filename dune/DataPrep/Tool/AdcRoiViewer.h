@@ -11,6 +11,10 @@
 //                            1 - sample vs. tick
 //                            2 - raw vs. tick
 //                           10 + i - As above for i except vs. tick - tick0
+//   FitOpt - Fit option
+//              0 - no fit
+//              1 - fit with coldelecReponse
+//   RootFileName - Name of file to which histograms are copied.
 //
 // Output data map:
 //           int        roiCount - # ROI (nROI)
@@ -25,6 +29,10 @@
 //   float[nROI]      roiSigMaxs - Signal minimum for each ROI
 //   float[nROI]     roiSigAreas - Signal area for each ROI
 //    TH1*[nROI]        roiHists - Histogram of samples or raw for each ROI
+// If fit is done:
+//   float[nROI]   roiFitHeights - Height in signal units from fit
+//   float[nROI]    roiFitWidths - Shaping time in ticks from fit
+//   float[nROI] roiFitPositions - T0 in ticks from fit
 
 #ifndef AdcRoiViewer_H
 #define AdcRoiViewer_H
@@ -33,6 +41,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <iostream>
+
+class AdcChannelStringTool;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -50,6 +60,11 @@ private:
   // Configuration data.
   int m_LogLevel;
   int m_HistOpt;
+  int m_FitOpt;
+  std::string m_RootFileName;
+
+  // ADC string tools.
+  const AdcChannelStringTool* m_adcStringBuilder;
 
 };
 

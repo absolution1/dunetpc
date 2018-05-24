@@ -105,8 +105,7 @@ private:
   Name           m_RootFileName;
 
   // ADC string tools.
-  const AdcChannelStringTool* m_adcNameBuilder;
-  const AdcChannelStringTool* m_adcTitleBuilder;
+  const AdcChannelStringTool* m_adcStringBuilder;
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd,

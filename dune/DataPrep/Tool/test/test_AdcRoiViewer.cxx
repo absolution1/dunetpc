@@ -36,12 +36,13 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcRoiViewer" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "    HistOpt: 1" << endl;
-    fout << "  }" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;
+    fout << "tools.mytool: {" << endl;
+    fout << "  tool_type: AdcRoiViewer" << endl;
+    fout << "  LogLevel: 3" << endl;
+    fout << "  HistOpt: 1" << endl;
+    fout << "  FitOpt: 1" << endl;
+    fout << "  RootFileName: \"roi.root\"" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -54,7 +55,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() >= 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -64,6 +65,8 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create test data." << endl;
   AdcChannelData acd;
+  acd.event = 123;
+  acd.channel = 2468;
   unsigned int nsam = 80;
   vector<float> pulse = { 2.0, -3.0, 0.0, 5.0, 24.0, 56.0, 123.0, 71.0, 52.1, 26.3,
                          12.5,  8.1, 4.5, 2.0, -1.0,  3.2,   1.1, -2.2,  0.1, -0.1};
@@ -72,8 +75,8 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     float smp = pulse[ismp];
     acd.samples[ismp] = smp;
     acd.samples[20+ismp] = -smp;
-    acd.samples[ismp] = 2*smp;
-    acd.samples[ismp] = -2*smp;
+    acd.samples[40+ismp] = 2*smp;
+    acd.samples[60+ismp] = -2*smp;
   }
   acd.rois.emplace_back( 0, 17);
   acd.rois.emplace_back(20, 37);
