@@ -63,8 +63,11 @@ public:
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
 
-  // Internal method where most of the work is done.
+  // Internal methods where most of the work is done.
+  using DataMapVector = std::vector<DataMap>;
   int doView(const AdcChannelData& acd, int dbg, DataMap& dm) const;
+  void doSave(const DataMap& res, std::string ofrname, int dbg) const;
+  void doSave(const DataMapVector& res, std::string ofrname, int dbg) const;
 
 private:
 

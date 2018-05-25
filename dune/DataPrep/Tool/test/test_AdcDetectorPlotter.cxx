@@ -49,8 +49,8 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "#include \"geometry_dune.fcl\"" << endl;
     fout << "services.Geometry:                   @local::" + gname << endl;
     fout << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
-    fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
+    fout << "tools.mytool: {" << endl;
     fout << "    tool_type: AdcDetectorPlotter" << endl;
     fout << "    LogLevel: 2" << endl;
     fout << "   WireAngle: 0.0" << endl;
@@ -69,8 +69,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "    ShowCathode: true" << endl;
     fout << "    ShowGrid: true" << endl;
     fout << "    Title: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
-    fout << "    FileName: \"test_AdcDetectorPlotter-run%RUN%-evt%EVENT%.png\"" << endl;
-    fout << "  }" << endl;
+    fout << "    FileName: \"test_AdcDetectorPlotter-run%0RUN%-evt%0EVENT%.png\"" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -106,7 +105,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() >= 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;

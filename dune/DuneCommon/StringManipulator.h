@@ -8,6 +8,9 @@
 #include <string>
 #include <sstream>
 
+#ifndef StringManipulator_H
+#define StringManipulator_H
+
 class StringManipulator {
 
 public:
@@ -101,3 +104,5 @@ replaceFixedWidth(std::string ssubout, const T& xsubin, Index width) {
 }
 
 //**********************************************************************
+
+#endif

@@ -4,8 +4,9 @@
 #include <iostream>
 #include <sstream>
 #include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/RootPalette.h"
+#include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -43,6 +44,12 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")) {
   const string myname = "AdcDataPlotter::ctor: ";
+  DuneToolManager* ptm = DuneToolManager::instance();
+  string stringBuilder = "adcStringBuilder";
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
@@ -126,23 +133,13 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   Tick ntick = tick2 - tick1;
   AdcIndex nchan = chanLast + 1 - chanFirst;
   // Create title and file names.
-  string hname = m_HistName;
-  string htitl = m_HistTitle;
-  string ofname = m_PlotFileName;
-  string ofrname = m_RootFileName;
-  vector<string*> strs = {&hname, &htitl, &ofname, &ofrname};
-  for ( string* pstr : strs ) {
-    string& str = *pstr;
-    StringManipulator sman(str);
-    if ( acdFirst.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acdFirst.run);
-    else sman.replace("%RUN%", "RunNotFound");
-    if ( acdFirst.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acdFirst.subRun);
-    else sman.replace("%SUBRUN%", "SubRunNotFound");
-    if ( acdFirst.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acdFirst.event);
-    else sman.replace("%EVENT%", "EventNotFound");
-    sman.replace("%CHAN1%", acdChanFirst);
-    sman.replace("%CHAN2%", acdChanLast);
-  }
+  DataMap dm;
+  dm.setInt("chan1", acdChanFirst);
+  dm.setInt("chan2", acdChanLast);
+  string hname =   AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, dm, m_HistName);
+  string htitl =   AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, dm, m_HistTitle);
+  string ofname =  AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, dm, m_PlotFileName);
+  string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, dm, m_RootFileName);
   string szunits = "(ADC counts)";
   if ( ! isRaw ) {
     szunits = acdFirst.sampleUnit;

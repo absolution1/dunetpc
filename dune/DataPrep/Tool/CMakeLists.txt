@@ -46,6 +46,7 @@ simple_plugin(AdcDataDumper   "tool"
              )
 
 simple_plugin(AdcDataPlotter   "tool"
+                dune_ArtSupport
                 dune_DuneCommon
                 art_Utilities canvas
                 cetlib cetlib_except
@@ -53,6 +54,7 @@ simple_plugin(AdcDataPlotter   "tool"
              )
 
 simple_plugin(AdcDetectorPlotter   "tool"
+                dune_ArtSupport
                 dune_DuneCommon
                 dune_Geometry
                 art_Utilities canvas
@@ -168,4 +170,5 @@ simple_plugin(AdcDPhase3x1x1RoiBuilder   "tool"
              )
 
 add_subdirectory(test)
+install_source()
 
