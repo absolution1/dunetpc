@@ -408,7 +408,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  SigType_t ChannelMap35Alg::SignalType( raw::ChannelID_t const channel )  const
+  SigType_t ChannelMap35Alg::SignalTypeForChannelImpl( raw::ChannelID_t const channel )  const
   {
     raw::ChannelID_t chan = channel % fChannelsPerAPA;
     SigType_t sigt = kInduction;
