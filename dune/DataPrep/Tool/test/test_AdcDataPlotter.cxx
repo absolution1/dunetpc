@@ -40,13 +40,13 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
+    fout << "tools.mytool: {" << endl;
     fout << "           tool_type: AdcDataPlotter" << endl;
     fout << "            DataType: 0" << endl;
     fout << "            LogLevel: 2" << endl;
     fout << "           FirstTick: 0" << endl;
-    fout << "            LastTick: 0" << endl;
+    fout << "            LastTick: 0" << endl; 
     fout << "        FirstChannel: 0" << endl;
     fout << "         LastChannel: 0" << endl;
     fout << "           MaxSignal: 10" << endl;
@@ -55,11 +55,10 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "             Palette: 1026" << endl;
     fout << "            HistName: \"hadc\"" << endl;
     fout << "           HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
-    fout << "        PlotFileName: \"myplot-run%RUN%-evt%EVENT%.png\"" << endl;
+    fout << "        PlotFileName: \"myplot-run%0RUN%-evt%0EVENT%.png\"" << endl;
     fout << "           PlotSizeX: 0" << endl;
     fout << "           PlotSizeY: 0" << endl;
     fout << "        RootFileName: \"adc.root\"" << endl;
-    fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -72,7 +71,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() >= 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -80,7 +79,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
   assert( padv != nullptr );
 
   cout << myname << line << endl;
-  cout << myname << "Create data and call too." << endl;
+  cout << myname << "Create data and call tool." << endl;
   AdcIndex nevt = 2;
   float peds[20] = {701, 711, 733, 690, 688, 703, 720, 720, 695, 702,
                     410, 404, 388, 389, 400, 401, 410, 404, 395, 396};

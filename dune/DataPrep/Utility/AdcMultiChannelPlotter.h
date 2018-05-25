@@ -69,7 +69,7 @@ private:
   Index m_PlotSplitY;
 
   // ADC string tools.
-  const AdcChannelStringTool* m_adcNameBuilder;
+  const AdcChannelStringTool* m_adcStringBuilder;
 
 };
 

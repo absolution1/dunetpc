@@ -4,9 +4,10 @@
 #include <iostream>
 #include <sstream>
 #include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/RootPalette.h"
 #include "dune/DuneCommon/LineColors.h"
+#include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "larcore/Geometry/Geometry.h"
 #include "TH2F.h"
 #include "TCanvas.h"
@@ -67,6 +68,12 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_FileName(ps.get<string>("FileName")),
   m_state(new State) {
   const string myname = "AdcDetectorPlotter::ctor: ";
+  DuneToolManager* ptm = DuneToolManager::instance();
+  string stringBuilder = "adcStringBuilder";
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
     cout << myname << "         LogLevel: " << m_LogLevel << endl;
@@ -132,20 +139,8 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
        acdFirst.run != state.run || acdFirst.subRun != state.subrun || acdFirst.event != state.event ) {
     if ( m_LogLevel >= 2 ) cout << myname << "  Starting new event." << endl;
     initializeState(state, acdFirst);
-    string sttl = m_Title;
-    state.ofname = m_FileName;
-    vector<string*> strs = {&sttl, &state.ofname};
-    for ( string* pstr : strs ) {
-      string& str = *pstr;
-      StringManipulator sman(str);
-      //sman.replace("%PAT%", fpat);
-      if ( acdFirst.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acdFirst.run);
-      else sman.replace("%RUN%", "RunNotFound");
-      if ( acdFirst.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acdFirst.subRun);
-      else sman.replace("%SUBRUN%", "SubRunNotFound");
-      if ( acdFirst.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acdFirst.event);
-      else sman.replace("%EVENT%", "EventNotFound");
-    }
+    string sttl = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_Title);
+    state.ofname = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_FileName);
     // Create graph.
     state.ppad.reset(new TPadManipulator(npadx, npady));
     TGraph* pg = new TGraph;

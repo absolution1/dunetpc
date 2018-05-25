@@ -92,8 +92,9 @@ print(std::ostream& out, std::string prefix) const {
   if ( m_AdcChannelNamedTools.size() ) {
     cout << prefix << "     ADC channel tools:";
     for ( const NamedTool& nm : m_AdcChannelNamedTools ) {
-       out << prefix << "           " << nm.name << endl;
+       out << "\n" << prefix << "           " << nm.name;
     }
+    cout << endl;
   } else {
     out << prefix << "    No ADC channel tools." << endl;
   }

@@ -52,6 +52,7 @@ int main()
   gROOT->ProcessLine("#include <vector>");
   TString s_FileName = "GH_SNMC";
 
+  //TFile *f_Input = new TFile("/dune/data/users/abooth/Module_"+s_FileName+".root", "READ");
   TFile *f_Input = new TFile("Module_"+s_FileName+".root", "READ");
   TTree *t_Input = (TTree*)f_Input->Get("t_Output");
   int nEventsOriginally = (int)(((TH1I*)f_Input->Get("hNEvents"))->GetMean());
@@ -71,7 +72,7 @@ int main()
   map_TypeToWeight[8] = 1.; //RN
   map_TypeToWeight[9] = 1.; //AR42
 
-  ofstream txt_WeightMap;
+  std::ofstream txt_WeightMap;
   txt_WeightMap.open("Analyse_WeightMap_"+s_FileName+".txt");
   std::map<int,double>::iterator it_TypeToWeight;
   for(it_TypeToWeight=map_TypeToWeight.begin();it_TypeToWeight!=map_TypeToWeight.end();it_TypeToWeight++)
@@ -94,7 +95,6 @@ int main()
   float TimeWidth;
   double ENu;
   double ENu_Lep;
-  double MarlTime;
   std::vector<int> *GenType = 0;
 
   long int nClusters = t_Input->GetEntries();
@@ -113,7 +113,6 @@ int main()
   t_Input->SetBranchAddress("TimeWidth",    &TimeWidth   );
   t_Input->SetBranchAddress("ENu",          &ENu         );
   t_Input->SetBranchAddress("ENu_Lep",      &ENu_Lep     );
-  t_Input->SetBranchAddress("MarlTime",     &MarlTime    );
   t_Input->SetBranchAddress("GenType",      &GenType     );
 
   //DEFINE ANALYSIS HISTOGRAMS.
@@ -249,7 +248,7 @@ int main()
   g_ROC->SetNameTitle("g_BkgdVsEff", "g_BkgdVsEff");
   std::map<int,std::pair<double,double>>::iterator it_ConfigToEfficiencyAndBkgd;
   int c = 0;
-  ofstream txt_Result;
+  std::ofstream txt_Result;
   txt_Result.open("Analyse_"+s_FileName+".txt");
   for(it_ConfigToEfficiencyAndBkgd=map_ConfigToEfficiencyAndBkgd.begin();
       it_ConfigToEfficiencyAndBkgd!=map_ConfigToEfficiencyAndBkgd.end(); it_ConfigToEfficiencyAndBkgd++)

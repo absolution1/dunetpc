@@ -18,7 +18,9 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::ofstream;
+using std::vector;
 using fhicl::ParameterSet;
+using Index = unsigned int;
 
 //**********************************************************************
 
@@ -74,15 +76,39 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Call tool." << endl;
-  string rawName = "data_run%RUN%-%SUBRUN%_ev%EVENT%_ch%CHAN%_%COUNT%.dat";
-  string expName = "data_run0123-045_ev000246_ch01357_000023.dat";
+  vector<string> rawNames = {
+    "run%RUN%",
+    "srun%SUBRUN%",
+    "run%RUN%_srun%XXBRUN%",
+    "run%RUN%_srun%SUBRUN%",
+    "data_run%RUN%-%SUBRUN%_ev%EVENT%_ch%CHAN%_%COUNT%.dat",
+    "data_run%5RUN%-%5SUBRUN%_ev%5EVENT%_ch%5CHAN%_%5COUNT%.dat",
+    "data_run%0RUN%-%0SUBRUN%_ev%0EVENT%_ch%0CHAN%_%0COUNT%.dat",
+    "data_run%0RUN%_run%8RUN%.dat"
+  };
+  vector<string> expNames = {
+    "run123",
+    "srun45",
+    "run123_srun%XXBRUN%",
+    "run123_srun45",
+    "data_run123-45_ev246_ch1357_23.dat",
+    "data_run00123-00045_ev00246_ch01357_00023.dat",
+    "data_run0123-045_ev000246_ch01357_000023.dat",
+    "data_run0123_run00000123.dat"
+  };
   DataMap dm;
   dm.setInt("count", 23);
   assert( dm.haveInt("count") );
-  string outName = past->build(acd, dm, rawName);
-  cout << myname << "  Raw name: " << rawName << endl;
-  cout << myname << "  Out name: " << outName << endl;
-  assert( outName == expName );
+
+  for ( Index inam=0; inam<rawNames.size(); ++inam ) {
+    string rawName = rawNames[inam];
+    string expName = expNames[inam];
+    string outName = past->build(acd, dm, rawName);
+    cout << myname << "  Raw name: " << rawName << endl;
+    cout << myname << "  Exp name: " << expName << endl;
+    cout << myname << "  Out name: " << outName << endl;
+    assert( outName == expName );
+  }
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

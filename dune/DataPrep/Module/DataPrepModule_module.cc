@@ -71,6 +71,8 @@ private:
   std::vector<std::string> m_IntermediateStates;
   bool m_DoAssns = false;
   bool m_DoGroups = false;
+  AdcChannel m_KeepChannelBegin =0;
+  AdcChannel m_KeepChannelEnd =0;
 
   // Split label into producer and name: PRODUCER or PRODUCER:NAME
   std::string m_DigitProducer;
@@ -111,6 +113,8 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_DoAssns    = pset.get<bool>("DoAssns");
   m_DoGroups   = pset.get<bool>("DoGroups");
   m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
+  pset.get_if_present<AdcChannel>("KeepChannelBegin", m_KeepChannelBegin);
+  pset.get_if_present<AdcChannel>("KeepChannelEnd", m_KeepChannelEnd);
 
   size_t ipos = m_DigitLabel.find(":");
   if ( ipos == std::string::npos ) {
@@ -134,6 +138,8 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
     int count = 0;
     for ( string sname : m_IntermediateStates ) cout << (count++ == 0 ? "" : " ") << sname;
     cout << "]" << endl;
+    cout << myname << "  KeepChannelBegin: " << m_KeepChannelBegin << endl;
+    cout << myname << "    KeepChannelEnd: " << m_KeepChannelEnd << endl;
   }
 }
 
@@ -178,11 +184,22 @@ void DataPrepModule::produce(art::Event& evt) {
 
   // Create the transient data map and copy the digits there.
   AdcChannelDataMap fulldatamap;
+  bool checkKeep = m_KeepChannelEnd > m_KeepChannelBegin;
+  unsigned int nkeep = 0;
+  unsigned int nskip = 0;
   for ( unsigned int idig=0; idig<hdigits->size(); ++idig ) {
     const raw::RawDigit& dig = (*hdigits)[idig];
     AdcChannel chan = dig.Channel();
+    if ( checkKeep ) {
+      if ( chan < m_KeepChannelBegin || chan >= m_KeepChannelEnd ) {
+        ++nskip;
+        continue;
+      }
+    }
+    ++nkeep;
     if ( fulldatamap.find(chan) != fulldatamap.end() ) {
       mf::LogWarning("DataPrepModule") << "Skipping duplicate channel " << chan << "." << endl;
+      ++nskip;
       continue;
     }
     AdcChannelData& acd = fulldatamap[chan];
@@ -195,6 +212,7 @@ void DataPrepModule::produce(art::Event& evt) {
   }
 
   // Create a vector of data maps with an entry for each group.
+  unsigned int ncgrp = 0;
   vector<AdcChannelDataMap> datamaps;
   if ( m_DoGroups ) {
     if ( m_pChannelGroupService == nullptr ) {
@@ -207,10 +225,16 @@ void DataPrepModule::produce(art::Event& evt) {
       AdcChannelDataMap& datamap = datamaps.back();
       for ( AdcChannel chan : m_pChannelGroupService->channels(igrp) ) {
         datamap.emplace(chan, move(fulldatamap[chan]));
+        ++ncgrp;
       }
     }
   } else {
     datamaps.emplace_back(move(fulldatamap));
+  }
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "         # channels selected: " << ncgrp << endl;
+    cout << myname << "          # channels skipped: " << ncgrp << endl;
+    cout << myname << "  # channels to be processed: " << ncgrp << endl;
   }
 
   for ( AdcChannelDataMap& datamap : datamaps ) {

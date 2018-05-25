@@ -19,11 +19,11 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
   m_PlotSplitX(ps.get<Index>(prefix + "SplitX")),
   m_PlotSplitY(ps.get<Index>(prefix + "SplitY")) {
   const Name myname = "AdcMultiChannelPlotter::ctor: ";
-  Name snameBuilder = "adcNameBuilder";
+  Name stringBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
-  m_adcNameBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
-  if ( m_adcNameBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
 }
 
@@ -58,7 +58,7 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
       pmantop = new TPadManipulator;
       if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
       if ( npad > 1 ) pmantop->split(npady, npady);
-      plotName = AdcChannelStringTool::build(m_adcNameBuilder, acd, getPlotName());
+      plotName = AdcChannelStringTool::build(m_adcStringBuilder, acd, getPlotName());
     }
     // View this channel.
     Index ipad = npad == 0 ? 0 : iacd % npad;
