@@ -30,6 +30,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 
 DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   const string myname = "AdcRoiViewer::view: ";
+  int dbg = m_LogLevel;
   DataMap res;
   unsigned int nraw = acd.raw.size();
   unsigned int nsam = acd.samples.size();
@@ -54,6 +55,7 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
       return res.setStatus(1);
     }
   }
+  if ( dbg >=2 ) cout << myname << "Processing " << nroi << " ROIs." << endl;
   DataMap::HistVector roiHists;
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
@@ -66,6 +68,8 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   DataMap::IntVector ntick(nroi, 0);
   for ( unsigned int iroi=0; iroi<nroi; ++iroi ) {
     AdcRoi roi = acd.rois[iroi];
+    if ( dbg >=3 ) cout << myname << "  ROI " << iroi << ": ["
+                        << roi.first << ", " << roi.second << "]" << endl;
     ostringstream sshnam;
     sshnam << "hroi";
     if ( iroi < 100 ) sshnam << "0";

@@ -5,6 +5,12 @@
 
 # Add plugin for each tool.
 
+simple_plugin(StandardAdcChannelStringTool   "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcChannelDumper   "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
@@ -20,6 +26,7 @@ simple_plugin(AdcChannelPlotter  "tool"
 
 simple_plugin(AdcPedestalFitter  "tool"
                 dune_ArtSupport
+                dune_DuneCommon
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -33,6 +40,22 @@ simple_plugin(AdcDataDumper   "tool"
 
 simple_plugin(AdcDataPlotter   "tool"
                 dune_DuneCommon
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcDetectorPlotter   "tool"
+                dune_DuneCommon
+                dune_Geometry
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelMetric   "tool"
+                dune_DuneCommon
+                dune_ArtSupport
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -59,12 +82,30 @@ simple_plugin(AdcSampleFiller   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(VintageDeconvoluter   "tool"
+                SignalShapingServiceDUNE_service
+                art_Framework_Services_Registry
+                art_Utilities
+                canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcUnderflowFlagger   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(AdcThresholdSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+simple_plugin(DuneAdcSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcRegularSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
@@ -90,6 +131,20 @@ simple_plugin(FembLinearCalibration   "tool"
              )
 
 simple_plugin(FembMappedAdcModifier   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelFFT   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcChannelDftPlotter   "tool"
+                dune_DataPrep_Utility
+                dune_DuneCommon
                 dune_ArtSupport
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

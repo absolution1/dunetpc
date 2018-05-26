@@ -8,8 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -23,7 +22,7 @@ using fhicl::ParameterSet;
 
 //**********************************************************************
 
-int test_AdcPedestalFitter(bool useExistingFcl =false) {
+int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap) {
   const string myname = "test_AdcPedestalFitter: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -36,20 +35,30 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  adcHists: {" << endl;
-    fout << "    tool_type: SimpleHistogramManager" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "  }" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcPedestalFitter" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "    HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
-    fout << "    HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
-    fout << "    HistManager: \"adcHists\"" << endl;
-    fout << "    MaxSample: 80" << endl;
-    fout << "  }" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
+    fout << "tools.mytool: {" << endl;
+    fout << "  tool_type: AdcPedestalFitter" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  FitRmsMin: 1.0" << endl;
+    fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
+    fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
+    fout << "  PlotFileName: \"adcped_ev%EVENT%_chan%CHAN%.png\"" << endl;
+    fout << "  RootFileName: \"adcped.root\"" << endl;
+    fout << "  HistManager: \"adcHists\"" << endl;
+    fout << "  PlotSizeX:  700" << endl;
+    fout << "  PlotSizeY:  500" << endl;
+    fout << "  PlotShowFit:  2" << endl;
+    fout << "  PlotSplitX:  0" << endl;
+    fout << "  PlotSplitY:  0" << endl;
     fout << "}" << endl;
+    fout << "tools.mymaptool: @local::tools.mytool" << endl;
+    fout << "tools.mymaptool.LogLevel: 2" << endl;
+    fout << "tools.mymaptool.PlotFileName: \"adcpedmap_ev%EVENT%_chan%CHAN%.png\"" << endl;
+    fout << "tools.mymaptool.PlotSplitX: 2" << endl;
+    fout << "tools.mymaptool.RootFileName: \"\"" << endl;
+    fout << "tools.mymaptool.PlotSizeX: 1400" << endl;
+    fout << "tools.mymaptool.PlotSizeY: 1000" << endl;
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
@@ -61,19 +70,23 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 2 );
+  assert( tm.toolNames().size() > 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching histogram manaager." << endl;
-  auto phm = tm.getShared<AdcChannelViewer>("mytool");
+  auto phm = tm.getShared<AdcChannelTool>("mytool");
   assert( phm != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcChannelViewer>("mytool");
-  assert( padv != nullptr );
-  auto padvmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
-  assert( padvmod != nullptr );
+  auto padvNotUsed = tm.getPrivate<AdcChannelTool>("mytool");
+  assert( padvNotUsed != nullptr );
+  auto padvsin = tm.getPrivate<AdcChannelTool>("mytool");
+  assert( padvsin != nullptr );
+  auto padvmap = tm.getPrivate<AdcChannelTool>("mymaptool");
+  assert( padvmap != nullptr );
+  if ( ! doUpdate ) padvsin = nullptr;
+  if ( ! doUpdateMap ) padvmap = nullptr;
 
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
@@ -114,17 +127,34 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
       data.samples[tm] -= 100;
       data.flags[tm] = 4;
       data.roisFromSignal();
-      double ped0 = datamap[icha].pedestal;
-      //assert( padv->view(datamap[icha]) == 0 );
-      double ped1 = datamap[icha].pedestal;
-      assert( padvmod->update(datamap[icha]) == 0 );
-      double ped2 = datamap[icha].pedestal;
-      cout << "Old pedestal: " << ped0 << endl;
-      cout << "New pedestal: " << ped2 << endl;
-      assert( ped1 == ped0 );
-      assert( ped2 != ped0 );
-      assert( ped2 != 0.0 );
-      //assert( fabs(ped2-ped) < 0.01 );
+      if ( padvsin != nullptr ) {
+        double ped0 = datamap[icha].pedestal;
+        //assert( padv->view(datamap[icha]) == 0 );
+        double ped1 = datamap[icha].pedestal;
+        assert( ! datamap[icha].hasMetadata("fitPedPeakBinFraction") );
+        assert( padvsin->update(datamap[icha]) == 0 );
+        double ped2 = datamap[icha].pedestal;
+        cout << "Old pedestal: " << ped0 << endl;
+        cout << "New pedestal: " << ped2 << endl;
+        assert( ped1 == ped0 );
+        assert( ped2 != ped0 );
+        assert( ped2 != 0.0 );
+        assert( datamap[icha].hasMetadata("fitPedPeakBinFraction") );
+        
+        //assert( fabs(ped2-ped) < 0.01 );
+      }
+    }
+    if ( padvmap != nullptr ) {
+      for ( AdcIndex icha=0; icha<ncha; ++icha ) datamap[icha].metadata.clear();
+      assert( ! datamap[0].hasMetadata("fitPedPeakBinFraction") );
+      assert( padvmap->updateMap(datamap) == 0 );
+      string mname = "fitPedPeakBinFraction";
+      for ( AdcIndex icha=0; icha<ncha; ++icha ) {
+        cout << myname << "Checking channel " << icha << endl;
+        cout << myname << "  Metadata size: " << datamap[icha].metadata.size() << endl;
+        cout << myname << "  " << mname << " = " << datamap[icha].metadata[mname] << endl;
+        assert( datamap[icha].hasMetadata(mname) );
+      }
     }
   }
 
@@ -137,6 +167,8 @@ int test_AdcPedestalFitter(bool useExistingFcl =false) {
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
+  bool doUpdate = true;
+  bool doUpdateMap = true;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
@@ -146,7 +178,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_AdcPedestalFitter(useExistingFcl);
+  return test_AdcPedestalFitter(useExistingFcl, doUpdate, doUpdateMap);
 }
 
 //**********************************************************************

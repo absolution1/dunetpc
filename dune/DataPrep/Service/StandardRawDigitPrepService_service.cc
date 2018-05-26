@@ -20,7 +20,7 @@
 #include "dune/DuneInterface/AdcWireBuildingService.h"
 #include "dune/DuneInterface/AdcChannelDataCopyService.h"
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/Tool/AdcDataViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 
 using std::string;
 using std::cout;
@@ -134,10 +134,11 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
       cout << myname << "  Fetching display tools: " << endl;
       for ( string tname : m_DisplayTools ) {
         if ( m_LogLevel ) cout << myname << "     Fetching " << tname << endl;
-        auto padv = ptm->getPrivate<AdcDataViewer>(tname);
+        auto padv = ptm->getPrivate<AdcChannelTool>(tname);
         if ( padv ) {
           if ( m_LogLevel ) cout << myname << "    Display tool " << tname << ": @" << padv.get() << endl;
           m_DisplayToolPtrs.push_back(std::move(padv));
+          m_FoundDisplayToolNames.push_back(tname);
         } else {
           cout << myname << "ERROR: Unable to retrieve display tool " << tname << endl;
         }
@@ -320,8 +321,14 @@ prepare(AdcChannelDataMap& datamap,
     }
   }
   if ( m_DisplayToolPtrs.size() ) {
-    for ( const AdcDataViewerPtr& padv : m_DisplayToolPtrs ) {
-      padv->view(datamap, "Prepared ADC data", "prepared");
+    unsigned int idto = 0;
+    if ( m_LogLevel >= 2 ) cout << myname << "Running display tools." << endl;
+    for ( const AdcChannelToolPtr& padv : m_DisplayToolPtrs ) {
+      if ( m_LogLevel >= 2 ) {
+        cout << myname << "Running tool " << m_FoundDisplayToolNames[idto] << endl;
+      }
+      padv->viewMap(datamap);
+      ++idto;
     }
   }
 

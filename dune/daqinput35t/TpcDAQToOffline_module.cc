@@ -63,7 +63,7 @@ public:
   void produce(art::Event & evt) override;
   void reconfigure(const fhicl::ParameterSet &pset);
   void printParameterSet();
-  void beginJob();
+  void beginJob() override;
 private:
   void Reset();
 

@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -66,7 +66,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto pmod = tm.getPrivate<AdcChannelDataModifier>("mytool");
+  auto pmod = tm.getPrivate<AdcChannelTool>("mytool");
   assert( pmod != nullptr );
 
   cout << myname << line << endl;
@@ -103,9 +103,9 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
     DataMap res = pmod->update(acd);
     cout << myname << "Modify:" << endl;
     res.print();
-    Index nsamRes = res.getInt("nSample");
-    Index nunder = res.getInt("nUnderflow");
-    Index nover = res.getInt("nOverflow");
+    Index nsamRes = res.getInt("calibSampleCount");
+    Index nunder = res.getInt("calibUnderflowCount");
+    Index nover = res.getInt("calibOverflowCount");
     assert( res.status() == 0 );
     assert( nsamRes == nsam );
     cout << myname << "  Raw:";

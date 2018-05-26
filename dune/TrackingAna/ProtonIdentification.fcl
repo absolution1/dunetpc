@@ -12,6 +12,7 @@ proton_id:
    PIDApower:               0.42
    BoundaryEdge:            5
    Verbose:                 1
+   fUsePhotons:             false
 }
 
 END_PROLOG

@@ -56,12 +56,13 @@ simple_plugin(
 	  larcore_Geometry_Geometry_service
 	  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 	  larsim_MCCheater_BackTrackerService_service
-           larsim_MCCheater_ParticleInventoryService_service
+          larsim_MCCheater_ParticleInventoryService_service
 	  lardata_Utilities
 	  larevt_Filters
 	  lardataobj_RawData
 	  lardataobj_RecoBase
 	  lardata_RecoObjects larreco_Deprecated
+	  lardata_ArtDataHelper
 	  larreco_RecoAlg
 	  larpandora_LArPandoraInterface
 	  SignalShapingServiceDUNE10kt_service

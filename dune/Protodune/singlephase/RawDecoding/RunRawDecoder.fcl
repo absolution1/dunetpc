@@ -1,0 +1,80 @@
+#include "services_dune.fcl"
+
+#This is the default configuration file
+#include "RawDecoder.fcl"
+
+services:
+{
+  #message:              @local::dune_message_services_prod_debug
+
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+#  FileCatalogMetadata:  @local::art_file_catalog_mc
+  ExptGeoHelperInterface:       @local::dune_geometry_helper
+  Geometry:                     @local::protodune_geo
+  DetectorClocksService:        @local::dunefd_detectorclocks
+  DetectorPropertiesService:    @local::protodune_detproperties
+  LArPropertiesService:         @local::dunefd_properties
+  LArFFT:                       @local::dunefd_larfft  
+  DatabaseUtil:                 @local::dunefd_database
+  ChannelStatusService:         @local::dunefd_channel_status
+#  ChannelGroupService:          @local::changroup_apa
+
+  TFileService: { 
+   closeFileFast: true  # default
+   fileName:  "RunRawDecoderTFile.root"
+   tmpDir: "<parent-path-of-filename>"  # default
+  }
+
+  PdspChannelMapService: {
+    FileName:         "protoDUNETPCChannelMap_v3.txt"
+    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
+    LogLevel:         1
+  }
+}
+
+services.DetectorPropertiesService.NumberTimeSamples: 10000
+services.DetectorPropertiesService.ReadOutWindowSize: 10000
+
+physics:
+{
+  producers:
+  {
+
+    timingrawdecoder: @local::timing_raw_decoder   
+    ssprawdecoder: @local::ssp_raw_decoder  
+#    rcerawdecoder: @local::rce_raw_decoder 
+#    felixrawdecoder: @local::felix_raw_decoder
+    tpcrawdecoder: @local::pdsp_tpc_raw_decoder
+  }
+
+  #Create path to run module
+  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder ] 
+  output: [ out1 ]
+  trigger_paths : [ produce ]
+  end_paths: [ output ]
+}
+
+#services: {
+#}
+
+outputs:
+{
+  out1:
+  {
+    compressionLevel: 1
+    module_type: RootOutput
+    fileName: "RawDecoder.root"
+  }
+
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/afs/cern.ch/user/s/sergiand/workspace/artdaq_devel/pdune_r1000077_sr01_20170629T181646_1_0.root" ]
+  maxEvents : -1
+}
+
+process_name: RunRawDecoder
+ 

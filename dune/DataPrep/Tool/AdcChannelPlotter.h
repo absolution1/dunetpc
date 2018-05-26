@@ -28,19 +28,20 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelViewer.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
 
 class HistogramManager;
 
-class AdcChannelPlotter : AdcChannelViewer {
+class AdcChannelPlotter : AdcChannelTool {
 
 public:
 
   AdcChannelPlotter(fhicl::ParameterSet const& ps);
 
   DataMap view(const AdcChannelData& acd) const override;
+  bool updateWithView() const override { return true; }
 
 private:
 

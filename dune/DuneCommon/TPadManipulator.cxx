@@ -243,6 +243,13 @@ TObject* TPadManipulator::object() const {
 
 //**********************************************************************
 
+TH1* TPadManipulator::getHist(unsigned int iobj) {
+  if ( iobj >= objects().size() ) return nullptr;
+  return dynamic_cast<TH1*>(objects()[iobj].get());
+}
+
+//**********************************************************************
+
 TH1* TPadManipulator::getHist(string hnam) {
   if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
   for ( const TObjPtr& pobj : objects() ) {
@@ -325,9 +332,10 @@ int TPadManipulator::addPad(double x1, double y1, double x2, double y2, int icol
 
 //**********************************************************************
 
-int TPadManipulator::split(Index nx, Index ny) {
+int TPadManipulator::split(Index nx, Index nyin) {
+  Index ny = nyin;
   if ( nx < 1 ) return 1;
-  if ( ny < 1 ) return 2;
+  if ( ny < 1 ) ny = nx;
   double dx = 1.0/nx;
   double dy = 1.0/ny;
   double y2 = 1.0;
@@ -521,19 +529,19 @@ int TPadManipulator::update() {
   double asp = wx > 0 ? wy/wx : 1.0;
   double aspx = asp < 1.0 ? asp : 1.0;        // Font is proportional to this for asp < 1.0
   double aspy = asp > 1.0 ? 1.0/asp : 1.0;    // Font is proportional to this for asp > 1.0
-  double xml = xm0 + 0.110*aspx;
-  double xmr = 0.03*aspx;
+  double xml = xm0 + 0.120*aspx;
+  double xmr = 0.05*aspx;
   double xmb =       0.100*aspy;
   double xmt =       0.070*aspy;
   double xlb = -0.028 + 0.038*aspy;
   double xlz = 0.005*aspx;
   double xttl = 1.2*aspy;
-  double yttl = 0.15 + 1.6*aspx;
+  double yttl = 0.17 + 1.8*aspx;
   double httl = 1.0 - 0.5*xmt;
   if ( isTH2 ) {
     TPaletteAxis* pax = dynamic_cast<TPaletteAxis*>(hist()->GetListOfFunctions()->FindObject("palette"));
     if ( pax != nullptr ) {
-      xmr = xm0 + 0.120*aspx;
+      xmr = xm0 + 0.150*aspx;
       double xp1 = 1.0 - 1.00*xmr;
       double xp2 = 1.0 - 0.65*xmr;
       double yp1 = xmb;
@@ -908,6 +916,24 @@ int TPadManipulator::draw() {
 
 //**********************************************************************
 
+int TPadManipulator::erase() {
+  if ( haveParent() ) return parent()->erase();
+  if ( m_ppad == nullptr ) return 0;
+  delete m_ppad;
+  m_ppad = nullptr;
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::redraw() {
+  if ( haveParent() ) return parent()->redraw();
+  erase();
+  return draw();
+}
+
+//**********************************************************************
+
 int TPadManipulator::drawAxisTop() {
   if ( ! m_top ) return 0;
   if ( m_ppad == nullptr ) return 1;
@@ -971,8 +997,6 @@ int TPadManipulator::drawAxisRight() {
   if ( m_ppad->GetLogy() ) {
     yminPad = pow(10.0, yminPad);
     ymaxPad = pow(10.0, ymaxPad);
-    y1 = pow(10.0, y1);
-    y2 = pow(10.0, y2);
     sopt += "G";
   }
   TAxis* paxold = getYaxis();

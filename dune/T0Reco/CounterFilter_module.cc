@@ -41,7 +41,7 @@ public:
   bool filter(art::Event & e) override;
 
   // Selected optional functions.
-  void reconfigure(fhicl::ParameterSet const & p) override;
+  void reconfigure(fhicl::ParameterSet const & p) ;
 
 private:
 
@@ -79,7 +79,9 @@ bool dune::CounterFilter::filter(art::Event & e)
 	  for (auto const &trig : trigvec)
 	    {
 	      unsigned int trigID = trig->GetTrigID();
-	      if (trigID >= 0 && trigID <= 5) contains_SL++;
+              // for c2: unsigned int trigID is always >= 0
+	      //if (trigID >= 0 && trigID <= 5) contains_SL++;
+	      if (trigID <= 5) contains_SL++;
 	      if (trigID >= 6 && trigID <= 15) contains_EL++;
 	      if (trigID >= 16 && trigID <= 21) contains_NL++;
 	      if (trigID >= 22 && trigID <= 27) contains_NU++;

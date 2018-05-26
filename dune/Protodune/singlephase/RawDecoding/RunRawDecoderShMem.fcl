@@ -1,0 +1,82 @@
+#include "services_dune.fcl"
+
+#This is the default configuration file
+#include "RawDecoder.fcl"
+
+services:
+{
+  #message:              @local::dune_message_services_prod_debug
+  TFileService: { fileName: "/scratch/OMoutput/np04_hist_run%06r_%#.root" }
+  PdChannelMapService: {
+    FileName:         "protoDUNETPCChannelMap_v1.txt"
+    LogLevel:         1
+  } 
+}
+
+ physics:
+{
+  producers:
+  {
+
+    timingrawdecoder: @local::timing_raw_decoder   
+    ssprawdecoder: @local::ssp_raw_decoder  
+    rcerawdecoder: @local::rce_raw_decoder 
+
+  }
+
+  #Create path to run module
+  produce: [ timingrawdecoder, ssprawdecoder, rcerawdecoder ]
+  #produce: [ timingrawdecoder, rcerawdecoder ]
+  output: [ out1 ]
+  trigger_paths : [ produce ]
+  end_paths: [  ]
+}
+
+#services: {
+#}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "RawDecoder.root"
+  }
+
+}
+
+#source:
+#{
+#  module_type: RootInput
+#  fileNames: [ "/afs/cern.ch/user/s/sergiand/workspace/artdaq_devel/pdune_r1000077_sr01_20170629T181646_1_0.root" ]
+#  maxEvents : -1
+#}
+
+source:
+{
+
+  module_type: TransferInput
+  
+  # The timeout shouldn't be much smaller than the period between events, otherwise 
+  # there's a spew of timeout messages
+
+  timeoutInUsecs: 10000000
+
+  dispatcherHost: localhost
+  dispatcherPort: 5266
+
+  transfer_plugin: {
+
+    transferPluginType: Shmem
+
+    unique_label: "shmem0"
+
+      shm_key: 0x40471450
+
+      max_fragment_size_words: 40971520
+      first_event_builder_rank: 0
+    }
+}
+
+process_name: RunRawDecoder
+ 

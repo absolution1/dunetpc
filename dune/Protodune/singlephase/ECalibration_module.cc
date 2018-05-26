@@ -91,7 +91,7 @@ public:
 
 	void beginRun(const art::Run& run) override;
 	
-	void reconfigure(fhicl::ParameterSet const& p) override;
+	void reconfigure(fhicl::ParameterSet const& p) ;
 private:
 
   // Declare member data here.
@@ -126,7 +126,7 @@ private:
 	
 	std::vector<int> fPdg;
 	int fSimPdg;
-	int fSimTrackID;
+	//int fSimTrackID; // unused
 	int fFlip;
 	int fBestview;
 

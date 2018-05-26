@@ -6,8 +6,10 @@
 // Class to store results of a calculation in maps indexed
 // by name. Different types of results are supported:
 //           Int: int
-//         Float: double
-//   FloatVector: vector<float>
+//         Float: float
+//        String: std::string
+//     IntVector: vector<Int>
+//   FloatVector: vector<Float>
 //          Hist: TH1*
 //         Graph: TGraph*
 //
@@ -33,6 +35,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <sstream>
 
 #include "TH1.h"
 #include "TGraph.h"
@@ -42,11 +45,14 @@ class DataMap {
 public:
 
   using Name = std::string;
+  using String = std::string;
+  using StringMap = std::map<Name, String>;
   using IntVector = std::vector<int>;
   using IntMap = std::map<Name,int>;
   using IntVectorMap = std::map<Name,IntVector>;
+  using Float = float;
   using FloatVector = std::vector<float>;
-  using FloatMap = std::map<Name,double>;
+  using FloatMap = std::map<Name,Float>;
   using FloatVectorMap = std::map<Name,FloatVector>;
   using HistVector = std::vector<TH1*>;
   using HistMap = std::map<Name,TH1*>;
@@ -54,6 +60,54 @@ public:
   using GraphPtr = std::shared_ptr<TGraph>;
   using GraphMap = std::map<Name,GraphPtr>;
   using SharedHistVector = std::vector<std::shared_ptr<TH1>>;
+
+public:
+
+  // Set/fetch debug level.
+  //   0 - silent
+  //   1 - report when a non-existent name is requested
+  //   2 - report all access
+  static int dbg(int setDbg =-1) {
+    static int val = 0;
+    if ( setDbg >= 0 ) {
+      val = setDbg;
+    }
+    return val;
+  }
+
+  // Class to manage map entry objects.
+  template<typename T>
+  struct MapEntry {
+    using Value    = T;
+    using Map      = typename std::map<Name,Value>;
+    using Iterator = typename Map::const_iterator;
+    using Entry    = typename Map::value_type;
+    const Entry& m_ent;
+    MapEntry(Iterator ient) : m_ent(*ient) { }
+    std::string toString() const {
+      std::ostringstream sout;
+      sout << m_ent.first << ": " << m_ent.second;
+      return sout.str();
+    }
+  };
+
+  // Specialization to handle vectors.
+  template<typename T>
+  struct MapEntry<std::vector<T>> {
+    using Value    = typename std::vector<T>;
+    using Map      = typename std::map<Name,Value>;
+    using Iterator = typename Map::const_iterator;
+    using Entry    = typename Map::value_type;
+    const Entry& m_ent;
+    MapEntry(Iterator ient) : m_ent(*ient) { }
+    std::string toString() const {
+      std::ostringstream sout;
+      sout << m_ent.first << "[" << m_ent.second.size() << "]";
+      return sout.str();
+    }
+  };
+
+public:
 
   // Ctor from status flag.
   explicit DataMap(int stat =0) : m_stat(stat) { }
@@ -75,11 +129,12 @@ public:
   DataMap& setStatus(int stat) { m_stat = stat; return *this; }
   void setInt(Name name, int val) { m_ints[name] = val; }
   void setIntVector(Name name, const IntVector& val) { m_intvecs[name] = val; }
-  void setFloat(Name name, double val) { m_flts[name] = val; }
+  void setFloat(Name name, float val) { m_flts[name] = val; }
   void setFloatVector(Name name, const FloatVector& val) { m_fltvecs[name] = val; }
+  void setString(Name name, String val) { m_strs[name] = val; }
   void setHist(Name name, TH1* ph, bool own =false) {
     m_hsts[name] = ph;
-    if ( own ) {
+    if ( own && ph != nullptr ) {
       ph->SetDirectory(nullptr);
       m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
     }
@@ -119,8 +174,9 @@ public:
     m_stat += rhs.status();
     mapextend<int>(m_ints, rhs.m_ints);
     mapextend<IntVector>(m_intvecs, rhs.m_intvecs);
-    mapextend<double>(m_flts, rhs.m_flts);
+    mapextend<Float>(m_flts, rhs.m_flts);
     mapextend<FloatVector>(m_fltvecs, rhs.m_fltvecs);
+    mapextend<String>(m_strs, rhs.m_strs);
     mapextend<TH1*>(m_hsts, rhs.m_hsts);
     mapextend<HistVector>(m_hstvecs, rhs.m_hstvecs);
     m_sharedHsts.insert(m_sharedHsts.end(), rhs.m_sharedHsts.begin(), rhs.m_sharedHsts.end());
@@ -137,8 +193,9 @@ public:
   // Return if a result is stored for a given name.
   bool haveInt(Name name)   const { return maphas<int>(m_ints, name); }
   bool haveIntVector(Name name) const { return maphas<IntVector>(m_intvecs, name); }
-  bool haveFloat(Name name) const { return maphas<double>(m_flts, name); }
+  bool haveFloat(Name name) const { return maphas<Float>(m_flts, name); }
   bool haveFloatVector(Name name) const { return maphas<FloatVector>(m_fltvecs, name); }
+  bool haveString(Name name) const { return maphas<String>(m_strs, name); }
   bool haveHist(Name name)  const { return maphas<TH1*>(m_hsts, name); }
   bool haveHistVector(Name name)  const { return maphas<HistVector>(m_hstvecs, name); }
   bool haveGraph(Name name)  const { return maphas<GraphPtr>(m_grfs, name); }
@@ -147,8 +204,9 @@ public:
   // The indicated default is returned if a value is not stored.
   int getInt(Name name, int def =0) const { return mapget<int>(m_ints, name, def); }
   const IntVector& getIntVector(Name name) const { return mapgetobj<IntVector>(m_intvecs, name); }
-  double getFloat(Name name, double def =0.0) const { return mapget<double>(m_flts, name, def); }
+  Float getFloat(Name name, Float def =0.0) const { return mapget<Float>(m_flts, name, def); }
   const FloatVector& getFloatVector(Name name) const { return mapgetobj<FloatVector>(m_fltvecs, name); }
+  String getString(Name name, String def ="") const { return mapget<String>(m_strs, name, def); }
   TH1* getHist(Name name, TH1* def =nullptr) const { return mapget<TH1*>(m_hsts, name, def); }
   const HistVector& getHistVector(Name name) const { return mapgetobj<HistVector>(m_hstvecs, name); }
   TGraph* getGraph(Name name) const { return mapgetobj<GraphPtr>(m_grfs, name).get(); }
@@ -158,6 +216,7 @@ public:
   const IntVectorMap& getIntVectorMap() const { return m_intvecs; }
   const FloatMap& getFloatMap() const { return m_flts; }
   const FloatVectorMap& getFloatVectorMap() const { return m_fltvecs; }
+  const StringMap& getStringMap() const { return m_strs; }
   const HistMap& getHistMap() const { return m_hsts; }
   const HistVectorMap& getHistVectorMap() const { return m_hstvecs; }
   const GraphMap& getGraphMap() const { return m_grfs; }
@@ -220,6 +279,12 @@ public:
         cout << endl;
       }
     }
+    if ( m_strs.size() ) {
+      cout << "Strings:" << endl;
+      for ( typename StringMap::value_type ient : m_strs ) {
+        cout << "  " << ient.first << ": " << ient.second << endl;
+      }
+    }
     if ( m_hsts.size() ) {
       cout << "Histograms:" << endl;
       for ( typename HistMap::value_type ient : m_hsts ) {
@@ -252,6 +317,7 @@ private:
   IntVectorMap m_intvecs;
   FloatMap m_flts;
   FloatVectorMap m_fltvecs;
+  StringMap m_strs;
   HistMap m_hsts;
   HistVectorMap m_hstvecs;
   SharedHistVector m_sharedHsts;
@@ -267,18 +333,29 @@ private:
   // Return a map's value for a key or default if key is not present.
   template<typename T>
   T mapget(const std::map<Name,T>& vals, Name name, T def) const {
+    const std::string myname = "DataMap::mapget: ";
     typename std::map<Name,T>::const_iterator ival = vals.find(name);
-    if ( ival == vals.end() ) return def;
+    if ( ival == vals.end() ) {
+      if ( dbg() ) std::cout << myname << "Unknown entry: " << name << std::endl;
+      return def;
+    }
+    //if ( dbg() == 2 ) std::cout << myname << ient->first << std::endl;
+    if ( dbg() == 2 ) std::cout << myname << MapEntry<T>(ival).toString() << std::endl;
     return ival->second;
   }
 
   // Return a map's value for a key or default ctor object if key is not present.
-
   template<typename T>
   const T& mapgetobj(const std::map<Name,T>& vals, Name name) const {
+    const std::string myname = "DataMap::mapgetobj: ";
     static T def;
     typename std::map<Name,T>::const_iterator ival = vals.find(name);
-    if ( ival == vals.end() ) return def;
+    if ( ival == vals.end() ) {
+      if ( dbg() ) std::cout << myname << "Unknown entry: " << name << std::endl;
+      return def;
+    }
+    //if ( dbg() == 2 ) std::cout << myname << ient->first << std::endl;
+    if ( dbg() == 2 ) std::cout << myname << MapEntry<T>(ival).toString() << std::endl;
     return ival->second;
   }
 

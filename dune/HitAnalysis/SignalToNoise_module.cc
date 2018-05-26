@@ -23,6 +23,7 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "larcorealg/CoreUtils/NumericUtils.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/ArtDataHelper/TrackUtils.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -136,8 +137,12 @@ void dune::SignalToNoise::analyze(art::Event const & e)
     for (size_t j = 0; j<countlist.size(); ++j){
       if (i==j) continue;
       if (std::abs(countlist[i]->GetTrigTime()-countlist[j]->GetTrigTime()) < 2){
+        // for c2: GetTrigID() is an unsigned int and always >= 0
+        //if ( (    countlist[i]->GetTrigID() >= 6  && countlist[i]->GetTrigID() <= 15 && countlist[j]->GetTrigID() >= 28 && countlist[j]->GetTrigID() <= 37 ) // East Lower, West Upper 
+         //    || ( countlist[i]->GetTrigID() >= 0  && countlist[i]->GetTrigID() <= 5  && countlist[j]->GetTrigID() >= 22 && countlist[j]->GetTrigID() <= 27 ) // South Lower, North Upper
+         //    || ( countlist[i]->GetTrigID() >= 16 && countlist[i]->GetTrigID() <= 21 && countlist[j]->GetTrigID() >= 38 && countlist[j]->GetTrigID() <= 43 ) // North Lower, South Upper
         if ( (    countlist[i]->GetTrigID() >= 6  && countlist[i]->GetTrigID() <= 15 && countlist[j]->GetTrigID() >= 28 && countlist[j]->GetTrigID() <= 37 ) // East Lower, West Upper 
-             || ( countlist[i]->GetTrigID() >= 0  && countlist[i]->GetTrigID() <= 5  && countlist[j]->GetTrigID() >= 22 && countlist[j]->GetTrigID() <= 27 ) // South Lower, North Upper
+             || ( countlist[i]->GetTrigID() <= 5  && countlist[j]->GetTrigID() >= 22 && countlist[j]->GetTrigID() <= 27 ) // South Lower, North Upper
              || ( countlist[i]->GetTrigID() >= 16 && countlist[i]->GetTrigID() <= 21 && countlist[j]->GetTrigID() >= 38 && countlist[j]->GetTrigID() <= 43 ) // North Lower, South Upper
              ) {
           //              std::cout << "I have a match..."
@@ -346,7 +351,9 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               std::vector<double> vt;
               std::vector<double> vx;
               for (auto& hv : hitmap){
-                if (std::abs(hv.first-h)<=5){
+                // for c2: fix ambiguous call to abs
+                //if (std::abs(hv.first-h)<=5){
+                if (util::absDiff(hv.first,h)<=5){
                   vw.push_back((hv.second)->WireID().Wire);
                   vt.push_back((hv.second)->PeakTime());
                   vx.push_back(xposmap[hv.first]);
@@ -377,7 +384,8 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               }
               double angleToVert = geom->WireAngleToVertical(hitmap.begin()->second->View(), hitmap.begin()->second->WireID().TPC, hitmap.begin()->second->WireID().Cryostat) - 0.5*::util::pi<>();
               //std::cout<<vhit[h]->View()<<" "<<vhit[h]->WireID().TPC<<" "<<vhit[h]->WireID().Cryostat<<" "<<angleToVert<<std::endl;
-              const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              //const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              const TVector3& dir = tracklist[i]->VertexDirection();
               double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
               hphx->Fill(xpos,maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View()));
               //std::cout<<h<<" "<<pt<<" "<<xpos<<" "<<maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View())<<std::endl;
@@ -416,7 +424,8 @@ void dune::SignalToNoise::beginJob()
   hdt = tfs->make<TH1D>("hdt",";#Delta t (ticks);",1000,-1000,1000);
                            
   std::ifstream in;
-  in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
+  //in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
+  in.open("counterInformation.txt");
   char line[1024];
   while(1){
     in.getline(line,1024);

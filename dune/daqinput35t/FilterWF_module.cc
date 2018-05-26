@@ -69,11 +69,11 @@ public:
   explicit FilterWF(fhicl::ParameterSet const& pset);
   virtual ~FilterWF();
 
-  virtual void produce(art::Event& evt);
+  virtual void produce(art::Event& evt) override;
   void reconfigure(fhicl::ParameterSet const& pset);
-  void beginRun(art::Run const& run);
-  void beginJob();
-  void endRun(art::Run const& run);
+  void beginRun(art::Run& run) override;
+  void beginJob() override;
+  void endRun(art::Run& run) override;
 
 private:
 
@@ -116,7 +116,7 @@ void lbne::FilterWF::reconfigure(fhicl::ParameterSet const& pset) {
 }
 
 //-------------------------------------------------------------------
-void lbne::FilterWF::beginRun(art::Run const& run) {
+void lbne::FilterWF::beginRun(art::Run & run) {
   return;
 }
 //-------------------------------------------------------------------
@@ -138,7 +138,7 @@ void lbne::FilterWF::beginJob() {
 }
 
 //-------------------------------------------------------------------
-void lbne::FilterWF::endRun(art::Run const& run) {
+void lbne::FilterWF::endRun(art::Run & run) {
   return;
 }
   

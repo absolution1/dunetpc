@@ -97,7 +97,7 @@ namespace calgaushf {
  
   private:
     int          fDeconvKernSize;    //< Length of truncated deconvolution kernel
-    int          fDataSize;          ///< size of raw data on one wire
+    //int          fDataSize;          ///< size of raw data on one wire // unused
     int          fPostsample;        ///< number of postsample bins
     std::string  fDigitModuleLabel;  ///< module that made digits
                                                        ///< constants

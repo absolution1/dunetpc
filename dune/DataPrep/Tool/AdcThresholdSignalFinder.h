@@ -5,13 +5,13 @@
 //
 // Tool to find and flag signal regions in ADC data.
 //
-// For each tick with smaple above Threshold and/or below -Threshold, the region
+// For each tick with sample above Threshold and/or below -Threshold, the region
 // [bin-BinsBefore, bin+binsAfter] is flagged as signal.
 // An ROI is created for each range of contiguous signals.
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   Threshold  - HistName:  Name for the histogram.
+//   Threshold  - threshold for signal finding
 //   BinsBefore - lower limit for signal range
 //   BinsAfter  - upper limit for signal range
 //   FlagPositive - Flag signals above Threshold
@@ -25,15 +25,12 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
 
-class HistogramManager;
-class TH1;
-
 class AdcThresholdSignalFinder
-: public AdcChannelDataModifier {
+: public AdcChannelTool {
 
 public:
 
