@@ -18,7 +18,19 @@ using std::cout;
 using std::endl;
 using std::ostringstream;
 
-using Index = unsigned int;
+using Index = AdcRoiViewer::Index;
+using Name = AdcRoiViewer::Name;
+
+//**********************************************************************
+// Subclass methods.
+//**********************************************************************
+
+AdcRoiViewer::State::~State() {
+  for ( HistMap::value_type ihst : hists ) {
+     delete ihst.second;
+     ihst.second = nullptr;
+  }
+}
 
 //**********************************************************************
 // Class methods.
@@ -28,7 +40,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_HistOpt(ps.get<int>("HistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
-  m_RootFileName(ps.get<string>("RootFileName"))
+  m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
+  m_SumRootFileName(ps.get<string>("SumRootFileName")),
+  m_state(new AdcRoiViewer::State)
 {
   const string myname = "AdcRoiViewer::ctor: ";
   string stringBuilder = "adcStringBuilder";
@@ -38,10 +52,11 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
   if ( m_LogLevel>= 1 ) {
-    cout << myname << "      LogLevel: " << m_LogLevel << endl;
-    cout << myname << "       HistOpt: " << m_HistOpt << endl;
-    cout << myname << "        FitOpt: " << m_FitOpt << endl;
-    cout << myname << "  RootFileName: " << m_RootFileName << endl;
+    cout << myname << "         LogLevel: " << m_LogLevel << endl;
+    cout << myname << "          HistOpt: " << m_HistOpt << endl;
+    cout << myname << "           FitOpt: " << m_FitOpt << endl;
+    cout << myname << "  RoiRootFileName: " << m_RoiRootFileName << endl;
+    cout << myname << "  SumRootFileName: " << m_SumRootFileName << endl;
   }
 }
 
@@ -50,9 +65,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   DataMap res;
   doView(acd, m_LogLevel, res);
-  if ( m_RootFileName.size() ) {
-    string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_RootFileName);
-    doSave(res, ofrname, m_LogLevel);
+  if ( m_RoiRootFileName.size() ) {
+    doSave(res, m_LogLevel);
   }
   return res;
 }
@@ -66,12 +80,8 @@ DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
   Index nroi = 0;
   Index nfail = 0;
   DataMap::IntVector failedChannels;
-  bool save = m_RootFileName.size();
+  bool save = m_RoiRootFileName.size();
   Index ndm = save ? acds.size() : 1;
-  string ofrname;
-  if ( m_RootFileName.size() && acds.size() ) {
-    ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acds.begin()->second, m_RootFileName);
-  }
   int dbg = m_LogLevel > 3 ? m_LogLevel - 2 : 0;
   Index nacd = acds.size();
   DataMapVector dms;  // Cache to hold results from doView
@@ -96,12 +106,12 @@ DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
     nroiCached += dm.getInt("roiCount");
     if ( nroiCached > nroiLimit ) {
       if ( m_LogLevel >= 3 ) cout << myname << "  Clearing result cache." << endl;
-      if ( save && dms.size() ) doSave(dms, ofrname, dbg);
+      if ( save && dms.size() ) doSave(dms, dbg);
       dms.clear();
       nroiCached = 0;
     }
   }
-  if ( save && dms.size() ) doSave(dms, ofrname, dbg);
+  if ( save && dms.size() ) doSave(dms, dbg);
   ret.setInt("roiChannelCount", ncha);
   ret.setInt("roiFailedChannelCount", nfail);
   ret.setIntVector("roiFailedChannels", failedChannels);
@@ -218,7 +228,9 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       double shap = 2.5*ph->GetRMS();
       double t0 = x1 + (isNeg ? roiTickMin : roiTickMax) - shap;
       TF1* pf = coldelecResponseTF1(h, shap, t0, "coldlec");
-      TF1* pfinit = dynamic_cast<TF1*>(pf->Clone("coldelec0"));
+      TF1* pfinit = coldelecResponseTF1(h, shap, t0, "coldlec");
+      // The following was very slow when function was written to a file.
+      //TF1* pfinit = dynamic_cast<TF1*>(pf->Clone("coldelec0"));
       pfinit->SetLineColor(3);
       pfinit->SetLineStyle(2);
       string fopt = "0";
@@ -247,6 +259,10 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       //delete pfinit;  This give error: list accessing deleted object
     }
   }
+  res.setInt("roiEvent",   acd.event);
+  res.setInt("roiRun",     acd.run);
+  res.setInt("roiSubRun",  acd.subRun);
+  res.setInt("roiChannel", acd.channel);
   res.setInt("roiCount", nroi);
   res.setInt("roiNTickChannel", ntickChannel);
   res.setIntVector("roiTick0s", tick1);
@@ -269,31 +285,72 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
 
 //**********************************************************************
 
-void AdcRoiViewer::doSave(const DataMap& dm, string ofrname, int dbg) const {
+void AdcRoiViewer::doSave(const DataMap& dm, int dbg) const {
   DataMapVector dms(1, dm);
-  doSave(dms, ofrname, dbg);
+  doSave(dms, dbg);
 }
 
 //**********************************************************************
 
-void AdcRoiViewer::doSave(const DataMapVector& dms, string ofrname, int dbg) const {
+void AdcRoiViewer::doSave(const DataMapVector& dms, int dbg) const {
   const string myname = "AdcRoiViewer::doSave: ";
-  if ( ofrname.size() ) {
-    TDirectory* savdir = gDirectory;
-    if ( m_LogLevel >= 2 ) cout << myname << "Writing histograms to " << ofrname << endl;
-    TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
-    for ( const DataMap& dm : dms ) {
-      const DataMap::HistVector& roiHists = dm.getHistVector("roiHists");
-      for ( TH1* ph : roiHists ) {
-        TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
-        phnew->GetListOfFunctions()->SetOwner(kTRUE);  // So the histogram owns pfinit
-        phnew->Write();
-        if ( dbg >= 3 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
-      }
+  if ( m_RoiRootFileName.size() == 0 ) return;
+  TDirectory* savdir = gDirectory;
+  string ofrnameOld = "";
+  TFile* pfile = nullptr;
+  for ( const DataMap& dm : dms ) {
+    AdcChannelData acd;
+    acd.run     = dm.getInt("roiRun");
+    acd.subRun  = dm.getInt("roiSubRun");
+    acd.event   = dm.getInt("roiEvent");
+    acd.channel = dm.getInt("roiChannel");
+    string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_RoiRootFileName);
+    if ( ofrname != ofrnameOld ) {
+      if ( pfile != nullptr ) pfile->Close();
+      delete pfile;
+      if ( m_LogLevel >= 2 ) cout << myname << "Writing histograms to " << ofrname << endl;
+      pfile = TFile::Open(ofrname.c_str(), "UPDATE");
+      ofrnameOld = ofrname;
     }
-    delete pfile;
-    savdir->cd();
+    const DataMap::HistVector& roiHists = dm.getHistVector("roiHists");
+    for ( TH1* ph : roiHists ) {
+      TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
+      phnew->GetListOfFunctions()->SetOwner(kTRUE);  // So the histogram owns pfinit
+      phnew->Write();
+      if ( dbg >= 3 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
+    }
   }
+  if ( pfile != nullptr ) pfile->Close();
+  delete pfile;
+  savdir->cd();
+}
+
+//**********************************************************************
+
+Name AdcRoiViewer::getDistHistName(Name vname, const AdcChannelData& acd) const {
+  Name hnam = "h" + vname + "_%CHAN%";
+  return AdcChannelStringTool::build(m_adcStringBuilder, acd, hnam);
+}
+
+//**********************************************************************
+
+void AdcRoiViewer::writeDistHists(Index dbg) const {
+  const string myname = "AdcRoiViewer::writeDistHists: ";
+  if ( m_SumRootFileName.size() == 0 ) return;
+  if ( getState()->hists.size() == 0 ) return;
+  AdcChannelData acd;
+  Name ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_SumRootFileName);
+  TDirectory* savdir = gDirectory;
+  TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
+  for ( HistMap::value_type ihst : getState()->hists ) {
+    TH1* ph = ihst.second;
+    TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
+    phnew->Write();
+    if ( dbg >= 3 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
+  }
+  if ( pfile != nullptr ) pfile->Close();
+  delete pfile;
+  savdir->cd();
 }
 
 //**********************************************************************

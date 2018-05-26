@@ -311,14 +311,16 @@ tools.adcRoiViewer: {
   LogLevel: 1
   HistOpt:  1
   FitOpt:   0
-  RootFileName: ""
+  RoiRootFileName: ""
+  SumRootFileName: ""
 }
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
   LogLevel: 1
   HistOpt:  1
   FitOpt:   1
-  RootFileName: ""
+  RoiRootFileName: ""
+  SumRootFileName: ""
 }
 
 # Build ROI w.r.t. local baseline

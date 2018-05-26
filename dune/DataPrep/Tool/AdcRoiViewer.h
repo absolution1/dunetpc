@@ -11,12 +11,17 @@
 //                            1 - sample vs. tick
 //                            2 - raw vs. tick
 //                           10 + i - As above for i except vs. tick - tick0
-//   FitOpt - Fit option
-//              0 - no fit
-//              1 - fit with coldelecReponse
-//   RootFileName - Name of file to which histograms are copied.
+//           FitOpt - Fit option
+//                      0 - no fit
+//                      1 - fit with coldelecReponse
+//  RoiRootFileName - Name of file to which the ROI histograms are copied.
+//  SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
 //
 // Output data map for view:
+//           int          roiRun - Run number
+//           int       roiSubRun - SubRun number
+//           int        roiEvent - Event number
+//           int      roiChannel - Channel number
 //           int        roiCount - # ROI (nROI)
 //           int roiNTickChannel - # ticks in the ADC channel
 //     int[nROI]       roiTick0s - First tick for each ROI
@@ -49,10 +54,25 @@
 #include <iostream>
 
 class AdcChannelStringTool;
+using HistVector = std::vector<TH1*>;
+using HistMap = std::map<std::string, TH1*>;
 
 class AdcRoiViewer : AdcChannelTool {
 
 public:
+
+  using Index = unsigned int;
+  using Name = std::string;
+
+  class State {
+  public:
+    HistMap hists;
+    ~State();
+    // Fetch the histogram for a histogram name.
+    TH1* getHist(Name hname);
+  };
+
+  using StatePtr = std::shared_ptr<State>;
 
   AdcRoiViewer(fhicl::ParameterSet const& ps);
 
@@ -66,8 +86,17 @@ public:
   // Internal methods where most of the work is done.
   using DataMapVector = std::vector<DataMap>;
   int doView(const AdcChannelData& acd, int dbg, DataMap& dm) const;
-  void doSave(const DataMap& res, std::string ofrname, int dbg) const;
-  void doSave(const DataMapVector& res, std::string ofrname, int dbg) const;
+  void doSave(const DataMap& res, int dbg) const;
+  void doSave(const DataMapVector& res, int dbg) const;
+
+  // Return the state.
+  StatePtr getState() const { return m_state; }
+
+  // Name for dist var histogram from variable name and channel data.
+  Name getDistHistName(Name vname, const AdcChannelData& acd) const;
+
+  // Write the dist hists.
+  void writeDistHists(Index dbg) const;
 
 private:
 
@@ -75,7 +104,11 @@ private:
   int m_LogLevel;
   int m_HistOpt;
   int m_FitOpt;
-  std::string m_RootFileName;
+  std::string m_RoiRootFileName;
+  std::string m_SumRootFileName;
+
+  // Shared pointer so we can make sure only one reference is out at a time.
+  StatePtr m_state;
 
   // ADC string tools.
   const AdcChannelStringTool* m_adcStringBuilder;

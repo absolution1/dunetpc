@@ -42,7 +42,8 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  LogLevel: 3" << endl;
     fout << "  HistOpt: 1" << endl;
     fout << "  FitOpt: 1" << endl;
-    fout << "  RootFileName: \"roi.root\"" << endl;
+    fout << "  RoiRootFileName: \"roi.root\"" << endl;
+    fout << "  SumRootFileName: \"roi.root\"" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
