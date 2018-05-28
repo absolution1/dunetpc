@@ -6,16 +6,27 @@
 // Tool to extract information about the ROIs in an ADC channel.
 //
 // Configuration:
-//   LogLevel - Login level: 0=none, 1=init, 2=call, ...
-//   HistOpt - histo option:  0 - No histograms
-//                            1 - sample vs. tick
-//                            2 - raw vs. tick
-//                           10 + i - As above for i except vs. tick - tick0
-//           FitOpt - Fit option
+//         LogLevel - Logging level: 0=none, 1=init, 2=call, ...
+//       RoiHistOpt - histo option:  0 - No histograms
+//                                   1 - sample vs. tick
+//                                   2 - raw vs. tick
+//                                  10 + i - As above for i except vs. tick - tick0
+//           FitOpt - ROI fitting option
 //                      0 - no fit
 //                      1 - fit with coldelecReponse
+//         SumHists - Array of summary histogram specifiers. See below.
 //  RoiRootFileName - Name of file to which the ROI histograms are copied.
 //  SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
+//
+// A summary histogram specifier is a paramter set with the following fields:
+//     var: Name of the variable to draw: fitHeight, fitWidth
+//    name: Name of the histogram. Include %CHAN% to get separate histos for each channel
+//   title: Histogram title
+//    nbin: # bins
+//    xmin: Lower edge of the first bin
+//    xmax: Upper edge of the last bin
+// E.g.: {var:fitHeight name:"hfh_chan%0CHAN" title:"Fit height for channel %CHAN%"
+//        nbin:50 xmin:0.0 xmax:5.0}
 //
 // Output data map for view:
 //           int          roiRun - Run number
@@ -54,8 +65,6 @@
 #include <iostream>
 
 class AdcChannelStringTool;
-using HistVector = std::vector<TH1*>;
-using HistMap = std::map<std::string, TH1*>;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -63,9 +72,19 @@ public:
 
   using Index = unsigned int;
   using Name = std::string;
+  using NameVector = std::vector<Name>;
+  using HistVector = std::vector<TH1*>;
+  using HistMap = std::map<Name, TH1*>;
 
+  // This subclass carries the state for this tool, i.e. data that can change
+  // after initialization.
   class State {
   public:
+    // Variable for each histogram.
+    NameVector vars;
+    // Template for each histogram.
+    HistVector histTemplates;
+    // Filled histograms.
     HistMap hists;
     ~State();
     // Fetch the histogram for a histogram name.
@@ -76,7 +95,7 @@ public:
 
   AdcRoiViewer(fhicl::ParameterSet const& ps);
 
-  ~AdcRoiViewer() override =default;
+  ~AdcRoiViewer() override;
 
   // AdcChannelTool methods.
   DataMap view(const AdcChannelData& acd) const override;
@@ -84,25 +103,29 @@ public:
   bool updateWithView() const override { return true; }
 
   // Internal methods where most of the work is done.
+
+  // Read ROIs, fit them and put results in data map.
   using DataMapVector = std::vector<DataMap>;
   int doView(const AdcChannelData& acd, int dbg, DataMap& dm) const;
-  void doSave(const DataMap& res, int dbg) const;
-  void doSave(const DataMapVector& res, int dbg) const;
+
+  // Save the ROI histograms to the ROI Root file.
+  void writeRoiHists(const DataMap& res, int dbg) const;
+  void writeRoiHists(const DataMapVector& res, int dbg) const;
 
   // Return the state.
-  StatePtr getState() const { return m_state; }
+  State& getState() const { return *m_state; }
 
-  // Name for dist var histogram from variable name and channel data.
-  Name getDistHistName(Name vname, const AdcChannelData& acd) const;
+  // Fill the summary histograms for one channel.
+  void fillSumHists(const AdcChannelData acd, const DataMap& dm) const;
 
-  // Write the dist hists.
-  void writeDistHists(Index dbg) const;
+  // Write the summary histograms to the summary Root file.
+  void writeSumHists() const;
 
 private:
 
   // Configuration data.
   int m_LogLevel;
-  int m_HistOpt;
+  int m_RoiHistOpt;
   int m_FitOpt;
   std::string m_RoiRootFileName;
   std::string m_SumRootFileName;

@@ -17,19 +17,36 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::ostringstream;
+using fhicl::ParameterSet;
 
 using Index = AdcRoiViewer::Index;
 using Name = AdcRoiViewer::Name;
+using NameVector = std::vector<Name>;
+using ParameterSetVector = std::vector<ParameterSet>;
+using FloatVector = std::vector<float>;
 
 //**********************************************************************
 // Subclass methods.
 //**********************************************************************
 
 AdcRoiViewer::State::~State() {
-  for ( HistMap::value_type ihst : hists ) {
-     delete ihst.second;
-     ihst.second = nullptr;
+  for ( TH1*& ph : histTemplates ) {
+    delete ph;
+    ph = nullptr;
   }
+  for ( HistMap::value_type ihst : hists ) {
+    TH1*& ph = ihst.second;
+    delete ph;
+    ph = nullptr;
+  }
+}
+
+//**********************************************************************
+
+TH1* AdcRoiViewer::State::getHist(Name hname) {
+  HistMap::iterator ihst = hists.find(hname);
+  if ( ihst == hists.end() ) return nullptr;
+  return ihst->second;
 }
 
 //**********************************************************************
@@ -38,7 +55,7 @@ AdcRoiViewer::State::~State() {
 
 AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
-  m_HistOpt(ps.get<int>("HistOpt")),
+  m_RoiHistOpt(ps.get<int>("RoiHistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
   m_SumRootFileName(ps.get<string>("SumRootFileName")),
@@ -51,13 +68,41 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
+  ParameterSetVector pshists = ps.get<ParameterSetVector>("SumHists");
+  for ( const ParameterSet& psh : pshists ) {
+    Name hvar  = psh.get<Name>("var");
+    Name hnam  = psh.get<Name>("name");
+    Name httl  = psh.get<Name>("title");
+    int nbin   = psh.get<int>("nbin");
+    float xmin = psh.get<float>("xmin");
+    float xmax = psh.get<float>("xmax");
+    getState().vars.push_back(hvar);
+    TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), nbin, xmin, xmax);
+    ph->SetDirectory(nullptr);
+    ph->SetLineWidth(2);
+    getState().histTemplates.push_back(ph);
+  }
   if ( m_LogLevel>= 1 ) {
     cout << myname << "         LogLevel: " << m_LogLevel << endl;
-    cout << myname << "          HistOpt: " << m_HistOpt << endl;
+    cout << myname << "       RoiHistOpt: " << m_RoiHistOpt << endl;
     cout << myname << "           FitOpt: " << m_FitOpt << endl;
     cout << myname << "  RoiRootFileName: " << m_RoiRootFileName << endl;
     cout << myname << "  SumRootFileName: " << m_SumRootFileName << endl;
+    cout << myname << "         SumHists: [";
+    for ( Index ihst=0; ihst<getState().vars.size(); ++ihst ) {
+      if ( ihst ) cout << ", ";
+      cout << getState().histTemplates[ihst]->GetName() << "(" << getState().vars[ihst] << ")";
+    }
+    cout << "]" << endl;
   }
+}
+
+//**********************************************************************
+
+AdcRoiViewer::~AdcRoiViewer() {
+  const string myname = "AdcRoiViewer::dtor: ";
+  if ( m_LogLevel >= 1 ) cout << myname << "Exiting." << endl;
+  writeSumHists();
 }
 
 //**********************************************************************
@@ -66,7 +111,7 @@ DataMap AdcRoiViewer::view(const AdcChannelData& acd) const {
   DataMap res;
   doView(acd, m_LogLevel, res);
   if ( m_RoiRootFileName.size() ) {
-    doSave(res, m_LogLevel);
+    writeRoiHists(res, m_LogLevel);
   }
   return res;
 }
@@ -106,12 +151,12 @@ DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
     nroiCached += dm.getInt("roiCount");
     if ( nroiCached > nroiLimit ) {
       if ( m_LogLevel >= 3 ) cout << myname << "  Clearing result cache." << endl;
-      if ( save && dms.size() ) doSave(dms, dbg);
+      if ( save && dms.size() ) writeRoiHists(dms, dbg);
       dms.clear();
       nroiCached = 0;
     }
   }
-  if ( save && dms.size() ) doSave(dms, dbg);
+  if ( save && dms.size() ) writeRoiHists(dms, dbg);
   ret.setInt("roiChannelCount", ncha);
   ret.setInt("roiFailedChannelCount", nfail);
   ret.setIntVector("roiFailedChannels", failedChannels);
@@ -127,22 +172,22 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   unsigned int nsam = acd.samples.size();
   unsigned int ntickChannel = nsam > nraw ? nsam : nraw;
   unsigned int nroi = acd.rois.size();
-  bool doHist = m_HistOpt != 0;
+  bool doHist = m_RoiHistOpt != 0;
   bool histRelativeTick = false;
   int histType = 0;
   if ( doHist ) {
-    if        ( m_HistOpt ==  1 ) {
+    if        ( m_RoiHistOpt ==  1 ) {
       histType = 1;
-    } else if ( m_HistOpt ==  2 ) {
+    } else if ( m_RoiHistOpt ==  2 ) {
       histType = 2;
-    } else if ( m_HistOpt == 11 ) {
+    } else if ( m_RoiHistOpt == 11 ) {
       histType = 1;
       histRelativeTick = true;
-    } else if ( m_HistOpt == 12 ) {
+    } else if ( m_RoiHistOpt == 12 ) {
       histType = 2;
       histRelativeTick = true;
     } else {
-      cout << myname << "Invalid value for HistOpt: " << m_HistOpt << endl;
+      cout << myname << "Invalid value for RoiHistOpt: " << m_RoiHistOpt << endl;
       return res.setStatus(1).status();
     }
   }
@@ -280,20 +325,21 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     res.setFloatVector("roiFitWidths", roiFitWidths);
     res.setFloatVector("roiFitPositions", roiFitPositions);
   }
+  fillSumHists(acd, res);
   return res.status();
 }
 
 //**********************************************************************
 
-void AdcRoiViewer::doSave(const DataMap& dm, int dbg) const {
+void AdcRoiViewer::writeRoiHists(const DataMap& dm, int dbg) const {
   DataMapVector dms(1, dm);
-  doSave(dms, dbg);
+  writeRoiHists(dms, dbg);
 }
 
 //**********************************************************************
 
-void AdcRoiViewer::doSave(const DataMapVector& dms, int dbg) const {
-  const string myname = "AdcRoiViewer::doSave: ";
+void AdcRoiViewer::writeRoiHists(const DataMapVector& dms, int dbg) const {
+  const string myname = "AdcRoiViewer::writeRoiHists: ";
   if ( m_RoiRootFileName.size() == 0 ) return;
   TDirectory* savdir = gDirectory;
   string ofrnameOld = "";
@@ -327,26 +373,61 @@ void AdcRoiViewer::doSave(const DataMapVector& dms, int dbg) const {
 
 //**********************************************************************
 
-Name AdcRoiViewer::getDistHistName(Name vname, const AdcChannelData& acd) const {
-  Name hnam = "h" + vname + "_%CHAN%";
-  return AdcChannelStringTool::build(m_adcStringBuilder, acd, hnam);
+void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) const {
+  const string myname = "AdcRoiViewer::fillSumHists: ";
+  const NameVector vars = getState().vars;
+  const HistVector histTemplates = getState().histTemplates;
+  for ( Index ihst=0; ihst<vars.size(); ++ihst ) {
+    Name var = vars[ihst];
+    FloatVector vals;
+    if      ( var == "fitHeight" ) vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitWidth"  ) vals = dm.getFloatVector("roiFitWidths");
+    else {
+      if ( m_LogLevel >= 2 ) {
+        cout << myname << "ERROR: Invalid variable name: " << var << endl;
+        continue;
+      }
+    }
+    TH1* ph0 = histTemplates[ihst];
+    Name hnam0 = ph0->GetName();
+    Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, hnam0);
+    TH1* ph = getState().getHist(hnam);
+    if ( ph == nullptr ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram " << hnam << endl;
+      ph = dynamic_cast<TH1*>(ph0->Clone(hnam.c_str()));
+      ph->SetDirectory(nullptr);
+      Name httl0 = ph0->GetTitle();
+      Name httl = AdcChannelStringTool::build(m_adcStringBuilder, acd, httl0);
+      ph->SetTitle(httl.c_str());
+      getState().hists[hnam] = ph;
+    }
+    if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;
+    for ( float val : vals ) {
+      ph->Fill(val);
+    }
+  }
 }
 
 //**********************************************************************
 
-void AdcRoiViewer::writeDistHists(Index dbg) const {
-  const string myname = "AdcRoiViewer::writeDistHists: ";
+void AdcRoiViewer::writeSumHists() const {
+  const string myname = "AdcRoiViewer::writeSumHists: ";
   if ( m_SumRootFileName.size() == 0 ) return;
-  if ( getState()->hists.size() == 0 ) return;
+  if ( getState().hists.size() == 0 ) {
+    cout << myname << "No summary histograms found." << endl;
+    return;
+  }
   AdcChannelData acd;
   Name ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_SumRootFileName);
   TDirectory* savdir = gDirectory;
   TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
-  for ( HistMap::value_type ihst : getState()->hists ) {
+  if ( m_LogLevel >= 1 ) cout << myname << "Writing summary histograms. Count is "
+                              << getState().hists.size() << "." << endl;
+  for ( HistMap::value_type ihst : getState().hists ) {
     TH1* ph = ihst.second;
     TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
     phnew->Write();
-    if ( dbg >= 3 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
+    if ( m_LogLevel >= 2 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
   }
   if ( pfile != nullptr ) pfile->Close();
   delete pfile;

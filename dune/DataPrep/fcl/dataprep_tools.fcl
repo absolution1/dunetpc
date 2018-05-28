@@ -309,16 +309,18 @@ tools.adcFFT: {
 tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
-  HistOpt:  1
+  RoiHistOpt:  1
   FitOpt:   0
+  SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""
 }
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
   LogLevel: 1
-  HistOpt:  1
+  RoiHistOpt:  1
   FitOpt:   1
+  SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""
 }
