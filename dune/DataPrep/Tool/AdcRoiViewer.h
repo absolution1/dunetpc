@@ -27,8 +27,9 @@
 //    nbin: # bins
 //    xmin: Lower edge of the first bin
 //    xmax: Upper edge of the last bin
-// If xmin < xmax, Root will do autoscaling of the axis.
-// If xmin = xmax, the range will have width xmin centered on the first ROI.
+// If xmin < xmax and xmin > 0, the range will have width xmin centered on the median
+// value for the first event. If xmax > 0, the lower edge is rounded to that value.
+// If xmin <= xmax otherwise (e.g. xmin = xmax = 0), Root will do autoscaling of the axis.
 // E.g.: {var:fitHeight name:"hfh_chan%0CHAN" title:"Fit height for channel %CHAN%"
 //        nbin:50 xmin:0.0 xmax:5.0}
 //

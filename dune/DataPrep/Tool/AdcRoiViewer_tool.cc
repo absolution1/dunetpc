@@ -216,6 +216,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   DataMap::IntVector roiNOverflows;
   DataMap::IntVector tick1;
   DataMap::IntVector ntick;
+  DataMap::IntVector roiFitStats;
   Index nroi = 0;
   for ( unsigned int iroiRaw=0; iroiRaw<nroiRaw; ++iroiRaw ) {
     AdcRoi roi = acd.rois[iroiRaw];
@@ -290,7 +291,8 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       if ( dbg >= 3 ) cout << "  Fitting with coldelecResponse" << endl;
       bool isNeg = fabs(sigmin) > sigmax;
       double h = isNeg ? sigmin : sigmax;
-      double shap = 2.5*ph->GetRMS();
+      //double shap = 2.5*ph->GetRMS();  // No! Negative entries break RMS calculation.
+      double shap = 0.8*fabs(sigarea)/h;
       double t0 = x1 + (isNeg ? roiTickMin : roiTickMax) - shap;
       TF1* pf = coldelecResponseTF1(h, shap, t0, "coldlec");
       TF1* pfinit = coldelecResponseTF1(h, shap, t0, "coldlec");
@@ -311,7 +313,10 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       if ( GetErrorHandler() != pehDefault ) {
         pehSave = SetErrorHandler(pehDefault);
       }
-      ph->Fit(pf, fopt.c_str());
+      int fstat = ph->Fit(pf, fopt.c_str());
+      if ( fstat != 0 ) {
+        if ( m_LogLevel >=2 ) cout << myname << "WARNING: ROI fit returned non-zero status " << fstat << endl;
+      }
       if ( pehSave != nullptr ) SetErrorHandler(pehSave);
       gErrorIgnoreLevel = levelSave;
       ph->GetListOfFunctions()->AddLast(pfinit, "0");
@@ -320,6 +325,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       roiFitHeights.push_back(pf->GetParameter(0));
       roiFitWidths.push_back(pf->GetParameter(1));
       roiFitPositions.push_back(pf->GetParameter(2));
+      roiFitStats.push_back(fstat);
       delete pf;
       //delete pfinit;  This give error: list accessing deleted object
     }
