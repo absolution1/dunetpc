@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include "TH1F.h"
 #include "TDirectory.h"
 #include "TFile.h"
@@ -55,6 +56,8 @@ TH1* AdcRoiViewer::State::getHist(Name hname) {
 
 AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_SigMinThresh(ps.get<float>("SigMinThresh")),
+  m_SigMaxThresh(ps.get<float>("SigMaxThresh")),
   m_RoiHistOpt(ps.get<int>("RoiHistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
@@ -76,15 +79,22 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     int nbin   = psh.get<int>("nbin");
     float xmin = psh.get<float>("xmin");
     float xmax = psh.get<float>("xmax");
+    Name xlab = hvar;
+    if      ( hvar == "fitHeight" ) xlab = "Fit height% [SUNIT]%";
+    else if ( hvar == "fitWidth"  ) xlab = "Fit width [Ticks]";
     getState().vars.push_back(hvar);
     TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), nbin, xmin, xmax);
     ph->SetDirectory(nullptr);
     ph->SetLineWidth(2);
+    ph->GetXaxis()->SetTitle(xlab.c_str());
+    ph->GetYaxis()->SetTitle("# ROI");
     getState().histTemplates.push_back(ph);
   }
   if ( m_LogLevel>= 1 ) {
     cout << myname << "         LogLevel: " << m_LogLevel << endl;
     cout << myname << "       RoiHistOpt: " << m_RoiHistOpt << endl;
+    cout << myname << "     SigMinThresh: " << m_SigMinThresh << endl;
+    cout << myname << "     SigMaxThresh: " << m_SigMaxThresh << endl;
     cout << myname << "           FitOpt: " << m_FitOpt << endl;
     cout << myname << "  RoiRootFileName: " << m_RoiRootFileName << endl;
     cout << myname << "  SumRootFileName: " << m_SumRootFileName << endl;
@@ -171,7 +181,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   unsigned int nraw = acd.raw.size();
   unsigned int nsam = acd.samples.size();
   unsigned int ntickChannel = nsam > nraw ? nsam : nraw;
-  unsigned int nroi = acd.rois.size();
+  unsigned int nroiRaw = acd.rois.size();
   bool doHist = m_RoiHistOpt != 0;
   bool histRelativeTick = false;
   int histType = 0;
@@ -191,7 +201,8 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       return res.setStatus(1).status();
     }
   }
-  if ( dbg >=2 ) cout << myname << "Processing channel " << acd.channel << ". ROI count is " << nroi << endl;
+  if ( dbg >=2 ) cout << myname << "Processing channel " << acd.channel << "."
+                      << " Input ROI count is " << nroiRaw << endl;
   DataMap::HistVector roiHists;
   DataMap::FloatVector roiSigMins;
   DataMap::FloatVector roiSigMaxs;
@@ -201,30 +212,29 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   DataMap::FloatVector roiFitPositions;
   DataMap::IntVector roiTickMins;
   DataMap::IntVector roiTickMaxs;
-  DataMap::IntVector nUnderflow(nroi, 0);
-  DataMap::IntVector nOverflow(nroi, 0);
-  DataMap::IntVector tick1(nroi, 0);
-  DataMap::IntVector ntick(nroi, 0);
-  for ( unsigned int iroi=0; iroi<nroi; ++iroi ) {
-    AdcRoi roi = acd.rois[iroi];
-    if ( dbg >=3 ) cout << myname << "  ROI " << iroi << ": ["
+  DataMap::IntVector roiNUnderflows;
+  DataMap::IntVector roiNOverflows;
+  DataMap::IntVector tick1;
+  DataMap::IntVector ntick;
+  Index nroi = 0;
+  for ( unsigned int iroiRaw=0; iroiRaw<nroiRaw; ++iroiRaw ) {
+    AdcRoi roi = acd.rois[iroiRaw];
+    if ( dbg >=3 ) cout << myname << "  ROI " << nroi << "(raw " << iroiRaw << "): ["
                         << roi.first << ", " << roi.second << "]" << endl;
     ostringstream sshnam;
     sshnam << "hroi_evt%EVENT%_chan%CHAN%_roi";
-    if ( iroi < 100 ) sshnam << "0";
-    if ( iroi <  10 ) sshnam << "0";
-    sshnam << iroi;
+    if ( nroi < 100 ) sshnam << "0";
+    if ( nroi <  10 ) sshnam << "0";
+    sshnam << nroi;
     string hnam = AdcChannelStringTool::AdcChannelStringTool::build(m_adcStringBuilder, acd, sshnam.str());
     ostringstream sshttl;
-    sshttl << "Run %RUN% event %EVENT% channel %CHAN% ROI " << iroi;
+    sshttl << "Run %RUN% event %EVENT% channel %CHAN% ROI " << nroi;
     sshttl << " ;Tick ;";
     if ( histType == 1 ) sshttl << "Signal% [SUNIT]%";
     if ( histType == 2 ) sshttl << "ADC count";
     string httl = AdcChannelStringTool::build(m_adcStringBuilder, acd, sshttl.str());
     unsigned int isam1 = roi.first;
     unsigned int isam2 = roi.second + 1;
-    tick1[iroi] = isam1;
-    ntick[iroi] = isam2 - isam1;
     float x1 = histRelativeTick ? 0.0 : isam1;
     float x2 = histRelativeTick ? isam2 - isam1 : isam2;
     TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), isam2-isam1, x1, x2);
@@ -237,6 +247,8 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     float sigarea = 0.0;
     int roiTickMin = 0;
     int roiTickMax = 0;
+    Index nunder = 0;
+    Index nover = 0;
     for ( unsigned int isam=isam1; isam<isam2; ++isam ) {
       float sig = 0.0;
       if ( histType == 1 && isam<nsam ) sig = acd.samples[isam];
@@ -257,15 +269,23 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       sigarea += sig;
       ph->SetBinContent(++ibin, sig);
       AdcFlag flag = acd.flags.size() > isam ? acd.flags[isam] : 0;
-      if ( flag == AdcUnderflow ) ++nUnderflow[iroi];
-      if ( flag == AdcOverflow ) ++nOverflow[iroi];
+      if ( flag == AdcUnderflow ) ++nunder;
+      if ( flag == AdcOverflow ) ++nover;
     }
+    // Check if this a ROI to keep.
+    if ( m_SigMinThresh < 0.0 && sigmin > m_SigMinThresh ) continue;
+    if ( m_SigMaxThresh > 0.0 && sigmax < m_SigMaxThresh ) continue;
+    ++nroi;
     roiHists.push_back(ph);
     roiTickMins.push_back(roiTickMin);
+    roiNUnderflows.push_back(nunder);
+    roiNOverflows.push_back(nover);
     roiTickMaxs.push_back(roiTickMax);
     roiSigMins.push_back(sigmin);
     roiSigMaxs.push_back(sigmax);
     roiSigAreas.push_back(sigarea);
+    tick1.push_back(isam1);
+    ntick.push_back(isam2 - isam1);
     if ( m_FitOpt == 1 ) {
       if ( dbg >= 3 ) cout << "  Fitting with coldelecResponse" << endl;
       bool isNeg = fabs(sigmin) > sigmax;
@@ -309,11 +329,12 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   res.setInt("roiSubRun",  acd.subRun);
   res.setInt("roiChannel", acd.channel);
   res.setInt("roiCount", nroi);
+  res.setInt("roiRawCount", nroiRaw);
   res.setInt("roiNTickChannel", ntickChannel);
   res.setIntVector("roiTick0s", tick1);
   res.setIntVector("roiNTicks", ntick);
-  res.setIntVector("roiNUnderflows", nUnderflow);
-  res.setIntVector("roiNOverflows", nOverflow);
+  res.setIntVector("roiNUnderflows", roiNUnderflows);
+  res.setIntVector("roiNOverflows", roiNOverflows);
   res.setIntVector("roiTickMins", roiTickMins);
   res.setIntVector("roiTickMaxs", roiTickMaxs);
   res.setFloatVector("roiSigMins", roiSigMins);
@@ -379,6 +400,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
   const HistVector histTemplates = getState().histTemplates;
   for ( Index ihst=0; ihst<vars.size(); ++ihst ) {
     Name var = vars[ihst];
+    TH1* ph0 = histTemplates[ihst];
     FloatVector vals;
     if      ( var == "fitHeight" ) vals = dm.getFloatVector("roiFitHeights");
     else if ( var == "fitWidth"  ) vals = dm.getFloatVector("roiFitWidths");
@@ -388,17 +410,52 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
         continue;
       }
     }
-    TH1* ph0 = histTemplates[ihst];
     Name hnam0 = ph0->GetName();
     Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, hnam0);
+    Name xlab = AdcChannelStringTool::build(m_adcStringBuilder, acd, ph0->GetXaxis()->GetTitle());
+    Name ylab = ph0->GetYaxis()->GetTitle();
     TH1* ph = getState().getHist(hnam);
-    if ( ph == nullptr ) {
+    if ( ph == nullptr && vals.size() ) {
       if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram " << hnam << endl;
-      ph = dynamic_cast<TH1*>(ph0->Clone(hnam.c_str()));
-      ph->SetDirectory(nullptr);
       Name httl0 = ph0->GetTitle();
       Name httl = AdcChannelStringTool::build(m_adcStringBuilder, acd, httl0);
-      ph->SetTitle(httl.c_str());
+      int nbin = ph0->GetNbinsX();
+      float xmin = ph0->GetXaxis()->GetXmin();
+      float xmax = ph0->GetXaxis()->GetXmax();
+      // If xmin > xmax and xmin > 0, then we center histogram on median and use width = xmin.
+      // If also xmax >0, then we round the first bin edge to that value.
+      if ( xmin > xmax && xmin > 0.0 ) {
+        FloatVector tmpvals = vals;
+        std::sort(tmpvals.begin(), tmpvals.end());
+        Index nval = tmpvals.size();
+        if ( m_LogLevel >= 3 ) cout << myname << "  Centering histogram on median of "
+                                    << nval << " value" << (nval==1 ? "" : "s") << endl;
+        float xmed = 0.5*(tmpvals[(nval-1)/2] + tmpvals[nval/2]);
+        float width = xmin;
+        xmin = xmed - 0.5*width;
+        bool roundXmin = xmax > 0.0;
+        if ( roundXmin ) {
+          //float rexp = log10(width/50.0);
+          //rexp = rexp > 0 ? int(rexp) : int(rexp-1);
+          //float rfac = pow(10, rexp);
+          float rfac = xmax;
+          xmin = rfac*int(xmin/rfac + (xmin > 0.0 ? 0.5 : -0.5));
+        }
+        xmax = xmin + width;
+      }
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << "   Name: " << hnam << endl;
+        cout << myname << "  Title: " << httl << endl;
+        cout << myname << "   nbin: " << nbin << endl;
+        cout << myname << "   xmin: " << xmin << endl;
+        cout << myname << "   xmax: " << xmax << endl;
+      }
+      ph = new TH1F(hnam.c_str(), httl.c_str(), nbin, xmin, xmax);
+      ph->SetDirectory(nullptr);
+      ph->SetStats(0);
+      ph->SetLineWidth(2);
+      ph->GetXaxis()->SetTitle(xlab.c_str());
+      ph->GetYaxis()->SetTitle(ylab.c_str());
       getState().hists[hnam] = ph;
     }
     if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;

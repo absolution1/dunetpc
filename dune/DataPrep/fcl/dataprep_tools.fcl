@@ -309,6 +309,8 @@ tools.adcFFT: {
 tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
+  SigMinThresh: 0.0
+  SigMaxThresh: 0.0
   RoiHistOpt:  1
   FitOpt:   0
   SumHists: []
@@ -317,6 +319,8 @@ tools.adcRoiViewer: {
 }
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
+  SigMinThresh: 0.0
+  SigMaxThresh: 0.0
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1

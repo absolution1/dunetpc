@@ -42,6 +42,8 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "tools.mytool1: {" << endl;
     fout << "  tool_type: AdcRoiViewer" << endl;
     fout << "  LogLevel: 3" << endl;
+    fout << "  SigMinThresh: 0.0" << endl;
+    fout << "  SigMaxThresh: 0.0" << endl;
     fout << "  RoiHistOpt: 1" << endl;
     fout << "  FitOpt: 1" << endl;
     fout << "  SumHists: []" << endl;
@@ -117,8 +119,21 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     cout << myname << "  " << ph->GetName() << endl;
   }
   assert( res == 0 );
-  assert( res.getInt("roiCount") == 4 );
-  assert( res.getHistVector("roiHists").size() == 4 );
+  Index nroi = res.getInt("roiCount");
+  assert( nroi == 4 );
+  assert( res.getIntVector("roiTick0s").size() == nroi );
+  assert( res.getIntVector("roiNTicks").size() == nroi );
+  assert( res.getIntVector("roiNUnderflows").size() == nroi );
+  assert( res.getIntVector("roiNOverflows").size() == nroi );
+  assert( res.getIntVector("roiTickMins").size() == nroi );
+  assert( res.getIntVector("roiTickMaxs").size() == nroi );
+  assert( res.getFloatVector("roiSigMins").size() == nroi );
+  assert( res.getFloatVector("roiSigMaxs").size() == nroi );
+  assert( res.getFloatVector("roiSigAreas").size() == nroi );
+  assert( res.getHistVector("roiHists").size() == nroi );
+  assert( res.getFloatVector("roiFitHeights").size() == nroi );
+  assert( res.getFloatVector("roiFitWidths").size() == nroi );
+  assert( res.getFloatVector("roiFitPositions").size() == nroi );
 
   cout << myname << line << endl;
   cout << myname << "Call tool for channel map." << endl;

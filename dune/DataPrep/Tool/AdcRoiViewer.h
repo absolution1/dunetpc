@@ -7,6 +7,8 @@
 //
 // Configuration:
 //         LogLevel - Logging level: 0=none, 1=init, 2=call, ...
+//     SigMinThresh - if <0, then only keep ROIS with a tick below this value
+//     SigMaxThresh - if >0, then only keep ROIS with a tick above this value
 //       RoiHistOpt - histo option:  0 - No histograms
 //                                   1 - sample vs. tick
 //                                   2 - raw vs. tick
@@ -25,6 +27,8 @@
 //    nbin: # bins
 //    xmin: Lower edge of the first bin
 //    xmax: Upper edge of the last bin
+// If xmin < xmax, Root will do autoscaling of the axis.
+// If xmin = xmax, the range will have width xmin centered on the first ROI.
 // E.g.: {var:fitHeight name:"hfh_chan%0CHAN" title:"Fit height for channel %CHAN%"
 //        nbin:50 xmin:0.0 xmax:5.0}
 //
@@ -33,6 +37,7 @@
 //           int       roiSubRun - SubRun number
 //           int        roiEvent - Event number
 //           int      roiChannel - Channel number
+//           int     roiRawCount - # ROI (nROI) before selection
 //           int        roiCount - # ROI (nROI)
 //           int roiNTickChannel - # ticks in the ADC channel
 //     int[nROI]       roiTick0s - First tick for each ROI
@@ -125,6 +130,8 @@ private:
 
   // Configuration data.
   int m_LogLevel;
+  float m_SigMinThresh;
+  float m_SigMaxThresh;
   int m_RoiHistOpt;
   int m_FitOpt;
   std::string m_RoiRootFileName;
