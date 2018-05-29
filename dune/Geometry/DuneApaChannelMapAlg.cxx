@@ -290,7 +290,7 @@ const PlaneGeo plageo2 = plageo;
   fCosOrientation.resize(npla);
 
   for ( Index ipla=0; ipla<npla; ++ipla ) {
-    fWirePitch[ipla] = crygeo.TPC(0).WirePitch(0,1,ipla);
+    fWirePitch[ipla] = crygeo.TPC(0).WirePitch(ipla);
     fOrientation[ipla] = crygeo.TPC(0).Plane(ipla).Wire(0).ThetaZ();
     fSinOrientation[ipla] = sin(fOrientation[ipla]);
     fCosOrientation[ipla] = cos(fOrientation[ipla]);
