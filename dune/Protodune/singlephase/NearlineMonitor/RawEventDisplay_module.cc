@@ -95,7 +95,7 @@ namespace raw_event_display{
     unsigned int fChansPerAPA;
 
 
-    unsigned int fMinT, fMaxT, fMaxTimeRange;
+    //unsigned int fMinT, fMaxT, fMaxTimeRange; // unused
 
     std::vector<TH2S*> fTimeChanU;
     std::vector<TH2S*> fTimeChanV;

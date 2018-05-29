@@ -60,7 +60,7 @@ namespace caldata {
  
   private:
     
-    int          fDataSize;          ///< size of raw data on one wire
+    //int          fDataSize;          ///< size of raw data on one wire // unused
     int          fPostsample;        ///< number of postsample bins
     int          fDoBaselineSub;        ///< number of postsample bins
     std::string  fDigitModuleLabel;  ///< module that made digits

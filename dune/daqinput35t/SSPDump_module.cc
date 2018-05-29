@@ -36,7 +36,7 @@ public:
   explicit SSPDump(fhicl::ParameterSet const & pset);
   virtual ~SSPDump();
 
-  virtual void analyze(art::Event const & evt);
+  virtual void analyze(art::Event const & evt) override;
 
 private:
   void beginJob() override;

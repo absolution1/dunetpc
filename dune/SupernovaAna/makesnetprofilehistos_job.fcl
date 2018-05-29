@@ -17,7 +17,7 @@ services:
   @table::dunefd_services
 }
 
-services.PhotonBackTracker:	@erase
+services.PhotonBackTrackerService:	@erase
 
 
 

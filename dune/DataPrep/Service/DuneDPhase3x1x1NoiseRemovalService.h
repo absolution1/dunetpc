@@ -15,7 +15,7 @@
 #include "dune/DuneInterface/AdcNoiseRemovalService.h"
 #include "dune/DuneInterface/AdcTypes.h"
 
-class AdcChannelDataModifier;
+class AdcChannelTool;
 
 namespace geo { class Geometry; }
 namespace util { class LArFFT; }
@@ -82,16 +82,16 @@ private:
   AdcIndex fBinsToSkip;
 
   //Tools
-  using AdcChannelDataModifierPtr = std::unique_ptr<const AdcChannelDataModifier>;
+  using AdcChannelToolPtr = std::unique_ptr<const AdcChannelTool>;
 
   std::string m_ROIBuilderToolFlattening;
-  AdcChannelDataModifierPtr m_pROIBuilderToolFlattening;
+  AdcChannelToolPtr m_pROIBuilderToolFlattening;
 
   std::string m_ROIBuilderToolCNR;
-  AdcChannelDataModifierPtr m_pROIBuilderToolCNR;
+  AdcChannelToolPtr m_pROIBuilderToolCNR;
 
   std::string m_ROIBuilderToolFinal;
-  AdcChannelDataModifierPtr m_pROIBuilderToolFinal;
+  AdcChannelToolPtr m_pROIBuilderToolFinal;
 
   // Services.
   const geo::Geometry* fGeometry;

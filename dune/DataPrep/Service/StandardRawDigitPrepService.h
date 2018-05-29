@@ -54,13 +54,13 @@ class AdcRoiBuildingService;
 class AdcWireBuildingService;
 class AdcChannelDataCopyService;
 
-class AdcDataViewer;
+class AdcChannelTool;
 
 class StandardRawDigitPrepService : public RawDigitPrepService {
 
 public:
 
-  using AdcDataViewerPtr = std::unique_ptr<AdcDataViewer>;
+  using AdcChannelToolPtr = std::unique_ptr<AdcChannelTool>;
 
   StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
@@ -103,7 +103,7 @@ private:
   const AdcWireBuildingService* m_pWireBuildingService;
   const AdcChannelDataCopyService* m_pAdcChannelDataCopyService;
 
-  std::vector<AdcDataViewerPtr> m_DisplayToolPtrs;
+  std::vector<AdcChannelToolPtr> m_DisplayToolPtrs;
 
 };
 

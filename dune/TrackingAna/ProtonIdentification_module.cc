@@ -85,10 +85,10 @@ public:
 
   void analyze(art::Event const & e) override;
 
-  void beginRun(art::Run& run);
+  void beginRun(art::Run const& run) override;
   void beginJob() override;
-  void endJob();
-  void endRun();
+  void endJob() override;
+  void endRun(art::Run const&) override;
   //void reconfigure(fhicl::ParameterSet const & p) ;
 
 private:
@@ -163,7 +163,7 @@ private:
   int  Verbose;
 };
 // ********************************** Begin Run *******************************************************
-void ProtonIdentification::ProtonIdentification::beginRun(art::Run& run) {
+void ProtonIdentification::ProtonIdentification::beginRun(art::Run const& run) {
 
 }
 // *********************************** Begin Job ********************************************************
@@ -267,7 +267,7 @@ void ProtonIdentification::ProtonIdentification::endJob() {
 	    << std::endl;
 }
 // ************************************ End Run *********************************************************
-void ProtonIdentification::ProtonIdentification::endRun() {
+void ProtonIdentification::ProtonIdentification::endRun(art::Run const&) {
 }
 
 // ********************************** pset param *******************************************************
@@ -347,10 +347,10 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
 	  ThisStY = tmpPosArray[1];
 	  ThisStZ = tmpPosArray[2];
 	  // Increment some total output variables....
-	  if (abs(particle->PdgCode() == 13 )) ++TrueMuons;
-	  else if (abs(particle->PdgCode() == 11 )) ++TrueElectrons;
-	  else if (abs(particle->PdgCode() == 22 )) ++TrueGammas;
-	  else if (abs(particle->PdgCode() == 2212 )) ++TrueProtons;
+	  if (abs(particle->PdgCode()) == 13 ) ++TrueMuons;
+	  else if (abs(particle->PdgCode()) == 11 ) ++TrueElectrons;
+	  else if (abs(particle->PdgCode()) == 22 ) ++TrueGammas;
+	  else if (abs(particle->PdgCode()) == 2212 ) ++TrueProtons;
 	  else ++TrueOthers;
 	} // First time in TPC
       } else {

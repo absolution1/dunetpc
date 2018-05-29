@@ -148,8 +148,8 @@ public:
   // Required functions.
   void analyze(art::Event const & e) override;
   void MakeDataProduct();
-  void beginJob();
-  void endJob();
+  void beginJob() override;
+  void endJob() override;
   void Clear();
   void FillEventHitsTree(std::vector<recob::Hit> hits);
   double GetCharge(std::vector<recob::Hit> hits);

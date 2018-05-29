@@ -23,6 +23,11 @@
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "RawDigitAdder_35t.h"
 
+#if defined __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 
 /**
    \class RawDigitMixer
@@ -78,6 +83,9 @@ public:
   RawDigitAdder_35t fRDAdderAlg;
 
 };
+#if defined __clang__
+  #pragma clang diagnostic pop
+#endif
 
 #endif
 /** @} */ // end of doxygen group 

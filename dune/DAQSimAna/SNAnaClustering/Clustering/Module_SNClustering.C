@@ -1,19 +1,21 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
-#include "TStopwatch.h"
-#include "TFile.h"
-#include "TTree.h"
-#include "TString.h"
-#include "TCanvas.h"
-#include "TGraph.h"
-#include "TH1.h"
+#include <TStopwatch.h>
+#include <TFile.h>
+#include <TTree.h>
+#include <TString.h>
+#include <TCanvas.h>
+#include <TGraph.h>
+#include <TH1.h>
+#include <TSystem.h>
 #include "Module_SNClustering_Config.h"
 #include "class_RecoHit.C"
 #include "class_Cluster.C"
+#include "class_ChannelCluster.C"
 
 
-void clusterChannels(std::vector<recoHit> &vec_Hits, std::vector<cluster> &vec_Clusters, unsigned int const &config)
+void clusterChannels(std::vector<recoHit> &vec_Hits, std::vector<channelCluster> &vec_ChannelCluster, unsigned int const &config)
 {
   //HERE IT IS ASSUMED THAT THE HITS APPEAR SEQUENTIALLY BY CHANNEL.
 
@@ -36,8 +38,8 @@ void clusterChannels(std::vector<recoHit> &vec_Hits, std::vector<cluster> &vec_C
       }
 
       i = i + channelCount;
-      cluster temp(vec_TempHits.at(0).getEvent(), vec_TempHits);
-      vec_Clusters.push_back(temp);
+      channelCluster temp(vec_TempHits.at(0).getEvent(), vec_TempHits, config);
+      vec_ChannelCluster.push_back(temp);
     }
   }
 
@@ -47,7 +49,7 @@ void clusterChannels(std::vector<recoHit> &vec_Hits, std::vector<cluster> &vec_C
 
 void clusterCut(std::vector<cluster> &vec_Clusters, unsigned int const &config)
 {
-  //REMEMBER WE NEED BOTH A MAXIMUM AND MINIMUM CHANNEL WIDTH DUE TO COSMICS. ADD LATER.
+  //REMEMBER WE NEED BOTH A MAXIMUM AND MINIMUM CHANNEL WIDTH DUE TO COSMICS.
 
   for(std::vector<cluster>::iterator it_Clusters=vec_Clusters.begin(); it_Clusters!=vec_Clusters.end();)
   {
@@ -82,25 +84,9 @@ void trigger(std::vector<cluster> &vec_Clusters, unsigned int const &config)
 {
   for(unsigned int i = 0; i < vec_Clusters.size(); i++)
   {
-    std::vector<recoHit> vec_TempHits = vec_Clusters.at(i).getHits();
-    int count = 1;
-    int j     = 0;
-    while((unsigned int)j+1<vec_TempHits.size())
+    if(vec_Clusters.at(i).getNHits()>=cut_HitsInWindow.at(config))
     {
-      if(std::abs(vec_TempHits.at(j).getHitTime()-vec_TempHits.at(j+1).getHitTime())<=cut_TimeWindowSize.at(config))
-      {
-        count++;
-        if(count>=cut_HitsInWindow.at(config))
-        {
-          vec_Clusters.at(i).setTriggerFlag(1);
-          break;
-        }
-      }
-      else
-      {
-        count = 1; 
-      }
-      j++;
+      vec_Clusters.at(i).setTriggerFlag(1);
     }
   }
 
@@ -132,31 +118,32 @@ int main()
   std::vector<TGraph*> vec_gr_Config = makeConfigGraph();
   TString s_FileName = "GH_SNMC";
   TFile *f_Input = new TFile("/pnfs/dune/persistent/users/abooth/SNTrigger/GH_SNMC/snb_timedep_radio_dune10kt_1x2x6/"+s_FileName+".root", "READ");
+  //TFile *f_Input = new TFile(s_FileName+".root", "READ");
   TTree *t_Input = (TTree*)f_Input->Get("DAQSimTree");
+
   
   TFile *f_Output    = new TFile("Module_"+s_FileName+".root", "RECREATE");
   TTree *t_Output    = new TTree("t_Output", "Output Clusters");
 
-  //int nMaxHits = 1000;
+  int nMaxHits = 1000;
   std::vector<int> vec_ClusterCount(NConfigs);
   std::map<int,std::vector<double>> map_EventToMC;
 
   //INPUT VARIABLES
   int   Event;
   int   NColHits;
-  int   GenType[1000];
-  int   HitView[1000];
-  int   HitChan[1000];
-  float HitTime[1000];
-  float HitSADC[1000];
-  float HitRMS[1000];
+  int   GenType[nMaxHits];
+  int   HitView[nMaxHits];
+  int   HitChan[nMaxHits];
+  float HitTime[nMaxHits];
+  float HitSADC[nMaxHits];
+  float HitRMS[nMaxHits];
   double ENu;
   double ENu_Lep;
-  //OLD FILES USE MARLTIME AS DOUBLE, NEW FILES AS VECTORS. THIS CODE CURRENTLY SET UP TO RUN ON OLD FILES.
   double MarlTime;
 
-  int nEvents = 10000;
-  //int nEvents = t_Input->GetEntries();
+  //int nEvents = 5000;
+  int nEvents = t_Input->GetEntries();
   TH1I *hNEvents = new TH1I("hNEvents", "hNEvents", 100,0,10e6);
   hNEvents->Fill(nEvents);
   hNEvents->Write();
@@ -228,7 +215,7 @@ int main()
   TH1D* h_MarlTime_MC = new TH1D("h_MarlTime_MC","h_MarlTime_MC",100,-0.1,10.5);
   //TIME IS IN MILLISECONDS.
   TH1D *h_TimeElapsed = new TH1D("h_TimeElapsed", "h_TimeElapsed", 50,0,0.5);
-  for(int i = 0; i < nEvents; i++)
+  for(unsigned int i = 0; i < nEvents; i++)
   {
     h_ENu_MC->Fill(1000*ENu);
     h_MarlTime_MC->Fill(MarlTime);
@@ -243,7 +230,7 @@ int main()
 
     //MAKE RECOHIT OBJECTS EVENTWISE FROM THE TREE.
     std::vector<recoHit> vec_Hits;
-    for(int j = 0; j < NColHits; j++)
+    for(unsigned int j = 0; j < NColHits; j++)
     {
       recoHit hit(Event, HitView[j], GenType[j], HitChan[j], HitTime[j], HitSADC[j], HitRMS[j]);
       vec_Hits.push_back(hit);
@@ -251,9 +238,18 @@ int main()
 
     for(unsigned int j = 0; j < NConfigs; j++)
     {
-      std::vector<cluster> vec_Clusters;
+      std::vector<channelCluster> vec_ChannelCluster;
+      std::vector<cluster>        vec_Clusters;
       TStopwatch *timeElapsed = new TStopwatch();
-      clusterChannels(vec_Hits, vec_Clusters, j);
+      clusterChannels(vec_Hits, vec_ChannelCluster, j);
+      for(unsigned int k = 0; k < vec_ChannelCluster.size(); k++)
+      {
+        std::vector<cluster> vec_Temp = vec_ChannelCluster.at(k).getClusterVector();
+        for(unsigned int l = 0; l < vec_Temp.size(); l++)
+        {
+          vec_Clusters.push_back(vec_Temp.at(l));
+        }
+      }
       clusterCut(vec_Clusters, j);
       trigger(vec_Clusters, j);
       h_TimeElapsed->Fill(timeElapsed->RealTime()*1000);
@@ -306,8 +302,6 @@ int main()
   {
     vec_gr_Config.at(i)->Write();
   }
-
-  f_Output->Close();
 
   return 0;
 }

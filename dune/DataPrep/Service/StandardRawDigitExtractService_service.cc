@@ -7,7 +7,7 @@
 #include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/Tool/AdcChannelDataModifier.h"
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 
 using std::string;
 using std::cout;
@@ -33,8 +33,8 @@ StandardRawDigitExtractService(fhicl::ParameterSet const& pset, art::ActivityReg
   if ( ptm == nullptr ) {
     cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
   } else {
-    m_pDigitReadTool = ptm->getPrivate<AdcChannelDataModifier>(m_DigitReadTool);
-    m_pROIBuilderTool = ptm->getPrivate<AdcChannelDataModifier>(m_ROIBuilderTool);
+    m_pDigitReadTool = ptm->getPrivate<AdcChannelTool>(m_DigitReadTool);
+    m_pROIBuilderTool = ptm->getPrivate<AdcChannelTool>(m_ROIBuilderTool);
     if ( m_pDigitReadTool == nullptr ) {
       cout << myname << "ERROR: Unable to retrieve digit reader " << m_DigitReadTool << endl;
     } else {
@@ -88,12 +88,15 @@ int StandardRawDigitExtractService::extract(AdcChannelData& acd) const {
   acd.samples.resize(nsig, -999);
   // Retrieve pedestal.
   AdcSignal ped = 0.0;
+  AdcSignal pedrms = 0.0;
   if ( m_PedestalOption == 1 ) {
     ped = dig.GetPedestal();
+    pedrms = dig.GetSigma();
   } else if ( m_PedestalOption == 2 ) {
     ped = m_pPedProv->PedMean(acd.channel);
   }
   acd.pedestal = ped;
+  acd.pedestalRms = pedrms;
   // Convert int -> float, subtract pedestal and set conversion flag.
   const AdcCount lowbits = 0x3f;
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
