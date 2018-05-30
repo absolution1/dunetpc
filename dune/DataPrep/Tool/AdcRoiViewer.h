@@ -21,12 +21,19 @@
 //  SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
 //
 // A summary histogram specifier is a paramter set with the following fields:
-//     var: Name of the variable to draw: fitHeight, fitWidth
+//     var: Name of the variable to draw:
+//            fitHeight
+//            fitWidth
+//            fitPosition
+//            fitTickRem - Fractional part of tick
+//            fitStat
+//            fitChiSquare
 //    name: Name of the histogram. Include %CHAN% to get separate histos for each channel
 //   title: Histogram title
 //    nbin: # bins
 //    xmin: Lower edge of the first bin
 //    xmax: Upper edge of the last bin
+//     fit: Name of function used to fit the distribution, e.g. "gaus"
 // If xmin < xmax and xmin > 0, the range will have width xmin centered on the median
 // value for the first event. If xmax > 0, the lower edge is rounded to that value.
 // If xmin <= xmax otherwise (e.g. xmin = xmax = 0), Root will do autoscaling of the axis.
@@ -34,27 +41,29 @@
 //        nbin:50 xmin:0.0 xmax:5.0}
 //
 // Output data map for view:
-//           int          roiRun - Run number
-//           int       roiSubRun - SubRun number
-//           int        roiEvent - Event number
-//           int      roiChannel - Channel number
-//           int     roiRawCount - # ROI (nROI) before selection
-//           int        roiCount - # ROI (nROI)
-//           int roiNTickChannel - # ticks in the ADC channel
-//     int[nROI]       roiTick0s - First tick for each ROI
-//     int[nROI]       roiNTicks - # ticks for each ROI
-//     int[nROI]  roiNUnderflows - # bins with ADC underflow in each ROI
-//     int[nROI]   roiNOverflows - # bins with ADC overflow in each ROI
-//     int[nROI]     roiTickMins - tick-tick0 for signal minimum for each ROI
-//     int[nROI]     roiTickMaxs - tick-tick0 for signal maximum for each ROI
-//   float[nROI]      roiSigMins - Signal minimum for each ROI
-//   float[nROI]      roiSigMaxs - Signal maximum for each ROI
-//   float[nROI]     roiSigAreas - Signal area for each ROI
-//    TH1*[nROI]        roiHists - Histogram of samples or raw for each ROI
+//           int           roiRun - Run number
+//           int        roiSubRun - SubRun number
+//           int         roiEvent - Event number
+//           int       roiChannel - Channel number
+//           int      roiRawCount - # ROI (nROI) before selection
+//           int         roiCount - # ROI (nROI)
+//           int  roiNTickChannel - # ticks in the ADC channel
+//     int[nROI]        roiTick0s - First tick for each ROI
+//     int[nROI]        roiNTicks - # ticks for each ROI
+//     int[nROI]   roiNUnderflows - # bins with ADC underflow in each ROI
+//     int[nROI]    roiNOverflows - # bins with ADC overflow in each ROI
+//     int[nROI]      roiTickMins - tick-tick0 for signal minimum for each ROI
+//     int[nROI]      roiTickMaxs - tick-tick0 for signal maximum for each ROI
+//   float[nROI]       roiSigMins - Signal minimum for each ROI
+//   float[nROI]       roiSigMaxs - Signal maximum for each ROI
+//   float[nROI]      roiSigAreas - Signal area for each ROI
+//    TH1*[nROI]         roiHists - Histogram of samples or raw for each ROI
 // If fit is done:
-//   float[nROI]   roiFitHeights - Height in signal units from fit
-//   float[nROI]    roiFitWidths - Shaping time in ticks from fit
-//   float[nROI] roiFitPositions - T0 in ticks from fit
+//   float[nROI]    roiFitHeights - Height in signal units from fit
+//   float[nROI]     roiFitWidths - Shaping time in ticks from fit
+//   float[nROI]  roiFitPositions - T0 in ticks from fit
+//   float[nROI] roiFitChiSquares - Chi-square from fit
+//     int[nROI]      roiFitStats - Return status from fit
 //
 // Output data map for viewMap:
 //           int        roiCount - # ROI (nROI)
@@ -81,6 +90,7 @@ public:
   using NameVector = std::vector<Name>;
   using HistVector = std::vector<TH1*>;
   using HistMap = std::map<Name, TH1*>;
+  using NameMap = std::map<Name, Name>;
 
   // This subclass carries the state for this tool, i.e. data that can change
   // after initialization.
@@ -88,6 +98,8 @@ public:
   public:
     // Variable for each histogram.
     NameVector vars;
+    // Fit function for each histogram.
+    NameVector fits;
     // Template for each histogram.
     HistVector histTemplates;
     // Filled histograms.
@@ -137,6 +149,9 @@ private:
   int m_FitOpt;
   std::string m_RoiRootFileName;
   std::string m_SumRootFileName;
+
+  // Fixed configuration data.
+  int m_TickPeriod = 497;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;

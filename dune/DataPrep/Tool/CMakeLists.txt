@@ -121,6 +121,7 @@ simple_plugin(AdcRegularSignalFinder   "tool"
 
 simple_plugin(AdcRoiViewer   "tool"
                 dune_ArtSupport
+                dune_DuneCommon
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )

@@ -4,6 +4,7 @@
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneCommon/coldelecResponse.h"
+#include "dune/DuneCommon/quietHistFit.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -25,6 +26,7 @@ using Name = AdcRoiViewer::Name;
 using NameVector = std::vector<Name>;
 using ParameterSetVector = std::vector<ParameterSet>;
 using FloatVector = std::vector<float>;
+using IntVector = std::vector<int>;
 
 //**********************************************************************
 // Subclass methods.
@@ -79,15 +81,34 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     int nbin   = psh.get<int>("nbin");
     float xmin = psh.get<float>("xmin");
     float xmax = psh.get<float>("xmax");
+    Name sfit;
+    psh.get_if_present("fit", sfit);
     Name xlab = hvar;
-    if      ( hvar == "fitHeight" ) xlab = "Fit height% [SUNIT]%";
-    else if ( hvar == "fitWidth"  ) xlab = "Fit width [Ticks]";
+    if      ( hvar == "fitHeight"    ) xlab = "Fit height% [SUNIT]%";
+    else if ( hvar == "fitWidth"     ) xlab = "Fit width [Ticks]";
+    else if ( hvar == "fitPosition"  ) xlab = "Fit position [Ticks]";
+    else if ( hvar == "fitTickRem"   ) xlab = "Fit position remainder [Ticks]";
+    else if ( hvar == "fitPeriodRem" )
+      xlab = "Fit period " + std::to_string(m_TickPeriod) + " remainder [Ticks]";
+    else if ( hvar == "fitChiSquare" ) xlab = "Fit #chi^{2}";
+    else {
+      cout << myname << "WARNING: Unknown summary variable: " << hvar << endl;
+    }
     getState().vars.push_back(hvar);
+    getState().fits.push_back(sfit);
     TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), nbin, xmin, xmax);
     ph->SetDirectory(nullptr);
     ph->SetLineWidth(2);
     ph->GetXaxis()->SetTitle(xlab.c_str());
     ph->GetYaxis()->SetTitle("# ROI");
+    // Add fit to template so it will be used for each child histogram.
+    if ( sfit.size() ) {
+      if ( m_LogLevel >= 1 ) cout << myname << "Adding fitter " << sfit
+                                  << " to hist template " << hnam << endl;
+      TF1* pf = new TF1(sfit.c_str(), sfit.c_str());
+      ph->GetListOfFunctions()->AddLast(pf);
+      ph->GetListOfFunctions()->SetOwner(kTRUE);
+    }
     getState().histTemplates.push_back(ph);
   }
   if ( m_LogLevel>= 1 ) {
@@ -101,7 +122,11 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "         SumHists: [";
     for ( Index ihst=0; ihst<getState().vars.size(); ++ihst ) {
       if ( ihst ) cout << ", ";
-      cout << getState().histTemplates[ihst]->GetName() << "(" << getState().vars[ihst] << ")";
+      TH1* ph = getState().histTemplates[ihst];
+      cout << ph->GetName() << "(" << getState().vars[ihst] << ")";
+      if ( ph->GetListOfFunctions()->GetEntries() ) {
+        cout << "-" << ph->GetListOfFunctions()->At(0)->GetName();
+      }
     }
     cout << "]" << endl;
   }
@@ -210,6 +235,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   DataMap::FloatVector roiFitHeights;
   DataMap::FloatVector roiFitWidths;
   DataMap::FloatVector roiFitPositions;
+  DataMap::FloatVector roiFitChiSquares;
   DataMap::IntVector roiTickMins;
   DataMap::IntVector roiTickMaxs;
   DataMap::IntVector roiNUnderflows;
@@ -326,6 +352,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       roiFitWidths.push_back(pf->GetParameter(1));
       roiFitPositions.push_back(pf->GetParameter(2));
       roiFitStats.push_back(fstat);
+      roiFitChiSquares.push_back(pf->GetChisquare());
       delete pf;
       //delete pfinit;  This give error: list accessing deleted object
     }
@@ -351,6 +378,8 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     res.setFloatVector("roiFitHeights", roiFitHeights);
     res.setFloatVector("roiFitWidths", roiFitWidths);
     res.setFloatVector("roiFitPositions", roiFitPositions);
+    res.setIntVector("roiFitStats", roiFitStats);
+    res.setFloatVector("roiFitChiSquares", roiFitChiSquares);
   }
   fillSumHists(acd, res);
   return res.status();
@@ -408,8 +437,14 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     Name var = vars[ihst];
     TH1* ph0 = histTemplates[ihst];
     FloatVector vals;
-    if      ( var == "fitHeight" ) vals = dm.getFloatVector("roiFitHeights");
-    else if ( var == "fitWidth"  ) vals = dm.getFloatVector("roiFitWidths");
+    IntVector ivals;
+    if      ( var == "fitHeight"    ) vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitWidth"     ) vals = dm.getFloatVector("roiFitWidths");
+    else if ( var == "fitPosition"  ) vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitTickRem"   ) vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitPeriodRem" ) vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitStat" )     ivals = dm.getIntVector("roiFitStats");
+    else if ( var == "fitChiSquare" ) vals = dm.getFloatVector("roiFitChiSquares");
     else {
       if ( m_LogLevel >= 2 ) {
         cout << myname << "ERROR: Invalid variable name: " << var << endl;
@@ -421,6 +456,9 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     Name xlab = AdcChannelStringTool::build(m_adcStringBuilder, acd, ph0->GetXaxis()->GetTitle());
     Name ylab = ph0->GetYaxis()->GetTitle();
     TH1* ph = getState().getHist(hnam);
+    if ( ivals.size() && !vals.size() ) for ( int ival : ivals ) vals.push_back(ival);
+    if ( var == "fitTickRem" ) for ( float& val : vals ) val = std::remainder(val,1);
+    if ( var == "fitPeriodRem" ) for ( float& val : vals ) val = std::remainder(val,m_TickPeriod);
     if ( ph == nullptr && vals.size() ) {
       if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram " << hnam << endl;
       Name httl0 = ph0->GetTitle();
@@ -462,6 +500,11 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       ph->SetLineWidth(2);
       ph->GetXaxis()->SetTitle(xlab.c_str());
       ph->GetYaxis()->SetTitle(ylab.c_str());
+      if ( ph0->GetListOfFunctions()->GetEntries() ) {
+        TF1* pf = dynamic_cast<TF1*>(ph0->GetListOfFunctions()->At(0)->Clone());
+        ph->GetListOfFunctions()->AddLast(pf);
+        ph->GetListOfFunctions()->SetOwner(kTRUE);
+      }
       getState().hists[hnam] = ph;
     }
     if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;
@@ -488,12 +531,22 @@ void AdcRoiViewer::writeSumHists() const {
                               << getState().hists.size() << "." << endl;
   for ( HistMap::value_type ihst : getState().hists ) {
     TH1* ph = ihst.second;
+    Index nfun = ph->GetListOfFunctions()->GetEntries();
+    if ( nfun ) {
+      TF1* pf = dynamic_cast<TF1*>(ph->GetListOfFunctions()->At(0)->Clone());
+      if ( m_LogLevel >= 4 ) cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
+      int fstat = quietHistFit(ph, pf, "WWQ");
+      if ( fstat != 0 ) {
+        cout << myname << "WARNING: Fit " << pf->GetName() << " of " << ph->GetName() << " returned " << fstat << endl;
+      }
+    }
     TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
     phnew->Write();
     if ( m_LogLevel >= 2 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
   }
   if ( pfile != nullptr ) pfile->Close();
   delete pfile;
+  if ( m_LogLevel >= 1 ) cout << myname << "Closed summary histogram file " << ofrname << endl;
   savdir->cd();
 }
 

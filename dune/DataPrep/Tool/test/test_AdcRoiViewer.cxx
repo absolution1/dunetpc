@@ -57,7 +57,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
          << " nbin:60 xmin:-300 xmax:300}, " << endl;
     fout << "    {var:\"fitWidth\" name:\"hfw_%0RUN%_chan%0CHAN%\""
          << " title:\"Fit width run %RUN%\""
-         << " nbin:40 xmin:0 xmax:4.0}" << endl;
+         << " nbin:40 xmin:0 xmax:4.0 fit:gaus}" << endl;
     fout << "]" << endl;
     fout << "tools.mytool2.RoiRootFileName: \"\"" << endl;
     fout << "tools.mytool2.SumRootFileName: \"roisum.root\"" << endl;
