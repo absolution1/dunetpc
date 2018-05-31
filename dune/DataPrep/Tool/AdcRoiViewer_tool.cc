@@ -3,6 +3,7 @@
 #include "AdcRoiViewer.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneCommon/gausTF1.h"
 #include "dune/DuneCommon/coldelecResponse.h"
 #include "dune/DuneCommon/quietHistFit.h"
 #include <iostream>
@@ -137,6 +138,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 AdcRoiViewer::~AdcRoiViewer() {
   const string myname = "AdcRoiViewer::dtor: ";
   if ( m_LogLevel >= 1 ) cout << myname << "Exiting." << endl;
+  fitSumHists();
   writeSumHists();
 }
 
@@ -329,22 +331,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       string fopt = "0";
       fopt = "WWB";
       if ( dbg < 3 ) fopt += "Q";
-      // Block Root info message for new Canvas produced in fit.
-      int levelSave = gErrorIgnoreLevel;
-      gErrorIgnoreLevel = 1001;
-      // Block non-default (e.g. art) from handling the Root "error".
-      // We switch to the Root default handler while making the call to Print.
-      ErrorHandlerFunc_t pehSave = nullptr;
-      ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
-      if ( GetErrorHandler() != pehDefault ) {
-        pehSave = SetErrorHandler(pehDefault);
-      }
-      int fstat = ph->Fit(pf, fopt.c_str());
-      if ( fstat != 0 ) {
-        if ( m_LogLevel >=2 ) cout << myname << "WARNING: ROI fit returned non-zero status " << fstat << endl;
-      }
-      if ( pehSave != nullptr ) SetErrorHandler(pehSave);
-      gErrorIgnoreLevel = levelSave;
+      int fstat = quietHistFit(ph, pf, fopt.c_str());
       ph->GetListOfFunctions()->AddLast(pfinit, "0");
       ph->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
       ph->GetListOfFunctions()->SetOwner(kTRUE);  // So the histogram owns pfinit
@@ -516,6 +503,44 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
 
 //**********************************************************************
 
+void AdcRoiViewer::fitSumHists() const {
+  const string myname = "AdcRoiViewer::fitSumHists: ";
+  if ( getState().hists.size() == 0 ) {
+    cout << myname << "No summary histograms found." << endl;
+    return;
+  }
+  if ( m_LogLevel >= 1 ) cout << myname << "Fitting summary histograms. Count is "
+                              << getState().hists.size() << "." << endl;
+  for ( HistMap::value_type ihst : getState().hists ) {
+    TH1* ph = ihst.second;
+    Index nfun = ph->GetListOfFunctions()->GetEntries();
+    if ( nfun ) {
+      Name fname = ph->GetListOfFunctions()->At(0)->GetName();
+      if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fname << endl;
+      TF1* pf = nullptr;
+      if ( fname == "gaus" ) {
+        double mean = ph->GetMean();
+        double sigma = ph->GetRMS();
+        double height = ph->GetMaximum();
+        pf = gausTF1(height, mean, sigma);
+      } else {
+        pf = new TF1(fname.c_str(), fname.c_str());
+      }
+      if ( m_LogLevel >= 4 ) cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
+      int fstat = quietHistFit(ph, pf, "WWQ");
+      if ( fstat != 0 ) {
+        cout << myname << "  WARNING: Fit " << pf->GetName() << " of " << ph->GetName() << " returned " << fstat << endl;
+      } else {
+        if ( m_LogLevel >=4 ) cout << myname << "  Fit succeeded." << endl;
+      }
+      ph->GetListOfFunctions()->SetOwner(kTRUE);  // So the histogram owns pf
+      delete pf;
+    }
+  }
+}
+
+//**********************************************************************
+
 void AdcRoiViewer::writeSumHists() const {
   const string myname = "AdcRoiViewer::writeSumHists: ";
   if ( m_SumRootFileName.size() == 0 ) return;
@@ -531,16 +556,8 @@ void AdcRoiViewer::writeSumHists() const {
                               << getState().hists.size() << "." << endl;
   for ( HistMap::value_type ihst : getState().hists ) {
     TH1* ph = ihst.second;
-    Index nfun = ph->GetListOfFunctions()->GetEntries();
-    if ( nfun ) {
-      TF1* pf = dynamic_cast<TF1*>(ph->GetListOfFunctions()->At(0)->Clone());
-      if ( m_LogLevel >= 4 ) cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
-      int fstat = quietHistFit(ph, pf, "WWQ");
-      if ( fstat != 0 ) {
-        cout << myname << "WARNING: Fit " << pf->GetName() << " of " << ph->GetName() << " returned " << fstat << endl;
-      }
-    }
     TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
+    phnew->GetListOfFunctions()->SetOwner(kTRUE);
     phnew->Write();
     if ( m_LogLevel >= 2 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
   }

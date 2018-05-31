@@ -136,6 +136,9 @@ public:
   // Fill the summary histograms for one channel.
   void fillSumHists(const AdcChannelData acd, const DataMap& dm) const;
 
+  // Fit the summary histograms to the summary Root file.
+  void fitSumHists() const;
+
   // Write the summary histograms to the summary Root file.
   void writeSumHists() const;
 
