@@ -148,7 +148,7 @@ simple_plugin(SSPMonitor "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(Header "module"
+simple_plugin(PDSPNearlineHeader "module"
       lardataobj_RecoBase
       ${ART_FRAMEWORK_CORE}
       ${ART_FRAMEWORK_PRINCIPAL}

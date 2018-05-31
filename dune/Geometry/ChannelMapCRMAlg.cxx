@@ -298,7 +298,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  SigType_t ChannelMapCRMAlg::SignalType(raw::ChannelID_t const channel) const
+  SigType_t ChannelMapCRMAlg::SignalTypeForChannelImpl(raw::ChannelID_t const channel) const
   {
 
     // still assume one cryostat for now -- faster

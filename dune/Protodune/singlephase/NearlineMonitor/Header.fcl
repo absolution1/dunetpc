@@ -1,8 +1,0 @@
-BEGIN_PROLOG
-
-Header_params:
-{
-      module_type:     "Header"
-}
-
-END_PROLOG

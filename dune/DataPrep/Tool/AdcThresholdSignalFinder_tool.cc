@@ -8,6 +8,18 @@ using std::cout;
 using std::endl;
 
 //**********************************************************************
+// Local defintitions.
+//**********************************************************************
+
+namespace {
+
+string boolToString(bool val) {
+  return val ? "true" : "false";
+}
+
+}  // end unnamed namespace
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
@@ -25,15 +37,24 @@ AdcThresholdSignalFinder::AdcThresholdSignalFinder(fhicl::ParameterSet const& ps
     cout << myname << "     Threshold: " << m_Threshold<< endl;
     cout << myname << "    BinsBefore: " << m_BinsBefore << endl;
     cout << myname << "     BinsAfter: " << m_BinsAfter << endl;
-    cout << myname << "  FlagPositive: " << m_FlagPositive << endl;
-    cout << myname << "  FlagNegative: " << m_FlagNegative << endl;
+    cout << myname << "  FlagPositive: " << boolToString(m_FlagPositive) << endl;
+    cout << myname << "  FlagNegative: " << boolToString(m_FlagNegative) << endl;
   }
 }
 
 //**********************************************************************
 
 DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
+  const string myname = "AdcThresholdSignalFinder::update: ";
+  DataMap ret;
   AdcIndex nsam = acd.samples.size();
+  if ( nsam == 0 ) {
+    cout << myname << "ERROR: No samples found in channel " << acd.channel << endl;
+    acd.signal.clear();
+    acd.rois.clear();
+    return ret.setStatus(1);
+  }
+  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel << endl;
   AdcIndex nsamlo = m_BinsBefore;
   AdcIndex nsamhi = m_BinsAfter;
   acd.signal.resize(nsam, false);
@@ -50,9 +71,13 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
     }
   }
   acd.roisFromSignal();
-  DataMap res(0);
-  res.setInt("nThresholdBins", nbinAbove);
-  return res;
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "  # ticks above threshold: " << nbinAbove << endl;
+    cout << myname << "  # ROI: " << acd.rois.size() << endl;
+  }
+  ret.setInt("nThresholdBins", nbinAbove);
+  ret.setInt("nroi", acd.rois.size());
+  return ret;
 }
 
 //**********************************************************************

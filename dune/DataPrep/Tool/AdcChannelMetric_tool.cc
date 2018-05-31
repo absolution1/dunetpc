@@ -46,16 +46,11 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotFileName(ps.get<Name>("PlotFileName")),
   m_RootFileName(ps.get<Name>("RootFileName")) {
   const string myname = "AdcChannelMetric::ctor: ";
-  string snameBuilder = "adcNameBuilder";
+  string stringBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
-  m_adcNameBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
-  if ( m_adcNameBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
-  }
-  string stitlBuilder = "adcTitleBuilder";
-  m_adcTitleBuilder = ptm->getShared<AdcChannelStringTool>(stitlBuilder);
-  if ( m_adcTitleBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << stitlBuilder << endl;
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
@@ -235,11 +230,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
 
 string AdcChannelMetric::
 nameReplace(string name, const AdcChannelData& acd, Index chan1, Index chan2, bool isTitle) const {
-  const AdcChannelStringTool* pnbl = nullptr;
-  if ( isTitle ) pnbl = m_adcTitleBuilder;
-  else {
-    pnbl = m_adcNameBuilder == nullptr ? m_adcTitleBuilder : m_adcNameBuilder;
-  }
+  const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   if ( pnbl == nullptr ) return name;
   DataMap dm;
   dm.setInt("chan1", chan1);

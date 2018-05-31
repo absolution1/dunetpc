@@ -90,7 +90,7 @@ public:
     { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
   virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
   //@}
-  SigType_t                SignalType( raw::ChannelID_t const channel) const override;
+  SigType_t                SignalTypeForChannelImpl( raw::ChannelID_t const channel) const override;
   std::set<PlaneID> const& PlaneIDs()                                  const override;
 
   //

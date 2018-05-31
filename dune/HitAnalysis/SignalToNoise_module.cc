@@ -34,6 +34,7 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TGraph.h"
+#include "TTree.h"
 
 #include <vector>
 
@@ -79,6 +80,15 @@ private:
   TH1D *hdx;
   TH2D *hphx;
   TH1D *hdt;
+
+  TTree *ftree;
+  int run;
+  int event;
+  int tpc;
+  int wire;
+  int trackid;
+  double dqdx;
+  double x;
 };
 
 
@@ -96,12 +106,14 @@ dune::SignalToNoise::SignalToNoise(fhicl::ParameterSet const & p)
 void dune::SignalToNoise::analyze(art::Event const & e)
 {
   // Implementation of required member function here.
+  run = e.run();
+  event = e.id().event();
+
   // * tracks
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
   if (e.getByLabel(fTrackModuleLabel,trackListHandle))
     art::fill_ptr_vector(tracklist, trackListHandle);
-
 
   // * External Counters
   art::Handle< std::vector<raw::ExternalTrigger> > countListHandle;
@@ -384,9 +396,16 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               }
               double angleToVert = geom->WireAngleToVertical(hitmap.begin()->second->View(), hitmap.begin()->second->WireID().TPC, hitmap.begin()->second->WireID().Cryostat) - 0.5*::util::pi<>();
               //std::cout<<vhit[h]->View()<<" "<<vhit[h]->WireID().TPC<<" "<<vhit[h]->WireID().Cryostat<<" "<<angleToVert<<std::endl;
-              const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              //const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              const TVector3& dir = tracklist[i]->VertexDirection();
               double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
               hphx->Fill(xpos,maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View()));
+              tpc = 5;
+              wire = h;
+              trackid = i;
+              x = xpos;
+              dqdx = maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View());
+              ftree->Fill();
               //std::cout<<h<<" "<<pt<<" "<<xpos<<" "<<maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View())<<std::endl;
             }
           }
@@ -416,14 +435,24 @@ void dune::SignalToNoise::beginJob()
     }
   }
         
-  hdx = tfs->make<TH1D>("hdx",";#Delta x (cm)",100,0,100);
+  hdx = tfs->make<TH1D>("hdx",";#Delta x (cm)",100,-100,100);
   hdx->Sumw2();
   hphx = tfs->make<TH2D>("hphx",";x (cm); dQ/dx (ADC/cm)",50,0,250,100,0,600);
 
   hdt = tfs->make<TH1D>("hdt",";#Delta t (ticks);",1000,-1000,1000);
+
+  ftree = tfs->make<TTree>("tree","a tree for sn analysis");
+  ftree->Branch("run", &run, "run/I");
+  ftree->Branch("event", &event, "event/I");
+  ftree->Branch("tpc", &tpc, "tpc/I");
+  ftree->Branch("wire", &wire, "wire/I");
+  ftree->Branch("trackid", &trackid, "trackid/I");
+  ftree->Branch("dqdx", &dqdx, "dqdx/D");
+  ftree->Branch("x", &x, "x/D");
                            
   std::ifstream in;
-  in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
+  //in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
+  in.open("counterInformation.txt");
   char line[1024];
   while(1){
     in.getline(line,1024);

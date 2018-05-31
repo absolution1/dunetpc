@@ -14,6 +14,7 @@
 // pedestalRms - Pedestal RMS or sigma
 //         raw - Uncompressed array holding the raw ADC count for each tick
 //     samples - Array holding the prepared signal value for each tick
+// sampleNoise - Noise level (e.g. RMS for samples)
 //       flags - Array holding the status flag for each tick
 //      signal - Array holding bools indicating which ticks have signals
 //        rois - Array of ROIs indicating ticks of interest (e.g. have signals)
@@ -24,6 +25,8 @@
 //  digitIndex - Index for the digit in the event digit container
 //   wireIndex - Index for the wire in the event wire container
 //  sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
+//   dftphases - Phases for the DFT of samples
+//     dftmags - Magnitudes for the DFT of samples
 //    metadata - Extra attributes
 //
 // User can compare values against the defaults below to know if a value has been set.
@@ -66,6 +69,7 @@ public:
   AdcSignal pedestalRms =0.0;
   AdcCountVector raw;
   AdcSignalVector samples;
+  AdcSignal sampleNoise =0.0;
   AdcFlagVector flags;
   AdcFilterVector signal;
   AdcRoiVector rois;
@@ -122,6 +126,7 @@ inline void AdcChannelData::clear() {
   pedestalRms = 0.0;
   raw.clear();
   samples.clear();
+  sampleNoise = 0.0;
   flags.clear();
   signal.clear();
   rois.clear();
@@ -131,6 +136,8 @@ inline void AdcChannelData::clear() {
   wire = nullptr;
   digitIndex = badIndex;
   wireIndex = badIndex;
+  dftmags.clear();
+  dftphases.clear();
   metadata.clear();
 }
 

@@ -38,19 +38,10 @@ tools.adcChannelDumper: {
 # Event displays.
 ################################################################################
 
-# Add ADC info to titles (variable width, no padding).
-tools.adcTitleBuilder: {
-  tool_type: StandardAdcChannelStringTool
-  LogLevel: 1
-  RunWidth: 0
-  SubRunWidth: 0
-  EventWidth: 0
-  ChannelWidth: 0
-  CountWidth: 0
-}
-
-# Add ADC info to names (fixed width with padding).
-tools.adcNameBuilder: {
+# Add ADC info to names and titles, e.g.
+#  MyTitle = "Run %RUN%-%SUBRUN% event %EVENT% channel %CHAN%"
+#  MyFileName = "run%0RUN%-%0SUBRUN%_evt%0EVENT%_cha%0CHAN%"
+tools.adcStringBuilder: {
   tool_type: StandardAdcChannelStringTool
   LogLevel: 1
   RunWidth: 6
@@ -99,15 +90,15 @@ tools.adcPedestalFit: {
   LogLevel: 1
   FitRmsMin:  1.0
   FitRmsMax: 10.0
-  HistName: "adcped_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC pedestal fit for event %EVENT% channel %CHAN%"
+  HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
+  HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
   RootFileName: ""
   HistManager: ""
   PlotSizeX: 0
   PlotSizeY: 0
-  PlotSplit: 0
-  PlotSplit: 0
+  PlotSplitX: 0
+  PlotSplitY: 0
   PlotShowFit: 1
 }
 
@@ -164,7 +155,7 @@ tools.rawAdcPlotter: {
   HistTitle: "Raw ADC for event %EVENT%"
   PlotSizeX: 1400
   PlotSizeY: 1000
-  PlotFileName: "adcraw_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  PlotFileName: "adcraw_run%RUN%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
   RootFileName: ""   # or "adc_evt%EVENT%.root"
 }
 
@@ -184,11 +175,11 @@ tools.adcChannelPedestalPlotter: {
   MetricMax: 4096
   ChannelLineModulus: 0
   ChannelLinePattern: []
-  HistName: "hchped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistName: "hchped_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
   HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
   PlotSizeX: 1400
   PlotSizeY:  500
-  PlotFileName: "hchped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  PlotFileName: "hchped_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
 }
 
@@ -204,11 +195,11 @@ tools.adcChannelPedestalRmsPlotter: {
   MetricMax: 11
   ChannelLineModulus: 0
   ChannelLinePattern: []
-  HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistName: "hchpedrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
   HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
   PlotSizeX: 1400
   PlotSizeY:  500
-  PlotFileName: "hchpedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  PlotFileName: "hchpedrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
 }
 
@@ -228,34 +219,34 @@ tools.adcPlotDftMag: @local::adcPlotDftTemplate
 tools.adcPlotDftMag.Variable: magnitude
 tools.adcPlotDftMag.SampleFreq: @local::adcSampleFreq
 tools.adcPlotDftMag.YMax: 50
-tools.adcPlotDftMag.HistName: "hdftmags_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftMag.HistName: "hdftmags_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
 tools.adcPlotDftMag.HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
-tools.adcPlotDftMag.PlotName: "dftmag_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+tools.adcPlotDftMag.PlotName: "dftmag_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
 # DFT Phases
 tools.adcPlotDftPhase: @local::adcPlotDftTemplate
 tools.adcPlotDftPhase.Variable: phase
-tools.adcPlotDftPhase.HistName: "hdftphas_run%RUN%_evt%EVENT%_ch%CHAN%"
+tools.adcPlotDftPhase.HistName: "hdftphas_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftPhase.HistTitle: "DFT phases for run %RUN% event %EVENT% channel %CHAN%"
-tools.adcPlotDftPhase.PlotName: "dftpha_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+tools.adcPlotDftPhase.PlotName: "dftpha_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
 # DFT power
 tools.adcPlotDftPower: @local::adcPlotDftTemplate
 tools.adcPlotDftPower.Variable: power
 tools.adcPlotDftPower.YMax: 10000
 tools.adcPlotDftPower.NBinX: 50
-tools.adcPlotDftPower.HistName: "hdftpower_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftPower.HistName: "hdftpower_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
 tools.adcPlotDftPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
-tools.adcPlotDftPower.PlotName: "dftpower_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+tools.adcPlotDftPower.PlotName: "dftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
 # DFT power/tick
 tools.adcPlotDftTickPower: @local::adcPlotDftTemplate
 tools.adcPlotDftTickPower.Variable: "power/tick"
 tools.adcPlotDftTickPower.YMax: -2.0
 tools.adcPlotDftTickPower.NBinX: 50
-tools.adcPlotDftTickPower.HistName: "hdftpowt_run%RUN%_evt%EVENT_ch%CHAN%%"
+tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
 tools.adcPlotDftTickPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
-tools.adcPlotDftTickPower.PlotName: "dftpowt_run%RUN%_evt%EVENT%_ch%CHAN%.png"
+tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
 ################################################################################
 # Data prep reconstruction tools.
@@ -275,15 +266,32 @@ tools.adcSampleFiller: {
   AdcOverflow: 4095
 }
 
+# Perform deconvolution with SignalShapingService.
+tools.adcVintageDeconvoluter: {
+  tool_type: VintageDeconvoluter
+  LogLevel: 1
+}
+
 # Find ADC signals with simple threshold algorithm.
 tools.adcThresholdSignalFinder: {
   tool_type: AdcThresholdSignalFinder
   LogLevel: 1
-  Threshold: 100
+  Threshold: 3.0   # Works for MC may2018
   BinsBefore: 10
   BinsAfter: 20
   FlagPositive: true
   FlagNegative: true
+}
+
+# Find ADC signals with Dune 35t algorithm.
+tools.adcDuneSignalFinder: {
+  tool_type: DuneAdcSignalFinder
+  LogLevel: 1
+  NoiseSigma:  0.0
+  NSigmaStart: 3.0
+  NSigmaEnd:   1.0
+  TicksBefore: 50
+  TicksAfter:  50
 }
 
 # Do FFT.
@@ -301,7 +309,24 @@ tools.adcFFT: {
 tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
-  HistOpt:  1
+  SigMinThresh: 0.0
+  SigMaxThresh: 0.0
+  RoiHistOpt:  1
+  FitOpt:   0
+  SumHists: []
+  RoiRootFileName: ""
+  SumRootFileName: ""
+}
+tools.adcRoiFitter: {
+  tool_type: AdcRoiViewer
+  SigMinThresh: 0.0
+  SigMaxThresh: 0.0
+  LogLevel: 1
+  RoiHistOpt:  1
+  FitOpt:   1
+  SumHists: []
+  RoiRootFileName: ""
+  SumRootFileName: ""
 }
 
 # Build ROI w.r.t. local baseline

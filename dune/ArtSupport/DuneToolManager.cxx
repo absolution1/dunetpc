@@ -119,3 +119,22 @@ void DuneToolManager::print() const {
 }
 
 //**********************************************************************
+
+int DuneToolManager::makeParameterSet(std::string scfgin, fhicl::ParameterSet& ps) {
+  // Strip surrounding braces.
+  if ( scfgin.size() < 1 ) return 1;
+  string scfg;
+  if ( scfgin[0] == '{' ) {
+    if ( scfgin[scfgin.size()-1] != '}' ) return 2;
+    scfg = scfgin.substr(1, scfgin.size()-2);
+  } else {
+    scfg = scfgin;
+  }
+  // Parse the configuration string.
+  fhicl::intermediate_table tbl;
+  fhicl::parse_document(scfg, tbl);
+  fhicl::make_ParameterSet(tbl, ps);
+  return 0;
+}
+
+//**********************************************************************

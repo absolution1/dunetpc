@@ -104,6 +104,7 @@ private:
   const AdcChannelDataCopyService* m_pAdcChannelDataCopyService;
 
   std::vector<AdcChannelToolPtr> m_DisplayToolPtrs;
+  std::vector<std::string> m_FoundDisplayToolNames;
 
 };
 
