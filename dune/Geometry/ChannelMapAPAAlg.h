@@ -12,7 +12,7 @@
 #include <vector>
 #include <set>
 
-#include "cetlib/exception.h"
+#include "cetlib_except/exception.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcorealg/Geometry/ChannelMapAlg.h"
