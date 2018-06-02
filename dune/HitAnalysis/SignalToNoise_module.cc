@@ -186,7 +186,8 @@ void dune::SignalToNoise::analyze(art::Event const & e)
       tracklist[i]->Direction(larStart,larEnd);
       double dc = std::abs(ccosx*larStart[0]+ccosy*larStart[1]+ccosz*larStart[2]);
       dcos->Fill(dc);
-      if (i==1){
+      /*
+      if (i==4){
         for (size_t j = 0; j<tracklist[i]->NPoints(); ++j){
           if (tracklist[i]->HasValidPoint(j)){
             std::cout<<j<<" "<<tracklist[i]->LocationAtPoint(j).X()
@@ -199,6 +200,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
           }
         }
       }
+      */
       if (dc>0.98){//found a match
         double ctime = (countlist[ci1[0]]->GetTrigTime() + countlist[ci2[0]]->GetTrigTime())/(2*32.); //ticks
         double x0 = trackStart.X() + (trackStart.X()>0?-1:1)*ctime*0.5*0.1085;
