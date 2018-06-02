@@ -150,7 +150,7 @@ void CTreeGeometry::beginJob()
         fPlane_type.push_back(fGeom->SignalType(geo::PlaneID(0, 0, i)));
         fPlane_view.push_back(fGeom->Plane(i).View());
         // fPlane_wirepitch[i] = fGeom->WirePitch(fPlane_view[i]);  // this doesn't seem to return the correct value!
-        fPlane_wirepitch.push_back(fGeom->WirePitch(0, 1, fPlane_view[i], 1, 0));  // this doesn't seem to return the correct value);
+        fPlane_wirepitch.push_back(fGeom->WirePitch(fPlane_view[i], 1, 0));  // this doesn't seem to return the correct value);
         fPlane_wireangle.push_back(fGeom->WireAngleToVertical(fGeom->Plane(i).View()));
         fPlane_wires.push_back(fGeom->Nwires(i));
     }

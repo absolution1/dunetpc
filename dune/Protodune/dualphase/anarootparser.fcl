@@ -47,6 +47,7 @@ data_3x1x1_anarootparser:
  SaveCryInfo:              	false
  SaveProtoInfo:            	false # ProtoDUNE specific
  SaveGenieInfo:            	false
+ SavePhotonInfo:            	false
  SaveGeneratorInfo:            	false
  SaveGeantInfo:            	false
  SaveGeantInAVInfo:            	false
