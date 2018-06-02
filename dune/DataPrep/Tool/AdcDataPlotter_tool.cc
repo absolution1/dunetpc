@@ -4,8 +4,9 @@
 #include <iostream>
 #include <sstream>
 #include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/RootPalette.h"
+#include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -43,6 +44,12 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")) {
   const string myname = "AdcDataPlotter::ctor: ";
+  DuneToolManager* ptm = DuneToolManager::instance();
+  string stringBuilder = "adcStringBuilder";
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
@@ -76,7 +83,6 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   const string myname = "AdcDataPlotter::view: ";
   DataMap ret;
-  if ( m_LogLevel >= 2 ) cout << myname << "Creating plot for " << acds.size() << " channels." << endl;
   if ( acds.size() == 0 ) {
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
     return ret.setStatus(1);
@@ -98,15 +104,20 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   AdcIndex acdChanLast = acdLast.channel;
   AdcIndex chanFirst = acdChanFirst;
   AdcIndex chanLast = acdChanLast;
+  // If the prameters specify a channel range, we use it.
+  // No action if the map does not have channels in this range.
   if ( m_LastChannel > m_FirstChannel ) {
     chanFirst = m_FirstChannel;
     chanLast = m_LastChannel - 1;
+    if ( acdChanFirst > chanLast || acdChanLast < chanFirst ) return ret;
   }
   if ( chanLast < chanFirst ) {
     if ( m_LogLevel >= 3 ) cout << myname << "No channels in view range for data range ("
                                 << acdChanFirst << ", " << acdChanLast << ")" << endl;
+    if ( m_LogLevel >= 2 ) cout << myname << "Skipping plot for " << acds.size() << " channels." << endl;
     return ret;
   }
+  if ( m_LogLevel >= 2 ) cout << myname << "Creating plot for " << acds.size() << " channels." << endl;
   unsigned long tick1 = m_FirstTick;
   unsigned long tick2 = m_LastTick;
   if ( tick2 <= tick1 ) {
@@ -122,23 +133,13 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   Tick ntick = tick2 - tick1;
   AdcIndex nchan = chanLast + 1 - chanFirst;
   // Create title and file names.
-  string hname = m_HistName;
-  string htitl = m_HistTitle;
-  string ofname = m_PlotFileName;
-  string ofrname = m_RootFileName;
-  vector<string*> strs = {&hname, &htitl, &ofname, &ofrname};
-  for ( string* pstr : strs ) {
-    string& str = *pstr;
-    StringManipulator sman(str);
-    if ( acdFirst.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acdFirst.run);
-    else sman.replace("%RUN%", "RunNotFound");
-    if ( acdFirst.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acdFirst.subRun);
-    else sman.replace("%SUBRUN%", "SubRunNotFound");
-    if ( acdFirst.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acdFirst.event);
-    else sman.replace("%EVENT%", "EventNotFound");
-    sman.replace("%CHAN1%", acdChanFirst);
-    sman.replace("%CHAN2%", acdChanLast);
-  }
+  DataMap dm;
+  dm.setInt("chan1", acdChanFirst);
+  dm.setInt("chan2", acdChanLast);
+  string hname =   AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, dm, m_HistName);
+  string htitl =   AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, dm, m_HistTitle);
+  string ofname =  AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, dm, m_PlotFileName);
+  string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, dm, m_RootFileName);
   string szunits = "(ADC counts)";
   if ( ! isRaw ) {
     szunits = acdFirst.sampleUnit;
@@ -185,7 +186,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       cout << myname << "Filling channel-tick histogram with " << nsam << " samples for channel " << chan << endl;
     }
     for ( Tick isam=tick1; isam<tick2; ++isam, ++ibin ) {
-      if ( isSig && isam >= acd.signal.size() ) break;
+      if ( isSig && isam >= acd.signal.size() ) {
+        if ( m_LogLevel >= 3 ) {
+          cout << myname << "  Signal array not filled for sample " << isam << " and above--stopping fill." << endl;
+        }
+        break;
+      }
       float sig = 0.0;
       if ( isPrep ) {
         if ( isam < sams.size() ) sig = sams[isam];

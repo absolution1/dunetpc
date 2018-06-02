@@ -52,6 +52,7 @@ int main()
   gROOT->ProcessLine("#include <vector>");
   TString s_FileName = "GH_SNMC";
 
+  //TFile *f_Input = new TFile("/dune/data/users/abooth/Module_"+s_FileName+".root", "READ");
   TFile *f_Input = new TFile("Module_"+s_FileName+".root", "READ");
   TTree *t_Input = (TTree*)f_Input->Get("t_Output");
   int nEventsOriginally = (int)(((TH1I*)f_Input->Get("hNEvents"))->GetMean());

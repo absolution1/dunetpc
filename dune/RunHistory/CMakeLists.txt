@@ -20,7 +20,7 @@ art_make_library(  LIBRARY_NAME  RunHistoryDUNE
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         cetlib cetlib_except
 			${FHICLCPP}
                         ${ROOT_BASIC_LIB_LIST}

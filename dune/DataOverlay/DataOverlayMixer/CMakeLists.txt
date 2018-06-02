@@ -63,5 +63,5 @@ install_fhicl()
 #
 #			${ART_FRAMEWORK_IO_SOURCES}
 #                        art_Persistency_Provenance canvas
-#                        ${MF_UTILITIES}
+#                        
 #                        ${ROOT_BASIC_LIB_LIST}
