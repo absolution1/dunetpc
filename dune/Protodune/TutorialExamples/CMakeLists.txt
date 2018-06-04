@@ -11,7 +11,7 @@ simple_plugin(ClusterCounter "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -30,7 +30,7 @@ simple_plugin(ClusterCounter2 "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -49,7 +49,7 @@ simple_plugin(ClusterCounter3 "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -71,7 +71,7 @@ simple_plugin(ClusterCounter4 "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -93,7 +93,7 @@ simple_plugin(ClusterCounter5 "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -114,7 +114,7 @@ simple_plugin(ReadSpacePointAndCnn "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -132,7 +132,7 @@ simple_plugin(ReadBeamInfo "module"
       art_Persistency_Provenance canvas
       art_Utilities canvas
       ${MF_MESSAGELOGGER}
-      ${MF_UTILITIES}
+      
       cetlib cetlib_except
       ${ROOT_BASIC_LIB_LIST}
       BASENAME_ONLY
