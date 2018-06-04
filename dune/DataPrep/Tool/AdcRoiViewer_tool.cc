@@ -748,6 +748,13 @@ void AdcRoiViewer::fillChanSumHists() const {
           if ( m_LogLevel >= 3 ) cout << "Setting y-label for " << hnam << " to \"" << ylabNew << "\"." << endl;
           ph->GetYaxis()->SetTitle(ylabNew.c_str());
         }
+        Name httlOld = ph->GetTitle();
+        Name httlNew = AdcChannelStringTool::build(m_adcStringBuilder, acd, httlOld);
+        if ( httlNew != httlOld ) {
+          if ( m_LogLevel >= 3 ) cout << "Setting title for " << hnam << " to \"" << httlNew << "\"." << endl;
+          ph->SetTitle(httlNew.c_str());
+        }
+
       }
       ph->SetBinContent(ibin, val);
     }

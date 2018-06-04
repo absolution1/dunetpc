@@ -9,6 +9,8 @@
 //         LogLevel - Logging level: 0=none, 1=init, 2=call, ...
 //     SigMinThresh - if <0, then only keep ROIS with a tick below this value
 //     SigMaxThresh - if >0, then only keep ROIS with a tick above this value
+//      RunDataTool - Name for the run data tool. If found and pulser is on, then each
+//                    ROI is assigned a charge corresponding to the pulser setting.
 //       RoiHistOpt - histo option:  0 - No histograms
 //                                   1 - sample vs. tick
 //                                   2 - raw vs. tick
@@ -73,6 +75,13 @@
 //   float[nROI]  roiFitPositions - T0 in ticks from fit
 //   float[nROI] roiFitChiSquares - Chi-square from fit
 //     int[nROI]      roiFitStats - Return status from fit
+// If run data is found:
+//         float       tpcAmpGain - Nominal preamp gain setting [mV/fC]
+//         float   tpcShapingTime - Nominal preamp shaping time [us]
+//           int      pulserIndex - Pulser gain setting (0, 1, ..., 63)
+//           int   pulserInternal - 1 if pulser on ADC ASIC is used, 0 for FEMB pulser
+// If fit, run data ane non-zero pulser index:
+//  float(nRoi]
 //
 // Output data map for viewMap:
 //           int        roiCount - # ROI (nROI)

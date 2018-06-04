@@ -70,9 +70,9 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  {name:apa1x label:APA1x begin:250 end:270}" << endl;
     fout << "]" << endl;
     fout << "tools.mytool2.ChanSumHists: [" << endl;
-    fout << "  {name:\"hcsHeight_%CRNAME%\" title:\"Pulse heights for %CRLABEL%\" "
+    fout << "  {name:\"hcsHeight_%CRNAME%\" title:\"Pulse heights for run %RUN% %CRLABEL%\" "
          <<    "valHist:\"hfh_%0RUN%_chan%0CHAN%\" valType:fitMean cr:apa1x}," << endl;
-    fout << "  {name:\"hcsWidth_%CRNAME%\" title:\"Shaping times for %CRLABEL%\" "
+    fout << "  {name:\"hcsWidth_%CRNAME%\" title:\"Shaping times for run %RUN% %CRLABEL%\" "
          <<    "valHist:\"hfw_%0RUN%_chan%0CHAN%\" valType:fitMean cr:apa1x}" << endl;
     fout << "]" << endl;
     //fout << "  {val:\"hfw_%0RUN%_chan%0CHAN%:FitMean\" hist:\"hcsWidth_%0RUN%\"
