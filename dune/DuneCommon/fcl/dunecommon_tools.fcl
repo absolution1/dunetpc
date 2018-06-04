@@ -8,7 +8,7 @@
 # ProtoDUNE run data tool.
 tools.protoduneRunDataTool: {
   tool_type: FclRunDataTool
-  LogLevel: 3
+  LogLevel: 1
   FileNames: ["rundata/protodune/rundata.fcl", "rundata/protodune/rundata%RUN%.fcl"]
 }
 

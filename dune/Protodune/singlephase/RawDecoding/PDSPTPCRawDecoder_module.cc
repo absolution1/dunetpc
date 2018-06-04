@@ -419,14 +419,17 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   //Load overlay class.
   dune::FelixFragment felix(frag);
-  //Get detector element number
+
+  //Get detector element numbers from the fragment
+
   uint8_t crate = felix.crate_no(0);
   uint8_t slot = felix.slot_no(0);
   uint8_t fiber = felix.fiber_no(0); // two numbers? 
-  const unsigned n_frames = felix.total_frames(); // One frame contains 20 ticks.
+
+  const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
   //std::cout<<" Nframes = "<<n_frames<<std::endl;
   //_h_nframes->Fill(n_frames);
-  const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// 256
+  const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// should be 256
 
   for (unsigned int iframe=0; iframe<n_frames; ++iframe)
     {
@@ -445,7 +448,6 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   //v_adc.reserve(n_frames*n_channels);
   // Fill the adc vector.  
 
-//  typedef std::tuple<uint8_t, uint8_t, uint8_t, unsigned> WireInfo_tuple;
   for(unsigned ch = 0; ch < n_channels; ++ch) {
     v_adc.clear();
     //std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;
@@ -458,7 +460,19 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       // }
       v_adc.push_back(waveform.at(nframe));  
     }
-    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crate, slot, fiber, ch); 
+
+    // handle 256 channels on two fibers -- use the channel map that assumes 128 chans per fiber (=FEMB)
+    unsigned int fiberloc = fiber;
+    unsigned int chloc = ch;
+    if (chloc > 127)
+      {
+	chloc -= 128;
+	fiberloc++;
+      }
+    unsigned int crateloc=5;  // crate 5 is reserved for FELIX in the channel map.  Even if we are testing
+    // with a temporary crate, use the FELIX map always here.
+
+    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc); 
 
     if (_enforce_full_tick_count && v_adc.size() != _full_tick_count)
       {

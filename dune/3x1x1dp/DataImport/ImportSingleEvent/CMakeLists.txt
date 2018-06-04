@@ -21,7 +21,7 @@ simple_plugin(ImportSingle311Event "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			${CETLIB}
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY

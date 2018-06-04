@@ -51,6 +51,8 @@
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <vector>
 
+class AdcChannelStringTool;
+
 class AdcDataPlotter : AdcChannelTool {
 
 public:
@@ -84,6 +86,9 @@ private:
   Index          m_PlotSizeY;
   std::string    m_PlotFileName;
   std::string    m_RootFileName;
+
+  // ADC string tool.
+  const AdcChannelStringTool* m_adcStringBuilder;
 
 };
 

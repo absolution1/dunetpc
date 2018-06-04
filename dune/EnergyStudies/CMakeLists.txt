@@ -13,7 +13,7 @@ simple_plugin(dunezsanalysis "module"
   art_Persistency_Provenance canvas
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
+  
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
   BASENAME_ONLY
@@ -36,7 +36,7 @@ simple_plugin(dEdx "module"
   art_Persistency_Provenance canvas
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
+  
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
   BASENAME_ONLY
@@ -61,7 +61,7 @@ simple_plugin(EMEnergyCalib "module"
   art_Persistency_Provenance canvas
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
+  
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
   BASENAME_ONLY
@@ -86,7 +86,7 @@ simple_plugin(EMPi0Energy "module"
   art_Persistency_Provenance canvas
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
+  
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
   BASENAME_ONLY

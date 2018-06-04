@@ -24,7 +24,7 @@ typedef std::vector<std::string> NameList;
 int main(int argc, char** argv) {
   const string myname = "listlibs";
   bool help = false;
-  string libtype = "service";
+  string libtype = "tool";
   string pattern;
   if ( argc > 1 ) {
     string arg = argv[1];
@@ -38,7 +38,8 @@ int main(int argc, char** argv) {
   }
   if ( help ) {
     cout << "Usage: " << argv[0] << " [type] [pattern]" << endl;
-    cout << "  type [service] - library type (service, module, ...)" << endl;
+    cout << "  Lists plugin libraries of a specified type." << endl;
+    cout << "  type [tool] - library type (tool, service, module, ...)" << endl;
     cout << "  pattern [] - pattern in library name" << endl;
     return 0;
   }
@@ -56,9 +57,12 @@ int main(int argc, char** argv) {
   unsigned int nsel = libnames.size();
   if ( pattern.size() && nlib > 0 ) cout << "Selected " << nsel << " of ";
   else cout << "Found ";
-  cout << nlib << " " << libtype << " libraries." << endl;
+  cout << nlib << " " << libtype << " librar";
+  cout << (nlib==1 ? "y" : "ies");
+  cout << (nsel ? ":" : ".");
   for ( string libname : libnames ) {
-    cout << "  " << libname << endl;
+    cout << "\n  " << libname;
   }
+  cout << endl;
   return 0;
 }

@@ -55,6 +55,8 @@ namespace geo {
   class GeometryCore;
 }
 
+class AdcChannelStringTool;
+
 class AdcDetectorPlotter : public AdcChannelTool {
 
 public:
@@ -118,6 +120,9 @@ private:
   std::string    m_FileName;
 
   StatePtr m_state;
+
+  // ADC string tool.
+  const AdcChannelStringTool* m_adcStringBuilder;
 
 };
 
