@@ -49,16 +49,11 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
     throw art::Exception(art::errors::Configuration, "InvalidFclValue");
   }
   // Fetch renaming tools.
-  string snameBuilder = "adcNameBuilder";
+  string snameBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
-  m_adcNameBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
-  if ( m_adcNameBuilder == nullptr ) {
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
-  }
-  string stitlBuilder = "adcTitleBuilder";
-  m_adcTitleBuilder = ptm->getShared<AdcChannelStringTool>(stitlBuilder);
-  if ( m_adcTitleBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << stitlBuilder << endl;
   }
   // Display the configuration.
   if ( m_LogLevel ) {
@@ -91,7 +86,7 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelDftPlotter::view: ";
   DataMap chret = viewLocal(acd);
   if ( getPlotName().size() ) {
-    string pname = AdcChannelStringTool::build(m_adcNameBuilder, acd, getPlotName());
+    string pname = AdcChannelStringTool::build(m_adcStringBuilder, acd, getPlotName());
     TPadManipulator man;
     fillChannelPad(chret, man);
     man.print(pname);
@@ -124,8 +119,8 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
     cout << myname << "DFT is not valid." << endl;
     return ret.setStatus(3);
   }
-  string hname = AdcChannelStringTool::build(m_adcNameBuilder, acd, m_HistName);
-  string htitl = AdcChannelStringTool::build(m_adcTitleBuilder, acd, m_HistTitle);
+  string hname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistName);
+  string htitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistTitle);
   float pi = acos(-1.0);
   double xFac = haveFreq ? m_SampleFreq/nsam : 1.0;
   double xmin = 0.0;
@@ -136,7 +131,7 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
   if ( doMag || doPha ) {  
     string ytitl = "Phase";
     if ( doMag ) {
-      ytitl = AdcChannelStringTool::build(m_adcTitleBuilder, acd, "Amplitude% [SUNIT]%");
+      ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, "Amplitude% [SUNIT]%");
     }
     TGraph* pg = new TGraph;
     pg->SetName(hname.c_str());
@@ -166,7 +161,7 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
   } else if ( doPwr || doPwt ) {
     string ytitl = doPwr ? "Power" : "Power/tick";
     if ( acd.sampleUnit.size() ) {
-      ytitl = AdcChannelStringTool::build(m_adcTitleBuilder, acd, ytitl + " [(%SUNIT%)^{2}]");
+      ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, ytitl + " [(%SUNIT%)^{2}]");
     }
     if ( m_NBinX == 0 ) {
       cout << myname << "Invalid bin count: " << m_NBinX << endl;

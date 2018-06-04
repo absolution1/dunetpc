@@ -13,7 +13,7 @@ simple_plugin(RawEVD "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
               BASENAME_ONLY
@@ -33,7 +33,7 @@ simple_plugin(RawEVD35t "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
               BASENAME_ONLY
@@ -53,7 +53,7 @@ simple_plugin(RawEVDDP "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
               BASENAME_ONLY
@@ -73,7 +73,7 @@ simple_plugin(MuonOccupancy "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
               BASENAME_ONLY

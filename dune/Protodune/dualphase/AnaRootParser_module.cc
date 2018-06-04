@@ -30,6 +30,8 @@
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RawData/BeamInfo.h"
 #include "lardataobj/RawData/TriggerData.h"
+#include "lardataobj/RecoBase/Wire.h"
+#include "lardataobj/Simulation/SimPhotons.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
@@ -87,6 +89,8 @@ constexpr int kMaxExternCounts = 1000;   //maximum number of External Counters
 constexpr int kMaxShowerHits   = 10000;  //maximum number of hits on a shower
 constexpr int kMaxTruth        = 10;     //maximum number of neutrino truth interactions
 constexpr int kMaxClusters     = 1000;   //maximum number of clusters;
+constexpr int kMaxReadoutTicksInAllChannels = 76800000; //protoDUNE: 10 000 ticks * (8*960) channel
+constexpr int kMaxChannels = 7680; //protoDUNE: (8*960) channel
 
 constexpr int kMaxNDaughtersPerPFP = 10; //maximum number of daughters per PFParticle
 constexpr int kMaxNClustersPerPFP  = 10; //maximum number of clusters per PFParticle
@@ -493,20 +497,25 @@ namespace dune {
         tdAuxDet = 0x01,
         tdCry = 0x02,
         tdGenie = 0x04,
-        tdGeant = 0x08,
-        tdHit = 0x10,
-        tdTrack = 0x20,
-        tdVertex = 0x40,
-        tdFlash = 0x80,
-        tdShower = 0x100,
-        tdMCshwr = 0x200,
-        tdMCtrk  = 0x400,
-        tdCluster = 0x800,
-        tdRawDigit = 0x1000,
-        tdPandoraNuVertex = 0x2000,
-        tdPFParticle = 0x4000,
-        tdCount = 0x8000,
-        tdProto = 0x10000,
+	tdPhotons = 0x08,
+        tdGenerator = 0x10,
+        tdGeant = 0x20,
+	tdGeantInAV = 0x40,
+	tdGeantTrajectory = 0x80,
+        tdHit = 0x100,
+        tdTrack = 0x200,
+        tdVertex = 0x400,
+        tdFlash = 0x800,
+        tdShower = 0x1000,
+        tdMCshwr = 0x2000,
+        tdMCtrk  = 0x4000,
+        tdCluster = 0x8000,
+        tdRawDigit = 0x10000,
+	tdRecobWire = 0x20000,
+        tdPandoraNuVertex = 0x40000,
+        tdPFParticle = 0x80000,
+        tdCount = 0x100000,
+        tdProto = 0x200000,
         tdDefault = 0
       }; // DataBits_t
 
@@ -581,12 +590,33 @@ namespace dune {
       //    Short_t  hit_trkKey[kMaxHits];      //is this hit associated with a reco track,  if so associate a unique track key ID?
       Short_t  hit_clusterid[kMaxHits];  //is this hit associated with a reco cluster?
       //    Short_t  hit_clusterKey[kMaxHits];  //is this hit associated with a reco cluster, if so associate a unique cluster key ID?
-
+/*
       Float_t rawD_ph[kMaxHits];
       Float_t rawD_peakT[kMaxHits];
       Float_t rawD_charge[kMaxHits];
       Float_t rawD_fwhh[kMaxHits];
       Double_t rawD_rms[kMaxHits];
+*/
+      Int_t no_channels;               //number of readout channels with raw waveform (can be different from number of max channels in simulation)
+      Int_t no_ticks;                  //number of readout ticks for raw waveform
+      Int_t no_ticksinallchannels;     //number of readout ticks multiplied by no_channels
+
+      Int_t rawD_Channel[kMaxChannels];
+      Short_t rawD_ADC[kMaxReadoutTicksInAllChannels];
+
+      Int_t no_recochannels;               //number of readout channels with "reco" waveform (can be different from number of max channels in simulation)
+      Int_t recoW_Channel[kMaxChannels];
+      Int_t recoW_NTicks[kMaxChannels];
+
+      Int_t no_recoticksinallchannels;     //number of readout ticks multiplied by no_channels
+      Int_t recoW_Tick[kMaxReadoutTicksInAllChannels];
+      Float_t recoW_ADC[kMaxReadoutTicksInAllChannels];
+
+      //Light information
+      size_t MaxPhotons = 0;
+      Int_t numberofphotons;
+      std::vector<Float_t> photons_time;
+      std::vector<Float_t> photons_channel;
 
       //Pandora Nu Vertex information
       Short_t nnuvtx;
@@ -761,13 +791,17 @@ namespace dune {
       std::vector<Float_t> proto_energy;
       std::vector<Int_t> proto_pdg;
 
-      //G4 MC Particle information
+      //Generator and G4 MC Particle information
+      size_t MaxGeneratorparticles = 0; ///! how many particles there is currently room for
+      Int_t     generator_list_size;  //number of all geant particles
+
       size_t MaxGEANTparticles = 0; ///! how many particles there is currently room for
       Int_t     no_primaries;      //number of primary geant particles
       Int_t     geant_list_size;  //number of all geant particles
       Int_t     geant_list_size_in_tpcAV;
       std::vector<Int_t>    pdg;
       std::vector<Int_t>    status;
+      std::vector<Int_t>    inTPCActive;
       std::vector<Float_t>  Eng;
       std::vector<Float_t>  EndE;
       std::vector<Float_t>  Mass;
@@ -788,8 +822,10 @@ namespace dune {
       std::vector<Float_t>  theta_xz;
       std::vector<Float_t>  theta_yz;
 
-      std::vector<Float_t>  pathlen;
-      std::vector<Int_t>    inTPCActive;
+      size_t MaxGEANTInAVparticles = 0;
+      std::vector<Float_t>  pathlen_tpcAV;
+      std::vector<Int_t>    TrackId_tpcAV;
+      std::vector<Int_t>    PDGCode_tpcAV;
       std::vector<Float_t>  StartPointx_tpcAV;
       std::vector<Float_t>  StartPointy_tpcAV;
       std::vector<Float_t>  StartPointz_tpcAV;
@@ -841,6 +877,29 @@ namespace dune {
       std::vector<Int_t>    MergedId; //geant track segments, which belong to the same particle, get the same
       std::vector<Int_t>    origin;   ////0: unknown, 1: cosmic, 2: neutrino, 3: supernova, 4: singles
       std::vector<Int_t>    MCTruthIndex; //this geant particle comes from the neutrino interaction of the _truth variables with this index
+
+      //G4 MC trajectory information
+      size_t MaxGEANTtrajectorypoints = 0; ///! how many particles there is currently room for
+
+      Int_t     geant_trajectory_size;  //number of trajectory points for all geant particles
+
+      std::vector<Int_t> NTrajectoryPointsPerParticle;
+
+
+      std::vector<Float_t>  TrajTrackId;
+      std::vector<Float_t>  TrajPDGCode;
+
+      std::vector<Float_t>  TrajX;
+      std::vector<Float_t>  TrajY;
+      std::vector<Float_t>  TrajZ;
+      std::vector<Float_t>  TrajT;
+      std::vector<Float_t>  TrajE;
+      std::vector<Float_t>  TrajP;
+      std::vector<Float_t>  TrajPx;
+      std::vector<Float_t>  TrajPy;
+      std::vector<Float_t>  TrajPz;
+      std::vector<Float_t>  TrajTheta;
+      std::vector<Float_t>  TrajPhi;
 
       //MC Shower information
       Int_t     no_mcshowers;                         //number of MC Showers in this event.
@@ -976,8 +1035,11 @@ namespace dune {
       /// Returns whether we have Hit data
       bool hasHitInfo() const { return bits & tdHit; }
 
-      /// Returns whether we have Hit data
+      /// Returns whether we have RawDigit data
       bool hasRawDigitInfo() const { return bits & tdRawDigit; }
+
+      /// Returns whether we have RecobWire data
+      bool hasRecobWireInfo() const { return bits & tdRecobWire; }
 
       /// Returns whether we have Track data
       bool hasTrackInfo() const { return bits & tdTrack; }
@@ -997,8 +1059,20 @@ namespace dune {
       /// Returns whether we have Pandora Nu Vertex data
       bool hasPandoraNuVertexInfo() const { return bits & tdPandoraNuVertex; }
 
+      /// Returns whether we have photon data
+      bool hasPhotonInfo() const { return bits & tdPhotons; }
+
+      /// Returns whether we have Generator data
+      bool hasGeneratorInfo() const { return bits & tdGenerator; }
+
       /// Returns whether we have Geant data
       bool hasGeantInfo() const { return bits & tdGeant; }
+
+      /// Returns whether we have Geant data
+      bool hasGeantInAVInfo() const { return bits & tdGeantInAV; }
+
+      /// Returns whether we have Geant trajectory data
+      bool hasGeantTrajectoryInfo() const { return bits & tdGeantTrajectory; }
 
       /// Returns whether we have Flash data
       bool hasFlashInfo() const { return bits & tdFlash; }
@@ -1055,8 +1129,20 @@ namespace dune {
       /// Allocates data structures for the given number of trackers (no Clear())
       void SetShowerAlgos(std::vector<std::string> const& ShowerAlgos);
 
+      /// Resize the data strutcure for Generator particles
+      void ResizePhotons(int nPhotons);
+
+      /// Resize the data strutcure for Generator particles
+      void ResizeGenerator(int nParticles);
+
       /// Resize the data strutcure for GEANT particles
       void ResizeGEANT(int nParticles);
+
+      /// Resize the data strutcure for GEANT particles in active volume
+      void ResizeGEANTInAV(int nParticlesInAV);
+
+      /// Resize the data strutcure for GEANT trajectory info
+      void ResizeGEANTTrajectory(int nTrajectoryPoints);
 
       /// Resize the data strutcure for Genie primaries
       void ResizeGenie(int nPrimaries);
@@ -1105,7 +1191,19 @@ namespace dune {
       size_t GetMaxShowers() const { return ShowerData.capacity(); }
 
       /// Returns the number of GEANT particles for which memory is allocated
+      size_t GetMaxPhotons() const { return MaxPhotons; }
+
+      /// Returns the number of GEANT particles for which memory is allocated
+      size_t GetMaxGeneratorparticles() const { return MaxGeneratorparticles; }
+
+      /// Returns the number of GEANT particles for which memory is allocated
       size_t GetMaxGEANTparticles() const { return MaxGEANTparticles; }
+
+      /// Returns the number of GEANT particles in AV for which memory is allocated
+      size_t GetMaxGEANTInAVparticles() const { return MaxGEANTInAVparticles; }
+
+      /// Returns the number of GEANT particles for which memory is allocated
+      size_t GetMaxGEANTtrajectorypoints() const { return MaxGEANTtrajectorypoints; }
 
       /// Returns the number of GENIE primaries for which memory is allocated
       size_t GetMaxGeniePrimaries() const { return MaxGeniePrimaries; }
@@ -1258,7 +1356,7 @@ namespace dune {
       int fLogLevel;
       short fEventsPerSubrun;
 
-      std::string fDigitModuleLabel;
+      std::string fRawDigitModuleLabel;
       std::string fHitsModuleLabel;
       std::string fLArG4ModuleLabel;
       std::string fCalDataModuleLabel;
@@ -1286,15 +1384,22 @@ namespace dune {
       std::string fCosmicClusterTaggerAssocLabel;
       bool fIsMC; ///< whether to use a permanent buffer (faster, huge memory)
       bool fUseBuffer; ///< whether to use a permanent buffer (faster, huge memory)
+
+//      bool fSaveRecobWireInfo; //whether to extract and save recob::wire info
       bool fSaveAuxDetInfo; ///< whether to extract and save auxiliary detector data
       bool fSaveCryInfo; ///whether to extract and save CRY particle data
       bool fSaveGenieInfo; ///whether to extract and save Genie information
       bool fSaveProtoInfo; ///whether to extract and save ProtDUNE beam simulation information
+      bool fSavePhotonInfo; ///whether to extract and save collected photons
+      bool fSaveGeneratorInfo; ///whether to extract and save Geant information
       bool fSaveGeantInfo; ///whether to extract and save Geant information
+      bool fSaveGeantInAVInfo; ///whether to extract and save Geant information
+      bool fSaveGeantTrajectoryInfo; ///whether to extract and save Geant information
       bool fSaveMCShowerInfo; ///whether to extract and save MC Shower information
       bool fSaveMCTrackInfo; ///whether to extract and save MC Track information
       bool fSaveHitInfo; ///whether to extract and save Hit information
-      bool fSaveRawDigitInfo; ///whether to extract and save Raw Digit information
+      bool fSaveRawDigitInfo; ///whether to extract and save raw digit information
+      bool fSaveRecobWireInfo; ///whether to extract and save recob wire information
       bool fSaveTrackInfo; ///whether to extract and save Track information
       bool fSaveVertexInfo; ///whether to extract and save Vertex information
       bool fSaveClusterInfo;  ///whether to extract and save Cluster information
@@ -1339,11 +1444,16 @@ namespace dune {
           fData->SetBits(AnaRootParserDataStruct::tdCry,    !fSaveCryInfo);
           fData->SetBits(AnaRootParserDataStruct::tdGenie,  !fSaveGenieInfo);
           fData->SetBits(AnaRootParserDataStruct::tdProto,  !fSaveProtoInfo);
+          fData->SetBits(AnaRootParserDataStruct::tdPhotons,  !fSavePhotonInfo);
+          fData->SetBits(AnaRootParserDataStruct::tdGenerator,  !fSaveGeneratorInfo);
           fData->SetBits(AnaRootParserDataStruct::tdGeant,  !fSaveGeantInfo);
+          fData->SetBits(AnaRootParserDataStruct::tdGeantInAV,  !fSaveGeantInAVInfo);
+          fData->SetBits(AnaRootParserDataStruct::tdGeantTrajectory,  !fSaveGeantTrajectoryInfo);
           fData->SetBits(AnaRootParserDataStruct::tdMCshwr, !fSaveMCShowerInfo);
           fData->SetBits(AnaRootParserDataStruct::tdMCtrk,  !fSaveMCTrackInfo);
           fData->SetBits(AnaRootParserDataStruct::tdHit,    !fSaveHitInfo);
           fData->SetBits(AnaRootParserDataStruct::tdRawDigit,    !fSaveRawDigitInfo);
+          fData->SetBits(AnaRootParserDataStruct::tdRecobWire,    !fSaveRecobWireInfo);
           fData->SetBits(AnaRootParserDataStruct::tdFlash,  !fSaveFlashInfo);
           fData->SetBits(AnaRootParserDataStruct::tdCount,  !fSaveExternCounterInfo);
           fData->SetBits(AnaRootParserDataStruct::tdShower, !fSaveShowerInfo);
@@ -1358,7 +1468,6 @@ namespace dune {
           fData->SetTrackers(GetNTrackers());
           fData->SetVertexAlgos(GetNVertexAlgos());
           fData->SetShowerAlgos(GetShowerAlgos());
-
           if (bClearData) fData->Clear();
         }
       } // CreateData()
@@ -2516,11 +2625,30 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   //  std::fill(hit_nelec, hit_nelec + sizeof(hit_nelec)/sizeof(hit_nelec[0]), -999.);
   //  std::fill(hit_energy, hit_energy + sizeof(hit_energy)/sizeof(hit_energy[0]), -999.);
   //raw digit information
+/*
   std::fill(rawD_ph, rawD_ph + sizeof(rawD_ph)/sizeof(rawD_ph[0]), -999.);
   std::fill(rawD_peakT, rawD_peakT + sizeof(rawD_peakT)/sizeof(rawD_peakT[0]), -999.);
   std::fill(rawD_charge, rawD_charge + sizeof(rawD_charge)/sizeof(rawD_charge[0]), -999.);
   std::fill(rawD_fwhh, rawD_fwhh + sizeof(rawD_fwhh)/sizeof(rawD_fwhh[0]), -999.);
   std::fill(rawD_rms, rawD_rms + sizeof(rawD_rms)/sizeof(rawD_rms[0]), -999.);
+*/
+  no_channels = 0;
+  no_ticks = 0;
+  no_ticksinallchannels = 0;
+  std::fill(rawD_ADC, rawD_ADC + sizeof(rawD_ADC)/sizeof(rawD_ADC[0]), -999);
+  std::fill(rawD_Channel, rawD_Channel + sizeof(rawD_Channel)/sizeof(rawD_Channel[0]), -999);
+
+  no_recochannels=0;
+  std::fill(recoW_Channel, recoW_Channel + sizeof(recoW_Channel)/sizeof(recoW_Channel[0]), -999);
+  std::fill(recoW_NTicks, recoW_NTicks + sizeof(recoW_NTicks)/sizeof(recoW_NTicks[0]), -999);
+
+  no_recoticksinallchannels=0;
+  std::fill(recoW_Tick, recoW_Tick + sizeof(recoW_Tick)/sizeof(recoW_Tick[0]), -999);
+  std::fill(recoW_ADC, recoW_ADC + sizeof(recoW_ADC)/sizeof(recoW_ADC[0]), -999);
+
+  numberofphotons=0;
+  FillWith(photons_time,-999);
+  FillWith(photons_channel,-999);
 
   no_flashes = 0;
   std::fill(flash_time, flash_time + sizeof(flash_time)/sizeof(flash_time[0]), -999);
@@ -2622,6 +2750,7 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   genie_no_primaries = 0;
   cry_no_primaries = 0;
   proto_no_primaries = 0;
+  generator_list_size = 0;
   no_primaries = 0;
   geant_list_size=0;
   geant_list_size_in_tpcAV = 0;
@@ -2651,8 +2780,10 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   FillWith(theta_xz, -999.);
   FillWith(theta_yz, -999.);
 
-  FillWith(pathlen, -999.);
+  FillWith(pathlen_tpcAV, -999.);
   FillWith(inTPCActive, -9999);
+  FillWith(TrackId_tpcAV, -9999);
+  FillWith(PDGCode_tpcAV, -9999);
   FillWith(StartPointx_tpcAV, -999.);
   FillWith(StartPointy_tpcAV, -999.);
   FillWith(StartPointz_tpcAV, -999.);
@@ -2784,6 +2915,26 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   FillWith(mcshwr_AncestorendY, -999.);
   FillWith(mcshwr_AncestorendZ, -999.);
 
+  geant_trajectory_size = 0;
+
+  FillWith(NTrajectoryPointsPerParticle, -999);
+
+  FillWith(TrajTrackId, -999.);
+  FillWith(TrajPDGCode, -999.);
+
+  FillWith(TrajX, -999.);
+  FillWith(TrajY, -999.);
+  FillWith(TrajZ, -999.);
+  FillWith(TrajT, -999.);
+  FillWith(TrajE, -999.);
+  FillWith(TrajP, -999.);
+  FillWith(TrajPx, -999.);
+  FillWith(TrajPy, -999.);
+  FillWith(TrajPz, -999.);
+  FillWith(TrajTheta, -999.);
+  FillWith(TrajPhi, -999.);
+
+
   // auxiliary detector information;
   FillWith(NAuxDets, 0);
   // - set to -999 all the values of each of the arrays in AuxDetID;
@@ -2827,6 +2978,39 @@ void dune::AnaRootParserDataStruct::Clear() {
 } // dune::AnaRootParserDataStruct::SetShowerAlgos()
 
 
+void dune::AnaRootParserDataStruct::ResizePhotons(int nPhotons) {
+
+  // minimum size is 1, so that we always have an address
+  MaxPhotons = (size_t) std::max(nPhotons, 1);
+
+  photons_time.resize(MaxPhotons);
+  photons_channel.resize(MaxPhotons);
+} // dune::AnaRootParserDataStruct::ResizePhotons
+
+
+
+void dune::AnaRootParserDataStruct::ResizeGenerator(int nParticles) {
+
+  // minimum size is 1, so that we always have an address
+  MaxGeneratorparticles = (size_t) std::max(nParticles, 1);
+
+  TrackId.resize(MaxGeneratorparticles);
+  pdg.resize(MaxGeneratorparticles);
+  status.resize(MaxGeneratorparticles);
+  Mass.resize(MaxGeneratorparticles);
+  Eng.resize(MaxGeneratorparticles);
+  Px.resize(MaxGeneratorparticles);
+  Py.resize(MaxGeneratorparticles);
+  Pz.resize(MaxGeneratorparticles);
+  P.resize(MaxGeneratorparticles);
+  StartPointx.resize(MaxGeneratorparticles);
+  StartPointy.resize(MaxGeneratorparticles);
+  StartPointz.resize(MaxGeneratorparticles);
+  StartT.resize(MaxGeneratorparticles);
+  theta.resize(MaxGeneratorparticles);
+  phi.resize(MaxGeneratorparticles);
+} //dune::AnaRootParserDataStruct::ResizeGenerator
+
 void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
 
   // minimum size is 1, so that we always have an address
@@ -2834,6 +3018,7 @@ void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
 
   pdg.resize(MaxGEANTparticles);
   status.resize(MaxGEANTparticles);
+  inTPCActive.resize(MaxGEANTparticles);
   Mass.resize(MaxGEANTparticles);
   Eng.resize(MaxGEANTparticles);
   EndE.resize(MaxGEANTparticles);
@@ -2854,31 +3039,14 @@ void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
   phi.resize(MaxGEANTparticles);
   theta_xz.resize(MaxGEANTparticles);
   theta_yz.resize(MaxGEANTparticles);
-
-  pathlen.resize(MaxGEANTparticles);
-  inTPCActive.resize(MaxGEANTparticles);
-  StartPointx_tpcAV.resize(MaxGEANTparticles);
-  StartPointy_tpcAV.resize(MaxGEANTparticles);
-  StartPointz_tpcAV.resize(MaxGEANTparticles);
-  StartT_tpcAV.resize(MaxGEANTparticles);
-  StartE_tpcAV.resize(MaxGEANTparticles);
-  StartP_tpcAV.resize(MaxGEANTparticles);
-  StartPx_tpcAV.resize(MaxGEANTparticles);
-  StartPy_tpcAV.resize(MaxGEANTparticles);
-  StartPz_tpcAV.resize(MaxGEANTparticles);
-  thetastart_tpcAV.resize(MaxGEANTparticles);
-  phistart_tpcAV.resize(MaxGEANTparticles);
-  EndPointx_tpcAV.resize(MaxGEANTparticles);
-  EndPointy_tpcAV.resize(MaxGEANTparticles);
-  EndPointz_tpcAV.resize(MaxGEANTparticles);
-  EndT_tpcAV.resize(MaxGEANTparticles);
-  EndE_tpcAV.resize(MaxGEANTparticles);
-  EndP_tpcAV.resize(MaxGEANTparticles);
-  EndPx_tpcAV.resize(MaxGEANTparticles);
-  EndPy_tpcAV.resize(MaxGEANTparticles);
-  EndPz_tpcAV.resize(MaxGEANTparticles);
-  thetaend_tpcAV.resize(MaxGEANTparticles);
-  phiend_tpcAV.resize(MaxGEANTparticles);
+  NumberDaughters.resize(MaxGEANTparticles);
+  Mother.resize(MaxGEANTparticles);
+  TrackId.resize(MaxGEANTparticles);
+  process_primary.resize(MaxGEANTparticles);
+  processname.resize(MaxGEANTparticles);
+  MergedId.resize(MaxGEANTparticles);
+  origin.resize(MaxGEANTparticles);
+  MCTruthIndex.resize(MaxGEANTparticles);
 
   pathlen_drifted.resize(MaxGEANTparticles);
   inTPCDrifted.resize(MaxGEANTparticles);
@@ -2900,14 +3068,6 @@ void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
   EndPx_drifted.resize(MaxGEANTparticles);
   EndPy_drifted.resize(MaxGEANTparticles);
   EndPz_drifted.resize(MaxGEANTparticles);
-  NumberDaughters.resize(MaxGEANTparticles);
-  Mother.resize(MaxGEANTparticles);
-  TrackId.resize(MaxGEANTparticles);
-  process_primary.resize(MaxGEANTparticles);
-  processname.resize(MaxGEANTparticles);
-  MergedId.resize(MaxGEANTparticles);
-  origin.resize(MaxGEANTparticles);
-  MCTruthIndex.resize(MaxGEANTparticles);
 
   // auxiliary detector structure
   NAuxDets.resize(MaxGEANTparticles);
@@ -2925,7 +3085,62 @@ void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
   exitPz.resize(MaxGEANTparticles);
   CombinedEnergyDep.resize(MaxGEANTparticles);
 
+  NTrajectoryPointsPerParticle.resize(MaxGEANTparticles);
 } // dune::AnaRootParserDataStruct::ResizeGEANT()
+
+void dune::AnaRootParserDataStruct::ResizeGEANTInAV(int nParticlesInAV){
+
+  MaxGEANTInAVparticles = (size_t) std::max(nParticlesInAV, 1);
+
+  pathlen_tpcAV.resize(MaxGEANTInAVparticles);
+  TrackId_tpcAV.resize(MaxGEANTInAVparticles);
+  PDGCode_tpcAV.resize(MaxGEANTInAVparticles);
+  StartPointx_tpcAV.resize(MaxGEANTInAVparticles);
+  StartPointy_tpcAV.resize(MaxGEANTInAVparticles);
+  StartPointz_tpcAV.resize(MaxGEANTInAVparticles);
+  StartT_tpcAV.resize(MaxGEANTInAVparticles);
+  StartE_tpcAV.resize(MaxGEANTInAVparticles);
+  StartP_tpcAV.resize(MaxGEANTInAVparticles);
+  StartPx_tpcAV.resize(MaxGEANTInAVparticles);
+  StartPy_tpcAV.resize(MaxGEANTInAVparticles);
+  StartPz_tpcAV.resize(MaxGEANTInAVparticles);
+  thetastart_tpcAV.resize(MaxGEANTInAVparticles);
+  phistart_tpcAV.resize(MaxGEANTInAVparticles);
+  EndPointx_tpcAV.resize(MaxGEANTInAVparticles);
+  EndPointy_tpcAV.resize(MaxGEANTInAVparticles);
+  EndPointz_tpcAV.resize(MaxGEANTInAVparticles);
+  EndT_tpcAV.resize(MaxGEANTInAVparticles);
+  EndE_tpcAV.resize(MaxGEANTInAVparticles);
+  EndP_tpcAV.resize(MaxGEANTInAVparticles);
+  EndPx_tpcAV.resize(MaxGEANTInAVparticles);
+  EndPy_tpcAV.resize(MaxGEANTInAVparticles);
+  EndPz_tpcAV.resize(MaxGEANTInAVparticles);
+  thetaend_tpcAV.resize(MaxGEANTInAVparticles);
+  phiend_tpcAV.resize(MaxGEANTInAVparticles);
+} // dune::AnaRootParserDataStruct::ResizeGEANTInAV()
+
+void dune::AnaRootParserDataStruct::ResizeGEANTTrajectory(int nTrajectoryPoints) {
+
+  // minimum size is 1, so that we always have an address
+  MaxGEANTtrajectorypoints = (size_t) std::max(nTrajectoryPoints, 1);
+
+  TrajTrackId.resize(MaxGEANTtrajectorypoints);
+  TrajPDGCode.resize(MaxGEANTtrajectorypoints);
+
+  TrajX.resize(MaxGEANTtrajectorypoints);
+  TrajY.resize(MaxGEANTtrajectorypoints);
+  TrajZ.resize(MaxGEANTtrajectorypoints);
+  TrajT.resize(MaxGEANTtrajectorypoints);
+  TrajE.resize(MaxGEANTtrajectorypoints);
+  TrajP.resize(MaxGEANTtrajectorypoints);
+  TrajPx.resize(MaxGEANTtrajectorypoints);
+  TrajPy.resize(MaxGEANTtrajectorypoints);
+  TrajPz.resize(MaxGEANTtrajectorypoints);
+  TrajTheta.resize(MaxGEANTtrajectorypoints);
+  TrajPhi.resize(MaxGEANTtrajectorypoints);
+
+} // dune::AnaRootParserDataStruct::ResizeGEANTTrajectory()
+
 
 void dune::AnaRootParserDataStruct::ResizeGenie(int nPrimaries) {
 
@@ -3096,6 +3311,26 @@ void dune::AnaRootParserDataStruct::SetAddresses(
   //  CreateBranch("potnumitgt",&potnumitgt,"potnumitgt/D");
   //  CreateBranch("potnumi101",&potnumi101,"potnumi101/D");
 
+if (hasRawDigitInfo()){
+    CreateBranch("RawWaveform_NumberOfChannels",&no_channels,"no_channels/I");
+    CreateBranch("RawWaveform_NumberOfTicks",&no_ticks,"no_ticks/I");
+
+    CreateBranch("RawWaveform_Channel",rawD_Channel,"rawD_Channel[no_channels]/I");
+
+    CreateBranch("RawWaveform_NumberOfTicksInAllChannels",&no_ticksinallchannels,"no_ticksinallchannels/I");
+    CreateBranch("RawWaveform_ADC",rawD_ADC,"rawD_ADC[no_ticksinallchannels]/S");
+}
+
+if (hasRecobWireInfo()){
+    CreateBranch("RecoWaveforms_NumberOfChannels",&no_recochannels,"no_recochannels/I");
+    CreateBranch("RecoWaveform_Channel",recoW_Channel,"recoW_Channel[no_recochannels]/I");
+    CreateBranch("RecoWaveform_NTicks",recoW_NTicks,"recoW_NTicks[no_recochannels]/I");
+
+    CreateBranch("RecoWaveform_NumberOfTicksInAllChannels",&no_recoticksinallchannels,"no_recoticksinallchannels/I");
+    CreateBranch("RecoWaveform_Tick",recoW_Tick,"recoW_Tick[no_recoticksinallchannels]/I");
+    CreateBranch("RecoWaveform_ADC",recoW_ADC,"recoW_ADC[no_recoticksinallchannels]/F");
+}
+
   if (hasHitInfo()){
     CreateBranch("NumberOfHits",&no_hits,"no_hits/I");
     //CreateBranch("NumberOfHits_Stored,&no_hits_stored,"no_hits_stored/I");
@@ -3127,13 +3362,13 @@ void dune::AnaRootParserDataStruct::SetAddresses(
           CreateBranch("hit_nelec",hit_nelec,"hit_nelec[no_hits]/F");
           CreateBranch("hit_energy",hit_energy,"hit_energy[no_hits]/F");
           }
-          */    if (hasRawDigitInfo()){
+          */  /*  if (hasRawDigitInfo()){
             CreateBranch("rawD_ph",rawD_ph,"rawD_ph[no_hits]/F");
             CreateBranch("rawD_peakT",rawD_peakT,"rawD_peakT[no_hits]/F");
             CreateBranch("rawD_charge",rawD_charge,"rawD_charge[no_hits]/F");
             CreateBranch("rawD_fwhh",rawD_fwhh,"rawD_fwhh[no_hits]/F");
             CreateBranch("rawD_rms",rawD_rms,"rawD_rms[no_hits]/D");
-          }
+          }*/
   }
   /*
      if (hasPandoraNuVertexInfo()){
@@ -3331,26 +3566,55 @@ if (hasPFParticleInfo()){
    }
    */
 
+
+   if (hasGeneratorInfo()){
+   CreateBranch("MCTruth_Generator_NumberOfParticles",&generator_list_size,"generator_list_size/I");
+   CreateBranch("MCTruth_Generator_ParticleID",TrackId,"TrackId[generator_list_size]/I");
+   CreateBranch("MCTruth_Generator_PDGCode",pdg,"pdg[generator_list_size]/I");
+   CreateBranch("MCTruth_Generator_Status",status,"status[generator_list_size]/I");
+   CreateBranch("MCTruth_Generator_Mass",Mass,"Mass[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartTime",StartT,"StartT[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartEnergy",Eng,"Eng[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartMomentum",P,"P[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartPoint_X",StartPointx,"StartPointx[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartPoint_Y",StartPointy,"StartPointy[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartPoint_Z",StartPointz,"StartPointz[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartMomentum_X",Px,"Px[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartMomentum_Y",Py,"Py[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartMomentum_Z",Pz,"Pz[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartDirection_Theta",theta,"theta[generator_list_size]/F");
+   CreateBranch("MCTruth_Generator_StartDirection_Phi",phi,"phi[generator_list_size]/F");
+   }
+
+   if (hasPhotonInfo()){
+   CreateBranch("MCTruth_GEANT4_NumberOfDetectedPhotons",&numberofphotons,"numberofphotons/I");
+   CreateBranch("MCTruth_GEANT4_DetectedPhoton_Channel",photons_channel,"photons_channel[numberofphotons]/F");
+   CreateBranch("MCTruth_GEANT4_DetectedPhoton_Time",photons_time,"photons_time[numberofphotons]/F");
+   }
+
    if (hasGeantInfo()){
-   CreateBranch("MCTruth_NumberOfParticles",&geant_list_size,"geant_list_size/I");
-   CreateBranch("MCTruth_NumberOfParticles_TPCAV",&geant_list_size_in_tpcAV,"geant_list_size_in_tpcAV/I");
-   CreateBranch("MCTruth_NumberOfParticles_Primaries",&no_primaries,"no_primaries/I");
-   CreateBranch("MCTruth_PDGCode",pdg,"pdg[geant_list_size]/I");
-   CreateBranch("MCTruth_Status",status,"status[geant_list_size]/I");
-   CreateBranch("MCTruth_NumberOfDaughterParticles",NumberDaughters,"NumberDaughters[geant_list_size]/I");
-   CreateBranch("MCTruth_HasMotherParticle",Mother,"Mother[geant_list_size]/I");
-   CreateBranch("MCTruth_Mass",Mass,"Mass[geant_list_size]/F");
-   CreateBranch("MCTruth_StartPoint_X",StartPointx,"StartPointx[geant_list_size]/F");
-   CreateBranch("MCTruth_StartPoint_Y",StartPointy,"StartPointy[geant_list_size]/F");
-   CreateBranch("MCTruth_StartPoint_Z",StartPointz,"StartPointz[geant_list_size]/F");
-   CreateBranch("MCTruth_StartTime",StartT,"StartT[geant_list_size]/F");
-   CreateBranch("MCTruth_StartEnergy",Eng,"Eng[geant_list_size]/F");
-   CreateBranch("MCTruth_StartMomentum",P,"P[geant_list_size]/F");
-   CreateBranch("MCTruth_StartMomentum_X",Px,"Px[geant_list_size]/F");
-   CreateBranch("MCTruth_StartMomentum_Y",Py,"Py[geant_list_size]/F");
-   CreateBranch("MCTruth_StartMomentum_Z",Pz,"Pz[geant_list_size]/F");
-   CreateBranch("MCTruth_StartDirection_Theta",theta,"theta[geant_list_size]/F");
-   CreateBranch("MCTruth_StartDirection_Phi",phi,"phi[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_NumberOfParticles",&geant_list_size,"geant_list_size/I");
+   CreateBranch("MCTruth_GEANT4_NumberOfPrimaries",&no_primaries,"no_primaries/I");
+   CreateBranch("MCTruth_GEANT4_ParticleID",TrackId,"TrackId[geant_list_size]/I");
+   CreateBranch("MCTruth_GEANT4_PDGCode",pdg,"pdg[geant_list_size]/I");
+
+   CreateBranch("MCTruth_GEANT4_Status",status,"status[geant_list_size]/I");
+   CreateBranch("MCTruth_GEANT4_IsInTPCAV",inTPCActive,"inTPCActive[geant_list_size]/I");
+   CreateBranch("MCTruth_GEANT4_NumberOfDaughterParticles",NumberDaughters,"NumberDaughters[geant_list_size]/I");
+   CreateBranch("MCTruth_GEANT4_MotherParticle",Mother,"Mother[geant_list_size]/I");
+   CreateBranch("MCTruth_GEANT4_Mass",Mass,"Mass[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartPoint_X",StartPointx,"StartPointx[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartPoint_Y",StartPointy,"StartPointy[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartPoint_Z",StartPointz,"StartPointz[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartTime",StartT,"StartT[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartEnergy",Eng,"Eng[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartMomentum",P,"P[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartMomentum_X",Px,"Px[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartMomentum_Y",Py,"Py[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartMomentum_Z",Pz,"Pz[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartDirection_Theta",theta,"theta[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_StartDirection_Phi",phi,"phi[geant_list_size]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_NumberOfParticles",&geant_list_size_in_tpcAV,"geant_list_size_in_tpcAV/I");
 //   CreateBranch("MCTruth_EndEnergy",EndE,"EndE[geant_list_size]/F");
 //   CreateBranch("MCTruth_EndPoint_X",EndPointx,"EndPointx[geant_list_size]/F");
 //   CreateBranch("MCTruth_EndPoint_Y",EndPointy,"EndPointy[geant_list_size]/F");
@@ -3360,31 +3624,34 @@ if (hasPFParticleInfo()){
 //   CreateBranch("theta_xz",theta_xz,"theta_xz[geant_list_size]/F");
 //   CreateBranch("theta_yz",theta_yz,"theta_yz[geant_list_size]/F");
 
-   CreateBranch("MCTruth_IsInTPCAV",inTPCActive,"inTPCActive[geant_list_size]/I");
-   CreateBranch("MCTruth_Pathlength_TPCAV",pathlen,"pathlen[geant_list_size]/F");
-   CreateBranch("MCTruth_StartPoint_X_TPCAV",StartPointx_tpcAV,"StartPointx_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartPoint_Y_TPCAV",StartPointy_tpcAV,"StartPointy_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartPoint_Z_TPCAV",StartPointz_tpcAV,"StartPointz_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartTime_TPCAV",StartT_tpcAV,"StartT_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartEnergy_TPCAV",StartE_tpcAV,"StartE_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartMomentum_TPCAV",StartP_tpcAV,"StartP_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartMomentum_X_TPCAV",StartPx_tpcAV,"StartPx_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartMomentum_Y_TPCAV",StartPy_tpcAV,"StartPy_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartMomentum_Z_TPCAV",StartPz_tpcAV,"StartPz_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartDirection_Theta_TPCAV",thetastart_tpcAV,"thetastart_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_StartDirection_Phi_TPCAV",phistart_tpcAV,"phistart_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndPoint_X_TPCAV",EndPointx_tpcAV,"EndPointx_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndPoint_Y_TPCAV",EndPointy_tpcAV,"EndPointy_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndPoint_Z_TPCAV",EndPointz_tpcAV,"EndPointz_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndTtime_TPCAV",EndT_tpcAV,"EndT_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndEnergy_TPCAV",EndE_tpcAV,"EndE_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndMomentum_TPCAV",EndP_tpcAV,"EndP_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndMomentum_X_TPCAV",EndPx_tpcAV,"EndPx_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndMomentum_Y_TPCAV",EndPy_tpcAV,"EndPy_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndMomentum_Z_TPCAV",EndPz_tpcAV,"EndPz_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndDirection_Theta_TPCAV",thetaend_tpcAV,"thetaend_tpcAV[geant_list_size]/F");
-   CreateBranch("MCTruth_EndDirection_Phi_TPCAV",phiend_tpcAV,"phiend_tpcAV[geant_list_size]/F");
+   if (hasGeantInAVInfo()){
+   CreateBranch("MCTruth_GEANT4_InTPCAV_ParticleID",TrackId_tpcAV,"TrackId_tpcAV[geant_list_size_in_tpcAV]/I");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_PDGCode",PDGCode_tpcAV,"PDGCode_tpcAV[geant_list_size_in_tpcAV]/I");
 
+   CreateBranch("MCTruth_GEANT4_InTPCAV_Pathlength",pathlen_tpcAV,"pathlen_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartPoint_X",StartPointx_tpcAV,"StartPointx_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartPoint_Y",StartPointy_tpcAV,"StartPointy_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartPoint_Z",StartPointz_tpcAV,"StartPointz_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartTime",StartT_tpcAV,"StartT_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartEnergy",StartE_tpcAV,"StartE_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartMomentum",StartP_tpcAV,"StartP_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartMomentum_X",StartPx_tpcAV,"StartPx_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartMomentum_Y",StartPy_tpcAV,"StartPy_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartMomentum_Z",StartPz_tpcAV,"StartPz_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartDirection_Theta",thetastart_tpcAV,"thetastart_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_StartDirection_Phi",phistart_tpcAV,"phistart_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndPoint_X",EndPointx_tpcAV,"EndPointx_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndPoint_Y",EndPointy_tpcAV,"EndPointy_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndPoint_Z",EndPointz_tpcAV,"EndPointz_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndTime",EndT_tpcAV,"EndT_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndEnergy",EndE_tpcAV,"EndE_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndMomentum",EndP_tpcAV,"EndP_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndMomentum_X",EndPx_tpcAV,"EndPx_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndMomentum_Y",EndPy_tpcAV,"EndPy_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndMomentum_Z",EndPz_tpcAV,"EndPz_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndDirection_Theta",thetaend_tpcAV,"thetaend_tpcAV[geant_list_size_in_tpcAV]/F");
+   CreateBranch("MCTruth_GEANT4_InTPCAV_EndDirection_Phi",phiend_tpcAV,"phiend_tpcAV[geant_list_size_in_tpcAV]/F");
+}
 
 
 /*
@@ -3418,6 +3685,26 @@ if (hasPFParticleInfo()){
    CreateBranch("process_primary",process_primary,"process_primary[geant_list_size]/I");
    CreateBranch("processname", processname);
 */
+}
+
+if(hasGeantTrajectoryInfo()){
+  CreateBranch("MCTruth_GEANT4_NumberOfTrajectoryStepsPerParticle",NTrajectoryPointsPerParticle,"NTrajectoryPointsPerParticle[geant_list_size]/I");
+  CreateBranch("MCTruth_GEANT4_TotalNumberOfTrajectoryStepsForAllParticles",&geant_trajectory_size,"geant_trajectory_size/I");
+
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_ParticleID",TrajTrackId,"TrajTrackId[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_PDGCode",TrajPDGCode,"TrajPDGCode[geant_trajectory_size]/F");
+
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Point_X",TrajX,"TrajX[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Point_Y",TrajY,"TrajY[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Point_Z",TrajZ,"TrajZ[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Time",TrajT,"TrajT[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Energy",TrajE,"TrajE[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Momentum",TrajP,"TrajP[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Momentum_X",TrajPx,"TrajPx[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Momentum_Y",TrajPy,"TrajPy[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Momentum_Z",TrajPz,"TrajPz[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Direction_Theta",TrajTheta,"TrajTheta[geant_trajectory_size]/F");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_Direction_Phi",TrajPhi,"TrajPhi[geant_trajectory_size]/F");
 }
 
 /*
@@ -3547,12 +3834,12 @@ CreateBranch("CombinedEnergyDep", CombinedEnergyDep,
 
 dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   EDAnalyzer(pset),
-  fTree(nullptr), 
+  fTree(nullptr),
   //  fPOT(nullptr),
 
   fLogLevel	            (pset.get< short >("LogLevel")        ),
   fEventsPerSubrun          (pset.get< short >("EventsPerSubrun")        ),
-  fDigitModuleLabel         (pset.get< std::string >("DigitModuleLabel")        ),
+  fRawDigitModuleLabel         (pset.get< std::string >("RawDigitModuleLabel")        ),
   fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel")         ),
   fLArG4ModuleLabel         (pset.get< std::string >("LArGeantModuleLabel")     ),
   fCalDataModuleLabel       (pset.get< std::string >("CalDataModuleLabel")      ),
@@ -3583,22 +3870,27 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),
   fSaveGenieInfo	    (pset.get< bool >("SaveGenieInfo", false)),
   fSaveProtoInfo	    (pset.get< bool >("SaveProtoInfo", false)),
+  fSavePhotonInfo	    (pset.get< bool >("SavePhotonInfo", false)),
+  fSaveGeneratorInfo	    (pset.get< bool >("SaveGeneratorInfo", false)),
   fSaveGeantInfo	    (pset.get< bool >("SaveGeantInfo", false)),
+  fSaveGeantInAVInfo	    (pset.get< bool >("SaveGeantInAVInfo", false)),
+  fSaveGeantTrajectoryInfo  (pset.get< bool >("SaveGeantTrajectoryInfo", false)),
   fSaveMCShowerInfo	    (pset.get< bool >("SaveMCShowerInfo", false)),
   fSaveMCTrackInfo	    (pset.get< bool >("SaveMCTrackInfo", false)),
   fSaveHitInfo	            (pset.get< bool >("SaveHitInfo", false)),
-  fSaveRawDigitInfo	            (pset.get< bool >("SaveRawDigitInfo", false)),
+  fSaveRawDigitInfo	    (pset.get< bool >("SaveRawDigitInfo", false)),
+  fSaveRecobWireInfo	    (pset.get< bool >("SaveRecobWireInfo", false)),
   fSaveTrackInfo	    (pset.get< bool >("SaveTrackInfo", false)),
   fSaveVertexInfo	    (pset.get< bool >("SaveVertexInfo", false)),
   fSaveClusterInfo	    (pset.get< bool >("SaveClusterInfo", false)),
-  fSavePandoraNuVertexInfo        (pset.get< bool >("SavePandoraNuVertexInfo", false)),
+  fSavePandoraNuVertexInfo  (pset.get< bool >("SavePandoraNuVertexInfo", false)),
   fSaveFlashInfo            (pset.get< bool >("SaveFlashInfo", false)),
-  fSaveExternCounterInfo            (pset.get< bool >("SaveExternCounterInfo", false)),
-  fSaveShowerInfo            (pset.get< bool >("SaveShowerInfo", false)),
+  fSaveExternCounterInfo    (pset.get< bool >("SaveExternCounterInfo", false)),
+  fSaveShowerInfo           (pset.get< bool >("SaveShowerInfo", false)),
   fSavePFParticleInfo	    (pset.get< bool >("SavePFParticleInfo", false)),
-  fCosmicTaggerAssocLabel  (pset.get<std::vector< std::string > >("CosmicTaggerAssocLabel") ),
+  fCosmicTaggerAssocLabel   (pset.get<std::vector< std::string > >("CosmicTaggerAssocLabel") ),
   fContainmentTaggerAssocLabel  (pset.get<std::vector< std::string > >("ContainmentTaggerAssocLabel") ),
-  fFlashMatchAssocLabel (pset.get<std::vector< std::string > >("FlashMatchAssocLabel") ),
+  fFlashMatchAssocLabel     (pset.get<std::vector< std::string > >("FlashMatchAssocLabel") ),
   bIgnoreMissingShowers     (pset.get< bool >("IgnoreMissingShowers", false)),
   isCosmics(false),
   fSaveCaloCosmics          (pset.get< bool >("SaveCaloCosmics",false)),
@@ -3610,7 +3902,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   if (fSavePFParticleInfo) fPFParticleModuleLabel = pset.get<std::string>("PFParticleModuleLabel");
 
   if (fSaveAuxDetInfo == true) fSaveGeantInfo = true;
-  if (fSaveRawDigitInfo == true) fSaveHitInfo = true;
+//  if (fSaveRawDigitInfo == true) fSaveHitInfo = true;
   mf::LogInfo("AnaRootParser") << "Configuration:"
     << "\n  UseBuffers: " << std::boolalpha << fUseBuffer
     ;
@@ -3769,6 +4061,29 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
   // collect the sizes which might be needed to resize the tree data structure:
 
+  // RawDigit
+  art::Handle< std::vector<raw::RawDigit> > rawdigitVecHandle;
+  std::vector<art::Ptr<raw::RawDigit> > rawdigitlist;
+  if (evt.getByLabel(fRawDigitModuleLabel, rawdigitVecHandle))
+    art::fill_ptr_vector(rawdigitlist, rawdigitVecHandle);
+
+  // RecobWire
+  art::Handle< std::vector<recob::Wire> > recobwireVecHandle;
+  std::vector<art::Ptr<recob::Wire> > recobwirelist;
+  if (evt.getByLabel(fCalDataModuleLabel, recobwireVecHandle))
+    art::fill_ptr_vector(recobwirelist, recobwireVecHandle);
+
+
+  // recob::Wire
+//  art::Handle< std::vector<recob::Wire> > wireVecHandle;
+//  evt.getByLabel(fCalDataModuleLabel,wireVecHandle);
+
+  // * photons
+  art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle; 
+//  std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
+  evt.getByLabel(fLArG4ModuleLabel, photonHandle);
+//    art::fill_ptr_vector(photonlist, photonHandle);
+
   // * hits
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
@@ -3864,7 +4179,8 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
     nProtoPrimaries = mctruthproto->NParticles();
   }
 
-  int nGeniePrimaries = 0, nGEANTparticles = 0;
+  int nPhotons=0;
+  int nGeniePrimaries = 0, nGeneratorParticles = 0, nGEANTparticles = 0, nGEANTparticlesInAV = 0, nGEANTtrajectorysteps=0;
 
   art::Ptr<simb::MCTruth> mctruth;
 
@@ -3906,26 +4222,82 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       const sim::ParticleList& plist = pi_serv->ParticleList();
       nGEANTparticles = plist.size();
 
-      // to know the number of particles in AV would require
-      // looking at all of them; so we waste some memory here
-  } // if have MC truth
-  LOG_DEBUG("AnaRootParser") << "Expected "
+      sim::ParticleList::const_iterator itPart = plist.begin(),
+      pend = plist.end(); // iterator to pairs (track id, particle)
+
+      std::string pri("primary");
+      for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart)
+      {
+        const simb::MCParticle* pPart = (itPart++)->second;
+        if (!pPart)
+	{
+          throw art::Exception(art::errors::LogicError)
+            << "GEANT particle #" << iPart << " returned a null pointer";
+        }
+        nGEANTtrajectorysteps += pPart->NumberTrajectoryPoints();
+
+	if(pPart->Mother() == 0 && pPart->Process() == pri) nGeneratorParticles++;
+
+        TLorentzVector mcstart, mcend;
+        unsigned int pstarti, pendi;
+        double plen = length(*pPart, mcstart, mcend, pstarti, pendi);
+        if( plen != 0) nGEANTparticlesInAV += 1;
+
+      } // for particles
+
+      // counting photons
+      for ( auto const& pmt : (*photonHandle) )
+      {
+        std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
+
+        for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
+        {
+          for(int i = 0; i < itphoton->second ; i++)
+          {
+	    nPhotons++;
+	  }
+	}
+      }
+
+
+//      for()
+//      {
+	
+//      }
+
+    } // if have MC truth
+    LOG_DEBUG("AnaRootParser") << "Expected "
     << nGEANTparticles << " GEANT particles, "
     << nGeniePrimaries << " GENIE particles";
-} // if MC
+  } // if MC
 
 CreateData(); // tracker data is created with default constructor
 if (fSaveGenieInfo){  fData->ResizeGenie(nGeniePrimaries);}
 if (fSaveCryInfo){  fData->ResizeCry(nCryPrimaries);}
 if (fSaveProtoInfo){  fData->ResizeProto(nProtoPrimaries);}
+if (fSaveGeneratorInfo){  fData->ResizeGenerator(nGeneratorParticles);}
 if (fSaveGeantInfo){  fData->ResizeGEANT(nGEANTparticles);}
+if (fSaveGeantInfo && fSaveGeantInAVInfo){  fData->ResizeGEANTInAV(nGEANTparticlesInAV);}
+if (fSaveGeantTrajectoryInfo){  fData->ResizeGEANTTrajectory(nGEANTtrajectorysteps);}
 if (fSaveMCShowerInfo){  fData->ResizeMCShower(nMCShowers);}
 if (fSaveMCTrackInfo){  fData->ResizeMCTrack(nMCTracks);}
+if (fSavePhotonInfo){  fData->ResizePhotons(nPhotons);}
+
+if(fLogLevel == 1)
+{
+  std::cout << "nGeneratorParticles: " << nGeneratorParticles << std::endl;
+  std::cout << "nGEANTparticles: " << nGEANTparticles << std::endl;
+  std::cout << "nGEANTtrajectorysteps: " << nGEANTtrajectorysteps << std::endl;
+  std::cout << "nGEANTparticlesInAV: " << nGEANTparticlesInAV << std::endl;
+  std::cout << "nPhotons: " << nPhotons << std::endl;
+}
 
   fData->ClearLocalData(); // don't bother clearing tracker data yet
 
   const size_t NTrackers = GetNTrackers(); // number of trackers passed into fTrackModuleLabel
   const size_t NShowerAlgos = GetNShowerAlgos(); // number of shower algorithms into fShowerModuleLabel
+  const size_t NChannels = rawdigitlist.size(); //number of channels holding raw waveforms
+  const size_t NRecoChannels = recobwirelist.size(); //number of channels holding ROI's
   const size_t NHits     = hitlist.size(); // number of hits
   const size_t NVertexAlgos = GetNVertexAlgos(); // number of vertex algos
   const size_t NClusters = clusterlist.size(); //number of clusters
@@ -3943,7 +4315,7 @@ if (fSaveMCTrackInfo){  fData->ResizeMCTrack(nMCTracks);}
   //  raw trigger
   art::Handle< std::vector<raw::Trigger>> triggerListHandle;
   std::vector<art::Ptr<raw::Trigger>> triggerlist;
-if (evt.getByLabel(fDigitModuleLabel, triggerListHandle)){  art::fill_ptr_vector(triggerlist, triggerListHandle);}
+if (evt.getByLabel(fRawDigitModuleLabel, triggerListHandle)){  art::fill_ptr_vector(triggerlist, triggerListHandle);}
 
   if (triggerlist.size()){
     fData->triggernumber = triggerlist[0]->TriggerNumber();
@@ -4024,7 +4396,7 @@ if (fSaveAuxDetInfo){
 }
 
 std::vector<const sim::SimChannel*> fSimChannels;
-if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}  
+if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
 
   fData->run = evt.run();
   fData->subrun = evt.subRun();
@@ -4055,6 +4427,61 @@ if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
 //  std::cout<<detprop->NumberTimeSamples()<<" "<<detprop->ReadOutWindowSize()<<std::endl;
 //  std::cout<<geom->DetHalfHeight()2<<" "<<geom->DetHalfWidth()2<<" "<<geom->DetLength()<<std::endl;
 //  std::cout<<geom->Nwires(0)<<" "<<geom->Nwires(1)<<" "<<geom->Nwires(2)<<std::endl;
+
+
+//RawDigit info
+if (fSaveRawDigitInfo){
+  fData->no_channels = (int) NChannels;
+  if (NChannels>0)
+  {
+    fData->no_ticks = (int) rawdigitlist[0]->Samples();
+    fData->no_ticksinallchannels = fData->no_channels*fData->no_ticks;
+  }
+  else
+  {
+  fData->no_ticks = 0;
+  fData->no_ticksinallchannels = 0;
+  }
+
+  for (int i = 0; i < fData->no_channels ; i++) //loop over channels holding raw waveforms
+  {
+    fData->rawD_Channel[i] = (int) rawdigitlist[i]->Channel();
+    int k=0;
+
+    for (int j = fData->no_ticks*i; j < (fData->no_ticks*(i+1)) && j < kMaxReadoutTicksInAllChannels ; j++) //loop over ticks
+    {
+      fData->rawD_ADC[j] = rawdigitlist[i]->ADC(k);
+      k++;
+    }
+  }
+}
+
+//RecobWire info
+if (fSaveRecobWireInfo){
+  fData->no_recochannels = (int) NRecoChannels;
+  int RecoWTick=0;
+
+  for(int i = 0; i < fData->no_recochannels; i++)  //loop over channels holding reco waveforms
+  {
+    fData->recoW_Channel[i] = recobwirelist[i]->Channel();
+    const recob::Wire::RegionsOfInterest_t& signalROI = recobwirelist[i]->SignalROI();
+
+    for(const auto& range : signalROI.get_ranges())  //loop over ROIs
+    {
+      const std::vector<float>& signal = range.data();
+      int NTicksInThisROI = range.end_index() - range.begin_index();
+
+      for(int j = 0; j < NTicksInThisROI; j++) //loop over ticks
+      {
+        fData->recoW_Tick[RecoWTick] = j+range.begin_index();
+        fData->recoW_ADC[RecoWTick] = signal.at(j);
+	RecoWTick++;
+      }
+      fData->recoW_NTicks[i] += NTicksInThisROI;
+    }
+  }
+  fData->no_recoticksinallchannels = RecoWTick;
+}
 
 //hit information
 if (fSaveHitInfo){
@@ -4099,11 +4526,11 @@ if (fSaveHitInfo){
 /*
     std::vector< art::Ptr<recob::SpacePoint> > sptv = fmsp.at(i);
         if (fmsp.at(i).size()!=0){
-    std::cout << "sptv[i]->XYZ()[0]: " << sptv[i]->XYZ()[0] << std::endl; 
-    std::cout << "sptv[i]->XYZ()[1]: " << sptv[i]->XYZ()[1] << std::endl; 
-    std::cout << "sptv[i]->XYZ()[2]: " << sptv[i]->XYZ()[2] << std::endl; 
+    std::cout << "sptv[i]->XYZ()[0]: " << sptv[i]->XYZ()[0] << std::endl;
+    std::cout << "sptv[i]->XYZ()[1]: " << sptv[i]->XYZ()[1] << std::endl;
+    std::cout << "sptv[i]->XYZ()[2]: " << sptv[i]->XYZ()[2] << std::endl;
       }
-    std::cout << "test3" << std::endl; 
+    std::cout << "test3" << std::endl;
 //    std::cout << "test" << std::endl;
 //    art::FindManyP<recob::SpacePoint> fmsp(hitListHandle,evt,"pmtrack");
 //    art::FindManyP<recob::SpacePoint> fmsp(allHits, evt, fSpacePointModuleLabel);
@@ -4149,6 +4576,7 @@ if (fSaveHitInfo){
        }
        */
 
+/*
     if (fSaveRawDigitInfo){
       //Hit to RawDigit information
       art::FindManyP<raw::RawDigit> fmrd(hitListHandle,evt,fHitsModuleLabel);
@@ -4190,7 +4618,7 @@ if (fSaveHitInfo){
         fData->rawD_rms[i] = sqrt(mean_t2-mean_t*mean_t);
       }
     } // Save RawDigitInfo
-
+*/
     /*      if (!evt.isRealData()&&!isCosmics){
             fData -> hit_nelec[i] = 0;
             fData -> hit_energy[i] = 0;
@@ -4209,6 +4637,8 @@ if (fSaveHitInfo){
     }
     }*/
   } // Loop over hits
+
+
 
   if (evt.getByLabel(fHitsModuleLabel,hitListHandle)){
     //Find tracks associated with hits
@@ -4244,7 +4674,6 @@ if (fSaveHitInfo){
     }
   }
 }// end (fSaveHitInfo)
-
 
 if(fSavePandoraNuVertexInfo) {
   lar_pandora::PFParticleVector particleVector;
@@ -4292,7 +4721,6 @@ if(fSavePandoraNuVertexInfo) {
   }
 } // save PandoraNuVertexInfo
 
-
 if (fSaveClusterInfo){
   fData->nclusters = (int) NClusters;
   if (NClusters > kMaxClusters){
@@ -4305,10 +4733,10 @@ if (fSaveClusterInfo){
     art::Ptr<recob::Cluster> clusterholder(clusterListHandle, ic);
     const recob::Cluster& cluster = *clusterholder;
     fData->clusterId[ic] = cluster.ID();
-    fData->clusterView[ic] = cluster.View(); 
+    fData->clusterView[ic] = cluster.View();
     // View 3 in LArSoft corresponds to View 0 in real life (3m long channels). View 2 in LArSoft corresponds to View 1 in real life (1m long channels).
-    if(fData->clusterView[ic] == 3) {fData->clusterView[ic] = 0;} 
-    if(fData->clusterView[ic] == 2) {fData->clusterView[ic] = 1;} 
+    if(fData->clusterView[ic] == 3) {fData->clusterView[ic] = 0;}
+    if(fData->clusterView[ic] == 2) {fData->clusterView[ic] = 1;}
     fData->cluster_isValid[ic] = cluster.isValid();
     fData->cluster_StartCharge[ic] = cluster.StartCharge();
     fData->cluster_StartAngle[ic] = cluster.StartAngle();
@@ -4593,7 +5021,7 @@ if (fSaveTrackInfo) {
 
     //call the track momentum algorithm that gives you momentum based on track range
     trkf::TrackMomentumCalculator trkm;
-    trkm.SetMinLength(100); //change the minimal track length requirement to 50 cm
+    trkm.SetMinLength(50); //change the minimal track length requirement to 50 cm
 
     recob::MCSFitResult res;
 
@@ -4716,6 +5144,9 @@ if (fSaveTrackInfo) {
         double dpos = bdist(pos);  // FIXME - Passing an uncorrected position....
         double dend = bdist(end);  // FIXME - Passing an uncorrected position....
 
+        std::cout << TrackerData.trkId[iTrk] << iTrk << std::endl;
+
+
         TrackerData.trkId[iTrk]                 = TrackID;
         TrackerData.trkstartx[iTrk]             = pos.X();
         TrackerData.trkstarty[iTrk]             = pos.Y();
@@ -4731,7 +5162,7 @@ if (fSaveTrackInfo) {
         TrackerData.trkstartdirectiony[iTrk]	= dir_start.Y();
         TrackerData.trkstartdirectionz[iTrk]	= dir_start.Z();
 
-	if(fLogLevel >= 1)
+	if(fLogLevel == 2)
 	{
 	  std::cout << std::endl;
 	  std::cout << "start.X(): " << pos.X() << "\t" << "start.Y(): " << pos.Y() << "\t" << "start.Z(): " << pos.Z() << std::endl;
@@ -4879,7 +5310,7 @@ if (fSaveTrackInfo) {
 	int NHitsView0 = 0;
 	int NHitsView1 = 0;
 
-	if(fLogLevel >= 1)
+	if(fLogLevel == 2)
 	{
 	  std::cout << "track.NumberTrajectoryPoints(): " << track.NumberTrajectoryPoints() << std::endl;
 	  std::cout << "track.NPoints(): " << track.NPoints() << std::endl;
@@ -4920,7 +5351,7 @@ if (fSaveTrackInfo) {
 
 	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
-	    if(fLogLevel >= 1)
+	    if(fLogLevel == 2)
 	    {
 	      std::cout << "pos.X(): " << sptv[0]->XYZ()[0] << "\t" << "pos.Y(): " << sptv[0]->XYZ()[1] << "\t" << "pos.Z(): " << sptv[0]->XYZ()[2] << std::endl;
 	      std::cout << "pos2.X(): " << loc.X() << "\t" << "pos2.Y(): " << loc.Y() << "\t" << "pos2.Z(): " << loc.Z() << std::endl;
@@ -4956,7 +5387,6 @@ if (fSaveTrackInfo) {
         TrackerData.ntrkhitsperview[iTrk][1] = NHitsView1;
 
 //      }
-
 
 /*
 	std::cout << "tracklist[iTracker][iTrk]->NumberTrajectoryPoints(): " << tracklist[iTracker][iTrk]->NumberTrajectoryPoints() << std::endl;
@@ -5121,7 +5551,7 @@ if (fSaveTrackInfo) {
       }//end if (fIsMC)
 */
     }//end loop over track
-      //std::cout << "HitIterator: " << HitIterator << std::endl; 
+      //std::cout << "HitIterator: " << HitIterator << std::endl;
   }//end loop over track module labels
 }// end (fSaveTrackInfo)
 
@@ -5469,6 +5899,87 @@ if (fSaveTrackInfo) {
       }//End if (fSaveMCTrackInfo){
 
 
+      //Photon particles information
+      if (fSavePhotonInfo){
+	int photoncounter=0;
+        for ( auto const& pmt : (*photonHandle) )
+        {
+          std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
+
+          for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
+          {
+            for(int iphotonatthistime = 0; iphotonatthistime < itphoton->second ; iphotonatthistime++)
+            {
+	      fData->photons_time[photoncounter]=itphoton->first;
+	      fData->photons_channel[photoncounter]=pmt.OpChannel;
+	      photoncounter++;
+	    }
+	  }
+        }
+	fData->numberofphotons=photoncounter;
+      }
+
+      //Generator particles information
+      if (fSaveGeneratorInfo){
+        const sim::ParticleList& plist = pi_serv->ParticleList();
+
+        size_t generator_particle=0;
+        sim::ParticleList::const_iterator itPart = plist.begin(),
+        pend = plist.end(); // iterator to pairs (track id, particle)
+
+        for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
+
+          const simb::MCParticle* pPart = (itPart++)->second;
+          if (!pPart) {
+            throw art::Exception(art::errors::LogicError)
+              << "GEANT particle #" << iPart << " returned a null pointer";
+          }
+
+          if (iPart < fData->GetMaxGeneratorparticles()) {
+
+            std::string pri("primary");
+	    if( pPart->Mother() == 0 && pPart->Process() == pri )
+	    {
+              fData->TrackId[generator_particle]=pPart->TrackId();
+              fData->pdg[generator_particle]=pPart->PdgCode();
+              fData->status[generator_particle] = pPart->StatusCode();
+              fData->Eng[generator_particle]=pPart->E();
+              fData->Mass[generator_particle]=pPart->Mass();
+              fData->Px[generator_particle]=pPart->Px();
+              fData->Py[generator_particle]=pPart->Py();
+              fData->Pz[generator_particle]=pPart->Pz();
+              fData->P[generator_particle]=pPart->Momentum().Vect().Mag();
+              fData->StartPointx[generator_particle]=pPart->Vx();
+              fData->StartPointy[generator_particle]=pPart->Vy();
+              fData->StartPointz[generator_particle]=pPart->Vz();
+              fData->StartT[generator_particle] = pPart->T();
+
+      	      TVector3 momentum_start_flipped;
+              momentum_start_flipped.SetXYZ(pPart->Pz(), pPart->Py(), pPart->Px());
+
+	      fData->theta[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
+	      fData->phi[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
+	    }
+            ++generator_particle;
+          }
+          else if (iPart == fData->GetMaxGeneratorparticles()) {
+            // got this error? it might be a bug,
+            // since the structure should have enough room for everything
+            mf::LogError("AnaRootParser:limits") << "event has "
+              << plist.size() << " MC particles, only "
+              << fData->GetMaxGeneratorparticles() << " will be stored in tree";
+          }
+        } // for particles
+        fData->generator_list_size = generator_particle;
+        fData->processname.resize(generator_particle);
+        LOG_DEBUG("AnaRootParser")
+          << "Counted "
+          << fData->generator_list_size << " Generator particles";
+      }//fSaveGeneratorInfo
+
+
+
+
       //GEANT particles information
       if (fSaveGeantInfo){
 
@@ -5498,7 +6009,7 @@ if (fSaveTrackInfo) {
           gpdg.push_back(pPart->PdgCode());
           gmother.push_back(pPart->Mother());
           if (iPart < fData->GetMaxGEANTparticles()) {
-            if (pPart->E()<fG4minE&&(!isPrimary)) continue;
+//            if (pPart->E()<fG4minE&&(!isPrimary)) continue;
             if (isPrimary) ++primary;
 
             TLorentzVector mcstart, mcend;
@@ -5511,12 +6022,19 @@ if (fSaveTrackInfo) {
 //            double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
 //            bool isDrifted = plendrifted!= 0;
 
-            if (plen) ++active;
+	    if(fLogLevel == 3)
+	    {
+	      std::cout << "pPart->TrackId():" << pPart->TrackId() << std::endl;
+	      std::cout << "pPart->Mother():" << pPart->Mother() << std::endl;
+	      std::cout << "pPart->PdgCode():" << pPart->PdgCode() << std::endl;
+	      std::cout << std::endl;
+	    }
+
 
             fData->process_primary[geant_particle] = int(isPrimary);
             fData->processname[geant_particle]= pPart->Process();
             fData->Mother[geant_particle]=pPart->Mother();
-            fData->TrackId[geant_particle]=TrackID;
+            fData->TrackId[geant_particle]=pPart->TrackId();
             fData->pdg[geant_particle]=pPart->PdgCode();
             fData->status[geant_particle] = pPart->StatusCode();
             fData->Eng[geant_particle]=pPart->E();
@@ -5535,6 +6053,8 @@ if (fSaveTrackInfo) {
             fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
             fData->EndT[geant_particle] = pPart->EndT();
 
+	    fData->NTrajectoryPointsPerParticle[geant_particle] = pPart->NumberTrajectoryPoints();
+
 	    //fData->theta[geant_particle] = pPart->Momentum().Theta();
 	    //fData->phi[geant_particle] = pPart->Momentum().Phi();
 	    //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
@@ -5546,7 +6066,6 @@ if (fSaveTrackInfo) {
 
             fData->theta_xz[geant_particle] = std::atan2(pPart->Px(), pPart->Pz());
             fData->theta_yz[geant_particle] = std::atan2(pPart->Py(), pPart->Pz());
-            fData->pathlen[geant_particle]  = plen;
 //            fData->pathlen_drifted[geant_particle]  = plendrifted;
             fData->NumberDaughters[geant_particle]=pPart->NumberDaughters();
             fData->inTPCActive[geant_particle] = int(isActive);
@@ -5556,25 +6075,30 @@ if (fSaveTrackInfo) {
               fData->origin[geant_particle] = mc_truth->Origin();
               fData->MCTruthIndex[geant_particle] = mc_truth.key();
             }
-            if (isActive){
-              fData->StartPointx_tpcAV[geant_particle] = mcstart.X();
-              fData->StartPointy_tpcAV[geant_particle] = mcstart.Y();
-              fData->StartPointz_tpcAV[geant_particle] = mcstart.Z();
-              fData->StartT_tpcAV[geant_particle] = mcstart.T();
-              fData->StartE_tpcAV[geant_particle] = pPart->E(pstarti);
-              fData->StartP_tpcAV[geant_particle] = pPart->P(pstarti);
-              fData->StartPx_tpcAV[geant_particle] = pPart->Px(pstarti);
-              fData->StartPy_tpcAV[geant_particle] = pPart->Py(pstarti);
-              fData->StartPz_tpcAV[geant_particle] = pPart->Pz(pstarti);
-              fData->EndPointx_tpcAV[geant_particle] = mcend.X();
-              fData->EndPointy_tpcAV[geant_particle] = mcend.Y();
-              fData->EndPointz_tpcAV[geant_particle] = mcend.Z();
-              fData->EndT_tpcAV[geant_particle] = mcend.T();
-              fData->EndE_tpcAV[geant_particle] = pPart->E(pendi);
-              fData->EndP_tpcAV[geant_particle] = pPart->P(pendi);
-              fData->EndPx_tpcAV[geant_particle] = pPart->Px(pendi);
-              fData->EndPy_tpcAV[geant_particle] = pPart->Py(pendi);
-              fData->EndPz_tpcAV[geant_particle] = pPart->Pz(pendi);
+
+            if (isActive && fSaveGeantInAVInfo){
+              fData->pathlen_tpcAV[active]  = plen;
+	      fData->TrackId_tpcAV[active] =  pPart->TrackId();
+	      fData->PDGCode_tpcAV[active] = pPart->PdgCode();
+
+              fData->StartPointx_tpcAV[active] = mcstart.X();
+              fData->StartPointy_tpcAV[active] = mcstart.Y();
+              fData->StartPointz_tpcAV[active] = mcstart.Z();
+              fData->StartT_tpcAV[active] = mcstart.T();
+              fData->StartE_tpcAV[active] = pPart->E(pstarti);
+              fData->StartP_tpcAV[active] = pPart->P(pstarti);
+              fData->StartPx_tpcAV[active] = pPart->Px(pstarti);
+              fData->StartPy_tpcAV[active] = pPart->Py(pstarti);
+              fData->StartPz_tpcAV[active] = pPart->Pz(pstarti);
+              fData->EndPointx_tpcAV[active] = mcend.X();
+              fData->EndPointy_tpcAV[active] = mcend.Y();
+              fData->EndPointz_tpcAV[active] = mcend.Z();
+              fData->EndT_tpcAV[active] = mcend.T();
+              fData->EndE_tpcAV[active] = pPart->E(pendi);
+              fData->EndP_tpcAV[active] = pPart->P(pendi);
+              fData->EndPx_tpcAV[active] = pPart->Px(pendi);
+              fData->EndPy_tpcAV[active] = pPart->Py(pendi);
+              fData->EndPz_tpcAV[active] = pPart->Pz(pendi);
 
 	      //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
       	      TVector3 momentum_start_tpcAv_flipped;
@@ -5582,12 +6106,15 @@ if (fSaveTrackInfo) {
       	      TVector3 momentum_end_tpcAv_flipped;
               momentum_end_tpcAv_flipped.SetXYZ(pPart->Pz(pendi), pPart->Py(pendi), pPart->Px(pendi));
 
-              fData->thetastart_tpcAV[geant_particle] = (180.0/3.14159)*momentum_start_tpcAv_flipped.Theta();
-              fData->phistart_tpcAV[geant_particle] = (180.0/3.14159)*momentum_start_tpcAv_flipped.Phi();
+              fData->thetastart_tpcAV[active] = (180.0/3.14159)*momentum_start_tpcAv_flipped.Theta();
+              fData->phistart_tpcAV[active] = (180.0/3.14159)*momentum_start_tpcAv_flipped.Phi();
 
-              fData->thetaend_tpcAV[geant_particle] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Theta();
-              fData->phiend_tpcAV[geant_particle] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Phi();
+              fData->thetaend_tpcAV[active] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Theta();
+              fData->phiend_tpcAV[active] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Phi();
+
+	      active++;
             }
+
 /*
             if (isDrifted){
               fData->StartPointx_drifted[geant_particle] = mcstartdrifted.X();
@@ -5698,7 +6225,7 @@ if (fSaveTrackInfo) {
         // for each particle, consider all the direct ancestors with the same
         // PDG ID, and mark them as belonging to the same "group"
         // (having the same MergedId)
-	
+
 
         int currentMergedId = 1;
         for(size_t iPart = 0; iPart < geant_particle; ++iPart){
@@ -5724,8 +6251,75 @@ if (fSaveTrackInfo) {
         }
         ++currentMergedId;
         }// for merging check
-        
+
       } // if (fSaveGeantInfo)
+
+      //GEANT trajectory information
+      if (fSaveGeantTrajectoryInfo){
+
+        const sim::ParticleList& plist = pi_serv->ParticleList();
+        sim::ParticleList::const_iterator itPart = plist.begin(),
+          pend = plist.end(); // iterator to pairs (track id, particle)
+	int trajpointcounter = 0;
+
+        for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart)
+	{
+          const simb::MCParticle* pPart = (itPart++)->second;
+          if (!pPart)
+	  {
+            throw art::Exception(art::errors::LogicError)
+              << "GEANT particle #" << iPart << " returned a null pointer";
+          }
+
+          unsigned int numberTrajectoryPoints = pPart->NumberTrajectoryPoints();
+          for(unsigned int trajpoint=0; trajpoint < numberTrajectoryPoints; ++trajpoint)
+          {
+            const TLorentzVector& trajpointPosition= pPart->Position(trajpoint);
+            //const TLorentzVector& trajpointMomentum= pPart->Momentum(trajpoint);
+
+	    fData->TrajTrackId[trajpointcounter] = pPart->TrackId();
+	    fData->TrajPDGCode[trajpointcounter] = pPart->PdgCode();
+
+	    fData->TrajX[trajpointcounter] = trajpointPosition.X();
+	    fData->TrajY[trajpointcounter] = trajpointPosition.Y();
+	    fData->TrajZ[trajpointcounter] = trajpointPosition.Z();
+	    fData->TrajT[trajpointcounter] = pPart->T(trajpoint);
+	    fData->TrajE[trajpointcounter] = pPart->E(trajpoint);
+	    fData->TrajP[trajpointcounter] = pPart->P(trajpoint);
+	    fData->TrajPx[trajpointcounter] = pPart->Px(trajpoint);
+	    fData->TrajPy[trajpointcounter] = pPart->Py(trajpoint);
+	    fData->TrajPz[trajpointcounter] = pPart->Pz(trajpoint);
+
+      	    TVector3 trajpointMomentum_flipped;
+            trajpointMomentum_flipped.SetXYZ(pPart->Pz(trajpoint), pPart->Py(trajpoint), pPart->Px(trajpoint));
+
+            fData->TrajTheta[trajpointcounter] = (180.0/3.14159)*trajpointMomentum_flipped.Theta();
+            fData->TrajPhi[trajpointcounter] = (180.0/3.14159)*trajpointMomentum_flipped.Phi();
+
+	    if(fLogLevel == 4)
+	    {
+	    std::cout << std::endl;
+	    std::cout << "trajpointcounter: " << trajpointcounter << std::endl;
+	    std::cout << "fData->TrajX[trajpointcounter]: " << fData->TrajX[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajY[trajpointcounter]: " << fData->TrajY[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajZ[trajpointcounter]: " << fData->TrajZ[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajT[trajpointcounter]: " << fData->TrajT[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajE[trajpointcounter]: " << fData->TrajE[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajP[trajpointcounter]: " << fData->TrajP[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajPx[trajpointcounter]: " << fData->TrajPx[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajPy[trajpointcounter]: " << fData->TrajPy[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajPz[trajpointcounter]: " << fData->TrajPz[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajTheta[trajpointcounter]: " << fData->TrajTheta[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajPhi[trajpointcounter]: " << fData->TrajPhi[trajpointcounter] << std::endl;
+	    }
+
+	    trajpointcounter++;
+	  }
+        } // for particles
+
+	fData->geant_trajectory_size = trajpointcounter;
+
+      }// if (fSaveGeantTrajectoryInfo)
 
     }//if (mcevts_truth)
     }//if (fIsMC){
@@ -5769,14 +6363,13 @@ if (fSaveTrackInfo) {
       } // for trackers
     } // if logging enabled
 
-
     // if we don't use a permanent buffer (which can be huge),
     // delete the current buffer, and we'll create a new one on the next event
+
     if (!fUseBuffer) {
       LOG_DEBUG("AnaRootParserStructure") << "Freeing the tree data structure";
       DestroyData();
     }
-
     } // dune::AnaRootParser::analyze()
 
 

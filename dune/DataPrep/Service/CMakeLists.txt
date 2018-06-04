@@ -130,3 +130,4 @@ simple_plugin(StandardRawDigitPrepService   "service"
 
 add_subdirectory(test)
 
+install_source()

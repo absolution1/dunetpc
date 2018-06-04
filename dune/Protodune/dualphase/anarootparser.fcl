@@ -4,11 +4,11 @@ data_3x1x1_anarootparser:
 { 
  module_type:                 	"dune/Protodune/dualphase/AnaRootParser"
 
- LogLevel:			1
+ LogLevel:			0
 
  EventsPerSubrun:             	335
 
- DigitModuleLabel:            	"daq"
+ RawDigitModuleLabel:           "daq"
  HitsModuleLabel:             	"dprawhit"
  LArGeantModuleLabel:         	"largeant"
  CalDataModuleLabel:          	"caldata"
@@ -40,19 +40,27 @@ data_3x1x1_anarootparser:
  IsMC:		               	false
  UseBuffers:               	false
  IgnoreMissingShowers:     	false
+
+# SaveRecobWireInfo:		false
+
  SaveAuxDetInfo:           	false
  SaveCryInfo:              	false
  SaveProtoInfo:            	false # ProtoDUNE specific
  SaveGenieInfo:            	false
+ SavePhotonInfo:            	false
+ SaveGeneratorInfo:            	false
  SaveGeantInfo:            	false
- SaveMCShowerInfo:         	false # Don't have in the 35 ton 
- SaveMCTrackInfo:          	false # Don't have in the 35 ton
- SaveHitInfo:              	true
- SaveRawDigitInfo:         	false #set this to false by default since not everyone want rawdigits.
- SaveTrackInfo:            	true
+ SaveGeantInAVInfo:            	false
+ SaveGeantTrajectoryInfo:	false
+ SaveMCShowerInfo:         	false
+ SaveMCTrackInfo:          	false
+ SaveHitInfo:              	false
+ SaveRawDigitInfo:         	false
+ SaveRecobWireInfo:         	false
+ SaveTrackInfo:            	false
  SaveVertexInfo:           	false 
- SavePandoraNuVertexInfo:  	false # Don't have in the 35 ton
- SaveClusterInfo:          	true
+ SavePandoraNuVertexInfo:  	false
+ SaveClusterInfo:          	false
  SaveFlashInfo:            	false
  SaveExternCounterInfo:    	false
  SaveShowerInfo:  	   	false

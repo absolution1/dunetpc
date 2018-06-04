@@ -33,6 +33,7 @@ public:
   float leakage() const { return m_leakage; }
   float hvfrac() const { return m_hvfrac; }
   float pulserAmplitude() const { return m_pulserAmplitude; }
+  float pulserSource() const { return m_pulserSource; }
 
   // Return if value is defined.
   bool isValid() const { return run(); }
@@ -44,6 +45,7 @@ public:
   bool haveLeakage() const { return m_leakage; }
   bool haveHvfrac() const { return m_hvfrac; }
   bool havePulserAmplitude() const { return m_pulserAmplitude != 999; }
+  bool havePulserSource() const { return m_pulserSource != 0; }
 
   // Setters.
   void setRun(Index val) { m_run = val; }
@@ -54,6 +56,7 @@ public:
   void setLeakage(float val) { m_leakage = val; }
   void setHvfrac(float val) { m_hvfrac = val; }
   void setPulserAmplitude(Index val) { m_pulserAmplitude = val; }
+  void setPulserSource(Index val) { m_pulserSource = val; }
 
   // Accessors.
   Index&       accessRun()             { return m_run; }
@@ -64,6 +67,7 @@ public:
   float&       accessLeakage()         { return m_leakage; }
   float&       accessHvfrac()          { return m_hvfrac; }
   Index&       accessPulserAmplitude() { return m_pulserAmplitude; }
+  Index&       accessPulserSource()    { return m_pulserSource; }
 
   std::ostream& print(std::ostream& lhs =std::cout) const {
     const std::string sep = "\n";
@@ -81,6 +85,7 @@ public:
     if ( haveLeakage() )         lhs << sep << "  Leakage cur.: " << leakage() << " pA";
     if ( haveHvfrac() )          lhs << sep << "      HV frac.: " << hvfrac();
     if ( havePulserAmplitude() ) lhs << sep << "  Pulser ampl.: " << pulserAmplitude();
+    if ( havePulserSource() )    lhs << sep << " Pulser source: " << pulserSource();
     return lhs;
   }
 
@@ -95,6 +100,7 @@ private:
   float m_leakage = 0.0;
   float m_hvfrac = 0.0;
   Index m_pulserAmplitude = 999;
+  Index m_pulserSource = 0;  // 1=preamp, 2=FEMB
 
 };
 
