@@ -230,6 +230,7 @@ cet_test(test_AdcRoiViewer
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
+    ${ROOT_BASIC_LIB_LIST}
     ${SQLITE3}
     ${Boost_FILESYSTEM_LIBRARY}
 )
