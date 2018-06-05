@@ -84,22 +84,22 @@ void TriggerPrimitiveFinder::produce(art::Event & e)
         const raw::RawDigit* digit=chanToDigit[hit.channel];
         std::vector<geo::WireID> wids = geo->ChannelToWire(hit.channel);
         geo::WireID wid = wids[0];
-        recob::HitCreator lar_hit(*digit,   //RAW DIGIT REFERENCE.
-                              wid,                                                                           //WIRE ID.
-                              hit.startTime,                                                                         //START TICK.
-                              hit.startTime+hit.timeOverThreshold,                                                                           //END TICK. 
-                              0,                                                                          //RMS.
-                              0,                                                                      //PEAK_TIME.
-                              0,                                                                   //SIGMA_PEAK_TIME.
-                              0,                                                                     //PEAK_AMPLITUDE.
-                              0,                                                                  //SIGMA_PEAK_AMPLITUDE.
-                              hit.charge,                                                                        //HIT_INTEGRAL.
-                              0,                                                                     //HIT_SIGMA_INTEGRAL.
-                              hit.charge, //SUMMED CHARGE. 
-                              0,                                                                             //MULTIPLICITY.
-                              0,                                                                            //LOCAL_INDEX.
-                              0,                                                                 //WIRE ID.
-                              0                                                               //DEGREES OF FREEDOM.
+        recob::HitCreator lar_hit(*digit,                           //RAW DIGIT REFERENCE.
+                              wid,                                  //WIRE ID.
+                              hit.startTime,                        //START TICK.
+                              hit.startTime+hit.timeOverThreshold,  //END TICK. 
+                              0,                                    //RMS.
+                              0,                                    //PEAK_TIME.
+                              0,                                    //SIGMA_PEAK_TIME.
+                              0,                                    //PEAK_AMPLITUDE.
+                              0,                                    //SIGMA_PEAK_AMPLITUDE.
+                              hit.charge,                           //HIT_INTEGRAL.
+                              0,                                    //HIT_SIGMA_INTEGRAL.
+                              hit.charge,                           //SUMMED CHARGE. 
+                              0,                                    //MULTIPLICITY.
+                              0,                                    //LOCAL_INDEX.
+                              0,                                    //WIRE ID.
+                              0                                     //DEGREES OF FREEDOM.
             );
         hcol.emplace_back(lar_hit.move(), art::Ptr<raw::RawDigit>{digits_handle, 0});
     }
