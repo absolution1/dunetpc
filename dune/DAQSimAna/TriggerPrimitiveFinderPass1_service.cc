@@ -13,9 +13,6 @@
 
 #include "dune/DAQSimAna/TriggerPrimitiveFinderService.h"
 
-class TriggerPrimitiveFinderPass1;
-
-
 class TriggerPrimitiveFinderPass1 : public TriggerPrimitiveFinderService {
 public:
   explicit TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p, art::ActivityRegistry & areg);
@@ -28,23 +25,28 @@ public:
     
 
 private:
-
-  // Declare member data here.
-
+    unsigned int m_threshold;
 };
 
 
-TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p, art::ActivityRegistry & areg)
-// :
+TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p, art::ActivityRegistry&)
+    : m_threshold(p.get<unsigned int>("Threshold", 10))
 // Initialize member data here.
 {
+    std::cout << "Threshold is " << m_threshold << std::endl;
 }
 
 std::vector<TriggerPrimitiveFinderService::Hit>
 TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_numbers, 
                                       const std::vector<std::vector<short>>& collection_samples)
 {
-    return std::vector<TriggerPrimitiveFinderService::Hit>();
+    auto hits=std::vector<TriggerPrimitiveFinderService::Hit>();
+    std::cout << "findHits called with " << collection_samples.size()
+              << " channels. First chan has " << collection_samples[0].size() << " samples" << std::endl;
+    std::cout << "First few samples: ";
+    for(int i=0; i<10; ++i) std::cout << collection_samples[0][i] << " ";
+    std::cout << std::endl;
+    return hits;
 }
 
 DECLARE_ART_SERVICE(TriggerPrimitiveFinderPass1, LEGACY)
