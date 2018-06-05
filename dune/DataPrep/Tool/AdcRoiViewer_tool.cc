@@ -82,8 +82,7 @@ Name AdcRoiViewer::State::getChanSumHistVariableType(Name hnam) const {
 
 AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
-  m_SigMinThresh(ps.get<float>("SigMinThresh")),
-  m_SigMaxThresh(ps.get<float>("SigMaxThresh")),
+  m_SigThresh(ps.get<float>("SigThresh")),
   m_RoiHistOpt(ps.get<int>("RoiHistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
@@ -116,12 +115,16 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     psh.get_if_present("fit", sfit);
     Name xlab = hvar;
     if      ( hvar == "fitHeight"    ) xlab = "Fit height% [SUNIT]%";
+    else if ( hvar == "fitHeightNeg" ) xlab = "-(Fit height)% [SUNIT]%";
     else if ( hvar == "fitWidth"     ) xlab = "Fit width [Ticks]";
     else if ( hvar == "fitPosition"  ) xlab = "Fit position [Ticks]";
     else if ( hvar == "fitTickRem"   ) xlab = "Fit position remainder [Ticks]";
     else if ( hvar == "fitPeriodRem" )
       xlab = "Fit period " + std::to_string(m_TickPeriod) + " remainder [Ticks]";
     else if ( hvar == "fitChiSquare" ) xlab = "Fit #chi^{2}";
+    else if ( hvar == "fitChiSquareDof" ) xlab = "Fit #chi^{2}/DOF";
+    else if ( hvar == "fitCSNorm" ) xlab = "Normalized fit #chi^{2}";
+    else if ( hvar == "fitCSNormDof" ) xlab = "Normalized fit #chi^{2}/DOF";
     else {
       cout << myname << "WARNING: Unknown summary variable: " << hvar << endl;
     }
@@ -175,7 +178,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram value histogram not found: " << vhnam << endl;
       continue;
     }
-    const NameVector valTypes = {"fitMean", "fitWidth", "fitPosition"};
+    const NameVector valTypes = {"mean", "rms", "fitMean", "fitWidth", "fitPosition"};
     if ( std::find(valTypes.begin(), valTypes.end(), vtype) == valTypes.end() ) {
       cout << myname << "ERROR: Summary histogram has invalid variable type: " << vtype << endl;
       continue;
@@ -209,8 +212,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   if ( m_LogLevel>= 1 ) {
     cout << myname << "         LogLevel: " << m_LogLevel << endl;
     cout << myname << "       RoiHistOpt: " << m_RoiHistOpt << endl;
-    cout << myname << "     SigMinThresh: " << m_SigMinThresh << endl;
-    cout << myname << "     SigMaxThresh: " << m_SigMaxThresh << endl;
+    cout << myname << "        SigThresh: " << m_SigThresh << endl;
     cout << myname << "           FitOpt: " << m_FitOpt << endl;
     cout << myname << "  RoiRootFileName: " << m_RoiRootFileName << endl;
     cout << myname << "  SumRootFileName: " << m_SumRootFileName << endl;
@@ -349,6 +351,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   DataMap::FloatVector roiFitWidths;
   DataMap::FloatVector roiFitPositions;
   DataMap::FloatVector roiFitChiSquares;
+  DataMap::FloatVector roiFitChiSquareDofs;
   DataMap::IntVector roiTickMins;
   DataMap::IntVector roiTickMaxs;
   DataMap::IntVector roiNUnderflows;
@@ -413,8 +416,8 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       if ( flag == AdcOverflow ) ++nover;
     }
     // Check if this a ROI to keep.
-    if ( m_SigMinThresh < 0.0 && sigmin > m_SigMinThresh ) continue;
-    if ( m_SigMaxThresh > 0.0 && sigmax < m_SigMaxThresh ) continue;
+    if ( m_SigThresh < 0.0 && sigmin > m_SigThresh ) continue;
+    if ( m_SigThresh > 0.0 && sigmax < m_SigThresh ) continue;
     ++nroi;
     roiHists.push_back(ph);
     roiTickMins.push_back(roiTickMin);
@@ -431,7 +434,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       bool isNeg = fabs(sigmin) > sigmax;
       double h = isNeg ? sigmin : sigmax;
       //double shap = 2.5*ph->GetRMS();  // No! Negative entries break RMS calculation.
-      double shap = 0.8*fabs(sigarea)/h;
+      double shap = 0.8*fabs(sigarea)/fabs(h);
       double t0 = x1 + (isNeg ? roiTickMin : roiTickMax) - shap;
       TF1* pf = coldelecResponseTF1(h, shap, t0, "coldlec");
       TF1* pfinit = coldelecResponseTF1(h, shap, t0, "coldlec");
@@ -450,7 +453,11 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       roiFitWidths.push_back(pf->GetParameter(1));
       roiFitPositions.push_back(pf->GetParameter(2));
       roiFitStats.push_back(fstat);
-      roiFitChiSquares.push_back(pf->GetChisquare());
+      float cs = pf->GetChisquare();
+      int ndf = pf->GetNDF();
+      float csn = ndf > 0 ? cs/float(ndf) : -1.0;
+      roiFitChiSquares.push_back(cs);
+      roiFitChiSquareDofs.push_back(csn);
       delete pf;
       //delete pfinit;  This give error: list accessing deleted object
     }
@@ -478,6 +485,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     res.setFloatVector("roiFitPositions", roiFitPositions);
     res.setIntVector("roiFitStats", roiFitStats);
     res.setFloatVector("roiFitChiSquares", roiFitChiSquares);
+    res.setFloatVector("roiFitChiSquareDofs", roiFitChiSquareDofs);
   }
   fillSumHists(acd, res);
   if ( acd.run != AdcChannelData::badIndex ) {
@@ -549,13 +557,17 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     TH1* ph0 = hin0.ph;
     FloatVector vals;
     IntVector ivals;
-    if      ( var == "fitHeight"    ) vals = dm.getFloatVector("roiFitHeights");
-    else if ( var == "fitWidth"     ) vals = dm.getFloatVector("roiFitWidths");
-    else if ( var == "fitPosition"  ) vals = dm.getFloatVector("roiFitPositions");
-    else if ( var == "fitTickRem"   ) vals = dm.getFloatVector("roiFitPositions");
-    else if ( var == "fitPeriodRem" ) vals = dm.getFloatVector("roiFitPositions");
-    else if ( var == "fitStat" )     ivals = dm.getIntVector("roiFitStats");
-    else if ( var == "fitChiSquare" ) vals = dm.getFloatVector("roiFitChiSquares");
+    if      ( var == "fitHeight"    )    vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitHeightNeg" )    vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitWidth"     )    vals = dm.getFloatVector("roiFitWidths");
+    else if ( var == "fitPosition"  )    vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitTickRem"   )    vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitPeriodRem" )    vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitStat" )        ivals = dm.getIntVector("roiFitStats");
+    else if ( var == "fitChiSquare" )    vals = dm.getFloatVector("roiFitChiSquares");
+    else if ( var == "fitChiSquareDof" ) vals = dm.getFloatVector("roiFitChiSquareDofs");
+    else if ( var == "fitCSNorm" )       vals = dm.getFloatVector("roiFitChiSquares");
+    else if ( var == "fitCSNormDof" )    vals = dm.getFloatVector("roiFitChiSquareDofs");
     else {
       if ( m_LogLevel >= 2 ) {
         cout << myname << "ERROR: Invalid variable name: " << var << endl;
@@ -570,6 +582,14 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     if ( ivals.size() && !vals.size() ) for ( int ival : ivals ) vals.push_back(ival);
     if ( var == "fitTickRem" ) for ( float& val : vals ) val = std::remainder(val,1);
     if ( var == "fitPeriodRem" ) for ( float& val : vals ) val = std::remainder(val,m_TickPeriod);
+    float varfac = 1.0;
+    if ( var == "fitHeightNeg" ) varfac = -1.0;
+    if ( var == "fitCSNorm" ||  var == "fitCSNormDof" ) {
+      float pedrms = acd.pedestalRms;
+      if ( pedrms > 0.0 ) varfac = 1.0/(pedrms*pedrms);
+      else varfac = 0.0;
+    }
+    if ( varfac != 1.0 ) for ( float& val : vals ) val *= varfac;
     if ( ph == nullptr && vals.size() ) {
       if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram " << hnam << endl;
       Name httl0 = ph0->GetTitle();
@@ -728,7 +748,11 @@ void AdcRoiViewer::fillChanSumHists() const {
         continue;
       }
       float val = 0.0;
-      if ( vartype.substr(0,3) == "fit" ) {
+      if ( vartype == "mean" ) {
+        val = phvar->GetMean();
+      } else if ( vartype == "rms" ) {
+        val = phvar->GetRMS();
+      } else if ( vartype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
         if ( phvar == nullptr ) {
