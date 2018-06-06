@@ -5346,8 +5346,8 @@ if (fSaveTrackInfo) {
 	    TrackerData.hittrklocaltrackdirectionphi[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Phi();
 
 	    //dx
-    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch(1,0,0)/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
-    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch(1,0,0)/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
+    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
+    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
 
 	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
@@ -5358,7 +5358,7 @@ if (fSaveTrackInfo) {
 	      std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
 	      std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
 	      std::cout << "vmeta[h]->Dx(): " << vmeta[h]->Dx() << std::endl;
-	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch(1,0,0)/cosgamma << std::endl;
+	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch()/cosgamma << std::endl;
 	      std::cout << "Dx corrected pitch new: " << TrackerData.hittrkpitchC[HitIterator2] << std::endl;
 	      std::cout << "view: " << vhit[h]->WireID().Plane << std::endl;
 	    }
