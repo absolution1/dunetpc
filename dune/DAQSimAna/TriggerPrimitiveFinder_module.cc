@@ -53,7 +53,8 @@ private:
 TriggerPrimitiveFinder::TriggerPrimitiveFinder(fhicl::ParameterSet const & p)
     : m_inputTag(p.get<std::string>("InputTag", "daq"))
 {
-    produces<recob::Hit>();
+    produces<std::vector<recob::Hit>>();
+    produces<art::Assns<raw::RawDigit, recob::Hit>>();
 }
 
 void TriggerPrimitiveFinder::produce(art::Event & e)

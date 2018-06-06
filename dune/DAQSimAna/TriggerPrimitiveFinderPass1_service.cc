@@ -49,5 +49,5 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
     return hits;
 }
 
-DECLARE_ART_SERVICE(TriggerPrimitiveFinderPass1, LEGACY)
-DEFINE_ART_SERVICE(TriggerPrimitiveFinderPass1)
+DECLARE_ART_SERVICE_INTERFACE_IMPL( TriggerPrimitiveFinderPass1, TriggerPrimitiveFinderService, LEGACY)
+DEFINE_ART_SERVICE_INTERFACE_IMPL(  TriggerPrimitiveFinderPass1, TriggerPrimitiveFinderService)

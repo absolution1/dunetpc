@@ -30,6 +30,7 @@ public:
 };
 
 #ifndef __CLING__
+#include "art/Framework/Services/Registry/ServiceMacros.h"
 DECLARE_ART_SERVICE_INTERFACE(TriggerPrimitiveFinderService, LEGACY)
 #endif
 
