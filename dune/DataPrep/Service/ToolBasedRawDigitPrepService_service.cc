@@ -35,7 +35,7 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
         AdcChannelToolPtr ptool = ptm->getPrivate<AdcChannelTool>(tname);
         NamedTool nt(tname, ptool.get());
         if ( nt.tool ) {
-          if ( m_LogLevel ) cout << myname << "    Display tool " << tname << ": @" << nt.tool << endl;
+          if ( m_LogLevel ) cout << myname << "    Found tool " << tname << " @ " << nt.tool << endl;
           m_AdcChannelTools.push_back(std::move(ptool));
           m_AdcChannelNamedTools.push_back(nt);
         } else {

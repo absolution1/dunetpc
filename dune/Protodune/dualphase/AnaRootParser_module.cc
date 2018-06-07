@@ -3834,7 +3834,7 @@ CreateBranch("CombinedEnergyDep", CombinedEnergyDep,
 
 dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   EDAnalyzer(pset),
-  fTree(nullptr), 
+  fTree(nullptr),
   //  fPOT(nullptr),
 
   fLogLevel	            (pset.get< short >("LogLevel")        ),
@@ -4221,7 +4221,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
       const sim::ParticleList& plist = pi_serv->ParticleList();
       nGEANTparticles = plist.size();
-   
+
       sim::ParticleList::const_iterator itPart = plist.begin(),
       pend = plist.end(); // iterator to pairs (track id, particle)
 
@@ -4229,13 +4229,13 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart)
       {
         const simb::MCParticle* pPart = (itPart++)->second;
-        if (!pPart) 
+        if (!pPart)
 	{
           throw art::Exception(art::errors::LogicError)
             << "GEANT particle #" << iPart << " returned a null pointer";
         }
         nGEANTtrajectorysteps += pPart->NumberTrajectoryPoints();
-	
+
 	if(pPart->Mother() == 0 && pPart->Process() == pri) nGeneratorParticles++;
 
         TLorentzVector mcstart, mcend;
@@ -4396,7 +4396,7 @@ if (fSaveAuxDetInfo){
 }
 
 std::vector<const sim::SimChannel*> fSimChannels;
-if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}  
+if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
 
   fData->run = evt.run();
   fData->subrun = evt.subRun();
@@ -4432,7 +4432,7 @@ if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
 //RawDigit info
 if (fSaveRawDigitInfo){
   fData->no_channels = (int) NChannels;
-  if (NChannels>0) 
+  if (NChannels>0)
   {
     fData->no_ticks = (int) rawdigitlist[0]->Samples();
     fData->no_ticksinallchannels = fData->no_channels*fData->no_ticks;
@@ -4526,11 +4526,11 @@ if (fSaveHitInfo){
 /*
     std::vector< art::Ptr<recob::SpacePoint> > sptv = fmsp.at(i);
         if (fmsp.at(i).size()!=0){
-    std::cout << "sptv[i]->XYZ()[0]: " << sptv[i]->XYZ()[0] << std::endl; 
-    std::cout << "sptv[i]->XYZ()[1]: " << sptv[i]->XYZ()[1] << std::endl; 
-    std::cout << "sptv[i]->XYZ()[2]: " << sptv[i]->XYZ()[2] << std::endl; 
+    std::cout << "sptv[i]->XYZ()[0]: " << sptv[i]->XYZ()[0] << std::endl;
+    std::cout << "sptv[i]->XYZ()[1]: " << sptv[i]->XYZ()[1] << std::endl;
+    std::cout << "sptv[i]->XYZ()[2]: " << sptv[i]->XYZ()[2] << std::endl;
       }
-    std::cout << "test3" << std::endl; 
+    std::cout << "test3" << std::endl;
 //    std::cout << "test" << std::endl;
 //    art::FindManyP<recob::SpacePoint> fmsp(hitListHandle,evt,"pmtrack");
 //    art::FindManyP<recob::SpacePoint> fmsp(allHits, evt, fSpacePointModuleLabel);
@@ -4733,10 +4733,10 @@ if (fSaveClusterInfo){
     art::Ptr<recob::Cluster> clusterholder(clusterListHandle, ic);
     const recob::Cluster& cluster = *clusterholder;
     fData->clusterId[ic] = cluster.ID();
-    fData->clusterView[ic] = cluster.View(); 
+    fData->clusterView[ic] = cluster.View();
     // View 3 in LArSoft corresponds to View 0 in real life (3m long channels). View 2 in LArSoft corresponds to View 1 in real life (1m long channels).
-    if(fData->clusterView[ic] == 3) {fData->clusterView[ic] = 0;} 
-    if(fData->clusterView[ic] == 2) {fData->clusterView[ic] = 1;} 
+    if(fData->clusterView[ic] == 3) {fData->clusterView[ic] = 0;}
+    if(fData->clusterView[ic] == 2) {fData->clusterView[ic] = 1;}
     fData->cluster_isValid[ic] = cluster.isValid();
     fData->cluster_StartCharge[ic] = cluster.StartCharge();
     fData->cluster_StartAngle[ic] = cluster.StartAngle();
@@ -5144,6 +5144,9 @@ if (fSaveTrackInfo) {
         double dpos = bdist(pos);  // FIXME - Passing an uncorrected position....
         double dend = bdist(end);  // FIXME - Passing an uncorrected position....
 
+        std::cout << TrackerData.trkId[iTrk] << iTrk << std::endl;
+
+
         TrackerData.trkId[iTrk]                 = TrackID;
         TrackerData.trkstartx[iTrk]             = pos.X();
         TrackerData.trkstarty[iTrk]             = pos.Y();
@@ -5343,8 +5346,8 @@ if (fSaveTrackInfo) {
 	    TrackerData.hittrklocaltrackdirectionphi[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Phi();
 
 	    //dx
-    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch(1,0,0)/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
-    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch(1,0,0)/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
+    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
+    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
 
 	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
@@ -5355,7 +5358,7 @@ if (fSaveTrackInfo) {
 	      std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
 	      std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
 	      std::cout << "vmeta[h]->Dx(): " << vmeta[h]->Dx() << std::endl;
-	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch(1,0,0)/cosgamma << std::endl;
+	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch()/cosgamma << std::endl;
 	      std::cout << "Dx corrected pitch new: " << TrackerData.hittrkpitchC[HitIterator2] << std::endl;
 	      std::cout << "view: " << vhit[h]->WireID().Plane << std::endl;
 	    }
@@ -5548,7 +5551,7 @@ if (fSaveTrackInfo) {
       }//end if (fIsMC)
 */
     }//end loop over track
-      //std::cout << "HitIterator: " << HitIterator << std::endl; 
+      //std::cout << "HitIterator: " << HitIterator << std::endl;
   }//end loop over track module labels
 }// end (fSaveTrackInfo)
 
@@ -6222,7 +6225,7 @@ if (fSaveTrackInfo) {
         // for each particle, consider all the direct ancestors with the same
         // PDG ID, and mark them as belonging to the same "group"
         // (having the same MergedId)
-	
+
 
         int currentMergedId = 1;
         for(size_t iPart = 0; iPart < geant_particle; ++iPart){
@@ -6248,7 +6251,7 @@ if (fSaveTrackInfo) {
         }
         ++currentMergedId;
         }// for merging check
-        
+
       } // if (fSaveGeantInfo)
 
       //GEANT trajectory information
@@ -6262,7 +6265,7 @@ if (fSaveTrackInfo) {
         for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart)
 	{
           const simb::MCParticle* pPart = (itPart++)->second;
-          if (!pPart) 
+          if (!pPart)
 	  {
             throw art::Exception(art::errors::LogicError)
               << "GEANT particle #" << iPart << " returned a null pointer";
