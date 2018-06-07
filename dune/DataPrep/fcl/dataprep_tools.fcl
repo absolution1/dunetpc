@@ -312,6 +312,9 @@ tools.adcRoiViewer: {
   SigThresh: 0.0
   RoiHistOpt:  1
   FitOpt:   0
+  PulserStepCharge: 0.0
+  PulserChargeUnit: ""
+  RunDataTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""
@@ -322,6 +325,9 @@ tools.adcRoiFitter: {
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1
+  PulserStepCharge: 0.0
+  PulserChargeUnit: ""
+  RunDataTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""

@@ -3,6 +3,7 @@
 #include "AdcRoiViewer.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/DuneCommon/gausTF1.h"
 #include "dune/DuneCommon/coldelecResponse.h"
 #include "dune/DuneCommon/quietHistFit.h"
@@ -85,6 +86,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_SigThresh(ps.get<float>("SigThresh")),
   m_RoiHistOpt(ps.get<int>("RoiHistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
+  m_PulserStepCharge(ps.get<float>("PulserStepCharge")),
+  m_PulserChargeUnit(ps.get<string>("PulserChargeUnit")),
+  m_RunDataTool(ps.get<string>("RunDataTool")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
   m_SumRootFileName(ps.get<string>("SumRootFileName")),
   m_ChanSumRootFileName(ps.get<string>("ChanSumRootFileName")),
@@ -97,6 +101,12 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
+  if ( m_RunDataTool.size() ) {
+    m_pRunDataTool = ptm->getShared<RunDataTool>(m_RunDataTool);
+    if ( m_pRunDataTool == nullptr ) {
+      cout << myname << "WARNING: RunDatTool not found: " << m_RunDataTool << endl;
+    }
   }
   // Build the summary template histograms.
   ParameterSetVector pshists = ps.get<ParameterSetVector>("SumHists");
@@ -116,6 +126,14 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name xlab = hvar;
     if      ( hvar == "fitHeight"    ) xlab = "Fit height% [SUNIT]%";
     else if ( hvar == "fitHeightNeg" ) xlab = "-(Fit height)% [SUNIT]%";
+    else if ( hvar == "fitHeightGain" ) {
+      xlab = "Fit height% [SUNIT]%";
+      Name sden = m_PulserChargeUnit;
+      if ( sden.size() ) {
+        if ( sden.find(" ") != string::npos ) sden = "(" + sden + ")";
+        xlab = "Fit height [%((SUNIT))%/" + sden + "]";
+      }
+    }
     else if ( hvar == "fitWidth"     ) xlab = "Fit width [Ticks]";
     else if ( hvar == "fitPosition"  ) xlab = "Fit position [Ticks]";
     else if ( hvar == "fitTickRem"   ) xlab = "Fit position remainder [Ticks]";
@@ -240,6 +258,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         cout << myname << "     " << ph->GetName() << endl;
       }
     }
+    cout << myname << "      RunDataTool: \"" << m_RunDataTool << "\" @ "
+         << m_pRunDataTool << endl;
   }
   if ( m_LogLevel >=2 ) cout << myname << "End constructing tool." << endl;
 }
@@ -559,6 +579,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     IntVector ivals;
     if      ( var == "fitHeight"    )    vals = dm.getFloatVector("roiFitHeights");
     else if ( var == "fitHeightNeg" )    vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitHeightGain" )   vals = dm.getFloatVector("roiFitHeights");
     else if ( var == "fitWidth"     )    vals = dm.getFloatVector("roiFitWidths");
     else if ( var == "fitPosition"  )    vals = dm.getFloatVector("roiFitPositions");
     else if ( var == "fitTickRem"   )    vals = dm.getFloatVector("roiFitPositions");
@@ -588,6 +609,30 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       float pedrms = acd.pedestalRms;
       if ( pedrms > 0.0 ) varfac = 1.0/(pedrms*pedrms);
       else varfac = 0.0;
+    }
+    if ( var == "fitHeightGain" ) {
+      if ( m_pRunDataTool == nullptr ) {
+        cout << myname << "WARNING: Variable " << var
+             << " cannot be evaluated without RunDataTool." << endl;
+        continue;
+      }
+      RunData rdat = m_pRunDataTool->runData(acd.run);
+      if ( ! rdat.isValid() ) {
+        cout << myname << "WARNING: Run data not found for run " << acd.run << endl;
+        continue;
+      }
+      if ( ! rdat.havePulserAmplitude() || ! rdat.havePulserSource() ) {
+        cout << myname << "WARNING: Pulser data not found for run " << acd.run << endl;
+        continue;
+      }
+      int qfac = rdat.pulserAmplitude();
+      if ( rdat.pulserSource() == 1 && qfac > 0 ) --qfac;
+      float qin = qfac*m_PulserStepCharge;
+      if ( qin == 0.0 ) {
+        cout << myname << "WARNING: Pulser charge evaluates to zero." << endl;
+        continue;
+      }
+      varfac = 1.0/qin;
     }
     if ( varfac != 1.0 ) for ( float& val : vals ) val *= varfac;
     if ( ph == nullptr && vals.size() ) {
@@ -639,7 +684,31 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       getState().sumHists[hnam] = ph;
     }
     if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;
-    for ( float val : vals ) {
+    FloatVector csds = dm.getFloatVector("roiFitChiSquareDofs");
+    IntVector fstats = dm.getIntVector("roiFitStats");
+    bool check = true;
+    if ( csds.size() != vals.size() ) {
+      cout << "ERROR: Variable and chi-square/DF vectors have different sizes." << endl;
+      check = false;
+    }
+    if ( fstats.size() != vals.size() ) {
+      cout << "ERROR: Variable and fit status vectors have different sizes." << endl;
+      check = false;
+    }
+    for ( Index ival=0; ival<vals.size(); ++ival ) {
+      if ( check ) {
+        int fstat = fstats[ival];
+        float csd = csds[ival];
+        if ( fstat ) {
+          cout << myname << "WARNING: Skipping entry with fit status " << fstat
+               << " (chi-square/DOF = " << csd << ")" << endl;
+          continue;
+        } else if ( csd > 1000.0 ) {
+          cout << myname << "WARNING: Skipping entry with chi-square/DOF = " << csd << endl;
+          continue;
+        }
+      }
+      float val = vals[ival];
       ph->Fill(val);
     }
   }

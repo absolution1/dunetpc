@@ -18,6 +18,8 @@
 //           FitOpt - ROI fitting option
 //                      0 - no fit
 //                      1 - fit with coldelecReponse
+// PulserStepCharge - Charge per unit step in a pulser run
+// PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
 //         SumHists - Array of summary histogram specifiers. See below.
 //    ChannelRanges - Ranges of channels for channel summary plots.
 //     ChanSumHists - Array of specifiers for the channel summary histograms.
@@ -102,6 +104,7 @@
 #include <iostream>
 
 class AdcChannelStringTool;
+class RunDataTool;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -201,10 +204,16 @@ private:
   float m_SigThresh;
   int m_RoiHistOpt;
   int m_FitOpt;
-  std::string m_RoiRootFileName;
-  std::string m_SumRootFileName;
-  std::string m_ChanSumRootFileName;
+  float m_PulserStepCharge;
+  Name m_PulserChargeUnit;
+  Name m_RunDataTool;
+  Name m_RoiRootFileName;
+  Name m_SumRootFileName;
+  Name m_ChanSumRootFileName;
   ChannelRangeMap m_ChannelRanges;
+
+  // Derived from configuration.
+  const RunDataTool* m_pRunDataTool =nullptr;
 
   // Fixed configuration data.
   int m_TickPeriod = 497;
