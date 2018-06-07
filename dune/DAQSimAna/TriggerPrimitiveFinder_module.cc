@@ -83,14 +83,18 @@ void TriggerPrimitiveFinder::produce(art::Event & e)
     recob::HitCollectionCreator hcol(*this, e, false /* doWireAssns */, true /* doRawDigitAssns */);
     for(auto const& hit : hits){
         const raw::RawDigit* digit=chanToDigit[hit.channel];
+        if(!digit){
+            std::cout << "No digit with channel " << hit.channel << " found. Did you set the channel correctly?" << std::endl;
+        }
         std::vector<geo::WireID> wids = geo->ChannelToWire(hit.channel);
         geo::WireID wid = wids[0];
+
         recob::HitCreator lar_hit(*digit,                           //RAW DIGIT REFERENCE.
                               wid,                                  //WIRE ID.
                               hit.startTime,                        //START TICK.
                               hit.startTime+hit.timeOverThreshold,  //END TICK. 
                               0,                                    //RMS.
-                              0,                                    //PEAK_TIME.
+                              hit.startTime,                        //PEAK_TIME.
                               0,                                    //SIGMA_PEAK_TIME.
                               0,                                    //PEAK_AMPLITUDE.
                               0,                                    //SIGMA_PEAK_AMPLITUDE.
@@ -102,7 +106,7 @@ void TriggerPrimitiveFinder::produce(art::Event & e)
                               0,                                    //WIRE ID.
                               0                                     //DEGREES OF FREEDOM.
             );
-        hcol.emplace_back(lar_hit.move(), art::Ptr<raw::RawDigit>{digits_handle, 0});
+        hcol.emplace_back(std::move(lar_hit), art::Ptr<raw::RawDigit>{digits_handle, 0});
     }
     hcol.put_into(e);
 }
