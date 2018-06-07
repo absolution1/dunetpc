@@ -127,11 +127,11 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if      ( hvar == "fitHeight"    ) xlab = "Fit height% [SUNIT]%";
     else if ( hvar == "fitHeightNeg" ) xlab = "-(Fit height)% [SUNIT]%";
     else if ( hvar == "fitHeightGain" ) {
-      xlab = "Fit height% [SUNIT]%";
+      xlab = "Fit height gain% [SUNIT]%";
       Name sden = m_PulserChargeUnit;
       if ( sden.size() ) {
         if ( sden.find(" ") != string::npos ) sden = "(" + sden + ")";
-        xlab = "Fit height [%((SUNIT))%/" + sden + "]";
+        xlab = "Fit height gain [%((SUNIT))%/" + sden + "]";
       }
     }
     else if ( hvar == "fitWidth"     ) xlab = "Fit width [Ticks]";
