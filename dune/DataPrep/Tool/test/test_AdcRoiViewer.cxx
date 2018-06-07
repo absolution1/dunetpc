@@ -10,6 +10,7 @@
 #include <fstream>
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "TRandom.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -42,25 +43,41 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "tools.mytool1: {" << endl;
     fout << "  tool_type: AdcRoiViewer" << endl;
     fout << "  LogLevel: 3" << endl;
-    fout << "  SigMinThresh: 0.0" << endl;
-    fout << "  SigMaxThresh: 0.0" << endl;
+    fout << "  SigThresh: 0.0" << endl;
     fout << "  RoiHistOpt: 1" << endl;
     fout << "  FitOpt: 1" << endl;
     fout << "  SumHists: []" << endl;
+    fout << "  ChannelRanges: []" << endl;
+    fout << "  ChanSumHists: []" << endl;
     fout << "  RoiRootFileName: \"roi.root\"" << endl;
     fout << "  SumRootFileName: \"\"" << endl;
+    fout << "  ChanSumRootFileName: \"\"" << endl;
     fout << "}" << endl;
     fout << "tools.mytool2: @local::tools.mytool1" << endl;
     fout << "tools.mytool2.SumHists: [" << endl;
     fout << "    {var:\"fitHeight\" name:\"hfh_%0RUN%\""
-         << " title:\"Fit height run %RUN%\""
+         << " title:\"Combined fit height run %RUN%\""
          << " nbin:60 xmin:-300 xmax:300}, " << endl;
+    fout << "    {var:\"fitHeight\" name:\"hfh_%0RUN%_chan%0CHAN%\""
+         << " title:\"Fit height run %RUN% channel %CHAN%\""
+         << " nbin:40 xmin:0 xmax:0 fit:gaus}," << endl;
     fout << "    {var:\"fitWidth\" name:\"hfw_%0RUN%_chan%0CHAN%\""
-         << " title:\"Fit width run %RUN%\""
+         << " title:\"Fit width run %RUN% channel %CHAN%\""
          << " nbin:40 xmin:0 xmax:4.0 fit:gaus}" << endl;
     fout << "]" << endl;
+    fout << "tools.mytool2.ChannelRanges: [" << endl;
+    fout << "  {name:apa1x label:APA1x begin:250 end:270}" << endl;
+    fout << "]" << endl;
+    fout << "tools.mytool2.ChanSumHists: [" << endl;
+    fout << "  {name:\"hcsHeight_%CRNAME%\" title:\"Pulse heights for run %RUN% %CRLABEL%\" "
+         <<    "valHist:\"hfh_%0RUN%_chan%0CHAN%\" valType:fitMean cr:apa1x}," << endl;
+    fout << "  {name:\"hcsWidth_%CRNAME%\" title:\"Shaping times for run %RUN% %CRLABEL%\" "
+         <<    "valHist:\"hfw_%0RUN%_chan%0CHAN%\" valType:fitMean cr:apa1x}" << endl;
+    fout << "]" << endl;
+    //fout << "  {val:\"hfw_%0RUN%_chan%0CHAN%:FitMean\" hist:\"hcsWidth_%0RUN%\"
     fout << "tools.mytool2.RoiRootFileName: \"\"" << endl;
     fout << "tools.mytool2.SumRootFileName: \"roisum.root\"" << endl;
+    fout << "tools.mytool2.ChanSumRootFileName: \"roichan.root\"" << endl;
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
@@ -84,28 +101,26 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create test data." << endl;
   AdcChannelDataMap acds;
-  for ( Index icha=250; icha<254; ++icha ) {
+  vector<float> pulse = { 2.0, -3.0, 0.0, 5.0, 24.0, 56.0, 123.0, 71.0, 52.1, 26.3,
+                         12.5,  8.1, 4.5, 2.0, -1.0,  3.2,   1.1, -2.2,  0.1, -0.1};
+  Index npul = 100;
+  for ( Index icha=250; icha<270; ++icha ) {
     AdcChannelData& acd = acds[icha];
     acd.run = 111;
     acd.event = 123;
     acd.channel = icha;
-    unsigned int nsam = 80;
-    vector<float> pulse = { 2.0, -3.0, 0.0, 5.0, 24.0, 56.0, 123.0, 71.0, 52.1, 26.3,
-                           12.5,  8.1, 4.5, 2.0, -1.0,  3.2,   1.1, -2.2,  0.1, -0.1};
-    acd.samples.resize(nsam);
-    float chfac = float(icha)/250.0;
-    for ( unsigned int ismp=0; ismp<pulse.size(); ++ismp ) {
-      float smp = chfac*pulse[ismp];
-      acd.samples[ismp] = smp;
-      acd.samples[20+ismp] = -smp;
-      acd.samples[40+ismp] = 2*smp;
-      acd.samples[60+ismp] = -2*smp;
+    acd.samples.resize(npul*pulse.size());
+    acd.sampleUnit = "ADC count";
+    double sigma = 5.0;
+    Index itck = 0;
+    for ( Index ipul=0; ipul<npul; ++ipul ) {
+      Index itck0 = itck;
+      for ( Index ismp=0; ismp<pulse.size(); ++ismp, ++itck ) {
+        acd.samples[itck] = pulse[ismp] + gRandom->Gaus(0.0, sigma);
+      }
+      acd.rois.emplace_back( itck0+2, itck-2);
     }
-    acd.rois.emplace_back( 0, 17);
-    acd.rois.emplace_back(20, 37);
-    acd.rois.emplace_back(40, 57);
-    acd.rois.emplace_back(60, 77);
-    assert( acd.rois.size() == 4 );
+    assert( acd.rois.size() == npul );
   }
   const AdcChannelData& acd = acds[250];
 
@@ -120,7 +135,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   }
   assert( res == 0 );
   Index nroi = res.getInt("roiCount");
-  assert( nroi == 4 );
+  assert( nroi == npul );
   assert( res.getIntVector("roiTick0s").size() == nroi );
   assert( res.getIntVector("roiNTicks").size() == nroi );
   assert( res.getIntVector("roiNUnderflows").size() == nroi );
@@ -142,7 +157,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   cout << myname << "roiCount: " << res.getInt("roiCount") << endl;
   cout << myname << "roiHists:" << endl;
   assert( res == 0 );
-  assert( res.getInt("roiCount") == 16 );
+  assert( res.getInt("roiCount") == int(npul*acds.size()) );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
