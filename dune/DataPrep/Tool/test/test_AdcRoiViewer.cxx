@@ -43,10 +43,12 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "tools.mytool1: {" << endl;
     fout << "  tool_type: AdcRoiViewer" << endl;
     fout << "  LogLevel: 3" << endl;
-    fout << "  SigMinThresh: 0.0" << endl;
-    fout << "  SigMaxThresh: 0.0" << endl;
+    fout << "  SigThresh: 0.0" << endl;
     fout << "  RoiHistOpt: 1" << endl;
     fout << "  FitOpt: 1" << endl;
+    fout << "  PulserStepCharge: 0.0" << endl;
+    fout << "  PulserChargeUnit: \"\"" << endl;
+    fout << "  RunDataTool: \"\"" << endl;
     fout << "  SumHists: []" << endl;
     fout << "  ChannelRanges: []" << endl;
     fout << "  ChanSumHists: []" << endl;

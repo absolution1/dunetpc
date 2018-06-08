@@ -309,21 +309,25 @@ tools.adcFFT: {
 tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
-  SigMinThresh: 0.0
-  SigMaxThresh: 0.0
+  SigThresh: 0.0
   RoiHistOpt:  1
   FitOpt:   0
+  PulserStepCharge: 0.0
+  PulserChargeUnit: ""
+  RunDataTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""
 }
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
-  SigMinThresh: 0.0
-  SigMaxThresh: 0.0
+  SigThresh: 0.0
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1
+  PulserStepCharge: 0.0
+  PulserChargeUnit: ""
+  RunDataTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""

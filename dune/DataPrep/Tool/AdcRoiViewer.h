@@ -7,8 +7,8 @@
 //
 // Configuration:
 //         LogLevel - Logging level: 0=none, 1=init, 2=call, ...
-//     SigMinThresh - if <0, then only keep ROIS with a tick below this value
-//     SigMaxThresh - if >0, then only keep ROIS with a tick above this value
+//        SigThresh - if <0, then only keep ROIS with a tick below this value
+//                    if >0, then only keep ROIS with a tick above this value
 //      RunDataTool - Name for the run data tool. If found and pulser is on, then each
 //                    ROI is assigned a charge corresponding to the pulser setting.
 //       RoiHistOpt - histo option:  0 - No histograms
@@ -18,6 +18,8 @@
 //           FitOpt - ROI fitting option
 //                      0 - no fit
 //                      1 - fit with coldelecReponse
+// PulserStepCharge - Charge per unit step in a pulser run
+// PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
 //         SumHists - Array of summary histogram specifiers. See below.
 //    ChannelRanges - Ranges of channels for channel summary plots.
 //     ChanSumHists - Array of specifiers for the channel summary histograms.
@@ -34,8 +36,11 @@
 //            fitWidth
 //            fitPosition
 //            fitTickRem - Fractional part of tick
-//            fitStat
-//            fitChiSquare
+//            fitStat - Status from the fit (0 = success)
+//            fitChiSquare - Chi-square from fit (as reported by TF1)
+//            fitChiSquareDof - Chi-square/DOF from fit (both from TF1)
+//            fitCSNorm - Chi-square/(ped RMS)^2
+//            fitCSNormDof - Chi-square/DOF/(ped RMS)^2
 //    name: Name of the histogram. Include %CHAN% to get separate histos for each channel
 //   title: Histogram title
 //    nbin: # bins
@@ -52,34 +57,35 @@
 // --------------------------
 //
 // Output data map for view:
-//           int           roiRun - Run number
-//           int        roiSubRun - SubRun number
-//           int         roiEvent - Event number
-//           int       roiChannel - Channel number
-//           int      roiRawCount - # ROI (nROI) before selection
-//           int         roiCount - # ROI (nROI)
-//           int  roiNTickChannel - # ticks in the ADC channel
-//     int[nROI]        roiTick0s - First tick for each ROI
-//     int[nROI]        roiNTicks - # ticks for each ROI
-//     int[nROI]   roiNUnderflows - # bins with ADC underflow in each ROI
-//     int[nROI]    roiNOverflows - # bins with ADC overflow in each ROI
-//     int[nROI]      roiTickMins - tick-tick0 for signal minimum for each ROI
-//     int[nROI]      roiTickMaxs - tick-tick0 for signal maximum for each ROI
-//   float[nROI]       roiSigMins - Signal minimum for each ROI
-//   float[nROI]       roiSigMaxs - Signal maximum for each ROI
-//   float[nROI]      roiSigAreas - Signal area for each ROI
-//    TH1*[nROI]         roiHists - Histogram of samples or raw for each ROI
+//           int              roiRun - Run number
+//           int           roiSubRun - SubRun number
+//           int            roiEvent - Event number
+//           int          roiChannel - Channel number
+//           int         roiRawCount - # ROI (nROI) before selection
+//           int            roiCount - # ROI (nROI)
+//           int     roiNTickChannel - # ticks in the ADC channel
+//     int[nROI]           roiTick0s - First tick for each ROI
+//     int[nROI]           roiNTicks - # ticks for each ROI
+//     int[nROI]      roiNUnderflows - # bins with ADC underflow in each ROI
+//     int[nROI]       roiNOverflows - # bins with ADC overflow in each ROI
+//     int[nROI]         roiTickMins - tick-tick0 for signal minimum for each ROI
+//     int[nROI]         roiTickMaxs - tick-tick0 for signal maximum for each ROI
+//   float[nROI]          roiSigMins - Signal minimum for each ROI
+//   float[nROI]          roiSigMaxs - Signal maximum for each ROI
+//   float[nROI]         roiSigAreas - Signal area for each ROI
+//    TH1*[nROI]            roiHists - Histogram of samples or raw for each ROI
 // If fit is done:
-//   float[nROI]    roiFitHeights - Height in signal units from fit
-//   float[nROI]     roiFitWidths - Shaping time in ticks from fit
-//   float[nROI]  roiFitPositions - T0 in ticks from fit
-//   float[nROI] roiFitChiSquares - Chi-square from fit
-//     int[nROI]      roiFitStats - Return status from fit
+//   float[nROI]       roiFitHeights - Height in signal units from fit
+//   float[nROI]        roiFitWidths - Shaping time in ticks from fit
+//   float[nROI]     roiFitPositions - T0 in ticks from fit
+//   float[nROI]    roiFitChiSquares - Chi-square from fit
+//   float[nROI] roiFitChiSquareDofs - Chi-square/DOF from fit
+//     int[nROI]         roiFitStats - Return status from fit
 // If run data is found:
-//         float       tpcAmpGain - Nominal preamp gain setting [mV/fC]
-//         float   tpcShapingTime - Nominal preamp shaping time [us]
-//           int      pulserIndex - Pulser gain setting (0, 1, ..., 63)
-//           int   pulserInternal - 1 if pulser on ADC ASIC is used, 0 for FEMB pulser
+//         float          tpcAmpGain - Nominal preamp gain setting [mV/fC]
+//         float      tpcShapingTime - Nominal preamp shaping time [us]
+//           int         pulserIndex - Pulser gain setting (0, 1, ..., 63)
+//           int      pulserInternal - 1 if pulser on ADC ASIC is used, 0 for FEMB pulser
 // If fit, run data ane non-zero pulser index:
 //  float(nRoi]
 //
@@ -98,6 +104,7 @@
 #include <iostream>
 
 class AdcChannelStringTool;
+class RunDataTool;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -194,14 +201,19 @@ private:
 
   // Configuration data.
   int m_LogLevel;
-  float m_SigMinThresh;
-  float m_SigMaxThresh;
+  float m_SigThresh;
   int m_RoiHistOpt;
   int m_FitOpt;
-  std::string m_RoiRootFileName;
-  std::string m_SumRootFileName;
-  std::string m_ChanSumRootFileName;
+  float m_PulserStepCharge;
+  Name m_PulserChargeUnit;
+  Name m_RunDataTool;
+  Name m_RoiRootFileName;
+  Name m_SumRootFileName;
+  Name m_ChanSumRootFileName;
   ChannelRangeMap m_ChannelRanges;
+
+  // Derived from configuration.
+  const RunDataTool* m_pRunDataTool =nullptr;
 
   // Fixed configuration data.
   int m_TickPeriod = 497;

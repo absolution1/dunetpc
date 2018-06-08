@@ -68,6 +68,8 @@ private:
   art::InputTag fRawDigitModuleLabel;
   art::InputTag fCalDataModuleLabel;
 
+  bool fIsData;
+
   trkf::LinFitAlg fLinFitAlg;
 
   double cx[93], cy[93], cz[93];
@@ -98,8 +100,8 @@ dune::SignalToNoise::SignalToNoise(fhicl::ParameterSet const & p)
   fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel")),
   fExternalCounterModuleLabel(p.get< art::InputTag >("ExternalCounterModuleLabel")),
   fRawDigitModuleLabel(p.get< art::InputTag >("RawDigitModuleLabel")),
-  fCalDataModuleLabel(p.get< art::InputTag >("CalDataModuleLabel"))
- // More initializers here.
+  fCalDataModuleLabel(p.get< art::InputTag >("CalDataModuleLabel")),
+  fIsData(p.get<bool>("IsData",true))
 {
 }
 
@@ -186,6 +188,21 @@ void dune::SignalToNoise::analyze(art::Event const & e)
       tracklist[i]->Direction(larStart,larEnd);
       double dc = std::abs(ccosx*larStart[0]+ccosy*larStart[1]+ccosz*larStart[2]);
       dcos->Fill(dc);
+      /*
+      if (i==4){
+        for (size_t j = 0; j<tracklist[i]->NPoints(); ++j){
+          if (tracklist[i]->HasValidPoint(j)){
+            std::cout<<j<<" "<<tracklist[i]->LocationAtPoint(j).X()
+                     <<" "<<tracklist[i]->LocationAtPoint(j).Y()
+                     <<" "<<tracklist[i]->LocationAtPoint(j).Z()
+                     <<" "<<tracklist[i]->DirectionAtPoint(j).X()
+                     <<" "<<tracklist[i]->DirectionAtPoint(j).Y()
+                     <<" "<<tracklist[i]->DirectionAtPoint(j).Z()
+                     <<std::endl;
+          }
+        }
+      }
+      */
       if (dc>0.98){//found a match
         double ctime = (countlist[ci1[0]]->GetTrigTime() + countlist[ci2[0]]->GetTrigTime())/(2*32.); //ticks
         double x0 = trackStart.X() + (trackStart.X()>0?-1:1)*ctime*0.5*0.1085;
@@ -204,8 +221,8 @@ void dune::SignalToNoise::analyze(art::Event const & e)
           dx2 = std::abs(x0+(cz[c2[0]]-z0)*(x0-x1)/(z0-z1)-cx[c2[0]]);
         }
         //std::cout<<dx1<<" "<<dx2<<std::endl;
-        hdx->Fill(dx1);
-        hdx->Fill(dx2);
+        hdx->Fill(x0+(cz[c1[0]]-z0)*(x0-x1)/(z0-z1)-cx[c1[0]]);
+        hdx->Fill(x0+(cz[c2[0]]-z0)*(x0-x1)/(z0-z1)-cx[c2[0]]);
         if (dx1>40||dx2>40) continue;
         for (size_t j = 0; j<tracklist[i]->NumberTrajectoryPoints(); ++j){
           TVector3 loc = tracklist[i]->LocationAtPoint(j);
@@ -449,24 +466,35 @@ void dune::SignalToNoise::beginJob()
   ftree->Branch("trackid", &trackid, "trackid/I");
   ftree->Branch("dqdx", &dqdx, "dqdx/D");
   ftree->Branch("x", &x, "x/D");
-                           
-  std::ifstream in;
-  //in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
-  in.open("counterInformation.txt");
-  char line[1024];
-  while(1){
-    in.getline(line,1024);
-    if (!in.good()) break;
-    int i;
-    float x,y,z;
-    sscanf(line,"%d %f %f %f",&i,&x,&y,&z);
-    //cout<<i<<" "<<x<<" "<<y<<" "<<z<<endl;
-    cx[i] = x;
-    cy[i] = y;
-    cz[i] = z;
-  }
-  in.close();
 
+  if (fIsData){
+    std::ifstream in;
+    //in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
+    in.open("counterInformation.txt");
+    char line[1024];
+    while(1){
+      in.getline(line,1024);
+      if (!in.good()) break;
+      int i;
+      float x,y,z;
+      sscanf(line,"%d %f %f %f",&i,&x,&y,&z);
+      //std::cout<<i<<" "<<x<<" "<<y<<" "<<z<<std::endl;
+      cx[i] = x;
+      cy[i] = y;
+      cz[i] = z;
+    }
+    in.close();
+  }
+  else{
+    art::ServiceHandle<geo::Geometry> geom;
+    for (size_t i = 0; i<geom->NAuxDets(); ++i){
+      auto& auxdet = geom->AuxDet(i);
+      //std::cout<<i<<" "<<auxdet.GetCenter().X()<<" "<<auxdet.GetCenter().Y()<<" "<<auxdet.GetCenter().Z()<<std::endl;
+      cx[i] = auxdet.GetCenter().X();
+      cy[i] = auxdet.GetCenter().Y();
+      cz[i] = auxdet.GetCenter().Z();
+    }
+  }
 }
 
 DEFINE_ART_MODULE(dune::SignalToNoise)
