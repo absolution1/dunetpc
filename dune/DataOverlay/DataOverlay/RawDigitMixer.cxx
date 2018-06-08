@@ -71,11 +71,17 @@ void mix::RawDigitMixer::Mix(std::vector<raw::RawDigit> const& mcVector,
     fRDAdderAlg.SetPedestalInputs(rd.GetPedestal(),0.0);
     fRDAdderAlg.SetScaleInputs(scale_map.at(rd.Channel()),1.0);
     fRDAdderAlg.SetStuckBitRetentionMethod(_stuckRetention);
-    
+
     std::vector<short> const data_trimmed(fOutputWaveforms[i_output].waveform.begin()+_datastart,
 					  fOutputWaveforms[i_output].waveform.begin()+_dataend);
-    std::vector<short> const mc_trimmed(rd.ADCs().begin()+_mcstart,
+    std::vector<short> mc_trimmed(rd.ADCs().begin()+_mcstart,
 					rd.ADCs().begin()+_mcend);
+
+    for (auto & mc : mc_trimmed){
+      //std::cout<<mc<<" "<<rd.GetPedestal()<<std::endl;
+      mc-= rd.GetPedestal();
+    }
+
     fRDAdderAlg.AddRawDigits(mc_trimmed,data_trimmed,fOutputWaveforms[i_output].waveform);
   }
 
