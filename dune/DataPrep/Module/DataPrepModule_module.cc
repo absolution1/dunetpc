@@ -162,10 +162,12 @@ void DataPrepModule::produce(art::Event& evt) {
   Timestamp beginTime = evt.time();
 
   // Read in the digits. 
-  if ( m_LogLevel > 1 ) {
+  if ( m_LogLevel >= 2 ) {
     cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
     cout << myname << "Event time: " << DuneTimeConverter::toString(beginTime) << endl;
-    //cout << myname << "Event time high, low: " << beginTime.timeHigh() << ", " << beginTime.timeLow() << endl;
+  }
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "Event time high, low: " << beginTime.timeHigh() << ", " << beginTime.timeLow() << endl;
   }
   art::Handle< std::vector<raw::RawDigit> > hdigits;
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
