@@ -398,14 +398,14 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               }
             }
             if (pt>=0){
-              int maxph = -1;
+              double maxph = -1e10;
               for (size_t j = 0; j<rawlist.size(); ++j){
                 if (rawlist[j]->Channel() == geom->PlaneWireToChannel(2,h,5)){
                   double pedestal = rawlist[j]->GetPedestal();
                   for (size_t k = 0; k<rawlist[j]->NADC(); ++k){
                     if (float(k)>=pt&&float(k)<=pt+20){
-                      if (int(rawlist[j]->ADC(k)-pedestal)>maxph){
-                        maxph = int(rawlist[j]->ADC(k)-pedestal);
+                      if (rawlist[j]->ADC(k)-pedestal>maxph){
+                        maxph = rawlist[j]->ADC(k)-pedestal;
                       }
                     }
                   }
