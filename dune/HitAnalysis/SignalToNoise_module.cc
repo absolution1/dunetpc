@@ -369,6 +369,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
         }//fmthm is valid
         if (hitmap.size()>=10){//found at least 10 hits in TPC5
           for (size_t h = 0; h<geom->Nwires(2,5,0); ++h){//plane 2, tpc 5, cstat 0
+            if (fCSP->IsBad(geom->PlaneWireToChannel(2,h,5))) continue;
             double pt = -1;
             double xpos = -1;
             if (hitmap.find(h)!=hitmap.end()){//found hit on track
