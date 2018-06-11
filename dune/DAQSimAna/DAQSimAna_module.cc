@@ -43,9 +43,10 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 const int nMaxHits = 5000;
+const int nMaxIDEs = 1000000;
 //const int nMaxDigs = 4492; // unused
 
-enum PType{ kUnknown, kMarl, kAPA, kCPA, kAr39, kNeut, kKryp, kPlon, kRdon };
+enum PType{ kUnknown=0, kMarl, kAPA, kCPA, kAr39, kNeut, kKryp, kPlon, kRdon, kNPTypes };
 
 class DAQSimAna : public art::EDAnalyzer {
 
@@ -74,7 +75,7 @@ private:
   PType WhichParType( int TrID );
   bool  InMyMap     ( int TrID, std::map< int, simb::MCParticle> ParMap );
   void  CalcAdjHits ( std::vector< recob::Hit > MyVec, TH1I* MyHist, bool HeavDebug="false" );
-
+  void SaveIDEs(art::Event const & evt);
 
   // --- Our fcl parameter labels for the modules that made the data products
   std::string fRawDigitLabel;
@@ -127,6 +128,13 @@ private:
   int   TotGen_Kryp;
   int   TotGen_Plon;
   int   TotGen_Rdon;
+
+  int   NTotIDEs;
+  int   IDEChannel  [nMaxIDEs];
+  int   IDEStartTime[nMaxIDEs];
+  int   IDEEndTime  [nMaxIDEs];
+  float IDECharge   [nMaxIDEs];
+  int   IDEParticle [nMaxIDEs];
 
   // histograms to fill about Collection plane hits
   TH1I* hAdjHits_Marl;
@@ -195,6 +203,17 @@ void DAQSimAna::ResetVariables()
     HitTime[hh] = HitRMS [hh] = HitSADC[hh] = 0;
     HitInt [hh] = HitPeak[hh] = HitTPC [hh] = 0;
   }
+
+  // IDEs
+  NTotIDEs=0;
+  for (int hh=0; hh<nMaxIDEs; ++hh) {
+    IDEChannel  [hh]=0;
+    IDEStartTime[hh]=0;
+    IDEEndTime  [hh]=0;
+    IDECharge   [hh]=0;
+    IDEParticle [hh]=0;
+  }
+
 } // ResetVariables
 
 //......................................................
@@ -232,6 +251,14 @@ void DAQSimAna::beginJob()
   fDAQSimTree -> Branch( "TotGen_Plon", &TotGen_Plon, "TotGen_Plon/I" );
   fDAQSimTree -> Branch( "TotGen_Rdon", &TotGen_Rdon, "TotGen_Rdon/I" );
 
+  // IDEs
+  fDAQSimTree -> Branch( "NTotIDEs"  , &NTotIDEs  , "NTotIDEs/I" );
+  fDAQSimTree -> Branch( "IDEChannel"   , &IDEChannel   , "IDEChannel[NTotIDEs]/I" );
+  fDAQSimTree -> Branch( "IDEStartTime" , &IDEStartTime , "IDEStartTime[NTotIDEs]/I" );
+  fDAQSimTree -> Branch( "IDEEndTime"   , &IDEEndTime   , "IDEEndTime[NTotIDEs]/I" );
+  fDAQSimTree -> Branch( "IDECharge"    , &IDECharge    , "IDECharge[NTotIDEs]/F" );
+  fDAQSimTree -> Branch( "IDEParticle"  , &IDEParticle  , "IDEParticle[NTotIDEs]/I" );
+
   // --- Our Histograms...
   hAdjHits_Marl = tfs->make<TH1I>("hAdjHits_Marl", "Number of adjacent collection plane hits for MARLEY; Number of adjacent collection plane hits; Number of events"  , 21, -0.5, 20.5 );
   hAdjHits_APA  = tfs->make<TH1I>("hAdjHits_APA" , "Number of adjacent collection plane hits for APAs; Number of adjacent collection plane hits; Number of events"    , 21, -0.5, 20.5 );
@@ -243,6 +270,98 @@ void DAQSimAna::beginJob()
   hAdjHits_Rdon = tfs->make<TH1I>("hAdjHits_Rdon", "Number of adjacent collection plane hits for Radon; Number of adjacent collection plane hits; Number of events"   , 21, -0.5, 20.5 );
   hAdjHits_Oth  = tfs->make<TH1I>("hAdjHits_Oth" , "Number of adjacent collection plane hits for Others; Number of adjacent collection plane hits; Number of events"  , 21, -0.5, 20.5 );
 } // BeginJob
+
+void DAQSimAna::SaveIDEs(art::Event const & evt)
+{
+  auto allParticles = evt.getValidHandle<std::vector<simb::MCParticle> >(fGEANTLabel);
+  art::FindMany<simb::MCTruth> assn(allParticles,evt,fGEANTLabel);
+  std::map<int, const simb::MCTruth*> idToTruth;
+  for(size_t i=0; i<allParticles->size(); ++i){
+    const simb::MCParticle& particle=allParticles->at(i);
+    const std::vector<const simb::MCTruth*> truths=assn.at(i);
+    if(truths.size()==1){
+      idToTruth[particle.TrackId()]=truths[0];
+    }
+    else{
+      std::cout << "Particle " << particle.TrackId() << " has " << truths.size() << " truths" << std::endl;
+      idToTruth[particle.TrackId()]=nullptr;
+    }
+  }
+
+  // std::cout << "Start SaveIDES()" << std::endl;
+    // Get the SimChannels so we can see where the actual energy depositions were
+    auto& simchs=*evt.getValidHandle<std::vector<sim::SimChannel>>("largeant");
+    // std::cout << "Got " << simchs.size() << " IDEs" << std::endl;
+    int outIDEIndex=0;
+    // int totalIDEsIn=0;
+    std::map<PType, float> ptypeToCharge;
+
+    static int nPrint=0;
+
+    for(auto&& simch: simchs){
+      int prevTDC=-9;
+      // totalIDEsIn+=simch.TDCIDEMap().size();
+      for (const auto& TDCinfo: simch.TDCIDEMap()) {
+        auto const tdc = TDCinfo.first;
+        for (const sim::IDE& ide: TDCinfo.second) {
+
+          // See whether the current IDE is ~contiguous in time with the previous IDE. If so, we'll put them in the some output IDE
+          if(tdc-prevTDC < 10){
+            IDECharge[outIDEIndex] += ide.numElectrons;
+            IDEEndTime[outIDEIndex] = tdc+1;
+            PType thisPType=WhichParType(ide.trackID);
+            auto const& it=idToTruth.find(ide.trackID);
+            if(nPrint<1000 && ide.trackID<0){
+              std::cout << "Negative trackID: " << ide.trackID << std::endl;
+            }
+            if(nPrint<1000 && it==idToTruth.end() && ide.trackID>0){
+              std::cout << " idToTruth has no entry for positive trackID " << ide.trackID << std::endl;
+            }
+            if(nPrint<1000 && thisPType==kUnknown){
+              std::cout << "PType " << thisPType << " on ch " << simch.Channel() << " at " << tdc << std::endl;
+
+              if(it!=idToTruth.end()){
+                const simb::MCTruth* truth=it->second;
+                std::cout << " idToTruth[" << ide.trackID << "]=" << truth << " with origin " << truth->Origin() <<  " and nparticles " << truth->NParticles() << std::endl;
+              }
+              else{
+                std::cout << " idToTruth has no entry for " << ide.trackID << std::endl;
+              }
+              ++nPrint;
+            }
+            ptypeToCharge[thisPType]+=ide.numElectrons;
+          }
+          else{
+            // Finish up the existing IDE and start a new one
+            PType bestPType=kUnknown;
+            float bestNumElectrons=0;
+            for(int i=0; i<kNPTypes; ++i){
+              float thisNumElectrons=ptypeToCharge[PType(i)];
+              if(thisNumElectrons>bestNumElectrons){
+                bestNumElectrons=thisNumElectrons;
+                bestPType=PType(i);
+              }
+            }
+
+            ptypeToCharge.clear();
+
+            IDEParticle[outIDEIndex]=bestPType;
+            
+            ++outIDEIndex;
+            IDEChannel[outIDEIndex]=simch.Channel();
+            IDECharge[outIDEIndex]=ide.numElectrons;
+            IDEStartTime[outIDEIndex]=tdc;
+            IDEEndTime[outIDEIndex]=tdc+1;
+          }
+          prevTDC=tdc;
+        } // for IDEs
+
+      } // for TDCs
+    } // loop over SimChannels
+
+    NTotIDEs=outIDEIndex;
+    // std::cout << "End SaveIDES() with totalIDEsIn=" << totalIDEsIn << " outIDEIndex=" << outIDEIndex << std::endl;
+}
 
 //......................................................
 void DAQSimAna::analyze(art::Event const & evt)
@@ -319,7 +438,7 @@ void DAQSimAna::analyze(art::Event const & evt)
   std::cout << "--- The size of RdonParts is " << RdonParts.size() << std::endl;
 
   std::map<PType, std::map< int, simb::MCParticle >&> PTypeToMap{
-      { kMarl, MarlParts},
+      {kMarl, MarlParts},
       {kAPA, APAParts},
       {kCPA, CPAParts},
       {kAr39, Ar39Parts},
@@ -340,6 +459,9 @@ void DAQSimAna::analyze(art::Event const & evt)
   // --- Finally, get a list of all of my particles in one chunk.
   const sim::ParticleList& PartList = pi_serv->ParticleList();
   std::cout << "There are a total of " << PartList.size() << " MCParticles in the event " << std::endl;
+
+  // Now that we've filled all the truth maps, we can fill a list of the true energy deposititions (IDEs)
+  SaveIDEs(evt);
 
   std::vector< recob::Hit > ColHits_Marl;
   std::vector< recob::Hit > ColHits_CPA;
