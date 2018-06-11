@@ -47,6 +47,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  RoiHistOpt: 1" << endl;
     fout << "  FitOpt: 1" << endl;
     fout << "  PulserStepCharge: 0.0" << endl;
+    fout << "  PulserDacOffset: 0.0" << endl;
     fout << "  PulserChargeUnit: \"\"" << endl;
     fout << "  RunDataTool: \"\"" << endl;
     fout << "  SumHists: []" << endl;

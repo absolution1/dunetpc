@@ -87,6 +87,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_RoiHistOpt(ps.get<int>("RoiHistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
   m_PulserStepCharge(ps.get<float>("PulserStepCharge")),
+  m_PulserDacOffset(ps.get<float>("PulserDacOffset")),
   m_PulserChargeUnit(ps.get<string>("PulserChargeUnit")),
   m_RunDataTool(ps.get<string>("RunDataTool")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
@@ -626,8 +627,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
         continue;
       }
       int qfac = rdat.pulserAmplitude();
-      if ( rdat.pulserSource() == 1 && qfac > 0 ) --qfac;
-      float qin = qfac*m_PulserStepCharge;
+      if ( rdat.pulserSource() == 2 && qfac > 0 ) --qfac;     // Should we do this??
+      float qin = (qfac - m_PulserDacOffset)*m_PulserStepCharge;
       if ( qin == 0.0 ) {
         cout << myname << "WARNING: Pulser charge evaluates to zero." << endl;
         continue;

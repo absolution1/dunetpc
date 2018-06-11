@@ -6,25 +6,26 @@
 // Tool to extract information about the ROIs in an ADC channel.
 //
 // Configuration:
-//         LogLevel - Logging level: 0=none, 1=init, 2=call, ...
-//        SigThresh - if <0, then only keep ROIS with a tick below this value
-//                    if >0, then only keep ROIS with a tick above this value
-//      RunDataTool - Name for the run data tool. If found and pulser is on, then each
-//                    ROI is assigned a charge corresponding to the pulser setting.
-//       RoiHistOpt - histo option:  0 - No histograms
-//                                   1 - sample vs. tick
-//                                   2 - raw vs. tick
-//                                  10 + i - As above for i except vs. tick - tick0
-//           FitOpt - ROI fitting option
-//                      0 - no fit
-//                      1 - fit with coldelecReponse
-// PulserStepCharge - Charge per unit step in a pulser run
-// PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
-//         SumHists - Array of summary histogram specifiers. See below.
-//    ChannelRanges - Ranges of channels for channel summary plots.
-//     ChanSumHists - Array of specifiers for the channel summary histograms.
-//  RoiRootFileName - Name of file to which the ROI histograms are copied.
-//  SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
+//           LogLevel - Logging level: 0=none, 1=init, 2=call, ...
+//          SigThresh - if <0, then only keep ROIS with a tick below this value
+//                      if >0, then only keep ROIS with a tick above this value
+//        RunDataTool - Name for the run data tool. If found and pulser is on, then each
+//                      ROI is assigned a charge corresponding to the pulser setting.
+//         RoiHistOpt - histo option:  0 - No histograms
+//                                     1 - sample vs. tick
+//                                     2 - raw vs. tick
+//                                    10 + i - As above for i except vs. tick - tick0
+//             FitOpt - ROI fitting option
+//                        0 - no fit
+//                        1 - fit with coldelecReponse
+//   PulserStepCharge - Charge per unit step in a pulser run
+//    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
+//   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
+//           SumHists - Array of summary histogram specifiers. See below.
+//      ChannelRanges - Ranges of channels for channel summary plots.
+//       ChanSumHists - Array of specifiers for the channel summary histograms.
+//    RoiRootFileName - Name of file to which the ROI histograms are copied.
+//    SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
 //
 // Summary histograms
 // ------------------
@@ -205,6 +206,7 @@ private:
   int m_RoiHistOpt;
   int m_FitOpt;
   float m_PulserStepCharge;
+  float m_PulserDacOffset;
   Name m_PulserChargeUnit;
   Name m_RunDataTool;
   Name m_RoiRootFileName;
