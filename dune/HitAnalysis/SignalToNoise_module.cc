@@ -369,6 +369,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
         }//fmthm is valid
         if (hitmap.size()>=10){//found at least 10 hits in TPC5
           for (size_t h = 0; h<geom->Nwires(2,5,0); ++h){//plane 2, tpc 5, cstat 0
+            if (fCSP->IsBad(geom->PlaneWireToChannel(2,h,5))) continue;
             double pt = -1;
             double xpos = -1;
             if (hitmap.find(h)!=hitmap.end()){//found hit on track
@@ -398,14 +399,14 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               }
             }
             if (pt>=0){
-              int maxph = -1;
+              double maxph = -1e10;
               for (size_t j = 0; j<rawlist.size(); ++j){
                 if (rawlist[j]->Channel() == geom->PlaneWireToChannel(2,h,5)){
                   double pedestal = rawlist[j]->GetPedestal();
                   for (size_t k = 0; k<rawlist[j]->NADC(); ++k){
                     if (float(k)>=pt&&float(k)<=pt+20){
-                      if (int(rawlist[j]->ADC(k)-pedestal)>maxph){
-                        maxph = int(rawlist[j]->ADC(k)-pedestal);
+                      if (rawlist[j]->ADC(k)-pedestal>maxph){
+                        maxph = rawlist[j]->ADC(k)-pedestal;
                       }
                     }
                   }
