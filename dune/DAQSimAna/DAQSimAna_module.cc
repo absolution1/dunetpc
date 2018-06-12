@@ -73,6 +73,7 @@ private:
   void ResetVariables();
   void  FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap, art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand );
   PType WhichParType( int TrID );
+  PType WhichParType( const art::ValidHandle<simb::MCTruth>& truthHand );
   bool  InMyMap     ( int TrID, std::map< int, simb::MCParticle> ParMap );
   void  CalcAdjHits ( std::vector< recob::Hit > MyVec, TH1I* MyHist, bool HeavDebug="false" );
   void SaveIDEs(art::Event const & evt);
@@ -291,15 +292,15 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
       idToTruth[particle.TrackId()]=truths[0];
     }
     else{
-      std::cout << "Particle " << particle.TrackId() << " has " << truths.size() << " truths" << std::endl;
+      mf::LogDebug("DAQSimAna") << "Particle " << particle.TrackId() << " has " << truths.size() << " truths";
       idToTruth[particle.TrackId()]=nullptr;
     }
   }
 
-  // std::cout << "Start SaveIDES()" << std::endl;
+  // mf::LogDebug("DAQSimAna") << "Start SaveIDES()";
     // Get the SimChannels so we can see where the actual energy depositions were
     auto& simchs=*evt.getValidHandle<std::vector<sim::SimChannel>>("largeant");
-    // std::cout << "Got " << simchs.size() << " IDEs" << std::endl;
+    // mf::LogDebug("DAQSimAna") << "Got " << simchs.size() << " IDEs";
     int outIDEIndex=0;
     // int totalIDEsIn=0;
     std::map<PType, float> ptypeToCharge;
@@ -330,14 +331,14 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
             auto const& it=idToTruth.find(std::abs(ide.trackID));
 
             if(nPrint<1000 && thisPType==kUnknown){
-              std::cout << "PType " << thisPType << " on ch " << simch.Channel() << " at " << tdc << std::endl;
+              mf::LogDebug("DAQSimAna") << "PType " << thisPType << " on ch " << simch.Channel() << " at " << tdc;
 
               if(it!=idToTruth.end()){
                 const simb::MCTruth* truth=it->second;
-                std::cout << " idToTruth[" << ide.trackID << "]=" << truth << " with origin " << truth->Origin() <<  " and nparticles " << truth->NParticles() << std::endl;
+                mf::LogDebug("DAQSimAna") << " idToTruth[" << ide.trackID << "]=" << truth << " with origin " << truth->Origin() <<  " and nparticles " << truth->NParticles();
               }
               else{
-                std::cout << " idToTruth has no entry for " << ide.trackID << std::endl;
+                mf::LogDebug("DAQSimAna") << " idToTruth has no entry for " << ide.trackID;
               }
               ++nPrint;
             }
@@ -372,7 +373,7 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
     } // loop over SimChannels
 
     NTotIDEs=outIDEIndex;
-    // std::cout << "End SaveIDES() with totalIDEsIn=" << totalIDEsIn << " outIDEIndex=" << outIDEIndex << std::endl;
+    // mf::LogDebug("DAQSimAna") << "End SaveIDES() with totalIDEsIn=" << totalIDEsIn << " outIDEIndex=" << outIDEIndex;
 }
 
 //......................................................
@@ -398,63 +399,63 @@ void DAQSimAna::analyze(art::Event const & evt)
   art::FindManyP<simb::MCParticle> MarlAssn(MarlTrue,evt,fGEANTLabel);
   FillMyMaps( MarlParts, MarlAssn, MarlTrue );
   TotGen_Marl = MarlParts.size();
-  std::cout << "--- The size of MarleyParts is " << MarlParts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of MarleyParts is " << MarlParts.size();
 
   // --- Lift out the APA particles.
   auto APATrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fAPALabel);
   art::FindManyP<simb::MCParticle> APAAssn(APATrue,evt,fGEANTLabel);
   FillMyMaps( APAParts, APAAssn, APATrue );
   TotGen_APA = APAParts.size();
-  std::cout << "--- The size of APAParts is " << APAParts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of APAParts is " << APAParts.size();
 
   // --- Lift out the CPA particles.
   auto CPATrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fCPALabel);
   art::FindManyP<simb::MCParticle> CPAAssn(CPATrue,evt,fGEANTLabel);
   FillMyMaps( CPAParts, CPAAssn, CPATrue );
   TotGen_CPA = CPAParts.size();
-  std::cout << "--- The size of CPAParts is " << CPAParts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of CPAParts is " << CPAParts.size();
 
   // --- Lift out the Ar39 particles.
   auto Ar39True = evt.getValidHandle<std::vector<simb::MCTruth> >(fAr39Label);
   art::FindManyP<simb::MCParticle> Ar39Assn(Ar39True,evt,fGEANTLabel);
   FillMyMaps( Ar39Parts, Ar39Assn, Ar39True );
   TotGen_Ar39 = Ar39Parts.size();
-  std::cout << "--- The size of Ar39Parts is " << Ar39Parts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of Ar39Parts is " << Ar39Parts.size();
 
   // --- Lift out the Ar42 particles.
   auto Ar42True = evt.getValidHandle<std::vector<simb::MCTruth> >(fAr42Label);
   art::FindManyP<simb::MCParticle> Ar42Assn(Ar42True,evt,fGEANTLabel);
   FillMyMaps( Ar42Parts, Ar42Assn, Ar42True );
   TotGen_Ar42 = Ar42Parts.size();
-  std::cout << "--- The size of Ar42Parts is " << Ar42Parts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of Ar42Parts is " << Ar42Parts.size();
 
   // --- Lift out the Neut particles.
   auto NeutTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fNeutLabel);
   art::FindManyP<simb::MCParticle> NeutAssn(NeutTrue,evt,fGEANTLabel);
   FillMyMaps( NeutParts, NeutAssn, NeutTrue );
   TotGen_Neut = NeutParts.size();
-  std::cout << "--- The size of NeutParts is " << NeutParts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of NeutParts is " << NeutParts.size();
 
   // --- Lift out the Kryp particles.
   auto KrypTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fKrypLabel);
   art::FindManyP<simb::MCParticle> KrypAssn(KrypTrue,evt,fGEANTLabel);
   FillMyMaps( KrypParts, KrypAssn, KrypTrue );
   TotGen_Kryp = KrypParts.size();
-  std::cout << "--- The size of KrypParts is " << KrypParts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of KrypParts is " << KrypParts.size();
 
   // --- Lift out the Plon particles.
   auto PlonTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fPlonLabel);
   art::FindManyP<simb::MCParticle> PlonAssn(PlonTrue,evt,fGEANTLabel);
   FillMyMaps( PlonParts, PlonAssn, PlonTrue );
   TotGen_Plon = PlonParts.size();
-  std::cout << "--- The size of PlonParts is " << PlonParts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of PlonParts is " << PlonParts.size();
 
   // --- Lift out the Rdon particles.
   auto RdonTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fRdonLabel);
   art::FindManyP<simb::MCParticle> RdonAssn(RdonTrue,evt,fGEANTLabel);
   FillMyMaps( RdonParts, RdonAssn, RdonTrue );
   TotGen_Rdon = RdonParts.size();
-  std::cout << "--- The size of RdonParts is " << RdonParts.size() << std::endl;
+  mf::LogDebug("DAQSimAna") << "--- The size of RdonParts is " << RdonParts.size();
 
   std::map<PType, std::map< int, simb::MCParticle >&> PTypeToMap{
       {kMarl,    MarlParts},
@@ -478,7 +479,7 @@ void DAQSimAna::analyze(art::Event const & evt)
   
   // --- Finally, get a list of all of my particles in one chunk.
   const sim::ParticleList& PartList = pi_serv->ParticleList();
-  std::cout << "There are a total of " << PartList.size() << " MCParticles in the event " << std::endl;
+  mf::LogDebug("DAQSimAna") << "There are a total of " << PartList.size() << " MCParticles in the event ";
 
   // Now that we've filled all the truth maps, we can fill a list of the true energy deposititions (IDEs)
   SaveIDEs(evt);
@@ -498,7 +499,7 @@ void DAQSimAna::analyze(art::Event const & evt)
   // --- Loop over the reconstructed hits to determine the "size" of each hit 
   NTotHits = reco_hits->size();
   int LoopHits = std::min( NTotHits, nMaxHits );
-  std::cout << "---- There are " << NTotHits << " hits in the event, but array is of size " << nMaxHits << ", so looping over first " << LoopHits << " hits." << std::endl;
+  mf::LogDebug("DAQSimAna") << "---- There are " << NTotHits << " hits in the event, but array is of size " << nMaxHits << ", so looping over first " << LoopHits << " hits.";
   for(int hit = 0; hit < LoopHits; ++hit) {
     // --- Let access this particular hit.
     recob::Hit const& ThisHit = reco_hits->at(hit);  
@@ -557,36 +558,36 @@ void DAQSimAna::analyze(art::Event const & evt)
   } // Loop over reco_hits.
 
   // ---- Write out the Marley hits....
-  std::cerr << "\n\nAfter all of that I have a total of " << ColHits_Marl.size() << " MARLEY col plane hits." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\n\nAfter all of that I have a total of " << ColHits_Marl.size() << " MARLEY col plane hits.";
   for (size_t hh=0; hh<ColHits_Marl.size(); ++hh) {
-    std::cerr << "\tHit " << hh << " was on chan " << ColHits_Marl[hh].Channel() << " at " << ColHits_Marl[hh].PeakTime() << std::endl;
+    mf::LogDebug("DAQSimAna") << "\tHit " << hh << " was on chan " << ColHits_Marl[hh].Channel() << " at " << ColHits_Marl[hh].PeakTime();
   }
   // --- Now calculate all of the hits...
   CalcAdjHits( ColHits_Marl, hAdjHits_Marl, true );
-  std::cerr << "\nAnd now for APA hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for APA hits...";
   CalcAdjHits( ColHits_APA , hAdjHits_APA , false  );
-  std::cerr << "\nAnd now for CPA hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for CPA hits...";
   CalcAdjHits( ColHits_CPA , hAdjHits_CPA , false  );
-  std::cerr << "\nAnd now for Ar39 hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for Ar39 hits...";
   CalcAdjHits( ColHits_Ar39, hAdjHits_Ar39, false );
-  std::cerr << "\nAnd now for Ar42 hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for Ar42 hits...";
   CalcAdjHits( ColHits_Ar42, hAdjHits_Ar42, false );
-  std::cerr << "\nAnd now for Neuton hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for Neuton hits...";
   CalcAdjHits( ColHits_Neut, hAdjHits_Neut, false );
-  std::cerr << "\nAnd now for Krypton hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for Krypton hits...";
   CalcAdjHits( ColHits_Kryp, hAdjHits_Kryp, false );
-  std::cerr << "\nAnd now for Polonium hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for Polonium hits...";
   CalcAdjHits( ColHits_Plon, hAdjHits_Plon, false );
-  std::cerr << "\nAnd now for Radon hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for Radon hits...";
   CalcAdjHits( ColHits_Rdon, hAdjHits_Rdon, false );
-  std::cerr << "\nAnd now for Other hits..." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\nAnd now for Other hits...";
   CalcAdjHits( ColHits_Oth , hAdjHits_Oth , false  );
 
   
   //*/
   // --- Now loop through the particle list.
   /*
-  std::cout << "\n\nNow to loop through the truth information." << std::endl;
+  mf::LogDebug("DAQSimAna") << "\n\nNow to loop through the truth information.";
   for ( sim::ParticleList::const_iterator ipar = PartList.begin(); ipar!=PartList.end(); ++ipar) {
     // --- Grab this particle.
     simb::MCParticle *particle = ipar->second;
@@ -605,7 +606,7 @@ void DAQSimAna::analyze(art::Event const & evt)
     nADC=0;
     // --- Uncompress the ADC vector.
     if (dig==0){
-      std::cout << "uADCs.size() before Uncompress = " << uADCs.size() << std::endl;
+      mf::LogDebug("DAQSimAna") << "uADCs.size() before Uncompress = " << uADCs.size();
       raw::Uncompress(ThisDig.ADCs(), uADCs, ThisDig.Compression());
       std::cout << "uADCs.size() after Uncompress = " << uADCs.size() << "\n\n";
     }
@@ -650,6 +651,21 @@ PType DAQSimAna::WhichParType( int TrID )
   return ThisPType;
 }
 
+PType DAQSimAna::WhichParType( const art::ValidHandle<simb::MCTruth>& truthHand)
+{
+  const std::string& label=truthHand.provenance()->moduleLabel();
+   if(label==fMARLLabel){ return kMarl; }
+   if(label==fAPALabel) { return kAPA;  }
+   if(label==fCPALabel) { return kCPA;  }
+   if(label==fAr39Label){ return kAr39; }
+   if(label==fAr42Label){ return kAr42; }
+   if(label==fNeutLabel){ return kNeutron; }
+   if(label==fKrypLabel){ return kKryp; }
+   if(label==fPlonLabel){ return kPlon; }
+   if(label==fRdonLabel){ return kRdon; }
+   return kUnknown;
+}
+
 //......................................................
 bool DAQSimAna::InMyMap( int TrID, std::map< int, simb::MCParticle> ParMap )
 {
@@ -668,7 +684,7 @@ void DAQSimAna::CalcAdjHits( std::vector< recob::Hit > MyVec, TH1I* MyHist, bool
   unsigned int FilledHits = 0;
   unsigned int NumOriHits = MyVec.size();
   while( NumOriHits != FilledHits ) {
-    if (HeavDebug) std::cerr << "\nStart of my while loop" << std::endl;
+    if (HeavDebug) mf::LogDebug("DAQSimAna") << "\nStart of my while loop";
     std::vector< recob::Hit > AdjHitVec;
     AdjHitVec.push_back ( MyVec[0] );
     MyVec.erase( MyVec.begin()+0 );
@@ -677,51 +693,51 @@ void DAQSimAna::CalcAdjHits( std::vector< recob::Hit > MyVec, TH1I* MyHist, bool
     while ( LastSize != NewSize ) {
       std::vector<int> AddNow;
       for (size_t aL=0; aL < AdjHitVec.size(); ++aL) {
-	for (size_t nL=0; nL < MyVec.size(); ++nL) {
-	  if (HeavDebug) {
-	    std::cerr << "\t\tLooping though AdjVec " << aL << " and  MyVec " << nL
-		      << " AdjHitVec - " << AdjHitVec[aL].Channel() << " & " << AdjHitVec[aL].PeakTime()
-		      << " MVec - " << MyVec[nL].Channel() << " & " << MyVec[nL].PeakTime()
-		      << " Channel " << abs( (int)AdjHitVec[aL].Channel()  - (int)MyVec[nL].Channel()  )  << " bool " << (bool)(abs( (int)AdjHitVec[aL].Channel() - (int)MyVec[nL].Channel()  ) <= ChanRange)
-		      << " Time " << abs( AdjHitVec[aL].PeakTime() - MyVec[nL].PeakTime() ) << " bool " << (bool)(abs( (double)AdjHitVec[aL].PeakTime() - (double)MyVec[nL].PeakTime() ) <= TimeRange)
-		      << std::endl;
-	  }
-	  if ( abs( (int)AdjHitVec[aL].Channel()  - (int)MyVec[nL].Channel()  ) <= ChanRange &&
-	       abs( (double)AdjHitVec[aL].PeakTime() - (double)MyVec[nL].PeakTime() ) <= TimeRange ) {
-	    if (HeavDebug) std::cerr << "\t\t\tFound a new thing!!!" << std::endl;
-	    // --- Check that this element isn't already in AddNow.
-	    bool AlreadyPres = false;
-	    for (size_t zz=0; zz<AddNow.size(); ++zz) {
-	      if (AddNow[zz] == (int)nL) AlreadyPres = true;
-	    }
-	    if (!AlreadyPres)
-	      AddNow.push_back( nL );
-	  } // If this hit is within the window around one of my other hits.
-	} // Loop through my vector of colleciton plane hits.
+        for (size_t nL=0; nL < MyVec.size(); ++nL) {
+          if (HeavDebug) {
+            mf::LogDebug("DAQSimAna") << "\t\tLooping though AdjVec " << aL << " and  MyVec " << nL
+                                      << " AdjHitVec - " << AdjHitVec[aL].Channel() << " & " << AdjHitVec[aL].PeakTime()
+                                      << " MVec - " << MyVec[nL].Channel() << " & " << MyVec[nL].PeakTime()
+                                      << " Channel " << abs( (int)AdjHitVec[aL].Channel()  - (int)MyVec[nL].Channel()  )  << " bool " << (bool)(abs( (int)AdjHitVec[aL].Channel() - (int)MyVec[nL].Channel()  ) <= ChanRange)
+                                      << " Time " << abs( AdjHitVec[aL].PeakTime() - MyVec[nL].PeakTime() ) << " bool " << (bool)(abs( (double)AdjHitVec[aL].PeakTime() - (double)MyVec[nL].PeakTime() ) <= TimeRange);
+		  
+          }
+          if ( abs( (int)AdjHitVec[aL].Channel()  - (int)MyVec[nL].Channel()  ) <= ChanRange &&
+               abs( (double)AdjHitVec[aL].PeakTime() - (double)MyVec[nL].PeakTime() ) <= TimeRange ) {
+            if (HeavDebug) mf::LogDebug("DAQSimAna") << "\t\t\tFound a new thing!!!";
+            // --- Check that this element isn't already in AddNow.
+            bool AlreadyPres = false;
+            for (size_t zz=0; zz<AddNow.size(); ++zz) {
+              if (AddNow[zz] == (int)nL) AlreadyPres = true;
+            }
+            if (!AlreadyPres)
+              AddNow.push_back( nL );
+          } // If this hit is within the window around one of my other hits.
+        } // Loop through my vector of colleciton plane hits.
       } // Loop through AdjHitVec
       // --- Now loop through AddNow and remove from Marley whilst adding to AdjHitVec
       for (size_t aa=0; aa<AddNow.size(); ++aa) {
-	if (HeavDebug) {
-	  std::cerr << "\tRemoving element " << AddNow.size()-1-aa << " from MyVec ===> "
-		    << MyVec[ AddNow[AddNow.size()-1-aa] ].Channel() << " & " << MyVec[ AddNow[AddNow.size()-1-aa] ].PeakTime()
-		    << std::endl;
-	}
-	AdjHitVec.push_back ( MyVec[ AddNow[AddNow.size()-1-aa] ] );
-	MyVec.erase( MyVec.begin() + AddNow[AddNow.size()-1-aa] );
+        if (HeavDebug) {
+          mf::LogDebug("DAQSimAna") << "\tRemoving element " << AddNow.size()-1-aa << " from MyVec ===> "
+                                    << MyVec[ AddNow[AddNow.size()-1-aa] ].Channel() << " & " << MyVec[ AddNow[AddNow.size()-1-aa] ].PeakTime();
+
+        }
+        AdjHitVec.push_back ( MyVec[ AddNow[AddNow.size()-1-aa] ] );
+        MyVec.erase( MyVec.begin() + AddNow[AddNow.size()-1-aa] );
       }
       LastSize = NewSize;
       NewSize  = AdjHitVec.size();
       if (HeavDebug) {
-	std::cerr << "\t---After that pass, AddNow was size " << AddNow.size() << " ==> LastSize is " << LastSize << ", and NewSize is " << NewSize
-		  << "\nLets see what is in AdjHitVec...." << std::endl;
-	for (size_t aL=0; aL < AdjHitVec.size(); ++aL) {
-	  std::cout << "\tElement " << aL << " is ===> " << AdjHitVec[aL].Channel() << " & " << AdjHitVec[aL].PeakTime() << std::endl;
-	}
+        mf::LogDebug("DAQSimAna") << "\t---After that pass, AddNow was size " << AddNow.size() << " ==> LastSize is " << LastSize << ", and NewSize is " << NewSize
+                  << "\nLets see what is in AdjHitVec....";
+        for (size_t aL=0; aL < AdjHitVec.size(); ++aL) {
+          mf::LogDebug("DAQSimAna") << "\tElement " << aL << " is ===> " << AdjHitVec[aL].Channel() << " & " << AdjHitVec[aL].PeakTime();
+        }
       }
 
-  } // while ( LastSize != NewSize )
+    } // while ( LastSize != NewSize )
     int NumAdjColHits = AdjHitVec.size();
-    if (HeavDebug) std::cerr << "After that loop, I had " << NumAdjColHits << " adjacent collection plane hits." << std::endl;
+    if (HeavDebug) mf::LogDebug("DAQSimAna") << "After that loop, I had " << NumAdjColHits << " adjacent collection plane hits.";
     MyHist -> Fill( NumAdjColHits );
     FilledHits += NumAdjColHits;
   }
