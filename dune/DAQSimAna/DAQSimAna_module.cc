@@ -46,7 +46,7 @@ const int nMaxHits = 5000;
 const int nMaxIDEs = 1000000;
 //const int nMaxDigs = 4492; // unused
 
-enum PType{ kUnknown=0, kMarl, kAPA, kCPA, kAr39, kNeut, kKryp, kPlon, kRdon, kNPTypes };
+enum PType{ kUnknown=0, kMarl, kAPA, kCPA, kAr39, kAr42, kNeutron, kKryp, kPlon, kRdon, kNPTypes };
 
 class DAQSimAna : public art::EDAnalyzer {
 
@@ -86,6 +86,7 @@ private:
   std::string fAPALabel;  std::map< int, simb::MCParticle > APAParts;
   std::string fCPALabel;  std::map< int, simb::MCParticle > CPAParts;
   std::string fAr39Label; std::map< int, simb::MCParticle > Ar39Parts;
+  std::string fAr42Label; std::map< int, simb::MCParticle > Ar42Parts;
   std::string fNeutLabel; std::map< int, simb::MCParticle > NeutParts;
   std::string fKrypLabel; std::map< int, simb::MCParticle > KrypParts;
   std::string fPlonLabel; std::map< int, simb::MCParticle > PlonParts;
@@ -124,6 +125,7 @@ private:
   int   TotGen_APA;
   int   TotGen_CPA;
   int   TotGen_Ar39;
+  int   TotGen_Ar42;
   int   TotGen_Neut;
   int   TotGen_Kryp;
   int   TotGen_Plon;
@@ -141,6 +143,7 @@ private:
   TH1I* hAdjHits_APA;
   TH1I* hAdjHits_CPA;
   TH1I* hAdjHits_Ar39;
+  TH1I* hAdjHits_Ar42;
   TH1I* hAdjHits_Neut;
   TH1I* hAdjHits_Kryp;
   TH1I* hAdjHits_Plon;
@@ -173,6 +176,7 @@ void DAQSimAna::reconfigure(fhicl::ParameterSet const & p)
   fAPALabel  = p.get<std::string> ("APALabel");
   fCPALabel  = p.get<std::string> ("CPALabel");
   fAr39Label = p.get<std::string> ("Argon39Label");
+  fAr42Label = p.get<std::string> ("Argon42Label");
   fNeutLabel = p.get<std::string> ("NeutronLabel");
   fKrypLabel = p.get<std::string> ("KryptonLabel");
   fPlonLabel = p.get<std::string> ("PoloniumLabel");
@@ -185,6 +189,7 @@ void DAQSimAna::ResetVariables()
 {
   // Clear my MCParticle maps.
   MarlParts.clear(); APAParts .clear(); CPAParts .clear(); Ar39Parts.clear();
+  Ar42Parts.clear();
   NeutParts.clear(); KrypParts.clear(); PlonParts.clear(); RdonParts.clear();
 
   trkIDToPType.clear();
@@ -194,6 +199,7 @@ void DAQSimAna::ResetVariables()
   
   // Set Number of GenParts to 0
   TotGen_Marl = TotGen_APA  = TotGen_CPA  = TotGen_Ar39 = 0;
+  TotGen_Ar42=0;
   TotGen_Neut = TotGen_Kryp = TotGen_Plon = TotGen_Rdon = 0;
 
   // reconstructed hits
@@ -246,6 +252,7 @@ void DAQSimAna::beginJob()
   fDAQSimTree -> Branch( "TotGen_APA" , &TotGen_APA , "TotGen_APA/I"  );
   fDAQSimTree -> Branch( "TotGen_CPA" , &TotGen_CPA , "TotGen_CPA/I"  );
   fDAQSimTree -> Branch( "TotGen_Ar39", &TotGen_Ar39, "TotGen_Ar39/I" );
+  fDAQSimTree -> Branch( "TotGen_Ar42", &TotGen_Ar42, "TotGen_Ar42/I" );
   fDAQSimTree -> Branch( "TotGen_Neut", &TotGen_Neut, "TotGen_Neut/I" );
   fDAQSimTree -> Branch( "TotGen_Kryp", &TotGen_Kryp, "TotGen_Kryp/I" );
   fDAQSimTree -> Branch( "TotGen_Plon", &TotGen_Plon, "TotGen_Plon/I" );
@@ -264,6 +271,7 @@ void DAQSimAna::beginJob()
   hAdjHits_APA  = tfs->make<TH1I>("hAdjHits_APA" , "Number of adjacent collection plane hits for APAs; Number of adjacent collection plane hits; Number of events"    , 21, -0.5, 20.5 );
   hAdjHits_CPA  = tfs->make<TH1I>("hAdjHits_CPA" , "Number of adjacent collection plane hits for CPAs; Number of adjacent collection plane hits; Number of events"    , 21, -0.5, 20.5 );
   hAdjHits_Ar39 = tfs->make<TH1I>("hAdjHits_Ar39", "Number of adjacent collection plane hits for Argon39; Number of adjacent collection plane hits; Number of events" , 21, -0.5, 20.5 );
+  hAdjHits_Ar42 = tfs->make<TH1I>("hAdjHits_Ar42", "Number of adjacent collection plane hits for Argon42; Number of adjacent collection plane hits; Number of events" , 21, -0.5, 20.5 );
   hAdjHits_Neut = tfs->make<TH1I>("hAdjHits_Neut", "Number of adjacent collection plane hits for Neutrons; Number of adjacent collection plane hits; Number of events", 21, -0.5, 20.5 );
   hAdjHits_Kryp = tfs->make<TH1I>("hAdjHits_Kryp", "Number of adjacent collection plane hits for Krypton; Number of adjacent collection plane hits; Number of events" , 21, -0.5, 20.5 );
   hAdjHits_Plon = tfs->make<TH1I>("hAdjHits_Plon", "Number of adjacent collection plane hits for Polonium; Number of adjacent collection plane hits; Number of events", 21, -0.5, 20.5 );
@@ -309,14 +317,18 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
           if(tdc-prevTDC < 10){
             IDECharge[outIDEIndex] += ide.numElectrons;
             IDEEndTime[outIDEIndex] = tdc+1;
-            PType thisPType=WhichParType(ide.trackID);
-            auto const& it=idToTruth.find(ide.trackID);
-            if(nPrint<1000 && ide.trackID<0){
-              std::cout << "Negative trackID: " << ide.trackID << std::endl;
-            }
-            if(nPrint<1000 && it==idToTruth.end() && ide.trackID>0){
-              std::cout << " idToTruth has no entry for positive trackID " << ide.trackID << std::endl;
-            }
+            // From Tingjun on negative track IDs:
+            //
+            //  negative track id means the energy deposition was from
+            //  a shower daughter particle and the absolute value of
+            //  the track id is the id of the parent. By default we do
+            //  not save shower daughters in g4 record but we do save
+            //  all the energy deposition information.
+            //
+            // So looks like we can just take the abs value of the track ID to do the truth matching
+            PType thisPType=WhichParType(std::abs(ide.trackID));
+            auto const& it=idToTruth.find(std::abs(ide.trackID));
+
             if(nPrint<1000 && thisPType==kUnknown){
               std::cout << "PType " << thisPType << " on ch " << simch.Channel() << " at " << tdc << std::endl;
 
@@ -409,6 +421,13 @@ void DAQSimAna::analyze(art::Event const & evt)
   TotGen_Ar39 = Ar39Parts.size();
   std::cout << "--- The size of Ar39Parts is " << Ar39Parts.size() << std::endl;
 
+  // --- Lift out the Ar42 particles.
+  auto Ar42True = evt.getValidHandle<std::vector<simb::MCTruth> >(fAr42Label);
+  art::FindManyP<simb::MCParticle> Ar42Assn(Ar42True,evt,fGEANTLabel);
+  FillMyMaps( Ar42Parts, Ar42Assn, Ar42True );
+  TotGen_Ar42 = Ar42Parts.size();
+  std::cout << "--- The size of Ar42Parts is " << Ar42Parts.size() << std::endl;
+
   // --- Lift out the Neut particles.
   auto NeutTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fNeutLabel);
   art::FindManyP<simb::MCParticle> NeutAssn(NeutTrue,evt,fGEANTLabel);
@@ -438,14 +457,15 @@ void DAQSimAna::analyze(art::Event const & evt)
   std::cout << "--- The size of RdonParts is " << RdonParts.size() << std::endl;
 
   std::map<PType, std::map< int, simb::MCParticle >&> PTypeToMap{
-      {kMarl, MarlParts},
-      {kAPA, APAParts},
-      {kCPA, CPAParts},
-      {kAr39, Ar39Parts},
-      {kNeut, NeutParts},
-      {kKryp, KrypParts},
-      {kPlon, PlonParts},
-      {kRdon, RdonParts}
+      {kMarl,    MarlParts},
+      {kAPA,     APAParts},
+      {kCPA,     CPAParts},
+      {kAr39,    Ar39Parts},
+      {kAr42,    Ar42Parts},
+      {kNeutron, NeutParts},
+      {kKryp,    KrypParts},
+      {kPlon,    PlonParts},
+      {kRdon,    RdonParts}
   };
 
   for(auto const& it : PTypeToMap){
@@ -467,6 +487,7 @@ void DAQSimAna::analyze(art::Event const & evt)
   std::vector< recob::Hit > ColHits_CPA;
   std::vector< recob::Hit > ColHits_APA;
   std::vector< recob::Hit > ColHits_Ar39;
+  std::vector< recob::Hit > ColHits_Ar42;
   std::vector< recob::Hit > ColHits_Neut;
   std::vector< recob::Hit > ColHits_Kryp;
   std::vector< recob::Hit > ColHits_Plon;
@@ -522,15 +543,16 @@ void DAQSimAna::analyze(art::Event const & evt)
   
     // --- I want to fill a vector of coll plane hits, for each of the different kinds of generator.
     if (ThisHit.View() == 2) {
-      if (ThisPType == 0)      ColHits_Oth .push_back( ThisHit );
-      else if (ThisPType == 1) ColHits_Marl.push_back( ThisHit );
-      else if (ThisPType == 2) ColHits_APA .push_back( ThisHit );
-      else if (ThisPType == 3) ColHits_CPA .push_back( ThisHit );
-      else if (ThisPType == 4) ColHits_Ar39.push_back( ThisHit );
-      else if (ThisPType == 5) ColHits_Neut.push_back( ThisHit );
-      else if (ThisPType == 6) ColHits_Kryp.push_back( ThisHit );
-      else if (ThisPType == 7) ColHits_Plon.push_back( ThisHit );
-      else if (ThisPType == 8) ColHits_Rdon.push_back( ThisHit );
+      if (ThisPType == kUnknown)      ColHits_Oth .push_back( ThisHit );
+      else if (ThisPType == kMarl)    ColHits_Marl.push_back( ThisHit );
+      else if (ThisPType == kAPA)     ColHits_APA .push_back( ThisHit );
+      else if (ThisPType == kCPA)     ColHits_CPA .push_back( ThisHit );
+      else if (ThisPType == kAr39)    ColHits_Ar39.push_back( ThisHit );
+      else if (ThisPType == kAr42)    ColHits_Ar42.push_back( ThisHit );
+      else if (ThisPType == kNeutron) ColHits_Neut.push_back( ThisHit );
+      else if (ThisPType == kKryp)    ColHits_Kryp.push_back( ThisHit );
+      else if (ThisPType == kPlon)    ColHits_Plon.push_back( ThisHit );
+      else if (ThisPType == kRdon)    ColHits_Rdon.push_back( ThisHit );
     }
   } // Loop over reco_hits.
 
@@ -547,6 +569,8 @@ void DAQSimAna::analyze(art::Event const & evt)
   CalcAdjHits( ColHits_CPA , hAdjHits_CPA , false  );
   std::cerr << "\nAnd now for Ar39 hits..." << std::endl;
   CalcAdjHits( ColHits_Ar39, hAdjHits_Ar39, false );
+  std::cerr << "\nAnd now for Ar42 hits..." << std::endl;
+  CalcAdjHits( ColHits_Ar42, hAdjHits_Ar42, false );
   std::cerr << "\nAnd now for Neuton hits..." << std::endl;
   CalcAdjHits( ColHits_Neut, hAdjHits_Neut, false );
   std::cerr << "\nAnd now for Krypton hits..." << std::endl;
