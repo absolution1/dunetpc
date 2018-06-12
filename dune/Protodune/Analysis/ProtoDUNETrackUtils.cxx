@@ -20,15 +20,20 @@ std::vector<anab::CosmicTag> protoana::ProtoDUNETrackUtils::GetRecoTrackCosmicTa
 
   unsigned int trackIndex = GetTrackIndexNumber(track,evt,trackModule);
 
-  const art::FindManyP<anab::CosmicTag> findCosmicTags(recoTracks,evt,trackModule);
-
   // Convert to std::vector<anab::CosmicTag> from std::vector<art::Ptr<anab::CosmicTah>>
   std::vector<anab::CosmicTag> trackTags;
-  for(unsigned int t = 0; t < findCosmicTags.at(trackIndex).size(); ++t){
-    trackTags.push_back((*(findCosmicTags.at(trackIndex)[t])));
+
+  try{
+    const art::FindManyP<anab::CosmicTag> findCosmicTags(recoTracks,evt,trackModule);
+    for(unsigned int t = 0; t < findCosmicTags.at(trackIndex).size(); ++t){
+      trackTags.push_back((*(findCosmicTags.at(trackIndex)[t])));
+    }
   }
-  return trackTags;
-    
+  catch(...){
+//    std::cerr << "Product not found - returning empty vector" << std::endl;
+  }
+
+  return trackTags;    
 }
 
 std::vector<anab::T0> protoana::ProtoDUNETrackUtils::GetRecoTrackT0(const recob::Track &track, art::Event const &evt, std::string trackModule) const{
@@ -37,13 +42,19 @@ std::vector<anab::T0> protoana::ProtoDUNETrackUtils::GetRecoTrackT0(const recob:
 
   unsigned int trackIndex = GetTrackIndexNumber(track,evt,trackModule);
 
-  const art::FindManyP<anab::T0> findTrackT0s(recoTracks,evt,trackModule);
-
   // Convert to std::vector<anab::T0> from std::vector<art::Ptr<anab::T0>>
   std::vector<anab::T0> trackT0s;
-  for(unsigned int t = 0; t < findTrackT0s.at(trackIndex).size(); ++t){
-    trackT0s.push_back((*(findTrackT0s.at(trackIndex)[t])));
+  
+  try{
+    const art::FindManyP<anab::T0> findTrackT0s(recoTracks,evt,trackModule);
+    for(unsigned int t = 0; t < findTrackT0s.at(trackIndex).size(); ++t){
+      trackT0s.push_back((*(findTrackT0s.at(trackIndex)[t])));
+    }
   }
+  catch(...){
+//    std::cerr << "Product not found - returning empty vector" << std::endl;
+  }
+  
   return trackT0s;
 
 }
