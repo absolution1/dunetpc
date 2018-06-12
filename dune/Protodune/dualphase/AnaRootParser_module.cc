@@ -5144,9 +5144,6 @@ if (fSaveTrackInfo) {
         double dpos = bdist(pos);  // FIXME - Passing an uncorrected position....
         double dend = bdist(end);  // FIXME - Passing an uncorrected position....
 
-        std::cout << TrackerData.trkId[iTrk] << iTrk << std::endl;
-
-
         TrackerData.trkId[iTrk]                 = TrackID;
         TrackerData.trkstartx[iTrk]             = pos.X();
         TrackerData.trkstarty[iTrk]             = pos.Y();
