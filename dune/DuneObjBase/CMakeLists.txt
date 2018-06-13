@@ -13,6 +13,7 @@ art_make(
 		    cetlib cetlib_except
 		    ${ROOT_BASIC_LIB_LIST}
   DICT_LIBRARIES
+  EXCLUDE OpDetDivRec.h OpDetDivRec.cc
   )
 
 

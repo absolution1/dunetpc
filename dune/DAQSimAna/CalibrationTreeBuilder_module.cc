@@ -10,6 +10,7 @@
 
 #include "CalibrationTreeBuilder.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include <vector>
 #include <TObject.h>
 
@@ -39,7 +40,7 @@ namespace CalibrationTreeBuilder {
     private_CalibrationTree = private_service_tfs->make<TTree>("CalibrationRecordTree"," A TTree for storing hit and ophit values under their particles for each event in the simulation");
     private_FlatCalibrationTree = private_service_tfs->make<TTree>("FlatCalibrationRecordTree"," A TTree for storing hit and ophit values with their particles for each event in the simulation");
     private_CalibrationRecord = private_CalibrationTree->Branch("event_records", &private_eventBuffer);
-    private_FlatCalibrationRecord = private_FlatCalibrationTree->Branch("flat_event_records", &fl, "eve_x/D:eve_y:eve_z:part_x:part_y:part_z:hit_charge:hit_time:hit_width:hit_split:ophit_pes:ophit_time:ophit_width:ophit_split:hit_index/L:ophit_index:run/i:subrun:event_n:hit_wire:ophit_opchan:eve_trackid/I:eve_pdgid:part_trackid:part_pdgid:part_iseve/O");
+    private_FlatCalibrationRecord = private_FlatCalibrationTree->Branch("flat_event_records", &fl, "eve_x/D:eve_y:eve_z:part_x:part_y:part_z:hit_charge:hit_energy:hit_time:hit_width:hit_split:ophit_pes:ophit_energy:ophit_time:ophit_width:ophit_split:hit_index/L:ophit_index:run/i:subrun:event_n:hit_wire:ophit_opchan:eve_index:part_index:eve_trackid/I:eve_pdgid:part_trackid:part_pdgid:part_iseve/O");
   }
 
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -62,15 +63,15 @@ namespace CalibrationTreeBuilder {
     if(evt.getByLabel(private_OpHitLabel,opHitHandle) )
       art::fill_ptr_vector(opHitList, opHitHandle);
 
-//private_eventBuffer is the event record
+    //private_eventBuffer is the event record
     private_eventBuffer.bunch_hits=true;
     private_eventBuffer.run=evt.id().run();
-    private_eventBuffer.subrun=evt.id().run();
+    private_eventBuffer.subrun=evt.id().subRun();
     private_eventBuffer.event=evt.id().event();
-//private_eventPrep is the event record
+    //private_eventPrep is the event record
     private_eventPrep.bunch_hits=true;
     private_eventPrep.run=evt.id().run();
-    private_eventPrep.subrun=evt.id().run();
+    private_eventPrep.subrun=evt.id().subRun();
     private_eventPrep.event=evt.id().event();
 
 
@@ -92,23 +93,23 @@ namespace CalibrationTreeBuilder {
 
     //Buffer normalized per hit as it is built.
     //Make the event record
-/*
-    if(!private_eventPrep.eves.empty()){
-      mf::LogDebug(__FUNCTION__)<<"EventBuffer for CalibrationTree contains "<<private_eventPrep.eves.size()<<" eves.\n";
-      if(!private_eventPrep.eves.at(0).particles.empty()){
-        mf::LogDebug(__FUNCTION__)<<"The first particle has "<<private_eventPrep.eves.at(0).particles.size()<<" particles.\n";
-        if(!private_eventPrep.eves.at(0).particles.at(0).partial_hits.empty()){
-          mf::LogDebug(__FUNCTION__)<<"The first of these particles has "<<private_eventPrep.eves.at(0).particles.at(0).partial_hits.size()<<" partial hits.\n";
-        }else{
-          mf::LogDebug(__FUNCTION__)<<"The particle contains no hits.\n";
-        }
-      }else{
-        mf::LogDebug(__FUNCTION__)<<"Eve contains no particles.\n";
-      }
-    }else{
-      mf::LogDebug(__FUNCTION__)<<"EventBuffer for CalibrationTree contains no eves.\n";
-    }
-*/
+    /*
+       if(!private_eventPrep.eves.empty()){
+       mf::LogDebug(__FUNCTION__)<<"EventBuffer for CalibrationTree contains "<<private_eventPrep.eves.size()<<" eves.\n";
+       if(!private_eventPrep.eves.at(0).particles.empty()){
+       mf::LogDebug(__FUNCTION__)<<"The first particle has "<<private_eventPrep.eves.at(0).particles.size()<<" particles.\n";
+       if(!private_eventPrep.eves.at(0).particles.at(0).partial_hits.empty()){
+       mf::LogDebug(__FUNCTION__)<<"The first of these particles has "<<private_eventPrep.eves.at(0).particles.at(0).partial_hits.size()<<" partial hits.\n";
+       }else{
+       mf::LogDebug(__FUNCTION__)<<"The particle contains no hits.\n";
+       }
+       }else{
+       mf::LogDebug(__FUNCTION__)<<"Eve contains no particles.\n";
+       }
+       }else{
+       mf::LogDebug(__FUNCTION__)<<"EventBuffer for CalibrationTree contains no eves.\n";
+       }
+       */
 
     {//Forced local scope for a few variables. This is a good indication that the code I am writing doesn't belong here, but in another function.
       int eve_pos=0;
@@ -170,16 +171,27 @@ namespace CalibrationTreeBuilder {
           npart.partial_ophits.clear(); //I did not clear the particles from the new list because I don't need to. They will be the same particles. The only thing that chages are the partial records, as we are bunching them.
           //add part to particle buffer.
           std::map<int64_t, EventRecord::PartialHit> bunched_hits;
+          std::map<int64_t, std::list<Double_t>> remembered_energies;
           for(auto partialhit : part.partial_hits){ //No value in using an index loop here because I don't need the hit number (it will be internal, and won't match the counter);
             auto emp_h = bunched_hits.emplace(std::make_pair(partialhit.index,partialhit));
-            if(emp_h.second==true){
+            std::list<Double_t> dummy;
+            auto emp_e = remembered_energies.emplace(std::make_pair(partialhit.index, dummy));//very memory inefficient, but I am not in a position to care about that right now. One could easily improve on my code here.
+            if(emp_h.second==true){ //emp_e.second and emp_h.second are always the same.
+              emp_e.first->second.emplace_back(partialhit.energy);
               emp_h.first->second=partialhit;
             }else{
               if(emp_h.first->second.time != partialhit.time){throw cet::exception("CalibrationTreeBuilder")<<"Buncher failed. Trying to merge two of the same hit at different times?\n";}
+              emp_e.first->second.emplace_back(partialhit.energy);
               emp_h.first->second.charge+=partialhit.charge;
               emp_h.first->second.split+=partialhit.split;
               emp_h.first->second.num_electrons+=partialhit.num_electrons;//numelectrons came from the ides that contributed to the given hit. They should stack because the IDEs stack(which is why we are adding them in the first place).
             }
+            //emp_e.first->second.unique();//Throw out duplicates.
+            Double_t energy=0.0;
+            for( auto en : emp_e.first->second){
+              energy += en;
+            }
+            emp_h.first->second.energy=energy;
           }
           std::map<int64_t, EventRecord::PartialOpHit> bunched_ophits;
           for(auto partialop : part.partial_ophits){
@@ -207,8 +219,8 @@ namespace CalibrationTreeBuilder {
 
       //Reding the bunched record is a good time to make the flattened record
       /*
-      mf::LogDebug(__FUNCTION__)<<"EventBuffer for CalibrationTree contains "<<private_eventBuffer.eves.size()<<" eves, the first of which has "<<private_eventBuffer.eves.at(0).particles.size()<<" particles. The first of these particles has "<<private_eventBuffer.eves.at(0).particles.at(0).partial_hits.size()<<" partial hits.\n";
-      */
+         mf::LogDebug(__FUNCTION__)<<"EventBuffer for CalibrationTree contains "<<private_eventBuffer.eves.size()<<" eves, the first of which has "<<private_eventBuffer.eves.at(0).particles.size()<<" particles. The first of these particles has "<<private_eventBuffer.eves.at(0).particles.at(0).partial_hits.size()<<" partial hits.\n";
+         */
       {//Forced local scope for a few variables. This is a good indication that the code I am writing doesn't belong here, but in another function.
         int eve_pos=0;
         fl.run           = private_eventBuffer.run;
@@ -221,6 +233,7 @@ namespace CalibrationTreeBuilder {
             fl.eve_z         = eve.z_pos;
             fl.eve_trackid   = eve.trackId;
             fl.eve_pdgid     = eve.pdgid;
+            fl.eve_index     = eve_pos;
             int part_pos=0;
             for(auto part : eve.particles){
               fl.part_x        = part.x_pos;
@@ -229,6 +242,7 @@ namespace CalibrationTreeBuilder {
               fl.part_trackid  = part.trackId;
               fl.part_pdgid    = part.pdgid;
               fl.part_iseve    = part.isEve;
+              fl.part_index    = part_pos;
               { //keep partial_hit_pos local scope for the loop
                 fl.ophit_pes     = 0.0;
                 fl.ophit_energy  = 0.0;
@@ -323,35 +337,37 @@ namespace CalibrationTreeBuilder {
   //We will also add the appropriate references to the hit
   //list to be able to rebuild the "full" hit.
   bool CalibrationTreeBuilder::AddHit(const art::Ptr<recob::Hit> hit, unsigned int& counter){
-      std::vector<const sim::IDE*> ides_ps = BTS->HitToSimIDEs_Ps(hit);
-      std::vector<std::pair<int, EventRecord::PartialHit>> track_partials;
-      double total_charge = 0.0;
-      if(ides_ps.empty()){return false;}
-      for(auto ide_p : ides_ps){
-        int track_id = ide_p->trackID;
-        EventRecord::PartialHit tmp;
-        total_charge += ide_p->numElectrons;
-//        tmp.charge = ide_p->numElectrons;
-        tmp.num_electrons = ide_p->numElectrons;
-        tmp.energy = ide_p->energy;
-        tmp.time   = hit->PeakTime();
-        tmp.width  = hit->SigmaPeakTime();
-        tmp.split  = 0.0;
-        tmp.wire   = hit->Channel();
-        tmp.index  = counter;
-        track_partials.push_back(std::make_pair(track_id, tmp));
-      }
-      for(auto track_partial : track_partials){
-        track_partial.second.split  = track_partial.second.num_electrons / total_charge; //What percentage of the hit is in this partial.
-        track_partial.second.charge = hit->Integral()*track_partial.second.split; //Charge now normalized by deposition;
-        //Add partial to EventRecord;
-        const simb::MCParticle* part = PIS->TrackIdToParticle_P(track_partial.first);
-        //Emplace Particle. (Emplace Eve will be handeled in emplace particle
-        std::pair<std::vector<EventRecord::ParticleRecord>::iterator, bool> part_marker = EmplaceParticle(part);
-        part_marker.first->partial_hits.push_back(track_partial.second); //Add post normalized partial hit.
-        //Don't forget to add the indicies to the hit vector. Actually. To keep it easy, we can just loop the eve records and add the indicies then. This is inefficient, but easier to code since I don't immediately have access to eve_pos here.
-        mf::LogDebug(__FUNCTION__)<<"This partialhit is being added to the record with charge "<<track_partial.second.charge<<"\n";
-      }//end for track partial.
+    art::ServiceHandle<geo::Geometry> geom;
+    std::vector<const sim::IDE*> ides_ps = BTS->HitToSimIDEs_Ps(hit);
+    std::vector<std::pair<int, EventRecord::PartialHit>> track_partials;
+    Double_t total_charge = 0.0;
+    if(ides_ps.empty()){return false;}
+    for(auto ide_p : ides_ps){
+      int track_id = ide_p->trackID;
+      EventRecord::PartialHit tmp;
+      total_charge += ide_p->numElectrons;
+      //        tmp.charge = ide_p->numElectrons;
+      tmp.num_electrons = ide_p->numElectrons;
+      tmp.time   = hit->PeakTime();
+      tmp.width  = hit->SigmaPeakTime();
+      tmp.split  = 0.0;
+      tmp.wire   = hit->Channel();
+      tmp.is_collection_wire = (geom->SignalType(tmp.wire)==geo::kCollection)?(true):(false);
+      tmp.energy = (tmp.is_collection_wire)?(ide_p->energy):(0.0);
+      tmp.index  = counter;
+      track_partials.push_back(std::make_pair(track_id, tmp));
+    }
+    for(auto track_partial : track_partials){
+      track_partial.second.split  = track_partial.second.num_electrons / total_charge; //What percentage of the hit is in this partial.
+      track_partial.second.charge = hit->Integral()*track_partial.second.split; //Charge now normalized by deposition;
+      //Add partial to EventRecord;
+      const simb::MCParticle* part = PIS->TrackIdToParticle_P(track_partial.first);
+      //Emplace Particle. (Emplace Eve will be handeled in emplace particle
+      std::pair<std::vector<EventRecord::ParticleRecord>::iterator, bool> part_marker = EmplaceParticle(part);
+      part_marker.first->partial_hits.push_back(track_partial.second); //Add post normalized partial hit.
+      //Don't forget to add the indicies to the hit vector. Actually. To keep it easy, we can just loop the eve records and add the indicies then. This is inefficient, but easier to code since I don't immediately have access to eve_pos here.
+      mf::LogDebug(__FUNCTION__)<<"This partialhit is being added to the record with charge "<<track_partial.second.charge<<"\n";
+    }//end for track partial.
 
     return true;
   }
@@ -360,15 +376,16 @@ namespace CalibrationTreeBuilder {
     {//make each loop local so the vectors don't persist
       std::vector<const sim::SDP*> sdps_ps = PBS->OpHitToSimSDPs_Ps(hit);
       std::vector<std::pair<int, EventRecord::PartialOpHit>> track_partials;
-      double total_charge = 0.0;
+      Double_t total_charge = 0.0;
       if(sdps_ps.empty()){return false;}
       for(auto sdp_p : sdps_ps){
         int track_id = sdp_p->trackID;
         EventRecord::PartialOpHit tmp;
         total_charge += sdp_p->numPhotons;
-//        tmp.pes = //Not used yet.
+        //        tmp.pes = //Not used yet.
         tmp.num_photons = sdp_p->numPhotons; //This is not PEs. This is incident photons. I am just storing it here for later logic (see final assignment in the next for loop.
-        tmp.energy = sdp_p->energy;
+        //tmp.energy = sdp_p->energy;
+        tmp.energy = 0.0;// sdp_p->energy;
         tmp.time   = hit->PeakTime();
         tmp.width  = hit->Width();
         tmp.split  = 0.0;

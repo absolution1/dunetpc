@@ -17,7 +17,8 @@
   <version ClassVersion="11" checksum="4050960930"/>
   <version ClassVersion="10" checksum="2378973873"/>
  </class>
- <class name="EventRecord::PartialHit" ClassVersion="13">
+ <class name="EventRecord::PartialHit" ClassVersion="14">
+  <version ClassVersion="14" checksum="3286341470"/>
   <version ClassVersion="13" checksum="474482815"/>
   <version ClassVersion="12" checksum="1493617752"/>
   <version ClassVersion="11" checksum="1374773"/>

@@ -76,6 +76,7 @@ namespace EventRecord {
       Double_t split;//fraction of track energy in this hit.
       UInt_t wire;
       int64_t index;
+      Bool_t is_collection_wire;
   };
 
 /*  class TrackRecord {

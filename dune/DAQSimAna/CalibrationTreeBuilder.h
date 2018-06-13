@@ -70,6 +70,8 @@ namespace CalibrationTreeBuilder {
     UInt_t event_n ;
     UInt_t hit_wire ;
     UInt_t ophit_opchan ;
+    UInt_t eve_index;
+    UInt_t part_index;
     Int_t eve_trackid;
     Int_t eve_pdgid ;
     Int_t part_trackid ;
