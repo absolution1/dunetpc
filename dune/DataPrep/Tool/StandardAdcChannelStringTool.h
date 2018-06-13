@@ -15,6 +15,8 @@
 //   % SUNIT% --> " sunit" or "" if sunit is empty
 //   %(SUNIT)% --> "(sunit)" or "" if sunit is empty
 //   % (SUNIT)% --> " (sunit)" or "" if sunit is empty
+//   %((SUNIT))% --> "(sunit)" or sunit if there is no space in sunit
+//   % ((SUNIT))% --> add preceding space to this if sunit is not blank
 //   %[SUNIT]% --> "[sunit]" or "" if sunit is empty
 //   % [SUNIT]% --> " [sunit]" or "" if sunit is empty
 //   %COUNT% --> dm.getInt("count") passed in call to build

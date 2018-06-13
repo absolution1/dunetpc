@@ -122,12 +122,16 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   string sunitSpaced = sunit.size() ? " " + sunit : "";
   string sunitWrapped = sunit.size() ? "(" + sunit + ")" : "";
   string sunitSpWrapped = sunit.size() ? " " + sunitWrapped : "";
+  string sunitOptWrapped = sunit.find(" ") != string::npos ? sunitWrapped : "";
+  string sunitSpOptWrapped = sunitOptWrapped.size() ? " " + sunitOptWrapped : "";
   string sunitBarred = sunit.size() ? "[" + sunit + "]" : "";
   string sunitSpBarred = sunit.size() ? " " + sunitBarred : "";
   sman.replace("%SUNIT%", sunit);
   sman.replace("% SUNIT%", sunitSpaced);
   sman.replace("%(SUNIT)%", sunitWrapped);
   sman.replace("% (SUNIT)%", sunitSpWrapped);
+  sman.replace("%((SUNIT))%", sunitOptWrapped);
+  sman.replace("% ((SUNIT))%", sunitSpOptWrapped);
   sman.replace("%[SUNIT]%", sunitBarred);
   sman.replace("% [SUNIT]%", sunitSpBarred);
   if ( m_LogLevel >= 2 ) cout << myname << spat << " --> " << sout << endl;

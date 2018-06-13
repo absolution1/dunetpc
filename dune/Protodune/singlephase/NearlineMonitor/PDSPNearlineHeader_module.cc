@@ -1,4 +1,9 @@
-// Header module file. For now saves the run and subrun ids of the input file into a TTree
+///////////////////////////////////////////////////////////////////////////
+// Header module                                                         //
+// Saves the run and subrun ids and the time of first event into a TTree //
+// May 2018                                                              //
+// georgios.christodoulou <at> cern.ch                                   //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef PDSPNearlineHeader_module
 #define PDSPNearlineHeader_module

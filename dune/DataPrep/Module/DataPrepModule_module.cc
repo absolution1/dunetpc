@@ -35,6 +35,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "dune/DuneInterface/RawDigitPrepService.h"
 #include "dune/DuneInterface/ChannelGroupService.h"
+#include "dune/DuneCommon/DuneTimeConverter.h"
 
 using std::cout;
 using std::endl;
@@ -42,6 +43,7 @@ using std::string;
 using std::vector;
 using std::move;
 using art::ServiceHandle;
+using art::Timestamp;
 using recob::Wire;
 
 //**********************************************************************
@@ -156,9 +158,16 @@ void DataPrepModule::endJob() { }
 void DataPrepModule::produce(art::Event& evt) {      
   const string myname = "DataPrepModule::produce: ";
 
+  // Fetch the event time.
+  Timestamp beginTime = evt.time();
+
   // Read in the digits. 
-  if ( m_LogLevel > 1 ) {
+  if ( m_LogLevel >= 2 ) {
     cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
+    cout << myname << "Event time: " << DuneTimeConverter::toString(beginTime) << endl;
+  }
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "Event time high, low: " << beginTime.timeHigh() << ", " << beginTime.timeLow() << endl;
   }
   art::Handle< std::vector<raw::RawDigit> > hdigits;
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
