@@ -78,6 +78,14 @@ Name AdcRoiViewer::State::getChanSumHistVariableType(Name hnam) const {
 }
 
 //**********************************************************************
+
+Name AdcRoiViewer::State::getChanSumHistErrorType(Name hnam) const {
+  NameMap::const_iterator ihst = chanSumHistErrorTypes.find(hnam);
+  if ( ihst == chanSumHistErrorTypes.end() ) return nullptr;
+  return ihst->second;
+}
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
@@ -181,6 +189,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name httl0   = psh.get<Name>("title");   // Title for this histogram
     Name vhnam   = psh.get<Name>("valHist"); // Name of the template for the histogram used to fill
     Name vtype   = psh.get<Name>("valType"); // Type of variable extracted from histogram
+    Name etype   = psh.get<Name>("errType"); // Type of variable extracted from histogram
     Name crname  = psh.get<Name>("cr");      // Name of the channel range for this histogram
     if ( hnam0.size() == 0 ) {
       cout << myname << "ERROR: Channel summary histogram name is missing." << endl;
@@ -200,6 +209,11 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     const NameVector valTypes = {"mean", "rms", "fitMean", "fitWidth", "fitPosition"};
     if ( std::find(valTypes.begin(), valTypes.end(), vtype) == valTypes.end() ) {
       cout << myname << "ERROR: Summary histogram has invalid variable type: " << vtype << endl;
+      continue;
+    }
+    const NameVector errTypes = {"none", "zero", "rms", "fitSigma"};
+    if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end() ) {
+      cout << myname << "ERROR: Summary histogram has invalid error type: " << etype << endl;
       continue;
     }
     TH1* phval = ivh->second.ph;
@@ -226,6 +240,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     getState().chanSumHists[hnam] = phf;
     getState().chanSumHistTemplateNames[hnam] = vhnam;
     getState().chanSumHistVariableTypes[hnam] = vtype;
+    getState().chanSumHistErrorTypes[hnam] = etype;
   }
   // Display the configuration.
   if ( m_LogLevel>= 1 ) {
@@ -253,7 +268,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if ( getState().chanSumHists.size() == 0 ) {
       cout << myname << "  No channel summary histograms" << endl;
     } else {
-      cout << myname << "    ChanSumHists: [" << endl;
+      cout << myname << "   ChanSumHists: [" << endl;
       for ( HistMap::value_type ihst : getState().chanSumHists ) {
         TH1* ph = ihst.second;
         cout << myname << "     " << ph->GetName() << endl;
@@ -801,6 +816,7 @@ void AdcRoiViewer::fillChanSumHists() const {
       continue;
     }
     Name vartype = getState().getChanSumHistVariableType(hnam);
+    Name errtype = getState().getChanSumHistErrorType(hnam);
     if ( vartype.size() == 0 ) {
       cout << myname << "ERROR: Variable template name not found for " << hnam << endl;
       continue;
@@ -830,10 +846,38 @@ void AdcRoiViewer::fillChanSumHists() const {
           continue;
         }
         Name spar = vartype.substr(3);
-        val = pf->GetParameter(spar.c_str());
+        int ipar = pf->GetParNumber(spar.c_str());
+        if ( ipar < 0 ) {
+          cout << myname << "ERROR: Invalid fit parameter name: " << spar << endl;
+          continue;
+        }
+        val = pf->GetParameter(ipar);
       } else {
         cout << myname << "Invald var type: " << vartype << endl;
         continue;
+      }
+      float dval = 0.0;
+      bool haveErr = true;
+      if ( errtype == "none" ) {
+        haveErr = false;
+      } else if ( errtype == "zero" ) {
+        dval = 0.0;
+      } else if ( errtype == "rms" ) {
+        dval = phvar->GetRMS();
+      } else if ( errtype.substr(0,3) == "fit" ) {
+        Index nfun = phvar->GetListOfFunctions()->GetEntries();
+        TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
+        if ( phvar == nullptr ) {
+          cout << myname << "Unable to find find fit for sum hist " << hnam << endl;
+          continue;
+        }
+        Name spar = errtype.substr(3);
+        int ipar = pf->GetParNumber(spar.c_str());
+        if ( ipar < 0 ) {
+          cout << myname << "ERROR: Invalid fit parameter name: " << spar << endl;
+        } else {
+          dval = pf->GetParameter(ipar);
+        }
       }
       if ( ph->GetEntries() == 0 ) {
         Name ylabOld = ph->GetYaxis()->GetTitle();
@@ -851,6 +895,7 @@ void AdcRoiViewer::fillChanSumHists() const {
 
       }
       ph->SetBinContent(ibin, val);
+      if ( haveErr ) ph->SetBinError(ibin, dval);
     }
   }
 }
