@@ -56,6 +56,18 @@
 //
 // Channel summary histograms
 // --------------------------
+// Channel summary histograms hold a metric for each channel derived from a summary histogram.
+// The following fileds specify a channel summary histogram:
+//     name - name for the summary histogram (%CRNAME% is replaced with the channel range name)
+//    title - histogram title  (substitutions for %CRLABEL%, %RUN%, ...)
+//  valHist - Name of the summary histogram template from which the metric is derived (should include %CHAN%)
+//  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
+//                mean - Root GetMean()
+//                 rms - Root GetRMS()
+//              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
+//  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
+//                none - Do not set error
+//                zero - Set the error to zero
 //
 // Output data map for view:
 //           int              roiRun - Run number
@@ -151,11 +163,13 @@ public:
     HistMap chanSumHists;
     NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
     NameMap chanSumHistVariableTypes;  // Variable type indexed by chansum name.
+    NameMap chanSumHistErrorTypes;     // Error type indexed by chansum name.
     ~State();
     // Fetch the summary histogram for a histogram name.
     TH1* getSumHist(Name hname);
     Name getChanSumHistTemplateName(Name hnam) const;
     Name getChanSumHistVariableType(Name hnam) const;
+    Name getChanSumHistErrorType(Name hnam) const;
     Index cachedRunCount = 0;  // Incremente each time run number changes.
     Index cachedRun = AdcChannelData::badIndex;
     Name cachedSampleUnit;
