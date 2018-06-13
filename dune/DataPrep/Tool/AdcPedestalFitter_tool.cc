@@ -15,6 +15,7 @@
 #include "TH1F.h"
 #include "TF1.h"
 #include "TROOT.h"
+#include "TError.h"
 
 using std::string;
 using std::cout;
@@ -73,15 +74,10 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
       cout << myname << "WARNING: Histogram manager not found: " << m_HistManager << endl;
     }
   }
-  string snameBuilder = "adcNameBuilder";
-  m_adcNameBuilder = ptm->getShared<AdcChannelStringTool>(snameBuilder);
-  if ( m_adcNameBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
-  }
-  string stitlBuilder = "adcTitleBuilder";
-  m_adcTitleBuilder = ptm->getShared<AdcChannelStringTool>(stitlBuilder);
-  if ( m_adcTitleBuilder == nullptr ) {
-    cout << myname << "WARNING: AdcChannelStringTool not found: " << stitlBuilder << endl;
+  string stringBuilder = "adcStringBuilder";
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
@@ -225,11 +221,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
 
 string AdcPedestalFitter::
 nameReplace(string name, const AdcChannelData& acd, bool isTitle) const {
-  const AdcChannelStringTool* pnbl = nullptr;
-  if ( isTitle ) pnbl = m_adcTitleBuilder;
-  else {
-    pnbl = m_adcNameBuilder == nullptr ? m_adcTitleBuilder : m_adcNameBuilder;
-  }
+  const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   if ( pnbl == nullptr ) return name;
   DataMap dm;
   return pnbl->build(acd, dm, name);
@@ -327,7 +319,19 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   string fopt = "0";
   fopt = "WWB";
   if ( m_LogLevel < 3 ) fopt += "Q";
+  // Block Root info message for new Canvas produced in fit.
+  int levelSave = gErrorIgnoreLevel;
+  gErrorIgnoreLevel = 1001;
+  // Block non-default (e.g. art) from handling the Root "error".
+  // We switch to the Root default handler while making the call to Print.
+  ErrorHandlerFunc_t pehSave = nullptr;
+  ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
+  if ( GetErrorHandler() != pehDefault ) {
+    pehSave = SetErrorHandler(pehDefault);
+  }
   phf->Fit(&fitter, fopt.c_str());
+  if ( pehSave != nullptr ) SetErrorHandler(pehSave);
+  gErrorIgnoreLevel = levelSave;
   phf->GetListOfFunctions()->AddLast(pfinit, "0");
   phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
   double valEval = fitter.Eval(xcomax);

@@ -25,7 +25,7 @@ tools.rawAdcDetectorPlotColl: {
   ShowCathode: true
   ShowGrid: true
   Title: "Raw ADC collection view. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-coll.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.rawAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter
@@ -45,7 +45,7 @@ tools.rawAdcDetectorPlotInd1: {
   ShowCathode: true
   ShowGrid: true
   Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-ind1.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.rawAdcDetectorPlotInd2: {
   tool_type: AdcDetectorPlotter
@@ -65,7 +65,7 @@ tools.rawAdcDetectorPlotInd2: {
   ShowCathode: true
   ShowGrid: true
   Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-ind2.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
 # Prepared data.
@@ -87,7 +87,7 @@ tools.preparedAdcDetectorPlotColl: {
   ShowCathode: true
   ShowGrid: true
   Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-coll.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.preparedAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter
@@ -107,7 +107,7 @@ tools.preparedAdcDetectorPlotInd1: {
   ShowCathode: true
   ShowGrid: true
   Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-ind1.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.preparedAdcDetectorPlotInd2: {
   tool_type: AdcDetectorPlotter
@@ -127,7 +127,7 @@ tools.preparedAdcDetectorPlotInd2: {
   ShowCathode: true
   ShowGrid: true
   Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%RUN%-evt%EVENT%-ind2.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
 ################################################################################
@@ -146,34 +146,41 @@ pdwp_template: {
   ChannelLineModulus: 0
   ChannelLinePattern: []
   Palette: 1026
-  HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
+  HistName: "hadcprp_evt%0EVENT%_ch_%0CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
   PlotSizeX: 1400
   PlotSizeY: 1000
-  PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  PlotFileName: "adcprep_evt%0EVENT%_ch%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""    # or "adc_evt%EVENT%.root"
 }
 
 tools.pdwp_channelTickPlotApa1z: @local::pdwp_template
 tools.pdwp_channelTickPlotApa1z.FirstChannel:  2080
 tools.pdwp_channelTickPlotApa1z.LastChannel:   2560
-tools.pdwp_channelTickPlotApa1z.HistName: "hadcprp_evt%EVENT%_apa1x"
-tools.pdwp_channelTickPlotApa1z.HistTitle: "Prepared ADC for plane 1x run %RUN% event %EVENT%"
-tools.pdwp_channelTickPlotApa1z.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1x.png"
+tools.pdwp_channelTickPlotApa1z.HistName: "hadcprp_evt%0EVENT%_apa1z"
+tools.pdwp_channelTickPlotApa1z.HistTitle: "Prepared ADC for plane 1z run %RUN% event %EVENT%"
+tools.pdwp_channelTickPlotApa1z.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_apa1z.png"
+
+tools.pdwp_channelTickPlotApa1c: @local::pdwp_template
+tools.pdwp_channelTickPlotApa1c.FirstChannel:  1600
+tools.pdwp_channelTickPlotApa1c.LastChannel:   2080
+tools.pdwp_channelTickPlotApa1c.HistName: "hadcprp_evt%0EVENT%_apa1c"
+tools.pdwp_channelTickPlotApa1c.HistTitle: "Prepared ADC for plane 1c run %RUN% event %EVENT%"
+tools.pdwp_channelTickPlotApa1c.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_apa1c.png"
 
 tools.pdwp_channelTickPlotApa1u: @local::pdwp_template
 tools.pdwp_channelTickPlotApa1u.FirstChannel:     0
 tools.pdwp_channelTickPlotApa1u.LastChannel:    800
-tools.pdwp_channelTickPlotApa1u.HistName: "hadcprp_evt%EVENT%_apa1u"
+tools.pdwp_channelTickPlotApa1u.HistName: "hadcprp_evt%0EVENT%_apa1u"
 tools.pdwp_channelTickPlotApa1u.HistTitle: "Prepared ADC for plane 1u run %RUN% event %EVENT%"
-tools.pdwp_channelTickPlotApa1u.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1u.png"
+tools.pdwp_channelTickPlotApa1u.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_apa1u.png"
 
 tools.pdwp_channelTickPlotApa1v: @local::pdwp_template
 tools.pdwp_channelTickPlotApa1v.FirstChannel:   800
 tools.pdwp_channelTickPlotApa1v.LastChannel:   1600
-tools.pdwp_channelTickPlotApa1v.HistName: "hadcprp_evt%EVENT%_apa1v"
+tools.pdwp_channelTickPlotApa1v.HistName: "hadcprp_evt%0EVENT%_apa1v"
 tools.pdwp_channelTickPlotApa1v.HistTitle: "Prepared ADC for plane 1v run %RUN% event %EVENT%"
-tools.pdwp_channelTickPlotApa1v.PlotFileName: "adcprep_run%RUN%_evt%EVENT%_apa1v.png"
+tools.pdwp_channelTickPlotApa1v.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_apa1v.png"
 
 ################################################################################
 # ADC channel metric plotters.
@@ -204,12 +211,12 @@ tools.pdapa_adcChannelPedestalPlotter: {
   MetricMax: 4096
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
-  HistName: "hchped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistName: "hchped_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
   HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
   MetricLabel: "Pedestal [ADC counts]"
   PlotSizeX: 1400
   PlotSizeY:  500
-  PlotFileName: "hchped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  PlotFileName: "hchped_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
 }
 
@@ -225,12 +232,12 @@ tools.pdapa_adcChannelPedestalRmsPlotter: {
   MetricMax: 11
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
-  HistName: "hchpedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+  HistName: "hchpedrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
   HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
   MetricLabel: "Pedestal RMS [ADC counts]"
   PlotSizeX: 1400
   PlotSizeY:  500
-  PlotFileName: "hchpedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+  PlotFileName: "hchpedrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
 }
 
@@ -239,40 +246,40 @@ tools.pdwp_adcChannelPedestalPlotter: @local::pdwp_template
 tools.pdwp_adcChannelPedestalPlotter.Metric: pedestal
 tools.pdwp_adcChannelPedestalPlotter.MetricMin: 0
 tools.pdwp_adcChannelPedestalPlotter.MetricMax: 4096
-tools.pdwp_adcChannelPedestalPlotter.HistName: "hchpdwp_ped_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+tools.pdwp_adcChannelPedestalPlotter.HistName: "hchpdwp_ped_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
 tools.pdwp_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
 tools.pdwp_adcChannelPedestalPlotter.MetricLabel: "Pedestal [ADC counts]"
-tools.pdwp_adcChannelPedestalPlotter.PlotFileName: "hchpdwp_ped_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+tools.pdwp_adcChannelPedestalPlotter.PlotFileName: "hchpdwp_ped_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
 
 # Pedestal RMS for each channel.
 tools.pdwp_adcChannelPedestalRmsPlotter: @local::pdwp_template
 tools.pdwp_adcChannelPedestalRmsPlotter.Metric: pedestalRms
 tools.pdwp_adcChannelPedestalRmsPlotter.MetricMin: 0
 tools.pdwp_adcChannelPedestalRmsPlotter.MetricMax: 11
-tools.pdwp_adcChannelPedestalRmsPlotter.HistName: "hchpdwp_pedrms_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+tools.pdwp_adcChannelPedestalRmsPlotter.HistName: "hchpdwp_pedrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
 tools.pdwp_adcChannelPedestalRmsPlotter.HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
 tools.pdwp_adcChannelPedestalRmsPlotter.MetricLabel: "Pedestal RMS [ADC counts]"
-tools.pdwp_adcChannelPedestalRmsPlotter.PlotFileName: "hchpdwp_pedrms_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+tools.pdwp_adcChannelPedestalRmsPlotter.PlotFileName: "hchpdwp_pedrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
 
 # Pedestal peak bin fraction for each channel.
 tools.pdwp_adcChannelPedestalPeakBinFractionPlotter: @local::pdwp_template
 tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.Metric: fitPedPeakBinFraction
 tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.MetricMin: 0
 tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.MetricMax: 1.0
-tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.HistName: "hchpdwp_pedpeakfrac_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.HistName: "hchpdwp_pedpeakfrac_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
 tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.HistTitle: "Pedestal peak bin fraction for run %RUN% event %EVENT%"
 tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.MetricLabel: "Peak bin fraction"
-tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.PlotFileName: "hchpdwp_pedpeakfrac_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+tools.pdwp_adcChannelPedestalPeakBinFractionPlotter.PlotFileName: "hchpdwp_pedpeakfrac_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
 
 # Pedestal peak bin excess for each channel.
 tools.pdwp_adcChannelPedestalPeakBinExcessPlotter: @local::pdwp_template
 tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.Metric: fitPedPeakBinExcess
 tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.MetricMin: 0
 tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.MetricMax: 1.0
-tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpdwp_pedpeakexc_%RUN%_%EVENT%_%CHAN1%_%CHAN2%"
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpdwp_pedpeakexc_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
 tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "Pedestal peak bin fraction excess for run %RUN% event %EVENT%"
 tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak bin fraction excess"
-tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "hchpdwp_pedpeakexc_run%RUN%_evt%EVENT%_chans%CHAN1%-%CHAN2%.png"
+tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "hchpdwp_pedpeakexc_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
 
 #fitPedChiSquare       - Chi-square of the fit
 #//   fitPedNBinsRemoved    - N

@@ -32,10 +32,10 @@ use Math::BigFloat;
 Math::BigFloat->precision(-16);
 
 GetOptions( "help|h" => \$help,
-	    "suffix|s:s" => \$suffix,
+	    "suffix|s:s" => \$suffix, 
+	    "wkspc|k:s" => \$wkspc,
 	    "output|o:s" => \$output,
-	    "wires|w:s" => \$wires,  
-            "workspace|k:s" => \$workspace); 
+	    "wires|w:s" => \$wires); 
 
 if ( defined $help )
 {
@@ -57,11 +57,13 @@ else
     $suffix = "-" . $suffix;
 }
 
-if ( ! defined $workspace ) # not done 
+$workspace = 0;
+
+if (defined $wkspc ) # not done 
 {
-    $workspace = 0;
+    $workspace = $wkspc;
 }
-elsif ( $workspace == 1)
+elsif ( $workspace != 0 )
 {
     print "\t\tCreating smaller workspace geometry.\n";
 }
@@ -74,17 +76,23 @@ if (defined $wires)
 }
 
 $tpc_on = 1;
-
 $basename = "dunedphase10kt_v2";
+if ( $workspace == 1 )
+{
+    $basename = $basename."_workspace";
+}
+if ( $workspace == 2 )
+{
+    $basename = $basename."_workspace4x2";
+}
+
+
 if ( $wires_on == 0 )
 {
     $basename = $basename."_nowires";
 }
 
-if ( $workspace == 1 )
-{
-    $basename = $basename."_workspace";
-}
+
 
 
 ##################################################################
@@ -113,6 +121,13 @@ if( $workspace == 1 )
     $nCRM_z = 2;
 }
 
+# create a smaller geometry
+if( $workspace == 2 )
+{
+    $nCRM_y = 2;
+    $nCRM_z = 4;
+}
+
 # calculate tpc area based on number of CRMs and their dimensions
 $widthTPCActive  = $nCRM_y * $widthCRM;  # around 1200
 $lengthTPCActive = $nCRM_z * $lengthCRM; # around 6000
@@ -134,7 +149,7 @@ $Argon_x = 1510;
 $Argon_y = 1510;
 $Argon_z = 6200;
 
-if( $workspace == 1 )
+if( $workspace != 0 )
 {
     #active tpc + 1 m buffer on each side
     $Argon_y = $widthTPCActive + 200;
@@ -670,7 +685,7 @@ print ENCL <<EOF;
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
-      <second ref="FoamPadding"/>
+      <second ref="FoamPadBlock"/>
       <positionref ref="posCenter"/>
     </subtraction>
 

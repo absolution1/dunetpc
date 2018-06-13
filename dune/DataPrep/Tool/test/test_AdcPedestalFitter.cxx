@@ -10,6 +10,7 @@
 #include <fstream>
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "TError.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -22,6 +23,14 @@ using fhicl::ParameterSet;
 
 //**********************************************************************
 
+void TestErrorHandler(Int_t, Bool_t, const char*, const char* msg) {
+  const string myname = "TestErrorHandler: ";
+  cout << myname << msg << endl;
+  abort();
+}
+
+//**********************************************************************
+
 int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap) {
   const string myname = "test_AdcPedestalFitter: ";
 #ifdef NDEBUG
@@ -29,6 +38,10 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
   abort();
 #endif
   string line = "-----------------------------";
+
+  // Set a Root error handler and make sure it is not called when
+  // the tool is used.
+  SetErrorHandler(TestErrorHandler);
 
   cout << myname << line << endl;
   string fclfile = "test_AdcPedestalFitter.fcl";

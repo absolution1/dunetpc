@@ -117,17 +117,22 @@ int main()
 {
   std::vector<TGraph*> vec_gr_Config = makeConfigGraph();
   TString s_FileName = "GH_SNMC";
-  TFile *f_Input = new TFile("/pnfs/dune/persistent/users/abooth/SNTrigger/GH_SNMC/snb_timedep_radio_dune10kt_1x2x6/"+s_FileName+".root", "READ");
+  //TFile *f_Input = new TFile("/pnfs/dune/persistent/users/abooth/SNTrigger/GH_SNMC/snb_timedep_radio_dune10kt_1x2x6/"+s_FileName+".root", "READ");
   //TFile *f_Input = new TFile(s_FileName+".root", "READ");
-  TTree *t_Input = (TTree*)f_Input->Get("DAQSimTree");
+  TFile *f_Input = new TFile("SNAna_hist.root", "READ");
+  TTree *t_Input = (TTree*)f_Input->Get("snanagaushit/SNSimTree");
 
-  
-  TFile *f_Output    = new TFile("Module_"+s_FileName+".root", "RECREATE");
-  TTree *t_Output    = new TTree("t_Output", "Output Clusters");
+  TFile *f_Output = new TFile("Module_"+s_FileName+".root", "RECREATE");
+  TTree *t_Output = new TTree("t_Output", "Output Clusters");
 
   int nMaxHits = 1000;
   std::vector<int> vec_ClusterCount(NConfigs);
-  std::map<int,std::vector<double>> map_EventToMC;
+  struct MCContainer{
+    double fENu;
+    double fENu_Lep;
+    std::vector<double> *fMarlTime;
+  };
+  std::map<int,MCContainer> map_EventToMC;
 
   //INPUT VARIABLES
   int   Event;
@@ -140,7 +145,7 @@ int main()
   float HitRMS[nMaxHits];
   double ENu;
   double ENu_Lep;
-  double MarlTime;
+  std::vector<double> *MarlTime = 0;
 
   //int nEvents = 5000;
   int nEvents = t_Input->GetEntries();
@@ -179,7 +184,7 @@ int main()
   float out_TimeWidth;
   double out_ENu;
   double out_ENu_Lep;
-  double out_MarlTime;
+  std::vector<double> out_MarlTime;
   std::vector<int> out_HitView;
   std::vector<int> out_GenType;
   std::vector<int> out_HitChan;
@@ -202,13 +207,13 @@ int main()
   t_Output->Branch("TimeWidth",    &out_TimeWidth,   "TimeWidth/F");
   t_Output->Branch("ENu",          &out_ENu,         "ENu/D");
   t_Output->Branch("ENu_Lep",      &out_ENu_Lep,     "ENu_Lep/D");
-  t_Output->Branch("MarlTime",     &out_MarlTime,    "MarlTime/D");
-  t_Output->Branch("HitView", &out_HitView);
-  t_Output->Branch("GenType", &out_GenType);
-  t_Output->Branch("HitChan", &out_HitChan);
-  t_Output->Branch("HitTime", &out_HitTime);
-  t_Output->Branch("HitSADC", &out_HitSADC);
-  t_Output->Branch("HitRMS",  &out_HitRMS);
+  t_Output->Branch("MarlTime", &out_MarlTime);
+  t_Output->Branch("HitView",  &out_HitView);
+  t_Output->Branch("GenType",  &out_GenType);
+  t_Output->Branch("HitChan",  &out_HitChan);
+  t_Output->Branch("HitTime",  &out_HitTime);
+  t_Output->Branch("HitSADC",  &out_HitSADC);
+  t_Output->Branch("HitRMS",   &out_HitRMS);
 
   TH1D *h_ENu_MC = new TH1D("h_ENu_MC","h_ENu_MC",35,0,50);
   h_ENu_MC->Sumw2();
@@ -217,14 +222,17 @@ int main()
   TH1D *h_TimeElapsed = new TH1D("h_TimeElapsed", "h_TimeElapsed", 50,0,0.5);
   for(unsigned int i = 0; i < nEvents; i++)
   {
-    h_ENu_MC->Fill(1000*ENu);
-    h_MarlTime_MC->Fill(MarlTime);
-
     if(i % 500 == 0)
     {
       std::cout << "WORKING ON EVENT: " << i << std::endl;
     }
     t_Input->GetEntry(i);
+
+    h_ENu_MC->Fill(1000*ENu);
+    for(unsigned int j = 0; j < MarlTime->size(); j++)
+    {
+      h_MarlTime_MC->Fill(MarlTime->at(j));
+    }
 
     map_EventToMC[Event] = {ENu, ENu_Lep, MarlTime};
 
@@ -272,9 +280,12 @@ int main()
           out_FirstTimeHit = vec_Clusters.at(k).getFirstTimeHit();
           out_LastTimeHit  = vec_Clusters.at(k).getLastTimeHit();
           out_TimeWidth    = vec_Clusters.at(k).getTimeWidth();
-          out_ENu          = map_EventToMC[vec_Clusters.at(k).getEvent()].at(0);
-          out_ENu_Lep      = map_EventToMC[vec_Clusters.at(k).getEvent()].at(1);
-          out_MarlTime     = map_EventToMC[vec_Clusters.at(k).getEvent()].at(2);
+          out_ENu          = map_EventToMC[vec_Clusters.at(k).getEvent()].fENu;
+          out_ENu_Lep      = map_EventToMC[vec_Clusters.at(k).getEvent()].fENu_Lep;
+          for(unsigned int l = 0; l < map_EventToMC[vec_Clusters.at(k).getEvent()].fMarlTime->size(); l++)
+          {
+            out_MarlTime.push_back(map_EventToMC[vec_Clusters.at(k).getEvent()].fMarlTime->at(l));
+          }
           for(unsigned int l = 0; l < vec_Clusters.at(k).getHits().size(); l++)
           {
             out_HitView.push_back(vec_Clusters.at(k).getHits().at(l).getHitView());  
@@ -302,6 +313,8 @@ int main()
   {
     vec_gr_Config.at(i)->Write();
   }
+
+  f_Output->Close();
 
   return 0;
 }

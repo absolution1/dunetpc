@@ -139,6 +139,13 @@
     <fraction n="0.0053" ref="Na2O"/>
     <fraction n="0.00070" ref="P2O5"/>
     <fraction n="0.0771" ref="oxygen"/>
+  </material> 
+
+  <material formula="Air" name="Air">
+   <D value="0.001205" unit="g/cm3"/>
+   <fraction n="0.781154" ref="nitrogen"/>
+   <fraction n="0.209476" ref="oxygen"/>
+   <fraction n="0.00934" ref="argon"/>
   </material>
 
   <material name="fibrous_glass">
@@ -151,6 +158,15 @@
    <fraction n="0.010" ref="Na2O"/>
    <fraction n="0.013" ref="TiO2"/>
   </material>
+
+  <!-- density referenced from EHN1-Cold Cryostats Technical Requirements:
+       https://edms.cern.ch/document/1543254 -->
+  <material name="FD_foam">
+   <D value="0.09" unit="g/cm3"/>
+   <fraction n="0.95" ref="Air"/>
+   <fraction n="0.05" ref="fibrous_glass"/>
+  </material>
+
 
   <material name="FR4">
    <D value="1.98281" unit="g/cm3"/>
@@ -180,13 +196,6 @@
   <material name="ArGas" formula="ArGas">
    <D value="0.00166" unit="g/cm3"/>
    <fraction n="1.0" ref="argon"/>
-  </material>
-
-  <material formula="Air" name="Air">
-   <D value="0.001205" unit="g/cm3"/>
-   <fraction n="0.781154" ref="nitrogen"/>
-   <fraction n="0.209476" ref="oxygen"/>
-   <fraction n="0.00934" ref="argon"/>
   </material>
 
   <material formula=" " name="G10">
@@ -271,24 +280,39 @@
    <fraction n="0.080" ref="hydrogen"/>
   </material>
 
+  <material name="NiGas">
+   <D value="0.001165" unit="g/cm3"/>
+   <fraction n="1.000" ref="nitrogen"/>
+  </material>
+
+  <material name="PolyurethaneFoam">
+   <D value="0.09" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+
+
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value="3.9656025" unit="g/cm3"/>
+   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cm3"/>
    <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="0.5"   ref="Air"/>
   </material>
 
 </materials>
 <solids>
-   <box name="CRM" lunit="cm"
-      x="1200.03"
-      y="301"
+   <box name="CRM" lunit="cm" 
+      x="1200.03" 
+      y="301" 
       z="301"/>
-   <box name="CRMVPlane" lunit="cm"
-      x="0.015"
-      y="300"
+   <box name="CRMVPlane" lunit="cm" 
+      x="0.015" 
+      y="300" 
       z="300"/>
-   <box name="CRMZPlane" lunit="cm"
+   <box name="CRMZPlane" lunit="cm" 
       x="0.015"
       y="300"
       z="300"/>
@@ -298,29 +322,29 @@
       z="300"/>
 
    <tube name="CRMWireV"
-     rmax="0.0075"
-     z="300"
+     rmax="0.5*0.015"
+     z="300"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
    <tube name="CRMWireZ"
-     rmax="0.0075"
-     z="300"
+     rmax="0.5*0.015"
+     z="300"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
 
-    <box name="Cryostat" lunit="cm"
-      x="1510.24"
-      y="501.24"
+    <box name="Cryostat" lunit="cm" 
+      x="1510.24" 
+      y="501.24" 
       z="802.24"/>
 
-    <box name="ArgonInterior" lunit="cm"
+    <box name="ArgonInterior" lunit="cm" 
       x="1510"
       y="501"
       z="802"/>
 
-    <box name="GaseousArgon" lunit="cm"
+    <box name="GaseousArgon" lunit="cm" 
       x="100"
       y="501"
       z="802"/>
@@ -333,9 +357,9 @@
 
 
     <box name="FoamPadBlock" lunit="cm"
-      x="1670.24"
-      y="661.24"
-      z="962.24" />
+      x="1510.24 + 2*80"
+      y="501.24 + 2*80"
+      z="802.24 + 2*80" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
@@ -344,26 +368,26 @@
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="1870.24"
-      y="761.24"
-      z="1162.24" />
+      x="1510.24 + 2*80 + 2*100"
+      y="501.24 + 2*80 + 2*50"
+      z="802.24 + 2*80 + 2*100" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
-      <second ref="FoamPadding"/>
+      <second ref="FoamPadBlock"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
-    <box name="DetEnclosure" lunit="cm"
+    <box name="DetEnclosure" lunit="cm" 
       x="2070.24"
       y="861.24"
       z="1362.24"/>
 
 
-    <box name="World" lunit="cm"
-      x="8070.24"
-      y="6861.24"
-      z="7362.24"/>
+    <box name="World" lunit="cm" 
+      x="2070.24+2*3000" 
+      y="861.24+2*3000" 
+      z="1362.24+2*3000"/>
 </solids>
 <structure>
     <volume name="volTPCActive">
@@ -375,7 +399,7 @@
       <materialref ref="LAr"/>
       <solidref ref="CRMVPlane"/>
    </volume>
-
+   
    <volume name="volTPCPlaneZ">
      <materialref ref="LAr"/>
      <solidref ref="CRMZPlane"/>
@@ -386,19 +410,19 @@
      <solidref ref="CRM"/>
      <physvol>
        <volumeref ref="volTPCPlaneV"/>
-       <position name="posPlaneV" unit="cm"
+       <position name="posPlaneV" unit="cm" 
          x="599.9925" y="0" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneZ"/>
-       <position name="posPlaneZ" unit="cm"
+       <position name="posPlaneZ" unit="cm" 
          x="600.0075" y="0" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActive"/>
-       <position name="posActive" unit="cm"
+       <position name="posActive" unit="cm" 
          x="-0.03" y="0" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -418,7 +442,7 @@
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="705.0" y="0" z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="1510/2-100/2" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>

@@ -17,7 +17,7 @@
 
 #include "fhiclcpp/ParameterSet.h"
 
-#include "lardata/DetectorInfo/RunHistory.h"
+#include "lardataalg/DetectorInfo/RunHistory.h"
 #include "nutools/IFDatabase/Table.h"
 
 ///General LArSoft Utilities
