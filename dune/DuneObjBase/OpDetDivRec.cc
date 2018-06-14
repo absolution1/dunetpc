@@ -16,13 +16,4 @@
 
 namespace sim {
 
-  class TickDivRec{
-    int Photons;
-    int crosstalk;
-  };
-
-  class OpDetDivRec{
-    std::vector<
-  };
-
 }
