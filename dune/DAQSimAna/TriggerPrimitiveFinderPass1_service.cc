@@ -13,6 +13,8 @@
 
 #include "dune/DAQSimAna/TriggerPrimitiveFinderService.h"
 
+#include "dune/DAQSimAna/AlgParts.h"
+
 class TriggerPrimitiveFinderPass1 : public TriggerPrimitiveFinderService {
 public:
   explicit TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p, art::ActivityRegistry & areg);
@@ -47,16 +49,42 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
     // for(int i=0; i<10; ++i) std::cout << collection_samples[0][i] << " ";
     // std::cout << std::endl;
 
+    // Taps calculated by:
+    //  np.round(scipy.signal.firwin(7, 0.1)*100)
+    const size_t ntaps=7;
+    const short taps[ntaps]={2,  9, 23, 31, 23,  9,  2};
+    const int multiplier=100;
+
     for(size_t ich=0; ich<collection_samples.size(); ++ich){
-        // std::cout << ich << std::endl;
         const std::vector<short>& waveform=collection_samples[ich];
+
+        //---------------------------------------------
+        // Pedestal subtraction
+        //---------------------------------------------
+        const std::vector<short>& pedestal=frugal_pedestal_sigkill(waveform, 5, 10);
+        std::vector<short> pedsub(waveform.size(), 0);
+        for(size_t i=0; i<pedsub.size(); ++i){
+            pedsub[i]=waveform[i]-pedestal[i];
+        }
+
+        //---------------------------------------------
+        // Filtering
+        //---------------------------------------------
+        std::vector<short> filtered(apply_fir_filter(pedsub, ntaps, taps));
+        // for(size_t i=0; i<50; ++i){ std::cout << filtered[i] << " ";}
+        // std::cout << std::endl;
+
+        // if(ich>10) exit(0);
+        //---------------------------------------------
+        // Hit finding
+        //---------------------------------------------
         bool is_hit=false;
         bool was_hit=false;
         TriggerPrimitiveFinderService::Hit hit(channel_numbers[ich], 0, 0, 0);
-        for(size_t isample=0; isample<waveform.size(); ++isample){
+        for(size_t isample=0; isample<filtered.size(); ++isample){
             // if(ich>11510) std::cout << isample << " " << std::flush;
-            short adc=waveform[isample];
-            is_hit=adc>500+(short)m_threshold;
+            short adc=filtered[isample];
+            is_hit=adc>(short)m_threshold;
             if(is_hit && !was_hit){
                 // We just started a hit. Set the start time
                 hit.startTime=isample;
@@ -69,6 +97,7 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
             }
             if(!is_hit && was_hit){
                 // The hit is over. Push it to the output vector
+                hit.charge/=multiplier;
                 hits.push_back(hit);
             }
             was_hit=is_hit;
@@ -76,6 +105,8 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         // std::cout << std::endl;
     }
     std::cout << "Returning " << hits.size() << " hits" << std::endl;
+    std::cout << "hits/channel=" << float(hits.size())/collection_samples.size() << std::endl;
+    std::cout << "hits/tick=" << float(hits.size())/collection_samples[0].size() << std::endl;
     return hits;
 }
 
