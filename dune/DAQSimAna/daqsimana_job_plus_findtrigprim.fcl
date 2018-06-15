@@ -11,7 +11,7 @@ services.MemoryTracker:         { } # default is one
 services.RandomNumberGenerator: {} #ART native random number generator
 // services.FileCatalogMetadata:  @local::art_file_catalog_mc
 services.NuRandomService:       @local::standard_NuRandomService  # seedservice.fcl
-
+services.message:              @local::dune_message_services_prod
 #source is now a root file
 source: {
   module_type: RootInput
@@ -85,9 +85,13 @@ services.DetPedestalService: @local::dune_fixedpeds
 physics.analyzers.daqanatrigprim.HitLabel: "trigprim"
 physics.analyzers.daqanatrigprim.MARLEYLabel: "marley"
 
+# Shut up the backtracker
+services.message.destinations.LogStandardOut.categories.BackTracker.limit: 0
+services.message.destinations.LogStandardError.categories.BackTracker.limit: 0
+
 # The name of the trigger primitive finder implementation to use
 #  (replace the service_provider with your own)
 services.TriggerPrimitiveFinderService: {
    service_provider: "TriggerPrimitiveFinderPass1"
-   Threshold: 20
+   Threshold: 600
 }
