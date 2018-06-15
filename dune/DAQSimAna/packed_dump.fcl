@@ -22,6 +22,7 @@ physics:
   {
     packeddump: {
          module_type: PackedDump
+         OutputFile: "packed.raw"
       }
   }
 

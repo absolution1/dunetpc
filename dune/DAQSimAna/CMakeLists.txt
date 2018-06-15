@@ -29,6 +29,7 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   ${ROOT_BASIC_LIB_LIST}
   )
 
+cet_make_exec(read_packed SOURCE read_packed.cxx)
 
 install_fhicl()
 install_headers()
