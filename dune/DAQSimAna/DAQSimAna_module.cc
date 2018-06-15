@@ -651,6 +651,7 @@ PType DAQSimAna::WhichParType( int TrID )
   return ThisPType;
 }
 
+//......................................................
 PType DAQSimAna::WhichParType( const art::ValidHandle<simb::MCTruth>& truthHand)
 {
   const std::string& label=truthHand.provenance()->moduleLabel();
