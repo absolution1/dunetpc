@@ -9,6 +9,8 @@
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/Simulation/sim.h"
 #include "lardataobj/Simulation/SimChannel.h"
+#include "lardataobj/RecoBase/Wire.h"
+//#include "lardataobj//Wire.h"
 #include "lardataobj/RecoBase/Hit.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
@@ -27,6 +29,7 @@
 #include "canvas/Utilities/InputTag.h"
 #include "canvas/Persistency/Common/FindMany.h"
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "canvas/Persistency/Common/FindOneP.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -67,6 +70,7 @@ private:
 
   std::string fRawDigitLabel;
   std::string fHitLabel;
+  std::string fCalDataModuleLabel;
 
   std::string fGEANTLabel;
   std::string fMARLLabel; std::map< int, simb::MCParticle > MarlParts;
@@ -80,6 +84,11 @@ private:
   std::string fAr42Label; std::map< int, simb::MCParticle > Ar42Parts;
   std::map<int, const simb::MCParticle*> truthmap;
 
+  // Mapping from track ID to particle type, for use in WhichParType()
+  std::map<int, PType> trkIDToPType;
+
+  bool fSaveNeighbourADCs;
+  
   TTree* fSNAnaTree;
 
   int Run;
@@ -100,6 +109,18 @@ private:
   float HitInt [nMaxHits];
   float HitPeak[nMaxHits];
   int   GenType[nMaxHits];
+  int   HitNeighbourM5SADC[nMaxHits];
+  int   HitNeighbourM2SADC[nMaxHits];
+  int   HitNeighbourM1SADC[nMaxHits];
+  int   HitNeighbourP1SADC[nMaxHits];
+  int   HitNeighbourP2SADC[nMaxHits];
+  int   HitNeighbourP5SADC[nMaxHits];
+  int   HitNeighbourM5Chan[nMaxHits];
+  int   HitNeighbourM2Chan[nMaxHits];
+  int   HitNeighbourM1Chan[nMaxHits];
+  int   HitNeighbourP1Chan[nMaxHits];
+  int   HitNeighbourP2Chan[nMaxHits];
+  int   HitNeighbourP5Chan[nMaxHits];
   float Hit_X[nMaxHits];                  
   float Hit_Y[nMaxHits];                  
   float Hit_Z[nMaxHits];                  
@@ -141,9 +162,7 @@ private:
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 };
 
-SNAna::SNAna(fhicl::ParameterSet const & p)
-  :
-  EDAnalyzer(p)
+SNAna::SNAna(fhicl::ParameterSet const & p):EDAnalyzer(p)
 {
   this->reconfigure(p);
 }
@@ -151,10 +170,13 @@ SNAna::SNAna(fhicl::ParameterSet const & p)
 
 void SNAna::reconfigure(fhicl::ParameterSet const & p)
 {
-  fRawDigitLabel = p.get<std::string> ("RawDigitLabel");  
-  fHitLabel      = p.get<std::string> ("HitLabel");
+  fRawDigitLabel      = p.get<std::string> ("RawDigitLabel");  
+  fHitLabel           = p.get<std::string> ("HitLabel");
+  fCalDataModuleLabel = p.get<std::string> ("CalDataModuleLabel");
 
-  fGEANTLabel = p.get<std::string> ("GEANT4Label");
+  fSaveNeighbourADCs  = p.get<bool> ("SaveNeighbourADCs");
+
+  fGEANTLabel= p.get<std::string> ("GEANT4Label");
   fMARLLabel = p.get<std::string> ("MARLEYLabel");
   fAPALabel  = p.get<std::string> ("APALabel");
   fCPALabel  = p.get<std::string> ("CPALabel");
@@ -169,6 +191,8 @@ void SNAna::reconfigure(fhicl::ParameterSet const & p)
 
 void SNAna::ResetVariables()
 {
+  trkIDToPType.clear();
+
   MarlParts.clear(); APAParts .clear(); CPAParts .clear(); Ar39Parts.clear();
   NeutParts.clear(); KrypParts.clear(); PlonParts.clear(); RdonParts.clear();
   Ar42Parts.clear();
@@ -191,6 +215,18 @@ void SNAna::ResetVariables()
     Hit_Z[hh] = 0;                  
     Hit_Energy[hh] = 0;             
     Hit_NumElectrons[hh] = 0;
+    HitNeighbourM5SADC[hh] = 0;
+    HitNeighbourM2SADC[hh] = 0;
+    HitNeighbourM1SADC[hh] = 0;
+    HitNeighbourP1SADC[hh] = 0;
+    HitNeighbourP2SADC[hh] = 0;
+    HitNeighbourP5SADC[hh] = 0;
+    HitNeighbourM5Chan[hh] = 0;
+    HitNeighbourM2Chan[hh] = 0;
+    HitNeighbourM1Chan[hh] = 0;
+    HitNeighbourP1Chan[hh] = 0;
+    HitNeighbourP2Chan[hh] = 0;
+    HitNeighbourP5Chan[hh] = 0;    
   } 
 
   MarlSample.clear();
@@ -214,6 +250,7 @@ void SNAna::beginJob()
   art::ServiceHandle<art::TFileService> tfs;
 
   fSNAnaTree = tfs->make<TTree>("SNSimTree","SN simulation analysis tree");
+  //fSNAnaTree = tfs->make<TTree>("SNSimTree","SN simulation analysis tree");
 
   fSNAnaTree -> Branch( "Run"   , &Run   , "Run/I"    );
   fSNAnaTree -> Branch( "SubRun", &SubRun, "SubRun/I" );
@@ -232,8 +269,21 @@ void SNAna::beginJob()
   fSNAnaTree -> Branch( "HitSADC"   , &HitSADC   , "HitSADC[NColHits]/F" );
   fSNAnaTree -> Branch( "HitInt"    , &HitInt    , "HitInt[NColHits]/F"  );
   fSNAnaTree -> Branch( "HitPeak"   , &HitPeak   , "HitPeak[NColHits]/F" );
-  fSNAnaTree -> Branch( "GenType"   , &GenType   , "GenType[NColHits]/I" ); 
-                                                                            
+  fSNAnaTree -> Branch( "GenType"   , &GenType   , "GenType[NColHits]/I" );
+
+  fSNAnaTree->Branch("HitNeighbourM5SADC", &HitNeighbourM5SADC, "HitNeighbourM5SADC[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourM2SADC", &HitNeighbourM2SADC, "HitNeighbourM2SADC[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourM1SADC", &HitNeighbourM1SADC, "HitNeighbourM1SADC[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourP1SADC", &HitNeighbourP1SADC, "HitNeighbourP1SADC[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourP2SADC", &HitNeighbourP2SADC, "HitNeighbourP2SADC[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourP5SADC", &HitNeighbourP5SADC, "HitNeighbourP5SADC[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourM5Chan", &HitNeighbourM5Chan, "HitNeighbourM5Chan[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourM2Chan", &HitNeighbourM2Chan, "HitNeighbourM2Chan[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourM1Chan", &HitNeighbourM1Chan, "HitNeighbourM1Chan[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourP1Chan", &HitNeighbourP1Chan, "HitNeighbourP1Chan[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourP2Chan", &HitNeighbourP2Chan, "HitNeighbourP2Chan[NColHits]/I");
+  fSNAnaTree->Branch("HitNeighbourP5Chan", &HitNeighbourP5Chan, "HitNeighbourP5Chan[NColHits]/I");
+
   fSNAnaTree -> Branch( "NCorrespondingIDEs", &NCorrespondingIDEs, "NCorrespondingIDEs[NColHits]/I" );
   fSNAnaTree -> Branch( "Hit_X"     , &Hit_X   , "Hit_X[NColHits]/F" );
   fSNAnaTree -> Branch( "Hit_Y"     , &Hit_Y   , "Hit_Y[NColHits]/F" );
@@ -363,7 +413,7 @@ void SNAna::analyze(art::Event const & evt)
   art::FindManyP<simb::MCParticle> CPAAssn(CPATrue,evt,fGEANTLabel);
   FillMyMaps( CPAParts, CPAAssn, CPATrue );
   TotGen_CPA = CPAParts.size();
-
+  
   auto Ar39True = evt.getValidHandle<std::vector<simb::MCTruth> >(fAr39Label);
   art::FindManyP<simb::MCParticle> Ar39Assn(Ar39True,evt,fGEANTLabel);
   FillMyMaps( Ar39Parts, Ar39Assn, Ar39True );
@@ -394,6 +444,44 @@ void SNAna::analyze(art::Event const & evt)
   FillMyMaps( Ar42Parts, Ar42Assn, Ar42True );
   TotGen_Ar42 = Ar42Parts.size();
 
+  std::vector<simb::MCParticle> allTruthParts;
+  for(auto it : APATrue)
+    allTruthParts.push_back(it.second);
+  for(auto it : CPATrue)
+    allTruthParts.push_back(it.second);
+  for(auto it : Ar39True)
+    allTruthParts.push_back(it.second);
+  for(auto it : NeutTrue)
+    allTruthParts.push_back(it.second);
+  for(auto it : KrypTrue)
+    allTruthParts.push_back(it.second);
+  for(auto it : PlonTrue)
+    allTruthParts.push_back(it.second);
+  for(auto it : RdonTrue)
+    allTruthParts.push_back(it.second);
+  for(auto it : Ar42True)
+    allTruthParts.push_back(it.second);
+  
+  std::map<PType, std::map< int, simb::MCParticle >&> PTypeToMap{
+      {kMarl, MarlParts},
+      {kAPA,  APAParts },
+      {kCPA,  CPAParts },
+      {kAr39, Ar39Parts},
+      {kAr42, Ar42Parts},
+      {kNeut, NeutParts},
+      {kKryp, KrypParts},
+      {kPlon, PlonParts},
+      {kRdon, RdonParts}
+  };
+
+  for(auto const& it : PTypeToMap){
+      const PType p=it.first;
+      auto const& m=it.second;
+      for(auto const& it2 : m){
+          trkIDToPType.insert(std::make_pair(it2.first, p));
+      }
+  }
+  
   std::cout << "THE EVENTS NUMBER IS: " << Event << std::endl;
 
   std::vector< recob::Hit > ColHits_Marl;
@@ -410,7 +498,7 @@ void SNAna::analyze(art::Event const & evt)
   NTotHits = reco_hits->size();
   int colHitCount(0);
   int LoopHits = std::min( NTotHits, nMaxHits );
-  std::cout << "---- There are " << NTotHits << " hits in the event, but array is of size " 
+  std::cout << "---- There are " << NTotHits << " hits in the event, the array is of size " 
             << nMaxHits << ", so looping over first " << LoopHits << " hits." << std::endl;
 
   for(int hit = 0; hit < LoopHits; ++hit) 
@@ -422,6 +510,10 @@ void SNAna::analyze(art::Event const & evt)
       ++NColHits;
     }
   }
+  art::Handle< std::vector<recob::Wire> > wireVecHandle;
+  art::Handle< std::vector<raw::RawDigit> > rawDigitsVecHandle;
+  evt.getByLabel(fCalDataModuleLabel, wireVecHandle);
+  evt.getByLabel(fRawDigitLabel, rawDigitsVecHandle);
 
   for(int hit = 0; hit < LoopHits; ++hit) 
   {
@@ -466,6 +558,71 @@ void SNAna::analyze(art::Event const & evt)
     HitSize[colHitCount] = ThisHit.EndTick() - ThisHit.StartTick();
     HitTPC [colHitCount] = ThisHit.WireID().TPC;
     HitChan[colHitCount] = ThisHit.Channel();
+    int channel = HitChan[colHitCount];
+  
+    std::vector<geo::WireID> wids = geo->ChannelToWire(channel);
+    for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
+    {
+      
+      //(*rawDigitsVecHandle)[i].()
+      int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
+      (void)rawWireChannel;
+      raw::RawDigit::ADCvector_t ADCs((*rawDigitsVecHandle)[i].Samples());
+      switch(rawWireChannel-channel)
+      {
+      case -5:
+        HitNeighbourM5SADC[colHitCount] = 0;
+        HitNeighbourM5Chan[colHitCount] = rawWireChannel;
+        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                        (*rawDigitsVecHandle)[i].Compression());
+        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+          HitNeighbourM5SADC[colHitCount]+=ADCs[i];
+        break;
+      case -2:
+        HitNeighbourM2SADC[colHitCount] = 0;
+        HitNeighbourM2Chan[colHitCount] = rawWireChannel;
+        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                        (*rawDigitsVecHandle)[i].Compression());
+        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+          HitNeighbourM2SADC[colHitCount]+=ADCs[i];
+        break;
+      case -1:
+        HitNeighbourM1SADC[colHitCount] = 0;
+        HitNeighbourM1Chan[colHitCount] = rawWireChannel;
+        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                        (*rawDigitsVecHandle)[i].Compression());
+        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+          HitNeighbourM1SADC[colHitCount]+=ADCs[i];
+        break;
+      case  1:
+        HitNeighbourP1SADC[colHitCount] = 0;
+        HitNeighbourP1Chan[colHitCount] = rawWireChannel;
+        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                        (*rawDigitsVecHandle)[i].Compression());
+        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+          HitNeighbourP1SADC[colHitCount]+=ADCs[i];
+        break;
+      case  2:
+        HitNeighbourP2SADC[colHitCount] = 0;
+        HitNeighbourP2Chan[colHitCount] = rawWireChannel;
+        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                        (*rawDigitsVecHandle)[i].Compression());
+        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+          HitNeighbourP2SADC[colHitCount]+=ADCs[i];
+        break;
+      case  5:
+        HitNeighbourP5SADC[colHitCount] = 0;
+        HitNeighbourP5Chan[colHitCount] = rawWireChannel;
+        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                        (*rawDigitsVecHandle)[i].Compression());
+        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+          HitNeighbourP5SADC[colHitCount]+=ADCs[i];
+        break;
+      default:
+        break;
+      }
+    }
+
     HitTime[colHitCount] = ThisHit.PeakTime();
     HitRMS [colHitCount] = ThisHit.RMS();
     HitSADC[colHitCount] = ThisHit.SummedADC();
@@ -486,6 +643,12 @@ void SNAna::analyze(art::Event const & evt)
       {
         TopEFrac = ThisHitIDE[ideL].energyFrac;
         MainTrID = ThisHitIDE[ideL].trackID;
+        for(int i=0; i<allTruthParts.size(); ++i)
+        {
+          if(allTruthParts[i]->TrackId() == MainTrID)
+            HitEventEnergy[colHitCount] = allTruthParts[i]->E;
+        }
+
       }
     }
 
@@ -564,26 +727,13 @@ void SNAna::FillMyMaps( std::map< int, simb::MCParticle> &MyMap,
 
 PType SNAna::WhichParType( int TrID )
 {
-  if ( InMyMap( TrID, Ar39Parts ) ) {
-    return kAr39;
-  } else  if ( InMyMap( TrID, MarlParts ) ) {
-    return kMarl;
-  } else if ( InMyMap( TrID, APAParts  ) ) {
-    return kAPA;
-  } else if ( InMyMap( TrID, CPAParts  ) ) {
-    return kCPA;
-  } else if ( InMyMap( TrID, NeutParts ) ) {
-    return kNeut;
-  } else if ( InMyMap( TrID, KrypParts ) ) {
-    return kKryp;
-  } else if ( InMyMap( TrID, PlonParts ) ) {
-    return kPlon;
-  } else if ( InMyMap( TrID, RdonParts ) ) {
-    return kRdon;
-  } else if (InMyMap( TrID, Ar42Parts)){
-    return kAr42;
+  PType ThisPType = kUnknown;
+  auto const& it=trkIDToPType.find(TrID);
+  if(it!=trkIDToPType.end()){
+    ThisPType=it->second;
   }
-  return kUnknown;
+  return ThisPType;
+
 }
 
 
