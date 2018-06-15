@@ -1,5 +1,6 @@
 #include "services_dune.fcl"
 #include "production_split_files.fcl"
+#include "tools_dune.fcl"
 
 process_name : RawDigitMixer      #The process name must NOT contain any underscores
 

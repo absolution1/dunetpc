@@ -11,7 +11,7 @@ art_make(BASENAME_ONLY
         art_Utilities canvas
         ${ROOT_CORE}
         ${MF_MESSAGELOGGER}
-        ${MF_UTILITIES}
+        
         ${Boost_SYSTEM_LIBRARY}
         RunHistoryDUNE
         larcore_Geometry_Geometry_service
@@ -41,7 +41,7 @@ ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 # art_Persistency_Provenance canvas
 # art_Utilities canvas
 # ${MF_MESSAGELOGGER}
-# ${MF_UTILITIES}
+# 
 cetlib cetlib_except
 ${ROOT_HIST}
 # ${ROOT_BASIC_LIB_LIST}
@@ -147,7 +147,7 @@ simple_plugin(NoiseCorrelation "module"
 			       art_Persistency_Provenance canvas
 			       art_Utilities canvas
 			       ${MF_MESSAGELOGGER}
-			       ${MF_UTILITIES}
+			       
 			       cetlib cetlib_except
 			       ${ROOT_BASIC_LIB_LIST}
 )

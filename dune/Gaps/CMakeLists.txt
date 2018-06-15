@@ -13,7 +13,7 @@ simple_plugin(GapFilter "module"
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${FHICLCPP}
                         cetlib cetlib_except
                         ${ROOT_GEOM}
@@ -41,7 +41,7 @@ simple_plugin(GapWidth "module"
                        art_Persistency_Provenance canvas
                        art_Utilities canvas
                        ${MF_MESSAGELOGGER}
-                       ${MF_UTILITIES}
+                       
                        cetlib cetlib_except
                        ${ROOT_BASIC_LIB_LIST}
                        ${ROOT_MINUIT}

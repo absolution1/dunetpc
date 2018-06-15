@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+PDSPHitMonitor_params:
+{
+   module_type:             "PDSPHitMonitor"
+   TPCHitTag:               "gaushit"
+}
+
+END_PROLOG

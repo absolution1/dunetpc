@@ -1,8 +1,10 @@
 # dunetpc/dune/DuneCommon/CMakeLists.txt
 
-ADD_SUBDIRECTORY(test)
+add_subdirectory(test)
 add_subdirectory(Tool)
-ADD_SUBDIRECTORY(Service)
+add_subdirectory(Service)
+add_subdirectory(Exe)
+add_subdirectory(fcl)
 
 #message(STATUS "ROOTSYS=${ROOTSYS}")
 #message(STATUS "ROOT_BASIC_LIB_LIST=${ROOT_BASIC_LIB_LIST}")

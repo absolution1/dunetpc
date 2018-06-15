@@ -34,6 +34,7 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TGraph.h"
+#include "TTree.h"
 
 #include <vector>
 
@@ -67,6 +68,8 @@ private:
   art::InputTag fRawDigitModuleLabel;
   art::InputTag fCalDataModuleLabel;
 
+  bool fIsData;
+
   trkf::LinFitAlg fLinFitAlg;
 
   double cx[93], cy[93], cz[93];
@@ -79,6 +82,15 @@ private:
   TH1D *hdx;
   TH2D *hphx;
   TH1D *hdt;
+
+  TTree *ftree;
+  int run;
+  int event;
+  int tpc;
+  int wire;
+  int trackid;
+  double dqdx;
+  double x;
 };
 
 
@@ -88,20 +100,22 @@ dune::SignalToNoise::SignalToNoise(fhicl::ParameterSet const & p)
   fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel")),
   fExternalCounterModuleLabel(p.get< art::InputTag >("ExternalCounterModuleLabel")),
   fRawDigitModuleLabel(p.get< art::InputTag >("RawDigitModuleLabel")),
-  fCalDataModuleLabel(p.get< art::InputTag >("CalDataModuleLabel"))
- // More initializers here.
+  fCalDataModuleLabel(p.get< art::InputTag >("CalDataModuleLabel")),
+  fIsData(p.get<bool>("IsData",true))
 {
 }
 
 void dune::SignalToNoise::analyze(art::Event const & e)
 {
   // Implementation of required member function here.
+  run = e.run();
+  event = e.id().event();
+
   // * tracks
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
   if (e.getByLabel(fTrackModuleLabel,trackListHandle))
     art::fill_ptr_vector(tracklist, trackListHandle);
-
 
   // * External Counters
   art::Handle< std::vector<raw::ExternalTrigger> > countListHandle;
@@ -174,6 +188,21 @@ void dune::SignalToNoise::analyze(art::Event const & e)
       tracklist[i]->Direction(larStart,larEnd);
       double dc = std::abs(ccosx*larStart[0]+ccosy*larStart[1]+ccosz*larStart[2]);
       dcos->Fill(dc);
+      /*
+      if (i==4){
+        for (size_t j = 0; j<tracklist[i]->NPoints(); ++j){
+          if (tracklist[i]->HasValidPoint(j)){
+            std::cout<<j<<" "<<tracklist[i]->LocationAtPoint(j).X()
+                     <<" "<<tracklist[i]->LocationAtPoint(j).Y()
+                     <<" "<<tracklist[i]->LocationAtPoint(j).Z()
+                     <<" "<<tracklist[i]->DirectionAtPoint(j).X()
+                     <<" "<<tracklist[i]->DirectionAtPoint(j).Y()
+                     <<" "<<tracklist[i]->DirectionAtPoint(j).Z()
+                     <<std::endl;
+          }
+        }
+      }
+      */
       if (dc>0.98){//found a match
         double ctime = (countlist[ci1[0]]->GetTrigTime() + countlist[ci2[0]]->GetTrigTime())/(2*32.); //ticks
         double x0 = trackStart.X() + (trackStart.X()>0?-1:1)*ctime*0.5*0.1085;
@@ -192,8 +221,8 @@ void dune::SignalToNoise::analyze(art::Event const & e)
           dx2 = std::abs(x0+(cz[c2[0]]-z0)*(x0-x1)/(z0-z1)-cx[c2[0]]);
         }
         //std::cout<<dx1<<" "<<dx2<<std::endl;
-        hdx->Fill(dx1);
-        hdx->Fill(dx2);
+        hdx->Fill(x0+(cz[c1[0]]-z0)*(x0-x1)/(z0-z1)-cx[c1[0]]);
+        hdx->Fill(x0+(cz[c2[0]]-z0)*(x0-x1)/(z0-z1)-cx[c2[0]]);
         if (dx1>40||dx2>40) continue;
         for (size_t j = 0; j<tracklist[i]->NumberTrajectoryPoints(); ++j){
           TVector3 loc = tracklist[i]->LocationAtPoint(j);
@@ -340,6 +369,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
         }//fmthm is valid
         if (hitmap.size()>=10){//found at least 10 hits in TPC5
           for (size_t h = 0; h<geom->Nwires(2,5,0); ++h){//plane 2, tpc 5, cstat 0
+            if (fCSP->IsBad(geom->PlaneWireToChannel(2,h,5))) continue;
             double pt = -1;
             double xpos = -1;
             if (hitmap.find(h)!=hitmap.end()){//found hit on track
@@ -369,14 +399,14 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               }
             }
             if (pt>=0){
-              int maxph = -1;
+              double maxph = -1e10;
               for (size_t j = 0; j<rawlist.size(); ++j){
                 if (rawlist[j]->Channel() == geom->PlaneWireToChannel(2,h,5)){
                   double pedestal = rawlist[j]->GetPedestal();
                   for (size_t k = 0; k<rawlist[j]->NADC(); ++k){
                     if (float(k)>=pt&&float(k)<=pt+20){
-                      if (int(rawlist[j]->ADC(k)-pedestal)>maxph){
-                        maxph = int(rawlist[j]->ADC(k)-pedestal);
+                      if (rawlist[j]->ADC(k)-pedestal>maxph){
+                        maxph = rawlist[j]->ADC(k)-pedestal;
                       }
                     }
                   }
@@ -384,9 +414,16 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               }
               double angleToVert = geom->WireAngleToVertical(hitmap.begin()->second->View(), hitmap.begin()->second->WireID().TPC, hitmap.begin()->second->WireID().Cryostat) - 0.5*::util::pi<>();
               //std::cout<<vhit[h]->View()<<" "<<vhit[h]->WireID().TPC<<" "<<vhit[h]->WireID().Cryostat<<" "<<angleToVert<<std::endl;
-              const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              //const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
+              const TVector3& dir = tracklist[i]->VertexDirection();
               double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
               hphx->Fill(xpos,maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View()));
+              tpc = 5;
+              wire = h;
+              trackid = i;
+              x = xpos;
+              dqdx = maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View());
+              ftree->Fill();
               //std::cout<<h<<" "<<pt<<" "<<xpos<<" "<<maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View())<<std::endl;
             }
           }
@@ -416,28 +453,49 @@ void dune::SignalToNoise::beginJob()
     }
   }
         
-  hdx = tfs->make<TH1D>("hdx",";#Delta x (cm)",100,0,100);
+  hdx = tfs->make<TH1D>("hdx",";#Delta x (cm)",100,-100,100);
   hdx->Sumw2();
   hphx = tfs->make<TH2D>("hphx",";x (cm); dQ/dx (ADC/cm)",50,0,250,100,0,600);
 
   hdt = tfs->make<TH1D>("hdt",";#Delta t (ticks);",1000,-1000,1000);
-                           
-  std::ifstream in;
-  in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
-  char line[1024];
-  while(1){
-    in.getline(line,1024);
-    if (!in.good()) break;
-    int i;
-    float x,y,z;
-    sscanf(line,"%d %f %f %f",&i,&x,&y,&z);
-    //cout<<i<<" "<<x<<" "<<y<<" "<<z<<endl;
-    cx[i] = x;
-    cy[i] = y;
-    cz[i] = z;
-  }
-  in.close();
 
+  ftree = tfs->make<TTree>("tree","a tree for sn analysis");
+  ftree->Branch("run", &run, "run/I");
+  ftree->Branch("event", &event, "event/I");
+  ftree->Branch("tpc", &tpc, "tpc/I");
+  ftree->Branch("wire", &wire, "wire/I");
+  ftree->Branch("trackid", &trackid, "trackid/I");
+  ftree->Branch("dqdx", &dqdx, "dqdx/D");
+  ftree->Branch("x", &x, "x/D");
+
+  if (fIsData){
+    std::ifstream in;
+    //in.open("/dune/app/users/mthiesse/olddev/CounterZOffset/work/counterInformation.txt");
+    in.open("counterInformation.txt");
+    char line[1024];
+    while(1){
+      in.getline(line,1024);
+      if (!in.good()) break;
+      int i;
+      float x,y,z;
+      sscanf(line,"%d %f %f %f",&i,&x,&y,&z);
+      //std::cout<<i<<" "<<x<<" "<<y<<" "<<z<<std::endl;
+      cx[i] = x;
+      cy[i] = y;
+      cz[i] = z;
+    }
+    in.close();
+  }
+  else{
+    art::ServiceHandle<geo::Geometry> geom;
+    for (size_t i = 0; i<geom->NAuxDets(); ++i){
+      auto& auxdet = geom->AuxDet(i);
+      //std::cout<<i<<" "<<auxdet.GetCenter().X()<<" "<<auxdet.GetCenter().Y()<<" "<<auxdet.GetCenter().Z()<<std::endl;
+      cx[i] = auxdet.GetCenter().X();
+      cy[i] = auxdet.GetCenter().Y();
+      cz[i] = auxdet.GetCenter().Z();
+    }
+  }
 }
 
 DEFINE_ART_MODULE(dune::SignalToNoise)

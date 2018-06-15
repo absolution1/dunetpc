@@ -5,6 +5,13 @@
 
 # Dune common tools.
 
+# ProtoDUNE run data tool.
+tools.protoduneRunDataTool: {
+  tool_type: FclRunDataTool
+  LogLevel: 1
+  FileNames: ["rundata/protodune/rundata.fcl", "rundata/protodune/rundata%RUN%.fcl"]
+}
+
 # Histogram manager.
 tools.histMgr: {
   tool_type: SimpleHistogramManager

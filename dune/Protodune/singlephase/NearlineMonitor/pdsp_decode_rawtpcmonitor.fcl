@@ -2,7 +2,8 @@
 #include "RawDecoder.fcl"
 #include "TPCMonitor.fcl"
 #include "SSPMonitor.fcl"
-#include "Header.fcl"
+#include "PDSPNearlineHeader.fcl"
+#include "PDSPHitMonitor.fcl"
 
 process_name: DecodeRawTPCMonitor
 
@@ -57,11 +58,12 @@ physics:
   {
     tpcmonitor: @local::TPCMonitor_params
     sspmonitor: @local::SSPMonitor_params
-    header: @local::Header_params
+    pdspnearlineheader: @local::PDSPNearlineHeader_params
+    pdsphitmonitor: @local::PDSPHitMonitor_params
   }
 
   produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
-  analysis: [ header, tpcmonitor, sspmonitor ] 
+  analysis: [ pdspnearlineheader, pdsphitmonitor, tpcmonitor, sspmonitor ] 
   trigger_paths : [ produce ]
   end_paths: [ analysis ]
 }
