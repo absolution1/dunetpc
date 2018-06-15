@@ -3,6 +3,7 @@
 #include "AdcRoiViewer.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/DuneCommon/gausTF1.h"
 #include "dune/DuneCommon/coldelecResponse.h"
 #include "dune/DuneCommon/quietHistFit.h"
@@ -77,6 +78,14 @@ Name AdcRoiViewer::State::getChanSumHistVariableType(Name hnam) const {
 }
 
 //**********************************************************************
+
+Name AdcRoiViewer::State::getChanSumHistErrorType(Name hnam) const {
+  NameMap::const_iterator ihst = chanSumHistErrorTypes.find(hnam);
+  if ( ihst == chanSumHistErrorTypes.end() ) return nullptr;
+  return ihst->second;
+}
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
@@ -85,6 +94,10 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_SigThresh(ps.get<float>("SigThresh")),
   m_RoiHistOpt(ps.get<int>("RoiHistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
+  m_PulserStepCharge(ps.get<float>("PulserStepCharge")),
+  m_PulserDacOffset(ps.get<float>("PulserDacOffset")),
+  m_PulserChargeUnit(ps.get<string>("PulserChargeUnit")),
+  m_RunDataTool(ps.get<string>("RunDataTool")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
   m_SumRootFileName(ps.get<string>("SumRootFileName")),
   m_ChanSumRootFileName(ps.get<string>("ChanSumRootFileName")),
@@ -97,6 +110,12 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
+  if ( m_RunDataTool.size() ) {
+    m_pRunDataTool = ptm->getShared<RunDataTool>(m_RunDataTool);
+    if ( m_pRunDataTool == nullptr ) {
+      cout << myname << "WARNING: RunDatTool not found: " << m_RunDataTool << endl;
+    }
   }
   // Build the summary template histograms.
   ParameterSetVector pshists = ps.get<ParameterSetVector>("SumHists");
@@ -116,6 +135,14 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name xlab = hvar;
     if      ( hvar == "fitHeight"    ) xlab = "Fit height% [SUNIT]%";
     else if ( hvar == "fitHeightNeg" ) xlab = "-(Fit height)% [SUNIT]%";
+    else if ( hvar == "fitHeightGain" ) {
+      xlab = "Fit height gain% [SUNIT]%";
+      Name sden = m_PulserChargeUnit;
+      if ( sden.size() ) {
+        if ( sden.find(" ") != string::npos ) sden = "(" + sden + ")";
+        xlab = "Fit height gain [%((SUNIT))%/" + sden + "]";
+      }
+    }
     else if ( hvar == "fitWidth"     ) xlab = "Fit width [Ticks]";
     else if ( hvar == "fitPosition"  ) xlab = "Fit position [Ticks]";
     else if ( hvar == "fitTickRem"   ) xlab = "Fit position remainder [Ticks]";
@@ -162,6 +189,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name httl0   = psh.get<Name>("title");   // Title for this histogram
     Name vhnam   = psh.get<Name>("valHist"); // Name of the template for the histogram used to fill
     Name vtype   = psh.get<Name>("valType"); // Type of variable extracted from histogram
+    Name etype   = psh.get<Name>("errType"); // Type of variable extracted from histogram
     Name crname  = psh.get<Name>("cr");      // Name of the channel range for this histogram
     if ( hnam0.size() == 0 ) {
       cout << myname << "ERROR: Channel summary histogram name is missing." << endl;
@@ -181,6 +209,11 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     const NameVector valTypes = {"mean", "rms", "fitMean", "fitWidth", "fitPosition"};
     if ( std::find(valTypes.begin(), valTypes.end(), vtype) == valTypes.end() ) {
       cout << myname << "ERROR: Summary histogram has invalid variable type: " << vtype << endl;
+      continue;
+    }
+    const NameVector errTypes = {"none", "zero", "rms", "fitSigma"};
+    if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end() ) {
+      cout << myname << "ERROR: Summary histogram has invalid error type: " << etype << endl;
       continue;
     }
     TH1* phval = ivh->second.ph;
@@ -207,6 +240,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     getState().chanSumHists[hnam] = phf;
     getState().chanSumHistTemplateNames[hnam] = vhnam;
     getState().chanSumHistVariableTypes[hnam] = vtype;
+    getState().chanSumHistErrorTypes[hnam] = etype;
   }
   // Display the configuration.
   if ( m_LogLevel>= 1 ) {
@@ -234,12 +268,14 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if ( getState().chanSumHists.size() == 0 ) {
       cout << myname << "  No channel summary histograms" << endl;
     } else {
-      cout << myname << "    ChanSumHists: [" << endl;
+      cout << myname << "   ChanSumHists: [" << endl;
       for ( HistMap::value_type ihst : getState().chanSumHists ) {
         TH1* ph = ihst.second;
         cout << myname << "     " << ph->GetName() << endl;
       }
     }
+    cout << myname << "      RunDataTool: \"" << m_RunDataTool << "\" @ "
+         << m_pRunDataTool << endl;
   }
   if ( m_LogLevel >=2 ) cout << myname << "End constructing tool." << endl;
 }
@@ -559,6 +595,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     IntVector ivals;
     if      ( var == "fitHeight"    )    vals = dm.getFloatVector("roiFitHeights");
     else if ( var == "fitHeightNeg" )    vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitHeightGain" )   vals = dm.getFloatVector("roiFitHeights");
     else if ( var == "fitWidth"     )    vals = dm.getFloatVector("roiFitWidths");
     else if ( var == "fitPosition"  )    vals = dm.getFloatVector("roiFitPositions");
     else if ( var == "fitTickRem"   )    vals = dm.getFloatVector("roiFitPositions");
@@ -588,6 +625,30 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       float pedrms = acd.pedestalRms;
       if ( pedrms > 0.0 ) varfac = 1.0/(pedrms*pedrms);
       else varfac = 0.0;
+    }
+    if ( var == "fitHeightGain" ) {
+      if ( m_pRunDataTool == nullptr ) {
+        cout << myname << "WARNING: Variable " << var
+             << " cannot be evaluated without RunDataTool." << endl;
+        continue;
+      }
+      RunData rdat = m_pRunDataTool->runData(acd.run);
+      if ( ! rdat.isValid() ) {
+        cout << myname << "WARNING: Run data not found for run " << acd.run << endl;
+        continue;
+      }
+      if ( ! rdat.havePulserAmplitude() || ! rdat.havePulserSource() ) {
+        cout << myname << "WARNING: Pulser data not found for run " << acd.run << endl;
+        continue;
+      }
+      int qfac = rdat.pulserAmplitude();
+      if ( rdat.pulserSource() == 2 && qfac > 0 ) --qfac;     // Should we do this??
+      float qin = (qfac - m_PulserDacOffset)*m_PulserStepCharge;
+      if ( qin == 0.0 ) {
+        cout << myname << "WARNING: Pulser charge evaluates to zero." << endl;
+        continue;
+      }
+      varfac = 1.0/qin;
     }
     if ( varfac != 1.0 ) for ( float& val : vals ) val *= varfac;
     if ( ph == nullptr && vals.size() ) {
@@ -639,7 +700,31 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       getState().sumHists[hnam] = ph;
     }
     if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;
-    for ( float val : vals ) {
+    FloatVector csds = dm.getFloatVector("roiFitChiSquareDofs");
+    IntVector fstats = dm.getIntVector("roiFitStats");
+    bool check = true;
+    if ( csds.size() != vals.size() ) {
+      cout << "ERROR: Variable and chi-square/DF vectors have different sizes." << endl;
+      check = false;
+    }
+    if ( fstats.size() != vals.size() ) {
+      cout << "ERROR: Variable and fit status vectors have different sizes." << endl;
+      check = false;
+    }
+    for ( Index ival=0; ival<vals.size(); ++ival ) {
+      if ( check ) {
+        int fstat = fstats[ival];
+        float csd = csds[ival];
+        if ( fstat ) {
+          cout << myname << "WARNING: Skipping entry with fit status " << fstat
+               << " (chi-square/DOF = " << csd << ")" << endl;
+          continue;
+        } else if ( csd > 1000.0 ) {
+          cout << myname << "WARNING: Skipping entry with chi-square/DOF = " << csd << endl;
+          continue;
+        }
+      }
+      float val = vals[ival];
       ph->Fill(val);
     }
   }
@@ -731,6 +816,7 @@ void AdcRoiViewer::fillChanSumHists() const {
       continue;
     }
     Name vartype = getState().getChanSumHistVariableType(hnam);
+    Name errtype = getState().getChanSumHistErrorType(hnam);
     if ( vartype.size() == 0 ) {
       cout << myname << "ERROR: Variable template name not found for " << hnam << endl;
       continue;
@@ -760,10 +846,38 @@ void AdcRoiViewer::fillChanSumHists() const {
           continue;
         }
         Name spar = vartype.substr(3);
-        val = pf->GetParameter(spar.c_str());
+        int ipar = pf->GetParNumber(spar.c_str());
+        if ( ipar < 0 ) {
+          cout << myname << "ERROR: Invalid fit parameter name: " << spar << endl;
+          continue;
+        }
+        val = pf->GetParameter(ipar);
       } else {
         cout << myname << "Invald var type: " << vartype << endl;
         continue;
+      }
+      float dval = 0.0;
+      bool haveErr = true;
+      if ( errtype == "none" ) {
+        haveErr = false;
+      } else if ( errtype == "zero" ) {
+        dval = 0.0;
+      } else if ( errtype == "rms" ) {
+        dval = phvar->GetRMS();
+      } else if ( errtype.substr(0,3) == "fit" ) {
+        Index nfun = phvar->GetListOfFunctions()->GetEntries();
+        TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
+        if ( phvar == nullptr ) {
+          cout << myname << "Unable to find find fit for sum hist " << hnam << endl;
+          continue;
+        }
+        Name spar = errtype.substr(3);
+        int ipar = pf->GetParNumber(spar.c_str());
+        if ( ipar < 0 ) {
+          cout << myname << "ERROR: Invalid fit parameter name: " << spar << endl;
+        } else {
+          dval = pf->GetParameter(ipar);
+        }
       }
       if ( ph->GetEntries() == 0 ) {
         Name ylabOld = ph->GetYaxis()->GetTitle();
@@ -781,6 +895,7 @@ void AdcRoiViewer::fillChanSumHists() const {
 
       }
       ph->SetBinContent(ibin, val);
+      if ( haveErr ) ph->SetBinError(ibin, dval);
     }
   }
 }

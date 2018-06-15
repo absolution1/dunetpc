@@ -46,6 +46,10 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  SigThresh: 0.0" << endl;
     fout << "  RoiHistOpt: 1" << endl;
     fout << "  FitOpt: 1" << endl;
+    fout << "  PulserStepCharge: 0.0" << endl;
+    fout << "  PulserDacOffset: 0.0" << endl;
+    fout << "  PulserChargeUnit: \"\"" << endl;
+    fout << "  RunDataTool: \"\"" << endl;
     fout << "  SumHists: []" << endl;
     fout << "  ChannelRanges: []" << endl;
     fout << "  ChanSumHists: []" << endl;
@@ -70,9 +74,9 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "]" << endl;
     fout << "tools.mytool2.ChanSumHists: [" << endl;
     fout << "  {name:\"hcsHeight_%CRNAME%\" title:\"Pulse heights for run %RUN% %CRLABEL%\" "
-         <<    "valHist:\"hfh_%0RUN%_chan%0CHAN%\" valType:fitMean cr:apa1x}," << endl;
+         <<    "valHist:\"hfh_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x}," << endl;
     fout << "  {name:\"hcsWidth_%CRNAME%\" title:\"Shaping times for run %RUN% %CRLABEL%\" "
-         <<    "valHist:\"hfw_%0RUN%_chan%0CHAN%\" valType:fitMean cr:apa1x}" << endl;
+         <<    "valHist:\"hfw_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x}" << endl;
     fout << "]" << endl;
     //fout << "  {val:\"hfw_%0RUN%_chan%0CHAN%:FitMean\" hist:\"hcsWidth_%0RUN%\"
     fout << "tools.mytool2.RoiRootFileName: \"\"" << endl;

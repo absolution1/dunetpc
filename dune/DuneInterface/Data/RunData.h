@@ -32,8 +32,8 @@ public:
   float shaping() const { return m_shaping; }
   float leakage() const { return m_leakage; }
   float hvfrac() const { return m_hvfrac; }
-  float pulserAmplitude() const { return m_pulserAmplitude; }
-  float pulserSource() const { return m_pulserSource; }
+  Index pulserAmplitude() const { return m_pulserAmplitude; }
+  Index pulserSource() const { return m_pulserSource; }
 
   // Return if value is defined.
   bool isValid() const { return run(); }

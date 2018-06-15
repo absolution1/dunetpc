@@ -6,23 +6,26 @@
 // Tool to extract information about the ROIs in an ADC channel.
 //
 // Configuration:
-//         LogLevel - Logging level: 0=none, 1=init, 2=call, ...
-//        SigThresh - if <0, then only keep ROIS with a tick below this value
-//                    if >0, then only keep ROIS with a tick above this value
-//      RunDataTool - Name for the run data tool. If found and pulser is on, then each
-//                    ROI is assigned a charge corresponding to the pulser setting.
-//       RoiHistOpt - histo option:  0 - No histograms
-//                                   1 - sample vs. tick
-//                                   2 - raw vs. tick
-//                                  10 + i - As above for i except vs. tick - tick0
-//           FitOpt - ROI fitting option
-//                      0 - no fit
-//                      1 - fit with coldelecReponse
-//         SumHists - Array of summary histogram specifiers. See below.
-//    ChannelRanges - Ranges of channels for channel summary plots.
-//     ChanSumHists - Array of specifiers for the channel summary histograms.
-//  RoiRootFileName - Name of file to which the ROI histograms are copied.
-//  SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
+//           LogLevel - Logging level: 0=none, 1=init, 2=call, ...
+//          SigThresh - if <0, then only keep ROIS with a tick below this value
+//                      if >0, then only keep ROIS with a tick above this value
+//        RunDataTool - Name for the run data tool. If found and pulser is on, then each
+//                      ROI is assigned a charge corresponding to the pulser setting.
+//         RoiHistOpt - histo option:  0 - No histograms
+//                                     1 - sample vs. tick
+//                                     2 - raw vs. tick
+//                                    10 + i - As above for i except vs. tick - tick0
+//             FitOpt - ROI fitting option
+//                        0 - no fit
+//                        1 - fit with coldelecReponse
+//   PulserStepCharge - Charge per unit step in a pulser run
+//    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
+//   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
+//           SumHists - Array of summary histogram specifiers. See below.
+//      ChannelRanges - Ranges of channels for channel summary plots.
+//       ChanSumHists - Array of specifiers for the channel summary histograms.
+//    RoiRootFileName - Name of file to which the ROI histograms are copied.
+//    SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
 //
 // Summary histograms
 // ------------------
@@ -53,6 +56,18 @@
 //
 // Channel summary histograms
 // --------------------------
+// Channel summary histograms hold a metric for each channel derived from a summary histogram.
+// The following fileds specify a channel summary histogram:
+//     name - name for the summary histogram (%CRNAME% is replaced with the channel range name)
+//    title - histogram title  (substitutions for %CRLABEL%, %RUN%, ...)
+//  valHist - Name of the summary histogram template from which the metric is derived (should include %CHAN%)
+//  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
+//                mean - Root GetMean()
+//                 rms - Root GetRMS()
+//              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
+//  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
+//                none - Do not set error
+//                zero - Set the error to zero
 //
 // Output data map for view:
 //           int              roiRun - Run number
@@ -102,6 +117,7 @@
 #include <iostream>
 
 class AdcChannelStringTool;
+class RunDataTool;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -147,11 +163,13 @@ public:
     HistMap chanSumHists;
     NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
     NameMap chanSumHistVariableTypes;  // Variable type indexed by chansum name.
+    NameMap chanSumHistErrorTypes;     // Error type indexed by chansum name.
     ~State();
     // Fetch the summary histogram for a histogram name.
     TH1* getSumHist(Name hname);
     Name getChanSumHistTemplateName(Name hnam) const;
     Name getChanSumHistVariableType(Name hnam) const;
+    Name getChanSumHistErrorType(Name hnam) const;
     Index cachedRunCount = 0;  // Incremente each time run number changes.
     Index cachedRun = AdcChannelData::badIndex;
     Name cachedSampleUnit;
@@ -201,10 +219,17 @@ private:
   float m_SigThresh;
   int m_RoiHistOpt;
   int m_FitOpt;
-  std::string m_RoiRootFileName;
-  std::string m_SumRootFileName;
-  std::string m_ChanSumRootFileName;
+  float m_PulserStepCharge;
+  float m_PulserDacOffset;
+  Name m_PulserChargeUnit;
+  Name m_RunDataTool;
+  Name m_RoiRootFileName;
+  Name m_SumRootFileName;
+  Name m_ChanSumRootFileName;
   ChannelRangeMap m_ChannelRanges;
+
+  // Derived from configuration.
+  const RunDataTool* m_pRunDataTool =nullptr;
 
   // Fixed configuration data.
   int m_TickPeriod = 497;
