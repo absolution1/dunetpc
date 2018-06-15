@@ -93,7 +93,7 @@ void TriggerPrimitiveFinder::produce(art::Event & e)
                               wid,                                  //WIRE ID.
                               hit.startTime,                        //START TICK.
                               hit.startTime+hit.timeOverThreshold,  //END TICK. 
-                              0,                                    //RMS.
+                              hit.timeOverThreshold,                //RMS.
                               hit.startTime,                        //PEAK_TIME.
                               0,                                    //SIGMA_PEAK_TIME.
                               0,                                    //PEAK_AMPLITUDE.
