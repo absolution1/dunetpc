@@ -186,7 +186,7 @@ namespace CalibrationTreeBuilder {
               emp_h.first->second.split+=partialhit.split;
               emp_h.first->second.num_electrons+=partialhit.num_electrons;//numelectrons came from the ides that contributed to the given hit. They should stack because the IDEs stack(which is why we are adding them in the first place).
             }
-            //emp_e.first->second.unique();//Throw out duplicates.
+            emp_e.first->second.unique();//Throw out duplicates.
             Double_t energy=0.0;
             for( auto en : emp_e.first->second){
               energy += en;
@@ -196,15 +196,25 @@ namespace CalibrationTreeBuilder {
           std::map<int64_t, EventRecord::PartialOpHit> bunched_ophits;
           for(auto partialop : part.partial_ophits){
             auto emp_o = bunched_ophits.emplace(std::make_pair(partialop.index,partialop));
+            std::list<Double_t> dummy;
+            auto emp_e = remembered_energies.emplace(std::make_pair(partialop.index, dummy));//very memory inefficient, but I am not in a position to care about that right now. One could easily improve on my code here.
             if(emp_o.second==true){
+              emp_e.first->second.emplace_back(partialop.energy);
               emp_o.first->second=partialop;
             }else{
               if(emp_o.first->second.time != partialop.time){throw cet::exception("CalibrationTreeBuilder")<<"Buncher failed. Trying to merge two of the same ophit at different times?\n";}
+              emp_e.first->second.emplace_back(partialop.energy);
               emp_o.first->second.pes+=partialop.pes;
               emp_o.first->second.split+=partialop.split;
               emp_o.first->second.num_photons+=partialop.num_photons;
               //numphotons came from the sdps that contributed to the given hit. They should stack because the SDPs stack(which is why we are adding them in the first place). NOTE!! We will not do this when we combine records together for the detectors.
             }
+            emp_e.first->second.unique();//Throw out duplicates.
+            Double_t energy=0.0;
+            for( auto en : emp_e.first->second ){
+              energy += en;
+            }
+            emp_o.first->second.energy=energy;
           }
           for(auto entry : bunched_hits){
             npart.partial_hits.push_back(entry.second);
@@ -288,7 +298,7 @@ namespace CalibrationTreeBuilder {
                 for(auto partial_ophit : part.partial_ophits){
                   int ind = partial_ophit.index;
                   fl.ophit_pes     = partial_ophit.pes;
-                  fl.ophit_pes     = partial_ophit.energy;
+                  fl.ophit_energy  = partial_ophit.energy;
                   fl.ophit_time    = partial_ophit.time;
                   fl.ophit_width   = partial_ophit.width;
                   fl.ophit_split   = partial_ophit.split;
@@ -384,8 +394,8 @@ namespace CalibrationTreeBuilder {
         total_charge += sdp_p->numPhotons;
         //        tmp.pes = //Not used yet.
         tmp.num_photons = sdp_p->numPhotons; //This is not PEs. This is incident photons. I am just storing it here for later logic (see final assignment in the next for loop.
-        //tmp.energy = sdp_p->energy;
-        tmp.energy = 0.0;// sdp_p->energy;
+        tmp.energy = sdp_p->energy;
+        //tmp.energy = 0.0;// sdp_p->energy;
         tmp.time   = hit->PeakTime();
         tmp.width  = hit->Width();
         tmp.split  = 0.0;
