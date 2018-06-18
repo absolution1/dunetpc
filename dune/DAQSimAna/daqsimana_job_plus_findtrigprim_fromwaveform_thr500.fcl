@@ -1,0 +1,6 @@
+#include "daqsimana_job_plus_findtrigprim.fcl"
+
+physics.producers.simwire.UseRawDigitInput: true
+physics.producers.simwire.RawDigitInputLabel: "daq"
+services.TFileService.fileName: "DAQSimAna_plus_trigprim_fromwaveform_thr500.root"
+services.TriggerPrimitiveFinderService.Threshold: 500
