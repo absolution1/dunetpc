@@ -13,22 +13,29 @@
 #define DUNE_DUNEOBJBASE_SIM_H
 #include <vector>
 #include <TObject.h>
+#include <map>
 
 namespace sim {
 
-  class TickDivRec{
-    int Photons;
-    int crosstalk;
+  class ChanDivRec{
+    public:
+      double tick_photons_frac=0.0;
   };
 
-  class ChanDivRec{
-    UInt_t OpChanNum;
-    std::vector<sim::TickDivRec>;//Should this be index matched? I guess so. After all, this is an expansion record, but this feels dirty to me.
-  };
+/*  class TickDivRec{
+    public:
+      //double sdp_time;//This is a redundancy, but this is an evolving data type, and I am just trying to get it running as quickly as possible for now.
+      //No need to know the time. We are index linked to the SDPs times.
+      std::map<UInt_t, ChanDivRec> chans;
+  };*/
 
   class OpDetDivRec{
-    UInt_t opDetNum;
-    std::vector<sim::ChanDivRec> chans;
+    public:
+      //    UInt_t opDetNum; //This is a redundancy
+      typedef std::map<UInt_t, ChanDivRec> TickDivChans; //OpChan, ChanDivRec
+      std::vector<std::pair<double, TickDivChans>> tick_chans; //Because the btss timePDclockSDPMap gets sorted, we will also need to be able to sort this to make the indicies match. That means we also have to include the time (bad memory redundancy, but in this version unavoidable), so we can also sort this one.
+      void Clear();
   };
 
 }
+#endif //DUNE_DUNEOBJBASE_SIM_H

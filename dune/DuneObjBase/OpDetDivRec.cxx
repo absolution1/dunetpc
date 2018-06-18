@@ -9,11 +9,12 @@
 ////////////////////////////////////////////////////////////////////////
 
 //includes
-#ifndef DUNE_DUNEOBJBASE_SIM_H
-#define DUNE_DUNEOBJBASE_SIM_H
 #include <vector>
 #include <TObject.h>
+#include "OpDetDivRec.h"
 
 namespace sim {
-
+  void OpDetDivRec::Clear(){
+    tick_chans.clear(); 
+  }
 }
