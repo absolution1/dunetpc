@@ -30,10 +30,17 @@
 
 // C++ Includes
 #include <memory>
+#include <iostream>
+#include <fstream>
 
 namespace dune {
   class TimingRawDecoder;
 }
+
+using std::string;
+using std::cout;
+using std::endl;
+using std::ofstream;
 
 class dune::TimingRawDecoder : public art::EDProducer {
 public:
@@ -63,6 +70,7 @@ private:
   bool fUseChannelMap;
   bool fDebug;
   bool fMakeTree;
+  bool fMakeEventTimeFile = false;
   raw::Compress_t        fCompression;      ///< compression type to use
   unsigned int           fZeroThreshold;    ///< Zero suppression threshold
 
@@ -94,6 +102,7 @@ void dune::TimingRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   fDebug = pset.get<bool>("Debug");
   fMakeTree = pset.get<bool>("MakeTree");
+  pset.get_if_present<bool>("MakeEventTimeFile", fMakeEventTimeFile);
   fZeroThreshold=0;
   fCompression=raw::kNone;
   fPrevTimestamp=0;
@@ -143,6 +152,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
   evt.getByLabel(fRawDataLabel, "TIMING", rawFragments);
 
   art::EventNumber_t eventNumber = evt.event();
+  art::RunNumber_t runNumber = evt.run();
 
   // Check if there is Timing data in this event
   // Don't crash code if not present, just don't save anything
@@ -164,10 +174,11 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     throw cet::exception("rawFragments NOT VALID");
   }
   std::vector<raw::RawDigit> rawDigitVector;
+  uint64_t evtTimestamp = 0;
   for(auto const& rawFrag : *rawFragments){
       dune::TimingFragment frag(rawFrag);
 //      std::cout << "[TimingRawDecoder] Event number: " << eventNumber << ", TStamp: " << frag.get_tstamp() << std::endl; 
-      std::cout << " ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
+      std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
       uint64_t currentTimestamp=frag.get_tstamp();
       fHTimestamp->Fill(currentTimestamp/1e6);
       fHTrigType->Fill(frag.get_scmd());
@@ -176,6 +187,19 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
 
       fPrevTimestamp=currentTimestamp;
 //      fHTimestamp->Fill(rawFrag.timestamp());
+
+    if ( fMakeEventTimeFile ) {
+      if ( evtTimestamp == 0 ) {
+        evtTimestamp = rawFrag.timestamp();
+        string foutName = "artdatTimestamp-Run" + std::to_string(runNumber) + "-Event" + std::to_string(eventNumber) + ".dat";
+        ofstream fout(foutName);
+        fout << evtTimestamp << endl;
+      } else {
+        if ( rawFrag.timestamp() != evtTimestamp ) {
+          cout << "TimingRawDecoder::produce: WARNING: Fragments have inconsistent timestamps." << endl;
+        }
+      }
+    }
   }
   evt.put(std::make_unique<decltype(rawDigitVector)>(std::move(rawDigitVector)), fOutputDataLabel);
   std::cout<<std::endl;
