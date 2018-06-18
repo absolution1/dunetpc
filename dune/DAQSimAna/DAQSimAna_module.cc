@@ -42,8 +42,6 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-const int nMaxHits = 5000;
-const int nMaxIDEs = 1000000;
 //const int nMaxDigs = 4492; // unused
 
 enum PType{ kUnknown=0, kMarl, kAPA, kCPA, kAr39, kAr42, kNeutron, kKryp, kPlon, kRdon, kNPTypes };
@@ -112,16 +110,18 @@ private:
   int   NTotHits;
   int   NColHits;
   int   NIndHits;
-  int   HitView[nMaxHits]; ///< View i.e Coll, U, V
-  int   HitSize[nMaxHits]; ///< Time width (ticks) Start - End time
-  int   HitTPC [nMaxHits]; ///< The TPC which the hit occurs in
-  int   HitChan[nMaxHits]; ///< The channel which the hit occurs on
-  float HitTime[nMaxHits]; ///< The time of the hit (ticks)
-  float HitRMS [nMaxHits]; ///< The RMS of the hit
-  float HitSADC[nMaxHits]; ///< The summed ADC of the hit
-  float HitInt [nMaxHits]; ///< The ADC integral of the hit
-  float HitPeak[nMaxHits]; ///< The peak ADC value of the hit
-  int   GenType[nMaxHits]; ///< The generator which generated the particle responsible for the hit
+
+  std::vector<int>   HitView; ///< View i.e Coll, U, V
+  std::vector<int>   HitSize; ///< Time width (ticks) Start - End time
+  std::vector<int>   HitTPC; ///< The TPC which the hit occurs in
+  std::vector<int>   HitChan; ///< The channel which the hit occurs on
+  std::vector<float> HitTime; ///< The time of the hit (ticks)
+  std::vector<float> HitRMS; ///< The RMS of the hit
+  std::vector<float> HitSADC; ///< The summed ADC of the hit
+  std::vector<float> HitInt; ///< The ADC integral of the hit
+  std::vector<float> HitPeak; ///< The peak ADC value of the hit
+  std::vector<int>   GenType; ///< The generator which generated the particle responsible for the hit
+
   int   TotGen_Marl;
   int   TotGen_APA;
   int   TotGen_CPA;
@@ -133,11 +133,11 @@ private:
   int   TotGen_Rdon;
 
   int   NTotIDEs;
-  int   IDEChannel  [nMaxIDEs];
-  int   IDEStartTime[nMaxIDEs];
-  int   IDEEndTime  [nMaxIDEs];
-  float IDECharge   [nMaxIDEs];
-  int   IDEParticle [nMaxIDEs];
+  std::vector<int>   IDEChannel;
+  std::vector<int>   IDEStartTime;
+  std::vector<int>   IDEEndTime;
+  std::vector<float> IDECharge;
+  std::vector<int>   IDEParticle;
 
   // histograms to fill about Collection plane hits
   TH1I* hAdjHits_Marl;
@@ -205,21 +205,25 @@ void DAQSimAna::ResetVariables()
 
   // reconstructed hits
   NTotHits = NColHits = NIndHits = 0; 
-  for (int hh=0; hh<nMaxHits; ++hh) {
-    HitView[hh] = HitSize[hh] = HitChan[hh] = GenType[hh] = 0;
-    HitTime[hh] = HitRMS [hh] = HitSADC[hh] = 0;
-    HitInt [hh] = HitPeak[hh] = HitTPC [hh] = 0;
-  }
+
+  HitView.clear();
+  HitSize.clear();
+  HitTPC.clear();
+  HitChan.clear();
+  HitTime.clear();
+  HitRMS.clear();
+  HitSADC.clear();
+  HitInt.clear();
+  HitPeak.clear();
+  GenType.clear();
 
   // IDEs
   NTotIDEs=0;
-  for (int hh=0; hh<nMaxIDEs; ++hh) {
-    IDEChannel  [hh]=0;
-    IDEStartTime[hh]=0;
-    IDEEndTime  [hh]=0;
-    IDECharge   [hh]=0;
-    IDEParticle [hh]=0;
-  }
+  IDEChannel.clear();
+  IDEStartTime.clear();
+  IDEEndTime.clear();
+  IDECharge.clear();
+  IDEParticle.clear();
 
 } // ResetVariables
 
@@ -238,16 +242,17 @@ void DAQSimAna::beginJob()
   fDAQSimTree -> Branch( "NTotHits"  , &NTotHits  , "NTotHits/I" );
   fDAQSimTree -> Branch( "NColHits"  , &NColHits  , "NColHits/I" );
   fDAQSimTree -> Branch( "NIndHits"  , &NIndHits  , "NIndHits/I" );
-  fDAQSimTree -> Branch( "HitView"   , &HitView   , "HitView[NTotHits]/I" );
-  fDAQSimTree -> Branch( "HitSize"   , &HitSize   , "HitSize[NTotHits]/I" );
-  fDAQSimTree -> Branch( "HitTPC"    , &HitTPC    , "HitTPC[NTotHits]/I"  );
-  fDAQSimTree -> Branch( "HitChan"   , &HitChan   , "HitChan[NTotHits]/I" );
-  fDAQSimTree -> Branch( "HitTime"   , &HitTime   , "HitTime[NTotHits]/F" );
-  fDAQSimTree -> Branch( "HitRMS"    , &HitRMS    , "HitRMS[NTotHits]/F"  );
-  fDAQSimTree -> Branch( "HitSADC"   , &HitSADC   , "HitSADC[NTotHits]/F" );
-  fDAQSimTree -> Branch( "HitInt"    , &HitInt    , "HitInt[NTotHits]/F"  );
-  fDAQSimTree -> Branch( "HitPeak"   , &HitPeak   , "HitPeak[NTotHits]/F" );
-  fDAQSimTree -> Branch( "GenType"   , &GenType   , "GenType[NTotHits]/I" );
+
+  fDAQSimTree->Branch("HitView", &HitView);
+  fDAQSimTree->Branch("HitSize", &HitSize);
+  fDAQSimTree->Branch("HitTPC", &HitTPC);
+  fDAQSimTree->Branch("HitChan", &HitChan);
+  fDAQSimTree->Branch("HitTime", &HitTime);
+  fDAQSimTree->Branch("HitRMS", &HitRMS);
+  fDAQSimTree->Branch("HitSADC", &HitSADC);
+  fDAQSimTree->Branch("HitInt", &HitInt);
+  fDAQSimTree->Branch("HitPeak", &HitPeak);
+  fDAQSimTree->Branch("GenType", &GenType);
 
   fDAQSimTree -> Branch( "TotGen_Marl", &TotGen_Marl, "TotGen_Marl/I" );
   fDAQSimTree -> Branch( "TotGen_APA" , &TotGen_APA , "TotGen_APA/I"  );
@@ -261,11 +266,11 @@ void DAQSimAna::beginJob()
 
   // IDEs
   fDAQSimTree -> Branch( "NTotIDEs"  , &NTotIDEs  , "NTotIDEs/I" );
-  fDAQSimTree -> Branch( "IDEChannel"   , &IDEChannel   , "IDEChannel[NTotIDEs]/I" );
-  fDAQSimTree -> Branch( "IDEStartTime" , &IDEStartTime , "IDEStartTime[NTotIDEs]/I" );
-  fDAQSimTree -> Branch( "IDEEndTime"   , &IDEEndTime   , "IDEEndTime[NTotIDEs]/I" );
-  fDAQSimTree -> Branch( "IDECharge"    , &IDECharge    , "IDECharge[NTotIDEs]/F" );
-  fDAQSimTree -> Branch( "IDEParticle"  , &IDEParticle  , "IDEParticle[NTotIDEs]/I" );
+  fDAQSimTree->Branch("IDEChannel", &IDEChannel);
+  fDAQSimTree->Branch("IDEStartTime", &IDEStartTime);
+  fDAQSimTree->Branch("IDEEndTime", &IDEEndTime);
+  fDAQSimTree->Branch("IDECharge", &IDECharge);
+  fDAQSimTree->Branch("IDEParticle", &IDEParticle);
 
   // --- Our Histograms...
   hAdjHits_Marl = tfs->make<TH1I>("hAdjHits_Marl", "Number of adjacent collection plane hits for MARLEY; Number of adjacent collection plane hits; Number of events"  , 21, -0.5, 20.5 );
@@ -302,6 +307,12 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
     auto& simchs=*evt.getValidHandle<std::vector<sim::SimChannel>>("largeant");
     // mf::LogDebug("DAQSimAna") << "Got " << simchs.size() << " IDEs";
     int outIDEIndex=0;
+    IDEChannel.push_back(0);
+    IDECharge.push_back(0);
+    IDEStartTime.push_back(0);
+    IDEEndTime.push_back(0);
+    IDEParticle.push_back(kUnknown);
+
     // int totalIDEsIn=0;
     std::map<PType, float> ptypeToCharge;
 
@@ -361,10 +372,12 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
             IDEParticle[outIDEIndex]=bestPType;
             
             ++outIDEIndex;
-            IDEChannel[outIDEIndex]=simch.Channel();
-            IDECharge[outIDEIndex]=ide.numElectrons;
-            IDEStartTime[outIDEIndex]=tdc;
-            IDEEndTime[outIDEIndex]=tdc+1;
+
+            IDEChannel.push_back(simch.Channel());
+            IDECharge.push_back(ide.numElectrons);
+            IDEStartTime.push_back(tdc);
+            IDEEndTime.push_back(tdc+1);
+            IDEParticle.push_back(kUnknown);
           }
           prevTDC=tdc;
         } // for IDEs
@@ -471,6 +484,9 @@ void DAQSimAna::analyze(art::Event const & evt)
 
   for(auto const& it : PTypeToMap){
       const PType p=it.first;
+      if(p>kNPTypes){
+          std::cout << "PType is " << (int)p << std::endl;
+      }
       auto const& m=it.second;
       for(auto const& it2 : m){
           trkIDToPType.insert(std::make_pair(it2.first, p));
@@ -498,16 +514,24 @@ void DAQSimAna::analyze(art::Event const & evt)
   //*
   // --- Loop over the reconstructed hits to determine the "size" of each hit 
   NTotHits = reco_hits->size();
-  int LoopHits = std::min( NTotHits, nMaxHits );
-  mf::LogDebug("DAQSimAna") << "---- There are " << NTotHits << " hits in the event, but array is of size " << nMaxHits << ", so looping over first " << LoopHits << " hits.";
-  for(int hit = 0; hit < LoopHits; ++hit) {
+
+  for(int hit = 0; hit < NTotHits; ++hit) {
     // --- Let access this particular hit.
     recob::Hit const& ThisHit = reco_hits->at(hit);  
     
     // --- Lets figure out which particle contributed the most charge to this hit...
     int MainTrID    = -1;
     double TopEFrac = -DBL_MAX;
-    std::vector< sim::TrackIDE > ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
+
+    // HitToTrackIDEs opens a specific window around the hit. I want a
+    // wider one, because the filtering can delay the hit. So this bit
+    // is a copy of HitToTrackIDEs from the backtracker, with some
+    // modification
+    const double start = ThisHit.PeakTime()-20;
+    const double end   = ThisHit.PeakTime()+ThisHit.RMS()+20;
+    std::vector<sim::TrackIDE> ThisHitIDE = bt_serv->ChannelToTrackIDEs(ThisHit.Channel(), start, end);
+    // The old method
+    // std::vector< sim::TrackIDE > ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
     for (size_t ideL=0; ideL < ThisHitIDE.size(); ++ideL) {
         if ( ThisHitIDE[ideL].energyFrac > TopEFrac ) {
             TopEFrac = ThisHitIDE[ideL].energyFrac;
@@ -531,16 +555,16 @@ void DAQSimAna::analyze(art::Event const & evt)
     }
 
     // --- Now fill in all of the hit level variables.
-    HitView[hit] = ThisHit.View();
-    HitSize[hit] = ThisHit.EndTick() - ThisHit.StartTick();
-    HitTPC [hit] = ThisHit.WireID().TPC;
-    HitChan[hit] = ThisHit.Channel();
-    HitTime[hit] = ThisHit.PeakTime();
-    HitRMS [hit] = ThisHit.RMS();
-    HitSADC[hit] = ThisHit.SummedADC();
-    HitInt [hit] = ThisHit.Integral();
-    HitPeak[hit] = ThisHit.PeakAmplitude();
-    GenType[hit] = ThisPType;
+    HitView.push_back(ThisHit.View());
+    HitSize.push_back(ThisHit.EndTick() - ThisHit.StartTick());
+    HitTPC .push_back(ThisHit.WireID().TPC);
+    HitChan.push_back(ThisHit.Channel());
+    HitTime.push_back(ThisHit.PeakTime());
+    HitRMS .push_back(ThisHit.RMS());
+    HitSADC.push_back(ThisHit.SummedADC());
+    HitInt .push_back(ThisHit.Integral());
+    HitPeak.push_back(ThisHit.PeakAmplitude());
+    GenType.push_back(ThisPType);
   
     // --- I want to fill a vector of coll plane hits, for each of the different kinds of generator.
     if (ThisHit.View() == 2) {
@@ -647,8 +671,10 @@ PType DAQSimAna::WhichParType( int TrID )
     if(it!=trkIDToPType.end()){
         ThisPType=it->second;
     }
-
-  return ThisPType;
+    if(ThisPType>kNPTypes){
+        std::cout << "In WhichParType, ptype is " << (int)ThisPType << std::endl;
+    }   
+    return ThisPType;
 }
 
 //......................................................
