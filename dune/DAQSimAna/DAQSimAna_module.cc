@@ -319,6 +319,9 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
     static int nPrint=0;
 
     for(auto&& simch: simchs){
+      // We only care about collection channels
+      if(geo->SignalType(simch.Channel())!=geo::kCollection) continue;
+
       int prevTDC=-9;
       // totalIDEsIn+=simch.TDCIDEMap().size();
       for (const auto& TDCinfo: simch.TDCIDEMap()) {
