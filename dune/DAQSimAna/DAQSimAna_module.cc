@@ -285,6 +285,7 @@ void DAQSimAna::beginJob()
   hAdjHits_Oth  = tfs->make<TH1I>("hAdjHits_Oth" , "Number of adjacent collection plane hits for Others; Number of adjacent collection plane hits; Number of events"  , 21, -0.5, 20.5 );
 } // BeginJob
 
+//......................................................
 void DAQSimAna::SaveIDEs(art::Event const & evt)
 {
   auto allParticles = evt.getValidHandle<std::vector<simb::MCParticle> >(fGEANTLabel);
@@ -313,6 +314,17 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
     IDEEndTime.push_back(0);
     IDEParticle.push_back(kUnknown);
 
+    struct MyIDE
+    {
+        int channel;
+        float charge;
+        int startTime;
+        int endTime;
+        PType particle;
+    };
+
+    MyIDE currentIDE;
+
     // int totalIDEsIn=0;
     std::map<PType, float> ptypeToCharge;
 
@@ -322,16 +334,26 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
       // We only care about collection channels
       if(geo->SignalType(simch.Channel())!=geo::kCollection) continue;
 
+      currentIDE.channel=simch.Channel();
+      currentIDE.charge=0;
+      currentIDE.startTime=-1;
+      currentIDE.endTime=-1;
+      currentIDE.particle=kUnknown;
+
+      bool lastWasContiguous=false;
       int prevTDC=-9;
       // totalIDEsIn+=simch.TDCIDEMap().size();
       for (const auto& TDCinfo: simch.TDCIDEMap()) {
-        auto const tdc = TDCinfo.first;
+        int tdc = TDCinfo.first;
+        if(tdc>5000) continue; // Just ignore IDEs after the readout window
         for (const sim::IDE& ide: TDCinfo.second) {
-
           // See whether the current IDE is ~contiguous in time with the previous IDE. If so, we'll put them in the some output IDE
           if(tdc-prevTDC < 10){
-            IDECharge[outIDEIndex] += ide.numElectrons;
-            IDEEndTime[outIDEIndex] = tdc+1;
+            lastWasContiguous=true;
+            // Update the current output ide
+            currentIDE.charge += ide.numElectrons;
+            currentIDE.endTime = tdc+1;
+
             // From Tingjun on negative track IDs:
             //
             //  negative track id means the energy deposition was from
@@ -359,7 +381,9 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
             ptypeToCharge[thisPType]+=ide.numElectrons;
           }
           else{
-            // Finish up the existing IDE and start a new one
+            lastWasContiguous=false;
+            //---------------------------------------
+            // Finish up the existing IDE...
             PType bestPType=kUnknown;
             float bestNumElectrons=0;
             for(int i=0; i<kNPTypes; ++i){
@@ -372,20 +396,41 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
 
             ptypeToCharge.clear();
 
-            IDEParticle[outIDEIndex]=bestPType;
+            currentIDE.particle=bestPType;
+
+            //---------------------------------------
+            // Save the existing IDE to the list if it has anything in it
+            if(currentIDE.startTime>=0){
+                IDEChannel.push_back(currentIDE.channel);
+                IDECharge.push_back(currentIDE.charge);
+                IDEStartTime.push_back(currentIDE.startTime);
+                IDEEndTime.push_back(currentIDE.endTime);
+                IDEParticle.push_back(currentIDE.particle);
+            }
             
             ++outIDEIndex;
 
-            IDEChannel.push_back(simch.Channel());
-            IDECharge.push_back(ide.numElectrons);
-            IDEStartTime.push_back(tdc);
-            IDEEndTime.push_back(tdc+1);
-            IDEParticle.push_back(kUnknown);
+            //---------------------------------------
+            // Start the new IDE
+
+            currentIDE.channel=simch.Channel();
+            currentIDE.startTime=tdc;
+            currentIDE.endTime=tdc+1;
+            currentIDE.particle=kUnknown;
+            currentIDE.charge=ide.numElectrons;
           }
+
           prevTDC=tdc;
         } // for IDEs
-
       } // for TDCs
+
+      if(lastWasContiguous){
+          IDEChannel.push_back(currentIDE.channel);
+          IDECharge.push_back(currentIDE.charge);
+          IDEStartTime.push_back(currentIDE.startTime);
+          IDEEndTime.push_back(currentIDE.endTime);
+          IDEParticle.push_back(currentIDE.particle);
+      }
     } // loop over SimChannels
 
     NTotIDEs=outIDEIndex;
