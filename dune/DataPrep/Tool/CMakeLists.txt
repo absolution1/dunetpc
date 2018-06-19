@@ -45,6 +45,14 @@ simple_plugin(AdcDataDumper   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcTickModViewer   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcDataPlotter   "tool"
                 dune_ArtSupport
                 dune_DuneCommon
