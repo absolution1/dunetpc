@@ -3369,8 +3369,8 @@ if (hasRecobWireInfo()){
 
     CreateBranch("Hit_Multiplicity",hit_multiplicity,"hit_multiplicity[no_hits]/S");
     CreateBranch("Hit_trueID", hit_trueID,  "Hit_trueID[no_hits]/I");
-    CreateBranch("hit_trueEnergyMax", hit_trueEnergyMax,  "hit_trueEnergyMax[no_hits]/F");
-    CreateBranch("hit_trueEnergyFraction", hit_trueEnergyFraction,  "hit_trueEnergyFraction[no_hits]/F");
+    CreateBranch("Hit_trueEnergyMax", hit_trueEnergyMax,  "hit_trueEnergyMax[no_hits]/F");
+    CreateBranch("Hit_trueEnergyFraction", hit_trueEnergyFraction,  "hit_trueEnergyFraction[no_hits]/F");
     CreateBranch("Hit_TrackID",hit_trkid,"hit_trkid[no_hits]/S");
     //CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits]/S");
     CreateBranch("Hit_ClusterID",hit_clusterid,"hit_clusterid[no_hits]/S");
