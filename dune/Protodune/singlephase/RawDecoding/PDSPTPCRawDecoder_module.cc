@@ -462,15 +462,28 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     }
 
     // handle 256 channels on two fibers -- use the channel map that assumes 128 chans per fiber (=FEMB)
-    unsigned int fiberloc = fiber;
+    
+    unsigned int fiberloc = 0;
+    if (fiber == 1) 
+      {
+	fiberloc = 0;
+      }
+    else if (fiber == 2)
+      {
+	fiberloc = 2;
+      }
+    else
+      {
+	LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << fiber << " is expected to be 1 or 2 -- revisit logic";
+      }
+
     unsigned int chloc = ch;
     if (chloc > 127)
       {
 	chloc -= 128;
 	fiberloc++;
       }
-    unsigned int crateloc=5;  // crate 5 is reserved for FELIX in the channel map.  Even if we are testing
-    // with a temporary crate, use the FELIX map always here.
+    unsigned int crateloc = crate;  
 
     unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc); 
 
