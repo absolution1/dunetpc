@@ -57,6 +57,7 @@ int test_StickyCodeMetrics() {
   counts[129] =  4;
   AdcCountVector vals;
   TH1F* ph = new TH1F("hraw", "Input ADC distribution; ADC count; # entries", 4096, 0, 4096);
+  TH1F* ph2 = new TH1F("hraw2", "Input ADC distribution; ADC count; # entries", 30, 100, 130);
   Index nadc = 0;
   for ( BinCounter::value_type icnt : counts ) {
     AdcCount iadc = icnt.first;
@@ -65,6 +66,7 @@ int test_StickyCodeMetrics() {
     for ( Index ival=0; ival<nval; ++ival ) {
       vals.push_back(iadc);
       ph->Fill(iadc);
+      ph2->Fill(iadc);
     }
   }
   cout << myname << "  Bin counter count: " << nadc << endl;
@@ -72,11 +74,6 @@ int test_StickyCodeMetrics() {
   cout << myname << "    Histogram count: " << ph->GetEntries() << endl;
   assert( vals.size() == nadc );
   assert( ph->GetEntries() == nadc );
-
-  cout << myname << line << endl;
-  cout << myname << "Old evaluation." << endl;
-  StickyCodeMetrics scmold(vals, 1);
-  scmold.print();
 
   cout << myname << line << endl;
   cout << myname << "Bin Counter evaluation." << endl;
@@ -92,6 +89,15 @@ int test_StickyCodeMetrics() {
   cout << myname << "Histogram evaluation." << endl;
   StickyCodeMetrics scmhst(ph);
   scmhst.print();
+
+  cout << myname << line << endl;
+  cout << myname << "Limited-range histogram evaluation." << endl;
+  StickyCodeMetrics scmhs2(ph2);
+  scmhs2.print();
+
+  cout << myname << line << endl;
+  cout << myname << "Bin Counter data map." << endl;
+  scmbco.getMetrics().print();
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

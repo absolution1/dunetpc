@@ -54,56 +54,12 @@ StickyCodeMetrics::StickyCodeMetrics(const TH1* pha) {
 
 //**********************************************************************
 
-StickyCodeMetrics::StickyCodeMetrics(const AdcCountVector& adcs, int) {
-  m_nsample = adcs.size();
-  map<AdcCount, Index> counts;
-  int maxadc = -1;
-  Index maxCount = 0;
-  Index nmod0 = 0;
-  Index nmod1 = 0;
-  Index nmod63 = 0;
-  Index adcsum = 0;
-  for ( AdcCount adc : adcs ) {
-    if ( counts.find(adc) == counts.end() ) counts[adc] = 0;
-    ++counts[adc];
-    if ( counts[adc] > maxCount ) {
-      maxCount = counts[adc];
-      maxadc = adc;
-    }
-    AdcCount adcmod = adc%64;
-    if ( adcmod ==  0 ) ++nmod0;
-    if ( adcmod ==  1 ) ++nmod1;
-    if ( adcmod == 63 ) ++nmod63;
-    adcsum += adc;
-  }
-  Index adcCount2 = 0;
-  Index adcsum2 = 0;
-  for ( auto ent : counts ) {
-    AdcCount adc = ent.first;
-    Index count = ent.second;
-    if ( adc != maxadc ) {
-      adcCount2 += count;
-      adcsum2 += count*adc;
-    }
-  }
-  double count = adcs.size();
-  double count2 = adcCount2;
-  m_maxAdc = maxadc;
-  m_meanAdc = count>0 ? adcsum/count : -1.0;
-  m_meanAdc2 = count2>0 ? adcsum2/count2 : -1.0;
-  m_maxFraction = maxCount/count;
-  m_zeroFraction = nmod0/count;
-  m_oneFraction = nmod1/count;
-  m_highFraction = nmod63/count;
-}
-
-//**********************************************************************
-
 int StickyCodeMetrics::evaluateMetrics() {
   m_nsample = 0;
   Index badadc = 999999;
   Index maxadc = badadc;
   Index maxCount = 0;
+  Index maxCount2 = 0;
   Index nmod0 = 0;
   Index nmod1 = 0;
   Index nmod63 = 0;
@@ -126,15 +82,21 @@ int StickyCodeMetrics::evaluateMetrics() {
   }
   double countSum2 = 0;
   double adcSum2 = 0;
+  Index maxadc2 = badadc;
   for ( BinCounter::value_type ibco : m_counts ) {
     Index iadc = ibco.first;
     double count = ibco.second;
     if ( iadc != maxadc ) {
       countSum2 += count;
       adcSum2 += count*iadc;
+      if ( count > maxCount2 ) {
+        maxCount2 = count;
+        maxadc2 = iadc;
+      }
     }
   }
   m_maxAdc = maxadc;
+  m_maxAdc2 = maxadc2;
   m_meanAdc = countSum>0 ? adcSum/countSum : -1.0;
   m_meanAdc2 = countSum2>0 ? adcSum2/countSum2 : -1.0;
   m_maxFraction = maxCount/countSum;
@@ -146,27 +108,45 @@ int StickyCodeMetrics::evaluateMetrics() {
 
 //**********************************************************************
 
+DataMap StickyCodeMetrics::getMetrics(string prefix) const {
+  DataMap res;
+  res.setInt(  prefix + "MaxAdc", maxAdc());
+  res.setInt(  prefix + "MaxAdc2", maxAdc2());
+  res.setFloat(prefix + "MeanAdc", meanAdc());
+  res.setFloat(prefix + "MeanAdc2", meanAdc2());
+  res.setFloat(prefix + "MaxFraction", maxFraction());
+  res.setFloat(prefix + "ZeroFraction", zeroFraction());
+  res.setFloat(prefix + "OneFraction", oneFraction());
+  res.setFloat(prefix + "HighFraction", highFraction());
+  res.setFloat(prefix + "ClassicFraction", classicFraction());
+  return res;
+}
+
+//**********************************************************************
+
 void StickyCodeMetrics::print(string prefix) const {
   ostringstream sout;
   sout.precision(2);
-  sout << prefix << "        # samples: " << nsample();
+  sout << prefix << "             # samples: " << nsample();
   sout << "\n";
-  sout << prefix << "          Max ADC: " << maxAdc();
+  sout << prefix << "  Most common ADC code: " << maxAdc();
   sout << "\n";
-  sout << prefix << "         Mean ADC: " << std::fixed << meanAdc();
+  sout << prefix << " Next most common code: " << maxAdc2();
   sout << "\n";
-  sout << prefix << " Mean ADC w/o max: " << std::fixed << meanAdc2();
+  sout << prefix << "              Mean ADC: " << std::fixed << meanAdc();
+  sout << "\n";
+  sout << prefix << "      Mean ADC w/o max: " << std::fixed << meanAdc2();
   sout << "\n";
   sout.precision(3);
-  sout << prefix << "  Frac in max bin: " << maxFraction();
+  sout << prefix << "       Frac in max bin: " << maxFraction();
   sout << "\n";
-  sout << prefix << "       Frac LSB=0: " << zeroFraction();
+  sout << prefix << "            Frac LSB=0: " << zeroFraction();
   sout << "\n";
-  sout << prefix << "       Frac LSB=1: " << oneFraction();
+  sout << prefix << "            Frac LSB=1: " << oneFraction();
   sout << "\n";
-  sout << prefix << "      Frac LSB=64: " << highFraction();
+  sout << prefix << "           Frac LSB=64: " << highFraction();
   sout << "\n";
-  sout << prefix << "    Frac LSB=0,64: " << classicFraction();
+  sout << prefix << "         Frac LSB=0,64: " << classicFraction();
   cout << sout.str() << endl;
 }
 
