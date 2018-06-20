@@ -586,11 +586,14 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
     {
       if(signal[i])
       { 
-	continue;
+        x[i] = i;
+        y[i] = 0;
       }
-
-      x[i] = i;
-      y[i] = adc[i];
+      else
+      {
+        x[i] = i;
+        y[i] = adc[i];
+      }
 
       int j = 0;
       for( int l = 1; l <= fOrder+1; l++)
