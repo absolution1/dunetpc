@@ -27,7 +27,13 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   ${MF_UTILITIES}
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
+  EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc
   )
+
+simple_plugin(TriggerPrimitiveFinderPass1 "tool"
+  fhiclcpp cetlib cetlib_except
+  ${Boost_SYSTEM_LIBRARY}
+)
 
 cet_make_exec(read_packed SOURCE read_packed.cxx)
 

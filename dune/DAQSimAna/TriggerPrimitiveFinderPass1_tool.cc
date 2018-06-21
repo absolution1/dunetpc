@@ -8,20 +8,20 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include "dune/DAQSimAna/TriggerPrimitiveFinderService.h"
+#include "dune/DAQSimAna/TriggerPrimitiveFinderTool.h"
 
 #include "dune/DAQSimAna/AlgParts.h"
 
-class TriggerPrimitiveFinderPass1 : public TriggerPrimitiveFinderService {
+class TriggerPrimitiveFinderPass1 : public TriggerPrimitiveFinderTool {
 public:
-  explicit TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p, art::ActivityRegistry & areg);
+  explicit TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
-    virtual std::vector<TriggerPrimitiveFinderService::Hit>
+    virtual std::vector<TriggerPrimitiveFinderTool::Hit>
     findHits(const std::vector<unsigned int>& channel_numbers, 
              const std::vector<std::vector<short>>& collection_samples);
     
@@ -31,18 +31,18 @@ private:
 };
 
 
-TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p, art::ActivityRegistry&)
+TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p)
     : m_threshold(p.get<unsigned int>("Threshold", 10))
 // Initialize member data here.
 {
     std::cout << "Threshold is " << m_threshold << std::endl;
 }
 
-std::vector<TriggerPrimitiveFinderService::Hit>
+std::vector<TriggerPrimitiveFinderTool::Hit>
 TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_numbers, 
                                       const std::vector<std::vector<short>>& collection_samples)
 {
-    auto hits=std::vector<TriggerPrimitiveFinderService::Hit>();
+    auto hits=std::vector<TriggerPrimitiveFinderTool::Hit>();
     std::cout << "findHits called with " << collection_samples.size()
               << " channels. First chan has " << collection_samples[0].size() << " samples" << std::endl;
     // std::cout << "First few samples: ";
@@ -89,7 +89,7 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         //---------------------------------------------
         bool is_hit=false;
         bool was_hit=false;
-        TriggerPrimitiveFinderService::Hit hit(channel_numbers[ich], 0, 0, 0);
+        TriggerPrimitiveFinderTool::Hit hit(channel_numbers[ich], 0, 0, 0);
         for(size_t isample=0; isample<filtered.size()-1; ++isample){
             // if(ich>11510) std::cout << isample << " " << std::flush;
             short adc=filtered[isample];
@@ -119,5 +119,4 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
     return hits;
 }
 
-DECLARE_ART_SERVICE_INTERFACE_IMPL( TriggerPrimitiveFinderPass1, TriggerPrimitiveFinderService, LEGACY)
-DEFINE_ART_SERVICE_INTERFACE_IMPL(  TriggerPrimitiveFinderPass1, TriggerPrimitiveFinderService)
+DEFINE_ART_CLASS_TOOL(TriggerPrimitiveFinderPass1)

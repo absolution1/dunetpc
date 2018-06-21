@@ -1,10 +1,10 @@
-#ifndef TriggerPrimitiveFinderService_h
-#define TriggerPrimitiveFinderService_h
+#ifndef TriggerPrimitiveFinderTool_h
+#define TriggerPrimitiveFinderTool_h
 
 #include <vector>
 #include <iostream>
 
-class TriggerPrimitiveFinderService {
+class TriggerPrimitiveFinderTool {
  
 public:
     struct Hit
@@ -21,17 +21,12 @@ public:
         int timeOverThreshold;
     };
 
-    virtual ~TriggerPrimitiveFinderService() =default;
+    virtual ~TriggerPrimitiveFinderTool() =default;
 
-    virtual std::vector<TriggerPrimitiveFinderService::Hit>
+    virtual std::vector<TriggerPrimitiveFinderTool::Hit>
     findHits(const std::vector<unsigned int>& channel_numbers, 
              const std::vector<std::vector<short>>& collection_samples) = 0;
  
 };
 
-#ifndef __CLING__
-#include "art/Framework/Services/Registry/ServiceMacros.h"
-DECLARE_ART_SERVICE_INTERFACE(TriggerPrimitiveFinderService, LEGACY)
-#endif
-
-#endif
+#endif // include guard

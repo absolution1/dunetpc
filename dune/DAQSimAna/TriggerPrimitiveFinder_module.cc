@@ -13,6 +13,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Utilities/make_tool.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -20,7 +21,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/ArtDataHelper/HitCreator.h"
 
-#include "dune/DAQSimAna/TriggerPrimitiveFinderService.h"
+#include "dune/DAQSimAna/TriggerPrimitiveFinderTool.h"
 
 #include <memory>
 
@@ -46,12 +47,13 @@ private:
     // The module name of the raw digits we're reading in
     std::string m_inputTag;
     // The actual Service that's doing the trigger primitive finding
-    art::ServiceHandle<TriggerPrimitiveFinderService> m_finder;
+    std::unique_ptr<TriggerPrimitiveFinderTool> m_finder;
 };
 
 
 TriggerPrimitiveFinder::TriggerPrimitiveFinder(fhicl::ParameterSet const & p)
-    : m_inputTag(p.get<std::string>("InputTag", "daq"))
+    : m_inputTag(p.get<std::string>("InputTag", "daq")),
+      m_finder{art::make_tool<TriggerPrimitiveFinderTool>(p.get<fhicl::ParameterSet>("finder"))}
 {
     produces<std::vector<recob::Hit>>();
     produces<art::Assns<raw::RawDigit, recob::Hit>>();
@@ -77,7 +79,7 @@ void TriggerPrimitiveFinder::produce(art::Event & e)
     }
 
     // Pass the full list of collection channels to the hit finding algorithm
-    std::vector<TriggerPrimitiveFinderService::Hit> hits=m_finder->findHits(channel_numbers, collection_samples);
+    std::vector<TriggerPrimitiveFinderTool::Hit> hits=m_finder->findHits(channel_numbers, collection_samples);
 
     // Loop over the returned trigger primitives and turn them into recob::Hits
     recob::HitCollectionCreator hcol(*this, e, false /* doWireAssns */, true /* doRawDigitAssns */);
