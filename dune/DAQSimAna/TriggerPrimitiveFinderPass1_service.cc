@@ -71,8 +71,17 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         // Filtering
         //---------------------------------------------
         std::vector<short> filtered(apply_fir_filter(pedsub, ntaps, taps));
-        // for(size_t i=0; i<50; ++i){ std::cout << filtered[i] << " ";}
-        // std::cout << std::endl;
+        
+        // Print out the waveforms on one channel for debugging
+
+        // if(channel_numbers[ich]==1600){
+        //     for(auto s: waveform){ std::cout << s << " ";}
+        //     std::cout << std::endl;
+        //     for(auto s: pedsub){ std::cout << s << " ";}
+        //     std::cout << std::endl;
+        //     for(auto s: filtered){ std::cout << s << " ";}
+        //     std::cout << std::endl;
+        // }
 
         // if(ich>10) exit(0);
         //---------------------------------------------
@@ -81,7 +90,7 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         bool is_hit=false;
         bool was_hit=false;
         TriggerPrimitiveFinderService::Hit hit(channel_numbers[ich], 0, 0, 0);
-        for(size_t isample=0; isample<filtered.size(); ++isample){
+        for(size_t isample=0; isample<filtered.size()-1; ++isample){
             // if(ich>11510) std::cout << isample << " " << std::flush;
             short adc=filtered[isample];
             is_hit=adc>(short)m_threshold;
