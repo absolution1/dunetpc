@@ -1,6 +1,15 @@
+BEGIN_PROLOG
+trigprimpass1: {
+   module_type: "TriggerPrimitiveFinder"
+   InputTag: "simwire"
+   finder: {
+      tool_type: "TriggerPrimitiveFinderPass1"
+   }
+}
+END_PROLOG
+
 #include "DAQSimAna.fcl"
 #include "standard_detsim_dune10kt_1x2x6.fcl"
-
 
 process_name: PrimSim
 
@@ -34,23 +43,8 @@ physics: {
          AdcSimulator:      "adcsim_ideal"
       }
 
-      trigprim600: {
-         module_type: "TriggerPrimitiveFinder"
-         InputTag: "simwire"
-         finder: {
-            tool_type: "TriggerPrimitiveFinderPass1"
-            Threshold: 600
-         }
-      }
-
-      trigprim1200: {
-         module_type: "TriggerPrimitiveFinder"
-         InputTag: "simwire"
-         finder: {
-            tool_type: "TriggerPrimitiveFinderPass1"
-            Threshold: 1200
-         }
-      }
+      trigprim600: @local::trigprimpass1
+      trigprim1200: @local::trigprimpass1
 
       rns:            { module_type: "RandomNumberSaver" }
    }
@@ -71,21 +65,8 @@ physics: {
 
 }
 
-# outputs: {
-#    out1: {
-#       module_type: RootOutput
-#       fileName:    "%ifb_trigprim.root"
-#       dataTier:    "detector-simulated"
-#       compressionLevel: 1
-#       # Remove all the rawdigits, since they're huge and entirely noise
-#       # Get rid of any reco information that might have been in the input file too
-#       #
-#       # Form of the string is:
-#       # data product type _ module label _ instance _ process name
-#       outputCommands: ["keep *_*_*_*", "drop *_simwire__PrimSim", "drop *_daq__NoZSDetsim", "drop *_*__Reco" ]
-      
-#    }
-# }
+physics.producers.trigprim600.finder.Threshold: 60
+physics.producers.trigprim1200.finder.Threshold: 1200
 
 # DetSim services. These are used by SimWire to add noise and
 # pedestals to the incoming (noise-free) waveforms
