@@ -65,7 +65,7 @@ physics: {
 
 }
 
-physics.producers.trigprim600.finder.Threshold: 60
+physics.producers.trigprim600.finder.Threshold: 600
 physics.producers.trigprim1200.finder.Threshold: 1200
 
 # DetSim services. These are used by SimWire to add noise and
