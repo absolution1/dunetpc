@@ -1,7 +1,5 @@
-#include "daqsimana_job_plus_findtrigprim.fcl"
+#include "daqsimana_job_plus_findtrigprim_multithreshold.fcl"
 
-physics.producers.simwire.UseRawDigitInput: true
-physics.producers.simwire.RawDigitInputLabel: "daq"
 services.TFileService.fileName: "DAQSimAna_plus_trigprim_fromwaveform_nonoise.root"
 services.ChannelNoiseService.NoiseNormU: 0
 services.ChannelNoiseService.NoiseNormV: 0
