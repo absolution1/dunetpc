@@ -36,7 +36,7 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcorealg/Geometry/GeometryCore.h"
-//#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -231,10 +231,9 @@ namespace dune {
           Float_t hittrkrms[10000];
           Float_t hittrkgoddnessofFit[10000];
           Short_t hittrkmultiplicity[10000];
-
-
-
-
+          Int_t hittrktrueID[10000];
+          Float_t hittrktrueEnergyMax[10000];
+          Float_t hittrktrueEnergyFraction[10000];
 
           // more track info
           TrackData_t<Short_t> trkId;
@@ -583,6 +582,9 @@ namespace dune {
       Float_t  hit_fitparamtau1[kMaxHits]; //dual phase hit fit
       Float_t  hit_fitparamtau2[kMaxHits]; //dual phase hit fit
       Short_t  hit_multiplicity[kMaxHits];  //multiplicity of the given hit
+      Int_t    hit_trueID[kMaxHits];  //true mctackID form backtracker
+      Float_t  hit_trueEnergyMax[kMaxHits]; //energy deposited from that mctrackID
+      Float_t  hit_trueEnergyFraction[kMaxHits]; //maxe/tote
       //    Float_t  hit_trueX[kMaxHits];      // hit true X (cm)
       //    Float_t  hit_nelec[kMaxHits];     //hit number of electrons
       //    Float_t  hit_energy[kMaxHits];       //hit energy
@@ -1336,7 +1338,7 @@ namespace dune {
 
     private:
 
-      void   HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe);
+      void   HitsBackTrack( art::Ptr<recob::Hit> const& hit, int & trackid, float & maxe, float & purity );
       double length(const recob::Track& track);
       double driftedLength(const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
       double driftedLength(const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom);
@@ -1727,7 +1729,9 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   std::fill(hittrkrms, hittrkrms + sizeof(hittrkrms)/sizeof(hittrkrms[0]), -999.);
   std::fill(hittrkgoddnessofFit, hittrkgoddnessofFit + sizeof(hittrkgoddnessofFit)/sizeof(hittrkgoddnessofFit[0]), -999.);
   std::fill(hittrkmultiplicity, hittrkmultiplicity + sizeof(hittrkmultiplicity)/sizeof(hittrkmultiplicity[0]), -999);
-
+  std::fill(hittrktrueID, hittrktrueID + sizeof(hittrktrueID)/sizeof(hittrktrueID[0]), -999);
+  std::fill(hittrktrueEnergyMax, hittrktrueEnergyMax + sizeof(hittrktrueEnergyMax)/sizeof(hittrktrueEnergyMax[0]), -999);
+  std::fill(hittrktrueEnergyFraction, hittrktrueEnergyFraction + sizeof(hittrktrueEnergyFraction)/sizeof(hittrktrueEnergyFraction[0]), -999);
 
   FillWith(trkId        , -999  );
   FillWith(NHitsPerTrack        , -999  );
@@ -2093,7 +2097,14 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "Track_Hit_Multiplicity";
   CreateBranch(BranchName, hittrkmultiplicity, BranchName + "[no_hits]/S");
 
+  BranchName = "Track_Hit_trueID";
+  CreateBranch(BranchName, hittrktrueID, BranchName + "[no_hits]/I");
 
+  BranchName = "Track_Hit_trueEnergyMax";
+  CreateBranch(BranchName, hittrktrueEnergyMax, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_trueEnergyFraction";
+  CreateBranch(BranchName, hittrktrueEnergyFraction, BranchName + "[no_hits]/F");
 
 //////////// end new arrays ///////////////////////////
 
@@ -2618,6 +2629,9 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   std::fill(hit_fitparamtau1, hit_fitparamtau1 + sizeof(hit_fitparamtau1)/sizeof(hit_fitparamtau1[0]), -999.);
   std::fill(hit_fitparamtau2, hit_fitparamtau2 + sizeof(hit_fitparamtau2)/sizeof(hit_fitparamtau2[0]), -999.);
   std::fill(hit_multiplicity, hit_multiplicity + sizeof(hit_multiplicity)/sizeof(hit_multiplicity[0]), -999.);
+  std::fill(hit_trueID, hit_trueID + sizeof(hit_trueID)/sizeof(hit_trueID[0]), -999.);
+  std::fill(hit_trueEnergyMax, hit_trueEnergyMax + sizeof(hit_trueEnergyMax)/sizeof(hit_trueEnergyMax[0]), -999.);
+  std::fill(hit_trueEnergyFraction, hit_trueEnergyFraction + sizeof(hit_trueEnergyFraction)/sizeof(hit_trueEnergyFraction[0]), -999.);
   std::fill(hit_trkid, hit_trkid + sizeof(hit_trkid)/sizeof(hit_trkid[0]), -999);
   //  std::fill(hit_trkKey, hit_trkKey + sizeof(hit_trkKey)/sizeof(hit_trkKey[0]), -999);
   std::fill(hit_clusterid, hit_clusterid + sizeof(hit_clusterid)/sizeof(hit_clusterid[0]), -9999);
@@ -3354,6 +3368,9 @@ if (hasRecobWireInfo()){
     CreateBranch("Hit_FitParameter_Tau2", hit_fitparamtau2, "hit_fitparamtau2[no_hits]/F");
 
     CreateBranch("Hit_Multiplicity",hit_multiplicity,"hit_multiplicity[no_hits]/S");
+    CreateBranch("Hit_trueID", hit_trueID,  "Hit_trueID[no_hits]/I");
+    CreateBranch("Hit_trueEnergyMax", hit_trueEnergyMax,  "hit_trueEnergyMax[no_hits]/F");
+    CreateBranch("Hit_trueEnergyFraction", hit_trueEnergyFraction,  "hit_trueEnergyFraction[no_hits]/F");
     CreateBranch("Hit_TrackID",hit_trkid,"hit_trkid[no_hits]/S");
     //CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits]/S");
     CreateBranch("Hit_ClusterID",hit_clusterid,"hit_clusterid[no_hits]/S");
@@ -4079,7 +4096,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 //  evt.getByLabel(fCalDataModuleLabel,wireVecHandle);
 
   // * photons
-  art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle; 
+  art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle;
 //  std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
   evt.getByLabel(fLArG4ModuleLabel, photonHandle);
 //    art::fill_ptr_vector(photonlist, photonHandle);
@@ -4262,7 +4279,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
 //      for()
 //      {
-	
+
 //      }
 
     } // if have MC truth
@@ -4463,6 +4480,7 @@ if (fSaveRecobWireInfo){
 
   for(int i = 0; i < fData->no_recochannels; i++)  //loop over channels holding reco waveforms
   {
+    fData->recoW_NTicks[i]=0;
     fData->recoW_Channel[i] = recobwirelist[i]->Channel();
     const recob::Wire::RegionsOfInterest_t& signalROI = recobwirelist[i]->SignalROI();
 
@@ -4485,6 +4503,11 @@ if (fSaveRecobWireInfo){
 
 //hit information
 if (fSaveHitInfo){
+
+  int trueID = -9999;
+  float maxe = -9999;
+  float purity = -9999;
+
   fData->no_hits = (int) NHits;
   fData->NHitsInAllTracks = (int) NHits;
   fData->no_hits_stored = TMath::Min( (int) NHits, (int) kMaxHits);
@@ -4522,6 +4545,13 @@ if (fSaveHitInfo){
 
     fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
 
+    //quantities from backtracker are different from the real value in MC
+    if( fIsMC )
+      HitsBackTrack(  hitlist[i], trueID, maxe, purity );
+
+    fData->hit_trueID[i] = trueID;
+    fData->hit_trueEnergyMax[i] = maxe;
+    fData->hit_trueEnergyFraction[i] = purity;
 
 /*
     std::vector< art::Ptr<recob::SpacePoint> > sptv = fmsp.at(i);
@@ -5028,6 +5058,10 @@ if (fSaveTrackInfo) {
     int HitIterator=0;
     int HitIterator2=0;
 
+    int trueID = -9999;
+    float maxe = -9999.;
+    float purity = -9999.;
+
     for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
 
       //save t0 from reconstructed flash track matching for every track
@@ -5375,6 +5409,14 @@ if (fSaveTrackInfo) {
 	    TrackerData.hittrkgoddnessofFit[HitIterator2] = vhit[h]->GoodnessOfFit();
 	    TrackerData.hittrkmultiplicity[HitIterator2] = vhit[h]->Multiplicity();
 
+      //quantities from backtracker are different from the real value in MC
+      if( fIsMC )
+        HitsBackTrack(  vhit[h], trueID, maxe, purity );
+
+      TrackerData.hittrktrueID[HitIterator2] = trueID;
+      TrackerData.hittrktrueEnergyMax[HitIterator2] = maxe;
+      TrackerData.hittrktrueEnergyFraction[HitIterator2] = purity;
+
             HitIterator2++;
 
 	    if(vhit[h]->WireID().Plane == 0) NHitsView0++;
@@ -5501,7 +5543,7 @@ if (fSaveTrackInfo) {
         }
         for (size_t ipl = 0; ipl < 3; ++ipl){
           double maxe = 0;
-          HitsPurity(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
+          HitsBackTrack(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
           //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<trkidtruth[iTracker][iTrk][ipl]<<"\t"<<trkpurtruth[iTracker][iTrk][ipl]<<"\t"<<maxe;
           if (TrackerData.trkidtruth[iTrk][ipl]>0){
             const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkidtruth[iTrk][ipl]);
@@ -5519,7 +5561,7 @@ if (fSaveTrackInfo) {
         }
 
         double maxe = 0;
-        HitsPurity(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
+        HitsBackTrack(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
         if (TrackerData.trkg4id[iTrk]>0){
           const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkg4id[iTrk]);
           TrackerData.trkorig[iTrk] = mc->Origin();
@@ -6454,26 +6496,23 @@ if (fSaveTrackInfo) {
 
 
 
-    void dune::AnaRootParser::HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
+    void dune::AnaRootParser::HitsBackTrack( art::Ptr<recob::Hit> const& hit, int & trackid, float & maxe, float & purity){
 
       trackid = -1;
       purity = -1;
 
-/*      art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+      art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
       std::map<int,double> trkide;
 
-      for(size_t h = 0; h < hits.size(); ++h){
+      std::vector<sim::IDE> ides;
 
-        art::Ptr<recob::Hit> hit = hits[h];
-        std::vector<sim::IDE> ides;
-        //bt_serv->HitToSimIDEs(hit,ides);
-        std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
+      //bt_serv->HitToSimIDEs(hit,ides);
+      std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
 
-        for(size_t e = 0; e < eveIDs.size(); ++e){
+      for(size_t e = 0; e < eveIDs.size(); ++e){
           //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
           trkide[eveIDs[e].trackID] += eveIDs[e].energy;
-        }
       }
 
       maxe = -1;
@@ -6487,11 +6526,10 @@ if (fSaveTrackInfo) {
       }
 
       //std::cout << "the total energy of this reco track is: " << tote << std::endl;
-
       if (tote>0){
         purity = maxe/tote;
       }
-*/
+
     }
 
     // Calculate distance to boundary.

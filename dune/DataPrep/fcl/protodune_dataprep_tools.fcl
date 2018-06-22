@@ -284,3 +284,26 @@ tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "hchpdwp_pedpeak
 #fitPedChiSquare       - Chi-square of the fit
 #//   fitPedNBinsRemoved    - N
 
+################################################################################
+# Tickmod viewer.
+################################################################################
+
+# Pedestal RMS for each channel.
+tools.pd_tickmodViewer: {
+  tool_type: AdcTickModViewer
+  LogLevel: 1
+  TickModPeriod: 497
+  FitRmsMin: 1.0
+  FitRmsMax: 20.0
+  HistName: "adctm_ch%0CHAN%_tm%0TICKMOD%"
+  HistTitle: "ADC spectrum for channel %CHAN% tickmod %TICKMOD%"
+  PlotChannels: [999999]
+  PlotFileName: "adctm_ch%0CHAN%_tm%0TICKMOD%.png"
+  RootFileName: "adctm.root"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotShowFit:  0
+  PlotSplitX:   4
+  PlotSplitY:   0
+}
+

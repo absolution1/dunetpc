@@ -16,3 +16,5 @@ art_make(BASENAME_ONLY
 
 install_source()
 install_headers()
+
+add_subdirectory(test)
