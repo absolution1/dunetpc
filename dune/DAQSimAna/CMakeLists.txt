@@ -3,7 +3,6 @@ add_subdirectory(SNAnaClustering)
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   lbne-raw-data_Overlays
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-  TriggerPrimitiveFinderPass1_service
   lbne_daqinput35t       #For online to offline channel map
   larcore_Geometry_Geometry_service
   larcorealg_Geometry
@@ -27,10 +26,15 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   ${MF_UTILITIES}
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
-  EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc
+  EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc TriggerPrimitiveFinderTemplate_tool.cc
   )
 
 simple_plugin(TriggerPrimitiveFinderPass1 "tool"
+  fhiclcpp cetlib cetlib_except
+  ${Boost_SYSTEM_LIBRARY}
+)
+
+simple_plugin(TriggerPrimitiveFinderTemplate "tool"
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )

@@ -1,17 +1,16 @@
 // A template for creating classes to find trigger primitives for
 // testing DAQ algorithms
 
-#include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include "dune/DAQSimAna/TriggerPrimitiveFinderService.h"
+#include "dune/DAQSimAna/TriggerPrimitiveFinderTool.h"
 
-class TriggerPrimitiveTemplate : public TriggerPrimitiveFinderService {
+class TriggerPrimitiveFinderTemplate : public TriggerPrimitiveFinderTool {
 public:
-    explicit TriggerPrimitiveTemplate(fhicl::ParameterSet const & p, art::ActivityRegistry & areg);
+    explicit TriggerPrimitiveFinderTemplate(fhicl::ParameterSet const & p);
 
-    virtual std::vector<TriggerPrimitiveFinderService::Hit>
+    virtual std::vector<TriggerPrimitiveFinderTool::Hit>
     findHits(const std::vector<unsigned int>& channel_numbers, 
              const std::vector<std::vector<short>>& collection_samples);
     
@@ -24,7 +23,7 @@ private:
 };
 
 
-TriggerPrimitiveTemplate::TriggerPrimitiveTemplate(fhicl::ParameterSet const & p, art::ActivityRegistry & areg)
+TriggerPrimitiveFinderTemplate::TriggerPrimitiveFinderTemplate(fhicl::ParameterSet const & p)
     // set m_threshold from the fcl file.
     // p.get() can take a second argument which is the default value
     : m_threshold(p.get<unsigned int>("Threshold"))
@@ -42,18 +41,18 @@ TriggerPrimitiveTemplate::TriggerPrimitiveTemplate(fhicl::ParameterSet const & p
 // can do things like removing coherent noise)
 //
 // channel_numbers is a vector of the channel id of each channel in collection_samples, in the same order
-std::vector<TriggerPrimitiveFinderService::Hit>
-TriggerPrimitiveTemplate::findHits(const std::vector<unsigned int>& channel_numbers, 
+std::vector<TriggerPrimitiveFinderTool::Hit>
+TriggerPrimitiveFinderTemplate::findHits(const std::vector<unsigned int>& channel_numbers, 
                                    const std::vector<std::vector<short>>& collection_samples)
 {
-    // Make a return vector of TriggerPrimitiveFinderService::Hit (see TriggerPrimitiveFinderService.h)
-    auto hits=std::vector<TriggerPrimitiveFinderService::Hit>();
+    // Make a return vector of TriggerPrimitiveFinderTool::Hit (see TriggerPrimitiveFinderTool.h)
+    auto hits=std::vector<TriggerPrimitiveFinderTool::Hit>();
 
     // Construct Hits like:
     //
-    // 1. TriggerPrimitiveFinderService::Hit hit(channel, startTime, charge, timeOverThreshold)
+    // 1. TriggerPrimitiveFinderTool::Hit hit(channel, startTime, charge, timeOverThreshold)
     // or
-    // 2. TriggerPrimitiveFinderService::Hit hit;
+    // 2. TriggerPrimitiveFinderTool::Hit hit;
     //    hit.channel=...;
     //    hit.startTime=...;
     //    hit.charge=...;
@@ -64,5 +63,4 @@ TriggerPrimitiveTemplate::findHits(const std::vector<unsigned int>& channel_numb
     return hits;
 }
 
-DECLARE_ART_SERVICE(TriggerPrimitiveTemplate, LEGACY)
-DEFINE_ART_SERVICE(TriggerPrimitiveTemplate)
+DEFINE_ART_CLASS_TOOL(TriggerPrimitiveFinderTemplate)
