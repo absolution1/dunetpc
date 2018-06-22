@@ -635,7 +635,7 @@ void DAQSimAna::analyze(art::Event const & evt)
     mf::LogDebug("DAQSimAna") << "\tHit " << hh << " was on chan " << ColHits_Marl[hh].Channel() << " at " << ColHits_Marl[hh].PeakTime();
   }
   // --- Now calculate all of the hits...
-  CalcAdjHits( ColHits_Marl, hAdjHits_Marl, true );
+  CalcAdjHits( ColHits_Marl, hAdjHits_Marl, false );
   mf::LogDebug("DAQSimAna") << "\nAnd now for APA hits...";
   CalcAdjHits( ColHits_APA , hAdjHits_APA , false  );
   mf::LogDebug("DAQSimAna") << "\nAnd now for CPA hits...";
