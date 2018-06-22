@@ -1,4 +1,20 @@
+# addnoise_findprim_daqsimanas.fcl
+
+# Read in (presumably noise-free) waveforms, add noise and pedestals,
+# then find trigger primitives on the (now noisy) waveforms, and save
+# the trigger primitives (as "Hits") to an output TTree.
+
+# Any number of trigger primitive finders can be run: useful for
+# running the same finder with multiple parameter settings, for
+# example. The output of each trigger primitive finder should be
+# connected to a DaqSimAna analyzer
+
 BEGIN_PROLOG
+
+# This is the generic trigger primitive finder call. To make your own,
+#  add another call to "@local::trigprimpass1" to the producers list,
+#  and modify its settings later on
+
 trigprimpass1: {
    module_type: "TriggerPrimitiveFinder"
    InputTag: "simwire"
@@ -45,6 +61,10 @@ physics: {
          RawDigitInputLabel: "daq"
       }
 
+      # You can add any number of trigger primitive finders here. Make
+      # sure each one has a distinct name, and has a corresponding
+      # daqsimana analyzer (otherwise you won't get a corresponding
+      # TTree in the output file. Also make sure to add it to the "simulate" list below
       trigprim600: @local::trigprimpass1
       trigprim1200: @local::trigprimpass1
 
@@ -53,39 +73,48 @@ physics: {
    
    analyzers:
    {
+      # Create a DAQSimAna for each trigger primitive finders. Make
+      # sure to add each one to the "ana" list below
       daqanatrigprim600:     @local::standard_daqsimana
       daqanatrigprim1200:    @local::standard_daqsimana
    }
 
    simulate: [ rns, simwire, trigprim600, trigprim1200 ]
    ana: [ daqanatrigprim600, daqanatrigprim1200 ]
-   // stream1:  [ out1 ]
+
    trigger_paths: [simulate] 
-   //end_paths:     [stream1]  
-   #ana: [ daqanafasth ]
    end_paths: [ ana ] 
 
 }
 
+# Modify the settings of each of the trigger primitive finders. If you
+# want to use a different trigger primitive finder class, set
+# "physics.producers.<itemname>.finder.tool_type: MyNewTriggerPrimitiveFinderTool"
 physics.producers.trigprim600.finder.Threshold: 600
 physics.producers.trigprim1200.finder.Threshold: 1200
 
-# DetSim services. These are used by SimWire to add noise and
-# pedestals to the incoming (noise-free) waveforms
-services.SimChannelExtractService: @local::scxgeneric
-services.ChannelNoiseService: @local::chnoiseold
-services.PedestalAdditionService: @local::padprovided
-services.AdcDistortService: @local::stuckbits
-services.AdcSuppressService: @local::zsnone
-services.AdcCompressService: @local::cmpreplace
-services.DetPedestalService: @local::dune_fixedpeds
-
+# Set the HitLabel to make sure each DaqAnaSim reads hits from its
+#  corresponding TriggerPrimitiveFinder
 physics.analyzers.daqanatrigprim600.HitLabel: "trigprim600"
 physics.analyzers.daqanatrigprim600.MARLEYLabel: "marley"
 
 physics.analyzers.daqanatrigprim1200.HitLabel: "trigprim1200"
 physics.analyzers.daqanatrigprim1200.MARLEYLabel: "marley"
 
+# =====================================================================
+# You probably won't need to change anything below here
+
 # Shut up the backtracker
 services.message.destinations.LogStandardOut.categories.BackTracker.limit: 0
 services.message.destinations.LogStandardError.categories.BackTracker.limit: 0
+
+# DetSim services. These are used by SimWire to add noise and
+# pedestals to the incoming (noise-free) waveforms
+services.SimChannelExtractService: @local::scxgeneric
+services.ChannelNoiseService:      @local::chnoiseold
+services.PedestalAdditionService:  @local::padprovided
+services.AdcDistortService:        @local::stuckbits
+services.AdcSuppressService:       @local::zsnone
+services.AdcCompressService:       @local::cmpreplace
+services.DetPedestalService:       @local::dune_fixedpeds
+
