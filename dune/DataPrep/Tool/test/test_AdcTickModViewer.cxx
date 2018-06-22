@@ -59,7 +59,8 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  FitRmsMax: 20.0" << endl;
     fout << "  HistName: \"adctm_ch%0CHAN%_tm%0TICKMOD%\"" << endl;
     fout << "  HistTitle: \"ADC spectrum for channel %CHAN% tickmod %TICKMOD%\"" << endl;
-    fout << "  PlotChannels: [4, 5]" << endl;
+    fout << "  HistChannelCount: 100" << endl;
+    fout << "  PlotChannels: []" << endl;
     fout << "  PlotFileName: \"adctm_ch%0CHAN%_tm%0TICKMOD%.png\"" << endl;
     fout << "  RootFileName: \"adctm.root\"" << endl;
     fout << "  PlotSizeX: 1400" << endl;
@@ -110,7 +111,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + rand()%20 - 10.0;
         AdcIndex iticeff = itic - 3*icha;
-        if ( iticeff > 20 && iticeff < 40 ) xadc +=600;
+        if ( iticeff > 20 && iticeff < 45 ) xadc +=600;
         AdcCount iadc = xadc;
         data.raw.push_back(iadc);
         data.flags.push_back(0);
@@ -147,8 +148,14 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
       assert( phs.size() == 4 );
       for ( const TH1* ph : phs ) {
         cout << myname << "  " << ph->GetName() << ": " << ph->GetTitle() << endl;
-        cout << myname << "    Entry count: " << ph->GetEntries() << endl;
-        assert( ph->GetEntries() == expCount );
+        double countSum = ph->Integral();
+        double countUnder = ph->GetBinContent(0);
+        double countOver = ph->GetBinContent(ph->GetNbinsX()+1);
+        cout << myname << "    Hist integral:" << countSum << endl;
+        cout << myname << "    Hist undrflow:" << countUnder << endl;
+        cout << myname << "    Hist overflow:" << countOver << endl;
+        double countTot = countSum + countUnder + countOver;
+        assert( countTot == expCount );
       }
     }
   }

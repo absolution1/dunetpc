@@ -1,6 +1,7 @@
 // AdcTickModViewer_tool.cc
 
 #include "AdcTickModViewer.h"
+#include "dune/DataPrep/Utility/StickyCodeMetrics.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
@@ -42,6 +43,7 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_FitRmsMax(ps.get<float>("FitRmsMax")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
+  m_HistChannelCount(ps.get<Index>("HistChannelCount")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")),
   m_PlotChannels(ps.get<IndexVector>("PlotChannels")),
@@ -61,13 +63,14 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
-    cout << myname << "       LogLevel: " << m_LogLevel << endl;
-    cout << myname << "  TickModPeriod: " << m_TickModPeriod << endl;
-    cout << myname << "       HistName: " << m_HistName << endl;
-    cout << myname << "      HistTitle: " << m_HistTitle << endl;
-    cout << myname << "   PlotFileName: " << m_PlotFileName << endl;
-    cout << myname << "   RootFileName: " << m_RootFileName << endl;
-    cout << myname << "   PlotChannels: [";
+    cout << myname << "          LogLevel: " << m_LogLevel << endl;
+    cout << myname << "     TickModPeriod: " << m_TickModPeriod << endl;
+    cout << myname << "          HistName: " << m_HistName << endl;
+    cout << myname << "         HistTitle: " << m_HistTitle << endl;
+    cout << myname << "  HistChannelCount: " << m_HistChannelCount << endl;
+    cout << myname << "      PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "      RootFileName: " << m_RootFileName << endl;
+    cout << myname << "      PlotChannels: [";
     bool first = true;
     for ( Index icha : m_PlotChannels ) {
       if ( !first ) cout << ", ";
@@ -75,11 +78,11 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
       cout << icha;
     }
     cout << "]" << endl;
-    cout << myname << "      PlotSizeX: " << m_PlotSizeX << endl;
-    cout << myname << "      PlotSizeY: " << m_PlotSizeY << endl;
-    cout << myname << "    PlotShowFit: " << m_PlotShowFit << endl;
-    cout << myname << "     PlotSplitX: " << m_PlotSplitX << endl;
-    cout << myname << "     PlotSplitY: " << m_PlotSplitY << endl;
+    cout << myname << "         PlotSizeX: " << m_PlotSizeX << endl;
+    cout << myname << "         PlotSizeY: " << m_PlotSizeY << endl;
+    cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
+    cout << myname << "        PlotSplitX: " << m_PlotSplitX << endl;
+    cout << myname << "        PlotSplitY: " << m_PlotSplitY << endl;
   }
   if ( m_LogLevel >=4 ) {
     cout << myname << "INFO: Checking state." << endl;
@@ -101,6 +104,20 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   for ( Index itkm=0; itkm<ntkm; ++itkm ) {
     fillChannelTickMod(acd, itkm0, itkm);
   }
+  // Process histograms with the sticky code utility.
+  HistVector tkmProcs;
+  Index chmod = 10;
+  for ( Index itkm=0; itkm<ntkm; ++itkm ) {
+    TH1* phi = tmhs[itkm].get();
+    StickyCodeMetrics scm(phi->GetName(), phi->GetTitle(), m_HistChannelCount, chmod);
+    if ( scm.evaluate(phi) ) {
+      cout << myname << "Sticky code evaluation failed for channel " << icha
+           << " tickmod " << itkm << endl;
+      tkmProcs.emplace_back(phi);
+    } else {
+      tkmProcs.push_back(scm.getSharedHist());
+    }
+  }
   // Draw the histograms.
   Index nplot = 0;
   if ( m_PlotFileName.size() &&
@@ -119,7 +136,7 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
     Name plotFileName;
     Index itkm = 0;
     Index ipad = 0;
-    for ( TH1* ph : tmhs ) {
+    for ( HistPtr ph : tkmProcs ) {
       if ( pmantop == nullptr ) {
         if ( m_LogLevel >= 3 ) cout << myname << "  Creating canvas." << endl;
         pmantop = new TPadManipulator;
@@ -128,12 +145,14 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
         plotFileName = nameReplace(m_PlotFileName, acd, itkm);
       }
       TPadManipulator* pman = pmantop->man(ipad);
-      pman->add(ph, "hist", false);
+      pman->add(ph.get(), "hist", false);
       if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
       if ( m_PlotShowFit ) pman->addHistFun(0);
       pman->addVerticalModLines(64);
       pman->showUnderflow();
-      if ( ++ipad == npad || ++itkm == ntkm ) {
+      pman->showOverflow();
+      ++itkm;
+      if ( ++ipad == npad || itkm == ntkm ) {
         pmantop->print(plotFileName);
         ++nplot;
         ipad = 0;
@@ -142,7 +161,8 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
       }
     }
   }
-  res.setHistVector("tmHists", tmhs, false);
+  res.setHistVector("tmHists", tkmProcs);
+  res.setHistVector("tmWideHists", tmhs);   // Passing out hist sthat will be updated!
   res.setInt("tmCount", ntkm);
   res.setInt("tmPlotCount", nplot);
   return res;
@@ -175,7 +195,7 @@ AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Ind
     if ( m_LogLevel >= 2 ) cout << myname << "WARNING: Raw data is empty." << endl;
     return 1;
   }
-  TH1*& ph = state().ChannelTickModHists[acd.channel][itkm];
+  HistPtr& ph = state().ChannelTickModHists[acd.channel][itkm];
   if ( ph == nullptr ) {
     string hname = nameReplace(m_HistName, acd, itkm);
     string htitl = nameReplace(m_HistTitle, acd, itkm);
@@ -184,7 +204,7 @@ AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Ind
     if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram " << hname
                                 << " for channel " << acd.channel
                                 << " tickmod " << itkm << endl;
-    ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
+    ph.reset(new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc));
     ph->SetDirectory(0);
   }
   Index period = m_TickModPeriod;

@@ -5,17 +5,29 @@
 //
 // Class to evaluate sticky code metrics.
 //
-//  maxAdc = most common ADC code 
-//  maxAdc2 = 2nd most common ADC code 
-//  meanAdc = mean ADC
-//  meanAdc2 = mean ADC without the most common code
-//  maxFraction (s1) = fraction of ticks with the most common code
-//  zeroFraction = fraction of ticks with ADC%64=0
-//  oneFraction = fraction of ticks with ADC%64=1
-//  highFraction = fraction of ticks with ADC%64=63
-//  classicFraction (s2) = fraction of ticks with ADC%64 = 0 or 63
+// The metrics are:
+//
+//   maxAdc = most common ADC code 
+//   maxAdc2 = 2nd most common ADC code 
+//   meanAdc = mean ADC
+//   meanAdc2 = mean ADC without the most common code
+//   maxFraction (s1) = fraction of ticks with the most common code
+//   zeroFraction = fraction of ticks with ADC%64=0
+//   oneFraction = fraction of ticks with ADC%64=1
+//   highFraction = fraction of ticks with ADC%64=63
+//   classicFraction (s2) = fraction of ticks with ADC%64 = 0 or 63
+//
+// If a histogram is created, the following are also defined:
+//   hist - pointer to histogram accessed through getHist() or getSharedHist()
 //
 // Classic sticky codes are code%64 = 0 or 63
+//
+// Caller passes a distribution of ADC codes in one of three forms:
+//   Bin counter - Map with count for each code
+//   Code vector - Vector of codes (order is not used)
+//   Histogram - TH1 with count or likelihood for each code
+//
+// The histogram mut have one bin per ADC code.
 
 #ifndef StickyCodeMetrics_H
 #define StickyCodeMetrics_H
@@ -23,6 +35,7 @@
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/Data/DataMap.h"
 #include <map>
+#include <memory>
 
 class TH1;
 
@@ -32,16 +45,28 @@ public:
 
   using Index = unsigned int;
   using BinCounter = std::map<Index, double>;
+  using HistPtr = std::shared_ptr<TH1>;
+  using Name = std::string;
 
-  // Ctor from a count map.
-  StickyCodeMetrics(const BinCounter& counts);
+  // Ctor. No histogram is connfigured.
+  StickyCodeMetrics() = default;
 
-  // Ctor from a vector of ADC codes.
-  StickyCodeMetrics(const AdcCountVector& adcs);
+  // Ctor to configure for histogram with nbin bins with low edge
+  // a multiple of lowbin;
+  StickyCodeMetrics(Name hnam, Name httl, Index nbin, Index lowbin);
 
-  // Ctor from a histogram.
+  // Evaluate a count map.
+  int evaluate(const BinCounter& counts);
+
+  // Evaluate a vector of ADC codes.
+  int evaluate(const AdcCountVector& adcs);
+
+  // Evaluate a histogram a histogram.
   // Each histogram bin must correspond to one ADC bin.
-  StickyCodeMetrics(const TH1* pha);
+  int evaluate(const TH1* pha);
+
+  // Clear the data and metrics.
+  void clear();
 
   // Metrics.
   Index nsample() const { return m_nsample; } 
@@ -63,11 +88,22 @@ public:
   // Name is prefix + capitalized metric name, e.g. scmMaxAdc
   DataMap getMetrics(std::string prefix ="scm") const;
 
+  // Return the histogram.
+  TH1* getHist() { return getSharedHist().get(); };
+  HistPtr getSharedHist() { return m_ph; }
+
   // Display results.
   void print(std::string prefix ="") const;
 
 private:
 
+  // Configuration.
+  Name m_hnam;
+  Name m_httl;
+  int m_nbin =0;
+  Index m_lowbin = 1;
+
+  // Metrics.
   Index m_nsample;
   AdcIndex m_maxAdc;
   AdcIndex m_maxAdc2;
@@ -79,6 +115,7 @@ private:
   double m_highFraction;
 
   BinCounter m_counts;
+  HistPtr m_ph;
 
   int evaluateMetrics();
 

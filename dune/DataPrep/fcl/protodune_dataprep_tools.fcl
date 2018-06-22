@@ -297,6 +297,7 @@ tools.pd_tickmodViewer: {
   FitRmsMax: 20.0
   HistName: "adctm_ch%0CHAN%_tm%0TICKMOD%"
   HistTitle: "ADC spectrum for channel %CHAN% tickmod %TICKMOD%"
+  HistChannelCount: 100
   PlotChannels: [999999]
   PlotFileName: "adctm_ch%0CHAN%_tm%0TICKMOD%.png"
   RootFileName: "adctm.root"

@@ -18,6 +18,7 @@
 //   FitRmsMax: Upper limit for RMS fit range.
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
+//   HistChannelCount: # channels shown in histogram
 //   PlotFileName: If nonblank, histograms are displayed in this file.
 //   RootFileName: If nonblank, histogram is copied to this file.
 //   PlotChannels: If not empty, only the listed channels are plotted.
@@ -52,6 +53,7 @@
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
+#include <memory>
 
 class AdcChannelStringTool;
 class TH1;
@@ -65,7 +67,8 @@ public:
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
   using Name = std::string;
-  using HistVector = std::vector<TH1*>;
+  using HistPtr = std::shared_ptr<TH1>;
+  using HistVector = std::vector<HistPtr>;
   using HistVectorMap = std::map<Index, HistVector>;
 
   AdcTickModViewer(fhicl::ParameterSet const& ps);
@@ -82,6 +85,7 @@ private:
   float m_FitRmsMax;
   Name m_HistName;
   Name m_HistTitle;
+  Index m_HistChannelCount;
   Name m_PlotFileName;
   Name m_RootFileName;
   IndexVector m_PlotChannels;
