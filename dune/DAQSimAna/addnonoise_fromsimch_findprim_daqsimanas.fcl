@@ -1,6 +1,6 @@
-#include "daqsimana_job_plus_findtrigprim_multithreshold.fcl"
+#include "addnoise_findprim_daqsimanas.fcl"
 
-services.TFileService.fileName: "DAQSimAna_plus_trigprim_fromwaveform_nonoise.root"
+services.TFileService.fileName: "DAQSimAna_plus_trigprim_nonoise.root"
 services.ChannelNoiseService.NoiseNormU: 0
 services.ChannelNoiseService.NoiseNormV: 0
 services.ChannelNoiseService.NoiseNormZ: 0

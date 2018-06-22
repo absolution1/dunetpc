@@ -5,7 +5,7 @@
 // want to run the noise creation, trigger primitive generation and
 // DAQSimAna in one job (so you don't have to save enormous intermediate
 // files of full waveforms), using
-// daqsimana_job_plus_findtrigprim_multithreshold.fcl
+// addnoise_findprim_daqsimanas.fcl
 
 #include "services_dune.fcl"
 #include "DAQSimAna.fcl"
@@ -21,7 +21,7 @@ services:
   RandomNumberGenerator: {} #ART native random number generator
   FileCatalogMetadata:   @local::art_file_catalog_mc
   Geometry:              @local::dune10kt_1x2x6_geo
-  message:              @local::dune_message_services_prod
+  message:               @local::dune_message_services_prod
 }
 
 physics:
