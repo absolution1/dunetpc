@@ -534,7 +534,9 @@ int TPadManipulator::update() {
   }
 */
   if ( ! haveHistOrGraph() ) {
-    if ( npad() == 0 ) cout << myname << "Pad does not have a histogram or graph or subpads!" << endl;
+    if ( npad() == 0 && !haveParent() ) {
+      cout << myname << "Top-level pad does not have a histogram or graph or subpads!" << endl;
+    }
     gPad = pPadSave;
     return 0;
   }
@@ -1058,7 +1060,7 @@ int TPadManipulator::drawHistFuns() {
   for ( unsigned int ifun : m_histFuns ) {
     if ( ifun >= nfun ) continue;
     TF1* pfun = dynamic_cast<TF1*>(funs.At(ifun));
-    pfun->Draw("same");
+    if ( pfun != nullptr ) pfun->Draw("same");
   }
   gPad = pPadSave;
   return 0;

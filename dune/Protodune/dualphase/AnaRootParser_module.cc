@@ -4480,6 +4480,7 @@ if (fSaveRecobWireInfo){
 
   for(int i = 0; i < fData->no_recochannels; i++)  //loop over channels holding reco waveforms
   {
+    fData->recoW_NTicks[i]=0;
     fData->recoW_Channel[i] = recobwirelist[i]->Channel();
     const recob::Wire::RegionsOfInterest_t& signalROI = recobwirelist[i]->SignalROI();
 
