@@ -83,7 +83,7 @@ int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
   dat.event = evt;
   TimeOffsetTool::Offset off = tot->offset(dat);
   assert( off.isValid() );
-  assert( off.value == 40*daqVal );
+  assert( off.value == daqVal/25 );
   assert( off.unit == "tick" );
 
   cout << myname << line << endl;
