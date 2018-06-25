@@ -56,6 +56,7 @@
 #include <memory>
 
 class AdcChannelStringTool;
+class TimeOffsetTool;
 class TH1;
 class TPadManipulator;
 
@@ -97,6 +98,9 @@ private:
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
+
+  // Tick offset tool.
+  const TimeOffsetTool* m_tickOffsetTool;
 
   // This subclass carries the state for this tool, i.e. data that can change
   // after initialization.

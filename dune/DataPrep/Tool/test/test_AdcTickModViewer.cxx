@@ -69,6 +69,13 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  PlotSplitX:  2" << endl;
     fout << "  PlotSplitY:  2" << endl;
     fout << "}" << endl;
+    fout << "tools.tickOffsetFinder: {" << endl;
+    fout << "  tool_type: FixedTimeOffsetTool" << endl;
+    fout << "  LogLevel: 2" << endl;
+    fout << "  Value: 1000" << endl;
+    fout << "  Rem: 0.0" << endl;
+    fout << "  Unit: tick" << endl;
+    fout << "}" << endl;
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;

@@ -5,7 +5,7 @@
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
-#include "dune/DuneInterface/Tool/HistogramManager.h"
+#include "dune/DuneInterface/Tool/TimeOffsetTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
 #include <fstream>
@@ -60,6 +60,11 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
+  string tname = "tickOffsetFinder";
+  m_tickOffsetTool = ptm->getShared<TimeOffsetTool>(tname);
+  if ( m_tickOffsetTool == nullptr ) {
+    cout << myname << "WARNING: TimeOffsetTool not found: " << tname << endl;
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
