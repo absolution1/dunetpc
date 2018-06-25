@@ -39,6 +39,7 @@ using Name = AdcTickModViewer::Name;
 AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_TickModPeriod(ps.get<Index>("TickModPeriod")),
+  m_TimeOffsetTool(ps.get<Name>("TimeOffsetTool")),
   m_FitRmsMin(ps.get<float>("FitRmsMin")),
   m_FitRmsMax(ps.get<float>("FitRmsMax")),
   m_HistName(ps.get<string>("HistName")),
@@ -52,6 +53,7 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_PlotShowFit(ps.get<Index>("PlotShowFit")),
   m_PlotSplitX(ps.get<Index>("PlotSplitX")),
   m_PlotSplitY(ps.get<Index>("PlotSplitY")),
+  m_tickOffsetTool(nullptr),
   m_state(new State) 
 {
   const string myname = "AdcTickModViewer::ctor: ";
@@ -61,15 +63,18 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
-  string tname = "tickOffsetFinder";
-  m_tickOffsetTool = ptm->getShared<TimeOffsetTool>(tname);
-  if ( m_tickOffsetTool == nullptr ) {
-    cout << myname << "WARNING: TimeOffsetTool not found: " << tname << endl;
+  string tname = m_TimeOffsetTool;
+  if ( tname.size() ) {
+    m_tickOffsetTool = ptm->getShared<TimeOffsetTool>(tname);
+    if ( m_tickOffsetTool == nullptr ) {
+      cout << myname << "WARNING: Requested TimeOffsetTool not found: " << tname << endl;
+    }
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
     cout << myname << "          LogLevel: " << m_LogLevel << endl;
     cout << myname << "     TickModPeriod: " << m_TickModPeriod << endl;
+    cout << myname << "    TimeOffsetTool: " << m_TimeOffsetTool << endl;
     cout << myname << "          HistName: " << m_HistName << endl;
     cout << myname << "         HistTitle: " << m_HistTitle << endl;
     cout << myname << "  HistChannelCount: " << m_HistChannelCount << endl;
@@ -106,6 +111,26 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   Index ntkm = m_TickModPeriod;
   if ( tmhs.size() == 0 ) tmhs.resize(ntkm, nullptr);
   Index itkm0 = 0;
+  if ( m_tickOffsetTool != nullptr ) {
+    TimeOffsetTool::Data dat;
+    dat.run = acd.run;
+    dat.subrun = acd.subRun;
+    dat.event = acd.event;
+    dat.channel = acd.channel;
+    TimeOffsetTool::Offset off = m_tickOffsetTool->offset(dat);
+    if ( ! off.isValid() ) {
+      cout << myname << "Error finding tick offset: " << off.status << endl;
+      return res.setStatus(1);
+    }
+    if ( off.unit != "tick" ) {
+      cout << myname << "Time offset has wrong unit: " << off.unit << endl;
+      return res.setStatus(2);
+    }
+    long toff = off.value;
+    while ( toff < 0.0 ) toff += m_TickModPeriod;
+    itkm0 = toff % m_TickModPeriod;
+    if ( m_LogLevel >= 3 ) cout << myname << "Using tick offset " << itkm0 << endl;
+  }
   for ( Index itkm=0; itkm<ntkm; ++itkm ) {
     fillChannelTickMod(acd, itkm0, itkm);
   }
@@ -216,7 +241,8 @@ AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Ind
   if ( m_LogLevel >= 2 ) cout << myname << "Filling hist " << ph->GetName()
                               << " with channel " << acd.channel
                               << " tickmod " << itkm << endl;
-  for ( Index isam = (itkm0 + itkm) % period; isam<nsam; isam += period ) ph->Fill(acd.raw[isam]);
+  Index isam0 = (itkm + period - itkm0) % period;
+  for ( Index isam=isam0; isam<nsam; isam+=period ) ph->Fill(acd.raw[isam]);
   return 0;
 }
 

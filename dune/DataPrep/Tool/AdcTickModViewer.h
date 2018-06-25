@@ -13,7 +13,10 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   TickModPeriod - Period for tickmods
+//   TickModPeriod - Period for tickmods [ticks], i.e. # ticks when wf repeats
+//   TimeOffsetTool - Name of the tool used to get the tick offset.
+//                    If blank, no offset is applied.
+//                    Otherwise integral offset only is used. Unit must be tick.
 //   FitRmsMin: Lower limit for RMS fit range.
 //   FitRmsMax: Upper limit for RMS fit range.
 //   HistName:  Name for the histogram.
@@ -82,6 +85,7 @@ private:
   // Configuration data.
   int m_LogLevel;
   int m_TickModPeriod;
+  Name m_TimeOffsetTool;
   float m_FitRmsMin;
   float m_FitRmsMax;
   Name m_HistName;

@@ -55,6 +55,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  tool_type: AdcTickModViewer" << endl;
     fout << "  LogLevel: 1" << endl;
     fout << "  TickModPeriod: 4" << endl;
+    fout << "  TimeOffsetTool: myTimeOffsetTool" << endl;
     fout << "  FitRmsMin: 1.0" << endl;
     fout << "  FitRmsMax: 20.0" << endl;
     fout << "  HistName: \"adctm_ch%0CHAN%_tm%0TICKMOD%\"" << endl;
@@ -69,7 +70,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  PlotSplitX:  2" << endl;
     fout << "  PlotSplitY:  2" << endl;
     fout << "}" << endl;
-    fout << "tools.tickOffsetFinder: {" << endl;
+    fout << "tools.myTimeOffsetTool: {" << endl;
     fout << "  tool_type: FixedTimeOffsetTool" << endl;
     fout << "  LogLevel: 2" << endl;
     fout << "  Value: 1000" << endl;
