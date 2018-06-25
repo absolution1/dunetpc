@@ -1,5 +1,6 @@
 #include "services_dune.fcl"
 #include "UtilityExample.fcl"
+#include "ProtoDUNETruthBeamParticle.fcl"
 
 process_name: testUtils
 
@@ -29,9 +30,10 @@ physics:
  analyzers:
  {
   trkUtil:          @local::util_example
+  beamtruth:        @local::ProtoDUNETruthBeamParticle_params
  }
 
- ana2:  [ trkUtil ]
+ ana2:  [ trkUtil, beamtruth ]
 
  end_paths:     [ ana2 ]
 }
