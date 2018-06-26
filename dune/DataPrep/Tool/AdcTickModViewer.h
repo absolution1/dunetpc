@@ -36,6 +36,8 @@
 //   PlotSplitY: If PlotSplitY > 0, then the above NY = PlotSplitY. Otherwise
 //               NY = PlotSplitX. No effect if PlotSplitX == 0.
 //               and up to that many plots are shown on the screen.
+//   PlotFrequency: 0 - After all events are processed.
+//                  1 - Every event
 //
 // Tools:
 //   adcStringBuilder is used to make the following
@@ -77,6 +79,8 @@ public:
 
   AdcTickModViewer(fhicl::ParameterSet const& ps);
 
+  ~AdcTickModViewer();
+
   DataMap view(const AdcChannelData& acd) const override;
   bool updateWithView() const override { return true; }
 
@@ -99,6 +103,7 @@ private:
   Index m_PlotShowFit;
   Index m_PlotSplitX;
   Index m_PlotSplitY;
+  Index m_PlotFrequency;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
@@ -110,7 +115,11 @@ private:
   // after initialization.
   class State {
   public:
-    HistVectorMap ChannelTickModHists;
+    // Tickmod Histograms mapped by channel.
+    //    Full hists have 4096 channels.
+    //    Proc hists have the region from the sticky code anlysis.
+    HistVectorMap ChannelTickModFullHists;
+    HistVectorMap ChannelTickModProcHists;
   };
 
   // Return the state.
@@ -123,6 +132,11 @@ private:
 
   // Fill the histogram for a tickmod.
   int fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Index itkm) const;
+
+  // Create plot files for the tickmod histograms for a channel.
+  //   icha - channel number
+  //   nplot - # plot files created
+  int makeTickModPlots(Index icha, Index& nplot) const;
 
 };
 

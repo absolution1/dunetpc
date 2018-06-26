@@ -53,6 +53,7 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_PlotShowFit(ps.get<Index>("PlotShowFit")),
   m_PlotSplitX(ps.get<Index>("PlotSplitX")),
   m_PlotSplitY(ps.get<Index>("PlotSplitY")),
+  m_PlotFrequency(ps.get<Index>("PlotFrequency")),
   m_tickOffsetTool(nullptr),
   m_state(new State) 
 {
@@ -93,13 +94,37 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
     cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
     cout << myname << "        PlotSplitX: " << m_PlotSplitX << endl;
     cout << myname << "        PlotSplitY: " << m_PlotSplitY << endl;
+    cout << myname << "     PlotFrequency: " << m_PlotFrequency << endl;
   }
   if ( m_LogLevel >=4 ) {
     cout << myname << "INFO: Checking state." << endl;
-    cout << myname << "INFO:   Hist map size: " << state().ChannelTickModHists.size() << endl;
+    cout << myname << "INFO: Full hist map size: " << state().ChannelTickModFullHists.size() << endl;
+    cout << myname << "INFO: Proc hist map size: " << state().ChannelTickModProcHists.size() << endl;
   }
 }
 
+//**********************************************************************
+
+AdcTickModViewer::~AdcTickModViewer() {
+  const string myname = "AdcTickModViewer::dtor: ";
+  if ( m_LogLevel >= 1 ) cout << myname << "Closing." << endl;
+  if ( m_PlotFrequency == 0 ) {
+    Index nplotTot = 0;
+    for ( HistVectorMap::value_type icvm : state().ChannelTickModProcHists ) {
+      Index icha = icvm.first;
+      Index nplot = 0;
+      makeTickModPlots(icha, nplot);
+      nplotTot += nplot;
+      if ( m_LogLevel >= 2 ) {
+        cout << myname << "  Plot file count for channel " << icha << ": " << nplot << endl;
+      }
+    }
+    if ( m_LogLevel >= 1 ) {
+      cout << myname << "  Total plot file count: " << nplotTot << endl;
+    }
+  }
+}
+  
 //**********************************************************************
 
 DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
@@ -107,9 +132,11 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   DataMap res;
   Index icha = acd.channel;
   if ( m_LogLevel >= 3 ) cout << myname << "Processing channel " << icha << endl;
-  HistVector& tmhs = state().ChannelTickModHists[icha];
+  HistVector& tmhsFull = state().ChannelTickModFullHists[icha];
+  HistVector& tmhsProc = state().ChannelTickModProcHists[icha];
   Index ntkm = m_TickModPeriod;
-  if ( tmhs.size() == 0 ) tmhs.resize(ntkm, nullptr);
+  if ( tmhsFull.size() == 0 ) tmhsFull.resize(ntkm, nullptr);
+  if ( tmhsProc.size() == 0 ) tmhsProc.resize(ntkm, nullptr);
   Index itkm0 = 0;
   if ( m_tickOffsetTool != nullptr ) {
     TimeOffsetTool::Data dat;
@@ -135,64 +162,23 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
     fillChannelTickMod(acd, itkm0, itkm);
   }
   // Process histograms with the sticky code utility.
-  HistVector tkmProcs;
   Index chmod = 10;
   for ( Index itkm=0; itkm<ntkm; ++itkm ) {
-    TH1* phi = tmhs[itkm].get();
+    TH1* phi = tmhsFull[itkm].get();
     StickyCodeMetrics scm(phi->GetName(), phi->GetTitle(), m_HistChannelCount, chmod);
     if ( scm.evaluate(phi) ) {
       cout << myname << "Sticky code evaluation failed for channel " << icha
            << " tickmod " << itkm << endl;
-      tkmProcs.emplace_back(phi);
+      tmhsProc[itkm].reset(phi);
     } else {
-      tkmProcs.push_back(scm.getSharedHist());
+      tmhsProc[itkm] = scm.getSharedHist();
     }
   }
   // Draw the histograms.
   Index nplot = 0;
-  if ( m_PlotFileName.size() &&
-       ( m_PlotChannels.size() == 0 ||
-         find(m_PlotChannels.begin(), m_PlotChannels.end(), icha) != m_PlotChannels.end() )
-     ) {
-    Index npad = 0;
-    Index npadx = 0;
-    Index npady = 0;
-    if ( m_PlotFileName.size() && m_PlotSplitX > 0 ) {
-      npadx = m_PlotSplitX;
-      npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
-      npad = npadx*npady;
-    }
-    TPadManipulator* pmantop = nullptr;
-    Name plotFileName;
-    Index itkm = 0;
-    Index ipad = 0;
-    for ( HistPtr ph : tkmProcs ) {
-      if ( pmantop == nullptr ) {
-        if ( m_LogLevel >= 3 ) cout << myname << "  Creating canvas." << endl;
-        pmantop = new TPadManipulator;
-        if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
-        if ( npad > 1 ) pmantop->split(npady, npady);
-        plotFileName = nameReplace(m_PlotFileName, acd, itkm);
-      }
-      TPadManipulator* pman = pmantop->man(ipad);
-      pman->add(ph.get(), "hist", false);
-      if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
-      if ( m_PlotShowFit ) pman->addHistFun(0);
-      pman->addVerticalModLines(64);
-      pman->showUnderflow();
-      pman->showOverflow();
-      ++itkm;
-      if ( ++ipad == npad || itkm == ntkm ) {
-        pmantop->print(plotFileName);
-        ++nplot;
-        ipad = 0;
-        delete pmantop;
-        pmantop = nullptr;
-      }
-    }
-  }
-  res.setHistVector("tmHists", tkmProcs);
-  res.setHistVector("tmWideHists", tmhs);   // Passing out hist sthat will be updated!
+  if ( m_PlotFrequency ) makeTickModPlots(icha, nplot);
+  res.setHistVector("tmHists", tmhsProc);
+  res.setHistVector("tmWideHists", tmhsFull);   // Passing out hist sthat will be updated!
   res.setInt("tmCount", ntkm);
   res.setInt("tmPlotCount", nplot);
   return res;
@@ -225,7 +211,7 @@ AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Ind
     if ( m_LogLevel >= 2 ) cout << myname << "WARNING: Raw data is empty." << endl;
     return 1;
   }
-  HistPtr& ph = state().ChannelTickModHists[acd.channel][itkm];
+  HistPtr& ph = state().ChannelTickModFullHists[acd.channel][itkm];
   if ( ph == nullptr ) {
     string hname = nameReplace(m_HistName, acd, itkm);
     string htitl = nameReplace(m_HistTitle, acd, itkm);
@@ -243,6 +229,59 @@ AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Ind
                               << " tickmod " << itkm << endl;
   Index isam0 = (itkm + period - itkm0) % period;
   for ( Index isam=isam0; isam<nsam; isam+=period ) ph->Fill(acd.raw[isam]);
+  return 0;
+}
+
+//**********************************************************************
+
+int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
+  const string myname = "AdcTickModViewer::makeTickModPlots: ";
+  nplot = 0;
+  if ( m_PlotFileName.size() &&
+       ( m_PlotChannels.size() == 0 ||
+         find(m_PlotChannels.begin(), m_PlotChannels.end(), icha) != m_PlotChannels.end() )
+     ) {
+    Index npad = 0;
+    Index npadx = 0;
+    Index npady = 0;
+    if ( m_PlotFileName.size() && m_PlotSplitX > 0 ) {
+      npadx = m_PlotSplitX;
+      npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
+      npad = npadx*npady;
+    }
+    TPadManipulator* pmantop = nullptr;
+    Name plotFileName;
+    Index itkm = 0;
+    Index ntkm = m_TickModPeriod;
+    Index ipad = 0;
+    const HistVector& tmhs = state().ChannelTickModProcHists[icha];
+    AdcChannelData acd;  // For building plot file name
+    acd.channel = icha;
+    for ( HistPtr ph : tmhs ) {
+      if ( pmantop == nullptr ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "  Creating canvas." << endl;
+        pmantop = new TPadManipulator;
+        if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
+        if ( npad > 1 ) pmantop->split(npady, npady);
+        plotFileName = nameReplace(m_PlotFileName, acd, itkm);
+      }
+      TPadManipulator* pman = pmantop->man(ipad);
+      pman->add(ph.get(), "hist", false);
+      if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
+      if ( m_PlotShowFit ) pman->addHistFun(0);
+      pman->addVerticalModLines(64);
+      pman->showUnderflow();
+      pman->showOverflow();
+      ++itkm;
+      if ( ++ipad == npad || itkm == ntkm ) {
+        pmantop->print(plotFileName);
+        ++nplot;
+        ipad = 0;
+        delete pmantop;
+        pmantop = nullptr;
+      }
+    }
+  }
   return 0;
 }
 
