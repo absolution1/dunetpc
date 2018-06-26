@@ -74,7 +74,7 @@ void StickyCodeMetrics::clear() {
 
 int StickyCodeMetrics::evaluateMetrics() {
   const string myname = "StickyCodeMetrics::evaluateMetrics: ";
-  const int dbg = 4;  // Nonzero give debug logging.
+  const int dbg = 0;  // Nonzero give debug logging.
   if ( dbg ) cout << myname << "Debugging level: " << dbg << endl;
   const BinCounter& counts = m_counts;
   m_nsample = 0;

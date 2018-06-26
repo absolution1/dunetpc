@@ -315,5 +315,6 @@ tools.pd_tickmodViewer: {
   PlotShowFit:  0
   PlotSplitX:   4
   PlotSplitY:   0
+  PlotFrequency: 0
 }
 

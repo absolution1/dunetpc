@@ -105,6 +105,7 @@ int test_StickyCodeMetrics() {
   scm.getMetrics().print();
 
   TCanvas* pcan = new TCanvas;
+  pcan->SetGridx();
 
   cout << myname << line << endl;
   cout << myname << "Evaluation creating histogram." << endl;
