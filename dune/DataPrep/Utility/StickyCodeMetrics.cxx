@@ -74,7 +74,7 @@ void StickyCodeMetrics::clear() {
 
 int StickyCodeMetrics::evaluateMetrics() {
   const string myname = "StickyCodeMetrics::evaluateMetrics: ";
-  const int dbg = 0;  // Nonzero give debug logging.
+  const int dbg = 4;  // Nonzero give debug logging.
   if ( dbg ) cout << myname << "Debugging level: " << dbg << endl;
   const BinCounter& counts = m_counts;
   m_nsample = 0;
@@ -258,7 +258,12 @@ int StickyCodeMetrics::evaluateMetrics() {
         double rat = diffCount/(countSumHist + countSumHistSelected);
         sameCount = fabs(rat) < 0.001;
       }
-      bool haveOverlap = abs(ihadc1Selected - ihadc1) < nbinHist;
+      if ( ihadc1Selected > ihadc1 ) {
+        cout << myname << "Unexpected value for ihadc1Selected: " << ihadc1Selected << endl;
+        cout << myname << "                        with ihadc1: " << ihadc1 << endl;
+        abort();
+      }
+      bool haveOverlap = ihadc1Selected + nbinHist > ihadc1;
       bool updateSel = false;
       if ( sameCount && haveOverlap ) {
         if ( dbg >= 4 ) cout << "  Same count." << endl;

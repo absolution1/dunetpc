@@ -43,6 +43,7 @@ int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: TimingRawDecoderOffsetTool" << endl;
     fout << "    LogLevel: 2" << endl;
+    fout << "    TpcTickPhase: 0" << endl;
     fout << "    Unit: \"tick\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;

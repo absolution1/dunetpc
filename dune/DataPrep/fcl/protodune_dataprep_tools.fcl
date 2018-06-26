@@ -292,6 +292,7 @@ tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "hchpdwp_pedpeak
 tools.pd_tickOffset: {
   tool_type: TimingRawDecoderOffsetTool
   LogLevel: 1
+  TpcTickPhase: 0
   Unit: tick
 }
 
