@@ -69,6 +69,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  PlotShowFit:  0" << endl;
     fout << "  PlotSplitX:  2" << endl;
     fout << "  PlotSplitY:  2" << endl;
+    fout << "  PlotWhich:  7" << endl;
     fout << "  PlotFrequency: 0" << endl;
     fout << "}" << endl;
     fout << "tools.myTimeOffsetTool: {" << endl;

@@ -36,8 +36,12 @@
 //   PlotSplitY: If PlotSplitY > 0, then the above NY = PlotSplitY. Otherwise
 //               NY = PlotSplitX. No effect if PlotSplitX == 0.
 //               and up to that many plots are shown on the screen.
-//   PlotFrequency: 0 - After all events are processed.
-//                  1 - Every event
+//   PlotWhich: Bit pattern indicating which plots to draw
+//                1 - All tickmods starting with 0
+//                2 - NX*NY tickmods around the minimum.
+//                4 - NX*NY tickmods around the maximum.
+//   PlotFrequency: 0 - Only make plots at end of job (in dtor).
+//                  1 - Make plots every event
 //
 // Tools:
 //   adcStringBuilder is used to make the following
@@ -46,9 +50,11 @@
 //      %SUBRUN%  --> subrun number
 //      %EVENT%   --> event number
 //      %CHAN%    --> channel number
+//      %TICKMOD% --> tickmod (or Min or Max for those plots)
 //
 // The single-channel methods return a data map with the following:
-//   tmHists:           - The tickmod histograms for this channel
+//   tmHists:        - The processed and narrowed tickmod histograms for this channel
+//   tmWideHists:    - The raw tickmod histograms for this channel
 
 #ifndef AdcTickModViewer_H
 #define AdcTickModViewer_H
@@ -103,6 +109,7 @@ private:
   Index m_PlotShowFit;
   Index m_PlotSplitX;
   Index m_PlotSplitY;
+  Index m_PlotWhich;
   Index m_PlotFrequency;
 
   // ADC string tool.
@@ -120,6 +127,8 @@ private:
     //    Proc hists have the region from the sticky code anlysis.
     HistVectorMap ChannelTickModFullHists;
     HistVectorMap ChannelTickModProcHists;
+    // Run number for plot names.
+    int run = -1;
   };
 
   // Return the state.
