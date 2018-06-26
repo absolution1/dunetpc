@@ -320,7 +320,7 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
     }
     AdcChannelData acd;  // For building plot file name
     acd.channel = icha;
-    if ( state().run >= 0 ) acd.run = state.run;
+    if ( state().run >= 0 ) acd.run = state().run;
     TPadManipulator* pmantop = nullptr;
     for ( Index ihv=0; ihv<showTickModVectors.size(); ++ihv ) {
       const IndexVector tkms = showTickModVectors[ihv];
