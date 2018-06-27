@@ -79,6 +79,7 @@ private:
   // --- Our fcl parameter labels for the modules that made the data products
   std::string fRawDigitLabel;
   std::string fHitLabel;
+  bool fDoCalcAdjHits;
 
   std::string fGEANTLabel;
   std::string fMARLLabel; std::map< int, simb::MCParticle > MarlParts;
@@ -183,6 +184,7 @@ void DAQSimAna::reconfigure(fhicl::ParameterSet const & p)
   fPlonLabel = p.get<std::string> ("PoloniumLabel");
   fRdonLabel = p.get<std::string> ("RadonLabel");
 
+  fDoCalcAdjHits = p.get<bool>("DoCalcAdjHits", false);
 } // Reconfigure
 
 //......................................................
@@ -634,28 +636,28 @@ void DAQSimAna::analyze(art::Event const & evt)
   for (size_t hh=0; hh<ColHits_Marl.size(); ++hh) {
     mf::LogDebug("DAQSimAna") << "\tHit " << hh << " was on chan " << ColHits_Marl[hh].Channel() << " at " << ColHits_Marl[hh].PeakTime();
   }
-  // --- Now calculate all of the hits...
-  CalcAdjHits( ColHits_Marl, hAdjHits_Marl, false );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for APA hits...";
-  CalcAdjHits( ColHits_APA , hAdjHits_APA , false  );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for CPA hits...";
-  CalcAdjHits( ColHits_CPA , hAdjHits_CPA , false  );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for Ar39 hits...";
-  CalcAdjHits( ColHits_Ar39, hAdjHits_Ar39, false );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for Ar42 hits...";
-  CalcAdjHits( ColHits_Ar42, hAdjHits_Ar42, false );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for Neuton hits...";
-  CalcAdjHits( ColHits_Neut, hAdjHits_Neut, false );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for Krypton hits...";
-  CalcAdjHits( ColHits_Kryp, hAdjHits_Kryp, false );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for Polonium hits...";
-  CalcAdjHits( ColHits_Plon, hAdjHits_Plon, false );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for Radon hits...";
-  CalcAdjHits( ColHits_Rdon, hAdjHits_Rdon, false );
-  mf::LogDebug("DAQSimAna") << "\nAnd now for Other hits...";
-  CalcAdjHits( ColHits_Oth , hAdjHits_Oth , false  );
-
-  
+  if(fDoCalcAdjHits){
+      // --- Now calculate all of the hits...
+      CalcAdjHits( ColHits_Marl, hAdjHits_Marl, false );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for APA hits...";
+      CalcAdjHits( ColHits_APA , hAdjHits_APA , false  );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for CPA hits...";
+      CalcAdjHits( ColHits_CPA , hAdjHits_CPA , false  );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for Ar39 hits...";
+      CalcAdjHits( ColHits_Ar39, hAdjHits_Ar39, false );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for Ar42 hits...";
+      CalcAdjHits( ColHits_Ar42, hAdjHits_Ar42, false );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for Neuton hits...";
+      CalcAdjHits( ColHits_Neut, hAdjHits_Neut, false );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for Krypton hits...";
+      CalcAdjHits( ColHits_Kryp, hAdjHits_Kryp, false );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for Polonium hits...";
+      CalcAdjHits( ColHits_Plon, hAdjHits_Plon, false );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for Radon hits...";
+      CalcAdjHits( ColHits_Rdon, hAdjHits_Rdon, false );
+      mf::LogDebug("DAQSimAna") << "\nAnd now for Other hits...";
+      CalcAdjHits( ColHits_Oth , hAdjHits_Oth , false  );
+  }
   //*/
   // --- Now loop through the particle list.
   /*
