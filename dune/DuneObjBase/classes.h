@@ -13,6 +13,11 @@
 #include "dune/DuneObjBase/OpDetDivRec.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/Simulation/OpDetBacktrackerRecord.h"
+#include "lardataobj/RawData/OpDetWaveform.h"
 
-namespace {
-}
+#include <vector>
+#include <map>
+
+
+//template class art::wrapper<art::Assns<raw::OpDetWaveform,            sim::OpDetBacktrackerRecord,   void>  >

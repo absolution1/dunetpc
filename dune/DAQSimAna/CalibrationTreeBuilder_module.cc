@@ -193,6 +193,7 @@ namespace CalibrationTreeBuilder {
             }
             emp_h.first->second.energy=energy;
           }
+          remembered_energies.clear();
           std::map<int64_t, EventRecord::PartialOpHit> bunched_ophits;
           for(auto partialop : part.partial_ophits){
             auto emp_o = bunched_ophits.emplace(std::make_pair(partialop.index,partialop));
@@ -384,18 +385,18 @@ namespace CalibrationTreeBuilder {
 
   bool CalibrationTreeBuilder::AddHit(const art::Ptr<recob::OpHit> hit, unsigned int& counter){
     {//make each loop local so the vectors don't persist
-      std::vector<const sim::SDP*> sdps_ps = PBS->OpHitToSimSDPs_Ps(hit);
+      const std::vector< sim::SDP> sdps = PBS->OpHitToChannelWeightedSimSDPs(hit);
       std::vector<std::pair<int, EventRecord::PartialOpHit>> track_partials;
       Double_t total_charge = 0.0;
-      if(sdps_ps.empty()){return false;}
-      for(auto sdp_p : sdps_ps){
-        int track_id = sdp_p->trackID;
+      if(sdps.empty()){return false;}
+      for(auto sdp : sdps){
+        int track_id = sdp.trackID;
         EventRecord::PartialOpHit tmp;
-        total_charge += sdp_p->numPhotons;
+        total_charge += sdp.numPhotons;
         //        tmp.pes = //Not used yet.
-        tmp.num_photons = sdp_p->numPhotons; //This is not PEs. This is incident photons. I am just storing it here for later logic (see final assignment in the next for loop.
-        tmp.energy = sdp_p->energy;
-        //tmp.energy = 0.0;// sdp_p->energy;
+        tmp.num_photons = sdp.numPhotons; //This is not PEs. This is incident photons. I am just storing it here for later logic (see final assignment in the next for loop.
+        tmp.energy = sdp.energy;
+        //tmp.energy = 0.0;// sdp.energy;
         tmp.time   = hit->PeakTime();
         tmp.width  = hit->Width();
         tmp.split  = 0.0;
