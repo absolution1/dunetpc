@@ -35,7 +35,7 @@ services.TimeTracker:       {}
 services.MemoryTracker:         { } # default is one
 services.RandomNumberGenerator: {} #ART native random number generator
 // services.FileCatalogMetadata:  @local::art_file_catalog_mc
-services.NuRandomService:       @local::standard_NuRandomService  # seedservice.fcl
+services.NuRandomService:       @local::per_event_NuRandomService  # seedservice.fcl
 services.message:              @local::dune_message_services_prod
 #source is now a root file
 source: {
@@ -66,7 +66,12 @@ physics: {
       # daqsimana analyzer (otherwise you won't get a corresponding
       # TTree in the output file. Also make sure to add it to the "simulate" list below
       trigprim600: @local::trigprimpass1
+      trigprim800: @local::trigprimpass1
+      trigprim1000: @local::trigprimpass1
       trigprim1200: @local::trigprimpass1
+      trigprim1400: @local::trigprimpass1
+      trigprim1600: @local::trigprimpass1
+      trigprim1800: @local::trigprimpass1
 
       rns:            { module_type: "RandomNumberSaver" }
    }
@@ -76,11 +81,16 @@ physics: {
       # Create a DAQSimAna for each trigger primitive finders. Make
       # sure to add each one to the "ana" list below
       daqanatrigprim600:     @local::standard_daqsimana
+      daqanatrigprim800:     @local::standard_daqsimana
+      daqanatrigprim1000:     @local::standard_daqsimana
       daqanatrigprim1200:    @local::standard_daqsimana
+      daqanatrigprim1400:    @local::standard_daqsimana
+      daqanatrigprim1600:    @local::standard_daqsimana
+      daqanatrigprim1800:    @local::standard_daqsimana
    }
 
-   simulate: [ rns, simwire, trigprim600, trigprim1200 ]
-   ana: [ daqanatrigprim600, daqanatrigprim1200 ]
+   simulate: [ rns, simwire, trigprim600, trigprim800, trigprim1000, trigprim1200, trigprim1400, trigprim1600, trigprim1800 ]
+   ana: [ daqanatrigprim600, daqanatrigprim800, daqanatrigprim1000, daqanatrigprim1200, daqanatrigprim1400, daqanatrigprim1600, daqanatrigprim1800 ]
 
    trigger_paths: [simulate] 
    end_paths: [ ana ] 
@@ -91,15 +101,35 @@ physics: {
 # want to use a different trigger primitive finder class, set
 # "physics.producers.<itemname>.finder.tool_type: MyNewTriggerPrimitiveFinderTool"
 physics.producers.trigprim600.finder.Threshold: 600
+physics.producers.trigprim800.finder.Threshold: 800
+physics.producers.trigprim1000.finder.Threshold: 1000
 physics.producers.trigprim1200.finder.Threshold: 1200
+physics.producers.trigprim1400.finder.Threshold: 1400
+physics.producers.trigprim1600.finder.Threshold: 1600
+physics.producers.trigprim1800.finder.Threshold: 1800
 
 # Set the HitLabel to make sure each DaqAnaSim reads hits from its
 #  corresponding TriggerPrimitiveFinder
 physics.analyzers.daqanatrigprim600.HitLabel: "trigprim600"
 physics.analyzers.daqanatrigprim600.MARLEYLabel: "marley"
 
+physics.analyzers.daqanatrigprim800.HitLabel: "trigprim800"
+physics.analyzers.daqanatrigprim800.MARLEYLabel: "marley"
+
+physics.analyzers.daqanatrigprim1000.HitLabel: "trigprim1000"
+physics.analyzers.daqanatrigprim1000.MARLEYLabel: "marley"
+
 physics.analyzers.daqanatrigprim1200.HitLabel: "trigprim1200"
 physics.analyzers.daqanatrigprim1200.MARLEYLabel: "marley"
+
+physics.analyzers.daqanatrigprim1400.HitLabel: "trigprim1400"
+physics.analyzers.daqanatrigprim1400.MARLEYLabel: "marley"
+
+physics.analyzers.daqanatrigprim1600.HitLabel: "trigprim1600"
+physics.analyzers.daqanatrigprim1600.MARLEYLabel: "marley"
+
+physics.analyzers.daqanatrigprim1800.HitLabel: "trigprim1800"
+physics.analyzers.daqanatrigprim1800.MARLEYLabel: "marley"
 
 # =====================================================================
 # You probably won't need to change anything below here
