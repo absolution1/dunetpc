@@ -18,6 +18,7 @@
 #include "TLegend.h"
 #include "TPaletteAxis.h"
 #include "TError.h"
+#include "TSystem.h"
 
 using std::string;
 using std::cout;
@@ -141,7 +142,14 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
 //**********************************************************************
 
 TPadManipulator::~TPadManipulator() {
-  //cout << "Destructed @" << this << endl;
+  //cout << "Destroying manipulator " << this << " with pad " << m_ppad
+  //     << " and parent " << m_parent << endl;
+  if ( m_ppad != nullptr && m_parent == nullptr ) {
+    m_ppad->Close();
+    gSystem->ProcessEvents();
+    delete m_ppad;
+    m_ppad = nullptr;
+  }
 }
 
 //**********************************************************************

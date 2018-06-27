@@ -347,6 +347,7 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
         pman->showOverflow();
         ++icount;
         if ( ++ipad == npad || icount == tkms.size() ) {
+          if ( m_LogLevel >= 3 ) cout << myname << "  Creating " << plotFileName << endl;
           pmantop->print(plotFileName);
           ++nplot;
           ipad = 0;
@@ -356,6 +357,7 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
       }
     }
   }
+  if ( m_LogLevel >= 3 ) cout << "Done." << endl;
   return 0;
 }
 
