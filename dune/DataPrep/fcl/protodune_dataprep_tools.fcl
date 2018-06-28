@@ -4,7 +4,7 @@
 # Channel mapping.
 ################################################################################
 
-tools.pd_onlineChannelMap {
+tools.pd_onlineChannelMap: {
   tool_type: PdspOnlineChannel
 }
 
