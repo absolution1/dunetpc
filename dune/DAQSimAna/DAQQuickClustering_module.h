@@ -91,7 +91,7 @@ bool operator<(recoHit lhs, recoHit rhs){
   if(lhs.fHitTime<rhs.fHitTime)
     return true;
   return false;
-};
+}
 
 class cluster
 {

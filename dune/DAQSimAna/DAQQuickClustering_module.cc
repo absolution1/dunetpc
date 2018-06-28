@@ -688,7 +688,7 @@ void DAQQuickClustering::analyze(art::Event const & evt)
   
   //MAKE RECOHIT OBJECTS EVENTWISE FROM THE TREE.
   std::vector<recoHit> vec_Hits;
-  for(unsigned int j = 0; j < NColHits; j++)
+  for(int j = 0; j < NColHits; j++)
   {
     recoHit hit(Event,      HitView[j], GenType[j],
                 HitChan[j], HitTime[j], HitSADC[j], HitRMS[j]);
