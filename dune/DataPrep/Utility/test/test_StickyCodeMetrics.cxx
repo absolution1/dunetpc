@@ -11,6 +11,7 @@
 #include <vector>
 #include "dune/DataPrep/Utility/StickyCodeMetrics.h"
 #include "TH1F.h"
+#include "TCanvas.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -75,29 +76,94 @@ int test_StickyCodeMetrics() {
   assert( vals.size() == nadc );
   assert( ph->GetEntries() == nadc );
 
+  StickyCodeMetrics scm;
+
   cout << myname << line << endl;
   cout << myname << "Bin Counter evaluation." << endl;
-  StickyCodeMetrics scmbco(counts);
-  scmbco.print();
+  scm.evaluate(counts);
+  scm.print();
+  assert( scm.getHist() == nullptr );
+  assert( ! scm.getSharedHist() );
 
   cout << myname << line << endl;
   cout << myname << "ADC samples evaluation." << endl;
-  StickyCodeMetrics scmsam(vals);
-  scmsam.print();
+  scm.evaluate(vals);
+  scm.print();
 
   cout << myname << line << endl;
   cout << myname << "Histogram evaluation." << endl;
-  StickyCodeMetrics scmhst(ph);
-  scmhst.print();
+  scm.evaluate(ph);
+  scm.print();
 
   cout << myname << line << endl;
   cout << myname << "Limited-range histogram evaluation." << endl;
-  StickyCodeMetrics scmhs2(ph2);
-  scmhs2.print();
+  scm.evaluate(ph2);
+  scm.print();
 
   cout << myname << line << endl;
   cout << myname << "Bin Counter data map." << endl;
-  scmbco.getMetrics().print();
+  scm.getMetrics().print();
+
+  TCanvas* pcan = new TCanvas;
+  pcan->SetGridx();
+
+  cout << myname << line << endl;
+  cout << myname << "Evaluation creating histogram." << endl;
+  StickyCodeMetrics scmh("hadctest", "ADC spectrum for test", 50, 10);
+  assert( scmh.evaluate(counts) == 0 );
+  scmh.print();
+  scmh.getMetrics().print();
+  assert( scmh.getHist() != nullptr );
+  scmh.getHist()->Print();
+  cout << myname << "Histogram integral: " << scmh.getHist()->Integral() << endl;
+  scmh.getHist()->Draw();
+  pcan->Print("test.png");
+  assert( int(scmh.getHist()->Integral()+0.1) == int(nadc) );
+
+  cout << myname << line << endl;
+  cout << myname << "Evaluation creating wide histogram." << endl;
+  StickyCodeMetrics scmhw("hadctest", "ADC spectrum for test", 100, 10);
+  assert( scmhw.evaluate(counts) == 0 );
+  scmhw.print();
+  scmhw.getMetrics().print();
+  assert( scmhw.getHist() != nullptr );
+  scmhw.getHist()->Print();
+  cout << myname << "Histogram integral: " << scmhw.getHist()->Integral() << endl;
+  scmhw.getHist()->Draw();
+  pcan->Print("testw.png");
+  assert( int(scmhw.getHist()->Integral()+0.1) == int(nadc) );
+
+  cout << myname << line << endl;
+  cout << myname << "Evaluation creating narrow histogram." << endl;
+  StickyCodeMetrics scmh2("hadctest", "ADC spectrum for test", 15, 5);
+  assert( scmh2.evaluate(counts) == 0 );
+  scmh2.print();
+  scmh2.getMetrics().print();
+  assert( scmh2.getHist() != nullptr );
+  scmh2.getHist()->Print();
+  cout << myname << "Histogram integral: " << scmh2.getHist()->Integral() << endl;
+  cout << myname << "Histogram undrflow: " << scmh2.getHist()->GetBinContent(16) << endl;
+  cout << myname << "Histogram overflow: " << scmh2.getHist()->GetBinContent(0) << endl;
+  scmh2.getHist()->Draw();
+  pcan->Print("test2.png");
+  Index nadc2 = 0;
+  Index nadc2u = 0;
+  Index nadc2o = 0;
+  for ( int iadc=110; iadc<125; ++iadc ) {
+    if ( counts.find(iadc) != counts.end() ) nadc2 += counts[iadc];
+  }
+  for ( int iadc=100; iadc<110; ++iadc ) {
+    if ( counts.find(iadc) != counts.end() ) nadc2u += counts[iadc];
+  }
+  for ( int iadc=125; iadc<135; ++iadc ) {
+    if ( counts.find(iadc) != counts.end() ) nadc2o += counts[iadc];
+  }
+  cout << myname << "Expect integral: " << nadc2 << endl;
+  cout << myname << "Expect undrflow: " << nadc2u << endl;
+  cout << myname << "Expect overflow: " << nadc2o << endl;
+  assert( int(scmh2.getHist()->Integral()+0.1) == int(nadc2) );
+
+  delete pcan;
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

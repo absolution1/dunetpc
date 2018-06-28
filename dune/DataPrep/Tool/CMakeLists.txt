@@ -46,6 +46,7 @@ simple_plugin(AdcDataDumper   "tool"
              )
 
 simple_plugin(AdcTickModViewer   "tool"
+                dune_DataPrep_Utility
                 dune_ArtSupport
                 dune_DuneCommon
                 art_Utilities canvas

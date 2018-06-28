@@ -11,6 +11,18 @@ simple_plugin(FclRunDataTool  "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(FixedTimeOffsetTool  "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(TimingRawDecoderOffsetTool  "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(SimpleHistogramManager  "tool"
                 art_Utilities canvas
                 cetlib cetlib_except

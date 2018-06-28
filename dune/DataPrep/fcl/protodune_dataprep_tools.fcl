@@ -288,15 +288,25 @@ tools.pdwp_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "hchpdwp_pedpeak
 # Tickmod viewer.
 ################################################################################
 
-# Pedestal RMS for each channel.
+# Read in the tick offset
+tools.pd_tickOffset: {
+  tool_type: TimingRawDecoderOffsetTool
+  LogLevel: 1
+  TpcTickPhase: 0
+  Unit: tick
+}
+
+# Build tickmod spectra.
 tools.pd_tickmodViewer: {
   tool_type: AdcTickModViewer
   LogLevel: 1
   TickModPeriod: 497
+  TimeOffsetTool: pd_tickOffset
   FitRmsMin: 1.0
   FitRmsMax: 20.0
   HistName: "adctm_ch%0CHAN%_tm%0TICKMOD%"
   HistTitle: "ADC spectrum for channel %CHAN% tickmod %TICKMOD%"
+  HistChannelCount: 100
   PlotChannels: [999999]
   PlotFileName: "adctm_ch%0CHAN%_tm%0TICKMOD%.png"
   RootFileName: "adctm.root"
@@ -305,5 +315,6 @@ tools.pd_tickmodViewer: {
   PlotShowFit:  0
   PlotSplitX:   4
   PlotSplitY:   0
+  PlotFrequency: 0
 }
 

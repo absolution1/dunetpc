@@ -59,7 +59,8 @@ public:
   using HistVectorMap = std::map<Name,HistVector>;
   using GraphPtr = std::shared_ptr<TGraph>;
   using GraphMap = std::map<Name,GraphPtr>;
-  using SharedHistVector = std::vector<std::shared_ptr<TH1>>;
+  using SharedHistPtr = std::shared_ptr<TH1>;
+  using SharedHistVector = std::vector<SharedHistPtr>;
 
 public:
 
@@ -142,6 +143,10 @@ public:
   void setHist(TH1* ph, bool own =false) {
     if ( ph != nullptr ) setHist(ph->GetName(), ph, own);
   }
+  void setHist(std::shared_ptr<TH1> ph) {
+    m_hsts[ph->GetName()] = ph.get();
+    m_sharedHsts.push_back(ph);
+  }
   void setHistVector(Name name, const HistVector& hsts, bool own =false) {
     const std::string myname = "DataMap::setHistVector: ";
     m_hstvecs[name] = hsts;
@@ -160,6 +165,14 @@ public:
           m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
         }
       }
+    }
+  }
+  void setHistVector(Name name, const SharedHistVector& hsts) {
+    const std::string myname = "DataMap::setHistVector: ";
+    m_hstvecs[name].clear();
+    for ( SharedHistPtr ph : hsts ) {
+      m_hstvecs[name].push_back(ph.get());
+      m_sharedHsts.push_back(ph);
     }
   }
   void setGraph(Name name, TGraph* pg) {

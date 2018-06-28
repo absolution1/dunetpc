@@ -191,7 +191,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     if ( fMakeEventTimeFile ) {
       if ( evtTimestamp == 0 ) {
         evtTimestamp = rawFrag.timestamp();
-        string foutName = "artdatTimestamp-Run" + std::to_string(runNumber) + "-Event" + std::to_string(eventNumber) + ".dat";
+        string foutName = "artdaqTimestamp-Run" + std::to_string(runNumber) + "-Event" + std::to_string(eventNumber) + ".dat";
         ofstream fout(foutName);
         fout << evtTimestamp << endl;
       } else {
