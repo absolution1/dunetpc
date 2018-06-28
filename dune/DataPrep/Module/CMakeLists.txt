@@ -3,6 +3,7 @@ art_make( BASENAME_ONLY
           MODULE_LIBRARIES larcorealg_Geometry
 	                dune_Geometry
 	                dune_DuneCommon
+	                dune_ArtSupport
 			larcore_Geometry_Geometry_service
 	                lardata_Utilities
 			larevt_Filters
