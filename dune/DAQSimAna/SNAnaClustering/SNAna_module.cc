@@ -866,9 +866,8 @@ void SNAna::analyze(art::Event const & evt)
     // }
 
     double purity = pbt_serv->OpHitCollectionPurity(signal_trackids, matchedHits);
-    if(purity !=0) {
+    if (purity!=0) {
       std::cout << "purity " << purity << std::endl;
-      exit(1);
     }
     // std::set<int> setseventid = pbt_serv->GetSetOfEveIds(matchedHits);
     // std::cout << "Size setseventid " << setseventid.size() << std::endl;

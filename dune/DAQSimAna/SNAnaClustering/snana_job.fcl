@@ -6,7 +6,7 @@ process_name: SNAna
 services:
 {
   @table::dunefd_services
-  TFileService:          { fileName: "SNAna_hist.root" }
+  TFileService:          { fileName: "SNAna_Tree_WithPhoton.root" }
   TimeTracker:           {}
   MemoryTracker:         {}
   RandomNumberGenerator: {} #ART native random number generator
