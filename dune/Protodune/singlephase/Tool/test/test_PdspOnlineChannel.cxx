@@ -78,7 +78,7 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   Index badIndex = IndexMapTool::badIndex();
 
   cout << myname << line << endl;
-  cout << "Check some good values." << endl;
+  cout << myname << "Check some good values." << endl;
   for ( Index ichaOff : { 0, 102, 1234, 15359 } ) {
     Index ichaOn = cma->get(ichaOff);
     cout << myname << ichaOff << " --> " << ichaOn << endl;
@@ -86,7 +86,7 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   }
 
   cout << myname << line << endl;
-  cout << "Check some bad values." << endl;
+  cout << myname << "Check some bad values." << endl;
   for ( Index ichaOff : { -1, 15360, 20000 } ) {
     Index ichaOn = cma->get(ichaOff);
     cout << myname << ichaOff << " --> " << ichaOn << endl;
@@ -94,7 +94,7 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   }
 
   cout << myname << line << endl;
-  cout << "Check each online index appears exactly once." << endl;
+  cout << myname << "Check each online index appears exactly once." << endl;
   const Index ncha = 15360;
   IndexVector onlineCounts(ncha);
   IndexVector offlineChannel(ncha, badIndex);

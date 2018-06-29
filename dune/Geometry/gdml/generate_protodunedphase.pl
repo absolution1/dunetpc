@@ -162,11 +162,12 @@ $FieldShaperSizeX = 304.9;
 $FieldShaperSizeY = 5.999;
 $FieldShaperSizeZ = 4.603;
 
+$FieldCageShaperProfileShift=-4.82;
 $NFieldShapers = 100.0;
 $FFSSeparation = 6.0;
 
-$FieldCageSizeX = $FieldShaperSizeX+2;
-$FieldCageSizeY = $FieldShaperSizeY+2;
+$FieldCageSizeX = $FieldShaperSizeX+0.2;
+$FieldCageSizeY = $FieldShaperSizeY+0.2;
 $FieldCageSizeZ = $NFieldShapers*$FFSSeparation;
 
 $FFSPositionX = 277.5;
@@ -459,6 +460,93 @@ EOF
     close(MAT);
 }
 
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_ExtractionGrid +++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_ExtractionGrid {
+
+    $ExtractionGrid = $basename."_ExtractionGrid" . $suffix . ".gdml";
+    push (@gdmlFiles, $ExtractionGrid);
+    $ExtractionGrid = ">" . $ExtractionGrid;
+    open(ExtractionGrid) or die("Could not open file $ExtractionGrid for writing");
+
+# The standard XML prefix and starting the gdml
+print ExtractionGrid <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
+
+#GroundGrid SOLIDS
+$ExtractionGridRadious = 0.05;
+$ExtractionGridPitch = 0.3;
+
+$ExtractionGridSizeX = 2*$ExtractionGridRadious;
+$ExtractionGridSizeY = 600;
+$ExtractionGridSizeZ = 600;
+
+
+print ExtractionGrid <<EOF;
+
+<solids>
+      <tube name="solExtractionGridCable" rmin="0" rmax="$ExtractionGridRadious" z="$ExtractionGridSizeZ" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <box name="solExtractionGrid" x="@{[$ExtractionGridSizeX]}" y="$ExtractionGridSizeY" z="@{[$ExtractionGridSizeZ]}" lunit="cm"/>
+</solids>
+
+EOF
+
+
+print ExtractionGrid <<EOF;
+
+<structure>
+
+<volume name="volExtractionGridCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="solExtractionGridCable"/>
+</volume>
+
+<volume name="volExtractionGrid">
+  <materialref ref="LAr"/>
+  <solidref ref="solExtractionGrid"/>
+EOF
+
+for($ii=0;$ii<$$ExtractionGridSizeY;$ii=$ii+$ExtractionGridPitch)
+{
+	print ExtractionGrid <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGridCable"/>
+   <position name="posExtractionGridCable$ii" unit="cm" x="0" y="@{[$ii-0.5*$ExtractionGridSizeY]}" z="0"/>
+   <rotation name="GGrot$aux2" unit="deg" x="0" y="90" z="0" /> 
+   </physvol>
+EOF
+ 
+}
+
+for($jj=0;$jj<$$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
+{
+	print ExtractionGrid <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGridCable"/>
+   <position name="posExtractionGridCableLat$jj" unit="cm" x="0" y="0" z="@{[$jj-0.5*$ExtractionGridSizeZ]}"/>
+   <rotation name="GGrot$aux2" unit="deg" x="90" y="0" z="0" /> 
+   </physvol>
+EOF
+ 
+}
+
+	print ExtractionGrid <<EOF;
+  
+  </volume>
+</structure>
+</gdml>
+EOF
+close(ExtractionGrid);
+}
+
+
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++++ gen_TPC ++++++++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -623,6 +711,13 @@ $posTPCActive[0] = -$ReadoutPlane;
 $posTPCActive[1] = 0;
 $posTPCActive[2] = 0;
 
+$ExtractionGridX = 0.5*$Argon_x-$HeightGaseousAr-0.5-0.5*$ExtractionGridSizeX;
+$ExtractionGridY = 0;
+$ExtractionGridZ = 0;
+
+$ExtractionGridX = 0.5*$TPC_x-0.5-0.5*$ExtractionGridSizeX;
+$ExtractionGridY = 0;
+$ExtractionGridZ = 0;
 
 #wrap up the TPC file
 print TPC <<EOF;
@@ -648,6 +743,21 @@ print TPC <<EOF;
          x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
+EOF
+
+  if ( $ExtractionGrid_switch eq "on" )
+  {
+
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGrid"/>
+   <position name="posExtractionGrid" unit="cm" x="$ExtractionGridX" y="$ExtractionGridY" z="$ExtractionGridZ"/>
+  </physvol>
+EOF
+
+  }
+
+print TPC <<EOF;
    </volume>
 EOF
 
@@ -945,7 +1055,7 @@ print FieldCage <<EOF;
 	
 	<section zOrder="0" zPosition="-1523.5077" xOffset="0" yOffset="0" scalingFactor="1"/>
 	<section zOrder="1" zPosition="1431.2323" xOffset="0" yOffset="0" scalingFactor="1"/>
-	<section zOrder="2" zPosition="1523.5077" xOffset="0" yOffset="-48.2" scalingFactor="1"/>
+	<section zOrder="2" zPosition="1523.5077" xOffset="0" yOffset="@{[10*$FieldCageShaperProfileShift]}" scalingFactor="1"/>
 
 
 	</xtru>
@@ -978,12 +1088,12 @@ print FieldCage <<EOF;
 EOF
     for ( $i=0; $i<$NFieldShapers; $i=$i+1 ) { # pmts with coating
    
-      $position = +0.5*$FieldCageSizeZ-0.5*$FFSSeparation-$i*$FFSSeparation;
+      $Zposition = +0.5*$FieldCageSizeZ-0.5*$FFSSeparation-$i*$FFSSeparation;
       print FieldCage <<EOF;
 
    <physvol>
    <volumeref ref="volFIELDSHAPER"/>
-   <position name="posFieldShaper$i" unit="cm" x="0" y="0" z="$position"/>
+   <position name="posFieldShaper$i" unit="cm" x="0" y="@{[-0.5*$FieldCageShaperProfileShift]}" z="$Zposition"/>
    <rotation name="FShaperRot$i" unit="deg" x="0" y="270" z="0"/>
   </physvol>
 
@@ -999,88 +1109,6 @@ EOF
 close(FieldCage);
 }
 
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#++++++++++++++++++++++++++++++++++++++ gen_ExtractionGrid +++++++++++++++++++++++++++++++++++
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-sub gen_ExtractionGrid {
-
-    $ExtractionGrid = $basename."_ExtractionGrid" . $suffix . ".gdml";
-    push (@gdmlFiles, $ExtractionGrid);
-    $ExtractionGrid = ">" . $ExtractionGrid;
-    open(ExtractionGrid) or die("Could not open file $ExtractionGrid for writing");
-
-# The standard XML prefix and starting the gdml
-print ExtractionGrid <<EOF;
-<?xml version='1.0'?>
-<gdml>
-EOF
-
-#GroundGrid SOLIDS
-$ExtractionGridRadious = 0.05;
-$ExtractionGridPitch = 0.3;
-
-$ExtractionGridSizeX = 2*$ExtractionGridRadious;
-$ExtractionGridSizeY = 600;
-$ExtractionGridSizeZ = 600;
-
-
-print ExtractionGrid <<EOF;
-
-<solids>
-      <tube name="solExtractionGridCable" rmin="0" rmax="$ExtractionGridRadious" z="$ExtractionGridSizeZ" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
-     <box name="solExtractionGrid" x="@{[$ExtractionGridSizeX]}" y="$ExtractionGridSizeY" z="@{[$ExtractionGridSizeZ]}" lunit="cm"/>
-</solids>
-
-EOF
-
-
-print ExtractionGrid <<EOF;
-
-<structure>
-
-<volume name="volExtractionGridCable">
-  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-  <solidref ref="solExtractionGridCable"/>
-</volume>
-
-<volume name="volExtractionGrid">
-  <materialref ref="LAr"/>
-  <solidref ref="solExtractionGrid"/>
-EOF
-
-for($ii=0;$ii<$$ExtractionGridSizeY;$ii=$ii+$ExtractionGridPitch)
-{
-	print ExtractionGrid <<EOF;
-  <physvol>
-   <volumeref ref="volExtractionGridCable"/>
-   <position name="posExtractionGridCable$ii" unit="cm" x="0" y="@{[$ii-0.5*$ExtractionGridSizeY]}" z="0"/>
-   <rotation name="GGrot$aux2" unit="deg" x="0" y="90" z="0" /> 
-   </physvol>
-EOF
- 
-}
-
-for($jj=0;$jj<$$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
-{
-	print ExtractionGrid <<EOF;
-  <physvol>
-   <volumeref ref="volExtractionGridCable"/>
-   <position name="posExtractionGridCableLat$jj" unit="cm" x="0" y="0" z="@{[$jj-0.5*$ExtractionGridSizeZ]}"/>
-   <rotation name="GGrot$aux2" unit="deg" x="90" y="0" z="0" /> 
-   </physvol>
-EOF
- 
-}
-
-	print ExtractionGrid <<EOF;
-  
-  </volume>
-</structure>
-</gdml>
-EOF
-close(ExtractionGrid);
-}
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++ gen_GroundGrid +++++++++++++++++++++++++++++++++++
@@ -1279,7 +1307,7 @@ $CathodeInnerStructureNumberOfCablesPerInnerSquare = 5.0;
 $CathodeInnerStructureCableRadious = 0.5;
 $CathodeInnerStructureCableSeparation = $CathodeInnerStructureSeparation/($CathodeInnerStructureNumberOfCablesPerInnerSquare+1);
 $CathodeInnerCableLength = 128.0;
-$CathodeInnerCableLengthShort = 48.5;
+$CathodeInnerCableLengthShort = 47.5;#48.5;
 
 $CathodeSupportTubeLength = 252.0;
 $CathodeSupportInnerRadious = 1.85;
@@ -1297,6 +1325,9 @@ $CathodeModuleX =$CathodeInnerStructureLength+2+$CathodeOuterRadious;
 $CathodeModuleY =$CathodeInnerStructureHeight + $CathodeSupportDistance;
 $CathodeModuleZ =$CathodeInnerStructureLength+2+$CathodeOuterRadious;
 
+$CathodeSupportSeparatorsHeight=$CathodeSupportDistance-$CathodeInnerStructureHeight;
+
+$CathodeSupportSeparatorsBorderLength=33;#53.39;
 print Cathode <<EOF;
 
 <solids>
@@ -1305,10 +1336,11 @@ print Cathode <<EOF;
      <box name="CathodeInnerBoxBorder" x="@{[0.5*$CathodeInnerStructureWidth]}" y="$CathodeInnerStructureHeight" z="@{[$CathodeInnerStructureLength]}" lunit="cm"/>
      <box name="CathodeInnerBox" x="@{[$CathodeInnerStructureWidth]}" y="$CathodeInnerStructureHeight" z="@{[$CathodeInnerStructureLength]}" lunit="cm"/>
     <box name="CathodeModule" x="@{[$CathodeModuleX]}" y="$CathodeModuleY"    z="@{[$CathodeModuleZ]}" lunit="cm"/>
-    <box name="CathodeSupportSeparators" x="@{[$CathodeSupportInnerStructureWidth]}" y="$CathodeSupportDistance"    z="@{[$CathodeSupportInnerStructureHeight]}" lunit="cm"/>
-    <box name="CathodeSupportSeparatorsBorder" x="@{[$CathodeSupportInnerStructureWidth]}" y="53.39"    z="@{[$CathodeSupportInnerStructureHeight]}" lunit="cm"/>
+    <box name="CathodeSupportSeparators" x="@{[$CathodeSupportInnerStructureWidth]}" y="@{[$CathodeSupportSeparatorsHeight]}"    z="@{[$CathodeSupportInnerStructureHeight]}" lunit="cm"/>
+    <box name="CathodeSupportSeparatorsBorder" x="@{[$CathodeSupportInnerStructureWidth]}" y="$CathodeSupportSeparatorsBorderLength"    z="@{[$CathodeSupportInnerStructureHeight]}" lunit="cm"/>
      <tube name="CathodeCable" rmin="0" rmax="$CathodeInnerStructureCableRadious" z="@{[$CathodeInnerCableLength]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
      <tube name="CathodeCableShort" rmin="0" rmax="$CathodeInnerStructureCableRadious" z="@{[$CathodeInnerCableLengthShort]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+     <tube name="CathodeCableShortShort" rmin="0" rmax="$CathodeInnerStructureCableRadious" z="@{[$CathodeInnerCableLengthShort-3]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
 
 
 
@@ -1422,6 +1454,11 @@ print Cathode <<EOF;
   <solidref ref="CathodeCableShort"/>
 </volume>
 
+<volume name="volCathodeCableShortShort">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathodeCableShortShort"/>
+</volume>
+
 <volume name="volCathodeInnerBox">
   <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
   <solidref ref="CathodeInnerBox"/>
@@ -1522,15 +1559,27 @@ for($ii=0;$ii<=$CathodeInnerStructureNumberOfBars;$ii=$ii+4)
 	print Cathode <<EOF;
   <physvol>
    <volumeref ref="volCathodeCableShort"/>
-   <position name="posCathCableShort$ii$jj$kk" unit="cm" x="@{[($xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+($jj+1)*$CathodeInnerStructureCableSeparation)]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious+0.5*$CathodeInnerCableLengthShort]}"/>
+   <position name="posCathCableShort$ii$jj$kk" unit="cm" x="@{[($xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+($jj+1)*$CathodeInnerStructureCableSeparation)]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious+0.5*$CathodeInnerCableLengthShort+1]}"/>
  </physvol>
 EOF
-   if($ii ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1 && $jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-2) {$jj=2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;}
+   if($ii ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1 && $jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-3) {$jj=2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;}
    if($jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1) {$jj++;}
+   #Falta el $ii 4 $jj 2 that needs to be shorter to not overlap.
+
+#print "$ii $jj \n";
 
  }
 }
 
+$ii=4;
+$jj=3;
+
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeCableShortShort"/>
+   <position name="posCathCableShort$ii$jj$kk" unit="cm" x="@{[($xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+($jj+1)*$CathodeInnerStructureCableSeparation)]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious+0.5*$CathodeInnerCableLengthShort+1-1]}"/>
+ </physvol>
+EOF
 
 for($ii=0;$ii<$CathodeInnerStructureNumberOfBars;$ii=$ii+2)
 {
@@ -1564,12 +1613,12 @@ $kk=2;
 	print Cathode <<EOF;
   <physvol>
    <volumeref ref="volCathodeCableShort"/>
-   <position name="posCathCableShort$ii$jj$kk" unit="cm" x="@{[$xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+0.5*$CathodeInnerCableLengthShort]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious +($jj+1)*$CathodeInnerStructureCableSeparation]}"/>
+   <position name="posCathCableShort$ii$jj$kk" unit="cm" x="@{[$xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+0.5*$CathodeInnerCableLengthShort+1]}" y="$yCathorigin" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious +($jj+1)*$CathodeInnerStructureCableSeparation]}"/>
    <rotation name="CathCablerot$ii$jj$kk" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
 EOF
-   if($jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1) {$jj++;}
 
+   if($jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1) {$jj++;}
  }
 
 
@@ -1602,7 +1651,7 @@ for($ii=0;$ii<=$CathodeSupportInnerStructureNumberOfBars+1;$ii++)
    {	print Cathode <<EOF;
     <physvol>
    <volumeref ref="volCathodeSupportSeparators"/>
-   <position name="posCathodeSupportSeparators$ii$jj" unit="cm" x="@{[$xCathSuporigin-$CathodeSupportTubeLength-$CathodeSupportTorRad+$CathodeSupportInnerStructureWidth+($ii)*$CathodeSupportInnerStructureSeparation]}" y="@{[0.5*$CathodeSupportDistance+$yCathSuporigin]}" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($jj)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
+   <position name="posCathodeSupportSeparators$ii$jj" unit="cm" x="@{[$xCathSuporigin-$CathodeSupportTubeLength-$CathodeSupportTorRad+$CathodeSupportInnerStructureWidth+($ii)*$CathodeSupportInnerStructureSeparation]}" y="@{[0.5*$CathodeSupportSeparatorsHeight+$yCathSuporigin+2]}" z="@{[zCathoriging-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($jj)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
   </physvol>
 EOF
 	if(($jj==$CathodeSupportInnerStructureNumberOfBars+1 )&& $jj!=$ii)
@@ -1847,6 +1896,25 @@ print CRYO <<EOF;
     <volume name="volGaseousArgon">
       <materialref ref="ArGas"/>
       <solidref ref="GaseousArgon"/>
+
+EOF
+  if ( $LEMs_switch eq "on" )
+  {
+
+$posLEMsX = -0.5*$HeightGaseousAr+0.5;
+$posLEMsY = 0;
+$posLEMsZ = 0;
+
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volLEMs"/>
+   <position name="posLEMs" unit="cm" x="$posLEMsX" y="$posLEMsY" z="$posLEMsZ"/>
+
+  </physvol>
+EOF
+
+  }
+      print CRYO <<EOF;
     </volume>
 
     <volume name="volCryostat">
@@ -1935,7 +2003,7 @@ EOF
 
   }
 
-$CathodePosX=-$Argon_x/2 + 47.5 + 94.0 - 0.5*$CathodeSupportDistance;
+$CathodePosX=-$Argon_x/2 + 47.5 + 94.0 - 0.5*$CathodeSupportDistance-5.1;
 $CathodePosY=0.5*($CathodeInnerStructureLength+2+$CathodeOuterRadious);
 
   if ( $Cathode_switch eq "on" )
@@ -1971,7 +2039,7 @@ EOF
   if ( $FieldCage_switch eq "on" )
   {
 
-$FFSPositionX = -$OriginXSet;
+$FFSPositionX = -$OriginXSet-1.3;
 $FFSPositionY = 309.593;
 $FFSPositionZ = 153.521;
       print CRYO <<EOF;
@@ -1981,7 +2049,7 @@ $FFSPositionZ = 153.521;
    <rotationref ref="rPlus90AboutY"/>
   </physvol>
 EOF
-$FFSPositionX = -$OriginXSet;
+$FFSPositionX = -$OriginXSet-1.3;
 $FFSPositionY = 309.593;
 $FFSPositionZ = -153.521;
       print CRYO <<EOF;
@@ -1991,7 +2059,7 @@ $FFSPositionZ = -153.521;
    <rotationref ref="rMinus90AboutY"/>
   </physvol>
 EOF
-$FFSPositionX = -$OriginXSet;
+$FFSPositionX = -$OriginXSet-1.3;
 $FFSPositionY = -309.593;
 $FFSPositionZ = -153.521;
       print CRYO <<EOF;
@@ -2002,7 +2070,7 @@ $FFSPositionZ = -153.521;
 
   </physvol>
 EOF
-$FFSPositionX = -$OriginXSet;
+$FFSPositionX = -$OriginXSet-1.3;
 $FFSPositionY = -309.593;
 $FFSPositionZ = 153.521;
       print CRYO <<EOF;
@@ -2014,7 +2082,7 @@ $FFSPositionZ = 153.521;
   </physvol>
 EOF
 
-$FFSPositionX = -$OriginXSet;
+$FFSPositionX = -$OriginXSet-1.3;
 $FFSPositionY = 153.521;
 $FFSPositionZ = -309.593;
       print CRYO <<EOF;
@@ -2025,7 +2093,7 @@ $FFSPositionZ = -309.593;
 
   </physvol>
 EOF
-$FFSPositionX = -$OriginXSet;
+$FFSPositionX = -$OriginXSet-1.3;
 $FFSPositionY = -153.521;
 $FFSPositionZ = -309.593;
       print CRYO <<EOF;
@@ -2036,7 +2104,7 @@ $FFSPositionZ = -309.593;
 
   </physvol>
 EOF
-$FFSPositionX = -$OriginXSet;
+$FFSPositionX = -$OriginXSet-1.3;
 $FFSPositionY = -153.521;
 $FFSPositionZ = 309.593;
       print CRYO <<EOF;
@@ -2047,7 +2115,7 @@ $FFSPositionZ = 309.593;
 
   </physvol>
 EOF
-$FFSPositionX = -$OriginXSet;
+$FFSPositionX = -$OriginXSet-1.3;
 $FFSPositionY = 153.521;
 $FFSPositionZ = 309.593;
       print CRYO <<EOF;
@@ -2061,39 +2129,6 @@ EOF
 
   }
 
-  if ( $ExtractionGrid_switch eq "on" )
-  {
-
-$ExtractionGridX = 0.5*$Argon_x-$HeightGaseousAr-0.5-0.5*$ExtractionGridSizeX;
-$ExtractionGridY = 0;
-$ExtractionGridZ = 0;
-
-      print CRYO <<EOF;
-  <physvol>
-   <volumeref ref="volExtractionGrid"/>
-   <position name="posExtractionGrid" unit="cm" x="$ExtractionGridX" y="$ExtractionGridY" z="$ExtractionGridZ"/>
-
-  </physvol>
-EOF
-
-  }
-
-  if ( $LEMs_switch eq "on" )
-  {
-
-$posLEMsX = 0.5*$Argon_x-$HeightGaseousAr+0.5+0.5*$LEMsSizeX;
-$posLEMsY = 0;
-$posLEMsZ = 0;
-
-      print CRYO <<EOF;
-  <physvol>
-   <volumeref ref="volLEMs"/>
-   <position name="posLEMs" unit="cm" x="$posLEMsX" y="$posLEMsY" z="$posLEMsZ"/>
-
-  </physvol>
-EOF
-
-  }
 
 print CRYO <<EOF;
     </volume>
@@ -3232,39 +3267,39 @@ EOF
     
     <physvol name="volSteelSupport_Top">
         <volumeref ref="volSteelSupport_TB"/>
-        <position name="posSteelSupport_Top" x="$posTopSteelStruct+30.9" y="$posCryoInDetEnc_y" z="0" unit="cm"/>
+        <position name="posSteelSupport_Top" x="$posTopSteelStruct+31.1" y="$posCryoInDetEnc_y" z="0" unit="cm"/>
         <rotation name="rotSteelSupport_Top" x="0" y="-90" z="0" unit="deg"/>
     
     </physvol>
     
     <physvol name="volSteelSupport_Bottom">
         <volumeref ref="volSteelSupport_TB"/>
-        <position name="posSteelSupport_Bottom" x="$posBotSteelStruct-30.9" y="$posCryoInDetEnc_y" z="0" unit="cm"/>
+        <position name="posSteelSupport_Bottom" x="$posBotSteelStruct-31.1" y="$posCryoInDetEnc_y" z="0" unit="cm"/>
         <rotation name="rotSteelSupport_Bottom" x="0" y="90" z="0" unit="deg"/>
     </physvol>
     
     <physvol>
         <volumeref ref="volSteelSupport_US"/>
-        <position name="posSteelSupport_US" x="0" y="$posCryoInDetEnc_y" z="$posZFrontSteelStruct-30.9" unit="cm"/>
+        <position name="posSteelSupport_US" x="0" y="$posCryoInDetEnc_y" z="$posZFrontSteelStruct-31.1" unit="cm"/>
         <rotation name="rotSteelSupport_Front" x="0" y="0" z="90" unit="deg"/>
     </physvol>
     
     <physvol name="volSteelSupport_DS">
         <volumeref ref="volSteelSupport_WS"/>
-        <position name="posSteelSupport_DS" x="0" y="$posCryoInDetEnc_y" z="$posZBackSteelStruct+30.9" unit="cm"/>
+        <position name="posSteelSupport_DS" x="0" y="$posCryoInDetEnc_y" z="$posZBackSteelStruct+31.1" unit="cm"/>
         <rotation name="rotSteelSupport_Back" x="0" y="0" z="90" unit="deg"/>
     </physvol>
     
     
     <physvol name="volSteelSupport_LS">
         <volumeref ref="volSteelSupport_LR"/>
-        <position name="posSteelSupport_LS" x="0" y="$posLeftSteelStruct+$posCryoInDetEnc_y-30.9" z="0" unit="cm"/>
+        <position name="posSteelSupport_LS" x="0" y="$posLeftSteelStruct+$posCryoInDetEnc_y-31.1" z="0" unit="cm"/>
         <rotation name="rotSteelSupport_LS" x="-90" y="0" z="90" unit="deg"/>
     </physvol>
     
     <physvol name="volSteelSupport_RS">
         <volumeref ref="volSteelSupport_LR"/>
-        <position name="posSteelSupport_RS" x="0" y="$posRightSteelStruct+$posCryoInDetEnc_y+30.9" z="0" unit="cm"/>
+        <position name="posSteelSupport_RS" x="0" y="$posRightSteelStruct+$posCryoInDetEnc_y+31.1" z="0" unit="cm"/>
         <rotation name="rotSteelSupport_RS" x="90" y="0" z="90" unit="deg"/>
     </physvol>
     
@@ -3442,6 +3477,12 @@ print "LEMs               : $LEMs_switch \n";
 print "PMTs               : $pmt_switch \n";
 # run the sub routines that generate the fragments
 
+
+
+
+gen_Define(); 	 # generates definitions at beginning of GDML
+gen_Materials(); # generates materials to be used
+
 if ( $pmt_switch eq "on" ) {  gen_pmt();	}
 if ( $FieldCage_switch eq "on" ) {  gen_FieldCage();	}
 if ( $GroundGrid_switch eq "on" ) {  gen_GroundGrid();	}
@@ -3449,9 +3490,6 @@ if ( $Cathode_switch eq "on" ) {  gen_Cathode();	}
 if ( $ExtractionGrid_switch eq "on" ) {  gen_ExtractionGrid();	}
 if ( $LEMs_switch eq "on" ) {  gen_LEMs();	}
 
-
-gen_Define(); 	 # generates definitions at beginning of GDML
-gen_Materials(); # generates materials to be used
 gen_TPC();       # generate TPC for a given unit CRM
 gen_Cryostat();  # 
 gen_Enclosure(); # 
