@@ -87,10 +87,15 @@ physics: {
       daqanatrigprim1400:    @local::standard_daqsimana
       daqanatrigprim1600:    @local::standard_daqsimana
       daqanatrigprim1800:    @local::standard_daqsimana
+      waveformstotree: {
+         module_type: "WaveformsToTree"
+         InputTag: "simwire"
+         MaxChannels: 10
+      }
    }
 
    simulate: [ rns, simwire, trigprim600, trigprim800, trigprim1000, trigprim1200, trigprim1400, trigprim1600, trigprim1800 ]
-   ana: [ daqanatrigprim600, daqanatrigprim800, daqanatrigprim1000, daqanatrigprim1200, daqanatrigprim1400, daqanatrigprim1600, daqanatrigprim1800 ]
+   ana: [ daqanatrigprim600, daqanatrigprim800, daqanatrigprim1000, daqanatrigprim1200, daqanatrigprim1400, daqanatrigprim1600, daqanatrigprim1800, waveformstotree ]
 
    trigger_paths: [simulate] 
    end_paths: [ ana ] 
