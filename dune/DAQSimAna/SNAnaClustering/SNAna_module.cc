@@ -117,47 +117,70 @@ private:
   int NFlash    ;
   int NFlashNoBT;
 
-  std::vector<int>   * Hit_View              ;
-  std::vector<int>   * Hit_Size              ;
-  std::vector<int>   * Hit_TPC               ;
-  std::vector<int>   * Hit_Chan              ;
-  std::vector<float> * Hit_Time              ;
-  std::vector<float> * Hit_RMS               ;
-  std::vector<float> * Hit_SADC              ;
-  std::vector<float> * Hit_Int               ;
-  std::vector<float> * Hit_Peak              ;
-  std::vector<int>   * Hit_True_GenType      ;
-  std::vector<int>   * Hit_True_MainTrID     ;
-  std::vector<float> * Hit_True_EvEnergy     ;
-  std::vector<float> * Hit_True_X            ;                  
-  std::vector<float> * Hit_True_Y            ;                  
-  std::vector<float> * Hit_True_Z            ;                  
-  std::vector<float> * Hit_True_Energy       ;             
-  std::vector<float> * Hit_True_nElec        ;
-  std::vector<int>   * Hit_True_nIDEs        ; 
-  std::vector<int>   * Hit_AdjM5SADC         ;
-  std::vector<int>   * Hit_AdjM2SADC         ;
-  std::vector<int>   * Hit_AdjM1SADC         ;
-  std::vector<int>   * Hit_AdjP1SADC         ;
-  std::vector<int>   * Hit_AdjP2SADC         ;
-  std::vector<int>   * Hit_AdjP5SADC         ;
-  std::vector<int>   * Hit_AdjM5Chan         ;
-  std::vector<int>   * Hit_AdjM2Chan         ;
-  std::vector<int>   * Hit_AdjM1Chan         ;
-  std::vector<int>   * Hit_AdjP1Chan         ;
-  std::vector<int>   * Hit_AdjP2Chan         ;
-  std::vector<int>   * Hit_AdjP5Chan         ;
-  std::vector<int>   * PDS_Hit_FlashID       ;
-  std::vector<float> * PDS_Hit_YCenter       ;
-  std::vector<float> * PDS_Hit_ZCenter       ;
-  std::vector<float> * PDS_Hit_YWidth        ;
-  std::vector<float> * PDS_Hit_ZWidth        ;
-  std::vector<float> * PDS_Hit_Time          ;
-  std::vector<float> * PDS_Hit_TimeWidth     ;
-  std::vector<float> * PDS_Hit_TotalPE       ;
-  std::vector<float> * PDS_Hit_True_Purity   ;
-  std::vector<float> * PDS_Hit_True_Distance ;
-  
+  std::vector<int>   Hit_View              ;
+  std::vector<int>   Hit_Size              ;
+  std::vector<int>   Hit_TPC               ;
+  std::vector<int>   Hit_Chan              ;
+  std::vector<float> Hit_Time              ;
+  std::vector<float> Hit_RMS               ;
+  std::vector<float> Hit_SADC              ;
+  std::vector<float> Hit_Int               ;
+  std::vector<float> Hit_Peak              ;
+  std::vector<int>   Hit_True_GenType      ;
+  std::vector<int>   Hit_True_MainTrID     ;
+  std::vector<float> Hit_True_EvEnergy     ;
+  std::vector<float> Hit_True_X            ;                  
+  std::vector<float> Hit_True_Y            ;                  
+  std::vector<float> Hit_True_Z            ;                  
+  std::vector<float> Hit_True_Energy       ;             
+  std::vector<float> Hit_True_nElec        ;
+  std::vector<int>   Hit_True_nIDEs        ; 
+  std::vector<int>   Hit_AdjM5SADC         ;
+  std::vector<int>   Hit_AdjM2SADC         ;
+  std::vector<int>   Hit_AdjM1SADC         ;
+  std::vector<int>   Hit_AdjP1SADC         ;
+  std::vector<int>   Hit_AdjP2SADC         ;
+  std::vector<int>   Hit_AdjP5SADC         ;
+  std::vector<int>   Hit_AdjM5Chan         ;
+  std::vector<int>   Hit_AdjM2Chan         ;
+  std::vector<int>   Hit_AdjM1Chan         ;
+  std::vector<int>   Hit_AdjP1Chan         ;
+  std::vector<int>   Hit_AdjP2Chan         ;
+  std::vector<int>   Hit_AdjP5Chan         ;
+  std::vector<int>   PDS_Hit_FlashID       ;
+  std::vector<float> PDS_Hit_YCenter       ;
+  std::vector<float> PDS_Hit_ZCenter       ;
+  std::vector<float> PDS_Hit_YWidth        ;
+  std::vector<float> PDS_Hit_ZWidth        ;
+  std::vector<float> PDS_Hit_Time          ;
+  std::vector<float> PDS_Hit_TimeWidth     ;
+  std::vector<float> PDS_Hit_TotalPE       ;
+  std::vector<float> PDS_Hit_True_Purity   ;
+  std::vector<float> PDS_Hit_Distance      ;
+  std::vector<int>   True_VertexChan       ;
+  std::vector<int>   True_Nu_Type          ;
+  std::vector<int>   True_Nu_Lep_Type      ;
+  std::vector<int>   True_Mode             ;
+  std::vector<int>   True_CCNC             ;
+  std::vector<int>   True_HitNucleon       ;
+  std::vector<int>   True_Target           ;
+  std::vector<int>   True_MarlSample       ;
+  std::vector<float> True_MarlTime         ;
+  std::vector<float> True_MarlWeight       ;
+  std::vector<float> True_ENu              ;
+  std::vector<float> True_ENu_Lep          ;
+  std::vector<float> True_VertX            ;
+  std::vector<float> True_VertY            ;
+  std::vector<float> True_VertZ            ;
+  std::vector<float> True_VertexT          ;
+  std::vector<float> True_Px               ;
+  std::vector<float> True_Py               ;
+  std::vector<float> True_Pz               ;
+  std::vector<float> True_Dirx             ;
+  std::vector<float> True_Diry             ;
+  std::vector<float> True_Dirz             ;
+  std::vector<float> True_Time             ;
+
   int   TotGen_Marl;
   int   TotGen_APA ;
   int   TotGen_CPA ;
@@ -168,30 +191,7 @@ private:
   int   TotGen_Rdon;
   int   TotGen_Ar42;
 
-  std::vector<int>   * True_VertexChan ;
-  std::vector<int>   * True_Nu_Type    ;
-  std::vector<int>   * True_Nu_Lep_Type;
-  std::vector<int>   * True_Mode       ;
-  std::vector<int>   * True_CCNC       ;
-  std::vector<int>   * True_HitNucleon ;
-  std::vector<int>   * True_Target     ;
-  std::vector<int>   * True_MarlSample ;
-  std::vector<float> * True_MarlTime   ;
-  std::vector<float> * True_MarlWeight ;
-  std::vector<float> * True_ENu        ;
-  std::vector<float> * True_ENu_Lep    ;
-  std::vector<float> * True_VertX      ;
-  std::vector<float> * True_VertY      ;
-  std::vector<float> * True_VertZ      ;
-  std::vector<float> * True_VertexT    ;
-  std::vector<float> * True_Px         ;
-  std::vector<float> * True_Py         ;
-  std::vector<float> * True_Pz         ;
-  std::vector<float> * True_Dirx       ;
-  std::vector<float> * True_Diry       ;
-  std::vector<float> * True_Dirz       ;
-  std::vector<float> * True_Time       ;
-  
+
   art::ServiceHandle<geo::Geometry> geo;
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -250,70 +250,69 @@ void SNAna::ResetVariables()
   NFlash     = 0;
   NFlashNoBT = 0;
 
-  Hit_View              ->clear();
-  Hit_Size              ->clear();
-  Hit_TPC               ->clear();
-  Hit_Chan              ->clear();
-  Hit_Time              ->clear();
-  Hit_RMS               ->clear();
-  Hit_SADC              ->clear();
-  Hit_Int               ->clear();
-  Hit_Peak              ->clear();
-  Hit_True_GenType      ->clear();
-  Hit_True_MainTrID     ->clear();
-  Hit_True_EvEnergy     ->clear();
-  Hit_True_X            ->clear();
-  Hit_True_Y            ->clear();
-  Hit_True_Z            ->clear();
-  Hit_True_Energy       ->clear();
-  Hit_True_nElec        ->clear();
-  Hit_True_nIDEs        ->clear();
-  Hit_AdjM5SADC         ->clear();
-  Hit_AdjM2SADC         ->clear();
-  Hit_AdjM1SADC         ->clear();
-  Hit_AdjP1SADC         ->clear();
-  Hit_AdjP2SADC         ->clear();
-  Hit_AdjP5SADC         ->clear();
-  Hit_AdjM5Chan         ->clear();                  
-  Hit_AdjM2Chan         ->clear();                  
-  Hit_AdjM1Chan         ->clear();                  
-  Hit_AdjP1Chan         ->clear();             
-  Hit_AdjP2Chan         ->clear();
-  Hit_AdjP5Chan         ->clear(); 
-  PDS_Hit_FlashID       ->clear();
-  PDS_Hit_YCenter       ->clear();
-  PDS_Hit_ZCenter       ->clear();
-  PDS_Hit_YWidth        ->clear();
-  PDS_Hit_ZWidth        ->clear();
-  PDS_Hit_Time          ->clear();
-  PDS_Hit_TimeWidth     ->clear();
-  PDS_Hit_TotalPE       ->clear();
-  PDS_Hit_True_Purity   ->clear();
-  PDS_Hit_True_Distance ->clear();
- 
-  True_VertexChan ->clear();
-  True_Nu_Type    ->clear();
-  True_Nu_Lep_Type->clear();
-  True_Mode       ->clear();
-  True_CCNC       ->clear();
-  True_HitNucleon ->clear();
-  True_Target     ->clear();
-  True_MarlSample ->clear();
-  True_MarlTime   ->clear();
-  True_MarlWeight ->clear();
-  True_ENu        ->clear();
-  True_ENu_Lep    ->clear();
-  True_VertX      ->clear();
-  True_VertY      ->clear();
-  True_VertZ      ->clear();
-  True_VertexT    ->clear();
-  True_Px         ->clear();
-  True_Py         ->clear();
-  True_Pz         ->clear();
-  True_Dirx       ->clear();
-  True_Diry       ->clear();
-  True_Dirz       ->clear();
-  True_Time       ->clear();
+  Hit_View              .clear();
+  Hit_Size              .clear();
+  Hit_TPC               .clear();
+  Hit_Chan              .clear();
+  Hit_Time              .clear();
+  Hit_RMS               .clear();
+  Hit_SADC              .clear();
+  Hit_Int               .clear();
+  Hit_Peak              .clear();
+  Hit_True_GenType      .clear();
+  Hit_True_MainTrID     .clear();
+  Hit_True_EvEnergy     .clear();
+  Hit_True_X            .clear();
+  Hit_True_Y            .clear();
+  Hit_True_Z            .clear();
+  Hit_True_Energy       .clear();
+  Hit_True_nElec        .clear();
+  Hit_True_nIDEs        .clear();
+  Hit_AdjM5SADC         .clear();
+  Hit_AdjM2SADC         .clear();
+  Hit_AdjM1SADC         .clear();
+  Hit_AdjP1SADC         .clear();
+  Hit_AdjP2SADC         .clear();
+  Hit_AdjP5SADC         .clear();
+  Hit_AdjM5Chan         .clear();                  
+  Hit_AdjM2Chan         .clear();                  
+  Hit_AdjM1Chan         .clear();                  
+  Hit_AdjP1Chan         .clear();             
+  Hit_AdjP2Chan         .clear();
+  Hit_AdjP5Chan         .clear(); 
+  PDS_Hit_FlashID       .clear();
+  PDS_Hit_YCenter       .clear();
+  PDS_Hit_ZCenter       .clear();
+  PDS_Hit_YWidth        .clear();
+  PDS_Hit_ZWidth        .clear();
+  PDS_Hit_Time          .clear();
+  PDS_Hit_TimeWidth     .clear();
+  PDS_Hit_TotalPE       .clear();
+  PDS_Hit_True_Purity   .clear();
+  PDS_Hit_Distance      .clear();
+  True_VertexChan       .clear();
+  True_Nu_Type          .clear();
+  True_Nu_Lep_Type      .clear();
+  True_Mode             .clear();
+  True_CCNC             .clear();
+  True_HitNucleon       .clear();
+  True_Target           .clear();
+  True_MarlSample       .clear();
+  True_MarlTime         .clear();
+  True_MarlWeight       .clear();
+  True_ENu              .clear();
+  True_ENu_Lep          .clear();
+  True_VertX            .clear();
+  True_VertY            .clear();
+  True_VertZ            .clear();
+  True_VertexT          .clear();
+  True_Px               .clear();
+  True_Py               .clear();
+  True_Pz               .clear();
+  True_Dirx             .clear();
+  True_Diry             .clear();
+  True_Dirz             .clear();
+  True_Time             .clear();
 
   
 }
@@ -376,7 +375,7 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("PDS_Hit_TimeWidth"     , &PDS_Hit_TimeWidth     );
   fSNAnaTree->Branch("PDS_Hit_TotalPE"       , &PDS_Hit_TotalPE       );
   fSNAnaTree->Branch("PDS_Hit_True_Purity"   , &PDS_Hit_True_Purity   );
-  fSNAnaTree->Branch("PDS_Hit_True_Distance" , &PDS_Hit_True_Distance );
+  fSNAnaTree->Branch("PDS_Hit_Distance"      , &PDS_Hit_Distance      );
   
   fSNAnaTree->Branch("TotGen_Marl", &TotGen_Marl, "TotGen_Marl/I");
   fSNAnaTree->Branch("TotGen_APA" , &TotGen_APA , "TotGen_APA/I" );
@@ -452,42 +451,42 @@ void SNAna::analyze(art::Event const & evt)
 
   for(size_t i = 0; i < MarlTrue->size(); i++)
   {
-    True_Nu_Type    ->push_back(MarlTrue->at(i).GetNeutrino().Nu().PdgCode());
-    True_Nu_Lep_Type->push_back(MarlTrue->at(i).GetNeutrino().Lepton().PdgCode()); 
-    True_Mode       ->push_back(MarlTrue->at(i).GetNeutrino().Mode());
-    True_CCNC       ->push_back(MarlTrue->at(i).GetNeutrino().CCNC());
-    True_Target     ->push_back(MarlTrue->at(i).GetNeutrino().Target());
-    True_HitNucleon ->push_back(MarlTrue->at(i).GetNeutrino().HitNuc());
-    True_VertX      ->push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vx()); 
-    True_VertY      ->push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vy()); 
-    True_VertZ      ->push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vz()); 
-    True_ENu_Lep    ->push_back(MarlTrue->at(i).GetNeutrino().Lepton().E());
-    True_ENu        ->push_back(MarlTrue->at(i).GetNeutrino().Nu().E());
-    True_Px         ->push_back(MarlTrue->at(i).GetNeutrino().Lepton().Px());
-    True_Py         ->push_back(MarlTrue->at(i).GetNeutrino().Lepton().Py());
-    True_Pz         ->push_back(MarlTrue->at(i).GetNeutrino().Lepton().Pz());
+    True_Nu_Type    .push_back(MarlTrue->at(i).GetNeutrino().Nu().PdgCode());
+    True_Nu_Lep_Type.push_back(MarlTrue->at(i).GetNeutrino().Lepton().PdgCode()); 
+    True_Mode       .push_back(MarlTrue->at(i).GetNeutrino().Mode());
+    True_CCNC       .push_back(MarlTrue->at(i).GetNeutrino().CCNC());
+    True_Target     .push_back(MarlTrue->at(i).GetNeutrino().Target());
+    True_HitNucleon .push_back(MarlTrue->at(i).GetNeutrino().HitNuc());
+    True_VertX      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vx()); 
+    True_VertY      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vy()); 
+    True_VertZ      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vz()); 
+    True_ENu_Lep    .push_back(MarlTrue->at(i).GetNeutrino().Lepton().E());
+    True_ENu        .push_back(MarlTrue->at(i).GetNeutrino().Nu().E());
+    True_Px         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Px());
+    True_Py         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Py());
+    True_Pz         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Pz());
     Pnorm = std::sqrt(Px_*Px_+Py_*Py_+Pz_*Pz_);
     double Px = Px_/Pnorm;
     double Py = Py_/Pnorm;
     double Pz = Pz_/Pnorm;
-    True_Dirx       ->push_back(Px);
-    True_Diry       ->push_back(Py);
-    True_Dirz       ->push_back(Pz);
-    True_Time       ->push_back(MarlTrue->at(i).GetNeutrino().Lepton().T());
+    True_Dirx       .push_back(Px);
+    True_Diry       .push_back(Py);
+    True_Dirz       .push_back(Pz);
+    True_Time       .push_back(MarlTrue->at(i).GetNeutrino().Lepton().T());
     for (size_t j = 0; j < SNTruth.at(i).size(); j++) 
     {
       const sim::SupernovaTruth ThisTr = (*SNTruth.at(i).at(j));
-      True_MarlTime  ->push_back(ThisTr.SupernovaTime);
-      True_MarlWeight->push_back(ThisTr.Weight);
-      True_MarlSample->push_back(ThisTr.SamplingMode);
+      True_MarlTime  .push_back(ThisTr.SupernovaTime);
+      True_MarlWeight.push_back(ThisTr.Weight);
+      True_MarlSample.push_back(ThisTr.SamplingMode);
     }
   }
 
-  for(size_t i=0; i<True_VertX->size(); ++i) {
+  for(size_t i=0; i<True_VertX.size(); ++i) {
     bool caught = false;
-    double Vertex[3] = {(*True_VertX)[i],
-                        (*True_VertY)[i],
-                        (*True_VertZ)[i]};
+    double Vertex[3] = {True_VertX[i],
+                        True_VertY[i],
+                        True_VertZ[i]};
     geo::WireID WireID;
     geo::PlaneID Plane(geo->FindTPCAtPosition(Vertex),geo::kZ);
     try
@@ -500,18 +499,18 @@ void SNAna::analyze(art::Event const & evt)
     }
     if(caught==true)
     {
-      True_VertexChan->push_back(-1); 
+      True_VertexChan.push_back(-1); 
     }
     else
     {
-      True_VertexChan->push_back(geo->PlaneWireToChannel(WireID));
+      True_VertexChan.push_back(geo->PlaneWireToChannel(WireID));
     }
 
     //CM/MICROSECOND.
     double drift_velocity = detp->DriftVelocity(detp->Efield(),detp->Temperature());
     //CM/TICK
     drift_velocity = drift_velocity*0.5;
-    True_VertexT->push_back(True_VertX->back()/drift_velocity);
+    True_VertexT.push_back(True_VertX.back()/drift_velocity);
   }
 
   auto APATrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fAPALabel);
@@ -663,24 +662,24 @@ void SNAna::analyze(art::Event const & evt)
       continue;
     }
     
-    Hit_View->push_back(ThisHit.View());
-    Hit_Size->push_back(ThisHit.EndTick() - ThisHit.StartTick());
-    Hit_TPC ->push_back(ThisHit.WireID().TPC);
+    Hit_View.push_back(ThisHit.View());
+    Hit_Size.push_back(ThisHit.EndTick() - ThisHit.StartTick());
+    Hit_TPC .push_back(ThisHit.WireID().TPC);
     int channel = ThisHit.Channel();
-    Hit_Chan->push_back(channel);
+    Hit_Chan.push_back(channel);
     
-    Hit_AdjM5SADC->push_back(0);
-    Hit_AdjM2SADC->push_back(0);
-    Hit_AdjM1SADC->push_back(0);
-    Hit_AdjP1SADC->push_back(0);
-    Hit_AdjP2SADC->push_back(0);
-    Hit_AdjP5SADC->push_back(0);
-    Hit_AdjM5Chan->push_back(0);
-    Hit_AdjM2Chan->push_back(0);
-    Hit_AdjM1Chan->push_back(0);
-    Hit_AdjP1Chan->push_back(0);
-    Hit_AdjP2Chan->push_back(0);
-    Hit_AdjP5Chan->push_back(0);
+    Hit_AdjM5SADC.push_back(0);
+    Hit_AdjM2SADC.push_back(0);
+    Hit_AdjM1SADC.push_back(0);
+    Hit_AdjP1SADC.push_back(0);
+    Hit_AdjP2SADC.push_back(0);
+    Hit_AdjP5SADC.push_back(0);
+    Hit_AdjM5Chan.push_back(0);
+    Hit_AdjM2Chan.push_back(0);
+    Hit_AdjM1Chan.push_back(0);
+    Hit_AdjP1Chan.push_back(0);
+    Hit_AdjP2Chan.push_back(0);
+    Hit_AdjP5Chan.push_back(0);
    
   
     std::vector<geo::WireID> wids = geo->ChannelToWire(channel);
@@ -698,64 +697,64 @@ void SNAna::analyze(art::Event const & evt)
       switch(rawWireChannel-channel)
       {
       case -5:
-        (*Hit_AdjM5SADC)[colHitCount] = 0;
-        (*Hit_AdjM5Chan)[colHitCount] = rawWireChannel;
+        Hit_AdjM5SADC[colHitCount] = 0;
+        Hit_AdjM5Chan[colHitCount] = rawWireChannel;
         raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
                         (*rawDigitsVecHandle)[i].Compression());
         for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          (*Hit_AdjM5SADC)[colHitCount]+=ADCs[i];
+          Hit_AdjM5SADC[colHitCount]+=ADCs[i];
         break;
       case -2:
-        (*Hit_AdjM2SADC)[colHitCount] = 0;
-        (*Hit_AdjM2Chan)[colHitCount] = rawWireChannel;
+        Hit_AdjM2SADC[colHitCount] = 0;
+        Hit_AdjM2Chan[colHitCount] = rawWireChannel;
         raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
                         (*rawDigitsVecHandle)[i].Compression());
         for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          (*Hit_AdjM2SADC)[colHitCount]+=ADCs[i];
+          Hit_AdjM2SADC[colHitCount]+=ADCs[i];
         break;
       case -1:
-        (*Hit_AdjM1SADC)[colHitCount] = 0;
-        (*Hit_AdjM1Chan)[colHitCount] = rawWireChannel;
+        Hit_AdjM1SADC[colHitCount] = 0;
+        Hit_AdjM1Chan[colHitCount] = rawWireChannel;
         raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
                         (*rawDigitsVecHandle)[i].Compression());
         for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          (*Hit_AdjM1SADC)[colHitCount]+=ADCs[i];
+          Hit_AdjM1SADC[colHitCount]+=ADCs[i];
         break;
       case  1:
-        (*Hit_AdjP1SADC)[colHitCount] = 0;
-        (*Hit_AdjP1Chan)[colHitCount] = rawWireChannel;
+        Hit_AdjP1SADC[colHitCount] = 0;
+        Hit_AdjP1Chan[colHitCount] = rawWireChannel;
         raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
                         (*rawDigitsVecHandle)[i].Compression());
         for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          (*Hit_AdjP1SADC)[colHitCount]+=ADCs[i];
+          Hit_AdjP1SADC[colHitCount]+=ADCs[i];
         break;
       case  2:
-        (*Hit_AdjP2SADC)[colHitCount] = 0;
-        (*Hit_AdjP2Chan)[colHitCount] = rawWireChannel;
+        Hit_AdjP2SADC[colHitCount] = 0;
+        Hit_AdjP2Chan[colHitCount] = rawWireChannel;
         raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
                         (*rawDigitsVecHandle)[i].Compression());
         for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          (*Hit_AdjP2SADC)[colHitCount]+=ADCs[i];
+          Hit_AdjP2SADC[colHitCount]+=ADCs[i];
         break;
       case  5:
-        (*Hit_AdjP5SADC)[colHitCount] = 0;
-        (*Hit_AdjP5Chan)[colHitCount] = rawWireChannel;
+        Hit_AdjP5SADC[colHitCount] = 0;
+        Hit_AdjP5Chan[colHitCount] = rawWireChannel;
         raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
                         (*rawDigitsVecHandle)[i].Compression());
         for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          (*Hit_AdjP5SADC)[colHitCount]+=ADCs[i];
+          Hit_AdjP5SADC[colHitCount]+=ADCs[i];
         break;
       default:
         break;
       }
     }
 
-    Hit_Time->push_back(ThisHit.PeakTime());
-    Hit_RMS ->push_back(ThisHit.RMS());
-    Hit_SADC->push_back(ThisHit.SummedADC());
-    Hit_Int ->push_back(ThisHit.Integral());
-    Hit_Peak->push_back(ThisHit.PeakAmplitude());
-    Hit_True_nIDEs->push_back(ThisHitIDE.size());
+    Hit_Time.push_back(ThisHit.PeakTime());
+    Hit_RMS .push_back(ThisHit.RMS());
+    Hit_SADC.push_back(ThisHit.SummedADC());
+    Hit_Int .push_back(ThisHit.Integral());
+    Hit_Peak.push_back(ThisHit.PeakAmplitude());
+    Hit_True_nIDEs.push_back(ThisHitIDE.size());
 
     if(ThisHitIDE.size()==0)
       NHitNoBT++;
@@ -763,44 +762,44 @@ void SNAna::analyze(art::Event const & evt)
     //WHICH PARTICLE CONTRIBUTED MOST TO THE HIT.
     double TopEFrac = -DBL_MAX;
 
-    Hit_True_EvEnergy->push_back(0);
-    Hit_True_MainTrID->push_back(0);
+    Hit_True_EvEnergy.push_back(0);
+    Hit_True_MainTrID.push_back(0);
     for (size_t ideL=0; ideL < ThisHitIDE.size(); ++ideL) {
       for (size_t ipart=0; ipart<allTruthParts.size(); ++ipart) {
 
         if (allTruthParts[ipart].TrackId() == ThisHitIDE[ideL].trackID) {
-          Hit_True_EvEnergy->at(colHitCount) += allTruthParts[ipart].E();
+          Hit_True_EvEnergy.at(colHitCount) += allTruthParts[ipart].E();
         }
       }
       if (ThisHitIDE[ideL].energyFrac > TopEFrac) {
         TopEFrac = ThisHitIDE[ideL].energyFrac;
-        Hit_True_MainTrID->at(colHitCount) = ThisHitIDE[ideL].trackID;
+        Hit_True_MainTrID.at(colHitCount) = ThisHitIDE[ideL].trackID;
 
       }
     }
 
-    PType ThisPType      = WhichParType(Hit_True_MainTrID->at(colHitCount));
-    Hit_True_GenType->push_back(ThisPType);
+    PType ThisPType      = WhichParType(Hit_True_MainTrID.at(colHitCount));
+    Hit_True_GenType.push_back(ThisPType);
 
-    if((*Hit_True_MainTrID)[colHitCount] == -1)
+    if(Hit_True_MainTrID[colHitCount] == -1)
     {
-      Hit_True_X     ->push_back(-1);
-      Hit_True_Y     ->push_back(-1);
-      Hit_True_Z     ->push_back(-1);
-      Hit_True_Energy->push_back(-1);
-      Hit_True_nElec ->push_back(-1);
+      Hit_True_X     .push_back(-1);
+      Hit_True_Y     .push_back(-1);
+      Hit_True_Z     .push_back(-1);
+      Hit_True_Energy.push_back(-1);
+      Hit_True_nElec .push_back(-1);
     }
     else
     {
       for(unsigned int i = 0; i < ThisSimIDE.size(); i++)
       {
-        if(ThisSimIDE.at(i)->trackID==(*Hit_True_MainTrID)[colHitCount])
+        if(ThisSimIDE.at(i)->trackID==Hit_True_MainTrID[colHitCount])
         {
-          Hit_True_X     ->push_back(ThisSimIDE.at(i)->x           );
-          Hit_True_Y     ->push_back(ThisSimIDE.at(i)->y           );
-          Hit_True_Z     ->push_back(ThisSimIDE.at(i)->z           );
-          Hit_True_Energy->push_back(ThisSimIDE.at(i)->energy      );
-          Hit_True_nElec ->push_back(ThisSimIDE.at(i)->numElectrons);
+          Hit_True_X     .push_back(ThisSimIDE.at(i)->x           );
+          Hit_True_Y     .push_back(ThisSimIDE.at(i)->y           );
+          Hit_True_Z     .push_back(ThisSimIDE.at(i)->z           );
+          Hit_True_Energy.push_back(ThisSimIDE.at(i)->energy      );
+          Hit_True_nElec .push_back(ThisSimIDE.at(i)->numElectrons);
           break;
         }
       }
@@ -837,7 +836,11 @@ void SNAna::analyze(art::Event const & evt)
     mf::LogError("FlashMatchAna") << "Cannot load any flashes. Failing";
     abort();
   }
-    
+  // std::cout << "Rebuilding event" << std::endl;
+  // pbt_serv->Rebuild(evt);
+  // std::cout << "Rebuilt event" << std::endl;
+  // std::vector< art::Ptr< sim::OpDetBacktrackerRecord >> opdbtr = pbt_serv->OpDetBTRs();
+  // std::cout << "OpDetBacktrackerRecord size " << opdbtr.size() << std::endl;
   // Get assosciations between flashes and hits
   art::FindManyP< recob::OpHit > Assns(flashlist, evt, fOpFlashModuleLabel);
   for(size_t i = 0; i < flashlist.size(); ++i)
@@ -845,22 +848,42 @@ void SNAna::analyze(art::Event const & evt)
     // Get OpFlash and associated hits
     recob::OpFlash TheFlash = *flashlist[i];
     std::vector< art::Ptr<recob::OpHit> > matchedHits = Assns.at(i);
+    //if(matchedHits.size() == 0) 
+    // std::cout << "matchedHits " << matchedHits.size() << std::endl;
+    // for (size_t hit=0; hit<matchedHits.size(); ++hit) {
+    //   std::cout << "------   " << hit   << std::endl;
+    //   std::cout << "OpChannel();   " << matchedHits[hit]->OpChannel()   << std::endl;
+    //   std::cout << "PeakTimeAbs(); " << matchedHits[hit]->PeakTimeAbs() << std::endl;
+    //   std::cout << "PeakTime();    " << matchedHits[hit]->PeakTime()    << std::endl; 
+    //   std::cout << "Frame();       " << matchedHits[hit]->Frame()       << std::endl; 
+    //   std::cout << "Width();       " << matchedHits[hit]->Width()       << std::endl;
+    //   std::cout << "Area();        " << matchedHits[hit]->Area()        << std::endl;
+    //   std::cout << "Amplitude();   " << matchedHits[hit]->Amplitude()   << std::endl;
+    //   std::cout << "PE();          " << matchedHits[hit]->PE()          << std::endl;
+    //   std::cout << "FastToTotal(); " << matchedHits[hit]->FastToTotal() << std::endl; 
+    //   std::unordered_set<const sim::SDP*> spds = pbt_serv->OpHitToEveSimSDPs_Ps(matchedHits[hit]);
+    //   std::cout << "spds.size() " << spds.size() << std::endl;
+    // }
 
-    // Calculate the flash purity
     double purity = pbt_serv->OpHitCollectionPurity(signal_trackids, matchedHits);
-    
+    if(purity !=0) {
+      std::cout << "purity " << purity << std::endl;
+      exit(1);
+    }
+    // std::set<int> setseventid = pbt_serv->GetSetOfEveIds(matchedHits);
+    // std::cout << "Size setseventid " << setseventid.size() << std::endl;
     // Put flash info into variables
-    PDS_Hit_FlashID       ->push_back(i);
-    PDS_Hit_YCenter       ->push_back(TheFlash.YCenter());
-    PDS_Hit_ZCenter       ->push_back(TheFlash.ZCenter());
-    PDS_Hit_YWidth        ->push_back(TheFlash.YWidth());
-    PDS_Hit_ZWidth        ->push_back(TheFlash.ZWidth());
-    PDS_Hit_Time          ->push_back(TheFlash.Time());
-    PDS_Hit_TimeWidth     ->push_back(TheFlash.TimeWidth());
-    PDS_Hit_TotalPE       ->push_back(TheFlash.TotalPE());
-    PDS_Hit_True_Purity   ->push_back(purity);
-    PDS_Hit_True_Distance ->push_back(TMath::Sqrt(TMath::Power(True_VertY->back()-TheFlash.YCenter(),2)+
-                                                  TMath::Power(True_VertZ->back()-TheFlash.ZCenter(),2)));
+    PDS_Hit_FlashID       .push_back(i);
+    PDS_Hit_YCenter       .push_back(TheFlash.YCenter());
+    PDS_Hit_ZCenter       .push_back(TheFlash.ZCenter());
+    PDS_Hit_YWidth        .push_back(TheFlash.YWidth());
+    PDS_Hit_ZWidth        .push_back(TheFlash.ZWidth());
+    PDS_Hit_Time          .push_back(TheFlash.Time());
+    PDS_Hit_TimeWidth     .push_back(TheFlash.TimeWidth());
+    PDS_Hit_TotalPE       .push_back(TheFlash.TotalPE());
+    PDS_Hit_True_Purity   .push_back(purity);
+    PDS_Hit_Distance      .push_back(TMath::Sqrt(TMath::Power(True_VertY.back()-TheFlash.YCenter(),2)+
+                                                 TMath::Power(True_VertZ.back()-TheFlash.ZCenter(),2)));
   }
 
   fSNAnaTree -> Fill();
