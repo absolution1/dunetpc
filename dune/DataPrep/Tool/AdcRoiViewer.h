@@ -9,8 +9,6 @@
 //           LogLevel - Logging level: 0=none, 1=init, 2=call, ...
 //          SigThresh - if <0, then only keep ROIS with a tick below this value
 //                      if >0, then only keep ROIS with a tick above this value
-//        RunDataTool - Name for the run data tool. If found and pulser is on, then each
-//                      ROI is assigned a charge corresponding to the pulser setting.
 //         RoiHistOpt - histo option:  0 - No histograms
 //                                     1 - sample vs. tick
 //                                     2 - raw vs. tick
@@ -24,6 +22,9 @@
 //           SumHists - Array of summary histogram specifiers. See below.
 //      ChannelRanges - Ranges of channels for channel summary plots.
 //       ChanSumHists - Array of specifiers for the channel summary histograms.
+//        RunDataTool - Name for the run data tool. If found and pulser is on, then each
+//                      ROI is assigned a charge corresponding to the pulser setting.
+//     TickOffsetTool - Name of the tool that provides the tick offset.
 //    RoiRootFileName - Name of file to which the ROI histograms are copied.
 //    SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
 //
@@ -36,7 +37,8 @@
 //            fitHeight
 //            fitWidth
 //            fitPosition
-//            fitTickRem - Fractional part of tick
+//            fitTickRem - remainder(tick, 1)
+//            fitPulserRem - remainder(tick, pulserPeriod)
 //            fitStat - Status from the fit (0 = success)
 //            fitChiSquare - Chi-square from fit (as reported by TF1)
 //            fitChiSquareDof - Chi-square/DOF from fit (both from TF1)
@@ -118,6 +120,7 @@
 
 class AdcChannelStringTool;
 class RunDataTool;
+class TimeOffsetTool;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -223,22 +226,21 @@ private:
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;
   Name m_RunDataTool;
+  Name m_TickOffsetTool;
   Name m_RoiRootFileName;
   Name m_SumRootFileName;
   Name m_ChanSumRootFileName;
   ChannelRangeMap m_ChannelRanges;
 
   // Derived from configuration.
-  const RunDataTool* m_pRunDataTool =nullptr;
-
-  // Fixed configuration data.
-  int m_TickPeriod = 497;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;
 
-  // ADC string tools.
-  const AdcChannelStringTool* m_adcStringBuilder;
+  // Tools.
+  const AdcChannelStringTool* m_adcStringBuilder =nullptr;
+  const RunDataTool*          m_pRunDataTool     =nullptr;
+  const TimeOffsetTool*       m_pTickOffsetTool  =nullptr;
 
 };
 

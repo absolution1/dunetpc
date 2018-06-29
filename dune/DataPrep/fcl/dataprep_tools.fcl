@@ -316,6 +316,7 @@ tools.adcRoiViewer: {
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
+  TickOffsetTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""
@@ -330,6 +331,7 @@ tools.adcRoiFitter: {
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
+  TickOffsetTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""

@@ -50,6 +50,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  PulserDacOffset: 0.0" << endl;
     fout << "  PulserChargeUnit: \"\"" << endl;
     fout << "  RunDataTool: \"\"" << endl;
+    fout << "  TickOffsetTool: \"\"" << endl;
     fout << "  SumHists: []" << endl;
     fout << "  ChannelRanges: []" << endl;
     fout << "  ChanSumHists: []" << endl;
