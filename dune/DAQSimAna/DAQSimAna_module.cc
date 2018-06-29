@@ -290,153 +290,79 @@ void DAQSimAna::beginJob()
 //......................................................
 void DAQSimAna::SaveIDEs(art::Event const & evt)
 {
-  auto allParticles = evt.getValidHandle<std::vector<simb::MCParticle> >(fGEANTLabel);
-  art::FindMany<simb::MCTruth> assn(allParticles,evt,fGEANTLabel);
-  std::map<int, const simb::MCTruth*> idToTruth;
-  for(size_t i=0; i<allParticles->size(); ++i){
-    const simb::MCParticle& particle=allParticles->at(i);
-    const std::vector<const simb::MCTruth*> truths=assn.at(i);
-    if(truths.size()==1){
-      idToTruth[particle.TrackId()]=truths[0];
+    auto allParticles = evt.getValidHandle<std::vector<simb::MCParticle> >(fGEANTLabel);
+    art::FindMany<simb::MCTruth> assn(allParticles,evt,fGEANTLabel);
+    std::map<int, const simb::MCTruth*> idToTruth;
+    for(size_t i=0; i<allParticles->size(); ++i){
+        const simb::MCParticle& particle=allParticles->at(i);
+        const std::vector<const simb::MCTruth*> truths=assn.at(i);
+        if(truths.size()==1){
+            idToTruth[particle.TrackId()]=truths[0];
+        }
+        else{
+            mf::LogDebug("DAQSimAna") << "Particle " << particle.TrackId() << " has " << truths.size() << " truths";
+            idToTruth[particle.TrackId()]=nullptr;
+        }
     }
-    else{
-      mf::LogDebug("DAQSimAna") << "Particle " << particle.TrackId() << " has " << truths.size() << " truths";
-      idToTruth[particle.TrackId()]=nullptr;
-    }
-  }
 
-  // mf::LogDebug("DAQSimAna") << "Start SaveIDES()";
     // Get the SimChannels so we can see where the actual energy depositions were
     auto& simchs=*evt.getValidHandle<std::vector<sim::SimChannel>>("largeant");
-    // mf::LogDebug("DAQSimAna") << "Got " << simchs.size() << " IDEs";
-    int outIDEIndex=0;
-    IDEChannel.push_back(0);
-    IDECharge.push_back(0);
-    IDEStartTime.push_back(0);
-    IDEEndTime.push_back(0);
-    IDEParticle.push_back(kUnknown);
-
-    struct MyIDE
-    {
-        int channel;
-        float charge;
-        int startTime;
-        int endTime;
-        PType particle;
-    };
-
-    MyIDE currentIDE;
-
-    // int totalIDEsIn=0;
-    std::map<PType, float> ptypeToCharge;
-
-    static int nPrint=0;
 
     for(auto&& simch: simchs){
-      // We only care about collection channels
-      if(geo->SignalType(simch.Channel())!=geo::kCollection) continue;
+        // We only care about collection channels
+        if(geo->SignalType(simch.Channel())!=geo::kCollection) continue;
 
-      currentIDE.channel=simch.Channel();
-      currentIDE.charge=0;
-      currentIDE.startTime=-1;
-      currentIDE.endTime=-1;
-      currentIDE.particle=kUnknown;
-
-      bool lastWasContiguous=false;
-      int prevTDC=-9;
-      // totalIDEsIn+=simch.TDCIDEMap().size();
-      for (const auto& TDCinfo: simch.TDCIDEMap()) {
-        int tdc = TDCinfo.first;
-        if(tdc>5000) continue; // Just ignore IDEs after the readout window
-        for (const sim::IDE& ide: TDCinfo.second) {
-          // See whether the current IDE is ~contiguous in time with the previous IDE. If so, we'll put them in the some output IDE
-          if(tdc-prevTDC < 10){
-            lastWasContiguous=true;
-            // Update the current output ide
-            currentIDE.charge += ide.numElectrons;
-            currentIDE.endTime = tdc+1;
-
-            // From Tingjun on negative track IDs:
-            //
-            //  negative track id means the energy deposition was from
-            //  a shower daughter particle and the absolute value of
-            //  the track id is the id of the parent. By default we do
-            //  not save shower daughters in g4 record but we do save
-            //  all the energy deposition information.
-            //
-            // So looks like we can just take the abs value of the track ID to do the truth matching
-            PType thisPType=WhichParType(std::abs(ide.trackID));
-            auto const& it=idToTruth.find(std::abs(ide.trackID));
-
-            if(nPrint<1000 && thisPType==kUnknown){
-              mf::LogDebug("DAQSimAna") << "PType " << thisPType << " on ch " << simch.Channel() << " at " << tdc;
-
-              if(it!=idToTruth.end()){
-                const simb::MCTruth* truth=it->second;
-                mf::LogDebug("DAQSimAna") << " idToTruth[" << ide.trackID << "]=" << truth << " with origin " << truth->Origin() <<  " and nparticles " << truth->NParticles();
-              }
-              else{
-                mf::LogDebug("DAQSimAna") << " idToTruth has no entry for " << ide.trackID;
-              }
-              ++nPrint;
+        std::vector<std::vector<std::pair<int, const sim::IDE*> > > contigIDEs;
+        int prevTDC=0;
+        for (const auto& TDCinfo: simch.TDCIDEMap()) {
+            // Do we need to start a new group of IDEs? Yes if this is
+            // the first IDE in this channel. Yes if this IDE is not
+            // contiguous with the previous one
+            if(contigIDEs.empty() || TDCinfo.first-prevTDC>5){
+                contigIDEs.push_back(std::vector<std::pair<int, const sim::IDE*> >());
             }
-            ptypeToCharge[thisPType]+=ide.numElectrons;
-          }
-          else{
-            lastWasContiguous=false;
-            //---------------------------------------
-            // Finish up the existing IDE...
-            PType bestPType=kUnknown;
-            float bestNumElectrons=0;
-            for(int i=0; i<kNPTypes; ++i){
-              float thisNumElectrons=ptypeToCharge[PType(i)];
-              if(thisNumElectrons>bestNumElectrons){
-                bestNumElectrons=thisNumElectrons;
-                bestPType=PType(i);
-              }
-            }
-
-            ptypeToCharge.clear();
-
-            currentIDE.particle=bestPType;
-
-            //---------------------------------------
-            // Save the existing IDE to the list if it has anything in it
-            if(currentIDE.startTime>=0){
-                IDEChannel.push_back(currentIDE.channel);
-                IDECharge.push_back(currentIDE.charge);
-                IDEStartTime.push_back(currentIDE.startTime);
-                IDEEndTime.push_back(currentIDE.endTime);
-                IDEParticle.push_back(currentIDE.particle);
-            }
+            std::vector<std::pair<int, const sim::IDE*> >& currentIDEs=contigIDEs.back();
             
-            ++outIDEIndex;
+            // Add all the current tick's IDEs to the list
+            for (const sim::IDE& ide: TDCinfo.second) {
+                currentIDEs.push_back(std::make_pair(TDCinfo.first, &ide));
+            }
+            prevTDC=TDCinfo.first;
+        }
 
-            //---------------------------------------
-            // Start the new IDE
-
-            currentIDE.channel=simch.Channel();
-            currentIDE.startTime=tdc;
-            currentIDE.endTime=tdc+1;
-            currentIDE.particle=kUnknown;
-            currentIDE.charge=ide.numElectrons;
-          }
-
-          prevTDC=tdc;
-        } // for IDEs
-      } // for TDCs
-
-      if(lastWasContiguous){
-          IDEChannel.push_back(currentIDE.channel);
-          IDECharge.push_back(currentIDE.charge);
-          IDEStartTime.push_back(currentIDE.startTime);
-          IDEEndTime.push_back(currentIDE.endTime);
-          IDEParticle.push_back(currentIDE.particle);
-      }
+        for(auto const& contigs : contigIDEs){
+            float charge=0;
+            int startTime=99999;
+            int endTime=0;
+            std::map<PType, float> ptypeToCharge;
+            for(auto const& timeide : contigs){
+                const int tdc=timeide.first;
+                startTime=std::min(tdc, startTime);
+                endTime=std::max(tdc, endTime);
+                const sim::IDE& ide=*timeide.second;
+                const float thisCharge=ide.energy;
+                const PType thisPType=WhichParType(std::abs(ide.trackID));
+                charge+=thisCharge;
+                ptypeToCharge[thisPType]+=thisCharge;
+            }
+            float bestCharge=0;
+            PType bestPType=kUnknown;
+            for(auto const& it : ptypeToCharge){
+                if(it.second>bestCharge){
+                    bestCharge=it.second;
+                    bestPType=it.first;
+                }
+            }
+            // Ignore anything past the end of the readout window
+            if(startTime<4492){
+                IDEChannel.push_back(simch.Channel());
+                IDEStartTime.push_back(startTime);
+                IDEEndTime.push_back(endTime);
+                IDECharge.push_back(charge);
+                IDEParticle.push_back(bestPType);
+            }
+        } // loop over our compressed IDEs
     } // loop over SimChannels
-
-    NTotIDEs=outIDEIndex;
-    // mf::LogDebug("DAQSimAna") << "End SaveIDES() with totalIDEsIn=" << totalIDEsIn << " outIDEIndex=" << outIDEIndex;
 }
 
 //......................................................
@@ -658,44 +584,7 @@ void DAQSimAna::analyze(art::Event const & evt)
       mf::LogDebug("DAQSimAna") << "\nAnd now for Other hits...";
       CalcAdjHits( ColHits_Oth , hAdjHits_Oth , false  );
   }
-  //*/
-  // --- Now loop through the particle list.
-  /*
-  mf::LogDebug("DAQSimAna") << "\n\nNow to loop through the truth information.";
-  for ( sim::ParticleList::const_iterator ipar = PartList.begin(); ipar!=PartList.end(); ++ipar) {
-    // --- Grab this particle.
-    simb::MCParticle *particle = ipar->second;
-    // Let's just write out what our primary particles are...
-    if (particle->Process() != "primary") continue; // Can also check that particle->Mother() != 0.
-    std::cout << "-- Particle with TrackID " << particle->TrackId() << ", which was a " << particle->PdgCode() << " was a primary and had initial energy " << particle->E()
-	      << ", " << particle->NumberTrajectoryPoints() << " trajectory points, and " << particle->NumberDaughters() << " daughters, and Process - " << particle->Process()
-	      << std::endl;
-  }
-  //*/
-  /*
-  std::vector<short> uADCs;
-  for (unsigned int dig=0; dig<rawdigits->size(); ++dig){
-    // --- Lets access this particular RawDigit
-    raw::RawDigit ThisDig = rawdigits->at(dig);
-    nADC=0;
-    // --- Uncompress the ADC vector.
-    if (dig==0){
-      mf::LogDebug("DAQSimAna") << "uADCs.size() before Uncompress = " << uADCs.size();
-      raw::Uncompress(ThisDig.ADCs(), uADCs, ThisDig.Compression());
-      std::cout << "uADCs.size() after Uncompress = " << uADCs.size() << "\n\n";
-    }
-    // --- Print some stuff about the first RawDigit
-    if (dig==0){
-      std::cout << "\nLooking at rawdigit["<<dig<<"]. It was on channel " << ThisDig.Channel() << ". "
-		<< "It had " << ThisDig.Samples() << " samples. "                                 // The readout length for 1x2x6 is 4492 ticks
-		<< "There were a total of " << ThisDig.NADC() << " ADCs saved with compression " // This is the readout length with compression
-		<< "level " << ThisDig.Compression()
-		<< std::endl;
-    }
-    
-  } // Loop over RawDigits.
-  */
-  // --- Finally, fill our TTree once per event.
+
   fDAQSimTree -> Fill();
 
 } // Analyze DAQSimAna.
