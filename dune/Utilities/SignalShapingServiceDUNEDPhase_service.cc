@@ -42,23 +42,45 @@ void util::SignalShapingServiceDUNEDPhase::reconfigure(const fhicl::ParameterSet
   fInit = false;
 
   // Reset kernels.
-  fColSignalShaping.Reset();
+  fColSignalShaping1Meter.Reset();
+  fColSignalShaping3Meter.Reset();
 
   // Fetch fcl parameters.
   fDeconNorm            = pset.get<double>("DeconNorm");
-  fASICmVperfC          = pset.get<double>("ASICmVperfC");
+  fASICmVperfC1Meter    = pset.get<double>("ASICmVperfC1Meter");
+  fASICmVperfC3Meter    = pset.get<double>("ASICmVperfC3Meter");
   fADCpermV             = pset.get<double>("ADCpermV");
   fAmpENC               = pset.get<double>("AmpENC");
-
   fRespSamplingPeriod   = pset.get<double>("RespSamplingPeriod");
 
+  fCollection1MeterShape = pset.get<std::string>("Collection1MeterShape");
+  fCollection3MeterShape = pset.get<std::string>("Collection3MeterShape");
+
+  fCollection1MeterParams = pset.get<std::vector<double>>("Collection1MeterParams");
+  fCollection3MeterParams = pset.get<std::vector<double>>("Collection3MeterParams");
+
+  fCollection1MeterFunction = new TF1("fCollection1MeterFunction", fCollection1MeterShape.c_str());
+  for(unsigned int i=0; i<fCollection1MeterParams.size(); ++i)
+  {
+    fCollection1MeterFunction->SetParameter(i, fCollection1MeterParams[i]);
+  }
+  fCollection1MeterFunction->SetRange(0,fRespSamplingPeriod*1e-3);
+
+  fCollection3MeterFunction = new TF1("fCollection3MeterFunction", fCollection3MeterShape.c_str());
+  for(unsigned int i=0; i<fCollection3MeterParams.size(); ++i)
+  {
+    fCollection3MeterFunction->SetParameter(i, fCollection3MeterParams[i]);
+  }
+  fCollection3MeterFunction->SetRange(0,fRespSamplingPeriod*1e-3);
+
   // amplifier noise in ADC
-  fAmpENCADC            = fAmpENC * 1.60217657e-4 * fASICmVperfC * fADCpermV;
+  fAmpENCADC            = fAmpENC * 1.60217657e-4 * fASICmVperfC1Meter * fADCpermV;
 
   // Construct parameterized collection filter function.
 
-  //LOG_DEBUG("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC = "<<fASICmVperfC;
-  mf::LogInfo("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC = "<<fASICmVperfC
+  //LOG_DEBUG("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC = "<<fASICmVperfC1Meter;
+  mf::LogInfo("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC for 1 meter long readout channeks = "<<fASICmVperfC1Meter
+						<<"ASIC Gain in mV per fC for 3 meter long readout channeks = "<<fASICmVperfC3Meter
 						<<";  ADC conversion = "<<fADCpermV
 						<<";  Amplifier ENC = "<<fAmpENC
 						<<";  Amplifier ENC in ADC = "<<fAmpENCADC;
@@ -92,8 +114,23 @@ util::SignalShapingServiceDUNEDPhase::SignalShaping(unsigned int channel) const
 {
   if(!fInit)
     init();
-
   auto const* geom = lar::providerFrom<geo::Geometry>();
+  std::vector<geo::WireID> Wires =  geom->ChannelToWire(channel);
+
+  double wirestartpoint[3];
+  double wireendpoint[3];
+  geom->WireEndPoints(Wires[0],wirestartpoint,wireendpoint);
+  double wirelength = sqrt(pow(wirestartpoint[0]-wireendpoint[0],2) + pow(wirestartpoint[1]-wireendpoint[1],2) + pow(wirestartpoint[2]-wireendpoint[2],2));
+
+  if(wirelength == 288 || wirelength == 300)
+    return fColSignalShaping3Meter;
+  else if (wirelength == 96 || wirelength == 100)
+    return fColSignalShaping1Meter;
+  else
+    throw cet::exception("SignalShapingServiceDUNEDPhase")
+        << "unexpected signal type " << geom->SignalType(channel)
+        << " for channel #" << channel << "\n";
+/*
   switch (geom->SignalType(channel)) {
     case geo::kCollection:
       return fColSignalShaping; //always collections in DP detector
@@ -102,7 +139,7 @@ util::SignalShapingServiceDUNEDPhase::SignalShaping(unsigned int channel) const
         << "unexpected signal type " << geom->SignalType(channel)
         << " for channel #" << channel << "\n";
   } // switch
-
+*/
 } // util::SignalShapingServiceDUNEDPhase::SignalShaping()
 
 //----------------------------------------------------------------------
@@ -110,7 +147,7 @@ util::SignalShapingServiceDUNEDPhase::SignalShaping(unsigned int channel) const
 // Here we do initialization that can't be done in the constructor.
 // All public methods should ensure that this method is called as necessary.
 void util::SignalShapingServiceDUNEDPhase::init()
-{
+{    
   if(!fInit) {
     fInit = true;
 
@@ -118,32 +155,38 @@ void util::SignalShapingServiceDUNEDPhase::init()
 		if(fAddFieldFunction){
 			std::vector<double> fresp;
 			SetFieldResponse(fresp);
-			fColSignalShaping.AddResponseFunction(fresp);
+			fColSignalShaping1Meter.AddResponseFunction(fresp);
+			fColSignalShaping3Meter.AddResponseFunction(fresp);
 		}
 
-		std::vector<double> eresp;
-    SetElectResponse(eresp);
-		fColSignalShaping.AddResponseFunction(eresp);
+		std::vector<double> eresp1meter, eresp3meter;
+    SetElectResponse(eresp1meter,eresp3meter); //Step 5 and 6
+		fColSignalShaping1Meter.AddResponseFunction(eresp1meter);
+		fColSignalShaping3Meter.AddResponseFunction(eresp3meter);
 
     // Configure convolution kernels.
-    fColSignalShaping.save_response();
-    fColSignalShaping.set_normflag(false);
+    fColSignalShaping1Meter.save_response();
+    fColSignalShaping1Meter.set_normflag(false);
+    fColSignalShaping3Meter.save_response();
+    fColSignalShaping3Meter.set_normflag(false);
 
 
     // rebin to appropriate sampling rate of readout
     // NOTE: could have done it from the start in the eresp calculation
     //       but implemented it like this for future flexibility
-    SetResponseSampling();
+    SetResponseSampling(); //Step 7
 
     // Calculate filter functions.
 
-    SetFilters();
+    SetFilters(); //Step 8
 
     // Configure deconvolution kernels.
-    fColSignalShaping.AddFilterFunction(fColFilter);
-    fColSignalShaping.CalculateDeconvKernel();
+    fColSignalShaping1Meter.AddFilterFunction(fColFilter);
+    fColSignalShaping1Meter.CalculateDeconvKernel();
+    fColSignalShaping3Meter.AddFilterFunction(fColFilter);
+    fColSignalShaping3Meter.CalculateDeconvKernel();
 
-    // std::cout << " fColSignalShaping: " << fColSignalShaping
+    // std::cout << " fColSignalShaping1Meter: " << fColSignalShaping1Meter
     //mf::LogInfo("SignalShapingServiceDUNEDPhase")<<"Done Init";
   }
 }
@@ -154,15 +197,28 @@ double util::SignalShapingServiceDUNEDPhase::GetASICGain(unsigned int const chan
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
 
-   // we need to distinguis between the U and V planes
-  geo::View_t view = geom->View(channel);
-
   double gain = 0;
-  if(view == geo::kU || view == geo::kV || view == geo::kZ )
-    gain = fASICmVperfC;
+
+   // we need to distinguis between the U and V planes
+//  geo::View_t view = geom->View(channel);
+//  if(view == geo::kU || view == geo::kV || view == geo::kZ )
+//    gain = fASICmVperfC;
+
+
+  std::vector<geo::WireID> Wires =  geom->ChannelToWire(channel);
+  double wirestartpoint[3];
+  double wireendpoint[3];
+  geom->WireEndPoints(Wires[0],wirestartpoint,wireendpoint);
+  double wirelength = sqrt(pow(wirestartpoint[0]-wireendpoint[0],2) + pow(wirestartpoint[1]-wireendpoint[1],2) + pow(wirestartpoint[2]-wireendpoint[2],2));
+
+  if(wirelength == 288 || wirelength == 300)
+    gain = fASICmVperfC3Meter;
+  else if (wirelength == 96 || wirelength == 100)
+    gain = fASICmVperfC1Meter;
   else
     throw cet::exception("SignalShapingServiceDUNEDPhase")<< "can't determine"
 							  << " View\n";
+
   return gain;
 }
 
@@ -223,7 +279,7 @@ void util::SignalShapingServiceDUNEDPhase::SetFieldResponse(std::vector<double> 
 
 //----------------------------------------------------------------------
 // Calculate electronics response
-void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> &ElecResp)
+void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> &ElecResp1Meter, std::vector<double> &ElecResp3Meter)
 {
   // Get services.
 
@@ -233,28 +289,71 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
 
   int nticks = fft->FFTSize();
   std::vector<double> time(nticks,0.);
-  ElecResp.resize(nticks, 0.);
+  ElecResp1Meter.resize(nticks, 0.);
+  double max = 0.;
 
-  double max = 0;
-  for(size_t i = 0; i < ElecResp.size(); ++i)
+  for(size_t i = 0; i < ElecResp1Meter.size(); ++i)
     {
-      //convert time to microseconds, to match response function definition
-      time[i]     = (1.*i)*fRespSamplingPeriod*1e-3;
-//      ElecResp[i] = PreampETHZ(time[i]);
-      ElecResp[i] = PreampIPNL(time[i]);
-      if(ElecResp[i] > max) max = ElecResp[i];
+      time[i] = (1.*i)*fRespSamplingPeriod*1e-3; //convert time to microseconds, to match response function definition
+
+      ElecResp1Meter[i] = fCollection1MeterFunction->Eval(time[i]); 
+
+      if(time[i] == 0 || ElecResp1Meter[i] != ElecResp1Meter[i]) ElecResp1Meter[i] = 0.; //force function value to be 0 for t = 0 or if function value = nan
+
+      if(ElecResp1Meter[i] > max) max = ElecResp1Meter[i];
     }// end loop over time buckets
 
 
   LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
 
   //normalize to 1e charge before the convolution
-  for(auto& element : ElecResp)
+  for(auto& element : ElecResp1Meter)
     {
       element /= max;
-      element *= fASICmVperfC * 1.60217657e-4; //mV
+      element *= fASICmVperfC1Meter * 1.60217657e-4; //mV
       element *= fADCpermV;                    //ADC
     }
+//  std::cout << "ElecResp1Meter after normalization" << std::endl;
+//  std::cout << "tval_us" << "\t" << "fval" << std::endl;
+//  for(size_t i = 0; i <= ElecResp1Meter.size(); ++i)
+//  {
+//    std::cout << time[i] << "\t" << ElecResp1Meter[i] << std::endl;
+//  }
+
+
+
+  ElecResp3Meter.resize(nticks, 0.);
+  time.resize(nticks, 0.);
+  max = 0.;
+
+  for(size_t i = 0; i < ElecResp3Meter.size(); ++i)
+    {
+      time[i] = (1.*i)*fRespSamplingPeriod*1e-3; //convert time to microseconds, to match response function definition
+
+      ElecResp3Meter[i] = fCollection3MeterFunction->Eval(time[i]);
+
+      if(time[i] == 0 || ElecResp3Meter[i] != ElecResp3Meter[i]) ElecResp3Meter[i] = 0.; //force function value to be 0 for t=0 or if function value = nan
+
+      if(ElecResp3Meter[i] > max) max = ElecResp3Meter[i];
+
+    }// end loop over time buckets
+
+
+  LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
+
+  //normalize to 1e charge before the convolution
+  for(auto& element : ElecResp3Meter)
+    {
+      element /= max;
+      element *= fASICmVperfC3Meter * 1.60217657e-4; //mV
+      element *= fADCpermV;                    //ADC
+    }
+//  std::cout << "ElecResp3Meter after normalization" << std::endl;
+//  std::cout << "tval_us" << "\t" << "fval" << std::endl;
+//  for(size_t i = 0; i <= ElecResp3Meter.size(); ++i)
+//  {
+//    std::cout << time[i] << "\t" << ElecResp3Meter[i] << std::endl;
+//  }
 
   return;
 
@@ -324,70 +423,56 @@ void util::SignalShapingServiceDUNEDPhase::SetResponseSampling()
   for ( int itime = 0; itime < nticks; itime++ )
     SamplingTime[itime] = (1.*itime) * detprop->SamplingRate();
 
+  for ( int iplane = 0; iplane < 2; iplane++ )
+  {
+    const std::vector<double>* pResp;
+    switch ( iplane ) 
+    {
+    case 0: pResp = &(fColSignalShaping1Meter.Response_save()); break;
+    case 1: pResp = &(fColSignalShaping3Meter.Response_save()); break;
+    }
   // get response our old response vector
-  const std::vector<double>* pResp = &(fColSignalShaping.Response_save());
+  //  const std::vector<double>* pResp = &(fColSignalShaping1Meter.Response_save());
 
-  //
-  int nticks_input = pResp->size();
+    //
+    int nticks_input = pResp->size();
 
-  //old sampling time vector
-  std::vector<double> InputTime(nticks_input, 0. );
-  std::vector<double> InputResp(nticks_input, 0. );
-  for ( int itime = 0; itime < nticks_input; itime++ )
+    //old sampling time vector
+    std::vector<double> InputTime(nticks_input, 0. );
+    std::vector<double> InputResp(nticks_input, 0. );
+    for ( int itime = 0; itime < nticks_input; itime++ )
+      {
+        InputResp[itime] = (*pResp)[itime];
+        InputTime[itime] = (1.*itime) * fRespSamplingPeriod;
+      }
+
+
+    // build a spline for interpolation
+    TSpline3 ispl("ispl", &InputTime[0], &InputResp[0], nticks_input);
+
+    // interpolate
+    int SamplingCount = 0;
+    double maxtime = InputTime.back();
+    for(int itime = 0; itime < nticks; itime++)
+      {
+        // don't go past max t value from old response
+        if(SamplingTime[itime] > maxtime) break;
+
+        SamplingResp[itime] = ispl.Eval(SamplingTime[itime]);
+        SamplingCount++;
+      }
+    SamplingResp.resize( SamplingCount, 0.);
+
+    // set new response
+    switch ( iplane )
     {
-      InputResp[itime] = (*pResp)[itime];
-      InputTime[itime] = (1.*itime) * fRespSamplingPeriod;
+    case 0: fColSignalShaping1Meter.AddResponseFunction( SamplingResp, true ); break;
+    case 1: fColSignalShaping3Meter.AddResponseFunction( SamplingResp, true ); break;
     }
+  } // for ( int iplane = 0; iplane < 2; iplane++ )
 
-
-  // build a spline for interpolation
-  TSpline3 ispl("ispl", &InputTime[0], &InputResp[0], nticks_input);
-
-  // interpolate
-  int SamplingCount = 0;
-  double maxtime = InputTime.back();
-  for(int itime = 0; itime < nticks; itime++)
-    {
-      // don't go past max t value from old response
-      if(SamplingTime[itime] > maxtime) break;
-
-      SamplingResp[itime] = ispl.Eval(SamplingTime[itime]);
-      SamplingCount++;
-    }
-  SamplingResp.resize( SamplingCount, 0.);
-
-  // set new response
-  fColSignalShaping.AddResponseFunction( SamplingResp, true );
 
   return;
-}
-
-//----------------------------------------------------------------------
-// response of ETHZ pre-amplifier
-double util::SignalShapingServiceDUNEDPhase::PreampETHZ(double tval_us)
-{
-  // parameters
-  double T1 = 2.83; //us
-  double T2 = 0.47; //us
-
-  double fval = ( T1*exp(-(tval_us)/T1) - ( T1 + tval_us*((T1-T2)/T2) ) * exp(-(tval_us)/T2)  ) / ((T1-T2)*(T1-T2));
-
-  if(fval != fval) fval = 0;
-  return fval;
-}
-
-//----------------------------------------------------------------------
-// response of IPNL pre-amplifier
-double util::SignalShapingServiceDUNEDPhase::PreampIPNL(double tval_us)
-{
-  // parameters
-  double T1 = 2.83; //us
-  double T2 = 0.47; //us
-
-  double fval = T1/(T1-T2) * ( exp(-(tval_us)/T1) - exp(-(tval_us)/T2) );
-
-  if(fval != fval) fval = 0;
-  return fval;
 }
 
 //----------------------------------------------------------------------
