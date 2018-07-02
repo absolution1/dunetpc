@@ -154,8 +154,10 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     else if ( hvar == "fitWidth"     ) xlab = "Fit width [Ticks]";
     else if ( hvar == "fitPosition"  ) xlab = "Fit position [Ticks]";
     else if ( hvar == "fitTickRem"   ) xlab = "Fit position tick remainder [Ticks]";
-    else if ( hvar == "fitPulserRem" )
+    else if ( hvar == "fitTickPulserRem" )
       xlab = "Fit position pulser remainder [Ticks]";
+    else if ( hvar == "fitToffPulserRem" )
+      xlab = "Fit offset position pulser remainder [Ticks]";
     else if ( hvar == "fitChiSquare" ) xlab = "Fit #chi^{2}";
     else if ( hvar == "fitChiSquareDof" ) xlab = "Fit #chi^{2}/DOF";
     else if ( hvar == "fitCSNorm" ) xlab = "Normalized fit #chi^{2}";
@@ -619,6 +621,34 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       cout << myname << "WARNING: Pulser period is zero." << endl;
     }
   }
+  // Fetch the tick offset.
+  TimeOffsetTool::Data tdat;
+  bool haveTickOffset = false;
+  long tickOffset = 0;
+  bool haveTickOffsetPulserMod = false;
+  Index tickOffsetPulserMod = 0;   // Tick offset modulus the pulser period [0, pulserPeriod).
+  if ( m_pTickOffsetTool != nullptr ) {
+    tdat.run = acd.run;
+    tdat.subrun = acd.subRun;
+    tdat.event = acd.event;
+    tdat.channel = acd.channel;
+    TimeOffsetTool::Offset off = m_pTickOffsetTool->offset(tdat);
+    if ( off.isValid() ) {
+      haveTickOffset = true;
+      tickOffset = off.value;
+    } else {
+      cout << myname << "Unable to retrieve tick offset for run " << tdat.run << "-" << tdat.subrun
+           << " event " << tdat.event << " channel " << tdat.channel << endl;
+    }
+    if ( haveTickOffset && havePulserPeriod ) {
+      long toff = tickOffset;
+      long period = pulserPeriod;
+      toff = toff % period;
+      if ( toff < 0 ) toff += period;
+      tickOffsetPulserMod = toff;
+      haveTickOffsetPulserMod = true;
+    }
+  }
   // Loop over summary histogram templates.
   Index nhst = 0;
   Index nhstGood = 0;
@@ -629,18 +659,19 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     TH1* ph0 = hin0.ph;
     FloatVector vals;
     IntVector ivals;
-    if      ( var == "fitHeight"    )    vals = dm.getFloatVector("roiFitHeights");
-    else if ( var == "fitHeightNeg" )    vals = dm.getFloatVector("roiFitHeights");
-    else if ( var == "fitHeightGain" )   vals = dm.getFloatVector("roiFitHeights");
-    else if ( var == "fitWidth"     )    vals = dm.getFloatVector("roiFitWidths");
-    else if ( var == "fitPosition"  )    vals = dm.getFloatVector("roiFitPositions");
-    else if ( var == "fitTickRem"   )    vals = dm.getFloatVector("roiFitPositions");
-    else if ( var == "fitPulserRem" )    vals = dm.getFloatVector("roiFitPositions");
-    else if ( var == "fitStat" )        ivals = dm.getIntVector("roiFitStats");
-    else if ( var == "fitChiSquare" )    vals = dm.getFloatVector("roiFitChiSquares");
-    else if ( var == "fitChiSquareDof" ) vals = dm.getFloatVector("roiFitChiSquareDofs");
-    else if ( var == "fitCSNorm" )       vals = dm.getFloatVector("roiFitChiSquares");
-    else if ( var == "fitCSNormDof" )    vals = dm.getFloatVector("roiFitChiSquareDofs");
+    if      ( var == "fitHeight"    )     vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitHeightNeg" )     vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitHeightGain" )    vals = dm.getFloatVector("roiFitHeights");
+    else if ( var == "fitWidth"     )     vals = dm.getFloatVector("roiFitWidths");
+    else if ( var == "fitPosition"  )     vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitTickRem"   )     vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitTickPulserRem" ) vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitToffPulserRem" ) vals = dm.getFloatVector("roiFitPositions");
+    else if ( var == "fitStat" )         ivals = dm.getIntVector("roiFitStats");
+    else if ( var == "fitChiSquare" )     vals = dm.getFloatVector("roiFitChiSquares");
+    else if ( var == "fitChiSquareDof" )  vals = dm.getFloatVector("roiFitChiSquareDofs");
+    else if ( var == "fitCSNorm" )        vals = dm.getFloatVector("roiFitChiSquares");
+    else if ( var == "fitCSNormDof" )     vals = dm.getFloatVector("roiFitChiSquareDofs");
     else {
       if ( m_LogLevel >= 2 ) {
         cout << myname << "ERROR: Invalid variable name: " << var << endl;
@@ -654,12 +685,19 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     TH1* ph = getState().getSumHist(hnam);
     if ( ivals.size() && !vals.size() ) for ( int ival : ivals ) vals.push_back(ival);
     if ( var == "fitTickRem" ) for ( float& val : vals ) val = std::remainder(val,1);
-    if ( var == "fitPulserRem" ) {
+    if ( var == "fitTickPulserRem" ) {
       if ( ! havePulserPeriod ) {
         cout << myname << "WARNING: Cannot evaluate " << var << " without pulser period" << endl;
         continue;
       }
       for ( float& val : vals ) val = std::remainder(val, pulserPeriod);
+    }
+    if ( var == "fitToffPulserRem" ) {
+      if ( ! haveTickOffsetPulserMod ) {
+        cout << myname << "WARNING: Cannot evaluate " << var << " without timing offset and pulser period" << endl;
+        continue;
+      }
+      for ( float& val : vals ) val = std::remainder(val + pulserPeriod + tickOffsetPulserMod, pulserPeriod);
     }
     float varfac = 1.0;
     if ( var == "fitHeightNeg" ) varfac = -1.0;
