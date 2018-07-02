@@ -25,7 +25,7 @@ public:
   };
 
   // Class describing a time offset.
-  //  value - Intgral part of the offset (typically suficient?)
+  //  value - Integral part of the offset (typically suficient?)
   //    rem - value remainder if offset in non-integral
   //   unit - Unit for offset, e.g. tick, us, ns
   class Offset {
