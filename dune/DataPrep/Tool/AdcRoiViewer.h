@@ -34,16 +34,19 @@
 // as tick or pulse height.
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
-//            fitHeight
-//            fitWidth
-//            fitPosition
-//            fitTickRem - remainder(tick, 1)
-//            fitPulserRem - remainder(tick, pulserPeriod)
-//            fitStat - Status from the fit (0 = success)
-//            fitChiSquare - Chi-square from fit (as reported by TF1)
-//            fitChiSquareDof - Chi-square/DOF from fit (both from TF1)
+//            fitHeight - Height from ROI fit
+//            fitWidth - Shaping time from ROI fit
+//            fitPos - Postion [ticks] fro ROI fit
+//            fitPosRem - remainder(fitPos, 1)
+//            fitToffPulser - fmod(fitPos + toff, Tpulser) where
+//              toff is the timing offset, i.e. the time for tick 0 and
+//              Tpulser is the period of the pulser (e.g. 497 ticks)
+//            fitToffPulserMod10 - fmod(fitToffPulser, 10)
+//            fitChiSquare - Chi-square from ROI fit (as reported by TF1)
+//            fitChiSquareDof - Chi-square/DOF from ROI fit (both from TF1)
 //            fitCSNorm - Chi-square/(ped RMS)^2
 //            fitCSNormDof - Chi-square/DOF/(ped RMS)^2
+//            timingPhase_fitToffPulserMod10 - 2D plot of timing phase (0 to 1) vs offset tick
 //    name: Name of the histogram. Include %CHAN% to get separate histos for each channel
 //   title: Histogram title
 //    nbin: # bins
@@ -146,10 +149,12 @@ public:
   using ChannelRangeMap = std::map<Name, ChannelRange>;
 
   // Subclass that associates a variable name with a histogram.
+  //  vary != "" ==> 2D histo
   class HistInfo {
   public:
     TH1* ph = nullptr;
-    Name var;
+    Name varx;
+    Name vary;
   };
 
   using HistInfoMap = std::map<Name, HistInfo>;
