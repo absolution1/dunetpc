@@ -69,7 +69,8 @@ private:
 
   // --- Some of our own functions.
   void ResetVariables();
-  void  FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap, art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand );
+    void  FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap, art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand,
+                        std::map<int, int>* indexMap=nullptr);
   PType WhichParType( int TrID );
   PType WhichParType( const art::ValidHandle<simb::MCTruth>& truthHand );
   bool  InMyMap     ( int TrID, std::map< int, simb::MCParticle> ParMap );
@@ -91,6 +92,8 @@ private:
   std::string fKrypLabel; std::map< int, simb::MCParticle > KrypParts;
   std::string fPlonLabel; std::map< int, simb::MCParticle > PlonParts;
   std::string fRdonLabel; std::map< int, simb::MCParticle > RdonParts;
+
+  std::map<int, int> trkIDToMarleyIndex;
 
   // Mapping from track ID to particle type, for use in WhichParType()
   std::map<int, PType> trkIDToPType;
@@ -122,6 +125,7 @@ private:
   std::vector<float> HitInt; ///< The ADC integral of the hit
   std::vector<float> HitPeak; ///< The peak ADC value of the hit
   std::vector<int>   GenType; ///< The generator which generated the particle responsible for the hit
+  std::vector<int>   MarleyIndex; ///< Which SN in the list of Marley interactions this hit is from (-1 if not from SN)
 
   int   TotGen_Marl;
   int   TotGen_APA;
@@ -218,6 +222,7 @@ void DAQSimAna::ResetVariables()
   HitInt.clear();
   HitPeak.clear();
   GenType.clear();
+  MarleyIndex.clear();
 
   // IDEs
   NTotIDEs=0;
@@ -255,6 +260,7 @@ void DAQSimAna::beginJob()
   fDAQSimTree->Branch("HitInt", &HitInt);
   fDAQSimTree->Branch("HitPeak", &HitPeak);
   fDAQSimTree->Branch("GenType", &GenType);
+  fDAQSimTree->Branch("MarleyIndex", &MarleyIndex);
 
   fDAQSimTree -> Branch( "TotGen_Marl", &TotGen_Marl, "TotGen_Marl/I" );
   fDAQSimTree -> Branch( "TotGen_APA" , &TotGen_APA , "TotGen_APA/I"  );
@@ -312,6 +318,11 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
         // We only care about collection channels
         if(geo->SignalType(simch.Channel())!=geo::kCollection) continue;
 
+        // The IDEs record energy depositions at every tick, but
+        // mostly we have several depositions at contiguous times. So
+        // we're going to save just one output IDE for each contiguous
+        // block of hits on a channel. Each item in vector is a list
+        // of (TDC, IDE*) for contiguous-in-time IDEs
         std::vector<std::vector<std::pair<int, const sim::IDE*> > > contigIDEs;
         int prevTDC=0;
         for (const auto& TDCinfo: simch.TDCIDEMap()) {
@@ -385,8 +396,9 @@ void DAQSimAna::analyze(art::Event const & evt)
 
   // --- Lift out the MARLEY particles.
   auto MarlTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fMARLLabel);
+  std::cout << "MarlTrue.size()=" << MarlTrue->size() << std::endl;
   art::FindManyP<simb::MCParticle> MarlAssn(MarlTrue,evt,fGEANTLabel);
-  FillMyMaps( MarlParts, MarlAssn, MarlTrue );
+  FillMyMaps( MarlParts, MarlAssn, MarlTrue, &trkIDToMarleyIndex );
   TotGen_Marl = MarlParts.size();
   mf::LogDebug("DAQSimAna") << "--- The size of MarleyParts is " << MarlParts.size();
 
@@ -516,7 +528,16 @@ void DAQSimAna::analyze(art::Event const & evt)
     }
     // --- Lets figure out how that particle was generated...
     PType ThisPType = WhichParType( MainTrID );
-
+    int thisMarleyIndex=-1;
+    if(ThisPType==kMarl){
+        auto const it=trkIDToMarleyIndex.find(MainTrID);
+        if(it==trkIDToMarleyIndex.end()){
+            std::cout << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
+        }
+        else{
+            thisMarleyIndex=it->second;
+        }
+    }
     // --- Write out some information about this hit....
     // std::cout << "Looking at hit on channel " << ThisHit.Channel() << " corresponding to TPC " << ThisHit.WireID().TPC << ", wire " << ThisHit.WireID().Wire << ", plane " << ThisHit.WireID().Plane << ".\n"
 	//       << "\tIt was at time " << ThisHit.PeakTime() << ", with amplitude " << ThisHit.PeakAmplitude() << ", it was caused by " << ThisHitIDE.size() << " particles, the main one being"
@@ -541,6 +562,7 @@ void DAQSimAna::analyze(art::Event const & evt)
     HitInt .push_back(ThisHit.Integral());
     HitPeak.push_back(ThisHit.PeakAmplitude());
     GenType.push_back(ThisPType);
+    MarleyIndex.push_back(thisMarleyIndex);
   
     // --- I want to fill a vector of coll plane hits, for each of the different kinds of generator.
     if (ThisHit.View() == 2) {
@@ -591,12 +613,14 @@ void DAQSimAna::analyze(art::Event const & evt)
 
 
 //......................................................
-void DAQSimAna::FillMyMaps( std::map< int, simb::MCParticle> &MyMap, art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand )
+void DAQSimAna::FillMyMaps( std::map< int, simb::MCParticle> &MyMap, art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand,
+                            std::map<int, int>* indexMap)
 {
   for ( size_t L1=0; L1 < Hand->size(); ++L1 ) {
     for ( size_t L2=0; L2 < Assn.at(L1).size(); ++L2 ) {
       const simb::MCParticle ThisPar = (*Assn.at(L1).at(L2));
       MyMap[ThisPar.TrackId()] = ThisPar;
+      if(indexMap) indexMap->insert({ThisPar.TrackId(), L1});
     }
   }
   return;
