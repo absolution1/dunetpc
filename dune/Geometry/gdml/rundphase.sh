@@ -5,54 +5,65 @@
 ####################
 
 # with wires for larcore
-#perl generate_dunedphase10kt_v2.pl -k 0 -o dphase_geo.xml
-#perl make_gdml.pl -i dphase_geo.xml -o dunedphase10kt_v2.gdml
+perl generate_dunedphase10kt_v2.pl -w 1 -o dphase_geo.xml
+perl make_gdml.pl -i dphase_geo.xml -o dunedphase10kt_v2.gdml
 
 # clean up
-#rm dunedphase10kt_v2_*.gdml
-#rm dphase_geo.xml
+rm dunedphase10kt_v2_*.gdml
+rm dphase_geo.xml
 
 # no wires for geant
-#perl generate_dunedphase10kt_v2.pl -k 0 -o dphase_geo_nowires.xml -w 0
-#perl make_gdml.pl -i dphase_geo_nowires.xml -o dunedphase10kt_v2_nowires.gdml
+perl generate_dunedphase10kt_v2.pl -w 0 -o dphase_geo_nowires.xml -w 0
+perl make_gdml.pl -i dphase_geo_nowires.xml -o dunedphase10kt_v2_nowires.gdml
 
 # clean up
-#rm dunedphase10kt_v2_nowires_*.gdml
-#rm dphase_geo_nowires.xml
+rm dunedphase10kt_v2_nowires_*.gdml
+rm dphase_geo_nowires.xml
+
+
+
+#########################################
+### Far detector workspace (2x1 TPCs) ###
+#########################################
 
 # with wires for larcore
-#perl generate_dunedphase10kt_v2.pl -k 1 -o dphase_geo_workspace.xml#
-#perl make_gdml.pl -i dphase_geo_workspace.xml -o dunedphase10kt_v2_workspace.gdml
+perl generate_dunedphase10kt_v2.pl -w 1 -k 1 -o dphase_geo_workspace.xml
+perl make_gdml.pl -i dphase_geo_workspace.xml -o dunedphase10kt_v2_workspace.gdml
 
 # clean up
-#rm dunedphase10kt_v2_workspace_*.gdml
-#rm dphase_geo_workspace.xml
+rm dunedphase10kt_v2_workspace_*.gdml
+rm dphase_geo_workspace.xml
 
 # no wires for geant
-#perl generate_dunedphase10kt_v2.pl -k 1 -o dphase_geo_workspace_nowires.xml -w 0
-#perl make_gdml.pl -i dphase_geo_workspace_nowires.xml -o dunedphase10kt_v2_workspace_nowires.gdml
+perl generate_dunedphase10kt_v2.pl -w 0 -k 1 -o dphase_geo_workspace_nowires.xml -w 0
+perl make_gdml.pl -i dphase_geo_workspace_nowires.xml -o dunedphase10kt_v2_workspace_nowires.gdml
 
 # clean up
-#rm dunedphase10kt_v2_workspace_nowires_*.gdml
-#rm dphase_geo_workspace_nowires.xml
+rm dunedphase10kt_v2_workspace_nowires_*.gdml
+rm dphase_geo_workspace_nowires.xml
+
+
+
+#########################################
+### Far detector workspace (4x2 TPCs) ###
+#########################################
 
 # with wires for larcore
-#perl generate_dunedphase10kt_v2.pl -k 2 -o dphase_geo_workspace4x2.xml
-#perl make_gdml.pl -i dphase_geo_workspace4x2.xml -o dunedphase10kt_v2_workspace4x2.gdml
+perl generate_dunedphase10kt_v2.pl -w 1 -k 2 -o dphase_geo_workspace4x2.xml
+perl make_gdml.pl -i dphase_geo_workspace4x2.xml -o dunedphase10kt_v2_workspace4x2.gdml
 
 # clean up
-#rm dunedphase10kt_v2_workspace4x2_*.gdml
-#rm dphase_geo_workspace4x2.xml
+rm dunedphase10kt_v2_workspace4x2_*.gdml
+rm dphase_geo_workspace4x2.xml
 
 # no wires for geant
-#perl generate_dunedphase10kt_v2.pl -k 2 -o dphase_geo_workspace4x2_nowires.xml -w 0
-#perl make_gdml.pl -i dphase_geo_workspace4x2_nowires.xml -o dunedphase10kt_v2_workspace4x2_nowires.gdml
+perl generate_dunedphase10kt_v2.pl -w 0 -k 2 -o dphase_geo_workspace4x2_nowires.xml -w 0
+perl make_gdml.pl -i dphase_geo_workspace4x2_nowires.xml -o dunedphase10kt_v2_workspace4x2_nowires.gdml
 
 # clean up
-#rm dunedphase10kt_v2_workspace4x2_nowires_*.gdml
-#rm dphase_geo_workspace4x2_nowires.xml
+rm dunedphase10kt_v2_workspace4x2_nowires_*.gdml
+rm dphase_geo_workspace4x2_nowires.xml
 
-#root -l dunedphase10kt_geo.C
 
 
 ####################
@@ -76,6 +87,11 @@ rm protodunedphase_geo_nowires.xml
 rm protodunedphase_nowires_*.gdml
 
 
+
+##################################################
+### protoDUNE-DP for photon library generation ###
+##################################################
+
 # all detail to generate photon libraries
 perl generate_protodunedphase.pl -w 1 -opt 1 -o protodunedphase_geo_optical.xml
 perl make_gdml.pl -i protodunedphase_geo_optical.xml -o protodunedphase_optical.gdml
@@ -93,42 +109,45 @@ rm protodunedphase_geo_optical_nowires.xml
 rm protodunedphase_optical_nowires_*.gdml
 
 
+
 ########################
 ### 3x1x1 dual phase ###
 ########################
 
 # with wires for larcore
-#perl generate_3x1x1dphase.pl -w 1 -o 3x1x1dphase_geo.xml
-#perl make_gdml.pl -i 3x1x1dphase_geo.xml -o 3x1x1dphase.gdml
+perl generate_3x1x1dphase.pl -w 1 -o 3x1x1dphase_geo.xml
+perl make_gdml.pl -i 3x1x1dphase_geo.xml -o 3x1x1dphase.gdml
 
 # clean up
-#rm 3x1x1dphase_geo.xml
-#rm 3x1x1dphase_*.gdml
+rm 3x1x1dphase_geo.xml
+rm 3x1x1dphase_*.gdml
 
 # no wires for geant
-#perl generate_3x1x1dphase.pl -w 0 -o 3x1x1dphase_geo_nowires.xml
-#perl make_gdml.pl -i 3x1x1dphase_geo_nowires.xml -o 3x1x1dphase_nowires.gdml
+perl generate_3x1x1dphase.pl -w 0 -o 3x1x1dphase_geo_nowires.xml
+perl make_gdml.pl -i 3x1x1dphase_geo_nowires.xml -o 3x1x1dphase_nowires.gdml
 
 # clean up
-#rm 3x1x1dphase_geo_nowires.xml
-#rm 3x1x1dphase_nowires_*.gdml
+rm 3x1x1dphase_geo_nowires.xml
+rm 3x1x1dphase_nowires_*.gdml
+
+
 
 #########################################
 ### protoDUNE-DP rotated (drift in Y) ###
 #########################################
 
 # with wires for larcore
-#perl generate_protodunedphase_rot.pl -w 1 -o protodunedphase_rot_geo.xml
-#perl make_gdml.pl -i protodunedphase_rot_geo.xml -o protodunedphase_rot.gdml
+perl generate_protodunedphase_rot.pl -w 1 -o protodunedphase_rot_geo.xml
+perl make_gdml.pl -i protodunedphase_rot_geo.xml -o protodunedphase_rot.gdml
 
 # clean up
-#rm protodunedphase_rot_geo.xml
-#rm protodunedphase_rot_*.gdml
+rm protodunedphase_rot_geo.xml
+rm protodunedphase_rot_*.gdml
 
 # no wires for geant
-#perl generate_protodunedphase_rot.pl -w 0 -o protodunedphase_rot_nowires_geo.xml
-#perl make_gdml.pl -i protodunedphase_rot_nowires_geo.xml -o protodunedphase_rot_nowires.gdml
+perl generate_protodunedphase_rot.pl -w 0 -o protodunedphase_rot_nowires_geo.xml
+perl make_gdml.pl -i protodunedphase_rot_nowires_geo.xml -o protodunedphase_rot_nowires.gdml
 
 # clean up
-#rm protodunedphase_rot_nowires_geo.xml
-#rm protodunedphase_rot_nowires_*.gdml
+rm protodunedphase_rot_nowires_geo.xml
+rm protodunedphase_rot_nowires_*.gdml
