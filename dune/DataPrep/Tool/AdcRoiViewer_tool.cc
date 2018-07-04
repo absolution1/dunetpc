@@ -972,7 +972,7 @@ void AdcRoiViewer::fillChanSumHists() const {
       } else if ( vartype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
-        if ( phvar == nullptr ) {
+        if ( pf == nullptr ) {
           if ( m_LogLevel >= logthresh )
             cout << myname << "Unable to find find fit for sum hist " << hnam << endl;
           continue;

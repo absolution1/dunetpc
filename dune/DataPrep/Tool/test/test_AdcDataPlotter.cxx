@@ -49,6 +49,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "            LastTick: 0" << endl; 
     fout << "        FirstChannel: 0" << endl;
     fout << "         LastChannel: 0" << endl;
+    fout << "     FembTickOffsets: []" << endl;
     fout << "           MaxSignal: 10" << endl;
     fout << "  ChannelLineModulus:  4" << endl;
     fout << "  ChannelLinePattern:  [1]" << endl;

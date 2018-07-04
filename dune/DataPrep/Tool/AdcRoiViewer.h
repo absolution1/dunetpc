@@ -178,7 +178,7 @@ public:
     Name getChanSumHistTemplateName(Name hnam) const;
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
-    Index cachedRunCount = 0;  // Incremente each time run number changes.
+    Index cachedRunCount = 0;  // Increment each time run number changes.
     Index cachedRun = AdcChannelData::badIndex;
     Name cachedSampleUnit;
   };

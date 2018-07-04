@@ -22,6 +22,7 @@
 #include "channelmap_35t.fcl"
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
+#include "PdspChannelMapService.fcl"
 
 BEGIN_PROLOG
 
@@ -336,6 +337,7 @@ protodune_services: {
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
  ChannelGroupService:          @local::changroup_apa_pd_drop_outer
+ PdspChannelMapService:        @local::pdspchannelmap
 }
 
 protodune_data_services: {
