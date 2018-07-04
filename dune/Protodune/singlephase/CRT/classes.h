@@ -7,7 +7,7 @@
 #include "canvas/Persistency/Common/Assns.h"
 
 //LArSoft includes
-#include "lardata/Simulation/AuxDetSimChannel.h"
+#include "lardataobj/Simulation/AuxDetSimChannel.h"
 
 //dunetpc includes
-#include "dune/ProtoDUNE/singlephase/CRTSim/CRTTrigger.h"
+#include "dunetpc/dune/Protodune/singlephase/CRTSim/CRTTrigger.h"

@@ -25,6 +25,7 @@
 //TODO: Associate CRT::Hits from a readout window?  Seems possible to do this in "real data".   
 //TODO: Produce and associate to raw::ExternalTriggers?  
 
+//Framework includes
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -34,7 +35,14 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Persistency/Common/PtrMaker.h"
+#include "canvas/Persistency/Common/Assns.h"
+#include "canvas/Persistency/Common/Ptr.h"
 
+//dunetpc includes
+#include "dunetpc/dune/Protodune/singlephase/CRTSim/CRTTrigger.h"
+
+//c++ includes
 #include <memory>
 
 namespace CRT {

@@ -7,7 +7,7 @@
 <lcgdict>
   <!-- The data product added in this directory -->
   <class Name="CRT::Trigger" ClassVersion="1">
-  <class/>
+  </class>
 
   <!-- Classes that ART will need to instantiate to store CRT::Trigger.  I have 
        added std::vector<CRT::Hit> on a hunch because CRT::Trigger contains a 
