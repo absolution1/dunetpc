@@ -74,23 +74,50 @@ CRT::CRTRawDecoder::CRTRawDecoder(fhicl::ParameterSet const & p): fFragLabel(p.g
 //Read artdaq::Fragments produced by fFragLabel, and use CRT::Fragment to convert them to CRT::Triggers.  
 void CRT::CRTRawDecoder::produce(art::Event & e)
 {
-  const auto& fragHandle = e.getValidHandle<std::vector<artdaq::Fragment>>(fFragLabel);
+  //Create an empty container of CRT::Triggers.  Any Triggers in this container will be put into the 
+  //event at the end of produce.  I will try to fill this container, but just not produce any CRT::Triggers 
+  //if there are no input artdaq::Fragments.  
   auto triggers = std::make_unique<std::vector<CRT::Trigger>>();
-  
-  for(const auto& artFrag: *fragHandle)
+
+  try
   {
-    CRT::Fragment frag(artFrag);
+    //Try to get artdaq::Fragments produced from CRT data.  The following line is the reason for 
+    //this try-catch block.  I don't expect anything else to throw a cet::Exception.
+    const auto& fragHandle = e.getValidHandle<std::vector<artdaq::Fragment>>(fFragLabel);
     
-    std::vector<CRT::Hit> hits;
-    for(size_t hitNum = 0; hitNum < frag.num_hits(); ++hitNum)
+    //Convert each fragment into a CRT::Trigger.
+    for(const auto& artFrag: *fragHandle)
     {
-      const auto hit = *(frag.hit(hitNum));
-      hits.emplace_back(hit->channel, hit->adc);
-    }
+      CRT::Fragment frag(artFrag);
+      std::vector<CRT::Hit> hits;
 
-    triggers->emplace_back(frag.module_num(), frag.unixtime() << 32 | frag.fifty_mhz_time(), std::move(hits));
-  } 
+      //Make a CRT::Hit from each non-zero ADC value in this Fragment
+      for(size_t hitNum = 0; hitNum < frag.num_hits(); ++hitNum)
+      {
+        const auto hit = *(frag.hit(hitNum));
+        LOG_DEBUG("CRT Raw") << "Channel: " << hit->channel
+                             << "ADC: " << hit->adc << "\n";
 
+        hits.emplace_back(hit->channel, hit->adc);
+        LOG_DEBUG("CRT Hits") << hits.back() << "\n";
+      }
+  
+      LOG_DEBUG("CRT Fragments") << "Module: " << frag.module_num() 
+                                 << "Unix time: " << frag.unixtime() 
+                                 << "Fifty MHz time: " << frag.fifty_mhz_time() << "\n";
+
+      triggers->emplace_back(frag.module_num(), frag.unixtime() << 32 | frag.fifty_mhz_time(), std::move(hits)); 
+      //^Put Unix time and clock time into same 64-bit integer
+
+      LOG_DEBUG("CRT Triggers") << triggers->back() << "\n";
+    } 
+  }
+  catch(const cet::Exception& exc) //If there are no artdaq::Fragments in this Event, just add an empty container of CRT::Triggers.
+  {
+    mf::LogWarning("MissingData") << "No artdaq::Fragments produced by " << fFragLabel << " in this event, so not doing anything.\n";
+  }
+
+  //Put a vector of CRT::Triggers into this Event for other modules to read.
   e.put(std::move(triggers));
 }
 
