@@ -1804,7 +1804,7 @@ print PMT <<EOF;
 
 <structure>
  <volume name="pmtCoatVol">
-  <materialref ref="TPB"/>
+  <materialref ref="LAr"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
   </volume>
 

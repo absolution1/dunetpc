@@ -42,10 +42,14 @@ Offset TimingRawDecoderOffsetTool::offset(const Data& dat) const {
   fin >> daqVal;
   if ( m_Unit == "daq" ) {
     res.value = daqVal;
+    res.rem = 0.0;
   } else if ( m_Unit == "ns" ) {
     res.value = 20*daqVal;
+    res.rem = 0.0;
   } else if ( m_Unit == "tick" ) {
-    res.value = (daqVal + m_TpcTickPhase)/25;
+    long daqoff = daqVal + m_TpcTickPhase;
+    res.value = daqoff/25;
+    res.rem = (daqoff % 25)/25.0;
   } else {
     cout << myname << "Invalid unit: " << m_Unit << ifname << endl;
     return res.setStatus(2);

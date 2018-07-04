@@ -7,6 +7,7 @@
 #include "dune/DuneCommon/RootPalette.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
+#include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -33,6 +34,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_LastTick(ps.get<unsigned long>("LastTick")),
   m_FirstChannel(ps.get<unsigned int>("FirstChannel")),
   m_LastChannel(ps.get<unsigned int>("LastChannel")),
+  m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
   m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
   m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
@@ -42,7 +44,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_PlotSizeX(ps.get<Index>("PlotSizeX")),
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
-  m_RootFileName(ps.get<string>("RootFileName")) {
+  m_RootFileName(ps.get<string>("RootFileName")),
+  m_pOnlineChannelMapTool(nullptr) {
   const string myname = "AdcDataPlotter::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
   string stringBuilder = "adcStringBuilder";
@@ -50,18 +53,34 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
+  if ( m_FembTickOffsets.size() ) {
+    m_OnlineChannelMapTool = ps.get<string>("OnlineChannelMapTool");
+    m_pOnlineChannelMapTool = ptm->getShared<const IndexMapTool>(m_OnlineChannelMapTool);
+  }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
-    cout << myname << "            LogLevel: " << m_LogLevel << endl;
-    cout << myname << "            DataType: " << m_DataType << endl;
-    cout << myname << "           FirstTick: " << m_FirstTick << endl;
-    cout << myname << "            LastTick: " << m_LastTick << endl;
-    cout << myname << "        FirstChannel: " << m_FirstChannel << endl;
-    cout << myname << "         LastChannel: " << m_LastChannel << endl;
-    cout << myname << "           MaxSignal: " << m_MaxSignal << endl;
-    cout << myname << "  ChannelLineModulus: " << m_ChannelLineModulus << endl;
-    cout << myname << "  ChannelLinePattern: {";
+    cout << myname << "              LogLevel: " << m_LogLevel << endl;
+    cout << myname << "              DataType: " << m_DataType << endl;
+    cout << myname << "             FirstTick: " << m_FirstTick << endl;
+    cout << myname << "              LastTick: " << m_LastTick << endl;
+    cout << myname << "          FirstChannel: " << m_FirstChannel << endl;
+    cout << myname << "           LastChannel: " << m_LastChannel << endl;
+    cout << myname << "       FembTickOffsets: [";
     bool first = true;
+    for ( int ioff : m_FembTickOffsets ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << ioff;
+    }
+    cout << "]" << endl;
+    if ( m_FembTickOffsets.size() ) {
+      cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << " @ "
+           << m_pOnlineChannelMapTool << endl;
+    }
+    cout << myname << "             MaxSignal: " << m_MaxSignal << endl;
+    cout << myname << "    ChannelLineModulus: " << m_ChannelLineModulus << endl;
+    cout << myname << "    ChannelLinePattern: {";
+    first = true;
     for ( Index icha : m_ChannelLinePattern ) {
       if ( ! first ) cout << ", ";
       first = false;
@@ -185,22 +204,42 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_LogLevel >= 3 ) {
       cout << myname << "Filling channel-tick histogram with " << nsam << " samples for channel " << chan << endl;
     }
-    for ( Tick isam=tick1; isam<tick2; ++isam, ++ibin ) {
-      if ( isSig && isam >= acd.signal.size() ) {
-        if ( m_LogLevel >= 3 ) {
-          cout << myname << "  Signal array not filled for sample " << isam << " and above--stopping fill." << endl;
-        }
+    int tickOffset = 0;
+    if ( m_FembTickOffsets.size() ) {
+      if ( m_pOnlineChannelMapTool == nullptr ) {
+        cout << myname << "  FEMB tick offsets provided without online channel mapping tool." << endl;
         break;
       }
+      Index chanOn = m_pOnlineChannelMapTool->get(chan);
+      Index ifmb = chanOn/128;
+      if ( ifmb < m_FembTickOffsets.size() ) tickOffset = m_FembTickOffsets[ifmb];
+    }
+    Index dsam = tickOffset < 0 ? -tickOffset : tickOffset;
+    bool addOffset = tickOffset > 0;
+    bool subtractOffset = tickOffset < 0;
+    for ( Tick itck=tick1; itck<tick2; ++itck, ++ibin ) {
+      bool haveSam = true;
+      if ( subtractOffset ) haveSam = itck >= dsam;
       float sig = 0.0;
-      if ( isPrep ) {
-        if ( isam < sams.size() ) sig = sams[isam];
-      } else if ( isRawPed ) {
-        if ( isam < raw.size() ) sig = raw[isam] - ped;
-      } else if ( isSig ) {
-        if ( isam < sams.size() && isam < keep.size() && keep[isam] ) sig = sams[isam];
-      } else {
-        cout << myname << "Fill failed for bin " << ibin << endl;
+      if ( haveSam ) {
+        Index isam = itck;
+        if ( addOffset ) isam += dsam;
+        if ( subtractOffset ) isam -= dsam;
+        if ( isSig && isam >= acd.signal.size() ) {
+          if ( m_LogLevel >= 3 ) {
+            cout << myname << "  Signal array not filled for sample " << isam << " and above--stopping fill." << endl;
+          }
+          break;
+        }
+        if ( isPrep ) {
+          if ( isam < sams.size() ) sig = sams[isam];
+        } else if ( isRawPed ) {
+          if ( isam < raw.size() ) sig = raw[isam] - ped;
+        } else if ( isSig ) {
+          if ( isam < sams.size() && isam < keep.size() && keep[isam] ) sig = sams[isam];
+        } else {
+          cout << myname << "Fill failed for bin " << ibin << endl;
+        }
       }
       ph->SetBinContent(ibin, sig);
     }
