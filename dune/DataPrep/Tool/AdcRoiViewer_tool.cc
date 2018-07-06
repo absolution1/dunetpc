@@ -94,6 +94,7 @@ Name AdcRoiViewer::State::getChanSumHistErrorType(Name hnam) const {
 AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_SigThresh(ps.get<float>("SigThresh")),
+  m_TickBorder(ps.get<Index>("TickBorder")),
   m_RoiHistOpt(ps.get<int>("RoiHistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
   m_PulserStepCharge(ps.get<float>("PulserStepCharge")),
@@ -134,6 +135,10 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if ( hvarx == "timingPhase_fitToffPulserMod10" ) {
       hvarx = "fitToffPulserMod10";
       hvary = "timingPhase";
+    }
+    if ( hvarx == "event_fitToffPulser" ) {
+      hvarx = "fitToffPulser";
+      hvary = "event";
     }
     Name hnam  = psh.get<Name>("name");
     Name httl  = psh.get<Name>("title");
@@ -176,6 +181,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name ylab;
     if ( hvary.size() ) {
       if ( hvary == "timingPhase" ) ylab = "Timing phase [Ticks]";
+      if ( hvary == "event" ) ylab = "Event";
     }
     TH1* ph = nullptr;
     if ( hvary == "" ) {
@@ -279,6 +285,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "         LogLevel: " << m_LogLevel << endl;
     cout << myname << "       RoiHistOpt: " << m_RoiHistOpt << endl;
     cout << myname << "        SigThresh: " << m_SigThresh << endl;
+    cout << myname << "       TickBorder: " << m_TickBorder << endl;
     cout << myname << "           FitOpt: " << m_FitOpt << endl;
     cout << myname << "  RoiRootFileName: " << m_RoiRootFileName << endl;
     cout << myname << "  SumRootFileName: " << m_SumRootFileName << endl;
@@ -448,6 +455,11 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     string httl = AdcChannelStringTool::build(m_adcStringBuilder, acd, sshttl.str());
     unsigned int isam1 = roi.first;
     unsigned int isam2 = roi.second + 1;
+    // Check position if this a ROI to keep.
+    if ( m_TickBorder > 0 ) {
+      if ( isam1 < m_TickBorder ) continue;
+      if ( isam2 + m_TickBorder > nsam ) continue;
+    }
     float x1 = histRelativeTick ? 0.0 : isam1;
     float x2 = histRelativeTick ? isam2 - isam1 : isam2;
     TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), isam2-isam1, x1, x2);
@@ -485,7 +497,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       if ( flag == AdcUnderflow ) ++nunder;
       if ( flag == AdcOverflow ) ++nover;
     }
-    // Check if this a ROI to keep.
+    // Check height if this a ROI to keep.
     if ( m_SigThresh < 0.0 && sigmin > m_SigThresh ) continue;
     if ( m_SigThresh > 0.0 && sigmax < m_SigThresh ) continue;
     ++nroi;
@@ -834,9 +846,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       }
       float val = vals[ival];
       double valy = 0.0;
-      if ( vary == "timingPhase" ) {
-        valy = timingPhase;
-      }
+      if ( vary == "timingPhase" ) valy = timingPhase;
+      if ( vary == "event" ) valy = acd.event;
       if ( vary == "" ) {
         ph->Fill(val);
       } else {

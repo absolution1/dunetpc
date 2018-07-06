@@ -7,8 +7,10 @@
 //
 // Configuration:
 //           LogLevel - Logging level: 0=none, 1=init, 2=call, ...
-//          SigThresh - if <0, then only keep ROIS with a tick below this value
-//                      if >0, then only keep ROIS with a tick above this value
+//          SigThresh - if <0, then only keep ROIs with a tick below this value
+//                      if >0, then only keep ROIs with a tick above this value
+//         TickBorder - if > 0, only keep ROIs forwhich there are this many ticks or more
+//                      before the start and after the end of the ROI.
 //         RoiHistOpt - histo option:  0 - No histograms
 //                                     1 - sample vs. tick
 //                                     2 - raw vs. tick
@@ -36,7 +38,7 @@
 //     var: Name of the variable to draw:
 //            fitHeight - Height from ROI fit
 //            fitWidth - Shaping time from ROI fit
-//            fitPos - Postion [ticks] fro ROI fit
+//            fitPos - Postion [ticks] from ROI fit
 //            fitPosRem - remainder(fitPos, 1)
 //            fitToffPulser - fmod(fitPos + toff, Tpulser) where
 //              toff is the timing offset, i.e. the time for tick 0 and
@@ -225,6 +227,7 @@ private:
   // Configuration data.
   int m_LogLevel;
   float m_SigThresh;
+  Index m_TickBorder;
   int m_RoiHistOpt;
   int m_FitOpt;
   float m_PulserStepCharge;
