@@ -312,6 +312,7 @@ tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
   SigThresh: 0.0
+  TickBorder: 0
   RoiHistOpt:  1
   FitOpt:   0
   PulserStepCharge: 0.0
@@ -326,6 +327,7 @@ tools.adcRoiViewer: {
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
   SigThresh: 0.0
+  TickBorder: 0
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1
