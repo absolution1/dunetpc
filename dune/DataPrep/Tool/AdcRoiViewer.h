@@ -121,6 +121,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Data/IndexRange.h"
 #include <iostream>
 
 class AdcChannelStringTool;
@@ -137,17 +138,7 @@ public:
   using HistVector = std::vector<TH1*>;
   using HistMap = std::map<Name, TH1*>;
   using NameMap = std::map<Name, Name>;
-
-  // This class describes a channel range.
-  class ChannelRange {
-  public:
-    Name name;
-    Name label;
-    Index begin;
-    Index end;
-    Index size() const { return end>begin ? end - begin : 0; }
-  };
-
+  using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
 
   // Subclass that associates a variable name with a histogram.
