@@ -333,7 +333,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  adcs += n_ticks;
 
 	  ch_counter++;
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch);
+	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
 	  if (_enforce_no_duplicate_channels)
 	    {
 	      if (offlineChannel < _duplicate_channel_checklist_size)
@@ -523,7 +523,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       }
     unsigned int crateloc = crate;  
 
-    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc); 
+    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::PdspChannelMapService::kFELIX); 
 
     if (_enforce_full_tick_count && v_adc.size() != _full_tick_count)
       {
