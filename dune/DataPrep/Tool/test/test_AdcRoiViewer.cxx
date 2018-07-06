@@ -44,6 +44,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  tool_type: AdcRoiViewer" << endl;
     fout << "  LogLevel: 3" << endl;
     fout << "  SigThresh: 0.0" << endl;
+    fout << "  TickBorder: 0" << endl;
     fout << "  RoiHistOpt: 1" << endl;
     fout << "  FitOpt: 1" << endl;
     fout << "  PulserStepCharge: 0.0" << endl;
