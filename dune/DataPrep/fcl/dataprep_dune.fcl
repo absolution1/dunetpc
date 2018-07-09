@@ -234,6 +234,18 @@ adcprep_sim: {
   DisplayTools:             []
 }
 
+adcprep_sim_new: {
+  service_provider: ToolBasedRawDigitPrepService
+  LogLevel: 3
+  DoWires: true
+  AdcChannelToolNames: [
+    "digitReader",
+    "adcSampleFiller",
+    "adcVintageDeconvoluter",
+    "adcThresholdSignalFinder"
+  ]
+}
+
 # Process DP 3x1x1 data.
 adcprep_dunedphase3x1x1: {
   service_provider: StandardRawDigitPrepService

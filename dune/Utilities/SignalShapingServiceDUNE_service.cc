@@ -15,6 +15,8 @@
 #include "lardata/Utilities/LArFFT.h"
 #include "TFile.h"
 
+using std::string;
+
 //----------------------------------------------------------------------
 // Constructor.
 util::SignalShapingServiceDUNE::SignalShapingServiceDUNE(const fhicl::ParameterSet& pset,
@@ -179,8 +181,8 @@ void util::SignalShapingServiceDUNE::reconfigure(const fhicl::ParameterSet& pset
 //----------------------------------------------------------------------
 // Accessor for single-plane signal shaper.
 const util::SignalShaping&
-util::SignalShapingServiceDUNE::SignalShaping(unsigned int channel) const
-{
+util::SignalShapingServiceDUNE::SignalShaping(unsigned int channel) const {
+  const string myname = "SignalShapingServiceDUNE::ctor: ";
   if(!fInit)
     init();
 
@@ -201,8 +203,8 @@ util::SignalShapingServiceDUNE::SignalShaping(unsigned int channel) const
   else if(view == geo::kZ)
     return fColSignalShaping;
   else
-    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
-                                                          << " View\n";
+    throw cet::exception("SignalShapingServiceDUNEt") << myname
+          << "can't determine view for channel " << channel << " with geometry " << geom->DetectorName() << "\n";
 							  
 return fColSignalShaping;
 }
@@ -212,8 +214,8 @@ std::vector<DoubleVec> util::SignalShapingServiceDUNE::GetNoiseFactVec() const {
 }
 
 //-----Give Gain Settings to SimWire-----//jyoti
-double util::SignalShapingServiceDUNE::GetASICGain(unsigned int const channel) const
-{
+double util::SignalShapingServiceDUNE::GetASICGain(unsigned int const channel) const {
+  const string myname = "SignalShapingServiceDUNE::GetASICGain: ";
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
 
@@ -228,15 +230,15 @@ double util::SignalShapingServiceDUNE::GetASICGain(unsigned int const channel) c
   else if(view == geo::kZ)
     gain = fASICGainInMVPerFC.at(2);
   else
-    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
-						       << " View\n";
+    throw cet::exception("SignalShapingServiceDUNEt") << myname
+          << "can't determine view for channel " << channel << " with geometry " << geom->DetectorName() << "\n";
   return gain;
 }
 
 
 //-----Give Shaping time to SimWire-----//jyoti
-double util::SignalShapingServiceDUNE::GetShapingTime(unsigned int const channel) const
-{
+double util::SignalShapingServiceDUNE::GetShapingTime(unsigned int const channel) const {
+  const string myname = "SignalShapingServiceDUNE::GetShapingTime: ";
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
 
@@ -252,13 +254,13 @@ double util::SignalShapingServiceDUNE::GetShapingTime(unsigned int const channel
   else if(view == geo::kZ)
     shaping_time = fShapeTimeConst.at(2);
   else
-    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
-						       << " View\n";
+    throw cet::exception("SignalShapingServiceDUNEt") << myname
+          << "can't determine view for channel " << channel << " with geometry " << geom->DetectorName() << "\n";
   return shaping_time;
 }
 
-double util::SignalShapingServiceDUNE::GetRawNoise(unsigned int const channel) const
-{
+double util::SignalShapingServiceDUNE::GetRawNoise(unsigned int const channel) const {
+  const string myname = "SignalShapingServiceDUNE::GetRawNoise: ";
   unsigned int plane;
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
@@ -273,8 +275,8 @@ double util::SignalShapingServiceDUNE::GetRawNoise(unsigned int const channel) c
   else if(view == geo::kZ)
     plane = 2;
   else
-    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
-                                                          << " View\n";
+    throw cet::exception("SignalShapingServiceDUNEt") << myname
+          << "can't determine view for channel " << channel << " with geometry " << geom->DetectorName() << "\n";
 
   double shapingtime = fShapeTimeConst.at(plane);
   double gain = fASICGainInMVPerFC.at(plane);
@@ -297,8 +299,8 @@ double util::SignalShapingServiceDUNE::GetRawNoise(unsigned int const channel) c
   return rawNoise;
 }
 
-double util::SignalShapingServiceDUNE::GetDeconNoise(unsigned int const channel) const
-{
+double util::SignalShapingServiceDUNE::GetDeconNoise(unsigned int const channel) const {
+  const string myname = "SignalShapingServiceDUNE::GetDeconNoise: ";
   unsigned int plane;
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
@@ -313,8 +315,8 @@ double util::SignalShapingServiceDUNE::GetDeconNoise(unsigned int const channel)
   else if(view == geo::kZ)
     plane = 2;
   else
-    throw cet::exception("SignalShapingServiceDUNE")<< "can't determine"
-                                                          << " View\n";
+    throw cet::exception("SignalShapingServiceDUNEt") << myname
+          << "can't determine view for channel " << channel << " with geometry " << geom->DetectorName() << "\n";
 
   double shapingtime = fShapeTimeConst.at(plane);
   int temp;
@@ -755,8 +757,8 @@ void util::SignalShapingServiceDUNE::SetResponseSampling()
 
 
 
-int util::SignalShapingServiceDUNE::FieldResponseTOffset(unsigned int const channel) const
-{
+int util::SignalShapingServiceDUNE::FieldResponseTOffset(unsigned int const channel) const {
+  const string myname = "SignalShapingServiceDUNE::FieldResponseTOffset: ";
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
  
@@ -772,8 +774,8 @@ int util::SignalShapingServiceDUNE::FieldResponseTOffset(unsigned int const chan
   else if(view == geo::kZ)
     time_offset = fFieldResponseTOffset.at(2) + fCalibResponseTOffset.at(2); 
   else
-    throw cet::exception("SignalShapingServiceDUNEt")<< "can't determine"
-						       << " View\n";
+    throw cet::exception("SignalShapingServiceDUNEt") << myname
+          << "can't determine view for channel " << channel << " with geometry " << geom->DetectorName() << "\n";
 
   auto tpc_clock = lar::providerFrom<detinfo::DetectorClocksService>()->TPCClock();
   return tpc_clock.Ticks(time_offset/1.e3);

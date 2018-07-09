@@ -265,8 +265,10 @@ void DataPrepModule::produce(art::Event& evt) {
       datamaps.emplace_back();
       AdcChannelDataMap& datamap = datamaps.back();
       for ( AdcChannel chan : m_pChannelGroupService->channels(igrp) ) {
-        datamap.emplace(chan, move(fulldatamap[chan]));
-        ++ncgrp;
+        if ( fulldatamap.find(chan) != fulldatamap.end() ) {
+          datamap.emplace(chan, move(fulldatamap[chan]));
+          ++ncgrp;
+        }
       }
     }
   } else {
@@ -279,6 +281,8 @@ void DataPrepModule::produce(art::Event& evt) {
   }
 
   for ( AdcChannelDataMap& datamap : datamaps ) {
+
+    if ( datamap.size() == 0 ) continue;
 
     // Use the data preparation service to build the wires and intermediate states.
     int rstat = m_pRawDigitPrepService->prepare(datamap, pwires.get(), pintStates);
