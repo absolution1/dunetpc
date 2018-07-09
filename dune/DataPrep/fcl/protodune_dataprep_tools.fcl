@@ -1,6 +1,14 @@
 #include "dataprep_tools.fcl"
 
 ################################################################################
+# Channel mapping.
+################################################################################
+
+tools.pd_onlineChannelMap: {
+  tool_type: PdspOnlineChannel
+}
+
+################################################################################
 # Detector event display.
 ################################################################################
 
@@ -142,6 +150,7 @@ pdwp_template: {
   LastTick:  0
   FirstChannel: 0
   LastChannel:  0
+  FembTickOffsets: []
   MaxSignal: 50
   ChannelLineModulus: 0
   ChannelLinePattern: []

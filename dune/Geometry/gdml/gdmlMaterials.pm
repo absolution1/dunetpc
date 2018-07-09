@@ -162,6 +162,21 @@ sub gen_Materials
    <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
+  <!-- Foam density is 70 kg / m^3 for the 3x1x1 -->
+  <material name="foam_3x1x1dp">
+   <D value="0.07" unit="g/cm3"/>
+   <fraction n="0.95" ref="Air"/>
+   <fraction n="0.05" ref="fibrous_glass"/>
+  </material>
+
+  <!-- Copied from protodune_v4.gdml -->
+  <material name="foam_protoDUNEdp">
+   <D value="0.135" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
 
   <material name="FR4">
    <D value="1.98281" unit="g/cm3"/>

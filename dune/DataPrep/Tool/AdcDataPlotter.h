@@ -12,6 +12,10 @@
 //   LastTick - Last+1 tick number to display
 //   FirstChannel - First channel to display
 //   LastChannel - Last+1 channel to display
+//   FembTickOffsets - Tick offset for each FEMB. FEMB = (offline channel)/128
+//                     Offset is zero for FEMBs beyond range.
+//                     Values should be zero (empty array) for undistorted plots
+//   OnlineChannelMapTool - Name of tool mapping channel # to online channel #.
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
@@ -50,8 +54,10 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <vector>
+#include <memory>
 
 class AdcChannelStringTool;
+class IndexMapTool;
 
 class AdcDataPlotter : AdcChannelTool {
 
@@ -59,6 +65,7 @@ public:
 
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
+  using IntVector = std::vector<int>;
 
   AdcDataPlotter(fhicl::ParameterSet const& ps);
 
@@ -76,6 +83,8 @@ private:
   unsigned long  m_LastTick;
   Index          m_FirstChannel;
   Index          m_LastChannel;
+  IntVector      m_FembTickOffsets;
+  std::string    m_OnlineChannelMapTool;
   double         m_MaxSignal;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
@@ -89,6 +98,7 @@ private:
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
+  const IndexMapTool* m_pOnlineChannelMapTool;
 
 };
 

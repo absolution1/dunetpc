@@ -128,6 +128,7 @@ tools.preparedAdcPlotter: {
   LastTick:  0
   FirstChannel: 0
   LastChannel:  0
+  FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 0
   ChannelLinePattern: [0, 800, 1600, 2080]
@@ -147,6 +148,7 @@ tools.rawAdcPlotter: {
   LastTick:  0
   FirstChannel: 0
   LastChannel:  0
+  FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 0
   ChannelLinePattern: [0, 800, 1600, 2080]
@@ -310,12 +312,14 @@ tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
   SigThresh: 0.0
+  TickBorder: 0
   RoiHistOpt:  1
   FitOpt:   0
   PulserStepCharge: 0.0
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
+  TickOffsetTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""
@@ -323,6 +327,7 @@ tools.adcRoiViewer: {
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
   SigThresh: 0.0
+  TickBorder: 0
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1
@@ -330,6 +335,7 @@ tools.adcRoiFitter: {
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
+  TickOffsetTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""
