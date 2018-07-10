@@ -217,8 +217,8 @@ adcprep_readraw: {
   DisplayTools:             []
 }
 
-# Process simulation.
-adcprep_sim: {
+# Process simulation using service-based dataprep.
+adcprep_with_services_sim: {
   service_provider: StandardRawDigitPrepService
   LogLevel: 1
   SkipBad:                true
@@ -234,7 +234,21 @@ adcprep_sim: {
   DisplayTools:             []
 }
 
-adcprep_sim_new: {
+# Process simulation using tool-based dataprep.
+adcprep_with_tools_sim: {
+  service_provider: ToolBasedRawDigitPrepService
+  LogLevel: 3
+  DoWires: true
+  AdcChannelToolNames: [
+    "digitReader",
+    "adcSampleFiller",
+    "adcVintageDeconvoluter",
+    "adcThresholdSignalFinder"
+  ]
+}
+
+# Process data using tool-based dataprep.
+adcprep_with_tools_data: {
   service_provider: ToolBasedRawDigitPrepService
   LogLevel: 3
   DoWires: true

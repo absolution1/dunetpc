@@ -130,7 +130,7 @@ tools.preparedAdcPlotter: {
   LastChannel:  0
   FembTickOffsets: []
   MaxSignal: 200
-  ChannelLineModulus: 0
+  ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
@@ -150,7 +150,7 @@ tools.rawAdcPlotter: {
   LastChannel:  0
   FembTickOffsets: []
   MaxSignal: 200
-  ChannelLineModulus: 0
+  ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
