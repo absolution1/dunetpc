@@ -140,6 +140,26 @@ tools.preparedAdcPlotter: {
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
   RootFileName: ""    # or "adc_evt%EVENT%.root"
 }
+tools.signalAdcPlotter: {
+  tool_type: AdcDataPlotter
+  LogLevel: 1
+  DataType: 2      # 0 for prepared, 1 for raw-pedestal
+  FirstTick: 0
+  LastTick:  0
+  FirstChannel: 0
+  LastChannel:  0
+  FembTickOffsets: []
+  MaxSignal: 200
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  Palette: 1026
+  HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
+  HistTitle: "Signal ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotFileName: "adcsig_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  RootFileName: ""    # or "adc_evt%EVENT%.root"
+}
 tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1

@@ -123,7 +123,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   AdcIndex acdChanLast = acdLast.channel;
   AdcIndex chanFirst = acdChanFirst;
   AdcIndex chanLast = acdChanLast;
-  // If the prameters specify a channel range, we use it.
+  // If the parameters specify a channel range, we use it.
   // No action if the map does not have channels in this range.
   if ( m_LastChannel > m_FirstChannel ) {
     chanFirst = m_FirstChannel;
