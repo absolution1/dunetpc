@@ -1,0 +1,66 @@
+<!--                                                                                  -->
+<!--  $Author:  $                                                                     -->
+<!--  $Date: 2010/04/12 18:12:28 $                                                    -->
+<!--                                                                                  -->
+<!--  Include art::Wrapper lines for objects that we would like to put into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper lines and     -->
+<!--  for all objects that are data members of those objects.                         -->
+
+<lcgdict>
+
+<!-- support classes (e.g., elements of data product classes) -->
+
+ <!--JStock Classes that aren't good-->
+ <class name="EventRecord::PartialOpHit" ClassVersion="14">
+  <version ClassVersion="14" checksum="3732137364"/>
+   <version ClassVersion="13" checksum="3073689731"/>
+   <version ClassVersion="12" checksum="1478576091"/>
+   <version ClassVersion="11" checksum="4050960930"/>
+   <version ClassVersion="10" checksum="2378973873"/>
+ </class>
+ <class name="EventRecord::PartialPDOpHit" ClassVersion="10">
+  <version ClassVersion="10" checksum="530436685"/>
+ </class>
+ <class name="EventRecord::PartialHit" ClassVersion="14">
+   <version ClassVersion="14" checksum="3286341470"/>
+   <version ClassVersion="13" checksum="474482815"/>
+   <version ClassVersion="12" checksum="1493617752"/>
+   <version ClassVersion="11" checksum="1374773"/>
+   <version ClassVersion="10" checksum="2362630748"/>
+ </class>
+ <class name="EventRecord::ParticleRecord" ClassVersion="14">
+   <version ClassVersion="14" checksum="881007241"/>
+   <version ClassVersion="13" checksum="376250372"/>
+   <version ClassVersion="12" checksum="537460143"/>
+   <version ClassVersion="11" checksum="376250372"/>
+   <version ClassVersion="10" checksum="2971884106"/>
+ </class>
+ <class name="EventRecord::EventRecord" ClassVersion="11">
+   <version ClassVersion="11" checksum="3527466706"/>
+   <version ClassVersion="10" checksum="2671704848"/>
+ </class>
+ <class name="EventRecord::HitContributor" ClassVersion="10">
+   <version ClassVersion="10" checksum="930023805"/>
+ </class>
+ <class name="EventRecord::EveRecord" ClassVersion="12">
+   <version ClassVersion="12" checksum="3936382072"/>
+   <version ClassVersion="11" checksum="2428085979"/>
+   <version ClassVersion="10" checksum="3936382072"/>
+ </class>
+ <class name="EventRecord::HCRec" ClassVersion="10">
+   <version ClassVersion="10" checksum="1066719352"/>
+ </class>
+ <class name="sim::OpDetDivRec" ClassVersion="12">
+  <version ClassVersion="12" checksum="3335723222"/>
+  <version ClassVersion="11" checksum="1415000109"/>
+   <version ClassVersion="10" checksum="2505021768"/>
+ </class>
+ <class name="std::vector<sim::OpDetDivRec>" />
+ <class name="art::Ptr<sim::OpDetDivRec>" />
+ <class name="art::Wrapper<vector<sim::OpDetDivRec> >"/>
+ <class name="sim::OpDet_Time_Chans"/>
+ <class name="std::vector<sim::OpDet_Time_Chans>"/>
+ <class name="sim::Chan_Phot"/>
+ <class name="std::vector<sim::Chan_Phot>"/>
+
+</lcgdict>
