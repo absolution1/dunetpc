@@ -23,7 +23,7 @@ namespace sim {
   { }
 
   //int OpDetDivRec::OpDetNum() const { return fOpDetNum; }
-  void OpDetDivRec::add_photon(int opchan, OpDet_Time_Chans::stored_time_t time){
+  void OpDetDivRec::AddPhoton(int opchan, OpDet_Time_Chans::stored_time_t time){
     Tick_Chans_t::iterator itr = priv_FindClosestTimeChan(time);
     if(itr == tick_chans.end() || itr->time!=time){
       std::vector<Chan_Phot> cfl;

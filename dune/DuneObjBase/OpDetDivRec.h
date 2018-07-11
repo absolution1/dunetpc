@@ -81,7 +81,7 @@ namespace sim {
       explicit OpDetDivRec(int det);
       Tick_Chans_t const& GetTickChans(){return tick_chans;}
       int OpDetNum() const{ return fOpDetNum; }
-      void add_photon(int opchan, OpDet_Time_Chans::stored_time_t pdTime);
+      void AddPhoton(int opchan, OpDet_Time_Chans::stored_time_t pdTime);
       std::vector<std::pair<int, double>> GetFracs(OpDet_Time_Chans::stored_time_t time);
       time_slice GetSlice(OpDet_Time_Chans::stored_time_t low_time, OpDet_Time_Chans::stored_time_t high_time);
 
