@@ -9,17 +9,9 @@
 
 ################################################################################
 # Tools to display ADC data.
-#
-# Add them to the dataprep service to display contents, e.g.
-#  services.RawDigitPrepService.DisplayTools = ["adcPlotter"]
 ################################################################################
 
-# Destination for data prep histograms.
-# This is now (April 2018) obsolete.
-tools.adcHists: {
-  tool_type: SimpleHistogramManager
-  LogLevel: 1
-}
+tools.tickRanges.plotTicks: { begin:3000  end:4000 label:"Plot ticks" }
 
 ################################################################################
 # Dumpers.
@@ -124,8 +116,7 @@ tools.preparedAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
+  TickRange: plotTicks
   FirstChannel: 0
   LastChannel:  0
   FembTickOffsets: []
@@ -144,8 +135,7 @@ tools.signalAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
+  TickRange: plotTicks
   FirstChannel: 0
   LastChannel:  0
   FembTickOffsets: []
@@ -164,8 +154,7 @@ tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
+  TickRange: plotTicks
   FirstChannel: 0
   LastChannel:  0
   FembTickOffsets: []

@@ -58,7 +58,7 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
     fout << "  PlotFileName: \"adcped_ev%EVENT%_chan%CHAN%.png\"" << endl;
     fout << "  RootFileName: \"adcped.root\"" << endl;
-    fout << "  HistManager: \"adcHists\"" << endl;
+    fout << "  HistManager: \"\"" << endl;
     fout << "  PlotSizeX:  700" << endl;
     fout << "  PlotSizeY:  500" << endl;
     fout << "  PlotShowFit:  2" << endl;
