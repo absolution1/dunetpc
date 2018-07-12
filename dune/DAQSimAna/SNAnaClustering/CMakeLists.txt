@@ -22,6 +22,7 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
   ${MF_UTILITIES}
+  ${ROOT_GEOM}
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
   )
