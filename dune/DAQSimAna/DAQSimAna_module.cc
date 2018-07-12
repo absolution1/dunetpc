@@ -141,7 +141,8 @@ private:
   std::vector<int>   IDEChannel;
   std::vector<int>   IDEStartTime;
   std::vector<int>   IDEEndTime;
-  std::vector<float> IDECharge;
+  std::vector<float> IDEEnergy;
+  std::vector<float> IDEElectrons;
   std::vector<int>   IDEParticle;
 
   // histograms to fill about Collection plane hits
@@ -229,7 +230,8 @@ void DAQSimAna::ResetVariables()
   IDEChannel.clear();
   IDEStartTime.clear();
   IDEEndTime.clear();
-  IDECharge.clear();
+  IDEEnergy.clear();
+  IDEElectrons.clear();
   IDEParticle.clear();
 
 } // ResetVariables
@@ -277,7 +279,8 @@ void DAQSimAna::beginJob()
   fDAQSimTree->Branch("IDEChannel", &IDEChannel);
   fDAQSimTree->Branch("IDEStartTime", &IDEStartTime);
   fDAQSimTree->Branch("IDEEndTime", &IDEEndTime);
-  fDAQSimTree->Branch("IDECharge", &IDECharge);
+  fDAQSimTree->Branch("IDEEnergy", &IDEEnergy);
+  fDAQSimTree->Branch("IDEElectrons", &IDEElectrons);
   fDAQSimTree->Branch("IDEParticle", &IDEParticle);
 
   // --- Our Histograms...
@@ -342,25 +345,27 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
         }
 
         for(auto const& contigs : contigIDEs){
-            float charge=0;
+            float energy=0;
+            float electrons=0;
             int startTime=99999;
             int endTime=0;
-            std::map<PType, float> ptypeToCharge;
+            std::map<PType, float> ptypeToEnergy;
             for(auto const& timeide : contigs){
                 const int tdc=timeide.first;
                 startTime=std::min(tdc, startTime);
                 endTime=std::max(tdc, endTime);
                 const sim::IDE& ide=*timeide.second;
-                const float thisCharge=ide.energy;
+                const float thisEnergy=ide.energy;
                 const PType thisPType=WhichParType(std::abs(ide.trackID));
-                charge+=thisCharge;
-                ptypeToCharge[thisPType]+=thisCharge;
+                energy+=thisEnergy;
+                electrons+=ide.numElectrons;
+                ptypeToEnergy[thisPType]+=thisEnergy;
             }
-            float bestCharge=0;
+            float bestEnergy=0;
             PType bestPType=kUnknown;
-            for(auto const& it : ptypeToCharge){
-                if(it.second>bestCharge){
-                    bestCharge=it.second;
+            for(auto const& it : ptypeToEnergy){
+                if(it.second>bestEnergy){
+                    bestEnergy=it.second;
                     bestPType=it.first;
                 }
             }
@@ -369,7 +374,8 @@ void DAQSimAna::SaveIDEs(art::Event const & evt)
                 IDEChannel.push_back(simch.Channel());
                 IDEStartTime.push_back(startTime);
                 IDEEndTime.push_back(endTime);
-                IDECharge.push_back(charge);
+                IDEEnergy.push_back(energy);
+                IDEElectrons.push_back(electrons);
                 IDEParticle.push_back(bestPType);
             }
         } // loop over our compressed IDEs
