@@ -3,7 +3,7 @@
 // David Adams
 // July 2018
 //
-// Data structure that holds a named and lableled contiguous
+// Data structure that holds a named and labeled contiguous
 // range of indices. The intention is that the name is unique
 // (in some context) and can be used as an identifier and to
 // construct other (e.g. histogram) names. The label is expected
