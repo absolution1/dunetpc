@@ -12,6 +12,14 @@ tools.protoduneRunDataTool: {
   FileNames: ["rundata/protodune/rundata.fcl", "rundata/protodune/rundata%RUN%.fcl"]
 }
 
+# Tick range tool.
+# So tools can share tick ranges.
+tools.tickRanges: {
+  tool_type: FclIndexRangeTool
+  LogLevel: 1
+  allTicks:  { begin:0     end:0     label:"All ticks"  }
+}
+
 # Histogram manager.
 tools.histMgr: {
   tool_type: SimpleHistogramManager

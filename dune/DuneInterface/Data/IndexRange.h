@@ -40,6 +40,10 @@ public:
   bool isValid() const { return end > begin; }
   Index first() const { return begin; }
   Index last() const { return end > 0 ? end - 1 : 0; }
+  std::string rangeString() const {
+    if ( ! isValid() ) return "[]";
+    return "[" + std::to_string(begin) + ", " + std::to_string(end) + ")";
+  }
   
 };
 
