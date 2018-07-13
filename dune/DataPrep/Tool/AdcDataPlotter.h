@@ -106,7 +106,6 @@ private:
   // Client tools.
   const AdcChannelStringTool* m_adcStringBuilder;
   const IndexMapTool* m_pOnlineChannelMapTool;
-  const IndexRangeTool* m_pTickRangeTool;
 
 };
 
