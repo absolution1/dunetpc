@@ -32,6 +32,8 @@ public:
   IndexRange() { };
   IndexRange(Index len) : end(len) { }
   IndexRange(Index a_begin, Index a_end) : begin(a_begin), end(a_end) { }
+  IndexRange(Name a_name, Index a_begin, Index a_end, Name a_label ="")
+  : name(a_name), label(a_label), begin(a_begin), end(a_end) { }
 
   // Length of the range.
   Index size() const { return end>begin ? end - begin : 0; }

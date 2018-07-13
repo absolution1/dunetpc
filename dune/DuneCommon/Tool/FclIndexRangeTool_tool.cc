@@ -1,11 +1,8 @@
 // FclIndexRangeTool_tool.cc
 
 #include "FclIndexRangeTool.h"
-#include "dune/DuneCommon/StringManipulator.h"
 #include "fhiclcpp/intermediate_table.h"
 #include "fhiclcpp/make_ParameterSet.h"
-#include "TString.h"
-#include "TSystem.h"
 #include <iostream>
 #include <iomanip>
 

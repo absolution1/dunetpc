@@ -34,7 +34,7 @@ public:
   // Dtor.
   ~FclIndexRangeTool() override =default;
 
-  // Return run data.
+  // Return a range.
   IndexRange get(Name nam) const override;
 
 private:
