@@ -11,6 +11,7 @@ standard_snana:
   OpHitModuleLabel:     "ophit"
 
   SaveNeighbourADCs:    true
+  SaveTruth:            true
 
   GEANT4Label:   "largeant"    # The label for the process which ran GEANT4
   MARLEYLabel:   "marley"      # The label for the process which produced MARLEY events

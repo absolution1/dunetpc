@@ -263,6 +263,7 @@ private:
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   art::ServiceHandle<cheat::PhotonBackTrackerService> pbt_serv;
 
+  bool fSaveTruth;
 };
 
 SNAna::SNAna(fhicl::ParameterSet const & p):EDAnalyzer(p)
@@ -291,7 +292,7 @@ void SNAna::reconfigure(fhicl::ParameterSet const & p)
   fAr42Label  = p.get<std::string> ("Argon42Label" );
 
   fSaveNeighbourADCs = p.get<bool> ("SaveNeighbourADCs");
-  
+  fSaveTruth = p.get<bool>("SaveTruth");
 } 
 
 
@@ -704,15 +705,18 @@ void SNAna::analyze(art::Event const & evt)
   FillMyMaps( Ar42Parts, Ar42Assn, Ar42True );
   TotGen_Ar42 = Ar42Parts.size();
 
-  FillTruth(MarlAssn, MarlTrue, kMarl);
-  FillTruth(APAAssn , APATrue , kAPA );
-  FillTruth(CPAAssn , CPATrue , kCPA );
-  FillTruth(Ar39Assn, Ar39True, kAr39);
-  FillTruth(NeutAssn, NeutTrue, kNeut);
-  FillTruth(KrypAssn, KrypTrue, kKryp);
-  FillTruth(PlonAssn, PlonTrue, kPlon);
-  FillTruth(RdonAssn, RdonTrue, kRdon);
-  FillTruth(Ar42Assn, Ar42True, kAr42);
+  if(fSaveTruth){
+      FillTruth(MarlAssn, MarlTrue, kMarl);
+      FillTruth(APAAssn , APATrue , kAPA );
+      FillTruth(CPAAssn , CPATrue , kCPA );
+      FillTruth(Ar39Assn, Ar39True, kAr39);
+      FillTruth(NeutAssn, NeutTrue, kNeut);
+      FillTruth(KrypAssn, KrypTrue, kKryp);
+      FillTruth(PlonAssn, PlonTrue, kPlon);
+      FillTruth(RdonAssn, RdonTrue, kRdon);
+      FillTruth(Ar42Assn, Ar42True, kAr42);
+  }
+
   std::vector<simb::MCParticle> allTruthParts;
   for(auto& it: APAParts)
     allTruthParts.push_back(it.second);
@@ -847,88 +851,91 @@ void SNAna::analyze(art::Event const & evt)
     Hit_TPC .push_back(ThisHit.WireID().TPC);
     int channel = ThisHit.Channel();
     Hit_Chan.push_back(channel);
-    
-    Hit_AdjM5SADC.push_back(0);
-    Hit_AdjM2SADC.push_back(0);
-    Hit_AdjM1SADC.push_back(0);
-    Hit_AdjP1SADC.push_back(0);
-    Hit_AdjP2SADC.push_back(0);
-    Hit_AdjP5SADC.push_back(0);
-    Hit_AdjM5Chan.push_back(0);
-    Hit_AdjM2Chan.push_back(0);
-    Hit_AdjM1Chan.push_back(0);
-    Hit_AdjP1Chan.push_back(0);
-    Hit_AdjP2Chan.push_back(0);
-    Hit_AdjP5Chan.push_back(0);
+
+    if(fSaveNeighbourADCs){
+        Hit_AdjM5SADC.push_back(0);
+        Hit_AdjM2SADC.push_back(0);
+        Hit_AdjM1SADC.push_back(0);
+        Hit_AdjP1SADC.push_back(0);
+        Hit_AdjP2SADC.push_back(0);
+        Hit_AdjP5SADC.push_back(0);
+        Hit_AdjM5Chan.push_back(0);
+        Hit_AdjM2Chan.push_back(0);
+        Hit_AdjM1Chan.push_back(0);
+        Hit_AdjP1Chan.push_back(0);
+        Hit_AdjP2Chan.push_back(0);
+        Hit_AdjP5Chan.push_back(0);
    
 
-    // A vector for us to uncompress the rawdigits into. Create it
-    // outside the loop here so that we only have to allocate it once
-    raw::RawDigit::ADCvector_t ADCs((*rawDigitsVecHandle)[0].Samples());
+        // A vector for us to uncompress the rawdigits into. Create it
+        // outside the loop here so that we only have to allocate it once
+        raw::RawDigit::ADCvector_t ADCs((*rawDigitsVecHandle)[0].Samples());
 
-    std::vector<geo::WireID> wids = geo->ChannelToWire(channel);
-    for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
-    {
-      int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
-      const int chanDiff=rawWireChannel-channel;
-      if(abs(chanDiff)!=1 && abs(chanDiff)!=2 && abs(chanDiff)!=5) continue;
+        std::vector<geo::WireID> wids = geo->ChannelToWire(channel);
+        for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
+        {
+            int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
+            const int chanDiff=rawWireChannel-channel;
+            if(abs(chanDiff)!=1 && abs(chanDiff)!=2 && abs(chanDiff)!=5) continue;
 
-      if(badChannels.find(rawWireChannel)!=badChannels.end()) continue;
+            if(badChannels.find(rawWireChannel)!=badChannels.end()) continue;
 
-      switch(chanDiff)
-      {
-      case -5:
-          Hit_AdjM5SADC[colHitCount] = 0;
-          Hit_AdjM5Chan[colHitCount] = rawWireChannel;
-          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                          (*rawDigitsVecHandle)[i].Compression());
-          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-              Hit_AdjM5SADC[colHitCount]+=ADCs[i];
-          break;
-      case -2:
-          Hit_AdjM2SADC[colHitCount] = 0;
-          Hit_AdjM2Chan[colHitCount] = rawWireChannel;
-          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                          (*rawDigitsVecHandle)[i].Compression());
-          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-              Hit_AdjM2SADC[colHitCount]+=ADCs[i];
-          break;
-      case -1:
-          Hit_AdjM1SADC[colHitCount] = 0;
-          Hit_AdjM1Chan[colHitCount] = rawWireChannel;
-          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                          (*rawDigitsVecHandle)[i].Compression());
-          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-              Hit_AdjM1SADC[colHitCount]+=ADCs[i];
-          break;
-      case  1:
-          Hit_AdjP1SADC[colHitCount] = 0;
-          Hit_AdjP1Chan[colHitCount] = rawWireChannel;
-          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                          (*rawDigitsVecHandle)[i].Compression());
-          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-              Hit_AdjP1SADC[colHitCount]+=ADCs[i];
-          break;
-      case  2:
-          Hit_AdjP2SADC[colHitCount] = 0;
-          Hit_AdjP2Chan[colHitCount] = rawWireChannel;
-          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                          (*rawDigitsVecHandle)[i].Compression());
-          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-              Hit_AdjP2SADC[colHitCount]+=ADCs[i];
-          break;
-      case  5:
-          Hit_AdjP5SADC[colHitCount] = 0;
-          Hit_AdjP5Chan[colHitCount] = rawWireChannel;
-          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                          (*rawDigitsVecHandle)[i].Compression());
-          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-              Hit_AdjP5SADC[colHitCount]+=ADCs[i];
-          break;
-      default:
-          break;
-      }
+            switch(chanDiff)
+            {
+            case -5:
+                Hit_AdjM5SADC[colHitCount] = 0;
+                Hit_AdjM5Chan[colHitCount] = rawWireChannel;
+                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                                (*rawDigitsVecHandle)[i].Compression());
+                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+                    Hit_AdjM5SADC[colHitCount]+=ADCs[i];
+                break;
+            case -2:
+                Hit_AdjM2SADC[colHitCount] = 0;
+                Hit_AdjM2Chan[colHitCount] = rawWireChannel;
+                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                                (*rawDigitsVecHandle)[i].Compression());
+                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+                    Hit_AdjM2SADC[colHitCount]+=ADCs[i];
+                break;
+            case -1:
+                Hit_AdjM1SADC[colHitCount] = 0;
+                Hit_AdjM1Chan[colHitCount] = rawWireChannel;
+                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                                (*rawDigitsVecHandle)[i].Compression());
+                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+                    Hit_AdjM1SADC[colHitCount]+=ADCs[i];
+                break;
+            case  1:
+                Hit_AdjP1SADC[colHitCount] = 0;
+                Hit_AdjP1Chan[colHitCount] = rawWireChannel;
+                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                                (*rawDigitsVecHandle)[i].Compression());
+                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+                    Hit_AdjP1SADC[colHitCount]+=ADCs[i];
+                break;
+            case  2:
+                Hit_AdjP2SADC[colHitCount] = 0;
+                Hit_AdjP2Chan[colHitCount] = rawWireChannel;
+                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                                (*rawDigitsVecHandle)[i].Compression());
+                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+                    Hit_AdjP2SADC[colHitCount]+=ADCs[i];
+                break;
+            case  5:
+                Hit_AdjP5SADC[colHitCount] = 0;
+                Hit_AdjP5Chan[colHitCount] = rawWireChannel;
+                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                                (*rawDigitsVecHandle)[i].Compression());
+                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+                    Hit_AdjP5SADC[colHitCount]+=ADCs[i];
+                break;
+            default:
+                break;
+            }
+        }
     }
+
 
     double wire_start[3] = {0,0,0};
     double wire_end[3] = {0,0,0};
