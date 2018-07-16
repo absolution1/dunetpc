@@ -49,6 +49,7 @@ using readout::ROPID;
 using geo::Geometry;
 using geo::CryostatGeo;
 using geo::TPCGeo;
+using geo::WireGeo;
 
 typedef unsigned int Index;
 const Index InvalidIndex = std::numeric_limits<Index>::max();
@@ -272,7 +273,7 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
 
   cout << myname << line << endl;
   if ( 0  ) check("GetWorldVolumeName", pgeo->GetWorldVolumeName());
-  check("TotalMass", pgeo->TotalMass());
+  if ( 0 ) check("TotalMass", pgeo->TotalMass());
 
   cout << myname << line << endl;
   check("CryostatHalfWidth", pgeo->CryostatHalfWidth());
@@ -351,20 +352,33 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
     bool print = nprint < maxchanprint;
     if ( print ) ++nprint;
     if ( print ) cout << "  Channel " << setw(4) << icha << " has " << wirids.size() << " wires:";
+    WireID wid0;
+    ostringstream sposs;
+    sposs.precision(2);
     for ( WireID wirid : wirids ) {
       Index itpc = wirid.TPC;
       Index iapa = itpc/2;
       Index ipla = wirid.Plane;
       Index iwir = wirid.Wire;
-      if ( print ) cout << " " << itpc << "-" << ipla << "-"<< iwir;
+      if ( print ) cout << " " << itpc << "-" << ipla << "-" << setw(3) << iwir;
       if ( iwir > lastwire[itpc][ipla] ) lastwire[itpc][ipla] = iwir;
       assert( iapa == iapa1 );
       assert( ipla == ipla1 );
       checkval("\nPlaneWireToChannel", pgeo->PlaneWireToChannel(wirid), icha );
       assert( pgeo->SignalType(icha) == ev.sigType[wirid.Cryostat][wirid.TPC][wirid.Plane] );
       checkval("View", pgeo->View(icha), ev.view[wirid.Cryostat][wirid.TPC][wirid.Plane]);
+      const WireGeo* pwg = pgeo->WirePtr(wirid);
+      TVector3 p1 = pwg->GetStart();
+      TVector3 p2 = pwg->GetEnd();
+      if ( sposs.str().size() ) sposs << ", ";
+      sposs << "(" << setw(7) << std::fixed << p1.x() << ", "
+                   << setw(7) << std::fixed << p1.y() << ", "
+                   << setw(7) << std::fixed << p1.z() << ") - ";
+      sposs << "(" << setw(7) << std::fixed << p2.x() << ", "
+                   << setw(7) << std::fixed << p2.y() << ", "
+                   << setw(7) << std::fixed << p2.z() << ")";
     }
-    if ( print ) cout << endl;
+    if ( print ) cout << " " << sposs.str() << endl;
   }
   for ( Index itpc=0; itpc<ev.ntpc; ++itpc ) {
     for ( Index ipla=0; ipla<ev.npla; ++ipla ) {
