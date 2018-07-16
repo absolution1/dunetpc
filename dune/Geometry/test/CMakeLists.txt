@@ -14,6 +14,7 @@ cet_test(test_GeometryDune35t SOURCES test_GeometryDune35t.cxx
     dune_ArtSupport
     larcorealg_Geometry
     ${ROOT_GEOM}
+    ${ROOT_BASIC_LIB_LIST}
 )
 
 cet_test(test_GeometryDune10kt SOURCES test_GeometryDune10kt.cxx
@@ -21,6 +22,7 @@ cet_test(test_GeometryDune10kt SOURCES test_GeometryDune10kt.cxx
     dune_ArtSupport
     larcorealg_Geometry
     ${ROOT_GEOM}
+    ${ROOT_BASIC_LIB_LIST}
 )
 
 cet_test(test_GeometryProtoDune SOURCES test_GeometryProtoDune.cxx
@@ -28,6 +30,7 @@ cet_test(test_GeometryProtoDune SOURCES test_GeometryProtoDune.cxx
     dune_ArtSupport
     larcorealg_Geometry
     ${ROOT_GEOM}
+    ${ROOT_BASIC_LIB_LIST}
 )
 
 cet_test(test_WireSelector SOURCES test_WireSelector.cxx
@@ -37,4 +40,5 @@ cet_test(test_WireSelector SOURCES test_WireSelector.cxx
     dune_DuneCommon
     larcorealg_Geometry
     ${ROOT_GEOM}
+    ${ROOT_BASIC_LIB_LIST}
 )
