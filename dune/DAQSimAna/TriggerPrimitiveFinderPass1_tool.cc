@@ -28,11 +28,22 @@ public:
 
 private:
     unsigned int m_threshold;
+    bool m_useSignalKill;
+    short m_signalKillLookahead;
+    short m_signalKillThreshold;
+    short m_signalKillNContig;
+    short m_frugalNContig;
 };
 
 
 TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p)
-    : m_threshold(p.get<unsigned int>("Threshold", 10))
+    : m_threshold(p.get<unsigned int>("Threshold", 10)),
+      m_useSignalKill(p.get<bool>("UseSignalKill", true)),
+      m_signalKillLookahead(p.get<short>("SignalKillLookahead", 5)),
+      m_signalKillThreshold(p.get<short>("SignalKillThreshold", 15)),
+      m_signalKillNContig(p.get<short>("SignalKillNContig", 1)),
+      m_frugalNContig(p.get<short>("FrugalPedestalNContig", 10))
+
 // Initialize member data here.
 {
     std::cout << "Threshold is " << m_threshold << std::endl;
@@ -61,7 +72,13 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         //---------------------------------------------
         // Pedestal subtraction
         //---------------------------------------------
-        const std::vector<short>& pedestal=frugal_pedestal_sigkill(waveform, 5, 10);
+        const std::vector<short>& pedestal=m_useSignalKill ?
+            frugal_pedestal_sigkill(waveform,
+                                    m_signalKillLookahead,
+                                    m_signalKillThreshold,
+                                    m_signalKillNContig) :
+            frugal_pedestal(waveform, m_frugalNContig);
+
         std::vector<short> pedsub(waveform.size(), 0);
         for(size_t i=0; i<pedsub.size(); ++i){
             pedsub[i]=waveform[i]-pedestal[i];
