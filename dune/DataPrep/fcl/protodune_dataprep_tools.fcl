@@ -22,8 +22,8 @@ tools.rawAdcDetectorPlotColl: {
   DataType: 1
   Tick0: 0
   DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
+  XMin:  400.0
+  XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
   SignalThreshold: 5
@@ -42,8 +42,8 @@ tools.rawAdcDetectorPlotInd1: {
   DataType: 1
   Tick0: 0
   DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
+  XMin:  400.0
+  XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
   SignalThreshold: 5
@@ -62,8 +62,8 @@ tools.rawAdcDetectorPlotInd2: {
   DataType: 1
   Tick0: 0
   DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
+  XMin:  400.0
+  XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
   SignalThreshold: 5
@@ -84,8 +84,8 @@ tools.preparedAdcDetectorPlotColl: {
   DataType: 0
   Tick0: 0
   DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
+  XMin:  400.0
+  XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
   SignalThreshold: 5
@@ -104,8 +104,8 @@ tools.preparedAdcDetectorPlotInd1: {
   DataType: 0
   Tick0: 0
   DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
+  XMin:  400.0
+  XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
   SignalThreshold: 5
@@ -124,8 +124,8 @@ tools.preparedAdcDetectorPlotInd2: {
   DataType: 0
   Tick0: 0
   DriftSpeed: 0.08
-  XMin: -400.0
-  XMax:  400.0
+  XMin:  400.0
+  XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
   SignalThreshold: 5
