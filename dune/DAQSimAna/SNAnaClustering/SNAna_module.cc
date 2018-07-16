@@ -95,6 +95,8 @@ private:
                  const art::ValidHandle<std::vector<simb::MCTruth>>& Hand,
                  const PType type) ;
 
+  void SaveIDEs(art::Event const & evt);
+
   int firstCatch;
   int secondCatch;
   int thirdCatch;
@@ -236,6 +238,14 @@ private:
   std::vector<double> 	            True_Bck_Energy          ;
   std::vector<int>                  True_Bck_PDG             ;
   std::vector<int>                  True_Bck_ID              ;
+
+  int   NTotIDEs;
+  std::vector<int>                  IDEChannel               ;
+  std::vector<int>                  IDEStartTime             ;
+  std::vector<int>                  IDEEndTime               ;
+  std::vector<float>                IDEEnergy                ;
+  std::vector<float>                IDEElectrons             ;
+  std::vector<int>                  IDEParticle              ;
 
   int   TotGen_Marl;
   int   TotGen_APA ;
@@ -408,6 +418,16 @@ void SNAna::ResetVariables()
   True_Bck_Energy          .clear();
   True_Bck_PDG             .clear();
   True_Bck_ID              .clear();
+
+  // IDEs
+  NTotIDEs=0;
+  IDEChannel               .clear();
+  IDEStartTime             .clear();
+  IDEEndTime               .clear();
+  IDEEnergy                .clear();
+  IDEElectrons             .clear();
+  IDEParticle              .clear();
+
 }
 
 
@@ -530,6 +550,15 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("True_Bck_Energy"          , &True_Bck_Energy          );
   fSNAnaTree->Branch("True_Bck_PDG"             , &True_Bck_PDG             );
   fSNAnaTree->Branch("True_Bck_ID"              , &True_Bck_ID              );
+
+  // IDEs
+  fSNAnaTree->Branch( "NTotIDEs"                , &NTotIDEs  , "NTotIDEs/I" );
+  fSNAnaTree->Branch("IDEChannel"               , &IDEChannel               );
+  fSNAnaTree->Branch("IDEStartTime"             , &IDEStartTime             );
+  fSNAnaTree->Branch("IDEEndTime"               , &IDEEndTime               );
+  fSNAnaTree->Branch("IDEEnergy"                , &IDEEnergy                );
+  fSNAnaTree->Branch("IDEElectrons"             , &IDEElectrons             );
+  fSNAnaTree->Branch("IDEParticle"              , &IDEParticle              );
   
   fSNAnaTree->Branch("TotGen_Marl", &TotGen_Marl, "TotGen_Marl/I");
   fSNAnaTree->Branch("TotGen_APA" , &TotGen_APA , "TotGen_APA/I" );
@@ -540,6 +569,7 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("TotGen_Plon", &TotGen_Plon, "TotGen_Plon/I");
   fSNAnaTree->Branch("TotGen_Rdon", &TotGen_Rdon, "TotGen_Rdon/I");
   fSNAnaTree->Branch("TotGen_Ar42", &TotGen_Ar42, "TotGen_Ar42/I");
+
   
 } 
 
@@ -723,7 +753,7 @@ void SNAna::analyze(art::Event const & evt)
         PTypeToTrackID[p].insert(it2.first);
       }
   }
-  
+
   std::cout << "THE EVENTS NUMBER IS: " << Event << std::endl;
 
   std::vector< recob::Hit > ColHits_Marl;
@@ -769,7 +799,7 @@ void SNAna::analyze(art::Event const & evt)
     }
     catch(...)
     {
-      std::cout << "FIRST CATCH" << std::endl;
+        // std::cout << "FIRST CATCH" << std::endl;
       firstCatch++;
       try
       {
@@ -777,7 +807,7 @@ void SNAna::analyze(art::Event const & evt)
       }
       catch(...)
       {
-        std::cout << "SECOND CATCH" << std::endl; 
+          // std::cout << "SECOND CATCH" << std::endl; 
         secondCatch++;
         continue;
       }
@@ -789,7 +819,7 @@ void SNAna::analyze(art::Event const & evt)
     }
     catch(...)
     {
-      std::cout << "THIRD CATCH" << std::endl; 
+        // std::cout << "THIRD CATCH" << std::endl; 
       thirdCatch++;
       continue;
     }
@@ -813,73 +843,79 @@ void SNAna::analyze(art::Event const & evt)
     Hit_AdjP2Chan.push_back(0);
     Hit_AdjP5Chan.push_back(0);
    
-  
+
+    // A vector for us to uncompress the rawdigits into. Create it
+    // outside the loop here so that we only have to allocate it once
+    raw::RawDigit::ADCvector_t ADCs((*rawDigitsVecHandle)[0].Samples());
+
     std::vector<geo::WireID> wids = geo->ChannelToWire(channel);
     for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
     {
       int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
-      raw::RawDigit::ADCvector_t ADCs((*rawDigitsVecHandle)[i].Samples());
       std::vector<geo::WireID> adjacentwire = geo->ChannelToWire(rawWireChannel);
 
       if (adjacentwire.size() < 1) continue;
       if (adjacentwire[0].Plane == geo::kU ||
           adjacentwire[0].Plane == geo::kV)
         continue;
-      
-      switch(rawWireChannel-channel)
+  
+      const int chanDiff=rawWireChannel-channel;
+
+      switch(chanDiff)
       {
       case -5:
-        Hit_AdjM5SADC[colHitCount] = 0;
-        Hit_AdjM5Chan[colHitCount] = rawWireChannel;
-        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                        (*rawDigitsVecHandle)[i].Compression());
-        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          Hit_AdjM5SADC[colHitCount]+=ADCs[i];
-        break;
+          Hit_AdjM5SADC[colHitCount] = 0;
+          Hit_AdjM5Chan[colHitCount] = rawWireChannel;
+          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                          (*rawDigitsVecHandle)[i].Compression());
+          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+              Hit_AdjM5SADC[colHitCount]+=ADCs[i];
+          break;
       case -2:
-        Hit_AdjM2SADC[colHitCount] = 0;
-        Hit_AdjM2Chan[colHitCount] = rawWireChannel;
-        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                        (*rawDigitsVecHandle)[i].Compression());
-        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          Hit_AdjM2SADC[colHitCount]+=ADCs[i];
-        break;
+          Hit_AdjM2SADC[colHitCount] = 0;
+          Hit_AdjM2Chan[colHitCount] = rawWireChannel;
+          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                          (*rawDigitsVecHandle)[i].Compression());
+          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+              Hit_AdjM2SADC[colHitCount]+=ADCs[i];
+          break;
       case -1:
-        Hit_AdjM1SADC[colHitCount] = 0;
-        Hit_AdjM1Chan[colHitCount] = rawWireChannel;
-        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                        (*rawDigitsVecHandle)[i].Compression());
-        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          Hit_AdjM1SADC[colHitCount]+=ADCs[i];
-        break;
+          Hit_AdjM1SADC[colHitCount] = 0;
+          Hit_AdjM1Chan[colHitCount] = rawWireChannel;
+          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                          (*rawDigitsVecHandle)[i].Compression());
+          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+              Hit_AdjM1SADC[colHitCount]+=ADCs[i];
+          break;
       case  1:
-        Hit_AdjP1SADC[colHitCount] = 0;
-        Hit_AdjP1Chan[colHitCount] = rawWireChannel;
-        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                        (*rawDigitsVecHandle)[i].Compression());
-        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          Hit_AdjP1SADC[colHitCount]+=ADCs[i];
-        break;
+          Hit_AdjP1SADC[colHitCount] = 0;
+          Hit_AdjP1Chan[colHitCount] = rawWireChannel;
+          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                          (*rawDigitsVecHandle)[i].Compression());
+          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+              Hit_AdjP1SADC[colHitCount]+=ADCs[i];
+          break;
       case  2:
-        Hit_AdjP2SADC[colHitCount] = 0;
-        Hit_AdjP2Chan[colHitCount] = rawWireChannel;
-        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                        (*rawDigitsVecHandle)[i].Compression());
-        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          Hit_AdjP2SADC[colHitCount]+=ADCs[i];
-        break;
+          Hit_AdjP2SADC[colHitCount] = 0;
+          Hit_AdjP2Chan[colHitCount] = rawWireChannel;
+          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                          (*rawDigitsVecHandle)[i].Compression());
+          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+              Hit_AdjP2SADC[colHitCount]+=ADCs[i];
+          break;
       case  5:
-        Hit_AdjP5SADC[colHitCount] = 0;
-        Hit_AdjP5Chan[colHitCount] = rawWireChannel;
-        raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                        (*rawDigitsVecHandle)[i].Compression());
-        for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-          Hit_AdjP5SADC[colHitCount]+=ADCs[i];
-        break;
+          Hit_AdjP5SADC[colHitCount] = 0;
+          Hit_AdjP5Chan[colHitCount] = rawWireChannel;
+          raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                          (*rawDigitsVecHandle)[i].Compression());
+          for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+              Hit_AdjP5SADC[colHitCount]+=ADCs[i];
+          break;
       default:
-        break;
+          break;
       }
     }
+
     double wire_start[3] = {0,0,0};
     double wire_end[3] = {0,0,0};
     auto& wgeo = geo->WireIDToWireGeo(ThisHit.WireID());
@@ -972,109 +1008,115 @@ void SNAna::analyze(art::Event const & evt)
   if (evt.getByLabel(fOpFlashModuleLabel, FlashHandle)) {
     art::fill_ptr_vector(flashlist, FlashHandle);
     std::sort(flashlist.begin(), flashlist.end(), recob::OpFlashPtrSortByPE);
-  }
-  else {
-    mf::LogError("SNAnaModule") << "Cannot load any flashes. Failing";
-    abort();
-  }
 
   // Get assosciations between flashes and hits
-  art::FindManyP<recob::OpHit> Opt_Assns (flashlist, evt, fOpFlashModuleLabel);
+    art::FindManyP<recob::OpHit> Opt_Assns (flashlist, evt, fOpFlashModuleLabel);
 
-  for(size_t i = 0; i < flashlist.size(); ++i)
-  {
-    // Get OpFlash and associated hits
-    recob::OpFlash TheFlash = *flashlist[i];
-    std::vector< art::Ptr<recob::OpHit> > matchedHits = Opt_Assns.at(i);
-    std::vector<double> Purities;
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kMarl], matchedHits));
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAPA ], matchedHits));
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kCPA ], matchedHits));
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAr39], matchedHits));
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kNeut], matchedHits));
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kKryp], matchedHits));
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kPlon], matchedHits));
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kRdon], matchedHits));
-    Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAr42], matchedHits));
-    double maxPur = (*max_element(Purities.begin(),Purities.end()));
-    double minPur = (*min_element(Purities.begin(),Purities.end()));
-    int gen=0;
-    if (maxPur != minPur)  {
-      for (size_t i=0; i<Purities.size(); ++i) {
-        if (maxPur==Purities[i])
-          break;
-        gen++;
-      }
+    for(size_t i = 0; i < flashlist.size(); ++i)
+    {
+        // Get OpFlash and associated hits
+        recob::OpFlash TheFlash = *flashlist[i];
+        std::vector< art::Ptr<recob::OpHit> > matchedHits = Opt_Assns.at(i);
+        std::vector<double> Purities;
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kMarl], matchedHits));
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAPA ], matchedHits));
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kCPA ], matchedHits));
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAr39], matchedHits));
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kNeut], matchedHits));
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kKryp], matchedHits));
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kPlon], matchedHits));
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kRdon], matchedHits));
+        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAr42], matchedHits));
+        double maxPur = (*max_element(Purities.begin(),Purities.end()));
+        double minPur = (*min_element(Purities.begin(),Purities.end()));
+        int gen=0;
+        if (maxPur != minPur)  {
+            for (size_t i=0; i<Purities.size(); ++i) {
+                if (maxPur==Purities[i])
+                    break;
+                gen++;
+            }
+        }
+        // Put flash info into variables
+        PDS_Flash_FlashID        .push_back(i);
+        PDS_Flash_YCenter        .push_back(TheFlash.YCenter());
+        PDS_Flash_ZCenter        .push_back(TheFlash.ZCenter());
+        PDS_Flash_YWidth         .push_back(TheFlash.YWidth());
+        PDS_Flash_ZWidth         .push_back(TheFlash.ZWidth());
+        PDS_Flash_Time           .push_back(TheFlash.Time());
+        PDS_Flash_TimeWidth      .push_back(TheFlash.TimeWidth());
+        PDS_Flash_TotalPE        .push_back(TheFlash.TotalPE());
+        PDS_Flash_True_Distance  .push_back(TMath::Sqrt(TMath::Power(True_VertY.back()-TheFlash.YCenter(),2)+TMath::Power(True_VertZ.back()-TheFlash.ZCenter(),2)));
+        PDS_Flash_True_GenType   .push_back(gen);
+        Purities.clear();
     }
-    // Put flash info into variables
-    PDS_Flash_FlashID        .push_back(i);
-    PDS_Flash_YCenter        .push_back(TheFlash.YCenter());
-    PDS_Flash_ZCenter        .push_back(TheFlash.ZCenter());
-    PDS_Flash_YWidth         .push_back(TheFlash.YWidth());
-    PDS_Flash_ZWidth         .push_back(TheFlash.ZWidth());
-    PDS_Flash_Time           .push_back(TheFlash.Time());
-    PDS_Flash_TimeWidth      .push_back(TheFlash.TimeWidth());
-    PDS_Flash_TotalPE        .push_back(TheFlash.TotalPE());
-    PDS_Flash_True_Distance  .push_back(TMath::Sqrt(TMath::Power(True_VertY.back()-TheFlash.YCenter(),2)+TMath::Power(True_VertZ.back()-TheFlash.ZCenter(),2)));
-    PDS_Flash_True_GenType   .push_back(gen);
-    Purities.clear();
   }
+  else {
+    mf::LogWarning("SNAnaModule") << "Cannot load any flashes";
+  }
+
+
 
   art::Handle< std::vector< recob::OpHit > > OpHitHandle;
   std::vector<art::Ptr<recob::OpHit> > ophitlist;
+  std::map<PType, std::vector<art::Ptr<recob::OpHit> > > map_of_ophit;
   if (evt.getByLabel(fOpHitModuleLabel, OpHitHandle)) {
     art::fill_ptr_vector(ophitlist, OpHitHandle);
-  }
-  else {
-    mf::LogError("SNAnaModule") << "Cannot load any ophit. Failing";
-    abort();
-  }
+
   std::cout << "There are " << ophitlist.size() << " optical hits in the event." << std::endl;
-  std::map<PType, std::vector<art::Ptr<recob::OpHit> > > map_of_ophit;
+
   for(size_t i = 0; i < ophitlist.size(); ++i)
   {
-    std::vector<sim::TrackSDP> vec_tracksdp = pbt_serv->OpHitToTrackSDPs(ophitlist.at(i));
-    PType gen = kUnknown;
+      std::vector<sim::TrackSDP> vec_tracksdp = pbt_serv->OpHitToTrackSDPs(ophitlist.at(i));
+      PType gen = kUnknown;
 
-    std::sort(vec_tracksdp.begin(), vec_tracksdp.end(),
-              [](const sim::TrackSDP& a, const sim::TrackSDP& b) -> bool { return a.energyFrac > b.energyFrac; });
+      std::sort(vec_tracksdp.begin(), vec_tracksdp.end(),
+                [](const sim::TrackSDP& a, const sim::TrackSDP& b) -> bool { return a.energyFrac > b.energyFrac; });
     
-    for (size_t iSDP=0; iSDP<vec_tracksdp.size(); ++iSDP) {
-      PDS_OpHit_True_TrackIDAll.push_back(vec_tracksdp[iSDP].trackID);
-      PDS_OpHit_True_GenTypeAll.push_back(WhichParType(vec_tracksdp[iSDP].trackID));
-      PDS_OpHit_True_EnergyAll .push_back(vec_tracksdp[iSDP].energy);
-      PDS_OpHit_True_IndexAll  .push_back((int)i);
-    }
-    if (vec_tracksdp.size()>0){
-      PDS_OpHit_True_TrackID.push_back(vec_tracksdp[0].trackID);
-      PDS_OpHit_True_GenType.push_back(WhichParType(vec_tracksdp[0].trackID));
-      PDS_OpHit_True_Energy .push_back(vec_tracksdp[0].energy);
-    } else {
-      PDS_OpHit_True_TrackID.push_back(-1);
-      PDS_OpHit_True_GenType.push_back(kUnknown);
-      PDS_OpHit_True_Energy .push_back(-1);
-    }
+      for (size_t iSDP=0; iSDP<vec_tracksdp.size(); ++iSDP) {
+          PDS_OpHit_True_TrackIDAll.push_back(vec_tracksdp[iSDP].trackID);
+          PDS_OpHit_True_GenTypeAll.push_back(WhichParType(vec_tracksdp[iSDP].trackID));
+          PDS_OpHit_True_EnergyAll .push_back(vec_tracksdp[iSDP].energy);
+          PDS_OpHit_True_IndexAll  .push_back((int)i);
+      }
+      if (vec_tracksdp.size()>0){
+          PDS_OpHit_True_TrackID.push_back(vec_tracksdp[0].trackID);
+          PDS_OpHit_True_GenType.push_back(WhichParType(vec_tracksdp[0].trackID));
+          PDS_OpHit_True_Energy .push_back(vec_tracksdp[0].energy);
+      } else {
+          PDS_OpHit_True_TrackID.push_back(-1);
+          PDS_OpHit_True_GenType.push_back(kUnknown);
+          PDS_OpHit_True_Energy .push_back(-1);
+      }
 
-    map_of_ophit[gen].push_back(ophitlist.at(i));
+      map_of_ophit[gen].push_back(ophitlist.at(i));
     
-    double xyz_optdet[3]={0,0,0};
-    double xyz_world [3]={0,0,0};
+      double xyz_optdet[3]={0,0,0};
+      double xyz_world [3]={0,0,0};
     
-    geo->OpDetGeoFromOpChannel(ophitlist[i]->OpChannel()).LocalToWorld(xyz_optdet,xyz_world);
-    PDS_OpHit_OpChannel   .push_back(ophitlist[i]->OpChannel());  
-    PDS_OpHit_X           .push_back(xyz_world[0]);  
-    PDS_OpHit_Y           .push_back(xyz_world[1]);  
-    PDS_OpHit_Z           .push_back(xyz_world[2]);  
-    PDS_OpHit_PeakTimeAbs .push_back(ophitlist[i]->PeakTimeAbs());
-    PDS_OpHit_PeakTime    .push_back(ophitlist[i]->PeakTime());   
-    PDS_OpHit_Frame       .push_back(ophitlist[i]->Frame());      
-    PDS_OpHit_Width       .push_back(ophitlist[i]->Width());      
-    PDS_OpHit_Area        .push_back(ophitlist[i]->Area());       
-    PDS_OpHit_Amplitude   .push_back(ophitlist[i]->Amplitude());  
-    PDS_OpHit_PE          .push_back(ophitlist[i]->PE());         
-    PDS_OpHit_FastToTotal .push_back(ophitlist[i]->FastToTotal());
+      geo->OpDetGeoFromOpChannel(ophitlist[i]->OpChannel()).LocalToWorld(xyz_optdet,xyz_world);
+      PDS_OpHit_OpChannel   .push_back(ophitlist[i]->OpChannel());  
+      PDS_OpHit_X           .push_back(xyz_world[0]);  
+      PDS_OpHit_Y           .push_back(xyz_world[1]);  
+      PDS_OpHit_Z           .push_back(xyz_world[2]);  
+      PDS_OpHit_PeakTimeAbs .push_back(ophitlist[i]->PeakTimeAbs());
+      PDS_OpHit_PeakTime    .push_back(ophitlist[i]->PeakTime());   
+      PDS_OpHit_Frame       .push_back(ophitlist[i]->Frame());      
+      PDS_OpHit_Width       .push_back(ophitlist[i]->Width());      
+      PDS_OpHit_Area        .push_back(ophitlist[i]->Area());       
+      PDS_OpHit_Amplitude   .push_back(ophitlist[i]->Amplitude());  
+      PDS_OpHit_PE          .push_back(ophitlist[i]->PE());         
+      PDS_OpHit_FastToTotal .push_back(ophitlist[i]->FastToTotal());
      
   }
+
+  }
+  else {
+    mf::LogWarning("SNAnaModule") << "Cannot load any ophits";
+  }
+
+
+  SaveIDEs(evt);
 
   std::cerr << "Total of:" << std::endl;
   std::cerr << " - Othe : " << ColHits_Oth.size() << " col plane hits\t| " << map_of_ophit[kUnknown].size() << " opt hits" << std::endl;
@@ -1156,6 +1198,92 @@ bool SNAna::InMyMap( int TrID, std::map< int, simb::MCParticle> ParMap )
     return true;
   } else
     return false;
+}
+
+//......................................................
+void SNAna::SaveIDEs(art::Event const & evt)
+{
+    auto allParticles = evt.getValidHandle<std::vector<simb::MCParticle> >(fGEANTLabel);
+    art::FindMany<simb::MCTruth> assn(allParticles,evt,fGEANTLabel);
+    std::map<int, const simb::MCTruth*> idToTruth;
+    for(size_t i=0; i<allParticles->size(); ++i){
+        const simb::MCParticle& particle=allParticles->at(i);
+        const std::vector<const simb::MCTruth*> truths=assn.at(i);
+        if(truths.size()==1){
+            idToTruth[particle.TrackId()]=truths[0];
+        }
+        else{
+            mf::LogDebug("DAQSimAna") << "Particle " << particle.TrackId() << " has " << truths.size() << " truths";
+            idToTruth[particle.TrackId()]=nullptr;
+        }
+    }
+
+    // Get the SimChannels so we can see where the actual energy depositions were
+    auto& simchs=*evt.getValidHandle<std::vector<sim::SimChannel>>("largeant");
+
+    for(auto&& simch: simchs){
+        // We only care about collection channels
+        if(geo->SignalType(simch.Channel())!=geo::kCollection) continue;
+
+        // The IDEs record energy depositions at every tick, but
+        // mostly we have several depositions at contiguous times. So
+        // we're going to save just one output IDE for each contiguous
+        // block of hits on a channel. Each item in vector is a list
+        // of (TDC, IDE*) for contiguous-in-time IDEs
+        std::vector<std::vector<std::pair<int, const sim::IDE*> > > contigIDEs;
+        int prevTDC=0;
+        for (const auto& TDCinfo: simch.TDCIDEMap()) {
+            // Do we need to start a new group of IDEs? Yes if this is
+            // the first IDE in this channel. Yes if this IDE is not
+            // contiguous with the previous one
+            if(contigIDEs.empty() || TDCinfo.first-prevTDC>5){
+                contigIDEs.push_back(std::vector<std::pair<int, const sim::IDE*> >());
+            }
+            std::vector<std::pair<int, const sim::IDE*> >& currentIDEs=contigIDEs.back();
+            
+            // Add all the current tick's IDEs to the list
+            for (const sim::IDE& ide: TDCinfo.second) {
+                currentIDEs.push_back(std::make_pair(TDCinfo.first, &ide));
+            }
+            prevTDC=TDCinfo.first;
+        }
+
+        for(auto const& contigs : contigIDEs){
+            float energy=0;
+            float electrons=0;
+            int startTime=99999;
+            int endTime=0;
+            std::map<PType, float> ptypeToEnergy;
+            for(auto const& timeide : contigs){
+                const int tdc=timeide.first;
+                startTime=std::min(tdc, startTime);
+                endTime=std::max(tdc, endTime);
+                const sim::IDE& ide=*timeide.second;
+                const float thisEnergy=ide.energy;
+                const PType thisPType=WhichParType(std::abs(ide.trackID));
+                energy+=thisEnergy;
+                electrons+=ide.numElectrons;
+                ptypeToEnergy[thisPType]+=thisEnergy;
+            }
+            float bestEnergy=0;
+            PType bestPType=kUnknown;
+            for(auto const& it : ptypeToEnergy){
+                if(it.second>bestEnergy){
+                    bestEnergy=it.second;
+                    bestPType=it.first;
+                }
+            }
+            // Ignore anything past the end of the readout window
+            if(startTime<4492){
+                IDEChannel.push_back(simch.Channel());
+                IDEStartTime.push_back(startTime);
+                IDEEndTime.push_back(endTime);
+                IDEEnergy.push_back(energy);
+                IDEElectrons.push_back(electrons);
+                IDEParticle.push_back(bestPType);
+            }
+        } // loop over our compressed IDEs
+    } // loop over SimChannels
 }
 
 
