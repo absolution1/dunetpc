@@ -785,6 +785,24 @@ void SNAna::analyze(art::Event const & evt)
   evt.getByLabel(fCalDataModuleLabel, wireVecHandle);
   evt.getByLabel(fRawDigitLabel, rawDigitsVecHandle);
 
+
+  // Fill a set of the channels that we don't want to consider in the
+  // adjacent-channel loop below. Do it here once so we don't have to
+  // re-do it for every single hit
+  std::cout << "Building \"bad\" channel set" << std::endl;
+  std::set<int> badChannels;
+  for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
+  {
+      int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
+      std::vector<geo::WireID> adjacentwire = geo->ChannelToWire(rawWireChannel);
+
+      if (adjacentwire.size() < 1 || adjacentwire[0].Plane == geo::kU ||
+          adjacentwire[0].Plane == geo::kV){
+          badChannels.insert(rawWireChannel);
+      }
+  }
+  std::cout << "Inserted " << badChannels.size() << " out of " << rawDigitsVecHandle->size() << " channels into set" << std::endl;
+
   for(int hit = 0; hit < LoopHits; ++hit) 
   {
     recob::Hit const& ThisHit = reco_hits->at(hit);  
@@ -852,14 +870,10 @@ void SNAna::analyze(art::Event const & evt)
     for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
     {
       int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
-      std::vector<geo::WireID> adjacentwire = geo->ChannelToWire(rawWireChannel);
-
-      if (adjacentwire.size() < 1) continue;
-      if (adjacentwire[0].Plane == geo::kU ||
-          adjacentwire[0].Plane == geo::kV)
-        continue;
-  
       const int chanDiff=rawWireChannel-channel;
+      if(abs(chanDiff)!=1 && abs(chanDiff)!=2 && abs(chanDiff)!=5) continue;
+
+      if(badChannels.find(rawWireChannel)!=badChannels.end()) continue;
 
       switch(chanDiff)
       {
