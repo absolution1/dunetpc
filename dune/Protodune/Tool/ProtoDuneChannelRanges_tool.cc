@@ -20,21 +20,37 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   m_ExtraRanges(ps.get<Name>("ExtraRanges")) {
   const Name myname = "ProtoDuneChannelRanges::ctor: ";
   const Index ntps = 6;
-  Index nwirApa = 2560;
-  Index nwiru = 800;
-  Index nwirv = 800;
-  Index nwirz = 480;
+  Index nchaApa = 2560;
+  Index nchau = 800;
+  Index nchav = 800;
+  Index nchaz = 480;
+  bool isEven = true;
+  Index apaIdx[6] = { 3, 5, 2, 6, 1, 4 };  // Installation order.
   for ( Index itps=0; itps<ntps; ++itps ) {
-    Index ch0 = itps*nwirApa;
+    string siapa = std::to_string(apaIdx[itps]);
+    Index ch0 = itps*nchaApa;
     string sitps = std::to_string(itps);
     string stps = "tps" + sitps;
-    insertLen(      stps, ch0, nwirApa, "TPC set " + sitps);
+    string sapa = "apa" + siapa;
+    insertLen(      stps, ch0, nchaApa, "TPC set " + sitps);
+    insertLen(      sapa, ch0, nchaApa, "APA " + siapa);
     string stpp = "tpp" + sitps;
-    insertLen(stpp + "u", ch0, nwiru, "TPC plane " + sitps + "u");
-    ch0 += nwiru;
-    insertLen(stpp + "v", ch0, nwirv, "TPC plane " + sitps + "v");
-    ch0 += nwirv;
-    insertLen(stpp + "z", ch0, nwirz, "TPC plane " + sitps + "z");
+    insertLen(stpp + "u", ch0, nchau, "TPC plane " + sitps + "u");
+    insertLen(sapa + "u", ch0, nchau, "APA plane " + siapa + "u");
+    ch0 += nchau;
+    insertLen(stpp + "v", ch0, nchav, "TPC plane " + sitps + "v");
+    insertLen(sapa + "v", ch0, nchav, "APA plane " + siapa + "v");
+    ch0 += nchav;
+    Index chx1 = ch0;
+    ch0 += nchaz;
+    Index chx2 = ch0;
+    Index chz = isEven ? chx2 : chx1;
+    Index chc = isEven ? chx1 : chx2;
+    insertLen(stpp + "c", chc, nchaz, "TPC plane " + sitps + "c");
+    insertLen(sapa + "c", chc, nchaz, "APA plane " + siapa + "c");
+    insertLen(stpp + "z", chz, nchaz, "TPC plane " + sitps + "z");
+    insertLen(sapa + "z", chz, nchaz, "APA plane " + siapa + "z");
+    isEven = ! isEven;
   }
   if ( m_ExtraRanges.size() ) {
     DuneToolManager* ptm = DuneToolManager::instance();

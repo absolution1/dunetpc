@@ -7,6 +7,18 @@
 // hardwired ranges apa2, apa4u, etc. and teh option to override
 // or extend these with ranges specified in another index range tool.
 //
+// We assume that TPCSet numbering follows the convention:
+//
+//  --->   TPS1  TPS3  TPS5
+//  beam   TPS0  TPS2  TPS4
+//
+// and APA numbering is
+//
+//  --->   APA5  APA6  APA4
+//  beam   APA3  APA2  APA1
+//
+// both viewed from above.
+//
 // Parameters:
 //   LogLevel - Message logging level (0=none, 1=ctor, 2=each call, ...)
 //   ExtraRange - Name of tool with additional ranges. Blank for none.
