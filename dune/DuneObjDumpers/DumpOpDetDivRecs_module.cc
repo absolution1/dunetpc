@@ -9,7 +9,7 @@
 
 
 // nutools libraries
-#include "dune/DuneObjBase/OpDetDivRec.h"
+#include "dune/DuneObj/OpDetDivRec.h"
 
 // framework libraries
 #include "art/Framework/Core/EDAnalyzer.h"
