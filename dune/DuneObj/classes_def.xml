@@ -50,7 +50,8 @@
  <class name="EventRecord::HCRec" ClassVersion="10">
    <version ClassVersion="10" checksum="1066719352"/>
  </class>
- <class name="sim::OpDetDivRec" ClassVersion="12">
+ <class name="sim::OpDetDivRec" ClassVersion="13">
+  <version ClassVersion="13" checksum="593579870"/>
   <version ClassVersion="12" checksum="3335723222"/>
   <version ClassVersion="11" checksum="1415000109"/>
    <version ClassVersion="10" checksum="2505021768"/>

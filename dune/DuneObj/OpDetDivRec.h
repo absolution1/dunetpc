@@ -19,16 +19,18 @@
 
 namespace sim {
   //these records already exist tied to optical detectors (as they are made tied to the BTRs. No need to be OpDet wise.
-  //Remember these are not per sdp smart, just per opchan smart. The normalization is per opchan at each unit time. We will assume the SDPs are split uniformly according to how everything over the time tick was split.
+  //Remember these are not per sdp smart, just per opchan smart. The normalization is per opchan at each unit time. We will assume the SDPs are split uniformly according to how everything over the time time was split.
 
   struct Chan_Phot{
     int opChan;
+    int trackID;
     double phot;
     Chan_Phot():
       opChan(-1)
     {}
-    Chan_Phot(int opChanIn):
+    Chan_Phot(int opChanIn, int tid=-999999):
       opChan(opChanIn),
+      trackID(tid),
       phot(1.0)
     {}
     void AddPhoton(){
@@ -45,11 +47,29 @@ namespace sim {
     OpDet_Time_Chans(stored_time_t& timeIn, std::vector<Chan_Phot> photIn);
     std::vector<Chan_Phot> phots;
 
+    std::vector<std::pair<int, double>> GetFracs(int tid) const{
+      double total=0.0;
+      std::vector<std::pair<int, double>> ret;
+      for(auto& a : phots){ total += (a.trackID==tid)?a.phot:0;}
+      for(auto& a : phots){ ret.emplace_back(a.opChan, (a.phot / total));}
+      return ret;
+    }
     std::vector<std::pair<int, double>> GetFracs() const{
       double total=0.0;
       std::vector<std::pair<int, double>> ret;
       for(auto& a : phots){ total += a.phot;}
       for(auto& a : phots){ ret.emplace_back(a.opChan, (a.phot / total));}
+      return ret;
+    }
+    double GetFrac(int opChanIn, int tid) const{
+      double ret=0.0;
+      std::vector<std::pair<int, double>> fracs = GetFracs(tid);
+      for(auto pair : fracs){
+        if(pair.first==opChanIn){
+          ret=pair.second;
+          break;
+        }
+      }
       return ret;
     }
     double GetFrac(int opChanIn) const{
@@ -67,27 +87,28 @@ namespace sim {
 
   class OpDetDivRec{
     public:
-      typedef std::vector<OpDet_Time_Chans> Tick_Chans_t;
+      typedef std::vector<OpDet_Time_Chans> Time_Chans_t;
       struct time_slice{
-        Tick_Chans_t::const_iterator lower;
-        Tick_Chans_t::const_iterator upper;
+        Time_Chans_t::const_iterator lower;
+        Time_Chans_t::const_iterator upper;
       };
 
     private:
       int fOpDetNum; //Move this to be private.
-      Tick_Chans_t tick_chans; //Move this to private //This must be filled with emplace to keep it sorted.
+      Time_Chans_t time_chans; //Move this to private //This must be filled with emplace to keep it sorted.
     public:
       OpDetDivRec();
-      explicit OpDetDivRec(int det);
-      Tick_Chans_t const& GetTickChans(){return tick_chans;}
+      OpDetDivRec(int det);
+      Time_Chans_t const& GetTimeChans(){return time_chans;}
       int OpDetNum() const{ return fOpDetNum; }
-      void AddPhoton(int opchan, OpDet_Time_Chans::stored_time_t pdTime);
+      void AddPhoton(int opchan, int tid, OpDet_Time_Chans::stored_time_t pdTime);
       std::vector<std::pair<int, double>> GetFracs(OpDet_Time_Chans::stored_time_t time);
+      std::vector<std::pair<int, double>> GetFracs(OpDet_Time_Chans::stored_time_t time, int tid);
       time_slice GetSlice(OpDet_Time_Chans::stored_time_t low_time, OpDet_Time_Chans::stored_time_t high_time);
 
       //      double GetFras(OpDet_Time_Chans::stored_time_t, OpChan);
-      //      Tick_Chans_t::iterator priv_FindClosestTimeChan(const OpDet_Time_Chans::stored_time_t& pdTime);
-      std::pair<OpDetDivRec::Tick_Chans_t::const_iterator, bool> FindClosestTimeChan( OpDet_Time_Chans::stored_time_t pdTime) const;
+      //      Time_Chans_t::iterator priv_FindClosestTimeChan(const OpDet_Time_Chans::stored_time_t& pdTime);
+      std::pair<OpDetDivRec::Time_Chans_t::const_iterator, bool> FindClosestTimeChan( OpDet_Time_Chans::stored_time_t pdTime) const;
       void clear();
       template <typename Stream>
         void Dump(Stream&& out, std::string indent, std::string first_indent) const;
@@ -112,8 +133,8 @@ namespace sim {
       };
 
     private:
-      Tick_Chans_t::iterator priv_FindClosestTimeChan(OpDet_Time_Chans::stored_time_t pdTime);
-      Tick_Chans_t::const_iterator priv_FindClosestTimeChan( OpDet_Time_Chans::stored_time_t pdTime) const;
+      Time_Chans_t::iterator priv_FindClosestTimeChan(OpDet_Time_Chans::stored_time_t pdTime);
+      Time_Chans_t::const_iterator priv_FindClosestTimeChan( OpDet_Time_Chans::stored_time_t pdTime) const;
 
   };
 
@@ -126,15 +147,15 @@ template <class Stream>
 void sim::OpDetDivRec::Dump
 (Stream&& out, std::string indent, std::string first_indent) const
 {
-  out << first_indent << "OpDet #" << OpDetNum() << " read " << tick_chans.size()
-    << " tick_chans:\n";
-  for (const auto& tc: tick_chans) {
+  out << first_indent << "OpDet #" << OpDetNum() << " read " << time_chans.size()
+    << " time_chans:\n";
+  for (const auto& tc: time_chans) {
     auto time = tc.time;
     out << indent << "  time " << time
       << " with " << tc.phots.size() << " Photon deposits\n";
     for (const auto& photr: tc.phots) {
       out << indent
-        << "OpChan: "<<photr.opChan <<" with "<<photr.phot<<" photon detction records\n";
+        << "OpChan: "<<photr.opChan <<" with "<<photr.phot<<" photons from particle with TrackID"<<photr.trackID<<"\n";
     } // for SDPs
   } // for timePDclocks
 } // sim::OpDetBacktrackerRecord::Dump<>()

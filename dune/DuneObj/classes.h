@@ -9,8 +9,8 @@
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Persistency/Common/Assns.h"
 
-#include "dune/DuneObjBase/EventRecord.h"
-#include "dune/DuneObjBase/OpDetDivRec.h"
+#include "dune/DuneObj/EventRecord.h"
+#include "dune/DuneObj/OpDetDivRec.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/Simulation/OpDetBacktrackerRecord.h"
