@@ -69,12 +69,12 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
   assert( irt != nullptr );
 
   cout << myname << line << endl;
-  cout << myname << "Fetching ranges." << endl;
+  cout << myname << "Fetching TPC ranges." << endl;
   int nbad = 0;
-  vector<string> namPres = {"tps", "tpp", "tpp", "tpp"};
-  vector<string> namSufs = {   "",   "u",   "v",   "z"};
+  vector<string> namSufs = {   "",   "u",   "v",   "z",  "c"};
+  vector<string> namPres = {"tps", "tpp", "tpp", "tpp", "tpp"};
   for ( Index inam=0; inam<namPres.size(); ++inam ) {
-    for ( Index itps=0; itps<6; ++ itps ) {
+    for ( Index itps=0; itps<6; ++itps ) {
       string stps = std::to_string(itps);
       string nam = namPres[inam] + stps + namSufs[inam];
       IndexRange ir = irt->get(nam);
@@ -90,6 +90,28 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
   }
   assert( nbad == 0 );
 
+  cout << myname << line << endl;
+  cout << myname << "Fetching APA ranges." << endl;
+  nbad = 0;
+  vector<string> namPresApa = {"apa", "apa", "apa", "apa", "apa"};
+  for ( Index inam=0; inam<namPres.size(); ++inam ) {
+    for ( Index iapa=1; iapa<=6; ++iapa ) {
+      string stps = std::to_string(iapa);
+      string nam = namPresApa[inam] + stps + namSufs[inam];
+      IndexRange ir = irt->get(nam);
+      if ( ! ir.isValid() ) {
+        cout << myname << "Invalid range: " << nam << endl;
+        ++nbad;
+      } else {
+        cout << myname << setw(10) << ir.name << setw(20) << ir.rangeString()
+             << " " << ir.label << endl;
+        assert( ir.name == nam );
+      }
+    }
+  }
+  assert( nbad == 0 );
+
+  cout << myname << line << endl;
   cout << "Fetch bad range" << endl;
   IndexRange irb = irt->get("rangebad");
   cout << irb.rangeString() << endl;
