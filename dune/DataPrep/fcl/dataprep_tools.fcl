@@ -179,9 +179,7 @@ tools.adcChannelPedestalPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestal
-  FirstChannel: 0
-  LastChannel: 0
-  ChannelCounts: []
+  ChannelRanges: []
   MetricMin: 0
   MetricMax: 4096
   ChannelLineModulus: 0
@@ -199,9 +197,7 @@ tools.adcChannelPedestalRmsPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestalRms
-  FirstChannel: 0
-  LastChannel: 0
-  ChannelCounts: []
+  ChannelRanges: []
   MetricMin: 0
   MetricMax: 11
   ChannelLineModulus: 0

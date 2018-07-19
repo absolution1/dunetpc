@@ -13,14 +13,13 @@
 //            metadata field or any of the following:
 //              pedestal 
 //              pedestalRms
-//   FirstChannel - First channel to display
-//   LastChannel - Last channel + 1 to display
-//                 If LastChannel <= FirstChannel, the input range is used
-//   ChannelCounts - If not empty, the # channels in each histogram
-//                   repeated until all channels are covered.
-//                   E.g. [0, 200, 300] ==>
-//                   (0,200), (200,300), (300,500), ...
-//                   If empty, one histogram is made.
+//              fembID [0, 120) in protoDUNE
+//              apaFembID - FEMB number in the APA [0, 20)
+//              fembChannel - channel # in the FEMB [0, 128)
+//   ChannelRanges - Names of channel ranges to display.
+//                   Ranges are obtained from the tool channelRanges.
+//                   Special name "all" or "" plots all channels with label "All".
+//                   If the list is empty, all are plotted.
 //   MetricMin - Minimum for the metric axis.
 //   MetricMax - Maximum for the metric axis.
 //   ChannelLineModulus - Repeat spacing for horizontal lines
@@ -42,6 +41,8 @@
 //     %EVENT%  --> event number
 //     %CHAN1%  --> First channel number 
 //     %CHAN2%  --> Last channel number 
+//     %CRNAME%  --> Channel range name
+//     %CRLABEL%  --> Channel range label
 // Drawings may include vertical lines intended to show boundaries of APAs,
 // FEMBs, wire planes, etc.
 //
@@ -56,6 +57,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <vector>
 
@@ -66,8 +68,10 @@ class AdcChannelMetric : AdcChannelTool {
 public:
 
   using Name = std::string;
+  using NameVector = std::vector<Name>;
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
+  using IndexRangeVector = std::vector<IndexRange>;
 
   AdcChannelMetric(fhicl::ParameterSet const& ps);
 
@@ -89,8 +93,7 @@ private:
   // Configuration data.
   int            m_LogLevel;
   Name           m_Metric;
-  Index          m_FirstChannel;
-  Index          m_LastChannel;
+  NameVector     m_ChannelRanges;
   IndexVector    m_ChannelCounts;
   float          m_MetricMin;
   float          m_MetricMax;
@@ -104,12 +107,17 @@ private:
   Name           m_PlotFileName;
   Name           m_RootFileName;
 
+  // Channel ranges.
+  IndexRangeVector m_crs;
+  
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
 
+  // Create the plot for one range.
+  DataMap viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran) const;
+
   // Make replacements in a name.
-  Name nameReplace(Name name, const AdcChannelData& acd,
-                   Index chan1, Index chan2, bool isTitle) const;
+  Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
 
 };
 
