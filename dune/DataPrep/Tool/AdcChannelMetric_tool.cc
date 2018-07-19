@@ -208,7 +208,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     TPadManipulator man;
     if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     //man.add(ph, "hist");
-    man.add(ph, "axis");
+    //man.add(ph, "axis");
     man.add(pg, "P");
     man.addAxis();
     if ( m_ChannelLineModulus ) {
@@ -222,6 +222,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
         }
       }
     }
+    man.setRangeX(ran.begin, ran.end);
     if ( m_MetricMax > m_MetricMin ) man.setRangeY(m_MetricMin, m_MetricMax);
     man.setGridY();
     man.print(ofname);

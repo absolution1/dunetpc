@@ -237,13 +237,13 @@ tools.pdtps_adcChannelFembPlotter.MetricLabel: "FEMB ID"
 tools.pdtps_adcChannelFembPlotter.PlotFileName: "chmet_femb_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # APA FEMB ID for each TPS channel.
-tools.pdtps_adcChannelFembPlotter: @local::pdtps_template
-tools.pdtps_adcChannelFembPlotter.Metric: apaFembID
-tools.pdtps_adcChannelFembPlotter.MetricMax: 20
-tools.pdtps_adcChannelFembPlotter.HistName: "hchpd%CRNAME%_apafemb_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelFembPlotter.HistTitle: "APA FEMB IDs for run %RUN% event %EVENT% %CRLABEL%"
-tools.pdtps_adcChannelFembPlotter.MetricLabel: "APA FEMB ID"
-tools.pdtps_adcChannelFembPlotter.PlotFileName: "chmet_apafemb_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+tools.pdtps_adcChannelApaFembPlotter: @local::pdtps_template
+tools.pdtps_adcChannelApaFembPlotter.Metric: apaFembID
+tools.pdtps_adcChannelApaFembPlotter.MetricMax: 20
+tools.pdtps_adcChannelApaFembPlotter.HistName: "hchpd%CRNAME%_apafemb_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelApaFembPlotter.HistTitle: "APA FEMB IDs for run %RUN% event %EVENT% %CRLABEL%"
+tools.pdtps_adcChannelApaFembPlotter.MetricLabel: "APA FEMB ID"
+tools.pdtps_adcChannelApaFembPlotter.PlotFileName: "chmet_apafemb_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # FEMB channel for each TPS channel.
 tools.pdtps_adcChannelFembChannelPlotter: @local::pdtps_template
@@ -278,7 +278,7 @@ tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.Metric: fitPedPeakBinExcess
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricMax: 1.0
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_pedpeakexc_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestal peak bin excess for run %RUN% event %EVENT% %CRLABEL%"
-tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak excess [ADC counts]"
+tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak excess fraction"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # Pedestal for each z-plane channel.
