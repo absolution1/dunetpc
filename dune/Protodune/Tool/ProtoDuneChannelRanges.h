@@ -21,7 +21,7 @@
 //
 // Parameters:
 //   LogLevel - Message logging level (0=none, 1=ctor, 2=each call, ...)
-//   ExtraRange - Name of tool with additional ranges. Blank for none.
+//   ExtraRanges - Name of tool with additional ranges. Blank for none.
 
 #ifndef ProtoDuneChannelRanges_H
 #define ProtoDuneChannelRanges_H
