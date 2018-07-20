@@ -8,6 +8,7 @@
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
+#include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -30,8 +31,7 @@ using std::vector;
 AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_DataType(ps.get<int>("DataType")),
-  m_FirstTick(ps.get<unsigned long>("FirstTick")),
-  m_LastTick(ps.get<unsigned long>("LastTick")),
+  m_TickRange(ps.get<string>("TickRange")),
   m_FirstChannel(ps.get<unsigned int>("FirstChannel")),
   m_LastChannel(ps.get<unsigned int>("LastChannel")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
@@ -57,12 +57,25 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     m_OnlineChannelMapTool = ps.get<string>("OnlineChannelMapTool");
     m_pOnlineChannelMapTool = ptm->getShared<const IndexMapTool>(m_OnlineChannelMapTool);
   }
+  string descTickRange;
+  if ( m_TickRange.size() ) {
+    const string tnam = "tickRanges";
+    const IndexRangeTool* ptool = ptm->getShared<IndexRangeTool>(tnam);
+    if ( ptool == nullptr ) { 
+      cout << myname << "WARNING: Tick range tool not found: " << tnam << endl;
+    } else {
+      m_tickRange = ptool->get(m_TickRange);
+    }
+    if ( ! m_tickRange.isValid() ) {
+      cout << myname << "WARNING: Tick range not found: " << m_TickRange << endl;
+    }
+    descTickRange = m_TickRange + " " + m_tickRange.rangeString();
+  }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
     cout << myname << "              LogLevel: " << m_LogLevel << endl;
     cout << myname << "              DataType: " << m_DataType << endl;
-    cout << myname << "             FirstTick: " << m_FirstTick << endl;
-    cout << myname << "              LastTick: " << m_LastTick << endl;
+    cout << myname << "             TickRange: " << descTickRange << endl;
     cout << myname << "          FirstChannel: " << m_FirstChannel << endl;
     cout << myname << "           LastChannel: " << m_LastChannel << endl;
     cout << myname << "       FembTickOffsets: [";
@@ -123,7 +136,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   AdcIndex acdChanLast = acdLast.channel;
   AdcIndex chanFirst = acdChanFirst;
   AdcIndex chanLast = acdChanLast;
-  // If the prameters specify a channel range, we use it.
+  // If the parameters specify a channel range, we use it.
   // No action if the map does not have channels in this range.
   if ( m_LastChannel > m_FirstChannel ) {
     chanFirst = m_FirstChannel;
@@ -137,17 +150,11 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     return ret;
   }
   if ( m_LogLevel >= 2 ) cout << myname << "Creating plot for " << acds.size() << " channels." << endl;
-  unsigned long tick1 = m_FirstTick;
-  unsigned long tick2 = m_LastTick;
-  if ( tick2 <= tick1 ) {
-    tick1 = 0;
-    tick2 = maxtick;
-  }
-  if ( tick2 <= tick1 ) {
-    cout << myname << "WARNING: Invalid tick range: (" << tick1 << ", " << tick2 << ")." << endl;
-    cout << myname << "           Configured range: (" << m_FirstTick << ", " << m_LastTick << ")." << endl;
-    cout << myname << "Data size: " << maxtick << " ticks" << endl;
-    return ret.setStatus(2);
+  unsigned long tick1 = 0;
+  unsigned long tick2 = maxtick;
+  if ( m_tickRange.isValid() ) {
+    tick1 = m_tickRange.begin;
+    tick2 = m_tickRange.end;
   }
   Tick ntick = tick2 - tick1;
   AdcIndex nchan = chanLast + 1 - chanFirst;

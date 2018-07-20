@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+proto_savesps:
+{
+  module_type:           "SaveSpacePoints"
+  SpacePointModuleLabel: "reco3d"
+}
+
+END_PROLOG

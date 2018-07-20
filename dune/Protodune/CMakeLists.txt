@@ -1,3 +1,4 @@
+add_subdirectory(Tool)
 add_subdirectory(Analysis)
 add_subdirectory(singlephase)
 add_subdirectory(dualphase)

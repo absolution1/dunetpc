@@ -78,6 +78,7 @@ private:
   bool m_DoGroups = false;
   AdcChannel m_KeepChannelBegin =0;
   AdcChannel m_KeepChannelEnd =0;
+  AdcChannelVector m_SkipChannels;
 
   // Split label into producer and name: PRODUCER or PRODUCER:NAME
   std::string m_DigitProducer;
@@ -124,6 +125,7 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
   pset.get_if_present<AdcChannel>("KeepChannelBegin", m_KeepChannelBegin);
   pset.get_if_present<AdcChannel>("KeepChannelEnd", m_KeepChannelEnd);
+  pset.get_if_present<AdcChannelVector>("SkipChannels", m_SkipChannels);
   pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
 
   size_t ipos = m_DigitLabel.find(":");
@@ -156,6 +158,14 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << endl;
     cout << myname << "      KeepChannelBegin: " << m_KeepChannelBegin << endl;
     cout << myname << "        KeepChannelEnd: " << m_KeepChannelEnd << endl;
+    cout << myname << "          SkipChannels: " << "{";
+    bool first = true;
+    for ( AdcChannel ich : m_SkipChannels ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << ich;
+    }
+    cout << "}" << endl;
   }
 }
 
@@ -230,6 +240,10 @@ void DataPrepModule::produce(art::Event& evt) {
         continue;
       }
     }
+    if ( std::find(m_SkipChannels.begin(), m_SkipChannels.end(), chan) != m_SkipChannels.end() ) {
+      ++nskip;
+      continue;
+    }
     ++nkeep;
     if ( fulldatamap.find(chan) != fulldatamap.end() ) {
       mf::LogWarning("DataPrepModule") << "Skipping duplicate channel " << chan << "." << endl;
@@ -265,8 +279,10 @@ void DataPrepModule::produce(art::Event& evt) {
       datamaps.emplace_back();
       AdcChannelDataMap& datamap = datamaps.back();
       for ( AdcChannel chan : m_pChannelGroupService->channels(igrp) ) {
-        datamap.emplace(chan, move(fulldatamap[chan]));
-        ++ncgrp;
+        if ( fulldatamap.find(chan) != fulldatamap.end() ) {
+          datamap.emplace(chan, move(fulldatamap[chan]));
+          ++ncgrp;
+        }
       }
     }
   } else {
@@ -279,6 +295,8 @@ void DataPrepModule::produce(art::Event& evt) {
   }
 
   for ( AdcChannelDataMap& datamap : datamaps ) {
+
+    if ( datamap.size() == 0 ) continue;
 
     // Use the data preparation service to build the wires and intermediate states.
     int rstat = m_pRawDigitPrepService->prepare(datamap, pwires.get(), pintStates);
