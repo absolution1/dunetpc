@@ -37,3 +37,4 @@ physics:
  end_paths:     [ ana ]
 }
 
+physics.analyzers.beamana.FixedTime:            1531988466

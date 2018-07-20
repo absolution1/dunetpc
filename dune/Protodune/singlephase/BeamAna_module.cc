@@ -18,6 +18,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "IFBeam_service.h"
+#include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
 
 namespace proto {
   class BeamAna;
@@ -81,8 +82,46 @@ void proto::BeamAna::analyze(art::Event const & e)
   uint64_t ts = fFixedTime;
   if (!fFixedTime)
     ts = uint64_t(e.time().timeLow());
+   
+  std::string prefix = "dip/acc/NORTH/NP04/BI/XBPF/";
+  std::string devices[6] = {"XBPF022697_V",
+                            "XBPF022697_H",
+                            "XBPF022707_V",
+                            "XBPF022707_H",
+                            "XBPF022716_V",
+                            "XBPF022716_H"};
 
-  std::vector<double> x1 = bfp->GetNamedVector(ts,"E:NP04BPROF1X[]");
+  for(int d = 0; d < 6; ++d){
+    std::vector<double> data = bfp->GetNamedVector(ts, prefix + devices[d] + ":eventsData[]");
+    std::vector<double> counts = bfp->GetNamedVector(ts, prefix + devices[d] + ":countsRecords[]");
+  
+
+    std::cout << "Data: " << data.size() << std::endl;
+    for(int i = 0; i < 100; ++i){
+      for(int j = 0; j < 100; ++j){
+        if(data[100*i + j] > 0)
+          std::cout << data[100*i + j] << " ";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << "Counts: " << counts.size() << std::endl;
+    for(size_t i = 0; i < counts.size(); ++i){
+      std::cout << counts[i] << std::endl;
+    }
+  }
+
+  /*for(size_t ip = 0; ip < prof.size(); ++ip){
+    std::cout << prof[ip] << std::endl;
+  }*/
+ 
+ /* std::vector<std::string> devs = bfp->GetDeviceList();
+  std::cout << devs.size() <<std::endl;
+  for(size_t id = 0; id < devs.size();++id){
+    std::cout << devs[id] << std::endl;
+  }*/
+
+
+/*  std::vector<double> x1 = bfp->GetNamedVector(ts,"E:NP04BPROF1X[]");
   std::vector<double> y1 = bfp->GetNamedVector(ts,"E:NP04BPROF1Y[]");
   
   std::vector<double> x2 = bfp->GetNamedVector(ts,"E:NP04BPROF2X[]");  
@@ -101,13 +140,13 @@ void proto::BeamAna::analyze(art::Event const & e)
   std::vector<double> ckov2 = bfp->GetNamedVector(ts,"E:NP04CKOV2[]");
 
   std::vector<double> timeList = bfp->GetTimeList();
-  std::vector<std::string> deviceList = bfp->GetDeviceList();
-  /*  
-  for (size_t i=0; i<timeList.size(); ++i)
+  std::vector<std::string> deviceList = bfp->GetDeviceList();*/
+    
+/*  for (size_t i=0; i<timeList.size(); ++i)
     std::cout << "time[" << i << "] = " << timeList[i] << std::endl;
   for (size_t i=0; i<deviceList.size(); ++i)
     std::cout << "device[" << i << "] = " << deviceList[i] << std::endl;
-  */
+  
 
   std::cout << "x1.size() = " << x1.size() 
 	    << ", y1.size() = " << y1.size() << std::endl;
@@ -117,6 +156,21 @@ void proto::BeamAna::analyze(art::Event const & e)
 	    << ", y3.size() = " << y3.size() << std::endl;
   std::cout << "x4.size() = " << x4.size() 
 	    << ", y4.size() = " << y4.size() << std::endl;
+
+  for(size_t i = 0; i < x1.size(); ++i){
+    std::cout << x1[i] << " " << y1[i] 
+              << " " << x2[i] << " " << y2[i] 
+              << " " << x3[i] << " " << y3[i] 
+              << " " << x4[i] << " " << y4[i] << std::endl;
+  }
+  std::cout << "ckov1.size() = " << ckov1.size()
+            << ", ckov2.size() = " << ckov2.size() << std::endl;
+  for(size_t i = 0; i < ckov1.size(); ++i){
+    std::cout << ckov1[i] << " " << ckov2[i] << std::endl;
+  }*/
+
+
+
 }
 
 void proto::BeamAna::beginJob()
