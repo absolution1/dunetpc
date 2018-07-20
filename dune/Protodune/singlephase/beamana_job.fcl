@@ -38,3 +38,4 @@ physics:
 }
 
 physics.analyzers.beamana.FixedTime:            1531988466
+physics.analyzers.beamana.MultipleTimes:            [1531988466]

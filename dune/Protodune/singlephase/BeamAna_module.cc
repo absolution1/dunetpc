@@ -58,6 +58,7 @@ private:
   std::string fBundleName;
   std::string fURLStr;
   uint64_t fFixedTime;
+  std::vector<uint64_t> fMultipleTimes;
 };
 
 
@@ -79,10 +80,27 @@ void proto::BeamAna::analyze(art::Event const & e)
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp = ifb->getBeamFolder(fBundleName,fURLStr,fTimeWindow);
   std::cerr << "%%%%%%%%%% Got beam folder %%%%%%%%%%" << std::endl;
 
-  uint64_t ts = fFixedTime;
+  //Use multiple times provided to fcl
+  if( fMultipleTimes.size() ){
+    std::cout << "Using multiple times: " << std::endl;
+    for(size_t it = 0; it < fMultipleTimes.size(); ++it){
+      std::cout << fMultipleTimes[it] << std::endl;
+    }
+  }
+  //Use singular time provided to fcl
+  else if(fFixedTime){
+    std::cout << "Using singular time: " << fFixedTime << std::endl;
+    fMultipleTimes.push_back(fFixedTime);
+  }
+  //Use time of event
+  else{
+    std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
+    fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
+  }
+  /*uint64_t ts = fFixedTime;
   if (!fFixedTime)
     ts = uint64_t(e.time().timeLow());
-   
+  */
   std::string prefix = "dip/acc/NORTH/NP04/BI/XBPF/";
   std::string devices[6] = {"XBPF022697_V",
                             "XBPF022697_H",
@@ -91,25 +109,26 @@ void proto::BeamAna::analyze(art::Event const & e)
                             "XBPF022716_V",
                             "XBPF022716_H"};
 
-  for(int d = 0; d < 6; ++d){
-    std::vector<double> data = bfp->GetNamedVector(ts, prefix + devices[d] + ":eventsData[]");
-    std::vector<double> counts = bfp->GetNamedVector(ts, prefix + devices[d] + ":countsRecords[]");
+  for(size_t it = 0; it < fMultipleTimes.size(); ++it){
+    for(int d = 0; d < 6; ++d){
+      std::vector<double> data = bfp->GetNamedVector(fMultipleTimes[it], prefix + devices[d] + ":eventsData[]");
+      std::vector<double> counts = bfp->GetNamedVector(fMultipleTimes[it], prefix + devices[d] + ":countsRecords[]");
+    
   
-
-    std::cout << "Data: " << data.size() << std::endl;
-    for(int i = 0; i < 100; ++i){
-      for(int j = 0; j < 100; ++j){
-        if(data[100*i + j] > 0)
-          std::cout << data[100*i + j] << " ";
+      std::cout << "Data: " << data.size() << std::endl;
+      for(int i = 0; i < 100; ++i){
+        for(int j = 0; j < 100; ++j){
+          if(data[100*i + j] > 0)
+            std::cout << data[100*i + j] << " ";
+        }
+  //      std::cout << std::endl;
       }
-      std::cout << std::endl;
-    }
-    std::cout << "Counts: " << counts.size() << std::endl;
-    for(size_t i = 0; i < counts.size(); ++i){
-      std::cout << counts[i] << std::endl;
+      std::cout << "Counts: " << counts.size() << std::endl;
+      for(size_t i = 0; i < counts.size(); ++i){
+        std::cout << counts[i] << std::endl;
+      }
     }
   }
-
   /*for(size_t ip = 0; ip < prof.size(); ++ip){
     std::cout << prof[ip] << std::endl;
   }*/
@@ -210,6 +229,7 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fURLStr      = "";
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");
+  fMultipleTimes = p.get< std::vector<uint64_t> >("MultipleTimes");
 }
 
 DEFINE_ART_MODULE(proto::BeamAna)
