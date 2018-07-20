@@ -2,6 +2,7 @@
 
   <class name="beamspill::ProtoDUNEBeamSpill" ClassVersion="11" >
    <version ClassVersion="11" checksum="2976893266"/>
+  <class name="beamspill::ProtoDUNEBeamSpill" ClassVersion="10" >
    <version ClassVersion="10" checksum="2699170884"/>
   </class>
   

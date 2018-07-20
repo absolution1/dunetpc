@@ -14,6 +14,7 @@ namespace beamspill
 
     //Bitmap for hit fibers in the monitor
     std::bitset<192> fibers;
+    std::vector<short int> fibers = std::vector<short int>(24);
       
     long long int timeStamp;
     
@@ -60,6 +61,7 @@ namespace beamspill
       int               GetNTOF0Triggers(){ return TOF0.size(); };
       int               GetNTOF1Triggers(){ return TOF1.size(); };
 
+    
     private:
 
       //First time of anything in the spill
@@ -68,6 +70,9 @@ namespace beamspill
 
       //Set of FBMs
       //Indices: [Monitor in beam]['event' in monitor]
+      double t0;
+
+      //Set of FBMs
       //
       std::vector< std::vector < FBM > > fiberMonitors;
 
@@ -192,6 +197,15 @@ namespace beamspill
   }
   /////////////////////////////////
 
+      std::vector< long long int > TOF1;
+      std::vector< long long int > TOF2;
+
+      //Set of Cerenkov detectors
+      //
+      std::vector< CKov > CKov1;
+      std::vector< CKov > CKov2;
+  
+  };
 }
 
 #endif
