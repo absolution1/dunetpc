@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 //
-// File: EventRecord.h
+// File: CalibTreeRecord.h
 // Author: Jason Stock (jason.stock@mines.sdsmt.edu)
 // This file is a set of classes for writeout of data relative to calibration sources.
 // The main purpose of this class is to allow easy fast analysis of calibration
@@ -14,13 +14,13 @@
 #include <vector>
 #include <TObject.h>
 
-namespace EventRecord {
+namespace CalibTreeRecord {
   typedef int64_t eve_number_t ;
   typedef int64_t particle_number_t ;
   //class OpHit : public TObject{
 
   class HCRec{
-    /*ClassDef(EventRecord::HCRec,10);*/
+    /*ClassDef(CalibTreeRecord::HCRec,10);*/
     public:
     int eve_index;
     int part_index;
@@ -34,7 +34,7 @@ namespace EventRecord {
   };
 
   class HitContributor {
-    /*ClassDef(EventRecord::HitContributor,10);*/
+    /*ClassDef(CalibTreeRecord::HitContributor,10);*/
     public:
       int index; //The internal hit index of the hit this record is describing.
       std::vector<HCRec> locations; //eve index, part index, hits index (vector position).
@@ -59,14 +59,14 @@ namespace EventRecord {
   };
 
   class PartialOpHit : public PartialPDOpHit {
-    /*ClassDef(EventRecord::PartialOpHit,10);*/
+    /*ClassDef(CalibTreeRecord::PartialOpHit,10);*/
     public:
       UInt_t opchan;
   };
 
   //class Hit : public TObject{
   class PartialHit  {
-    /*ClassDef(EventRecord::PartialHit,10);*/
+    /*ClassDef(CalibTreeRecord::PartialHit,10);*/
     public:
       Double_t charge;
       Double_t num_electrons;
@@ -91,7 +91,7 @@ namespace EventRecord {
 
   //class ParticleRecord :public TObject {
   class ParticleRecord  {
-    /*ClassDef(EventRecord::ParticleRecord,10);*/
+    /*ClassDef(CalibTreeRecord::ParticleRecord,10);*/
     public:
       bool isEve;
       //particle_number_t number;
@@ -107,7 +107,7 @@ namespace EventRecord {
   };
 
   class EveRecord{
-    /*ClassDef(EventRecord::EveRecord,10);*/
+    /*ClassDef(CalibTreeRecord::EveRecord,10);*/
     public:
       //eve_number_t number;
       Int_t trackId;
@@ -119,9 +119,9 @@ namespace EventRecord {
 
   };
 
-  //class EventRecord :public TObject {
-  class EventRecord {
-    /*ClassDef(EventRecord::EventRecord,10);*/
+  //class CalibTreeRecord :public TObject {
+  class CalibTreeRecord {
+    /*ClassDef(CalibTreeRecord::CalibTreeRecord,10);*/
     public:
       bool bunch_hits;
       UInt_t run;
