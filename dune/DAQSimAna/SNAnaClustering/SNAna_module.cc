@@ -88,7 +88,9 @@ private:
 
   void ResetVariables();
   void FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap, 
-                     art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand );
+                     art::FindManyP<simb::MCParticle> Assn,
+                     art::ValidHandle< std::vector<simb::MCTruth> > Hand,
+                     std::map<int, int>* indexMap=nullptr);
   PType WhichParType( int TrID );
   bool  InMyMap     ( int TrID, std::map< int, simb::MCParticle> ParMap );
   void FillTruth(const art::FindManyP<simb::MCParticle> Assn,
@@ -118,6 +120,8 @@ private:
   std::string fRdonLabel ; std::map< int, simb::MCParticle > RdonParts;
   std::string fAr42Label ; std::map< int, simb::MCParticle > Ar42Parts;
   std::map<int, const simb::MCParticle*> truthmap;
+  // Which MARLEY interaction (if any) caused this true track ID?
+  std::map<int, int> trkIDToMarleyIndex;
 
   // Mapping from track ID to particle type, for use in WhichParType()
   std::map<int, PType> trkIDToPType;
@@ -156,6 +160,7 @@ private:
   std::vector<int>                  Hit_True_MainTrID        ;
   std::vector<int>                  Hit_True_TrackID         ;
   std::vector<float>                Hit_True_EvEnergy        ;
+  std::vector<int>                  Hit_True_MarleyIndex     ;
   std::vector<float>                Hit_True_X               ;                  
   std::vector<float>                Hit_True_Y               ;                  
   std::vector<float>                Hit_True_Z               ;                  
@@ -336,6 +341,7 @@ void SNAna::ResetVariables()
   Hit_True_MainTrID        .clear();
   Hit_True_TrackID         .clear();
   Hit_True_EvEnergy        .clear();
+  Hit_True_MarleyIndex     .clear();
   Hit_True_X               .clear();
   Hit_True_Y               .clear();
   Hit_True_Z               .clear();
@@ -468,6 +474,7 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("Hit_True_MainTrID"        , &Hit_True_MainTrID        );
   fSNAnaTree->Branch("Hit_True_TrackID"         , &Hit_True_TrackID         );
   fSNAnaTree->Branch("Hit_True_EvEnergy"        , &Hit_True_EvEnergy        );
+  fSNAnaTree->Branch("Hit_True_MarleyIndex"     , &Hit_True_MarleyIndex     );
   fSNAnaTree->Branch("Hit_True_X"               , &Hit_True_X               );
   fSNAnaTree->Branch("Hit_True_Y"               , &Hit_True_Y               );
   fSNAnaTree->Branch("Hit_True_Z"               , &Hit_True_Z               );
@@ -593,7 +600,8 @@ void SNAna::analyze(art::Event const & evt)
   //LIFT OUT THE MARLEY PARTICLES.
   auto MarlTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fMARLLabel);
   art::FindManyP<simb::MCParticle> MarlAssn(MarlTrue,evt,fGEANTLabel);
-  FillMyMaps( MarlParts, MarlAssn, MarlTrue );
+  FillMyMaps( MarlParts, MarlAssn, MarlTrue, &trkIDToMarleyIndex );
+
   TotGen_Marl = MarlParts.size();
 
   //SUPERNOVA TRUTH.
@@ -993,6 +1001,19 @@ void SNAna::analyze(art::Event const & evt)
     PType ThisPType      = WhichParType(Hit_True_MainTrID.at(colHitCount));
     Hit_True_GenType.push_back(ThisPType);
 
+    int thisMarleyIndex=-1;
+    int MainTrID=Hit_True_MainTrID.at(colHitCount);
+    if(ThisPType==kMarl && MainTrID!=0){
+        auto const it=trkIDToMarleyIndex.find(MainTrID);
+        if(it==trkIDToMarleyIndex.end()){
+            std::cout << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
+        }
+        else{
+            thisMarleyIndex=it->second;
+        }
+    }
+    Hit_True_MarleyIndex.push_back(thisMarleyIndex);
+
     if(Hit_True_MainTrID[colHitCount] == -1)
     {
       Hit_True_X     .push_back(-1);
@@ -1197,12 +1218,14 @@ void SNAna::FillTruth(const art::FindManyP<simb::MCParticle> Assn,
 
 void SNAna::FillMyMaps(std::map< int, simb::MCParticle> &MyMap, 
                        art::FindManyP<simb::MCParticle> Assn,
-                       art::ValidHandle< std::vector<simb::MCTruth> > Hand )
+                       art::ValidHandle< std::vector<simb::MCTruth> > Hand,
+                       std::map<int, int>* indexMap)
 {
   for ( size_t L1=0; L1 < Hand->size(); ++L1 ) {
     for ( size_t L2=0; L2 < Assn.at(L1).size(); ++L2 ) {
       const simb::MCParticle ThisPar = (*Assn.at(L1).at(L2));
       MyMap[ThisPar.TrackId()] = ThisPar;
+      if(indexMap) indexMap->insert({ThisPar.TrackId(), L1});
     }
   }
   return;
