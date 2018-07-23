@@ -226,7 +226,7 @@ AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Ind
     ph->SetDirectory(0);
   }
   Index period = m_TickModPeriod;
-  if ( m_LogLevel >= 2 ) cout << myname << "Filling hist " << ph->GetName()
+  if ( m_LogLevel >= 4 ) cout << myname << "Filling hist " << ph->GetName()
                               << " with channel " << acd.channel
                               << " tickmod " << itkm << endl;
   Index isam0 = (itkm + period - itkm0) % period;
@@ -239,125 +239,125 @@ AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Ind
 int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
   const string myname = "AdcTickModViewer::makeTickModPlots: ";
   nplot = 0;
-  if ( m_PlotFileName.size() &&
-       ( m_PlotChannels.size() == 0 ||
-         find(m_PlotChannels.begin(), m_PlotChannels.end(), icha) != m_PlotChannels.end() )
-     ) {
-    Index npad = 0;
-    Index npadx = 0;
-    Index npady = 0;
-    if ( m_PlotFileName.size() && m_PlotSplitX > 0 ) {
-      npadx = m_PlotSplitX;
-      npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
-      npad = npadx*npady;
+  if ( m_PlotFileName.size() == 0 ) return 0;
+  if ( m_PlotChannels.size() ) {
+    if ( find(m_PlotChannels.begin(), m_PlotChannels.end(), icha) == m_PlotChannels.end() ) {
+      if ( m_LogLevel >= 3 )  cout << myname << "Skipping channel not in PlotChannels: " << icha << endl;
+      return 0;
     }
-    Name plotFileName;
-    Index ntkm = m_TickModPeriod;
-    const HistVector& tmhs = state().ChannelTickModProcHists[icha];
-    vector<IndexVector> showTickModVectors;  // Vectors of tickmods to plot
-    vector<Name> showPlotNames;
-    if ( m_PlotWhich & 1 ) {
-      if ( m_LogLevel >= 3 ) cout << myname << "Add full vector of "
-                                  << ntkm << " tickmods." << endl;
-      showTickModVectors.emplace_back(ntkm);
-      for ( Index itkm=0; itkm<ntkm; ++itkm ) showTickModVectors.back()[itkm] = itkm;
-      showPlotNames.push_back(m_PlotFileName);
-    }
-    IndexVector tkmsMin;
-    IndexVector tkmsMax;
-    // If needed, find min and max tickmods and build histogram vectors(s).
-    if ( m_PlotWhich & 6 ) {
-      Index itkmMin = 0;
-      Index itkmMax = 0;
-      double meanMin = tmhs[0]->GetMean();
-      double meanMax = meanMin;
-      for ( Index itkm=0; itkm<ntkm; ++itkm ) {
-        double mean = tmhs[itkm]->GetMean();
-        if ( mean > meanMax ) {
-          meanMax = mean;
-          itkmMax = itkm;
-        }
-        if ( mean < meanMin ) {
-          meanMin = mean;
-          itkmMin = itkm;
-        }
+  }
+  Index npad = 0;
+  Index npadx = 0;
+  Index npady = 0;
+  if ( m_PlotFileName.size() && m_PlotSplitX > 0 ) {
+    npadx = m_PlotSplitX;
+    npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
+    npad = npadx*npady;
+  }
+  Name plotFileName;
+  Index ntkm = m_TickModPeriod;
+  const HistVector& tmhs = state().ChannelTickModProcHists[icha];
+  vector<IndexVector> showTickModVectors;  // Vectors of tickmods to plot
+  vector<Name> showPlotNames;
+  if ( m_PlotWhich & 1 ) {
+    if ( m_LogLevel >= 3 ) cout << myname << "Add full vector of "
+                                << ntkm << " tickmods." << endl;
+    showTickModVectors.emplace_back(ntkm);
+    for ( Index itkm=0; itkm<ntkm; ++itkm ) showTickModVectors.back()[itkm] = itkm;
+    showPlotNames.push_back(m_PlotFileName);
+  }
+  IndexVector tkmsMin;
+  IndexVector tkmsMax;
+  // If needed, find min and max tickmods and build histogram vectors(s).
+  if ( m_PlotWhich & 6 ) {
+    Index itkmMin = 0;
+    Index itkmMax = 0;
+    double meanMin = tmhs[0]->GetMean();
+    double meanMax = meanMin;
+    for ( Index itkm=0; itkm<ntkm; ++itkm ) {
+      double mean = tmhs[itkm]->GetMean();
+      if ( mean > meanMax ) {
+        meanMax = mean;
+        itkmMax = itkm;
       }
-      int idel1 = npad/2;
-      idel1 *= -1;
-      int idel2 = idel1 + npad;
-      if ( npad > ntkm ) {
-        idel1 = 0;
-        idel2 = ntkm;
-      }
-      if ( m_LogLevel >= 3 ) cout << myname << "Tick delta range: [" << idel1
-                                  << ", " << idel2 << ")" << endl;
-      for ( int idel=idel1; idel<idel2; ++idel ) {
-        Index itkm = (itkmMin + ntkm + idel) % ntkm;
-        tkmsMin.push_back(itkm);
-        itkm = (itkmMax + ntkm + idel) % ntkm;
-        tkmsMax.push_back(itkm);
-      }
-      if ( m_PlotWhich & 2 ) {
-        if ( m_LogLevel >= 3 ) cout << myname << "Add min vector of " << tkmsMin.size()
-                                    << " tickmods." << endl;
-        showTickModVectors.push_back(tkmsMin);
-        Name pnam = m_PlotFileName;
-        StringManipulator sman(pnam);
-        sman.replace("%TICKMOD%", "Min");
-        sman.replace("%0TICKMOD%", "Min");
-        showPlotNames.push_back(pnam);
-      }
-      if ( m_PlotWhich & 4 ) {
-        if ( m_LogLevel >= 3 ) cout << myname << "Add max vector of " << tkmsMax.size()
-                                    << " tickmods." << endl;
-        showTickModVectors.push_back(tkmsMax);
-        Name pnam = m_PlotFileName;
-        StringManipulator sman(pnam);
-        sman.replace("%TICKMOD%", "Max");
-        sman.replace("%0TICKMOD%", "Max");
-        showPlotNames.push_back(pnam);
+      if ( mean < meanMin ) {
+        meanMin = mean;
+        itkmMin = itkm;
       }
     }
-    AdcChannelData acd;  // For building plot file name
-    acd.channel = icha;
-    if ( state().run >= 0 ) acd.run = state().run;
-    TPadManipulator* pmantop = nullptr;
-    for ( Index ihv=0; ihv<showTickModVectors.size(); ++ihv ) {
-      const IndexVector tkms = showTickModVectors[ihv];
-      Name pfname = showPlotNames[ihv];
-      if ( m_LogLevel >= 3 ) cout << "Plotting " << tkms.size() << " tickmods with name "
-                                  << pfname << endl;
-      Index ipad = 0;
-      Index icount = 0;
-      for ( Index itkm : tkms ) {
-        HistPtr ph = tmhs[itkm];
-        if ( pmantop == nullptr ) {
-          if ( m_LogLevel >= 3 ) cout << myname << "  Creating canvas." << endl;
-          pmantop = new TPadManipulator;
-          if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
-          if ( npad > 1 ) pmantop->split(npady, npady);
-          plotFileName = nameReplace(pfname, acd, itkm);
-        }
-        TPadManipulator* pman = pmantop->man(ipad);
-        pman->add(ph.get(), "hist", false);
-        if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
-        if ( m_PlotShowFit ) pman->addHistFun(0);
-        pman->addVerticalModLines(64);
-        pman->showUnderflow();
-        pman->showOverflow();
-        ++icount;
-        if ( ++ipad == npad || icount == tkms.size() ) {
-          if ( m_LogLevel >= 3 ) cout << myname << "  Creating " << plotFileName << endl;
-          pmantop->print(plotFileName);
-          ++nplot;
-          ipad = 0;
-          delete pmantop;
-          pmantop = nullptr;
-        }
+    int idel1 = npad/2;
+    idel1 *= -1;
+    int idel2 = idel1 + npad;
+    if ( npad > ntkm ) {
+      idel1 = 0;
+      idel2 = ntkm;
+    }
+    if ( m_LogLevel >= 3 ) cout << myname << "Tick delta range: [" << idel1
+                                << ", " << idel2 << ")" << endl;
+    for ( int idel=idel1; idel<idel2; ++idel ) {
+      Index itkm = (itkmMin + ntkm + idel) % ntkm;
+      tkmsMin.push_back(itkm);
+      itkm = (itkmMax + ntkm + idel) % ntkm;
+      tkmsMax.push_back(itkm);
+    }
+    if ( m_PlotWhich & 2 ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Add min vector of " << tkmsMin.size()
+                                  << " tickmods." << endl;
+      showTickModVectors.push_back(tkmsMin);
+      Name pnam = m_PlotFileName;
+      StringManipulator sman(pnam);
+      sman.replace("%TICKMOD%", "Min");
+      sman.replace("%0TICKMOD%", "Min");
+      showPlotNames.push_back(pnam);
+    }
+    if ( m_PlotWhich & 4 ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Add max vector of " << tkmsMax.size()
+                                  << " tickmods." << endl;
+      showTickModVectors.push_back(tkmsMax);
+      Name pnam = m_PlotFileName;
+      StringManipulator sman(pnam);
+      sman.replace("%TICKMOD%", "Max");
+      sman.replace("%0TICKMOD%", "Max");
+      showPlotNames.push_back(pnam);
+    }
+  }
+  AdcChannelData acd;  // For building plot file name
+  acd.channel = icha;
+  if ( state().run >= 0 ) acd.run = state().run;
+  TPadManipulator* pmantop = nullptr;
+  for ( Index ihv=0; ihv<showTickModVectors.size(); ++ihv ) {
+    const IndexVector tkms = showTickModVectors[ihv];
+    Name pfname = showPlotNames[ihv];
+    if ( m_LogLevel >= 3 ) cout << "Plotting " << tkms.size() << " tickmods with name "
+                                << pfname << endl;
+    Index ipad = 0;
+    Index icount = 0;
+    for ( Index itkm : tkms ) {
+      HistPtr ph = tmhs[itkm];
+      if ( pmantop == nullptr ) {
+        pmantop = new TPadManipulator;
+        if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
+        if ( npad > 1 ) pmantop->split(npady, npady);
+        plotFileName = nameReplace(pfname, acd, itkm);
+      }
+      TPadManipulator* pman = pmantop->man(ipad);
+      pman->add(ph.get(), "hist", false);
+      if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
+      if ( m_PlotShowFit ) pman->addHistFun(0);
+      pman->addVerticalModLines(64);
+      pman->showUnderflow();
+      pman->showOverflow();
+      ++icount;
+      if ( ++ipad == npad || icount == tkms.size() ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "  Creating " << plotFileName << endl;
+        pmantop->print(plotFileName);
+        ++nplot;
+        ipad = 0;
+        delete pmantop;
+        pmantop = nullptr;
       }
     }
   }
-  if ( m_LogLevel >= 3 ) cout << "Done." << endl;
   return 0;
 }
 

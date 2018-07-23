@@ -346,11 +346,12 @@ tools.pd_tickmodViewer: {
   PlotChannels: [999999]
   PlotFileName: "adctm_ch%0CHAN%_tm%0TICKMOD%.png"
   RootFileName: "adctm.root"
-  PlotSizeX: 1400
-  PlotSizeY: 1000
-  PlotShowFit:  0
-  PlotSplitX:   4
-  PlotSplitY:   0
+  PlotSizeX:  1400
+  PlotSizeY:  1000
+  PlotShowFit:   0
+  PlotSplitX:    4
+  PlotSplitY:    0
+  PlotWhich:     1
   PlotFrequency: 0
 }
 

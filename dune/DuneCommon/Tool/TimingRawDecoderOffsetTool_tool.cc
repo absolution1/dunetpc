@@ -19,10 +19,10 @@ TimingRawDecoderOffsetTool::TimingRawDecoderOffsetTool(fhicl::ParameterSet const
   m_Unit(ps.get<Name>("Unit")) {
   const Name myname = "TimingRawDecoderOffsetTool::ctor: ";
   if ( m_LogLevel ) {
-    cout << "Configuration:" << endl;
-    cout << "      LogLevel: " << m_LogLevel << endl;
-    cout << "  TpcTickPhase: " << m_TpcTickPhase << endl;
-    cout << "          Unit: " << m_Unit << endl;
+    cout << myname << "Configuration:" << endl;
+    cout << myname << "      LogLevel: " << m_LogLevel << endl;
+    cout << myname << "  TpcTickPhase: " << m_TpcTickPhase << endl;
+    cout << myname << "          Unit: " << m_Unit << endl;
   }
 }
 
