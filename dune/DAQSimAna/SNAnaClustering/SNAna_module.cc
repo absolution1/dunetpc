@@ -817,33 +817,43 @@ void SNAna::analyze(art::Event const & evt)
     std::vector<const sim::IDE*> ThisSimIDE;
     try
     {
-      ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
+        // HitToTrackIDEs opens a specific window around the hit. I want a
+        // wider one, because the filtering can delay the hit. So this bit
+        // is a copy of HitToTrackIDEs from the backtracker, with some
+        // modification
+        const double start = ThisHit.PeakTime()-20;
+        const double end   = ThisHit.PeakTime()+ThisHit.RMS()+20;
+        ThisHitIDE = bt_serv->ChannelToTrackIDEs(ThisHit.Channel(), start, end);
+        
+        // ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
     }
     catch(...)
     {
         // std::cout << "FIRST CATCH" << std::endl;
-      firstCatch++;
-      try
-      {
-        ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
-      }
-      catch(...)
-      {
-          // std::cout << "SECOND CATCH" << std::endl; 
-        secondCatch++;
+        firstCatch++;
+        try
+        {
+            ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
+        }
+        catch(...)
+        {
+            // std::cout << "SECOND CATCH" << std::endl; 
+            secondCatch++;
+            continue;
+        }
         continue;
-      }
-      continue;
     }
+
+    // Get the simIDEs.
     try
     {
-      ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
+        ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
     }
     catch(...)
     {
         // std::cout << "THIRD CATCH" << std::endl; 
-      thirdCatch++;
-      continue;
+        thirdCatch++;
+        continue;
     }
     
     Hit_View.push_back(ThisHit.View());
