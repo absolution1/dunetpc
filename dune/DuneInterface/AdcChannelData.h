@@ -10,6 +10,7 @@
 //       event - Event number
 //     channel - Offline channel number
 //      fembID - FEMB ID
+// fembChannel - Channel number in FEMB (0, 1,..., 127).
 //    pedestal - Pedestal subtracted from the raw count
 // pedestalRms - Pedestal RMS or sigma
 //         raw - Uncompressed array holding the raw ADC count for each tick
@@ -65,6 +66,7 @@ public:
   AdcIndex event =badIndex;
   AdcChannel channel =badIndex;
   AdcIndex fembID =badIndex;
+  AdcIndex fembChannel =badIndex;
   AdcSignal pedestal =badSignal;
   AdcSignal pedestalRms =0.0;
   AdcCountVector raw;
@@ -122,6 +124,8 @@ inline void AdcChannelData::clear() {
   subRun = badIndex;
   event = badIndex;
   channel = badIndex;
+  fembID = badIndex;
+  fembChannel = badIndex;
   pedestal = badSignal;
   pedestalRms = 0.0;
   raw.clear();

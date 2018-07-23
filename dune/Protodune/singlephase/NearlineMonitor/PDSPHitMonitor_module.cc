@@ -108,6 +108,8 @@ namespace PDSPHitmonitor_module{
     std::vector<TProfile*> fRMSAPAViewZ_prof;
 
     geo::GeometryCore const * fGeom = &*(art::ServiceHandle<geo::Geometry>());
+
+    std::vector<unsigned int> fApaLabelNum;
     
   };
   
@@ -119,10 +121,8 @@ namespace PDSPHitmonitor_module{
   }
 
   //-----------------------------------------------------------------------
-  PDSPHitMonitorModule::PDSPHitMonitorModule(fhicl::ParameterSet const& pset) : EDAnalyzer(pset){
-
+  PDSPHitMonitorModule::PDSPHitMonitorModule(fhicl::ParameterSet const& pset) : EDAnalyzer(pset), fApaLabelNum{3,5,2,6,1,4} {
     this->reconfigure(pset);
-
   }
   
   //-----------------------------------------------------------------------
@@ -171,6 +171,9 @@ namespace PDSPHitmonitor_module{
     //mf::LogVerbatim("HitMonitor") << " U: "<< fNUCh <<"  V:  "<< fNVCh << "  Z0:  "<< fNZ0Ch << "  Z1:  " << fNZ1Ch << std::endl;
     
     for(unsigned int i=0;i<fNofAPA;i++){
+
+      unsigned int j=fApaLabelNum.at(i);
+
       unsigned int UChMin=fUChanMin + i*fChansPerAPA;
       unsigned int UChMax=fUChanMax + i*fChansPerAPA;
       unsigned int VChMin=fVChanMin + i*fChansPerAPA;
@@ -183,36 +186,36 @@ namespace PDSPHitmonitor_module{
       //std::cout<< "VCh: " << VChMin << " - " << VChMax << std::endl;
       //std::cout<< "ZCh: " << ZChMin << " - " << ZChMax << std::endl;
 
-      fNHitsAPAViewU.push_back(tfs->make<TH1I>(Form("NHitsAPA%d_U",i),Form("Number of hits APA%d-U",i),1000,0,20000));
-      fNHitsAPAViewV.push_back(tfs->make<TH1I>(Form("NHitsAPA%d_V",i),Form("Number of hits APA%d-V",i),1000,0,20000));
-      fNHitsAPAViewZ.push_back(tfs->make<TH1I>(Form("NHitsAPA%d_Z",i),Form("Number of hits APA%d-Z",i),1000,0,20000));
+      fNHitsAPAViewU.push_back(tfs->make<TH1I>(Form("NHitsAPA%d_U",j),Form("Number of hits APA%d-U",j),1000,0,20000));
+      fNHitsAPAViewV.push_back(tfs->make<TH1I>(Form("NHitsAPA%d_V",j),Form("Number of hits APA%d-V",j),1000,0,20000));
+      fNHitsAPAViewZ.push_back(tfs->make<TH1I>(Form("NHitsAPA%d_Z",j),Form("Number of hits APA%d-Z",j),1000,0,20000));
 
-      fChargeAPAViewU.push_back(tfs->make<TH1F>(Form("HitChargeAPA%d_U",i),Form("Hit Charge APA%d-U",i),100,0,1500));
-      fChargeAPAViewV.push_back(tfs->make<TH1F>(Form("HitChargeAPA%d_V",i),Form("Hit Charge APA%d-V",i),100,0,1500));
-      fChargeAPAViewZ.push_back(tfs->make<TH1F>(Form("HitChargeAPA%d_Z",i),Form("Hit Charge APA%d-Z",i),100,0,1500));
+      fChargeAPAViewU.push_back(tfs->make<TH1F>(Form("HitChargeAPA%d_U",j),Form("Hit Charge APA%d-U",j),100,0,1500));
+      fChargeAPAViewV.push_back(tfs->make<TH1F>(Form("HitChargeAPA%d_V",j),Form("Hit Charge APA%d-V",j),100,0,1500));
+      fChargeAPAViewZ.push_back(tfs->make<TH1F>(Form("HitChargeAPA%d_Z",j),Form("Hit Charge APA%d-Z",j),100,0,1500));
 
-      fRMSAPAViewU.push_back(tfs->make<TH1F>(Form("HitRMSAPA%d_U",i),Form("Hit RMS APA%d-U",i),100,0,10));
-      fRMSAPAViewV.push_back(tfs->make<TH1F>(Form("HitRMSAPA%d_V",i),Form("Hit RMS APA%d-V",i),100,0,10));
-      fRMSAPAViewZ.push_back(tfs->make<TH1F>(Form("HitRMSAPA%d_Z",i),Form("Hit RMS APA%d-Z",i),100,0,10));
+      fRMSAPAViewU.push_back(tfs->make<TH1F>(Form("HitRMSAPA%d_U",j),Form("Hit RMS APA%d-U",j),100,0,10));
+      fRMSAPAViewV.push_back(tfs->make<TH1F>(Form("HitRMSAPA%d_V",j),Form("Hit RMS APA%d-V",j),100,0,10));
+      fRMSAPAViewZ.push_back(tfs->make<TH1F>(Form("HitRMSAPA%d_Z",j),Form("Hit RMS APA%d-Z",j),100,0,10));
 
-      fHitPeakTimeAPAViewU.push_back(tfs->make<TH1F>(Form("HitPeakTimeAPA%d_U",i),Form("Hit Peak Time APA%d-U",i),100,0,10000));
-      fHitPeakTimeAPAViewV.push_back(tfs->make<TH1F>(Form("HitPeakTimeAPA%d_V",i),Form("Hit Peak Time APA%d-V",i),100,0,10000));
-      fHitPeakTimeAPAViewZ.push_back(tfs->make<TH1F>(Form("HitPeakTimeAPA%d_Z",i),Form("Hit Peak Time APA%d-Z",i),100,0,10000));
+      fHitPeakTimeAPAViewU.push_back(tfs->make<TH1F>(Form("HitPeakTimeAPA%d_U",j),Form("Hit Peak Time APA%d-U",j),100,0,10000));
+      fHitPeakTimeAPAViewV.push_back(tfs->make<TH1F>(Form("HitPeakTimeAPA%d_V",j),Form("Hit Peak Time APA%d-V",j),100,0,10000));
+      fHitPeakTimeAPAViewZ.push_back(tfs->make<TH1F>(Form("HitPeakTimeAPA%d_Z",j),Form("Hit Peak Time APA%d-Z",j),100,0,10000));
 
       // U view
-      fNHitsAPAViewU_prof.push_back(tfs->make<TProfile>(Form("fNHitsViewU%d_prof", i),Form("Number of hits distribution vs Channel(Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
-      fChargeAPAViewU_prof.push_back(tfs->make<TProfile>(Form("fChargeViewU%d_prof", i),Form("Profiled Hit Charge distribution vs Channel(Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
-      fRMSAPAViewU_prof.push_back(tfs->make<TProfile>(Form("fRMSViewU%d_prof", i),Form("Profiled Hit RMS distribution vs Channel(Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
+      fNHitsAPAViewU_prof.push_back(tfs->make<TProfile>(Form("fNHitsViewU%d_prof", j),Form("Number of hits distribution vs Channel(Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
+      fChargeAPAViewU_prof.push_back(tfs->make<TProfile>(Form("fChargeViewU%d_prof", j),Form("Profiled Hit Charge distribution vs Channel(Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
+      fRMSAPAViewU_prof.push_back(tfs->make<TProfile>(Form("fRMSViewU%d_prof", j),Form("Profiled Hit RMS distribution vs Channel(Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
       
       // V view
-      fNHitsAPAViewV_prof.push_back(tfs->make<TProfile>(Form("fNHitsViewV%d_prof",i),Form("Number of hits distribution vs Channel(Plane V, APA%d)",i), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
-      fChargeAPAViewV_prof.push_back(tfs->make<TProfile>(Form("fChargeViewV%d_prof",i),Form("Profiled Hit Charge distribution vs Channel(Plane V, APA%d)",i), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
-      fRMSAPAViewV_prof.push_back(tfs->make<TProfile>(Form("fRMSViewV%d_prof",i),Form("Profiled Hit RMS distribution vs Channel(Plane V, APA%d)",i), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
+      fNHitsAPAViewV_prof.push_back(tfs->make<TProfile>(Form("fNHitsViewV%d_prof",j),Form("Number of hits distribution vs Channel(Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
+      fChargeAPAViewV_prof.push_back(tfs->make<TProfile>(Form("fChargeViewV%d_prof",j),Form("Profiled Hit Charge distribution vs Channel(Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
+      fRMSAPAViewV_prof.push_back(tfs->make<TProfile>(Form("fRMSViewV%d_prof",j),Form("Profiled Hit RMS distribution vs Channel(Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
 
       // Z view
-      fNHitsAPAViewZ_prof.push_back(tfs->make<TProfile>(Form("fNHitsViewZ%d_prof",i),Form("Number of hits distribution vs Channel(Plane Z, APA%d)",i), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
-      fChargeAPAViewZ_prof.push_back(tfs->make<TProfile>(Form("fChargeViewZ%d_prof",i),Form("Profiled Hit Charge distribution vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
-      fRMSAPAViewZ_prof.push_back(tfs->make<TProfile>(Form("fRMSViewZ%d_prof",i),Form("Profiled Hit RMS distribution vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
+      fNHitsAPAViewZ_prof.push_back(tfs->make<TProfile>(Form("fNHitsViewZ%d_prof",j),Form("Number of hits distribution vs Channel(Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
+      fChargeAPAViewZ_prof.push_back(tfs->make<TProfile>(Form("fChargeViewZ%d_prof",j),Form("Profiled Hit Charge distribution vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
+      fRMSAPAViewZ_prof.push_back(tfs->make<TProfile>(Form("fRMSViewZ%d_prof",j),Form("Profiled Hit RMS distribution vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
 
       // Set titles
       fNHitsAPAViewU[i]->GetXaxis()->SetTitle("NHits");

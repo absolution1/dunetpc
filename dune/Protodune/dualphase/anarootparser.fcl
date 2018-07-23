@@ -9,7 +9,7 @@ data_3x1x1_anarootparser:
  EventsPerSubrun:             	335
 
  RawDigitModuleLabel:           "daq"
- HitsModuleLabel:             	"dprawhit"
+ HitsModuleLabel:             	"linecluster"
  LArGeantModuleLabel:         	"largeant"
  CalDataModuleLabel:          	"caldata"
  GenieGenModuleLabel:         	"generator"

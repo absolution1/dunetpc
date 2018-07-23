@@ -7,10 +7,10 @@
 //
 // Configuration:
 //           LogLevel - Logging level: 0=none, 1=init, 2=call, ...
-//          SigThresh - if <0, then only keep ROIS with a tick below this value
-//                      if >0, then only keep ROIS with a tick above this value
-//        RunDataTool - Name for the run data tool. If found and pulser is on, then each
-//                      ROI is assigned a charge corresponding to the pulser setting.
+//          SigThresh - if <0, then only keep ROIs with a tick below this value
+//                      if >0, then only keep ROIs with a tick above this value
+//         TickBorder - if > 0, only keep ROIs forwhich there are this many ticks or more
+//                      before the start and after the end of the ROI.
 //         RoiHistOpt - histo option:  0 - No histograms
 //                                     1 - sample vs. tick
 //                                     2 - raw vs. tick
@@ -24,6 +24,9 @@
 //           SumHists - Array of summary histogram specifiers. See below.
 //      ChannelRanges - Ranges of channels for channel summary plots.
 //       ChanSumHists - Array of specifiers for the channel summary histograms.
+//        RunDataTool - Name for the run data tool. If found and pulser is on, then each
+//                      ROI is assigned a charge corresponding to the pulser setting.
+//     TickOffsetTool - Name of the tool that provides the tick offset.
 //    RoiRootFileName - Name of file to which the ROI histograms are copied.
 //    SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
 //
@@ -33,15 +36,19 @@
 // as tick or pulse height.
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
-//            fitHeight
-//            fitWidth
-//            fitPosition
-//            fitTickRem - Fractional part of tick
-//            fitStat - Status from the fit (0 = success)
-//            fitChiSquare - Chi-square from fit (as reported by TF1)
-//            fitChiSquareDof - Chi-square/DOF from fit (both from TF1)
+//            fitHeight - Height from ROI fit
+//            fitWidth - Shaping time from ROI fit
+//            fitPos - Postion [ticks] from ROI fit
+//            fitPosRem - remainder(fitPos, 1)
+//            fitToffPulser - fmod(fitPos + toff, Tpulser) where
+//              toff is the timing offset, i.e. the time for tick 0 and
+//              Tpulser is the period of the pulser (e.g. 497 ticks)
+//            fitToffPulserMod10 - fmod(fitToffPulser, 10)
+//            fitChiSquare - Chi-square from ROI fit (as reported by TF1)
+//            fitChiSquareDof - Chi-square/DOF from ROI fit (both from TF1)
 //            fitCSNorm - Chi-square/(ped RMS)^2
 //            fitCSNormDof - Chi-square/DOF/(ped RMS)^2
+//            timingPhase_fitToffPulserMod10 - 2D plot of timing phase (0 to 1) vs offset tick
 //    name: Name of the histogram. Include %CHAN% to get separate histos for each channel
 //   title: Histogram title
 //    nbin: # bins
@@ -114,10 +121,12 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Data/IndexRange.h"
 #include <iostream>
 
 class AdcChannelStringTool;
 class RunDataTool;
+class TimeOffsetTool;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -129,24 +138,16 @@ public:
   using HistVector = std::vector<TH1*>;
   using HistMap = std::map<Name, TH1*>;
   using NameMap = std::map<Name, Name>;
-
-  // This class describes a channel range.
-  class ChannelRange {
-  public:
-    Name name;
-    Name label;
-    Index begin;
-    Index end;
-    Index size() const { return end>begin ? end - begin : 0; }
-  };
-
+  using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
 
   // Subclass that associates a variable name with a histogram.
+  //  vary != "" ==> 2D histo
   class HistInfo {
   public:
     TH1* ph = nullptr;
-    Name var;
+    Name varx;
+    Name vary;
   };
 
   using HistInfoMap = std::map<Name, HistInfo>;
@@ -170,7 +171,7 @@ public:
     Name getChanSumHistTemplateName(Name hnam) const;
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
-    Index cachedRunCount = 0;  // Incremente each time run number changes.
+    Index cachedRunCount = 0;  // Increment each time run number changes.
     Index cachedRun = AdcChannelData::badIndex;
     Name cachedSampleUnit;
   };
@@ -217,28 +218,28 @@ private:
   // Configuration data.
   int m_LogLevel;
   float m_SigThresh;
+  Index m_TickBorder;
   int m_RoiHistOpt;
   int m_FitOpt;
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;
   Name m_RunDataTool;
+  Name m_TickOffsetTool;
   Name m_RoiRootFileName;
   Name m_SumRootFileName;
   Name m_ChanSumRootFileName;
   ChannelRangeMap m_ChannelRanges;
 
   // Derived from configuration.
-  const RunDataTool* m_pRunDataTool =nullptr;
-
-  // Fixed configuration data.
-  int m_TickPeriod = 497;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;
 
-  // ADC string tools.
-  const AdcChannelStringTool* m_adcStringBuilder;
+  // Tools.
+  const AdcChannelStringTool* m_adcStringBuilder =nullptr;
+  const RunDataTool*          m_pRunDataTool     =nullptr;
+  const TimeOffsetTool*       m_pTickOffsetTool  =nullptr;
 
 };
 

@@ -29,6 +29,7 @@ private:
 
   // Parameters.
   int m_LogLevel;
+  bool m_SaveChanPedRMS;
 
 };
 

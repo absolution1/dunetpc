@@ -3369,8 +3369,8 @@ if (hasRecobWireInfo()){
 
     CreateBranch("Hit_Multiplicity",hit_multiplicity,"hit_multiplicity[no_hits]/S");
     CreateBranch("Hit_trueID", hit_trueID,  "Hit_trueID[no_hits]/I");
-    CreateBranch("hit_trueEnergyMax", hit_trueEnergyMax,  "hit_trueEnergyMax[no_hits]/F");
-    CreateBranch("hit_trueEnergyFraction", hit_trueEnergyFraction,  "hit_trueEnergyFraction[no_hits]/F");
+    CreateBranch("Hit_trueEnergyMax", hit_trueEnergyMax,  "hit_trueEnergyMax[no_hits]/F");
+    CreateBranch("Hit_trueEnergyFraction", hit_trueEnergyFraction,  "hit_trueEnergyFraction[no_hits]/F");
     CreateBranch("Hit_TrackID",hit_trkid,"hit_trkid[no_hits]/S");
     //CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits]/S");
     CreateBranch("Hit_ClusterID",hit_clusterid,"hit_clusterid[no_hits]/S");
@@ -4480,6 +4480,7 @@ if (fSaveRecobWireInfo){
 
   for(int i = 0; i < fData->no_recochannels; i++)  //loop over channels holding reco waveforms
   {
+    fData->recoW_NTicks[i]=0;
     fData->recoW_Channel[i] = recobwirelist[i]->Channel();
     const recob::Wire::RegionsOfInterest_t& signalROI = recobwirelist[i]->SignalROI();
 
@@ -4545,6 +4546,7 @@ if (fSaveHitInfo){
     fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
 
     //quantities from backtracker are different from the real value in MC
+
     if( fIsMC )
       HitsBackTrack(  hitlist[i], trueID, maxe, purity );
 
@@ -6503,18 +6505,17 @@ if (fSaveTrackInfo) {
       art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
       std::map<int,double> trkide;
-
       std::vector<sim::IDE> ides;
 
       //bt_serv->HitToSimIDEs(hit,ides);
       std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
 
       for(size_t e = 0; e < eveIDs.size(); ++e){
-          //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
+          //std::cout<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
           trkide[eveIDs[e].trackID] += eveIDs[e].energy;
       }
 
-      maxe = -1;
+      maxe = 0;
       double tote = 0;
       for (std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
         tote += ii->second;
@@ -6528,7 +6529,6 @@ if (fSaveTrackInfo) {
       if (tote>0){
         purity = maxe/tote;
       }
-
     }
 
     // Calculate distance to boundary.

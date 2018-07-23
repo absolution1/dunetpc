@@ -22,6 +22,7 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "lardata/Utilities/SignalShaping.h"
+#include "TF1.h"
 
 namespace util {
 
@@ -65,7 +66,7 @@ namespace util {
 
 
     // Calculate response functions.
-    void SetElectResponse(std::vector<double> &eresp);
+    void SetElectResponse(std::vector<double> &eresp1meter, std::vector<double> &eresp3meter);
     void SetFieldResponse(std::vector<double> &fresp); //<- could be added later
     double FieldResponse(double tval_us); //harcoded function to calcuate the field response
 
@@ -75,20 +76,26 @@ namespace util {
     // Sample the response function, including a configurable drift velocity of electrons
     void SetResponseSampling();
 
-    // response function for ETHZ and Lyon pre-amplifier
-    double PreampETHZ(double tval_us);
-    double PreampIPNL(double tval_us);
-
     // Attributes.
     bool fInit;               ///< Initialization flag.
 
     // Fcl parameters.
     double fDeconNorm;
-    double fASICmVperfC;                        ///< Amplifier gain per 1 fC input
-    double fADCpermV;                           ///< Digitizer scale
-    double fAmpENC;                             ///< Amplifier noise
-    double fAmpENCADC;                          ///  Amplifier noise in ADC
-    double fRespSamplingPeriod;                 ///< Sampling period for response in ns
+    double fASICmVperfC1Meter;              ///< Amplifier gain per 1 fC input for 1 meter long readout channels
+    double fASICmVperfC3Meter;              ///< Amplifier gain per 1 fC input for 3 meter long readout channels
+    double fADCpermV;                       ///< Digitizer scale
+    double fAmpENC;                         ///< Amplifier noise
+    double fAmpENCADC;                      ///  Amplifier noise in ADC
+    double fRespSamplingPeriod;             ///< Sampling period for response in ns
+
+    std::string fCollection1MeterShape;
+    std::string fCollection3MeterShape;
+
+    std::vector<double> fCollection1MeterParams;
+    std::vector<double> fCollection3MeterParams;
+
+    TF1* fCollection1MeterFunction;             // Parameterized collection shaping function for 1 meter long readout channels
+    TF1* fCollection3MeterFunction;             // Parameterized collection shaping function for 3 meter long readout channels
 
     TF1* fColFieldFunc;             ///<Parameterized collection field function.
     double fColFieldRespAmp;  			///< amplitude of response to field
@@ -96,7 +103,8 @@ namespace util {
 
     TF1* fColFilterFunc;      			///< Parameterized collection filter function.
     // Following attributes hold the convolution and deconvolution kernels
-    util::SignalShaping fColSignalShaping;
+    util::SignalShaping fColSignalShaping1Meter;
+    util::SignalShaping fColSignalShaping3Meter;
 
     // Field response.
 

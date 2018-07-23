@@ -9,17 +9,9 @@
 
 ################################################################################
 # Tools to display ADC data.
-#
-# Add them to the dataprep service to display contents, e.g.
-#  services.RawDigitPrepService.DisplayTools = ["adcPlotter"]
 ################################################################################
 
-# Destination for data prep histograms.
-# This is now (April 2018) obsolete.
-tools.adcHists: {
-  tool_type: SimpleHistogramManager
-  LogLevel: 1
-}
+tools.tickRanges.plotTicks: { begin:3000  end:4000 label:"Plot ticks" }
 
 ################################################################################
 # Dumpers.
@@ -124,12 +116,12 @@ tools.preparedAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
+  TickRange: plotTicks
   FirstChannel: 0
   LastChannel:  0
+  FembTickOffsets: []
   MaxSignal: 200
-  ChannelLineModulus: 0
+  ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
@@ -139,16 +131,35 @@ tools.preparedAdcPlotter: {
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
   RootFileName: ""    # or "adc_evt%EVENT%.root"
 }
+tools.signalAdcPlotter: {
+  tool_type: AdcDataPlotter
+  LogLevel: 1
+  DataType: 2      # 0 for prepared, 1 for raw-pedestal
+  TickRange: plotTicks
+  FirstChannel: 0
+  LastChannel:  0
+  FembTickOffsets: []
+  MaxSignal: 200
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  Palette: 1026
+  HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
+  HistTitle: "Signal ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotFileName: "adcsig_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  RootFileName: ""    # or "adc_evt%EVENT%.root"
+}
 tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
+  TickRange: plotTicks
   FirstChannel: 0
   LastChannel:  0
+  FembTickOffsets: []
   MaxSignal: 200
-  ChannelLineModulus: 0
+  ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
@@ -168,9 +179,7 @@ tools.adcChannelPedestalPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestal
-  FirstChannel: 0
-  LastChannel: 0
-  ChannelCounts: []
+  ChannelRanges: []
   MetricMin: 0
   MetricMax: 4096
   ChannelLineModulus: 0
@@ -188,9 +197,7 @@ tools.adcChannelPedestalRmsPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestalRms
-  FirstChannel: 0
-  LastChannel: 0
-  ChannelCounts: []
+  ChannelRanges: []
   MetricMin: 0
   MetricMax: 11
   ChannelLineModulus: 0
@@ -310,12 +317,14 @@ tools.adcRoiViewer: {
   tool_type: AdcRoiViewer
   LogLevel: 1
   SigThresh: 0.0
+  TickBorder: 0
   RoiHistOpt:  1
   FitOpt:   0
   PulserStepCharge: 0.0
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
+  TickOffsetTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""
@@ -323,6 +332,7 @@ tools.adcRoiViewer: {
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
   SigThresh: 0.0
+  TickBorder: 0
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1
@@ -330,6 +340,7 @@ tools.adcRoiFitter: {
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
+  TickOffsetTool: ""
   SumHists: []
   RoiRootFileName: ""
   SumRootFileName: ""

@@ -37,28 +37,27 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   string fclfile = "test_AdcChannelMetric.fcl";
-  string hname = "hchped";
+  string hname = "hchped_all";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "#include \"dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
+    fout << "#include \"protodune_dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
     fout << "tools.mytool: {" << endl;
     fout << "           tool_type: AdcChannelMetric" << endl;
     fout << "            LogLevel: 3" << endl;
     fout << "              Metric: \"pedestal\"" << endl;
-    fout << "        FirstChannel: 0" << endl;
-    fout << "         LastChannel: 0" << endl;
-    fout << "       ChannelCounts: []" << endl;
+    fout << "       ChannelRanges: [all, tpp3c, tpp3z]" << endl;
     fout << "           MetricMin: 0.0" << endl;
     fout << "           MetricMax: 2000.0" << endl;
-    fout << "  ChannelLineModulus:  4" << endl;
-    fout << "  ChannelLinePattern:  [1]" << endl;
-    fout << "            HistName: \"" << hname << "\"" << endl;
-    fout << "           HistTitle: \"ADC pedestals for run %RUN% event %EVENT%\"" << endl;
+    fout << "  ChannelLineModulus:  40" << endl;
+    fout << "  ChannelLinePattern:  [10]" << endl;
+    fout << "            HistName: \"hchped_%CRNAME%\"" << endl;
+    fout << "           HistTitle: \"ADC pedestals for run %RUN% event %EVENT% %CRLABEL%\"" << endl;
     fout << "         MetricLabel: \"Pedestal [ADC counts]\"" << endl;
     fout << "           PlotSizeX: 0" << endl;
     fout << "           PlotSizeY: 0" << endl;
-    fout << "        PlotFileName: \"mypeds-run%RUN%-evt%EVENT%.png\"" << endl;
+    fout << "        PlotFileName: \"mypeds-run%RUN%-evt%EVENT%_%CRNAME%.png\"" << endl;
     fout << "        RootFileName: \"\"" << endl;
     fout << "}" << endl;
     fout.close();
@@ -82,7 +81,8 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
   AdcIndex nevt = 2;
-  float peds[20] = {701, 711, 733, 690, 688, 703, 720, 720, 695, 702,
+  const int nped = 20;
+  float peds[nped] = {701, 711, 733, 690, 688, 703, 720, 720, 695, 702,
                     410, 404, 388, 389, 400, 401, 410, 404, 395, 396};
   vector<double> wf = {5.0, 20.1, 53.2, 80.6, 130.2, 160.1, 150.4, 125.7, 72.5, 41.3, 18.4,
                        -6.5, -34.9, -56.6, -88.9, -132.6, -170.8, -172.9, -144.6, -112.6,
@@ -90,7 +90,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
     cout << myname << "Event " << ievt << endl;
     AdcChannelDataMap datamap;
-    AdcIndex ncha = 20;
+    AdcIndex ncha = 200;
     AdcIndex icha1 = 10000;
     AdcIndex icha2 = icha1 + ncha;
     for ( AdcIndex icha=icha1; icha<icha2; ++icha ) {
@@ -100,7 +100,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
       AdcChannelData& data = idat->second;
       data.run = 123;
       data.event = ievt;
-      float ped = peds[icha-icha1];
+      float ped = peds[(icha-icha1)%nped];
       data.channel = icha;
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
@@ -123,7 +123,9 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
       data.sampleUnit = "ke";
     }
     DataMap ret = padv->viewMap(datamap);
+    ret.print();
     assert( ret == 0 );
+    cout << myname << "Checking histogram " << hname << endl;
     TH1* phout = ret.getHist(hname);
     assert( phout != nullptr );
     assert( phout->GetName() == hname );

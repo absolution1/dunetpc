@@ -88,7 +88,7 @@ public:
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
 
-  int addChannel(const AdcChannelData& acd) const;
+  int addChannel(const AdcChannelData& acd, double xfac) const;
 
   // Return the state.
   // Shared pointer so we can make sure only one reference is out at a time.
