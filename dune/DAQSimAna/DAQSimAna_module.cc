@@ -69,7 +69,9 @@ private:
 
   // --- Some of our own functions.
   void ResetVariables();
-    void  FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap, art::FindManyP<simb::MCParticle> Assn, art::ValidHandle< std::vector<simb::MCTruth> > Hand,
+    void  FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap,
+                        art::FindManyP<simb::MCParticle> Assn,
+                        art::ValidHandle< std::vector<simb::MCTruth> > Hand,
                         std::map<int, int>* indexMap=nullptr);
   PType WhichParType( int TrID );
   PType WhichParType( const art::ValidHandle<simb::MCTruth>& truthHand );
