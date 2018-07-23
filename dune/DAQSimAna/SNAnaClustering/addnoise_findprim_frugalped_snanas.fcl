@@ -60,13 +60,14 @@ physics: {
       # sure each one has a distinct name, and has a corresponding
       # daqsimana analyzer (otherwise you won't get a corresponding
       # TTree in the output file. Also make sure to add it to the "simulate" list below
-      trigprim600:  @local::trigprimpass1frugal
       trigprim800:  @local::trigprimpass1frugal
       trigprim1000: @local::trigprimpass1frugal
       trigprim1200: @local::trigprimpass1frugal
       trigprim1400: @local::trigprimpass1frugal
       trigprim1600: @local::trigprimpass1frugal
       trigprim1800: @local::trigprimpass1frugal
+      trigprim2000: @local::trigprimpass1frugal
+      trigprim2400: @local::trigprimpass1frugal
 
       rns:            { module_type: "RandomNumberSaver" }
    }
@@ -75,13 +76,14 @@ physics: {
    {
       # Create an SNAna for each trigger primitive finders. Make
       # sure to add each one to the "ana" list below
-      snanatrigprim600:     @local::trigprim_snana
       snanatrigprim800:     @local::trigprim_snana
       snanatrigprim1000:    @local::trigprim_snana
       snanatrigprim1200:    @local::trigprim_snana
       snanatrigprim1400:    @local::trigprim_snana
       snanatrigprim1600:    @local::trigprim_snana
       snanatrigprim1800:    @local::trigprim_snana
+      snanatrigprim2000:    @local::trigprim_snana
+      snanatrigprim2400:    @local::trigprim_snana
       waveformstotree: {
          module_type: "WaveformsToTree"
          InputTag: "simwire"
@@ -89,8 +91,8 @@ physics: {
       }
    }
 
-   simulate: [ rns, simwire, trigprim600, trigprim800, trigprim1000, trigprim1200, trigprim1400, trigprim1600, trigprim1800 ]
-   ana: [ snanatrigprim600, snanatrigprim800, snanatrigprim1000, snanatrigprim1200, snanatrigprim1400, snanatrigprim1600, snanatrigprim1800, waveformstotree ]
+   simulate: [ rns, simwire, trigprim800, trigprim1000, trigprim1200, trigprim1400, trigprim1600, trigprim1800, trigprim2000, trigprim2400 ]
+   ana: [ snanatrigprim800, snanatrigprim1000, snanatrigprim1200, snanatrigprim1400, snanatrigprim1600, snanatrigprim1800, snanatrigprim2000, snanatrigprim2400, waveformstotree ]
 
    trigger_paths: [simulate] 
    end_paths: [ ana ] 
@@ -100,23 +102,25 @@ physics: {
 # Modify the settings of each of the trigger primitive finders. If you
 # want to use a different trigger primitive finder class, set
 # "physics.producers.<itemname>.finder.tool_type: MyNewTriggerPrimitiveFinderTool"
-physics.producers.trigprim600.finder.Threshold:   600
 physics.producers.trigprim800.finder.Threshold:   800
 physics.producers.trigprim1000.finder.Threshold: 1000
 physics.producers.trigprim1200.finder.Threshold: 1200
 physics.producers.trigprim1400.finder.Threshold: 1400
 physics.producers.trigprim1600.finder.Threshold: 1600
 physics.producers.trigprim1800.finder.Threshold: 1800
+physics.producers.trigprim2000.finder.Threshold: 2000
+physics.producers.trigprim2400.finder.Threshold: 2400
 
 # Set the HitLabel to make sure each DaqAnaSim reads hits from its
 #  corresponding TriggerPrimitiveFinder
-physics.analyzers.snanatrigprim600.HitLabel:   "trigprim600"
 physics.analyzers.snanatrigprim800.HitLabel:   "trigprim800"
 physics.analyzers.snanatrigprim1000.HitLabel: "trigprim1000"
 physics.analyzers.snanatrigprim1200.HitLabel: "trigprim1200"
 physics.analyzers.snanatrigprim1400.HitLabel: "trigprim1400"
 physics.analyzers.snanatrigprim1600.HitLabel: "trigprim1600"
 physics.analyzers.snanatrigprim1800.HitLabel: "trigprim1800"
+physics.analyzers.snanatrigprim2000.HitLabel: "trigprim2000"
+physics.analyzers.snanatrigprim2400.HitLabel: "trigprim2400"
 
 # =====================================================================
 # You probably won't need to change anything below here
