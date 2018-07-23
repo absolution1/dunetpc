@@ -10,31 +10,17 @@
 # connected to a DaqSimAna analyzer
 
 #include "SNAna.fcl"
+#include "trigprim.fcl"
 BEGIN_PROLOG
-
-# This is the generic trigger primitive finder call. To make your own,
-#  add another call to "@local::trigprimpass1" to the producers list,
-#  and modify its settings later on
-
-trigprimpass1: {
-   module_type: "TriggerPrimitiveFinder"
-   InputTag: "simwire"
-   finder: {
-      tool_type: "TriggerPrimitiveFinderPass1"
-   }
-}
-
 trigprim_snana: {
    @table::standard_snana
    SaveNeighbourADCs:    false
    SaveTruth:            false
 
 }
-
 END_PROLOG
-
-
 #include "standard_detsim_dune10kt_1x2x6.fcl"
+
 
 process_name: PrimSim
 
@@ -99,7 +85,7 @@ physics: {
       waveformstotree: {
          module_type: "WaveformsToTree"
          InputTag: "simwire"
-         MaxChannels: 10
+         MaxChannels: 50
       }
    }
 
@@ -114,8 +100,8 @@ physics: {
 # Modify the settings of each of the trigger primitive finders. If you
 # want to use a different trigger primitive finder class, set
 # "physics.producers.<itemname>.finder.tool_type: MyNewTriggerPrimitiveFinderTool"
-physics.producers.trigprim600.finder.Threshold: 600
-physics.producers.trigprim800.finder.Threshold: 800
+physics.producers.trigprim600.finder.Threshold:   600
+physics.producers.trigprim800.finder.Threshold:   800
 physics.producers.trigprim1000.finder.Threshold: 1000
 physics.producers.trigprim1200.finder.Threshold: 1200
 physics.producers.trigprim1400.finder.Threshold: 1400
@@ -124,26 +110,13 @@ physics.producers.trigprim1800.finder.Threshold: 1800
 
 # Set the HitLabel to make sure each DaqAnaSim reads hits from its
 #  corresponding TriggerPrimitiveFinder
-physics.analyzers.snanatrigprim600.HitLabel: "trigprim600"
-# physics.analyzers.snanatrigprim600.MARLEYLabel: "marley"
-
-physics.analyzers.snanatrigprim800.HitLabel: "trigprim800"
-# physics.analyzers.snanatrigprim800.MARLEYLabel: "marley"
-
+physics.analyzers.snanatrigprim600.HitLabel:   "trigprim600"
+physics.analyzers.snanatrigprim800.HitLabel:   "trigprim800"
 physics.analyzers.snanatrigprim1000.HitLabel: "trigprim1000"
-# physics.analyzers.snanatrigprim1000.MARLEYLabel: "marley"
-
 physics.analyzers.snanatrigprim1200.HitLabel: "trigprim1200"
-# physics.analyzers.snanatrigprim1200.MARLEYLabel: "marley"
-
 physics.analyzers.snanatrigprim1400.HitLabel: "trigprim1400"
-# physics.analyzers.snanatrigprim1400.MARLEYLabel: "marley"
-
 physics.analyzers.snanatrigprim1600.HitLabel: "trigprim1600"
-# physics.analyzers.snanatrigprim1600.MARLEYLabel: "marley"
-
 physics.analyzers.snanatrigprim1800.HitLabel: "trigprim1800"
-# physics.analyzers.snanatrigprim1800.MARLEYLabel: "marley"
 
 # =====================================================================
 # You probably won't need to change anything below here
