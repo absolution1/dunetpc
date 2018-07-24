@@ -22,6 +22,7 @@ art_make( MODULE_LIBRARIES
 			lardata_Utilities
 			larsim_Simulation 
                         lardataobj_Simulation
+                        lardataobj_ProtoDUNEBeamSpill
                         larsim_MCCheater_BackTrackerService_service
                         larsim_MCCheater_ParticleInventoryService_service
                         nutools_ParticleNavigation 

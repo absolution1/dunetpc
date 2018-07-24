@@ -19,6 +19,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "IFBeam_service.h"
 #include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
+#include <bitset>
+#include <iomanip>
 
 namespace proto {
   class BeamAna;
@@ -48,6 +50,8 @@ public:
   void endRun(art::Run const & r) override;
   void endSubRun(art::SubRun const & sr) override;
   void reconfigure(fhicl::ParameterSet const & p);
+  std::bitset<sizeof(double)*CHAR_BIT> toBinary(const double num);
+  void toBits(double);
 
 private:
 
@@ -108,87 +112,47 @@ void proto::BeamAna::analyze(art::Event const & e)
                             "XBPF022707_H",
                             "XBPF022716_V",
                             "XBPF022716_H"};
+  size_t nDev = 6;
+  beamspill::ProtoDUNEBeamSpill * spill = new beamspill::ProtoDUNEBeamSpill();
+  spill->InitFBMs(nDev);
+
 
   for(size_t it = 0; it < fMultipleTimes.size(); ++it){
+    std::cout << "Time: " << fMultipleTimes[it] << std::endl;
     for(int d = 0; d < 6; ++d){
+      std::cout <<"Device: " << devices[d] << std::endl;
       std::vector<double> data = bfp->GetNamedVector(fMultipleTimes[it], prefix + devices[d] + ":eventsData[]");
       std::vector<double> counts = bfp->GetNamedVector(fMultipleTimes[it], prefix + devices[d] + ":countsRecords[]");
     
   
       std::cout << "Data: " << data.size() << std::endl;
-      for(int i = 0; i < 100; ++i){
-        for(int j = 0; j < 100; ++j){
-          if(data[100*i + j] > 0)
-            std::cout << data[100*i + j] << " ";
-        }
-  //      std::cout << std::endl;
-      }
       std::cout << "Counts: " << counts.size() << std::endl;
       for(size_t i = 0; i < counts.size(); ++i){
         std::cout << counts[i] << std::endl;
       }
+      if(counts[1] > data.size())continue;
+
+      beamspill::FBM fbm;
+      fbm.ID = d;
+
+      for(size_t i = 0; i < counts[1]; ++i){
+        std::cout << "Count: " << i << std::endl;
+        for(int j = 0; j < 10; ++j){
+          double theData = data[20*i + (2*j + 1)];
+          //std::cout << "("<<20*i+2*j+1<<")"<< theData << " ";
+          std::cout << std::setw(12) << theData ;
+          if(j < 4){
+            fbm.timeData[j] = theData;           
+          }
+          else{
+            fbm.fiberData[j - 4] = theData;
+          }
+        }
+        spill->AddFBMTrigger(d,fbm);
+        std::cout <<std::endl;
+      }
     }
   }
-  /*for(size_t ip = 0; ip < prof.size(); ++ip){
-    std::cout << prof[ip] << std::endl;
-  }*/
- 
- /* std::vector<std::string> devs = bfp->GetDeviceList();
-  std::cout << devs.size() <<std::endl;
-  for(size_t id = 0; id < devs.size();++id){
-    std::cout << devs[id] << std::endl;
-  }*/
-
-
-/*  std::vector<double> x1 = bfp->GetNamedVector(ts,"E:NP04BPROF1X[]");
-  std::vector<double> y1 = bfp->GetNamedVector(ts,"E:NP04BPROF1Y[]");
-  
-  std::vector<double> x2 = bfp->GetNamedVector(ts,"E:NP04BPROF2X[]");  
-  std::vector<double> y2 = bfp->GetNamedVector(ts,"E:NP04BPROF2Y[]");  
-
-  std::vector<double> x3 = bfp->GetNamedVector(ts,"E:NP04BPROF3X[]");
-  std::vector<double> y3 = bfp->GetNamedVector(ts,"E:NP04BPROF3Y[]");
-  
-  std::vector<double> x4 = bfp->GetNamedVector(ts,"E:NP04BPROF4X[]");
-  std::vector<double> y4 = bfp->GetNamedVector(ts,"E:NP04BPROF4Y[]");
-
-  //  std::vector<double> x5 = bfp->GetNamedVector(ts,"E:NP04BPROF5X[]");
-  //  std::vector<double> y5 = bfp->GetNamedVector(ts,"E:NP04BPROF5Y[]");
-  
-  std::vector<double> ckov1 = bfp->GetNamedVector(ts,"E:NP04CKOV1[]");
-  std::vector<double> ckov2 = bfp->GetNamedVector(ts,"E:NP04CKOV2[]");
-
-  std::vector<double> timeList = bfp->GetTimeList();
-  std::vector<std::string> deviceList = bfp->GetDeviceList();*/
-    
-/*  for (size_t i=0; i<timeList.size(); ++i)
-    std::cout << "time[" << i << "] = " << timeList[i] << std::endl;
-  for (size_t i=0; i<deviceList.size(); ++i)
-    std::cout << "device[" << i << "] = " << deviceList[i] << std::endl;
-  
-
-  std::cout << "x1.size() = " << x1.size() 
-	    << ", y1.size() = " << y1.size() << std::endl;
-  std::cout << "x2.size() = " << x2.size() 
-	    << ", y2.size() = " << y2.size() << std::endl;
-  std::cout << "x3.size() = " << x3.size() 
-	    << ", y3.size() = " << y3.size() << std::endl;
-  std::cout << "x4.size() = " << x4.size() 
-	    << ", y4.size() = " << y4.size() << std::endl;
-
-  for(size_t i = 0; i < x1.size(); ++i){
-    std::cout << x1[i] << " " << y1[i] 
-              << " " << x2[i] << " " << y2[i] 
-              << " " << x3[i] << " " << y3[i] 
-              << " " << x4[i] << " " << y4[i] << std::endl;
-  }
-  std::cout << "ckov1.size() = " << ckov1.size()
-            << ", ckov2.size() = " << ckov2.size() << std::endl;
-  for(size_t i = 0; i < ckov1.size(); ++i){
-    std::cout << ckov1[i] << " " << ckov2[i] << std::endl;
-  }*/
-
-
 
 }
 
@@ -230,6 +194,47 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");
   fMultipleTimes = p.get< std::vector<uint64_t> >("MultipleTimes");
+}
+
+std::bitset<sizeof(double)*CHAR_BIT> proto::BeamAna::toBinary(double num){
+  std::bitset<sizeof(double)*CHAR_BIT> mybits;
+  const char * const p = reinterpret_cast<const char*>(&num);
+  for (int i = sizeof(double)*CHAR_BIT-1 ; i >= 0 ; --i){
+    mybits.set(i, (*(p)&(1<<i) ));
+  }
+  return mybits;
+}
+
+void proto::BeamAna::toBits(double input){
+
+  std::cout << "size: " << sizeof(double) << std::endl;
+  unsigned char rawBytes[sizeof(double)];  
+  memcpy(rawBytes,&input,sizeof(double));
+
+  unsigned char startMask=1;
+  while (0!=static_cast<unsigned char>(startMask<<1)) {
+    startMask<<=1;
+  }
+
+  bool hasLeadBit=false;
+
+  size_t byteIndex;
+  for (byteIndex=0; byteIndex<sizeof(double); ++byteIndex){
+    unsigned char bitMask=startMask;
+    while (0!=bitMask) {
+      if (0!=(bitMask&rawBytes[byteIndex])) {
+        std::cout<<"1";
+        hasLeadBit=true;
+      } 
+      else if (hasLeadBit) {
+        std::cout<<"0";
+      }
+      bitMask>>=1;
+    }
+  }
+  if(!hasLeadBit){
+    std::cout << "0";
+  }
 }
 
 DEFINE_ART_MODULE(proto::BeamAna)

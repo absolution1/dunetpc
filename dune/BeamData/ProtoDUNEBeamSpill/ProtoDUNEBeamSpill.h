@@ -14,8 +14,11 @@ namespace beamspill
 
     //Bitmap for hit fibers in the monitor
     std::bitset<192> fibers;
-    std::vector<short int> fibers = std::vector<short int>(24);
-      
+
+    //Raw Data from ifbeam
+    double fiberData[6];    
+    double timeData[4]; 
+
     long long int timeStamp;
     
     //ID (position in beamline?) of monitor
@@ -38,6 +41,7 @@ namespace beamspill
       ProtoDUNEBeamSpill();
      ~ProtoDUNEBeamSpill();
 
+      void              InitFBMs(size_t);
       long long         GetT0(){ return t0; };
       
       void              AddFBMTrigger(size_t, FBM); 
@@ -70,11 +74,8 @@ namespace beamspill
 
       //Set of FBMs
       //Indices: [Monitor in beam]['event' in monitor]
-      double t0;
-
-      //Set of FBMs
-      //
       std::vector< std::vector < FBM > > fiberMonitors;
+      size_t nFBMs;
 
       //Set of TOF detectors
       //
@@ -92,23 +93,33 @@ namespace beamspill
 
   ////////////Fiber Monitor Access
   inline void ProtoDUNEBeamSpill::AddFBMTrigger(size_t iMonitor, FBM theFBM){
-    if( (iMonitor > (fiberMonitors.size() - 1) ) || ( iMonitor < 0) ){
+    if( (iMonitor > (nFBMs - 1) ) ){
       std::cout << "Error FBM index out of range" << std::endl;
       return;
     }
-    fiberMonitors[iMonitor].push_back(theFBM);
+
+    //Check if it's the first time in the monitor. Replace dummy
+    if(fiberMonitors[iMonitor][0].ID == -1){
+      std::cout << "Replacing dummy FBM" << std::endl;
+      std::vector<FBM>::iterator theIt = fiberMonitors[iMonitor].begin();
+      fiberMonitors[iMonitor].insert(theIt,theFBM);
+      fiberMonitors[iMonitor].pop_back();
+    }
+    else{
+      fiberMonitors[iMonitor].push_back(theFBM);
+    }
   }
 
   inline short ProtoDUNEBeamSpill::GetFiberStatus(size_t iMonitor, size_t nTrigger, size_t iFiber){
-    if( (iMonitor > (fiberMonitors.size() - 1)) || (iMonitor < 0) ){
+    if( (iMonitor > (fiberMonitors.size() - 1)) ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
     }
-    if( (iFiber > 191) || (iFiber < 0) ){
+    if( (iFiber > 191)){
       std::cout << "Please input fiber in range [0,191]" << std::endl;
       return -1;
     }
-    if( (nTrigger > fiberMonitors[iMonitor].size()) || (nTrigger < 0) ){
+    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
       std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
       return -1;
     }
@@ -120,7 +131,7 @@ namespace beamspill
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
     }
-    if( (nTrigger > fiberMonitors[iMonitor].size()) || (nTrigger < 0) ){
+    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
       std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
       return -1;
     }
@@ -128,7 +139,7 @@ namespace beamspill
   }
 
   inline int ProtoDUNEBeamSpill::GetNFBMTriggers(size_t iMonitor){
-    if( (iMonitor > (fiberMonitors.size() - 1)) || (iMonitor < 0) ){
+    if( (iMonitor > (fiberMonitors.size() - 1)) ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
     }
@@ -140,7 +151,7 @@ namespace beamspill
   ////////////Cerenkov Access
   
   inline short ProtoDUNEBeamSpill::GetCKov0Status(size_t nTrigger){
-    if( (nTrigger < 0) || (nTrigger >= CKov0.size()) ){
+    if( (nTrigger >= CKov0.size()) ){
       std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
       return -1;
     }
@@ -149,7 +160,7 @@ namespace beamspill
   }
 
   inline short ProtoDUNEBeamSpill::GetCKov1Status(size_t nTrigger){
-    if( (nTrigger < 0) || (nTrigger >= CKov1.size()) ){
+    if( (nTrigger >= CKov1.size()) ){
       std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
       return -1;
     }
@@ -158,7 +169,7 @@ namespace beamspill
   }
 
   inline long long ProtoDUNEBeamSpill::GetCKov0Time(size_t nTrigger){
-    if( (nTrigger < 0) || (nTrigger >= CKov0.size()) ){
+    if( (nTrigger >= CKov0.size()) ){
       std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
       return -1;
     }
@@ -167,7 +178,7 @@ namespace beamspill
   }
 
   inline long long ProtoDUNEBeamSpill::GetCKov1Time(size_t nTrigger){
-    if( (nTrigger < 0) || (nTrigger >= CKov1.size()) ){
+    if( (nTrigger >= CKov1.size()) ){
       std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
       return -1;
     }
@@ -179,7 +190,7 @@ namespace beamspill
 
   ////////////TOF Access
   inline long long ProtoDUNEBeamSpill::GetTOF0(size_t nTrigger){
-    if( (nTrigger < 0) || (nTrigger >= TOF0.size()) ){
+    if( (nTrigger >= TOF0.size()) ){
       std::cout << "Please input index in range [0," << TOF0.size() - 1 << "]" << std::endl;
       return -1;
     }
@@ -188,7 +199,7 @@ namespace beamspill
   }
 
   inline long long ProtoDUNEBeamSpill::GetTOF1(size_t nTrigger){
-    if( (nTrigger < 0) || (nTrigger >= TOF1.size()) ){
+    if( (nTrigger >= TOF1.size()) ){
       std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
       return -1;
     }
@@ -205,7 +216,7 @@ namespace beamspill
       std::vector< CKov > CKov1;
       std::vector< CKov > CKov2;
   
-  };
 }
+
 
 #endif
