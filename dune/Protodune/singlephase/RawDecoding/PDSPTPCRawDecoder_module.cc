@@ -19,6 +19,7 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Persistency/Common/PtrMaker.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 
 #include <memory>
@@ -38,6 +39,7 @@
 
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 
 class PDSPTPCRawDecoder;
 
@@ -53,6 +55,10 @@ public:
 
 private:
   typedef std::vector<raw::RawDigit> RawDigits;
+  typedef std::vector<raw::RDTimeStamp>RDTimeStamps;
+  typedef art::Assns<raw::RawDigit,raw::RDTimeStamp>RDTsAssocs;
+  typedef art::PtrMaker<raw::RawDigit>RDPmkr;
+  typedef art::PtrMaker<raw::RDTimeStamp>TSPmkr;
 
   // configuration parameters
 
@@ -97,10 +103,10 @@ private:
 
 // internal methods
 
-  bool _processRCE(art::Event &evt, RawDigits& raw_digits);
-  bool _processFELIX(art::Event &evt, RawDigits& raw_digits);
-  bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits);
-  bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits);
+  bool _processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
 
   std::vector<uint16_t> _buffer;
 };
@@ -130,7 +136,10 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _enforce_error_free = p.get<bool>("EnforceErrorFree",false);
   _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
 
-  produces<RawDigits>( _output_label ); 
+  produces<RawDigits>( _output_label ); //the strings in <> are the typedefs defined above
+
+  produces<RDTimeStamps>(_output_label );
+  produces<RDTsAssocs>(_output_label );
 
 //Initialize Histograms if the tag is present
   art::ServiceHandle<art::TFileService> fs;
@@ -185,9 +194,15 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
 void PDSPTPCRawDecoder::produce(art::Event &e)
 {
   RawDigits raw_digits;
+  RDTimeStamps rd_timestamps;
+  RDTsAssocs rd_ts_assocs;
+
+  RDPmkr rdpm(e,*this,_output_label);
+  TSPmkr tspm(e,*this,_output_label);
 
   error_counter = 0; //reset the errors to zero for each run
   incorrect_ticks = 0;
+  duplicate_channels =0;
 
   _initialized_tick_count_this_event = false;
   _discard_data = false;
@@ -196,8 +211,8 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
       for (size_t i=0; i<_duplicate_channel_checklist_size; ++i) _duplicate_channel_checklist[i] = false;
     }
   
-  _processRCE(e,raw_digits);
-  _processFELIX(e,raw_digits);
+  _processRCE(e,raw_digits,rd_timestamps,rd_ts_assocs,rdpm,tspm);
+  _processFELIX(e,raw_digits,rd_timestamps,rd_ts_assocs,rdpm,tspm);
 
 //Make the histograms for error checking. (other histograms are filled within the _process and _AUX functions)
   if(_make_histograms)
@@ -218,15 +233,21 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
   if (_discard_data)
     {
       RawDigits empty_raw_digits;
+      RDTimeStamps empty_rd_timestamps;
+      RDTsAssocs empty_rd_ts_assocs;
       e.put(std::make_unique<decltype(empty_raw_digits)>(std::move(empty_raw_digits)),_output_label);
+      e.put(std::make_unique<decltype(empty_rd_timestamps)>(std::move(empty_rd_timestamps)),_output_label);
+      e.put(std::make_unique<decltype(empty_rd_ts_assocs)>(std::move(empty_rd_ts_assocs)),_output_label);
     }
   else
     {
       e.put(std::make_unique<decltype(raw_digits)>(std::move(raw_digits)),_output_label);
+      e.put(std::make_unique<decltype(rd_timestamps)>(std::move(rd_timestamps)),_output_label);
+      e.put(std::make_unique<decltype(rd_ts_assocs)>(std::move(rd_ts_assocs)),_output_label);
     }
 }
 
-bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
+bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
   size_t n_rce_frags = 0;
   if (_expect_rce_container_fragments) {
@@ -254,7 +275,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
 	artdaq::ContainerFragment cont_frag(cont);
 	for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 	  {
-	    if (_process_RCE_AUX(*cont_frag[ii], raw_digits)) ++n_rce_frags;
+	    if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_rce_frags;
 	  }
       }
   }
@@ -264,7 +285,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
       evt.getByLabel(_rce_input_label, _rce_input_noncontainer_instance, frags);  // hardcoded label?
       try { frags->size(); }
       catch(std::exception e) {
-	LOG_DEBUG("_process_RCE_AUX") << "TPC/RCE fragment data not found " 
+	LOG_DEBUG("_process_RCE") << "TPC/RCE fragment data not found " 
 				      << "Run: " << evt.run()
 				      << ", SubRun: " << evt.subRun()
 				      << ", Event: " << evt.event();
@@ -272,7 +293,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
       }
 
       if(!frags.isValid()){
-	LOG_ERROR("_process_RCE_AUX") << "TPC/RCE fragments Not Valid " 
+	LOG_ERROR("_process_RCE") << "TPC/RCE fragments Not Valid " 
 				      << "Run: " << evt.run()
 				      << ", SubRun: " << evt.subRun()
 				      << ", Event: " << evt.event();
@@ -281,11 +302,11 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
 
       for(auto const& frag: *frags)
 	{
-	  if (_process_RCE_AUX(frag, raw_digits)) ++n_rce_frags;
+	  if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
 	}
     }
 
-  LOG_INFO("_processRCE_AUX")
+  LOG_INFO("_processRCE")
     << " Processed " << n_rce_frags
     << " RCE Fragments, making "
     << raw_digits.size()
@@ -298,9 +319,15 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
 
 bool PDSPTPCRawDecoder::_process_RCE_AUX(
 					 const artdaq::Fragment& frag, 
-					 RawDigits& raw_digits
+					 RawDigits& raw_digits,
+					 RDTimeStamps &timestamps,
+					 RDTsAssocs &tsassocs,
+					 RDPmkr &rdpm, TSPmkr &tspm
 					 )
 {
+
+  //ptr makers so we can associate timestamps with raw digits
+
   // FIXME: Remove hard-coded fragment type
   if((unsigned)frag.type() != 2) return false;
 
@@ -419,14 +446,22 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		}
 	    }
 	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
-	  raw_digits.push_back(raw_digit);                
+	  raw_digits.push_back(raw_digit);  
+
+	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp());
+	  timestamps.push_back(rdtimestamp);
+
+	  //associate the raw digit and the timestamp data products
+	  auto const rawdigitptr = rdpm(raw_digits.size()-1);
+	  auto const rdtimestampptr = tspm(timestamps.size()-1);
+	  tsassocs.addSingle(rawdigitptr,rdtimestampptr);            
 	}
     }
 
   return true;
 }
 
-bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
+bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
 
   // TODO Use LOG_DEBUG
@@ -461,7 +496,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
 	artdaq::ContainerFragment cont_frag(cont);
 	for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 	  {
-	    if (_process_FELIX_AUX(*cont_frag[ii], raw_digits)) ++n_felix_frags;
+	    if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
 	  }
       }
   }
@@ -471,7 +506,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
       evt.getByLabel(_felix_input_label, _felix_input_noncontainer_instance, frags);
       try { frags->size(); }
       catch(std::exception e) {
-	LOG_DEBUG("_process_FELIX_AUX") << "TPC/FELIX fragment data not found " 
+	LOG_DEBUG("_process_FELIX") << "TPC/FELIX fragment data not found " 
 					<< "Run: " << evt.run()
 					<< ", SubRun: " << evt.subRun()
 					<< ", Event: " << evt.event();
@@ -481,7 +516,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
 
       //Check that the data is valid
       if(!frags.isValid()){
-	LOG_ERROR("_process_FELIX_AUX") << "TPC/FELIX fragments Not Valid " 
+	LOG_ERROR("_process_FELIX") << "TPC/FELIX fragments Not Valid " 
 					<< "Run: " << evt.run()
 					<< ", SubRun: " << evt.subRun()
 					<< ", Event: " << evt.event();
@@ -490,7 +525,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
 
       for(auto const& frag: *frags)
 	{
-	  if (_process_FELIX_AUX(frag, raw_digits)) ++n_felix_frags;
+	  if (_process_FELIX_AUX(frag, raw_digits,timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
 	}
     }
 
@@ -503,8 +538,12 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
   return true;
 }
 
-bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits)
+bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits,
+										RDTimeStamps &timestamps,
+										RDTsAssocs &tsassocs,
+										RDPmkr &rdpm, TSPmkr &tspm)
 {
+
   // FIXME: Remove hard-coded fragment type
   //if((unsigned)frag.type() != 2) return false;
 
@@ -641,6 +680,14 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     // Push to raw_digits.
     raw::RawDigit raw_digit(offlineChannel, v_adc.size(), v_adc);
     raw_digits.push_back(raw_digit);
+
+    raw::RDTimeStamp rdtimestamp(frag.timestamp());
+    timestamps.push_back(rdtimestamp);
+
+    //associate the raw digit and the timestamp data products
+    auto const rawdigitptr = rdpm(raw_digits.size()-1);
+    auto const rdtimestampptr = tspm(timestamps.size()-1);
+    tsassocs.addSingle(rawdigitptr,rdtimestampptr);
   }
   return true;
 }
