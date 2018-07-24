@@ -48,4 +48,10 @@
  <class name="sim::Chan_Phot"/>
  <class name="std::vector<sim::Chan_Phot>"/>
 
+ <class name="beamspill::ProtoDUNEBeamSpill" ClassVersion="10" > 
+  <version ClassVersion="10" checksum="1104027121"/>
+ </class>
+
+ <class name="art::Ptr<beamspill::ProtoDUNEBeamSpill>" />
+ <class name="art::Wrapper<beamspill::ProtoDUNEBeamSpill>" />
 </lcgdict>

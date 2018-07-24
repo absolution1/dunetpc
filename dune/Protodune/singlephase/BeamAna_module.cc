@@ -18,7 +18,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "IFBeam_service.h"
-#include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
+//#include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
+#include "dune/DuneObj/ProtoDUNEBeamSpill.h"
 #include <bitset>
 #include <iomanip>
 
@@ -153,6 +154,22 @@ void proto::BeamAna::analyze(art::Event const & e)
       }
     }
   }
+
+  for(size_t id = 0; id < 6; ++id){
+    std::cout << "FBM: " << id << std::endl;
+    std::cout << "N Triggers: " << spill->GetNFBMTriggers(id) << std::endl;
+
+    for(size_t it = 0; it < spill->GetNFBMTriggers(id); ++it){
+
+/*      for(size_t it = 0; it < 4; ++it){
+
+      }
+      for(size_t if = 0; if < 6; ++if){
+
+      }*/
+    }
+  }
+
 
 }
 
