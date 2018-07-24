@@ -28,11 +28,15 @@ public:
 
 private:
     unsigned int m_threshold;
+
     bool m_useSignalKill;
     short m_signalKillLookahead;
     short m_signalKillThreshold;
     short m_signalKillNContig;
+
     short m_frugalNContig;
+
+    bool m_doFiltering;
 };
 
 
@@ -42,7 +46,8 @@ TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet con
       m_signalKillLookahead(p.get<short>("SignalKillLookahead", 5)),
       m_signalKillThreshold(p.get<short>("SignalKillThreshold", 15)),
       m_signalKillNContig(p.get<short>("SignalKillNContig", 1)),
-      m_frugalNContig(p.get<short>("FrugalPedestalNContig", 10))
+      m_frugalNContig(p.get<short>("FrugalPedestalNContig", 10)),
+      m_doFiltering(p.get<bool>("DoFiltering", true))
 
 // Initialize member data here.
 {
@@ -87,7 +92,9 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         //---------------------------------------------
         // Filtering
         //---------------------------------------------
-        std::vector<short> filtered(apply_fir_filter(pedsub, ntaps, taps));
+        std::vector<short> filtered(m_doFiltering ? 
+                                    apply_fir_filter(pedsub, ntaps, taps) :
+                                    pedsub);
         
         // Print out the waveforms on one channel for debugging
 
