@@ -55,10 +55,10 @@ public:
 
 private:
   typedef std::vector<raw::RawDigit> RawDigits;
-  typedef std::vector<raw::RDTimeStamp>RDTimeStamps;
-  typedef art::Assns<raw::RawDigit,raw::RDTimeStamp>RDTsAssocs;
-  typedef art::PtrMaker<raw::RawDigit>RDPmkr;
-  typedef art::PtrMaker<raw::RDTimeStamp>TSPmkr;
+  typedef std::vector<raw::RDTimeStamp> RDTimeStamps;
+  typedef art::Assns<raw::RawDigit,raw::RDTimeStamp> RDTsAssocs;
+  typedef art::PtrMaker<raw::RawDigit> RDPmkr;
+  typedef art::PtrMaker<raw::RDTimeStamp> TSPmkr;
 
   // configuration parameters
 
@@ -92,6 +92,8 @@ private:
   TH1I * fParticipFELIX;
   TH1I * fDuplicatesNumber;
   TH1D * fErrorsNumber;
+  TH1I * fFragSizeRCE;
+  TH1I * fFragSizeFELIX;
 
 // flags and state needed for the data integrity enforcement mechanisms
 
@@ -142,13 +144,12 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   produces<RDTsAssocs>(_output_label );
 
 //Initialize Histograms if the tag is present
-  art::ServiceHandle<art::TFileService> fs;
+  //art::ServiceHandle<art::TFileService> fs;
   _make_histograms = p.get<bool>("MakeHistograms",false);
 
   if (_make_histograms)
   {
-  	duplicate_channels = 0;
-  	art::ServiceHandle<art::TFileService> tFileService;
+   	art::ServiceHandle<art::TFileService> tFileService;
 
   	//Number of channels with wrong number of tics plotted to have an adjusted log2 scale on x axis
   	fIncorrectTickNumbers = tFileService->make<TH1D>("fIncorrectTickNumbers","Channels with Unexpected Number of Ticks",  45, -0.5, 14.5);
@@ -188,6 +189,13 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   	fErrorsNumber->GetXaxis()->SetBinLabel(32,"1024");
   	fErrorsNumber->GetXaxis()->SetBinLabel(38,"4096");
   	fErrorsNumber->GetXaxis()->SetBinLabel(44, "16384");
+
+  	//total fragment sizes
+  	fFragSizeRCE = tFileService->make<TH1I>("fFragSizeRCE", "RCE Fragment Size", 100, 0.5, 288000000.5);
+  	fFragSizeRCE->GetXaxis()->SetTitle("Size of RCE Fragments (bytes)");
+
+    fFragSizeFELIX = tFileService->make<TH1I>("fFragSizeFELIX", "FELIX Fragment Size", 100, 0.5, 57600000.5);
+    fFragSizeFELIX->GetXaxis()->SetTitle("Size of FELIX Fragments (bytes)");
   }
 }
 
@@ -202,7 +210,7 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
 
   error_counter = 0; //reset the errors to zero for each run
   incorrect_ticks = 0;
-  duplicate_channels =0;
+  duplicate_channels = 0;
 
   _initialized_tick_count_this_event = false;
   _discard_data = false;
@@ -253,6 +261,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
   if (_expect_rce_container_fragments) {
     art::Handle<artdaq::Fragments> cont_frags;
     evt.getByLabel(_rce_input_label, _rce_input_container_instance, cont_frags);  // hardcoded label .. maybe fix
+
     try { cont_frags->size(); }
     catch(std::exception e) {
       LOG_DEBUG("_processRCE") << "Container TPC/RCE data not found " 
@@ -268,6 +277,17 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 			       << ", SubRun: " << evt.subRun()
 			       << ", Event: " << evt.event();
       return false;
+    }
+
+    //size of RCE fragments into histogram
+    if(_make_histograms)
+    {
+    	size_t rcebytes = 0;
+    	for (auto const& cont : *cont_frags)
+    	{
+    		rcebytes = rcebytes + (cont.sizeBytes());
+    	}
+    	fFragSizeRCE->Fill(rcebytes);
     }
     
     for (auto const& cont : *cont_frags)
@@ -299,6 +319,17 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 				      << ", Event: " << evt.event();
 	return false;
       }
+
+    	//size of RCE fragments into histogram
+    	if(_make_histograms)
+    	{
+    		size_t rcebytes = 0;
+    		for (auto const& frag: *frags)
+    		{
+    			rcebytes = rcebytes + (frag.sizeBytes());
+    		}
+    		fFragSizeRCE->Fill(rcebytes);
+    	}
 
       for(auto const& frag: *frags)
 	{
@@ -490,6 +521,17 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 				 << ", Event: " << evt.event();
       return false;
     }
+
+    //size of felix fragments into histogram
+    if(_make_histograms)
+    {
+    	size_t felixbytes = 0;
+    	for (auto const& cont : *cont_frags)
+    	{
+    		felixbytes = felixbytes + (cont.sizeBytes());
+    	}
+    	fFragSizeFELIX->Fill(felixbytes);
+    }
     
     for (auto const& cont : *cont_frags)
       {
@@ -522,6 +564,16 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 					<< ", Event: " << evt.event();
 	return false;
       }
+
+    if(_make_histograms)
+    {
+    	size_t felixbytes = 0;
+    	for (auto const& frag: *frags)
+    	{
+    		felixbytes = felixbytes + (frag.sizeBytes());
+    	}
+    	fFragSizeFELIX->Fill(felixbytes);
+    }
 
       for(auto const& frag: *frags)
 	{
