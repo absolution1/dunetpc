@@ -51,7 +51,7 @@ TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet con
       m_signalKillThreshold(p.get<short>("SignalKillThreshold", 15)),
       m_signalKillNContig(p.get<short>("SignalKillNContig", 1)),
       m_frugalNContig(p.get<short>("FrugalPedestalNContig", 10)),
-      m_doFiltering(p.get<bool>("DoFiltering", true))
+      m_doFiltering(p.get<bool>("DoFiltering", true)),
       m_downsampleFactor(p.get<unsigned int>("DownsampleFactor", 1))
 
 // Initialize member data here.
