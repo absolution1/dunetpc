@@ -6,9 +6,11 @@
 
 <lcgdict>
   <!-- The data product added in this directory -->
-  <class name="CRT::Hit" ClassVersion="0">
+  <class name="CRT::Hit" ClassVersion="10">
+   <version ClassVersion="10" checksum="3475780026"/>
   </class>
-  <class name="CRT::Trigger" ClassVersion="0">
+  <class name="CRT::Trigger" ClassVersion="10">
+   <version ClassVersion="10" checksum="1208803994"/>
   </class>
 
   <!-- Classes that ART will need to instantiate to store CRT::Trigger.  I have 

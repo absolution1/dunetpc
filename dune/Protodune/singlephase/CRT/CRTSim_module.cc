@@ -45,7 +45,7 @@
 
 //local includes
 //#include "CRTTrigger.h"
-#include "dunetpc/dune/Protodune/singlephase/CRT/CRTTrigger.h"
+#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
 //c++ includes
 #include <memory>
@@ -128,7 +128,7 @@ CRT::CRTSim::CRTSim(fhicl::ParameterSet const & p): fSimLabel(p.get<art::InputTa
 {
   //Tell ART that I convert std::vector<AuxDetSimChannel> to CRT::Hits associated with raw::ExternalTriggers
   produces<std::vector<CRT::Trigger>>();
-  produces<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>>(); 
+  //produces<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>>(); 
   consumes<std::vector<sim::AuxDetSimChannel>>(fSimLabel);
 }
 
@@ -263,8 +263,9 @@ void CRT::CRTSim::produce(art::Event & e)
   } //For each CRT module
 
   //Put Triggers and Assns into the event
+  LOG_DEBUG("CreateTrigger") << "Putting " << trigCol->size() << " CRT::Triggers into the event at the end of analyze().\n";
   e.put(std::move(trigCol));
-  e.put(std::move(simToTrigger));
+  //e.put(std::move(simToTrigger));
 }
 
 //Tell ART what data products this modules works with and retrieve any resources that don't change throughout the job here.
