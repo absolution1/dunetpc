@@ -9,23 +9,18 @@ std::vector<short> frugal_pedestal_sigkill(const std::vector<short>& raw_in,
 {
     short median=raw_in[0];
     std::vector<short> ped(raw_in.size(), 0);
+    int runningDiff=0;
     // Are we updating the median (because we're not within a hit)?
     bool updating=true;
-    for(size_t i=0; i<raw_in.size()-(lookahead+ncontig); ++i){
+    for(size_t i=0; i<raw_in.size()-lookahead; ++i){
         short s=raw_in[i]; // The current sample
-
-        // Look at `ncontig` samples, starting `lookahead` ticks ahead. Are they all above threshold?
-        bool all_cands_above=true;
-        for(size_t icand=i+lookahead; icand<i+lookahead+ncontig; ++icand){
-            if(raw_in[icand]<median+threshold){
-                all_cands_above=false;
-                break;
-            }
-        }
+        short sig_cand=raw_in[i+lookahead]; // The sample a little way ahead
+        // Do we later go over the threshold?
+        bool cand_above=(sig_cand>median+threshold);
         // Are we currently below the threshold?
         bool current_below=(s<median+threshold);
         // Is there an upcoming transition over threshold? If so, freeze the pedestal...
-        if(updating && all_cands_above){
+        if(updating && cand_above){
             updating=false;
         }
         // ...until we fall below the pedestal again
@@ -34,14 +29,24 @@ std::vector<short> frugal_pedestal_sigkill(const std::vector<short>& raw_in,
         }
         // Do the frugal streaming if we're not in a hit
         if(updating){
-            if(s>median) ++median;
-            if(s<median) --median;
+            if(s>median) ++runningDiff;
+            if(s<median) --runningDiff;
+
+            if(runningDiff > ncontig){
+                ++median;
+                runningDiff=0;
+            }
+            if(runningDiff < -1*ncontig){
+                --median;
+                runningDiff=0;
+            }
+
         }
         ped[i]=median;
     }
     // Get the last few samples, which we couldn't do in the main loop
     // because we'd go out-of-bounds
-    for(size_t i=raw_in.size()-(lookahead+ncontig); i<raw_in.size(); ++i){
+    for(size_t i=raw_in.size()-lookahead; i<raw_in.size(); ++i){
         ped[i]=median;
     }
     return ped;
