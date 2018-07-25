@@ -39,6 +39,8 @@ private:
     short m_frugalNContig;
 
     bool m_doFiltering;
+
+    unsigned int m_downsampleFactor;
 };
 
 
@@ -50,6 +52,7 @@ TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet con
       m_signalKillNContig(p.get<short>("SignalKillNContig", 1)),
       m_frugalNContig(p.get<short>("FrugalPedestalNContig", 10)),
       m_doFiltering(p.get<bool>("DoFiltering", true))
+      m_downsampleFactor(p.get<unsigned int>("DownsampleFactor", 1))
 
 // Initialize member data here.
 {
@@ -74,7 +77,20 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
     const int multiplier=100;
 
     for(size_t ich=0; ich<collection_samples.size(); ++ich){
-        const std::vector<short>& waveform=collection_samples[ich];
+        const std::vector<short>& waveformOrig=collection_samples[ich];
+
+        //---------------------------------------------
+        // Do the downsampling
+        //---------------------------------------------
+        std::vector<short> waveform;
+        if(m_downsampleFactor==1){
+            waveform=waveformOrig;
+        }
+        else{
+            for(size_t i=0; i<waveformOrig.size(); i+=m_downsampleFactor){
+                waveform.push_back(waveformOrig[i]);
+            }
+        }
 
         //---------------------------------------------
         // Pedestal subtraction
