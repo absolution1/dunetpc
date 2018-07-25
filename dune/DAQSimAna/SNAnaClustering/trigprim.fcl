@@ -12,6 +12,18 @@ trigprimpass1: {
       UseSignalKill: true
       SignalKillLookahead: 6
       SignalKillThreshold: 15
+      SignalKillNContig: 10
+   }
+}
+
+trigprimpass1old: {
+   module_type: "TriggerPrimitiveFinder"
+   InputTag: "simwire"
+   finder: {
+      tool_type: "TriggerPrimitiveFinderPass1"
+      UseSignalKill: true
+      SignalKillLookahead: 6
+      SignalKillThreshold: 15
       SignalKillNContig: 1
    }
 }
