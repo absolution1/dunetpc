@@ -15,6 +15,8 @@
 
 #include "dune/DAQSimAna/AlgParts.h"
 
+#include <algorithm> // for std::transform
+
 class TriggerPrimitiveFinderPass1 : public TriggerPrimitiveFinderTool {
 public:
   explicit TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p);
@@ -95,7 +97,11 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         std::vector<short> filtered(m_doFiltering ? 
                                     apply_fir_filter(pedsub, ntaps, taps) :
                                     pedsub);
-        
+        if(!m_doFiltering){
+            std::transform(filtered.begin(), filtered.end(),
+                           filtered.begin(), 
+                           [](short a) { return a*multiplier; });
+        }
         // Print out the waveforms on one channel for debugging
 
         // if(channel_numbers[ich]==1600){
