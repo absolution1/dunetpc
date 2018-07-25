@@ -64,6 +64,8 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  PlotChannels: []" << endl;
     fout << "  PlotFileName: \"adctm_ch%0CHAN%_tm%0TICKMOD%.png\"" << endl;
     fout << "  RootFileName: \"adctm.root\"" << endl;
+    fout << "  TreeFileName: \"tickmod.root\"" << endl;
+    fout << "  TreeFileName: \"\"" << endl;
     fout << "  PlotSizeX: 1400" << endl;
     fout << "  PlotSizeY: 1000" << endl;
     fout << "  PlotShowFit:  0" << endl;

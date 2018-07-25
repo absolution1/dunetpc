@@ -56,8 +56,7 @@
 // The single-channel methods return a data map with the following:
 //   tmCount:        - The tickmod period, e.g. 497
 //   tmPlotCount:    - The number of tickmod plots
-//   tmHists:        - The processed and narrowed tickmod histograms for this channel
-//   tmWideHists:    - The raw tickmod histograms for this channel
+//   tmHists:        - The processed (not narrowed) tickmod histograms for this channel
 
 #ifndef AdcTickModViewer_H
 #define AdcTickModViewer_H

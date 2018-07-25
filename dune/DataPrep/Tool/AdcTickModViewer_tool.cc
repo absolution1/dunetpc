@@ -163,7 +163,7 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
       res.setHistVector("tmHists", ctmprocs[icha]);
     }
   }
-  res.setHistVector("tmWideHists", tmhsFull);   // Passing out hist sthat will be updated!
+  res.setHistVector("tmHists", tmhsFull);   // Passing out hist sthat will be updated!
   res.setInt("tmCount", ntkm);
   res.setInt("tmPlotCount", nplot);
   return res;

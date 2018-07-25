@@ -57,6 +57,7 @@ cet_test(test_AdcChannelPlotter SOURCES test_AdcChannelPlotter.cxx
 
 cet_test(test_AdcTickModViewer SOURCES test_AdcTickModViewer.cxx
   LIBRARIES
+    dune_DataPrep_Utility
     dune_ArtSupport
     art_Utilities
     canvas

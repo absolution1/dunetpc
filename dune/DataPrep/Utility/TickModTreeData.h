@@ -1,5 +1,16 @@
 // TickModTreeData.h
 
+// David Adams
+// July 2018
+//
+// Class to describe the data in a tickmod tree.
+// See dunetpc/dune/DataPRep/Tool/AdcTickModViewer.
+//
+// If the layout of this class is changed, then the dictionary
+// cxx and pcm files in this directory must be regenerated with
+//   rm TickModTreeData_Dict.cxx; rootcint TickModTreeData_Dict.cxx TickModTreeData.h
+// after incrementing the version in the ClassDef macro below.
+
 #ifndef TickModTreeData_H
 #define TickModTreeData_H
 
@@ -17,12 +28,14 @@ public:
 
   static Index badIndex() { return 999999; }
 
+  // Identifiers that specify the tickmod and
+  // run conditions.
   Index run      =badIndex();
   Index chan     =badIndex();
   Index femb     =badIndex();
   Index fembChan =badIndex();
   Index itkm     =badIndex();
-  // Sticky code data.
+  // Sticky code data for one tickmod.
   Index nsample;
   Index maxAdc;
   Index maxAdc2;
@@ -42,7 +55,7 @@ public:
   // Clear the data.
   void clear();
 
-  // Fill sticky code data.
+  // Fill the sticky code data.
   void fill(const StickyCodeMetrics& scm);
 
   ClassDefNV(TickModTreeData, 1);
