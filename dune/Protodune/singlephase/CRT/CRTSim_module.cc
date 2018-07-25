@@ -39,11 +39,17 @@
 #include "canvas/Persistency/Common/Assns.h"
 #include "canvas/Persistency/Common/Ptr.h"
 
-//dunetpc includes
-#include "dunetpc/dune/Protodune/singlephase/CRTSim/CRTTrigger.h"
+//LArSoft includes
+#include "lardataobj/Simulation/AuxDetSimChannel.h"
+#include "larcore/Geometry/Geometry.h"
+
+//local includes
+//#include "CRTTrigger.h"
+#include "dunetpc/dune/Protodune/singlephase/CRT/CRTTrigger.h"
 
 //c++ includes
 #include <memory>
+#include <algorithm>
 
 namespace CRT {
   class CRTSim;
@@ -79,35 +85,62 @@ public:
 
 private:
 
+  //The formats for time and ADC value I will use throughout this module.  If I want to change it later, I only have to change it in one place.  
+  typedef unsigned short time;
+  typedef unsigned short adc_t;
+
   // Member data
   art::InputTag fSimLabel; //The label of the module that produced sim::AuxDetSimChannels
-  size_t fReadoutWindowSize; //The size of a CRT readout window in ns
-  const double fDummyTriggerThreshold; //Dummy threshold for triggering readout for any CRT strip.  
-                                       //In GeV for now, but needs to become ADC counts one day.  
-                                       //Should be replaced by either a lookup in a hardware database or 
-                                       //some constant value one day.  
+
+  //Parameters I could probably get from calibration + electronics documentation to make this simulation more realistic.  
+  //Decided that I am more interested in speed for now.
+  /*double fScintillationYield; //The converion from GeV to energy to photons
+  double fQuantumEff; //The conversion from photons to photo-electrons leaving the photocathode
+  double fDummyGain; //Dummy conversion of photo-electrons leaving the photocathode to voltage entering the MAROC2 chip.   
+  double fResistanceBeforeMAROC; //Resistance converting current after gain to voltage entering MAROC2 */
+
+  //Simple parameterization in lieu of complicated information above.  I can probably still get this from the calibration output.
+  double fGeVToADC; //Conversion from GeV in detector to ADC counts output by MAROC2.   
+
+  //Parameterization for algorithm that takes voltage entering MAROC2 and converts it to ADC hits.  If I ultimately decide I want to 
+  //study impact of more detailed simulation, factor this out into an algorithm for simulating MAROC2 that probably takes continuous 
+  //voltage signal as input anyway.  
+  time fIntegrationTime; //The time in ns over which charge is integrated in the CRT electronics before being sent to the DAC comparator
+  size_t fReadoutWindowSize; //The time in fIntegrationTimes during which activity in a CRT channel is sent to an ADC if the board has 
+                             //already decided to trigger
+  size_t fDeadtime; //The dead time in fIntegrationTimes after readout during which no energy deposits are processed by CRT boards.
+  adc_t fDACThreshold; //DAC threshold for triggering readout for any CRT strip.  
+                       //In GeV for now, but needs to become ADC counts one day.  
+                       //Should be replaced by either a lookup in a hardware database or 
+                       //some constant value one day.  
 };
 
 
 CRT::CRTSim::CRTSim(fhicl::ParameterSet const & p): fSimLabel(p.get<art::InputTag>("SimLabel")), 
-                                                              fReadoutWindowSize(p.get<double>("ReadoutWindowSize")), 
-                                                              fDummyTriggerThreshold(p.get<double>("DummyTriggerThreshold"))
+                                                              /*fScintillationYield(p.get<double>("ScintillationYield")), 
+                                                              fQuantumEff(p.get<double>("QuantumEff")), 
+                                                              fDummyGain(p.get<double>("DummyGain")),*/
+                                                              fGeVToADC(p.get<double>("GeVToADC")),
+                                                              fIntegrationTime(p.get<time>("IntegrationTime")), 
+                                                              fReadoutWindowSize(p.get<size_t>("ReadoutWindowSize")), 
+                                                              fDeadtime(p.get<size_t>("Deadtime")),
+                                                              fDACThreshold(p.get<adc_t>("DACThreshold"))
 {
   //Tell ART that I convert std::vector<AuxDetSimChannel> to CRT::Hits associated with raw::ExternalTriggers
   produces<std::vector<CRT::Trigger>>();
   produces<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>>(); 
-  consumes<std::vector<sim::AuxDetSimChannel>>();
+  consumes<std::vector<sim::AuxDetSimChannel>>(fSimLabel);
 }
 
 //Turn sim::AuxDetSimChannels into CRT::Hits. 
 void CRT::CRTSim::produce(art::Event & e)
 {
   //Get collection of AuxDetSimChannel as input
-  const auto channels = e.getValidHandle<std::vector<sim::AuxDetSimChannel>>(fSimLabel);
+  auto channels = e.getValidHandle<std::vector<sim::AuxDetSimChannel>>(fSimLabel);
 
-  //Collections of raw::ExternalTrigger and CRT::Hits that I will std::move() into e at the end of produce
-  std::unique_ptr<std::vector<CRT::Trigger>> trigCol;
-  std::unique_ptr<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>> simToTrigger;
+  //Collections of CRT::Trigger and AuxDetSimChannel-CRT::Trigger associations that I will std::move() into e at the end of produce
+  auto trigCol = std::make_unique<std::vector<CRT::Trigger>>();
+  auto simToTrigger = std::make_unique<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>>();
 
   //Utilities to go along with making Assns
   art::PtrMaker<sim::AuxDetSimChannel> makeSimPtr(e, channels.id());
@@ -116,31 +149,45 @@ void CRT::CRTSim::produce(art::Event & e)
   //Get access to geometry for each event (TODO: -> subrun?) in case CRTs move later
   art::ServiceHandle<geo::Geometry> geom;
 
-  //Group AuxDetSimChannels by module they came from for easier access later
-  std::unordered_map<uint32_t, std::list<sim::AuxDetSimChannel>> moduleToChannel;
-  for(const auto& channel: *channels)
+  //Group AuxDetSimChannels by module they came from for easier access later.  Storing AuxDetSimChannels as art::Ptrs so I can make Assns later.
+  //TODO: I'm spending a lot of effort and confusing code on keeping track of sim::AuxDetSimChannels for Assns at the end of this module.  
+  //      Are raw -> simulation Assns worth this much trouble?  Can I restructure my logic somehow to make this association more natural?  
+  std::map<uint32_t, art::PtrVector<sim::AuxDetSimChannel>> moduleToChannels;
+  for(size_t channelPos = 0; channelPos < channels->size(); ++channelPos)
   {
-    const auto id = channel.AuxDetID();
+    const auto id = (*channels)[channelPos].AuxDetID();
     const auto& det = geom->AuxDet(id);
     if(det.Name().find("CRT") != std::string::npos) //If this is a CRT AuxDet
     {
-      moduleToChannel[id].push_back(moduleToChannel); //At this point, I have made my own copy of each AuxDetSimChannel to modify as I please
-    } //If this is a CRT AuxDet
-  } //For each simulated sensitive volume -> CRT strip
+      moduleToChannels[id].push_back(makeSimPtr(channelPos)); //At this point, I have made my own copy of each AuxDetSimChannel to modify as I please
+    } //End if this is a CRT AuxDet
+  } //End for each simulated sensitive volume -> CRT strip
 
   //For each CRT module
-  for(auto& pair: moduleToChannel)
+  for(auto& pair: moduleToChannels)
   {
     auto& module = pair.second;
 
     //Probably a good idea to write a function/algorithm class for each of these
-    //TODO: Any leftover physics like Birks' Law?  
+    //TODO: Any leftover physics like Birks' Law?  I can handle Birks' Law more accurately if I 
+    //      can get access to individual Geant steps.  
     //TODO: Read detector response from MariaDB database on DAQ machine?
     //TODO: Simulate detector response with quantum efficiency and detection efficiency?
     //TODO: simulate time -> timestamp.  Check out how 35t example in dunetpc/dune/DetSim does this.
 
-    const double threshold = fDummyTriggerThreshold; //Threshold for an energy deposit to trigger readout in this strip.  In GeV for now, but 
-                                                     //ultimately becomes a calibrated ADC value that might be different for each strip.
+    //Integrate "energy deposited" over time, then form a time-ordered sparse-vector (=std::map) of CRT::Hits
+    //associated with the art::Ptr that produced each hit. Associating each hit with a time value gives me the 
+    //option to skip over dead time later.  Each time bin contains up to one hit per channel.
+    std::map<time, std::vector<std::pair<CRT::Hit, size_t>>> timeToHits; //Mapping from integration time bin to list of hit-Ptr index pairs
+    for(const auto& channel: module)
+    {
+      const auto& ides = channel->AuxDetIDEs();
+      for(const auto& eDep: ides)
+      {
+        const auto tAvg = (eDep.exitT+eDep.entryT)/2.;
+        timeToHits[fmod(tAvg, fIntegrationTime)].emplace_back(CRT::Hit(channel->AuxDetSensitiveID(), eDep.energyDeposited*fGeVToADC), channel.key());
+      }
+    } 
 
     //Group AuxDetIDEs into CRT board "readout packets".  First, look for an energy 
     //deposit that triggers board readout.  Then, find all energy deposits within 
@@ -151,56 +198,58 @@ void CRT::CRTSim::produce(art::Event & e)
     //A real CRT module triggers as soon as it sees a channel above threshold. 
     //Time-order the IDEs on each strip, then set triggerTime to the earliest
     //IDE from any channel that is above threshold.  Channel number breaks ties.
-    double triggerTime = std::numeric_limits<double>::max();
-    bool triggered = true; //TODO: Once I know the readout window size, I shouldn't need this variable. 
-
-    for(auto& strip: module) //For each strip in this module
+   
+    //TODO: Eventually read out CRT modules only until one module triggers to simulate the "traffic jam" situation I think could happen?
+    for(auto window = timeToHits.begin(); window != timeToHits.end(); ++window)
     {
-      auto& ides = strip.AuxDetIDEs();
+      const auto& hitsInWindow = window->second;
+      const auto aboveThresh = std::find_if(hitsInWindow.begin(), hitsInWindow.end(), 
+                                            [this](const auto& hitPair) { return hitPair.first.ADC() > fDACThreshold; });
 
-      //Find first IDE that is above trigger threshold
-      auto earliest = ides.end();
-      for(auto ide = ides.begin(); ide != ides.end(); ++ide)
+      if(aboveThresh != hitsInWindow.end()) //If this is true, then I have found a channel above threshold and readout is triggered.  
       {
-        if(ide->energyDeposit > threshold) //If above threshold
+        //TODO: Integrate all channels over the readout window?  What happens if a channel had energy deposits twice during the readout window?
+        //Write all channels with activity in the readout window to a CRT::Trigger.  Ignore repeated hits in a channel for now.   
+        std::vector<CRT::Hit> hits;
+        const auto end = std::next(window, fReadoutWindowSize);
+        std::set<uint32_t> channelBusy; //A std::set contains only unique elements.  This set stores channels that have already been read out in 
+                                    //this readout window and so are "busy" and cannot contribute any more hits.  
+        for(; window != timeToHits.end() && window != end; ++window)
         {
-          if(earliest == ides.end() || ide->StartT < earliest->StartT) earliest = ide; //If there is no above threshold IDE or this IDE is 
-                                                                                       //earlier, make it the earliest IDE.  
+          //TODO: Read out channels, but make sure the same channel is not read out twice because ADC is busy?  Requires nested map?
+          for(const auto& hitPair: window->second)
+          {
+            const auto channel = hitPair.first.Channel(); //TODO: Get channel number back without needing art::Ptr here.  
+                                                                    //      Maybe store crt::Hits.
+            if(channelBusy.insert(channel).second) //If this channel hasn't already contributed to this readout window
+            {
+              hits.push_back(hitPair.first);
+ 
+              //Create Assns to AuxDetSimChannels now to avoid having to store art::Ptrs again.  If art::Ptr 
+              //actually had to hold a raw pointer to a concrete instance of a class or else be nullptr, then 
+              //the following would be gibberish.  However, the comments about art::PtrMaker and what little I 
+              //still remember of the "old" method of creating art::Assns in LArSoft lead me to believe that 
+              //I am actually working with art::Ptrs that don't exist yet when creating an Assn.  After all, 
+              //the art::Event doesn't even own my vector<CRT::Trigger> yet.  So, I can refer to a hypothetical 
+              //CRT::Trigger when creating Assns and thus avoid the need to loop over used AuxDetSimChannels 
+              //again.  This saves me a horrible STL template instantiation.  
+              simToTrigger->addSingle(makeSimPtr(hitPair.second), makeTrigPtr(trigCol->size()-1));
+            }
+          }
         }
-      }
 
-      //Record this strip's earliest time if it is earliest energy deposit of all strips so far
-      if(earliest->StartT < triggerTime) 
-      {
-        triggerTime = earliest->StartT;
-        triggered = true;
-      }
-    }
+        //Advance window by dead time so that no energy deposits in dead time are read out.  
+        for(;window != timeToHits.end() && window->first < fDeadtime; ++window); //Advance window either by dead time or to end of energy deposit
 
-    if(triggered) //TODO: If found a trigger time.  Probably easy to do once I know the length of the readout window
-    {
-      //Find all energy deposits that happened within a CRT readout window of this hit.  Create a CRT::Hit for each.  Remove read out IDEs 
-      //from my local list of IDEs so that they do not appear in other hits.   
-      std::vector<CRT::Hit> hits;
-      for(auto& strip: module)
-      { 
-        strip.remove_if([*this, &triggerTime, &hits, &strip](const auto& ide)
-                        {
-                          if(strip.StartT - triggerTime >= fReadoutWindowSize) return false; //If this IDE is not in the trigger window, move on
-                          
-                          //Otherwise, remove this IDE from the list of IDEs for future triggers and create a hit for it
-                          hits.emplace_back(strip.AuxDetSensitiveID(), ide.energyDeposit); //TODO: turn energyDeposit into ADC hits
-                          return true;
-                        });
-      }
-       
-      //Create a CRT::Trigger to represent this module's readout window.  Associate the AuxDetSimChannels used to make this CRT::Trigger.
-      trigCol->emplace_back(module.AuxDetID(), triggerTime, std::move(hits)); //TODO: Convert trigger time into timestamp.  From line 211 of 
-                                                                              //      DetSim/Modules/SimCounter35t_module.cc, it looks like I 
-                                                                              //      need to know more about how CRT timestamps are constructed 
-                                                                              //      in data before proceeding.  
-      simToTrigger->AddSingle(makeSimPtr(module), makeTrigPtr(trigCol->size()-1));
-    }
+        //Create a CRT::Trigger to represent this module's readout window.  Associate the AuxDetSimChannels used to make this CRT::Trigger.
+        //This is the hypothetical CRT::Trigger I was talking about when creating Assns.
+        trigCol->emplace_back(pair.first, window->first*fIntegrationTime, std::move(hits)); 
+                                                                         //TODO: Convert trigger time into timestamp.  From line 211 of 
+                                                                         //      DetSim/Modules/SimCounter35t_module.cc, it looks like I 
+                                                                         //      need to know more about how CRT timestamps are constructed 
+                                                                         //      in data before proceeding.  
+      } //If there was a channel above threshold
+    } //For each time window
   } //For each CRT module
 
   //Put Triggers and Assns into the event

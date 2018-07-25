@@ -6,22 +6,24 @@
 
 <lcgdict>
   <!-- The data product added in this directory -->
-  <class Name="CRT::Trigger" ClassVersion="1">
+  <class name="CRT::Hit" ClassVersion="0">
+  </class>
+  <class name="CRT::Trigger" ClassVersion="0">
   </class>
 
   <!-- Classes that ART will need to instantiate to store CRT::Trigger.  I have 
        added std::vector<CRT::Hit> on a hunch because CRT::Trigger contains a 
        std::vector<CRT::Hit> -->
-  <class Name="art::Ptr<CRT::Trigger>"/>
-  <class Name="std::vector<CRT::Trigger>"/>
-  <class Name="std::vector<CRT::Hit>"/>
-  <class Name="art::Wrapper<std::vector<CRT::Trigger>>"/>
+  <class name="art::Ptr<CRT::Trigger>"/>
+  <class name="std::vector<CRT::Trigger>"/>
+  <class name="std::vector<CRT::Hit>"/>
+  <class name="art::Wrapper<std::vector<CRT::Trigger>>"/>
 
   <!-- Actual ART class template instantiations using CRT::Trigger -->
-  <class Name="art::Assns<sim::AuxDetSimChannel, CRT::Trigger, void>" />  
-  <class Name="art::Assns<CRT::Trigger, sim::AuxDetSimChannel, void>" />
-  <class Name="std::pair<art::Ptr<CRT::Trigger>, art::Ptr<sim::AuxDetSimChannel>>" />
-  <class Name="art::Wrapper<art::Assns<CRT::Trigger, sim::AuxDetSimChannel>>" />
-  <class Name="std::pair<art::Ptr<sim::AuxDetSimChannel>, art::Ptr<CRT::Trigger>>" />
-  <class Name="art::Wrapper<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>>" />
+  <class name="art::Assns<sim::AuxDetSimChannel, CRT::Trigger, void>" />  
+  <class name="art::Assns<CRT::Trigger, sim::AuxDetSimChannel, void>" />
+  <class name="std::pair<art::Ptr<CRT::Trigger>, art::Ptr<sim::AuxDetSimChannel>>" />
+  <class name="art::Wrapper<art::Assns<CRT::Trigger, sim::AuxDetSimChannel>>" />
+  <class name="std::pair<art::Ptr<sim::AuxDetSimChannel>, art::Ptr<CRT::Trigger>>" />
+  <class name="art::Wrapper<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>>" />
 </lcgdict>

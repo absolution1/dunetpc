@@ -1,0 +1,19 @@
+#File: CRTSim.fcl
+#Brief: Defines default CRT simulation parameters for the CRTSim module
+#Author: Andrew Olivier aolivier@ur.rochester.edu
+
+BEGIN_PROLOG
+
+# CRTSim module
+CRTSim_standard: 
+{
+  module_type:       "CRTSim"
+  SimLabel:          "largeant"
+  GeVToADC:          5e5 #MIP gives ~1000 ADC in commissioning
+  IntegrationTime:   16 #ns
+  ReadoutWindowSize: 64 #ns
+  Deadtime:          80 #Discriminator dead time in ns
+  DACThreshold:      2000 #TODO: Set DAC threshold to 2 PE for commissioning.  In ADC countss for now.
+}
+
+END_PROLOG

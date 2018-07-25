@@ -9,5 +9,5 @@
 //LArSoft includes
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 
-//dunetpc includes
-#include "dunetpc/dune/Protodune/singlephase/CRTSim/CRTTrigger.h"
+//local includes
+#include "dunetpc/dune/Protodune/singlephase/CRT/CRTTrigger.h"

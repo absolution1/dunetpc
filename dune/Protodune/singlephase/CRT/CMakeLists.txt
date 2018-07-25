@@ -2,6 +2,7 @@ include_directories( $ENV{LIBWDA_FQ_DIR}/include )
 include_directories( $ENV{IFDH_ART_INC} )
 include_directories( $ENV{IFDHC_FQ_DIR}/inc )
 include_directories( $ENV{IFBEAM_FQ_DIR}/include )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 art_make( MODULE_LIBRARIES
                         lardataobj_RawData
