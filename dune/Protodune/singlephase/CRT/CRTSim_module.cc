@@ -163,6 +163,8 @@ void CRT::CRTSim::produce(art::Event & e)
     } //End if this is a CRT AuxDet
   } //End for each simulated sensitive volume -> CRT strip
 
+  LOG_DEBUG("moduleToChannels") << "Got " << moduleToChannels.size() << " modules to process in detector simulation.\n";
+
   //For each CRT module
   for(auto& pair: moduleToChannels)
   {
@@ -178,9 +180,11 @@ void CRT::CRTSim::produce(art::Event & e)
     //Integrate "energy deposited" over time, then form a time-ordered sparse-vector (=std::map) of CRT::Hits
     //associated with the art::Ptr that produced each hit. Associating each hit with a time value gives me the 
     //option to skip over dead time later.  Each time bin contains up to one hit per channel.
+    LOG_DEBUG("moduleToChannels") << "Processing " << module.size() << " channels in module " << pair.first << "\n";
     std::map<time, std::vector<std::pair<CRT::Hit, size_t>>> timeToHits; //Mapping from integration time bin to list of hit-Ptr index pairs
     for(const auto& channel: module)
     {
+      LOG_DEBUG("channels") << "Processing channel " << channel->AuxDetSensitiveID() << "\n";
       const auto& ides = channel->AuxDetIDEs();
       for(const auto& eDep: ides)
       {
@@ -200,6 +204,7 @@ void CRT::CRTSim::produce(art::Event & e)
     //IDE from any channel that is above threshold.  Channel number breaks ties.
    
     //TODO: Eventually read out CRT modules only until one module triggers to simulate the "traffic jam" situation I think could happen?
+    LOG_DEBUG("timeToHits") << "About to loop over " << timeToHits.size() << " time windows that are " << fIntegrationTime << "ns long.\n";
     for(auto window = timeToHits.begin(); window != timeToHits.end(); ++window)
     {
       const auto& hitsInWindow = window->second;
@@ -208,6 +213,8 @@ void CRT::CRTSim::produce(art::Event & e)
 
       if(aboveThresh != hitsInWindow.end()) //If this is true, then I have found a channel above threshold and readout is triggered.  
       {
+        LOG_DEBUG("timeToHits") << "Found a module with energy deposit " << aboveThresh->first.ADC() << " ADC counts that "
+                                << "is above threshold.  Triggering readout at time " << std::distance(timeToHits.begin(), window) << ".\n";
         //TODO: Integrate all channels over the readout window?  What happens if a channel had energy deposits twice during the readout window?
         //Write all channels with activity in the readout window to a CRT::Trigger.  Ignore repeated hits in a channel for now.   
         std::vector<CRT::Hit> hits;
@@ -239,10 +246,13 @@ void CRT::CRTSim::produce(art::Event & e)
         }
 
         //Advance window by dead time so that no energy deposits in dead time are read out.  
+        const auto oldWindow = window;
         for(;window != timeToHits.end() && window->first < fDeadtime; ++window); //Advance window either by dead time or to end of energy deposit
+        LOG_DEBUG("DeadTime") << "Advanced readout window by " << std::distance(oldWindow, window) << " to simulate dead time.\n";
 
         //Create a CRT::Trigger to represent this module's readout window.  Associate the AuxDetSimChannels used to make this CRT::Trigger.
         //This is the hypothetical CRT::Trigger I was talking about when creating Assns.
+        LOG_DEBUG("CreateTrigger") << "Creating CRT::Trigger...\n";
         trigCol->emplace_back(pair.first, window->first*fIntegrationTime, std::move(hits)); 
                                                                          //TODO: Convert trigger time into timestamp.  From line 211 of 
                                                                          //      DetSim/Modules/SimCounter35t_module.cc, it looks like I 

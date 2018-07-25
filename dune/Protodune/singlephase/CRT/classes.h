@@ -10,4 +10,4 @@
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 
 //local includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/CRTTrigger.h"
+#include "dune/Protodune/singlephase/CRT/CRTTrigger.h"

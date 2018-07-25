@@ -11,8 +11,8 @@ CRTSim_standard:
   SimLabel:          "largeant"
   GeVToADC:          5e5 #MIP gives ~1000 ADC in commissioning
   IntegrationTime:   16 #ns
-  ReadoutWindowSize: 64 #ns
-  Deadtime:          80 #Discriminator dead time in ns
+  ReadoutWindowSize: 4 #IntegrationTimes
+  Deadtime:          5 #Discriminator dead time in IntegrationTimes
   DACThreshold:      2000 #TODO: Set DAC threshold to 2 PE for commissioning.  In ADC countss for now.
 }
 
