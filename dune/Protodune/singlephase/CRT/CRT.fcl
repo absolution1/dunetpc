@@ -1,9 +1,10 @@
-#File: CRTSim.fcl
-#Brief: Defines default CRT simulation parameters for the CRTSim module
+#File: CRT.fcl
+#Brief: Defines default parameters for CRT-related modules
 #Author: Andrew Olivier aolivier@ur.rochester.edu
 
 BEGIN_PROLOG
 
+# Simulation
 # CRTSim module
 CRTSim_standard: 
 {
@@ -14,6 +15,13 @@ CRTSim_standard:
   ReadoutWindowSize: 4 #IntegrationTimes
   Deadtime:          5 #Discriminator dead time in IntegrationTimes
   DACThreshold:      100 #TODO: Set DAC threshold to 2 PE for commissioning.  In ADC countss for now.
+}
+
+# CRTSimValidation module
+CRTSimValidation_standard:
+{
+  module_type: "CRTSimValidation"
+  CRTLabel: "CRTSim"
 }
 
 END_PROLOG
