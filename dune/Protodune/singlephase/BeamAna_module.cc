@@ -51,7 +51,7 @@ public:
   void endRun(art::Run const & r) override;
   void endSubRun(art::SubRun const & sr) override;
   void reconfigure(fhicl::ParameterSet const & p);
-  std::bitset<sizeof(double)*CHAR_BIT> toBinary(const double num);
+  std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);
   void toBits(double);
 
 private:
@@ -82,6 +82,9 @@ void proto::BeamAna::analyze(art::Event const & e)
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
   std::cerr << "%%%%%%%%%% Got ifbeam handle %%%%%%%%%%" << std::endl;
 
+  std::cout << "TESTING BINARY" << std::endl;
+  std::cout << toBinary(long(5.)) << std::endl;
+
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp = ifb->getBeamFolder(fBundleName,fURLStr,fTimeWindow);
   std::cerr << "%%%%%%%%%% Got beam folder %%%%%%%%%%" << std::endl;
 
@@ -102,10 +105,6 @@ void proto::BeamAna::analyze(art::Event const & e)
     std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
     fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
   }
-  /*uint64_t ts = fFixedTime;
-  if (!fFixedTime)
-    ts = uint64_t(e.time().timeLow());
-  */
   std::string prefix = "dip/acc/NORTH/NP04/BI/XBPF/";
   std::string devices[6] = {"XBPF022697_V",
                             "XBPF022697_H",
@@ -140,7 +139,6 @@ void proto::BeamAna::analyze(art::Event const & e)
         std::cout << "Count: " << i << std::endl;
         for(int j = 0; j < 10; ++j){
           double theData = data[20*i + (2*j + 1)];
-          //std::cout << "("<<20*i+2*j+1<<")"<< theData << " ";
           std::cout << std::setw(12) << theData ;
           if(j < 4){
             fbm.timeData[j] = theData;           
@@ -152,6 +150,15 @@ void proto::BeamAna::analyze(art::Event const & e)
         spill->AddFBMTrigger(d,fbm);
         std::cout <<std::endl;
       }
+      for(size_t i = 0; i < counts[1]; ++i){
+        std::cout << "Count: " << i << std::endl;
+        for(int j = 0; j < 10; ++j){
+          double theData = data[20*i + (2*j + 1)];
+          toBinary(long(theData));        
+
+        }
+        std::cout <<std::endl;
+      }
     }
   }
 
@@ -159,15 +166,6 @@ void proto::BeamAna::analyze(art::Event const & e)
     std::cout << "FBM: " << id << std::endl;
     std::cout << "N Triggers: " << spill->GetNFBMTriggers(id) << std::endl;
 
-    for(size_t it = 0; it < spill->GetNFBMTriggers(id); ++it){
-
-/*      for(size_t it = 0; it < 4; ++it){
-
-      }
-      for(size_t if = 0; if < 6; ++if){
-
-      }*/
-    }
   }
 
 
@@ -213,12 +211,27 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fMultipleTimes = p.get< std::vector<uint64_t> >("MultipleTimes");
 }
 
-std::bitset<sizeof(double)*CHAR_BIT> proto::BeamAna::toBinary(double num){
-  std::bitset<sizeof(double)*CHAR_BIT> mybits;
-  const char * const p = reinterpret_cast<const char*>(&num);
+std::bitset<sizeof(long)*CHAR_BIT> proto::BeamAna::toBinary(long num){
+/*  std::cout << "double Size: " << sizeof(double)*CHAR_BIT << std::endl;
+  std::cout << "long size: " << sizeof(unsigned long)*CHAR_BIT << std::endl;*/
+
+//  /*unsigned*/ long * p = reinterpret_cast</*unsigned*/ long*>(&num);
+/*  std::cout << "P! " << p << std::endl;
+  std::cout << "bits: " << std::bitset<32>(p[0]) << " " << std::bitset<32>(p[1]) << std::endl;
+  std::cout << "MyBits: " << std::bitset<64>(*p) << std::endl;*/
+//  std::bitset<sizeof(double)*CHAR_BIT> mybits(*p);
+    
+  std::bitset<sizeof(double)*CHAR_BIT> mybits(num);  
+  std::bitset<32> upper, lower;
+  for(int i = 0; i < 32; ++i){
+    lower[i] = mybits[i];
+    upper[i] = mybits[i + 32];   
+  }
+  if(upper.any()) std::cout << "WARNING: NONZERO HALF" << std::endl;
+  /*char * p = reinterpret_cast<char*>(&num);
   for (int i = sizeof(double)*CHAR_BIT-1 ; i >= 0 ; --i){
     mybits.set(i, (*(p)&(1<<i) ));
-  }
+  }*/
   return mybits;
 }
 
