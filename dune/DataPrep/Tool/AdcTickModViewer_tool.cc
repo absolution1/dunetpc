@@ -46,7 +46,9 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_HistChannelCount(ps.get<Index>("HistChannelCount")),
-  m_PlotFileName(ps.get<string>("PlotFileName")),
+  m_AllPlotFileName(ps.get<string>("AllPlotFileName")),
+  m_MinPlotFileName(ps.get<string>("MinPlotFileName")),
+  m_MaxPlotFileName(ps.get<string>("MaxPlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")),
   m_TreeFileName(ps.get<string>("TreeFileName")),
   m_PlotChannels(ps.get<IndexVector>("PlotChannels")),
@@ -55,10 +57,12 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_PlotShowFit(ps.get<Index>("PlotShowFit")),
   m_PlotSplitX(ps.get<Index>("PlotSplitX")),
   m_PlotSplitY(ps.get<Index>("PlotSplitY")),
-  m_PlotWhich(ps.get<Index>("PlotWhich")),
   m_PlotFrequency(ps.get<Index>("PlotFrequency")),
   m_tickOffsetTool(nullptr),
-  m_state(new State) 
+  m_plotAll(m_AllPlotFileName.size()),
+  m_plotMin(m_MinPlotFileName.size()),
+  m_plotMax(m_MaxPlotFileName.size()),
+  m_state(new State)
 {
   const string myname = "AdcTickModViewer::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -82,7 +86,9 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
     cout << myname << "          HistName: " << m_HistName << endl;
     cout << myname << "         HistTitle: " << m_HistTitle << endl;
     cout << myname << "  HistChannelCount: " << m_HistChannelCount << endl;
-    cout << myname << "      PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "   AllPlotFileName: " << m_AllPlotFileName << endl;
+    cout << myname << "   MinPlotFileName: " << m_MinPlotFileName << endl;
+    cout << myname << "   MaxPlotFileName: " << m_MaxPlotFileName << endl;
     cout << myname << "      RootFileName: " << m_RootFileName << endl;
     cout << myname << "      TreeFileName: " << m_TreeFileName << endl;
     cout << myname << "      PlotChannels: [";
@@ -97,7 +103,6 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
     cout << myname << "         PlotSizeY: " << m_PlotSizeY << endl;
     cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
     cout << myname << "        PlotSplitX: " << m_PlotSplitX << endl;
-    cout << myname << "         PlotWhich: " << m_PlotWhich << endl;
     cout << myname << "     PlotFrequency: " << m_PlotFrequency << endl;
   }
   if ( m_LogLevel >=4 ) {
@@ -281,19 +286,6 @@ int AdcTickModViewer::processAccumulation(Index& nplot) const {
     pfile = TFile::Open(m_TreeFileName.c_str(), "CREATE");
     if ( pfile->IsOpen() ) {
       ptree = new TTree("tickmod", "TickMod tree");
-      //ptree->Branch("data", &mydat, "Tickmod data");
-      //ptree->Branch("run", &(state().run));
-      //ptree->Branch("which", &m_PlotWhich, "i");
-/*
-      static int myint = 123;
-      ptree->Branch("myint", &myint, "myint/I");
-      static TickModTreeData* pdumdat = new TickModTreeData;
-      ptree->Branch("dumdat", pdumdat, "TickModTreeData");
-      ptree->Branch("pdumdat", &pdumdat, "TickModTreeData");
-      ptree->Branch("pdumdat2", "TickModTreeData", &pdumdat);
-      TickModTreeData& mydat = state().treedata;
-      ptree->Branch("mydata", &mydat);
-*/
       ptree->Branch("data", &(state().treedata), 64000, 1);
     } else {
       cout << myname << "Unable to open file " << m_TreeFileName << endl;
@@ -329,39 +321,30 @@ int AdcTickModViewer::processAccumulation(Index& nplot) const {
 int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
   const string myname = "AdcTickModViewer::makeTickModPlots: ";
   nplot = 0;
-  if ( m_PlotFileName.size() == 0 ) return 0;
+  // Exit if no plots are requested.
+  if ( !m_plotAll && !m_plotMin && !m_plotMax ) return 0;
+  // Exit if this channel should not be plotted.
   if ( m_PlotChannels.size() ) {
     if ( find(m_PlotChannels.begin(), m_PlotChannels.end(), icha) == m_PlotChannels.end() ) {
       if ( m_LogLevel >= 3 )  cout << myname << "Skipping channel not in PlotChannels: " << icha << endl;
       return 0;
     }
   }
+  // Find the pad counts. Plot has npady x npadx pads with one tickmod plot per pad.
   Index npad = 0;
   Index npadx = 0;
   Index npady = 0;
-  if ( m_PlotFileName.size() && m_PlotSplitX > 0 ) {
+  if ( m_PlotSplitX > 0 ) {
     npadx = m_PlotSplitX;
     npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
     npad = npadx*npady;
   }
-  Name plotFileName;
+  // Find the min and max ticks.
   Index ntkm = m_TickModPeriod;
   const HistVector& tmhs = state().ChannelTickModProcHists[icha];
-  vector<IndexVector> showTickModVectors;  // Vectors of tickmods to plot
-  vector<Name> showPlotNames;
-  if ( m_PlotWhich & 1 ) {
-    if ( m_LogLevel >= 3 ) cout << myname << "Add full vector of "
-                                << ntkm << " tickmods." << endl;
-    showTickModVectors.emplace_back(ntkm);
-    for ( Index itkm=0; itkm<ntkm; ++itkm ) showTickModVectors.back()[itkm] = itkm;
-    showPlotNames.push_back(m_PlotFileName);
-  }
-  IndexVector tkmsMin;
-  IndexVector tkmsMax;
-  // If needed, find min and max tickmods and build histogram vectors(s).
-  if ( m_PlotWhich & 6 ) {
-    Index itkmMin = 0;
-    Index itkmMax = 0;
+  Index itkmMin = 9999;
+  Index itkmMax = 9999;
+  if ( true ) {
     double meanMin = tmhs[0]->GetMean();
     double meanMax = meanMin;
     for ( Index itkm=0; itkm<ntkm; ++itkm ) {
@@ -375,6 +358,24 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
         itkmMin = itkm;
       }
     }
+  }
+  // Build the vectors describing inte tickmod plots.
+  //   showTickModVectors - Vector of tickmods included in each plot.
+  //   showPlotNames - Name for each plot file.
+  vector<IndexVector> showTickModVectors;  // Vectors of tickmods to plot
+  vector<Name> showPlotNames;
+  // Add plot descriptions for all tickmods.
+  if ( m_plotAll ) {
+    if ( m_LogLevel >= 3 ) cout << myname << "Add full vector of "
+                                << ntkm << " tickmods." << endl;
+    showTickModVectors.emplace_back(ntkm);
+    for ( Index itkm=0; itkm<ntkm; ++itkm ) showTickModVectors.back()[itkm] = itkm;
+    showPlotNames.push_back(m_AllPlotFileName);
+  }
+  // Add plot descriptions for min and max plots.
+  if ( m_plotMin || m_plotMax ) {
+    IndexVector tkmsMin;
+    IndexVector tkmsMax;
     int idel1 = npad/2;
     idel1 *= -1;
     int idel2 = idel1 + npad;
@@ -390,32 +391,26 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
       itkm = (itkmMax + ntkm + idel) % ntkm;
       tkmsMax.push_back(itkm);
     }
-    if ( m_PlotWhich & 2 ) {
-      if ( m_LogLevel >= 3 ) cout << myname << "Add min vector of " << tkmsMin.size()
+    if ( m_plotMin ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Adding min vector of " << tkmsMin.size()
                                   << " tickmods." << endl;
       showTickModVectors.push_back(tkmsMin);
-      Name pnam = m_PlotFileName;
-      StringManipulator sman(pnam);
-      sman.replace("%TICKMOD%", "Min");
-      sman.replace("%0TICKMOD%", "Min");
-      showPlotNames.push_back(pnam);
+      showPlotNames.push_back(m_MinPlotFileName);
     }
-    if ( m_PlotWhich & 4 ) {
-      if ( m_LogLevel >= 3 ) cout << myname << "Add max vector of " << tkmsMax.size()
+    if ( m_plotMax ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Adding max vector of " << tkmsMax.size()
                                   << " tickmods." << endl;
       showTickModVectors.push_back(tkmsMax);
-      Name pnam = m_PlotFileName;
-      StringManipulator sman(pnam);
-      sman.replace("%TICKMOD%", "Max");
-      sman.replace("%0TICKMOD%", "Max");
-      showPlotNames.push_back(pnam);
+      showPlotNames.push_back(m_MaxPlotFileName);
     }
   }
+  // Loop over descriptions and build plots.
   AdcChannelData acd;  // For building plot file name
   acd.channel = icha;
   if ( state().run >= 0 ) acd.run = state().run;
   TPadManipulator* pmantop = nullptr;
   for ( Index ihv=0; ihv<showTickModVectors.size(); ++ihv ) {
+    Name plotFileName;
     const IndexVector tkms = showTickModVectors[ihv];
     Name pfname = showPlotNames[ihv];
     if ( m_LogLevel >= 3 ) cout << "Plotting " << tkms.size() << " tickmods with name "

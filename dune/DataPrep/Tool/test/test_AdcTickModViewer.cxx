@@ -62,7 +62,9 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  HistTitle: \"ADC spectrum for channel %CHAN% tickmod %TICKMOD%\"" << endl;
     fout << "  HistChannelCount: 100" << endl;
     fout << "  PlotChannels: []" << endl;
-    fout << "  PlotFileName: \"adctm_ch%0CHAN%_tm%0TICKMOD%.png\"" << endl;
+    fout << "  AllPlotFileName: \"adctm%TICKMOD%_ch%0CHAN%.png\"" << endl;
+    fout << "  MinPlotFileName: \"adctmMin_ch%0CHAN%.png\"" << endl;
+    fout << "  MaxPlotFileName: \"adctmMax_ch%0CHAN%.png\"" << endl;
     fout << "  RootFileName: \"adctm.root\"" << endl;
     fout << "  TreeFileName: \"tickmod.root\"" << endl;
     fout << "  TreeFileName: \"\"" << endl;
@@ -71,7 +73,6 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  PlotShowFit:  0" << endl;
     fout << "  PlotSplitX:  2" << endl;
     fout << "  PlotSplitY:  2" << endl;
-    fout << "  PlotWhich:  7" << endl;
     fout << "  PlotFrequency: 0" << endl;
     fout << "}" << endl;
     fout << "tools.myTimeOffsetTool: {" << endl;
