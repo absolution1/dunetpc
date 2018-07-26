@@ -24,6 +24,7 @@
 //   HistChannelCount: # channels shown in histogram
 //   PlotFileName: If nonblank, histograms are displayed in this file.
 //   RootFileName: If nonblank, histogram is copied to this file.
+//   TreeFileName: If nonblank, a tickmod tree is created in this file.
 //   PlotChannels: If not empty, only the listed channels are plotted.
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
 //                         Root default (700x500?) is used if either is zero.
@@ -53,8 +54,9 @@
 //      %TICKMOD% --> tickmod (or Min or Max for those plots)
 //
 // The single-channel methods return a data map with the following:
-//   tmHists:        - The processed and narrowed tickmod histograms for this channel
-//   tmWideHists:    - The raw tickmod histograms for this channel
+//   tmCount:        - The tickmod period, e.g. 497
+//   tmPlotCount:    - The number of tickmod plots
+//   tmHists:        - The processed (not narrowed) tickmod histograms for this channel
 
 #ifndef AdcTickModViewer_H
 #define AdcTickModViewer_H
@@ -62,6 +64,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DataPrep/Utility/TickModTreeData.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -69,6 +72,8 @@
 class AdcChannelStringTool;
 class TimeOffsetTool;
 class TH1;
+class TFile;
+class TTree;
 class TPadManipulator;
 
 class AdcTickModViewer
@@ -103,6 +108,7 @@ private:
   Index m_HistChannelCount;
   Name m_PlotFileName;
   Name m_RootFileName;
+  Name m_TreeFileName;
   IndexVector m_PlotChannels;
   Index m_PlotSizeX;
   Index m_PlotSizeY;
@@ -129,6 +135,10 @@ private:
     HistVectorMap ChannelTickModProcHists;
     // Run number for plot names.
     int run = -1;
+    // Tree.
+    TickModTreeData treedata;
+    TFile* pfile =nullptr;
+    TTree* tickmodTree =nullptr;
   };
 
   // Return the state.
@@ -141,6 +151,14 @@ private:
 
   // Fill the histogram for a tickmod.
   int fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Index itkm) const;
+
+  // Process the accumulated histogram for a channel.
+  // StickyCodeMetrics is used to create limited-range histogram and evaluate
+  // sticky code metrics for that region.
+  int processAccumulatedChannel(Index icha, Index& nplot) const;
+
+  // Process the accumulated histogram for all channels.
+  int processAccumulation(Index& nplot) const;
 
   // Create plot files for the tickmod histograms for a channel.
   //   icha - channel number
