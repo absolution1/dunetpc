@@ -66,5 +66,53 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   }
 
   return mcParticle;
-} 
+}
+
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt )
+{  // Function that will match the protoDUNE MC particle to the Geant 4 MC particle, and return the matched particle (or a null pointer).
+
+  // Find the energy of the procided MC Particle
+  double pDuneEnergy = pDunePart.E();
+  
+  // Get list of the g4 particles. plist should be a std::map< int, simb::MCParticle* >
+  art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+  const sim::ParticleList & plist = pi_serv->ParticleList();
+  
+  // Check if plist is empty
+  if ( !plist.size() ) {
+    std::cerr << "\n\n#####################################\n"
+              << "\nEvent " << evt.id().event() << "\n"
+              << "sim::ParticleList from cheat::ParticleInventoryService is empty\n"
+              << "A null pointer will be returned\n"
+              << "#####################################\n\n";
+    return nullptr;
+  }
+  
+  // Go through the list of G4 particles
+  for ( auto partIt = plist.begin() ; partIt != plist.end() ; partIt++ ) {
+    
+    const simb::MCParticle* pPart = partIt->second;
+    if (!pPart) {
+      std::cerr << "\n\n#####################################\n"
+                << "\nEvent " << evt.id().event() << "\n"
+                << "GEANT particle #" << partIt->first << " returned a null pointer\n"
+                << "This is not necessarily bad. It just means at least one\n"
+                << "of the G4 particles returned a null pointer. It may well\n"
+                << "have still matached a PD particle and a G4 particle.\n"
+                << "#####################################\n\n";
+      continue;
+    }
+    
+    // If the initial energy of the g4 particle is very close to the energy of the protoDUNE particle, call it a day and have a cuppa.
+    if ( pPart->E() - pDuneEnergy < 0.00001 ) {
+      return pPart;
+    }
+    
+  }  // G4 particle list loop end.
+  
+  std::cout << "No G4 particle was matched for Event " << evt.id().event() << ". Null pointer returned\n";
+  return nullptr;
+  
+}  // End MatchPduneMCtoG4
+
 
