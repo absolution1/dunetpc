@@ -5,6 +5,9 @@
 //
 // Detector conditions that are typically constant over the
 // course of a run.
+//
+// Schema are documented at
+//  https://wiki.dunescience.org/wiki/ProtoDUNE_run_configuration
 
 #ifndef RunData_H
 #define RunData_H
@@ -32,7 +35,9 @@ public:
   float shaping() const { return m_shaping; }
   float leakage() const { return m_leakage; }
   float hvfrac() const { return m_hvfrac; }
-  float pulserAmplitude() const { return m_pulserAmplitude; }
+  Index pulserAmplitude() const { return m_pulserAmplitude; }
+  Index pulserSource() const { return m_pulserSource; }
+  Index pulserPeriod() const { return m_pulserPeriod; }
 
   // Return if value is defined.
   bool isValid() const { return run(); }
@@ -44,6 +49,8 @@ public:
   bool haveLeakage() const { return m_leakage; }
   bool haveHvfrac() const { return m_hvfrac; }
   bool havePulserAmplitude() const { return m_pulserAmplitude != 999; }
+  bool havePulserSource() const { return m_pulserSource != 0; }
+  bool havePulserPeriod() const { return m_pulserPeriod != 0; }
 
   // Setters.
   void setRun(Index val) { m_run = val; }
@@ -54,6 +61,8 @@ public:
   void setLeakage(float val) { m_leakage = val; }
   void setHvfrac(float val) { m_hvfrac = val; }
   void setPulserAmplitude(Index val) { m_pulserAmplitude = val; }
+  void setPulserSource(Index val) { m_pulserSource = val; }
+  void setPulserPeriod(Index val) { m_pulserPeriod = val; }
 
   // Accessors.
   Index&       accessRun()             { return m_run; }
@@ -64,6 +73,8 @@ public:
   float&       accessLeakage()         { return m_leakage; }
   float&       accessHvfrac()          { return m_hvfrac; }
   Index&       accessPulserAmplitude() { return m_pulserAmplitude; }
+  Index&       accessPulserSource()    { return m_pulserSource; }
+  Index&       accessPulserPeriod()    { return m_pulserPeriod; }
 
   std::ostream& print(std::ostream& lhs =std::cout) const {
     const std::string sep = "\n";
@@ -81,6 +92,8 @@ public:
     if ( haveLeakage() )         lhs << sep << "  Leakage cur.: " << leakage() << " pA";
     if ( haveHvfrac() )          lhs << sep << "      HV frac.: " << hvfrac();
     if ( havePulserAmplitude() ) lhs << sep << "  Pulser ampl.: " << pulserAmplitude();
+    if ( havePulserSource() )    lhs << sep << " Pulser source: " << pulserSource();
+    if ( havePulserPeriod() )    lhs << sep << " Pulser period: " << pulserPeriod();
     return lhs;
   }
 
@@ -95,6 +108,8 @@ private:
   float m_leakage = 0.0;
   float m_hvfrac = 0.0;
   Index m_pulserAmplitude = 999;
+  Index m_pulserSource = 0;  // 1=preamp, 2=FEMB
+  Index m_pulserPeriod = 0;
 
 };
 

@@ -27,7 +27,8 @@ services:
   }
 
   PdspChannelMapService: {
-    FileName:         "protoDUNETPCChannelMap_v3.txt"
+    FileName:         "protoDUNETPCChannelMap_RCE_v4.txt"
+    FELIXFileName:    "protoDUNETPCChannelMap_FELIX_v4.txt"
     SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
     LogLevel:         1
   }

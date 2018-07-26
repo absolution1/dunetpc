@@ -1,0 +1,39 @@
+# protodune_dqm.fcl
+
+# David Adams
+# May 2018
+#
+# Run protodune reco only through data prep and create plots for DQM.
+
+#include "protoDUNE_reco_noise.fcl"
+
+physics.reco: ["caldata"]
+
+process_name: "dqm"
+
+LogLevel:     2
+tools.tickRanges.plotTicks.begin: 3000
+tools.tickRanges.plotTicks.end:   5000
+MaxSignal:   50
+
+services.RawDigitPrepService.AdcChannelToolNames: [
+  @sequence::services.RawDigitPrepService.AdcChannelToolNames,
+  "adcPedestalFit",      # This is (re) running the pedestal finder. Not needed if done earlier.
+  "pdtps_adcChannelPedestalPlotter",
+  "pdtps_adcChannelPedestalRmsPlotter",
+  "pdtps_adcChannelPedestalPeakBinExcessPlotter",
+  "dqmRawAdcPlotter",
+  "dqmPreparedAdcPlotter",
+  "preparedAdcDetectorPlotColl"
+]
+
+tools.dqmRawAdcPlotter: @local::tools.rawAdcPlotter
+tools.dqmPreparedAdcPlotter: @local::tools.preparedAdcPlotter
+
+tools.dqmRawAdcPlotter.LogLevel:  @local::LogLevel
+tools.dqmRawAdcPlotter.MaxSignal: @local::MaxSignal
+tools.dqmRawAdcPlotter.PlotFileName: "adcraw_run%0RUN%_evt%0EVENT%_ch%0CHAN1%-%0CHAN2%.png"
+
+tools.dqmPreparedAdcPlotter.LogLevel:  @local::LogLevel
+tools.dqmPreparedAdcPlotter.MaxSignal: @local::MaxSignal 
+tools.dqmPreparedAdcPlotter.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_ch%0CHAN1%-%0CHAN2%.png"

@@ -3,6 +3,7 @@
 add_subdirectory(test)
 add_subdirectory(Tool)
 add_subdirectory(Service)
+add_subdirectory(Exe)
 add_subdirectory(fcl)
 
 #message(STATUS "ROOTSYS=${ROOTSYS}")

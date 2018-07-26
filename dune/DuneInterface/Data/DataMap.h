@@ -59,7 +59,8 @@ public:
   using HistVectorMap = std::map<Name,HistVector>;
   using GraphPtr = std::shared_ptr<TGraph>;
   using GraphMap = std::map<Name,GraphPtr>;
-  using SharedHistVector = std::vector<std::shared_ptr<TH1>>;
+  using SharedHistPtr = std::shared_ptr<TH1>;
+  using SharedHistVector = std::vector<SharedHistPtr>;
 
 public:
 
@@ -142,6 +143,10 @@ public:
   void setHist(TH1* ph, bool own =false) {
     if ( ph != nullptr ) setHist(ph->GetName(), ph, own);
   }
+  void setHist(std::shared_ptr<TH1> ph) {
+    m_hsts[ph->GetName()] = ph.get();
+    m_sharedHsts.push_back(ph);
+  }
   void setHistVector(Name name, const HistVector& hsts, bool own =false) {
     const std::string myname = "DataMap::setHistVector: ";
     m_hstvecs[name] = hsts;
@@ -160,6 +165,14 @@ public:
           m_sharedHsts.push_back(std::shared_ptr<TH1>(ph));
         }
       }
+    }
+  }
+  void setHistVector(Name name, const SharedHistVector& hsts) {
+    const std::string myname = "DataMap::setHistVector: ";
+    m_hstvecs[name].clear();
+    for ( SharedHistPtr ph : hsts ) {
+      m_hstvecs[name].push_back(ph.get());
+      m_sharedHsts.push_back(ph);
     }
   }
   void setGraph(Name name, TGraph* pg) {
@@ -229,22 +242,22 @@ public:
   }
   
   // Display contents.
-  void print() const {
+  void print(std::string prefix ="") const {
     using std::cout;
     using std::endl;
-    cout << "Status: " << status() << endl;
+    cout << prefix << "Status: " << status() << endl;
     if ( m_ints.size() ) {
-      cout << "Integers:" << endl;
+      cout << prefix << "Integers:" << endl;
       for ( typename IntMap::value_type ient : m_ints ) {
-        cout << "  " << ient.first << ": " << ient.second << endl;
+        cout << prefix << "  " << ient.first << ": " << ient.second << endl;
       }
     }
     if ( m_intvecs.size() ) {
-      cout << "Int vectors:" << endl;
+      cout << prefix << "Int vectors:" << endl;
       unsigned int maxval = 20;
       for ( typename IntVectorMap::value_type ient : m_intvecs ) {
         unsigned nval = ient.second.size();
-        cout << "  " << ient.first << "[" << nval << "]:";
+        cout << prefix << "  " << ient.first << "[" << nval << "]:";
         for ( unsigned int ival=0; ival<nval; ++ival ) {
           if ( ival ) cout << ",";
           cout << " " << ient.second[ival];
@@ -257,17 +270,17 @@ public:
       }
     }
     if ( m_flts.size() ) {
-      cout << "Floats:" << endl;
+      cout << prefix << "Floats:" << endl;
       for ( typename FloatMap::value_type ient : m_flts ) {
-        cout << "  " << ient.first << ": " << ient.second << endl;
+        cout << prefix << "  " << ient.first << ": " << ient.second << endl;
       }
     }
     if ( m_fltvecs.size() ) {
-      cout << "Float vectors:" << endl;
+      cout << prefix << "Float vectors:" << endl;
       unsigned int maxval = 20;
       for ( typename FloatVectorMap::value_type ient : m_fltvecs ) {
         unsigned nval = ient.second.size();
-        cout << "  " << ient.first << "[" << nval << "]:";
+        cout << prefix << "  " << ient.first << "[" << nval << "]:";
         for ( unsigned int ival=0; ival<nval; ++ival ) {
           if ( ival ) cout << ",";
           cout << " " << ient.second[ival];
@@ -280,32 +293,32 @@ public:
       }
     }
     if ( m_strs.size() ) {
-      cout << "Strings:" << endl;
+      cout << prefix << "Strings:" << endl;
       for ( typename StringMap::value_type ient : m_strs ) {
-        cout << "  " << ient.first << ": " << ient.second << endl;
+        cout << prefix << "  " << ient.first << ": " << ient.second << endl;
       }
     }
     if ( m_hsts.size() ) {
-      cout << "Histograms:" << endl;
+      cout << prefix << "Histograms:" << endl;
       for ( typename HistMap::value_type ient : m_hsts ) {
         TH1* ph = ient.second;
         //Name hnam = ph == nullptr ? "NULL" : ph->GetName();
-        cout << "  " << ient.first << ": " << ph << endl;
+        cout << prefix << "  " << ient.first << ": " << ph << endl;
       }
     }
     if ( m_hstvecs.size() ) {
-      cout << "Histogram vectors:" << endl;
+      cout << prefix << "Histogram vectors:" << endl;
       for ( typename HistVectorMap::value_type ient : m_hstvecs ) {
         unsigned nhst = ient.second.size();
-        cout << "  " << ient.first << "[" << nhst << "]" << endl;
+        cout << prefix << "  " << ient.first << "[" << nhst << "]" << endl;
       }
     }
     if ( m_grfs.size() ) {
-      cout << "Graphs:" << endl;
+      cout << prefix << "Graphs:" << endl;
       for ( typename GraphMap::value_type ient : m_grfs ) {
         GraphPtr pg = ient.second;
         //Name hnam = ph == nullptr ? "NULL" : ph->GetName();
-        cout << "  " << ient.first << ": " << pg.get() << endl;
+        cout << prefix << "  " << ient.first << ": " << pg.get() << endl;
       }
     }
   }

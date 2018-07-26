@@ -35,6 +35,10 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "dune/DuneInterface/RawDigitPrepService.h"
 #include "dune/DuneInterface/ChannelGroupService.h"
+#include "dune/DuneInterface/Tool/IndexMapTool.h"
+#include "dune/DuneCommon/DuneTimeConverter.h"
+#include "dune/ArtSupport/DuneToolManager.h"
+#include "TDatime.h"
 
 using std::cout;
 using std::endl;
@@ -42,6 +46,7 @@ using std::string;
 using std::vector;
 using std::move;
 using art::ServiceHandle;
+using art::Timestamp;
 using recob::Wire;
 
 //**********************************************************************
@@ -71,6 +76,9 @@ private:
   std::vector<std::string> m_IntermediateStates;
   bool m_DoAssns = false;
   bool m_DoGroups = false;
+  AdcChannel m_KeepChannelBegin =0;
+  AdcChannel m_KeepChannelEnd =0;
+  AdcChannelVector m_SkipChannels;
 
   // Split label into producer and name: PRODUCER or PRODUCER:NAME
   std::string m_DigitProducer;
@@ -79,6 +87,10 @@ private:
   // Accessed services.
   RawDigitPrepService* m_pRawDigitPrepService = nullptr;
   ChannelGroupService* m_pChannelGroupService = nullptr;
+
+  // Tools.
+  std::string m_OnlineChannelMapTool;
+  std::unique_ptr<IndexMapTool> m_onlineChannelMapTool;
 
 };
 
@@ -111,6 +123,10 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_DoAssns    = pset.get<bool>("DoAssns");
   m_DoGroups   = pset.get<bool>("DoGroups");
   m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
+  pset.get_if_present<AdcChannel>("KeepChannelBegin", m_KeepChannelBegin);
+  pset.get_if_present<AdcChannel>("KeepChannelEnd", m_KeepChannelEnd);
+  pset.get_if_present<AdcChannelVector>("SkipChannels", m_SkipChannels);
+  pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
 
   size_t ipos = m_DigitLabel.find(":");
   if ( ipos == std::string::npos ) {
@@ -123,17 +139,33 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_pRawDigitPrepService = &*ServiceHandle<RawDigitPrepService>();
   if ( m_DoGroups ) m_pChannelGroupService = &*ServiceHandle<ChannelGroupService>();
 
+  if ( m_OnlineChannelMapTool.size() ) {
+    DuneToolManager* ptm = DuneToolManager::instance();
+    m_onlineChannelMapTool = ptm->getPrivate<IndexMapTool>(m_OnlineChannelMapTool);
+  }
+
   if ( m_LogLevel >= 1 ) {
-    cout << myname << "    LogLevel: " << m_LogLevel << endl;
-    cout << myname << "  DigitLabel: " << m_DigitLabel << " (" << m_DigitProducer
+    cout << myname << "             LogLevel: " << m_LogLevel << endl;
+    cout << myname << "           DigitLabel: " << m_DigitLabel << " (" << m_DigitProducer
                    << ", " << m_DigitName << ")" << endl;
-    cout << myname << "    WireName: " << m_WireName << endl;
-    cout << myname << "     DoAssns: " << m_DoAssns << endl;
-    cout << myname << "    DoGroups: " << m_DoGroups << endl;
-    cout << myname << "  IntermediateStates: [";
+    cout << myname << "             WireName: " << m_WireName << endl;
+    cout << myname << "              DoAssns: " << m_DoAssns << endl;
+    cout << myname << "             DoGroups: " << m_DoGroups << endl;
+    cout << myname << "   IntermediateStates: [";
     int count = 0;
     for ( string sname : m_IntermediateStates ) cout << (count++ == 0 ? "" : " ") << sname;
     cout << "]" << endl;
+    cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << endl;
+    cout << myname << "      KeepChannelBegin: " << m_KeepChannelBegin << endl;
+    cout << myname << "        KeepChannelEnd: " << m_KeepChannelEnd << endl;
+    cout << myname << "          SkipChannels: " << "{";
+    bool first = true;
+    for ( AdcChannel ich : m_SkipChannels ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << ich;
+    }
+    cout << "}" << endl;
   }
 }
 
@@ -150,9 +182,27 @@ void DataPrepModule::endJob() { }
 void DataPrepModule::produce(art::Event& evt) {      
   const string myname = "DataPrepModule::produce: ";
 
+  // Fetch the event time.
+  Timestamp beginTime = evt.time();
+
   // Read in the digits. 
-  if ( m_LogLevel > 1 ) {
+  if ( m_LogLevel >= 2 ) {
     cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
+    // July 2018. ProtoDUNE real data has zero in high field and unix time in low field.
+    if ( beginTime.timeHigh() == 0 ) {
+      unsigned int itim = beginTime.timeLow();
+      TDatime rtim(itim);
+      string stim = rtim.AsString();
+      cout << myname << "Real data event time: " << itim << " (" << stim << ")" << endl;
+    } else {
+      cout << myname << "Sim data event time: " << DuneTimeConverter::toString(beginTime) << endl;
+    }
+    cout << myname << "Run " << evt.run();
+    if ( evt.subRun() ) cout << "-" << evt.subRun();
+    cout << " event " << evt.event() << endl;
+  }
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "Event time high, low: " << beginTime.timeHigh() << ", " << beginTime.timeLow() << endl;
   }
   art::Handle< std::vector<raw::RawDigit> > hdigits;
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
@@ -178,11 +228,26 @@ void DataPrepModule::produce(art::Event& evt) {
 
   // Create the transient data map and copy the digits there.
   AdcChannelDataMap fulldatamap;
+  bool checkKeep = m_KeepChannelEnd > m_KeepChannelBegin;
+  unsigned int nkeep = 0;
+  unsigned int nskip = 0;
   for ( unsigned int idig=0; idig<hdigits->size(); ++idig ) {
     const raw::RawDigit& dig = (*hdigits)[idig];
     AdcChannel chan = dig.Channel();
+    if ( checkKeep ) {
+      if ( chan < m_KeepChannelBegin || chan >= m_KeepChannelEnd ) {
+        ++nskip;
+        continue;
+      }
+    }
+    if ( std::find(m_SkipChannels.begin(), m_SkipChannels.end(), chan) != m_SkipChannels.end() ) {
+      ++nskip;
+      continue;
+    }
+    ++nkeep;
     if ( fulldatamap.find(chan) != fulldatamap.end() ) {
       mf::LogWarning("DataPrepModule") << "Skipping duplicate channel " << chan << "." << endl;
+      ++nskip;
       continue;
     }
     AdcChannelData& acd = fulldatamap[chan];
@@ -192,9 +257,17 @@ void DataPrepModule::produce(art::Event& evt) {
     acd.channel = chan;
     acd.digitIndex = idig;
     acd.digit = &dig;
+    if ( m_onlineChannelMapTool ) {
+      unsigned int ichOn = m_onlineChannelMapTool->get(chan);
+      if ( ichOn != IndexMapTool::badIndex() ) {
+        acd.fembID = ichOn/128;
+        acd.fembChannel = ichOn % 128;
+      }
+    }
   }
 
   // Create a vector of data maps with an entry for each group.
+  unsigned int ncgrp = 0;
   vector<AdcChannelDataMap> datamaps;
   if ( m_DoGroups ) {
     if ( m_pChannelGroupService == nullptr ) {
@@ -206,19 +279,28 @@ void DataPrepModule::produce(art::Event& evt) {
       datamaps.emplace_back();
       AdcChannelDataMap& datamap = datamaps.back();
       for ( AdcChannel chan : m_pChannelGroupService->channels(igrp) ) {
-        datamap.emplace(chan, move(fulldatamap[chan]));
+        if ( fulldatamap.find(chan) != fulldatamap.end() ) {
+          datamap.emplace(chan, move(fulldatamap[chan]));
+          ++ncgrp;
+        }
       }
     }
   } else {
     datamaps.emplace_back(move(fulldatamap));
   }
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "         # channels selected: " << ncgrp << endl;
+    cout << myname << "          # channels skipped: " << ncgrp << endl;
+    cout << myname << "  # channels to be processed: " << ncgrp << endl;
+  }
 
   for ( AdcChannelDataMap& datamap : datamaps ) {
+
+    if ( datamap.size() == 0 ) continue;
 
     // Use the data preparation service to build the wires and intermediate states.
     int rstat = m_pRawDigitPrepService->prepare(datamap, pwires.get(), pintStates);
     if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation service returned error " << rstat;
-    if ( pwires->size() == 0 ) mf::LogWarning("DataPrepModule") << "No wires made for this event.";
 
     // Build associations between wires and digits.
     if ( m_DoAssns ) {
@@ -245,6 +327,7 @@ void DataPrepModule::produce(art::Event& evt) {
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Created wire count: " << pwires->size() << endl;
   }
+  if ( pwires->size() == 0 ) mf::LogWarning("DataPrepModule") << "No wires made for this event.";
 
   // Record wires and associations in the event.
   evt.put(std::move(pwires), m_WireName);

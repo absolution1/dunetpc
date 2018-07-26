@@ -1,0 +1,59 @@
+<!--                                                                                  -->
+<!--  $Author:  $                                                                     -->
+<!--  $Date: 2010/04/12 18:12:28 $                                                    -->
+<!--                                                                                  -->
+<!--  Include art::Wrapper lines for objects that we would like to put into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper lines and     -->
+<!--  for all objects that are data members of those objects.                         -->
+
+<lcgdict>
+
+<!-- support classes (e.g., elements of data product classes) -->
+
+ <!--<class name="CalibTreeRecord::PartialOpHit" ClassVersion="14">
+  <version ClassVersion="14" checksum="2757242751"/>
+   <version ClassVersion="10" checksum="2378973873"/>
+ </class>
+ <class name="CalibTreeRecord::PartialPDOpHit" ClassVersion="11">
+  <version ClassVersion="11" checksum="413174620"/>
+  <version ClassVersion="10" checksum="530436685"/>
+ </class>
+ <class name="CalibTreeRecord::PartialHit" ClassVersion="14">
+  <version ClassVersion="14" checksum="624439765"/>
+   <version ClassVersion="10" checksum="2362630748"/>
+ </class>
+ <class name="CalibTreeRecord::ParticleRecord" ClassVersion="14">
+  <version ClassVersion="14" checksum="1650255122"/>
+   <version ClassVersion="10" checksum="2971884106"/>
+ </class>
+ <class name="CalibTreeRecord::CalibTreeRecord" ClassVersion="11">
+  <version ClassVersion="11" checksum="4076785281"/>
+   <version ClassVersion="10" checksum="2671704848"/>
+ </class>
+ <class name="CalibTreeRecord::HitContributor" ClassVersion="11">
+  <version ClassVersion="11" checksum="1006747457"/>
+   <version ClassVersion="10" checksum="930023805"/>
+ </class>
+ <class name="CalibTreeRecord::EveRecord" ClassVersion="12">
+  <version ClassVersion="12" checksum="1006193482"/>
+   <version ClassVersion="10" checksum="3936382072"/>
+ </class>
+ <class name="CalibTreeRecord::HCRec" ClassVersion="11">
+  <version ClassVersion="11" checksum="3691634903"/>
+   <version ClassVersion="10" checksum="1066719352"/>
+ </class>-->
+ <class name="sim::OpDetDivRec" ClassVersion="13">
+  <version ClassVersion="13" checksum="593579870"/>
+  <version ClassVersion="12" checksum="3335723222"/>
+  <version ClassVersion="11" checksum="1415000109"/>
+   <version ClassVersion="10" checksum="2505021768"/>
+ </class>
+ <class name="std::vector<sim::OpDetDivRec>" />
+ <class name="art::Ptr<sim::OpDetDivRec>" />
+ <class name="art::Wrapper<vector<sim::OpDetDivRec> >"/>
+ <class name="sim::OpDet_Time_Chans"/>
+ <class name="std::vector<sim::OpDet_Time_Chans>"/>
+ <class name="sim::Chan_Phot"/>
+ <class name="std::vector<sim::Chan_Phot>"/>
+
+</lcgdict>

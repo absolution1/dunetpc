@@ -17,7 +17,7 @@ simple_plugin(TemplateTriggerService   "service"
                 ${ART_FRAMEWORK_CORE}
                 art_Utilities canvas
                 ${MF_MESSAGELOGGER}
-                ${MF_UTILITIES}
+                
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
@@ -30,7 +30,7 @@ simple_plugin(HardwareMapperService   "service"
                 ${ART_FRAMEWORK_SERVICES_REGISTRY}
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                 ${MF_MESSAGELOGGER}
-                ${MF_UTILITIES}
+                
                 ${ROOT_BASIC_LIB_LIST}
                 art_Utilities canvas
              )

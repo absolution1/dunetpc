@@ -12,7 +12,7 @@ simple_plugin(TimingRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
@@ -33,7 +33,7 @@ simple_plugin(SSPRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
@@ -57,7 +57,7 @@ simple_plugin(RceRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
@@ -78,7 +78,7 @@ simple_plugin(FelixRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
@@ -99,7 +99,7 @@ simple_plugin(PDSPTPCRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
@@ -122,7 +122,7 @@ art_make_library( LIBRARY_NAME dunetpc_protodune_RawDecodingUtils
  #                 art_Persistency_Provenance canvas_Persistency_Provenance
  #                 art_Utilities canvas_Utilities
                   ${MF_MESSAGELOGGER}
-                  ${MF_UTILITIES}
+                  
                   ${CETLIB}
                   ${ROOT_BASIC_LIB_LIST}
                   ${RCEDAMLIB}

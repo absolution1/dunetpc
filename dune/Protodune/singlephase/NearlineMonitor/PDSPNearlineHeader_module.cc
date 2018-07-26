@@ -1,4 +1,9 @@
-// Header module file. For now saves the run and subrun ids of the input file into a TTree
+///////////////////////////////////////////////////////////////////////////
+// Header module                                                         //
+// Saves the run and subrun ids and the time of first event into a TTree //
+// May 2018                                                              //
+// georgios.christodoulou <at> cern.ch                                   //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef PDSPNearlineHeader_module
 #define PDSPNearlineHeader_module
@@ -41,7 +46,7 @@ namespace PDSPNearlineheader_module{
     
     int fRun;
     int fSubRun;
-    double fTimeStamp;
+    uint64_t fTimeStamp;
     
     TTree *fPDSPNearlineHeaderTree;
     
@@ -59,7 +64,7 @@ namespace PDSPNearlineheader_module{
     fPDSPNearlineHeaderTree = tfs->make<TTree>("PDSPNearlineHeader", "PDSP Nearline header tree");
     fPDSPNearlineHeaderTree->Branch("fRun",       &fRun,       "fRun/I");
     fPDSPNearlineHeaderTree->Branch("fSubRun",    &fSubRun,    "fSubRun/I");
-    fPDSPNearlineHeaderTree->Branch("fTimeStamp", &fTimeStamp, "fTimeStamp/D");
+    fPDSPNearlineHeaderTree->Branch("fTimeStamp", &fTimeStamp, "fTimeStamp/l");
   }
   
   //-----------------------------------------------------------------------

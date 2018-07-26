@@ -298,7 +298,7 @@ bool dune::RceRawDecoder::_process(
 
         ch_counter++;
         int offlineChannel = -1;
-        offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch);
+        offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
         _h_offline_channels->Fill(offlineChannel);
         raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
         raw_digits.push_back(raw_digit);

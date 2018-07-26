@@ -32,6 +32,7 @@ dune35t_signaltonoise:
     RawDigitModuleLabel:        "SplitterInput:TPC"
     CalDataModuleLabel:         "noiserm"
     TrackModuleLabel:           "pmtrack"
+    IsData:                     true
 }
 
 END_PROLOG

@@ -35,7 +35,7 @@ art_make( MODULE_LIBRARIES
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 )
@@ -48,3 +48,6 @@ add_subdirectory(NearlineMonitor)
 add_subdirectory(RawDecoding)
 #add_subdirectory(calcuttjRecoEff)
 add_subdirectory(CRT)
+add_subdirectory(Tool)
+add_subdirectory(dEdxcalibration)
+add_subdirectory(XYZcalibration)

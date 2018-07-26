@@ -818,7 +818,7 @@ print ENCL <<EOF;
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
-      <second ref="FoamPadding"/>
+      <second ref="FoamPadBlock"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
@@ -835,7 +835,7 @@ EOF
     print ENCL <<EOF;
 <structure>
     <volume name="volFoamPadding">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="foam_3x1x1dp"/>
       <solidref ref="FoamPadding"/>
     </volume>
 

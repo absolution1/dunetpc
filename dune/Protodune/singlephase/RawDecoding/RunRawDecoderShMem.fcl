@@ -7,8 +7,10 @@ services:
 {
   #message:              @local::dune_message_services_prod_debug
   TFileService: { fileName: "/scratch/OMoutput/np04_hist_run%06r_%#.root" }
-  PdChannelMapService: {
-    FileName:         "protoDUNETPCChannelMap_v1.txt"
+  PdspChannelMapService: {
+    FileName:         "protoDUNETPCChannelMap_RCE_v4.txt"
+    FELIXFileName:    "protoDUNETPCChannelMap_FELIX_v4.txt"
+    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
     LogLevel:         1
   } 
 }

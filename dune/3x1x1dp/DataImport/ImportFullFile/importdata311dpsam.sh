@@ -37,7 +37,7 @@ touch alreadyinsamlist.txt
 rm alreadyinsamlist.txt
 samweb list-files file_name=wa105%.root and data_tier=raw and lbne_data.name=wa105_testdata_2017 and version=v06_49_00 > alreadyinsamlist.txt
 
-for file in `samweb list-files file_name="wa105%.dat"`
+for file in `samweb list-files file_name="wa105%.dat" | grep -v recotask | grep -v symlink`
 do
   echo Processing: $file
 

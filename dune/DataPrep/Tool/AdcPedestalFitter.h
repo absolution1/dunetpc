@@ -31,7 +31,7 @@
 //               and up to that many plots are shown on the screen.
 //
 // Tools:
-//   adcNameBuilder and adcTitleBuilder are used to make the following
+//   adcStringBuilder is used to make the following
 // substitutions in the names and title:
 //      %RUN%    --> run number
 //      %SUBRUN% --> subrun number
@@ -115,8 +115,7 @@ private:
   Index m_PlotSplitY;
 
   // ADC string tool.
-  const AdcChannelStringTool* m_adcNameBuilder;
-  const AdcChannelStringTool* m_adcTitleBuilder;
+  const AdcChannelStringTool* m_adcStringBuilder;
 
   // Histogram manager.
   HistogramManager* m_phm;

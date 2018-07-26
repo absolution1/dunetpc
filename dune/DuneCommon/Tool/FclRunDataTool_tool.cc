@@ -38,6 +38,8 @@ int parseFcl(string path, string fclname, RunData& rdat) {
   ps.get_if_present<float>("leakage", rdat.accessLeakage());
   ps.get_if_present<float>("hvfrac", rdat.accessHvfrac());
   ps.get_if_present<Index>("pulserAmplitude", rdat.accessPulserAmplitude());
+  ps.get_if_present<Index>("pulserSource", rdat.accessPulserSource());
+  ps.get_if_present<Index>("pulserPeriod", rdat.accessPulserPeriod());
   return 0;
 }
 

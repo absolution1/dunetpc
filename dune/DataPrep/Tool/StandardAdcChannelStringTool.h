@@ -1,9 +1,10 @@
 // StandardAdcChannelStringTool.h
 
 // David Adams
-// April 20187
+// May 2018
 //
-// Tool to construct a string from AdcChannelData and input pattern.
+// Tool to construct a string from an input template taking data
+// from AdcChannelData and DataMap objects.
 //
 // The string is the pattern with the following replacements:
 //   %RUN% --> acd.run
@@ -14,14 +15,26 @@
 //   % SUNIT% --> " sunit" or "" if sunit is empty
 //   %(SUNIT)% --> "(sunit)" or "" if sunit is empty
 //   % (SUNIT)% --> " (sunit)" or "" if sunit is empty
+//   %((SUNIT))% --> "(sunit)" or sunit if there is no space in sunit
+//   % ((SUNIT))% --> add preceding space to this if sunit is not blank
 //   %[SUNIT]% --> "[sunit]" or "" if sunit is empty
 //   % [SUNIT]% --> " [sunit]" or "" if sunit is empty
 //   %COUNT% --> dm.getInt("count") passed in call to build
 //   %CHAN1% --> dm.getInt("chan1") passed in call to build
 //   %CHAN2% --> dm.getInt("chan2") passed in call to build
-// where w can be absent or any unsigned int.
-// If w is 0 or blank, the value is written with its natural width.
-// Otherwise it is written with that with padded with leading zeroes.
+// where acd is the AdcChannelData object and dm is the DataMap object
+// passed in the call to build.
+//
+// E.g. if acd.run = 123, then "%RUN%" is replaced with "123".
+//
+// In addition, any number can be prefixed with a digit to indicate that
+// the number should be padded with leading zeros to a width equal to that
+// digit if its natural width is less that that value. E.g. %6RUN% will
+// produce "000123" if acd.run = 123.
+//
+// If a number is prefixed with 0, then the width used is specified by
+// the configuration here. E.g. if RunWidth == 5, then "%0RUN" will be
+// replaced with "00123" if acd.run = 123.
 //
 // Tool configuration:
 //  LogLevel - 1 to log from ctor

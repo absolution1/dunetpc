@@ -19,7 +19,7 @@ art_make(BASENAME_ONLY
          ${ART_PERSISTENCY_PROVENANCE}
          ${ART_UTILITIES}
          ${MF_MESSAGELOGGER}
-         ${MF_UTILITIES}
+         
          cetlib cetlib_except
          ${ROOT_BASIC_LIB_LIST}
          )

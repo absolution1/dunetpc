@@ -395,8 +395,8 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
   //track information
   ntracks_reco=tracklist.size();
 
-  double larStart[3];
-  double larEnd[3];
+  TVector3 larStart;
+  TVector3 larEnd;
   
   // Get Cryostat information.....
   int c=0;//only one cryo   
@@ -454,11 +454,11 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
       //*********************************
 
       trkid[i]=i;
-      memset(larStart, 0, 3);
-      memset(larEnd, 0, 3);
       recob::Track::Point_t trackStart, trackEnd;
       std::tie(trackStart, trackEnd) = tracklist[i]->Extent(); 
-      tracklist[i]->Direction(larStart,larEnd);
+      larStart = tracklist[i]->VertexDirection();
+      larEnd = tracklist[i]->EndDirection();
+
       trkstartx[i]      = trackStart.X() - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'
       trkstarty[i]      = trackStart.Y();
       trkstartz[i]      = trackStart.Z();

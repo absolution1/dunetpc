@@ -45,6 +45,8 @@ pdsp_tpc_raw_decoder:
   FELIXRawDataNonContainerInstance: "FELIX"
   FELIXFragmentType: 2    # not used in code
 
+  MakeHistograms: false #for making error monitoring histograms
+
 # enforcement flags.  If these are set to true and the data completeness 
 # conditions are not met, then an emtpy collection of raw::RawDigits is 
 # put in the event

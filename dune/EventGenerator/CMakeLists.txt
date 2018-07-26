@@ -19,7 +19,7 @@ art_make( BASENAME_ONLY
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${FHICLCPP}
                         cetlib cetlib_except
                         ${CLHEP}
@@ -41,3 +41,4 @@ add_subdirectory(GENIE)
 add_subdirectory(Radiological)
 add_subdirectory(CORSIKAprotodunedp)
 add_subdirectory(ProtoDUNEbeamDataProducts)
+add_subdirectory(NEUT)
