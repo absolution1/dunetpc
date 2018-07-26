@@ -128,7 +128,7 @@ CRT::CRTSim::CRTSim(fhicl::ParameterSet const & p): fSimLabel(p.get<art::InputTa
 {
   //Tell ART that I convert std::vector<AuxDetSimChannel> to CRT::Hits associated with raw::ExternalTriggers
   produces<std::vector<CRT::Trigger>>();
-  //produces<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>>(); 
+  produces<art::Assns<sim::AuxDetSimChannel, CRT::Trigger>>(); 
   consumes<std::vector<sim::AuxDetSimChannel>>(fSimLabel);
 }
 
@@ -191,7 +191,16 @@ void CRT::CRTSim::produce(art::Event & e)
         const auto tAvg = (eDep.exitT+eDep.entryT)/2.;
         timeToHits[fmod(tAvg, fIntegrationTime)].emplace_back(CRT::Hit(channel->AuxDetSensitiveID(), eDep.energyDeposited*fGeVToADC), channel.key());
       }
+    }
+
+    std::stringstream ss;
+    for(const auto& window: timeToHits)
+    {
+      ss << "At " << window.first << " ticks, " << window.second.size() << " hits\n";
     } 
+
+    LOG_DEBUG("timeToHits") << "Constructed readout windows for module " << pair.first  << ":\n"
+                            << ss.str() << "\n";
 
     //Group AuxDetIDEs into CRT board "readout packets".  First, look for an energy 
     //deposit that triggers board readout.  Then, find all energy deposits within 
@@ -205,7 +214,7 @@ void CRT::CRTSim::produce(art::Event & e)
    
     //TODO: Eventually read out CRT modules only until one module triggers to simulate the "traffic jam" situation I think could happen?
     LOG_DEBUG("timeToHits") << "About to loop over " << timeToHits.size() << " time windows that are " << fIntegrationTime << "ns long.\n";
-    for(auto window = timeToHits.begin(); window != timeToHits.end(); ++window)
+    for(auto window = timeToHits.begin(); window != timeToHits.end(); ) //++window)
     {
       const auto& hitsInWindow = window->second;
       const auto aboveThresh = std::find_if(hitsInWindow.begin(), hitsInWindow.end(), 
@@ -213,15 +222,16 @@ void CRT::CRTSim::produce(art::Event & e)
 
       if(aboveThresh != hitsInWindow.end()) //If this is true, then I have found a channel above threshold and readout is triggered.  
       {
-        LOG_DEBUG("timeToHits") << "Found a module with energy deposit " << aboveThresh->first.ADC() << " ADC counts that "
-                                << "is above threshold.  Triggering readout at time " << std::distance(timeToHits.begin(), window) << ".\n";
+        LOG_DEBUG("timeToHits") << "Channel " << aboveThresh->first.Channel() << " has deposit " << aboveThresh->first.ADC() << " ADC counts that "
+                                << "is above threshold.  Triggering readout at time " << window->first << ".\n";
         //TODO: Integrate all channels over the readout window?  What happens if a channel had energy deposits twice during the readout window?
         //Write all channels with activity in the readout window to a CRT::Trigger.  Ignore repeated hits in a channel for now.   
         std::vector<CRT::Hit> hits;
-        const auto end = std::next(window, fReadoutWindowSize);
+        const time timestamp = window->first; //Set timestamp before window is changed.
+        const auto end = timeToHits.upper_bound(timestamp+fReadoutWindowSize);
         std::set<uint32_t> channelBusy; //A std::set contains only unique elements.  This set stores channels that have already been read out in 
-                                    //this readout window and so are "busy" and cannot contribute any more hits.  
-        for(; window != timeToHits.end() && window != end; ++window)
+                                        //this readout window and so are "busy" and cannot contribute any more hits.  
+        for(;window != end; ++window)
         {
           //TODO: Read out channels, but make sure the same channel is not read out twice because ADC is busy?  Requires nested map?
           for(const auto& hitPair: window->second)
@@ -245,27 +255,29 @@ void CRT::CRTSim::produce(art::Event & e)
           }
         }
 
-        //Advance window by dead time so that no energy deposits in dead time are read out.  
-        const auto oldWindow = window;
-        for(;window != timeToHits.end() && window->first < fDeadtime; ++window); //Advance window either by dead time or to end of energy deposit
-        LOG_DEBUG("DeadTime") << "Advanced readout window by " << std::distance(oldWindow, window) << " to simulate dead time.\n";
-
         //Create a CRT::Trigger to represent this module's readout window.  Associate the AuxDetSimChannels used to make this CRT::Trigger.
         //This is the hypothetical CRT::Trigger I was talking about when creating Assns.
         LOG_DEBUG("CreateTrigger") << "Creating CRT::Trigger...\n";
-        trigCol->emplace_back(pair.first, window->first*fIntegrationTime, std::move(hits)); 
+        trigCol->emplace_back(pair.first, timestamp*fIntegrationTime, std::move(hits)); 
                                                                          //TODO: Convert trigger time into timestamp.  From line 211 of 
                                                                          //      DetSim/Modules/SimCounter35t_module.cc, it looks like I 
                                                                          //      need to know more about how CRT timestamps are constructed 
                                                                          //      in data before proceeding.  
+
+        //Advance window past dead time so that no energy deposits in dead time are read out.
+        const auto oldWindow = window;
+        if(window != timeToHits.end()) window = timeToHits.upper_bound(window->first+fDeadtime); 
+        if(window != timeToHits.end()) LOG_DEBUG("DeadTime") << "Advanced readout window by " << window->first - oldWindow->first
+                                                             << " to simulate dead time.\n";
       } //If there was a channel above threshold
+      else ++window; //If discriminators did not fire, continue to next time window.
     } //For each time window
   } //For each CRT module
 
   //Put Triggers and Assns into the event
   LOG_DEBUG("CreateTrigger") << "Putting " << trigCol->size() << " CRT::Triggers into the event at the end of analyze().\n";
   e.put(std::move(trigCol));
-  //e.put(std::move(simToTrigger));
+  e.put(std::move(simToTrigger));
 }
 
 //Tell ART what data products this modules works with and retrieve any resources that don't change throughout the job here.
