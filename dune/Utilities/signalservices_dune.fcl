@@ -107,10 +107,10 @@ dunedphase3x1x1_signalshapingservice: {
 #  Collection1MeterShape: "( [1]*exp(-(x)/[1]) - ( [1] + x*(([1]-[2])/[2]) ) * exp(-(x)/[2])  ) / (([1]-[2])*([1]-[2]))"	#ETHZ preamp response
 #  Collection1MeterParams: [2.83, 0.47]												#ETHZ preamp response
 
-  ASICmVperfC1Meter: 	6.09   # obtained from pulsed waveform fit
-  ASICmVperfC3Meter: 	2.55   # obtained from pulsed waveform fit
-  ADCpermV:    		1.0    # ADC conversion factor (for now already included in ASICmVperfC1Meter and ASICmVperfC3Meter)
-  AmpENC:      		1700.0 # Amplifier ENC e for Cdet=450pF
+  ASICmVperfC1Meter: 	6.25    # obtained from pulsed waveform: 87.43 ADC / 14 fC
+  ASICmVperfC3Meter: 	2.51    # obtained from pulsed waveform: 35.2 ADC / 14 fC
+  ADCpermV:    		1.0     # ADC conversion factor (for now already included in ASICmVperfC1Meter and ASICmVperfC3Meter)
+  AmpENC:      		1700.0  # Amplifier ENC e for Cdet=450pF
 
   RespSamplingPeriod: 400. # in nano second
 
