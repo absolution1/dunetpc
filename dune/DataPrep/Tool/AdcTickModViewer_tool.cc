@@ -18,6 +18,7 @@
 #include "TTree.h"
 #include "TROOT.h"
 #include "TError.h"
+#include "TGraph.h"
 
 using std::string;
 using std::cout;
@@ -49,6 +50,7 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_AllPlotFileName(ps.get<string>("AllPlotFileName")),
   m_MinPlotFileName(ps.get<string>("MinPlotFileName")),
   m_MaxPlotFileName(ps.get<string>("MaxPlotFileName")),
+  m_PhasePlotFileName(ps.get<string>("PhasePlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")),
   m_TreeFileName(ps.get<string>("TreeFileName")),
   m_PlotChannels(ps.get<IndexVector>("PlotChannels")),
@@ -58,10 +60,15 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_PlotSplitX(ps.get<Index>("PlotSplitX")),
   m_PlotSplitY(ps.get<Index>("PlotSplitY")),
   m_PlotFrequency(ps.get<Index>("PlotFrequency")),
+  m_PhasePlotSizeX(ps.get<Index>("PhasePlotSizeX")),
+  m_PhasePlotSizeY(ps.get<Index>("PhasePlotSizeY")),
+  m_PhasePlotSplitX(ps.get<Index>("PhasePlotSplitX")),
+  m_PhasePlotSplitY(ps.get<Index>("PhasePlotSplitY")),
   m_tickOffsetTool(nullptr),
   m_plotAll(m_AllPlotFileName.size()),
   m_plotMin(m_MinPlotFileName.size()),
   m_plotMax(m_MaxPlotFileName.size()),
+  m_plotPhase(m_PhasePlotFileName.size()),
   m_state(new State)
 {
   const string myname = "AdcTickModViewer::ctor: ";
@@ -89,6 +96,7 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
     cout << myname << "   AllPlotFileName: " << m_AllPlotFileName << endl;
     cout << myname << "   MinPlotFileName: " << m_MinPlotFileName << endl;
     cout << myname << "   MaxPlotFileName: " << m_MaxPlotFileName << endl;
+    cout << myname << " PhasePlotFileName: " << m_PhasePlotFileName << endl;
     cout << myname << "      RootFileName: " << m_RootFileName << endl;
     cout << myname << "      TreeFileName: " << m_TreeFileName << endl;
     cout << myname << "      PlotChannels: [";
@@ -103,7 +111,13 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
     cout << myname << "         PlotSizeY: " << m_PlotSizeY << endl;
     cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
     cout << myname << "        PlotSplitX: " << m_PlotSplitX << endl;
+    cout << myname << "        PlotSplitY: " << m_PlotSplitY << endl;
     cout << myname << "     PlotFrequency: " << m_PlotFrequency << endl;
+    cout << myname << "    PhasePlotSizeX: " << m_PhasePlotSizeX << endl;
+    cout << myname << "    PhasePlotSizeY: " << m_PhasePlotSizeY << endl;
+    cout << myname << "   PhasePlotSplitX: " << m_PhasePlotSplitX << endl;
+    cout << myname << "   PhasePlotSplitY: " << m_PhasePlotSplitY << endl;
+    cout << myname << "      NTimingPhase: " << m_NTimingPhase << endl;
   }
   if ( m_LogLevel >=4 ) {
     cout << myname << "INFO: Checking state." << endl;
@@ -133,6 +147,7 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   Index ntkm = m_TickModPeriod;
   if ( tmhsFull.size() == 0 ) tmhsFull.resize(ntkm, nullptr);
   Index itkm0 = 0;
+  Index timingPhase = 0;
   if ( m_tickOffsetTool != nullptr ) {
     TimeOffsetTool::Data dat;
     dat.run = acd.run;
@@ -151,12 +166,57 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
     long toff = off.value;
     while ( toff < 0.0 ) toff += m_TickModPeriod;
     itkm0 = toff % m_TickModPeriod;
-    if ( m_LogLevel >= 3 ) cout << myname << "Using tick offset " << itkm0 << endl;
+    if ( m_LogLevel >= 3 ) cout << myname << "Tick offset: " << itkm0 << endl;
+    // Get timing phase.
+    if ( m_NTimingPhase ) {
+      double delta = 0.01/m_NTimingPhase;
+      timingPhase = m_NTimingPhase*(off.rem + delta);
+      if ( m_LogLevel >= 3 ) cout << myname << "Timing phase: " << timingPhase << endl;
+    }
   }
-  if ( state().run < 0 && acd.run != acd.badIndex ) state().run = acd.run;
+  // The first channel in the first event is used to initialize AdcChannelData
+  // used to construct names.
+  if ( state().NameAcd.run == acd.badIndex && acd.run != acd.badIndex ) {
+    state().NameAcd.run = acd.run;
+    state().NameAcd.subRun = acd.subRun;
+    state().NameAcd.event = acd.event;
+    state().NameAcd.channel = acd.channel;
+  }
+  // Process each tickmod for this channel.
+  FloatVector sigs(ntkm, 0.0);
+  Index itkmMax = 0;
+  float sigMax = -1.e20;
+  FloatVector sigMeans(ntkm, 0.0);
   for ( Index itkm=0; itkm<ntkm; ++itkm ) {
-    fillChannelTickMod(acd, itkm0, itkm);
+    float& sig = sigMeans[itkm];
+    processChannelTickMod(acd, itkm0, itkm, sig);
+    if ( sig > sigMax || itkm == 0 ) {
+      itkmMax = itkm;
+      sigMax = sig;
+    }
   }
+  // Find and record the tickmod position of the signal peak.
+  // The peak position is found with three-point interpolation.
+  if ( true ) {
+    FloatVVector& mtmsForAllPhases = state().MaxTickMods[icha];
+    if ( mtmsForAllPhases.size() < m_NTimingPhase ) mtmsForAllPhases.resize(m_NTimingPhase);
+    FloatVector& mtms = mtmsForAllPhases[timingPhase];
+    float ym = itkmMax > 0 ? sigMeans[itkmMax-1] : sigMeans[ntkm-1];
+    float y0 = sigMeans[itkmMax];
+    float yp = itkmMax+1 < ntkm ? sigMeans[itkmMax+1] : sigMeans[0];
+    float den = 2.0*y0 - yp - ym;
+    if ( den <= 0.0 ) {
+      cout << myname << "WARNING: " << "Peak not found for channel " << icha << endl;
+      cout << myname << "itkmMax: " << itkmMax << endl;
+      cout << myname << "sigs: " << ym << ", " << y0 << ", " << yp << endl;
+    } else {
+      float xrem = 0.5*(ym - yp)/den;
+      float itkmPeak = itkmMax + xrem;
+      mtms.push_back(itkmPeak);
+      cout << myname << "Peak is " << itkmPeak << " for channel " << icha << " phase " << timingPhase << endl;
+    }
+  }
+  // If requested, make the plots of accumulated data for this channel.
   Index nplot = 0;
   if ( m_PlotFrequency ) {
     processAccumulation(nplot);
@@ -193,8 +253,9 @@ Name AdcTickModViewer::nameReplace(Name nameIn, const AdcChannelData& acd, Index
 //**********************************************************************
 
 int
-AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Index itkm) const {
-  const string myname = "AdcTickModViewer::fillChannelTickMod: ";
+AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, Index itkm, float& sigMean) const {
+  const string myname = "AdcTickModViewer::processChannelTickMod: ";
+  state().NameAcd.channel = acd.channel;
   DataMap res;
   Index nsam = acd.raw.size();
   if ( nsam == 0 ) {
@@ -218,12 +279,26 @@ AdcTickModViewer::fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Ind
                               << " with channel " << acd.channel
                               << " tickmod " << itkm << endl;
   Index isam0 = (itkm + period - itkm0) % period;
-  for ( Index isam=isam0; isam<nsam; isam+=period ) ph->Fill(acd.raw[isam]);
+  double sigSum = 0.0;
+  Index nsig = 0;
+  for ( Index isam=isam0; isam<nsam; isam+=period ) {
+    double sig = acd.raw[isam];
+    ph->Fill(sig);
+    sigSum += sig;
+    ++nsig;
+  }
+  sigMean = nsig > 0 ? sigSum/nsig : 0.0;
   return 0;
 }
 
 //**********************************************************************
 
+// Process the accumulated data for one channel.
+// A StickyCodeMetric is created from the full ADC-range frequency histogram
+// for each tickmod and from each of these:
+// 1. The limited-range histogram is cached and optionally plotted and/or written
+//    to the root file.
+// 2. An entry with metrics is added to the metric tree.
 int AdcTickModViewer::processAccumulatedChannel(Index icha, Index& nplot) const {
   const string myname = "AdcTickModViewer::processAccumulatedChannel: ";
   nplot = 0;
@@ -239,10 +314,11 @@ int AdcTickModViewer::processAccumulatedChannel(Index icha, Index& nplot) const 
   TTree* ptree = state().tickmodTree;
   TickModTreeData& data = state().treedata;
   if ( ptree != nullptr ) {
-    data.run = state().run;
+    data.run = state().NameAcd.run;
     data.chan = icha;
   }
-  // Loop over tickmods.
+  // Loop over tickmods and, for each, create metrics and limited-range ADC
+  // frequency histo and fill metric tree.
   for ( Index itkm=0; itkm<ntkm; ++itkm ) {
     const HistPtr& ph = tmhsFull[itkm];
     // Process histograms with the sticky code utility.
@@ -261,15 +337,21 @@ int AdcTickModViewer::processAccumulatedChannel(Index icha, Index& nplot) const 
       }
     }
   }
-  // Draw the histograms.
+  // Draw the ADC frequency histogram for each tickmod.
   makeTickModPlots(icha, nplot);
   if ( m_LogLevel >= 3 ) {
     cout << myname << "  Plot file count for channel " << icha << ": " << nplot << endl;
   }
+  // Make the phase graph for this channel.
+  makePhaseGraph(icha);
   return 0;
 }
 
 //**********************************************************************
+
+// Process the accumulated data for all channels.
+// The metric tree is created, processAccumulatedChannel is called for
+// each channel and phase plots are created.
 
 int AdcTickModViewer::processAccumulation(Index& nplot) const {
   const string myname = "AdcTickModViewer::processAccumulation: ";
@@ -283,7 +365,7 @@ int AdcTickModViewer::processAccumulation(Index& nplot) const {
   TFile*& pfile = state().pfile;
   if ( m_TreeFileName.size() ) {
     TDirectory* psavdir = gDirectory;
-    pfile = TFile::Open(m_TreeFileName.c_str(), "CREATE");
+    pfile = TFile::Open(m_TreeFileName.c_str(), "RECREATE");
     if ( pfile->IsOpen() ) {
       ptree = new TTree("tickmod", "TickMod tree");
       ptree->Branch("data", &(state().treedata), 64000, 1);
@@ -322,7 +404,7 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
   const string myname = "AdcTickModViewer::makeTickModPlots: ";
   nplot = 0;
   // Exit if no plots are requested.
-  if ( !m_plotAll && !m_plotMin && !m_plotMax ) return 0;
+  if ( !m_plotAll && !m_plotMin && !m_plotMax && !m_plotPhase ) return 0;
   // Exit if this channel should not be plotted.
   if ( m_PlotChannels.size() ) {
     if ( find(m_PlotChannels.begin(), m_PlotChannels.end(), icha) == m_PlotChannels.end() ) {
@@ -359,9 +441,10 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
       }
     }
   }
-  // Build the vectors describing inte tickmod plots.
-  //   showTickModVectors - Vector of tickmods included in each plot.
-  //   showPlotNames - Name for each plot file.
+  if ( m_LogLevel >= 3 ) cout << myname << "Processing channel " << icha << endl;
+  // Build the vectors describing the plots.
+  //   showTickModVectors - Vector of tickmods included in each tickmod plot.
+  //   showPlotNames - Name for each tickmod plot file.
   vector<IndexVector> showTickModVectors;  // Vectors of tickmods to plot
   vector<Name> showPlotNames;
   // Add plot descriptions for all tickmods.
@@ -405,15 +488,12 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
     }
   }
   // Loop over descriptions and build plots.
-  AdcChannelData acd;  // For building plot file name
-  acd.channel = icha;
-  if ( state().run >= 0 ) acd.run = state().run;
   TPadManipulator* pmantop = nullptr;
   for ( Index ihv=0; ihv<showTickModVectors.size(); ++ihv ) {
     Name plotFileName;
     const IndexVector tkms = showTickModVectors[ihv];
     Name pfname = showPlotNames[ihv];
-    if ( m_LogLevel >= 3 ) cout << "Plotting " << tkms.size() << " tickmods with name "
+    if ( m_LogLevel >= 3 ) cout << myname << "Plotting " << tkms.size() << " tickmods with name "
                                 << pfname << endl;
     Index ipad = 0;
     Index icount = 0;
@@ -423,7 +503,7 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
         pmantop = new TPadManipulator;
         if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
         if ( npad > 1 ) pmantop->split(npady, npady);
-        plotFileName = nameReplace(pfname, acd, itkm);
+        plotFileName = nameReplace(pfname, state().NameAcd, itkm);
       }
       TPadManipulator* pman = pmantop->man(ipad);
       pman->add(ph.get(), "hist", false);
@@ -442,6 +522,109 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
         pmantop = nullptr;
       }
     }
+  }
+  return 0;
+}
+
+//**********************************************************************
+
+// Make the phase graph for a channel.
+
+int AdcTickModViewer::makePhaseGraph(Index icha) const {
+  const string myname = "AdcTickModViewer::makePhaseGraph: ";
+  // Plot phase vs. peak tick.
+  Index npha = m_NTimingPhase;
+  Index ntkm = m_TickModPeriod;
+  if ( m_plotPhase && npha ) {
+    if ( state().MaxTickMods.find(icha) != state().MaxTickMods.end() ) {
+      FloatVVector& mtmsForAllPhases = state().MaxTickMods[icha];
+      if ( mtmsForAllPhases.size() == 0 ) {
+        cout << myname << "No phase peaks found." << endl;
+      } else {
+        float halfPhase = 0.5/npha;
+        // Build the graph.
+        string hnam = "hphtm";
+        string httl = "Phase vs. tickmod peak for run %RUN% channel %CHAN%";
+        httl = nameReplace(httl, state().NameAcd, 0);
+        TGraph* pg = new TGraph;
+        pg->SetName(hnam.c_str());
+        pg->SetTitle(httl.c_str());
+        pg->SetMarkerStyle(2);
+        pg->SetMarkerColor(602);
+        pg->GetXaxis()->SetTitle("Peak position [tick]");
+        pg->GetYaxis()->SetTitle("Timing phase");
+        if ( m_LogLevel >=3 ) cout << myname << "Plotting phase vs. peak tick for channel " << icha << endl;
+        // Find range of tickmods with no change and with smaller values shifted
+        // up by one period. The distribution with smaller range is used.
+        double xmin = 1.e20;
+        double xmax = -1.e20;
+        double xminShift = 1.e20;
+        double xmaxShift = -1.e20;
+        float xhalf = 0.5*ntkm;
+        for ( Index ipha=0; ipha<npha; ++ipha ) {
+          for ( float x : mtmsForAllPhases[ipha] ) {
+            if ( x < xmin ) xmin = x;
+            if ( x > xmax ) xmax = x;
+            float xs = x < xhalf ? x : xs + ntkm;
+            if ( x < xminShift ) xminShift = x;
+            if ( x > xmaxShift ) xmaxShift = x;
+          }
+        }
+        bool doShift = xmaxShift - xminShift < xmax - xmin;  // Should we shift points?
+        if ( doShift ) {
+          xmin = xminShift;
+          xmax = xminShift;
+        }
+        // Fill the graph.
+        for ( Index ipha=0; ipha<npha; ++ipha ) {
+          float y0 = ipha + halfPhase;
+          FloatVector& mtms = mtmsForAllPhases[ipha];
+          cout << myname << "Phase " << ipha << " peak count: " << mtms.size() << endl;
+          Index nmtm = mtms.size();
+          for ( Index imtm=0; imtm<nmtm; ++imtm ) {
+            float x = mtms[imtm];
+            if ( doShift && x < xhalf ) x += ntkm;
+            float y = y0 + 0.25 + 0.5*(imtm+0.5)/nmtm;
+            pg->SetPoint(pg->GetN(), x, y);
+          }
+        }
+        // Save the graph in the state for this tool.
+        state().PhaseGraphs[icha].reset(pg);
+      }
+    }
+  }
+  return 0;
+}
+//**********************************************************************
+
+// Plot the phase graphs.
+
+int AdcTickModViewer::plotPhaseGraphs() const {
+  const string myname = "AdcTickModViewer::plotPhaseGraphs: ";
+  if ( ! m_plotPhase ) return 0;
+  if ( m_LogLevel >=3 ) cout << myname << "Making phase graph plots. Count: "
+                             << state().PhaseGraphs.size() << endl;
+  Index npha = m_NTimingPhase;
+  for ( GraphMap::value_type icgr : state().PhaseGraphs ) {
+    TGraph* pg = icgr.second.get();
+    // Evaluate plot range.
+    double xmin = int(pg->GetXaxis()->GetXmin());
+    double xmax = int(pg->GetXaxis()->GetXmin() + 1.0);
+    while ( xmax - xmin < 10.0 ) {
+      xmin -= 0.5;
+      xmax += 0.5;
+    }
+    // Create plot.
+    TPadManipulator man;
+    man.add(pg->Clone(), "P");
+    man.addAxis();
+    man.setRangeX(xmin, xmax);
+    man.setRangeY(0, npha);
+    man.setGridX();
+    man.setGridY();
+    // Print the plot.
+    string plotFileName = nameReplace(m_PhasePlotFileName, state().NameAcd, 0);
+    man.print(plotFileName);
   }
   return 0;
 }
