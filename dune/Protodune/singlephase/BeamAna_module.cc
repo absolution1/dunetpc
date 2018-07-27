@@ -148,8 +148,13 @@ void proto::BeamAna::analyze(art::Event const & e)
           }
         }
         spill->AddFBMTrigger(d,fbm);
-        std::cout <<std::endl;
+        std::cout << std::endl;
       }
+
+      for(size_t i = 0; i < spill->GetNFBMTriggers(d); ++i){
+        spill->DecodeFibers(d,i);
+      }
+
       for(size_t i = 0; i < counts[1]; ++i){
         std::cout << "Count: " << i << std::endl;
         for(int j = 0; j < 10; ++j){
