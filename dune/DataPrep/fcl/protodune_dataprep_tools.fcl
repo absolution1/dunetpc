@@ -344,13 +344,16 @@ tools.pd_tickmodViewer: {
   HistTitle: "ADC spectrum for channel %CHAN% tickmod %TICKMOD%"
   HistChannelCount: 100
   PlotChannels: [999999]
-  PlotFileName: "adctm_ch%0CHAN%_tm%0TICKMOD%.png"
-  RootFileName: "adctm.root"
-  PlotSizeX: 1400
-  PlotSizeY: 1000
-  PlotShowFit:  0
-  PlotSplitX:   4
-  PlotSplitY:   0
+  AllPlotFileName: ""
+  MinPlotFileName: ""
+  MaxPlotFileName: ""
+  RootFileName: "adctmhist.root"
+  TreeFileName: "adctmtree.root"
+  PlotSizeX:  1400
+  PlotSizeY:  1000
+  PlotShowFit:   0
+  PlotSplitX:    4
+  PlotSplitY:    0
   PlotFrequency: 0
 }
 

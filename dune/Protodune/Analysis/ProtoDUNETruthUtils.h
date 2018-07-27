@@ -25,6 +25,7 @@ namespace protoana {
     ~ProtoDUNETruthUtils();
 
     const simb::MCParticle* GetMCParticleFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const;
+    const simb::MCParticle* MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt );
 
   private:
 
