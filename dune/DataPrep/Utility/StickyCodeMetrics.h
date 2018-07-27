@@ -16,6 +16,9 @@
 //   oneFraction = fraction of ticks with ADC%64=1
 //   highFraction = fraction of ticks with ADC%64=63
 //   classicFraction (s2) = fraction of ticks with ADC%64 = 0 or 63
+//   fitMean = mean ADC from fit
+//   fitSigma = ADC sigma from fit
+//   fitExcess = fraction with the most common code above fit
 //
 // If a histogram is created, the following are also defined:
 //   hist - pointer to histogram accessed through getHist() or getSharedHist()
@@ -27,7 +30,7 @@
 //   Code vector - Vector of codes (order is not used)
 //   Histogram - TH1 with count or likelihood for each code
 //
-// The histogram mut have one bin per ADC code.
+// The histogram must have one bin per ADC code.
 
 #ifndef StickyCodeMetrics_H
 #define StickyCodeMetrics_H
@@ -79,6 +82,9 @@ public:
   double oneFraction() const { return m_oneFraction; }
   double highFraction() const { return m_highFraction; }
   double classicFraction() const { return m_zeroFraction + m_highFraction; }
+  double fitMean() const { return m_fitMean; }
+  double fitSigma() const { return m_fitSigma; }
+  double fitExcess() const { return m_fitExcess; }
 
   // Return the ADC bin count map.
   const BinCounter& getBinCounts() { return m_counts; }
@@ -113,6 +119,9 @@ private:
   double m_zeroFraction;
   double m_oneFraction;
   double m_highFraction;
+  double m_fitMean;
+  double m_fitSigma;
+  double m_fitExcess;
 
   BinCounter m_counts;
   HistPtr m_ph;

@@ -22,10 +22,16 @@
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
 //   HistChannelCount: # channels shown in histogram
-//   PlotFileName: If nonblank, histograms are displayed in this file.
+//   AllPlotFileName: If nonblank, histograms for all tickmods are displayed in these
+//                    files. The field %TICKMOD% is replaced with the first tickmod.
+//   MinPlotFileName: If nonblank, histograms for tickmods near the min ADC count are
+//                    displayed in these files.
+//   MaxPlotFileName: If nonblank, histograms for tickmods near the max ADC count are
+//                    displayed in these files.
 //   RootFileName: If nonblank, histogram is copied to this file.
+//   TreeFileName: If nonblank, a tickmod tree is created in this file.
 //   PlotChannels: If not empty, only the listed channels are plotted.
-//   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
+//   PlotSizeX, PlotSizeY: Size in pixels of the plot files.
 //                         Root default (700x500?) is used if either is zero.
 //   PlotShowFit: Flag indicating how fit should be displayed.
 //                  >= 1: Show final fit
@@ -36,10 +42,6 @@
 //   PlotSplitY: If PlotSplitY > 0, then the above NY = PlotSplitY. Otherwise
 //               NY = PlotSplitX. No effect if PlotSplitX == 0.
 //               and up to that many plots are shown on the screen.
-//   PlotWhich: Bit pattern indicating which plots to draw
-//                1 - All tickmods starting with 0
-//                2 - NX*NY tickmods around the minimum.
-//                4 - NX*NY tickmods around the maximum.
 //   PlotFrequency: 0 - Only make plots at end of job (in dtor).
 //                  1 - Make plots every event
 //
@@ -53,8 +55,9 @@
 //      %TICKMOD% --> tickmod (or Min or Max for those plots)
 //
 // The single-channel methods return a data map with the following:
-//   tmHists:        - The processed and narrowed tickmod histograms for this channel
-//   tmWideHists:    - The raw tickmod histograms for this channel
+//   tmCount:        - The tickmod period, e.g. 497
+//   tmPlotCount:    - The number of tickmod plots
+//   tmHists:        - The processed (not narrowed) tickmod histograms for this channel
 
 #ifndef AdcTickModViewer_H
 #define AdcTickModViewer_H
@@ -62,6 +65,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DataPrep/Utility/TickModTreeData.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -69,6 +73,8 @@
 class AdcChannelStringTool;
 class TimeOffsetTool;
 class TH1;
+class TFile;
+class TTree;
 class TPadManipulator;
 
 class AdcTickModViewer
@@ -90,7 +96,7 @@ public:
   DataMap view(const AdcChannelData& acd) const override;
   bool updateWithView() const override { return true; }
 
-private:
+private:  //data
 
   // Configuration data.
   int m_LogLevel;
@@ -101,15 +107,17 @@ private:
   Name m_HistName;
   Name m_HistTitle;
   Index m_HistChannelCount;
-  Name m_PlotFileName;
+  Name m_AllPlotFileName;
+  Name m_MinPlotFileName;
+  Name m_MaxPlotFileName;
   Name m_RootFileName;
+  Name m_TreeFileName;
   IndexVector m_PlotChannels;
   Index m_PlotSizeX;
   Index m_PlotSizeY;
   Index m_PlotShowFit;
   Index m_PlotSplitX;
   Index m_PlotSplitY;
-  Index m_PlotWhich;
   Index m_PlotFrequency;
 
   // ADC string tool.
@@ -117,6 +125,11 @@ private:
 
   // Tick offset tool.
   const TimeOffsetTool* m_tickOffsetTool;
+
+  // Derived data.
+  bool m_plotAll;
+  bool m_plotMin;
+  bool m_plotMax;
 
   // This subclass carries the state for this tool, i.e. data that can change
   // after initialization.
@@ -129,6 +142,10 @@ private:
     HistVectorMap ChannelTickModProcHists;
     // Run number for plot names.
     int run = -1;
+    // Tree.
+    TickModTreeData treedata;
+    TFile* pfile =nullptr;
+    TTree* tickmodTree =nullptr;
   };
 
   // Return the state.
@@ -136,11 +153,21 @@ private:
   StatePtr m_state;
   State& state() const { return *m_state; }
 
+private:
+
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, Index itkm) const;
 
   // Fill the histogram for a tickmod.
   int fillChannelTickMod(const AdcChannelData& acd, Index itkm0, Index itkm) const;
+
+  // Process the accumulated histogram for a channel.
+  // StickyCodeMetrics is used to create limited-range histogram and evaluate
+  // sticky code metrics for that region.
+  int processAccumulatedChannel(Index icha, Index& nplot) const;
+
+  // Process the accumulated histogram for all channels.
+  int processAccumulation(Index& nplot) const;
 
   // Create plot files for the tickmod histograms for a channel.
   //   icha - channel number

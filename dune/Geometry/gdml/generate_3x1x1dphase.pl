@@ -79,7 +79,7 @@ if ( $wires_on == 0 )
 ############## Parameters for Charge Readout Plane ###############
 
 # 3x1x1 dual-phase
-$wirePitch           = 0.3;  # channel pitch
+$wirePitch           = 0.3125;  # channel pitch
 $nChannelsLengthPerCRM = 960;     # channels along the length of the CRM
 $nChannelsWidthPerCRM = 320;   # channels along the width of the CRM
 $borderCRM           = 0.5;     # dead space at the border of each CRM
