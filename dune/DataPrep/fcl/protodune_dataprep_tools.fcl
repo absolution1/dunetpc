@@ -347,13 +347,18 @@ tools.pd_tickmodViewer: {
   AllPlotFileName: ""
   MinPlotFileName: ""
   MaxPlotFileName: ""
-  RootFileName: "adctmhist.root"
-  TreeFileName: "adctmtree.root"
+  PhasePlotFileName: ""
+  RootFileName: ""
+  TreeFileName: ""
   PlotSizeX:  1400
   PlotSizeY:  1000
-  PlotShowFit:   0
+  PlotShowFit:   1
   PlotSplitX:    4
   PlotSplitY:    0
   PlotFrequency: 0
+  PhasePlotSizeX:  1400
+  PhasePlotSizeY:  1000
+  PhasePlotSplitX:    4
+  PhasePlotSplitY:    0
 }
 

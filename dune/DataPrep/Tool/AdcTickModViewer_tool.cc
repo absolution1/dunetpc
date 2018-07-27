@@ -180,8 +180,8 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
     state().NameAcd.run = acd.run;
     state().NameAcd.subRun = acd.subRun;
     state().NameAcd.event = acd.event;
-    state().NameAcd.channel = acd.channel;
   }
+  state().NameAcd.channel = acd.channel;
   // Process each tickmod for this channel.
   FloatVector sigs(ntkm, 0.0);
   Index itkmMax = 0;
@@ -213,7 +213,6 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
       float xrem = 0.5*(ym - yp)/den;
       float itkmPeak = itkmMax + xrem;
       mtms.push_back(itkmPeak);
-      cout << myname << "Peak is " << itkmPeak << " for channel " << icha << " phase " << timingPhase << endl;
     }
   }
   // If requested, make the plots of accumulated data for this channel.
@@ -231,6 +230,7 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   res.setHistVector("tmHists", tmhsFull);   // Passing out hist sthat will be updated!
   res.setInt("tmCount", ntkm);
   res.setInt("tmPlotCount", nplot);
+  state().NameAcd.channel = AdcChannelData::badIndex;
   return res;
 }
 
@@ -255,7 +255,6 @@ Name AdcTickModViewer::nameReplace(Name nameIn, const AdcChannelData& acd, Index
 int
 AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, Index itkm, float& sigMean) const {
   const string myname = "AdcTickModViewer::processChannelTickMod: ";
-  state().NameAcd.channel = acd.channel;
   DataMap res;
   Index nsam = acd.raw.size();
   if ( nsam == 0 ) {
@@ -268,7 +267,7 @@ AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, 
     string htitl = nameReplace(m_HistTitle, acd, itkm);
     htitl += "; ADC count; # samples";
     unsigned int nadc = 4096;
-    if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram " << hname
+    if ( m_LogLevel >= 3 ) cout << myname << "Creating histogram " << hname
                                 << " for channel " << acd.channel
                                 << " tickmod " << itkm << endl;
     ph.reset(new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc));
@@ -302,6 +301,7 @@ AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, 
 int AdcTickModViewer::processAccumulatedChannel(Index icha, Index& nplot) const {
   const string myname = "AdcTickModViewer::processAccumulatedChannel: ";
   nplot = 0;
+  state().NameAcd.channel = icha;
   if ( state().ChannelTickModFullHists.find(icha) == state().ChannelTickModFullHists.end() ) return 1;
   const HistVector& tmhsFull = state().ChannelTickModFullHists[icha];
   HistVector& tmhsProc = state().ChannelTickModProcHists[icha];
@@ -344,6 +344,7 @@ int AdcTickModViewer::processAccumulatedChannel(Index icha, Index& nplot) const 
   }
   // Make the phase graph for this channel.
   makePhaseGraph(icha);
+  state().NameAcd.channel = AdcChannelData::badIndex;
   return 0;
 }
 
@@ -395,6 +396,8 @@ int AdcTickModViewer::processAccumulation(Index& nplot) const {
     pfile = nullptr;
     ptree = nullptr;
   }
+  // Make phase plots.
+  plotPhaseGraphs();
   return rstat;
 }
 
@@ -502,7 +505,7 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
       if ( pmantop == nullptr ) {
         pmantop = new TPadManipulator;
         if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
-        if ( npad > 1 ) pmantop->split(npady, npady);
+        if ( npad > 1 ) pmantop->split(npadx, npady);
         plotFileName = nameReplace(pfname, state().NameAcd, itkm);
       }
       TPadManipulator* pman = pmantop->man(ipad);
@@ -514,7 +517,7 @@ int AdcTickModViewer::makeTickModPlots(Index icha, Index& nplot) const {
       pman->showOverflow();
       ++icount;
       if ( ++ipad == npad || icount == tkms.size() ) {
-        if ( m_LogLevel >= 3 ) cout << myname << "  Creating " << plotFileName << endl;
+        if ( m_LogLevel >= 2 ) cout << myname << "Saving plot " << plotFileName << endl;
         pmantop->print(plotFileName);
         ++nplot;
         ipad = 0;
@@ -565,9 +568,9 @@ int AdcTickModViewer::makePhaseGraph(Index icha) const {
           for ( float x : mtmsForAllPhases[ipha] ) {
             if ( x < xmin ) xmin = x;
             if ( x > xmax ) xmax = x;
-            float xs = x < xhalf ? x : xs + ntkm;
-            if ( x < xminShift ) xminShift = x;
-            if ( x > xmaxShift ) xmaxShift = x;
+            float xs = x < xhalf ? x : x + ntkm;
+            if ( xs < xminShift ) xminShift = xs;
+            if ( xs > xmaxShift ) xmaxShift = xs;
           }
         }
         bool doShift = xmaxShift - xminShift < xmax - xmin;  // Should we shift points?
@@ -579,7 +582,7 @@ int AdcTickModViewer::makePhaseGraph(Index icha) const {
         for ( Index ipha=0; ipha<npha; ++ipha ) {
           float y0 = ipha + halfPhase;
           FloatVector& mtms = mtmsForAllPhases[ipha];
-          cout << myname << "Phase " << ipha << " peak count: " << mtms.size() << endl;
+          if ( m_LogLevel >= 4 ) cout << myname << "Phase " << ipha << " peak count: " << mtms.size() << endl;
           Index nmtm = mtms.size();
           for ( Index imtm=0; imtm<nmtm; ++imtm ) {
             float x = mtms[imtm];
@@ -605,8 +608,34 @@ int AdcTickModViewer::plotPhaseGraphs() const {
   if ( m_LogLevel >=3 ) cout << myname << "Making phase graph plots. Count: "
                              << state().PhaseGraphs.size() << endl;
   Index npha = m_NTimingPhase;
+  // Find the pad counts. Plot has npady x npadx pads with one tickmod plot per pad.
+  Index npad = 0;
+  Index npadx = 0;
+  Index npady = 0;
+  if ( m_PhasePlotSplitX > 0 ) {
+    npadx = m_PhasePlotSplitX;
+    npady = m_PhasePlotSplitY ? m_PhasePlotSplitY : m_PhasePlotSplitX;
+    npad = npadx*npady;
+  }
+  // Find the min and max ticks.
+  TPadManipulator* pmantop = nullptr;
+  Index ichaLast = state().PhaseGraphs.rbegin()->first;
+  Index ipad = 0;
+  Name plotFileName;
   for ( GraphMap::value_type icgr : state().PhaseGraphs ) {
+    Index icha = icgr.first;
+    state().NameAcd.channel = icha;
     TGraph* pg = icgr.second.get();
+    // If needed, start a new plot.
+    if ( pmantop == nullptr ) {
+      pmantop = new TPadManipulator;
+      if ( m_PhasePlotSizeX && m_PhasePlotSizeY )
+        pmantop->setCanvasSize(m_PhasePlotSizeX, m_PhasePlotSizeY);
+      if ( npad > 1 ) pmantop->split(npadx, npady);
+      plotFileName = nameReplace(m_PhasePlotFileName, state().NameAcd, 0);
+      ipad = 0;
+    }
+    TPadManipulator* pman = pmantop->man(ipad);
     // Evaluate plot range.
     double xmin = int(pg->GetXaxis()->GetXmin());
     double xmax = int(pg->GetXaxis()->GetXmin() + 1.0);
@@ -615,17 +644,20 @@ int AdcTickModViewer::plotPhaseGraphs() const {
       xmax += 0.5;
     }
     // Create plot.
-    TPadManipulator man;
-    man.add(pg->Clone(), "P");
-    man.addAxis();
-    man.setRangeX(xmin, xmax);
-    man.setRangeY(0, npha);
-    man.setGridX();
-    man.setGridY();
+    pman->add(pg->Clone(), "P");
+    pman->addAxis();
+    pman->setRangeX(xmin, xmax);
+    pman->setRangeY(0, npha);
+    pman->setGridX();
+    pman->setGridY();
     // Print the plot.
-    string plotFileName = nameReplace(m_PhasePlotFileName, state().NameAcd, 0);
-    man.print(plotFileName);
+    if ( ++ipad == npad || icha == ichaLast ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Saving plot " << plotFileName << endl;
+      pmantop->print(plotFileName);
+      pmantop = nullptr;
+    }
   }
+  state().NameAcd.channel = AdcChannelData::badIndex;
   return 0;
 }
 
