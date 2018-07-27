@@ -38,6 +38,13 @@ physics:
 }
 
 physics.analyzers.beamana.FixedTime:           1531912181
+physics.analyzers.beamana.Devices:             ["XBPF022697_V",
+                                                "XBPF022697_H",
+                                                "XBPF022707_V",
+                                                "XBPF022707_H",
+                                                "XBPF022716_V",
+                                                "XBPF022716_H"]
+physics.analyzers.beamana.Prefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
 #physics.analyzers.beamana.MultipleTimes:            [1531912181
 #,1531988396
 #,1531988409
