@@ -356,6 +356,7 @@ tools.pd_tickmodViewer: {
   PlotSplitX:    4
   PlotSplitY:    0
   PlotFrequency: 0
+  PhaseGrouping: channel
   PhasePlotSizeX:  1400
   PhasePlotSizeY:  1000
   PhasePlotSplitX:    4

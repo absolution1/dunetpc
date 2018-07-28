@@ -44,7 +44,9 @@
 //                   NY = PlotSplitX. No effect if PlotSplitX == 0.
 //                   and up to that many plots are shown on the screen.
 //    PlotFrequency: 0 - Only make plots at end of job (in dtor).
-//                   1 - Make plots every event
+//                   1 - Make plots every event. Only allowed for Grouping = channel.
+//   PhaseGrouping - Grouping at which phase plots are produced:
+//                      channel or femb
 //   PhasePlotSizeX: As above but for phase plots.
 //   PhasePlotSizeY: As above but for phase plots.
 //  PhasePlotSplitX: As above but for phase plots.
@@ -90,6 +92,8 @@ public:
 
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
+  using IndexMap = std::map<Index, Index>;
+  using IndexVectorMap = std::map<Index, IndexVector>;
   using Name = std::string;
   using HistPtr = std::shared_ptr<TH1>;
   using HistVector = std::vector<HistPtr>;
@@ -131,6 +135,7 @@ private:  //data
   Index m_PlotSplitX;
   Index m_PlotSplitY;
   Index m_PlotFrequency;
+  Name m_PhaseGrouping;
   Index m_PhasePlotSizeX;
   Index m_PhasePlotSizeY;
   Index m_PhasePlotSplitX;
@@ -148,6 +153,9 @@ private:  //data
   bool m_plotMax;
   bool m_plotPhase;
 
+  bool m_groupByChannel;
+  bool m_groupByFemb;
+
   // Number of timing phases.
   // This is for 50 MHz timer and 2 MHz readout.
   // May wat to make this a config param.
@@ -164,10 +172,17 @@ private:  //data
     HistVectorMap ChannelTickModProcHists;
     // Tickmod position of the ADC max for each channel, phase and event.
     FloatVVectorMap MaxTickMods;
-    // Phase graph for each channel.
-    GraphMap PhaseGraphs;
-    // ADC channel data object used to build plot names.
-    AdcChannelData NameAcd;
+    // Phase graph for each channel/femb.
+    GraphMap phaseGraphs;
+    // Map of empty ADCchannel objects indexed by channel.
+    AdcChannelDataMap acdMap;
+    // Current channel ADC channel data object. Used to build plot names.
+    Index channel = AdcChannelData::badIndex;
+    AdcChannelData currentAcd;
+    // Phase index, e.g. femb, for each channel.
+    IndexMap phaseIndexMap;
+    // Vector of channels for each phase index.
+    IndexVectorMap phaseChannels;
     // Tree.
     TickModTreeData treedata;
     TFile* pfile =nullptr;
@@ -181,6 +196,24 @@ private:  //data
 
 private:
 
+  // Set and return the grouping index from ADC data.
+  //   Grouping = channel: channel number
+  //   Grouping = femb: FEMB number
+  //   Otherwise 0
+  // The description of the event and channel is recorded the first time
+  // each index is retrieved.
+  void setChannelData(const AdcChannelData& acd) const;
+
+  // Set the channel index.
+  // The current ADC data is set based on the index.
+  Index setChannel(Index igran) const;
+
+  // Clear the current channel index and ADC data.
+  void clearChannelIndex() const;
+
+  // Retreve the current channel index.
+  Index getChannelIndex() const;
+
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, Index itkm) const;
 
@@ -190,21 +223,20 @@ private:
   int processChannelTickMod(const AdcChannelData& acd, Index itkm0,
                             Index itkm, float& sigMean) const;
 
-  // Process the accumulated histogram for a channel.
+  // Process the accumulated histogram for the current channel/femb.
   // StickyCodeMetrics is used to create limited-range histogram and evaluate
   // sticky code metrics for that region.
-  int processAccumulatedChannel(Index icha, Index& nplot) const;
+  int processAccumulatedChannel(Index& nplot) const;
 
   // Process the accumulated histogram for all channels.
   int processAccumulation(Index& nplot) const;
 
-  // Create plot files for the tickmod histograms for a channel.
-  //   icha - channel number
+  // Create plot files for the tickmod histograms for the current channel/femb.
   //   nplot - # plot files created
-  int makeTickModPlots(Index icha, Index& nplot) const;
+  int makeTickModPlots(Index& nplot) const;
 
-  // Create the phase graph for a channel.
-  int makePhaseGraph(Index icha) const;
+  // Create the phase graphs.
+  int makePhaseGraphs() const;
 
   // Create the phase plots.
   int plotPhaseGraphs() const;
