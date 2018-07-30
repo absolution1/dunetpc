@@ -46,7 +46,9 @@ namespace beamspill
       
       void              AddFBMTrigger(size_t, FBM); 
       void              DecodeFibers(size_t, size_t);
+      double            DecodeFiberTime(size_t, size_t);
       short             GetFiberStatus(size_t, size_t, size_t);
+      std::vector<short> GetActiveFibers(size_t, size_t);
       long long         GetFiberTime(size_t, size_t); 
       size_t            GetNFBMTriggers(size_t);
       std::bitset<32>   toBinary(double);      
@@ -132,6 +134,20 @@ namespace beamspill
     }
   }
 
+  inline double ProtoDUNEBeamSpill::DecodeFiberTime(size_t iMonitor, size_t nTrigger){
+    if( (iMonitor > (fiberMonitors.size() -1) ) ){
+      std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
+      return -1.;
+    }
+    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
+      std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
+      return -1.;
+    }
+
+    //FOR NOW JUST RETURN THE TRIGGER
+    return fiberMonitors[iMonitor][nTrigger].timeData[0];
+  }
+
   inline std::bitset<32> ProtoDUNEBeamSpill::toBinary(double num){
     std::bitset<64> mybits( (long(num)) );
     std::bitset<32> upper, lower;
@@ -159,6 +175,25 @@ namespace beamspill
       return -1;
     }
     return fiberMonitors[iMonitor][nTrigger].fibers[iFiber];
+  }
+
+  inline std::vector<short> ProtoDUNEBeamSpill::GetActiveFibers(size_t iMonitor, size_t nTrigger){
+    std::vector<short> active;
+
+    if( (iMonitor > (fiberMonitors.size() - 1)) ){
+      std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
+      return active;          
+    }
+    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
+      std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
+      return active;
+    }
+    
+    for(size_t iF = 0; iF < 192; ++iF){
+      if(fiberMonitors[iMonitor][nTrigger].fibers[iF]) active.push_back(iF); 
+    }
+
+    return active;
   }
 
   inline long long ProtoDUNEBeamSpill::GetFiberTime(size_t iMonitor, size_t nTrigger){

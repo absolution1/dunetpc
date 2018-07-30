@@ -10,6 +10,8 @@ proto_beamana:
   FixedTime: 1531988396  #100000  a non-zero value here forces all queries to use the same time
   MultipleTimes: [] 
   Devices:       []
+  Coordinates:   [] 
+  Dimension:     []
   Prefix:        ""
 }
 
