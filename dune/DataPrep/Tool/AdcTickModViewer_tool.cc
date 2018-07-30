@@ -50,6 +50,33 @@ void copyAcd(const AdcChannelData& acdin, AdcChannelData& acdout) {
   acdout.fembChannel = acdin.fembChannel;
 }
 
+// Class to hold the adc counts for a tickmod.
+class TickModData {
+public:
+  AdcCountVector data;
+  AdcCount adcMin = 0;
+  AdcCount adcMax = 0;
+  long adcSum = 0;
+  bool dbg = false;
+  void add(AdcCount adc) {
+    if ( data.size() ) {
+      if ( adc < adcMin ) adcMin = adc;
+      if ( adc > adcMax ) adcMax = adc;
+    } else {
+      adcMin = adc;
+      adcMax = adc;
+    }
+    data.push_back(adc);
+    adcSum += adc;
+    if ( dbg ) cout << "... " << adc << " (" << adcMin << ", " << adcMax << ")" << endl;
+  }
+  AdcCount min() const { return adcMin; }
+  AdcCount max() const { return adcMax; }
+  double mean() const {
+    return double(adcSum)/double(data.size());
+  }
+};
+
 }  // end unnamed namespace
 
 //**********************************************************************
@@ -87,7 +114,9 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_plotAll(m_AllPlotFileName.size()),
   m_plotMin(m_MinPlotFileName.size()),
   m_plotMax(m_MaxPlotFileName.size()),
+  m_plotAny(m_plotAll || m_plotMin || m_plotMax),
   m_plotPhase(m_PhasePlotFileName.size()),
+  m_makeTree(m_TreeFileName.size()),
   m_groupByChannel(m_PhaseGrouping == "channel"),
   m_groupByFemb(m_PhaseGrouping == "femb"),
   m_state(new State)
@@ -158,6 +187,9 @@ AdcTickModViewer::~AdcTickModViewer() {
   if ( m_LogLevel >= 1 ) cout << myname << "Closing." << endl;
   Index nplot = 0;
   processAccumulation(nplot);
+  if ( m_LogLevel >= 1 ) cout << myname << "Plot count: " << nplot << endl;
+  if ( m_LogLevel >= 1 ) cout << myname << "TM initial hist count: " << state().tickModHistogramInitialCount << endl;
+  if ( m_LogLevel >= 1 ) cout << myname << "TM rebuild hist count: " << state().tickModHistogramRebuildCount << endl;
   if ( m_LogLevel >= 1 ) cout << myname << "Plot count: " << nplot << endl;
 }
   
@@ -340,39 +372,76 @@ Name AdcTickModViewer::nameReplace(Name nameIn, const AdcChannelData& acd, Index
 int
 AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, Index itkm, float& sigMean) const {
   const string myname = "AdcTickModViewer::processChannelTickMod: ";
+  const AdcCount border = 20;
+  const AdcCount adcLim = 4096;
   DataMap res;
   Index nsam = acd.raw.size();
   if ( nsam == 0 ) {
     if ( m_LogLevel >= 2 ) cout << myname << "WARNING: Raw data is empty." << endl;
     return 1;
   }
+  // Extract the data for this tickmod.
+  Index period = m_TickModPeriod;
+  TickModData adcData;
+  Index isam0 = (itkm + period - itkm0) % period;
+  for ( Index isam=isam0; isam<nsam; isam+=period ) adcData.add(acd.raw[isam]);
+  // Fetch the histogram pointer.
   Index icha = getChannelIndex();
   HistPtr& ph = state().ChannelTickModFullHists[icha][itkm];
-  if ( ph == nullptr ) {
+  bool haveHist(ph);
+  // Check if we need new histogram.  I.e. if not present or insufficient range.
+  bool needHist = ! haveHist;
+  if ( ! needHist ) {
+    AdcCount hstMin = ph->GetXaxis()->GetXmin() + 0.001;
+    AdcCount hstMax = ph->GetXaxis()->GetXmax() + -0.999;
+    needHist |= adcData.min() < hstMin;
+    needHist |= adcData.max() > hstMax;
+  }
+  // If needed, create histogram.
+  if ( needHist ) {
     string hname = nameReplace(m_HistName, acd, itkm);
     string htitl = nameReplace(m_HistTitle, acd, itkm);
     htitl += "; ADC count; # samples";
-    unsigned int nadc = 4096;
-    if ( m_LogLevel >= 4 ) cout << myname << "Creating histogram " << hname
+    AdcCount adcMin = adcData.min() < 2*border ? 0.0 : adcData.min() - border;
+    AdcCount adcMax = (adcData.max() + 2*border > adcLim) ? adcLim : (adcData.max() + border);
+    if ( haveHist ) {
+      AdcCount hstMin = ph->GetXaxis()->GetXmin() + 0.001;
+      AdcCount hstMax = ph->GetXaxis()->GetXmax() + -0.999;
+      if ( hstMin < adcMin ) adcMin = hstMin;
+      if ( hstMax > adcMax ) adcMax = hstMax;
+    }
+    float xmin = adcMin;
+    float xmax = adcMax + 1.0;
+    int nbin = xmax - xmin + 0.001;
+    HistPtr phold = ph;
+    if ( m_LogLevel >= 4 ) cout << myname << (haveHist ? "Re-c" : "C")
+                                << "reating histogram " << hname
                                 << " for channel " << acd.channel
-                                << " tickmod " << itkm << endl;
-    ph.reset(new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc));
+                                << " tickmod " << itkm
+                                << ": " << nbin << ": [" << xmin << ", " << xmax << ")" << endl;
+    if ( nbin <= 0 ) {
+      cout << myname << "  adcData.min(): " << adcData.min() << endl;
+      cout << myname << "  adcData.max(): " << adcData.max() << endl;
+      cout << myname << "         adcMin: " << adcMin << endl;
+      cout << myname << "         adcMax: " << adcMax << endl;
+      abort();
+    }
+    ph.reset(new TH1F(hname.c_str(), htitl.c_str(), nbin, xmin, xmax));
     ph->SetDirectory(0);
+    if ( haveHist ) {
+      int dbin = ph->GetXaxis()->GetXmin() - phold->GetXaxis()->GetXmin();
+      for ( int ibin=1; ibin<=phold->GetNbinsX(); ++ibin ) {
+        ph->SetBinContent(ibin + dbin, phold->GetBinContent(ibin));
+      }
+      cout << myname << "Check new hist: " << phold->GetMean() << " ?= " << ph->GetMean() << endl;
+      ++state().tickModHistogramRebuildCount;
+    } else {
+      ++state().tickModHistogramInitialCount;
+    }
   }
-  Index period = m_TickModPeriod;
-  if ( m_LogLevel >= 4 ) cout << myname << "Filling hist " << ph->GetName()
-                              << " with channel " << acd.channel
-                              << " tickmod " << itkm << endl;
-  Index isam0 = (itkm + period - itkm0) % period;
-  double sigSum = 0.0;
-  Index nsig = 0;
-  for ( Index isam=isam0; isam<nsam; isam+=period ) {
-    double sig = acd.raw[isam];
-    ph->Fill(sig);
-    sigSum += sig;
-    ++nsig;
-  }
-  sigMean = nsig > 0 ? sigSum/nsig : 0.0;
+  // Add the new data to the histogram.
+  for ( AdcCount adc : adcData.data ) ph->Fill(adc);
+  sigMean = adcData.mean();
   return 0;
 }
 
@@ -396,38 +465,42 @@ int AdcTickModViewer::processAccumulatedChannel(Index& nplot) const {
     cout << myname << "Tickmod hist count: " << ntkm << endl;
   }
   if ( tmhsProc.size() == 0 ) tmhsProc.resize(ntkm, nullptr);
-  // Fetch the tree.
-  TTree* ptree = state().tickmodTree;
-  TickModTreeData& data = state().treedata;
-  if ( ptree != nullptr ) {
-    data.run = state().currentAcd.run;
-    data.chan = state().currentAcd.channel;
-  }
-  // Loop over tickmods and, for each, create metrics and limited-range ADC
-  // frequency histo and fill metric tree.
-  for ( Index itkm=0; itkm<ntkm; ++itkm ) {
-    const HistPtr& ph = tmhsFull[itkm];
-    // Process histograms with the sticky code utility.
-    Index chmod = 10;
-    StickyCodeMetrics scm(ph->GetName(), ph->GetTitle(), m_HistChannelCount, chmod);
-    if ( scm.evaluate(ph.get()) ) {
-      cout << myname << "Sticky code evaluation failed for channel " << icha
-           << " tickmod " << itkm << endl;
-      //tmhsProc[itkm].reset(ph);
-    } else {
-      tmhsProc[itkm] = scm.getSharedHist();
-      if ( ptree != nullptr ) {
-        data.itkm = itkm;
-        data.fill(scm);
-        ptree->Fill();
+  if ( m_plotAny || m_makeTree ) {
+    // Fetch the tree.
+    TTree* ptree = state().tickmodTree;
+    TickModTreeData& data = state().treedata;
+    if ( ptree != nullptr ) {
+      data.run = state().currentAcd.run;
+      data.chan = state().currentAcd.channel;
+    }
+    // Loop over tickmods and, for each, create metrics and limited-range ADC
+    // frequency histo and fill metric tree.
+    for ( Index itkm=0; itkm<ntkm; ++itkm ) {
+      const HistPtr& ph = tmhsFull[itkm];
+      // Process histograms with the sticky code utility.
+      Index chmod = 10;
+      StickyCodeMetrics scm(ph->GetName(), ph->GetTitle(), m_HistChannelCount, chmod);
+      if ( scm.evaluate(ph.get()) ) {
+        cout << myname << "Sticky code evaluation failed for channel " << icha
+             << " tickmod " << itkm << endl;
+        //tmhsProc[itkm].reset(ph);
+      } else {
+        tmhsProc[itkm] = scm.getSharedHist();
+        if ( ptree != nullptr ) {
+          data.itkm = itkm;
+          data.fill(scm);
+          ptree->Fill();
+        }
       }
     }
   }
-  // Draw the ADC frequency histogram for each tickmod.
-  makeTickModPlots(nplot);
-  if ( m_LogLevel >= 3 ) {
-    cout << myname << "  Plot file count for channel " << icha
-         << ": " << nplot << endl;
+  if ( m_plotAny ) {
+    // Draw the ADC frequency histogram for each tickmod.
+    makeTickModPlots(nplot);
+    if ( m_LogLevel >= 3 ) {
+      cout << myname << "  Plot file count for channel " << icha
+           << ": " << nplot << endl;
+    }
   }
   return 0;
 }
@@ -495,6 +568,7 @@ int AdcTickModViewer::makeTickModPlots(Index& nplot) const {
   const string myname = "AdcTickModViewer::makeTickModPlots: ";
   nplot = 0;
   // Exit if no plots are requested.
+  if ( !m_plotAll && !m_plotMin && !m_plotMax ) return 0;
   if ( !m_plotAll && !m_plotMin && !m_plotMax && !m_plotPhase ) return 0;
   Index icha = getChannelIndex();
   // Exit if this channel should not be plotted.
@@ -634,7 +708,7 @@ int AdcTickModViewer::makePhaseGraphs() const {
   Index ncan = state().phaseChannels.size();
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Building phase-peak graphs for " << ncan
-         << m_PhaseGrouping << " indices" << endl;
+         << " " << m_PhaseGrouping << " indices" << endl;
   }
   for ( IndexVectorMap::value_type iich : state().phaseChannels ) {
     Index igrp = iich.first;

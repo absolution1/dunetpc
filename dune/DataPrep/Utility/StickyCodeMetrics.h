@@ -64,7 +64,7 @@ public:
   // Evaluate a vector of ADC codes.
   int evaluate(const AdcCountVector& adcs);
 
-  // Evaluate a histogram a histogram.
+  // Evaluate a histogram.
   // Each histogram bin must correspond to one ADC bin.
   int evaluate(const TH1* pha);
 

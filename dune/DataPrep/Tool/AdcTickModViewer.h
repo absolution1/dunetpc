@@ -151,7 +151,9 @@ private:  //data
   bool m_plotAll;
   bool m_plotMin;
   bool m_plotMax;
+  bool m_plotAny;
   bool m_plotPhase;
+  bool m_makeTree;
 
   bool m_groupByChannel;
   bool m_groupByFemb;
@@ -187,6 +189,9 @@ private:  //data
     TickModTreeData treedata;
     TFile* pfile =nullptr;
     TTree* tickmodTree =nullptr;
+    // Accounting.
+    Index tickModHistogramInitialCount =0;
+    Index tickModHistogramRebuildCount =0;
   };
 
   // Return the state.
