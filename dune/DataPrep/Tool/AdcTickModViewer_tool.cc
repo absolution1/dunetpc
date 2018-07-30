@@ -46,6 +46,7 @@ void copyAcd(const AdcChannelData& acdin, AdcChannelData& acdout) {
   acdout.subRun      = acdin.subRun;
   acdout.event       = acdin.event;
   acdout.channel     = acdin.channel;
+  acdout.fembID      = acdin.fembID;
   acdout.fembChannel = acdin.fembChannel;
 }
 
