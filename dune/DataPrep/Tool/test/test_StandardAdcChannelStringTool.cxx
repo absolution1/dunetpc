@@ -94,7 +94,7 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
     "Units are% ((SUNIT))%",
     "FEMB is %FEMB%",
     "femb%4FEMB%%",
-    "femb%0FEMB%%"
+    "femb%0FEMB%"
   };
   vector<string> expNames = {
     "run123",
