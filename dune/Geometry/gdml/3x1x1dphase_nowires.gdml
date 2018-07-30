@@ -462,6 +462,7 @@
  <volume name="volPMTplatecoat">
   <materialref ref="TPB"/>
   <solidref ref="PMT_plate_coat"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
  </volume>
 
  <volume name="vol_PMT_AcrylicPlate">
@@ -472,6 +473,7 @@
  <volume name="pmtCoatVol">
   <materialref ref="TPB"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -519,6 +521,7 @@
 
 
     <volume name="volTPCActive">
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
     </volume>
