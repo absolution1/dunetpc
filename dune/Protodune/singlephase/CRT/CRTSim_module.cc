@@ -55,7 +55,6 @@ namespace CRT {
   class CRTSim;
 }
 
-
 class CRT::CRTSim : public art::EDProducer {
 public:
   explicit CRTSim(fhicl::ParameterSet const & p);
@@ -188,8 +187,9 @@ void CRT::CRTSim::produce(art::Event & e)
       const auto& ides = channel->AuxDetIDEs();
       for(const auto& eDep: ides)
       {
-        const auto tAvg = (eDep.exitT+eDep.entryT)/2.;
-        timeToHits[fmod(tAvg, fIntegrationTime)].emplace_back(CRT::Hit(channel->AuxDetSensitiveID(), eDep.energyDeposited*fGeVToADC), channel.key());
+        const size_t tAvg = (eDep.exitT+eDep.entryT)/2.;
+        timeToHits[tAvg/fIntegrationTime].emplace_back(CRT::Hit(channel->AuxDetSensitiveID(), eDep.energyDeposited*fGeVToADC), channel.key());
+        LOG_DEBUG("TrueTimes") << "Assigned true hit at time " << tAvg << " to bin " << tAvg/fIntegrationTime << ".\n";
       }
     }
 
@@ -250,7 +250,9 @@ void CRT::CRTSim::produce(art::Event & e)
               //the art::Event doesn't even own my vector<CRT::Trigger> yet.  So, I can refer to a hypothetical 
               //CRT::Trigger when creating Assns and thus avoid the need to loop over used AuxDetSimChannels 
               //again.  This saves me a horrible STL template instantiation.  
-              simToTrigger->addSingle(makeSimPtr(hitPair.second), makeTrigPtr(trigCol->size()-1));
+              simToTrigger->addSingle(makeSimPtr(hitPair.second), makeTrigPtr(trigCol->size()-1)); //TODO: I could add a "data" object that 
+                                                                                                   //      gives the indices of the IDEs used 
+                                                                                                   //      to create this Trigger
             }
           }
         }
