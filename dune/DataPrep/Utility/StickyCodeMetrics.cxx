@@ -54,7 +54,7 @@ int StickyCodeMetrics::evaluate(const TH1* pha) {
   Index nhadc = iadcLast - iadc0 + 1;
   m_counts.clear();
   if ( nhadc != nbin ) {
-    cout << myname << "Histogram has inconsistent binning." << endl;
+    cout << myname << "Histogram " << pha->GetName() << " has inconsistent binning." << endl;
   } else {
     for ( Index ibin=0; ibin<nbin; ++ibin ) {
       double count = pha->GetBinContent(ibin+1);
