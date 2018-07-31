@@ -41,6 +41,7 @@ tools.adcStringBuilder: {
   EventWidth: 6
   ChannelWidth: 5
   CountWidth: 4
+  FembWidth: 3
 }
 
 # Dump raw ADC channel waveform to a histogram.

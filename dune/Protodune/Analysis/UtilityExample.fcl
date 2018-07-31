@@ -1,9 +1,10 @@
 BEGIN_PROLOG
 
-util_example:
+proto_util_example:
 {
    module_type:             "UtilityExample"
    TrackerTag:              "pmtrack"
+   GeneratorTag:            "generator"
    Verbose:                 false
 }
 
