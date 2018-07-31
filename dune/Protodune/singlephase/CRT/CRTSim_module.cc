@@ -85,7 +85,7 @@ public:
 private:
 
   //The formats for time and ADC value I will use throughout this module.  If I want to change it later, I only have to change it in one place.  
-  typedef unsigned short time;
+  typedef long long int time;
   typedef unsigned short adc_t;
 
   // Member data
@@ -158,7 +158,7 @@ void CRT::CRTSim::produce(art::Event & e)
     const auto& det = geom->AuxDet(id);
     if(det.Name().find("CRT") != std::string::npos) //If this is a CRT AuxDet
     {
-      moduleToChannels[id].push_back(makeSimPtr(channelPos)); //At this point, I have made my own copy of each AuxDetSimChannel to modify as I please
+      moduleToChannels[id].push_back(makeSimPtr(channelPos)); 
     } //End if this is a CRT AuxDet
   } //End for each simulated sensitive volume -> CRT strip
 
@@ -180,7 +180,7 @@ void CRT::CRTSim::produce(art::Event & e)
     //associated with the art::Ptr that produced each hit. Associating each hit with a time value gives me the 
     //option to skip over dead time later.  Each time bin contains up to one hit per channel.
     LOG_DEBUG("moduleToChannels") << "Processing " << module.size() << " channels in module " << pair.first << "\n";
-    std::map<time, std::vector<std::pair<CRT::Hit, size_t>>> timeToHits; //Mapping from integration time bin to list of hit-Ptr index pairs
+    std::map<time, std::vector<std::pair<CRT::Hit, art::Ptr<sim::AuxDetSimChannel>>>> timeToHits; //Mapping from integration time bin to list of hit-Ptr pairs
     for(const auto& channel: module)
     {
       LOG_DEBUG("channels") << "Processing channel " << channel->AuxDetSensitiveID() << "\n";
@@ -188,7 +188,7 @@ void CRT::CRTSim::produce(art::Event & e)
       for(const auto& eDep: ides)
       {
         const size_t tAvg = (eDep.exitT+eDep.entryT)/2.;
-        timeToHits[tAvg/fIntegrationTime].emplace_back(CRT::Hit(channel->AuxDetSensitiveID(), eDep.energyDeposited*fGeVToADC), channel.key());
+        timeToHits[tAvg/fIntegrationTime].emplace_back(CRT::Hit(channel->AuxDetSensitiveID(), eDep.energyDeposited*fGeVToADC), channel);
         LOG_DEBUG("TrueTimes") << "Assigned true hit at time " << tAvg << " to bin " << tAvg/fIntegrationTime << ".\n";
       }
     }
@@ -250,7 +250,7 @@ void CRT::CRTSim::produce(art::Event & e)
               //the art::Event doesn't even own my vector<CRT::Trigger> yet.  So, I can refer to a hypothetical 
               //CRT::Trigger when creating Assns and thus avoid the need to loop over used AuxDetSimChannels 
               //again.  This saves me a horrible STL template instantiation.  
-              simToTrigger->addSingle(makeSimPtr(hitPair.second), makeTrigPtr(trigCol->size()-1)); //TODO: I could add a "data" object that 
+              simToTrigger->addSingle(hitPair.second, makeTrigPtr(trigCol->size()-1)); //TODO: I could add a "data" object that 
                                                                                                    //      gives the indices of the IDEs used 
                                                                                                    //      to create this Trigger
             }
