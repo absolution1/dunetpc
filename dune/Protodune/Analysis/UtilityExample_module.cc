@@ -59,6 +59,7 @@ private:
 
   // fcl parameters
   std::string fTrackerTag;
+  std::string fGeneratorTag;
   bool fVerbose;
 
 };
@@ -68,6 +69,7 @@ protoana::UtilityExample::UtilityExample(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
   fTrackerTag(p.get<std::string>("TrackerTag")),
+  fGeneratorTag(p.get<std::string>("GeneratorTag")),
   fVerbose(p.get<bool>("Verbose"))
 {
 
@@ -114,6 +116,13 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
     std::cout << std::endl;
 
   } // End loop over reconstructed tracks
+
+  // Get the generator MCTruth objects and find the GEANT track id of the good particle
+  auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
+  const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
+  if(geantGoodParticle != 0x0){
+    std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
+  }
 
 }
 
