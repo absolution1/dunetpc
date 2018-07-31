@@ -73,7 +73,10 @@ private:
   uint64_t fFixedTime;
   std::vector< uint64_t > fMultipleTimes;
   std::vector< std::string > fDevices;
-  std::vector< std::array<double, 3> > fCoordinates; 
+  std::vector< std::pair<std::string, std::string> > fPairedDevices;
+  std::map<std::string, std::string > fDeviceTypes;
+//  std::vector< std::array<double, 3> > fCoordinates; 
+  std::map< std::string, std::array<double,3> > fCoordinates;
   std::vector< std::array<double, 3> > fRotations;
   std::vector< double > fFiberDimension;
   std::string fPrefix;
@@ -117,10 +120,11 @@ void proto::BeamAna::analyze(art::Event const & e)
   }
 
   size_t nDev = fDevices.size();
-  std::cout << "Using devices: " << fPrefix << std::endl;
+  
+  std::cout << "Using " << nDev << " devices: " << std::endl;
   for(size_t id = 0; id < fDevices.size(); ++id){
     std::cout << fPrefix + fDevices[id] << std::endl;
-    std::cout << "At: " << fCoordinates[id][0] << " " << fCoordinates[id][1] << " " << fCoordinates[id][2] << std::endl;
+//    std::cout << "At: " << fCoordinates[id][0] << " " << fCoordinates[id][1] << " " << fCoordinates[id][2] << std::endl;
     std::cout << "Rotated: " << fRotations[id][0] << " " << fRotations[id][1] << " " << fRotations[id][2] << std::endl;
   }
 
@@ -135,7 +139,7 @@ void proto::BeamAna::analyze(art::Event const & e)
 
   for(size_t it = 0; it < fMultipleTimes.size(); ++it){
     std::cout << "Time: " << fMultipleTimes[it] << std::endl;
-    for(int d = 0; d < 6; ++d){
+    for(size_t d = 0; d < fDevices.size(); ++d){
       std::cout <<"Device: " << fDevices[d] << std::endl;
       std::vector<double> data = bfp->GetNamedVector(fMultipleTimes[it], fPrefix + fDevices[d] + ":eventsData[]");
       std::vector<double> counts = bfp->GetNamedVector(fMultipleTimes[it], fPrefix + fDevices[d] + ":countsRecords[]");
@@ -152,10 +156,10 @@ void proto::BeamAna::analyze(art::Event const & e)
       fbm.ID = d;
            
       for(size_t i = 0; i < counts[1]; ++i){
-//        std::cout << "Count: " << i << std::endl;
+        std::cout << "Count: " << i << std::endl;
         for(int j = 0; j < 10; ++j){
           double theData = data[20*i + (2*j + 1)];
-//          std::cout << std::setw(15) << theData ;
+          std::cout << std::setw(15) << theData ;
           if(j < 4){
             fbm.timeData[j] = theData;           
           }
@@ -164,11 +168,14 @@ void proto::BeamAna::analyze(art::Event const & e)
           }
         }
         spill->AddFBMTrigger(d,fbm);
-//        std::cout << std::endl;
+        std::cout << std::endl;
       }
 
       for(size_t i = 0; i < spill->GetNFBMTriggers(d); ++i){
         spill->DecodeFibers(d,i);
+        std::cout << fDevices[d] << " has active fibers: ";
+        for(size_t iF = 0; iF < spill->GetActiveFibers(d,i).size(); ++iF)std::cout << spill->GetActiveFibers(d, i)[iF] << " "; 
+        std::cout << std::endl;
       }
 
     }
@@ -192,7 +199,7 @@ void proto::BeamAna::analyze(art::Event const & e)
 */
 
  //Setting some dummy Triggers for drawing  
-
+/*
  double dummyTriggerTimeLSB[6] = {1.50000e+08,1.50000e+08,1.50002e+08,1.50002e+08,1.50004e+08,1.50004e+08};
  double dummyTriggerTimeMSB[6] = {1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09};
  double dummyEventTimeLSB[6]   = {1.50000e+08,1.50000e+08,1.50000e+08,1.50000e+08,1.50000e+08,1.50000e+08};
@@ -205,7 +212,7 @@ void proto::BeamAna::analyze(art::Event const & e)
                                {0,0,0,0,1,0},
                                {0,0,0,0,1,0}}; //first index: device, second LSB->MSB
 
- for(size_t id = 0; id < 6; ++id){
+ for(size_t id = 0; id < fDevices.size(); ++id){
    beamspill::FBM fbm;
    fbm.ID = id;
 
@@ -214,7 +221,7 @@ void proto::BeamAna::analyze(art::Event const & e)
    fbm.timeData[2] = dummyEventTimeLSB[id];
    fbm.timeData[3] = dummyEventTimeMSB[id];
 
-   for(int i = 0; i < 6; ++i){
+   for(int i = 0; i < fDevices.size(); ++i){
      fbm.fiberData[i] = dummyHit[id][i];
    }
 
@@ -229,7 +236,7 @@ void proto::BeamAna::analyze(art::Event const & e)
  }
 
  matchTriggers(*spill);
-
+*/
 }
 
 void proto::BeamAna::beginJob()
@@ -277,11 +284,18 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");
   fMultipleTimes = p.get< std::vector<uint64_t> >("MultipleTimes");
-  fDevices     = p.get< std::vector< std::string > >("Devices");
-//  fDeviceType  = p.get< std::vector<std::string> >("DeviceTypes");
+
+  fDevices     = p.get< std::vector< std::string > >("Devices");    
+  fPairedDevices = p.get< std::vector< std::pair<std::string, std::string> > >("PairedDevices");
+
+  std::vector< std::pair<std::string, std::string> >  tempTypes = p.get<std::vector< std::pair<std::string, std::string> >>("DeviceTypes");
+  fDeviceTypes  = std::map<std::string, std::string>(tempTypes.begin(), tempTypes.end() );
+
+  std::vector< std::pair<std::string, std::array<double,3> > > tempCoords = p.get<std::vector< std::pair<std::string, std::array<double,3> > > >("Coordinates");
 
   //Location of Device 
-  fCoordinates = p.get< std::vector< std::array<double,3> > >("Coordinates");
+//  fCoordinates = p.get< std::vector< std::array<double,3> > >("Coordinates");
+  fCoordinates = std::map<std::string, std::array<double,3> >(tempCoords.begin(), tempCoords.end());
   
   //Rotation of Device
   fRotations   = p.get< std::vector< std::array<double,3> > >("Rotations"); 
@@ -315,18 +329,18 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
   for(size_t it = 0; it < spill.GetNFBMTriggers(0); ++it){
 
     double time = spill.DecodeFiberTime(0, it);
-    std::cout << time << std::endl;
+//    std::cout << time << std::endl;
 
     //Go through the next FBMs and see if they have a good time
     for(size_t id = 1; id < fDevices.size(); ++id){
       foundNext = false;
 
       for (size_t it2 = 0; it2 < spill.GetNFBMTriggers(id); ++it2){
-        std::cout << (spill.DecodeFiberTime(id, it2 ) - time) << std::endl;
+//        std::cout << (spill.DecodeFiberTime(id, it2 ) - time) << std::endl;
 
         if ( ( (spill.DecodeFiberTime(id, it2 ) - time) < 0.00010e+08 ) && ( (spill.DecodeFiberTime(id, it2 ) - time) >= 0 ) ){
 
-          std::cout << "Found matching trigger in " << id << " " << spill.DecodeFiberTime(id, it2) << std::endl; 
+//          std::cout << "Found matching trigger in " << id << " " << spill.DecodeFiberTime(id, it2) << std::endl; 
           foundNext = true;
           if(goodTriggers.empty()) goodTriggers.push_back(it);
           goodTriggers.push_back(it2);
@@ -347,7 +361,7 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
         
       if(theLine->GetN()){
         //Reset it
-        *theLine = TPolyLine3D();
+        *theLine = TPolyLine3D(3);
       }
 
       std::vector<double> xPos;      
@@ -367,7 +381,7 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
       std::cout << "Sizes: " << xPos.size() << " " << yPos.size() << std::endl;
       //Check if diff size?
       for(size_t ip = 0; ip < xPos.size(); ++ip){
-        theLine->SetPoint(ip, xPos.at(ip), yPos.at(ip), fCoordinates[2*ip][2]);
+//        theLine->SetPoint(ip, xPos.at(ip), yPos.at(ip), fCoordinates[2*ip][2]);
       }
 
       fOutTree->Fill();

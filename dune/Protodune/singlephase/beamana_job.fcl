@@ -38,19 +38,25 @@ physics:
 }
 
 physics.analyzers.beamana.FixedTime:           1531912181
-physics.analyzers.beamana.Devices:             ["XBPF022697_V",
-                                                "XBPF022697_H",
-                                                "XBPF022707_V",
-                                                "XBPF022707_H",
-                                                "XBPF022716_V",
-                                                "XBPF022716_H"]
+physics.analyzers.beamana.Devices:             ["XBPF022716_V","XBPF022716_H"]
 
-physics.analyzers.beamana.Coordinates:         [[0,0,0],
-                                                [0,0,0],
-                                                [0,0,1],
-                                                [0,0,1],
-                                                [0,0,2],
-                                                [0,0,2]]
+physics.analyzers.beamana.PairedDevices:       [["XBPF022697_V", "XBPF022697_H"],
+                                                ["XBPF022707_V", "XBPF022707_H"]]
+                                                
+physics.analyzers.beamana.DeviceTypes:         [["XBPF022697_V","vert"],
+                                                ["XBPF022697_H","horiz"],
+                                                ["XBPF022707_V","vert"],
+                                                ["XBPF022707_H","horiz"],
+                                                ["XBPF022716_V","vert"],
+                                                ["XBPF022716_H","horiz"]]
+
+
+physics.analyzers.beamana.Coordinates:         [["XBPF022697_V",[0,0,0]],
+                                                ["XBPF022697_H",[0,0,0]],
+                                                ["XBPF022707_V",[0,0,1]],
+                                                ["XBPF022707_H",[0,0,1]],
+                                                ["XBPF022716_V",[0,0,2]],
+                                                ["XBPF022716_H",[0,0,2]]]
 
 physics.analyzers.beamana.Rotations:           [[0,0,0],
                                                 [1,0,0],
