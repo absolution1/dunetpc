@@ -266,7 +266,7 @@ tools.pdtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN
 # Pedestal RMS for each TPS channel.
 tools.pdtps_adcChannelPedestalRmsPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalRmsPlotter.Metric: pedestalRms
-tools.pdtps_adcChannelPedestalRmsPlotter.MetricMax: 15
+tools.pdtps_adcChannelPedestalRmsPlotter.MetricMax: 21
 tools.pdtps_adcChannelPedestalRmsPlotter.HistName: "hchpd%CRNAME%_pedrms_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalRmsPlotter.HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT% %CRLABEL%"
 tools.pdtps_adcChannelPedestalRmsPlotter.MetricLabel: "Pedestal RMS [ADC counts]"
@@ -330,6 +330,7 @@ tools.pd_tickOffset: {
   LogLevel: 1
   TpcTickPhase: 0
   Unit: tick
+  RunDataTool: ""
 }
 
 # Build tickmod spectra.
