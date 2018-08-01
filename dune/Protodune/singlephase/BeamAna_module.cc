@@ -26,6 +26,7 @@
 
 #include "TTree.h"
 #include "TPolyLine3D.h"
+#include "TPolyMarker.h"
 
 namespace proto {
   class BeamAna;
@@ -59,6 +60,9 @@ public:
   void matchTriggers(beamspill::ProtoDUNEBeamSpill spill);
   double GetPosition(size_t, size_t);
 
+  void  parseDevices(uint64_t);
+  void  parsePairedDevices(uint64_t);
+
 private:
   
   TTree * fOutTree;
@@ -80,6 +84,10 @@ private:
   std::vector< std::array<double, 3> > fRotations;
   std::vector< double > fFiberDimension;
   std::string fPrefix;
+
+  std::map<std::string, size_t> deviceOrder;
+  beamspill::ProtoDUNEBeamSpill * spill;
+  std::unique_ptr<ifbeam_ns::BeamFolder> bfp;
 };
 
 
@@ -98,7 +106,7 @@ void proto::BeamAna::analyze(art::Event const & e)
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
   std::cerr << "%%%%%%%%%% Got ifbeam handle %%%%%%%%%%" << std::endl;
 
-  std::unique_ptr<ifbeam_ns::BeamFolder> bfp = ifb->getBeamFolder(fBundleName,fURLStr,fTimeWindow);
+  bfp = ifb->getBeamFolder(fBundleName,fURLStr,fTimeWindow);
   std::cerr << "%%%%%%%%%% Got beam folder %%%%%%%%%%" << std::endl;
 
   //Use multiple times provided to fcl
@@ -121,7 +129,7 @@ void proto::BeamAna::analyze(art::Event const & e)
 
   size_t nDev = 0; 
 
-  std::map<std::string, size_t> deviceOrder;
+
   for(size_t id = 0; id < fDevices.size(); ++id){
     std::cout << fPrefix + fDevices[id] << std::endl;
     std::string name = fDevices[id];
@@ -139,6 +147,7 @@ void proto::BeamAna::analyze(art::Event const & e)
     std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
 
     deviceOrder[name] = nDev;
+    std::cout << nDev << std::endl;
     nDev++;
 
     name = fPairedDevices[id].second;
@@ -146,118 +155,221 @@ void proto::BeamAna::analyze(art::Event const & e)
     std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
 
     deviceOrder[name] = nDev;
+    std::cout << nDev << std::endl;
     nDev++;
-  }
+  } 
     
   std::cout << "Using " << nDev << " devices: " << std::endl;
+  std::map<std::string, size_t>::iterator itD = deviceOrder.begin();
+  for(; itD != deviceOrder.end(); ++itD){
+    std::cout << itD->first << " " << itD->second << std::endl;
+  }
 
   //Start getting spill information
-  beamspill::ProtoDUNEBeamSpill * spill = new beamspill::ProtoDUNEBeamSpill();
+  spill = new beamspill::ProtoDUNEBeamSpill();
   spill->InitFBMs(nDev);
 
 
   for(size_t it = 0; it < fMultipleTimes.size(); ++it){
     std::cout << "Time: " << fMultipleTimes[it] << std::endl;
-    for(size_t d = 0; d < fDevices.size(); ++d){
-      std::string name = fDevices[d];
-      size_t iDevice = deviceOrder[name];
-      std::cout <<"Device: " << name << std::endl;
-      std::vector<double> data = bfp->GetNamedVector(fMultipleTimes[it], fPrefix + name + ":eventsData[]");
-      std::vector<double> counts = bfp->GetNamedVector(fMultipleTimes[it], fPrefix + name + ":countsRecords[]");
-    
-  
-      std::cout << "Data: " << data.size() << std::endl;
-      std::cout << "Counts: " << counts.size() << std::endl;
-      for(size_t i = 0; i < counts.size(); ++i){
-        std::cout << counts[i] << std::endl;
-      }
-      if(counts[1] > data.size())continue;
-
-      beamspill::FBM fbm;
-      fbm.ID = d;
-           
-      for(size_t i = 0; i < counts[1]; ++i){
-        std::cout << "Count: " << i << std::endl;
-        for(int j = 0; j < 10; ++j){
-          double theData = data[20*i + (2*j + 1)];
-          std::cout << std::setw(15) << theData ;
-          if(j < 4){
-            fbm.timeData[j] = theData;           
-          }
-          else{
-            fbm.fiberData[j - 4] = theData;
-          }
-        }
-        spill->AddFBMTrigger(iDevice ,fbm);
-        std::cout << std::endl;
-      }
-
-      for(size_t i = 0; i < spill->GetNFBMTriggers(iDevice); ++i){
-        spill->DecodeFibers(iDevice,i);
-        std::cout << name << " has active fibers: ";
-        for(size_t iF = 0; iF < spill->GetActiveFibers(d,i).size(); ++iF)std::cout << spill->GetActiveFibers(d, i)[iF] << " "; 
-        std::cout << std::endl;
-      }
-
-    }
+    parseDevices(fMultipleTimes[it]);
+    parsePairedDevices(fMultipleTimes[it]);
   }
 
-/*  for(size_t id = 0; id < 6; ++id){
-    std::cout << "FBM: " << fDevices[id] << std::endl;
-    std::cout << "N Triggers: " << spill->GetNFBMTriggers(id) << std::endl;
-    
-    for(size_t it = 0; it < spill->GetNFBMTriggers(id); ++it){
-      std::cout << "Trigger: " << it <<std::endl;
-      std::cout << "Hit Fibers: ";
-      for(size_t iF = 0; iF < 192; ++iF){
-        if( spill->GetFiberStatus(id,it,iF) ){
-          std::cout << iF << " ";
-        }
-      }
-      std::cout << std::endl;
-    }
-  }
-*/
 
  //Setting some dummy Triggers for drawing  
-/*
- double dummyTriggerTimeLSB[6] = {1.50000e+08,1.50000e+08,1.50002e+08,1.50002e+08,1.50004e+08,1.50004e+08};
- double dummyTriggerTimeMSB[6] = {1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09};
- double dummyEventTimeLSB[6]   = {1.50000e+08,1.50000e+08,1.50000e+08,1.50000e+08,1.50000e+08,1.50000e+08};
- double dummyEventTimeMSB[6]   = {1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09,1.53191e+09};
 
- double dummyHit[6][6]     = { {1,0,0,0,0,0},
-                               {1,0,0,0,0,0},
-                               {0,0,1,0,0,0},
-                               {0,0,1,0,0,0},
-                               {0,0,0,0,1,0},
-                               {0,0,0,0,1,0}}; //first index: device, second LSB->MSB
 
- for(size_t id = 0; id < fDevices.size(); ++id){
+ std::map<std::string,double> dummyTriggerTimeLSB = {{"XBPF022697_V",1.50000e+08},{"XBPF022697_H",1.50000e+08},{"XBPF022707_V",1.50002e+08},{"XBPF022707_H",1.50002e+08}};
+ std::map<std::string,double> dummyTriggerTimeMSB = {{"XBPF022697_V",1.53191e+09},{"XBPF022697_H",1.53191e+09},{"XBPF022707_V",1.53191e+09},{"XBPF022707_H",1.53191e+09}};
+ std::map<std::string,double> dummyEventTimeLSB   = {{"XBPF022697_V",1.50000e+08},{"XBPF022697_H",1.50000e+08},{"XBPF022707_V",1.50000e+08},{"XBPF022707_H",1.50000e+08}};
+ std::map<std::string,double> dummyEventTimeMSB   = {{"XBPF022697_V",1.53191e+09},{"XBPF022697_H",1.53191e+09},{"XBPF022707_V",1.53191e+09},{"XBPF022707_H",1.53191e+09}};
+
+
+ std::map<std::string,std::array<double,6>> dummyHit     = { {"XBPF022697_V",{1,0,0,0,0,0}},
+                                                            {"XBPF022697_H",{1,0,0,0,0,0}},
+                                                            {"XBPF022707_V",{0,0,0,0,1,0}},
+                                                            {"XBPF022707_H",{0,0,0,0,1,0}} }; 
+
+ for(size_t ip = 0; ip < fPairedDevices.size(); ++ip){
    beamspill::FBM fbm;
-   fbm.ID = id;
+   fbm.ID = ip;
+   std::string name = fPairedDevices[ip].first; 
+   fbm.timeData[0] = dummyTriggerTimeLSB[name];
+   fbm.timeData[1] = dummyTriggerTimeMSB[name];
+   fbm.timeData[2] = dummyEventTimeLSB[name];
+   fbm.timeData[3] = dummyEventTimeMSB[name];
 
-   fbm.timeData[0] = dummyTriggerTimeLSB[id];
-   fbm.timeData[1] = dummyTriggerTimeMSB[id];
-   fbm.timeData[2] = dummyEventTimeLSB[id];
-   fbm.timeData[3] = dummyEventTimeMSB[id];
-
-   for(int i = 0; i < fDevices.size(); ++i){
-     fbm.fiberData[i] = dummyHit[id][i];
+   for(int i = 0; i < 6; ++i){
+     fbm.fiberData[i] = dummyHit[name][i];
    }
+
+   size_t id = deviceOrder[name];
 
    spill->AddFBMTrigger(id,fbm);
    spill->DecodeFibers(id,spill->GetNFBMTriggers(id) - 1);//Decode the last one
-   for(size_t iF = 0; iF < 192; ++iF){
-     if( spill->GetFiberStatus(id,spill->GetNFBMTriggers(id) - 1,iF) ){
-       std::cout << iF << " ";
-     }
+
+   size_t i = spill->GetNFBMTriggers(id) - 1;
+   std::cout << name << " has active fibers: ";
+   for(size_t iF = 0; iF < spill->GetActiveFibers(id,i).size(); ++iF)std::cout << spill->GetActiveFibers(id, i)[iF] << " "; 
+   std::cout << std::endl;
+
+   fbm = beamspill::FBM();
+   fbm.ID = ip;
+   name = fPairedDevices[ip].second; 
+   fbm.timeData[0] = dummyTriggerTimeLSB[name];
+   fbm.timeData[1] = dummyTriggerTimeMSB[name];
+   fbm.timeData[2] = dummyEventTimeLSB[name];
+   fbm.timeData[3] = dummyEventTimeMSB[name];
+
+   for(int i = 0; i < 6; ++i){
+     fbm.fiberData[i] = dummyHit[name][i];
    }
+
+   id = deviceOrder[name];
+
+   spill->AddFBMTrigger(id,fbm);
+   spill->DecodeFibers(id,spill->GetNFBMTriggers(id) - 1);//Decode the last one
+
+   i = spill->GetNFBMTriggers(id) - 1;
+   std::cout << name << " has active fibers: ";
+   for(size_t iF = 0; iF < spill->GetActiveFibers(id,i).size(); ++iF)std::cout << spill->GetActiveFibers(id, i)[iF] << " "; 
    std::cout << std::endl;
  }
 
- matchTriggers(*spill);
-*/
+matchTriggers(*spill);
+}
+
+void proto::BeamAna::parseDevices(uint64_t time){
+  for(size_t d = 0; d < fDevices.size(); ++d){
+    std::string name = fDevices[d];
+    size_t iDevice = deviceOrder[name];
+    std::cout <<"Device: " << name << std::endl;
+    std::vector<double> data = bfp->GetNamedVector(time, fPrefix + name + ":eventsData[]");
+    std::vector<double> counts = bfp->GetNamedVector(time, fPrefix + name + ":countsRecords[]");
+    
+
+    std::cout << "Data: " << data.size() << std::endl;
+    std::cout << "Counts: " << counts.size() << std::endl;
+    for(size_t i = 0; i < counts.size(); ++i){
+      std::cout << counts[i] << std::endl;
+    }
+    if(counts[1] > data.size())continue;
+
+    beamspill::FBM fbm;
+    fbm.ID = d;
+         
+    for(size_t i = 0; i < counts[1]; ++i){
+      std::cout << "Count: " << i << std::endl;
+      for(int j = 0; j < 10; ++j){
+        double theData = data[20*i + (2*j + 1)];
+        std::cout << std::setw(15) << theData ;
+        if(j < 4){
+          fbm.timeData[j] = theData;           
+        }
+        else{
+          fbm.fiberData[j - 4] = theData;
+        }
+      }
+      spill->AddFBMTrigger(iDevice ,fbm);
+      std::cout << std::endl;
+    }
+
+    for(size_t i = 0; i < spill->GetNFBMTriggers(iDevice); ++i){
+      spill->DecodeFibers(iDevice,i);
+      std::cout << name << " has active fibers: ";
+      for(size_t iF = 0; iF < spill->GetActiveFibers(iDevice,i).size(); ++iF)std::cout << spill->GetActiveFibers(iDevice, i)[iF] << " "; 
+      std::cout << std::endl;
+    }
+  }
+  
+}
+
+void proto::BeamAna::parsePairedDevices(uint64_t time){
+  for(size_t d = 0; d < fPairedDevices.size(); ++d){
+    std::string name = fPairedDevices[d].first;
+    size_t iDevice = deviceOrder[name];
+
+    std::cout <<"Device: " << name << " " << iDevice << std::endl;
+    std::vector<double> data = bfp->GetNamedVector(time, fPrefix + name + ":eventsData[]");
+    std::vector<double> counts = bfp->GetNamedVector(time, fPrefix + name + ":countsRecords[]");
+  
+
+    std::cout << "Data: " << data.size() << std::endl;
+    std::cout << "Counts: " << counts.size() << std::endl;
+    for(size_t i = 0; i < counts.size(); ++i){
+      std::cout << counts[i] << std::endl;
+    }
+    if(counts[1] > data.size())continue;
+
+    beamspill::FBM fbm;
+    fbm.ID = d;
+         
+    for(size_t i = 0; i < counts[1]; ++i){
+      std::cout << "Count: " << i << std::endl;
+      for(int j = 0; j < 10; ++j){
+        double theData = data[20*i + (2*j + 1)];
+        std::cout << std::setw(15) << theData ;
+        if(j < 4){
+          fbm.timeData[j] = theData;           
+        }
+        else{
+          fbm.fiberData[j - 4] = theData;
+        }
+      }
+      spill->AddFBMTrigger(iDevice ,fbm);
+      std::cout << std::endl;
+    }
+
+    for(size_t i = 0; i < spill->GetNFBMTriggers(iDevice); ++i){
+      spill->DecodeFibers(iDevice,i);
+      std::cout << name << " has active fibers: ";
+      for(size_t iF = 0; iF < spill->GetActiveFibers(iDevice,i).size(); ++iF)std::cout << spill->GetActiveFibers(iDevice, i)[iF] << " "; 
+      std::cout << std::endl;
+    }
+
+    name = fPairedDevices[d].second;
+    iDevice = deviceOrder[name];
+    std::cout <<"Device: " << name << std::endl;
+    data = bfp->GetNamedVector(time, fPrefix + name + ":eventsData[]");
+    counts = bfp->GetNamedVector(time, fPrefix + name + ":countsRecords[]");
+ 
+    std::cout << "Data: " << data.size() << std::endl;
+    std::cout << "Counts: " << counts.size() << std::endl;
+    for(size_t i = 0; i < counts.size(); ++i){
+      std::cout << counts[i] << std::endl;
+    }
+    if(counts[1] > data.size())continue;
+
+
+    //Sorry for just repeating this, I'll need more time to refactor it
+    //Reset the FBM
+    fbm = beamspill::FBM();
+    fbm.ID = d;
+         
+    for(size_t i = 0; i < counts[1]; ++i){
+      std::cout << "Count: " << i << std::endl;
+      for(int j = 0; j < 10; ++j){
+        double theData = data[20*i + (2*j + 1)];
+        std::cout << std::setw(15) << theData ;
+        if(j < 4){
+          fbm.timeData[j] = theData;           
+        }
+        else{
+          fbm.fiberData[j - 4] = theData;
+        }
+      }
+      spill->AddFBMTrigger(iDevice ,fbm);
+      std::cout << std::endl;
+    }
+
+    for(size_t i = 0; i < spill->GetNFBMTriggers(iDevice); ++i){
+      spill->DecodeFibers(iDevice,i);
+      std::cout << name << " has active fibers: ";
+      for(size_t iF = 0; iF < spill->GetActiveFibers(iDevice,i).size(); ++iF)std::cout << spill->GetActiveFibers(iDevice, i)[iF] << " "; 
+      std::cout << std::endl;
+    }
+  }
 }
 
 void proto::BeamAna::beginJob()
@@ -267,7 +379,7 @@ void proto::BeamAna::beginJob()
 
   fOutTree = tfs->make<TTree>("tree", "lines"); 
   //Need to make this configurable later
-  theLine = new TPolyLine3D(3);
+  theLine = new TPolyLine3D();
   fOutTree->Branch("Line", &theLine);
   // Implementation of optional member function here.
 }
@@ -341,82 +453,105 @@ std::bitset<sizeof(long)*CHAR_BIT> proto::BeamAna::toBinary(long num){
   return mybits;
 }
 
-/*void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
+void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
   
-  std::vector<size_t> goodTriggers;
+  std::map<std::string, size_t> goodTriggers;
   bool foundNext = false;
 
-  //Start with the earliest device. Should be most upstream
+  //Start with the first in the first pair, this should be the most upstream
+  //Next will be the second of the first pair, then the first of the second pair, and so on. 
   //Go through each trigger and try to match
-  for(size_t it = 0; it < spill.GetNFBMTriggers(0); ++it){
 
-    double time = spill.DecodeFiberTime(0, it);
+  std::string firstName = fPairedDevices[0].first;
+  size_t firstIndex = deviceOrder[firstName];
+  for(size_t it = 0; it < spill.GetNFBMTriggers(firstIndex); ++it){
+ 
+    foundNext = false;
+    double time = spill.DecodeFiberTime(firstIndex, it);
 //    std::cout << time << std::endl;
 
     //Go through the next FBMs and see if they have a good time
-    for(size_t id = 1; id < fDevices.size(); ++id){
-      foundNext = false;
+    
+    std::string secondName = fPairedDevices[0].second;
+    size_t secondIndex = deviceOrder[secondName];
+    
+    for( size_t it2 = 0; it2 < spill.GetNFBMTriggers(secondIndex); ++it2){
+      if ( ( (spill.DecodeFiberTime(secondIndex, it2 ) - time) < 0.00010e+08 ) && ( (spill.DecodeFiberTime(secondIndex, it2 ) - time) >= 0 ) ){
+        foundNext = true;
+        goodTriggers[firstName] = it;
+        goodTriggers[secondName] = it2;
 
-      for (size_t it2 = 0; it2 < spill.GetNFBMTriggers(id); ++it2){
-//        std::cout << (spill.DecodeFiberTime(id, it2 ) - time) << std::endl;
-
-        if ( ( (spill.DecodeFiberTime(id, it2 ) - time) < 0.00010e+08 ) && ( (spill.DecodeFiberTime(id, it2 ) - time) >= 0 ) ){
-
-//          std::cout << "Found matching trigger in " << id << " " << spill.DecodeFiberTime(id, it2) << std::endl; 
-          foundNext = true;
-          if(goodTriggers.empty()) goodTriggers.push_back(it);
-          goodTriggers.push_back(it2);
-
-          //For now: break after first one
-          break;
-        }       
-      }
-      //Break after missing a device in the sequence
-      if(!foundNext){
-        goodTriggers.clear();
+        //For now: break after first 
         break;
-      }      
+      }
     }
-    //Using found next from last one
+    if(!foundNext)continue;
+
+    for(size_t ip = 1; ip < fPairedDevices.size(); ++ip){
+      foundNext = false;
+      std::string nextName = fPairedDevices[ip].first;
+      size_t nextIndex = deviceOrder[nextName]; 
+
+      for(size_t itN = 0; itN < spill.GetNFBMTriggers(nextIndex); ++itN){
+        if ( ( (spill.DecodeFiberTime(nextIndex, itN ) - time) < 0.00010e+08 ) && ( (spill.DecodeFiberTime(nextIndex, itN ) - time) >= 0 ) ){
+          foundNext = true;
+          goodTriggers[nextName] = itN;
+          break;
+        }
+      }
+      if(!foundNext){
+        break;
+        goodTriggers.clear();
+      }
+    }
     if(foundNext){
       std::cout << "Found good track" << std::endl;
         
       if(theLine->GetN()){
         //Reset it
-        *theLine = TPolyLine3D(3);
+        *theLine = TPolyLine3D(fPairedDevices.size());
       }
 
       std::vector<double> xPos;      
       std::vector<double> yPos;      
-      for(size_t ig = 0; ig < goodTriggers.size(); ++ig){
-        std::vector<short> active = spill.GetActiveFibers(ig, goodTriggers[ig]);
-        std::cout << "Trigger " << ig << " has " << active.size() << " active fibers "<< active[0] << std::endl;        
-        //just get the first
-        double position = GetPosition(ig, active[0]);                
-        if(!(ig % 2)){ //Even numbers
-          xPos.push_back(position);
-        }
-        else{ //Odd numbers
-          yPos.push_back(position);         
-        }
-      }
-      std::cout << "Sizes: " << xPos.size() << " " << yPos.size() << std::endl;
-      //Check if diff size?
-      for(size_t ip = 0; ip < xPos.size(); ++ip){
-//        theLine->SetPoint(ip, xPos.at(ip), yPos.at(ip), fCoordinates[2*ip][2]);
+
+      std::map<std::string, std::vector<double>*> posArray = {{"vert",&xPos},{"horiz",&yPos}};
+
+      for(size_t ip = 0; ip < fPairedDevices.size(); ++ip){
+        std::string name = fPairedDevices[ip].first;
+        size_t index = deviceOrder[name];
+        std::vector<short> active = spill.GetActiveFibers(index, goodTriggers[name]);
+
+        double position = GetPosition(index, active[0]);
+        posArray[fDeviceTypes[name]]->push_back(position); 
+
+        name = fPairedDevices[ip].second;
+        index = deviceOrder[name];
+        active = spill.GetActiveFibers(index, goodTriggers[name]);
+
+        position = GetPosition(index, active[0]);
+        posArray[fDeviceTypes[name]]->push_back(position); 
+         
+        std::cout << "Sizes: " << xPos.size() << " " << yPos.size() << std::endl;
+        //Check if diff size?
+        theLine->SetPoint(ip, xPos.at(ip), yPos.at(ip), fCoordinates[name][2]);
+
       }
 
+
+      std::cout << "Sizes: " << xPos.size() << " " << yPos.size() << std::endl;
       fOutTree->Fill();
     }
+
   }
 
-  
-}*/
+}
 
 double proto::BeamAna::GetPosition(size_t iDevice, size_t iFiber){
   if(iFiber > 192){ std::cout << "Please select fiber in range [0,191]" << std::endl; return -1.;}
-  if(iDevice > fDevices.size() -1 ){ std::cout << "Device out of range " << std::endl; return -1.;}
-  double size = fFiberDimension[iDevice];
+//  if(iDevice > fDevices.size() -1 ){ std::cout << "Device out of range " << std::endl; return -1.;}
+ // double size = fFiberDimension[iDevice];
+  double size = 1.;
   
   //Define 0th fiber as origin. Go to middle of the fiber
   double pos = size*iFiber + size/2.;
