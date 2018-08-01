@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////
 //
 // Class to store protoDUNE beam spill data 
-// extracted from the CERN database
+// extracted from IFBeam database
 //
 // Jake Calcutt (calcuttj@msu.edu) - July 2018
 // 

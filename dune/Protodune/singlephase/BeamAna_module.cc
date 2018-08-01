@@ -119,18 +119,37 @@ void proto::BeamAna::analyze(art::Event const & e)
     fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
   }
 
-  size_t nDev = fDevices.size();
-  
-  std::cout << "Using " << nDev << " devices: " << std::endl;
+  size_t nDev = 0; 
+
+  std::map<std::string, size_t> deviceOrder;
   for(size_t id = 0; id < fDevices.size(); ++id){
     std::cout << fPrefix + fDevices[id] << std::endl;
-//    std::cout << "At: " << fCoordinates[id][0] << " " << fCoordinates[id][1] << " " << fCoordinates[id][2] << std::endl;
+    std::string name = fDevices[id];
+    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
     std::cout << "Rotated: " << fRotations[id][0] << " " << fRotations[id][1] << " " << fRotations[id][2] << std::endl;
+    
+    deviceOrder[fDevices[id]] = nDev; 
+    nDev++;
   }
 
-  
- 
-  
+  for(size_t id = 0; id < fPairedDevices.size(); ++id){
+
+    std::string name = fPairedDevices[id].first;
+    std::cout << fPrefix + name << std::endl;
+    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
+
+    deviceOrder[name] = nDev;
+    nDev++;
+
+    name = fPairedDevices[id].second;
+    std::cout << fPrefix + name << std::endl;
+    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
+
+    deviceOrder[name] = nDev;
+    nDev++;
+  }
+    
+  std::cout << "Using " << nDev << " devices: " << std::endl;
 
   //Start getting spill information
   beamspill::ProtoDUNEBeamSpill * spill = new beamspill::ProtoDUNEBeamSpill();
@@ -140,9 +159,11 @@ void proto::BeamAna::analyze(art::Event const & e)
   for(size_t it = 0; it < fMultipleTimes.size(); ++it){
     std::cout << "Time: " << fMultipleTimes[it] << std::endl;
     for(size_t d = 0; d < fDevices.size(); ++d){
-      std::cout <<"Device: " << fDevices[d] << std::endl;
-      std::vector<double> data = bfp->GetNamedVector(fMultipleTimes[it], fPrefix + fDevices[d] + ":eventsData[]");
-      std::vector<double> counts = bfp->GetNamedVector(fMultipleTimes[it], fPrefix + fDevices[d] + ":countsRecords[]");
+      std::string name = fDevices[d];
+      size_t iDevice = deviceOrder[name];
+      std::cout <<"Device: " << name << std::endl;
+      std::vector<double> data = bfp->GetNamedVector(fMultipleTimes[it], fPrefix + name + ":eventsData[]");
+      std::vector<double> counts = bfp->GetNamedVector(fMultipleTimes[it], fPrefix + name + ":countsRecords[]");
     
   
       std::cout << "Data: " << data.size() << std::endl;
@@ -167,13 +188,13 @@ void proto::BeamAna::analyze(art::Event const & e)
             fbm.fiberData[j - 4] = theData;
           }
         }
-        spill->AddFBMTrigger(d,fbm);
+        spill->AddFBMTrigger(iDevice ,fbm);
         std::cout << std::endl;
       }
 
-      for(size_t i = 0; i < spill->GetNFBMTriggers(d); ++i){
-        spill->DecodeFibers(d,i);
-        std::cout << fDevices[d] << " has active fibers: ";
+      for(size_t i = 0; i < spill->GetNFBMTriggers(iDevice); ++i){
+        spill->DecodeFibers(iDevice,i);
+        std::cout << name << " has active fibers: ";
         for(size_t iF = 0; iF < spill->GetActiveFibers(d,i).size(); ++iF)std::cout << spill->GetActiveFibers(d, i)[iF] << " "; 
         std::cout << std::endl;
       }
@@ -296,7 +317,8 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   //Location of Device 
 //  fCoordinates = p.get< std::vector< std::array<double,3> > >("Coordinates");
   fCoordinates = std::map<std::string, std::array<double,3> >(tempCoords.begin(), tempCoords.end());
-  
+ 
+
   //Rotation of Device
   fRotations   = p.get< std::vector< std::array<double,3> > >("Rotations"); 
 
@@ -319,7 +341,7 @@ std::bitset<sizeof(long)*CHAR_BIT> proto::BeamAna::toBinary(long num){
   return mybits;
 }
 
-void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
+/*void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
   
   std::vector<size_t> goodTriggers;
   bool foundNext = false;
@@ -389,7 +411,7 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
   }
 
   
-}
+}*/
 
 double proto::BeamAna::GetPosition(size_t iDevice, size_t iFiber){
   if(iFiber > 192){ std::cout << "Please select fiber in range [0,191]" << std::endl; return -1.;}

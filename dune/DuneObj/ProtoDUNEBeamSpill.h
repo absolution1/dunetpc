@@ -4,6 +4,7 @@
 #include <vector>
 #include <bitset>
 #include <iostream>
+#include <map>
 
 namespace beamspill
 {
@@ -51,7 +52,7 @@ namespace beamspill
       std::vector<short> GetActiveFibers(size_t, size_t);
       long long         GetFiberTime(size_t, size_t); 
       size_t            GetNFBMTriggers(size_t);
-      std::bitset<32>   toBinary(double);      
+      std::bitset<32>   toBinary(double); 
 
       void              AddCKov0Trigger(CKov theCKov){ CKov0.push_back(theCKov); }; 
       void              AddCKov1Trigger(CKov theCKov){ CKov1.push_back(theCKov); };
@@ -79,6 +80,7 @@ namespace beamspill
       //Set of FBMs
       //Indices: [Monitor in beam]['event' in monitor]
       std::vector< std::vector < FBM > > fiberMonitors;
+//     std::map<std::string, std::vector< FBM > > fiberMonitors;
       size_t nFBMs;
 
       //Set of TOF detectors
@@ -113,6 +115,19 @@ namespace beamspill
       fiberMonitors[iMonitor].push_back(theFBM);
     }
   }
+
+/* inline void ProtoDUNEBeamSpill::AddFBMTrigger(std::string FBMName, FBM theFBM){
+    
+    if(!fiberMonitors.count(FBMName)){
+      std::cout << "Initializing FBM vector" << std::endl;
+      //fiberMonitors[FBMName] = std::vector< FBM >();     
+      fiberMonitors.insert(std::map<std::string, std::vector<FBM> >::value_type(FBMName, std::vector<FBM>() )); 
+      std::cout << "Done" << std::endl;
+    }
+//    std::cout << "Size: " << fiberMonitors[FBMName].size() << std::endl;
+    fiberMonitors[FBMName].push_back(theFBM);
+    std::cout << "Added" << std::endl;
+  }*/
 
   inline void ProtoDUNEBeamSpill::DecodeFibers(size_t iMonitor, size_t nTrigger){
     if( (iMonitor > (fiberMonitors.size() -1) ) ){
@@ -215,6 +230,7 @@ namespace beamspill
     }
     return fiberMonitors[iMonitor].size();
   }
+  
   /////////////////////////////////
 
 
