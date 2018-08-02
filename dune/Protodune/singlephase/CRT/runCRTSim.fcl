@@ -1,5 +1,5 @@
 #include "services_dune.fcl"
-#include "CRTSim.fcl"
+#include "CRT.fcl"
 
 process_name: CRTSim
 
