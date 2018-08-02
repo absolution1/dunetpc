@@ -272,6 +272,15 @@ tools.pdtps_adcChannelPedestalRmsPlotter.HistTitle: "ADC pedestal RMS for run %R
 tools.pdtps_adcChannelPedestalRmsPlotter.MetricLabel: "Pedestal RMS [ADC counts]"
 tools.pdtps_adcChannelPedestalRmsPlotter.PlotFileName: "chmet_pedrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
+# Peak out of range fraction for each TPS channel.
+tools.pdtps_adcChannelPedestalOrfPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalOrfPlotter.Metric: "fitPedFractionLow+fitPedFractionHigh"
+tools.pdtps_adcChannelPedestalOrfPlotter.MetricMax: 1.0
+tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_pedfracout_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalOrfPlotter.HistTitle: "ADC pedestal out-of-range fraction for run %RUN% event %EVENT% %CRLABEL%"
+tools.pdtps_adcChannelPedestalOrfPlotter.MetricLabel: "Out-of-range fraction"
+tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
 # Peak bin excess for each TPS channel.
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.Metric: fitPedPeakBinExcess
