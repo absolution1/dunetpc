@@ -262,6 +262,24 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
     val = acd.fembChannel;
   } else if ( acd.hasMetadata(m_Metric) ) {
     val = acd.metadata.find(m_Metric)->second;
+  // Compound metric: met1+met2
+  // TODO: Move this to ctor.
+  } else if ( m_Metric.find("+") != string::npos ) {
+    vector<string> nams;
+    string metsrem = m_Metric;
+    string::size_type ipos = 0;
+    val = 0.0;
+    while ( ipos != string::npos ) {
+      ipos = metsrem.find("+");
+      string met = metsrem.substr(0, ipos);
+      if ( ! acd.hasMetadata(met) ) {
+        cout << myname << "ERROR: Invalid sub-metric name: " << met << endl;
+        return 2;
+      }
+      val += acd.metadata.find(met)->second;
+      if ( ipos == string::npos ) break;
+      metsrem = metsrem.substr(ipos + 1);
+    }
   } else {
     cout << myname << "ERROR: Invalid metric name: " << m_Metric << endl;
     return 1;

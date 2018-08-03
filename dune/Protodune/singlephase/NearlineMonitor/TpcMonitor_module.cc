@@ -5,6 +5,8 @@
 // File:        TpcMonitor_module.cc
 // Author:      Jingbo Wang (jiowang@ucdavis.edu), February 2018
 //
+// Modification: Maggie Greenwood July, 2018
+//               Added large summary histograms.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -143,6 +145,12 @@ namespace tpc_monitor{
     std::vector<TProfile*> fChanMeanV_pfx;
     std::vector<TProfile*> fChanRMSZ_pfx;
     std::vector<TProfile*> fChanMeanZ_pfx;
+
+    // 2D histograms of all Mean/RMS by offline channel number
+    // Intended as a color map with each bin to represent a single channel
+    TH2F* fAllChanMean;
+    TH2F* fAllChanRMS;
+
     
     // profiled over events Mean/RMS by slot number
     std::vector<TProfile*> fSlotChanMean_pfx;
@@ -249,7 +257,8 @@ namespace tpc_monitor{
       <<"U: "<< fNUCh<<"  V:  "<<fNVCh<<"  Z0:  "<<fNZ0Ch << "  Z1:  " <<fNZ1Ch << std::endl;
     
     //Mean/RMS by offline channel for each view in each APA
-    for(unsigned int i=0;i<fNofAPA;i++){
+    for(unsigned int i=0;i<fNofAPA;i++)
+    {
       UChMin=fUChanMin + i*fChansPerAPA;
       UChMax=fUChanMax + i*fChansPerAPA;      
       VChMin=fVChanMin + i*fChansPerAPA;
@@ -328,6 +337,23 @@ namespace tpc_monitor{
       fChanFFTZ[i]->Rebin2D(fRebinX, fRebinY);
     }
     
+    //All in one view
+    //make the histograms
+    fAllChanMean = tfs->make<TH2F>("fAllChanMean", "Means for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
+    fAllChanRMS = tfs->make<TH2F>("fAllChanRMS", "RMS for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
+    //set titles and bin labels
+    fAllChanMean->GetXaxis()->SetTitle("APA Number (online)"); fAllChanMean->GetYaxis()->SetTitle("Plane"); fAllChanMean->GetZaxis()->SetTitle("Raw Mean");
+    fAllChanRMS->GetXaxis()->SetTitle("APA Number (online)"); fAllChanRMS->GetYaxis()->SetTitle("Plane"); fAllChanRMS->GetZaxis()->SetTitle("Raw RMS");
+    fAllChanMean->GetXaxis()->SetLabelSize(.075); fAllChanMean->GetYaxis()->SetLabelSize(.05);
+    fAllChanRMS->GetXaxis()->SetLabelSize(.075); fAllChanRMS->GetYaxis()->SetLabelSize(.05);
+    fAllChanMean->GetXaxis()->SetBinLabel(40, "3"); fAllChanMean->GetXaxis()->SetBinLabel(120, "2"); fAllChanMean->GetXaxis()->SetBinLabel(200, "1");
+    fAllChanRMS->GetXaxis()->SetBinLabel(40, "3"); fAllChanRMS->GetXaxis()->SetBinLabel(120, "2"); fAllChanRMS->GetXaxis()->SetBinLabel(200, "1");
+    fAllChanMean->GetYaxis()->SetBinLabel(5, "U"); fAllChanMean->GetYaxis()->SetBinLabel(15, "V"); fAllChanMean->GetYaxis()->SetBinLabel(26, "Z");
+    fAllChanMean->GetYaxis()->SetBinLabel(37, "U"); fAllChanMean->GetYaxis()->SetBinLabel(47, "V"); fAllChanMean->GetYaxis()->SetBinLabel(58, "Z");
+    fAllChanRMS->GetYaxis()->SetBinLabel(5, "U"); fAllChanRMS->GetYaxis()->SetBinLabel(15, "V"); fAllChanRMS->GetYaxis()->SetBinLabel(26, "Z");
+    fAllChanRMS->GetYaxis()->SetBinLabel(37, "U"); fAllChanRMS->GetYaxis()->SetBinLabel(47, "V"); fAllChanRMS->GetYaxis()->SetBinLabel(58, "Z");
+
+
     // Mean/RMS by slot channel number for each slot
     for(int i=0;i<30;i++) {
       fSlotChanMean_pfx.push_back(tfs->make<TProfile>(Form("Slot%d_Mean_pfx", i), Form("Slot%d:Mean_vs_SlotChannel_pfx", i), 512, 0, 512, "s")); 
@@ -371,7 +397,6 @@ namespace tpc_monitor{
       fNNoisyChannelsHistoFromNSigma->GetXaxis()->SetBinLabel(j+1, apastring.Data());
       fNNoisyChannelsHistoFromNCounts->GetXaxis()->SetBinLabel(j+1, apastring.Data());
     }
-
   }
 
   //-----------------------------------------------------------------------
@@ -429,6 +454,14 @@ namespace tpc_monitor{
     // a more usable form
     std::vector< art::Ptr<raw::RawDigit> > RawDigits;
     art::fill_ptr_vector(RawDigits, RawTPC);
+
+    //for the large all channel summary histograms these are key points for bin mapping
+      //for each offline numbered apa, the left most bin should be at the x value:
+    int xEdgeAPA[6] = {0,0,80,80,160,160}; //these numbers may be adjusted to horizontally space out the histogram
+      //for each of the planes (U,V,Z), the bottom most bin should be at the y value:
+    int yEdgePlane[3] = {0,10,20}; //these numbers may be adjusted to vertically space out the histograms
+                                   //Note that the 10, 20 are due to displaying each mobo as a 4x10(4x12 for Z) blocks
+    int binnableChan; //a reduced channel value for easier binning
 
     // Loop over all RawRCEDigits (entire channels)                                                                                                        
     for(auto const & dptr : RawDigits) {
@@ -511,6 +544,18 @@ namespace tpc_monitor{
 	  //for the 2D histos
 	  fChanFFTU[apa]->Fill(chan, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
 	}
+
+  //Filling Uplane channels in the all summary histograms
+    //get a "reduced" channel value for easier mapping, 
+    binnableChan = (chan - (2560 * apa));
+    // xBin = (4 across per mobo block) + (40 chans per mobo*4 across per mobo block) + shift from apa number
+    int xBin = ((binnableChan%4)+((binnableChan/40)*4)+xEdgeAPA[apa]);
+    // yBin = (4 across per mobo block by 10 tall) + (shift from U plane) + (odd apa on bottom, even apa shifted up)
+    int yBin = (((binnableChan/4)%10)+(yEdgePlane[0]+((apa%2)*32)));
+    //fill the histograms
+    fAllChanMean->Fill(xBin,yBin,mean);
+    fAllChanRMS->Fill(xBin,yBin,rms);
+
       }// end of U View
 
       // V View, induction Plane
@@ -527,6 +572,18 @@ namespace tpc_monitor{
 	  //for the 2D histos
 	  fChanFFTV[apa]->Fill(chan, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
 	}
+
+  //Filling Vplane channels in the all summary histograms
+    //get a "reduced" channel value for easier mapping, 
+    binnableChan = (chan - (800+(2560 * apa))); //
+    // xBin = (4 across per mobo block) + (40 chans per mobo*4 across per mobo block) + shift from apa number
+    int xBin = ((binnableChan%4)+((binnableChan/40)*4)+xEdgeAPA[apa]);
+    // yBin = (4 across per mobo block by 10 tall) + (shift from V plane) + (odd apa on bottom, even apa shifted up)
+    int yBin = (((binnableChan/4)%10)+(yEdgePlane[1]+((apa%2)*32)));
+    //fill the histograms
+    fAllChanMean->Fill(xBin,yBin,mean);
+    fAllChanRMS->Fill(xBin,yBin,rms);
+
       }// end of V View               
 
       // Z View, collection Plane
@@ -543,6 +600,18 @@ namespace tpc_monitor{
 	  //for the 2D histos
 	  fChanFFTZ[apa]->Fill(chan, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
 	}
+
+  //Filling Zplane channels in the all summary histograms
+    //get a "reduced" channel value for easier mapping, 
+    binnableChan = (chan - (1600+(2560 * apa)));
+    // xBin = (4 across per mobo block) + (48 chans per mobo*4 across per mobo block) + shift from apa number
+    int xBin = ((binnableChan%4)+((binnableChan/48)*4)+xEdgeAPA[apa]);
+    // yBin = (4 across per mobo block by 12 tall) + (shift from Z plane) + (odd apa on bottom, even apa shifted up)
+    int yBin = (((binnableChan/4)%12)+(yEdgePlane[2]+((apa%2)*32)));
+    //fill the histograms
+    fAllChanMean->Fill(xBin,yBin,mean);
+    fAllChanRMS->Fill(xBin,yBin,rms);
+
       }// end of Z View
       
       // Mean/RMS by slot
