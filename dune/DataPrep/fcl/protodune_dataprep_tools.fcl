@@ -160,7 +160,7 @@ pdcht_template: {
   ChannelLinePattern: []
   Palette: 1026
   HistName: "hadcraw_%CRNAME%_run%0RUN%_evt%0EVENT%"
-  HistTitle: "Raw ADC for event %EVENT% %CRLABEL%"
+  HistTitle: "Raw ADC for run %RUN% event %EVENT% %CRLABEL%"
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcraw_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
