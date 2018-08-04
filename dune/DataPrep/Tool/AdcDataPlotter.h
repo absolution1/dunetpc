@@ -15,8 +15,8 @@
 //   LastTick - Last+1 tick number to display
 //   ChannelRanges - Names of channel ranges to display.
 //                   Ranges are obtained from the tool channelRanges.
-//                   Special name "all" or "" plots all channels with label "All".
-//                   If the list is empty, all are plotted.
+//                   Special name "" or "data" plots all channels in data with label "All data".
+//                   If the list is empty, data are plotted.
 //   FembTickOffsets - Tick offset for each FEMB. FEMB = (offline channel)/128
 //                     Offset is zero for FEMBs beyond range.
 //                     Values should be zero (empty array) for undistorted plots

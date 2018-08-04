@@ -26,6 +26,7 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   Index nchaz = 480;
   bool isEven = true;
   Index apaIdx[6] = { 3, 5, 2, 6, 1, 4 };  // Installation order.
+  insertLen("all", 0, ntps*nchaApa, "All");
   for ( Index itps=0; itps<ntps; ++itps ) {
     string siapa = std::to_string(apaIdx[itps]);
     Index ch0 = itps*nchaApa;

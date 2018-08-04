@@ -75,8 +75,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   // Fetch channel ranges.
   const IndexRangeTool* pcrt = nullptr;
   for ( Name crn : m_ChannelRanges.size() ? m_ChannelRanges : NameVector(1, "") ) {
-    if ( crn.size() == 0 || crn == "all" ) {
-      m_crs.emplace_back("all", 0, 0, "All");
+    if ( crn.size() == 0 || crn == "data" ) {
+      m_crs.emplace_back("data", 0, 0, "All data");
     } else {
       if ( pcrt == nullptr ) {
         pcrt = ptm->getShared<IndexRangeTool>("channelRanges");
@@ -180,27 +180,34 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   // Loop over channel ranges.
   Index nhist = 0;
   for ( IndexRange ran : m_crs ) {
+    if ( ran.name == "data" ) {
+      ran.begin = acdChanFirst;
+      ran.end = acdChanLast + 1;
+    }
     if ( ! ran.isValid() ) {
       cout << myname << "ERROR: Skipping invalid channel range " << ran.name << endl;
       continue;
     }
-    Index chanFirst = ran.first();
+    Index chanBegin = ran.first();
     Index chanEnd = ran.end;
-    if ( ran.name == "all" ) {
-      chanFirst = acdChanFirst;
-      chanEnd = acdChanLast + 1;
-    }
-    AdcChannelDataMap::const_iterator ichanDataBegin = acds.lower_bound(chanFirst);
-    Index chanDataEnd = acds.upper_bound(ran.last())->first;
+    // Find the range of data channels in the plot range: [ichanDataBegin, ichanDataEnd)
+    AdcChannelDataMap::const_iterator ichanDataBegin = acds.lower_bound(chanBegin);
+    AdcChannelDataMap::const_iterator   ichanDataEnd = acds.upper_bound(ran.last());
+    Index chanDataEnd   =   ichanDataEnd == acds.end() ?     chanEnd :   ichanDataEnd->first;
     Index chanDataBegin = ichanDataBegin == acds.end() ? chanDataEnd : ichanDataBegin->first;
-    // Check if the data has any channels in this range.
-    // Skip plot if not.
+    // Skip plot if no data channels are in range.
     if ( chanDataEnd <= chanDataBegin ) {
       if ( m_LogLevel >= 2 ) cout << myname << "Data has no entries in channel range " << ran.name << endl;
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << "      chanBegin: " << chanBegin << endl;
+        cout << myname << "        chanEnd: " << chanEnd << endl;
+        cout << myname << "  chanDataBegin: " << chanDataBegin << endl;
+        cout << myname << "    chanDataEnd: " << chanDataEnd << endl;
+      }
       continue;
     }
     if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram for channel range " << ran.name << endl;
-    AdcIndex nchan = chanEnd - chanFirst;
+    AdcIndex nchan = chanEnd - chanBegin;
     // Create title and file names.
     DataMap dm;
     dm.setInt("chan1", acdChanFirst);
@@ -216,7 +223,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     }
     htitl += "; Tick; Channel; Signal [" + szunits + "/Tick/Channel]";
     // Create histogram.
-    TH2* ph = new TH2F(hname.c_str(), htitl.c_str(), ntick, tick1, tick2, nchan, chanFirst, chanEnd);
+    TH2* ph = new TH2F(hname.c_str(), htitl.c_str(), ntick, tick1, tick2, nchan, chanBegin, chanEnd);
     ph->SetDirectory(nullptr);
     ph->SetStats(0);
     if ( m_LogLevel >= 2 ) cout << myname << "Created histogram " << hname << endl;
@@ -227,12 +234,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     // Fill histogram.
     const bool doZero = false;
     for ( AdcChannel chan=chanDataBegin; chan<chanDataEnd; ++chan ) {
-      unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
+      unsigned int ibin = ph->GetBin(1, chan-chanBegin+1);
       AdcChannelDataMap::const_iterator iacd = acds.find(chan);
       if ( iacd == acds.end() ) {
         if ( doZero ) {
           if ( m_LogLevel >= 3 ) cout << myname << "Filling channel-tick histogram with zero for channel " << chan << endl;
-          unsigned int ibin = ph->GetBin(1, chan-chanFirst+1);
+          unsigned int ibin = ph->GetBin(1, chan-chanBegin+1);
           for ( Tick isam=tick1; isam<tick2; ++isam, ++ibin ) ph->SetBinContent(ibin, 0.0);
         } else {
           if ( m_LogLevel >= 3 ) cout << myname << "Not filling channel-tick histogram for channel " << chan << endl;
@@ -312,7 +319,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       }
     } else {
       for ( Index icha : m_ChannelLinePattern ) {
-        if ( icha > chanFirst && icha < chanEnd ) {
+        if ( icha > chanBegin && icha < chanEnd ) {
           man.addHorizontalLine(icha, 1.0, 3);
         }
       }
@@ -326,7 +333,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     }
     if ( m_LogLevel > 1 ) {
       cout << myname << "Created plot ";
-      cout << "for channels [" << chanFirst << " - "
+      cout << "for channels [" << chanBegin << " - "
                               << chanEnd << "): " << ofname << endl;
     }
     if ( ofrname.size() ) {
