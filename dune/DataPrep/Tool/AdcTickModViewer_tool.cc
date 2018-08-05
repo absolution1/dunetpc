@@ -749,7 +749,7 @@ int AdcTickModViewer::makePhaseGraphs() const {
       for ( float x : xpksByPhase[ipha] ) {
         if ( x < xmin ) xmin = x;
         if ( x > xmax ) xmax = x;
-        float xs = x < xhalf ? x : x + ntkm;
+        float xs = x < xhalf ? x + ntkm : x;
         if ( xs < xminShift ) xminShift = xs;
         if ( xs > xmaxShift ) xmaxShift = xs;
       }
@@ -757,7 +757,7 @@ int AdcTickModViewer::makePhaseGraphs() const {
     bool doShift = xmaxShift - xminShift < xmax - xmin;  // Should we shift points?
     if ( doShift ) {
       xmin = xminShift;
-      xmax = xminShift;
+      xmax = xmaxShift;
     }
     // Fill the graph.
     for ( Index ipha=0; ipha<npha; ++ipha ) {
@@ -772,6 +772,7 @@ int AdcTickModViewer::makePhaseGraphs() const {
         pg->SetPoint(pg->GetN(), x, y);
       }
     }
+    pg->GetXaxis()->SetRangeUser(xmin, xmax);
     // Save the graph in the state for this tool.
     state().phaseGraphs[igrp].reset(pg);
   }
@@ -818,7 +819,7 @@ int AdcTickModViewer::plotPhaseGraphs() const {
     TPadManipulator* pman = pmantop->man(ipad);
     // Evaluate plot range.
     double xmin = int(pg->GetXaxis()->GetXmin());
-    double xmax = int(pg->GetXaxis()->GetXmin() + 1.0);
+    double xmax = int(pg->GetXaxis()->GetXmax() + 1.0);
     while ( xmax - xmin < 10.0 ) {
       xmin -= 0.5;
       xmax += 0.5;
