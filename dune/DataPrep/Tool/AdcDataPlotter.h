@@ -8,10 +8,19 @@
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   DataType - Which data to plot: 0=prepared, 1=raw-pedestal, 2=signal
+//   TickRange - Name of the tick range used in the display
+//               The name must be defined in the IndexRangeTool tickRanges
+//               If blank or not defined, the full range is used.
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
-//   FirstChannel - First channel to display
-//   LastChannel - Last+1 channel to display
+//   ChannelRanges - Names of channel ranges to display.
+//                   Ranges are obtained from the tool channelRanges.
+//                   Special name "" or "data" plots all channels in data with label "All data".
+//                   If the list is empty, data are plotted.
+//   FembTickOffsets - Tick offset for each FEMB. FEMB = (offline channel)/128
+//                     Offset is zero for FEMBs beyond range.
+//                     Values should be zero (empty array) for undistorted plots
+//   OnlineChannelMapTool - Name of tool mapping channel # to online channel #.
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
@@ -48,10 +57,14 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <vector>
+#include <memory>
 
 class AdcChannelStringTool;
+class IndexMapTool;
+class IndexRangeTool;
 
 class AdcDataPlotter : AdcChannelTool {
 
@@ -59,6 +72,10 @@ public:
 
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
+  using IntVector = std::vector<int>;
+  using IndexRangeVector = std::vector<IndexRange>;
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   AdcDataPlotter(fhicl::ParameterSet const& ps);
 
@@ -72,10 +89,10 @@ private:
   // Configuration data.
   int            m_LogLevel;
   int            m_DataType;
-  unsigned long  m_FirstTick;
-  unsigned long  m_LastTick;
-  Index          m_FirstChannel;
-  Index          m_LastChannel;
+  std::string    m_TickRange;
+  NameVector     m_ChannelRanges;
+  IntVector      m_FembTickOffsets;
+  std::string    m_OnlineChannelMapTool;
   double         m_MaxSignal;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
@@ -87,8 +104,18 @@ private:
   std::string    m_PlotFileName;
   std::string    m_RootFileName;
 
-  // ADC string tool.
+  // Derived configuration data.
+  IndexRange m_tickRange;
+
+  // Channel ranges.
+  IndexRangeVector m_crs;
+
+  // Client tools.
   const AdcChannelStringTool* m_adcStringBuilder;
+  const IndexMapTool* m_pOnlineChannelMapTool;
+
+  // Make replacements in a name.
+  Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
 
 };
 

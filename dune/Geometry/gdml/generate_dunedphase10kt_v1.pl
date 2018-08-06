@@ -671,7 +671,7 @@ EOF
     print ENCL <<EOF;
 <structure>
     <volume name="volFoamPadding">
-      <materialref ref="fibrous_glass"/>
+      <materialref ref="FD_foam"/>
       <solidref ref="FoamPadding"/>
     </volume>
 

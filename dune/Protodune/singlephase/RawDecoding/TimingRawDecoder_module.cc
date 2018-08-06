@@ -23,17 +23,24 @@
 #include "dune-raw-data/Overlays/TimingFragment.hh"
 
 // larsoft includes
-#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 
 // ROOT includes
 #include "TH1.h"
 
 // C++ Includes
 #include <memory>
+#include <iostream>
+#include <fstream>
 
 namespace dune {
   class TimingRawDecoder;
 }
+
+using std::string;
+using std::cout;
+using std::endl;
+using std::ofstream;
 
 class dune::TimingRawDecoder : public art::EDProducer {
 public:
@@ -63,14 +70,13 @@ private:
   bool fUseChannelMap;
   bool fDebug;
   bool fMakeTree;
-  raw::Compress_t        fCompression;      ///< compression type to use
-  unsigned int           fZeroThreshold;    ///< Zero suppression threshold
+  bool fMakeEventTimeFile = false;
 
   TH1I * fHTimestamp;
   TH1I * fHTrigType;
   TH1I * fHTimestampDelta;
 
-  uint64_t fPrevTimestamp;
+  ULong64_t fPrevTimestamp;
 };
 
 
@@ -84,7 +90,7 @@ dune::TimingRawDecoder::TimingRawDecoder(fhicl::ParameterSet const & pset)
 
   reconfigure(pset);
   // Call appropriate produces<>() functions here.
-  produces< std::vector<raw::RawDigit> > (fOutputDataLabel);  
+  produces< std::vector<raw::RDTimeStamp> > (fOutputDataLabel);  
 }
 
 void dune::TimingRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
@@ -94,8 +100,7 @@ void dune::TimingRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   fDebug = pset.get<bool>("Debug");
   fMakeTree = pset.get<bool>("MakeTree");
-  fZeroThreshold=0;
-  fCompression=raw::kNone;
+  pset.get_if_present<bool>("MakeEventTimeFile", fMakeEventTimeFile);
   fPrevTimestamp=0;
   if(fDebug) printParameterSet();
 
@@ -143,14 +148,16 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
   evt.getByLabel(fRawDataLabel, "TIMING", rawFragments);
 
   art::EventNumber_t eventNumber = evt.event();
+  art::RunNumber_t runNumber = evt.run();
+
+  std::vector<raw::RDTimeStamp> rdtimestamps;
 
   // Check if there is Timing data in this event
   // Don't crash code if not present, just don't save anything
   try { rawFragments->size(); }
   catch(std::exception e) {
     std::cout << " WARNING: Raw Timing data not found in event " << eventNumber << std::endl;
-    std::vector<raw::RawDigit> digits;
-    evt.put(std::make_unique<std::vector<raw::RawDigit>>(std::move(digits)), fOutputDataLabel);
+    evt.put(std::make_unique<std::vector<raw::RDTimeStamp>>(std::move(rdtimestamps)), fOutputDataLabel);
     std::cout<<std::endl;
     return;
   }
@@ -163,12 +170,14 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
 	      << " is NOT VALID" << std::endl;
     throw cet::exception("rawFragments NOT VALID");
   }
-  std::vector<raw::RawDigit> rawDigitVector;
+  ULong64_t evtTimestamp = 0;
   for(auto const& rawFrag : *rawFragments){
       dune::TimingFragment frag(rawFrag);
-//      std::cout << "[TimingRawDecoder] Event number: " << eventNumber << ", TStamp: " << frag.get_tstamp() << std::endl; 
-      std::cout << " ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
-      uint64_t currentTimestamp=frag.get_tstamp();
+      std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
+      ULong64_t currentTimestamp=frag.get_tstamp();
+      uint16_t scmd = (frag.get_scmd() & 0xFFFF);  // mask this just to make sure.  Though scmd only has four relevant bits, the method is declared uint32_t.
+      rdtimestamps.emplace_back(currentTimestamp,scmd);
+
       fHTimestamp->Fill(currentTimestamp/1e6);
       fHTrigType->Fill(frag.get_scmd());
 
@@ -176,8 +185,21 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
 
       fPrevTimestamp=currentTimestamp;
 //      fHTimestamp->Fill(rawFrag.timestamp());
+
+    if ( fMakeEventTimeFile ) {
+      if ( evtTimestamp == 0 ) {
+        evtTimestamp = rawFrag.timestamp();
+        string foutName = "artdaqTimestamp-Run" + std::to_string(runNumber) + "-Event" + std::to_string(eventNumber) + ".dat";
+        ofstream fout(foutName);
+        fout << evtTimestamp << endl;
+      } else {
+        if ( rawFrag.timestamp() != evtTimestamp ) {
+          cout << "TimingRawDecoder::produce: WARNING: Fragments have inconsistent timestamps." << endl;
+        }
+      }
+    }
   }
-  evt.put(std::make_unique<decltype(rawDigitVector)>(std::move(rawDigitVector)), fOutputDataLabel);
+  evt.put(std::make_unique<decltype(rdtimestamps)>(std::move(rdtimestamps)), fOutputDataLabel);
   std::cout<<std::endl;
 }
 

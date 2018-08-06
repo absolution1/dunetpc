@@ -15,7 +15,7 @@ simple_plugin(SPLifetime "module"
 			art_Utilities 
       canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
       ${ROOT_MATHCORE}
       ${ROOT_GENVECTOR}
@@ -40,7 +40,7 @@ simple_plugin(PlotTrackT0 "module"
       art_Utilities 
       canvas
       ${MF_MESSAGELOGGER}
-      ${MF_UTILITIES}
+      
       cetlib cetlib_except
       ${ROOT_MATHCORE}
       ${ROOT_GENVECTOR}
@@ -65,7 +65,7 @@ simple_plugin(PlotTrackDetails "module"
       art_Utilities 
       canvas
       ${MF_MESSAGELOGGER}
-      ${MF_UTILITIES}
+      
       cetlib cetlib_except
       ${ROOT_MATHCORE}
       ${ROOT_GENVECTOR}
@@ -85,7 +85,7 @@ simple_plugin(PlotOpticalDetails "module"
       art_Utilities 
       canvas
       ${MF_MESSAGELOGGER}
-      ${MF_UTILITIES}
+      
       cetlib cetlib_except
       ${ROOT_MATHCORE}
       ${ROOT_GENVECTOR}
@@ -105,7 +105,7 @@ simple_plugin(RawEventDisplay "module"
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
@@ -124,7 +124,7 @@ simple_plugin(TpcMonitor "module"
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
@@ -142,7 +142,7 @@ simple_plugin(SSPMonitor "module"
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
@@ -159,10 +159,28 @@ simple_plugin(PDSPNearlineHeader "module"
       art_Utilities
       canvas
       ${MF_MESSAGELOGGER}
-      ${MF_UTILITIES}
+      
       cetlib cetlib_except
       ${ROOT_BASIC_LIB_LIST}
       BASENAME_ONLY
+)
+
+simple_plugin(PDSPHitMonitor "module"
+                        larcorealg_Geometry
+                        larcore_Geometry_Geometry_service
+                        lardataobj_RawData
+                        nusimdata_SimulationBase
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${MF_MESSAGELOGGER}
+
+                        ${CETLIB}
+                        ${ROOT_BASIC_LIB_LIST}
+                        BASENAME_ONLY
 )
 
 install_headers()

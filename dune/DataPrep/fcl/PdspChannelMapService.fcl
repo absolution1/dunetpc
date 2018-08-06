@@ -1,0 +1,17 @@
+# PdspChannelMapService.fcl
+#
+# Temporary copy until dune_raw_data is released with this prolog.
+
+BEGIN_PROLOG
+
+# ProtoDUNE-SP online/offline channel mapping.
+
+pdspchannelmap: {
+  FileName:         "protoDUNETPCChannelMap_RCE_v4.txt"
+  FELIXFileName:    "protoDUNETPCChannelMap_FELIX_v4.txt"
+  SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
+  LogLevel:         1
+}
+
+END_PROLOG
+

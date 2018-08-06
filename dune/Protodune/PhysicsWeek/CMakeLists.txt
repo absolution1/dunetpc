@@ -14,7 +14,7 @@ simple_plugin(MichelHitCounter "module"
               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
               ${MF_MESSAGELOGGER}
-              ${MF_UTILITIES}
+              
               ${CETLIB}
               ${ROOT_BASIC_LIB_LIST}
               BASENAME_ONLY
@@ -35,7 +35,7 @@ simple_plugin(MichelEventSelection "module"
               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
               ${MF_MESSAGELOGGER}
-              ${MF_UTILITIES}
+              
               ${CETLIB}
               ${ROOT_BASIC_LIB_LIST}
               BASENAME_ONLY

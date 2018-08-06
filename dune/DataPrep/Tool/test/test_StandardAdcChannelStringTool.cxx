@@ -46,6 +46,7 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
     fout << "    EventWidth:   6" << endl;
     fout << "    ChannelWidth: 5" << endl;
     fout << "    CountWidth:   6" << endl;
+    fout << "    FembWidth:    3" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -73,6 +74,8 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
   acd.subRun = 45;
   acd.event = 246;
   acd.channel = 1357;
+  acd.sampleUnit = "my units";
+  acd.fembID = 24;
 
   cout << myname << line << endl;
   cout << myname << "Call tool." << endl;
@@ -84,7 +87,14 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
     "data_run%RUN%-%SUBRUN%_ev%EVENT%_ch%CHAN%_%COUNT%.dat",
     "data_run%5RUN%-%5SUBRUN%_ev%5EVENT%_ch%5CHAN%_%5COUNT%.dat",
     "data_run%0RUN%-%0SUBRUN%_ev%0EVENT%_ch%0CHAN%_%0COUNT%.dat",
-    "data_run%0RUN%_run%8RUN%.dat"
+    "data_run%0RUN%_run%8RUN%.dat",
+    "Units are %SUNIT%",
+    "Units are %(SUNIT)%",
+    "Units are %((SUNIT))%",
+    "Units are% ((SUNIT))%",
+    "FEMB is %FEMB%",
+    "femb%4FEMB%",
+    "femb%0FEMB%"
   };
   vector<string> expNames = {
     "run123",
@@ -94,7 +104,14 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
     "data_run123-45_ev246_ch1357_23.dat",
     "data_run00123-00045_ev00246_ch01357_00023.dat",
     "data_run0123-045_ev000246_ch01357_000023.dat",
-    "data_run0123_run00000123.dat"
+    "data_run0123_run00000123.dat",
+    "Units are my units",
+    "Units are (my units)",
+    "Units are (my units)",
+    "Units are (my units)",
+    "FEMB is 24",
+    "femb0024",
+    "femb024"
   };
   DataMap dm;
   dm.setInt("count", 23);

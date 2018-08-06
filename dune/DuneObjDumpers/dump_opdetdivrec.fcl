@@ -1,0 +1,82 @@
+#
+# File:     dump_opdetdivrecs.fcl
+# Purpose:  Dump on screen opdetdivrecs content
+# Author:   Gianluca Petrillo (petrillo@fnal.gov)
+# Date:     March 30, 2016
+# Version:  1.0
+#
+# Service dependencies:
+# - message facility
+#
+
+process_name: DumpOpDetDivRecs
+
+services: {
+  
+  message: {
+  #   debugModules: [ "*" ]
+    destinations: {
+      
+      # grab all the "DumpOpDetDivRecs" messages and put them in DumpOpDetDivRecs.log
+      DumpOpDetDivRecs: {
+        append: false
+        categories: {
+          DumpOpDetDivRecs: { limit: -1 }
+          fileAction: { limit: 0 } # RootInput
+          TimeTracker: { limit: 0 }
+          MemoryTracker: { limit: 0 }
+          default: { limit: 0 }
+        }
+        filename: "DumpOpDetDivRecs.log"
+        threshold: "INFO"
+        type: "file"
+      } # DumpOpDetDivRecs
+      
+      LogStandardOut: {
+        categories: {
+          AnaBaseDefaultCtor: { limit: 0 }
+          GeometryBadInputPoint: {
+            limit: 5
+            timespan: 1000
+          }
+          RecoBaseDefaultCtor: { limit: 0 }
+          DumpOpDetDivRecs: { limit: 0 }
+          default: {}
+        }
+        threshold: "WARNING"
+        type: "cout"
+      } # LogStandardOut
+      
+    } # destinations
+  } # message
+} # services
+
+
+source: {
+  module_type: RootInput
+} # source
+
+
+physics: {
+  producers:{}
+  filters:  {}
+  analyzers: {
+    dumpopdetdivrecs: {
+      module_label: dumpopdetdivrecs
+      module_type:  DumpOpDetDivRecs
+      
+      # output category ("OutputCategory" by default), useful for filtering (see above)
+      OutputCategory: "DumpOpDetDivRecs"
+      
+      # specify the label of the sim::opdetdivrecs data product (or producer)
+     InputOpDetDivRecs: "opdigi"
+      
+    } # dumpopdetdivrecs
+  } # analyzers
+  
+  dumpers: [ dumpopdetdivrecs ]
+  
+  trigger_paths: []
+  end_paths:     [ dumpers ]
+  
+} # physics

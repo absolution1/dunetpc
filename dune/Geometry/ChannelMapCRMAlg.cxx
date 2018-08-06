@@ -95,7 +95,7 @@ namespace geo{
 	    */
 
 	    fPlaneIDs.emplace(PlaneID(cs, TPCCount, PlaneCount));
-	    double ThisWirePitch = cgeo[cs].TPC(TPCCount).WirePitch(0, 1, PlaneCount);
+	    double ThisWirePitch = cgeo[cs].TPC(TPCCount).WirePitch(PlaneCount);
 	    fWireCounts[cs][TPCCount][PlaneCount] = cgeo[cs].TPC(TPCCount).Plane(PlaneCount).Nwires();
 	    
 	    double  WireCentre1[3] = {0.,0.,0.};

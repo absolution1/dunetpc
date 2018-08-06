@@ -23,7 +23,7 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   art_Persistency_Provenance canvas
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
+  
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
   EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc TriggerPrimitiveFinderTemplate_tool.cc

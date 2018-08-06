@@ -9,7 +9,7 @@ data_3x1x1_anarootparser:
  EventsPerSubrun:             	335
 
  RawDigitModuleLabel:           "daq"
- HitsModuleLabel:             	"dprawhit"
+ HitsModuleLabel:             	"linecluster"
  LArGeantModuleLabel:         	"largeant"
  CalDataModuleLabel:          	"caldata"
  GenieGenModuleLabel:         	"generator"
@@ -47,6 +47,7 @@ data_3x1x1_anarootparser:
  SaveCryInfo:              	false
  SaveProtoInfo:            	false # ProtoDUNE specific
  SaveGenieInfo:            	false
+ SavePhotonInfo:            	false
  SaveGeneratorInfo:            	false
  SaveGeantInfo:            	false
  SaveGeantInAVInfo:            	false

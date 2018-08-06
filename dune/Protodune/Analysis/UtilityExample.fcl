@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+proto_util_example:
+{
+   module_type:             "UtilityExample"
+   TrackerTag:              "pmtrack"
+   GeneratorTag:            "generator"
+   Verbose:                 false
+}
+
+END_PROLOG

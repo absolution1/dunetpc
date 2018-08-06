@@ -58,7 +58,7 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
     fout << "  PlotFileName: \"adcped_ev%EVENT%_chan%CHAN%.png\"" << endl;
     fout << "  RootFileName: \"adcped.root\"" << endl;
-    fout << "  HistManager: \"adcHists\"" << endl;
+    fout << "  HistManager: \"\"" << endl;
     fout << "  PlotSizeX:  700" << endl;
     fout << "  PlotSizeY:  500" << endl;
     fout << "  PlotShowFit:  2" << endl;
@@ -153,7 +153,8 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
         assert( ped2 != ped0 );
         assert( ped2 != 0.0 );
         assert( datamap[icha].hasMetadata("fitPedPeakBinFraction") );
-        
+        assert( datamap[icha].hasMetadata("fitPedFractionLow") );
+        assert( datamap[icha].hasMetadata("fitPedFractionHigh") );
         //assert( fabs(ped2-ped) < 0.01 );
       }
     }

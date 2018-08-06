@@ -77,6 +77,11 @@ int test_RunData(bool useExistingFcl =false) {
   dat.setPulserAmplitude(16);
   assert( dat.havePulserAmplitude() );
   assert( dat.pulserAmplitude() == 16 );
+  cout << myname << "Add pulser period" << endl;
+  assert( ! dat.havePulserPeriod() );
+  dat.setPulserPeriod(1234);
+  assert( dat.havePulserPeriod() );
+  assert( dat.pulserPeriod() == 1234 );
 
   cout << dat << endl;
 

@@ -24,6 +24,7 @@
 #include "TF1.h"
 #include <string>
 
+inline
 double coldelecResponse(double time, double gain, double shaping) {
     if (time <=0 || time >= 10*shaping) { // range of validity
 	return 0.0;
@@ -50,6 +51,7 @@ double coldelecResponse(double time, double gain, double shaping) {
 	+0.464924*exp(-2.40318*reltime)*sin(2.5928*reltime)*sin(5.18561*reltime)*gain;
 }
 
+inline
 double coldelecResponseFunction(double* x, double* pars) {
   double gain = pars[0];
   double time = x[0];
@@ -58,6 +60,7 @@ double coldelecResponseFunction(double* x, double* pars) {
   return coldelecResponse(time-offset, gain, shaping);
 }
 
+inline
 TF1* coldelecResponseTF1(double gainIn, double shapingIn, double t0, std::string fname ="ceresp") {
   double gain = gainIn != 0.0 ? gainIn : 10.0;
   double shaping = shapingIn > 0 ? shapingIn : 1.0;

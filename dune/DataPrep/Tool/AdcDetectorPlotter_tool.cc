@@ -133,7 +133,16 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
   string hname = "hdet";
   int npadx = 1200;
   int npady = 1000;
+  double xmin = m_XMin;
+  double xmax = m_XMax;
   string sttlx = "Drift coordinate [cm]";
+  double xsign = 1.0;
+  if ( xmax < xmin ) {
+    xmin = m_XMax;
+    xmax = m_XMin;
+    sttlx = "-" + sttlx;
+    xsign = -1.0;
+  }
   string sttly = "Wire coordinate [cm]";
   if ( state.jobCount == 0 ||
        acdFirst.run != state.run || acdFirst.subRun != state.subrun || acdFirst.event != state.event ) {
@@ -149,7 +158,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     pg->GetYaxis()->SetTitle(sttly.c_str());
     state.ppad->add(pg, "P");
     state.ppad->graph()->Expand(512);  // Allocate 1024 points.
-    state.ppad->setRangeX(m_XMin, m_XMax);
+    state.ppad->setRangeX(xmin, xmax);
     state.ppad->setRangeY(m_ZMin, m_ZMax);
     if ( m_ShowGrid ) state.ppad->setGrid();
     LineColors cols;
@@ -160,7 +169,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
       pgw->Expand(wins.size());
       for ( Index iwin=0; iwin<wins.size(); ++iwin ) {
         const WireSelector::WireInfo& win = wins[iwin];
-        pgw->SetPoint(iwin, win.x, win.z);
+        pgw->SetPoint(iwin, xsign*win.x, win.z);
       }
       state.ppad->add(pgw, "P");
     }
@@ -170,7 +179,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
       pgc->Expand(wins.size());
       for ( Index iwin=0; iwin<wins.size(); ++iwin ) {
         const WireSelector::WireInfo& win = wins[iwin];
-        pgc->SetPoint(iwin, win.x + win.driftMax, win.z);
+        pgc->SetPoint(iwin, xsign*win.x + win.driftMax, win.z);
       }
       state.ppad->add(pgc, "P");
     }
@@ -192,7 +201,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
   // Fill graph.
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( m_LogLevel >= 3 ) cout << myname << "    Filling with channel " << iacd.first << endl;
-    addChannel(iacd.second);
+    addChannel(iacd.second, xsign);
   }
   if ( state.ppad->graph()->GetN() == 0 ) {
     cout << myname << "Graph has no points. Adding one to avoid root exception." << endl;
@@ -206,7 +215,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
 
 //**********************************************************************
 
-int AdcDetectorPlotter::addChannel(const AdcChannelData& acd) const {
+int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) const {
   const string myname = "AdcDetectorPlotter::addChannel: ";
   bool isRaw = m_DataType == 1;
   bool isPrep = m_DataType == 0;
@@ -235,7 +244,7 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd) const {
       if ( sig > m_SignalThreshold ) {
         float x = win.x + driftVelocity*(isam - m_Tick0);
         Index ipt = pg->GetN();
-        pg->SetPoint(ipt, x, z);
+        pg->SetPoint(ipt, xsign*x, z);
         if ( m_LogLevel >= 4 ) {
           ostringstream sout;
           sout.precision(2);

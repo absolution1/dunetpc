@@ -31,11 +31,12 @@
 #include "lardataobj/RawData/BeamInfo.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "lardataobj/RecoBase/Wire.h"
+#include "lardataobj/Simulation/SimPhotons.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcorealg/Geometry/GeometryCore.h"
-//#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -230,10 +231,9 @@ namespace dune {
           Float_t hittrkrms[10000];
           Float_t hittrkgoddnessofFit[10000];
           Short_t hittrkmultiplicity[10000];
-
-
-
-
+          Int_t hittrktrueID[10000];
+          Float_t hittrktrueEnergyMax[10000];
+          Float_t hittrktrueEnergyFraction[10000];
 
           // more track info
           TrackData_t<Short_t> trkId;
@@ -496,24 +496,25 @@ namespace dune {
         tdAuxDet = 0x01,
         tdCry = 0x02,
         tdGenie = 0x04,
-        tdGenerator = 0x08,
-        tdGeant = 0x10,
-	tdGeantInAV = 0x20,
-	tdGeantTrajectory = 0x40,
-        tdHit = 0x80,
-        tdTrack = 0x100,
-        tdVertex = 0x200,
-        tdFlash = 0x400,
-        tdShower = 0x800,
-        tdMCshwr = 0x1000,
-        tdMCtrk  = 0x2000,
-        tdCluster = 0x4000,
-        tdRawDigit = 0x8000,
-	tdRecobWire = 0x10000,
-        tdPandoraNuVertex = 0x20000,
-        tdPFParticle = 0x40000,
-        tdCount = 0x80000,
-        tdProto = 0x100000,
+	tdPhotons = 0x08,
+        tdGenerator = 0x10,
+        tdGeant = 0x20,
+	tdGeantInAV = 0x40,
+	tdGeantTrajectory = 0x80,
+        tdHit = 0x100,
+        tdTrack = 0x200,
+        tdVertex = 0x400,
+        tdFlash = 0x800,
+        tdShower = 0x1000,
+        tdMCshwr = 0x2000,
+        tdMCtrk  = 0x4000,
+        tdCluster = 0x8000,
+        tdRawDigit = 0x10000,
+	tdRecobWire = 0x20000,
+        tdPandoraNuVertex = 0x40000,
+        tdPFParticle = 0x80000,
+        tdCount = 0x100000,
+        tdProto = 0x200000,
         tdDefault = 0
       }; // DataBits_t
 
@@ -581,6 +582,9 @@ namespace dune {
       Float_t  hit_fitparamtau1[kMaxHits]; //dual phase hit fit
       Float_t  hit_fitparamtau2[kMaxHits]; //dual phase hit fit
       Short_t  hit_multiplicity[kMaxHits];  //multiplicity of the given hit
+      Int_t    hit_trueID[kMaxHits];  //true mctackID form backtracker
+      Float_t  hit_trueEnergyMax[kMaxHits]; //energy deposited from that mctrackID
+      Float_t  hit_trueEnergyFraction[kMaxHits]; //maxe/tote
       //    Float_t  hit_trueX[kMaxHits];      // hit true X (cm)
       //    Float_t  hit_nelec[kMaxHits];     //hit number of electrons
       //    Float_t  hit_energy[kMaxHits];       //hit energy
@@ -596,10 +600,10 @@ namespace dune {
       Double_t rawD_rms[kMaxHits];
 */
       Int_t no_channels;               //number of readout channels with raw waveform (can be different from number of max channels in simulation)
-      Int_t no_ticks;               //number of readout ticks for raw waveform
-      Int_t rawD_Channel[kMaxChannels];
-
+      Int_t no_ticks;                  //number of readout ticks for raw waveform
       Int_t no_ticksinallchannels;     //number of readout ticks multiplied by no_channels
+
+      Int_t rawD_Channel[kMaxChannels];
       Short_t rawD_ADC[kMaxReadoutTicksInAllChannels];
 
       Int_t no_recochannels;               //number of readout channels with "reco" waveform (can be different from number of max channels in simulation)
@@ -609,6 +613,12 @@ namespace dune {
       Int_t no_recoticksinallchannels;     //number of readout ticks multiplied by no_channels
       Int_t recoW_Tick[kMaxReadoutTicksInAllChannels];
       Float_t recoW_ADC[kMaxReadoutTicksInAllChannels];
+
+      //Light information
+      size_t MaxPhotons = 0;
+      Int_t numberofphotons;
+      std::vector<Float_t> photons_time;
+      std::vector<Float_t> photons_channel;
 
       //Pandora Nu Vertex information
       Short_t nnuvtx;
@@ -1051,6 +1061,9 @@ namespace dune {
       /// Returns whether we have Pandora Nu Vertex data
       bool hasPandoraNuVertexInfo() const { return bits & tdPandoraNuVertex; }
 
+      /// Returns whether we have photon data
+      bool hasPhotonInfo() const { return bits & tdPhotons; }
+
       /// Returns whether we have Generator data
       bool hasGeneratorInfo() const { return bits & tdGenerator; }
 
@@ -1118,7 +1131,10 @@ namespace dune {
       /// Allocates data structures for the given number of trackers (no Clear())
       void SetShowerAlgos(std::vector<std::string> const& ShowerAlgos);
 
-      /// Resize the data strutcure for GEANT particles
+      /// Resize the data strutcure for Generator particles
+      void ResizePhotons(int nPhotons);
+
+      /// Resize the data strutcure for Generator particles
       void ResizeGenerator(int nParticles);
 
       /// Resize the data strutcure for GEANT particles
@@ -1175,6 +1191,9 @@ namespace dune {
 
       /// Returns the number of trackers for which memory is allocated
       size_t GetMaxShowers() const { return ShowerData.capacity(); }
+
+      /// Returns the number of GEANT particles for which memory is allocated
+      size_t GetMaxPhotons() const { return MaxPhotons; }
 
       /// Returns the number of GEANT particles for which memory is allocated
       size_t GetMaxGeneratorparticles() const { return MaxGeneratorparticles; }
@@ -1319,7 +1338,7 @@ namespace dune {
 
     private:
 
-      void   HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe);
+      void   HitsBackTrack( art::Ptr<recob::Hit> const& hit, int & trackid, float & maxe, float & purity );
       double length(const recob::Track& track);
       double driftedLength(const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
       double driftedLength(const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom);
@@ -1373,6 +1392,7 @@ namespace dune {
       bool fSaveCryInfo; ///whether to extract and save CRY particle data
       bool fSaveGenieInfo; ///whether to extract and save Genie information
       bool fSaveProtoInfo; ///whether to extract and save ProtDUNE beam simulation information
+      bool fSavePhotonInfo; ///whether to extract and save collected photons
       bool fSaveGeneratorInfo; ///whether to extract and save Geant information
       bool fSaveGeantInfo; ///whether to extract and save Geant information
       bool fSaveGeantInAVInfo; ///whether to extract and save Geant information
@@ -1426,6 +1446,7 @@ namespace dune {
           fData->SetBits(AnaRootParserDataStruct::tdCry,    !fSaveCryInfo);
           fData->SetBits(AnaRootParserDataStruct::tdGenie,  !fSaveGenieInfo);
           fData->SetBits(AnaRootParserDataStruct::tdProto,  !fSaveProtoInfo);
+          fData->SetBits(AnaRootParserDataStruct::tdPhotons,  !fSavePhotonInfo);
           fData->SetBits(AnaRootParserDataStruct::tdGenerator,  !fSaveGeneratorInfo);
           fData->SetBits(AnaRootParserDataStruct::tdGeant,  !fSaveGeantInfo);
           fData->SetBits(AnaRootParserDataStruct::tdGeantInAV,  !fSaveGeantInAVInfo);
@@ -1708,7 +1729,9 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::Clear() {
   std::fill(hittrkrms, hittrkrms + sizeof(hittrkrms)/sizeof(hittrkrms[0]), -999.);
   std::fill(hittrkgoddnessofFit, hittrkgoddnessofFit + sizeof(hittrkgoddnessofFit)/sizeof(hittrkgoddnessofFit[0]), -999.);
   std::fill(hittrkmultiplicity, hittrkmultiplicity + sizeof(hittrkmultiplicity)/sizeof(hittrkmultiplicity[0]), -999);
-
+  std::fill(hittrktrueID, hittrktrueID + sizeof(hittrktrueID)/sizeof(hittrktrueID[0]), -999);
+  std::fill(hittrktrueEnergyMax, hittrktrueEnergyMax + sizeof(hittrktrueEnergyMax)/sizeof(hittrktrueEnergyMax[0]), -999);
+  std::fill(hittrktrueEnergyFraction, hittrktrueEnergyFraction + sizeof(hittrktrueEnergyFraction)/sizeof(hittrktrueEnergyFraction[0]), -999);
 
   FillWith(trkId        , -999  );
   FillWith(NHitsPerTrack        , -999  );
@@ -2074,7 +2097,14 @@ void dune::AnaRootParserDataStruct::TrackDataStruct::SetAddresses(
   BranchName = "Track_Hit_Multiplicity";
   CreateBranch(BranchName, hittrkmultiplicity, BranchName + "[no_hits]/S");
 
+  BranchName = "Track_Hit_trueID";
+  CreateBranch(BranchName, hittrktrueID, BranchName + "[no_hits]/I");
 
+  BranchName = "Track_Hit_trueEnergyMax";
+  CreateBranch(BranchName, hittrktrueEnergyMax, BranchName + "[no_hits]/F");
+
+  BranchName = "Track_Hit_trueEnergyFraction";
+  CreateBranch(BranchName, hittrktrueEnergyFraction, BranchName + "[no_hits]/F");
 
 //////////// end new arrays ///////////////////////////
 
@@ -2599,6 +2629,9 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   std::fill(hit_fitparamtau1, hit_fitparamtau1 + sizeof(hit_fitparamtau1)/sizeof(hit_fitparamtau1[0]), -999.);
   std::fill(hit_fitparamtau2, hit_fitparamtau2 + sizeof(hit_fitparamtau2)/sizeof(hit_fitparamtau2[0]), -999.);
   std::fill(hit_multiplicity, hit_multiplicity + sizeof(hit_multiplicity)/sizeof(hit_multiplicity[0]), -999.);
+  std::fill(hit_trueID, hit_trueID + sizeof(hit_trueID)/sizeof(hit_trueID[0]), -999.);
+  std::fill(hit_trueEnergyMax, hit_trueEnergyMax + sizeof(hit_trueEnergyMax)/sizeof(hit_trueEnergyMax[0]), -999.);
+  std::fill(hit_trueEnergyFraction, hit_trueEnergyFraction + sizeof(hit_trueEnergyFraction)/sizeof(hit_trueEnergyFraction[0]), -999.);
   std::fill(hit_trkid, hit_trkid + sizeof(hit_trkid)/sizeof(hit_trkid[0]), -999);
   //  std::fill(hit_trkKey, hit_trkKey + sizeof(hit_trkKey)/sizeof(hit_trkKey[0]), -999);
   std::fill(hit_clusterid, hit_clusterid + sizeof(hit_clusterid)/sizeof(hit_clusterid[0]), -9999);
@@ -2618,6 +2651,18 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   no_ticksinallchannels = 0;
   std::fill(rawD_ADC, rawD_ADC + sizeof(rawD_ADC)/sizeof(rawD_ADC[0]), -999);
   std::fill(rawD_Channel, rawD_Channel + sizeof(rawD_Channel)/sizeof(rawD_Channel[0]), -999);
+
+  no_recochannels=0;
+  std::fill(recoW_Channel, recoW_Channel + sizeof(recoW_Channel)/sizeof(recoW_Channel[0]), -999);
+  std::fill(recoW_NTicks, recoW_NTicks + sizeof(recoW_NTicks)/sizeof(recoW_NTicks[0]), -999);
+
+  no_recoticksinallchannels=0;
+  std::fill(recoW_Tick, recoW_Tick + sizeof(recoW_Tick)/sizeof(recoW_Tick[0]), -999);
+  std::fill(recoW_ADC, recoW_ADC + sizeof(recoW_ADC)/sizeof(recoW_ADC[0]), -999);
+
+  numberofphotons=0;
+  FillWith(photons_time,-999);
+  FillWith(photons_channel,-999);
 
   no_flashes = 0;
   std::fill(flash_time, flash_time + sizeof(flash_time)/sizeof(flash_time[0]), -999);
@@ -2946,6 +2991,18 @@ void dune::AnaRootParserDataStruct::Clear() {
 
 } // dune::AnaRootParserDataStruct::SetShowerAlgos()
 
+
+void dune::AnaRootParserDataStruct::ResizePhotons(int nPhotons) {
+
+  // minimum size is 1, so that we always have an address
+  MaxPhotons = (size_t) std::max(nPhotons, 1);
+
+  photons_time.resize(MaxPhotons);
+  photons_channel.resize(MaxPhotons);
+} // dune::AnaRootParserDataStruct::ResizePhotons
+
+
+
 void dune::AnaRootParserDataStruct::ResizeGenerator(int nParticles) {
 
   // minimum size is 1, so that we always have an address
@@ -2966,7 +3023,7 @@ void dune::AnaRootParserDataStruct::ResizeGenerator(int nParticles) {
   StartT.resize(MaxGeneratorparticles);
   theta.resize(MaxGeneratorparticles);
   phi.resize(MaxGeneratorparticles);
-}
+} //dune::AnaRootParserDataStruct::ResizeGenerator
 
 void dune::AnaRootParserDataStruct::ResizeGEANT(int nParticles) {
 
@@ -3311,6 +3368,9 @@ if (hasRecobWireInfo()){
     CreateBranch("Hit_FitParameter_Tau2", hit_fitparamtau2, "hit_fitparamtau2[no_hits]/F");
 
     CreateBranch("Hit_Multiplicity",hit_multiplicity,"hit_multiplicity[no_hits]/S");
+    CreateBranch("Hit_trueID", hit_trueID,  "Hit_trueID[no_hits]/I");
+    CreateBranch("Hit_trueEnergyMax", hit_trueEnergyMax,  "hit_trueEnergyMax[no_hits]/F");
+    CreateBranch("Hit_trueEnergyFraction", hit_trueEnergyFraction,  "hit_trueEnergyFraction[no_hits]/F");
     CreateBranch("Hit_TrackID",hit_trkid,"hit_trkid[no_hits]/S");
     //CreateBranch("hit_trkKey",hit_trkKey,"hit_trkKey[no_hits]/S");
     CreateBranch("Hit_ClusterID",hit_clusterid,"hit_clusterid[no_hits]/S");
@@ -3523,6 +3583,7 @@ if (hasPFParticleInfo()){
    }
    */
 
+
    if (hasGeneratorInfo()){
    CreateBranch("MCTruth_Generator_NumberOfParticles",&generator_list_size,"generator_list_size/I");
    CreateBranch("MCTruth_Generator_ParticleID",TrackId,"TrackId[generator_list_size]/I");
@@ -3540,6 +3601,12 @@ if (hasPFParticleInfo()){
    CreateBranch("MCTruth_Generator_StartMomentum_Z",Pz,"Pz[generator_list_size]/F");
    CreateBranch("MCTruth_Generator_StartDirection_Theta",theta,"theta[generator_list_size]/F");
    CreateBranch("MCTruth_Generator_StartDirection_Phi",phi,"phi[generator_list_size]/F");
+   }
+
+   if (hasPhotonInfo()){
+   CreateBranch("MCTruth_GEANT4_NumberOfDetectedPhotons",&numberofphotons,"numberofphotons/I");
+   CreateBranch("MCTruth_GEANT4_DetectedPhoton_Channel",photons_channel,"photons_channel[numberofphotons]/F");
+   CreateBranch("MCTruth_GEANT4_DetectedPhoton_Time",photons_time,"photons_time[numberofphotons]/F");
    }
 
    if (hasGeantInfo()){
@@ -3784,7 +3851,7 @@ CreateBranch("CombinedEnergyDep", CombinedEnergyDep,
 
 dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   EDAnalyzer(pset),
-  fTree(nullptr), 
+  fTree(nullptr),
   //  fPOT(nullptr),
 
   fLogLevel	            (pset.get< short >("LogLevel")        ),
@@ -3820,6 +3887,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),
   fSaveGenieInfo	    (pset.get< bool >("SaveGenieInfo", false)),
   fSaveProtoInfo	    (pset.get< bool >("SaveProtoInfo", false)),
+  fSavePhotonInfo	    (pset.get< bool >("SavePhotonInfo", false)),
   fSaveGeneratorInfo	    (pset.get< bool >("SaveGeneratorInfo", false)),
   fSaveGeantInfo	    (pset.get< bool >("SaveGeantInfo", false)),
   fSaveGeantInAVInfo	    (pset.get< bool >("SaveGeantInAVInfo", false)),
@@ -4027,6 +4095,12 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 //  art::Handle< std::vector<recob::Wire> > wireVecHandle;
 //  evt.getByLabel(fCalDataModuleLabel,wireVecHandle);
 
+  // * photons
+  art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle;
+//  std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
+  evt.getByLabel(fLArG4ModuleLabel, photonHandle);
+//    art::fill_ptr_vector(photonlist, photonHandle);
+
   // * hits
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
@@ -4122,6 +4196,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
     nProtoPrimaries = mctruthproto->NParticles();
   }
 
+  int nPhotons=0;
   int nGeniePrimaries = 0, nGeneratorParticles = 0, nGEANTparticles = 0, nGEANTparticlesInAV = 0, nGEANTtrajectorysteps=0;
 
   art::Ptr<simb::MCTruth> mctruth;
@@ -4163,7 +4238,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
       const sim::ParticleList& plist = pi_serv->ParticleList();
       nGEANTparticles = plist.size();
-   
+
       sim::ParticleList::const_iterator itPart = plist.begin(),
       pend = plist.end(); // iterator to pairs (track id, particle)
 
@@ -4171,13 +4246,13 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart)
       {
         const simb::MCParticle* pPart = (itPart++)->second;
-        if (!pPart) 
+        if (!pPart)
 	{
           throw art::Exception(art::errors::LogicError)
             << "GEANT particle #" << iPart << " returned a null pointer";
         }
         nGEANTtrajectorysteps += pPart->NumberTrajectoryPoints();
-	
+
 	if(pPart->Mother() == 0 && pPart->Process() == pri) nGeneratorParticles++;
 
         TLorentzVector mcstart, mcend;
@@ -4187,13 +4262,31 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
       } // for particles
 
-      // to know the number of particles in AV would require
-      // looking at all of them; so we waste some memory here
-  } // if have MC truth
-  LOG_DEBUG("AnaRootParser") << "Expected "
+      // counting photons
+      for ( auto const& pmt : (*photonHandle) )
+      {
+        std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
+
+        for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
+        {
+          for(int i = 0; i < itphoton->second ; i++)
+          {
+	    nPhotons++;
+	  }
+	}
+      }
+
+
+//      for()
+//      {
+
+//      }
+
+    } // if have MC truth
+    LOG_DEBUG("AnaRootParser") << "Expected "
     << nGEANTparticles << " GEANT particles, "
     << nGeniePrimaries << " GENIE particles";
-} // if MC
+  } // if MC
 
 CreateData(); // tracker data is created with default constructor
 if (fSaveGenieInfo){  fData->ResizeGenie(nGeniePrimaries);}
@@ -4205,6 +4298,7 @@ if (fSaveGeantInfo && fSaveGeantInAVInfo){  fData->ResizeGEANTInAV(nGEANTparticl
 if (fSaveGeantTrajectoryInfo){  fData->ResizeGEANTTrajectory(nGEANTtrajectorysteps);}
 if (fSaveMCShowerInfo){  fData->ResizeMCShower(nMCShowers);}
 if (fSaveMCTrackInfo){  fData->ResizeMCTrack(nMCTracks);}
+if (fSavePhotonInfo){  fData->ResizePhotons(nPhotons);}
 
 if(fLogLevel == 1)
 {
@@ -4212,6 +4306,7 @@ if(fLogLevel == 1)
   std::cout << "nGEANTparticles: " << nGEANTparticles << std::endl;
   std::cout << "nGEANTtrajectorysteps: " << nGEANTtrajectorysteps << std::endl;
   std::cout << "nGEANTparticlesInAV: " << nGEANTparticlesInAV << std::endl;
+  std::cout << "nPhotons: " << nPhotons << std::endl;
 }
 
   fData->ClearLocalData(); // don't bother clearing tracker data yet
@@ -4318,7 +4413,7 @@ if (fSaveAuxDetInfo){
 }
 
 std::vector<const sim::SimChannel*> fSimChannels;
-if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}  
+if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
 
   fData->run = evt.run();
   fData->subrun = evt.subRun();
@@ -4354,7 +4449,7 @@ if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
 //RawDigit info
 if (fSaveRawDigitInfo){
   fData->no_channels = (int) NChannels;
-  if (NChannels>0) 
+  if (NChannels>0)
   {
     fData->no_ticks = (int) rawdigitlist[0]->Samples();
     fData->no_ticksinallchannels = fData->no_channels*fData->no_ticks;
@@ -4385,6 +4480,7 @@ if (fSaveRecobWireInfo){
 
   for(int i = 0; i < fData->no_recochannels; i++)  //loop over channels holding reco waveforms
   {
+    fData->recoW_NTicks[i]=0;
     fData->recoW_Channel[i] = recobwirelist[i]->Channel();
     const recob::Wire::RegionsOfInterest_t& signalROI = recobwirelist[i]->SignalROI();
 
@@ -4407,6 +4503,11 @@ if (fSaveRecobWireInfo){
 
 //hit information
 if (fSaveHitInfo){
+
+  int trueID = -9999;
+  float maxe = -9999;
+  float purity = -9999;
+
   fData->no_hits = (int) NHits;
   fData->NHitsInAllTracks = (int) NHits;
   fData->no_hits_stored = TMath::Min( (int) NHits, (int) kMaxHits);
@@ -4444,15 +4545,23 @@ if (fSaveHitInfo){
 
     fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
 
+    //quantities from backtracker are different from the real value in MC
+
+    if( fIsMC )
+      HitsBackTrack(  hitlist[i], trueID, maxe, purity );
+
+    fData->hit_trueID[i] = trueID;
+    fData->hit_trueEnergyMax[i] = maxe;
+    fData->hit_trueEnergyFraction[i] = purity;
 
 /*
     std::vector< art::Ptr<recob::SpacePoint> > sptv = fmsp.at(i);
         if (fmsp.at(i).size()!=0){
-    std::cout << "sptv[i]->XYZ()[0]: " << sptv[i]->XYZ()[0] << std::endl; 
-    std::cout << "sptv[i]->XYZ()[1]: " << sptv[i]->XYZ()[1] << std::endl; 
-    std::cout << "sptv[i]->XYZ()[2]: " << sptv[i]->XYZ()[2] << std::endl; 
+    std::cout << "sptv[i]->XYZ()[0]: " << sptv[i]->XYZ()[0] << std::endl;
+    std::cout << "sptv[i]->XYZ()[1]: " << sptv[i]->XYZ()[1] << std::endl;
+    std::cout << "sptv[i]->XYZ()[2]: " << sptv[i]->XYZ()[2] << std::endl;
       }
-    std::cout << "test3" << std::endl; 
+    std::cout << "test3" << std::endl;
 //    std::cout << "test" << std::endl;
 //    art::FindManyP<recob::SpacePoint> fmsp(hitListHandle,evt,"pmtrack");
 //    art::FindManyP<recob::SpacePoint> fmsp(allHits, evt, fSpacePointModuleLabel);
@@ -4655,10 +4764,10 @@ if (fSaveClusterInfo){
     art::Ptr<recob::Cluster> clusterholder(clusterListHandle, ic);
     const recob::Cluster& cluster = *clusterholder;
     fData->clusterId[ic] = cluster.ID();
-    fData->clusterView[ic] = cluster.View(); 
+    fData->clusterView[ic] = cluster.View();
     // View 3 in LArSoft corresponds to View 0 in real life (3m long channels). View 2 in LArSoft corresponds to View 1 in real life (1m long channels).
-    if(fData->clusterView[ic] == 3) {fData->clusterView[ic] = 0;} 
-    if(fData->clusterView[ic] == 2) {fData->clusterView[ic] = 1;} 
+    if(fData->clusterView[ic] == 3) {fData->clusterView[ic] = 0;}
+    if(fData->clusterView[ic] == 2) {fData->clusterView[ic] = 1;}
     fData->cluster_isValid[ic] = cluster.isValid();
     fData->cluster_StartCharge[ic] = cluster.StartCharge();
     fData->cluster_StartAngle[ic] = cluster.StartAngle();
@@ -4949,6 +5058,10 @@ if (fSaveTrackInfo) {
 
     int HitIterator=0;
     int HitIterator2=0;
+
+    int trueID = -9999;
+    float maxe = -9999.;
+    float purity = -9999.;
 
     for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
 
@@ -5265,8 +5378,8 @@ if (fSaveTrackInfo) {
 	    TrackerData.hittrklocaltrackdirectionphi[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Phi();
 
 	    //dx
-    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch(1,0,0)/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
-    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch(1,0,0)/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
+    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
+    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
 
 	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
@@ -5277,7 +5390,7 @@ if (fSaveTrackInfo) {
 	      std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
 	      std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
 	      std::cout << "vmeta[h]->Dx(): " << vmeta[h]->Dx() << std::endl;
-	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch(1,0,0)/cosgamma << std::endl;
+	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch()/cosgamma << std::endl;
 	      std::cout << "Dx corrected pitch new: " << TrackerData.hittrkpitchC[HitIterator2] << std::endl;
 	      std::cout << "view: " << vhit[h]->WireID().Plane << std::endl;
 	    }
@@ -5296,6 +5409,14 @@ if (fSaveTrackInfo) {
 	    TrackerData.hittrkrms[HitIterator2] = vhit[h]->RMS();
 	    TrackerData.hittrkgoddnessofFit[HitIterator2] = vhit[h]->GoodnessOfFit();
 	    TrackerData.hittrkmultiplicity[HitIterator2] = vhit[h]->Multiplicity();
+
+      //quantities from backtracker are different from the real value in MC
+      if( fIsMC )
+        HitsBackTrack(  vhit[h], trueID, maxe, purity );
+
+      TrackerData.hittrktrueID[HitIterator2] = trueID;
+      TrackerData.hittrktrueEnergyMax[HitIterator2] = maxe;
+      TrackerData.hittrktrueEnergyFraction[HitIterator2] = purity;
 
             HitIterator2++;
 
@@ -5423,7 +5544,7 @@ if (fSaveTrackInfo) {
         }
         for (size_t ipl = 0; ipl < 3; ++ipl){
           double maxe = 0;
-          HitsPurity(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
+          HitsBackTrack(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
           //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<trkidtruth[iTracker][iTrk][ipl]<<"\t"<<trkpurtruth[iTracker][iTrk][ipl]<<"\t"<<maxe;
           if (TrackerData.trkidtruth[iTrk][ipl]>0){
             const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkidtruth[iTrk][ipl]);
@@ -5441,7 +5562,7 @@ if (fSaveTrackInfo) {
         }
 
         double maxe = 0;
-        HitsPurity(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
+        HitsBackTrack(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
         if (TrackerData.trkg4id[iTrk]>0){
           const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkg4id[iTrk]);
           TrackerData.trkorig[iTrk] = mc->Origin();
@@ -5470,7 +5591,7 @@ if (fSaveTrackInfo) {
       }//end if (fIsMC)
 */
     }//end loop over track
-      //std::cout << "HitIterator: " << HitIterator << std::endl; 
+      //std::cout << "HitIterator: " << HitIterator << std::endl;
   }//end loop over track module labels
 }// end (fSaveTrackInfo)
 
@@ -5818,6 +5939,26 @@ if (fSaveTrackInfo) {
       }//End if (fSaveMCTrackInfo){
 
 
+      //Photon particles information
+      if (fSavePhotonInfo){
+	int photoncounter=0;
+        for ( auto const& pmt : (*photonHandle) )
+        {
+          std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
+
+          for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
+          {
+            for(int iphotonatthistime = 0; iphotonatthistime < itphoton->second ; iphotonatthistime++)
+            {
+	      fData->photons_time[photoncounter]=itphoton->first;
+	      fData->photons_channel[photoncounter]=pmt.OpChannel;
+	      photoncounter++;
+	    }
+	  }
+        }
+	fData->numberofphotons=photoncounter;
+      }
+
       //Generator particles information
       if (fSaveGeneratorInfo){
         const sim::ParticleList& plist = pi_serv->ParticleList();
@@ -6124,7 +6265,7 @@ if (fSaveTrackInfo) {
         // for each particle, consider all the direct ancestors with the same
         // PDG ID, and mark them as belonging to the same "group"
         // (having the same MergedId)
-	
+
 
         int currentMergedId = 1;
         for(size_t iPart = 0; iPart < geant_particle; ++iPart){
@@ -6150,7 +6291,7 @@ if (fSaveTrackInfo) {
         }
         ++currentMergedId;
         }// for merging check
-        
+
       } // if (fSaveGeantInfo)
 
       //GEANT trajectory information
@@ -6164,7 +6305,7 @@ if (fSaveTrackInfo) {
         for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart)
 	{
           const simb::MCParticle* pPart = (itPart++)->second;
-          if (!pPart) 
+          if (!pPart)
 	  {
             throw art::Exception(art::errors::LogicError)
               << "GEANT particle #" << iPart << " returned a null pointer";
@@ -6356,29 +6497,25 @@ if (fSaveTrackInfo) {
 
 
 
-    void dune::AnaRootParser::HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
+    void dune::AnaRootParser::HitsBackTrack( art::Ptr<recob::Hit> const& hit, int & trackid, float & maxe, float & purity){
 
       trackid = -1;
       purity = -1;
 
-/*      art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+      art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
       std::map<int,double> trkide;
+      std::vector<sim::IDE> ides;
 
-      for(size_t h = 0; h < hits.size(); ++h){
+      //bt_serv->HitToSimIDEs(hit,ides);
+      std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
 
-        art::Ptr<recob::Hit> hit = hits[h];
-        std::vector<sim::IDE> ides;
-        //bt_serv->HitToSimIDEs(hit,ides);
-        std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
-
-        for(size_t e = 0; e < eveIDs.size(); ++e){
-          //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
+      for(size_t e = 0; e < eveIDs.size(); ++e){
+          //std::cout<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
           trkide[eveIDs[e].trackID] += eveIDs[e].energy;
-        }
       }
 
-      maxe = -1;
+      maxe = 0;
       double tote = 0;
       for (std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
         tote += ii->second;
@@ -6389,11 +6526,9 @@ if (fSaveTrackInfo) {
       }
 
       //std::cout << "the total energy of this reco track is: " << tote << std::endl;
-
       if (tote>0){
         purity = maxe/tote;
       }
-*/
     }
 
     // Calculate distance to boundary.
