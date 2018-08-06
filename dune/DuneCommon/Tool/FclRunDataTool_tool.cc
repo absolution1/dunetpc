@@ -40,6 +40,8 @@ int parseFcl(string path, string fclname, RunData& rdat) {
   ps.get_if_present<Index>("pulserAmplitude", rdat.accessPulserAmplitude());
   ps.get_if_present<Index>("pulserSource", rdat.accessPulserSource());
   ps.get_if_present<Index>("pulserPeriod", rdat.accessPulserPeriod());
+  ps.get_if_present<Name>("phaseGroup", rdat.accessPhaseGroup());
+  ps.get_if_present<IndexVector>("phases", rdat.accessPhases());
   return 0;
 }
 
