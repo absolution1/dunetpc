@@ -337,11 +337,11 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 	}
     }
 
-  LOG_INFO("_processRCE")
-    << " Processed " << n_rce_frags
-    << " RCE Fragments, making "
-    << raw_digits.size()
-    << " RawDigits.";
+  //LOG_INFO("_processRCE")
+  //<< " Processed " << n_rce_frags
+  //<< " RCE Fragments, making "
+  //<< raw_digits.size()
+  //<< " RawDigits.";
   return true;
 }
 
@@ -362,11 +362,11 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
   // FIXME: Remove hard-coded fragment type
   if((unsigned)frag.type() != 2) return false;
 
-  LOG_INFO("_Process_RCE_AUX")
-    << "   SequenceID = " << frag.sequenceID()
-    << "   fragmentID = " << frag.fragmentID()
-    << "   fragmentType = " << (unsigned)frag.type()
-    << "   Timestamp =  " << frag.timestamp();
+  //LOG_INFO("_Process_RCE_AUX")
+  //<< "   SequenceID = " << frag.sequenceID()
+  //<< "   fragmentID = " << frag.fragmentID()
+  //<< "   fragmentType = " << (unsigned)frag.type()
+  //<< "   Timestamp =  " << frag.timestamp();
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   dune::RceFragment rce(frag);
   
@@ -417,19 +417,19 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       uint32_t slotNumber = identifier.getSlot();
       uint32_t fiberNumber = identifier.getFiber();
 
-      LOG_INFO("_Process_RCE_AUX")
-	<< "RceFragment timestamp: " << rce_stream->getTimeStamp()
-	<< ", NChannels: " << n_ch
-	<< ", NTicks: " << n_ticks;
+      //LOG_INFO("_Process_RCE_AUX")
+      //<< "RceFragment timestamp: " << rce_stream->getTimeStamp()
+      //<< ", NChannels: " << n_ch
+      //<< ", NTicks: " << n_ticks;
 
       // TODO -- speed this up!!  Remove one buffer copy
 
       size_t buffer_size = n_ch * n_ticks;
       if (_buffer.capacity() < buffer_size)
 	{
-	  LOG_INFO("_process_RCE_AUX")
-	    << "Increase buffer size from " << _buffer.capacity()
-	    << " to " << buffer_size;
+	  //  LOG_INFO("_process_RCE_AUX")
+	  //<< "Increase buffer size from " << _buffer.capacity()
+	  //<< " to " << buffer_size;
 
 	  _buffer.reserve(buffer_size);
 	}
@@ -444,6 +444,8 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  _discard_data = true;
 	  return true;
 	}
+
+      //std::cout << "RCE raw decoder trj: " << crateNumber << " " << slotNumber << " " << fiberNumber << std::endl;
 
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
@@ -496,8 +498,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 {
 
   // TODO Use LOG_DEBUG
-  LOG_INFO("_processFELIX")
-    << "-------------------- FELIX RawDecoder -------------------";
+  //LOG_INFO("_processFELIX") << "-------------------- FELIX RawDecoder -------------------";
 
   unsigned int n_felix_frags = 0;  
 
@@ -581,11 +582,11 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 	}
     }
 
-  LOG_INFO("_processFELIX")
-    << " Processed " << n_felix_frags
-    << " FELIX Fragments, total size of raw digits is now "
-    << raw_digits.size()
-    << " RawDigits.";
+  //LOG_INFO("_processFELIX")
+  //<< " Processed " << n_felix_frags
+  //<< " FELIX Fragments, total size of raw digits is now "
+  //<< raw_digits.size()
+  //<< " RawDigits.";
 
   return true;
 }
@@ -599,11 +600,11 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   // FIXME: Remove hard-coded fragment type
   //if((unsigned)frag.type() != 2) return false;
 
-  LOG_INFO("_process_FELIX_AUX")
-    << "   SequenceID = " << frag.sequenceID()
-    << "   fragmentID = " << frag.fragmentID()
-    << "   fragmentType = " << (unsigned)frag.type()
-    << "   Timestamp =  " << frag.timestamp();
+  //LOG_INFO("_process_FELIX_AUX")
+  //<< "   SequenceID = " << frag.sequenceID()
+  //<< "   fragmentID = " << frag.fragmentID()
+  //<< "   fragmentType = " << (unsigned)frag.type()
+  //<< "   Timestamp =  " << frag.timestamp();
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   //Load overlay class.
   dune::FelixFragment felix(frag);
@@ -613,6 +614,8 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   uint8_t crate = felix.crate_no(0);
   uint8_t slot = felix.slot_no(0);
   uint8_t fiber = felix.fiber_no(0); // two numbers? 
+
+  //std::cout << "FELIX raw decoder trj: " << crate << " " << slot << " " << fiber << std::endl;
 
   const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
   //std::cout<<" Nframes = "<<n_frames<<std::endl;
@@ -660,15 +663,16 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     unsigned int fiberloc = 0;
     if (fiber == 1) 
       {
-	fiberloc = 0;
+	fiberloc = 1;
       }
     else if (fiber == 2)
       {
-	fiberloc = 2;
+	fiberloc = 3;
       }
     else
       {
 	LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << fiber << " is expected to be 1 or 2 -- revisit logic";
+	fiberloc = 1;
 	error_counter++;
       }
 
