@@ -138,17 +138,18 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         TriggerPrimitiveFinderTool::Hit hit(channel_numbers[ich], 0, 0, 0);
         for(size_t isample=0; isample<filtered.size()-1; ++isample){
             // if(ich>11510) std::cout << isample << " " << std::flush;
+            int sample_time=isample*m_downsampleFactor;
             short adc=filtered[isample];
             is_hit=adc>(short)m_threshold;
             if(is_hit && !was_hit){
                 // We just started a hit. Set the start time
-                hit.startTime=isample;
+                hit.startTime=sample_time;
                 hit.charge=adc;
-                hit.timeOverThreshold=1;
+                hit.timeOverThreshold=m_downsampleFactor;
             }
             if(is_hit && was_hit){
-                hit.charge+=adc;
-                hit.timeOverThreshold++;
+                hit.charge+=adc*m_downsampleFactor;
+                hit.timeOverThreshold+=m_downsampleFactor;
             }
             if(!is_hit && was_hit){
                 // The hit is over. Push it to the output vector
