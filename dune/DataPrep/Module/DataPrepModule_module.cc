@@ -241,7 +241,8 @@ void DataPrepModule::produce(art::Event& evt) {
   bool checkKeep = m_KeepChannelEnd > m_KeepChannelBegin;
   unsigned int nkeep = 0;
   unsigned int nskip = 0;
-  for ( unsigned int idig=0; idig<hdigits->size(); ++idig ) {
+  unsigned int ndigi = hdigits->size();
+  for ( unsigned int idig=0; idig<ndigi; ++idig ) {
     const raw::RawDigit& dig = (*hdigits)[idig];
     AdcChannel chan = dig.Channel();
     if ( checkKeep ) {
@@ -254,7 +255,6 @@ void DataPrepModule::produce(art::Event& evt) {
       ++nskip;
       continue;
     }
-    ++nkeep;
     if ( fulldatamap.find(chan) != fulldatamap.end() ) {
       mf::LogWarning("DataPrepModule") << "Skipping duplicate channel " << chan << "." << endl;
       ++nskip;
@@ -275,6 +275,7 @@ void DataPrepModule::produce(art::Event& evt) {
     if ( m_KeepFembs.size() ) {
       if ( find(m_KeepFembs.begin(), m_KeepFembs.end(), fembID) == m_KeepFembs.end() ) {
         continue;
+        ++nskip;
       }
     }
     // Build the channel data.
@@ -289,10 +290,12 @@ void DataPrepModule::produce(art::Event& evt) {
       acd.fembID = fembID;
       acd.fembChannel = fembChannel;
     }
+    acd.metadata["ndigi"] = ndigi;
+    ++nkeep;
   }
 
   // Create a vector of data maps with an entry for each group.
-  unsigned int ncgrp = 0;
+  unsigned int nproc = 0;
   vector<AdcChannelDataMap> datamaps;
   if ( m_DoGroups ) {
     if ( m_pChannelGroupService == nullptr ) {
@@ -306,17 +309,19 @@ void DataPrepModule::produce(art::Event& evt) {
       for ( AdcChannel chan : m_pChannelGroupService->channels(igrp) ) {
         if ( fulldatamap.find(chan) != fulldatamap.end() ) {
           datamap.emplace(chan, move(fulldatamap[chan]));
-          ++ncgrp;
+          ++nproc;
         }
       }
     }
   } else {
     datamaps.emplace_back(move(fulldatamap));
+    nproc = datamaps.front().size();
   }
   if ( m_LogLevel >= 2 ) {
-    cout << myname << "         # channels selected: " << ncgrp << endl;
-    cout << myname << "          # channels skipped: " << ncgrp << endl;
-    cout << myname << "  # channels to be processed: " << ncgrp << endl;
+    cout << myname << "              # input digits: " << ndigi << endl;
+    cout << myname << "         # channels selected: " << nkeep << endl;
+    cout << myname << "          # channels skipped: " << nskip << endl;
+    cout << myname << "  # channels to be processed: " << nproc << endl;
   }
 
   for ( AdcChannelDataMap& datamap : datamaps ) {
