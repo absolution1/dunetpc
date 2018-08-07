@@ -276,7 +276,7 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
 
     for (auto cont : *containerFragments)
       {
-        std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
+        //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
         artdaq::ContainerFragment contf(cont);
         for (size_t ii = 0; ii < contf.block_count(); ++ii)
           {
@@ -365,36 +365,36 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   for(auto const& frag: fragments){
     if((unsigned)frag.type() != 3) continue;
     // print raw fragment header information
-    std::cout << "   SequenceID = " << frag.sequenceID()
-	      << "   fragmentID = " << frag.fragmentID()
-	      << "   fragmentType = " << (unsigned)frag.type()
-	      << "   Timestamp =  " << std::dec << frag.timestamp() << std::endl;
+    //std::cout << "   SequenceID = " << frag.sequenceID()
+    //	      << "   fragmentID = " << frag.fragmentID()
+    //	      << "   fragmentType = " << (unsigned)frag.type()
+    //	      << "   Timestamp =  " << std::dec << frag.timestamp() << std::endl;
     
     ///> Create a SSPFragment from the generic artdaq fragment
     dune::SSPFragment sspf(frag);
     
     ///> get the size of the event in units of dune::SSPFragment::Header::data_t
-    dune::SSPFragment::Header::event_size_t event_size = sspf.hdr_event_size();
+    //dune::SSPFragment::Header::event_size_t event_size = sspf.hdr_event_size();
     
     ///> get the size of the header in units of dune::SSPFragment::Header::data_t
-    std::size_t header_size = sspf.hdr_run_number();
+    //std::size_t header_size = sspf.hdr_run_number();
     
     ///> get the event run number
-    dune::SSPFragment::Header::run_number_t run_number = sspf.hdr_run_number();
+    //dune::SSPFragment::Header::run_number_t run_number = sspf.hdr_run_number();
     
     ///> get the number of ADC values describing data beyond the header
-    std::size_t n_adc_values = sspf.total_adc_values();
+    //std::size_t n_adc_values = sspf.total_adc_values();
     
-    std::cout << std::endl;
-    std::cout << "SSP fragment "     << frag.fragmentID() 
-	      << " has total size: " << event_size << " SSPFragment::Header::data_t words"
-	      << " (of which " << header_size << " is header)"
-	      << " and run number: " << run_number
-	      << " with " << n_adc_values << " total ADC values"
-	      << std::endl;
-    std::cout << std::endl;
+    //std::cout << std::endl;
+    //std::cout << "SSP fragment "     << frag.fragmentID() 
+    //	      << " has total size: " << event_size << " SSPFragment::Header::data_t words"
+    //	      << " (of which " << header_size << " is header)"
+    //	      << " and run number: " << run_number
+    //	      << " with " << n_adc_values << " total ADC values"
+    //	      << std::endl;
+    //std::cout << std::endl;
     
-    unsigned int n_packets = 0;
+    //unsigned int n_packets = 0;
     
     const SSPDAQ::MillisliceHeader* meta=0;
     ///> get the information from the header
@@ -404,23 +404,23 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
 	meta = &(frag.metadata<SSPFragment::Metadata>()->sliceHeader);
 	
 	///> get the start and end times for the millislice
-	unsigned long start_time = meta->startTime;
-	unsigned long end_time   = meta->endTime;
+	//unsigned long start_time = meta->startTime;
+	//unsigned long end_time   = meta->endTime;
 	
 	///> get the length of the millislice in unsigned ints (including header)
-	unsigned int milli_length = meta->length;
+	//unsigned int milli_length = meta->length;
 	
 	///> get the number of packets in the millislice
-	n_packets = meta->nTriggers;
+	//n_packets = meta->nTriggers;
 	
-	std::cout << "Event number: " << eventNumber << ", packets: " << n_packets << std::endl;
+	//std::cout << "Event number: " << eventNumber << ", packets: " << n_packets << std::endl;
 	
-	std::cout
-	  <<"===Slice metadata:"<<std::endl
-	  <<"Start time         "<< start_time   <<std::endl
-	  <<"End time           "<< end_time     <<std::endl
-	  <<"Packet length      "<< milli_length <<std::endl
-	  <<"Number of packets "<< n_packets   <<std::endl <<std::endl;
+	//std::cout
+	//  <<"===Slice metadata:"<<std::endl
+	//<<"Start time         "<< start_time   <<std::endl
+	//<<"End time           "<< end_time     <<std::endl
+	//<<"Packet length      "<< milli_length <<std::endl
+	//<<"Number of packets "<< n_packets   <<std::endl <<std::endl;
       }
     else
       {
@@ -570,15 +570,15 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   }// frag: fragments
   
   n_event_packets_->Fill(allPacketsProcessed);
-  std::cout << "Event " << eventNumber << " has " << allPacketsProcessed << " total packets";
-  for(std::map<int, int>::iterator i_packets_per_fragment = packets_per_fragment.begin(); i_packets_per_fragment != packets_per_fragment.end(); i_packets_per_fragment++)
-    std::cout << " " << i_packets_per_fragment->first << ":" << i_packets_per_fragment->second;
-  std::cout << std::endl;
-  std::cout << std::endl
-	    << "ADC total is (from counter):           " << (double)adc_cumulative_
-            << std::endl
-	    << "Event ADC average is (from counter):   " << ((n_adc_counter_ == 0) ? 0 : (double)adc_cumulative_/(double)n_adc_counter_)
-	    << std::endl;
+  //std::cout << "Event " << eventNumber << " has " << allPacketsProcessed << " total packets";
+  //for(std::map<int, int>::iterator i_packets_per_fragment = packets_per_fragment.begin(); i_packets_per_fragment != packets_per_fragment.end(); i_packets_per_fragment++)
+  // std::cout << " " << i_packets_per_fragment->first << ":" << i_packets_per_fragment->second;
+  //std::cout << std::endl;
+  //std::cout << std::endl
+  //	    << "ADC total is (from counter):           " << (double)adc_cumulative_
+  //        << std::endl
+  //	    << "Event ADC average is (from counter):   " << ((n_adc_counter_ == 0) ? 0 : (double)adc_cumulative_/(double)n_adc_counter_)
+  //	    << std::endl;
   endEvent(eventNumber);
   
   evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);

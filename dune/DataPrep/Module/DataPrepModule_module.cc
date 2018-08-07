@@ -79,6 +79,7 @@ private:
   AdcChannel m_KeepChannelBegin =0;
   AdcChannel m_KeepChannelEnd =0;
   AdcChannelVector m_SkipChannels;
+  AdcChannelVector m_KeepFembs;
 
   // Split label into producer and name: PRODUCER or PRODUCER:NAME
   std::string m_DigitProducer;
@@ -126,6 +127,7 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   pset.get_if_present<AdcChannel>("KeepChannelBegin", m_KeepChannelBegin);
   pset.get_if_present<AdcChannel>("KeepChannelEnd", m_KeepChannelEnd);
   pset.get_if_present<AdcChannelVector>("SkipChannels", m_SkipChannels);
+  pset.get_if_present<AdcChannelVector>("KeepFembs", m_KeepFembs);
   pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
 
   size_t ipos = m_DigitLabel.find(":");
@@ -164,6 +166,14 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
       if ( first ) first = false;
       else cout << ", ";
       cout << ich;
+    }
+    cout << "}" << endl;
+    cout << myname << "             KeepFembs: " << "{";
+    first = true;
+    for ( AdcChannel ifmb : m_KeepFembs ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << ifmb;
     }
     cout << "}" << endl;
   }
@@ -250,6 +260,24 @@ void DataPrepModule::produce(art::Event& evt) {
       ++nskip;
       continue;
     }
+    // Fetch the online ID.
+    bool haveFemb = false;
+    AdcChannel fembID = -1;
+    AdcChannel fembChannel = -1;
+    if ( m_onlineChannelMapTool ) {
+      unsigned int ichOn = m_onlineChannelMapTool->get(chan);
+      if ( ichOn != IndexMapTool::badIndex() ) {
+        fembID = ichOn/128;
+        fembChannel = ichOn % 128;
+        haveFemb = true;
+      }
+    }
+    if ( m_KeepFembs.size() ) {
+      if ( find(m_KeepFembs.begin(), m_KeepFembs.end(), fembID) == m_KeepFembs.end() ) {
+        continue;
+      }
+    }
+    // Build the channel data.
     AdcChannelData& acd = fulldatamap[chan];
     acd.run = evt.run();
     acd.subRun = evt.subRun();
@@ -257,12 +285,9 @@ void DataPrepModule::produce(art::Event& evt) {
     acd.channel = chan;
     acd.digitIndex = idig;
     acd.digit = &dig;
-    if ( m_onlineChannelMapTool ) {
-      unsigned int ichOn = m_onlineChannelMapTool->get(chan);
-      if ( ichOn != IndexMapTool::badIndex() ) {
-        acd.fembID = ichOn/128;
-        acd.fembChannel = ichOn % 128;
-      }
+    if ( haveFemb ) {
+      acd.fembID = fembID;
+      acd.fembChannel = fembChannel;
     }
   }
 
