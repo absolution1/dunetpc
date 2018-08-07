@@ -101,6 +101,13 @@ public:
     return metadata.find(mname) != metadata.end();
   }
 
+  // Fetch metatdata.
+  float getMetadata(std::string mname, float def =0.0) const {
+    FloatMap::const_iterator imtd = metadata.find(mname);
+    if ( imtd == metadata.end() ) return def;
+    return imtd->second;
+  }
+
   // Clear the data.
   void clear();
 

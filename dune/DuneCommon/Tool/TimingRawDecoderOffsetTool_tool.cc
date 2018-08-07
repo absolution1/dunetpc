@@ -105,7 +105,7 @@ Offset TimingRawDecoderOffsetTool::offset(const Data& dat) const {
       }
       if ( m_LogLevel >= 3 ) cout << myname << "Run phase is " << runPhase << endl;
     } else {
-      cout << myname << "WARNING: Run data does not have phases." << endl;
+      if ( m_LogLevel >= 3 ) cout << myname << "Run data tool not found." << endl;
     }
     long daqoff = daqVal + m_TpcTickPhase + runPhase;
     res.value = daqoff/25;
