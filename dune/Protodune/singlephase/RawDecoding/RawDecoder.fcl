@@ -23,7 +23,7 @@ felix_raw_decoder:
   module_type: "FelixRawDecoder"
   RawDataLabel: "daq"
   OutputDataLabel: "daq"
-  ExpectContainerFragments: false
+  ExpectContainerFragments: true
 }
 
 # configuration for combined TPC Raw Decoder module
@@ -34,13 +34,11 @@ pdsp_tpc_raw_decoder:
   OutputDataLabel: "daq"
 
   RCERawDataLabel: "daq"
-  ExpectRCEContainerFragments: true
   RCERawDataContainerInstance: "ContainerTPC"
   RCERawDataNonContainerInstance: "TPC"
   RCEFragmentType: 2
 
   FELIXRawDataLabel: "daq"
-  ExpectFELIXContainerFragments: false
   FELIXRawDataContainerInstance: "ContainerFELIX"
   FELIXRawDataNonContainerInstance: "FELIX"
   FELIXFragmentType: 2    # not used in code
