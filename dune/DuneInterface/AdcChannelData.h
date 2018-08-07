@@ -101,11 +101,40 @@ public:
     return metadata.find(mname) != metadata.end();
   }
 
-  // Fetch metatdata.
+  // Fetch metadata.
   float getMetadata(std::string mname, float def =0.0) const {
     FloatMap::const_iterator imtd = metadata.find(mname);
     if ( imtd == metadata.end() ) return def;
     return imtd->second;
+  }
+
+  // Fetch any property including metadata.
+  float getAttribute(std::string mname, float def =0.0) const {
+    // For basic types, return the value.
+    if ( mname == "run" ) return run;
+    if ( mname == "subRun" ) return subRun;
+    if ( mname == "event" ) return event;
+    if ( mname == "fembID" ) return fembID;
+    if ( mname == "fembChannel" ) return fembChannel;
+    if ( mname == "pedestal" ) return pedestal;
+    if ( mname == "pedestalRms" ) return pedestalRms;
+    if ( mname == "sampleNoise" ) return sampleNoise;
+    if ( mname == "digitIndex" ) return digitIndex;
+    if ( mname == "wireIndex" ) return wireIndex;
+    // For vectors, return the size.
+    if ( mname == "raw" ) return raw.size();
+    if ( mname == "samples" ) return samples.size();
+    if ( mname == "flags" ) return flags.size();
+    if ( mname == "signal" ) return signal.size();
+    if ( mname == "rois" ) return rois.size();
+    if ( mname == "dftmags" ) return dftmags.size();
+    if ( mname == "dftphases" ) return dftphases.size();
+    if ( mname == "digit" ) return digit != nullptr;
+    // For pointer, return false for null.
+    if ( mname == "wire" ) return wire != nullptr;
+    if ( mname == "metadata" ) return metadata.size();
+    // Otherwise return the metatdata field.
+    return getMetadata(mname, def);
   }
 
   // Clear the data.
