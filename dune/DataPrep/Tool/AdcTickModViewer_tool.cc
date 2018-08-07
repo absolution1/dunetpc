@@ -115,6 +115,7 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
   m_varPhase(m_PhaseVariable == "phase"),
   m_varEvent(m_PhaseVariable == "event"),
   m_varTick0(m_PhaseVariable == "tick0"),
+  m_varNchan(m_PhaseVariable == "nchan"),
   m_plotAll(m_AllPlotFileName.size()),
   m_plotMin(m_MinPlotFileName.size()),
   m_plotMax(m_MaxPlotFileName.size()),
@@ -144,7 +145,7 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Invalid phase grouping: " << m_PhaseGrouping << endl;
       m_plotPhase = false;
     }
-    if ( !m_varPhase && !m_varEvent && !m_varTick0 ) {
+    if ( !m_varPhase && !m_varEvent && !m_varTick0 && !m_varNchan ) {
       cout << myname << "ERROR: Invalid phase variable: " << m_PhaseVariable << endl;
       m_plotPhase = false;
     }
@@ -207,6 +208,18 @@ AdcTickModViewer::~AdcTickModViewer() {
   
 //**********************************************************************
 
+DataMap AdcTickModViewer::viewMap(const AdcChannelDataMap& acds) const {
+  DataMap ret;
+  if ( acds.size() == 0 ) return ret.setStatus(0);
+  // Save channel count.
+  //Index eventID = acds.begin()->second.event;
+  //state().eventIDs.push_back(eventID);
+  //state().nchans.push_back(acds.size());
+  return AdcChannelTool::viewMap(acds);
+}
+ 
+//**********************************************************************
+
 DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   const string myname = "AdcTickModViewer::view: ";
   DataMap res;
@@ -216,6 +229,15 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   HistVector& tmhsFull = state().ChannelTickModFullHists[icha];
   Index ntkm = m_TickModPeriod;
   if ( tmhsFull.size() == 0 ) tmhsFull.resize(ntkm, nullptr);
+  Index eventID = acd.event;
+  Index ndigi = 0;
+  if ( m_varNchan ) {
+    if ( acd.hasMetadata("ndigi") ) {
+      ndigi = acd.getMetadata("ndigi");
+    } else {
+      cout << myname << "WARNING: Metadata not found in ADC data: " << "digi" << endl;
+    }
+  }
   double tick0 = 0.0;   // Tick number in this run/job
   Index itkm0 = 0;
   Index timingPhase = 0;
@@ -240,11 +262,6 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
       state().haveTick0Job = true;
     }
     tick0 = toff - state().tick0Job;
-    Index eventID = acd.event;
-    if ( state().eventIDs.size() == 0 || state().eventIDs.back() != eventID ) {
-      state().eventIDs.push_back(eventID);
-      state().tick0s.push_back(tick0);
-    }
     while ( toff < 0.0 ) toff += m_TickModPeriod;
     itkm0 = toff % m_TickModPeriod;
     if ( m_LogLevel >= 3 ) cout << myname << "     Tick0: " << tick0 << endl;
@@ -255,6 +272,14 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
       timingPhase = m_NTimingPhase*(off.rem + delta);
       if ( m_LogLevel >= 3 ) cout << myname << "  Timing phase: " << timingPhase << endl;
     }
+  }
+  // Set the event variables, the first time an event ID is encountered.
+  if ( state().eventIDs.size() == 0 || state().eventIDs.back() != eventID ) {
+    state().eventIDs.push_back(eventID);
+    state().nchans.push_back(ndigi);
+    state().tick0s.push_back(tick0);
+    if ( m_LogLevel >= 3 ) cout << myname << "Creating event entry: EventID=" << eventID
+                                << ", ndigi=" << ndigi << ", tick0=" << std::fixed << tick0 << endl;
   }
   // Process each tickmod for this channel.
   FloatVector sigs(ntkm, 0.0);
@@ -459,11 +484,13 @@ AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, 
     ph.reset(new TH1F(hname.c_str(), htitl.c_str(), nbin, xmin, xmax));
     ph->SetDirectory(0);
     if ( haveHist ) {
-      int dbin = ph->GetXaxis()->GetXmin() - phold->GetXaxis()->GetXmin();
       for ( int ibin=1; ibin<=phold->GetNbinsX(); ++ibin ) {
-        ph->SetBinContent(ibin + dbin, phold->GetBinContent(ibin));
+        int adc = phold->GetXaxis()->GetXmin() - 0.999 + ibin;
+        for ( int icnt=0; icnt<phold->GetBinContent(ibin); ++icnt ) {
+          ph->Fill(adc);
+        }
       }
-      cout << myname << "Check new hist: " << phold->GetMean() << " ?= " << ph->GetMean() << endl;
+      if ( m_LogLevel > 4 ) cout << myname << "Check new hist: " << phold->GetMean() << " ?= " << ph->GetMean() << endl;
       ++state().tickModHistogramRebuildCount;
     } else {
       ++state().tickModHistogramInitialCount;
@@ -732,7 +759,7 @@ int AdcTickModViewer::makePhaseGraphs() const {
   // Plot phase vs. peak tick.
   Index nvar = m_NTimingPhase;
   if ( ! m_varPhase ) nvar = state().eventIDs.size();
-  float halfYstep = 0.5/nvar;
+  // Smearing of data points.
   Index ntkm = m_TickModPeriod;
   if ( ntkm == 0 ) return 0;
   // Loop over group indices (group = channel. femb, ...).
@@ -757,7 +784,10 @@ int AdcTickModViewer::makePhaseGraphs() const {
     }
     // Build the graph.
     string hnam = "hphtm";
-    string vname = m_varPhase ? "Phase" : m_varEvent ? "Event" : m_varTick0 ? "Tick0" : "UNKNOWN";
+    string vname = m_varPhase ? "Phase" :
+                   m_varEvent ? "Event" :
+                   m_varTick0 ? "Tick0" :
+                   m_varNchan ? "Nchan" : "UNKNOWN";
     string httl = vname + " vs. tickmod peak for run %RUN% " + m_PhaseGrouping
                   + " " + std::to_string(igrp);
     httl = nameReplace(httl, state().currentAcd, 0);
@@ -772,6 +802,7 @@ int AdcTickModViewer::makePhaseGraphs() const {
     if ( m_varPhase ) pg->GetYaxis()->SetTitle("Timing phase");
     if ( m_varEvent ) pg->GetYaxis()->SetTitle("Event ID");
     if ( m_varTick0 ) pg->GetYaxis()->SetTitle("Event time [Tick]");
+    if ( m_varNchan ) pg->GetYaxis()->SetTitle("Channel count");
     if ( m_LogLevel >=3 ) cout << myname << "Plotting " << m_PhaseVariable << " vs. peak tick for "
                                << m_PhaseGrouping << " " << igrp << endl;
     // Find range of tickmods with no change and with smaller values shifted
@@ -798,16 +829,18 @@ int AdcTickModViewer::makePhaseGraphs() const {
     }
     // Fill the graph.
     for ( Index ivar=0; ivar<nvar; ++ivar ) {
-      float y0 = ivar + halfYstep;
+      float y0 = ivar;
       if ( m_varEvent ) y0 = state().eventIDs[ivar];
       if ( m_varTick0 ) y0 = state().tick0s[ivar];
+      if ( m_varNchan ) y0 = state().nchans[ivar];
       FloatVector& xpks = xpksByPhase[ivar];
       if ( m_LogLevel >= 4 ) cout << myname << "Phase " << ivar << " peak count: " << xpks.size() << endl;
       Index nxpk = xpks.size();
       for ( Index ixpk=0; ixpk<nxpk; ++ixpk ) {
         float x = xpks[ixpk];
         if ( doShift && x < xhalf ) x += ntkm;
-        float y = y0 + 0.25 + 0.5*(ixpk+0.5)/nxpk;
+        float y = y0;
+        if ( m_varPhase || m_varEvent ) y+= -0.25 + 0.5*(ixpk+0.5)/nxpk;  // Smear integers
         pg->SetPoint(pg->GetN(), x, y);
       }
     }
