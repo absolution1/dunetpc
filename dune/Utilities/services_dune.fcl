@@ -345,7 +345,7 @@ protodune_services: {
 protodune_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
@@ -362,7 +362,7 @@ protodune_simulation_services: {
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
