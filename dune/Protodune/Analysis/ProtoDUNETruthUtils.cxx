@@ -104,7 +104,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const s
     }
     
     // If the initial energy of the g4 particle is very close to the energy of the protoDUNE particle, call it a day and have a cuppa.
-    if ( (pDunePart.PdgCode() == pPart->PdgCode()) && (pPart->E() - pDuneEnergy < 0.00001) ) {
+    if ( (pDunePart.PdgCode() == pPart->PdgCode()) && fabs(pPart->E() - pDuneEnergy) < 0.00001 ) {
       return pPart;
     }
     
@@ -140,7 +140,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(cons
   const sim::ParticleList & plist = pi_serv->ParticleList();
 
   for(auto const part : plist){
-    if((goodPart.PdgCode() == part.second->PdgCode()) && (part.second->E() - goodPart.E() < 1e-5)){
+    if((goodPart.PdgCode() == part.second->PdgCode()) && fabs(part.second->E() - goodPart.E()) < 1e-5){
       return part.second;
     }
   } 
