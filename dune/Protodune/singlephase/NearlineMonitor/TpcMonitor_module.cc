@@ -5,6 +5,8 @@
 // File:        TpcMonitor_module.cc
 // Author:      Jingbo Wang (jiowang@ucdavis.edu), February 2018
 //
+// Modification: Maggie Greenwood July, 2018
+//               Added large summary histograms.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -70,6 +72,7 @@ namespace tpc_monitor{
     void beginRun(const art::Run& run);
     void reconfigure(fhicl::ParameterSet const& pset);
     void analyze(const art::Event& evt); 
+    int FEMBchanToHistogramMap(int, int);
 
     void endJob();
     
@@ -143,6 +146,16 @@ namespace tpc_monitor{
     std::vector<TProfile*> fChanMeanV_pfx;
     std::vector<TProfile*> fChanRMSZ_pfx;
     std::vector<TProfile*> fChanMeanZ_pfx;
+
+    // 2D histograms of all Mean/RMS by offline channel number
+    // Intended as a color map with each bin to represent a single channel
+    TH2F* fAllChanMean;
+    TH2F* fAllChanRMS;
+
+    //2Dhistograms of bits, using same mapping as the fAllChan histos
+    //vector indexes over 0-11 bit numbers
+    std::vector<TH2I*> fBitValue;
+
     
     // profiled over events Mean/RMS by slot number
     std::vector<TProfile*> fSlotChanMean_pfx;
@@ -187,13 +200,15 @@ namespace tpc_monitor{
     void FillChannelHistos(TProfile* h1, double mean, double sigma, int& ndeadchannels, int& nnoisychannels_sigma, int& nnoisychannels_counts);
     geo::GeometryCore const * fGeom = &*(art::ServiceHandle<geo::Geometry>());
 
+    std::vector<unsigned int> fApaLabelNum;
+
 
   }; // TpcMonitor
 
   //-----------------------------------------------------------------------
 
   TpcMonitor::TpcMonitor(fhicl::ParameterSet const& parameterSet)
-    : EDAnalyzer(parameterSet), fRebinX(1), fRebinY(1) {
+    : EDAnalyzer(parameterSet), fRebinX(1), fRebinY(1), fApaLabelNum{3,5,2,6,1,4} {
     this->reconfigure(parameterSet);
   }
 
@@ -247,7 +262,8 @@ namespace tpc_monitor{
       <<"U: "<< fNUCh<<"  V:  "<<fNVCh<<"  Z0:  "<<fNZ0Ch << "  Z1:  " <<fNZ1Ch << std::endl;
     
     //Mean/RMS by offline channel for each view in each APA
-    for(unsigned int i=0;i<fNofAPA;i++){
+    for(unsigned int i=0;i<fNofAPA;i++)
+    {
       UChMin=fUChanMin + i*fChansPerAPA;
       UChMax=fUChanMax + i*fChansPerAPA;      
       VChMin=fVChanMin + i*fChansPerAPA;
@@ -263,35 +279,37 @@ namespace tpc_monitor{
 
       // summaries for all views
 
-      fStuckCodeOffFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOffFrac%d",i),Form("Stuck-Off Code Fraction APA%d",i),100,0,1));
-      fStuckCodeOnFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOnFrac%d",i),Form("Stuck-On Code Fraction APA%d",i),100,0,1));
+      unsigned int j=fApaLabelNum.at(i);
+
+      fStuckCodeOffFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOffFrac%d",j),Form("Stuck-Off Code Fraction APA%d",j),100,0,1));
+      fStuckCodeOnFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOnFrac%d",j),Form("Stuck-On Code Fraction APA%d",j),100,0,1));
 
       // U view
-      fChanRMSU_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSU%d_pfx", i),Form("Profiled raw-ped RMS vs Channel(Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
-      fChanMeanU_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanU%d_pfx",i),Form("Profiled raw-ped MEAN vs Channel(Plane U, APA%d)",i),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
-      fChanFFTU.push_back(tfs->make<TH2F>(Form("fChanFFTU%d", i),Form("fChanFFT (Plane U, APA%d)", i),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-      fChanMeanDistU.push_back(tfs->make<TH1F>(Form("fChanMeanDistU%d",i),Form("Means of Channels in (Plane U, APA%d)",i), 4096, -0.5, 4095.5));
-      fChanRMSDistU.push_back(tfs->make<TH1F>(Form("fChanRMSDistU%d",i),Form("RMSs of Channels in (Plane U, APA%d)",i), 100, 0, 50));
-      fChanStuckCodeOffFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracU%d",i),Form("Stuck-Off Code Fraction (Plane U, APA%d)",i), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
-      fChanStuckCodeOnFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracU%d",i),Form("Stuck-On Code Fraction (Plane U, APA%d)",i), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
+      fChanRMSU_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSU%d_pfx", j),Form("Profiled raw-ped RMS vs Channel(Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
+      fChanMeanU_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanU%d_pfx",j),Form("Profiled raw-ped MEAN vs Channel(Plane U, APA%d)",j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
+      fChanFFTU.push_back(tfs->make<TH2F>(Form("fChanFFTU%d", j),Form("fChanFFT (Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
+      fChanMeanDistU.push_back(tfs->make<TH1F>(Form("fChanMeanDistU%d",j),Form("Means of Channels in (Plane U, APA%d)",j), 4096, -0.5, 4095.5));
+      fChanRMSDistU.push_back(tfs->make<TH1F>(Form("fChanRMSDistU%d",j),Form("RMSs of Channels in (Plane U, APA%d)",j), 100, 0, 50));
+      fChanStuckCodeOffFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracU%d",j),Form("Stuck-Off Code Fraction (Plane U, APA%d)",j), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
+      fChanStuckCodeOnFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracU%d",j),Form("Stuck-On Code Fraction (Plane U, APA%d)",j), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
       
       // V view
-      fChanRMSV_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSV%d_pfx",i),Form("Profiled raw-ped RMS vs Channel(Plane V, APA%d)",i),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s")); 
-      fChanMeanV_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanV%d_pfx",i),Form("Profiled raw-ped Mean vs Channel(Plane V, APA%d)",i),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));   
-      fChanFFTV.push_back(tfs->make<TH2F>(Form("fChanFFTV%d", i),Form("fChanFFT (Plane V, APA%d)", i),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-      fChanMeanDistV.push_back(tfs->make<TH1F>(Form("fChanMeanDistV%d",i),Form("Means of Channels in (Plane V, APA%d)",i), 4096, -0.5, 4095.5));
-      fChanRMSDistV.push_back(tfs->make<TH1F>(Form("fChanRMSDistV%d",i),Form("RMSs of Channels in (Plane V, APA%d)",i), 100, 0, 50));
-      fChanStuckCodeOffFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracV%d",i),Form("Stuck-Off Code Fraction (Plane V, APA%d)",i), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
-      fChanStuckCodeOnFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracV%d",i),Form("Stuck-On Code Fraction (Plane V, APA%d)",i), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
+      fChanRMSV_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSV%d_pfx",j),Form("Profiled raw-ped RMS vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s")); 
+      fChanMeanV_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanV%d_pfx",j),Form("Profiled raw-ped Mean vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));   
+      fChanFFTV.push_back(tfs->make<TH2F>(Form("fChanFFTV%d", j),Form("fChanFFT (Plane V, APA%d)", j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
+      fChanMeanDistV.push_back(tfs->make<TH1F>(Form("fChanMeanDistV%d",j),Form("Means of Channels in (Plane V, APA%d)",j), 4096, -0.5, 4095.5));
+      fChanRMSDistV.push_back(tfs->make<TH1F>(Form("fChanRMSDistV%d",j),Form("RMSs of Channels in (Plane V, APA%d)",j), 100, 0, 50));
+      fChanStuckCodeOffFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracV%d",j),Form("Stuck-Off Code Fraction (Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
+      fChanStuckCodeOnFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracV%d",j),Form("Stuck-On Code Fraction (Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
       
       // Z view                                                                                                                                                           
-      fChanRMSZ_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSZ%d_pfx",i),Form("Profiled raw-ped RMS vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
-      fChanMeanZ_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanZ%d_pfx",i),Form("Profiled raw-ped Mean vs Channel(Plane Z, APA%d)",i),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
-      fChanFFTZ.push_back(tfs->make<TH2F>(Form("fChanFFTZ%d", i),Form("fChanFFT (Plane Z, APA%d)", i),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-      fChanMeanDistZ.push_back(tfs->make<TH1F>(Form("fChanMeanDistZ%d",i),Form("Means of Channels in (Plane Z, APA%d)",i), 4096, -0.5, 4095.5));
-      fChanRMSDistZ.push_back(tfs->make<TH1F>(Form("fChanRMSDistZ%d",i),Form("RMSs of Channels in (Plane Z, APA%d)",i), 100, 0, 50));
-      fChanStuckCodeOffFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracZ%d",i),Form("Stuck-Off Code Fraction (Plane Z, APA%d)",i), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
-      fChanStuckCodeOnFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracZ%d",i),Form("Stuck-On Code Fraction (Plane Z, APA%d)",i), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
+      fChanRMSZ_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSZ%d_pfx",j),Form("Profiled raw-ped RMS vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
+      fChanMeanZ_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanZ%d_pfx",j),Form("Profiled raw-ped Mean vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
+      fChanFFTZ.push_back(tfs->make<TH2F>(Form("fChanFFTZ%d", j),Form("fChanFFT (Plane Z, APA%d)", j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
+      fChanMeanDistZ.push_back(tfs->make<TH1F>(Form("fChanMeanDistZ%d",j),Form("Means of Channels in (Plane Z, APA%d)",j), 4096, -0.5, 4095.5));
+      fChanRMSDistZ.push_back(tfs->make<TH1F>(Form("fChanRMSDistZ%d",j),Form("RMSs of Channels in (Plane Z, APA%d)",j), 100, 0, 50));
+      fChanStuckCodeOffFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracZ%d",j),Form("Stuck-Off Code Fraction (Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
+      fChanStuckCodeOnFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracZ%d",j),Form("Stuck-On Code Fraction (Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
       
       // Set titles
       fChanRMSU_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSU_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
@@ -324,6 +342,33 @@ namespace tpc_monitor{
       fChanFFTZ[i]->Rebin2D(fRebinX, fRebinY);
     }
     
+    //All in one view
+    //make the histograms
+    fAllChanMean = tfs->make<TH2F>("fAllChanMean", "Means for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
+    fAllChanRMS = tfs->make<TH2F>("fAllChanRMS", "RMS for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
+    //set titles and bin labels
+    fAllChanMean->GetXaxis()->SetTitle("APA Number (online)"); fAllChanMean->GetYaxis()->SetTitle("Plane"); fAllChanMean->GetZaxis()->SetTitle("Raw Mean");
+    fAllChanRMS->GetXaxis()->SetTitle("APA Number (online)"); fAllChanRMS->GetYaxis()->SetTitle("Plane"); fAllChanRMS->GetZaxis()->SetTitle("Raw RMS");
+    fAllChanMean->GetXaxis()->SetLabelSize(.075); fAllChanMean->GetYaxis()->SetLabelSize(.05);
+    fAllChanRMS->GetXaxis()->SetLabelSize(.075); fAllChanRMS->GetYaxis()->SetLabelSize(.05);
+    fAllChanMean->GetXaxis()->SetBinLabel(40, "3"); fAllChanMean->GetXaxis()->SetBinLabel(120, "2"); fAllChanMean->GetXaxis()->SetBinLabel(200, "1");
+    fAllChanRMS->GetXaxis()->SetBinLabel(40, "3"); fAllChanRMS->GetXaxis()->SetBinLabel(120, "2"); fAllChanRMS->GetXaxis()->SetBinLabel(200, "1");
+    fAllChanMean->GetYaxis()->SetBinLabel(5, "U"); fAllChanMean->GetYaxis()->SetBinLabel(15, "V"); fAllChanMean->GetYaxis()->SetBinLabel(26, "Z");
+    fAllChanMean->GetYaxis()->SetBinLabel(37, "U"); fAllChanMean->GetYaxis()->SetBinLabel(47, "V"); fAllChanMean->GetYaxis()->SetBinLabel(58, "Z");
+    fAllChanRMS->GetYaxis()->SetBinLabel(5, "U"); fAllChanRMS->GetYaxis()->SetBinLabel(15, "V"); fAllChanRMS->GetYaxis()->SetBinLabel(26, "Z");
+    fAllChanRMS->GetYaxis()->SetBinLabel(37, "U"); fAllChanRMS->GetYaxis()->SetBinLabel(47, "V"); fAllChanRMS->GetYaxis()->SetBinLabel(58, "Z");
+
+    for(int i=0;i<12;i++)
+    {
+    fBitValue.push_back(tfs->make<TH2I>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5));
+    fBitValue[i]->SetStats(false);
+    fBitValue[i]->GetXaxis()->SetTitle("APA Number (online)"); fBitValue[i]->GetYaxis()->SetTitle("Plane"); fBitValue[i]->GetZaxis()->SetTitle("Bits");
+    fBitValue[i]->GetXaxis()->SetLabelSize(.075); fBitValue[i]->GetYaxis()->SetLabelSize(.05);
+    fBitValue[i]->GetXaxis()->SetBinLabel(40, "3"); fBitValue[i]->GetXaxis()->SetBinLabel(120, "2"); fBitValue[i]->GetXaxis()->SetBinLabel(200, "1");
+    fBitValue[i]->GetYaxis()->SetBinLabel(5, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(15, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(26, "Z");
+    fBitValue[i]->GetYaxis()->SetBinLabel(37, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(47, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(58, "Z");
+    }
+
     // Mean/RMS by slot channel number for each slot
     for(int i=0;i<30;i++) {
       fSlotChanMean_pfx.push_back(tfs->make<TProfile>(Form("Slot%d_Mean_pfx", i), Form("Slot%d:Mean_vs_SlotChannel_pfx", i), 512, 0, 512, "s")); 
@@ -361,12 +406,12 @@ namespace tpc_monitor{
     fNNoisyChannelsListFromNCounts->GetXaxis()->SetTitle("Channel ID");
 
     for(unsigned int i=0;i<fNofAPA;i++){
-      TString apastring = Form("APA %i", i);
-      fNDeadChannelsHisto->GetXaxis()->SetBinLabel(i+1, apastring.Data());
-      fNNoisyChannelsHistoFromNSigma->GetXaxis()->SetBinLabel(i+1, apastring.Data());
-      fNNoisyChannelsHistoFromNCounts->GetXaxis()->SetBinLabel(i+1, apastring.Data());
+      unsigned int j=fApaLabelNum.at(i);
+      TString apastring = Form("APA %i", j);
+      fNDeadChannelsHisto->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNNoisyChannelsHistoFromNSigma->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNNoisyChannelsHistoFromNCounts->GetXaxis()->SetBinLabel(j+1, apastring.Data());
     }
-
   }
 
   //-----------------------------------------------------------------------
@@ -424,6 +469,12 @@ namespace tpc_monitor{
     // a more usable form
     std::vector< art::Ptr<raw::RawDigit> > RawDigits;
     art::fill_ptr_vector(RawDigits, RawTPC);
+
+    //for the large all channel summary histograms these are key points for bin mapping
+      //for each offline numbered apa, the left most bin should be at the x value:
+    int xEdgeAPA[6] = {0,0,80,80,160,160}; //these numbers may be adjusted to horizontally space out the histogram
+      //for each of the apas, the bottom most bin should be at the y value:
+    int yEdgeAPA[2] = {0,32}; //these numbers may be adjusted to vertically space out the histograms
 
     // Loop over all RawRCEDigits (entire channels)                                                                                                        
     for(auto const & dptr : RawDigits) {
@@ -483,7 +534,7 @@ namespace tpc_monitor{
 	fFFT_by_Fiber_pfx.at(FiberID % 5)->Fill((k+0.5)*fBinWidth, histfft->GetBinContent(k+1));
       }
 
-      // summary stuck code fraction distributions by APA
+      // summary stuck code fraction distributions by APA -- here the APA is the offline APA number.  The plot labels contain the mapping
 
      fStuckCodeOffFrac[apa]->Fill(fracstuckoff);
      fStuckCodeOnFrac[apa]->Fill(fracstuckon);
@@ -491,6 +542,34 @@ namespace tpc_monitor{
       // Mean and RMS
       float mean = meanADC(uncompPed);
       float rms = rmsADC(uncompPed);
+
+      //get ready to fill the summary plots
+            //get the channel's FEMB and WIB
+      int WIB = channelMap->WIBFromOfflineChannel(chan);
+      int FEMB = channelMap->FEMBFromOfflineChannel(chan);
+      int FEMBchan = channelMap->FEMBChannelFromOfflineChannel(chan);
+      int iFEMB = ((WIB*4)+FEMB); //indexx of the FEMB 0-19
+      //Get the location of any FEMBchan in the hitogram
+      //put as a function for clenliness.
+      int xBin = ((FEMBchanToHistogramMap(FEMBchan,0))+(iFEMB*4)+xEdgeAPA[apa]); // (fembchan location on histogram) + shift from mobo + shift from apa
+      int yBin = ((FEMBchanToHistogramMap(FEMBchan,1))+yEdgeAPA[(apa%2)]); //(fembchan location on histogram) + shift from apa 
+
+      fAllChanMean->Fill(xBin,yBin,mean); //histogram the mean
+      fAllChanRMS->Fill(xBin,yBin,rms); //histogram the rms
+
+      for (int i=0; i<nSamples; i++) //histogram the 12 bits
+      { 
+        auto adc=uncompressed.at(i);
+        int bitstring = adc;
+        for(int mm=0;mm<11;mm++)
+        {
+          // get the bit value from the adc
+          int bit = (bitstring%2);
+          fBitValue[mm]->Fill(xBin,yBin,bit);
+          bitstring = (bitstring/2);
+        }
+      }
+
 	     
       // U View, induction Plane	  
       if( fGeom->View(chan) == geo::kU){	
@@ -506,6 +585,7 @@ namespace tpc_monitor{
 	  //for the 2D histos
 	  fChanFFTU[apa]->Fill(chan, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
 	}
+
       }// end of U View
 
       // V View, induction Plane
@@ -522,6 +602,7 @@ namespace tpc_monitor{
 	  //for the 2D histos
 	  fChanFFTV[apa]->Fill(chan, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
 	}
+
       }// end of V View               
 
       // Z View, collection Plane
@@ -538,6 +619,7 @@ namespace tpc_monitor{
 	  //for the 2D histos
 	  fChanFFTZ[apa]->Fill(chan, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
 	}
+
       }// end of Z View
       
       // Mean/RMS by slot
@@ -652,6 +734,38 @@ namespace tpc_monitor{
     return;
   }
 
+  //----------------------------------------------------------------------
+  //define the mapping of FEMBchans to the histogram.
+  int TpcMonitor::FEMBchanToHistogramMap(int FEMBchan, int coord){
+    //to see the reason for this channel mapping, check DocDB 4064 Table 5
+    //for one FEMB, this dictates the coordinates on the histogram as a 4X32 block.
+    int FEMBchanToHistogram[128][2] = { {0,0},{0,1},{0,2},{0,3},{0,4},//for U
+                                        {0,10},{0,11},{0,12},{0,13},{0,14},//for V
+                                        {0,20},{0,21},{0,22},{0,23},{0,24},{0,25},//for Z
+                                        {0,5},{0,6},{0,7},{0,8},{0,9},//for U
+                                        {0,15},{0,16},{0,17},{0,18},{0,19},//for V
+                                        {0,26},{0,27},{0,28},{0,29},{0,30},{0,31},//for Z
+                                        {1,20},{1,21},{1,22},{1,23},{1,24},{1,25},//for Z
+                                        {1,10},{1,11},{1,12},{1,13},{1,14},//for V
+                                        {1,0},{1,1},{1,2},{1,3},{1,4},//for U
+                                        {1,26},{1,27},{1,28},{1,29},{1,30},{1,31},//for Z
+                                        {1,15},{1,16},{1,17},{1,18},{1,19},//for V
+                                        {1,5},{1,6},{1,7},{1,8},{1,9},//for U
+                                        {2,0},{2,1},{2,2},{2,3},{2,4},//for U
+                                        {2,10},{2,11},{2,12},{2,13},{2,14},//for V
+                                        {2,20},{2,21},{2,22},{2,23},{2,24},{2,25},//for Z
+                                        {2,5},{2,6},{2,7},{2,8},{2,9},//for U
+                                        {2,15},{2,16},{2,17},{2,18},{2,19},//for V
+                                        {2,26},{2,27},{2,28},{2,29},{2,30},{2,31},//for Z
+                                        {3,20},{3,21},{3,22},{3,23},{3,24},{3,25},//for Z
+                                        {3,10},{3,11},{3,12},{3,13},{3,14},//for V
+                                        {3,0},{3,1},{3,2},{3,3},{3,4},//for U
+                                        {3,26},{3,27},{3,28},{3,29},{3,30},{3,31},//for Z
+                                        {3,15},{3,16},{3,17},{3,18},{3,19},//for V
+                                        {3,5},{3,6},{3,7},{3,8},{3,9} };//for U
+    return FEMBchanToHistogram[FEMBchan][coord];
+  }
+
   //-----------------------------------------------------------------------  
   void TpcMonitor::endJob() {
 
@@ -708,12 +822,13 @@ namespace tpc_monitor{
     // Fill summary histograms
     // Fill summary histograms
     for(unsigned int i = 0; i < fNofAPA; i++){
+      unsigned int j=fApaLabelNum.at(i);
       int nch = fUdch_vec.at(i) + fVdch_vec.at(i) + fZdch_vec.at(i);
-      fNDeadChannelsHisto->SetBinContent(i+1, nch);
+      fNDeadChannelsHisto->SetBinContent(j+1, nch);
       nch = fUnch_vec.at(i) + fVnch_vec.at(i) + fZnch_vec.at(i);
-      fNNoisyChannelsHistoFromNSigma->SetBinContent(i+1, nch);
+      fNNoisyChannelsHistoFromNSigma->SetBinContent(j+1, nch);
       nch = fUcch_vec.at(i) + fVcch_vec.at(i) + fZcch_vec.at(i);
-      fNNoisyChannelsHistoFromNCounts->SetBinContent(i+1, nch);
+      fNNoisyChannelsHistoFromNCounts->SetBinContent(j+1, nch);
     }
 
     //    myfileU.close();

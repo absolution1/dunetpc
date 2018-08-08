@@ -78,6 +78,8 @@ private:
   bool m_DoGroups = false;
   AdcChannel m_KeepChannelBegin =0;
   AdcChannel m_KeepChannelEnd =0;
+  AdcChannelVector m_SkipChannels;
+  AdcChannelVector m_KeepFembs;
 
   // Split label into producer and name: PRODUCER or PRODUCER:NAME
   std::string m_DigitProducer;
@@ -90,6 +92,9 @@ private:
   // Tools.
   std::string m_OnlineChannelMapTool;
   std::unique_ptr<IndexMapTool> m_onlineChannelMapTool;
+
+  // Processed event count.
+  unsigned int m_nproc =0;
 
 };
 
@@ -124,6 +129,8 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
   pset.get_if_present<AdcChannel>("KeepChannelBegin", m_KeepChannelBegin);
   pset.get_if_present<AdcChannel>("KeepChannelEnd", m_KeepChannelEnd);
+  pset.get_if_present<AdcChannelVector>("SkipChannels", m_SkipChannels);
+  pset.get_if_present<AdcChannelVector>("KeepFembs", m_KeepFembs);
   pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
 
   size_t ipos = m_DigitLabel.find(":");
@@ -156,16 +163,39 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << endl;
     cout << myname << "      KeepChannelBegin: " << m_KeepChannelBegin << endl;
     cout << myname << "        KeepChannelEnd: " << m_KeepChannelEnd << endl;
+    cout << myname << "          SkipChannels: " << "{";
+    bool first = true;
+    for ( AdcChannel ich : m_SkipChannels ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << ich;
+    }
+    cout << "}" << endl;
+    cout << myname << "             KeepFembs: " << "{";
+    first = true;
+    for ( AdcChannel ifmb : m_KeepFembs ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << ifmb;
+    }
+    cout << "}" << endl;
   }
 }
 
 //**********************************************************************
 
-void DataPrepModule::beginJob() { }
+void DataPrepModule::beginJob() {
+  const string myname = "DataPrepModule::beginJob: ";
+  if ( m_LogLevel >= 2 ) cout << myname << "Starting job." << endl;
+  m_nproc = 0;
+}
 
 //**********************************************************************
 
-void DataPrepModule::endJob() { }
+void DataPrepModule::endJob() {
+  const string myname = "DataPrepModule::endJob: ";
+  if ( m_LogLevel >= 2 ) cout << myname << "# events processed: " << m_nproc << endl;
+}
   
 //**********************************************************************
 
@@ -177,7 +207,12 @@ void DataPrepModule::produce(art::Event& evt) {
 
   // Read in the digits. 
   if ( m_LogLevel >= 2 ) {
-    cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
+    cout << myname << "Run " << evt.run();
+    if ( evt.subRun() ) cout << "-" << evt.subRun();
+    cout << ", event " << evt.event();
+    cout << ", Nproc: " << m_nproc;
+    cout << endl;
+    if ( m_LogLevel >= 3 ) cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
     // July 2018. ProtoDUNE real data has zero in high field and unix time in low field.
     if ( beginTime.timeHigh() == 0 ) {
       unsigned int itim = beginTime.timeLow();
@@ -187,16 +222,13 @@ void DataPrepModule::produce(art::Event& evt) {
     } else {
       cout << myname << "Sim data event time: " << DuneTimeConverter::toString(beginTime) << endl;
     }
-    cout << myname << "Run " << evt.run();
-    if ( evt.subRun() ) cout << "-" << evt.subRun();
-    cout << " event " << evt.event() << endl;
   }
   if ( m_LogLevel >= 3 ) {
     cout << myname << "Event time high, low: " << beginTime.timeHigh() << ", " << beginTime.timeLow() << endl;
   }
   art::Handle< std::vector<raw::RawDigit> > hdigits;
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
-  if ( m_LogLevel > 1 ) {
+  if ( m_LogLevel >= 3 ) {
     cout << myname << "# digits read: " << hdigits->size() << endl;
   }
   if ( hdigits->size() == 0 ) mf::LogWarning("DataPrepModule") << "Input digit container is empty";
@@ -221,7 +253,8 @@ void DataPrepModule::produce(art::Event& evt) {
   bool checkKeep = m_KeepChannelEnd > m_KeepChannelBegin;
   unsigned int nkeep = 0;
   unsigned int nskip = 0;
-  for ( unsigned int idig=0; idig<hdigits->size(); ++idig ) {
+  unsigned int ndigi = hdigits->size();
+  for ( unsigned int idig=0; idig<ndigi; ++idig ) {
     const raw::RawDigit& dig = (*hdigits)[idig];
     AdcChannel chan = dig.Channel();
     if ( checkKeep ) {
@@ -230,12 +263,34 @@ void DataPrepModule::produce(art::Event& evt) {
         continue;
       }
     }
-    ++nkeep;
+    if ( std::find(m_SkipChannels.begin(), m_SkipChannels.end(), chan) != m_SkipChannels.end() ) {
+      ++nskip;
+      continue;
+    }
     if ( fulldatamap.find(chan) != fulldatamap.end() ) {
       mf::LogWarning("DataPrepModule") << "Skipping duplicate channel " << chan << "." << endl;
       ++nskip;
       continue;
     }
+    // Fetch the online ID.
+    bool haveFemb = false;
+    AdcChannel fembID = -1;
+    AdcChannel fembChannel = -1;
+    if ( m_onlineChannelMapTool ) {
+      unsigned int ichOn = m_onlineChannelMapTool->get(chan);
+      if ( ichOn != IndexMapTool::badIndex() ) {
+        fembID = ichOn/128;
+        fembChannel = ichOn % 128;
+        haveFemb = true;
+      }
+    }
+    if ( m_KeepFembs.size() ) {
+      if ( find(m_KeepFembs.begin(), m_KeepFembs.end(), fembID) == m_KeepFembs.end() ) {
+        continue;
+        ++nskip;
+      }
+    }
+    // Build the channel data.
     AdcChannelData& acd = fulldatamap[chan];
     acd.run = evt.run();
     acd.subRun = evt.subRun();
@@ -243,17 +298,16 @@ void DataPrepModule::produce(art::Event& evt) {
     acd.channel = chan;
     acd.digitIndex = idig;
     acd.digit = &dig;
-    if ( m_onlineChannelMapTool ) {
-      unsigned int ichOn = m_onlineChannelMapTool->get(chan);
-      if ( ichOn != IndexMapTool::badIndex() ) {
-        acd.fembID = ichOn/128;
-        acd.fembChannel = ichOn % 128;
-      }
+    if ( haveFemb ) {
+      acd.fembID = fembID;
+      acd.fembChannel = fembChannel;
     }
+    acd.metadata["ndigi"] = ndigi;
+    ++nkeep;
   }
 
   // Create a vector of data maps with an entry for each group.
-  unsigned int ncgrp = 0;
+  unsigned int nproc = 0;
   vector<AdcChannelDataMap> datamaps;
   if ( m_DoGroups ) {
     if ( m_pChannelGroupService == nullptr ) {
@@ -267,17 +321,19 @@ void DataPrepModule::produce(art::Event& evt) {
       for ( AdcChannel chan : m_pChannelGroupService->channels(igrp) ) {
         if ( fulldatamap.find(chan) != fulldatamap.end() ) {
           datamap.emplace(chan, move(fulldatamap[chan]));
-          ++ncgrp;
+          ++nproc;
         }
       }
     }
   } else {
     datamaps.emplace_back(move(fulldatamap));
+    nproc = datamaps.front().size();
   }
   if ( m_LogLevel >= 2 ) {
-    cout << myname << "         # channels selected: " << ncgrp << endl;
-    cout << myname << "          # channels skipped: " << ncgrp << endl;
-    cout << myname << "  # channels to be processed: " << ncgrp << endl;
+    cout << myname << "              # input digits: " << ndigi << endl;
+    cout << myname << "         # channels selected: " << nkeep << endl;
+    cout << myname << "          # channels skipped: " << nskip << endl;
+    cout << myname << "  # channels to be processed: " << nproc << endl;
   }
 
   for ( AdcChannelDataMap& datamap : datamaps ) {
@@ -344,5 +400,6 @@ void DataPrepModule::produce(art::Event& evt) {
     evt.put(std::move(pintWiresWrapped), sname);
   }
 
+  ++m_nproc;
   return;
 }

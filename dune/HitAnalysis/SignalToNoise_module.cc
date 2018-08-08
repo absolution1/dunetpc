@@ -177,15 +177,15 @@ void dune::SignalToNoise::analyze(art::Event const & e)
     double ccosy = (cy[c1[0]]-cy[c2[0]])/sqrt(pow(cx[c1[0]]-cx[c2[0]],2)+pow(cy[c1[0]]-cy[c2[0]],2)+pow(cz[c1[0]]-cz[c2[0]],2));
     double ccosz = (cz[c1[0]]-cz[c2[0]])/sqrt(pow(cx[c1[0]]-cx[c2[0]],2)+pow(cy[c1[0]]-cy[c2[0]],2)+pow(cz[c1[0]]-cz[c2[0]],2));   
 
-    double larStart[3];
-    double larEnd[3];
+    TVector3 larStart;
+    TVector3 larEnd;
  
     for (size_t i = 0; i<tracklist.size(); ++i){
-      memset(larStart, 0, 3);
-      memset(larEnd, 0, 3);
       recob::Track::Point_t trackStart, trackEnd;
       std::tie(trackStart, trackEnd) = tracklist[i]->Extent(); 
-      tracklist[i]->Direction(larStart,larEnd);
+      larStart = tracklist[i]->VertexDirection();
+      larEnd = tracklist[i]->EndDirection();
+
       double dc = std::abs(ccosx*larStart[0]+ccosy*larStart[1]+ccosz*larStart[2]);
       dcos->Fill(dc);
       /*

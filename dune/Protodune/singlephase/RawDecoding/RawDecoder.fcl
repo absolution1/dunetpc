@@ -23,7 +23,7 @@ felix_raw_decoder:
   module_type: "FelixRawDecoder"
   RawDataLabel: "daq"
   OutputDataLabel: "daq"
-  ExpectContainerFragments: false
+  ExpectContainerFragments: true
 }
 
 # configuration for combined TPC Raw Decoder module
@@ -34,16 +34,18 @@ pdsp_tpc_raw_decoder:
   OutputDataLabel: "daq"
 
   RCERawDataLabel: "daq"
-  ExpectRCEContainerFragments: true
   RCERawDataContainerInstance: "ContainerTPC"
   RCERawDataNonContainerInstance: "TPC"
   RCEFragmentType: 2
 
   FELIXRawDataLabel: "daq"
-  ExpectFELIXContainerFragments: false
   FELIXRawDataContainerInstance: "ContainerFELIX"
   FELIXRawDataNonContainerInstance: "FELIX"
   FELIXFragmentType: 2    # not used in code
+
+  CompressHuffman: false
+
+  MakeHistograms: false #for making error monitoring histograms
 
 # enforcement flags.  If these are set to true and the data completeness 
 # conditions are not met, then an emtpy collection of raw::RawDigits is 
@@ -85,7 +87,6 @@ ssp_raw_decoder:
   MakeTree: "false"
   verbose_metadata: false
   verbose_adcs: 0
-  ExpectContainerFragments: true
 
   number_of_packets: 12  # number of channels per SSP
 

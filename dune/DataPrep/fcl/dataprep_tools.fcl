@@ -9,17 +9,9 @@
 
 ################################################################################
 # Tools to display ADC data.
-#
-# Add them to the dataprep service to display contents, e.g.
-#  services.RawDigitPrepService.DisplayTools = ["adcPlotter"]
 ################################################################################
 
-# Destination for data prep histograms.
-# This is now (April 2018) obsolete.
-tools.adcHists: {
-  tool_type: SimpleHistogramManager
-  LogLevel: 1
-}
+tools.tickRanges.plotTicks: { begin:3000  end:4000 label:"Plot ticks" }
 
 ################################################################################
 # Dumpers.
@@ -49,6 +41,7 @@ tools.adcStringBuilder: {
   EventWidth: 6
   ChannelWidth: 5
   CountWidth: 4
+  FembWidth: 3
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -89,7 +82,7 @@ tools.adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
   FitRmsMin:  1.0
-  FitRmsMax: 10.0
+  FitRmsMax: 20.0
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
   HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
@@ -124,10 +117,8 @@ tools.preparedAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
-  FirstChannel: 0
-  LastChannel:  0
+  TickRange: plotTicks
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
@@ -144,10 +135,8 @@ tools.signalAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
-  FirstChannel: 0
-  LastChannel:  0
+  TickRange: plotTicks
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
@@ -164,10 +153,8 @@ tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
-  FirstChannel: 0
-  LastChannel:  0
+  TickRange: plotTicks
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
@@ -190,9 +177,7 @@ tools.adcChannelPedestalPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestal
-  FirstChannel: 0
-  LastChannel: 0
-  ChannelCounts: []
+  ChannelRanges: []
   MetricMin: 0
   MetricMax: 4096
   ChannelLineModulus: 0
@@ -210,9 +195,7 @@ tools.adcChannelPedestalRmsPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestalRms
-  FirstChannel: 0
-  LastChannel: 0
-  ChannelCounts: []
+  ChannelRanges: []
   MetricMin: 0
   MetricMax: 11
   ChannelLineModulus: 0
