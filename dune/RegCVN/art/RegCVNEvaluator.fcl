@@ -1,0 +1,26 @@
+BEGIN_PROLOG
+
+#   This file defines the configuration for the CVNEventDump module
+
+
+# Configuration for the CVN TF interface
+standard_tfnethandler:
+{
+  #LibPath: "DUNE_PARDATA_DIR"
+  LibPath: "/pnfs/dune/persistent/users/iseong/TF_Model"
+  TFProtoBuf: "dune_model.pb"
+  NInputs : 3
+  ReverseViews: [false,false,false]
+}
+
+standard_cvnevaluator:
+{
+  module_type:        RegCVNEvaluator
+  #==================
+  PixelMapInput: "cvnmap"
+  ResultLabel: "regcvnresult"
+  TFNetHandler: @local::standard_tfnethandler
+  CVNType: "Tensorflow"
+}
+
+END_PROLOG
