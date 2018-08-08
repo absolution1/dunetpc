@@ -1,0 +1,403 @@
+////////////////////////////////////////////////////////////////////////
+// \file XYZCalibProtoDUNE.cxx
+//
+// \brief implementation of class for accessing (x,y,z) calibration data for ProtoDUNE
+//
+// \author jpaley@fnal.gov
+// 
+////////////////////////////////////////////////////////////////////////
+
+// C++ language includes
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include "math.h"
+#include "stdio.h"
+
+// LArSoft includes
+#include "dune/Calib/XYZCalibProtoDUNE.h"
+
+// nutools includes
+#include "nutools/IFDatabase/Table.h"
+
+// Framework includes
+#include "cetlib_except/exception.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
+
+//-----------------------------------------------
+calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE()
+{
+  fIsMC = true;
+  fYZCorrLoaded = false;
+  fXCorrLoaded = false;
+  fNormCorrLoaded = false;
+  fCurrentTS = 0;
+  fXCorrFileName="";
+  fYZCorrFileName="";
+  fNormCorrFileName="";
+
+}
+
+
+//-----------------------------------------------
+calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE(
+  fhicl::ParameterSet const& pset
+)
+{
+  fIsMC = true;
+  fYZCorrLoaded = false;
+  fXCorrLoaded = false;
+  fNormCorrLoaded = false;
+  fCurrentTS = 0;
+  fXCorrFileName="";
+  fYZCorrFileName="";
+  fNormCorrFileName="";
+  Configure(pset);
+}
+
+//------------------------------------------------
+bool calib::XYZCalibProtoDUNE::Configure(fhicl::ParameterSet const& pset)
+{  
+  fUseCondbXYZCorr = pset.get<bool>("UseCondbXYZCorr");
+  return true;
+}
+
+//------------------------------------------------
+bool calib::XYZCalibProtoDUNE::Update(uint64_t ts) 
+{
+
+  if (fYZCorrLoaded && ts != fCurrentTS) {
+    fYZCorr.clear();
+    fYZCorrLoaded = false;
+  }
+
+  if (fXCorrLoaded && ts != fCurrentTS) {
+    fXCorr.clear();
+    fXCorrLoaded = false;
+  }
+
+  if (fNormCorrLoaded && ts != fCurrentTS) {
+    fNormCorr.clear();
+    fNormCorrLoaded = false;
+  }
+
+  fCurrentTS = ts;
+  // all done! 
+
+  return true;
+}
+
+//------------------------------------------------
+double calib::XYZCalibProtoDUNE::GetNormCorr(int chanId) 
+{
+  if (!fNormCorrLoaded) this->LoadNormCorr();
+
+  if (fNormCorr.find(chanId) == fNormCorr.end()) {
+    mf::LogError("XYZCalibProtoDUNE") << "Plane not found!";
+    return 0.;
+  }
+
+  return fNormCorr[chanId].corr;
+}
+
+//------------------------------------------------
+double calib::XYZCalibProtoDUNE::GetXCorr(int plane, double x) 
+{
+  if (!fXCorrLoaded) this->LoadXCorr();
+
+  if (fXCorr.find(plane) == fXCorr.end()) {
+    mf::LogError("XYZCalibProtoDUNE") << "Plane not found!";
+    return 0.;
+  }
+
+  unsigned int ix = ((x - fXCorr[plane][0].x)/fXCorrDx);
+  if (ix >= fXCorr[plane].size()) {
+    mf::LogError("XYZCalibProtoDUNE") << "x value is out-of-bounds!";    
+    return 0.;
+  }
+
+  return fXCorr[plane][ix].corr;
+}
+
+//------------------------------------------------
+double calib::XYZCalibProtoDUNE::GetYZCorr(int plane, int side, 
+					   double y, double z) 
+{
+  if (!fYZCorrLoaded) this->LoadYZCorr();
+
+  int chanId = plane*10+side;
+
+  if (fYZCorr.find(chanId) == fYZCorr.end()) {
+    mf::LogError("XYZCalibProtoDUNE") << "Plane not found!";
+    return 0.;
+  }
+
+  unsigned int iy = ((y - fYZCorr[chanId][0].y)/fYZCorrDy);
+  if (iy >= fYZCorr[chanId].size()) {
+    mf::LogError("XYZCalibProtoDUNE") << "y value is out-of-bounds!";    
+    return 0.;
+  }
+
+  unsigned int iz = ((z - fYZCorr[chanId][iy].zCorr[0].x)/fYZCorrDz);
+  if (iz >= fYZCorr[chanId][iy].zCorr.size()) {
+    mf::LogError("XYZCalibProtoDUNE") << "z value is out-of-bounds!";    
+    return 0.;
+  }
+  
+  return fYZCorr[chanId][iy].zCorr[iz].corr;
+}
+
+//------------------------------------------------
+bool calib::XYZCalibProtoDUNE::LoadNormCorr()
+{
+  if (!fUseCondbXYZCorr) return true;
+
+  if (fNormCorrLoaded) return true;
+
+  nutools::dbi::Table NormCorrTable;
+  
+  NormCorrTable.SetDetector("pdunesp");
+  NormCorrTable.SetTableName("distcorrnorm");
+  NormCorrTable.SetTableType(nutools::dbi::kConditionsTable);
+  NormCorrTable.SetDataTypeMask(nutools::dbi::kDataOnly);
+  if (fIsMC)
+    NormCorrTable.SetDataTypeMask(nutools::dbi::kMCOnly);
+  
+  int normIdx = NormCorrTable.AddCol("norm","double");
+  int normErrIdx = NormCorrTable.AddCol("norm_err","double");
+  
+  NormCorrTable.SetMinTSVld(fCurrentTS);
+  NormCorrTable.SetMaxTSVld(fCurrentTS);
+  
+  NormCorrTable.SetVerbosity(100);
+
+  bool readOk = false;
+  if (!fNormCorrFileName.empty()) 
+    readOk = NormCorrTable.LoadFromCSV(fNormCorrFileName);
+  else
+    readOk = NormCorrTable.Load();
+
+  if (! readOk) {
+    mf::LogError("XYZCalibProtoDUNE") << "Load from norm calib database table failed.";
+    
+    return false; //std::abort();
+
+  }
+  
+  if (NormCorrTable.NRow() == 0) {
+    mf::LogError("XYZCalibProtoDUNE") << "Number of rows in norm calib table is 0.  This should never be the case!";
+    return false;
+  }
+  
+  nutools::dbi::Row* row;
+  uint64_t chan;
+  for (int i=0; i<NormCorrTable.NRow(); ++i) {
+    NormCorr_t norm;
+    row = NormCorrTable.GetRow(i);      
+    chan = row->Channel();
+    row->Col(normIdx).Get(norm.corr);
+    row->Col(normErrIdx).Get(norm.corr_err);
+    fNormCorr[chan] = norm;
+  }    
+
+  fNormCorrLoaded = true;
+  return true;
+}
+
+//------------------------------------------------
+bool calib::XYZCalibProtoDUNE::LoadXCorr()
+{
+  if (!fUseCondbXYZCorr) return true;
+
+  if (fXCorrLoaded) return true;
+
+  nutools::dbi::Table XCorrTable;
+  
+  XCorrTable.SetDetector("pdunesp");
+  XCorrTable.SetTableName("distcorrx");
+  XCorrTable.SetTableType(nutools::dbi::kConditionsTable);
+  XCorrTable.SetDataTypeMask(nutools::dbi::kDataOnly);
+  if (fIsMC)
+    XCorrTable.SetDataTypeMask(nutools::dbi::kMCOnly);
+  
+  int shapeIdx = XCorrTable.AddCol("shape","double");
+  int shapeErrIdx = XCorrTable.AddCol("shape_err","double");
+  int xIdx = XCorrTable.AddCol("x","double");
+  int dxIdx = XCorrTable.AddCol("dx","double");
+  
+  XCorrTable.SetMinTSVld(fCurrentTS);
+  XCorrTable.SetMaxTSVld(fCurrentTS);
+  
+  XCorrTable.SetVerbosity(100);
+
+  bool readOk = false;
+  if (!fXCorrFileName.empty()) 
+    readOk = XCorrTable.LoadFromCSV(fXCorrFileName);
+  else
+    readOk = XCorrTable.Load();
+
+  if (! readOk) {
+    mf::LogError("XYZCalibProtoDUNE") << "Load from x calib database table failed.";
+    return false; //std::abort();
+  }
+  
+  if (XCorrTable.NRow() == 0) {
+    mf::LogError("XYZCalibProtoDUNE") << "Number of rows in x calib table is 0.  This should never be the case!";
+    return false;
+  }
+  
+  nutools::dbi::Row* row;
+  uint64_t chan;
+  int plane;
+  std::vector<int> planeVec;
+
+  for (int i=0; i<XCorrTable.NRow(); ++i) {
+    row = XCorrTable.GetRow(i);      
+    chan = row->Channel();
+    plane = int(chan/10000);
+
+    if (fXCorr.find(plane) == fXCorr.end()) {
+      planeVec.push_back(plane);
+      std::vector<XCorr_t> xcorrVec;
+      fXCorr[plane] = xcorrVec;
+    }
+    
+    XCorr_t xcorr;
+    row->Col(xIdx).Get(xcorr.x);
+    row->Col(dxIdx).Get(xcorr.dx);
+    row->Col(shapeIdx).Get(xcorr.corr);
+    row->Col(shapeErrIdx).Get(xcorr.corr_err);
+    
+    if (i==0)
+      fXCorrDx = xcorr.dx;
+    
+    fXCorr[plane].push_back(xcorr);
+
+  }    
+
+  // sort the x-corrections by x for easy look-up
+  for (unsigned int i=0; i<planeVec.size(); ++i) {
+    std::sort(fXCorr[planeVec[i]].begin(),
+	      fXCorr[planeVec[i]].end());
+  }
+
+  fXCorrLoaded = true;
+  return true;
+
+}
+
+//------------------------------------------------
+bool calib::XYZCalibProtoDUNE::LoadYZCorr()
+{
+  if (!fUseCondbXYZCorr) return true;
+
+  if (fYZCorrLoaded) return true;
+
+  nutools::dbi::Table YZCorrTable;
+  
+  YZCorrTable.SetDetector("pdunesp");
+  YZCorrTable.SetTableName("distcorryz");
+  YZCorrTable.SetTableType(nutools::dbi::kConditionsTable);
+  YZCorrTable.SetDataTypeMask(nutools::dbi::kDataOnly);
+  if (fIsMC)
+    YZCorrTable.SetDataTypeMask(nutools::dbi::kMCOnly);
+  
+  int corrIdx = YZCorrTable.AddCol("corr","double");
+  int corrErrIdx = YZCorrTable.AddCol("corr_err","double");
+  int yIdx = YZCorrTable.AddCol("y","double");
+  int dyIdx = YZCorrTable.AddCol("dy","double");
+  int zIdx = YZCorrTable.AddCol("z","double");
+  int dzIdx = YZCorrTable.AddCol("dz","double");
+  
+  YZCorrTable.SetMinTSVld(fCurrentTS);
+  YZCorrTable.SetMaxTSVld(fCurrentTS);
+
+  //  YZCorrTable.SetChannelRange(0,10000);
+
+  YZCorrTable.SetVerbosity(100);
+
+  bool readOk = false;
+  if (!fYZCorrFileName.empty()) 
+    readOk = YZCorrTable.LoadFromCSV(fYZCorrFileName);
+  else
+    readOk = YZCorrTable.Load();
+
+  if (! readOk) {
+    mf::LogError("XYZCalibProtoDUNE") << "Load from yz calib database table failed.";
+    return false; //std::abort();
+  }
+  
+  if (YZCorrTable.NRow() == 0) {
+    mf::LogError("XYZCalibProtoDUNE") << "Number of rows in yz calib table is 0.  This should never be the case!";
+    return false;
+  }
+  
+  nutools::dbi::Row* row;
+  uint64_t chan;
+  double y, dy;
+  //  double z, dz;
+  //  double corr, corr_err;
+  std::vector<int> planeVec;
+
+  for (int i=0; i<YZCorrTable.NRow(); ++i) {
+    row = YZCorrTable.GetRow(i);      
+    chan = row->Channel();
+    int plane = chan/10000000;
+    int side = (chan-plane*10000000)/1000000;
+    int chanId = plane*10+side;
+
+    // check if plane exists in map, if not, create one.
+    if (fYZCorr.find(chanId) == fYZCorr.end()) {
+      std::vector<YZCorr_t> tcorrVec;
+      fYZCorr[chanId] = tcorrVec;
+      planeVec.push_back(chanId);
+    }
+
+    row->Col(yIdx).Get(y);
+    row->Col(dyIdx).Get(dy);
+    if (i==0) {
+      fYZCorrDy = dy;
+    }
+
+    // check if y bin has already been created, if not, create one.
+    unsigned int iy = 0;
+    for (; iy<fYZCorr[chanId].size(); ++iy) 
+      if (y == fYZCorr[chanId][iy].y) break;
+    if (iy == fYZCorr[chanId].size()) {
+      YZCorr_t yzcorr;
+      yzcorr.y = y;
+      yzcorr.dy = dy;
+      fYZCorr[chanId].push_back(yzcorr);
+    }
+
+    // now create correction
+    XCorr_t zcorr;
+    row->Col(zIdx).Get(zcorr.x);
+    row->Col(dzIdx).Get(zcorr.dx);
+    row->Col(corrIdx).Get(zcorr.corr);
+    row->Col(corrErrIdx).Get(zcorr.corr_err);
+    fYZCorr[chanId][iy].zCorr.push_back(zcorr);
+
+    if (i==0) {
+      fYZCorrDy = dy;
+      fYZCorrDz = zcorr.dx;
+    }
+
+  }    
+
+  // sort the (y,z)-corrections by y and then by z for easy look-up
+  for (unsigned int i=0; i<planeVec.size(); ++i) {
+    std::sort(fYZCorr[planeVec[i]].begin(),
+	      fYZCorr[planeVec[i]].end());
+    for (unsigned int j=0; j<fYZCorr[planeVec[i]].size(); ++j)
+      std::sort(fYZCorr[planeVec[i]][j].zCorr.begin(),
+		fYZCorr[planeVec[i]][j].zCorr.end());    
+  }
+
+  fYZCorrLoaded = true;
+  return true;
+
+}
+
+
