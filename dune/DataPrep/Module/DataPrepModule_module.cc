@@ -93,6 +93,9 @@ private:
   std::string m_OnlineChannelMapTool;
   std::unique_ptr<IndexMapTool> m_onlineChannelMapTool;
 
+  // Processed event count.
+  unsigned int m_nproc =0;
+
 };
 
 DEFINE_ART_MODULE(DataPrepModule)
@@ -181,11 +184,18 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
 
 //**********************************************************************
 
-void DataPrepModule::beginJob() { }
+void DataPrepModule::beginJob() {
+  const string myname = "DataPrepModule::beginJob: ";
+  if ( m_LogLevel >= 2 ) cout << myname << "Starting job." << endl;
+  m_nproc = 0;
+}
 
 //**********************************************************************
 
-void DataPrepModule::endJob() { }
+void DataPrepModule::endJob() {
+  const string myname = "DataPrepModule::endJob: ";
+  if ( m_LogLevel >= 2 ) cout << myname << "# events processed: " << m_nproc << endl;
+}
   
 //**********************************************************************
 
@@ -197,7 +207,12 @@ void DataPrepModule::produce(art::Event& evt) {
 
   // Read in the digits. 
   if ( m_LogLevel >= 2 ) {
-    cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
+    cout << myname << "Run " << evt.run();
+    if ( evt.subRun() ) cout << "-" << evt.subRun();
+    cout << ", event " << evt.event();
+    cout << ", Nproc: " << m_nproc;
+    cout << endl;
+    if ( m_LogLevel >= 3 ) cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
     // July 2018. ProtoDUNE real data has zero in high field and unix time in low field.
     if ( beginTime.timeHigh() == 0 ) {
       unsigned int itim = beginTime.timeLow();
@@ -207,16 +222,13 @@ void DataPrepModule::produce(art::Event& evt) {
     } else {
       cout << myname << "Sim data event time: " << DuneTimeConverter::toString(beginTime) << endl;
     }
-    cout << myname << "Run " << evt.run();
-    if ( evt.subRun() ) cout << "-" << evt.subRun();
-    cout << " event " << evt.event() << endl;
   }
   if ( m_LogLevel >= 3 ) {
     cout << myname << "Event time high, low: " << beginTime.timeHigh() << ", " << beginTime.timeLow() << endl;
   }
   art::Handle< std::vector<raw::RawDigit> > hdigits;
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
-  if ( m_LogLevel > 1 ) {
+  if ( m_LogLevel >= 3 ) {
     cout << myname << "# digits read: " << hdigits->size() << endl;
   }
   if ( hdigits->size() == 0 ) mf::LogWarning("DataPrepModule") << "Input digit container is empty";
@@ -388,5 +400,6 @@ void DataPrepModule::produce(art::Event& evt) {
     evt.put(std::move(pintWiresWrapped), sname);
   }
 
+  ++m_nproc;
   return;
 }

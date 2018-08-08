@@ -315,8 +315,9 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
       cout << myname << "itkmMax: " << itkmMax << endl;
       cout << myname << "sigs: " << ym << ", " << y0 << ", " << yp << endl;
     } else {
-      float xrem = 0.5*(ym - yp)/den;
+      float xrem = 0.5*(yp - ym)/den;
       float itkmPeak = itkmMax + xrem;
+//cout << "XXX: " << itkmMax << ": (" << ym << ", " << y0 << ", " << yp << "): " << xrem << ", " << itkmPeak << endl;
       mtms.push_back(itkmPeak);
     }
   }
@@ -440,6 +441,12 @@ AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, 
   TickModData adcData;
   Index isam0 = (itkm + period - itkm0) % period;
   for ( Index isam=isam0; isam<nsam; isam+=period ) adcData.add(acd.raw[isam]);
+bool dbg = false;
+if ( itkm > 237 && itkm < 242 && dbg ) {
+cout << "YYY: itkm = " << itkm << endl;
+for ( Index isam=isam0; isam<nsam; isam+=period ) cout << "YYY:    " << acd.raw[isam] << endl;
+cout << "YYY: mean: " << adcData.mean() << endl;
+}
   // Fetch the histogram pointer.
   Index icha = getChannelIndex();
   HistPtr& ph = state().ChannelTickModFullHists[icha][itkm];
