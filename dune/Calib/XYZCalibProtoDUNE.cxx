@@ -72,6 +72,7 @@ bool calib::XYZCalibProtoDUNE::Configure(fhicl::ParameterSet const& pset)
   fXCorrDBTag      = pset.get<std::string>("XCorrDBTag");
   fYZCorrDBTag     = pset.get<std::string>("YZCorrDBTag");
   fNormCorrDBTag   = pset.get<std::string>("NormCorrDBTag");
+
   return true;
 }
 

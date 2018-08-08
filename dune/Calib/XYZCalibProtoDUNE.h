@@ -14,6 +14,7 @@
 #include "fhiclcpp/ParameterSet.h"
 
 // ROOT includes
+
 #include "TH1F.h"
 #include "TH2F.h"
 
@@ -97,6 +98,7 @@ namespace calib {
       bool fXCorrLoaded;
       bool fYZCorrLoaded;
       bool fIsMC;
+
       uint64_t fCurrentTS;
 
       std::string fXCorrFileName;
