@@ -40,6 +40,7 @@
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
+#include "lardataobj/RawData/raw.h"
 
 class PDSPTPCRawDecoder;
 
@@ -78,6 +79,8 @@ private:
   unsigned int  _full_tick_count;
   bool          _enforce_error_free;
   bool          _enforce_no_duplicate_channels;
+
+  bool          _compress_Huffman;
 
   //declare histogram data memebers
   bool	_make_histograms;
@@ -133,6 +136,8 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _full_tick_count = p.get<unsigned int>("FullTickCount",10000);
   _enforce_error_free = p.get<bool>("EnforceErrorFree",false);
   _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
+
+  _compress_Huffman = p.get<bool>("CompressHuffman",false);
 
   produces<RawDigits>( _output_label ); //the strings in <> are the typedefs defined above
 
@@ -471,7 +476,15 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		    }
 		}
 	    }
-	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
+
+	  raw::Compress_t cflag=raw::kNone;
+	  if (_compress_Huffman)
+	    {
+	      cflag = raw::kHuffman;
+	      raw::Compress(v_adc,cflag);
+	    }
+	  // here n_ticks is the uncompressed size as required by the constructor
+	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
 	  raw_digits.push_back(raw_digit);  
 
 	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp());
@@ -724,8 +737,16 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	  }
       }
 
-    // Push to raw_digits.
-    raw::RawDigit raw_digit(offlineChannel, v_adc.size(), v_adc);
+    auto n_ticks = v_adc.size();
+
+    raw::Compress_t cflag=raw::kNone;
+    if (_compress_Huffman)
+      {
+	cflag = raw::kHuffman;
+	raw::Compress(v_adc,cflag);
+      }
+    // here n_ticks is the uncompressed size as required by the constructor
+    raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
     raw_digits.push_back(raw_digit);
 
     raw::RDTimeStamp rdtimestamp(frag.timestamp());
