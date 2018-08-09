@@ -14,9 +14,8 @@
 #include "fhiclcpp/ParameterSet.h"
 
 // ROOT includes
-//#include "TGraph.h"
-//#include "TF1.h"
-//#include "TFile.h"
+#include "TH1F.h"
+#include "TH2F.h"
 
 // C/C++ standard libraries
 #include <string>
@@ -48,12 +47,18 @@ namespace calib {
   typedef struct {
     double y;
     double dy;
-    std::vector<XCorr_t> zCorr;
+    double z;
+    double dz;
+    double corr;
+    double corr_err;
   } YZCorr_t;
   
   bool operator<(const YZCorr_t& a, const YZCorr_t& b)
   {
-    return (a.y < b.y);
+    double dy = a.y - b.y;
+    if (dy < -1.e-5) return true;
+    else if (dy > 1.e-5) return false;
+    else return (a.z < b.z);
   }
 
   class XYZCalibProtoDUNE : public XYZCalib {
@@ -92,17 +97,14 @@ namespace calib {
       bool fXCorrLoaded;
       bool fYZCorrLoaded;
       bool fIsMC;
-      double fXCorrDx;
-      double fYZCorrDy;
-      double fYZCorrDz;
       uint64_t fCurrentTS;
       std::string fXCorrFileName;
       std::string fYZCorrFileName;
       std::string fNormCorrFileName;
 
       std::map<int,NormCorr_t> fNormCorr;
-      std::map<int,std::vector<XCorr_t> > fXCorr;
-      std::map<int,std::vector<YZCorr_t> > fYZCorr;
+      std::map<int,TH1F> fXCorrHist;
+      std::map<int,TH2F> fYZCorrHist;
 
   }; // class XYZCalibProtoDUNE
 } //namespace calib

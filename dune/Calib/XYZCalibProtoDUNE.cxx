@@ -68,12 +68,12 @@ bool calib::XYZCalibProtoDUNE::Update(uint64_t ts)
 {
 
   if (fYZCorrLoaded && ts != fCurrentTS) {
-    fYZCorr.clear();
+    fYZCorrHist.clear();
     fYZCorrLoaded = false;
   }
 
   if (fXCorrLoaded && ts != fCurrentTS) {
-    fXCorr.clear();
+    fXCorrHist.clear();
     fXCorrLoaded = false;
   }
 
@@ -106,18 +106,12 @@ double calib::XYZCalibProtoDUNE::GetXCorr(int plane, double x)
 {
   if (!fXCorrLoaded) this->LoadXCorr();
 
-  if (fXCorr.find(plane) == fXCorr.end()) {
+  if (fXCorrHist.find(plane) == fXCorrHist.end()) {
     mf::LogError("XYZCalibProtoDUNE") << "Plane not found!";
     return 0.;
   }
 
-  unsigned int ix = ((x - fXCorr[plane][0].x)/fXCorrDx);
-  if (ix >= fXCorr[plane].size()) {
-    mf::LogError("XYZCalibProtoDUNE") << "x value is out-of-bounds!";    
-    return 0.;
-  }
-
-  return fXCorr[plane][ix].corr;
+  return fXCorrHist[plane].Interpolate(x);
 }
 
 //------------------------------------------------
@@ -128,24 +122,13 @@ double calib::XYZCalibProtoDUNE::GetYZCorr(int plane, int side,
 
   int chanId = plane*10+side;
 
-  if (fYZCorr.find(chanId) == fYZCorr.end()) {
+  if (fYZCorrHist.find(chanId) == fYZCorrHist.end()) {
     mf::LogError("XYZCalibProtoDUNE") << "Plane not found!";
     return 0.;
   }
 
-  unsigned int iy = ((y - fYZCorr[chanId][0].y)/fYZCorrDy);
-  if (iy >= fYZCorr[chanId].size()) {
-    mf::LogError("XYZCalibProtoDUNE") << "y value is out-of-bounds!";    
-    return 0.;
-  }
+  return fYZCorrHist[chanId].Interpolate(y,z);
 
-  unsigned int iz = ((z - fYZCorr[chanId][iy].zCorr[0].x)/fYZCorrDz);
-  if (iz >= fYZCorr[chanId][iy].zCorr.size()) {
-    mf::LogError("XYZCalibProtoDUNE") << "z value is out-of-bounds!";    
-    return 0.;
-  }
-  
-  return fYZCorr[chanId][iy].zCorr[iz].corr;
 }
 
 //------------------------------------------------
@@ -252,36 +235,44 @@ bool calib::XYZCalibProtoDUNE::LoadXCorr()
   int plane;
   std::vector<int> planeVec;
 
+  std::map<int,std::vector<XCorr_t> > fXCorr;
+
   for (int i=0; i<XCorrTable.NRow(); ++i) {
     row = XCorrTable.GetRow(i);      
     chan = row->Channel();
     plane = int(chan/10000);
 
-    if (fXCorr.find(plane) == fXCorr.end()) {
-      planeVec.push_back(plane);
-      std::vector<XCorr_t> xcorrVec;
-      fXCorr[plane] = xcorrVec;
-    }
-    
     XCorr_t xcorr;
     row->Col(xIdx).Get(xcorr.x);
     row->Col(dxIdx).Get(xcorr.dx);
     row->Col(shapeIdx).Get(xcorr.corr);
     row->Col(shapeErrIdx).Get(xcorr.corr_err);
     
-    if (i==0)
-      fXCorrDx = xcorr.dx;
-    
+    if (fXCorr.find(plane) == fXCorr.end()) {
+      planeVec.push_back(plane);
+      std::vector<XCorr_t> xcorrVec;
+      fXCorr[plane] = xcorrVec;      
+    }
+
     fXCorr[plane].push_back(xcorr);
 
   }    
 
   // sort the x-corrections by x for easy look-up
   for (unsigned int i=0; i<planeVec.size(); ++i) {
-    std::sort(fXCorr[planeVec[i]].begin(),
-	      fXCorr[planeVec[i]].end());
+    int ip = planeVec[i];
+    std::sort(fXCorr[ip].begin(),fXCorr[ip].end());
+    char hname[256];
+    sprintf(hname,"xCorrHist_%d",ip);
+    int nbins = int(fXCorr[ip].size());
+    double xmin = fXCorr[ip][0].x;
+    double xmax = fXCorr[ip][nbins-1].x;
+    double bw = (xmax-xmin)/(nbins-1);
+    fXCorrHist[ip] = TH1F(hname,"",nbins,xmin-bw,xmax+bw);
+    for (unsigned int j=0; j<fXCorr[ip].size(); ++j) 
+      fXCorrHist[ip].SetBinContent(j+1,fXCorr[ip][j].corr);
   }
-
+    
   fXCorrLoaded = true;
   return true;
 
@@ -306,14 +297,12 @@ bool calib::XYZCalibProtoDUNE::LoadYZCorr()
   int corrIdx = YZCorrTable.AddCol("corr","double");
   int corrErrIdx = YZCorrTable.AddCol("corr_err","double");
   int yIdx = YZCorrTable.AddCol("y","double");
-  int dyIdx = YZCorrTable.AddCol("dy","double");
+  //  int dyIdx = YZCorrTable.AddCol("dy","double");
   int zIdx = YZCorrTable.AddCol("z","double");
-  int dzIdx = YZCorrTable.AddCol("dz","double");
+  //  int dzIdx = YZCorrTable.AddCol("dz","double");
   
   YZCorrTable.SetMinTSVld(fCurrentTS);
   YZCorrTable.SetMaxTSVld(fCurrentTS);
-
-  //  YZCorrTable.SetChannelRange(0,10000);
 
   YZCorrTable.SetVerbosity(100);
 
@@ -335,10 +324,9 @@ bool calib::XYZCalibProtoDUNE::LoadYZCorr()
   
   nutools::dbi::Row* row;
   uint64_t chan;
-  double y, dy;
-  //  double z, dz;
-  //  double corr, corr_err;
   std::vector<int> planeVec;
+
+  std::map<int,std::vector<YZCorr_t> > fYZCorr;
 
   for (int i=0; i<YZCorrTable.NRow(); ++i) {
     row = YZCorrTable.GetRow(i);      
@@ -347,54 +335,51 @@ bool calib::XYZCalibProtoDUNE::LoadYZCorr()
     int side = (chan-plane*10000000)/1000000;
     int chanId = plane*10+side;
 
-    // check if plane exists in map, if not, create one.
-    if (fYZCorr.find(chanId) == fYZCorr.end()) {
-      std::vector<YZCorr_t> tcorrVec;
-      fYZCorr[chanId] = tcorrVec;
+    YZCorr_t yzcorr;
+    row->Col(yIdx).Get(yzcorr.y);
+    //    row->Col(dyIdx).Get(yzcorr.dy);
+    row->Col(zIdx).Get(yzcorr.z);
+    //    row->Col(dzIdx).Get(yzcorr.dz);
+    row->Col(corrIdx).Get(yzcorr.corr);
+    row->Col(corrErrIdx).Get(yzcorr.corr_err);
+
+    if (fYZCorr.find(chanId) == fYZCorr.end()) 
       planeVec.push_back(chanId);
-    }
 
-    row->Col(yIdx).Get(y);
-    row->Col(dyIdx).Get(dy);
-    if (i==0) {
-      fYZCorrDy = dy;
-    }
-
-    // check if y bin has already been created, if not, create one.
-    unsigned int iy = 0;
-    for (; iy<fYZCorr[chanId].size(); ++iy) 
-      if (y == fYZCorr[chanId][iy].y) break;
-    if (iy == fYZCorr[chanId].size()) {
-      YZCorr_t yzcorr;
-      yzcorr.y = y;
-      yzcorr.dy = dy;
-      fYZCorr[chanId].push_back(yzcorr);
-    }
-
-    // now create correction
-    XCorr_t zcorr;
-    row->Col(zIdx).Get(zcorr.x);
-    row->Col(dzIdx).Get(zcorr.dx);
-    row->Col(corrIdx).Get(zcorr.corr);
-    row->Col(corrErrIdx).Get(zcorr.corr_err);
-    fYZCorr[chanId][iy].zCorr.push_back(zcorr);
-
-    if (i==0) {
-      fYZCorrDy = dy;
-      fYZCorrDz = zcorr.dx;
-    }
-
+    fYZCorr[chanId].push_back(yzcorr);
+    
   }    
 
   // sort the (y,z)-corrections by y and then by z for easy look-up
-  for (unsigned int i=0; i<planeVec.size(); ++i) {
-    std::sort(fYZCorr[planeVec[i]].begin(),
-	      fYZCorr[planeVec[i]].end());
-    for (unsigned int j=0; j<fYZCorr[planeVec[i]].size(); ++j)
-      std::sort(fYZCorr[planeVec[i]][j].zCorr.begin(),
-		fYZCorr[planeVec[i]][j].zCorr.end());    
-  }
+  int nbinsy=0;
+  int nbinsz=0;
+  double ymin, ymax;
+  double zmin, zmax;
+  double bwy, bwz;
 
+  for (unsigned int i=0; i<planeVec.size(); ++i) {
+    int ip = planeVec[i];
+    std::sort(fYZCorr[ip].begin(),fYZCorr[ip].end());
+    if (i==0) {
+      ymin = fYZCorr[ip][0].y;
+      zmin = fYZCorr[ip][0].z;
+      ymax = fYZCorr[ip][fYZCorr[ip].size()-1].y;
+      zmax = fYZCorr[ip][fYZCorr[ip].size()-1].z;
+      // now figure out how many z bins there are
+      for (unsigned j=1; j<fYZCorr[ip].size(); ++j, ++nbinsz) 
+	if (fYZCorr[ip][j].z < fYZCorr[ip][j-1].z) break;
+      nbinsy = int(fYZCorr[ip].size())/++nbinsz;
+      bwz = (zmax-zmin)/(nbinsz-1);
+      bwy = (ymax-ymin)/(nbinsy-1);
+    }
+    char hname[256];
+    sprintf(hname,"yzCorrHist_%d",i);
+    fYZCorrHist[ip] = TH2F(hname,"",nbinsz,zmin-bwz,zmax+bwz,
+			   nbinsy,ymin-bwy,ymax+bwy);
+    for (unsigned int j=0; j<fYZCorr[ip].size(); ++j) 
+      fYZCorrHist[ip].Fill(fYZCorr[ip][j].z,fYZCorr[ip][j].y,fYZCorr[ip][j].corr);
+  }
+  
   fYZCorrLoaded = true;
   return true;
 
