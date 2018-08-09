@@ -36,6 +36,9 @@ calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE()
   fXCorrFileName="";
   fYZCorrFileName="";
   fNormCorrFileName="";
+  fXCorrDBTag="";
+  fYZCorrDBTag="";
+  fNormCorrDBTag="";
 
 }
 
@@ -53,6 +56,9 @@ calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE(
   fXCorrFileName="";
   fYZCorrFileName="";
   fNormCorrFileName="";
+  fXCorrDBTag="";
+  fYZCorrDBTag="";
+  fNormCorrDBTag="";
   Configure(pset);
 }
 
@@ -60,6 +66,9 @@ calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE(
 bool calib::XYZCalibProtoDUNE::Configure(fhicl::ParameterSet const& pset)
 {  
   fUseCondbXYZCorr = pset.get<bool>("UseCondbXYZCorr");
+  fXCorrDBTag      = pset.get<std::string>("XCorrDBTag");
+  fYZCorrDBTag     = pset.get<std::string>("YZCorrDBTag");
+  fNormCorrDBTag   = pset.get<std::string>("NormCorrDBTag");
   return true;
 }
 
@@ -152,7 +161,8 @@ bool calib::XYZCalibProtoDUNE::LoadNormCorr()
   
   NormCorrTable.SetMinTSVld(fCurrentTS);
   NormCorrTable.SetMaxTSVld(fCurrentTS);
-  
+  NormCorrTable.SetTag(fNormCorrDBTag);
+
   NormCorrTable.SetVerbosity(100);
 
   bool readOk = false;
@@ -211,6 +221,7 @@ bool calib::XYZCalibProtoDUNE::LoadXCorr()
   
   XCorrTable.SetMinTSVld(fCurrentTS);
   XCorrTable.SetMaxTSVld(fCurrentTS);
+  XCorrTable.SetTag(fXCorrDBTag);
   
   XCorrTable.SetVerbosity(100);
 
@@ -303,6 +314,7 @@ bool calib::XYZCalibProtoDUNE::LoadYZCorr()
   
   YZCorrTable.SetMinTSVld(fCurrentTS);
   YZCorrTable.SetMaxTSVld(fCurrentTS);
+  YZCorrTable.SetTag(fYZCorrDBTag);
 
   YZCorrTable.SetVerbosity(100);
 

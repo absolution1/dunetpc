@@ -101,6 +101,9 @@ namespace calib {
       std::string fXCorrFileName;
       std::string fYZCorrFileName;
       std::string fNormCorrFileName;
+      std::string fXCorrDBTag;
+      std::string fYZCorrDBTag;
+      std::string fNormCorrDBTag;
 
       std::map<int,NormCorr_t> fNormCorr;
       std::map<int,TH1F> fXCorrHist;
