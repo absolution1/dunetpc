@@ -98,6 +98,7 @@ namespace calib {
       bool fYZCorrLoaded;
       bool fIsMC;
       uint64_t fCurrentTS;
+
       std::string fXCorrFileName;
       std::string fYZCorrFileName;
       std::string fNormCorrFileName;

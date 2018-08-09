@@ -66,6 +66,9 @@ calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE(
 bool calib::XYZCalibProtoDUNE::Configure(fhicl::ParameterSet const& pset)
 {  
   fUseCondbXYZCorr = pset.get<bool>("UseCondbXYZCorr");
+  fXCorrFileName   = pset.get<std::string>("XCorrFileName");
+  fYZCorrFileName  = pset.get<std::string>("YZCorrFileName");
+  fNormCorrFileName= pset.get<std::string>("NormCorrFileName");
   fXCorrDBTag      = pset.get<std::string>("XCorrDBTag");
   fYZCorrDBTag     = pset.get<std::string>("YZCorrDBTag");
   fNormCorrDBTag   = pset.get<std::string>("NormCorrDBTag");
