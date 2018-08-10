@@ -36,6 +36,16 @@
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
+#include "dam/HeaderFragmentUnpack.hh"
+#include "dam/DataFragmentUnpack.hh"
+#include "dam/TpcFragmentUnpack.hh"
+#include "dam/TpcStreamUnpack.hh"
+#include "dam/access/WibFrame.hh"
+#include "dam/access/Headers.hh"
+#include "dam/access/TpcStream.hh"
+#include "dam/access/TpcRanges.hh"
+#include "dam/access/TpcToc.hh"
+#include "dam/access/TpcPacket.hh"
 
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
@@ -81,6 +91,7 @@ private:
   bool          _enforce_no_duplicate_channels;
 
   bool          _compress_Huffman;
+  bool          _print_coldata_convert_count;
 
   //declare histogram data memebers
   bool	_make_histograms;
@@ -138,6 +149,7 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
 
   _compress_Huffman = p.get<bool>("CompressHuffman",false);
+  _print_coldata_convert_count = p.get<bool>("PrintColdataConvertCount",false);
 
   produces<RawDigits>( _output_label ); //the strings in <> are the typedefs defined above
 
@@ -374,6 +386,40 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       auto const * rce_stream = rce.get_stream(i);
       size_t n_ch = rce_stream->getNChannels();
       size_t n_ticks = rce_stream->getNTicks();
+
+      if (_print_coldata_convert_count)
+	{
+
+	  // from JJ's PdReaderTest.cc
+          using namespace pdd;
+          using namespace pdd::access;
+	  bool printed=false;
+          TpcStream const        &stream = rce_stream->getStream ();
+	  TpcToc           toc    (stream.getToc    ());
+          TpcPacket        pktRec (stream.getPacket ());
+	  TpcPacketBody    pktBdy (pktRec.getRecord ());
+	  int   npkts = toc.getNPacketDscs ();
+	  for (int ipkt = 0; ipkt < npkts; ++ipkt)
+	    {
+	      TpcTocPacketDsc pktDsc (toc.getPacketDsc (ipkt));
+	      unsigned int      o64 = pktDsc.getOffset64 ();
+	      unsigned int  pktType = pktDsc.getType ();
+	      unsigned nWibFrames = pktDsc.getNWibFrames ();
+	      WibFrame const *wf = pktBdy.getWibFrames (pktType, o64);
+	      for (unsigned iwf = 0; iwf < nWibFrames; ++iwf)
+		{
+		  auto const &colddata = wf->getColdData ();
+		  auto cvt0 = colddata[0].getConvertCount ();
+		  //auto cvt1 = colddata[1].getConvertCount ();
+		  std::cout << "RCE coldata convert count: " << cvt0 << std::endl;
+		  printed = true;
+		  ++wf;  // in case we were looping over WIB frames, but let's stop at the first
+		  break;
+		}
+	      if (printed) break;
+	    }
+	}
+
 
       if(_make_histograms)
 	{
@@ -618,6 +664,12 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   uint8_t crate = felix.crate_no(0);
   uint8_t slot = felix.slot_no(0);
   uint8_t fiber = felix.fiber_no(0); // two numbers? 
+
+  if (_print_coldata_convert_count)
+    {
+       uint16_t first_coldata_convert_count = felix.coldata_convert_count(0,0);
+       std::cout << "FELIX Coldata convert count: " << (int) first_coldata_convert_count << std::endl;
+    }
 
   //std::cout << "FELIX raw decoder trj: " << (int) crate << " " << (int) slot << " " << (int) fiber << std::endl;
 

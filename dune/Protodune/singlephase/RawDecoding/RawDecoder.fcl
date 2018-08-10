@@ -44,6 +44,7 @@ pdsp_tpc_raw_decoder:
   FELIXFragmentType: 2    # not used in code
 
   CompressHuffman: false
+  PrintColdataConvertCount: false
 
   MakeHistograms: false #for making error monitoring histograms
 
