@@ -45,6 +45,7 @@
 #include "TPad.h"
 #include "TFile.h"
 #include "TProfile.h"
+#include "TProfile2D.h"
 
 // C++ Includes
 #include <vector>
@@ -149,12 +150,12 @@ namespace tpc_monitor{
 
     // 2D histograms of all Mean/RMS by offline channel number
     // Intended as a color map with each bin to represent a single channel
-    TH2F* fAllChanMean;
-    TH2F* fAllChanRMS;
+    TProfile2D* fAllChanMean;
+    TProfile2D* fAllChanRMS;
 
     //2Dhistograms of bits, using same mapping as the fAllChan histos
     //vector indexes over 0-11 bit numbers
-    std::vector<TH2I*> fBitValue;
+    std::vector<TProfile2D*> fBitValue;
 
     
     // profiled over events Mean/RMS by slot number
@@ -344,8 +345,8 @@ namespace tpc_monitor{
     
     //All in one view
     //make the histograms
-    fAllChanMean = tfs->make<TH2F>("fAllChanMean", "Means for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
-    fAllChanRMS = tfs->make<TH2F>("fAllChanRMS", "RMS for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
+    fAllChanMean = tfs->make<TProfile2D>("fAllChanMean", "Means for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
+    fAllChanRMS = tfs->make<TProfile2D>("fAllChanRMS", "RMS for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
     //set titles and bin labels
     fAllChanMean->GetXaxis()->SetTitle("APA Number (online)"); fAllChanMean->GetYaxis()->SetTitle("Plane"); fAllChanMean->GetZaxis()->SetTitle("Raw Mean");
     fAllChanRMS->GetXaxis()->SetTitle("APA Number (online)"); fAllChanRMS->GetYaxis()->SetTitle("Plane"); fAllChanRMS->GetZaxis()->SetTitle("Raw RMS");
@@ -360,9 +361,9 @@ namespace tpc_monitor{
 
     for(int i=0;i<12;i++)
     {
-    fBitValue.push_back(tfs->make<TH2I>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5));
+    fBitValue.push_back(tfs->make<TProfile2D>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5,0,1));
     fBitValue[i]->SetStats(false);
-    fBitValue[i]->GetXaxis()->SetTitle("APA Number (online)"); fBitValue[i]->GetYaxis()->SetTitle("Plane"); fBitValue[i]->GetZaxis()->SetTitle("Bits");
+    fBitValue[i]->GetXaxis()->SetTitle("APA Number (online)"); fBitValue[i]->GetYaxis()->SetTitle("Plane"); fBitValue[i]->GetZaxis()->SetTitle("Bit Fraction On");
     fBitValue[i]->GetXaxis()->SetLabelSize(.075); fBitValue[i]->GetYaxis()->SetLabelSize(.05);
     fBitValue[i]->GetXaxis()->SetBinLabel(40, "3"); fBitValue[i]->GetXaxis()->SetBinLabel(120, "2"); fBitValue[i]->GetXaxis()->SetBinLabel(200, "1");
     fBitValue[i]->GetYaxis()->SetBinLabel(5, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(15, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(26, "Z");
@@ -561,7 +562,7 @@ namespace tpc_monitor{
       { 
         auto adc=uncompressed.at(i);
         int bitstring = adc;
-        for(int mm=0;mm<11;mm++)
+        for(int mm=0;mm<12;mm++)
         {
           // get the bit value from the adc
           int bit = (bitstring%2);
