@@ -24,6 +24,12 @@ art_make_exec( NAME getXYZCalibProtoDUNE
 			dune_Calib
                )
 
+art_make_exec( NAME getLinConstsProtoDUNE
+               SOURCE getLinConstsProtoDUNE.cc                 
+               LIBRARIES
+			dune_Calib
+               )
+
 install_headers()
 install_fhicl()
 install_source()
