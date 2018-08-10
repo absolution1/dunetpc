@@ -369,9 +369,12 @@ bool calib::XYZCalibProtoDUNE::LoadYZCorr()
   // sort the (y,z)-corrections by y and then by z for easy look-up
   int nbinsy=0;
   int nbinsz=0;
-  double ymin, ymax;
-  double zmin, zmax;
-  double bwy, bwz;
+  double ymin=0.;
+  double ymax=0.;
+  double zmin=0;
+  double zmax=0.;
+  double bwy=0.;
+  double bwz=0.;
 
   for (unsigned int i=0; i<planeVec.size(); ++i) {
     int ip = planeVec[i];
