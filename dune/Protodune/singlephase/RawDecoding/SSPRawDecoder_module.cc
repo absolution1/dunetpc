@@ -110,7 +110,6 @@ private:
 
   uint32_t         verb_adcs_;
   bool             verb_meta_;
-  bool _expect_container_fragments;
 
   TH1D * n_event_packets_;
   TH1D * frag_sizes_;
@@ -151,7 +150,6 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   number_of_packets=pset.get<int>("number_of_packets");
   fDebug = pset.get<bool>("Debug");
-  _expect_container_fragments = pset.get<bool>("ExpectContainerFragments",true);
   fZeroThreshold=0;
   fCompression=raw::kNone;
 
@@ -222,9 +220,9 @@ void dune::SSPRawDecoder::readHeader(const SSPDAQ::EventHeader* daqHeader, struc
 
                                                            // external timestamp sync delay (FP mode)
   tv->timestamp_sync_delay = ((unsigned int)(daqHeader->timestamp[1]) << 16) + (unsigned int)(daqHeader->timestamp[0]);
-                                                           // external timestamp sync count (FP mode)
+  // external timestamp sync count (FP mode)
   tv->timestamp_sync_count = ((unsigned int)(daqHeader->timestamp[3]) << 16) + (unsigned int)(daqHeader->timestamp[2]);
-                                                           // get the external timestamp (NOvA mode)
+  // get the external timestamp (NOvA mode)
   tv->timestamp_nova = ((unsigned long)daqHeader->timestamp[3] << 48) + ((unsigned long)daqHeader->timestamp[2] << 32)
     + ((unsigned long)daqHeader->timestamp[1] << 16) + ((unsigned long)daqHeader->timestamp[0] << 0);
  
@@ -255,65 +253,75 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
   art::Handle<artdaq::Fragments> rawFragments;
   art::Handle<artdaq::Fragments> containerFragments;
 
-  if (_expect_container_fragments) {
-    /// Container Fragments:
-    evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
-    // Check if there is SSP data in this event
-    // Don't crash code if not present, just don't save anything    
-    try { containerFragments->size(); }
-    catch(std::exception e)  {
-      std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
-      return;
-    }
-    //Check that the data is valid
-    if(!containerFragments.isValid()){
-      std::cerr << "Run: " << evt.run()
-                << ", SubRun: " << evt.subRun()
-                << ", Event: " << eventNumber
-                << " is NOT VALID" << std::endl;
-      throw cet::exception("containerFragments NOT VALID");
-    }
+  bool have_data = true;
 
-    for (auto cont : *containerFragments)
-      {
-        std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
-        artdaq::ContainerFragment contf(cont);
-        for (size_t ii = 0; ii < contf.block_count(); ++ii)
-          {
-            size_t fragSize = contf.fragSize(ii);
-            frag_sizes_->Fill(fragSize);
-            //artdaq::Fragment thisfrag;
-            //thisfrag.resizeBytes(fragSize);
-	    
-            //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
-            fragments->emplace_back(*contf[ii]);
-          }
+  /// look for Container Fragments:
+  evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
+  // Check if there is SSP data in this event
+  // Don't crash code if not present, just don't save anything    
+  try { containerFragments->size(); }
+  catch(std::exception e)  {
+    //std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
+    have_data = false;
+  }
+
+  if (have_data)
+    {
+      //Check that the data are valid
+      if(!containerFragments.isValid()){
+	LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+				   << ", SubRun: " << evt.subRun()
+				   << ", Event: " << eventNumber
+				   << " Container Fragments found but NOT VALID";
+	return;
       }
-  }
-  else {
-    /// Raw Fragments:
-    evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
-    
-    // Check if there is SSP data in this event
-    // Don't crash code if not present, just don't save anything
-    try { rawFragments->size(); }
-    catch(std::exception e) {
-      std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
-      return;
+
+      for (auto cont : *containerFragments)
+	{
+	  //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
+	  artdaq::ContainerFragment contf(cont);
+	  for (size_t ii = 0; ii < contf.block_count(); ++ii)
+	    {
+	      size_t fragSize = contf.fragSize(ii);
+	      frag_sizes_->Fill(fragSize);
+	      //artdaq::Fragment thisfrag;
+	      //thisfrag.resizeBytes(fragSize);
+	    
+	      //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
+	      fragments->emplace_back(*contf[ii]);
+	    }
+	}
     }
 
-    //Check that the data is valid
-    if(!rawFragments.isValid()){
-      std::cerr << "Run: " << evt.run()
-	        << ", SubRun: " << evt.subRun()
-	        << ", Event: " << eventNumber
-	        << " is NOT VALID" << std::endl;
-      throw cet::exception("rawFragments NOT VALID");
-    }
-    for(auto const& rawfrag: *rawFragments){
-      fragments->emplace_back( rawfrag );
-    }
+  /// Look for non-container Raw Fragments:
+
+  bool have_data2=true;
+
+  evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
+    
+  // Check if there is SSP data in this event
+  // Don't crash code if not present, just don't save anything
+  try { rawFragments->size(); }
+  catch(std::exception e) {
+    //std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
+    have_data2=false;
   }
+
+  if (have_data2)
+    {
+      //Check that the data is valid
+      if(!rawFragments.isValid()){
+
+	LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+				   << ", SubRun: " << evt.subRun()
+				   << ", Event: " << eventNumber
+				   << " Non-Container Fragments found but NOT VALID";
+	return;
+      }
+      for(auto const& rawfrag: *rawFragments){
+	fragments->emplace_back( rawfrag );
+      }
+    }
   
 }
 
@@ -359,42 +367,48 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   unsigned int waveform_counter = 0;
   
   std::map<int, int> packets_per_fragment;
+
+  // just to make sure -- the std::move from the previous event should clear them out, but this is
+  // not guaranteed by the standard.
+
+  waveforms.clear();
+  hits.clear();
   
   /// Process all packets:
   
   for(auto const& frag: fragments){
     if((unsigned)frag.type() != 3) continue;
     // print raw fragment header information
-    std::cout << "   SequenceID = " << frag.sequenceID()
-	      << "   fragmentID = " << frag.fragmentID()
-	      << "   fragmentType = " << (unsigned)frag.type()
-	      << "   Timestamp =  " << std::dec << frag.timestamp() << std::endl;
+    //std::cout << "   SequenceID = " << frag.sequenceID()
+    //	      << "   fragmentID = " << frag.fragmentID()
+    //	      << "   fragmentType = " << (unsigned)frag.type()
+    //	      << "   Timestamp =  " << std::dec << frag.timestamp() << std::endl;
     
     ///> Create a SSPFragment from the generic artdaq fragment
     dune::SSPFragment sspf(frag);
     
     ///> get the size of the event in units of dune::SSPFragment::Header::data_t
-    dune::SSPFragment::Header::event_size_t event_size = sspf.hdr_event_size();
+    //dune::SSPFragment::Header::event_size_t event_size = sspf.hdr_event_size();
     
     ///> get the size of the header in units of dune::SSPFragment::Header::data_t
-    std::size_t header_size = sspf.hdr_run_number();
+    //std::size_t header_size = sspf.hdr_run_number();
     
     ///> get the event run number
-    dune::SSPFragment::Header::run_number_t run_number = sspf.hdr_run_number();
+    //dune::SSPFragment::Header::run_number_t run_number = sspf.hdr_run_number();
     
     ///> get the number of ADC values describing data beyond the header
-    std::size_t n_adc_values = sspf.total_adc_values();
+    //std::size_t n_adc_values = sspf.total_adc_values();
     
-    std::cout << std::endl;
-    std::cout << "SSP fragment "     << frag.fragmentID() 
-	      << " has total size: " << event_size << " SSPFragment::Header::data_t words"
-	      << " (of which " << header_size << " is header)"
-	      << " and run number: " << run_number
-	      << " with " << n_adc_values << " total ADC values"
-	      << std::endl;
-    std::cout << std::endl;
+    //std::cout << std::endl;
+    //std::cout << "SSP fragment "     << frag.fragmentID() 
+    //	      << " has total size: " << event_size << " SSPFragment::Header::data_t words"
+    //	      << " (of which " << header_size << " is header)"
+    //	      << " and run number: " << run_number
+    //	      << " with " << n_adc_values << " total ADC values"
+    //	      << std::endl;
+    //std::cout << std::endl;
     
-    unsigned int n_packets = 0;
+    //unsigned int n_packets = 0;
     
     const SSPDAQ::MillisliceHeader* meta=0;
     ///> get the information from the header
@@ -404,23 +418,23 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
 	meta = &(frag.metadata<SSPFragment::Metadata>()->sliceHeader);
 	
 	///> get the start and end times for the millislice
-	unsigned long start_time = meta->startTime;
-	unsigned long end_time   = meta->endTime;
+	//unsigned long start_time = meta->startTime;
+	//unsigned long end_time   = meta->endTime;
 	
 	///> get the length of the millislice in unsigned ints (including header)
-	unsigned int milli_length = meta->length;
+	//unsigned int milli_length = meta->length;
 	
 	///> get the number of packets in the millislice
-	n_packets = meta->nTriggers;
+	//n_packets = meta->nTriggers;
 	
-	std::cout << "Event number: " << eventNumber << ", packets: " << n_packets << std::endl;
+	//std::cout << "Event number: " << eventNumber << ", packets: " << n_packets << std::endl;
 	
-	std::cout
-	  <<"===Slice metadata:"<<std::endl
-	  <<"Start time         "<< start_time   <<std::endl
-	  <<"End time           "<< end_time     <<std::endl
-	  <<"Packet length      "<< milli_length <<std::endl
-	  <<"Number of packets "<< n_packets   <<std::endl <<std::endl;
+	//std::cout
+	//  <<"===Slice metadata:"<<std::endl
+	//<<"Start time         "<< start_time   <<std::endl
+	//<<"End time           "<< end_time     <<std::endl
+	//<<"Packet length      "<< milli_length <<std::endl
+	//<<"Number of packets "<< n_packets   <<std::endl <<std::endl;
       }
     else
       {
@@ -570,15 +584,15 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   }// frag: fragments
   
   n_event_packets_->Fill(allPacketsProcessed);
-  std::cout << "Event " << eventNumber << " has " << allPacketsProcessed << " total packets";
-  for(std::map<int, int>::iterator i_packets_per_fragment = packets_per_fragment.begin(); i_packets_per_fragment != packets_per_fragment.end(); i_packets_per_fragment++)
-    std::cout << " " << i_packets_per_fragment->first << ":" << i_packets_per_fragment->second;
-  std::cout << std::endl;
-  std::cout << std::endl
-	    << "ADC total is (from counter):           " << (double)adc_cumulative_
-            << std::endl
-	    << "Event ADC average is (from counter):   " << ((n_adc_counter_ == 0) ? 0 : (double)adc_cumulative_/(double)n_adc_counter_)
-	    << std::endl;
+  //std::cout << "Event " << eventNumber << " has " << allPacketsProcessed << " total packets";
+  //for(std::map<int, int>::iterator i_packets_per_fragment = packets_per_fragment.begin(); i_packets_per_fragment != packets_per_fragment.end(); i_packets_per_fragment++)
+  // std::cout << " " << i_packets_per_fragment->first << ":" << i_packets_per_fragment->second;
+  //std::cout << std::endl;
+  //std::cout << std::endl
+  //	    << "ADC total is (from counter):           " << (double)adc_cumulative_
+  //        << std::endl
+  //	    << "Event ADC average is (from counter):   " << ((n_adc_counter_ == 0) ? 0 : (double)adc_cumulative_/(double)n_adc_counter_)
+  //	    << std::endl;
   endEvent(eventNumber);
   
   evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);

@@ -29,6 +29,7 @@
 //   MaxPlotFileName: If nonblank, histograms for tickmods near the max ADC count are
 //                    displayed in these files.
 //   PhasePlotFileName: If nonblank, plots of phase vs. peak tickmod are displayed.
+//   PhaseVariable: Variable that appears on y-axis of phase plots: phase, event, tick0, nchan
 //   RootFileName: If nonblank, histogram is copied to this file.
 //   TreeFileName: If nonblank, a tickmod tree is created in this file.
 //   PlotChannels: If not empty, only the listed channels are plotted.
@@ -108,6 +109,7 @@ public:
 
   ~AdcTickModViewer();
 
+  DataMap viewMap(const AdcChannelDataMap& acds) const override;
   DataMap view(const AdcChannelData& acd) const override;
   bool updateWithView() const override { return true; }
 
@@ -126,6 +128,7 @@ private:  //data
   Name m_MinPlotFileName;
   Name m_MaxPlotFileName;
   Name m_PhasePlotFileName;
+  Name m_PhaseVariable;
   Name m_RootFileName;
   Name m_TreeFileName;
   IndexVector m_PlotChannels;
@@ -148,6 +151,11 @@ private:  //data
   const TimeOffsetTool* m_tickOffsetTool;
 
   // Derived data.
+  bool m_varPhase;
+  bool m_varEvent;
+  bool m_varTick0;
+  bool m_varNchan;
+
   bool m_plotAll;
   bool m_plotMin;
   bool m_plotMax;
@@ -172,7 +180,13 @@ private:  //data
     //    Proc hists have the region from the sticky code anlysis.
     HistVectorMap ChannelTickModFullHists;
     HistVectorMap ChannelTickModProcHists;
-    // Tickmod position of the ADC max for each channel, phase and event.
+    // Vectors of event numbers and tick0s.
+    FloatVector eventIDs;
+    FloatVector tick0s;
+    FloatVector nchans;
+    // Tickmod position of the ADC max for each channel, phase variable and event.
+    // MaxTickMods[icha][ivar] is the vector of tickmod peak positions for channel icha
+    // and variable index ivar.
     FloatVVectorMap MaxTickMods;
     // Phase graph for each channel/femb.
     GraphMap phaseGraphs;
@@ -189,6 +203,9 @@ private:  //data
     TickModTreeData treedata;
     TFile* pfile =nullptr;
     TTree* tickmodTree =nullptr;
+    // Tick offset for the job.
+    bool haveTick0Job = false;
+    double tick0Job = 0.0;
     // Accounting.
     Index tickModHistogramInitialCount =0;
     Index tickModHistogramRebuildCount =0;

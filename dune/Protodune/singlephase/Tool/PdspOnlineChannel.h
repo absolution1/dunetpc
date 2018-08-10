@@ -27,6 +27,10 @@ public:
 
   Index get(Index chanOff) const override;
 
+private:
+
+  Index m_LogLevel;
+
 };
 
 DEFINE_ART_CLASS_TOOL(PdspOnlineChannel)

@@ -101,7 +101,7 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   Index nshow = 64;
   for ( Index ichaOff=0; ichaOff<ncha; ++ichaOff ) {
     Index ichaOn = cma->get(ichaOff);
-    if ( nshow*(ichaOff/nshow) == ichaOff )
+    if ( nshow*(ichaOff/nshow) == ichaOff || ichaOn >= ncha )
       cout <<  myname << "  "  << ichaOff << " --> " << ichaOn << endl;
     assert( ichaOn < ncha );
     if ( offlineChannel[ichaOn] != badIndex ) {
