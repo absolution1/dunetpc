@@ -110,7 +110,6 @@ private:
 
   uint32_t         verb_adcs_;
   bool             verb_meta_;
-  bool _expect_container_fragments;
 
   TH1D * n_event_packets_;
   TH1D * frag_sizes_;
@@ -151,7 +150,6 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   number_of_packets=pset.get<int>("number_of_packets");
   fDebug = pset.get<bool>("Debug");
-  _expect_container_fragments = pset.get<bool>("ExpectContainerFragments",true);
   fZeroThreshold=0;
   fCompression=raw::kNone;
 
@@ -222,9 +220,9 @@ void dune::SSPRawDecoder::readHeader(const SSPDAQ::EventHeader* daqHeader, struc
 
                                                            // external timestamp sync delay (FP mode)
   tv->timestamp_sync_delay = ((unsigned int)(daqHeader->timestamp[1]) << 16) + (unsigned int)(daqHeader->timestamp[0]);
-                                                           // external timestamp sync count (FP mode)
+  // external timestamp sync count (FP mode)
   tv->timestamp_sync_count = ((unsigned int)(daqHeader->timestamp[3]) << 16) + (unsigned int)(daqHeader->timestamp[2]);
-                                                           // get the external timestamp (NOvA mode)
+  // get the external timestamp (NOvA mode)
   tv->timestamp_nova = ((unsigned long)daqHeader->timestamp[3] << 48) + ((unsigned long)daqHeader->timestamp[2] << 32)
     + ((unsigned long)daqHeader->timestamp[1] << 16) + ((unsigned long)daqHeader->timestamp[0] << 0);
  
@@ -255,65 +253,75 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
   art::Handle<artdaq::Fragments> rawFragments;
   art::Handle<artdaq::Fragments> containerFragments;
 
-  if (_expect_container_fragments) {
-    /// Container Fragments:
-    evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
-    // Check if there is SSP data in this event
-    // Don't crash code if not present, just don't save anything    
-    try { containerFragments->size(); }
-    catch(std::exception e)  {
-      std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
-      return;
-    }
-    //Check that the data is valid
-    if(!containerFragments.isValid()){
-      std::cerr << "Run: " << evt.run()
-                << ", SubRun: " << evt.subRun()
-                << ", Event: " << eventNumber
-                << " is NOT VALID" << std::endl;
-      throw cet::exception("containerFragments NOT VALID");
-    }
+  bool have_data = true;
 
-    for (auto cont : *containerFragments)
-      {
-        //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
-        artdaq::ContainerFragment contf(cont);
-        for (size_t ii = 0; ii < contf.block_count(); ++ii)
-          {
-            size_t fragSize = contf.fragSize(ii);
-            frag_sizes_->Fill(fragSize);
-            //artdaq::Fragment thisfrag;
-            //thisfrag.resizeBytes(fragSize);
-	    
-            //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
-            fragments->emplace_back(*contf[ii]);
-          }
+  /// look for Container Fragments:
+  evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
+  // Check if there is SSP data in this event
+  // Don't crash code if not present, just don't save anything    
+  try { containerFragments->size(); }
+  catch(std::exception e)  {
+    //std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
+    have_data = false;
+  }
+
+  if (have_data)
+    {
+      //Check that the data are valid
+      if(!containerFragments.isValid()){
+	LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+				   << ", SubRun: " << evt.subRun()
+				   << ", Event: " << eventNumber
+				   << " Container Fragments found but NOT VALID";
+	return;
       }
-  }
-  else {
-    /// Raw Fragments:
-    evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
-    
-    // Check if there is SSP data in this event
-    // Don't crash code if not present, just don't save anything
-    try { rawFragments->size(); }
-    catch(std::exception e) {
-      std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
-      return;
+
+      for (auto cont : *containerFragments)
+	{
+	  //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
+	  artdaq::ContainerFragment contf(cont);
+	  for (size_t ii = 0; ii < contf.block_count(); ++ii)
+	    {
+	      size_t fragSize = contf.fragSize(ii);
+	      frag_sizes_->Fill(fragSize);
+	      //artdaq::Fragment thisfrag;
+	      //thisfrag.resizeBytes(fragSize);
+	    
+	      //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
+	      fragments->emplace_back(*contf[ii]);
+	    }
+	}
     }
 
-    //Check that the data is valid
-    if(!rawFragments.isValid()){
-      std::cerr << "Run: " << evt.run()
-	        << ", SubRun: " << evt.subRun()
-	        << ", Event: " << eventNumber
-	        << " is NOT VALID" << std::endl;
-      throw cet::exception("rawFragments NOT VALID");
-    }
-    for(auto const& rawfrag: *rawFragments){
-      fragments->emplace_back( rawfrag );
-    }
+  /// Look for non-container Raw Fragments:
+
+  bool have_data2=true;
+
+  evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
+    
+  // Check if there is SSP data in this event
+  // Don't crash code if not present, just don't save anything
+  try { rawFragments->size(); }
+  catch(std::exception e) {
+    //std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
+    have_data2=false;
   }
+
+  if (have_data2)
+    {
+      //Check that the data is valid
+      if(!rawFragments.isValid()){
+
+	LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+				   << ", SubRun: " << evt.subRun()
+				   << ", Event: " << eventNumber
+				   << " Non-Container Fragments found but NOT VALID";
+	return;
+      }
+      for(auto const& rawfrag: *rawFragments){
+	fragments->emplace_back( rawfrag );
+      }
+    }
   
 }
 
@@ -359,6 +367,12 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   unsigned int waveform_counter = 0;
   
   std::map<int, int> packets_per_fragment;
+
+  // just to make sure -- the std::move from the previous event should clear them out, but this is
+  // not guaranteed by the standard.
+
+  waveforms.clear();
+  hits.clear();
   
   /// Process all packets:
   
