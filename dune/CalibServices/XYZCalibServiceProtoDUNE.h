@@ -7,7 +7,7 @@
 // 
 ////////////////////////////////////////////////////////////////////////
 #ifndef XYZCALIBSERVICEPROTODUNE_H
-#define CXYZALIBSERVICEPROTODUNE_H
+#define XYZCALIBSERVICEPROTODUNE_H
 
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
