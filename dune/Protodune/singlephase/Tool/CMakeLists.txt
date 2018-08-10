@@ -13,4 +13,4 @@ simple_plugin(PdspOnlineChannel   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
-add_subdirectory(test)
+#add_subdirectory(test)
