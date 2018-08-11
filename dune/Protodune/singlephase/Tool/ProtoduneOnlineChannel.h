@@ -35,7 +35,6 @@ private:
 
   Index m_LogLevel;
 
-  const Index npla = 4;
   Index nwirPlane[4] = {800, 800, 480, 480};
   Index nwirFemb[4] = {40, 40, 48, 48};
   Index uch[40];
