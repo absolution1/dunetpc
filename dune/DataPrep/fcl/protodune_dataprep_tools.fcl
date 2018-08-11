@@ -5,6 +5,10 @@
 ################################################################################
 
 tools.pd_onlineChannelMap: {
+  tool_type: ProtoduneOnlineChannel
+}
+
+tools.pd_onlineChannelMapServiceBased: {
   tool_type: PdspOnlineChannel
 }
 

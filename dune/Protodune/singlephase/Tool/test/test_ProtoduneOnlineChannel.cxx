@@ -1,9 +1,9 @@
-// test_PdspOnlineChannel.cxx
+// test_ProtoduneOnlineChannel.cxx
 //
 // David Adams
 // May 2018
 //
-// Test PdspOnlineChannel.
+// Test ProtoduneOnlineChannel.
 
 #include <string>
 #include <iostream>
@@ -29,8 +29,8 @@ using IndexVector = std::vector<Index>;
 
 //**********************************************************************
 
-int test_PdspOnlineChannel(bool useExistingFcl =false) {
-  const string myname = "test_PdspOnlineChannel: ";
+int test_ProtoduneOnlineChannel(bool useExistingFcl =false) {
+  const string myname = "test_ProtoduneOnlineChannel: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -38,15 +38,13 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_PdspOnlineChannel.fcl";
+  string fclfile = "test_ProtoduneOnlineChannel.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "#include \"PdspChannelMapService.fcl\"" << endl;
-    fout << "services: { PdspChannelMapService: @local::pdspchannelmap }" << endl;
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
-    fout << "    tool_type: PdspOnlineChannel" << endl;
+    fout << "    tool_type: ProtoduneOnlineChannel" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -139,7 +137,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_PdspOnlineChannel(useExistingFcl);
+  return test_ProtoduneOnlineChannel(useExistingFcl);
 }
 
 //**********************************************************************
