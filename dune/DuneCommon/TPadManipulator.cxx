@@ -18,6 +18,7 @@
 #include "TLegend.h"
 #include "TPaletteAxis.h"
 #include "TError.h"
+#include "TSystem.h"
 
 using std::string;
 using std::cout;
@@ -141,7 +142,14 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
 //**********************************************************************
 
 TPadManipulator::~TPadManipulator() {
-  //cout << "Destructed @" << this << endl;
+  //cout << "Destroying manipulator " << this << " with pad " << m_ppad
+  //     << " and parent " << m_parent << endl;
+  if ( m_ppad != nullptr && m_parent == nullptr ) {
+    m_ppad->Close();
+    gSystem->ProcessEvents();
+    delete m_ppad;
+    m_ppad = nullptr;
+  }
 }
 
 //**********************************************************************
@@ -534,7 +542,9 @@ int TPadManipulator::update() {
   }
 */
   if ( ! haveHistOrGraph() ) {
-    if ( npad() == 0 ) cout << myname << "Pad does not have a histogram or graph or subpads!" << endl;
+    if ( npad() == 0 && !haveParent() ) {
+      cout << myname << "Top-level pad does not have a histogram or graph or subpads!" << endl;
+    }
     gPad = pPadSave;
     return 0;
   }
@@ -1058,7 +1068,7 @@ int TPadManipulator::drawHistFuns() {
   for ( unsigned int ifun : m_histFuns ) {
     if ( ifun >= nfun ) continue;
     TF1* pfun = dynamic_cast<TF1*>(funs.At(ifun));
-    pfun->Draw("same");
+    if ( pfun != nullptr ) pfun->Draw("same");
   }
   gPad = pPadSave;
   return 0;

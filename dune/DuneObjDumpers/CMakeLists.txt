@@ -4,6 +4,7 @@ art_make(
     ${ROOT_CORE}
   MODULE_LIBRARIES
   #dune_DuneObjDumpers
+    dune_DuneObj
     nusimdata_SimulationBase
     ${ART_FRAMEWORK_CORE}
     ${ART_FRAMEWORK_PRINCIPAL}

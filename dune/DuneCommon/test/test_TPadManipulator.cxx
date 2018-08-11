@@ -14,6 +14,7 @@
 #include <cassert>
 #include "TH1F.h"
 #include "TCanvas.h"
+#include "TROOT.h"
 
 using std::string;
 using std::cout;
@@ -47,7 +48,8 @@ int test_TPadManipulator() {
 
   cout << myname << line << endl;
   cout << myname << "Create manipulator" << endl;
-  TPadManipulator man;
+  TPadManipulator* pman = new TPadManipulator;
+  TPadManipulator& man = *pman;
   assert( man.pad() == nullptr );
   assert( man.hist() == nullptr );
 
@@ -71,6 +73,12 @@ int test_TPadManipulator() {
   assert( man.pad() != nullptr );
 
   man.pad()->Print("test_TPadManipulator.png");
+
+  cout << myname << line << endl;
+  cout << myname << "Root canvas count: " << gROOT->GetListOfCanvases()->GetEntries() << endl;
+  cout << myname << "Deleting manipulator." << endl;
+  delete pman;
+  cout << myname << "Root canvas count: " << gROOT->GetListOfCanvases()->GetEntries() << endl;
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
