@@ -121,7 +121,7 @@ namespace CalibrationTreeBuilder {
               int partial_hit_pos=0;
               for(auto partial_hit : part.partial_hits){
                 int ind = partial_hit.index;
-                std::vector<EventRecord::HitContributor>::iterator hc_pos = std::find_if(private_eventPrep.hits.begin(), private_eventPrep.hits.end(), [&ind](EventRecord::HitContributor& hc){ return ind==hc.index;});
+                std::vector<CalibTreeRecord::HitContributor>::iterator hc_pos = std::find_if(private_eventPrep.hits.begin(), private_eventPrep.hits.end(), [&ind](CalibTreeRecord::HitContributor& hc){ return ind==hc.index;});
                 if(hc_pos==private_eventPrep.hits.end()){
                   private_eventPrep.hits.emplace_back(ind);
                   if(hc_pos!=(private_eventPrep.hits.end()-1)){
@@ -137,7 +137,7 @@ namespace CalibrationTreeBuilder {
               int partial_ophit_pos=0;
               for(auto partial_ophit : part.partial_ophits){
                 int ind = partial_ophit.index;
-                std::vector<EventRecord::HitContributor>::iterator hc_pos = std::find_if(private_eventPrep.ophits.begin(), private_eventPrep.ophits.end(), [&ind](EventRecord::HitContributor& hc){ return ind==hc.index;});
+                std::vector<CalibTreeRecord::HitContributor>::iterator hc_pos = std::find_if(private_eventPrep.ophits.begin(), private_eventPrep.ophits.end(), [&ind](CalibTreeRecord::HitContributor& hc){ return ind==hc.index;});
                 if(hc_pos==private_eventPrep.ophits.end()){
                   private_eventPrep.ophits.emplace_back(ind);
                   if(hc_pos!=(private_eventPrep.ophits.end()-1)){
@@ -170,7 +170,7 @@ namespace CalibrationTreeBuilder {
           npart.partial_hits.clear();
           npart.partial_ophits.clear(); //I did not clear the particles from the new list because I don't need to. They will be the same particles. The only thing that chages are the partial records, as we are bunching them.
           //add part to particle buffer.
-          std::map<int64_t, EventRecord::PartialHit> bunched_hits;
+          std::map<int64_t, CalibTreeRecord::PartialHit> bunched_hits;
           std::map<int64_t, std::list<Double_t>> remembered_energies;
           for(auto partialhit : part.partial_hits){ //No value in using an index loop here because I don't need the hit number (it will be internal, and won't match the counter);
             auto emp_h = bunched_hits.emplace(std::make_pair(partialhit.index,partialhit));
@@ -194,7 +194,7 @@ namespace CalibrationTreeBuilder {
             emp_h.first->second.energy=energy;
           }
           remembered_energies.clear();
-          std::map<int64_t, EventRecord::PartialOpHit> bunched_ophits;
+          std::map<int64_t, CalibTreeRecord::PartialOpHit> bunched_ophits;
           for(auto partialop : part.partial_ophits){
             auto emp_o = bunched_ophits.emplace(std::make_pair(partialop.index,partialop));
             std::list<Double_t> dummy;
@@ -275,7 +275,7 @@ namespace CalibrationTreeBuilder {
                   private_FlatCalibrationTree->Fill();
                   //Flat tree finished.
                   int ind = partial_hit.index;
-                  std::vector<EventRecord::HitContributor>::iterator hc_pos = std::find_if(private_eventBuffer.hits.begin(), private_eventBuffer.hits.end(), [&ind](EventRecord::HitContributor& hc){ return ind==hc.index;});
+                  std::vector<CalibTreeRecord::HitContributor>::iterator hc_pos = std::find_if(private_eventBuffer.hits.begin(), private_eventBuffer.hits.end(), [&ind](CalibTreeRecord::HitContributor& hc){ return ind==hc.index;});
                   if(hc_pos==private_eventBuffer.hits.end()){
                     private_eventBuffer.hits.emplace_back(ind);
                     if(hc_pos!=(private_eventBuffer.hits.end()-1)){
@@ -308,7 +308,7 @@ namespace CalibrationTreeBuilder {
                   private_FlatCalibrationTree->Fill();
 
                   //Seg fault here. I suspect it is because of an empty private_eventBuffer.ophits
-                  std::vector<EventRecord::HitContributor>::iterator hc_pos = std::find_if(private_eventBuffer.ophits.begin(), private_eventBuffer.ophits.end(), [&ind](EventRecord::HitContributor& hc){ return ind==hc.index;});
+                  std::vector<CalibTreeRecord::HitContributor>::iterator hc_pos = std::find_if(private_eventBuffer.ophits.begin(), private_eventBuffer.ophits.end(), [&ind](CalibTreeRecord::HitContributor& hc){ return ind==hc.index;});
                   if(hc_pos==private_eventBuffer.ophits.end()){
                     private_eventBuffer.ophits.emplace_back(ind);
                     if(hc_pos!=(private_eventBuffer.ophits.end()-1)){
@@ -350,12 +350,12 @@ namespace CalibrationTreeBuilder {
   bool CalibrationTreeBuilder::AddHit(const art::Ptr<recob::Hit> hit, unsigned int& counter){
     art::ServiceHandle<geo::Geometry> geom;
     std::vector<const sim::IDE*> ides_ps = BTS->HitToSimIDEs_Ps(hit);
-    std::vector<std::pair<int, EventRecord::PartialHit>> track_partials;
+    std::vector<std::pair<int, CalibTreeRecord::PartialHit>> track_partials;
     Double_t total_charge = 0.0;
     if(ides_ps.empty()){return false;}
     for(auto ide_p : ides_ps){
       int track_id = ide_p->trackID;
-      EventRecord::PartialHit tmp;
+      CalibTreeRecord::PartialHit tmp;
       total_charge += ide_p->numElectrons;
       //        tmp.charge = ide_p->numElectrons;
       tmp.num_electrons = ide_p->numElectrons;
@@ -371,10 +371,10 @@ namespace CalibrationTreeBuilder {
     for(auto track_partial : track_partials){
       track_partial.second.split  = track_partial.second.num_electrons / total_charge; //What percentage of the hit is in this partial.
       track_partial.second.charge = hit->Integral()*track_partial.second.split; //Charge now normalized by deposition;
-      //Add partial to EventRecord;
+      //Add partial to CalibTreeRecord;
       const simb::MCParticle* part = PIS->TrackIdToParticle_P(track_partial.first);
       //Emplace Particle. (Emplace Eve will be handeled in emplace particle
-      std::pair<std::vector<EventRecord::ParticleRecord>::iterator, bool> part_marker = EmplaceParticle(part);
+      std::pair<std::vector<CalibTreeRecord::ParticleRecord>::iterator, bool> part_marker = EmplaceParticle(part);
       part_marker.first->partial_hits.push_back(track_partial.second); //Add post normalized partial hit.
       //Don't forget to add the indicies to the hit vector. Actually. To keep it easy, we can just loop the eve records and add the indicies then. This is inefficient, but easier to code since I don't immediately have access to eve_pos here.
       mf::LogDebug(__FUNCTION__)<<"This partialhit is being added to the record with charge "<<track_partial.second.charge<<"\n";
@@ -386,12 +386,12 @@ namespace CalibrationTreeBuilder {
   bool CalibrationTreeBuilder::AddHit(const art::Ptr<recob::OpHit> hit, unsigned int& counter){
     {//make each loop local so the vectors don't persist
       const std::vector< sim::SDP> sdps = PBS->OpHitToChannelWeightedSimSDPs(hit);
-      std::vector<std::pair<int, EventRecord::PartialOpHit>> track_partials;
+      std::vector<std::pair<int, CalibTreeRecord::PartialOpHit>> track_partials;
       Double_t total_charge = 0.0;
       if(sdps.empty()){return false;}
       for(auto sdp : sdps){
         int track_id = sdp.trackID;
-        EventRecord::PartialOpHit tmp;
+        CalibTreeRecord::PartialOpHit tmp;
         total_charge += sdp.numPhotons;
         //        tmp.pes = //Not used yet.
         tmp.num_photons = sdp.numPhotons; //This is not PEs. This is incident photons. I am just storing it here for later logic (see final assignment in the next for loop.
@@ -408,10 +408,10 @@ namespace CalibrationTreeBuilder {
       for(auto track_partial : track_partials){
         track_partial.second.split  = track_partial.second.num_photons / total_charge; //What percentage of the hit is in this partial.
         track_partial.second.pes = hit->PE()*track_partial.second.split; //PEs now normalized by deposition;
-        //Add partial to EventRecord;
+        //Add partial to CalibTreeRecord;
         const simb::MCParticle* part = PIS->TrackIdToParticle_P(track_partial.first);
         //Emplace Particle. (Emplace Eve will be handeled in emplace particle
-        std::pair<std::vector<EventRecord::ParticleRecord>::iterator, bool> part_marker = EmplaceParticle(part);
+        std::pair<std::vector<CalibTreeRecord::ParticleRecord>::iterator, bool> part_marker = EmplaceParticle(part);
         part_marker.first->partial_ophits.push_back(track_partial.second); //Add post normalized partial hit.
         //Don't forget to add the indicies to the hit vector. Actually. To keep it easy, we can just loop the eve records and add the indicies then. This is inefficient, but easier to code since I don't immediately have access to eve_pos here.
       }//end for track partial.
@@ -422,18 +422,18 @@ namespace CalibrationTreeBuilder {
 
 
 
-  std::pair<std::vector<EventRecord::ParticleRecord>::iterator, bool> CalibrationTreeBuilder::EmplaceParticle(const simb::MCParticle* part){
+  std::pair<std::vector<CalibTreeRecord::ParticleRecord>::iterator, bool> CalibrationTreeBuilder::EmplaceParticle(const simb::MCParticle* part){
     int track_id = part->TrackId();
     int eve_id   = PIS->TrackIdToEveTrackId(part->TrackId());
     const simb::MCParticle* eve = PIS->TrackIdToParticle_P(eve_id);
     //This search can be put into EmplaceEve
-    //std::vector<EvenRecord::ParticleRecord>::iterator = std::find_if(private_eventPrep.eves.begin(), private_eventPrep.eves.end(), [&eve_id](EventRecord::EveRecord& eve_rec){ return eve_id==eve_rec.trackId;});
-    std::pair<std::vector<EventRecord::EveRecord>::iterator, bool> eve_marker = EmplaceEve(eve);
-    std::vector<EventRecord::ParticleRecord>::iterator part_ptr = std::find_if(eve_marker.first->particles.begin(), eve_marker.first->particles.end(), [&track_id](EventRecord::ParticleRecord& part_rec){return track_id == part_rec.trackId;});
+    //std::vector<EvenRecord::ParticleRecord>::iterator = std::find_if(private_eventPrep.eves.begin(), private_eventPrep.eves.end(), [&eve_id](CalibTreeRecord::EveRecord& eve_rec){ return eve_id==eve_rec.trackId;});
+    std::pair<std::vector<CalibTreeRecord::EveRecord>::iterator, bool> eve_marker = EmplaceEve(eve);
+    std::vector<CalibTreeRecord::ParticleRecord>::iterator part_ptr = std::find_if(eve_marker.first->particles.begin(), eve_marker.first->particles.end(), [&track_id](CalibTreeRecord::ParticleRecord& part_rec){return track_id == part_rec.trackId;});
     if(part_ptr!=eve_marker.first->particles.end()){
       return std::make_pair(part_ptr, false);
     }else{
-      EventRecord::ParticleRecord tmpRec;
+      CalibTreeRecord::ParticleRecord tmpRec;
       tmpRec.isEve   = (track_id==eve_id)?true:false; //The conditional operator here is unneccessary, but I think it is more clear to include it.
       tmpRec.trackId = track_id;
       tmpRec.pdgid   = part->PdgCode();
@@ -452,12 +452,12 @@ namespace CalibrationTreeBuilder {
     }//end else (part_ptr!=eve_marker.first->particles.end());
   }//end EmplaceParticle
 
-  std::pair<std::vector<EventRecord::EveRecord>::iterator, bool> CalibrationTreeBuilder::EmplaceEve(const simb::MCParticle* eve){
-    std::vector<EventRecord::EveRecord>& eves = private_eventPrep.eves;
+  std::pair<std::vector<CalibTreeRecord::EveRecord>::iterator, bool> CalibrationTreeBuilder::EmplaceEve(const simb::MCParticle* eve){
+    std::vector<CalibTreeRecord::EveRecord>& eves = private_eventPrep.eves;
     int eve_id = eve->TrackId();
-    std::vector<EventRecord::EveRecord>::iterator eve_ptr = std::find_if(eves.begin(), eves.end(), [&eve_id](EventRecord::EveRecord& eve_rec){return eve_id == eve_rec.trackId;});
+    std::vector<CalibTreeRecord::EveRecord>::iterator eve_ptr = std::find_if(eves.begin(), eves.end(), [&eve_id](CalibTreeRecord::EveRecord& eve_rec){return eve_id == eve_rec.trackId;});
     if( eve_ptr != eves.end() ){ return std::make_pair(eve_ptr, false); }else{
-      EventRecord::EveRecord tmpRec;
+      CalibTreeRecord::EveRecord tmpRec;
       tmpRec.trackId = eve_id;
       tmpRec.pdgid = eve->PdgCode();
       mf::LogDebug(__FUNCTION__)<<"The eve now enetered into the particle record has PDGID "<<eve->PdgCode()<<"\n";

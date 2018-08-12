@@ -9,7 +9,7 @@
 #define CALIBRATIONTREEBUILDER_H
 
 //Includes
-#include "dune/DuneObj/EventRecord.h"
+#include "dune/DuneObj/CalibTreeRecord.h"
 
 //LArSoft Includes
 #include "lardataobj/RecoBase/Track.h"
@@ -96,8 +96,8 @@ namespace CalibrationTreeBuilder {
 
       bool AddHit(const art::Ptr<recob::Hit> hit, unsigned int& counter);
       bool AddHit(const art::Ptr<recob::OpHit> hit, unsigned int& counter);
-      std::pair<std::vector<EventRecord::EveRecord>::iterator, bool> EmplaceEve(const simb::MCParticle* new_eve);
-      std::pair<std::vector<EventRecord::ParticleRecord>::iterator, bool> EmplaceParticle(const simb::MCParticle* new_part);
+      std::pair<std::vector<CalibTreeRecord::EveRecord>::iterator, bool> EmplaceEve(const simb::MCParticle* new_eve);
+      std::pair<std::vector<CalibTreeRecord::ParticleRecord>::iterator, bool> EmplaceParticle(const simb::MCParticle* new_part);
 
       art::ServiceHandle<cheat::ParticleInventoryService> PIS;
       art::ServiceHandle<cheat::BackTrackerService> BTS;
@@ -114,8 +114,8 @@ namespace CalibrationTreeBuilder {
       TBranch* private_CalibrationRecord;
       TBranch* private_FlatCalibrationRecord;
 
-      EventRecord::EventRecord private_eventBuffer;
-      EventRecord::EventRecord private_eventPrep;
+      CalibTreeRecord::CalibTreeRecord private_eventBuffer;
+      CalibTreeRecord::CalibTreeRecord private_eventPrep;
       flatfiller fl;
 
 
