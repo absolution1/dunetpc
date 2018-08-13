@@ -19,13 +19,17 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "IFBeam_service.h"
 #include "art/Framework/Services/Optional/TFileService.h"
+#include "lardataobj/RecoBase/TrackingTypes.h"
+#include "lardataobj/RecoBase/TrackTrajectory.h"
+#include "lardataobj/RecoBase/Track.h"
 //#include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
 #include "dune/DuneObj/ProtoDUNEBeamSpill.h"
 #include <bitset>
 #include <iomanip>
+#include <utility>
 
 #include "TTree.h"
-#include "TPolyLine3D.h"
+#include "TVectorD.h"
 #include "TPolyMarker.h"
 
 namespace proto {
@@ -58,6 +62,7 @@ public:
   void reconfigure(fhicl::ParameterSet const & p);
   std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);  
   void matchTriggers(beamspill::ProtoDUNEBeamSpill spill);
+  void GetFBMInfo(beamspill::ProtoDUNEBeamSpill spill, double Time);
   double GetPosition(size_t, size_t);
 
   void  parseDevices(uint64_t);
@@ -66,11 +71,14 @@ public:
 private:
   
   TTree * fOutTree;
-  TPolyLine3D * theLine;
+  recob::TrackTrajectory theTraj;
+  recob::Track theTrack;
+  
 
   // Declare member data here.
   //bool fLoadFromDB; // unused
   double  fTimeWindow;
+  double fTolerance;
   std::string fCSVFileName;
   std::string fBundleName;
   std::string fURLStr;
@@ -238,6 +246,18 @@ void proto::BeamAna::analyze(art::Event const & e)
  }
 
 matchTriggers(*spill);
+
+GetFBMInfo(*spill, 1.50000e+08);
+
+/*std::cout << "Trying to make points" << std::endl;
+
+recob::tracking::Point_t thePoint(0,1,2);
+recob::tracking::Positions_t thePoints;
+thePoints.push_back(thePoint);
+
+std::cout << thePoints.size() << std::endl;
+std::cout << "Finished" << std::endl;*/
+
 }
 
 void proto::BeamAna::parseDevices(uint64_t time){
@@ -379,8 +399,6 @@ void proto::BeamAna::beginJob()
 
   fOutTree = tfs->make<TTree>("tree", "lines"); 
   //Need to make this configurable later
-  theLine = new TPolyLine3D();
-  fOutTree->Branch("Line", &theLine);
   // Implementation of optional member function here.
 }
 
@@ -426,6 +444,8 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
 
   std::vector< std::pair<std::string, std::array<double,3> > > tempCoords = p.get<std::vector< std::pair<std::string, std::array<double,3> > > >("Coordinates");
 
+  fTolerance   = p.get<double>("Tolerance");
+
   //Location of Device 
 //  fCoordinates = p.get< std::vector< std::array<double,3> > >("Coordinates");
   fCoordinates = std::map<std::string, std::array<double,3> >(tempCoords.begin(), tempCoords.end());
@@ -455,6 +475,15 @@ std::bitset<sizeof(long)*CHAR_BIT> proto::BeamAna::toBinary(long num){
 
 void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
   
+/*  recob::TrackTrajectory::Positions_t thePoints;
+  recob::TrackTrajectory::Momenta_t theMomenta;
+  recob::TrackTrajectory::Flags_t theFlags; */
+
+  std::vector<TVector3> thePoints;
+  std::vector<TVector3> theMomenta;
+  std::vector< std::vector<double> > dummy;
+  std::vector<double> mom(2, util::kBogusD);
+
   std::map<std::string, size_t> goodTriggers;
   bool foundNext = false;
 
@@ -468,7 +497,6 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
  
     foundNext = false;
     double time = spill.DecodeFiberTime(firstIndex, it);
-//    std::cout << time << std::endl;
 
     //Go through the next FBMs and see if they have a good time
     
@@ -476,7 +504,7 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
     size_t secondIndex = deviceOrder[secondName];
     
     for( size_t it2 = 0; it2 < spill.GetNFBMTriggers(secondIndex); ++it2){
-      if ( ( (spill.DecodeFiberTime(secondIndex, it2 ) - time) < 0.00010e+08 ) && ( (spill.DecodeFiberTime(secondIndex, it2 ) - time) >= 0 ) ){
+      if ( ( (spill.DecodeFiberTime(secondIndex, it2 ) - time) < /*0.00010e+08*/fTolerance ) && ( (spill.DecodeFiberTime(secondIndex, it2 ) - time) >= 0 ) ){
         foundNext = true;
         goodTriggers[firstName] = it;
         goodTriggers[secondName] = it2;
@@ -493,7 +521,7 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
       size_t nextIndex = deviceOrder[nextName]; 
 
       for(size_t itN = 0; itN < spill.GetNFBMTriggers(nextIndex); ++itN){
-        if ( ( (spill.DecodeFiberTime(nextIndex, itN ) - time) < 0.00010e+08 ) && ( (spill.DecodeFiberTime(nextIndex, itN ) - time) >= 0 ) ){
+        if ( ( (spill.DecodeFiberTime(nextIndex, itN ) - time) < /*0.00010e+08*/fTolerance ) && ( (spill.DecodeFiberTime(nextIndex, itN ) - time) >= 0 ) ){
           foundNext = true;
           goodTriggers[nextName] = itN;
           break;
@@ -507,10 +535,6 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
     if(foundNext){
       std::cout << "Found good track" << std::endl;
         
-      if(theLine->GetN()){
-        //Reset it
-        *theLine = TPolyLine3D(fPairedDevices.size());
-      }
 
       std::vector<double> xPos;      
       std::vector<double> yPos;      
@@ -534,17 +558,55 @@ void proto::BeamAna::matchTriggers(beamspill::ProtoDUNEBeamSpill spill){
          
         std::cout << "Sizes: " << xPos.size() << " " << yPos.size() << std::endl;
         //Check if diff size?
-        theLine->SetPoint(ip, xPos.at(ip), yPos.at(ip), fCoordinates[name][2]);
-
+        
+        thePoints.push_back( TVector3(xPos.at(ip), yPos.at(ip), fCoordinates[name][2]) );  
+        theMomenta.push_back( TVector3(0.,0.,1.) );
+        //theFlags.push_back( recob::TrackTrajectory::PointFlags_t() );
       }
 
+      std::cout << "Making traj" << std::endl;
+      
 
-      std::cout << "Sizes: " << xPos.size() << " " << yPos.size() << std::endl;
+      //theTraj(thePoints, theMomenta, theFlags, true);      
+     // std::cout << "Length: " << theTraj.Length() << std::endl;
+     // std::cout << "Sizes: " << xPos.size() << " " << yPos.size() << std::endl;
+      theTrack = recob::Track(thePoints, theMomenta, dummy, mom, 1);
+      std::cout << " Done " << std::endl;
       fOutTree->Fill();
     }
 
   }
 
+}
+
+//Gets info from FBMs matching in time
+void proto::BeamAna::GetFBMInfo(beamspill::ProtoDUNEBeamSpill spill, double Time){
+
+  std::map<std::string, std::vector<size_t> > goodTriggers;
+
+  std::map<std::string, size_t>::iterator itOrder = deviceOrder.begin(); 
+  for(; itOrder != deviceOrder.end(); ++itOrder){ 
+
+    std::vector<size_t> triggers;
+
+    std::cout << itOrder->first << std::endl;
+    size_t index = itOrder->second; 
+    for(size_t itN = 0; itN < spill.GetNFBMTriggers(index); ++itN){
+      std::cout << itN << std::endl;
+      if ( ( (spill.DecodeFiberTime(index, itN ) - Time) < fTolerance ) && ( (spill.DecodeFiberTime(index, itN ) - Time)     >= 0 ) ){
+        std::cout << "Found Good Time" << itOrder->first << " " << spill.DecodeFiberTime(index, itN ) << std::endl;
+        triggers.push_back(itN);
+      }
+    }
+
+    goodTriggers[itOrder->first] = triggers;
+  }
+  
+  std::cout << "Good Triggers" << std::endl;
+  std::map<std::string, std::vector<size_t>>::iterator newIt = goodTriggers.begin();
+  for(; newIt != goodTriggers.end(); ++newIt){
+    std::cout << newIt->first << " " << newIt->second.size() << std::endl;
+  }
 }
 
 double proto::BeamAna::GetPosition(size_t iDevice, size_t iFiber){

@@ -38,6 +38,7 @@ physics:
 }
 
 physics.analyzers.beamana.FixedTime:           1531912181
+physics.analyzers.beamana.Tolerance:           10000
 physics.analyzers.beamana.Devices:             ["XBPF022716_V","XBPF022716_H"]
 
 physics.analyzers.beamana.PairedDevices:       [["XBPF022697_V", "XBPF022697_H"],
