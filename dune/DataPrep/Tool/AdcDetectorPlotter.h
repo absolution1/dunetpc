@@ -18,6 +18,7 @@
 //   LastTick - Last+1 tick number to display
 //   ShowWires - Also show anode wires on the plot.
 //   ShowCathode - Also show cathode planes (one point for each wire) on the plot.
+//   ShowTpcSets - If not empty, only show wires and cathodes for these TPC sets.
 //   ShowGrid - Also show (Root default) grid.
 //   Title - Title for the plot.
 //   FileName - Name for output plot file.
@@ -62,6 +63,7 @@ class AdcDetectorPlotter : public AdcChannelTool {
 public:
 
   using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
   using TPadManipulatorPtr = std::unique_ptr<TPadManipulator>;
 
   class State {
@@ -115,6 +117,7 @@ private:
   Index          m_LastTick;
   bool           m_ShowWires;
   bool           m_ShowCathode;
+  IndexVector    m_ShowTpcSets;
   bool           m_ShowGrid;
   std::string    m_Title;
   std::string    m_FileName;
