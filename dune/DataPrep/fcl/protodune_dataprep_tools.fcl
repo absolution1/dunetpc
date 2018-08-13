@@ -8,8 +8,22 @@ tools.pd_onlineChannelMap: {
   tool_type: ProtoduneOnlineChannel
 }
 
-tools.pd_onlineChannelMapServiceBased: {
+tools.pd_onlineChannelMapByWib: {
   tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "WIB"
+}
+
+tools.pd_onlineChannelMapByConnector: {
+  tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "connector"
+}
+
+tools.pd_onlineChannelMapByFemb: {
+  tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "FEMB"
 }
 
 tools.channelRanges: {
