@@ -14,7 +14,7 @@
 //
 // ICHF is the channel number in the FEMB 8*ASIC + ICHA_ASIC.
 //
-// The mapping is harwired here.
+// The mapping is hardwired here.
 
 #ifndef ProtoduneOnlineChannel_H
 #define ProtoduneOnlineChannel_H
