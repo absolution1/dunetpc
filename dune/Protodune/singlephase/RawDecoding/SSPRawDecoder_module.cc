@@ -531,6 +531,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
 
       unsigned int mappedchannel = channel;
       if (fUseChannelMap) mappedchannel = channelMap->SSPOfflineChannelFromOnlineChannel(channel);
+      //std::cout << "trj SSP online channel: " << channel << std::endl;
 
       // Get information from the header, //added by Jingbo
             
