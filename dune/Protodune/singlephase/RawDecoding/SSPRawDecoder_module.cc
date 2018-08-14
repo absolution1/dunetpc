@@ -459,8 +459,9 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       double time = trig.internal_timestamp/150*1E-6;
       
       /// channel (0..number_of_packets*number_of_fragments)
-      unsigned int channel = frag.fragmentID()*number_of_packets + trig.channel_id;
-      
+      //unsigned int channel = frag.fragmentID()*number_of_packets + trig.channel_id;
+      unsigned int channel = ((trunc(frag.fragmentID()/10) -1 )*4 + frag.fragmentID()%10 -1 )*number_of_packets + trig.channel_id;
+
       // pedestal, area and peak (according to the Register table, the  SSP User Manual has i1 and i2 inverted)
       double pedestal = trig.baseline / ((double)i1);    
       double area = trig.intsum  - pedestal * ((double)i2);
