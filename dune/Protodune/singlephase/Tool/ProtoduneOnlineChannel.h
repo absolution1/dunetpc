@@ -14,7 +14,7 @@
 //
 // ICHF is the channel number in the FEMB 8*ASIC + ICHA_ASIC.
 //
-// The mapping is harwired here.
+// The mapping is hardwired here.
 
 #ifndef ProtoduneOnlineChannel_H
 #define ProtoduneOnlineChannel_H
@@ -35,7 +35,6 @@ private:
 
   Index m_LogLevel;
 
-  const Index npla = 4;
   Index nwirPlane[4] = {800, 800, 480, 480};
   Index nwirFemb[4] = {40, 40, 48, 48};
   Index uch[40];

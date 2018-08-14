@@ -47,6 +47,8 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
     fout << "    tool_type: PdspOnlineChannel" << endl;
+    fout << "     LogLevel: 1" << endl;
+    fout << "     Ordering: \"FEMB\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

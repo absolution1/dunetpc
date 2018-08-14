@@ -174,12 +174,22 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
     ++ipla;
   }
   // Get the FEMB # in the detector ifmbDet.
-  Index ifmbAPA = ichPla/nwirFemb[ipla];     // FEMB # in the APA
-  if ( beamLeft  && ipla == 3 ) ifmbAPA += 10;
-  if ( beamRight && ipla == 2 ) ifmbAPA += 10;
-  Index ifmbDet = 20*iapa + ifmbAPA;
+  Index ifmbApa = ichPla/nwirFemb[ipla];
+  if ( ipla == 0 ) {
+    if ( beamRight ) ifmbApa = (ifmbApa + 10) % 20;
+  } else if ( ipla == 1 ) {
+    ifmbApa = 19 - ifmbApa;
+    if ( beamLeft ) ifmbApa = (ifmbApa + 10) % 20;
+  } else if ( ipla == 2 ) {
+    if ( beamLeft ) ifmbApa = 9 - ifmbApa;
+    else ifmbApa = 19 - ifmbApa;
+  } else {
+    if ( beamLeft ) ifmbApa += 10;
+  }
+  Index ifmbDet = 20*iapa + ifmbApa;
   // Get the wire number in the FEMB.
   Index iwchFemb = ichPla % nwirFemb[ipla];  // Wire number in the plane and FEMB.
+  if ( ipla == 1 || ipla == 2 ) iwchFemb = nwirFemb[ipla] - 1 - iwchFemb;
   Index ichFemb = 128;
   if      ( ipla == 0 ) ichFemb = uch[iwchFemb];
   else if ( ipla == 1 ) ichFemb = vch[iwchFemb];
