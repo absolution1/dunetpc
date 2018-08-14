@@ -44,10 +44,8 @@ physics:
 
     timingrawdecoder: @local::timing_raw_decoder   
     ssprawdecoder: @local::ssp_raw_decoder  
-#    rcerawdecoder: @local::rce_raw_decoder 
-#    felixrawdecoder: @local::felix_raw_decoder
     tpcrawdecoder: @local::pdsp_tpc_raw_decoder
-    ctbrawdecoder: @local::ctb_raw_decoder
+#    ctbrawdecoder: @local::ctb_raw_decoder
   }
 
   #Create path to run module
