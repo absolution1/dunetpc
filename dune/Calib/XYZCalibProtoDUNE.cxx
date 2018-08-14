@@ -151,8 +151,8 @@ double calib::XYZCalibProtoDUNE::GetYZCorr(int plane, int side,
   if (fInterpolate)
     return fYZCorrHist[chanId].Interpolate(z,y);
   else {
-    int iz = fYZCorrHist[chanId].GetXAxis()->FindBin(z);
-    int iy = fYZCorrHist[chanId].GetYAxis()->FindBin(y);
+    int iz = fYZCorrHist[chanId].GetXaxis()->FindBin(z);
+    int iy = fYZCorrHist[chanId].GetYaxis()->FindBin(y);
     return fYZCorrHist[chanId].GetBinContent(iz,iy);
   }
   
