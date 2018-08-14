@@ -32,6 +32,7 @@ calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE()
   fYZCorrLoaded = false;
   fXCorrLoaded = false;
   fNormCorrLoaded = false;
+  fInterpolate = false;
   fCurrentTS = 0;
   fXCorrFileName="";
   fYZCorrFileName="";
@@ -52,6 +53,7 @@ calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE(
   fYZCorrLoaded = false;
   fXCorrLoaded = false;
   fNormCorrLoaded = false;
+  fInterpolate = false;
   fCurrentTS = 0;
   fXCorrFileName="";
   fYZCorrFileName="";
@@ -66,13 +68,13 @@ calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE(
 bool calib::XYZCalibProtoDUNE::Configure(fhicl::ParameterSet const& pset)
 {  
   fUseCondbXYZCorr = pset.get<bool>("UseCondbXYZCorr");
+  fInterpolate     = pset.get<bool>("Interpolate");
   fXCorrFileName   = pset.get<std::string>("XCorrFileName");
   fYZCorrFileName  = pset.get<std::string>("YZCorrFileName");
   fNormCorrFileName= pset.get<std::string>("NormCorrFileName");
   fXCorrDBTag      = pset.get<std::string>("XCorrDBTag");
   fYZCorrDBTag     = pset.get<std::string>("YZCorrDBTag");
   fNormCorrDBTag   = pset.get<std::string>("NormCorrDBTag");
-
   return true;
 }
 
@@ -124,7 +126,13 @@ double calib::XYZCalibProtoDUNE::GetXCorr(int plane, double x)
     return 0.;
   }
 
-  return fXCorrHist[plane].Interpolate(x);
+  if (fInterpolate)
+    return fXCorrHist[plane].Interpolate(x);
+  else {
+    int ix = fXCorrHist[plane].FindBin(x);
+    return fXCorrHist[plane].GetBinContent(ix);
+  }
+
 }
 
 //------------------------------------------------
@@ -140,8 +148,14 @@ double calib::XYZCalibProtoDUNE::GetYZCorr(int plane, int side,
     return 0.;
   }
 
-  return fYZCorrHist[chanId].Interpolate(z,y);
-
+  if (fInterpolate)
+    return fYZCorrHist[chanId].Interpolate(z,y);
+  else {
+    int iz = fYZCorrHist[chanId].GetXAxis()->FindBin(z);
+    int iy = fYZCorrHist[chanId].GetYAxis()->FindBin(y);
+    return fYZCorrHist[chanId].GetBinContent(iz,iy);
+  }
+  
 }
 
 //------------------------------------------------
