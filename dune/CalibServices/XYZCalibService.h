@@ -23,7 +23,7 @@ namespace calib{
       virtual ~XYZCalibService() = default;
 
       virtual void   reconfigure(fhicl::ParameterSet const& pset) = 0;
-      virtual const  calib::XYZCalib* provider() const = 0;
+      virtual calib::XYZCalib* provider() const = 0;
 
       }; // class XYZCalibService
     } //namespace detinfo
