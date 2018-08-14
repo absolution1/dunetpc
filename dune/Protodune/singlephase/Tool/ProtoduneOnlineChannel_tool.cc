@@ -179,7 +179,7 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
     if ( beamRight ) ifmbApa = (ifmbApa + 10) % 20;
   } else if ( ipla == 1 ) {
     ifmbApa = 19 - ifmbApa;
-    if ( beamRight ) ifmbApa = (ifmbApa + 10) % 20;
+    if ( beamLeft ) ifmbApa = (ifmbApa + 10) % 20;
   } else if ( ipla == 2 ) {
     if ( beamLeft ) ifmbApa = 9 - ifmbApa;
     else ifmbApa = 19 - ifmbApa;
