@@ -3,7 +3,7 @@
 #include "TickModTreeData.h"
 #include "dune/DataPrep/Utility/StickyCodeMetrics.h"
 
-ClassImp(TickModTreeData)
+#include "TTree.h"
 
 //**********************************************************************
 
@@ -52,3 +52,9 @@ void TickModTreeData::fill(const StickyCodeMetrics& scm) {
 
 //**********************************************************************
 
+void TickModTreeData::createBranches(TTree* ptree) {
+  ptree->Branch("run", &run);
+  ptree->Branch("chan", &chan);
+}
+
+//**********************************************************************

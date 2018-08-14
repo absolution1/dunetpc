@@ -67,6 +67,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  MaxPlotFileName: \"adctmMax_ch%0CHAN%.png\"" << endl;
     fout << "  PhaseGrouping: channel" << endl;
     fout << "  PhasePlotFileName: \"adcPhase_ch%0CHAN%.png\"" << endl;
+    fout << "  PhaseVariable: phase" << endl;
     fout << "  RootFileName: \"adctm.root\"" << endl;
     fout << "  TreeFileName: \"tickmod.root\"" << endl;
     fout << "  TreeFileName: \"\"" << endl;
