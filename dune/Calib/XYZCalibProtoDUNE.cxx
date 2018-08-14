@@ -140,7 +140,7 @@ double calib::XYZCalibProtoDUNE::GetYZCorr(int plane, int side,
     return 0.;
   }
 
-  return fYZCorrHist[chanId].Interpolate(y,z);
+  return fYZCorrHist[chanId].Interpolate(z,y);
 
 }
 
