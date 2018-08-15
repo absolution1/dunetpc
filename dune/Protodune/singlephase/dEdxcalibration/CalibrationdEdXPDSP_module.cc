@@ -149,7 +149,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           double normcorrection = xyzcalib->GetNormCorr(planeID.Plane);
           double xcorrection = xyzcalib->GetXCorr(planeID.Plane, vXYZ[j].X());
           double yzcorrection = xyzcalib->GetYZCorr(planeID.Plane, vXYZ[j].X()>0, vXYZ[j].Y(), vXYZ[j].Z());
-          //std::cout<<" x = "<<vXYZ[j].X()<<" y = "<<vXYZ[j].Y()<<" z = "<<vXYZ[j].Z()<<" normcorrection = "<<normcorrection<<" xcorrection = "<<xcorrection<<" yzcorrection = "<<yzcorrection<<std::endl;
+          //std::cout<<"plane = "<<planeID.Plane<<" x = "<<vXYZ[j].X()<<" y = "<<vXYZ[j].Y()<<" z = "<<vXYZ[j].Z()<<" normcorrection = "<<normcorrection<<" xcorrection = "<<xcorrection<<" yzcorrection = "<<yzcorrection<<std::endl;
           if (!normcorrection) normcorrection = 1.;
           if (!xcorrection) xcorrection = 1.;
           if (!yzcorrection) yzcorrection = 1.;

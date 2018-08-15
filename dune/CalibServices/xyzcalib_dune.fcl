@@ -5,6 +5,7 @@ protodune_xyzcalib :
   service_provider: "XYZCalibServiceProtoDUNE"
 
   UseCondbXYZCorr: true
+  Interpolate: false
 
   XCorrFileName: ""
   YZCorrFileName: ""

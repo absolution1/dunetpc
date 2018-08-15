@@ -17,6 +17,7 @@
 #include "Rtypes.h"
 
 class StickyCodeMetrics;
+class TTree;
 
 class TickModTreeData {
 
@@ -58,7 +59,8 @@ public:
   // Fill the sticky code data.
   void fill(const StickyCodeMetrics& scm);
 
-  ClassDefNV(TickModTreeData, 1);
+  // Add the data here as branches on a tree.
+  void createBranches(TTree* ptree);
 
 };
 
