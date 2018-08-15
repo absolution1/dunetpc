@@ -5,7 +5,25 @@
 ################################################################################
 
 tools.pd_onlineChannelMap: {
+  tool_type: ProtoduneOnlineChannel
+}
+
+tools.pd_onlineChannelMapByWib: {
   tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "WIB"
+}
+
+tools.pd_onlineChannelMapByConnector: {
+  tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "connector"
+}
+
+tools.pd_onlineChannelMapByFemb: {
+  tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "FEMB"
 }
 
 tools.channelRanges: {
@@ -32,11 +50,12 @@ tools.rawAdcDetectorPlotColl: {
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
-  SignalThreshold: 5
+  SignalThreshold: 100
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC collection view. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
@@ -52,11 +71,12 @@ tools.rawAdcDetectorPlotInd1: {
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
-  SignalThreshold: 5
+  SignalThreshold: 100
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
@@ -72,11 +92,12 @@ tools.rawAdcDetectorPlotInd2: {
   XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
-  SignalThreshold: 5
+  SignalThreshold: 100
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
@@ -99,6 +120,7 @@ tools.preparedAdcDetectorPlotColl: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
@@ -119,6 +141,7 @@ tools.preparedAdcDetectorPlotInd1: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
@@ -139,6 +162,7 @@ tools.preparedAdcDetectorPlotInd2: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
@@ -160,7 +184,7 @@ pdcht_template: {
   ChannelLinePattern: []
   Palette: 1026
   HistName: "hadcraw_%CRNAME%_run%0RUN%_evt%0EVENT%"
-  HistTitle: "Raw ADC for event %EVENT% %CRLABEL%"
+  HistTitle: "Raw ADC for run %RUN% event %EVENT% %CRLABEL%"
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcraw_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -351,7 +375,7 @@ tools.pd_tickmodViewer: {
   HistName: "adctm_ch%0CHAN%_tm%0TICKMOD%"
   HistTitle: "ADC spectrum for channel %CHAN% tickmod %TICKMOD%"
   HistChannelCount: 100
-  PlotChannels: [999999]
+  PlotChannels: []
   AllPlotFileName: ""
   MinPlotFileName: ""
   MaxPlotFileName: ""
@@ -364,6 +388,7 @@ tools.pd_tickmodViewer: {
   PlotSplitX:    4
   PlotSplitY:    0
   PlotFrequency: 0
+  PhaseVariable: phase
   PhaseGrouping: channel
   PhasePlotSizeX:  1400
   PhasePlotSizeY:  1000
