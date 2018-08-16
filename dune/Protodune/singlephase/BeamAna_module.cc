@@ -74,6 +74,8 @@ private:
   TTree * fOutTree;
   TH2F * fFirstBeamProf2D;
   TH2F * fSecondBeamProf2D;
+  TH1F * fTOFHist;
+  TH1F * fCKovHist"
   recob::TrackTrajectory theTraj;
   recob::Track theTrack;
   
@@ -248,9 +250,9 @@ void proto::BeamAna::analyze(art::Event const & e)
    std::cout << std::endl;
  }
 
-matchTriggers(*spill);
-
-GetPairedFBMInfo(*spill,1.50000e+08);
+ matchTriggers(*spill);
+ 
+ GetPairedFBMInfo(*spill,1.50000e+08);
 
 
 }
@@ -394,6 +396,9 @@ void proto::BeamAna::beginJob()
 
   fFirstBeamProf2D = tfs->make<TH2F>("FirstBeamProf2D","",192,0,192,192,0,192);
   fSecondBeamProf2D = tfs->make<TH2F>("SecondBeamProf2D","",192,0,192,192,0,192);
+
+  fTOFHist = tfs->make<TH1F>("TOF","",100,0,100);
+  fCKovHist = tfs->make<TH1F>("Cer","",4,0,4);
 
   fOutTree = tfs->make<TTree>("tree", "lines"); 
   //Need to make this configurable later
@@ -609,12 +614,6 @@ void proto::BeamAna::GetPairedFBMInfo(beamspill::ProtoDUNEBeamSpill spill, doubl
     goodTriggers[name] = triggers;
   }
   
-  /*std::cout << "Good Triggers" << std::endl;
-  std::map<std::string, std::vector<size_t>>::iterator newIt = goodTriggers.begin();
-  for(; newIt != goodTriggers.end(); ++newIt){
-    std::cout << newIt->first << " " << newIt->second.size() << std::endl;
-  }*/
-
 
   std::string nameOne = fPairedDevices[0].first;
   std::string nameTwo = fPairedDevices[0].second;
