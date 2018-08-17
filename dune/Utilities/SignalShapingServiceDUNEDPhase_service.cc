@@ -122,9 +122,9 @@ util::SignalShapingServiceDUNEDPhase::SignalShaping(unsigned int channel) const
   geom->WireEndPoints(Wires[0],wirestartpoint,wireendpoint);
   double wirelength = sqrt(pow(wirestartpoint[0]-wireendpoint[0],2) + pow(wirestartpoint[1]-wireendpoint[1],2) + pow(wirestartpoint[2]-wireendpoint[2],2));
 
-  if(wirelength == 288 || wirelength == 300)
+  if((int)wirelength == 300)
     return fColSignalShaping3Meter;
-  else if (wirelength == 96 || wirelength == 100)
+  else if((int)wirelength == 100)
     return fColSignalShaping1Meter;
   else
     throw cet::exception("SignalShapingServiceDUNEDPhase")
@@ -211,9 +211,9 @@ double util::SignalShapingServiceDUNEDPhase::GetASICGain(unsigned int const chan
   geom->WireEndPoints(Wires[0],wirestartpoint,wireendpoint);
   double wirelength = sqrt(pow(wirestartpoint[0]-wireendpoint[0],2) + pow(wirestartpoint[1]-wireendpoint[1],2) + pow(wirestartpoint[2]-wireendpoint[2],2));
 
-  if(wirelength == 288 || wirelength == 300)
+  if((int)wirelength == 300)
     gain = fASICmVperfC3Meter;
-  else if (wirelength == 96 || wirelength == 100)
+  else if((int)wirelength == 100)
     gain = fASICmVperfC1Meter;
   else
     throw cet::exception("SignalShapingServiceDUNEDPhase")<< "can't determine"
