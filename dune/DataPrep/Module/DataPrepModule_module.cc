@@ -38,7 +38,7 @@
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneCommon/DuneTimeConverter.h"
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "TDatime.h"
+#include "TTimeStamp.h"
 
 using std::cout;
 using std::endl;
@@ -216,8 +216,8 @@ void DataPrepModule::produce(art::Event& evt) {
     // July 2018. ProtoDUNE real data has zero in high field and unix time in low field.
     if ( beginTime.timeHigh() == 0 ) {
       unsigned int itim = beginTime.timeLow();
-      TDatime rtim(itim);
-      string stim = rtim.AsString();
+      TTimeStamp rtim(itim);
+      string stim = string(rtim.AsString("s")) + " UTC";
       cout << myname << "Real data event time: " << itim << " (" << stim << ")" << endl;
     } else {
       cout << myname << "Sim data event time: " << DuneTimeConverter::toString(beginTime) << endl;
