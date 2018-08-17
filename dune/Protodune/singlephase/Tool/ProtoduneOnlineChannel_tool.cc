@@ -13,6 +13,9 @@ using Index = ProtoduneOnlineChannel::Index;
 ProtoduneOnlineChannel::ProtoduneOnlineChannel(const fhicl::ParameterSet&) 
 : m_LogLevel(2) {
     Index val = 0;
+    // Create the maps from the to CCW wire numbers for each plane to
+    // the FEMB channel number.
+    // We follow DUNE DocDB 4064 except numberings start from 0 instead of 1.
     // ASIC 0
     uch[18] = val++;
     uch[16] = val++;
@@ -189,11 +192,19 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
   Index ifmbDet = 20*iapa + ifmbApa;
   // Get the wire number in the FEMB.
   Index iwchFemb = ichPla % nwirFemb[ipla];  // Wire number in the plane and FEMB.
-  if ( ipla == 1 || ipla == 2 ) iwchFemb = nwirFemb[ipla] - 1 - iwchFemb;
-  Index ichFemb = 128;
-  if      ( ipla == 0 ) ichFemb = uch[iwchFemb];
-  else if ( ipla == 1 ) ichFemb = vch[iwchFemb];
-  else                  ichFemb = zch[iwchFemb];
+  if ( iwchFemb > nwirFemb[ipla] ) {
+    if ( m_LogLevel > 1 ) cout << myname << "ERROR: Invalid FEMB channel: " << chanOff
+                               << " --> " << iwchFemb << endl;
+    return badIndex();
+  }
+  // Note the wire numbers in the channel-to-wire tables increase CCW while
+  // offline is CW for u and z2 and CCW for v and z1.
+  // Flip the wire numbers for the former.
+  if ( ipla == 0 || ipla == 3 ) iwchFemb = nwirFemb[ipla] - 1 - iwchFemb;
+  // Find the FEMB channel for the wire.
+  Index ichFemb = ipla == 0 ? uch[iwchFemb] :
+                  ipla == 1 ? vch[iwchFemb] :
+                              zch[iwchFemb];
   // Build offline index.
   Index ichOn = 128*ifmbDet + ichFemb;
   return ichOn;

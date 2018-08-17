@@ -130,7 +130,7 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   cout << myname << "Compare with ProtoduneChannelmap." << endl;
   auto ref = tm.getPrivate<IndexMapTool>("reftool");
   assert( ref != nullptr );
-  bool skipDiv1 = true;  // Set this false when maps are consistent.
+  bool skipDiv1 = false;  // Set this false to check every channel.
   for ( Index idiv : {2560, 128, 1} ) {
     if ( skipDiv1 && idiv == 1 ) {
       cout << myname << "WARNING: Skipping div 1 test" << endl;
