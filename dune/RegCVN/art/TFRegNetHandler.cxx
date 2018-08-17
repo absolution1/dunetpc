@@ -21,8 +21,8 @@ namespace cvn
 {
 
   TFRegNetHandler::TFRegNetHandler(const fhicl::ParameterSet& pset):
-    //fLibPath(cet::getenv(pset.get<std::string>("LibPath", ""))),
-    fLibPath((pset.get<std::string>("LibPath", ""))),
+    fLibPath(cet::getenv(pset.get<std::string>("LibPath", ""))),
+    //fLibPath((pset.get<std::string>("LibPath", ""))),
     fTFProtoBuf  (fLibPath+"/"+pset.get<std::string>("TFProtoBuf")),
     fInputs(pset.get<unsigned int>("NInputs")),
     fReverseViews(pset.get<std::vector<bool> >("ReverseViews"))

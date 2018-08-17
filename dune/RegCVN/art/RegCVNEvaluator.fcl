@@ -7,8 +7,9 @@ BEGIN_PROLOG
 standard_tfnethandler:
 {
   #LibPath: "DUNE_PARDATA_DIR"
-  LibPath: "/pnfs/dune/persistent/users/iseong/TF_Model"
-  TFProtoBuf: "dune_model.pb"
+  #LibPath: "/pnfs/dune/persistent/users/iseong/TF_Model"
+  LibPath: "MRB_INSTALL"
+  TFProtoBuf: "TFModel/dune_model.pb"
   NInputs : 3
   ReverseViews: [false,false,false]
 }
