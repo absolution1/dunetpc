@@ -163,7 +163,7 @@ namespace geo {
       }
     }
 
-    PrintChannelMaps();
+    //PrintChannelMaps();
   }
 
 
