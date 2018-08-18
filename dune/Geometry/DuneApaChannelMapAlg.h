@@ -232,7 +232,7 @@ public:
   unsigned int OpDetFromOpChannel(unsigned int opChannel)               const override;
   unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const override;
     
-private:
+protected:
 
   template<class T>
   using Vector = std::vector<T>;
