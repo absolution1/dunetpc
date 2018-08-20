@@ -232,8 +232,7 @@ std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMeanCorrection(
         {
             if (!mask[s]) { continue; }
 
-
-             flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+             AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
             if (flag != AdcGood) { continue; }
 
             correction[s] += adc.samples[s];
