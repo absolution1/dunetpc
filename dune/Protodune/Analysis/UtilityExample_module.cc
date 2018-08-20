@@ -132,7 +132,6 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   // What about PFParticles?
   std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap;
   sliceMap = pfpUtil.GetPFParticleSliceMap(evt,fPFParticleTag);
-
   std::cout << "Found " << sliceMap.size() << " slices with PFParticles" << std::endl;
 
   // Get the generator MCTruth objects and find the GEANT track id of the good particle

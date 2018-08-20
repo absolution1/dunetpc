@@ -42,9 +42,56 @@ std::map<unsigned int,std::vector<recob::PFParticle*>> protoana::ProtoDUNEPFPart
     unsigned int thisSlice = static_cast<unsigned int>(metaData.GetPropertiesMap().at("SliceIndex"));
   
     sliceMap[thisSlice].push_back(particle);
+
   }
 
   return sliceMap;
 
 }
+
+// Get the cosmic tag(s) from a given PFParticle
+std::vector<anab::CosmicTag> protoana::ProtoDUNEPFParticleUtils::GetPFParticleCosmicTag(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel) const{
+
+  try{
+    auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle> >(particleLabel);
+  
+    unsigned int pIndex = particle.Self();
+  
+    std::vector<anab::CosmicTag> pTags;
+  
+    const art::FindManyP<anab::CosmicTag> findCosmicTags(recoParticles,evt,particleLabel);
+    for(unsigned int p = 0; p < findCosmicTags.at(pIndex).size(); ++p){
+      pTags.push_back((*(findCosmicTags.at(pIndex)[p])));
+    }
+
+    return pTags;
+  }
+  catch(...){
+    return std::vector<anab::CosmicTag>();
+  }
+}
+
+// Get the T0(s) from a given PFParticle
+std::vector<anab::T0> protoana::ProtoDUNEPFParticleUtils::GetPFParticleT0(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel) const{
+
+  try{
+    auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle> >(particleLabel);
+  
+    unsigned int pIndex = particle.Self();
+  
+    std::vector<anab::T0> pT0s;
+  
+    const art::FindManyP<anab::T0> findParticleT0s(recoParticles,evt,particleLabel);
+    for(unsigned int p = 0; p < findParticleT0s.at(pIndex).size(); ++p){
+      pT0s.push_back((*(findParticleT0s.at(pIndex)[p])));
+    }
+
+    return pT0s;
+  }
+  catch(...){
+    return std::vector<anab::T0>();
+  }
+
+}
+
 
