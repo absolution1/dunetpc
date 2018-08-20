@@ -41,14 +41,14 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
+    fout << "#include \"dunecommon_tools.fcl\"" << endl;  // Need tickRanges
+    fout << "tools.tickRanges.myTicks: { begin:10 end:90 label:\"My ticks\" }" << endl;
     fout << "tools.mytool: {" << endl;
     fout << "           tool_type: AdcDataPlotter" << endl;
     fout << "            DataType: 0" << endl;
     fout << "            LogLevel: 2" << endl;
-    fout << "           FirstTick: 0" << endl;
-    fout << "            LastTick: 0" << endl; 
-    fout << "        FirstChannel: 0" << endl;
-    fout << "         LastChannel: 0" << endl;
+    fout << "           TickRange: \"myTicks\"" << endl;
+    fout << "       ChannelRanges: []" << endl;
     fout << "     FembTickOffsets: []" << endl;
     fout << "           MaxSignal: 10" << endl;
     fout << "  ChannelLineModulus:  4" << endl;

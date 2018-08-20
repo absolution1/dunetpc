@@ -23,7 +23,7 @@
 #include "dune-raw-data/Overlays/TimingFragment.hh"
 
 // larsoft includes
-#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 
 // ROOT includes
 #include "TH1.h"
@@ -71,14 +71,12 @@ private:
   bool fDebug;
   bool fMakeTree;
   bool fMakeEventTimeFile = false;
-  raw::Compress_t        fCompression;      ///< compression type to use
-  unsigned int           fZeroThreshold;    ///< Zero suppression threshold
 
   TH1I * fHTimestamp;
   TH1I * fHTrigType;
   TH1I * fHTimestampDelta;
 
-  uint64_t fPrevTimestamp;
+  ULong64_t fPrevTimestamp;
 };
 
 
@@ -92,7 +90,7 @@ dune::TimingRawDecoder::TimingRawDecoder(fhicl::ParameterSet const & pset)
 
   reconfigure(pset);
   // Call appropriate produces<>() functions here.
-  produces< std::vector<raw::RawDigit> > (fOutputDataLabel);  
+  produces< std::vector<raw::RDTimeStamp> > (fOutputDataLabel);  
 }
 
 void dune::TimingRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
@@ -103,8 +101,6 @@ void dune::TimingRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   fDebug = pset.get<bool>("Debug");
   fMakeTree = pset.get<bool>("MakeTree");
   pset.get_if_present<bool>("MakeEventTimeFile", fMakeEventTimeFile);
-  fZeroThreshold=0;
-  fCompression=raw::kNone;
   fPrevTimestamp=0;
   if(fDebug) printParameterSet();
 
@@ -146,7 +142,7 @@ void dune::TimingRawDecoder::beginJob(){
 }
 
 void dune::TimingRawDecoder::produce(art::Event & evt){
-  std::cout<<"-------------------- Timing RawDecoder -------------------"<<std::endl;
+  //std::cout<<"-------------------- Timing RawDecoder -------------------"<<std::endl;
   // Implementation of required member function here.
   art::Handle<artdaq::Fragments> rawFragments;
   evt.getByLabel(fRawDataLabel, "TIMING", rawFragments);
@@ -154,13 +150,14 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
   art::EventNumber_t eventNumber = evt.event();
   art::RunNumber_t runNumber = evt.run();
 
+  std::vector<raw::RDTimeStamp> rdtimestamps;
+
   // Check if there is Timing data in this event
   // Don't crash code if not present, just don't save anything
   try { rawFragments->size(); }
   catch(std::exception e) {
     std::cout << " WARNING: Raw Timing data not found in event " << eventNumber << std::endl;
-    std::vector<raw::RawDigit> digits;
-    evt.put(std::make_unique<std::vector<raw::RawDigit>>(std::move(digits)), fOutputDataLabel);
+    evt.put(std::make_unique<std::vector<raw::RDTimeStamp>>(std::move(rdtimestamps)), fOutputDataLabel);
     std::cout<<std::endl;
     return;
   }
@@ -173,13 +170,14 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
 	      << " is NOT VALID" << std::endl;
     throw cet::exception("rawFragments NOT VALID");
   }
-  std::vector<raw::RawDigit> rawDigitVector;
-  uint64_t evtTimestamp = 0;
+  ULong64_t evtTimestamp = 0;
   for(auto const& rawFrag : *rawFragments){
       dune::TimingFragment frag(rawFrag);
-//      std::cout << "[TimingRawDecoder] Event number: " << eventNumber << ", TStamp: " << frag.get_tstamp() << std::endl; 
-      std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
-      uint64_t currentTimestamp=frag.get_tstamp();
+      //std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
+      ULong64_t currentTimestamp=frag.get_tstamp();
+      uint16_t scmd = (frag.get_scmd() & 0xFFFF);  // mask this just to make sure.  Though scmd only has four relevant bits, the method is declared uint32_t.
+      rdtimestamps.emplace_back(currentTimestamp,scmd);
+
       fHTimestamp->Fill(currentTimestamp/1e6);
       fHTrigType->Fill(frag.get_scmd());
 
@@ -201,7 +199,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
       }
     }
   }
-  evt.put(std::make_unique<decltype(rawDigitVector)>(std::move(rawDigitVector)), fOutputDataLabel);
+  evt.put(std::make_unique<decltype(rdtimestamps)>(std::move(rdtimestamps)), fOutputDataLabel);
   std::cout<<std::endl;
 }
 

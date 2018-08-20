@@ -23,6 +23,7 @@
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
 #include "PdspChannelMapService.fcl"
+#include "xyzcalib_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -196,8 +197,9 @@ dunedphase3x1x1_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
- SpaceCharge:                    @local::dunefddphase_spacecharge
+ SpaceCharge:                    @local::dphase3x1x1_spacecharge
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
+ PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
@@ -270,6 +272,7 @@ protodunedphase_simulation_services: {
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
  PhotonVisibilityService: 	 @local::protodunedp_photonvisibilityservice
+ PhotonVisibilityServiceS2: 	 @local::protodunedp_photonvisibilityserviceS2
 }
 
 protodunedphase_reco_services:                         	  @local::protodunedphase_services
@@ -324,7 +327,7 @@ protodunedphase_simulation_services.LArPropertiesService.EnableCerenkovLight: fa
 protodune_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
@@ -343,7 +346,7 @@ protodune_services: {
 protodune_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
@@ -360,7 +363,7 @@ protodune_simulation_services: {
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
@@ -403,6 +406,8 @@ protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
 # Comment out the the following line to go back to the service-based dataprep.
 protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
 
+# xyz calibration service
+protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
 
 # Reco services for ProtoDUNE real data.
 protodune_data_services.RawDigitExtractService:     @local::rdx_std

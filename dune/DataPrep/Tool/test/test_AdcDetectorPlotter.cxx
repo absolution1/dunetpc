@@ -58,8 +58,8 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "    DataType: 0" << endl;
     fout << "       Tick0: 0" << endl;
     fout << "  DriftSpeed: 0.01" << endl;
-    fout << "    XMin: -600.0" << endl;
-    fout << "    XMax:  600.0" << endl;
+    fout << "    XMin:  600.0" << endl;
+    fout << "    XMax: -600.0" << endl;
     fout << "    ZMin:  -20.0" << endl;
     fout << "    ZMax:  720.0" << endl;
     fout << "    SignalThreshold: 10" << endl;
@@ -67,6 +67,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "     LastTick: 0" << endl;
     fout << "    ShowWires: true" << endl;
     fout << "    ShowCathode: true" << endl;
+    fout << "    ShowTpcSets: []" << endl;
     fout << "    ShowGrid: true" << endl;
     fout << "    Title: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
     fout << "    FileName: \"test_AdcDetectorPlotter-run%0RUN%-evt%0EVENT%.png\"" << endl;

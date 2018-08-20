@@ -47,6 +47,12 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
     fout << "    tool_type: PdspOnlineChannel" << endl;
+    fout << "     LogLevel: 1" << endl;
+    fout << "     Ordering: \"FEMB\"" << endl;
+    fout << "  }" << endl;
+    fout << "  reftool: {" << endl;
+    fout << "    tool_type: ProtoduneOnlineChannel" << endl;
+    fout << "     LogLevel: 1" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -101,7 +107,7 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   Index nshow = 64;
   for ( Index ichaOff=0; ichaOff<ncha; ++ichaOff ) {
     Index ichaOn = cma->get(ichaOff);
-    if ( nshow*(ichaOff/nshow) == ichaOff )
+    if ( nshow*(ichaOff/nshow) == ichaOff || ichaOn >= ncha )
       cout <<  myname << "  "  << ichaOff << " --> " << ichaOn << endl;
     assert( ichaOn < ncha );
     if ( offlineChannel[ichaOn] != badIndex ) {
@@ -118,6 +124,32 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   for ( Index ichaOn=0; ichaOn<ncha; ++ichaOn ) {
     assert( onlineCounts[ichaOn] == 1 );
     assert( offlineChannel[ichaOn] != badIndex );
+  }
+
+  cout << myname << line << endl;
+  cout << myname << "Compare with ProtoduneChannelmap." << endl;
+  auto ref = tm.getPrivate<IndexMapTool>("reftool");
+  assert( ref != nullptr );
+  bool skipDiv1 = false;  // Set this false to check every channel.
+  for ( Index idiv : {2560, 128, 1} ) {
+    if ( skipDiv1 && idiv == 1 ) {
+      cout << myname << "WARNING: Skipping div 1 test" << endl;
+      continue;
+    }
+    cout << myname << "...checking div " << idiv << endl;
+    for ( Index ichaOff=0; ichaOff<ncha; ++ichaOff ) {
+      Index ichaOnl = cma->get(ichaOff);
+      Index ichaRef = ref->get(ichaOff);
+      Index ichaOnlDiv = ichaOnl/idiv;
+      Index ichaRefDiv = ichaRef/idiv;
+      if ( ichaOnlDiv != ichaRefDiv ) {
+        cout << myname << "Maps disagree:" << endl;
+        cout << myname << "  Offline: " << ichaOff << endl;
+        cout << myname << "   Online: " << ichaOnl << " ("  << ichaOnlDiv << ")" << endl;
+        cout << myname << "      Ref: " << ichaRef << " ("  << ichaRefDiv << ")" << endl;
+        assert(false);
+      }
+    }
   }
 
   cout << myname << line << endl;

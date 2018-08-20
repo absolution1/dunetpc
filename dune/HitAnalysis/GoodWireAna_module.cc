@@ -235,7 +235,7 @@ void GoodWireAna::makeHistoSetForThisRun( int runID )
       size_t nWiresW = fGeometry->Nwires(2,iTPC,iCry);
 
       char name[50];
-      char title[70];
+      char title[105];
       
       //U Plane
       int n = sprintf( name, "r%d_cry%lu_tpc%lu_U_WireHitOcc", runID, iCry, iTPC);

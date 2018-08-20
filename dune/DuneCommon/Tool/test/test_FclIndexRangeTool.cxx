@@ -73,6 +73,7 @@ int test_FclIndexRangeTool(bool useExistingFcl =false, Index runin =0) {
   cout << myname << line << endl;
   cout << "Fetch range1." << endl;
   IndexRange ir1 = irt->get("range1");
+  cout << ir1.rangeString() << endl;
   assert( ir1.isValid() );
   assert( ir1.name == "range1" );
   assert( ir1.label == "Range 1" );
@@ -82,6 +83,7 @@ int test_FclIndexRangeTool(bool useExistingFcl =false, Index runin =0) {
   cout << myname << line << endl;
   cout << "Fetch range2." << endl;
   IndexRange ir2 = irt->get("range2");
+  cout << ir2.rangeString() << endl;
   assert( ir2.isValid() );
   assert( ir2.name == "range2" );
   assert( ir2.label == "Range 2" );
@@ -91,6 +93,7 @@ int test_FclIndexRangeTool(bool useExistingFcl =false, Index runin =0) {
   cout << myname << line << endl;
   cout << "Fetch bad range" << endl;
   IndexRange irb = irt->get("rangebad");
+  cout << irb.rangeString() << endl;
   assert( ! irb.isValid() );
 
   cout << myname << line << endl;

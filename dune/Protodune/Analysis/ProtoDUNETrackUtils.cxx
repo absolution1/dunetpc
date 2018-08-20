@@ -20,7 +20,7 @@ std::vector<anab::CosmicTag> protoana::ProtoDUNETrackUtils::GetRecoTrackCosmicTa
 
   unsigned int trackIndex = GetTrackIndexNumber(track,evt,trackModule);
 
-  // Convert to std::vector<anab::CosmicTag> from std::vector<art::Ptr<anab::CosmicTah>>
+  // Convert to std::vector<anab::CosmicTag> from std::vector<art::Ptr<anab::CosmicTag>>
   std::vector<anab::CosmicTag> trackTags;
 
   try{
