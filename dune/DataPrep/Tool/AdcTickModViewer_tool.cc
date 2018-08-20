@@ -441,12 +441,6 @@ AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, 
   TickModData adcData;
   Index isam0 = (itkm + period - itkm0) % period;
   for ( Index isam=isam0; isam<nsam; isam+=period ) adcData.add(acd.raw[isam]);
-bool dbg = false;
-if ( itkm > 237 && itkm < 242 && dbg ) {
-cout << "YYY: itkm = " << itkm << endl;
-for ( Index isam=isam0; isam<nsam; isam+=period ) cout << "YYY:    " << acd.raw[isam] << endl;
-cout << "YYY: mean: " << adcData.mean() << endl;
-}
   // Fetch the histogram pointer.
   Index icha = getChannelIndex();
   HistPtr& ph = state().ChannelTickModFullHists[icha][itkm];

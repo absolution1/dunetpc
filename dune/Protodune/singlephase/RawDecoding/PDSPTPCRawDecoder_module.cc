@@ -89,6 +89,8 @@ private:
   unsigned int  _full_tick_count;
   bool          _enforce_error_free;
   bool          _enforce_no_duplicate_channels;
+  bool          _drop_events_with_small_rce_frags;
+  size_t        _rce_frag_small_size;
 
   bool          _compress_Huffman;
   bool          _print_coldata_convert_count;
@@ -98,6 +100,8 @@ private:
   unsigned int 	duplicate_channels;
   unsigned int 	error_counter;
   unsigned int incorrect_ticks;
+  unsigned int rcechans;
+  unsigned int felixchans;
   TH1D * fIncorrectTickNumbers;
   //TH1I * fIncorrectTickNumbersZoomed;
   TH1I * fParticipRCE;
@@ -132,6 +136,9 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_input_container_instance = p.get<std::string>("RCERawDataContainerInstance","ContainerTPC");
   _rce_input_noncontainer_instance = p.get<std::string>("RCERawDataNonContainerInstance","TPC");
   _rce_fragment_type = p.get<int>("RCEFragmentType",2);
+  _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",true);
+  _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
+
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
@@ -224,6 +231,8 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
   error_counter = 0; //reset the errors to zero for each run
   incorrect_ticks = 0;
   duplicate_channels = 0;
+  rcechans = 0;
+  felixchans = 0;
 
   _initialized_tick_count_this_event = false;
   _discard_data = false;
@@ -241,6 +250,8 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
       fErrorsNumber->Fill(log2(error_counter));
       fDuplicatesNumber->Fill(duplicate_channels);
       fIncorrectTickNumbers->Fill(log2(incorrect_ticks));
+      fParticipFELIX->Fill(felixchans);
+      fParticipRCE->Fill(rcechans);
       //fIncorrectTickNumbersZoomed->Fill(incorrect_ticks);
     }
 
@@ -304,6 +315,11 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
     
       for (auto const& cont : *cont_frags)
 	{
+	  if ( _drop_events_with_small_rce_frags && (cont.sizeBytes() < _rce_frag_small_size) ) 
+	    { 
+	      _discard_data = true; 
+	      return false;
+	    }
 	  artdaq::ContainerFragment cont_frag(cont);
 	  for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 	    {
@@ -424,7 +440,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       if(_make_histograms)
 	{
 	  //log the participating RCE channels
-	  fParticipRCE->Fill(n_ch);
+	  rcechans=rcechans+n_ch;
 	}
 
       if (_enforce_full_tick_count && n_ticks != _full_tick_count)
@@ -680,7 +696,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 
   if(_make_histograms)
     {
-      fParticipFELIX->Fill(n_channels);
+      felixchans=felixchans+n_channels;
     }
 
   for (unsigned int iframe=0; iframe<n_frames; ++iframe)

@@ -12,8 +12,19 @@ using Index = PdspOnlineChannel::Index;
 
 //**********************************************************************
 
-PdspOnlineChannel::PdspOnlineChannel(const fhicl::ParameterSet&) 
-: m_LogLevel(2) { }
+PdspOnlineChannel::PdspOnlineChannel(const fhicl::ParameterSet& pset) 
+: m_LogLevel(pset.get<Index>("LogLevel")),
+  m_Ordering(pset.get<Name>("Ordering")),
+  m_orderByWib(m_Ordering == "WIB"),
+  m_orderByConnector(m_Ordering == "connector"),
+  m_orderByFemb(m_Ordering == "FEMB") {
+  const string myname = "PdspOnlineChannel::ctor: ";
+  cout << myname << "  LogLevel: " << m_LogLevel << endl;
+  cout << myname << "  Ordering: " << m_Ordering << endl;
+  if ( !m_orderByWib && !m_orderByConnector && !m_orderByFemb ) {
+    cout << myname << "ERROR: Invalid ordering: " << m_Ordering << endl;
+  }
+}
   
 //**********************************************************************
 
@@ -53,7 +64,21 @@ Index PdspOnlineChannel::get(Index chanOff) const {
   }
   Index kchf = ichf;
   // Evauate online index.
-  Index chanOn = 2560*kapa + 512*kwib + 128*kcon + kchf;
+  Index chanOn = 0;
+  if ( m_orderByWib ) {
+    chanOn = 2560*kapa + 512*kwib + 128*kcon + kchf;
+  } else if ( m_orderByWib ) {
+    chanOn = 2560*kapa + 640*kcon + 128*kwib + kchf;
+  } else if ( m_orderByFemb ) {
+    // FEMB index mapping.
+    static Index ifmb[20] = {10,  9,  8,  7,  6,
+                              5,  4,  3,  2,  1,
+                             20, 19, 18, 17, 16,
+                             15, 14, 13, 12, 11};
+    Index jfmb = 5*kcon + kwib;
+    Index kfmb = ifmb[jfmb] - 1;
+    chanOn = 2560*kapa + 128*kfmb + kchf;
+  }
   return chanOn;
 }
 
