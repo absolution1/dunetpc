@@ -89,6 +89,8 @@ private:
   unsigned int  _full_tick_count;
   bool          _enforce_error_free;
   bool          _enforce_no_duplicate_channels;
+  bool          _drop_events_with_small_rce_frags;
+  size_t        _rce_frag_small_size;
 
   bool          _compress_Huffman;
   bool          _print_coldata_convert_count;
@@ -134,6 +136,9 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_input_container_instance = p.get<std::string>("RCERawDataContainerInstance","ContainerTPC");
   _rce_input_noncontainer_instance = p.get<std::string>("RCERawDataNonContainerInstance","TPC");
   _rce_fragment_type = p.get<int>("RCEFragmentType",2);
+  _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",true);
+  _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
+
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
@@ -310,6 +315,11 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
     
       for (auto const& cont : *cont_frags)
 	{
+	  if ( _drop_events_with_small_rce_frags && (cont.sizeBytes() < _rce_frag_small_size) ) 
+	    { 
+	      _discard_data = true; 
+	      return false;
+	    }
 	  artdaq::ContainerFragment cont_frag(cont);
 	  for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 	    {

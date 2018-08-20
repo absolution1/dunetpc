@@ -27,7 +27,7 @@ namespace calib{
       void   preBeginRun(const art::Run& run);
 
 
-      virtual const  provider_type* provider() const override { return fProp.get();}
+      virtual provider_type* provider() const override { return fProp.get();}
 
     private:
 

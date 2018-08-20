@@ -86,6 +86,8 @@ namespace calib {
     void SetYZCorrFileName(std::string f) { fYZCorrFileName=f; }
     void SetNormCorrFileName(std::string f) { fNormCorrFileName=f; }
 
+    void SetInterpolate(bool v) { fInterpolate = v; }
+
   protected:
       bool LoadNormCorr();
       bool LoadXCorr();
@@ -97,6 +99,7 @@ namespace calib {
       bool fXCorrLoaded;
       bool fYZCorrLoaded;
       bool fIsMC;
+      bool fInterpolate;
       uint64_t fCurrentTS;
 
       std::string fXCorrFileName;
