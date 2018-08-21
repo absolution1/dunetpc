@@ -106,24 +106,23 @@ simple_plugin(PDSPTPCRawDecoder "module"
                         BASENAME_ONLY
 )
 
-<<<<<<< HEAD
-
-simple_plugin(CRTRawDecoder "module"
-                        dune-raw-data_Overlays
-                        artdaq-core_Data
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                        ${MF_MESSAGELOGGER}
-                        ${CETLIB}
-                        ${ROOT_BASIC_LIB_LIST}
-                        ${RCEDAMLIB}
-                        BASENAME_ONLY                        
-)
+#simple_plugin(CRTRawDecoder "module"
+#                        dune-raw-data_Overlays
+#                        artdaq-core_Data
+#                        ${ART_FRAMEWORK_CORE}
+#                        ${ART_FRAMEWORK_PRINCIPAL}
+#                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+#                        ${MF_MESSAGELOGGER}
+#                        ${CETLIB}
+#                        ${ROOT_BASIC_LIB_LIST}
+#                        ${RCEDAMLIB}
+#                        BASENAME_ONLY                        
+#)
 
 simple_plugin(PDSPCTBRawDecoder "module"
+                        dune-raw-data_Overlays
 			artdaq-core_Data
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
@@ -140,26 +139,6 @@ simple_plugin(PDSPCTBRawDecoder "module"
                         ${RCEDAMLIB}
                         BASENAME_ONLY
 )
-
-#simple_plugin(PDSPCTBRawDecoder "module"
-#                        dune-raw-data_Overlays
-#			artdaq-core_Data
-#                        ${ART_FRAMEWORK_CORE}
-#                        ${ART_FRAMEWORK_PRINCIPAL}
-#                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-# #                       art_Persistency_Common canvas_Persistency_Common
-# #                       art_Persistency_Provenance canvas_Persistency_Provenance
-# #                       art_Utilities canvas_Utilities
-#                        ${MF_MESSAGELOGGER}                        
-#                        ${CETLIB}
-#                        ${ROOT_BASIC_LIB_LIST}
-#                        ${RCEDAMLIB}
-#                        BASENAME_ONLY
-#)
-=======
->>>>>>> f96b52a239a99f30bb481d0cc9a7e84ad0b8ee31
 
 art_make_library( LIBRARY_NAME dunetpc_protodune_RawDecodingUtils
                   SOURCE
