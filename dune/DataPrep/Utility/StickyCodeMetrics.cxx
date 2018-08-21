@@ -8,6 +8,7 @@
 
 #include "TH1F.h"
 #include "TF1.h"
+//#include "TFitResult.h"
 
 using std::map;
 using std::string;
@@ -319,6 +320,7 @@ int StickyCodeMetrics::evaluateMetrics() {
   // Fit the histogram.
   TF1 fitter("pedgaus", "gaus", ihadc1, ihadc2, TF1::EAddToList::kNo);
   fitter.SetParameters(0.1*ph->Integral(), ph->GetMean(), 5.0);
+  fitter.SetParLimits(2, 0.1, 100);
   TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
   pfinit->SetLineColor(3);
   pfinit->SetLineStyle(2);
@@ -334,7 +336,9 @@ int StickyCodeMetrics::evaluateMetrics() {
   if ( GetErrorHandler() != pehDefault ) {
     pehSave = SetErrorHandler(pehDefault);
   }
-  ph->Fit(&fitter, fopt.c_str());
+  //TFitResultPtr pres = ph->Fit(&fitter, fopt.c_str());
+  //m_fitStatus = pres->Status();
+  m_fitStatus = ph->Fit(&fitter, fopt.c_str());
   if ( pehSave != nullptr ) SetErrorHandler(pehSave);
   gErrorIgnoreLevel = levelSave;
   ph->GetListOfFunctions()->AddLast(pfinit, "0");
@@ -358,6 +362,7 @@ DataMap StickyCodeMetrics::getMetrics(string prefix) const {
   res.setFloat(prefix + "OneFraction", oneFraction());
   res.setFloat(prefix + "HighFraction", highFraction());
   res.setFloat(prefix + "ClassicFraction", classicFraction());
+  res.setInt(prefix + "FitStatus", fitStatus());
   res.setFloat(prefix + "FitMean", fitMean());
   res.setFloat(prefix + "FitSigma", fitSigma());
   res.setFloat(prefix + "FitExcess", fitExcess());
@@ -389,6 +394,8 @@ void StickyCodeMetrics::print(string prefix) const {
   sout << prefix << "           Frac LSB=64: " << highFraction();
   sout << "\n";
   sout << prefix << "         Frac LSB=0,64: " << classicFraction();
+  sout << "\n";
+  sout << prefix << "            Fit status: " << fitStatus();
   sout << "\n";
   sout << prefix << "              Fit mean: " << fitMean();
   sout << "\n";

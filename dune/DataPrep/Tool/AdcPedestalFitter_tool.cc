@@ -111,6 +111,7 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
   fillChannelPad(res, pman);
   if ( pman != nullptr ) {
     string pfname = nameReplace(m_PlotFileName, acd, false);
+    if ( m_LogLevel >= 3 ) cout << myname << "Creating plot " << pfname << endl;
     pman->print(pfname);
     delete pman;
   }
@@ -194,6 +195,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
     ++iacd;
     bool lastpad = (++ipad == npad) || (iacd == nacd);
     if ( lastpad && pmantop != nullptr ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "  Creating plot " << plotFileName << endl;
       pmantop->print(plotFileName);
       delete pmantop;
       pmantop = nullptr;

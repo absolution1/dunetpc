@@ -48,6 +48,7 @@ void copyAcd(const AdcChannelData& acdin, AdcChannelData& acdout) {
   acdout.channel     = acdin.channel;
   acdout.fembID      = acdin.fembID;
   acdout.fembChannel = acdin.fembChannel;
+  acdout.pedestal    = acdin.pedestal;
 }
 
 // Class to hold the adc counts for a tickmod.
@@ -530,6 +531,9 @@ int AdcTickModViewer::processAccumulatedChannel(Index& nplot) const {
     if ( ptree != nullptr ) {
       data.run = state().currentAcd.run;
       data.chan = state().currentAcd.channel;
+      data.femb = state().currentAcd.fembID;
+      data.fembChan = state().currentAcd.fembChannel;
+      data.pedestal = state().currentAcd.pedestal;
     }
     // Loop over tickmods and, for each, create metrics and limited-range ADC
     // frequency histo and fill metric tree.
