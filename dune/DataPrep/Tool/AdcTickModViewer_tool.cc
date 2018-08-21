@@ -48,6 +48,7 @@ void copyAcd(const AdcChannelData& acdin, AdcChannelData& acdout) {
   acdout.channel     = acdin.channel;
   acdout.fembID      = acdin.fembID;
   acdout.fembChannel = acdin.fembChannel;
+  acdout.pedestal    = acdin.pedestal;
 }
 
 // Class to hold the adc counts for a tickmod.
@@ -530,6 +531,9 @@ int AdcTickModViewer::processAccumulatedChannel(Index& nplot) const {
     if ( ptree != nullptr ) {
       data.run = state().currentAcd.run;
       data.chan = state().currentAcd.channel;
+      data.femb = state().currentAcd.fembID;
+      data.fembChan = state().currentAcd.fembChannel;
+      data.pedestal = state().currentAcd.pedestal;
     }
     // Loop over tickmods and, for each, create metrics and limited-range ADC
     // frequency histo and fill metric tree.
@@ -573,13 +577,16 @@ int AdcTickModViewer::processAccumulation(Index& nplot) const {
   const string myname = "AdcTickModViewer::processAccumulation: ";
   Index ncha = state().ChannelTickModFullHists.size();
   if ( ncha == 0 ) return 0;
+  // Set currentAcd for tree file name.
+  setChannel(state().ChannelTickModFullHists.begin()->first);
   // Create tree to hold results.
   TTree*& ptree = state().tickmodTree;
   TFile*& pfile = state().pfile;
   if ( m_TreeFileName.size() ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Creating tickmod tree." << endl;
     TDirectory* psavdir = gDirectory;
-    pfile = TFile::Open(m_TreeFileName.c_str(), "RECREATE");
+    string tfname = nameReplace(m_TreeFileName, state().currentAcd, 0);
+    pfile = TFile::Open(tfname.c_str(), "RECREATE");
     if ( pfile->IsOpen() ) {
       ptree = new TTree("tickmod", "TickMod tree");
       ptree->Branch("data", &(state().treedata), 64000, 1);

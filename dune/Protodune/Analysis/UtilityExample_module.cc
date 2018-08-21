@@ -130,9 +130,45 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   std::cout << " - " << nTracksWithTag   << " have a cosmic tag" << std::endl;
 
   // What about PFParticles?
+  auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
+
+  unsigned int nParticlesPrimary   = 0;
+//  unsigned int nParticlesWithTruth = 0;
+  unsigned int nParticlesWithT0    = 0;
+  unsigned int nParticlesWithTag   = 0;
+  for(unsigned int p = 0; p < recoParticles->size(); ++p){
+   
+    // Only consider primary particles here
+    if(!(recoParticles->at(p).IsPrimary())) continue;
+ 
+    ++nParticlesPrimary;
+
+    // Do we have a T0?
+    if(pfpUtil.GetPFParticleT0(recoParticles->at(p),evt,fPFParticleTag).size() != 0) ++nParticlesWithT0;
+    if(pfpUtil.GetPFParticleCosmicTag(recoParticles->at(p),evt,fPFParticleTag).size() != 0) ++nParticlesWithTag;
+  } 
+  std::cout << "Found " << nParticlesPrimary << " reconstructed primary particles:" << std::endl;
+//  std::cout << " - " << nParticlesWithTruth << " successfully associated to the truth information " << std::endl;
+  std::cout << " - " << nParticlesWithT0    << " have a reconstructed T0" << std::endl;
+  std::cout << " - " << nParticlesWithTag   << " have a cosmic tag" << std::endl;
+
+  // We can also build a slice map if we want to
   std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap;
   sliceMap = pfpUtil.GetPFParticleSliceMap(evt,fPFParticleTag);
+  unsigned int nMultiSlice = 0;
   std::cout << "Found " << sliceMap.size() << " slices with PFParticles" << std::endl;
+  for(auto slice : sliceMap){
+    if(slice.second.size() > 1) ++nMultiSlice;
+  }
+  std::cout << " - " << nMultiSlice << " have at least one primary PFParticle" << std::endl;
+
+  // Look for the beam particle slice and get the particles if we can
+  unsigned short beamSlice = pfpUtil.GetBeamSlice(evt,fPFParticleTag);
+  std::cout << "- Beam slice = " << beamSlice << std::endl;
+  if(beamSlice != 9999){
+    std::vector<recob::PFParticle*> beamSlicePrimaries = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+    std::cout << " - Found the beam slice! " << beamSlicePrimaries.size() << " beam particles in slice " << beamSlice << std::endl;
+  }
 
   // Get the generator MCTruth objects and find the GEANT track id of the good particle
   auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
