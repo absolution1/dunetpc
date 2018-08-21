@@ -583,7 +583,8 @@ int AdcTickModViewer::processAccumulation(Index& nplot) const {
   if ( m_TreeFileName.size() ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Creating tickmod tree." << endl;
     TDirectory* psavdir = gDirectory;
-    pfile = TFile::Open(m_TreeFileName.c_str(), "RECREATE");
+    string tfname = nameReplace (m_TreeFileName, state().currentAcd, 0);
+    pfile = TFile::Open(tfname.c_str(), "RECREATE");
     if ( pfile->IsOpen() ) {
       ptree = new TTree("tickmod", "TickMod tree");
       ptree->Branch("data", &(state().treedata), 64000, 1);
