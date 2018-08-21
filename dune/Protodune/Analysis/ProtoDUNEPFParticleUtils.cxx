@@ -20,8 +20,6 @@ std::map<unsigned int,std::vector<recob::PFParticle*>> protoana::ProtoDUNEPFPart
 
   // Get the particles
   auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
-  // And their meta data
-  const art::FindManyP<larpandoraobj::PFParticleMetadata> findMetaData(pfParticles,evt,particleLabel);
 
   std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap;
 
@@ -31,18 +29,11 @@ std::map<unsigned int,std::vector<recob::PFParticle*>> protoana::ProtoDUNEPFPart
     //  Only the primary particles have the slice association
     if(!particle->IsPrimary()) continue;
 
-    // If there is no metadata then just move on
-    if(findMetaData.at(p).size() == 0) continue;
+    unsigned int thisSlice = GetPFParticleSliceIndex(*particle,evt,particleLabel);
 
-    const larpandoraobj::PFParticleMetadata metaData = *((findMetaData.at(p)).at(0));
-
-    // If there is no SliceIndex entry in the meta data then carry on
-    if(metaData.GetPropertiesMap().find("SliceIndex") == metaData.GetPropertiesMap().end()) continue;
-
-    unsigned int thisSlice = static_cast<unsigned int>(metaData.GetPropertiesMap().at("SliceIndex"));
-  
-    sliceMap[thisSlice].push_back(particle);
-
+    if(thisSlice != 9999){
+      sliceMap[thisSlice].push_back(particle);
+    }
   }
 
   return sliceMap;
@@ -54,11 +45,11 @@ std::vector<anab::CosmicTag> protoana::ProtoDUNEPFParticleUtils::GetPFParticleCo
 
   try{
     auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle> >(particleLabel);
-  
+
     unsigned int pIndex = particle.Self();
-  
+
     std::vector<anab::CosmicTag> pTags;
-  
+
     const art::FindManyP<anab::CosmicTag> findCosmicTags(recoParticles,evt,particleLabel);
     for(unsigned int p = 0; p < findCosmicTags.at(pIndex).size(); ++p){
       pTags.push_back((*(findCosmicTags.at(pIndex)[p])));
@@ -76,11 +67,11 @@ std::vector<anab::T0> protoana::ProtoDUNEPFParticleUtils::GetPFParticleT0(const 
 
   try{
     auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle> >(particleLabel);
-  
+
     unsigned int pIndex = particle.Self();
-  
+
     std::vector<anab::T0> pT0s;
-  
+
     const art::FindManyP<anab::T0> findParticleT0s(recoParticles,evt,particleLabel);
     for(unsigned int p = 0; p < findParticleT0s.at(pIndex).size(); ++p){
       pT0s.push_back((*(findParticleT0s.at(pIndex)[p])));
@@ -92,6 +83,98 @@ std::vector<anab::T0> protoana::ProtoDUNEPFParticleUtils::GetPFParticleT0(const 
     return std::vector<anab::T0>();
   }
 
+}
+
+// Try to get the slice tagged as beam
+unsigned short protoana::ProtoDUNEPFParticleUtils::GetBeamSlice(art::Event const &evt, const std::string particleLabel) const{
+
+  std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap = GetPFParticleSliceMap(evt,particleLabel);
+
+  for(auto slice : sliceMap){
+    for(auto particle : slice.second){
+      if(IsBeamParticle(*particle,evt,particleLabel)){
+        return slice.first;
+      }
+    }
+  }
+
+  return 9999;
+
+}
+
+// Return the pointers for the PFParticles in the beam slice
+std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetPFParticlesFromBeamSlice(art::Event const &evt, const std::string particleLabel) const{
+
+  std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap = GetPFParticleSliceMap(evt,particleLabel);
+
+  unsigned short beamSlice = GetBeamSlice(evt,particleLabel);
+
+  if(beamSlice != 9999){
+    return sliceMap.at(beamSlice);
+  }
+  else{
+//    std::cerr << "Beam slice not found, returning empty vector" << std::endl;
+    return std::vector<recob::PFParticle*>();
+  }
+
+}
+
+// Access the BDT output used to decide if a slice is beam-like or cosmic-like
+float protoana::ProtoDUNEPFParticleUtils::GetBeamCosmicScore(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+
+  std::string search = "BeamScore";
+  if(mdMap.find(search) != mdMap.end()){
+    return mdMap.at(search);
+  }
+  else{
+//    std::cerr << "Object has no beam score... returning -999." << std::endl;
+    return -999.;
+  }
+}
+
+// Use the pandora metadata to tell us if this is a beam particle or not
+bool protoana::ProtoDUNEPFParticleUtils::IsBeamParticle(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+
+  // IsTestBeam only appears for beam particles
+  std::string search = "IsTestBeam";
+  if(mdMap.find(search) != mdMap.end()){
+    return true;
+  }
+  else{
+    return false;
+  }
+
+}
+
+// Get the reconstructed slice associated with a particle
+unsigned short protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceIndex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+
+  std::string search = "SliceIndex";
+  if(mdMap.find(search) != mdMap.end()){
+    return static_cast<unsigned short>(mdMap.at(search));
+  }
+  else{
+//    std::cerr << "Object has no slice index... returning 9999" << std::endl;
+    return 9999;
+  }
+}
+
+const std::map<std::string,float> protoana::ProtoDUNEPFParticleUtils::GetPFParticleMetaData(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const {
+
+  // Get the particles
+  auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+  // And their meta data
+  const art::FindManyP<larpandoraobj::PFParticleMetadata> findMetaData(pfParticles,evt,particleLabel);
+
+  const larpandoraobj::PFParticleMetadata metaData = *((findMetaData.at(particle.Self())).at(0));
+
+  return metaData.GetPropertiesMap();
 }
 
 

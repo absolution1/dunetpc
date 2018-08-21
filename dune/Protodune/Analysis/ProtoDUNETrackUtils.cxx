@@ -18,7 +18,7 @@ std::vector<anab::CosmicTag> protoana::ProtoDUNETrackUtils::GetRecoTrackCosmicTa
 
   auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
 
-  unsigned int trackIndex = GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
   // Convert to std::vector<anab::CosmicTag> from std::vector<art::Ptr<anab::CosmicTag>>
   std::vector<anab::CosmicTag> trackTags;
@@ -40,7 +40,7 @@ std::vector<anab::T0> protoana::ProtoDUNETrackUtils::GetRecoTrackT0(const recob:
 
   auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
 
-  unsigned int trackIndex = GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
   // Convert to std::vector<anab::T0> from std::vector<art::Ptr<anab::T0>>
   std::vector<anab::T0> trackT0s;
@@ -56,24 +56,6 @@ std::vector<anab::T0> protoana::ProtoDUNETrackUtils::GetRecoTrackT0(const recob:
   }
   
   return trackT0s;
-
-}
-
-unsigned int protoana::ProtoDUNETrackUtils::GetTrackIndexNumber(const recob::Track &track, art::Event const &evt, std::string trackModule) const{
-
-  // We need to loop over the tracks to find which one matches our one
-  auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
-
-  for(unsigned int t = 0; t < recoTracks->size(); ++t){
-
-    if((*recoTracks)[t].ID() == track.ID()){
-      return t;
-    }
-
-  }
-
-  // If no match then return some big number
-  return 999999;
 
 }
 
