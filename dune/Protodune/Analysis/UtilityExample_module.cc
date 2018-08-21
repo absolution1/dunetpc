@@ -162,6 +162,14 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   }
   std::cout << " - " << nMultiSlice << " have at least one primary PFParticle" << std::endl;
 
+  // Look for the beam particle slice and get the particles if we can
+  unsigned short beamSlice = pfpUtil.GetBeamSlice(evt,fPFParticleTag);
+  std::cout << "- Beam slice = " << beamSlice << std::endl;
+  if(beamSlice != 9999){
+    std::vector<recob::PFParticle*> beamSlicePrimaries = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+    std::cout << " - Found the beam slice! " << beamSlicePrimaries.size() << " beam particles in slice " << beamSlice << std::endl;
+  }
+
   // Get the generator MCTruth objects and find the GEANT track id of the good particle
   auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
   const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
