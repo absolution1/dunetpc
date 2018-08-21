@@ -3,7 +3,8 @@ BEGIN_PROLOG
 proto_util_example:
 {
    module_type:             "UtilityExample"
-   TrackerTag:              "pmtrack"
+   TrackerTag:              "pandoraTrack"
+   PFParticleTag:           "pandora"
    GeneratorTag:            "generator"
    Verbose:                 false
 }

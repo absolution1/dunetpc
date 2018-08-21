@@ -23,6 +23,7 @@
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
@@ -30,6 +31,7 @@
 
 #include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
 
 namespace protoana {
   class UtilityExample;
@@ -59,6 +61,7 @@ private:
 
   // fcl parameters
   std::string fTrackerTag;
+  std::string fPFParticleTag;
   std::string fGeneratorTag;
   bool fVerbose;
 
@@ -69,6 +72,7 @@ protoana::UtilityExample::UtilityExample(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
   fTrackerTag(p.get<std::string>("TrackerTag")),
+  fPFParticleTag(p.get<std::string>("PFParticleTag")),
   fGeneratorTag(p.get<std::string>("GeneratorTag")),
   fVerbose(p.get<bool>("Verbose"))
 {
@@ -92,6 +96,11 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   // Bag ourselves a couple of utilities
   protoana::ProtoDUNETruthUtils truthUtil;
   protoana::ProtoDUNETrackUtils trackUtil;
+  protoana::ProtoDUNEPFParticleUtils pfpUtil;
+
+  unsigned int nTracksWithTruth = 0;
+  unsigned int nTracksWithT0    = 0;
+  unsigned int nTracksWithTag   = 0;
 
   // Loop over the tracks
   for(unsigned int t = 0; t < recoTracks->size(); ++t){
@@ -109,13 +118,21 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
     std::vector<anab::CosmicTag> trackCosmic = trackUtil.GetRecoTrackCosmicTag(thisTrack,evt,fTrackerTag);
     bool hasTag = (trackCosmic.size() != 0);
 
-    std::cout << "Track properties: ";
-    if(hasTruth) std::cout << " Matched true particle of type " << trueMatch->PdgCode() << " :: ";
-    if(hasT0)    std::cout << " Track has T0 = " << trackT0[0].fTime << " :: ";
-    if(hasTag)   std::cout << " Has cosmic tag ";
-    std::cout << std::endl;
+    if(hasTruth) ++nTracksWithTruth;
+    if(hasT0)    ++nTracksWithT0;
+    if(hasTag)   ++nTracksWithTag;
 
   } // End loop over reconstructed tracks
+
+  std::cout << "Found " << recoTracks->size() << " reconstructed tracks:" << std::endl;
+  std::cout << " - " << nTracksWithTruth << " successfully associated to the truth information " << std::endl;
+  std::cout << " - " << nTracksWithT0    << " have a reconstructed T0" << std::endl;
+  std::cout << " - " << nTracksWithTag   << " have a cosmic tag" << std::endl;
+
+  // What about PFParticles?
+  std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap;
+  sliceMap = pfpUtil.GetPFParticleSliceMap(evt,fPFParticleTag);
+  std::cout << "Found " << sliceMap.size() << " slices with PFParticles" << std::endl;
 
   // Get the generator MCTruth objects and find the GEANT track id of the good particle
   auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
