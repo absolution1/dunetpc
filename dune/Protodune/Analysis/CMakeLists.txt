@@ -1,4 +1,6 @@
 
+include_directories( $ENV{PANDORA_INC} )
+
 art_make(BASENAME_ONLY
   LIBRARY_NAME      ProtoDUNEAnaUtils
   LIB_LIBRARIES CVNFunc
