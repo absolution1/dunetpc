@@ -102,21 +102,26 @@ unsigned short protoana::ProtoDUNEPFParticleUtils::GetBeamSlice(art::Event const
 
 }
 
-// Return the pointers for the PFParticles in the beam slice
-std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetPFParticlesFromBeamSlice(art::Event const &evt, const std::string particleLabel) const{
+// Returns pointers for the PFParticles in a slice
+std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetPFParticlesFromSlice(const unsigned short slice, art::Event const &evt, const std::string particleLabel) const{
 
   std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap = GetPFParticleSliceMap(evt,particleLabel);
-
-  unsigned short beamSlice = GetBeamSlice(evt,particleLabel);
-
-  if(beamSlice != 9999){
-    return sliceMap.at(beamSlice);
+  
+  if(sliceMap.find(slice) != sliceMap.end()){
+    return sliceMap.at(slice);
   }
   else{
-//    std::cerr << "Beam slice not found, returning empty vector" << std::endl;
     return std::vector<recob::PFParticle*>();
   }
 
+}
+
+// Return the pointers for the PFParticles in the beam slice
+std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetPFParticlesFromBeamSlice(art::Event const &evt, const std::string particleLabel) const{
+
+  unsigned short beamSlice = GetBeamSlice(evt,particleLabel);
+
+  return GetPFParticlesFromSlice(beamSlice,evt,particleLabel);
 }
 
 // Access the BDT output used to decide if a slice is beam-like or cosmic-like
@@ -175,6 +180,46 @@ const std::map<std::string,float> protoana::ProtoDUNEPFParticleUtils::GetPFParti
   const larpandoraobj::PFParticleMetadata metaData = *((findMetaData.at(particle.Self())).at(0));
 
   return metaData.GetPropertiesMap();
+}
+
+// Pandora tags and removes clear cosmics before slicing, so check if this particle is a clear cosmic
+bool protoana::ProtoDUNEPFParticleUtils::IsClearCosmic(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+
+  // IsTestBeam only appears for beam particles
+  std::string search = "IsClearCosmic";
+  if(mdMap.find(search) != mdMap.end()){
+    return true;
+  }
+  else{
+    return false;
+  }
+
+}
+
+// Get all of the clear cosmic ray particles
+std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetClearCosmicPFParticles(art::Event const &evt, const std::string particleLabel) const{
+
+  // Get the particles
+  auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+
+  std::vector<recob::PFParticle*> cosmicParticles;
+
+  for(unsigned int p = 0; p < pfParticles->size(); ++p){
+    recob::PFParticle* particle = const_cast<recob::PFParticle*>(&(pfParticles->at(p)));
+
+    //  Only consider primary particles
+    if(!particle->IsPrimary()) continue;
+
+    if(IsClearCosmic(*particle,evt,particleLabel)){
+      cosmicParticles.push_back(particle);
+    }
+
+  }
+
+  return cosmicParticles;
+
 }
 
 

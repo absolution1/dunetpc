@@ -29,10 +29,13 @@ namespace protoana {
     /// Get a map of slice index to the PFParticles within it
     std::map<unsigned int,std::vector<recob::PFParticle*>> GetPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const;
 
-    /// Try to get the slice tagged as beam
+    /// Get the PFParticles from a given slice. Returns an empty vector if the slice number is not valid
+    std::vector<recob::PFParticle*> GetPFParticlesFromSlice(const unsigned short slice, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Try to get the slice tagged as beam. Returns 9999 if no beam slice was found
     unsigned short GetBeamSlice(art::Event const &evt, const std::string particleLabel) const;
 
-    /// Return the pointers for the PFParticles in the beam slice
+    /// Return the pointers for the PFParticles in the beam slice. Returns an empty vector is no beam slice was found
     std::vector<recob::PFParticle*> GetPFParticlesFromBeamSlice(art::Event const &evt, const std::string particleLabel) const;
 
     /// Get the cosmic tag(s) from a given PFParticle
@@ -45,6 +48,12 @@ namespace protoana {
 
     /// Use the pandora metadata to tell us if this is a beam particle or not
     bool IsBeamParticle(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Pandora tags and removes clear cosmics before slicing, so check if this particle is a clear cosmic
+    bool IsClearCosmic(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get all of the clear cosmic ray particles
+    std::vector<recob::PFParticle*> GetClearCosmicPFParticles(art::Event const &evt, const std::string particleLabel) const;
 
     /// Get the reconstructed slice associated with a particle
     unsigned short GetPFParticleSliceIndex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;

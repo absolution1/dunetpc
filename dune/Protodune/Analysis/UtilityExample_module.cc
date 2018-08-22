@@ -90,17 +90,25 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   // We must have MC for this module to make sense
   if(evt.isRealData()) return;
 
-  // Get the reconstructed tracks
-  auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(fTrackerTag);
-
-  // Bag ourselves a couple of utilities
+  // Truth utility
   protoana::ProtoDUNETruthUtils truthUtil;
+
+  // Get the generator MCTruth objects and find the GEANT track id of the good particle
+  auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
+  const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
+  if(geantGoodParticle != 0x0){
+    std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
+  }
+
+  // Track utility
   protoana::ProtoDUNETrackUtils trackUtil;
-  protoana::ProtoDUNEPFParticleUtils pfpUtil;
 
   unsigned int nTracksWithTruth = 0;
   unsigned int nTracksWithT0    = 0;
   unsigned int nTracksWithTag   = 0;
+
+  // Get the reconstructed tracks
+  auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(fTrackerTag);
 
   // Loop over the tracks
   for(unsigned int t = 0; t < recoTracks->size(); ++t){
@@ -130,10 +138,11 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   std::cout << " - " << nTracksWithTag   << " have a cosmic tag" << std::endl;
 
   // What about PFParticles?
+  protoana::ProtoDUNEPFParticleUtils pfpUtil;
+
   auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
 
   unsigned int nParticlesPrimary   = 0;
-//  unsigned int nParticlesWithTruth = 0;
   unsigned int nParticlesWithT0    = 0;
   unsigned int nParticlesWithTag   = 0;
   for(unsigned int p = 0; p < recoParticles->size(); ++p){
@@ -148,7 +157,7 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
     if(pfpUtil.GetPFParticleCosmicTag(recoParticles->at(p),evt,fPFParticleTag).size() != 0) ++nParticlesWithTag;
   } 
   std::cout << "Found " << nParticlesPrimary << " reconstructed primary particles:" << std::endl;
-//  std::cout << " - " << nParticlesWithTruth << " successfully associated to the truth information " << std::endl;
+  std::cout << " - Total number of particles = " << recoParticles->size() << std::endl;
   std::cout << " - " << nParticlesWithT0    << " have a reconstructed T0" << std::endl;
   std::cout << " - " << nParticlesWithTag   << " have a cosmic tag" << std::endl;
 
@@ -170,12 +179,8 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
     std::cout << " - Found the beam slice! " << beamSlicePrimaries.size() << " beam particles in slice " << beamSlice << std::endl;
   }
 
-  // Get the generator MCTruth objects and find the GEANT track id of the good particle
-  auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
-  const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
-  if(geantGoodParticle != 0x0){
-    std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
-  }
+  // See how many clear cosmics we have
+  std::cout << "There are " << pfpUtil.GetClearCosmicPFParticles(evt,fPFParticleTag).size() << " clear cosmic muons in this event" << std::endl;
 
 }
 
