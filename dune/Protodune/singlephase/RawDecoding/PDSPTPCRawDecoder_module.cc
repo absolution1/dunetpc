@@ -49,11 +49,8 @@
 
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
-<<<<<<< HEAD
-=======
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "lardataobj/RawData/raw.h"
->>>>>>> develop
 
 class PDSPTPCRawDecoder;
 
@@ -69,6 +66,10 @@ public:
 
 private:
   typedef std::vector<raw::RawDigit> RawDigits;
+  typedef std::vector<raw::RDTimeStamp> RDTimeStamps;
+  typedef art::Assns<raw::RawDigit,raw::RDTimeStamp> RDTsAssocs;
+  typedef art::PtrMaker<raw::RawDigit> RDPmkr;
+  typedef art::PtrMaker<raw::RDTimeStamp> TSPmkr;
 
   // configuration parameters
 
@@ -79,7 +80,7 @@ private:
   std::string   _felix_input_container_instance;
   std::string   _felix_input_noncontainer_instance;
   int           _rce_fragment_type;
-//  int           _felix_fragment_type;
+  //  int           _felix_fragment_type;
   std::string   _output_label;
   bool          _enforce_full_channel_count;
   unsigned int  _full_channel_count;
@@ -110,19 +111,7 @@ private:
   TH1I * fFragSizeRCE;
   TH1I * fFragSizeFELIX;
 
-//declare histogram data memebers
-  bool	_make_histograms;
-  unsigned int 	duplicate_channels;
-  unsigned int 	error_counter;
-  unsigned int incorrect_ticks;
-  TH1D * fIncorrectTickNumbers;
-  //TH1I * fIncorrectTickNumbersZoomed;
-  TH1I * fParticipRCE;
-  TH1I * fParticipFELIX;
-  TH1I * fDuplicatesNumber;
-  TH1D * fErrorsNumber;
-
-// flags and state needed for the data integrity enforcement mechanisms
+  // flags and state needed for the data integrity enforcement mechanisms
 
   unsigned int  _tick_count_this_event; // for use in comparing tick counts for all channels
   bool          _initialized_tick_count_this_event;
@@ -130,12 +119,12 @@ private:
   const unsigned int  _duplicate_channel_checklist_size=15360;
   bool          _duplicate_channel_checklist[15360]; 
 
-// internal methods
+  // internal methods
 
-  bool _processRCE(art::Event &evt, RawDigits& raw_digits);
-  bool _processFELIX(art::Event &evt, RawDigits& raw_digits);
-  bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits);
-  bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits);
+  bool _processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
 
   std::vector<uint16_t> _buffer;
 };
@@ -166,58 +155,6 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _enforce_error_free = p.get<bool>("EnforceErrorFree",false);
   _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
 
-<<<<<<< HEAD
-  produces<RawDigits>( _output_label ); 
-
-//Initialize Histograms if the tag is present
-  art::ServiceHandle<art::TFileService> fs;
-  _make_histograms = p.get<bool>("MakeHistograms",false);
-
-  if (_make_histograms)
-  {
-  	duplicate_channels = 0;
-  	art::ServiceHandle<art::TFileService> tFileService;
-
-  	//Number of channels with wrong number of tics plotted to have an adjusted log2 scale on x axis
-  	fIncorrectTickNumbers = tFileService->make<TH1D>("fIncorrectTickNumbers","Channels with Unexpected Number of Ticks",  45, -0.5, 14.5);
-  	fIncorrectTickNumbers->GetXaxis()->SetTitle("Channels with an Unexpected Number of Ticks");
-  	fIncorrectTickNumbers->GetXaxis()->SetBinLabel(2,"1");
-  	fIncorrectTickNumbers->GetXaxis()->SetBinLabel(8,"4");
-   	fIncorrectTickNumbers->GetXaxis()->SetBinLabel(14,"16");
-  	fIncorrectTickNumbers->GetXaxis()->SetBinLabel(23,"128");
-  	fIncorrectTickNumbers->GetXaxis()->SetBinLabel(32,"1024");
-  	fIncorrectTickNumbers->GetXaxis()->SetBinLabel(38,"4096");
-  	fIncorrectTickNumbers->GetXaxis()->SetBinLabel(44, "16384");
-	
-  	//same as fIncorrectTickNumbers but with a zoomed domain
-  	//fIncorrectTickNumbersZoomed = tFileService->make<TH1I>("fIncorrectTickNumbersZoomed","Channels with Unexpected Number of Ticks", , 0.5, 100.5);
-  	//fIncorrectTickNumbersZoomed->GetXaxis()->SetTitle("Channels with an Unexpected Number of Tics (log2)");
-
-  	//number of participating RCE channels per event
-  	fParticipRCE = tFileService->make<TH1I>("fParticipRCE","Participating RCE channels", 130, 0.5, 15000.5); //expected value 128000
-  	fParticipRCE->GetXaxis()->SetTitle("RCE channels");
-
-  	//number of participating FELIX channels per event
-  	fParticipFELIX = tFileService->make<TH1I>("fParticipFELIX","Participating FELIX channels", 100, 0.5, 3000.5); //expected value 2560
-  	fParticipFELIX->GetXaxis()->SetTitle("FELIX channels");
-
-  	//number of duplicated channels per event
-  	fDuplicatesNumber = tFileService->make<TH1I>("fDuplicatesNumber", "Number of Duplucated Channels", 200, 0.5, 200.5);
-  	fDuplicatesNumber->GetXaxis()->SetTitle("Number of Duplicates");
-  	//gStyle->SetOptStat("nemro");
-
-  	//number of channels with error returns
-  	fErrorsNumber = tFileService->make<TH1D>("fErrorsNumber", "Channels with Errors", 45, -0.5, 14.5);
-  	fErrorsNumber->GetXaxis()->SetTitle("Number of channels with errors");
-  	fErrorsNumber->GetXaxis()->SetBinLabel(2,"1");
-  	fErrorsNumber->GetXaxis()->SetBinLabel(8,"4");
-   	fErrorsNumber->GetXaxis()->SetBinLabel(14,"16");
-  	fErrorsNumber->GetXaxis()->SetBinLabel(23,"128");
-  	fErrorsNumber->GetXaxis()->SetBinLabel(32,"1024");
-  	fErrorsNumber->GetXaxis()->SetBinLabel(38,"4096");
-  	fErrorsNumber->GetXaxis()->SetBinLabel(44, "16384");
-  }
-=======
   _compress_Huffman = p.get<bool>("CompressHuffman",false);
   _print_coldata_convert_count = p.get<bool>("PrintColdataConvertCount",false);
 
@@ -280,17 +217,14 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
       fFragSizeFELIX = tFileService->make<TH1I>("fFragSizeFELIX", "FELIX Fragment Size", 100, 0.5, 57600000.5);
       fFragSizeFELIX->GetXaxis()->SetTitle("Size of FELIX Fragments (bytes)");
     }
->>>>>>> develop
 }
 
 void PDSPTPCRawDecoder::produce(art::Event &e)
 {
   RawDigits raw_digits;
+  RDTimeStamps rd_timestamps;
+  RDTsAssocs rd_ts_assocs;
 
-<<<<<<< HEAD
-  error_counter = 0; //reset the errors to zero for each run
-  incorrect_ticks = 0;
-=======
   RDPmkr rdpm(e,*this,_output_label);
   TSPmkr tspm(e,*this,_output_label);
 
@@ -299,7 +233,6 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
   duplicate_channels = 0;
   rcechans = 0;
   felixchans = 0;
->>>>>>> develop
 
   _initialized_tick_count_this_event = false;
   _discard_data = false;
@@ -308,17 +241,8 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
       for (size_t i=0; i<_duplicate_channel_checklist_size; ++i) _duplicate_channel_checklist[i] = false;
     }
   
-  _processRCE(e,raw_digits);
-  _processFELIX(e,raw_digits);
-
-//Make the histograms for error checking. (other histograms are filled within the _process and _AUX functions)
-  if(_make_histograms)
-  {
-  	fErrorsNumber->Fill(log2(error_counter));
-  	fDuplicatesNumber->Fill(duplicate_channels);
-    fIncorrectTickNumbers->Fill(log2(incorrect_ticks));
-    //fIncorrectTickNumbersZoomed->Fill(incorrect_ticks);
-  }
+  _processRCE(e,raw_digits,rd_timestamps,rd_ts_assocs,rdpm,tspm);
+  _processFELIX(e,raw_digits,rd_timestamps,rd_ts_assocs,rdpm,tspm);
 
   //Make the histograms for error checking. (other histograms are filled within the _process and _AUX functions)
   if(_make_histograms)
@@ -341,52 +265,23 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
   if (_discard_data)
     {
       RawDigits empty_raw_digits;
+      RDTimeStamps empty_rd_timestamps;
+      RDTsAssocs empty_rd_ts_assocs;
       e.put(std::make_unique<decltype(empty_raw_digits)>(std::move(empty_raw_digits)),_output_label);
+      e.put(std::make_unique<decltype(empty_rd_timestamps)>(std::move(empty_rd_timestamps)),_output_label);
+      e.put(std::make_unique<decltype(empty_rd_ts_assocs)>(std::move(empty_rd_ts_assocs)),_output_label);
     }
   else
     {
       e.put(std::make_unique<decltype(raw_digits)>(std::move(raw_digits)),_output_label);
-<<<<<<< HEAD
-=======
       e.put(std::make_unique<decltype(rd_timestamps)>(std::move(rd_timestamps)),_output_label);
       e.put(std::make_unique<decltype(rd_ts_assocs)>(std::move(rd_ts_assocs)),_output_label);
->>>>>>> develop
     }
 }
 
-bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
+bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
   size_t n_rce_frags = 0;
-<<<<<<< HEAD
-  if (_expect_rce_container_fragments) {
-    art::Handle<artdaq::Fragments> cont_frags;
-    evt.getByLabel(_rce_input_label, _rce_input_container_instance, cont_frags);  // hardcoded label .. maybe fix
-    try { cont_frags->size(); }
-    catch(std::exception e) {
-      LOG_DEBUG("_processRCE") << "Container TPC/RCE data not found " 
-			       << "Run: " << evt.run()
-			       << ", SubRun: " << evt.subRun()
-			       << ", Event: " << evt.event();
-      return false;
-    }
-    //Check that the data is valid
-    if(!cont_frags.isValid()){
-      LOG_ERROR("_processRCE") << "Container TPC/RCE fragments Not Valid " 
-			       << "Run: " << evt.run()
-			       << ", SubRun: " << evt.subRun()
-			       << ", Event: " << evt.event();
-      return false;
-    }
-    
-    for (auto const& cont : *cont_frags)
-      {
-	artdaq::ContainerFragment cont_frag(cont);
-	for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
-	  {
-	    if (_process_RCE_AUX(*cont_frag[ii], raw_digits)) ++n_rce_frags;
-	  }
-      }
-=======
   art::Handle<artdaq::Fragments> cont_frags;
   evt.getByLabel(_rce_input_label, _rce_input_container_instance, cont_frags);  
 
@@ -394,28 +289,16 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
   try { cont_frags->size(); }
   catch(std::exception e) {
     have_data=false;
->>>>>>> develop
   }
 
   if (have_data)
     {
-<<<<<<< HEAD
-      art::Handle<artdaq::Fragments> frags;
-      evt.getByLabel(_rce_input_label, _rce_input_noncontainer_instance, frags);  // hardcoded label?
-      try { frags->size(); }
-      catch(std::exception e) {
-	LOG_DEBUG("_process_RCE_AUX") << "TPC/RCE fragment data not found " 
-				      << "Run: " << evt.run()
-				      << ", SubRun: " << evt.subRun()
-				      << ", Event: " << evt.event();
-=======
       //Check that the data are valid
       if(!cont_frags.isValid()){
 	LOG_ERROR("_processRCE") << "Container TPC/RCE fragments found but Not Valid " 
 				 << "Run: " << evt.run()
 				 << ", SubRun: " << evt.subRun()
 				 << ", Event: " << evt.event();
->>>>>>> develop
 	return false;
       }
 
@@ -456,17 +339,10 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
   if (have_data_nc)
     {
       if(!frags.isValid()){
-<<<<<<< HEAD
-	LOG_ERROR("_process_RCE_AUX") << "TPC/RCE fragments Not Valid " 
-				      << "Run: " << evt.run()
-				      << ", SubRun: " << evt.subRun()
-				      << ", Event: " << evt.event();
-=======
 	LOG_ERROR("_process_RCE") << "TPC/RCE fragments found but Not Valid " 
 				  << "Run: " << evt.run()
 				  << ", SubRun: " << evt.subRun()
 				  << ", Event: " << evt.event();
->>>>>>> develop
 	return false;
       }
 
@@ -483,18 +359,6 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
 
       for(auto const& frag: *frags)
 	{
-<<<<<<< HEAD
-	  if (_process_RCE_AUX(frag, raw_digits)) ++n_rce_frags;
-	}
-    }
-
-  LOG_INFO("_processRCE_AUX")
-    << " Processed " << n_rce_frags
-    << " RCE Fragments, making "
-    << raw_digits.size()
-    << " RawDigits.";
-  return true;
-=======
 	  if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
 	}
     }
@@ -505,7 +369,6 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
   //<< raw_digits.size()
   //<< " RawDigits.";
   return have_data || have_data_nc;
->>>>>>> develop
 }
 
 // returns true if we want to add to the number of fragments processed.  Separate flag used
@@ -513,15 +376,15 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits)
 
 bool PDSPTPCRawDecoder::_process_RCE_AUX(
 					 const artdaq::Fragment& frag, 
-					 RawDigits& raw_digits
+					 RawDigits& raw_digits,
+					 RDTimeStamps &timestamps,
+					 RDTsAssocs &tsassocs,
+					 RDPmkr &rdpm, TSPmkr &tspm
 					 )
 {
-<<<<<<< HEAD
-=======
 
   //ptr makers so we can associate timestamps with raw digits
 
->>>>>>> develop
   // FIXME: Remove hard-coded fragment type
   if((unsigned)frag.type() != 2) return false;
 
@@ -540,13 +403,6 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       size_t n_ch = rce_stream->getNChannels();
       size_t n_ticks = rce_stream->getNTicks();
 
-<<<<<<< HEAD
-      if(_make_histograms)
-      {
-      	//log the participating RCE channels
-      	fParticipRCE->Fill(n_ch);
-      }
-=======
       if (_print_coldata_convert_count)
 	{
 
@@ -586,7 +442,6 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  //log the participating RCE channels
 	  rcechans=rcechans+n_ch;
 	}
->>>>>>> develop
 
       if (_enforce_full_tick_count && n_ticks != _full_tick_count)
 	{
@@ -644,11 +499,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       if (_enforce_error_free && !sgmcdretcode)
 	{
 	  LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
-<<<<<<< HEAD
-	       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
-=======
 					   << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
->>>>>>> develop
 	  error_counter++;
 	  _discard_data = true;
 	  return true;
@@ -675,15 +526,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		{
 		  if (_duplicate_channel_checklist[offlineChannel])
 		    {
-<<<<<<< HEAD
-		    	if(_make_histograms)
-		    	{
-		    		duplicate_channels++;
-=======
 		      if(_make_histograms)
 		    	{
 			  duplicate_channels++;
->>>>>>> develop
 		    	}
 		      LOG_WARNING("_process_RCE_AUX:") << "Duplicate Channel: " << offlineChannel
 						       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << i_ch << " Discarding Data";
@@ -693,10 +538,6 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		    }
 		}
 	    }
-<<<<<<< HEAD
-	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
-	  raw_digits.push_back(raw_digit);                
-=======
 
 	  raw::Compress_t cflag=raw::kNone;
 	  if (_compress_Huffman)
@@ -715,14 +556,13 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  auto const rawdigitptr = rdpm(raw_digits.size()-1);
 	  auto const rdtimestampptr = tspm(timestamps.size()-1);
 	  tsassocs.addSingle(rawdigitptr,rdtimestampptr);            
->>>>>>> develop
 	}
     }
 
   return true;
 }
 
-bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
+bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
 
   // TODO Use LOG_DEBUG
@@ -733,55 +573,15 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
   art::Handle<artdaq::Fragments> cont_frags;
   evt.getByLabel(_felix_input_label, _felix_input_container_instance, cont_frags); 
 
-<<<<<<< HEAD
-    try { cont_frags->size(); }
-    catch(std::exception e) {
-      LOG_DEBUG("_processFELIX") << "Container TPC/FELIX data not found " 
-				 << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event();
-      return false;
-    }
-    //Check that the data is valid
-    if(!cont_frags.isValid()){
-      LOG_ERROR("_processFELIX") << "Container TPC/FELIX fragments Not Valid " 
-				 << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event();
-      return false;
-    }
-    
-    for (auto const& cont : *cont_frags)
-      {
-	artdaq::ContainerFragment cont_frag(cont);
-	for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
-	  {
-	    if (_process_FELIX_AUX(*cont_frag[ii], raw_digits)) ++n_felix_frags;
-	  }
-      }
-=======
   bool have_data = true;
   try { cont_frags->size(); }
   catch(std::exception e) {
     have_data = false;
->>>>>>> develop
   }
 
   if (have_data)
     {
-<<<<<<< HEAD
-      art::Handle<artdaq::Fragments> frags;
-      evt.getByLabel(_felix_input_label, _felix_input_noncontainer_instance, frags);
-      try { frags->size(); }
-      catch(std::exception e) {
-	LOG_DEBUG("_process_FELIX_AUX") << "TPC/FELIX fragment data not found " 
-					<< "Run: " << evt.run()
-					<< ", SubRun: " << evt.subRun()
-					<< ", Event: " << evt.event();
-	return false;
-=======
       //Check that the data is valid
->>>>>>> develop
 
       if(!cont_frags.isValid()){
 	LOG_ERROR("_processFELIX") << "Container TPC/FELIX fragments found but they are Not Valid " 
@@ -824,17 +624,10 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
     {
       //Check that the data is valid
       if(!frags.isValid()){
-<<<<<<< HEAD
-	LOG_ERROR("_process_FELIX_AUX") << "TPC/FELIX fragments Not Valid " 
-					<< "Run: " << evt.run()
-					<< ", SubRun: " << evt.subRun()
-					<< ", Event: " << evt.event();
-=======
 	LOG_ERROR("_process_FELIX") << "found TPC/FELIX non-container fragments but they are Not Valid " 
 				    << "Run: " << evt.run()
 				    << ", SubRun: " << evt.subRun()
 				    << ", Event: " << evt.event();
->>>>>>> develop
 	return false;
       }
 
@@ -850,11 +643,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
 
       for(auto const& frag: *frags)
 	{
-<<<<<<< HEAD
-	  if (_process_FELIX_AUX(frag, raw_digits)) ++n_felix_frags;
-=======
 	  if (_process_FELIX_AUX(frag, raw_digits,timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
->>>>>>> develop
 	}
     }
 
@@ -868,8 +657,12 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits)
   return have_data || have_data_nc;
 }
 
-bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits)
+bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits,
+					   RDTimeStamps &timestamps,
+					   RDTsAssocs &tsassocs,
+					   RDPmkr &rdpm, TSPmkr &tspm)
 {
+
   // FIXME: Remove hard-coded fragment type
   //if((unsigned)frag.type() != 2) return false;
 
@@ -902,15 +695,9 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// should be 256
 
   if(_make_histograms)
-<<<<<<< HEAD
-  {
-  	fParticipFELIX->Fill(n_channels);
-  }
-=======
     {
       felixchans=felixchans+n_channels;
     }
->>>>>>> develop
 
   for (unsigned int iframe=0; iframe<n_frames; ++iframe)
     {
@@ -956,12 +743,8 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       }
     else
       {
-<<<<<<< HEAD
-	LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << fiber << " is expected to be 1 or 2 -- revisit logic";
-=======
 	LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << (int) fiber << " is expected to be 1 or 2 -- revisit logic";
 	fiberloc = 1;
->>>>>>> develop
 	error_counter++;
       }
 
@@ -1010,15 +793,9 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	    if (_duplicate_channel_checklist[offlineChannel])
 	      {
 	      	if(_make_histograms)
-<<<<<<< HEAD
-	      	{
-	      		duplicate_channels++;
-	      	}
-=======
 		  {
 		    duplicate_channels++;
 		  }
->>>>>>> develop
 		LOG_WARNING("_process_FELIX_AUX:") << "Duplicate Channel: " << offlineChannel
 						   << " c:s:f:ich: " << crate << " " << slot << " " << fiber << " " << ch << " Discarding Data";
 		error_counter++;
@@ -1039,8 +816,6 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     // here n_ticks is the uncompressed size as required by the constructor
     raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
     raw_digits.push_back(raw_digit);
-<<<<<<< HEAD
-=======
 
     raw::RDTimeStamp rdtimestamp(frag.timestamp());
     timestamps.push_back(rdtimestamp);
@@ -1049,7 +824,6 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     auto const rawdigitptr = rdpm(raw_digits.size()-1);
     auto const rdtimestampptr = tspm(timestamps.size()-1);
     tsassocs.addSingle(rawdigitptr,rdtimestampptr);
->>>>>>> develop
   }
   return true;
 }
