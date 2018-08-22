@@ -78,16 +78,33 @@ void setExpectedValues(ExpectedValues& ev) {
   // Space points.
   #include "setProtoDuneSpacePoints.dat"
   // Optical detectors.
+  // ... # detectors
   ev.nopdet = 10*ev.napa;
+  // ... # channels in each detector
   ev.nopdetcha.resize(ev.nopdet, 4);
-  ev.nopcha = ev.nopdet*4;
-  resize(ev.opdetcha, ev.nopdet, 4, 0);
-  for ( Index iopt=0; iopt<ev.nopdet; ++iopt ) {
-    Index icha = 4*iopt;
-    for ( Index ioch=0; ioch<ev.nopdetcha[iopt]; ++ ioch ) {
-      ev.opdetcha[iopt][ioch] = icha++;
+  ev.nopdetcha[31] = 12;
+  ev.nopdetcha[46] = 12;
+  // ... First channel in each detector
+  vector<Index> firstChan = {
+     36, 180,  32, 176,  28, 172,  24, 168,  20, 164,
+     16, 160,  12, 156,   8, 152,   4, 148,   0, 144,
+     84, 284,  80, 280,  76, 276,  72, 272,  68, 268,
+     64, 256,  60, 252,  56, 248,  52, 244,  48, 240,
+    128, 236, 124, 232, 120, 228, 132, 224, 116, 204,
+    112, 220, 108, 200, 104, 196, 100, 216,  96, 192
+  };
+  ev.opdetcha.resize(ev.nopdet);
+  Index ncha = 0;
+  // ... Channels in each detector
+  for ( Index iodt=0; iodt<ev.nopdet; ++iodt ) {
+    ev.opdetcha[iodt].resize(ev.nopdetcha[iodt]);
+    icha = firstChan[iodt];
+    for ( Index ioch=0; ioch<ev.nopdetcha[iodt]; ++ioch ) {
+      ev.opdetcha[iodt][ioch] = icha++;
+      ++ncha;
     }
   }
+  ev.nopcha = ncha;
 }
 
 //**********************************************************************

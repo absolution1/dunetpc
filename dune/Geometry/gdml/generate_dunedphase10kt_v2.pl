@@ -1295,9 +1295,9 @@ print ENCL <<EOF;
 <solids>
 
     <box name="FoamPadBlock" lunit="cm"
-      x="$Cryostat_x + 2*$FoamPadding"
-      y="$Cryostat_y + 2*$FoamPadding"
-      z="$Cryostat_z + 2*$FoamPadding" />
+      x="@{[$Cryostat_x + 2*$FoamPadding]}"
+      y="@{[$Cryostat_y + 2*$FoamPadding]}"
+      z="@{[$Cryostat_z + 2*$FoamPadding]}" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
@@ -1306,9 +1306,9 @@ print ENCL <<EOF;
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="$Cryostat_x + 2*$FoamPadding + 2*$SteelSupport_x"
-      y="$Cryostat_y + 2*$FoamPadding + 2*$SteelSupport_y"
-      z="$Cryostat_z + 2*$FoamPadding + 2*$SteelSupport_z" />
+      x="@{[$Cryostat_x + 2*$FoamPadding + 2*$SteelSupport_x]}"
+      y="@{[$Cryostat_y + 2*$FoamPadding + 2*$SteelSupport_y]}"
+      z="@{[$Cryostat_z + 2*$FoamPadding + 2*$SteelSupport_z]}" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>

@@ -7,7 +7,9 @@ TPCMonitor_params:
       TPCInstanceName: "daq"
       RebinFactorX:     1
       RebinFactorY:     10
-      NoiseLevelMinNCounts: 40
+      NoiseLevelMinNCountsU: 40
+      NoiseLevelMinNCountsV: 40
+      NoiseLevelMinNCountsZ: 40
       NoiseLevelNSigma: 6.0
 }
 

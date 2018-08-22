@@ -38,6 +38,8 @@ public:
   Index pulserAmplitude() const { return m_pulserAmplitude; }
   Index pulserSource() const { return m_pulserSource; }
   Index pulserPeriod() const { return m_pulserPeriod; }
+  Name phaseGroup() const { return m_phaseGroup; }
+  const IndexVector& phases() const { return m_phases; }
 
   // Return if value is defined.
   bool isValid() const { return run(); }
@@ -51,6 +53,8 @@ public:
   bool havePulserAmplitude() const { return m_pulserAmplitude != 999; }
   bool havePulserSource() const { return m_pulserSource != 0; }
   bool havePulserPeriod() const { return m_pulserPeriod != 0; }
+  bool havePhaseGroup() const { return m_phaseGroup.size(); }
+  bool havePhases() const { return m_phaseGroup.size(); }
 
   // Setters.
   void setRun(Index val) { m_run = val; }
@@ -63,6 +67,8 @@ public:
   void setPulserAmplitude(Index val) { m_pulserAmplitude = val; }
   void setPulserSource(Index val) { m_pulserSource = val; }
   void setPulserPeriod(Index val) { m_pulserPeriod = val; }
+  void setPhaseGroup(Name val) { m_phaseGroup = val; }
+  void setPhases(const IndexVector& val) { m_phases = val; }
 
   // Accessors.
   Index&       accessRun()             { return m_run; }
@@ -75,6 +81,8 @@ public:
   Index&       accessPulserAmplitude() { return m_pulserAmplitude; }
   Index&       accessPulserSource()    { return m_pulserSource; }
   Index&       accessPulserPeriod()    { return m_pulserPeriod; }
+  Name&        accessPhaseGroup()      { return m_phaseGroup; }
+  IndexVector& accessPhases()          { return m_phases; }
 
   std::ostream& print(std::ostream& lhs =std::cout) const {
     const std::string sep = "\n";
@@ -94,6 +102,15 @@ public:
     if ( havePulserAmplitude() ) lhs << sep << "  Pulser ampl.: " << pulserAmplitude();
     if ( havePulserSource() )    lhs << sep << " Pulser source: " << pulserSource();
     if ( havePulserPeriod() )    lhs << sep << " Pulser period: " << pulserPeriod();
+    if ( havePhaseGroup()   ) {  lhs << sep << " Phases grouped by " << phaseGroup() << ": [";
+      bool first = true;
+      for ( Index ipha : phases() ) {
+        if ( first ) first = false;
+        else lhs << ", ";
+        lhs << ipha;
+      }
+      lhs << "]";
+    }
     return lhs;
   }
 
@@ -110,6 +127,8 @@ private:
   Index m_pulserAmplitude = 999;
   Index m_pulserSource = 0;  // 1=preamp, 2=FEMB
   Index m_pulserPeriod = 0;
+  Name  m_phaseGroup;
+  IndexVector m_phases;
 
 };
 

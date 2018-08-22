@@ -1,5 +1,4 @@
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
-#include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -28,9 +27,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   // We need the association between the tracks and the hits
   const art::FindManyP<recob::Hit> findTrackHits(allRecoTracks, evt, trackModule);
 
-  // A track utils object will be useful
-  protoana::ProtoDUNETrackUtils utils;
-  unsigned int trackIndex = utils.GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -66,5 +63,89 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   }
 
   return mcParticle;
-} 
+}
+
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt )
+{  // Function that will match the protoDUNE MC particle to the Geant 4 MC particle, and return the matched particle (or a null pointer).
+
+  // Find the energy of the procided MC Particle
+  double pDuneEnergy = pDunePart.E();
+  
+  // Get list of the g4 particles. plist should be a std::map< int, simb::MCParticle* >
+  art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+  const sim::ParticleList & plist = pi_serv->ParticleList();
+  
+  // Check if plist is empty
+  if ( !plist.size() ) {
+    std::cerr << "\n\n#####################################\n"
+              << "\nEvent " << evt.id().event() << "\n"
+              << "sim::ParticleList from cheat::ParticleInventoryService is empty\n"
+              << "A null pointer will be returned\n"
+              << "#####################################\n\n";
+    return nullptr;
+  }
+  
+  // Go through the list of G4 particles
+  for ( auto partIt = plist.begin() ; partIt != plist.end() ; partIt++ ) {
+    
+    const simb::MCParticle* pPart = partIt->second;
+    if (!pPart) {
+      std::cerr << "\n\n#####################################\n"
+                << "\nEvent " << evt.id().event() << "\n"
+                << "GEANT particle #" << partIt->first << " returned a null pointer\n"
+                << "This is not necessarily bad. It just means at least one\n"
+                << "of the G4 particles returned a null pointer. It may well\n"
+                << "have still matached a PD particle and a G4 particle.\n"
+                << "#####################################\n\n";
+      continue;
+    }
+    
+    // If the initial energy of the g4 particle is very close to the energy of the protoDUNE particle, call it a day and have a cuppa.
+    if ( (pDunePart.PdgCode() == pPart->PdgCode()) && fabs(pPart->E() - pDuneEnergy) < 0.00001 ) {
+      return pPart;
+    }
+    
+  }  // G4 particle list loop end.
+  
+  std::cout << "No G4 particle was matched for Event " << evt.id().event() << ". Null pointer returned\n";
+  return nullptr;
+  
+}  // End MatchPduneMCtoG4
+
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(const simb::MCTruth &genTruth, const art::Event &evt) const{
+
+  // Get the good particle from the MCTruth
+  simb::MCParticle goodPart;
+  bool found = false;
+  for(int t = 0; t < genTruth.NParticles(); ++t){
+    simb::MCParticle part = genTruth.GetParticle(t);
+    if(part.Process() == "primary"){
+      goodPart = part;
+      found = true;
+      break;
+    }
+  }
+
+  if(!found){
+    std::cerr << "No good particle found, returning null pointer" << std::endl;
+    return nullptr;
+  }
+
+  // Now loop over geant particles to find the one that matches
+  // Get list of the g4 particles. plist should be a std::map< int, simb::MCParticle* >
+  art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+  const sim::ParticleList & plist = pi_serv->ParticleList();
+
+  for(auto const part : plist){
+    if((goodPart.PdgCode() == part.second->PdgCode()) && fabs(part.second->E() - goodPart.E()) < 1e-5){
+      return part.second;
+    }
+  } 
+
+  // If we get here something has gone wrong
+  std::cerr << "No G4 version of the good particle was found, returning null pointer" << std::endl;
+  return nullptr;
+
+}
+
 

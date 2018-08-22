@@ -181,7 +181,7 @@
    <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
-  <!-- Copied from prorotdune_v4.gdml -->
+  <!-- Copied from protodune_v4.gdml -->
   <material name="foam_protoDUNEdp">
    <D value="0.135" unit="g/cm3"/>
    <composite n="17" ref="carbon"/>
@@ -374,30 +374,30 @@
 
    <box name="CRM" lunit="cm" 
       x="100.03" 
-      y="97" 
-      z="289"/>
+      y="101" 
+      z="301"/>
    <box name="CRMVPlane" lunit="cm" 
       x="0.015" 
-      y="96" 
-      z="288"/>
+      y="100" 
+      z="300"/>
    <box name="CRMZPlane" lunit="cm" 
       x="0.015"
-      y="96"
-      z="288"/>
+      y="100"
+      z="300"/>
    <box name="CRMActive" lunit="cm"
       x="100"
-      y="96"
-      z="288"/>
+      y="100"
+      z="300"/>
 
    <tube name="CRMWireV"
      rmax="0.0075"
-     z="288"               
+     z="300"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
    <tube name="CRMWireZ"
      rmax="0.0075"
-     z="96"               
+     z="100"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
@@ -462,6 +462,7 @@
  <volume name="volPMTplatecoat">
   <materialref ref="TPB"/>
   <solidref ref="PMT_plate_coat"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
  </volume>
 
  <volume name="vol_PMT_AcrylicPlate">
@@ -472,6 +473,7 @@
  <volume name="pmtCoatVol">
   <materialref ref="TPB"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -521,6 +523,7 @@
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
     </volume>
 
     <volume name="volTPCPlaneV">
@@ -647,7 +650,7 @@
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="-18.22" y="-1.4210854715202e-14" z="144"/>
+	<position name="posDetEnclosure" unit="cm" x="-18.22" y="-1.4210854715202e-14" z="150"/>
       </physvol>
 
     </volume>

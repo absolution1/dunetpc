@@ -148,7 +148,12 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     res.setHist(type, ph, resManage);
   }
   if ( pfile != nullptr ) {
-    pfile->Write();
+    if ( m_LogLevel >= 2 ) cout << myname << "Writing to  " << pfile->GetName() << endl;
+    for ( TH1* ph : hists ) ph->Write();
+    if ( m_LogLevel >= 3 ) {
+      cout << myname << "File listing: " << endl;
+      pfile->ls();
+    }
     pfile->Close();
     delete pfile;
     gDirectory = polddir;

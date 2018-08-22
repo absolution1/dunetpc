@@ -1,0 +1,7 @@
+#include "geometry_dune.fcl"
+#include "dump_lartpcdetector_geometry.fcl"
+
+services.message.destinations.GeometryLog.filename:  "ProtoDUNE-SP-geometry.txt"
+services.ExptGeoHelperInterface: @local::dune_geometry_helper
+services.Geometry:               @local::protodune_geo
+

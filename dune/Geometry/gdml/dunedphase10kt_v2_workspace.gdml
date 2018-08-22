@@ -304,7 +304,7 @@
 
   <!-- preliminary values -->
   <material name="AirSteelMixture" formula="AirSteelMixture">
-   <D value=" 0.001205*(1-0.5) + 7.9300*0.5 " unit="g/cm3"/>
+   <D value="3.9656025" unit="g/cm3"/>
    <fraction n="0.5" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="0.5"   ref="Air"/>
   </material>
@@ -476,9 +476,9 @@
 
 
     <box name="FoamPadBlock" lunit="cm"
-      x="1510.24 + 2*80"
-      y="501.24 + 2*80"
-      z="802.24 + 2*80" />
+      x="1670.24"
+      y="661.24"
+      z="962.24" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
@@ -487,9 +487,9 @@
     </subtraction>
 
     <box name="SteelSupportBlock" lunit="cm"
-      x="1510.24 + 2*80 + 2*100"
-      y="501.24 + 2*80 + 2*50"
-      z="802.24 + 2*80 + 2*100" />
+      x="1870.24"
+      y="761.24"
+      z="1162.24" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
@@ -530,7 +530,7 @@
    <position name="posallpmtcoat" unit="cm" x="0" y="0" z="3.2258"/>
   </physvol>
 
- <physvol name="volOpDetSensitiveCoat">
+ <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
   <position name="posOpDetSensitiveCoat" unit="cm" x="0" y="0" z="-2.4384"/>
   </physvol>

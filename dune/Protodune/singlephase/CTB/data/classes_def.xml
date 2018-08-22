@@ -1,0 +1,40 @@
+<!-- 
+  File: classes_def.xml
+  Brief: Data product definitions for  raw::ctb::pdspctb data product.
+  Author: Tom Junk
+-->
+
+<lcgdict>
+  <!-- The data product added in this directory -->
+
+  <class name="raw::ctb::Trigger" ClassVersion="10">
+   <version ClassVersion="10" checksum="2736148745"/>
+  </class>
+  <class name="raw::ctb::ChStatus" ClassVersion="10">
+   <version ClassVersion="10" checksum="2579829609"/>
+  </class>
+  <class name="raw::ctb::Feedback" ClassVersion="10">
+   <version ClassVersion="10" checksum="198861742"/>
+  </class>
+  <class name="raw::ctb::Misc" ClassVersion="10">
+   <version ClassVersion="10" checksum="1342509258"/>
+  </class>
+
+  <class name="raw::ctb::WordIndex" ClassVersion="10">
+   <version ClassVersion="10" checksum="1287993358"/>
+  </class>
+
+  <class name="raw::ctb::pdspctb" ClassVersion="11">
+   <version ClassVersion="11" checksum="1060551552"/>
+   <version ClassVersion="10" checksum="104348926"/>
+  </class>
+  <class name="art::Ptr<raw::ctb::pdspctb>"/>
+  <class name="std::vector<raw::ctb::pdspctb>"/>
+  <class name="std::vector<raw::ctb::Trigger>"/>
+  <class name="std::vector<raw::ctb::ChStatus>"/>
+  <class name="std::vector<raw::ctb::Feedback>"/>
+  <class name="std::vector<raw::ctb::Misc>"/>
+  <class name="std::vector<raw::ctb::WordIndex>"/>
+  <class name="art::Wrapper<std::vector<raw::ctb::pdspctb>>"/>
+
+</lcgdict>
