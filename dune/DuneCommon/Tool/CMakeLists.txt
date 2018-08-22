@@ -24,6 +24,8 @@ simple_plugin(FixedTimeOffsetTool  "tool"
              )
 
 simple_plugin(TimingRawDecoderOffsetTool  "tool"
+                dune_ArtSupport
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

@@ -153,7 +153,8 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
         assert( ped2 != ped0 );
         assert( ped2 != 0.0 );
         assert( datamap[icha].hasMetadata("fitPedPeakBinFraction") );
-        
+        assert( datamap[icha].hasMetadata("fitPedFractionLow") );
+        assert( datamap[icha].hasMetadata("fitPedFractionHigh") );
         //assert( fabs(ped2-ped) < 0.01 );
       }
     }

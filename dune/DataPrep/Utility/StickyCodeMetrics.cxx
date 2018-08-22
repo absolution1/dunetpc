@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "TH1F.h"
+#include "TF1.h"
 
 using std::map;
 using std::string;
@@ -53,7 +54,7 @@ int StickyCodeMetrics::evaluate(const TH1* pha) {
   Index nhadc = iadcLast - iadc0 + 1;
   m_counts.clear();
   if ( nhadc != nbin ) {
-    cout << myname << "Histogram has inconsistent binning." << endl;
+    cout << myname << "Histogram " << pha->GetName() << " has inconsistent binning." << endl;
   } else {
     for ( Index ibin=0; ibin<nbin; ++ibin ) {
       double count = pha->GetBinContent(ibin+1);
@@ -175,7 +176,7 @@ int StickyCodeMetrics::evaluateMetrics() {
     cout << myname << " Data rebin count: " << rebinCounts.size() << endl;
     cout << myname << "   Hist bin count: " << nbinHist << endl;
   }
-  // Initialize the histogram undr and overflows.
+  // Initialize the histogram under and overflows.
   double countUnder = 0.0;
   double countOver = 0.0;
   // Evaluate the hist ADC range [ihadc1, ihadc2)
@@ -315,6 +316,32 @@ int StickyCodeMetrics::evaluateMetrics() {
   ph->SetBinContent(0, countUnder);
   ph->SetBinContent(nbinHist+1, countOver);
   m_ph.reset(ph);
+  // Fit the histogram.
+  TF1 fitter("pedgaus", "gaus", ihadc1, ihadc2, TF1::EAddToList::kNo);
+  fitter.SetParameters(0.1*ph->Integral(), ph->GetMean(), 5.0);
+  TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
+  pfinit->SetLineColor(3);
+  pfinit->SetLineStyle(2);
+  string fopt = "0";
+  fopt = "WWBQ";
+  // Block Root info message for new Canvas produced in fit.
+  int levelSave = gErrorIgnoreLevel;
+  gErrorIgnoreLevel = 1001;
+  // Block non-default (e.g. art) from handling the Root "error".
+  // We switch to the Root default handler while making the call to Print.
+  ErrorHandlerFunc_t pehSave = nullptr;
+  ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
+  if ( GetErrorHandler() != pehDefault ) {
+    pehSave = SetErrorHandler(pehDefault);
+  }
+  ph->Fit(&fitter, fopt.c_str());
+  if ( pehSave != nullptr ) SetErrorHandler(pehSave);
+  gErrorIgnoreLevel = levelSave;
+  ph->GetListOfFunctions()->AddLast(pfinit, "0");
+  ph->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
+  m_fitMean = fitter.GetParameter(1);
+  m_fitSigma = fitter.GetParameter(2);
+  m_fitExcess = (maxCount - fitter.Eval(maxAdc()))/countSum;
   return 0;
 }
 
@@ -331,6 +358,9 @@ DataMap StickyCodeMetrics::getMetrics(string prefix) const {
   res.setFloat(prefix + "OneFraction", oneFraction());
   res.setFloat(prefix + "HighFraction", highFraction());
   res.setFloat(prefix + "ClassicFraction", classicFraction());
+  res.setFloat(prefix + "FitMean", fitMean());
+  res.setFloat(prefix + "FitSigma", fitSigma());
+  res.setFloat(prefix + "FitExcess", fitExcess());
   return res;
 }
 
@@ -359,9 +389,13 @@ void StickyCodeMetrics::print(string prefix) const {
   sout << prefix << "           Frac LSB=64: " << highFraction();
   sout << "\n";
   sout << prefix << "         Frac LSB=0,64: " << classicFraction();
+  sout << "\n";
+  sout << prefix << "              Fit mean: " << fitMean();
+  sout << "\n";
+  sout << prefix << "             Fit sigma: " << fitSigma();
+  sout << "\n";
+  sout << prefix << "            Fit excess: " << fitExcess();
   cout << sout.str() << endl;
 }
-
-//**********************************************************************
 
 //**********************************************************************

@@ -23,7 +23,7 @@ felix_raw_decoder:
   module_type: "FelixRawDecoder"
   RawDataLabel: "daq"
   OutputDataLabel: "daq"
-  ExpectContainerFragments: false
+  ExpectContainerFragments: true
 }
 
 # configuration for combined TPC Raw Decoder module
@@ -34,16 +34,19 @@ pdsp_tpc_raw_decoder:
   OutputDataLabel: "daq"
 
   RCERawDataLabel: "daq"
-  ExpectRCEContainerFragments: true
   RCERawDataContainerInstance: "ContainerTPC"
   RCERawDataNonContainerInstance: "TPC"
   RCEFragmentType: 2
+  RCEDropEventsWithSmallFrags: true
+  RCESmallFragSize: 10000
 
   FELIXRawDataLabel: "daq"
-  ExpectFELIXContainerFragments: false
   FELIXRawDataContainerInstance: "ContainerFELIX"
   FELIXRawDataNonContainerInstance: "FELIX"
   FELIXFragmentType: 2    # not used in code
+
+  CompressHuffman: false
+  PrintColdataConvertCount: false
 
   MakeHistograms: false #for making error monitoring histograms
 
@@ -82,12 +85,12 @@ ssp_raw_decoder:
   module_type: "SSPRawDecoder"
   RawDataLabel: "daq"
   OutputDataLabel: "daq"
-  UseChannelMap: "true"
+#  UseChannelMap: "true"
+  UseChannelMap: "false"
   Debug: "false"
   MakeTree: "false"
   verbose_metadata: false
   verbose_adcs: 0
-  ExpectContainerFragments: true
 
   number_of_packets: 12  # number of channels per SSP
 
@@ -98,6 +101,15 @@ ssp_raw_decoder:
 
   NOvAClockFrequency: 64.0 # MHz
   SPESize: 25
+}
+
+ctb_raw_decoder:
+{
+  module_type: "PDSPCTBRawDecoder"
+  InputLabel: "daq"
+  InputContainerInstance: "ContainerTRIGGER"
+  InputNonContainerInstance: "TRIGGER"
+  OutputLabel: "daq"
 }
 
 online_monitor:

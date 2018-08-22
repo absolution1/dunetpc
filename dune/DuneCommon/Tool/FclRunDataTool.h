@@ -10,7 +10,7 @@
 //   %RUN% --> run number
 //   %SUBRUN% --> run number
 // with the run and subrun sustitutions padded with leading zeros to attain
-// a lenght of (at least) six.
+// a length of (at least) six.
 //
 // Parameters:
 //   LogLevel - Message logging level (0=none, 1=ctor, 2=each call, ...)

@@ -41,6 +41,7 @@ tools.adcStringBuilder: {
   EventWidth: 6
   ChannelWidth: 5
   CountWidth: 4
+  FembWidth: 3
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -81,7 +82,7 @@ tools.adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
   FitRmsMin:  1.0
-  FitRmsMax: 10.0
+  FitRmsMax: 20.0
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
   HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
@@ -117,8 +118,7 @@ tools.preparedAdcPlotter: {
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
-  FirstChannel: 0
-  LastChannel:  0
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
@@ -136,8 +136,7 @@ tools.signalAdcPlotter: {
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
-  FirstChannel: 0
-  LastChannel:  0
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
@@ -155,8 +154,7 @@ tools.rawAdcPlotter: {
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
-  FirstChannel: 0
-  LastChannel:  0
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
