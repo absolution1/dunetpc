@@ -14,7 +14,9 @@
 #define CRT_TRIGGER_H
 
 //c++ includes
+#include <cstdint>
 #include <vector>
+#include <limits>
 
 namespace CRT
 {
@@ -51,7 +53,7 @@ namespace CRT
                << "Channel: " << fChannel << "\n"
                //<< "AuxDetName: " << fAuxDetName << "\n"
                << "ADC: " << fADC << "\n"
-               << "Was this CRT::Hit default-constructed? " << std::boolalpha << IsDefault() << "\n";
+               << "Was this CRT::Hit default-constructed? " << (IsDefault()?"true":"false") << "\n";
         return stream;
       }
 

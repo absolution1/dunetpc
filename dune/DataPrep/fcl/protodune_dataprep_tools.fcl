@@ -5,7 +5,25 @@
 ################################################################################
 
 tools.pd_onlineChannelMap: {
+  tool_type: ProtoduneOnlineChannel
+}
+
+tools.pd_onlineChannelMapByWib: {
   tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "WIB"
+}
+
+tools.pd_onlineChannelMapByConnector: {
+  tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "connector"
+}
+
+tools.pd_onlineChannelMapByFemb: {
+  tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "FEMB"
 }
 
 tools.channelRanges: {
@@ -37,6 +55,7 @@ tools.rawAdcDetectorPlotColl: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC collection view. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
@@ -57,6 +76,7 @@ tools.rawAdcDetectorPlotInd1: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
@@ -77,6 +97,7 @@ tools.rawAdcDetectorPlotInd2: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
@@ -99,6 +120,7 @@ tools.preparedAdcDetectorPlotColl: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
@@ -119,6 +141,7 @@ tools.preparedAdcDetectorPlotInd1: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
@@ -139,6 +162,7 @@ tools.preparedAdcDetectorPlotInd2: {
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
@@ -346,8 +370,8 @@ tools.pd_tickmodViewer: {
   LogLevel: 1
   TickModPeriod: 497
   TimeOffsetTool: pd_tickOffset
-  FitRmsMin: 1.0
-  FitRmsMax: 20.0
+  FitSigmaMin:  2.0
+  FitSigmaMax: 20.0
   HistName: "adctm_ch%0CHAN%_tm%0TICKMOD%"
   HistTitle: "ADC spectrum for channel %CHAN% tickmod %TICKMOD%"
   HistChannelCount: 100

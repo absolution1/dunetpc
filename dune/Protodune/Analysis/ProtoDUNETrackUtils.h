@@ -28,8 +28,6 @@ namespace protoana {
     /// Get the T0(s) from a given reco track
     std::vector<anab::T0> GetRecoTrackT0(const recob::Track &track, art::Event const &evt, std::string trackModule) const;
 
-    unsigned int GetTrackIndexNumber(const recob::Track &track, art::Event const &evt, std::string trackModule) const;
-
   private:
 
 

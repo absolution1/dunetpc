@@ -55,7 +55,6 @@ cet_test(test_AdcChannelPlotter SOURCES test_AdcChannelPlotter.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
-#[[
 cet_test(test_AdcTickModViewer SOURCES test_AdcTickModViewer.cxx
   LIBRARIES
     dune_DataPrep_Utility
@@ -68,7 +67,6 @@ cet_test(test_AdcTickModViewer SOURCES test_AdcTickModViewer.cxx
     ${SQLITE3}
     ${Boost_FILESYSTEM_LIBRARY}
 )
-]]
 
 cet_test(test_AdcPedestalFitter SOURCES test_AdcPedestalFitter.cxx
   LIBRARIES

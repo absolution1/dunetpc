@@ -36,10 +36,21 @@
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
+#include "dam/HeaderFragmentUnpack.hh"
+#include "dam/DataFragmentUnpack.hh"
+#include "dam/TpcFragmentUnpack.hh"
+#include "dam/TpcStreamUnpack.hh"
+#include "dam/access/WibFrame.hh"
+#include "dam/access/Headers.hh"
+#include "dam/access/TpcStream.hh"
+#include "dam/access/TpcRanges.hh"
+#include "dam/access/TpcToc.hh"
+#include "dam/access/TpcPacket.hh"
 
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
+#include "lardataobj/RawData/raw.h"
 
 class PDSPTPCRawDecoder;
 
@@ -78,12 +89,20 @@ private:
   unsigned int  _full_tick_count;
   bool          _enforce_error_free;
   bool          _enforce_no_duplicate_channels;
+  bool          _drop_events_with_small_rce_frags;
+  bool          _drop_small_rce_frags;
+  size_t        _rce_frag_small_size;
+
+  bool          _compress_Huffman;
+  bool          _print_coldata_convert_count;
 
   //declare histogram data memebers
   bool	_make_histograms;
   unsigned int 	duplicate_channels;
   unsigned int 	error_counter;
   unsigned int incorrect_ticks;
+  unsigned int rcechans;
+  unsigned int felixchans;
   TH1D * fIncorrectTickNumbers;
   //TH1I * fIncorrectTickNumbersZoomed;
   TH1I * fParticipRCE;
@@ -118,6 +137,10 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_input_container_instance = p.get<std::string>("RCERawDataContainerInstance","ContainerTPC");
   _rce_input_noncontainer_instance = p.get<std::string>("RCERawDataNonContainerInstance","TPC");
   _rce_fragment_type = p.get<int>("RCEFragmentType",2);
+  _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",false);
+  _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
+  _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
+
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
@@ -133,6 +156,9 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _full_tick_count = p.get<unsigned int>("FullTickCount",10000);
   _enforce_error_free = p.get<bool>("EnforceErrorFree",false);
   _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
+
+  _compress_Huffman = p.get<bool>("CompressHuffman",false);
+  _print_coldata_convert_count = p.get<bool>("PrintColdataConvertCount",false);
 
   produces<RawDigits>( _output_label ); //the strings in <> are the typedefs defined above
 
@@ -207,6 +233,8 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
   error_counter = 0; //reset the errors to zero for each run
   incorrect_ticks = 0;
   duplicate_channels = 0;
+  rcechans = 0;
+  felixchans = 0;
 
   _initialized_tick_count_this_event = false;
   _discard_data = false;
@@ -224,6 +252,8 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
       fErrorsNumber->Fill(log2(error_counter));
       fDuplicatesNumber->Fill(duplicate_channels);
       fIncorrectTickNumbers->Fill(log2(incorrect_ticks));
+      fParticipFELIX->Fill(felixchans);
+      fParticipRCE->Fill(rcechans);
       //fIncorrectTickNumbersZoomed->Fill(incorrect_ticks);
     }
 
@@ -287,6 +317,23 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
     
       for (auto const& cont : *cont_frags)
 	{
+	  if ((cont.sizeBytes() < _rce_frag_small_size))
+	    {
+	      if ( _drop_events_with_small_rce_frags )
+		{ 
+		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
+		  _discard_data = true; 
+		  return false;
+		}
+	      else
+		{
+		  if ( _drop_small_rce_frags )
+		    { 
+ 		      LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
+		      return false;
+		    }
+		}
+	    }
 	  artdaq::ContainerFragment cont_frag(cont);
 	  for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 	    {
@@ -315,14 +362,14 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 
       //size of RCE fragments into histogram
       if(_make_histograms)
-    	{
+	{
 	  size_t rcebytes = 0;
 	  for (auto const& frag: *frags)
 	    {
 	      rcebytes = rcebytes + (frag.sizeBytes());
 	    }
 	  fFragSizeRCE->Fill(rcebytes);
-    	}
+	}
 
       for(auto const& frag: *frags)
 	{
@@ -370,10 +417,44 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       size_t n_ch = rce_stream->getNChannels();
       size_t n_ticks = rce_stream->getNTicks();
 
+      if (_print_coldata_convert_count)
+	{
+
+	  // from JJ's PdReaderTest.cc
+	  using namespace pdd;
+	  using namespace pdd::access;
+	  bool printed=false;
+	  TpcStream const        &stream = rce_stream->getStream ();
+	  TpcToc           toc    (stream.getToc    ());
+	  TpcPacket        pktRec (stream.getPacket ());
+	  TpcPacketBody    pktBdy (pktRec.getRecord ());
+	  int   npkts = toc.getNPacketDscs ();
+	  for (int ipkt = 0; ipkt < npkts; ++ipkt)
+	    {
+	      TpcTocPacketDsc pktDsc (toc.getPacketDsc (ipkt));
+	      unsigned int      o64 = pktDsc.getOffset64 ();
+	      unsigned int  pktType = pktDsc.getType ();
+	      unsigned nWibFrames = pktDsc.getNWibFrames ();
+	      WibFrame const *wf = pktBdy.getWibFrames (pktType, o64);
+	      for (unsigned iwf = 0; iwf < nWibFrames; ++iwf)
+		{
+		  auto const &colddata = wf->getColdData ();
+		  auto cvt0 = colddata[0].getConvertCount ();
+		  //auto cvt1 = colddata[1].getConvertCount ();
+		  std::cout << "RCE coldata convert count: " << cvt0 << std::endl;
+		  printed = true;
+		  ++wf;  // in case we were looping over WIB frames, but let's stop at the first
+		  break;
+		}
+	      if (printed) break;
+	    }
+	}
+
+
       if(_make_histograms)
 	{
 	  //log the participating RCE channels
-	  fParticipRCE->Fill(n_ch);
+	  rcechans=rcechans+n_ch;
 	}
 
       if (_enforce_full_tick_count && n_ticks != _full_tick_count)
@@ -396,7 +477,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	    {
 	      if (n_ticks != _tick_count_this_event)
 		{
-	          LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
+		  LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
 						   << " vs " << _tick_count_this_event << " Discarding Data";
 		  error_counter++;
 		  _discard_data = true;
@@ -460,9 +541,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		  if (_duplicate_channel_checklist[offlineChannel])
 		    {
 		      if(_make_histograms)
-		    	{
+			{
 			  duplicate_channels++;
-		    	}
+			}
 		      LOG_WARNING("_process_RCE_AUX:") << "Duplicate Channel: " << offlineChannel
 						       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << i_ch << " Discarding Data";
 		      error_counter++;
@@ -471,7 +552,15 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		    }
 		}
 	    }
-	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
+
+	  raw::Compress_t cflag=raw::kNone;
+	  if (_compress_Huffman)
+	    {
+	      cflag = raw::kHuffman;
+	      raw::Compress(v_adc,cflag);
+	    }
+	  // here n_ticks is the uncompressed size as required by the constructor
+	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
 	  raw_digits.push_back(raw_digit);  
 
 	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp());
@@ -606,6 +695,12 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   uint8_t slot = felix.slot_no(0);
   uint8_t fiber = felix.fiber_no(0); // two numbers? 
 
+  if (_print_coldata_convert_count)
+    {
+      uint16_t first_coldata_convert_count = felix.coldata_convert_count(0,0);
+      std::cout << "FELIX Coldata convert count: " << (int) first_coldata_convert_count << std::endl;
+    }
+
   //std::cout << "FELIX raw decoder trj: " << (int) crate << " " << (int) slot << " " << (int) fiber << std::endl;
 
   const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
@@ -615,7 +710,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 
   if(_make_histograms)
     {
-      fParticipFELIX->Fill(n_channels);
+      felixchans=felixchans+n_channels;
     }
 
   for (unsigned int iframe=0; iframe<n_frames; ++iframe)
@@ -711,7 +806,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	  {
 	    if (_duplicate_channel_checklist[offlineChannel])
 	      {
-	      	if(_make_histograms)
+		if(_make_histograms)
 		  {
 		    duplicate_channels++;
 		  }
@@ -724,8 +819,16 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	  }
       }
 
-    // Push to raw_digits.
-    raw::RawDigit raw_digit(offlineChannel, v_adc.size(), v_adc);
+    auto n_ticks = v_adc.size();
+
+    raw::Compress_t cflag=raw::kNone;
+    if (_compress_Huffman)
+      {
+	cflag = raw::kHuffman;
+	raw::Compress(v_adc,cflag);
+      }
+    // here n_ticks is the uncompressed size as required by the constructor
+    raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
     raw_digits.push_back(raw_digit);
 
     raw::RDTimeStamp rdtimestamp(frag.timestamp());

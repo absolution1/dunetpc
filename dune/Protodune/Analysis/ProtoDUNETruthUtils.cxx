@@ -1,5 +1,4 @@
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
-#include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -28,9 +27,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   // We need the association between the tracks and the hits
   const art::FindManyP<recob::Hit> findTrackHits(allRecoTracks, evt, trackModule);
 
-  // A track utils object will be useful
-  protoana::ProtoDUNETrackUtils utils;
-  unsigned int trackIndex = utils.GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;

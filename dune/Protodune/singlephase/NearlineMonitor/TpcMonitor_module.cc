@@ -45,6 +45,7 @@
 #include "TPad.h"
 #include "TFile.h"
 #include "TProfile.h"
+#include "TProfile2D.h"
 
 // C++ Includes
 #include <vector>
@@ -149,12 +150,12 @@ namespace tpc_monitor{
 
     // 2D histograms of all Mean/RMS by offline channel number
     // Intended as a color map with each bin to represent a single channel
-    TH2F* fAllChanMean;
-    TH2F* fAllChanRMS;
+    TProfile2D* fAllChanMean;
+    TProfile2D* fAllChanRMS;
 
     //2Dhistograms of bits, using same mapping as the fAllChan histos
     //vector indexes over 0-11 bit numbers
-    std::vector<TH2I*> fBitValue;
+    std::vector<TProfile2D*> fBitValue;
 
     
     // profiled over events Mean/RMS by slot number
@@ -182,7 +183,9 @@ namespace tpc_monitor{
     TH1F *fNTicksTPC;
 
     // Noise level cut parameters
-    int fNoiseLevelMinNCounts;
+    int fNoiseLevelMinNCountsU;
+    int fNoiseLevelMinNCountsV;
+    int fNoiseLevelMinNCountsZ;
     double fNoiseLevelNSigma;
 
     // Histograms to save dead/noisy channels
@@ -192,6 +195,18 @@ namespace tpc_monitor{
     TH1F* fNDeadChannelsList;
     TH1F* fNNoisyChannelsListFromNSigma;
     TH1F* fNNoisyChannelsListFromNCounts;
+
+    TH1F* fNDeadChannelsHistoU;
+    TH1F* fNNoisyChannelsHistoFromNSigmaU;
+    TH1F* fNNoisyChannelsHistoFromNCountsU;
+
+    TH1F* fNDeadChannelsHistoV;
+    TH1F* fNNoisyChannelsHistoFromNSigmaV;
+    TH1F* fNNoisyChannelsHistoFromNCountsV;
+
+    TH1F* fNDeadChannelsHistoZ;
+    TH1F* fNNoisyChannelsHistoFromNSigmaZ;
+    TH1F* fNNoisyChannelsHistoFromNCountsZ;
 
     // define functions
     float rmsADC(std::vector< short > & uncompressed);
@@ -344,8 +359,8 @@ namespace tpc_monitor{
     
     //All in one view
     //make the histograms
-    fAllChanMean = tfs->make<TH2F>("fAllChanMean", "Means for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
-    fAllChanRMS = tfs->make<TH2F>("fAllChanRMS", "RMS for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
+    fAllChanMean = tfs->make<TProfile2D>("fAllChanMean", "Means for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
+    fAllChanRMS = tfs->make<TProfile2D>("fAllChanRMS", "RMS for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
     //set titles and bin labels
     fAllChanMean->GetXaxis()->SetTitle("APA Number (online)"); fAllChanMean->GetYaxis()->SetTitle("Plane"); fAllChanMean->GetZaxis()->SetTitle("Raw Mean");
     fAllChanRMS->GetXaxis()->SetTitle("APA Number (online)"); fAllChanRMS->GetYaxis()->SetTitle("Plane"); fAllChanRMS->GetZaxis()->SetTitle("Raw RMS");
@@ -360,9 +375,9 @@ namespace tpc_monitor{
 
     for(int i=0;i<12;i++)
     {
-    fBitValue.push_back(tfs->make<TH2I>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5));
+    fBitValue.push_back(tfs->make<TProfile2D>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5,0,1));
     fBitValue[i]->SetStats(false);
-    fBitValue[i]->GetXaxis()->SetTitle("APA Number (online)"); fBitValue[i]->GetYaxis()->SetTitle("Plane"); fBitValue[i]->GetZaxis()->SetTitle("Bits");
+    fBitValue[i]->GetXaxis()->SetTitle("APA Number (online)"); fBitValue[i]->GetYaxis()->SetTitle("Plane"); fBitValue[i]->GetZaxis()->SetTitle("Bit Fraction On");
     fBitValue[i]->GetXaxis()->SetLabelSize(.075); fBitValue[i]->GetYaxis()->SetLabelSize(.05);
     fBitValue[i]->GetXaxis()->SetBinLabel(40, "3"); fBitValue[i]->GetXaxis()->SetBinLabel(120, "2"); fBitValue[i]->GetXaxis()->SetBinLabel(200, "1");
     fBitValue[i]->GetYaxis()->SetBinLabel(5, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(15, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(26, "Z");
@@ -395,14 +410,35 @@ namespace tpc_monitor{
     fNDeadChannelsHisto->GetYaxis()->SetTitle("Number of dead channels");
     fNNoisyChannelsHistoFromNSigma = tfs->make<TH1F>("fNNoisyChannelsHistoFromNSigma","Number of noisy channels",fNofAPA+1,0,fNofAPA+1);
     fNNoisyChannelsHistoFromNSigma->GetYaxis()->SetTitle("Number of noisy channels");
-    fNNoisyChannelsHistoFromNCounts = tfs->make<TH1F>("fNNoisyChannelsHistoFromNCounts",Form("Number of noisy channels above %i counts", fNoiseLevelMinNCounts), fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNCounts = tfs->make<TH1F>("fNNoisyChannelsHistoFromNCounts",Form("Number of noisy channels above counts %i-%i-%i (U-V-Z)", fNoiseLevelMinNCountsU, fNoiseLevelMinNCountsV, fNoiseLevelMinNCountsZ), fNofAPA+1,0,fNofAPA+1);
     fNNoisyChannelsHistoFromNCounts->GetYaxis()->SetTitle("Number of noisy channels");
+
+    fNDeadChannelsHistoU = tfs->make<TH1F>("fNDeadChannelsHistoU","Number of dead channels (Plane U)",fNofAPA+1,0,fNofAPA+1);
+    fNDeadChannelsHistoU->GetYaxis()->SetTitle("Number of dead channels (Plane U)");
+    fNNoisyChannelsHistoFromNSigmaU = tfs->make<TH1F>("fNNoisyChannelsHistoFromNSigmaU","Number of noisy channels (Plane U)",fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNSigmaU->GetYaxis()->SetTitle("Number of noisy channels (Plane U)");
+    fNNoisyChannelsHistoFromNCountsU = tfs->make<TH1F>("fNNoisyChannelsHistoFromNCountsU",Form("Number of noisy channels above %i counts  (Plane U)", fNoiseLevelMinNCountsU), fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNCountsU->GetYaxis()->SetTitle("Number of noisy channels (Plane U)");
+
+    fNDeadChannelsHistoV = tfs->make<TH1F>("fNDeadChannelsHistoV","Number of dead channels (Plane V)",fNofAPA+1,0,fNofAPA+1);
+    fNDeadChannelsHistoV->GetYaxis()->SetTitle("Number of dead channels (Plane V)");
+    fNNoisyChannelsHistoFromNSigmaV = tfs->make<TH1F>("fNNoisyChannelsHistoFromNSigmaV","Number of noisy channels (Plane V)",fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNSigmaV->GetYaxis()->SetTitle("Number of noisy channels (Plane V)");
+    fNNoisyChannelsHistoFromNCountsV = tfs->make<TH1F>("fNNoisyChannelsHistoFromNCountsV",Form("Number of noisy channels above %i counts  (Plane V)", fNoiseLevelMinNCountsV), fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNCountsV->GetYaxis()->SetTitle("Number of noisy channels (Plane V)");
+
+    fNDeadChannelsHistoZ = tfs->make<TH1F>("fNDeadChannelsHistoZ","Number of dead channels (Plane Z)",fNofAPA+1,0,fNofAPA+1);
+    fNDeadChannelsHistoZ->GetYaxis()->SetTitle("Number of dead channels (Plane Z)");
+    fNNoisyChannelsHistoFromNSigmaZ = tfs->make<TH1F>("fNNoisyChannelsHistoFromNSigmaZ","Number of noisy channels (Plane Z)",fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNSigmaZ->GetYaxis()->SetTitle("Number of noisy channels (Plane Z)");
+    fNNoisyChannelsHistoFromNCountsZ = tfs->make<TH1F>("fNNoisyChannelsHistoFromNCountsZ",Form("Number of noisy channels above %i counts  (Plane Z)", fNoiseLevelMinNCountsZ), fNofAPA+1,0,fNofAPA+1);
+    fNNoisyChannelsHistoFromNCountsZ->GetYaxis()->SetTitle("Number of noisy channels (Plane Z)");
 
     fNDeadChannelsList = tfs->make<TH1F>("fNDeadChannelsList","List of dead channels",fGeom->Nchannels()+1,fUChanMin,fGeom->Nchannels()+1);
     fNDeadChannelsList->GetXaxis()->SetTitle("Channel ID");
     fNNoisyChannelsListFromNSigma = tfs->make<TH1F>("fNNoisyChannelsListFromNSigma","List of noisy channels",fGeom->Nchannels()+1,fUChanMin,fGeom->Nchannels()+1);
     fNNoisyChannelsListFromNSigma->GetXaxis()->SetTitle("Channel ID");
-    fNNoisyChannelsListFromNCounts = tfs->make<TH1F>("fNNoisyChannelsListFromNCounts",Form("Number of noisy channels above %i counts", fNoiseLevelMinNCounts),fGeom->Nchannels()+1,fUChanMin,fGeom->Nchannels()+1);
+    fNNoisyChannelsListFromNCounts = tfs->make<TH1F>("fNNoisyChannelsListFromNCounts",Form("Number of noisy channels above counts %i-%i-%i (U-V-Z)", fNoiseLevelMinNCountsU, fNoiseLevelMinNCountsV, fNoiseLevelMinNCountsZ),fGeom->Nchannels()+1,fUChanMin,fGeom->Nchannels()+1);
     fNNoisyChannelsListFromNCounts->GetXaxis()->SetTitle("Channel ID");
 
     for(unsigned int i=0;i<fNofAPA;i++){
@@ -411,6 +447,16 @@ namespace tpc_monitor{
       fNDeadChannelsHisto->GetXaxis()->SetBinLabel(j+1, apastring.Data());
       fNNoisyChannelsHistoFromNSigma->GetXaxis()->SetBinLabel(j+1, apastring.Data());
       fNNoisyChannelsHistoFromNCounts->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+
+      fNDeadChannelsHistoU->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNNoisyChannelsHistoFromNSigmaU->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNNoisyChannelsHistoFromNCountsU->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNDeadChannelsHistoV->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNNoisyChannelsHistoFromNSigmaV->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNNoisyChannelsHistoFromNCountsV->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNDeadChannelsHistoZ->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNNoisyChannelsHistoFromNSigmaZ->GetXaxis()->SetBinLabel(j+1, apastring.Data());
+      fNNoisyChannelsHistoFromNCountsZ->GetXaxis()->SetBinLabel(j+1, apastring.Data());
     }
   }
 
@@ -430,7 +476,9 @@ namespace tpc_monitor{
     fTPCInstance    = p.get< std::string >("TPCInstanceName");
     fRebinX         = p.get<int>("RebinFactorX");
     fRebinY         = p.get<int>("RebinFactorY");
-    fNoiseLevelMinNCounts = p.get<int>("NoiseLevelMinNCounts");
+    fNoiseLevelMinNCountsU = p.get<int>("NoiseLevelMinNCountsU");
+    fNoiseLevelMinNCountsV = p.get<int>("NoiseLevelMinNCountsV");
+    fNoiseLevelMinNCountsZ = p.get<int>("NoiseLevelMinNCountsZ");
     fNoiseLevelNSigma     = p.get<double>("NoiseLevelNSigma");
     auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
     fNticks         = fDetProp->NumberTimeSamples();
@@ -561,7 +609,7 @@ namespace tpc_monitor{
       { 
         auto adc=uncompressed.at(i);
         int bitstring = adc;
-        for(int mm=0;mm<11;mm++)
+        for(int mm=0;mm<12;mm++)
         {
           // get the bit value from the adc
           int bit = (bitstring%2);
@@ -709,6 +757,7 @@ namespace tpc_monitor{
   void TpcMonitor::FillChannelHistos(TProfile* h1, double mean, double sigma, int& ndeadchannels, int& nnoisychannels_sigma, int& nnoisychannels_counts){
 
     double rms_threshold = mean + fNoiseLevelNSigma*sigma;
+    TString htitle = h1->GetTitle();
 
     for(Int_t j=1; j <= h1->GetNbinsX(); j++){
 
@@ -724,10 +773,22 @@ namespace tpc_monitor{
           nnoisychannels_sigma++;
           fNNoisyChannelsListFromNSigma->SetBinContent(fChannelID, 1.0);
         }
-        if(fChannelValue > fNoiseLevelMinNCounts){ // noisy channel above count threshold
+        if(htitle.Contains("Plane U") && fChannelValue > fNoiseLevelMinNCountsU){ // noisy U channel above count threshold
           nnoisychannels_counts++;
           fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
         }
+	else if(htitle.Contains("Plane V") && fChannelValue > fNoiseLevelMinNCountsV){ // noisy V channel above count threshold
+          nnoisychannels_counts++;
+          fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
+        }
+	else if(htitle.Contains("Plane Z") && fChannelValue > fNoiseLevelMinNCountsZ){ // noisy Z channel above count threshold
+          nnoisychannels_counts++;
+          fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
+        }
+	else{
+	  mf::LogVerbatim("TpcMonitor::FillChannelHistos")
+	    << " Unknown histogram title: " << htitle.Data() << std::endl;
+	}
       }
     }
 
@@ -820,7 +881,6 @@ namespace tpc_monitor{
     }
 
     // Fill summary histograms
-    // Fill summary histograms
     for(unsigned int i = 0; i < fNofAPA; i++){
       unsigned int j=fApaLabelNum.at(i);
       int nch = fUdch_vec.at(i) + fVdch_vec.at(i) + fZdch_vec.at(i);
@@ -829,6 +889,18 @@ namespace tpc_monitor{
       fNNoisyChannelsHistoFromNSigma->SetBinContent(j+1, nch);
       nch = fUcch_vec.at(i) + fVcch_vec.at(i) + fZcch_vec.at(i);
       fNNoisyChannelsHistoFromNCounts->SetBinContent(j+1, nch);
+
+      fNDeadChannelsHistoU->SetBinContent(j+1, fUdch_vec.at(i));
+      fNDeadChannelsHistoV->SetBinContent(j+1, fVdch_vec.at(i));
+      fNDeadChannelsHistoZ->SetBinContent(j+1, fZdch_vec.at(i));
+
+      fNNoisyChannelsHistoFromNSigmaU->SetBinContent(j+1, fUnch_vec.at(i));
+      fNNoisyChannelsHistoFromNSigmaV->SetBinContent(j+1, fVnch_vec.at(i));
+      fNNoisyChannelsHistoFromNSigmaZ->SetBinContent(j+1, fZnch_vec.at(i));
+
+      fNNoisyChannelsHistoFromNCountsU->SetBinContent(j+1, fUcch_vec.at(i));
+      fNNoisyChannelsHistoFromNCountsV->SetBinContent(j+1, fVcch_vec.at(i));
+      fNNoisyChannelsHistoFromNCountsZ->SetBinContent(j+1, fZcch_vec.at(i));
     }
 
     //    myfileU.close();

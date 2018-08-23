@@ -48,6 +48,7 @@ void copyAcd(const AdcChannelData& acdin, AdcChannelData& acdout) {
   acdout.channel     = acdin.channel;
   acdout.fembID      = acdin.fembID;
   acdout.fembChannel = acdin.fembChannel;
+  acdout.pedestal    = acdin.pedestal;
 }
 
 // Class to hold the adc counts for a tickmod.
@@ -87,8 +88,8 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_TickModPeriod(ps.get<Index>("TickModPeriod")),
   m_TimeOffsetTool(ps.get<Name>("TimeOffsetTool")),
-  m_FitRmsMin(ps.get<float>("FitRmsMin")),
-  m_FitRmsMax(ps.get<float>("FitRmsMax")),
+  m_FitSigmaMin(ps.get<float>("FitSigmaMin")),
+  m_FitSigmaMax(ps.get<float>("FitSigmaMax")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_HistChannelCount(ps.get<Index>("HistChannelCount")),
@@ -155,6 +156,8 @@ AdcTickModViewer::AdcTickModViewer(fhicl::ParameterSet const& ps)
     cout << myname << "          LogLevel: " << m_LogLevel << endl;
     cout << myname << "     TickModPeriod: " << m_TickModPeriod << endl;
     cout << myname << "    TimeOffsetTool: " << m_TimeOffsetTool << endl;
+    cout << myname << "       FitSigmaMin: " << m_FitSigmaMin << endl;
+    cout << myname << "       FitSigmaMax: " << m_FitSigmaMax << endl;
     cout << myname << "          HistName: " << m_HistName << endl;
     cout << myname << "         HistTitle: " << m_HistTitle << endl;
     cout << myname << "  HistChannelCount: " << m_HistChannelCount << endl;
@@ -441,12 +444,6 @@ AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, 
   TickModData adcData;
   Index isam0 = (itkm + period - itkm0) % period;
   for ( Index isam=isam0; isam<nsam; isam+=period ) adcData.add(acd.raw[isam]);
-bool dbg = false;
-if ( itkm > 237 && itkm < 242 && dbg ) {
-cout << "YYY: itkm = " << itkm << endl;
-for ( Index isam=isam0; isam<nsam; isam+=period ) cout << "YYY:    " << acd.raw[isam] << endl;
-cout << "YYY: mean: " << adcData.mean() << endl;
-}
   // Fetch the histogram pointer.
   Index icha = getChannelIndex();
   HistPtr& ph = state().ChannelTickModFullHists[icha][itkm];
@@ -536,6 +533,9 @@ int AdcTickModViewer::processAccumulatedChannel(Index& nplot) const {
     if ( ptree != nullptr ) {
       data.run = state().currentAcd.run;
       data.chan = state().currentAcd.channel;
+      data.femb = state().currentAcd.fembID;
+      data.fembChan = state().currentAcd.fembChannel;
+      data.pedestal = state().currentAcd.pedestal;
     }
     // Loop over tickmods and, for each, create metrics and limited-range ADC
     // frequency histo and fill metric tree.
@@ -543,7 +543,7 @@ int AdcTickModViewer::processAccumulatedChannel(Index& nplot) const {
       const HistPtr& ph = tmhsFull[itkm];
       // Process histograms with the sticky code utility.
       Index chmod = 10;
-      StickyCodeMetrics scm(ph->GetName(), ph->GetTitle(), m_HistChannelCount, chmod);
+      StickyCodeMetrics scm(ph->GetName(), ph->GetTitle(), m_HistChannelCount, chmod, m_FitSigmaMin, m_FitSigmaMax);
       if ( scm.evaluate(ph.get()) ) {
         cout << myname << "Sticky code evaluation failed for channel " << icha
              << " tickmod " << itkm << endl;
@@ -579,13 +579,16 @@ int AdcTickModViewer::processAccumulation(Index& nplot) const {
   const string myname = "AdcTickModViewer::processAccumulation: ";
   Index ncha = state().ChannelTickModFullHists.size();
   if ( ncha == 0 ) return 0;
+  // Set currentAcd for tree file name.
+  setChannel(state().ChannelTickModFullHists.begin()->first);
   // Create tree to hold results.
   TTree*& ptree = state().tickmodTree;
   TFile*& pfile = state().pfile;
   if ( m_TreeFileName.size() ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Creating tickmod tree." << endl;
     TDirectory* psavdir = gDirectory;
-    pfile = TFile::Open(m_TreeFileName.c_str(), "RECREATE");
+    string tfname = nameReplace(m_TreeFileName, state().currentAcd, 0);
+    pfile = TFile::Open(tfname.c_str(), "RECREATE");
     if ( pfile->IsOpen() ) {
       ptree = new TTree("tickmod", "TickMod tree");
       ptree->Branch("data", &(state().treedata), 64000, 1);
@@ -727,6 +730,7 @@ int AdcTickModViewer::makeTickModPlots(Index& nplot) const {
                                 << pfname << endl;
     Index ipad = 0;
     Index icount = 0;
+    vector<TObject*> managedObjects;
     for ( Index itkm : tkms ) {
       HistPtr ph = tmhs[itkm];
       if ( pmantop == nullptr ) {
@@ -738,7 +742,27 @@ int AdcTickModViewer::makeTickModPlots(Index& nplot) const {
       TPadManipulator* pman = pmantop->man(ipad);
       pman->add(ph.get(), "hist", false);
       if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
-      if ( m_PlotShowFit ) pman->addHistFun(0);
+      if ( m_PlotShowFit ) {
+        pman->addHistFun(0);
+        TF1* pfun = dynamic_cast<TF1*>(ph->GetListOfFunctions()->At(0));
+        if ( pfun != nullptr ) {
+          ostringstream ssout;
+          ssout.precision(1);
+          ssout << "Mean: " << std::fixed << pfun->GetParameter(1);
+          TLatex* ptxt = new TLatex(0.72, 0.86, ssout.str().c_str());
+          ptxt->SetNDC();
+          ptxt->SetTextFont(42);
+          pman->add(ptxt);
+          managedObjects.push_back(ptxt);
+          ssout.str("");
+          ssout << "Sigma: " << std::fixed << pfun->GetParameter(2);
+          ptxt = new TLatex(0.72, 0.80, ssout.str().c_str());
+          ptxt->SetNDC();
+          ptxt->SetTextFont(42);
+          pman->add(ptxt);
+          managedObjects.push_back(ptxt);
+        }
+      }
       pman->addVerticalModLines(64);
       pman->showUnderflow();
       pman->showOverflow();
@@ -750,6 +774,8 @@ int AdcTickModViewer::makeTickModPlots(Index& nplot) const {
         ipad = 0;
         delete pmantop;
         pmantop = nullptr;
+        for ( TObject* pobj : managedObjects ) delete pobj;
+        managedObjects.clear();
       }
     }
   }
