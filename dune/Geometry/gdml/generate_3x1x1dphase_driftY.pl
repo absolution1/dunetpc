@@ -64,7 +64,7 @@ if (defined $wires)
 
 $tpc_on = 1;
 
-$basename = "3x1x1dphase";
+$basename = "3x1x1dphase_driftY";
 if ( $wires_on == 0 )
 {
     $basename = $basename."_nowires";
@@ -93,11 +93,11 @@ $widthCRM  = $widthCRM_active + 2 * $borderCRM;
 $lengthCRM = $lengthCRM_active + 2 * $borderCRM;
 
 # number of CRMs in y and z
-$nCRM_y   = 1;
+$nCRM_x   = 1;
 $nCRM_z   = 1;
 
 # calculate tpc area based on number of CRMs and their dimensions
-$widthTPCActive  = $nCRM_y * $widthCRM;  # around 100
+$widthTPCActive  = $nCRM_x * $widthCRM;  # around 100
 $lengthTPCActive = $nCRM_z * $lengthCRM; # around 300
 
 # active volume dimensions 
@@ -113,16 +113,16 @@ $ReadoutPlane = 2 * $padWidth;
 ############## Parameters for TPC and inner volume ###############
 
 # inner volume dimensions of the cryostat
-$Argon_x = 238.1;
-$Argon_y = 202.5;
+$Argon_x = 202.5;
+$Argon_y = 238.1;
 $Argon_z = 478.2;
 
 # height of gas argon layer on top
 $HeightGaseousAr = 50.8;
 
 # size of liquid argon buffer
-$xLArBuffer = $Argon_x - $driftTPCActive - $HeightGaseousAr - $ReadoutPlane;
-$yLArBuffer = 0.5 * ($Argon_y - $widthTPCActive);
+$xLArBuffer = 0.5 * ($Argon_x - $widthTPCActive);
+$yLArBuffer = $Argon_y - $driftTPCActive - $HeightGaseousAr - $ReadoutPlane;
 $zLArBuffer = 0.5 * ($Argon_z - $lengthTPCActive);
 
 # cryostat 
@@ -136,11 +136,11 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness;
 ############## Parameters for PMTs ###############
 
 #pos in cm inside the cryostat X coordinate: 2.3cm from the ground grid
- @pmt_pos = ( ' x="-46.06"  y="0" z="-92.246"', #-92.246"', #PMT1 - negative base - direct coating #x="-50-4.5+5.5*2.54-1.27*2.54-2.3"
-              ' x="-46.06"  y="0" z="-46.123"', #-46.123"', #PMT2- negative base - plate
-              ' x="-46.06"  y="0" z="0"', #PMT3 - positive base - direct coating
-              ' x="-46.06"  y="0" z="46.123"', #46.123"', #PMT4 - positive base -  plate
-              ' x="-46.06"  y="0" z="92.246"'); #92.246"'); #PMT5 - negative base - direct coating
+ @pmt_pos = ( ' x="0"  y="-46.06" z="-92.246"', #-92.246"', #PMT1 - negative base - direct coating #x="-50-4.5+5.5*2.54-1.27*2.54-2.3"
+              ' x="0"  y="-46.06" z="-46.123"', #-46.123"', #PMT2- negative base - plate
+              ' x="0"  y="-46.06" z="0"', #PMT3 - positive base - direct coating
+              ' x="0"  y="-46.06" z="46.123"', #46.123"', #PMT4 - positive base -  plate
+              ' x="0"  y="-46.06" z="92.246"'); #92.246"'); #PMT5 - negative base - direct coating
 
 
 ##################################################################
@@ -179,14 +179,14 @@ $OriginXSet =  $DetEncWidth/2.0
               -$FoamPadding
               -$SteelThickness
               -$xLArBuffer
-              -$driftTPCActive/2.0;
+              -$widthTPCActive/2.0;
 
 $OriginYSet =   $DetEncHeight/2.0
               - $SteelSupport_y
               - $FoamPadding
               - $SteelThickness
               - $yLArBuffer
-              - $widthTPCActive/2.0;
+              - $driftTPCActive/2.0;
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
@@ -260,6 +260,9 @@ print DEF <<EOF;
    <position name="posCryoInDetEnc"     unit="cm" x="0" y="$posCryoInDetEnc_y" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
+   <rotation name="rPlus90AboutY"       unit="deg" x="0" y="90" z="0"/>
+   <rotation name="rPlus90AboutXPlus90AboutY" unit="deg" x="90" y="90" z="0"/>
+   <rotation name="rMinus90AboutX"      unit="deg" x="270" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
    <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
@@ -311,13 +314,13 @@ EOF
 sub gen_TPC()
 {
     # CRM active volume
-    my $TPCActive_x = $driftTPCActive;
-    my $TPCActive_y = $widthCRM_active;
+    my $TPCActive_x = $widthCRM_active;
+    my $TPCActive_y = $driftTPCActive;
     my $TPCActive_z = $lengthCRM_active;
 
     # CRM total volume
-    my $TPC_x = $TPCActive_x + $ReadoutPlane;
-    my $TPC_y = $widthCRM;
+    my $TPC_x = $widthCRM;
+    my $TPC_y = $TPCActive_y + $ReadoutPlane;
     my $TPC_z = $lengthCRM;
 
 	
@@ -340,13 +343,13 @@ EOF
       x="$TPC_x" 
       y="$TPC_y" 
       z="$TPC_z"/>
-   <box name="CRMVPlane" lunit="cm" 
-      x="$padWidth" 
-      y="$TPCActive_y" 
+   <box name="CRMXPlane" lunit="cm" 
+      x="$TPCActive_x" 
+      y="$padWidth" 
       z="$TPCActive_z"/>
    <box name="CRMZPlane" lunit="cm" 
-      x="$padWidth"
-      y="$TPCActive_y"
+      x="$TPCActive_x"
+      y="$padWidth"
       z="$TPCActive_z"/>
    <box name="CRMActive" lunit="cm"
       x="$TPCActive_x"
@@ -361,7 +364,7 @@ EOF
 
 print TPC <<EOF;
 
-   <tube name="CRMWireV"
+   <tube name="CRMWireX"
      rmax="@{[0.5*$padWidth]}"
      z="$TPCActive_z"               
      deltaphi="360"
@@ -369,7 +372,7 @@ print TPC <<EOF;
      lunit="cm"/>
    <tube name="CRMWireZ"
      rmax="@{[0.5*$padWidth]}"
-     z="$TPCActive_y"               
+     z="$TPCActive_x"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
@@ -391,9 +394,9 @@ EOF
 if ($wires_on==1) 
 { 
   print TPC <<EOF;
-    <volume name="volTPCWireV">
+    <volume name="volTPCWireX">
       <materialref ref="Copper_Beryllium_alloy25"/>
-      <solidref ref="CRMWireV"/>
+      <solidref ref="CRMWireX"/>
     </volume>
 
     <volume name="volTPCWireZ">
@@ -405,21 +408,21 @@ EOF
 
 print TPC <<EOF;
 
-    <volume name="volTPCPlaneV">
+    <volume name="volTPCPlaneX">
       <materialref ref="LAr"/>
-      <solidref ref="CRMVPlane"/>
+      <solidref ref="CRMXPlane"/>
 EOF
 
-if ($wires_on==1) # add wires to Z plane
+if ($wires_on==1) # add wires to X plane (plane with wires reading x position)
 {
 for($i=0;$i<$nChannelsWidthPerCRM;++$i)
 {
-my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitch + 0.5*$padWidth;
+my $xpos = -0.5 * $TPCActive_x + ($i+0.5)*$wirePitch + 0.5*$padWidth;
 
 print TPC <<EOF;
     <physvol>
-      <volumeref ref="volTPCWireV"/> 
-      <position name="posWireV$i" unit="cm" x="0" y="$ypos" z="0"/>
+      <volumeref ref="volTPCWireX"/> 
+      <position name="posWireX$i" unit="cm" x="$xpos" y="0" z="0"/>
       <rotationref ref="rIdentity"/> 
     </physvol>
 EOF
@@ -435,7 +438,7 @@ print TPC <<EOF;
 EOF
 
 
-if ($wires_on==1) # add wires to X plane
+if ($wires_on==1) # add wires to Z plane (plane with wires reading z position)
 {
 for($i=0;$i<$nChannelsLengthPerCRM;++$i)
 {
@@ -445,7 +448,7 @@ print TPC <<EOF;
     <physvol>
      <volumeref ref="volTPCWireZ"/>
      <position name="posWireZ$i" unit="cm" x="0" y="0" z="$zpos"/>
-     <rotationref ref="rPlus90AboutX"/>
+     <rotationref ref="rPlus90AboutXPlus90AboutY"/>
     </physvol>
 EOF
 }
@@ -457,16 +460,16 @@ print TPC <<EOF;
 EOF
 
 
-$posVplane[0] = 0.5*$TPC_x - 1.5*$padWidth;
-$posVplane[1] = 0;
-$posVplane[2] = 0;
+$posXplane[0] = 0;
+$posXplane[1] = 0.5*$TPC_y - 1.5*$padWidth;
+$posXplane[2] = 0;
 
-$posZplane[0] = 0.5*$TPC_x - 0.5*$padWidth;
-$posZplane[1] = 0; 
+$posZplane[0] = 0;
+$posZplane[1] = 0.5*$TPC_y - 0.5*$padWidth; 
 $posZplane[2] = 0;
 
-$posTPCActive[0] = -$ReadoutPlane;
-$posTPCActive[1] = 0;
+$posTPCActive[0] = 0;
+$posTPCActive[1] = -$ReadoutPlane;
 $posTPCActive[2] = 0;
 
 
@@ -477,9 +480,9 @@ print TPC <<EOF;
      <materialref ref="LAr"/>
      <solidref ref="CRM"/>
      <physvol>
-       <volumeref ref="volTPCPlaneV"/>
-       <position name="posPlaneV" unit="cm" 
-         x="$posVplane[0]" y="$posVplane[1]" z="$posVplane[2]"/>
+       <volumeref ref="volTPCPlaneX"/>
+       <position name="posPlaneX" unit="cm" 
+         x="$posXplane[0]" y="$posXplane[1]" z="$posXplane[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -678,8 +681,8 @@ print CRYO <<EOF;
       z="$Argon_z"/>
 
     <box name="GaseousArgon" lunit="cm" 
-      x="$HeightGaseousAr"
-      y="$Argon_y"
+      x="$Argon_x"
+      y="$HeightGaseousAr"
       z="$Argon_z"/>
 
     <subtraction name="SteelShell">
@@ -707,7 +710,7 @@ print CRYO <<EOF;
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="$Argon_x/2-$HeightGaseousAr/2" y="0" z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="0" y="$Argon_y/2-$HeightGaseousAr/2" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
@@ -719,14 +722,14 @@ EOF
 if ($tpc_on==1) # place TPC inside croysotat
 {
 
-$posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
+$posY =  $Argon_y/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
 for($ii=0;$ii<$nCRM_z;$ii++)
 {
     $posZ = -0.5*$Argon_z + $zLArBuffer + ($ii+0.5)*$lengthCRM;
 
-    for($jj=0;$jj<$nCRM_y;$jj++)
+    for($jj=0;$jj<$nCRM_x;$jj++)
     {
-	$posY = -0.5*$Argon_y + $yLArBuffer + ($jj+0.5)*$widthCRM;
+	$posX = -0.5*$Argon_x + $xLArBuffer + ($jj+0.5)*$widthCRM;
 	print CRYO <<EOF;
       <physvol>
 	<volumeref ref="volTPC"/>
@@ -758,7 +761,7 @@ EOF
 	print CRYO <<EOF;
 
    <position name="posPMT$i" unit="cm" @pmt_pos[$i]/>
-   <rotationref ref="rMinus90AboutY"/>
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
 EOF
     }
