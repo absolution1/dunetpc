@@ -90,6 +90,7 @@ private:
   bool          _enforce_error_free;
   bool          _enforce_no_duplicate_channels;
   bool          _drop_events_with_small_rce_frags;
+  bool          _drop_small_rce_frags;
   size_t        _rce_frag_small_size;
 
   bool          _compress_Huffman;
@@ -136,7 +137,8 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_input_container_instance = p.get<std::string>("RCERawDataContainerInstance","ContainerTPC");
   _rce_input_noncontainer_instance = p.get<std::string>("RCERawDataNonContainerInstance","TPC");
   _rce_fragment_type = p.get<int>("RCEFragmentType",2);
-  _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",true);
+  _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",false);
+  _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
   _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
 
 
@@ -315,10 +317,22 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
     
       for (auto const& cont : *cont_frags)
 	{
-	  if ( _drop_events_with_small_rce_frags && (cont.sizeBytes() < _rce_frag_small_size) ) 
-	    { 
-	      _discard_data = true; 
-	      return false;
+	  if ((cont.sizeBytes() < _rce_frag_small_size))
+	    {
+	      if ( _drop_events_with_small_rce_frags )
+		{ 
+		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
+		  _discard_data = true; 
+		  return false;
+		}
+	      else
+		{
+		  if ( _drop_small_rce_frags )
+		    { 
+ 		      LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
+		      return false;
+		    }
+		}
 	    }
 	  artdaq::ContainerFragment cont_frag(cont);
 	  for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
@@ -348,14 +362,14 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 
       //size of RCE fragments into histogram
       if(_make_histograms)
-    	{
+	{
 	  size_t rcebytes = 0;
 	  for (auto const& frag: *frags)
 	    {
 	      rcebytes = rcebytes + (frag.sizeBytes());
 	    }
 	  fFragSizeRCE->Fill(rcebytes);
-    	}
+	}
 
       for(auto const& frag: *frags)
 	{
@@ -407,12 +421,12 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	{
 
 	  // from JJ's PdReaderTest.cc
-          using namespace pdd;
-          using namespace pdd::access;
+	  using namespace pdd;
+	  using namespace pdd::access;
 	  bool printed=false;
-          TpcStream const        &stream = rce_stream->getStream ();
+	  TpcStream const        &stream = rce_stream->getStream ();
 	  TpcToc           toc    (stream.getToc    ());
-          TpcPacket        pktRec (stream.getPacket ());
+	  TpcPacket        pktRec (stream.getPacket ());
 	  TpcPacketBody    pktBdy (pktRec.getRecord ());
 	  int   npkts = toc.getNPacketDscs ();
 	  for (int ipkt = 0; ipkt < npkts; ++ipkt)
@@ -463,7 +477,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	    {
 	      if (n_ticks != _tick_count_this_event)
 		{
-	          LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
+		  LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
 						   << " vs " << _tick_count_this_event << " Discarding Data";
 		  error_counter++;
 		  _discard_data = true;
@@ -527,9 +541,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		  if (_duplicate_channel_checklist[offlineChannel])
 		    {
 		      if(_make_histograms)
-		    	{
+			{
 			  duplicate_channels++;
-		    	}
+			}
 		      LOG_WARNING("_process_RCE_AUX:") << "Duplicate Channel: " << offlineChannel
 						       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << i_ch << " Discarding Data";
 		      error_counter++;
@@ -683,8 +697,8 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 
   if (_print_coldata_convert_count)
     {
-       uint16_t first_coldata_convert_count = felix.coldata_convert_count(0,0);
-       std::cout << "FELIX Coldata convert count: " << (int) first_coldata_convert_count << std::endl;
+      uint16_t first_coldata_convert_count = felix.coldata_convert_count(0,0);
+      std::cout << "FELIX Coldata convert count: " << (int) first_coldata_convert_count << std::endl;
     }
 
   //std::cout << "FELIX raw decoder trj: " << (int) crate << " " << (int) slot << " " << (int) fiber << std::endl;
@@ -792,7 +806,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	  {
 	    if (_duplicate_channel_checklist[offlineChannel])
 	      {
-	      	if(_make_histograms)
+		if(_make_histograms)
 		  {
 		    duplicate_channels++;
 		  }
