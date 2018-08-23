@@ -3,7 +3,9 @@
 // David Adams
 // June 2018
 //
-// Class to evaluate sticky code metrics.
+// Class to evaluate sticky code metrics from a distribution
+// of ADC codes presumed to correpond to the same input signal,
+// e.g. a pedestal or tickmod distrobution.
 //
 // The metrics are:
 //
@@ -57,7 +59,7 @@ public:
 
   // Ctor to configure for histogram with nbin bins with low edge
   // a multiple of lowbin;
-  StickyCodeMetrics(Name hnam, Name httl, Index nbin, Index lowbin);
+  StickyCodeMetrics(Name hnam, Name httl, Index nbin, Index lowbin, float sigmaMin, float sigmaMax);
 
   // Evaluate a count map.
   int evaluate(const BinCounter& counts);
@@ -110,6 +112,8 @@ private:
   Name m_httl;
   int m_nbin =0;
   Index m_lowbin = 1;
+  float m_sigmaMin = 0.1;
+  float m_sigmaMax = 100.0;
 
   // Metrics.
   Index m_nsample;

@@ -24,8 +24,10 @@ using Index = unsigned int;
 //**********************************************************************
 
 StickyCodeMetrics::
-StickyCodeMetrics(Name hnam, Name httl, Index nbin, Index lowbin)
-: m_hnam(hnam), m_httl(httl), m_nbin(nbin), m_lowbin(lowbin) { }
+StickyCodeMetrics(Name hnam, Name httl, Index nbin, Index lowbin,
+                  float sigmaMin, float sigmaMax)
+: m_hnam(hnam), m_httl(httl), m_nbin(nbin), m_lowbin(lowbin),
+  m_sigmaMin(sigmaMin), m_sigmaMax(sigmaMax) { }
 
 //**********************************************************************
 
@@ -320,7 +322,13 @@ int StickyCodeMetrics::evaluateMetrics() {
   // Fit the histogram.
   TF1 fitter("pedgaus", "gaus", ihadc1, ihadc2, TF1::EAddToList::kNo);
   fitter.SetParameters(0.1*ph->Integral(), ph->GetMean(), 5.0);
-  fitter.SetParLimits(2, 0.1, 100);
+  if ( m_sigmaMax > m_sigmaMin ) {
+    fitter.SetParLimits(2, m_sigmaMin, m_sigmaMax);
+  } else if ( m_sigmaMax == m_sigmaMin ) {
+    fitter.FixParameter(2, m_sigmaMin);
+  } else {
+    fitter.SetParLimits(2, 0.1, 100.0);
+  }
   TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
   pfinit->SetLineColor(3);
   pfinit->SetLineStyle(2);
