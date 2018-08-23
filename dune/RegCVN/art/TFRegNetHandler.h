@@ -37,7 +37,7 @@ namespace cvn
     std::string  fTFProtoBuf;  ///< location of the tf .pb file in the above path
     unsigned int fInputs;   ///< Number of tdcs for the network to classify
     std::vector<bool> fReverseViews; ///< Do we need to reverse any views?
-    std::unique_ptr<tf::Graph> fTFGraph; ///< Tensorflow graph
+    std::unique_ptr<tf::RegCVNGraph> fTFGraph; ///< Tensorflow graph
 
   };
 

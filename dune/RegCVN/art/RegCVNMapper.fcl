@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 #   This file defines the configuration for the CVNEventDump module
 
-standard_cvnmapper:
+standard_regcvnmapper:
 {
   module_type:        RegCVNMapper
   #==================

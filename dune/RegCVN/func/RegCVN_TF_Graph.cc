@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Class:       Graph
+// Class:       RegCVNGraph
 // Authors:     Ilsoo Seong - iseong@uci.edu
 // Authors:     R.Sulej (Robert.Sulej@cern.ch), from DUNE, FNAL/NCBJ, Sept. 2017
 //              P.Plonski,                      from DUNE, WUT, Sept. 2017
@@ -15,7 +15,7 @@
 #include "tensorflow/core/platform/env.h"
 
 // -------------------------------------------------------------------
-tf::Graph::Graph(const char* graph_file_name, const unsigned int &ninputs, const std::vector<std::string> & outputs, bool & success)
+tf::RegCVNGraph::RegCVNGraph(const char* graph_file_name, const unsigned int &ninputs, const std::vector<std::string> & outputs, bool & success)
 {
     success = false; // until all is done correctly
 
@@ -85,14 +85,14 @@ tf::Graph::Graph(const char* graph_file_name, const unsigned int &ninputs, const
     success = true; // ok, graph loaded from the file
 }
 
-tf::Graph::~Graph()
+tf::RegCVNGraph::~RegCVNGraph()
 {
     fSession->Close();
     delete fSession;
 }
 // -------------------------------------------------------------------
 
-std::vector<float> tf::Graph::run(const std::vector< std::vector<float> > & x)
+std::vector<float> tf::RegCVNGraph::run(const std::vector< std::vector<float> > & x)
 {
     if (x.empty() || x.front().empty()) { return std::vector<float>(); }
 
@@ -114,7 +114,7 @@ std::vector<float> tf::Graph::run(const std::vector< std::vector<float> > & x)
 }
 // -------------------------------------------------------------------
 
-std::vector< std::vector<float> > tf::Graph::run(
+std::vector< std::vector<float> > tf::RegCVNGraph::run(
 	const std::vector<  std::vector<  std::vector< std::vector<float> > > > & x,
         const unsigned int &ninputs,
 	long long int samples)
@@ -159,7 +159,7 @@ std::vector< std::vector<float> > tf::Graph::run(
 
 }
 
-std::vector< std::vector<float> > tf::Graph::run(
+std::vector< std::vector<float> > tf::RegCVNGraph::run(
 	const std::vector<  std::vector<  std::vector< std::vector<float> > > > & x,
 	long long int samples)
 {
@@ -193,7 +193,7 @@ std::vector< std::vector<float> > tf::Graph::run(
 }
 // -------------------------------------------------------------------
 
-std::vector< std::vector< float > > tf::Graph::run(const tensorflow::Tensor & x)
+std::vector< std::vector< float > > tf::RegCVNGraph::run(const tensorflow::Tensor & x)
 {
 
     std::vector< std::pair<std::string, tensorflow::Tensor> > inputs = {
@@ -247,7 +247,7 @@ std::vector< std::vector< float > > tf::Graph::run(const tensorflow::Tensor & x)
     }
 }
 
-std::vector< std::vector< float > > tf::Graph::run(const std::vector< tensorflow::Tensor >& x)
+std::vector< std::vector< float > > tf::RegCVNGraph::run(const std::vector< tensorflow::Tensor >& x)
 {
 
     // make inputs to feed into the model

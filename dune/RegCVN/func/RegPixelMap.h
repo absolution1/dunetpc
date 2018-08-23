@@ -4,8 +4,8 @@
 /// \author  Ilsoo Seong - iseong@uci.edu
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef CVN_REGPIXELMAP_H
-#define CVN_REGPIXELMAP_H
+#ifndef REGCVN_REGPIXELMAP_H
+#define REGCVN_REGPIXELMAP_H
 
 #include <ostream>
 #include <vector>

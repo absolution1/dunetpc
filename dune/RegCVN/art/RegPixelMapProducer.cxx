@@ -14,7 +14,6 @@
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "dune/RegCVN/art/RegPixelMapProducer.h"
-#include "dune/RegCVN/func/AssignLabels.h"
 #include  "TVector2.h"
 
 namespace cvn

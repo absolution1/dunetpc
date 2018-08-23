@@ -4,7 +4,7 @@ BEGIN_PROLOG
 
 
 # Configuration for the CVN TF interface
-standard_tfnethandler:
+standard_tfregnethandler:
 {
   #LibPath: "DUNE_PARDATA_DIR"
   #LibPath: "/pnfs/dune/persistent/users/iseong/TF_Model"
@@ -14,13 +14,13 @@ standard_tfnethandler:
   ReverseViews: [false,false,false]
 }
 
-standard_cvnevaluator:
+standard_regcvnevaluator:
 {
   module_type:        RegCVNEvaluator
   #==================
-  PixelMapInput: "cvnmap"
+  PixelMapInput: "regcvnmap"
   ResultLabel: "regcvnresult"
-  TFNetHandler: @local::standard_tfnethandler
+  TFNetHandler: @local::standard_tfregnethandler
   CVNType: "Tensorflow"
 }
 

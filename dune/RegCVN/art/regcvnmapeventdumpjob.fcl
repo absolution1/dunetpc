@@ -9,7 +9,7 @@ process_name: RegCVNMapper
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "cvn_event_dump_r%r_s%s_hist.root"
+  TFileService: { fileName: "regcvn_event_dump_r%r_s%s_hist.root"
                   closeFileFast: false }
   #MemoryTracker:     {}
   #TimeTracker:       {}
@@ -33,7 +33,7 @@ outputs:
   out1:
   {
       module_type: RootOutput
-      fileName:    "cvnmapper_r%r_s%s.root" 
+      fileName:    "regcvnmapper_r%r_s%s.root" 
       fastCloning: false
       dataTier: "full-reconstructed"
   }
@@ -47,20 +47,20 @@ physics:
   # Declare the modules
   producers:
   { 
-    cvnmap: @local::standard_cvnmapper
+    regcvnmap: @local::standard_regcvnmapper
   }
 
   analyzers:
   { 
-    cvndump: @local::standard_cvneventdump_fhc 
+    regcvndump: @local::standard_regcvneventdump_fhc 
   }
 
 
   # Build the paths
-  map: [ cvnmap ]
+  map: [ regcvnmap ]
   
 
-  analyze: [ cvndump ]
+  analyze: [ regcvndump ]
 
 
   out: [out1]
@@ -70,8 +70,8 @@ physics:
 
 #services.Geometry: @local::dune10kt_1x2x6_geo
 
-physics.producers.cvnmap.HitsModuleLabel: "linecluster"
-physics.analyzers.cvndump.WriteMapTH2: true
-physics.analyzers.cvndump.ApplyFidVol: false
+physics.producers.regcvnmap.HitsModuleLabel: "linecluster"
+physics.analyzers.regcvndump.WriteMapTH2: true
+physics.analyzers.regcvndump.ApplyFidVol: false
 
 ########################################################################

@@ -4,7 +4,7 @@ regcvn_analysistree:
 {
   module_type:        "RegCVNAna"
   MCGenModuleLabel:   "generator"
-  RegCVNModuleLabel:  "cvneval"
+  RegCVNModuleLabel:  "regcvneval"
   HitsModuleLabel:    "linecluster"
   EnergyRecoNueLabel: "energyreconue"
 }

@@ -38,11 +38,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "larsim/MCCheater/BackTracker.h"
 
-#include "dune/RegCVN/func/AssignLabels.h"
-#include "dune/RegCVN/func/InteractionType.h"
 #include "dune/RegCVN/func/RegPixelMap.h"
-//#include "dune/FDSensOpt/MVAAlg/MVAAlg.h"
-//#include "dune/FDSensOpt/FDSensOptData/EnergyRecoOutput.h"
 
 
 
@@ -134,8 +130,6 @@ namespace cvn {
     simb::MCNeutrino truthN=truth->GetNeutrino();
     //truth = mclist[0];
 
-    //InteractionType interaction = kOther;
-    //interaction = GetInteractionType(truthN);
     //float nuEnergy = 0;
     //float lepEnergy = 0;
     ////if(truth.NeutrinoSet()){

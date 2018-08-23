@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Class:       Graph
+//// Class:       RegCVNGraph
 //// Authors:     Ilsoo Seong - iseong@uci.edu
 //// Authors:     R.Sulej (Robert.Sulej@cern.ch), from DUNE, FNAL/NCBJ, Sept. 2017
 ///               P.Plonski,                      from DUNE, WUT, Sept. 2017
@@ -9,8 +9,8 @@
 ////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef Graph_h
-#define Graph_h
+#ifndef RegCVNGraph_h
+#define RegCVNGraph_h
 
 #include <memory>
 #include <vector>
@@ -25,18 +25,18 @@ namespace tensorflow
 namespace tf
 {
 
-class Graph
+class RegCVNGraph
 {
 public:
-    static std::unique_ptr<Graph> create(const char* graph_file_name, const unsigned int &ninputs, const std::vector<std::string> & outputs = {})
+    static std::unique_ptr<RegCVNGraph> create(const char* graph_file_name, const unsigned int &ninputs, const std::vector<std::string> & outputs = {})
     {
         bool success;
-        std::unique_ptr<Graph> ptr(new Graph(graph_file_name, ninputs, outputs,  success));
+        std::unique_ptr<RegCVNGraph> ptr(new RegCVNGraph(graph_file_name, ninputs, outputs,  success));
         if (success) { return ptr; }
         else { return nullptr; }
     }
 
-    ~Graph();
+    ~RegCVNGraph();
 
     std::vector<float> run(const std::vector< std::vector<float> > & x);
 
@@ -55,7 +55,7 @@ public:
 
 private:
     /// Not-throwing constructor.
-    Graph(const char* graph_file_name, const unsigned int& ninputs, const std::vector<std::string> & outputs, bool & success);
+    RegCVNGraph(const char* graph_file_name, const unsigned int& ninputs, const std::vector<std::string> & outputs, bool & success);
 
     tensorflow::Session* fSession;
     std::vector<std::string> fInputNames;

@@ -1,10 +1,10 @@
 BEGIN_PROLOG
 
-standard_cvneventdump_fhc:
+standard_regcvneventdump_fhc:
 {
   module_type:        RegCVNEventDump
   #==================
-  PixelMapInput: "cvnmap"
+  PixelMapInput: "regcvnmap"
   GenieGenModuleLabel: "generator"
   WriteMapTH2: true
   ApplyFidVol: true
@@ -12,6 +12,6 @@ standard_cvneventdump_fhc:
 }
 
 # Make the rhc version 
-standard_cvneventdump_rhc: @local::standard_cvneventdump_fhc
+standard_regcvneventdump_rhc: @local::standard_regcvneventdump_fhc
 
 END_PROLOG

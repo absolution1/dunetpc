@@ -31,7 +31,7 @@ namespace cvn
     // Construct the TF Graph object. The empty vector {} is used since the protobuf
     // file gives the names of the output layer nodes
     mf::LogInfo("TFRegNetHandler") << "Loading network: " << fTFProtoBuf << std::endl;
-    fTFGraph = tf::Graph::create(fTFProtoBuf.c_str(),fInputs,{});
+    fTFGraph = tf::RegCVNGraph::create(fTFProtoBuf.c_str(),fInputs,{});
     if(!fTFGraph){
       art::Exception(art::errors::Unknown) << "Tensorflow model not found or incorrect";
     }
