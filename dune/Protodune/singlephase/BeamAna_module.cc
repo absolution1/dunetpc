@@ -75,7 +75,7 @@ private:
   TH2F * fFirstBeamProf2D;
   TH2F * fSecondBeamProf2D;
   TH1F * fTOFHist;
-  TH1F * fCKovHist"
+  TH1F * fCKovHist;
   recob::TrackTrajectory theTraj;
   recob::Track theTrack;
   

@@ -45,6 +45,9 @@ pdsp_tpc_raw_decoder:
   FELIXRawDataNonContainerInstance: "FELIX"
   FELIXFragmentType: 2    # not used in code
 
+  CompressHuffman: false
+  PrintColdataConvertCount: false
+
   MakeHistograms: false #for making error monitoring histograms
 
 # enforcement flags.  If these are set to true and the data completeness 
