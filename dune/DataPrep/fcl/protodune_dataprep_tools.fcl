@@ -370,8 +370,8 @@ tools.pd_tickmodViewer: {
   LogLevel: 1
   TickModPeriod: 497
   TimeOffsetTool: pd_tickOffset
-  FitRmsMin: 1.0
-  FitRmsMax: 20.0
+  FitSigmaMin:  2.0
+  FitSigmaMax: 20.0
   HistName: "adctm_ch%0CHAN%_tm%0TICKMOD%"
   HistTitle: "ADC spectrum for channel %CHAN% tickmod %TICKMOD%"
   HistChannelCount: 100

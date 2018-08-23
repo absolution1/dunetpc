@@ -109,7 +109,7 @@ int test_StickyCodeMetrics() {
 
   cout << myname << line << endl;
   cout << myname << "Evaluation creating histogram." << endl;
-  StickyCodeMetrics scmh("hadctest", "ADC spectrum for test", 50, 10);
+  StickyCodeMetrics scmh("hadctest", "ADC spectrum for test", 50, 10, 1, 20);
   assert( scmh.evaluate(counts) == 0 );
   scmh.print();
   scmh.getMetrics().print();
@@ -122,7 +122,7 @@ int test_StickyCodeMetrics() {
 
   cout << myname << line << endl;
   cout << myname << "Evaluation creating wide histogram." << endl;
-  StickyCodeMetrics scmhw("hadctest", "ADC spectrum for test", 100, 10);
+  StickyCodeMetrics scmhw("hadctest", "ADC spectrum for test", 100, 10, 1, 20);
   assert( scmhw.evaluate(counts) == 0 );
   scmhw.print();
   scmhw.getMetrics().print();
@@ -135,7 +135,7 @@ int test_StickyCodeMetrics() {
 
   cout << myname << line << endl;
   cout << myname << "Evaluation creating narrow histogram." << endl;
-  StickyCodeMetrics scmh2("hadctest", "ADC spectrum for test", 15, 5);
+  StickyCodeMetrics scmh2("hadctest", "ADC spectrum for test", 15, 5, 1, 20);
   assert( scmh2.evaluate(counts) == 0 );
   scmh2.print();
   scmh2.getMetrics().print();

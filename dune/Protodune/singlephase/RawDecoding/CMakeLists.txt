@@ -106,6 +106,21 @@ simple_plugin(PDSPTPCRawDecoder "module"
                         BASENAME_ONLY
 )
 
+#simple_plugin(CRTRawDecoder "module"
+#                        dune-raw-data_Overlays
+#                        artdaq-core_Data
+#                        ${ART_FRAMEWORK_CORE}
+#                        ${ART_FRAMEWORK_PRINCIPAL}
+#                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+#                        ${MF_MESSAGELOGGER}
+#                        ${CETLIB}
+#                        ${ROOT_BASIC_LIB_LIST}
+#                        ${RCEDAMLIB}
+#                        BASENAME_ONLY                        
+#)
+
 simple_plugin(PDSPCTBRawDecoder "module"
                         dune-raw-data_Overlays
 			artdaq-core_Data
@@ -114,6 +129,7 @@ simple_plugin(PDSPCTBRawDecoder "module"
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${MF_MESSAGELOGGER}
  #                       art_Persistency_Common canvas_Persistency_Common
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
