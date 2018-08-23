@@ -1,13 +1,13 @@
 ////////////////////////////////////////////////////////////////////////
 // Class:       BeamAna
-// Plugin Type: analyzer (art v2_08_03)
+// Plugin Type: producer (art v2_08_03)
 // File:        BeamAna_module.cc
 //
 // Generated at Thu Nov  2 22:57:41 2017 by Jonathan Paley using cetskelgen
 // from cetlib version v3_01_01.
 ////////////////////////////////////////////////////////////////////////
 
-#include "art/Framework/Core/EDAnalyzer.h"
+#include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
@@ -38,9 +38,11 @@ namespace proto {
 }
 
 
-class proto::BeamAna : public art::EDAnalyzer {
+class proto::BeamAna : public art::EDProducer {
 public:
   explicit BeamAna(fhicl::ParameterSet const & p);
+  //  virtual ~BeamAna();
+
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
@@ -51,16 +53,16 @@ public:
   BeamAna & operator = (BeamAna &&) = delete;
 
   // Required functions.
-  void analyze(art::Event const & e) override;
+  void reconfigure(fhicl::ParameterSet const & p);
+  void produce(art::Event & e) override;
 
   // Selected optional functions.
   void beginJob() override;
-  void beginRun(art::Run const & r) override;
-  void beginSubRun(art::SubRun const & sr) override;
+  void beginRun(art::Run & r) override;
+  void beginSubRun(art::SubRun & sr) override;
   void endJob() override;
-  void endRun(art::Run const & r) override;
-  void endSubRun(art::SubRun const & sr) override;
-  void reconfigure(fhicl::ParameterSet const & p);
+  void endRun(art::Run & r) override;
+  void endSubRun(art::SubRun & sr) override;
   std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);  
   void matchTriggers(beamspill::ProtoDUNEBeamSpill spill);
   void GetPairedFBMInfo(beamspill::ProtoDUNEBeamSpill spill, double Time);
@@ -105,14 +107,14 @@ private:
 
 
 proto::BeamAna::BeamAna(fhicl::ParameterSet const & p)
-  :
-  EDAnalyzer(p)  // ,
+//  :
+//  EDProducer(p)  // ,
  // More initializers here.
 {
   this->reconfigure(p);
 }
 
-void proto::BeamAna::analyze(art::Event const & e)
+void proto::BeamAna::produce(art::Event & e)
 {
 
   std::cerr << "%%%%%%%%%% Getting ifbeam service handle %%%%%%%%%%" << std::endl;
@@ -254,7 +256,10 @@ void proto::BeamAna::analyze(art::Event const & e)
  
  GetPairedFBMInfo(*spill,1.50000e+08);
 
+ std::unique_ptr<std::vector<beamspill::ProtoDUNEBeamSpill> > beamData(new std::vector<beamspill::ProtoDUNEBeamSpill>);
+ beamData->push_back(beamspill::ProtoDUNEBeamSpill(*spill));
 
+ e.put(std::move(beamData));
 }
 
 void proto::BeamAna::parseDevices(uint64_t time){
@@ -405,12 +410,12 @@ void proto::BeamAna::beginJob()
   // Implementation of optional member function here.
 }
 
-void proto::BeamAna::beginRun(art::Run const & r)
+void proto::BeamAna::beginRun(art::Run & r)
 {
   // Implementation of optional member function here.
 }
 
-void proto::BeamAna::beginSubRun(art::SubRun const & sr)
+void proto::BeamAna::beginSubRun(art::SubRun & sr)
 {
   // Implementation of optional member function here.
 }
@@ -420,12 +425,12 @@ void proto::BeamAna::endJob()
   // Implementation of optional member function here.
 }
 
-void proto::BeamAna::endRun(art::Run const & r)
+void proto::BeamAna::endRun(art::Run & r)
 {
   // Implementation of optional member function here.
 }
 
-void proto::BeamAna::endSubRun(art::SubRun const & sr)
+void proto::BeamAna::endSubRun(art::SubRun & sr)
 {
   // Implementation of optional member function here.
 }
