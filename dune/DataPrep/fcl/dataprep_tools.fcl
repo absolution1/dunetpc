@@ -277,6 +277,12 @@ tools.adcVintageDeconvoluter: {
   LogLevel: 1
 }
 
+# Find one ADC signals that includes all samples.
+tools.adcKeepAllSignalFinder: {
+  tool_type: AdcKeepAllSignalFinder
+  LogLevel: 1
+}
+
 # Find ADC signals with simple threshold algorithm.
 tools.adcThresholdSignalFinder: {
   tool_type: AdcThresholdSignalFinder
