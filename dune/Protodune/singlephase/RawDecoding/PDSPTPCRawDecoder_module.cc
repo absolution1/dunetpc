@@ -128,7 +128,7 @@ private:
   bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
 
-  std::vector<uint16_t> _buffer;
+  std::vector<int16_t> _buffer;
 };
 
 
@@ -538,7 +538,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  _buffer.reserve(buffer_size);
 	}
 
-      uint16_t* adcs = _buffer.data();
+      int16_t* adcs = _buffer.data();
       bool sgmcdretcode = rce_stream->getMultiChannelData(adcs);
       if (_enforce_error_free && !sgmcdretcode)
 	{
