@@ -119,6 +119,11 @@ simple_plugin(AdcKeepAllSignalFinder   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcThresholdSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(DuneAdcSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
