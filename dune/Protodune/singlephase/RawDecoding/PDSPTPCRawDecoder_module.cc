@@ -92,6 +92,7 @@ private:
   bool          _drop_events_with_small_rce_frags;
   bool          _drop_small_rce_frags;
   size_t        _rce_frag_small_size;
+  bool          _rce_drop_frags_with_badcsf;
 
   bool          _compress_Huffman;
   bool          _print_coldata_convert_count;
@@ -140,7 +141,7 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",false);
   _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
   _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
-
+  _rce_drop_frags_with_badcsf = p.get<bool>("RCEDropFragsWithBadCSF",true);
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
@@ -373,6 +374,25 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 
       for(auto const& frag: *frags)
 	{
+
+	  if ((frag.sizeBytes() < _rce_frag_small_size))
+	    {
+	      if ( _drop_events_with_small_rce_frags )
+		{ 
+		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
+		  _discard_data = true; 
+		  return false;
+		}
+	      else
+		{
+		  if ( _drop_small_rce_frags )
+		    { 
+ 		      LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
+		      return false;
+		    }
+		}
+	    }
+
 	  if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
 	}
     }
@@ -416,6 +436,20 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       auto const * rce_stream = rce.get_stream(i);
       size_t n_ch = rce_stream->getNChannels();
       size_t n_ticks = rce_stream->getNTicks();
+      auto const identifier = rce_stream->getIdentifier();
+      uint32_t crateNumber = identifier.getCrate();
+      uint32_t slotNumber = identifier.getSlot();
+      uint32_t fiberNumber = identifier.getFiber();
+
+      if (_rce_drop_frags_with_badcsf)
+	{
+	  if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
+	    {
+	      LOG_WARNING("_process_RCE:") << "Bad crate, slot, fiber number, discarding fragment on request: " 
+					   << crateNumber << " " << slotNumber << " " << fiberNumber;
+	      return false;
+	    }
+	}
 
       if (_print_coldata_convert_count)
 	{
@@ -486,10 +520,6 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	    }
 	}
 
-      auto const identifier = rce_stream->getIdentifier();
-      uint32_t crateNumber = identifier.getCrate();
-      uint32_t slotNumber = identifier.getSlot();
-      uint32_t fiberNumber = identifier.getFiber();
 
       //LOG_INFO("_Process_RCE_AUX")
       //<< "RceFragment timestamp: " << rce_stream->getTimeStamp()
