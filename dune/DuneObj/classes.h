@@ -15,7 +15,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/Simulation/OpDetBacktrackerRecord.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
-#include "dune/DuneObj/ProtoDUNEBeamSpill.h"
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
 #include <vector>
 #include <map>

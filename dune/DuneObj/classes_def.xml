@@ -56,12 +56,10 @@
  <class name="sim::Chan_Phot"/>
  <class name="std::vector<sim::Chan_Phot>"/>
 
- <class name="beamspill::ProtoDUNEBeamSpill" ClassVersion="12" > 
-  <version ClassVersion="12" checksum="1104027121"/>
-  <version ClassVersion="11" checksum="798990155"/>
-  <version ClassVersion="10" checksum="1104027121"/>
+ <class name="beam::ProtoDUNEBeamEvent" ClassVersion="13" > 
+  <version ClassVersion="13" checksum="1473612469"/>
  </class>
 
- <class name="art::Ptr<beamspill::ProtoDUNEBeamSpill>" />
- <class name="art::Wrapper<beamspill::ProtoDUNEBeamSpill>" />
+ <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
+ <class name="art::Wrapper<beam::ProtoDUNEBeamEvent>" />
 </lcgdict>

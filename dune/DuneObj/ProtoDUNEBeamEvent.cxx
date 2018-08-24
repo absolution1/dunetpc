@@ -8,12 +8,12 @@
 // ////////////////////////////////////////////
 
 
-#include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
-namespace beamspill 
+namespace beam
 {
-  ProtoDUNEBeamSpill::ProtoDUNEBeamSpill(){}
-  void ProtoDUNEBeamSpill::InitFBMs(size_t nMonitors){
+  ProtoDUNEBeamEvent::ProtoDUNEBeamEvent(){}
+  void ProtoDUNEBeamEvent::InitFBMs(size_t nMonitors){
     nFBMs = nMonitors;
     FBM dummyFBM;
     dummyFBM.ID = -1;
@@ -23,5 +23,5 @@ namespace beamspill
       fiberMonitors.push_back(dummyVec);
     }
   }
-  ProtoDUNEBeamSpill::~ProtoDUNEBeamSpill(){}
+  ProtoDUNEBeamEvent::~ProtoDUNEBeamEvent(){}
 }     

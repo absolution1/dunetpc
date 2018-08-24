@@ -1,12 +1,12 @@
-#ifndef BEAMDATA_PROTODUNEBEAMSPILL_H
-#define BEAMDATA_PROTODUNEBEAMSPILL_H
+#ifndef BEAMDATA_PROTODUNEBEAM_H
+#define BEAMDATA_PROTODUNEBEAM_H
 
 #include <vector>
 #include <bitset>
 #include <iostream>
 #include <map>
 
-namespace beamspill
+namespace beam
 {
   
   //Fiber Beam Monitor
@@ -37,10 +37,10 @@ namespace beamspill
 
 
 
-  class ProtoDUNEBeamSpill{
+  class ProtoDUNEBeamEvent{
     public:
-      ProtoDUNEBeamSpill();
-     ~ProtoDUNEBeamSpill();
+      ProtoDUNEBeamEvent();
+      ~ProtoDUNEBeamEvent();
 
       void              InitFBMs(size_t);
       long long         GetT0(){ return t0; };
@@ -98,7 +98,7 @@ namespace beamspill
 
 
   ////////////Fiber Monitor Access
-  inline void ProtoDUNEBeamSpill::AddFBMTrigger(size_t iMonitor, FBM theFBM){
+  inline void ProtoDUNEBeamEvent::AddFBMTrigger(size_t iMonitor, FBM theFBM){
     if( (iMonitor > (nFBMs - 1) ) ){
       std::cout << "Error FBM index out of range" << std::endl;
       return;
@@ -116,7 +116,7 @@ namespace beamspill
     }
   }
 
-/* inline void ProtoDUNEBeamSpill::AddFBMTrigger(std::string FBMName, FBM theFBM){
+/* inline void ProtoDUNEBeamEvent::AddFBMTrigger(std::string FBMName, FBM theFBM){
     
     if(!fiberMonitors.count(FBMName)){
       std::cout << "Initializing FBM vector" << std::endl;
@@ -129,7 +129,7 @@ namespace beamspill
     std::cout << "Added" << std::endl;
   }*/
 
-  inline void ProtoDUNEBeamSpill::DecodeFibers(size_t iMonitor, size_t nTrigger){
+  inline void ProtoDUNEBeamEvent::DecodeFibers(size_t iMonitor, size_t nTrigger){
     if( (iMonitor > (fiberMonitors.size() -1) ) ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return;
@@ -149,7 +149,7 @@ namespace beamspill
     }
   }
 
-  inline double ProtoDUNEBeamSpill::DecodeFiberTime(size_t iMonitor, size_t nTrigger){
+  inline double ProtoDUNEBeamEvent::DecodeFiberTime(size_t iMonitor, size_t nTrigger){
     if( (iMonitor > (fiberMonitors.size() -1) ) ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1.;
@@ -163,7 +163,7 @@ namespace beamspill
     return fiberMonitors[iMonitor][nTrigger].timeData[0];
   }
 
-  inline std::bitset<32> ProtoDUNEBeamSpill::toBinary(double num){
+  inline std::bitset<32> ProtoDUNEBeamEvent::toBinary(double num){
     std::bitset<64> mybits( (long(num)) );
     std::bitset<32> upper, lower;
     for(int i = 0; i < 32; ++i){
@@ -176,7 +176,7 @@ namespace beamspill
   }
 
 
-  inline short ProtoDUNEBeamSpill::GetFiberStatus(size_t iMonitor, size_t nTrigger, size_t iFiber){
+  inline short ProtoDUNEBeamEvent::GetFiberStatus(size_t iMonitor, size_t nTrigger, size_t iFiber){
     if( (iMonitor > (fiberMonitors.size() - 1)) ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
@@ -192,7 +192,7 @@ namespace beamspill
     return fiberMonitors[iMonitor][nTrigger].fibers[iFiber];
   }
 
-  inline std::vector<short> ProtoDUNEBeamSpill::GetActiveFibers(size_t iMonitor, size_t nTrigger){
+  inline std::vector<short> ProtoDUNEBeamEvent::GetActiveFibers(size_t iMonitor, size_t nTrigger){
     std::vector<short> active;
 
     if( (iMonitor > (fiberMonitors.size() - 1)) ){
@@ -211,7 +211,7 @@ namespace beamspill
     return active;
   }
 
-  inline long long ProtoDUNEBeamSpill::GetFiberTime(size_t iMonitor, size_t nTrigger){
+  inline long long ProtoDUNEBeamEvent::GetFiberTime(size_t iMonitor, size_t nTrigger){
     if(iMonitor > fiberMonitors.size() - 1){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
@@ -223,7 +223,7 @@ namespace beamspill
     return fiberMonitors[iMonitor][nTrigger].timeStamp;
   }
 
-  inline size_t ProtoDUNEBeamSpill::GetNFBMTriggers(size_t iMonitor){
+  inline size_t ProtoDUNEBeamEvent::GetNFBMTriggers(size_t iMonitor){
     if( (iMonitor > (fiberMonitors.size() - 1)) ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
@@ -236,7 +236,7 @@ namespace beamspill
 
   ////////////Cerenkov Access
   
-  inline short ProtoDUNEBeamSpill::GetCKov0Status(size_t nTrigger){
+  inline short ProtoDUNEBeamEvent::GetCKov0Status(size_t nTrigger){
     if( (nTrigger >= CKov0.size()) ){
       std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
       return -1;
@@ -245,7 +245,7 @@ namespace beamspill
     return CKov0[nTrigger].trigger;                
   }
 
-  inline short ProtoDUNEBeamSpill::GetCKov1Status(size_t nTrigger){
+  inline short ProtoDUNEBeamEvent::GetCKov1Status(size_t nTrigger){
     if( (nTrigger >= CKov1.size()) ){
       std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
       return -1;
@@ -254,7 +254,7 @@ namespace beamspill
     return CKov1[nTrigger].trigger;                
   }
 
-  inline long long ProtoDUNEBeamSpill::GetCKov0Time(size_t nTrigger){
+  inline long long ProtoDUNEBeamEvent::GetCKov0Time(size_t nTrigger){
     if( (nTrigger >= CKov0.size()) ){
       std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
       return -1;
@@ -263,7 +263,7 @@ namespace beamspill
     return CKov0[nTrigger].timeStamp;                
   }
 
-  inline long long ProtoDUNEBeamSpill::GetCKov1Time(size_t nTrigger){
+  inline long long ProtoDUNEBeamEvent::GetCKov1Time(size_t nTrigger){
     if( (nTrigger >= CKov1.size()) ){
       std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
       return -1;
@@ -275,7 +275,7 @@ namespace beamspill
 
 
   ////////////TOF Access
-  inline long long ProtoDUNEBeamSpill::GetTOF0(size_t nTrigger){
+  inline long long ProtoDUNEBeamEvent::GetTOF0(size_t nTrigger){
     if( (nTrigger >= TOF0.size()) ){
       std::cout << "Please input index in range [0," << TOF0.size() - 1 << "]" << std::endl;
       return -1;
@@ -284,7 +284,7 @@ namespace beamspill
     return TOF0[nTrigger];
   }
 
-  inline long long ProtoDUNEBeamSpill::GetTOF1(size_t nTrigger){
+  inline long long ProtoDUNEBeamEvent::GetTOF1(size_t nTrigger){
     if( (nTrigger >= TOF1.size()) ){
       std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
       return -1;
