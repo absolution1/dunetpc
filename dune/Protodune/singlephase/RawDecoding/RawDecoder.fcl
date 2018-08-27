@@ -46,7 +46,7 @@ pdsp_tpc_raw_decoder:
   FELIXRawDataLabel: "daq"
   FELIXRawDataContainerInstance: "ContainerFELIX"
   FELIXRawDataNonContainerInstance: "FELIX"
-  FELIXFragmentType: 2  
+  FELIXFragmentType: 8  
 
   CompressHuffman: false
   PrintColdataConvertCount: false

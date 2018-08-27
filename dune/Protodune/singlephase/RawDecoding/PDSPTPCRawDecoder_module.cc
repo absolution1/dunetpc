@@ -735,14 +735,15 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 					   RDPmkr &rdpm, TSPmkr &tspm)
 {
 
-  // FIXME: Remove hard-coded fragment type -- check against _felix_fragment_type
-  if(frag.type() != _felix_fragment_type) return false;
-
-  //LOG_INFO("_process_FELIX_AUX")
+  //std::cout 
   //<< "   SequenceID = " << frag.sequenceID()
   //<< "   fragmentID = " << frag.fragmentID()
   //<< "   fragmentType = " << (unsigned)frag.type()
-  //<< "   Timestamp =  " << frag.timestamp();
+  //<< "   Timestamp =  " << frag.timestamp() << std::endl;
+
+  // FIXME: Remove hard-coded fragment type -- check against _felix_fragment_type
+  if(frag.type() != _felix_fragment_type) return false;
+
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   //Load overlay class.
   dune::FelixFragment felix(frag);
