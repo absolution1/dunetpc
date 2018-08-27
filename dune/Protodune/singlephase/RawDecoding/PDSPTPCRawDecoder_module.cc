@@ -424,19 +424,19 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       std::ios oldState(nullptr);
       oldState.copyfmt(std::cout);
 
-      std::cout << "RCE Fragment hex dump " 
+      std::cout << "RCE Fragment dump -- all numbers in hexadecimal "  << std::hex
 		<< "   SequenceID = " << frag.sequenceID()
 		<< "   fragmentID = " << frag.fragmentID()
 		<< "   fragmentType = " << (unsigned)frag.type()
 		<< "   Timestamp =  " << frag.timestamp() << std::endl;
-      std::cout << "Offset(hex)      Data(hex)";
+      std::cout << "Offset      Data";
       artdaq::Fragment fragloc(frag);
       unsigned char *dbegin = reinterpret_cast<unsigned char *>(fragloc.dataAddress());
       size_t dsize = fragloc.dataSizeBytes();
       size_t offcounter=0;
       for (size_t bcounter=0; bcounter<dsize;++bcounter)
 	{
-	  if ( (offcounter % 20) == 0 )
+	  if ( (offcounter % 8) == 0 )
 	    {
 	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(10) << offcounter << " ";
 	    }
