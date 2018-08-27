@@ -95,6 +95,15 @@ dune35t_signalshapingservice.ShapeTimeConst:    [ 3.0 , 3.0 , 3.0 ] #Gain and Pe
 # 3x1x1, protoDUNE and DUNE dual-phase signal service
 #
 
+# ProtoDUNE single phase
+protodunesp_signalshapingservice: @local::dunefd_signalshapingservice
+protodunesp_signalshapingservice.ColFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.ColFilterParams: [ 1.0, 0.0, 0.1 ]
+protodunesp_signalshapingservice.IndUFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.IndUFilterParams: [ 1.0, 0.0, 0.1 ]
+protodunesp_signalshapingservice.IndVFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.IndVFilterParams: [ 1.0, 0.0, 0.1 ]
+
 dunedphase3x1x1_signalshapingservice: {
 
   Collection1MeterShape: "[0]*exp((x-[1])/[2]) / ( 1 + exp((x-[1])/[3]))" 	#obtained from pulsed waveform fit
