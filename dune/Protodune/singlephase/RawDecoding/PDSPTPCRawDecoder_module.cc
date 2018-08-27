@@ -421,6 +421,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 
   if (_rce_hex_dump)
     {
+      std::ios oldState(nullptr);
+      oldState.copyfmt(std::cout);
+
       std::cout << "RCE Fragment hex dump " 
 		<< "   SequenceID = " << frag.sequenceID()
 		<< "   fragmentID = " << frag.fragmentID()
@@ -442,6 +445,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  offcounter++;
 	}
       std::cout << std::endl;
+      std::cout.copyfmt(oldState);
     }
 
   if(frag.type() != _rce_fragment_type) return false;
