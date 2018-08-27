@@ -1,4 +1,6 @@
 
+include_directories( $ENV{PANDORA_INC} )
+
 art_make(BASENAME_ONLY
   LIBRARY_NAME      ProtoDUNEAnaUtils
   LIB_LIBRARIES CVNFunc
@@ -14,6 +16,7 @@ art_make(BASENAME_ONLY
   ${ART_UTILITIES}
   ${MF_MESSAGELOGGER}
   cetlib cetlib_except
+  larpandoraobj
   lardataobj_RecoBase
   lardata_Utilities
   larcorealg_Geometry

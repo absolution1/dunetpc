@@ -37,8 +37,10 @@ pdsp_tpc_raw_decoder:
   RCERawDataContainerInstance: "ContainerTPC"
   RCERawDataNonContainerInstance: "TPC"
   RCEFragmentType: 2
-  RCEDropEventsWithSmallFrags: true
+  RCEDropEventsWithSmallFrags: false
+  RCEDropSmallFrags: true
   RCESmallFragSize: 10000
+  RCEDropFragsWithBadCSF: true
 
   FELIXRawDataLabel: "daq"
   FELIXRawDataContainerInstance: "ContainerFELIX"

@@ -1,4 +1,5 @@
 add_subdirectory(data)
+add_subdirectory(alg)
 
 include_directories( $ENV{LIBWDA_FQ_DIR}/include )
 include_directories( $ENV{IFDH_ART_INC} )

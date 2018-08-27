@@ -17,8 +17,8 @@
 //   TimeOffsetTool - Name of the tool used to get the tick offset.
 //                    If blank, no offset is applied.
 //                    Otherwise integral offset only is used. Unit must be tick.
-//   FitRmsMin: Lower limit for RMS fit range.
-//   FitRmsMax: Upper limit for RMS fit range.
+//   FitSigmaMin: Lower limit for sigma in SCM fit of tickmod.
+//   FitSigmaMax: Upper limit for sigma in SCM fit of tickmod.
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
 //   HistChannelCount: # channels shown in histogram
@@ -119,8 +119,8 @@ private:  //data
   int m_LogLevel;
   int m_TickModPeriod;
   Name m_TimeOffsetTool;
-  float m_FitRmsMin;
-  float m_FitRmsMax;
+  float m_FitSigmaMin;
+  float m_FitSigmaMax;
   Name m_HistName;
   Name m_HistTitle;
   Index m_HistChannelCount;
