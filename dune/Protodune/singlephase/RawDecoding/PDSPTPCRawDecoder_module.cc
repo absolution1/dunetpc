@@ -80,7 +80,7 @@ private:
   std::string   _felix_input_container_instance;
   std::string   _felix_input_noncontainer_instance;
   int           _rce_fragment_type;
-  //  int           _felix_fragment_type;
+  int           _felix_fragment_type;
   std::string   _output_label;
   bool          _enforce_full_channel_count;
   unsigned int  _full_channel_count;
@@ -93,6 +93,7 @@ private:
   bool          _drop_small_rce_frags;
   size_t        _rce_frag_small_size;
   bool          _rce_drop_frags_with_badcsf;
+  bool          _rce_hex_dump;
 
   bool          _compress_Huffman;
   bool          _print_coldata_convert_count;
@@ -142,11 +143,12 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
   _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
   _rce_drop_frags_with_badcsf = p.get<bool>("RCEDropFragsWithBadCSF",true);
+  _rce_hex_dump = p.get<bool>("RCEHexDump",false);  
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
   _felix_input_noncontainer_instance = p.get<std::string>("FELIXRawDataNonContainerInstance","FELIX");
-  _rce_fragment_type = p.get<int>("FELIXFragmentType",2);
+  _felix_fragment_type = p.get<int>("FELIXFragmentType",2);
 
   _output_label = p.get<std::string>("OutputDataLabel");
 
@@ -417,10 +419,32 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 					 )
 {
 
-  //ptr makers so we can associate timestamps with raw digits
+  if (_rce_hex_dump)
+    {
+      std::cout << "RCE Fragment hex dump " 
+		<< "   SequenceID = " << frag.sequenceID()
+		<< "   fragmentID = " << frag.fragmentID()
+		<< "   fragmentType = " << (unsigned)frag.type()
+		<< "   Timestamp =  " << frag.timestamp() << std::endl;
+      std::cout << "Offset(hex)      Data(hex)";
+      artdaq::Fragment fragloc(frag);
+      unsigned char *dbegin = reinterpret_cast<unsigned char *>(fragloc.dataAddress());
+      size_t dsize = fragloc.dataSizeBytes();
+      size_t offcounter=0;
+      for (size_t bcounter=0; bcounter<dsize;++bcounter)
+	{
+	  if ( (offcounter % 20) == 0 )
+	    {
+	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(10) << offcounter << " ";
+	    }
+	  std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
+	  dbegin++;
+	  offcounter++;
+	}
+      std::cout << std::endl;
+    }
 
-  // FIXME: Remove hard-coded fragment type
-  if((unsigned)frag.type() != 2) return false;
+  if(frag.type() != _rce_fragment_type) return false;
 
   //LOG_INFO("_Process_RCE_AUX")
   //<< "   SequenceID = " << frag.sequenceID()
@@ -707,8 +731,8 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 					   RDPmkr &rdpm, TSPmkr &tspm)
 {
 
-  // FIXME: Remove hard-coded fragment type
-  //if((unsigned)frag.type() != 2) return false;
+  // FIXME: Remove hard-coded fragment type -- check against _felix_fragment_type
+  if(frag.type() != _felix_fragment_type) return false;
 
   //LOG_INFO("_process_FELIX_AUX")
   //<< "   SequenceID = " << frag.sequenceID()
