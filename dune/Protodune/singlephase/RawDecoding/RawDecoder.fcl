@@ -41,11 +41,12 @@ pdsp_tpc_raw_decoder:
   RCEDropSmallFrags: true
   RCESmallFragSize: 10000
   RCEDropFragsWithBadCSF: true
+  RCEHexDump: false
 
   FELIXRawDataLabel: "daq"
   FELIXRawDataContainerInstance: "ContainerFELIX"
   FELIXRawDataNonContainerInstance: "FELIX"
-  FELIXFragmentType: 2    # not used in code
+  FELIXFragmentType: 2  
 
   CompressHuffman: false
   PrintColdataConvertCount: false
