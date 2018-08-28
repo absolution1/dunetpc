@@ -148,7 +148,7 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
   _felix_input_noncontainer_instance = p.get<std::string>("FELIXRawDataNonContainerInstance","FELIX");
-  _felix_fragment_type = p.get<int>("FELIXFragmentType",2);
+  _felix_fragment_type = p.get<int>("FELIXFragmentType",8);
 
   _output_label = p.get<std::string>("OutputDataLabel");
 
@@ -592,9 +592,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 
 	  ch_counter++;
 	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
-	  if (_enforce_no_duplicate_channels)
+          if (_enforce_no_duplicate_channels)
 	    {
-	      if (offlineChannel < _duplicate_channel_checklist_size)
+               if (offlineChannel < _duplicate_channel_checklist_size)
 		{
 		  if (_duplicate_channel_checklist[offlineChannel])
 		    {
@@ -608,6 +608,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		      _discard_data = true;
 		      return true;
 		    }
+	           _duplicate_channel_checklist[offlineChannel] = true;
 		}
 	    }
 
@@ -875,6 +876,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 		_discard_data = true;
 		return true;
 	      }
+	    _duplicate_channel_checklist[offlineChannel] = true;
 	  }
       }
 
