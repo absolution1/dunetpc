@@ -386,19 +386,31 @@ namespace tpc_monitor{
 
     // Mean/RMS by slot channel number for each slot
     for(int i=0;i<30;i++) {
-      fSlotChanMean_pfx.push_back(tfs->make<TProfile>(Form("Slot%d_Mean_pfx", i), Form("Slot%d:Mean_vs_SlotChannel_pfx", i), 512, 0, 512, "s")); 
-      fSlotChanRMS_pfx.push_back(tfs->make<TProfile>(Form("Slot%d_RMS_pfx", i), Form("Slot%d:RMS_vs_SlotChannel_pfx", i), 512, 0, 512, "s")); 
-      //fSlotChanFFT.push_back(tfs->make<TH2F>(Form("Slot%d_FFT", i), Form("Slot%d:FFT_vs_SlotChannel", i), 512, 0, 512, fNticks/2, 0, fNticks/2*fBinWidth));
+      int apaloc = fApaLabelNum[i/5];
+      int slotloc = i % 5;
+      
+      fSlotChanMean_pfx.push_back(tfs->make<TProfile>(Form("APA%d_Slot%d_Mean", apaloc, slotloc), Form("APA %d Slot%d Mean_vs_SlotChannel", apaloc, slotloc), 512, 0, 512, "s")); 
+      fSlotChanRMS_pfx.push_back(tfs->make<TProfile>(Form("APA%d_Slot%d_RMS", apaloc, slotloc), Form("APA %d Slot %d  RMS_vs_SlotChannel", apaloc, slotloc), 512, 0, 512, "s")); 
+      //fSlotChanFFT.push_back(tfs->make<TH2F>(Form("APA%d_Slot%d_FFT", apaloc, slotloc), Form("APA %d Slot %d FFT_vs_SlotChannel", apaloc, slotloc), 512, 0, 512, fNticks/2, 0, fNticks/2*fBinWidth));
   	  
       fSlotChanMean_pfx[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanMean_pfx[i]->GetYaxis()->SetTitle("Profiled Mean"); 
       fSlotChanRMS_pfx[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanRMS_pfx[i]->GetYaxis()->SetTitle("Profiled RMS"); 
       //fSlotChanFFT[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanFFT[i]->GetYaxis()->SetTitle("kHz");
     }
+
+    unsigned int fembmap_by_fiberID[120] =
+      {
+	320,315,310,305,319,314,309,304,318,313,308,303,317,312,307,302,316,311,306,301,505,510,515,520,504,509,514,519,503,508,513,518,502,507,512,517,501,506,511,516,220,215,210,205,219,
+	214,209,204,218,213,208,203,217,212,207,202,216,211,206,201,605,610,615,620,604,609,614,619,603,608,613,618,602,607,612,617,601,606,611,616,120,115,110,105,119,114,109,104,118,113,
+        108,103,117,112,107,102,116,111,106,101,405,410,415,420,404,409,414,419,403,408,413,418,402,407,412,417,401,406,411,416
+      };
+
   
     // FFT's by fiber
     for(int i=0;i<120;i++) {
-      fPersistentFFT_by_Fiber.push_back(tfs->make<TH2F>(Form("Persistent_FFT_Fiber#%d", i), Form("Persistent_FFT_Fiber#%d", i), fNticks/2, 0, fNticks/2*fBinWidth, 150, -100, 50));
-      fFFT_by_Fiber_pfx.push_back(tfs->make<TProfile>(Form("Profiled_FFT_Fiber#%d", i), Form("Profiled_FFT_Fiber#%d", i), fNticks/2, 0, fNticks/2*fBinWidth, -100, 50));
+      unsigned int imb = fembmap_by_fiberID[i];
+      fPersistentFFT_by_Fiber.push_back(tfs->make<TH2F>(Form("FFT_FEMB_%d", imb), Form("FFT FEMB%d WIB%d", imb, ( (i/4) % 5)+1), fNticks/2, 0, fNticks/2*fBinWidth, 150, -100, 50));
+      fFFT_by_Fiber_pfx.push_back(tfs->make<TProfile>(Form("Profiled_FFT_FEMB_%d", imb), Form("Profiled FFT FEMB_%d WIB%d", imb, ( (i/4) %5)+1), fNticks/2, 0, fNticks/2*fBinWidth, -100, 50));
       fPersistentFFT_by_Fiber[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fPersistentFFT_by_Fiber[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
       fFFT_by_Fiber_pfx[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fFFT_by_Fiber_pfx[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
     }
