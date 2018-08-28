@@ -578,8 +578,8 @@ namespace tpc_monitor{
       calculateFFT(histwav, histfft);
       // Fill persistent/overlay FFT for each fiber/FEMB
       for(int k=0;k<(int)nADC_uncompPed/2;k++) {
-	fPersistentFFT_by_Fiber.at(FiberID % 5)->Fill((k+0.5)*fBinWidth, histfft->GetBinContent(k+1));
-	fFFT_by_Fiber_pfx.at(FiberID % 5)->Fill((k+0.5)*fBinWidth, histfft->GetBinContent(k+1));
+	fPersistentFFT_by_Fiber.at(FiberID % 120)->Fill((k+0.5)*fBinWidth, histfft->GetBinContent(k+1));
+	fFFT_by_Fiber_pfx.at(FiberID % 120)->Fill((k+0.5)*fBinWidth, histfft->GetBinContent(k+1));
       }
 
       // summary stuck code fraction distributions by APA -- here the APA is the offline APA number.  The plot labels contain the mapping
@@ -672,7 +672,7 @@ namespace tpc_monitor{
       
       // Mean/RMS by slot
       int SlotID = channelMap->SlotIdFromOfflineChannel(chan);
-      int FiberNumber = channelMap->FEMBFromOfflineChannel(chan);
+      int FiberNumber = channelMap->FEMBFromOfflineChannel(chan) - 1;
       int FiberChannelNumber = channelMap->FEMBChannelFromOfflineChannel(chan);
       uint32_t SlotChannelNumber = FiberNumber*128 + FiberChannelNumber; //128 channels per fiber
       fSlotChanMean_pfx.at(SlotID)->Fill(SlotChannelNumber, mean, 1);
