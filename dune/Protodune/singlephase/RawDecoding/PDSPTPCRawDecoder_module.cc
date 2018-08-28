@@ -424,7 +424,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       std::ios oldState(nullptr);
       oldState.copyfmt(std::cout);
 
-      std::cout << "RCE Fragment dump -- all numbers in hexadecimal "  << std::hex
+      std::cout << "RCE Fragment: all numbers in hex "  << std::hex
 		<< "   SequenceID = " << frag.sequenceID()
 		<< "   fragmentID = " << frag.fragmentID()
 		<< "   fragmentType = " << (unsigned)frag.type()
@@ -438,7 +438,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	{
 	  if ( (offcounter % 8) == 0 )
 	    {
-	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(10) << offcounter << " ";
+	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
 	    }
 	  std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
 	  dbegin++;
