@@ -34,8 +34,10 @@
 
 
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TProfile.h"
 
+#define setHistTitles(hist,xtitle,ytitle) hist->GetXaxis()->SetTitle(xtitle); hist->GetYaxis()->SetTitle(ytitle);
 
 namespace nlana {
   class SPLifetime;
@@ -85,6 +87,9 @@ private:
   TProfile *fLifeInv_E;
   TProfile *fLifeInv_Angle;
 
+  TH1F *fDriftTime;
+  TH2F *fDriftTimeVTPC;
+
 };
 
 
@@ -123,6 +128,11 @@ void nlana::SPLifetime::beginJob()
     signalToNoiseClsCnt[tpc] = 0;
   }
 
+  fDriftTime = tfs->make<TH1F>("DriftTime","Drift Time", 300, 0.,6.);
+  setHistTitles(fDriftTime,"Cluster Drift Time [ms]", "Clusters / Bin");
+  fDriftTimeVTPC = tfs->make<TH2F>("DriftTimeVTPC","Drift Time v. TPC", 12,0,12,300,0.,6.);
+  setHistTitles(fDriftTimeVTPC,"TPC Number","Cluster Drift Time [ms]");
+
 } // beginJob
 
 //--------------------------------------------------------------------
@@ -140,7 +150,9 @@ void nlana::SPLifetime::endJob()
 {
   std::ofstream purfile;
   purfile.open("Lifetime_Run" + std::to_string(lastRun) + ".txt");
-  purfile<<"Run, tpc, lifetime, error, count, S/N, num S/N clusters\n";
+  //purfile<<"Run, tpc, lifetime, error, count, S/N, num S/N clusters\n";
+  purfile<<"Run, tpc, lifetime, error, count, S/N, num S/N clusters, drift time\n";
+
   for(unsigned short tpc = 0; tpc < 12; ++tpc) {
     if(bigLifeInvCnt[tpc] < 2) continue;
     if(bigLifeInv[tpc] <= 0) continue;
@@ -157,9 +169,24 @@ void nlana::SPLifetime::endJob()
     if(signalToNoiseCnt[tpc] > 100) sn = signalToNoise[tpc] / signalToNoiseCnt[tpc];
     purfile<<lastRun<<", "<<tpc<<", "<<std::fixed<<std::setprecision(2)<<life<<", "<<lifeErr<<", "<<(int)bigLifeInvCnt[tpc];
     purfile<<", "<<std::setprecision(1)<<sn<<", "<<signalToNoiseClsCnt[tpc];
+
+    // Now do drift time
+    size_t nBinsY = fDriftTimeVTPC->GetNbinsY();
+    float driftTime = -1.;
+    for (size_t iBin=nBinsY; iBin >=0; iBin--)
+    {
+      if (fDriftTimeVTPC->GetBinContent(tpc+1,iBin) > 1)
+      {
+        driftTime = fDriftTime->GetXaxis()->GetBinCenter(iBin);
+        break;
+      }
+    }
+    purfile<<", "<<std::setprecision(2)<<driftTime;
+
     purfile<<"\n";
   }
   purfile.close();
+
 } // endJob
 
 //--------------------------------------------------------------------
@@ -196,11 +223,15 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     float eTick = cls->EndTick();
     if(sTick > eTick) std::swap(sTick, eTick);
     float dTick = eTick - sTick;
-    unsigned short nhist = 1 + (unsigned short)(dTick / ticksPerHist);
-    if(nhist < 5) continue;
     // Get the hits
     std::vector<art::Ptr<recob::Hit> > clsHits;
     clsHitsFind.get(icl, clsHits);
+    if(clsHits.size() == 0) continue;
+    unsigned short tpc = clsHits[0]->WireID().TPC;
+    fDriftTime->Fill(dTick*msPerTick);
+    fDriftTimeVTPC->Fill(tpc,dTick*msPerTick);
+    unsigned short nhist = 1 + (unsigned short)(dTick / ticksPerHist);
+    if(nhist < 5) continue;
     if(clsHits.size() < 100) continue;
 /*
     if(prt) {
@@ -333,7 +364,6 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
 //      if(prt) std::cout<<"chk "<<ihist<<" xx "<<xx<<" yy "<<yy<<" ave "<<ave[ihist]<<" arg "<<arg<<"\n";
     }
     chi /= ndof;
-    unsigned short tpc = clsHits[0]->WireID().TPC;
 //    if(prt) std::cout<<tpc<<" lifeInv "<<lifeInv<<" +/- "<<lifeInvErr<<" chi "<<chi<<"\n";
     fChiDOF->Fill(chi);
     if(chi > fChiCut) continue;
