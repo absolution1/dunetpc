@@ -582,7 +582,8 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
 					   << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
 	  error_counter++;
-	  _discard_data = true;
+	  // drop just this fragment 
+	  //_discard_data = true;
 	  return true;
 	}
 
@@ -840,7 +841,8 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	  LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felix.wib_errors(iframe)
 					     << " Discarding Data";
 	  error_counter++;
-	  _discard_data = true;
+	  // drop just this fragment
+	  //_discard_data = true;
 	  return true;
 	}      
     }
