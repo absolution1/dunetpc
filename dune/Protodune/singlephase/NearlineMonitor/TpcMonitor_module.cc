@@ -3,7 +3,7 @@
 // Class:       TpcMonitor_module
 // Module type: analyzer
 // File:        TpcMonitor_module.cc
-// Author:      Jingbo Wang (jiowang@ucdavis.edu), February 2018
+// Author:      Jingbo Wang (jiowang@ucdavis.edu), February 2018.  Modifications by Tom Junk
 //
 // Modification: Maggie Greenwood July, 2018
 //               Added large summary histograms.
@@ -166,7 +166,9 @@ namespace tpc_monitor{
     //std::vector<TH2F*> fSlotChanFFT;
     
     // Persistent and overlay wavefroms by fiber
-    std::vector<TH2F*> fPersistentFFT_by_Fiber;
+    //std::vector<TH2F*> fPersistentFFT_by_Fiber;
+    // change to only saving these for each APA
+    std::vector<TH2F*> fPersistentFFT_by_APA;
     
     // Profiled fft by fiber
     std::vector<TProfile*> fFFT_by_Fiber_pfx;
@@ -409,11 +411,19 @@ namespace tpc_monitor{
     // FFT's by fiber
     for(int i=0;i<120;i++) {
       unsigned int imb = fembmap_by_fiberID[i];
-      fPersistentFFT_by_Fiber.push_back(tfs->make<TH2F>(Form("FFT_FEMB_%d", imb), Form("FFT FEMB%d WIB%d", imb, ( (i/4) % 5)+1), fNticks/2, 0, fNticks/2*fBinWidth, 150, -100, 50));
+      //fPersistentFFT_by_Fiber.push_back(tfs->make<TH2F>(Form("FFT_FEMB_%d", imb), Form("FFT FEMB%d WIB%d", imb, ( (i/4) % 5)+1), fNticks/2, 0, fNticks/2*fBinWidth, 150, -100, 50));
+      //fPersistentFFT_by_Fiber[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fPersistentFFT_by_Fiber[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
+      // still keep the profiled FFT's by FEMB
       fFFT_by_Fiber_pfx.push_back(tfs->make<TProfile>(Form("Profiled_FFT_FEMB_%d", imb), Form("Profiled FFT FEMB_%d WIB%d", imb, ( (i/4) %5)+1), fNticks/2, 0, fNticks/2*fBinWidth, -100, 50));
-      fPersistentFFT_by_Fiber[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fPersistentFFT_by_Fiber[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
       fFFT_by_Fiber_pfx[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fFFT_by_Fiber_pfx[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
     }
+    // persistent FFT now by APA
+    for (int i=0;i<6;++i)
+      {
+	fPersistentFFT_by_APA.push_back(tfs->make<TH2F>(Form("FFT_APA_%d", fApaLabelNum[i]), Form("FFT APA%d ", fApaLabelNum[i]), fNticks/2, 0, fNticks/2*fBinWidth, 150, -100, 50));
+        fPersistentFFT_by_APA[i]->GetXaxis()->SetTitle("Frequency [kHz]"); 
+	fPersistentFFT_by_APA[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
+      }
 
     fNTicksTPC = tfs->make<TH1F>("NTicksTPC","NTicks in TPC Channels",100,0,20000);
 
@@ -590,7 +600,7 @@ namespace tpc_monitor{
       calculateFFT(histwav, histfft);
       // Fill persistent/overlay FFT for each fiber/FEMB
       for(int k=0;k<(int)nADC_uncompPed/2;k++) {
-	fPersistentFFT_by_Fiber.at(FiberID % 120)->Fill((k+0.5)*fBinWidth, histfft->GetBinContent(k+1));
+	fPersistentFFT_by_APA.at(apa)->Fill((k+0.5)*fBinWidth, histfft->GetBinContent(k+1));    // offline apa number.  Plot labels are online
 	fFFT_by_Fiber_pfx.at(FiberID % 120)->Fill((k+0.5)*fBinWidth, histfft->GetBinContent(k+1));
       }
 
