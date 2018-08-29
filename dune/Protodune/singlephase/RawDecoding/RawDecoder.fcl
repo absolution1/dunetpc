@@ -51,6 +51,9 @@ pdsp_tpc_raw_decoder:
   FELIXEnforceExactCrateNumber: false
   FELIXCrateNumberToCheck: 6
   FELIXHexDump: false
+  FELIXDropEventsWithSmallFrags: false
+  FELIXDropSmallFrags: true
+  FELIXSmallFragSize: 10000
 
   CompressHuffman: false
   PrintColdataConvertCount: false
@@ -78,7 +81,7 @@ pdsp_tpc_raw_decoder:
 # requires that all channels have the specified number of ticks
 
   EnforceFullTickCount: false
-  FullTickCount: 10000
+  FullTickCount: 6000
 
 # requires that no errors are reported by the unpacker (checksum or capture errors)
 
