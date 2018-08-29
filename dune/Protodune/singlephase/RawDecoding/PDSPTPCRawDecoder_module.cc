@@ -95,6 +95,11 @@ private:
   bool          _rce_drop_frags_with_badcsf;
   bool          _rce_hex_dump;
 
+  bool          _felix_hex_dump;
+  bool          _felix_drop_frags_with_badcsf;
+  bool          _felix_enforce_exact_crate_number;
+  int           _felix_crate_number_to_check;
+
   bool          _compress_Huffman;
   bool          _print_coldata_convert_count;
 
@@ -149,6 +154,10 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
   _felix_input_noncontainer_instance = p.get<std::string>("FELIXRawDataNonContainerInstance","FELIX");
   _felix_fragment_type = p.get<int>("FELIXFragmentType",8);
+  _felix_drop_frags_with_badcsf = p.get<bool>("FELIXDropFragsWithBadCSF",true);
+  _felix_hex_dump = p.get<bool>("FELIXHexDump",false);  
+  _felix_enforce_exact_crate_number = p.get<bool>("FELIXEnforceExactCrateNumber",false);  
+  _felix_crate_number_to_check = p.get<int>("FELIXCrateNumberToCheck",6);  
 
   _output_label = p.get<std::string>("OutputDataLabel");
 
@@ -742,10 +751,44 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   //<< "   fragmentType = " << (unsigned)frag.type()
   //<< "   Timestamp =  " << frag.timestamp() << std::endl;
 
-  // FIXME: Remove hard-coded fragment type -- check against _felix_fragment_type
-  if(frag.type() != _felix_fragment_type) return false;
+  if (_felix_hex_dump)
+    {
+      std::ios oldState(nullptr);
+      oldState.copyfmt(std::cout);
+
+      std::cout << "FELIX Fragment: all numbers in hex "  << std::hex
+		<< "   SequenceID = " << frag.sequenceID()
+		<< "   fragmentID = " << frag.fragmentID()
+		<< "   fragmentType = " << (unsigned)frag.type()
+		<< "   Timestamp =  " << frag.timestamp() << std::endl;
+      std::cout << "Offset      Data";
+      artdaq::Fragment fragloc(frag);
+      unsigned char *dbegin = reinterpret_cast<unsigned char *>(fragloc.dataAddress());
+      size_t dsize = fragloc.dataSizeBytes();
+      size_t offcounter=0;
+      for (size_t bcounter=0; bcounter<dsize;++bcounter)
+	{
+	  if ( (offcounter % 8) == 0 )
+	    {
+	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
+	    }
+	  std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
+	  dbegin++;
+	  offcounter++;
+	}
+      std::cout << std::endl;
+      std::cout.copyfmt(oldState);
+    }
+
+  // check against _felix_fragment_type
+  if(frag.type() != _felix_fragment_type) 
+    {
+      LOG_WARNING("_process_FELIX_AUX:") << " FELIX fragment type " << (int) frag.type() << " doesn't match expected value: " << _felix_fragment_type << " Discarding FELIX data";
+      return false;
+    }
 
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
+
   //Load overlay class.
   dune::FelixFragment felix(frag);
 
@@ -753,7 +796,24 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 
   uint8_t crate = felix.crate_no(0);
   uint8_t slot = felix.slot_no(0);
-  uint8_t fiber = felix.fiber_no(0); // two numbers? 
+  uint8_t fiber = felix.fiber_no(0); // decode this one later 
+
+  if (_felix_drop_frags_with_badcsf)  // we'll check the fiber later
+    {
+      if (crate == 0 || crate > 6 || slot > 4) 
+	{
+	  LOG_WARNING("_process_FELIX_AUX:") << "Invalid crate or slot: c=" << (int) crate << " s=" << (int) slot << " discarding FELIX data.";
+	  return false;
+	}
+    }
+  if (_felix_enforce_exact_crate_number)
+    {
+      if ( _felix_crate_number_to_check > -1 && (int) crate != _felix_crate_number_to_check )
+	{
+	  LOG_WARNING("_process_FELIX_AUX:") << "Crate c=" << (int) crate << " mismatches required crate: " << _felix_crate_number_to_check << " discarding FELIX data.";
+	  return false;  
+	}
+    }
 
   if (_print_coldata_convert_count)
     {
@@ -820,6 +880,11 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << (int) fiber << " is expected to be 1 or 2 -- revisit logic";
 	fiberloc = 1;
 	error_counter++;
+	if (_felix_drop_frags_with_badcsf) 
+	  {
+	    LOG_WARNING("_process_FELIX_AUX:") << " Dropping FELIX Data";
+	    return false;
+	  }
       }
 
     unsigned int chloc = ch;
@@ -871,7 +936,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 		    duplicate_channels++;
 		  }
 		LOG_WARNING("_process_FELIX_AUX:") << "Duplicate Channel: " << offlineChannel
-						   << " c:s:f:ich: " << crate << " " << slot << " " << fiber << " " << ch << " Discarding Data";
+						   << " c:s:f:ich: " << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) ch << " Discarding Data";
 		error_counter++;
 		_discard_data = true;
 		return true;
