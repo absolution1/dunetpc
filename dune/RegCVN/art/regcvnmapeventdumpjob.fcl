@@ -1,0 +1,77 @@
+#include "services_dune.fcl"
+#include "RegCVNMapper.fcl"
+#include "RegCVNEventDump.fcl"
+#include "resourcetracking_services.fcl"
+#include "tools_dune.fcl"
+
+process_name: RegCVNMapper
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "regcvn_event_dump_r%r_s%s_hist.root"
+                  closeFileFast: false }
+  #MemoryTracker:     {}
+  #TimeTracker:       {}
+  #message:              @local::dune_message_services_prod
+  #@table::standard_resourcetrackers
+  @table::dunefd_reco_services
+}
+
+#services.BackTrackerService: @local::standard_backtrackerservice
+
+# Input source is a ROOT file 
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+
+}
+
+outputs:
+{
+  out1:
+  {
+      module_type: RootOutput
+      fileName:    "regcvnmapper_r%r_s%s.root" 
+      fastCloning: false
+      dataTier: "full-reconstructed"
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+  # Declare the modules
+  producers:
+  { 
+    regcvnmap: @local::standard_regcvnmapper
+  }
+
+  analyzers:
+  { 
+    regcvndump: @local::standard_regcvneventdump_fhc 
+  }
+
+
+  # Build the paths
+  map: [ regcvnmap ]
+  
+
+  analyze: [ regcvndump ]
+
+
+  out: [out1]
+
+
+}
+
+#services.Geometry: @local::dune10kt_1x2x6_geo
+
+physics.producers.regcvnmap.HitsModuleLabel: "linecluster"
+physics.analyzers.regcvndump.WriteMapTH2: true
+physics.analyzers.regcvndump.ApplyFidVol: false
+
+########################################################################

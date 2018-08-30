@@ -59,7 +59,7 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
   AdcIndex nsamhi = m_BinsAfter;
   acd.signal.resize(nsam, false);
   AdcIndex nbinAbove = 0;
-  AdcIndex isamNotRoi = 0;  // This is the 1st sample after the lst ROI.
+  AdcIndex isamNotRoi = 0;  // This is the 1st sample after the last ROI.
   for ( AdcIndex isam=0; isam<nsam; ++isam ) {
     bool keep = ( m_FlagPositive && acd.samples[isam] >  m_Threshold ) ||
                 ( m_FlagNegative && acd.samples[isam] < -m_Threshold );

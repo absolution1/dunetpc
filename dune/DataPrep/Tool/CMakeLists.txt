@@ -79,6 +79,14 @@ simple_plugin(AdcChannelMetric   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcEventViewer   "tool"
+                dune_DuneCommon
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AcdDigitReader   "tool"
                 dune_DuneCommon
                 lardataobj_RawData

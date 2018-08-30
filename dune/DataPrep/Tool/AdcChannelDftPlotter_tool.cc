@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 #include "TH1F.h"
 #include "TGraph.h"
 
@@ -17,6 +18,9 @@ using std::cout;
 using std::cin;
 using std::endl;
 using std::vector;
+using std::ostringstream;
+using std::setw;
+using std::fixed;
 
 //**********************************************************************
 // Class methods.
@@ -28,6 +32,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   m_Variable(ps.get<Name>("Variable")),
   m_SampleFreq(ps.get<float>("SampleFreq")),
   m_YMax(0.0),
+  m_YMinLog(ps.get<float>("YMinLog")),
   m_NBinX(0),
   m_HistName(ps.get<Name>("HistName")),
   m_HistTitle(ps.get<Name>("HistTitle")),
@@ -63,6 +68,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "       SampleFreq: " << m_SampleFreq << endl;
     if ( doMag || doPwr || doPwt ) cout << myname << "             YMax: " << m_YMax << endl;
     if ( doPwr || doPwt )          cout << myname << "            NBinX: " << m_NBinX << endl;
+    cout << myname << "          YMinLog: " << m_YMinLog << endl;
     cout << myname << "         HistName: " << m_HistName << endl;
     cout << myname << "        HistTitle: " << m_HistTitle << endl;
     cout << myname << "         PlotName: " << m_PlotName << endl;
@@ -210,6 +216,7 @@ int AdcChannelDftPlotter::fillChannelPad(DataMap& dm, TPadManipulator& man) cons
   bool doPwr = m_Variable == "power";
   bool doPwt = m_Variable == "power/tick";
   string dopt = dm.getString("dftDopt");
+  bool logy = false;
   // Assign y limits.
   double ymin = 0.0;
   double ymax = 0.0;
@@ -221,6 +228,10 @@ int AdcChannelDftPlotter::fillChannelPad(DataMap& dm, TPadManipulator& man) cons
     if ( m_YMax > 0 ) ymax = m_YMax;
     else if ( m_YMax < 0 && -m_YMax > yValMax ) ymax = -m_YMax;
     else ymax = yValMax*1.02;
+  }
+  if ( m_YMinLog ) {
+    ymin = m_YMinLog;
+    logy = true;
   }
   double xmin = 0.0;
   double xmax = 0.0;
@@ -239,6 +250,18 @@ int AdcChannelDftPlotter::fillChannelPad(DataMap& dm, TPadManipulator& man) cons
   if ( xmax > xmin ) man.setRangeX(xmin, xmax);
   if ( ymax > ymin ) man.setRangeY(ymin, ymax);
   if ( doPwr || doPwt ) man.showUnderflow();
+  if ( logy ) man.setLogY();
+  if ( logy ) man.setGridY();
+  if ( doPwt ) {
+    ostringstream ssout;
+    ssout.precision(2);
+    double sum = ph->Integral(0, ph->GetNbinsX()+1);
+    ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
+    TLatex* ptxt = new TLatex(0.75, 0.80, ssout.str().c_str());
+    ptxt->SetNDC();
+    ptxt->SetTextFont(42);
+    man.add(ptxt);
+  }
   return 0;
 }
 
