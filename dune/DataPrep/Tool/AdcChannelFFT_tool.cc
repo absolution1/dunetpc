@@ -252,7 +252,6 @@ fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
         xres[ifrq2] = xre;
         xims[ifrq2] = -xim;
       }
-cout << "XXX: " << ifrq << ", " << ifrq2 << ": " << xre << ", " << xim << endl;
     }
   }
   vector<double> xdres(nsam, 0.0);
