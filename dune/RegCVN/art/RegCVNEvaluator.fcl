@@ -6,10 +6,8 @@ BEGIN_PROLOG
 # Configuration for the CVN TF interface
 standard_tfregnethandler:
 {
-  #LibPath: "DUNE_PARDATA_DIR"
-  #LibPath: "/pnfs/dune/persistent/users/iseong/TF_Model"
-  LibPath: "MRB_INSTALL"
-  TFProtoBuf: "TFModel/dune_model.pb"
+  LibPath: "DUNE_PARDATA_DIR"
+  TFProtoBuf: "duneRegCVNNetwork/dune_model.pb"
   NInputs : 3
   ReverseViews: [false,false,false]
 }
