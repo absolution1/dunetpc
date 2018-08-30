@@ -177,8 +177,8 @@ fftForward(Index normOpt, Index nsam, const float* psam,
   mags.resize(nmag);
   phases.resize(npha);
   // Loop over the complex samples.
-  vector xres2(nsam, 9.99);
-  vector xims2(nsam, 9.99);
+  vector<double> xres2(nsam, 9.99);
+  vector<double> xims2(nsam, 9.99);
   pfft->GetPointsComplex(&xres2[0], &xims2[0]);
   for ( Index iptc=0; iptc<nsam; ++iptc ) {
     pfft->GetPointComplex(iptc, xre, xim);
