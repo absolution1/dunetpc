@@ -69,6 +69,8 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
 
   art::ServiceHandle<geo::Geometry> geo;
 
+  std::cout<<"channel = "<<geo->PlaneWireToChannel(0,600,1)<<std::endl;
+
   TCanvas *can = new TCanvas("c1","c1");
   can->cd();
   std::vector<TBox*> TPCBox;
@@ -129,7 +131,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
 //	    (t==7&&p==1&&w==112)||
 //	    (t==7&&p==2&&w==0)){
 //	if (true){
-        if (t%2==0&&p==0&&w%10==0){
+        if ((t==2||t==6||t==10)&&p==0&&w%10==0){
 	  geo->WireEndPoints(c,t,p,w,xyz0,xyz1);
 	  Wires.push_back(new TLine(xyz0[2],xyz0[1],xyz1[2],xyz1[1]));
 	}

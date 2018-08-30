@@ -51,7 +51,8 @@ DataMap VintageDeconvoluter::update(AdcChannelData& acd) const {
     if ( m_LogLevel >= 3 ) cout << myname << "  Padding sample vector to " << fftsize << endl;
     samples.resize(fftsize);
     for ( unsigned int isam=nsam; isam<fftsize; ++isam ) {
-      samples[isam] = samples[isam-nsam];
+      //samples[isam] = samples[isam-nsam];
+      samples[isam] = 0;
     }
   }
   // Deconvolute.

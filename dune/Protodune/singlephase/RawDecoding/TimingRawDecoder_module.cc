@@ -189,7 +189,13 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     if ( fMakeEventTimeFile ) {
       if ( evtTimestamp == 0 ) {
         evtTimestamp = rawFrag.timestamp();
-        string foutName = "artdaqTimestamp-Run" + std::to_string(runNumber) + "-Event" + std::to_string(eventNumber) + ".dat";
+        string foutName = "artdaqTimestamp-Run" + std::to_string(runNumber);
+        int subrun = evt.subRun();
+        if ( subrun != 1 ) {
+          cout << "TimingRawDecoder::produce: WARNING: Unexpected subrun number: " << subrun << endl;
+          foutName += "-Sub" + std::to_string(subrun);
+        }
+        foutName += "-Event" + std::to_string(eventNumber) + ".dat";
         ofstream fout(foutName);
         fout << evtTimestamp << endl;
       } else {

@@ -277,6 +277,12 @@ tools.adcVintageDeconvoluter: {
   LogLevel: 1
 }
 
+# Find one ADC signals that includes all samples.
+tools.adcKeepAllSignalFinder: {
+  tool_type: AdcKeepAllSignalFinder
+  LogLevel: 1
+}
+
 # Find ADC signals with simple threshold algorithm.
 tools.adcThresholdSignalFinder: {
   tool_type: AdcThresholdSignalFinder
@@ -302,12 +308,23 @@ tools.adcDuneSignalFinder: {
 # Do FFT.
 tools.adcFFT: {
   tool_type: AdcChannelFFT
-  LogLevel:  1
+  LogLevel:  2
   FirstTick: 0
   NTick:     0
   NormOpt:   1
   Action:    3
   ReturnOpt: 1
+}
+
+# Undo FFT.
+tools.adcFFTinv: {
+  tool_type:  AdcChannelFFT
+  LogLevel:   2
+  FirstTick:  0
+  NTick:      0
+  NormOpt:    1
+  Action:    13
+  ReturnOpt: 10
 }
 
 # Fetch ROI info and hists.
