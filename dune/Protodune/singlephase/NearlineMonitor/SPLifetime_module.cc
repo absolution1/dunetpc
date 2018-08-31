@@ -214,7 +214,7 @@ void nlana::SPLifetime::endJob()
   // file list json file
   std::ofstream filelistfile;
   filelistfile.open("purity_FileList.json");
-  filelistfile << "[\n  {\n    \"Category\": \"Purity Monitor\"\n    \"Files\": ";
+  filelistfile << "[\n  {\n    \"Category\": \"Purity Monitor\",\n    \"Files\": {\n      \"Cluster Drift Time\": ";
 
   imageFileName = "driftVTPC_";
   imageFileName += infilenameStripped;
@@ -227,11 +227,15 @@ void nlana::SPLifetime::endJob()
   imageFileName = "driftVTPC_zoom_";
   imageFileName += infilenameStripped;
   imageFileName += ".png";
+  std::string originalTitle = fDriftTimeVTPC->GetTitle();
+  fDriftTimeVTPC->SetTitle((originalTitle+" From 0 to 4 ms").c_str());
   fDriftTimeVTPC->GetYaxis()->SetRangeUser(0,4);
+  fDriftTimeVTPC->Draw("colz");
   canvas->SaveAs(imageFileName.c_str());
+  fDriftTimeVTPC->SetTitle(originalTitle.c_str());
   filelistfile << "\""<<imageFileName<<"\"";
 
-  filelistfile << "\n      }\n  }\n]";
+  filelistfile << "\n    }\n  }\n]";
   filelistfile.close();
   delete canvas;
 
