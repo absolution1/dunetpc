@@ -63,10 +63,10 @@ namespace CRT
   };
   
   
-  CRTRawDecoder::CRTRawDecoder(fhicl::ParameterSet const & p): fFragLabel(p.get<art::InputTag>("CRTFragLabel"))
+  CRTRawDecoder::CRTRawDecoder(fhicl::ParameterSet const & p): fFragLabel(p.get<std::string>("RawDataLabel"), p.get<std::string>("RawDataInstance"))
   {
     // Call appropriate produces<>() functions here.
-    produces<CRT::Trigger>();
+    produces<std::vector<CRT::Trigger>>();
   }
   
   //Read artdaq::Fragments produced by fFragLabel, and use CRT::Fragment to convert them to CRT::Triggers.  
@@ -87,14 +87,20 @@ namespace CRT
       for(const auto& artFrag: *fragHandle)
       {
         CRT::Fragment frag(artFrag);
+
+        //TODO: Remove me
+        LOG_DEBUG("CRTGoodEvent") << "Is this Fragment good?  " << ((frag.good_event())?"true":"false") << "\n";
+        frag.print_header();
+        frag.hexdump();
+
         std::vector<CRT::Hit> hits;
   
         //Make a CRT::Hit from each non-zero ADC value in this Fragment
         for(size_t hitNum = 0; hitNum < frag.num_hits(); ++hitNum)
         {
           const auto hit = *(frag.hit(hitNum));
-          LOG_DEBUG("CRT Raw") << "Channel: " << hit.channel
-                               << "ADC: " << hit.adc << "\n";
+          LOG_DEBUG("CRTRaw") << "Channel: " << (int)(hit.channel) << "\n"
+                              << "ADC: " << hit.adc << "\n";
   
           hits.emplace_back(hit.channel, hit.adc);
           //LOG_DEBUG("CRT Hits") CRT::operator << hits.back() << "\n"; //TODO: Some function template from the message service interferes with my  
@@ -102,13 +108,13 @@ namespace CRT
                                                                         //      it should solve this, but it doesn't seem to.
         }
   
-        LOG_DEBUG("CRT Fragments") << "Module: " << frag.module_num() 
-                                   << "Number of hits: " << frag.num_hits() << "\n"
-                                   << "Fifty MHz time: " << frag.fifty_mhz_time() << "\n";
+        LOG_DEBUG("CRTFragments") << "Module: " << frag.module_num() << "\n"
+                                  << "Number of hits: " << frag.num_hits() << "\n"
+                                  << "Fifty MHz time: " << frag.fifty_mhz_time() << "\n";
   
-        triggers->emplace_back(frag.module_num(), frag.fifty_mhz_time(), std::move(hits)); 
+        triggers->emplace_back(frag.module_num(), frag.fifty_mhz_time(), std::move(hits)); //TODO: Get AuxDet index from channel map
   
-        LOG_DEBUG("CRT Triggers") << triggers->back() << "\n";
+        //LOG_DEBUG("CRT Triggers") << triggers->back() << "\n";
       } 
     }
     catch(const cet::exception& exc) //If there are no artdaq::Fragments in this Event, just add an empty container of CRT::Triggers.

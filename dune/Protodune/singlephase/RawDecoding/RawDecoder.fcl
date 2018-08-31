@@ -1,5 +1,12 @@
 BEGIN_PROLOG
 
+crt_raw_decoder:
+{
+  module_type: "CRTRawDecoder"
+  RawDataLabel: "daq"
+  RawDataInstance: "CRT"
+}
+
 timing_raw_decoder:
 {
   module_type: "TimingRawDecoder"
