@@ -67,6 +67,7 @@ public:
   void matchTriggers(beam::ProtoDUNEBeamEvent beamevt);
   void GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   double GetPosition(size_t, size_t);
+  TVector3 TranslateDeviceToDetector(TVector3);
 
   void  parseDevices(uint64_t);
   void  parsePairedDevices(uint64_t);
@@ -97,6 +98,8 @@ private:
 //  std::vector< std::array<double, 3> > fCoordinates; 
   std::map< std::string, std::array<double,3> > fCoordinates;
   std::vector< std::array<double, 3> > fRotations;
+  TVector3 fGlobalDetCoords;
+  std::array<double,3> fDetRotation;
   std::vector< double > fFiberDimension;
   std::string fPrefix;
 
@@ -443,6 +446,7 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");
   fMultipleTimes = p.get< std::vector<uint64_t> >("MultipleTimes");
+  fTolerance   = p.get<double>("Tolerance");
 
   fDevices     = p.get< std::vector< std::string > >("Devices");    
   fPairedDevices = p.get< std::vector< std::pair<std::string, std::string> > >("PairedDevices");
@@ -452,12 +456,15 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
 
   std::vector< std::pair<std::string, std::array<double,3> > > tempCoords = p.get<std::vector< std::pair<std::string, std::array<double,3> > > >("Coordinates");
 
-  fTolerance   = p.get<double>("Tolerance");
+  std::array<double,3> detCoords = p.get<std::array<double,3>>("GlobalDetCoords");
+  fGlobalDetCoords = TVector3(detCoords[0],detCoords[1],detCoords[2]);
+
+  fDetRotation = p.get<std::array<double,3>>("DetRotation");
 
   //Location of Device 
 //  fCoordinates = p.get< std::vector< std::array<double,3> > >("Coordinates");
   fCoordinates = std::map<std::string, std::array<double,3> >(tempCoords.begin(), tempCoords.end());
- 
+
 
   //Rotation of Device
   fRotations   = p.get< std::vector< std::array<double,3> > >("Rotations"); 
@@ -550,24 +557,42 @@ void proto::BeamAna::matchTriggers(beam::ProtoDUNEBeamEvent beamevt){
       std::map<std::string, std::vector<double>*> posArray = {{"vert",&xPos},{"horiz",&yPos}};
 
       for(size_t ip = 0; ip < fPairedDevices.size(); ++ip){
+
+
+        //Start with the first device
+        //Which active Fibers are on?       
         std::string name = fPairedDevices[ip].first;
         size_t index = deviceOrder[name];
         std::vector<short> active = beamevt.GetActiveFibers(index, goodTriggers[name]);
 
+        //Gets position within the FBM for the first active
         double position = GetPosition(index, active[0]);
+
+        //Checks if vertical or horizontal, pushes to the correct array 
         posArray[fDeviceTypes[name]]->push_back(position); 
 
+
+        //Do the same for the second device
         name = fPairedDevices[ip].second;
         index = deviceOrder[name];
         active = beamevt.GetActiveFibers(index, goodTriggers[name]);
 
         position = GetPosition(index, active[0]);
         posArray[fDeviceTypes[name]]->push_back(position); 
+
+        //Now has an x,y point
          
         std::cout << "Sizes: " << xPos.size() << " " << yPos.size() << std::endl;
         //Check if diff size?
-        
-        thePoints.push_back( TVector3(xPos.at(ip), yPos.at(ip), fCoordinates[name][2]) );  
+
+        //Translate to device's global coords
+        //Rotation? Deal with later
+        double devZ = fCoordinates[name][2];
+        double devY = yPos.at(ip) + fCoordinates[name][1];
+        double devX = xPos.at(ip) + fCoordinates[name][0];
+//        thePoints.push_back( TVector3(xPos.at(ip), yPos.at(ip), fCoordinates[name][2]) );  
+//        
+        thePoints.push_back( TranslateDeviceToDetector(TVector3(devX,devY,devZ)) );     
         theMomenta.push_back( TVector3(0.,0.,1.) );
         //theFlags.push_back( recob::TrackTrajectory::PointFlags_t() );
       }
@@ -651,6 +676,18 @@ double proto::BeamAna::GetPosition(size_t iDevice, size_t iFiber){
   //Define 0th fiber as origin. Go to middle of the fiber
   double pos = size*iFiber + size/2.;
   return pos;
+}
+
+TVector3 proto::BeamAna::TranslateDeviceToDetector(TVector3 globalDeviceCoords){
+  //fGlobalDetCoords given by fcl
+  //Translate position of device w.r.t. Detector
+  TVector3 inDetCoords = globalDeviceCoords - fGlobalDetCoords;
+   
+  //Rotate into detector coordinates
+  inDetCoords.RotateX(fDetRotation[0]);
+  inDetCoords.RotateY(fDetRotation[1]);
+  inDetCoords.RotateZ(fDetRotation[2]);
+  return inDetCoords;
 }
 
 DEFINE_ART_MODULE(proto::BeamAna)

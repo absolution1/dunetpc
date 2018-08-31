@@ -13,6 +13,8 @@ proto_beamana:
   Coordinates:   [] 
   Dimension:     []
   Prefix:        ""
+  GlobalDetCoords: []
+  DetRotation:     []
 }
 
 END_PROLOG

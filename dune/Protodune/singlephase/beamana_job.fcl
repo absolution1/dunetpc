@@ -27,24 +27,24 @@ source:
 
 physics:
 {
- analyzers:
+ producers:
  {
   beamana:          @local::proto_beamana
  }
 
  ana:  [ beamana ]
 
- end_paths:     [ ana ]
+ trigger_paths:     [ ana ]
 }
 
-physics.analyzers.beamana.FixedTime:           1531912181
-physics.analyzers.beamana.Tolerance:           10000
-physics.analyzers.beamana.Devices:             ["XBPF022716_V","XBPF022716_H"]
+physics.producers.beamana.FixedTime:           1531912181
+physics.producers.beamana.Tolerance:           10000
+physics.producers.beamana.Devices:             ["XBPF022716_V","XBPF022716_H"]
 
-physics.analyzers.beamana.PairedDevices:       [["XBPF022697_V", "XBPF022697_H"],
+physics.producers.beamana.PairedDevices:       [["XBPF022697_V", "XBPF022697_H"],
                                                 ["XBPF022707_V", "XBPF022707_H"]]
                                                 
-physics.analyzers.beamana.DeviceTypes:         [["XBPF022697_V","vert"],
+physics.producers.beamana.DeviceTypes:         [["XBPF022697_V","vert"],
                                                 ["XBPF022697_H","horiz"],
                                                 ["XBPF022707_V","vert"],
                                                 ["XBPF022707_H","horiz"],
@@ -52,25 +52,28 @@ physics.analyzers.beamana.DeviceTypes:         [["XBPF022697_V","vert"],
                                                 ["XBPF022716_H","horiz"]]
 
 
-physics.analyzers.beamana.Coordinates:         [["XBPF022697_V",[0,0,0]],
+physics.producers.beamana.Coordinates:         [["XBPF022697_V",[0,0,0]],
                                                 ["XBPF022697_H",[0,0,0]],
                                                 ["XBPF022707_V",[0,0,1]],
                                                 ["XBPF022707_H",[0,0,1]],
                                                 ["XBPF022716_V",[0,0,2]],
                                                 ["XBPF022716_H",[0,0,2]]]
 
-physics.analyzers.beamana.Rotations:           [[0,0,0],
+physics.producers.beamana.Rotations:           [[0,0,0],
                                                 [1,0,0],
                                                 [0,1,0],
                                                 [0,0,1],
                                                 [-1,0,0],
                                                 [0,-1,0]]
 
-physics.analyzers.beamana.Dimension:           [1.,1.,1.,1.,1.,1.]
+physics.producers.beamana.Dimension:           [1.,1.,1.,1.,1.,1.]
+
+physics.producers.beamana.GlobalDetCoords:    [0.,0.,0.]
+physics.producers.beamana.DetRotation:        [0.,0.,0.]
 
 
-physics.analyzers.beamana.Prefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
-#physics.analyzers.beamana.MultipleTimes:            [1531912181
+physics.producers.beamana.Prefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
+#physics.producers.beamana.MultipleTimes:            [1531912181
 #,1531988396
 #,1531988409
 #,1531988423
