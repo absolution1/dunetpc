@@ -9,6 +9,7 @@
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
+#include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
@@ -36,6 +37,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TProfile.h"
+#include "TCanvas.h"
 
 #define setHistTitles(hist,xtitle,ytitle) hist->GetXaxis()->SetTitle(xtitle); hist->GetYaxis()->SetTitle(ytitle);
 
@@ -62,7 +64,8 @@ public:
   // Selected optional functions.
   void beginJob() override;
   void endJob() override;
-  void reconfigure(fhicl::ParameterSet const & p) ;
+  void reconfigure(fhicl::ParameterSet const & p);
+  void respondToOpenInputFile(art::FileBlock const & infileblock);
 
 private:
 
@@ -71,6 +74,7 @@ private:
   std::vector<float> fChgCuts;
   int lastRun;
   int fDebugCluster;
+  std::string fInFilename;
   double bigLifeInv[12];
   double bigLifeInvErr[12];
   double bigLifeInvCnt[12];
@@ -95,11 +99,11 @@ private:
 
 nlana::SPLifetime::SPLifetime(fhicl::ParameterSet const & pset)
   :
-  EDAnalyzer(pset)  // ,
+  EDAnalyzer(pset),
+  fInFilename("NoInFilenameFound")
  // More initializers here.
 {
   reconfigure(pset);
-  
 }
 
 //--------------------------------------------------------------------
@@ -128,9 +132,9 @@ void nlana::SPLifetime::beginJob()
     signalToNoiseClsCnt[tpc] = 0;
   }
 
-  fDriftTime = tfs->make<TH1F>("DriftTime","Drift Time", 300, 0.,6.);
+  fDriftTime = tfs->make<TH1F>("DriftTime","Drift Time", 500, 0.,10.);
   setHistTitles(fDriftTime,"Cluster Drift Time [ms]", "Clusters / Bin");
-  fDriftTimeVTPC = tfs->make<TH2F>("DriftTimeVTPC","Drift Time v. TPC", 12,0,12,300,0.,6.);
+  fDriftTimeVTPC = tfs->make<TH2F>("DriftTimeVTPC","Drift Time v. TPC", 12,0,12,500,0.,10.);
   setHistTitles(fDriftTimeVTPC,"TPC Number","Cluster Drift Time [ms]");
 
 } // beginJob
@@ -187,7 +191,57 @@ void nlana::SPLifetime::endJob()
   }
   purfile.close();
 
+  // Now for images
+  TCanvas * canvas = new TCanvas("canvas_SPLifetime");
+  canvas->SetLogz();
+  std::string imageFileName;
+  // Try to get rid of directory and .root extension
+  std::string infilenameStripped = fInFilename;
+  size_t slashPos = infilenameStripped.find_last_of("/");
+  if (slashPos != std::string::npos)
+  {
+    infilenameStripped = infilenameStripped.substr(slashPos+1,std::string::npos); // get rid of directory
+  }
+  infilenameStripped = infilenameStripped.substr(0, infilenameStripped.find_last_of(".")); // get rid of .root
+
+  // summary json file
+  std::ofstream summaryfile;
+  summaryfile.open("summary_purity.json");
+  summaryfile << "[\n  {\n    \"run\": \"" << infilenameStripped << "\",\n"
+              << "    \"Type\": \"purity\"\n  }\n]";
+  summaryfile.close();
+
+  // file list json file
+  std::ofstream filelistfile;
+  filelistfile.open("purity_FileList.json");
+  filelistfile << "[\n  {\n    \"Category\": \"Purity Monitor\"\n    \"Files\": ";
+
+  imageFileName = "driftVTPC_";
+  imageFileName += infilenameStripped;
+  imageFileName += ".png";
+  fDriftTimeVTPC->SetStats(false);
+  fDriftTimeVTPC->Draw("colz");
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << "\""<<imageFileName<<"\", ";
+
+  imageFileName = "driftVTPC_zoom_";
+  imageFileName += infilenameStripped;
+  imageFileName += ".png";
+  fDriftTimeVTPC->GetYaxis()->SetRangeUser(0,4);
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << "\""<<imageFileName<<"\"";
+
+  filelistfile << "\n      }\n  }\n]";
+  filelistfile.close();
+  delete canvas;
+
 } // endJob
+
+//--------------------------------------------------------------------
+void nlana::SPLifetime::respondToOpenInputFile(art::FileBlock const & infileblock)
+{
+    fInFilename = infileblock.fileName();
+} // respondToOpenInputFile
 
 //--------------------------------------------------------------------
 void nlana::SPLifetime::analyze(art::Event const & evt)
@@ -434,6 +488,5 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   } // icl
 
 } // analyze
-
 
 DEFINE_ART_MODULE(nlana::SPLifetime)
