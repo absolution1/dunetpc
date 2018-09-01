@@ -6,7 +6,9 @@
 // ADC tool to extract and display event-level information.
 //
 // Configuration:
-//           LogLevel - Logging level: 0=none, 1=init, 2=call, ...
+//     LogLevel - Logging level: 0=none, 1=init, 2=call, ...
+//   EventHists - Array of string histogram specifiers with format "name:nbin:xmin:xmax"
+//                name is one of {nfemb}
 //
 
 #ifndef AdcEventViewer_H
@@ -51,6 +53,7 @@ public:
     Index ngroup;          // # groups processed for this event
     IndexSet fembIDSet;    // FEMBs for ths event.
     Index nchan;           // # channels processed for this event
+    HistVector hists;      // Monitoring histograms.
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -67,16 +70,23 @@ public:
   // Return the state.
   State& state() const { return *m_state; }
 
-  // Initialize the state.
-  void initializeState(Index ievt) const;
+  // Initialize the state for a new event.
+  void startEvent(Index ievt) const;
+
+  // End current event in state.
+  void endEvent() const;
 
   // Print a report.
   void printReport() const;
+
+  // Display the histograms, i.e create pngs.
+  void displayHists() const;
 
 private:
 
   // Configuration data.
   int m_LogLevel;
+  NameVector m_EventHists;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;
