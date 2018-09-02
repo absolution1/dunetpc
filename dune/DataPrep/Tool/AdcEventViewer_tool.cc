@@ -11,6 +11,7 @@
 #include <iomanip>
 
 using std::string;
+using std::to_string;
 using std::cout;
 using std::endl;
 using std::istringstream;
@@ -39,6 +40,7 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
     }
     cout << myname << "                   " << "]" << endl;
   }
+  state().run = 0;
   state().event = 0;
   const string::size_type& npos = string::npos;
   for ( string hspec : m_EventHists ) {
@@ -109,8 +111,9 @@ AdcEventViewer::~AdcEventViewer() {
 DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
   DataMap res;
   Index ievt = acd.event;
-  if ( ievt != state().event ) {
-    startEvent(ievt);
+  Index irun = acd.run;
+  if ( ievt != state().event || irun != state().run ) {
+    startEvent(acd);
   }
   state().fembIDSet.insert(acd.fembID);
   ++state().nchan;
@@ -126,8 +129,8 @@ DataMap AdcEventViewer::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_LogLevel >=2 ) cout << myname << "Skipping group with no data" << endl;
     return ret;
   }
-  Index ievt = acds.begin()->second.event;
-  if ( ievt != state().event ) startEvent(ievt);
+  const AdcChannelData& acd = acds.begin()->second;
+  if ( acd.event != state().event ) startEvent(acd);
   ++state().ngroup;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) view(iacd.second);
   return ret;
@@ -135,8 +138,22 @@ DataMap AdcEventViewer::viewMap(const AdcChannelDataMap& acds) const {
 
 //**********************************************************************
 
-void AdcEventViewer::startEvent(Index ievt) const {
+void AdcEventViewer::startEvent(const AdcChannelData& acd) const {
+  const string myname = "AdcEventViewer::startEvent: ";
   endEvent();
+  if ( acd.run != state().run ) {
+    if ( state().run != 0 ) {
+      if ( m_LogLevel >= 2 ) {
+        cout << myname << "Encountered new run " << acd.run
+             << ". Ending old run " << state().run << endl;
+      }
+      displayHists();
+      state().events.clear();
+      state().eventSet.clear();
+    }
+    state().run = acd.run;
+  }
+  Index ievt = acd.event;
   state().event = ievt;
   state().events.push_back(ievt);
   state().eventSet.insert(ievt);
@@ -185,12 +202,20 @@ void AdcEventViewer::printReport() const {
 
 void AdcEventViewer::displayHists() const {
   const string myname = "AdcEventViewer::printReport: ";
+  string sttlSuf = " for run " + to_string(state().run);
+  Index nevt = state().eventSet.size();
+  if ( nevt == 0 ) sttlSuf += " with no events.";
+  else if ( nevt == 1 ) sttlSuf += " event " + to_string(*state().eventSet.begin());
+  else sttlSuf += " events " + to_string(*state().eventSet.begin()) + "-" + to_string(*state().eventSet.rbegin());
   for ( TH1* ph : state().hists ) {
     TPadManipulator man;
     man.add(ph);
-    string fname = string("eview_") + ph->GetName() + ".png";
+    string sttl = ph->GetTitle() + sttlSuf;
+    man.setTitle(sttl.c_str());
+    string fname = string("eview_") + ph->GetName() + "_run" + to_string(state().run) + ".png";
     man.showUnderflow();
     man.showOverflow();
+    man.addAxis();
     man.print(fname);
   }
 }

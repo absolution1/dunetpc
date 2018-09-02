@@ -47,6 +47,7 @@ public:
   // after initialization.
   class State {
   public:
+    Index run;
     Index event;           // Current event
     IndexVector events;    // Events in processed order.
     IndexSet eventSet;     // Events ordered.
@@ -71,7 +72,7 @@ public:
   State& state() const { return *m_state; }
 
   // Initialize the state for a new event.
-  void startEvent(Index ievt) const;
+  void startEvent(const AdcChannelData& acd) const;
 
   // End current event in state.
   void endEvent() const;
