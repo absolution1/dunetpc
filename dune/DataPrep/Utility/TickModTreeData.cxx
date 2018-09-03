@@ -28,6 +28,7 @@ void TickModTreeData::clear() {
   zeroFraction = -1.0;
   oneFraction = -1.0;
   highFraction = -1.0;
+  fitStatus = -1;
   fitMean = -1.0;
   fitSigma = -1.0;
   fitExcess = -1.0;
@@ -45,6 +46,7 @@ void TickModTreeData::fill(const StickyCodeMetrics& scm) {
   zeroFraction = scm.zeroFraction();
   oneFraction  = scm.oneFraction();
   highFraction = scm.highFraction();
+  fitStatus    = scm.fitStatus();
   fitMean      = scm.fitMean();
   fitSigma     = scm.fitSigma();
   fitExcess    = scm.fitExcess();

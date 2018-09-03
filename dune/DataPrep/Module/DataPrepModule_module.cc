@@ -268,7 +268,7 @@ void DataPrepModule::produce(art::Event& evt) {
       continue;
     }
     if ( fulldatamap.find(chan) != fulldatamap.end() ) {
-      mf::LogWarning("DataPrepModule") << "Skipping duplicate channel " << chan << "." << endl;
+      cout << myname << "WARNING: Skipping duplicate channel " << chan << "." << endl;
       ++nskip;
       continue;
     }

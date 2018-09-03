@@ -521,9 +521,9 @@
 
 
     <volume name="volTPCActive">
-      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
     </volume>
 
     <volume name="volTPCPlaneV">

@@ -56,8 +56,8 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  LogLevel: 1" << endl;
     fout << "  TickModPeriod: 4" << endl;
     fout << "  TimeOffsetTool: myTimeOffsetTool" << endl;
-    fout << "  FitRmsMin: 1.0" << endl;
-    fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  FitSigmaMin: 1.0" << endl;
+    fout << "  FitSigmaMax: 20.0" << endl;
     fout << "  HistName: \"adctm_ch%0CHAN%_tm%0TICKMOD%\"" << endl;
     fout << "  HistTitle: \"ADC spectrum for channel %CHAN% tickmod %TICKMOD%\"" << endl;
     fout << "  HistChannelCount: 100" << endl;
