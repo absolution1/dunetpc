@@ -146,7 +146,7 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   unsigned int nParticlesWithT0    = 0;
   unsigned int nParticlesWithTag   = 0;
   for(unsigned int p = 0; p < recoParticles->size(); ++p){
-   
+  
     // Only consider primary particles here
     if(!(recoParticles->at(p).IsPrimary())) continue;
  
@@ -155,6 +155,7 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
     // Do we have a T0?
     if(pfpUtil.GetPFParticleT0(recoParticles->at(p),evt,fPFParticleTag).size() != 0) ++nParticlesWithT0;
     if(pfpUtil.GetPFParticleCosmicTag(recoParticles->at(p),evt,fPFParticleTag).size() != 0) ++nParticlesWithTag;
+
   } 
   std::cout << "Found " << nParticlesPrimary << " reconstructed primary particles:" << std::endl;
   std::cout << " - Total number of particles = " << recoParticles->size() << std::endl;
@@ -177,6 +178,18 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   if(beamSlice != 9999){
     std::vector<recob::PFParticle*> beamSlicePrimaries = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
     std::cout << " - Found the beam slice! " << beamSlicePrimaries.size() << " beam particles in slice " << beamSlice << std::endl;
+
+    for (const recob::PFParticle* prim : beamSlicePrimaries){
+      // Vertex of the PFParticle
+      const TVector3 vtx = pfpUtil.GetPFParticleVertex(*prim,evt,fPFParticleTag,fTrackerTag);
+      // For track-like PFParticles, returns the end of the associated track. This should give
+      // the secondary interaction point
+      const TVector3 sec = pfpUtil.GetPFParticleSecondaryVertex(*prim,evt,fTrackerTag,fPFParticleTag);
+    
+      std::cout << "Vertex and then secondary vertex" << std::endl;
+      vtx.Print();
+      sec.Print();
+    }
   }
 
   // See how many clear cosmics we have

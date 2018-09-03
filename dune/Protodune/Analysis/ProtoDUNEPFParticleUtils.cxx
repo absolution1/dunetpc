@@ -5,6 +5,9 @@
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
+#include "lardataobj/RecoBase/Vertex.h"
+#include "lardataobj/RecoBase/Track.h"
+
 #include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
 
 protoana::ProtoDUNEPFParticleUtils::ProtoDUNEPFParticleUtils(){
@@ -219,6 +222,115 @@ std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetClearCosm
   }
 
   return cosmicParticles;
+
+}
+
+// Function to find the interaction vertex of a primary PFParticle
+const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const{
+
+  // Pandora produces associations between PFParticles and recob::Vertex objects
+  auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+  const art::FindManyP<recob::Vertex> findVertices(pfParticles,evt,particleLabel);
+  const std::vector<art::Ptr<recob::Vertex>> vertices = findVertices.at(particle.Self());
+
+  // What happens next depends on the type of event.
+  // Shower objects -> just use the pfparticle vertex
+  // Cosmics        -> use track start point
+  // Beam           -> use track start point
+
+  std::cout << "PFParticle daughters " << particle.NumDaughters() << std::endl;
+
+  // Shower
+  if(!IsPFParticleTracklike(particle)){
+    if(vertices.size() != 0){
+      const recob::Vertex* vtx = (vertices.at(0)).get();
+      return TVector3(vtx->position().X(),vtx->position().Y(),vtx->position().Z());
+    }
+    else{
+      std::cerr << "Non track-like PFParticle has no vertex?! Return default vector" << std::endl;
+      return TVector3();
+    }
+  }
+  else{
+  // Cosmic or track-like beam particle
+  
+    const art::FindManyP<recob::Track> findTracks(pfParticles,evt,trackLabel);
+    const std::vector<art::Ptr<recob::Track>> pfpTracks = findTracks.at(particle.Self()); 
+
+    if(pfpTracks.size() != 0){
+      const recob::Track* track = (pfpTracks.at(0)).get();
+      const TVector3 start(track->Trajectory().Start().X(),track->Trajectory().Start().Y(),track->Trajectory().Start().Z());
+      const TVector3 end(track->Trajectory().End().X(),track->Trajectory().End().Y(),track->Trajectory().End().Z());
+      // Return the most upstream point as some cases where the track is reversed...
+      if(IsBeamParticle(particle,evt,particleLabel)){ 
+        if(start.Z() < end.Z()) return start;
+        else return end;
+      }
+      // Return the highest point for cosmics
+      else{
+        if(start.Y() > end.Y()) return start;
+        else return end;
+      }
+    }
+    else{
+      std::cerr << "No track found for track-like PFParticle?! Return default vector" << std::endl;
+      return TVector3();
+    }
+
+  }
+
+}
+
+// Function to find the secondary interaction vertex of a primary PFParticle
+const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string trackLabel, const std::string particleLabel) const{
+
+  // In this case we want to find the end of the track-like PFParticle
+  // To do this, we need to access things via the track
+
+  if(!IsPFParticleTracklike(particle)){
+    std::cerr << "This is not a track-like PFParticle. Returning default TVector3" << std::endl;
+    return TVector3();
+  }
+
+  // Pandora produces associations between PFParticles and recob::Track objects
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+  const art::FindManyP<recob::Track> findTracks(particles,evt,trackLabel);
+  const std::vector<art::Ptr<recob::Track>> pfpTracks = findTracks.at(particle.Self());
+
+  // Interaction vertex is the downstream end of the track, or the bottom for cosmics
+  if(pfpTracks.size() != 0){
+    const recob::Track* track = (pfpTracks.at(0)).get();
+    const TVector3 start(track->Trajectory().Start().X(),track->Trajectory().Start().Y(),track->Trajectory().Start().Z());
+    const TVector3 end(track->Trajectory().End().X(),track->Trajectory().End().Y(),track->Trajectory().End().Z());
+
+      // Return the most upstream point as some cases where the track is reversed...
+      if(IsBeamParticle(particle,evt,particleLabel)){
+        if(start.Z() > end.Z()) return start;
+        else return end;
+      }
+      // Return the highest point for cosmics
+      else{
+        if(start.Y() < end.Y()) return start;
+        else return end;
+      }
+
+  }
+  else{
+    std::cerr << "This is not a track-like PFParticle. Returning default TVector3" << std::endl;
+    return TVector3();
+  }
+
+}
+
+// Is the particle track-like?
+bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFParticle &particle) const{
+
+  if(abs(particle.PdgCode()) == 11){
+    return false;
+  }
+  else{
+    return true;
+  }
 
 }
 

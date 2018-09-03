@@ -17,6 +17,8 @@
 #include "art/Framework/Principal/Event.h"
 #include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
 
+#include "TVector3.h"
+
 namespace protoana {
 
   class ProtoDUNEPFParticleUtils {
@@ -60,6 +62,15 @@ namespace protoana {
 
     /// Get the metadata associated to a PFParticle from pandora
     const std::map<std::string,float> GetPFParticleMetaData(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Function to find the interaction vertex of a primary PFParticle
+    const TVector3 GetPFParticleVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
+
+    /// Function to find the secondary interaction vertex of a primary PFParticle
+    const TVector3 GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string trackLabel, const std::string particleLabel) const;
+
+    /// Is the particle track-like?
+    bool IsPFParticleTracklike(const recob::PFParticle &particle) const;
 
   private:
 
