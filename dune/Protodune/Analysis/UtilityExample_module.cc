@@ -23,6 +23,7 @@
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -61,6 +62,7 @@ private:
 
   // fcl parameters
   std::string fTrackerTag;
+  std::string fShowerTag;
   std::string fPFParticleTag;
   std::string fGeneratorTag;
   bool fVerbose;
@@ -72,6 +74,7 @@ protoana::UtilityExample::UtilityExample(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
   fTrackerTag(p.get<std::string>("TrackerTag")),
+  fShowerTag(p.get<std::string>("ShowerTag")),
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
   fGeneratorTag(p.get<std::string>("GeneratorTag")),
   fVerbose(p.get<bool>("Verbose"))
@@ -182,13 +185,27 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
     for (const recob::PFParticle* prim : beamSlicePrimaries){
       // Vertex of the PFParticle
       const TVector3 vtx = pfpUtil.GetPFParticleVertex(*prim,evt,fPFParticleTag,fTrackerTag);
+      std::cout << "Beam particle vertex: " << std::endl;
+      vtx.Print();
       // For track-like PFParticles, returns the end of the associated track. This should give
       // the secondary interaction point
-      const TVector3 sec = pfpUtil.GetPFParticleSecondaryVertex(*prim,evt,fTrackerTag,fPFParticleTag);
-    
-      std::cout << "Vertex and then secondary vertex" << std::endl;
-      vtx.Print();
-      sec.Print();
+      if(pfpUtil.IsPFParticleTracklike(*prim)){
+        const TVector3 sec = pfpUtil.GetPFParticleSecondaryVertex(*prim,evt,fTrackerTag,fPFParticleTag);
+        std::cout << "Beam particle interaction vertex: " << std::endl;
+        sec.Print();
+      }
+      // If we want to look at the track or shower that makes up the PFParticle:
+      /*
+      if(pfpUtil.IsPFParticleTracklike(*prim)){
+        const recob::Track* trk = pfpUtil.GetPFParticleTrack(*prim,evt,fPFParticleTag,fTrackerTag);
+        if(trk != 0x0) std::cout << "Got track" << std::endl;
+      }
+      else{
+        const recob::Shower* shw = pfpUtil.GetPFParticleShower(*prim,evt,fPFParticleTag,fShowerTag);
+        if(shw != 0x0) std::cout << "Got shower" << std::endl;
+      }
+      */
+
     }
   }
 

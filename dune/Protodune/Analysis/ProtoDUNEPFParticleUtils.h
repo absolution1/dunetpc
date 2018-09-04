@@ -12,6 +12,8 @@
 #include <string>
 
 #include "lardataobj/RecoBase/PFParticle.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "art/Framework/Principal/Event.h"
@@ -42,6 +44,7 @@ namespace protoana {
 
     /// Get the cosmic tag(s) from a given PFParticle
     std::vector<anab::CosmicTag> GetPFParticleCosmicTag(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel) const;
+
     /// Get the T0(s) from a given PFParticle
     std::vector<anab::T0> GetPFParticleT0(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel) const;
 
@@ -71,6 +74,15 @@ namespace protoana {
 
     /// Is the particle track-like?
     bool IsPFParticleTracklike(const recob::PFParticle &particle) const;
+
+    /// Is the particle track-like?
+    bool IsPFParticleShowerlike(const recob::PFParticle &particle) const;
+
+    /// Get the track associated to this particle. Returns a null pointer if not found.
+    const recob::Track* GetPFParticleTrack(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
+
+    /// Get the shower associated to this particle. Returns a null pointer if not found.
+    const recob::Shower* GetPFParticleShower(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const;
 
   private:
 

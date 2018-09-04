@@ -252,13 +252,11 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
     }
   }
   else{
-  // Cosmic or track-like beam particle
+    // Cosmic or track-like beam particle
   
-    const art::FindManyP<recob::Track> findTracks(pfParticles,evt,trackLabel);
-    const std::vector<art::Ptr<recob::Track>> pfpTracks = findTracks.at(particle.Self()); 
+    const recob::Track* track = GetPFParticleTrack(particle,evt,particleLabel,trackLabel);
 
-    if(pfpTracks.size() != 0){
-      const recob::Track* track = (pfpTracks.at(0)).get();
+    if(track != 0x0){
       const TVector3 start(track->Trajectory().Start().X(),track->Trajectory().Start().Y(),track->Trajectory().Start().Z());
       const TVector3 end(track->Trajectory().End().X(),track->Trajectory().End().Y(),track->Trajectory().End().Z());
       // Return the most upstream point as some cases where the track is reversed...
@@ -292,14 +290,10 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
     return TVector3();
   }
 
-  // Pandora produces associations between PFParticles and recob::Track objects
-  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
-  const art::FindManyP<recob::Track> findTracks(particles,evt,trackLabel);
-  const std::vector<art::Ptr<recob::Track>> pfpTracks = findTracks.at(particle.Self());
+  const recob::Track* track = GetPFParticleTrack(particle,evt,particleLabel,trackLabel);
 
   // Interaction vertex is the downstream end of the track, or the bottom for cosmics
-  if(pfpTracks.size() != 0){
-    const recob::Track* track = (pfpTracks.at(0)).get();
+  if(track != 0x0){
     const TVector3 start(track->Trajectory().Start().X(),track->Trajectory().Start().Y(),track->Trajectory().Start().Z());
     const TVector3 end(track->Trajectory().End().X(),track->Trajectory().End().Y(),track->Trajectory().End().Z());
 
@@ -334,4 +328,47 @@ bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFPa
 
 }
 
+bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleShowerlike(const recob::PFParticle &particle) const{
+  return !IsPFParticleTracklike(particle);
+}
+
+// Get the track associated to this particle. Returns a null pointer if not found.
+const recob::Track* protoana::ProtoDUNEPFParticleUtils::GetPFParticleTrack(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const{
+
+  // Pandora produces associations between PFParticles and recob::Track objects
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+  const art::FindManyP<recob::Track> findTracks(particles,evt,trackLabel);
+  const std::vector<art::Ptr<recob::Track>> pfpTracks = findTracks.at(particle.Self());
+
+  // Check that the track exists
+  if(pfpTracks.size() != 0){
+    const recob::Track* track = (pfpTracks.at(0)).get();
+    return track;
+  }
+  else{
+    std::cerr << "No track found, returning null pointer" << std::endl;
+    return nullptr;
+  }
+
+}
+
+// Get the shower associated to this particle. Returns a null pointer if not found.
+const recob::Shower* protoana::ProtoDUNEPFParticleUtils::GetPFParticleShower(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const{
+
+  // Pandora produces associations between PFParticles and recob::Track objects
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+  const art::FindManyP<recob::Shower> findShowers(particles,evt,showerLabel);
+  const std::vector<art::Ptr<recob::Shower>> pfpShowers = findShowers.at(particle.Self());
+
+  // Check that the shower exists
+  if(pfpShowers.size() != 0){
+    const recob::Shower* shw = (pfpShowers.at(0)).get();
+    return shw;
+  }
+  else{
+    std::cerr << "No shower found, returning null pointer" << std::endl;
+    return nullptr;
+  }
+
+}
 

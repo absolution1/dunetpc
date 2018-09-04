@@ -4,6 +4,7 @@ proto_util_example:
 {
    module_type:             "UtilityExample"
    TrackerTag:              "pandoraTrack"
+   ShowerTag:               "pandoraShower"
    PFParticleTag:           "pandora"
    GeneratorTag:            "generator"
    Verbose:                 false
