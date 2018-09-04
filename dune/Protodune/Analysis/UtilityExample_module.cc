@@ -194,6 +194,10 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
         std::cout << "Beam particle interaction vertex: " << std::endl;
         sec.Print();
       }
+
+      std::cout << "Beam particle has " << pfpUtil.GetNumberPFParticleHits(*prim,evt,fPFParticleTag) << " hits and " 
+                << pfpUtil.GetNumberPFParticleSpacePoints(*prim,evt,fPFParticleTag) << " space points" << std::endl;
+
       // If we want to look at the track or shower that makes up the PFParticle:
       /*
       if(pfpUtil.IsPFParticleTracklike(*prim)){
