@@ -15,6 +15,7 @@ using std::to_string;
 using std::cout;
 using std::endl;
 using std::istringstream;
+using std::ostringstream;
 using fhicl::ParameterSet;
 using std::setw;
 using std::fixed;
@@ -23,12 +24,40 @@ using std::setprecision;
 using Index = AdcEventViewer::Index;
 
 //**********************************************************************
+// Local methods.
+//**********************************************************************
+
+namespace {
+
+struct VarInfo {
+  string name;
+  string vname;
+  string label;
+  VarInfo(string aname);
+  bool isValid() const { return vname.size(); }
+};
+
+// Extract variable info from a name.
+VarInfo::VarInfo(string aname) : name(aname) {
+  if ( name.find("nfemb") != string::npos ) {
+    vname = "nfemb";
+    label = "FEMB count";
+  } else if ( name.find("event") != string::npos ) {
+    vname = "event";
+    label = "Event";
+  }
+}
+
+}  // end unnamed namespace
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
 AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_EventHists(ps.get<NameVector>("EventHists")),
+  m_EventGraphs(ps.get<NameVector>("EventGraphs")),
   m_state(new AdcEventViewer::State) {
   const string myname = "AdcEventViewer::ctor: ";
   // Display the configuration.
@@ -37,6 +66,11 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
     cout << myname << "       EventHists: [" << endl;
     for ( Index ievh=0; ievh<m_EventHists.size(); ++ievh ) {
       cout << myname << "                     " << m_EventHists[ievh] << endl;
+    }
+    cout << myname << "                   " << "]" << endl;
+    cout << myname << "      EventGraphs: [" << endl;
+    for ( Index ievg=0; ievg<m_EventGraphs.size(); ++ievg ) {
+      cout << myname << "                     " << m_EventGraphs[ievg] << endl;
     }
     cout << myname << "                   " << "]" << endl;
   }
@@ -95,6 +129,68 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
     state().hists.push_back(ph);
     if ( m_LogLevel>= 1 ) cout << myname << "Created histogram " << name << endl;
   }
+  for ( string gspec : m_EventGraphs ) {
+    string xname;
+    string yname;
+    float xmin = 0.0;
+    float xmax = 0.0;
+    float ymin = 0.0;
+    float ymax = 0.0;
+    bool ok = false;
+    string::size_type ipos = 0;
+    string::size_type jpos = 0;
+    istringstream ssin;
+    jpos = gspec.find(":");
+    if ( jpos != npos ) {
+      xname = gspec.substr(ipos, jpos-ipos);
+      ipos = jpos + 1;
+      jpos = gspec.find(":", ipos);
+      if ( jpos != npos && jpos > ipos ) {
+        istringstream ssnbin(gspec.substr(ipos, jpos-ipos));
+        ssnbin >> xmin;
+        ipos = jpos + 1;
+        jpos = gspec.find(":", ipos);
+        if ( jpos != npos && jpos > ipos ) {
+          istringstream ssxmin(gspec.substr(ipos, jpos-ipos));
+          ssxmin >> xmax;
+          ipos = jpos + 1;
+          jpos = gspec.find(":", ipos);
+          if ( jpos != npos && jpos > ipos ) {
+            yname = gspec.substr(ipos, jpos-ipos);
+            ipos = jpos + 1;
+            jpos = gspec.find(":", ipos);
+            if ( jpos != npos && jpos > ipos ) {
+              istringstream ssxmin(gspec.substr(ipos, jpos-ipos));
+              ssxmin >> ymin;
+              ipos = jpos + 1;
+              jpos = gspec.size();
+              istringstream ssxmax(gspec.substr(ipos, jpos-ipos));
+              ssxmax >> ymax;
+              ok = true;
+            }
+          }
+        }
+      }
+    }
+    VarInfo xvin(xname);
+    ok &= xvin.isValid();
+    VarInfo yvin(yname);
+    ok &= yvin.isValid();
+    if ( ! ok ) {
+      cout << "WARNING: Invalid graph configuration string: " << gspec << endl;
+      continue;
+    }
+    string sttl = yvin.label + " vs. " + xvin.label;
+    if ( m_LogLevel >= 2 ) {
+      cout << myname << "Creating graph of " << yname;
+      if ( ymax > ymin ) cout << " range=(" << ymin << ", " << ymax << ")";
+      cout << " vs. " << xname;
+      if ( xmax > xmin ) cout << " range=(" << xmin << ", " << xmax << ")";
+      cout << endl;
+    } 
+    state().graphs.emplace_back(xname, xvin.label, xmin, xmax, yname, yvin.label, ymin, ymax);
+    if ( m_LogLevel>= 1 ) cout << myname << "Created graph of " << yname << " vs. " << xname << endl;
+  }
 }
 
 //**********************************************************************
@@ -103,6 +199,7 @@ AdcEventViewer::~AdcEventViewer() {
   const string myname = "AdcEventViewer::dtor: ";
   endEvent();
   displayHists();
+  displayGraphs();
   cout << myname << "Exiting." << endl;
 }
 
@@ -196,6 +293,10 @@ void AdcEventViewer::printReport() const {
       cout << myname << "ERROR: No variable for histogram name " << name << endl;
     }
   }
+  for ( GraphInfo& gin : state().graphs ) {
+    gin.add("nfemb", nfmb);
+    gin.add("event", state().event);
+  }
 }
 
 //**********************************************************************
@@ -216,10 +317,60 @@ void AdcEventViewer::displayHists() const {
     man.add(ph);
     string sttl = ph->GetTitle() + sttlSuf;
     man.setTitle(sttl.c_str());
-    string fname = string("eview_") + ph->GetName() + "_run" + to_string(state().run) + ".png";
+    string fname = string("eviewh_") + ph->GetName() + "_run" + to_string(state().run) + ".png";
     man.showUnderflow();
     man.showOverflow();
     man.addAxis();
+    man.print(fname);
+    if ( m_LogLevel >= 1 ) cout << myname << "  " << fname << endl;
+  }
+}
+
+//**********************************************************************
+
+void AdcEventViewer::displayGraphs() const {
+  const string myname = "AdcEventViewer::displayGraphs: ";
+  string sttlSuf = " for run " + to_string(state().run);
+  Index nplt = state().graphs.size();
+  if ( m_LogLevel >= 1 ) cout << myname << "Creating " << nplt << " graph"
+                              << (nplt == 1 ? "" : "s") << sttlSuf
+                              << (nplt > 0 ? ":" : "") << endl;
+  Index nevt = state().eventSet.size();
+  if ( nevt == 0 ) sttlSuf += " with no events.";
+  else if ( nevt == 1 ) sttlSuf += " event " + to_string(*state().eventSet.begin());
+  for ( GraphInfo& gin : state().graphs ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "Creating graph of " << gin.vary << " vs. " << gin.varx << endl;
+    Index npt = gin.xvals.size();
+    if ( npt == 0 ) {
+      cout << myname << "Skipping graph with no entries." << endl;
+      continue;
+    }
+    if ( gin.yvals.size() != npt ) {
+      cout << myname << "Skipping graph with inconsistent entries." << endl;
+      continue;
+    }
+    TGraph* pg = new TGraph(npt, &gin.xvals[0], &gin.yvals[0]);
+    pg->GetXaxis()->SetTitle(gin.xlab.c_str());
+    pg->GetYaxis()->SetTitle(gin.ylab.c_str());
+    pg->SetMarkerStyle(2);
+    if ( gin.xmax > gin.xmin ) pg->GetXaxis()->SetRangeUser(gin.xmin, gin.xmax);
+    if ( gin.ymax > gin.ymin ) pg->GetYaxis()->SetRangeUser(gin.ymin, gin.ymax);
+    TPadManipulator man;
+    man.add(pg, "P");
+    string sttl = gin.ylab + " vs. " + gin.xlab + sttlSuf;
+    man.setTitle(sttl.c_str());
+    man.showUnderflow();
+    man.showOverflow();
+    man.addAxis();
+    man.setGridX();
+    man.setGridY();
+    ostringstream ssfname;
+    ssfname << "eviewg_" << gin.varx;
+    if ( gin.xmax > gin.xmin ) ssfname << "-" << gin.xmin << "-" << gin.xmax;
+    ssfname << "_" << gin.vary;
+    if ( gin.ymax > gin.ymin ) ssfname << "-" << gin.ymin << "-" << gin.ymax;
+    ssfname << ".png";
+    Name fname = ssfname.str();
     man.print(fname);
     if ( m_LogLevel >= 1 ) cout << myname << "  " << fname << endl;
   }
