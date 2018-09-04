@@ -40,7 +40,7 @@ tools.pd_evtview: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:125:0:125"]
-  EventGraphs: ["event:0:0:hnfemb:0:125"]
+  EventGraphs: ["event:0:0:nfemb:0:125"]
 }
 
 ################################################################################
