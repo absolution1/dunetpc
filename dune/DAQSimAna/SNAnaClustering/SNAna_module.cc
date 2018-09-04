@@ -127,6 +127,7 @@ private:
   std::map<int, PType> trkIDToPType;
 
   bool fSaveNeighbourADCs;
+  bool fSaveIDEs;
   
   TTree* fSNAnaTree;
 
@@ -298,6 +299,12 @@ void SNAna::reconfigure(fhicl::ParameterSet const & p)
 
   fSaveNeighbourADCs = p.get<bool> ("SaveNeighbourADCs");
   fSaveTruth = p.get<bool>("SaveTruth");
+  fSaveIDEs  = p.get<bool>("SaveIDEs");
+
+  std::cout << "Reconfigured " << this->processName() << " with "
+            << " SaveNeighbourADCs: " << std::boolalpha << fSaveNeighbourADCs
+            << " SaveTruth: " << std::boolalpha << fSaveTruth
+            << " SaveIDEs: " << std::boolalpha << fSaveIDEs << std::endl;
 } 
 
 
@@ -801,7 +808,7 @@ void SNAna::analyze(art::Event const & evt)
   // Fill a set of the channels that we don't want to consider in the
   // adjacent-channel loop below. Do it here once so we don't have to
   // re-do it for every single hit
-  std::cout << "Building \"bad\" channel set" << std::endl;
+  // std::cout << "Building \"bad\" channel set" << std::endl;
   std::set<int> badChannels;
   for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
   {
@@ -813,7 +820,7 @@ void SNAna::analyze(art::Event const & evt)
           badChannels.insert(rawWireChannel);
       }
   }
-  std::cout << "Inserted " << badChannels.size() << " out of " << rawDigitsVecHandle->size() << " channels into set" << std::endl;
+  // std::cout << "Inserted " << badChannels.size() << " out of " << rawDigitsVecHandle->size() << " channels into set" << std::endl;
 
   for(int hit = 0; hit < LoopHits; ++hit) 
   {
@@ -1168,7 +1175,7 @@ void SNAna::analyze(art::Event const & evt)
   }
 
 
-  SaveIDEs(evt);
+  if(fSaveIDEs) SaveIDEs(evt);
 
   std::cerr << "Total of:" << std::endl;
   std::cerr << " - Othe : " << ColHits_Oth.size() << " col plane hits\t| " << map_of_ophit[kUnknown].size() << " opt hits" << std::endl;
