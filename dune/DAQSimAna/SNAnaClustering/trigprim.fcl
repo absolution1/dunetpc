@@ -16,6 +16,12 @@ trigprimpass1: {
    }
 }
 
+trigprimpass1_protodune: {
+   @table::trigprimpass1
+   InputTag: "tpcrawdecoder:daq:RunRawDecoder"
+   
+}
+
 trigprimpass1old: {
    module_type: "TriggerPrimitiveFinder"
    InputTag: "simwire"
