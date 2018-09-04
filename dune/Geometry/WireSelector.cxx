@@ -58,6 +58,20 @@ void WireSelector::selectDrift(double dmin, double dmax) {
 
 //**********************************************************************
 
+void WireSelector::selectTpcSet(Index itps) {
+  m_tpcSets.clear();
+  m_tpcSets.push_back(itps);
+  selectPlanes();
+}
+//**********************************************************************
+
+void WireSelector::selectTpcSets(const IndexVector& itpss) {
+  m_tpcSets = itpss;
+  selectPlanes();
+}
+
+//**********************************************************************
+
 void WireSelector::selectPlanes() {
   const double pi = acos(-1.0);
   const double piOver2 = 0.5*pi;
@@ -66,6 +80,11 @@ void WireSelector::selectPlanes() {
   for ( Index icry : cryostats() ) {
     geo::CryostatID cid(icry);
     for ( geo::TPCID tid : geometry()->IterateTPCIDs(cid) ) {
+      // Check TPC set.
+      if ( m_tpcSets.size() ) {
+        Index itps = geometry()->TPCtoTPCset(tid).TPCset;
+        if ( find(m_tpcSets.begin(), m_tpcSets.end(), itps) == m_tpcSets.end() ) continue;
+      }
       // Check drift.
       if ( driftMin() > 0.0 || driftMax() < 1.e20 ) {
         const geo::TPCGeo& gtpc = geometry()->TPC(tid);

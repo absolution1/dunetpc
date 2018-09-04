@@ -95,6 +95,15 @@ dune35t_signalshapingservice.ShapeTimeConst:    [ 3.0 , 3.0 , 3.0 ] #Gain and Pe
 # 3x1x1, protoDUNE and DUNE dual-phase signal service
 #
 
+# ProtoDUNE single phase
+protodunesp_signalshapingservice: @local::dunefd_signalshapingservice
+protodunesp_signalshapingservice.ColFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.ColFilterParams: [ 1.0, 0.0, 0.1 ]
+protodunesp_signalshapingservice.IndUFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.IndUFilterParams: [ 1.0, 0.0, 0.1 ]
+protodunesp_signalshapingservice.IndVFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.IndVFilterParams: [ 1.0, 0.0, 0.1 ]
+
 dunedphase3x1x1_signalshapingservice: {
 
   Collection1MeterShape: "[0]*exp((x-[1])/[2]) / ( 1 + exp((x-[1])/[3]))" 	#obtained from pulsed waveform fit
@@ -103,8 +112,8 @@ dunedphase3x1x1_signalshapingservice: {
   Collection3MeterShape: "[0]*exp((x-[1])/[2]) / ( 1 + exp((x-[1])/[3]))"	#obtained from pulsed waveform fit
   Collection3MeterParams:  [1.21581, 0.864873, 0.288648, 0.27413]		#obtained from pulsed waveform fit
 
-  ASICmVperfC1Meter: 	6.25    # obtained from pulsed waveform: 87.43 ADC / 14 fC
-  ASICmVperfC3Meter: 	2.51    # obtained from pulsed waveform: 35.2 ADC / 14 fC
+  ASICmVperfC1Meter: 	6.38    # obtained from pulsed waveforms
+  ASICmVperfC3Meter: 	2.53    # obtained from pulsed waveforms at 14 fC: 35.42 ADC / 14 fC
   ADCpermV:    		1.0     # ADC conversion factor (for now already included in ASICmVperfC1Meter and ASICmVperfC3Meter)
   AmpENC:      		1700.0  # Amplifier ENC e for Cdet=450pF
 

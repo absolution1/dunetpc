@@ -24,6 +24,7 @@
 //              0: Use automatic value
 //            > 0: Use YMax
 //            < 0: Use -YMax if there are no higher values, otherwise automatic
+//   YMinLog - If nonzero, log scale is used with this minimum.
 //   NbinX - # bins in the power histogram
 //   HistName - Histogram/graph name
 //   HistTitle - Histogram/graph title
@@ -62,6 +63,7 @@ private:
   Name   m_Variable;
   float  m_SampleFreq;
   float  m_YMax;
+  float  m_YMinLog;
   Index  m_NBinX;
   Name   m_HistName;
   Name   m_HistTitle;

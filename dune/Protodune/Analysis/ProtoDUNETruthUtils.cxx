@@ -1,5 +1,4 @@
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
-#include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -28,9 +27,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   // We need the association between the tracks and the hits
   const art::FindManyP<recob::Hit> findTrackHits(allRecoTracks, evt, trackModule);
 
-  // A track utils object will be useful
-  protoana::ProtoDUNETrackUtils utils;
-  unsigned int trackIndex = utils.GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -104,7 +101,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const s
     }
     
     // If the initial energy of the g4 particle is very close to the energy of the protoDUNE particle, call it a day and have a cuppa.
-    if ( (pDunePart.PdgCode() == pPart->PdgCode()) && (pPart->E() - pDuneEnergy < 0.00001) ) {
+    if ( (pDunePart.PdgCode() == pPart->PdgCode()) && fabs(pPart->E() - pDuneEnergy) < 0.00001 ) {
       return pPart;
     }
     
@@ -140,7 +137,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(cons
   const sim::ParticleList & plist = pi_serv->ParticleList();
 
   for(auto const part : plist){
-    if((goodPart.PdgCode() == part.second->PdgCode()) && (part.second->E() - goodPart.E() < 1e-5)){
+    if((goodPart.PdgCode() == part.second->PdgCode()) && fabs(part.second->E() - goodPart.E()) < 1e-5){
       return part.second;
     }
   } 

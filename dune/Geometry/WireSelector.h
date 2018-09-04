@@ -151,6 +151,10 @@ public:
   // Vector of selected planes is updated.
   void selectDrift(double dmin, double dmax =1.e20);
 
+  // Add a selected TPC set or sets.
+  void selectTpcSet(Index itps);
+  void selectTpcSets(const IndexVector& itpss);
+
   // Select planes using the current criteria.
   // This is called automatically by ctors and plane selectors.
   void selectPlanes();
@@ -177,6 +181,7 @@ private:
   double m_driftMin = 0.0;
   double m_driftMax = 1.e20;
   PlaneIDVector m_pids;
+  IndexVector m_tpcSets;
   bool m_haveData =false;
   WireInfoVector m_data;
   WireInfoMap m_datamap;

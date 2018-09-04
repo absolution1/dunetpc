@@ -1,0 +1,20 @@
+BEGIN_PROLOG
+
+protodune_xyzcalib :
+{
+  service_provider: "XYZCalibServiceProtoDUNE"
+
+  UseCondbXYZCorr: true
+  Interpolate: false
+
+  XCorrFileName: ""
+  YZCorrFileName: ""
+  NormCorrFileName: ""
+
+  XCorrDBTag: ""
+  YZCorrDBTag: ""
+  NormCorrDBTag: ""
+
+}
+
+END_PROLOG

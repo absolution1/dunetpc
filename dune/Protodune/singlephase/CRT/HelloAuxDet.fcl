@@ -1,0 +1,47 @@
+#Runs a demonstration module to print out information about AuxDet geometry, simulation, and reconstruction in the input file.  
+#Stole much of the structure of this file from beamana_job.fcl.  
+
+#include "services_dune.fcl"
+
+process_name: HelloAuxDet
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  #TFileService: { fileName: "HelloAuxDet_hist.root" }
+  TimeTracker:       {}
+  MemoryTracker:     {}
+  RandomNumberGenerator: {} #ART native random number generator
+  message:              @local::dune_message_services_prod_debug
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+                        @table::protodune_services
+  IFBeam:            {}
+}
+services.message.destinations.LogStandardOut.threshold: "INFO" #ToDO: Set this up to print out my info messages from HelloAuxDet
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+  fileNames: ["input_file.root"]
+}
+
+physics:
+{
+ analyzers:
+ {
+   hello: 
+   {
+     module_type: HelloAuxDet
+     #If you don't specify the lists of labels below, HelloAuxDet just prints everything.
+     #SimLabels: [largeant]
+     #DigitLabels: [largeant]
+   }
+ }
+
+ ana:  [ hello ]
+
+ end_paths:     [ ana ]
+}
+
