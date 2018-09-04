@@ -61,6 +61,7 @@ public:
 private:
 
   // fcl parameters
+  std::string fCalorimetryTag;
   std::string fTrackerTag;
   std::string fShowerTag;
   std::string fPFParticleTag;
@@ -73,6 +74,7 @@ private:
 protoana::UtilityExample::UtilityExample(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
+  fCalorimetryTag(p.get<std::string>("CalorimetryTag")),
   fTrackerTag(p.get<std::string>("TrackerTag")),
   fShowerTag(p.get<std::string>("ShowerTag")),
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
@@ -109,7 +111,7 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   unsigned int nTracksWithTruth = 0;
   unsigned int nTracksWithT0    = 0;
   unsigned int nTracksWithTag   = 0;
-
+  unsigned int nTracksWithCalo  = 0;
   // Get the reconstructed tracks
   auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(fTrackerTag);
 
@@ -129,16 +131,21 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
     std::vector<anab::CosmicTag> trackCosmic = trackUtil.GetRecoTrackCosmicTag(thisTrack,evt,fTrackerTag);
     bool hasTag = (trackCosmic.size() != 0);
 
+    // Check for Calo
+    std::vector<anab::Calorimetry> trackCalo = trackUtil.GetRecoTrackCalorimetry(thisTrack,evt,fTrackerTag,fCalorimetryTag);
+    bool hasCalo = (trackCalo.size() != 0);
+
     if(hasTruth) ++nTracksWithTruth;
     if(hasT0)    ++nTracksWithT0;
     if(hasTag)   ++nTracksWithTag;
-
+    if(hasCalo)  ++nTracksWithCalo;
   } // End loop over reconstructed tracks
 
   std::cout << "Found " << recoTracks->size() << " reconstructed tracks:" << std::endl;
   std::cout << " - " << nTracksWithTruth << " successfully associated to the truth information " << std::endl;
   std::cout << " - " << nTracksWithT0    << " have a reconstructed T0" << std::endl;
   std::cout << " - " << nTracksWithTag   << " have a cosmic tag" << std::endl;
+  std::cout << " - " << nTracksWithCalo  << " have calorimetry info" << std::endl;
 
   // What about PFParticles?
   protoana::ProtoDUNEPFParticleUtils pfpUtil;
