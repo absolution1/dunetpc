@@ -19,6 +19,7 @@ trigprim_snana: {
 
 }
 END_PROLOG
+#include "opticaldetectormodules_dune.fcl"
 #include "standard_detsim_dune10kt_1x2x6.fcl"
 
 
@@ -56,6 +57,8 @@ physics: {
          RawDigitInputLabel: "daq"
       }
 
+      ophit:              @local::dune35t_ophit 
+
       # You can add any number of trigger primitive finders here. Make
       # sure each one has a distinct name, and has a corresponding
       # daqsimana analyzer (otherwise you won't get a corresponding
@@ -68,6 +71,8 @@ physics: {
       trigprim1800: @local::trigprimpass1
       trigprim2000: @local::trigprimpass1
       trigprim2400: @local::trigprimpass1
+      trigprim2800: @local::trigprimpass1
+      trigprim3200: @local::trigprimpass1
 
       rns:            { module_type: "RandomNumberSaver" }
    }
@@ -84,6 +89,8 @@ physics: {
       snanatrigprim1800:    @local::trigprim_snana
       snanatrigprim2000:    @local::trigprim_snana
       snanatrigprim2400:    @local::trigprim_snana
+      snanatrigprim2800:    @local::trigprim_snana
+      snanatrigprim3200:    @local::trigprim_snana
       waveformstotree: {
          module_type: "WaveformsToTree"
          InputTag: "simwire"
@@ -91,8 +98,8 @@ physics: {
       }
    }
 
-   simulate: [ rns, simwire, trigprim800, trigprim1000, trigprim1200, trigprim1400, trigprim1600, trigprim1800, trigprim2000, trigprim2400 ]
-   ana: [ snanatrigprim800, snanatrigprim1000, snanatrigprim1200, snanatrigprim1400, snanatrigprim1600, snanatrigprim1800, snanatrigprim2000, snanatrigprim2400, waveformstotree ]
+   simulate: [ rns, simwire, ophit, trigprim800, trigprim1000, trigprim1200, trigprim1400, trigprim1600, trigprim1800, trigprim2000, trigprim2400, trigprim2800, trigprim3200 ]
+   ana: [ snanatrigprim800, snanatrigprim1000, snanatrigprim1200, snanatrigprim1400, snanatrigprim1600, snanatrigprim1800, snanatrigprim2000, snanatrigprim2400, snanatrigprim2800, snanatrigprim3200, waveformstotree ]
 
    trigger_paths: [simulate] 
    end_paths: [ ana ] 
@@ -110,6 +117,8 @@ physics.producers.trigprim1600.finder.Threshold: 1600
 physics.producers.trigprim1800.finder.Threshold: 1800
 physics.producers.trigprim2000.finder.Threshold: 2000
 physics.producers.trigprim2400.finder.Threshold: 2400
+physics.producers.trigprim2800.finder.Threshold: 2800
+physics.producers.trigprim3200.finder.Threshold: 3200
 
 
 # Set the HitLabel to make sure each DaqAnaSim reads hits from its
@@ -122,6 +131,11 @@ physics.analyzers.snanatrigprim1600.HitLabel: "trigprim1600"
 physics.analyzers.snanatrigprim1800.HitLabel: "trigprim1800"
 physics.analyzers.snanatrigprim2000.HitLabel: "trigprim2000"
 physics.analyzers.snanatrigprim2400.HitLabel: "trigprim2400"
+physics.analyzers.snanatrigprim2800.HitLabel: "trigprim2800"
+physics.analyzers.snanatrigprim3200.HitLabel: "trigprim3200"
+
+# Only save IDEs in one of the output trees, since they're always the same and will only take up space otherwise
+physics.analyzers.snanatrigprim800.SaveIDEs: true
 
 # =====================================================================
 # You probably won't need to change anything below here
@@ -140,3 +154,5 @@ services.AdcSuppressService:       @local::zsnone
 services.AdcCompressService:       @local::cmpreplace
 services.DetPedestalService:       @local::dune_fixedpeds
 
+#Optical detector configuration
+physics.producers.ophit.InputModule:                    "opdigi"
