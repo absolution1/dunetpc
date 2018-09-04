@@ -59,3 +59,28 @@ std::vector<anab::T0> protoana::ProtoDUNETrackUtils::GetRecoTrackT0(const recob:
 
 }
 
+// Get the Calorimetry(s) from a given reco track
+std::vector<anab::Calorimetry> protoana::ProtoDUNETrackUtils::GetRecoTrackCalorimetry(const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule) const{
+
+  auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
+  std::vector<anab::Calorimetry> caloInfo;
+  
+  try{
+    const art::FindManyP<anab::Calorimetry> findCalorimetry(recoTracks,evt,caloModule);
+    std::vector<art::Ptr<anab::Calorimetry>> theseCalos = findCalorimetry.at(track.ID());
+
+    for( auto calo : theseCalos){
+      caloInfo.push_back(*calo);
+    }
+  }
+  catch(...){
+    std::cerr << "No calorimetry object found... returning empty vector" << std::endl;
+  }
+
+  return caloInfo;
+}
+
+
+
+
+

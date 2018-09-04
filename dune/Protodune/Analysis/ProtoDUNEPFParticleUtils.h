@@ -12,6 +12,8 @@
 #include <string>
 
 #include "lardataobj/RecoBase/PFParticle.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
@@ -83,6 +85,18 @@ namespace protoana {
 
     /// Get the shower associated to this particle. Returns a null pointer if not found.
     const recob::Shower* GetPFParticleShower(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const;
+
+    // Get the SpacePoints associated to the PFParticle
+    const std::vector<const recob::SpacePoint*> GetPFParticleSpacePoints(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get the number of space points
+    unsigned int GetNumberPFParticleSpacePoints(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const; 
+
+    /// Get the hits associated to the PFParticle
+    const std::vector<const recob::Hit*> GetPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get the number of hits
+    unsigned int GetNumberPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const; 
 
   private:
 
