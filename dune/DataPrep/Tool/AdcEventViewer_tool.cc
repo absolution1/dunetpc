@@ -201,8 +201,12 @@ void AdcEventViewer::printReport() const {
 //**********************************************************************
 
 void AdcEventViewer::displayHists() const {
-  const string myname = "AdcEventViewer::printReport: ";
+  const string myname = "AdcEventViewer::displayHists: ";
   string sttlSuf = " for run " + to_string(state().run);
+  Index nplt = state().hists.size();
+  if ( m_LogLevel >= 1 ) cout << myname << "Creating " << nplt << " plot"
+                              << (nplt == 1 ? "" : "s") << sttlSuf
+                              << (nplt > 0 ? ":" : "") << endl;
   Index nevt = state().eventSet.size();
   if ( nevt == 0 ) sttlSuf += " with no events.";
   else if ( nevt == 1 ) sttlSuf += " event " + to_string(*state().eventSet.begin());
@@ -217,6 +221,7 @@ void AdcEventViewer::displayHists() const {
     man.showOverflow();
     man.addAxis();
     man.print(fname);
+    if ( m_LogLevel >= 1 ) cout << myname << "  " << fname << endl;
   }
 }
 
