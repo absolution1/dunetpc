@@ -338,6 +338,7 @@ void AdcEventViewer::displayGraphs() const {
   Index nevt = state().eventSet.size();
   if ( nevt == 0 ) sttlSuf += " with no events.";
   else if ( nevt == 1 ) sttlSuf += " event " + to_string(*state().eventSet.begin());
+  else sttlSuf += " events " + to_string(*state().eventSet.begin()) + "-" + to_string(*state().eventSet.rbegin());
   for ( GraphInfo& gin : state().graphs ) {
     if ( m_LogLevel >= 1 ) cout << myname << "Creating graph of " << gin.vary << " vs. " << gin.varx << endl;
     Index npt = gin.xvals.size();
@@ -369,6 +370,7 @@ void AdcEventViewer::displayGraphs() const {
     if ( gin.xmax > gin.xmin ) ssfname << "-" << gin.xmin << "-" << gin.xmax;
     ssfname << "_" << gin.vary;
     if ( gin.ymax > gin.ymin ) ssfname << "-" << gin.ymin << "-" << gin.ymax;
+    ssfname << "_run" << state().run;
     ssfname << ".png";
     Name fname = ssfname.str();
     man.print(fname);
