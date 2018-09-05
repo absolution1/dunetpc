@@ -8,6 +8,7 @@
 // Leigh Whitehead - leigh.howard.whitehead@cern.ch
 ///////////////////////////////////////////////////////////////
 
+#include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
@@ -30,7 +31,10 @@ namespace protoana {
     std::vector<anab::T0> GetRecoTrackT0(const recob::Track &track, art::Event const &evt, std::string trackModule) const;
     /// Get the Calorimetry(s) from a given reco track
     std::vector<anab::Calorimetry> GetRecoTrackCalorimetry(const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule) const;
-
+    /// Get the hits from a given reco track
+    const std::vector<const recob::Hit*> GetRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const;
+    /// Get the number of hits from a given reco track
+    unsigned int GetNumberRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const;
   private:
 
 
