@@ -31,6 +31,7 @@
 #include "lardataobj/AnalysisBase/T0.h"
 
 #include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNEShowerUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
 
@@ -107,6 +108,8 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
 
   // Track utility
   protoana::ProtoDUNETrackUtils trackUtil;
+  // Shower utility
+  protoana::ProtoDUNEShowerUtils showerUtil;
 
   unsigned int nTracksWithTruth = 0;
   unsigned int nTracksWithT0    = 0;
@@ -200,6 +203,10 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
         const TVector3 sec = pfpUtil.GetPFParticleSecondaryVertex(*prim,evt,fTrackerTag,fPFParticleTag);
         std::cout << "Beam particle interaction vertex: " << std::endl;
         sec.Print();
+        std::cout << "PFParticle track has " << trackUtil.GetNumberRecoTrackHits(*(pfpUtil.GetPFParticleTrack(*prim,evt,fPFParticleTag,fTrackerTag)),evt,fTrackerTag) << " hits" << std::endl;
+      }
+      else{
+        std::cout << "PFParticle shower has " << showerUtil.GetNumberRecoShowerHits(*(pfpUtil.GetPFParticleShower(*prim,evt,fPFParticleTag,fShowerTag)),evt,fShowerTag) << " hits" << std::endl;
       }
 
       std::cout << "Beam particle has " << pfpUtil.GetNumberPFParticleHits(*prim,evt,fPFParticleTag) << " hits and " 

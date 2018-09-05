@@ -80,7 +80,30 @@ std::vector<anab::Calorimetry> protoana::ProtoDUNETrackUtils::GetRecoTrackCalori
   return caloInfo;
 }
 
+// Get the hits from a given reco track
+const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const{
 
+  auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
+  art::FindManyP<recob::Hit> findHits(recoTracks,evt,trackModule);
+  std::vector<art::Ptr<recob::Hit>> inputHits = findHits.at(track.ID());
 
+  std::vector<const recob::Hit*> trackHits;
+
+  for(const art::Ptr<recob::Hit> hit : inputHits){
+
+    trackHits.push_back(hit.get());
+
+  }
+
+  return trackHits;  
+
+}
+
+// Get the hits from a given reco track
+unsigned int protoana::ProtoDUNETrackUtils::GetNumberRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const{
+
+  return GetRecoTrackHits(track,evt,trackModule).size();
+
+}
 
 
