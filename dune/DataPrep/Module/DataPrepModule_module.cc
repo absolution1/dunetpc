@@ -220,9 +220,7 @@ void DataPrepModule::produce(art::Event& evt) {
 
   // Read the raw digit status.
   art::Handle<std::vector<raw::RDStatus>> hrdstats;
-  //try {
-  //  evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
-  //} catch(...) { }
+  evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
   string srdstat;
   bool skipEvent = skipAllEvents;
   if ( ! hrdstats.isValid() || hrdstats->size() == 0 ) {
