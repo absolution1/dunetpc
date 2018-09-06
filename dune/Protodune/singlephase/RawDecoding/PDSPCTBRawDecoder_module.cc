@@ -82,6 +82,12 @@ PDSPCTBRawDecoder::PDSPCTBRawDecoder(fhicl::ParameterSet const & p)
 void PDSPCTBRawDecoder::produce(art::Event & evt)
 {
 
+  fTrigs.clear();
+  fChStats.clear();
+  fFeedbacks.clear();
+  fMiscs.clear();
+  fWordIndexes.clear();
+
   // look first for container fragments and then non-container fragments
 
   std::vector<raw::ctb::pdspctb> pdspctbs;
@@ -148,12 +154,6 @@ void PDSPCTBRawDecoder::produce(art::Event & evt)
   pdspctbs.push_back(ctbdp);  // just one for now
   evt.put(std::make_unique<std::vector<raw::ctb::pdspctb>>(std::move(pdspctbs)),fOutputLabel);
 
-  fTrigs.clear();
-  fChStats.clear();
-  fFeedbacks.clear();
-  fMiscs.clear();
-  fWordIndexes.clear();
-
 }
 
 void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
@@ -164,6 +164,7 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 
   for (size_t iword = 0; iword < ctbfrag.NWords(); ++iword)
     {
+      size_t ix=0;
       uint32_t wt=0;
       if (ctbfrag.Trigger(iword))
 	{
@@ -172,6 +173,7 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 	  wt = tstruct.word_type;
 	  tstruct.trigger_word = ctbfrag.Trigger(iword)->trigger_word;
 	  tstruct.timestamp = ctbfrag.Trigger(iword)->timestamp;
+	  ix = fTrigs.size();
 	  fTrigs.push_back(tstruct);
 	}
       else if (ctbfrag.ChStatus(iword))
@@ -184,6 +186,7 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 	  cstruct.beam_hi = ctbfrag.ChStatus(iword)->beam_hi;
 	  cstruct.beam_lo = ctbfrag.ChStatus(iword)->beam_lo;
 	  cstruct.timestamp = ctbfrag.ChStatus(iword)->timestamp;
+	  ix = fChStats.size();
 	  fChStats.push_back(cstruct);
 	}
       else if (ctbfrag.Feedback(iword))
@@ -195,6 +198,7 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 	  fstruct.source = ctbfrag.Feedback(iword)->source;
 	  fstruct.code = ctbfrag.Feedback(iword)->code;
 	  fstruct.timestamp = ctbfrag.Feedback(iword)->timestamp;
+	  ix = fFeedbacks.size();
 	  fFeedbacks.push_back(fstruct);
 	}
       else
@@ -204,12 +208,13 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 	  wt = mstruct.word_type;
 	  mstruct.payload = ctbfrag.Word(iword)->payload;
 	  mstruct.timestamp = ctbfrag.Word(iword)->timestamp;
+	  ix = fMiscs.size();
 	  fMiscs.push_back(mstruct);
 	}
 
       raw::ctb::WordIndex wstruct;
       wstruct.word_type = wt;
-      wstruct.index = iword;
+      wstruct.index = ix;
       fWordIndexes.push_back(wstruct);
 
     }
