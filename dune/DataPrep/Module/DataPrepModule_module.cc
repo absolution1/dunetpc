@@ -220,10 +220,12 @@ void DataPrepModule::produce(art::Event& evt) {
 
   // Read the raw digit status.
   art::Handle<std::vector<raw::RDStatus>> hrdstats;
-  evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
+  //try {
+  //  evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
+  //} catch(...) { }
   string srdstat;
   bool skipEvent = skipAllEvents;
-  if ( hrdstats->size() == 0 ) {
+  if ( ! hrdstats.isValid() || hrdstats->size() == 0 ) {
     cout << myname << "WARNING: Raw data status not found." << endl;
   } else {
     if ( hrdstats->size() > 1 ) {
