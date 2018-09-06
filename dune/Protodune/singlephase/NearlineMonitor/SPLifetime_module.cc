@@ -30,6 +30,8 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 
 //#include "larsim/MCCheater/BackTracker.h"
 
@@ -75,6 +77,7 @@ private:
   int lastRun;
   int fDebugCluster;
   std::string fInFilename;
+  bool fIsRealData;
   double bigLifeInv[12];
   double bigLifeInvErr[12];
   double bigLifeInvCnt[12];
@@ -100,7 +103,9 @@ private:
 nlana::SPLifetime::SPLifetime(fhicl::ParameterSet const & pset)
   :
   EDAnalyzer(pset),
-  fInFilename("NoInFilenameFound")
+  fInFilename("NoInFilenameFound"),
+  fIsRealData(true)
+
  // More initializers here.
 {
   reconfigure(pset);
@@ -197,12 +202,27 @@ void nlana::SPLifetime::endJob()
   std::string imageFileName;
   // Try to get rid of directory and .root extension
   std::string infilenameStripped = fInFilename;
-  size_t slashPos = infilenameStripped.find_last_of("/");
-  if (slashPos != std::string::npos)
+  if (fIsRealData)
   {
-    infilenameStripped = infilenameStripped.substr(slashPos+1,std::string::npos); // get rid of directory
+    size_t slashPos = infilenameStripped.find_last_of("/");
+    if (slashPos != std::string::npos)
+    {
+      infilenameStripped = infilenameStripped.substr(slashPos+1,std::string::npos); // get rid of directory
+    }
+    infilenameStripped = infilenameStripped.substr(0, infilenameStripped.find_last_of(".")); // get rid of .root
   }
-  infilenameStripped = infilenameStripped.substr(0, infilenameStripped.find_last_of(".")); // get rid of .root
+  else
+  {
+    // "run": "run003907_0001_dl05",
+    std::stringstream infilenamefake;
+    infilenamefake << "run";
+    infilenamefake << std::setfill('0') << std::setw(6) << lastRun;
+    infilenamefake << std::setw(0) << '_';
+    infilenamefake << std::setw(4) << 1;
+    infilenamefake << std::setw(0) << "_dl";
+    infilenamefake << std::setw(2) << 5;
+    infilenameStripped = infilenamefake.str();
+  }
 
   // summary json file
   std::ofstream summaryfile;
@@ -254,6 +274,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
 //  int event  = evt.id().event(); 
   int run    = evt.run();
 //  int subrun = evt.subRun();
+  fIsRealData = evt.isRealData();
   
   if(lastRun < 0) lastRun = run;
   
@@ -439,16 +460,19 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   } // icl
   
   std::vector<std::pair<unsigned int, float>> chanPedRMS;
+//  std::cout << "n wire data: "<<wireVecHandle->size() << std::endl;
   for(unsigned int witer = 0; witer < wireVecHandle->size(); ++witer) {
     art::Ptr<recob::Wire> thisWire(wireVecHandle, witer);
     const recob::Wire::RegionsOfInterest_t& signalROI = thisWire->SignalROI();
     for(const auto& range : signalROI.get_ranges()) {
       const std::vector<float>& signal = range.data();
+//      std::cout << "channel: "<<thisWire->Channel()<<" range begin: " << range.begin_index() << " range size: "<<range.size()<<"signal length: " << signal.size() << std::endl;
       if(signal.size() != 1) continue;
       // protect against unrealistic values
       float rms = signal[0];
       if(rms < 0.001) rms = 0.001;
       chanPedRMS.push_back(std::make_pair(thisWire->Channel(), rms));
+//      std::cout << "channel: "<<thisWire->Channel()<<" rms: " << rms << std::endl;
     }
   }// witer
 
