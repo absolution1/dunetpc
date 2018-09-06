@@ -117,8 +117,8 @@ ctb_raw_decoder:
 {
   module_type: "PDSPCTBRawDecoder"
   InputLabel: "daq"
-  InputContainerInstance: "ContainerTRIGGER"
-  InputNonContainerInstance: "TRIGGER"
+  InputContainerInstance: "ContainerCTB"
+  InputNonContainerInstance: "CTB"
   OutputLabel: "daq"
 }
 

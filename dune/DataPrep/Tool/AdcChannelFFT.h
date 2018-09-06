@@ -5,8 +5,21 @@
 //
 // Tool to perform FFT of the prepared data in an ADC channel data map.
 //
+// For AdcChannelData acd, the waveform (WF) is held in acd.samples, the DFT magnitudes
+// in acd.dftmags and DFT phases in acd.fftphases. For a WF of length N, the length of the
+// magnitudes vector is (N+2)/2 and the length of the phases is (N+1)/2, i.e. the same for
+// N odd and one less for N even. I.e. N = N_mag + N_phase - 1. The first entry in the phase
+// vector is always zero or pi. The magnitudes are all positive except, when N is even, there
+// the last (Nyquist) magnitude is signed because there is no corresponding phase.
+//
 // The DFT magnitudes are stored in a float vector of lenght NMag normalized
 // so that the relative power for each term is the square of its value.
+// I.e. the DFT magnitudes only extend up to the Nyquist frequency and are normalized to
+// include the power for all alias (e.g. folded) frequencies. To convert to a complex array
+// of nsam terms all but the first and Nyquiset (last only for even # samples) must be scaled
+// by 1/sqrt(2).
+//
+// The DFT phases
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
@@ -30,12 +43,6 @@
 //            13 - Evaluate WF and save result
 //            14 - Evaluate WF if it is not already present and save result.
 //   ReturnOpt - Controls how much data is written to the returned data map (see below)
-//
-// For input data acd, the waveform (WF) is held in acd.samples and the DFT magnitudes
-// in acd.dftmags and phases in acd.fftphases. For WF of length N, the length of the
-// magnitudes vector is (N+2)/2 and the length of the phases is (N+1)/2, i.e. the same for
-// N odd and one less for N even. I.e. N = N_mag + N_phase - 1. The first entry in the phase
-// vector is always zero or pi.
 //
 // Only consistent results can be saved. I.e. FirstTick must be zero and Ntick zero
 // or the same size as samples.
@@ -83,7 +90,8 @@ public:
   // They could be moved to a utility class.
   int fftForward(Index normOpt, Index ntick, const float* psam,
                  FloatVector& xres, FloatVector& xims, FloatVector& mags, FloatVector& phases) const;
-  int fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases, FloatVector& sams) const;
+  int fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
+                 FloatVector& xres, FloatVector& xims, FloatVector& sams) const;
 
   // This does all the work of view:
   //   deciding what action to take

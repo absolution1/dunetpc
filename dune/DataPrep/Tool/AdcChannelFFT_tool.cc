@@ -4,13 +4,17 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 #include "TVirtualFFT.h"
+#include "TComplex.h"
 
 using std::string;
 using std::cout;
 using std::cin;
 using std::endl;
 using std::vector;
+using std::setw;
+using std::fixed;
 
 //**********************************************************************
 // Class methods.
@@ -30,6 +34,7 @@ AdcChannelFFT::AdcChannelFFT(fhicl::ParameterSet const& ps)
     cout << myname << "           FirstTick: " << m_FirstTick << endl;
     cout << myname << "               NTick: " << m_NTick << endl;
     cout << myname << "             NormOpt: " << m_NormOpt << endl;
+    cout << myname << "              Action: " << m_Action << endl;
     cout << myname << "           ReturnOpt: " << m_ReturnOpt << endl;
   }
 }
@@ -63,6 +68,12 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
       acd.dftphases = phas;
     }
   }
+  if ( m_Action == 13 || m_Action == 14 ) {
+    if ( sams.size() ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Saving samples." << endl;
+      acd.samples = sams;
+    }
+  }
   return ret;
 }
 
@@ -83,10 +94,10 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xmgs, Fl
     }
   } else if ( m_Action >= 10  && m_Action <= 14 ) {
     if ( m_Action != 10 ) {
-      if ( m_Action == 2 || m_Action == 4 ) {
-        doForward = acd.dftmags.size() == 0;
+      if ( m_Action == 12 || m_Action == 14 ) {
+        doInverse = acd.samples.size() == 0;
       } else {
-        doForward = true;
+        doInverse = true;
       }
     }
   } else {
@@ -113,9 +124,13 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xmgs, Fl
       return;
     }
   } else if ( doInverse ) {
-    cout << myname << "Inverse transform is not yet supported." << endl;
-    ret.setStatus(2);
-    return;
+    int rstat = fftInverse(m_NormOpt, acd.dftmags, acd.dftphases, xres, xims, sams);
+    xmgs = acd.dftmags;
+    xphs = acd.dftphases;
+    if ( rstat ) {
+      ret.setStatus(20+rstat);
+      return;
+    }
   }
   if ( m_ReturnOpt >= 1 ) {
     ret.setInt("fftTick0", isam0);
@@ -161,15 +176,33 @@ fftForward(Index normOpt, Index nsam, const float* psam,
   xims.resize(nsam);
   mags.resize(nmag);
   phases.resize(npha);
-  for ( Index ixsm=0; ixsm<nsam; ++ixsm ) {
-    pfft->GetPointComplex(ixsm, xre, xim);
+  // Loop over the complex samples.
+  vector<double> xres2(nsam, 9.99);
+  vector<double> xims2(nsam, 9.99);
+  pfft->GetPointsComplex(&xres2[0], &xims2[0]);
+  for ( Index iptc=0; iptc<nsam; ++iptc ) {
+    pfft->GetPointComplex(iptc, xre, xim);
     double xmg = sqrt(xre*xre + xim*xim);
     double xph = atan2(xim, xre);
-    xres[ixsm] = xre;
-    xims[ixsm] = xim;
-    if ( ixsm < nmag ) mags[ixsm] = xmg;
-    if ( ixsm < npha ) phases[ixsm] = xph;
-    if ( m_LogLevel >= 2 ) cout << myname << ixsm << ": (" << xre << ", " << xim << "): " << xmg << " @ " << xph << endl;
+    xres[iptc] = xre;
+    xims[iptc] = xim;
+    if ( iptc < npha ) {
+      mags[iptc] = xmg;
+      phases[iptc] = xph;
+    // For an even # samples (nmag = npha + 1), the Nyquist term is real.
+    } else if ( iptc < nmag ) {
+      mags[iptc] = xre;
+    }
+    if ( m_LogLevel >= 2 ) {
+      cout << myname << setw(4) << iptc << ": ("
+           << setw(10) << fixed << xre << ", "
+           << setw(10) << fixed << xim << "): "
+           << setw(10) << fixed << xmg << " @ "
+           << setw(10) << fixed << xph << endl;
+      cout << myname << "      ("
+           << setw(10) << fixed << xres2[iptc] << ", "
+           << setw(10) << fixed << xims2[iptc] << ")" << endl;
+    }
   }
   float nfac = 1.0;
   if ( m_NormOpt == 1 ) nfac = 1.0/sqrt(nsam);
@@ -189,8 +222,64 @@ fftForward(Index normOpt, Index nsam, const float* psam,
 //**********************************************************************
 
 int AdcChannelFFT::
-fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases, FloatVector& sams) const {
-  return 1;
+fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
+           FloatVector& xres, FloatVector& xims, FloatVector& sams) const {
+  const string myname = "AdcChannelFFT::fftInverse: ";
+  Index nmag = mags.size();
+  Index npha = phases.size();
+  if ( nmag == 0 || npha == 0 ) return 1;
+  if ( nmag < npha ) return 2;
+  if ( nmag - npha > 1 ) return 3;
+  Index nsam = nmag + npha - 1;
+  int nsamInt = nsam;
+  TVirtualFFT* pfft = TVirtualFFT::FFT(1, &nsamInt, "C2R");
+  xres.clear();
+  xims.clear();
+  xres.resize(nsam, 0.0);
+  xims.resize(nsam, 0.0);
+  for ( Index imag=0; imag<nmag; ++imag ) {
+    double mag = mags[imag];
+    if ( imag > 0 && imag != npha ) mag /= sqrt(2.0);
+    double pha = imag<npha ? phases[imag] : 0.0;
+    double xre = mag*cos(pha);
+    double xim = mag*sin(pha);
+    Index ifrq = imag;
+    xres[ifrq] = xre;
+    xims[ifrq] = xim;
+    if ( ifrq > 0 ) {
+      Index ifrq2 = nsam  - ifrq;
+      if ( ifrq2 > ifrq ) {
+        xres[ifrq2] = xre;
+        xims[ifrq2] = -xim;
+      }
+    }
+  }
+  vector<double> xdres(nsam, 0.0);
+  vector<double> xdims(nsam, 0.0);
+  for ( Index ifrq=0; ifrq<nsam; ++ifrq ) {
+    xdres[ifrq] = xres[ifrq];
+    xdims[ifrq] = xims[ifrq];
+  }
+  pfft->SetPointsComplex(&xdres[0], &xdims[0]);
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "Inverting" << endl;
+    cout << myname << "Frequency components:" << endl;
+    for ( Index ifrq=0; ifrq<nsam; ++ifrq ) {
+      //double xre, xim;
+      //pfft->GetPointComplex(ifrq, xre, xim, true);
+      double xre = xres[ifrq];
+      double xim = xims[ifrq];
+      cout << myname << setw(4) << ifrq << ": (" << setw(10) << fixed << xre
+           << ", " << setw(10) << fixed << xim << ")" << endl;
+    }
+  }
+  pfft->Transform();
+  sams.resize(nsam);
+  float nfac = 1.0;
+  if ( m_NormOpt == 1 ) nfac = 1.0/sqrt(nsam);
+  if ( m_NormOpt == 0 ) nfac = 1.0/nsam;
+  for ( Index isam=0; isam<nsam; ++isam ) sams[isam] = nfac*pfft->GetPointReal(isam);
+  return 0;
 }
 
 //**********************************************************************

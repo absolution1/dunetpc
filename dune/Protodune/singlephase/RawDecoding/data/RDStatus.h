@@ -28,9 +28,9 @@ namespace raw {
     fCorruptDataKept(corruptdatakept),
     fStatWord(statword) {};
 
-    bool GetCorruptDataDroppedFlag() { return fCorruptDataDropped; };
-    bool GetCorruptDataKeptFlag() { return fCorruptDataKept; };
-    unsigned int GetStatWord() { return fStatWord; };
+    bool GetCorruptDataDroppedFlag() const { return fCorruptDataDropped; };
+    bool GetCorruptDataKeptFlag() const { return fCorruptDataKept; };
+    unsigned int GetStatWord() const { return fStatWord; };
 
   private:
 

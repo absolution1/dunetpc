@@ -206,7 +206,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     }
   }
   evt.put(std::make_unique<decltype(rdtimestamps)>(std::move(rdtimestamps)), fOutputDataLabel);
-  std::cout<<std::endl;
+  //std::cout<<std::endl;
 }
 
 DEFINE_ART_MODULE(dune::TimingRawDecoder)

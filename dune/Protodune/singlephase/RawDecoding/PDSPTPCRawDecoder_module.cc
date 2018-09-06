@@ -1058,7 +1058,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
     raw_digits.push_back(raw_digit);
 
-    raw::RDTimeStamp rdtimestamp(frag.timestamp());
+    raw::RDTimeStamp rdtimestamp(felix.timestamp());
     timestamps.push_back(rdtimestamp);
 
     //associate the raw digit and the timestamp data products
