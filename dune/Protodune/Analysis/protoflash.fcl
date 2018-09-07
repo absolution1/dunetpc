@@ -10,7 +10,7 @@ standard_protoflashana:
    SignalLabel:          "generator"
    CosmicLabel:          "cosmicgenerator"
    GeantLabel:           "largeant"
-   TrackLabel:           "pandoraTrack"
+   ParticleLabel:        "pandora"
 }
 
 END_PROLOG

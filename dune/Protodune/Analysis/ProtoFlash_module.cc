@@ -19,7 +19,7 @@
 // LArSoft includes
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/OpHit.h"
-#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "larsim/MCCheater/PhotonBackTrackerService.h"
@@ -69,7 +69,7 @@ namespace protoana {
     std::string fSignalLabel;              // Input tag for the signal generator label
     std::string fCosmicLabel;              // Input tag for the cosmic generator label
     std::string fGeantLabel;               // Input tag for GEANT
-    std::string fTrackLabel;               // Input tag for track reconstruction
+    std::string fParticleLabel;            // Input tag for particle reconstruction
    
     TH1D *hFlashToTrueTime;
     TH1D *hFlashPurity;
@@ -99,7 +99,7 @@ namespace protoana {
     fSignalLabel        = pset.get<std::string>("SignalLabel");
     fCosmicLabel        = pset.get<std::string>("CosmicLabel");
     fGeantLabel         = pset.get<std::string>("GeantLabel");
-    fTrackLabel         = pset.get<std::string>("TrackLabel");
+    fParticleLabel      = pset.get<std::string>("ParticleLabel");
 
     art::ServiceHandle< art::TFileService > tfs;
 
@@ -130,9 +130,8 @@ namespace protoana {
 
     // Make sure we can use this on data and MC
     bool isMC = !(evt.isRealData());
+    isMC = false;
 
-    art::ServiceHandle<cheat::PhotonBackTrackerService> pbt;
-    
     // Get flashes from event
     art::Handle< std::vector< recob::OpFlash > > FlashHandle;
     std::vector<art::Ptr<recob::OpFlash> > flashlist;
@@ -184,6 +183,8 @@ namespace protoana {
 
       // Truth level code
       if(isMC){
+        art::ServiceHandle<cheat::PhotonBackTrackerService> pbt;
+    
         // Get the best match in time, then check how much of the light comes from
         // the best matched particle      
         int bestMatch = 0;
@@ -219,22 +220,26 @@ namespace protoana {
       }
     } // End loop over flashes
 
-    // Get reconstruction information from tracks with a measured T0
-    // Try finding some tracks
-    art::ValidHandle< std::vector<recob::Track> > trackHandle
-          = evt.getValidHandle<std::vector<recob::Track> >(fTrackLabel);
-    // Find the associations between tracks and T0
-    const art::FindManyP<anab::T0> findTrackT0(trackHandle,evt,fTrackLabel);
+    // Get reconstruction information from particles with a measured T0
+    // Try finding some particles
+    art::ValidHandle< std::vector<recob::PFParticle> > particleHandle
+          = evt.getValidHandle<std::vector<recob::PFParticle> >(fParticleLabel);
+    // Find the associations between particle and T0
+    const art::FindManyP<anab::T0> findParticleT0(particleHandle,evt,fParticleLabel);
 
-    for (size_t track_index = 0; track_index != trackHandle->size(); ++track_index )
-    {
-      const auto thisTrack = (*trackHandle)[track_index];
+    for (size_t p = 0; p != particleHandle->size(); ++p){
 
-      // Did this track have an associated T0?
-      auto const& t0s = findTrackT0.at(track_index);
+      const auto thisParticle = (*particleHandle)[p];
+
+      // Only consider primaries so we don't include deltas etc
+      if(!(thisParticle.IsPrimary())) continue;
+
+      // Did this particle have an associated T0?
+      auto const& t0s = findParticleT0.at(p);
       if(t0s.size() == 0) continue;
 
-      double recoT0 = t0s[0]->Time(); 
+      // Pandora gives us times in ns
+      double recoT0 = t0s[0]->Time() /  1000.; 
    
       int bestRecoMatch = 0;
       double minRecoTimeDiff = 1e20;
@@ -248,12 +253,12 @@ namespace protoana {
         }
       } 
 
-      std::cout << "Track " << track_index << " has a T0 = " << recoT0 << std::endl;
+      std::cout << "Particle " << p << " has a TPC T0 = " << recoT0 << std::endl;
 
       if(minRecoTimeDiff > 100){
-        std::cout << "No sensible reco match to flash " << track_index << std::endl;
+        std::cout << "No sensible reco match to flash " << p << std::endl;
       }
-      std::cout << "Best reco time matched particle " << bestRecoMatch << " has delta T = " << minRecoTimeDiff << std::endl;
+      std::cout << "Best matched flash " << bestRecoMatch << " has delta T = " << minRecoTimeDiff << std::endl;
 
       hFlashToRecoTime->Fill(recoT0 - flashMap[bestRecoMatch]);
       hFlashToRecoWide->Fill(recoT0 - flashMap[bestRecoMatch]);
