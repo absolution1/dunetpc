@@ -41,6 +41,7 @@ private:
     bool m_doFiltering;
 
     unsigned int m_downsampleFactor;
+    std::vector<short> m_filterTaps;
 };
 
 
@@ -52,7 +53,10 @@ TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet con
       m_signalKillNContig(p.get<short>("SignalKillNContig", 1)),
       m_frugalNContig(p.get<short>("FrugalPedestalNContig", 10)),
       m_doFiltering(p.get<bool>("DoFiltering", true)),
-      m_downsampleFactor(p.get<unsigned int>("DownsampleFactor", 1))
+      m_downsampleFactor(p.get<unsigned int>("DownsampleFactor", 1)),
+      // Default filter taps calculated by:
+      //  np.round(scipy.signal.firwin(7, 0.1)*100)
+      m_filterTaps(p.get<std::vector<short>>("FilterCoeffs", {2,  9, 23, 31, 23,  9,  2}))
 
 // Initialize member data here.
 {
@@ -70,11 +74,9 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
     // for(int i=0; i<10; ++i) std::cout << collection_samples[0][i] << " ";
     // std::cout << std::endl;
 
-    // Taps calculated by:
-    //  np.round(scipy.signal.firwin(7, 0.1)*100)
-    const size_t ntaps=7;
-    const short taps[ntaps]={2,  9, 23, 31, 23,  9,  2};
-    const int multiplier=100;
+    const size_t ntaps=m_filterTaps.size();
+    const short* taps=m_filterTaps.data();
+    const int multiplier=std::accumulate(m_filterTaps.begin(), m_filterTaps.end(), 0);
 
     for(size_t ich=0; ich<collection_samples.size(); ++ich){
         const std::vector<short>& waveformOrig=collection_samples[ich];
@@ -116,7 +118,7 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
         if(!m_doFiltering){
             std::transform(filtered.begin(), filtered.end(),
                            filtered.begin(), 
-                           [](short a) { return a*multiplier; });
+                           [=](short a) { return a*multiplier; });
         }
         // Print out the waveforms on one channel for debugging
 
