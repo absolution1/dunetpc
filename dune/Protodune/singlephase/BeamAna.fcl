@@ -13,7 +13,9 @@ proto_beamana:
   Devices:       []
   Coordinates:   [] 
   Dimension:     []
-  Prefix:        ""
+  XBPFPrefix:        ""
+  XTOFPrefix:        ""
+  XCETPrefix:        ""
   GlobalDetCoords: []
   DetRotation:     []
 }

@@ -63,16 +63,24 @@ public:
   void endJob() override;
   void endRun(art::Run & r) override;
   void endSubRun(art::SubRun & sr) override;
+
+
   std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);  
   void matchTriggers(beam::ProtoDUNEBeamEvent beamevt,double);
   void GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   void GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   double GetPosition(size_t, size_t);
   TVector3 TranslateDeviceToDetector(TVector3);
+ 
+  void  InitXBPFInfo(beam::ProtoDUNEBeamEvent *);
+  void  parseXBPF(uint64_t);
+  void  parsePairedXBPF(uint64_t);
 
-  void  parseDevices(uint64_t);
-  void  parsePairedDevices(uint64_t);
+  void  parseXTOF(uint64_t);
+  void  parseXCET(uint64_t);
 
+  void  InitXCETInfo(beam::ProtoDUNEBeamEvent *);
+  
 private:
   
   TTree * fOutTree;
@@ -108,7 +116,15 @@ private:
   TVector3 fGlobalDetCoords;
   std::array<double,3> fDetRotation;
   std::vector< double > fFiberDimension;
-  std::string fPrefix;
+  std::string fXBPFPrefix;
+  std::string fXTOFPrefix;
+  std::string fXCETPrefix;
+
+  std::string fTOF1;
+  std::string fTOF2;
+  
+  std::string fCKov1;
+  std::string fCKov2;
 
   std::map<std::string, size_t> deviceOrder;
   beam::ProtoDUNEBeamEvent * beamevt;
@@ -152,12 +168,12 @@ void proto::BeamAna::produce(art::Event & e)
     std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
     fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
   }
-
+/*
   size_t nDev = 0; 
 
 
   for(size_t id = 0; id < fDevices.size(); ++id){
-    std::cout << fPrefix + fDevices[id] << std::endl;
+    std::cout << fXBPFPrefix + fDevices[id] << std::endl;
     std::string name = fDevices[id];
     std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
     std::cout << "Rotated: " << fRotations[id][0] << " " << fRotations[id][1] << " " << fRotations[id][2] << std::endl;
@@ -169,7 +185,7 @@ void proto::BeamAna::produce(art::Event & e)
   for(size_t id = 0; id < fPairedDevices.size(); ++id){
 
     std::string name = fPairedDevices[id].first;
-    std::cout << fPrefix + name << std::endl;
+    std::cout << fXBPFPrefix + name << std::endl;
     std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
 
     deviceOrder[name] = nDev;
@@ -177,7 +193,7 @@ void proto::BeamAna::produce(art::Event & e)
     nDev++;
 
     name = fPairedDevices[id].second;
-    std::cout << fPrefix + name << std::endl;
+    std::cout << fXBPFPrefix + name << std::endl;
     std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
 
     deviceOrder[name] = nDev;
@@ -194,12 +210,18 @@ void proto::BeamAna::produce(art::Event & e)
   //Start getting beam event information
   beamevt = new beam::ProtoDUNEBeamEvent();
   beamevt->InitFBMs(nDev);
+*/
 
+  //Start getting beam event info
+  beamevt = new beam::ProtoDUNEBeamEvent();
+  InitXBPFInfo(beamevt);
 
   for(size_t it = 0; it < fMultipleTimes.size(); ++it){
     std::cout << "Time: " << fMultipleTimes[it] << std::endl;
-    parseDevices(fMultipleTimes[it]);
-    parsePairedDevices(fMultipleTimes[it]);
+  //  parseXBPF(fMultipleTimes[it]);
+  //  parsePairedXBPF(fMultipleTimes[it]);
+
+    parseXCET(fMultipleTimes[it]);
   }
 
 
@@ -284,13 +306,68 @@ void proto::BeamAna::produce(art::Event & e)
  std::cout << "Put" << std::endl;
 }
 
-void proto::BeamAna::parseDevices(uint64_t time){
+void proto::BeamAna::InitXBPFInfo(beam::ProtoDUNEBeamEvent * beamevt){
+ size_t nDev = 0; 
+
+  for(size_t id = 0; id < fDevices.size(); ++id){
+    std::cout << fXBPFPrefix + fDevices[id] << std::endl;
+    std::string name = fDevices[id];
+    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
+    std::cout << "Rotated: " << fRotations[id][0] << " " << fRotations[id][1] << " " << fRotations[id][2] << std::endl;
+    
+    deviceOrder[fDevices[id]] = nDev; 
+    nDev++;
+  }
+
+  for(size_t id = 0; id < fPairedDevices.size(); ++id){
+
+    std::string name = fPairedDevices[id].first;
+    std::cout << fXBPFPrefix + name << std::endl;
+    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
+
+    deviceOrder[name] = nDev;
+    std::cout << nDev << std::endl;
+    nDev++;
+
+    name = fPairedDevices[id].second;
+    std::cout << fXBPFPrefix + name << std::endl;
+    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
+
+    deviceOrder[name] = nDev;
+    std::cout << nDev << std::endl;
+    nDev++;
+  }
+
+  beamevt->InitFBMs(nDev);
+}
+
+void proto::BeamAna::parseXTOF(uint64_t time){
+  std::cout << "Getting TOF1 info: " << fTOF1 << std::endl;
+  std::vector<double> dataTOF1 = bfp->GetNamedVector(time, fXTOFPrefix + fTOF1 + ":countsTrig[]");
+  std::cout << "Size of countsTrig: " << dataTOF1.size(); 
+
+  std::cout << "Getting TOF2 info: " << fTOF2 << std::endl;
+  std::vector<double> dataTOF2 = bfp->GetNamedVector(time, fXTOFPrefix + fTOF2 + ":countsTrig[]");
+  std::cout << "Size of countsTrig: " << dataTOF2.size(); 
+}
+
+void proto::BeamAna::parseXCET(uint64_t time){
+  std::cout << "Getting CKov1 info: " << fCKov1 << std::endl;
+  std::vector<double> dataCKov1 = bfp->GetNamedVector(time, fXCETPrefix + fCKov1 + ":countsTrig");
+  std::cout << "countsTrig: " << dataCKov1[0] << std::endl; 
+
+  std::cout << "Getting CKov2 info: " << fCKov2 << std::endl;
+  std::vector<double> dataCKov2 = bfp->GetNamedVector(time, fXCETPrefix + fCKov2 + ":countsTrig");
+  std::cout << "countsTrig: " << dataCKov2[0] << std::endl; 
+}
+
+void proto::BeamAna::parseXBPF(uint64_t time){
   for(size_t d = 0; d < fDevices.size(); ++d){
     std::string name = fDevices[d];
     size_t iDevice = deviceOrder[name];
     std::cout <<"Device: " << name << std::endl;
-    std::vector<double> data = bfp->GetNamedVector(time, fPrefix + name + ":eventsData[]");
-    std::vector<double> counts = bfp->GetNamedVector(time, fPrefix + name + ":countsRecords[]");
+    std::vector<double> data = bfp->GetNamedVector(time, fXBPFPrefix + name + ":eventsData[]");
+    std::vector<double> counts = bfp->GetNamedVector(time, fXBPFPrefix + name + ":countsRecords[]");
     
 
     std::cout << "Data: " << data.size() << std::endl;
@@ -334,14 +411,15 @@ void proto::BeamAna::parseDevices(uint64_t time){
   
 }
 
-void proto::BeamAna::parsePairedDevices(uint64_t time){
+
+void proto::BeamAna::parsePairedXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedDevices.size(); ++d){
     std::string name = fPairedDevices[d].first;
     size_t iDevice = deviceOrder[name];
 
     std::cout <<"Device: " << name << " " << iDevice << std::endl;
-    std::vector<double> data = bfp->GetNamedVector(time, fPrefix + name + ":eventsData[]");
-    std::vector<double> counts = bfp->GetNamedVector(time, fPrefix + name + ":countsRecords[]");
+    std::vector<double> data = bfp->GetNamedVector(time, fXBPFPrefix + name + ":eventsData[]");
+    std::vector<double> counts = bfp->GetNamedVector(time, fXBPFPrefix + name + ":countsRecords[]");
   
 
     std::cout << "Data: " << data.size() << std::endl;
@@ -384,8 +462,8 @@ void proto::BeamAna::parsePairedDevices(uint64_t time){
     name = fPairedDevices[d].second;
     iDevice = deviceOrder[name];
     std::cout <<"Device: " << name << std::endl;
-    data = bfp->GetNamedVector(time, fPrefix + name + ":eventsData[]");
-    counts = bfp->GetNamedVector(time, fPrefix + name + ":countsRecords[]");
+    data = bfp->GetNamedVector(time, fXBPFPrefix + name + ":eventsData[]");
+    counts = bfp->GetNamedVector(time, fXBPFPrefix + name + ":countsRecords[]");
  
     std::cout << "Data: " << data.size() << std::endl;
     std::cout << "Counts: " << counts.size() << std::endl;
@@ -435,7 +513,7 @@ void proto::BeamAna::beginJob()
   
 
   fTOFHist = tfs->make<TH1F>("TOF","",100,0,100);
-  fCKovHist = tfs->make<TH1F>("Cer","",4,0,4);
+  fCKovHist = tfs->make<TH1F>("CKov","",4,0,4);
 
   fOutTree = tfs->make<TTree>("tree", "lines"); 
   theTrack = new recob::Track();
@@ -542,7 +620,18 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   //Deminsion of Fibers
   fFiberDimension = p.get< std::vector<double> >("Dimension");
 
-  fPrefix      = p.get<std::string>("Prefix");
+  
+  //XTOF devices 
+  fTOF1 = p.get< std::string >("TOF1");
+  fTOF2 = p.get< std::string >("TOF2");
+
+  fCKov1 = p.get< std::string >("CKov1");
+  fCKov2 = p.get< std::string >("CKov2");
+
+
+  fXBPFPrefix      = p.get<std::string>("XBPFPrefix");
+  fXTOFPrefix      = p.get<std::string>("XTOFPrefix");
+  fXCETPrefix      = p.get<std::string>("XCETPrefix");
   fDummyEventTime = p.get<double>("DummyEventTime");
 }
 
