@@ -8,6 +8,7 @@ proto_beamana:
   CSVFileName: ""
   BundleName: "DUNE_CERN_SEP2018"
   FixedTime: 1531988396  #100000  a non-zero value here forces all queries to use the same time
+  DummyEventTime: 1.5000e+08
   MultipleTimes: [] 
   Devices:       []
   Coordinates:   [] 

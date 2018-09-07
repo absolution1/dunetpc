@@ -22,8 +22,18 @@ source:
 {
   module_type: RootInput
   maxEvents: -1
-  fileNames: ["input_file.root"]
+  fileNames: ["/pnfs/dune/tape_backed/dunepro/mcc10/mc/full-reconstructed/02/04/87/92/mcc10_protodune_beam_p7GeV_cosmics_3ms_15_20171229T015257_merged0.root"]
 }
+
+#outputs:
+#{
+# out1:
+#  {
+#     module_type: RootOutput
+#        fileName:    "beam_ana.root" #default file name, can override from command line with -o or --output
+#    outputCommands: []
+#  }
+#}
 
 physics:
 {
@@ -32,16 +42,16 @@ physics:
   beamana:          @local::proto_beamana
  }
 
- ana:  [ beamana ]
+ reco:  [ beamana ]
+ #stream1: [ out1 ]
 
- trigger_paths:     [ ana ]
+ trigger_paths:     [ reco ]
+# end_paths:         [ out1 ]
 }
 
 #physics.producers.beamana.FixedTime:            1535414422    
-#physics.producers.beamana.FixedTime:             1535540435        
-physics.producers.beamana.FixedTime:             1536227564         
+physics.producers.beamana.FixedTime:             1535540435        
 #physics.producers.beamana.DummyEventTime:        1.1682e+08
-physics.producers.beamana.DummyEventTime:       1.50000e+08 
 physics.producers.beamana.Tolerance:           10000
 
 physics.producers.beamana.Devices:              ["XBPF022701","XBPF022702","XBPF022707","XBPF022708"]
@@ -93,43 +103,4 @@ physics.producers.beamana.Prefix:              "dip/acc/NORTH/NP04/BI/XBPF/"
 #,1531988452
 #,1531988466
 #,1531988481
-#,1531988495
-#,1531988510
-#,1531988524
-#,1531988538
-#,1531988553
-#,1531988567
-#,1531988582
-#,1531988596
-#,1531988610
-#,1531988625
-#,1531988639
-#,1531988654
-#,1531988668
-#,1531988682
-#,1531988697
-#,1531988711
-#,1531988726
-#,1531988740
-#,1531988754
-#,1531988769
-#,1531988783
-#,1531988798
-#,1531988812
-#,1531988826
-#,1531988841
-#,1531988855
-#,1531988870
-#,1531988884
-#,1531988898
-#,1531988913
-#,1531988927
-#,1531988942
-#,1531988956
-#,1531988970
-#,1531988985
-#,1531988999
-#,1531989014
-#,1531989028
-#,1531989042
 #,1531989057]

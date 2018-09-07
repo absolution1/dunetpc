@@ -121,6 +121,7 @@ proto::BeamAna::BeamAna(fhicl::ParameterSet const & p)
 //  EDProducer(p)  // ,
  // More initializers here.
 {
+  produces<beam::ProtoDUNEBeamEvent>();  
   this->reconfigure(p);
 }
 
