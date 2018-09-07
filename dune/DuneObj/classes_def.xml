@@ -62,5 +62,6 @@
  </class>
 
  <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
- <class name="art::Wrapper<beam::ProtoDUNEBeamEvent>" />
+ <class name="std::vector<beam::ProtoDUNEBeamEvent>"  />
+ <class name="art::Wrapper<std::vector<beam::ProtoDUNEBeamEvent> >" />
 </lcgdict>
