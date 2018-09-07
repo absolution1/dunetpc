@@ -18,6 +18,22 @@ protoana::ProtoDUNEPFParticleUtils::~ProtoDUNEPFParticleUtils(){
 
 }
 
+// Get the number of primary PFParticles
+unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPrimaryPFParticle(art::Event const &evt, const std::string particleLabel) const{
+
+  // Get the particles
+  auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+
+  unsigned int nPrimary = 0;
+  for(unsigned int p = 0; p < pfParticles->size(); ++p){
+    if(pfParticles->at(p).IsPrimary()){
+      ++nPrimary;
+    }
+  }
+
+  return nPrimary;
+}
+
 // Return a map of particles grouped by their reconstructed slice. Useful for finding slices with multiple particles
 std::map<unsigned int,std::vector<recob::PFParticle*>> protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const{
 
