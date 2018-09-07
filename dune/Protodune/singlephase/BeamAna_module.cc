@@ -260,6 +260,7 @@ void proto::BeamAna::produce(art::Event & e)
  std::cout << "Event stuff" << std::endl;
  std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
  beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
+ delete beamevt;
  std::cout << "Putting" << std::endl;
  e.put(std::move(beamData));
  std::cout << "Put" << std::endl;
