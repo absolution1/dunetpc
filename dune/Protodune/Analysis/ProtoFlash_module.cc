@@ -24,6 +24,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "larsim/MCCheater/PhotonBackTrackerService.h"
 #include "dune/OpticalDetector/OpFlashSort.h"
+#include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
 
 // ART includes.
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -224,8 +225,8 @@ namespace protoana {
     // Try finding some particles
     art::ValidHandle< std::vector<recob::PFParticle> > particleHandle
           = evt.getValidHandle<std::vector<recob::PFParticle> >(fParticleLabel);
-    // Find the associations between particle and T0
-    const art::FindManyP<anab::T0> findParticleT0(particleHandle,evt,fParticleLabel);
+
+    protoana::ProtoDUNEPFParticleUtils pfpUtil;
 
     for (size_t p = 0; p != particleHandle->size(); ++p){
 
@@ -235,11 +236,11 @@ namespace protoana {
       if(!(thisParticle.IsPrimary())) continue;
 
       // Did this particle have an associated T0?
-      auto const& t0s = findParticleT0.at(p);
+      std::vector<anab::T0> t0s = pfpUtil.GetPFParticleT0(thisParticle,evt,fParticleLabel);
       if(t0s.size() == 0) continue;
 
       // Pandora gives us times in ns
-      double recoT0 = t0s[0]->Time() /  1000.; 
+      double recoT0 = t0s[0].Time() /  1000.; 
    
       int bestRecoMatch = 0;
       double minRecoTimeDiff = 1e20;
