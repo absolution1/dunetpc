@@ -56,7 +56,8 @@
  <class name="sim::Chan_Phot"/>
  <class name="std::vector<sim::Chan_Phot>"/>
 
- <class name="beam::ProtoDUNEBeamEvent" ClassVersion="13" > 
+ <class name="beam::ProtoDUNEBeamEvent" ClassVersion="14" > 
+  <version ClassVersion="14" checksum="3572646403"/>
   <version ClassVersion="13" checksum="1473612469"/>
  </class>
 

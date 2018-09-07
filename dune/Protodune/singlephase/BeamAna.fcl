@@ -10,7 +10,7 @@ proto_beamana:
   FixedTime: 1531988396  #100000  a non-zero value here forces all queries to use the same time
   DummyEventTime: 1.5000e+08
   MultipleTimes: [] 
-  Devices:       []
+#  Devices:       []
   Coordinates:   [] 
   Dimension:     []
   XBPFPrefix:        ""
@@ -18,6 +18,21 @@ proto_beamana:
   XCETPrefix:        ""
   GlobalDetCoords: []
   DetRotation:     []
+
+  DeviceTypes:  [["XBPF022697","horiz"],
+                 ["XBPF022698","vert"],
+                 ["XBPF022701","horiz"],
+                 ["XBPF022702","horiz"],
+                 ["XBPF022707","horiz"],
+                 ["XBPF022708","vert"], 
+                 ["XBPF022716","horiz"],
+                 ["XBPF022717","vert"]]
+
+  PairedStraightDevices: [["XBPF022707", "XBPF022708"],
+                          ["XBPF022716", "XBPF022717"]]
+
+  PairedDevices:  [["XBPF022697","XBPF022698"]]
+  Devices:        ["XBPF022701","XBPF022702"]
 }
 
 END_PROLOG

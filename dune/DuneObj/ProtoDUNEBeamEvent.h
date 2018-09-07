@@ -42,16 +42,16 @@ namespace beam
       ProtoDUNEBeamEvent();
       ~ProtoDUNEBeamEvent();
 
-      void              InitFBMs(size_t);
+      void              InitFBMs(std::vector<std::string>);
       long long         GetT0(){ return t0; };
       
-      void              AddFBMTrigger(size_t, FBM); 
-      void              DecodeFibers(size_t, size_t);
-      double            DecodeFiberTime(size_t, size_t);
-      short             GetFiberStatus(size_t, size_t, size_t);
-      std::vector<short> GetActiveFibers(size_t, size_t);
-      long long         GetFiberTime(size_t, size_t); 
-      size_t            GetNFBMTriggers(size_t);
+      void              AddFBMTrigger(std::string, FBM); 
+      void              DecodeFibers(std::string, size_t);
+      double            DecodeFiberTime(std::string, size_t);
+      short             GetFiberStatus(std::string, size_t, size_t);
+      std::vector<short> GetActiveFibers(std::string, size_t);
+      long long         GetFiberTime(std::string, size_t); 
+      size_t            GetNFBMTriggers(std::string);
       std::bitset<32>   toBinary(double); 
 
       void              AddCKov0Trigger(CKov theCKov){ CKov0.push_back(theCKov); }; 
@@ -79,8 +79,8 @@ namespace beam
 
       //Set of FBMs
       //Indices: [Monitor in beam]['event' in monitor]
-      std::vector< std::vector < FBM > > fiberMonitors;
-//     std::map<std::string, std::vector< FBM > > fiberMonitors;
+//      std::vector< std::vector < FBM > > fiberMonitors;
+     std::map<std::string, std::vector< FBM > > fiberMonitors;
       size_t nFBMs;
 
       //Set of TOF detectors
@@ -98,69 +98,62 @@ namespace beam
 
 
   ////////////Fiber Monitor Access
-  inline void ProtoDUNEBeamEvent::AddFBMTrigger(size_t iMonitor, FBM theFBM){
-    if( (iMonitor > (nFBMs - 1) ) ){
-      std::cout << "Error FBM index out of range" << std::endl;
+  inline void ProtoDUNEBeamEvent::AddFBMTrigger(std::string FBMName, FBM theFBM){
+//    if( (FBMName > (nFBMs - 1) ) ){
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
+      std::cout << "Error FBM not found" << std::endl;
+//      for(size_t i = 0; i < fiberMonitors.find(FBMName); ++i){
+        
+      for(auto itF = fiberMonitors.begin(); itF != fiberMonitors.end(); ++itF){
+        std::cout << "\t" << itF->first << std::endl; 
+      }
       return;
     }
 
     //Check if it's the first time in the monitor. Replace dummy
-    if(fiberMonitors[iMonitor][0].ID == -1){
+    if(fiberMonitors[FBMName][0].ID == -1){
       std::cout << "Replacing dummy FBM" << std::endl;
-      std::vector<FBM>::iterator theIt = fiberMonitors[iMonitor].begin();
-      fiberMonitors[iMonitor].insert(theIt,theFBM);
-      fiberMonitors[iMonitor].pop_back();
+      std::vector<FBM>::iterator theIt = fiberMonitors[FBMName].begin();
+      fiberMonitors[FBMName].insert(theIt,theFBM);
+      fiberMonitors[FBMName].pop_back();
     }
     else{
-      fiberMonitors[iMonitor].push_back(theFBM);
+      fiberMonitors[FBMName].push_back(theFBM);
     }
   }
 
-/* inline void ProtoDUNEBeamEvent::AddFBMTrigger(std::string FBMName, FBM theFBM){
-    
-    if(!fiberMonitors.count(FBMName)){
-      std::cout << "Initializing FBM vector" << std::endl;
-      //fiberMonitors[FBMName] = std::vector< FBM >();     
-      fiberMonitors.insert(std::map<std::string, std::vector<FBM> >::value_type(FBMName, std::vector<FBM>() )); 
-      std::cout << "Done" << std::endl;
-    }
-//    std::cout << "Size: " << fiberMonitors[FBMName].size() << std::endl;
-    fiberMonitors[FBMName].push_back(theFBM);
-    std::cout << "Added" << std::endl;
-  }*/
-
-  inline void ProtoDUNEBeamEvent::DecodeFibers(size_t iMonitor, size_t nTrigger){
-    if( (iMonitor > (fiberMonitors.size() -1) ) ){
+  inline void ProtoDUNEBeamEvent::DecodeFibers(std::string FBMName, size_t nTrigger){
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return;
     }
-    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
-      std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
+    if( (nTrigger > fiberMonitors[FBMName].size()) ){
+      std::cout << "Please input trigger in range [0," << fiberMonitors[FBMName].size() - 1 << "]" << std::endl;
       return;
     }
     
     for(int iSet = 0; iSet < 6; ++iSet){
       
-      std::bitset<32> theseFibers = toBinary( fiberMonitors[iMonitor][nTrigger].fiberData[iSet] );
+      std::bitset<32> theseFibers = toBinary( fiberMonitors[FBMName][nTrigger].fiberData[iSet] );
 
       for(int  iFiber = 0; iFiber < 32; ++iFiber){      
-        fiberMonitors[iMonitor][nTrigger].fibers[iSet*32 + iFiber] = theseFibers[iFiber];
+        fiberMonitors[FBMName][nTrigger].fibers[iSet*32 + iFiber] = theseFibers[iFiber];
       }
     }
   }
 
-  inline double ProtoDUNEBeamEvent::DecodeFiberTime(size_t iMonitor, size_t nTrigger){
-    if( (iMonitor > (fiberMonitors.size() -1) ) ){
+  inline double ProtoDUNEBeamEvent::DecodeFiberTime(std::string FBMName, size_t nTrigger){
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1.;
     }
-    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
-      std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
+    if( (nTrigger > fiberMonitors[FBMName].size()) ){
+      std::cout << "Please input trigger in range [0," << fiberMonitors[FBMName].size() - 1 << "]" << std::endl;
       return -1.;
     }
 
     //FOR NOW JUST RETURN THE TRIGGER
-    return fiberMonitors[iMonitor][nTrigger].timeData[0];
+    return fiberMonitors[FBMName][nTrigger].timeData[0];
   }
 
   inline std::bitset<32> ProtoDUNEBeamEvent::toBinary(double num){
@@ -176,8 +169,8 @@ namespace beam
   }
 
 
-  inline short ProtoDUNEBeamEvent::GetFiberStatus(size_t iMonitor, size_t nTrigger, size_t iFiber){
-    if( (iMonitor > (fiberMonitors.size() - 1)) ){
+  inline short ProtoDUNEBeamEvent::GetFiberStatus(std::string FBMName, size_t nTrigger, size_t iFiber){
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
     }
@@ -185,50 +178,50 @@ namespace beam
       std::cout << "Please input fiber in range [0,191]" << std::endl;
       return -1;
     }
-    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
-      std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
+    if( (nTrigger > fiberMonitors[FBMName].size()) ){
+      std::cout << "Please input trigger in range [0," << fiberMonitors[FBMName].size() - 1 << "]" << std::endl;
       return -1;
     }
-    return fiberMonitors[iMonitor][nTrigger].fibers[iFiber];
+    return fiberMonitors[FBMName][nTrigger].fibers[iFiber];
   }
 
-  inline std::vector<short> ProtoDUNEBeamEvent::GetActiveFibers(size_t iMonitor, size_t nTrigger){
+  inline std::vector<short> ProtoDUNEBeamEvent::GetActiveFibers(std::string FBMName, size_t nTrigger){
     std::vector<short> active;
 
-    if( (iMonitor > (fiberMonitors.size() - 1)) ){
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return active;          
     }
-    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
-      std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
+    if( (nTrigger > fiberMonitors[FBMName].size()) ){
+      std::cout << "Please input trigger in range [0," << fiberMonitors[FBMName].size() - 1 << "]" << std::endl;
       return active;
     }
     
     for(size_t iF = 0; iF < 192; ++iF){
-      if(fiberMonitors[iMonitor][nTrigger].fibers[iF]) active.push_back(iF); 
+      if(fiberMonitors[FBMName][nTrigger].fibers[iF]) active.push_back(iF); 
     }
 
     return active;
   }
 
-  inline long long ProtoDUNEBeamEvent::GetFiberTime(size_t iMonitor, size_t nTrigger){
-    if(iMonitor > fiberMonitors.size() - 1){
+  inline long long ProtoDUNEBeamEvent::GetFiberTime(std::string FBMName, size_t nTrigger){
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
     }
-    if( (nTrigger > fiberMonitors[iMonitor].size()) ){
-      std::cout << "Please input trigger in range [0," << fiberMonitors[iMonitor].size() - 1 << "]" << std::endl;
+    if( (nTrigger > fiberMonitors[FBMName].size()) ){
+      std::cout << "Please input trigger in range [0," << fiberMonitors[FBMName].size() - 1 << "]" << std::endl;
       return -1;
     }
-    return fiberMonitors[iMonitor][nTrigger].timeStamp;
+    return fiberMonitors[FBMName][nTrigger].timeStamp;
   }
 
-  inline size_t ProtoDUNEBeamEvent::GetNFBMTriggers(size_t iMonitor){
-    if( (iMonitor > (fiberMonitors.size() - 1)) ){
+  inline size_t ProtoDUNEBeamEvent::GetNFBMTriggers(std::string FBMName){
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
     }
-    return fiberMonitors[iMonitor].size();
+    return fiberMonitors[FBMName].size();
   }
   
   /////////////////////////////////

@@ -55,41 +55,48 @@ physics:
 #physics.producers.beamana.DummyEventTime:        1.1682e+08
 physics.producers.beamana.Tolerance:           10000
 
-physics.producers.beamana.Devices:              ["XBPF022701","XBPF022702","XBPF022707","XBPF022708"]
+#physics.producers.beamana.Devices:              ["XBPF022701","XBPF022702","XBPF022707","XBPF022708"]
 
-physics.producers.beamana.PairedDevices:       [["XBPF022697", "XBPF022698"],
-                                                ["XBPF022716", "XBPF022717"]]
+#physics.producers.beamana.PairedDevices:       [["XBPF022697", "XBPF022698"],
+#                                                ["XBPF022716", "XBPF022717"]]
                                                
-physics.producers.beamana.DeviceTypes:         [["XBPF022697","vert"],
-                                                ["XBPF022698","horiz"],
-                                                ["XBPF022701","vert"],
-                                                ["XBPF022702","horiz"],
-                                                ["XBPF022707","vert"],
-                                                ["XBPF022708","horiz"], 
-                                                ["XBPF022716","vert"],
-                                                ["XBPF022717","horiz"]]
+#physics.producers.beamana.DeviceTypes:         [["XBPF022697","vert"],
+#                                                ["XBPF022698","horiz"],
+#                                                ["XBPF022701","vert"],
+#                                                ["XBPF022702","horiz"],
+#                                                ["XBPF022707","vert"],
+#                                                ["XBPF022708","horiz"], 
+#                                                ["XBPF022716","vert"],
+#                                                ["XBPF022717","horiz"]]
 
 
 physics.producers.beamana.Coordinates:         [["XBPF022697",[0,0,0]],
                                                 ["XBPF022698",[0,0,0]],
                                                 ["XBPF022701",[0,0,1]],
+                                                ["XBPF022702",[0,0,2]],
+                                                ["XBPF022707",[-27.173, 421.445, -600]],
+                                                ["XBPF022708",[-27.173, 421.445, -600]],
+                                                ["XBPF022716",[-27.173, 421.445, -800]],
+                                                ["XBPF022717",[-27.173, 421.445, -800]]]
+
+physics.producers.beamana.Rotations:           [["XBPF022697",[0,0,1]],
+                                                ["XBPF022698",[0,0,1]],
+                                                ["XBPF022701",[0,0,1]],
                                                 ["XBPF022702",[0,0,1]],
-                                                ["XBPF022707",[0,0,2]],
-                                                ["XBPF022708",[0,0,2]],
-                                                ["XBPF022716",[0,0,3]],
-                                                ["XBPF022717",[0,0,3]]]
-
-physics.producers.beamana.Rotations:           [[0,0,0],
-                                                [1,0,0],
-                                                [0,1,0],
-                                                [0,0,1],
-                                                [-1,0,0],
-                                                [0,-1,0],
-                                                [0,0,0],
-                                                [0,0,0]]
+                                                ["XBPF022707",[0,0,0]],
+                                                ["XBPF022708",[0,0,0]],
+                                                ["XBPF022716",[0,0,0]],
+                                                ["XBPF022717",[0,0,0]]]
 
 
-physics.producers.beamana.Dimension:           [1.,1.,1.,1.,1.,1.,1.,1.]
+physics.producers.beamana.Dimension:           [["XBPF022697",.01],
+                                                ["XBPF022698",.01],
+                                                ["XBPF022701",.01],
+                                                ["XBPF022702",.01],
+                                                ["XBPF022707",.01],
+                                                ["XBPF022708",.01],
+                                                ["XBPF022716",.01],
+                                                ["XBPF022717",.01]]
 
 physics.producers.beamana.GlobalDetCoords:    [0.,0.,0.]
 physics.producers.beamana.DetRotation:        [0.,0.,0.]
