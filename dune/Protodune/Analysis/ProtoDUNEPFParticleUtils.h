@@ -32,6 +32,9 @@ namespace protoana {
     ProtoDUNEPFParticleUtils();
     ~ProtoDUNEPFParticleUtils();
 
+    /// Get the number of primary PFParticles
+    unsigned int GetNumberPrimaryPFParticle(art::Event const &evt, const std::string particleLabel) const;
+
     /// Get a map of slice index to the PFParticles within it
     std::map<unsigned int,std::vector<recob::PFParticle*>> GetPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const;
 
