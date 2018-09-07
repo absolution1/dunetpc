@@ -42,6 +42,8 @@ pdsp_tpc_raw_decoder:
   RCESmallFragSize: 10000
   RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
   RCEHexDump: false
+  RCECheckBufferSize: true
+  RCEBufferSizeCheckLimit: 10000000
 
   FELIXRawDataLabel: "daq"
   FELIXRawDataContainerInstance: "ContainerFELIX"
@@ -54,6 +56,8 @@ pdsp_tpc_raw_decoder:
   FELIXDropEventsWithSmallFrags: false
   FELIXDropSmallFrags: true
   FELIXSmallFragSize: 10000
+  FELIXCheckBufferSize: true
+  FELIXBufferSizeCheckLimit: 10000000
 
   CompressHuffman: false
   PrintColdataConvertCount: false
