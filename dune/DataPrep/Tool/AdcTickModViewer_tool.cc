@@ -250,6 +250,7 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
     dat.subrun = acd.subRun;
     dat.event = acd.event;
     dat.channel = acd.channel;
+    dat.triggerClock = acd.triggerClock;
     TimeOffsetTool::Offset off = m_tickOffsetTool->offset(dat);
     if ( ! off.isValid() ) {
       cout << myname << "Error finding tick offset: " << off.status << endl;

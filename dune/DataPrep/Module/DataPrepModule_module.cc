@@ -40,6 +40,7 @@
 #include "dune/DuneCommon/DuneTimeConverter.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TTimeStamp.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 
 using std::cout;
 using std::endl;
@@ -218,15 +219,36 @@ void DataPrepModule::produce(art::Event& evt) {
   // Fetch the event time.
   Timestamp beginTime = evt.time();
 
+  // Fetch the timing clock.
+  string m_TimingProducer = "timingrawdecoder";
+  AdcLongIndex timingClock = 0;
+  if ( true ) {
+    art::Handle<std::vector<raw::RDTimeStamp>> htims;
+    //evt.getByLabel(m_DigitProducer, m_DigitName, htims);
+    evt.getByLabel("timingrawdecoder", "daq", htims);
+    if ( ! htims.isValid() ) {
+      cout << myname << "WARNING: Timing clocks product not found." << endl;
+    } else if (  htims->size() != 1 ) {
+      cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << endl;
+      for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
+        cout << myname << "  " << htims->at(itim).GetTimeStamp() << endl;
+      }
+    } else {
+      const raw::RDTimeStamp& tim = htims->at(0);
+      cout << myname << "Timing clock: " << tim.GetTimeStamp() << endl;
+      timingClock = tim.GetTimeStamp();
+    }
+  }
+
   // Read the raw digit status.
   art::Handle<std::vector<raw::RDStatus>> hrdstats;
   evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
   string srdstat;
   bool skipEvent = skipAllEvents;
-  if ( ! hrdstats.isValid() || hrdstats->size() == 0 ) {
-    cout << myname << "WARNING: Raw data status not found." << endl;
+  if ( ! hrdstats.isValid() ) {
+    cout << myname << "WARNING: Raw data status product not found." << endl;
   } else {
-    if ( hrdstats->size() > 1 ) {
+    if ( hrdstats->size() != 1 ) {
       cout << myname << "WARNING: Unexpected raw data status size: " << hrdstats->size() << endl;
     }
     const RDStatus rdstat = hrdstats->at(0);
@@ -352,6 +374,7 @@ void DataPrepModule::produce(art::Event& evt) {
       acd.fembID = fembID;
       acd.fembChannel = fembChannel;
     }
+    acd.triggerClock = timingClock;
     acd.metadata["ndigi"] = ndigi;
     ++nkeep;
   }
