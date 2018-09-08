@@ -170,15 +170,15 @@ void proto::BeamAna::produce(art::Event & e)
   }
   //Use time of event
   else{
-   // std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
+    std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
     std::cout <<" Using Event Time. Trying to decode timestamp " << std::endl;
 //    std::vector<raw::ctb::pdspctb> pdspctbs;      
 
-    auto ctbHandle = e.getValidHandle<std::vector<raw::ctb::pdspctb>>("daq");
-    std::cout << ctbHandle.isValid() << std::endl;
+//    auto ctbHandle = e.getValidHandle<std::vector<raw::ctb::pdspctb>>("daq");
+//    std::cout << ctbHandle.isValid() << std::endl;
 //    std::cout << the_pdspctbs << std::endl;
-    //fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
-    fMultipleTimes.push_back(0);
+    fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
+    //fMultipleTimes.push_back(0);
   }
 
   //Start getting beam event info
@@ -187,10 +187,10 @@ void proto::BeamAna::produce(art::Event & e)
 
   for(size_t it = 0; it < fMultipleTimes.size(); ++it){
     std::cout << "Time: " << fMultipleTimes[it] << std::endl;
-  //  parseXBPF(fMultipleTimes[it]);
-  //  parsePairedXBPF(fMultipleTimes[it]);
+    parseXBPF(fMultipleTimes[it]);
+    parsePairedXBPF(fMultipleTimes[it]);
 
-    parseXCET(fMultipleTimes[it]);
+//    parseXCET(fMultipleTimes[it]);
   }
 
 

@@ -34,8 +34,8 @@ source:
   module_type: RootInput
   maxEvents: -1
 #  fileNames: ["/pnfs/dune/tape_backed/dunepro/mcc10/mc/full-reconstructed/02/04/87/92/mcc10_protodune_beam_p7GeV_cosmics_3ms_15_20171229T015257_merged0.root"]
-#  fileNames: ["/pnfs/dune/tape_backed/dunepro/protodune/np04/beam/detector/None/raw/04/97/72/02/np04_raw_run004103_0001_dl1.root"]
-  fileNames: ["RawDecoding/RawDecoder.root"]
+  #fileNames: ["/pnfs/dune/tape_backed/dunepro/protodune/np04/beam/detector/None/raw/04/98/89/04/np04_raw_run004140_0004_dl1.root"]  
+  #fileNames: ["RawDecoding/RawDecoder.root"]
 }
 
 outputs:
