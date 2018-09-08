@@ -4,6 +4,7 @@ proto_beamana:
 {
   module_type:          "BeamAna"
   LoadFromDB: true
+  URLStr:                 ""
   OutputLabel:         "BeamEvent"
   InputLabel:         "daq"
   TimeWindow: 25  # width of time window in seconds

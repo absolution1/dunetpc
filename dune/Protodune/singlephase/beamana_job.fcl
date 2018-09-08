@@ -67,6 +67,8 @@ physics:
 #physics.producers.beamana.FixedTime:            1535414422    
 #physics.producers.beamana.FixedTime:             1535540435        
 #physics.producers.beamana.FixedTime:             1536253221
+physics.producers.beamana.FixedTime:             1536229335
+physics.producers.beamana.ValidWindow:           100
 #physics.producers.beamana.DummyEventTime:        1.1682e+08
 physics.producers.beamana.Tolerance:           10000
 
@@ -112,7 +114,7 @@ physics.producers.beamana.CKov2:               "XCET022716"
 physics.producers.beamana.XBPFPrefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
 physics.producers.beamana.XTOFPrefix:              "dip/acc/NORTH/NP04/BI/XTOF/"
 physics.producers.beamana.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
-physics.producers.beamana.MultipleTimes:            [1536253221
-,1536253242
-,1536253264
-,1536253329]
+#physics.producers.beamana.MultipleTimes:            [1536253221
+#,1536253242
+#,1536253264
+#,1536253329]
