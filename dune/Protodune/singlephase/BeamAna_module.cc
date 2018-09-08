@@ -24,6 +24,7 @@
 #include "lardataobj/RecoBase/Track.h"
 //#include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
 #include <bitset>
 #include <iomanip>
 #include <utility>
@@ -104,6 +105,8 @@ private:
   double fTolerance;
   std::string fCSVFileName;
   std::string fBundleName;
+  std::string fOutputLabel;
+  std::string fInputLabel;
   double fDummyEventTime;
   std::string fURLStr;
   uint64_t fFixedTime;
@@ -161,14 +164,21 @@ void proto::BeamAna::produce(art::Event & e)
     }
   }
   //Use singular time provided to fcl
-  else if(fFixedTime){
+  else if(fFixedTime > 0.){
     std::cout << "Using singular time: " << fFixedTime << std::endl;
     fMultipleTimes.push_back(fFixedTime);
   }
   //Use time of event
   else{
-    std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
-    fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
+   // std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
+    std::cout <<" Using Event Time. Trying to decode timestamp " << std::endl;
+//    std::vector<raw::ctb::pdspctb> pdspctbs;      
+
+    auto ctbHandle = e.getValidHandle<std::vector<raw::ctb::pdspctb>>("daq");
+    std::cout << ctbHandle.isValid() << std::endl;
+//    std::cout << the_pdspctbs << std::endl;
+    //fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
+    fMultipleTimes.push_back(0);
   }
 
   //Start getting beam event info
@@ -262,7 +272,7 @@ void proto::BeamAna::produce(art::Event & e)
  beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
  delete beamevt;
  std::cout << "Putting" << std::endl;
- e.put(std::move(beamData));
+ e.put(std::move(beamData)/*,fOutputLabel*/);
  std::cout << "Put" << std::endl;
 }
 
@@ -584,6 +594,8 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
 {
   // Implementation of optional member function here.
   fBundleName  = p.get<std::string>("BundleName");
+  fOutputLabel = p.get<std::string>("OutputLabel");
+  fInputLabel = p.get<std::string>("InputLabel");
   fURLStr      = "";
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");

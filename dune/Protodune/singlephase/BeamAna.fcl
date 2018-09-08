@@ -4,12 +4,14 @@ proto_beamana:
 {
   module_type:          "BeamAna"
   LoadFromDB: true
+  OutputLabel:         "BeamEvent"
+  InputLabel:         "daq"
   TimeWindow: 25  # width of time window in seconds
   CSVFileName: ""
   BundleName: "DUNE_CERN_SEP2018"
-  FixedTime: 1531988396  #100000  a non-zero value here forces all queries to use the same time
   DummyEventTime: 1.5000e+08
   MultipleTimes: [] 
+  FixedTime:     0.#Tells the code to use event time
 #  Devices:       []
   Coordinates:   [] 
   Dimension:     []
