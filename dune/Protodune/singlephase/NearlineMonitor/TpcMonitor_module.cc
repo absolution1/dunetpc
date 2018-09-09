@@ -633,10 +633,10 @@ namespace tpc_monitor{
 
       //get ready to fill the summary plots
             //get the channel's FEMB and WIB
-      int WIB = channelMap->WIBFromOfflineChannel(chan);
-      int FEMB = channelMap->FEMBFromOfflineChannel(chan);
+      int WIB = channelMap->WIBFromOfflineChannel(chan); //0-4
+      int FEMB = channelMap->FEMBFromOfflineChannel(chan); //1-4
       int FEMBchan = channelMap->FEMBChannelFromOfflineChannel(chan);
-      int iFEMB = ((WIB*4)+FEMB); //indexx of the FEMB 0-19
+      int iFEMB = ((WIB*4)+(FEMB-1)); //index of the FEMB 0-19
       //Get the location of any FEMBchan in the hitogram
       //put as a function for clenliness.
       int xBin = ((FEMBchanToHistogramMap(FEMBchan,0))+(iFEMB*4)+xEdgeAPA[apa]); // (fembchan location on histogram) + shift from mobo + shift from apa
