@@ -21,6 +21,7 @@
 // Data type includes
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -289,10 +290,9 @@ namespace tpc_monitor{
       //ZChMax=fZ0ChanMax + i*fChansPerAPA;
       ZChMax=fZ1ChanMax + i*fChansPerAPA; //including unused channels
       
-      std::cout<<"UCh:"<<UChMin<<" - "<<UChMax<<std::endl;
-      std::cout<<"VCh:"<<VChMin<<" - "<<VChMax<<std::endl;
-      std::cout<<"ZCh:"<<ZChMin<<" - "<<ZChMax<<std::endl;
-      
+      //std::cout<<"UCh:"<<UChMin<<" - "<<UChMax<<std::endl;
+      //std::cout<<"VCh:"<<VChMin<<" - "<<VChMax<<std::endl;
+      //std::cout<<"ZCh:"<<ZChMin<<" - "<<ZChMax<<std::endl;
 
       // summaries for all views
 
@@ -535,6 +535,11 @@ namespace tpc_monitor{
     art::Handle< std::vector<raw::RawDigit> > RawTPC;
     event.getByLabel(fTPCInput, fTPCInstance, RawTPC);
 
+    // Get RDStatus handle
+
+    art::Handle< std::vector<raw::RDStatus> > RDStatusHandle;
+    event.getByLabel(fTPCInput, fTPCInstance, RDStatusHandle);
+
     // Fill pointer vectors - more useful form for the raw data
     // a more usable form
     std::vector< art::Ptr<raw::RawDigit> > RawDigits;
@@ -545,6 +550,19 @@ namespace tpc_monitor{
     int xEdgeAPA[6] = {0,0,80,80,160,160}; //these numbers may be adjusted to horizontally space out the histogram
       //for each of the apas, the bottom most bin should be at the y value:
     int yEdgeAPA[2] = {0,32}; //these numbers may be adjusted to vertically space out the histograms
+
+    // example of retrieving RDStatus word and flags
+
+  for ( auto const& rdstatus : (*RDStatusHandle) )
+    {
+      if (rdstatus.GetCorruptDataDroppedFlag())
+	{
+	  LOG_INFO("TpcMonitor_module: ") << "Corrupt Data Dropped Flag set in RDStatus";
+	}
+      //std::cout << "RDStatus:  Corrupt Data dropped " << rdstatus.GetCorruptDataDroppedFlag() << std::endl; 
+      //std::cout << "RDStatus:  Corrupt Data kept " << rdstatus.GetCorruptDataKeptFlag() << std::endl; 
+      //std::cout << "RDStatus:  Status Word " << rdstatus.GetStatWord() << std::endl; 
+    }
 
     // Loop over all RawRCEDigits (entire channels)                                                                                                        
     for(auto const & dptr : RawDigits) {
@@ -615,10 +633,10 @@ namespace tpc_monitor{
 
       //get ready to fill the summary plots
             //get the channel's FEMB and WIB
-      int WIB = channelMap->WIBFromOfflineChannel(chan);
-      int FEMB = channelMap->FEMBFromOfflineChannel(chan);
+      int WIB = channelMap->WIBFromOfflineChannel(chan); //0-4
+      int FEMB = channelMap->FEMBFromOfflineChannel(chan); //1-4
       int FEMBchan = channelMap->FEMBChannelFromOfflineChannel(chan);
-      int iFEMB = ((WIB*4)+FEMB); //indexx of the FEMB 0-19
+      int iFEMB = ((WIB*4)+(FEMB-1)); //index of the FEMB 0-19
       //Get the location of any FEMBchan in the hitogram
       //put as a function for clenliness.
       int xBin = ((FEMBchanToHistogramMap(FEMBchan,0))+(iFEMB*4)+xEdgeAPA[apa]); // (fembchan location on histogram) + shift from mobo + shift from apa

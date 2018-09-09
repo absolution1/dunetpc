@@ -43,6 +43,8 @@ int test_AdcEventViewer(bool useExistingFcl =false) {
     fout << "tools.mytool: {" << endl;
     fout << "  tool_type: AdcEventViewer" << endl;
     fout << "  LogLevel: 1" << endl;
+    fout << "  EventHists: []" << endl;
+    fout << "  EventGraphs: []" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
