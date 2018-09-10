@@ -13,8 +13,10 @@
 //               If blank or not defined, the full range is used.
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
-//   FirstChannel - First channel to display
-//   LastChannel - Last+1 channel to display
+//   ChannelRanges - Names of channel ranges to display.
+//                   Ranges are obtained from the tool channelRanges.
+//                   Special name "" or "data" plots all channels in data with label "All data".
+//                   If the list is empty, data are plotted.
 //   FembTickOffsets - Tick offset for each FEMB. FEMB = (offline channel)/128
 //                     Offset is zero for FEMBs beyond range.
 //                     Values should be zero (empty array) for undistorted plots
@@ -71,6 +73,9 @@ public:
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
   using IntVector = std::vector<int>;
+  using IndexRangeVector = std::vector<IndexRange>;
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   AdcDataPlotter(fhicl::ParameterSet const& ps);
 
@@ -85,8 +90,7 @@ private:
   int            m_LogLevel;
   int            m_DataType;
   std::string    m_TickRange;
-  Index          m_FirstChannel;
-  Index          m_LastChannel;
+  NameVector     m_ChannelRanges;
   IntVector      m_FembTickOffsets;
   std::string    m_OnlineChannelMapTool;
   double         m_MaxSignal;
@@ -103,9 +107,15 @@ private:
   // Derived configuration data.
   IndexRange m_tickRange;
 
+  // Channel ranges.
+  IndexRangeVector m_crs;
+
   // Client tools.
   const AdcChannelStringTool* m_adcStringBuilder;
   const IndexMapTool* m_pOnlineChannelMapTool;
+
+  // Make replacements in a name.
+  Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
 
 };
 

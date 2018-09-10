@@ -79,6 +79,14 @@ simple_plugin(AdcChannelMetric   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcEventViewer   "tool"
+                dune_DuneCommon
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AcdDigitReader   "tool"
                 dune_DuneCommon
                 lardataobj_RawData
@@ -114,10 +122,16 @@ simple_plugin(AdcUnderflowFlagger   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcKeepAllSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcThresholdSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
+
 simple_plugin(DuneAdcSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

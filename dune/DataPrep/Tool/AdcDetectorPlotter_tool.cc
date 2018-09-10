@@ -63,6 +63,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_LastTick(ps.get<unsigned long>("LastTick")),
   m_ShowWires(ps.get<bool>("ShowWires")),
   m_ShowCathode(ps.get<bool>("ShowCathode")),
+  m_ShowTpcSets(ps.get<IndexVector>("ShowTpcSets")),
   m_ShowGrid(ps.get<bool>("ShowGrid")),
   m_Title(ps.get<string>("Title")),
   m_FileName(ps.get<string>("FileName")),
@@ -90,12 +91,22 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "         LastTick: " << m_LastTick << endl;
     cout << myname << "        ShowWires: " << m_ShowWires << endl;
     cout << myname << "      ShowCathode: " << m_ShowCathode << endl;
+    cout << myname << "      ShowTpcSets: [";
+    bool first = true;
+    for ( Index itps : m_ShowTpcSets ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << itps;
+    }
+    cout << "]" << endl;
     cout << myname << "         ShowGrid: " << m_ShowGrid << endl;
     cout << myname << "            Title: " << m_Title << endl;
     cout << myname << "         FileName: " << m_FileName << endl;
   }
   WireSelector& sel = getState()->sel;
   sel.selectWireAngle(m_WireAngle);
+  sel.selectTpcSets(m_ShowTpcSets);
+  for ( Index itps : m_ShowTpcSets ) sel.selectTpcSet(itps);
   const WireSelector::WireInfoVector& wdat = sel.fillData();
   const WireSelector::WireInfoMap& wmap = sel.fillDataMap();
   const WireSelector::WireSummary& wsum = sel.fillWireSummary();
@@ -179,7 +190,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
       pgc->Expand(wins.size());
       for ( Index iwin=0; iwin<wins.size(); ++iwin ) {
         const WireSelector::WireInfo& win = wins[iwin];
-        pgc->SetPoint(iwin, xsign*win.x + win.driftMax, win.z);
+        pgc->SetPoint(iwin, xsign*(win.x + win.driftMax), win.z);
       }
       state.ppad->add(pgc, "P");
     }

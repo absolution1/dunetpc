@@ -517,8 +517,8 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
     for ( Index iopt=0; iopt<nopt; ++iopt ) {
       ostringstream sslab;
       sslab << "  # channels for optical detector " << iopt;
-      bool print = iopt < maxchanprint;
-      check(sslab.str(), pgeo->NOpHardwareChannels(iopt), ev.nopdetcha[iopt], print);
+      //bool print = iopt < maxchanprint;
+      check(sslab.str(), pgeo->NOpHardwareChannels(iopt), ev.nopdetcha[iopt], true);
     }
     cout << " Opdet channels:" << endl;
     for ( Index iopt=0; iopt<nopt; ++iopt ) {
@@ -527,9 +527,9 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
         ostringstream sslab;
         sslab << "  Det " << iopt << ", chan " << ioch;
         Index icha = pgeo->OpChannel(iopt, ioch);
-        check(sslab.str(), icha, ev.opdetcha[iopt][ioch]);
-        check(sslab.str(), pgeo->OpDetFromOpChannel(icha), iopt, false);
-        check(sslab.str(), pgeo->HardwareChannelFromOpChannel(icha), ioch, false);
+        check(sslab.str() + " (channel)", icha, ev.opdetcha[iopt][ioch]);
+        check(sslab.str() + " (OpDet)", pgeo->OpDetFromOpChannel(icha), iopt, false);
+        check(sslab.str() + " (HardwareChannel)", pgeo->HardwareChannelFromOpChannel(icha), ioch, false);
       }
     }
   }

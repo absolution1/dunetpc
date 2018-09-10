@@ -18,9 +18,9 @@ std::vector<anab::CosmicTag> protoana::ProtoDUNETrackUtils::GetRecoTrackCosmicTa
 
   auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
 
-  unsigned int trackIndex = GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
-  // Convert to std::vector<anab::CosmicTag> from std::vector<art::Ptr<anab::CosmicTah>>
+  // Convert to std::vector<anab::CosmicTag> from std::vector<art::Ptr<anab::CosmicTag>>
   std::vector<anab::CosmicTag> trackTags;
 
   try{
@@ -40,7 +40,7 @@ std::vector<anab::T0> protoana::ProtoDUNETrackUtils::GetRecoTrackT0(const recob:
 
   auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
 
-  unsigned int trackIndex = GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
   // Convert to std::vector<anab::T0> from std::vector<art::Ptr<anab::T0>>
   std::vector<anab::T0> trackT0s;
@@ -59,21 +59,51 @@ std::vector<anab::T0> protoana::ProtoDUNETrackUtils::GetRecoTrackT0(const recob:
 
 }
 
-unsigned int protoana::ProtoDUNETrackUtils::GetTrackIndexNumber(const recob::Track &track, art::Event const &evt, std::string trackModule) const{
+// Get the Calorimetry(s) from a given reco track
+std::vector<anab::Calorimetry> protoana::ProtoDUNETrackUtils::GetRecoTrackCalorimetry(const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule) const{
 
-  // We need to loop over the tracks to find which one matches our one
   auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
+  std::vector<anab::Calorimetry> caloInfo;
+  
+  try{
+    const art::FindManyP<anab::Calorimetry> findCalorimetry(recoTracks,evt,caloModule);
+    std::vector<art::Ptr<anab::Calorimetry>> theseCalos = findCalorimetry.at(track.ID());
 
-  for(unsigned int t = 0; t < recoTracks->size(); ++t){
-
-    if((*recoTracks)[t].ID() == track.ID()){
-      return t;
+    for( auto calo : theseCalos){
+      caloInfo.push_back(*calo);
     }
+  }
+  catch(...){
+    std::cerr << "No calorimetry object found... returning empty vector" << std::endl;
+  }
+
+  return caloInfo;
+}
+
+// Get the hits from a given reco track
+const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const{
+
+  auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
+  art::FindManyP<recob::Hit> findHits(recoTracks,evt,trackModule);
+  std::vector<art::Ptr<recob::Hit>> inputHits = findHits.at(track.ID());
+
+  std::vector<const recob::Hit*> trackHits;
+
+  for(const art::Ptr<recob::Hit> hit : inputHits){
+
+    trackHits.push_back(hit.get());
 
   }
 
-  // If no match then return some big number
-  return 999999;
+  return trackHits;  
 
 }
+
+// Get the hits from a given reco track
+unsigned int protoana::ProtoDUNETrackUtils::GetNumberRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const{
+
+  return GetRecoTrackHits(track,evt,trackModule).size();
+
+}
+
 

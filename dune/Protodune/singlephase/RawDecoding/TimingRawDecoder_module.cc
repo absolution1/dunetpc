@@ -142,7 +142,7 @@ void dune::TimingRawDecoder::beginJob(){
 }
 
 void dune::TimingRawDecoder::produce(art::Event & evt){
-  std::cout<<"-------------------- Timing RawDecoder -------------------"<<std::endl;
+  //std::cout<<"-------------------- Timing RawDecoder -------------------"<<std::endl;
   // Implementation of required member function here.
   art::Handle<artdaq::Fragments> rawFragments;
   evt.getByLabel(fRawDataLabel, "TIMING", rawFragments);
@@ -173,7 +173,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
   ULong64_t evtTimestamp = 0;
   for(auto const& rawFrag : *rawFragments){
       dune::TimingFragment frag(rawFrag);
-      std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
+      //std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
       ULong64_t currentTimestamp=frag.get_tstamp();
       uint16_t scmd = (frag.get_scmd() & 0xFFFF);  // mask this just to make sure.  Though scmd only has four relevant bits, the method is declared uint32_t.
       rdtimestamps.emplace_back(currentTimestamp,scmd);
@@ -189,7 +189,13 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     if ( fMakeEventTimeFile ) {
       if ( evtTimestamp == 0 ) {
         evtTimestamp = rawFrag.timestamp();
-        string foutName = "artdaqTimestamp-Run" + std::to_string(runNumber) + "-Event" + std::to_string(eventNumber) + ".dat";
+        string foutName = "artdaqTimestamp-Run" + std::to_string(runNumber);
+        int subrun = evt.subRun();
+        if ( subrun != 1 ) {
+          cout << "TimingRawDecoder::produce: WARNING: Unexpected subrun number: " << subrun << endl;
+          foutName += "-Sub" + std::to_string(subrun);
+        }
+        foutName += "-Event" + std::to_string(eventNumber) + ".dat";
         ofstream fout(foutName);
         fout << evtTimestamp << endl;
       } else {
@@ -200,7 +206,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     }
   }
   evt.put(std::make_unique<decltype(rdtimestamps)>(std::move(rdtimestamps)), fOutputDataLabel);
-  std::cout<<std::endl;
+  //std::cout<<std::endl;
 }
 
 DEFINE_ART_MODULE(dune::TimingRawDecoder)

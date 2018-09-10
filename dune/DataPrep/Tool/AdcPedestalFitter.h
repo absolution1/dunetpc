@@ -40,6 +40,8 @@
 //
 // The updating methods add metadata to the ADC channel data:
 //
+//   fitPedFractionLow     - fraction of samples below the fit range
+//   fitPedFractionHigh    - fraction of samples above the fit range
 //   fitPedestal           - fitted pedestal (same as the assigned value)
 //   fitPedRms             - Fit sigma of the pedestal
 //   fitPedChiSquare       - Chi-square of the fit
@@ -49,6 +51,8 @@
 //
 // The single-channel methods return a data map with the following:
 //   pedestal           - pedestal histogram
+//   fitFractionLow     - fraction of samples below the fit range
+//   fitFractionHigh    - fraction of samples above the fit range
 //   fitPedestal        - mean from the pedestal fit
 //   fitPedestalRms     - sigma from the pedestal
 //   fitChiSquare       - chi-square from the pedestal fit

@@ -19,6 +19,7 @@ services:
   DatabaseUtil:                 @local::dunefd_database
   ChannelStatusService:         @local::dunefd_channel_status
 #  ChannelGroupService:          @local::changroup_apa
+  PdspChannelMapService:        @local::pdspchannelmap
 
   TFileService: { 
    closeFileFast: true  # default
@@ -26,16 +27,7 @@ services:
    tmpDir: "<parent-path-of-filename>"  # default
   }
 
-  PdspChannelMapService: {
-    FileName:         "protoDUNETPCChannelMap_RCE_v4.txt"
-    FELIXFileName:    "protoDUNETPCChannelMap_FELIX_v4.txt"
-    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
-    LogLevel:         1
-  }
 }
-
-services.DetectorPropertiesService.NumberTimeSamples: 10000
-services.DetectorPropertiesService.ReadOutWindowSize: 10000
 
 physics:
 {
@@ -44,13 +36,13 @@ physics:
 
     timingrawdecoder: @local::timing_raw_decoder   
     ssprawdecoder: @local::ssp_raw_decoder  
-#    rcerawdecoder: @local::rce_raw_decoder 
-#    felixrawdecoder: @local::felix_raw_decoder
     tpcrawdecoder: @local::pdsp_tpc_raw_decoder
+    ctbrawdecoder: @local::ctb_raw_decoder
   }
 
   #Create path to run module
-  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder ] 
+  #add ctbrawdecoder when it is tested
+  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder, ctbrawdecoder ] 
   output: [ out1 ]
   trigger_paths : [ produce ]
   end_paths: [ output ]

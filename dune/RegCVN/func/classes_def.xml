@@ -1,0 +1,30 @@
+<lcgdict>
+
+  <class name="cvn::RegCVNResult" ClassVersion="11" >
+   <version ClassVersion="11" checksum="4105004439"/>
+   <version ClassVersion="10" checksum="197322882"/>
+  </class>
+
+
+  <class name="cvn::RegPixelMap" ClassVersion="11" >
+   <version ClassVersion="11" checksum="2817099520"/>
+   <version ClassVersion="10" checksum="2107046998"/>
+  </class>
+
+  <class name="cvn::RegCVNBoundary" ClassVersion="11" >
+   <version ClassVersion="11" checksum="4234958254"/>
+   <version ClassVersion="10" checksum="206696030"/>
+  </class>
+
+
+  <class name="std::vector<cvn::RegPixelMap>"          />
+  <class name="art::Ptr<cvn::RegPixelMap>"             />
+  <class name="art::Wrapper< std::vector<cvn::RegPixelMap> >"    />
+
+  <class name="std::vector<cvn::RegCVNResult>"          />
+  <class name="art::Ptr<cvn::RegCVNResult>"             />
+  <class name="art::Wrapper< std::vector<cvn::RegCVNResult> >"    />
+  
+</lcgdict>
+
+

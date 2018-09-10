@@ -56,8 +56,8 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  LogLevel: 1" << endl;
     fout << "  TickModPeriod: 4" << endl;
     fout << "  TimeOffsetTool: myTimeOffsetTool" << endl;
-    fout << "  FitRmsMin: 1.0" << endl;
-    fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  FitSigmaMin: 1.0" << endl;
+    fout << "  FitSigmaMax: 20.0" << endl;
     fout << "  HistName: \"adctm_ch%0CHAN%_tm%0TICKMOD%\"" << endl;
     fout << "  HistTitle: \"ADC spectrum for channel %CHAN% tickmod %TICKMOD%\"" << endl;
     fout << "  HistChannelCount: 100" << endl;
@@ -65,6 +65,9 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  AllPlotFileName: \"adctm%TICKMOD%_ch%0CHAN%.png\"" << endl;
     fout << "  MinPlotFileName: \"adctmMin_ch%0CHAN%.png\"" << endl;
     fout << "  MaxPlotFileName: \"adctmMax_ch%0CHAN%.png\"" << endl;
+    fout << "  PhaseGrouping: channel" << endl;
+    fout << "  PhasePlotFileName: \"adcPhase_ch%0CHAN%.png\"" << endl;
+    fout << "  PhaseVariable: phase" << endl;
     fout << "  RootFileName: \"adctm.root\"" << endl;
     fout << "  TreeFileName: \"tickmod.root\"" << endl;
     fout << "  TreeFileName: \"\"" << endl;
@@ -74,6 +77,10 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     fout << "  PlotSplitX:  2" << endl;
     fout << "  PlotSplitY:  2" << endl;
     fout << "  PlotFrequency: 0" << endl;
+    fout << "  PhasePlotSizeX: 1400" << endl;
+    fout << "  PhasePlotSizeY: 1000" << endl;
+    fout << "  PhasePlotSplitX:  2" << endl;
+    fout << "  PhasePlotSplitY:  2" << endl;
     fout << "}" << endl;
     fout << "tools.myTimeOffsetTool: {" << endl;
     fout << "  tool_type: FixedTimeOffsetTool" << endl;
