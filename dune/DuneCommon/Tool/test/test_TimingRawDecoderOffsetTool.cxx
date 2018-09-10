@@ -45,6 +45,7 @@ int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
     fout << "    LogLevel: 2" << endl;
     fout << "    TpcTickPhase: 0" << endl;
     fout << "    Unit: \"tick\"" << endl;
+    fout << "    RunDataTool: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -65,12 +66,6 @@ int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
   Index run = 123;
   Index evt = 2468;
   Index daqVal = 369258;
-  string tfname = "artdaqTimestamp-Run" + std::to_string(run) +
-                  "-Event" + std::to_string(evt) + ".dat";
-  {
-    ofstream fout(tfname.c_str());
-    fout << daqVal << endl;
-  }
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -82,6 +77,7 @@ int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
   TimeOffsetTool::Data dat;
   dat.run = run;
   dat.event = evt;
+  dat.triggerClock = daqVal;
   TimeOffsetTool::Offset off = tot->offset(dat);
   assert( off.isValid() );
   assert( off.value == daqVal/25 );

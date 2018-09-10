@@ -118,7 +118,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   if ( m_RunDataTool.size() ) {
     m_pRunDataTool = ptm->getShared<RunDataTool>(m_RunDataTool);
     if ( m_pRunDataTool == nullptr ) {
-      cout << myname << "WARNING: RunDatTool not found: " << m_RunDataTool << endl;
+      cout << myname << "WARNING: RunDataTool not found: " << m_RunDataTool << endl;
     }
   }
   if ( m_TickOffsetTool.size() ) {

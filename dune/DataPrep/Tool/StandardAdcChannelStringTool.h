@@ -11,6 +11,7 @@
 //   %SUBRUN% --> acd.subRun
 //   %EVENT% --> acd.event
 //   %CHAN% --> acd.channel
+//   %FEMB% --> acd.fembID
 //   %SUNIT% --> "sunit" where sunit = acd.sampleUnit
 //   % SUNIT% --> " sunit" or "" if sunit is empty
 //   %(SUNIT)% --> "(sunit)" or "" if sunit is empty
@@ -43,6 +44,7 @@
 //  SubRunWidth - width for subrun
 //  EventWidth - width for event
 //  ChannelWidth - width for channel
+//  FembWidth - width for FEMB
 
 #ifndef StandardAdcChannelStringTool_H
 #define StandardAdcChannelStringTool_H
@@ -71,8 +73,9 @@ private:
   Index m_EventWidth;
   Index m_ChannelWidth;
   Index m_CountWidth;
+  Index m_FembWidth;
 
-  static const Index m_nrep = 7;
+  static const Index m_nrep = 8;
   Index m_wids[m_nrep];
   std::string m_reps[m_nrep];
   std::string m_bads[m_nrep];

@@ -1,9 +1,13 @@
 BEGIN_PROLOG
 
-util_example:
+proto_util_example:
 {
    module_type:             "UtilityExample"
-   TrackerTag:              "pmtrack"
+   CalorimetryTag:          "pandoracalo"
+   TrackerTag:              "pandoraTrack"
+   ShowerTag:               "pandoraShower"
+   PFParticleTag:           "pandora"
+   GeneratorTag:            "generator"
    Verbose:                 false
 }
 

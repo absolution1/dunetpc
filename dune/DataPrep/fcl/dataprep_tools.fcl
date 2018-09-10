@@ -41,6 +41,7 @@ tools.adcStringBuilder: {
   EventWidth: 6
   ChannelWidth: 5
   CountWidth: 4
+  FembWidth: 3
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -81,7 +82,7 @@ tools.adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
   FitRmsMin:  1.0
-  FitRmsMax: 10.0
+  FitRmsMax: 20.0
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
   HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
@@ -117,8 +118,7 @@ tools.preparedAdcPlotter: {
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
-  FirstChannel: 0
-  LastChannel:  0
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
@@ -136,8 +136,7 @@ tools.signalAdcPlotter: {
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
-  FirstChannel: 0
-  LastChannel:  0
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
@@ -155,8 +154,7 @@ tools.rawAdcPlotter: {
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
-  FirstChannel: 0
-  LastChannel:  0
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
   ChannelLineModulus: 2560
@@ -215,6 +213,7 @@ adcPlotDftTemplate: {
     tool_type: AdcChannelDftPlotter
      LogLevel: 1
    SampleFreq: @local::adcSampleFreq
+      YMinLog: 0.0
     PlotSizeX: 1400
     PlotSizeY: 1000
    PlotSplitX: 4
@@ -255,6 +254,13 @@ tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
 tools.adcPlotDftTickPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
+# DFT power/tick with log scale.
+tools.adcPlotDftTickPowerLog: @local::tools.adcPlotDftTickPower
+tools.adcPlotDftTickPowerLog.YMinLog: 0.001
+tools.adcPlotDftTickPowerLog.YMax: 20.0
+tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPowerLog.PlotName: "dftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
+
 ################################################################################
 # Data prep reconstruction tools.
 ################################################################################
@@ -276,6 +282,12 @@ tools.adcSampleFiller: {
 # Perform deconvolution with SignalShapingService.
 tools.adcVintageDeconvoluter: {
   tool_type: VintageDeconvoluter
+  LogLevel: 1
+}
+
+# Find one ADC signals that includes all samples.
+tools.adcKeepAllSignalFinder: {
+  tool_type: AdcKeepAllSignalFinder
   LogLevel: 1
 }
 
@@ -310,6 +322,17 @@ tools.adcFFT: {
   NormOpt:   1
   Action:    3
   ReturnOpt: 1
+}
+
+# Undo FFT.
+tools.adcFFTinv: {
+  tool_type:  AdcChannelFFT
+  LogLevel:   1
+  FirstTick:  0
+  NTick:      0
+  NormOpt:    1
+  Action:    13
+  ReturnOpt: 10
 }
 
 # Fetch ROI info and hists.

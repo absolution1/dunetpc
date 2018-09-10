@@ -4,8 +4,9 @@
 #
 #  This script is based on generate_dunedphase10kt_v2.pl (see description 
 #  in there file for more info). Some parameters were changed to generate 
-#  a first version of the protodune dual phase geometry (e.g. driftTPCActive
-#  and number of CRM's). The beam window is not included in this version! 
+#  a first version of the 3x1x1 dual phase geometry (e.g. driftTPCActive
+#  and number of CRM's).
+#  More detector elements are going to be added (e.g. PMTs, field cage, ...)
 #  For more info, please contact Christoph Alt: christoph.alt@cern.ch 
 #
 ##################################################################################
@@ -169,6 +170,24 @@ $posCryoInDetEnc_y = - $DetEncHeight/2 + $SteelSupport_y + $FoamPadding + $Cryos
 # 2*AirThickness is added to the world volume in x, y and z
 $AirThickness = 3000;
 
+  # We want the world origin to be vertically centered on active TPC
+  # This is to be added to the y position of every volume in volWorld
+
+$OriginXSet =  $DetEncWidth/2.0
+              -$SpaceSteelSupportToWall
+              -$SteelSupport_x
+              -$FoamPadding
+              -$SteelThickness
+              -$xLArBuffer
+              -$driftTPCActive/2.0;
+
+$OriginYSet =   $DetEncHeight/2.0
+              - $SteelSupport_y
+              - $FoamPadding
+              - $SteelThickness
+              - $yLArBuffer
+              - $widthTPCActive/2.0;
+
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
   # then through the Cryostat shell, then through the upstream dead LAr (including the
@@ -182,24 +201,6 @@ $OriginZSet =   $DetEncLength/2.0
               - $SteelThickness
               - $zLArBuffer
 	      - $borderCRM;
-
-  # We want the world origin to be vertically centered on active TPC
-  # This is to be added to the y position of every volume in volWorld
-
-$OriginYSet =   $DetEncHeight/2.0
-              - $SteelSupport_y
-              - $FoamPadding
-              - $SteelThickness
-              - $yLArBuffer
-              - $widthTPCActive/2.0;
-
-$OriginXSet =  $DetEncWidth/2.0
-              -$SpaceSteelSupportToWall
-              -$SteelSupport_x
-              -$FoamPadding
-              -$SteelThickness
-              -$xLArBuffer
-              -$driftTPCActive/2.0;
 
 
 ##################################################################
@@ -383,6 +384,7 @@ print TPC <<EOF;
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
     </volume>
 EOF
 
@@ -577,6 +579,7 @@ sub gen_pmt {
  <volume name="volPMTplatecoat">
   <materialref ref="TPB"/>
   <solidref ref="PMT_plate_coat"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
  </volume>
 
  <volume name="vol_PMT_AcrylicPlate">
@@ -587,6 +590,7 @@ sub gen_pmt {
  <volume name="pmtCoatVol">
   <materialref ref="TPB"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">

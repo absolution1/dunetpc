@@ -1,5 +1,4 @@
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
-#include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -28,9 +27,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   // We need the association between the tracks and the hits
   const art::FindManyP<recob::Hit> findTrackHits(allRecoTracks, evt, trackModule);
 
-  // A track utils object will be useful
-  protoana::ProtoDUNETrackUtils utils;
-  unsigned int trackIndex = utils.GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -104,7 +101,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const s
     }
     
     // If the initial energy of the g4 particle is very close to the energy of the protoDUNE particle, call it a day and have a cuppa.
-    if ( pPart->E() - pDuneEnergy < 0.00001 ) {
+    if ( (pDunePart.PdgCode() == pPart->PdgCode()) && fabs(pPart->E() - pDuneEnergy) < 0.00001 ) {
       return pPart;
     }
     
@@ -114,5 +111,41 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const s
   return nullptr;
   
 }  // End MatchPduneMCtoG4
+
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(const simb::MCTruth &genTruth, const art::Event &evt) const{
+
+  // Get the good particle from the MCTruth
+  simb::MCParticle goodPart;
+  bool found = false;
+  for(int t = 0; t < genTruth.NParticles(); ++t){
+    simb::MCParticle part = genTruth.GetParticle(t);
+    if(part.Process() == "primary"){
+      goodPart = part;
+      found = true;
+      break;
+    }
+  }
+
+  if(!found){
+    std::cerr << "No good particle found, returning null pointer" << std::endl;
+    return nullptr;
+  }
+
+  // Now loop over geant particles to find the one that matches
+  // Get list of the g4 particles. plist should be a std::map< int, simb::MCParticle* >
+  art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+  const sim::ParticleList & plist = pi_serv->ParticleList();
+
+  for(auto const part : plist){
+    if((goodPart.PdgCode() == part.second->PdgCode()) && fabs(part.second->E() - goodPart.E()) < 1e-5){
+      return part.second;
+    }
+  } 
+
+  // If we get here something has gone wrong
+  std::cerr << "No G4 version of the good particle was found, returning null pointer" << std::endl;
+  return nullptr;
+
+}
 
 

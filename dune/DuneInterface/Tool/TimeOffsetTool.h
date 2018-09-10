@@ -13,6 +13,7 @@ class TimeOffsetTool {
 public:
 
   using Index = unsigned int;
+  using LongIndex = unsigned long;
   using Name = std::string;
 
   // Data on which the offset may depend.
@@ -22,10 +23,11 @@ public:
     Index subrun =0;
     Index event =0;
     Index channel =0;
+    LongIndex triggerClock =0;
   };
 
   // Class describing a time offset.
-  //  value - Integral part of the offset (typically suficient?)
+  //  value - Integral part of the offset (typically sufficient?)
   //    rem - value remainder if offset in non-integral
   //   unit - Unit for offset, e.g. tick, us, ns
   class Offset {

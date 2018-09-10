@@ -37,6 +37,8 @@ using Index = unsigned int;
 namespace {
 
 void copyMetadata(const DataMap& res, AdcChannelData& acd) {
+  acd.metadata["fitPedFractionLow"] = res.getFloat("fitFractionLow");
+  acd.metadata["fitPedFractionHigh"] = res.getFloat("fitFractionHigh");
   acd.metadata["fitPedestal"] = res.getFloat("fitPedestal");
   acd.metadata["fitPedRms"] = res.getFloat("fitPedestalRms");
   acd.metadata["fitPedChiSquare"] = res.getFloat("fitChiSquare");
@@ -109,6 +111,7 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
   fillChannelPad(res, pman);
   if ( pman != nullptr ) {
     string pfname = nameReplace(m_PlotFileName, acd, false);
+    if ( m_LogLevel >= 3 ) cout << myname << "Creating plot " << pfname << endl;
     pman->print(pfname);
     delete pman;
   }
@@ -192,6 +195,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
     ++iacd;
     bool lastpad = (++ipad == npad) || (iacd == nacd);
     if ( lastpad && pmantop != nullptr ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "  Creating plot " << plotFileName << endl;
       pmantop->print(plotFileName);
       delete pmantop;
       pmantop = nullptr;
@@ -281,9 +285,18 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   double adc2 = adc1 + wadc;
   TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
   phf->SetDirectory(nullptr);
+  Index countLo = 0;
+  Index countHi = 0;
+  Index count = 0;
   for ( Index isam=0; isam<nsam; ++isam ) {
+    AdcIndex val = acd.raw[isam];
+    if ( val < adc1 ) ++countLo;
+    if ( val >= adc2 ) ++countHi;
+    ++count;
     phf->Fill(acd.raw[isam]);
   }
+  float fracLo = count > 0 ? float(countLo)/count : 0.0;
+  float fracHi = count > 0 ? float(countHi)/count : 0.0;
   phf->SetStats(0);
   phf->SetLineWidth(2);
   // Fetch the peak bin and suppress it for the fit if more than 20% (but not
@@ -338,6 +351,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   double peakBinExcess = (valmax - valEval)/rangeIntegral;
   if ( dropBin ) phf->SetBinContent(binmax, valmax);
   res.setHist("pedestal", phf, true);
+  res.setFloat("fitFractionLow", fracLo);
+  res.setFloat("fitFractionHigh", fracHi);
   res.setFloat("fitPedestal", fitter.GetParameter(1) - 0.5);
   res.setFloat("fitPedestalRms", fitter.GetParameter(2));
   res.setFloat("fitChiSquare", fitter.GetChisquare());
