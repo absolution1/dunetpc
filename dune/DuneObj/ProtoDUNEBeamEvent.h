@@ -48,6 +48,7 @@ namespace beam
       void              AddFBMTrigger(std::string, FBM); 
       void              DecodeFibers(std::string, size_t);
       double            DecodeFiberTime(std::string, size_t);
+      std::array<double,4> ReturnTriggerAndTime(std::string, size_t);
       short             GetFiberStatus(std::string, size_t, size_t);
       std::vector<short> GetActiveFibers(std::string, size_t);
       long long         GetFiberTime(std::string, size_t); 
@@ -144,7 +145,7 @@ namespace beam
 
   inline double ProtoDUNEBeamEvent::DecodeFiberTime(std::string FBMName, size_t nTrigger){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
-      std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
+      std::cout << "FBM not found in list" << std::endl;
       return -1.;
     }
     if( (nTrigger > fiberMonitors[FBMName].size()) ){
@@ -154,6 +155,19 @@ namespace beam
 
     //FOR NOW JUST RETURN THE TRIGGER
     return fiberMonitors[FBMName][nTrigger].timeData[0];
+  }
+
+  inline std::array<double,4> ProtoDUNEBeamEvent::ReturnTriggerAndTime(std::string FBMName, size_t nTrigger){
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
+      std::cout << "FBM not found in list" << std::endl;
+      return {-1.,-1.,-1.,-1.};
+    }
+    if( (nTrigger > fiberMonitors[FBMName].size()) ){
+      std::cout << "Please input trigger in range [0," << fiberMonitors[FBMName].size() - 1 << "]" << std::endl;
+      return {-1.,-1.,-1.,-1.};
+    }
+
+    return {fiberMonitors[FBMName][nTrigger].timeData[0], fiberMonitors[FBMName][nTrigger].timeData[1], fiberMonitors[FBMName][nTrigger].timeData[2], fiberMonitors[FBMName][nTrigger].timeData[3]};
   }
 
   inline std::bitset<32> ProtoDUNEBeamEvent::toBinary(double num){

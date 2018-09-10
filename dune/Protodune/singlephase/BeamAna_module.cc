@@ -95,11 +95,16 @@ private:
   std::map<std::string, TH1F *> fBeamProf1D;
   std::map<std::string, std::vector<short> *> fActiveFibers;
   std::map<std::string, double> fProfTime;
+  std::map<std::string, double> fProfTrigger1;
+  std::map<std::string, double> fProfTrigger2;
+  std::map<std::string, double> fProfTime1;
+  std::map<std::string, double> fProfTime2;
   std::map<std::string, TTree*> fProfTree;
   TH1F * fTOFHist;
   TH1F * fCKovHist;
   recob::TrackTrajectory theTraj;
   recob::Track * theTrack;
+  double eventTime;
   
 
   // Declare member data here.
@@ -161,6 +166,7 @@ void proto::BeamAna::produce(art::Event & e)
   bfp->setValidWindow(fValidWindow);
   std::cerr << "%%%%%%%%%% Valid window " << bfp->getValidWindow() << " %%%%%%%%%%" << std::endl;
   std::cout <<"Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
+  eventTime = e.time().timeLow();
   //Use multiple times provided to fcl
   if( fMultipleTimes.size() ){
     std::cout << "Using multiple times: " << std::endl;
@@ -375,10 +381,10 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
     fbm.ID = ID;
          
     for(size_t i = 0; i < counts[1]; ++i){
-//      std::cout << "Count: " << i << std::endl;
+      std::cout << "Count: " << i << std::endl;
       for(int j = 0; j < 10; ++j){
         double theData = data[20*i + (2*j + 1)];
-//        std::cout << std::setw(15) << theData ;
+        std::cout << std::setw(15) << theData ;
         if(j < 4){
           fbm.timeData[j] = theData;           
         }
@@ -386,8 +392,12 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
           fbm.fiberData[j - 4] = theData;
         }
       }
+      if(fbm.timeData[1] < .0000001){
+        std::cout << "Skipping bad time" << std::endl;
+        continue;
+      }
       beamevt->AddFBMTrigger(name ,fbm);
-//      std::cout << std::endl;
+      std::cout << std::endl;
     }
 
     for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
@@ -398,6 +408,11 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
         
       *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
       fProfTime[name] = beamevt->DecodeFiberTime(name, i);
+      std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " " << beamevt->ReturnTriggerAndTime(name,i)[1] << " " << beamevt->ReturnTriggerAndTime(name,i)[2] << " " << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
+      fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
+      fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
+      fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];
+      fProfTime2[name] = beamevt->ReturnTriggerAndTime(name,i)[3];
       fProfTree[name]->Fill(); 
 
     }
@@ -441,7 +456,9 @@ void proto::BeamAna::beginJob()
 
   fOutTree = tfs->make<TTree>("tree", "lines"); 
   theTrack = new recob::Track();
+  eventTime = 0.;
   fOutTree->Branch("Track", &theTrack);
+  fOutTree->Branch("Time", &eventTime);
 
   for(size_t i = 0; i < fPairedDevices.size(); ++i){
     std::string name = "BeamProf2D_" + fPairedDevices[i].first + "_" + fPairedDevices[i].second;
@@ -458,17 +475,37 @@ void proto::BeamAna::beginJob()
     
     name = "Fibers_" + fPairedDevices[i].first;
     fActiveFibers[fPairedDevices[i].first] = new std::vector<short>;
+
     fProfTime[fPairedDevices[i].first] = 0.;
+    fProfTrigger1[fPairedDevices[i].first] = 0.;
+    fProfTrigger2[fPairedDevices[i].first] = 0.;
+    fProfTime1[fPairedDevices[i].first] = 0.;
+    fProfTime2[fPairedDevices[i].first] = 0.;
+
     fProfTree[fPairedDevices[i].first] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
     fProfTree[fPairedDevices[i].first]->Branch("time", &fProfTime[fPairedDevices[i].first]);
     fProfTree[fPairedDevices[i].first]->Branch("fibers", &fActiveFibers[fPairedDevices[i].first]);
+    fProfTree[fPairedDevices[i].first]->Branch("trigger_1", &fProfTrigger1[fPairedDevices[i].first]);
+    fProfTree[fPairedDevices[i].first]->Branch("trigger_2", &fProfTrigger2[fPairedDevices[i].first]);
+    fProfTree[fPairedDevices[i].first]->Branch("time_1", &fProfTime1[fPairedDevices[i].first]);
+    fProfTree[fPairedDevices[i].first]->Branch("time_2", &fProfTime2[fPairedDevices[i].first]);
 
     name = "Fibers_" + fPairedDevices[i].second;
     fActiveFibers[fPairedDevices[i].second] = new std::vector<short>;
+
     fProfTime[fPairedDevices[i].second] = 0.;
+    fProfTrigger1[fPairedDevices[i].second] = 0.;
+    fProfTrigger2[fPairedDevices[i].second] = 0.;
+    fProfTime1[fPairedDevices[i].second] = 0.;
+    fProfTime2[fPairedDevices[i].second] = 0.;
+
     fProfTree[fPairedDevices[i].second] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
     fProfTree[fPairedDevices[i].second]->Branch("time", &fProfTime[fPairedDevices[i].second]);
     fProfTree[fPairedDevices[i].second]->Branch("fibers", &fActiveFibers[fPairedDevices[i].second]);
+    fProfTree[fPairedDevices[i].second]->Branch("trigger_1", &fProfTrigger1[fPairedDevices[i].second]);
+    fProfTree[fPairedDevices[i].second]->Branch("trigger_2", &fProfTrigger2[fPairedDevices[i].second]);
+    fProfTree[fPairedDevices[i].second]->Branch("time_1", &fProfTime1[fPairedDevices[i].second]);
+    fProfTree[fPairedDevices[i].second]->Branch("time_2", &fProfTime2[fPairedDevices[i].second]);
   }
 
   for(size_t i = 0; i < fPairedStraightDevices.size(); ++i){
@@ -486,17 +523,37 @@ void proto::BeamAna::beginJob()
     
     name = "Fibers_" + fPairedStraightDevices[i].first;
     fActiveFibers[fPairedStraightDevices[i].first] = new std::vector<short>;
+
     fProfTime[fPairedStraightDevices[i].first] = 0.;
+    fProfTrigger1[fPairedStraightDevices[i].first] = 0.;
+    fProfTrigger2[fPairedStraightDevices[i].first] = 0.;
+    fProfTime1[fPairedStraightDevices[i].first] = 0.;
+    fProfTime2[fPairedStraightDevices[i].first] = 0.;
+
     fProfTree[fPairedStraightDevices[i].first] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
     fProfTree[fPairedStraightDevices[i].first]->Branch("time", &fProfTime[fPairedStraightDevices[i].first]);
     fProfTree[fPairedStraightDevices[i].first]->Branch("fibers", &fActiveFibers[fPairedStraightDevices[i].first]);
+    fProfTree[fPairedStraightDevices[i].first]->Branch("trigger_1", &fProfTrigger1[fPairedStraightDevices[i].first]);
+    fProfTree[fPairedStraightDevices[i].first]->Branch("trigger_2", &fProfTrigger2[fPairedStraightDevices[i].first]);
+    fProfTree[fPairedStraightDevices[i].first]->Branch("time_1", &fProfTime1[fPairedStraightDevices[i].first]);
+    fProfTree[fPairedStraightDevices[i].first]->Branch("time_2", &fProfTime2[fPairedStraightDevices[i].first]);
 
     name = "Fibers_" + fPairedStraightDevices[i].second;
     fActiveFibers[fPairedStraightDevices[i].second] = new std::vector<short>;
+
     fProfTime[fPairedStraightDevices[i].second] = 0.;
+    fProfTrigger1[fPairedStraightDevices[i].second] = 0.;
+    fProfTrigger2[fPairedStraightDevices[i].second] = 0.;
+    fProfTime1[fPairedStraightDevices[i].second] = 0.;
+    fProfTime2[fPairedStraightDevices[i].second] = 0.;
+
     fProfTree[fPairedStraightDevices[i].second] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
     fProfTree[fPairedStraightDevices[i].second]->Branch("time", &fProfTime[fPairedStraightDevices[i].second]);
     fProfTree[fPairedStraightDevices[i].second]->Branch("fibers", &fActiveFibers[fPairedStraightDevices[i].second]);
+    fProfTree[fPairedStraightDevices[i].second]->Branch("trigger_1", &fProfTrigger1[fPairedStraightDevices[i].second]);
+    fProfTree[fPairedStraightDevices[i].second]->Branch("trigger_2", &fProfTrigger2[fPairedStraightDevices[i].second]);
+    fProfTree[fPairedStraightDevices[i].second]->Branch("time_1", &fProfTime1[fPairedStraightDevices[i].second]);
+    fProfTree[fPairedStraightDevices[i].second]->Branch("time_2", &fProfTime2[fPairedStraightDevices[i].second]);
   }
 
   for(size_t i = 0; i < fDevices.size(); ++i){
@@ -506,10 +563,20 @@ void proto::BeamAna::beginJob()
 
     name = "Fibers_" + fDevices[i];
     fProfTree[fDevices[i]] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
+
+    fProfTrigger1[fDevices[i]] = 0.;
+    fProfTrigger2[fDevices[i]] = 0.;
+    fProfTime1[fDevices[i]] = 0.;
+    fProfTime2[fDevices[i]] = 0.;
     fProfTime[fDevices[i]] = 0.;
+
     fActiveFibers[fDevices[i]] = new std::vector<short>;
     fProfTree[fDevices[i]]->Branch("time", &fProfTime[fDevices[i]]);
     fProfTree[fDevices[i]]->Branch("fibers", &fActiveFibers[fDevices[i]]);
+    fProfTree[fDevices[i]]->Branch("trigger_1", &fProfTrigger1[fDevices[i]]);
+    fProfTree[fDevices[i]]->Branch("trigger_2", &fProfTrigger2[fDevices[i]]);
+    fProfTree[fDevices[i]]->Branch("time_1", &fProfTime1[fDevices[i]]);
+    fProfTree[fDevices[i]]->Branch("time_2", &fProfTime2[fDevices[i]]);
   }
 }
 
@@ -787,10 +854,10 @@ void proto::BeamAna::GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double T
   for(size_t ip = 0; ip < fPairedDevices.size(); ++ip){
     std::string name = fPairedDevices[ip].first;
     std::vector<size_t> triggers;
-    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
+//    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
-        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
+//        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         triggers.push_back(itN);
       }
     }
@@ -798,10 +865,10 @@ void proto::BeamAna::GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double T
 
     name = fPairedDevices[ip].second;
     triggers.clear();
-    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
+//    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
-        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
+//        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         triggers.push_back(itN);
       }
     }
@@ -816,14 +883,14 @@ void proto::BeamAna::GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double T
     size_t triggerSizeTwo = goodTriggers[nameTwo].size();
 
     if(triggerSizeOne < 1){
-      std::cout << "Missing trigger for " << nameOne << std::endl;
+//      std::cout << "Missing trigger for " << nameOne << std::endl;
     }
     if(triggerSizeTwo < 1){
-      std::cout << "Missing trigger for " << nameTwo << std::endl;
+//      std::cout << "Missing trigger for " << nameTwo << std::endl;
     }
 
     if(triggerSizeOne > 0 && triggerSizeTwo > 0){
-      std::cout << "Found good triggers for " << nameOne << " " << nameTwo << std::endl;
+      //std::cout << "Found good triggers for " << nameOne << " " << nameTwo << std::endl;
       size_t triggerOne = goodTriggers[nameOne][0];
       size_t triggerTwo = goodTriggers[nameTwo][0];
       fBeamProf2D[ip]->Fill(beamevt.GetActiveFibers(nameOne,triggerOne)[0], beamevt.GetActiveFibers(nameTwo,triggerTwo)[0]);
@@ -844,10 +911,10 @@ void proto::BeamAna::GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, 
   for(size_t ip = 0; ip < fPairedStraightDevices.size(); ++ip){
     std::string name = fPairedStraightDevices[ip].first;
     std::vector<size_t> triggers;
-    std::cout << ip << " " << name << " " << fPairedStraightDevices[ip].second << std::endl;
+    //std::cout << ip << " " << name << " " << fPairedStraightDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
-        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
+        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         triggers.push_back(itN);
       }
     }
@@ -855,10 +922,10 @@ void proto::BeamAna::GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, 
 
     name = fPairedStraightDevices[ip].second;
     triggers.clear();
-    std::cout << ip << " " << name << " " << fPairedStraightDevices[ip].second << std::endl;
+    //std::cout << ip << " " << name << " " << fPairedStraightDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
-        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
+        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         triggers.push_back(itN);
       }
     }
@@ -873,14 +940,14 @@ void proto::BeamAna::GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, 
     size_t triggerSizeTwo = goodTriggers[nameTwo].size();
 
     if(triggerSizeOne < 1){
-      std::cout << "Missing trigger for " << nameOne << std::endl;
+      //std::cout << "Missing trigger for " << nameOne << std::endl;
     }
     if(triggerSizeTwo < 1){
-      std::cout << "Missing trigger for " << nameTwo << std::endl;
+      //std::cout << "Missing trigger for " << nameTwo << std::endl;
     }
 
     if(triggerSizeOne > 0 && triggerSizeTwo > 0){
-      std::cout << "Found good triggers for " << nameOne << " " << nameTwo << std::endl;
+      //std::cout << "Found good triggers for " << nameOne << " " << nameTwo << std::endl;
       size_t triggerOne = goodTriggers[nameOne][0];
       size_t triggerTwo = goodTriggers[nameTwo][0];
       fBeamProf2D[ip]->Fill(beamevt.GetActiveFibers(nameOne,triggerOne)[0], beamevt.GetActiveFibers(nameTwo,triggerTwo)[0]);
@@ -899,19 +966,19 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
   //Going through paired devices individually
   for(size_t ip = 0; ip < fPairedDevices.size(); ++ip){
     std::string name = fPairedDevices[ip].first;
-    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
+    //std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
-        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
+        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
       }
     }
 
     name = fPairedDevices[ip].second;
-    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
+    //std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
-        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
+        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
       }
     }
@@ -920,10 +987,10 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
   //Now going through unpaired
   for(size_t id = 0; id < fDevices.size(); ++id){
     std::string name = fDevices[id];
-    std::cout << id << " " << name << " " << fDevices[id] << std::endl;
+    //std::cout << id << " " << name << " " << fDevices[id] << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
-        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
+        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
       }
     }
