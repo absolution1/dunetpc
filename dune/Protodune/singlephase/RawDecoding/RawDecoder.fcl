@@ -39,7 +39,7 @@ pdsp_tpc_raw_decoder:
   RCEFragmentType: 2
   RCEDropEventsWithSmallFrags: false
   RCEDropSmallFrags: true
-  RCESmallFragSize: 300000
+  RCESmallFragSize: 500000
   RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
   RCEHexDump: false
   RCECheckBufferSize: true
