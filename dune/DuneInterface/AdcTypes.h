@@ -12,6 +12,7 @@
 #include <utility>
 
 typedef unsigned int AdcIndex;
+typedef unsigned long AdcLongIndex;
 
 typedef short AdcCount;
 typedef std::vector<AdcCount> AdcCountVector;
