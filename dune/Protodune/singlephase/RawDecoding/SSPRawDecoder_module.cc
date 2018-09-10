@@ -248,33 +248,16 @@ void dune::SSPRawDecoder::readHeader(const SSPDAQ::EventHeader* daqHeader, struc
 
 void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Fragment> *fragments){
 
-  art::EventNumber_t eventNumber = evt.event();
+  //art::EventNumber_t eventNumber = evt.event();
 
   art::Handle<artdaq::Fragments> rawFragments;
   art::Handle<artdaq::Fragments> containerFragments;
 
-  bool have_data = true;
-
   /// look for Container Fragments:
   evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
-  // Check if there is SSP data in this event
-  // Don't crash code if not present, just don't save anything    
-  try { containerFragments->size(); }
-  catch(std::exception e)  {
-    //std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
-    have_data = false;
-  }
 
-  if (have_data)
+  if(containerFragments.isValid())
     {
-      //Check that the data are valid
-      if(!containerFragments.isValid()){
-	LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
-				   << ", SubRun: " << evt.subRun()
-				   << ", Event: " << eventNumber
-				   << " Container Fragments found but NOT VALID";
-	return;
-      }
 
       for (auto cont : *containerFragments)
 	{
@@ -295,34 +278,15 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
 
   /// Look for non-container Raw Fragments:
 
-  bool have_data2=true;
-
   evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
     
-  // Check if there is SSP data in this event
-  // Don't crash code if not present, just don't save anything
-  try { rawFragments->size(); }
-  catch(std::exception e) {
-    //std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
-    have_data2=false;
-  }
-
-  if (have_data2)
+  if(rawFragments.isValid())
     {
-      //Check that the data is valid
-      if(!rawFragments.isValid()){
-
-	LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
-				   << ", SubRun: " << evt.subRun()
-				   << ", Event: " << eventNumber
-				   << " Non-Container Fragments found but NOT VALID";
-	return;
-      }
-      for(auto const& rawfrag: *rawFragments){
-	fragments->emplace_back( rawfrag );
-      }
-    }
-  
+      for(auto const& rawfrag: *rawFragments)
+	{
+	  fragments->emplace_back( rawfrag );
+	}
+    }  
 }
 
 void dune::SSPRawDecoder::beginJob(){

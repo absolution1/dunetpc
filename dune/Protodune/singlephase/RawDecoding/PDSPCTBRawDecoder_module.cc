@@ -95,25 +95,8 @@ void PDSPCTBRawDecoder::produce(art::Event & evt)
   art::Handle<artdaq::Fragments> cont_frags;
   evt.getByLabel(fInputLabel, fInputContainerInstance, cont_frags);  
 
-  bool have_data=true;
-  try { cont_frags->size(); }
-  catch(std::exception e) {
-    have_data=false;
-  }
-
-  if (have_data)
+  if(cont_frags.isValid())
     {
-      //Check that the data are valid
-      if(!cont_frags.isValid()){
-	LOG_ERROR("PDSPCTBRawDecoder") << "Container CTB fragments found but Not Valid " 
-				 << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event();
-        // emtpy output collection
-        evt.put(std::make_unique<std::vector<raw::ctb::pdspctb> >(std::move(pdspctbs)),fOutputLabel);
-	return;
-      }
-
       for (auto const& cont : *cont_frags)
 	{
 	  artdaq::ContainerFragment cont_frag(cont);
@@ -126,24 +109,9 @@ void PDSPCTBRawDecoder::produce(art::Event & evt)
 
   art::Handle<artdaq::Fragments> frags;
   evt.getByLabel(fInputLabel, fInputNonContainerInstance, frags); 
-  bool have_data_nc = true;
-  try { frags->size(); }
-  catch(std::exception e) {
-    have_data_nc = false;
-  }
 
-  if (have_data_nc)
+  if(frags.isValid())
     {
-      if(!frags.isValid()){
-	LOG_ERROR("PDSPCTBRawDecoder") << "NonContainer CTB fragments found but Not Valid " 
-				  << "Run: " << evt.run()
-				  << ", SubRun: " << evt.subRun()
-				  << ", Event: " << evt.event();
-        // emtpy output collection
-        evt.put(std::make_unique<std::vector<raw::ctb::pdspctb> >(std::move(pdspctbs)),fOutputLabel);
-	return;	
-      }
-
       for(auto const& frag: *frags)
 	{
 	  _process_CTB_AUX(frag);
