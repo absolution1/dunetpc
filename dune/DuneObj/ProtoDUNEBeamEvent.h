@@ -153,8 +153,11 @@ namespace beam
       return -1.;
     }
 
-    //FOR NOW JUST RETURN THE TRIGGER
-    return fiberMonitors[FBMName][nTrigger].timeData[0];
+    
+    //timeData[3] -> Event Time in Seconds
+    //timeData[2] -> Number of 8ns ticks after that time
+//    return fiberMonitors[FBMName][nTrigger].timeData[0];
+    return fiberMonitors[FBMName][nTrigger].timeData[3] + fiberMonitors[FBMName][nTrigger].timeData[2]*8.e-9;
   }
 
   inline std::array<double,4> ProtoDUNEBeamEvent::ReturnTriggerAndTime(std::string FBMName, size_t nTrigger){

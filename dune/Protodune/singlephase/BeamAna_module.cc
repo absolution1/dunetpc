@@ -379,8 +379,9 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
 
     beam::FBM fbm;
     fbm.ID = ID;
-         
-    for(size_t i = 0; i < counts[1]; ++i){
+    
+    //Skipping anything > 500, the data seems to be corrupted now
+    for(size_t i = 0; (i < counts[1] || i < 500); ++i){
       std::cout << "Count: " << i << std::endl;
       for(int j = 0; j < 10; ++j){
         double theData = data[20*i + (2*j + 1)];
@@ -431,7 +432,10 @@ void proto::BeamAna::parseXBPF(uint64_t time){
 void proto::BeamAna::parsePairedXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedDevices.size(); ++d){
     std::string name = fPairedDevices[d].first;
+    std::cout <<"Device: " << name << std::endl;
+    parseGeneralXBPF(name, time, d);
 
+    name = fPairedDevices[d].second;
     std::cout <<"Device: " << name << std::endl;
     parseGeneralXBPF(name, time, d);
   }
@@ -440,7 +444,10 @@ void proto::BeamAna::parsePairedXBPF(uint64_t time){
 void proto::BeamAna::parsePairedStraightXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedStraightDevices.size(); ++d){
     std::string name = fPairedStraightDevices[d].first;
+    std::cout <<"Device: " << name << std::endl;
+    parseGeneralXBPF(name, time, d);
 
+    name = fPairedStraightDevices[d].second;
     std::cout <<"Device: " << name << std::endl;
     parseGeneralXBPF(name, time, d);
   }
