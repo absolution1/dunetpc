@@ -329,23 +329,12 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
   art::Handle<artdaq::Fragments> cont_frags;
   evt.getByLabel(_rce_input_label, _rce_input_container_instance, cont_frags);  
 
-  bool have_data=true;
-  try { cont_frags->size(); }
-  catch(std::exception e) {
-    have_data=false;
-  }
+  bool have_data=false;
+  bool have_data_nc=false;
 
-  if (have_data)
+  if (cont_frags.isValid())
     {
-      //Check that the data are valid
-      if(!cont_frags.isValid()){
-	LOG_ERROR("_processRCE") << "Container TPC/RCE fragments found but Not Valid " 
-				 << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event();
-	_DiscardedCorruptData = true;
-	return false;
-      }
+      have_data = true;
 
       //size of RCE fragments into histogram
       if(_make_histograms)
@@ -385,23 +374,15 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 	}
     }
 
+  //noncontainer frags
+
   art::Handle<artdaq::Fragments> frags;
   evt.getByLabel(_rce_input_label, _rce_input_noncontainer_instance, frags); 
-  bool have_data_nc = true;
-  try { frags->size(); }
-  catch(std::exception e) {
-    have_data_nc = false;
-  }
 
-  if (have_data_nc)
+
+  if (frags.isValid())
     {
-      if(!frags.isValid()){
-	LOG_ERROR("_process_RCE") << "TPC/RCE fragments found but Not Valid " 
-				  << "Run: " << evt.run()
-				  << ", SubRun: " << evt.subRun()
-				  << ", Event: " << evt.event();
-	return false;
-      }
+      have_data_nc = true;
 
       //size of RCE fragments into histogram
       if(_make_histograms)
@@ -722,24 +703,12 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
   art::Handle<artdaq::Fragments> cont_frags;
   evt.getByLabel(_felix_input_label, _felix_input_container_instance, cont_frags); 
 
-  bool have_data = true;
-  try { cont_frags->size(); }
-  catch(std::exception e) {
-    have_data = false;
-  }
+  bool have_data = false;
+  bool have_data_nc = false;
 
-  if (have_data)
+  if(cont_frags.isValid())
     {
-      //Check that the data is valid
-
-      if(!cont_frags.isValid()){
-	LOG_ERROR("_processFELIX") << "Container TPC/FELIX fragments found but they are Not Valid " 
-				   << "Run: " << evt.run()
-				   << ", SubRun: " << evt.subRun()
-				   << ", Event: " << evt.event();
-	_DiscardedCorruptData = true;
-	return false;
-      }
+      have_data = true;
 
       //size of felix fragments into histogram
       if(_make_histograms)
@@ -779,25 +748,13 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 	}
     }
 
+  // noncontainer frags
+
   art::Handle<artdaq::Fragments> frags;
   evt.getByLabel(_felix_input_label, _felix_input_noncontainer_instance, frags);
-  bool have_data_nc = true;
-  try { frags->size(); }
-  catch(std::exception e) {
-    have_data_nc = false;
-  }
 
-  if (have_data_nc)
+  if(frags.isValid())
     {
-      //Check that the data is valid
-      if(!frags.isValid()){
-	LOG_ERROR("_process_FELIX") << "found TPC/FELIX non-container fragments but they are Not Valid " 
-				    << "Run: " << evt.run()
-				    << ", SubRun: " << evt.subRun()
-				    << ", Event: " << evt.event();
-	_DiscardedCorruptData = true;
-	return false;
-      }
 
       if(_make_histograms)
 	{
@@ -937,20 +894,20 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// should be 256
 
 
-      if (n_frames*n_channels > _felix_buffer_size_checklimit)
+  if (n_frames*n_channels > _felix_buffer_size_checklimit)
+    {
+      if (_felix_check_buffer_size)
 	{
-	  if (_felix_check_buffer_size)
-	    {
-	      LOG_WARNING("_process_FELIX_AUX:") << "n_channels*n_frames too large: " << n_channels << " * " << n_frames << " = " << 
-		n_frames*n_channels << " larger than: " <<  _felix_buffer_size_checklimit << ".  Discarding this fragment";
-	      _DiscardedCorruptData = true;
-	      return false;
-	    }
-	  else
-	    {
-	      _KeptCorruptData = true;
-	    }
+	  LOG_WARNING("_process_FELIX_AUX:") << "n_channels*n_frames too large: " << n_channels << " * " << n_frames << " = " << 
+	    n_frames*n_channels << " larger than: " <<  _felix_buffer_size_checklimit << ".  Discarding this fragment";
+	  _DiscardedCorruptData = true;
+	  return false;
 	}
+      else
+	{
+	  _KeptCorruptData = true;
+	}
+    }
 
   if(_make_histograms)
     {
