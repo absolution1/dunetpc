@@ -502,7 +502,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       } // chrms
       if(pedRMS < 0) continue;
       float snr = hit->PeakAmplitude() / pedRMS;
-      //std::cout<<"SNR "<<(int)snr<<"\n";
+      std::cout<<"SNR "<<(int)snr << " S: " << hit->PeakAmplitude() << " N: "<< pedRMS <<"\n";
       signalToNoise[tpc] += snr;
       ++signalToNoiseCnt[tpc];
 //      aveSN += sn;
