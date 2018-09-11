@@ -1622,9 +1622,9 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
 
 }
 
-double proto::BeamAna::GetPosition(std::string deviceName, size_t iFiber){
+double proto::BeamAna::GetPosition(std::string deviceName, size_t fiberIdx){
   //NEEDS WORK
-  if(iFiber > 192){ std::cout << "Please select fiber in range [0,191]" << std::endl; return -1.;}
+  if(fiberIdx > 192){ std::cout << "Please select fiber in range [0,191]" << std::endl; return -1.;}
   double size = fFiberDimension[deviceName];
   //double size = 1.;
   
