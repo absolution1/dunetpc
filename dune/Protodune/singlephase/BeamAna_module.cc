@@ -718,12 +718,17 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
     beamevt->DecodeFibers(name,i);
     std::cout << name << " at time: "
 	      << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
-    for(size_t iF = 0; iF < beamevt->GetActiveFibers(name,i).size(); ++iF)std::cout << beamevt->GetActiveFibers(name, i)[iF] << " "; 
+    for(size_t iFiber = 0; iFiber < beamevt->GetActiveFibers(name,i).size(); ++iFiber){
+      std::cout << beamevt->GetActiveFibers(name, i)[iFiber] << " ";
+    }
     std::cout << std::endl;
     
     *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
     fProfTime[name] = beamevt->DecodeFiberTime(name, i);
-    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " " << beamevt->ReturnTriggerAndTime(name,i)[1] << " " << beamevt->ReturnTriggerAndTime(name,i)[2] << " " << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
+    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[1] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[2] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
     fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
     fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
     fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];
@@ -1398,7 +1403,9 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
+        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
+	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
+	} // endfor 
       }
     }
 
@@ -1407,7 +1414,9 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
+        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
+	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
+	} // endfor 
       }
     }
   }
@@ -1419,20 +1428,22 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
+        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
+	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
+	} // endfor
       }
     }
   }
 
 }
-double proto::BeamAna::GetPosition(std::string deviceName, size_t iFiber){
+double proto::BeamAna::GetPosition(std::string deviceName, size_t fiberIdx){
   //NEEDS WORK
-  if(iFiber > 192){ std::cout << "Please select fiber in range [0,191]" << std::endl; return -1.;}
+  if(fiberIdx > 192){ std::cout << "Please select fiber in range [0,191]" << std::endl; return -1.;}
  // double size = fFiberDimension[deviceName];
   double size = 1.;
   
   //Define 0th fiber as farthest positive. Last fiber is farthest negative. Center is between 96 and 97 
-  double pos = size*iFiber + size/2.;
+  double pos = size*fiberIdx + size/2.;
   return pos;
 }
 
