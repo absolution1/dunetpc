@@ -93,14 +93,14 @@ physics.producers.beamana.Rotations:           [["XBPF022697",[0,0,1]],
                                                 ["XBPF022717",[0,0,0]]]
 
 
-physics.producers.beamana.Dimension:           [["XBPF022697",.01],
-                                                ["XBPF022698",.01],
-                                                ["XBPF022701",.01],
-                                                ["XBPF022702",.01],
-                                                ["XBPF022707",.01],
-                                                ["XBPF022708",.01],
-                                                ["XBPF022716",.01],
-                                                ["XBPF022717",.01]]
+physics.producers.beamana.Dimension:           [["XBPF022697",1],
+                                                ["XBPF022698",1],
+                                                ["XBPF022701",1],
+                                                ["XBPF022702",1],
+                                                ["XBPF022707",1],
+                                                ["XBPF022708",1],
+                                                ["XBPF022716",1],
+                                                ["XBPF022717",1]]
 
 physics.producers.beamana.GlobalDetCoords:    [0.,0.,0.]
 physics.producers.beamana.DetRotation:        [0.,0.,0.]

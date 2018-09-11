@@ -79,7 +79,8 @@ public:
   void GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   void GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   void GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
-  double GetPosition(std::string, size_t);
+  double GetPosition(std::string, int);
+  TVector3 ProjectToTPC(TVector3, TVector3);
   double GetPairedPosition(std::string, size_t);
   TVector3 TranslateDeviceToDetector(TVector3);
  
@@ -100,6 +101,12 @@ public:
 private:
   
   TTree * fOutTree;
+  TTree * fTrackTree;
+
+  std::vector<double> * trackX;
+  std::vector<double> * trackY;
+  std::vector<double> * trackZ;
+
   TH2F * fFirstBeamProf2D;
   TH2F * fSecondBeamProf2D;
   std::vector<TH2F *> fBeamProf2D;
@@ -252,6 +259,7 @@ T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
 // Producer Method (reads in the event and derives values)
 void proto::BeamAna::produce(art::Event & e)
 {
+  BeamMonitorBasisVectors();
 
   //const auto theInfo = e.getValidHandle< std::vector<raw::RDTimeStamp> >("timingrawdecoder");  
 //  const auto theInfo = e.getValidHandle< std::vector<raw::ctb::pdspctb> >(fInputLabel);  
@@ -349,7 +357,22 @@ void proto::BeamAna::produce(art::Event & e)
     }
 
     for(size_t iTrack = 0; iTrack < theTracks.size(); ++iTrack){    
-      beamevt->AddBeamTrack( *(theTracks[iTrack] ) ); 
+      beamevt->AddBeamTrack( *(theTracks[iTrack]) ); 
+      
+      auto thisTrack = theTracks[iTrack]; 
+      const recob::TrackTrajectory & theTraj = thisTrack->Trajectory();
+      trackX->clear(); 
+      trackY->clear(); 
+      trackZ->clear(); 
+      std::cout << "npositison: " << theTraj.NPoints() << std::endl;
+      for(auto const & pos : theTraj.Trajectory().Positions()){
+        std::cout << pos.X() << " " << pos.Y() << " " << pos.Z() << std::endl;
+        trackX->push_back(pos.X());
+        trackY->push_back(pos.Y());
+        trackZ->push_back(pos.Z());
+      }
+
+      fTrackTree->Fill();
     }
 
 //    parseXCET(fMultipleTimes[it]);
@@ -825,6 +848,14 @@ void proto::BeamAna::beginJob()
   fOutTree->Branch("Track", &theTrack);
   fOutTree->Branch("Time", &eventTime);
 
+  fTrackTree = tfs->make<TTree>("tracks","");
+  trackX = new std::vector<double>;
+  trackY = new std::vector<double>;
+  trackZ = new std::vector<double>;
+  fTrackTree->Branch("X", &trackX);
+  fTrackTree->Branch("Y", &trackY);
+  fTrackTree->Branch("Z", &trackZ);
+
   fMatchedTriggers = tfs->make<TTree>("matched","");
   
   fMatchedTriggers->Branch("Gen", &matchedGen);
@@ -986,6 +1017,7 @@ void proto::BeamAna::beginJob()
   fXTOF2BTree->Branch("coarse", &fXTOF2BCoarse);
   fXTOF2BTree->Branch("frac", &fXTOF2BFrac);
 
+
 }
 
 void proto::BeamAna::beginRun(art::Run & r)
@@ -1104,9 +1136,9 @@ TVector3 proto::BeamAna::ConvertProfCoordinates(double x, double y, double z, do
 
   TVector3 old(x,y,z);
 
-  double newX = x*fBMBasisX.X() + y*fBMBasisY.X() + (z-zOffset)*fBMBasisZ.X() + off*fabs(fBMBasisZ.X());
-  double newY = x*fBMBasisX.Y() + y*fBMBasisY.Y() + (z-zOffset)*fBMBasisZ.Y() + off*fabs(fBMBasisZ.Y());
-  double newZ = x*fBMBasisX.Z() + y*fBMBasisY.Z() + (z-zOffset) - off*fabs(fBMBasisZ.Z());
+  double newX = x*fBMBasisX.X() + y*fBMBasisY.X() + /*(z-zOffset)*fBMBasisZ.X()*/ + off*fabs(fBMBasisZ.X());
+  double newY = x*fBMBasisX.Y() + y*fBMBasisY.Y() + /*(z-zOffset)*fBMBasisZ.Y()*/ + off*fabs(fBMBasisZ.Y());
+  double newZ = x*fBMBasisX.Z() + y*fBMBasisY.Z() + /*(z-zOffset)              */ - off*fabs(fBMBasisZ.Z());
 
   newX += fBeamX*10.;
   newY += fBeamY*10.;
@@ -1117,12 +1149,16 @@ TVector3 proto::BeamAna::ConvertProfCoordinates(double x, double y, double z, do
 }
 
 void proto::BeamAna::BeamMonitorBasisVectors(){
+  std::cout << "Rotating" << std::endl;
   fBMBasisX = TVector3(1.,0.,0.);
   fBMBasisY = TVector3(0.,1.,0.);
   fBMBasisZ = TVector3(0.,0.,1.);
   RotateMonitorVector(fBMBasisX);
+  std::cout << fBMBasisX.X() << " " << fBMBasisX.Y() << " " << fBMBasisX.Z() << std::endl;
   RotateMonitorVector(fBMBasisY);
+  std::cout << fBMBasisY.X() << " " << fBMBasisY.Y() << " " << fBMBasisY.Z() << std::endl;
   RotateMonitorVector(fBMBasisZ);
+  std::cout << fBMBasisZ.X() << " " << fBMBasisZ.Y() << " " << fBMBasisZ.Z() << std::endl;
 }
 
 void proto::BeamAna::RotateMonitorVector(TVector3 &vec){
@@ -1198,6 +1234,7 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
 
 
   //Pair the upstream fibers together
+  std::cout << "Upstream" << std::endl;
   for(size_t iF1 = 0; iF1 < firstUpstreamFibers.size(); ++iF1){
     
     size_t firstFiber = firstUpstreamFibers[iF1];
@@ -1205,6 +1242,7 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
     for(size_t iF2 = 0; iF2 < secondUpstreamFibers.size(); ++iF2){
       size_t secondFiber = secondUpstreamFibers[iF2];
 
+      std::cout << "Paired: " << firstFiber << " " << secondFiber << std::endl; 
       upstreamPairedFibers.push_back(std::make_pair(firstFiber, secondFiber));
 
       if (iF2 < secondUpstreamFibers.size() - 1){
@@ -1224,20 +1262,25 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
     if(firstUpstreamType == "horiz" && secondUpstreamType == "vert"){
       double xPos = GetPosition(firstUpstreamName, thePair.first);
       double yPos = GetPosition(secondUpstreamName, thePair.second);
-
+      
+      std::cout << "normal " << xPos << " " << yPos <<  std::endl;
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+      std::cout << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << std::endl;
       upstreamPositions.push_back( posInDet );
     }
     else if(firstUpstreamType == "vert" && secondUpstreamType == "horiz"){
       double yPos = GetPosition(firstUpstreamName, thePair.first);
       double xPos = GetPosition(secondUpstreamName, thePair.second);
+      std::cout << "normal " << xPos << " " << yPos <<  std::endl;
 
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+      std::cout << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << std::endl;
       upstreamPositions.push_back( posInDet );
     }
 
   }
-
+  
+  std::cout << "Downstream" << std::endl;
   //Pair the downstream fibers together
   for(size_t iF1 = 0; iF1 < firstDownstreamFibers.size(); ++iF1){
     
@@ -1246,6 +1289,7 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
     for(size_t iF2 = 0; iF2 < secondDownstreamFibers.size(); ++iF2){
       size_t secondFiber = secondDownstreamFibers[iF2];
 
+      std::cout << "Paired: " << firstFiber << " " << secondFiber << std::endl; 
       downstreamPairedFibers.push_back(std::make_pair(firstFiber, secondFiber));
 
       if (iF2 < secondDownstreamFibers.size() - 1){
@@ -1266,14 +1310,18 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
       double xPos = GetPosition(firstDownstreamName, thePair.first);
       double yPos = GetPosition(secondDownstreamName, thePair.second);
 
-      TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+      std::cout << "normal " << xPos << " " << yPos <<  std::endl;
+      TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fSecondTrackingProfZ);
+      std::cout << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << std::endl;
       downstreamPositions.push_back( posInDet );
     }
     else if(firstDownstreamType == "vert" && secondDownstreamType == "horiz"){
       double yPos = GetPosition(firstDownstreamName, thePair.first);
       double xPos = GetPosition(secondDownstreamName, thePair.second);
 
-      TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+      std::cout << "normal " << xPos << " " << yPos <<  std::endl;
+      TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fSecondTrackingProfZ);
+      std::cout << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << std::endl;
       downstreamPositions.push_back( posInDet );
     }
 
@@ -1290,9 +1338,16 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
 
     for(size_t iD = 0; iD < downstreamPositions.size(); ++iD){
       thePoints.push_back(downstreamPositions.at(iD));
+
+      //Now project the last point to the TPC face
+      thePoints.push_back( ProjectToTPC(thePoints[0],thePoints[1]) );    
+
       
       std::vector<TVector3> theMomenta;
-      //Just push back the unit vector
+      //Just push back the unit vector for each point 
+      //For now.
+      //Eventually, use momentum from curvature?
+      theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
 
@@ -1632,14 +1687,25 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
 
 }
 
-double proto::BeamAna::GetPosition(std::string deviceName, size_t fiberIdx){
+TVector3 proto::BeamAna::ProjectToTPC(TVector3 firstPoint, TVector3 secondPoint){
+  TVector3 dR = (secondPoint - firstPoint);
+  
+  double deltaZ = -1.*secondPoint.Z();
+  double deltaX = deltaZ * (dR.X() / dR.Z());
+  double deltaY = deltaZ * (dR.Y() / dR.Z());
+
+  TVector3 lastPoint = secondPoint + TVector3(deltaX, deltaY, deltaZ);
+  return lastPoint;
+}
+
+double proto::BeamAna::GetPosition(std::string deviceName, int fiberIdx){
   //NEEDS WORK
   if(fiberIdx > 192){ std::cout << "Please select fiber in range [0,191]" << std::endl; return -1.;}
   double size = fFiberDimension[deviceName];
   //double size = 1.;
   
   //Define 0th fiber as farthest positive. Last fiber is farthest negative. Center is between 96 and 97 
-  double pos = size*fiberIdx + size/2.;
+  double pos = size*(96 - fiberIdx) - size/2.;
   return pos;
 }
 
