@@ -25,6 +25,7 @@
 //#include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 #include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 #include <bitset>
 #include <iomanip>
 #include <utility>
@@ -252,6 +253,9 @@ T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
 void proto::BeamAna::produce(art::Event & e)
 {
 
+  //auto theInfo = e.getValidHandle< std::vector<raw::RDTimeStamp> >("timingrawdecoder");  
+  //std::cout << theInfo << std::endl;
+
   // Open up and read from  the IFBeam Service
   std::cerr << "%%%%%%%%%% Getting ifbeam service handle %%%%%%%%%%" << std::endl;
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
@@ -338,8 +342,13 @@ void proto::BeamAna::produce(art::Event & e)
 
     }
 
-    for(size_t iTrack = 0; iTrack < 10; ++iTrack){
-      MakeTrack(iTrack);
+    for(size_t iTrigger = 0; iTrigger < 10; ++iTrigger){
+      MakeTrack(iTrigger);
+
+    }
+
+    for(size_t iTrack = 0; iTrack < theTracks.size(); ++iTrack){    
+      beamevt->AddBeamTrack( *(theTracks[iTrack] ) ); 
     }
 
 //    parseXCET(fMultipleTimes[it]);

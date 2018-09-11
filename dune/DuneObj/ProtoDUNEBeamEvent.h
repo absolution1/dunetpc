@@ -5,6 +5,7 @@
 #include <bitset>
 #include <iostream>
 #include <map>
+#include "lardataobj/RecoBase/Track.h"
 
 namespace beam
 {
@@ -76,6 +77,7 @@ namespace beam
       int               GetNTOF0Triggers(){ return TOF0.size(); };
       int               GetNTOF1Triggers(){ return TOF1.size(); };
 
+      void              AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
     
     private:
 
@@ -99,6 +101,8 @@ namespace beam
       //
       std::vector< CKov > CKov0;
       std::vector< CKov > CKov1;
+
+      std::vector<recob::Track> Tracks;
   
   };
 
