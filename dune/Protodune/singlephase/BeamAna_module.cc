@@ -375,6 +375,8 @@ void proto::BeamAna::produce(art::Event & e)
       fTrackTree->Fill();
     }
 
+    std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl;
+
 //    parseXCET(fMultipleTimes[it]);
   }
 

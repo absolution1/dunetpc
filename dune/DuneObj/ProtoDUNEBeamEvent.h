@@ -79,6 +79,7 @@ namespace beam
 
       void              AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
       recob::Track      GetBeamTrack(size_t i){ return Tracks[i];};
+      size_t            GetNBeamTracks(){return Tracks.size();}
     
     private:
 
