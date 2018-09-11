@@ -1146,7 +1146,7 @@ TVector3 proto::BeamAna::ConvertProfCoordinates(double x, double y, double z, do
   newY += fBeamY*10.;
   newZ += fBeamZ*10.;
 
-  TVector3 result(newX, newY, newZ);
+  TVector3 result(newX/10., newY/10., newZ/10.);
   return result;
 }
 
